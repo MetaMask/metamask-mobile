@@ -9,6 +9,7 @@ import Logger from '../../../../../util/Logger';
 import { AccountWalletType } from '@metamask/account-api';
 import { selectWalletsMap } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { useAccountWalletOperationsLoadingStates } from '../../../../../util/accounts/useAccountWalletOperationsLoadingStates';
+import { keyringTypeToHardwareWalletType } from '../../../../../core/HardwareWallet/helpers';
 
 // Mock dependencies
 jest.mock('../../../../../core/Engine');
@@ -24,6 +25,10 @@ jest.mock(
 );
 jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
+}));
+jest.mock('../../../../../core/HardwareWallet/helpers', () => ({
+  ...jest.requireActual('../../../../../core/HardwareWallet/helpers'),
+  keyringTypeToHardwareWalletType: jest.fn(),
 }));
 
 // Mock AnimatedSpinner
@@ -110,6 +115,7 @@ describe('AccountListFooter', () => {
         <AccountListFooter
           walletId={mockWalletId}
           onAccountCreated={jest.fn()}
+          walletType={AccountWalletType.Entropy}
         />,
       );
       expect(getByText('Add account')).toBeOnTheScreen();
@@ -122,6 +128,7 @@ describe('AccountListFooter', () => {
         <AccountListFooter
           walletId={mockWalletId}
           onAccountCreated={jest.fn()}
+          walletType={AccountWalletType.Entropy}
         />,
       );
 
@@ -137,6 +144,7 @@ describe('AccountListFooter', () => {
         <AccountListFooter
           walletId={mockWalletId}
           onAccountCreated={jest.fn()}
+          walletType={AccountWalletType.Entropy}
         />,
       );
 
@@ -158,6 +166,7 @@ describe('AccountListFooter', () => {
         <AccountListFooter
           walletId={mockWalletId}
           onAccountCreated={jest.fn()}
+          walletType={AccountWalletType.Entropy}
         />,
       );
 
@@ -181,6 +190,7 @@ describe('AccountListFooter', () => {
         <AccountListFooter
           walletId={mockWalletId}
           onAccountCreated={jest.fn()}
+          walletType={AccountWalletType.Entropy}
         />,
       );
 
@@ -202,6 +212,7 @@ describe('AccountListFooter', () => {
         <AccountListFooter
           walletId={mockWalletId}
           onAccountCreated={jest.fn()}
+          walletType={AccountWalletType.Entropy}
         />,
       );
 
@@ -221,6 +232,7 @@ describe('AccountListFooter', () => {
         <AccountListFooter
           walletId={mockWalletId}
           onAccountCreated={jest.fn()}
+          walletType={AccountWalletType.Entropy}
         />,
       );
 
@@ -244,6 +256,7 @@ describe('AccountListFooter', () => {
         <AccountListFooter
           walletId={mockWalletId}
           onAccountCreated={jest.fn()}
+          walletType={AccountWalletType.Entropy}
         />,
       );
 
@@ -269,6 +282,7 @@ describe('AccountListFooter', () => {
         <AccountListFooter
           walletId={mockWalletId}
           onAccountCreated={jest.fn()}
+          walletType={AccountWalletType.Entropy}
         />,
       );
 
@@ -284,6 +298,7 @@ describe('AccountListFooter', () => {
         <AccountListFooter
           walletId={mockWalletId}
           onAccountCreated={jest.fn()}
+          walletType={AccountWalletType.Entropy}
         />,
       );
 
@@ -299,6 +314,7 @@ describe('AccountListFooter', () => {
         <AccountListFooter
           walletId={mockWalletId}
           onAccountCreated={jest.fn()}
+          walletType={AccountWalletType.Entropy}
         />,
       );
 
@@ -312,6 +328,7 @@ describe('AccountListFooter', () => {
         <AccountListFooter
           walletId={mockWalletId}
           onAccountCreated={jest.fn()}
+          walletType={AccountWalletType.Entropy}
         />,
       );
 
@@ -336,6 +353,7 @@ describe('AccountListFooter', () => {
         <AccountListFooter
           walletId={mockWalletId}
           onAccountCreated={onAccountCreated}
+          walletType={AccountWalletType.Entropy}
         />,
       );
 
@@ -374,6 +392,7 @@ describe('AccountListFooter', () => {
         <AccountListFooter
           walletId={mockWalletId}
           onAccountCreated={onAccountCreated}
+          walletType={AccountWalletType.Entropy}
         />,
       );
 
@@ -386,22 +405,26 @@ describe('AccountListFooter', () => {
   });
 
   describe('Wallet Type Filtering', () => {
-    it('renders Add account button only for Entropy wallet type', () => {
+    it('renders Add account button for Entropy wallet type', () => {
       const { getByText } = render(
         <AccountListFooter
           walletId={mockWalletId}
           onAccountCreated={jest.fn()}
+          walletType={AccountWalletType.Entropy}
         />,
       );
 
       expect(getByText('Add account')).toBeOnTheScreen();
     });
 
-    it('does not render Add account button for non-Entropy wallet types', () => {
+    it('does not render Add account button for non-Entropy non-HW wallet types', () => {
+      (keyringTypeToHardwareWalletType as jest.Mock).mockReturnValue(undefined);
+
       const testCases = [
         {
-          name: 'Keyring wallet type',
+          name: 'Keyring wallet type (simple)',
           walletType: AccountWalletType.Keyring,
+          keyringType: 'Simple Key Pair',
         },
         {
           name: 'Snap wallet type',
@@ -409,7 +432,7 @@ describe('AccountListFooter', () => {
         },
       ];
 
-      testCases.forEach(({ walletType }) => {
+      testCases.forEach(({ name, walletType, keyringType }) => {
         const mockNonEntropyWallet = {
           ...mockWallet,
           type: walletType,
@@ -429,11 +452,77 @@ describe('AccountListFooter', () => {
           <AccountListFooter
             walletId={mockWalletId}
             onAccountCreated={jest.fn()}
+            walletType={walletType}
+            keyringType={keyringType}
           />,
         );
 
         expect(queryByText('Add account')).not.toBeOnTheScreen();
       });
+    });
+
+    it('renders Create Account button for Ledger hardware wallet', () => {
+      const mockLedgerWallet = {
+        ...mockWallet,
+        type: AccountWalletType.Keyring,
+        metadata: {
+          ...mockWallet.metadata,
+          keyring: { type: 'Ledger Hardware' },
+        },
+      };
+
+      (useSelector as jest.Mock).mockImplementationOnce((selector: unknown) => {
+        if (selector === selectWalletsMap) {
+          return { [mockWalletId]: mockLedgerWallet };
+        }
+        return {};
+      });
+
+      (keyringTypeToHardwareWalletType as jest.Mock).mockReturnValue('ledger');
+
+      const { getByText } = render(
+        <AccountListFooter
+          walletId={mockWalletId}
+          onAccountCreated={jest.fn()}
+          walletType={AccountWalletType.Keyring}
+          keyringType="Ledger Hardware"
+          onAddHardwareAccount={jest.fn()}
+        />,
+      );
+
+      expect(getByText('Add account')).toBeOnTheScreen();
+    });
+
+    it('renders Create Account button for QR hardware wallet', () => {
+      const mockQrWallet = {
+        ...mockWallet,
+        type: AccountWalletType.Keyring,
+        metadata: {
+          ...mockWallet.metadata,
+          keyring: { type: 'QR Hardware Wallet Device' },
+        },
+      };
+
+      (useSelector as jest.Mock).mockImplementationOnce((selector: unknown) => {
+        if (selector === selectWalletsMap) {
+          return { [mockWalletId]: mockQrWallet };
+        }
+        return {};
+      });
+
+      (keyringTypeToHardwareWalletType as jest.Mock).mockReturnValue('qr');
+
+      const { getByText } = render(
+        <AccountListFooter
+          walletId={mockWalletId}
+          onAccountCreated={jest.fn()}
+          walletType={AccountWalletType.Keyring}
+          keyringType="QR Hardware Wallet Device"
+          onAddHardwareAccount={jest.fn()}
+        />,
+      );
+
+      expect(getByText('Add account')).toBeOnTheScreen();
     });
 
     it('does not render Add account button when wallet is undefined', () => {
@@ -449,10 +538,72 @@ describe('AccountListFooter', () => {
         <AccountListFooter
           walletId={mockWalletId}
           onAccountCreated={jest.fn()}
+          walletType={AccountWalletType.Entropy}
         />,
       );
 
       expect(queryByText('Add account')).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('Hardware Wallet Button Interactions', () => {
+    it('calls onAddHardwareAccount when HW button is pressed', () => {
+      const mockLedgerWallet = {
+        ...mockWallet,
+        type: AccountWalletType.Keyring,
+        metadata: {
+          ...mockWallet.metadata,
+          keyring: { type: 'Ledger Hardware' },
+        },
+      };
+
+      (useSelector as jest.Mock).mockImplementationOnce((selector: unknown) => {
+        if (selector === selectWalletsMap) {
+          return { [mockWalletId]: mockLedgerWallet };
+        }
+        return {};
+      });
+
+      (keyringTypeToHardwareWalletType as jest.Mock).mockReturnValue('ledger');
+
+      const onAddHardwareAccount = jest.fn();
+
+      const { getByText } = render(
+        <AccountListFooter
+          walletId={mockWalletId}
+          onAccountCreated={jest.fn()}
+          walletType={AccountWalletType.Keyring}
+          keyringType="Ledger Hardware"
+          onAddHardwareAccount={onAddHardwareAccount}
+        />,
+      );
+
+      fireEvent.press(getByText('Add account'));
+
+      expect(onAddHardwareAccount).toHaveBeenCalledWith('ledger');
+      // Should NOT call MultichainAccountService
+      expect(
+        mockMultichainAccountService.createNextMultichainAccountGroup,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('does not call onAddHardwareAccount for Entropy wallets', async () => {
+      const onAddHardwareAccount = jest.fn();
+
+      const { getByText } = render(
+        <AccountListFooter
+          walletId={mockWalletId}
+          onAccountCreated={jest.fn()}
+          walletType={AccountWalletType.Entropy}
+          onAddHardwareAccount={onAddHardwareAccount}
+        />,
+      );
+
+      fireEvent.press(getByText('Add account'));
+
+      await waitFor(() => {
+        expect(onAddHardwareAccount).not.toHaveBeenCalled();
+      });
     });
   });
 });
