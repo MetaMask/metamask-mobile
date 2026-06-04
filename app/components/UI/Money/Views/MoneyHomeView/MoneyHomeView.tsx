@@ -101,9 +101,16 @@ const MoneyHomeView = () => {
     useMoneyAccountTransactions();
   const { cardTransactions, isLoading: isCardActivityLoading } =
     useMoneyAccountCardTransactions();
+  // Mock mode shows curated demo data only — never merge real card spends (or
+  // their loading state) into it.
+  const showCardActivityLoading = isCardActivityLoading && !mockDataEnabled;
   const activityItems = useMemo(
-    () => mergeMoneyActivity(allTransactions, cardTransactions),
-    [allTransactions, cardTransactions],
+    () =>
+      mergeMoneyActivity(
+        allTransactions,
+        mockDataEnabled ? [] : cardTransactions,
+      ),
+    [allTransactions, cardTransactions, mockDataEnabled],
   );
 
   const isCardholder = useSelector(selectIsCardholder);
@@ -349,9 +356,9 @@ const MoneyHomeView = () => {
             <Divider />
           </>
         )}
-        {(isCardActivityLoading || activityItems.length >= 1) && (
+        {(showCardActivityLoading || activityItems.length >= 1) && (
           <>
-            {isCardActivityLoading ? (
+            {showCardActivityLoading ? (
               <MoneyActivityLoading />
             ) : (
               <MoneyActivityList

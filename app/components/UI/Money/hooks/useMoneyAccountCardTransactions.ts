@@ -46,6 +46,9 @@ export function useMoneyAccountCardTransactions(): UseMoneyAccountCardTransactio
 
   // Guards against a fetch resolving after the screen blurs / address changes.
   const requestId = useRef(0);
+  // The in-flight request, so we can abort the socket (not just ignore its
+  // result) on blur or when a newer load supersedes it.
+  const abortRef = useRef<AbortController | null>(null);
 
   const load = useCallback(async () => {
     if (!isLinked || !rawAddress) {
@@ -55,15 +58,20 @@ export function useMoneyAccountCardTransactions(): UseMoneyAccountCardTransactio
     }
     const moneyAddress = toChecksumHexAddress(rawAddress);
     const current = ++requestId.current;
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
     setError(false);
     try {
       const response = await fetchAccountTransactions({
         address: moneyAddress,
         chainIds: MUSD_MONEY_ACCOUNT_CHAIN_IDS,
+        signal: controller.signal,
       });
       if (current !== requestId.current) return;
       setCardTransactions(parseCardTransactions(response, moneyAddress));
     } catch (e) {
+      // A superseded/blurred request was aborted on purpose — don't surface it.
       if (current !== requestId.current) return;
       Logger.error(e as Error, 'useMoneyAccountCardTransactions fetch failed');
       setError(true);
@@ -76,9 +84,11 @@ export function useMoneyAccountCardTransactions(): UseMoneyAccountCardTransactio
   useFocusEffect(
     useCallback(() => {
       load();
-      // Invalidate any in-flight request when the screen blurs.
+      // Invalidate and abort any in-flight request when the screen blurs.
       return () => {
         requestId.current++;
+        abortRef.current?.abort();
+        abortRef.current = null;
       };
     }, [load]),
   );

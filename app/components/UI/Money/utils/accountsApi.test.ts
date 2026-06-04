@@ -1,4 +1,4 @@
-import { parseCardTransactions } from './accountsApi';
+import { fetchAccountTransactions, parseCardTransactions } from './accountsApi';
 
 const MONEY_ADDRESS = '0xbF4bC559f929cE3994Ba12D71d564737357bC8C2';
 const SETTLEMENT_ADDRESS = '0x8dFE562Cbb4E93D5029f39DA26BB6B501a8d1D3e';
@@ -115,5 +115,148 @@ describe('parseCardTransactions', () => {
 
   it('returns an empty array when there is no data', () => {
     expect(parseCardTransactions({}, MONEY_ADDRESS)).toEqual([]);
+  });
+
+  it('drops a card payment with no leg leaving the money account (e.g. a refund)', () => {
+    // Arrange — funds move TO the money account; we only render outgoing debits.
+    const response = {
+      data: [
+        {
+          ...cardPaymentRow,
+          valueTransfers: [
+            {
+              ...cardPaymentRow.valueTransfers[0],
+              from: SETTLEMENT_ADDRESS.toLowerCase(),
+              to: MONEY_ADDRESS.toLowerCase(),
+            },
+          ],
+        },
+      ],
+    };
+
+    // Act
+    const result = parseCardTransactions(response, MONEY_ADDRESS);
+
+    // Assert
+    expect(result).toEqual([]);
+  });
+
+  it('drops rows whose chainId is not an accepted (Monad) chain', () => {
+    // Arrange — a card payment indexed on some other chain the API shouldn't return.
+    const response = { data: [{ ...cardPaymentRow, chainId: 1 }] };
+
+    // Act
+    const result = parseCardTransactions(response, MONEY_ADDRESS);
+
+    // Assert
+    expect(result).toEqual([]);
+  });
+
+  it.each([
+    ['decimal missing', { decimal: undefined }],
+    ['decimal negative', { decimal: -1 }],
+    ['decimal not an integer', { decimal: 6.5 }],
+    ['amount non-numeric', { amount: '5.38' }],
+    ['amount empty', { amount: '' }],
+    ['amount not a string', { amount: 5381986 }],
+  ])(
+    'drops a card payment with an untrustworthy settlement leg (%s)',
+    (_label, override) => {
+      // Arrange — a wire value that would otherwise render a wrong/NaN amount.
+      // Cast through `unknown`: these payloads deliberately violate the wire
+      // types to simulate untrustworthy JSON.
+      const response = {
+        data: [
+          {
+            ...cardPaymentRow,
+            valueTransfers: [
+              { ...cardPaymentRow.valueTransfers[0], ...override },
+            ],
+          },
+        ],
+      } as unknown as Parameters<typeof parseCardTransactions>[0];
+
+      // Act
+      const result = parseCardTransactions(response, MONEY_ADDRESS);
+
+      // Assert
+      expect(result).toEqual([]);
+    },
+  );
+});
+
+describe('fetchAccountTransactions', () => {
+  const okResponse = (data: unknown) => ({
+    ok: true,
+    json: jest.fn().mockResolvedValue(data),
+  });
+
+  let fetchSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    fetchSpy = jest
+      .spyOn(global, 'fetch')
+      .mockResolvedValue(okResponse({ data: [] }) as unknown as Response);
+  });
+
+  afterEach(() => {
+    fetchSpy.mockRestore();
+  });
+
+  it('requests the encoded address with the network/sort params and client header', async () => {
+    // Act
+    await fetchAccountTransactions({
+      address: MONEY_ADDRESS,
+      chainIds: ['0x8f'],
+    });
+
+    // Assert
+    const [url, options] = fetchSpy.mock.calls[0];
+    expect(url).toBe(
+      `https://accounts.api.cx.metamask.io/v1/accounts/${MONEY_ADDRESS}/transactions?networks=0x8f&sortDirection=DESC`,
+    );
+    expect(options.headers['x-metamask-clientproduct']).toBe(
+      'metamask-mobile-money',
+    );
+    expect(options.signal).toBeInstanceOf(AbortSignal);
+  });
+
+  it('throws when the response is not ok', async () => {
+    // Arrange
+    fetchSpy.mockResolvedValue({ ok: false, status: 503 } as Response);
+
+    // Act / Assert
+    await expect(
+      fetchAccountTransactions({ address: MONEY_ADDRESS, chainIds: ['0x8f'] }),
+    ).rejects.toThrow('Accounts API responded 503');
+  });
+
+  it('aborts the in-flight request when the caller signal aborts', async () => {
+    // Arrange — keep the request pending and capture the signal handed to fetch.
+    const controller = new AbortController();
+    let passedSignal: AbortSignal | undefined;
+    let resolveFetch: () => void = () => undefined;
+    fetchSpy.mockImplementation((_url, options) => {
+      passedSignal = (options as RequestInit).signal as AbortSignal;
+      return new Promise<Response>((resolve) => {
+        resolveFetch = () =>
+          resolve(okResponse({ data: [] }) as unknown as Response);
+      });
+    });
+
+    // Act
+    const pending = fetchAccountTransactions({
+      address: MONEY_ADDRESS,
+      chainIds: ['0x8f'],
+      signal: controller.signal,
+    });
+    expect(passedSignal?.aborted).toBe(false);
+    controller.abort();
+
+    // Assert — the caller's abort propagates to the request-level signal.
+    expect(passedSignal?.aborted).toBe(true);
+
+    resolveFetch();
+    await pending;
   });
 });

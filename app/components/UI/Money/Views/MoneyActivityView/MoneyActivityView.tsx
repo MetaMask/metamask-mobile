@@ -83,18 +83,27 @@ const MoneyActivityView = () => {
   const { cardTransactions, isLoading: isCardActivityLoading } =
     useMoneyAccountCardTransactions();
 
+  // Mock mode shows curated demo data only — never merge real card spends (or
+  // their loading state) into it.
+  const showCardActivityLoading = isCardActivityLoading && !mockDataEnabled;
+
   // Card spends are outgoing, so they belong with transfers (and in "All").
   const allItems = useMemo(
-    () => mergeMoneyActivity(allTransactions, cardTransactions),
-    [allTransactions, cardTransactions],
+    () =>
+      mergeMoneyActivity(
+        allTransactions,
+        mockDataEnabled ? [] : cardTransactions,
+      ),
+    [allTransactions, cardTransactions, mockDataEnabled],
   );
   const depositItems = useMemo(
     () => deposits.map(onchainItem).sort((a, b) => b.time - a.time),
     [deposits],
   );
   const transferItems = useMemo(
-    () => mergeMoneyActivity(transfers, cardTransactions),
-    [transfers, cardTransactions],
+    () =>
+      mergeMoneyActivity(transfers, mockDataEnabled ? [] : cardTransactions),
+    [transfers, cardTransactions, mockDataEnabled],
   );
 
   const handleBackPress = useCallback(() => {
@@ -230,7 +239,7 @@ const MoneyActivityView = () => {
         </Button>
       </Box>
 
-      {isCardActivityLoading ? (
+      {showCardActivityLoading ? (
         <MoneyActivityLoading />
       ) : sections.length === 0 ? (
         <Box
