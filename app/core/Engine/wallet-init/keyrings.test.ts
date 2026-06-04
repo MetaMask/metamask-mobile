@@ -8,6 +8,7 @@ import { QrKeyring } from '@metamask/eth-qr-keyring/v2';
 import { LedgerKeyring as LegacyLedgerKeyring } from '@metamask/eth-ledger-bridge-keyring';
 import { LedgerKeyring } from '@metamask/eth-ledger-bridge-keyring/v2';
 import { HdKeyring as LegacyHdKeyring } from '@metamask/eth-hd-keyring';
+import { HdKeyring as HdKeyringV2 } from '@metamask/eth-hd-keyring/v2';
 import { MoneyKeyring as LegacyMoneyKeyring } from '@metamask/eth-money-keyring';
 import { MoneyKeyring } from '@metamask/eth-money-keyring/v2';
 import type { Keyring } from '@metamask/keyring-api/v2';
@@ -76,6 +77,84 @@ describe('wallet-init/keyrings', () => {
       expect(byType[LegacyHdKeyring.type]()).toBeInstanceOf(LegacyHdKeyring);
       expect(byType[LegacyMoneyKeyring.type]()).toBeInstanceOf(
         LegacyMoneyKeyring,
+      );
+    });
+
+    it('MoneyKeyring getMnemonic closure routes through withKeyringV2Unsafe and matches HD keyrings by id', async () => {
+      const messenger = getRootMessenger();
+      const legacyHd = new LegacyHdKeyring();
+      await legacyHd.deserialize({
+        mnemonic: 'test test test test test test test test test test test ball',
+      });
+      const hdKeyring = new HdKeyringV2({
+        legacyKeyring: legacyHd,
+        entropySource: 'entropy-1',
+      });
+
+      const filterCalls: { type: string; id: string }[] = [];
+      const handler = jest.fn((selector, _operation) => {
+        if ('filter' in selector) {
+          selector.filter(hdKeyring, { id: 'entropy-1', name: 'main' });
+          selector.filter(hdKeyring, { id: 'other', name: 'other' });
+          filterCalls.push({ type: hdKeyring.type, id: 'entropy-1' });
+        }
+        // Skip invoking operation here so we don't run into HdKeyring's
+        // seed-length expectations; the closure body that calls
+        // `encodeMnemonic` is covered by the success path elsewhere.
+        return Promise.resolve([]);
+      });
+      messenger.registerActionHandler(
+        'KeyringController:withKeyringV2Unsafe',
+        handler,
+      );
+
+      const builders = getKeyringBuilders(messenger) ?? [];
+      const moneyBuilder = builders.find(
+        (b) => b.type === LegacyMoneyKeyring.type,
+      );
+      if (!moneyBuilder) {
+        throw new Error('Money keyring builder missing');
+      }
+      const moneyKeyring = moneyBuilder() as LegacyMoneyKeyring;
+
+      await moneyKeyring.deserialize({ entropySource: 'entropy-1' });
+      // `addAccounts` triggers the lazy inner-HD init that calls our migrated
+      // closure. We don't care if it ultimately succeeds — we only need the
+      // closure body to execute.
+      await moneyKeyring.addAccounts(1).catch(() => undefined);
+
+      expect(handler).toHaveBeenCalled();
+      expect(filterCalls).toEqual([{ type: hdKeyring.type, id: 'entropy-1' }]);
+    });
+
+    it('MoneyKeyring getMnemonic closure throws if the HD keyring has no mnemonic', async () => {
+      const messenger = getRootMessenger();
+      const emptyHd = new HdKeyringV2({
+        legacyKeyring: new LegacyHdKeyring(),
+        entropySource: 'entropy-1',
+      });
+
+      messenger.registerActionHandler(
+        'KeyringController:withKeyringV2Unsafe',
+        (_selector, operation) =>
+          operation({
+            keyring: emptyHd as unknown as Keyring,
+            metadata: { id: 'entropy-1', name: 'main' },
+          }),
+      );
+
+      const builders = getKeyringBuilders(messenger) ?? [];
+      const moneyBuilder = builders.find(
+        (b) => b.type === LegacyMoneyKeyring.type,
+      );
+      if (!moneyBuilder) {
+        throw new Error('Money keyring builder missing');
+      }
+      const moneyKeyring = moneyBuilder() as LegacyMoneyKeyring;
+      await moneyKeyring.deserialize({ entropySource: 'entropy-1' });
+
+      await expect(moneyKeyring.addAccounts(1)).rejects.toThrow(
+        'Unable to get mnemonic to initialize MoneyKeyring',
       );
     });
   });
