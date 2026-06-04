@@ -10,6 +10,7 @@ import {
   QrKeyringDeferredPromiseBridge,
 } from '@metamask/eth-qr-keyring';
 import {
+  LedgerDMKBridge,
   LedgerKeyring,
   LedgerMobileBridge,
   LedgerTransportMiddleware,
@@ -26,6 +27,8 @@ import {
   scanCompleted,
   scanRequested,
 } from '../../redux/slices/qrKeyringScanner';
+import { getDmk, isDmkEnabled } from '../../Ledger/dmk';
+import DevLogger from '../../SDKConnect/utils/DevLogger';
 
 // This is initialized globally as it is used in lots of UI contexts.
 export const qrKeyringBridge = new QrKeyringDeferredPromiseBridge({
@@ -63,7 +66,11 @@ export function getKeyringBuilders(
 
   keyrings.push(qrKeyringBuilder);
 
-  const bridge = new LedgerMobileBridge(new LedgerTransportMiddleware());
+  const useDmk = isDmkEnabled(messenger);
+  const bridge = useDmk
+    ? new LedgerDMKBridge({ dmk: getDmk() })
+    : new LedgerMobileBridge(new LedgerTransportMiddleware());
+  DevLogger.log(`[Ledger] Using ${useDmk ? 'LedgerDMKBridge' : 'LedgerMobileBridge'}`);
   const ledgerKeyringBuilder = () => new LedgerKeyring({ bridge });
   ledgerKeyringBuilder.type = LedgerKeyring.type;
 

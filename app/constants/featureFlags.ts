@@ -18,6 +18,7 @@ export enum FeatureFlagNames {
   telegramLoginEnabled = 'telegram_login_enabled',
   tronClaimUnstakedTrxButtonEnabled = 'tronClaimUnstakedTrxButtonEnabled',
   hapticsKillSwitch = 'hapticsKillSwitch',
+  enableDMK = 'enableDMK',
 }
 
 export const DEFAULT_FEATURE_FLAG_VALUES: Partial<

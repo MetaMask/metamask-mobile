@@ -4,6 +4,39 @@ import {
 } from '@ledgerhq/device-management-kit';
 import { RNBleTransportFactory } from '@ledgerhq/device-transport-kit-react-native-ble';
 import DevLogger from '../SDKConnect/utils/DevLogger';
+import { hasMinimumRequiredVersion } from '../../util/remoteFeatureFlag';
+
+const DMK_FEATURE_FLAG_KEY = 'enableDMK';
+
+interface HasGetState {
+  call: (action: 'RemoteFeatureFlagController:getState') => {
+    remoteFeatureFlags?: Record<string, unknown>;
+  };
+}
+
+export const isDmkEnabled = (messenger: HasGetState): boolean => {
+  try {
+    const flagState = messenger.call(
+      'RemoteFeatureFlagController:getState',
+    );
+    const dmkFlag = flagState?.remoteFeatureFlags?.[DMK_FEATURE_FLAG_KEY];
+    if (
+      dmkFlag &&
+      typeof dmkFlag === 'object' &&
+      'enabled' in dmkFlag
+    ) {
+      return (
+        (dmkFlag as { enabled: boolean }).enabled &&
+        hasMinimumRequiredVersion(
+          (dmkFlag as { minimumVersion: string }).minimumVersion,
+        )
+      );
+    }
+    return false;
+  } catch {
+    return false;
+  }
+};
 
 const state: { dmk: DeviceManagementKit | null } = { dmk: null };
 

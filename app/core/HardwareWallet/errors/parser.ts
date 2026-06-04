@@ -165,16 +165,21 @@ function parseErrorByName(
   error: unknown,
   walletType?: HardwareWalletType | null,
 ): HardwareWalletError | null {
-  if (
-    error === null ||
-    typeof error !== 'object' ||
-    !('name' in error) ||
-    typeof error.name !== 'string'
-  ) {
+  if (error === null || typeof error !== 'object') {
     return null;
   }
 
-  const name = error.name;
+  const errorObj = error as Record<string, unknown>;
+  const name =
+    'name' in error && typeof error.name === 'string' ? error.name : null;
+  const tag =
+    '_tag' in errorObj && typeof errorObj._tag === 'string'
+      ? errorObj._tag
+      : null;
+
+  if (!name && !tag) {
+    return null;
+  }
 
   // TransportStatusError requires special handling - extract and parse the status code
   // The error name alone doesn't tell us what went wrong; the statusCode does
@@ -187,19 +192,19 @@ function parseErrorByName(
         isErrorLike(error) ? error : undefined,
       );
     }
-    // If no status code found, fall through to unknown error
     return null;
   }
 
-  // Check known Ledger error names
-  if (ERROR_NAME_MAPPINGS[name]) {
+  // Check known error names (covers both legacy Ledger names and DMK _tag values)
+  const lookupKey = name ?? tag;
+  if (lookupKey && ERROR_NAME_MAPPINGS[lookupKey]) {
     return createHardwareWalletError(
-      ERROR_NAME_MAPPINGS[name],
+      ERROR_NAME_MAPPINGS[lookupKey],
       walletType,
       undefined,
       {
         cause: isErrorLike(error) ? error : undefined,
-        metadata: { errorName: name },
+        metadata: { errorName: lookupKey },
       },
     );
   }
@@ -273,6 +278,19 @@ function parseErrorByMessage(
       condition: (msg) => msg.includes('scan'),
     },
     { patterns: ['bluetooth'], code: ErrorCode.BluetoothConnectionFailed },
+    // DMK-specific patterns
+    {
+      patterns: ['session not found', 'sessionid is not initialized', 'invalid session'],
+      code: ErrorCode.DeviceDisconnected,
+    },
+    {
+      patterns: ['device action ended without completion'],
+      code: ErrorCode.DeviceUnresponsive,
+    },
+    {
+      patterns: ['ledger command failed'],
+      code: ErrorCode.DeviceNotReady,
+    },
   ];
 
   for (const { patterns, code, condition } of messagePatterns) {
