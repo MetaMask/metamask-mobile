@@ -96,6 +96,23 @@ function getTransactionById(txId: string): TransactionMeta | undefined {
   );
 }
 
+const POST_SIGN_BATCH_STATUSES: ReadonlySet<TransactionStatus> = new Set([
+  TransactionStatus.signed,
+  TransactionStatus.submitted,
+  TransactionStatus.confirmed,
+]);
+
+function hasSignedBatchFromAddress(batchId: string, address: string): boolean {
+  const normalizedAddress = address.toLowerCase();
+  return getTransactions().some(
+    (tx) =>
+      tx.batchId === batchId &&
+      tx.txParams.from?.toLowerCase() === normalizedAddress &&
+      POST_SIGN_BATCH_STATUSES.has(tx.status) &&
+      isBatchTransactionType(tx.type),
+  );
+}
+
 function getCancellableBatchTxIds(
   address: string | undefined,
   trackedTxIds: Iterable<string>,
@@ -469,6 +486,7 @@ export function useHwBatchSignTracker({
     createInitialBatchSignTrackerState(retryGenerationRef?.current),
   );
   const processApprovalQueueRef = useRef<(() => void) | undefined>(undefined);
+  const cancelInFlightRef = useRef<Promise<void> | null>(null);
   const trackerLifecycleKeyRef = useRef<string | undefined>(
     fromAddress && isEnabled ? fromAddress.toLowerCase() : undefined,
   );
@@ -549,73 +567,85 @@ export function useHwBatchSignTracker({
   }, []);
 
   const cancelCurrentBatch = useCallback(async () => {
-    const trackerState = trackerStateRef.current;
-    if (trackerState.isCancellingBatch) {
+    const inFlight = cancelInFlightRef.current;
+    if (inFlight) {
+      await inFlight;
       return;
     }
 
     const lifecycleKey = trackerLifecycleKeyRef.current;
-    const address = latestValuesRef.current.fromAddress?.toLowerCase();
-    const allTxIds = getCancellableBatchTxIds(
-      address,
-      trackerState.trackedTxIds,
-    );
-    const relatedBatchIds = getRelatedBatchIds(
-      trackerState.currentBatchId,
-      trackerState.seenBatchIds,
-      allTxIds,
-    );
-
-    const relatedApprovalIds = new Set([
-      ...trackerState.acceptedApprovalIds,
-      ...trackerState.approvalQueue,
-    ]);
-
-    trackerState.trackedTxIds = new Set();
-    trackerState.signedBatchIds = new Set();
-    invalidateBatchStateForRetry();
-
-    if (
-      rejectPendingBatchApprovals({
+    const cancelPromise = (async () => {
+      const trackerState = trackerStateRef.current;
+      const address = latestValuesRef.current.fromAddress?.toLowerCase();
+      const allTxIds = getCancellableBatchTxIds(
         address,
-        relatedBatchIds,
-        relatedApprovalIds,
-      })
-    ) {
-      trackTransactionCancelledEvent();
-    }
+        trackerState.trackedTxIds,
+      );
+      const relatedBatchIds = getRelatedBatchIds(
+        trackerState.currentBatchId,
+        trackerState.seenBatchIds,
+        allTxIds,
+      );
 
-    // Wipe chains with rejected/failed bridge txs so their nonces don't block retry
-    // batches. We can't rely on txIds (already cleared by failure handler),
-    // so scan all TC transactions for failed/rejected bridge txs from this
-    // address. If we leave these metas in TC state holding nonces N and N+1,
-    // TC may assign nonces N+2 and N+3 to the retry batch, creating a nonce
-    // gap that STX's simulator rejects with would_revert.
-    //
-    // TransactionController only exposes a typed chain/address-scoped wipe
-    // action, not a single-transaction delete action. Skip missing chain IDs
-    // rather than widening to every chain for the address.
-    wipeFailedBatchTransactions(address, relatedBatchIds);
+      const relatedApprovalIds = new Set([
+        ...trackerState.acceptedApprovalIds,
+        ...trackerState.approvalQueue,
+      ]);
 
-    if (allTxIds.length === 0) {
-      return;
-    }
+      trackerState.trackedTxIds = new Set();
+      invalidateBatchStateForRetry();
 
-    trackerState.pendingAbortTxIds = new Set(allTxIds);
-    trackerState.isCancellingBatch = true;
+      if (
+        rejectPendingBatchApprovals({
+          address,
+          relatedBatchIds,
+          relatedApprovalIds,
+        })
+      ) {
+        trackTransactionCancelledEvent();
+      }
 
-    abortTransactionSignings(allTxIds, trackerState.pendingAbortTxIds);
+      // Wipe chains with rejected/failed bridge txs so their nonces don't block retry
+      // batches. We can't rely on txIds (already cleared by failure handler),
+      // so scan all TC transactions for failed/rejected bridge txs from this
+      // address. If we leave these metas in TC state holding nonces N and N+1,
+      // TC may assign nonces N+2 and N+3 to the retry batch, creating a nonce
+      // gap that STX's simulator rejects with would_revert.
+      //
+      // TransactionController only exposes a typed chain/address-scoped wipe
+      // action, not a single-transaction delete action. Skip missing chain IDs
+      // rather than widening to every chain for the address.
+      wipeFailedBatchTransactions(address, relatedBatchIds);
 
-    // Only pre-broadcast txs are safe to local-drop; submitted txs may still
-    // be pending on-chain and must remain visible in activity.
-    dropAbortableTransactions(allTxIds);
+      if (allTxIds.length === 0) {
+        return;
+      }
+
+      trackerState.pendingAbortTxIds = new Set(allTxIds);
+      trackerState.isCancellingBatch = true;
+
+      abortTransactionSignings(allTxIds, trackerState.pendingAbortTxIds);
+
+      // Only pre-broadcast txs are safe to local-drop; submitted txs may still
+      // be pending on-chain and must remain visible in activity.
+      dropAbortableTransactions(allTxIds);
+      try {
+        await waitForTerminalTransactions(allTxIds);
+      } finally {
+        trackerState.pendingAbortTxIds = new Set();
+        trackerState.isCancellingBatch = false;
+        if (trackerLifecycleKeyRef.current === lifecycleKey) {
+          Promise.resolve().then(() => processApprovalQueueRef.current?.());
+        }
+      }
+    })();
+
+    cancelInFlightRef.current = cancelPromise;
     try {
-      await waitForTerminalTransactions(allTxIds);
+      await cancelPromise;
     } finally {
-      trackerState.pendingAbortTxIds = new Set();
-      trackerState.isCancellingBatch = false;
-      if (trackerLifecycleKeyRef.current === lifecycleKey) {
-        Promise.resolve().then(() => processApprovalQueueRef.current?.());
+      if (cancelInFlightRef.current === cancelPromise) {
+        cancelInFlightRef.current = null;
       }
     }
   }, [invalidateBatchStateForRetry, trackTransactionCancelledEvent]);
@@ -625,6 +655,7 @@ export function useHwBatchSignTracker({
       fromAddress && isEnabled ? fromAddress.toLowerCase() : undefined;
     if (trackerLifecycleKeyRef.current !== trackerLifecycleKey) {
       trackerLifecycleKeyRef.current = trackerLifecycleKey;
+      cancelInFlightRef.current = null;
       trackerStateRef.current = createInitialBatchSignTrackerState(
         retryGenerationRef?.current,
       );
@@ -685,7 +716,8 @@ export function useHwBatchSignTracker({
             const isLateSignedBatchRejection = signedBatchIdCandidates.some(
               (batchId) =>
                 typeof batchId === 'string' &&
-                trackerState.signedBatchIds.has(batchId),
+                (trackerState.signedBatchIds.has(batchId) ||
+                  hasSignedBatchFromAddress(batchId, targetFrom)),
             );
             if (isLateSignedBatchRejection) {
               return;

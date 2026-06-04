@@ -622,6 +622,51 @@ describe('useHwBatchSignTracker', () => {
       expect(result.current.confirmationTxId).toBe(activeMeta.id);
     });
 
+    it('awaits in-flight cancel when cancelCurrentBatch is invoked concurrently', async () => {
+      const { result } = renderEnabledHook();
+      const meta = txMeta({
+        id: 'tx-concurrent-cancel-001',
+        type: TransactionType.bridgeApproval,
+        status: TransactionStatus.approved,
+        batchId: 'batch-concurrent-cancel',
+      });
+      let firstResolved = false;
+      let secondResolved = false;
+
+      setMockTransactions([meta]);
+      fireTxEvent(meta);
+
+      let firstCancel = Promise.resolve();
+      let secondCancel = Promise.resolve();
+      act(() => {
+        firstCancel = result.current.cancelCurrentBatch().then(() => {
+          firstResolved = true;
+        });
+        secondCancel = result.current.cancelCurrentBatch().then(() => {
+          secondResolved = true;
+        });
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(firstResolved).toBe(false);
+      expect(secondResolved).toBe(false);
+      expect(mockAbortTransactionSigning).toHaveBeenCalledTimes(1);
+
+      broadcastTxEvent({ ...meta, status: TransactionStatus.dropped });
+
+      await act(async () => {
+        await firstCancel;
+        await secondCancel;
+      });
+
+      expect(firstResolved).toBe(true);
+      expect(secondResolved).toBe(true);
+    });
+
     it('calls abortTransactionSigning for tracked txs on cancelCurrentBatch', async () => {
       const { result } = renderEnabledHook();
 
@@ -1701,6 +1746,47 @@ describe('useHwBatchSignTracker', () => {
       await cancelPromise;
       releaseHardwareOperation?.();
       await processingPromise;
+    });
+
+    it('ignores late transaction_batch rejection when batch txs are signed in TC before status handler runs', async () => {
+      const batchId = 'batch-tc-signed-fallback-001';
+      const txId = 'tx-tc-signed-fallback-001';
+      let rejectHardwareOperation: (() => void | Promise<void>) | undefined;
+
+      mockHwOpOnce(({ execute, onRejected }) => {
+        rejectHardwareOperation = onRejected;
+        return execute().then(() => false);
+      });
+      setMockPendingApprovals({
+        [batchId]: { id: batchId, type: 'transaction_batch' },
+      });
+
+      renderEnabledHook();
+
+      const approvalHandler = getApprovalHandler();
+      const statusHandler = getStatusHandler();
+
+      const approvedMeta = txMeta({
+        id: txId,
+        type: TransactionType.bridgeApproval,
+        status: TransactionStatus.approved,
+        batchId,
+      });
+      const signedMeta = { ...approvedMeta, status: TransactionStatus.signed };
+
+      await act(async () => {
+        statusHandler({ transactionMeta: approvedMeta });
+        await approvalHandler();
+        setMockTransactions([signedMeta]);
+      });
+      mockUpdateSwaps.mockClear();
+
+      await act(async () => {
+        await rejectHardwareOperation?.();
+      });
+
+      expect(Engine.rejectPendingApproval).not.toHaveBeenCalled();
+      expect(mockUpdateSwaps).not.toHaveBeenCalledWith(EXPECT_TX_FAILED);
     });
 
     it('processes only one approval when stateChange fires concurrently', async () => {
