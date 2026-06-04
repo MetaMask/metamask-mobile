@@ -1,31 +1,28 @@
 import React, { useEffect, useRef } from 'react';
-import { type StyleProp, View, type ViewStyle } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import {
   AvatarIcon,
   AvatarIconSeverity,
   AvatarIconSize,
+  BottomSheet,
+  BottomSheetFooter,
+  BottomSheetHeader,
+  type BottomSheetRef,
+  Box,
+  BoxAlignItems,
+  BoxBackgroundColor,
+  BoxJustifyContent,
+  ButtonSize,
+  ButtonsAlignment,
   IconColor as DSIconColor,
   IconName as DSIconName,
   IconSize as DSIconSize,
   Spinner,
-} from '@metamask/design-system-react-native';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import BottomSheetFooter, {
-  ButtonsAlignment,
-} from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
-import {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
-import Text, {
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import Engine from '../../../../../core/Engine';
 import {
@@ -78,13 +75,7 @@ export const getTradeSubtitle = ({
   });
 };
 
-const StatusIcon = ({
-  status,
-  loadingIconContainerStyle,
-}: {
-  status: PostTradeStatus;
-  loadingIconContainerStyle: StyleProp<ViewStyle>;
-}) => {
+const StatusIcon = ({ status }: { status: PostTradeStatus }) => {
   if (status !== PostTradeStatus.InProgress) {
     const isSuccess = status === PostTradeStatus.Success;
 
@@ -100,14 +91,19 @@ const StatusIcon = ({
   }
 
   return (
-    <View style={loadingIconContainerStyle}>
+    <Box
+      alignItems={BoxAlignItems.Center}
+      justifyContent={BoxJustifyContent.Center}
+      backgroundColor={BoxBackgroundColor.PrimaryMuted}
+      twClassName="h-12 w-12 rounded-full"
+    >
       <Spinner
         color={DSIconColor.PrimaryDefault}
         spinnerIconProps={{
           size: DSIconSize.Xl,
         }}
       />
-    </View>
+    </Box>
   );
 };
 
@@ -183,53 +179,49 @@ export const PostTradeBottomSheet = () => {
 
   const footerButtonProps =
     status === PostTradeStatus.Failed
-      ? [
-          {
-            label: strings('bridge.post_trade_modal.view_activity'),
-            variant: ButtonVariants.Secondary,
+      ? {
+          secondaryButtonProps: {
+            children: strings('bridge.post_trade_modal.view_activity'),
             size: ButtonSize.Lg,
             onPress: handleViewActivity,
             testID: 'post-trade-bottom-sheet-view-activity-button',
           },
-          {
-            label: strings('bridge.post_trade_modal.try_again'),
-            variant: ButtonVariants.Primary,
+          primaryButtonProps: {
+            children: strings('bridge.post_trade_modal.try_again'),
             size: ButtonSize.Lg,
             onPress: handleTryAgain,
             testID: 'post-trade-bottom-sheet-try-again-button',
           },
-        ]
+        }
       : undefined;
 
   return (
-    <BottomSheet ref={sheetRef} style={styles.sheet}>
+    <BottomSheet ref={sheetRef} goBack={() => navigation.goBack()}>
       <BottomSheetHeader
         onClose={handleClose}
         closeButtonProps={{ testID: 'post-trade-bottom-sheet-close-button' }}
       >
-        <StatusIcon
-          status={status}
-          loadingIconContainerStyle={styles.loadingIconContainer}
-        />
+        <StatusIcon status={status} />
       </BottomSheetHeader>
-      <View style={styles.content}>
-        <Text variant={TextVariant.HeadingLG} style={styles.title}>
+      <Box style={styles.content}>
+        <Text variant={TextVariant.HeadingLg} style={styles.title}>
           {strings(`bridge.post_trade_modal.${titleType}_${status}`)}
         </Text>
         {subtitle ? (
           <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Alternative}
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
             style={styles.subtitle}
           >
             {subtitle}
           </Text>
         ) : null}
-      </View>
+      </Box>
       {footerButtonProps ? (
         <BottomSheetFooter
           buttonsAlignment={ButtonsAlignment.Horizontal}
-          buttonPropsArray={footerButtonProps}
+          secondaryButtonProps={footerButtonProps.secondaryButtonProps}
+          primaryButtonProps={footerButtonProps.primaryButtonProps}
           style={styles.footer}
         />
       ) : null}

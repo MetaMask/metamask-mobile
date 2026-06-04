@@ -1,24 +1,12 @@
 import { StyleSheet } from 'react-native';
-import type { Theme } from '../../../../../util/theme/models';
 
-const styleSheet = ({ theme }: { theme: Theme }) =>
+const styleSheet = () =>
   StyleSheet.create({
-    sheet: {
-      paddingBottom: 0,
-    },
     content: {
       alignItems: 'center',
       paddingHorizontal: 24,
       paddingTop: 16,
       paddingBottom: 16,
-    },
-    loadingIconContainer: {
-      alignItems: 'center',
-      justifyContent: 'center',
-      width: 48,
-      height: 48,
-      borderRadius: 24,
-      backgroundColor: theme.colors.primary.muted,
     },
     title: {
       textAlign: 'center',
