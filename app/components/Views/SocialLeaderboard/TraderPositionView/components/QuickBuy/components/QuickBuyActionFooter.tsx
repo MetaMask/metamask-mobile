@@ -82,7 +82,7 @@ const QuickBuyActionFooter: React.FC = () => {
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
-        twClassName="pb-3"
+        twClassName="pb-5"
       >
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           {tradeMode === 'sell'

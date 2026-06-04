@@ -119,11 +119,11 @@ const PerpsMarketListView = ({
     [onMarketSelect, perpsNavigation, transactionActiveAbTests],
   );
 
-  // Compute available categories based on market counts (hide empty categories)
+  // Compute available categories based on market counts (hide empty categories).
   const availableCategories = useMemo(() => {
     const categories: Exclude<MarketTypeFilter, 'all'>[] = [];
     if (marketCounts.crypto > 0) categories.push('crypto');
-    if (marketCounts.equity > 0) categories.push('stocks');
+    if (marketCounts.stocks > 0) categories.push('stocks');
     if (marketCounts.commodity > 0) categories.push('commodities');
     if (marketCounts.forex > 0) categories.push('forex');
     if (marketCounts.new > 0) categories.push('new');
@@ -139,6 +139,9 @@ const PerpsMarketListView = ({
       const categoryMap: Record<string, string | null> = {
         crypto: PERPS_EVENT_VALUE.BUTTON_CLICKED.CRYPTO,
         stocks: PERPS_EVENT_VALUE.BUTTON_CLICKED.STOCKS,
+        'pre-ipo': 'pre-ipo',
+        indices: 'indices',
+        etfs: 'etfs',
         commodities: PERPS_EVENT_VALUE.BUTTON_CLICKED.COMMODITIES,
         forex: PERPS_EVENT_VALUE.BUTTON_CLICKED.FOREX,
         new: PERPS_EVENT_VALUE.BUTTON_CLICKED.NEW,

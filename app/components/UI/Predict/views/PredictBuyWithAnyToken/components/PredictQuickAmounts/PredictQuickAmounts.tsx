@@ -22,7 +22,7 @@ function PredictQuickAmounts({
   const { playImpact } = useHaptics();
 
   return (
-    <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2 py-2">
+    <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2 py-1">
       {QUICK_AMOUNTS.map((amount) => (
         <Button
           key={amount}
@@ -34,7 +34,7 @@ function PredictQuickAmounts({
             onSelectAmount(amount);
           }}
           isDisabled={disabled}
-          style={tw.style('flex-1 h-12')}
+          style={tw.style('flex-1 h-11')}
         />
       ))}
     </Box>

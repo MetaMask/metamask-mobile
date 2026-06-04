@@ -22,7 +22,9 @@ export const createStyles = (colors: Theme['colors']) =>
     headerBackButton: {
       position: 'absolute',
       left: 16,
+      bottom: 12,
       zIndex: 1,
+      justifyContent: 'center',
     },
     headerTitleContainer: {
       flex: 1,

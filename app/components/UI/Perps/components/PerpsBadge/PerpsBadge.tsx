@@ -13,9 +13,9 @@ import type { PerpsBadgeProps } from './PerpsBadge.types';
  *
  * Displays different badge types:
  * - experimental: HIP-3 markets (blue)
- * - equity: Stock markets (orange)
+ * - stock: Stock markets (info blue)
  * - commodity: Commodity markets (green)
- * - crypto: Cryptocurrency markets (info blue)
+ * - crypto: Cryptocurrency markets (primary blue)
  * - forex: Foreign exchange markets (red)
  */
 const PerpsBadge: React.FC<PerpsBadgeProps> = ({

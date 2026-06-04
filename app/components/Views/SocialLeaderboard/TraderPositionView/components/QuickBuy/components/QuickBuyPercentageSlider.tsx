@@ -18,8 +18,9 @@ const MARKER_SIZE = 4;
 const ACCESSIBILITY_STEP = 1;
 // Decorative reference markers rendered on the track. The slider itself does
 // not snap to these positions, they exist purely as visual anchors so users
-// can eyeball quarter-balance amounts.
-const VISUAL_MARKERS = [0, 25, 50, 75, 100];
+// can eyeball quarter-balance amounts. Only the interior quarter marks are
+// drawn — 0 and 100 would sit under the handle and the track ends.
+const VISUAL_MARKERS = [25, 50, 75];
 const HAPTIC_THRESHOLDS = [25, 50, 75];
 
 interface QuickBuyPercentageSliderProps {
@@ -204,7 +205,7 @@ export function QuickBuyPercentageSlider({
               key={marker}
               pointerEvents="none"
               style={[
-                tw.style('absolute h-1 w-1 rounded-full bg-icon-muted'),
+                tw.style('absolute h-1 w-1 rounded-full bg-background-pressed'),
                 {
                   left: `${marker}%`,
                   transform: [{ translateX: -MARKER_SIZE / 2 }],

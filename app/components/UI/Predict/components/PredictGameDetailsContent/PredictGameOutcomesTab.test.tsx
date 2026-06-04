@@ -45,6 +45,14 @@ jest.mock('../../../../../util/Logger', () => ({
   default: { error: jest.fn() },
 }));
 
+const mockGetLivePrice = jest.fn();
+
+jest.mock('../../hooks/useLiveMarketPrices', () => ({
+  useLiveMarketPrices: jest.fn(() => ({
+    getPrice: mockGetLivePrice,
+  })),
+}));
+
 const mockOnBuyPress = jest.fn();
 
 interface CapturedCard {
@@ -206,6 +214,7 @@ const mockGame: PredictMarketGame = {
 describe('PredictGameOutcomesTab', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetLivePrice.mockReturnValue(undefined);
     mockCapturedCards = [];
   });
 
@@ -1059,7 +1068,7 @@ describe('PredictGameOutcomesTab', () => {
   });
 
   describe('moneyline subgroup rendering', () => {
-    it('renders stacked card for moneyline subgroup with multiple outcomes sorted by threshold', () => {
+    it('renders inline-spaced card for moneyline subgroup with multiple outcomes sorted by threshold', () => {
       const outcomes = [
         createOutcome({
           id: 'ml-2',
@@ -1100,7 +1109,7 @@ describe('PredictGameOutcomesTab', () => {
       );
 
       expect(mockCapturedCards).toHaveLength(1);
-      expect(mockCapturedCards[0].buttonLayout).toBe('stacked');
+      expect(mockCapturedCards[0].buttonLayout).toBe('inlineNoSeparator');
       expect(mockCapturedCards[0].buttons[0].label).toBe('HOM');
       expect(mockCapturedCards[0].buttons[1].label).toBe('Draw');
       expect(mockCapturedCards[0].buttons[2].label).toBe('AWY');
@@ -1183,6 +1192,77 @@ describe('PredictGameOutcomesTab', () => {
       expect(mockCapturedCards[0].buttons[1].variant).toBe('draw');
       expect(mockCapturedCards[0].buttons[2].price).toBe(25);
       expect(mockCapturedCards[0].buttons[2].variant).toBe('no');
+    });
+
+    it('uses live best ask prices for moneyline buttons', () => {
+      mockGetLivePrice.mockImplementation((tokenId: string) => ({
+        tokenId,
+        price: 0,
+        bestBid: 0,
+        bestAsk: tokenId === 'tok-a' ? 0.76 : 0.24,
+      }));
+
+      const outcomes = [
+        createOutcome({
+          id: 'ml-a',
+          tokens: [createToken({ id: 'tok-a', shortTitle: 'TA', price: 0.45 })],
+        }),
+        createOutcome({
+          id: 'ml-b',
+          tokens: [createToken({ id: 'tok-b', shortTitle: 'TB', price: 0.55 })],
+        }),
+      ];
+      const subgroups: PredictOutcomeGroup[] = [
+        createGroup({ key: 'moneyline', outcomes }),
+      ];
+      const groups = [
+        createGroup({ key: 'game_lines', outcomes: [], subgroups }),
+      ];
+
+      render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={mockGame}
+          activeChipKey="game_lines"
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      expect(mockCapturedCards[0].buttons[0].price).toBe(76);
+      expect(mockCapturedCards[0].buttons[1].price).toBe(24);
+    });
+
+    it('falls back to static token price when live best ask is zero', () => {
+      mockGetLivePrice.mockReturnValue({
+        tokenId: 'tok-a',
+        price: 0,
+        bestBid: 0,
+        bestAsk: 0,
+      });
+
+      const outcomes = [
+        createOutcome({
+          id: 'ml-a',
+          tokens: [createToken({ id: 'tok-a', shortTitle: 'TA', price: 0.45 })],
+        }),
+      ];
+      const subgroups: PredictOutcomeGroup[] = [
+        createGroup({ key: 'moneyline', outcomes }),
+      ];
+      const groups = [
+        createGroup({ key: 'game_lines', outcomes: [], subgroups }),
+      ];
+
+      render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={mockGame}
+          activeChipKey="game_lines"
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      expect(mockCapturedCards[0].buttons[0].price).toBe(45);
     });
 
     it('calls onBuyPress with correct outcome and token for moneyline button', () => {
@@ -1386,7 +1466,7 @@ describe('PredictGameOutcomesTab', () => {
   });
 
   describe('flat outcomes moneyline rendering', () => {
-    it('renders single stacked card for moneyline-like group without subgroups', () => {
+    it('renders single inline-spaced card for moneyline-like group without subgroups', () => {
       const outcomes = [
         createOutcome({
           id: 'hr-1',
@@ -1422,7 +1502,7 @@ describe('PredictGameOutcomesTab', () => {
       );
 
       expect(mockCapturedCards).toHaveLength(1);
-      expect(mockCapturedCards[0].buttonLayout).toBe('stacked');
+      expect(mockCapturedCards[0].buttonLayout).toBe('inlineNoSeparator');
       expect(mockCapturedCards[0].testID).toBe('halftime-moneyline');
       expect(mockCapturedCards[0].subtitle).toBe('$15k Vol');
     });
