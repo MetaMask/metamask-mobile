@@ -29,9 +29,10 @@ import {
   selectReferralCode,
 } from '../../../../reducers/rewards/selectors';
 
-interface PredictThePitchCampaignLeaderboardRouteParams {
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+type PredictThePitchCampaignLeaderboardRouteParams = {
   RewardsPredictThePitchCampaignLeaderboard: { campaignId: string };
-}
+};
 
 export const PREDICT_THE_PITCH_CAMPAIGN_LEADERBOARD_VIEW_TEST_IDS = {
   CONTAINER: 'predict-the-pitch-campaign-leaderboard-view-container',
