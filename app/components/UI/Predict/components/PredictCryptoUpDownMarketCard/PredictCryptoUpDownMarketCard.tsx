@@ -128,6 +128,12 @@ const CRYPTO_ACCENT_DEFAULT = 'rgb(245, 158, 11)';
 const CRYPTO_ACCENT_BY_SYMBOL: Record<string, string> = {
   BTC: 'rgb(247, 147, 26)',
 };
+
+const FULL_CARD_HEIGHT = 319;
+const FULL_PROGRESS_LOGO_TOP = 112;
+const FULL_LIVE_BADGE_TOP = 171;
+const FULL_TITLE_TOP = 197;
+const FULL_OUTCOME_BUTTONS_TOP = 235;
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 const AnimatedLine = Animated.createAnimatedComponent(SvgLine);
 const CLOCK_UPDATE_OFFSET_MS = 50;
@@ -165,10 +171,12 @@ interface PredictCryptoUpDownMarketCardProps {
   testID?: string;
   entryPoint?: PredictEntryPoint;
   /**
-   * Forwarded by the parent `PredictMarket` router for parity with sibling
-   * cards (`PredictMarketSingle`, `PredictMarketMultiple`). The crypto up/down
-   * card does not yet implement a carousel sizing variant — accepting the
-   * prop keeps the variant-card contract stable.
+   * When true, renders the compact carousel variant: the sparkline and target
+   * line/label treatment are dropped, and the card uses a `height: 100%` flex
+   * layout (matching `PredictMarketSingle` / `PredictMarketMultiple`) so it
+   * sits flush with its neighbours in the Explore TrendingView carousel.
+   * Chart-data and target-price queries are skipped in this mode since their
+   * output isn't displayed.
    */
   isCarousel?: boolean;
   /** Called synchronously before the card's navigation press fires. */
@@ -867,6 +875,17 @@ const ProgressLogo = React.memo(
 );
 ProgressLogo.displayName = 'ProgressLogo';
 
+type LiveStatusProps = {
+  endDate?: string;
+  durationMs: number;
+  imageUrl?: string;
+  accentColor: string;
+  trackColor: string;
+} & (
+  | { compact: true; progressLogoTop?: never; liveBadgeTop?: never }
+  | { compact?: false; progressLogoTop: number; liveBadgeTop: number }
+);
+
 const LiveStatus = React.memo(
   ({
     endDate,
@@ -874,13 +893,10 @@ const LiveStatus = React.memo(
     imageUrl,
     accentColor,
     trackColor,
-  }: {
-    endDate?: string;
-    durationMs: number;
-    imageUrl?: string;
-    accentColor: string;
-    trackColor: string;
-  }) => {
+    compact,
+    progressLogoTop,
+    liveBadgeTop,
+  }: LiveStatusProps) => {
     const tw = useTailwind();
     const nowMs = useSharedNowMs();
     const countdown = formatSeriesMarketCountdown(endDate, nowMs);
@@ -890,41 +906,73 @@ const LiveStatus = React.memo(
       nowMs,
     );
 
+    const logo = (
+      <ProgressLogo
+        imageUrl={imageUrl}
+        progress={progressRemaining}
+        color={accentColor}
+        trackColor={trackColor}
+      />
+    );
+
+    const badge = (
+      <Box
+        testID={PredictCryptoUpDownMarketCardSelectorsIDs.LIVE_BADGE}
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Center}
+      >
+        <Box
+          twClassName="mr-1.5 h-2 w-2 rounded-full"
+          style={tw.style({ backgroundColor: accentColor })}
+        />
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          style={tw.style({ color: accentColor })}
+        >
+          LIVE · {countdown}
+        </Text>
+      </Box>
+    );
+
+    if (compact) {
+      return (
+        <Box twClassName="items-center gap-2">
+          {logo}
+          {badge}
+        </Box>
+      );
+    }
+
     return (
       <>
-        <Box twClassName="absolute left-0 right-0 top-[112px] items-center px-4">
-          <ProgressLogo
-            imageUrl={imageUrl}
-            progress={progressRemaining}
-            color={accentColor}
-            trackColor={trackColor}
-          />
-        </Box>
-
         <Box
-          testID={PredictCryptoUpDownMarketCardSelectorsIDs.LIVE_BADGE}
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-          twClassName="absolute left-0 right-0 top-[171px]"
+          twClassName="absolute left-0 right-0 items-center px-4"
+          style={tw.style({ top: progressLogoTop })}
         >
-          <Box
-            twClassName="mr-1.5 h-2 w-2 rounded-full"
-            style={tw.style({ backgroundColor: accentColor })}
-          />
-          <Text
-            variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Medium}
-            style={tw.style({ color: accentColor })}
-          >
-            LIVE · {countdown}
-          </Text>
+          {logo}
+        </Box>
+        <Box
+          twClassName="absolute left-0 right-0 items-center"
+          style={tw.style({ top: liveBadgeTop })}
+        >
+          {badge}
         </Box>
       </>
     );
   },
 );
 LiveStatus.displayName = 'LiveStatus';
+
+type OutcomeButtonsProps = {
+  upToken?: PredictOutcomeToken;
+  downToken?: PredictOutcomeToken;
+  marketId?: string;
+  outcomeId?: string;
+  marketStatus: PredictMarketStatus;
+  onBuyPress: (token?: PredictOutcomeToken) => void;
+} & ({ compact: true; top?: never } | { compact?: false; top: number });
 
 const OutcomeButtons = React.memo(
   ({
@@ -934,14 +982,10 @@ const OutcomeButtons = React.memo(
     outcomeId,
     marketStatus,
     onBuyPress,
-  }: {
-    upToken?: PredictOutcomeToken;
-    downToken?: PredictOutcomeToken;
-    marketId?: string;
-    outcomeId?: string;
-    marketStatus: PredictMarketStatus;
-    onBuyPress: (token?: PredictOutcomeToken) => void;
-  }) => {
+    compact,
+    top,
+  }: OutcomeButtonsProps) => {
+    const tw = useTailwind();
     const tokenIds = useMemo(
       () =>
         [upToken?.id, downToken?.id].filter((id): id is string => Boolean(id)),
@@ -977,11 +1021,8 @@ const OutcomeButtons = React.memo(
       restPrices,
     );
 
-    return (
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        twClassName="absolute left-4 right-4 top-[235px] z-10 gap-2"
-      >
+    const buttons = (
+      <>
         <ButtonBase
           testID={PredictCryptoUpDownMarketCardSelectorsIDs.UP_BUTTON}
           onPress={() => onBuyPress(upToken)}
@@ -1010,6 +1051,24 @@ const OutcomeButtons = React.memo(
             Down · {formatCents(downPrice)}
           </Text>
         </ButtonBase>
+      </>
+    );
+
+    if (compact) {
+      return (
+        <Box flexDirection={BoxFlexDirection.Row} twClassName="w-full gap-2">
+          {buttons}
+        </Box>
+      );
+    }
+
+    return (
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        twClassName="absolute left-4 right-4 z-10 gap-2"
+        style={tw.style({ top })}
+      >
+        {buttons}
       </Box>
     );
   },
@@ -1018,20 +1077,31 @@ OutcomeButtons.displayName = 'OutcomeButtons';
 
 const PredictCryptoUpDownMarketCardSkeleton = ({
   testID,
+  compact,
 }: {
   testID?: string;
+  compact?: boolean;
 }) => {
   const tw = useTailwind();
 
   return (
-    <Box testID={testID} twClassName="my-2 rounded-xl bg-section p-4">
+    <Box
+      testID={testID}
+      twClassName={
+        compact
+          ? 'h-full rounded-xl bg-section p-4 justify-between'
+          : 'my-2 rounded-xl bg-section p-4'
+      }
+    >
       <Box
         testID={PredictCryptoUpDownMarketCardSelectorsIDs.SKELETON}
         twClassName="items-center gap-3"
       >
         <Skeleton width={40} height={40} style={tw.style('rounded-full')} />
         <Skeleton width="70%" height={18} style={tw.style('rounded-md')} />
-        <Skeleton width="100%" height={120} style={tw.style('rounded-xl')} />
+        {!compact && (
+          <Skeleton width="100%" height={120} style={tw.style('rounded-xl')} />
+        )}
         <Box flexDirection={BoxFlexDirection.Row} twClassName="w-full gap-2">
           <Skeleton width="48%" height={40} style={tw.style('rounded-lg')} />
           <Skeleton width="48%" height={40} style={tw.style('rounded-lg')} />
@@ -1047,12 +1117,14 @@ const PredictCryptoUpDownMarketCard: React.FC<
   market,
   testID,
   entryPoint: propEntryPoint,
+  isCarousel = false,
   onCardPress,
   onBuyButtonPress,
   predictFeedTab,
   predictScreen,
   transactionActiveAbTests,
 }) => {
+  const isCompact = isCarousel;
   const tw = useTailwind();
   const { colors } = useTheme();
   const navigation =
@@ -1123,6 +1195,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
     variant: getVariant(selectedMarket.series.recurrence),
     endDate: selectedMarket.endDate ?? '',
     enabled:
+      !isCompact &&
       Boolean(symbol) &&
       Boolean(targetPriceEventStartTime) &&
       Boolean(selectedMarket.endDate),
@@ -1134,7 +1207,11 @@ const PredictCryptoUpDownMarketCard: React.FC<
   const chartData = useCryptoUpDownChartData(
     selectedMarket,
     validatedTargetPrice,
-    { liveUpdatesEnabled: false, historicalWindow: chartHistoryWindow },
+    {
+      enabled: !isCompact,
+      liveUpdatesEnabled: false,
+      historicalWindow: chartHistoryWindow,
+    },
   );
   const sparklinePoints = useMemo(() => chartData.data, [chartData.data]);
   const latestPrice =
@@ -1243,11 +1320,71 @@ const PredictCryptoUpDownMarketCard: React.FC<
   );
 
   if (isSeriesLoading && !seriesMarkets) {
-    return <PredictCryptoUpDownMarketCardSkeleton testID={testID} />;
+    return (
+      <PredictCryptoUpDownMarketCardSkeleton
+        testID={testID}
+        compact={isCompact}
+      />
+    );
+  }
+
+  if (isCompact) {
+    return (
+      <Pressable
+        testID={testID ?? PredictCryptoUpDownMarketCardSelectorsIDs.CARD}
+        onPress={handleCardPress}
+        accessibilityLabel={cardTitle}
+        accessibilityRole="button"
+        style={tw.style('h-full rounded-xl bg-muted overflow-hidden')}
+      >
+        <Box twClassName="flex-1 p-4 items-center justify-between">
+          <Box twClassName="items-center gap-2">
+            <LiveStatus
+              compact
+              endDate={selectedMarket.endDate}
+              durationMs={durationMs}
+              imageUrl={imageUrl}
+              accentColor={accentColor}
+              trackColor={colors.border.muted}
+            />
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextDefault}
+              numberOfLines={1}
+              twClassName="text-center"
+            >
+              {cardTitle}
+            </Text>
+          </Box>
+
+          <Box twClassName="w-full items-center gap-3">
+            <OutcomeButtons
+              compact
+              upToken={upToken}
+              downToken={downToken}
+              marketId={selectedMarket.id}
+              outcomeId={selectedOutcome?.id}
+              marketStatus={selectedMarket.status as PredictMarketStatus}
+              onBuyPress={handleBuyPress}
+            />
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              Resets every {resetDuration}
+            </Text>
+          </Box>
+        </Box>
+      </Pressable>
+    );
   }
 
   return (
-    <Box twClassName="my-2 h-[319px] rounded-xl bg-muted overflow-hidden">
+    <Box
+      twClassName="my-2 rounded-xl bg-muted overflow-hidden"
+      style={tw.style({ height: FULL_CARD_HEIGHT })}
+    >
       <Pressable
         testID={testID ?? PredictCryptoUpDownMarketCardSelectorsIDs.CARD}
         onPress={handleCardPress}
@@ -1318,6 +1455,8 @@ const PredictCryptoUpDownMarketCard: React.FC<
           imageUrl={imageUrl}
           accentColor={accentColor}
           trackColor={colors.border.muted}
+          progressLogoTop={FULL_PROGRESS_LOGO_TOP}
+          liveBadgeTop={FULL_LIVE_BADGE_TOP}
         />
 
         <Text
@@ -1325,7 +1464,8 @@ const PredictCryptoUpDownMarketCard: React.FC<
           fontWeight={FontWeight.Medium}
           color={TextColor.TextDefault}
           numberOfLines={1}
-          twClassName="absolute left-4 right-4 top-[197px] text-center"
+          twClassName="absolute left-4 right-4 text-center"
+          style={tw.style({ top: FULL_TITLE_TOP })}
         >
           {cardTitle}
         </Text>
@@ -1338,6 +1478,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
         outcomeId={selectedOutcome?.id}
         marketStatus={selectedMarket.status as PredictMarketStatus}
         onBuyPress={handleBuyPress}
+        top={FULL_OUTCOME_BUTTONS_TOP}
       />
       <Box
         flexDirection={BoxFlexDirection.Row}
