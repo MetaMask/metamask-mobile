@@ -20,6 +20,7 @@ import DeleteWalletModal from '../../../components/UI/DeleteWalletModal';
 import Main from '../Main';
 import OptinMetrics from '../../UI/OptinMetrics';
 import OnboardingInterestQuestionnaire from '../../Views/OnboardingInterestQuestionnaire';
+import OnboardingCryptoExperienceQuestionnaire from '../../Views/OnboardingCryptoExperienceQuestionnaire/OnboardingCryptoExperienceQuestionnaire';
 import SimpleWebview from '../../Views/SimpleWebview';
 import Logger from '../../../util/Logger';
 import { useSelector } from 'react-redux';
@@ -323,6 +324,11 @@ const OnboardingNav = () => {
       <Stack.Screen
         name={Routes.ONBOARDING.INTEREST_QUESTIONNAIRE}
         component={OnboardingInterestQuestionnaire}
+        options={{ headerShown: false, gestureEnabled: false }}
+      />
+      <Stack.Screen
+        name={Routes.ONBOARDING.CRYPTO_EXPERIENCE_QUESTIONNAIRE}
+        component={OnboardingCryptoExperienceQuestionnaire}
         options={{ headerShown: false, gestureEnabled: false }}
       />
       <Stack.Screen

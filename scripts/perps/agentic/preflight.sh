@@ -11,4 +11,4 @@
 set -euo pipefail
 cd "$(dirname "$0")/../../.."
 echo "[preflight.sh] compatibility shim → preflight.ts (this wrapper will be removed)" >&2
-exec yarn ts-node --transpile-only scripts/perps/agentic/preflight/preflight.ts "$@"
+exec yarn ts-node --transpile-only --project scripts/perps/agentic/preflight/tsconfig.json scripts/perps/agentic/preflight/preflight.ts "$@"

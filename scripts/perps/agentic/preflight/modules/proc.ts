@@ -60,7 +60,7 @@ export async function killTree(root: number): Promise<void> {
   for (const p of pids) signal(p, 'SIGKILL');
 }
 
-function listenHolderPid(port: number): number | null {
+export function listenHolderPid(port: number): number | null {
   try {
     const out = execFileSync(
       'lsof',
@@ -80,16 +80,20 @@ export function metroAlive(port: number, maxMs = 1000): boolean {
   const r = spawnSync(
     'curl',
     ['-sf', '--max-time', String(Math.ceil(maxMs / 1000)), `http://localhost:${port}/status`],
-    { stdio: 'ignore' },
+    { encoding: 'utf8' },
   );
-  return r.status === 0;
+  return (r.stdout ?? '').includes('packager-status:running');
 }
 
-function holderCmd(pid: number): string {
+export function holderCmd(pid: number): string {
   const r = spawnSync('ps', ['-p', String(pid), '-o', 'command='], {
     encoding: 'utf8',
   });
   return (r.stdout ?? '').trim() || 'unknown';
+}
+
+export function isMetroLikeProcess(cmd: string): boolean {
+  return /\b(expo|react-native|metro)\b/i.test(cmd);
 }
 
 // Detect + clean orphaned expo/metro processes on `port`. Reuses a healthy
@@ -109,7 +113,7 @@ export async function sweepPort(
   }
 
   const cmd = holderCmd(pid);
-  if (/expo (run|start)|react-native|metro/.test(cmd)) {
+  if (isMetroLikeProcess(cmd)) {
     if (checkOnly) {
       logger.fail(
         `Port ${port} (${label}) held by stale ${cmd} (PID ${pid}) — run without --check-only to sweep`,

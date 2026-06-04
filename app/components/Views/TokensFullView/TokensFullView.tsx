@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 import { Box, HeaderStandard } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import Tokens from '../../UI/Tokens';
