@@ -4835,6 +4835,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: ['.infura.io', '.binance.org'],
     status: FeatureFlagStatus.Active,
   },
+
+  prePushPromptEnabled: {
+    name: 'prePushPromptEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '7.99.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
 };
 
 // ============================================================================
