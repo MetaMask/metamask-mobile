@@ -72,15 +72,17 @@ const PerpsProducts: React.FC<PerpsProductsProps> = ({
   );
 
   const handlePillPress = useCallback(
-    (category: Exclude<MarketTypeFilter, 'all'>) => {
+    (category: Exclude<MarketTypeFilter, 'all'>, pillPosition: number) => {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.PERPS_UI_INTERACTION)
           .addProperties({
             [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
               PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
-            [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]: category,
+            [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]: 'product_pill_tapped',
             [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
               PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
+            product: category,
+            pill_position: pillPosition,
           })
           .build(),
       );
@@ -89,11 +91,11 @@ const PerpsProducts: React.FC<PerpsProductsProps> = ({
         screen: Routes.PERPS.MARKET_LIST,
         params: {
           defaultMarketTypeFilter: category,
-          source,
+          source: 'perps_home__product_pill',
         },
       });
     },
-    [navigation, source, trackEvent, createEventBuilder],
+    [navigation, trackEvent, createEventBuilder],
   );
 
   if (visiblePills.length === 0) {
@@ -108,14 +110,14 @@ const PerpsProducts: React.FC<PerpsProductsProps> = ({
       />
 
       <View style={styles.grid}>
-        {visiblePills.map((cfg) => (
+        {visiblePills.map((cfg, index) => (
           <Pressable
             key={cfg.category}
             style={({ pressed }) => [
               styles.pill,
               pressed && styles.pillPressed,
             ]}
-            onPress={() => handlePillPress(cfg.category)}
+            onPress={() => handlePillPress(cfg.category, index)}
             accessibilityRole="button"
             accessibilityLabel={strings(cfg.labelKey)}
             testID={testID ? `${testID}-${cfg.category}` : undefined}

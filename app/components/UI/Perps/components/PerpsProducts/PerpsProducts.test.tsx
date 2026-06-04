@@ -78,14 +78,16 @@ jest.mock(
 );
 
 const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn().mockReturnValue({
+  build: jest.fn().mockReturnValue({ built: true }),
+});
+const mockCreateEventBuilder = jest.fn().mockReturnValue({
+  addProperties: mockAddProperties,
+});
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
     trackEvent: mockTrackEvent,
-    createEventBuilder: jest.fn(() => ({
-      addProperties: jest.fn(() => ({
-        build: jest.fn(() => ({})),
-      })),
-    })),
+    createEventBuilder: mockCreateEventBuilder,
   }),
 }));
 
@@ -130,7 +132,7 @@ describe('PerpsProducts', () => {
     expect(queryByText('Commodities')).toBeNull();
   });
 
-  it('navigates to market list with category on pill press', () => {
+  it('navigates to market list with category and product pill source', () => {
     const { getByTestId } = render(
       <PerpsProducts
         marketCounts={{ crypto: 10, stocks: 5 }}
@@ -145,7 +147,7 @@ describe('PerpsProducts', () => {
       screen: Routes.PERPS.MARKET_LIST,
       params: {
         defaultMarketTypeFilter: 'crypto',
-        source: 'perps_home',
+        source: 'perps_home__product_pill',
       },
     });
   });
@@ -165,7 +167,7 @@ describe('PerpsProducts', () => {
       screen: Routes.PERPS.MARKET_LIST,
       params: {
         defaultMarketTypeFilter: 'stocks',
-        source: 'perps_home',
+        source: 'perps_home__product_pill',
       },
     });
   });
@@ -195,14 +197,24 @@ describe('PerpsProducts', () => {
     expect(getByText('Forex')).toBeOnTheScreen();
   });
 
-  it('tracks analytics event on pill press', () => {
+  it('tracks analytics with product_pill_tapped, product, and pill_position', () => {
     const { getByTestId } = render(
-      <PerpsProducts marketCounts={{ crypto: 10 }} testID="perps-products" />,
+      <PerpsProducts
+        marketCounts={{ crypto: 10, stocks: 5 }}
+        testID="perps-products"
+      />,
     );
 
-    fireEvent.press(getByTestId('perps-products-crypto'));
+    fireEvent.press(getByTestId('perps-products-stocks'));
 
     expect(mockTrackEvent).toHaveBeenCalled();
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        button_clicked: 'product_pill_tapped',
+        product: 'stocks',
+        pill_position: 1,
+      }),
+    );
   });
 
   it('renders category icons', () => {
