@@ -87,6 +87,7 @@ enum EVENT_NAME {
   TOKEN_LIST_ITEM_CLICKED = 'Token List Item Clicked',
   TOKEN_DETAILS_OPENED = 'Token Details Opened',
   TOKEN_DETAILS_CTA_CLICKED = 'Token Details CTA Clicked',
+  TOKEN_DETAILS_ACTION_CLICKED = 'Token Details Action Clicked',
   /**
    * Token overview advanced chart: zoom, pan, tooltip, timeframe change, chart type
    * toggle, or TradingView link (see `interaction_type` and optional properties).
@@ -553,6 +554,9 @@ enum EVENT_NAME {
   NOTIFICATION_DETAIL_CLICKED = 'Notification Detail Clicked',
 
   // Push Notifications
+  PUSH_NOTIFICATION_PRE_PROMPT_VIEWED = 'Push Notification Pre-prompt Viewed',
+  PUSH_NOTIFICATION_PRE_PROMPT_BUTTON_CLICKED = 'Push Notification Pre-prompt Button Clicked',
+  OS_PUSH_NOTIFICATION_BUTTON_CLICKED = 'OS Push Notification Button Clicked',
   PUSH_NOTIFICATION_RECEIVED = 'Push Notification Received',
   PUSH_NOTIFICATION_CLICKED = 'Push Notification Clicked',
 
@@ -1465,6 +1469,15 @@ const events = {
   ),
 
   // Push Notifications Flow
+  PUSH_NOTIFICATION_PRE_PROMPT_VIEWED: generateOpt(
+    EVENT_NAME.PUSH_NOTIFICATION_PRE_PROMPT_VIEWED,
+  ),
+  PUSH_NOTIFICATION_PRE_PROMPT_BUTTON_CLICKED: generateOpt(
+    EVENT_NAME.PUSH_NOTIFICATION_PRE_PROMPT_BUTTON_CLICKED,
+  ),
+  OS_PUSH_NOTIFICATION_BUTTON_CLICKED: generateOpt(
+    EVENT_NAME.OS_PUSH_NOTIFICATION_BUTTON_CLICKED,
+  ),
   PUSH_NOTIFICATION_RECEIVED: generateOpt(
     EVENT_NAME.PUSH_NOTIFICATION_RECEIVED,
   ),
@@ -1633,6 +1646,9 @@ const events = {
   ),
   TOKEN_DETAILS_OPENED: generateOpt(EVENT_NAME.TOKEN_DETAILS_OPENED),
   TOKEN_DETAILS_CTA_CLICKED: generateOpt(EVENT_NAME.TOKEN_DETAILS_CTA_CLICKED),
+  TOKEN_DETAILS_ACTION_CLICKED: generateOpt(
+    EVENT_NAME.TOKEN_DETAILS_ACTION_CLICKED,
+  ),
   CHART_INTERACTED: generateOpt(EVENT_NAME.CHART_INTERACTED),
   CHART_EMPTY_DISPLAYED: generateOpt(EVENT_NAME.CHART_EMPTY_DISPLAYED),
   SECURITY_TRUST_BOTTOM_SHEET_OPENED: generateOpt(

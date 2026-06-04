@@ -139,6 +139,8 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
     outcome,
     outcomeToken,
     entryPoint,
+    predictFeedTab,
+    predictScreen,
     transactionActiveAbTests,
     trackSwipeDismiss,
   } = isSheetMode ? props : route.params;
@@ -146,8 +148,15 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
   const ActiveScrollView = isSheetMode ? GHScrollView : ScrollView;
 
   const analyticsProperties = useMemo(
-    () => parseAnalyticsProperties(market, outcomeToken, entryPoint),
-    [market, outcomeToken, entryPoint],
+    () =>
+      parseAnalyticsProperties(
+        market,
+        outcomeToken,
+        entryPoint,
+        predictFeedTab,
+        predictScreen,
+      ),
+    [market, outcomeToken, entryPoint, predictFeedTab, predictScreen],
   );
 
   // Track swipe/hardware-back dismissals in screen mode, but only when

@@ -313,6 +313,25 @@ const NotificationService = new NotificationsService();
 
 export default NotificationService;
 
+export type PushPermissionStatus = 'granted' | 'promptable' | 'denied';
+
+const getPushPermissionStatusFromAuthorizationStatus = (
+  authorizationStatus: AuthorizationStatus,
+): PushPermissionStatus => {
+  if (
+    authorizationStatus === AuthorizationStatus.AUTHORIZED ||
+    authorizationStatus === AuthorizationStatus.PROVISIONAL
+  ) {
+    return 'granted';
+  }
+
+  if (authorizationStatus === AuthorizationStatus.NOT_DETERMINED) {
+    return 'promptable';
+  }
+
+  return 'denied';
+};
+
 export async function requestPushPermissions() {
   const result = await NotificationService.getAllPermissions(true);
   return result.permission === 'authorized';
@@ -326,4 +345,38 @@ export async function hasPushPermission() {
 export async function getPushPermission() {
   const result = await NotificationService.getAllPermissions(false);
   return result.permission;
+}
+
+export async function getPushPermissionStatus(): Promise<PushPermissionStatus> {
+  try {
+    const settings = await notifee.getNotificationSettings();
+    return getPushPermissionStatusFromAuthorizationStatus(
+      settings.authorizationStatus,
+    );
+  } catch {
+    return 'denied';
+  }
+}
+
+/**
+ * Returns true when the OS has granted push permission (AUTHORIZED or PROVISIONAL).
+ * NOT_DETERMINED and DENIED both return false.
+ * Use this to gate registration, settings UI, and pre-prompt eligibility.
+ */
+export async function isPushPermissionGranted(): Promise<boolean> {
+  return (await getPushPermissionStatus()) === 'granted';
+}
+
+/**
+ * Returns true when requesting push permission may show the OS dialog.
+ * iOS exposes a NOT_DETERMINED state, but Notifee only exposes AUTHORIZED/DENIED
+ * on Android. Treat Android's not-granted state as promptable and let
+ * requestPermission determine whether the OS can show a dialog.
+ */
+export async function isPushPermissionPromptable(): Promise<boolean> {
+  if (Platform.OS === 'android') {
+    return !(await isPushPermissionGranted());
+  }
+
+  return (await getPushPermissionStatus()) === 'promptable';
 }
