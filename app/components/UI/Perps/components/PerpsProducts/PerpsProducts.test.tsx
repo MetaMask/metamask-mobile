@@ -15,7 +15,6 @@ jest.mock('../../../../../component-library/hooks', () => ({
       grid: {},
       pill: {},
       pillPressed: {},
-      pillIcon: {},
     },
   }),
 }));
@@ -37,7 +36,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
-  const { Text: RNText } = jest.requireActual('react-native');
+  const { Text: RNText, View } = jest.requireActual('react-native');
   const React = jest.requireActual('react');
   return {
     Text: ({
@@ -49,6 +48,19 @@ jest.mock('@metamask/design-system-react-native', () => {
       style?: object;
       testID?: string;
     }) => React.createElement(RNText, { style, testID }, children),
+    Icon: ({ name, testID }: { name?: string; testID?: string }) =>
+      React.createElement(View, { testID: testID ?? `icon-${name}` }),
+    IconName: {
+      Coin: 'Coin',
+      Briefcase: 'Briefcase',
+      Rocket: 'Rocket',
+      Exchange: 'Exchange',
+      MoneyBag: 'MoneyBag',
+      Chart: 'Chart',
+      PieChart: 'PieChart',
+    },
+    IconSize: { Sm: 'Sm' },
+    IconColor: { IconAlternative: 'IconAlternative' },
     TextVariant: { BodyMd: 'BodyMd' },
     FontWeight: { Medium: 'Medium' },
   };
@@ -194,10 +206,10 @@ describe('PerpsProducts', () => {
   });
 
   it('renders category icons', () => {
-    const { getByText } = render(
+    const { getByTestId } = render(
       <PerpsProducts marketCounts={{ crypto: 10 }} testID="perps-products" />,
     );
 
-    expect(getByText('⟠')).toBeOnTheScreen();
+    expect(getByTestId('icon-Coin')).toBeOnTheScreen();
   });
 });

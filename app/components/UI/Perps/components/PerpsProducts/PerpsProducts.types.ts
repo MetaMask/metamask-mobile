@@ -21,6 +21,4 @@ export interface CategoryPillConfig {
   category: Exclude<MarketTypeFilter, 'all'>;
   /** i18n key for the pill label */
   labelKey: string;
-  /** Unicode symbol shown beside the label */
-  icon: string;
 }

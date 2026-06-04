@@ -28,8 +28,5 @@ export const styleSheet = (params: { theme: Theme }) => {
     pillPressed: {
       opacity: 0.7,
     },
-    pillIcon: {
-      fontSize: 14,
-    },
   });
 };

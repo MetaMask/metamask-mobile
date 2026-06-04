@@ -5,6 +5,10 @@ import {
   Text,
   TextVariant,
   FontWeight,
+  Icon,
+  IconName,
+  IconSize,
+  IconColor,
 } from '@metamask/design-system-react-native';
 import {
   MARKET_CATEGORIES,
@@ -24,14 +28,14 @@ import type {
   CategoryPillConfig,
 } from './PerpsProducts.types';
 
-const CATEGORY_ICON_MAP: Record<string, string> = {
-  crypto: '⟠',
-  stocks: '∿',
-  'pre-ipo': '🚀',
-  forex: '£',
-  commodities: '◭',
-  indices: '▦',
-  etfs: '⊛',
+const CATEGORY_ICON_MAP: Record<string, IconName> = {
+  crypto: IconName.Coin,
+  stocks: IconName.Briefcase,
+  'pre-ipo': IconName.Rocket,
+  forex: IconName.Exchange,
+  commodities: IconName.MoneyBag,
+  indices: IconName.Chart,
+  etfs: IconName.PieChart,
 };
 
 /**
@@ -42,7 +46,6 @@ const PILL_CONFIGS: CategoryPillConfig[] = MARKET_CATEGORIES.map(
   (category) => ({
     category,
     labelKey: `perps.home.tabs.${category.replace('-', '_')}`,
-    icon: CATEGORY_ICON_MAP[category] ?? '•',
   }),
 );
 
@@ -117,9 +120,11 @@ const PerpsProducts: React.FC<PerpsProductsProps> = ({
             accessibilityLabel={strings(cfg.labelKey)}
             testID={testID ? `${testID}-${cfg.category}` : undefined}
           >
-            <Text variant={TextVariant.BodyMd} style={styles.pillIcon}>
-              {cfg.icon}
-            </Text>
+            <Icon
+              name={CATEGORY_ICON_MAP[cfg.category] ?? IconName.Coin}
+              size={IconSize.Sm}
+              color={IconColor.IconAlternative}
+            />
             <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
               {strings(cfg.labelKey)}
             </Text>
