@@ -1,6 +1,8 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
+import { formatAddressToAssetId } from '@metamask/bridge-controller';
 
+import { isRwaChecked } from '../../../../hooks/useTokensData/useTokensData';
 import { selectBatchSellDestStablecoinsByChain } from '../../../../../core/redux/slices/bridge';
 import { useTokensWithBalance } from '../../hooks/useTokensWithBalance';
 import {
@@ -29,7 +31,15 @@ export function useBatchSellTokens(
       stablecoinsByChain,
     });
     const withoutRwas = removeRwaTokens(withoutStablecoins);
-    return sortBatchSellTokens(withoutRwas, tokenSortDirection);
+    const confirmedNonRwas = withoutRwas.filter((token) => {
+      try {
+        const assetId = formatAddressToAssetId(token.address, token.chainId);
+        return assetId ? isRwaChecked(assetId.toLowerCase()) : false;
+      } catch {
+        return false;
+      }
+    });
+    return sortBatchSellTokens(confirmedNonRwas, tokenSortDirection);
   }, [allWalletTokens, stablecoinsByChain, tokenSortDirection]);
 
   const sortedEligibleChains = useMemo(

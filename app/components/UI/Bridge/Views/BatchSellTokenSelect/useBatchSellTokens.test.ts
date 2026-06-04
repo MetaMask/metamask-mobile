@@ -3,6 +3,7 @@ import { CaipChainId, Hex } from '@metamask/utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 
 import { BridgeToken } from '../../types';
+import { isRwaChecked } from '../../../../hooks/useTokensData/useTokensData';
 import { selectBatchSellDestStablecoinsByChain } from '../../../../../core/redux/slices/bridge';
 import { useTokensWithBalance } from '../../hooks/useTokensWithBalance';
 import { useBatchSellTokens } from './useBatchSellTokens';
@@ -13,6 +14,7 @@ import {
 
 const mockUseSelector = jest.fn();
 const mockUseTokensWithBalance = useTokensWithBalance as jest.Mock;
+const mockIsRwaChecked = isRwaChecked as jest.Mock;
 
 jest.mock('react-redux', () => ({
   useSelector: (selector: (state: unknown) => unknown) =>
@@ -25,6 +27,10 @@ jest.mock('../../../../../core/redux/slices/bridge', () => ({
 
 jest.mock('../../hooks/useTokensWithBalance', () => ({
   useTokensWithBalance: jest.fn(),
+}));
+
+jest.mock('../../../../hooks/useTokensData/useTokensData', () => ({
+  isRwaChecked: jest.fn(),
 }));
 
 const createToken = (overrides: Partial<BridgeToken>): BridgeToken => ({
@@ -61,6 +67,7 @@ describe('useBatchSellTokens', () => {
       tokens: [],
       isRwaDataLoading: false,
     });
+    mockIsRwaChecked.mockReturnValue(true);
   });
 
   it('opts into fetching token data for supported batch sell chains', () => {
@@ -110,6 +117,32 @@ describe('useBatchSellTokens', () => {
     expect(
       result.current.eligibleSourceTokens.map((token) => token.symbol),
     ).toEqual(['HIGH', 'LOW']);
+  });
+
+  it('excludes tokens whose RWA status has not been checked', () => {
+    const checkedToken = createToken({
+      symbol: 'CHECKED',
+      address: '0x1111111111111111111111111111111111111111',
+      tokenFiatAmount: 25,
+    });
+    const uncheckedToken = createToken({
+      symbol: 'UNKNOWN',
+      address: '0x2222222222222222222222222222222222222222',
+      tokenFiatAmount: 50,
+    });
+    mockIsRwaChecked.mockImplementation(
+      (assetId: string) => !assetId.includes(uncheckedToken.address),
+    );
+    mockUseTokensWithBalance.mockReturnValue({
+      tokens: [checkedToken, uncheckedToken],
+      isRwaDataLoading: false,
+    });
+
+    const { result } = renderUseBatchSellTokens();
+
+    expect(
+      result.current.eligibleSourceTokens.map((token) => token.symbol),
+    ).toEqual(['CHECKED']);
   });
 
   it('sorts eligible tokens by ascending fiat balance when requested', () => {
