@@ -218,6 +218,105 @@ describe('useQuickBuyQuotes', () => {
     await waitFor(() => expect(fetchQuotesMock).toHaveBeenCalledTimes(1));
   });
 
+  it('fetches immediately without waiting for the debounce when immediateFetchToken increments', async () => {
+    fetchQuotesMock.mockResolvedValue([createFetchedQuote()]);
+
+    const { rerender } = renderHook(
+      ({ token }: { token: number }) =>
+        useQuickBuyQuotes({
+          sourceToken: createSourceToken(),
+          destToken: createDestToken(),
+          sourceTokenAmount: '0.001',
+          immediateFetchToken: token,
+        }),
+      { initialProps: { token: 0 } },
+    );
+
+    fetchQuotesMock.mockClear();
+
+    rerender({ token: 1 });
+
+    await waitFor(() => expect(fetchQuotesMock).toHaveBeenCalledTimes(1));
+  });
+
+  it('keeps typed input debounced when immediateFetchToken is unchanged', async () => {
+    fetchQuotesMock.mockResolvedValue([createFetchedQuote()]);
+
+    const { rerender } = renderHook(
+      ({ amount }: { amount: string }) =>
+        useQuickBuyQuotes({
+          sourceToken: createSourceToken(),
+          destToken: createDestToken(),
+          sourceTokenAmount: amount,
+          immediateFetchToken: 0,
+        }),
+      { initialProps: { amount: '0.001' } },
+    );
+
+    fetchQuotesMock.mockClear();
+
+    rerender({ amount: '0.002' });
+
+    expect(fetchQuotesMock).not.toHaveBeenCalled();
+
+    act(() => {
+      jest.advanceTimersByTime(QUICK_BUY_QUOTE_DEBOUNCE_MS);
+    });
+
+    await waitFor(() => expect(fetchQuotesMock).toHaveBeenCalledTimes(1));
+  });
+
+  it('aborts the in-flight request and applies only the latest when slides are committed in quick succession', async () => {
+    const staleQuote = createFetchedQuote();
+    staleQuote.quote.requestId = 'stale';
+    const freshQuote = createFetchedQuote();
+    freshQuote.quote.requestId = 'fresh';
+
+    mockSelectBridgeQuotesBase.mockImplementation(
+      (controllerFields: { quotes: unknown[] }) => ({
+        sortedQuotes: controllerFields.quotes,
+        recommendedQuote: controllerFields.quotes[0] ?? null,
+      }),
+    );
+
+    let resolveStale: (value: unknown) => void = () => undefined;
+    const stalePromise = new Promise((resolve) => {
+      resolveStale = resolve;
+    });
+    fetchQuotesMock
+      .mockReturnValueOnce(stalePromise)
+      .mockResolvedValueOnce([freshQuote]);
+
+    const { result, rerender } = renderHook(
+      ({ token, amount }: { token: number; amount: string }) =>
+        useQuickBuyQuotes({
+          sourceToken: createSourceToken(),
+          destToken: createDestToken(),
+          sourceTokenAmount: amount,
+          immediateFetchToken: token,
+        }),
+      { initialProps: { token: 0, amount: '0.001' } },
+    );
+
+    rerender({ token: 1, amount: '0.001' });
+    rerender({ token: 2, amount: '0.002' });
+
+    await waitFor(() =>
+      expect(result.current.activeQuote?.quote.requestId).toBe('fresh'),
+    );
+
+    expect(fetchQuotesMock).toHaveBeenCalledTimes(2);
+    const firstRequestSignal = fetchQuotesMock.mock.calls[0][1];
+    expect(firstRequestSignal.aborted).toBe(true);
+
+    await act(async () => {
+      resolveStale([staleQuote]);
+      await Promise.resolve();
+    });
+
+    expect(result.current.activeQuote?.quote.requestId).toBe('fresh');
+  });
+
   it('calls BridgeController.fetchQuotes with atomic source amount and slippage', async () => {
     fetchQuotesMock.mockResolvedValue([createFetchedQuote()]);
 
