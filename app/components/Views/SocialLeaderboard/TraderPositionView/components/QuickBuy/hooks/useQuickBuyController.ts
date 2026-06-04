@@ -1,11 +1,18 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  playSuccessNotification,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import {
   playErrorNotification,
+  playImpact,
+  ImpactMoment,
 } from '../../../../../../../util/haptics';
 import { TextInput } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
 import type {
   QuickBuyAmountDisplayMode,
   QuickBuyAnalyticsContext,
@@ -75,15 +82,19 @@ import { selectSourceWalletAddress } from '../../../../../../../selectors/bridge
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../../selectors/accountsController';
 import { isHardwareAccount } from '../../../../../../../util/address';
 import Engine from '../../../../../../../core/Engine';
-import Routes from '../../../../../../../constants/navigation/Routes';
 import I18n, { strings } from '../../../../../../../../locales/i18n';
 import { calcTokenValue } from '../../../../../../../util/transactions';
 import Logger from '../../../../../../../util/Logger';
 import { buildSocialLoggerErrorOptions } from '../../../../../../../util/social/socialServiceTelemetry';
+import { useTheme } from '../../../../../../../util/theme';
+import { ToastContext } from '../../../../../../../component-library/components/Toast';
 import {
   SocialLeaderboardEventProperties,
   SocialLeaderboardEventValues,
 } from '../../../../analytics';
+import { trackQuickBuyTrade } from '../quickBuyTradeTracker';
+import { buildQuickBuyToastOptions } from '../quickBuyToastOptions';
+import { resolveQuickBuyTerminalToast } from '../resolveQuickBuyTerminalToast';
 import { toAssetId } from '../../../../../../UI/Bridge/hooks/useAssetMetadata/utils';
 
 export type QuickBuyButtonError =
@@ -200,7 +211,8 @@ export function useQuickBuyController(
 ): UseQuickBuyControllerResult {
   const hiddenInputRef = useRef<TextInput>(null);
   const dispatch = useDispatch();
-  const navigation = useNavigation();
+  const theme = useTheme();
+  const { toastRef } = useContext(ToastContext);
 
   const traderAddress = analyticsContext?.traderAddress ?? '';
   const caip19 = useMemo(
@@ -224,6 +236,11 @@ export function useQuickBuyController(
   // (slider drag end, tap, or text input) — NOT on every drag tick. This
   // prevents spamming quote requests while the thumb is moving.
   const [quotedUsdAmount, setQuotedUsdAmount] = useState('');
+  // Bumped whenever the user commits an amount in a single discrete gesture
+  // (slider release) so the quotes hook fetches immediately instead of waiting
+  // out the typing debounce. Typed input intentionally does NOT bump this — it
+  // stays debounced to avoid a request per keystroke.
+  const [immediateFetchToken, setImmediateFetchToken] = useState(0);
   // Fiat-first: every input path (slider, hidden TextInput, amount-area press)
   // edits the USD amount, so the primary label must default to fiat as well.
   // The user can swap to crypto display via the toggle once a quote is available.
@@ -234,7 +251,6 @@ export function useQuickBuyController(
   // Deduplicates consecutive handleSliderDragEnd calls with the same USD amount
   // (can happen when Tap + Pan both fire onEnd for a pure tap gesture).
   const lastCommittedUsdRef = useRef('');
-  const [txPhase, setTxPhase] = useState<'idle' | 'success'>('idle');
   const [selectedQuoteRequestId, setSelectedQuoteRequestId] = useState<
     string | undefined
   >(undefined);
@@ -464,6 +480,7 @@ export function useQuickBuyController(
     sourceTokenAmount,
     analyticsContext: quotesAnalyticsContext,
     selectedQuoteRequestId,
+    immediateFetchToken,
   });
 
   // Reset manual quote selection whenever the user changes amount, token, or slippage.
@@ -735,6 +752,9 @@ export function useQuickBuyController(
       setQuotedUsdAmount(nextUsd);
       const numericUsd = Number(nextUsd);
       if (rounded > 0 && Number.isFinite(numericUsd) && numericUsd > 0) {
+        // Slider release is a single committed value — fetch the quote
+        // immediately rather than waiting out the typing debounce.
+        setImmediateFetchToken((token) => token + 1);
         trackAmountSelected(
           numericUsd,
           SocialLeaderboardEventValues.AMOUNT_SELECTION_METHOD.SLIDER,
@@ -948,6 +968,29 @@ export function useQuickBuyController(
     }
     markTradeSubmitted();
     submitStartedAtRef.current = Date.now();
+    // Captures the copy data for every swap-lifecycle toast so the pending,
+    // complete and failed states read consistently — and so the app-root
+    // watcher can render the terminal toast after the sheet has unmounted.
+    const tradeToastInfo = {
+      tradeMode,
+      tokenSymbol: target.tokenSymbol,
+      counterTokenSymbol:
+        (tradeMode === 'buy' ? sourceToken?.symbol : destToken?.symbol) ?? '',
+      fiatAmountLabel: formatCurrency(usdAmountNumber, currentCurrency),
+      rate: formattedRate,
+    };
+    // Close the sheet and surface the pending toast immediately — the swap can
+    // take minutes to settle (cross-chain), so the user gets instant feedback
+    // on the trigger screen while submission happens in the background. The
+    // complete/failed toast later fires from the app-root registration.
+    onClose();
+    toastRef?.current?.showToast(
+      buildQuickBuyToastOptions('pending', { trade: tradeToastInfo, theme }),
+    );
+    // Medium impact acknowledging the Buy commit (catalog `PrimaryCTA`);
+    // success/error feedback is deferred to the terminal complete/failed
+    // states once the swap settles.
+    playImpact(ImpactMoment.PrimaryCTA);
 
     const elapsedMs = () =>
       submitStartedAtRef.current ? Date.now() - submitStartedAtRef.current : 0;
@@ -959,13 +1002,24 @@ export function useQuickBuyController(
         { ...activeQuote, approval: activeQuote.approval ?? undefined },
         stxEnabled,
       );
-      setTxPhase('success');
-      await playSuccessNotification();
       const txHash =
         submitResult &&
         typeof (submitResult as { hash?: unknown }).hash === 'string'
           ? ((submitResult as { hash?: string }).hash as string)
           : undefined;
+      const txMetaId = (submitResult as { id?: string } | undefined)?.id;
+      if (txMetaId) {
+        trackQuickBuyTrade(txMetaId, tradeToastInfo);
+        // The swap may already have settled by the time submitTx resolves, in
+        // which case the terminal stateChange events fired before this id was
+        // tracked and the app-root handler ignored them. Reconcile against the
+        // current bridge status now so the user isn't stuck on the pending
+        // toast; if it's still pending, future stateChange events take over.
+        const showToast = toastRef?.current?.showToast;
+        if (showToast) {
+          resolveQuickBuyTerminalToast(txMetaId, showToast, theme);
+        }
+      }
       if (tradeBaseProps) {
         trackTradeCompleted({
           ...tradeBaseProps,
@@ -976,9 +1030,6 @@ export function useQuickBuyController(
             SocialLeaderboardEventValues.STATUS.SUCCESS,
         });
       }
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      onClose();
-      navigation.navigate(Routes.TRANSACTIONS_VIEW);
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error));
       Logger.error(
@@ -994,6 +1045,11 @@ export function useQuickBuyController(
             destChainId: destToken?.chainId ?? 'unknown',
           },
         }),
+      );
+      // submitTx threw before publish (e.g. user rejection), so no bridge
+      // history item will ever exist — surface the failure immediately.
+      toastRef?.current?.showToast(
+        buildQuickBuyToastOptions('failed', { trade: tradeToastInfo, theme }),
       );
       await playErrorNotification();
       if (tradeBaseProps) {
@@ -1014,10 +1070,13 @@ export function useQuickBuyController(
     stxEnabled,
     dispatch,
     onClose,
-    navigation,
+    toastRef,
+    theme,
     sourceToken?.chainId,
     destToken?.chainId,
     usdAmountNumber,
+    currentCurrency,
+    formattedRate,
     traderAddress,
     caip19,
     tradeMode,
@@ -1134,9 +1193,7 @@ export function useQuickBuyController(
   }
 
   let confirmButtonState: 'idle' | 'loading' | 'success' = 'idle';
-  if (txPhase === 'success') {
-    confirmButtonState = 'success';
-  } else if (isConfirmLoading) {
+  if (isConfirmLoading) {
     confirmButtonState = 'loading';
   }
 
