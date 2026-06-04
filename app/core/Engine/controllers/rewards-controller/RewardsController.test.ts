@@ -24,6 +24,7 @@ import {
   type OndoGmPortfolioState,
   type OndoGmActivityState,
   type PerpsTradingCampaignLeaderboardPositionState,
+  type PredictThePitchPositionsDto,
   type SubscriptionBenefitsState,
   type SubscriptionBenefitDto,
   type OffDeviceSubscriptionAccountsState,
@@ -21323,7 +21324,7 @@ describe('RewardsController', () => {
       neighbors: [],
       computedAt: '2026-06-30T12:00:00.000Z',
     };
-    const mockPositions = {
+    const mockPositions: PredictThePitchPositionsDto = {
       positions: [
         {
           outcomeAssetId: 'token-1',
