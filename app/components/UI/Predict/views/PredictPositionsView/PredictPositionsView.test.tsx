@@ -8,6 +8,7 @@ import {
   PredictPositionsHistoryListSelectorsIDs,
   PredictPositionsViewSelectorsIDs,
 } from '../../Predict.testIds';
+import { PredictPositionStatus, type PredictPosition } from '../../types';
 import PredictPositionsView from './PredictPositionsView';
 
 jest.mock('react-native-reanimated', () => {
@@ -42,22 +43,72 @@ jest.mock('../../components/PredictPositionsHistoryList', () => {
     jest.requireActual('../../Predict.testIds');
 
   return function MockPredictPositionsHistoryList({
+    claimPendingPositions,
+    onClaimPendingPositionsRefresh,
+    isPrivacyMode,
     isVisible,
   }: {
+    claimPendingPositions?: PredictPosition[];
+    onClaimPendingPositionsRefresh?: () => Promise<unknown> | void;
+    isPrivacyMode?: boolean;
     isVisible: boolean;
   }) {
     return ReactLib.createElement(
       View,
       { testID: testIds.CONTAINER },
       ReactLib.createElement(Text, null, `history-visible:${isVisible}`),
+      ReactLib.createElement(
+        Text,
+        null,
+        `history-claim-pending-present:${claimPendingPositions !== undefined}`,
+      ),
+      ReactLib.createElement(
+        Text,
+        null,
+        `history-claim-pending-count:${claimPendingPositions?.length ?? 0}`,
+      ),
+      ReactLib.createElement(
+        Text,
+        null,
+        `history-refresh-present:${Boolean(onClaimPendingPositionsRefresh)}`,
+      ),
+      ReactLib.createElement(
+        Text,
+        null,
+        `history-privacy:${Boolean(isPrivacyMode)}`,
+      ),
     );
   };
 });
 
 let mockPrivacyMode = false;
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(() => mockPrivacyMode),
-}));
+let mockPredictPortfolioEnabled = true;
+jest.mock('react-redux', () => {
+  const { selectPrivacyMode } = jest.requireActual(
+    '../../../../../selectors/preferencesController',
+  );
+  const { selectPredictPortfolioEnabledFlag } = jest.requireActual(
+    '../../selectors/featureFlags',
+  );
+
+  return {
+    useSelector: jest.fn((selector: unknown) => {
+      if (selector === selectPrivacyMode) {
+        return mockPrivacyMode;
+      }
+
+      if (selector === selectPredictPortfolioEnabledFlag) {
+        return mockPredictPortfolioEnabled;
+      }
+
+      const selectorName =
+        typeof selector === 'function' ? selector.name : String(selector);
+      throw new Error(
+        `Unexpected selector in PredictPositionsView test: ${selectorName}`,
+      );
+    }),
+  };
+});
 
 const mockNavigation = {
   canGoBack: jest.fn(),
@@ -68,6 +119,32 @@ const mockNavigation = {
 const mockUseNavigation = useNavigation as jest.Mock;
 const mockUseRoute = useRoute as jest.Mock;
 const mockClaim = jest.fn();
+
+const createClaimablePosition = (
+  overrides: Partial<PredictPosition> = {},
+): PredictPosition => ({
+  amount: 1,
+  avgPrice: 0.5,
+  cashPnl: 1,
+  claimable: true,
+  currentValue: 4.5,
+  endDate: '2026-05-25T00:00:00.000Z',
+  icon: 'https://example.com/icon.png',
+  id: 'claimable-position',
+  initialValue: 1,
+  marketId: 'market-1',
+  outcome: 'Yes',
+  outcomeId: 'outcome-1',
+  outcomeIndex: 0,
+  outcomeTokenId: 'token-1',
+  percentPnl: 350,
+  price: 0.5,
+  providerId: 'provider-1',
+  size: 1,
+  status: PredictPositionStatus.WON,
+  title: 'Prediction market',
+  ...overrides,
+});
 
 const createPortfolio = (
   overrides: Partial<PredictPortfolioModel> = {},
@@ -127,6 +204,7 @@ describe('PredictPositionsView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockPrivacyMode = false;
+    mockPredictPortfolioEnabled = true;
     mockNavigation.canGoBack.mockReturnValue(true);
     mockUseNavigation.mockReturnValue(mockNavigation);
     mockUsePredictPortfolio.mockReturnValue(createPortfolio());
@@ -211,6 +289,69 @@ describe('PredictPositionsView', () => {
       ),
     ).toBeOnTheScreen();
     expect(getMountedHistoryVisibilityText(false)).toBeTruthy();
+  });
+
+  it('passes only actionable claimable positions and privacy mode to History', () => {
+    mockPrivacyMode = true;
+    const wonPosition = createClaimablePosition({ id: 'won-position' });
+    const lostPosition = createClaimablePosition({
+      currentValue: 0,
+      id: 'lost-position',
+      status: PredictPositionStatus.LOST,
+    });
+    mockUsePredictPortfolio.mockReturnValue(
+      createPortfolio({
+        actionableClaimablePositions: [wonPosition],
+        claimablePositions: [wonPosition, lostPosition],
+      }),
+    );
+
+    renderScreen('history');
+
+    expect(
+      screen.getByText('history-claim-pending-present:true'),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('history-claim-pending-count:1')).toBeOnTheScreen();
+    expect(screen.getByText('history-refresh-present:true')).toBeOnTheScreen();
+    expect(screen.getByText('history-privacy:true')).toBeOnTheScreen();
+  });
+
+  it('passes no claim pending positions to History when only lost positions exist', () => {
+    mockUsePredictPortfolio.mockReturnValue(
+      createPortfolio({
+        claimablePositions: [
+          createClaimablePosition({
+            currentValue: 0,
+            id: 'lost-position',
+            status: PredictPositionStatus.LOST,
+          }),
+        ],
+      }),
+    );
+
+    renderScreen('history');
+
+    expect(
+      screen.getByText('history-claim-pending-present:true'),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('history-claim-pending-count:0')).toBeOnTheScreen();
+  });
+
+  it('does not pass claim pending positions to History when portfolio flag is disabled', () => {
+    mockPredictPortfolioEnabled = false;
+    mockUsePredictPortfolio.mockReturnValue(
+      createPortfolio({
+        claimablePositions: [createClaimablePosition()],
+      }),
+    );
+
+    renderScreen('history');
+
+    expect(
+      screen.getByText('history-claim-pending-present:false'),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('history-claim-pending-count:0')).toBeOnTheScreen();
+    expect(screen.getByText('history-refresh-present:false')).toBeOnTheScreen();
   });
 
   it('navigates back when the back button is pressed and the stack can go back', () => {

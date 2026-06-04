@@ -6,13 +6,41 @@ import { appendFileSync, existsSync, readFileSync, statSync, writeFileSync } fro
 import { join } from 'path';
 import { BuildCache, type CacheLock, reportDrift } from './cache';
 import { podsCleanStale, podsSaveMarker } from './deps';
-import { restoreMainNoise } from './git';
 import { initStageLog, type Logger } from './log';
-import { killTree, metroAlive } from './proc';
+import { holderCmd, isMetroLikeProcess, killTree, listenHolderPid, metroAlive } from './proc';
 import type { Ctx } from './types';
 
 const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
 const now = (): number => Math.floor(Date.now() / 1000);
+
+function isSigned(app: string): boolean {
+  try {
+    execFileSync('codesign', ['--verify', '--no-strict', app], { stdio: 'ignore' });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// `expo run:ios` logs "Build Succeeded" and we grab the .app from DerivedData, but
+// xcodebuild's CodeSign phase can still be in flight — installing in that window
+// yields an UNSIGNED bundle. Recent simulator runtimes (iOS 26+) refuse to launch
+// unsigned apps ("denied by service delegate (SBMainWorkspace)" with no crash
+// report). Wait briefly for the build's signature to land, then ad-hoc sign as a
+// fallback so the install is always launchable.
+async function ensureSigned(app: string, logger: Logger): Promise<void> {
+  if (isSigned(app)) return;
+  for (let i = 0; i < 30; i += 1) {
+    await sleep(1000);
+    if (isSigned(app)) return;
+  }
+  try {
+    execFileSync('codesign', ['--force', '--deep', '--sign', '-', app], { stdio: 'ignore' });
+    logger.warn(`Build was unsigned at install time — ad-hoc signed ${app}`);
+  } catch {
+    logger.warn(`Could not ad-hoc sign ${app} — simulator launch may fail`);
+  }
+}
 
 function simBooted(label: string): boolean {
   try {
@@ -59,6 +87,31 @@ function appInstalled(ctx: Ctx): boolean {
   }
 }
 
+function uninstallApp(ctx: Ctx): void {
+  try {
+    execFileSync('xcrun', ['simctl', 'uninstall', ctx.simTarget, ctx.bundleId], {
+      stdio: 'ignore',
+    });
+  } catch {
+    // not installed
+  }
+}
+
+async function installCachedArtifact(ctx: Ctx, logger: Logger, cache: BuildCache, fp: string): Promise<boolean> {
+  const art = cache.artifactPath('ios', fp);
+  if (ctx.flags.walletSetup) {
+    logger.plain('  Wiping app data (uninstall + reinstall from cache)...');
+    uninstallApp(ctx);
+  }
+  await ensureSigned(art, logger);
+  if (tryInstall(ctx, art)) {
+    cache.recordInstall('ios', fp, ctx.simTarget);
+    logger.ok(`Installed from cache: ${art}`);
+    return true;
+  }
+  return false;
+}
+
 // Run `pod install` (via bundler), retrying once with --repo-update on failure
 // in non-clean modes.
 async function podInstall(ctx: Ctx, logger: Logger): Promise<void> {
@@ -74,7 +127,6 @@ async function podInstall(ctx: Ctx, logger: Logger): Promise<void> {
   if ((await logger.runWithLiveLog(ctx.podInstallLog, cmd, ctx.root)) === 0) {
     podsSaveMarker(ctx.root);
     logger.ok('pod install complete');
-    restoreMainNoise(ctx.root, ['tsconfig.json'], logger);
     return;
   }
   if (ctx.doClean) {
@@ -87,7 +139,6 @@ async function podInstall(ctx: Ctx, logger: Logger): Promise<void> {
   if ((await logger.runWithLiveLog(ctx.podInstallLog, retry, ctx.root)) === 0) {
     podsSaveMarker(ctx.root);
     logger.ok('pod install complete (after --repo-update retry)');
-    restoreMainNoise(ctx.root, ['tsconfig.json'], logger);
   } else {
     logger.warn(`pod install had issues — see ${ctx.podInstallLog}`);
   }
@@ -198,9 +249,16 @@ async function waitPortReleased(ctx: Ctx, logger: Logger): Promise<void> {
     }
     await sleep(1000);
   }
-  if (held() && !metroAlive(ctx.port)) {
-    logger.fail(`Port ${ctx.port} still held after expo teardown — aborting to avoid CDP misrouting`);
+  const pid = listenHolderPid(ctx.port);
+  if (pid == null || metroAlive(ctx.port)) return;
+
+  const cmd = holderCmd(pid);
+  if (isMetroLikeProcess(cmd)) {
+    logger.warn(`Port ${ctx.port} still held by stale Expo/Metro after expo teardown (PID ${pid}) — start-metro will restart it`);
+    logger.dim(cmd.slice(0, 100));
+    return;
   }
+  logger.fail(`Port ${ctx.port} still held after expo teardown by foreign process (PID ${pid}): ${cmd.slice(0, 80)}`);
 }
 
 export async function runIos(ctx: Ctx, logger: Logger): Promise<void> {
@@ -222,8 +280,18 @@ export async function runIos(ctx: Ctx, logger: Logger): Promise<void> {
       if (fp) {
         const installedFp = cache.installedFp('ios');
         if (installed && installedFp === fp && cache.installedTarget('ios') === ctx.simTarget && !ctx.doRebuild) {
-          logger.ok(`Cache: installed app matches fingerprint ${fp.slice(0, 12)} on ${ctx.simTarget} — no native action needed`);
-          return;
+          if (!ctx.flags.walletSetup) {
+            logger.ok(`Cache: installed app matches fingerprint ${fp.slice(0, 12)} on ${ctx.simTarget} — no native action needed`);
+            return;
+          }
+          if (ctx.checkOnly) {
+            logger.fail('Installed app matches fingerprint, but --wallet-setup requires a data wipe and --check-only forbids reinstall');
+          }
+          if (cache.hasArtifact('ios', fp) && (await installCachedArtifact(ctx, logger, cache, fp))) {
+            return;
+          }
+          logger.warn('Installed app matches fingerprint, but wallet setup requires a data wipe and no cached artifact is available — rebuilding');
+          installed = false;
         }
         lock = await cache.acquireLock('ios', fp);
         if (lock) {
@@ -232,11 +300,8 @@ export async function runIos(ctx: Ctx, logger: Logger): Promise<void> {
               logger.fail(`App not at fingerprint ${fp.slice(0, 12)} — cache hit available, but --check-only forbids install`);
             }
             logger.plain(`  Cache hit: fp=${fp.slice(0, 12)} — installing from shared cache`);
-            const art = cache.artifactPath('ios', fp);
-            if (tryInstall(ctx, art)) {
-              cache.recordInstall('ios', fp, ctx.simTarget);
+            if (await installCachedArtifact(ctx, logger, cache, fp)) {
               installed = true;
-              logger.ok(`Installed from cache: ${art}`);
             } else if (ctx.mode === 'fast') {
               logger.fail(`Mode 'fast': cached artifact install failed for fp ${fp.slice(0, 12)}`);
             } else {
@@ -292,7 +357,7 @@ export async function runIos(ctx: Ctx, logger: Logger): Promise<void> {
           if (cache.hasArtifact('ios', postFp)) {
             logger.plain(`  Cache hit after pod install: fp=${postFp.slice(0, 12)} — installing from shared cache`);
             const art = cache.artifactPath('ios', postFp);
-            if (tryInstall(ctx, art) && appInstalled(ctx)) {
+            if ((await installCachedArtifact(ctx, logger, cache, postFp)) && appInstalled(ctx)) {
               // Release the materialized-fp lock before storing the source alias.
               await lock.release();
               lock = null;
@@ -325,12 +390,10 @@ export async function runIos(ctx: Ctx, logger: Logger): Promise<void> {
 
     if (ctx.doClean || ctx.flags.walletSetup) {
       logger.plain('  Wiping app data (uninstall + reinstall)...');
-      try {
-        execFileSync('xcrun', ['simctl', 'uninstall', ctx.simTarget, ctx.bundleId], { stdio: 'ignore' });
-      } catch {
-        // not installed
-      }
+      uninstallApp(ctx);
     }
+    // Guard the codesign race: never install a .app before its signature lands.
+    await ensureSigned(app, logger);
     logger.plain('  Installing app on simulator...');
     if (!tryInstall(ctx, app)) {
       logger.fail(`simctl install failed for ${app}`);

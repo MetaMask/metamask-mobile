@@ -56,6 +56,13 @@ const BuildType = buildTypeMapping(
   AppConstants.METAMASK_BUILD_TYPE || 'main',
   AppConstants.IS_DEV || process.env.METAMASK_ENVIRONMENT === 'dev',
 );
+
+export const getBuildType = () =>
+  buildTypeMapping(
+    AppConstants.METAMASK_BUILD_TYPE || 'main',
+    AppConstants.IS_DEV || process.env.METAMASK_ENVIRONMENT === 'dev',
+  );
+
 const CURRENT_OAUTH_CONFIG = OAUTH_CONFIG[BuildType];
 const PROFILE_SYNC_ENV_BY_BUILD_TYPE: Record<string, ProfileSyncEnv> = {
   development: ProfileSyncEnv.DEV,
