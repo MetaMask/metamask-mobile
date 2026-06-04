@@ -79,6 +79,16 @@ describe('marketUtils', () => {
       ).toBe('all');
     });
 
+    it('returns all for HIP-3 market detected via marketSource when isHip3 is absent', () => {
+      expect(
+        getMarketTypeFilter({
+          marketType: undefined,
+          isNewMarket: false,
+          marketSource: 'xyz',
+        }),
+      ).toBe('all');
+    });
+
     it('prioritizes marketType over isNewMarket', () => {
       expect(
         getMarketTypeFilter({ marketType: 'stock', isNewMarket: true }),
