@@ -134,25 +134,11 @@ const PerpsMarketListView = ({
   // Handle category badge selection
   const handleCategorySelect = useCallback(
     (category: MarketTypeFilter) => {
-      // Track analytics for category changes
-      const categoryMap: Record<string, string | null> = {
-        crypto: PERPS_EVENT_VALUE.BUTTON_CLICKED.CRYPTO,
-        stocks: PERPS_EVENT_VALUE.BUTTON_CLICKED.STOCKS,
-        'pre-ipo': 'pre-ipo',
-        indices: 'indices',
-        etfs: 'etfs',
-        commodities: PERPS_EVENT_VALUE.BUTTON_CLICKED.COMMODITIES,
-        forex: PERPS_EVENT_VALUE.BUTTON_CLICKED.FOREX,
-        new: PERPS_EVENT_VALUE.BUTTON_CLICKED.NEW,
-        all: null,
-      };
-
-      const targetCategory = categoryMap[category];
-      if (targetCategory) {
+      if (category !== 'all') {
         track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
           [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
             PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
-          [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]: targetCategory,
+          [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]: category,
           [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
             PERPS_EVENT_VALUE.BUTTON_LOCATION.MARKET_LIST,
         });
