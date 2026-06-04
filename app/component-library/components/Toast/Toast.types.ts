@@ -53,6 +53,16 @@ interface BaseToastVariants {
   closeButtonOptions?: ToastCloseButtonOptions;
   startAccessory?: ReactElement;
   customBottomOffset?: number;
+  /**
+   * When true, prevents other toasts from replacing this one until it is
+   * dismissed (via timeout or explicit `closeToast()`).
+   */
+  exclusive?: boolean;
+  /**
+   * When true, overrides an active exclusive toast. Use together with
+   * `exclusive` to chain back-to-back exclusive toasts.
+   */
+  force?: boolean;
 }
 
 export type ToastCloseButtonOptions =

@@ -66,6 +66,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   const { bottom: bottomNotchSpacing } = useSafeAreaInsets();
   const translateYProgress = useSharedValue(screenHeight);
   const pendingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const exclusiveRef = useRef(false);
   const customOffset = toastOptions?.customBottomOffset ?? 0;
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
@@ -77,13 +78,22 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
     [styles.base, animatedStyle],
   );
 
-  const resetState = () => setToastOptions(undefined);
+  const resetState = () => {
+    exclusiveRef.current = false;
+    setToastOptions(undefined);
+  };
 
   const showToast = (options: ToastOptions) => {
+    if (exclusiveRef.current && !options.force) {
+      return;
+    }
+
     if (pendingTimeoutRef.current !== null) {
       clearTimeout(pendingTimeoutRef.current);
       pendingTimeoutRef.current = null;
     }
+
+    exclusiveRef.current = !!options.exclusive;
 
     let timeoutDuration = 0;
     if (toastOptions) {
@@ -101,6 +111,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   };
 
   const closeToast = () => {
+    exclusiveRef.current = false;
     translateYProgress.value = withTiming(
       screenHeight,
       { duration: animationDuration },
