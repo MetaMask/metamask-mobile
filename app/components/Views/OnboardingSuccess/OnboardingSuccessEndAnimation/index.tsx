@@ -16,7 +16,7 @@ interface OnboardingSuccessEndAnimationProps {
   onAnimationComplete: () => void;
 }
 
-const ANIMATION_START_DELAY_MS = 200;
+const ANIMATION_START_DELAY_MS = 500;
 const ONLY_END_TRANSITION_DELAY_MS = 100;
 
 const OnboardingSuccessEndAnimation: React.FC<
