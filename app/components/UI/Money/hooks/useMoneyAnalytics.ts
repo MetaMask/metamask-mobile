@@ -3,20 +3,20 @@ import BigNumber from 'bignumber.js';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import useMoneyAccountCardLinkage from '../../Card/hooks/useMoneyAccountCardLinkage';
 import useMoneyAccountBalance from '../hooks/useMoneyAccountBalance';
+import { MONEY_SURFACE_TYPES } from '../constants/moneyEvents';
 import {
   MoneyLocationEventProperties,
   MoneyBaseEventProperties,
   MoneyRedirectEventProperties,
   MoneyOnboardingEventProperties,
   MoneyTooltipClickedEventProperties,
-  MONEY_SURFACE_TYPES,
   MoneySurfaceClickedEventProperties,
   MoneyButtonClickedEventProperties,
   MoneyTokenRowButtonClickedEventProperties,
   MoneyTokenSurfaceClickedEventProperties,
   MoneyActivitySurfaceClickedEventProperties,
-  resolveRedirectTargetType,
-} from '../constants/moneyEvents';
+} from '../types/moneyEvents.types';
+import { resolveRedirectTargetType } from '../utils/moneyRedirectTarget';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 import { MonetizedPrimitive } from '../../../../core/Analytics/MetaMetrics.types';
 import {

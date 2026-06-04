@@ -38,6 +38,8 @@ import {
   BOTTOM_SHEET_NAMES,
   MONEY_BUTTON_INTENTS,
   MONEY_BUTTON_TYPES,
+  MONEY_TOOLTIP_NAMES,
+  MONEY_TOOLTIP_TYPES,
 } from '../../constants/moneyEvents';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 
@@ -63,11 +65,15 @@ const MoneyBalanceCard = () => {
     selectWalletHomeOnboardingFlowVisible,
   );
 
-  const { trackButtonClicked, trackSurfaceClicked, trackComponentViewed } =
-    useMoneyAnalytics({
-      screen_name: SCREEN_NAMES.WALLET_HOME,
-      component_name: COMPONENT_NAMES.MONEY_BALANCE_CARD,
-    });
+  const {
+    trackButtonClicked,
+    trackSurfaceClicked,
+    trackComponentViewed,
+    trackTooltipClicked,
+  } = useMoneyAnalytics({
+    screen_name: SCREEN_NAMES.WALLET_HOME,
+    component_name: COMPONENT_NAMES.MONEY_BALANCE_CARD,
+  });
 
   const isRetrying =
     hasMoneyAccount && isBalanceFetchError && isBalanceFetching;
@@ -153,7 +159,6 @@ const MoneyBalanceCard = () => {
 
   const handleCardPress = useCallback(() => {
     trackSurfaceClicked({
-      component_name: COMPONENT_NAMES.MONEY_BALANCE_CARD,
       redirect_target: hasSeenMoneyOnboarding
         ? SCREEN_NAMES.MONEY_HOME
         : SCREEN_NAMES.MONEY_ONBOARDING,
@@ -195,10 +200,14 @@ const MoneyBalanceCard = () => {
   const handleButtonPress = isNewUser ? handleGetStartedPress : handleAddPress;
 
   const handleInfoPress = useCallback(() => {
+    trackTooltipClicked({
+      tooltip_name: MONEY_TOOLTIP_NAMES.MONEY_BALANCE,
+      tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
+    });
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.MONEY_BALANCE_INFO_SHEET,
     });
-  }, [navigation]);
+  }, [navigation, trackTooltipClicked]);
 
   const renderBalanceSlot = () => {
     if (!hasMoneyAccount) {
