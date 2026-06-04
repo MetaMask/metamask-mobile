@@ -303,6 +303,32 @@ describe('Toast', () => {
       expect(screen.queryByText('First')).toBeNull();
       expect(screen.getByText('Normal Toast')).toBeOnTheScreen();
     });
+
+    it('closeToast cancels a pending deferred toast', async () => {
+      render(<Toast ref={toastRef} />);
+
+      await act(async () => {
+        toastRef.current?.showToast(exclusiveOptions);
+        jest.runAllTimers();
+      });
+
+      expect(screen.getByText('Exclusive Toast')).toBeOnTheScreen();
+
+      act(() => {
+        toastRef.current?.showToast({
+          ...exclusiveOptions,
+          labelOptions: [{ label: 'Deferred Exclusive' }],
+          force: true,
+        });
+      });
+
+      await act(async () => {
+        toastRef.current?.closeToast();
+        jest.runAllTimers();
+      });
+
+      expect(screen.queryByText('Deferred Exclusive')).toBeNull();
+    });
   });
 
   it('uses flex-start justifyContent on labels container by default', async () => {

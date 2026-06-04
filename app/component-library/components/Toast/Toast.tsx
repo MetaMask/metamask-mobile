@@ -110,6 +110,10 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   };
 
   const closeToast = () => {
+    if (pendingTimeoutRef.current !== null) {
+      clearTimeout(pendingTimeoutRef.current);
+      pendingTimeoutRef.current = null;
+    }
     exclusiveRef.current = false;
     translateYProgress.value = withTiming(
       screenHeight,
