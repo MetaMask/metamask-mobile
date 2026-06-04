@@ -6,8 +6,12 @@ import Routes from '../../../../../constants/navigation/Routes';
 const mockDispatch = jest.fn();
 const mockNavigate = jest.fn();
 const mockResetState = jest.fn();
+const mockUpdateQuoteParams = jest.fn();
 
 jest.mock('react-redux', () => ({ useDispatch: () => mockDispatch }));
+jest.mock('../../hooks/useBridgeQuoteRequest', () => ({
+  useBridgeQuoteRequest: () => mockUpdateQuoteParams,
+}));
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ goBack: jest.fn(), navigate: mockNavigate }),
 }));
@@ -43,6 +47,7 @@ describe('PostTradeBottomSheet', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
     expect(mockResetState).toHaveBeenCalled();
+    expect(mockUpdateQuoteParams).toHaveBeenCalled();
     expect(mockDispatch.mock.calls[3][0].payload).toBe('1.23456');
   });
 });

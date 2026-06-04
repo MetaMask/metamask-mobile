@@ -43,6 +43,7 @@ import {
 } from './PostTradeBottomSheet.types';
 import styleSheet from './PostTradeBottomSheet.styles';
 import { usePostTradeTxStatus } from './usePostTradeTxStatus';
+import { useBridgeQuoteRequest } from '../../hooks/useBridgeQuoteRequest';
 
 export const getTradeSubtitle = ({
   sourceAmount,
@@ -114,6 +115,7 @@ export const PostTradeBottomSheet = () => {
   const hasRefreshedBalancesRef = useRef(false);
   const { styles } = useStyles(styleSheet, {});
   const params = useParams<PostTradeBottomSheetParams>();
+  const updateQuoteParams = useBridgeQuoteRequest();
   const isBridge =
     params.sourceToken?.chainId &&
     params.destToken?.chainId &&
@@ -173,6 +175,9 @@ export const PostTradeBottomSheet = () => {
     dispatch(setSourceAmount(params.sourceAmount));
 
     Engine.context.BridgeController?.resetState?.();
+    // Re-request a quote since resetState() cleared it and identical inputs
+    // won't re-trigger BridgeView's quote effect.
+    updateQuoteParams();
 
     sheetRef.current?.onCloseBottomSheet();
   };
