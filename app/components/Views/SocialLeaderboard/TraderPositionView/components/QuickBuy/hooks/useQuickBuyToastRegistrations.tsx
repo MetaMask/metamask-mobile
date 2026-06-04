@@ -1,19 +1,9 @@
-import { useCallback, useMemo, useRef } from 'react';
-import { StatusTypes } from '@metamask/bridge-controller';
+import { useCallback, useMemo } from 'react';
 import type { ToastRef } from '../../../../../../../component-library/components/Toast/Toast.types';
 import type { ToastRegistration } from '../../../../../../Nav/App/ControllerEventToastBridge';
 import { useAppThemeFromContext } from '../../../../../../../util/theme';
-import Engine from '../../../../../../../core/Engine';
-import {
-  getTrackedQuickBuyTrade,
-  getTrackedQuickBuyTradeIds,
-  untrackQuickBuyTrade,
-} from '../quickBuyTradeTracker';
-import { buildQuickBuyToastOptions } from '../quickBuyToastOptions';
-import {
-  playSuccessNotification,
-  playErrorNotification,
-} from '../../../../../../../util/haptics';
+import { getTrackedQuickBuyTradeIds } from '../quickBuyTradeTracker';
+import { resolveQuickBuyTerminalToast } from '../resolveQuickBuyTerminalToast';
 
 /**
  * App-root registration that surfaces QuickBuy swap outcomes as toasts.
@@ -27,8 +17,6 @@ import {
  */
 export const useQuickBuyToastRegistrations = (): ToastRegistration[] => {
   const theme = useAppThemeFromContext();
-  // Dedupes repeated stateChange emissions for the same terminal status.
-  const processedRef = useRef<Set<string>>(new Set());
 
   const handleBridgeStatusChange = useCallback(
     (_payload: unknown, showToast: ToastRef['showToast']): void => {
@@ -37,42 +25,10 @@ export const useQuickBuyToastRegistrations = (): ToastRegistration[] => {
         return;
       }
 
+      // `resolveQuickBuyTerminalToast` untracks on the first terminal hit, so
+      // repeated emissions for the same trade become no-ops (built-in dedupe).
       trackedIds.forEach((txMetaId) => {
-        const historyItem =
-          Engine.context.BridgeStatusController.getBridgeHistoryItemByTxMetaId(
-            txMetaId,
-          );
-        const status = historyItem?.status?.status;
-        if (status !== StatusTypes.COMPLETE && status !== StatusTypes.FAILED) {
-          return;
-        }
-
-        const trade = getTrackedQuickBuyTrade(txMetaId);
-        if (!trade) {
-          return;
-        }
-
-        const dedupeKey = `${txMetaId}-${status}`;
-        if (processedRef.current.has(dedupeKey)) {
-          return;
-        }
-        processedRef.current.add(dedupeKey);
-
-        const isComplete = status === StatusTypes.COMPLETE;
-        showToast(
-          buildQuickBuyToastOptions(isComplete ? 'complete' : 'failed', {
-            trade,
-            theme,
-          }),
-        );
-        // Terminal feedback pairs with the toast: success buzz on settlement,
-        // error buzz on failure — fires even if the user navigated away.
-        if (isComplete) {
-          playSuccessNotification();
-        } else {
-          playErrorNotification();
-        }
-        untrackQuickBuyTrade(txMetaId);
+        resolveQuickBuyTerminalToast(txMetaId, showToast, theme);
       });
     },
     [theme],

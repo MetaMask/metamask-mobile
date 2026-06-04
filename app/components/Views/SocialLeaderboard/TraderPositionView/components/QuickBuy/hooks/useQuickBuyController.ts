@@ -94,6 +94,7 @@ import {
 } from '../../../../analytics';
 import { trackQuickBuyTrade } from '../quickBuyTradeTracker';
 import { buildQuickBuyToastOptions } from '../quickBuyToastOptions';
+import { resolveQuickBuyTerminalToast } from '../resolveQuickBuyTerminalToast';
 import { toAssetId } from '../../../../../../UI/Bridge/hooks/useAssetMetadata/utils';
 
 export type QuickBuyButtonError =
@@ -1009,6 +1010,15 @@ export function useQuickBuyController(
       const txMetaId = (submitResult as { id?: string } | undefined)?.id;
       if (txMetaId) {
         trackQuickBuyTrade(txMetaId, tradeToastInfo);
+        // The swap may already have settled by the time submitTx resolves, in
+        // which case the terminal stateChange events fired before this id was
+        // tracked and the app-root handler ignored them. Reconcile against the
+        // current bridge status now so the user isn't stuck on the pending
+        // toast; if it's still pending, future stateChange events take over.
+        const showToast = toastRef?.current?.showToast;
+        if (showToast) {
+          resolveQuickBuyTerminalToast(txMetaId, showToast, theme);
+        }
       }
       if (tradeBaseProps) {
         trackTradeCompleted({

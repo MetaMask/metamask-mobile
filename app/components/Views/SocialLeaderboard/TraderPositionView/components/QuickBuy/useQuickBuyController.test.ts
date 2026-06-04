@@ -39,6 +39,7 @@ import { ChainId } from '@metamask/bridge-controller';
 import Logger from '../../../../../../util/Logger';
 import { trackQuickBuyTrade } from './quickBuyTradeTracker';
 import { buildQuickBuyToastOptions } from './quickBuyToastOptions';
+import { resolveQuickBuyTerminalToast } from './resolveQuickBuyTerminalToast';
 import {
   playImpact,
   playErrorNotification,
@@ -235,6 +236,10 @@ jest.mock('./quickBuyTradeTracker', () => ({
 
 jest.mock('./quickBuyToastOptions', () => ({
   buildQuickBuyToastOptions: jest.fn((kind: string) => ({ kind })),
+}));
+
+jest.mock('./resolveQuickBuyTerminalToast', () => ({
+  resolveQuickBuyTerminalToast: jest.fn(),
 }));
 
 jest.mock('../../../../../../util/haptics', () => ({
@@ -1992,6 +1997,27 @@ describe('useQuickBuyController', () => {
           theme: expect.any(Object),
         });
         expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
+      });
+
+      it('reconciles against the current bridge status right after tracking', async () => {
+        mockUsableQuote();
+        (
+          Engine.context.BridgeStatusController.submitTx as jest.Mock
+        ).mockResolvedValue({ id: 'tx-1', hash: '0xabc' });
+
+        const { result } = renderHook(() =>
+          useQuickBuyController(createTarget(), jest.fn()),
+        );
+
+        await act(async () => {
+          await result.current.handleConfirm();
+        });
+
+        expect(resolveQuickBuyTerminalToast).toHaveBeenCalledWith(
+          'tx-1',
+          expect.any(Function),
+          expect.any(Object),
+        );
       });
 
       it('shows a failed toast and does not track the trade when submit throws', async () => {
