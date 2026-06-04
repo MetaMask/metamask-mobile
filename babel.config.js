@@ -74,11 +74,11 @@ module.exports = {
     // runtime: undefined in the app, set under Jest.
     ['transform-inline-environment-variables', { exclude: ['JEST_WORKER_ID'] }],
     dynamicImportToRequire,
-    // NOTE: react-native-reanimated/plugin must be listed LAST.
-    // Required by reanimated v3 to compile `'worklet'` directives; without it,
-    // gesture-handler worklets silently no-op on iOS Fabric and GestureDetector
-    // children (e.g. WebView) render at 0x0 (white screen).
-    'react-native-reanimated/plugin',
+    // NOTE: react-native-worklets/plugin must be listed LAST (reanimated v4).
+    // Required to compile `'worklet'` directives; without it, gesture-handler
+    // worklets silently no-op on iOS Fabric and GestureDetector children (e.g.
+    // WebView) render at 0x0 (white screen).
+    'react-native-worklets/plugin',
   ],
   overrides: [
     {

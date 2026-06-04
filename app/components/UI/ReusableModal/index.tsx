@@ -90,14 +90,16 @@ const ReusableModal = forwardRef<ReusableModalRef, ReusableModalProps>(
       postCallback.current?.();
     }, [navigation, onDismiss, shouldGoBack]);
 
-    const gestureHandler = useMemo(
+    const panGesture = useMemo(
       () =>
         Gesture.Pan()
           .enabled(isInteractable)
           .onStart(() => {
+            'worklet';
             gestureStartY.value = currentYOffset.value;
           })
           .onUpdate((event) => {
+            'worklet';
             currentYOffset.value = gestureStartY.value + event.translationY;
             if (currentYOffset.value >= sheetHeight.value) {
               currentYOffset.value = sheetHeight.value;
@@ -107,6 +109,7 @@ const ReusableModal = forwardRef<ReusableModalRef, ReusableModalProps>(
             }
           })
           .onEnd((event) => {
+            'worklet';
             const { translationY, velocityY } = event;
             let finalOffset: number;
             const latestOffset = gestureStartY.value + translationY;
@@ -117,7 +120,6 @@ const ReusableModal = forwardRef<ReusableModalRef, ReusableModalProps>(
             const isDismissing = velocityY > 0;
 
             if (hasReachedSwipeThreshold) {
-              // Quick swipe takes priority
               if (isDismissing) {
                 finalOffset = sheetHeight.value;
               } else {
@@ -137,7 +139,8 @@ const ReusableModal = forwardRef<ReusableModalRef, ReusableModalProps>(
               () => isDismissed && runOnJS(onHidden)(),
             );
           }),
-      // Shared values are stable refs; only the enabled flag and onHidden matter.
+      // Shared values are stable refs; worklets read .value at runtime.
+      // Shared values are stable refs; worklets read .value at runtime.
       // eslint-disable-next-line react-hooks/exhaustive-deps
       [isInteractable, onHidden],
     );
@@ -219,7 +222,7 @@ const ReusableModal = forwardRef<ReusableModalRef, ReusableModalProps>(
         >
           <Animated.View style={combinedOverlayStyle} />
         </TouchableOpacity>
-        <GestureDetector gesture={gestureHandler}>
+        <GestureDetector gesture={panGesture}>
           <Animated.View style={[combinedModalStyle, style]}>
             {children}
           </Animated.View>

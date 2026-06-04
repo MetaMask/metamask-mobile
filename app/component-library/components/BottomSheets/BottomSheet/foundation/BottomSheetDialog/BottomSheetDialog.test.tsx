@@ -198,7 +198,6 @@ describe('BottomSheetDialog', () => {
     });
   });
   //   Note: Add Gesture tests when react-native-gesture-handler gets updated
-
   describe('swipe gesture', () => {
     it('renders its children inside the GestureDetector', () => {
       const { getByText } = render(

@@ -103,50 +103,39 @@ const BottomSheetDialog = forwardRef<
       /* eslint-disable-next-line */
     }, [onCloseCB]);
 
-    const gestureHandler = useMemo(
+    const panGesture = useMemo(
       () =>
         Gesture.Pan()
           .enabled(isInteractable)
           .onStart(() => {
-            // Starts tracking vertical position of gesture
+            'worklet';
             gestureStartY.value = currentYOffset.value;
           })
           .onUpdate((event) => {
+            'worklet';
             currentYOffset.value = gestureStartY.value + event.translationY;
-            // If gesture Y value goes above the bottom of Dialog Y value(bottom of dialog),
-            // which means the gesture is currently below the bottom of the dialog,
-            // sets it to bottom of Dialog Y value
             if (currentYOffset.value >= bottomOfDialogYValue.value) {
               currentYOffset.value = bottomOfDialogYValue.value;
             }
-            // If gesture Y value goes below the top of Dialog Y value(top of dialog),
-            // which means the gesture is currently above the top of the dialog,
-            // sets it to top of Dialog Y value
             if (currentYOffset.value <= topOfDialogYValue.value) {
               currentYOffset.value = topOfDialogYValue.value;
             }
           })
           .onEnd((event) => {
+            'worklet';
             const { translationY, velocityY } = event;
-            // finalYOffset is used to animate the Y position of the Dialog after the gesture event
             let finalYOffset: number;
-            // Measuring dismissing swipe action
             const latestOffset = gestureStartY.value + translationY;
-            // Check if the swipe distance reach the dismiss offset threshold,
-            // which is currently 60% of sheet height
             const hasReachedDismissOffset =
               latestOffset >
               bottomOfDialogYValue.value *
                 DEFAULT_BOTTOMSHEETDIALOG_DISMISSTHRESHOLD;
-            // Check if the gesture's vertical speed has reached the threshold to determine a swipe action
             const hasReachedSwipeThreshold =
               Math.abs(velocityY) >
               DEFAULT_BOTTOMSHEETDIALOG_SWIPETHRESHOLD_DURATION;
             const isQuickDismissing = velocityY > 0;
 
-            // If user is swiping
             if (hasReachedSwipeThreshold) {
-              // Quick swipe takes priority
               if (isQuickDismissing) {
                 finalYOffset = bottomOfDialogYValue.value;
               } else {
@@ -163,13 +152,12 @@ const BottomSheetDialog = forwardRef<
             if (isDismissed) {
               runOnJS(onCloseDialog)();
             } else {
-              // Only animate dialog to a certain Y position instead
               currentYOffset.value = withTiming(finalYOffset, {
                 duration: DEFAULT_BOTTOMSHEETDIALOG_DISPLAY_DURATION,
               });
             }
           }),
-      // Shared values are stable refs; only the enabled flag and onCloseDialog matter.
+      // Shared values are stable refs; worklets read .value at runtime.
       // eslint-disable-next-line react-hooks/exhaustive-deps
       [isInteractable, onCloseDialog],
     );
@@ -228,7 +216,7 @@ const BottomSheetDialog = forwardRef<
         enabled={keyboardAvoidingViewEnabled}
         {...props}
       >
-        <GestureDetector gesture={gestureHandler}>
+        <GestureDetector gesture={panGesture}>
           <Animated.View
             onLayout={updateSheetHeight}
             style={combinedSheetStyle}
