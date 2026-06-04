@@ -395,6 +395,8 @@ export const usePerpsHomeData = ({
         counts.etfs = allMarkets.filter(
           (m) => m.marketType === MarketCategory.Etf,
         ).length;
+      } else if (cat === 'new') {
+        counts.new = allMarkets.filter((m) => m.isNewMarket).length;
       }
     }
     return counts;

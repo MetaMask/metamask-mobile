@@ -649,7 +649,6 @@ const PerpsHomeView = ({
         {/* Products Section - Category pills grid */}
         <PerpsProducts
           marketCounts={categoryMarketCounts}
-          source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
           testID="perps-products"
         />
 

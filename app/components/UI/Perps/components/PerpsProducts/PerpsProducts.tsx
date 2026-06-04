@@ -30,6 +30,17 @@ import type {
   CategoryPillConfig,
 } from './PerpsProducts.types';
 
+/**
+ * Analytics constants for product pills — not yet in @metamask/perps-controller.
+ * Move to PERPS_EVENT_PROPERTY / PERPS_EVENT_VALUE once added upstream.
+ */
+const PRODUCTS_ANALYTICS = {
+  BUTTON_CLICKED: 'product_pill_tapped',
+  PROPERTY_PRODUCT: 'product',
+  PROPERTY_PILL_POSITION: 'pill_position',
+  SOURCE: 'perps_home__product_pill',
+} as const;
+
 const CATEGORY_ICON_MAP: Record<string, IconName> = {
   crypto: IconName.Coin,
   stocks: IconName.Briefcase,
@@ -61,7 +72,6 @@ const PILL_CONFIGS: CategoryPillConfig[] = MARKET_CATEGORIES.map(
  */
 const PerpsProducts: React.FC<PerpsProductsProps> = ({
   marketCounts,
-  source,
   testID,
 }) => {
   const isEnabled = useSelector(selectPerpsProductsEnabledFlag);
@@ -81,11 +91,12 @@ const PerpsProducts: React.FC<PerpsProductsProps> = ({
           .addProperties({
             [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
               PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
-            [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]: 'product_pill_tapped',
+            [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+              PRODUCTS_ANALYTICS.BUTTON_CLICKED,
             [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
               PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
-            product: category,
-            pill_position: pillPosition,
+            [PRODUCTS_ANALYTICS.PROPERTY_PRODUCT]: category,
+            [PRODUCTS_ANALYTICS.PROPERTY_PILL_POSITION]: pillPosition,
           })
           .build(),
       );
@@ -94,7 +105,7 @@ const PerpsProducts: React.FC<PerpsProductsProps> = ({
         screen: Routes.PERPS.MARKET_LIST,
         params: {
           defaultMarketTypeFilter: category,
-          source: 'perps_home__product_pill',
+          source: PRODUCTS_ANALYTICS.SOURCE,
         },
       });
     },

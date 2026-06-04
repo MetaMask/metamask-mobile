@@ -162,7 +162,6 @@ describe('PerpsProducts', () => {
     const { getByTestId } = render(
       <PerpsProducts
         marketCounts={{ crypto: 10, stocks: 5 }}
-        source="perps_home"
         testID="perps-products"
       />,
     );
@@ -182,7 +181,6 @@ describe('PerpsProducts', () => {
     const { getByTestId } = render(
       <PerpsProducts
         marketCounts={{ crypto: 10, stocks: 5 }}
-        source="perps_home"
         testID="perps-products"
       />,
     );
@@ -233,6 +231,7 @@ describe('PerpsProducts', () => {
 
     fireEvent.press(getByTestId('perps-products-stocks'));
 
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith('PERPS_UI_INTERACTION');
     expect(mockTrackEvent).toHaveBeenCalled();
     expect(mockAddProperties).toHaveBeenCalledWith(
       expect.objectContaining({

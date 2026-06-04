@@ -7,10 +7,6 @@ export interface PerpsProductsProps {
    */
   marketCounts: Partial<Record<MarketTypeFilter, number>>;
   /**
-   * Analytics source for navigation tracking
-   */
-  source?: string;
-  /**
    * Optional test ID
    */
   testID?: string;
