@@ -97,4 +97,24 @@ describe('useBatchSellTokens', () => {
 
     expect(result.current).toEqual([sellableToken]);
   });
+
+  it('excludes tokens with rwaData', () => {
+    const sellableToken = createToken({
+      address: '0x2222222222222222222222222222222222222222',
+      symbol: 'SELL',
+    });
+    const rwaToken = createToken({
+      address: '0x3333333333333333333333333333333333333333',
+      symbol: 'AAPL',
+      rwaData: {
+        instrumentType: 'stock',
+      },
+    });
+
+    mockUseTokensWithBalance.mockReturnValue([sellableToken, rwaToken]);
+
+    const { result } = renderHook(() => useBatchSellTokens());
+
+    expect(result.current).toEqual([sellableToken]);
+  });
 });

@@ -58,6 +58,10 @@ function removeOndoTokenizedTokens(tokens: BridgeToken[]): BridgeToken[] {
   );
 }
 
+function removeRwaTokens(tokens: BridgeToken[]): BridgeToken[] {
+  return tokens.filter((token) => !token.rwaData);
+}
+
 export function useBatchSellTokens() {
   const allWalletTokens = useTokensWithBalance({
     chainIds: SUPPORTED_BATCH_SELL_CHAIN_IDS,
@@ -73,6 +77,7 @@ export function useBatchSellTokens() {
             stablecoinsByChain,
           }),
         removeOndoTokenizedTokens,
+        removeRwaTokens,
       )(allWalletTokens),
     [allWalletTokens, stablecoinsByChain],
   );
