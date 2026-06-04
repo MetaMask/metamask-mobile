@@ -2,11 +2,13 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
+import { useMoneyAccountCardTransactions } from '../../hooks/useMoneyAccountCardTransactions';
 import MOCK_MONEY_TRANSACTIONS from '../../constants/mockActivityData';
 import {
   isMoneyActivityDeposit,
   isMoneyActivityTransfer,
 } from '../../constants/moneyActivityFilters';
+import { MoneyActivityLoadingTestIds } from '../../components/MoneyActivityLoading/MoneyActivityLoading.testIds';
 import MoneyActivityView from './MoneyActivityView';
 import { MoneyActivityViewTestIds } from './MoneyActivityView.testIds';
 
@@ -33,20 +35,11 @@ jest.mock('../../hooks/useMoneyAccountTransactions', () => ({
 }));
 
 jest.mock('../../hooks/useMoneyAccountCardTransactions', () => ({
-  useMoneyAccountCardTransactions: () => ({
-    cardTransactions: [],
-    isLoading: false,
-    error: false,
-    refetch: jest.fn(),
-  }),
+  useMoneyAccountCardTransactions: jest.fn(),
 }));
 
 jest.mock('../../components/MoneyActivityItem/MoneyActivityItem', () => {
-  const {
-    View,
-    Text,
-    Pressable: RNPressable,
-  } = jest.requireActual('react-native');
+  const { Text, Pressable: RNPressable } = jest.requireActual('react-native');
   return {
     __esModule: true,
     default: ({
@@ -84,6 +77,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
 const mockUseMoneyAccountTransactions = jest.mocked(
   useMoneyAccountTransactions,
 );
+const mockUseMoneyAccountCardTransactions = jest.mocked(
+  useMoneyAccountCardTransactions,
+);
 
 const MOCK_DEPOSITS = MOCK_MONEY_TRANSACTIONS.filter(isMoneyActivityDeposit);
 const MOCK_TRANSFERS = MOCK_MONEY_TRANSACTIONS.filter(isMoneyActivityTransfer);
@@ -99,6 +95,30 @@ describe('MoneyActivityView', () => {
       moneyAddress: '0x0000000000000000000000000000000000000001',
       mockDataEnabled: false,
     });
+    mockUseMoneyAccountCardTransactions.mockReturnValue({
+      cardTransactions: [],
+      isLoading: false,
+      error: false,
+      refetch: jest.fn(),
+    });
+  });
+
+  it('shows the loading spinner (not rows) while card payments load', () => {
+    mockUseMoneyAccountCardTransactions.mockReturnValue({
+      cardTransactions: [],
+      isLoading: true,
+      error: false,
+      refetch: jest.fn(),
+    });
+
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <MoneyActivityView />,
+    );
+
+    expect(
+      getByTestId(MoneyActivityLoadingTestIds.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(queryByTestId('activity-mock-tx-money-tx-1')).toBeNull();
   });
 
   it('renders the main container', () => {

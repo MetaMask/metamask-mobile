@@ -27,6 +27,7 @@ import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
 import { useMoneyAccountCardTransactions } from '../../hooks/useMoneyAccountCardTransactions';
 import { mergeMoneyActivity } from '../../hooks/useMoneyActivityItems';
+import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyActivityLoading';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import { useOnboardingStep, STEPPER_IDS } from '../../hooks/useOnboardingStep';
@@ -98,7 +99,8 @@ const MoneyHomeView = () => {
   const { initiateDeposit } = useMoneyAccountDeposit();
   const { allTransactions, moneyAddress, mockDataEnabled } =
     useMoneyAccountTransactions();
-  const { cardTransactions } = useMoneyAccountCardTransactions();
+  const { cardTransactions, isLoading: isCardActivityLoading } =
+    useMoneyAccountCardTransactions();
   const activityItems = useMemo(
     () => mergeMoneyActivity(allTransactions, cardTransactions),
     [allTransactions, cardTransactions],
@@ -347,17 +349,21 @@ const MoneyHomeView = () => {
             <Divider />
           </>
         )}
-        {activityItems.length >= 1 && (
+        {(isCardActivityLoading || activityItems.length >= 1) && (
           <>
-            <MoneyActivityList
-              items={activityItems}
-              moneyAddress={moneyAddress}
-              onViewAllPress={handleViewAllActivityPress}
-              onHeaderPress={handleActivityHeaderPress}
-              onItemPress={
-                mockDataEnabled ? undefined : handleActivityItemPress
-              }
-            />
+            {isCardActivityLoading ? (
+              <MoneyActivityLoading />
+            ) : (
+              <MoneyActivityList
+                items={activityItems}
+                moneyAddress={moneyAddress}
+                onViewAllPress={handleViewAllActivityPress}
+                onHeaderPress={handleActivityHeaderPress}
+                onItemPress={
+                  mockDataEnabled ? undefined : handleActivityItemPress
+                }
+              />
+            )}
             <Divider />
           </>
         )}

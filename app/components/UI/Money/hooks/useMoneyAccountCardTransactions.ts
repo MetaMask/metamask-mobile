@@ -14,6 +14,11 @@ import {
 
 export interface UseMoneyAccountCardTransactionsResult {
   cardTransactions: CardTransaction[];
+  /**
+   * True only until the first fetch settles (when the account is linked).
+   * Background refetches on refocus do NOT flip this back to true, so the list
+   * doesn't flash a spinner over already-rendered rows (stale-while-revalidate).
+   */
   isLoading: boolean;
   error: boolean;
   refetch: () => void;
@@ -36,7 +41,7 @@ export function useMoneyAccountCardTransactions(): UseMoneyAccountCardTransactio
 
   const [cardTransactions, setCardTransactions] =
     useState<CardTransaction[]>(EMPTY);
-  const [isLoading, setIsLoading] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const [error, setError] = useState(false);
 
   // Guards against a fetch resolving after the screen blurs / address changes.
@@ -45,11 +50,11 @@ export function useMoneyAccountCardTransactions(): UseMoneyAccountCardTransactio
   const load = useCallback(async () => {
     if (!isLinked || !rawAddress) {
       setCardTransactions(EMPTY);
+      setHasLoaded(true);
       return;
     }
     const moneyAddress = toChecksumHexAddress(rawAddress);
     const current = ++requestId.current;
-    setIsLoading(true);
     setError(false);
     try {
       const response = await fetchAccountTransactions({
@@ -64,7 +69,7 @@ export function useMoneyAccountCardTransactions(): UseMoneyAccountCardTransactio
       setError(true);
       setCardTransactions(EMPTY);
     } finally {
-      if (current === requestId.current) setIsLoading(false);
+      if (current === requestId.current) setHasLoaded(true);
     }
   }, [isLinked, rawAddress]);
 
@@ -77,6 +82,10 @@ export function useMoneyAccountCardTransactions(): UseMoneyAccountCardTransactio
       };
     }, [load]),
   );
+
+  // Initial load only: linked accounts haven't resolved their first fetch yet.
+  // Unlinked accounts never fetch, so they're never "loading".
+  const isLoading = isLinked && !hasLoaded;
 
   return { cardTransactions, isLoading, error, refetch: load };
 }

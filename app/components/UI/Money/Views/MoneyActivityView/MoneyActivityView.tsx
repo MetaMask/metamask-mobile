@@ -21,6 +21,7 @@ import {
 import I18n, { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import MoneyActivityRow from '../../components/MoneyActivityRow/MoneyActivityRow';
+import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyActivityLoading';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
 import { useMoneyAccountCardTransactions } from '../../hooks/useMoneyAccountCardTransactions';
 import { mergeMoneyActivity } from '../../hooks/useMoneyActivityItems';
@@ -79,7 +80,8 @@ const MoneyActivityView = () => {
     moneyAddress,
     mockDataEnabled,
   } = useMoneyAccountTransactions();
-  const { cardTransactions } = useMoneyAccountCardTransactions();
+  const { cardTransactions, isLoading: isCardActivityLoading } =
+    useMoneyAccountCardTransactions();
 
   // Card spends are outgoing, so they belong with transfers (and in "All").
   const allItems = useMemo(
@@ -228,7 +230,9 @@ const MoneyActivityView = () => {
         </Button>
       </Box>
 
-      {sections.length === 0 ? (
+      {isCardActivityLoading ? (
+        <MoneyActivityLoading />
+      ) : sections.length === 0 ? (
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
