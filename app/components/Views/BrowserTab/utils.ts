@@ -1,6 +1,67 @@
 import AppConstants from '../../../core/AppConstants';
 import URLParse from 'url-parse';
-import { SessionENSNames } from './types';
+import { DocumentUrlForUrlBarPayload, SessionENSNames } from './types';
+
+const DEFAULT_HTTP_PORTS: Record<string, string> = {
+  'http:': '80',
+  'https:': '443',
+};
+
+/** Loopback hosts that are allowed to use non-default ports for local dev. */
+const LOCAL_HOSTNAMES = new Set(['localhost', '127.0.0.1', '[::1]']);
+
+/**
+ * Returns true when a URL specifies an explicit HTTP/HTTPS port other than the
+ * protocol default. Local development hosts are exempt.
+ */
+export const isDisallowedExplicitPort = (url: string): boolean => {
+  try {
+    const parsed = new URLParse(url);
+    const defaultPort = DEFAULT_HTTP_PORTS[parsed.protocol];
+
+    if (!defaultPort || !parsed.port) {
+      return false;
+    }
+
+    if (LOCAL_HOSTNAMES.has(parsed.hostname)) {
+      return false;
+    }
+
+    return parsed.port !== defaultPort;
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * Generates a unique id used to correlate a document URL sync request with the
+ * message the WebView posts back in response.
+ */
+export const createRequestId = (): string =>
+  `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+/**
+ * Type guard validating a message payload posted back from the WebView for a
+ * document URL sync request. Requires a non-empty `requestId` and `url`, and an
+ * optional `title` that, when present, must be a string.
+ */
+export const isDocumentUrlForUrlBarPayload = (
+  payload: unknown,
+): payload is DocumentUrlForUrlBarPayload => {
+  if (typeof payload !== 'object' || payload === null) {
+    return false;
+  }
+
+  const { requestId, url, title } = payload as Record<string, unknown>;
+
+  return (
+    typeof requestId === 'string' &&
+    requestId.length > 0 &&
+    typeof url === 'string' &&
+    url.length > 0 &&
+    (title === undefined || typeof title === 'string')
+  );
+};
 
 /**
  * Validates url for browser

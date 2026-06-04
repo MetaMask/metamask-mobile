@@ -192,6 +192,7 @@ const Routes = {
     REHYDRATE: 'Rehydrate',
     WALLET_CREATION_ERROR: 'WalletCreationError',
     INTEREST_QUESTIONNAIRE: 'OnboardingInterestQuestionnaire',
+    CRYPTO_EXPERIENCE_QUESTIONNAIRE: 'OnboardingCryptoExperienceQuestionnaire',
   },
   SEND_FLOW: {
     SEND_TO: 'SendTo',
@@ -543,6 +544,10 @@ const Routes = {
   },
   FEATURE_FLAG_OVERRIDE: 'FeatureFlagOverride',
   SECURITY_TRUST: 'SecurityTrust',
+  AGENTIC_CLI_APPROVAL: {
+    ID: 'AgenticCliApproval',
+    CONFIRM: 'AgenticCliApprovalConfirm',
+  },
   NAVIGATION_DEV_PANEL: 'NavigationDevPanel',
 };
 

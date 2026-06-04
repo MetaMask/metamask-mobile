@@ -5,6 +5,7 @@ import { Box } from '@metamask/design-system-react-native';
 import type { ListRenderItem } from '@shopify/flash-list';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import type { PerpsMarketData, SortOptionId } from '@metamask/perps-controller';
+import { isEquityAsset } from '../../../UI/Perps/utils/marketHours';
 import type { PerpsNavigationParamList } from '../../../UI/Perps/types/navigation';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
@@ -51,6 +52,10 @@ const RwaPerpsBlock: React.FC<RwaPerpsBlockProps> = ({
         .filter((d) => d.market.marketType === type)
         .slice(0, 3)
         .map((d) => d.market);
+    const stockLikeItems = perps.data
+      .filter((d) => isEquityAsset(d.market.marketType))
+      .slice(0, 3)
+      .map((d) => d.market);
     return [
       {
         key: 'commodities',
@@ -60,7 +65,7 @@ const RwaPerpsBlock: React.FC<RwaPerpsBlockProps> = ({
       {
         key: 'stocks',
         name: strings('trending.rwa_pill_stocks'),
-        items: byType('equity'),
+        items: stockLikeItems,
       },
       {
         key: 'forex',
