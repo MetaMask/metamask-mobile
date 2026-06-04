@@ -2,6 +2,7 @@ import {
   type MarketTypeFilter,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
+import { isEquityAsset } from './marketHours';
 
 export const RELATED_MARKETS_SOURCE = 'related_markets';
 export const RELATED_MARKET_CLICKED = 'related_market_clicked';
@@ -23,19 +24,13 @@ export interface RelatedMarketsResult {
   markets: PerpsMarketData[];
 }
 
-const RELATED_MARKET_CATEGORIES: Record<
-  Exclude<MarketTypeFilter, 'all'>,
-  RelatedMarketCollection
-> = {
+const RELATED_MARKET_CATEGORIES = {
   crypto: { id: 'crypto', label: 'Crypto' },
   stocks: { id: 'stocks', label: 'Stocks' },
-  'pre-ipo': { id: 'pre-ipo', label: 'Pre-IPO' },
-  indices: { id: 'indices', label: 'Indices' },
-  etfs: { id: 'etfs', label: 'ETFs' },
   commodities: { id: 'commodities', label: 'Commodities' },
   forex: { id: 'forex', label: 'Forex' },
   new: { id: 'new', label: 'New' },
-};
+} as const satisfies Record<string, RelatedMarketCollection>;
 
 const normalizeSymbol = (symbol: string) => symbol.trim().toUpperCase();
 
@@ -46,15 +41,13 @@ export const getRelatedMarketCollection = (
     return RELATED_MARKET_CATEGORIES.new;
   }
 
+  // Stock-like assets (stock, pre-ipo, index, etf) share one collection to
+  // match the Stocks tab and Perps home, which bucket equities via isEquityAsset.
+  if (isEquityAsset(market.marketType)) {
+    return RELATED_MARKET_CATEGORIES.stocks;
+  }
+
   switch (market.marketType) {
-    case 'stock':
-      return RELATED_MARKET_CATEGORIES.stocks;
-    case 'pre-ipo':
-      return RELATED_MARKET_CATEGORIES['pre-ipo'];
-    case 'index':
-      return RELATED_MARKET_CATEGORIES.indices;
-    case 'etf':
-      return RELATED_MARKET_CATEGORIES.etfs;
     case 'commodity':
       return RELATED_MARKET_CATEGORIES.commodities;
     case 'forex':

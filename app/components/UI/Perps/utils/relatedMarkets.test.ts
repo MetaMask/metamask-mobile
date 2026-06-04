@@ -46,6 +46,25 @@ describe('relatedMarkets utilities', () => {
     ]);
   });
 
+  it('groups all stock-like types into the single stocks collection', () => {
+    const result = getRelatedMarketsForMarket(
+      createMarket('xyz:AAPL', { marketType: 'stock', isHip3: true }),
+      [
+        createMarket('xyz:SPY', { marketType: 'etf', isHip3: true }),
+        createMarket('xyz:SPX', { marketType: 'index', isHip3: true }),
+        createMarket('xyz:ARM', { marketType: 'pre-ipo', isHip3: true }),
+        createMarket('xyz:GOLD', { marketType: 'commodity', isHip3: true }),
+      ],
+    );
+
+    expect(result?.collection.id).toBe('stocks');
+    expect(result?.markets.map((market) => market.symbol)).toStrictEqual([
+      'xyz:SPY',
+      'xyz:SPX',
+      'xyz:ARM',
+    ]);
+  });
+
   it('uses crypto as the category for main DEX markets', () => {
     const result = getRelatedMarketsForMarket(createMarket('FET'), [
       createMarket('FET'),
