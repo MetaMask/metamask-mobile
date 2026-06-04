@@ -5,10 +5,19 @@ import {
   getCryptoSymbol,
   getVariant,
   getEventStartTime,
+  getMarketTargetPrice,
   RECURRENCE_TO_DURATION_SECS,
+  resolveCryptoTargetPrice,
   toTimestampSeconds,
 } from './cryptoUpDown';
+import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { Recurrence, type PredictMarket } from '../types';
+
+jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
+  __esModule: true,
+  default: { log: jest.fn() },
+  DevLogger: { log: jest.fn() },
+}));
 
 const createMockMarket = (
   overrides: Partial<PredictMarket> = {},
@@ -288,6 +297,12 @@ describe('cryptoUpDown utilities', () => {
       expect(result).toBe('hourly');
     });
 
+    it('converts hourly to hourly', () => {
+      const result = getVariant('hourly');
+
+      expect(result).toBe('hourly');
+    });
+
     it('converts 4h to fourhour', () => {
       const result = getVariant('4h');
 
@@ -310,6 +325,25 @@ describe('cryptoUpDown utilities', () => {
       const result = getVariant('');
 
       expect(result).toBe('hourly');
+    });
+
+    it('logs a development warning when falling back for an unknown recurrence', () => {
+      (DevLogger.log as jest.Mock).mockClear();
+
+      getVariant('30m');
+
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        expect.stringContaining('unknown recurrence'),
+        expect.objectContaining({ recurrence: '30m', fallback: 'hourly' }),
+      );
+    });
+
+    it('does not log when the recurrence resolves to a known variant', () => {
+      (DevLogger.log as jest.Mock).mockClear();
+
+      getVariant('5m');
+
+      expect(DevLogger.log).not.toHaveBeenCalled();
     });
   });
 
@@ -334,6 +368,14 @@ describe('cryptoUpDown utilities', () => {
       const endDate = '2024-01-01T13:00:00.000Z';
 
       const result = getEventStartTime(endDate, '1h');
+
+      expect(result).toBe('2024-01-01T12:00:00.000Z');
+    });
+
+    it('computes start time for hourly recurrence', () => {
+      const endDate = '2024-01-01T13:00:00.000Z';
+
+      const result = getEventStartTime(endDate, 'hourly');
 
       expect(result).toBe('2024-01-01T12:00:00.000Z');
     });
@@ -375,9 +417,121 @@ describe('cryptoUpDown utilities', () => {
     });
   });
 
+  describe('target price fallback', () => {
+    it('returns the first valid group item threshold from market outcomes', () => {
+      const market = createMockMarket({
+        outcomes: [
+          {
+            id: 'outcome-1',
+            providerId: 'polymarket',
+            marketId: 'market-1',
+            title: 'BTC Up or Down',
+            description: '',
+            image: '',
+            status: 'open',
+            tokens: [],
+            volume: 0,
+            groupItemTitle: 'BTC',
+            groupItemThreshold: 78000,
+          },
+        ],
+      });
+
+      expect(getMarketTargetPrice(market)).toBe(78000);
+    });
+
+    it('prefers event price to beat over market threshold', () => {
+      const market = createMockMarket({
+        priceToBeat: 75749.02,
+        outcomes: [
+          {
+            id: 'outcome-1',
+            providerId: 'polymarket',
+            marketId: 'market-1',
+            title: 'BTC Up or Down',
+            description: '',
+            image: '',
+            status: 'open',
+            tokens: [],
+            volume: 0,
+            groupItemTitle: 'BTC',
+            groupItemThreshold: 78000,
+          },
+        ],
+      });
+
+      expect(getMarketTargetPrice(market)).toBe(75749.02);
+    });
+
+    it('returns event price to beat when market outcomes are missing', () => {
+      expect(getMarketTargetPrice({ priceToBeat: 75749.02 })).toBe(75749.02);
+    });
+
+    it('returns undefined when market details are unavailable', () => {
+      expect(getMarketTargetPrice(undefined)).toBeUndefined();
+      expect(resolveCryptoTargetPrice(null, undefined)).toBeUndefined();
+    });
+
+    it('prefers fetched target price over market threshold fallback', () => {
+      const market = createMockMarket({
+        outcomes: [
+          {
+            id: 'outcome-1',
+            providerId: 'polymarket',
+            marketId: 'market-1',
+            title: 'BTC Up or Down',
+            description: '',
+            image: '',
+            status: 'open',
+            tokens: [],
+            volume: 0,
+            groupItemTitle: 'BTC',
+            groupItemThreshold: 78000,
+          },
+        ],
+      });
+
+      expect(resolveCryptoTargetPrice(market, 78123)).toBe(78123);
+    });
+
+    it('falls back to market threshold when fetched target price is unavailable', () => {
+      const market = createMockMarket({
+        outcomes: [
+          {
+            id: 'outcome-1',
+            providerId: 'polymarket',
+            marketId: 'market-1',
+            title: 'BTC Up or Down',
+            description: '',
+            image: '',
+            status: 'open',
+            tokens: [],
+            volume: 0,
+            groupItemTitle: 'BTC',
+            groupItemThreshold: 78000,
+          },
+        ],
+      });
+
+      expect(resolveCryptoTargetPrice(market, undefined)).toBe(78000);
+    });
+
+    it('falls back to event price to beat when fetched target price is unavailable', () => {
+      const market = createMockMarket({
+        priceToBeat: 76478.64,
+      });
+
+      expect(resolveCryptoTargetPrice(market, undefined)).toBe(76478.64);
+    });
+  });
+
   describe('toTimestampSeconds', () => {
     it('converts millisecond timestamps to seconds', () => {
       expect(toTimestampSeconds(1777227900000)).toBe(1777227900);
+    });
+
+    it('preserves sub-second precision for millisecond timestamps', () => {
+      expect(toTimestampSeconds(1777227900123)).toBe(1777227900.123);
     });
 
     it('preserves second timestamps', () => {
@@ -396,6 +550,10 @@ describe('cryptoUpDown utilities', () => {
 
     it('has 1h duration of 3600 seconds', () => {
       expect(RECURRENCE_TO_DURATION_SECS['1h']).toBe(3600);
+    });
+
+    it('has hourly duration of 3600 seconds', () => {
+      expect(RECURRENCE_TO_DURATION_SECS.hourly).toBe(3600);
     });
 
     it('has 4h duration of 14400 seconds', () => {

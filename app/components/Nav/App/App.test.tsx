@@ -1,6 +1,7 @@
 import React from 'react';
 import { DeepPartial } from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
+import { initialState as initialSecurityState } from '../../../reducers/security';
 import App from '.';
 import { cleanup, render, waitFor } from '@testing-library/react-native';
 import { RootState } from '../../../reducers';
@@ -37,6 +38,7 @@ const initialState: DeepPartial<RootState> = {
   settings: {
     basicFunctionalityEnabled: true,
   },
+  security: initialSecurityState,
   engine: {
     backgroundState,
   },
@@ -126,6 +128,12 @@ jest.mock('../../UI/OptinMetrics', () => () => (
 jest.mock('../../Views/OnboardingInterestQuestionnaire', () => () => (
   <MockView testID="mock-onboarding-interest-questionnaire" />
 ));
+jest.mock(
+  '../../Views/OnboardingCryptoExperienceQuestionnaire/OnboardingCryptoExperienceQuestionnaire',
+  () => () => (
+    <MockView testID="mock-onboarding-crypto-experience-questionnaire" />
+  ),
+);
 jest.mock('../../Views/AccountStatus', () => () => (
   <MockView testID="mock-account-status" />
 ));
@@ -1761,6 +1769,42 @@ describe('App', () => {
       await waitFor(() => {
         expect(
           getByTestId('mock-onboarding-interest-questionnaire'),
+        ).toBeOnTheScreen();
+      });
+    });
+
+    it('renders OnboardingCryptoExperienceQuestionnaire when it is the active OnboardingNav route', async () => {
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: 'OnboardingRootNav',
+            state: {
+              index: 0,
+              routes: [
+                {
+                  name: 'OnboardingNav',
+                  state: {
+                    index: 0,
+                    routes: [
+                      {
+                        name: Routes.ONBOARDING.CRYPTO_EXPERIENCE_QUESTIONNAIRE,
+                        params: { onComplete: jest.fn() },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      };
+
+      const { getByTestId } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(
+          getByTestId('mock-onboarding-crypto-experience-questionnaire'),
         ).toBeOnTheScreen();
       });
     });

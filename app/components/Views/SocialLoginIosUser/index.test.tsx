@@ -2,6 +2,7 @@ import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import SocialLoginIosUser from '.';
 import Device from '../../../util/device';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { OnboardingSelectorIDs } from '../Onboarding/Onboarding.testIds';
 import { fireEvent } from '@testing-library/react-native';
 import { strings } from '../../../../locales/i18n';

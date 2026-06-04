@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { BackHandler, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
 import { ActivitiesViewSelectorsIDs } from './ActivitiesView.testIds';
 import { strings } from '../../../../locales/i18n';
@@ -10,9 +11,8 @@ import Avatar, {
   AvatarSize,
   AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar';
-import { Box } from '@metamask/design-system-react-native';
+import { Box, HeaderStandard } from '@metamask/design-system-react-native';
 import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import HeaderRoot from '../../../component-library/components-temp/HeaderRoot';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import TextComponent, {
@@ -29,7 +29,7 @@ import { getNetworkImageSource } from '../../../util/networks';
 import { useTheme } from '../../../util/theme';
 import { TabsList } from '../../../component-library/components-temp/Tabs';
 import { createNetworkManagerNavDetails } from '../../UI/NetworkManager';
-import { selectMoneyHomeScreenEnabledFlag } from '../../UI/Money/selectors/featureFlags';
+import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/featureFlags';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
 import PredictTransactionsView from '../../UI/Predict/views/PredictTransactionsView/PredictTransactionsView';
@@ -43,7 +43,9 @@ import {
   useNetworksByCustomNamespace,
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useStyles } from '../../hooks/useStyles';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorBoundary from '../ErrorBoundary';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import UnifiedTransactionsView from '../UnifiedTransactionsView/UnifiedTransactionsView';
 
 const createStyles = (params) => {
@@ -109,9 +111,7 @@ const ActivityView = () => {
 
   const currentNetworkName = getNetworkInfo(0)?.networkName;
 
-  const isMoneyHomeScreenEnabled = useSelector(
-    selectMoneyHomeScreenEnabledFlag,
-  );
+  const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
 
   const params = useParams();
   const perpsEnabledFlag = useSelector(selectPerpsEnabledFlag);
@@ -136,15 +136,15 @@ const ActivityView = () => {
   }, [navigation]);
 
   const handleBackPress = useCallback(() => {
-    if (isMoneyHomeScreenEnabled) {
+    if (isMoneyAccountEnabled) {
       handleNavigateHome();
     } else if (navigation.canGoBack()) {
       navigation.goBack();
     }
-  }, [isMoneyHomeScreenEnabled, navigation, handleNavigateHome]);
+  }, [isMoneyAccountEnabled, navigation, handleNavigateHome]);
 
   useEffect(() => {
-    if (!isMoneyHomeScreenEnabled) return;
+    if (!isMoneyAccountEnabled) return;
 
     const subscription = BackHandler.addEventListener(
       'hardwareBackPress',
@@ -155,9 +155,9 @@ const ActivityView = () => {
     );
 
     return () => subscription.remove();
-  }, [navigation, isMoneyHomeScreenEnabled, handleNavigateHome]);
+  }, [navigation, isMoneyAccountEnabled, handleNavigateHome]);
 
-  const showBackButton = params.showBackButton || isMoneyHomeScreenEnabled;
+  const showBackButton = params.showBackButton || isMoneyAccountEnabled;
 
   // Calculate dynamic tab indices based on which tabs are enabled
   // Tab order: Transactions (0), Orders (1), Perps (conditional), Predict (conditional)
@@ -225,7 +225,7 @@ const ActivityView = () => {
         testID={ActivitiesViewSelectorsIDs.SAFE_AREA_VIEW}
       >
         {showBackButton ? (
-          <HeaderCompactStandard
+          <HeaderStandard
             title={strings('activity_view.title')}
             onBack={handleBackPress}
             backButtonProps={{ testID: 'activity-view-back-button' }}

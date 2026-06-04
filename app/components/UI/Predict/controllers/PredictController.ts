@@ -71,6 +71,7 @@ import {
   CryptoPriceUpdateCallback,
   GameUpdateCallback,
   GetAccountStateParams,
+  GetActivityParams,
   GetBalanceParams,
   GetCryptoPriceHistoryParams,
   GetCryptoTargetPriceParams,
@@ -89,6 +90,8 @@ import {
   PredictClaim,
   PredictClaimStatus,
   PredictMarket,
+  PredictMarketListParams,
+  PredictMarketListResponse,
   PredictPosition,
   PredictPositionStatus,
   PredictPriceHistoryPoint,
@@ -98,6 +101,7 @@ import {
   PrepareWithdrawParams,
   PreviewOrderParams,
   PriceUpdateCallback,
+  OrderbookCallback,
   Result,
   SearchMarketsParams,
   Side,
@@ -105,6 +109,8 @@ import {
 } from '../types';
 import { PredictFeatureFlags } from '../types/flags';
 
+import { resolveCryptoTargetPrice } from '../utils/cryptoUpDown';
+import { validateMarketBettable } from '../utils/marketState';
 import { ensureError } from '../utils/predictErrorHandler';
 import { resolvePredictFeatureFlags } from '../utils/resolvePredictFeatureFlags';
 import { validateDepositTransactions } from '../utils/validateTransactions';
@@ -373,6 +379,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'getPrices',
   'getUnrealizedPnL',
   'initPayWithAnyToken',
+  'listMarkets',
   'onPlaceOrderSuccess',
   'placeOrder',
   'prepareWithdraw',
@@ -385,7 +392,9 @@ const MESSENGER_EXPOSED_METHODS = [
   'subscribeToCryptoPrices',
   'subscribeToGameUpdates',
   'subscribeToMarketPrices',
+  'subscribeToOrderbook',
   'trackActivityViewed',
+  'trackBannerAction',
   'trackBetslipDismissed',
   'trackFeedViewed',
   'trackGeoBlockTriggered',
@@ -621,9 +630,12 @@ export class PredictController extends BaseController<
               (await this.provider.getMarketsByIds?.(highlightedMarketIds)) ??
               [];
 
-            const highlightedMarkets = fetchedHighlightedMarkets.filter(
-              (market) => market.status === 'open',
-            );
+            const highlightedMarkets = fetchedHighlightedMarkets
+              .filter((market) => market.status === 'open')
+              .map((market) => ({
+                ...market,
+                isHighlighted: true,
+              }));
 
             const highlightedIdSet = new Set(
               highlightedMarkets.map((m) => m.id),
@@ -641,11 +653,51 @@ export class PredictController extends BaseController<
     );
   }
 
-  async searchMarkets(params: SearchMarketsParams): Promise<PredictMarket[]> {
+  async listMarkets(
+    params: PredictMarketListParams,
+  ): Promise<PredictMarketListResponse> {
+    return withTrace(
+      this.traceable,
+      {
+        method: 'listMarkets',
+        trace: {
+          name: TraceName.PredictListMarkets,
+          op: TraceOperation.PredictDataFetch,
+          tags: {
+            feature: PREDICT_CONSTANTS.FEATURE_NAME,
+            providerId: POLYMARKET_PROVIDER_ID,
+          },
+        },
+        errorContext: {
+          providerId: POLYMARKET_PROVIDER_ID,
+          hasAfterCursor: Boolean(params.afterCursor),
+        },
+        fallbackErrorCode: PREDICT_ERROR_CODES.MARKETS_FAILED,
+        traceData: (result) => ({
+          marketCount: result.markets.length,
+          hasNextCursor: Boolean(result.nextCursor),
+        }),
+      },
+      async () => {
+        const { markets, nextCursor } = await this.provider.listMarkets(params);
+
+        return {
+          markets: markets.filter(
+            (market): market is PredictMarket => market !== undefined,
+          ),
+          nextCursor,
+        };
+      },
+    );
+  }
+
+  async searchMarkets(
+    params: SearchMarketsParams,
+  ): Promise<{ markets: PredictMarket[]; totalResults: number }> {
     const query = params.q.trim();
 
     if (!query) {
-      return [];
+      return { markets: [], totalResults: 0 };
     }
 
     return withTrace(
@@ -665,7 +717,7 @@ export class PredictController extends BaseController<
           hasSearchQuery: Boolean(query),
         },
         fallbackErrorCode: PREDICT_ERROR_CODES.MARKETS_FAILED,
-        traceData: (markets) => ({ marketCount: markets.length }),
+        traceData: (result) => ({ marketCount: result.markets.length }),
       },
       async () =>
         this.provider.searchMarkets({
@@ -782,20 +834,14 @@ export class PredictController extends BaseController<
         }
 
         Logger.log(
-          `[${PREDICT_CONSTANTS.FEATURE_NAME}] Crypto target price API failed for event ${params.eventId}, falling back to groupItemThreshold`,
+          `[${PREDICT_CONSTANTS.FEATURE_NAME}] Crypto target price API failed for event ${params.eventId}, falling back to market metadata`,
         );
 
         try {
           const market = await this.provider.getMarketDetails({
             marketId: params.eventId,
           });
-          if (!market?.outcomes?.length) {
-            return null;
-          }
-          const threshold = market.outcomes[0].groupItemThreshold;
-          return typeof threshold === 'number' && threshold > 0
-            ? threshold
-            : null;
+          return resolveCryptoTargetPrice(market, undefined) ?? null;
         } catch {
           return null;
         }
@@ -956,7 +1002,9 @@ export class PredictController extends BaseController<
     );
   }
 
-  async getActivity(params: { address?: string }): Promise<PredictActivity[]> {
+  async getActivity(
+    params: GetActivityParams = {},
+  ): Promise<PredictActivity[]> {
     return withTrace(
       this.traceable,
       {
@@ -974,8 +1022,21 @@ export class PredictController extends BaseController<
         traceData: (activity) => ({ activityCount: activity.length }),
       },
       async () => {
-        const selectedAddress = params.address ?? this.getSigner().address;
-        return this.provider.getActivity({ address: selectedAddress });
+        const { address, limit, offset } = params;
+        const selectedAddress = address ?? this.getSigner().address;
+        const activityParams: GetActivityParams & { address: string } = {
+          address: selectedAddress,
+        };
+
+        if (limit !== undefined) {
+          activityParams.limit = limit;
+        }
+
+        if (offset !== undefined) {
+          activityParams.offset = offset;
+        }
+
+        return this.provider.getActivity(activityParams);
       },
     );
   }
@@ -1048,6 +1109,12 @@ export class PredictController extends BaseController<
     this.analytics.trackFeedViewed(args);
   }
 
+  public trackBannerAction(
+    args: Parameters<PredictAnalytics['trackBannerAction']>[0],
+  ): void {
+    this.analytics.trackBannerAction(args);
+  }
+
   public trackShareAction(
     args: Parameters<PredictAnalytics['trackShareAction']>[0],
   ): void {
@@ -1093,10 +1160,61 @@ export class PredictController extends BaseController<
     const { predictWithAnyTokenEnabled } = this.resolveFeatureFlags();
     const isBuyWithAnyToken =
       predictWithAnyTokenEnabled && params.preview.side === Side.BUY;
-
     const isExistingPendingOrder =
       !!params.transactionId &&
       !!this.pendingOrderPreviews[params.transactionId];
+
+    try {
+      await validateMarketBettable({
+        provider: this.provider,
+        preview: params.preview,
+      });
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : PREDICT_ERROR_CODES.MARKET_BETTABLE_CHECK_FAILED;
+
+      this.update((state) => {
+        state.lastError = errorMessage;
+        state.lastUpdateTimestamp = Date.now();
+        if (isBuyWithAnyToken && state.activeBuyOrders[activeOrderAddress]) {
+          state.activeBuyOrders[activeOrderAddress].state =
+            ActiveOrderState.PREVIEW;
+          state.activeBuyOrders[activeOrderAddress].error = errorMessage;
+        }
+      });
+
+      if (isBuyWithAnyToken && isExistingPendingOrder) {
+        this.provider.clearOptimisticPosition(
+          activeOrderAddress,
+          params.preview.outcomeTokenId,
+        );
+      }
+
+      const isBackgroundOrder =
+        params.transactionId !== undefined &&
+        params.transactionId !==
+          this.state.activeBuyOrders[activeOrderAddress]?.transactionId;
+
+      if (isBuyWithAnyToken && isExistingPendingOrder && isBackgroundOrder) {
+        this.messenger.publish('PredictController:transactionStatusChanged', {
+          type: 'order',
+          status: 'failed',
+          senderAddress: activeOrderAddress,
+          marketId: params.analyticsProperties?.marketId,
+        });
+      }
+
+      if (
+        params.transactionId &&
+        this.pendingOrderPreviews[params.transactionId]
+      ) {
+        delete this.pendingOrderPreviews[params.transactionId];
+      }
+
+      throw new Error(errorMessage);
+    }
 
     if (
       predictWithAnyTokenEnabled &&
@@ -1531,6 +1649,7 @@ export class PredictController extends BaseController<
       const batchResult = await addTransactionBatch({
         from: signer.address as Hex,
         origin: ORIGIN_METAMASK,
+        isInternal: true,
         networkClientId,
         disableHook: true,
         disableSequential: true,
@@ -1741,6 +1860,26 @@ export class PredictController extends BaseController<
   }
 
   /**
+   * Subscribes to real-time orderbook (depth) updates for a single outcome
+   * token via WebSocket. The first emission is seeded from a REST snapshot by
+   * the provider so consumers render immediately.
+   *
+   * @param tokenId - The outcome token ID to subscribe to orderbook updates for
+   * @param callback - Function invoked with each OrderbookSnapshot (bids desc, asks asc)
+   * @returns Unsubscribe function to clean up the subscription
+   */
+  public subscribeToOrderbook(
+    tokenId: string,
+    callback: OrderbookCallback,
+  ): () => void {
+    const provider = this.provider;
+    if (!provider?.subscribeToOrderbook) {
+      return () => undefined;
+    }
+    return provider.subscribeToOrderbook(tokenId, callback);
+  }
+
+  /**
    * Subscribes to real-time crypto price updates via RTDS WebSocket.
    *
    * @param symbols - Array of crypto symbols to subscribe to (e.g., ['btcusdt'])
@@ -1934,6 +2073,7 @@ export class PredictController extends BaseController<
       const batchResult = await addTransactionBatch({
         from: signer.address as Hex,
         origin: ORIGIN_METAMASK,
+        isInternal: true,
         networkClientId,
         disableHook: true,
         disableSequential: true,
@@ -2079,6 +2219,7 @@ export class PredictController extends BaseController<
       const batchResult = await addTransactionBatch({
         from: signer.address as Hex,
         origin: ORIGIN_METAMASK,
+        isInternal: true,
         networkClientId,
         disableHook: true,
         disableSequential: true,
@@ -2123,6 +2264,11 @@ export class PredictController extends BaseController<
   public clearPendingDeposit(): void {
     const selectedAddress = this.getSigner().address;
     this.clearPendingDepositForAddress({ address: selectedAddress });
+  }
+
+  public clearPendingClaim(): void {
+    const selectedAddress = this.getSigner().address;
+    this.clearPendingClaimForAddress({ address: selectedAddress });
   }
 
   private clearPendingDepositForAddress({
@@ -2699,6 +2845,7 @@ export class PredictController extends BaseController<
       const { batchId } = await addTransactionBatch({
         from: signer.address as Hex,
         origin: ORIGIN_METAMASK,
+        isInternal: true,
         networkClientId: this.messenger.call(
           'NetworkController:findNetworkClientIdByChainId',
           chainId,
@@ -3033,6 +3180,7 @@ export type {
   PredictControllerSubscribeToGameUpdatesAction,
   PredictControllerSubscribeToMarketPricesAction,
   PredictControllerTrackActivityViewedAction,
+  PredictControllerTrackBannerActionAction,
   PredictControllerTrackFeedViewedAction,
   PredictControllerTrackGeoBlockTriggeredAction,
   PredictControllerTrackMarketDetailsOpenedAction,

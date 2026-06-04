@@ -12,8 +12,64 @@ import MOCK_MONEY_TRANSACTIONS from '../constants/mockActivityData';
 import {
   isMoneyActivityDeposit,
   isMoneyActivityTransfer,
+  isMusdErc20Transfer,
 } from '../constants/moneyActivityFilters';
 import { selectNonReplacedTransactions } from '../../../../selectors/transactionController';
+import { areAddressesEqual } from '../../../../util/address';
+import { decodeTransferData } from '../../../../util/transactions';
+import { isMusdOnMoneyAccountChain } from '../../Earn/constants/musd';
+import {
+  ERC20_TRANSFER_CALLDATA_LENGTH,
+  ERC20_TRANSFER_FROM_CALLDATA_LENGTH,
+} from '../constants/activityStyles';
+
+// Statuses that should surface in money activity. `unapproved`/`approved`/
+// `signed` are mid-compose and shouldn't appear yet; `rejected`/`dropped`/
+// `cancelled` were explicitly aborted and would mislead as "Received".
+const VISIBLE_ACTIVITY_STATUSES: TransactionStatus[] = [
+  TransactionStatus.confirmed,
+  TransactionStatus.submitted,
+  TransactionStatus.failed,
+];
+
+function hasVisibleStatus(tx: TransactionMeta): boolean {
+  return VISIBLE_ACTIVITY_STATUSES.includes(tx.status);
+}
+
+/**
+ * Extracts the call's recipient from ERC-20 `transfer`/`transferFrom` calldata.
+ * For both types, `txParams.to` is the token contract, not the recipient — the
+ * recipient must be decoded from the calldata. Returns `undefined` if the
+ * calldata is missing or truncated; `decodeTransferData` does not throw on
+ * short input, so length must be checked.
+ */
+function getErc20TransferRecipient(tx: TransactionMeta): string | undefined {
+  const data = tx.txParams?.data;
+  if (!data) return undefined;
+  try {
+    if (
+      tx.type === TransactionType.tokenMethodTransfer &&
+      data.length >= ERC20_TRANSFER_CALLDATA_LENGTH
+    ) {
+      const [recipient] = decodeTransferData('transfer', data) as string[];
+      return recipient;
+    }
+    if (
+      tx.type === TransactionType.tokenMethodTransferFrom &&
+      data.length >= ERC20_TRANSFER_FROM_CALLDATA_LENGTH
+    ) {
+      // transferFrom(address from, address to, uint256 amount) → recipient at [1].
+      const [, recipient] = decodeTransferData(
+        'transferFrom',
+        data,
+      ) as string[];
+      return recipient;
+    }
+    return undefined;
+  } catch {
+    return undefined;
+  }
+}
 
 export interface UseMoneyAccountTransactionsResult {
   /** Confirmed + submitted (filtered) merged, sorted by time descending */
@@ -68,13 +124,45 @@ export function useMoneyAccountTransactions(): UseMoneyAccountTransactionsResult
           return true;
         }
         // EIP-7702 batch where a Money account call is a nested call.
-        return (
+        if (
           tx.nestedTransactions?.some(
             (nested) =>
               nested.type === TransactionType.moneyAccountDeposit ||
               nested.type === TransactionType.moneyAccountWithdraw,
-          ) ?? false
-        );
+          )
+        ) {
+          return true;
+        }
+        if (moneyAddress === undefined) return false;
+        // The inbound-mUSD and locally-signed mUSD branches below must skip
+        // mid-compose and explicitly-aborted rows, which would otherwise
+        // render as phantom "Received +X mUSD" entries.
+        if (!hasVisibleStatus(tx)) return false;
+        // Inbound mUSD landing at the money account (from incoming-transaction
+        // polling — `transferInformation.contractAddress` is the token, and
+        // `txParams.to` is the recipient).
+        if (
+          tx.type === TransactionType.incoming &&
+          isMusdOnMoneyAccountChain(
+            tx.transferInformation?.contractAddress,
+            tx.chainId,
+          ) &&
+          areAddressesEqual(tx.txParams?.to ?? '', moneyAddress)
+        ) {
+          return true;
+        }
+        // Locally-signed `transfer`/`transferFrom` of mUSD whose call recipient
+        // is the money account (e.g. user's EOA depositing into Money).
+        if (isMusdErc20Transfer(tx)) {
+          const recipient = getErc20TransferRecipient(tx);
+          if (
+            recipient !== undefined &&
+            areAddressesEqual(recipient, moneyAddress)
+          ) {
+            return true;
+          }
+        }
+        return false;
       })
       .sort((a, b) => (b?.time ?? 0) - (a?.time ?? 0));
 

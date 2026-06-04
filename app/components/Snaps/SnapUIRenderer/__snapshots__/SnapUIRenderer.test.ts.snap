@@ -175,11 +175,9 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
               "borderColor": "transparent",
               "borderRadius": 12,
               "borderWidth": 1,
-              "columnGap": 8,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
-              "minWidth": 80,
               "opacity": 1,
               "overflow": "hidden",
               "paddingLeft": 16,
@@ -208,11 +206,9 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
               "borderColor": "transparent",
               "borderRadius": 12,
               "borderWidth": 1,
-              "columnGap": 8,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
-              "minWidth": 80,
               "opacity": 1,
               "overflow": "hidden",
               "paddingLeft": 16,
@@ -233,7 +229,17 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
         testID="default-snap-footer-button"
       >
         <View
-          style={{}}
+          style={
+            [
+              {
+                "alignItems": "center",
+                "display": "flex",
+                "flexDirection": "row",
+                "gap": 0,
+              },
+              undefined,
+            ]
+          }
         >
           <Text
             accessibilityRole="text"
@@ -1535,11 +1541,9 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
               "borderColor": "transparent",
               "borderRadius": 12,
               "borderWidth": 1,
-              "columnGap": 8,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
-              "minWidth": 80,
               "opacity": 1,
               "overflow": "hidden",
               "paddingLeft": 16,
@@ -1568,11 +1572,9 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
               "borderColor": "transparent",
               "borderRadius": 12,
               "borderWidth": 1,
-              "columnGap": 8,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
-              "minWidth": 80,
               "opacity": 1,
               "overflow": "hidden",
               "paddingLeft": 16,
@@ -1593,7 +1595,17 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
         testID="undefined-snap-footer-button"
       >
         <View
-          style={{}}
+          style={
+            [
+              {
+                "alignItems": "center",
+                "display": "flex",
+                "flexDirection": "row",
+                "gap": 0,
+              },
+              undefined,
+            ]
+          }
         >
           <Text
             accessibilityRole="text"
@@ -1656,11 +1668,9 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
               "alignSelf": "flex-start",
               "backgroundColor": "#131416",
               "borderRadius": 12,
-              "columnGap": 8,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
-              "minWidth": 80,
               "opacity": 1,
               "overflow": "hidden",
               "paddingLeft": 16,
@@ -1688,11 +1698,9 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
               "alignSelf": "flex-start",
               "backgroundColor": "#131416",
               "borderRadius": 12,
-              "columnGap": 8,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
-              "minWidth": 80,
               "opacity": 1,
               "overflow": "hidden",
               "paddingLeft": 16,
@@ -1714,7 +1722,17 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
         testID="undefined-snap-footer-button"
       >
         <View
-          style={{}}
+          style={
+            [
+              {
+                "alignItems": "center",
+                "display": "flex",
+                "flexDirection": "row",
+                "gap": 0,
+              },
+              undefined,
+            ]
+          }
         >
           <View
             style={
@@ -1970,11 +1988,9 @@ exports[`SnapUIRenderer renders footers 1`] = `
               "borderColor": "transparent",
               "borderRadius": 12,
               "borderWidth": 1,
-              "columnGap": 8,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
-              "minWidth": 80,
               "opacity": 1,
               "overflow": "hidden",
               "paddingLeft": 16,
@@ -2003,11 +2019,9 @@ exports[`SnapUIRenderer renders footers 1`] = `
               "borderColor": "transparent",
               "borderRadius": 12,
               "borderWidth": 1,
-              "columnGap": 8,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
-              "minWidth": 80,
               "opacity": 1,
               "overflow": "hidden",
               "paddingLeft": 16,
@@ -2028,7 +2042,17 @@ exports[`SnapUIRenderer renders footers 1`] = `
         testID="undefined-snap-footer-button"
       >
         <View
-          style={{}}
+          style={
+            [
+              {
+                "alignItems": "center",
+                "display": "flex",
+                "flexDirection": "row",
+                "gap": 0,
+              },
+              undefined,
+            ]
+          }
         >
           <Text
             accessibilityRole="text"
@@ -2091,11 +2115,9 @@ exports[`SnapUIRenderer renders footers 1`] = `
               "alignSelf": "flex-start",
               "backgroundColor": "#131416",
               "borderRadius": 12,
-              "columnGap": 8,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
-              "minWidth": 80,
               "opacity": 1,
               "overflow": "hidden",
               "paddingLeft": 16,
@@ -2123,11 +2145,9 @@ exports[`SnapUIRenderer renders footers 1`] = `
               "alignSelf": "flex-start",
               "backgroundColor": "#131416",
               "borderRadius": 12,
-              "columnGap": 8,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
-              "minWidth": 80,
               "opacity": 1,
               "overflow": "hidden",
               "paddingLeft": 16,
@@ -2149,7 +2169,17 @@ exports[`SnapUIRenderer renders footers 1`] = `
         testID="undefined-snap-footer-button"
       >
         <View
-          style={{}}
+          style={
+            [
+              {
+                "alignItems": "center",
+                "display": "flex",
+                "flexDirection": "row",
+                "gap": 0,
+              },
+              undefined,
+            ]
+          }
         >
           <View
             style={
@@ -2952,11 +2982,9 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
               "borderColor": "transparent",
               "borderRadius": 12,
               "borderWidth": 1,
-              "columnGap": 8,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
-              "minWidth": 80,
               "opacity": 1,
               "overflow": "hidden",
               "paddingLeft": 16,
@@ -2985,11 +3013,9 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
               "borderColor": "transparent",
               "borderRadius": 12,
               "borderWidth": 1,
-              "columnGap": 8,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
-              "minWidth": 80,
               "opacity": 1,
               "overflow": "hidden",
               "paddingLeft": 16,
@@ -3010,7 +3036,17 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
         testID="undefined-snap-footer-button"
       >
         <View
-          style={{}}
+          style={
+            [
+              {
+                "alignItems": "center",
+                "display": "flex",
+                "flexDirection": "row",
+                "gap": 0,
+              },
+              undefined,
+            ]
+          }
         >
           <Text
             accessibilityRole="text"
@@ -3073,11 +3109,9 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
               "alignSelf": "flex-start",
               "backgroundColor": "#131416",
               "borderRadius": 12,
-              "columnGap": 8,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
-              "minWidth": 80,
               "opacity": 1,
               "overflow": "hidden",
               "paddingLeft": 16,
@@ -3105,11 +3139,9 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
               "alignSelf": "flex-start",
               "backgroundColor": "#131416",
               "borderRadius": 12,
-              "columnGap": 8,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
-              "minWidth": 80,
               "opacity": 1,
               "overflow": "hidden",
               "paddingLeft": 16,
@@ -3131,7 +3163,17 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
         testID="undefined-snap-footer-button"
       >
         <View
-          style={{}}
+          style={
+            [
+              {
+                "alignItems": "center",
+                "display": "flex",
+                "flexDirection": "row",
+                "gap": 0,
+              },
+              undefined,
+            ]
+          }
         >
           <View
             style={

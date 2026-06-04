@@ -1,8 +1,9 @@
 import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
+import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   AvatarToken,
@@ -12,14 +13,14 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   Button,
+  ButtonIcon,
+  ButtonIconSize,
   ButtonSize,
   ButtonVariant,
   FontWeight,
   HeaderStandard,
-  Icon,
   IconColor,
   IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -29,45 +30,82 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import {
-  resetBridgeState,
   selectBatchSellSlippages,
   selectBatchSellDestToken,
   selectBatchSellDestStablecoins,
+  selectBatchSellSourceTokenAmounts,
   selectBatchSellSourceTokens,
   setBatchSellDestToken,
+  setBatchSellSourceTokenAmount,
+  setBatchSellSourceTokenAmounts,
   setBatchSellSourceTokens,
   setBatchSellTokenSlippages,
 } from '../../../../../core/redux/slices/bridge';
 import { RootState } from '../../../../../reducers';
+import Engine from '../../../../../core/Engine';
 import { BridgeToken } from '../../types';
-import { getBridgeTokenAssetId } from '../../utils/tokenUtils';
-import { getBatchSellInitialSlippage } from '../../components/SlippageModal/utils';
+import { getBatchSellSlippage } from '../../components/SlippageModal/utils';
 import { BatchSellReviewSelectorsIDs } from './BatchSellReview.testIds';
 import { BatchSellReviewTokenRow } from './BatchSellReviewTokenRow';
+import {
+  getBatchSellAtomicSourceAmount,
+  getBatchSellSourceTokenAmount,
+  useBatchSellQuoteRequest,
+} from '../../hooks/useBatchSellQuoteRequest';
+import { useBatchSellQuoteData } from '../../hooks/useBatchSellQuoteData';
 
 const DEFAULT_PERCENT = 100;
 const UNKNOWN_DESTINATION_TOKEN_SYMBOL = 'UNKNOWN';
-// TODO(SWAPS-4439): When Batch Sell quote fetching is wired, pass
-// batchSellSlippages[assetId] into each token's BridgeController quote request.
-const HAS_QUOTES = false;
+const TOTAL_RECEIVED_SKELETON_WIDTH = 195;
+const TOTAL_RECEIVED_SKELETON_HEIGHT = 50;
 
 const getTokenKey = (token: BridgeToken) => `${token.chainId}:${token.address}`;
 
-function areBatchSellSlippageMapsEqual(
+function TotalReceivedValue({
+  totalReceived,
+  isLoading,
+}: {
+  totalReceived: { formattedFiat: string };
+  isLoading: boolean;
+}) {
+  const tw = useTailwind();
+
+  if (isLoading) {
+    return (
+      <Skeleton
+        width={TOTAL_RECEIVED_SKELETON_WIDTH}
+        height={TOTAL_RECEIVED_SKELETON_HEIGHT}
+        style={tw.style('rounded-lg')}
+        testID={BatchSellReviewSelectorsIDs.TOTAL_RECEIVED_SKELETON}
+      />
+    );
+  }
+
+  return (
+    <Text
+      variant={TextVariant.DisplayLg}
+      color={TextColor.SuccessDefault}
+      twClassName="min-w-0 flex-1 font-semibold"
+    >
+      {totalReceived.formattedFiat}
+    </Text>
+  );
+}
+
+function areBatchSellValueMapsEqual(
   first: Record<string, string | undefined>,
   second: Record<string, string | undefined>,
 ) {
   const firstKeys = Object.keys(first);
   const secondKeys = Object.keys(second);
 
-  return (
-    firstKeys.length === secondKeys.length &&
-    firstKeys.every(
-      (assetId) =>
-        Object.prototype.hasOwnProperty.call(second, assetId) &&
-        first[assetId] === second[assetId],
-    )
-  );
+  if (firstKeys.length !== secondKeys.length) return false;
+
+  return firstKeys.every((assetId) => {
+    if (!Object.prototype.hasOwnProperty.call(second, assetId)) return false;
+
+    return Object.is(first[assetId], second[assetId]);
+  });
 }
 
 export function BatchSellReview() {
@@ -81,10 +119,31 @@ export function BatchSellReview() {
   );
   const selectedDestinationToken = useSelector(selectBatchSellDestToken);
   const batchSellSlippages = useSelector(selectBatchSellSlippages);
+  const batchSellSourceTokenAmounts = useSelector(
+    selectBatchSellSourceTokenAmounts,
+  );
   const isRemoveTokenDisabled = selectedTokens.length <= 2;
   const [percentsByTokenKey, setPercentsByTokenKey] = useState<
     Record<string, number>
   >({});
+  const { updateBatchSellQuoteParams, getNewQuote: handleGetNewQuote } =
+    useBatchSellQuoteRequest();
+  const batchSellQuoteData = useBatchSellQuoteData();
+  const hasValidBatchSellInputs = useMemo(
+    () =>
+      Boolean(selectedDestinationToken) &&
+      selectedTokens.some((token) => {
+        const assetId = formatAddressToAssetId(token.address, token.chainId);
+        return (
+          assetId &&
+          getBatchSellAtomicSourceAmount(
+            token,
+            batchSellSourceTokenAmounts[assetId],
+          )
+        );
+      }),
+    [batchSellSourceTokenAmounts, selectedDestinationToken, selectedTokens],
+  );
 
   // Seed the selected destination token on entry so the pill always reads from Redux.
   useEffect(() => {
@@ -104,31 +163,73 @@ export function BatchSellReview() {
     );
   }, [selectedTokens]);
 
-  // Reset bridge state when component unmounts.
+  useEffect(() => {
+    if (hasValidBatchSellInputs) {
+      updateBatchSellQuoteParams();
+    }
+
+    return () => {
+      updateBatchSellQuoteParams.cancel();
+    };
+  }, [hasValidBatchSellInputs, updateBatchSellQuoteParams]);
+
   useEffect(
     () => () => {
-      dispatch(resetBridgeState());
+      // Clear controller quote state so returning to review does not show stale quotes.
+      Engine.context.BridgeController?.resetState?.();
     },
-    [dispatch],
+    [],
   );
+
+  useEffect(() => {
+    const nextSourceTokenAmounts = selectedTokens.reduce<
+      Record<string, string | undefined>
+    >((sourceAmountsByAssetId, token) => {
+      const assetId = formatAddressToAssetId(token.address, token.chainId);
+
+      if (!assetId) return sourceAmountsByAssetId;
+
+      sourceAmountsByAssetId[assetId] =
+        batchSellSourceTokenAmounts[assetId] ??
+        getBatchSellSourceTokenAmount(
+          token,
+          percentsByTokenKey[getTokenKey(token)] ?? DEFAULT_PERCENT,
+        );
+      return sourceAmountsByAssetId;
+    }, {});
+
+    if (
+      !areBatchSellValueMapsEqual(
+        batchSellSourceTokenAmounts,
+        nextSourceTokenAmounts,
+      )
+    ) {
+      dispatch(setBatchSellSourceTokenAmounts(nextSourceTokenAmounts));
+    }
+  }, [
+    batchSellSourceTokenAmounts,
+    dispatch,
+    percentsByTokenKey,
+    selectedTokens,
+  ]);
 
   useEffect(() => {
     // Keep Redux slippages aligned with selected tokens when the user removes tokens.
     const nextSlippage = selectedTokens.reduce<
       Record<string, string | undefined>
     >((slippageByAssetId, token) => {
-      const assetId = getBridgeTokenAssetId(token);
+      const assetId = formatAddressToAssetId(token.address, token.chainId);
 
       if (!assetId) return slippageByAssetId;
 
-      slippageByAssetId[assetId] = getBatchSellInitialSlippage(
+      slippageByAssetId[assetId] = getBatchSellSlippage(
         batchSellSlippages,
         assetId,
       );
       return slippageByAssetId;
     }, {});
 
-    if (!areBatchSellSlippageMapsEqual(batchSellSlippages, nextSlippage)) {
+    if (!areBatchSellValueMapsEqual(batchSellSlippages, nextSlippage)) {
       dispatch(setBatchSellTokenSlippages(nextSlippage));
     }
   }, [batchSellSlippages, dispatch, selectedTokens]);
@@ -139,8 +240,24 @@ export function BatchSellReview() {
         ...currentPercents,
         [tokenKey]: percent,
       }));
+
+      const token = selectedTokens.find(
+        (selectedToken) => getTokenKey(selectedToken) === tokenKey,
+      );
+      const assetId = token
+        ? formatAddressToAssetId(token.address, token.chainId)
+        : undefined;
+
+      if (!token || !assetId) return;
+
+      dispatch(
+        setBatchSellSourceTokenAmount({
+          assetId,
+          amount: getBatchSellSourceTokenAmount(token, percent),
+        }),
+      );
     },
-    [],
+    [dispatch, selectedTokens],
   );
 
   const handleBackPress = useCallback(() => {
@@ -153,9 +270,31 @@ export function BatchSellReview() {
     });
   }, [navigation]);
 
+  const handleOpenQuoteDetails = useCallback(() => {
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.BATCH_SELL_QUOTE_DETAILS_MODAL,
+    });
+  }, [navigation]);
+
+  const handleOpenHighPriceImpactInfo = useCallback(
+    (priceImpact: string) => {
+      navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.BATCH_SELL_PRICE_IMPACT_INFO_MODAL,
+        params: { priceImpact },
+      });
+    },
+    [navigation],
+  );
+
+  const handleOpenFinalReview = useCallback(() => {
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.BATCH_SELL_FINAL_REVIEW_MODAL,
+    });
+  }, [navigation]);
+
   const handleSlippagePress = useCallback(
     (token: BridgeToken) => {
-      const assetId = getBridgeTokenAssetId(token);
+      const assetId = formatAddressToAssetId(token.address, token.chainId);
 
       if (!assetId) return;
 
@@ -185,6 +324,20 @@ export function BatchSellReview() {
     [dispatch, isRemoveTokenDisabled, selectedTokens],
   );
 
+  const shouldGetNewQuote = batchSellQuoteData.needsNewQuote;
+  const isFetchingQuotes = batchSellQuoteData.isLoading && !shouldGetNewQuote;
+  const hasReviewableQuote =
+    batchSellQuoteData.hasAnyQuote && !batchSellQuoteData.hasPendingQuoteRows;
+  const isReviewButtonDisabled =
+    !shouldGetNewQuote && (isFetchingQuotes || !hasReviewableQuote);
+  let reviewButtonLabel = strings('bridge.batch_sell_review');
+
+  if (shouldGetNewQuote) {
+    reviewButtonLabel = strings('quote_expired_modal.get_new_quote');
+  } else if (isFetchingQuotes) {
+    reviewButtonLabel = strings('bridge.batch_sell_searching_best_quotes');
+  }
+
   return (
     <SafeAreaView
       style={tw.style('flex-1 bg-default')}
@@ -195,7 +348,7 @@ export function BatchSellReview() {
         twClassName="flex-1 bg-default"
       >
         <HeaderStandard title="" onBack={handleBackPress} includesTopInset />
-        <Box twClassName="px-4 pb-6">
+        <Box twClassName="gap-1 px-4 pb-6">
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
@@ -208,30 +361,29 @@ export function BatchSellReview() {
             >
               {strings('bridge.batch_sell_total_received')}
             </Text>
-            <Icon
-              name={IconName.Info}
-              size={IconSize.Sm}
-              color={IconColor.IconDefault}
+            <ButtonIcon
+              iconName={IconName.Info}
+              iconProps={{ color: IconColor.IconDefault }}
+              size={ButtonIconSize.Sm}
+              onPress={handleOpenQuoteDetails}
+              testID={BatchSellReviewSelectorsIDs.TOTAL_RECEIVED_INFO_BUTTON}
             />
           </Box>
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Between}
-            twClassName="mt-2"
+            gap={1}
           >
-            <Skeleton
-              width={195}
-              height={50}
-              style={tw.style('rounded-lg')}
-              testID={BatchSellReviewSelectorsIDs.TOTAL_RECEIVED_SKELETON}
+            <TotalReceivedValue
+              totalReceived={batchSellQuoteData.totalReceived}
+              isLoading={batchSellQuoteData.isSummaryLoading}
             />
             <Button
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}
               testID={BatchSellReviewSelectorsIDs.DESTINATION_TOKEN_PILL}
               onPress={handleOpenDestinationTokenSelector}
-              style={tw.style('rounded-xl px-3 py-3')}
             >
               <Box
                 flexDirection={BoxFlexDirection.Row}
@@ -268,6 +420,14 @@ export function BatchSellReview() {
         >
           {selectedTokens.map((token) => {
             const tokenKey = getTokenKey(token);
+            const assetId = formatAddressToAssetId(
+              token.address,
+              token.chainId,
+            );
+            const tokenQuoteData = assetId
+              ? batchSellQuoteData.tokenData[assetId]
+              : undefined;
+            const priceImpact = tokenQuoteData?.priceImpact;
 
             return (
               <BatchSellReviewTokenRow
@@ -275,6 +435,17 @@ export function BatchSellReview() {
                 token={token}
                 tokenKey={tokenKey}
                 percent={percentsByTokenKey[tokenKey] ?? DEFAULT_PERCENT}
+                receivedAmount={tokenQuoteData?.receivedAmountFiat ?? ''}
+                isLoading={
+                  tokenQuoteData?.isLoading ?? batchSellQuoteData.isLoading
+                }
+                isQuoteUnavailable={tokenQuoteData?.isQuoteUnavailable}
+                isHighPriceImpact={tokenQuoteData?.isHighPriceImpact}
+                onHighPriceImpactPress={
+                  priceImpact
+                    ? () => handleOpenHighPriceImpactInfo(priceImpact)
+                    : undefined
+                }
                 onPercentChange={handlePercentChange}
                 onSlippagePress={handleSlippagePress}
                 onRemovePress={handleRemoveToken}
@@ -288,10 +459,13 @@ export function BatchSellReview() {
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             isFullWidth
-            isDisabled={!HAS_QUOTES}
+            isDisabled={isReviewButtonDisabled}
+            onPress={
+              shouldGetNewQuote ? handleGetNewQuote : handleOpenFinalReview
+            }
             testID={BatchSellReviewSelectorsIDs.REVIEW_BUTTON}
           >
-            {strings('bridge.batch_sell_review')}
+            {reviewButtonLabel}
           </Button>
         </Box>
       </Box>

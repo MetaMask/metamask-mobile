@@ -6,16 +6,21 @@ import type {
   PredictOutcomeGroup,
   PredictOutcomeToken,
 } from '../../types';
+import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
 import type { PredictBetButtonVariant } from '../PredictActionButtons/PredictActionButtons.types';
 import PredictSportOutcomeCard, {
   type PredictSportOutcomeButton,
 } from '../PredictSportOutcomeCard';
 import { formatVolume } from '../../utils/format';
+import { isValidPrice } from '../../utils/prices';
 import { isMoneylineLikeMarketType } from '../../constants/sports';
 import { strings } from '../../../../../../locales/i18n';
+import Logger from '../../../../../util/Logger';
 import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
 
 const I18N_PREFIX = 'predict.sports_market_types';
+const MISSING_TRANSLATION_PREFIX = '[missing';
+const loggedMissingTranslationKeys = new Set<string>();
 
 const toTitleCase = (str: string): string =>
   str
@@ -23,11 +28,42 @@ const toTitleCase = (str: string): string =>
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
 
-export const getSportsMarketTypeLabel = (type: string): string => {
+const isMissingTranslation = (value: string, key: string): boolean =>
+  value === key || value.startsWith(MISSING_TRANSLATION_PREFIX);
+
+const logMissingSportsMarketTypeTranslation = (
+  key: string,
+  type: string,
+): void => {
+  if (loggedMissingTranslationKeys.has(key)) return;
+
+  loggedMissingTranslationKeys.add(key);
+  const message = `Missing Predict sports market type translation: ${key}`;
+  Logger.error(new Error(message), {
+    message,
+    context: { key, type },
+  });
+};
+
+const getTranslatedSportsMarketTypeLabel = (
+  type: string,
+): string | undefined => {
   const key = `${I18N_PREFIX}.${type}`;
   const label = strings(key);
-  return label === key ? toTitleCase(type) : label;
+  if (typeof label !== 'string' || isMissingTranslation(label, key)) {
+    logMissingSportsMarketTypeTranslation(key, type);
+    return undefined;
+  }
+  return label;
 };
+
+export const getSportsMarketTypeLabel = (
+  type: string,
+  fallbackTitle?: string,
+): string =>
+  getTranslatedSportsMarketTypeLabel(type) ??
+  fallbackTitle ??
+  toTitleCase(type);
 
 type BuyHandler = (outcome: PredictOutcome, token: PredictOutcomeToken) => void;
 
@@ -51,8 +87,25 @@ const getTeamColor = (
   game?: PredictMarketGame,
 ): string | undefined => {
   if (!game) return undefined;
-  if (tokenTitle === game.homeTeam.abbreviation) return game.homeTeam.color;
-  if (tokenTitle === game.awayTeam.abbreviation) return game.awayTeam.color;
+
+  const normalizedTokenTitle = tokenTitle.trim().toLowerCase();
+  const homeLabels = [
+    game.homeTeam.abbreviation,
+    game.homeTeam.name,
+    game.homeTeam.alias,
+  ]
+    .filter((label): label is string => Boolean(label))
+    .map((label) => label.trim().toLowerCase());
+  const awayLabels = [
+    game.awayTeam.abbreviation,
+    game.awayTeam.name,
+    game.awayTeam.alias,
+  ]
+    .filter((label): label is string => Boolean(label))
+    .map((label) => label.trim().toLowerCase());
+
+  if (homeLabels.includes(normalizedTokenTitle)) return game.homeTeam.color;
+  if (awayLabels.includes(normalizedTokenTitle)) return game.awayTeam.color;
   return undefined;
 };
 
@@ -124,7 +177,7 @@ const LineOutcomeCard = memo(
     testID,
   }: {
     outcomes: PredictOutcome[];
-    title: string;
+    title?: string;
     onBuyPress: BuyHandler;
     game?: PredictMarketGame;
     sportsMarketType?: string;
@@ -166,9 +219,11 @@ const LineOutcomeCard = memo(
       [outcomes, lineIndices, selectedIdx],
     );
 
+    if (!selectedOutcome) return null;
+
     return (
       <PredictSportOutcomeCard
-        title={title}
+        title={title ?? formatOutcomeCardTitle(selectedOutcome)}
         subtitle={buildSubtitle(selectedOutcome)}
         buttons={buildButtons(
           selectedOutcome,
@@ -227,6 +282,7 @@ const buildMoneylineButtons = (
   outcomes: PredictOutcome[],
   onBuyPress: BuyHandler,
   game?: PredictMarketGame,
+  getPrice?: ReturnType<typeof useLiveMarketPrices>['getPrice'],
 ): PredictSportOutcomeButton[] => {
   const sortedWithTokens = sortMoneylineOutcomes(outcomes, game).filter(
     (outcome) => outcome.tokens[0] !== undefined,
@@ -234,10 +290,12 @@ const buildMoneylineButtons = (
 
   return sortedWithTokens.map((outcome, i) => {
     const yesToken = outcome.tokens[0];
+    const liveBestAsk = getPrice?.(yesToken.id)?.bestAsk;
+    const price = isValidPrice(liveBestAsk) ? liveBestAsk : yesToken.price;
 
     return {
       label: yesToken.shortTitle ?? yesToken.title,
-      price: Math.round(yesToken.price * 100),
+      price: Math.round(price * 100),
       onPress: () => onBuyPress(outcome, yesToken),
       variant: getButtonVariant(i, sortedWithTokens.length, true),
       teamColor: getTeamColor(yesToken.shortTitle ?? yesToken.title, game),
@@ -268,9 +326,17 @@ const MoneylineCard = memo(
       () => buildMoneylineSubtitle(outcomes),
       [outcomes],
     );
+    const tokenIds = useMemo(
+      () =>
+        sortMoneylineOutcomes(outcomes, game)
+          .map((outcome) => outcome.tokens[0]?.id)
+          .filter((id): id is string => Boolean(id)),
+      [outcomes, game],
+    );
+    const { getPrice } = useLiveMarketPrices(tokenIds);
     const buttons = useMemo(
-      () => buildMoneylineButtons(outcomes, onBuyPress, game),
-      [outcomes, onBuyPress, game],
+      () => buildMoneylineButtons(outcomes, onBuyPress, game, getPrice),
+      [outcomes, onBuyPress, game, getPrice],
     );
 
     return (
@@ -278,7 +344,7 @@ const MoneylineCard = memo(
         title={title}
         subtitle={subtitle}
         buttons={buttons}
-        buttonLayout="stacked"
+        buttonLayout="inlineNoSeparator"
         testID={testID}
       />
     );
@@ -301,7 +367,12 @@ const SubgroupCards = memo(
     groupKey: string;
     index: number;
   }) => {
-    const title = getSportsMarketTypeLabel(subgroup.key);
+    const translatedTitle = getTranslatedSportsMarketTypeLabel(subgroup.key);
+    const firstOutcomeTitle = subgroup.outcomes[0]
+      ? formatOutcomeCardTitle(subgroup.outcomes[0])
+      : undefined;
+    const title =
+      translatedTitle ?? firstOutcomeTitle ?? toTitleCase(subgroup.key);
     const testID = `${groupKey}-${subgroup.key}-${index}`;
 
     if (
@@ -335,7 +406,7 @@ const SubgroupCards = memo(
     return (
       <LineOutcomeCard
         outcomes={subgroup.outcomes}
-        title={title}
+        title={translatedTitle}
         onBuyPress={onBuyPress}
         game={game}
         sportsMarketType={subgroup.key}
@@ -385,7 +456,10 @@ const OutcomesContent = memo(
           outcomes={group.outcomes}
           onBuyPress={onBuyPress}
           game={game}
-          title={getSportsMarketTypeLabel(firstType)}
+          title={getSportsMarketTypeLabel(
+            firstType,
+            formatOutcomeCardTitle(group.outcomes[0]),
+          )}
           testID={`${group.key}-moneyline`}
         />
       );

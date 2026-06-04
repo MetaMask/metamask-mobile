@@ -35,6 +35,7 @@ const mockTraders = [
   {
     rank: 1,
     profileId: 'trader-1',
+    addresses: ['0x0000000000000000000000000000000000000001'],
     name: 'sniperliquid.hl',
     imageUrl: 'https://example.com/avatar1.png',
     pnl30d: 963146.8,
@@ -44,6 +45,7 @@ const mockTraders = [
   {
     rank: 2,
     profileId: 'trader-2',
+    addresses: ['0x0000000000000000000000000000000000000002'],
     name: 'nervousdegen',
     imageUrl: 'https://example.com/avatar2.png',
     pnl30d: 474751.45,
@@ -53,6 +55,7 @@ const mockTraders = [
   {
     rank: 3,
     profileId: 'trader-3',
+    addresses: ['0x0000000000000000000000000000000000000003'],
     name: 'baznocap',
     imageUrl: 'https://example.com/avatar3.png',
     pnl30d: 374735.16,
@@ -127,6 +130,7 @@ describe('useTopTraders', () => {
       const first = mockTraders[0];
       expect(result.current.traders[0]).toEqual({
         id: first.profileId,
+        address: first.addresses[0],
         rank: first.rank,
         overallRank: first.rank,
         username: first.name,
@@ -155,6 +159,24 @@ describe('useTopTraders', () => {
       const { result } = renderHook(() => useTopTraders());
       expect(result.current.traders[0].avatarUri).toBeUndefined();
     });
+
+    it('defaults address to empty string when addresses is empty', () => {
+      const entry = { ...mockTraders[0], addresses: [] };
+      mockUseQuery.mockReturnValue(
+        makeQueryResult({ data: { traders: [entry] } as never }),
+      );
+      const { result } = renderHook(() => useTopTraders());
+      expect(result.current.traders[0].address).toBe('');
+    });
+
+    it('defaults pnlPerChain to empty object when pnlPerChain is null', () => {
+      const entry = { ...mockTraders[0], pnlPerChain: null };
+      mockUseQuery.mockReturnValue(
+        makeQueryResult({ data: { traders: [entry] } as never }),
+      );
+      const { result } = renderHook(() => useTopTraders());
+      expect(result.current.traders[0].pnlPerChain).toEqual({});
+    });
   });
 
   describe('loading and error states', () => {
@@ -172,16 +194,23 @@ describe('useTopTraders', () => {
       expect(result.current.error).toBe('Network error');
     });
 
-    it('logs the full error object via Logger.error with enriched extras', () => {
+    it('logs the full error object via Logger.error with feature:social tags', () => {
       const err = new Error('Network error');
       mockUseQuery.mockReturnValue(makeQueryResult({ error: err }));
       renderHook(() => useTopTraders());
       expect(Logger.error).toHaveBeenCalledWith(
         err,
         expect.objectContaining({
-          message: 'useTopTraders: leaderboard fetch failed',
-          endpoint: 'leaderboard',
-          errorCategory: expect.any(String),
+          tags: expect.objectContaining({
+            feature: 'social',
+            surface: 'top_traders',
+            operation: 'fetch_leaderboard',
+            endpoint: 'leaderboard',
+          }),
+          extras: expect.objectContaining({
+            message: 'Top traders leaderboard fetch failed at useTopTraders',
+            endpoint: 'leaderboard',
+          }),
         }),
       );
     });
@@ -344,9 +373,15 @@ describe('useTopTraders', () => {
       expect(Logger.error).toHaveBeenCalledWith(
         err,
         expect.objectContaining({
-          message: 'useTopTraders: refresh failed',
-          endpoint: 'leaderboard',
-          errorCategory: expect.any(String),
+          tags: expect.objectContaining({
+            feature: 'social',
+            surface: 'top_traders',
+            operation: 'refresh',
+          }),
+          extras: expect.objectContaining({
+            message: 'Top traders leaderboard refresh failed at useTopTraders',
+            endpoint: 'leaderboard',
+          }),
         }),
       );
     });

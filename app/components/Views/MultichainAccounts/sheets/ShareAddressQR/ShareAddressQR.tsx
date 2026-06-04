@@ -4,7 +4,6 @@ import { AccountGroupId } from '@metamask/account-api';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { strings } from '../../../../../../locales/i18n';
 import {
   ParamListBase,
@@ -19,12 +18,14 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  HeaderStandard,
   TextVariant,
   TextColor,
   FontWeight,
   Text,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import QRAccountDisplay from '../../../QRAccountDisplay';
 import QRCode from 'react-native-qrcode-svg';
 import useBlockExplorer from '../../../../hooks/useBlockExplorer';
@@ -73,7 +74,7 @@ export const ShareAddressQR = () => {
 
   return (
     <BottomSheet ref={sheetRef}>
-      <HeaderCompactStandard
+      <HeaderStandard
         title={`${accountGroupName} / ${networkName}`}
         onClose={handleOnBack}
         closeButtonProps={{ testID: ShareAddressQRIds.GO_BACK }}

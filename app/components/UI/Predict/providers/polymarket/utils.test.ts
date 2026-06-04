@@ -3,14 +3,17 @@ import EthQuery from '@metamask/eth-query';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
-import { Side, type OrderPreview } from '../../types';
+import { Side, type OrderPreview, type PredictOutcome } from '../../types';
 import { PREDICT_ERROR_CODES } from '../../constants/errors';
 import {
   DEFAULT_CLOB_BASE_URL,
   MATIC_CONTRACTS_V2,
   POLYGON_MAINNET_CHAIN_ID,
+  POLYMARKET_PROVIDER_ID,
 } from './constants';
 import {
+  buildMarketListQueryParams,
+  buildOutcomeGroups,
   calculateConservativeBuyMarketFee,
   clearClobMarketInfoCache,
   clearClobMarketInfoSessionState,
@@ -18,6 +21,7 @@ import {
   deriveApiKey,
   fetchChildEventsFromGammaApi,
   fetchEventsFromPolymarketApi,
+  fetchMarketsFromPolymarketApi,
   getAllowance,
   getClobMarketInfo,
   getClobMarketInfoSafe,
@@ -26,10 +30,15 @@ import {
   getOrderBook,
   getRawBalance,
   parsePolymarketEvents,
+  parsePolymarketActivity,
   previewOrder,
   searchEventsFromPolymarketApi,
 } from './utils';
-import type { PolymarketApiEvent, PolymarketApiTeam } from './types';
+import type {
+  PolymarketApiActivity,
+  PolymarketApiEvent,
+  PolymarketApiTeam,
+} from './types';
 
 const mockSignTypedMessage = jest.fn();
 
@@ -119,6 +128,86 @@ describe('polymarket utils', () => {
     >);
   });
 
+  const createRawActivity = (
+    overrides: Partial<PolymarketApiActivity> = {},
+  ): PolymarketApiActivity => ({
+    type: 'TRADE',
+    side: 'BUY',
+    price: 0.5,
+    usdcSize: 10,
+    timestamp: 100,
+    transactionHash: '0xtransaction',
+    conditionId: 'condition-1',
+    outcomeIndex: 0,
+    title: 'Market',
+    outcome: 'Yes',
+    icon: 'icon.png',
+    ...overrides,
+  });
+
+  it('parses activity with deterministic ids when transaction hash is missing', () => {
+    const rawActivity = createRawActivity({
+      transactionHash: undefined as unknown as string,
+    });
+
+    const firstParse = parsePolymarketActivity([rawActivity]);
+    const secondParse = parsePolymarketActivity([rawActivity]);
+
+    expect(firstParse[0].id).toBe(secondParse[0].id);
+  });
+
+  it('parses same-transaction activity rows with distinct ids', () => {
+    const parsedActivity = parsePolymarketActivity([
+      createRawActivity({ conditionId: 'condition-1', outcomeIndex: 0 }),
+      createRawActivity({ conditionId: 'condition-2', outcomeIndex: 1 }),
+    ]);
+
+    expect(parsedActivity[0].id).not.toBe(parsedActivity[1].id);
+  });
+
+  it('groups tennis first set markets separately from game lines', () => {
+    const createOutcome = (
+      id: string,
+      sportsMarketType: string,
+    ): PredictOutcome => ({
+      id,
+      providerId: POLYMARKET_PROVIDER_ID,
+      marketId: 'market-1',
+      title: id,
+      description: id,
+      image: 'icon.png',
+      status: 'open',
+      tokens: [{ id: `${id}-token`, title: 'Yes', price: 0.5 }],
+      volume: 100,
+      groupItemTitle: id,
+      sportsMarketType,
+    });
+
+    const groups = buildOutcomeGroups([
+      createOutcome('moneyline', 'moneyline'),
+      createOutcome('set-total', 'tennis_set_totals'),
+      createOutcome('match-total', 'tennis_match_totals'),
+      createOutcome('completed', 'tennis_completed_match'),
+      createOutcome('first-set-winner', 'tennis_first_set_winner'),
+      createOutcome('first-set-total', 'tennis_first_set_totals'),
+    ]);
+
+    expect(groups.map((group) => group.key)).toEqual([
+      'game_lines',
+      'first_set',
+    ]);
+    expect(groups[0].subgroups?.map((group) => group.key)).toEqual([
+      'moneyline',
+      'tennis_set_totals',
+      'tennis_match_totals',
+      'tennis_completed_match',
+    ]);
+    expect(groups[1].subgroups?.map((group) => group.key)).toEqual([
+      'tennis_first_set_winner',
+      'tennis_first_set_totals',
+    ]);
+  });
+
   it('parses World Cup game events with game metadata when team data is available', () => {
     const teamsByAbbreviation: Record<string, PolymarketApiTeam> = {
       usa: {
@@ -147,6 +236,7 @@ describe('polymarket utils', () => {
       description: 'World Cup match',
       icon: 'icon.png',
       closed: false,
+      active: true,
       series: [
         {
           id: '11433',
@@ -173,6 +263,7 @@ describe('polymarket utils', () => {
           outcomePrices: '["0.5","0.5"]',
           closed: false,
           active: true,
+          acceptingOrders: true,
           resolvedBy: '',
           orderPriceMinTickSize: 0.01,
           umaResolutionStatus: '',
@@ -203,6 +294,294 @@ describe('polymarket utils', () => {
         status: 'scheduled',
         homeTeam: expect.objectContaining({ abbreviation: 'usa' }),
         awayTeam: expect.objectContaining({ abbreviation: 'can' }),
+      }),
+    );
+    expect(market.active).toBe(true);
+    expect(market.outcomes[0]).toEqual(
+      expect.objectContaining({
+        active: true,
+        acceptingOrders: true,
+      }),
+    );
+  });
+
+  it('parses ATP game events from provider metadata when league tag is missing', () => {
+    const teamsByAbbreviation: Record<string, PolymarketApiTeam> = {
+      ivashka: {
+        id: 'team-ivashka',
+        name: 'Ilya Ivashka',
+        logo: 'ivashka.png',
+        abbreviation: 'ivashka',
+        color: 'red',
+        alias: 'I. Ivashka',
+        league: 'atp',
+      },
+      stewart: {
+        id: 'team-stewart',
+        name: 'Hamish Stewart',
+        logo: 'stewart.png',
+        abbreviation: 'stewart',
+        color: 'orange',
+        alias: 'H. Stewart',
+        league: 'atp',
+      },
+    };
+    const event: PolymarketApiEvent = {
+      id: '509179',
+      slug: 'atp-ivashka-stewart-2026-05-22',
+      title: 'Bengaluru 3: Ilya Ivashka vs Hamish Stewart',
+      description: 'ATP match',
+      icon: 'icon.png',
+      closed: false,
+      active: true,
+      series: [
+        {
+          id: '10365',
+          slug: 'atp',
+          title: 'ATP',
+          recurrence: 'daily',
+        },
+      ],
+      markets: [
+        {
+          conditionId: 'condition-1',
+          question: 'Bengaluru 3: Ilya Ivashka vs Hamish Stewart',
+          description: 'Market description',
+          icon: 'icon.png',
+          image: 'image.png',
+          groupItemTitle: '',
+          groupItemThreshold: 0,
+          sportsMarketType: 'moneyline',
+          status: 'open',
+          volumeNum: 100,
+          liquidity: 100,
+          negRisk: false,
+          clobTokenIds: '["token-ivashka","token-stewart"]',
+          outcomes: '["Ilya Ivashka","Hamish Stewart"]',
+          outcomePrices: '["0.625","0.375"]',
+          closed: false,
+          active: true,
+          acceptingOrders: true,
+          resolvedBy: '',
+          orderPriceMinTickSize: 0.01,
+          umaResolutionStatus: '',
+        },
+      ],
+      tags: [
+        { id: 'tennis', label: 'Tennis', slug: 'tennis' },
+        { id: 'games', label: 'Games', slug: 'games' },
+      ],
+      teams: [teamsByAbbreviation.ivashka, teamsByAbbreviation.stewart],
+      liquidity: 100,
+      volume: 100,
+      gameId: '5658375',
+      startTime: '2026-05-22T07:30:00Z',
+      live: false,
+      ended: false,
+    };
+
+    const [market] = parsePolymarketEvents([event], {
+      category: 'hot',
+      teamLookup: (_league, abbreviation) => teamsByAbbreviation[abbreviation],
+      extendedSportsMarketsLeagues: ['atp'],
+    });
+
+    expect(market.game).toEqual(
+      expect.objectContaining({
+        id: '5658375',
+        league: 'atp',
+        startTime: '2026-05-22T07:30:00Z',
+        status: 'scheduled',
+        homeTeam: expect.objectContaining({ abbreviation: 'ivashka' }),
+        awayTeam: expect.objectContaining({ abbreviation: 'stewart' }),
+      }),
+    );
+  });
+
+  it('parses WTA game events from provider metadata when league tag is missing', () => {
+    const teamsByAbbreviation: Record<string, PolymarketApiTeam> = {
+      sasnovi: {
+        id: 'team-sasnovi',
+        name: 'Aliaksandra Sasnovich',
+        logo: 'sasnovi.png',
+        abbreviation: 'sasnovi',
+        color: 'red',
+        alias: 'A. Sasnovich',
+        league: 'wta',
+      },
+      ribera: {
+        id: 'team-ribera',
+        name: 'Marina Bassols Ribera',
+        logo: 'ribera.png',
+        abbreviation: 'ribera',
+        color: 'orange',
+        alias: 'M. Ribera',
+        league: 'wta',
+      },
+    };
+    const event: PolymarketApiEvent = {
+      id: '506439',
+      slug: 'wta-sasnovi-ribera-2026-05-22',
+      title:
+        'Roland Garros, Qualification WTA: Aliaksandra Sasnovich vs Marina Bassols Ribera',
+      description: 'WTA match',
+      icon: 'icon.png',
+      closed: false,
+      active: true,
+      series: [
+        {
+          id: '10366',
+          slug: 'wta',
+          title: 'WTA',
+          recurrence: 'daily',
+        },
+      ],
+      markets: [
+        {
+          conditionId: 'condition-1',
+          question:
+            'Roland Garros, Qualification WTA: Aliaksandra Sasnovich vs Marina Bassols Ribera',
+          description: 'Market description',
+          icon: 'icon.png',
+          image: 'image.png',
+          groupItemTitle: '',
+          groupItemThreshold: 0,
+          sportsMarketType: 'moneyline',
+          status: 'open',
+          volumeNum: 100,
+          liquidity: 100,
+          negRisk: false,
+          clobTokenIds: '["token-sasnovi","token-ribera"]',
+          outcomes: '["Aliaksandra Sasnovich","Marina Bassols Ribera"]',
+          outcomePrices: '["0.735","0.265"]',
+          closed: false,
+          active: true,
+          acceptingOrders: true,
+          resolvedBy: '',
+          orderPriceMinTickSize: 0.01,
+          umaResolutionStatus: '',
+        },
+      ],
+      tags: [
+        { id: 'tennis', label: 'Tennis', slug: 'tennis' },
+        { id: 'games', label: 'Games', slug: 'games' },
+      ],
+      teams: [teamsByAbbreviation.sasnovi, teamsByAbbreviation.ribera],
+      liquidity: 100,
+      volume: 100,
+      gameId: '5655456',
+      startTime: '2026-05-22T09:00:00Z',
+      live: false,
+      ended: false,
+    };
+
+    const [market] = parsePolymarketEvents([event], {
+      category: 'hot',
+      teamLookup: (_league, abbreviation) => teamsByAbbreviation[abbreviation],
+      extendedSportsMarketsLeagues: ['wta'],
+    });
+
+    expect(market.game).toEqual(
+      expect.objectContaining({
+        id: '5655456',
+        league: 'wta',
+        startTime: '2026-05-22T09:00:00Z',
+        status: 'scheduled',
+        homeTeam: expect.objectContaining({ abbreviation: 'sasnovi' }),
+        awayTeam: expect.objectContaining({ abbreviation: 'ribera' }),
+      }),
+    );
+  });
+
+  it('parses ITF game events from provider metadata when league tag is missing', () => {
+    const teamsByAbbreviation: Record<string, PolymarketApiTeam> = {
+      back: {
+        id: 'team-back',
+        name: 'Dayeon Back',
+        logo: 'back.png',
+        abbreviation: 'back',
+        color: 'red',
+        alias: 'D. Back',
+        league: 'itf',
+      },
+      eunjile: {
+        id: 'team-eunjile',
+        name: 'Eun Ji Lee',
+        logo: 'eunjile.png',
+        abbreviation: 'eunjile',
+        color: 'orange',
+        alias: 'E. Lee',
+        league: 'itf',
+      },
+    };
+    const event: PolymarketApiEvent = {
+      id: '506396',
+      slug: 'itf-back-eunjile-2026-05-21',
+      title: 'ITF Changwon: Dayeon Back vs Eun Ji Lee',
+      description: 'ITF match',
+      icon: 'icon.png',
+      closed: false,
+      active: true,
+      series: [
+        {
+          id: '11634',
+          slug: 'itf',
+          title: 'ITF',
+          recurrence: 'daily',
+        },
+      ],
+      markets: [
+        {
+          conditionId: 'condition-1',
+          question: 'ITF Changwon: Dayeon Back vs Eun Ji Lee',
+          description: 'Market description',
+          icon: 'icon.png',
+          image: 'image.png',
+          groupItemTitle: '',
+          groupItemThreshold: 0,
+          sportsMarketType: 'moneyline',
+          status: 'open',
+          volumeNum: 100,
+          liquidity: 100,
+          negRisk: false,
+          clobTokenIds: '["token-back","token-eunjile"]',
+          outcomes: '["Dayeon Back","Eun Ji Lee"]',
+          outcomePrices: '["0.86","0.14"]',
+          closed: false,
+          active: true,
+          acceptingOrders: true,
+          resolvedBy: '',
+          orderPriceMinTickSize: 0.01,
+          umaResolutionStatus: '',
+        },
+      ],
+      tags: [
+        { id: 'tennis', label: 'Tennis', slug: 'tennis' },
+        { id: 'games', label: 'Games', slug: 'games' },
+      ],
+      teams: [teamsByAbbreviation.back, teamsByAbbreviation.eunjile],
+      liquidity: 100,
+      volume: 100,
+      gameId: '1631097223',
+      startTime: '2026-05-21T01:00:00Z',
+      live: false,
+      ended: false,
+    };
+
+    const [market] = parsePolymarketEvents([event], {
+      category: 'hot',
+      teamLookup: (_league, abbreviation) => teamsByAbbreviation[abbreviation],
+      extendedSportsMarketsLeagues: ['itf'],
+    });
+
+    expect(market.game).toEqual(
+      expect.objectContaining({
+        id: '1631097223',
+        league: 'itf',
+        startTime: '2026-05-21T01:00:00Z',
+        status: 'scheduled',
+        homeTeam: expect.objectContaining({ abbreviation: 'back' }),
+        awayTeam: expect.objectContaining({ abbreviation: 'eunjile' }),
       }),
     );
   });
@@ -303,15 +682,176 @@ describe('polymarket utils', () => {
     });
   });
 
+  describe('buildMarketListQueryParams', () => {
+    it('applies open + volume24hr + limit 20 defaults with no params', () => {
+      const params = buildMarketListQueryParams();
+
+      expect(params.get('limit')).toBe('20');
+      expect(params.get('active')).toBe('true');
+      expect(params.get('archived')).toBe('false');
+      expect(params.get('closed')).toBe('false');
+      expect(params.get('order')).toBe('volume24hr');
+      expect(params.get('ascending')).toBe('false');
+    });
+
+    it.each([
+      ['volume24hr', { order: 'volume24hr', ascending: 'false' }],
+      ['liquidity', { order: 'liquidity', ascending: 'false' }],
+      ['ending_soon', { order: 'endDate', ascending: 'true' }],
+      ['newest', { order: 'startDate', ascending: 'false' }],
+    ] as const)('maps order=%s correctly', (order, expected) => {
+      const params = buildMarketListQueryParams({ order });
+
+      expect(params.get('order')).toBe(expected.order);
+      expect(params.get('ascending')).toBe(expected.ascending);
+    });
+
+    it('maps status=open to active/archived/closed flags', () => {
+      const params = buildMarketListQueryParams({ status: 'open' });
+
+      expect(params.get('active')).toBe('true');
+      expect(params.get('archived')).toBe('false');
+      expect(params.get('closed')).toBe('false');
+    });
+
+    it.each(['closed', 'resolved'] as const)(
+      'maps status=%s to closed=true',
+      (status) => {
+        const params = buildMarketListQueryParams({ status });
+
+        expect(params.get('closed')).toBe('true');
+        expect(params.get('active')).toBeNull();
+        expect(params.get('archived')).toBeNull();
+      },
+    );
+
+    it('appends multiple tags as repeated tag_id params', () => {
+      const params = buildMarketListQueryParams({ tags: ['100', '200'] });
+
+      expect(params.getAll('tag_id')).toEqual(['100', '200']);
+    });
+
+    it('appends multiple series as repeated series_id params', () => {
+      const params = buildMarketListQueryParams({ series: ['10', '20'] });
+
+      expect(params.getAll('series_id')).toEqual(['10', '20']);
+    });
+
+    it('sets live=true only when live is requested', () => {
+      expect(buildMarketListQueryParams({ live: true }).get('live')).toBe(
+        'true',
+      );
+      expect(
+        buildMarketListQueryParams({ live: false }).get('live'),
+      ).toBeNull();
+      expect(buildMarketListQueryParams().get('live')).toBeNull();
+    });
+
+    it('maps afterCursor to after_cursor and respects custom limit', () => {
+      const params = buildMarketListQueryParams({
+        limit: 50,
+        afterCursor: 'cursor-1',
+      });
+
+      expect(params.get('limit')).toBe('50');
+      expect(params.get('after_cursor')).toBe('cursor-1');
+    });
+
+    it('maps search to the title_search param', () => {
+      const params = buildMarketListQueryParams({ search: 'bitcoin' });
+
+      expect(params.get('title_search')).toBe('bitcoin');
+    });
+
+    it('trims the search value before applying title_search', () => {
+      const params = buildMarketListQueryParams({ search: '  bitcoin  ' });
+
+      expect(params.get('title_search')).toBe('bitcoin');
+    });
+
+    it.each(['', '   '])(
+      'does not set title_search for blank search (%j)',
+      (search) => {
+        const params = buildMarketListQueryParams({ search });
+
+        expect(params.get('title_search')).toBeNull();
+      },
+    );
+
+    it('does not set title_search when search is omitted', () => {
+      const params = buildMarketListQueryParams();
+
+      expect(params.get('title_search')).toBeNull();
+    });
+  });
+
+  describe('fetchMarketsFromPolymarketApi', () => {
+    it('hits the keyset endpoint and normalizes next_cursor to nextCursor', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          events: [{ id: 'event-1' }],
+          next_cursor: 'next-cursor',
+        }),
+      });
+
+      await expect(
+        fetchMarketsFromPolymarketApi({ order: 'liquidity', limit: 5 }),
+      ).resolves.toEqual({
+        events: [{ id: 'event-1' }],
+        nextCursor: 'next-cursor',
+      });
+
+      const [url] = mockFetch.mock.calls[0];
+      expect(url).toContain('https://gamma-api.polymarket.com/events/keyset?');
+      expect(url).toContain('order=liquidity');
+      expect(url).toContain('limit=5');
+    });
+
+    it('defaults nextCursor to null when absent', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ events: [] }),
+      });
+
+      await expect(fetchMarketsFromPolymarketApi()).resolves.toEqual({
+        events: [],
+        nextCursor: null,
+      });
+    });
+
+    it('throws when the response is not ok', async () => {
+      mockFetch.mockResolvedValue({ ok: false });
+
+      await expect(fetchMarketsFromPolymarketApi()).rejects.toThrow(
+        'Failed to list markets',
+      );
+    });
+
+    it('throws when events are malformed', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ events: null }),
+      });
+
+      await expect(fetchMarketsFromPolymarketApi()).rejects.toThrow(
+        'Malformed keyset events response',
+      );
+    });
+  });
+
   it('searches events via public-search endpoint', async () => {
     mockFetch.mockResolvedValue({
       ok: true,
-      json: jest.fn().mockResolvedValue({ events: [{ id: 'event-1' }] }),
+      json: jest.fn().mockResolvedValue({
+        events: [{ id: 'event-1' }],
+        pagination: { totalResults: 1 },
+      }),
     });
 
     await expect(
       searchEventsFromPolymarketApi({ q: 'bitcoin', limit: 10, page: 2 }),
-    ).resolves.toEqual([{ id: 'event-1' }]);
+    ).resolves.toEqual({ events: [{ id: 'event-1' }], totalResults: 1 });
 
     const [url] = mockFetch.mock.calls[0];
     expect(url).toContain('https://gamma-api.polymarket.com/public-search?');
@@ -883,6 +1423,88 @@ describe('polymarket utils', () => {
       expect.objectContaining({
         id: 'child-event',
         parentMarketId: 'parent-market',
+      }),
+    ]);
+  });
+
+  it('falls back to question when a spread market is missing group item title', () => {
+    const marketWithoutGroupItemTitle = {
+      conditionId: 'spread-condition',
+      question: 'Knicks -3.5',
+      description: 'Spread market',
+      icon: 'icon.png',
+      image: 'image.png',
+      sportsMarketType: 'spreads',
+      status: 'open',
+      volumeNum: 100,
+      liquidity: 100,
+      negRisk: false,
+      clobTokenIds: '["token-knicks","token-spurs"]',
+      outcomes: '["NYK","SAS"]',
+      outcomePrices: '["0.5","0.5"]',
+      closed: false,
+      active: true,
+      acceptingOrders: true,
+      resolvedBy: '',
+      orderPriceMinTickSize: 0.01,
+      umaResolutionStatus: '',
+      line: -3.5,
+    } as unknown as PolymarketApiEvent['markets'][number];
+    const event: PolymarketApiEvent = {
+      id: 'spread-event',
+      slug: 'knicks-vs-spurs',
+      title: 'Knicks vs. Spurs',
+      description: 'Game description',
+      icon: 'icon.png',
+      closed: false,
+      active: true,
+      series: [],
+      markets: [marketWithoutGroupItemTitle],
+      tags: [],
+      liquidity: 100,
+      volume: 100,
+    };
+
+    expect(() => parsePolymarketEvents([event], 'sports')).not.toThrow();
+
+    const [parsedMarket] = parsePolymarketEvents([event], 'sports');
+
+    expect(parsedMarket.outcomes[0].groupItemTitle).toBe('Knicks 3.5');
+  });
+
+  it('parses crypto up/down price to beat from event metadata', () => {
+    const event: PolymarketApiEvent = {
+      id: 'crypto-event',
+      slug: 'bitcoin-up-or-down-may-26-2026-7pm-et',
+      title: 'Bitcoin Up or Down - May 26, 7PM ET',
+      description: 'Description',
+      icon: '',
+      closed: false,
+      active: true,
+      series: [
+        {
+          id: '10114',
+          slug: 'btc-up-or-down-hourly',
+          title: 'BTC Up or Down Hourly',
+          recurrence: 'hourly',
+        },
+      ],
+      markets: [],
+      tags: [
+        { id: 'crypto', label: 'Crypto', slug: 'crypto' },
+        { id: 'up-or-down', label: 'Up or Down', slug: 'up-or-down' },
+      ],
+      liquidity: 0,
+      volume: 0,
+      eventMetadata: {
+        priceToBeat: 75749.02,
+      },
+    };
+
+    expect(parsePolymarketEvents([event], 'crypto')).toEqual([
+      expect.objectContaining({
+        id: 'crypto-event',
+        priceToBeat: 75749.02,
       }),
     ]);
   });

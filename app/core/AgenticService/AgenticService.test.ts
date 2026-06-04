@@ -5,17 +5,71 @@ import AgenticService, {
   tryScroll,
   toAccountSummary,
   registerStepHudCallback,
+  getFixtureMnemonicCount,
+  getFixtureAccountNames,
   type FiberNode,
   type ReactDevToolsHook,
 } from './AgenticService';
 import Engine from '../Engine';
+import { Platform } from 'react-native';
 import type {
   NavigationContainerRef,
   ParamListBase,
 } from '@react-navigation/native';
+import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
 
 const mockCreateWallet = jest.fn().mockResolvedValue(undefined);
+const mockCreateAccountGroups = jest.fn().mockResolvedValue([]);
 const mockImportAccount = jest.fn().mockResolvedValue(undefined);
+const mockIsUnlocked = jest.fn(() => true);
+const mockSubmitPassword = jest.fn().mockResolvedValue(undefined);
+const FIXTURE_WALLET_ID = 'entropy:keyring-1' as const;
+
+function mockEvmAccount(id: string, address: string, name: string) {
+  return {
+    id,
+    address,
+    type: 'eip155:eoa' as const,
+    options: {},
+    scopes: ['eip155:1' as const],
+    methods: [],
+    metadata: {
+      name,
+      importTime: 0,
+      keyring: { type: 'HD Key Tree' },
+    },
+  };
+}
+
+function mockEntropyGroup(
+  groupIndex: number,
+  accountIds: [string, ...string[]],
+  name: string,
+): {
+  type: AccountGroupType.MultichainAccount;
+  id: `${typeof FIXTURE_WALLET_ID}/${number}`;
+  accounts: [string, ...string[]];
+  metadata: {
+    name: string;
+    pinned: boolean;
+    hidden: boolean;
+    lastSelected: number;
+    entropy: { groupIndex: number };
+  };
+} {
+  return {
+    type: AccountGroupType.MultichainAccount,
+    id: `${FIXTURE_WALLET_ID}/${groupIndex}` as const,
+    accounts: accountIds,
+    metadata: {
+      name,
+      pinned: false,
+      hidden: false,
+      lastSelected: 0,
+      entropy: { groupIndex },
+    },
+  };
+}
 
 jest.mock('../Engine', () => ({
   context: {
@@ -38,20 +92,75 @@ jest.mock('../Engine', () => ({
         },
       },
     },
+    AccountTreeController: {
+      state: { accountTree: { wallets: {} } },
+      setAccountGroupName: jest.fn(),
+    },
     MultichainAccountService: {
       createMultichainAccountWallet: (...args: unknown[]) =>
         mockCreateWallet(...args),
+      createMultichainAccountGroups: (...args: unknown[]) =>
+        mockCreateAccountGroups(...args),
       init: jest.fn().mockResolvedValue(undefined),
     },
     KeyringController: {
+      isUnlocked: () => mockIsUnlocked(),
+      submitPassword: (password: string) => mockSubmitPassword(password),
       importAccountWithStrategy: (...args: unknown[]) =>
-        mockImportAccount(...args),
+        mockImportAccount(...(args as [string, string[]])),
     },
     PerpsController: {
       markTutorialCompleted: jest.fn(),
+      getPositions: jest.fn().mockResolvedValue([]),
     },
   },
   setSelectedAddress: jest.fn(),
+  setAccountLabel: jest.fn(),
+}));
+
+// AgenticService imports the Engine *class* (for the disableAutomaticVaultBackup
+// static) separately from the ../Engine facade. Stub it so the test does not
+// pull in the full Engine/RewardsController/SecureKeychain stack.
+jest.mock('../Engine/Engine', () => ({
+  Engine: class {
+    static disableAutomaticVaultBackup = false;
+  },
+}));
+
+const mockEnsureConnected = jest.fn().mockResolvedValue(undefined);
+const mockClearAllChannels = jest.fn();
+
+jest.mock('../../components/UI/Perps/services/PerpsConnectionManager', () => ({
+  __esModule: true,
+  default: {
+    ensureConnected: (...args: unknown[]) => mockEnsureConnected(...args),
+  },
+}));
+
+jest.mock('../../components/UI/Perps/providers/PerpsStreamManager', () => ({
+  getStreamManagerInstance: () => ({
+    clearAllChannels: (...args: unknown[]) => mockClearAllChannels(...args),
+  }),
+}));
+
+// Authentication pulls in the full auth/keychain stack; stub the singleton.
+jest.mock('../Authentication', () => ({
+  __esModule: true,
+  default: {
+    unlockWallet: jest.fn().mockResolvedValue(undefined),
+  },
+}));
+
+// addNewHdAccount/importNewSecretRecoveryPhrase pull in a sentry/selector chain
+// that cannot load in the unit-test env; stub them directly.
+const mockAddNewHdAccount = jest.fn().mockResolvedValue(undefined);
+const mockImportNewSecretRecoveryPhrase = jest
+  .fn()
+  .mockResolvedValue(undefined);
+jest.mock('../../actions/multiSrp', () => ({
+  addNewHdAccount: (...args: unknown[]) => mockAddNewHdAccount(...args),
+  importNewSecretRecoveryPhrase: (...args: unknown[]) =>
+    mockImportNewSecretRecoveryPhrase(...args),
 }));
 
 const mockDispatch = jest.fn();
@@ -88,9 +197,18 @@ jest.mock('../../actions/settings', () => ({
 jest.mock('@metamask/key-tree', () => ({
   mnemonicPhraseToBytes: jest.fn((s: string) => new Uint8Array(s.length)),
 }));
-jest.mock('../../store/storage-wrapper', () => ({
-  setItem: jest.fn().mockResolvedValue(undefined),
-}));
+jest.mock('../../store/storage-wrapper', () => {
+  const storageWrapper = {
+    getItem: jest.fn().mockResolvedValue(null),
+    setItem: jest.fn().mockResolvedValue(undefined),
+  };
+  return {
+    __esModule: true,
+    default: storageWrapper,
+    getItem: storageWrapper.getItem,
+    setItem: storageWrapper.setItem,
+  };
+});
 jest.mock('../../constants/storage', () => ({
   OPTIN_META_METRICS_UI_SEEN: 'optin_meta_metrics_ui_seen',
   PERPS_GTM_MODAL_SHOWN: 'perps_gtm',
@@ -155,6 +273,13 @@ function installFiberHook(rootFiber: FiberNode) {
     renderers: new Map([[1, {}]]),
     getFiberRoots: () => new Set([{ current: rootFiber }]),
   };
+}
+
+function resetMockAccountState() {
+  Engine.context.AccountsController.state.internalAccounts.accounts = {
+    a1: mockEvmAccount('a1', '0xABC', 'Account 1'),
+  };
+  Engine.context.AccountTreeController.state.accountTree = { wallets: {} };
 }
 
 // ─── Fiber tree helper tests ────────────────────────────────────────────────
@@ -270,6 +395,49 @@ describe('toAccountSummary', () => {
         metadata: { name: 'Test' },
       }),
     ).toEqual({ id: 'x', address: '0x1', name: 'Test' });
+  });
+});
+
+describe('getFixtureMnemonicCount', () => {
+  it('defaults to 1 when no count is provided', () => {
+    expect(getFixtureMnemonicCount(undefined)).toBe(1);
+    expect(getFixtureMnemonicCount({})).toBe(1);
+  });
+
+  it('prefers count, falls back to numberOfAccounts', () => {
+    expect(getFixtureMnemonicCount({ count: 3 })).toBe(3);
+    expect(getFixtureMnemonicCount({ numberOfAccounts: 2 })).toBe(2);
+    expect(getFixtureMnemonicCount({ count: 5, numberOfAccounts: 2 })).toBe(5);
+  });
+
+  it('throws on out-of-range or non-integer counts', () => {
+    expect(() => getFixtureMnemonicCount({ count: 0 })).toThrow();
+    expect(() => getFixtureMnemonicCount({ count: 101 })).toThrow();
+    expect(() => getFixtureMnemonicCount({ count: 1.5 })).toThrow();
+  });
+});
+
+describe('getFixtureAccountNames', () => {
+  it('uses explicit names by index when present', () => {
+    expect(getFixtureAccountNames({ names: ['One', 'Two'] }, 2)).toEqual([
+      'One',
+      'Two',
+    ]);
+  });
+
+  it('uses name only for the first account', () => {
+    expect(getFixtureAccountNames({ name: 'Primary' }, 2)).toEqual([
+      'Primary',
+      'Account 2',
+    ]);
+  });
+
+  it('falls back to Account N when nothing is provided', () => {
+    expect(getFixtureAccountNames(undefined, 3)).toEqual([
+      'Account 1',
+      'Account 2',
+      'Account 3',
+    ]);
   });
 });
 
@@ -392,6 +560,24 @@ describe('AgenticService.install', () => {
     expect(mockDeferredNav.goBack).toHaveBeenCalled();
   });
 
+  it('refreshPerpsStreams reconnects streams and reports position count', async () => {
+    mockEnsureConnected.mockClear();
+    mockClearAllChannels.mockClear();
+    (
+      MockEngine.context.PerpsController.getPositions as jest.Mock
+    ).mockResolvedValue([{ coin: 'ETH' }, { coin: 'BTC' }]);
+
+    await expect(bridge().refreshPerpsStreams()).resolves.toEqual({
+      ok: true,
+      positions: 2,
+    });
+    expect(mockEnsureConnected).toHaveBeenCalledWith({
+      source: 'agentic_refresh_perps_streams',
+      suppressError: true,
+    });
+    expect(mockClearAllChannels).toHaveBeenCalledTimes(1);
+  });
+
   it('listAccounts returns mapped accounts', () => {
     (
       MockEngine.context.AccountsController.listAccounts as jest.Mock
@@ -438,11 +624,18 @@ describe('AgenticService.install', () => {
       const callback = jest.fn();
       registerStepHudCallback(callback);
 
-      bridge().showStep({ id: 'step-1', description: 'Navigate to market' });
+      bridge().showStep({
+        id: 'run 1/2',
+        status: 'running',
+        intent: 'Navigate to market',
+        progress: { current: 1, total: 2 },
+      });
 
       expect(callback).toHaveBeenCalledWith({
-        id: 'step-1',
-        description: 'Navigate to market',
+        id: 'run 1/2',
+        status: 'running',
+        intent: 'Navigate to market',
+        progress: { current: 1, total: 2 },
       });
     });
 
@@ -457,9 +650,7 @@ describe('AgenticService.install', () => {
 
     it('showStep is a no-op when no callback is registered', () => {
       registerStepHudCallback(null);
-      expect(() =>
-        bridge().showStep({ id: 'x', description: 'y' }),
-      ).not.toThrow();
+      expect(() => bridge().showStep({ id: 'x', intent: 'y' })).not.toThrow();
     });
   });
 
@@ -637,45 +828,17 @@ describe('AgenticService.install', () => {
   describe('setupWallet', () => {
     beforeEach(() => {
       mockCreateWallet.mockClear();
+      mockCreateAccountGroups.mockReset();
+      mockCreateAccountGroups.mockResolvedValue([]);
       mockImportAccount.mockClear();
       mockDispatch.mockClear();
-    });
-
-    it('creates wallet from mnemonic and returns accounts', async () => {
-      const result = await bridge().setupWallet({
-        password: 'test123',
-        accounts: [{ type: 'mnemonic', value: 'word1 word2 word3' }],
-      });
-      expect(result.ok).toBe(true);
-      expect(result.accounts).toEqual([
-        { id: 'a1', address: '0xABC', name: 'Account 1' },
-      ]);
-      expect(mockCreateWallet).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'restore', password: 'test123' }),
-      );
-    });
-
-    it('creates wallet without mnemonic when no mnemonic account', async () => {
-      const result = await bridge().setupWallet({
-        password: 'test123',
-        accounts: [{ type: 'privateKey', value: '0xkey' }],
-      });
-      expect(result.ok).toBe(true);
-      expect(mockCreateWallet).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'create', password: 'test123' }),
-      );
-      expect(mockImportAccount).toHaveBeenCalled();
-    });
-
-    it('imports private key accounts', async () => {
-      await bridge().setupWallet({
-        password: 'test123',
-        accounts: [
-          { type: 'mnemonic', value: 'word1 word2' },
-          { type: 'privateKey', value: '0xkey1' },
-        ],
-      });
-      expect(mockImportAccount).toHaveBeenCalledWith('privateKey', ['0xkey1']);
+      mockIsUnlocked.mockReset();
+      mockIsUnlocked.mockReturnValue(true);
+      mockSubmitPassword.mockClear();
+      (
+        Engine.context.AccountTreeController.setAccountGroupName as jest.Mock
+      ).mockClear();
+      resetMockAccountState();
     });
 
     it('dispatches all onboarding flags', async () => {
@@ -700,16 +863,106 @@ describe('AgenticService.install', () => {
       expect(result.error).toBe('boom');
     });
 
-    it('handles failed private key import gracefully', async () => {
-      mockImportAccount.mockRejectedValueOnce(new Error('bad key'));
+    it('recovers an existing fixture vault when auth leaves the keyring locked', async () => {
+      mockIsUnlocked
+        .mockReturnValueOnce(false)
+        .mockReturnValueOnce(false)
+        .mockReturnValue(true);
+
+      const result = await bridge().applyWalletFixture({
+        password: 'test123',
+        accounts: [],
+      });
+
+      expect(result.ok).toBe(true);
+      expect(mockSubmitPassword).toHaveBeenCalledWith('test123');
+      expect(mockDispatch).toHaveBeenCalledWith({ type: 'PASSWORD_SET' });
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: 'SEED_PHRASE_BACKED_UP',
+      });
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: 'SET_COMPLETED_ONBOARDING',
+      });
+      expect(mockDispatch).toHaveBeenCalledWith({ type: 'SET_EXISTING_USER' });
+      expect(mockDispatch).toHaveBeenCalledWith({ type: 'LOG_IN' });
+    });
+
+    it('creates missing fixture HD accounts with a batched account-group range', async () => {
+      const mnemonic =
+        'test test test test test test test test test test test junk';
+      const group0Id = `${FIXTURE_WALLET_ID}/0` as const;
+      Engine.context.AccountsController.state.internalAccounts.accounts = {
+        a1: mockEvmAccount(
+          'a1',
+          '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266',
+          'dev1',
+        ),
+      };
+      Engine.context.AccountTreeController.state.accountTree = {
+        wallets: {
+          [FIXTURE_WALLET_ID]: {
+            type: AccountWalletType.Entropy,
+            id: FIXTURE_WALLET_ID,
+            status: 'ready',
+            metadata: { name: 'Fixture Wallet', entropy: { id: 'keyring-1' } },
+            groups: {
+              [group0Id]: mockEntropyGroup(0, ['a1'], 'dev1'),
+            },
+          },
+        },
+      };
+      mockCreateAccountGroups.mockImplementationOnce(async () => {
+        Engine.context.AccountsController.state.internalAccounts.accounts = {
+          ...Engine.context.AccountsController.state.internalAccounts.accounts,
+          a2: mockEvmAccount(
+            'a2',
+            '0x0000000000000000000000000000000000000002',
+            'dev2',
+          ),
+          a3: mockEvmAccount(
+            'a3',
+            '0x0000000000000000000000000000000000000003',
+            'dev3',
+          ),
+        };
+        const wallet = Engine.context.AccountTreeController.state.accountTree
+          .wallets[FIXTURE_WALLET_ID] as {
+          groups: Record<string, unknown>;
+        };
+        wallet.groups[`${FIXTURE_WALLET_ID}/1`] = mockEntropyGroup(
+          1,
+          ['a2'],
+          'dev2',
+        );
+        wallet.groups[`${FIXTURE_WALLET_ID}/2`] = mockEntropyGroup(
+          2,
+          ['a3'],
+          'dev3',
+        );
+        return [];
+      });
+
       const result = await bridge().setupWallet({
         password: 'test123',
         accounts: [
-          { type: 'mnemonic', value: 'words' },
-          { type: 'privateKey', value: '0xbad' },
+          {
+            type: 'mnemonic',
+            value: mnemonic,
+            count: 3,
+            names: ['dev1', 'dev2', 'dev3'],
+          },
         ],
       });
+
       expect(result.ok).toBe(true);
+      expect(mockCreateAccountGroups).toHaveBeenCalledWith({
+        fromGroupIndex: 1,
+        toGroupIndex: 2,
+        entropySource: 'keyring-1',
+      });
+      expect(
+        Engine.context.AccountTreeController.setAccountGroupName,
+      ).toHaveBeenCalledWith(`${FIXTURE_WALLET_ID}/2`, 'dev3');
     });
 
     it('opts out of metametrics when specified', async () => {
@@ -807,16 +1060,43 @@ describe('AgenticService.install', () => {
       );
     });
 
-    it('dispatches setOsAuthEnabled(true) when deviceAuthEnabled is true', async () => {
+    it('dispatches setOsAuthEnabled(true) on Android when deviceAuthEnabled is true', async () => {
       mockDispatch.mockClear();
-      await bridge().setupWallet({
-        password: 'test123',
-        accounts: [],
-        settings: { deviceAuthEnabled: true },
-      });
-      expect(mockDispatch).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'SET_OS_AUTH_ENABLED', enabled: true }),
-      );
+      const originalOS = Platform.OS;
+      Platform.OS = 'android';
+      try {
+        await bridge().setupWallet({
+          password: 'test123',
+          accounts: [],
+          settings: { deviceAuthEnabled: true },
+        });
+        expect(mockDispatch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'SET_OS_AUTH_ENABLED',
+            enabled: true,
+          }),
+        );
+      } finally {
+        Platform.OS = originalOS;
+      }
+    });
+
+    it('does not dispatch setOsAuthEnabled on iOS even when deviceAuthEnabled is true', async () => {
+      mockDispatch.mockClear();
+      const originalOS = Platform.OS;
+      Platform.OS = 'ios';
+      try {
+        await bridge().setupWallet({
+          password: 'test123',
+          accounts: [],
+          settings: { deviceAuthEnabled: true },
+        });
+        expect(mockDispatch).not.toHaveBeenCalledWith(
+          expect.objectContaining({ type: 'SET_OS_AUTH_ENABLED' }),
+        );
+      } finally {
+        Platform.OS = originalOS;
+      }
     });
 
     it('does not dispatch setOsAuthEnabled when deviceAuthEnabled is not set', async () => {

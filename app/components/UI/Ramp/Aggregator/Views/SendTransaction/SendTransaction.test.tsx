@@ -416,6 +416,7 @@ describe('SendTransaction View', () => {
           },
           {
             "deviceConfirmedOn": "metamask_mobile",
+            "isInternal": true,
             "networkClientId": "mainnet",
             "origin": "RAMPS_SEND",
           },
@@ -462,6 +463,7 @@ describe('SendTransaction View', () => {
           },
           {
             "deviceConfirmedOn": "metamask_mobile",
+            "isInternal": true,
             "networkClientId": "mainnet",
             "origin": "RAMPS_SEND",
           },

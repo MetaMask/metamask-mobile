@@ -21,13 +21,13 @@ import {
   resolvePredictWorldCupStageLabel,
 } from '../utils/worldCup';
 import {
-  fetchPredictWorldCupMarkets,
   fetchPredictWorldCupMarketsPage,
   PREDICT_WORLD_CUP_PAGE_SIZE,
 } from '../services/worldCup';
 import { strings } from '../../../../../locales/i18n';
 import type { PredictMarket } from '../types';
 import type { PredictWorldCupConfig } from '../types/flags';
+import { getVisiblePredictMarkets } from '../utils/marketStaleness';
 import type { UsePredictMarketDataResult } from './usePredictMarketData';
 
 export interface UsePredictWorldCupMarketsOptions {
@@ -49,7 +49,7 @@ export interface PredictWorldCupAvailableTab {
 
 type PredictWorldCupDataConfig = Pick<
   PredictWorldCupConfig,
-  'seriesId' | 'tagSlug' | 'gamesTagId' | 'stages'
+  'tagSlug' | 'gamesTagId' | 'stages'
 >;
 
 interface WorldCupMarketDataConfig {
@@ -232,10 +232,22 @@ export const usePredictWorldCupMarkets = ({
     await singleQuery.refetch();
   }, [infiniteQuery, marketDataConfig.paginationEnabled, singleQuery]);
 
+  const infiniteMarketData = useMemo(
+    () => infiniteQuery.data?.pages.flatMap((page) => page.markets) ?? [],
+    [infiniteQuery.data],
+  );
+  const visibleInfiniteMarketData = useMemo(
+    () => getVisiblePredictMarkets(infiniteMarketData),
+    [infiniteMarketData],
+  );
+  const visibleSingleMarketData = useMemo(
+    () => getVisiblePredictMarkets(singleQuery.data ?? []),
+    [singleQuery.data],
+  );
+
   if (marketDataConfig.paginationEnabled) {
     return {
-      marketData:
-        infiniteQuery.data?.pages.flatMap((page) => page.markets) ?? [],
+      marketData: visibleInfiniteMarketData,
       isFetching: infiniteQuery.isLoading,
       isFetchingMore: infiniteQuery.isFetchingNextPage,
       error: infiniteQuery.error?.message ?? null,
@@ -246,7 +258,7 @@ export const usePredictWorldCupMarkets = ({
   }
 
   return {
-    marketData: singleQuery.data ?? [],
+    marketData: visibleSingleMarketData,
     isFetching: singleQuery.isLoading,
     isFetchingMore: false,
     error: singleQuery.error?.message ?? null,
@@ -373,7 +385,7 @@ export const usePredictWorldCupAvailableTabs = (
             );
             return {
               key,
-              label: stage ? resolvePredictWorldCupStageLabel(stage) : key,
+              label: resolvePredictWorldCupStageLabel(stage ?? { key }),
             };
           }
         }

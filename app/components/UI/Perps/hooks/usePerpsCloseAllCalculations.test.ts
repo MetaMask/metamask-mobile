@@ -7,6 +7,7 @@ import {
   type FeeCalculationResult,
 } from '@metamask/perps-controller';
 import type { EstimatedPointsDto } from '../../../../core/Engine/controllers/rewards-controller/types';
+import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
 
 /**
  * Note: This test file contains act() warnings from React Testing Library.
@@ -92,7 +93,11 @@ describe('usePerpsCloseAllCalculations', () => {
 
     // Setup default selector mocks
     let selectorCallCount = 0;
-    mockUseSelector.mockImplementation(() => {
+    mockUseSelector.mockImplementation((selectorFn) => {
+      if (selectorFn === selectVipProgramEnabled) {
+        return true;
+      }
+
       selectorCallCount++;
       if (selectorCallCount % 2 === 1) {
         return {
