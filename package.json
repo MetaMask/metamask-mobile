@@ -153,17 +153,7 @@
     "feature-flags:sync:check": "ts-node tests/feature-flags/sync-production-flags.ts --check",
     "feature-flags:sync:update": "ts-node tests/feature-flags/sync-production-flags.ts --update",
     "worktree:create": "yarn ts-node --transpile-only scripts/worktree-create.ts",
-    "worktree:remove": "yarn ts-node --transpile-only scripts/worktree-remove.ts",
-    "a:start": "scripts/perps/agentic/start-metro.sh",
-    "a:watch": "scripts/perps/agentic/interactive-start.sh",
-    "a:stop": "scripts/perps/agentic/stop-metro.sh",
-    "a:status": "scripts/perps/agentic/app-state.sh status",
-    "a:reload": "scripts/perps/agentic/reload-metro.sh",
-    "a:navigate": "scripts/perps/agentic/app-navigate.sh",
-    "a:ios": "yarn ts-node --transpile-only --project scripts/perps/agentic/preflight/tsconfig.json scripts/perps/agentic/preflight/preflight.ts --platform ios --mode auto --wallet-setup",
-    "a:android": "yarn ts-node --transpile-only --project scripts/perps/agentic/preflight/tsconfig.json scripts/perps/agentic/preflight/preflight.ts --platform android --mode auto --wallet-setup",
-    "a:setup:ios": "yarn ts-node --transpile-only --project scripts/perps/agentic/preflight/tsconfig.json scripts/perps/agentic/preflight/preflight.ts --platform ios --mode clean --wallet-setup",
-    "a:setup:android": "yarn ts-node --transpile-only --project scripts/perps/agentic/preflight/tsconfig.json scripts/perps/agentic/preflight/preflight.ts --platform android --mode clean --wallet-setup"
+    "worktree:remove": "yarn ts-node --transpile-only scripts/worktree-remove.ts"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
