@@ -311,6 +311,18 @@ describe('TransactionDetails', () => {
         getByText(strings('transaction_details.title.default')),
       ).toBeTruthy();
     });
+
+    it('renders default title when transaction metadata is missing', () => {
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: undefined as unknown as TransactionMeta,
+      });
+
+      const { getByText } = render();
+
+      expect(
+        getByText(strings('transaction_details.title.default')),
+      ).toBeTruthy();
+    });
   });
 
   describe('header', () => {
