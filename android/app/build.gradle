@@ -23,7 +23,14 @@ react {
     //   The list of variants to that are debuggable. For those we're going to
     //   skip the bundling of the JS bundle and the assets. By default is just 'debug'.
     //   If you add flavors like lite, prod, etc. you'll have to list your debuggableVariants.
-    debuggableVariants = ["prodDebug", "flaskDebug"]
+    //
+    //   When APPIUM_TEST_BUILD=true (set in .js.env locally or in CI build env), debug builds
+    //   embed the JS bundle so Appium tests don't need a Metro dev server at runtime.
+    //   HAS_TEST_OVERRIDES=true must also be set so ReadOnlyNetworkStore activates.
+    //   Detox local runs (which start Metro themselves) still use the default list.
+    debuggableVariants = System.getenv("APPIUM_TEST_BUILD") == "true"
+        ? []
+        : ["prodDebug", "flaskDebug"]
     /* Bundling */
     //   A list containing the node command and its flags. Default is just 'node'.
     // nodeExecutableAndArgs = ["node"]

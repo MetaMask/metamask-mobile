@@ -76,6 +76,11 @@ const smokeTags = {
     description:
       'Tests the in-app browser (BrowserTab/BrowserUrlBar WebView). Covers browser navigation: visiting invalid URLs and returning home, ENS domain resolution via mocked IPFS gateway, and cross-origin redirect URL bar updates. Tests browser security: camera permission prompts within WebView and history disclosure prevention. Tests file download handling from web pages. Tests phishing detection via mocked dapp-scanning API responses. Browser tests use local HTML fixture servers (DappServer) and testSpecificMock for API mocking rather than live external websites. When changes touch BrowserTab, BrowserUrlBar, WebView configuration, or dapp-scanning integration, select this tag. Related to SmokeWalletPlatform for Trending browser navigation integration.',
   },
+  smokeAppiumAccounts: {
+    tag: 'SmokeAppiumAccounts:',
+    description:
+      'Appium smoke tests for account security flows. Runs on Android emulator and iOS simulator via WebdriverIO. First migration target: reveal Secret Recovery Phrase flow.',
+  },
   smokeSnaps: {
     tag: 'SmokeSnaps:',
     description:
@@ -125,6 +130,8 @@ const SmokePredictions = (testName) =>
 const SmokeSeedlessOnboarding = (testName) =>
   `${smokeTags.smokeSeedlessOnboarding.tag} ${testName}`;
 const SmokeBrowser = (testName) => `${smokeTags.smokeBrowser.tag} ${testName}`;
+const SmokeAppiumAccounts = (testName) =>
+  `${smokeTags.smokeAppiumAccounts.tag} ${testName}`;
 const SmokeSnaps = (testName) => `${smokeTags.smokeSnaps.tag} ${testName}`;
 // Other test tags functions.
 const RegressionAccounts = (testName) =>
@@ -168,6 +175,7 @@ export {
   SmokePredictions,
   SmokeSeedlessOnboarding,
   SmokeBrowser,
+  SmokeAppiumAccounts,
   RegressionAccounts,
   RegressionConfirmations,
   RegressionIdentity,

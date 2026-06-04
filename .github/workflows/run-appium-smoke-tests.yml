@@ -1,0 +1,130 @@
+# Appium Smoke Tests — Emulator/Simulator
+#
+# Runs the first Appium smoke test (reveal SRP) on a local Android emulator
+# and iOS simulator. Triggered manually until the test is proven stable.
+#
+# Both jobs run in parallel. Neither job changes the existing Detox CI.
+
+name: Appium Smoke Tests
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: appium-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android:
+    name: Android (Emulator)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup E2E environment (Android)
+        uses: ./.github/actions/setup-e2e-env
+        with:
+          platform: android
+          setup-simulator: 'true'
+          android-avd-name: appium_smoke_avd
+          android-api-level: '34'
+          android-tag: google_apis
+          android-abi: x86_64
+          android-device: pixel_5
+          configure-keystores: 'false'
+          install-foundry: 'true'
+
+      - name: Build Android APK (e2e debug — HAS_TEST_OVERRIDES=true)
+        run: yarn build:android:main:e2e
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
+          HAS_TEST_OVERRIDES: 'true'
+          CONFIGURATION: Debug
+          # Removes prodDebug from debuggableVariants so the JS bundle is embedded
+          # in the debug APK. Appium tests don't start Metro, so the bundle must be
+          # baked in for ReadOnlyNetworkStore (hasTestOverrides) to activate.
+          APPIUM_TEST_BUILD: 'true'
+
+      - name: Boot Android emulator
+        run: |
+          echo "Starting emulator..."
+          $ANDROID_HOME/emulator/emulator \
+            -avd appium_smoke_avd \
+            -no-window \
+            -no-audio \
+            -gpu swiftshader_indirect \
+            -no-snapshot \
+            &
+
+          echo "Waiting for emulator to boot..."
+          adb wait-for-device
+          while [[ -z "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" ]]; do
+            sleep 2
+          done
+          echo "Emulator booted."
+          adb shell input keyevent 82
+
+      - name: Run Appium smoke tests (Android)
+        run: yarn appium-smoke:android
+        env:
+          ANDROID_APK_PATH: android/app/build/outputs/apk/prod/debug/app-prod-debug.apk
+          ANDROID_AVD_NAME: appium_smoke_avd
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: appium-smoke-report-android
+          path: tests/test-reports/appium-smoke-report/
+          retention-days: 7
+
+  ios:
+    name: iOS (Simulator)
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup E2E environment (iOS)
+        uses: ./.github/actions/setup-e2e-env
+        with:
+          platform: ios
+          setup-simulator: 'false'
+          configure-keystores: 'false'
+          install-foundry: 'true'
+
+      - name: Build iOS app (e2e debug — HAS_TEST_OVERRIDES=true)
+        run: yarn build:ios:main:e2e
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
+          HAS_TEST_OVERRIDES: 'true'
+          CONFIGURATION: Debug
+          IS_SIM_BUILD: 'true'
+
+      - name: Boot iOS simulator
+        run: |
+          UDID=$(xcrun simctl list devices available | grep "iPhone 15 Pro" | grep -v "Plus\|Max" | head -1 | awk -F'[()]' '{print $2}')
+          echo "Booting simulator UDID: $UDID"
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl bootstatus "$UDID" -b
+          echo "IOS_SIMULATOR_UDID=$UDID" >> "$GITHUB_ENV"
+
+      - name: Run Appium smoke tests (iOS)
+        run: yarn appium-smoke:ios
+        env:
+          IOS_APP_PATH: ios/build/Build/Products/Debug-iphonesimulator/MetaMask.app
+          IOS_SIMULATOR_NAME: iPhone 15 Pro
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: appium-smoke-report-ios
+          path: tests/test-reports/appium-smoke-report/
+          retention-days: 7

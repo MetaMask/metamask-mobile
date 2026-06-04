@@ -10,6 +10,7 @@ import TabBarComponent from '../page-objects/wallet/TabBarComponent';
 import SettingsView from '../page-objects/Settings/SettingsView';
 import SecurityAndPrivacyView from '../page-objects/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 import AccountDetails from '../page-objects/MultichainAccounts/AccountDetails';
+import { PlatformDetector } from '../framework/PlatformLocator';
 
 const PASSWORD = '123123123';
 
@@ -58,7 +59,7 @@ export const completeSrpQuiz = async (expectedSrp: string) => {
 
   await RevealSecretRecoveryPhrase.tapToRevealPrivateCredentialQRCode();
 
-  if (device.getPlatform() === 'ios') {
+  if (PlatformDetector.isIOS()) {
     // For some reason, the QR code is visible on Android but detox cannot find it
     await Assertions.expectElementToBeVisible(
       RevealSecretRecoveryPhrase.revealCredentialQRCodeImage,

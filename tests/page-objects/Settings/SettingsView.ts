@@ -5,10 +5,23 @@ import {
   SettingsViewSelectorsText,
 } from '../../../app/components/Views/Settings/SettingsView.testIds';
 import { CommonSelectorsText } from '../../../app/util/Common.testIds';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class SettingsView {
-  get title(): DetoxElement {
-    return Matchers.getElementByText(SettingsViewSelectorsText.TITLE);
+  get title(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText(SettingsViewSelectorsText.TITLE),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          SettingsViewSelectorsText.TITLE,
+          true,
+        ),
+    });
   }
 
   get generalSettingsButton(): DetoxElement {
@@ -23,8 +36,14 @@ class SettingsView {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.CONTACTS);
   }
 
-  get securityAndPrivacyButton(): DetoxElement {
-    return Matchers.getElementByID(SettingsViewSelectorsIDs.SECURITY);
+  get securityAndPrivacyButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(SettingsViewSelectorsIDs.SECURITY),
+      appium: () =>
+        PlaywrightMatchers.getElementById(SettingsViewSelectorsIDs.SECURITY, {
+          exact: true,
+        }),
+    });
   }
 
   get notificationsButton(): DetoxElement {
@@ -117,8 +136,8 @@ class SettingsView {
   }
 
   async tapSecurityAndPrivacy(): Promise<void> {
-    await Gestures.waitAndTap(this.securityAndPrivacyButton, {
-      elemDescription: 'Settings - Security and Privacy Button',
+    await UnifiedGestures.waitAndTap(this.securityAndPrivacyButton, {
+      description: 'Settings - Security and Privacy Button',
     });
   }
 

@@ -4,6 +4,12 @@ import {
 } from '../../../../app/components/Views/Settings/SecuritySettings/SecurityPrivacyView.testIds';
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../../framework/UnifiedGestures';
 
 class SecurityAndPrivacy {
   get changePasswordButton(): DetoxElement {
@@ -12,10 +18,18 @@ class SecurityAndPrivacy {
     );
   }
 
-  get revealSecretRecoveryPhraseButton(): DetoxElement {
-    return Matchers.getElementByID(
-      SecurityPrivacyViewSelectorsIDs.REVEAL_SEED_BUTTON,
-    );
+  get revealSecretRecoveryPhraseButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          SecurityPrivacyViewSelectorsIDs.REVEAL_SEED_BUTTON,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          SecurityPrivacyViewSelectorsIDs.REVEAL_SEED_BUTTON,
+          { exact: true },
+        ),
+    });
   }
   get clearPrivacyDataButton(): DetoxElement {
     return Matchers.getElementByID(
@@ -23,10 +37,18 @@ class SecurityAndPrivacy {
     );
   }
 
-  get securityAndPrivacyHeading(): DetoxElement {
-    return Matchers.getElementByText(
-      SecurityPrivacyViewSelectorsText.SECURITY_AND_PRIVACY_HEADING,
-    );
+  get securityAndPrivacyHeading(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          SecurityPrivacyViewSelectorsText.SECURITY_AND_PRIVACY_HEADING,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          SecurityPrivacyViewSelectorsText.SECURITY_AND_PRIVACY_HEADING,
+          true,
+        ),
+    });
   }
 
   get deleteWalletButton(): DetoxElement {
@@ -110,8 +132,8 @@ class SecurityAndPrivacy {
   }
 
   async tapRevealSecretRecoveryPhraseButton(): Promise<void> {
-    await Gestures.waitAndTap(this.revealSecretRecoveryPhraseButton, {
-      elemDescription: 'Reveal secret recovery phrase button',
+    await UnifiedGestures.waitAndTap(this.revealSecretRecoveryPhraseButton, {
+      description: 'Reveal secret recovery phrase button',
     });
   }
 
