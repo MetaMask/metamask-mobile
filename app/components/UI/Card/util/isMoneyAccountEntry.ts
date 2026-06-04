@@ -1,36 +1,30 @@
-import type { MoneyAccountControllerState } from '@metamask/money-account-controller';
+import type { CaipChainId } from '@metamask/utils';
+import { isVedaToken, type VedaTokenConfig } from './vedaToken';
 
 /**
- * Returns true when `walletAddress` corresponds to any money account on the
- * user's device.
+ * Returns true when the given token is a Money Account entry.
  *
- * This is the single source of truth for "is this token tied to a money
- * account?" across Card surfaces (Card Home label, Add Funds redirect,
- * Manage Limit lock, Asset Selection per-row label).
+ * Single source of truth for "is this token tied to a Money Account?"
+ * across Card surfaces (Card Home label, Add Funds redirect, Manage Limit
+ * lock, Asset Selection per-row label).
  *
- * INTERIM: today we identify money-account entries by matching the funding
- * token's `walletAddress` against the set of known money account addresses.
- * Once Veda vault tokens land — and because only money accounts can delegate
- * to vault tokens — this predicate should switch to a token-identity check
- * (e.g. matching the token address / chain). The flag name and consumers
- * stay unchanged; only this predicate needs to change.
+ * Identity is established by matching the token's address+chain against
+ * the Veda vault token described by delegation settings. Money Accounts
+ * are the only source of funding for Veda — and Veda is the only token
+ * Money Accounts can delegate — so token identity is equivalent to the
+ * Money-Account-ownership signal.
  *
- * @param walletAddress - The funding token's wallet address (the account
- * that holds the delegated allowance for the card).
- * @param moneyAccounts - The money account record from
- * `selectMoneyAccounts`.
- * @returns True when `walletAddress` matches any known money account
- * address (case-insensitive).
+ * @param token - The candidate funding token (address + caipChainId).
+ * @param vedaConfig - The resolved Veda token config from delegation
+ * settings, or `null` when delegation settings are unavailable.
+ * @returns True when the token matches the Veda entry.
  */
 export const isMoneyAccountEntry = (
-  walletAddress: string | undefined,
-  moneyAccounts: MoneyAccountControllerState['moneyAccounts'],
-): boolean => {
-  if (!walletAddress) {
-    return false;
-  }
-  const target = walletAddress.toLowerCase();
-  return Object.values(moneyAccounts).some(
-    (account) => account.address.toLowerCase() === target,
-  );
-};
+  token: {
+    address?: string | null;
+    stagingTokenAddress?: string | null;
+    caipChainId?: CaipChainId | string | null;
+    symbol?: string | null;
+  },
+  vedaConfig: VedaTokenConfig | null,
+): boolean => isVedaToken(token, vedaConfig);

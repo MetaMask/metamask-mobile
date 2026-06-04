@@ -18,7 +18,7 @@ import { IconName } from '../../../../../component-library/components/Icons/Icon
 import Routes from '../../../../../constants/navigation/Routes';
 import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
-import { buildTokenIconUrl } from '../../util/buildTokenIconUrl';
+import { getCardTokenDisplay } from '../../util/getCardTokenDisplay';
 import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
@@ -91,8 +91,18 @@ const AssetSelectionBottomSheet: React.FC = () => {
   } = useCardHomeData();
 
   const supportedTokens = useMemo<CardFundingToken[]>(() => {
+    // Money Account entries (Veda) are only meaningful in the picker once
+    // the delegation has been approved. Hide them until they reach Enabled
+    // or Limited — otherwise the row would prompt a redundant linkage flow
+    // that already lives on Card Home.
+    const baseList = homeAvailableTokens.filter(
+      (token) =>
+        !token.isMoneyAccountEntry ||
+        token.fundingStatus !== FundingStatus.NotEnabled,
+    );
+
     const filtered = excludedTokens?.length
-      ? homeAvailableTokens.filter(
+      ? baseList.filter(
           (token) =>
             !excludedTokens.some(
               (ex) =>
@@ -100,7 +110,7 @@ const AssetSelectionBottomSheet: React.FC = () => {
                 ex.caipChainId === token.caipChainId,
             ),
         )
-      : homeAvailableTokens;
+      : baseList;
 
     return [...filtered].sort((a, b) => {
       if (
@@ -343,6 +353,13 @@ const AssetSelectionBottomSheet: React.FC = () => {
         data={supportedTokensWithBalances}
         renderItem={({ item }) => {
           const isCurrentPriority = isPriorityToken(item);
+          const { symbol: displaySymbol, iconSource } =
+            getCardTokenDisplay(item);
+          const titleText = item.isMoneyAccountEntry
+            ? strings('card.card_spending_limit.money_account_label')
+            : `${displaySymbol} on ${mapCaipChainIdToChainName(
+                item.caipChainId,
+              )}`;
           return (
             <Box
               twClassName={
@@ -353,7 +370,7 @@ const AssetSelectionBottomSheet: React.FC = () => {
             >
               <ListItemSelect
                 onPress={() => handleTokenPress(item)}
-                testID={`asset-select-item-${item.symbol}-${item.caipChainId}`}
+                testID={`asset-select-item-${displaySymbol}-${item.caipChainId}`}
               >
                 <Box
                   flexDirection={BoxFlexDirection.Row}
@@ -385,12 +402,7 @@ const AssetSelectionBottomSheet: React.FC = () => {
                     >
                       <AvatarToken
                         size={AvatarSize.Md}
-                        imageSource={{
-                          uri: buildTokenIconUrl(
-                            item.caipChainId,
-                            item.address ?? '',
-                          ),
-                        }}
+                        imageSource={iconSource}
                       />
                     </BadgeWrapper>
                     <Box
@@ -401,8 +413,7 @@ const AssetSelectionBottomSheet: React.FC = () => {
                         variant={TextVariant.BodyMd}
                         style={tw.style('font-semibold')}
                       >
-                        {item.symbol} on{' '}
-                        {mapCaipChainIdToChainName(item.caipChainId)}
+                        {titleText}
                       </Text>
                       <Text
                         variant={TextVariant.BodySm}
@@ -410,7 +421,7 @@ const AssetSelectionBottomSheet: React.FC = () => {
                       >
                         {getFundingStatusText(item.fundingStatus)}
                       </Text>
-                      {item.walletAddress && (
+                      {!item.isMoneyAccountEntry && item.walletAddress && (
                         <Text
                           variant={TextVariant.BodyXs}
                           style={tw.style(
@@ -418,11 +429,7 @@ const AssetSelectionBottomSheet: React.FC = () => {
                           )}
                           numberOfLines={1}
                         >
-                          {item.isMoneyAccountEntry
-                            ? strings(
-                                'card.card_spending_limit.money_account_label',
-                              )
-                            : truncateAddress(item.walletAddress, 6)}
+                          {truncateAddress(item.walletAddress, 6)}
                         </Text>
                       )}
                     </Box>
@@ -436,12 +443,14 @@ const AssetSelectionBottomSheet: React.FC = () => {
                     >
                       {item.balanceFiat}
                     </Text>
-                    <Text
-                      variant={TextVariant.BodyXs}
-                      style={tw.style('text-text-alternative mt-1')}
-                    >
-                      {item.balance} {item.symbol}
-                    </Text>
+                    {!item.isMoneyAccountEntry && (
+                      <Text
+                        variant={TextVariant.BodyXs}
+                        style={tw.style('text-text-alternative mt-1')}
+                      >
+                        {item.balance} {displaySymbol}
+                      </Text>
+                    )}
                   </Box>
                 </Box>
               </ListItemSelect>

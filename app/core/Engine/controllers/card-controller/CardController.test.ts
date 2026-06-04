@@ -1723,8 +1723,8 @@ describe('CardController — data pass-throughs', () => {
             chainId: '143',
             delegationContract: DELEGATION_CONTRACT,
             tokens: {
-              usdc: {
-                symbol: 'USDC',
+              veda: {
+                symbol: 'veda',
                 decimals: 6,
                 address: TOKEN_ADDRESS,
               },
@@ -1959,7 +1959,7 @@ describe('CardController — data pass-throughs', () => {
         expect.objectContaining({
           address: MONEY_ACCOUNT_ADDRESS,
           network: 'monad',
-          currency: 'usdc',
+          currency: 'veda',
           amount: '2199023255551',
           txHash: TX_HASH,
           sigHash: '0xsig',

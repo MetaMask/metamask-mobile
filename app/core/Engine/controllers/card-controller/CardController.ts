@@ -50,6 +50,10 @@ import {
   type AwaitTransactionConfirmedMessenger,
 } from './utils/awaitTransactionConfirmed';
 import { resolveMoneyAccountCardToken } from './utils/moneyAccountCardToken';
+import {
+  MONEY_ACCOUNT_DELEGATION_NETWORK,
+  MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
+} from '../../../../components/UI/Card/util/vedaToken';
 import { safeToChecksumAddress } from '../../../../util/address';
 import { toTokenMinimalUnit } from '../../../../util/number/bigint';
 import TransactionTypes from '../../../../core/TransactionTypes';
@@ -1115,8 +1119,8 @@ export class CardController extends BaseController<
     await provider.approveFunding(
       {
         address: fromAddress,
-        network: 'monad',
-        currency: 'usdc',
+        network: MONEY_ACCOUNT_DELEGATION_NETWORK,
+        currency: MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
         amount: delegationAmountHuman,
         txHash,
         sigHash,
