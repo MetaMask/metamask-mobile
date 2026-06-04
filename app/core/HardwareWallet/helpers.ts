@@ -9,7 +9,6 @@ import {
 } from '@metamask/hw-wallet-sdk';
 import { strings } from '../../../locales/i18n';
 import { getDeviceId } from '../Ledger/Ledger';
-
 const LEDGER_DEVICE_ID_LOOKUP_TIMEOUT_MS = 5000;
 
 const createLedgerDeviceIdLookupTimeoutError = () =>
@@ -118,5 +117,22 @@ export function getConnectionTipsForWalletType(
       ];
     default:
       return [];
+  }
+}
+
+/**
+ * Map a keyring type string from wallet metadata to the HardwareWalletType enum.
+ * Returns undefined for non-hardware keyring types.
+ */
+export function keyringTypeToHardwareWalletType(
+  keyringType: string,
+): HardwareWalletType | undefined {
+  switch (keyringType) {
+    case ExtendedKeyringTypes.ledger:
+      return HardwareWalletType.Ledger;
+    case ExtendedKeyringTypes.qr:
+      return HardwareWalletType.Qr;
+    default:
+      return undefined;
   }
 }

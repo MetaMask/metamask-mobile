@@ -3,6 +3,7 @@ import {
   getHardwareWalletTypeForAddress,
   getConnectionTipsForWalletType,
   getDeviceIdForAddress,
+  keyringTypeToHardwareWalletType,
 } from './helpers';
 import {
   ErrorCode,
@@ -28,9 +29,12 @@ jest.mock('../../util/address', () => ({
 }));
 
 jest.mock('../../constants/keyringTypes', () => ({
+  __esModule: true,
   default: {
     ledger: 'Ledger Hardware',
     qr: 'QR Hardware Wallet Device',
+    simple: 'Simple Key Pair',
+    hd: 'HD Key Tree',
   },
 }));
 
@@ -209,6 +213,31 @@ describe('HardwareWallet helpers', () => {
 
       await expect(getDeviceIdForAddress(testAddress)).resolves.toBeUndefined();
       expect(mockGetDeviceId).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('keyringTypeToHardwareWalletType', () => {
+    it('maps Ledger keyring type to HardwareWalletType.Ledger', () => {
+      expect(keyringTypeToHardwareWalletType('Ledger Hardware')).toBe(
+        HardwareWalletType.Ledger,
+      );
+    });
+
+    it('maps QR keyring type to HardwareWalletType.Qr', () => {
+      expect(keyringTypeToHardwareWalletType('QR Hardware Wallet Device')).toBe(
+        HardwareWalletType.Qr,
+      );
+    });
+
+    it('returns undefined for non-hardware keyring types', () => {
+      expect(
+        keyringTypeToHardwareWalletType('Simple Key Pair'),
+      ).toBeUndefined();
+      expect(keyringTypeToHardwareWalletType('HD Key Tree')).toBeUndefined();
+    });
+
+    it('returns undefined for unknown strings', () => {
+      expect(keyringTypeToHardwareWalletType('Unknown')).toBeUndefined();
     });
   });
 });
