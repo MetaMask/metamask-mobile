@@ -24,7 +24,7 @@ import {
 } from '../../utils/perpsCampaignConstants';
 import HyperTrackerLogo from '../../../../../images/rewards/hypertracker.svg';
 import { useTheme } from '../../../../../util/theme';
-import { useCampaignLeaderboardEntries } from './useCampaignLeaderboardEntries';
+import { useCampaignLeaderboardEntries } from '../../hooks/useCampaignLeaderboardEntries';
 
 export const PERPS_CAMPAIGN_LEADERBOARD_TEST_IDS = {
   CONTAINER: 'perps-campaign-leaderboard-container',
