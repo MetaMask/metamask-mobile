@@ -81,6 +81,7 @@ import PerpsNavigationCard, {
 } from '../../components/PerpsNavigationCard/PerpsNavigationCard';
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
 import PerpsCompetitionBanner from '../../components/PerpsCompetitionBanner';
+import PerpsTopMoversSection from '../../components/PerpsTopMoversSection';
 
 interface PerpsHomeViewProps {
   hideHeader?: boolean;
@@ -580,12 +581,25 @@ const PerpsHomeView = ({
           </View>
         </PerpsHomeSection>
 
+        {/* What's Happening Section */}
+        {isWhatsHappeningEnabled && (
+          <View style={styles.whatsHappeningSection}>
+            <WhatsHappeningSection source={WhatsHappeningSource.Perps} />
+          </View>
+        )}
+
         {/* Watchlist Section */}
         <PerpsWatchlistMarkets
           markets={watchlistMarkets}
           isLoading={isLoading.markets}
           positions={positions}
           orders={orders}
+          source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+          transactionActiveAbTests={transactionActiveAbTests}
+        />
+
+        {/* Top Movers Section */}
+        <PerpsTopMoversSection
           source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
           transactionActiveAbTests={transactionActiveAbTests}
         />
@@ -613,13 +627,6 @@ const PerpsHomeView = ({
           source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
           transactionActiveAbTests={transactionActiveAbTests}
         />
-
-        {/* What's Happening Section */}
-        {isWhatsHappeningEnabled && (
-          <View style={styles.whatsHappeningSection}>
-            <WhatsHappeningSection source={WhatsHappeningSource.Perps} />
-          </View>
-        )}
 
         {/* Stocks Markets List */}
         <View onLayout={handleSectionLayout('explore_stocks')}>
