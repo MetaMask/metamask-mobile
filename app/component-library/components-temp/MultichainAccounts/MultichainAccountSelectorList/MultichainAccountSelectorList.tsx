@@ -10,6 +10,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { FlashList, ListRenderItem, FlashListRef } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
+import { AccountWalletType } from '@metamask/account-api';
 import {
   Text,
   TextColor,
@@ -58,6 +59,7 @@ const MultichainAccountSelectorList = ({
   showExternalAccountOnEmptySearch = false,
   onSelectExternalAccount,
   selectedExternalAddress,
+  onAddHardwareAccount,
   ...props
 }: MultichainAccountSelectorListProps) => {
   const { styles } = useStyles(createStyles, {});
@@ -122,6 +124,15 @@ const MultichainAccountSelectorList = ({
       data: section.data,
       walletName: section.title,
       walletId: section.wallet.id,
+      walletType: section.wallet.type,
+      keyringType:
+        section.wallet.type === AccountWalletType.Keyring
+          ? (
+              section.wallet.metadata as {
+                keyring?: { type?: string };
+              }
+            ).keyring?.type
+          : undefined,
     }));
   }, [accountSections]);
 
@@ -199,7 +210,12 @@ const MultichainAccountSelectorList = ({
 
       items.push({
         type: 'footer',
-        data: { walletName: section.walletName, walletId: section.walletId },
+        data: {
+          walletName: section.walletName,
+          walletId: section.walletId,
+          walletType: section.walletType,
+          keyringType: section.keyringType,
+        },
       });
     });
 
@@ -351,6 +367,9 @@ const MultichainAccountSelectorList = ({
               <AccountListFooter
                 walletId={item.data.walletId}
                 onAccountCreated={handleAccountCreated}
+                walletType={item.data.walletType}
+                keyringType={item.data.keyringType}
+                onAddHardwareAccount={onAddHardwareAccount}
               />
             );
           }
@@ -370,6 +389,7 @@ const MultichainAccountSelectorList = ({
         chainId,
         hideAccountCellMenu,
         selectedExternalAddress,
+        onAddHardwareAccount,
       ],
     );
 
