@@ -80,14 +80,24 @@ class BitcoinTestDapp {
 
   async reloadBitcoinTestDApp(): Promise<void> {
     await Browser.reloadTab();
+    await this.waitForDappLoaded();
   }
 
   /**
    * Tap a button in the WebView
    */
   async tapButton(webElement: WebElement): Promise<void> {
-    await Gestures.scrollToWebViewPort(webElement);
-    await Gestures.tap(webElement);
+    await Utilities.executeWithRetry(
+      async () => {
+        // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
+        await (expect(await webElement) as any).toExist();
+        await (await webElement).tap();
+      },
+      {
+        timeout: BASE_DEFAULTS.timeout,
+        description: 'Tap Bitcoin test dapp button',
+      },
+    );
   }
 
   async waitForDappLoaded(): Promise<void> {
@@ -103,10 +113,35 @@ class BitcoinTestDapp {
     );
   }
 
+  async waitForWalletOption(): Promise<void> {
+    await Utilities.executeWithRetry(
+      async () => {
+        // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
+        await (expect(await this.walletButtonSelector) as any).toExist();
+      },
+      {
+        timeout: BASE_DEFAULTS.timeout,
+        description: 'Bitcoin test dapp wallet option to appear',
+      },
+    );
+  }
+
+  async openWalletSelectionModal(): Promise<void> {
+    await this.tapButton(this.connectButtonSelector);
+
+    try {
+      await this.waitForWalletOption();
+    } catch (error) {
+      await this.reloadBitcoinTestDApp();
+      await this.tapButton(this.connectButtonSelector);
+      await this.waitForWalletOption();
+    }
+  }
+
   getHeader() {
     return {
       connect: async () => {
-        await this.tapButton(this.connectButtonSelector);
+        await this.openWalletSelectionModal();
       },
       disconnect: async () => {
         console.log('trying to disconnect');
