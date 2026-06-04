@@ -16,6 +16,7 @@ import {
   usePredictBottomSheet,
   type PredictBottomSheetRef,
 } from '../../hooks/usePredictBottomSheet';
+import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 interface PredictPreviewSheetProps {
   renderHeader?: () => React.ReactNode;
@@ -55,6 +56,7 @@ const PredictPreviewSheet = forwardRef<
       handleSheetClosed,
       getRefHandlers,
     } = usePredictBottomSheet({ onDismiss });
+    const surfaceClass = useElevatedSurface();
 
     useImperativeHandle(ref, getRefHandlers, [getRefHandlers]);
 
@@ -69,11 +71,12 @@ const PredictPreviewSheet = forwardRef<
         isFullscreen={isFullscreen}
         onClose={handleSheetClosed}
         testID={testID}
+        twClassName={surfaceClass}
       >
         <BottomSheetHeader
           onClose={closeSheet}
           variant={BottomSheetHeaderVariant.Display}
-          twClassName="px-6 py-4"
+          twClassName="px-4 py-4"
         >
           {renderHeader ? (
             renderHeader()

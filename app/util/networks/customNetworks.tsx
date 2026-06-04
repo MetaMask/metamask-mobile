@@ -503,4 +503,5 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.CHILIZ]: require('../../images/chiliz.png'),
   [NETWORK_CHAIN_ID.STABLE_MAINNET]: require('../../images/stable.png'),
   [NETWORK_CHAIN_ID.MANTLE]: require('../../images/mantle.png'),
+  [NETWORK_CHAIN_ID.SCROLL]: require('../../images/scroll-mainnet-logo.png'),
 };

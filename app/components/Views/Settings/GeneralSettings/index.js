@@ -18,7 +18,6 @@ import I18n, {
 } from '../../../../../locales/i18n';
 import SelectComponent from '../../../UI/SelectComponent';
 import infuraCurrencies from '../../../../util/infura-conversion.json';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import {
   setSearchEngine,
   setPrimaryCurrency,
@@ -41,6 +40,7 @@ import {
   Text,
   TextColor,
   TextVariant,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
@@ -337,7 +337,7 @@ class Settings extends PureComponent {
 
     return (
       <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>
-        <HeaderCompactStandard
+        <HeaderStandard
           title={strings('app_settings.general_title')}
           onBack={() => navigation.goBack()}
           includesTopInset

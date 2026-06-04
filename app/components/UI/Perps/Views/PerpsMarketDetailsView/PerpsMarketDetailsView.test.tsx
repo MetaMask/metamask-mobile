@@ -953,7 +953,7 @@ describe('PerpsMarketDetailsView', () => {
       }
       return undefined;
     });
-    mockRouteParams.market = {
+    const aaplMarket: PerpsMarketData = {
       symbol: 'xyz:AAPL',
       name: 'AAPL',
       price: '$6.00',
@@ -961,13 +961,14 @@ describe('PerpsMarketDetailsView', () => {
       change24hPercent: '+1.00%',
       volume: '$1M',
       maxLeverage: '20x',
-      marketType: 'equity',
+      marketType: 'stock',
       isHip3: true,
     };
+    mockRouteParams.market = aaplMarket;
     mockUsePerpsMarketsImpl.mockReturnValue({
       markets: [
         {
-          ...mockRouteParams.market,
+          ...aaplMarket,
           volumeNumber: 1000000,
         },
         {
@@ -978,7 +979,7 @@ describe('PerpsMarketDetailsView', () => {
           change24hPercent: '+2.00%',
           volume: '$2M',
           maxLeverage: '10x',
-          marketType: 'equity',
+          marketType: 'stock',
           isHip3: true,
           volumeNumber: 2000000,
         },
@@ -3621,6 +3622,172 @@ describe('PerpsMarketDetailsView', () => {
       // Should show the route market's leverage badge
       expect(getByText('25x')).toBeOnTheScreen();
       expect(getAllByText('ETH-USD').length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('enriches market data when route maxLeverage is unformatted', async () => {
+      mockRouteParams.market = {
+        symbol: 'xyz:SPCX',
+        name: 'SPCX',
+        price: '$0.00',
+        change24h: '+$0.00',
+        change24hPercent: '+0.00%',
+        volume: '$0',
+        maxLeverage: '100',
+      };
+
+      mockUsePerpsMarketsImpl.mockImplementation(() => ({
+        markets: [
+          {
+            symbol: 'xyz:SPCX',
+            name: 'SPCX',
+            price: '$0.00',
+            change24h: '+$0.00',
+            change24hPercent: '+0.00%',
+            volume: '$0',
+            maxLeverage: '5x',
+            volumeNumber: 0,
+          },
+        ],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      }));
+
+      const { getByText, queryByText } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      await waitFor(() => {
+        expect(getByText('5x')).toBeOnTheScreen();
+      });
+      expect(queryByText('100')).toBeNull();
+    });
+
+    it('passes enriched SPCX leverage defaults to order screen', async () => {
+      const { usePerpsMarketData } = jest.requireMock('../../hooks');
+      mockRouteParams.market = {
+        symbol: 'xyz:SPCX',
+        name: 'SPCX',
+        price: '$0.00',
+        change24h: '+$0.00',
+        change24hPercent: '+0.00%',
+        volume: '$0',
+        maxLeverage: '100',
+      };
+
+      mockUsePerpsMarketsImpl.mockImplementation(() => ({
+        markets: [
+          {
+            symbol: 'xyz:SPCX',
+            name: 'SPCX',
+            price: '$0.00',
+            change24h: '+$0.00',
+            change24hPercent: '+0.00%',
+            volume: '$0',
+            maxLeverage: '5x',
+            volumeNumber: 0,
+          },
+        ],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      }));
+      usePerpsMarketData.mockReturnValue({
+        marketData: { szDecimals: 2, maxLeverage: 5 },
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      try {
+        const { getByTestId, getByText } = renderWithProvider(
+          <PerpsConnectionProvider>
+            <PerpsMarketDetailsView />
+          </PerpsConnectionProvider>,
+          {
+            state: initialState,
+          },
+        );
+
+        await waitFor(() => {
+          expect(getByText('5x')).toBeOnTheScreen();
+        });
+
+        await act(async () => {
+          fireEvent.press(
+            getByTestId(PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON),
+          );
+        });
+
+        expect(mockNavigateToOrder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            asset: 'xyz:SPCX',
+            defaultMaxLeverage: 5,
+            defaultSzDecimals: 2,
+            direction: 'long',
+            source: 'perp_asset_screen',
+          }),
+        );
+      } finally {
+        usePerpsMarketData.mockReturnValue({
+          marketData: null,
+          isLoading: false,
+          error: null,
+          refetch: jest.fn(),
+        });
+      }
+    });
+
+    it('enriches unformatted route market without market source', async () => {
+      mockRouteParams.market = {
+        symbol: 'SPCX',
+        name: 'SPCX',
+        price: '$0.00',
+        change24h: '+$0.00',
+        change24hPercent: '+0.00%',
+        volume: '$0',
+        maxLeverage: '100',
+      };
+
+      mockUsePerpsMarketsImpl.mockImplementation(() => ({
+        markets: [
+          {
+            symbol: 'SPCX',
+            name: 'SPCX',
+            price: '$0.00',
+            change24h: '+$0.00',
+            change24hPercent: '+0.00%',
+            volume: '$0',
+            maxLeverage: '5x',
+            volumeNumber: 0,
+          },
+        ],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      }));
+
+      const { getByText, queryByText } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      await waitFor(() => {
+        expect(getByText('5x')).toBeOnTheScreen();
+      });
+      expect(queryByText('100')).toBeNull();
     });
 
     it('enriches market data from usePerpsMarkets when route has minimal data', async () => {

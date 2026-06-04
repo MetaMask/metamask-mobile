@@ -177,7 +177,10 @@ function PayWithRowInteractive() {
           >
             {displayToken.symbol}
             {!isWithdraw && (
-              <Text testID={TransactionPayComponentIDs.PAY_WITH_BALANCE}>
+              <Text
+                color={TextColor.TextAlternative}
+                testID={TransactionPayComponentIDs.PAY_WITH_BALANCE}
+              >
                 {` (${balanceUsdFormatted})`}
               </Text>
             )}
@@ -263,6 +266,7 @@ function PayWithFiatPaymentMethodRow({
 function PayWithRowMoneyAccount() {
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
+  const { isWithdraw } = useTransactionPayWithdraw();
   const { styles } = useStyles(styleSheet, {});
   const { setConfirmationMetric } = useConfirmationMetricEvents();
   const { preferredPaymentToken } = useParams<PayWithRouteParams>({});
@@ -293,7 +297,9 @@ function PayWithRowMoneyAccount() {
         style={styles.container}
       >
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {strings('confirm.label.pay_with')}
+          {isWithdraw
+            ? strings('confirm.label.receive_as')
+            : strings('confirm.label.pay_with')}
         </Text>
         <Box
           flexDirection={FlexDirection.Row}

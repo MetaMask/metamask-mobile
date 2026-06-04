@@ -48,7 +48,6 @@ import { CardLinkageInProgressError } from '../../../../core/Engine/controllers/
 import { BAANX_MAX_LIMIT } from '../constants';
 import { CardFundingToken } from '../types';
 import { UserCancelledError } from './useCardDelegation';
-import { useIsMoneyAccount7702Ready } from './useIsMoneyAccount7702Ready';
 
 export type LinkageStatus =
   | 'idle'
@@ -115,7 +114,6 @@ export const useMoneyAccountCardLinkage =
     const isMonadSponsorshipEnabled = useSelector(
       getGasFeesSponsoredNetworkEnabled,
     )(vaultConfig?.chainId ?? '');
-    const is7702Ready = useIsMoneyAccount7702Ready();
 
     const [status, setStatus] = useState<LinkageStatus>('idle');
     const [error, setError] = useState<Error | null>(null);
@@ -135,8 +133,7 @@ export const useMoneyAccountCardLinkage =
       hasRequirements &&
         isCardAuthenticated &&
         moneyAccountCardToken &&
-        isMonadSponsorshipEnabled &&
-        is7702Ready === true,
+        isMonadSponsorshipEnabled,
     );
     const canLink = Boolean(canSubmitDelegation && !isAlreadyDelegated);
 
@@ -248,7 +245,10 @@ export const useMoneyAccountCardLinkage =
 
         navigation.navigate(Routes.CARD.ROOT, {
           screen: Routes.CARD.HOME,
-          params: { screen: Routes.CARD.ONBOARDING.ROOT },
+          params: {
+            screen: Routes.CARD.ONBOARDING.ROOT,
+            params: { postAuthRedirect: origin },
+          },
         });
       },
       [

@@ -22,7 +22,7 @@ describe('relatedMarkets utilities', () => {
   it('resolves the collection from the market category', () => {
     expect(
       getRelatedMarketCollection(
-        createMarket('xyz:AAPL', { marketType: 'equity', isHip3: true }),
+        createMarket('xyz:AAPL', { marketType: 'stock', isHip3: true }),
       ),
     ).toMatchObject({
       id: 'stocks',
@@ -32,10 +32,10 @@ describe('relatedMarkets utilities', () => {
 
   it('returns same-category markets and excludes the current market', () => {
     const result = getRelatedMarketsForMarket(
-      createMarket('xyz:AAPL', { marketType: 'equity', isHip3: true }),
+      createMarket('xyz:AAPL', { marketType: 'stock', isHip3: true }),
       [
-        createMarket('xyz:AAPL', { marketType: 'equity', isHip3: true }),
-        createMarket('xyz:MSFT', { marketType: 'equity', isHip3: true }),
+        createMarket('xyz:AAPL', { marketType: 'stock', isHip3: true }),
+        createMarket('xyz:MSFT', { marketType: 'stock', isHip3: true }),
         createMarket('xyz:GOLD', { marketType: 'commodity', isHip3: true }),
       ],
     );

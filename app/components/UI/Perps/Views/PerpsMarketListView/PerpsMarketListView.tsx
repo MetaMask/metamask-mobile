@@ -68,6 +68,7 @@ const PerpsMarketListView = ({
   const defaultMarketTypeFilter =
     route.params?.defaultMarketTypeFilter ?? 'all';
   const defaultSortOptionId = route.params?.defaultSortOptionId;
+  const defaultSortDirection = route.params?.defaultSortDirection;
   const transactionActiveAbTests = route.params?.transactionActiveAbTests;
 
   const fadeAnimation = useRef(new Animated.Value(0)).current;
@@ -87,6 +88,7 @@ const PerpsMarketListView = ({
     showWatchlistOnly,
     defaultMarketTypeFilter,
     defaultSortOptionId,
+    defaultSortDirection,
     showZeroVolume: __DEV__,
   });
 
@@ -117,11 +119,11 @@ const PerpsMarketListView = ({
     [onMarketSelect, perpsNavigation, transactionActiveAbTests],
   );
 
-  // Compute available categories based on market counts (hide empty categories)
+  // Compute available categories based on market counts (hide empty categories).
   const availableCategories = useMemo(() => {
     const categories: Exclude<MarketTypeFilter, 'all'>[] = [];
     if (marketCounts.crypto > 0) categories.push('crypto');
-    if (marketCounts.equity > 0) categories.push('stocks');
+    if (marketCounts.stocks > 0) categories.push('stocks');
     if (marketCounts.commodity > 0) categories.push('commodities');
     if (marketCounts.forex > 0) categories.push('forex');
     if (marketCounts.new > 0) categories.push('new');

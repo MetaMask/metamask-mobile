@@ -29,6 +29,9 @@ const RELATED_MARKET_CATEGORIES: Record<
 > = {
   crypto: { id: 'crypto', label: 'Crypto' },
   stocks: { id: 'stocks', label: 'Stocks' },
+  'pre-ipo': { id: 'pre-ipo', label: 'Pre-IPO' },
+  indices: { id: 'indices', label: 'Indices' },
+  etfs: { id: 'etfs', label: 'ETFs' },
   commodities: { id: 'commodities', label: 'Commodities' },
   forex: { id: 'forex', label: 'Forex' },
   new: { id: 'new', label: 'New' },
@@ -44,13 +47,22 @@ export const getRelatedMarketCollection = (
   }
 
   switch (market.marketType) {
-    case 'equity':
+    case 'stock':
       return RELATED_MARKET_CATEGORIES.stocks;
+    case 'pre-ipo':
+      return RELATED_MARKET_CATEGORIES['pre-ipo'];
+    case 'index':
+      return RELATED_MARKET_CATEGORIES.indices;
+    case 'etf':
+      return RELATED_MARKET_CATEGORIES.etfs;
     case 'commodity':
       return RELATED_MARKET_CATEGORIES.commodities;
     case 'forex':
       return RELATED_MARKET_CATEGORIES.forex;
+    case 'crypto':
     default:
+      // Crypto (or untyped) markets group together, but skip HIP-3 builder
+      // markets with no explicit category to avoid mixing synthetic pairs.
       return market.isHip3 ? null : RELATED_MARKET_CATEGORIES.crypto;
   }
 };
