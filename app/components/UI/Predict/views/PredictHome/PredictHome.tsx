@@ -1,9 +1,6 @@
 import React, { useCallback } from 'react';
 import { LayoutChangeEvent } from 'react-native';
-import Animated, {
-  useAnimatedScrollHandler,
-  useSharedValue,
-} from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -12,6 +9,7 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import { usePredictSearch } from '../../hooks/usePredictSearch';
+import { usePredictStackedHeader } from '../../hooks/usePredictStackedHeader';
 import { PredictNavigationParamList } from '../../types/navigation';
 import PredictHeaderStacked from '../../components/PredictHeaderStacked';
 import PredictSearchOverlay from '../../components/PredictSearchOverlay';
@@ -42,27 +40,8 @@ const PredictHome: React.FC = () => {
     useRoute<RouteProp<PredictNavigationParamList, 'PredictMarketList'>>();
   const transactionActiveAbTests = route.params?.transactionActiveAbTests;
 
-  // NOTE: We intentionally do NOT use the design system's
-  // `useHeaderStandardAnimated` hook. Its `onScroll` worklet calls an extracted
-  // (non-inlined) helper that ships un-workletized in the compiled DS package,
-  // which crashes on the UI thread ("Tried to synchronously call a non-worklet
-  // function `updateScrollYFromEvent`"). Driving the same shared values from a
-  // local inline scroll handler lets the app's Reanimated Babel plugin
-  // workletize it correctly. The `HeaderStandardAnimated` component (used inside
-  // PredictHeaderStacked) only uses inline worklets, so it works as-is.
-  const scrollY = useSharedValue(0);
-  const titleSectionHeight = useSharedValue(0);
-
-  const onScroll = useAnimatedScrollHandler((event) => {
-    scrollY.value = event.contentOffset.y;
-  });
-
-  const setTitleSectionHeight = useCallback(
-    (height: number) => {
-      titleSectionHeight.value = height;
-    },
-    [titleSectionHeight],
-  );
+  const { scrollY, titleSectionHeight, onScroll, setTitleSectionHeight } =
+    usePredictStackedHeader();
 
   const {
     isSearchVisible,

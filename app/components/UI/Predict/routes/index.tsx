@@ -183,4 +183,3 @@ const PredictScreenStack = () => {
 
 export default PredictScreenStack;
 export { PredictModalStack };
-export { default as PredictMarketListRoute } from './PredictMarketListRoute';
