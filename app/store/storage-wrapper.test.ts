@@ -83,7 +83,7 @@ describe('StorageWrapper', () => {
   });
 
   it('use ReadOnlyStore on E2E', async () => {
-    process.env.IS_TEST = 'true';
+    process.env.HAS_TEST_OVERRIDES = 'true';
 
     const getItemSpy = jest.spyOn(StorageWrapper, 'getItem');
     const setItemSpy = jest.spyOn(StorageWrapper, 'setItem');

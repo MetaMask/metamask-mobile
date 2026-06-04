@@ -17,7 +17,6 @@ export type SearchFeedId =
   | 'sites';
 
 const DEBOUNCE_MS = 200;
-const PREDICTIONS_SEARCH_PAGE_SIZE = 20;
 
 export interface SearchFeedSection<T = unknown> {
   feedId: SearchFeedId;
@@ -60,7 +59,6 @@ export const useExploreSearch = (
   const predictions = usePredictionsFeed({
     variant: 'trending',
     query: debouncedQuery,
-    pageSize: PREDICTIONS_SEARCH_PAGE_SIZE,
   });
   const sites = useSitesFeed({ query: debouncedQuery });
 

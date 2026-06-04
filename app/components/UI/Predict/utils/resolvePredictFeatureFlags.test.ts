@@ -234,7 +234,7 @@ describe('resolvePredictFeatureFlags', () => {
 
     it('falls back to default disabled config when version gate fails', () => {
       mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
-        if (flag && typeof flag === 'object' && 'seriesId' in flag) {
+        if (flag && typeof flag === 'object' && 'tagSlug' in flag) {
           return false;
         }
         return undefined;
@@ -258,7 +258,7 @@ describe('resolvePredictFeatureFlags', () => {
 
     it('parses config with defaults when version gate passes', () => {
       mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
-        if (flag && typeof flag === 'object' && 'seriesId' in flag) {
+        if (flag && typeof flag === 'object' && 'tagSlug' in flag) {
           return true;
         }
         return undefined;
@@ -339,7 +339,7 @@ describe('resolvePredictFeatureFlags', () => {
           typeof flag === 'object' &&
           'minimumVersion' in flag &&
           !('leagues' in flag) &&
-          !('seriesId' in flag)
+          !('tagSlug' in flag)
         ) {
           return true;
         }
@@ -365,7 +365,7 @@ describe('resolvePredictFeatureFlags', () => {
           typeof flag === 'object' &&
           'minimumVersion' in flag &&
           !('leagues' in flag) &&
-          !('seriesId' in flag)
+          !('tagSlug' in flag)
         ) {
           return false;
         }
@@ -404,7 +404,7 @@ describe('resolvePredictFeatureFlags', () => {
           typeof flag === 'object' &&
           'minimumVersion' in flag &&
           !('leagues' in flag) &&
-          !('seriesId' in flag)
+          !('tagSlug' in flag)
         ) {
           return false;
         }
@@ -430,7 +430,7 @@ describe('resolvePredictFeatureFlags', () => {
           typeof flag === 'object' &&
           'minimumVersion' in flag &&
           !('leagues' in flag) &&
-          !('seriesId' in flag)
+          !('tagSlug' in flag)
         ) {
           return true;
         }
@@ -467,7 +467,7 @@ describe('resolvePredictFeatureFlags', () => {
           typeof flag === 'object' &&
           'minimumVersion' in flag &&
           !('leagues' in flag) &&
-          !('seriesId' in flag)
+          !('tagSlug' in flag)
         ) {
           return true;
         }
@@ -493,7 +493,7 @@ describe('resolvePredictFeatureFlags', () => {
           typeof flag === 'object' &&
           'minimumVersion' in flag &&
           !('leagues' in flag) &&
-          !('seriesId' in flag)
+          !('tagSlug' in flag)
         ) {
           return false;
         }
@@ -532,7 +532,7 @@ describe('resolvePredictFeatureFlags', () => {
           typeof flag === 'object' &&
           'minimumVersion' in flag &&
           !('leagues' in flag) &&
-          !('seriesId' in flag)
+          !('tagSlug' in flag)
         ) {
           return false;
         }
@@ -558,7 +558,7 @@ describe('resolvePredictFeatureFlags', () => {
           typeof flag === 'object' &&
           'minimumVersion' in flag &&
           !('leagues' in flag) &&
-          !('seriesId' in flag)
+          !('tagSlug' in flag)
         ) {
           return true;
         }

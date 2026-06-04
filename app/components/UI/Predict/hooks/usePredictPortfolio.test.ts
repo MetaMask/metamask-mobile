@@ -209,6 +209,29 @@ describe('usePredictPortfolio', () => {
     expect(result.current.positionsBadgeCount).toBe(2);
   });
 
+  it('returns no claimable winnings for lost-only claimable positions', () => {
+    const lostClaimablePosition = createPosition('lost', {
+      claimable: true,
+      currentValue: 10,
+      status: PredictPositionStatus.LOST,
+    });
+
+    mockUsePredictPositions.mockImplementation(
+      ({ claimable }: { claimable?: boolean }) =>
+        createQuery<PredictPosition[]>({
+          data: claimable ? [lostClaimablePosition] : [],
+        }),
+    );
+
+    const { result } = renderHook(() => usePredictPortfolio());
+
+    expect(result.current.actionableClaimablePositions).toEqual([]);
+    expect(result.current.claimableAmount).toBe(0);
+    expect(result.current.claimablePositionCount).toBe(0);
+    expect(result.current.hasClaimableWinnings).toBe(false);
+    expect(result.current.positionsBadgeCount).toBe(0);
+  });
+
   it('loads account state for claimable-only portfolios', () => {
     const wonClaimablePosition = createPosition('won', {
       claimable: true,

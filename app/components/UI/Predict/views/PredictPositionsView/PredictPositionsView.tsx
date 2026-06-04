@@ -24,6 +24,7 @@ import PredictPositionsList from '../../components/PredictPositionsList';
 import PredictPositionsViewHeader from '../../components/PredictPositionsViewHeader';
 import { usePredictPortfolio } from '../../hooks/usePredictPortfolio';
 import { PredictPositionsViewSelectorsIDs } from '../../Predict.testIds';
+import { selectPredictPortfolioEnabledFlag } from '../../selectors/featureFlags';
 import type {
   PredictNavigationParamList,
   PredictPositionsTabKey,
@@ -91,6 +92,9 @@ const PredictPositionsView = () => {
   const tw = useTailwind();
   const portfolio = usePredictPortfolio();
   const privacyMode = useSelector(selectPrivacyMode);
+  const predictPortfolioEnabled = useSelector(
+    selectPredictPortfolioEnabledFlag,
+  );
   const [activeTab, setActiveTab] = useState<PredictPositionsTabKey>(
     route.params?.initialTab ?? 'positions',
   );
@@ -185,7 +189,18 @@ const PredictPositionsView = () => {
             style={tw.style('flex-1', !isHistoryTabActive && 'hidden')}
             testID={PredictPositionsViewSelectorsIDs.HISTORY_TAB_CONTENT}
           >
-            <PredictPositionsHistoryList isVisible={isHistoryTabActive} />
+            <PredictPositionsHistoryList
+              claimPendingPositions={
+                predictPortfolioEnabled
+                  ? portfolio.actionableClaimablePositions
+                  : undefined
+              }
+              onClaimPendingPositionsRefresh={
+                predictPortfolioEnabled ? portfolio.refetch : undefined
+              }
+              isPrivacyMode={Boolean(privacyMode)}
+              isVisible={isHistoryTabActive}
+            />
           </Box>
         </Box>
       </Box>
