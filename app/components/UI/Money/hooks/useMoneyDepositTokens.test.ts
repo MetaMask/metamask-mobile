@@ -12,6 +12,7 @@ import { isTokenBlocked } from '../../../Views/confirmations/utils/transaction-p
 import { useAccountTokens } from '../../../Views/confirmations/hooks/send/useAccountTokens';
 import { useTransactionPayBlockedTokens } from '../../../Views/confirmations/hooks/pay/useTransactionPayBlockedTokens';
 import { AssetType } from '../../../Views/confirmations/types/token';
+import { EthAccountType, SolAccountType } from '@metamask/keyring-api';
 
 jest.mock('react-redux');
 jest.mock('../selectors/featureFlags');
@@ -49,6 +50,7 @@ const makeToken = (overrides: Partial<AssetType> = {}): AssetType =>
     isETH: false,
     aggregators: [],
     image: '',
+    accountType: EthAccountType.Eoa,
     ...overrides,
   }) as AssetType;
 
@@ -128,6 +130,40 @@ describe('useMoneyDepositTokens', () => {
 
       expect(result.current.tokens).not.toContainEqual(USDC);
       expect(result.current.tokens).toContainEqual(USDT);
+    });
+
+    it('excludes non-EVM tokens', () => {
+      const solanaToken = makeToken({
+        address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        symbol: 'USDC',
+        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        accountType: SolAccountType.DataAccount,
+        fiat: { balance: 400, currency: 'usd', conversionRate: 1 },
+      });
+      mockUseAccountTokens.mockReturnValue([solanaToken, USDC]);
+
+      const { result } = renderHook(() => useMoneyDepositTokens());
+
+      expect(result.current.tokens).not.toContainEqual(solanaToken);
+      expect(result.current.tokens).toContainEqual(USDC);
+    });
+
+    it('excludes non-EVM tokens before the MM Pay blocklist check', () => {
+      const solanaToken = makeToken({
+        address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        symbol: 'USDC',
+        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        accountType: SolAccountType.DataAccount,
+        fiat: { balance: 400, currency: 'usd', conversionRate: 1 },
+      });
+      mockUseAccountTokens.mockReturnValue([solanaToken]);
+
+      renderHook(() => useMoneyDepositTokens());
+
+      expect(mockIsTokenBlocked).not.toHaveBeenCalledWith(
+        solanaToken,
+        expect.anything(),
+      );
     });
 
     it('excludes tokens on the Money blocklist', () => {

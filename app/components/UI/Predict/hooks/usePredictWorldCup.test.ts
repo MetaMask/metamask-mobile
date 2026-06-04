@@ -194,7 +194,7 @@ describe('usePredictWorldCupMarkets', () => {
     expect(mockGetMarkets).toHaveBeenCalledWith(
       expect.objectContaining({
         customQueryParams:
-          'active=true&archived=false&closed=false&series_id=11433&tag_id=100639&live=true&order=startDate',
+          'active=true&archived=false&closed=false&tag_slug=fifa-world-cup&tag_id=100639&live=true&order=startDate',
       }),
     );
     expect(result.current.hasMore).toBe(false);
