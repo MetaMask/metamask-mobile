@@ -14,6 +14,12 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { analytics } from '../../analytics/analytics';
 import { AnalyticsEventBuilder } from '../../analytics/AnalyticsEventBuilder';
 import type { JsonValue } from '../../../core/Analytics/MetaMetrics.types';
+import Engine from '../../../core/Engine';
+import { resolveAgenticCliPreference } from '../agenticCliNotificationPreferences';
+
+const AGENTIC_CLI_KIND = 'agentic_cli';
+const GET_NOTIFICATION_PREFERENCES_ACTION =
+  'AuthenticatedUserStorageService:getNotificationPreferences' as const;
 
 async function getInitialNotification() {
   // Tried many different approaches, but @react-native-firebase setup is unable to hold and track the initial open intent from a push notification
@@ -127,6 +133,54 @@ async function registerForRemoteMessages() {
 }
 
 /**
+ * Suppresses an agentic-cli push notification in the foreground when the user
+ * has disabled push for that channel. Called only when the FCM payload contains
+ * a `data.metadata` field with `kind === "agentic_cli"`.
+ *
+ * Background/killed-state notifications with a `notification` payload are
+ * displayed natively by Firebase before any JS runs, so they cannot be
+ * suppressed here. Full suppression requires either:
+ * (a) NAAP switching to data-only FCM payloads for agentic_cli, or
+ * (b) Server-side enforcement once Core PR #8933 is merged.
+ *
+ * @param payload - Firebase Remote Message Payload (mutated on suppression).
+ * @returns `true` if the notification was suppressed, `false` otherwise.
+ */
+async function suppressAgenticCliPushIfDisabled(
+  payload: FirebaseMessagingTypes.RemoteMessage,
+): Promise<boolean> {
+  try {
+    const metadataRaw = payload?.data?.metadata;
+    if (!metadataRaw) {
+      return false;
+    }
+
+    const metadata: { kind?: string } = JSON.parse(metadataRaw.toString());
+    if (metadata?.kind !== AGENTIC_CLI_KIND) {
+      return false;
+    }
+
+    const preferences = await Engine.controllerMessenger.call(
+      GET_NOTIFICATION_PREFERENCES_ACTION,
+    );
+    const { pushNotificationsEnabled } =
+      resolveAgenticCliPreference(preferences);
+
+    if (!pushNotificationsEnabled) {
+      // Deleting the notification field prevents Firebase from rendering the
+      // system tray alert for foreground messages on Android.
+      // On iOS, foreground notifications are silent by default so this is a
+      // no-op, but included for parity.
+      delete payload.notification;
+      return true;
+    }
+  } catch {
+    // If preferences cannot be read, fall through and let Firebase display.
+  }
+  return false;
+}
+
+/**
  * Processes and handles a remote firebase message.
  * Currently firebase messages only support wallet notifications (from our notification services).
  * @param payload - Firebase Remote Message Payload.
@@ -138,6 +192,17 @@ async function processAndHandleNotification(
   handler: (notification: INotification) => void | Promise<void>,
 ) {
   try {
+    // Platform notifications (perps, marketing, agentic-cli) arrive with
+    // `data.metadata` instead of `data.data`. We intercept agentic-cli here
+    // to honour client-side preferences; all other platform types rely on
+    // server-side enforcement by NAAP.
+    if (payload?.data?.metadata) {
+      await suppressAgenticCliPushIfDisabled(payload);
+      // Let Firebase render the (possibly already-suppressed) notification
+      // natively; we do not build a custom INotification for platform pushes.
+      return;
+    }
+
     const payloadData = payload?.data?.data
       ? String(payload?.data?.data)
       : undefined;

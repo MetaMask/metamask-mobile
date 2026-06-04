@@ -9,6 +9,13 @@ import FCMService from './FCMService';
 import { EVENT_NAME } from '../../../core/Analytics';
 import { analytics } from '../../analytics/analytics';
 import { NativeModules, Platform } from 'react-native';
+import Engine from '../../../core/Engine';
+
+jest.mock('../../../core/Engine', () => ({
+  controllerMessenger: {
+    call: jest.fn(),
+  },
+}));
 
 // Firebase Mock
 jest.mock('@react-native-firebase/messaging', () => {
@@ -310,6 +317,102 @@ describe('FCMService - listenToPushNotificationsReceived()', () => {
       await act(mocks);
 
       expect(mocks.mockHandler).not.toHaveBeenCalled();
+    });
+
+    describe('agentic-cli platform notification suppression', () => {
+      const mockCall = Engine.controllerMessenger.call as jest.Mock;
+
+      const createAgenticCliPayload = (
+        pushEnabled: boolean,
+      ): FirebaseMessagingTypes.RemoteMessage =>
+        ({
+          notification: { title: 'Agentic CLI', body: 'Trade executed' },
+          data: {
+            metadata: JSON.stringify({ kind: 'agentic_cli', action: 'test' }),
+          },
+        }) as unknown as FirebaseMessagingTypes.RemoteMessage & {
+          _pushEnabled: boolean;
+        };
+
+      const arrangeEnginePrefs = (pushEnabled: boolean) => {
+        mockCall.mockResolvedValue({
+          agenticCli: {
+            pushNotificationsEnabled: pushEnabled,
+            inAppNotificationsEnabled: pushEnabled,
+          },
+        });
+      };
+
+      it('suppresses foreground agentic-cli notification when push is disabled', async () => {
+        const mocks = arrangeMocks();
+        arrangeNotificationServicesMocks();
+        arrangeEnginePrefs(false);
+
+        const payload = createAgenticCliPayload(false);
+        await FCMService.listenToPushNotificationsReceived(mocks.mockHandler);
+        const messageHandler =
+          mocks.firebaseMocks.mockOnMessage.mock.lastCall?.[0];
+        await messageHandler?.(payload);
+
+        // Notification field should be deleted to suppress native display
+        expect(payload.notification).toBeUndefined();
+        // Handler (custom in-app display) should NOT be called
+        expect(mocks.mockHandler).not.toHaveBeenCalled();
+      });
+
+      it('does NOT suppress foreground agentic-cli notification when push is enabled', async () => {
+        const mocks = arrangeMocks();
+        arrangeNotificationServicesMocks();
+        arrangeEnginePrefs(true);
+
+        const payload = createAgenticCliPayload(true);
+        await FCMService.listenToPushNotificationsReceived(mocks.mockHandler);
+        const messageHandler =
+          mocks.firebaseMocks.mockOnMessage.mock.lastCall?.[0];
+        await messageHandler?.(payload);
+
+        // Notification field should be preserved so Firebase shows it natively
+        expect(payload.notification).toBeDefined();
+        expect(mocks.mockHandler).not.toHaveBeenCalled();
+      });
+
+      it('lets notification through when Engine call fails (fail-open)', async () => {
+        const mocks = arrangeMocks();
+        arrangeNotificationServicesMocks();
+        mockCall.mockRejectedValue(new Error('Engine unavailable'));
+
+        const payload = createAgenticCliPayload(false);
+        await FCMService.listenToPushNotificationsReceived(mocks.mockHandler);
+        const messageHandler =
+          mocks.firebaseMocks.mockOnMessage.mock.lastCall?.[0];
+        await messageHandler?.(payload);
+
+        // On error, fall through and do NOT suppress (fail-open)
+        expect(payload.notification).toBeDefined();
+      });
+
+      it('does not interfere with non-agentic-cli platform notifications', async () => {
+        const mocks = arrangeMocks();
+        arrangeNotificationServicesMocks();
+
+        const perpsPayload: FirebaseMessagingTypes.RemoteMessage = {
+          notification: { title: 'Perps', body: 'TP executed' },
+          data: {
+            metadata: JSON.stringify({ kind: 'take_profit_executed' }),
+          },
+        } as unknown as FirebaseMessagingTypes.RemoteMessage;
+
+        await FCMService.listenToPushNotificationsReceived(mocks.mockHandler);
+        const messageHandler =
+          mocks.firebaseMocks.mockOnMessage.mock.lastCall?.[0];
+        await messageHandler?.(perpsPayload);
+
+        // Engine should not be called for non-agentic notifications
+        expect(mockCall).not.toHaveBeenCalled();
+        // Notification should be preserved for Firebase native display
+        expect(perpsPayload.notification).toBeDefined();
+        expect(mocks.mockHandler).not.toHaveBeenCalled();
+      });
     });
   });
 });
