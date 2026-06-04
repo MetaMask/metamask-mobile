@@ -24,11 +24,11 @@ import { isEquityAsset } from './marketHours';
  * 'stocks' pill, mirroring the filtering in `usePerpsMarketListView` so the
  * magnifying glass always lands on a pill that actually contains the market.
  *
- * @param market - Market data (only needs marketType and isNewMarket)
+ * @param market - Market data (needs marketType, isNewMarket and isHip3)
  * @returns The market type filter to apply
  */
 export const getMarketTypeFilter = (
-  market: Pick<PerpsMarketData, 'marketType' | 'isNewMarket'>,
+  market: Pick<PerpsMarketData, 'marketType' | 'isNewMarket' | 'isHip3'>,
 ): MarketTypeFilter => {
   if (isEquityAsset(market.marketType)) {
     return 'stocks';
@@ -39,7 +39,11 @@ export const getMarketTypeFilter = (
   if (market.marketType === MarketCategory.Forex) {
     return 'forex';
   }
-  if (market.isNewMarket) {
+  // The crypto pill only contains main-DEX markets (`!isHip3`). Any
+  // uncategorized HIP-3 market (incl. the "new" bucket) is absent from the
+  // crypto list, so fall back to 'all' to guarantee the opened tab contains
+  // this market. Only true main-DEX markets resolve to 'crypto'.
+  if (market.isNewMarket || market.isHip3) {
     return 'all';
   }
   return 'crypto';

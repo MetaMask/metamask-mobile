@@ -69,6 +69,16 @@ describe('marketUtils', () => {
       ).toBe('crypto');
     });
 
+    it('returns all for uncategorized HIP-3 markets (not in the crypto pill)', () => {
+      expect(
+        getMarketTypeFilter({
+          marketType: undefined,
+          isNewMarket: false,
+          isHip3: true,
+        }),
+      ).toBe('all');
+    });
+
     it('prioritizes marketType over isNewMarket', () => {
       expect(
         getMarketTypeFilter({ marketType: 'stock', isNewMarket: true }),
