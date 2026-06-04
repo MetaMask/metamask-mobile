@@ -75,4 +75,26 @@ describe('useBatchSellTokens', () => {
 
     expect(result.current).toEqual([lowValueToken, highValueToken]);
   });
+
+  it('excludes Ondo Tokenized tokens', () => {
+    const sellableToken = createToken({
+      address: '0x2222222222222222222222222222222222222222',
+      name: 'Sellable Token',
+      symbol: 'SELL',
+    });
+    const ondoTokenizedToken = createToken({
+      address: '0x3333333333333333333333333333333333333333',
+      name: 'Ondo Tokenized TSLA',
+      symbol: 'TSLAon',
+    });
+
+    mockUseTokensWithBalance.mockReturnValue([
+      sellableToken,
+      ondoTokenizedToken,
+    ]);
+
+    const { result } = renderHook(() => useBatchSellTokens());
+
+    expect(result.current).toEqual([sellableToken]);
+  });
 });

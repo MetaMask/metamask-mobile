@@ -5,11 +5,14 @@ import {
   formatChainIdToCaip,
 } from '@metamask/bridge-controller';
 import { CaipAssetType, CaipChainId } from '@metamask/utils';
+import { flow } from 'lodash/fp';
 
 import { selectBatchSellDestStablecoinsByChain } from '../../../../../core/redux/slices/bridge';
 import { useTokensWithBalance } from '../../hooks/useTokensWithBalance';
 import { BridgeToken } from '../../types';
 import { SUPPORTED_BATCH_SELL_CHAIN_IDS } from './BatchSellTokenSelect.utils';
+
+const ONDO_TOKENIZED_TOKEN_NAME = 'Ondo Tokenized';
 
 function removeStablecoinsFromSourceTokens({
   tokens,
@@ -49,6 +52,12 @@ function removeStablecoinsFromSourceTokens({
   });
 }
 
+function removeOndoTokenizedTokens(tokens: BridgeToken[]): BridgeToken[] {
+  return tokens.filter(
+    (token) => !token.name?.includes(ONDO_TOKENIZED_TOKEN_NAME),
+  );
+}
+
 export function useBatchSellTokens() {
   const allWalletTokens = useTokensWithBalance({
     chainIds: SUPPORTED_BATCH_SELL_CHAIN_IDS,
@@ -57,10 +66,14 @@ export function useBatchSellTokens() {
 
   return useMemo(
     () =>
-      removeStablecoinsFromSourceTokens({
-        tokens: allWalletTokens,
-        stablecoinsByChain,
-      }),
+      flow(
+        (tokens: BridgeToken[]) =>
+          removeStablecoinsFromSourceTokens({
+            tokens,
+            stablecoinsByChain,
+          }),
+        removeOndoTokenizedTokens,
+      )(allWalletTokens),
     [allWalletTokens, stablecoinsByChain],
   );
 }
