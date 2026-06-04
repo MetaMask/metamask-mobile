@@ -53,7 +53,7 @@ export const templates = new Map<TemplateType, Template>([
   [
     TemplateType.PullRequest,
     {
-      titles: Object.values(PR_TEMPLATE_SECTIONS),
+      titles: PR_TEMPLATE_SECTIONS,
     },
   ],
 ]);

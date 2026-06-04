@@ -1,4 +1,5 @@
 import {
+  buildValidationPlan,
   extractSection,
   hasAllAuthorChecklistChecked,
   hasChangelogEntry,
@@ -6,10 +7,12 @@ import {
   hasRealManualTesting,
   hasScreenshotsOrNa,
   hasValidIssueLink,
-  PR_TEMPLATE_SECTIONS,
+  parseDirective,
   runAllChecks,
   stripHtmlComments,
+  validatePlanTypes,
 } from './pr-template-checks';
+import { tokenize } from './markdown-tokenizer';
 
 const fullValidBody = `
 ## **Description**
@@ -47,12 +50,17 @@ N/A
 
 ## **Pre-merge author checklist**
 
-- [x] First item
-- [x] Second item
+- [x] Followed contributor docs
+- [x] Completed PR template
+- [x] Included tests if applicable
+- [x] Documented code with JSDoc if applicable
+- [x] Applied right labels
 
 #### Performance checks (if applicable)
 
-- [x] Performance item
+- [x] Tested on Android
+- [x] Tested with power user scenario
+- [x] Instrumented with Sentry traces if applicable
 
 ## **Pre-merge reviewer checklist**
 
@@ -247,42 +255,63 @@ describe('hasScreenshotsOrNa', () => {
 });
 
 describe('hasAllAuthorChecklistChecked', () => {
+  // Mirrors the 8 checkbox items in .github/pull-request-template.md.
+  const allChecked = [
+    '- [x] Followed contributor docs',
+    '- [x] Completed PR template',
+    '- [x] Included tests if applicable',
+    '- [x] Documented code with JSDoc if applicable',
+    '- [x] Applied right labels',
+    '',
+    '#### Performance checks (if applicable)',
+    '',
+    '- [x] Tested on Android',
+    '- [x] Tested with power user scenario',
+    '- [x] Instrumented with Sentry traces if applicable',
+  ].join('\n');
+
   it('passes when every box is checked', () => {
-    const checklist = `
-- [x] First
-- [x] Second
-
-#### Performance checks (if applicable)
-
-- [x] Tested on Android
-`;
-    expect(hasAllAuthorChecklistChecked(checklist).ok).toBe(true);
+    expect(hasAllAuthorChecklistChecked(allChecked).ok).toBe(true);
   });
 
   it('fails on a top-level unchecked box and surfaces its text', () => {
-    const checklist = `- [x] First\n- [ ] Second important item\n- [x] Third`;
+    const checklist = allChecked.replace(
+      '- [x] Documented code with JSDoc if applicable',
+      '- [ ] Documented code with JSDoc if applicable',
+    );
     const result = hasAllAuthorChecklistChecked(checklist);
     expect(result.ok).toBe(false);
-    expect(result.ok === false && result.reason).toMatch(/Second important item/);
+    expect(result.ok === false && result.reason).toMatch(/JSDoc/);
   });
 
   it('fails on an unchecked box inside the Performance subsection', () => {
-    const checklist = `
-- [x] First
-- [x] Second
-
-#### Performance checks (if applicable)
-
-- [ ] Tested on Android
-`;
+    const checklist = allChecked.replace(
+      '- [x] Tested on Android',
+      '- [ ] Tested on Android',
+    );
     const result = hasAllAuthorChecklistChecked(checklist);
     expect(result.ok).toBe(false);
     expect(result.ok === false && result.reason).toMatch(/Tested on Android/);
   });
 
-  it('ignores boxes inside HTML comments', () => {
-    const checklist = `- [x] First\n<!-- - [ ] commented-out -->\n- [x] Second`;
+  it('ignores boxes inside HTML comments (commented-out boxes do not count)', () => {
+    const checklist = `${allChecked}\n<!-- - [ ] commented-out item -->`;
     expect(hasAllAuthorChecklistChecked(checklist).ok).toBe(true);
+  });
+
+  it('fails when fewer rows than the template minimum remain (deleted rows bypass)', () => {
+    // An author deleting 3 unchecked rows leaves only 5 boxes — all checked
+    // but below the required 8. This must be a hard failure.
+    const partial = [
+      '- [x] Followed contributor docs',
+      '- [x] Completed PR template',
+      '- [x] Included tests if applicable',
+      '- [x] Documented code with JSDoc if applicable',
+      '- [x] Applied right labels',
+    ].join('\n');
+    const result = hasAllAuthorChecklistChecked(partial);
+    expect(result.ok).toBe(false);
+    expect(result.ok === false && result.reason).toMatch(/5 of the required 8/);
   });
 
   it('fails when the section is empty (no checkboxes at all)', () => {
@@ -320,9 +349,7 @@ describe('fenced-block injection resistance', () => {
   });
 
   it('hasChangelogEntry: a CHANGELOG entry inside a fenced block does not satisfy the check', () => {
-    const body = [
-      '## **Changelog**',
-      '',
+    const section = [
       '```',
       'CHANGELOG entry: sneaky fake entry',
       '```',
@@ -330,7 +357,7 @@ describe('fenced-block injection resistance', () => {
       'CHANGELOG entry:',
     ].join('\n');
 
-    expect(hasChangelogEntry(body, false).ok).toBe(false);
+    expect(hasChangelogEntry(section, false).ok).toBe(false);
   });
 
   it('hasValidIssueLink: a Fixes line inside a fenced block does not satisfy the check', () => {
@@ -349,8 +376,21 @@ describe('fenced-block injection resistance', () => {
     const section = [
       '```',
       '- [x] Fake checked item',
+      '- [x] Another fake inside fence',
+      '- [x] Yet another fake',
+      '- [x] More fake items',
+      '- [x] Still fake',
+      '- [x] Also fake',
+      '- [x] Still inside fence',
       '```',
       '',
+      '- [x] Real item one',
+      '- [x] Real item two',
+      '- [x] Real item three',
+      '- [x] Real item four',
+      '- [x] Real item five',
+      '- [x] Real item six',
+      '- [x] Real item seven',
       '- [ ] Real unchecked item',
     ].join('\n');
 
@@ -374,7 +414,7 @@ describe('hasChangelogEntry', () => {
   });
 
   it('fails when the line is missing entirely', () => {
-    expect(hasChangelogEntry('## **Description**\n\nhello', false).ok).toBe(false);
+    expect(hasChangelogEntry('Some changelog prose but no prefix', false).ok).toBe(false);
   });
 
   it('fails when the line is present but empty', () => {
@@ -382,8 +422,26 @@ describe('hasChangelogEntry', () => {
   });
 
   it('ignores changelog lines inside HTML comments', () => {
-    const body = `<!-- CHANGELOG entry: ignored -->\n## **Description**\nhello`;
-    expect(hasChangelogEntry(body, false).ok).toBe(false);
+    const section = `<!-- CHANGELOG entry: ignored -->`;
+    expect(hasChangelogEntry(section, false).ok).toBe(false);
+  });
+
+  it('does not accept a CHANGELOG entry placed in another section of the full body', () => {
+    // runAllChecks extracts the Changelog section before calling hasChangelogEntry,
+    // so a line placed in Description cannot satisfy this check.
+    const body = [
+      '## **Description**',
+      '',
+      'CHANGELOG entry: sneaky line in description',
+      '',
+      '## **Changelog**',
+      '',
+      '<!-- fill in changelog here -->',
+    ].join('\n');
+
+    // Extract only the Changelog section (as runAllChecks does) — should fail.
+    const section = extractSection(body, '## **Changelog**') ?? '';
+    expect(hasChangelogEntry(section, false).ok).toBe(false);
   });
 });
 
@@ -449,7 +507,137 @@ Feature: my feature name
 
   it('ignores reviewer checklist boxes (those are reviewer-side)', () => {
     // fullValidBody has an unchecked reviewer box on purpose.
-    expect(extractSection(fullValidBody, PR_TEMPLATE_SECTIONS.reviewerChecklist)).toContain('- [ ]');
+    expect(extractSection(fullValidBody, '## **Pre-merge reviewer checklist**')).toContain('- [ ]');
     expect(runAllChecks(fullValidBody, false)).toEqual([]);
+  });
+});
+
+// ─── parseDirective ───────────────────────────────────────────────────────────
+
+describe('parseDirective', () => {
+  it('returns null for non-directive content', () => {
+    expect(parseDirective('Write a short description')).toBeNull();
+    expect(parseDirective('')).toBeNull();
+    expect(parseDirective('  some note  ')).toBeNull();
+  });
+
+  it('parses a single key=value pair', () => {
+    expect(parseDirective('mms-check: type=text')).toEqual({ type: 'text' });
+  });
+
+  it('parses multiple key=value pairs', () => {
+    expect(parseDirective('mms-check: type=changelog required=true')).toEqual({
+      type: 'changelog',
+      required: 'true',
+    });
+  });
+
+  it('handles leading and trailing whitespace', () => {
+    expect(parseDirective('  mms-check: type=checklist required=false  ')).toEqual({
+      type: 'checklist',
+      required: 'false',
+    });
+  });
+
+  it('ignores malformed pairs without an equals sign', () => {
+    expect(parseDirective('mms-check: type=text badpair')).toEqual({ type: 'text' });
+  });
+});
+
+// ─── buildValidationPlan ──────────────────────────────────────────────────────
+
+describe('buildValidationPlan', () => {
+  it('produces one entry per section that has a directive', () => {
+    const md = [
+      '## **Section A**',
+      '<!-- mms-check: type=text required=true -->',
+      '',
+      'Some content.',
+      '',
+      '## **Section B**',
+      '<!-- mms-check: type=changelog required=false -->',
+    ].join('\n');
+    const plan = buildValidationPlan(tokenize(md));
+    expect(plan).toHaveLength(2);
+    expect(plan[0]).toEqual({ title: '## **Section A**', type: 'text', required: true });
+    expect(plan[1]).toEqual({ title: '## **Section B**', type: 'changelog', required: false });
+  });
+
+  it('skips sections that have no directive', () => {
+    const md = [
+      '## **Section A**',
+      '',
+      'No directive here.',
+      '',
+      '## **Section B**',
+      '<!-- mms-check: type=text required=true -->',
+    ].join('\n');
+    const plan = buildValidationPlan(tokenize(md));
+    expect(plan).toHaveLength(1);
+    expect(plan[0].title).toBe('## **Section B**');
+  });
+
+  it('ignores non-mms-check html_comments within a section', () => {
+    const md = [
+      '## **Section A**',
+      '<!-- instructional comment -->',
+      '<!-- mms-check: type=issue-link required=true -->',
+    ].join('\n');
+    const plan = buildValidationPlan(tokenize(md));
+    expect(plan).toHaveLength(1);
+    expect(plan[0].type).toBe('issue-link');
+  });
+
+  it('associates the directive with its enclosing heading, not the next one', () => {
+    const md = [
+      '## **Heading One**',
+      '<!-- mms-check: type=text required=true -->',
+      '',
+      '## **Heading Two**',
+    ].join('\n');
+    const plan = buildValidationPlan(tokenize(md));
+    expect(plan[0].title).toBe('## **Heading One**');
+  });
+
+  it('returns an empty plan for markdown with no directives', () => {
+    expect(buildValidationPlan(tokenize('# Title\n\nSome text.'))).toEqual([]);
+  });
+
+  it('treats required=false as non-required', () => {
+    const md = '## **Section**\n<!-- mms-check: type=text required=false -->';
+    const plan = buildValidationPlan(tokenize(md));
+    expect(plan[0].required).toBe(false);
+  });
+
+  it('defaults required to true when not explicitly "false"', () => {
+    const md = '## **Section**\n<!-- mms-check: type=text required=true -->';
+    const plan = buildValidationPlan(tokenize(md));
+    expect(plan[0].required).toBe(true);
+  });
+});
+
+// ─── validatePlanTypes ────────────────────────────────────────────────────────
+
+describe('validatePlanTypes', () => {
+  const registry = { text: () => ({ ok: true as const }) };
+
+  it('does not throw when all types are present in the registry', () => {
+    const plan = [{ title: '## Foo', type: 'text', required: true }];
+    expect(() => validatePlanTypes(plan, registry)).not.toThrow();
+  });
+
+  it('throws for an unknown type', () => {
+    const plan = [{ title: '## Bar', type: 'unknown-type', required: true }];
+    expect(() => validatePlanTypes(plan, registry)).toThrow(
+      /Unknown mms-check type "unknown-type" in section "## Bar"/,
+    );
+  });
+
+  it('throws for the first unknown type in a mixed plan', () => {
+    const plan = [
+      { title: '## Good', type: 'text', required: true },
+      { title: '## Bad', type: 'typo-type', required: true },
+    ];
+    expect(() => validatePlanTypes(plan, registry)).toThrow(/typo-type/);
   });
 });

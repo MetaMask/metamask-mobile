@@ -35,6 +35,7 @@ jobs:
       id-token: write
     steps:
       - name: Checkout repository
+        # WARNING: do NOT add `ref:` here — pull_request_target must stay on the base branch.
         uses: actions/checkout@v4
         with:
           fetch-depth: 1 # This retrieves only the latest commit.

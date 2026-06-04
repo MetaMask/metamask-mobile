@@ -6,23 +6,141 @@
 // Source of truth for what "ready for review" requires:
 // docs/readme/ready-for-review.md (DoRFR).
 
-import { tokenize, sectionTokens } from './markdown-tokenizer';
+import * as fs from 'fs';
+import * as path from 'path';
+import { tokenize, sectionTokens, Token } from './markdown-tokenizer';
+
+// ─── Public result type ──────────────────────────────────────────────────────
 
 export type PrTemplateCheckResult =
   | { ok: true }
   | { ok: false; reason: string };
 
-const PR_TEMPLATE_SECTION_TITLES = {
-  description: '## **Description**',
-  changelog: '## **Changelog**',
-  relatedIssues: '## **Related issues**',
-  manualTesting: '## **Manual testing steps**',
-  screenshots: '## **Screenshots/Recordings**',
-  authorChecklist: '## **Pre-merge author checklist**',
-  reviewerChecklist: '## **Pre-merge reviewer checklist**',
-} as const;
+// ─── Validation-plan types ───────────────────────────────────────────────────
 
+interface ValidationPlanEntry {
+  // Raw heading string that identifies the section (e.g. '## **Description**').
+  title: string;
+  // Validator type key, must exist in VALIDATORS or module load throws.
+  type: string;
+  required: boolean;
+}
+
+type ValidatorContext = { hasNoChangelogLabel: boolean };
+type Validator = (section: string, ctx: ValidatorContext) => PrTemplateCheckResult;
+
+// ─── Template loading (single read at module load) ───────────────────────────
+
+const TEMPLATE_PATH = path.join(__dirname, '../../pull-request-template.md');
+
+// Read once against the base-branch template (the workflow uses
+// pull_request_target without a ref override, so the checkout always reflects
+// the base branch, not the PR head — see check-template-and-add-labels.yml).
+const templateTokens = tokenize(fs.readFileSync(TEMPLATE_PATH, 'utf8'));
+
+// Every level-2 heading in the template (including the reviewer checklist) —
+// used by template.ts for structural presence checking.
+export const PR_TEMPLATE_SECTION_TITLES: string[] = templateTokens
+  .filter((t) => t.kind === 'heading' && t.level === 2)
+  .map((t) => t.raw);
+
+// Backward-compatible alias (template.ts consumes this directly as an array).
 export const PR_TEMPLATE_SECTIONS = PR_TEMPLATE_SECTION_TITLES;
+
+// ─── Directive parsing ───────────────────────────────────────────────────────
+
+/**
+ * Parse `key=value` pairs from an `mms-check` HTML-comment body.
+ * Returns `null` when the content does not start with `mms-check:`.
+ */
+export function parseDirective(commentContent: string): Record<string, string> | null {
+  const trimmed = commentContent.trim();
+  if (!trimmed.startsWith('mms-check:')) return null;
+  const pairs = trimmed.slice('mms-check:'.length).trim();
+  const result: Record<string, string> = {};
+  for (const pair of pairs.split(/\s+/)) {
+    const eqIdx = pair.indexOf('=');
+    if (eqIdx === -1) continue;
+    result[pair.slice(0, eqIdx)] = pair.slice(eqIdx + 1);
+  }
+  return result;
+}
+
+/**
+ * Walk template tokens and build the ordered validation plan.
+ * The first `mms-check` html_comment found in each level-2 section produces
+ * one plan entry. Sections with no directive are structural-only (no semantic
+ * validator is dispatched for them).
+ */
+export function buildValidationPlan(tokens: Token[]): ValidationPlanEntry[] {
+  const plan: ValidationPlanEntry[] = [];
+  let currentHeading: string | null = null;
+  let directiveFoundForCurrent = false;
+
+  for (const token of tokens) {
+    if (token.kind === 'heading' && token.level === 2) {
+      currentHeading = token.raw;
+      directiveFoundForCurrent = false;
+    } else if (
+      token.kind === 'html_comment' &&
+      currentHeading !== null &&
+      !directiveFoundForCurrent
+    ) {
+      const directive = parseDirective(token.content);
+      if (directive?.type) {
+        plan.push({
+          title: currentHeading,
+          type: directive.type,
+          // Any value other than the explicit string "false" means required.
+          required: directive.required !== 'false',
+        });
+        directiveFoundForCurrent = true;
+      }
+    }
+  }
+
+  return plan;
+}
+
+const VALIDATION_PLAN = buildValidationPlan(templateTokens);
+
+// ─── Validator registry ───────────────────────────────────────────────────────
+
+// Wraps the existing pure validators in a uniform signature so runAllChecks
+// can dispatch each section without knowing which validator to call.
+const VALIDATORS: Record<string, Validator> = {
+  text:             (s) => hasNonEmptyDescription(s),
+  changelog:        (s, ctx) => hasChangelogEntry(s, ctx.hasNoChangelogLabel),
+  'issue-link':     (s) => hasValidIssueLink(s),
+  'manual-testing': (s) => hasRealManualTesting(s),
+  screenshot:       (s) => hasScreenshotsOrNa(s),
+  checklist:        (s) => hasAllAuthorChecklistChecked(s),
+};
+
+/**
+ * Validate that every plan entry's `type` is present in `validators`.
+ * Exported so tests can call it with an arbitrary plan without reloading
+ * the module.
+ */
+export function validatePlanTypes(
+  plan: ValidationPlanEntry[],
+  validators: Record<string, unknown>,
+): void {
+  for (const entry of plan) {
+    if (!validators[entry.type]) {
+      throw new Error(
+        `Unknown mms-check type "${entry.type}" in section "${entry.title}". ` +
+        `Add a VALIDATORS entry for this type or fix the directive in pull-request-template.md.`,
+      );
+    }
+  }
+}
+
+// Fail loudly at module load if the template contains an unrecognised type,
+// so a directive typo surfaces as a hard CI failure rather than a silent skip.
+validatePlanTypes(VALIDATION_PLAN, VALIDATORS);
+
+// ─── Shared regexes ──────────────────────────────────────────────────────────
 
 const SCREENSHOTS_SUBHEADINGS = /^\s*###\s*\*\*(Before|After)\*\*\s*$/gim;
 
@@ -45,6 +163,18 @@ const MANUAL_TESTING_TEMPLATE_MARKERS =
 // line boundary and accidentally capturing the next line as the rationale.
 const ISSUE_LINKAGE_LINE = /^[ \t]*\**(?:Fixes|Closes|Refs)\**[ \t]*:[ \t]*(.*)$/gim;
 
+// ─── Checklist item count ────────────────────────────────────────────────────
+
+// Derived from the plan entry whose type is "checklist", so it automatically
+// stays in sync with the template without any hardcoded constant.
+const checklistPlanEntry = VALIDATION_PLAN.find((e) => e.type === 'checklist');
+const AUTHOR_CHECKLIST_MIN_ITEMS: number = (() => {
+  if (!checklistPlanEntry) return 0;
+  const section = sectionTokens(templateTokens, checklistPlanEntry.title);
+  return section ? section.filter((t) => t.kind === 'checkbox').length : 0;
+})();
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 /**
  * Identify character ranges occupied by fenced code blocks (``` or ~~~).
@@ -146,6 +276,8 @@ export function extractSection(body: string, title: string): string | null {
     .join('\n');
 }
 
+// ─── Validators ───────────────────────────────────────────────────────────────
+
 export function hasNonEmptyDescription(
   descriptionSection: string,
 ): PrTemplateCheckResult {
@@ -232,13 +364,14 @@ export function hasAllAuthorChecklistChecked(
     (t) => t.kind === 'checkbox',
   );
 
-  // A section where all rows were deleted (or only the heading remains) has
-  // no checkbox tokens at all.
-  if (checkboxes.length === 0) {
+  // Per docs/readme/ready-for-review.md, every item must be consciously
+  // assessed — deleting rows is not a valid alternative to checking them.
+  // Enforce a minimum count equal to the template's item count so an author
+  // cannot bypass the requirement by removing unchecked rows.
+  if (checkboxes.length < AUTHOR_CHECKLIST_MIN_ITEMS) {
     return {
       ok: false,
-      reason:
-        '`Pre-merge author checklist` has no checked items. Complete every checklist item before marking the PR as ready for review.',
+      reason: `\`Pre-merge author checklist\` has only ${checkboxes.length} of the required ${AUTHOR_CHECKLIST_MIN_ITEMS} items. Every checklist row must be present and consciously checked — do not delete rows.`,
     };
   }
 
@@ -259,9 +392,13 @@ export function hasAllAuthorChecklistChecked(
  * other semantic validators. Behavior preserved: requires a non-empty value
  * after `CHANGELOG entry:`, allows the literal `null`, short-circuits when the
  * `no-changelog` label is set.
+ *
+ * Accepts the pre-extracted Changelog section string (not the full PR body)
+ * so that a `CHANGELOG entry:` line placed in any other section (e.g.
+ * Description or Screenshots) cannot satisfy this check.
  */
 export function hasChangelogEntry(
-  body: string,
+  changelogSection: string,
   hasNoChangelogLabel: boolean,
 ): PrTemplateCheckResult {
   if (hasNoChangelogLabel) {
@@ -269,7 +406,7 @@ export function hasChangelogEntry(
   }
   // Search only in plain text tokens — a CHANGELOG entry inside a fenced code
   // block is a doc example, not the real entry the CI check requires.
-  const changelogLine = tokenize(body)
+  const changelogLine = tokenize(changelogSection)
     .filter((t) => t.kind === 'text')
     .map((t) => t.content)
     .find((line) => line.trim().startsWith('CHANGELOG entry:'));
@@ -292,34 +429,27 @@ export function hasChangelogEntry(
   return { ok: true };
 }
 
+// ─── runAllChecks (config-driven loop) ───────────────────────────────────────
+
 /**
- * Run every semantic check against a PR body, given the no-changelog label
- * flag. Returns the list of failures (empty when the PR is materially
- * complete).
+ * Run every required semantic check against a PR body.
+ * The validation plan is derived from the base-branch template at module load,
+ * so the set of checks always matches the template — no code change is needed
+ * when sections are reordered, renamed, or when a plain-text section is added.
+ *
+ * Returns the list of failures (empty when the PR is materially complete).
  */
 export function runAllChecks(
   body: string,
   hasNoChangelogLabel: boolean,
 ): { ok: false; reason: string }[] {
-  const results: PrTemplateCheckResult[] = [
-    hasNonEmptyDescription(
-      extractSection(body, PR_TEMPLATE_SECTION_TITLES.description) ?? '',
-    ),
-    hasChangelogEntry(body, hasNoChangelogLabel),
-    hasValidIssueLink(
-      extractSection(body, PR_TEMPLATE_SECTION_TITLES.relatedIssues) ?? '',
-    ),
-    hasRealManualTesting(
-      extractSection(body, PR_TEMPLATE_SECTION_TITLES.manualTesting) ?? '',
-    ),
-    hasScreenshotsOrNa(
-      extractSection(body, PR_TEMPLATE_SECTION_TITLES.screenshots) ?? '',
-    ),
-    hasAllAuthorChecklistChecked(
-      extractSection(body, PR_TEMPLATE_SECTION_TITLES.authorChecklist) ?? '',
-    ),
-  ];
-  return results.filter(
-    (r): r is { ok: false; reason: string } => !r.ok,
-  );
+  const ctx = { hasNoChangelogLabel };
+  const failures: { ok: false; reason: string }[] = [];
+  for (const entry of VALIDATION_PLAN) {
+    if (!entry.required) continue;
+    const section = extractSection(body, entry.title) ?? '';
+    const result = VALIDATORS[entry.type](section, ctx);
+    if (!result.ok) failures.push(result);
+  }
+  return failures;
 }

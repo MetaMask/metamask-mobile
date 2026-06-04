@@ -86,12 +86,85 @@ if (failures.length > 0) {
 }
 ```
 
+## Metadata-driven validation (`mms-check` directives)
+
+The set of sections to validate and which validator to apply is driven entirely
+by `mms-check` directives embedded in `.github/pull-request-template.md`. No
+code needs to change when sections are reordered or renamed, or when a new
+plain-text section is added.
+
+### Directive syntax
+
+Directives are invisible HTML comments placed immediately after a section
+heading in the template:
+
+```markdown
+## **Description**
+<!-- mms-check: type=text required=true -->
+```
+
+Key-value pairs are space-separated. Supported keys:
+
+| Key | Values | Description |
+|---|---|---|
+| `type` | see table below | Which validator to dispatch to |
+| `required` | `true` \| `false` | Whether a failure blocks the PR check |
+
+### Validator types
+
+| `type` value | Validator called |
+|---|---|
+| `text` | `hasNonEmptyDescription` |
+| `changelog` | `hasChangelogEntry` |
+| `issue-link` | `hasValidIssueLink` |
+| `manual-testing` | `hasRealManualTesting` |
+| `screenshot` | `hasScreenshotsOrNa` |
+| `checklist` | `hasAllAuthorChecklistChecked` |
+
+Sections with **no** directive are checked for structural presence only (heading
+must exist in the PR body) but receive no semantic validator. The reviewer
+checklist uses this mode intentionally.
+
+### Safety at startup
+
+At module load, every directive `type` in the plan is validated against the
+`VALIDATORS` registry. A typo or unknown type causes the module to throw
+immediately rather than silently skipping the check in CI.
+
+### Trust model
+
+Directives are read from the **base-branch** copy of the template (the workflow
+uses `pull_request_target` without a `ref:` override, so the checkout always
+reflects the base branch). A PR author cannot weaken validation by modifying
+or removing directives in their branch.
+
+HTML comments in the **PR body** — including any `mms-check` directives that
+GitHub copies from the template when the PR is opened — are entirely ignored by
+`extractSection`. They are filtered out before the section content reaches any
+validator. An author who deletes every HTML comment from their PR description
+has no effect on what is checked or how.
+
+### Helper exports for testing
+
+```typescript
+import { parseDirective, buildValidationPlan, validatePlanTypes } from './pr-template-checks';
+```
+
+- **`parseDirective(commentContent)`** — parse one `mms-check:` comment body
+  into a `Record<string, string>`, or return `null` if not a directive.
+- **`buildValidationPlan(tokens)`** — walk a token array and return the ordered
+  list of `{ title, type, required }` entries.
+- **`validatePlanTypes(plan, validators)`** — throw if any plan entry's `type`
+  is absent from the validators map. Useful in tests without reloading the module.
+
 ## Adding a new validator
 
-1. Write a pure function `(section: string) => PrTemplateCheckResult`.
-2. Use `tokenize` + token filtering when the check must be injection-safe (see
+1. Add the `mms-check: type=<new-type> required=true` directive to the relevant
+   section in `.github/pull-request-template.md`.
+2. Write a pure validator function `(section: string) => PrTemplateCheckResult`.
+   Use `tokenize` + token filtering when injection-safety matters (see
    `markdown-tokenizer.README.md`). Use `stripHtmlComments` for simpler
    string-level checks.
-3. Register the new validator inside `runAllChecks`.
+3. Add the new type key and function to the `VALIDATORS` registry.
 4. Add test cases in `pr-template-checks.test.ts` covering pass, fail, and at
    least one fenced-block injection case if relevant.
