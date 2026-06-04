@@ -156,39 +156,24 @@ const useNetworkConnectionBanner = (): {
             continue;
           }
 
-          // Classify the failure using the SELECTED endpoint (the one whose
-          // metadata we just checked), not the default. Otherwise a failing
-          // user-selected custom RPC would be misclassified as Infura when
-          // the default for the chain is Infura, and the custom-override
-          // rule below would not fire.
-          const selectedRpcEndpoint =
-            networkConfig.rpcEndpoints.find(
-              (ep) => ep.networkClientId === networkClientId,
-            ) ??
-            networkConfig.rpcEndpoints[
-              networkConfig.defaultRpcEndpointIndex || 0
-            ] ??
-            networkConfig.rpcEndpoints[0];
-          if (!selectedRpcEndpoint) {
-            continue;
-          }
+          const defaultRpcEndpointIndex =
+            networkConfig.defaultRpcEndpointIndex || 0;
+          const rpcUrl =
+            networkConfig.rpcEndpoints[defaultRpcEndpointIndex]?.url ||
+            networkConfig.rpcEndpoints[0]?.url;
 
-          const rpcUrl = selectedRpcEndpoint.url;
           const isInfuraEndpoint = getIsMetaMaskInfuraEndpointUrl(
             rpcUrl,
             infuraProjectId,
           );
 
           // For custom endpoints (non-Infura), check if there's an Infura
-          // endpoint available for this network that we can switch to.
-          // Exclude the currently selected endpoint so we don't suggest
-          // switching to the one that just failed.
+          // endpoint available for this network that we can switch to
           let infuraNetworkClientId: string | undefined;
           if (!isInfuraEndpoint) {
             const infuraEndpoint = networkConfig.rpcEndpoints.find(
-              (endpoint) =>
-                endpoint.networkClientId !==
-                  selectedRpcEndpoint.networkClientId &&
+              (endpoint, index) =>
+                index !== defaultRpcEndpointIndex &&
                 getIsMetaMaskInfuraEndpointUrl(endpoint.url, infuraProjectId),
             );
             infuraNetworkClientId = infuraEndpoint?.networkClientId;
