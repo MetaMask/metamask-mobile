@@ -127,6 +127,7 @@ export function getCheckedRwaData(assetId: string): TokenRwaData | undefined {
 export interface UseTokensDataResult {
   tokens: Record<string, TokenAsset>;
   isLoading: boolean;
+  hasError: boolean;
 }
 
 /**
@@ -141,7 +142,7 @@ export interface UseTokensDataResult {
  * @param assetIds - Array of CAIP-19 asset identifiers (e.g. "eip155:1/erc20:0xabc…")
  * @param options - Optional fetch configuration
  * @param options.includeRwaData - Whether to request RWA metadata in the response (default: false)
- * @returns tokens map from asset ID to {@link TokenAsset}, and isLoading flag.
+ * @returns tokens map from asset ID to {@link TokenAsset}, loading flag, and error flag.
  */
 export function useTokensData(
   assetIds: string[],
@@ -165,6 +166,7 @@ export function useTokensData(
   );
 
   const [isLoading, setIsLoading] = useState(!allCached);
+  const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
     const ids = assetIdsKey ? assetIdsKey.split(',') : [];
@@ -177,10 +179,12 @@ export function useTokensData(
         Object.fromEntries(ids.map((id) => [id, tokenCache[id + suffix]])),
       );
       setIsLoading(false);
+      setHasError(false);
       return;
     }
 
     setIsLoading(true);
+    setHasError(false);
     let cancelled = false;
 
     (async () => {
@@ -195,12 +199,16 @@ export function useTokensData(
               data.map((t) => [t.assetId.toLowerCase(), t]),
             ),
           }));
+          setHasError(false);
         }
       } catch {
         // Silently ignore fetch errors. On failure the cache is not populated,
         // so isRwaChecked stays false and these IDs are retried on the next
         // input change. Callers relying on RWA status should treat a resolved
         // isLoading with missing data as "status unknown" (see useTokensWithBalance).
+        if (!cancelled) {
+          setHasError(true);
+        }
       } finally {
         if (!cancelled) {
           setIsLoading(false);
@@ -213,5 +221,5 @@ export function useTokensData(
     };
   }, [assetIdsKey, includeRwaData, suffix, allCached]);
 
-  return { tokens: tokensByAssetId, isLoading };
+  return { tokens: tokensByAssetId, isLoading, hasError };
 }

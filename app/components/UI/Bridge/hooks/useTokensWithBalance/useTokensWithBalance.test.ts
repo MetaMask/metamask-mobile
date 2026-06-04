@@ -79,6 +79,7 @@ describe('useTokensWithBalance', () => {
     });
 
     expect(result.current.isExtraTokenDataLoading).toBe(false);
+    expect(result.current.hasExtraTokenDataError).toBe(false);
     expect(mockHandleFetch).not.toHaveBeenCalled();
   });
 
@@ -305,6 +306,26 @@ describe('useTokensWithBalance', () => {
     // token1 on Ethereum, lowercased CAIP-19 asset ID as built by the hook.
     const token1AssetId = `eip155:1/erc20:${token1Address}`.toLowerCase();
     const rwaData = { instrumentType: 'stock' };
+
+    it('sets hasExtraTokenDataError when extra token data fetch fails', async () => {
+      mockHandleFetch.mockRejectedValue(new Error('Network error'));
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useTokensWithBalance(
+            {
+              chainIds: [mockChainId],
+            },
+            { shouldFetchExtraTokenData: true },
+          ),
+        { state: initialState },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isExtraTokenDataLoading).toBe(false);
+        expect(result.current.hasExtraTokenDataError).toBe(true);
+      });
+    });
 
     it('enriches tokens with rwaData fetched from the API', async () => {
       mockHandleFetch.mockResolvedValue([

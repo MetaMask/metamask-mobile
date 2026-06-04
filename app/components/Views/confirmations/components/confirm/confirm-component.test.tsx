@@ -146,6 +146,7 @@ jest.mock('../../../../UI/Bridge/hooks/useTokensWithBalance', () => ({
     ({
       tokens: [],
       isExtraTokenDataLoading: false,
+      hasExtraTokenDataError: false,
     }) as ReturnType<typeof useTokensWithBalance>,
 }));
 

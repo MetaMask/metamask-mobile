@@ -66,6 +66,7 @@ describe('useBatchSellTokens', () => {
     mockUseTokensWithBalance.mockReturnValue({
       tokens: [],
       isExtraTokenDataLoading: false,
+      hasExtraTokenDataError: false,
     });
     mockIsRwaChecked.mockReturnValue(true);
   });
@@ -110,6 +111,7 @@ describe('useBatchSellTokens', () => {
     mockUseTokensWithBalance.mockReturnValue({
       tokens: [stablecoin, stockRwa, lowValueToken, highValueToken],
       isExtraTokenDataLoading: false,
+      hasExtraTokenDataError: false,
     });
 
     const { result } = renderUseBatchSellTokens();
@@ -136,6 +138,7 @@ describe('useBatchSellTokens', () => {
     mockUseTokensWithBalance.mockReturnValue({
       tokens: [checkedToken, uncheckedToken],
       isExtraTokenDataLoading: false,
+      hasExtraTokenDataError: false,
     });
 
     const { result } = renderUseBatchSellTokens();
@@ -160,6 +163,7 @@ describe('useBatchSellTokens', () => {
         }),
       ],
       isExtraTokenDataLoading: false,
+      hasExtraTokenDataError: false,
     });
 
     const { result } = renderUseBatchSellTokens('asc');
@@ -186,6 +190,7 @@ describe('useBatchSellTokens', () => {
         }),
       ],
       isExtraTokenDataLoading: false,
+      hasExtraTokenDataError: false,
     });
 
     const { result } = renderUseBatchSellTokens();
@@ -195,14 +200,27 @@ describe('useBatchSellTokens', () => {
     ).toEqual(['eip155:56', 'eip155:1']);
   });
 
-  it('passes through the RWA data loading state', () => {
+  it('passes through the extra token data loading state', () => {
     mockUseTokensWithBalance.mockReturnValue({
       tokens: [createToken({ symbol: 'ETHA' })],
       isExtraTokenDataLoading: true,
+      hasExtraTokenDataError: false,
     });
 
     const { result } = renderUseBatchSellTokens();
 
     expect(result.current.isExtraTokenDataLoading).toBe(true);
+  });
+
+  it('passes through the extra token data error state', () => {
+    mockUseTokensWithBalance.mockReturnValue({
+      tokens: [createToken({ symbol: 'ETHA' })],
+      isExtraTokenDataLoading: false,
+      hasExtraTokenDataError: true,
+    });
+
+    const { result } = renderUseBatchSellTokens();
+
+    expect(result.current.hasExtraTokenDataError).toBe(true);
   });
 });

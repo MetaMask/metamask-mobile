@@ -158,7 +158,7 @@ export const calculateEvmBalances = ({
  * @param {Hex[]} params.chainIds - Array of chain IDs to filter by
  * @param {Object} options - Optional hook configuration
  * @param {boolean} options.shouldFetchExtraTokenData - Whether to fetch and merge token metadata
- * @returns tokens with sortable fiat balances and extra token data loading state.
+ * @returns tokens with sortable fiat balances and extra token data request state.
  */
 export const useTokensWithBalance = (
   {
@@ -169,7 +169,11 @@ export const useTokensWithBalance = (
   options: {
     shouldFetchExtraTokenData?: boolean;
   } = {},
-): { tokens: BridgeToken[]; isExtraTokenDataLoading: boolean } => {
+): {
+  tokens: BridgeToken[];
+  isExtraTokenDataLoading: boolean;
+  hasExtraTokenDataError: boolean;
+} => {
   const { shouldFetchExtraTokenData = false } = options;
   const tokenSortConfig = useSelector(selectTokenSortConfig);
   const currentCurrency = useSelector(selectCurrentCurrency);
@@ -356,8 +360,11 @@ export const useTokensWithBalance = (
   // lose their rwaData on remount.
   // TODO: Migrate away from calling the token API directly once the Assets team
   // persists rwaData in controller state.
-  const { tokens: apiTokenData, isLoading: isExtraTokenDataLoading } =
-    useTokensData(missingRwaAssetIds, { includeRwaData: true });
+  const {
+    tokens: apiTokenData,
+    isLoading: isExtraTokenDataLoading,
+    hasError: hasExtraTokenDataError,
+  } = useTokensData(missingRwaAssetIds, { includeRwaData: true });
 
   return useMemo(
     () => ({
@@ -385,12 +392,16 @@ export const useTokensWithBalance = (
       isExtraTokenDataLoading: shouldFetchExtraTokenData
         ? isExtraTokenDataLoading
         : false,
+      hasExtraTokenDataError: shouldFetchExtraTokenData
+        ? hasExtraTokenDataError
+        : false,
     }),
     [
       shouldFetchExtraTokenData,
       sortedTokens,
       apiTokenData,
       isExtraTokenDataLoading,
+      hasExtraTokenDataError,
     ],
   );
 };

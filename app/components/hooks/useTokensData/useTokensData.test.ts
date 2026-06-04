@@ -55,6 +55,7 @@ describe('useTokensData', () => {
 
     expect(result.current.tokens).toEqual({});
     expect(result.current.isLoading).toBe(true);
+    expect(result.current.hasError).toBe(false);
   });
 
   it('returns token data and isLoading false after fetch resolves', async () => {
@@ -66,6 +67,7 @@ describe('useTokensData', () => {
     await waitFor(() => {
       expect(result.current.tokens[assetId]?.name).toBe(TOKEN_NAME_MOCK);
       expect(result.current.isLoading).toBe(false);
+      expect(result.current.hasError).toBe(false);
     });
   });
 
@@ -92,6 +94,7 @@ describe('useTokensData', () => {
 
     expect(result.current.tokens).toEqual({});
     expect(result.current.isLoading).toBe(false);
+    expect(result.current.hasError).toBe(true);
   });
 
   it('returns empty tokens and isLoading false when assetIds is empty', () => {
@@ -99,6 +102,7 @@ describe('useTokensData', () => {
 
     expect(result.current.tokens).toEqual({});
     expect(result.current.isLoading).toBe(false);
+    expect(result.current.hasError).toBe(false);
     expect(mockHandleFetch).not.toHaveBeenCalled();
   });
 
@@ -153,6 +157,7 @@ describe('useTokensData', () => {
 
     expect(result2.current.tokens[assetId]?.name).toBe(TOKEN_NAME_MOCK);
     expect(result2.current.isLoading).toBe(false);
+    expect(result2.current.hasError).toBe(false);
     await act(async () => {
       await new Promise((r) => setTimeout(r, 50));
     });
@@ -196,6 +201,7 @@ describe('useTokensData', () => {
       expect(result.current.tokens[assetIdB]?.name).toBe(TOKEN_NAME_MOCK);
       expect(result.current.tokens[assetIdA]).toBeUndefined();
       expect(result.current.isLoading).toBe(false);
+      expect(result.current.hasError).toBe(false);
     });
   });
 

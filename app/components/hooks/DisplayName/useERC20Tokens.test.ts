@@ -35,6 +35,7 @@ describe('useERC20Tokens', () => {
         },
       },
       isLoading: false,
+      hasError: false,
     });
   });
 
@@ -88,7 +89,11 @@ describe('useERC20Tokens', () => {
   });
 
   it('returns name and image as undefined when token is not found', () => {
-    mockUseTokensData.mockReturnValue({ tokens: {}, isLoading: false });
+    mockUseTokensData.mockReturnValue({
+      tokens: {},
+      isLoading: false,
+      hasError: false,
+    });
 
     const { result } = renderHook([
       {

@@ -99,6 +99,7 @@ describe('usePerpsPaymentTokens', () => {
     mockUseTokensWithBalance.useTokensWithBalance.mockReturnValue({
       tokens: mockTokensWithBalance,
       isExtraTokenDataLoading: false,
+      hasExtraTokenDataError: false,
     });
     mockUsePerpsLiveAccount.mockReturnValue({
       account: mockAccountState,
@@ -203,6 +204,7 @@ describe('usePerpsPaymentTokens', () => {
       mockUseTokensWithBalance.useTokensWithBalance.mockReturnValue({
         tokens: tokensWithHyperliquid,
         isExtraTokenDataLoading: false,
+        hasExtraTokenDataError: false,
       });
 
       const { result } = renderHook(() => usePerpsPaymentTokens());
@@ -244,6 +246,7 @@ describe('usePerpsPaymentTokens', () => {
       mockUseTokensWithBalance.useTokensWithBalance.mockReturnValue({
         tokens: extraTokens,
         isExtraTokenDataLoading: false,
+        hasExtraTokenDataError: false,
       });
 
       const { result } = renderHook(() => usePerpsPaymentTokens());
@@ -337,6 +340,7 @@ describe('usePerpsPaymentTokens', () => {
       mockUseTokensWithBalance.useTokensWithBalance.mockReturnValue({
         tokens: [],
         isExtraTokenDataLoading: false,
+        hasExtraTokenDataError: false,
       });
 
       const { result } = renderHook(() => usePerpsPaymentTokens());
@@ -360,6 +364,7 @@ describe('usePerpsPaymentTokens', () => {
       mockUseTokensWithBalance.useTokensWithBalance.mockReturnValue({
         tokens: tokensWithMalformedFiat,
         isExtraTokenDataLoading: false,
+        hasExtraTokenDataError: false,
       });
 
       const { result } = renderHook(() => usePerpsPaymentTokens());
@@ -417,6 +422,7 @@ describe('usePerpsPaymentTokens', () => {
       mockUseTokensWithBalance.useTokensWithBalance.mockReturnValue({
         tokens: tokensWithMissingFields as BridgeToken[],
         isExtraTokenDataLoading: false,
+        hasExtraTokenDataError: false,
       });
 
       const { result } = renderHook(() => usePerpsPaymentTokens());

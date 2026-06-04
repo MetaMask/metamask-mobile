@@ -7551,6 +7551,8 @@
     "batch_sell_select_subtitle": "All tokens need to be on the same network.",
     "batch_sell_empty_state_title": "No tokens. No problem.",
     "batch_sell_empty_state_description": "No tokens. No problem. Explore and buy tokens to batch sell.",
+    "batch_sell_token_load_error_title": "Unable to load tokens",
+    "batch_sell_token_load_error_description": "We couldn't load your eligible tokens. Check your connection and try again.",
     "batch_sell_continue_with_one_token": "Continue with (1) token",
     "batch_sell_continue_with_tokens": "Continue with ({{tokenCount}}) tokens",
     "batch_sell_max_tokens_allowed": "Max 5 tokens allowed",

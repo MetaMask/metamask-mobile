@@ -143,7 +143,11 @@ describe('useAccountTokens', () => {
     mockGetIntlNumberFormatter.mockReturnValue(mockFormatter as any);
     mockFormatter.format.mockReturnValue('$100.50');
     mockIsTestNet.mockReturnValue(false);
-    mockUseTokensData.mockReturnValue({ tokens: {}, isLoading: false });
+    mockUseTokensData.mockReturnValue({
+      tokens: {},
+      isLoading: false,
+      hasError: false,
+    });
     mockBuildEvmCaip19AssetId.mockImplementation(
       (address: string, chainId: Hex) =>
         `eip155:${chainId}/erc20:${address.toLowerCase()}`,
@@ -700,6 +704,7 @@ describe('useAccountTokens', () => {
           },
         },
         isLoading: false,
+        hasError: false,
       });
 
       const { result } = renderHook(() =>
@@ -754,6 +759,7 @@ describe('useAccountTokens', () => {
           },
         },
         isLoading: false,
+        hasError: false,
       });
 
       const { result } = renderHook(() =>
@@ -779,7 +785,11 @@ describe('useAccountTokens', () => {
 
       const requests = [{ chainId: '0x1' as Hex, address: '0xunknown' }];
 
-      mockUseTokensData.mockReturnValue({ tokens: {}, isLoading: false });
+      mockUseTokensData.mockReturnValue({
+        tokens: {},
+        isLoading: false,
+        hasError: false,
+      });
 
       const { result } = renderHook(() =>
         useAccountTokens({ enrichTokenRequests: requests }),

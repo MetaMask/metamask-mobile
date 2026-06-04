@@ -4,6 +4,7 @@ export const BatchSellTokenSelectSelectorsIDs = {
   NETWORK_PILL: 'batch-sell-token-select-network-pill',
   NEXT_BUTTON: 'batch-sell-token-select-next-button',
   EMPTY_STATE: 'batch-sell-token-select-empty-state',
+  ERROR_STATE: 'batch-sell-token-select-error-state',
   EXPLORE_TOKENS_BUTTON: 'batch-sell-token-select-explore-tokens-button',
   BALANCE_SORT_BUTTON: 'batch-sell-token-select-balance-sort-button',
 };

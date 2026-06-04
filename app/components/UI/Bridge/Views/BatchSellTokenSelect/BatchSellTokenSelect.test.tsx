@@ -440,7 +440,11 @@ describe('BatchSellTokenSelect', () => {
                 formatChainIdToCaip(token.chainId) as CaipChainId,
               ),
             );
-        return { tokens, isExtraTokenDataLoading: false };
+        return {
+          tokens,
+          isExtraTokenDataLoading: false,
+          hasExtraTokenDataError: false,
+        };
       },
     );
   });
@@ -744,6 +748,7 @@ describe('BatchSellTokenSelect', () => {
     mockUseTokensWithBalance.mockReturnValue({
       tokens: mockWalletTokens,
       isExtraTokenDataLoading: true,
+      hasExtraTokenDataError: false,
     });
 
     const { getByTestId, queryByTestId } = render(<BatchSellTokenSelect />);
@@ -756,7 +761,41 @@ describe('BatchSellTokenSelect', () => {
       queryByTestId(BatchSellTokenSelectSelectorsIDs.EMPTY_STATE),
     ).not.toBeOnTheScreen();
     expect(
+      queryByTestId(BatchSellTokenSelectSelectorsIDs.ERROR_STATE),
+    ).not.toBeOnTheScreen();
+    expect(
       queryByTestId(`${BatchSellTokenSelectSelectorsIDs.TOKEN_ROW}-ETHA`),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows a generic token load error state when extra token data fails', () => {
+    mockUseTokensWithBalance.mockReturnValue({
+      tokens: mockWalletTokens,
+      isExtraTokenDataLoading: false,
+      hasExtraTokenDataError: true,
+    });
+
+    const { getByTestId, getByText, queryByTestId } = render(
+      <BatchSellTokenSelect />,
+    );
+
+    expect(
+      getByTestId(BatchSellTokenSelectSelectorsIDs.ERROR_STATE),
+    ).toBeOnTheScreen();
+    expect(getByText('Unable to load tokens')).toBeOnTheScreen();
+    expect(
+      getByText(
+        "We couldn't load your eligible tokens. Check your connection and try again.",
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(BatchSellTokenSelectSelectorsIDs.EMPTY_STATE),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(BatchSellTokenSelectSelectorsIDs.TOKEN_LIST),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(BatchSellTokenSelectSelectorsIDs.NEXT_BUTTON),
     ).not.toBeOnTheScreen();
   });
 

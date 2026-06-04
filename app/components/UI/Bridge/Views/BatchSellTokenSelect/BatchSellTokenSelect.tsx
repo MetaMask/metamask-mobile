@@ -55,6 +55,7 @@ import {
 import { BatchSellTokenSelectSelectorsIDs } from './BatchSellTokenSelect.testIds';
 import { BatchSellTokenRow } from './BatchSellTokenRow';
 import { BatchSellEmptyState } from './BatchSellEmptyState';
+import { BatchSellTokenLoadErrorState } from './BatchSellTokenLoadErrorState';
 import { SkeletonItem } from '../../components/SkeletonItem';
 import { DEFAULT_BATCH_SELL_SLIPPAGE } from '../../components/SlippageModal/utils';
 import { useBatchSellTokens } from './useBatchSellTokens';
@@ -114,6 +115,7 @@ export function BatchSellTokenSelect() {
   const {
     eligibleSourceTokens,
     isExtraTokenDataLoading,
+    hasExtraTokenDataError,
     sortedEligibleChains,
   } = useBatchSellTokens(tokenSortDirection);
   const [selectedChainId, setSelectedChainId] = useState<
@@ -191,6 +193,14 @@ export function BatchSellTokenSelect() {
 
     return strings('bridge.next');
   }, [selectedTokenCount]);
+  const shouldShowTokenLoadError =
+    !isExtraTokenDataLoading && hasExtraTokenDataError;
+  const shouldShowEmptyState =
+    !isExtraTokenDataLoading &&
+    !hasExtraTokenDataError &&
+    sortedEligibleChains.length === 0;
+  const shouldShowTokenList =
+    !shouldShowTokenLoadError && !shouldShowEmptyState;
 
   const handleBackPress = useCallback(() => {
     navigation.goBack();
@@ -378,11 +388,13 @@ export function BatchSellTokenSelect() {
     >
       <Box twClassName="flex-1">
         <HeaderStandard title="" onBack={handleBackPress} includesTopInset />
-        {!isExtraTokenDataLoading && sortedEligibleChains.length === 0 ? (
+        {shouldShowTokenLoadError && <BatchSellTokenLoadErrorState />}
+        {shouldShowEmptyState && (
           <BatchSellEmptyState
             onExploreTokensPress={handleExploreTokensPress}
           />
-        ) : (
+        )}
+        {shouldShowTokenList && (
           <>
             <Box twClassName="px-4 pt-2">
               <Text
