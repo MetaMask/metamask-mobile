@@ -20,6 +20,10 @@ interface PredictMarketProps {
   onCardPress?: () => void;
   /** Called when the user taps a buy button (before betslip opens). */
   onBuyButtonPress?: (marketId: string) => void;
+  /** Active feed tab key forwarded to trade analytics (e.g. "trending", "world-cup"). */
+  predictFeedTab?: string;
+  /** Screen context forwarded to trade analytics (e.g. "world_cup"). */
+  predictScreen?: string;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
@@ -30,6 +34,8 @@ const PredictMarket: React.FC<PredictMarketProps> = ({
   isCarousel = false,
   onCardPress,
   onBuyButtonPress,
+  predictFeedTab,
+  predictScreen,
   transactionActiveAbTests,
 }) => {
   const entryPoint = useResolvedPredictEntryPoint(propEntryPoint);
@@ -44,6 +50,8 @@ const PredictMarket: React.FC<PredictMarketProps> = ({
         isCarousel={isCarousel}
         onCardPress={onCardPress}
         onBuyButtonPress={onBuyButtonPress}
+        predictFeedTab={predictFeedTab}
+        predictScreen={predictScreen}
         transactionActiveAbTests={transactionActiveAbTests}
       />
     );
@@ -58,6 +66,8 @@ const PredictMarket: React.FC<PredictMarketProps> = ({
         isCarousel={isCarousel}
         onCardPress={onCardPress}
         onBuyButtonPress={onBuyButtonPress}
+        predictFeedTab={predictFeedTab}
+        predictScreen={predictScreen}
         transactionActiveAbTests={transactionActiveAbTests}
       />
     );
@@ -72,6 +82,8 @@ const PredictMarket: React.FC<PredictMarketProps> = ({
         isCarousel={isCarousel}
         onCardPress={onCardPress}
         onBuyButtonPress={onBuyButtonPress}
+        predictFeedTab={predictFeedTab}
+        predictScreen={predictScreen}
         transactionActiveAbTests={transactionActiveAbTests}
       />
     );
@@ -85,6 +97,8 @@ const PredictMarket: React.FC<PredictMarketProps> = ({
       isCarousel={isCarousel}
       onCardPress={onCardPress}
       onBuyButtonPress={onBuyButtonPress}
+      predictFeedTab={predictFeedTab}
+      predictScreen={predictScreen}
       transactionActiveAbTests={transactionActiveAbTests}
     />
   );

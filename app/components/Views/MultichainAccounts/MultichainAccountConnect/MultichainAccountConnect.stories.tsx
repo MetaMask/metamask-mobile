@@ -13,8 +13,7 @@ import {
 
 import MultichainAccountConnect from './MultichainAccountConnect';
 import { AccountGroupWithInternalAccounts } from '../../../../selectors/multichainAccounts/accounts.type';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { AccountConnectProps } from '../../AccountConnect/AccountConnect.types';
+import { AccountConnectProps } from '../../MultichainAccounts/shared/AccountConnect.types';
 import { createMockInternalAccount } from '../../../../util/test/accountsControllerTestUtils';
 
 const Stack = createStackNavigator();

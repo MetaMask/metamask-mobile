@@ -1,7 +1,7 @@
 import { KeyringTypes } from '@metamask/keyring-controller';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import Engine from '../../core/Engine';
-import { importNewSecretRecoveryPhrase, addNewHdAccount } from './';
+import { importNewSecretRecoveryPhrase } from './';
 import { createMockInternalAccount } from '../../util/test/accountsControllerTestUtils';
 import { TraceName, TraceOperation } from '../../util/trace';
 import ReduxService from '../../core/redux/ReduxService';
@@ -476,69 +476,6 @@ describe('MultiSRP Actions', () => {
           discoveredAccountsCount: 3,
         });
       });
-    });
-  });
-
-  describe('addNewHdAccount', () => {
-    it('adds a new HD account, sets the selected address and returns the account', async () => {
-      mockAddAccounts.mockReturnValue([mockAddress]);
-      mockGetAccountByAddress.mockReturnValue(mockExpectedAccount);
-
-      const account = await addNewHdAccount();
-
-      expect(mockAddAccounts).toHaveBeenCalledWith(1);
-      expect(mockSetSelectedAddress).toHaveBeenCalledWith(mockAddress);
-      expect(account).toEqual(mockExpectedAccount);
-    });
-
-    it('adds a new HD account with a specific keyring ID and sets the selected address', async () => {
-      const keyringId = 'test-keyring-id';
-      mockGetAccountByAddress.mockReturnValue(mockExpectedAccount);
-      mockAddAccounts.mockReturnValue([mockAddress]);
-
-      await addNewHdAccount(keyringId);
-
-      expect(mockAddAccounts).toHaveBeenCalledWith(1);
-      expect(mockSetSelectedAddress).toHaveBeenCalledWith(mockAddress);
-    });
-
-    it('adds a new HD account and sets the account label if a name is provided', async () => {
-      const accountName = 'Test Account';
-      mockAddAccounts.mockReturnValue([mockAddress]);
-      mockGetAccountByAddress.mockReturnValue(mockExpectedAccount);
-
-      await addNewHdAccount(undefined, accountName);
-
-      expect(mockAddAccounts).toHaveBeenCalledWith(1);
-      expect(mockSetSelectedAddress).toHaveBeenCalledWith(mockAddress);
-      expect(mockSetAccountLabel).toHaveBeenCalledWith(
-        mockAddress,
-        accountName,
-      );
-    });
-
-    it('adds a new HD account with a specific keyring ID and sets the account label if a name is provided', async () => {
-      const keyringId = 'test-keyring-id';
-      const accountName = 'Test Account';
-      mockAddAccounts.mockReturnValue([mockAddress]);
-      mockGetAccountByAddress.mockReturnValue(mockExpectedAccount);
-
-      await addNewHdAccount(keyringId, accountName);
-
-      expect(mockAddAccounts).toHaveBeenCalledWith(1);
-      expect(mockSetSelectedAddress).toHaveBeenCalledWith(mockAddress);
-      expect(mockSetAccountLabel).toHaveBeenCalledWith(
-        mockAddress,
-        accountName,
-      );
-    });
-
-    it('throws if the newly added account is not found', async () => {
-      mockGetAccountByAddress.mockReturnValue(undefined);
-
-      await expect(async () => await addNewHdAccount()).rejects.toThrow(
-        'Account not found',
-      );
     });
   });
 });

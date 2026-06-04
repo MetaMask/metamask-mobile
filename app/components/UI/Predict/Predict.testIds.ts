@@ -54,6 +54,57 @@ export const PredictFeedSelectorsIDs = {
   PAGER: 'predict-feed-pager',
 } as const;
 
+// ========================================
+// PREDICT POSITIONS VIEW SELECTORS
+// ========================================
+
+export const PredictPositionsViewSelectorsIDs = {
+  AVAILABLE_BALANCE_LABEL: 'predict-positions-view-available-balance-label',
+  AVAILABLE_BALANCE_SKELETON:
+    'predict-positions-view-available-balance-skeleton',
+  AVAILABLE_BALANCE_VALUE: 'predict-positions-view-available-balance-value',
+  BACK_BUTTON: 'predict-positions-view-back-button',
+  CLAIM_CTA: 'predict-positions-view-claim-cta',
+  CONTAINER: 'predict-positions-view-container',
+  HEADER: 'predict-positions-view-header',
+  HISTORY_TAB: 'predict-positions-view-history-tab',
+  HISTORY_TAB_CONTENT: 'predict-positions-view-history-tab-content',
+  POSITIONS_TAB: 'predict-positions-view-positions-tab',
+  POSITIONS_TAB_CONTENT: 'predict-positions-view-positions-tab-content',
+  SUMMARY: 'predict-positions-view-summary',
+  SUMMARY_CARD: 'predict-positions-view-summary-card',
+  TABS: 'predict-positions-view-tabs',
+  UNREALIZED_PNL_LABEL: 'predict-positions-view-unrealized-pnl-label',
+  UNREALIZED_PNL_ROW: 'predict-positions-view-unrealized-pnl-row',
+  UNREALIZED_PNL_SKELETON: 'predict-positions-view-unrealized-pnl-skeleton',
+  UNREALIZED_PNL_VALUE: 'predict-positions-view-unrealized-pnl-value',
+} as const;
+
+export const PredictPositionsEmptySelectorsIDs = {
+  BROWSE_MARKETS_CTA: 'predict-positions-empty-browse-markets-cta',
+  CONTAINER: 'predict-positions-empty',
+  DESCRIPTION: 'predict-positions-empty-description',
+  ICON: 'predict-positions-empty-icon',
+} as const;
+
+export const PredictPositionsListSelectorsIDs = {
+  CONTAINER: 'predict-positions-list',
+  LOADING_STATE: 'predict-positions-list-loading-state',
+  OPEN_POSITIONS_LIST: 'predict-positions-list-open-positions',
+  SKELETON_ROW: 'predict-positions-list-skeleton-row',
+} as const;
+
+export const PredictPositionsHistoryListSelectorsIDs = {
+  CLAIM_PENDING_SECTION: 'predict-positions-history-claim-pending-section',
+  CLAIM_PENDING_ROW: 'predict-positions-history-claim-pending-row',
+  CONTAINER: 'predict-positions-history-list',
+} as const;
+
+export const getPredictPositionsHistoryListSelector = {
+  claimPendingRow: (positionId: string) =>
+    `${PredictPositionsHistoryListSelectorsIDs.CLAIM_PENDING_ROW}-${positionId}`,
+} as const;
+
 export const getPredictFeedSelector = {
   tab: (index: number) => `${PredictFeedSelectorsIDs.TABS}-tab-${index}`,
   tabPage: (key: string) => `predict-feed-tab-page-${key}`,
@@ -301,6 +352,7 @@ export const getPredictSearchSelector = {
 
 export const PredictBalanceSelectorsIDs = {
   BALANCE_CARD: 'predict-balance-card',
+  POSITIONS_BUTTON: 'predict-balance-positions-button',
   WITHDRAW_BUTTON: 'predict-balance-withdraw-button',
 } as const;
 

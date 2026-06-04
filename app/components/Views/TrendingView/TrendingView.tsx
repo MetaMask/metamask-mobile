@@ -161,11 +161,12 @@ export const ExploreFeed: React.FC = () => {
 
   return (
     <SafeAreaView
-      edges={{ top: 'additive' }}
+      edges={{ bottom: 'additive' }}
       style={tw.style('flex-1 bg-default')}
       testID={TrendingViewSelectorsIDs.EXPLORE_SAFE_AREA}
     >
       <HeaderRoot
+        includesTopInset
         title={strings('trending.title')}
         testID={TrendingViewSelectorsIDs.EXPLORE_HEADER_ROOT}
       />

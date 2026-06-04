@@ -54,7 +54,7 @@ const VipGradientTitle = () => {
   const tw = useTailwind();
   const title = strings('rewards.vip.splash_title');
   const titleStyle = tw.style(
-    'text-center text-[42px] leading-[42px]',
+    'text-center text-[42px] leading-[42px] pt-[6px]',
     titleFontStyle,
     titleColorStyle,
   );
