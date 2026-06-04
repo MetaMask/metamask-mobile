@@ -167,13 +167,15 @@ export function useTokensData(
   const [isLoading, setIsLoading] = useState(!allCached);
 
   useEffect(() => {
-    if (!assetIdsKey) {
-      setIsLoading(false);
-      return;
-    }
+    const ids = assetIdsKey ? assetIdsKey.split(',') : [];
 
-    const ids = assetIdsKey.split(',');
-    if (ids.every((id) => tokenCache[id + suffix])) {
+    if (allCached) {
+      // All requested IDs are already cached (or none requested). Sync state to
+      // the current IDs so direct callers (e.g. useERC20Tokens, useAccountTokens)
+      // read the cached tokens rather than a stale map from a previous render.
+      setTokensByAssetId(
+        Object.fromEntries(ids.map((id) => [id, tokenCache[id + suffix]])),
+      );
       setIsLoading(false);
       return;
     }
@@ -183,7 +185,7 @@ export function useTokensData(
 
     (async () => {
       try {
-        const data = await fetchTokenAssets(assetIdsKey.split(','), {
+        const data = await fetchTokenAssets(ids, {
           includeRwaData,
         });
         if (!cancelled) {
@@ -209,7 +211,7 @@ export function useTokensData(
     return () => {
       cancelled = true;
     };
-  }, [assetIdsKey, includeRwaData, suffix]);
+  }, [assetIdsKey, includeRwaData, suffix, allCached]);
 
   return { tokens: tokensByAssetId, isLoading };
 }

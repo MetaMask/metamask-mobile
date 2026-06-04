@@ -159,6 +159,46 @@ describe('useTokensData', () => {
     expect(mockHandleFetch).not.toHaveBeenCalled();
   });
 
+  it('hydrates tokens from cache when assetIds change to an already-cached set', async () => {
+    const assetIdA = makeAssetId();
+    const assetIdB = makeAssetId();
+    // The hex address survives URL-encoding (the CAIP prefix's ":" and "/" do not),
+    // so match on it to decide which token the mocked request resolves.
+    const addressB = assetIdB.split('erc20:')[1];
+    mockHandleFetch.mockImplementation((url: string) =>
+      Promise.resolve(
+        makeTokenResponse(url.includes(addressB) ? assetIdB : assetIdA),
+      ),
+    );
+
+    // Prime the module-level cache for B in a separate instance.
+    const { result: priming } = renderHook([assetIdB]);
+    await waitFor(() => {
+      expect(priming.current.tokens[assetIdB]?.name).toBe(TOKEN_NAME_MOCK);
+    });
+
+    // This instance starts on A, then switches to the already-cached B.
+    let ids = [assetIdA];
+    const { result, rerender } = renderHookWithProvider(
+      () => useTokensData(ids),
+      { state: {} },
+    );
+    await waitFor(() => {
+      expect(result.current.tokens[assetIdA]?.name).toBe(TOKEN_NAME_MOCK);
+    });
+
+    ids = [assetIdB];
+    act(() => {
+      rerender(undefined);
+    });
+
+    await waitFor(() => {
+      expect(result.current.tokens[assetIdB]?.name).toBe(TOKEN_NAME_MOCK);
+      expect(result.current.tokens[assetIdA]).toBeUndefined();
+      expect(result.current.isLoading).toBe(false);
+    });
+  });
+
   it('looks up token by lowercase key when API returns checksummed assetId', async () => {
     const lowercaseId = makeAssetId(); // already lowercase from makeAssetId
     const checksummedId = lowercaseId.replace(/0x[0-9a-f]+/, (m) =>
