@@ -4,7 +4,6 @@
 import React, {
   forwardRef,
   useCallback,
-  useEffect,
   useMemo,
   useRef,
   useImperativeHandle,
