@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { usePerpsMarkets } from './usePerpsMarkets';
 import { usePerpsSearch } from './usePerpsSearch';
@@ -169,6 +169,12 @@ export const usePerpsMarketListView = ({
   const [marketTypeFilter, setMarketTypeFilter] = useState<MarketTypeFilter>(
     defaultMarketTypeFilter,
   );
+
+  // Sync filter when route params change (e.g. navigating from PerpsProducts
+  // to an already-mounted market list screen — useState ignores new initials).
+  useEffect(() => {
+    setMarketTypeFilter(defaultMarketTypeFilter);
+  }, [defaultMarketTypeFilter]);
 
   // Use search hook for search state and filtering (search bar always visible in UI)
   const searchHook = usePerpsSearch({ markets: allMarkets });
