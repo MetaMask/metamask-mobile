@@ -10,6 +10,7 @@ import {
   buildBatchSellQuoteRequestData,
   getBatchSellAtomicSourceAmount,
   getBatchSellSourceTokenAmount,
+  hasValidBatchSellSourceAmounts,
   useBatchSellQuoteRequest,
 } from '.';
 
@@ -116,6 +117,42 @@ describe('useBatchSellQuoteRequest', () => {
     const amount = getBatchSellAtomicSourceAmount(ethToken, '0.749');
 
     expect(amount).toBe('749000000000000000');
+  });
+
+  it('returns false from hasValidBatchSellSourceAmounts when all source amounts are zero', () => {
+    expect(
+      hasValidBatchSellSourceAmounts(
+        [ethToken, uniToken],
+        {
+          [ethAssetId]: '0',
+          'eip155:1/erc20:0x2222222222222222222222222222222222222222': '0',
+        },
+        usdcToken,
+      ),
+    ).toBe(false);
+  });
+
+  it('returns true from hasValidBatchSellSourceAmounts when at least one source amount is sellable', () => {
+    expect(
+      hasValidBatchSellSourceAmounts(
+        [ethToken, uniToken],
+        {
+          [ethAssetId]: '0',
+          'eip155:1/erc20:0x2222222222222222222222222222222222222222': '1',
+        },
+        usdcToken,
+      ),
+    ).toBe(true);
+  });
+
+  it('returns false from hasValidBatchSellSourceAmounts when destination token is missing', () => {
+    expect(
+      hasValidBatchSellSourceAmounts(
+        [ethToken],
+        { [ethAssetId]: ethToken.balance },
+        undefined,
+      ),
+    ).toBe(false);
   });
 
   it('builds quote request data for non-zero Batch Sell source token amounts', () => {
