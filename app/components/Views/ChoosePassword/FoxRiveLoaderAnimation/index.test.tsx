@@ -124,14 +124,14 @@ describe('FoxRiveLoaderAnimation', () => {
   });
 
   it('starts Rive animation with correct state machine', () => {
-    // Arrange & Act
-    const { toJSON } = render(<FoxRiveLoaderAnimation />);
+    render(<FoxRiveLoaderAnimation />);
 
-    // Advance timer to trigger Rive animation setup
     jest.advanceTimersByTime(100);
 
-    // Assert - Component continues to render properly
-    expect(toJSON()).not.toBeNull();
+    expect(mockRiveMethods.fireState).toHaveBeenCalledWith(
+      'FoxRaiseUp',
+      'Loader2',
+    );
   });
 
   it('uses dark mode when theme is dark', () => {
