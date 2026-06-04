@@ -38,6 +38,8 @@ import type {
   GetMarketsParams,
   OrderPreview,
   PredictFees,
+  PredictFilterOption,
+  PredictFilterOptionsParams,
   PredictMarketListParams,
   PreviewOrderParams,
   SearchMarketsParams,
@@ -1428,7 +1430,7 @@ export const fetchEventsFromPolymarketApi = async (
  * Mapping rules:
  * - `order`: `volume24hr`/`liquidity` -> descending; `ending_soon` -> `order=endDate&ascending=true`; `newest` -> `order=startDate&ascending=false`. Defaults to `volume24hr` (descending).
  * - `status`: `open` -> `active=true&archived=false&closed=false`; `closed`/`resolved` -> `closed=true`. `resolved` intentionally maps to the same `closed=true` params (no separate server-side filter).
- * - `tags` -> repeated `tag_id`; `series` -> repeated `series_id`.
+ * - `tags` -> repeated `tag_id`; `tagSlugs` -> repeated `tag_slug`; `series` -> repeated `series_id`.
  * - `live` -> `live=true`. `limit` defaults to 20. `afterCursor` -> `after_cursor`.
  * - `search` -> `title_search` (case-insensitive title filter). Composes with cursor pagination, so it stays on this endpoint (kept in the provider layer). Blank/whitespace is ignored (browse mode).
  */
@@ -1437,6 +1439,7 @@ export const buildMarketListQueryParams = (
 ): URLSearchParams => {
   const {
     tags,
+    tagSlugs,
     series,
     order = 'volume24hr',
     status = 'open',
@@ -1485,6 +1488,7 @@ export const buildMarketListQueryParams = (
   }
 
   tags?.forEach((tagId) => queryParams.append('tag_id', tagId));
+  tagSlugs?.forEach((tagSlug) => queryParams.append('tag_slug', tagSlug));
   series?.forEach((seriesId) => queryParams.append('series_id', seriesId));
 
   if (live) {
@@ -1541,6 +1545,98 @@ export const fetchMarketsFromPolymarketApi = async (
     events: responseData.events,
     nextCursor: responseData.next_cursor ?? null,
   };
+};
+
+/**
+ * Minimal shape of a tag returned by Polymarket's Gamma related-tags endpoint.
+ * Only the fields we normalize from are typed.
+ */
+export interface PolymarketRelatedTag {
+  id: string | number;
+  label?: string;
+  slug: string;
+}
+
+/**
+ * Fetches related/popular tags for a given root slug from the Gamma related-tags
+ * endpoint. Use `'all'` for the general Popular Today/Trending list, or a feed's
+ * base tag slug (e.g. `'politics'`) for feed-specific related tags.
+ *
+ * Throws on non-ok / malformed responses so the caller can decide on a
+ * best-effort fallback (the provider catches and returns an empty list).
+ */
+export const fetchRelatedTagsFromPolymarketApi = async (
+  slug: string,
+): Promise<PolymarketRelatedTag[]> => {
+  const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
+
+  const endpoint = `${GAMMA_API_ENDPOINT}/tags/slug/${encodeURIComponent(
+    slug,
+  )}/related-tags/tags?omit_empty=true&status=active`;
+
+  DevLogger.log('Fetching related tags via Polymarket API:', endpoint);
+
+  const response = await fetch(endpoint);
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch related tags');
+  }
+
+  const data = await response.json();
+
+  if (!Array.isArray(data)) {
+    throw new Error('Malformed related-tags response');
+  }
+
+  return data as PolymarketRelatedTag[];
+};
+
+export interface NormalizeRelatedTagsOptions {
+  source: PredictFilterOptionsParams['source'];
+  baseParams?: PredictMarketListParams;
+  limit?: number;
+  /** Stable ids (slugs) already used by static filters; matching options are dropped. */
+  existingIds?: Iterable<string>;
+}
+
+/**
+ * Normalizes raw related tags into {@link PredictFilterOption}s. Each option's
+ * `params` are ready to feed straight into `listMarkets` (slug-based, since the
+ * related-tags endpoint is slug-only). Dedupes by stable slug/id (not label),
+ * drops any in `existingIds`, and applies `limit`.
+ */
+export const normalizeRelatedTagsToFilterOptions = (
+  tags: PolymarketRelatedTag[],
+  { source, baseParams, limit, existingIds }: NormalizeRelatedTagsOptions,
+): PredictFilterOption[] => {
+  const seen = new Set<string>(existingIds ?? []);
+  const options: PredictFilterOption[] = [];
+
+  for (const tag of tags) {
+    const slug = tag?.slug?.trim();
+    if (!slug || seen.has(slug)) {
+      continue;
+    }
+    seen.add(slug);
+
+    options.push({
+      id: slug,
+      label: tag.label?.trim() || slug,
+      source,
+      params: {
+        ...baseParams,
+        tagSlugs: [slug],
+        order: 'volume24hr',
+        status: 'open',
+      },
+    });
+
+    if (limit !== undefined && options.length >= limit) {
+      break;
+    }
+  }
+
+  return options;
 };
 
 export interface SearchEventsResult {
