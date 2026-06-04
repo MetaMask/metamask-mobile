@@ -140,6 +140,7 @@ export const SUPPORTED_ACTIONS = [
   ACTIONS.CARD_HOME,
   ACTIONS.SHIELD,
   ACTIONS.NFT,
+  ACTIONS.AGENTIC_CLI,
   ACTIONS.ON_RAMP,
 ] as const satisfies readonly ACTIONS[];
 

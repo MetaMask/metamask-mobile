@@ -544,6 +544,10 @@ const Routes = {
   },
   FEATURE_FLAG_OVERRIDE: 'FeatureFlagOverride',
   SECURITY_TRUST: 'SecurityTrust',
+  AGENTIC_CLI_APPROVAL: {
+    ID: 'AgenticCliApproval',
+    CONFIRM: 'AgenticCliApprovalConfirm',
+  },
   NAVIGATION_DEV_PANEL: 'NavigationDevPanel',
 };
 
