@@ -235,6 +235,11 @@ export function useQuickBuyController(
   // (slider drag end, tap, or text input) — NOT on every drag tick. This
   // prevents spamming quote requests while the thumb is moving.
   const [quotedUsdAmount, setQuotedUsdAmount] = useState('');
+  // Bumped whenever the user commits an amount in a single discrete gesture
+  // (slider release) so the quotes hook fetches immediately instead of waiting
+  // out the typing debounce. Typed input intentionally does NOT bump this — it
+  // stays debounced to avoid a request per keystroke.
+  const [immediateFetchToken, setImmediateFetchToken] = useState(0);
   // Fiat-first: every input path (slider, hidden TextInput, amount-area press)
   // edits the USD amount, so the primary label must default to fiat as well.
   // The user can swap to crypto display via the toggle once a quote is available.
@@ -474,6 +479,7 @@ export function useQuickBuyController(
     sourceTokenAmount,
     analyticsContext: quotesAnalyticsContext,
     selectedQuoteRequestId,
+    immediateFetchToken,
   });
 
   // Reset manual quote selection whenever the user changes amount, token, or slippage.
@@ -745,6 +751,9 @@ export function useQuickBuyController(
       setQuotedUsdAmount(nextUsd);
       const numericUsd = Number(nextUsd);
       if (rounded > 0 && Number.isFinite(numericUsd) && numericUsd > 0) {
+        // Slider release is a single committed value — fetch the quote
+        // immediately rather than waiting out the typing debounce.
+        setImmediateFetchToken((token) => token + 1);
         trackAmountSelected(
           numericUsd,
           SocialLeaderboardEventValues.AMOUNT_SELECTION_METHOD.SLIDER,
