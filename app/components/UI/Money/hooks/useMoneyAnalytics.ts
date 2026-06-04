@@ -19,6 +19,13 @@ import {
 } from '../constants/moneyEvents';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 import { MonetizedPrimitive } from '../../../../core/Analytics/MetaMetrics.types';
+import {
+  getMMPayChainIds,
+  isMoneyDepositTx,
+  isMoneyWithdrawTx,
+} from '../utils/moneyTransactionGuards';
+import { TransactionType } from '@metamask/transaction-controller';
+import { snakeCase } from 'lodash';
 
 export const useMoneyAnalytics = ({
   screen_name,
@@ -121,11 +128,25 @@ export const useMoneyAnalytics = ({
 
   const trackActivitySurfaceClicked = useCallback(
     (properties: MoneyActivitySurfaceClickedEventProperties) => {
+      const { transaction, ...rest } = properties;
+      const { sourceChainId, destinationChainId } =
+        getMMPayChainIds(transaction);
+
+      const nestedTxType = isMoneyDepositTx(transaction)
+        ? TransactionType.moneyAccountDeposit
+        : isMoneyWithdrawTx(transaction)
+          ? TransactionType.moneyAccountWithdraw
+          : transaction.type;
+
       trackEvent(
         createEventBuilder(MetaMetricsEvents.MONEY_SURFACE_CLICKED)
           .addProperties({
             ...getBaseProperties(),
-            ...properties,
+            ...rest,
+            transaction_type: snakeCase(nestedTxType),
+            transaction_status: transaction.status,
+            chain_id_source: sourceChainId,
+            chain_id_destination: destinationChainId,
             monetized_primitive: MonetizedPrimitive.MoneyAccount,
           })
           .build(),
@@ -159,6 +180,10 @@ export const useMoneyAnalytics = ({
     );
   };
 
+  const trackScreenViewed = () =>
+    trackSurfaceViewed(MONEY_SURFACE_TYPES.SCREEN);
+
+  /** For components that exist within a screen */
   const trackComponentViewed = () =>
     trackSurfaceViewed(MONEY_SURFACE_TYPES.COMPONENT);
 
@@ -189,6 +214,7 @@ export const useMoneyAnalytics = ({
     trackActivitySurfaceClicked,
 
     // View events
+    trackScreenViewed,
     trackBottomSheetViewed,
     trackComponentViewed,
 

@@ -54,6 +54,7 @@ import { AssetType } from '../../../../Views/confirmations/types/token';
 import { MONEY_ONBOARDING_TOTAL_STEPS } from '../../components/MoneyOnboardingCard/MoneyOnboardingCard';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import useMountEffect from '../../hooks/useMountEffect';
 import {
   COMPONENT_NAMES,
   MONEY_TOOLTIP_NAMES,
@@ -66,15 +67,8 @@ import {
   MONEY_BUTTON_TYPES,
 } from '../../constants/moneyEvents';
 import { strings } from '../../../../../../locales/i18n';
-import {
-  TransactionMeta,
-  TransactionType,
-} from '@metamask/transaction-controller';
-import {
-  getMMPayChainIds,
-  isMoneyDepositTx,
-  isMoneyWithdrawTx,
-} from '../../utils/moneyTransactionGuards';
+import { TransactionMeta } from '@metamask/transaction-controller';
+
 const Divider = () => <Box twClassName="h-px bg-border-muted my-5" />;
 
 const MoneyHomeView = () => {
@@ -91,6 +85,7 @@ const MoneyHomeView = () => {
     trackTokenButtonClicked,
     trackTokenSurfaceClicked,
     trackActivitySurfaceClicked,
+    trackScreenViewed,
   } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.MONEY_HOME,
   });
@@ -109,6 +104,8 @@ const MoneyHomeView = () => {
 
   // Pull-to-refresh state
   const [refreshing, setRefreshing] = useState(false);
+
+  useMountEffect(trackScreenViewed);
 
   const handlePullRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -399,12 +396,7 @@ const MoneyHomeView = () => {
   );
 
   const handleTokenButtonPress = useCallback(
-    async (
-      token: AssetType,
-      // zero-based index of selected token
-      tokenIndex: number,
-      tokenCount: number,
-    ) => {
+    async (token: AssetType, tokenIndex: number, tokenCount: number) => {
       try {
         trackTokenButtonClicked({
           button_type: MONEY_BUTTON_TYPES.TEXT,
@@ -418,9 +410,9 @@ const MoneyHomeView = () => {
           redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
           redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
           token_symbol: token.symbol,
-          token_index: tokenIndex,
+          token_position_in_list: tokenIndex + 1,
           token_chain_id: token.chainId ?? '',
-          token_count: tokenCount,
+          tokens_in_list: tokenCount,
         });
 
         await initiateDeposit({
@@ -440,12 +432,7 @@ const MoneyHomeView = () => {
   );
 
   const handleTokenCardPress = useCallback(
-    async (
-      token: AssetType,
-      // zero-based index of selected token
-      tokenIndex: number,
-      tokenCount: number,
-    ) => {
+    async (token: AssetType, tokenIndex: number, tokenCount: number) => {
       try {
         trackTokenSurfaceClicked({
           component_name:
@@ -453,9 +440,9 @@ const MoneyHomeView = () => {
           redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
           redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
           token_symbol: token.symbol,
-          token_index: tokenIndex,
+          token_position_in_list: tokenIndex + 1,
           token_chain_id: token.chainId ?? '',
-          token_count: tokenCount,
+          tokens_in_list: tokenCount,
         });
 
         await initiateDeposit({
@@ -565,22 +552,11 @@ const MoneyHomeView = () => {
 
   const handleActivityItemPress = useCallback(
     (transaction: TransactionMeta) => {
-      const { sourceChainId, destinationChainId } =
-        getMMPayChainIds(transaction);
-
-      const nestedTxType = isMoneyDepositTx(transaction)
-        ? TransactionType.moneyAccountDeposit
-        : isMoneyWithdrawTx(transaction)
-          ? TransactionType.moneyAccountWithdraw
-          : transaction.type;
-
       trackActivitySurfaceClicked({
-        transaction_type: nestedTxType,
-        transaction_status: transaction.status,
-        chain_id_source: sourceChainId,
-        chain_id_destination: destinationChainId,
+        transaction,
         redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
         redirect_target: SCREEN_NAMES.MONEY_ACTIVITY_DETAILS,
+        component_name: COMPONENT_NAMES.MONEY_ACTIVITY_LIST_ITEM,
       });
 
       navigation.navigate(Routes.MONEY.MODALS.ROOT, {

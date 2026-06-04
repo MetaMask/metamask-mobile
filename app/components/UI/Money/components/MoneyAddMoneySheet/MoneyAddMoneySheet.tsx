@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -38,6 +38,7 @@ import {
 import styleSheet from './MoneyAddMoneySheet.styles';
 import { MoneyAddMoneySheetTestIds } from './MoneyAddMoneySheet.testIds';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import useMountEffect from '../../hooks/useMountEffect';
 import {
   BOTTOM_SHEET_NAMES,
   COMPONENT_NAMES,
@@ -58,7 +59,6 @@ interface Option {
 
 const MoneyAddMoneySheet: React.FC = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const didMountRef = useRef(false);
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
   const surfaceClass = useElevatedSurface();
@@ -84,11 +84,7 @@ const MoneyAddMoneySheet: React.FC = () => {
     bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_ADD_MONEY_SHEET,
   });
 
-  useEffect(() => {
-    if (didMountRef.current) return;
-    didMountRef.current = true;
-    trackBottomSheetViewed();
-  }, [trackBottomSheetViewed]);
+  useMountEffect(trackBottomSheetViewed);
 
   const closeAndNavigate = useCallback((navigateFn: () => void) => {
     sheetRef.current?.onCloseBottomSheet(navigateFn);

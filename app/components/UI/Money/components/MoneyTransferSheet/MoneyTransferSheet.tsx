@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -31,6 +31,7 @@ import {
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import useMountEffect from '../../hooks/useMountEffect';
 
 interface ActiveOption {
   label: string;
@@ -48,7 +49,6 @@ interface DisabledOption {
 const MoneyTransferSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
-  const didMountRef = useRef(false);
   const { styles } = useStyles(styleSheet, {});
   const { initiateWithdrawal } = useMoneyAccountWithdrawal();
   const surfaceClass = useElevatedSurface();
@@ -61,11 +61,7 @@ const MoneyTransferSheet = () => {
     bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_TRANSFER_MONEY_SHEET,
   });
 
-  useEffect(() => {
-    if (didMountRef.current) return;
-    didMountRef.current = true;
-    trackBottomSheetViewed();
-  }, [trackBottomSheetViewed]);
+  useMountEffect(trackBottomSheetViewed);
 
   const handleGoBack = useCallback(() => {
     navigation.goBack();

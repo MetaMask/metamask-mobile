@@ -14,7 +14,6 @@ import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
   COMPONENT_NAMES,
-  MONEY_ONBOARDING_EVENT_TYPES,
   MONEY_ONBOARDING_STEP_ACTIONS,
   REDIRECT_TARGETS_TYPES,
   SCREEN_NAMES,
@@ -55,7 +54,6 @@ const MoneyOnboardingCard = () => {
   const handleCardCtaPress = useCallback(
     (stepTitleEn: string) => {
       const baseProperties = {
-        type: MONEY_ONBOARDING_EVENT_TYPES.STEP_BUTTON_CLICKED,
         step: currentStep + 1, // Use 1-based index for event tracking to match total_steps count.
         step_title: stepTitleEn,
         total_steps: MONEY_ONBOARDING_TOTAL_STEPS,

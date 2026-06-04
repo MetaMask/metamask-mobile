@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { SectionList, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { type TransactionMeta } from '@metamask/transaction-controller';
 import {
   Box,
   BoxAlignItems,
@@ -29,6 +30,13 @@ import { onchainItem, type MoneyActivityItem } from '../../types/moneyActivity';
 import { MoneyActivityFilter } from '../../constants/mockActivityData';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MoneyActivityViewTestIds } from './MoneyActivityView.testIds';
+import useMountEffect from '../../hooks/useMountEffect';
+import {
+  COMPONENT_NAMES,
+  REDIRECT_TARGETS_TYPES,
+  SCREEN_NAMES,
+} from '../../constants/moneyEvents';
+import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
@@ -73,6 +81,12 @@ const MoneyActivityView = () => {
   const { colors } = useTheme();
   const [filter, setFilter] = useState(MoneyActivityFilter.All);
 
+  const { trackScreenViewed, trackActivitySurfaceClicked } = useMoneyAnalytics({
+    screen_name: SCREEN_NAMES.MONEY_ACTIVITY,
+  });
+
+  useMountEffect(trackScreenViewed);
+
   const {
     allTransactions,
     deposits,
@@ -111,13 +125,20 @@ const MoneyActivityView = () => {
   }, [navigation]);
 
   const handleItemPress = useCallback(
-    (transactionId: string) => {
+    (transaction: TransactionMeta) => {
+      trackActivitySurfaceClicked({
+        transaction,
+        redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
+        redirect_target: SCREEN_NAMES.MONEY_ACTIVITY_DETAILS,
+        component_name: COMPONENT_NAMES.MONEY_ACTIVITY_LIST_ITEM,
+      });
+
       navigation.navigate(Routes.MONEY.MODALS.ROOT, {
         screen: Routes.MONEY.MODALS.TRANSACTION_DETAILS_SHEET,
-        params: { transactionId },
+        params: { transactionId: transaction.id },
       });
     },
-    [navigation],
+    [navigation, trackActivitySurfaceClicked],
   );
 
   const filtered = useMemo(() => {

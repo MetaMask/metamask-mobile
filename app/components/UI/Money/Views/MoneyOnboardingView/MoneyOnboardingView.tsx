@@ -23,7 +23,6 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
   COMPONENT_NAMES,
-  MONEY_ONBOARDING_EVENT_TYPES,
   MONEY_ONBOARDING_STEP_ACTIONS,
   REDIRECT_TARGETS_TYPES,
   SCREEN_NAMES,

@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
 
 import {
+  TransactionMeta,
   TransactionStatus,
-  TransactionType,
 } from '@metamask/transaction-controller';
 import { METAMASK_SUPPORT_URL } from '../../../../constants/urls';
 import AppConstants from '../../../../core/AppConstants';
@@ -57,6 +57,7 @@ export enum COMPONENT_NAMES {
 
   MONEY_POTENTIAL_EARNINGS_SECTION_HEADER = 'money_potential_earnings_section_header',
   MONEY_ACTIVITY_SECTION_HEADER = 'money_activity_section_header',
+  MONEY_ACTIVITY_LIST_ITEM = 'money_activity_list_item',
   MONEY_HOW_IT_WORKS_SECTION_HEADER = 'money_how_it_works_section_header',
   MONEY_CARD_SECTION_HEADER = 'money_card_section_header',
 
@@ -74,6 +75,7 @@ export enum COMPONENT_NAMES {
   MONEY_POTENTIAL_EARNINGS = 'money_potential_earnings',
   MONEY_POTENTIAL_EARNINGS_SECTION = 'money_potential_earnings_section',
   MONEY_POTENTIAL_EARNINGS_SECTION_TOKEN_ROW = 'money_potential_earnings_section_token_row',
+  MONEY_POTENTIAL_EARNINGS_TOKEN_ROW = 'money_potential_earnings_token_row',
   MONEY_ADD_MONEY_SHEET_CONVERT_CRYPTO = 'money_add_money_sheet_convert_crypto',
   MONEY_ADD_MONEY_SHEET_DEPOSIT_FUNDS = 'money_add_money_sheet_deposit_funds',
   MONEY_ADD_MONEY_SHEET_MOVE_MUSD = 'money_add_money_sheet_move_musd',
@@ -81,6 +83,7 @@ export enum COMPONENT_NAMES {
   MONEY_TRANSFER_MONEY_SHEET_PERPS_ACCOUNT = 'money_transfer_money_sheet_perps_account',
   MONEY_TRANSFER_MONEY_SHEET_PREDICTIONS_ACCOUNT = 'money_transfer_money_sheet_predictions_account',
   MONEY_ACTIVITY_SECTION = 'money_activity_section',
+  MONEY_CONVERT_CRYPTO_BUTTON = 'money_convert_crypto_button',
 }
 
 export enum REDIRECT_TARGETS_TYPES {
@@ -125,14 +128,16 @@ export type MoneyTokenSurfaceClickedEventProperties =
   MoneySurfaceClickedEventProperties & TokenRowEventProperties;
 
 type MoneyTransactionEventProperties = {
-  transaction_type: TransactionType | undefined;
+  transaction_type: string | undefined;
   transaction_status: TransactionStatus;
   chain_id_source: string | undefined;
   chain_id_destination: string | undefined;
 };
 
 export type MoneyActivitySurfaceClickedEventProperties =
-  MoneySurfaceClickedEventProperties & MoneyTransactionEventProperties;
+  MoneySurfaceClickedEventProperties & {
+    transaction: TransactionMeta;
+  };
 
 /**
  * Base properties for all Money events.
@@ -166,9 +171,9 @@ export enum MONEY_BUTTON_TYPES {
 
 type TokenRowEventProperties = {
   token_symbol: string;
-  token_index: number;
+  token_position_in_list: number;
   token_chain_id: string;
-  token_count: number;
+  tokens_in_list: number;
 };
 
 export type MoneyTokenRowButtonClickedEventProperties =
@@ -204,12 +209,6 @@ export type MoneyIconButtonClickedEventProperties = Partial<
     /** Number of buttons in the button row. */
     button_row_button_count?: number;
   };
-
-export enum MONEY_ONBOARDING_EVENT_TYPES {
-  STEP_VIEWED = 'step_viewed',
-  STEP_BUTTON_CLICKED = 'step_button_clicked',
-  COMPLETED = 'completed',
-}
 
 export enum MONEY_ONBOARDING_STEP_ACTIONS {
   // Generic actions

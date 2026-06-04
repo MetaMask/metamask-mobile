@@ -45,12 +45,12 @@ interface MoneyPotentialEarningsProps {
   onTokenCardPress?: (
     token: AssetType,
     index: number,
-    visibleTokensCount: number,
+    tokensCount: number,
   ) => void;
   onTokenButtonPress?: (
     token: AssetType,
     index: number,
-    visibleTokensCount: number,
+    tokensCount: number,
   ) => void;
   onViewAllPress?: () => void;
   onHeaderPress?: () => void;
