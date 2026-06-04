@@ -8114,7 +8114,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/bridge-status-controller@npm:^72.0.0":
+"@metamask/bridge-status-controller@npm:72.0.0":
   version: 72.0.0
   resolution: "@metamask/bridge-status-controller@npm:72.0.0"
   dependencies:
@@ -8135,6 +8135,30 @@ __metadata:
     bignumber.js: "npm:^9.1.2"
     uuid: "npm:^8.3.2"
   checksum: 10/123fec19759bd56988e937c7edb7e72cdfa1acd26d8b3870338d320dfc64b1f52d8d540b5e41cdabe06f147a035f3f71f0d46ad8063045fc825f417a61b43cbf
+  languageName: node
+  linkType: hard
+
+"@metamask/bridge-status-controller@patch:@metamask/bridge-status-controller@npm%3A72.0.0#~/.yarn/patches/@metamask-bridge-status-controller-npm-72.0.0-eb8f9d1327.patch":
+  version: 72.0.0
+  resolution: "@metamask/bridge-status-controller@patch:@metamask/bridge-status-controller@npm%3A72.0.0#~/.yarn/patches/@metamask-bridge-status-controller-npm-72.0.0-eb8f9d1327.patch::version=72.0.0&hash=e9fe8e"
+  dependencies:
+    "@metamask/accounts-controller": "npm:^38.1.2"
+    "@metamask/base-controller": "npm:^9.1.0"
+    "@metamask/bridge-controller": "npm:^73.2.0"
+    "@metamask/controller-utils": "npm:^12.1.0"
+    "@metamask/gas-fee-controller": "npm:^26.2.2"
+    "@metamask/keyring-controller": "npm:^26.0.0"
+    "@metamask/messenger": "npm:^1.2.0"
+    "@metamask/network-controller": "npm:^32.0.0"
+    "@metamask/polling-controller": "npm:^16.0.6"
+    "@metamask/profile-sync-controller": "npm:^28.1.1"
+    "@metamask/snaps-controllers": "npm:^19.0.0"
+    "@metamask/superstruct": "npm:^3.1.0"
+    "@metamask/transaction-controller": "npm:^66.0.0"
+    "@metamask/utils": "npm:^11.9.0"
+    bignumber.js: "npm:^9.1.2"
+    uuid: "npm:^8.3.2"
+  checksum: 10/d87fe46b220326ff55a5ede9eae02f815ac2412611e67d8f5d11b7c88ab85f38cb930e6ce010e78d356349c1dfd9605802fea856948571c922dd17bd1a155540
   languageName: node
   linkType: hard
 
