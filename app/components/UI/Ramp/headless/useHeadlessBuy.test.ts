@@ -312,6 +312,274 @@ describe('useHeadlessBuy', () => {
       ).rejects.toThrow(/could not resolve wallet address/);
       expect(mockGetQuotesRaw).not.toHaveBeenCalled();
     });
+
+    const assetId = 'eip155:59144/erc20:0xabc';
+    const cardPaymentMethod = '/payments/debit-credit-card';
+    const transakProvider = '/providers/transak-native';
+    const baseQuotesParams = {
+      assetId,
+      amount: 5,
+      walletAddress: '0xWALLET',
+      paymentMethodIds: [cardPaymentMethod],
+      providerIds: [transakProvider],
+    };
+    const emptyQuotesResponse = {
+      success: [],
+      sorted: [],
+      error: [],
+      customActions: [],
+    };
+    const quoteResponse = (overrides = {}) => ({
+      ...emptyQuotesResponse,
+      ...overrides,
+    });
+    const seedQuote = {
+      provider: transakProvider,
+      quote: {
+        amountIn: 5,
+        amountOut: 0.001,
+        paymentMethod: cardPaymentMethod,
+      },
+      providerInfo: {
+        id: transakProvider,
+        name: 'Transak',
+        type: 'native' as const,
+      },
+    } as unknown as Parameters<
+      ReturnType<typeof useHeadlessBuy>['startHeadlessBuy']
+    >[0]['quote'];
+    const startParams = { quote: seedQuote, assetId, amount: 5 };
+    const startActiveSession = () => {
+      const { result } = renderHook(() => useHeadlessBuy());
+      const callbacks = {
+        onOrderCreated: jest.fn(),
+        onError: jest.fn(),
+        onClose: jest.fn(),
+      };
+      let sessionId: string | undefined;
+      act(() => {
+        sessionId = result.current.startHeadlessBuy(
+          startParams,
+          callbacks,
+        ).sessionId;
+      });
+      return { callbacks, result, sessionId };
+    };
+
+    describe('provider rejection inspection (Fix #2)', () => {
+      it('rejects with LIMIT_EXCEEDED and routes through the active session', async () => {
+        mockGetQuotesRaw.mockResolvedValueOnce(
+          quoteResponse({
+            error: [{ provider: 'transak', error: 'Below minimum buy amount' }],
+          }),
+        );
+        const { callbacks, result, sessionId } = startActiveSession();
+
+        await expect(
+          act(async () => {
+            await result.current.getQuotes(baseQuotesParams);
+          }),
+        ).rejects.toMatchObject({
+          headlessBuyErrorCode: 'LIMIT_EXCEEDED',
+        });
+        expect(callbacks.onError).toHaveBeenCalledWith(
+          expect.objectContaining({
+            code: 'LIMIT_EXCEEDED',
+            details: expect.objectContaining({
+              providerErrors: [
+                expect.objectContaining({
+                  provider: 'transak',
+                  message: 'Below minimum buy amount',
+                }),
+              ],
+              successCount: 0,
+              errorCount: 1,
+              source: 'network-reject',
+            }),
+          }),
+        );
+        expect(callbacks.onClose).toHaveBeenCalledWith({ reason: 'unknown' });
+        expect(sessionId).toBeDefined();
+        expect(getSession(sessionId)).toBeUndefined();
+      });
+
+      it('rejects with the structured error when no session is active', async () => {
+        mockGetQuotesRaw.mockResolvedValueOnce(
+          quoteResponse({
+            error: [{ provider: 'transak', error: 'Below minimum buy amount' }],
+          }),
+        );
+        const { result } = renderHook(() => useHeadlessBuy());
+        await expect(
+          result.current.getQuotes(baseQuotesParams),
+        ).rejects.toMatchObject({
+          headlessBuyErrorCode: 'LIMIT_EXCEEDED',
+          details: expect.objectContaining({ errorCount: 1, successCount: 0 }),
+        });
+      });
+
+      it.each([
+        [
+          'non-limit messages',
+          [{ provider: 'transak', error: 'Payment provider unavailable' }],
+          'QUOTE_FAILED',
+        ],
+        [
+          'rate-limit messages',
+          [{ provider: 'transak', error: 'Rate limit exceeded' }],
+          'QUOTE_FAILED',
+        ],
+        [
+          'SDK limit codes over message parsing',
+          [
+            {
+              provider: 'transak',
+              error: 'Some unrelated message',
+              code: 'AMOUNT_LIMIT_EXCEEDED',
+            },
+          ],
+          'LIMIT_EXCEEDED',
+        ],
+        [
+          'mixed provider SDK codes',
+          [
+            {
+              provider: 'transak',
+              error: 'Below minimum buy amount',
+              code: 'AMOUNT_LIMIT_EXCEEDED',
+            },
+            {
+              provider: 'moonpay',
+              error: 'Provider throttled - try again later',
+              code: 'RATE_LIMIT_EXCEEDED',
+            },
+          ],
+          'LIMIT_EXCEEDED',
+        ],
+      ])('classifies %s as %s', async (_name, error, headlessBuyErrorCode) => {
+        mockGetQuotesRaw.mockResolvedValueOnce(quoteResponse({ error }));
+        const { result } = renderHook(() => useHeadlessBuy());
+        await expect(
+          result.current.getQuotes(baseQuotesParams),
+        ).rejects.toMatchObject({ headlessBuyErrorCode });
+      });
+
+      it.each([
+        ['empty success and error', quoteResponse()],
+        [
+          'non-empty success',
+          quoteResponse({
+            success: [{ provider: 'transak', amountOut: 0.01 }],
+            sorted: [{ provider: 'transak', amountOut: 0.01 }],
+          }),
+        ],
+      ])('returns the response unchanged when %s', async (_name, response) => {
+        mockGetQuotesRaw.mockResolvedValueOnce(response);
+        const { result } = renderHook(() => useHeadlessBuy());
+        await expect(result.current.getQuotes(baseQuotesParams)).resolves.toBe(
+          response,
+        );
+      });
+
+      it('returns an undefined quote response unchanged', async () => {
+        mockGetQuotesRaw.mockResolvedValueOnce(undefined);
+        const { result } = renderHook(() => useHeadlessBuy());
+        await expect(result.current.getQuotes(baseQuotesParams)).resolves.toBe(
+          undefined,
+        );
+      });
+
+      it('fails the session captured at getQuotes() entry, not whatever is active after the await', async () => {
+        // Regression: a concurrent startHeadlessBuy() must not cause the
+        // in-flight getQuotes() error to terminate the *new* session.
+        let resolveQuotes: (value: unknown) => void = () => undefined;
+        mockGetQuotesRaw.mockReturnValueOnce(
+          new Promise((resolve) => {
+            resolveQuotes = resolve;
+          }),
+        );
+
+        const { result } = renderHook(() => useHeadlessBuy());
+        const firstCallbacks = {
+          onOrderCreated: jest.fn(),
+          onError: jest.fn(),
+          onClose: jest.fn(),
+        };
+        let firstSessionId: string | undefined;
+        act(() => {
+          firstSessionId = result.current.startHeadlessBuy(
+            startParams,
+            firstCallbacks,
+          ).sessionId;
+        });
+
+        // Kick off getQuotes against session A; it will await resolveQuotes.
+        const quotesPromise = result.current
+          .getQuotes(baseQuotesParams)
+          .catch(() => undefined);
+
+        // Swap to session B while session A's await is pending.
+        const secondCallbacks = {
+          onOrderCreated: jest.fn(),
+          onError: jest.fn(),
+          onClose: jest.fn(),
+        };
+        let secondSessionId: string | undefined;
+        act(() => {
+          secondSessionId = result.current.startHeadlessBuy(
+            startParams,
+            secondCallbacks,
+          ).sessionId;
+        });
+        expect(secondSessionId).not.toBe(firstSessionId);
+
+        await act(async () => {
+          resolveQuotes(
+            quoteResponse({
+              error: [
+                { provider: 'transak', error: 'Below minimum buy amount' },
+              ],
+            }),
+          );
+          await quotesPromise;
+        });
+
+        // Session B must remain alive and unfailed; session A's onClose
+        // already fired (with consumer_cancelled) when B was started.
+        expect(secondCallbacks.onError).not.toHaveBeenCalled();
+        expect(secondCallbacks.onClose).not.toHaveBeenCalled();
+        expect(getSession(secondSessionId as string)).toBeDefined();
+        expect(firstCallbacks.onClose).toHaveBeenCalledWith({
+          reason: 'consumer_cancelled',
+        });
+        expect(firstCallbacks.onError).not.toHaveBeenCalled();
+      });
+
+      it('normalizes malformed provider rejections to unknown/no-message details', async () => {
+        mockGetQuotesRaw.mockResolvedValueOnce(
+          quoteResponse({
+            error: [{ provider: { id: 'not-a-string' } }],
+          }),
+        );
+        const { result } = renderHook(() => useHeadlessBuy());
+
+        await expect(
+          result.current.getQuotes(baseQuotesParams),
+        ).rejects.toMatchObject({
+          message: 'unknown: (no message)',
+          headlessBuyErrorCode: 'QUOTE_FAILED',
+          details: expect.objectContaining({
+            providerErrors: [
+              {
+                provider: 'unknown',
+                message: undefined,
+                code: undefined,
+              },
+            ],
+          }),
+        });
+      });
+    });
   });
 
   describe('startHeadlessBuy', () => {
