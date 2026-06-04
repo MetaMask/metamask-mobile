@@ -8,12 +8,13 @@ import Routes from '../../../../constants/navigation/Routes';
 
 const PRIZE_EMAIL = 'predictcampaign@consensys.net';
 
-interface PredictThePitchCampaignWinningRouteParams {
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+type PredictThePitchCampaignWinningRouteParams = {
   RewardsPredictThePitchCampaignWinning: {
     campaignId: string;
     campaignName: string;
   };
-}
+};
 
 export const PREDICT_THE_PITCH_CAMPAIGN_WINNING_VIEW_TEST_IDS = {
   CONTAINER: 'predict-the-pitch-campaign-winning-view-container',

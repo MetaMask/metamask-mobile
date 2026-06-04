@@ -15,9 +15,10 @@ import { getCampaignMechanicsButtonProps } from '../utils/campaignHeaderUtils';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 
-interface PredictThePitchCampaignPortfolioRouteParams {
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+type PredictThePitchCampaignPortfolioRouteParams = {
   RewardsPredictThePitchCampaignPortfolioView: { campaignId: string };
-}
+};
 
 export const PREDICT_THE_PITCH_CAMPAIGN_PORTFOLIO_VIEW_TEST_IDS = {
   CONTAINER: 'predict-the-pitch-campaign-portfolio-view-container',
