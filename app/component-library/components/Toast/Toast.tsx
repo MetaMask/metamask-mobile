@@ -93,8 +93,6 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
       pendingTimeoutRef.current = null;
     }
 
-    exclusiveRef.current = !!options.exclusive;
-
     let timeoutDuration = 0;
     if (toastOptions) {
       if (!options.hasNoTimeout) {
@@ -106,6 +104,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
     }
     pendingTimeoutRef.current = setTimeout(() => {
       pendingTimeoutRef.current = null;
+      exclusiveRef.current = !!options.exclusive;
       setToastOptions(options);
     }, timeoutDuration);
   };
