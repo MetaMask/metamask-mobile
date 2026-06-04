@@ -32,6 +32,11 @@ const mockUseQueryClient = useQueryClient as jest.MockedFunction<
 >;
 const mockRefetch = jest.fn().mockResolvedValue(undefined);
 const mockSetQueryData = jest.fn();
+const mockGetQueryData = jest.fn(() => undefined);
+const mockGetQueryCacheSubscribe = jest.fn(() => jest.fn());
+const mockGetQueryCache = jest.fn(() => ({
+  subscribe: mockGetQueryCacheSubscribe,
+}));
 const mockCall = Engine.controllerMessenger.call as jest.Mock;
 
 const GET_ACTION = 'AuthenticatedUserStorageService:getNotificationPreferences';
@@ -82,6 +87,9 @@ describe('useNotificationPreferences', () => {
     mockRefetch.mockResolvedValue(undefined);
     mockUseQueryClient.mockReturnValue({
       setQueryData: mockSetQueryData,
+      getQueryData: mockGetQueryData,
+      getQueryCache: mockGetQueryCache,
+      removeQueries: jest.fn(),
     } as unknown as ReturnType<typeof useQueryClient>);
   });
 
@@ -431,12 +439,20 @@ describe('useNotificationPreferences', () => {
         await result.current.setPushNotificationsEnabled(false);
       });
 
-      expect(mockSetQueryData).toHaveBeenCalledTimes(1);
-      const [keyArg, updaterArg] = mockSetQueryData.mock.calls[0];
-      expect(keyArg).toEqual([GET_ACTION]);
-      // The updater merges socialAI on top of the previous cached value.
-      const merged = (updaterArg as CallableFunction)(latest);
-      expect(merged).toEqual(
+      const mainCacheWrites = mockSetQueryData.mock.calls.filter(
+        ([queryKey]) =>
+          Array.isArray(queryKey) &&
+          queryKey[0] === GET_ACTION &&
+          queryKey.length === 1,
+      );
+
+      expect(mainCacheWrites.length).toBeGreaterThanOrEqual(1);
+
+      const cachedPreferences = mainCacheWrites.at(-1)?.[1] as
+        | NotificationPreferences
+        | undefined;
+
+      expect(cachedPreferences).toEqual(
         expect.objectContaining({
           walletActivity: latest.walletActivity,
           socialAI: expect.objectContaining({
@@ -444,6 +460,7 @@ describe('useNotificationPreferences', () => {
           }),
         }),
       );
+      expect(cachedPreferences).not.toHaveProperty('agenticCli');
     });
 
     it('keeps the optimistic overlay while a PUT is in flight even if the query data momentarily reports the pre-PUT value (no snap-back)', async () => {

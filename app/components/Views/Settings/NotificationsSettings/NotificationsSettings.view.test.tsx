@@ -34,8 +34,8 @@ const MOCK_NOTIFICATION_PREFERENCES = {
     pushNotificationsEnabled: false,
   },
   agenticCli: {
-    inAppNotificationsEnabled: true,
-    pushNotificationsEnabled: false,
+    inAppNotificationsEnabled: false,
+    pushNotificationsEnabled: true,
   },
 };
 
@@ -146,6 +146,7 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
 
     expect(await findByText(SECTION_TITLES.walletActivity)).toBeOnTheScreen();
     expect(getByText(SECTION_TITLES.agenticCli)).toBeOnTheScreen();
+    // Push-only status (other rows use the combined "Push, In app" label).
     expect(getByText('Push')).toBeOnTheScreen();
   });
 
