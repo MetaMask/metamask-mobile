@@ -95,9 +95,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
 
     let timeoutDuration = 0;
     if (toastOptions) {
-      if (!options.hasNoTimeout) {
-        cancelAnimation(translateYProgress);
-      }
+      cancelAnimation(translateYProgress);
       timeoutDuration = 100;
       // Clear existing toast state to prevent animation conflicts when showing rapid successive toasts
       setToastOptions(undefined);
