@@ -679,6 +679,7 @@ export function useHwBatchSignTracker({
       }
       trackerState.isProcessingQueue = true;
 
+      let deferredDueToDeviceNotReady = false;
       try {
         const myGeneration = trackerState.batchGeneration;
         const { approvalQueue } = trackerState;
@@ -807,6 +808,13 @@ export function useHwBatchSignTracker({
             if (result) {
               trackerState.acceptedApprovalIds.delete(requestId);
             }
+            // Device-not-ready (and pre-execute confirmation dismiss) re-queue
+            // via unshift; exit the drain loop so we do not tight-loop in this tick
+            // or immediately reschedule in finally (wait for a new enqueue pass).
+            if (!deviceConfirmedReady) {
+              deferredDueToDeviceNotReady = true;
+              break;
+            }
           } catch (error) {
             if (isCancelledError(error)) {
               trackTransactionCancelledEvent();
@@ -821,7 +829,10 @@ export function useHwBatchSignTracker({
         }
       } finally {
         trackerStateRef.current.isProcessingQueue = false;
-        if (trackerStateRef.current.approvalQueue.length > 0) {
+        if (
+          !deferredDueToDeviceNotReady &&
+          trackerStateRef.current.approvalQueue.length > 0
+        ) {
           Promise.resolve().then(processApprovalQueue);
         }
       }

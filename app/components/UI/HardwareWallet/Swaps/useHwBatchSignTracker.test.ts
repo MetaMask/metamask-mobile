@@ -1285,6 +1285,31 @@ describe('useHwBatchSignTracker', () => {
       expect(mockAcceptRequest).toHaveBeenCalledTimes(1);
     });
 
+    it('does not tight-loop approval processing when the device is not ready', async () => {
+      mockExecuteHardwareWalletOperation.mockImplementationOnce(
+        async ({ onRejected }) => {
+          await onRejected?.();
+          return false;
+        },
+      );
+      const batchId = 'batch-device-not-ready-001';
+      setMockTransactions([matchingBatchTx(batchId)]);
+      setMockPendingApprovals({
+        [batchId]: { id: batchId, type: 'transaction_batch' },
+      });
+
+      renderEnabledHook();
+
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(mockExecuteHardwareWalletOperation).toHaveBeenCalledTimes(1);
+      expect(mockAcceptRequest).not.toHaveBeenCalled();
+    });
+
     it('accepts pending transaction_batch approval requests through the hardware wallet operation flow', async () => {
       const batchId = 'batch-approval-001';
       setMockTransactions([matchingBatchTx(batchId)]);
