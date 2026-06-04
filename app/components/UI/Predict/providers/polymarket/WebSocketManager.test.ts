@@ -74,6 +74,10 @@ class MockWebSocket {
     this.onmessage?.({ data: JSON.stringify(data) } as MessageEvent);
   }
 
+  simulateRawMessage(data: string): void {
+    this.onmessage?.({ data } as MessageEvent);
+  }
+
   simulateError(): void {
     this.onerror?.({} as Event);
   }
@@ -602,6 +606,37 @@ describe('WebSocketManager', () => {
       });
 
       expect(callback).not.toHaveBeenCalled();
+    });
+
+    it('ignores market heartbeat PONG messages without reporting an error', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn();
+
+      manager.subscribeToMarketPrices(['token1'], callback);
+      mockWebSocketInstances[0].simulateOpen();
+      mockedLoggerError.mockClear();
+
+      mockWebSocketInstances[0].simulateRawMessage('PONG');
+
+      expect(callback).not.toHaveBeenCalled();
+      expect(mockedLoggerError).not.toHaveBeenCalled();
+    });
+
+    it('ignores malformed market messages without reporting an error', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn();
+
+      manager.subscribeToMarketPrices(['token1'], callback);
+      mockWebSocketInstances[0].simulateOpen();
+      mockedLoggerError.mockClear();
+
+      mockWebSocketInstances[0].simulateRawMessage('Invalid upstream payload');
+      mockWebSocketInstances[0].simulateRawMessage(
+        JSON.stringify({ event_type: 123 }),
+      );
+
+      expect(callback).not.toHaveBeenCalled();
+      expect(mockedLoggerError).not.toHaveBeenCalled();
     });
 
     it('filters updates to only subscribed tokens', () => {
