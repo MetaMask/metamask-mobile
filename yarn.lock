@@ -7762,7 +7762,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/account-tree-controller@npm:^7.2.0, @metamask/account-tree-controller@npm:^7.4.0, @metamask/account-tree-controller@npm:^7.5.0":
+"@metamask/account-tree-controller@npm:^7.2.0, @metamask/account-tree-controller@npm:^7.5.0":
   version: 7.5.0
   resolution: "@metamask/account-tree-controller@npm:7.5.0"
   dependencies:
@@ -35224,7 +35224,7 @@ __metadata:
     "@ledgerhq/react-native-hw-transport-ble": "npm:^6.37.0"
     "@metamask/abi-utils": "npm:^3.0.0"
     "@metamask/account-api": "npm:^1.0.4"
-    "@metamask/account-tree-controller": "npm:^7.4.0"
+    "@metamask/account-tree-controller": "npm:^7.5.0"
     "@metamask/accounts-controller": "npm:^38.0.0"
     "@metamask/address-book-controller": "npm:^7.1.2"
     "@metamask/ai-controllers": "npm:^0.7.0"
