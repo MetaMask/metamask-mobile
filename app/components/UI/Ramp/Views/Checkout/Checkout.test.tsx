@@ -817,6 +817,61 @@ describe('Checkout', () => {
       expect(mockParentPop).toHaveBeenCalledTimes(1);
     });
 
+    it('processes callback URL HTTP errors as successful provider callbacks when headless', async () => {
+      const onOrderCreated = jest.fn();
+      mockGetSession.mockReturnValue({
+        id: 'hs-1',
+        status: 'continued',
+        callbacks: {
+          onOrderCreated,
+          onError: jest.fn(),
+          onClose: jest.fn(),
+        },
+      });
+      mockUseParams.mockReturnValue(callbackFlowParams);
+
+      const { getByTestId } = renderWithProvider(<Checkout />, {}, true, false);
+
+      await act(async () => {
+        fireEvent.press(getByTestId('trigger-http-error-callback'));
+      });
+
+      await waitFor(() => {
+        expect(onOrderCreated).toHaveBeenCalledWith('headless-order-1');
+      });
+      expect(mockFailSession).not.toHaveBeenCalled();
+      expect(mockCloseSession).toHaveBeenCalledWith('hs-1', {
+        reason: 'completed',
+      });
+      expect(mockParentPop).toHaveBeenCalled();
+      expect(mockGetOrderFromCallback).toHaveBeenCalledWith(
+        'moonpay',
+        `${callbackBaseUrl}?orderId=123`,
+        '0xdeadbeef',
+      );
+    });
+
+    it('forwards callback URL HTTP errors to custom navigation handlers when headless checkout has no callback flow', async () => {
+      const onNavigationStateChange = jest.fn();
+      mockUseParams.mockReturnValue({
+        url: 'https://provider.example.com/checkout',
+        providerName: 'Test Provider',
+        onNavigationStateChange,
+        headlessSessionId: 'hs-1',
+      });
+
+      const { getByTestId } = renderWithProvider(<Checkout />, {}, true, false);
+
+      await act(async () => {
+        fireEvent.press(getByTestId('trigger-http-error-callback'));
+      });
+
+      expect(onNavigationStateChange).toHaveBeenCalledWith({
+        url: `${callbackBaseUrl}?orderId=123`,
+      });
+      expect(mockFailSession).not.toHaveBeenCalled();
+    });
+
     it('treats an empty provider callback as user dismissal when headless', async () => {
       mockUseParams.mockReturnValue(callbackFlowParams);
 

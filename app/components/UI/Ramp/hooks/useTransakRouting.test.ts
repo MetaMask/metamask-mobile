@@ -216,8 +216,8 @@ jest.mock('@metamask/ramps-controller', () => ({
   normalizeProviderCode: (code: string) => code.replace(/^\/providers\//, ''),
 }));
 
-jest.mock('../Deposit/constants', () => ({
-  REDIRECTION_URL: 'https://redirect.example.com',
+jest.mock('../utils/getRampCallbackBaseUrl', () => ({
+  getRampCallbackBaseUrl: () => 'https://redirect.example.com',
 }));
 
 const mockQuote = {
@@ -1207,7 +1207,7 @@ describe('useTransakRouting', () => {
       return capturedHandleNavigationStateChange;
     };
 
-    it('returns early when url does not start with REDIRECTION_URL', async () => {
+    it('returns early when url does not start with the ramp callback base URL', async () => {
       const handler = await runApprovedFlowToCaptureCallback();
       expect(handler).not.toBeNull();
       if (!handler) return;
