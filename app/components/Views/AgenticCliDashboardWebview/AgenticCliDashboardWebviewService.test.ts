@@ -10,6 +10,11 @@ jest.mock('../../../core/OAuthService/OAuthLoginHandlers/constants', () => ({
 jest.mock('../../../core/NavigationService', () => ({
   navigation: {
     navigate: jest.fn(),
+    goBack: jest.fn(),
+    canGoBack: jest.fn(() => true),
+    getCurrentRoute: jest.fn(() => ({
+      name: 'AgenticCliDashboardConfirmation',
+    })),
   },
 }));
 
@@ -24,11 +29,22 @@ describe('AgenticCliDashboardWebviewService', () => {
   };
 
   const navigateMock = NavigationService.navigation.navigate as jest.Mock;
+  const goBackMock = NavigationService.navigation.goBack as jest.Mock;
+  const canGoBackMock = NavigationService.navigation.canGoBack as jest.Mock;
+  const getCurrentRouteMock = NavigationService.navigation
+    .getCurrentRoute as jest.Mock;
 
   beforeEach(() => {
     jest.useRealTimers();
     mockGetBuildType.mockReturnValue('main_dev');
     navigateMock.mockReset();
+    goBackMock.mockReset();
+    canGoBackMock.mockReset();
+    canGoBackMock.mockReturnValue(true);
+    getCurrentRouteMock.mockReset();
+    getCurrentRouteMock.mockReturnValue({
+      name: Routes.AGENTIC_CLI_DASHBOARD_WEBVIEW.CONFIRM,
+    });
   });
 
   afterEach(() => {
@@ -360,6 +376,19 @@ describe('AgenticCliDashboardWebviewService', () => {
       jest.advanceTimersByTime(5 * 60 * 1000);
 
       await expect(promise).rejects.toThrow('Dashboard approval timed out.');
+      expect(goBackMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not dismiss navigation when the WebView times out on another screen', async () => {
+      jest.useFakeTimers();
+      getCurrentRouteMock.mockReturnValue({ name: 'SomeOtherScreen' });
+
+      const promise = AgenticCliDashboardWebviewService.open(dashboardParams);
+
+      jest.advanceTimersByTime(5 * 60 * 1000);
+
+      await expect(promise).rejects.toThrow('Dashboard approval timed out.');
+      expect(goBackMock).not.toHaveBeenCalled();
     });
   });
 });

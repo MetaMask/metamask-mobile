@@ -94,6 +94,18 @@ const completeRequest = (
   action(pending);
 };
 
+const dismissOpenWebview = (): void => {
+  const navigation = NavigationService.navigation;
+  const currentRoute = navigation.getCurrentRoute()?.name;
+
+  if (
+    currentRoute === Routes.AGENTIC_CLI_DASHBOARD_WEBVIEW.CONFIRM &&
+    navigation.canGoBack()
+  ) {
+    navigation.goBack();
+  }
+};
+
 export const AgenticCliDashboardWebviewService = {
   buildWebViewUrl(dashboardUrl: string, dashboardToken: string): string {
     const url = new URL(dashboardUrl);
@@ -192,8 +204,10 @@ export const AgenticCliDashboardWebviewService = {
 
     return new Promise((resolve, reject) => {
       const timeoutId = setTimeout(() => {
-        pendingRequests.delete(requestId);
-        reject(new Error('Dashboard approval timed out.'));
+        completeRequest(requestId, (pending) =>
+          pending.reject(new Error('Dashboard approval timed out.')),
+        );
+        dismissOpenWebview();
       }, WEBVIEW_TIMEOUT_MS);
 
       pendingRequests.set(requestId, {
