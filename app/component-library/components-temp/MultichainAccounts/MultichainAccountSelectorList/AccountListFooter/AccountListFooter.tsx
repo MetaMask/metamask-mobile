@@ -10,6 +10,7 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { useStyles } from '../../../../hooks';
 import AnimatedSpinner, {
   SpinnerSize,
@@ -19,6 +20,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { selectWalletsMap } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { useWalletInfo } from '../../../../../components/Views/MultichainAccounts/WalletDetails/hooks/useWalletInfo';
 import { AccountWalletId, AccountWalletType } from '@metamask/account-api';
+import { keyringTypeToHardwareWalletType } from '../../../../../core/HardwareWallet/helpers';
 import { AccountListBottomSheetSelectorsIDs } from '../../../../../components/Views/AccountSelector/AccountListBottomSheet.testIds';
 import createStyles from './AccountListFooter.styles';
 import Engine from '../../../../../core/Engine';
@@ -33,10 +35,19 @@ import { useAccountWalletOperationsLoadingStates } from '../../../../../util/acc
 interface AccountListFooterProps {
   walletId: AccountWalletId;
   onAccountCreated: (newAccountId: string) => void;
+  walletType: AccountWalletType;
+  keyringType?: string;
+  onAddHardwareAccount?: (walletType: HardwareWalletType) => void;
 }
 
 const AccountListFooter = memo(
-  ({ walletId, onAccountCreated }: AccountListFooterProps) => {
+  ({
+    walletId,
+    onAccountCreated,
+    walletType,
+    keyringType,
+    onAddHardwareAccount,
+  }: AccountListFooterProps) => {
     const [isLoading, setIsLoading] = useState(false);
     const { styles } = useStyles(createStyles, {});
     const {
@@ -66,6 +77,10 @@ const AccountListFooter = memo(
     const walletsMap = useSelector(selectWalletsMap);
     const wallet = walletsMap?.[walletId];
     const walletInfo = useWalletInfo(wallet);
+
+    const isHardwareWallet =
+      walletType === AccountWalletType.Keyring &&
+      keyringTypeToHardwareWalletType(keyringType ?? '') !== undefined;
 
     // End trace when the loading finishes
     useEffect(() => {
@@ -109,22 +124,37 @@ const AccountListFooter = memo(
     }, [walletInfo?.keyringId, onAccountCreated]);
 
     const handlePress = useCallback(() => {
-      // Start the trace before setting the loading state
+      if (isHardwareWallet) {
+        const hwType = keyringTypeToHardwareWalletType(keyringType ?? '');
+        if (hwType) {
+          onAddHardwareAccount?.(hwType);
+        }
+        return;
+      }
+
+      // Existing Entropy logic
       trace({
         name: TraceName.CreateMultichainAccount,
         op: TraceOperation.AccountCreate,
       });
 
-      // Force immediate state update
       setIsLoading(true);
 
-      // Use InteractionManager to ensure animations complete before heavy work
       InteractionManager.runAfterInteractions(() => {
         handleCreateAccount();
       });
-    }, [handleCreateAccount]);
+    }, [
+      isHardwareWallet,
+      keyringType,
+      onAddHardwareAccount,
+      handleCreateAccount,
+    ]);
 
-    if (!wallet || wallet.type !== AccountWalletType.Entropy) {
+    if (!wallet) {
+      return null;
+    }
+
+    if (walletType !== AccountWalletType.Entropy && !isHardwareWallet) {
       return null;
     }
 
@@ -133,10 +163,13 @@ const AccountListFooter = memo(
         <TouchableOpacity
           style={[
             styles.button,
-            (isLoadingState || !walletInfo?.keyringId) && styles.buttonDisabled,
+            (isLoadingState || (!walletInfo?.keyringId && !isHardwareWallet)) &&
+              styles.buttonDisabled,
           ]}
           onPress={handlePress}
-          disabled={isLoadingState || !walletInfo?.keyringId}
+          disabled={
+            isLoadingState || (!walletInfo?.keyringId && !isHardwareWallet)
+          }
           activeOpacity={0.7}
         >
           <View style={styles.iconContainer}>

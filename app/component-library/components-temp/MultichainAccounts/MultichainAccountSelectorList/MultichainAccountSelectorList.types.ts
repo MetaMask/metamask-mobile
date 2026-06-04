@@ -2,9 +2,10 @@ import {
   AccountGroupObject,
   AccountWalletObject,
 } from '@metamask/account-tree-controller';
+import { AccountWalletType , AccountWalletId } from '@metamask/account-api';
+import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { RefObject } from 'react';
 import { FlashListProps, FlashListRef } from '@shopify/flash-list';
-import { AccountWalletId } from '@metamask/account-api';
 
 /**
  * Account section data structure
@@ -21,7 +22,15 @@ export interface AccountSection {
 export type FlattenedMultichainAccountListItem =
   | { type: 'cell'; data: AccountGroupObject; walletName: string }
   | { type: 'header'; data: { title: string; walletName: string } }
-  | { type: 'footer'; data: { walletName: string; walletId: AccountWalletId } }
+  | {
+      type: 'footer';
+      data: {
+        walletName: string;
+        walletId: AccountWalletId;
+        walletType: AccountWalletType;
+        keyringType?: string;
+      };
+    }
   | {
       type: 'external';
       data: { address: string; isValid: boolean };
@@ -87,6 +96,11 @@ export interface MultichainAccountSelectorListProps
    * The parent component is responsible for determining if an address is external.
    */
   selectedExternalAddress?: string;
+  /**
+   * Optional callback when "Create Account" is pressed for a hardware wallet section.
+   * Receives the HardwareWalletType derived from the wallet's keyring type.
+   */
+  onAddHardwareAccount?: (walletType: HardwareWalletType) => void;
 }
 
 /**
@@ -97,4 +111,6 @@ export interface WalletSection {
   data: AccountGroupObject[];
   walletName: string;
   walletId: AccountWalletId;
+  walletType: AccountWalletType;
+  keyringType?: string;
 }
