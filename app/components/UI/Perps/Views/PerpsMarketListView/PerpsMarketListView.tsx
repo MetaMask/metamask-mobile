@@ -32,6 +32,7 @@ import PerpsMarketRowSkeleton from './components/PerpsMarketRowSkeleton';
 import styleSheet from './PerpsMarketListView.styles';
 import { PerpsMarketListViewProps } from './PerpsMarketListView.types';
 import {
+  MARKET_CATEGORIES,
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
   type PerpsMarketData,
@@ -120,24 +121,13 @@ const PerpsMarketListView = ({
   );
 
   // Compute available categories based on market counts (hide empty categories).
-  const availableCategories = useMemo(() => {
-    const mapping: {
-      key: keyof typeof marketCounts;
-      category: Exclude<MarketTypeFilter, 'all'>;
-    }[] = [
-      { key: 'crypto', category: 'crypto' },
-      { key: 'stocks', category: 'stocks' },
-      { key: 'pre-ipo', category: 'pre-ipo' },
-      { key: 'indices', category: 'indices' },
-      { key: 'etfs', category: 'etfs' },
-      { key: 'commodity', category: 'commodities' },
-      { key: 'forex', category: 'forex' },
-      { key: 'new', category: 'new' },
-    ];
-    return mapping
-      .filter(({ key }) => marketCounts[key] > 0)
-      .map(({ category }) => category);
-  }, [marketCounts]);
+  const availableCategories = useMemo(
+    () =>
+      (
+        [...MARKET_CATEGORIES, 'new'] as Exclude<MarketTypeFilter, 'all'>[]
+      ).filter((category) => marketCounts[category] > 0),
+    [marketCounts],
+  );
 
   const { track } = usePerpsEventTracking();
 

@@ -18,6 +18,7 @@ import {
   type SortField,
   type MarketTypeFilter,
 } from '@metamask/perps-controller';
+import { getMarketTypeForFilter } from '../utils/marketCategoryMapping';
 
 import type { PerpsTransaction } from '../types/transactionHistory';
 import {
@@ -372,23 +373,14 @@ export const usePerpsHomeData = ({
   // Must mirror usePerpsMarketListView counting: "crypto" = non-HIP3,
   // HIP-3 categories only count HIP-3 markets, "new" counts isNewMarket.
   const categoryMarketCounts = useMemo(() => {
-    const categoryToMarketType: Partial<Record<MarketTypeFilter, string>> = {
-      stocks: MarketCategory.Stock,
-      'pre-ipo': MarketCategory.PreIpo,
-      indices: MarketCategory.Index,
-      etfs: MarketCategory.Etf,
-      commodities: MarketCategory.Commodity,
-      forex: MarketCategory.Forex,
-    };
-
     const counts: Partial<Record<MarketTypeFilter, number>> = {};
-    for (const cat of MARKET_CATEGORIES) {
-      if (cat === 'crypto') {
+    for (const category of MARKET_CATEGORIES) {
+      if (category === 'crypto') {
         counts.crypto = allMarkets.filter((m) => !m.isHip3).length;
       } else {
-        const targetType = categoryToMarketType[cat];
+        const targetType = getMarketTypeForFilter(category);
         if (targetType) {
-          counts[cat] = allMarkets.filter(
+          counts[category] = allMarkets.filter(
             (m) => m.isHip3 && m.marketType === targetType,
           ).length;
         }

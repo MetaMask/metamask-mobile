@@ -8,23 +8,23 @@ import type {
   PerpsMarketCategoryBadgesProps,
   CategoryBadgeConfig,
 } from './PerpsMarketCategoryBadges.types';
-import { type MarketTypeFilter } from '@metamask/perps-controller';
+import {
+  MARKET_CATEGORIES,
+  type MarketTypeFilter,
+} from '@metamask/perps-controller';
 
 // Animation configuration
 const ANIMATION_DURATION = 250;
 
 /**
- * Default category badge configurations
- * Order determines display order in the UI
+ * Category badge configurations derived from the controller-provided constant.
+ * 'new' is appended separately as it's a UI-only sentinel, not a data-model category.
  */
 const DEFAULT_CATEGORIES: CategoryBadgeConfig[] = [
-  { category: 'crypto', labelKey: 'perps.home.tabs.crypto' },
-  { category: 'stocks', labelKey: 'perps.home.tabs.stocks' },
-  { category: 'pre-ipo', labelKey: 'perps.home.tabs.pre_ipo' },
-  { category: 'indices', labelKey: 'perps.home.tabs.indices' },
-  { category: 'etfs', labelKey: 'perps.home.tabs.etfs' },
-  { category: 'commodities', labelKey: 'perps.home.tabs.commodities' },
-  { category: 'forex', labelKey: 'perps.home.tabs.forex' },
+  ...MARKET_CATEGORIES.map((category) => ({
+    category,
+    labelKey: `perps.home.tabs.${category.replace('-', '_')}`,
+  })),
   { category: 'new', labelKey: 'perps.home.tabs.new' },
 ];
 

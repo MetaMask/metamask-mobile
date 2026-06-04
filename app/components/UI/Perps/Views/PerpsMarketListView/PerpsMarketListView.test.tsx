@@ -162,10 +162,10 @@ jest.mock('../../hooks', () => ({
       marketCounts: {
         crypto: 3, // Set to non-zero so tabs render
         stocks: 0,
-        preIpo: 0,
+        'pre-ipo': 0,
         indices: 0,
         etfs: 0,
-        commodity: 0,
+        commodities: 0,
         forex: 0,
         new: 0,
       },
@@ -905,10 +905,10 @@ describe('PerpsMarketListView', () => {
         marketCounts: {
           crypto: 3,
           stocks: 0,
-          preIpo: 0,
+          'pre-ipo': 0,
           indices: 0,
           etfs: 0,
-          commodity: 0,
+          commodities: 0,
           forex: 0,
           new: 0,
         },

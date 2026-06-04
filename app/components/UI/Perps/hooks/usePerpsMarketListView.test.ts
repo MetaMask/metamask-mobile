@@ -652,7 +652,7 @@ describe('usePerpsMarketListView', () => {
         'pre-ipo': 0,
         indices: 0,
         etfs: 0,
-        commodity: 0,
+        commodities: 0,
         forex: 0,
         new: 0,
       });
@@ -709,7 +709,7 @@ describe('usePerpsMarketListView', () => {
         'pre-ipo': 0,
         indices: 0,
         etfs: 0,
-        commodity: 1,
+        commodities: 1,
         forex: 1,
         new: 0,
       });
@@ -739,7 +739,7 @@ describe('usePerpsMarketListView', () => {
         'pre-ipo': 0,
         indices: 0,
         etfs: 0,
-        commodity: 0,
+        commodities: 0,
         forex: 0,
         new: 0,
       });

@@ -5,7 +5,7 @@ import { usePerpsSearch } from './usePerpsSearch';
 import { usePerpsSorting } from './usePerpsSorting';
 import {
   MARKET_SORTING_CONFIG,
-  MarketCategory,
+  MARKET_CATEGORIES,
   sortMarkets,
   type PerpsMarketData,
   type MarketTypeFilter,
@@ -13,6 +13,10 @@ import {
   type SortDirection,
   type SortOptionId,
 } from '@metamask/perps-controller';
+import {
+  getMarketTypeForFilter,
+  getFilterForMarketType,
+} from '../utils/marketCategoryMapping';
 import {
   selectPerpsWatchlistMarkets,
   selectPerpsMarketFilterPreferences,
@@ -95,16 +99,7 @@ interface UsePerpsMarketListViewReturn {
   /**
    * Market counts by type (for hiding empty tabs/pills)
    */
-  marketCounts: {
-    crypto: number;
-    stocks: number;
-    'pre-ipo': number;
-    indices: number;
-    etfs: number;
-    commodity: number;
-    forex: number;
-    new: number;
-  };
+  marketCounts: Record<Exclude<MarketTypeFilter, 'all'>, number>;
   /**
    * Loading state
    */
@@ -196,17 +191,7 @@ export const usePerpsMarketListView = ({
       return searchedMarkets.filter((m) => m.isNewMarket);
     }
 
-    // Per-category filters — each category matches its own MarketCategory value
-    const categoryMap: Partial<Record<MarketTypeFilter, string>> = {
-      stocks: MarketCategory.Stock,
-      'pre-ipo': MarketCategory.PreIpo,
-      indices: MarketCategory.Index,
-      etfs: MarketCategory.Etf,
-      commodities: MarketCategory.Commodity,
-      forex: MarketCategory.Forex,
-    };
-
-    const targetType = categoryMap[marketTypeFilter];
+    const targetType = getMarketTypeForFilter(marketTypeFilter);
     if (targetType) {
       return searchedMarkets.filter((m) => m.marketType === targetType);
     }
@@ -272,44 +257,20 @@ export const usePerpsMarketListView = ({
 
   // Calculate market counts per category (for hiding empty pills/tabs)
   const marketCounts = useMemo(() => {
-    const counts = {
-      crypto: 0,
-      stocks: 0,
-      'pre-ipo': 0,
-      indices: 0,
-      etfs: 0,
-      commodity: 0,
-      forex: 0,
-      new: 0,
-    };
+    const counts = Object.fromEntries(
+      [...MARKET_CATEGORIES, 'new' as const].map((c) => [c, 0]),
+    ) as Record<Exclude<MarketTypeFilter, 'all'>, number>;
+
     allMarkets.forEach((market) => {
       if (market.isNewMarket) {
         counts.new++;
       }
       if (!market.isHip3) {
         counts.crypto++;
-      } else {
-        switch (market.marketType) {
-          case MarketCategory.Stock:
-            counts.stocks++;
-            break;
-          case MarketCategory.PreIpo:
-            counts['pre-ipo']++;
-            break;
-          case MarketCategory.Index:
-            counts.indices++;
-            break;
-          case MarketCategory.Etf:
-            counts.etfs++;
-            break;
-          case MarketCategory.Commodity:
-            counts.commodity++;
-            break;
-          case MarketCategory.Forex:
-            counts.forex++;
-            break;
-          default:
-            break;
+      } else if (market.marketType) {
+        const filterKey = getFilterForMarketType(market.marketType);
+        if (filterKey && filterKey !== 'all' && filterKey in counts) {
+          counts[filterKey]++;
         }
       }
     });
