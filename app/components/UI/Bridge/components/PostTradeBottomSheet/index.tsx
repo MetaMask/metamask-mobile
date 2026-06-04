@@ -219,7 +219,7 @@ export const PostTradeBottomSheet = () => {
       </Box>
       {footerButtonProps ? (
         <BottomSheetFooter
-          buttonsAlignment={ButtonsAlignment.Horizontal}
+          buttonsAlignment={ButtonsAlignment.Vertical}
           secondaryButtonProps={footerButtonProps.secondaryButtonProps}
           primaryButtonProps={footerButtonProps.primaryButtonProps}
           style={styles.footer}
