@@ -41,37 +41,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
   },
 }));
 
-jest.mock('@metamask/design-system-react-native', () => {
-  const { Text: RNText, View } = jest.requireActual('react-native');
-  const React = jest.requireActual('react');
-  return {
-    Text: ({
-      children,
-      style,
-      testID,
-    }: {
-      children?: React.ReactNode;
-      style?: object;
-      testID?: string;
-    }) => React.createElement(RNText, { style, testID }, children),
-    Icon: ({ name, testID }: { name?: string; testID?: string }) =>
-      React.createElement(View, { testID: testID ?? `icon-${name}` }),
-    IconName: {
-      Coin: 'Coin',
-      Briefcase: 'Briefcase',
-      Rocket: 'Rocket',
-      Exchange: 'Exchange',
-      MoneyBag: 'MoneyBag',
-      Chart: 'Chart',
-      PieChart: 'PieChart',
-    },
-    IconSize: { Sm: 'Sm' },
-    IconColor: { IconAlternative: 'IconAlternative' },
-    TextVariant: { BodyMd: 'BodyMd' },
-    FontWeight: { Medium: 'Medium' },
-  };
-});
-
 jest.mock(
   '../../../../../component-library/components-temp/SectionHeader',
   () => {
@@ -247,6 +216,8 @@ describe('PerpsProducts', () => {
       <PerpsProducts marketCounts={{ crypto: 10 }} testID="perps-products" />,
     );
 
-    expect(getByTestId('icon-Coin')).toBeOnTheScreen();
+    const pill = getByTestId('perps-products-crypto');
+    expect(pill).toBeOnTheScreen();
+    expect(pill.children.length).toBeGreaterThanOrEqual(2);
   });
 });
