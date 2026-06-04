@@ -263,15 +263,65 @@ export function useQuickBuyController(
     BridgeToken | undefined
   >(undefined);
   const [isSourcePickerOpen, setIsSourcePickerOpen] = useState(false);
+  // True once the user explicitly picks a token from the picker. While false,
+  // the auto-select effect is allowed to correct a stale selection.
+  const isManualSelectionRef = useRef(false);
 
-  // Auto-select default source token using smart priority rules (see selectDefaultSourceToken)
+  // Dest-token lookup key passed to `selectDefaultSourceToken` so the
+  // destination is filtered out of source candidates and not preselected as
+  // pay-with. Reads from `positionTokenFromSetup` once available because
+  // `useQuickBuySetup` normalises `address` to match what `sourceTokenOptions`
+  // contains — bare hex for EVM (zero address for native, mint hex for
+  // ERC-20) and CAIP-19 for non-EVM. Comparing against the raw
+  // `target.tokenAddress` would miss when the social feed sends a CAIP-19
+  // wrapper for an EVM asset (e.g. `eip155:137/slip44:966` for native POL),
+  // letting the same token through as a pay-with option.
+  //
+  // Falls back to raw `target` values while metadata resolves (ERC-20s only —
+  // natives resolve synchronously). The symbol fallback in
+  // `selectDefaultSourceToken` covers cross-format mismatches in that window.
+  const destLookupKey = useMemo<
+    Pick<BridgeToken, 'address' | 'chainId' | 'symbol'> | undefined
+  >(() => {
+    if (!destChainId) return undefined;
+    return {
+      chainId: destChainId,
+      address: positionTokenFromSetup?.address ?? target.tokenAddress,
+      symbol: positionTokenFromSetup?.symbol ?? target.tokenSymbol,
+    };
+  }, [
+    destChainId,
+    positionTokenFromSetup?.address,
+    positionTokenFromSetup?.symbol,
+    target.tokenAddress,
+    target.tokenSymbol,
+  ]);
+
+  // Auto-select default source token using smart priority rules (see
+  // `selectDefaultSourceToken`). `destLookupKey` is passed so the destination
+  // is deprioritized and not preselected when the user has other holdings.
+  // Manual picker selections are preserved via `isManualSelectionRef`.
+  //
+  // We wait for `!isSetupLoading` before the first pick so `destLookupKey`
+  // reflects the normalised dest address (otherwise an ERC-20 destination
+  // with a CAIP-19-wrapped `target.tokenAddress` could leak through the
+  // address filter while metadata is in flight, and the `selectedSourceToken`
+  // guard would prevent self-correction once metadata lands).
   useEffect(() => {
-    if (sourceTokenOptions.length > 0 && !selectedSourceToken) {
-      setSelectedSourceToken(
-        selectDefaultSourceToken(sourceTokenOptions, destChainId),
-      );
-    }
-  }, [sourceTokenOptions, selectedSourceToken, destChainId]);
+    if (isSetupLoading) return;
+    if (sourceTokenOptions.length === 0) return;
+    if (selectedSourceToken) return;
+    if (isManualSelectionRef.current) return;
+    setSelectedSourceToken(
+      selectDefaultSourceToken(sourceTokenOptions, destChainId, destLookupKey),
+    );
+  }, [
+    isSetupLoading,
+    sourceTokenOptions,
+    selectedSourceToken,
+    destChainId,
+    destLookupKey,
+  ]);
 
   // ─── Sell mode: position token (what the user is selling) ──────────────
   const positionToken = usePositionTokenBalance(target, positionTokenFromSetup);
@@ -579,12 +629,25 @@ export function useQuickBuyController(
     ? maxSpendUsd <= 0
     : maxSpendTokens <= 0;
 
+  // For the toolbar rate pill in buy mode the dest token from `useQuickBuySetup`
+  // carries no price data, so we enrich a local copy with the rate already
+  // resolved by `usePositionTokenBalance`. We deliberately do NOT propagate this
+  // into `destToken` itself — the BridgeToken passed to quote fetching and
+  // redux must stay reference-stable, otherwise EVM→non-EVM (e.g. USDC/Base →
+  // SOL/Solana) flows lose their quote requests when market data ticks.
+  const destTokenForRate = useMemo<BridgeToken | undefined>(() => {
+    if (tradeMode !== 'buy' || !destToken) return destToken;
+    const rate = positionToken?.currencyExchangeRate;
+    if (rate === undefined) return destToken;
+    return { ...destToken, currencyExchangeRate: rate };
+  }, [tradeMode, destToken, positionToken?.currencyExchangeRate]);
+
   const formattedExchangeRate = useMemo(
     () =>
       tradeMode === 'sell'
         ? formatExchangeRate(sourceToken, destToken)
-        : formatExchangeRate(destToken, sourceToken),
-    [destToken, sourceToken, tradeMode],
+        : formatExchangeRate(destTokenForRate, sourceToken),
+    [destToken, destTokenForRate, sourceToken, tradeMode],
   );
 
   const metamaskFeePercent = useMemo(
@@ -755,6 +818,7 @@ export function useQuickBuyController(
 
   const handleSelectSourceToken = useCallback(
     (token: BridgeToken) => {
+      isManualSelectionRef.current = true;
       setSelectedSourceToken(token);
       resetAmountState();
     },

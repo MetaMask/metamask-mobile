@@ -1,7 +1,16 @@
 // Orchestrator. Prepares a ready-to-code worktree: deps reconciled, app
 // built/installed, Metro + CDP up, wallet configured. See ./README.md.
 
-import { existsSync, mkdirSync, readFileSync } from 'fs';
+import {
+  closeSync,
+  existsSync,
+  fstatSync,
+  ftruncateSync,
+  mkdirSync,
+  openSync,
+  readFileSync,
+  writeSync,
+} from 'fs';
 import { dirname, resolve } from 'path';
 import { buildCtx, modeLine, resolvePath } from './modules/env';
 import { decideDeps, reconcile, runCleanSetup } from './modules/deps';
@@ -12,6 +21,52 @@ import { runIos } from './modules/ios';
 import { runAndroid } from './modules/android';
 import { connectCdp, setupWallet, startMetro } from './modules/runtime';
 import type { Ctx } from './modules/types';
+
+interface FileSnapshot {
+  contents: string;
+  dev: number;
+  ino: number;
+}
+
+function readSnapshot(path: string): FileSnapshot | null {
+  let fd: number | undefined;
+  try {
+    fd = openSync(path, 'r');
+    const stat = fstatSync(fd);
+    if (!stat.isFile()) return null;
+    return {
+      contents: readFileSync(fd, 'utf8'),
+      dev: stat.dev,
+      ino: stat.ino,
+    };
+  } catch {
+    return null;
+  } finally {
+    if (fd !== undefined) closeSync(fd);
+  }
+}
+
+function restoreSnapshot(path: string, snapshot: FileSnapshot): boolean {
+  let fd: number | undefined;
+  try {
+    fd = openSync(path, 'r+');
+    const stat = fstatSync(fd);
+    if (!stat.isFile() || stat.dev !== snapshot.dev || stat.ino !== snapshot.ino) {
+      return false;
+    }
+    const current = readFileSync(fd, 'utf8');
+    if (current === snapshot.contents) {
+      return false;
+    }
+    ftruncateSync(fd, 0);
+    writeSync(fd, snapshot.contents, 0, 'utf8');
+    return true;
+  } catch {
+    return false;
+  } finally {
+    if (fd !== undefined) closeSync(fd);
+  }
+}
 
 function validateFixture(ctx: Ctx, logger: Logger): void {
   const path = resolvePath(ctx.root, ctx.flags.walletFixture);
@@ -43,55 +98,78 @@ async function main(): Promise<void> {
   const root = resolve(dirname(process.argv[1] ?? ''), '../../../..');
   const ctx = buildCtx(root, process.argv.slice(2));
   const logger = new Logger();
+  const rootTsconfigPath = resolvePath(ctx.root, 'tsconfig.json');
+  const rootTsconfigBefore = readSnapshot(rootTsconfigPath);
 
-  if (ctx.doClean && ctx.checkOnly) {
-    logger.fail('--check-only conflicts with --clean / --mode clean (would mutate node_modules + build artifacts)');
-  }
-  if (ctx.flags.walletSetup) validateFixture(ctx, logger);
+  // Restore setup-noise on every exit — success, thrown failure, or Ctrl-C.
+  // `expo run:ios` rewrites root tsconfig.json ("extends":
+  // "expo/tsconfig.base"). Restore the exact startup contents, not HEAD, so
+  // intentional local tsconfig edits are preserved while Expo noise is removed.
+  const restoreNoise = (): void => {
+    if (rootTsconfigBefore && restoreSnapshot(rootTsconfigPath, rootTsconfigBefore)) {
+      logger.ok('Restored root tsconfig.json (preflight setup noise)');
+    }
+    if (!ctx.checkOnly) {
+      restoreMainNoise(ctx.root, ['ios/Podfile.lock'], logger);
+    }
+  };
+  const onSignal = (sig: NodeJS.Signals): void => {
+    restoreNoise();
+    process.exit(sig === 'SIGINT' ? 130 : 143);
+  };
+  process.once('SIGINT', onSignal);
+  process.once('SIGTERM', onSignal);
 
-  mkdirSync(ctx.logDir, { recursive: true });
+  try {
+    if (ctx.doClean && ctx.checkOnly) {
+      logger.fail('--check-only conflicts with --clean / --mode clean (would mutate node_modules + build artifacts)');
+    }
+    if (ctx.flags.walletSetup) validateFixture(ctx, logger);
 
-  const decision = decideDeps(ctx, logger);
+    mkdirSync(ctx.logDir, { recursive: true });
 
-  let total = 4; // device + app + metro + cdp
-  if (ctx.doClean) total += 1;
-  if (decision.jsDepsStale || decision.setupStale) total += 1;
-  if (ctx.flags.walletSetup || ctx.flags.walletPw) total += 1;
-  logger.setTotalSteps(total);
+    const decision = decideDeps(ctx, logger);
 
-  logger.header(ctx.port, ctx.plat, modeLine(ctx.mode, ctx.checkOnly));
+    let total = 4; // device + app + metro + cdp
+    if (ctx.doClean) total += 1;
+    if (decision.jsDepsStale || decision.setupStale) total += 1;
+    if (ctx.flags.walletSetup || ctx.flags.walletPw) total += 1;
+    logger.setTotalSteps(total);
 
-  await sweepPort(ctx.port, 'worktree Metro', logger, ctx.checkOnly);
-  if (ctx.port !== 8081) await sweepPort(8081, 'expo default', logger, ctx.checkOnly);
+    logger.header(ctx.port, ctx.plat, modeLine(ctx.mode, ctx.checkOnly));
 
-  if (ctx.doClean) await runCleanSetup(ctx, logger);
-  else await reconcile(ctx, logger, decision);
+    await sweepPort(ctx.port, 'worktree Metro', logger, ctx.checkOnly);
+    if (ctx.port !== 8081) await sweepPort(8081, 'expo default', logger, ctx.checkOnly);
 
-  if (ctx.plat === 'ios') await runIos(ctx, logger);
-  else await runAndroid(ctx, logger);
+    if (ctx.doClean) await runCleanSetup(ctx, logger);
+    else await reconcile(ctx, logger, decision);
 
-  // --check-only is read-only: the probes above fail loud on mismatch; never run
-  // the state-changing Metro/CDP/wallet steps.
-  if (ctx.checkOnly) {
+    if (ctx.plat === 'ios') await runIos(ctx, logger);
+    else await runAndroid(ctx, logger);
+
+    // --check-only is read-only: the probes above fail loud on mismatch; never run
+    // the state-changing Metro/CDP/wallet steps.
+    if (ctx.checkOnly) {
+      logger.plain();
+      logger.plain(`=== Preflight check-only passed === (platform ${ctx.plat})`);
+      return;
+    }
+
+    await startMetro(ctx, logger);
+    await connectCdp(ctx, logger);
+    await setupWallet(ctx, logger);
+
     logger.plain();
-    logger.plain(`=== Preflight check-only passed === (platform ${ctx.plat})`);
-    return;
-  }
-
-  await startMetro(ctx, logger);
-  await connectCdp(ctx, logger);
-  setupWallet(ctx, logger);
-
-  restoreMainNoise(ctx.root, ['tsconfig.json', 'ios/Podfile.lock'], logger);
-
-  logger.plain();
-  logger.plain('=== Preflight complete ===');
-  logger.plain(`  Platform   ${ctx.plat}`);
-  logger.plain(`  Metro      http://localhost:${ctx.port}/status`);
-  logger.plain(`  Logs       tail -f ${ctx.logFile}`);
-  logger.plain(`  CDP        node ${ctx.scripts}/cdp-bridge.js status`);
-  for (const { name, seconds } of logger.finishTimings()) {
-    logger.plain(`  ${name}: ${seconds}s`);
+    logger.plain('=== Preflight complete ===');
+    logger.plain(`  Platform   ${ctx.plat}`);
+    logger.plain(`  Metro      http://localhost:${ctx.port}/status`);
+    logger.plain(`  Logs       tail -f ${ctx.logFile}`);
+    logger.plain(`  CDP        node ${ctx.scripts}/cdp-bridge.js status`);
+    for (const { name, seconds } of logger.finishTimings()) {
+      logger.plain(`  ${name}: ${seconds}s`);
+    }
+  } finally {
+    restoreNoise();
   }
 }
 

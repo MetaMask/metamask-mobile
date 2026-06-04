@@ -80,7 +80,14 @@ export const PredictPositionsListSelectorsIDs = {
 } as const;
 
 export const PredictPositionsHistoryListSelectorsIDs = {
+  CLAIM_PENDING_SECTION: 'predict-positions-history-claim-pending-section',
+  CLAIM_PENDING_ROW: 'predict-positions-history-claim-pending-row',
   CONTAINER: 'predict-positions-history-list',
+} as const;
+
+export const getPredictPositionsHistoryListSelector = {
+  claimPendingRow: (positionId: string) =>
+    `${PredictPositionsHistoryListSelectorsIDs.CLAIM_PENDING_ROW}-${positionId}`,
 } as const;
 
 export const getPredictFeedSelector = {
@@ -330,6 +337,7 @@ export const getPredictSearchSelector = {
 
 export const PredictBalanceSelectorsIDs = {
   BALANCE_CARD: 'predict-balance-card',
+  POSITIONS_BUTTON: 'predict-balance-positions-button',
   WITHDRAW_BUTTON: 'predict-balance-withdraw-button',
 } as const;
 
