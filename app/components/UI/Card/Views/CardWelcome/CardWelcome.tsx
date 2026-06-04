@@ -26,8 +26,15 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 
+interface TransitionEndEvent {
+  data?: { closing?: boolean };
+}
+
 interface StatusBarNavigation {
-  addListener: (type: 'transitionEnd', callback: () => void) => () => void;
+  addListener: (
+    type: 'transitionEnd',
+    callback: (event: TransitionEndEvent) => void,
+  ) => () => void;
   getParent: () => StatusBarNavigation | undefined;
 }
 
@@ -58,12 +65,19 @@ const CardWelcome = () => {
 
       applyLightStatusBar();
 
+      const handleTransitionEnd = (event: TransitionEndEvent) => {
+        if (event?.data?.closing) {
+          return;
+        }
+        applyLightStatusBar();
+      };
+
       const unsubscribers: (() => void)[] = [];
       let current: StatusBarNavigation | undefined =
         navigation as unknown as StatusBarNavigation;
       while (current) {
         unsubscribers.push(
-          current.addListener('transitionEnd', applyLightStatusBar),
+          current.addListener('transitionEnd', handleTransitionEnd),
         );
         current = current.getParent?.();
       }
