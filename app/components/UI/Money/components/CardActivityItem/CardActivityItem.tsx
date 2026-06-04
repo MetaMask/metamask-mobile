@@ -13,19 +13,9 @@ import ActivityRowView from '../MoneyActivityItem/ActivityRowView';
 
 export interface CardActivityItemProps {
   card: CardTransaction;
-  /** When true, shows the chain network badge on the icon avatar. Defaults to false. */
   showNetworkBadge?: boolean;
 }
 
-/**
- * A MetaMask Card payment row, backed by a {@link CardTransaction} from the
- * Accounts API.
- *
- * Tapping opens a read-only detail sheet. The on-chain detail sheet can't be
- * reused (it's keyed by a local `transactionId`, which an off-device card
- * settlement has no equivalent for), so the {@link CardTransaction} is passed to
- * a card-specific sheet as a navigation param.
- */
 const CardActivityItem = ({
   card,
   showNetworkBadge = false,

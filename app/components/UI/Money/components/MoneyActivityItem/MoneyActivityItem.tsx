@@ -14,11 +14,6 @@ export interface MoneyActivityItemProps {
   showNetworkBadge?: boolean;
 }
 
-/**
- * An on-chain Money activity row, backed by a {@link TransactionMeta}. Card rows
- * use {@link CardActivityItem} instead; {@link MoneyActivityRow} dispatches
- * between the two on `MoneyActivityItem.kind`.
- */
 const MoneyActivityItem = ({
   tx,
   moneyAddress,

@@ -41,23 +41,19 @@ const card: CardTransaction = {
 
 describe('MoneyActivityRow', () => {
   it('renders the on-chain row for an onchain item', () => {
-    // Act
     const { getByTestId, queryByTestId } = render(
       <MoneyActivityRow item={onchainItem(tx)} moneyAddress="0x1" />,
     );
 
-    // Assert
     expect(getByTestId('onchain-row')).toHaveTextContent('tx-1');
     expect(queryByTestId('card-row')).toBeNull();
   });
 
   it('renders the card row for a card item', () => {
-    // Act
     const { getByTestId, queryByTestId } = render(
       <MoneyActivityRow item={cardItem(card)} moneyAddress="0x1" />,
     );
 
-    // Assert
     expect(getByTestId('card-row')).toHaveTextContent('0xfeed');
     expect(queryByTestId('onchain-row')).toBeNull();
   });

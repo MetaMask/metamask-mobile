@@ -15,11 +15,6 @@ import {
 
 export interface UseMoneyAccountCardTransactionsResult {
   cardTransactions: CardTransaction[];
-  /**
-   * True only until the first fetch settles (when the account is linked).
-   * Background refetches on refocus do NOT flip this back to true, so the list
-   * doesn't flash a spinner over already-rendered rows (stale-while-revalidate).
-   */
   isLoading: boolean;
   error: boolean;
   refetch: () => void;
@@ -29,11 +24,8 @@ const EMPTY: CardTransaction[] = [];
 
 /**
  * Card payments for the primary Money account, sourced from the Accounts API
- * (off-device settlement — see {@link CardTransaction}). Gated on the account
- * being a linked card funding source; otherwise returns nothing without a fetch.
  *
- * Fetches the latest page only (no pagination) and refetches on screen focus
- * rather than polling.
+ * Fetches the latest page only and refetches on screen focus rather than polling.
  */
 export function useMoneyAccountCardTransactions(): UseMoneyAccountCardTransactionsResult {
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
@@ -78,7 +70,9 @@ export function useMoneyAccountCardTransactions(): UseMoneyAccountCardTransactio
       setCardTransactions(parseCardTransactions(response, moneyAddress));
     } catch (e) {
       // A superseded/blurred request was aborted on purpose — don't surface it.
-      if (current !== requestId.current) return;
+      if (current !== requestId.current) {
+        return;
+      }
       Logger.error(e as Error, 'useMoneyAccountCardTransactions fetch failed');
       setError(true);
       setCardTransactions(EMPTY);

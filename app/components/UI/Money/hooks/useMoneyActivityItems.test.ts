@@ -17,14 +17,11 @@ const cardTx = (hash: Hex, time: number): CardTransaction => ({
 
 describe('mergeMoneyActivity', () => {
   it('merges both sources, tags by kind, and sorts time-descending', () => {
-    // Arrange
     const onchain = [onchainTx('a', 100), onchainTx('b', 300)];
     const cards = [cardTx('0xcard' as Hex, 200)];
 
-    // Act
     const items = mergeMoneyActivity(onchain, cards);
 
-    // Assert
     expect(items.map((i) => [i.kind, i.id, i.time])).toEqual([
       ['onchain', 'b', 300],
       ['card', '0xcard', 200],
@@ -33,15 +30,12 @@ describe('mergeMoneyActivity', () => {
   });
 
   it('drops an on-chain row that collides with a card hash (double-count guard)', () => {
-    // Arrange — same hash, different casing, appears in both sources.
     const shared = '0xAbC123' as Hex;
     const onchain = [onchainTx('dup', 100, shared)];
     const cards = [cardTx('0xabc123' as Hex, 100)];
 
-    // Act
     const items = mergeMoneyActivity(onchain, cards);
 
-    // Assert — only the card row survives.
     expect(items).toHaveLength(1);
     expect(items[0]).toMatchObject({ kind: 'card', id: '0xabc123' });
   });

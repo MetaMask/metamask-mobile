@@ -28,23 +28,14 @@ import type { MoneyTransactionDisplayInfo } from '../../hooks/useMoneyTransactio
 import { MoneyActivityItemTestIds } from './MoneyActivityItem.testIds';
 
 export interface ActivityRowViewProps {
-  /** Stable row id (tx id for on-chain, hash for card). */
   id: string;
   display: MoneyTransactionDisplayInfo;
   isFailed: boolean;
-  /** Used only for the optional network badge. */
   chainId?: Hex;
   onPress?: (id: string) => void;
-  /** When true, shows the chain network badge on the icon avatar. Defaults to false. */
   showNetworkBadge?: boolean;
 }
 
-/**
- * Presentational Money activity row — the shared shell for both on-chain and
- * card rows. Holds no data logic; callers pass a resolved
- * {@link MoneyTransactionDisplayInfo}. Test IDs are owned here so both row
- * sources surface identically.
- */
 const ActivityRowView = ({
   id,
   display,

@@ -59,13 +59,6 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: 16, paddingVertical: 12 },
 });
 
-/**
- * Read-only detail sheet for a MetaMask Card payment. Unlike the on-chain
- * {@link MoneyTransactionDetailsSheet}, there is no local `TransactionMeta` to
- * read — the {@link CardTransaction} is passed as a navigation param (it's plain
- * serializable data). Shows the public on-chain facts plus a block-explorer
- * link; vendor / merchant data is out of scope.
- */
 const CardTransactionDetails = ({ card }: { card: CardTransaction }) => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();

@@ -11,11 +11,6 @@ export interface MoneyActivityRowProps {
   showNetworkBadge?: boolean;
 }
 
-/**
- * Renders one {@link MoneyActivityItem}, dispatching on its source `kind`.
- * Keeps the union's branch in one place so the list and full-activity views
- * stay agnostic to where a row came from.
- */
 const MoneyActivityRow = ({
   item,
   moneyAddress,
