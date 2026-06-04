@@ -14,44 +14,6 @@ jest.mock('react-redux', () => ({
   useSelector: (selector: unknown) => mockUseSelector(selector),
 }));
 
-jest.mock('../../../../../component-library/hooks', () => ({
-  useStyles: () => ({
-    styles: {
-      container: {},
-      grid: {},
-      pill: {},
-      pillPressed: {},
-    },
-  }),
-}));
-
-jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string) => {
-    const labels: Record<string, string> = {
-      'perps.home.products': 'Products',
-      'perps.home.tabs.crypto': 'Crypto',
-      'perps.home.tabs.stocks': 'Stocks',
-      'perps.home.tabs.pre_ipo': 'Pre-IPO',
-      'perps.home.tabs.indices': 'Indices',
-      'perps.home.tabs.etfs': 'ETFs',
-      'perps.home.tabs.commodities': 'Commodities',
-      'perps.home.tabs.forex': 'Forex',
-    };
-    return labels[key] || key;
-  },
-}));
-
-jest.mock(
-  '../../../../../component-library/components-temp/SectionHeader',
-  () => {
-    const { Text } = jest.requireActual('react-native');
-    const React = jest.requireActual('react');
-    return function MockSectionHeader({ title }: { title: string }) {
-      return React.createElement(Text, null, title);
-    };
-  },
-);
-
 const mockTrackEvent = jest.fn();
 const mockAddProperties = jest.fn().mockReturnValue({
   build: jest.fn().mockReturnValue({ built: true }),

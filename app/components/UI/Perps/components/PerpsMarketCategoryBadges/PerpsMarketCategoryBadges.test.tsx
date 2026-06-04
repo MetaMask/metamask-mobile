@@ -2,19 +2,6 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import PerpsMarketCategoryBadges from './PerpsMarketCategoryBadges';
 
-// Mock i18n strings
-jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string) => {
-    const translations: Record<string, string> = {
-      'perps.home.tabs.crypto': 'Crypto',
-      'perps.home.tabs.stocks': 'Stocks',
-      'perps.home.tabs.commodities': 'Commodities',
-      'perps.home.tabs.forex': 'Forex',
-    };
-    return translations[key] || key;
-  },
-}));
-
 describe('PerpsMarketCategoryBadges', () => {
   const defaultProps = {
     selectedCategory: 'all' as const,
