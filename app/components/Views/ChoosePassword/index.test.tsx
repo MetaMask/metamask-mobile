@@ -583,19 +583,14 @@ describe('ChoosePassword', () => {
 
   describe('Navigation', () => {
     it('back button navigates to the previous screen', async () => {
-      renderWithProviders(<ChoosePassword />);
+      const { getByTestId } = renderWithProviders(<ChoosePassword />);
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
-      expect(mockNavigation.setOptions).toHaveBeenCalledWith(
-        expect.objectContaining({ headerLeft: expect.any(Function) }),
-      );
-
-      const headerLeftFn =
-        mockNavigation.setOptions.mock.calls[0][0].headerLeft;
+      const backButton = getByTestId(ChoosePasswordSelectorsIDs.BACK_BUTTON_ID);
       await act(async () => {
-        headerLeftFn().props.onPress();
+        fireEvent.press(backButton);
       });
 
       expect(mockNavigation.goBack).toHaveBeenCalled();
