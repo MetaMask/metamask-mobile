@@ -69,6 +69,7 @@ export const NETWORKS_CHAIN_ID = {
   NOMINA: toHex('166'),
   TEMPO_MAINNET: toHex('4217'),
   TEMPO_TESTNET_MODERATO: toHex('42431'),
+  EBCHAIN: toHex('8721'),
 };
 
 // To add a deprecation warning to a network, add it to the array
