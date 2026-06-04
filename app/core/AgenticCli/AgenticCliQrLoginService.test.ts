@@ -295,4 +295,20 @@ describe('AgenticCliQrLoginService', () => {
       unlockHandler,
     );
   });
+
+  it('resolves when unlock happens between isUnlocked check and subscribe', async () => {
+    const { waitForKeyringUnlock } = loadAgenticCliQrLogin('main_prod');
+    mockIsUnlocked.mockReturnValueOnce(false).mockReturnValue(true);
+
+    await waitForKeyringUnlock();
+
+    expect(mockSubscribe).toHaveBeenCalledWith(
+      'KeyringController:unlock',
+      expect.any(Function),
+    );
+    expect(mockUnsubscribe).toHaveBeenCalledWith(
+      'KeyringController:unlock',
+      mockSubscribe.mock.calls[0][1],
+    );
+  });
 });

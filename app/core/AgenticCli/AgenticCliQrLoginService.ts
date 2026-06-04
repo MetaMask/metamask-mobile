@@ -72,6 +72,15 @@ export async function waitForKeyringUnlock(): Promise<void> {
           'KeyringController:unlock',
           handler,
         );
+        // Unlock may occur between the check above and subscribe; re-check
+        // so we do not wait for a future lock/unlock cycle.
+        if (Engine.context.KeyringController.isUnlocked()) {
+          Engine.controllerMessenger.unsubscribe(
+            'KeyringController:unlock',
+            handler,
+          );
+          resolve();
+        }
       });
       return;
     } catch {
