@@ -21,14 +21,31 @@ interface UsePostTradeTxStatusParams {
 const findBridgeHistoryItem = ({
   bridgeHistory,
   transactionMetaId,
+  transactionActionId,
   transactionHash,
 }: {
   bridgeHistory: Record<string, BridgeHistoryItem>;
   transactionMetaId?: string;
+  transactionActionId?: string;
   transactionHash?: string;
 }) => {
   if (transactionMetaId && bridgeHistory[transactionMetaId]) {
     return bridgeHistory[transactionMetaId];
+  }
+
+  if (transactionActionId && bridgeHistory[transactionActionId]) {
+    return bridgeHistory[transactionActionId];
+  }
+
+  if (transactionMetaId) {
+    const matchingEntry = Object.entries(bridgeHistory).find(
+      ([, historyItem]) =>
+        (historyItem as { originalTransactionId?: string })
+          .originalTransactionId === transactionMetaId,
+    );
+    if (matchingEntry) {
+      return matchingEntry[1];
+    }
   }
 
   if (!transactionHash) {
@@ -56,6 +73,7 @@ export const usePostTradeTxStatus = ({
   const bridgeHistoryItem = findBridgeHistoryItem({
     bridgeHistory,
     transactionMetaId,
+    transactionActionId: transactionMeta?.actionId,
     transactionHash: transactionMeta?.hash ?? transactionHash,
   });
 
