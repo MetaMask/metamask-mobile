@@ -843,5 +843,19 @@ describe('TokenDetailsStickyFooter', () => {
 
       expect(onQuickBuyPress).not.toHaveBeenCalled();
     });
+
+    it('hides the quick buy button when the account has no eligible swap source', () => {
+      mockHasEligibleSwapTokens = false;
+      const onQuickBuyPress = jest.fn();
+      const { queryByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          onQuickBuyPress={onQuickBuyPress}
+          quickBuyTestID={quickBuyTestID}
+        />,
+      );
+
+      expect(queryByTestId(quickBuyTestID)).toBeNull();
+    });
   });
 });

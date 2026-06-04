@@ -9,10 +9,6 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { AnalyticsEventBuilder } from '../../analytics/AnalyticsEventBuilder';
 import { analytics } from '../../analytics/analytics';
 import { UserProfileProperty } from '../../metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
-import generateDeviceAnalyticsMetaData, {
-  UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
-} from '../../metrics';
-import { updateCachedConsent } from '../../trace';
 import Logger from '../../Logger';
 
 interface UseEnableMarketingConsentOptions {
@@ -36,45 +32,24 @@ export function useEnableMarketingConsent({
       [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
     };
 
+    // Never toggle MetaMetrics from the push onboarding sheets. If metrics is
+    // off, leave both metrics and data collection off.
+    if (!analytics.isEnabled()) {
+      return;
+    }
+
     if (hasMarketingConsent) {
       return;
     }
 
-    const shouldOptInToMetrics = !analytics.isEnabled();
-
-    if (shouldOptInToMetrics) {
-      await analytics.optIn();
-      updateCachedConsent(true);
-    }
-
     dispatch(setDataCollectionForMarketing(true));
-    if (shouldOptInToMetrics) {
-      analytics.identify({
-        ...generateDeviceAnalyticsMetaData(),
-        ...generateUserSettingsAnalyticsMetaData(),
-        ...marketingConsentTraits,
-      });
-      analytics.trackEvent(
-        AnalyticsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.METRICS_OPT_IN,
-        )
-          .addProperties({
-            updated_after_onboarding: true,
-            location: metricsOptInLocation,
-            ...(accountType && { account_type: accountType }),
-          })
-          .build(),
-      );
-    } else {
-      analytics.identify(marketingConsentTraits);
-    }
+    analytics.identify(marketingConsentTraits);
     analytics.trackEvent(
       AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
       )
         .addProperties({
           ...marketingConsentTraits,
-          is_metrics_opted_in: true,
           updated_after_onboarding: true,
           location: metricsOptInLocation,
           ...(accountType && { account_type: accountType }),

@@ -1441,7 +1441,8 @@
         "liquidation_warning": "You will be liquidated if price {{direction}} by {{percentage}}",
         "drops": "drops",
         "rises": "rises",
-        "set_leverage": "Set {{leverage}}x"
+        "set_leverage": "Set {{leverage}}x",
+        "price_unavailable": "Price information unavailable"
       },
       "type": {
         "title": "Order type",
@@ -1846,10 +1847,13 @@
       "pay_attention_to_volatility": "Pay attention to volatility and slippage",
       "badge": {
         "experimental": "EXPERIMENTAL",
-        "equity": "STOCK",
         "commodity": "COMMODITY",
         "crypto": "CRYPTO",
-        "forex": "FOREX"
+        "forex": "FOREX",
+        "stock": "STOCK",
+        "pre-ipo": "PRE-IPO",
+        "index": "INDEX",
+        "etf": "ETF"
       }
     },
     "buttons": {
@@ -2031,7 +2035,10 @@
         "stocks": "Stocks",
         "commodities": "Commodities",
         "forex": "Forex",
-        "new": "New"
+        "new": "New",
+        "pre_ipo": "Pre-IPO",
+        "indices": "Indices",
+        "etfs": "ETFs"
       },
       "filter_by": "Filter by",
       "forex": "Forex",
@@ -2552,6 +2559,11 @@
       "buy_title": "Predicted",
       "sell_title": "Cashed out",
       "claim_title": "Claimed winnings",
+      "claim_pending": "Claim pending",
+      "claim_pending_accessibility_label": "{{predictionStatus}}, {{marketTitle}}, opens market details",
+      "prediction_lost_title": "Prediction lost",
+      "prediction_resolved_title": "Prediction resolved",
+      "prediction_won_title": "Prediction won",
       "buy_detail": "Bought {{amountUsd}} on {{outcome}} · {{priceCents}} per share",
       "sell_detail": "Sold at {{priceCents}} per share",
       "claim_detail": "Claimed winnings",
@@ -3056,6 +3068,14 @@
     "option_predict_sports_events": "Predict sports and events",
     "option_crypto_as_money": "Use crypto as money",
     "option_connect_apps_sites": "Connect to apps or sites",
+    "continue": "Continue"
+  },
+  "onboarding_crypto_experience_questionnaire": {
+    "title": "What's your experience with crypto?",
+    "option_new": "New",
+    "option_beginner": "Beginner",
+    "option_intermediate": "Intermediate",
+    "option_advanced": "Advanced",
     "continue": "Continue"
   },
   "template_confirmation": {
@@ -5367,17 +5387,15 @@
     "push_onboarding": {
       "new_user": {
         "title": "Never miss a move",
-        "body": "Get real-time alerts when prices hit your targets, your trades confirm, and your portfolio moves. Plus product updates and rewards along the way. We'll share updates based on your interactions with MetaMask.",
-        "button_yes": "Yes",
+        "body": "Get real-time alerts on price moves, trade confirmations, portfolio activity, and rewards based on how you use MetaMask.",
+        "button_yes": "Enable notifications",
         "button_not_now": "Not now",
         "preview_card_1": {
-          "eyebrow": "METAMASK",
           "time": "now",
           "title": "ETH is up 4.2% today",
           "message": "Now at $2,668.51 — above your price alert"
         },
         "preview_card_2": {
-          "eyebrow": "METAMASK",
           "time": "1h ago",
           "title": "Received 0.25 ETH",
           "message": "From 0x9a21…4f8c · $640.29"
@@ -5395,7 +5413,7 @@
       },
       "existing_user": {
         "title": "Introducing personalized alerts",
-        "body": "Get notifications that match how you trade. Update anytime.",
+        "body": "Get notifications that match how you trade, based on how you use MetaMask.",
         "card_title": "What you'll get",
         "card_description": "Personalized alerts and updates tailored to your trading activity.",
         "button_confirm": "Confirm",
@@ -5500,6 +5518,15 @@
     "title": "Something went wrong",
     "message": "We couldn't load that page",
     "return_home": "Return to home page"
+  },
+  "agentic_cli_approval": {
+    "title": "Review request",
+    "error": {
+      "title": "Something went wrong",
+      "load_description": "We couldn't load this approval request. Check your connection and try again.",
+      "submit_description": "We couldn't complete this approval. Close this screen and start the CLI request again.",
+      "try_again": "Try again"
+    }
   },
   "offline_mode": {
     "title": "You're offline",
@@ -6818,13 +6845,13 @@
       "step_2": {
         "no_card_account": {
           "title": "Get your MetaMask Card",
-          "description": "Spend your balance while it earns, anywhere Mastercard is accepted.",
+          "description": "Spend your balance and earn on purchases.",
           "cta_primary": "Get card",
           "cta_secondary": "Skip"
         },
         "unlinked_card_account": {
           "title": "Link your MetaMask Card",
-          "description": "Spend your balance while it earns, anywhere Mastercard is accepted.",
+          "description": "Spend your balance and earn on purchases.",
           "cta_primary": "Link card",
           "cta_secondary": "Skip"
         }
@@ -6890,10 +6917,10 @@
       "cashback": "{{percentage}}% mUSD back",
       "get_now": "Get now",
       "link_title": "Link MetaMask Card",
-      "link_subtitle": "Spend your Money balance and earn on purchases. Plus, up to {{apy}}% APY (variable) on your balance.",
-      "link_subtitle_no_apy": "Spend your Money balance and earn on purchases.",
+      "link_subtitle": "Spend your balance and earn on purchases.",
+      "link_subtitle_no_apy": "Spend your balance and earn on purchases.",
       "link_bullet_cashback": "Get {{percentage}}% mUSD back",
-      "link_bullet_apy": "Earn up to {{apy}}% APY (variable)",
+      "link_bullet_apy": "Earn up to ~{{apy}}% APY (variable)",
       "link_card": "Link card",
       "link_pending_title": "Linking your card",
       "link_success_title": "Your card is ready to use",
@@ -6957,8 +6984,11 @@
       "deposit_success_title_add_musd": "Funds added",
       "deposit_success_body": "{{amount}} added to Money account.",
       "deposit_success_body_no_amount": "Added to Money account.",
-      "withdraw_success_body": "{{amount}} moved to {{destination}}.",
-      "withdraw_success_body_no_amount": "Moved to {{destination}}.",
+      "withdraw_in_progress_title": "Transfer in progress",
+      "withdraw_success_title": "Transfer complete",
+      "withdraw_success_body": "{{amount}} added to {{destination}}.",
+      "withdraw_success_body_no_amount": "Added to {{destination}}.",
+      "withdraw_fallback_destination": "your account",
       "deposit_failed_title_convert": "Conversion failed",
       "deposit_failed_title_add_musd": "Failed to add funds",
       "deposit_failed_body_convert": "Unable to convert. Try again.",

@@ -160,10 +160,10 @@
     "a:status": "scripts/perps/agentic/app-state.sh status",
     "a:reload": "scripts/perps/agentic/reload-metro.sh",
     "a:navigate": "scripts/perps/agentic/app-navigate.sh",
-    "a:ios": "scripts/perps/agentic/preflight.sh --platform ios --mode fast --wallet-setup",
-    "a:android": "scripts/perps/agentic/preflight.sh --platform android --mode fast --wallet-setup",
-    "a:setup:ios": "scripts/perps/agentic/preflight.sh --platform ios --mode clean --wallet-setup",
-    "a:setup:android": "scripts/perps/agentic/preflight.sh --platform android --mode clean --wallet-setup"
+    "a:ios": "yarn ts-node --transpile-only --project scripts/perps/agentic/preflight/tsconfig.json scripts/perps/agentic/preflight/preflight.ts --platform ios --mode auto --wallet-setup",
+    "a:android": "yarn ts-node --transpile-only --project scripts/perps/agentic/preflight/tsconfig.json scripts/perps/agentic/preflight/preflight.ts --platform android --mode auto --wallet-setup",
+    "a:setup:ios": "yarn ts-node --transpile-only --project scripts/perps/agentic/preflight/tsconfig.json scripts/perps/agentic/preflight/preflight.ts --platform ios --mode clean --wallet-setup",
+    "a:setup:android": "yarn ts-node --transpile-only --project scripts/perps/agentic/preflight/tsconfig.json scripts/perps/agentic/preflight/preflight.ts --platform android --mode clean --wallet-setup"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
@@ -316,7 +316,7 @@
     "@metamask/network-enablement-controller": "^5.1.0",
     "@metamask/notification-services-controller": "24.1.1",
     "@metamask/permission-controller": "^13.1.1",
-    "@metamask/perps-controller": "^6.3.0",
+    "@metamask/perps-controller": "^7.0.0",
     "@metamask/phishing-controller": "^17.2.0",
     "@metamask/post-message-stream": "^10.0.0",
     "@metamask/preferences-controller": "^23.0.0",
