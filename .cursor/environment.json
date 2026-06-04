@@ -1,0 +1,3 @@
+{
+  "install": "yarn install --immutable && node scripts/setup.mjs --node --no-build-android --no-build-ios"
+}
