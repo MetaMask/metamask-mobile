@@ -74,6 +74,8 @@ class BitcoinTestDapp {
     await waitFor(element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID)))
       .toBeVisible()
       .withTimeout(10000);
+
+    await this.waitForDappLoaded();
   }
 
   async reloadBitcoinTestDApp(): Promise<void> {
@@ -86,6 +88,19 @@ class BitcoinTestDapp {
   async tapButton(webElement: WebElement): Promise<void> {
     await Gestures.scrollToWebViewPort(webElement);
     await Gestures.tap(webElement);
+  }
+
+  async waitForDappLoaded(): Promise<void> {
+    await Utilities.executeWithRetry(
+      async () => {
+        // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
+        await (expect(await this.connectButtonSelector) as any).toExist();
+      },
+      {
+        timeout: 30_000,
+        description: 'Bitcoin test dapp to load',
+      },
+    );
   }
 
   getHeader() {
