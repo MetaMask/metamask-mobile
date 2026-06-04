@@ -31,6 +31,7 @@ import { BtcScope, SolScope, TrxScope } from '@metamask/keyring-api';
 import { PermissionDoesNotExistError } from '@metamask/permission-controller';
 import { RpcEndpointType, NetworkStatus } from '@metamask/network-controller';
 import { CaipChainId, KnownCaipNamespace } from '@metamask/utils';
+import { TESTNET_CAIP_IDS } from '../../../../constants/network';
 import { WC2VerifyValidation } from '../../../../actions/sdk/state';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { AccountConnectMaliciousWarningSelectorsIDs } from '../../AccountConnect/AccountConnectMaliciousWarning/AccountConnectMaliciousWarning.testIds';
@@ -702,7 +703,7 @@ describe('MultichainAccountConnect', () => {
       );
     });
 
-    it('includes the selected EVM test network for EIP-1193 requests with no specific chains', () => {
+    it('includes the selected EVM test network for EIP-1193 requests with no specific chains when a EVM test network is currently selected', () => {
       renderWithProvider(
         <MultichainAccountConnect
           route={{
@@ -730,6 +731,52 @@ describe('MultichainAccountConnect', () => {
       expect(chainIds).toEqual(expect.arrayContaining(['eip155:1']));
       expect(chainIds).toEqual(expect.arrayContaining(['eip155:11155111']));
       expect(chainIds).not.toContain(SolScope.Mainnet);
+    });
+
+    it('excludes EVM test networks for EIP-1193 requests with no specific chains when the currently selected network is a non-test network', () => {
+      const sepoliaState = createSepoliaSelectedState();
+      const stateWithMainnetSelectedAndSepoliaAvailable = {
+        ...sepoliaState,
+        engine: {
+          ...sepoliaState.engine,
+          backgroundState: {
+            ...sepoliaState.engine?.backgroundState,
+            NetworkController: {
+              ...sepoliaState.engine?.backgroundState?.NetworkController,
+              selectedNetworkClientId: 'mainnet',
+            },
+          },
+        },
+      } as DeepPartial<RootState>;
+
+      renderWithProvider(
+        <MultichainAccountConnect
+          route={{
+            params: {
+              hostInfo: {
+                metadata: {
+                  id: 'mockId',
+                  origin: 'mockOrigin',
+                  isEip1193Request: true,
+                },
+                permissions: createMockCaip25Permission({
+                  'wallet:eip155': {
+                    accounts: [],
+                  },
+                }),
+              },
+              permissionRequestId: 'test-eip1193-non-test-selected',
+            },
+          }}
+        />,
+        { state: stateWithMainnetSelectedAndSepoliaAvailable },
+      );
+
+      const chainIds = getRequestedChainIdsFromUseAccountGroupsForPermissions();
+      expect(chainIds).toContain('eip155:1');
+      TESTNET_CAIP_IDS.forEach((testnetCaipChainId) => {
+        expect(chainIds).not.toContain(testnetCaipChainId);
+      });
     });
 
     it('defaults to Solana scopes only for Solana Wallet Standard requests', () => {
