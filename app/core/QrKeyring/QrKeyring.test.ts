@@ -56,6 +56,16 @@ describe('QrKeyring core', () => {
       expect(result).toBe('done');
     });
 
+    it('creates the QR keyring on-demand when none exists yet', async () => {
+      MockEngine.context.KeyringController.state.keyrings = [];
+
+      await withQrKeyring(async () => undefined);
+
+      expect(
+        MockEngine.context.KeyringController.addNewKeyring,
+      ).toHaveBeenCalledWith(LegacyQrKeyring.type);
+    });
+
     it('throws when the resolved keyring is not a QrKeyring instance', async () => {
       MockEngine.context.KeyringController.withKeyringV2.mockImplementationOnce(
         async (_selector, operation) =>

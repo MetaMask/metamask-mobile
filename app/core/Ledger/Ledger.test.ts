@@ -325,6 +325,18 @@ describe('Ledger core', () => {
     });
   });
 
+  describe('withLedgerKeyring on-demand creation', () => {
+    it('creates the Ledger keyring when none exists yet', async () => {
+      MockEngine.context.KeyringController.state.keyrings = [];
+
+      await getDeviceId();
+
+      expect(
+        MockEngine.context.KeyringController.addNewKeyring,
+      ).toHaveBeenCalledWith(LegacyLedgerKeyring.type);
+    });
+  });
+
   describe('forgetLedger', () => {
     it('removes the accounts from existing permissions', async () => {
       await forgetLedger();
