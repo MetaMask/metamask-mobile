@@ -182,6 +182,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   const showSwapButton = hasEligibleSwapTokens;
   const showBuyButton = isBuyable || !hasEligibleSwapTokens;
   const showBothButtons = showSwapButton && showBuyButton;
+  const showQuickBuyButton = Boolean(onQuickBuyPress) && hasEligibleSwapTokens;
 
   const tradingOpen = isTokenTradingOpen(token as BridgeToken);
   useEffect(() => {
@@ -345,13 +346,14 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
             {strings('asset_overview.buy_button')}
           </Button>
         )}
-        {onQuickBuyPress && (
+        {showQuickBuyButton && (
           <ButtonAnimated
             testID={quickBuyTestID}
             accessibilityRole="button"
             accessibilityLabel={strings('asset_overview.buy_button')}
             style={[styles.quickBuyButton, { borderColor: successColorHex }]}
             onPress={() => {
+              if (!onQuickBuyPress) return;
               trackStickyFooterTapped({
                 ctaType: 'quick_buy',
                 balanceFiatUsd,

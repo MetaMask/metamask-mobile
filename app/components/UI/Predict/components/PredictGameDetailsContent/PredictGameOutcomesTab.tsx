@@ -6,11 +6,13 @@ import type {
   PredictOutcomeGroup,
   PredictOutcomeToken,
 } from '../../types';
+import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
 import type { PredictBetButtonVariant } from '../PredictActionButtons/PredictActionButtons.types';
 import PredictSportOutcomeCard, {
   type PredictSportOutcomeButton,
 } from '../PredictSportOutcomeCard';
 import { formatVolume } from '../../utils/format';
+import { isValidPrice } from '../../utils/prices';
 import { isMoneylineLikeMarketType } from '../../constants/sports';
 import { strings } from '../../../../../../locales/i18n';
 import Logger from '../../../../../util/Logger';
@@ -280,6 +282,7 @@ const buildMoneylineButtons = (
   outcomes: PredictOutcome[],
   onBuyPress: BuyHandler,
   game?: PredictMarketGame,
+  getPrice?: ReturnType<typeof useLiveMarketPrices>['getPrice'],
 ): PredictSportOutcomeButton[] => {
   const sortedWithTokens = sortMoneylineOutcomes(outcomes, game).filter(
     (outcome) => outcome.tokens[0] !== undefined,
@@ -287,10 +290,12 @@ const buildMoneylineButtons = (
 
   return sortedWithTokens.map((outcome, i) => {
     const yesToken = outcome.tokens[0];
+    const liveBestAsk = getPrice?.(yesToken.id)?.bestAsk;
+    const price = isValidPrice(liveBestAsk) ? liveBestAsk : yesToken.price;
 
     return {
       label: yesToken.shortTitle ?? yesToken.title,
-      price: Math.round(yesToken.price * 100),
+      price: Math.round(price * 100),
       onPress: () => onBuyPress(outcome, yesToken),
       variant: getButtonVariant(i, sortedWithTokens.length, true),
       teamColor: getTeamColor(yesToken.shortTitle ?? yesToken.title, game),
@@ -321,9 +326,17 @@ const MoneylineCard = memo(
       () => buildMoneylineSubtitle(outcomes),
       [outcomes],
     );
+    const tokenIds = useMemo(
+      () =>
+        sortMoneylineOutcomes(outcomes, game)
+          .map((outcome) => outcome.tokens[0]?.id)
+          .filter((id): id is string => Boolean(id)),
+      [outcomes, game],
+    );
+    const { getPrice } = useLiveMarketPrices(tokenIds);
     const buttons = useMemo(
-      () => buildMoneylineButtons(outcomes, onBuyPress, game),
-      [outcomes, onBuyPress, game],
+      () => buildMoneylineButtons(outcomes, onBuyPress, game, getPrice),
+      [outcomes, onBuyPress, game, getPrice],
     );
 
     return (
@@ -331,7 +344,7 @@ const MoneylineCard = memo(
         title={title}
         subtitle={subtitle}
         buttons={buttons}
-        buttonLayout="stacked"
+        buttonLayout="inlineNoSeparator"
         testID={testID}
       />
     );

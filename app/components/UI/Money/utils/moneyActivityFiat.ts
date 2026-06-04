@@ -44,7 +44,7 @@ function getMarketDataRowForChain(
 /**
  * Token→ETH `price` for {@link balanceToFiatNumber}, with checksum + case-insensitive address keys.
  */
-function getTokenToEthPrice(
+export function getTokenToEthPrice(
   tokenMarketData: TokenMarketDataMap | undefined,
   chainId: Hex,
   contractAddress: string,
