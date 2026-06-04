@@ -78,9 +78,13 @@ describe('AgenticCliMwpConnectionService', () => {
   let agenticCliDeeplink: string;
 
   const RELAY_URL = 'wss://test-relay.example.com';
+  const clientHandlers: Record<string, (...args: unknown[]) => void> = {};
 
   beforeEach(() => {
     jest.clearAllMocks();
+    for (const event of Object.keys(clientHandlers)) {
+      delete clientHandlers[event];
+    }
 
     mockConnectionRequest = {
       sessionRequest: {
@@ -124,7 +128,11 @@ describe('AgenticCliMwpConnectionService', () => {
     mockKeyManager = new KeyManager() as jest.Mocked<KeyManager>;
 
     const sendResponse = jest.fn().mockResolvedValue(undefined);
-    const on = jest.fn();
+    const on = jest.fn(
+      (event: string, handler: (...args: unknown[]) => void) => {
+        clientHandlers[event] = handler;
+      },
+    );
     mockConnection = {
       id: mockConnectionRequest.sessionRequest.id,
       info: mockConnectionInfo,
@@ -217,17 +225,6 @@ describe('AgenticCliMwpConnectionService', () => {
   });
 
   it('hides the OTP sheet when connect fails after display_otp', async () => {
-    const clientHandlers: Record<string, (...args: unknown[]) => void> = {};
-    const on = jest.fn(
-      (event: string, handler: (...args: unknown[]) => void) => {
-        clientHandlers[event] = handler;
-      },
-    );
-    mockConnection.client = {
-      ...mockConnection.client,
-      on,
-      sendResponse: jest.fn().mockResolvedValue(undefined),
-    } as unknown as Connection['client'];
     mockConnection.connect.mockImplementation(async () => {
       clientHandlers.display_otp?.('4892AKJ7', Date.now() + 60_000);
       throw new Error('MWP connect failed');
@@ -256,17 +253,6 @@ describe('AgenticCliMwpConnectionService', () => {
   });
 
   it('hides the OTP sheet when QR login fails after display_otp', async () => {
-    const clientHandlers: Record<string, (...args: unknown[]) => void> = {};
-    const on = jest.fn(
-      (event: string, handler: (...args: unknown[]) => void) => {
-        clientHandlers[event] = handler;
-      },
-    );
-    mockConnection.client = {
-      ...mockConnection.client,
-      on,
-      sendResponse: jest.fn().mockResolvedValue(undefined),
-    } as unknown as Connection['client'];
     mockConnection.connect.mockImplementation(async () => {
       clientHandlers.display_otp?.('4892AKJ7', Date.now() + 60_000);
     });
