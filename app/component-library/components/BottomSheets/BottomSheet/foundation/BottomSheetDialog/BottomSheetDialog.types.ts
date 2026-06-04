@@ -32,13 +32,6 @@ export interface BottomSheetDialogProps extends ViewProps {
    * Optional callback that gets triggered when sheet is opened.
    */
   onOpen?: (hasPendingAction?: boolean) => void;
-  /**
-   * Optional props for the sheet pan gesture container (Reanimated v4 / RNGH v2).
-   * Currently supports `testID` on the animated sheet view.
-   */
-  panGestureHandlerProps?: {
-    testID?: string;
-  };
 }
 
 export interface BottomSheetDialogRef {

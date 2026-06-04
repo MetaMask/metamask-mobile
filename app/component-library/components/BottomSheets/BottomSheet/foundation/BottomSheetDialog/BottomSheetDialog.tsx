@@ -16,8 +16,8 @@ import {
   KeyboardAvoidingView,
 } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { scheduleOnRN } from 'react-native-worklets';
 import Animated, {
-  runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
@@ -59,7 +59,6 @@ const BottomSheetDialog = forwardRef<
       keyboardAvoidingViewEnabled = true,
       onClose,
       onOpen,
-      panGestureHandlerProps,
       style,
       ...props
     },
@@ -98,7 +97,7 @@ const BottomSheetDialog = forwardRef<
       currentYOffset.value = withTiming(
         bottomOfDialogYValue.value,
         { duration: DEFAULT_BOTTOMSHEETDIALOG_DISPLAY_DURATION },
-        () => runOnJS(onCloseCB)(),
+        () => scheduleOnRN(onCloseCB),
       );
       // Ref values do not affect deps.
       /* eslint-disable-next-line */
@@ -151,7 +150,7 @@ const BottomSheetDialog = forwardRef<
             const isDismissed = finalYOffset === bottomOfDialogYValue.value;
 
             if (isDismissed) {
-              runOnJS(onCloseDialog)();
+              scheduleOnRN(onCloseDialog);
             } else {
               currentYOffset.value = withTiming(finalYOffset, {
                 duration: DEFAULT_BOTTOMSHEETDIALOG_DISPLAY_DURATION,
@@ -174,7 +173,7 @@ const BottomSheetDialog = forwardRef<
         {
           duration: DEFAULT_BOTTOMSHEETDIALOG_DISPLAY_DURATION,
         },
-        () => runOnJS(onOpenCB)(),
+        () => scheduleOnRN(onOpenCB),
       );
     };
 
@@ -207,8 +206,6 @@ const BottomSheetDialog = forwardRef<
       onCloseDialog,
     }));
 
-    const { testID: panGestureTestID } = panGestureHandlerProps ?? {};
-
     return (
       <KeyboardAvoidingView
         style={styles.base}
@@ -220,11 +217,7 @@ const BottomSheetDialog = forwardRef<
         {...props}
       >
         <GestureDetector gesture={panGesture}>
-          <Animated.View
-            testID={panGestureTestID}
-            onLayout={updateSheetHeight}
-            style={combinedSheetStyle}
-          >
+          <Animated.View onLayout={updateSheetHeight} style={combinedSheetStyle}>
             {isInteractable && (
               <View style={styles.notchWrapper}>
                 <View style={styles.notch} />

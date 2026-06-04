@@ -9,11 +9,12 @@ import { LayoutChangeEvent, TextInput } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
-  runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
+
 import {
   AvatarToken,
   AvatarTokenSize,
@@ -180,10 +181,10 @@ const useMusdSlider = (
           const clampedX = Math.max(0, Math.min(w, e.x));
           const linearPct = (clampedX / w) * 100;
           thumbLinearPctShared.value = linearPct;
-          runOnJS(syncAmountFromLinearPct)(linearPct, false);
+          scheduleOnRN(syncAmountFromLinearPct, linearPct, false);
         })
         .onEnd((e) => {
-          runOnJS(commitSliderAtX)(e.x);
+          scheduleOnRN(commitSliderAtX, e.x);
         })
         .onFinalize(() => {
           thumbScale.value = withTiming(1, { duration: 150 });
@@ -200,7 +201,7 @@ const useMusdSlider = (
   const tapGesture = useMemo(
     () =>
       Gesture.Tap().onEnd((e) => {
-        runOnJS(commitSliderAtX)(e.x);
+        scheduleOnRN(commitSliderAtX, e.x);
       }),
     [commitSliderAtX],
   );

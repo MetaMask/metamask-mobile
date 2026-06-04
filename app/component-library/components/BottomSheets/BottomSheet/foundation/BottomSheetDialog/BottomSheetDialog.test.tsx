@@ -198,26 +198,4 @@ describe('BottomSheetDialog', () => {
     });
   });
   //   Note: Add Gesture tests when react-native-gesture-handler gets updated
-
-  describe('panGestureHandlerProps', () => {
-    it('passes testID to the sheet via panGestureHandlerProps', () => {
-      const { getByTestId } = render(
-        <BottomSheetDialog
-          panGestureHandlerProps={{ testID: 'pan-gesture-handler' }}
-        >
-          <Text>Test Child</Text>
-        </BottomSheetDialog>,
-      );
-      expect(getByTestId('pan-gesture-handler')).toBeOnTheScreen();
-    });
-
-    it('renders normally when panGestureHandlerProps is undefined', () => {
-      const { getByText } = render(
-        <BottomSheetDialog panGestureHandlerProps={undefined}>
-          <Text>No Handler Props</Text>
-        </BottomSheetDialog>,
-      );
-      expect(getByText('No Handler Props')).toBeOnTheScreen();
-    });
-  });
 });
