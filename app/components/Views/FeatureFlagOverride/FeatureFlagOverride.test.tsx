@@ -742,7 +742,7 @@ describe('FeatureFlagOverride', () => {
   });
 
   describe('Boolean with MinimumVersion Flag', () => {
-    it('disables switch when version is not supported and flag is not in FeatureFlagNames', () => {
+    it('allows toggling switch even when version is not supported (dev tools bypass)', () => {
       (isMinimumRequiredVersionSupported as jest.Mock).mockReturnValue(false);
 
       // Render with a version-gated flag
@@ -755,7 +755,9 @@ describe('FeatureFlagOverride', () => {
       const versionSwitch = switches.find(
         (switchElement) => switchElement.props.value === true,
       );
-      expect(versionSwitch).toHaveProp('disabled', true);
+      // The dev tools switch should NOT be disabled — the version indicator
+      // (green/red dot) already informs the user, but overriding is always allowed.
+      expect(versionSwitch?.props.disabled).toBeFalsy();
     });
 
     it('handles toggle for boolean with minimumVersion flag', () => {

@@ -3822,6 +3822,14 @@
           "rigid": "Raw impact — Rigid",
           "soft": "Raw impact — Soft"
         }
+      },
+      "dmk": {
+        "title": "Ledger Device Management Kit (DMK)",
+        "description": "Toggle the enableDMK feature flag for local development. This switches the Ledger Bluetooth stack to use the new Device Management Kit. The override uses the version-gated flag shape and is persisted across restarts.",
+        "status": "Status: {{status}}",
+        "status_enabled": "Enabled",
+        "status_disabled": "Disabled",
+        "overridden": "Overridden"
       }
     },
     "feature_flag_override": {

@@ -8,27 +8,43 @@ import { hasMinimumRequiredVersion } from '../../util/remoteFeatureFlag';
 
 const DMK_FEATURE_FLAG_KEY = 'enableDMK';
 
-interface HasGetState {
-  call: (action: 'RemoteFeatureFlagController:getState') => {
-    remoteFeatureFlags?: Record<string, unknown>;
-  };
+interface RemoteFeatureFlagControllerState {
+  remoteFeatureFlags?: Record<string, unknown>;
+  localOverrides?: Record<string, unknown>;
 }
 
+interface HasGetState {
+  call: (
+    action: 'RemoteFeatureFlagController:getState',
+  ) => RemoteFeatureFlagControllerState;
+}
+
+/**
+ * Resolves the effective DMK flag value, with local overrides taking
+ * precedence over remote values. Supports both the version-gated shape
+ * (`{ enabled, minimumVersion }`) and boolean dev-tool overrides.
+ */
 export const isDmkEnabled = (messenger: HasGetState): boolean => {
   try {
     const flagState = messenger.call(
       'RemoteFeatureFlagController:getState',
     );
-    const dmkFlag = flagState?.remoteFeatureFlags?.[DMK_FEATURE_FLAG_KEY];
-    if (
-      dmkFlag &&
-      typeof dmkFlag === 'object' &&
-      'enabled' in dmkFlag
-    ) {
+
+    // Local overrides (dev tools) take precedence over remote flags
+    const localOverride = flagState?.localOverrides?.[DMK_FEATURE_FLAG_KEY];
+    const remoteValue = flagState?.remoteFeatureFlags?.[DMK_FEATURE_FLAG_KEY];
+    const dmkFlag = localOverride ?? remoteValue;
+
+    // Boolean dev-tool override (e.g. set via Developer Options toggle)
+    if (typeof dmkFlag === 'boolean') {
+      return dmkFlag;
+    }
+
+    if (dmkFlag && typeof dmkFlag === 'object' && 'enabled' in dmkFlag) {
       return (
         (dmkFlag as { enabled: boolean }).enabled &&
         hasMinimumRequiredVersion(
-          (dmkFlag as { minimumVersion: string }).minimumVersion,
+          (dmkFlag as unknown as { minimumVersion: string }).minimumVersion,
         )
       );
     }

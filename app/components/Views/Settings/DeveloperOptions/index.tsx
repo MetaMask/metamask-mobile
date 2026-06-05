@@ -26,6 +26,7 @@ import { selectMoneyEnableMoneyAccountFlag } from '../../../UI/Money/selectors/f
 import { MoneyUiDeveloperOptionsSection } from '../../../UI/Money/components/MoneyUiDeveloperOptionsSection';
 import NotificationsDeveloperOptionsSection from '../../../UI/Notification/DeveloperOptionsSection/NotificationsDeveloperOptionsSection';
 import NavigationDevPanelSection from './NavigationDevPanelSection';
+import DmkDeveloperOptionsSection from './DmkDeveloperOptionsSection';
 
 const DeveloperOptions = () => {
   const navigation = useNavigation();
@@ -76,6 +77,7 @@ const DeveloperOptions = () => {
       <IdentityDeveloperOptionsSection />
       <NotificationsDeveloperOptionsSection />
       <HapticsDeveloperOptionsSection />
+      <DmkDeveloperOptionsSection />
     </ScrollView>
   );
 };

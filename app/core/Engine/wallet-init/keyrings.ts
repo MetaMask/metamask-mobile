@@ -66,11 +66,13 @@ export function getKeyringBuilders(
 
   keyrings.push(qrKeyringBuilder);
 
-  const useDmk = isDmkEnabled(messenger);
+  const useDmk = true; //isDmkEnabled(messenger);
   const bridge = useDmk
     ? new LedgerDMKBridge({ dmk: getDmk() })
     : new LedgerMobileBridge(new LedgerTransportMiddleware());
-  DevLogger.log(`[Ledger] Using ${useDmk ? 'LedgerDMKBridge' : 'LedgerMobileBridge'}`);
+  DevLogger.log(
+    `[Ledger] Using ${useDmk ? 'LedgerDMKBridge' : 'LedgerMobileBridge'}`,
+  );
   const ledgerKeyringBuilder = () => new LedgerKeyring({ bridge });
   ledgerKeyringBuilder.type = LedgerKeyring.type;
 

@@ -56,6 +56,7 @@ import HeaderRoot from '../../../component-library/components-temp/HeaderRoot';
 import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
 import AddressCopy from '../../UI/AddressCopy';
 import CardButton from '../../UI/Card/components/CardButton';
+import EIP7702UpgradeButton from '../../UI/EIP7702UpgradeButton';
 import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/featureFlags';
 import MoneyBalanceCard from '../../UI/Money/components/MoneyBalanceCard';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -1030,6 +1031,7 @@ const Wallet = ({
       {bannerContent}
       <AccountGroupBalance {...walletHomeAccountGroupBalanceProps} />
       {walletHomeMainAssetDetailsActions}
+      <EIP7702UpgradeButton />
       {homeGrowthBannerContent}
       {isMoneyAccountEnabled && <MoneyBalanceCard />}
     </>
@@ -1042,6 +1044,7 @@ const Wallet = ({
         <AccountGroupBalance {...walletHomeAccountGroupBalanceProps} />
       </View>
       {walletHomeMainAssetDetailsActions}
+      <EIP7702UpgradeButton />
       {homeGrowthBannerContent}
       {isMoneyAccountEnabled && <MoneyBalanceCard />}
     </>
