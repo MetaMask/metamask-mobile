@@ -12,10 +12,12 @@ import useRampsController from '../hooks/useRampsController';
 import {
   closeSession,
   createSession,
+  failSession,
   getActiveSessionId,
 } from './sessionRegistry';
 import type {
   HeadlessBuyCallbacks,
+  HeadlessBuyErrorCode,
   HeadlessBuyParams,
   HeadlessBuyResult,
   HeadlessGetQuotesParams,
@@ -102,7 +104,15 @@ export function useHeadlessBuy(): HeadlessBuyResult {
           `useHeadlessBuy: could not resolve wallet address for assetId="${params.assetId}". Pass walletAddress explicitly or ensure an account is selected for chain ${chainId ?? 'unknown'}.`,
         );
       }
-      return getQuotesRaw({
+
+      // Capture the session id at function entry. If a concurrent
+      // startHeadlessBuy() swaps the active session while we're awaiting
+      // getQuotesRaw below, calling getActiveSessionId() post-await would
+      // return the *new* session's id, and failSession would terminate the
+      // wrong session with this call's error.
+      const sessionIdAtStart = getActiveSessionId();
+
+      const quotesResponse = await getQuotesRaw({
         assetId: params.assetId,
         amount: params.amount,
         walletAddress,
@@ -111,6 +121,65 @@ export function useHeadlessBuy(): HeadlessBuyResult {
         redirectUrl: params.redirectUrl ?? getRampCallbackBaseUrl(),
         forceRefresh: params.forceRefresh,
       });
+
+      // UB2 surfaces empty-success provider rejections; headless must too.
+      // Previously an all-reject response returned an empty success list with
+      // no error, leaving the consumer stuck awaiting a result that never came.
+      const errorEntries = (quotesResponse?.error ?? []) as readonly Record<
+        string,
+        unknown
+      >[];
+      const successCount = quotesResponse?.success?.length ?? 0;
+      if (successCount === 0 && errorEntries.length > 0) {
+        const providerErrors = errorEntries.map((entry) => ({
+          provider:
+            typeof entry.provider === 'string' ? entry.provider : 'unknown',
+          message: typeof entry.error === 'string' ? entry.error : undefined,
+          code: typeof entry.code === 'string' ? entry.code : undefined,
+        }));
+        const combinedMessage = providerErrors
+          .map((p) => `${p.provider}: ${p.message ?? '(no message)'}`)
+          .join('; ');
+
+        // Classify per provider so a rate-limit signal cannot veto another
+        // provider's buy-limit signal.
+        const limitWord = /\b(minimum|maximum|limit)\b/i;
+        const rateRequestWord = /\b(rate|request)\b/i;
+        const limitCodePattern = /limit/i;
+        const rateRequestCodePattern = /rate|request/i;
+        const isLimitExceeded = providerErrors.some((p) => {
+          if (p.code !== undefined) {
+            return (
+              limitCodePattern.test(p.code) &&
+              !rateRequestCodePattern.test(p.code)
+            );
+          }
+          const message = p.message ?? '';
+          return limitWord.test(message) && !rateRequestWord.test(message);
+        });
+        const code: HeadlessBuyErrorCode = isLimitExceeded
+          ? 'LIMIT_EXCEEDED'
+          : 'QUOTE_FAILED';
+
+        const error = new Error(combinedMessage) as Error & {
+          headlessBuyErrorCode: HeadlessBuyErrorCode;
+          details: Record<string, unknown>;
+        };
+        error.headlessBuyErrorCode = code;
+        error.details = {
+          providerErrors,
+          successCount,
+          errorCount: errorEntries.length,
+          source: 'network-reject',
+        };
+
+        if (sessionIdAtStart) {
+          failSession(sessionIdAtStart, error, code);
+        }
+        throw error;
+      }
+
+      return quotesResponse;
     },
     [getQuotesRaw],
   );
