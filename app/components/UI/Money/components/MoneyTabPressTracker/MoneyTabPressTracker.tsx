@@ -21,7 +21,6 @@ interface MoneyTabPressTrackerProps {
   onRegister: (fn: (() => void) | null) => void;
 }
 
-// TODO: Add tests
 const MoneyTabPressTracker = ({ onRegister }: MoneyTabPressTrackerProps) => {
   const { trackButtonClicked } = useMoneyAnalytics({
     component_name: COMPONENT_NAMES.HOME_TAB,
