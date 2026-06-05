@@ -24,6 +24,12 @@ jest.mock('../../../../../util/notifications/methods/common', () => ({
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: jest.fn(),
 }));
+jest.mock(
+  '../../../../../util/notifications/hooks/useSessionProfileId',
+  () => ({
+    useSessionProfileId: () => ({ profileId: undefined, isLoading: false }),
+  }),
+);
 const MOCK_NOTIFICATION = processNotification(
   createMockNotificationEthReceived(),
 );

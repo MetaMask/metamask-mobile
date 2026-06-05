@@ -23,7 +23,8 @@ import Icon, {
 import { NotificationDetailStyles } from '../styles';
 import { CURRENCY_SYMBOL_BY_CHAIN_ID } from '../../../../../constants/network';
 import { type INotification } from '../../../../../util/notifications';
-import onChainAnalyticProperties from '../../../../../util/notifications/methods/notification-analytics';
+import { notificationAnalyticsProperties } from '../../../../../util/notifications/methods/notification-analytics';
+import { useSessionProfileId } from '../../../../../util/notifications/hooks/useSessionProfileId';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import NetworkFeeFieldSkeleton from './Skeletons/NetworkFeeField';
@@ -87,6 +88,7 @@ function NetworkFeeField(props: NetworkFeeFieldProps) {
   const sheetRef = useRef<BottomSheetRef>(null);
   const { data: networkFee, isLoading } = useNetworkFee(props);
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const { profileId } = useSessionProfileId();
 
   if (isLoading && !networkFee) {
     return (
@@ -141,9 +143,7 @@ function NetworkFeeField(props: NetworkFeeFieldProps) {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.NOTIFICATION_DETAIL_CLICKED)
           .addProperties({
-            notification_id: notification.id,
-            notification_type: notification.type,
-            ...onChainAnalyticProperties(notification),
+            ...notificationAnalyticsProperties(notification, profileId),
             clicked_item: 'fee_details',
           })
           .build(),

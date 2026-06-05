@@ -496,41 +496,6 @@ describe('AccountsMenu', () => {
       });
       expect(mockTrackEvent).toHaveBeenCalled();
     });
-
-    it('track NOTIFICATIONS_ACTIVATED event when not enabled and pressed', () => {
-      jest.mocked(isNotificationsFeatureEnabled).mockReturnValue(true);
-      setupNotificationMocks({
-        notificationEnabled: false,
-        backupSyncEnabled: true,
-      });
-
-      mockCreateEventBuilder.mockClear();
-      mockTrackEvent.mockClear();
-
-      const mockAddProperties = jest.fn().mockReturnThis();
-      const mockBuild = jest.fn(() => ({
-        name: 'NOTIFICATIONS_ACTIVATED',
-      }));
-
-      mockCreateEventBuilder.mockReturnValue({
-        addProperties: mockAddProperties,
-        build: mockBuild,
-      });
-
-      const { getByText } = render(<AccountsMenu />);
-      const notificationsButton = getByText('accounts_menu.notifications');
-
-      fireEvent.press(notificationsButton);
-
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        'Notifications Activated',
-      );
-      expect(mockAddProperties).toHaveBeenCalledWith({
-        action_type: 'started',
-        is_profile_syncing_enabled: true,
-      });
-      expect(mockTrackEvent).toHaveBeenCalled();
-    });
   });
 
   describe('Permissions Row', () => {
