@@ -45,6 +45,7 @@ interface FullFeedListProps {
   fetchMore?: () => void;
   isFetchingMore?: boolean;
   hasMore?: boolean;
+  resultCount?: number;
 }
 
 const FullFeedList: React.FC<FullFeedListProps> = ({
@@ -57,6 +58,7 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
   fetchMore,
   isFetchingMore,
   hasMore,
+  resultCount,
 }) => {
   const tw = useTailwind();
   const flashListRef = useRef<FlashListRef<unknown>>(null);
@@ -67,6 +69,7 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
 
   const { onScrollBeginDrag } = useScrollTracking('scrolled', searchQuery, {
     tab_name: tabName,
+    result_count: resultCount,
   });
 
   const renderItem: ListRenderItem<unknown> = useCallback(
@@ -77,9 +80,10 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
         index={index}
         searchQuery={searchQuery}
         tabName={tabName}
+        resultCount={resultCount}
       />
     ),
-    [feedId, searchQuery, tabName],
+    [feedId, searchQuery, tabName, resultCount],
   );
 
   const keyExtractor = useCallback(
@@ -161,6 +165,8 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
   const { sections } = useExploreSearch(searchQuery, {
     exposePagination: true,
   });
+  const sectionsRef = useRef(sections);
+  sectionsRef.current = sections;
 
   const isLoading = sections.some((s) => s.isLoading);
 
@@ -181,28 +187,46 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
   );
 
   useEffect(() => {
-    if (!searchQuery || isLoading) return;
+    if (!searchQuery.trim() || isLoading) return;
 
+    const currentPill = activePillRef.current;
+    const currentSections = sectionsRef.current;
+    const currentSection = currentSections.find(
+      (s) => s.feedId === currentPill,
+    );
     const resultCount =
-      activePill === ALL_PILL_KEY
-        ? sections.reduce((sum, s) => sum + (s.total ?? s.items.length), 0)
-        : (activeSection?.total ?? activeSection?.items.length ?? 0);
+      currentPill === ALL_PILL_KEY
+        ? currentSections.reduce(
+            (sum, s) => sum + (s.total ?? s.items.length),
+            0,
+          )
+        : (currentSection?.total ?? currentSection?.items.length ?? 0);
 
     trackExploreSearchEvent({
       interaction_type: 'searched',
       search_query: searchQuery,
-      tab_name: activePill,
+      tab_name: currentPill,
       result_count: resultCount,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery, activePill, isLoading]);
+  }, [searchQuery, isLoading]);
 
   const handlePillSelect = useCallback((key: string) => {
+    const targetSections = sectionsRef.current;
+    const resultCount =
+      key === ALL_PILL_KEY
+        ? targetSections.reduce(
+            (sum, s) => sum + (s.total ?? s.items.length),
+            0,
+          )
+        : (targetSections.find((s) => s.feedId === key)?.total ??
+          targetSections.find((s) => s.feedId === key)?.items.length);
     trackExploreSearchEvent({
       interaction_type: 'tab_switched',
       search_query: searchQueryRef.current,
       tab_name: key as SearchFeedPill,
       previous_tab: activePillRef.current,
+      result_count: resultCount,
     });
     setActivePill(key as ActivePill);
   }, []);
@@ -244,6 +268,7 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
           fetchMore={activeSection?.fetchMore}
           isFetchingMore={activeSection?.isFetchingMore}
           hasMore={activeSection?.hasMore}
+          resultCount={activeSection?.total ?? activeSection?.items.length}
         />
       ) : (
         <ExploreSearchResults

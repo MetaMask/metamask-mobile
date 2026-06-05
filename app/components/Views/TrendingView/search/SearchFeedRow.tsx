@@ -19,6 +19,7 @@ interface SearchFeedRowProps {
   index: number;
   searchQuery: string;
   tabName: SearchFeedPill;
+  resultCount?: number;
 }
 
 const renderRow = (feedId: SearchFeedId, item: unknown, index: number) => {
@@ -56,6 +57,7 @@ const SearchFeedRow: React.FC<SearchFeedRowProps> = ({
   index,
   searchQuery,
   tabName,
+  resultCount,
 }) => {
   const searchQueryRef = useRef(searchQuery);
   searchQueryRef.current = searchQuery;
@@ -68,8 +70,9 @@ const SearchFeedRow: React.FC<SearchFeedRowProps> = ({
       tab_name: tabName,
       item_clicked: getItemId(feedId, item),
       position: index,
+      result_count: resultCount,
     });
-  }, [feedId, tabName, item, index]);
+  }, [feedId, tabName, item, index, resultCount]);
 
   return <TapView onTap={handleTap}>{renderRow(feedId, item, index)}</TapView>;
 };

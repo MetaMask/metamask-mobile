@@ -89,10 +89,18 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
     selectBasicFunctionalityEnabled,
   );
 
+  const scrollResultCount = useMemo(() => {
+    if (activeTab === 'all') {
+      return sections.reduce((sum, s) => sum + (s.total ?? s.items.length), 0);
+    }
+    const s = sections.find((sec) => sec.feedId === activeTab);
+    return s?.total ?? s?.items.length;
+  }, [activeTab, sections]);
+
   const { onScrollBeginDrag, resetScrollTracking } = useScrollTracking(
     'scrolled',
     searchQuery,
-    { tab_name: activeTab },
+    { tab_name: activeTab, result_count: scrollResultCount },
   );
 
   useEffect(() => {
@@ -107,6 +115,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
         tab_name: section.feedId,
         previous_tab: activeTab,
         comes_from_view_all_tap: true,
+        result_count: section.total ?? section.items.length,
       });
       onViewMore(section.feedId);
     },
@@ -222,6 +231,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
       if (item.type === 'skeleton') {
         return <SearchFeedSkeleton feedId={item.feedId} />;
       }
+      const section = sections.find((s) => s.feedId === item.feedId);
       return (
         <SearchFeedRow
           feedId={item.feedId}
@@ -229,6 +239,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
           index={item.sectionIndex}
           searchQuery={searchQuery}
           tabName={activeTab}
+          resultCount={section?.total ?? section?.items.length}
         />
       );
     },
