@@ -29,6 +29,7 @@ import {
   MOCK_OFFLINE_MODE_PARAMS,
   MOCK_PR4A_PARAMS,
   MOCK_REWARDS_HOME_PARAMS,
+  MOCK_SETTINGS_FLOW_PARAMS,
   MOCK_SET_PASSWORD_FLOW_PARAMS,
   MOCK_WEBVIEW_PARAMS,
   resolvePr4aTransactionsHomeParams,
@@ -38,6 +39,9 @@ import {
   seedDevPanelRampsOrder,
   seedDevPanelSellOrder,
   type Pr4aTransactionsHomeContext,
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+  MOCK_SETTINGS_FLOW_SNAP_SETTINGS,
+  ///: END:ONLY_INCLUDE_IF
 } from './NavigationDevPanel.mockParams';
 
 /**
@@ -62,6 +66,8 @@ interface RouteEntry {
   pr4aTransactionsHome?: boolean;
   /** Opens via Rewards tab stack (RewardsHome). */
   rewardsHome?: boolean;
+  /** Opens via Settings tab stack (SettingsView nested screen). */
+  settingsView?: boolean;
 }
 
 interface RouteGroup {
@@ -71,7 +77,7 @@ interface RouteGroup {
 
 // NOTE: Scoped to in-progress native-stack migration PRs. PR2 = single-screen
 // wrappers; PR3 = multi-screen leaf flows; PR4a = wallet + activity tab stacks;
-// PR4b = rewards tab stack.
+// PR4b = rewards tab stack; PR5 = settings tab stack (SettingsFlow).
 // Uncomment groups below as each subsequent PR lands so the panel reflects
 // what is currently being migrated.
 const ROUTE_GROUPS: RouteGroup[] = [
@@ -243,6 +249,183 @@ const ROUTE_GROUPS: RouteGroup[] = [
         params: MOCK_REWARDS_HOME_PARAMS.REWARDS_SELECT_SHEET,
         rewardsHome: true,
       },
+    ],
+  },
+  {
+    title: 'PR5 — SettingsFlow',
+    routes: [
+      {
+        name: Routes.ACCOUNTS_MENU_VIEW,
+        label: 'Accounts menu',
+        settingsView: true,
+      },
+      {
+        name: Routes.SETTINGS.ROOT,
+        label: 'Settings home',
+        settingsView: true,
+      },
+      {
+        name: Routes.SETTINGS.SECURITY_SETTINGS,
+        label: 'Security settings',
+        settingsView: true,
+      },
+      {
+        name: Routes.SETTINGS.ADVANCED_SETTINGS,
+        label: 'Advanced settings',
+        settingsView: true,
+      },
+      {
+        name: 'GeneralSettings',
+        label: 'General settings',
+        settingsView: true,
+      },
+      {
+        name: Routes.SETTINGS.NETWORKS_MANAGEMENT,
+        label: 'Networks management',
+        settingsView: true,
+      },
+      {
+        name: Routes.SETTINGS.NETWORK_DETAILS,
+        label: 'Network details (add network)',
+        settingsView: true,
+        params: MOCK_SETTINGS_FLOW_PARAMS.NETWORK_DETAILS_ADD,
+      },
+      {
+        name: Routes.SETTINGS.NOTIFICATIONS,
+        label: 'Notifications settings',
+        settingsView: true,
+      },
+      {
+        name: Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION,
+        label: 'Notification section (socialAI)',
+        settingsView: true,
+        params: MOCK_SETTINGS_FLOW_PARAMS.NOTIFICATION_SECTION,
+      },
+      {
+        name: Routes.SETTINGS.BACKUP_AND_SYNC,
+        label: 'Backup and sync',
+        settingsView: true,
+      },
+      {
+        name: Routes.SETTINGS.REGION_SELECTOR,
+        label: 'Region selector',
+        settingsView: true,
+      },
+      {
+        name: Routes.RAMP.SETTINGS,
+        label: 'Ramp settings',
+        settingsView: true,
+      },
+      {
+        name: Routes.RAMP.ACTIVATION_KEY_FORM,
+        label: 'Ramp activation key form',
+        settingsView: true,
+      },
+      {
+        name: Routes.RAMP.HEADLESS_PLAYGROUND,
+        label: 'Ramp headless playground',
+        settingsView: true,
+      },
+      {
+        name: Routes.SETTINGS.EXPERIMENTAL_SETTINGS,
+        label: 'Experimental settings',
+        settingsView: true,
+      },
+      {
+        name: Routes.SETTINGS.COMPANY,
+        label: 'About MetaMask',
+        settingsView: true,
+      },
+      {
+        name: Routes.SETTINGS.CONTACTS,
+        label: 'Contacts',
+        settingsView: true,
+      },
+      {
+        name: Routes.SETTINGS.CONTACT_FORM,
+        label: 'Contact form (add)',
+        settingsView: true,
+        params: MOCK_SETTINGS_FLOW_PARAMS.CONTACT_FORM_ADD,
+      },
+      {
+        name: Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
+        label: 'Reveal private credential',
+        settingsView: true,
+        params: MOCK_SETTINGS_FLOW_PARAMS.REVEAL_PRIVATE_CREDENTIAL,
+      },
+      {
+        name: Routes.WALLET.WALLET_CONNECT_SESSIONS_VIEW,
+        label: 'WalletConnect sessions',
+        settingsView: true,
+      },
+      {
+        name: Routes.SETTINGS.CHANGE_PASSWORD,
+        label: 'Reset password',
+        settingsView: true,
+      },
+      {
+        name: Routes.ACCOUNT_BACKUP.STEP_1_B,
+        label: 'Account backup step 1B',
+        settingsView: true,
+      },
+      {
+        name: 'ManualBackupStep1',
+        label: 'Manual backup step 1',
+        settingsView: true,
+        params: MOCK_SETTINGS_FLOW_PARAMS.MANUAL_BACKUP_STEP_1,
+      },
+      {
+        name: 'ManualBackupStep2',
+        label: 'Manual backup step 2',
+        settingsView: true,
+        params: MOCK_SETTINGS_FLOW_PARAMS.MANUAL_BACKUP_STEP_2,
+      },
+      {
+        name: 'ManualBackupStep3',
+        label: 'Manual backup step 3',
+        settingsView: true,
+        params: MOCK_SETTINGS_FLOW_PARAMS.MANUAL_BACKUP_STEP_3,
+      },
+      {
+        name: Routes.SETTINGS.SDK_SESSIONS_MANAGER,
+        label: 'SDK sessions (legacy native header)',
+        settingsView: true,
+      },
+      {
+        name: 'WalletRecovery',
+        label: 'Wallet recovery (legacy native header)',
+        settingsView: true,
+      },
+      {
+        name: 'EnterPasswordSimple',
+        label: 'Enter password simple (legacy native header)',
+        settingsView: true,
+      },
+      {
+        name: Routes.SETTINGS.DEVELOPER_OPTIONS,
+        label: 'Developer options (MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS)',
+        settingsView: true,
+        needsParams: true,
+      },
+      {
+        name: 'AesCryptoTestForm',
+        label: 'AES crypto test (dev/test env only)',
+        settingsView: true,
+        needsParams: true,
+      },
+      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+      {
+        name: Routes.SNAPS.SNAPS_SETTINGS_LIST,
+        label: 'Snaps list',
+        settingsView: true,
+      },
+      {
+        name: Routes.SNAPS.SNAPS_SETTINGS_LIST,
+        label: 'Snap settings (mock Filsnap)',
+        settingsView: true,
+        params: MOCK_SETTINGS_FLOW_SNAP_SETTINGS,
+      },
+      ///: END:ONLY_INCLUDE_IF
     ],
   },
   // --- Routes below are out of scope for the current PR. Uncomment a group
@@ -486,8 +669,27 @@ const NavigationDevPanel = () => {
     [navigateUntyped],
   );
 
+  const navigateToSettingsViewScreen = useCallback(
+    (screenName: string, screenParams?: Record<string, unknown>) => {
+      // SettingsView is a root MainNavigator screen (TabBar uses the same path),
+      // not a tab inside Home like RewardsView.
+      navigateUntyped(
+        Routes.SETTINGS_VIEW,
+        screenParams
+          ? { screen: screenName, params: screenParams }
+          : { screen: screenName },
+      );
+    },
+    [navigateUntyped],
+  );
+
   const handleNavigate = useCallback(
     (entry: RouteEntry) => {
+      if (entry.settingsView) {
+        navigateToSettingsViewScreen(entry.name, entry.params);
+        return;
+      }
+
       if (entry.rewardsHome) {
         navigateToRewardsHomeScreen(
           entry.name === Routes.REWARDS_VIEW ? undefined : entry.name,
@@ -559,6 +761,7 @@ const NavigationDevPanel = () => {
       dispatch,
       fiatOrders,
       navigateToRewardsHomeScreen,
+      navigateToSettingsViewScreen,
       navigateToTransactionsHomeScreen,
       navigateUntyped,
       pr4aTransactionsHomeContext,

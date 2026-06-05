@@ -2,7 +2,7 @@ import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import type { Nft } from '@metamask/assets-controllers';
 import { IconName } from '@metamask/design-system-react-native';
 import { SeasonRewardType } from '../../../core/Engine/controllers/rewards-controller/types';
-import type { CaipChainId } from '@metamask/utils';
+import type { CaipChainId , SemVerVersion } from '@metamask/utils';
 import { StatusTypes } from '@metamask/bridge-controller';
 import {
   DepositOrderType,
@@ -18,6 +18,9 @@ import {
   TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
+import type { Snap, Status } from '@metamask/snaps-utils';
+///: END:ONLY_INCLUDE_IF
 
 import Routes from '../../../constants/navigation/Routes';
 import {
@@ -128,6 +131,92 @@ export const MOCK_SET_PASSWORD_FLOW_PARAMS = {
 export const MOCK_PR4A_PARAMS = {
   REVEAL_PRIVATE_CREDENTIAL: { shouldUpdateNav: true },
 };
+
+/** Nested screen params for SettingsFlow screens opened via SettingsView. */
+export const MOCK_SETTINGS_FLOW_PARAMS = {
+  CONTACT_FORM_ADD: { mode: 'add' },
+  NETWORK_DETAILS_ADD: { shouldNetworkSwitchPopToWallet: false },
+  NOTIFICATION_SECTION: {
+    type: 'socialAI',
+    title: 'Trading Signals',
+    description: 'Dev panel mock — SocialAI notification preferences',
+  },
+  REVEAL_PRIVATE_CREDENTIAL: MOCK_PR4A_PARAMS.REVEAL_PRIVATE_CREDENTIAL,
+  MANUAL_BACKUP_STEP_1: {
+    seedPhrase: MOCK_SEED_PHRASE_WORDS,
+    backupFlow: true,
+    settingsBackup: false,
+  },
+  MANUAL_BACKUP_STEP_2: { words: MOCK_SEED_PHRASE_WORDS },
+  MANUAL_BACKUP_STEP_3: { words: MOCK_SEED_PHRASE_WORDS },
+};
+
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
+/** Minimal Filsnap-shaped snap for SnapSettings from the dev panel. */
+export const MOCK_DEV_PANEL_SNAP = {
+  blocked: false,
+  enabled: true,
+  permissionName: 'wallet_snap_npm:@chainsafe/filsnap',
+  id: 'npm:@chainsafe/filsnap',
+  initialPermissions: {
+    'endowment:network-access': {},
+    'endowment:rpc': {
+      dapps: true,
+      snaps: true,
+    },
+    snap_confirm: {},
+    snap_getBip44Entropy: [{ coinType: 1 }, { coinType: 461 }],
+    snap_manageState: {},
+  },
+  manifest: {
+    version: '2.3.13' as SemVerVersion,
+    proposedName: 'Filsnap (Dev Panel)',
+    description: 'Mock snap for navigation dev panel.',
+    repository: {
+      type: 'git',
+      url: 'https://github.com/Chainsafe/filsnap.git',
+    },
+    source: {
+      shasum: 'Z7lh6iD1yjfKES/WutUyxepg5Dgp8Xjo3kivsz9vpwc=',
+      location: {
+        npm: {
+          filePath: 'dist/bundle.js',
+          packageName: '@chainsafe/filsnap',
+          registry: 'https://registry.npmjs.org/',
+        },
+      },
+    },
+    initialPermissions: {
+      'endowment:network-access': {},
+      'endowment:rpc': {
+        dapps: true,
+        snaps: true,
+      },
+      snap_confirm: {},
+      snap_getBip44Entropy: [{ coinType: 1 }, { coinType: 461 }],
+      snap_manageState: {},
+    },
+    manifestVersion: '0.1',
+  },
+  status: 'running' as Status,
+  version: '2.3.13' as SemVerVersion,
+  versionHistory: [
+    {
+      version: '2.3.13',
+      date: 1684964145490,
+      origin: 'metamask-mobile',
+    },
+  ],
+} as unknown as Snap;
+
+/** SettingsView → SnapsSettingsStack → SnapSettings */
+export const MOCK_SETTINGS_FLOW_SNAP_SETTINGS = {
+  screen: Routes.SNAPS.SNAP_SETTINGS,
+  params: {
+    snap: MOCK_DEV_PANEL_SNAP,
+  },
+};
+///: END:ONLY_INCLUDE_IF
 
 /** Static params so RewardsHome stack screens render from the dev panel. */
 export const MOCK_REWARDS_HOME_PARAMS = {
