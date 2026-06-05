@@ -99,32 +99,27 @@ const MoneyBalanceCard = () => {
   const balanceText = totalFiatFormatted ?? '';
 
   let buttonVariant: ButtonVariant;
-  let buttonLabelLocalized: string;
-  let buttonLabelEn: string;
+  let buttonLabelKey: string;
   let buttonTestId: string;
   let containerTestId: string;
 
   if (!hasMoneyAccount || isError || isRetrying) {
     buttonVariant = ButtonVariant.Secondary;
-    buttonLabelLocalized = strings('money.balance_card.add');
-    buttonLabelEn = strings('money.balance_card.add', { locale: 'en' });
+    buttonLabelKey = 'money.balance_card.add';
     buttonTestId = MoneyBalanceCardTestIds.ADD_BUTTON;
     containerTestId = MoneyBalanceCardTestIds.ERROR_CONTAINER;
   } else if (isUnavailable) {
     buttonVariant = ButtonVariant.Secondary;
-    buttonLabelLocalized = strings('money.balance_card.add');
-    buttonLabelEn = strings('money.balance_card.add', { locale: 'en' });
+    buttonLabelKey = 'money.balance_card.add';
     buttonTestId = MoneyBalanceCardTestIds.ADD_BUTTON;
     containerTestId = MoneyBalanceCardTestIds.UNAVAILABLE_CONTAINER;
   } else if (isNewUser) {
     buttonVariant = hasOtherPrimaryCtaOnHome
       ? ButtonVariant.Secondary
       : ButtonVariant.Primary;
-    const newUserLabelKey = hasOtherPrimaryCtaOnHome
+    buttonLabelKey = hasOtherPrimaryCtaOnHome
       ? 'homepage.sections.money_empty_state.get_started'
       : 'homepage.sections.money_empty_state.earn';
-    buttonLabelLocalized = strings(newUserLabelKey);
-    buttonLabelEn = strings(newUserLabelKey, { locale: 'en' });
     buttonTestId = hasOtherPrimaryCtaOnHome
       ? MoneyBalanceCardTestIds.GET_STARTED_BUTTON
       : MoneyBalanceCardTestIds.EARN_BUTTON;
@@ -133,18 +128,14 @@ const MoneyBalanceCard = () => {
     buttonVariant = hasOtherPrimaryCtaOnHome
       ? ButtonVariant.Secondary
       : ButtonVariant.Primary;
-    buttonLabelLocalized = strings('homepage.sections.money_empty_state.earn');
-    buttonLabelEn = strings('homepage.sections.money_empty_state.earn', {
-      locale: 'en',
-    });
+    buttonLabelKey = 'homepage.sections.money_empty_state.earn';
     buttonTestId = MoneyBalanceCardTestIds.EARN_BUTTON;
     containerTestId = MoneyBalanceCardTestIds.EMPTY_CONTAINER;
   } else {
     buttonVariant = hasOtherPrimaryCtaOnHome
       ? ButtonVariant.Secondary
       : ButtonVariant.Primary;
-    buttonLabelLocalized = strings('money.balance_card.add');
-    buttonLabelEn = strings('money.balance_card.add', { locale: 'en' });
+    buttonLabelKey = 'money.balance_card.add';
     buttonTestId = MoneyBalanceCardTestIds.ADD_BUTTON;
     containerTestId = MoneyBalanceCardTestIds.FUNDED_CONTAINER;
   }
@@ -170,32 +161,25 @@ const MoneyBalanceCard = () => {
     trackButtonClicked({
       button_type: MONEY_BUTTON_TYPES.TEXT,
       button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
-      label_en: buttonLabelEn,
-      label_localized: buttonLabelLocalized,
+      label_key: buttonLabelKey,
       redirect_target: BOTTOM_SHEET_NAMES.MONEY_ADD_MONEY_SHEET,
     });
 
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
     });
-  }, [buttonLabelEn, buttonLabelLocalized, navigation, trackButtonClicked]);
+  }, [buttonLabelKey, navigation, trackButtonClicked]);
 
   const handleGetStartedPress = useCallback(() => {
     trackButtonClicked({
       button_type: MONEY_BUTTON_TYPES.TEXT,
       button_intent: MONEY_BUTTON_INTENTS.GET_STARTED,
-      label_en: buttonLabelEn,
-      label_localized: buttonLabelLocalized,
+      label_key: buttonLabelKey,
       redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
     });
 
     navigateToMoneyHome();
-  }, [
-    buttonLabelEn,
-    buttonLabelLocalized,
-    navigateToMoneyHome,
-    trackButtonClicked,
-  ]);
+  }, [buttonLabelKey, navigateToMoneyHome, trackButtonClicked]);
 
   const handleButtonPress = isNewUser ? handleGetStartedPress : handleAddPress;
 
@@ -357,7 +341,7 @@ const MoneyBalanceCard = () => {
           size={ButtonSize.Md}
           onPress={handleButtonPress}
         >
-          {buttonLabelLocalized}
+          {strings(buttonLabelKey)}
         </Button>
       </Box>
     </Pressable>

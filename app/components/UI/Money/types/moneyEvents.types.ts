@@ -73,12 +73,13 @@ export type MoneyButtonClickedEventProperties =
       button_type: MONEY_BUTTON_TYPES.ICON;
     } & MoneyIconButtonClickedEventProperties);
 
-export type MoneyTextButtonClickedEventProperties = Partial<
+/**
+ * Properties shared by every button-clicked variant, regardless of label.
+ */
+type MoneyButtonClickedBaseProperties = Partial<
   Pick<MoneyLocationEventProperties, 'component_name'>
 > &
   Partial<MoneyRedirectEventProperties> & {
-    label_en: string;
-    label_localized: string;
     button_intent: MONEY_BUTTON_INTENTS;
     /** 1-based index of the button position in a button row. */
     button_position?: number;
@@ -86,16 +87,41 @@ export type MoneyTextButtonClickedEventProperties = Partial<
     button_row_button_count?: number;
   };
 
-type MoneyIconButtonClickedEventProperties = Partial<
-  Pick<MoneyLocationEventProperties, 'component_name'>
-> &
-  Partial<MoneyRedirectEventProperties> & {
-    button_intent: MONEY_BUTTON_INTENTS;
-    /** 1-based index of the button position in a button row. */
-    button_position?: number;
-    /** Number of buttons in the button row. */
-    button_row_button_count?: number;
-  };
+/** The resolved label pair as sent in the event payload. */
+type MoneyButtonLabel = {
+  label_en: string;
+  label_localized: string;
+};
+
+export type MoneyTextButtonClickedEventProperties =
+  MoneyButtonClickedBaseProperties & MoneyButtonLabel;
+
+type MoneyIconButtonClickedEventProperties = MoneyButtonClickedBaseProperties;
+
+/**
+ * Callers may either supply the resolved `label_en`/`label_localized` pair
+ * (for dynamically computed labels) or a single `label_key` (an i18n key) that
+ * the hook resolves into both. The two forms are mutually exclusive so a label
+ * and its key can never contradict.
+ */
+type MoneyButtonLabelInput =
+  | (MoneyButtonLabel & { label_key?: never })
+  | { label_key: string; label_en?: never; label_localized?: never };
+
+type MoneyTextButtonClickedInputProperties = MoneyButtonClickedBaseProperties &
+  MoneyButtonLabelInput;
+
+/**
+ * Input accepted by `trackButtonClicked`. Differs from the payload type only in
+ * that the TEXT variant additionally accepts `label_key`.
+ */
+export type MoneyButtonClickedInputProperties =
+  | ({
+      button_type: MONEY_BUTTON_TYPES.TEXT;
+    } & MoneyTextButtonClickedInputProperties)
+  | ({
+      button_type: MONEY_BUTTON_TYPES.ICON;
+    } & MoneyIconButtonClickedEventProperties);
 
 export type MoneyOnboardingEventProperties =
   Partial<MoneyRedirectEventProperties> & {

@@ -221,14 +221,12 @@ const MoneyHomeView = () => {
 
   const handleAddPress = useCallback(
     ({
-      labelLocalized,
-      labelEn,
+      labelKey,
       componentName,
       buttonPosition,
       buttonRowButtonCount,
     }: {
-      labelLocalized: string;
-      labelEn: string;
+      labelKey: string;
       componentName: COMPONENT_NAMES;
       buttonPosition?: number;
       buttonRowButtonCount?: number;
@@ -236,8 +234,7 @@ const MoneyHomeView = () => {
       trackButtonClicked({
         button_type: MONEY_BUTTON_TYPES.TEXT,
         button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
-        label_localized: labelLocalized,
-        label_en: labelEn,
+        label_key: labelKey,
         component_name: componentName,
         redirect_target: BOTTOM_SHEET_NAMES.MONEY_ADD_MONEY_SHEET,
         ...(buttonPosition && { button_position: buttonPosition }),
@@ -257,8 +254,7 @@ const MoneyHomeView = () => {
     trackButtonClicked({
       button_type: MONEY_BUTTON_TYPES.TEXT,
       button_intent: MONEY_BUTTON_INTENTS.TRANSFER_MONEY,
-      label_localized: strings('money.action.transfer'),
-      label_en: strings('money.action.transfer', { locale: 'en' }),
+      label_key: 'money.action.transfer',
       redirect_target: BOTTOM_SHEET_NAMES.MONEY_TRANSFER_MONEY_SHEET,
       component_name: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
       button_position: 2,
@@ -286,8 +282,7 @@ const MoneyHomeView = () => {
     trackButtonClicked({
       button_type: MONEY_BUTTON_TYPES.TEXT,
       button_intent: MONEY_BUTTON_INTENTS.CARD_HOME,
-      label_localized: strings('money.action.card'),
-      label_en: strings('money.action.card', { locale: 'en' }),
+      label_key: 'money.action.card',
       component_name: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
       redirect_target: SCREEN_NAMES.CARD_HOME,
       button_position: 3,
@@ -440,10 +435,7 @@ const MoneyHomeView = () => {
       button_type: MONEY_BUTTON_TYPES.TEXT,
       button_intent: MONEY_BUTTON_INTENTS.VIEW_ALL,
       component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_SECTION,
-      label_localized: strings('money.potential_earnings.view_all'),
-      label_en: strings('money.potential_earnings.view_all', {
-        locale: 'en',
-      }),
+      label_key: 'money.potential_earnings.view_all',
       redirect_target: SCREEN_NAMES.MONEY_POTENTIAL_EARNINGS,
     });
 
@@ -464,10 +456,7 @@ const MoneyHomeView = () => {
       button_type: MONEY_BUTTON_TYPES.TEXT,
       button_intent: MONEY_BUTTON_INTENTS.LEARN_MORE,
       component_name: COMPONENT_NAMES.MONEY_WHAT_YOU_GET_SECTION,
-      label_localized: strings('money.what_you_get.learn_more'),
-      label_en: strings('money.what_you_get.learn_more', {
-        locale: 'en',
-      }),
+      label_key: 'money.what_you_get.learn_more',
       redirect_target: MONEY_URLS.MUSD_LEARN_MORE,
     });
 
@@ -500,8 +489,7 @@ const MoneyHomeView = () => {
       button_type: MONEY_BUTTON_TYPES.TEXT,
       button_intent: MONEY_BUTTON_INTENTS.VIEW_ALL,
       component_name: COMPONENT_NAMES.MONEY_ACTIVITY_SECTION,
-      label_localized: strings('money.activity.view_all'),
-      label_en: strings('money.activity.view_all', { locale: 'en' }),
+      label_key: 'money.activity.view_all',
       redirect_target: SCREEN_NAMES.MONEY_ACTIVITY,
     });
 
@@ -564,8 +552,7 @@ const MoneyHomeView = () => {
         <MoneyActionButtonRow
           onAddPress={() =>
             handleAddPress({
-              labelLocalized: strings('money.action.add'),
-              labelEn: strings('money.action.add', { locale: 'en' }),
+              labelKey: 'money.action.add',
               componentName: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
               buttonPosition: 1,
               buttonRowButtonCount: ACTION_BUTTON_ROW_BUTTON_COUNT,
@@ -612,8 +599,7 @@ const MoneyHomeView = () => {
               }
               onAddPress={() =>
                 handleAddPress({
-                  labelLocalized: strings('money.musd_row.add'),
-                  labelEn: strings('money.musd_row.add', { locale: 'en' }),
+                  labelKey: 'money.musd_row.add',
                   componentName: COMPONENT_NAMES.MONEY_MUSD_TOKEN_SECTION,
                 })
               }
@@ -696,8 +682,7 @@ const MoneyHomeView = () => {
         <MoneyFooter
           onAddMoneyPress={() =>
             handleAddPress({
-              labelLocalized: strings('money.footer.add_money'),
-              labelEn: strings('money.footer.add_money', { locale: 'en' }),
+              labelKey: 'money.footer.add_money',
               componentName: COMPONENT_NAMES.MONEY_FOOTER,
             })
           }

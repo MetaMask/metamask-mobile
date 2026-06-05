@@ -43,6 +43,12 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1 },
 });
 
+const FILTER_LABEL_KEYS = {
+  all: 'money.activity.filter_all',
+  deposits: 'money.activity.filter_deposits',
+  transfers: 'money.activity.filter_transfers',
+} as const;
+
 interface DateSection {
   title: string;
   data: MoneyActivityItem[];
@@ -89,24 +95,6 @@ const MoneyActivityView = () => {
 
   useMountEffect(trackScreenViewed);
 
-  const filterLabels = useMemo(
-    () => ({
-      all: {
-        labelEn: strings('money.activity.filter_all', { locale: 'en' }),
-        labelLocalized: strings('money.activity.filter_all'),
-      },
-      deposits: {
-        labelEn: strings('money.activity.filter_deposits', { locale: 'en' }),
-        labelLocalized: strings('money.activity.filter_deposits'),
-      },
-      transfers: {
-        labelEn: strings('money.activity.filter_transfers', { locale: 'en' }),
-        labelLocalized: strings('money.activity.filter_transfers'),
-      },
-    }),
-    [],
-  );
-
   const {
     allTransactions,
     deposits,
@@ -142,19 +130,18 @@ const MoneyActivityView = () => {
 
   const handleFilterPress = useCallback(
     (
-      filter: MoneyActivityFilter,
-      { labelEn, labelLocalized }: { labelEn: string; labelLocalized: string },
+      filterClicked: MoneyActivityFilter,
+      labelKey: string,
       componentName: COMPONENT_NAMES,
     ) => {
       trackButtonClicked({
         button_type: MONEY_BUTTON_TYPES.TEXT,
         button_intent: MONEY_BUTTON_INTENTS.FILTER,
-        label_localized: labelLocalized,
-        label_en: labelEn,
+        label_key: labelKey,
         component_name: componentName,
       });
 
-      setFilter(filter);
+      setFilter(filterClicked);
     },
     [trackButtonClicked],
   );
@@ -268,13 +255,13 @@ const MoneyActivityView = () => {
           onPress={() =>
             handleFilterPress(
               MoneyActivityFilter.All,
-              filterLabels.all,
+              FILTER_LABEL_KEYS.all,
               COMPONENT_NAMES.MONEY_ACTIVITY_FILTER_ALL,
             )
           }
           testID={MoneyActivityViewTestIds.FILTER_ALL}
         >
-          {filterLabels.all.labelLocalized}
+          {strings(FILTER_LABEL_KEYS.all)}
         </Button>
         <Button
           variant={
@@ -287,13 +274,13 @@ const MoneyActivityView = () => {
           onPress={() =>
             handleFilterPress(
               MoneyActivityFilter.Deposits,
-              filterLabels.deposits,
+              FILTER_LABEL_KEYS.deposits,
               COMPONENT_NAMES.MONEY_ACTIVITY_FILTER_DEPOSITS,
             )
           }
           testID={MoneyActivityViewTestIds.FILTER_DEPOSITS}
         >
-          {filterLabels.deposits.labelLocalized}
+          {strings(FILTER_LABEL_KEYS.deposits)}
         </Button>
         <Button
           variant={
@@ -306,13 +293,13 @@ const MoneyActivityView = () => {
           onPress={() =>
             handleFilterPress(
               MoneyActivityFilter.Transfers,
-              filterLabels.transfers,
+              FILTER_LABEL_KEYS.transfers,
               COMPONENT_NAMES.MONEY_ACTIVITY_FILTER_TRANSFERS,
             )
           }
           testID={MoneyActivityViewTestIds.FILTER_TRANSFERS}
         >
-          {filterLabels.transfers.labelLocalized}
+          {strings(FILTER_LABEL_KEYS.transfers)}
         </Button>
       </Box>
 

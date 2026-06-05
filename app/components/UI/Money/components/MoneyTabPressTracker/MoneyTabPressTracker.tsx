@@ -7,7 +7,6 @@ import {
 } from '../../constants/moneyEvents';
 import { LABEL_BY_TAB_BAR_ICON_KEY } from '../../../../../component-library/components/Navigation/TabBar/TabBar.constants';
 import { TabBarIconKey } from '../../../../../component-library/components/Navigation/TabBar/TabBar.types';
-import { strings } from '../../../../../../locales/i18n';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 
 /**
@@ -34,8 +33,7 @@ const MoneyTabPressTracker = ({ onRegister }: MoneyTabPressTrackerProps) => {
       trackButtonClicked({
         button_type: MONEY_BUTTON_TYPES.TEXT,
         button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_HOME,
-        label_en: strings(labelKey, { locale: 'en' }),
-        label_localized: strings(labelKey),
+        label_key: labelKey,
         redirect_target: SCREEN_NAMES.MONEY_HOME,
       });
     });

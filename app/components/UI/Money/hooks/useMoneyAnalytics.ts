@@ -3,7 +3,10 @@ import BigNumber from 'bignumber.js';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import useMoneyAccountCardLinkage from '../../Card/hooks/useMoneyAccountCardLinkage';
 import useMoneyAccountBalance from '../hooks/useMoneyAccountBalance';
-import { MONEY_SURFACE_TYPES } from '../constants/moneyEvents';
+import {
+  MONEY_BUTTON_TYPES,
+  MONEY_SURFACE_TYPES,
+} from '../constants/moneyEvents';
 import {
   MoneyLocationEventProperties,
   MoneyBaseEventProperties,
@@ -12,11 +15,13 @@ import {
   MoneyTooltipClickedEventProperties,
   MoneySurfaceClickedEventProperties,
   MoneyButtonClickedEventProperties,
+  MoneyButtonClickedInputProperties,
   MoneyTokenRowButtonClickedEventProperties,
   MoneyTokenSurfaceClickedEventProperties,
   MoneyActivitySurfaceClickedEventProperties,
 } from '../types/moneyEvents.types';
 import { resolveRedirectTargetType } from '../utils/moneyRedirectTarget';
+import { resolveTrackingLabel } from '../utils/moneyTrackingLabel';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 import { MonetizedPrimitive } from '../../../../core/Analytics/MetaMetrics.types';
 import {
@@ -45,6 +50,29 @@ const withRedirectType = <
         redirect_target_type: resolveRedirectTargetType(props.redirect_target),
       }
     : props;
+
+/**
+ * Derives the tracking label pair (`label_en` + `label_localized`) from a single
+ * `label_key` so callers state the key once and the two copies can never
+ * contradict. No-op when no key is present (e.g. icon buttons, or callers that
+ * supply dynamically computed labels directly).
+ */
+const withLabel = (
+  props: MoneyButtonClickedInputProperties,
+): MoneyButtonClickedEventProperties => {
+  if (
+    props.button_type === MONEY_BUTTON_TYPES.TEXT &&
+    'label_key' in props &&
+    props.label_key
+  ) {
+    const { label_key, ...rest } = props;
+    return {
+      ...rest,
+      ...resolveTrackingLabel(label_key),
+    } as MoneyButtonClickedEventProperties;
+  }
+  return props as MoneyButtonClickedEventProperties;
+};
 
 export const useMoneyAnalytics = ({
   screen_name,
@@ -87,12 +115,12 @@ export const useMoneyAnalytics = ({
    * Used to track when a button is clicked.
    */
   const trackButtonClicked = useCallback(
-    (properties: MoneyButtonClickedEventProperties) => {
+    (properties: MoneyButtonClickedInputProperties) => {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.MONEY_BUTTON_CLICKED)
           .addProperties({
             ...getBaseProperties(),
-            ...withRedirectType(properties),
+            ...withRedirectType(withLabel(properties)),
           })
           .build(),
       );
