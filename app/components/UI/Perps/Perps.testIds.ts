@@ -230,6 +230,8 @@ export const PerpsHomeViewSelectorsIDs = {
   WITHDRAW_BUTTON: 'perps-home-withdraw-button',
   ADD_FUNDS_BUTTON: 'perps-home-add-funds-button',
   POSITIONS_PNL_VALUE: 'perps-home-positions-pnl-value',
+  // ADR58 POC debug banner (TAT-3215) — DO NOT MERGE
+  ADR58_DEBUG_BANNER: 'perps-home-adr58-debug-banner',
   SERVICE_INTERRUPTION_BANNER: 'perps-service-interruption-banner',
   COMPETITION_BANNER: 'perps-home-competition-banner',
   // TabBar mock items (for testing)

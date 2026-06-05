@@ -5,7 +5,7 @@ import React, {
   useEffect,
   useMemo,
 } from 'react';
-import { View, Modal, NativeScrollEvent } from 'react-native';
+import { View, Modal, NativeScrollEvent, Text } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   SafeAreaView,
@@ -535,6 +535,19 @@ const PerpsHomeView = ({
         <PerpsCompetitionBanner
           testID={PerpsHomeViewSelectorsIDs.COMPETITION_BANNER}
         />
+
+        {/* ADR58 POC debug banner (TAT-3215) — DO NOT MERGE.
+            Shows only when the account has an open ETH perps position. */}
+        {positions.some((position) => position.symbol === 'ETH') && (
+          <View
+            style={styles.adr58DebugBanner}
+            testID={PerpsHomeViewSelectorsIDs.ADR58_DEBUG_BANNER}
+          >
+            <Text style={styles.adr58DebugBannerText}>
+              ADR58 POC: ETH POSITION DETECTED
+            </Text>
+          </View>
+        )}
 
         {/* Positions Section */}
         <PerpsHomeSection

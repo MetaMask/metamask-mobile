@@ -129,6 +129,20 @@ const styleSheet = (params: { theme: Theme }) => {
     positionsOrdersContainer: {
       paddingHorizontal: 16,
     },
+    // ADR58 POC debug banner (TAT-3215) — DO NOT MERGE
+    adr58DebugBanner: {
+      backgroundColor: colors.error.default,
+      marginHorizontal: 16,
+      marginBottom: 16,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderRadius: 8,
+    },
+    adr58DebugBannerText: {
+      color: colors.error.inverse,
+      fontSize: 14,
+      fontWeight: '600',
+    },
     whatsHappeningSection: {
       borderTopWidth: 1,
       borderTopColor: colors.border.muted,
