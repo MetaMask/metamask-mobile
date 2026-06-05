@@ -24,7 +24,7 @@ To learn how to contribute to the MetaMask codebase, visit our [Contributor Docs
 - [On-Ramp Provider Manual Testing](./tests/docs/ONRAMP-PROVIDER-TESTING.md)
 - [Debugging](./docs/readme/debugging.md)
 - [Development Process](./docs/readme/development-process.md)
-- [Performance](./docs/readme/performance.md)
+- [Performance](./docs/performance/)
 - [Release Build Profiling](./docs/readme/release-build-profiler.md)
 - [Storybook](./docs/readme/storybook.md)
 - [Miscellaneous](./docs/readme/miscellaneous.md)
