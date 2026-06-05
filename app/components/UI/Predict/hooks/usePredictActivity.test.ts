@@ -16,7 +16,10 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
-const mockGetEvmAccountFromSelectedAccountGroup = jest.fn(() => ({
+const mockGetEvmAccountFromSelectedAccountGroup = jest.fn<
+  { address: string } | null,
+  []
+>(() => ({
   address: MOCK_ADDRESS,
 }));
 jest.mock('../utils/accounts', () => ({

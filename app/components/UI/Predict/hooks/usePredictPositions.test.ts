@@ -14,7 +14,10 @@ jest.mock('./usePredictNetworkManagement', () => ({
   }),
 }));
 
-const mockGetEvmAccountFromSelectedAccountGroup = jest.fn(() => ({
+const mockGetEvmAccountFromSelectedAccountGroup = jest.fn<
+  { address: string; type: string } | null,
+  []
+>(() => ({
   address: MOCK_ADDRESS,
   type: 'eip155:eoa',
 }));
