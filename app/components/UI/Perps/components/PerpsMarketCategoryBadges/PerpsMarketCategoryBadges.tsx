@@ -10,7 +10,7 @@ import {
   usePerpsCategories,
   type PerpsCategory,
 } from '../../hooks/usePerpsCategories';
-import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
+import { useHasNewMarkets } from '../../hooks/useHasNewMarkets';
 
 const ANIMATION_DURATION = 250;
 
@@ -37,12 +37,7 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const categories = usePerpsCategories();
-  const { markets } = usePerpsMarkets();
-
-  const hasNewMarkets = useMemo(
-    () => markets.some((market) => market.isNewMarket),
-    [markets],
-  );
+  const hasNewMarkets = useHasNewMarkets();
 
   const displayCategories = useMemo(() => {
     let result = categories;
