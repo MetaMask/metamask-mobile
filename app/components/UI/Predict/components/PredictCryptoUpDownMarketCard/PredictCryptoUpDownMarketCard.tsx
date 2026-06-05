@@ -127,6 +127,7 @@ const PROGRESS_RING_CIRCUMFERENCE = 2 * Math.PI * PROGRESS_RING_RADIUS;
 const CRYPTO_ACCENT_DEFAULT = 'rgb(245, 158, 11)';
 const CRYPTO_ACCENT_BY_SYMBOL: Record<string, string> = {
   BTC: 'rgb(247, 147, 26)',
+  ETH: 'rgb(94, 109, 183)', // #5E6DB7
 };
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 const AnimatedLine = Animated.createAnimatedComponent(SvgLine);
@@ -175,6 +176,8 @@ interface PredictCryptoUpDownMarketCardProps {
   onCardPress?: () => void;
   /** Called when the user taps a buy button (before betslip opens). */
   onBuyButtonPress?: (marketId: string) => void;
+  predictFeedTab?: string;
+  predictScreen?: string;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
@@ -1047,6 +1050,8 @@ const PredictCryptoUpDownMarketCard: React.FC<
   entryPoint: propEntryPoint,
   onCardPress,
   onBuyButtonPress,
+  predictFeedTab,
+  predictScreen,
   transactionActiveAbTests,
 }) => {
   const tw = useTailwind();
@@ -1174,6 +1179,8 @@ const PredictCryptoUpDownMarketCard: React.FC<
         marketId: selectedMarket.id,
         series: selectedMarket.series,
         entryPoint: resolvedEntryPoint,
+        ...(predictFeedTab && { predictFeedTab }),
+        ...(predictScreen && { predictScreen }),
         title: cardTitle,
         image: imageUrl,
         ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
@@ -1185,6 +1192,8 @@ const PredictCryptoUpDownMarketCard: React.FC<
     imageUrl,
     navigateToMarketDetails,
     onCardPress,
+    predictFeedTab,
+    predictScreen,
     resolvedEntryPoint,
     selectedMarket.id,
     selectedMarket.series,
@@ -1209,6 +1218,8 @@ const PredictCryptoUpDownMarketCard: React.FC<
             outcome: selectedOutcome,
             outcomeToken: token,
             entryPoint: resolvedEntryPoint,
+            ...(predictFeedTab && { predictFeedTab }),
+            ...(predictScreen && { predictScreen }),
             ...(transactionActiveAbTests?.length && {
               transactionActiveAbTests,
             }),
@@ -1223,6 +1234,8 @@ const PredictCryptoUpDownMarketCard: React.FC<
       executeGuardedAction,
       onBuyButtonPress,
       openBuySheet,
+      predictFeedTab,
+      predictScreen,
       resolvedEntryPoint,
       selectedMarket,
       selectedOutcome,

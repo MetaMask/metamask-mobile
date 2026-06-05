@@ -2268,8 +2268,7 @@
         "group_i": "I 组",
         "group_j": "J 组",
         "group_k": "K 组",
-        "group_l": "L 组",
-        "third_place_match": "季军赛"
+        "group_l": "L 组"
       }
     },
     "prediction_markets": "预测市场",
@@ -8348,8 +8347,6 @@
     "report_submitted": "错误报告已提交。"
   },
   "pay_with_modal": {
-    "title": "选择付款方式",
-    "title_receive": "选择收款代币",
     "no_gas": "无支付燃料所需的原生代币余额",
     "not_supported": "不支持",
     "crypto": "加密货币"

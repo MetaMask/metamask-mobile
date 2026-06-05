@@ -11,11 +11,13 @@ import {
   selectDepositActiveFlag,
   selectDepositMinimumVersionFlag,
 } from '../../../../selectors/featureFlagController/deposit';
+import { selectSocialAiAssetDetailsQuickBuyEnabled } from '../../../../selectors/featureFlagController/socialAiAssetDetailsQuickBuy';
 import {
   AMBIENT_NEGATIVE_COLOR,
   AMBIENT_PRICE_COLOR_AB_KEY,
 } from '../components/abTestConfig';
 import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
+import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
 
 const mockUseSelector = jest.fn();
 jest.mock('react-redux', () => ({
@@ -281,6 +283,19 @@ jest.mock('../../MarketInsights', () => ({
   MarketInsightsDisclaimerBottomSheet: () => null,
 }));
 
+const mockAssetDetailsQuickBuy = jest.fn(
+  (_props: Record<string, unknown>) => null,
+);
+jest.mock('../components/AssetDetailsQuickBuy', () => ({
+  __esModule: true,
+  default: (props: Record<string, unknown>) => mockAssetDetailsQuickBuy(props),
+}));
+
+jest.mock('../../../../util/haptics', () => ({
+  playImpact: jest.fn(),
+  ImpactMoment: { PrimaryCTA: 'primaryCta' },
+}));
+
 describe('TokenDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -328,6 +343,7 @@ describe('TokenDetails', () => {
       if (selector === getRampNetworks) return [];
       if (selector === selectDepositActiveFlag) return false;
       if (selector === selectDepositMinimumVersionFlag) return null;
+      if (selector === selectSocialAiAssetDetailsQuickBuyEnabled) return true;
       return undefined;
     });
   });
@@ -404,6 +420,60 @@ describe('TokenDetails', () => {
 
       expect(getByText('Buy')).toBeOnTheScreen();
       expect(queryByText('Swap')).toBeNull();
+    });
+  });
+
+  describe('Quick Buy', () => {
+    const getLastQuickBuyProps = () =>
+      mockAssetDetailsQuickBuy.mock.calls[
+        mockAssetDetailsQuickBuy.mock.calls.length - 1
+      ][0];
+
+    it('mounts AssetDetailsQuickBuy hidden by default with the current token', () => {
+      render(<TokenDetails />);
+
+      expect(mockAssetDetailsQuickBuy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          isVisible: false,
+          token: expect.objectContaining({ symbol: 'DAI', chainId: '0x1' }),
+        }),
+      );
+    });
+
+    it('opens AssetDetailsQuickBuy when the sticky lightning button is pressed', () => {
+      const { getByTestId } = render(<TokenDetails />);
+
+      expect(getLastQuickBuyProps()).toEqual(
+        expect.objectContaining({ isVisible: false }),
+      );
+
+      fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.QUICK_BUY_BUTTON));
+
+      expect(getLastQuickBuyProps()).toEqual(
+        expect.objectContaining({ isVisible: true }),
+      );
+    });
+
+    it('hides the lightning button and does not mount AssetDetailsQuickBuy when the flag is disabled', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectNetworkConfigurationByChainId)
+          return { name: 'Ethereum' };
+        if (selector === selectPerpsEnabledFlag) return false;
+        if (selector === selectMerklCampaignClaimingEnabledFlag) return false;
+        if (selector === getRampNetworks) return [];
+        if (selector === selectDepositActiveFlag) return false;
+        if (selector === selectDepositMinimumVersionFlag) return null;
+        if (selector === selectSocialAiAssetDetailsQuickBuyEnabled)
+          return false;
+        return undefined;
+      });
+
+      const { queryByTestId } = render(<TokenDetails />);
+
+      expect(
+        queryByTestId(TokenOverviewSelectorsIDs.QUICK_BUY_BUTTON),
+      ).toBeNull();
+      expect(mockAssetDetailsQuickBuy).not.toHaveBeenCalled();
     });
   });
 

@@ -2268,8 +2268,7 @@
         "group_i": "Grupo I",
         "group_j": "Grupo J",
         "group_k": "Grupo K",
-        "group_l": "Grupo L",
-        "third_place_match": "Partido por el tercer puesto"
+        "group_l": "Grupo L"
       }
     },
     "prediction_markets": "Mercados de predicción",
@@ -8348,8 +8347,6 @@
     "report_submitted": "Se ha enviado un informe de error."
   },
   "pay_with_modal": {
-    "title": "Seleccionar método de pago",
-    "title_receive": "Seleccionar el token a recibir",
     "no_gas": "No hay saldo nativo para gas",
     "not_supported": "No compatible",
     "crypto": "Cripto"

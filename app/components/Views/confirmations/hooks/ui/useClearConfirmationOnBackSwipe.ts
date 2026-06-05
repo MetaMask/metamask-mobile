@@ -26,14 +26,9 @@ const useClearConfirmationOnBackSwipe = ({
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const { onReject } = useConfirmActions();
-  const { isConfirmationSubmitting } = useConfirmationContext();
+  const { isConfirmationSubmittingRef } = useConfirmationContext();
   const hasRejectedRef = useRef(false);
   const isGestureInProgressRef = useRef(false);
-  const isConfirmationSubmittingRef = useRef(isConfirmationSubmitting);
-
-  useEffect(() => {
-    isConfirmationSubmittingRef.current = isConfirmationSubmitting;
-  }, [isConfirmationSubmitting]);
 
   const rejectConfirmation = useCallback(
     (skipNavigation = false) => {
@@ -53,7 +48,7 @@ const useClearConfirmationOnBackSwipe = ({
       hasRejectedRef.current = true;
       onReject(undefined, skipNavigation);
     },
-    [onBeforeReject, onReject],
+    [isConfirmationSubmittingRef, onBeforeReject, onReject],
   );
 
   useEffect(() => {
@@ -134,6 +129,7 @@ const useClearConfirmationOnBackSwipe = ({
     rejectConfirmation,
     rejectOnBeforeRemove,
     rejectOnBeforeRemoveWithoutGesture,
+    isConfirmationSubmittingRef,
   ]);
 
   useEffect(() => {

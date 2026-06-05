@@ -1,6 +1,5 @@
 import React from 'react';
 import ManualBackupStep3 from './';
-import { ThemeContext, mockTheme } from '../../../util/theme';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { Alert, BackHandler } from 'react-native';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
@@ -130,14 +129,6 @@ jest.mock('../AndroidBackHandler', () => {
 });
 
 const mockSetOptions = jest.fn();
-const mockGetTransparentOnboardingNavbarOptions = jest
-  .fn()
-  .mockReturnValue({ headerShown: false });
-
-jest.mock('../../UI/Navbar', () => ({
-  getTransparentOnboardingNavbarOptions: (...args: unknown[]) =>
-    mockGetTransparentOnboardingNavbarOptions(...args),
-}));
 
 describe('ManualBackupStep3', () => {
   it('should render correctly', () => {
@@ -156,11 +147,6 @@ describe('ManualBackupStep3', () => {
   const mockStore = configureMockStore();
   const store = mockStore({});
 
-  const themeValue = {
-    colors: mockTheme.colors,
-    themeAppearance: 'light',
-  };
-
   const createProps = (overrides = {}) => ({
     navigation: {
       setOptions: mockSetOptions,
@@ -177,16 +163,11 @@ describe('ManualBackupStep3', () => {
     ...overrides,
   });
 
-  const renderComponent = (
-    props = createProps(),
-    contextValue: Record<string, unknown> = themeValue,
-  ) => {
+  const renderComponent = (props = createProps()) => {
     const ActualManualBackupStep3 = jest.requireActual('./index').default;
     return render(
       <Provider store={store}>
-        <ThemeContext.Provider value={contextValue}>
-          <ActualManualBackupStep3 {...props} />
-        </ThemeContext.Provider>
+        <ActualManualBackupStep3 {...props} />
       </Provider>,
     );
   };
@@ -248,24 +229,11 @@ describe('ManualBackupStep3', () => {
   });
 
   describe('componentDidMount', () => {
-    it('sets navigation options on mount with context colors', async () => {
+    it('does not configure navigation header via setOptions', async () => {
       renderComponent();
 
       await waitFor(() => {
-        expect(mockGetTransparentOnboardingNavbarOptions).toHaveBeenCalledWith(
-          mockTheme.colors,
-        );
-        expect(mockSetOptions).toHaveBeenCalledWith({ headerShown: false });
-      });
-    });
-
-    it('falls back to mockTheme.colors when context has no colors', async () => {
-      renderComponent(createProps(), {});
-
-      await waitFor(() => {
-        expect(mockGetTransparentOnboardingNavbarOptions).toHaveBeenCalledWith(
-          mockTheme.colors,
-        );
+        expect(mockSetOptions).not.toHaveBeenCalled();
       });
     });
 
@@ -330,7 +298,7 @@ describe('ManualBackupStep3', () => {
       const { unmount } = renderComponent();
 
       await waitFor(() => {
-        expect(mockSetOptions).toHaveBeenCalled();
+        expect(BackHandler.addEventListener).toHaveBeenCalled();
       });
 
       unmount();

@@ -183,7 +183,6 @@ export async function setupLendingMocks(
   await setupRemoteFeatureFlagsMock(mockServer, {
     earnStablecoinLendingEnabled: { enabled: true, minimumVersion: '0.0.0' },
     homepageRedesignV1: { enabled: true, minimumVersion: '0.0.0' },
-    homepageSectionsV1: { enabled: true, minimumVersion: '0.0.0' },
   });
 
   // Accounts API v4 (multiaccount balances)

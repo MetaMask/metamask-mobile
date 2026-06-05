@@ -6,10 +6,6 @@ import { AccountType } from '../../../constants/onboarding';
 import { UserProfileProperty } from '../../metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { renderHookWithProvider } from '../../test/renderWithProvider';
 import { analytics } from '../../analytics/analytics';
-import generateDeviceAnalyticsMetaData, {
-  UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
-} from '../../metrics';
-import { updateCachedConsent } from '../../trace';
 import Logger from '../../Logger';
 import { useEnableMarketingConsent } from './useEnableMarketingConsent';
 
@@ -22,16 +18,6 @@ jest.mock('../../analytics/analytics', () => ({
   },
 }));
 
-jest.mock('../../metrics', () => ({
-  __esModule: true,
-  default: jest.fn(),
-  UserSettingsAnalyticsMetaData: jest.fn(),
-}));
-
-jest.mock('../../trace', () => ({
-  updateCachedConsent: jest.fn(),
-}));
-
 jest.mock('../../../core/OAuthService/OAuthService', () => ({
   __esModule: true,
   default: {
@@ -42,9 +28,6 @@ jest.mock('../../../core/OAuthService/OAuthService', () => ({
 jest.mock('../../Logger', () => ({
   error: jest.fn(),
 }));
-
-const deviceTraits = { device_trait: 'device' };
-const userSettingsTraits = { user_settings_trait: 'settings' };
 
 const renderUseEnableMarketingConsent = ({
   accountType = AccountType.MetamaskGoogle,
@@ -84,64 +67,27 @@ describe('useEnableMarketingConsent', () => {
     jest.clearAllMocks();
     jest.mocked(analytics.isEnabled).mockReturnValue(false);
     jest.mocked(analytics.optIn).mockResolvedValue(undefined);
-    jest.mocked(generateDeviceAnalyticsMetaData).mockReturnValue(deviceTraits);
-    jest
-      .mocked(generateUserSettingsAnalyticsMetaData)
-      .mockReturnValue(userSettingsTraits);
     jest
       .mocked(OAuthService.updateMarketingOptInStatus)
       .mockResolvedValue(undefined);
   });
 
-  it('opts into metrics, dispatches marketing consent, and identifies consent when analytics is disabled', async () => {
+  it('does nothing when MetaMetrics is off — never enables metrics or data collection', async () => {
+    // analytics.isEnabled returns false (set in beforeEach)
     const { result, store } = renderUseEnableMarketingConsent();
 
     await act(async () => {
       await result.current.enableMarketingConsent();
     });
 
-    expect(analytics.optIn).toHaveBeenCalledTimes(1);
-    expect(updateCachedConsent).toHaveBeenCalledWith(true);
-    expect(analytics.identify).toHaveBeenCalledWith({
-      ...deviceTraits,
-      ...userSettingsTraits,
-      [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
-    });
-    expect(analytics.identify).toHaveBeenCalledTimes(1);
-    expect(
-      jest.mocked(analytics.identify).mock.invocationCallOrder[0],
-    ).toBeLessThan(
-      jest.mocked(analytics.trackEvent).mock.invocationCallOrder[0],
-    );
-    expect(analytics.trackEvent).toHaveBeenCalledTimes(2);
-    expect(analytics.trackEvent).toHaveBeenNthCalledWith(
-      1,
-      expect.objectContaining({
-        name: MetaMetricsEvents.METRICS_OPT_IN.category,
-        properties: expect.objectContaining({
-          account_type: AccountType.MetamaskGoogle,
-          location: 'push_pre_prompt',
-          updated_after_onboarding: true,
-        }),
-      }),
-    );
-    expect(analytics.trackEvent).toHaveBeenNthCalledWith(
-      2,
-      expect.objectContaining({
-        name: MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED.category,
-        properties: expect.objectContaining({
-          [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
-          is_metrics_opted_in: true,
-          account_type: AccountType.MetamaskGoogle,
-          location: 'push_pre_prompt',
-          updated_after_onboarding: true,
-        }),
-      }),
-    );
-    expect(store.getState().security.dataCollectionForMarketing).toBe(true);
+    expect(analytics.optIn).not.toHaveBeenCalled();
+    expect(analytics.identify).not.toHaveBeenCalled();
+    expect(analytics.trackEvent).not.toHaveBeenCalled();
+    expect(OAuthService.updateMarketingOptInStatus).not.toHaveBeenCalled();
+    expect(store.getState().security.dataCollectionForMarketing).toBe(false);
   });
 
-  it('dispatches and identifies marketing consent without metrics opt-in when analytics is already enabled', async () => {
+  it('dispatches and identifies marketing consent when MetaMetrics is already enabled', async () => {
     jest.mocked(analytics.isEnabled).mockReturnValue(true);
     const { result, store } = renderUseEnableMarketingConsent();
 
@@ -150,7 +96,6 @@ describe('useEnableMarketingConsent', () => {
     });
 
     expect(analytics.optIn).not.toHaveBeenCalled();
-    expect(updateCachedConsent).not.toHaveBeenCalled();
     expect(analytics.identify).toHaveBeenCalledWith({
       [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
     });
@@ -165,14 +110,36 @@ describe('useEnableMarketingConsent', () => {
         name: MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED.category,
         properties: expect.objectContaining({
           [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
-          is_metrics_opted_in: true,
           account_type: AccountType.MetamaskGoogle,
           location: 'push_pre_prompt',
           updated_after_onboarding: true,
         }),
       }),
     );
+    // is_metrics_opted_in must NOT be present — this flow never touches metrics.
+    expect(analytics.trackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        properties: expect.not.objectContaining({
+          is_metrics_opted_in: expect.anything(),
+        }),
+      }),
+    );
     expect(store.getState().security.dataCollectionForMarketing).toBe(true);
+  });
+
+  it('does nothing when marketing consent is already enabled', async () => {
+    jest.mocked(analytics.isEnabled).mockReturnValue(true);
+    const { result } = renderUseEnableMarketingConsent({
+      hasMarketingConsent: true,
+    });
+
+    await act(async () => {
+      await result.current.enableMarketingConsent();
+    });
+
+    expect(analytics.identify).not.toHaveBeenCalled();
+    expect(analytics.trackEvent).not.toHaveBeenCalled();
+    expect(OAuthService.updateMarketingOptInStatus).not.toHaveBeenCalled();
   });
 
   it('syncs marketing consent to OAuth for seedless users', async () => {
@@ -206,21 +173,5 @@ describe('useEnableMarketingConsent', () => {
       expect(store.getState().security.dataCollectionForMarketing).toBe(false);
     });
     expect(Logger.error).toHaveBeenCalled();
-  });
-
-  it('does nothing when marketing consent is already enabled', async () => {
-    const { result } = renderUseEnableMarketingConsent({
-      hasMarketingConsent: true,
-    });
-
-    await act(async () => {
-      await result.current.enableMarketingConsent();
-    });
-
-    expect(analytics.optIn).not.toHaveBeenCalled();
-    expect(updateCachedConsent).not.toHaveBeenCalled();
-    expect(analytics.identify).not.toHaveBeenCalled();
-    expect(analytics.trackEvent).not.toHaveBeenCalled();
-    expect(OAuthService.updateMarketingOptInStatus).not.toHaveBeenCalled();
   });
 });

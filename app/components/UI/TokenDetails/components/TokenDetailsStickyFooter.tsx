@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Button,
+  ButtonAnimated,
   ButtonVariant,
   IconName,
   IconSize,
@@ -33,10 +34,12 @@ import RwaUnavailableBottomSheet, {
 } from './RwaUnavailableBottomSheet/RwaUnavailableBottomSheet';
 import { useStickyTokenActions } from '../hooks/useStickyTokenActions';
 import { getResultTypeConfig } from '../../SecurityTrust/utils/securityUtils';
+import FlashFilledIcon from './assets/flash-filled.svg';
 
 const styles = StyleSheet.create({
   footer: {
     flexDirection: 'row',
+    alignItems: 'center',
     paddingVertical: 4,
   },
   button: {
@@ -45,6 +48,15 @@ const styles = StyleSheet.create({
   subsequentButton: {
     flex: 1,
     marginLeft: 16,
+  },
+  quickBuyButton: {
+    width: 48,
+    height: 48,
+    marginLeft: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderRadius: 999,
   },
 });
 
@@ -73,6 +85,10 @@ interface TokenStickyFooterProps {
   onSwapPress?: () => void;
   /** Optional callback fired when the buy button is pressed (for additional tracking by the parent). */
   onBuyPress?: () => void;
+  /** Optional callback fired when the quick buy (lightning) button is pressed. When omitted the button is not rendered. */
+  onQuickBuyPress?: () => void;
+  /** Optional testID for the quick buy button. */
+  quickBuyTestID?: string;
   /** Page name sent with swap/bridge analytics. Defaults to `'MainView'`. */
   sourcePage?: string;
   /** When true, use success (green) accent; when false, use error (red) accent. Null means not yet resolved. */
@@ -93,6 +109,8 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   buyTestID,
   onSwapPress,
   onBuyPress,
+  onQuickBuyPress,
+  quickBuyTestID,
   sourcePage,
   isPricePositive = null,
   useAmbientColor = false,
@@ -117,6 +135,12 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   const successBg = getSuccessClass('bg', 'bg-success-default');
   const successBorder = getSuccessClass('border', 'border-success-default');
   const successText = getSuccessClass('text', 'text-success-default');
+
+  const successColorHex = useErrorAccent
+    ? AMBIENT_NEGATIVE_COLOR
+    : isLightMode
+      ? LIGHT_MODE_SUCCESS_GREEN
+      : colors.success.default;
 
   const secondaryTextProps = useMemo(
     () => ({ twClassName: successText }) as const,
@@ -158,6 +182,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   const showSwapButton = hasEligibleSwapTokens;
   const showBuyButton = isBuyable || !hasEligibleSwapTokens;
   const showBothButtons = showSwapButton && showBuyButton;
+  const showQuickBuyButton = Boolean(onQuickBuyPress) && hasEligibleSwapTokens;
 
   const tradingOpen = isTokenTradingOpen(token as BridgeToken);
   useEffect(() => {
@@ -320,6 +345,34 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
           >
             {strings('asset_overview.buy_button')}
           </Button>
+        )}
+        {showQuickBuyButton && (
+          <ButtonAnimated
+            testID={quickBuyTestID}
+            accessibilityRole="button"
+            accessibilityLabel={strings('asset_overview.buy_button')}
+            style={[styles.quickBuyButton, { borderColor: successColorHex }]}
+            onPress={() => {
+              if (!onQuickBuyPress) return;
+              trackStickyFooterTapped({
+                ctaType: 'quick_buy',
+                balanceFiatUsd,
+                tokenAddress: token.address ?? '',
+                chainId: token.chainId ?? '',
+              });
+              handleFooterAction(
+                onQuickBuyPress,
+                strings('asset_overview.buy_button'),
+              );
+            }}
+          >
+            <FlashFilledIcon
+              name="FlashFilled"
+              width={20}
+              height={20}
+              fill={successColorHex}
+            />
+          </ButtonAnimated>
         )}
       </View>
       <RwaUnavailableBottomSheet ref={rwaUnavailableSheetRef} />

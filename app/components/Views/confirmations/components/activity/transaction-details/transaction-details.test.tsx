@@ -1,4 +1,5 @@
 import React from 'react';
+import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import {
@@ -49,12 +50,12 @@ jest.mock('../transaction-details-retry', () => ({
   TransactionDetailsRetry: () => mockTransactionDetailsRetry(),
 }));
 
-const mockSetOptions = jest.fn();
+const mockGoBack = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
-    setOptions: mockSetOptions,
+    goBack: mockGoBack,
   }),
 }));
 
@@ -166,7 +167,7 @@ describe('TransactionDetails', () => {
   });
 
   describe('getTitle', () => {
-    it('returns musd_conversion title for musdConversion type', () => {
+    it('renders musd_conversion title for musdConversion type', () => {
       useTransactionDetailsMock.mockReturnValue({
         transactionMeta: {
           ...TRANSACTION_META_MOCK,
@@ -174,16 +175,14 @@ describe('TransactionDetails', () => {
         } as unknown as TransactionMeta,
       });
 
-      render();
+      const { getByText } = render();
 
-      expect(mockSetOptions).toHaveBeenCalledWith(
-        expect.objectContaining({
-          title: strings('transaction_details.title.musd_conversion'),
-        }),
-      );
+      expect(
+        getByText(strings('transaction_details.title.musd_conversion')),
+      ).toBeTruthy();
     });
 
-    it('returns perps_deposit title for perpsDeposit type', () => {
+    it('renders perps_deposit title for perpsDeposit type', () => {
       useTransactionDetailsMock.mockReturnValue({
         transactionMeta: {
           ...TRANSACTION_META_MOCK,
@@ -191,16 +190,14 @@ describe('TransactionDetails', () => {
         } as unknown as TransactionMeta,
       });
 
-      render();
+      const { getByText } = render();
 
-      expect(mockSetOptions).toHaveBeenCalledWith(
-        expect.objectContaining({
-          title: strings('transaction_details.title.perps_deposit'),
-        }),
-      );
+      expect(
+        getByText(strings('transaction_details.title.perps_deposit')),
+      ).toBeTruthy();
     });
 
-    it('returns musd_claim title for musdClaim type', () => {
+    it('renders musd_claim title for musdClaim type', () => {
       useTransactionDetailsMock.mockReturnValue({
         transactionMeta: {
           ...TRANSACTION_META_MOCK,
@@ -208,16 +205,14 @@ describe('TransactionDetails', () => {
         } as unknown as TransactionMeta,
       });
 
-      render();
+      const { getByText } = render();
 
-      expect(mockSetOptions).toHaveBeenCalledWith(
-        expect.objectContaining({
-          title: strings('transaction_details.title.musd_claim'),
-        }),
-      );
+      expect(
+        getByText(strings('transaction_details.title.musd_claim')),
+      ).toBeTruthy();
     });
 
-    it('returns predict_claim title for predictClaim type', () => {
+    it('renders predict_claim title for predictClaim type', () => {
       useTransactionDetailsMock.mockReturnValue({
         transactionMeta: {
           ...TRANSACTION_META_MOCK,
@@ -225,16 +220,14 @@ describe('TransactionDetails', () => {
         } as unknown as TransactionMeta,
       });
 
-      render();
+      const { getByText } = render();
 
-      expect(mockSetOptions).toHaveBeenCalledWith(
-        expect.objectContaining({
-          title: strings('transaction_details.title.predict_claim'),
-        }),
-      );
+      expect(
+        getByText(strings('transaction_details.title.predict_claim')),
+      ).toBeTruthy();
     });
 
-    it('returns predict_deposit title for predictDeposit type', () => {
+    it('renders predict_deposit title for predictDeposit type', () => {
       useTransactionDetailsMock.mockReturnValue({
         transactionMeta: {
           ...TRANSACTION_META_MOCK,
@@ -242,16 +235,14 @@ describe('TransactionDetails', () => {
         } as unknown as TransactionMeta,
       });
 
-      render();
+      const { getByText } = render();
 
-      expect(mockSetOptions).toHaveBeenCalledWith(
-        expect.objectContaining({
-          title: strings('transaction_details.title.predict_deposit'),
-        }),
-      );
+      expect(
+        getByText(strings('transaction_details.title.predict_deposit')),
+      ).toBeTruthy();
     });
 
-    it('returns predict_withdraw title for predictWithdraw type', () => {
+    it('renders predict_withdraw title for predictWithdraw type', () => {
       useTransactionDetailsMock.mockReturnValue({
         transactionMeta: {
           ...TRANSACTION_META_MOCK,
@@ -259,16 +250,14 @@ describe('TransactionDetails', () => {
         } as unknown as TransactionMeta,
       });
 
-      render();
+      const { getByText } = render();
 
-      expect(mockSetOptions).toHaveBeenCalledWith(
-        expect.objectContaining({
-          title: strings('transaction_details.title.predict_withdraw'),
-        }),
-      );
+      expect(
+        getByText(strings('transaction_details.title.predict_withdraw')),
+      ).toBeTruthy();
     });
 
-    it('returns perps_withdraw title for perpsWithdraw type', () => {
+    it('renders perps_withdraw title for perpsWithdraw type', () => {
       useTransactionDetailsMock.mockReturnValue({
         transactionMeta: {
           ...TRANSACTION_META_MOCK,
@@ -276,16 +265,14 @@ describe('TransactionDetails', () => {
         } as unknown as TransactionMeta,
       });
 
-      render();
+      const { getByText } = render();
 
-      expect(mockSetOptions).toHaveBeenCalledWith(
-        expect.objectContaining({
-          title: strings('transaction_details.title.perps_withdraw'),
-        }),
-      );
+      expect(
+        getByText(strings('transaction_details.title.perps_withdraw')),
+      ).toBeTruthy();
     });
 
-    it('returns money_account_deposit title for nested moneyAccountDeposit', () => {
+    it('renders money_account_deposit title for nested moneyAccountDeposit', () => {
       useTransactionDetailsMock.mockReturnValue({
         transactionMeta: {
           ...TRANSACTION_META_MOCK,
@@ -294,16 +281,14 @@ describe('TransactionDetails', () => {
         } as unknown as TransactionMeta,
       });
 
-      render();
+      const { getByText } = render();
 
-      expect(mockSetOptions).toHaveBeenCalledWith(
-        expect.objectContaining({
-          title: strings('transaction_details.title.money_account_deposit'),
-        }),
-      );
+      expect(
+        getByText(strings('transaction_details.title.money_account_deposit')),
+      ).toBeTruthy();
     });
 
-    it('returns money_account_withdraw title for nested moneyAccountWithdraw', () => {
+    it('renders money_account_withdraw title for nested moneyAccountWithdraw', () => {
       useTransactionDetailsMock.mockReturnValue({
         transactionMeta: {
           ...TRANSACTION_META_MOCK,
@@ -312,43 +297,29 @@ describe('TransactionDetails', () => {
         } as unknown as TransactionMeta,
       });
 
-      render();
+      const { getByText } = render();
 
-      expect(mockSetOptions).toHaveBeenCalledWith(
-        expect.objectContaining({
-          title: strings('transaction_details.title.money_account_withdraw'),
-        }),
-      );
+      expect(
+        getByText(strings('transaction_details.title.money_account_withdraw')),
+      ).toBeTruthy();
     });
 
-    it('returns default title for other transaction types', () => {
-      render();
+    it('renders default title for other transaction types', () => {
+      const { getByText } = render();
 
-      expect(mockSetOptions).toHaveBeenCalledWith(
-        expect.objectContaining({
-          title: strings('transaction_details.title.default'),
-        }),
-      );
+      expect(
+        getByText(strings('transaction_details.title.default')),
+      ).toBeTruthy();
     });
   });
 
-  describe('navigation options', () => {
-    it('configures navigation with back arrow on left instead of close button on right', () => {
-      render();
+  describe('header', () => {
+    it('calls navigation.goBack when the back button is pressed', () => {
+      const { getByTestId } = render();
 
-      const navOptions = mockSetOptions.mock.calls[0][0];
-      expect(navOptions.headerLeft()).not.toBeNull();
-      expect(navOptions.headerRight()).toBeNull();
-    });
+      fireEvent.press(getByTestId('transaction-details-back-button'));
 
-    it('overrides headerTintColor to text.default instead of primary', () => {
-      render();
-
-      const navOptions = mockSetOptions.mock.calls[0][0];
-      expect(navOptions.headerTintColor).not.toEqual(
-        expect.stringContaining('primary'),
-      );
-      expect(navOptions.headerTintColor).toBeDefined();
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
   });
 

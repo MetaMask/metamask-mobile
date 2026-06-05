@@ -325,29 +325,10 @@ describe('PayWithRow', () => {
       } as never);
     });
 
-    it('renders money account label with balance', () => {
-      jest.mocked(useMoneyAccountBalance).mockReturnValue({
-        totalFiatFormatted: '$500.00',
-      } as ReturnType<typeof useMoneyAccountBalance>);
-
-      const { getByTestId } = renderMoneyAccount();
-
-      expect(getByTestId('pay-with-symbol').props.children).toContain(
-        'Money account',
-      );
-      expect(getByTestId('pay-with-balance')).toBeDefined();
-    });
-
-    it('renders money account label without balance when totalFiatFormatted is undefined', () => {
-      jest.mocked(useMoneyAccountBalance).mockReturnValue({
-        totalFiatFormatted: undefined,
-      } as ReturnType<typeof useMoneyAccountBalance>);
-
+    it('renders money balance label without inline balance', () => {
       const { getByTestId, queryByTestId } = renderMoneyAccount();
 
-      expect(getByTestId('pay-with-symbol').props.children).toContain(
-        'Money account',
-      );
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money balance');
       expect(queryByTestId('pay-with-balance')).toBeNull();
     });
 
@@ -363,10 +344,6 @@ describe('PayWithRow', () => {
     });
 
     it('navigates to pay-with modal on press', async () => {
-      jest.mocked(useMoneyAccountBalance).mockReturnValue({
-        totalFiatFormatted: '$500.00',
-      } as ReturnType<typeof useMoneyAccountBalance>);
-
       const { getByTestId } = renderMoneyAccount();
 
       await act(() => {

@@ -244,10 +244,7 @@ export function PayWithModal() {
     ],
   );
 
-  // Dynamic title based on transaction type
-  const modalTitle = isWithdraw
-    ? strings('pay_with_modal.title_receive')
-    : strings('pay_with_modal.title');
+  const modalTitle = strings('pay_with_modal.modal_title');
 
   return (
     <BottomSheet
