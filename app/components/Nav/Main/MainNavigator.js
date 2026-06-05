@@ -2,8 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Image, StyleSheet, Keyboard, Platform } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { useSelector, useDispatch } from 'react-redux';
-import { mainNavigatorReady } from '../../../actions/navigation';
+import { useSelector } from 'react-redux';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Browser from '../../Views/Browser';
 import { ChainId } from '@metamask/controller-utils';
@@ -231,7 +230,6 @@ const AssetStackFlow = (props) => (
     <Stack.Screen
       name={Routes.TRANSACTION_DETAILS}
       component={TransactionDetails}
-      options={{ headerShown: true }}
     />
   </Stack.Navigator>
 );
@@ -253,69 +251,71 @@ const AssetNavigator = (props) => (
 const WalletTabStackFlow = () => {
   const { colors } = useTheme();
   return (
-    <Stack.Navigator
+    <NativeStack.Navigator
       initialRouteName={'WalletView'}
       screenOptions={{
-        cardStyle: { backgroundColor: colors.background.default },
+        contentStyle: { backgroundColor: colors.background.default },
       }}
     >
-      <Stack.Screen
+      <NativeStack.Screen
         name="WalletView"
         component={Wallet}
         options={{
           headerShown: false,
-          animationEnabled: false,
+          animation: 'none',
         }}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
         component={RevealPrivateCredential}
         options={{ headerShown: false }}
       />
-    </Stack.Navigator>
+    </NativeStack.Navigator>
   );
 };
 
 const TransactionsHome = () => {
   const { colors } = useTheme();
   return (
-    <Stack.Navigator
+    <NativeStack.Navigator
       screenOptions={{
-        cardStyle: { backgroundColor: colors.background.default },
+        headerShown: false,
+        contentStyle: { backgroundColor: colors.background.default },
       }}
     >
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.TRANSACTIONS_VIEW}
         component={ActivityView}
-        options={{ headerShown: false }}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.TRANSACTION_DETAILS}
         component={TransactionDetails}
       />
-      <Stack.Screen name={Routes.RAMP.ORDER_DETAILS} component={OrderDetails} />
-      <Stack.Screen
+      <NativeStack.Screen
+        name={Routes.RAMP.ORDER_DETAILS}
+        component={OrderDetails}
+      />
+      <NativeStack.Screen
         name={Routes.RAMP.RAMPS_ORDER_DETAILS}
         component={RampsOrderDetails}
-        options={{ headerShown: false }}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.DEPOSIT.ORDER_DETAILS}
         component={DepositOrderDetails}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.RAMP.BANK_DETAILS_STANDALONE}
         component={V2BankDetails}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.RAMP.SEND_TRANSACTION}
         component={SendTransaction}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS}
         component={BridgeTransactionDetails}
       />
-    </Stack.Navigator>
+    </NativeStack.Navigator>
   );
 };
 
@@ -378,51 +378,48 @@ const RewardsHome = () => {
 const BrowserFlow = (props) => {
   const { colors } = useTheme();
   return (
-    <Stack.Navigator
+    <NativeStack.Navigator
       initialRouteName={Routes.BROWSER.VIEW}
       screenOptions={{
-        cardStyle: { backgroundColor: colors.background.default },
+        contentStyle: { backgroundColor: colors.background.default },
       }}
     >
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.BROWSER.VIEW}
         component={Browser}
         options={{ headerShown: false }}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.BROWSER.ASSET_LOADER}
         component={AssetLoader}
         options={{
           headerShown: false,
-          animationEnabled: false,
+          animation: 'none',
           presentation: 'modal',
         }}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.BROWSER.ASSET_VIEW}
         component={TokenDetails}
         initialParams={props.route.params}
         options={{ presentation: 'modal' }}
       />
-    </Stack.Navigator>
+    </NativeStack.Navigator>
   );
 };
 
 const ExploreHome = () => {
   const { colors } = useTheme();
   return (
-    <Stack.Navigator
+    <NativeStack.Navigator
       initialRouteName={Routes.TRENDING_FEED}
       screenOptions={{
-        cardStyle: { backgroundColor: colors.background.default },
+        contentStyle: { backgroundColor: colors.background.default },
+        headerShown: false,
       }}
     >
-      <Stack.Screen
-        name={Routes.TRENDING_FEED}
-        component={ExploreFeed}
-        options={{ headerShown: false }}
-      />
-    </Stack.Navigator>
+      <NativeStack.Screen name={Routes.TRENDING_FEED} component={ExploreFeed} />
+    </NativeStack.Navigator>
   );
 };
 
@@ -545,7 +542,7 @@ const SettingsFlow = () => {
       <Stack.Screen
         name="ContactForm"
         component={ContactForm}
-        options={ContactForm.navigationOptions}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
@@ -570,22 +567,22 @@ const SettingsFlow = () => {
       <Stack.Screen
         name="AccountBackupStep1B"
         component={AccountBackupStep1B}
-        options={AccountBackupStep1B.navigationOptions}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="ManualBackupStep1"
         component={ManualBackupStep1}
-        options={ManualBackupStep1.navigationOptions}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="ManualBackupStep2"
         component={ManualBackupStep2}
-        options={ManualBackupStep2.navigationOptions}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="ManualBackupStep3"
         component={ManualBackupStep3}
-        options={ManualBackupStep3.navigationOptions}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="EnterPasswordSimple"
@@ -947,73 +944,53 @@ const OfflineModeView = () => (
 
 /* eslint-disable react/prop-types */
 const NotificationsModeView = (props) => (
-  <Stack.Navigator screenOptions={{ headerShown: true }}>
-    <Stack.Screen
+  <NativeStack.Navigator screenOptions={{ headerShown: false }}>
+    <NativeStack.Screen
       name={Routes.NOTIFICATIONS.VIEW}
       component={NotificationsView}
-      options={{ headerShown: false }}
     />
-    <Stack.Screen
+    <NativeStack.Screen
       name={Routes.SETTINGS.NOTIFICATIONS}
       component={NotificationsSettings}
-      options={{ headerShown: false }}
     />
-    <Stack.Screen
+    <NativeStack.Screen
       name={Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION}
       component={NotificationSettingsSection}
-      options={{ headerShown: false }}
     />
-    <Stack.Screen
+    <NativeStack.Screen
       name={Routes.NOTIFICATIONS.DETAILS}
       component={NotificationsDetails}
-      options={NotificationsDetails.navigationOptions}
     />
-    <Stack.Screen
-      name="ContactForm"
-      component={ContactForm}
-      options={ContactForm.navigationOptions}
-    />
-  </Stack.Navigator>
+    <NativeStack.Screen name="ContactForm" component={ContactForm} />
+  </NativeStack.Navigator>
 );
 
 const SetPasswordFlow = () => (
-  <Stack.Navigator>
-    <Stack.Screen
-      name="ChoosePassword"
-      component={ChoosePassword}
-      options={ChoosePassword.navigationOptions}
-    />
-    <Stack.Screen
+  <NativeStack.Navigator screenOptions={{ headerShown: false }}>
+    <NativeStack.Screen name="ChoosePassword" component={ChoosePassword} />
+    <NativeStack.Screen
       name="AccountBackupStep1"
       component={AccountBackupStep1}
-      options={{ headerShown: false, gestureEnabled: false }}
+      options={{ gestureEnabled: false }}
     />
-    <Stack.Screen
+    <NativeStack.Screen
       name="AccountBackupStep1B"
       component={AccountBackupStep1B}
-      options={AccountBackupStep1B.navigationOptions}
     />
-    <Stack.Screen
+    <NativeStack.Screen
       name="ManualBackupStep1"
       component={ManualBackupStep1}
-      options={ManualBackupStep1.navigationOptions}
     />
-    <Stack.Screen
+    <NativeStack.Screen
       name="ManualBackupStep2"
       component={ManualBackupStep2}
-      options={ManualBackupStep2.navigationOptions}
     />
-    <Stack.Screen
+    <NativeStack.Screen
       name="ManualBackupStep3"
       component={ManualBackupStep3}
-      options={ManualBackupStep3.navigationOptions}
     />
-    <Stack.Screen
-      name="OptinMetrics"
-      component={OptinMetrics}
-      options={OptinMetrics.navigationOptions}
-    />
-  </Stack.Navigator>
+    <NativeStack.Screen name="OptinMetrics" component={OptinMetrics} />
+  </NativeStack.Navigator>
 );
 
 ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -1028,15 +1005,6 @@ const SampleFeatureFlow = () => (
 ///: END:ONLY_INCLUDE_IF
 
 const MainNavigator = () => {
-  const dispatch = useDispatch();
-  // Announce to the saga layer (deeplink pipeline) that post-login screens
-  // are now registered with React Navigation. Before this dispatch, a
-  // `navigate('Wallet'|'RampTokenSelection'|...)` call would be silently
-  // dropped because the target screen isn't in the navigation state yet.
-  useEffect(() => {
-    dispatch(mainNavigatorReady());
-  }, [dispatch]);
-
   // Get feature flag state for conditional Money home screen registration
   const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
   // Get feature flag state for conditional Perps screen registration

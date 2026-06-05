@@ -75,7 +75,7 @@ const SmartAccountModal = () => {
     >
       <HeaderBase
         style={styles.header}
-        titleTestID={HEADER_BASE_TITLE_TEST_ID}
+        textProps={{ testID: HEADER_BASE_TITLE_TEST_ID }}
         startButtonIconProps={{
           testID: SwitchAccountModalSelectorIDs.SMART_ACCOUNT_BACK_BUTTON,
           iconName: IconName.ArrowLeft,
