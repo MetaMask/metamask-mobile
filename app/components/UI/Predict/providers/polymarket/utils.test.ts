@@ -12,6 +12,7 @@ import {
   POLYMARKET_PROVIDER_ID,
 } from './constants';
 import {
+  buildMarketListQueryParams,
   buildOutcomeGroups,
   calculateConservativeBuyMarketFee,
   clearClobMarketInfoCache,
@@ -20,6 +21,9 @@ import {
   deriveApiKey,
   fetchChildEventsFromGammaApi,
   fetchEventsFromPolymarketApi,
+  fetchMarketsFromPolymarketApi,
+  fetchRelatedTagsFromPolymarketApi,
+  normalizeRelatedTagsToFilterOptions,
   getAllowance,
   getClobMarketInfo,
   getClobMarketInfoSafe,
@@ -677,6 +681,403 @@ describe('polymarket utils', () => {
       );
       expect(url).not.toContain('active=true');
       expect(url).not.toContain('offset=');
+    });
+  });
+
+  describe('buildMarketListQueryParams', () => {
+    it('applies open + volume24hr + limit 20 defaults with no params', () => {
+      const params = buildMarketListQueryParams();
+
+      expect(params.get('limit')).toBe('20');
+      expect(params.get('active')).toBe('true');
+      expect(params.get('archived')).toBe('false');
+      expect(params.get('closed')).toBe('false');
+      expect(params.get('order')).toBe('volume24hr');
+      expect(params.get('ascending')).toBe('false');
+    });
+
+    it.each([
+      ['volume24hr', { order: 'volume24hr', ascending: 'false' }],
+      ['liquidity', { order: 'liquidity', ascending: 'false' }],
+      ['ending_soon', { order: 'endDate', ascending: 'true' }],
+      ['newest', { order: 'startDate', ascending: 'false' }],
+    ] as const)('maps order=%s correctly', (order, expected) => {
+      const params = buildMarketListQueryParams({ order });
+
+      expect(params.get('order')).toBe(expected.order);
+      expect(params.get('ascending')).toBe(expected.ascending);
+    });
+
+    it('maps status=open to active/archived/closed flags', () => {
+      const params = buildMarketListQueryParams({ status: 'open' });
+
+      expect(params.get('active')).toBe('true');
+      expect(params.get('archived')).toBe('false');
+      expect(params.get('closed')).toBe('false');
+    });
+
+    it.each(['closed', 'resolved'] as const)(
+      'maps status=%s to closed=true',
+      (status) => {
+        const params = buildMarketListQueryParams({ status });
+
+        expect(params.get('closed')).toBe('true');
+        expect(params.get('active')).toBeNull();
+        expect(params.get('archived')).toBeNull();
+      },
+    );
+
+    it('appends multiple tags as repeated tag_id params', () => {
+      const params = buildMarketListQueryParams({ tags: ['100', '200'] });
+
+      expect(params.getAll('tag_id')).toEqual(['100', '200']);
+    });
+
+    it('appends multiple tagSlugs as repeated tag_slug params', () => {
+      const params = buildMarketListQueryParams({ tagSlugs: ['nba', 'nfl'] });
+
+      expect(params.getAll('tag_slug')).toEqual(['nba', 'nfl']);
+    });
+
+    it('appends tag_id and tag_slug independently when both are provided', () => {
+      const params = buildMarketListQueryParams({
+        tags: ['100'],
+        tagSlugs: ['politics'],
+      });
+
+      expect(params.getAll('tag_id')).toEqual(['100']);
+      expect(params.getAll('tag_slug')).toEqual(['politics']);
+    });
+
+    it('appends multiple series as repeated series_id params', () => {
+      const params = buildMarketListQueryParams({ series: ['10', '20'] });
+
+      expect(params.getAll('series_id')).toEqual(['10', '20']);
+    });
+
+    it('sets live=true only when live is requested', () => {
+      expect(buildMarketListQueryParams({ live: true }).get('live')).toBe(
+        'true',
+      );
+      expect(
+        buildMarketListQueryParams({ live: false }).get('live'),
+      ).toBeNull();
+      expect(buildMarketListQueryParams().get('live')).toBeNull();
+    });
+
+    it('maps afterCursor to after_cursor and respects custom limit', () => {
+      const params = buildMarketListQueryParams({
+        limit: 50,
+        afterCursor: 'cursor-1',
+      });
+
+      expect(params.get('limit')).toBe('50');
+      expect(params.get('after_cursor')).toBe('cursor-1');
+    });
+
+    it('maps search to the title_search param', () => {
+      const params = buildMarketListQueryParams({ search: 'bitcoin' });
+
+      expect(params.get('title_search')).toBe('bitcoin');
+    });
+
+    it('trims the search value before applying title_search', () => {
+      const params = buildMarketListQueryParams({ search: '  bitcoin  ' });
+
+      expect(params.get('title_search')).toBe('bitcoin');
+    });
+
+    it.each(['', '   '])(
+      'does not set title_search for blank search (%j)',
+      (search) => {
+        const params = buildMarketListQueryParams({ search });
+
+        expect(params.get('title_search')).toBeNull();
+      },
+    );
+
+    it('does not set title_search when search is omitted', () => {
+      const params = buildMarketListQueryParams();
+
+      expect(params.get('title_search')).toBeNull();
+    });
+  });
+
+  describe('fetchMarketsFromPolymarketApi', () => {
+    it('hits the keyset endpoint and normalizes next_cursor to nextCursor', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          events: [{ id: 'event-1' }],
+          next_cursor: 'next-cursor',
+        }),
+      });
+
+      await expect(
+        fetchMarketsFromPolymarketApi({ order: 'liquidity', limit: 5 }),
+      ).resolves.toEqual({
+        events: [{ id: 'event-1' }],
+        nextCursor: 'next-cursor',
+      });
+
+      const [url] = mockFetch.mock.calls[0];
+      expect(url).toContain('https://gamma-api.polymarket.com/events/keyset?');
+      expect(url).toContain('order=liquidity');
+      expect(url).toContain('limit=5');
+    });
+
+    it('defaults nextCursor to null when absent', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ events: [] }),
+      });
+
+      await expect(fetchMarketsFromPolymarketApi()).resolves.toEqual({
+        events: [],
+        nextCursor: null,
+      });
+    });
+
+    it('throws when the response is not ok', async () => {
+      mockFetch.mockResolvedValue({ ok: false });
+
+      await expect(fetchMarketsFromPolymarketApi()).rejects.toThrow(
+        'Failed to list markets',
+      );
+    });
+
+    it('throws when events are malformed', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ events: null }),
+      });
+
+      await expect(fetchMarketsFromPolymarketApi()).rejects.toThrow(
+        'Malformed keyset events response',
+      );
+    });
+  });
+
+  describe('fetchRelatedTagsFromPolymarketApi', () => {
+    it('builds the related-tags endpoint URL for the general "all" root', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue([{ id: '1', slug: 'nba' }]),
+      });
+
+      await expect(fetchRelatedTagsFromPolymarketApi('all')).resolves.toEqual([
+        { id: '1', slug: 'nba' },
+      ]);
+
+      const [url] = mockFetch.mock.calls[0];
+      expect(url).toBe(
+        'https://gamma-api.polymarket.com/tags/slug/all/related-tags/tags?omit_empty=true&status=active',
+      );
+    });
+
+    it('builds the URL for a feed-specific slug such as politics', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue([]),
+      });
+
+      await fetchRelatedTagsFromPolymarketApi('politics');
+
+      const [url] = mockFetch.mock.calls[0];
+      expect(url).toBe(
+        'https://gamma-api.polymarket.com/tags/slug/politics/related-tags/tags?omit_empty=true&status=active',
+      );
+    });
+
+    it('url-encodes the slug', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue([]),
+      });
+
+      await fetchRelatedTagsFromPolymarketApi('march madness');
+
+      const [url] = mockFetch.mock.calls[0];
+      expect(url).toContain('/tags/slug/march%20madness/related-tags/tags');
+    });
+
+    it('throws when the response is not ok', async () => {
+      mockFetch.mockResolvedValue({ ok: false });
+
+      await expect(fetchRelatedTagsFromPolymarketApi('all')).rejects.toThrow(
+        'Failed to fetch related tags',
+      );
+    });
+
+    it('throws when the payload is not an array', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ tags: [] }),
+      });
+
+      await expect(fetchRelatedTagsFromPolymarketApi('all')).rejects.toThrow(
+        'Malformed related-tags response',
+      );
+    });
+  });
+
+  describe('normalizeRelatedTagsToFilterOptions', () => {
+    it('normalizes each tag into a slug-based filter option with ready params', () => {
+      const result = normalizeRelatedTagsToFilterOptions(
+        [
+          { id: '1', label: 'NBA', slug: 'nba' },
+          { id: '2', label: 'NFL', slug: 'nfl' },
+        ],
+        { source: 'hot-tags' },
+      );
+
+      expect(result).toEqual([
+        {
+          id: 'nba',
+          label: 'NBA',
+          source: 'hot-tags',
+          params: { tagSlugs: ['nba'], order: 'volume24hr', status: 'open' },
+        },
+        {
+          id: 'nfl',
+          label: 'NFL',
+          source: 'hot-tags',
+          params: { tagSlugs: ['nfl'], order: 'volume24hr', status: 'open' },
+        },
+      ]);
+    });
+
+    it('merges baseParams into each option params', () => {
+      const [option] = normalizeRelatedTagsToFilterOptions(
+        [{ id: '1', label: 'NBA', slug: 'nba' }],
+        {
+          source: 'hot-tags',
+          baseParams: { tagSlugs: ['sports'], live: true },
+        },
+      );
+
+      // tagSlugs is overridden with the option's own slug; other base params kept.
+      expect(option.params).toEqual({
+        tagSlugs: ['nba'],
+        live: true,
+        order: 'volume24hr',
+        status: 'open',
+      });
+    });
+
+    it('never leaks a pagination cursor (afterCursor) from baseParams into option params', () => {
+      const [option] = normalizeRelatedTagsToFilterOptions(
+        [{ id: '1', label: 'NBA', slug: 'nba' }],
+        {
+          source: 'hot-tags',
+          baseParams: { live: true, afterCursor: 'cursor-123' },
+        },
+      );
+
+      expect(option.params).not.toHaveProperty('afterCursor');
+      expect(option.params).toEqual({
+        order: 'volume24hr',
+        status: 'open',
+        live: true,
+        tagSlugs: ['nba'],
+      });
+    });
+
+    it('lets baseParams override the default order/status, but never tagSlugs', () => {
+      const [option] = normalizeRelatedTagsToFilterOptions(
+        [{ id: '1', label: 'NBA', slug: 'nba' }],
+        {
+          source: 'hot-tags',
+          baseParams: {
+            order: 'newest',
+            status: 'closed',
+            tagSlugs: ['sports'],
+          },
+        },
+      );
+
+      expect(option.params).toEqual({
+        order: 'newest',
+        status: 'closed',
+        tagSlugs: ['nba'],
+      });
+    });
+
+    it('falls back to the slug when label is missing/blank', () => {
+      const [option] = normalizeRelatedTagsToFilterOptions(
+        [{ id: '1', label: '  ', slug: 'nba' }],
+        { source: 'hot-tags' },
+      );
+
+      expect(option.label).toBe('nba');
+    });
+
+    it('dedupes by slug (id), keeping the first occurrence', () => {
+      const result = normalizeRelatedTagsToFilterOptions(
+        [
+          { id: '1', label: 'NBA', slug: 'nba' },
+          { id: '2', label: 'NBA dup', slug: 'nba' },
+        ],
+        { source: 'hot-tags' },
+      );
+
+      expect(result).toHaveLength(1);
+      expect(result[0].label).toBe('NBA');
+    });
+
+    it('drops options whose slug is in existingIds (static-vs-dynamic dedupe)', () => {
+      const result = normalizeRelatedTagsToFilterOptions(
+        [
+          { id: '1', label: 'Politics', slug: 'politics' },
+          { id: '2', label: 'NBA', slug: 'nba' },
+        ],
+        { source: 'hot-tags', existingIds: ['politics'] },
+      );
+
+      expect(result.map((o) => o.id)).toEqual(['nba']);
+    });
+
+    it('skips tags with missing/blank slugs', () => {
+      const result = normalizeRelatedTagsToFilterOptions(
+        [
+          { id: '1', label: 'No slug', slug: '' },
+          { id: '2', label: 'NBA', slug: 'nba' },
+        ],
+        { source: 'hot-tags' },
+      );
+
+      expect(result.map((o) => o.id)).toEqual(['nba']);
+    });
+
+    it('respects limit', () => {
+      const result = normalizeRelatedTagsToFilterOptions(
+        [
+          { id: '1', label: 'NBA', slug: 'nba' },
+          { id: '2', label: 'NFL', slug: 'nfl' },
+          { id: '3', label: 'NHL', slug: 'nhl' },
+        ],
+        { source: 'hot-tags', limit: 2 },
+      );
+
+      expect(result.map((o) => o.id)).toEqual(['nba', 'nfl']);
+    });
+
+    it('returns an empty list when limit is 0', () => {
+      expect(
+        normalizeRelatedTagsToFilterOptions(
+          [
+            { id: '1', label: 'NBA', slug: 'nba' },
+            { id: '2', label: 'NFL', slug: 'nfl' },
+          ],
+          { source: 'hot-tags', limit: 0 },
+        ),
+      ).toEqual([]);
+    });
+
+    it('returns an empty list for empty input', () => {
+      expect(
+        normalizeRelatedTagsToFilterOptions([], { source: 'hot-tags' }),
+      ).toEqual([]);
     });
   });
 

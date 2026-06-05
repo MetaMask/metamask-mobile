@@ -258,6 +258,38 @@ describe('PredictAnalytics', () => {
 
       expect(event.properties).not.toHaveProperty('active_ab_tests');
     });
+
+    it('includes predict_feed_tab and predict_screen when provided', async () => {
+      await predictAnalytics.trackPredictOrderEvent({
+        status: PredictTradeStatus.INITIATED,
+        analyticsProperties: {
+          marketId: 'test',
+          entryPoint: 'predict_feed',
+          predictFeedTab: 'world-cup',
+          predictScreen: 'world_cup',
+        },
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.properties).toMatchObject({
+        entry_point: 'predict_feed',
+        predict_feed_tab: 'world-cup',
+        predict_screen: 'world_cup',
+      });
+    });
+
+    it('omits predict_feed_tab and predict_screen when not provided', async () => {
+      await predictAnalytics.trackPredictOrderEvent({
+        status: PredictTradeStatus.INITIATED,
+        analyticsProperties: { marketId: 'test', entryPoint: 'predict_feed' },
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.properties).not.toHaveProperty('predict_feed_tab');
+      expect(event.properties).not.toHaveProperty('predict_screen');
+    });
   });
 
   describe('trackBetslipDismissed', () => {
@@ -432,6 +464,39 @@ describe('PredictAnalytics', () => {
       expect(getDevLoggerMock()).toHaveBeenCalledTimes(1);
     });
 
+    it('includes predict_feed_tab and predict_screen in market details opened when provided', () => {
+      predictAnalytics.trackMarketDetailsOpened({
+        marketId: 'm1',
+        marketTitle: 'Market title',
+        entryPoint: 'predict_feed',
+        predictFeedTab: 'world-cup',
+        predictScreen: 'world_cup',
+        marketDetailsViewed: 'about',
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.properties).toMatchObject({
+        entry_point: 'predict_feed',
+        predict_feed_tab: 'world-cup',
+        predict_screen: 'world_cup',
+      });
+    });
+
+    it('omits predict_feed_tab and predict_screen in market details opened when not provided', () => {
+      predictAnalytics.trackMarketDetailsOpened({
+        marketId: 'm1',
+        marketTitle: 'Market title',
+        entryPoint: 'predict_feed',
+        marketDetailsViewed: 'about',
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.properties).not.toHaveProperty('predict_feed_tab');
+      expect(event.properties).not.toHaveProperty('predict_screen');
+    });
+
     it('includes active_ab_tests in market details opened when provided', () => {
       const abTests = [
         {
@@ -564,7 +629,7 @@ describe('PredictAnalytics', () => {
 
     it('tracks positions tab viewed with position viewed event', () => {
       predictAnalytics.trackPositionsTabViewed({
-        feedTab: PredictEventValues.PREDICT_FEED_TAB.POSITIONS,
+        predictFeedTab: PredictEventValues.PREDICT_FEED_TAB.POSITIONS,
         openPositionsCount: 3,
         claimablePositionsCount: 1,
         hasClaimableWinnings: true,
@@ -588,7 +653,7 @@ describe('PredictAnalytics', () => {
 
     it('tracks history tab viewed with activity viewed event', () => {
       predictAnalytics.trackPositionsTabViewed({
-        feedTab: PredictEventValues.PREDICT_FEED_TAB.HISTORY,
+        predictFeedTab: PredictEventValues.PREDICT_FEED_TAB.HISTORY,
         openPositionsCount: 3,
         claimablePositionsCount: 1,
         hasClaimableWinnings: true,

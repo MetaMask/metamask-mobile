@@ -44,6 +44,8 @@ import {
   createApiKey,
   encodeErc20Transfer,
   fetchEventsFromPolymarketApi,
+  fetchMarketsFromPolymarketApi,
+  fetchRelatedTagsFromPolymarketApi,
   getBalance,
   getL2Headers,
   getOrderBook,
@@ -105,6 +107,8 @@ jest.mock('./utils', () => {
     encodeErc20Transfer: jest.fn(),
     fetchCarouselFromPolymarketApi: jest.fn(),
     fetchEventsFromPolymarketApi: jest.fn(),
+    fetchMarketsFromPolymarketApi: jest.fn(),
+    fetchRelatedTagsFromPolymarketApi: jest.fn(),
     searchEventsFromPolymarketApi: jest.fn(),
     getBalance: jest.fn(),
     getL2Headers: jest.fn(),
@@ -206,6 +210,12 @@ const mockEncodeErc20Transfer = jest.mocked(encodeErc20Transfer);
 const mockGenerateTransferData = jest.mocked(generateTransferData);
 const mockFetchEventsFromPolymarketApi = jest.mocked(
   fetchEventsFromPolymarketApi,
+);
+const mockFetchMarketsFromPolymarketApi = jest.mocked(
+  fetchMarketsFromPolymarketApi,
+);
+const mockFetchRelatedTagsFromPolymarketApi = jest.mocked(
+  fetchRelatedTagsFromPolymarketApi,
 );
 const mockSearchEventsFromPolymarketApi = jest.mocked(
   searchEventsFromPolymarketApi,
@@ -388,6 +398,102 @@ describe('PolymarketProvider', () => {
         category: 'trending',
       });
       expect(mockSearchEventsFromPolymarketApi).not.toHaveBeenCalled();
+    });
+
+    it('lists markets from keyset events with normalized shape', async () => {
+      const provider = createProvider();
+      const events = [{ id: 'event-1' }];
+      const markets = [{ id: 'market-1', outcomes: [{ id: 'outcome-1' }] }];
+
+      mockFetchMarketsFromPolymarketApi.mockResolvedValue({
+        events: events as never,
+        nextCursor: 'next-cursor',
+      });
+      mockParsePolymarketEvents.mockReturnValue(markets as never);
+
+      await expect(
+        provider.listMarkets({ order: 'liquidity' }),
+      ).resolves.toEqual({
+        markets,
+        nextCursor: 'next-cursor',
+      });
+      expect(mockFetchMarketsFromPolymarketApi).toHaveBeenCalledWith({
+        order: 'liquidity',
+      });
+    });
+
+    it('returns an empty list page when listing markets throws', async () => {
+      const provider = createProvider();
+      mockFetchMarketsFromPolymarketApi.mockRejectedValue(new Error('Failed'));
+
+      await expect(provider.listMarkets({})).resolves.toEqual({
+        markets: [],
+        nextCursor: null,
+      });
+    });
+
+    it('lists filter options from related tags, defaulting the slug to "all"', async () => {
+      const provider = createProvider();
+      mockFetchRelatedTagsFromPolymarketApi.mockResolvedValue([
+        { id: '1', label: 'NBA', slug: 'nba' },
+        { id: '2', label: 'Politics', slug: 'politics' },
+      ]);
+
+      await expect(
+        provider.listFilterOptions({ source: 'hot-tags' }),
+      ).resolves.toEqual([
+        {
+          id: 'nba',
+          label: 'NBA',
+          source: 'hot-tags',
+          params: { tagSlugs: ['nba'], order: 'volume24hr', status: 'open' },
+        },
+        {
+          id: 'politics',
+          label: 'Politics',
+          source: 'hot-tags',
+          params: {
+            tagSlugs: ['politics'],
+            order: 'volume24hr',
+            status: 'open',
+          },
+        },
+      ]);
+      expect(mockFetchRelatedTagsFromPolymarketApi).toHaveBeenCalledWith('all');
+    });
+
+    it('uses a feed-specific base tag slug when provided', async () => {
+      const provider = createProvider();
+      mockFetchRelatedTagsFromPolymarketApi.mockResolvedValue([]);
+
+      await provider.listFilterOptions({
+        source: 'hot-tags',
+        baseTagSlug: 'politics',
+      });
+
+      expect(mockFetchRelatedTagsFromPolymarketApi).toHaveBeenCalledWith(
+        'politics',
+      );
+    });
+
+    it('returns an empty list when no related tags are returned', async () => {
+      const provider = createProvider();
+      mockFetchRelatedTagsFromPolymarketApi.mockResolvedValue([]);
+
+      await expect(
+        provider.listFilterOptions({ source: 'hot-tags' }),
+      ).resolves.toEqual([]);
+    });
+
+    it('returns an empty list (best-effort) when fetching related tags throws', async () => {
+      const provider = createProvider();
+      mockFetchRelatedTagsFromPolymarketApi.mockRejectedValue(
+        new Error('network down'),
+      );
+
+      await expect(
+        provider.listFilterOptions({ source: 'hot-tags' }),
+      ).resolves.toEqual([]);
     });
 
     it('searches markets through public-search events and filters empty outcomes', async () => {

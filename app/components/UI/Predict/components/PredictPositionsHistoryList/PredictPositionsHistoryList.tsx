@@ -7,12 +7,14 @@ import PredictPositionsEmpty from '../PredictPositionsEmpty';
 
 interface PredictPositionsHistoryListProps {
   claimPendingPositions?: PredictPosition[];
+  onClaimPendingPositionsRefresh?: () => Promise<unknown> | void;
   isPrivacyMode?: boolean;
   isVisible: boolean;
 }
 
 const PredictPositionsHistoryList = ({
   claimPendingPositions,
+  onClaimPendingPositionsRefresh,
   isPrivacyMode = false,
   isVisible,
 }: PredictPositionsHistoryListProps) => (
@@ -22,6 +24,7 @@ const PredictPositionsHistoryList = ({
   >
     <PredictTransactionsView
       claimPendingPositions={claimPendingPositions}
+      onClaimPendingPositionsRefresh={onClaimPendingPositionsRefresh}
       emptyState={<PredictPositionsEmpty />}
       isPrivacyMode={isPrivacyMode}
       isVisible={isVisible}

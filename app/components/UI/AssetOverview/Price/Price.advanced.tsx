@@ -395,17 +395,25 @@ const PriceAdvanced = ({
   // Use last bar's close price for consistent percentage calculation with chart data
   const lastBarClose = ohlcvData[ohlcvData.length - 1]?.close;
   const realtimeClose = wsEnabled ? latestBar?.close : undefined;
+
+  // Hold the last WS price during time-range transitions to avoid stale API flicker
+  const lastRealtimeRef = useRef<number | undefined>(undefined);
+  if (realtimeClose !== undefined) {
+    lastRealtimeRef.current = realtimeClose;
+  }
+  const stablePrice = realtimeClose ?? lastRealtimeRef.current;
+
   const displayPrice =
-    crosshairData?.close ?? realtimeClose ?? lastBarClose ?? currentPrice;
+    crosshairData?.close ?? stablePrice ?? lastBarClose ?? currentPrice;
   const displayDiff = useMemo(() => {
     if (dynamicComparePrice === null) return null;
     return (
-      (crosshairData?.close ?? realtimeClose ?? lastBarClose ?? currentPrice) -
+      (crosshairData?.close ?? stablePrice ?? lastBarClose ?? currentPrice) -
       dynamicComparePrice
     );
   }, [
     crosshairData,
-    realtimeClose,
+    stablePrice,
     lastBarClose,
     currentPrice,
     dynamicComparePrice,

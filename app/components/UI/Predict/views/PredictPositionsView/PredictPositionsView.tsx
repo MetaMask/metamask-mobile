@@ -162,7 +162,7 @@ const PredictPositionsView = () => {
     (tab: PredictPositionsTabKey) => {
       Engine.context.PredictController.trackPositionsTabViewed({
         ...analyticsProperties,
-        feedTab: tab,
+        predictFeedTab: tab,
       });
     },
     [analyticsProperties],
@@ -251,8 +251,11 @@ const PredictPositionsView = () => {
             <PredictPositionsHistoryList
               claimPendingPositions={
                 predictPortfolioEnabled
-                  ? portfolio.claimablePositions
+                  ? portfolio.actionableClaimablePositions
                   : undefined
+              }
+              onClaimPendingPositionsRefresh={
+                predictPortfolioEnabled ? portfolio.refetch : undefined
               }
               isPrivacyMode={Boolean(privacyMode)}
               isVisible={isHistoryTabActive}

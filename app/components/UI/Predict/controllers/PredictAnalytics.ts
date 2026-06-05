@@ -50,6 +50,8 @@ export interface MarketDetailsOpenedArgs {
   marketCategory?: string;
   marketTags?: string[];
   entryPoint: string;
+  predictFeedTab?: string;
+  predictScreen?: string;
   marketDetailsViewed: string;
   marketSlug?: string;
   gameId?: string;
@@ -89,7 +91,7 @@ export interface PredictPortfolioAnalyticsContextArgs {
   hasClaimableWinnings?: boolean;
   predictScreen?: string;
   predictComponent?: string;
-  feedTab?: string;
+  predictFeedTab?: string;
 }
 
 export interface PositionViewedArgs
@@ -105,7 +107,7 @@ export interface ActivityViewedArgs
 export interface PortfolioPositionsButtonTappedArgs
   extends Omit<
     PredictPortfolioAnalyticsContextArgs,
-    'actionType' | 'predictScreen' | 'predictComponent' | 'feedTab'
+    'actionType' | 'predictScreen' | 'predictComponent' | 'predictFeedTab'
   > {
   predictComponent?: string;
 }
@@ -113,7 +115,7 @@ export interface PortfolioPositionsButtonTappedArgs
 export interface PortfolioTransactionInitiatedArgs
   extends Omit<
     PredictPortfolioAnalyticsContextArgs,
-    'actionType' | 'predictScreen' | 'predictComponent' | 'feedTab'
+    'actionType' | 'predictScreen' | 'predictComponent' | 'predictFeedTab'
   > {
   predictScreen?: string;
   predictComponent?: string;
@@ -123,7 +125,7 @@ export interface PortfolioTransactionInitiatedArgs
 export interface PositionsScreenViewedArgs
   extends Omit<
     PredictPortfolioAnalyticsContextArgs,
-    'actionType' | 'predictScreen' | 'predictComponent' | 'feedTab'
+    'actionType' | 'predictScreen' | 'predictComponent' | 'predictFeedTab'
   > {
   predictScreen?: string;
 }
@@ -131,10 +133,10 @@ export interface PositionsScreenViewedArgs
 export interface PositionsTabViewedArgs
   extends Omit<
     PredictPortfolioAnalyticsContextArgs,
-    'actionType' | 'predictScreen' | 'predictComponent' | 'feedTab'
+    'actionType' | 'predictScreen' | 'predictComponent' | 'predictFeedTab'
   > {
   predictScreen?: string;
-  feedTab: string;
+  predictFeedTab: string;
 }
 
 export interface ShareActionArgs {
@@ -178,6 +180,10 @@ export class PredictAnalytics {
         analyticsProperties.marketCategory,
       [PredictEventProperties.MARKET_TAGS]: analyticsProperties.marketTags,
       [PredictEventProperties.ENTRY_POINT]: analyticsProperties.entryPoint,
+      ...(analyticsProperties.predictFeedTab && {
+        [PredictEventProperties.PREDICT_FEED_TAB]:
+          analyticsProperties.predictFeedTab,
+      }),
       [PredictEventProperties.TRANSACTION_TYPE]:
         analyticsProperties.transactionType,
       [PredictEventProperties.LIQUIDITY]: analyticsProperties.liquidity,
@@ -209,9 +215,6 @@ export class PredictAnalytics {
       ...(analyticsProperties.portfolioModuleEnabled !== undefined && {
         [PredictEventProperties.PORTFOLIO_MODULE_ENABLED]:
           analyticsProperties.portfolioModuleEnabled,
-      }),
-      ...(analyticsProperties.feedTab && {
-        [PredictEventProperties.PREDICT_FEED_TAB]: analyticsProperties.feedTab,
       }),
       ...(analyticsProperties.marketType && {
         [PredictEventProperties.MARKET_TYPE]: analyticsProperties.marketType,
@@ -377,16 +380,16 @@ export class PredictAnalytics {
 
   public trackPositionsTabViewed({
     predictScreen = PredictEventValues.PREDICT_SCREEN.PREDICT_POSITIONS_SCREEN,
-    feedTab,
+    predictFeedTab,
     ...args
   }: PositionsTabViewedArgs): void {
-    if (feedTab === PredictEventValues.PREDICT_FEED_TAB.HISTORY) {
+    if (predictFeedTab === PredictEventValues.PREDICT_FEED_TAB.HISTORY) {
       this.trackActivityViewed({
         ...args,
         actionType: PredictEventValues.ACTION_TYPE.VIEWED,
         activityType: PredictEventValues.ACTIVITY_TYPE.ACTIVITY_LIST,
         predictScreen,
-        feedTab,
+        predictFeedTab,
       });
       return;
     }
@@ -395,7 +398,7 @@ export class PredictAnalytics {
       ...args,
       actionType: PredictEventValues.ACTION_TYPE.VIEWED,
       predictScreen,
-      feedTab,
+      predictFeedTab,
     });
   }
 

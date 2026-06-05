@@ -46,10 +46,12 @@ jest.mock('../../components/PredictPositionsHistoryList', () => {
 
   return function MockPredictPositionsHistoryList({
     claimPendingPositions,
+    onClaimPendingPositionsRefresh,
     isPrivacyMode,
     isVisible,
   }: {
     claimPendingPositions?: PredictPosition[];
+    onClaimPendingPositionsRefresh?: () => Promise<unknown> | void;
     isPrivacyMode?: boolean;
     isVisible: boolean;
   }) {
@@ -66,6 +68,11 @@ jest.mock('../../components/PredictPositionsHistoryList', () => {
         Text,
         null,
         `history-claim-pending-count:${claimPendingPositions?.length ?? 0}`,
+      ),
+      ReactLib.createElement(
+        Text,
+        null,
+        `history-refresh-present:${Boolean(onClaimPendingPositionsRefresh)}`,
       ),
       ReactLib.createElement(
         Text,
@@ -349,7 +356,7 @@ describe('PredictPositionsView', () => {
     expect(mockTrackPositionsTabViewed).toHaveBeenCalledTimes(1);
     expect(mockTrackPositionsTabViewed).toHaveBeenCalledWith(
       expectedPositionsAnalyticsContext({
-        feedTab: PredictEventValues.PREDICT_FEED_TAB.POSITIONS,
+        predictFeedTab: PredictEventValues.PREDICT_FEED_TAB.POSITIONS,
       }),
     );
   });
@@ -404,24 +411,47 @@ describe('PredictPositionsView', () => {
     expect(mockTrackPositionsTabViewed).toHaveBeenNthCalledWith(
       1,
       expectedPositionsAnalyticsContext({
-        feedTab: PredictEventValues.PREDICT_FEED_TAB.HISTORY,
+        predictFeedTab: PredictEventValues.PREDICT_FEED_TAB.HISTORY,
       }),
     );
     expect(mockTrackPositionsTabViewed).toHaveBeenNthCalledWith(
       2,
       expectedPositionsAnalyticsContext({
-        feedTab: PredictEventValues.PREDICT_FEED_TAB.POSITIONS,
+        predictFeedTab: PredictEventValues.PREDICT_FEED_TAB.POSITIONS,
       }),
     );
     expect(mockTrackPositionsTabViewed).toHaveBeenCalledTimes(2);
   });
 
-  it('passes won and lost claimable positions and privacy mode to History', () => {
+  it('passes only actionable claimable positions and privacy mode to History', () => {
     mockPrivacyMode = true;
+    const wonPosition = createClaimablePosition({ id: 'won-position' });
+    const lostPosition = createClaimablePosition({
+      currentValue: 0,
+      id: 'lost-position',
+      status: PredictPositionStatus.LOST,
+    });
+    mockUsePredictPortfolio.mockReturnValue(
+      createPortfolio({
+        actionableClaimablePositions: [wonPosition],
+        claimablePositions: [wonPosition, lostPosition],
+      }),
+    );
+
+    renderScreen('history');
+
+    expect(
+      screen.getByText('history-claim-pending-present:true'),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('history-claim-pending-count:1')).toBeOnTheScreen();
+    expect(screen.getByText('history-refresh-present:true')).toBeOnTheScreen();
+    expect(screen.getByText('history-privacy:true')).toBeOnTheScreen();
+  });
+
+  it('passes no claim pending positions to History when only lost positions exist', () => {
     mockUsePredictPortfolio.mockReturnValue(
       createPortfolio({
         claimablePositions: [
-          createClaimablePosition({ id: 'won-position' }),
           createClaimablePosition({
             currentValue: 0,
             id: 'lost-position',
@@ -431,13 +461,12 @@ describe('PredictPositionsView', () => {
       }),
     );
 
-    renderScreen({ initialTab: 'history' });
+    renderScreen('history');
 
     expect(
       screen.getByText('history-claim-pending-present:true'),
     ).toBeOnTheScreen();
-    expect(screen.getByText('history-claim-pending-count:2')).toBeOnTheScreen();
-    expect(screen.getByText('history-privacy:true')).toBeOnTheScreen();
+    expect(screen.getByText('history-claim-pending-count:0')).toBeOnTheScreen();
   });
 
   it('does not pass claim pending positions to History when portfolio flag is disabled', () => {
@@ -448,12 +477,13 @@ describe('PredictPositionsView', () => {
       }),
     );
 
-    renderScreen({ initialTab: 'history' });
+    renderScreen('history');
 
     expect(
       screen.getByText('history-claim-pending-present:false'),
     ).toBeOnTheScreen();
     expect(screen.getByText('history-claim-pending-count:0')).toBeOnTheScreen();
+    expect(screen.getByText('history-refresh-present:false')).toBeOnTheScreen();
   });
 
   it('navigates back when the back button is pressed and the stack can go back', () => {

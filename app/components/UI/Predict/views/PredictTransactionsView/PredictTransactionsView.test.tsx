@@ -203,7 +203,7 @@ describe('PredictTransactionsView', () => {
     expect(screen.getByTestId('activity-indicator')).toBeOnTheScreen();
   });
 
-  it('displays loading indicator when activity data loads with claim pending positions', () => {
+  it('keeps claim pending positions visible while activity data loads', () => {
     (usePredictActivity as jest.Mock).mockReturnValueOnce(
       createUsePredictActivityValue({
         data: [],
@@ -217,8 +217,13 @@ describe('PredictTransactionsView', () => {
       />,
     );
 
-    expect(screen.getByTestId('activity-indicator')).toBeOnTheScreen();
-    expect(screen.queryByText('Prediction won')).toBeNull();
+    expect(screen.getByText('Prediction won')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(
+        PREDICT_TRANSACTIONS_VIEW_TEST_IDS.FOOTER_ACTIVITY_INDICATOR,
+      ),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId('activity-indicator')).toBeNull();
   });
 
   it('displays empty state message when activity list is empty', () => {
@@ -258,8 +263,9 @@ describe('PredictTransactionsView', () => {
     expect(mockRefetch).toHaveBeenCalledTimes(1);
   });
 
-  it('displays retryable error state when initial activity request fails with claim pending positions', async () => {
+  it('keeps claim pending positions visible with a retry path when initial activity request fails', async () => {
     const mockRefetch = jest.fn();
+    const mockRefreshClaimPendingPositions = jest.fn();
     (usePredictActivity as jest.Mock).mockReturnValueOnce(
       createUsePredictActivityValue({
         data: [],
@@ -271,19 +277,28 @@ describe('PredictTransactionsView', () => {
     render(
       <PredictTransactionsView
         claimPendingPositions={[createClaimPendingPosition()]}
+        onClaimPendingPositionsRefresh={mockRefreshClaimPendingPositions}
       />,
     );
 
+    expect(screen.getByText('Prediction won')).toBeOnTheScreen();
     expect(
-      screen.getByTestId(PREDICT_TRANSACTIONS_VIEW_TEST_IDS.ERROR_STATE),
+      screen.getByTestId(PREDICT_TRANSACTIONS_VIEW_TEST_IDS.FOOTER_ERROR_STATE),
     ).toBeOnTheScreen();
-    expect(screen.queryByText('Prediction won')).toBeNull();
+    expect(
+      screen.queryByTestId(PREDICT_TRANSACTIONS_VIEW_TEST_IDS.ERROR_STATE),
+    ).toBeNull();
 
     await act(async () => {
-      fireEvent.press(screen.getByText('Retry'));
+      fireEvent.press(
+        screen.getByTestId(
+          PREDICT_TRANSACTIONS_VIEW_TEST_IDS.FOOTER_RETRY_BUTTON,
+        ),
+      );
     });
 
     expect(mockRefetch).toHaveBeenCalledTimes(1);
+    expect(mockRefreshClaimPendingPositions).toHaveBeenCalledTimes(1);
   });
 
   it('displays loading feedback while retrying an initial activity error', () => {
@@ -452,7 +467,7 @@ describe('PredictTransactionsView', () => {
     expect(screen.queryByText('+$4.50')).toBeNull();
   });
 
-  it('labels lost claim pending positions from position status', () => {
+  it('omits non-actionable claim pending positions', () => {
     (usePredictActivity as jest.Mock).mockReturnValueOnce(
       createUsePredictActivityValue({
         data: [],
@@ -469,21 +484,26 @@ describe('PredictTransactionsView', () => {
             status: PredictPositionStatus.LOST,
             title: 'Lost prediction market',
           }),
+          createClaimPendingPosition({
+            currentValue: 0,
+            id: 'zero-value-won-position',
+            status: PredictPositionStatus.WON,
+            title: 'Zero value won market',
+          }),
         ]}
       />,
     );
 
-    const row = screen.getByTestId(
-      getPredictPositionsHistoryListSelector.claimPendingRow('lost-position'),
-    );
-
-    expect(screen.getByText('Prediction lost')).toBeOnTheScreen();
-    expect(screen.getByText('Lost prediction market')).toBeOnTheScreen();
-    expect(screen.getByText('$0.00')).toBeOnTheScreen();
-    expect(row).toHaveProp(
-      'accessibilityLabel',
-      'Prediction lost, Lost prediction market, opens market details',
-    );
+    expect(screen.queryByText('Claim pending')).toBeNull();
+    expect(screen.queryByText('Prediction lost')).toBeNull();
+    expect(screen.queryByText('Lost prediction market')).toBeNull();
+    expect(screen.queryByText('Zero value won market')).toBeNull();
+    expect(
+      screen.queryByTestId(
+        getPredictPositionsHistoryListSelector.claimPendingRow('lost-position'),
+      ),
+    ).toBeNull();
+    expect(screen.getByText('No recent activity')).toBeOnTheScreen();
   });
 
   it('navigates to market details when a claim pending position is pressed', () => {
@@ -737,8 +757,11 @@ describe('PredictTransactionsView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('passes refreshing state and triggers refresh handler on pull to refresh', async () => {
+  it('passes refreshing state and triggers activity and claim pending refresh handlers on pull to refresh', async () => {
     const mockRefetch = jest.fn().mockResolvedValue(undefined);
+    const mockRefreshClaimPendingPositions = jest
+      .fn()
+      .mockResolvedValue(undefined);
     const mockTimestamp = Math.floor(Date.now() / 1000);
     (usePredictActivity as jest.Mock).mockReturnValueOnce(
       createUsePredictActivityValue({
@@ -760,7 +783,11 @@ describe('PredictTransactionsView', () => {
       }),
     );
 
-    render(<PredictTransactionsView />);
+    render(
+      <PredictTransactionsView
+        onClaimPendingPositionsRefresh={mockRefreshClaimPendingPositions}
+      />,
+    );
 
     const sectionList = screen.UNSAFE_getByType(SectionList);
     expect(sectionList.props.refreshing).toBe(true);
@@ -770,6 +797,7 @@ describe('PredictTransactionsView', () => {
     });
 
     expect(mockRefetch).toHaveBeenCalledTimes(1);
+    expect(mockRefreshClaimPendingPositions).toHaveBeenCalledTimes(1);
   });
 
   it('fetches next activity page when the list end is reached', () => {
@@ -872,6 +900,7 @@ describe('PredictTransactionsView', () => {
   it('displays a footer retry state when a later activity page fails', () => {
     const mockFetchNextPage = jest.fn();
     const mockRefetch = jest.fn();
+    const mockRefreshClaimPendingPositions = jest.fn();
     const mockTimestamp = Math.floor(Date.now() / 1000);
     (usePredictActivity as jest.Mock).mockReturnValueOnce(
       createUsePredictActivityValue({
@@ -895,7 +924,11 @@ describe('PredictTransactionsView', () => {
       }),
     );
 
-    render(<PredictTransactionsView />);
+    render(
+      <PredictTransactionsView
+        onClaimPendingPositionsRefresh={mockRefreshClaimPendingPositions}
+      />,
+    );
 
     expect(
       screen.getByTestId(PREDICT_TRANSACTIONS_VIEW_TEST_IDS.FOOTER_ERROR_STATE),
@@ -908,6 +941,7 @@ describe('PredictTransactionsView', () => {
     );
 
     expect(mockRefetch).toHaveBeenCalledTimes(1);
+    expect(mockRefreshClaimPendingPositions).toHaveBeenCalledTimes(1);
     expect(mockFetchNextPage).not.toHaveBeenCalled();
   });
 

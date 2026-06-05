@@ -207,7 +207,7 @@ describe('PredictPositionsView component view', () => {
         hasClaimableWinnings: false,
         predictScreen:
           PredictEventValues.PREDICT_SCREEN.PREDICT_POSITIONS_SCREEN,
-        feedTab: PredictEventValues.PREDICT_FEED_TAB.HISTORY,
+        predictFeedTab: PredictEventValues.PREDICT_FEED_TAB.HISTORY,
       });
     });
   });

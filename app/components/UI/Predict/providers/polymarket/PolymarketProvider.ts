@@ -60,6 +60,10 @@ import {
   OrderPreview,
   OrderResult,
   PlaceOrderParams,
+  PredictFilterOption,
+  PredictFilterOptionsParams,
+  PredictMarketListParams,
+  PredictMarketListResponse,
   PredictProvider,
   PrepareDepositParams,
   PrepareDepositResponse,
@@ -102,6 +106,9 @@ import {
   createApiKey,
   encodeErc20Transfer,
   fetchEventsFromPolymarketApi,
+  fetchMarketsFromPolymarketApi,
+  fetchRelatedTagsFromPolymarketApi,
+  normalizeRelatedTagsToFilterOptions,
   fetchCarouselFromPolymarketApi,
   getBalance,
   getL2Headers,
@@ -960,6 +967,63 @@ export class PolymarketProvider implements PredictProvider {
       );
 
       return { markets: [], nextCursor: null };
+    }
+  }
+
+  public async listMarkets(
+    params: PredictMarketListParams,
+  ): Promise<PredictMarketListResponse> {
+    try {
+      const { events, nextCursor } =
+        await fetchMarketsFromPolymarketApi(params);
+
+      const markets = await this.#parseEventsToMarkets({
+        events,
+        category: PolymarketProvider.FALLBACK_CATEGORY,
+      });
+
+      return { markets, nextCursor };
+    } catch (error) {
+      DevLogger.log('Error listing markets via Polymarket API:', error);
+
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        this.getErrorContext('listMarkets', {
+          hasAfterCursor: Boolean(params?.afterCursor),
+        }),
+      );
+
+      return { markets: [], nextCursor: null };
+    }
+  }
+
+  public async listFilterOptions(
+    params: PredictFilterOptionsParams,
+  ): Promise<PredictFilterOption[]> {
+    const slug = params.baseTagSlug ?? 'all';
+
+    try {
+      const tags = await fetchRelatedTagsFromPolymarketApi(slug);
+
+      return normalizeRelatedTagsToFilterOptions(tags, {
+        source: params.source,
+        baseParams: params.baseParams,
+        limit: params.limit,
+      });
+    } catch (error) {
+      // Dynamic filters are best-effort and non-blocking: on any failure return
+      // an empty list so the UI can keep static filters and hide dynamic ones.
+      DevLogger.log('Error listing filter options via Polymarket API:', error);
+
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        this.getErrorContext('listFilterOptions', {
+          source: params.source,
+          slug,
+        }),
+      );
+
+      return [];
     }
   }
 

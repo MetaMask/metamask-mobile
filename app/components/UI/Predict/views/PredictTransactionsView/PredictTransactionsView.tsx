@@ -43,7 +43,13 @@ import type { PredictNavigationParamList } from '../../types/navigation';
 import Routes from '../../../../../constants/navigation/Routes';
 
 interface PredictTransactionsViewProps {
+  /**
+   * Actionable claimable winnings for the "Claim pending" section.
+   * Expected positions are won and have a positive current value; this view
+   * filters defensively so non-actionable positions cannot render here.
+   */
   claimPendingPositions?: PredictPosition[];
+  onClaimPendingPositionsRefresh?: () => Promise<unknown> | void;
   emptyState?: React.ReactNode;
   transactions?: unknown[];
   tabLabel?: string;
@@ -77,6 +83,9 @@ interface ClaimPendingPositionRowProps {
   isPrivacyMode: boolean;
   position: PredictPosition;
 }
+
+const isActionableClaimPendingPosition = (position: PredictPosition) =>
+  position.status === PredictPositionStatus.WON && position.currentValue > 0;
 
 const getClaimPendingPositionTitle = (
   status: PredictPositionStatus,
@@ -204,6 +213,7 @@ const getDateGroupLabel = (
 
 const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
   claimPendingPositions,
+  onClaimPendingPositionsRefresh,
   emptyState,
   isVisible,
   isPrivacyMode = false,
@@ -221,7 +231,7 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
     isFetchingNextPage,
     hasNextPage,
     fetchNextPage,
-    refetch,
+    refetch: refetchActivity,
   } = usePredictActivity();
 
   // Track screen load performance (activity data loaded)
@@ -246,10 +256,12 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
 
   const sections: ActivitySection[] = useMemo(() => {
     const sortedClaimPendingPositions = claimPendingPositions
-      ? [...claimPendingPositions].sort(
-          (a, b) =>
-            new Date(b.endDate).getTime() - new Date(a.endDate).getTime(),
-        )
+      ? claimPendingPositions
+          .filter(isActionableClaimPendingPosition)
+          .sort(
+            (a, b) =>
+              new Date(b.endDate).getTime() - new Date(a.endDate).getTime(),
+          )
       : [];
 
     const claimPendingSections: ActivitySection[] =
@@ -472,15 +484,29 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
     void fetchNextPage();
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
+  const hasContentSections = sections.length > 0;
   const hasActivityItems = activity.length > 0;
-  const hasFooterError = Boolean(error) && hasActivityItems && hasNextPage;
+  const shouldShowPartialActivityLoading =
+    hasContentSections &&
+    !hasActivityItems &&
+    (isLoading || (Boolean(error) && isFetching));
+  const hasFooterError =
+    Boolean(error) && hasContentSections && (!hasActivityItems || hasNextPage);
+
+  const handleRefresh = useCallback(async () => {
+    await Promise.all([refetchActivity(), onClaimPendingPositionsRefresh?.()]);
+  }, [onClaimPendingPositionsRefresh, refetchActivity]);
 
   const handleRetry = useCallback(() => {
-    void refetch();
-  }, [refetch]);
+    void handleRefresh();
+  }, [handleRefresh]);
 
   const renderFooter = useCallback(() => {
-    if (isFetchingNextPage || (hasFooterError && isRefetching)) {
+    if (
+      isFetchingNextPage ||
+      shouldShowPartialActivityLoading ||
+      (hasFooterError && isRefetching)
+    ) {
       return (
         <Box twClassName="items-center justify-center py-4">
           <ActivityIndicator
@@ -516,11 +542,17 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
         </Pressable>
       </Box>
     );
-  }, [handleRetry, hasFooterError, isFetchingNextPage, isRefetching]);
+  }, [
+    handleRetry,
+    hasFooterError,
+    isFetchingNextPage,
+    isRefetching,
+    shouldShowPartialActivityLoading,
+  ]);
 
   const shouldShowLoadingState =
-    (isLoading || (Boolean(error) && isFetching)) && !hasActivityItems;
-  const shouldShowErrorState = Boolean(error) && !hasActivityItems;
+    (isLoading || (Boolean(error) && isFetching)) && !hasContentSections;
+  const shouldShowErrorState = Boolean(error) && !hasContentSections;
 
   const renderContent = shouldShowLoadingState ? (
     <Box twClassName="items-center justify-center h-full">
@@ -554,7 +586,7 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
       stickySectionHeadersEnabled
       refreshing={isRefetching}
       onRefresh={() => {
-        void refetch();
+        void handleRefresh();
       }}
       onEndReached={handleEndReached}
       onEndReachedThreshold={0.5}

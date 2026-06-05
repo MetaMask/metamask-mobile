@@ -28,7 +28,7 @@ const mapPortfolioProperties = ({
   portfolioModuleEnabled,
   predictScreen,
   predictComponent,
-  feedTab,
+  predictFeedTab,
 }: Record<string, unknown>) => ({
   ...(actionType ? { [PredictEventProperties.ACTION_TYPE]: actionType } : {}),
   ...(entryPoint ? { [PredictEventProperties.ENTRY_POINT]: entryPoint } : {}),
@@ -58,7 +58,9 @@ const mapPortfolioProperties = ({
   ...(predictComponent
     ? { [PredictEventProperties.PREDICT_COMPONENT]: predictComponent }
     : {}),
-  ...(feedTab ? { [PredictEventProperties.PREDICT_FEED_TAB]: feedTab } : {}),
+  ...(predictFeedTab
+    ? { [PredictEventProperties.PREDICT_FEED_TAB]: predictFeedTab }
+    : {}),
 });
 
 export const PREDICT_ANALYTICS_EVENTS: Record<
@@ -150,6 +152,8 @@ export const PREDICT_ANALYTICS_EVENTS: Record<
       marketCategory,
       marketTags,
       entryPoint,
+      predictFeedTab,
+      predictScreen,
       marketDetailsViewed,
       marketSlug,
       gameId,
@@ -165,6 +169,12 @@ export const PREDICT_ANALYTICS_EVENTS: Record<
       [PredictEventProperties.MARKET_CATEGORY]: marketCategory,
       [PredictEventProperties.MARKET_TAGS]: marketTags,
       [PredictEventProperties.ENTRY_POINT]: entryPoint,
+      ...(predictFeedTab
+        ? { [PredictEventProperties.PREDICT_FEED_TAB]: predictFeedTab }
+        : {}),
+      ...(predictScreen
+        ? { [PredictEventProperties.PREDICT_SCREEN]: predictScreen }
+        : {}),
       [PredictEventProperties.MARKET_DETAILS_VIEWED]: marketDetailsViewed,
       ...(marketSlug
         ? { [PredictEventProperties.MARKET_SLUG]: marketSlug }

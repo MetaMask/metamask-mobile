@@ -13,6 +13,7 @@ jest.mock('../../views/PredictTransactionsView', () => {
 
   return function MockPredictTransactionsView({
     claimPendingPositions,
+    onClaimPendingPositionsRefresh,
     activityContainerStyle,
     containerStyle,
     emptyState,
@@ -21,6 +22,7 @@ jest.mock('../../views/PredictTransactionsView', () => {
     shouldTrackActivityViewed,
   }: {
     claimPendingPositions?: PredictPosition[];
+    onClaimPendingPositionsRefresh?: () => Promise<unknown> | void;
     activityContainerStyle?: string;
     containerStyle?: string;
     emptyState: React.ReactNode;
@@ -43,6 +45,13 @@ jest.mock('../../views/PredictTransactionsView', () => {
         Text,
         null,
         `claim-pending-count:${claimPendingPositions?.length ?? 0}`,
+      ),
+      ReactLib.createElement(
+        Text,
+        null,
+        `claim-pending-refresh-present:${Boolean(
+          onClaimPendingPositionsRefresh,
+        )}`,
       ),
       ReactLib.createElement(Text, null, `privacy:${Boolean(isPrivacyMode)}`),
       ReactLib.createElement(Text, null, `container:${containerStyle}`),
@@ -117,9 +126,12 @@ describe('PredictPositionsHistoryList', () => {
   });
 
   it('passes claim pending options to transaction history', () => {
+    const mockRefreshClaimPendingPositions = jest.fn();
+
     render(
       <PredictPositionsHistoryList
         claimPendingPositions={[createClaimablePosition()]}
+        onClaimPendingPositionsRefresh={mockRefreshClaimPendingPositions}
         isPrivacyMode
         isVisible
       />,
@@ -127,6 +139,9 @@ describe('PredictPositionsHistoryList', () => {
 
     expect(screen.getByText('claim-pending-present:true')).toBeOnTheScreen();
     expect(screen.getByText('claim-pending-count:1')).toBeOnTheScreen();
+    expect(
+      screen.getByText('claim-pending-refresh-present:true'),
+    ).toBeOnTheScreen();
     expect(screen.getByText('privacy:true')).toBeOnTheScreen();
   });
 
