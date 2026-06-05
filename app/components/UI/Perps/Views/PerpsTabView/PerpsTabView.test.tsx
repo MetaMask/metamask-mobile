@@ -132,6 +132,7 @@ jest.mock('../../hooks/stream', () => ({
     isInitialLoading: false,
   })),
   usePerpsLivePrices: jest.fn(() => ({})),
+  usePerpsLiveMarket: jest.fn((market) => market),
 }));
 
 // Mock formatUtils
