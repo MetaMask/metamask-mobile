@@ -4,67 +4,54 @@ import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import PerpsMarketCategoryBadge from '../PerpsMarketCategoryBadge';
 import { styleSheet } from './PerpsMarketCategoryBadges.styles';
-import type {
-  PerpsMarketCategoryBadgesProps,
-  CategoryBadgeConfig,
-} from './PerpsMarketCategoryBadges.types';
+import type { PerpsMarketCategoryBadgesProps } from './PerpsMarketCategoryBadges.types';
+import { type MarketTypeFilter } from '@metamask/perps-controller';
 import {
-  MARKET_CATEGORIES,
-  type MarketTypeFilter,
-} from '@metamask/perps-controller';
+  usePerpsCategories,
+  type PerpsCategory,
+} from '../../hooks/usePerpsCategories';
 
-// Animation configuration
 const ANIMATION_DURATION = 250;
 
-/**
- * Category badge configurations derived from the controller-provided constant.
- * 'new' is appended separately as it's a UI-only sentinel, not a data-model category.
- */
-const DEFAULT_CATEGORIES: CategoryBadgeConfig[] = [
-  ...MARKET_CATEGORIES.map((category) => ({
-    category,
-    labelKey: `perps.home.tabs.${category.replace(/-/g, '_')}`,
-  })),
-  { category: 'new', labelKey: 'perps.home.tabs.new' },
-];
+const NEW_CATEGORY: PerpsCategory = {
+  id: 'new',
+  label: strings('perps.home.tabs.new'),
+};
 
 /**
  * PerpsMarketCategoryBadges - Container for category filter badges
  *
- * Always displays all category badges in a horizontal scroll.
+ * Categories are derived from live market data via `usePerpsCategories`.
+ * The `'new'` sentinel is appended when `includeNew` is set and new markets
+ * exist (determined by the `availableCategories` prop including `'new'`).
+ *
  * The selected category is visually highlighted.
  * Tapping a selected badge again deselects it (toggles back to 'all').
- *
- * @example
- * ```tsx
- * <PerpsMarketCategoryBadges
- *   selectedCategory={selectedCategory}
- *   onCategorySelect={handleCategorySelect}
- *   availableCategories={['crypto', 'stocks']}
- * />
- * ```
  */
 const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
   selectedCategory,
   onCategorySelect,
   availableCategories,
+  includeNew = false,
   testID,
 }) => {
   const { styles } = useStyles(styleSheet, {});
+  const categories = usePerpsCategories();
 
-  // Filter categories based on availableCategories prop
-  // Show all default categories if availableCategories is undefined/null/empty
   const displayCategories = useMemo(() => {
-    if (!availableCategories || availableCategories.length === 0) {
-      return DEFAULT_CATEGORIES;
-    }
-    return DEFAULT_CATEGORIES.filter((badgeConfig) =>
-      availableCategories.includes(badgeConfig.category),
-    );
-  }, [availableCategories]);
+    let cats = categories;
 
-  // Handle selecting/toggling a category
-  // Tapping an already-selected pill deselects it (back to 'all')
+    if (includeNew) {
+      cats = [...cats, NEW_CATEGORY];
+    }
+
+    if (availableCategories && availableCategories.length > 0) {
+      cats = cats.filter((c) => availableCategories.includes(c.id));
+    }
+
+    return cats;
+  }, [categories, availableCategories, includeNew]);
+
   const handleCategoryPress = useCallback(
     (category: Exclude<MarketTypeFilter, 'all'>) => {
       if (selectedCategory === category) {
@@ -76,7 +63,6 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
     [onCategorySelect, selectedCategory],
   );
 
-  // Always show all category badges; highlight the selected one
   return (
     <Animated.ScrollView
       horizontal
@@ -85,19 +71,19 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
       style={styles.scrollContainer}
       testID={testID}
     >
-      {displayCategories.map((badgeConfig, index) => {
-        const isCategorySelected = selectedCategory === badgeConfig.category;
+      {displayCategories.map((cat, index) => {
+        const isCategorySelected = selectedCategory === cat.id;
         return (
           <Animated.View
-            key={badgeConfig.category}
+            key={cat.id}
             entering={FadeIn.duration(ANIMATION_DURATION).delay(index * 50)}
             layout={LinearTransition.duration(ANIMATION_DURATION)}
           >
             <PerpsMarketCategoryBadge
-              label={strings(badgeConfig.labelKey)}
+              label={cat.label}
               isSelected={isCategorySelected}
-              onPress={() => handleCategoryPress(badgeConfig.category)}
-              testID={testID ? `${testID}-${badgeConfig.category}` : undefined}
+              onPress={() => handleCategoryPress(cat.id)}
+              testID={testID ? `${testID}-${cat.id}` : undefined}
             />
           </Animated.View>
         );

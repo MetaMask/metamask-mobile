@@ -28,9 +28,10 @@ export interface PerpsMarketFiltersBarProps {
   onCategorySelect: (category: MarketTypeFilter) => void;
 
   /**
-   * Optional list of available categories (for hiding empty categories)
+   * Show the 'new' category badge when new markets exist.
+   * @default false
    */
-  availableCategories?: Exclude<MarketTypeFilter, 'all'>[];
+  includeNew?: boolean;
 
   /**
    * Optional test ID for testing

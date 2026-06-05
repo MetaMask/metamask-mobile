@@ -41,12 +41,12 @@ const PRODUCTS_ANALYTICS = {
 
 const CATEGORY_ICON_MAP: Record<string, IconName> = {
   crypto: IconName.Coin,
-  stock: IconName.Briefcase,
+  stocks: IconName.Briefcase,
   'pre-ipo': IconName.Rocket,
   forex: IconName.Exchange,
-  commodity: IconName.MoneyBag,
-  index: IconName.Chart,
-  etf: IconName.PieChart,
+  commodities: IconName.MoneyBag,
+  indices: IconName.Chart,
+  etfs: IconName.PieChart,
 };
 
 /**

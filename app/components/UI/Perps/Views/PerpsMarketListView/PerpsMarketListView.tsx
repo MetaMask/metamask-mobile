@@ -1,10 +1,4 @@
-import React, {
-  useEffect,
-  useRef,
-  useState,
-  useMemo,
-  useCallback,
-} from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { HeaderStandard } from '@metamask/design-system-react-native';
 import { View, Animated } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -32,7 +26,6 @@ import PerpsMarketRowSkeleton from './components/PerpsMarketRowSkeleton';
 import styleSheet from './PerpsMarketListView.styles';
 import { PerpsMarketListViewProps } from './PerpsMarketListView.types';
 import {
-  MARKET_CATEGORIES,
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
   type PerpsMarketData,
@@ -120,14 +113,7 @@ const PerpsMarketListView = ({
     [onMarketSelect, perpsNavigation, transactionActiveAbTests],
   );
 
-  // Compute available categories based on market counts (hide empty categories).
-  const availableCategories = useMemo(
-    () =>
-      (
-        [...MARKET_CATEGORIES, 'new'] as Exclude<MarketTypeFilter, 'all'>[]
-      ).filter((category) => marketCounts[category] > 0),
-    [marketCounts],
-  );
+  const hasNewMarkets = marketCounts.new > 0;
 
   const { track } = usePerpsEventTracking();
 
@@ -348,7 +334,7 @@ const PerpsMarketListView = ({
           onSortPress={() => setIsSortFieldSheetVisible(true)}
           marketTypeFilter={marketTypeFilter}
           onCategorySelect={handleCategorySelect}
-          availableCategories={availableCategories}
+          includeNew={hasNewMarkets}
           testID={PerpsMarketListViewSelectorsIDs.SORT_FILTERS}
         />
       )}

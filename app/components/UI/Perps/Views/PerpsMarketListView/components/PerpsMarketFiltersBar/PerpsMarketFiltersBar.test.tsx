@@ -164,18 +164,12 @@ describe('PerpsMarketFiltersBar', () => {
       expect(mockOnCategorySelect).toHaveBeenCalledWith('stocks');
     });
 
-    it('passes available categories to badges', () => {
-      const { getByTestId, queryByTestId } = render(
-        <PerpsMarketFiltersBar
-          {...defaultProps}
-          availableCategories={['crypto', 'stocks']}
-        />,
+    it('passes includeNew to badges', () => {
+      const { getByTestId } = render(
+        <PerpsMarketFiltersBar {...defaultProps} includeNew />,
       );
 
-      expect(getByTestId('filters-bar-categories-crypto')).toBeTruthy();
-      expect(getByTestId('filters-bar-categories-stocks')).toBeTruthy();
-      expect(queryByTestId('filters-bar-categories-commodities')).toBeNull();
-      expect(queryByTestId('filters-bar-categories-forex')).toBeNull();
+      expect(getByTestId('filters-bar-categories-new')).toBeTruthy();
     });
   });
 
