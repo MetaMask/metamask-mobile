@@ -193,7 +193,7 @@ export const usePerpsHomeData = ({
     () =>
       sortMarkets({
         markets: allMarkets.filter(
-          (m) => m.marketType === MarketCategory.Stock,
+          (market) => market.marketType === MarketCategory.Stock,
         ),
         sortBy,
         direction,
@@ -206,7 +206,7 @@ export const usePerpsHomeData = ({
     () =>
       sortMarkets({
         markets: allMarkets.filter(
-          (m) => m.marketType === MarketCategory.Commodity,
+          (market) => market.marketType === MarketCategory.Commodity,
         ),
         sortBy,
         direction,
@@ -219,9 +219,9 @@ export const usePerpsHomeData = ({
     () =>
       sortMarkets({
         markets: allMarkets.filter(
-          (m) =>
-            m.marketType === MarketCategory.Stock ||
-            m.marketType === MarketCategory.Commodity,
+          (market) =>
+            market.marketType === MarketCategory.Stock ||
+            market.marketType === MarketCategory.Commodity,
         ),
         sortBy,
         direction,
@@ -336,7 +336,7 @@ export const usePerpsHomeData = ({
       return stocksMarkets;
     }
     return filteredData.markets.filter(
-      (m) => m.marketType === MarketCategory.Stock,
+      (market) => market.marketType === MarketCategory.Stock,
     );
   }, [searchQuery, stocksMarkets, filteredData.markets]);
 
@@ -354,9 +354,9 @@ export const usePerpsHomeData = ({
       return stocksAndCommoditiesMarkets;
     }
     return filteredData.markets.filter(
-      (m) =>
-        m.marketType === MarketCategory.Stock ||
-        m.marketType === MarketCategory.Commodity,
+      (market) =>
+        market.marketType === MarketCategory.Stock ||
+        market.marketType === MarketCategory.Commodity,
     );
   }, [searchQuery, stocksAndCommoditiesMarkets, filteredData.markets]);
 
@@ -376,18 +376,18 @@ export const usePerpsHomeData = ({
     const counts: Partial<Record<MarketTypeFilter, number>> = {};
     for (const category of MARKET_CATEGORIES) {
       if (category === 'crypto') {
-        counts.crypto = allMarkets.filter((m) => !m.isHip3).length;
+        counts.crypto = allMarkets.filter((market) => !market.isHip3).length;
       } else {
         const targetType = getMarketTypeForFilter(category);
         if (targetType) {
           counts[category] = allMarkets.filter(
-            (m) => m.isHip3 && m.marketType === targetType,
+            (market) => market.isHip3 && market.marketType === targetType,
           ).length;
         }
       }
     }
     // 'new' is not in MARKET_CATEGORIES but is a valid MarketTypeFilter
-    counts.new = allMarkets.filter((m) => m.isNewMarket).length;
+    counts.new = allMarkets.filter((market) => market.isNewMarket).length;
     return counts;
   }, [allMarkets]);
 

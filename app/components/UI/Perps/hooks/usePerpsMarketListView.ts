@@ -189,17 +189,19 @@ export const usePerpsMarketListView = ({
 
     // Special handling for 'crypto' filter - crypto markets are non-HIP3 (main DEX)
     if (marketTypeFilter === 'crypto') {
-      return searchedMarkets.filter((m) => !m.isHip3);
+      return searchedMarkets.filter((market) => !market.isHip3);
     }
 
     // Special handling for 'new' filter - shows uncategorized HIP-3 markets
     if (marketTypeFilter === 'new') {
-      return searchedMarkets.filter((m) => m.isNewMarket);
+      return searchedMarkets.filter((market) => market.isNewMarket);
     }
 
     const targetType = getMarketTypeForFilter(marketTypeFilter);
     if (targetType) {
-      return searchedMarkets.filter((m) => m.marketType === targetType);
+      return searchedMarkets.filter(
+        (market) => market.marketType === targetType,
+      );
     }
 
     // Fallback: return all markets for unknown filter values
@@ -264,7 +266,7 @@ export const usePerpsMarketListView = ({
   // Calculate market counts per category (for hiding empty pills/tabs)
   const marketCounts = useMemo(() => {
     const counts = Object.fromEntries(
-      [...MARKET_CATEGORIES, 'new' as const].map((c) => [c, 0]),
+      [...MARKET_CATEGORIES, 'new' as const].map((category) => [category, 0]),
     ) as Record<Exclude<MarketTypeFilter, 'all'>, number>;
 
     allMarkets.forEach((market) => {

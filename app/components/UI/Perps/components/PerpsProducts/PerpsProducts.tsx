@@ -81,7 +81,10 @@ const PerpsProducts: React.FC<PerpsProductsProps> = ({
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const visiblePills = useMemo(
-    () => PILL_CONFIGS.filter((cfg) => (marketCounts[cfg.category] ?? 0) > 0),
+    () =>
+      PILL_CONFIGS.filter(
+        (pillConfig) => (marketCounts[pillConfig.category] ?? 0) > 0,
+      ),
     [marketCounts],
   );
 
@@ -128,25 +131,25 @@ const PerpsProducts: React.FC<PerpsProductsProps> = ({
       />
 
       <View style={styles.grid}>
-        {visiblePills.map((cfg, index) => (
+        {visiblePills.map((pillConfig, index) => (
           <Pressable
-            key={cfg.category}
+            key={pillConfig.category}
             style={({ pressed }) => [
               styles.pill,
               pressed && styles.pillPressed,
             ]}
-            onPress={() => handlePillPress(cfg.category, index)}
+            onPress={() => handlePillPress(pillConfig.category, index)}
             accessibilityRole="button"
-            accessibilityLabel={strings(cfg.labelKey)}
-            testID={testID ? `${testID}-${cfg.category}` : undefined}
+            accessibilityLabel={strings(pillConfig.labelKey)}
+            testID={testID ? `${testID}-${pillConfig.category}` : undefined}
           >
             <Icon
-              name={CATEGORY_ICON_MAP[cfg.category] ?? IconName.Coin}
+              name={CATEGORY_ICON_MAP[pillConfig.category] ?? IconName.Coin}
               size={IconSize.Sm}
               color={IconColor.IconAlternative}
             />
             <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-              {strings(cfg.labelKey)}
+              {strings(pillConfig.labelKey)}
             </Text>
           </Pressable>
         ))}

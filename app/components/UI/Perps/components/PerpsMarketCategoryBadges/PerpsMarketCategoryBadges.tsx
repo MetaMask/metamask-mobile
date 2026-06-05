@@ -58,8 +58,8 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
     if (!availableCategories || availableCategories.length === 0) {
       return DEFAULT_CATEGORIES;
     }
-    return DEFAULT_CATEGORIES.filter((config) =>
-      availableCategories.includes(config.category),
+    return DEFAULT_CATEGORIES.filter((badgeConfig) =>
+      availableCategories.includes(badgeConfig.category),
     );
   }, [availableCategories]);
 
@@ -85,19 +85,19 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
       style={styles.scrollContainer}
       testID={testID}
     >
-      {displayCategories.map((config, index) => {
-        const isCategorySelected = selectedCategory === config.category;
+      {displayCategories.map((badgeConfig, index) => {
+        const isCategorySelected = selectedCategory === badgeConfig.category;
         return (
           <Animated.View
-            key={config.category}
+            key={badgeConfig.category}
             entering={FadeIn.duration(ANIMATION_DURATION).delay(index * 50)}
             layout={LinearTransition.duration(ANIMATION_DURATION)}
           >
             <PerpsMarketCategoryBadge
-              label={strings(config.labelKey)}
+              label={strings(badgeConfig.labelKey)}
               isSelected={isCategorySelected}
-              onPress={() => handleCategoryPress(config.category)}
-              testID={testID ? `${testID}-${config.category}` : undefined}
+              onPress={() => handleCategoryPress(badgeConfig.category)}
+              testID={testID ? `${testID}-${badgeConfig.category}` : undefined}
             />
           </Animated.View>
         );
