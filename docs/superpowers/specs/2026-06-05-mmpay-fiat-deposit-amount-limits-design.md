@@ -33,6 +33,33 @@ the amount is within range.
 - Building proactive "Min $X · Max $Y" hint text before the user types (only the
   error-on-violation behavior is in scope; raw min/max are exposed by the hook for
   optional future display).
+- Unifying the UB2 (`BuildQuote`) provider-selection flow onto these primitives
+  (see Future Work).
+
+## Future work (out of scope, enabled by this design)
+
+These primitives are deliberately built as reusable Ramps-domain seams so the UB2
+(`BuildQuote`) flow can later be unified onto them:
+
+- **Unify provider selection.** `BuildQuote` today selects a provider via ad-hoc
+  effects: token-support filtering + `setSelectedProvider` inline, plus
+  `determinePreferredProvider` (orders → Transak → `null`). It can adopt
+  `selectBestProviderForAsset` to get the full token-aware cascade
+  (orders → Transak → reliability) in one place and drop the duplicated logic and the
+  `null`/hardcoded-Transak edge cases.
+- **Reuse `useRampsBuyLimits`.** `BuildQuote`'s direct `useProviderLimits` wiring can
+  be replaced by the same hook.
+- **Preserve the `providerAutoSelected` (soft/firm) semantics.** Today
+  `setSelectedProvider(provider, { autoSelected })` sets a flag that controls token-
+  conflict behavior: `autoSelected: true` (soft) lets the UI silently switch providers
+  on a token conflict; `autoSelected: false` (firm) shows the "Token Not Available"
+  modal. `determinePreferredProvider` marks both the order-history pick and the Transak
+  default as **firm** (`autoSelected: false`); BuildQuote's "first supporting provider"
+  fallback is **soft** (`autoSelected: true`). If `selectBestProviderForAsset` is ever
+  used to *set* the provider (not just read limits), the caller must map cascade tiers
+  to the right flag: orders/Transak → firm; reliability fallback (`supporting[0]`) →
+  soft. **This feature does not set the provider** — `useRampsBuyLimits` is read-only —
+  so the flag is untouched here.
 
 ## Key facts established during design
 
@@ -155,6 +182,12 @@ Internals (all Ramps-domain, synchronous over already-cached data):
 Region is handled implicitly: the providers list is region-scoped at fetch time, and
 `currency` (from region) selects the correct limits bucket. No region param is needed
 in the util.
+
+**Read-only — does not mutate selection state.** The hook computes the provider
+purely to look up `.limits`. It MUST NOT call `setSelectedProvider` or otherwise touch
+`providers.selected` / `providerAutoSelected` in RampsController state. The
+`providerAutoSelected` soft/firm flag governs UB2 token-conflict UI behavior and is
+irrelevant to limits; mutating it here would have side effects on other ramps flows.
 
 **Graceful degradation:** if region/providers/provider can't be resolved, or no
 limits are published for the provider, the hook returns `amountLimitError: null` and
