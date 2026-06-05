@@ -94,7 +94,10 @@ const useTokenHistoricalPrices = ({
           return;
         }
         const data: { prices: TokenPrice[] } = await response.json();
-        setPrices(data.prices as TokenPrice[]);
+        const sortedPrices = [...data.prices].sort(
+          (a, b) => Number(a[0]) - Number(b[0]),
+        );
+        setPrices(sortedPrices as TokenPrice[]);
       } catch (e: unknown) {
         setError(e as Error);
       } finally {

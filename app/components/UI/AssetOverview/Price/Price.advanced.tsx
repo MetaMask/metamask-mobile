@@ -364,12 +364,18 @@ const PriceAdvanced = ({
 
   const dateLabel = strings(TIME_RANGE_LABELS[timeRange]);
 
-  // Calculate the current compare price from OHLCV data
+  // Use the previous bar's close as the percentage baseline to avoid wick
+  // outliers on the first visible candle distorting the header percentage.
+  // The previous bar's close represents the settled price at the moment the
+  // visible window begins — standard practice in financial charting.
   const currentComparePrice = useMemo(() => {
     if (ohlcvData.length === 0 || visibleFromMs == null) return null;
-    const firstVisible =
-      ohlcvData.find((c) => c.time >= visibleFromMs) ?? ohlcvData[0];
-    return firstVisible.close;
+    const firstVisibleIdx = ohlcvData.findIndex((c) => c.time >= visibleFromMs);
+    if (firstVisibleIdx < 0) return ohlcvData[0].close;
+    if (firstVisibleIdx > 0) {
+      return ohlcvData[firstVisibleIdx - 1].close;
+    }
+    return ohlcvData[firstVisibleIdx].close;
   }, [ohlcvData, visibleFromMs]);
 
   // Store last good compare price to show during loading
