@@ -577,6 +577,8 @@ export const mapSupportedActionToRoute = (
   switch (action) {
     case ACTIONS.SWAP:
       return DeepLinkRoute.SWAP;
+    case ACTIONS.BATCH_SELL:
+      return DeepLinkRoute.BATCH_SELL;
     case ACTIONS.PERPS:
     case ACTIONS.PERPS_MARKETS:
     case ACTIONS.PERPS_ASSET:
