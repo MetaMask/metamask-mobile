@@ -102,6 +102,30 @@ describe('CardAssetItem Component', () => {
     expect(toJSON()).toBeNull();
   });
 
+  it('renders the money account icon when isMoneyAccountEntry prop is true', () => {
+    const { getByTestId } = render(
+      <CardAssetItem asset={mockAsset} isMoneyAccountEntry />,
+    );
+
+    expect(getByTestId('card-asset-item-money-account')).toBeOnTheScreen();
+  });
+
+  it('renders the money account icon when asset.isMoneyAccountEntry is true', () => {
+    const { getByTestId } = render(
+      <CardAssetItem asset={{ ...mockAsset, isMoneyAccountEntry: true }} />,
+    );
+
+    expect(getByTestId('card-asset-item-money-account')).toBeOnTheScreen();
+  });
+
+  it('renders the money account icon from the prop even when the asset omits the flag', () => {
+    const { getByTestId } = render(
+      <CardAssetItem asset={undefined} isMoneyAccountEntry />,
+    );
+
+    expect(getByTestId('card-asset-item-money-account')).toBeOnTheScreen();
+  });
+
   it('handles test network correctly', () => {
     mockIsTestNet.mockReturnValue(true);
     mockGetTestNetImageByChainId.mockReturnValue({

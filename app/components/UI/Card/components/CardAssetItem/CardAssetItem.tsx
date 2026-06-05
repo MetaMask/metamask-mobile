@@ -17,9 +17,13 @@ interface CardAssetItemProps {
   privacyMode?: boolean;
   onPress?: (asset: TokenI) => void;
   balanceFormatted?: string;
+  isMoneyAccountEntry?: boolean;
 }
 
-const CardAssetItem: React.FC<CardAssetItemProps> = ({ asset }) => {
+const CardAssetItem: React.FC<CardAssetItemProps> = ({
+  asset,
+  isMoneyAccountEntry,
+}) => {
   const chainId = asset?.chainId as Hex;
   const tw = useTailwind();
   const networkBadgeSource = useMemo(
@@ -27,7 +31,7 @@ const CardAssetItem: React.FC<CardAssetItemProps> = ({ asset }) => {
     [chainId],
   );
 
-  if (asset?.isMoneyAccountEntry) {
+  if (isMoneyAccountEntry ?? asset?.isMoneyAccountEntry) {
     return (
       <Image
         source={musdAssetIcon}
