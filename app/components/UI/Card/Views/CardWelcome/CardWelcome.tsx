@@ -74,7 +74,7 @@ const CardWelcome = () => {
 
       const unsubscribers: (() => void)[] = [];
       let current: StatusBarNavigation | undefined =
-        navigation as unknown as StatusBarNavigation;
+        navigation as StatusBarNavigation;
       while (current) {
         unsubscribers.push(
           current.addListener('transitionEnd', handleTransitionEnd),
