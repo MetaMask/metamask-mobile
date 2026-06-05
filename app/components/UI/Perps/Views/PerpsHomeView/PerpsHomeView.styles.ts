@@ -129,6 +129,19 @@ const styleSheet = (params: { theme: Theme }) => {
     positionsOrdersContainer: {
       paddingHorizontal: 16,
     },
+    // ADR58 POC (DO NOT MERGE): debug banner styles
+    adr58EthPositionBanner: {
+      backgroundColor: colors.error.default,
+      marginHorizontal: 16,
+      marginBottom: 12,
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      borderRadius: 8,
+    },
+    adr58EthPositionBannerText: {
+      color: colors.primary.inverse,
+      fontWeight: 'bold',
+    },
     whatsHappeningSection: {
       borderTopWidth: 1,
       borderTopColor: colors.border.muted,

@@ -5,7 +5,7 @@ import React, {
   useEffect,
   useMemo,
 } from 'react';
-import { View, Modal, NativeScrollEvent } from 'react-native';
+import { View, Text, Modal, NativeScrollEvent } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   SafeAreaView,
@@ -216,6 +216,11 @@ const PerpsHomeView = ({
     sortBy,
     isLoading,
   } = usePerpsHomeData({});
+
+  // ADR58 POC (DO NOT MERGE): detect an open ETH perps position to gate the debug banner
+  const hasEthPosition = positions.some(
+    (position) => position.symbol === 'ETH',
+  );
 
   // Calculate positions subtitle with P&L
   const hasPositions = positions.length > 0;
@@ -535,6 +540,18 @@ const PerpsHomeView = ({
         <PerpsCompetitionBanner
           testID={PerpsHomeViewSelectorsIDs.COMPETITION_BANNER}
         />
+
+        {/* ADR58 POC (DO NOT MERGE): debug banner shown above positions when an open ETH position exists */}
+        {hasEthPosition && (
+          <View
+            testID={PerpsHomeViewSelectorsIDs.ETH_POSITION_BANNER}
+            style={styles.adr58EthPositionBanner}
+          >
+            <Text style={styles.adr58EthPositionBannerText}>
+              ADR58 POC: ETH POSITION DETECTED
+            </Text>
+          </View>
+        )}
 
         {/* Positions Section */}
         <PerpsHomeSection
