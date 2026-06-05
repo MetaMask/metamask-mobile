@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  ActivityIndicator,
-} from 'react-native';
+import { StyleSheet, TextInput, ActivityIndicator } from 'react-native';
 import {
   Box,
   Text,
@@ -19,7 +14,6 @@ import { formatTokenAmount } from '../../../../utils/formatters';
 
 const styles = StyleSheet.create({
   amountText: { fontSize: 48, lineHeight: 52 },
-  hiddenInput: { position: 'absolute', opacity: 0, height: 0 },
 });
 
 interface QuickBuyAmountSectionProps {
@@ -40,9 +34,12 @@ interface QuickBuyAmountSectionProps {
   sourceCryptoAmount?: string;
   /** Source token symbol (unpriced path), e.g. "CAKE". */
   sourceSymbol?: string;
-  hiddenInputRef: React.RefObject<TextInput | null>;
-  onAmountAreaPress: () => void;
-  onAmountChange: (text: string) => void;
+  // Custom-amount input is temporarily disabled (numpad removed). The slider is
+  // the only input path for now, but these props remain on the interface so the
+  // controller wiring is preserved for when the keyboard path is restored.
+  hiddenInputRef?: React.RefObject<TextInput | null>;
+  onAmountAreaPress?: () => void;
+  onAmountChange?: (text: string) => void;
 }
 
 const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
@@ -54,9 +51,6 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
   isUnpricedSource = false,
   sourceCryptoAmount,
   sourceSymbol,
-  hiddenInputRef,
-  onAmountAreaPress,
-  onAmountChange,
 }) => {
   const fiatAmountLabel = usdAmount ? `$${usdAmount}` : '$0';
   const cryptoAmountLabel = estimatedReceiveAmount
@@ -81,48 +75,33 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
   }
 
   return (
-    <TouchableOpacity
-      onPress={onAmountAreaPress}
-      activeOpacity={1}
+    <Box
+      alignItems={BoxAlignItems.Center}
+      justifyContent={BoxJustifyContent.Center}
+      gap={2}
+      twClassName="px-4 pt-6 pb-4"
       testID="quick-buy-amount-area"
     >
-      <Box
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Center}
-        gap={2}
-        twClassName="px-4 pt-6 pb-4"
+      <Text
+        style={styles.amountText}
+        fontWeight={FontWeight.Bold}
+        color={TextColor.TextDefault}
       >
+        {primaryLabel}
+      </Text>
+
+      {isQuoteLoading ? (
+        <ActivityIndicator size="small" />
+      ) : (
         <Text
-          style={styles.amountText}
-          fontWeight={FontWeight.Bold}
-          color={TextColor.TextDefault}
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextAlternative}
         >
-          {primaryLabel}
+          {secondaryLabel}
         </Text>
-
-        {isQuoteLoading ? (
-          <ActivityIndicator size="small" />
-        ) : (
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextAlternative}
-          >
-            {secondaryLabel}
-          </Text>
-        )}
-
-        <TextInput
-          ref={hiddenInputRef}
-          value={isUnpricedSource ? (sourceCryptoAmount ?? '') : usdAmount}
-          onChangeText={onAmountChange}
-          keyboardType="decimal-pad"
-          returnKeyType="done"
-          style={styles.hiddenInput}
-          testID="quick-buy-amount-input"
-        />
-      </Box>
-    </TouchableOpacity>
+      )}
+    </Box>
   );
 };
 

@@ -217,6 +217,8 @@ async function postToSlack(botToken, channelName, payload) {
         channel: channelName,
         blocks: payload.blocks,
         text: payload.text,
+        unfurl_links: false,
+        unfurl_media: false,
       }),
     });
 

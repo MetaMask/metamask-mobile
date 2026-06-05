@@ -1,5 +1,5 @@
 import React, { createRef } from 'react';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { render, screen } from '@testing-library/react-native';
 import { TextInput } from 'react-native';
 import QuickBuyAmountSection from './QuickBuyAmountSection';
 
@@ -94,17 +94,5 @@ describe('QuickBuyAmountSection', () => {
   it('does not render available balance text', () => {
     render(<QuickBuyAmountSection {...defaultProps} />);
     expect(screen.queryByText(/available/)).not.toBeOnTheScreen();
-  });
-
-  it('calls onAmountAreaPress when the area is pressed', () => {
-    const onAmountAreaPress = jest.fn();
-    render(
-      <QuickBuyAmountSection
-        {...defaultProps}
-        onAmountAreaPress={onAmountAreaPress}
-      />,
-    );
-    fireEvent.press(screen.getByTestId('quick-buy-amount-area'));
-    expect(onAmountAreaPress).toHaveBeenCalledTimes(1);
   });
 });
