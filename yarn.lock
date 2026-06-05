@@ -9840,16 +9840,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/remote-feature-flag-controller@npm:^4.2.0, @metamask/remote-feature-flag-controller@npm:^4.2.1":
-  version: 4.2.1
-  resolution: "@metamask/remote-feature-flag-controller@npm:4.2.1"
+"@metamask/remote-feature-flag-controller@npm:^4.2.0, @metamask/remote-feature-flag-controller@npm:^4.2.1, @metamask/remote-feature-flag-controller@npm:^4.2.2":
+  version: 4.2.2
+  resolution: "@metamask/remote-feature-flag-controller@npm:4.2.2"
   dependencies:
     "@metamask/base-controller": "npm:^9.1.0"
-    "@metamask/controller-utils": "npm:^12.0.0"
+    "@metamask/controller-utils": "npm:^12.1.0"
     "@metamask/messenger": "npm:^1.2.0"
     "@metamask/utils": "npm:^11.9.0"
     uuid: "npm:^8.3.2"
-  checksum: 10/b789836eb03dfe45374a86209d00fad4b1e2284bd61fa7e0342504f577b2227336db01da67063b0166ece24edee7cb0482f63512143f0bbd5710942fba9b1d60
+  checksum: 10/ed03ff1ba63c7a0f2b221c3514eb71a8be4200ec543b90676a44930dc731920ac2c92dcc2b13a32ed4e4e8e7e7b28a26db443af9f4bf30f5e2b5785580b286ab
   languageName: node
   linkType: hard
 
@@ -21464,15 +21464,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"agent-device@npm:0.14.8":
-  version: 0.14.8
-  resolution: "agent-device@npm:0.14.8"
+"agent-device@npm:^0.14.8":
+  version: 0.14.9
+  resolution: "agent-device@npm:0.14.9"
   dependencies:
     fast-xml-parser: "npm:^5.7.2"
     pngjs: "npm:^7.0.0"
   bin:
     agent-device: bin/agent-device.mjs
-  checksum: 10/bcb4159faaa1d6fc352298bb7bd80dff402ad29dce4c877eb8c82c6e7f6e05bddcc5b9a5f954a041ed8638301c5c18faebc6086b89e7c499314033c975de4e71
+  checksum: 10/37ab7dbd175efdccd41c7c2f83d00e299991d435a5ac16b7f809caea948bd7de9d54e7affdf1b9c08e5d51a8d51705ff9d8a1348537de4720cc48b4415f58ab3
   languageName: node
   linkType: hard
 
@@ -35439,7 +35439,7 @@ __metadata:
     "@metamask/react-native-payments": "patch:@metamask/react-native-payments@npm%3A2.0.2#~/.yarn/patches/@metamask-react-native-payments-npm-2.0.2-4ddc5f9862.patch"
     "@metamask/react-native-search-api": "npm:1.0.1"
     "@metamask/react-native-webview": "patch:@metamask/react-native-webview@npm%3A14.6.0#~/.yarn/patches/@metamask-react-native-webview-npm-14.6.0-f12ccc06ff.patch"
-    "@metamask/remote-feature-flag-controller": "npm:^4.2.1"
+    "@metamask/remote-feature-flag-controller": "npm:^4.2.2"
     "@metamask/rpc-errors": "npm:^7.0.2"
     "@metamask/sample-controllers": "npm:^3.0.0"
     "@metamask/scure-bip39": "npm:^2.1.0"
@@ -35563,7 +35563,7 @@ __metadata:
     "@wdio/protocols": "npm:^9.27.0"
     "@welldone-software/why-did-you-render": "npm:^8.0.1"
     "@xmldom/xmldom": "npm:^0.8.13"
-    agent-device: "npm:0.14.8"
+    agent-device: "npm:^0.14.8"
     appium: "npm:^2.5.4"
     appium-adb: "npm:^9.11.4"
     appium-chromium-driver: "npm:^2.0.2"
