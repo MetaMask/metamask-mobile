@@ -1,5 +1,6 @@
 // Core hooks (direct controller access)
 export { usePerpsMarkets } from './usePerpsMarkets';
+export { usePerpsTopMovers } from './usePerpsTopMovers';
 export { usePerpsNetwork } from './usePerpsNetwork';
 export { usePerpsProvider } from './usePerpsProvider';
 export { usePerpsNetworkConfig } from './usePerpsNetworkConfig';
@@ -105,9 +106,6 @@ export { useStableArray } from './useStableArray';
 // Discovery hooks (for use outside perps screens)
 export { usePerpsMarketForAsset } from './usePerpsMarketForAsset';
 export { usePerpsPositionForAsset } from './usePerpsPositionForAsset';
-
-// Tab view hooks
-export { usePerpsTabExploreData } from './usePerpsTabExploreData';
 
 // Stream hooks (WebSocket subscriptions)
 export * from './stream';

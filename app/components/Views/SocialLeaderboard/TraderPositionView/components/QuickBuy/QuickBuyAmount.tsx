@@ -17,7 +17,7 @@ const QuickBuyAmount: React.FC = () => {
     sourceToken,
     estimatedReceiveAmount,
     destToken,
-    isQuoteLoading,
+    isBlockingQuoteLoad,
     hiddenInputRef,
     handleAmountAreaPress,
     handleAmountChange,
@@ -42,7 +42,7 @@ const QuickBuyAmount: React.FC = () => {
       usdAmount={usdAmount}
       destSymbol={cryptoSymbol}
       estimatedReceiveAmount={displayedCryptoAmount}
-      isQuoteLoading={isQuoteLoading}
+      isQuoteLoading={isBlockingQuoteLoad}
       isUnpricedSource={isUnpricedSource}
       sourceCryptoAmount={sourceAmountTokens}
       sourceSymbol={sourceToken?.symbol ?? target.tokenSymbol}
