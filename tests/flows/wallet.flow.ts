@@ -704,10 +704,13 @@ export const onboardingFlowImportSRPPlaywright = async (
 
   const predictGtmOnboardingModalEnabled =
     await resolvePredictGtmOnboardingModalEnabled(productionFeatureFlags);
-  if (predictGtmOnboardingModalEnabled) {
-    await dismisspredictionsModalPlaywright();
-  }
-
+  console.log(
+    'predictGtmOnboardingModalEnabled',
+    predictGtmOnboardingModalEnabled,
+  );
+  // f (predictGtmOnboardingModalEnabled) {
+  await dismisspredictionsModalPlaywright();
+  //}
   await PlaywrightAssertions.expectElementToBeVisible(
     await asPlaywrightElement(WalletView.container),
   );
