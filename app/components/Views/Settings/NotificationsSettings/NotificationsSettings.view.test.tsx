@@ -140,14 +140,14 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
   });
 
   it('renders agentic CLI section when agentic CLI notifications flag is enabled', async () => {
-    const { getByText, findByText } = renderSettings({
+    const { findByText } = renderSettings({
       agentic_cli_notifications_enabled: true,
     });
 
     expect(await findByText(SECTION_TITLES.walletActivity)).toBeOnTheScreen();
-    expect(getByText(SECTION_TITLES.agenticCli)).toBeOnTheScreen();
+    expect(await findByText(SECTION_TITLES.agenticCli)).toBeOnTheScreen();
     // Push-only status (other rows use the combined "Push, In app" label).
-    expect(getByText('Push')).toBeOnTheScreen();
+    expect(await findByText('Push')).toBeOnTheScreen();
   });
 
   it('hides agentic CLI section when agentic CLI notifications flag is disabled', async () => {
