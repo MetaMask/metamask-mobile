@@ -45,3 +45,12 @@ export function getFilterForMarketType(
 ): MarketTypeFilter | undefined {
   return MARKET_TYPE_TO_FILTER.get(marketType);
 }
+
+/**
+ * Normalise a MarketTypeFilter value for use in translation keys and
+ * analytics properties by replacing hyphens with underscores
+ * (e.g. `"pre-ipo"` → `"pre_ipo"`).
+ */
+export function normalizeFilterKey(filter: string): string {
+  return filter.replace(/-/g, '_');
+}

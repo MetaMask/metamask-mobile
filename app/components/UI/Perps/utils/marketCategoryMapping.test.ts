@@ -2,6 +2,7 @@ import { MarketCategory } from '@metamask/perps-controller';
 import {
   getMarketTypeForFilter,
   getFilterForMarketType,
+  normalizeFilterKey,
 } from './marketCategoryMapping';
 
 describe('marketCategoryMapping', () => {
@@ -45,6 +46,21 @@ describe('marketCategoryMapping', () => {
 
     it('returns undefined for unknown market types', () => {
       expect(getFilterForMarketType('unknown-type')).toBeUndefined();
+    });
+  });
+
+  describe('normalizeFilterKey', () => {
+    it.each([
+      ['pre-ipo', 'pre_ipo'],
+      ['stocks', 'stocks'],
+      ['crypto', 'crypto'],
+      ['a-b-c', 'a_b_c'],
+    ])('normalizes "%s" → "%s"', (input, expected) => {
+      expect(normalizeFilterKey(input)).toBe(expected);
+    });
+
+    it('returns empty string unchanged', () => {
+      expect(normalizeFilterKey('')).toBe('');
     });
   });
 
