@@ -1,4 +1,4 @@
-import { test } from '../../framework/fixture';
+import { test } from '../../framework/fixtures/playwright';
 import { System, PerformanceLogin } from '../../tags.performance.js';
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
 import WalletView from '../../page-objects/wallet/WalletView';

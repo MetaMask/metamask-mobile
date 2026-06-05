@@ -36,23 +36,11 @@ import {
 import CardMessageBox from '../../components/CardMessageBox/CardMessageBox';
 import { CardMessageBoxType } from '../../types';
 import Routes from '../../../../../constants/navigation/Routes';
-
-const CURRENCY_DISPLAY_MAP: Record<string, string> = {
-  musd: 'mUSD',
-  usdc: 'USDC',
-  usdt: 'USDT',
-};
-
-const formatCurrency = (raw: string): string =>
-  CURRENCY_DISPLAY_MAP[raw.toLowerCase()] ?? raw.toUpperCase();
-
-const formatAmount = (value: string | number): string => {
-  const num = typeof value === 'string' ? parseFloat(value) : value;
-  if (Number.isNaN(num)) return '0.00';
-  const truncated = Math.floor(num * 10000) / 10000;
-  const formatted = truncated.toFixed(4).replace(/0{1,2}$/, '');
-  return formatted;
-};
+import {
+  formatAmount,
+  formatCurrency,
+  getCashbackWithdrawalAmounts,
+} from './Cashback.utils';
 
 const Cashback: React.FC = () => {
   const navigation = useNavigation();
@@ -84,13 +72,11 @@ const Cashback: React.FC = () => {
 
   const balance = cashbackWallet?.balance ?? '0';
   const currency = formatCurrency(cashbackWallet?.currency ?? 'musd');
-  const balanceNum = parseFloat(balance);
   const isWithdrawable = cashbackWallet?.isWithdrawable ?? false;
 
-  const feeRaw = estimation?.price ?? '0';
-  const feeNum = parseFloat(feeRaw);
-  const expectedToReceiveNum = Math.max(0, balanceNum - feeNum);
-  const hasInsufficientBalance = balanceNum <= 0 || balanceNum <= feeNum;
+  const feePrice = estimation?.price ?? '0';
+  const { roundedFeeNum, netAmount, netAmountNumber, hasInsufficientBalance } =
+    getCashbackWithdrawalAmounts(balance, feePrice);
   const isFundingStatusLoading =
     cardHomeDataStatus === 'idle' || cardHomeDataStatus === 'loading';
   const hasFundingStatusError = cardHomeDataStatus === 'error';
@@ -174,9 +160,9 @@ const Cashback: React.FC = () => {
         })
         .build(),
     );
-    withdraw(balance);
+    withdraw(netAmount);
   }, [
-    balance,
+    netAmount,
     withdraw,
     trackEvent,
     createEventBuilder,
@@ -287,7 +273,7 @@ const Cashback: React.FC = () => {
                         style={tw.style('rounded-md')}
                       />
                     ) : (
-                      { text: `${formatAmount(feeRaw)} ${currency}` }
+                      { text: `${formatAmount(roundedFeeNum)} ${currency}` }
                     ),
                 }}
               />
@@ -307,7 +293,7 @@ const Cashback: React.FC = () => {
                       />
                     ) : (
                       {
-                        text: `${formatAmount(expectedToReceiveNum)} ${currency}`,
+                        text: `${formatAmount(netAmountNumber)} ${currency}`,
                       }
                     ),
                 }}

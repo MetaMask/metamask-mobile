@@ -1,24 +1,25 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
+import { TransactionType, CHAIN_IDS } from '@metamask/transaction-controller';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyAddMoneySheet from './MoneyAddMoneySheet';
 import { MoneyAddMoneySheetTestIds } from './MoneyAddMoneySheet.testIds';
-import { useMusdConversionFlowData } from '../../../Earn/hooks/useMusdConversionFlowData';
-import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
+import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
+import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
+import {
+  getRampRoutingDecision,
+  UnifiedRampRoutingType,
+} from '../../../../../reducers/fiatOrders';
 import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
-  MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../../Earn/constants/musd';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
-const mockGetChainIdForBuyFlow = jest.fn();
-const mockGoToBuy = jest.fn();
 const mockInitiateDeposit = jest.fn(() => Promise.resolve());
 
 jest.mock('@react-navigation/native', () => {
@@ -32,20 +33,29 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../Earn/hooks/useMusdConversionFlowData', () => ({
-  useMusdConversionFlowData: jest.fn(),
-}));
-
-jest.mock('../../../Ramp/hooks/useRampNavigation', () => ({
-  useRampNavigation: jest.fn(),
-}));
-
 jest.mock('../../../Earn/hooks/useMusdBalance', () => ({
   useMusdBalance: jest.fn(),
 }));
 
 jest.mock('../../hooks/useMoneyAccount', () => ({
   useMoneyAccountDeposit: jest.fn(),
+}));
+
+jest.mock(
+  '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig',
+  () => ({
+    useMMPayFiatConfig: jest.fn(),
+  }),
+);
+
+jest.mock('../../../../../selectors/tokenBalancesController', () => ({
+  ...jest.requireActual('../../../../../selectors/tokenBalancesController'),
+  selectHasAnyNonZeroTokenBalance: jest.fn(),
+}));
+
+jest.mock('../../../../../reducers/fiatOrders', () => ({
+  ...jest.requireActual('../../../../../reducers/fiatOrders'),
+  getRampRoutingDecision: jest.fn(),
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -80,14 +90,6 @@ describe('MoneyAddMoneySheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    mockGetChainIdForBuyFlow.mockReturnValue(MUSD_CONVERSION_DEFAULT_CHAIN_ID);
-
-    (useMusdConversionFlowData as jest.Mock).mockReturnValue({
-      getChainIdForBuyFlow: mockGetChainIdForBuyFlow,
-    });
-    (useRampNavigation as jest.Mock).mockReturnValue({
-      goToBuy: mockGoToBuy,
-    });
     (useMusdBalance as jest.Mock).mockReturnValue({
       fiatBalanceAggregated: '1203.89',
       fiatBalanceAggregatedFormatted: '$1,203.89',
@@ -98,6 +100,14 @@ describe('MoneyAddMoneySheet', () => {
     (useMoneyAccountDeposit as jest.Mock).mockReturnValue({
       initiateDeposit: mockInitiateDeposit,
     });
+    (useMMPayFiatConfig as jest.Mock).mockReturnValue({
+      enabledTransactionTypes: [TransactionType.moneyAccountDeposit],
+      maxDelayMinutesForPaymentMethods: 10,
+    });
+    (selectHasAnyNonZeroTokenBalance as unknown as jest.Mock).mockReturnValue(
+      true,
+    );
+    (getRampRoutingDecision as jest.Mock).mockReturnValue(null);
   });
 
   it('renders all four options', () => {
@@ -156,7 +166,7 @@ describe('MoneyAddMoneySheet', () => {
     expect(getByText('Add your CA$1,500.00 mUSD')).toBeOnTheScreen();
   });
 
-  it('hides the move-mUSD row when the selected EVM account has no mUSD tokens or fiat balance', () => {
+  it('shows the move-mUSD row disabled with the "Add mUSD" label when the selected EVM account has no mUSD tokens or fiat balance', () => {
     (useMusdBalance as jest.Mock).mockReturnValue({
       fiatBalanceAggregated: undefined,
       fiatBalanceAggregatedFormatted: '$0.00',
@@ -165,14 +175,22 @@ describe('MoneyAddMoneySheet', () => {
       tokenBalanceByChain: {},
     });
 
-    const { queryByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+    const { getByTestId, getByText } = renderWithProvider(
+      <MoneyAddMoneySheet />,
+    );
 
     expect(
-      queryByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION),
-    ).toBeNull();
+      getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION),
+    ).toBeOnTheScreen();
+    expect(getByText('Add mUSD')).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION));
+
+    expect(mockOnCloseBottomSheet).not.toHaveBeenCalled();
+    expect(mockInitiateDeposit).not.toHaveBeenCalled();
   });
 
-  it('hides the move-mUSD row when the selected EVM account mUSD fiat balance is zero', () => {
+  it('shows the move-mUSD row disabled with the "Add mUSD" label when the selected EVM account mUSD fiat balance is zero', () => {
     (useMusdBalance as jest.Mock).mockReturnValue({
       fiatBalanceAggregated: '0',
       fiatBalanceAggregatedFormatted: '$0.00',
@@ -181,11 +199,19 @@ describe('MoneyAddMoneySheet', () => {
       tokenBalanceByChain: {},
     });
 
-    const { queryByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+    const { getByTestId, getByText } = renderWithProvider(
+      <MoneyAddMoneySheet />,
+    );
 
     expect(
-      queryByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION),
-    ).toBeNull();
+      getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION),
+    ).toBeOnTheScreen();
+    expect(getByText('Add mUSD')).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION));
+
+    expect(mockOnCloseBottomSheet).not.toHaveBeenCalled();
+    expect(mockInitiateDeposit).not.toHaveBeenCalled();
   });
 
   it('shows the move-mUSD row with the "Add your $X mUSD" label when the selected EVM account mUSD fiat balance is positive', () => {
@@ -226,7 +252,7 @@ describe('MoneyAddMoneySheet', () => {
     expect(getByText('Add your 42.50 mUSD')).toBeOnTheScreen();
   });
 
-  it('navigates to the Ramps buy flow with mUSD pre-selected when Deposit funds is pressed', () => {
+  it('initiates a deposit with autoSelectFiatPayment when Deposit funds is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
 
     fireEvent.press(
@@ -234,8 +260,8 @@ describe('MoneyAddMoneySheet', () => {
     );
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(mockGoToBuy).toHaveBeenCalledWith({
-      assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[MUSD_CONVERSION_DEFAULT_CHAIN_ID],
+    expect(mockInitiateDeposit).toHaveBeenCalledWith({
+      autoSelectFiatPayment: true,
     });
   });
 
@@ -248,6 +274,111 @@ describe('MoneyAddMoneySheet', () => {
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
     expect(mockInitiateDeposit).toHaveBeenCalledWith();
+  });
+
+  it('hides the Deposit funds option when moneyAccountDeposit is not in enabledTransactionTypes', () => {
+    (useMMPayFiatConfig as jest.Mock).mockReturnValue({
+      enabledTransactionTypes: [],
+      maxDelayMinutesForPaymentMethods: 10,
+    });
+
+    const { queryByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+    expect(
+      queryByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
+    ).toBeNull();
+  });
+
+  it('disables the Convert crypto option when no account has any crypto balance', () => {
+    (selectHasAnyNonZeroTokenBalance as unknown as jest.Mock).mockReturnValue(
+      false,
+    );
+
+    const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+    expect(
+      getByTestId(MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(
+      getByTestId(MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION),
+    );
+
+    expect(mockOnCloseBottomSheet).not.toHaveBeenCalled();
+    expect(mockInitiateDeposit).not.toHaveBeenCalled();
+  });
+
+  it('enables the Convert crypto option when at least one account has a crypto balance', () => {
+    (selectHasAnyNonZeroTokenBalance as unknown as jest.Mock).mockReturnValue(
+      true,
+    );
+
+    const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+    fireEvent.press(
+      getByTestId(MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION),
+    );
+
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    expect(mockInitiateDeposit).toHaveBeenCalledWith();
+  });
+
+  it('hides the Deposit funds option when the ramp routing decision is UNSUPPORTED', () => {
+    (getRampRoutingDecision as jest.Mock).mockReturnValue(
+      UnifiedRampRoutingType.UNSUPPORTED,
+    );
+
+    const { queryByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+    expect(
+      queryByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
+    ).toBeNull();
+  });
+
+  it('shows the Deposit funds option when the ramp routing decision is DEPOSIT', () => {
+    (getRampRoutingDecision as jest.Mock).mockReturnValue(
+      UnifiedRampRoutingType.DEPOSIT,
+    );
+
+    const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+    expect(
+      getByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows the Deposit funds option when the ramp routing decision is AGGREGATOR', () => {
+    (getRampRoutingDecision as jest.Mock).mockReturnValue(
+      UnifiedRampRoutingType.AGGREGATOR,
+    );
+
+    const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+    expect(
+      getByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows the Deposit funds option when the ramp routing decision is null (fail-open)', () => {
+    (getRampRoutingDecision as jest.Mock).mockReturnValue(null);
+
+    const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+    expect(
+      getByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows the Deposit funds option when the ramp routing decision is ERROR (fail-open)', () => {
+    (getRampRoutingDecision as jest.Mock).mockReturnValue(
+      UnifiedRampRoutingType.ERROR,
+    );
+
+    const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+    expect(
+      getByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
+    ).toBeOnTheScreen();
   });
 
   it('initiates a deposit pre-selecting mUSD on the highest-balance chain when Move mUSD is pressed', () => {

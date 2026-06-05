@@ -102,3 +102,19 @@ export const getSourceTokenCandidates = (
  */
 export const getTokenKey = (token: BridgeToken): string =>
   `${token.address.toLowerCase()}:${token.chainId}`;
+
+/**
+ * Returns the stablecoin candidates for the Sell "Receive with" picker.
+ * Only includes stables (mUSD, USDC, USDT) across EVM chains — no native tokens.
+ * Stable candidates on `preferredChainId` are sorted to the front.
+ */
+export const getSellDestTokenCandidates = (
+  preferredChainId: string | undefined,
+): BridgeToken[] => {
+  const all = [...STABLECOIN_CANDIDATES];
+  if (!preferredChainId) return all;
+  return [
+    ...all.filter((t) => t.chainId === preferredChainId),
+    ...all.filter((t) => t.chainId !== preferredChainId),
+  ];
+};

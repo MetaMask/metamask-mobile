@@ -71,6 +71,7 @@ import {
   CryptoPriceUpdateCallback,
   GameUpdateCallback,
   GetAccountStateParams,
+  GetActivityParams,
   GetBalanceParams,
   GetCryptoPriceHistoryParams,
   GetCryptoTargetPriceParams,
@@ -88,7 +89,11 @@ import {
   PredictBalance,
   PredictClaim,
   PredictClaimStatus,
+  PredictFilterOption,
+  PredictFilterOptionsParams,
   PredictMarket,
+  PredictMarketListParams,
+  PredictMarketListResponse,
   PredictPosition,
   PredictPositionStatus,
   PredictPriceHistoryPoint,
@@ -376,6 +381,8 @@ const MESSENGER_EXPOSED_METHODS = [
   'getPrices',
   'getUnrealizedPnL',
   'initPayWithAnyToken',
+  'listFilterOptions',
+  'listMarkets',
   'onPlaceOrderSuccess',
   'placeOrder',
   'prepareWithdraw',
@@ -646,6 +653,72 @@ export class PredictController extends BaseController<
 
         return { markets, nextCursor };
       },
+    );
+  }
+
+  async listMarkets(
+    params: PredictMarketListParams,
+  ): Promise<PredictMarketListResponse> {
+    return withTrace(
+      this.traceable,
+      {
+        method: 'listMarkets',
+        trace: {
+          name: TraceName.PredictListMarkets,
+          op: TraceOperation.PredictDataFetch,
+          tags: {
+            feature: PREDICT_CONSTANTS.FEATURE_NAME,
+            providerId: POLYMARKET_PROVIDER_ID,
+          },
+        },
+        errorContext: {
+          providerId: POLYMARKET_PROVIDER_ID,
+          hasAfterCursor: Boolean(params.afterCursor),
+        },
+        fallbackErrorCode: PREDICT_ERROR_CODES.MARKETS_FAILED,
+        traceData: (result) => ({
+          marketCount: result.markets.length,
+          hasNextCursor: Boolean(result.nextCursor),
+        }),
+      },
+      async () => {
+        const { markets, nextCursor } = await this.provider.listMarkets(params);
+
+        return {
+          markets: markets.filter(
+            (market): market is PredictMarket => market !== undefined,
+          ),
+          nextCursor,
+        };
+      },
+    );
+  }
+
+  async listFilterOptions(
+    params: PredictFilterOptionsParams,
+  ): Promise<PredictFilterOption[]> {
+    return withTrace(
+      this.traceable,
+      {
+        method: 'listFilterOptions',
+        trace: {
+          name: TraceName.PredictListFilterOptions,
+          op: TraceOperation.PredictDataFetch,
+          tags: {
+            feature: PREDICT_CONSTANTS.FEATURE_NAME,
+            providerId: POLYMARKET_PROVIDER_ID,
+          },
+        },
+        errorContext: {
+          providerId: POLYMARKET_PROVIDER_ID,
+          source: params.source,
+        },
+        fallbackErrorCode: PREDICT_ERROR_CODES.MARKETS_FAILED,
+        traceData: (result) => ({
+          optionCount: result.length,
+        }),
+      },
+      async () => this.provider.listFilterOptions(params),
     );
   }
 
@@ -960,7 +1033,9 @@ export class PredictController extends BaseController<
     );
   }
 
-  async getActivity(params: { address?: string }): Promise<PredictActivity[]> {
+  async getActivity(
+    params: GetActivityParams = {},
+  ): Promise<PredictActivity[]> {
     return withTrace(
       this.traceable,
       {
@@ -978,8 +1053,21 @@ export class PredictController extends BaseController<
         traceData: (activity) => ({ activityCount: activity.length }),
       },
       async () => {
-        const selectedAddress = params.address ?? this.getSigner().address;
-        return this.provider.getActivity({ address: selectedAddress });
+        const { address, limit, offset } = params;
+        const selectedAddress = address ?? this.getSigner().address;
+        const activityParams: GetActivityParams & { address: string } = {
+          address: selectedAddress,
+        };
+
+        if (limit !== undefined) {
+          activityParams.limit = limit;
+        }
+
+        if (offset !== undefined) {
+          activityParams.offset = offset;
+        }
+
+        return this.provider.getActivity(activityParams);
       },
     );
   }
@@ -1592,6 +1680,7 @@ export class PredictController extends BaseController<
       const batchResult = await addTransactionBatch({
         from: signer.address as Hex,
         origin: ORIGIN_METAMASK,
+        isInternal: true,
         networkClientId,
         disableHook: true,
         disableSequential: true,
@@ -2015,6 +2104,7 @@ export class PredictController extends BaseController<
       const batchResult = await addTransactionBatch({
         from: signer.address as Hex,
         origin: ORIGIN_METAMASK,
+        isInternal: true,
         networkClientId,
         disableHook: true,
         disableSequential: true,
@@ -2160,6 +2250,7 @@ export class PredictController extends BaseController<
       const batchResult = await addTransactionBatch({
         from: signer.address as Hex,
         origin: ORIGIN_METAMASK,
+        isInternal: true,
         networkClientId,
         disableHook: true,
         disableSequential: true,
@@ -2204,6 +2295,11 @@ export class PredictController extends BaseController<
   public clearPendingDeposit(): void {
     const selectedAddress = this.getSigner().address;
     this.clearPendingDepositForAddress({ address: selectedAddress });
+  }
+
+  public clearPendingClaim(): void {
+    const selectedAddress = this.getSigner().address;
+    this.clearPendingClaimForAddress({ address: selectedAddress });
   }
 
   private clearPendingDepositForAddress({
@@ -2780,6 +2876,7 @@ export class PredictController extends BaseController<
       const { batchId } = await addTransactionBatch({
         from: signer.address as Hex,
         origin: ORIGIN_METAMASK,
+        isInternal: true,
         networkClientId: this.messenger.call(
           'NetworkController:findNetworkClientIdByChainId',
           chainId,

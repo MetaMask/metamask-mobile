@@ -6,9 +6,79 @@ import { BridgeToken } from '../../types';
 import { BatchSellReview } from './BatchSellReview';
 import { BatchSellReviewSelectorsIDs } from './BatchSellReview.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
+import Engine from '../../../../../core/Engine';
 
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
+const mockCancelBatchSellQuoteParams = jest.fn();
+const mockUpdateBatchSellQuoteParams = Object.assign(jest.fn(), {
+  cancel: mockCancelBatchSellQuoteParams,
+});
+const mockGetNewQuote = jest.fn();
+const ethAssetId =
+  'eip155:1/erc20:0x1111111111111111111111111111111111111111' as CaipAssetType;
+const uniAssetId =
+  'eip155:1/erc20:0x2222222222222222222222222222222222222222' as CaipAssetType;
+const linkAssetId =
+  'eip155:1/erc20:0x3333333333333333333333333333333333333333' as CaipAssetType;
+
+interface MockBatchSellQuoteTokenData {
+  key: string;
+  tokenSymbol: string;
+  slippage: string;
+  receivedAmount: string;
+  receivedAmountFiat: string;
+  priceImpact?: string;
+  isLoading?: boolean;
+  isHighPriceImpact?: boolean;
+  isQuoteUnavailable?: boolean;
+}
+
+interface MockBatchSellQuoteData {
+  tokenData: Record<string, MockBatchSellQuoteTokenData>;
+  totalReceived: { formatted: string; formattedFiat: string };
+  minimumReceived: { formatted: string };
+  isLoading: boolean;
+  isSummaryLoading: boolean;
+  hasAnyQuote: boolean;
+  hasPendingQuoteRows: boolean;
+  needsNewQuote: boolean;
+  networkFee: { formatted: string; formattedFiat: string };
+}
+
+const defaultQuoteData: MockBatchSellQuoteData = {
+  tokenData: {
+    [ethAssetId]: {
+      key: ethAssetId,
+      tokenSymbol: 'ETH',
+      slippage: '2%',
+      receivedAmount: '3,456.78 USDC',
+      receivedAmountFiat: '$3,456.78',
+    },
+    [uniAssetId]: {
+      key: uniAssetId,
+      tokenSymbol: 'UNI',
+      slippage: '2%',
+      receivedAmount: '500 USDC',
+      receivedAmountFiat: '$500.00',
+    },
+  },
+  totalReceived: {
+    formatted: '3,956.78 USDC',
+    formattedFiat: '$3,956.78',
+  },
+  minimumReceived: { formatted: '3,900 USDC' },
+  isLoading: false,
+  isSummaryLoading: false,
+  hasAnyQuote: true,
+  hasPendingQuoteRows: false,
+  needsNewQuote: false,
+  networkFee: {
+    formatted: '1.20 USDC',
+    formattedFiat: '$1.20',
+  },
+};
+let mockBatchSellQuoteData = defaultQuoteData;
 const defaultSelectedTokens: BridgeToken[] = [
   {
     address: '0x1111111111111111111111111111111111111111',
@@ -51,6 +121,9 @@ let mockSelectedDestinationToken: BridgeToken | undefined = usdcToken;
 let mockDestinationTokens: BridgeToken[] = [usdcToken];
 let mockBatchSellSlippages: Partial<Record<CaipAssetType, string | undefined>> =
   {};
+let mockBatchSellSourceTokenAmounts: Partial<
+  Record<CaipAssetType, string | undefined>
+> = {};
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -58,6 +131,17 @@ jest.mock('@react-navigation/native', () => ({
     navigate: mockNavigate,
     setOptions: jest.fn(),
   }),
+}));
+
+jest.mock('../../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      BridgeController: {
+        resetState: jest.fn(),
+      },
+    },
+  },
 }));
 
 jest.mock('../../../../../core/redux/slices/bridge', () => ({
@@ -68,10 +152,31 @@ jest.mock('../../../../../core/redux/slices/bridge', () => ({
   selectBatchSellDestStablecoins: jest.fn(() => mockDestinationTokens),
   selectBatchSellDestToken: jest.fn(() => mockSelectedDestinationToken),
   selectBatchSellSlippages: jest.fn(() => mockBatchSellSlippages),
+  selectBatchSellSourceTokenAmounts: jest.fn(
+    () => mockBatchSellSourceTokenAmounts,
+  ),
   setBatchSellDestToken: jest.fn((token: BridgeToken) => ({
     type: 'bridge/setBatchSellDestToken',
     payload: token,
   })),
+  setBatchSellSourceTokenAmount: jest.fn(
+    ({
+      assetId,
+      amount,
+    }: {
+      assetId: CaipAssetType;
+      amount: string | undefined;
+    }) => ({
+      type: 'bridge/setBatchSellSourceTokenAmount',
+      payload: { assetId, amount },
+    }),
+  ),
+  setBatchSellSourceTokenAmounts: jest.fn(
+    (amounts: Partial<Record<CaipAssetType, string | undefined>>) => ({
+      type: 'bridge/setBatchSellSourceTokenAmounts',
+      payload: amounts,
+    }),
+  ),
   setBatchSellSourceTokens: jest.fn((tokens: BridgeToken[]) => ({
     type: 'bridge/setBatchSellSourceTokens',
     payload: tokens,
@@ -89,46 +194,36 @@ jest.mock('react-redux', () => ({
   useSelector: (selector: (state: unknown) => unknown) => selector({}),
 }));
 
-jest.mock('./BatchSellReviewTokenRow', () => {
-  const ReactActual = jest.requireActual('react');
-  const { Pressable, Text, View } = jest.requireActual('react-native');
+jest.mock('../../hooks/useBatchSellQuoteRequest', () => ({
+  getBatchSellAtomicSourceAmount: jest.fn(
+    (token: { balance?: string }, amount?: string) =>
+      token.balance && amount && Number(amount) > 0 ? '1' : undefined,
+  ),
+  getBatchSellSourceTokenAmount: jest.fn(
+    (token: { balance?: string }, percent: number) => {
+      if (percent <= 0) return '0';
 
-  return {
-    BatchSellReviewTokenRow: ({
-      isRemoveTokenDisabled,
-      onRemovePress,
-      onSlippagePress,
-      percent,
-      token,
-      tokenKey,
-    }: {
-      isRemoveTokenDisabled?: boolean;
-      onRemovePress: (token: BridgeToken) => void;
-      onSlippagePress: (token: BridgeToken) => void;
-      percent: number;
-      token: BridgeToken;
-      tokenKey: string;
-    }) =>
-      ReactActual.createElement(
-        View,
-        { testID: `batch-sell-review-token-row-${tokenKey}` },
-        ReactActual.createElement(Text, null, token.symbol),
-        ReactActual.createElement(Text, null, `${percent}%`),
-        ReactActual.createElement(Pressable, {
-          onPress: () => onSlippagePress(token),
-          testID: `batch-sell-review-customize-button-${tokenKey}`,
-        }),
-        ReactActual.createElement(Pressable, {
-          accessibilityState: { disabled: Boolean(isRemoveTokenDisabled) },
-          disabled: isRemoveTokenDisabled,
-          onPress: isRemoveTokenDisabled
-            ? undefined
-            : () => onRemovePress(token),
-          testID: `batch-sell-review-remove-button-${tokenKey}`,
-        }),
+      return token.balance;
+    },
+  ),
+  hasValidBatchSellSourceAmounts: jest.fn(
+    (
+      _sourceTokens: BridgeToken[],
+      batchSellSourceTokenAmounts: Record<string, string | undefined>,
+    ) =>
+      Object.values(batchSellSourceTokenAmounts).some(
+        (amount) => amount !== undefined && Number(amount) > 0,
       ),
-  };
-});
+  ),
+  useBatchSellQuoteRequest: jest.fn(() => ({
+    updateBatchSellQuoteParams: mockUpdateBatchSellQuoteParams,
+    getNewQuote: mockGetNewQuote,
+  })),
+}));
+
+jest.mock('../../hooks/useBatchSellQuoteData', () => ({
+  useBatchSellQuoteData: () => mockBatchSellQuoteData,
+}));
 
 describe('BatchSellReview', () => {
   beforeEach(() => {
@@ -137,33 +232,255 @@ describe('BatchSellReview', () => {
     mockSelectedDestinationToken = usdcToken;
     mockDestinationTokens = [usdcToken];
     mockBatchSellSlippages = {};
+    mockBatchSellSourceTokenAmounts = {
+      [ethAssetId]: '1.498',
+      [uniAssetId]: '154.297',
+    };
+    mockBatchSellQuoteData = defaultQuoteData;
+    mockGetNewQuote.mockClear();
   });
 
-  it('renders the quote loading screen', () => {
+  it('renders the quote review screen', () => {
     const { getByTestId, getByText } = render(<BatchSellReview />);
 
     expect(
       getByTestId(BatchSellReviewSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
     expect(getByText('Total received')).toBeOnTheScreen();
-    expect(
-      getByTestId(BatchSellReviewSelectorsIDs.TOTAL_RECEIVED_SKELETON),
-    ).toBeOnTheScreen();
+    expect(getByText('$3,956.78')).toBeOnTheScreen();
     expect(
       getByTestId(BatchSellReviewSelectorsIDs.DESTINATION_TOKEN_PILL),
     ).toBeOnTheScreen();
     expect(getByText('USDC')).toBeOnTheScreen();
-    expect(getByText('ETH')).toBeOnTheScreen();
-    expect(getByText('UNI')).toBeOnTheScreen();
+    expect(getByText('1.498 ETH • 100%')).toBeOnTheScreen();
+    expect(getByText('154.297 UNI • 100%')).toBeOnTheScreen();
+    expect(getByText('$3,456.78')).toBeOnTheScreen();
+    expect(getByText('$500.00')).toBeOnTheScreen();
+  });
+
+  it('renders the quote loading screen', () => {
+    mockBatchSellQuoteData = {
+      ...defaultQuoteData,
+      isLoading: true,
+      isSummaryLoading: true,
+      hasPendingQuoteRows: true,
+    };
+    const { getByTestId, getByText } = render(<BatchSellReview />);
+    const reviewButton = getByTestId(BatchSellReviewSelectorsIDs.REVIEW_BUTTON);
+
+    expect(getByText('Searching for best quotes')).toBeOnTheScreen();
+    expect(
+      getByTestId(BatchSellReviewSelectorsIDs.TOTAL_RECEIVED_SKELETON),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(
+        `${BatchSellReviewSelectorsIDs.TOKEN_AMOUNT_SKELETON}-0x1:0x1111111111111111111111111111111111111111`,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(
+        `${BatchSellReviewSelectorsIDs.TOKEN_AMOUNT_SKELETON}-0x1:0x2222222222222222222222222222222222222222`,
+      ),
+    ).toBeOnTheScreen();
+    expect(reviewButton.props.accessibilityState.disabled).toBe(true);
+  });
+
+  it('keeps the review CTA disabled while quotes are fetching even when rows have streamed in', () => {
+    mockBatchSellQuoteData = {
+      ...defaultQuoteData,
+      isLoading: true,
+      isSummaryLoading: false,
+      hasAnyQuote: true,
+      hasPendingQuoteRows: false,
+    };
+
+    const { getByTestId, getByText } = render(<BatchSellReview />);
+    const reviewButton = getByTestId(BatchSellReviewSelectorsIDs.REVIEW_BUTTON);
+
+    expect(getByText('Searching for best quotes')).toBeOnTheScreen();
+    expect(reviewButton.props.accessibilityState.disabled).toBe(true);
+  });
+
+  it('shows available row quotes and progressive total while other rows are still loading', () => {
+    mockBatchSellQuoteData = {
+      ...defaultQuoteData,
+      totalReceived: {
+        ...defaultQuoteData.totalReceived,
+        formattedFiat: '$3,456.78',
+      },
+      isLoading: true,
+      isSummaryLoading: false,
+      hasPendingQuoteRows: true,
+      tokenData: {
+        ...defaultQuoteData.tokenData,
+        [ethAssetId]: {
+          ...defaultQuoteData.tokenData[ethAssetId],
+          isLoading: false,
+        },
+        [uniAssetId]: {
+          ...defaultQuoteData.tokenData[uniAssetId],
+          isLoading: true,
+        },
+      },
+    };
+
+    const { getAllByText, getByTestId, getByText, queryByTestId } = render(
+      <BatchSellReview />,
+    );
+    const reviewButton = getByTestId(BatchSellReviewSelectorsIDs.REVIEW_BUTTON);
+
+    expect(getByText('Searching for best quotes')).toBeOnTheScreen();
+    expect(getAllByText('$3,456.78').length).toBeGreaterThan(0);
+    expect(
+      queryByTestId(BatchSellReviewSelectorsIDs.TOTAL_RECEIVED_SKELETON),
+    ).toBeNull();
+    expect(
+      queryByTestId(
+        `${BatchSellReviewSelectorsIDs.TOKEN_AMOUNT_SKELETON}-0x1:0x1111111111111111111111111111111111111111`,
+      ),
+    ).toBeNull();
+    expect(
+      getByTestId(
+        `${BatchSellReviewSelectorsIDs.TOKEN_AMOUNT_SKELETON}-0x1:0x2222222222222222222222222222222222222222`,
+      ),
+    ).toBeOnTheScreen();
+    expect(reviewButton.props.accessibilityState.disabled).toBe(true);
+  });
+
+  it('renders no quote available for unavailable rows and allows review with multiple available quotes', () => {
+    mockSelectedTokens = [...defaultSelectedTokens, thirdSelectedToken];
+    mockBatchSellSourceTokenAmounts = {
+      ...mockBatchSellSourceTokenAmounts,
+      [linkAssetId]: '42.123',
+    };
+    mockBatchSellQuoteData = {
+      ...defaultQuoteData,
+      tokenData: {
+        ...defaultQuoteData.tokenData,
+        [linkAssetId]: {
+          key: linkAssetId,
+          tokenSymbol: 'LINK',
+          slippage: '2%',
+          receivedAmount: '-- USDC',
+          receivedAmountFiat: '-',
+          isQuoteUnavailable: true,
+        },
+      },
+      totalReceived: {
+        formatted: '3,956.78 USDC',
+        formattedFiat: '$3,956.78',
+      },
+      isLoading: false,
+      isSummaryLoading: false,
+      hasAnyQuote: true,
+      hasPendingQuoteRows: false,
+    };
+
+    const { getByTestId, getByText } = render(<BatchSellReview />);
+    const reviewButton = getByTestId(BatchSellReviewSelectorsIDs.REVIEW_BUTTON);
+
+    expect(getByText('No quote available')).toBeOnTheScreen();
+    expect(getByText('42.123 LINK • 100%')).toBeOnTheScreen();
+    expect(reviewButton.props.accessibilityState.disabled).not.toBe(true);
+  });
+
+  it('opens final review without a quote snapshot when unavailable rows are present', () => {
+    mockSelectedTokens = [...defaultSelectedTokens, thirdSelectedToken];
+    mockBatchSellSourceTokenAmounts = {
+      ...mockBatchSellSourceTokenAmounts,
+      [linkAssetId]: '42.123',
+    };
+    mockBatchSellQuoteData = {
+      ...defaultQuoteData,
+      tokenData: {
+        ...defaultQuoteData.tokenData,
+        [linkAssetId]: {
+          key: linkAssetId,
+          tokenSymbol: 'LINK',
+          slippage: '2%',
+          receivedAmount: '-- USDC',
+          receivedAmountFiat: '-',
+          isLoading: false,
+          isQuoteUnavailable: true,
+        },
+      },
+      hasAnyQuote: true,
+      hasPendingQuoteRows: false,
+    };
+
+    const { getByTestId } = render(<BatchSellReview />);
+
+    fireEvent.press(getByTestId(BatchSellReviewSelectorsIDs.REVIEW_BUTTON));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.BATCH_SELL_FINAL_REVIEW_MODAL,
+    });
+  });
+
+  it('disables review when no rows have quotes', () => {
+    mockBatchSellQuoteData = {
+      ...defaultQuoteData,
+      tokenData: Object.entries(defaultQuoteData.tokenData).reduce<
+        MockBatchSellQuoteData['tokenData']
+      >((tokenDataByAssetId, [assetId, tokenData]) => {
+        tokenDataByAssetId[assetId] = {
+          ...tokenData,
+          receivedAmount: '-- USDC',
+          receivedAmountFiat: '-',
+          isQuoteUnavailable: true,
+        };
+        return tokenDataByAssetId;
+      }, {}),
+      totalReceived: {
+        formatted: '-- USDC',
+        formattedFiat: '-',
+      },
+      minimumReceived: { formatted: '-- USDC' },
+      isLoading: false,
+      isSummaryLoading: false,
+      hasAnyQuote: false,
+      hasPendingQuoteRows: false,
+    };
+    const { getAllByText, getByTestId, getByText } = render(
+      <BatchSellReview />,
+    );
+    const reviewButton = getByTestId(BatchSellReviewSelectorsIDs.REVIEW_BUTTON);
+
+    expect(getAllByText('No quote available')).toHaveLength(2);
+    expect(getByText('Review')).toBeOnTheScreen();
+    expect(reviewButton.props.accessibilityState.disabled).toBe(true);
   });
 
   it('sets selected token percents to 100% on entry', () => {
-    const { getAllByText } = render(<BatchSellReview />);
+    const { getByText } = render(<BatchSellReview />);
 
-    expect(getAllByText('100%')).toHaveLength(mockSelectedTokens.length);
+    expect(getByText('1.498 ETH • 100%')).toBeOnTheScreen();
+    expect(getByText('154.297 UNI • 100%')).toBeOnTheScreen();
   });
 
-  it('enables the review button while quote placeholders are available', () => {
+  it('does not dispatch source token amount updates when undefined values are unchanged', () => {
+    mockSelectedTokens = [
+      {
+        ...defaultSelectedTokens[0],
+        balance: undefined,
+      },
+      defaultSelectedTokens[1],
+    ];
+    mockBatchSellSourceTokenAmounts = {
+      [ethAssetId]: undefined,
+      [uniAssetId]: '154.297',
+    };
+
+    render(<BatchSellReview />);
+
+    const sourceAmountUpdateCalls = mockDispatch.mock.calls.filter(
+      ([action]) => action?.type === 'bridge/setBatchSellSourceTokenAmounts',
+    );
+
+    expect(sourceAmountUpdateCalls).toHaveLength(0);
+  });
+
+  it('enables the review button when quotes are available', () => {
     const { getByTestId, getByText } = render(<BatchSellReview />);
     const reviewButton = getByTestId(BatchSellReviewSelectorsIDs.REVIEW_BUTTON);
 
@@ -171,15 +488,33 @@ describe('BatchSellReview', () => {
     expect(reviewButton.props.accessibilityState.disabled).not.toBe(true);
   });
 
+  it('disables the review button and clears quotes when all source amounts are zero', () => {
+    mockBatchSellSourceTokenAmounts = {
+      [ethAssetId]: '0',
+      [uniAssetId]: '0',
+    };
+    mockBatchSellQuoteData = {
+      ...defaultQuoteData,
+      hasAnyQuote: false,
+    };
+
+    const { getByTestId } = render(<BatchSellReview />);
+    const reviewButton = getByTestId(BatchSellReviewSelectorsIDs.REVIEW_BUTTON);
+
+    expect(reviewButton.props.accessibilityState.disabled).toBe(true);
+    expect(mockUpdateBatchSellQuoteParams).not.toHaveBeenCalled();
+    expect(Engine.context.BridgeController.resetState).toHaveBeenCalled();
+    expect(mockCancelBatchSellQuoteParams).toHaveBeenCalled();
+  });
+
   it('shows UNKNOWN when there is no destination token match', () => {
     mockSelectedDestinationToken = undefined;
     mockDestinationTokens = [];
 
-    const { getByTestId, getByText, queryByText } = render(<BatchSellReview />);
+    const { getByTestId, getByText } = render(<BatchSellReview />);
     const reviewButton = getByTestId(BatchSellReviewSelectorsIDs.REVIEW_BUTTON);
 
     expect(getByText('UNKNOWN')).toBeOnTheScreen();
-    expect(queryByText('USDC')).toBeNull();
     expect(reviewButton.props.accessibilityState.disabled).not.toBe(true);
   });
 
@@ -204,25 +539,33 @@ describe('BatchSellReview', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.BATCH_SELL_QUOTE_DETAILS_MODAL,
-      params: {
-        tokenData: [
-          {
-            key: '0x1:0x1111111111111111111111111111111111111111',
-            tokenSymbol: 'ETH',
-            slippage: '2%',
-            receivedAmount: '-- USDC',
-          },
-          {
-            key: '0x1:0x2222222222222222222222222222222222222222',
-            tokenSymbol: 'UNI',
-            slippage: '2%',
-            receivedAmount: '-- USDC',
-          },
-        ],
-        totalReceived: '-- USDC',
-        minimumReceived: '-- USDC',
-        isLoading: false,
+    });
+  });
+
+  it('opens the high price impact info modal from a token row tag', () => {
+    mockBatchSellQuoteData = {
+      ...defaultQuoteData,
+      tokenData: {
+        ...defaultQuoteData.tokenData,
+        [ethAssetId]: {
+          ...defaultQuoteData.tokenData[ethAssetId],
+          priceImpact: '0.06',
+          isHighPriceImpact: true,
+        },
       },
+    };
+    const { getByTestId, getByText } = render(<BatchSellReview />);
+
+    expect(getByText('High price impact')).toBeOnTheScreen();
+    fireEvent.press(
+      getByTestId(
+        `${BatchSellReviewSelectorsIDs.HIGH_PRICE_IMPACT_TAG}-0x1:0x1111111111111111111111111111111111111111`,
+      ),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.BATCH_SELL_PRICE_IMPACT_INFO_MODAL,
+      params: { priceImpact: '0.06' },
     });
   });
 
@@ -233,38 +576,25 @@ describe('BatchSellReview', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.BATCH_SELL_FINAL_REVIEW_MODAL,
-      params: {
-        tokenData: [
-          {
-            key: '0x1:0x1111111111111111111111111111111111111111',
-            tokenSymbol: 'ETH',
-            slippage: '2%',
-            receivedAmount: '-- USDC',
-          },
-          {
-            key: '0x1:0x2222222222222222222222222222222222222222',
-            tokenSymbol: 'UNI',
-            slippage: '2%',
-            receivedAmount: '-- USDC',
-          },
-        ],
-        totalReceived: '-- USDC',
-        minimumReceived: '-- USDC',
-        isLoading: false,
-        sourceTokens: [
-          {
-            key: '0x1:0x1111111111111111111111111111111111111111',
-            tokenSymbol: 'ETH',
-          },
-          {
-            key: '0x1:0x2222222222222222222222222222222222222222',
-            tokenSymbol: 'UNI',
-          },
-        ],
-        networkFee: '1.20 USDC',
-        networkFeeFiat: '$1.20',
-        metamaskFeePercent: '0.875',
-      },
+    });
+  });
+
+  it('shows Get new quote when max refresh expires and fetches fresh quotes', () => {
+    mockBatchSellQuoteData = {
+      ...defaultQuoteData,
+      needsNewQuote: true,
+      hasPendingQuoteRows: true,
+    };
+    const { getByTestId, getByText } = render(<BatchSellReview />);
+    const reviewButton = getByTestId(BatchSellReviewSelectorsIDs.REVIEW_BUTTON);
+
+    fireEvent.press(reviewButton);
+
+    expect(getByText('Get new quote')).toBeOnTheScreen();
+    expect(reviewButton.props.accessibilityState.disabled).not.toBe(true);
+    expect(mockGetNewQuote).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.BATCH_SELL_FINAL_REVIEW_MODAL,
     });
   });
 
@@ -282,8 +612,7 @@ describe('BatchSellReview', () => {
       params: {
         sourceChainId: '0x1',
         destChainId: '0x1',
-        batchSellAssetId:
-          'eip155:1/erc20:0x1111111111111111111111111111111111111111',
+        batchSellAssetId: ethAssetId,
       },
     });
   });
@@ -310,13 +639,28 @@ describe('BatchSellReview', () => {
     });
   });
 
-  it('resets bridge state on unmount', () => {
+  it('updates Batch Sell quote params when Redux inputs are present', () => {
+    render(<BatchSellReview />);
+
+    expect(mockUpdateBatchSellQuoteParams).toHaveBeenCalled();
+  });
+
+  it('cancels the Batch Sell quote params update on unmount', () => {
+    const { unmount } = render(<BatchSellReview />);
+
+    unmount();
+
+    expect(mockCancelBatchSellQuoteParams).toHaveBeenCalled();
+  });
+
+  it('resets controller quote state but leaves Redux bridge state intact on unmount', () => {
     const { unmount } = render(<BatchSellReview />);
 
     mockDispatch.mockClear();
     unmount();
 
-    expect(mockDispatch).toHaveBeenCalledWith({
+    expect(Engine.context.BridgeController.resetState).toHaveBeenCalledTimes(1);
+    expect(mockDispatch).not.toHaveBeenCalledWith({
       type: 'bridge/resetBridgeState',
     });
   });

@@ -81,6 +81,7 @@ import PerpsNavigationCard, {
 } from '../../components/PerpsNavigationCard/PerpsNavigationCard';
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
 import PerpsCompetitionBanner from '../../components/PerpsCompetitionBanner';
+import PerpsTopMoversSection from '../../components/PerpsTopMoversSection';
 
 interface PerpsHomeViewProps {
   hideHeader?: boolean;
@@ -580,12 +581,25 @@ const PerpsHomeView = ({
           </View>
         </PerpsHomeSection>
 
+        {/* What's Happening Section */}
+        {isWhatsHappeningEnabled && (
+          <View style={styles.whatsHappeningSection}>
+            <WhatsHappeningSection source={WhatsHappeningSource.Perps} />
+          </View>
+        )}
+
         {/* Watchlist Section */}
         <PerpsWatchlistMarkets
           markets={watchlistMarkets}
           isLoading={isLoading.markets}
           positions={positions}
           orders={orders}
+          source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+          transactionActiveAbTests={transactionActiveAbTests}
+        />
+
+        {/* Top Movers Section */}
+        <PerpsTopMoversSection
           source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
           transactionActiveAbTests={transactionActiveAbTests}
         />
@@ -613,13 +627,6 @@ const PerpsHomeView = ({
           source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
           transactionActiveAbTests={transactionActiveAbTests}
         />
-
-        {/* What's Happening Section */}
-        {isWhatsHappeningEnabled && (
-          <View style={styles.whatsHappeningSection}>
-            <WhatsHappeningSection source={WhatsHappeningSource.Perps} />
-          </View>
-        )}
 
         {/* Stocks Markets List */}
         <View onLayout={handleSectionLayout('explore_stocks')}>
@@ -682,29 +689,25 @@ const PerpsHomeView = ({
         !showCancelAllSheet &&
         !HOME_SCREEN_CONFIG.ShowHeaderActionButtons && (
           <View style={fixedFooterStyle}>
-            <View style={styles.footerButtonsContainer}>
-              <View style={styles.footerButton}>
-                <Button
-                  variant={ButtonVariant.Secondary}
-                  size={ButtonSize.Lg}
-                  onPress={handleWithdraw}
-                  isFullWidth
-                  testID={PerpsHomeViewSelectorsIDs.WITHDRAW_BUTTON}
-                >
-                  {strings('perps.withdraw')}
-                </Button>
-              </View>
-              <View style={styles.footerButton}>
-                <Button
-                  variant={ButtonVariant.Primary}
-                  size={ButtonSize.Lg}
-                  onPress={handleAddFunds}
-                  isFullWidth
-                  testID={PerpsHomeViewSelectorsIDs.ADD_FUNDS_BUTTON}
-                >
-                  {strings('perps.add_funds')}
-                </Button>
-              </View>
+            <View style={styles.footerButtonsContainer} accessible={false}>
+              <Button
+                variant={ButtonVariant.Secondary}
+                size={ButtonSize.Lg}
+                onPress={handleWithdraw}
+                style={styles.footerButton}
+                testID={PerpsHomeViewSelectorsIDs.WITHDRAW_BUTTON}
+              >
+                {strings('perps.withdraw')}
+              </Button>
+              <Button
+                variant={ButtonVariant.Primary}
+                size={ButtonSize.Lg}
+                onPress={handleAddFunds}
+                style={styles.footerButton}
+                testID={PerpsHomeViewSelectorsIDs.ADD_FUNDS_BUTTON}
+              >
+                {strings('perps.add_funds')}
+              </Button>
             </View>
           </View>
         )}

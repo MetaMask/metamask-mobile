@@ -87,6 +87,7 @@ import { getAuthIcon, getAuthLabel, getAuthType } from './utils';
 import { IconName } from '@metamask/design-system-react-native';
 import { containsErrorMessage } from '../../util/errorHandling';
 import { ensureError } from '../../util/errorUtils';
+import { navigateToPostUnlockHome } from '../DeeplinkManager/utils/startupDeeplinkNavigation';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -829,9 +830,7 @@ class AuthenticationService {
               ],
             });
           } else {
-            NavigationService.navigation?.reset({
-              routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-            });
+            await navigateToPostUnlockHome();
           }
         } else {
           // No password provided or derived. Navigate to login.

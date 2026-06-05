@@ -53,6 +53,11 @@ jest.mock('../../../../../../selectors/featureFlagController', () => ({
 jest.mock('../../../../../../core/redux/slices/bridge', () => ({
   selectDestAddress: jest.fn(),
   selectSlippage: jest.fn(),
+  selectBridgeFeatureFlags: jest.fn(() => ({
+    maxRefreshCount: 5,
+    refreshRate: 30000,
+    chains: {},
+  })),
 }));
 
 jest.mock('../../../../../../selectors/bridge', () => ({
@@ -211,6 +216,105 @@ describe('useQuickBuyQuotes', () => {
     });
 
     await waitFor(() => expect(fetchQuotesMock).toHaveBeenCalledTimes(1));
+  });
+
+  it('fetches immediately without waiting for the debounce when immediateFetchToken increments', async () => {
+    fetchQuotesMock.mockResolvedValue([createFetchedQuote()]);
+
+    const { rerender } = renderHook(
+      ({ token }: { token: number }) =>
+        useQuickBuyQuotes({
+          sourceToken: createSourceToken(),
+          destToken: createDestToken(),
+          sourceTokenAmount: '0.001',
+          immediateFetchToken: token,
+        }),
+      { initialProps: { token: 0 } },
+    );
+
+    fetchQuotesMock.mockClear();
+
+    rerender({ token: 1 });
+
+    await waitFor(() => expect(fetchQuotesMock).toHaveBeenCalledTimes(1));
+  });
+
+  it('keeps typed input debounced when immediateFetchToken is unchanged', async () => {
+    fetchQuotesMock.mockResolvedValue([createFetchedQuote()]);
+
+    const { rerender } = renderHook(
+      ({ amount }: { amount: string }) =>
+        useQuickBuyQuotes({
+          sourceToken: createSourceToken(),
+          destToken: createDestToken(),
+          sourceTokenAmount: amount,
+          immediateFetchToken: 0,
+        }),
+      { initialProps: { amount: '0.001' } },
+    );
+
+    fetchQuotesMock.mockClear();
+
+    rerender({ amount: '0.002' });
+
+    expect(fetchQuotesMock).not.toHaveBeenCalled();
+
+    act(() => {
+      jest.advanceTimersByTime(QUICK_BUY_QUOTE_DEBOUNCE_MS);
+    });
+
+    await waitFor(() => expect(fetchQuotesMock).toHaveBeenCalledTimes(1));
+  });
+
+  it('aborts the in-flight request and applies only the latest when slides are committed in quick succession', async () => {
+    const staleQuote = createFetchedQuote();
+    staleQuote.quote.requestId = 'stale';
+    const freshQuote = createFetchedQuote();
+    freshQuote.quote.requestId = 'fresh';
+
+    mockSelectBridgeQuotesBase.mockImplementation(
+      (controllerFields: { quotes: unknown[] }) => ({
+        sortedQuotes: controllerFields.quotes,
+        recommendedQuote: controllerFields.quotes[0] ?? null,
+      }),
+    );
+
+    let resolveStale: (value: unknown) => void = () => undefined;
+    const stalePromise = new Promise((resolve) => {
+      resolveStale = resolve;
+    });
+    fetchQuotesMock
+      .mockReturnValueOnce(stalePromise)
+      .mockResolvedValueOnce([freshQuote]);
+
+    const { result, rerender } = renderHook(
+      ({ token, amount }: { token: number; amount: string }) =>
+        useQuickBuyQuotes({
+          sourceToken: createSourceToken(),
+          destToken: createDestToken(),
+          sourceTokenAmount: amount,
+          immediateFetchToken: token,
+        }),
+      { initialProps: { token: 0, amount: '0.001' } },
+    );
+
+    rerender({ token: 1, amount: '0.001' });
+    rerender({ token: 2, amount: '0.002' });
+
+    await waitFor(() =>
+      expect(result.current.activeQuote?.quote.requestId).toBe('fresh'),
+    );
+
+    expect(fetchQuotesMock).toHaveBeenCalledTimes(2);
+    const firstRequestSignal = fetchQuotesMock.mock.calls[0][1];
+    expect(firstRequestSignal.aborted).toBe(true);
+
+    await act(async () => {
+      resolveStale([staleQuote]);
+      await Promise.resolve();
+    });
+
+    expect(result.current.activeQuote?.quote.requestId).toBe('fresh');
   });
 
   it('calls BridgeController.fetchQuotes with atomic source amount and slippage', async () => {
@@ -444,6 +548,48 @@ describe('useQuickBuyQuotes', () => {
     );
   });
 
+  it('waits the full refresh interval after a failed auto-refresh, not immediate retry', async () => {
+    const fetched = createFetchedQuote();
+    fetchQuotesMock
+      .mockResolvedValueOnce([fetched])
+      .mockRejectedValue(new Error('network error'));
+
+    const { result } = renderHook(() =>
+      useQuickBuyQuotes({
+        sourceToken: createSourceToken(),
+        destToken: createDestToken(),
+        sourceTokenAmount: '0.001',
+      }),
+    );
+
+    await act(async () => {
+      jest.advanceTimersByTime(QUICK_BUY_QUOTE_DEBOUNCE_MS);
+    });
+    await waitFor(() => {
+      expect(fetchQuotesMock).toHaveBeenCalledTimes(1);
+      expect(result.current.refreshCount).toBe(1);
+    });
+
+    const refreshMs = result.current.quoteRefreshRateMs;
+    const callsAfterInitialFetch = fetchQuotesMock.mock.calls.length;
+
+    await act(async () => {
+      jest.advanceTimersByTime(refreshMs);
+      await Promise.resolve();
+    });
+    expect(result.current.quoteFetchError).toBe('network error');
+
+    const callsAfterFailedAutoRefresh = fetchQuotesMock.mock.calls.length;
+    expect(callsAfterFailedAutoRefresh).toBeGreaterThan(callsAfterInitialFetch);
+
+    // Failed fetch must not trigger an immediate retry (delay = 0 loop).
+    await act(async () => {
+      jest.advanceTimersByTime(1);
+      await Promise.resolve();
+    });
+    expect(fetchQuotesMock.mock.calls.length).toBe(callsAfterFailedAutoRefresh);
+  });
+
   it('enriches raw quotes via selectBridgeQuotes and returns the recommended quote', async () => {
     const fetched = createFetchedQuote();
     const enriched = { ...fetched, gasFee: { effective: { amount: '0.001' } } };
@@ -472,5 +618,57 @@ describe('useQuickBuyQuotes', () => {
 
     const lastCallFields = mockSelectBridgeQuotesBase.mock.calls.at(-1)?.[0];
     expect(lastCallFields.quotes).toEqual([fetched]);
+  });
+
+  it('flags isQuoteRequestStale when slippage changes after quotes settle, then clears once refetched', async () => {
+    fetchQuotesMock.mockResolvedValue([createFetchedQuote()]);
+
+    const { result, rerender } = renderHook(() =>
+      useQuickBuyQuotes({
+        sourceToken: createSourceToken(),
+        destToken: createDestToken(),
+        sourceTokenAmount: '0.001',
+      }),
+    );
+
+    await act(async () => {
+      jest.advanceTimersByTime(QUICK_BUY_QUOTE_DEBOUNCE_MS);
+    });
+    await waitFor(() => expect(fetchQuotesMock).toHaveBeenCalledTimes(1));
+    expect(result.current.isQuoteRequestStale).toBe(false);
+
+    (selectSlippage as unknown as jest.Mock).mockReturnValue('1');
+    rerender({});
+
+    expect(result.current.isQuoteRequestStale).toBe(true);
+
+    await act(async () => {
+      jest.advanceTimersByTime(QUICK_BUY_QUOTE_DEBOUNCE_MS);
+    });
+
+    await waitFor(() => expect(result.current.isQuoteRequestStale).toBe(false));
+  });
+
+  it('flags isQuoteRequestStale when the destination address changes', async () => {
+    fetchQuotesMock.mockResolvedValue([createFetchedQuote()]);
+
+    const { result, rerender } = renderHook(() =>
+      useQuickBuyQuotes({
+        sourceToken: createSourceToken(),
+        destToken: createDestToken(),
+        sourceTokenAmount: '0.001',
+      }),
+    );
+
+    await act(async () => {
+      jest.advanceTimersByTime(QUICK_BUY_QUOTE_DEBOUNCE_MS);
+    });
+    await waitFor(() => expect(fetchQuotesMock).toHaveBeenCalledTimes(1));
+    expect(result.current.isQuoteRequestStale).toBe(false);
+
+    (selectDestAddress as unknown as jest.Mock).mockReturnValue('0xRECIPIENT');
+    rerender({});
+
+    expect(result.current.isQuoteRequestStale).toBe(true);
   });
 });

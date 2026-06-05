@@ -6,9 +6,11 @@ import MoneyOnboardingView, {
 import { RiveOnboardingStepperTestIds } from '../../../RiveOnboardingStepper/RiveOnboardingStepper.testIds';
 import { __clearLastMockedMethods } from '../../../../../__mocks__/rive-react-native';
 import Routes from '../../../../../constants/navigation/Routes';
+import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
 
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
+const mockUseSelector = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
@@ -16,7 +18,7 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('react-redux', () => ({
   useDispatch: () => mockDispatch,
-  useSelector: jest.fn().mockReturnValue(false),
+  useSelector: (selector: unknown) => mockUseSelector(selector),
 }));
 
 jest.mock('../../hooks/useMoneyAccountBalance', () => ({
@@ -43,6 +45,11 @@ describe('MoneyOnboardingView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     __clearLastMockedMethods();
+    // Stepper animation (Rive) enabled by default; every other selector is irrelevant here.
+    mockUseSelector.mockImplementation(
+      (selector: unknown) =>
+        selector === selectMoneyOnboardingStepperAnimationEnabled,
+    );
   });
 
   describe('Rendering', () => {
@@ -110,6 +117,30 @@ describe('MoneyOnboardingView', () => {
       const { getByText } = render(<MoneyOnboardingView />);
       expect(
         getByText('APY is variable and not guaranteed.'),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  describe('when the onboarding stepper flag is disabled', () => {
+    beforeEach(() => {
+      mockUseSelector.mockImplementation(() => false);
+    });
+
+    it('does not render the Rive animation', () => {
+      const { queryByTestId } = render(<MoneyOnboardingView />);
+      expect(
+        queryByTestId(RiveOnboardingStepperTestIds.RIVE_ANIMATION),
+      ).toBeNull();
+    });
+
+    it('still renders the onboarding content (container, title, footer button)', () => {
+      const { getByTestId, getByText } = render(<MoneyOnboardingView />);
+      expect(
+        getByTestId(RiveOnboardingStepperTestIds.CONTAINER),
+      ).toBeOnTheScreen();
+      expect(getByText('Money accounts are here')).toBeOnTheScreen();
+      expect(
+        getByTestId(RiveOnboardingStepperTestIds.FOOTER_BUTTON),
       ).toBeOnTheScreen();
     });
   });

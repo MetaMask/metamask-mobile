@@ -4,8 +4,7 @@ import { useSelector } from 'react-redux';
 import { selectShouldShowPna25Notice } from '../../selectors/legalNotices';
 import Routes from '../../constants/navigation/Routes';
 
-const isE2ETest =
-  process.env.IS_TEST === 'true' || process.env.METAMASK_ENVIRONMENT === 'e2e';
+const hasTestOverrides = process.env.HAS_TEST_OVERRIDES === 'true';
 
 /**
  * Hook to handle showing the PNA25 privacy notice bottom sheet
@@ -20,7 +19,7 @@ export const usePna25BottomSheet = () => {
   const shouldShowPna25 = useSelector(selectShouldShowPna25Notice);
 
   const checkAndShowPna25BottomSheet = useCallback(() => {
-    if (shouldShowPna25 && !isE2ETest) {
+    if (shouldShowPna25 && !hasTestOverrides) {
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.MODAL.PNA25_NOTICE_BOTTOM_SHEET,
       });
