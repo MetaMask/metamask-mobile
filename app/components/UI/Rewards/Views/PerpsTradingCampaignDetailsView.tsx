@@ -134,13 +134,13 @@ const PerpsTradingCampaignDetailsView: React.FC = () => {
 
   const leaderboardUserPosition = useMemo(
     () =>
-      position
+      position?.rank
         ? { rank: position.rank, neighbors: position.neighbors ?? [] }
         : null,
     [position],
   );
-
-  const hasPosition = Boolean(leaderboardUserPosition);
+  const hasPosition =
+    position != null && Number.isFinite(position.volume) && position.volume > 0;
   const totalParticipants = leaderboard?.totalParticipants ?? 0;
 
   const {

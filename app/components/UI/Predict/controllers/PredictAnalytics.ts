@@ -45,6 +45,8 @@ export interface MarketDetailsOpenedArgs {
   marketCategory?: string;
   marketTags?: string[];
   entryPoint: string;
+  predictFeedTab?: string;
+  predictScreen?: string;
   marketDetailsViewed: string;
   marketSlug?: string;
   gameId?: string;
@@ -109,6 +111,14 @@ export class PredictAnalytics {
         analyticsProperties.marketCategory,
       [PredictEventProperties.MARKET_TAGS]: analyticsProperties.marketTags,
       [PredictEventProperties.ENTRY_POINT]: analyticsProperties.entryPoint,
+      ...(analyticsProperties.predictFeedTab && {
+        [PredictEventProperties.PREDICT_FEED_TAB]:
+          analyticsProperties.predictFeedTab,
+      }),
+      ...(analyticsProperties.predictScreen && {
+        [PredictEventProperties.PREDICT_SCREEN]:
+          analyticsProperties.predictScreen,
+      }),
       [PredictEventProperties.TRANSACTION_TYPE]:
         analyticsProperties.transactionType,
       [PredictEventProperties.LIQUIDITY]: analyticsProperties.liquidity,

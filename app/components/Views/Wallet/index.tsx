@@ -59,6 +59,7 @@ import AddressCopy from '../../UI/AddressCopy';
 import CardButton from '../../UI/Card/components/CardButton';
 import { selectMoneyHomeScreenEnabledFlag } from '../../UI/Money/selectors/featureFlags';
 import MoneyBalanceCard from '../../UI/Money/components/MoneyBalanceCard';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { createAccountSelectorNavDetails } from '../AccountSelector';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
@@ -124,6 +125,7 @@ import { useAccountGroupName } from '../../hooks/multichainAccounts/useAccountGr
 import { useAccountName } from '../../hooks/useAccountName';
 import usePrevious from '../../hooks/usePrevious';
 import { PERFORMANCE_CONFIG } from '@metamask/perps-controller';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorBoundary from '../ErrorBoundary';
 
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
@@ -131,16 +133,22 @@ import {
   selectHomepageSectionsV1Enabled,
   selectWalletHomeOnboardingStepsEnabled,
 } from '../../../selectors/featureFlagController/homepage';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import Homepage from '../Homepage';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import HomepageDiscoveryTabs from '../Homepage/components/HomepageDiscoveryTabs';
 import {
   HUB_PAGE_DISCOVERY_TABS_AB_KEY,
   HUB_PAGE_DISCOVERY_TABS_VARIANTS,
   HubPageDiscoveryTabsVariant,
+  // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 } from '../Homepage/abTestConfig';
 import { useABTest } from '../../../hooks';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { SectionRefreshHandle } from '../Homepage/types';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { HomepageScrollContext } from '../Homepage/context/HomepageScrollContext';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { HomeSectionName } from '../Homepage/hooks/useHomeViewedEvent';
 import AccountGroupBalance from '../../UI/Assets/components/Balance/AccountGroupBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
@@ -160,6 +168,7 @@ import {
   useSwapBridgeNavigation,
 } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
 import DeFiPositionsList from '../../UI/DeFiPositions/DeFiPositionsList';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import AssetDetailsActions from '../AssetDetails/AssetDetailsActions';
 import AppConstants from '../../../core/AppConstants';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -167,6 +176,7 @@ import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
 import { suppressWalletHomeOnboardingSteps } from '../../../actions/onboarding';
 import { WALLET_HOME_POST_ONBOARDING_REVEAL_MS } from '../../UI/WalletHomeOnboardingSteps';
+import { useWalletHomeOnboardingChecklistTradePress } from '../../UI/WalletHomeOnboardingSteps/useWalletHomeOnboardingChecklistTradePress';
 import {
   IconColor,
   IconName,
@@ -185,11 +195,14 @@ import {
   selectPredictGtmOnboardingModalEnabledFlag,
 } from '../../UI/Predict/selectors/featureFlags';
 import PredictTabView from '../../UI/Predict/views/PredictTabView';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { InitSendLocation } from '../confirmations/constants/send';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 import { Carousel } from '../../UI/Carousel';
 import { SolScope } from '@metamask/keyring-api';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
 import NftGrid from '../../UI/NftGrid/NftGrid';
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
@@ -735,16 +748,8 @@ const Wallet = ({
     sourcePage: 'MainView',
   });
 
-  /** Trade checklist primary — Segment location per TMCU-680. */
-  const goToSwapsFromOnboardingChecklist = useCallback(() => {
-    goToSwaps(
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      ActionLocation.ONBOARDING_CHECKLIST,
-    );
-  }, [goToSwaps]);
+  const onTradePrimaryPress =
+    useWalletHomeOnboardingChecklistTradePress(goToSwaps);
   const handleWalletHomeOnboardingNotificationsPrimary = useCallback(() => {
     navigation.navigate(Routes.SETTINGS_VIEW, {
       screen: Routes.SETTINGS.NOTIFICATIONS,
@@ -1355,7 +1360,7 @@ const Wallet = ({
   const walletHomeAccountGroupBalanceProps = {
     onCoordinatedFlowExit: runWalletHomePostOnboardingComplete,
     suspendRiveForCurtain: postOnboardingExitAnimating,
-    onTradePrimaryPress: goToSwapsFromOnboardingChecklist,
+    onTradePrimaryPress,
     onNotificationsPrimaryPress: handleWalletHomeOnboardingNotificationsPrimary,
   };
 

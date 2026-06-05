@@ -482,7 +482,13 @@ jobs:
         run: node scripts/android-play-store-check-slack.mjs
 
       - name: Upload Android Play Store Slack report (main-rc only)
-        if: false
+        if: >-
+          success() &&
+          matrix.platform == 'android' &&
+          inputs.build_name == 'main-rc' &&
+          env.CONFIGURATION != 'Debug' &&
+          env.METAMASK_BUILD_TYPE == 'main' &&
+          env.METAMASK_ENVIRONMENT != 'e2e'
         uses: actions/upload-artifact@v4
         with:
           name: android-play-store-check-slack

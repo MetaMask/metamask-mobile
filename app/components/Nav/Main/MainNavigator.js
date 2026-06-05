@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Image, StyleSheet, Keyboard, Platform } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { mainNavigatorReady } from '../../../actions/navigation';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Browser from '../../Views/Browser';
 import { ChainId } from '@metamask/controller-utils';
@@ -102,7 +103,11 @@ import { AccountPermissionsScreens } from '../../../components/Views/AccountPerm
 import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
 import { AssetLoader } from '../../Views/AssetLoader';
 import { EarnScreenStack, EarnModalStack } from '../../UI/Earn/routes';
-import { MoneyAccountStackGate, MoneyModalStack } from '../../UI/Money/routes';
+import {
+  MoneyConfirmationScreenStack,
+  MoneyModalStack,
+  MoneyTabScreenStack,
+} from '../../UI/Money/routes';
 import MoneyOnboardingView from '../../UI/Money/Views/MoneyOnboardingView';
 import { selectMoneyHomeScreenEnabledFlag } from '../../UI/Money/selectors/featureFlags';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
@@ -328,12 +333,18 @@ const RewardsHome = () => {
       <Stack.Screen
         name={Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL}
         component={RewardsBottomSheetModal}
-        options={{ presentation: 'transparentModal' }}
+        options={{
+          presentation: 'transparentModal',
+          cardStyle: { backgroundColor: 'transparent' },
+        }}
       />
       <Stack.Screen
         name={Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL}
         component={RewardsClaimBottomSheetModal}
-        options={{ presentation: 'transparentModal' }}
+        options={{
+          presentation: 'transparentModal',
+          cardStyle: { backgroundColor: 'transparent' },
+        }}
       />
       <Stack.Screen
         name={Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL}
@@ -341,13 +352,16 @@ const RewardsHome = () => {
         options={{
           headerShown: false,
           presentation: 'transparentModal',
-          ...clearStackNavigatorOptionsWithTransitionAnimation,
+          cardStyle: { backgroundColor: 'transparent' },
         }}
       />
       <Stack.Screen
         name={Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET}
         component={EndOfSeasonClaimBottomSheet}
-        options={{ presentation: 'transparentModal' }}
+        options={{
+          presentation: 'transparentModal',
+          cardStyle: { backgroundColor: 'transparent' },
+        }}
       />
       <Stack.Screen
         name={Routes.MODAL.REWARDS_SELECT_SHEET}
@@ -872,7 +886,7 @@ const HomeTabs = () => {
           <Tab.Screen
             name={Routes.MONEY.ROOT}
             options={options.money}
-            component={MoneyAccountStackGate}
+            component={MoneyTabScreenStack}
           />
         ) : (
           <Tab.Screen
@@ -1027,6 +1041,15 @@ const SampleFeatureFlow = () => (
 ///: END:ONLY_INCLUDE_IF
 
 const MainNavigator = () => {
+  const dispatch = useDispatch();
+  // Announce to the saga layer (deeplink pipeline) that post-login screens
+  // are now registered with React Navigation. Before this dispatch, a
+  // `navigate('Wallet'|'RampTokenSelection'|...)` call would be silently
+  // dropped because the target screen isn't in the navigation state yet.
+  useEffect(() => {
+    dispatch(mainNavigatorReady());
+  }, [dispatch]);
+
   // Get feature flag state for conditional Money home screen registration
   const isMoneyHomeScreenEnabled = useSelector(
     selectMoneyHomeScreenEnabledFlag,
@@ -1237,7 +1260,12 @@ const MainNavigator = () => {
         <>
           <Stack.Screen
             name={Routes.MONEY.ROOT}
-            component={MoneyAccountStackGate}
+            component={MoneyTabScreenStack}
+            options={{ headerShown: false, ...slideFromRightAnimation }}
+          />
+          <Stack.Screen
+            name={Routes.MONEY.CONFIRMATIONS_ROOT}
+            component={MoneyConfirmationScreenStack}
             options={{ headerShown: false, ...slideFromRightAnimation }}
           />
           <Stack.Screen

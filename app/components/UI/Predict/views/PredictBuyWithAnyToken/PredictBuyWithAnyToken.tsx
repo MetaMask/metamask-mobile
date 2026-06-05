@@ -129,6 +129,8 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     outcome,
     outcomeToken,
     entryPoint,
+    predictFeedTab,
+    predictScreen,
     transactionActiveAbTests,
   } = isSheetMode ? props : route.params;
   const onClose = isSheetMode ? props.onClose : undefined;
@@ -144,8 +146,15 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
   const fakOrdersEnabled = useSelector(selectPredictFakOrdersEnabledFlag);
 
   const analyticsProperties = useMemo(
-    () => parseAnalyticsProperties(market, outcomeToken, entryPoint),
-    [market, outcomeToken, entryPoint],
+    () =>
+      parseAnalyticsProperties(
+        market,
+        outcomeToken,
+        entryPoint,
+        predictFeedTab,
+        predictScreen,
+      ),
+    [market, outcomeToken, entryPoint, predictFeedTab, predictScreen],
   );
 
   const { availableBalance, isBalanceLoading } =
@@ -274,7 +283,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
 
   const handleChangePaymentMethod = useCallback(() => {
     lockPaymentSelectorNavigation();
-    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
+    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET);
   }, [lockPaymentSelectorNavigation, navigation]);
 
   const handleAddFunds = useCallback(() => {

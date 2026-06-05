@@ -74,8 +74,8 @@ import {
   type PredictMarketWithSeries,
 } from '../../utils/series';
 import { getPredictBuyPrice } from '../../utils/prices';
-import { usePredictEntryPoint, usePredictPreviewSheet } from '../../contexts';
-import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
+import { usePredictPreviewSheet } from '../../contexts';
+import { useResolvedPredictEntryPoint } from '../../hooks/useResolvedPredictEntryPoint';
 import { PredictCryptoUpDownMarketCardSelectorsIDs } from '../../Predict.testIds';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import type { LivelinePoint } from '../../../Charts/LivelineChart/LivelineChart.types';
@@ -175,6 +175,8 @@ interface PredictCryptoUpDownMarketCardProps {
   onCardPress?: () => void;
   /** Called when the user taps a buy button (before betslip opens). */
   onBuyButtonPress?: (marketId: string) => void;
+  predictFeedTab?: string;
+  predictScreen?: string;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
@@ -1047,6 +1049,8 @@ const PredictCryptoUpDownMarketCard: React.FC<
   entryPoint: propEntryPoint,
   onCardPress,
   onBuyButtonPress,
+  predictFeedTab,
+  predictScreen,
   transactionActiveAbTests,
 }) => {
   const tw = useTailwind();
@@ -1055,15 +1059,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const { navigateToMarketDetails } = usePredictNavigation();
   const { openBuySheet } = usePredictPreviewSheet();
-  const contextEntryPoint = usePredictEntryPoint();
-  const baseEntryPoint =
-    contextEntryPoint ??
-    propEntryPoint ??
-    PredictEventValues.ENTRY_POINT.PREDICT_FEED;
-  const resolvedEntryPoint = TrendingFeedSessionManager.getInstance()
-    .isFromTrending
-    ? PredictEventValues.ENTRY_POINT.TRENDING
-    : baseEntryPoint;
+  const resolvedEntryPoint = useResolvedPredictEntryPoint(propEntryPoint);
   const { executeGuardedAction } = usePredictActionGuard({ navigation });
   const durationMs = getSeriesDurationMs(market.series.recurrence);
   const windowMs = useSharedSeriesWindowMs(durationMs);
@@ -1182,6 +1178,8 @@ const PredictCryptoUpDownMarketCard: React.FC<
         marketId: selectedMarket.id,
         series: selectedMarket.series,
         entryPoint: resolvedEntryPoint,
+        ...(predictFeedTab && { predictFeedTab }),
+        ...(predictScreen && { predictScreen }),
         title: cardTitle,
         image: imageUrl,
         ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
@@ -1193,6 +1191,8 @@ const PredictCryptoUpDownMarketCard: React.FC<
     imageUrl,
     navigateToMarketDetails,
     onCardPress,
+    predictFeedTab,
+    predictScreen,
     resolvedEntryPoint,
     selectedMarket.id,
     selectedMarket.series,
@@ -1217,6 +1217,8 @@ const PredictCryptoUpDownMarketCard: React.FC<
             outcome: selectedOutcome,
             outcomeToken: token,
             entryPoint: resolvedEntryPoint,
+            ...(predictFeedTab && { predictFeedTab }),
+            ...(predictScreen && { predictScreen }),
             ...(transactionActiveAbTests?.length && {
               transactionActiveAbTests,
             }),
@@ -1231,6 +1233,8 @@ const PredictCryptoUpDownMarketCard: React.FC<
       executeGuardedAction,
       onBuyButtonPress,
       openBuySheet,
+      predictFeedTab,
+      predictScreen,
       resolvedEntryPoint,
       selectedMarket,
       selectedOutcome,

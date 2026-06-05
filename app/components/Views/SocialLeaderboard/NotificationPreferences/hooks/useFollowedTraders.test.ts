@@ -144,16 +144,23 @@ describe('useFollowedTraders', () => {
       expect(result.current.error).toBe('raw error');
     });
 
-    it('logs query errors with enriched extras', () => {
+    it('logs query errors with feature:social tags', () => {
       const error = new Error('fetch failed');
       mockUseQuery.mockReturnValue(makeQueryResult({ error }));
       renderHook(() => useFollowedTraders());
       expect(Logger.error).toHaveBeenCalledWith(
         error,
         expect.objectContaining({
-          message: 'useFollowedTraders: following fetch failed',
-          endpoint: 'following',
-          errorCategory: expect.any(String),
+          tags: expect.objectContaining({
+            feature: 'social',
+            surface: 'followed_traders',
+            operation: 'fetch_following',
+            endpoint: 'following',
+          }),
+          extras: expect.objectContaining({
+            message: 'Followed traders fetch failed at useFollowedTraders',
+            endpoint: 'following',
+          }),
         }),
       );
     });
@@ -191,9 +198,16 @@ describe('useFollowedTraders', () => {
       expect(Logger.error).toHaveBeenCalledWith(
         error,
         expect.objectContaining({
-          message: 'useFollowedTraders: refresh failed',
-          endpoint: 'following',
-          errorCategory: expect.any(String),
+          tags: expect.objectContaining({
+            feature: 'social',
+            surface: 'followed_traders',
+            operation: 'refresh',
+            endpoint: 'following',
+          }),
+          extras: expect.objectContaining({
+            message: 'Followed traders refresh failed at useFollowedTraders',
+            endpoint: 'following',
+          }),
         }),
       );
     });

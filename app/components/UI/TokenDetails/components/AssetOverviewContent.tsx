@@ -67,7 +67,11 @@ import { isCaipAssetType, type Hex } from '@metamask/utils';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import SecurityTrustEntryCard from '../../SecurityTrust/components/SecurityTrustEntryCard/SecurityTrustEntryCard';
-import type { TokenDetailsRouteParams } from '../constants/constants';
+import {
+  TokenDetailsAction,
+  type TokenDetailsRouteParams,
+} from '../constants/constants';
+import { useTokenDetailsActionTracking } from '../hooks/useTokenDetailsActionTracking';
 import { getResultTypeConfig } from '../../SecurityTrust/utils/securityUtils';
 import {
   Box,
@@ -198,6 +202,12 @@ export interface AssetOverviewContentProps {
   isSecurityDataLoading?: boolean;
   /** Whether the security data fetch failed. Hides the card when true. */
   hasSecurityDataError?: boolean;
+
+  // Ambient price color A/B test
+  onPriceDirectionChange?: (isPositive: boolean) => void;
+  useAmbientColor?: boolean;
+  /** Resolved price direction from the chart; true = positive, false = negative, null = not yet resolved. */
+  isPricePositive?: boolean | null;
 }
 
 /**
@@ -237,12 +247,21 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   securityData,
   isSecurityDataLoading = false,
   hasSecurityDataError = false,
+  onPriceDirectionChange,
+  useAmbientColor,
+  isPricePositive,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const resetNavigationLockRef = useRef<(() => void) | null>(null);
   const { isTokenTradingOpen, isStockToken } = useRWAToken();
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const hasBalanceValue = Boolean(balance) && balance !== '0';
+  const trackActionTapped = useTokenDetailsActionTracking({
+    token,
+    hasBalance: hasBalanceValue,
+    severity: securityData?.resultType,
+  });
   const tronNativeToken = isTronNativeToken(token) ? token : null;
 
   const {
@@ -521,6 +540,8 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
       pricePercentChange: percentChange,
       token,
       source: 'token_details',
+      isPricePositive: isPricePositive ?? undefined,
+      useAmbientColor,
     });
   }, [
     navigation,
@@ -531,6 +552,8 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     marketInsightsReport,
     priceDiff,
     comparePrice,
+    useAmbientColor,
+    isPricePositive,
   ]);
 
   const handlePerpsDiscoveryPress = useCallback(() => {
@@ -711,6 +734,8 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             currentPrice={currentPrice}
             comparePrice={comparePrice}
             isLoading={isLoading}
+            onPriceDirectionChange={onPriceDirectionChange}
+            useAmbientColor={useAmbientColor}
           />
           {!isTokenTradingOpen(token as BridgeToken) && (
             <View style={styles.marketClosedActionButtonContainer}>
@@ -723,7 +748,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           )}
           <TokenDetailsActions
             hasPerpsMarket={hasPerpsMarket}
-            hasBalance={Boolean(balance) && balance !== '0'}
+            hasBalance={hasBalanceValue}
             isBuyable={isBuyable}
             isNativeCurrency={token.isETH || token.isNative || false}
             token={token}
@@ -734,6 +759,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             onReceive={onReceive}
             isLoading={isButtonsLoading}
             resetNavigationLockRef={resetNavigationLockRef}
+            onActionTapped={trackActionTapped}
           />
           {shouldShowMarketInsights ? (
             <View style={styles.marketInsightsWrapper}>
@@ -806,7 +832,12 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             />
           )}
           <View style={styles.tokenDetailsWrapper}>
-            <TokenDetails asset={token} />
+            <TokenDetails
+              asset={token}
+              onCopyAddress={() =>
+                trackActionTapped(TokenDetailsAction.CopyTokenAddress)
+              }
+            />
           </View>
           {!hasSecurityDataError &&
             (isSecurityDataLoading || securityData?.resultType) && (
@@ -815,6 +846,8 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                   securityData={securityData ?? null}
                   isLoading={isSecurityDataLoading}
                   token={token as TokenDetailsRouteParams}
+                  isPricePositive={isPricePositive ?? undefined}
+                  useAmbientColor={useAmbientColor}
                 />
               </View>
             )}
