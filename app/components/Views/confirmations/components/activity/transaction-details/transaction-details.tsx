@@ -57,26 +57,28 @@ export function TransactionDetails() {
         backButtonProps={{ testID: 'transaction-details-back-button' }}
         includesTopInset
       />
-      <ScrollView>
-        <Box style={styles.container} gap={12}>
-          <TransactionDetailsHero />
-          <TransactionDetailsStatusRow />
-          <TransactionDetailsDateRow />
-          <TransactionDetailsAccountRow />
-          <TransactionDetailDivider />
-          <TransactionDetailsPaidWithRow />
-          <TransactionDetailsNetworkFeeRow />
-          <TransactionDetailsBridgeFeeRow />
-          <TransactionDetailsTotalRow />
-          {showSummarySection && (
-            <>
-              <TransactionDetailDivider />
-              <TransactionDetailsSummary />
-              <TransactionDetailsRetry />
-            </>
-          )}
-        </Box>
-      </ScrollView>
+      {transactionMeta ? (
+        <ScrollView>
+          <Box style={styles.container} gap={12}>
+            <TransactionDetailsHero />
+            <TransactionDetailsStatusRow />
+            <TransactionDetailsDateRow />
+            <TransactionDetailsAccountRow />
+            <TransactionDetailDivider />
+            <TransactionDetailsPaidWithRow />
+            <TransactionDetailsNetworkFeeRow />
+            <TransactionDetailsBridgeFeeRow />
+            <TransactionDetailsTotalRow />
+            {showSummarySection && (
+              <>
+                <TransactionDetailDivider />
+                <TransactionDetailsSummary />
+                <TransactionDetailsRetry />
+              </>
+            )}
+          </Box>
+        </ScrollView>
+      ) : null}
     </View>
   );
 }
