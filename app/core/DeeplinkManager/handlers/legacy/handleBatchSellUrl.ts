@@ -1,5 +1,8 @@
 import Routes from '../../../../constants/navigation/Routes';
+import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 import { selectBatchSellEnabled } from '../../../../selectors/featureFlagController/batchSell';
+import { isHardwareAccount } from '../../../../util/address';
+import AppConstants from '../../../AppConstants';
 import NavigationService from '../../../NavigationService';
 import ReduxService from '../../../redux';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
@@ -8,11 +11,14 @@ export const handleBatchSellUrl = async () => {
   DevLogger.log('[handleBatchSellUrl] Opening Batch Sell token selector');
 
   try {
-    const isBatchSellEnabled = selectBatchSellEnabled(
-      ReduxService.store.getState(),
-    );
+    const state = ReduxService.store.getState();
+    const isBatchSellEnabled = selectBatchSellEnabled(state);
+    const selectedAddress = selectSelectedInternalAccountAddress(state);
+    const isHardwareWallet = selectedAddress
+      ? Boolean(isHardwareAccount(selectedAddress))
+      : false;
 
-    if (!isBatchSellEnabled) {
+    if (!isBatchSellEnabled || !AppConstants.SWAPS.ACTIVE || isHardwareWallet) {
       DevLogger.log('[handleBatchSellUrl] Batch Sell is disabled');
       NavigationService.navigation.navigate(Routes.WALLET.HOME);
       return;
