@@ -37,8 +37,9 @@ export const getFallbackAssetImageUrls = (
     assetNamespace,
     assetReference,
   } = parseCaipAssetType(caipAssetId);
-  const checkSummedAddress = isValidHexAddress(assetReference)
-    ? getChecksumAddress(assetReference)
+  const hexAssetReference = assetReference as `0x${string}`;
+  const checkSummedAddress = isValidHexAddress(hexAssetReference)
+    ? getChecksumAddress(hexAssetReference)
     : assetReference;
   const lowercasedAddress = assetReference.toLowerCase();
   return [
