@@ -23,6 +23,7 @@ import { handleSocialLeaderboardUrl } from '../handleSocialLeaderboardUrl';
 import { handleSocialTraderPositionUrl } from '../handleSocialTraderPositionUrl';
 import { handleWhatsHappeningUrl } from '../handleWhatsHappeningUrl';
 import { handleSwapUrl } from '../handleSwapUrl';
+import { handleBatchSellUrl } from '../handleBatchSellUrl';
 import {
   createRewardsDeeplinkIntent,
   handleRewardsUrl,
@@ -46,6 +47,7 @@ jest.mock('../handleRampUrl');
 jest.mock('../handleRampReturnUrl');
 jest.mock('../handleHomeUrl');
 jest.mock('../handleSwapUrl');
+jest.mock('../handleBatchSellUrl');
 jest.mock('../handleBrowserUrl');
 jest.mock('../handleCreateAccountUrl');
 jest.mock('../handlePerpsUrl');
@@ -1618,6 +1620,29 @@ describe('handleUniversalLink', () => {
       });
 
       expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
+      expect(handled).toHaveBeenCalled();
+    });
+
+    it('does not show interstitial modal for BATCH_SELL action', async () => {
+      const batchSellUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.BATCH_SELL}`;
+      const batchSellUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
+        href: batchSellUrl,
+        pathname: `/${ACTIONS.BATCH_SELL}`,
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: batchSellUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: batchSellUrl,
+        source: 'test-source',
+      });
+
+      expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
+      expect(handleBatchSellUrl).toHaveBeenCalled();
       expect(handled).toHaveBeenCalled();
     });
 
