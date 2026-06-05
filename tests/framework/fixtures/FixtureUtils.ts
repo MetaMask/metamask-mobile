@@ -53,6 +53,8 @@ function getFallbackPort(resourceType: ResourceType): number {
       return FALLBACK_DAPP_SERVER_PORT;
     case ResourceType.ACCOUNT_ACTIVITY_WS:
       return ACCOUNT_ACTIVITY_WS.fallbackPort;
+    case ResourceType.SPECULOS:
+      return 5000;
     default:
       throw new Error(`No fallback port defined for ${resourceType}`);
   }
@@ -169,6 +171,7 @@ async function setupAndroidPortForwarding(
     ResourceType.GANACHE,
     ResourceType.ANVIL,
     ResourceType.ACCOUNT_ACTIVITY_WS,
+    ResourceType.SPECULOS,
   ];
 
   if (!forwardedResources.includes(resourceType)) {

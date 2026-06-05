@@ -79,6 +79,12 @@ inputs:
       `yarn setup:github-ci` MUST keep this enabled (default).
     required: false
     default: 'true'
+  install-speculos:
+    description: >-
+      Whether to pull the Speculos Docker image for Ledger hardware wallet E2E
+      tests. Only needed when running Ledger-specific test suites.
+    required: false
+    default: 'false'
   keystore-role-to-assume:
     description: 'AWS IAM role to assume for keystore configuration'
     required: false
@@ -345,6 +351,13 @@ runs:
         echo "Installing Foundry via yarn install:foundryup (matches local dev and tests/seeder)..."
         yarn install:foundryup
         echo "$GITHUB_WORKSPACE/node_modules/.bin" >> "$GITHUB_PATH"
+
+    - name: Install Speculos
+      if: ${{ inputs.install-speculos == 'true' }}
+      shell: bash
+      run: |
+        echo "Pulling Speculos Docker image for Ledger E2E tests..."
+        docker pull ghcr.io/ledgerhq/speculos:latest
 
     ## iOS Setup ##
 

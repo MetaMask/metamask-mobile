@@ -57,6 +57,14 @@ class LedgerConnectView {
     return element(by.id(AccountSelectorSelectorsIDs.FORGET_BUTTON));
   }
 
+  get unlockButton() {
+    return element(by.id(AccountSelectorSelectorsIDs.UNLOCK_BUTTON));
+  }
+
+  firstAccountCheckbox() {
+    return element(by.id(`${AccountSelectorSelectorsIDs.CHECKBOX}-0`));
+  }
+
   async tapAddHardwareWallet(): Promise<void> {
     await TestHelpers.delay(3000);
     await this.addHardwareWalletButton.tap();
@@ -88,6 +96,16 @@ class LedgerConnectView {
   async tapNextAccountsButton(): Promise<void> {
     await TestHelpers.delay(1000);
     await this.nextAccountsButton.tap();
+  }
+
+  async selectFirstAccount(): Promise<void> {
+    await TestHelpers.delay(1000);
+    await this.firstAccountCheckbox().tap();
+  }
+
+  async tapUnlockButton(): Promise<void> {
+    await TestHelpers.delay(1000);
+    await this.unlockButton.tap();
   }
 
   async assertDeviceSelectionVisible(): Promise<void> {

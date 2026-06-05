@@ -315,7 +315,11 @@ android {
             } else if (env == 'test') {
                 signingConfig signingConfigs.mainTest
             } else if (env == 'e2e') {
-                signingConfig signingConfigs.mainE2e
+                if (project.hasProperty('useDebugSigning')) {
+                    signingConfig signingConfigs.debug
+                } else {
+                    signingConfig signingConfigs.mainE2e
+                }
             } else if (env == 'production') {
                 signingConfig signingConfigs.mainProd
             } else if (env == 'rc') {

@@ -23,6 +23,7 @@ export enum ResourceType {
   GANACHE = 'ganache',
   ANVIL = 'anvil',
   ACCOUNT_ACTIVITY_WS = 'account-activity-ws',
+  SPECULOS = 'speculos',
 }
 
 export interface AllocatedPort {
@@ -56,6 +57,8 @@ function getFallbackPortForResource(resourceType: ResourceType): number {
       return FALLBACK_DAPP_SERVER_PORT;
     case ResourceType.ACCOUNT_ACTIVITY_WS:
       return ACCOUNT_ACTIVITY_WS_CONFIG.fallbackPort;
+    case ResourceType.SPECULOS:
+      return 5000;
     default:
       throw new Error(`Unknown resource type: ${resourceType}`);
   }

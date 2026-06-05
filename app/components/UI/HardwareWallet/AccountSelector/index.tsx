@@ -88,7 +88,10 @@ const AccountSelector = (props: ISelectQRAccountsProps) => {
         data={formattedAccounts}
         keyExtractor={(item) => `address-${item.index}`}
         renderItem={({ item }) => (
-          <View style={[styles.account]}>
+          <View
+            style={[styles.account]}
+            testID={`${AccountSelectorSelectorsIDs.CHECKBOX}-${item.index}`}
+          >
             <CheckBox
               style={[styles.checkBox]}
               disabled={item.exist}
@@ -141,6 +144,7 @@ const AccountSelector = (props: ISelectQRAccountsProps) => {
           onPress={() => onUnlock([...checkedAccounts])}
           containerStyle={[styles.button]}
           disabled={checkedAccounts.size < 1}
+          testID={AccountSelectorSelectorsIDs.UNLOCK_BUTTON}
         >
           {strings('account_selector.unlock')}
         </StyledButton>

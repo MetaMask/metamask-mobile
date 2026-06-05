@@ -16,23 +16,50 @@ import {
   navigateToBrowserView,
   waitForTestDappToLoad,
 } from '../../flows/browser.flow';
+import { DappVariants } from '../../framework/Constants';
 
 const describeIf = process.env.LEDGER_E2E === '1' ? describe : describe.skip;
 jest.setTimeout(600000);
 
-describe(SmokeLedger, () => {
+describeIf(SmokeLedger, () => {
   it('should sign a personal_sign request via Ledger', async () => {
     await withSpeculosFixtures(
       {
         fixture: new FixtureBuilder().withDefaultFixture().build(),
         startSpeculos: true,
+        dapps: [{ dappVariant: DappVariants.TEST_DAPP }],
       },
       async ({ speculos }: SpeculosTestSuiteParams) => {
         await importLedgerAccount();
 
         await TestHelpers.delay(5000);
+
+        await Assertions.expectElementToNotBeVisible(
+          HardwareWalletBottomSheet.container,
+          {
+            timeout: 30000,
+            description:
+              'Hardware wallet bottom sheet should dismiss after import',
+          },
+        );
+
         await navigateToBrowserView();
         await Browser.navigateToTestDApp();
+
+        // DEBUG: Inspect the WebView hierarchy to understand why Detox can't find it
+        await TestHelpers.delay(5000);
+        try {
+          const attrs = await element(by.id('browser-webview')).getAttributes();
+          // eslint-disable-next-line no-console
+          console.log(
+            '[DEBUG] browser-webview attributes:',
+            JSON.stringify(attrs),
+          );
+        } catch (e) {
+          // eslint-disable-next-line no-console
+          console.log('[DEBUG] Failed to get attributes:', e);
+        }
+
         await waitForTestDappToLoad();
 
         await speculos.enableBlindSigning();
@@ -66,11 +93,22 @@ describe(SmokeLedger, () => {
       {
         fixture: new FixtureBuilder().withDefaultFixture().build(),
         startSpeculos: true,
+        dapps: [{ dappVariant: DappVariants.TEST_DAPP }],
       },
       async ({ speculos }: SpeculosTestSuiteParams) => {
         await importLedgerAccount();
 
         await TestHelpers.delay(5000);
+
+        await Assertions.expectElementToNotBeVisible(
+          HardwareWalletBottomSheet.container,
+          {
+            timeout: 30000,
+            description:
+              'Hardware wallet bottom sheet should dismiss after import',
+          },
+        );
+
         await navigateToBrowserView();
         await Browser.navigateToTestDApp();
         await waitForTestDappToLoad();

@@ -59,6 +59,11 @@ on:
         required: false
         type: string
         default: current
+      install-speculos:
+        description: Whether to pull the Speculos Docker image for Ledger E2E tests
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   test-e2e-mobile:
@@ -98,6 +103,8 @@ jobs:
       MM_SOLANA_E2E_TEST_SRP: ${{ secrets.MM_SOLANA_E2E_TEST_SRP }}
       MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
       YARN_ENABLE_GLOBAL_CACHE: 'true' # Enable Yarn global cache for faster installs
+      WITH_SPECULOS: ${{ inputs.install-speculos && '1' || '' }}
+      LEDGER_E2E: ${{ inputs.install-speculos && '1' || '' }}
 
     steps:
       - name: Checkout (Namespace)
@@ -161,6 +168,7 @@ jobs:
           js-retry-timeout-minutes: ${{ inputs.runner_provider == 'namespace' && '20' || '15' }}
           pod-install-timeout-minutes: ${{ inputs.runner_provider == 'namespace' && inputs.platform == 'ios' && '22' || '15' }}
           skip-pod-install: ${{ inputs.platform == 'ios' && 'true' || 'false' }}
+          install-speculos: ${{ inputs.install-speculos && 'true' || 'false' }}
 
       - name: Build Detox framework cache (iOS)
         if: ${{ inputs.platform == 'ios' }}

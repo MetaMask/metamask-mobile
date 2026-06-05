@@ -15,6 +15,7 @@ import {
   navigateToBrowserView,
   waitForTestDappToLoad,
 } from '../../flows/browser.flow';
+import { DappVariants } from '../../framework/Constants';
 
 jest.setTimeout(600000);
 
@@ -24,11 +25,22 @@ describe(SmokeLedger, () => {
       {
         fixture: new FixtureBuilder().withDefaultFixture().build(),
         startSpeculos: true,
+        dapps: [{ dappVariant: DappVariants.TEST_DAPP }],
       },
       async ({ speculos }: SpeculosTestSuiteParams) => {
         await importLedgerAccount();
 
         await TestHelpers.delay(5000);
+
+        await Assertions.expectElementToNotBeVisible(
+          HardwareWalletBottomSheet.container,
+          {
+            timeout: 30000,
+            description:
+              'Hardware wallet bottom sheet should dismiss after import',
+          },
+        );
+
         await navigateToBrowserView();
         await Browser.navigateToTestDApp();
         await waitForTestDappToLoad();

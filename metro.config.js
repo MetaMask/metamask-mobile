@@ -14,7 +14,6 @@ const { lockdownSerializer } = require('@lavamoat/react-native-lockdown');
 const { parseArgs } = require('node:util');
 // eslint-disable-next-line import-x/no-nodejs-modules
 const os = require('node:os');
-const { withSpeculosTransport } = require('./e2e/speculos/mocks/metro-mock');
 
 const parsedArgs = parseArgs({
   options: {
@@ -92,9 +91,8 @@ module.exports = function (baseConfig) {
         ),
       );
 
-  return withSpeculosTransport(
-    wrapWithReanimatedMetroConfig(
-      mergeConfig(defaultConfig, {
+  return wrapWithReanimatedMetroConfig(
+    mergeConfig(defaultConfig, {
       resolver: {
         unstable_enablePackageExports: true,
         assetExts: [...assetExts.filter((ext) => ext !== 'svg'), 'riv'],
@@ -258,6 +256,5 @@ module.exports = function (baseConfig) {
       resetCache: process.env.METRO_RESET_CACHE !== 'false',
       maxWorkers,
     }),
-  ),
   );
 };

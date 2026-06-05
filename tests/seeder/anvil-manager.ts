@@ -114,14 +114,22 @@ class AnvilManager implements Resource {
   }
 
   async start(opts: AnvilNodeOptions = {}): Promise<void> {
-    // Resolve local anvil binary if available; fallback to system PATH
+    // Prefer system anvil binary (supports 24-word mnemonics, newer versions).
+    // Fall back to local node_modules binary only if system binary not found.
+    const systemAnvil = 'anvil';
     const localAnvil = path.resolve(
       process.cwd(),
       'node_modules',
       '.bin',
       'anvil',
     );
-    this.anvilBinary = fs.existsSync(localAnvil) ? localAnvil : 'anvil';
+    // Check if system anvil is available first
+    try {
+      execSync('which anvil', { stdio: 'pipe' });
+      this.anvilBinary = systemAnvil;
+    } catch {
+      this.anvilBinary = fs.existsSync(localAnvil) ? localAnvil : systemAnvil;
+    }
 
     // Use stored options if no options provided, otherwise use provided opts
     const optsToUse = Object.keys(opts).length > 0 ? opts : this.startOptions;

@@ -73,6 +73,10 @@ module.exports = {
       device: 'android.emulator',
       app: 'android.release.speculos',
     },
+    'android.emu.main.speculos.debug': {
+      device: 'android.emulator',
+      app: 'android.debug.speculos',
+    },
     'android.emu.main.speculos.ci': {
       device: 'android.github_ci.emulator',
       app: 'android.release.speculos',

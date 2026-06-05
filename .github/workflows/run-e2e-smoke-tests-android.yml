@@ -279,6 +279,24 @@ jobs:
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
+  ledger-android-smoke:
+    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeLedger')
+    strategy:
+      matrix:
+        split: [1]
+      fail-fast: false
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: ledger-android-smoke-${{ matrix.split }}
+      platform: android
+      test_suite_tag: 'SmokeLedger'
+      split_number: ${{ matrix.split }}
+      total_splits: 1
+      install-speculos: true
+      changed_files: ${{ inputs.changed_files }}
+      runner_provider: ${{ inputs.runner_provider }}
+    secrets: inherit
+
   report-android-smoke-tests:
     name: Report Android Smoke Tests
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
@@ -299,6 +317,7 @@ jobs:
       - seedless-onboarding-android-smoke
       - browser-android-smoke
       - snaps-android-smoke
+      - ledger-android-smoke
     steps:
       - name: Checkout (Namespace)
         uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1

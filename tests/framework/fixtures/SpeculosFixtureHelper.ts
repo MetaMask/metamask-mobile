@@ -463,37 +463,15 @@ export async function importLedgerAccount(): Promise<void> {
     LedgerConnectView.nextAccountsButton,
     { timeout: 60000 },
   );
-  await LedgerConnectView.tapNextAccountsButton();
-  await TestHelpers.delay(8000);
 
-  // The LedgerSelectAccount.onUnlock() calls pop(2) which only pops
-  // within the nested LedgerConnectFlow stack. This leaves multiple screens
-  // still on the AppFlow root stack. Press back to dismiss them.
-  // We press back up to 3 times to clear:
-  //   [1] LedgerConnectFlow (if not auto-popped)
-  //   [2] ConnectHardwareWalletFlow (SelectHardware)
-  //   [3] RootModalFlow (AccountSelector → AddWallet)
-  for (let i = 0; i < 3; i++) {
-    await device.pressBack();
-    await TestHelpers.delay(1000);
-  }
-
-  // After the Ledger import flow, the React Navigation tab state can become
-  // stuck even though all screens are dismissed and no overlays are visible.
-  // The only reliable fix is to restart the app. The imported Ledger account
-  // is persisted in Redux/async-storage and survives the restart.
-  // After restart, we need to re-login and the account will be there.
-  // We use TestHelpers.launchApp (not device.launchApp directly) so that
-  // the speculos config's launchAppWithRecovery path is used (handles adb
-  // reverse port conflicts).
-  await TestHelpers.launchApp({ newInstance: true });
-  await TestHelpers.delay(5000);
-  await waitForAppReady(300000);
-  await loginToApp();
+  // Select the first discovered account and unlock it
+  await LedgerConnectView.selectFirstAccount();
+  await TestHelpers.delay(2000);
+  await LedgerConnectView.tapUnlockButton();
   await TestHelpers.delay(5000);
 
   // Now wait for the wallet view to be visible
   await Assertions.expectElementToBeVisible(WalletView.container, {
-    timeout: 15000,
+    timeout: 30000,
   });
 }

@@ -425,12 +425,10 @@ export const loadFixture = async (
       ? fixture.build()
       : (fixture ?? new FixtureBuilder({ onboarding: true }).build());
 
-  // Update RPC URLs with actual allocated ports from PortManager
-  state = updateRpcUrlsWithAllocatedPorts(state);
-
-  // Update dapp URLs and mock server URLs with actual allocated ports (iOS only)
+  // Update RPC URLs, dapp URLs, and mock server URLs with actual allocated ports (iOS only)
   // On Android, fixture uses fallback ports which are mapped via adb reverse
   if (await PlatformDetector.isIOS()) {
+    state = updateRpcUrlsWithAllocatedPorts(state);
     state = updateDappUrlsWithAllocatedPorts(state);
     state = updateMockServerUrlsInFixture(state);
   }
