@@ -1,7 +1,10 @@
 import {
   AGENTIC_CLI_NOTIFICATION_PREFERENCE_SECTION,
   DEFAULT_AGENTIC_CLI_PREFERENCE,
+  clearLocalAgenticCliPreference,
   mergeAgenticCliIntoPreferences,
+  persistLocalAgenticCliPreference,
+  readLocalAgenticCliPreference,
   resolveAgenticCliPreference,
   stripAgenticCliFromNotificationPreferences,
   type NotificationStoragePreferencesWithAgenticCli,
@@ -179,5 +182,20 @@ describe('agenticCliNotificationPreferences', () => {
     expect(resolveAgenticCliPreference(preferencesWithAgenticCli)).toEqual(
       agenticCli,
     );
+  });
+
+  it('persists and reads local agenticCli preferences', () => {
+    clearLocalAgenticCliPreference();
+
+    const preference = {
+      pushNotificationsEnabled: false,
+      inAppNotificationsEnabled: true,
+    };
+
+    persistLocalAgenticCliPreference(preference);
+    expect(readLocalAgenticCliPreference()).toEqual(preference);
+
+    clearLocalAgenticCliPreference();
+    expect(readLocalAgenticCliPreference()).toBeNull();
   });
 });

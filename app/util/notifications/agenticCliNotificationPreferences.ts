@@ -1,4 +1,6 @@
 import type { NotificationPreferences } from '@metamask/authenticated-user-storage';
+import { STORAGE_IDS } from './settings/storage/constants';
+import { mmStorage } from './settings/storage';
 
 /**
  * `agenticCli` notification channel preferences.
@@ -56,6 +58,36 @@ export const stripAgenticCliFromNotificationPreferences = (
   } = preferences;
 
   return apiPreferences;
+};
+
+export const persistLocalAgenticCliPreference = (
+  preference: AgenticCliPreference,
+): void => {
+  mmStorage.saveLocal(
+    STORAGE_IDS.AGENTIC_CLI_NOTIFICATION_PREFERENCES,
+    preference,
+  );
+};
+
+export const readLocalAgenticCliPreference =
+  (): AgenticCliPreference | null => {
+    const stored = mmStorage.getLocal(
+      STORAGE_IDS.AGENTIC_CLI_NOTIFICATION_PREFERENCES,
+    ) as AgenticCliPreference | undefined;
+
+    if (
+      stored &&
+      typeof stored.pushNotificationsEnabled === 'boolean' &&
+      typeof stored.inAppNotificationsEnabled === 'boolean'
+    ) {
+      return stored;
+    }
+
+    return null;
+  };
+
+export const clearLocalAgenticCliPreference = (): void => {
+  mmStorage.saveLocal(STORAGE_IDS.AGENTIC_CLI_NOTIFICATION_PREFERENCES, null);
 };
 
 export const mergeAgenticCliIntoPreferences = (

@@ -5,6 +5,7 @@ import {
   AGENTIC_CLI_CLIENT_PREFERENCE_QUERY_KEY,
   AGENTIC_CLI_NOTIFICATION_PREFERENCE_SECTION,
   mergeAgenticCliIntoPreferences,
+  persistLocalAgenticCliPreference,
   readAgenticCliFromPreferences,
   resolveAgenticCliPreference,
   stripAgenticCliFromNotificationPreferences,
@@ -73,6 +74,7 @@ export const useNotificationStoragePreferences = () => {
 
   const setAgenticCliClientPreference = useCallback(
     (preference: AgenticCliPreference) => {
+      persistLocalAgenticCliPreference(preference);
       queryClient.setQueryData<AgenticCliPreference>(
         AGENTIC_CLI_CLIENT_PREFERENCE_QUERY_KEY,
         preference,
