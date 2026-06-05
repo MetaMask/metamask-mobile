@@ -91,9 +91,6 @@ export function buildDelegationTokenList({
 
       const isVedaEntry = tokenKey === MONEY_ACCOUNT_DELEGATION_TOKEN_KEY;
 
-      // Veda is the Money Account delegation token. Baanx returns its
-      // on-chain address directly — there is no SDK mainnet remapping,
-      // and it is surfaced to users as mUSD.
       if (isVedaEntry) {
         tokens.push({
           address: tokenConfig.address,

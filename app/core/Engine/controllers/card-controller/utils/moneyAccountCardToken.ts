@@ -24,12 +24,6 @@ export const hasMoneyAccountCardRequirements = ({
 }: MoneyAccountCardRequirementsParams): boolean =>
   Boolean(isMoneyAccountEnabled && vaultConfig && moneyAccountAddress);
 
-/**
- * Resolves the Veda token used as the funding target for the Money
- * Account ↔ Card delegation transaction. Reads the token directly from
- * the `tokens.veda` entry of the Monad delegation-settings network so
- * the contract address is environment-correct without any hardcoding.
- */
 export const resolveMoneyAccountCardToken = (
   delegationSettings: DelegationSettingsResponse | null | undefined,
 ): CardFundingToken | null => {
@@ -60,13 +54,6 @@ interface MoneyAccountDelegatedForCardParams {
   vedaConfig: VedaTokenConfig | null;
 }
 
-/**
- * Returns `true` when the Money Account address has a Veda funding row
- * whose allowance is not `NotEnabled`. The signal lives in
- * `cardHomeData.fundingAssets` (sourced from `/v1/wallet/external`) —
- * once Baanx indexes the on-chain approval, the wallet appears in the
- * funding list with `enabled` or `limited` status.
- */
 export const isMoneyAccountDelegatedForCard = ({
   fundingTokens,
   moneyAccountAddress,

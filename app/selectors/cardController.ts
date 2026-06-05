@@ -143,11 +143,6 @@ export const selectCardHomeDataStatus = createSelector(
     cardState?.cardHomeDataStatus ?? 'idle',
 );
 
-/**
- * Resolves the Veda token entry from the current delegation settings, or
- * `null` when delegation settings are unavailable or Veda is not yet
- * provisioned for the active environment.
- */
 export const selectMoneyAccountVedaTokenConfig = createSelector(
   selectCardHomeData,
   (data): VedaTokenConfig | null =>

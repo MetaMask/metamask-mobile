@@ -1357,8 +1357,6 @@ describe('MoneyHomeView', () => {
       });
 
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-      // formattedZero is locale-dependent (e.g. "$0.00"); assert it is a
-      // non-empty string rather than an exact format the locale chooses.
       expect(
         getByTestId(MoneyMetaMaskCardTestIds.MANAGE_BALANCE).props.children,
       ).toBeTruthy();

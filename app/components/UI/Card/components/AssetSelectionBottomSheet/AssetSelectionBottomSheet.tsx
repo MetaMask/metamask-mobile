@@ -91,10 +91,6 @@ const AssetSelectionBottomSheet: React.FC = () => {
   } = useCardHomeData();
 
   const supportedTokens = useMemo<CardFundingToken[]>(() => {
-    // Money Account entries (Veda) are only meaningful in the picker once
-    // the delegation has been approved. Hide them until they reach Enabled
-    // or Limited — otherwise the row would prompt a redundant linkage flow
-    // that already lives on Card Home.
     const baseList = homeAvailableTokens.filter(
       (token) =>
         !token.isMoneyAccountEntry ||

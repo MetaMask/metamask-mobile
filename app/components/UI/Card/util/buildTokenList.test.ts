@@ -271,8 +271,6 @@ describe('buildTokenList', () => {
             },
           },
         ]),
-        // Even if the SDK provides a different mainnet address, veda must
-        // use the delegation-settings address directly.
         getSupportedTokensByChainId: () => [
           { symbol: 'veda', address: '0xSdkAddress', name: 'Veda' },
         ],

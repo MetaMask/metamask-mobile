@@ -9,12 +9,6 @@ export interface CardTokenDisplay {
   iconSource: ImageSourcePropType;
 }
 
-/**
- * Returns the user-facing symbol and icon for a Card funding token.
- * Veda tokens (identified via `displaySymbol === 'mUSD'` or the
- * `isMoneyAccountEntry` fallback) are rebranded to mUSD with a local
- * icon asset; all other tokens fall back to the CDN-built icon URL.
- */
 export const getCardTokenDisplay = (
   token: Partial<
     Pick<

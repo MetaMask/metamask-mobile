@@ -13,7 +13,6 @@ describe('getCardTokenDisplay', () => {
       isMoneyAccountEntry: true,
     });
     expect(result.symbol).toBe('mUSD');
-    // Local require'd asset comes through as a number resource id.
     expect(typeof result.iconSource).toBe('number');
   });
 

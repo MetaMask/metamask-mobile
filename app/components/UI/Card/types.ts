@@ -87,9 +87,6 @@ export type CardFundingToken = {
   spendingCap?: string;
   originalSpendingCap?: string;
   isMoneyAccountEntry?: boolean;
-  // User-facing symbol override. Set when the underlying token (e.g. Veda)
-  // should be rendered as a different brand (e.g. mUSD). Consumers should
-  // prefer `displaySymbol ?? symbol` for UI strings.
   displaySymbol?: string;
 } & CardToken &
   AuthenticatedCardFundingTokenData;
