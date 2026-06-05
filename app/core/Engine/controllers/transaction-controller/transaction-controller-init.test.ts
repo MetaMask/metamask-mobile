@@ -760,6 +760,55 @@ describe('Transaction Controller Init', () => {
         expect(result).toEqual({ transactionHash: '0xde702' });
       });
 
+      it('prioritizes Delegation7702PublishHook over STX when isGasFeeIncluded is true', async () => {
+        selectShouldUseSmartTransactionMock.mockReturnValue(true);
+        isSendBundleSupportedMock.mockResolvedValue(true);
+
+        const hooks = testConstructorOption('hooks');
+        const result = await hooks?.publish?.({
+          ...MOCK_TRANSACTION_META,
+          chainId: '0x1',
+          isGasFeeIncluded: true,
+        });
+
+        expect(Delegation7702PublishHookMock).toHaveBeenCalled();
+        expect(mockDelegation7702Hook).toHaveBeenCalled();
+        expect(submitSmartTransactionHookMock).not.toHaveBeenCalled();
+        expect(result).toEqual({ transactionHash: '0xde702' });
+        expect(updateConfirmationMetricMock).toHaveBeenCalledWith(
+          expect.objectContaining({
+            id: MOCK_TRANSACTION_META.id,
+            params: expect.objectContaining({
+              properties: expect.objectContaining({
+                transaction_submission_method: 'sentinel_relay',
+              }),
+            }),
+          }),
+        );
+      });
+
+      it('falls back to Smart Transactions when isGasFeeIncluded is true but delegation hook returns no hash', async () => {
+        selectShouldUseSmartTransactionMock.mockReturnValue(true);
+        isSendBundleSupportedMock.mockResolvedValue(true);
+        mockDelegation7702Hook.mockResolvedValue({
+          transactionHash: undefined,
+        });
+        submitSmartTransactionHookMock.mockResolvedValue({
+          transactionHash: '0xsmarthash',
+        });
+
+        const hooks = testConstructorOption('hooks');
+        const result = await hooks?.publish?.({
+          ...MOCK_TRANSACTION_META,
+          chainId: '0x1',
+          isGasFeeIncluded: true,
+        });
+
+        expect(mockDelegation7702Hook).toHaveBeenCalled();
+        expect(submitSmartTransactionHookMock).toHaveBeenCalled();
+        expect(result?.transactionHash).toBe('0xsmarthash');
+      });
+
       it('publishes via Smart Transactions when supported and returns its transactionHash', async () => {
         submitSmartTransactionHookMock.mockResolvedValue({
           transactionHash: '0xsmarthash',
