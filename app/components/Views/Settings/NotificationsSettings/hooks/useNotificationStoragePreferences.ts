@@ -4,7 +4,9 @@ import { useQueryClient } from '@tanstack/react-query';
 import {
   AGENTIC_CLI_CLIENT_PREFERENCE_QUERY_KEY,
   AGENTIC_CLI_NOTIFICATION_PREFERENCE_SECTION,
+  clearAgenticCliInAppDisabledAt,
   mergeAgenticCliIntoPreferences,
+  persistAgenticCliInAppDisabledAt,
   persistLocalAgenticCliPreference,
   readAgenticCliFromPreferences,
   resolveAgenticCliPreference,
@@ -172,9 +174,14 @@ export const useNotificationStoragePreferences = () => {
       };
 
       if (type === AGENTIC_CLI_NOTIFICATION_PREFERENCE_SECTION) {
-        setAgenticCliClientPreference(
-          nextSectionPreferences as AgenticCliPreference,
-        );
+        const nextAgenticCliPreference =
+          nextSectionPreferences as AgenticCliPreference;
+        setAgenticCliClientPreference(nextAgenticCliPreference);
+        if (nextAgenticCliPreference.inAppNotificationsEnabled) {
+          clearAgenticCliInAppDisabledAt();
+        } else {
+          persistAgenticCliInAppDisabledAt(Date.now());
+        }
       }
 
       setApiPreferencesCache(nextPreferences);

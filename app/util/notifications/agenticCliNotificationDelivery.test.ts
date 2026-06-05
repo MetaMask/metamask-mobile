@@ -11,7 +11,7 @@ import {
 import {
   notificationIndicatesAgenticCli,
   remoteMessageIndicatesAgenticCli,
-  shouldSuppressAgenticCliInAppDelivery,
+  shouldHideNewAgenticCliInAppNotification,
   shouldSuppressAgenticCliPushDelivery,
   textIndicatesAgenticCli,
 } from './agenticCliNotificationDelivery';
@@ -49,12 +49,14 @@ const basePreferences = {
 describe('agenticCliNotificationDelivery', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(Engine.controllerMessenger.call).mockReset();
     clearLocalAgenticCliPreference();
   });
 
   it('detects Agentic CLI text with spaces and underscores', () => {
     expect(textIndicatesAgenticCli('Agentic CLI')).toBe(true);
     expect(textIndicatesAgenticCli('agentic_cli_update')).toBe(true);
+    expect(textIndicatesAgenticCli('Agentic test notification')).toBe(true);
     expect(textIndicatesAgenticCli('Wallet Activity')).toBe(false);
   });
 
@@ -69,6 +71,30 @@ describe('agenticCliNotificationDelivery', () => {
     } as INotification;
 
     expect(notificationIndicatesAgenticCli(notification)).toBe(true);
+  });
+
+  it('detects agentic test notifications by title and CTA', () => {
+    const byTitle = {
+      id: '1',
+      type: TRIGGER_TYPES.PLATFORM,
+      template: {
+        title: 'Agentic test notification',
+        body: 'Hello, dashboard',
+      },
+    } as INotification;
+
+    const byCta = {
+      id: '2',
+      type: TRIGGER_TYPES.PLATFORM,
+      template: {
+        title: 'Transaction ready',
+        body: 'Review required',
+        cta: { label: 'Review Agentic Transaction' },
+      },
+    } as INotification;
+
+    expect(notificationIndicatesAgenticCli(byTitle)).toBe(true);
+    expect(notificationIndicatesAgenticCli(byCta)).toBe(true);
   });
 
   it('detects agentic CLI remote messages from metadata kind', () => {
@@ -152,18 +178,66 @@ describe('agenticCliNotificationDelivery', () => {
     ).resolves.toBe(false);
   });
 
-  it('suppresses in-app delivery when in-app notifications are disabled', () => {
-    const notification = {
+  it('keeps historical agentic notifications visible after in-app is turned off', () => {
+    const disabledAt = Date.now();
+    const historicalNotification = {
       id: '1',
       type: TRIGGER_TYPES.PLATFORM,
-      template: { title: 'Agentic CLI', body: 'Update' },
+      createdAt: String(disabledAt - 60_000),
+      template: { title: 'Agentic test notification', body: 'Hello' },
     } as INotification;
 
     expect(
-      shouldSuppressAgenticCliInAppDelivery(notification, {
-        pushNotificationsEnabled: true,
-        inAppNotificationsEnabled: false,
-      }),
+      shouldHideNewAgenticCliInAppNotification(
+        historicalNotification,
+        {
+          pushNotificationsEnabled: true,
+          inAppNotificationsEnabled: false,
+        },
+        disabledAt,
+      ),
+    ).toBe(false);
+  });
+
+  it('hides only new agentic notifications after in-app is turned off', () => {
+    const disabledAt = Date.now();
+    const newNotification = {
+      id: '2',
+      type: TRIGGER_TYPES.PLATFORM,
+      createdAt: String(disabledAt + 1_000),
+      template: { title: 'Agentic test notification', body: 'Hello' },
+    } as INotification;
+
+    expect(
+      shouldHideNewAgenticCliInAppNotification(
+        newNotification,
+        {
+          pushNotificationsEnabled: true,
+          inAppNotificationsEnabled: false,
+        },
+        disabledAt,
+      ),
     ).toBe(true);
+  });
+
+  it('allows push delivery when only in-app notifications are disabled', async () => {
+    jest
+      .mocked(Engine.controllerMessenger.call)
+      .mockResolvedValue(basePreferences);
+
+    persistLocalAgenticCliPreference({
+      pushNotificationsEnabled: true,
+      inAppNotificationsEnabled: false,
+    });
+
+    const notification = {
+      id: '1',
+      type: TRIGGER_TYPES.PLATFORM,
+      template: { title: 'Agentic test notification', body: 'Hello' },
+    } as INotification;
+
+    await expect(
+      shouldSuppressAgenticCliPushDelivery(notification),
+    ).resolves.toBe(false);
   });
 });

@@ -19,6 +19,7 @@ describe('constants', () => {
       NOTIFICATIONS_SETTINGS: 'notifications-settings',
       PN_USER_STORAGE: 'pnUserStorage',
       AGENTIC_CLI_NOTIFICATION_PREFERENCES: 'agenticCliNotificationPreferences',
+      AGENTIC_CLI_IN_APP_DISABLED_AT: 'agenticCliInAppDisabledAt',
     });
   });
 

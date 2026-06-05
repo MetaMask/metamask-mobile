@@ -34,8 +34,11 @@ import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import NotificationsService from '../../../util/notifications/services/NotificationService';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { NotificationMenuViewSelectorsIDs } from './NotificationMenuView.testIds';
-import { shouldSuppressAgenticCliInAppDelivery } from '../../../util/notifications/agenticCliNotificationDelivery';
-import { resolveAgenticCliPreference } from '../../../util/notifications/agenticCliNotificationPreferences';
+import { shouldHideNewAgenticCliInAppNotification } from '../../../util/notifications/agenticCliNotificationDelivery';
+import {
+  readAgenticCliInAppDisabledAt,
+  resolveAgenticCliPreference,
+} from '../../../util/notifications/agenticCliNotificationPreferences';
 // eslint-disable-next-line import-x/no-restricted-paths -- shared notification preferences hook
 import { useNotificationStoragePreferences } from '../Settings/NotificationsSettings/hooks/useNotificationStoragePreferences';
 
@@ -65,8 +68,13 @@ export function useMarkAsReadCallback(props: {
 export function useNotificationFilters(props: {
   notifications: INotification[];
   agenticCliPreference?: ReturnType<typeof resolveAgenticCliPreference>;
+  agenticCliInAppDisabledAt?: number | null;
 }) {
-  const { notifications, agenticCliPreference } = props;
+  const {
+    notifications,
+    agenticCliPreference,
+    agenticCliInAppDisabledAt = null,
+  } = props;
 
   const allNotifications = useMemo(() => {
     // All unique notifications
@@ -81,15 +89,16 @@ export function useNotificationFilters(props: {
     const visibleNotifications = agenticCliPreference
       ? uniqueNotifications.filter(
           (notification) =>
-            !shouldSuppressAgenticCliInAppDelivery(
+            !shouldHideNewAgenticCliInAppNotification(
               notification,
               agenticCliPreference,
+              agenticCliInAppDisabledAt,
             ),
         )
       : uniqueNotifications;
     const sortedNotifications = sortNotifications(visibleNotifications);
     return sortedNotifications;
-  }, [agenticCliPreference, notifications]);
+  }, [agenticCliInAppDisabledAt, agenticCliPreference, notifications]);
 
   return { allNotifications };
 }
@@ -107,6 +116,7 @@ const NotificationsView = ({
   const notifications = useSelector(getNotificationsList);
   const { preferences } = useNotificationStoragePreferences();
   const agenticCliPreference = resolveAgenticCliPreference(preferences ?? null);
+  const agenticCliInAppDisabledAt = readAgenticCliInAppDisabledAt();
 
   const { handleMarkAllAsRead, loading } = useMarkAsReadCallback({
     notifications,
@@ -115,6 +125,7 @@ const NotificationsView = ({
   const { allNotifications } = useNotificationFilters({
     notifications,
     agenticCliPreference,
+    agenticCliInAppDisabledAt,
   });
 
   const unreadCount = useMemo(

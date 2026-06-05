@@ -14,6 +14,7 @@ export const STORAGE_IDS = {
   NOTIFICATIONS_SETTINGS: 'notifications-settings',
   PN_USER_STORAGE: 'pnUserStorage',
   AGENTIC_CLI_NOTIFICATION_PREFERENCES: 'agenticCliNotificationPreferences',
+  AGENTIC_CLI_IN_APP_DISABLED_AT: 'agenticCliInAppDisabledAt',
 };
 
 export const STORAGE_TYPES = {
@@ -33,6 +34,8 @@ export const mapStorageTypeToIds = (id: string) => {
     case STORAGE_IDS.PN_USER_STORAGE:
     case STORAGE_IDS.AGENTIC_CLI_NOTIFICATION_PREFERENCES:
       return STORAGE_TYPES.OBJECT;
+    case STORAGE_IDS.AGENTIC_CLI_IN_APP_DISABLED_AT:
+      return STORAGE_TYPES.NUMBER;
     case STORAGE_IDS.PUSH_NOTIFICATIONS_PROMPT_COUNT:
       return STORAGE_TYPES.NUMBER;
     case STORAGE_IDS.REQUEST_PERMISSION_ASKED:

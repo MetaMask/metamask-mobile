@@ -11,6 +11,7 @@ import {
   DEFAULT_AGENTIC_CLI_PREFERENCE,
   persistLocalAgenticCliPreference,
   readAgenticCliFromPreferences,
+  readAgenticCliInAppDisabledAt,
   readLocalAgenticCliPreference,
   resolveAgenticCliPreference,
 } from './agenticCliNotificationPreferences';
@@ -21,9 +22,17 @@ const GET_NOTIFICATION_PREFERENCES_ACTION =
 /** Matches "Agentic CLI", "agentic_cli", "agentic-cli", etc. */
 export const AGENTIC_CLI_TEXT_PATTERN = /agentic[\s_-]*cli/i;
 
+/** Broader match for agentic notification copy (e.g. "Agentic test notification"). */
+export const AGENTIC_NOTIFICATION_TEXT_PATTERN = /\bagentic\b/i;
+
 export const textIndicatesAgenticCli = (
   text: string | null | undefined,
-): boolean => Boolean(text && AGENTIC_CLI_TEXT_PATTERN.test(text));
+): boolean =>
+  Boolean(
+    text &&
+      (AGENTIC_CLI_TEXT_PATTERN.test(text) ||
+        AGENTIC_NOTIFICATION_TEXT_PATTERN.test(text)),
+  );
 
 const metadataIndicatesAgenticCli = (
   metadata: Record<string, unknown> | null | undefined,
@@ -86,7 +95,7 @@ export const notificationIndicatesAgenticCli = (
 ): boolean => {
   if (notification.type === TRIGGER_TYPES.PLATFORM) {
     const platformNotification = notification as INotification & {
-      template?: { title?: string; body?: string };
+      template?: { title?: string; body?: string; cta?: { label?: string } };
     };
 
     if (textIndicatesAgenticCli(platformNotification.template?.title)) {
@@ -94,6 +103,10 @@ export const notificationIndicatesAgenticCli = (
     }
 
     if (textIndicatesAgenticCli(platformNotification.template?.body)) {
+      return true;
+    }
+
+    if (textIndicatesAgenticCli(platformNotification.template?.cta?.label)) {
       return true;
     }
   }
@@ -138,9 +151,31 @@ export const shouldSuppressAgenticCliPushDelivery = async (
   return !preference.pushNotificationsEnabled;
 };
 
-export const shouldSuppressAgenticCliInAppDelivery = (
+/**
+ * Hides only agentic notifications that arrived after in-app was turned off.
+ * Historical items remain visible, matching perps/marketing inbox behavior.
+ */
+export const shouldHideNewAgenticCliInAppNotification = (
   notification: INotification,
   preference: AgenticCliPreference,
-): boolean =>
-  notificationIndicatesAgenticCli(notification) &&
-  !preference.inAppNotificationsEnabled;
+  inAppDisabledAt: number | null = readAgenticCliInAppDisabledAt(),
+): boolean => {
+  if (preference.inAppNotificationsEnabled) {
+    return false;
+  }
+
+  if (!notificationIndicatesAgenticCli(notification)) {
+    return false;
+  }
+
+  if (inAppDisabledAt === null) {
+    return false;
+  }
+
+  const createdAt = Number(notification.createdAt);
+  if (Number.isNaN(createdAt)) {
+    return false;
+  }
+
+  return createdAt >= inAppDisabledAt;
+};
