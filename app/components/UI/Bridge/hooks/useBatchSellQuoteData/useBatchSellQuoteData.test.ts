@@ -10,6 +10,15 @@ jest.mock('../useBatchSellQuoteRequest', () => ({
     (_token: BridgeToken, sourceAmount?: string) =>
       sourceAmount && Number(sourceAmount) > 0 ? '1' : undefined,
   ),
+  hasValidBatchSellSourceAmounts: jest.fn(
+    (
+      _sourceTokens: BridgeToken[],
+      batchSellSourceTokenAmounts: Record<string, string | undefined>,
+    ) =>
+      Object.values(batchSellSourceTokenAmounts).some(
+        (amount) => amount !== undefined && Number(amount) > 0,
+      ),
+  ),
 }));
 
 jest.mock('../../../../../core/Engine', () => ({
@@ -235,6 +244,29 @@ describe('useBatchSellQuoteData', () => {
       refreshRate: 30000,
       priceImpactThreshold: { warning: 0.05 },
     };
+  });
+
+  it('reports no quotes when all source amounts are zero even if stale quotes exist', () => {
+    mockBatchSellSourceTokenAmounts = {
+      [ethAssetId]: '0',
+      [uniAssetId]: '0',
+    };
+
+    const { result } = renderHook(() => useBatchSellQuoteData());
+
+    expect(result.current.hasAnyQuote).toBe(false);
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.isSummaryLoading).toBe(false);
+    expect(result.current.hasPendingQuoteRows).toBe(false);
+    expect(result.current.totalReceived.formattedFiat).toBe('-');
+    expect(
+      Engine.context.BridgeController.updateBatchSellTrades,
+    ).not.toHaveBeenCalled();
+    expect(result.current.tokenData[ethAssetId]).toEqual(
+      expect.objectContaining({
+        isQuoteUnavailable: true,
+      }),
+    );
   });
 
   it('formats complete Batch Sell quote data', () => {
