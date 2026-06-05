@@ -1,4 +1,7 @@
-import type { PredictMarketListParams } from '../types';
+import type {
+  PredictFilterOptionSource,
+  PredictMarketListParams,
+} from '../types';
 
 export const PREDICT_FEED_IDS = [
   'sports',
@@ -12,7 +15,7 @@ export const PREDICT_FEED_IDS = [
 export type PredictFeedId = (typeof PREDICT_FEED_IDS)[number];
 
 export interface PredictDynamicFilterConfig {
-  source: 'related-tags' | 'hot-tags' | 'trending-series' | 'sports-leagues';
+  source: PredictFilterOptionSource;
   /** Polymarket related-tags root slug. Use 'all' for general popular/trending lists. */
   baseTagSlug?: string;
   baseParams?: PredictMarketListParams;

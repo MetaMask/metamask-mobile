@@ -74,6 +74,25 @@ describe('feedConfig', () => {
     });
   });
 
+  it.each(PREDICT_FEED_IDS)(
+    'falls back to the first tab when resolving the default filter for %s without a tabId',
+    (feedId) => {
+      const firstTab = PREDICT_FEED_REGISTRY[feedId].tabs[0];
+      const expected = firstTab.filters.static.find(
+        (filter) => filter.id === firstTab.defaultFilterId,
+      );
+
+      expect(resolvePredictFeedDefaultFilter(feedId)).toBe(expected);
+    },
+  );
+
+  it('returns undefined when resolving the default filter for unknown feeds or tabs', () => {
+    expect(resolvePredictFeedDefaultFilter('unknown')).toBeUndefined();
+    expect(
+      resolvePredictFeedDefaultFilter('sports', 'unknown-tab'),
+    ).toBeUndefined();
+  });
+
   it('represents hidden-tab feeds with exactly one tab', () => {
     (
       ['politics', 'crypto', 'live', 'trending', 'popular-today'] as const

@@ -35,7 +35,7 @@ export type PredictEntryPoint =
   | typeof PredictEventValues.ENTRY_POINT.EXPLORE;
 
 /** Predict market list route parameters */
-export interface PredictMarketListParams {
+export interface PredictMarketListRouteParams {
   entryPoint?: PredictEntryPoint;
   feedId?: PredictFeedId;
   tab?: PredictCategory;
@@ -137,7 +137,7 @@ export type PredictSellPreviewProps =
 
 export interface PredictNavigationParamList extends ParamListBase {
   Predict: undefined;
-  PredictMarketList: PredictMarketListParams;
+  PredictMarketList: PredictMarketListRouteParams;
   PredictMarketDetails: PredictMarketDetailsParams;
   PredictPositions: PredictPositionsParams | undefined;
   PredictWorldCup: PredictWorldCupParams | undefined;
