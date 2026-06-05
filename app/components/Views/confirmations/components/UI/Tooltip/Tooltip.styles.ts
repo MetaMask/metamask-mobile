@@ -37,13 +37,8 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     modalContent: {
       alignSelf: 'stretch',
-      backgroundColor: theme.colors.background.muted,
       marginTop: 16,
-      marginHorizontal: 16,
-      paddingVertical: 20,
       paddingHorizontal: 16,
-      borderRadius: 8,
-      display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
     },
