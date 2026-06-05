@@ -363,7 +363,7 @@ jest.mock('../../app/core/Engine', () => {
         prepareWithdraw: jest.fn().mockResolvedValue(undefined),
       },
       // Perps: stub so hooks (usePerpsClosePosition, usePerpsMarkets, etc.) do not throw
-      // getMarkets returns one market so PerpsTabView explore section renders "See all perps"
+      // getMarkets returns one market so explore sections render "See all perps"
       PerpsController: {
         state: { isTestnet: false },
         init: jest.fn().mockResolvedValue({ success: true }),
