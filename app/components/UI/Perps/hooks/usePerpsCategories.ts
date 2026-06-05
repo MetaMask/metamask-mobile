@@ -3,6 +3,7 @@ import { type MarketTypeFilter } from '@metamask/perps-controller';
 import { strings } from '../../../../../locales/i18n';
 import { usePerpsMarkets } from './usePerpsMarkets';
 import {
+  CATEGORY_DISPLAY_ORDER,
   getFilterForMarketType,
   normalizeFilterKey,
 } from '../utils/marketCategoryMapping';
@@ -42,6 +43,14 @@ export const usePerpsCategories = (): PerpsCategory[] => {
         label: strings(`perps.home.tabs.${normalizeFilterKey(id)}`),
       });
     }
+
+    const orderIndex = new Map(
+      CATEGORY_DISPLAY_ORDER.map((key, index) => [key, index]),
+    );
+    result.sort(
+      (a, b) =>
+        (orderIndex.get(a.id) ?? Infinity) - (orderIndex.get(b.id) ?? Infinity),
+    );
 
     return result;
   }, [markets]);

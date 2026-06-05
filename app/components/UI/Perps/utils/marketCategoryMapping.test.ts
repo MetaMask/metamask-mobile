@@ -1,5 +1,6 @@
 import { MarketCategory } from '@metamask/perps-controller';
 import {
+  CATEGORY_DISPLAY_ORDER,
   getMarketTypeForFilter,
   getFilterForMarketType,
   normalizeFilterKey,
@@ -61,6 +62,26 @@ describe('marketCategoryMapping', () => {
 
     it('returns empty string unchanged', () => {
       expect(normalizeFilterKey('')).toBe('');
+    });
+  });
+
+  describe('CATEGORY_DISPLAY_ORDER', () => {
+    it('has the expected order', () => {
+      expect(CATEGORY_DISPLAY_ORDER).toEqual([
+        'crypto',
+        'stocks',
+        'pre-ipo',
+        'forex',
+        'commodities',
+        'indices',
+        'etfs',
+      ]);
+    });
+
+    it('contains no duplicates', () => {
+      expect(new Set(CATEGORY_DISPLAY_ORDER).size).toBe(
+        CATEGORY_DISPLAY_ORDER.length,
+      );
     });
   });
 

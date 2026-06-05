@@ -47,6 +47,21 @@ export function getFilterForMarketType(
 }
 
 /**
+ * Preferred display order for product categories.
+ * Categories present in market data but missing from this list are
+ * appended at the end in discovery order.
+ */
+export const CATEGORY_DISPLAY_ORDER: Exclude<MarketTypeFilter, 'all'>[] = [
+  'crypto',
+  'stocks',
+  'pre-ipo',
+  'forex',
+  'commodities',
+  'indices',
+  'etfs',
+];
+
+/**
  * Normalise a MarketTypeFilter value for use in translation keys and
  * analytics properties by replacing hyphens with underscores
  * (e.g. `"pre-ipo"` → `"pre_ipo"`).
