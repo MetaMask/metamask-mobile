@@ -41,7 +41,21 @@ interface SectionContentProps {
   styles: NotificationSettingsStyles;
 }
 
+const SETTINGS_TYPE_BY_SECTION: Record<
+  NotificationStoragePreferenceSection,
+  string
+> = {
+  walletActivity: 'wallet_activity',
+  perps: 'perps',
+  socialAI: 'social_ai',
+  marketing: 'marketing',
+};
+
 const WalletActivitySectionContent = ({ styles }: SectionContentProps) => {
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { profileId } = useSessionProfileId();
+  const { preferences, updatePreferencesSection } =
+    useNotificationStoragePreferences();
   const {
     accountProps,
     notificationAccountListProps,
@@ -51,12 +65,44 @@ const WalletActivitySectionContent = ({ styles }: SectionContentProps) => {
     toggleAllAccounts,
   } = useWalletActivityAccountSelection();
 
-  // Section-specific behaviour on toggling all accounts lives here. The
-  // push/in-app channel analytics are handled generically by the parent
-  // NotificationSettingsSection.
+  // TODO: validate behaviour with chris, also propose not emitting an event here at all as this change is a second-order effect
+  // TODO: validate if we should emit an event if updating preferences fail - user still tried to set them
+  // Selecting/deselecting all accounts also flips both notification channels
+  // for wallet activity and reports it as a single ALL-channel update. Both
+  // channels are written in one section update so they don't race and clobber
+  // each other through the shared (stale) preferences snapshot.
   const handleToggleAllAccounts = useCallback(async () => {
+    const nextEnabled = !hasEnabledAccount;
+
     await toggleAllAccounts();
-  }, [toggleAllAccounts]);
+
+    if (preferences) {
+      await updatePreferencesSection('walletActivity', {
+        ...preferences.walletActivity,
+        pushNotificationsEnabled: nextEnabled,
+        inAppNotificationsEnabled: nextEnabled,
+      });
+    }
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.NOTIFICATIONS_SETTINGS_UPDATED)
+        .addProperties({
+          settings_type: SETTINGS_TYPE_BY_SECTION.walletActivity,
+          notification_channel: NotificationChannel.ALL,
+          enabled: nextEnabled,
+          ...(profileId ? { profile_id: profileId } : {}),
+        })
+        .build(),
+    );
+  }, [
+    hasEnabledAccount,
+    toggleAllAccounts,
+    preferences,
+    updatePreferencesSection,
+    trackEvent,
+    createEventBuilder,
+    profileId,
+  ]);
 
   return (
     <>
@@ -143,16 +189,6 @@ const SECTION_CONTENT_BY_TYPE: Partial<
   marketing: MarketingSectionContent,
 };
 
-const SETTINGS_TYPE_BY_SECTION: Record<
-  NotificationStoragePreferenceSection,
-  string
-> = {
-  walletActivity: 'wallet_activity',
-  perps: 'perps',
-  socialAI: 'social_ai',
-  marketing: 'marketing',
-};
-
 export interface NotificationSettingsSectionProps {
   navigation: NavigationProp<ParamListBase>;
   route: RouteProp<
@@ -199,13 +235,15 @@ const NotificationSettingsSection = ({
   );
 
   const handleToggleChannel = useCallback(
-    (
+    async (
       key: NotificationStoragePreferenceChannelKey,
       channel: NotificationChannel,
       currentValue: boolean,
     ) => {
       const nextEnabled = !currentValue;
-      updatePreference(type, key, nextEnabled);
+
+      await updatePreference(type, key, nextEnabled);
+
       trackChannelUpdate(channel, nextEnabled);
     },
     [updatePreference, trackChannelUpdate, type],
