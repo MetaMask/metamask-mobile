@@ -16,8 +16,8 @@ import { useEmptyNavHeaderForConfirmations } from '../../../Views/confirmations/
 import PredictActivityDetail from '../components/PredictActivityDetail/PredictActivityDetail';
 import { PredictNavigationParamList } from '../types/navigation';
 import PredictAddFundsModal from '../views/PredictAddFundsModal/PredictAddFundsModal';
-import PredictFeed from '../views/PredictFeed';
 import PredictPositionsView from '../views/PredictPositionsView';
+import PredictMarketListRoute from './PredictMarketListRoute';
 import PredictWorldCup from '../views/PredictWorldCup';
 import PredictGTMModal from '../components/PredictGTMModal';
 import { useSelector } from 'react-redux';
@@ -117,7 +117,7 @@ const PredictScreenStack = () => {
       >
         <Stack.Screen
           name={Routes.PREDICT.MARKET_LIST}
-          component={PredictFeed}
+          component={PredictMarketListRoute}
           options={{
             title: strings('predict.markets.title'),
             animation: 'none',

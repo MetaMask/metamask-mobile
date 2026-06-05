@@ -92,6 +92,7 @@ class SendView {
         const networkChip = await PlaywrightMatchers.getElementById(
           getNetworkFilterTestId('0x1'),
         );
+        await PlaywrightGestures.scrollIntoView(networkChip);
         await PlaywrightGestures.waitAndTap(networkChip);
         // Tap the first ETH token row (no testID in production, use text)
         const ethToken = await PlaywrightMatchers.getElementByText('ETH');
