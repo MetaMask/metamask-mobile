@@ -38,7 +38,18 @@ export type PredictEntryPoint =
 export interface PredictMarketListRouteParams {
   entryPoint?: PredictEntryPoint;
   feedId?: PredictFeedId;
+  /**
+   * Legacy top-level Predict feed tab key (hot / world-cup / base tabs).
+   * Consumed by `usePredictTabs`. Not interchangeable with `tabId`.
+   */
   tab?: PredictCategory;
+  /**
+   * Sub-tab id within a feed defined in the feed registry
+   * (e.g. `basketball`, `tennis`, `all`, `live`). Paired with `feedId`
+   * for deep-linking to a specific tab inside a feed. Kept as a plain
+   * string so the route stays decoupled from the registry shape.
+   */
+  tabId?: string;
   query?: string;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
