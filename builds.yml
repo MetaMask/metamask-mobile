@@ -365,6 +365,7 @@ builds:
       RAMP_DEV_BUILD: 'true'
       HAS_TEST_OVERRIDES: 'false'
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
+      MM_AGENTIC_CLI_NOTIFICATIONS_UI_ENABLED: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_experimental
 
@@ -380,6 +381,7 @@ builds:
       IS_SIM_BUILD: 'false'
       DISABLE_NOTIFICATION_PROMPT: 'true'
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
+      MM_AGENTIC_CLI_NOTIFICATIONS_UI_ENABLED: 'true'
     secrets:
       <<: *secrets
       ADDITIONAL_SRP_1: 'IN_BUILD_SRP'
@@ -400,6 +402,7 @@ builds:
       DISABLE_NOTIFICATION_PROMPT: 'true'
       E2E_MOCK_OAUTH: 'true'
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
+      MM_AGENTIC_CLI_NOTIFICATIONS_UI_ENABLED: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_experimental
 
