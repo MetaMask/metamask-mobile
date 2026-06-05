@@ -21,6 +21,7 @@ import handleRampUrl from './handleRampUrl';
 import handleRampReturnUrl from './handleRampReturnUrl';
 import { navigateToHomeUrl } from './handleHomeUrl';
 import { handleSwapUrl } from './handleSwapUrl';
+import { handleBatchSellUrl } from './handleBatchSellUrl';
 import handleBrowserUrl from './handleBrowserUrl';
 import { handleCreateAccountUrl } from './handleCreateAccountUrl';
 import { handlePerpsUrl } from './handlePerpsUrl';
@@ -78,6 +79,7 @@ const SUPPORTED_ACTIONS = {
   HOME: ACTIONS.HOME,
   ASSET: ACTIONS.ASSET,
   SWAP: ACTIONS.SWAP,
+  BATCH_SELL: ACTIONS.BATCH_SELL,
   SEND: ACTIONS.SEND,
   CREATE_ACCOUNT: ACTIONS.CREATE_ACCOUNT,
   PERPS: ACTIONS.PERPS,
@@ -607,6 +609,10 @@ async function handleUniversalLink({
         swapPath: actionBasedRampPath,
       });
       return;
+    case SUPPORTED_ACTIONS.BATCH_SELL: {
+      handleBatchSellUrl();
+      break;
+    }
     case SUPPORTED_ACTIONS.DAPP: {
       // Extract everything after /dapp/ from the URL.
       // The path can contain either a bare domain (example.com/path)
