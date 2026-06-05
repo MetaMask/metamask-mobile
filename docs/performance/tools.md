@@ -4,7 +4,7 @@ Start from the **symptom**, not the tool. Always reproduce on **Android** with t
 
 ## Step 0 — before you theorize
 
-1. **Static sweep** the suspect feature dir for catalogued patterns (see the `grep` recipes in [anti-patterns.md](./anti-patterns.md)).
+1. **Static sweep** the suspect feature dir for catalogued patterns (see the `rg` recipes in [anti-patterns.md](./anti-patterns.md)).
 2. **Check for existing instrumentation** — many features already emit a load log or `TraceName`s; read those before adding new ones:
    ```bash
    DIR=app/components/UI/<Feature>
