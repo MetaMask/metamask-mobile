@@ -10,21 +10,21 @@ A `createSelector` whose result function returns a **new collection every call**
 
 - ❌ `createSelector(s => s.x, x => x)` · `(items) => items.sort(...)` · `(s) => s.thing ?? {}`
 - ✅ Add a real transformation; copy before sorting (`[...items].sort`); use `createDeepEqualSelector` (from `app/selectors/util.ts`) when inputs churn; a stable module-level constant for the empty case.
-- **Find:** `grep -rn "createSelector(" app/selectors` then read each result function for new-collection/mutation/identity.
+- **Find:** `rg "createSelector\(" app/selectors` then read each result function for new-collection/mutation/identity.
 
 ## Redux & `useSelector`
 
 - **`useSelector(x, isEqual)` band-aid** — lodash deep-equality on every dispatch is the _symptom_ of a selector that returns new refs. Fix the selector, then drop `isEqual`.
 - **Inline `useSelector(state => state.x.y)`** — no memoization, no reuse; use a named selector.
 - **Real-time / high-frequency data in Redux** — every dispatch flows through the whole store. Keep transient/live data in local state (`useState`/`useRef`) or a stream manager; write to Redux only to persist. **Do not** add a new state library — Redux is the committed architecture.
-- **Find:** `grep -rn "useSelector(.*isEqual\|useSelector((state" app`
+- **Find:** `rg "useSelector.*(isEqual|\(state)" app`
 
 ## Context provider with an inline value
 
 `<Ctx.Provider value={{ ... }}>` creates a new object every parent render → **every consumer re-renders** regardless of change.
 
 - ✅ `const value = useMemo(() => ({ ... }), [deps])`; for animated values, prefer a Reanimated shared value over plumbing through Context.
-- **Find:** `grep -rn "Provider value={{" app`
+- **Find:** `rg "Provider value=\{\{" app`
 
 ## Hook dependency arrays
 
@@ -32,7 +32,7 @@ A `createSelector` whose result function returns a **new collection every call**
 
 - ✅ Stabilize the reference upstream with `useMemo`, then depend on it directly.
 - Note: `react-hooks/exhaustive-deps` is **not** enabled in this repo — review deps by hand.
-- **Find:** `grep -rn "\[JSON.stringify\|, JSON.stringify" app`
+- **Find:** `rg "\[JSON\.stringify|, JSON\.stringify" app`
 
 ## Unstable hook return values
 
@@ -47,14 +47,14 @@ Use **FlashList v2** for anything that can grow; `ScrollView + .map()` renders e
 
 - Stable `keyExtractor` (unique id, not index); `getItemType` for mixed item shapes; lightweight item components.
 - ❌ flagging missing `estimatedItemSize` — it's **deprecated** in v2.
-- **Find:** `grep -rn "<ScrollView\|<FlatList" app` then check growable lists.
+- **Find:** `rg "<ScrollView|<FlatList" app` then check growable lists.
 
 ## Layout animations on the JS thread
 
 The legacy `Animated` API can't use the native driver for layout props (`width`/`height`/`flex`), forcing `useNativeDriver: false` → the animation runs on the JS thread and stutters when JS is busy.
 
 - ✅ Reanimated **v3** (`useSharedValue` + `useAnimatedStyle`) animates layout on the UI thread; or animate a `transform` (`scaleX`) instead of `width`. See [animations.md](../readme/animations.md).
-- **Find:** `grep -rn "useNativeDriver: *false" app` → flag the ones animating layout props.
+- **Find:** `rg "useNativeDriver:\s*false" app` → flag the ones animating layout props.
 
 ## Eager / redundant work on mount
 
@@ -76,13 +76,13 @@ Cost lives in the subscription/stream layer, not the render code. Watch for: N p
 - **Barrel exports** (`export * from './index'`) aren't tree-shaken by Metro — importing one symbol evaluates the whole barrel at startup. Prefer direct imports.
 - **lodash main-package imports** (`from 'lodash'`) ship more than needed — use `lodash/method` submodule paths or native equivalents.
 - Avoid duplicate libraries (e.g. two date libs).
-- **Find:** `grep -rn "export \* from" app` · `grep -rn "from 'lodash'" app | grep -v "lodash/"`
+- **Find:** `rg "export \* from" app` · `rg "from 'lodash'" app`
 
 ## Memory leaks
 
 Every `addEventListener`/`setInterval`/`subscribe`/`AppState.addEventListener` needs a matching cleanup (`return () => …`, `.remove()`, `clearInterval`, `unsubscribe`). Missing cleanup leaks listeners and fires work after unmount.
 
-- **Find:** `grep -rn "addEventListener\|setInterval\|\.subscribe(" app` and confirm each has cleanup.
+- **Find:** `rg "addEventListener|setInterval|\.subscribe\(" app` and confirm each has cleanup.
 
 ---
 

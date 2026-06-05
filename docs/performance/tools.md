@@ -8,7 +8,7 @@ Start from the **symptom**, not the tool. Always reproduce on **Android** with t
 2. **Check for existing instrumentation** — many features already emit a load log or `TraceName`s; read those before adding new ones:
    ```bash
    DIR=app/components/UI/<Feature>
-   grep -rn "TraceName\.\|use[A-Z].*Measurement\|setMeasurement\|DevLogger" "$DIR"
+   rg "TraceName\.|use[A-Z].*Measurement|setMeasurement|DevLogger" "$DIR"
    ```
    (Feature `DevLogger` output only prints with `SDK_DEV=DEV` — run `SDK_DEV=DEV yarn watch:clean`.)
 
