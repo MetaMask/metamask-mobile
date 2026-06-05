@@ -104,7 +104,7 @@ import type {
 
 // Predict params
 import type {
-  PredictMarketListRouteParams,
+  PredictMarketListParams,
   PredictMarketDetailsParams,
   PredictActivityDetailParams,
   PredictBuyPreviewParams,
@@ -587,7 +587,7 @@ export interface RootStackParamList extends ParamListBase {
 
   // Predict routes
   Predict: undefined;
-  PredictMarketList: PredictMarketListRouteParams | undefined;
+  PredictMarketList: PredictMarketListParams | undefined;
   PredictMarketDetails: PredictMarketDetailsParams | undefined;
   PredictActivityDetail: PredictActivityDetailParams;
   PredictModals: undefined;
