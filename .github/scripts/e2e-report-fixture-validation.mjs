@@ -39,9 +39,6 @@ function buildComment(results) {
   }
 
   if (!results) {
-    if (VALIDATION_RESULT === 'success') {
-      return `✅ ${COMMENT_MARKER} — Passed**\n[View details](${RUN_URL})`;
-    }
     return null;
   }
 
@@ -66,11 +63,7 @@ function buildComment(results) {
     ].join('\n');
   }
 
-  if (valueMismatches > 0) {
-    return `✅ ${COMMENT_MARKER} — Schema is up to date**\n${valueMismatches} value mismatches detected (expected — fixture represents an existing user).\n[View details](${RUN_URL})`;
-  }
-
-  return `✅ ${COMMENT_MARKER} — No differences found**\nFixture is up to date. [View details](${RUN_URL})`;
+  return null;
 }
 
 function emitAnnotation(results) {
@@ -148,11 +141,16 @@ async function main() {
 
   // Post PR comment if this is a PR
   if (PR_NUMBER) {
+    // Always clean up any prior fixture-validation comments so passing runs
+    // remove stale "structural changes" comments from previous failures.
+    await deletePreviousComments();
+
     const comment = buildComment(results);
     if (comment) {
-      await deletePreviousComments();
       await postComment(comment);
       console.log(`Posted fixture validation comment on PR #${PR_NUMBER}`);
+    } else {
+      console.log(`No actionable fixture validation findings for PR #${PR_NUMBER} — skipping comment.`);
     }
   }
 }

@@ -6,10 +6,16 @@ import {
 import type { Position } from '@metamask/social-controllers';
 import { getAssetImageUrl } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
 import { chainNameToId } from '../utils/chainMapping';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../component-library/components/Badges/BadgeWrapper';
+import BadgeNetwork from '../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
+import { getNetworkImageSource } from '../../../../util/networks';
 
 export interface PositionTokenAvatarProps {
   position: Position;
   size?: AvatarTokenSize;
+  showChainBadge?: boolean;
 }
 
 type ImageSource = 'clicker' | 'metamask' | 'none';
@@ -23,12 +29,17 @@ type ImageSource = 'clicker' | 'metamask' | 'none';
 const PositionTokenAvatar: React.FC<PositionTokenAvatarProps> = ({
   position,
   size = AvatarTokenSize.Lg,
+  showChainBadge = false,
 }) => {
+  const caipChainId = useMemo(
+    () => chainNameToId(position.chain),
+    [position.chain],
+  );
+
   const metamaskUrl = useMemo(() => {
-    const chainId = chainNameToId(position.chain);
-    if (!chainId) return undefined;
-    return getAssetImageUrl(position.tokenAddress, chainId);
-  }, [position.chain, position.tokenAddress]);
+    if (!caipChainId) return undefined;
+    return getAssetImageUrl(position.tokenAddress, caipChainId);
+  }, [caipChainId, position.tokenAddress]);
 
   const initialSource = useMemo((): ImageSource => {
     if (position.tokenImageUrl) return 'clicker';
@@ -64,7 +75,7 @@ const PositionTokenAvatar: React.FC<PositionTokenAvatarProps> = ({
     });
   };
 
-  return (
+  const avatar = (
     <AvatarToken
       name={position.tokenSymbol}
       src={src}
@@ -75,6 +86,24 @@ const PositionTokenAvatar: React.FC<PositionTokenAvatarProps> = ({
       }}
     />
   );
+
+  if (showChainBadge && caipChainId) {
+    return (
+      <BadgeWrapper
+        badgePosition={BadgePosition.BottomRight}
+        badgeElement={
+          <BadgeNetwork
+            name={position.chain}
+            imageSource={getNetworkImageSource({ chainId: caipChainId })}
+          />
+        }
+      >
+        {avatar}
+      </BadgeWrapper>
+    );
+  }
+
+  return avatar;
 };
 
 export default PositionTokenAvatar;

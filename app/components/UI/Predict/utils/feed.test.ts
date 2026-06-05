@@ -1,4 +1,4 @@
-import { deduplicateSeriesMarkets } from './feed';
+import { deduplicateSeriesMarkets, filterStandaloneMarkets } from './feed';
 import { Recurrence, type PredictMarket } from '../types';
 
 const createMockMarket = (
@@ -120,5 +120,33 @@ describe('deduplicateSeriesMarkets', () => {
     const result = deduplicateSeriesMarkets([single]);
 
     expect(result).toEqual([single]);
+  });
+});
+
+describe('filterStandaloneMarkets', () => {
+  it('removes markets with a parent market id', () => {
+    const parent = createMockMarket('parent');
+    const emptyParent = createMockMarket('empty-parent', {
+      parentMarketId: '',
+    });
+    const nullParent = createMockMarket('null-parent', {
+      parentMarketId: null,
+    });
+    const child = createMockMarket('child', {
+      parentMarketId: 'parent',
+    });
+    const numericChild = createMockMarket('numeric-child', {
+      parentMarketId: 123,
+    });
+
+    const result = filterStandaloneMarkets([
+      parent,
+      emptyParent,
+      nullParent,
+      child,
+      numericChild,
+    ]);
+
+    expect(result).toEqual([parent, emptyParent, nullParent]);
   });
 });

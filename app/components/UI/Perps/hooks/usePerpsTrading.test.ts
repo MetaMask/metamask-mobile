@@ -280,7 +280,8 @@ describe('usePerpsTrading', () => {
   describe('getAccountState', () => {
     it('should call PerpsController.getAccountState and return account state', async () => {
       const mockAccountState: AccountState = {
-        availableBalance: '10000',
+        spendableBalance: '10000',
+        withdrawableBalance: '10000',
         marginUsed: '0',
         unrealizedPnl: '0',
         returnOnEquity: '16.67',
@@ -304,7 +305,8 @@ describe('usePerpsTrading', () => {
 
     it('should call getAccountState without parameters', async () => {
       const mockAccountState: AccountState = {
-        availableBalance: '10000',
+        spendableBalance: '10000',
+        withdrawableBalance: '10000',
         marginUsed: '0',
         unrealizedPnl: '0',
         returnOnEquity: '16.67',

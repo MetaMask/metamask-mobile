@@ -34,6 +34,10 @@ jest.mock('.../../../../store', () => ({
     .mockReturnValue({ toPromise: jest.fn().mockResolvedValue(undefined) }),
 }));
 
+jest.mock('../../../../util/test/utils', () => ({
+  isTestEnvironment: false,
+}));
+
 function getInitRequestMock(
   baseMessenger = new ExtendedMessenger<MockAnyNamespace>({
     namespace: MOCK_ANY_NAMESPACE,

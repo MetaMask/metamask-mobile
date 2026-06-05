@@ -10,9 +10,11 @@ import {
   PredictOutcome,
   PredictOutcomeToken,
   PredictPosition,
+  PredictSeries,
 } from '.';
 import { PredictEventValues } from '../constants/eventNames';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import type { PredictWorldCupTabKey } from '../constants/worldCupTabs';
 
 export type PredictEntryPoint =
   | typeof PredictEventValues.ENTRY_POINT.CAROUSEL
@@ -28,22 +30,38 @@ export type PredictEntryPoint =
   | typeof PredictEventValues.ENTRY_POINT.BACKGROUND
   | typeof PredictEventValues.ENTRY_POINT.TRENDING_SEARCH
   | typeof PredictEventValues.ENTRY_POINT.TRENDING
-  | typeof PredictEventValues.ENTRY_POINT.HOME_SECTION;
+  | typeof PredictEventValues.ENTRY_POINT.HOME_SECTION
+  | typeof PredictEventValues.ENTRY_POINT.EXPLORE;
 
 /** Predict market list parameters */
 export interface PredictMarketListParams {
   entryPoint?: PredictEntryPoint;
   tab?: PredictCategory;
   query?: string;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 /** Predict market details parameters */
 export interface PredictMarketDetailsParams {
   marketId?: string;
+  series?: PredictSeries;
+  seriesId?: string;
+  seriesRecurrence?: string;
   entryPoint?: PredictEntryPoint;
+  /** Active feed tab key at the time the market card was tapped (e.g. "trending", "world-cup"). */
+  predictFeedTab?: string;
+  /** Screen context the trade originated from (e.g. "world_cup"). */
+  predictScreen?: string;
   title?: string;
   image?: string;
   isGame?: boolean;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+}
+
+/** Predict World Cup feed parameters */
+export interface PredictWorldCupParams {
+  entryPoint?: string;
+  initialTab?: PredictWorldCupTabKey;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
@@ -52,13 +70,38 @@ export interface PredictActivityDetailParams {
   activity: PredictActivityItem;
 }
 
+export type PredictPositionsTabKey = 'positions' | 'history';
+
+/** Predict Positions screen parameters */
+export interface PredictPositionsParams {
+  initialTab?: PredictPositionsTabKey;
+}
+
+/** Predict add funds modal parameters */
+export interface PredictAddFundsModalParams {
+  /** When true, deposit() is called immediately on mount — skipping the explanation UI. */
+  autoDeposit?: boolean;
+}
+
 /** Predict buy preview parameters */
 export interface PredictBuyPreviewParams {
   market: PredictMarket;
   outcome: PredictOutcome;
   outcomeToken: PredictOutcomeToken;
   entryPoint?: PredictEntryPoint;
+  /** Active feed tab key at the time the market card was tapped (e.g. "trending", "world-cup"). */
+  predictFeedTab?: string;
+  /** Screen context the trade originated from (e.g. "world_cup"). */
+  predictScreen?: string;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+  /**
+   * When true, the beforeRemove listener in PredictBuyPreview will fire
+   * trackBetslipDismissed for swipe/hardware-back dismissals. Only set by
+   * PredictPreviewSheetProvider when disableBottomSheet is active — keeps the
+   * analytics change scoped to the new HomepageDiscoveryTabs flow and avoids
+   * changing event volume for the pre-existing flagless screen-mode path.
+   */
+  trackSwipeDismiss?: boolean;
 }
 
 /** Predict sell preview parameters */
@@ -94,7 +137,10 @@ export interface PredictNavigationParamList extends ParamListBase {
   Predict: undefined;
   PredictMarketList: PredictMarketListParams;
   PredictMarketDetails: PredictMarketDetailsParams;
+  PredictPositions: PredictPositionsParams | undefined;
+  PredictWorldCup: PredictWorldCupParams | undefined;
   PredictSellPreview: PredictSellPreviewParams;
   PredictBuyPreview: PredictBuyPreviewParams;
   PredictActivityDetail: PredictActivityDetailParams;
+  PredictAddFundsSheet: PredictAddFundsModalParams;
 }

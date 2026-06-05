@@ -55,16 +55,15 @@ describe('ConfirmationFooter', () => {
     jest.clearAllMocks();
   });
 
-  it('renders correctly', () => {
-    const { toJSON, getByText } = renderWithProvider(
+  it('renders confirm and cancel buttons', () => {
+    const { getByText } = renderWithProvider(
       <ConfirmationFooter {...defaultProps} />,
     );
 
-    expect(toJSON()).toMatchSnapshot();
-    expect(getByText(strings('earn.confirm'))).toBeDefined();
-    expect(getByText(strings('earn.cancel'))).toBeDefined();
-    expect(getByText(strings('earn.approve'))).toBeDefined();
-    expect(getByText(strings('earn.deposit'))).toBeDefined();
+    expect(getByText(strings('earn.confirm'))).toBeOnTheScreen();
+    expect(getByText(strings('earn.cancel'))).toBeOnTheScreen();
+    expect(getByText(strings('earn.approve'))).toBeOnTheScreen();
+    expect(getByText(strings('earn.deposit'))).toBeOnTheScreen();
   });
 
   it('should onCancel prop when cancel button pressed', async () => {

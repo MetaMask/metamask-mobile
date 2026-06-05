@@ -17,6 +17,7 @@ const defaultDeviceSelection = {
 // eslint-disable-next-line no-empty-function
 const noop = () => {};
 const asyncFalse = async () => false;
+const asyncVoid = async () => undefined;
 
 const createMockContextValue = (
   overrides: Partial<HardwareWalletContextValue> = {},
@@ -31,6 +32,13 @@ const createMockContextValue = (
   showHardwareWalletError: noop,
   showAwaitingConfirmation: noop,
   hideAwaitingConfirmation: noop,
+  qr: {
+    pendingScanRequest: undefined,
+    isSigningQRObject: false,
+    setRequestCompleted: noop,
+    isRequestCompleted: false,
+    cancelQRScanRequestIfPresent: asyncVoid,
+  },
   ...overrides,
 });
 
@@ -44,6 +52,13 @@ describe('HardwareWalletContext', () => {
           status: ConnectionStatus.Connected,
           deviceId: 'device-123',
         },
+        qr: {
+          pendingScanRequest: undefined,
+          isSigningQRObject: true,
+          setRequestCompleted: noop,
+          isRequestCompleted: false,
+          cancelQRScanRequestIfPresent: asyncVoid,
+        },
       });
 
       const TestConsumer: React.FC = () => {
@@ -53,6 +68,9 @@ describe('HardwareWalletContext', () => {
             <Text testID="walletType">{hw.walletType ?? 'null'}</Text>
             <Text testID="deviceId">{hw.deviceId ?? 'null'}</Text>
             <Text testID="status">{hw.connectionState.status}</Text>
+            <Text testID="isSigningQRObject">
+              {String(hw.qr.isSigningQRObject)}
+            </Text>
           </View>
         );
       };
@@ -68,6 +86,7 @@ describe('HardwareWalletContext', () => {
       );
       expect(screen.getByTestId('deviceId')).toHaveTextContent('device-123');
       expect(screen.getByTestId('status')).toHaveTextContent('connected');
+      expect(screen.getByTestId('isSigningQRObject')).toHaveTextContent('true');
     });
 
     it('provides actions via useHardwareWallet', () => {

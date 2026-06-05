@@ -141,7 +141,13 @@ const convertToRampsTokens = (tokens: typeof mockTokens) =>
 describe('TokenSelection Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (useSearchTokenResults as jest.Mock).mockReturnValue(mockTokens);
+    // Return tokens with tokenSupported set so that items are not disabled.
+    // In React 19, fireEvent.press does not fire on disabled TouchableOpacity
+    // elements; without tokenSupported the isDisabled prop becomes true and
+    // press events are silently dropped.
+    (useSearchTokenResults as jest.Mock).mockReturnValue(
+      convertToRampsTokens(mockTokens),
+    );
     mockGetNetworkName.mockReturnValue('Ethereum Mainnet');
     mockUseRampsUnifiedV2Enabled.mockReturnValue(false); // Default to V1 behavior
 
@@ -358,6 +364,40 @@ describe('TokenSelection Component', () => {
     expect(
       getByTestId(TokenSelectionSelectors.LOADING_INDICATOR),
     ).toBeOnTheScreen();
+  });
+
+  it('displays loading when tokens not yet loaded (legacy, null tokens and no error)', () => {
+    // Null tokens with isLoading:false (decision settling after geo recovery)
+    // must show the spinner, not a "No tokens match" flash.
+    mockUseRampsUnifiedV2Enabled.mockReturnValue(false);
+    mockUseRampTokens.mockReturnValue({
+      topTokens: null,
+      allTokens: null,
+      isLoading: false,
+      error: null,
+    });
+
+    const { getByTestId } = renderWithProvider(TokenSelection);
+
+    expect(
+      getByTestId(TokenSelectionSelectors.LOADING_INDICATOR),
+    ).toBeOnTheScreen();
+  });
+
+  it('does not show loading for a genuinely empty token list (legacy, empty array and no error)', () => {
+    // A genuinely empty result is [] (not null) and must not spin forever —
+    // guards against gating loading on length instead of null.
+    mockUseRampsUnifiedV2Enabled.mockReturnValue(false);
+    mockUseRampTokens.mockReturnValue({
+      topTokens: [],
+      allTokens: [],
+      isLoading: false,
+      error: null,
+    });
+
+    const { queryByTestId } = renderWithProvider(TokenSelection);
+
+    expect(queryByTestId(TokenSelectionSelectors.LOADING_INDICATOR)).toBeNull();
   });
 
   it('displays loading indicator while fetching tokens (V2 enabled)', () => {

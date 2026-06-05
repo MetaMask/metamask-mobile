@@ -1,24 +1,16 @@
 import { act, waitFor } from '@testing-library/react-native';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useBridgeConfirm } from './index';
-import { useBridgeQuoteData } from '../useBridgeQuoteData';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
-import { mockUseBridgeQuoteData } from '../../_mocks_/useBridgeQuoteData.mock';
 import Routes from '../../../../../constants/navigation/Routes';
-import { BigNumber } from 'ethers';
 
 const WALLET_ADDRESS = '0x1234567890123456789012345678901234567890';
 
-const mockLatestSourceBalance = {
-  displayBalance: '2.0',
-  atomicBalance: BigNumber.from('2000000000000000000'),
-};
-
 const defaultParams = {
+  activeQuote: mockQuoteWithMetadata,
   location: MetaMetricsSwapsEventSource.MainView,
-  latestSourceBalance: mockLatestSourceBalance,
 };
 
 // Navigation
@@ -26,11 +18,6 @@ const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ navigate: mockNavigate }),
-}));
-
-// useBridgeQuoteData
-jest.mock('../useBridgeQuoteData', () => ({
-  useBridgeQuoteData: jest.fn(),
 }));
 
 // selectSourceWalletAddress
@@ -79,10 +66,6 @@ function renderHook(
 describe('useBridgeConfirm', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.mocked(useBridgeQuoteData).mockReturnValue({
-      ...mockUseBridgeQuoteData,
-      activeQuote: mockQuoteWithMetadata,
-    } as ReturnType<typeof useBridgeQuoteData>);
     jest.mocked(selectSourceWalletAddress).mockReturnValue(WALLET_ADDRESS);
     mockSubmitBridgeTx.mockResolvedValue({ success: true });
   });
@@ -148,38 +131,11 @@ describe('useBridgeConfirm', () => {
         ).toBe(false);
       });
     });
-
-    it('passes latestSourceAtomicBalance to useBridgeQuoteData', () => {
-      renderHook();
-
-      expect(jest.mocked(useBridgeQuoteData)).toHaveBeenCalledWith(
-        expect.objectContaining({
-          latestSourceAtomicBalance: mockLatestSourceBalance.atomicBalance,
-        }),
-      );
-    });
-
-    it('passes undefined atomicBalance when latestSourceBalance is undefined', () => {
-      renderHook({ ...defaultParams, latestSourceBalance: undefined });
-
-      expect(jest.mocked(useBridgeQuoteData)).toHaveBeenCalledWith(
-        expect.objectContaining({
-          latestSourceAtomicBalance: undefined,
-        }),
-      );
-    });
   });
 
   describe('when activeQuote is null', () => {
-    beforeEach(() => {
-      jest.mocked(useBridgeQuoteData).mockReturnValue({
-        ...mockUseBridgeQuoteData,
-        activeQuote: null,
-      } as ReturnType<typeof useBridgeQuoteData>);
-    });
-
     it('does not call submitBridgeTx', async () => {
-      const { result } = renderHook();
+      const { result } = renderHook({ ...defaultParams, activeQuote: null });
 
       await act(async () => {
         await result.current();
@@ -189,7 +145,7 @@ describe('useBridgeConfirm', () => {
     });
 
     it('still navigates to TRANSACTIONS_VIEW', async () => {
-      const { result } = renderHook();
+      const { result } = renderHook({ ...defaultParams, activeQuote: null });
 
       await act(async () => {
         await result.current();

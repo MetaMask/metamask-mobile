@@ -45,6 +45,30 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock(
+  '../../../../../../../component-library/components/BottomSheets/BottomSheet',
+  () => {
+    const ReactMock = jest.requireActual('react');
+    const MockBottomSheet = ReactMock.forwardRef(
+      (
+        { children }: { children: React.ReactNode },
+        ref: React.Ref<unknown>,
+      ) => {
+        ReactMock.useImperativeHandle(ref, () => ({
+          onCloseBottomSheet: (callback?: () => void) => callback?.(),
+          onOpenBottomSheet: (callback?: () => void) => callback?.(),
+        }));
+        return <>{children}</>;
+      },
+    );
+    MockBottomSheet.displayName = 'MockBottomSheet';
+    return {
+      __esModule: true,
+      default: MockBottomSheet,
+    };
+  },
+);
+
 jest.mock('../../../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../../../util/navigation/navUtils'),
   useParams: jest.fn(() => ({

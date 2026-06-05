@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 dotenv.config({ path: '.e2e.env' });
 
-import { Platform } from './framework/types';
+import { Platform, ProviderName } from './framework/types';
 import { defineConfig } from './framework/config';
 
 process.env.SYSTEM_TEST_MODE = 'true';
@@ -11,6 +11,7 @@ export default defineConfig({
   fullyParallel: false,
   timeout: 7 * 60 * 1000,
   retries: 1,
+  grep: /@System/,
   reporter: [
     [
       'html',
@@ -29,15 +30,15 @@ export default defineConfig({
       use: {
         platform: Platform.ANDROID,
         device: {
-          provider: 'browserstack',
-          name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S23 Ultra',
-          osVersion: process.env.BROWSERSTACK_OS_VERSION || '13.0',
+          provider: ProviderName.BROWSERSTACK,
+          name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S25 Ultra',
+          osVersion: process.env.BROWSERSTACK_OS_VERSION || '15.0',
         },
         app: {
           packageName: 'io.metamask',
           launchableActivity: 'io.metamask.MainActivity',
+          buildPath: process.env.BROWSERSTACK_ANDROID_APP_URL,
         },
-        buildPath: process.env.BROWSERSTACK_ANDROID_APP_URL,
       },
     },
     {
@@ -47,17 +48,17 @@ export default defineConfig({
       use: {
         platform: Platform.ANDROID,
         device: {
-          provider: 'browserstack',
-          name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S23 Ultra',
-          osVersion: process.env.BROWSERSTACK_OS_VERSION || '13.0',
+          provider: ProviderName.BROWSERSTACK,
+          name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S25 Ultra',
+          osVersion: process.env.BROWSERSTACK_OS_VERSION || '15.0',
         },
         app: {
           packageName: 'io.metamask',
           launchableActivity: 'io.metamask.MainActivity',
+          buildPath:
+            process.env.BROWSERSTACK_ANDROID_ONBOARDING_PERF_APP_URL ??
+            process.env.BROWSERSTACK_ANDROID_CLEAN_APP_URL,
         },
-        buildPath:
-          process.env.BROWSERSTACK_ANDROID_ONBOARDING_PERF_APP_URL ??
-          process.env.BROWSERSTACK_ANDROID_CLEAN_APP_URL,
       },
     },
     {
@@ -66,14 +67,14 @@ export default defineConfig({
       use: {
         platform: Platform.IOS,
         device: {
-          provider: 'browserstack',
+          provider: ProviderName.BROWSERSTACK,
           name: process.env.BROWSERSTACK_DEVICE || 'iPhone 16 Pro Max',
           osVersion: process.env.BROWSERSTACK_OS_VERSION || '18',
         },
         app: {
           appId: 'io.metamask.MetaMask',
+          buildPath: process.env.BROWSERSTACK_IOS_APP_URL,
         },
-        buildPath: process.env.BROWSERSTACK_IOS_APP_URL,
       },
     },
     {
@@ -83,16 +84,16 @@ export default defineConfig({
       use: {
         platform: Platform.IOS,
         device: {
-          provider: 'browserstack',
+          provider: ProviderName.BROWSERSTACK,
           name: process.env.BROWSERSTACK_DEVICE || 'iPhone 16 Pro Max',
           osVersion: process.env.BROWSERSTACK_OS_VERSION || '18',
         },
         app: {
           appId: 'io.metamask.MetaMask',
+          buildPath:
+            process.env.BROWSERSTACK_IOS_ONBOARDING_PERF_APP_URL ??
+            process.env.BROWSERSTACK_IOS_CLEAN_APP_URL,
         },
-        buildPath:
-          process.env.BROWSERSTACK_IOS_ONBOARDING_PERF_APP_URL ??
-          process.env.BROWSERSTACK_IOS_CLEAN_APP_URL,
       },
     },
   ],

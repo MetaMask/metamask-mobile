@@ -20,6 +20,9 @@ import { createRampUnsupportedModalNavigationDetails } from '../components/RampU
 import { createEligibilityFailedModalNavigationDetails } from '../components/EligibilityFailedModal/EligibilityFailedModal';
 import { useRampsTokens } from './useRampsTokens';
 import { resolveRampControllerAssetId } from '../utils/resolveRampControllerAssetId';
+import Engine from '../../../../core/Engine';
+import { selectGeolocationLocation } from '../../../../selectors/geolocationController';
+import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
 
 enum RampMode {
   AGGREGATOR = 'AGGREGATOR',
@@ -40,10 +43,11 @@ export const useRampNavigation = () => {
   const isRampsUnifiedV1Enabled = useRampsUnifiedV1Enabled();
   const isRampsUnifiedV2Enabled = useRampsUnifiedV2Enabled();
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
+  const geolocationLocation = useSelector(selectGeolocationLocation);
   const { setSelectedToken, tokens: rampsTokens } = useRampsTokens();
 
   const goToBuy = useCallback(
-    (
+    async (
       intent?: RampIntent,
       options?: {
         mode?: RampMode;
@@ -61,9 +65,24 @@ export const useRampNavigation = () => {
       // Check error states first (applies to both V1 and V2)
       if (isUnifiedRoutingEnabled) {
         if (rampRoutingDecision === UnifiedRampRoutingType.ERROR) {
-          navigation.navigate(
-            ...createEligibilityFailedModalNavigationDetails(),
-          );
+          // ERROR usually means geo was UNKNOWN at decision time. Prefer the
+          // location already in state, only refreshing if it's still unknown.
+          // A real region enters the flow; otherwise fall back to the modal.
+          let location: string | undefined = geolocationLocation;
+
+          if (!location || location === UNKNOWN_LOCATION) {
+            location = await Promise.resolve(
+              Engine.context.GeolocationController?.refreshGeolocation?.(),
+            ).catch(() => undefined);
+          }
+
+          if (location && location !== UNKNOWN_LOCATION) {
+            navigation.navigate(...createTokenSelectionNavDetails());
+          } else {
+            navigation.navigate(
+              ...createEligibilityFailedModalNavigationDetails(),
+            );
+          }
           return;
         }
 
@@ -74,7 +93,6 @@ export const useRampNavigation = () => {
       }
 
       // V2: If assetId is provided and V2 is enabled, route to BuildQuote
-      // TODO: Check for provider support for the token and pass params to BuildQuote to show an error modal
       if (
         isRampsUnifiedV2Enabled &&
         intent?.assetId &&
@@ -85,6 +103,22 @@ export const useRampNavigation = () => {
           intent.assetId,
           rampsTokens?.allTokens ?? [],
         );
+
+        // When tokens have loaded, divert unsupported tokens to the
+        // dedicated modal so users see a clear message instead of landing
+        // on BuildQuote with a missing token name.
+        if (rampsTokens) {
+          const matchedToken = rampsTokens.allTokens.find(
+            (tok) => tok.assetId === controllerAssetId,
+          );
+          if (!matchedToken || !matchedToken.tokenSupported) {
+            navigation.navigate(
+              ...createRampUnsupportedModalNavigationDetails(),
+            );
+            return;
+          }
+        }
+
         try {
           setSelectedToken(controllerAssetId);
         } catch {
@@ -150,7 +184,8 @@ export const useRampNavigation = () => {
       isRampsUnifiedV1Enabled,
       isRampsUnifiedV2Enabled,
       rampRoutingDecision,
-      rampsTokens?.allTokens,
+      rampsTokens,
+      geolocationLocation,
     ],
   );
 

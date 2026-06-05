@@ -114,8 +114,8 @@ describe('ClaimBanner', () => {
     (useFocusEffect as jest.Mock).mockImplementation(jest.fn());
   });
 
-  it('render matches snapshot', () => {
-    const { toJSON } = renderWithProvider(
+  it('renders claim button', () => {
+    const { getByTestId } = renderWithProvider(
       <ClaimBanner
         claimableAmount={MOCK_CLAIM_AMOUNT}
         asset={MOCK_ETH_MAINNET_ASSET}
@@ -123,7 +123,7 @@ describe('ClaimBanner', () => {
       { state: mockInitialState },
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByTestId('claim-banner-claim-eth-button')).toBeOnTheScreen();
   });
 
   it('claim button switches to mainnet on press if on unsupported chain', async () => {
@@ -158,7 +158,9 @@ describe('ClaimBanner', () => {
 
     const claimButton = getByTestId('claim-banner-claim-eth-button');
 
-    fireEvent.press(claimButton);
+    await act(async () => {
+      fireEvent.press(claimButton);
+    });
 
     expect(
       Engine.context.MultichainNetworkController.setActiveNetwork,
@@ -166,6 +168,7 @@ describe('ClaimBanner', () => {
   });
 
   it('claim button is disabled on subsequent presses', async () => {
+    jest.setTimeout(15000);
     const { getByTestId } = renderWithProvider(
       <ClaimBanner
         claimableAmount={MOCK_CLAIM_AMOUNT}
@@ -180,7 +183,10 @@ describe('ClaimBanner', () => {
       fireEvent.press(claimButton);
     });
 
-    expect(claimButton.props.disabled).toBe(true);
+    expect(
+      claimButton.props.accessibilityState?.disabled ??
+        claimButton.props.disabled,
+    ).toBe(true);
     expect(
       Engine.context.MultichainNetworkController.setActiveNetwork,
     ).not.toHaveBeenCalled();

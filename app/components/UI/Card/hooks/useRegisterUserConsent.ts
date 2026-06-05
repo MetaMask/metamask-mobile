@@ -31,9 +31,9 @@ interface UseRegisterUserConsentReturn extends UseRegisterUserConsentState {
  *
  * IMPORTANT: These operations must be performed in the correct order:
  * Step 7: createOnboardingConsent - Creates consent record and returns consentSetId
- * Step 8: Register physical address (via useRegisterPhysicalAddress)
- * Step 9: Register mailing address if needed (via useRegisterMailingAddress)
- * Step 10: linkUserToConsent - Links the user to the consent record
+ * Step 8: Register physical address (via useRegisterPhysicalAddress), including
+ * mailing address when it differs from residential (handled in that flow)
+ * Step 9: linkUserToConsent - Links the user to the consent record
  *
  * This ensures that if address registration fails, no consent is linked to the user,
  * preventing inconsistent state.
@@ -203,7 +203,7 @@ export const useRegisterUserConsent = (): UseRegisterUserConsentReturn => {
   );
 
   /**
-   * Step 10: Links the user to an existing consent record
+   * Step 9: Links the user to an existing consent record
    * This should be called AFTER successful address registration
    * @param consentSetId - The consent set ID from createOnboardingConsent
    * @param userId - The user ID to link

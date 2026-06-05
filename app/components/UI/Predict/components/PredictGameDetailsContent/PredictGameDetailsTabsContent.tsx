@@ -1,6 +1,5 @@
 import React, { memo, useCallback } from 'react';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
 import type {
   PredictMarket,
@@ -9,12 +8,8 @@ import type {
   PredictOutcomeToken,
   PredictPosition,
 } from '../../types';
-import type { PredictNavigationParamList } from '../../types/navigation';
 import type { PredictMarketDetailsTabKey } from '../../Predict.testIds';
 import PredictPicks from '../PredictPicks/PredictPicks';
-import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
-import { usePredictNavigation } from '../../hooks/usePredictNavigation';
-import { PredictEventValues } from '../../constants/eventNames';
 import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
 import PredictGameOutcomesTab from './PredictGameOutcomesTab';
 
@@ -28,6 +23,7 @@ interface PredictGameDetailsTabsContentProps {
   claimablePositions: PredictPosition[];
   groupMap: Map<string, PredictOutcomeGroup>;
   activeChipKey: string;
+  onBetPress: (token: PredictOutcomeToken) => void;
 }
 
 const PredictGameDetailsTabsContent = memo(
@@ -41,29 +37,13 @@ const PredictGameDetailsTabsContent = memo(
     claimablePositions,
     groupMap,
     activeChipKey,
+    onBetPress,
   }: PredictGameDetailsTabsContentProps) => {
-    const navigation =
-      useNavigation<NavigationProp<PredictNavigationParamList>>();
-    const { executeGuardedAction } = usePredictActionGuard({ navigation });
-    const { navigateToBuyPreview } = usePredictNavigation();
-
     const handleBuyPress = useCallback(
-      (outcome: PredictOutcome, token: PredictOutcomeToken) => {
-        executeGuardedAction(
-          () => {
-            navigateToBuyPreview({
-              market,
-              outcome,
-              outcomeToken: token,
-              entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
-            });
-          },
-          {
-            attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,
-          },
-        );
+      (_outcome: PredictOutcome, token: PredictOutcomeToken) => {
+        onBetPress(token);
       },
-      [market, executeGuardedAction, navigateToBuyPreview],
+      [onBetPress],
     );
 
     const hasPositions =

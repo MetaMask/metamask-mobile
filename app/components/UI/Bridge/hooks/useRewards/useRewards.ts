@@ -76,7 +76,7 @@ interface UseRewardsResult {
 /**
  * Formats an address to CAIP-10 account ID
  */
-const formatAccountToCaipAccountId = (
+export const formatAccountToCaipAccountId = (
   address: string,
   chainId: string,
 ): CaipAccountId | null => {

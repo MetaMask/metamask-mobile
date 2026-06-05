@@ -269,7 +269,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
           SecurityPrivacyViewSelectorsIDs.METAMETRICS_SWITCH,
         );
         expect(metaMetricsSwitch).toBeTruthy();
-        expect(metaMetricsSwitch.props.disabled).toBe(true);
+        expect(metaMetricsSwitch).toHaveProp('disabled', true);
         expect(metaMetricsSwitch.props.value).toBe(false);
       });
 
@@ -757,7 +757,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
           SecurityPrivacyViewSelectorsIDs.DATA_COLLECTION_SWITCH,
         );
         expect(marketingSwitch).toBeTruthy();
-        expect(marketingSwitch.props.disabled).toBe(true);
+        expect(marketingSwitch).toHaveProp('disabled', true);
         expect(marketingSwitch.props.value).toBe(false);
       });
 

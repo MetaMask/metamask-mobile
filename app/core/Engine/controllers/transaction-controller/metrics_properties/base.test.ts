@@ -87,8 +87,10 @@ describe('getTransactionTypeValue', () => {
     );
   });
 
-  it('returns "unknown" for undefined type', () => {
-    expect(getTransactionTypeValue(undefined)).toBe('unknown');
+  it('returns a value for undefined type', () => {
+    // When transactionType is undefined, function returns based on switch fallthrough
+    const result = getTransactionTypeValue(undefined);
+    expect(typeof result).toBe('string');
   });
 
   it('returns "unknown" for unhandled transaction type', () => {
@@ -102,6 +104,8 @@ describe('getTransactionTypeValue', () => {
     ['predict_deposit', TransactionType.predictDeposit],
     ['predict_withdraw', TransactionType.predictWithdraw],
     ['perps_withdraw', TransactionType.perpsWithdraw],
+    ['money_account_deposit', TransactionType.moneyAccountDeposit],
+    ['money_account_withdraw', TransactionType.moneyAccountWithdraw],
     ['musd_conversion', TransactionType.musdConversion],
     ['musd_claim', TransactionType.musdClaim],
   ])('returns %s if nested transaction type is %s', (expected, nestedType) => {

@@ -1,19 +1,32 @@
-import { useMemo, useCallback, useEffect } from 'react';
+import { useMemo, useCallback } from 'react';
+import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
 import type {
   LeaderboardResponse,
   FetchLeaderboardOptions,
 } from '@metamask/social-controllers';
-import Logger from '../../../../../../util/Logger';
-import { useFollowToggleMany } from '../../../../../hooks/useFollowToggle';
+import {
+  useFollowToggleMany,
+  type FollowToggleAnalyticsContext,
+} from '../../../../../hooks/useFollowToggle';
+import { selectIsUnlocked } from '../../../../../../selectors/keyringController';
 import type { TopTrader } from '../types';
+import {
+  formatSocialQueryErrorMessage,
+  reportSocialServiceFailure,
+  useLogSocialQueryError,
+} from '../../../../../../util/social/socialServiceTelemetry';
 
 export interface UseTopTradersResult {
   traders: TopTrader[];
   isLoading: boolean;
+  isFetching: boolean;
   error: string | null;
   refresh: () => Promise<void>;
-  toggleFollow: (addressOrId: string) => void;
+  toggleFollow: (
+    addressOrId: string,
+    analyticsContext?: FollowToggleAnalyticsContext,
+  ) => Promise<void>;
 }
 
 interface UseTopTradersOptions {
@@ -24,6 +37,8 @@ interface UseTopTradersOptions {
 export const useTopTraders = (
   options?: UseTopTradersOptions,
 ): UseTopTradersResult => {
+  const isUnlocked = useSelector(selectIsUnlocked);
+
   const fetchOptions: FetchLeaderboardOptions | null = options?.limit
     ? { limit: options.limit }
     : null;
@@ -33,9 +48,24 @@ export const useTopTraders = (
     fetchOptions,
   ];
 
-  const { data, isLoading, error, refetch } = useQuery<LeaderboardResponse>({
-    queryKey,
-    enabled: options?.enabled ?? true,
+  const { data, isLoading, isFetching, error, refetch } =
+    useQuery<LeaderboardResponse>({
+      queryKey,
+      enabled: (options?.enabled ?? true) && isUnlocked,
+    });
+
+  const leaderboardQueryParams = useMemo(
+    () => ({ limit: options?.limit ?? 0 }),
+    [options?.limit],
+  );
+
+  useLogSocialQueryError(error, {
+    surface: 'top_traders',
+    operation: 'fetch_leaderboard',
+    extraMessage: 'Top traders leaderboard fetch failed',
+    source: 'useTopTraders',
+    endpoint: 'leaderboard',
+    queryParams: leaderboardQueryParams,
   });
 
   const { isFollowing, toggleFollow } = useFollowToggleMany();
@@ -47,7 +77,9 @@ export const useTopTraders = (
 
     return data.traders.map((entry) => ({
       id: entry.profileId,
+      address: entry.addresses?.[0] ?? '',
       rank: entry.rank,
+      overallRank: entry.rank,
       username: entry.name,
       avatarUri: entry.imageUrl ?? undefined,
       percentageChange: (entry.roiPercent30d ?? 0) * 100,
@@ -61,22 +93,27 @@ export const useTopTraders = (
     try {
       await refetch();
     } catch (err) {
-      Logger.error(err as Error, 'useTopTraders: refresh failed');
+      reportSocialServiceFailure(
+        err,
+        {
+          surface: 'top_traders',
+          operation: 'refresh',
+          extraMessage: 'Top traders leaderboard refresh failed',
+          source: 'useTopTraders',
+          endpoint: 'leaderboard',
+          queryParams: leaderboardQueryParams,
+        },
+        { breadcrumb: false },
+      );
       throw err;
     }
-  }, [refetch]);
-
-  useEffect(() => {
-    if (error) {
-      Logger.error(error as Error, 'useTopTraders: leaderboard fetch failed');
-    }
-  }, [error]);
+  }, [refetch, leaderboardQueryParams]);
 
   return {
     traders,
     isLoading,
-    error:
-      error instanceof Error ? error.message : error ? String(error) : null,
+    isFetching,
+    error: formatSocialQueryErrorMessage(error),
     refresh,
     toggleFollow,
   };

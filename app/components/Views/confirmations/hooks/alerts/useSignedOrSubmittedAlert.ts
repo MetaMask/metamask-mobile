@@ -12,8 +12,11 @@ import { selectTransactions } from '../../../../../selectors/transactionControll
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { hasTransactionType } from '../../utils/transaction';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
+import { isHardwareAccount } from '../../../../../util/address';
+import { selectMetaMaskPayHardwareFlags } from '../../../../../selectors/featureFlagController/confirmations';
 
 export const PAY_TYPES = [
+  TransactionType.moneyAccountDeposit,
   TransactionType.perpsDeposit,
   TransactionType.predictDeposit,
 ];
@@ -26,6 +29,9 @@ const PENDING_STATUSES = [...INCOMPLETE_STATUSES, TransactionStatus.submitted];
 
 export const useSignedOrSubmittedAlert = () => {
   const transactions = useSelector(selectTransactions);
+  const { enabled: isHardwarePayEnabled } = useSelector(
+    selectMetaMaskPayHardwareFlags,
+  );
   const transactionMetadata = useTransactionMetadataRequest();
   const { payToken } = useTransactionPayToken();
 
@@ -67,8 +73,16 @@ export const useSignedOrSubmittedAlert = () => {
     existingTransaction || hasExistingTransactionOnPayChain,
   );
 
+  const isHardwareWallet = isHardwareAccount(from ?? '');
+  const isMusdConversion = hasTransactionType(transactionMetadata, [
+    TransactionType.musdConversion,
+  ]);
+
   return useMemo(() => {
-    if (!showAlert) {
+    if (
+      !showAlert ||
+      (isHardwarePayEnabled && isHardwareWallet && isMusdConversion)
+    ) {
       return [];
     }
 
@@ -89,5 +103,12 @@ export const useSignedOrSubmittedAlert = () => {
         severity: Severity.Danger,
       },
     ];
-  }, [hasExistingTransactionOnPayChain, isTransactionPay, showAlert]);
+  }, [
+    hasExistingTransactionOnPayChain,
+    isHardwarePayEnabled,
+    isHardwareWallet,
+    isMusdConversion,
+    isTransactionPay,
+    showAlert,
+  ]);
 };

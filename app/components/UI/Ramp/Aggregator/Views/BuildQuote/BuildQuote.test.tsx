@@ -1,6 +1,7 @@
 import React from 'react';
 import { Limits, Payment } from '@consensys/on-ramp-sdk';
 import { act, fireEvent, screen } from '@testing-library/react-native';
+import { Pressable, Text } from 'react-native';
 import type BN4 from 'bnjs4';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import BuildQuote from './BuildQuote';
@@ -368,7 +369,7 @@ describe('BuildQuote View', () => {
   //
   // RENDER & SDK TESTS
   //
-  it('renders correctly', async () => {
+  it('renders correctly', () => {
     render(BuildQuote);
     expect(
       screen.getByRole('button', { name: 'Get quotes' }),
@@ -382,7 +383,7 @@ describe('BuildQuote View', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders correctly when sdkError is present', async () => {
+  it('renders correctly when sdkError is present', () => {
     mockUseRampSDKValues = {
       ...mockUseRampSDKInitialValues,
       sdkError: new Error('sdkError'),
@@ -404,7 +405,7 @@ describe('BuildQuote View', () => {
     ).toBeOnTheScreen();
   });
 
-  it('navigates to home when clicking sdKError button', async () => {
+  it('navigates to home when clicking sdKError button', () => {
     mockUseRampSDKValues = {
       ...mockUseRampSDKInitialValues,
       sdkError: new Error('sdkError'),
@@ -430,7 +431,7 @@ describe('BuildQuote View', () => {
     expect(mockPop).toBeCalledTimes(1);
   });
 
-  it('calls setOptions when rendering', async () => {
+  it('calls setOptions when rendering', () => {
     render(BuildQuote);
     expect(mockSetOptions).toHaveBeenCalled();
 
@@ -442,7 +443,7 @@ describe('BuildQuote View', () => {
     expect(mockSetOptions).toHaveBeenCalled();
   });
 
-  it('calls setIntent when params have intent', async () => {
+  it('calls setIntent when params have intent', () => {
     mockUseParamsValues = {
       assetId: 'eip155:1/er20:0x6b175474e89094c44da98b954eedeac495271d0f',
     };
@@ -452,7 +453,7 @@ describe('BuildQuote View', () => {
     });
   });
 
-  it('navigates and tracks event on back button press', async () => {
+  it('navigates and tracks event on back button press', () => {
     render(BuildQuote);
     fireEvent.press(screen.getByTestId('deposit-back-navbar-button'));
     expect(mockPop).toHaveBeenCalled();
@@ -516,22 +517,25 @@ describe('BuildQuote View', () => {
   });
 
   describe('Regions data', () => {
-    it('renders the loading page when regions are loading', async () => {
+    it('renders the loading page when regions are loading', () => {
       mockUseRegionsValues = {
         ...mockUseRegionsInitialValues,
         isFetching: true,
       };
       render(BuildQuote);
-      expect(getByRoleButton(BuildQuoteSelectors.GET_QUOTES_BUTTON)).toHaveProp(
-        'disabled',
-        true,
+      const quotesButton = getByRoleButton(
+        BuildQuoteSelectors.GET_QUOTES_BUTTON,
       );
+      expect(
+        quotesButton.props.accessibilityState?.disabled ??
+          quotesButton.props.disabled,
+      ).toBe(true);
       expect(
         screen.queryByTestId(BuildQuoteSelectors.REGION_DROPDOWN),
       ).not.toBeOnTheScreen();
     });
 
-    it('renders an error page when there is a region error', async () => {
+    it('renders an error page when there is a region error', () => {
       mockUseRegionsValues = {
         ...mockUseRegionsInitialValues,
         error: 'Test error',
@@ -542,7 +546,7 @@ describe('BuildQuote View', () => {
       ).toBeOnTheScreen();
     });
 
-    it('queries region data when error CTA is clicked', async () => {
+    it('queries region data when error CTA is clicked', () => {
       mockUseRegionsValues = {
         ...mockUseRegionsInitialValues,
         error: 'Test error',
@@ -569,16 +573,19 @@ describe('BuildQuote View', () => {
   });
 
   describe('Crypto Currency Data', () => {
-    it('renders the loading page when cryptos are loading', async () => {
+    it('renders the loading page when cryptos are loading', () => {
       mockUseCryptoCurrenciesValues = {
         ...mockUseCryptoCurrenciesInitialValues,
         isFetchingCryptoCurrencies: true,
       };
       render(BuildQuote);
-      expect(getByRoleButton(BuildQuoteSelectors.GET_QUOTES_BUTTON)).toHaveProp(
-        'disabled',
-        true,
+      const quotesButton = getByRoleButton(
+        BuildQuoteSelectors.GET_QUOTES_BUTTON,
       );
+      expect(
+        quotesButton.props.accessibilityState?.disabled ??
+          quotesButton.props.disabled,
+      ).toBe(true);
       expect(
         screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
       ).toBeOnTheScreen();
@@ -587,7 +594,7 @@ describe('BuildQuote View', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders a special error page if crypto currencies are not available', async () => {
+    it('renders a special error page if crypto currencies are not available', () => {
       mockUseCryptoCurrenciesValues = {
         ...mockUseCryptoCurrenciesInitialValues,
         cryptoCurrencies: [],
@@ -608,7 +615,7 @@ describe('BuildQuote View', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders an error page when there is a cryptos error', async () => {
+    it('renders an error page when there is a cryptos error', () => {
       mockUseCryptoCurrenciesValues = {
         ...mockUseCryptoCurrenciesInitialValues,
         errorCryptoCurrencies: 'Test error',
@@ -619,7 +626,7 @@ describe('BuildQuote View', () => {
       ).toBeOnTheScreen();
     });
 
-    it('queries crypto data when error CTA is clicked', async () => {
+    it('queries crypto data when error CTA is clicked', () => {
       mockUseCryptoCurrenciesValues = {
         ...mockUseCryptoCurrenciesInitialValues,
         errorCryptoCurrencies: 'Test error',
@@ -629,7 +636,7 @@ describe('BuildQuote View', () => {
       expect(mockGetCryptoCurrencies).toBeCalledTimes(1);
     });
 
-    it('navigates to token select modal when pressing asset selector', async () => {
+    it('navigates to token select modal when pressing asset selector', () => {
       render(BuildQuote);
       fireEvent.press(getByRoleButton(mockCryptoCurrenciesData[0].name));
       expect(mockNavigate).toHaveBeenCalledWith(
@@ -641,16 +648,19 @@ describe('BuildQuote View', () => {
   });
 
   describe('Payment Method Data', () => {
-    it('renders the loading page when payment methods are loading', async () => {
+    it('renders the loading page when payment methods are loading', () => {
       mockUsePaymentMethodsValues = {
         ...mockUsePaymentMethodsInitialValues,
         isFetching: true,
       };
       render(BuildQuote);
-      expect(getByRoleButton(BuildQuoteSelectors.GET_QUOTES_BUTTON)).toHaveProp(
-        'disabled',
-        true,
+      const quotesButton = getByRoleButton(
+        BuildQuoteSelectors.GET_QUOTES_BUTTON,
       );
+      expect(
+        quotesButton.props.accessibilityState?.disabled ??
+          quotesButton.props.disabled,
+      ).toBe(true);
       expect(
         screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
       ).toBeOnTheScreen();
@@ -659,7 +669,7 @@ describe('BuildQuote View', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders no icons if there are no payment methods', async () => {
+    it('renders no icons if there are no payment methods', () => {
       mockUsePaymentMethodsValues = {
         ...mockUsePaymentMethodsInitialValues,
         data: null,
@@ -670,7 +680,7 @@ describe('BuildQuote View', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders an error page when there is a payment method error', async () => {
+    it('renders an error page when there is a payment method error', () => {
       mockUsePaymentMethodsValues = {
         ...mockUsePaymentMethodsInitialValues,
         error: 'Test error',
@@ -681,7 +691,7 @@ describe('BuildQuote View', () => {
       ).toBeOnTheScreen();
     });
 
-    it('queries for payment methods when error CTA is clicked', async () => {
+    it('queries for payment methods when error CTA is clicked', () => {
       mockUsePaymentMethodsValues = {
         ...mockUsePaymentMethodsInitialValues,
         error: 'Test error',
@@ -691,7 +701,7 @@ describe('BuildQuote View', () => {
       expect(mockQueryGetPaymentMethods).toBeCalledTimes(1);
     });
 
-    it('navigates to payment method selector when payment method button is pressed', async () => {
+    it('navigates to payment method selector when payment method button is pressed', () => {
       render(BuildQuote);
       fireEvent.press(getByRoleButton('Change'));
       expect(mockNavigate).toHaveBeenCalledWith(
@@ -708,22 +718,25 @@ describe('BuildQuote View', () => {
   });
 
   describe('Fiat Currency Data', () => {
-    it('renders the loading page when fiats are loading', async () => {
+    it('renders the loading page when fiats are loading', () => {
       mockUseFiatCurrenciesValues = {
         ...mockUseFiatCurrenciesInitialValues,
         isFetchingFiatCurrency: true,
       };
       render(BuildQuote);
-      expect(getByRoleButton(BuildQuoteSelectors.GET_QUOTES_BUTTON)).toHaveProp(
-        'disabled',
-        true,
+      const quotesButton = getByRoleButton(
+        BuildQuoteSelectors.GET_QUOTES_BUTTON,
       );
+      expect(
+        quotesButton.props.accessibilityState?.disabled ??
+          quotesButton.props.disabled,
+      ).toBe(true);
       expect(
         screen.getByTestId(BuildQuoteSelectors.REGION_DROPDOWN),
       ).toBeOnTheScreen();
     });
 
-    it('renders an error page when there is a fiat error', async () => {
+    it('renders an error page when there is a fiat error', () => {
       mockUseFiatCurrenciesValues = {
         ...mockUseFiatCurrenciesInitialValues,
         errorFiatCurrency: 'Test error',
@@ -734,7 +747,7 @@ describe('BuildQuote View', () => {
       ).toBeOnTheScreen();
     });
 
-    it('queries for fiats when error CTA is clicked', async () => {
+    it('queries for fiats when error CTA is clicked', () => {
       mockUseFiatCurrenciesValues = {
         ...mockUseFiatCurrenciesInitialValues,
         errorFiatCurrency: 'Test error',
@@ -744,7 +757,7 @@ describe('BuildQuote View', () => {
       expect(mockGetFiatCurrencies).toBeCalledTimes(1);
     });
 
-    it('navigates to fiat select modal when pressing fiat selector', async () => {
+    it('navigates to fiat select modal when pressing fiat selector', () => {
       render(BuildQuote);
       fireEvent.press(getByRoleButton(mockFiatCurrenciesData[0].symbol));
       expect(mockNavigate).toHaveBeenCalledWith(
@@ -756,7 +769,7 @@ describe('BuildQuote View', () => {
   });
 
   describe('Amount to buy input', () => {
-    it('updates the amount input', async () => {
+    it('updates the amount input', () => {
       render(BuildQuote);
       const initialAmount = '0';
       const validAmount = VALID_AMOUNT.toString();
@@ -767,7 +780,7 @@ describe('BuildQuote View', () => {
       expect(getByRoleButton(`${symbol}${validAmount}`)).toBeTruthy();
     });
 
-    it('updates the amount input with quick amount buttons', async () => {
+    it('updates the amount input with quick amount buttons', () => {
       render(BuildQuote);
       const initialAmount = '0';
       const quickAmount =
@@ -847,6 +860,48 @@ describe('BuildQuote View', () => {
         screen.queryByTestId(BuildQuoteSelectors.AMOUNT_INPUT_CURSOR),
       ).not.toBeOnTheScreen();
     });
+
+    it('does not reset the amount when switching assets in the buy flow', () => {
+      const AssetSwitcher = () => {
+        const [, setSelectedAssetVersion] = React.useState(0);
+
+        return (
+          <>
+            <Pressable
+              testID="switch-asset"
+              onPress={() => {
+                mockUseRampSDKValues = {
+                  ...mockUseRampSDKValues,
+                  selectedAsset: mockCryptoCurrenciesData[1],
+                };
+                setSelectedAssetVersion((version) => version + 1);
+              }}
+            >
+              <Text>Switch asset</Text>
+            </Pressable>
+            <BuildQuote />
+          </>
+        );
+      };
+
+      render(AssetSwitcher);
+      const symbol =
+        mockUseFiatCurrenciesValues.currentFiatCurrency?.denomSymbol;
+      const validAmount = VALID_AMOUNT.toString();
+
+      fireEvent.press(getByRoleButton(`${symbol}0`));
+      fireEvent.press(getByRoleButton(validAmount));
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+      ).toHaveTextContent(`${symbol}${validAmount}`);
+
+      fireEvent.press(screen.getByTestId('switch-asset'));
+
+      // The reset is sell-only, so the buy flow keeps the entered fiat amount.
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+      ).toHaveTextContent(`${symbol}${validAmount}`);
+    });
   });
 
   describe('Amount to sell input', () => {
@@ -855,7 +910,7 @@ describe('BuildQuote View', () => {
       mockUseRampSDKValues.isSell = true;
     });
 
-    it('updates the amount input', async () => {
+    it('updates the amount input', () => {
       render(BuildQuote);
       const initialAmount = '0';
       const validAmount = VALID_AMOUNT.toString();
@@ -929,7 +984,7 @@ describe('BuildQuote View', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('updates the amount input with quick amount buttons', async () => {
+    it('updates the amount input with quick amount buttons', () => {
       render(BuildQuote);
       const initialAmount = '0';
 
@@ -947,7 +1002,7 @@ describe('BuildQuote View', () => {
       expect(getByRoleButton(`1 ${symbol}`)).toBeTruthy();
     });
 
-    it('updates the amount input up to the max considering gas for native asset', async () => {
+    it('updates the amount input up to the max considering gas for native asset', () => {
       render(BuildQuote);
       const initialAmount = '0';
       const quickAmount = 'MAX';
@@ -981,7 +1036,7 @@ describe('BuildQuote View', () => {
       expect(getByRoleButton(`0.73 ${symbol}`)).toBeTruthy();
     });
 
-    it('updates the amount input up to the percentage considering gas', async () => {
+    it('updates the amount input up to the percentage considering gas', () => {
       render(BuildQuote);
       const initialAmount = '0';
       mockUseRampSDKValues = {
@@ -1018,6 +1073,85 @@ describe('BuildQuote View', () => {
       expect(getByRoleButton(`0.5 ${symbol}`)).toBeTruthy();
     });
 
+    it('resets the sell amount when switching assets', () => {
+      const AssetSwitcher = () => {
+        const [, setSelectedAssetVersion] = React.useState(0);
+
+        return (
+          <>
+            <Pressable
+              testID="switch-asset"
+              onPress={() => {
+                mockUseRampSDKValues = {
+                  ...mockUseRampSDKValues,
+                  selectedAsset: mockCryptoCurrenciesData[1],
+                };
+                mockUseBalanceValues.balanceBN = toTokenMinimalUnit(
+                  '5.36385',
+                  mockCryptoCurrenciesData[1].decimals || 18,
+                ) as BN4;
+                setSelectedAssetVersion((version) => version + 1);
+              }}
+            >
+              <Text>Switch asset</Text>
+            </Pressable>
+            <BuildQuote />
+          </>
+        );
+      };
+
+      render(AssetSwitcher);
+      const initialSymbol = mockUseRampSDKValues.selectedAsset?.symbol;
+
+      fireEvent.press(getByRoleButton(`0 ${initialSymbol}`));
+      fireEvent.press(getByRoleButton('50%'));
+
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+      ).not.toHaveTextContent(`0 ${initialSymbol}`);
+
+      fireEvent.press(screen.getByTestId('switch-asset'));
+
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+      ).toHaveTextContent(`0 ${mockCryptoCurrenciesData[1].symbol}`);
+    });
+
+    it('does not reset the sell amount on re-render when the asset is unchanged', () => {
+      const Rerenderer = () => {
+        const [, setVersion] = React.useState(0);
+
+        return (
+          <>
+            <Pressable
+              testID="force-rerender"
+              onPress={() => setVersion((version) => version + 1)}
+            >
+              <Text>Re-render</Text>
+            </Pressable>
+            <BuildQuote />
+          </>
+        );
+      };
+
+      render(Rerenderer);
+      const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
+
+      fireEvent.press(getByRoleButton(`0 ${symbol}`));
+      fireEvent.press(getByRoleButton('50%'));
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+      ).not.toHaveTextContent(`0 ${symbol}`);
+
+      fireEvent.press(screen.getByTestId('force-rerender'));
+
+      // Same asset key on re-render: the guard prevents a spurious reset, which
+      // is the same mechanism that preserves an intent/deeplink amount on mount.
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+      ).not.toHaveTextContent(`0 ${symbol}`);
+    });
+
     it('clears the amount when the keyboard is freshly opened', () => {
       render(BuildQuote);
       const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
@@ -1049,7 +1183,7 @@ describe('BuildQuote View', () => {
 
     const submitBtn = getByRoleButton('Get quotes');
     expect(submitBtn).toBeTruthy();
-    expect(submitBtn.props.disabled).toBe(true);
+    expect(submitBtn).toBeDisabled();
 
     const initialAmount = '0';
     const validAmount = VALID_AMOUNT.toString();
@@ -1058,7 +1192,7 @@ describe('BuildQuote View', () => {
     fireEvent.press(getByRoleButton(`${denomSymbol}${initialAmount}`));
     fireEvent.press(getByRoleButton(validAmount));
     fireEvent.press(getByRoleButton('Done'));
-    expect(submitBtn.props.disabled).toBe(false);
+    expect(submitBtn).toBeEnabled();
 
     fireEvent.press(submitBtn);
 
@@ -1096,7 +1230,7 @@ describe('BuildQuote View', () => {
 
     const submitBtn = getByRoleButton('Get quotes');
     expect(submitBtn).toBeTruthy();
-    expect(submitBtn.props.disabled).toBe(true);
+    expect(submitBtn).toBeDisabled();
 
     const initialAmount = '0';
     const validAmount = VALID_AMOUNT.toString();
@@ -1104,7 +1238,7 @@ describe('BuildQuote View', () => {
     fireEvent.press(getByRoleButton(`${initialAmount} ${symbol}`));
     fireEvent.press(getByRoleButton(validAmount));
     fireEvent.press(getByRoleButton('Done'));
-    expect(submitBtn.props.disabled).toBe(false);
+    expect(submitBtn).toBeEnabled();
 
     fireEvent.press(submitBtn);
 

@@ -2,7 +2,6 @@ import React from 'react';
 import { render, fireEvent, act } from '@testing-library/react-native';
 import PredictSportLineSelector from './PredictSportLineSelector';
 import { PREDICT_SPORT_LINE_SELECTOR_TEST_IDS } from './PredictSportLineSelector.testIds';
-
 const mockWithTiming = jest.fn((v: number) => v);
 
 jest.mock('react-native-reanimated', () => {
@@ -10,7 +9,11 @@ jest.mock('react-native-reanimated', () => {
   const { useRef } = jest.requireActual('react');
   return {
     __esModule: true,
-    default: { View },
+    default: {
+      View,
+      createAnimatedComponent: (c: React.ComponentType) => c,
+    },
+    createAnimatedComponent: (c: React.ComponentType) => c,
     useSharedValue: (v: number) => {
       const ref = useRef({ value: v });
       return ref.current;
@@ -34,17 +37,15 @@ jest.mock('@react-native-masked-view/masked-view', () =>
 
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 
-jest.mock('expo-haptics', () => ({
-  impactAsync: jest.fn(),
-  ImpactFeedbackStyle: { Light: 'light' },
-}));
+jest.mock('../../../../../util/haptics');
 
 const TEST_ID = 'line-selector';
 const IDS = PREDICT_SPORT_LINE_SELECTOR_TEST_IDS;
 
 const arrowLeftId = `${TEST_ID}-${IDS.ARROW_LEFT}`;
 const arrowRightId = `${TEST_ID}-${IDS.ARROW_RIGHT}`;
-const lineId = (value: number) => `${TEST_ID}-${IDS.LINE_PREFIX}${value}`;
+const lineId = (index: number, value: number) =>
+  `${TEST_ID}-${IDS.LINE_PREFIX}${index}-${value}`;
 
 describe('PredictSportLineSelector', () => {
   const defaultProps = {
@@ -86,7 +87,7 @@ describe('PredictSportLineSelector', () => {
 
     fireEvent.press(getByText('4.5'));
 
-    expect(defaultProps.onSelectLine).toHaveBeenCalledWith(4.5);
+    expect(defaultProps.onSelectLine).toHaveBeenCalledWith(4.5, 1);
   });
 
   it('calls onSelectLine with previous line when left arrow is tapped', () => {
@@ -96,7 +97,7 @@ describe('PredictSportLineSelector', () => {
 
     fireEvent.press(getByTestId(arrowLeftId));
 
-    expect(defaultProps.onSelectLine).toHaveBeenCalledWith(4.5);
+    expect(defaultProps.onSelectLine).toHaveBeenCalledWith(4.5, 1);
   });
 
   it('calls onSelectLine with next line when right arrow is tapped', () => {
@@ -106,7 +107,7 @@ describe('PredictSportLineSelector', () => {
 
     fireEvent.press(getByTestId(arrowRightId));
 
-    expect(defaultProps.onSelectLine).toHaveBeenCalledWith(5.5);
+    expect(defaultProps.onSelectLine).toHaveBeenCalledWith(5.5, 3);
   });
 
   it('disables left arrow when first line is selected', () => {
@@ -142,8 +143,8 @@ describe('PredictSportLineSelector', () => {
     expect(getByTestId(arrowLeftId)).toBeOnTheScreen();
     expect(getByTestId(arrowRightId)).toBeOnTheScreen();
 
-    defaultProps.lines.forEach((line) => {
-      expect(getByTestId(lineId(line))).toBeOnTheScreen();
+    defaultProps.lines.forEach((line, index) => {
+      expect(getByTestId(lineId(index, line))).toBeOnTheScreen();
     });
   });
 
@@ -207,8 +208,10 @@ describe('PredictSportLineSelector', () => {
   });
 
   it('fires haptic feedback on line tap', () => {
-    const { impactAsync } = jest.requireMock('expo-haptics') as {
-      impactAsync: jest.Mock;
+    const { playSelection } = jest.requireMock(
+      '../../../../../util/haptics',
+    ) as {
+      playSelection: jest.Mock;
     };
     const { getByText } = render(
       <PredictSportLineSelector {...defaultProps} />,
@@ -216,12 +219,14 @@ describe('PredictSportLineSelector', () => {
 
     fireEvent.press(getByText('4.5'));
 
-    expect(impactAsync).toHaveBeenCalledWith('light');
+    expect(playSelection).toHaveBeenCalled();
   });
 
   it('fires haptic feedback on arrow tap', () => {
-    const { impactAsync } = jest.requireMock('expo-haptics') as {
-      impactAsync: jest.Mock;
+    const { playSelection } = jest.requireMock(
+      '../../../../../util/haptics',
+    ) as {
+      playSelection: jest.Mock;
     };
     const { getByTestId } = render(
       <PredictSportLineSelector {...defaultProps} />,
@@ -229,7 +234,7 @@ describe('PredictSportLineSelector', () => {
 
     fireEvent.press(getByTestId(arrowRightId));
 
-    expect(impactAsync).toHaveBeenCalledWith('light');
+    expect(playSelection).toHaveBeenCalled();
   });
 
   it('does not call onSelectLine when selectedLine is not in lines', () => {

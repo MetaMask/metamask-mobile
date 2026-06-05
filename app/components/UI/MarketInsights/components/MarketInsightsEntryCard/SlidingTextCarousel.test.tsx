@@ -1,10 +1,18 @@
 import React from 'react';
-import { act, render } from '@testing-library/react-native';
-import SlidingTextCarousel, { ROTATE_INTERVAL_MS } from './SlidingTextCarousel';
+import { act, render, fireEvent } from '@testing-library/react-native';
 
-// withTiming in the Reanimated mock calls its callback synchronously with
-// finished=true, so the full onSlideEnd path executes in the same tick as
-// advanceSlide — making timer-based assertions straightforward.
+// Mock react-native-reanimated so withTiming/runOnJS behave synchronously
+jest.mock('react-native-reanimated', () => {
+  const Reanimated = jest.requireActual('react-native-reanimated/mock');
+  return {
+    ...Reanimated,
+    default: {
+      ...Reanimated.default,
+    },
+  };
+});
+
+import SlidingTextCarousel, { ROTATE_INTERVAL_MS } from './SlidingTextCarousel';
 
 describe('SlidingTextCarousel', () => {
   beforeEach(() => {
@@ -76,10 +84,10 @@ describe('SlidingTextCarousel', () => {
     getByTestId: ReturnType<typeof render>['getByTestId'],
     width = 300,
   ) {
-    // The animated Box has onLayout; fire it to set containerWidth
+    // The animated Box has onLayout; call it directly to set containerWidth
     const box = getByTestId('sliding-carousel-container');
     act(() => {
-      box.props.onLayout({ nativeEvent: { layout: { width } } });
+      box.props.onLayout?.({ nativeEvent: { layout: { width } } });
     });
   }
 

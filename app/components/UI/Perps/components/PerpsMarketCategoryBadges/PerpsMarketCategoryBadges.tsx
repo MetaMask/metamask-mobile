@@ -30,7 +30,7 @@ const DEFAULT_CATEGORIES: CategoryBadgeConfig[] = [
  *
  * Always displays all category badges in a horizontal scroll.
  * The selected category is visually highlighted.
- * Tapping a selected badge deselects it (toggles back to 'all').
+ * Tapping a selected badge again deselects it (toggles back to 'all').
  *
  * @example
  * ```tsx
@@ -93,9 +93,7 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
             <PerpsMarketCategoryBadge
               label={strings(config.labelKey)}
               isSelected={isCategorySelected}
-              showDismiss={isCategorySelected}
               onPress={() => handleCategoryPress(config.category)}
-              onDismiss={() => onCategorySelect('all')}
               testID={testID ? `${testID}-${config.category}` : undefined}
             />
           </Animated.View>

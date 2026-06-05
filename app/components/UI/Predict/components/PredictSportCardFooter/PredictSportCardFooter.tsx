@@ -12,8 +12,8 @@ import {
   PredictEntryPoint,
 } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
-import { usePredictEntryPoint, usePredictPreviewSheet } from '../../contexts';
-import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
+import { usePredictPreviewSheet } from '../../contexts';
+import { useResolvedPredictEntryPoint } from '../../hooks/useResolvedPredictEntryPoint';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { PredictActionButtons } from '../PredictActionButtons';
 import { PredictPicksForCard } from '../PredictPicks';
@@ -27,6 +27,8 @@ interface PredictSportCardFooterProps {
   testID?: string;
   entryPoint?: PredictEntryPoint;
   isCarousel?: boolean;
+  /** Called when the user taps a buy button (before betslip opens). */
+  onBuyButtonPress?: (marketId: string) => void;
 }
 
 const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
@@ -34,26 +36,18 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
   testID,
   entryPoint: propEntryPoint,
   isCarousel,
+  onBuyButtonPress,
 }) => {
   const tw = useTailwind();
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
 
-  const contextEntryPoint = usePredictEntryPoint();
-  const baseEntryPoint =
-    contextEntryPoint ??
-    propEntryPoint ??
-    PredictEventValues.ENTRY_POINT.PREDICT_FEED;
-
-  const resolvedEntryPoint = TrendingFeedSessionManager.getInstance()
-    .isFromTrending
-    ? PredictEventValues.ENTRY_POINT.TRENDING
-    : baseEntryPoint;
+  const resolvedEntryPoint = useResolvedPredictEntryPoint(propEntryPoint);
 
   const { data: positions = [], isLoading } = usePredictPositions({
     marketId: market.id,
     claimable: false,
-    refetchInterval: 10000,
+    livePriceUpdates: true,
   });
 
   const { data: claimablePositions = [] } = usePredictPositions({
@@ -82,6 +76,7 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
           ),
         ) ?? market.outcomes?.[0];
 
+      onBuyButtonPress?.(market.id);
       executeGuardedAction(
         () => {
           openBuySheet({
@@ -96,7 +91,13 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
         },
       );
     },
-    [executeGuardedAction, resolvedEntryPoint, openBuySheet, market],
+    [
+      executeGuardedAction,
+      resolvedEntryPoint,
+      openBuySheet,
+      market,
+      onBuyButtonPress,
+    ],
   );
 
   const handleClaimPress = useCallback(async () => {

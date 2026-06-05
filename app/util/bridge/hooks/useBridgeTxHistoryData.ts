@@ -6,6 +6,7 @@ import {
 import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
 import { Transaction } from '@metamask/keyring-api';
 import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
+import { equalsIgnoreCase } from '../../string';
 
 export const FINAL_NON_CONFIRMED_STATUSES = [
   TransactionStatus.failed,
@@ -46,16 +47,23 @@ export function useBridgeTxHistoryData({
     // If not found, try to find by originalTransactionId for intent transactions
     if (!bridgeHistoryItem && srcTxMetaId) {
       const matchingEntry = Object.entries(bridgeHistory).find(
-        ([_, historyItem]) =>
-          (historyItem as unknown as { originalTransactionId: string })
+        ([, historyItem]) =>
+          (historyItem as { originalTransactionId?: string })
             .originalTransactionId === srcTxMetaId,
       );
       bridgeHistoryItem = matchingEntry ? matchingEntry[1] : undefined;
     }
+
+    // Fallback for API-normalized transactions whose id differs from txMetaId
+    if (!bridgeHistoryItem && evmTxMeta.hash) {
+      bridgeHistoryItem = Object.values(bridgeHistory).find((item) =>
+        equalsIgnoreCase(item.status.srcChain.txHash, evmTxMeta.hash),
+      );
+    }
   } else if (multiChainTx) {
     const srcTxHash = multiChainTx?.id;
-    bridgeHistoryItem = Object.values(bridgeHistory).find(
-      (item) => item.status.srcChain.txHash === srcTxHash,
+    bridgeHistoryItem = Object.values(bridgeHistory).find((item) =>
+      equalsIgnoreCase(item.status.srcChain.txHash, srcTxHash),
     );
   }
 

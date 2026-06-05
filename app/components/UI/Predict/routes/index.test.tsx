@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, act } from '@testing-library/react-native';
+import { render, screen, act, waitFor } from '@testing-library/react-native';
 import {
   NavigationContainer,
   NavigationContainerRef,
@@ -8,19 +8,31 @@ import Routes from '../../../../constants/navigation/Routes';
 import PredictScreenStack, { PredictModalStack } from './index';
 
 let mockPayWithAnyTokenEnabled = false;
+let mockPredictPortfolioEnabled = true;
+let mockPredictHomeRedesignEnabled = false;
 
 const mockSelectPredictWithAnyTokenEnabledFlag = jest.fn(
   () => mockPayWithAnyTokenEnabled,
 );
+const mockSelectPredictPortfolioEnabledFlag = jest.fn(
+  () => mockPredictPortfolioEnabled,
+);
+const mockSelectPredictHomeRedesignEnabledFlag = jest.fn(
+  () => mockPredictHomeRedesignEnabled,
+);
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
-  useSelector: jest.fn(() => mockPayWithAnyTokenEnabled),
+  useSelector: jest.fn((selector: (state: unknown) => unknown) => selector({})),
 }));
 
 jest.mock('../selectors/featureFlags', () => ({
   selectPredictWithAnyTokenEnabledFlag: () =>
     mockSelectPredictWithAnyTokenEnabledFlag(),
+  selectPredictPortfolioEnabledFlag: () =>
+    mockSelectPredictPortfolioEnabledFlag(),
+  selectPredictHomeRedesignEnabledFlag: () =>
+    mockSelectPredictHomeRedesignEnabledFlag(),
 }));
 
 jest.mock('../contexts', () => {
@@ -43,9 +55,28 @@ jest.mock('../views/PredictFeed', () => {
   );
 });
 
+jest.mock('../views/PredictHome', () => {
+  const { View, Text } = jest.requireActual('react-native');
+  return () => (
+    <View testID="predict-home">
+      <Text>PredictHome</Text>
+    </View>
+  );
+});
+
+jest.mock('../views/PredictWorldCup', () => {
+  const { View } = jest.requireActual('react-native');
+  return () => <View testID="predict-world-cup" />;
+});
+
 jest.mock('../views/PredictMarketDetails', () => {
   const { View } = jest.requireActual('react-native');
   return () => <View testID="predict-market-details" />;
+});
+
+jest.mock('../views/PredictPositionsView', () => {
+  const { View } = jest.requireActual('react-native');
+  return () => <View testID="predict-positions-view" />;
 });
 
 jest.mock('../views/PredictBuyPreview/PredictBuyPreview', () => {
@@ -93,13 +124,21 @@ jest.mock('../../../Views/confirmations/components/confirm', () => ({
 jest.mock(
   '../../../../constants/navigation/clearStackNavigatorOptions',
   () => ({
-    clearStackNavigatorOptions: {},
+    clearNativeStackNavigatorOptions: {},
+    transparentModalScreenOptions: {},
   }),
 );
 
-let navigationRef: React.RefObject<
-  NavigationContainerRef<Record<string, unknown>>
->;
+jest.mock(
+  '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations',
+  () => ({
+    useEmptyNavHeaderForConfirmations: () => ({ headerShown: false }),
+  }),
+);
+
+let navigationRef: React.RefObject<NavigationContainerRef<
+  Record<string, unknown>
+> | null>;
 
 const renderWithNavigation = (component: React.ReactElement) =>
   render(
@@ -110,6 +149,8 @@ describe('PredictScreenStack', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockPayWithAnyTokenEnabled = false;
+    mockPredictPortfolioEnabled = true;
+    mockPredictHomeRedesignEnabled = false;
     navigationRef = React.createRef();
   });
 
@@ -119,10 +160,20 @@ describe('PredictScreenStack', () => {
     expect(screen.getByTestId('preview-sheet-provider')).toBeOnTheScreen();
   });
 
-  it('renders PredictFeed as initial route', () => {
+  it('renders PredictFeed at market list when home redesign flag is disabled', () => {
+    mockPredictHomeRedesignEnabled = false;
     renderWithNavigation(<PredictScreenStack />);
 
     expect(screen.getByTestId('predict-feed')).toBeOnTheScreen();
+    expect(screen.queryByTestId('predict-home')).toBeNull();
+  });
+
+  it('renders PredictHome at market list when home redesign flag is enabled', () => {
+    mockPredictHomeRedesignEnabled = true;
+    renderWithNavigation(<PredictScreenStack />);
+
+    expect(screen.getByTestId('predict-home')).toBeOnTheScreen();
+    expect(screen.queryByTestId('predict-feed')).toBeNull();
   });
 
   it('navigates to MARKET_DETAILS screen', async () => {
@@ -133,6 +184,43 @@ describe('PredictScreenStack', () => {
     });
 
     expect(screen.getByTestId('predict-market-details')).toBeOnTheScreen();
+  });
+
+  it('navigates to WORLD_CUP screen', async () => {
+    renderWithNavigation(<PredictScreenStack />);
+
+    await act(async () => {
+      navigationRef.current?.navigate(Routes.PREDICT.WORLD_CUP);
+    });
+
+    expect(screen.getByTestId('predict-world-cup')).toBeOnTheScreen();
+  });
+
+  it('navigates to POSITIONS screen when portfolio flag is enabled', async () => {
+    mockPredictPortfolioEnabled = true;
+    renderWithNavigation(<PredictScreenStack />);
+
+    await act(async () => {
+      navigationRef.current?.navigate(Routes.PREDICT.POSITIONS);
+    });
+
+    expect(screen.getByTestId('predict-positions-view')).toBeOnTheScreen();
+  });
+
+  it('returns to market list when POSITIONS screen is disabled', async () => {
+    mockPredictPortfolioEnabled = false;
+    renderWithNavigation(<PredictScreenStack />);
+
+    await act(async () => {
+      navigationRef.current?.navigate(Routes.PREDICT.POSITIONS);
+    });
+
+    await waitFor(() => {
+      expect(navigationRef.current?.getCurrentRoute()?.name).toBe(
+        Routes.PREDICT.MARKET_LIST,
+      );
+    });
+    expect(screen.queryByTestId('predict-positions-view')).toBeNull();
   });
 
   it('navigates to BUY_PREVIEW with PredictBuyPreview when payWithAnyToken is off', async () => {

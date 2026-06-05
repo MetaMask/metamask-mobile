@@ -126,7 +126,61 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
   >();
   private connectRetryCounts = new Map<string, number>();
   private static readonly MAX_CONNECT_RETRIES = 50;
+  // Upper bound on cached candles per cacheKey. Matches fetchHistoricalCandles
+  // so merge-on-update can't cause unbounded memory growth.
+  private static readonly MAX_CACHED_CANDLES = 1000;
   private readonly getIsInitialized: () => boolean;
+
+  /**
+   * Merge incoming candle data into existing cached candles by timestamp.
+   *
+   * Incoming candles take precedence for overlapping timestamps (fresher OHLC
+   * for in-progress bars and final values for closed bars). Older cached
+   * candles outside the incoming range are preserved so a light refetch
+   * (e.g. OneDay on revisit) does not shrink the dataset that previously
+   * contained a longer history (e.g. OneWeek).
+   *
+   * Without this merge, `cache.set(cacheKey, incoming)` on revisit drops every
+   * candle older than the refetch window — the "candles before the visible
+   * range disappear" bug when switching between intervals.
+   */
+  private static mergeCandleData(
+    existing: CandleData | undefined,
+    incoming: CandleData,
+  ): CandleData {
+    if (!existing || existing.candles.length === 0) {
+      return incoming;
+    }
+
+    // Symbol/interval mismatches should never happen (cache is keyed by them),
+    // but if they do we trust the incoming data and discard the stale cache.
+    if (
+      existing.symbol !== incoming.symbol ||
+      existing.interval !== incoming.interval
+    ) {
+      return incoming;
+    }
+
+    const byTime = new Map<number, CandleData['candles'][number]>();
+    for (const candle of existing.candles) {
+      byTime.set(candle.time, candle);
+    }
+    for (const candle of incoming.candles) {
+      byTime.set(candle.time, candle); // incoming wins on overlap
+    }
+
+    const merged = Array.from(byTime.values()).sort((a, b) => a.time - b.time);
+    const capped =
+      merged.length > CandleStreamChannel.MAX_CACHED_CANDLES
+        ? merged.slice(-CandleStreamChannel.MAX_CACHED_CANDLES)
+        : merged;
+
+    return {
+      symbol: incoming.symbol,
+      interval: incoming.interval,
+      candles: capped,
+    };
+  }
 
   /**
    * @param getIsInitialized - Getter for connection initialized state.
@@ -368,11 +422,19 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
       interval,
       duration,
       callback: (candleData: CandleData) => {
-        // Update cache
-        this.cache.set(cacheKey, candleData);
+        // Merge incoming candles into the existing cache instead of replacing.
+        // This preserves older candles on revisit (when we intentionally fetch
+        // a lighter OneDay window) and keeps live-tick updates idempotent.
+        const existing = this.cache.get(cacheKey);
+        const merged = CandleStreamChannel.mergeCandleData(
+          existing,
+          candleData,
+        );
+        this.cache.set(cacheKey, merged);
 
-        // Notify all subscribers
-        this.notifySubscribers(cacheKey, candleData);
+        // Notify all subscribers with the merged dataset so consumers see a
+        // stable, monotonic candle history across interval revisits.
+        this.notifySubscribers(cacheKey, merged);
       },
       onError: (error: Error) => {
         // Log initialization failure

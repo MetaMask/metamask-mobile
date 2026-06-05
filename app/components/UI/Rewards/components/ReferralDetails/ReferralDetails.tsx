@@ -9,8 +9,6 @@ import {
   selectReferralCode,
   selectReferralDetailsError,
   selectReferralDetailsLoading,
-  selectSeasonStatusError,
-  selectSeasonStartDate,
 } from '../../../../../reducers/rewards/selectors';
 import { useReferralDetails } from '../../hooks/useReferralDetails';
 import RewardsErrorBanner from '../RewardsErrorBanner';
@@ -26,8 +24,6 @@ const ReferralDetails: React.FC<ReferralDetailsProps> = ({
   showInfoSection = true,
 }) => {
   const referralCode = useSelector(selectReferralCode);
-  const seasonStatusError = useSelector(selectSeasonStatusError);
-  const seasonStartDate = useSelector(selectSeasonStartDate);
   const referralDetailsLoading = useSelector(selectReferralDetailsLoading);
   const referralDetailsError = useSelector(selectReferralDetailsError);
 
@@ -60,17 +56,6 @@ const ReferralDetails: React.FC<ReferralDetailsProps> = ({
       );
     }
   };
-
-  if (seasonStatusError && !seasonStartDate) {
-    return (
-      <RewardsErrorBanner
-        title={strings('rewards.season_status_error.error_fetching_title')}
-        description={strings(
-          'rewards.season_status_error.error_fetching_description',
-        )}
-      />
-    );
-  }
 
   return (
     <Box flexDirection={BoxFlexDirection.Column} twClassName="gap-6">

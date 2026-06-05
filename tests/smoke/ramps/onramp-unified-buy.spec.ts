@@ -4,7 +4,7 @@ import FundActionMenu from '../../page-objects/UI/FundActionMenu';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { CustomNetworks } from '../../resources/networks.e2e';
-import { SmokeRamps } from '../../tags';
+import { SmokeMoney } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import BuildQuoteView from '../../page-objects/Ramps/BuildQuoteView';
 import OrderDetailsView from '../../page-objects/Ramps/OrderDetailsView';
@@ -70,7 +70,7 @@ const aggregatorBuyOrder = {
   provider: 'Transak (Staging)',
 };
 
-describe(SmokeRamps('Onramp Unified Buy'), () => {
+describe(SmokeMoney('Onramp Unified Buy'), () => {
   beforeEach(async () => {
     await device.clearKeychain();
   });

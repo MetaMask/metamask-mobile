@@ -6,6 +6,7 @@ import App from '../../Nav/App';
 import SecureKeychain from '../../../core/SecureKeychain';
 import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
 import Logger from '../../../util/Logger';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorBoundary from '../ErrorBoundary';
 import ThemeProvider from '../../../component-library/providers/ThemeProvider/ThemeProvider';
 import { ToastContextWrapper } from '../../../component-library/components/Toast';
@@ -13,10 +14,10 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { RootProps } from './types';
 import NavigationProvider from '../../Nav/NavigationProvider';
 import ControllersGate from '../../Nav/ControllersGate';
-import { isTest } from '../../../util/test/utils';
+import { isTestEnvironment } from '../../../util/test/utils';
 import { FeatureFlagOverrideProvider } from '../../../contexts/FeatureFlagOverrideContext';
 import { ScreenOrientationService } from '../../../core/ScreenOrientation';
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
 import { ReducedMotionConfig, ReduceMotion } from 'react-native-reanimated';
@@ -57,7 +58,7 @@ const Root = ({ foxCode }: RootProps) => {
     // Lock screen orientation to portrait on app start
     ScreenOrientationService.lockToPortrait();
     // Wait for store to be initialized in Detox tests
-    if (isTest) {
+    if (isTestEnvironment) {
       waitForStore();
     } else {
       setIsStoreLoading(false);
@@ -65,7 +66,7 @@ const Root = ({ foxCode }: RootProps) => {
   }, [foxCode]);
 
   // Only wait for store in test mode, fonts are handled inside theme context
-  if (isTest && isStoreLoading) {
+  if (isTestEnvironment && isStoreLoading) {
     return null;
   }
 
@@ -75,7 +76,7 @@ const Root = ({ foxCode }: RootProps) => {
         <PersistGate persistor={persistor}>
           <ErrorBoundary view="Root">
             {
-              ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+              ///: BEGIN:ONLY_INCLUDE_IF(snaps)
               // NOTE: This must be mounted before Engine initialization since Engine interacts with SnapsExecutionWebView
               <SnapsExecutionWebView />
               ///: END:ONLY_INCLUDE_IF

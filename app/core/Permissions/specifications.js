@@ -1,4 +1,4 @@
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import {
   caveatSpecifications as snapsCaveatsSpecifications,
   endowmentCaveatSpecifications as snapsEndowmentCaveatSpecifications,
@@ -68,7 +68,7 @@ export const getCaveatSpecifications = ({
     isNonEvmScopeSupported,
     getNonEvmAccountAddresses,
   }),
-  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   ...snapsCaveatsSpecifications,
   ...snapsEndowmentCaveatSpecifications,
   ///: END:ONLY_INCLUDE_IF
@@ -163,7 +163,7 @@ export const unrestrictedMethods = Object.freeze([
   'wallet_sendCalls',
   'wallet_getCallsStatus',
   'wallet_getCapabilities',
-  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   'wallet_getAllSnaps',
   'wallet_getSnaps',
   'wallet_requestSnaps',

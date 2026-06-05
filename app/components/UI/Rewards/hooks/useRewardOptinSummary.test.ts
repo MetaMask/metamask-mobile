@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react-hooks';
+import { renderHook, waitFor, act } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { useRewardOptinSummary } from './useRewardOptinSummary';
 import Engine from '../../../../core/Engine';
@@ -246,19 +246,16 @@ describe('useRewardOptinSummary', () => {
         return Promise.resolve();
       });
 
-      const { result, waitForNextUpdate } = renderHook(() =>
-        useRewardOptinSummary(),
-      );
+      const { result } = renderHook(() => useRewardOptinSummary());
 
-      // Wait for the effect to complete
-      await waitForNextUpdate();
+      // Wait for the async effect to complete
+      await waitFor(() => {
+        expect(result.current.byWallet).toHaveLength(2);
+      });
 
       // Assert
       expect(result.current.isLoading).toBe(false);
       expect(result.current.hasError).toBe(false);
-
-      // Check byWallet structure
-      expect(result.current.byWallet).toHaveLength(2);
       // Wallet 1 should have Group 1 with Account1 (opted in) and Account2 (opted out)
       const wallet1 = result.current.byWallet[0];
       expect(wallet1.wallet).toEqual(mockWallet1);
@@ -332,14 +329,13 @@ describe('useRewardOptinSummary', () => {
         return Promise.resolve();
       });
 
-      const { result, waitForNextUpdate } = renderHook(() =>
-        useRewardOptinSummary(),
-      );
+      const { result } = renderHook(() => useRewardOptinSummary());
 
-      await waitForNextUpdate();
+      // Wait for async effect to complete
+      await waitFor(() => {
+        expect(result.current.byWallet).toHaveLength(2);
+      });
 
-      // Assert
-      expect(result.current.byWallet).toHaveLength(2);
       // All groups should have no opted-in accounts
       result.current.byWallet.forEach((wallet) => {
         wallet.groups.forEach((group) => {
@@ -366,14 +362,13 @@ describe('useRewardOptinSummary', () => {
         return Promise.resolve();
       });
 
-      const { result, waitForNextUpdate } = renderHook(() =>
-        useRewardOptinSummary(),
-      );
+      const { result } = renderHook(() => useRewardOptinSummary());
 
-      await waitForNextUpdate();
+      // Wait for async effect to complete
+      await waitFor(() => {
+        expect(result.current.byWallet).toHaveLength(2);
+      });
 
-      // Assert
-      expect(result.current.byWallet).toHaveLength(2);
       // All groups should have all accounts opted in
       result.current.byWallet.forEach((wallet) => {
         wallet.groups.forEach((group) => {
@@ -383,7 +378,7 @@ describe('useRewardOptinSummary', () => {
       });
     });
 
-    it('should handle no selected account group', async () => {
+    it('should handle no selected account group', () => {
       // Arrange
       mockUseSelector
         .mockReset()
@@ -416,15 +411,15 @@ describe('useRewardOptinSummary', () => {
         return Promise.resolve();
       });
 
-      const { result, waitForNextUpdate } = renderHook(() =>
-        useRewardOptinSummary(),
-      );
+      const { result } = renderHook(() => useRewardOptinSummary());
 
-      await waitForNextUpdate();
+      // Wait for async error to be set
+      await waitFor(() => {
+        expect(result.current.hasError).toBe(true);
+      });
 
       // Assert
       expect(result.current.isLoading).toBe(false);
-      expect(result.current.hasError).toBe(true);
       expect(result.current.byWallet).toEqual([]);
       expect(result.current.bySelectedAccountGroup).toBeNull();
       expect(result.current.currentAccountGroupOptedInStatus).toBeNull();
@@ -450,18 +445,15 @@ describe('useRewardOptinSummary', () => {
         return Promise.resolve();
       });
 
-      const { result, waitForNextUpdate } = renderHook(() =>
-        useRewardOptinSummary(),
-      );
+      const { result } = renderHook(() => useRewardOptinSummary());
 
-      // Assert - loading should be true initially when there's data to fetch
-      expect(result.current.isLoading).toBe(true);
-
-      await waitForNextUpdate();
+      // Wait for async error handling to complete
+      await waitFor(() => {
+        expect(result.current.hasError).toBe(true);
+      });
 
       // Assert - loading should be false after error
       expect(result.current.isLoading).toBe(false);
-      expect(result.current.hasError).toBe(true);
     });
   });
 
@@ -512,7 +504,7 @@ describe('useRewardOptinSummary', () => {
   });
 
   describe('edge cases', () => {
-    it('should handle empty account groups', async () => {
+    it('should handle empty account groups', () => {
       // Arrange
       mockUseSelector
         .mockReset()
@@ -532,7 +524,7 @@ describe('useRewardOptinSummary', () => {
       expect(result.current.bySelectedAccountGroup).toBeNull();
     });
 
-    it('should handle empty internal accounts', async () => {
+    it('should handle empty internal accounts', () => {
       // Arrange
       mockUseSelector
         .mockReset()
@@ -571,13 +563,13 @@ describe('useRewardOptinSummary', () => {
         return Promise.resolve();
       });
 
-      const { waitForNextUpdate } = renderHook(() => useRewardOptinSummary());
-
-      await waitForNextUpdate();
+      renderHook(() => useRewardOptinSummary());
 
       // Assert - should call identify with reward-enabled accounts count
-      expect(jest.mocked(useAnalytics)().identify).toHaveBeenCalledWith({
-        reward_enabled_accounts_count: 2, // Account1 and Account3 are opted in
+      await waitFor(() => {
+        expect(mockUseAnalytics().identify).toHaveBeenCalledWith({
+          reward_enabled_accounts_count: 2, // Account1 and Account3 are opted in
+        });
       });
     });
   });
@@ -608,11 +600,12 @@ describe('useRewardOptinSummary', () => {
         return Promise.resolve();
       });
 
-      const { result, waitForNextUpdate } = renderHook(() =>
-        useRewardOptinSummary(),
-      );
+      const { result } = renderHook(() => useRewardOptinSummary());
 
-      await waitForNextUpdate();
+      // Wait for async fetch to complete
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
 
       // Assert - should filter out groups with conflicting subscriptions
       expect(result.current.byWallet).toHaveLength(0); // All groups filtered out due to conflicts
@@ -639,18 +632,16 @@ describe('useRewardOptinSummary', () => {
         return Promise.resolve();
       });
 
-      const { result, waitForNextUpdate } = renderHook(() =>
-        useRewardOptinSummary(),
-      );
+      const { result } = renderHook(() => useRewardOptinSummary());
 
-      await waitForNextUpdate();
+      // Wait for async effect to complete
+      await waitFor(() => {
+        expect(result.current.byWallet).toHaveLength(2);
+      });
 
       // Assert
       expect(result.current.isLoading).toBe(false);
       expect(result.current.hasError).toBe(false);
-
-      // Check byWallet structure
-      expect(result.current.byWallet).toHaveLength(2);
 
       // Wallet 1 should have Group 1 with Account2 (opted in), Account3 (opted out), and Account1 (unsupported)
       const wallet1 = result.current.byWallet[0];
@@ -680,11 +671,12 @@ describe('useRewardOptinSummary', () => {
         return Promise.resolve();
       });
 
-      const { result, waitForNextUpdate } = renderHook(() =>
-        useRewardOptinSummary(),
-      );
+      const { result } = renderHook(() => useRewardOptinSummary());
 
-      await waitForNextUpdate();
+      // Wait for async effect to complete
+      await waitFor(() => {
+        expect(result.current.byWallet).toHaveLength(2);
+      });
 
       // Assert
       const wallet1 = result.current.byWallet[0];

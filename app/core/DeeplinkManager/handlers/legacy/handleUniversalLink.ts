@@ -18,27 +18,39 @@ import handleDeepLinkModalDisplay from './handleDeepLinkModalDisplay';
 import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
 import { capitalize } from '../../../../util/general';
 import handleRampUrl from './handleRampUrl';
+import handleRampReturnUrl from './handleRampReturnUrl';
 import { navigateToHomeUrl } from './handleHomeUrl';
 import { handleSwapUrl } from './handleSwapUrl';
 import handleBrowserUrl from './handleBrowserUrl';
 import { handleCreateAccountUrl } from './handleCreateAccountUrl';
 import { handlePerpsUrl } from './handlePerpsUrl';
-import { handleRewardsUrl } from './handleRewardsUrl';
+import {
+  createRewardsDeeplinkIntent,
+  handleRewardsUrl,
+} from './handleRewardsUrl';
 import { handlePredictUrl } from './handlePredictUrl';
 import handleFastOnboarding from './handleFastOnboarding';
 import { handleCardOnboarding } from './handleCardOnboarding';
 import { handleCardHome } from './handleCardHome';
 import { handleCardKycNotification } from './handleCardKycNotification';
 import { handleTrendingUrl } from './handleTrendingUrl';
+import { handleWhatsHappeningUrl } from './handleWhatsHappeningUrl';
+import { handleSocialLeaderboardUrl } from './handleSocialLeaderboardUrl';
+import { handleSocialTraderPositionUrl } from './handleSocialTraderPositionUrl';
 import { handleEarnMusd } from './handleEarnMusd';
 import { handleAssetUrl } from './handleAssetUrl';
 import { handleNftUrl } from './handleNftUrl';
+import { handleAgenticCliApproval } from './handleAgenticCliApproval';
 import { RampType } from '../../../../reducers/fiatOrders/types';
 import { SHIELD_WEBSITE_URL } from '../../../../constants/shield';
 import {
   createDeepLinkUsedEventBuilder,
   mapSupportedActionToRoute,
 } from '../../util/deeplinks/deepLinkAnalytics';
+import {
+  isMetaMaskSDKDeeplinkAction,
+  isMetaMaskUniversalLink,
+} from '../../util/deeplinks';
 import {
   DeepLinkAnalyticsContext,
   SignatureStatus,
@@ -52,15 +64,10 @@ import ReduxService from '../../../redux';
 import { analytics } from '../../../../util/analytics/analytics';
 import branch from 'react-native-branch';
 import Logger from '../../../../util/Logger';
+import type { DeeplinkParseMode } from '../../utils/parseDeeplink';
+import type { DeeplinkIntent } from '../../types/DeeplinkIntent';
 
-const {
-  MM_UNIVERSAL_LINK_HOST,
-  MM_UNIVERSAL_LINK_HOST_ALTERNATE,
-  MM_UNIVERSAL_LINK_TEST_APP_HOST,
-  MM_UNIVERSAL_LINK_TEST_APP_HOST_ALTERNATE,
-  MM_IO_UNIVERSAL_LINK_HOST,
-  MM_IO_UNIVERSAL_LINK_TEST_HOST,
-} = AppConstants;
+const { MM_IO_UNIVERSAL_LINK_HOST } = AppConstants;
 
 const SUPPORTED_ACTIONS = {
   DAPP: ACTIONS.DAPP,
@@ -84,9 +91,14 @@ const SUPPORTED_ACTIONS = {
   CARD_HOME: ACTIONS.CARD_HOME,
   CARD_KYC_NOTIFICATION: ACTIONS.CARD_KYC_NOTIFICATION,
   TRENDING: ACTIONS.TRENDING,
+  WHATS_HAPPENING: ACTIONS.WHATS_HAPPENING,
+  TOP_TRADERS: ACTIONS.TOP_TRADERS,
+  SOCIAL_TRADER_POSITION: ACTIONS.SOCIAL_TRADER_POSITION,
   SHIELD: ACTIONS.SHIELD,
   EARN_MUSD: ACTIONS.EARN_MUSD,
   NFT: ACTIONS.NFT,
+  AGENTIC_CLI: ACTIONS.AGENTIC_CLI,
+  ON_RAMP: ACTIONS.ON_RAMP,
   // MetaMask SDK specific actions
   ANDROID_SDK: ACTIONS.ANDROID_SDK,
   CONNECT: ACTIONS.CONNECT,
@@ -101,6 +113,7 @@ type SUPPORTED_ACTIONS =
  */
 const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.DAPP,
+  SUPPORTED_ACTIONS.SWAP,
   SUPPORTED_ACTIONS.WC,
   SUPPORTED_ACTIONS.CARD_ONBOARDING,
   SUPPORTED_ACTIONS.CARD_HOME,
@@ -108,19 +121,20 @@ const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.PERPS,
   SUPPORTED_ACTIONS.PERPS_MARKETS,
   SUPPORTED_ACTIONS.PERPS_ASSET,
+  SUPPORTED_ACTIONS.REWARDS,
+  SUPPORTED_ACTIONS.PREDICT,
   SUPPORTED_ACTIONS.BUY,
   SUPPORTED_ACTIONS.BUY_CRYPTO,
   SUPPORTED_ACTIONS.SELL,
   SUPPORTED_ACTIONS.SELL_CRYPTO,
-];
-
-/**
- * MetaMask SDK actions that should be handled by handleMetaMaskDeeplink
- */
-const METAMASK_SDK_ACTIONS: SUPPORTED_ACTIONS[] = [
-  SUPPORTED_ACTIONS.ANDROID_SDK,
-  SUPPORTED_ACTIONS.CONNECT,
-  SUPPORTED_ACTIONS.MMSDK,
+  SUPPORTED_ACTIONS.TRENDING,
+  SUPPORTED_ACTIONS.WHATS_HAPPENING,
+  SUPPORTED_ACTIONS.TOP_TRADERS,
+  SUPPORTED_ACTIONS.SOCIAL_TRADER_POSITION,
+  SUPPORTED_ACTIONS.SHIELD,
+  SUPPORTED_ACTIONS.EARN_MUSD,
+  SUPPORTED_ACTIONS.AGENTIC_CLI,
+  SUPPORTED_ACTIONS.ON_RAMP,
 ];
 
 const interstitialWhitelistUrls = [] as const;
@@ -154,6 +168,37 @@ const trackDeepLinkAnalytics = (
     });
 };
 
+interface UniversalLinkActionHandlerContext {
+  actionBasedRampPath: string;
+  baseUrlAction: string;
+  browserCallBack?: (url: string) => void;
+  urlObj: ReturnType<typeof extractURLParams>['urlObj'];
+}
+
+interface UniversalLinkActionHandler {
+  execute: (context: UniversalLinkActionHandlerContext) => void | Promise<void>;
+  resolve?: (
+    context: UniversalLinkActionHandlerContext,
+  ) => DeeplinkIntent | null;
+}
+
+const UNIVERSAL_LINK_ACTION_HANDLERS: Partial<
+  Record<SUPPORTED_ACTIONS, UniversalLinkActionHandler>
+> = {
+  // Actions listed here can opt into startup intent resolution while still
+  // sharing the signature, interstitial, and analytics flow above.
+  [SUPPORTED_ACTIONS.REWARDS]: {
+    execute: ({ actionBasedRampPath }) =>
+      handleRewardsUrl({
+        rewardsPath: actionBasedRampPath,
+      }),
+    resolve: ({ actionBasedRampPath }) =>
+      createRewardsDeeplinkIntent({
+        rewardsPath: actionBasedRampPath,
+      }),
+  },
+};
+
 async function handleUniversalLink({
   instance,
   handled,
@@ -161,6 +206,7 @@ async function handleUniversalLink({
   browserCallBack,
   url,
   source,
+  mode = 'execute',
 }: {
   instance: DeeplinkManager;
   handled: () => void;
@@ -168,7 +214,8 @@ async function handleUniversalLink({
   browserCallBack?: (url: string) => void;
   url: string;
   source: string;
-}) {
+  mode?: DeeplinkParseMode;
+}): Promise<boolean | DeeplinkIntent | null | void> {
   const validatedUrl = new URL(url);
 
   if (
@@ -198,8 +245,24 @@ async function handleUniversalLink({
   let isPrivateLink = false;
   let isInvalidLink = false;
 
+  const isSupportedDomain = isMetaMaskUniversalLink(urlObj.href);
+  const isActionSupported = Object.values(SUPPORTED_ACTIONS).includes(action);
+  const universalLinkActionHandler = isActionSupported
+    ? UNIVERSAL_LINK_ACTION_HANDLERS[action]
+    : undefined;
+
+  if (
+    mode === 'resolve' &&
+    (!isSupportedDomain ||
+      !isActionSupported ||
+      !universalLinkActionHandler?.resolve)
+  ) {
+    handled();
+    return null;
+  }
+
   // Intercept SDK actions and handle them in handleMetaMaskDeeplink
-  if (METAMASK_SDK_ACTIONS.includes(action)) {
+  if (isMetaMaskSDKDeeplinkAction(action)) {
     const mappedUrl = url.replace(
       `${PROTOCOLS.HTTPS}://${MM_IO_UNIVERSAL_LINK_HOST}/`,
       `${PROTOCOLS.METAMASK}://`,
@@ -223,25 +286,26 @@ async function handleUniversalLink({
       interstitialAction: InterstitialState.NOT_SHOWN,
     });
 
+    // `handleMetaMaskDeeplink` is async. We deliberately don't await it here;
+    // the call is fire-and-forget from the deeplink pipeline's perspective,
+    // but we must still surface rejections (including the synchronous
+    // `INTERNAL_ORIGINS` security throw) so they don't become silent
+    // unhandled promise rejections.
     handleMetaMaskDeeplink({
       handled,
       wcURL,
       origin: source,
       params,
       url: mappedUrl,
+    }).catch((err) => {
+      Logger.error(
+        err as Error,
+        'DeepLinkManager: handleMetaMaskDeeplink failed',
+      );
     });
     return;
   }
 
-  const isSupportedDomain =
-    urlObj.hostname === MM_UNIVERSAL_LINK_HOST ||
-    urlObj.hostname === MM_UNIVERSAL_LINK_HOST_ALTERNATE ||
-    urlObj.hostname === MM_UNIVERSAL_LINK_TEST_APP_HOST ||
-    urlObj.hostname === MM_UNIVERSAL_LINK_TEST_APP_HOST_ALTERNATE ||
-    urlObj.hostname === MM_IO_UNIVERSAL_LINK_HOST ||
-    urlObj.hostname === MM_IO_UNIVERSAL_LINK_TEST_HOST;
-
-  const isActionSupported = Object.values(SUPPORTED_ACTIONS).includes(action);
   if (!isSupportedDomain) {
     isInvalidLink = true;
   }
@@ -302,39 +366,36 @@ async function handleUniversalLink({
   const { params } = extractURLParams(url);
 
   /**
-   * Branch.io parameters for analytics context.
-   * Fetched once and reused across all analytics contexts to avoid duplicate API calls.
-   * May be undefined if fetch fails, times out, or returns empty/null data.
-   * Used by detectAppInstallation to determine app installation status.
+   * Fire-and-forget Branch.io params fetch. Resolves to the params if Branch
+   * returns valid data within 500 ms, or `undefined` otherwise (timeout /
+   * error / empty response). Passed as a promise into the analytics context
+   * so the interstitial / handler flow is not blocked on Branch; only
+   * `trackDeepLinkAnalytics` (itself fire-and-forget) awaits the result.
+   * Timeout and error paths are logged so we retain observability on Branch
+   * being slow or broken.
    */
-  let branchParams: BranchParams | undefined;
-  try {
-    // Add timeout to prevent blocking deep link processing
-    const rawParams = await Promise.race([
-      branch.getLatestReferringParams(),
-      new Promise<never>((_, reject) =>
-        setTimeout(
-          () => reject(new Error('Branch.io params fetch timeout')),
-          500,
-        ),
-      ),
-    ]);
-
-    // Validate before casting - handle null/empty edge cases
-    if (
+  const branchParamsPromise: Promise<BranchParams | undefined> = Promise.race([
+    // Promise.resolve tolerates mocks that return a non-Promise synchronously.
+    Promise.resolve(branch.getLatestReferringParams()).then((rawParams) =>
       rawParams &&
       typeof rawParams === 'object' &&
       Object.keys(rawParams).length > 0
-    ) {
-      branchParams = rawParams as BranchParams;
-    }
-  } catch (error) {
+        ? (rawParams as BranchParams)
+        : undefined,
+    ),
+    new Promise<never>((_, reject) =>
+      setTimeout(
+        () => reject(new Error('Branch.io params fetch timeout')),
+        500,
+      ),
+    ),
+  ]).catch((error) => {
     Logger.error(
       error as Error,
       'DeepLinkManager: Error getting Branch.io params',
     );
-    // branchParams remains undefined
-  }
+    return undefined;
+  });
 
   // Build analytics context - determine signature status
   // Check if signature parameter exists and has a value
@@ -374,7 +435,7 @@ async function handleUniversalLink({
       url,
       route,
       urlParams: params || {},
-      branchParams,
+      branchParamsPromise,
       signatureStatus,
       interstitialShown: false,
       interstitialDisabled,
@@ -410,7 +471,7 @@ async function handleUniversalLink({
         url,
         route,
         urlParams: params || {},
-        branchParams,
+        branchParamsPromise,
         signatureStatus,
         interstitialShown: false, // Initially false, will be set to true when modal is shown
         interstitialDisabled,
@@ -509,6 +570,25 @@ async function handleUniversalLink({
 
   const BASE_URL_ACTION = `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${action}`;
   const actionBasedRampPath = urlObj.href.replace(BASE_URL_ACTION, '');
+  const universalLinkActionHandlerContext: UniversalLinkActionHandlerContext = {
+    actionBasedRampPath,
+    baseUrlAction: BASE_URL_ACTION,
+    browserCallBack,
+    urlObj,
+  };
+
+  if (mode === 'resolve') {
+    return (
+      universalLinkActionHandler?.resolve?.(
+        universalLinkActionHandlerContext,
+      ) ?? null
+    );
+  }
+
+  if (universalLinkActionHandler) {
+    await universalLinkActionHandler.execute(universalLinkActionHandlerContext);
+    return;
+  }
 
   switch (action) {
     case SUPPORTED_ACTIONS.BUY_CRYPTO:
@@ -524,6 +604,10 @@ async function handleUniversalLink({
         rampPath: actionBasedRampPath,
         rampType,
       });
+      break;
+    }
+    case SUPPORTED_ACTIONS.ON_RAMP: {
+      handleRampReturnUrl({ rampReturnPath: actionBasedRampPath });
       break;
     }
     case SUPPORTED_ACTIONS.HOME:
@@ -592,12 +676,6 @@ async function handleUniversalLink({
       });
       break;
     }
-    case SUPPORTED_ACTIONS.REWARDS: {
-      handleRewardsUrl({
-        rewardsPath: actionBasedRampPath,
-      });
-      return;
-    }
     case SUPPORTED_ACTIONS.PREDICT: {
       handlePredictUrl({
         predictPath: actionBasedRampPath,
@@ -644,12 +722,30 @@ async function handleUniversalLink({
       });
       break;
     }
+    case SUPPORTED_ACTIONS.WHATS_HAPPENING: {
+      handleWhatsHappeningUrl();
+      break;
+    }
+    case SUPPORTED_ACTIONS.TOP_TRADERS: {
+      handleSocialLeaderboardUrl();
+      break;
+    }
+    case SUPPORTED_ACTIONS.SOCIAL_TRADER_POSITION: {
+      handleSocialTraderPositionUrl({
+        actionPath: actionBasedRampPath,
+      });
+      break;
+    }
     case SUPPORTED_ACTIONS.EARN_MUSD: {
       handleEarnMusd();
       break;
     }
     case SUPPORTED_ACTIONS.NFT: {
       handleNftUrl();
+      break;
+    }
+    case SUPPORTED_ACTIONS.AGENTIC_CLI: {
+      handleAgenticCliApproval({ actionPath: actionBasedRampPath });
       break;
     }
   }

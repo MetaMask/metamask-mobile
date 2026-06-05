@@ -214,6 +214,15 @@ export const MOBILE_ERROR_EXTENSIONS: Partial<
     getLocalizedMessage: () =>
       strings('hardware_wallet.errors.bluetooth_connection_failed'),
   },
+  [ErrorCode.PermissionCameraDenied]: {
+    recoveryAction: RecoveryAction.OPEN_SETTINGS,
+    icon: IconName.Camera,
+    iconColor: IconColor.Default,
+    getLocalizedTitle: () =>
+      strings('hardware_wallet.error.camera_permission_denied'),
+    getLocalizedMessage: () =>
+      strings('hardware_wallet.errors.camera_permission_denied'),
+  },
 
   // Mobile-specific
   [ErrorCode.MobileNotSupported]: {
@@ -250,6 +259,7 @@ export const ERROR_NAME_MAPPINGS: Record<string, ErrorCode> = {
   TransportError: ErrorCode.BluetoothConnectionFailed,
   LockedDeviceError: ErrorCode.AuthenticationDeviceLocked,
   LedgerTimeoutError: ErrorCode.DeviceUnresponsive,
+  LedgerOperationAbortedError: ErrorCode.DeviceUnresponsive,
   TransportOpenUserCancelled: ErrorCode.UserCancelled,
   BluetoothRequired: ErrorCode.BluetoothDisabled,
   PairingFailed: ErrorCode.BluetoothConnectionFailed,

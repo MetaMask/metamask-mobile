@@ -16,7 +16,6 @@ import { RootState } from '../../../../reducers';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { useMusdConversionTokens } from './useMusdConversionTokens';
 import { AssetType } from '../../../Views/confirmations/types/token';
-import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../types/musd.types';
 
 const mockTrace = trace as jest.MockedFunction<typeof trace>;
 
@@ -356,6 +355,7 @@ describe('useMusdConversion', () => {
         {
           networkClientId: 'mainnet',
           origin: ORIGIN_METAMASK,
+          isInternal: true,
           skipInitialGasEstimate: true,
           type: TransactionType.musdConversion,
         },
@@ -442,7 +442,7 @@ describe('useMusdConversion', () => {
       });
     });
 
-    it('threads returnTo and navigationOverride into education screen params when first-time user triggers custom conversion', async () => {
+    it('threads returnTo into education screen params when first-time user triggers custom conversion', async () => {
       setupUseSelectorMock({
         hasSeenConversionEducationScreen: false,
       });
@@ -455,7 +455,6 @@ describe('useMusdConversion', () => {
             address: '0xabc' as Hex,
             chainId: '0x1' as Hex,
           },
-          navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.CUSTOM,
           returnTo: { screen: Routes.WALLET.CASH_TOKENS_FULL_VIEW },
         });
       });
@@ -464,7 +463,6 @@ describe('useMusdConversion', () => {
         screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
         params: {
           preferredPaymentToken: { address: '0xabc', chainId: '0x1' },
-          navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.CUSTOM,
           returnTo: { screen: Routes.WALLET.CASH_TOKENS_FULL_VIEW },
         },
       });

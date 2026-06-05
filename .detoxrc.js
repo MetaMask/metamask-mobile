@@ -100,15 +100,6 @@ module.exports = {
       forceAdbInstall: true,
       gpuMode: 'swiftshader_indirect',
     },
-    'android.bitrise.emulator': {
-      type: 'android.emulator',
-      device: {
-        avdName: 'emulator',
-      },
-      // optimized for Bitrise CI runners
-      bootArgs: '-verbose -show-kernel -no-audio -netdelay none -no-snapshot -wipe-data -gpu auto -no-window -no-boot-anim -read-only',
-      forceAdbInstall: true,
-    }
   },
   apps: {
     'ios.debug': {

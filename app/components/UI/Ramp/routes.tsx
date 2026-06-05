@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import reactQueryService from '../../../core/ReactQueryService/ReactQueryService';
 import Routes from '../../../constants/navigation/Routes';
 import TokenSelection from './Views/TokenSelection';
@@ -16,6 +16,7 @@ import V2OrderProcessing from './Views/NativeFlow/OrderProcessing';
 import V2KycProcessing from './Views/NativeFlow/KycProcessing';
 import V2AdditionalVerification from './Views/NativeFlow/AdditionalVerification';
 import V2KycWebview from './Views/NativeFlow/KycWebview';
+import HeadlessHost from './Views/HeadlessHost';
 import UnsupportedTokenModal from './Views/Modals/UnsupportedTokenModal';
 import SettingsModal from './Views/Modals/SettingsModal';
 import PaymentSelectionModal from './Views/Modals/PaymentSelectionModal';
@@ -28,11 +29,20 @@ import StateSelectorModal from './Views/Modals/StateSelectorModal';
 import UnsupportedStateModal from './Views/Modals/UnsupportedStateModal';
 import RampsOrderDetails from './Views/OrderDetails';
 import LockManagerService from '../../../core/LockManagerService';
-import { clearStackNavigatorOptions } from '../../../constants/navigation/clearStackNavigatorOptions';
+import {
+  clearNativeStackNavigatorOptions,
+  transparentModalScreenOptions,
+} from '../../../constants/navigation/clearStackNavigatorOptions';
 
-const RootStack = createStackNavigator();
-const Stack = createStackNavigator();
-const ModalsStack = createStackNavigator();
+const RootStack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator();
+const ModalsStack = createNativeStackNavigator();
+
+const overlayScreenOptions = {
+  ...clearNativeStackNavigatorOptions,
+  presentation: 'transparentModal' as const,
+  gestureEnabled: false,
+};
 
 const MainRoutes = () => (
   <Stack.Navigator
@@ -43,11 +53,7 @@ const MainRoutes = () => (
       name={Routes.RAMP.TOKEN_SELECTION}
       component={TokenSelection}
     />
-    <Stack.Screen
-      name={Routes.RAMP.AMOUNT_INPUT}
-      component={BuildQuote}
-      options={{ headerShown: false }}
-    />
+    <Stack.Screen name={Routes.RAMP.AMOUNT_INPUT} component={BuildQuote} />
     <Stack.Screen name={Routes.RAMP.ENTER_EMAIL} component={V2EnterEmail} />
     <Stack.Screen name={Routes.RAMP.OTP_CODE} component={V2OtpCode} />
     <Stack.Screen name={Routes.RAMP.BASIC_INFO} component={V2BasicInfo} />
@@ -72,35 +78,27 @@ const MainRoutes = () => (
     <Stack.Screen
       name={Routes.RAMP.CHECKOUT}
       component={Checkout}
-      options={{
-        headerShown: false,
-        cardStyle: { backgroundColor: 'transparent' },
-        animationEnabled: false,
-        gestureEnabled: false,
-        detachPreviousScreen: false,
-      }}
+      options={overlayScreenOptions}
     />
     <Stack.Screen
       name={Routes.RAMP.KYC_WEBVIEW}
       component={V2KycWebview}
-      options={{
-        headerShown: false,
-        cardStyle: { backgroundColor: 'transparent' },
-        animationEnabled: false,
-        gestureEnabled: false,
-        detachPreviousScreen: false,
-      }}
+      options={overlayScreenOptions}
     />
     <Stack.Screen
       name={Routes.RAMP.RAMPS_ORDER_DETAILS}
       component={RampsOrderDetails}
     />
+    <Stack.Screen name={Routes.RAMP.HEADLESS_HOST} component={HeadlessHost} />
   </Stack.Navigator>
 );
 
 const TokenListModalsRoutes = () => (
   <ModalsStack.Navigator
-    screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
+    screenOptions={{
+      ...clearNativeStackNavigatorOptions,
+      presentation: 'modal',
+    }}
   >
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.UNSUPPORTED_TOKEN}
@@ -130,8 +128,8 @@ const TokenListModalsRoutes = () => (
       name={Routes.RAMP.MODALS.PROCESSING_INFO}
       component={ProcessingInfoModal}
       options={{
-        ...clearStackNavigatorOptions,
-        presentation: 'transparentModal',
+        ...clearNativeStackNavigatorOptions,
+        ...transparentModalScreenOptions,
       }}
     />
     <ModalsStack.Screen
@@ -174,8 +172,8 @@ const TokenListRoutes = () => {
           name={Routes.RAMP.MODALS.ID}
           component={TokenListModalsRoutes}
           options={{
-            ...clearStackNavigatorOptions,
-            detachPreviousScreen: false,
+            ...clearNativeStackNavigatorOptions,
+            ...transparentModalScreenOptions,
           }}
         />
       </RootStack.Navigator>

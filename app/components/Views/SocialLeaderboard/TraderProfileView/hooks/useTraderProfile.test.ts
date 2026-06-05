@@ -3,10 +3,15 @@ import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
+import { selectIsUnlocked } from '../../../../../selectors/keyringController';
 import { useTraderProfile } from './useTraderProfile';
 
 jest.mock('react-redux', () => ({
-  useSelector: jest.fn().mockReturnValue([]),
+  useSelector: jest.fn(),
+}));
+
+jest.mock('../../../../../selectors/keyringController', () => ({
+  selectIsUnlocked: jest.fn(),
 }));
 
 jest.mock('../../../../../selectors/socialController', () => ({
@@ -26,6 +31,10 @@ jest.mock('../../../../../core/Engine', () => ({
 }));
 
 jest.mock('@metamask/react-data-query');
+
+jest.mock('@sentry/react-native', () => ({
+  addBreadcrumb: jest.fn(),
+}));
 
 const mockRefetch = jest.fn();
 const mockUseQuery = useQuery as jest.MockedFunction<typeof useQuery>;
@@ -66,7 +75,10 @@ describe('useTraderProfile', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseQuery.mockReturnValue(makeQueryResult());
-    mockUseSelector.mockReturnValue([]);
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectIsUnlocked) return true;
+      return []; // default for other selectors (e.g. selectFollowingProfileIds)
+    });
   });
 
   describe('query configuration', () => {
@@ -83,7 +95,7 @@ describe('useTraderProfile', () => {
       );
     });
 
-    it('enables the query when addressOrId is non-empty', () => {
+    it('enables the query when addressOrId is non-empty and wallet is unlocked', () => {
       renderHook(() => useTraderProfile('trader-1'));
 
       expect(mockUseQuery).toHaveBeenCalledWith(
@@ -93,6 +105,18 @@ describe('useTraderProfile', () => {
 
     it('disables the query when addressOrId is empty', () => {
       renderHook(() => useTraderProfile(''));
+
+      expect(mockUseQuery).toHaveBeenCalledWith(
+        expect.objectContaining({ enabled: false }),
+      );
+    });
+
+    it('disables the query when wallet is locked', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectIsUnlocked) return false;
+        return [];
+      });
+      renderHook(() => useTraderProfile('trader-1'));
 
       expect(mockUseQuery).toHaveBeenCalledWith(
         expect.objectContaining({ enabled: false }),
@@ -150,13 +174,24 @@ describe('useTraderProfile', () => {
       expect(result.current.error).toBeNull();
     });
 
-    it('logs errors when error is present', () => {
+    it('logs errors with feature:social tags when error is present', () => {
       const error = new Error('fetch failed');
       mockUseQuery.mockReturnValue(makeQueryResult({ error }));
       renderHook(() => useTraderProfile('trader-1'));
       expect(Logger.error).toHaveBeenCalledWith(
         error,
-        'useTraderProfile: profile fetch failed',
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            feature: 'social',
+            surface: 'trader_profile',
+            operation: 'fetch_profile',
+            endpoint: 'trader_profile',
+          }),
+          extras: expect.objectContaining({
+            message: 'Trader profile fetch failed at useTraderProfile',
+            endpoint: 'trader_profile',
+          }),
+        }),
       );
     });
 
@@ -180,7 +215,10 @@ describe('useTraderProfile', () => {
     });
 
     it('seeds isFollowing true when traderId is in followingProfileIds', () => {
-      mockUseSelector.mockReturnValue(['trader-1']);
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectIsUnlocked) return true;
+        return ['trader-1'];
+      });
       const { result } = renderHook(() => useTraderProfile('trader-1'));
       expect(result.current.isFollowing).toBe(true);
     });
@@ -199,7 +237,10 @@ describe('useTraderProfile', () => {
     });
 
     it('calls unfollowTrader when currently following', async () => {
-      mockUseSelector.mockReturnValue(['trader-1']);
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectIsUnlocked) return true;
+        return ['trader-1'];
+      });
       const { result } = renderHook(() => useTraderProfile('trader-1'));
 
       await act(async () => {
@@ -299,7 +340,14 @@ describe('useTraderProfile', () => {
 
       expect(Logger.error).toHaveBeenCalledWith(
         error,
-        'useTraderProfile: refresh failed',
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            feature: 'social',
+            surface: 'trader_profile',
+            operation: 'refresh',
+            endpoint: 'trader_profile',
+          }),
+        }),
       );
     });
   });

@@ -15,6 +15,14 @@ The check can be bypassed when necessary, either by setting the changelog entry 
 
 - **no-changelog**: PR's changes do not need to be included in the changelog.
 
+## Automated labels (applied by CI)
+
+### E2E readiness gate
+
+- **pr-not-ready-for-e2e**: Automatically applied to every newly opened PR. While present, E2E build and test jobs are skipped. Merge is also blocked — **unless** all changes are ignorable-only. For PRs with non-ignorable changes, the PR owner must remove this label when the PR is ready for E2E validation; once removed, CI re-runs and E2E tests execute normally.
+
+For the full CI flow that these labels control, see [E2E_DECISION_TREE.md](E2E_DECISION_TREE.md).
+
 ## Optional labels (manual addition)
 
 Any label can be manually added on demand depending on the PR's content. For instance, the label **QA passed** will indicate that a thorough manual testing has been performed and the PR is ready to be merged. In addition, following labels have some specific use cases.
@@ -25,11 +33,11 @@ Using any of these labels should be exceptional in case of CI friction and urgen
 
 - **skip-sonar-cloud**: The PR will be merged without running SonarCloud checks.
 - **skip-e2e**: The PR will be merged without running E2E tests.
-- **skip-e2e-quality-gate**: This label will disable the default test retries for E2E test files modified in a PR. Useful when making large refactors or when changes don't pose flakiness risk.
+- **skip-e2e-flakiness-detection**: This label will disable the default test retries for E2E test files modified in a PR. Useful when making large refactors or when changes don't pose flakiness risk.
 
 ### Skip Smart E2E Selection
 
-- **skip-smart-e2e-selection**: This label is used to bypass the Smart E2E Selection (select E2E tests to run depending on the PR changes). Useful when we do want all E2E tests to run for a given PR.
+- **skip-smart-e2e-selection**: Bypasses the AI-powered Smart E2E Selection so that the full E2E test suite runs instead of an AI-picked subset. This label does **not** force E2E builds/tests to run on a PR that would otherwise skip them (e.g. docs-only changes). Whether E2E runs at all is determined by path filters, branch, and other skip labels — not this label.
 
 ### Block merge if any is present
 

@@ -12,6 +12,7 @@ import type {
 import type { PredictSportOutcomeButton } from '../PredictSportOutcomeCard';
 import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
 import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
+import Logger from '../../../../../util/Logger';
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
@@ -20,9 +21,36 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'predict.sports_market_types.spreads': 'Spreads',
       'predict.sports_market_types.totals': 'Totals',
       'predict.sports_market_types.points': 'Points',
+      'predict.sports_market_types.basketball_total_points': 'Totals',
+      'predict.sports_market_types.basketball_odd_even': 'Odd/Even Score',
+      'predict.sports_market_types.basketball_team_to_score_first':
+        'Team to Score First',
+      'predict.sports_market_types.tennis_set_totals': 'Total Sets',
+      'predict.sports_market_types.tennis_set_handicap': 'Set Handicap',
+      'predict.sports_market_types.tennis_match_totals': 'Total Games',
+      'predict.sports_market_types.tennis_first_set_totals':
+        '1st Set Total Games',
+      'predict.sports_market_types.tennis_first_set_winner': '1st Set Winner',
+      'predict.sports_market_types.tennis_completed_match': 'Completed Match',
     };
+    if (key.startsWith('predict.sports_market_types.basketball_')) {
+      return translations[key] ?? `[missing "${key}" translation]`;
+    }
     return translations[key] ?? key;
   }),
+}));
+
+jest.mock('../../../../../util/Logger', () => ({
+  __esModule: true,
+  default: { error: jest.fn() },
+}));
+
+const mockGetLivePrice = jest.fn();
+
+jest.mock('../../hooks/useLiveMarketPrices', () => ({
+  useLiveMarketPrices: jest.fn(() => ({
+    getPrice: mockGetLivePrice,
+  })),
 }));
 
 const mockOnBuyPress = jest.fn();
@@ -36,6 +64,7 @@ interface CapturedCard {
     variant: string;
     teamColor?: string;
   }[];
+  buttonLayout?: string;
   lines?: number[];
   selectedLine?: number;
   testID?: string;
@@ -47,9 +76,10 @@ interface MockCardProps {
   title: string;
   subtitle?: string;
   buttons: PredictSportOutcomeButton[];
+  buttonLayout?: string;
   lines?: number[];
   selectedLine?: number;
-  onSelectLine?: (line: number) => void;
+  onSelectLine?: (line: number, index: number) => void;
   testID?: string;
 }
 
@@ -66,6 +96,7 @@ jest.mock('../PredictSportOutcomeCard', () => {
         variant: b.variant,
         teamColor: b.teamColor,
       })),
+      buttonLayout: props.buttonLayout,
       lines: props.lines,
       selectedLine: props.selectedLine,
       testID: props.testID,
@@ -83,11 +114,11 @@ jest.mock('../PredictSportOutcomeCard', () => {
           />
         ))}
         {props.lines &&
-          props.lines.map((line: number) => (
+          props.lines.map((line: number, lineIdx: number) => (
             <View
-              key={line}
-              testID={`${props.testID}-line-${line}`}
-              onTouchEnd={() => props.onSelectLine?.(line)}
+              key={`${lineIdx}-${line}`}
+              testID={`${props.testID}-line-${lineIdx}-${line}`}
+              onTouchEnd={() => props.onSelectLine?.(line, lineIdx)}
               accessibilityHint={
                 line === props.selectedLine ? 'selected' : 'unselected'
               }
@@ -183,6 +214,7 @@ const mockGame: PredictMarketGame = {
 describe('PredictGameOutcomesTab', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetLivePrice.mockReturnValue(undefined);
     mockCapturedCards = [];
   });
 
@@ -191,8 +223,63 @@ describe('PredictGameOutcomesTab', () => {
       expect(getSportsMarketTypeLabel('moneyline')).toBe('Moneyline');
     });
 
+    it('returns translated label for basketball market types', () => {
+      expect(getSportsMarketTypeLabel('basketball_odd_even')).toBe(
+        'Odd/Even Score',
+      );
+      expect(getSportsMarketTypeLabel('basketball_team_to_score_first')).toBe(
+        'Team to Score First',
+      );
+    });
+
+    it('returns translated label for tennis market types', () => {
+      expect(getSportsMarketTypeLabel('tennis_match_totals')).toBe(
+        'Total Games',
+      );
+      expect(getSportsMarketTypeLabel('tennis_set_handicap')).toBe(
+        'Set Handicap',
+      );
+      expect(getSportsMarketTypeLabel('tennis_first_set_winner')).toBe(
+        '1st Set Winner',
+      );
+    });
+
     it('returns title-cased fallback for unknown type', () => {
       expect(getSportsMarketTypeLabel('unknown_type')).toBe('Unknown Type');
+    });
+
+    it('returns provided fallback when translation is missing', () => {
+      expect(
+        getSportsMarketTypeLabel('basketball_unknown_market', 'Fallback Title'),
+      ).toBe('Fallback Title');
+    });
+
+    it('logs missing translations only once per key', () => {
+      const mockLoggerError = jest.mocked(Logger.error);
+      const type = 'basketball_logged_once_market';
+      const key = `predict.sports_market_types.${type}`;
+      const message = `Missing Predict sports market type translation: ${key}`;
+
+      expect(getSportsMarketTypeLabel(type, 'Fallback Title')).toBe(
+        'Fallback Title',
+      );
+      expect(getSportsMarketTypeLabel(type, 'Fallback Title')).toBe(
+        'Fallback Title',
+      );
+
+      expect(mockLoggerError).toHaveBeenCalledTimes(1);
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message,
+        }),
+        {
+          message,
+          context: {
+            key,
+            type,
+          },
+        },
+      );
     });
   });
 
@@ -431,6 +518,79 @@ describe('PredictGameOutcomesTab', () => {
       expect(mockCapturedCards[0].lines).toEqual([3.5, 7.5]);
       expect(mockCapturedCards[0].selectedLine).toBe(3.5);
     });
+
+    it('uses outcome title when subgroup market type translation is missing', () => {
+      const subgroups: PredictOutcomeGroup[] = [
+        createGroup({
+          key: 'basketball_unknown_market',
+          outcomes: [
+            createOutcome({
+              id: 'odd-even',
+              groupItemTitle: 'Odd/Even',
+              title: 'Odd/Even',
+            }),
+          ],
+        }),
+      ];
+      const groups = [
+        createGroup({ key: 'game_lines', outcomes: [], subgroups }),
+      ];
+
+      render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={mockGame}
+          activeChipKey="game_lines"
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      expect(mockCapturedCards[0].title).toBe('Odd/Even');
+    });
+
+    it('uses selected line title when line market type translation is missing', () => {
+      const subgroups: PredictOutcomeGroup[] = [
+        createGroup({
+          key: 'basketball_unknown_line_market',
+          outcomes: [
+            createOutcome({
+              id: 'total-198',
+              line: 198.5,
+              groupItemTitle: 'Total Points 198.5',
+              title: 'Total Points 198.5',
+            }),
+            createOutcome({
+              id: 'total-199',
+              line: 199.5,
+              groupItemTitle: 'Total Points 199.5',
+              title: 'Total Points 199.5',
+            }),
+          ],
+        }),
+      ];
+      const groups = [
+        createGroup({ key: 'game_lines', outcomes: [], subgroups }),
+      ];
+
+      const { getByTestId } = render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={mockGame}
+          activeChipKey="game_lines"
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      expect(mockCapturedCards[0].title).toBe('Total Points 198.5');
+
+      mockCapturedCards = [];
+      fireEvent(
+        getByTestId('game_lines-basketball_unknown_line_market-0-line-1-199.5'),
+        'touchEnd',
+      );
+
+      expect(mockCapturedCards[0].title).toBe('Total Points 199.5');
+    });
   });
 
   describe('button building', () => {
@@ -623,6 +783,67 @@ describe('PredictGameOutcomesTab', () => {
       );
     });
 
+    it('assigns tennis first set winner team colors from normalized token labels', () => {
+      const tennisGame: PredictMarketGame = {
+        ...mockGame,
+        league: 'atp',
+        homeTeam: {
+          ...mockGame.homeTeam,
+          name: 'Ilya Ivashka',
+          abbreviation: 'ivashka',
+          alias: 'I. Ivashka',
+          color: TEST_HEX_COLORS.PURE_RED,
+        },
+        awayTeam: {
+          ...mockGame.awayTeam,
+          name: 'Hamish Stewart',
+          abbreviation: 'stewart',
+          alias: 'H. Stewart',
+          color: TEST_HEX_COLORS.PURE_BLUE,
+        },
+      };
+      const outcome = createOutcome({
+        sportsMarketType: 'tennis_first_set_winner',
+        tokens: [
+          createToken({ shortTitle: 'IVASHKA' }),
+          createToken({ shortTitle: 'STEWART' }),
+        ],
+      });
+      const subgroups: PredictOutcomeGroup[] = [
+        createGroup({
+          key: 'tennis_first_set_winner',
+          outcomes: [outcome],
+        }),
+      ];
+      const groups = [
+        createGroup({ key: 'first_set', outcomes: [], subgroups }),
+      ];
+
+      render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={tennisGame}
+          activeChipKey="first_set"
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      expect(mockCapturedCards[0].buttons[0]).toEqual(
+        expect.objectContaining({
+          label: 'IVASHKA',
+          variant: 'yes',
+          teamColor: TEST_HEX_COLORS.PURE_RED,
+        }),
+      );
+      expect(mockCapturedCards[0].buttons[1]).toEqual(
+        expect.objectContaining({
+          label: 'STEWART',
+          variant: 'no',
+          teamColor: TEST_HEX_COLORS.PURE_BLUE,
+        }),
+      );
+    });
+
     it('assigns draw variant and no team colors for non-moneyline types', () => {
       const outcome = createOutcome({
         sportsMarketType: 'spreads',
@@ -777,7 +998,7 @@ describe('PredictGameOutcomesTab', () => {
         />,
       );
 
-      expect(mockCapturedCards[0].selectedLine).toBe(7.5);
+      expect(mockCapturedCards[0].selectedLine).toBe(3.5);
     });
 
     it('switches displayed outcome when line is selected', () => {
@@ -822,7 +1043,7 @@ describe('PredictGameOutcomesTab', () => {
       expect(mockCapturedCards[0].buttons[0].price).toBe(60);
 
       mockCapturedCards = [];
-      fireEvent(getByTestId('game_lines-spreads-0-line-7.5'), 'touchEnd');
+      fireEvent(getByTestId('game_lines-spreads-0-line-1-7.5'), 'touchEnd');
 
       expect(mockCapturedCards[0].buttons[0].price).toBe(80);
     });
@@ -843,6 +1064,492 @@ describe('PredictGameOutcomesTab', () => {
         getByTestId(PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.OUTCOMES_CONTENT),
       ).toBeOnTheScreen();
       expect(mockCapturedCards).toHaveLength(0);
+    });
+  });
+
+  describe('moneyline subgroup rendering', () => {
+    it('renders inline-spaced card for moneyline subgroup with multiple outcomes sorted by threshold', () => {
+      const outcomes = [
+        createOutcome({
+          id: 'ml-2',
+          groupItemThreshold: 2,
+          groupItemTitle: 'Away Win',
+          volume: 3000,
+          tokens: [createToken({ shortTitle: 'AWY', price: 0.25 })],
+        }),
+        createOutcome({
+          id: 'ml-0',
+          groupItemThreshold: 0,
+          groupItemTitle: 'Home Win',
+          volume: 5000,
+          tokens: [createToken({ shortTitle: 'HOM', price: 0.55 })],
+        }),
+        createOutcome({
+          id: 'ml-1',
+          groupItemThreshold: 1,
+          groupItemTitle: 'Draw',
+          volume: 2000,
+          tokens: [createToken({ shortTitle: 'Draw', price: 0.2 })],
+        }),
+      ];
+      const subgroups: PredictOutcomeGroup[] = [
+        createGroup({ key: 'moneyline', outcomes }),
+      ];
+      const groups = [
+        createGroup({ key: 'game_lines', outcomes: [], subgroups }),
+      ];
+
+      render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={mockGame}
+          activeChipKey="game_lines"
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      expect(mockCapturedCards).toHaveLength(1);
+      expect(mockCapturedCards[0].buttonLayout).toBe('inlineNoSeparator');
+      expect(mockCapturedCards[0].buttons[0].label).toBe('HOM');
+      expect(mockCapturedCards[0].buttons[1].label).toBe('Draw');
+      expect(mockCapturedCards[0].buttons[2].label).toBe('AWY');
+    });
+
+    it('sums volumes from all outcomes for moneyline subgroup subtitle', () => {
+      const outcomes = [
+        createOutcome({
+          id: 'ml-a',
+          groupItemThreshold: 0,
+          volume: 10000,
+          tokens: [createToken({ shortTitle: 'TA', price: 0.6 })],
+        }),
+        createOutcome({
+          id: 'ml-b',
+          groupItemThreshold: 1,
+          volume: 20000,
+          tokens: [createToken({ shortTitle: 'TB', price: 0.4 })],
+        }),
+      ];
+      const subgroups: PredictOutcomeGroup[] = [
+        createGroup({ key: 'moneyline', outcomes }),
+      ];
+      const groups = [
+        createGroup({ key: 'game_lines', outcomes: [], subgroups }),
+      ];
+
+      render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={mockGame}
+          activeChipKey="game_lines"
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      expect(mockCapturedCards[0].subtitle).toBe('$30k Vol');
+    });
+
+    it('builds moneyline buttons with correct prices and variants', () => {
+      const outcomes = [
+        createOutcome({
+          id: 'ml-h',
+          groupItemThreshold: 0,
+          volume: 1000,
+          tokens: [createToken({ shortTitle: 'TA', price: 0.45 })],
+        }),
+        createOutcome({
+          id: 'ml-d',
+          groupItemThreshold: 1,
+          volume: 1000,
+          tokens: [createToken({ shortTitle: 'Draw', price: 0.3 })],
+        }),
+        createOutcome({
+          id: 'ml-a',
+          groupItemThreshold: 2,
+          volume: 1000,
+          tokens: [createToken({ shortTitle: 'TB', price: 0.25 })],
+        }),
+      ];
+      const subgroups: PredictOutcomeGroup[] = [
+        createGroup({ key: 'moneyline', outcomes }),
+      ];
+      const groups = [
+        createGroup({ key: 'game_lines', outcomes: [], subgroups }),
+      ];
+
+      render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={mockGame}
+          activeChipKey="game_lines"
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      expect(mockCapturedCards[0].buttons[0].price).toBe(45);
+      expect(mockCapturedCards[0].buttons[0].variant).toBe('yes');
+      expect(mockCapturedCards[0].buttons[1].price).toBe(30);
+      expect(mockCapturedCards[0].buttons[1].variant).toBe('draw');
+      expect(mockCapturedCards[0].buttons[2].price).toBe(25);
+      expect(mockCapturedCards[0].buttons[2].variant).toBe('no');
+    });
+
+    it('uses live best ask prices for moneyline buttons', () => {
+      mockGetLivePrice.mockImplementation((tokenId: string) => ({
+        tokenId,
+        price: 0,
+        bestBid: 0,
+        bestAsk: tokenId === 'tok-a' ? 0.76 : 0.24,
+      }));
+
+      const outcomes = [
+        createOutcome({
+          id: 'ml-a',
+          tokens: [createToken({ id: 'tok-a', shortTitle: 'TA', price: 0.45 })],
+        }),
+        createOutcome({
+          id: 'ml-b',
+          tokens: [createToken({ id: 'tok-b', shortTitle: 'TB', price: 0.55 })],
+        }),
+      ];
+      const subgroups: PredictOutcomeGroup[] = [
+        createGroup({ key: 'moneyline', outcomes }),
+      ];
+      const groups = [
+        createGroup({ key: 'game_lines', outcomes: [], subgroups }),
+      ];
+
+      render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={mockGame}
+          activeChipKey="game_lines"
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      expect(mockCapturedCards[0].buttons[0].price).toBe(76);
+      expect(mockCapturedCards[0].buttons[1].price).toBe(24);
+    });
+
+    it('falls back to static token price when live best ask is zero', () => {
+      mockGetLivePrice.mockReturnValue({
+        tokenId: 'tok-a',
+        price: 0,
+        bestBid: 0,
+        bestAsk: 0,
+      });
+
+      const outcomes = [
+        createOutcome({
+          id: 'ml-a',
+          tokens: [createToken({ id: 'tok-a', shortTitle: 'TA', price: 0.45 })],
+        }),
+      ];
+      const subgroups: PredictOutcomeGroup[] = [
+        createGroup({ key: 'moneyline', outcomes }),
+      ];
+      const groups = [
+        createGroup({ key: 'game_lines', outcomes: [], subgroups }),
+      ];
+
+      render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={mockGame}
+          activeChipKey="game_lines"
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      expect(mockCapturedCards[0].buttons[0].price).toBe(45);
+    });
+
+    it('calls onBuyPress with correct outcome and token for moneyline button', () => {
+      const tokenA = createToken({ id: 'tok-a', shortTitle: 'TA', price: 0.6 });
+      const tokenB = createToken({ id: 'tok-b', shortTitle: 'TB', price: 0.4 });
+      const outcomeA = createOutcome({
+        id: 'ml-a',
+        groupItemThreshold: 0,
+        volume: 1000,
+        tokens: [tokenA],
+      });
+      const outcomeB = createOutcome({
+        id: 'ml-b',
+        groupItemThreshold: 1,
+        volume: 1000,
+        tokens: [tokenB],
+      });
+      const subgroups: PredictOutcomeGroup[] = [
+        createGroup({ key: 'moneyline', outcomes: [outcomeA, outcomeB] }),
+      ];
+      const groups = [
+        createGroup({ key: 'game_lines', outcomes: [], subgroups }),
+      ];
+
+      const { getByTestId } = render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={mockGame}
+          activeChipKey="game_lines"
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      fireEvent(getByTestId('game_lines-moneyline-0-btn-1'), 'touchEnd');
+
+      expect(mockOnBuyPress).toHaveBeenCalledWith(outcomeB, tokenB);
+    });
+
+    it('skips outcomes without tokens when building moneyline buttons', () => {
+      const outcomes = [
+        createOutcome({
+          id: 'ml-home',
+          groupItemThreshold: 0,
+          groupItemTitle: 'Home Win',
+          tokens: [createToken({ shortTitle: 'HOM', price: 0.55 })],
+        }),
+        createOutcome({
+          id: 'ml-empty',
+          groupItemThreshold: 1,
+          groupItemTitle: 'Draw',
+          tokens: [],
+        }),
+        createOutcome({
+          id: 'ml-away',
+          groupItemThreshold: 2,
+          groupItemTitle: 'Away Win',
+          tokens: [createToken({ shortTitle: 'AWY', price: 0.45 })],
+        }),
+      ];
+      const subgroups: PredictOutcomeGroup[] = [
+        createGroup({ key: 'moneyline', outcomes }),
+      ];
+      const groups = [
+        createGroup({ key: 'game_lines', outcomes: [], subgroups }),
+      ];
+
+      render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={mockGame}
+          activeChipKey="game_lines"
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      expect(mockCapturedCards[0].buttons).toHaveLength(2);
+      expect(mockCapturedCards[0].buttons[0].label).toBe('HOM');
+      expect(mockCapturedCards[0].buttons[1].label).toBe('AWY');
+    });
+  });
+
+  describe('moneyline sorting without thresholds', () => {
+    it('places home team first, draw middle, away last when game is provided', () => {
+      const outcomes = [
+        createOutcome({
+          id: 'ml-draw',
+          groupItemTitle: 'Draw',
+          volume: 1000,
+          tokens: [createToken({ shortTitle: 'Draw', price: 0.2 })],
+        }),
+        createOutcome({
+          id: 'ml-away',
+          groupItemTitle: 'Away Win',
+          volume: 2000,
+          tokens: [createToken({ shortTitle: 'TB', price: 0.3 })],
+        }),
+        createOutcome({
+          id: 'ml-home',
+          groupItemTitle: 'Home Win',
+          volume: 3000,
+          tokens: [createToken({ shortTitle: 'TA', price: 0.5 })],
+        }),
+      ];
+      const subgroups: PredictOutcomeGroup[] = [
+        createGroup({ key: 'moneyline', outcomes }),
+      ];
+      const groups = [
+        createGroup({ key: 'game_lines', outcomes: [], subgroups }),
+      ];
+
+      render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={mockGame}
+          activeChipKey="game_lines"
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      expect(mockCapturedCards[0].buttons[0].label).toBe('TA');
+      expect(mockCapturedCards[0].buttons[1].label).toBe('Draw');
+      expect(mockCapturedCards[0].buttons[2].label).toBe('TB');
+    });
+
+    it('places draw second when no game is provided and no thresholds', () => {
+      const outcomes = [
+        createOutcome({
+          id: 'ml-draw',
+          groupItemTitle: 'Draw',
+          volume: 1000,
+          tokens: [createToken({ shortTitle: 'Draw', price: 0.2 })],
+        }),
+        createOutcome({
+          id: 'ml-first',
+          groupItemTitle: 'Team X',
+          volume: 2000,
+          tokens: [createToken({ shortTitle: 'TX', price: 0.4 })],
+        }),
+        createOutcome({
+          id: 'ml-second',
+          groupItemTitle: 'Team Y',
+          volume: 3000,
+          tokens: [createToken({ shortTitle: 'TY', price: 0.4 })],
+        }),
+      ];
+      const subgroups: PredictOutcomeGroup[] = [
+        createGroup({ key: 'moneyline', outcomes }),
+      ];
+      const groups = [
+        createGroup({ key: 'game_lines', outcomes: [], subgroups }),
+      ];
+
+      render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={undefined}
+          activeChipKey="game_lines"
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      expect(mockCapturedCards[0].buttons[0].label).toBe('TX');
+      expect(mockCapturedCards[0].buttons[1].label).toBe('Draw');
+      expect(mockCapturedCards[0].buttons[2].label).toBe('TY');
+    });
+
+    it('preserves original order when draw is present but fewer than 2 non-draw outcomes', () => {
+      const outcomes = [
+        createOutcome({
+          id: 'ml-draw',
+          groupItemTitle: 'Draw',
+          volume: 1000,
+          tokens: [createToken({ shortTitle: 'Draw', price: 0.5 })],
+        }),
+        createOutcome({
+          id: 'ml-only',
+          groupItemTitle: 'Team X',
+          volume: 2000,
+          tokens: [createToken({ shortTitle: 'TX', price: 0.5 })],
+        }),
+      ];
+      const subgroups: PredictOutcomeGroup[] = [
+        createGroup({ key: 'moneyline', outcomes }),
+      ];
+      const groups = [
+        createGroup({ key: 'game_lines', outcomes: [], subgroups }),
+      ];
+
+      render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={mockGame}
+          activeChipKey="game_lines"
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      expect(mockCapturedCards[0].buttons[0].label).toBe('Draw');
+      expect(mockCapturedCards[0].buttons[1].label).toBe('TX');
+    });
+  });
+
+  describe('flat outcomes moneyline rendering', () => {
+    it('renders single inline-spaced card for moneyline-like group without subgroups', () => {
+      const outcomes = [
+        createOutcome({
+          id: 'hr-1',
+          sportsMarketType: 'soccer_halftime_result',
+          groupItemTitle: 'Home',
+          volume: 4000,
+          tokens: [createToken({ shortTitle: 'HOM', price: 0.5 })],
+        }),
+        createOutcome({
+          id: 'hr-2',
+          sportsMarketType: 'soccer_halftime_result',
+          groupItemTitle: 'Away',
+          volume: 6000,
+          tokens: [createToken({ shortTitle: 'AWY', price: 0.3 })],
+        }),
+        createOutcome({
+          id: 'hr-3',
+          sportsMarketType: 'soccer_halftime_result',
+          groupItemTitle: 'Draw',
+          volume: 5000,
+          tokens: [createToken({ shortTitle: 'Draw', price: 0.2 })],
+        }),
+      ];
+      const groups = [createGroup({ key: 'halftime', outcomes })];
+
+      render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={mockGame}
+          activeChipKey="halftime"
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      expect(mockCapturedCards).toHaveLength(1);
+      expect(mockCapturedCards[0].buttonLayout).toBe('inlineNoSeparator');
+      expect(mockCapturedCards[0].testID).toBe('halftime-moneyline');
+      expect(mockCapturedCards[0].subtitle).toBe('$15k Vol');
+    });
+
+    it('renders individual cards when flat group has only one outcome with moneyline type', () => {
+      const outcomes = [
+        createOutcome({
+          id: 'hr-single',
+          sportsMarketType: 'soccer_halftime_result',
+          volume: 4000,
+          tokens: [createToken({ shortTitle: 'HOM', price: 0.5 })],
+        }),
+      ];
+      const groups = [createGroup({ key: 'halftime', outcomes })];
+
+      render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={mockGame}
+          activeChipKey="halftime"
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      expect(mockCapturedCards).toHaveLength(1);
+      expect(mockCapturedCards[0].buttonLayout).toBeUndefined();
+    });
+  });
+
+  describe('formatOutcomeCardTitle edge cases', () => {
+    it('strips O/U suffix when title has colon but no player pattern match', () => {
+      const outcome = createOutcome({
+        id: 'o-colon-ou',
+        groupItemTitle: 'Total: O/U 2.5',
+      });
+      const groups = [createGroup({ key: 'totals', outcomes: [outcome] })];
+
+      render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={mockGame}
+          activeChipKey="totals"
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      expect(mockCapturedCards[0].title).toBe('Total');
     });
   });
 });

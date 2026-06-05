@@ -1,19 +1,26 @@
 import React, { memo, useCallback, useRef, useState } from 'react';
 import {
   Keyboard,
+  Platform,
   ScrollView,
   TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
-import Button, {
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+  TextVariant,
+  TextColor,
+  Text,
+} from '@metamask/design-system-react-native';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
@@ -21,10 +28,6 @@ import {
   IconColor,
   IconName,
 } from '../../../../../component-library/components/Icons/Icon';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import Keypad from '../../../../../components/Base/Keypad';
 import { useTheme } from '../../../../../util/theme';
 
@@ -75,6 +78,7 @@ const PerpsTPSLView: React.FC = () => {
   const [isUpdating, setIsUpdating] = useState(false);
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const { top: topInset } = useSafeAreaInsets();
 
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -86,6 +90,11 @@ const PerpsTPSLView: React.FC = () => {
   const takeProfitPercentageRef = useRef<TextInput>(null);
   const stopLossPriceRef = useRef<TextInput>(null);
   const stopLossPercentageRef = useRef<TextInput>(null);
+
+  // Guard: when we programmatically dismiss the native keyboard on iOS,
+  // the TextInput fires onBlur. This ref prevents that blur from hiding
+  // the custom keypad.
+  const isProgrammaticDismissRef = useRef(false);
 
   // Subscribe to real-time price only when we have an asset
   // Use throttle for TP/SL screen to reduce re-renders
@@ -284,6 +293,23 @@ const PerpsTPSLView: React.FC = () => {
     (inputType: string) => {
       setFocusedInput(inputType);
 
+      // showSoftInputOnFocus is Android-only; on iOS the native keyboard
+      // still appears when a TextInput is focused. Dismiss it so that only
+      // the custom keypad is visible and content stays within the viewport.
+      //
+      // This runs inside the callback (not a useEffect) so it fires on
+      // every focus event, even when the same input is re-focused and
+      // React deduplicates the setFocusedInput call.
+      if (Platform.OS === 'ios') {
+        isProgrammaticDismissRef.current = true;
+        requestAnimationFrame(() => {
+          Keyboard.dismiss();
+          setTimeout(() => {
+            isProgrammaticDismissRef.current = false;
+          }, 150);
+        });
+      }
+
       // Auto-scroll to keep input visible when keypad is active
       if (scrollViewRef.current) {
         let yOffset = 0;
@@ -331,7 +357,11 @@ const PerpsTPSLView: React.FC = () => {
   );
 
   const handleInputBlur = useCallback(() => {
-    // Call the appropriate original blur handler based on which input was focused
+    // When we programmatically dismiss the native keyboard on iOS the
+    // TextInput fires onBlur. Ignore that blur so the custom keypad
+    // stays visible.
+    if (isProgrammaticDismissRef.current) return;
+
     if (focusedInput === 'takeProfitPrice') {
       handleTakeProfitPriceBlur();
     } else if (focusedInput === 'takeProfitPercentage') {
@@ -447,11 +477,16 @@ const PerpsTPSLView: React.FC = () => {
   return (
     <SafeAreaView
       style={styles.container}
-      edges={['top', 'bottom']}
+      edges={['bottom']}
       testID={PerpsTPSLViewSelectorsIDs.BOTTOM_SHEET}
     >
       {/* Simple header with back button and title */}
-      <View style={styles.header}>
+      <View
+        style={[
+          styles.header,
+          topInset > 0 ? { paddingTop: 16 + topInset } : undefined,
+        ]}
+      >
         <View style={styles.headerBackButton}>
           <ButtonIcon
             iconName={IconName.ArrowLeft}
@@ -462,10 +497,11 @@ const PerpsTPSLView: React.FC = () => {
           />
         </View>
         <View style={styles.headerTitleContainer}>
-          <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
+          <Text variant={TextVariant.HeadingSm} color={TextColor.TextDefault}>
             {strings('perps.tpsl.title')}
           </Text>
         </View>
+        <View />
       </View>
       <ScrollView
         ref={scrollViewRef}
@@ -486,12 +522,15 @@ const PerpsTPSLView: React.FC = () => {
             {position && (
               <View style={styles.priceInfoRow}>
                 <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
                 >
                   {strings('perps.tpsl.entry_price')}
                 </Text>
-                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextDefault}
+                >
                   {position.entryPrice !== undefined &&
                   position.entryPrice !== null &&
                   position.entryPrice !== 'null' &&
@@ -504,14 +543,17 @@ const PerpsTPSLView: React.FC = () => {
               </View>
             )}
             <View style={styles.priceInfoRow}>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
                 {orderType === 'limit' &&
                 limitPrice &&
                 parseFloat(limitPrice) > 0
                   ? strings('perps.order.limit_price')
                   : strings('perps.tpsl.current_price')}
               </Text>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+              <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
                 {currentPrice !== undefined && currentPrice !== null
                   ? formatPerpsFiat(currentPrice, {
                       ranges: PRICE_RANGES_UNIVERSAL,
@@ -520,10 +562,13 @@ const PerpsTPSLView: React.FC = () => {
               </Text>
             </View>
             <View style={styles.priceInfoRow}>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
                 {strings('perps.tpsl.liquidation_price')}
               </Text>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+              <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
                 {displayLiquidationPrice !== undefined &&
                 displayLiquidationPrice !== null &&
                 displayLiquidationPrice !== 'null' &&
@@ -540,7 +585,10 @@ const PerpsTPSLView: React.FC = () => {
           <View style={focusedInput ? styles.sectionCondensed : styles.section}>
             {/* Section title row with Clear button */}
             <View style={styles.sectionTitleRow}>
-              <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
+              <Text
+                variant={TextVariant.HeadingSm}
+                color={TextColor.TextDefault}
+              >
                 {actualDirection === 'short'
                   ? strings('perps.tpsl.take_profit_short')
                   : strings('perps.tpsl.take_profit_long')}
@@ -550,7 +598,10 @@ const PerpsTPSLView: React.FC = () => {
                   onPress={handleTakeProfitClear}
                   disabled={inputsDisabled}
                 >
-                  <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextDefault}
+                  >
                     {strings('perps.tpsl.clear')}
                   </Text>
                 </TouchableOpacity>
@@ -570,8 +621,8 @@ const PerpsTPSLView: React.FC = () => {
                   disabled={inputsDisabled}
                 >
                   <Text
-                    variant={TextVariant.BodySM}
-                    color={TextColor.Default}
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextDefault}
                     numberOfLines={1}
                     adjustsFontSizeToFit
                   >
@@ -591,8 +642,8 @@ const PerpsTPSLView: React.FC = () => {
                 ]}
               >
                 <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
                 >
                   {strings('perps.tpsl.usd_label')}
                 </Text>
@@ -614,7 +665,9 @@ const PerpsTPSLView: React.FC = () => {
                     handleInputFocus('takeProfitPrice');
                   }}
                   onBlur={() => {
-                    handleTakeProfitPriceBlur();
+                    if (!isProgrammaticDismissRef.current) {
+                      handleTakeProfitPriceBlur();
+                    }
                     handleInputBlur();
                   }}
                   selectionColor={colors.primary.default}
@@ -646,15 +699,17 @@ const PerpsTPSLView: React.FC = () => {
                     handleInputFocus('takeProfitPercentage');
                   }}
                   onBlur={() => {
-                    handleTakeProfitPercentageBlur();
+                    if (!isProgrammaticDismissRef.current) {
+                      handleTakeProfitPercentageBlur();
+                    }
                     handleInputBlur();
                   }}
                   selectionColor={colors.primary.default}
                   cursorColor={colors.primary.default}
                 />
                 <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
                 >
                   %
                 </Text>
@@ -665,8 +720,8 @@ const PerpsTPSLView: React.FC = () => {
             {Boolean(takeProfitPrice) &&
               expectedTakeProfitPnL !== undefined && (
                 <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
                   style={styles.expectedPnLText}
                 >
                   {expectedTakeProfitPnL >= 0
@@ -691,8 +746,8 @@ const PerpsTPSLView: React.FC = () => {
             {Boolean(takeProfitPrice) &&
               expectedTakeProfitPnL === undefined && (
                 <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
                   style={styles.expectedPnLText}
                 >
                   {PERPS_CONSTANTS.FallbackDataDisplay}
@@ -701,7 +756,7 @@ const PerpsTPSLView: React.FC = () => {
 
             {/* Error message */}
             {!isValid && Boolean(takeProfitError) && (
-              <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+              <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
                 {takeProfitError}
               </Text>
             )}
@@ -711,7 +766,10 @@ const PerpsTPSLView: React.FC = () => {
           <View style={focusedInput ? styles.sectionCondensed : styles.section}>
             {/* Section title row with Clear button */}
             <View style={styles.sectionTitleRow}>
-              <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
+              <Text
+                variant={TextVariant.HeadingSm}
+                color={TextColor.TextDefault}
+              >
                 {actualDirection === 'short'
                   ? strings('perps.tpsl.stop_loss_short')
                   : strings('perps.tpsl.stop_loss_long')}
@@ -721,7 +779,10 @@ const PerpsTPSLView: React.FC = () => {
                   onPress={handleStopLossClear}
                   disabled={inputsDisabled}
                 >
-                  <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextDefault}
+                  >
                     {strings('perps.tpsl.clear')}
                   </Text>
                 </TouchableOpacity>
@@ -741,8 +802,8 @@ const PerpsTPSLView: React.FC = () => {
                   disabled={inputsDisabled}
                 >
                   <Text
-                    variant={TextVariant.BodySM}
-                    color={TextColor.Default}
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextDefault}
                     numberOfLines={1}
                     adjustsFontSizeToFit
                   >
@@ -762,8 +823,8 @@ const PerpsTPSLView: React.FC = () => {
                 ]}
               >
                 <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
                 >
                   {strings('perps.tpsl.usd_label')}
                 </Text>
@@ -785,7 +846,9 @@ const PerpsTPSLView: React.FC = () => {
                     handleInputFocus('stopLossPrice');
                   }}
                   onBlur={() => {
-                    handleStopLossPriceBlur();
+                    if (!isProgrammaticDismissRef.current) {
+                      handleStopLossPriceBlur();
+                    }
                     handleInputBlur();
                   }}
                   selectionColor={colors.primary.default}
@@ -817,15 +880,17 @@ const PerpsTPSLView: React.FC = () => {
                     handleInputFocus('stopLossPercentage');
                   }}
                   onBlur={() => {
-                    handleStopLossPercentageBlur();
+                    if (!isProgrammaticDismissRef.current) {
+                      handleStopLossPercentageBlur();
+                    }
                     handleInputBlur();
                   }}
                   selectionColor={colors.primary.default}
                   cursorColor={colors.primary.default}
                 />
                 <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
                 >
                   %
                 </Text>
@@ -835,8 +900,8 @@ const PerpsTPSLView: React.FC = () => {
             {/* Expected Profit/Loss for Stop Loss */}
             {Boolean(stopLossPrice) && expectedStopLossPnL !== undefined && (
               <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
                 style={styles.expectedPnLText}
               >
                 {expectedStopLossPnL >= 0
@@ -854,8 +919,8 @@ const PerpsTPSLView: React.FC = () => {
             )}
             {Boolean(stopLossPrice) && expectedStopLossPnL === undefined && (
               <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
                 style={styles.expectedPnLText}
               >
                 {PERPS_CONSTANTS.FallbackDataDisplay}
@@ -864,7 +929,7 @@ const PerpsTPSLView: React.FC = () => {
 
             {/* Error message */}
             {!isValid && Boolean(stopLossError || stopLossLiquidationError) && (
-              <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+              <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
                 {stopLossError || stopLossLiquidationError}
               </Text>
             )}
@@ -877,12 +942,13 @@ const PerpsTPSLView: React.FC = () => {
           <>
             <Button
               style={styles.doneButton}
-              label={strings('perps.tpsl.done')}
-              variant={ButtonVariants.Primary}
+              variant={ButtonVariant.Primary}
               size={ButtonSize.Lg}
-              width={ButtonWidthTypes.Full}
+              isFullWidth
               onPress={dismissKeypad}
-            />
+            >
+              {strings('perps.tpsl.done')}
+            </Button>
             <View style={styles.keypadContainer}>
               <Keypad
                 value={(() => {
@@ -909,21 +975,23 @@ const PerpsTPSLView: React.FC = () => {
             <View style={styles.footerButtonsRow}>
               <Button
                 style={styles.footerButton}
-                label={strings('perps.tpsl.cancel')}
-                variant={ButtonVariants.Secondary}
+                variant={ButtonVariant.Secondary}
                 size={ButtonSize.Lg}
                 onPress={handleBack}
-              />
+              >
+                {strings('perps.tpsl.cancel')}
+              </Button>
               <Button
                 style={styles.footerButton}
-                label={strings('perps.tpsl.set')}
-                variant={ButtonVariants.Primary}
+                variant={ButtonVariant.Primary}
                 size={ButtonSize.Lg}
                 onPress={handleConfirm}
                 isDisabled={confirmDisabled}
-                loading={isUpdating}
+                isLoading={isUpdating}
                 testID={PerpsTPSLViewSelectorsIDs.SET_BUTTON}
-              />
+              >
+                {strings('perps.tpsl.set')}
+              </Button>
             </View>
           </View>
         )}

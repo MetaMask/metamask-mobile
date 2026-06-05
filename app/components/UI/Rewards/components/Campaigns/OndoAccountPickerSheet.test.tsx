@@ -51,9 +51,11 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({ style: (...args: unknown[]) => args }),
-}));
+jest.mock('@metamask/design-system-twrnc-preset', () => {
+  const tw = (..._args: unknown[]) => ({});
+  tw.style = jest.fn(() => ({}));
+  return { useTailwind: () => tw };
+});
 
 jest.mock('../../../../../component-library/components/Badges/Badge', () => {
   const ReactActual = jest.requireActual('react');
@@ -160,7 +162,7 @@ const mockSheetRef = {
     onOpenBottomSheet: jest.fn(),
     onCloseBottomSheet: mockOnCloseBottomSheet,
   },
-} as unknown as React.RefObject<BottomSheetRef>;
+} as unknown as React.RefObject<BottomSheetRef | null>;
 
 const renderSheet = (
   overrides?: Partial<React.ComponentProps<typeof OndoAccountPickerSheet>>,

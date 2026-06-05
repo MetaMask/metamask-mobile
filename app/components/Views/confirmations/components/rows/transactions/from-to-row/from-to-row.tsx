@@ -10,6 +10,7 @@ import Text, {
 } from '../../../../../../../component-library/components/Texts/Text';
 import { NameType } from '../../../../../../UI/Name/Name.types';
 import { useTransferRecipient } from '../../../../hooks/transactions/useTransferRecipient';
+import { useAddressPoisoningDetection } from '../../../../hooks/send/useAddressPoisoningDetection';
 import { RowAlertKey } from '../../../UI/info-row/alert-row/constants';
 import InfoSection from '../../../UI/info-row/info-section';
 import AlertRow from '../../../UI/info-row/alert-row';
@@ -28,6 +29,7 @@ interface AddressDisplayProps {
   displayText: string;
   image?: string;
   label: React.ReactNode;
+  isPoisoned?: boolean;
 }
 
 const AddressDisplay = ({
@@ -35,6 +37,7 @@ const AddressDisplay = ({
   displayText,
   image,
   label,
+  isPoisoned,
 }: AddressDisplayProps) => {
   const { styles } = useStyles(styleSheet, {});
 
@@ -44,6 +47,7 @@ const AddressDisplay = ({
         {label}
         <Text
           variant={TextVariant.BodyMD}
+          color={isPoisoned ? TextColor.Error : undefined}
           numberOfLines={1}
           ellipsizeMode="middle"
         >
@@ -63,6 +67,8 @@ const FromToRow = () => {
   const { styles } = useStyles(styleSheet, {});
   const transactionMetadata = useTransactionMetadataRequest();
   const transferRecipient = useTransferRecipient();
+  const { isPoisoningSuspect } =
+    useAddressPoisoningDetection(transferRecipient);
 
   const fromAddress = (transactionMetadata?.txParams?.from as string) ?? '';
   const toAddress = transferRecipient ?? '';
@@ -137,12 +143,23 @@ const FromToRow = () => {
             address={toAddress as string}
             displayText={toDisplayText}
             image={toImage}
+            isPoisoned={isPoisoningSuspect}
             label={
               <View style={styles.labelRow}>
                 <AlertRow
                   alertField={RowAlertKey.FromToAddress}
                   label={toLabel}
                 />
+                {isPoisoningSuspect && (
+                  <View style={styles.poisonedBadge}>
+                    <Text
+                      variant={TextVariant.BodyXSMedium}
+                      color={TextColor.Error}
+                    >
+                      {strings('alert_system.address_poisoning.badge')}
+                    </Text>
+                  </View>
+                )}
               </View>
             }
           />

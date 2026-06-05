@@ -13,10 +13,18 @@ import type {
   KeyringControllerUnlockEvent,
   KeyringControllerSignPersonalMessageAction,
 } from '@metamask/keyring-controller';
-import type { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
+import type {
+  RemoteFeatureFlagControllerGetStateAction,
+  RemoteFeatureFlagControllerStateChangeEvent,
+} from '@metamask/remote-feature-flag-controller';
 import type { NetworkControllerFindNetworkClientIdByChainIdAction } from '@metamask/network-controller';
-import type { TransactionControllerAddTransactionAction } from '@metamask/transaction-controller';
-import type { CardHomeData } from './provider-types';
+import type {
+  TransactionControllerAddTransactionAction,
+  TransactionControllerAddTransactionBatchAction,
+  TransactionControllerGetStateAction,
+  TransactionControllerTransactionConfirmedEvent,
+  TransactionControllerTransactionFailedEvent,
+} from '@metamask/transaction-controller';
 
 export const CARD_CONTROLLER_NAME = 'CardController';
 
@@ -49,6 +57,8 @@ export type CardControllerState = {
   cardHomeData: Record<string, Json> | null;
   /** Fetch status for cardHomeData. Not persisted. */
   cardHomeDataStatus: CardHomeDataStatus;
+  /** True while `linkMoneyAccountCard` is in flight. Not persisted. */
+  moneyAccountCardLinkInProgress: boolean;
 };
 
 export type CardControllerActions = ControllerGetStateAction<
@@ -67,11 +77,16 @@ type CardControllerAllowedActions =
   | RemoteFeatureFlagControllerGetStateAction
   | KeyringControllerSignPersonalMessageAction
   | NetworkControllerFindNetworkClientIdByChainIdAction
-  | TransactionControllerAddTransactionAction;
+  | TransactionControllerAddTransactionAction
+  | TransactionControllerAddTransactionBatchAction
+  | TransactionControllerGetStateAction;
 
 type CardControllerAllowedEvents =
   | AccountTreeControllerStateChangeEvent
-  | KeyringControllerUnlockEvent;
+  | RemoteFeatureFlagControllerStateChangeEvent
+  | KeyringControllerUnlockEvent
+  | TransactionControllerTransactionConfirmedEvent
+  | TransactionControllerTransactionFailedEvent;
 
 export type CardControllerMessenger = Messenger<
   typeof CARD_CONTROLLER_NAME,

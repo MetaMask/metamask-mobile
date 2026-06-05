@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { View, TextInput, Keyboard } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -8,9 +8,9 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from '../../Deposit/Views/EnterAddress/EnterAddress.styles';
 import { useParams } from '../../../../../util/navigation/navUtils';
@@ -29,6 +29,7 @@ import { useTransakController } from '../../hooks/useTransakController';
 import { useRampsUserRegion } from '../../hooks/useRampsUserRegion';
 import { useTransakRouting } from '../../hooks/useTransakRouting';
 import type { TransakBuyQuote } from '@metamask/ramps-controller';
+import Routes from '../../../../../constants/navigation/Routes';
 import type { BasicInfoFormData } from './BasicInfo';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import { ENTER_ADDRESS_TEST_IDS } from './EnterAddress.testIds';
@@ -46,12 +47,15 @@ export interface AddressFormData {
 interface V2EnterAddressParams {
   previousFormData?: BasicInfoFormData & AddressFormData;
   quote: TransakBuyQuote;
+  /** When set, post-KYC `routeAfterAuthentication` resets use `HEADLESS_HOST` as stack base. */
+  headlessSessionId?: string;
 }
 
 const V2EnterAddress = (): JSX.Element => {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
-  const { quote, previousFormData } = useParams<V2EnterAddressParams>();
+  const { quote, previousFormData, headlessSessionId } =
+    useParams<V2EnterAddressParams>();
   const { patchUser } = useTransakController();
   const { userRegion } = useRampsUserRegion();
   const [loading, setLoading] = useState(false);
@@ -60,9 +64,18 @@ const V2EnterAddress = (): JSX.Element => {
 
   const regionIsoCode = userRegion?.country?.isoCode || '';
 
-  const { routeAfterAuthentication } = useTransakRouting({
-    screenLocation: 'V2 EnterAddress Screen',
-  });
+  const transakRoutingConfig = useMemo(
+    () =>
+      headlessSessionId
+        ? {
+            baseRoute: Routes.RAMP.HEADLESS_HOST,
+            baseRouteParams: { headlessSessionId },
+            screenLocation: 'V2 EnterAddress Screen',
+          }
+        : { screenLocation: 'V2 EnterAddress Screen' },
+    [headlessSessionId],
+  );
+  const { routeAfterAuthentication } = useTransakRouting(transakRoutingConfig);
 
   const addressLine1InputRef = useRef<TextInput>(null);
   const addressLine2InputRef = useRef<TextInput>(null);
@@ -158,7 +171,7 @@ const V2EnterAddress = (): JSX.Element => {
   );
 
   const focusNextField = useCallback(
-    (nextRef: React.RefObject<TextInput>) => () => {
+    (nextRef: React.RefObject<TextInput | null>) => () => {
       nextRef.current?.focus();
     },
     [],
@@ -230,7 +243,7 @@ const V2EnterAddress = (): JSX.Element => {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
-        <HeaderCompactStandard
+        <HeaderStandard
           title={strings('deposit.enter_address.navbar_title')}
           onBack={handleHeaderBack}
           backButtonProps={{ testID: 'deposit-back-navbar-button' }}

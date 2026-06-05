@@ -1,8 +1,13 @@
-import { MetaMetricsEvents } from '../../../../core/Analytics';
+import {
+  MetaMetricsEvents,
+  mergeAssetViewedProperties,
+} from '../../../../core/Analytics';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { analytics } from '../../../../util/analytics/analytics';
+import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import {
+  PredictDismissalMethodValue,
   PredictEventProperties,
   PredictShareStatusValue,
   PredictTradeStatusValue,
@@ -25,6 +30,16 @@ export interface TrackPredictOrderEventArgs {
   pnl?: number;
   orderType?: PredictOrderType;
   paymentTokenAddress?: string;
+  paymentTokenSymbol?: string;
+  activeAbTests?: TransactionActiveAbTestEntry[];
+}
+
+export interface TrackBetslipDismissedArgs {
+  analyticsProperties?: PlaceOrderParams['analyticsProperties'];
+  dismissalMethod: PredictDismissalMethodValue;
+  hadEnteredAmount: boolean;
+  timeOnScreenMs: number;
+  activeAbTests?: TransactionActiveAbTestEntry[];
 }
 
 export interface MarketDetailsOpenedArgs {
@@ -33,6 +48,8 @@ export interface MarketDetailsOpenedArgs {
   marketCategory?: string;
   marketTags?: string[];
   entryPoint: string;
+  predictFeedTab?: string;
+  predictScreen?: string;
   marketDetailsViewed: string;
   marketSlug?: string;
   gameId?: string;
@@ -41,15 +58,22 @@ export interface MarketDetailsOpenedArgs {
   gameStatus?: string;
   gamePeriod?: string | null;
   gameClock?: string | null;
+  activeAbTests?: TransactionActiveAbTestEntry[];
 }
 
 export interface FeedViewedArgs {
   sessionId: string;
   feedTab: string;
+  predictScreen?: string;
   numPagesViewed: number;
   sessionTime: number;
   entryPoint?: string;
   isSessionEnd?: boolean;
+}
+
+export interface BannerArgs {
+  actionType: string;
+  bannerType: string;
 }
 
 export interface ShareActionArgs {
@@ -75,6 +99,8 @@ export class PredictAnalytics {
     pnl,
     orderType,
     paymentTokenAddress,
+    paymentTokenSymbol,
+    activeAbTests,
   }: TrackPredictOrderEventArgs): Promise<void> {
     if (!analyticsProperties) {
       return;
@@ -88,6 +114,14 @@ export class PredictAnalytics {
         analyticsProperties.marketCategory,
       [PredictEventProperties.MARKET_TAGS]: analyticsProperties.marketTags,
       [PredictEventProperties.ENTRY_POINT]: analyticsProperties.entryPoint,
+      ...(analyticsProperties.predictFeedTab && {
+        [PredictEventProperties.PREDICT_FEED_TAB]:
+          analyticsProperties.predictFeedTab,
+      }),
+      ...(analyticsProperties.predictScreen && {
+        [PredictEventProperties.PREDICT_SCREEN]:
+          analyticsProperties.predictScreen,
+      }),
       [PredictEventProperties.TRANSACTION_TYPE]:
         analyticsProperties.transactionType,
       [PredictEventProperties.LIQUIDITY]: analyticsProperties.liquidity,
@@ -131,8 +165,15 @@ export class PredictAnalytics {
         [PredictEventProperties.ORDER_TYPE]: orderType,
       }),
       ...(paymentTokenAddress && {
-        [PredictEventProperties.PREDICT_TOKEN_ADDRESS]: paymentTokenAddress,
+        [PredictEventProperties.PAYMENT_TOKEN_ADDRESS]: paymentTokenAddress,
       }),
+      ...(paymentTokenSymbol && {
+        [PredictEventProperties.PAYMENT_TOKEN_SYMBOL]: paymentTokenSymbol,
+      }),
+      ...(activeAbTests &&
+        activeAbTests.length > 0 && {
+          [PredictEventProperties.ACTIVE_AB_TESTS]: activeAbTests,
+        }),
     };
 
     const sensitiveProperties = {
@@ -156,6 +197,45 @@ export class PredictAnalytics {
       )
         .addProperties(regularProperties)
         .addSensitiveProperties(sensitiveProperties)
+        .build(),
+    );
+  }
+
+  public trackBetslipDismissed({
+    analyticsProperties,
+    dismissalMethod,
+    hadEnteredAmount,
+    timeOnScreenMs,
+    activeAbTests,
+  }: TrackBetslipDismissedArgs): void {
+    if (!analyticsProperties) {
+      return;
+    }
+
+    const regularProperties = {
+      [PredictEventProperties.MARKET_ID]: analyticsProperties.marketId,
+      [PredictEventProperties.MARKET_TITLE]: analyticsProperties.marketTitle,
+      [PredictEventProperties.MARKET_CATEGORY]:
+        analyticsProperties.marketCategory,
+      [PredictEventProperties.ENTRY_POINT]: analyticsProperties.entryPoint,
+      [PredictEventProperties.DISMISSAL_METHOD]: dismissalMethod,
+      [PredictEventProperties.HAD_ENTERED_AMOUNT]: hadEnteredAmount,
+      [PredictEventProperties.TIME_ON_SCREEN_MS]: timeOnScreenMs,
+      ...(activeAbTests &&
+        activeAbTests.length > 0 && {
+          [PredictEventProperties.ACTIVE_AB_TESTS]: activeAbTests,
+        }),
+    };
+
+    DevLogger.log('📊 [Analytics] PREDICT_BETSLIP_DISMISSED', {
+      regularProperties,
+    });
+
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.PREDICT_BETSLIP_DISMISSED,
+      )
+        .addProperties(regularProperties)
         .build(),
     );
   }
@@ -192,6 +272,7 @@ export class PredictAnalytics {
   public trackFeedViewed({
     sessionId,
     feedTab,
+    predictScreen,
     numPagesViewed,
     sessionTime,
     entryPoint,
@@ -200,11 +281,16 @@ export class PredictAnalytics {
     this.trackConfiguredEvent('feedViewed', {
       sessionId,
       feedTab,
+      predictScreen,
       numPagesViewed,
       sessionTime,
       entryPoint,
       isSessionEnd,
     });
+  }
+
+  public trackBannerAction(params: BannerArgs): void {
+    this.trackConfiguredEvent('bannerAction', params);
   }
 
   public trackShareAction(params: ShareActionArgs): void {
@@ -232,5 +318,18 @@ export class PredictAnalytics {
     }
 
     analytics.trackEvent(eventBuilder.build());
+
+    if (configKey === 'feedViewed' || configKey === 'marketDetailsOpened') {
+      analytics.trackEvent(
+        AnalyticsEventBuilder.createEventBuilder(MetaMetricsEvents.ASSET_VIEWED)
+          .addProperties(
+            mergeAssetViewedProperties(
+              'Predict',
+              analyticsProperties as Record<string, unknown>,
+            ),
+          )
+          .build(),
+      );
+    }
   }
 }

@@ -6,6 +6,7 @@ import {
   selectAllTokenBalances,
   selectTokensBalances,
   selectAddressHasTokenBalances,
+  selectHasAnyNonZeroTokenBalance,
   selectHasAnyBalance,
   selectSingleTokenBalance,
 } from './tokenBalancesController';
@@ -61,7 +62,7 @@ describe('TokenBalancesController Selectors', () => {
       const chainId: Hex = '0x1';
 
       const result = selectContractBalances.resultFunc(
-        mockTokenBalancesControllerState,
+        mockTokenBalancesControllerState.tokenBalances,
         selectedAccount,
         chainId,
       );
@@ -77,7 +78,7 @@ describe('TokenBalancesController Selectors', () => {
       const chainId: Hex = '0x1';
 
       const result = selectContractBalances.resultFunc(
-        mockTokenBalancesControllerState,
+        mockTokenBalancesControllerState.tokenBalances,
         selectedAccount,
         chainId,
       );
@@ -90,7 +91,7 @@ describe('TokenBalancesController Selectors', () => {
       const chainId: Hex = '0xUnknownChain';
 
       const result = selectContractBalances.resultFunc(
-        mockTokenBalancesControllerState,
+        mockTokenBalancesControllerState.tokenBalances,
         selectedAccount,
         chainId,
       );
@@ -103,7 +104,7 @@ describe('TokenBalancesController Selectors', () => {
       const chainId: Hex = '0x1';
 
       const result = selectContractBalances.resultFunc(
-        mockTokenBalancesControllerState,
+        mockTokenBalancesControllerState.tokenBalances,
         selectedAccount as `0x${string}`,
         chainId,
       );
@@ -131,7 +132,7 @@ describe('TokenBalancesController Selectors', () => {
       } as unknown as RootState;
 
       const result = selectAllTokenBalances(stateWithoutTokenBalances);
-      expect(result).toEqual(undefined);
+      expect(result).toEqual({});
     });
   });
 
@@ -187,6 +188,111 @@ describe('TokenBalancesController Selectors', () => {
       };
 
       expect(selectAddressHasTokenBalances(mockState)).toBe(true);
+    });
+  });
+
+  describe('selectHasAnyNonZeroTokenBalance', () => {
+    const arrange = () => {
+      // Deep clone for isolated test
+      const mockState: RootState = JSON.parse(JSON.stringify(mockRootState));
+      mockState.settings = { showFiatOnTestnets: false };
+
+      return { mockState };
+    };
+
+    it('returns false when token balances are empty', () => {
+      const { mockState } = arrange();
+      mockState.engine.backgroundState.TokenBalancesController.tokenBalances =
+        {};
+
+      expect(selectHasAnyNonZeroTokenBalance(mockState)).toBe(false);
+    });
+
+    it('returns false when token balances are undefined', () => {
+      const { mockState } = arrange();
+      mockState.engine.backgroundState.TokenBalancesController.tokenBalances =
+        undefined as unknown as TokenBalancesControllerState['tokenBalances'];
+
+      expect(selectHasAnyNonZeroTokenBalance(mockState)).toBe(false);
+    });
+
+    it('returns false when every balance across accounts is 0x0', () => {
+      const { mockState } = arrange();
+      mockState.engine.backgroundState.TokenBalancesController.tokenBalances = {
+        '0xAccount1': {
+          '0x1': {
+            '0xToken1': '0x0',
+          },
+        },
+        '0xAccount2': {
+          '0x1': {
+            '0xToken1': '0x0',
+          },
+        },
+      };
+
+      expect(selectHasAnyNonZeroTokenBalance(mockState)).toBe(false);
+    });
+
+    it('returns true when one account has a non-zero balance on a non-testnet chain', () => {
+      const { mockState } = arrange();
+      mockState.engine.backgroundState.TokenBalancesController.tokenBalances = {
+        '0xAccount1': {
+          '0x1': {
+            '0xToken1': '0x100',
+          },
+        },
+      };
+
+      expect(selectHasAnyNonZeroTokenBalance(mockState)).toBe(true);
+    });
+
+    it('returns true when a non-selected account has a non-zero balance', () => {
+      const { mockState } = arrange();
+      mockState.engine.backgroundState.AccountsController.internalAccounts.selectedAccount =
+        'account1';
+      mockState.engine.backgroundState.TokenBalancesController.tokenBalances = {
+        '0xAccount1': {
+          '0x1': {
+            '0xToken1': '0x0',
+          },
+        },
+        '0xAccount2': {
+          '0x1': {
+            '0xToken1': '0x500',
+          },
+        },
+      };
+
+      expect(selectHasAnyNonZeroTokenBalance(mockState)).toBe(true);
+    });
+
+    it('returns false for a testnet-only non-zero balance when not showing fiat on testnets', () => {
+      const { mockState } = arrange();
+      mockState.settings = { showFiatOnTestnets: false };
+      mockState.engine.backgroundState.TokenBalancesController.tokenBalances = {
+        '0xAccount1': {
+          '0x5': {
+            '0xToken1': '0x1337',
+          },
+        },
+      };
+
+      expect(selectHasAnyNonZeroTokenBalance(mockState)).toBe(false);
+    });
+
+    it('returns true for a testnet-only non-zero balance when showing fiat on testnets', () => {
+      const { mockState } = arrange();
+      mockState.settings = { showFiatOnTestnets: true };
+      mockState.engine.backgroundState.TokenBalancesController.tokenBalances = {
+        '0xAccount1': {
+          '0x5': {
+            '0xToken1': '0x1337',
+          },
+        },
+      };
+
+      expect(selectHasAnyNonZeroTokenBalance(mockState)).toBe(true);
     });
   });
 

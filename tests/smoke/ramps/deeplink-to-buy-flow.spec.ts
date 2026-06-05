@@ -1,7 +1,7 @@
 import TestHelpers from '../../helpers';
 import { loginToApp } from '../../flows/wallet.flow';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { SmokeRamps } from '../../tags';
+import { SmokeMoney } from '../../tags';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import BuildQuoteView from '../../page-objects/Ramps/BuildQuoteView';
 import TokenSelectScreen from '../../page-objects/Ramps/TokenSelectScreen';
@@ -17,7 +17,7 @@ const BASE_USDC_BUY_DEEPLINK =
   'metamask://buy?chainId=8453&address=0x833589fcd6edb6e08f4c7c32d4f71b54bda02913&amount=25';
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly
-describe(SmokeRamps('Buy Crypto Deeplinks'), () => {
+describe(SmokeMoney('Buy Crypto Deeplinks'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
   });

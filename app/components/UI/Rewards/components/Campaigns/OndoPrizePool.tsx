@@ -13,6 +13,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import RewardsErrorBanner from '../RewardsErrorBanner';
 import { formatCompactUsd, formatUsd } from '../../utils/formatUtils';
+import { computePrizePoolProgress } from '../../utils/prizePoolUtils';
 import { strings } from '../../../../../../locales/i18n';
 
 export const ONDO_PRIZE_POOL_TEST_IDS = {
@@ -29,50 +30,6 @@ export const BREAKPOINTS = [
   { deposit: 3_500_000, prize: 75_000 },
   { deposit: 6_000_000, prize: 100_000 },
 ] as const;
-
-export function getCurrentPrize(totalDeposited: number): number {
-  for (let i = BREAKPOINTS.length - 1; i >= 0; i--) {
-    if (totalDeposited >= BREAKPOINTS[i].deposit) {
-      return BREAKPOINTS[i].prize;
-    }
-  }
-  return BREAKPOINTS[0].prize;
-}
-
-function computeProgress(totalDeposited: number) {
-  let currentIndex = 0;
-  for (let i = BREAKPOINTS.length - 1; i >= 0; i--) {
-    if (totalDeposited >= BREAKPOINTS[i].deposit) {
-      currentIndex = i;
-      break;
-    }
-  }
-
-  const current = BREAKPOINTS[currentIndex];
-  const next = BREAKPOINTS[currentIndex + 1];
-
-  if (!next) {
-    return {
-      progress: 1,
-      currentPrize: current.prize,
-      nextPrize: null,
-      nextThreshold: current.deposit,
-      isMaxTier: true,
-    };
-  }
-
-  const rangeDeposit = next.deposit - current.deposit;
-  const progressInRange = totalDeposited - current.deposit;
-  const progress = Math.min(progressInRange / rangeDeposit, 1);
-
-  return {
-    progress,
-    currentPrize: current.prize,
-    nextPrize: next.prize,
-    nextThreshold: next.deposit,
-    isMaxTier: false,
-  };
-}
 
 interface OndoPrizePoolProps {
   totalUsdDeposited: string | null;
@@ -103,10 +60,14 @@ const OndoPrizePool: React.FC<OndoPrizePoolProps> = ({
           isMaxTier: false,
         };
       }
-      return computeProgress(parseFloat(totalUsdDeposited));
+      return computePrizePoolProgress(
+        BREAKPOINTS,
+        parseFloat(totalUsdDeposited),
+        (m) => m.deposit,
+      );
     }, [totalUsdDeposited]);
 
-  const progressPercent = `${Math.round(progress * 100)}%`;
+  const progressPercent: `${number}%` = `${Math.round(progress * 100)}%`;
   const deposited = totalUsdDeposited ? parseFloat(totalUsdDeposited) : 0;
 
   if (showError) {

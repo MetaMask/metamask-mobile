@@ -12,6 +12,8 @@ import cardReducer, {
   selectOnboardingId,
   selectContactVerificationId,
   selectConsentSetId,
+  setPendingMoneyAccountCardLink,
+  selectPendingMoneyAccountCardLink,
 } from '.';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -23,6 +25,7 @@ const CARD_STATE_MOCK: CardSliceState = {
     contactVerificationId: null,
     consentSetId: null,
   },
+  pendingMoneyAccountCardLink: false,
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -34,6 +37,7 @@ const EMPTY_CARD_STATE_MOCK: CardSliceState = {
     contactVerificationId: null,
     consentSetId: null,
   },
+  pendingMoneyAccountCardLink: false,
 };
 
 describe('Card Selectors', () => {
@@ -50,6 +54,22 @@ describe('Card Selectors', () => {
       };
       const mockRootState = { card: stateWithFlag } as unknown as RootState;
       expect(selectHasViewedCardButton(mockRootState)).toBe(true);
+    });
+  });
+
+  describe('selectPendingMoneyAccountCardLink', () => {
+    it('returns false by default from initial state', () => {
+      const mockRootState = { card: initialState } as unknown as RootState;
+      expect(selectPendingMoneyAccountCardLink(mockRootState)).toBe(false);
+    });
+
+    it('returns true when pendingMoneyAccountCardLink is true', () => {
+      const stateWithFlag: CardSliceState = {
+        ...initialState,
+        pendingMoneyAccountCardLink: true,
+      };
+      const mockRootState = { card: stateWithFlag } as unknown as RootState;
+      expect(selectPendingMoneyAccountCardLink(mockRootState)).toBe(true);
     });
   });
 
@@ -135,11 +155,34 @@ describe('Card Reducer', () => {
           contactVerificationId: null,
           consentSetId: null,
         },
+        pendingMoneyAccountCardLink: true,
       };
 
       const state = cardReducer(currentState, resetCardState());
 
       expect(state).toEqual(initialState);
+    });
+
+    describe('setPendingMoneyAccountCardLink', () => {
+      it('sets pendingMoneyAccountCardLink to true', () => {
+        const state = cardReducer(
+          initialState,
+          setPendingMoneyAccountCardLink(true),
+        );
+        expect(state.pendingMoneyAccountCardLink).toBe(true);
+      });
+
+      it('sets pendingMoneyAccountCardLink back to false', () => {
+        const current: CardSliceState = {
+          ...initialState,
+          pendingMoneyAccountCardLink: true,
+        };
+        const state = cardReducer(
+          current,
+          setPendingMoneyAccountCardLink(false),
+        );
+        expect(state.pendingMoneyAccountCardLink).toBe(false);
+      });
     });
 
     describe('setHasViewedCardButton', () => {

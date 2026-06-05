@@ -6,7 +6,6 @@ export const CardHomeSelectors = {
   PRIVACY_TOGGLE_BUTTON: 'privacy-toggle-button',
   ADD_FUNDS_BUTTON: 'add-funds-button',
   CHANGE_ASSET_BUTTON: 'change-asset-button',
-  ADVANCED_CARD_MANAGEMENT_ITEM: 'advanced-card-management-item',
   TRAVEL_ITEM: 'travel-item',
   CARD_TOS_ITEM: 'card-tos-item',
   LOGOUT_ITEM: 'logout-item',
@@ -32,4 +31,6 @@ export const CardHomeSelectors = {
   FREEZE_CARD_TOGGLE: 'freeze-card-toggle',
   VIEW_PIN_BUTTON: 'view-pin-button',
   CARD_WALLET_ADDRESS: 'card-wallet-address',
+  LINK_MONEY_ACCOUNT_DIVIDER_TOP: 'link-money-account-divider-top',
+  LINK_MONEY_ACCOUNT_DIVIDER_BOTTOM: 'link-money-account-divider-bottom',
 };

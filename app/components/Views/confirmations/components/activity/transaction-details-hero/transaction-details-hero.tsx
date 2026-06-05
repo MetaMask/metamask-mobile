@@ -32,6 +32,8 @@ import { RootState } from '../../../../../../reducers';
 import useNetworkInfo from '../../../hooks/useNetworkInfo';
 
 const SUPPORTED_TYPES = [
+  TransactionType.moneyAccountDeposit,
+  TransactionType.moneyAccountWithdraw,
   TransactionType.musdClaim,
   TransactionType.musdConversion,
   TransactionType.perpsDeposit,

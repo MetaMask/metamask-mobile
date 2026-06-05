@@ -49,7 +49,8 @@ describe('usePerpsPaymentTokens', () => {
   };
 
   const mockAccountState: AccountState = {
-    availableBalance: '1000.50',
+    spendableBalance: '1000.50',
+    withdrawableBalance: '1000.50',
     marginUsed: '300.25',
     unrealizedPnl: '50.25',
     returnOnEquity: '0',
@@ -279,7 +280,8 @@ describe('usePerpsPaymentTokens', () => {
     it('handles zero Hyperliquid balance', () => {
       const zeroBalanceAccountState = {
         ...mockAccountState,
-        availableBalance: '0',
+        spendableBalance: '0',
+        withdrawableBalance: '0',
       };
 
       mockUsePerpsLiveAccount.mockReturnValue({
@@ -292,6 +294,27 @@ describe('usePerpsPaymentTokens', () => {
       const hyperliquidUsdc = result.current[0];
       expect(hyperliquidUsdc.balance).toBe('0');
       expect(hyperliquidUsdc.balanceFiat).toBe('$0.00');
+    });
+
+    it('uses spendableBalance for Unified Account users', () => {
+      // Unified Account / Portfolio Margin: collateral lives in spot. The
+      // provider folds free spot USDC into spendableBalance via
+      // addSpotBalanceToAccountState, so the Pay-with sheet sees the unified
+      // total without branching on mode.
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          ...mockAccountState,
+          spendableBalance: '2500.00',
+          withdrawableBalance: '2500.00',
+        },
+        isInitialLoading: false,
+      });
+
+      const { result } = renderHook(() => usePerpsPaymentTokens());
+
+      const hyperliquidUsdc = result.current[0];
+      expect(hyperliquidUsdc.balance).toBe('2500000000');
+      expect(hyperliquidUsdc.balanceFiat).toBe('$2500.00');
     });
 
     it('handles null account state', () => {

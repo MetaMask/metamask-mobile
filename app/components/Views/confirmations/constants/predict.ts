@@ -9,3 +9,10 @@ export const POLYGON_USDCE = {
   name: 'USD Coin (PoS)',
   symbol: 'USDC.e',
 };
+
+export const POLYGON_PUSD = {
+  address: '0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB' as Hex,
+  decimals: 6,
+  name: 'Polymarket USD',
+  symbol: 'pUSD',
+};

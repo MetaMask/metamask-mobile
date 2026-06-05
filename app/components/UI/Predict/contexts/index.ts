@@ -4,6 +4,8 @@ export {
 } from './PredictEntryPointContext';
 
 export {
+  shouldSuppressLegacyOrderFailureToast,
   PredictPreviewSheetProvider,
   usePredictPreviewSheet,
+  dismissActivePreviewSheet,
 } from './PredictPreviewSheetContext';

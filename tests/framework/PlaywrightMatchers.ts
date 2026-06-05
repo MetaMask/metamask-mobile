@@ -51,7 +51,7 @@ export default class PlaywrightMatchers {
     elementId: string,
     options: MatcherOptions = {},
   ): Promise<PlaywrightElement> {
-    const { exact = false } = options;
+    const { exact = true } = options;
 
     let locator: string;
     const isAndroid = await PlatformDetector.isAndroid();
@@ -61,10 +61,9 @@ export default class PlaywrightMatchers {
         ? `${locator}.resourceId("${elementId}")`
         : `${locator}.resourceIdMatches(".*${elementId}.*")`;
     } else {
-      locator = '-ios predicate string:';
       locator = exact
-        ? `${locator}name == "${elementId}"`
-        : `${locator}name CONTAINS "${elementId}"`;
+        ? `~${elementId}`
+        : `-ios predicate string:name CONTAINS "${elementId}"`;
     }
 
     const drv = getDriver();
@@ -78,15 +77,15 @@ export default class PlaywrightMatchers {
    * @param text - The text to search for
    * @returns The wrapped element
    */
-  static async getElementByText(text: string): Promise<PlaywrightElement> {
-    const isAndroid = await PlatformDetector.isAndroid();
-
-    if (isAndroid) {
-      return await this.getElementByAndroidUIAutomator(`.text("${text}")`);
+  static async getElementByText(
+    text: string,
+    exactMatch: boolean = false,
+  ): Promise<PlaywrightElement> {
+    let xpath = `//*[contains(@name,'${text}') or contains(@label,'${text}') or contains(@text,'${text}')]`;
+    if (exactMatch) {
+      xpath = `//*[@name='${text}' or @label='${text}' or @text='${text}']`;
     }
-    return await this.getElementByXPath(
-      `//*[contains(@name,'${text}') or contains(@label,'${text}') or contains(@text,'${text}')]`,
-    );
+    return await this.getElementByXPath(xpath);
   }
 
   /**
@@ -229,12 +228,19 @@ export default class PlaywrightMatchers {
   /**
    * Get element by name on iOS
    * @param name - The name to search for
+   * @param lazy - Whether to get a lazy element. Lazy elements are not required to be present in the DOM. This is useful for negative assertions where the element may never have been rendered (e.g. waitForDisplayed({ reverse: true })).
    * @returns The wrapped element
    */
-  static async getElementByNameiOS(name: string): Promise<PlaywrightElement> {
+  static async getElementByNameiOS(
+    name: string,
+    lazy = false,
+  ): Promise<PlaywrightElement> {
     const isIOS = await PlatformDetector.isIOS();
     if (!isIOS) throw new Error('This function is only valid for iOS');
     const xpath = `//*[contains(@name,'${name}')]`;
+    if (lazy) {
+      return await this.getLazyElementByXPath(xpath);
+    }
     return await this.getElementByXPath(xpath);
   }
 

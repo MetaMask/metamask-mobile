@@ -1,7 +1,13 @@
 import { BaseController, type StateMetadata } from '@metamask/base-controller';
-import { TransactionType } from '@metamask/transaction-controller';
 import { numberToHex, type Hex, type Json } from '@metamask/utils';
+import {
+  TransactionType,
+  type TransactionMeta,
+} from '@metamask/transaction-controller';
 import Logger from '../../../../util/Logger';
+import ReduxService from '../../../redux';
+import type { RootState } from '../../../../reducers';
+import { getGasFeesSponsoredNetworkEnabled } from '../../../../selectors/featureFlagController/gasFeesSponsored';
 import {
   CARD_CONTROLLER_NAME,
   DEFAULT_CARD_PROVIDER_ID,
@@ -10,6 +16,7 @@ import {
 } from './types';
 import type { CardLocation } from '../../../../components/UI/Card/types';
 import {
+  CardLinkageInProgressError,
   CardProviderError,
   CardProviderErrorCode,
   CardStatus,
@@ -30,13 +37,26 @@ import {
   type CashbackWithdrawEstimationResponse,
   type CashbackWithdrawParams,
   type CashbackWithdrawResponse,
+  type DelegationChallengeResponse,
   type FundingApprovalParams,
   type ICardProvider,
-  type WalletOperations,
 } from './provider-types';
 import { CardTokenStore } from './CardTokenStore';
 import { isEthAccount } from '../../../Multichain/utils';
 import { pickPrimaryFromReordered, reorderAssets } from './utils/assetPriority';
+import { encodeErc20ApproveCalldata } from './utils/encodeErc20ApproveCalldata';
+import {
+  awaitTransactionConfirmed,
+  type AwaitTransactionConfirmedMessenger,
+} from './utils/awaitTransactionConfirmed';
+import { resolveMoneyAccountCardToken } from './utils/moneyAccountCardToken';
+import { safeToChecksumAddress } from '../../../../util/address';
+import { toTokenMinimalUnit } from '../../../../util/number/bigint';
+import TransactionTypes from '../../../../core/TransactionTypes';
+import {
+  resolveCardFeatureFlag,
+  type CardFeatureFlag,
+} from '../../../../selectors/featureFlagController/card';
 
 const CARDHOLDER_BATCH_SIZE = 50;
 const CARDHOLDER_MAX_BATCHES = 3;
@@ -84,6 +104,12 @@ const metadata: StateMetadata<CardControllerState> = {
     includeInStateLogs: false,
     usedInUi: true,
   },
+  moneyAccountCardLinkInProgress: {
+    persist: false,
+    includeInDebugSnapshot: false,
+    includeInStateLogs: false,
+    usedInUi: true,
+  },
 };
 
 export const defaultCardControllerState: CardControllerState = {
@@ -94,6 +120,7 @@ export const defaultCardControllerState: CardControllerState = {
   providerData: {},
   cardHomeData: null,
   cardHomeDataStatus: 'idle',
+  moneyAccountCardLinkInProgress: false,
 };
 
 /**
@@ -170,6 +197,26 @@ export class CardController extends BaseController<
           .sort()
           .join(','),
     );
+
+    this.messenger.subscribe(
+      'RemoteFeatureFlagController:stateChange',
+      (_cardFeatureKey: string) => {
+        this.#handleCardFeatureFlagChange();
+      },
+      (state) => JSON.stringify(state.remoteFeatureFlags?.cardFeature ?? {}),
+    );
+  }
+
+  #fetchCardHomeDataWithLogging(method: string): void {
+    this.fetchCardHomeData().catch((error) =>
+      Logger.error(error as Error, {
+        tags: { feature: 'card' },
+        context: {
+          name: 'CardController',
+          data: { method },
+        },
+      }),
+    );
   }
 
   #handleAccountSwitch(): void {
@@ -182,16 +229,20 @@ export class CardController extends BaseController<
         s.cardHomeData = null;
         s.cardHomeDataStatus = 'idle';
       });
-      this.fetchCardHomeData().catch((error) =>
-        Logger.error(error as Error, {
-          tags: { feature: 'card' },
-          context: {
-            name: 'CardController',
-            data: { method: '#handleAccountSwitch' },
-          },
-        }),
-      );
+      this.#fetchCardHomeDataWithLogging('#handleAccountSwitch');
     }
+  }
+
+  #handleCardFeatureFlagChange(): void {
+    const currentAddress = this.#getSelectedEvmAddress();
+    if (!currentAddress) return;
+
+    this.invalidateFetch();
+    this.update((s) => {
+      s.cardHomeData = null;
+      s.cardHomeDataStatus = 'idle';
+    });
+    this.#fetchCardHomeDataWithLogging('#handleCardFeatureFlagChange');
   }
 
   #triggerCardholderCheck(): void {
@@ -220,9 +271,11 @@ export class CardController extends BaseController<
       const featureState = this.messenger.call(
         'RemoteFeatureFlagController:getState',
       );
-      const cardFeature = featureState.remoteFeatureFlags?.cardFeature as
-        | { constants?: { accountsApiUrl?: string } }
-        | undefined;
+      const cardFeature = resolveCardFeatureFlag(
+        featureState.remoteFeatureFlags?.cardFeature as
+          | CardFeatureFlag
+          | undefined,
+      );
       const accountsApiUrl = cardFeature?.constants?.accountsApiUrl;
       if (!accountsApiUrl) return;
 
@@ -475,19 +528,14 @@ export class CardController extends BaseController<
       }
       this.update((s) => {
         s.isAuthenticated = true;
+        s.cardHomeData = null;
+        s.cardHomeDataStatus = 'idle';
         (s.providerData as unknown as Record<string, Record<string, string>>)[
           pid
         ] = { location: tokenSet.location };
       });
-      this.fetchCardHomeData().catch((error) =>
-        Logger.error(error as Error, {
-          tags: { feature: 'card' },
-          context: {
-            name: 'CardController',
-            data: { method: 'submitCredentials/fetchCardHomeData' },
-          },
-        }),
-      );
+      this.invalidateFetch();
+      this.#fetchCardHomeDataWithLogging('submitCredentials/fetchCardHomeData');
     }
 
     return result;
@@ -541,14 +589,8 @@ export class CardController extends BaseController<
 
     // Always fetch card home data regardless of auth state: authenticated users
     // get full card data, unauthenticated users get on-chain asset state.
-    this.fetchCardHomeData().catch((error) =>
-      Logger.error(error as Error, {
-        tags: { feature: 'card' },
-        context: {
-          name: 'CardController',
-          data: { method: 'validateAndRefreshSession/fetchCardHomeData' },
-        },
-      }),
+    this.#fetchCardHomeDataWithLogging(
+      'validateAndRefreshSession/fetchCardHomeData',
     );
 
     if (!tokens) return { isAuthenticated: false };
@@ -838,39 +880,313 @@ export class CardController extends BaseController<
         'Funding approval not supported',
       );
     }
-    const wallet = this.#buildWalletOperations();
-    return provider.approveFunding(params, tokens, wallet);
+    return provider.approveFunding(params, tokens);
   }
 
-  #buildWalletOperations(): WalletOperations {
-    return {
-      signMessage: async (address: string, message: string) => {
-        const hex = `0x${Buffer.from(message, 'utf8').toString('hex')}`;
-        return this.messenger.call('KeyringController:signPersonalMessage', {
-          data: hex,
-          from: address,
-        });
+  async fetchDelegationChallenge(params: {
+    network: string;
+    address: string;
+    faucet?: boolean;
+  }): Promise<DelegationChallengeResponse> {
+    const tokens = await this.requireValidTokens();
+    const provider = this.getActiveProvider();
+    if (!provider.fetchDelegationChallenge) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Delegation challenge not supported',
+      );
+    }
+    return provider.fetchDelegationChallenge(params, tokens);
+  }
+
+  /**
+   * Builds the provider-specific SIWE message used to prove address ownership
+   * before a Card delegation approval. Active provider owns wording,
+   * chain-id mapping, and any EVM/Solana variants.
+   */
+  generateCardDelegationSignatureMessage(params: {
+    network: string;
+    address: string;
+    nonce: string;
+    caipChainId?: string;
+  }): string {
+    const provider = this.getActiveProvider();
+    if (!provider.generateCardDelegationSignatureMessage) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Card delegation signature message not supported',
+      );
+    }
+    return provider.generateCardDelegationSignatureMessage(params);
+  }
+
+  /**
+   * Links a primary Money Account to Card by approving a Monad USDC allowance
+   * to the active provider's delegation contract and completing the provider's
+   * funding flow. The approval transaction is submitted via
+   * `TransactionController:addTransactionBatch` with `requireApproval: false`
+   * and `isGasFeeSponsored: true`, so it never opens the Confirmations modal
+   * and the money account doesn't pay MON gas — Sentinel sponsors the relayer
+   * fee. This is the background linkage path UI hooks consume.
+   *
+   * Pre-flight enforces one invariant before submission: the Monad gas
+   * sponsorship feature flag must be enabled (the relay must accept
+   * sponsorship for this chain).
+   *
+   * EIP-7702 upgrade is handled atomically by `Delegation7702PublishHook`:
+   * when the Money Account has no existing delegation, the hook auto-signs a
+   * 7702 authorization and bundles it in the same Sentinel relay request as
+   * the approve. No separate upgrade step is required here.
+   *
+   * Race-safe by construction: subscribes to
+   * `TransactionController:transactionConfirmed` BEFORE submitting the
+   * transaction (see `awaitTransactionConfirmed`).
+   *
+   *
+   * @param params.moneyAccountAddress - The primary Money Account address.
+   * @param params.delegationAmountHuman - Allowance in human-readable units
+   * (e.g. `"2199023255551"`); converted to minimal units using the token's
+   * decimals. Pass `"0"` to revoke.
+   */
+  async linkMoneyAccountCard(params: {
+    moneyAccountAddress: string;
+    delegationAmountHuman: string;
+  }): Promise<void> {
+    if (this.state.moneyAccountCardLinkInProgress) {
+      throw new CardLinkageInProgressError();
+    }
+    this.update((state) => {
+      state.moneyAccountCardLinkInProgress = true;
+    });
+    try {
+      await this.#linkMoneyAccountCardUnsafe(params);
+    } finally {
+      this.update((state) => {
+        state.moneyAccountCardLinkInProgress = false;
+      });
+    }
+  }
+
+  isLinkageInProgress(): boolean {
+    return this.state.moneyAccountCardLinkInProgress;
+  }
+
+  async #linkMoneyAccountCardUnsafe(params: {
+    moneyAccountAddress: string;
+    delegationAmountHuman: string;
+  }): Promise<void> {
+    const { moneyAccountAddress, delegationAmountHuman } = params;
+
+    let fromAddress: string;
+    try {
+      const checksummed = safeToChecksumAddress(moneyAccountAddress);
+      if (!checksummed) throw new Error();
+      fromAddress = checksummed;
+    } catch {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Invalid Money account address',
+      );
+    }
+
+    if (!delegationAmountHuman) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Delegation amount is required',
+      );
+    }
+
+    const tokens = await this.requireValidTokens();
+    const provider = this.getActiveProvider();
+    if (
+      !provider.fetchDelegationChallenge ||
+      !provider.approveFunding ||
+      !provider.generateCardDelegationSignatureMessage
+    ) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Money account card delegation is not supported for this provider',
+      );
+    }
+
+    const cardToken = await this.#resolveMoneyAccountCardTokenOrRefetch();
+    if (!cardToken) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Money Account Card spending token unavailable',
+      );
+    }
+
+    const tokenAddress = cardToken.stagingTokenAddress ?? cardToken.address;
+    if (!tokenAddress) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Money Account Card spending token address missing',
+      );
+    }
+    if (!cardToken.delegationContract) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Money Account Card delegation contract missing',
+      );
+    }
+
+    const amountInMinimalUnits = toTokenMinimalUnit(
+      delegationAmountHuman,
+      cardToken.decimals ?? 6,
+    ).toString();
+    const data = encodeErc20ApproveCalldata(
+      cardToken.delegationContract,
+      amountInMinimalUnits,
+    );
+
+    const chainNumber = parseInt(
+      cardToken.caipChainId?.split(':')[1] ?? '143',
+      10,
+    );
+    const hexChainId = numberToHex(chainNumber) as Hex;
+    const networkClientId = this.messenger.call(
+      'NetworkController:findNetworkClientIdByChainId',
+      hexChainId,
+    );
+
+    // Pre-flight 1: Monad gas sponsorship feature flag must be on. The card
+    // link approve is submitted with `isGasFeeSponsored: true`, so if the
+    // server-side sponsorship is disabled we must refuse before the relay
+    // call — otherwise the publish hook would reject and the user would see
+    // a generic link-failed toast with no actionable reason.
+    const isMonadSponsorshipEnabled = getGasFeesSponsoredNetworkEnabled(
+      ReduxService.store.getState() as RootState,
+    )(hexChainId);
+    if (!isMonadSponsorshipEnabled) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Monad gas sponsorship unavailable',
+      );
+    }
+
+    const { delegationToken, nonce } = await provider.fetchDelegationChallenge(
+      { network: 'monad', address: fromAddress },
+      tokens,
+    );
+
+    const signatureMessage = this.generateCardDelegationSignatureMessage({
+      network: 'monad',
+      address: fromAddress,
+      nonce,
+      caipChainId: cardToken.caipChainId ?? 'eip155:143',
+    });
+
+    const sigHash = await this.messenger.call(
+      'KeyringController:signPersonalMessage',
+      {
+        data: `0x${Buffer.from(signatureMessage, 'utf8').toString('hex')}`,
+        from: fromAddress,
       },
-      submitTransaction: async (txParams, chainId) => {
-        const chainNumber = parseInt(chainId.split(':')[1], 10);
-        const hexChainId = numberToHex(chainNumber) as Hex;
-        const networkClientId = this.messenger.call(
-          'NetworkController:findNetworkClientIdByChainId',
-          hexChainId,
-        );
-        const { result } = await this.messenger.call(
-          'TransactionController:addTransaction',
-          txParams,
+    );
+
+    const { transactionMeta: confirmedMeta } = await awaitTransactionConfirmed({
+      messenger: this
+        .messenger as unknown as AwaitTransactionConfirmedMessenger,
+      submit: async () => {
+        const { batchId } = await this.messenger.call(
+          'TransactionController:addTransactionBatch',
           {
+            from: fromAddress as Hex,
             networkClientId,
-            origin: 'metamask',
-            type: TransactionType.tokenMethodApprove,
-            requireApproval: true,
+            origin: TransactionTypes.MMM_CARD,
+            requireApproval: false,
+            disableHook: true,
+            disableSequential: true,
+            isGasFeeSponsored: true,
+            transactions: [
+              {
+                params: {
+                  to: tokenAddress as Hex,
+                  data: data as Hex,
+                  value: '0x0' as Hex,
+                },
+                type: TransactionType.tokenMethodApprove,
+              },
+            ],
           },
         );
-        return result;
+
+        const innerTx = await this.#findInnerTxForBatch(batchId);
+        return {
+          result: Promise.resolve(''),
+          transactionMeta: innerTx,
+        };
       },
+    });
+
+    const txHash = confirmedMeta.hash ?? '';
+
+    await provider.approveFunding(
+      {
+        address: fromAddress,
+        network: 'monad',
+        currency: 'usdc',
+        amount: delegationAmountHuman,
+        txHash,
+        sigHash,
+        sigMessage: signatureMessage,
+        token: delegationToken,
+      },
+      tokens,
+    );
+
+    try {
+      await this.fetchCardHomeData();
+    } catch (error) {
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        'CardController.linkMoneyAccountCard: post-link refresh failed',
+      );
+    }
+  }
+
+  async #resolveMoneyAccountCardTokenOrRefetch() {
+    const fromState = () => {
+      const data = this.state.cardHomeData as unknown as CardHomeData | null;
+      return resolveMoneyAccountCardToken(data?.delegationSettings ?? null);
     };
+    const existing = fromState();
+    if (existing) return existing;
+
+    await this.fetchCardHomeData();
+    return fromState();
+  }
+
+  /**
+   * Resolves the inner `TransactionMeta` created by `addTransactionBatch` for
+   * a given `batchId`. `addTransactionBatch` returns only the batch id, but
+   * `awaitTransactionConfirmed` needs the inner transaction id to match the
+   * `transactionConfirmed` event. Polls the TransactionController state with
+   * a small bounded retry — the inner tx is emitted into state synchronously
+   * during the batch add path, so this almost always resolves on the first
+   * read; the retry exists purely to absorb micro-task ordering with the
+   * batch-id resolution.
+   */
+  async #findInnerTxForBatch(batchId: string): Promise<TransactionMeta> {
+    const MAX_RETRIES = 5;
+    const RETRY_DELAY_MS = 50;
+    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+      const { transactions } = this.messenger.call(
+        'TransactionController:getState',
+      );
+      const match = transactions.find((tx) => tx.batchId === batchId);
+      if (match) return match;
+      if (attempt < MAX_RETRIES - 1) {
+        await new Promise<void>((resolve) =>
+          setTimeout(resolve, RETRY_DELAY_MS),
+        );
+      }
+    }
+    throw new CardProviderError(
+      CardProviderErrorCode.Unknown,
+      `Could not find inner transaction for batch ${batchId}`,
+    );
   }
 
   // -- Push Provisioning --

@@ -49,7 +49,10 @@ import {
   selectTransactions,
 } from '../../../../selectors/transactionController';
 import { getGlobalEthQuery } from '../../../../util/networks/global-network';
-import { hasGasFeeTokenSelected } from '../../../Views/confirmations/utils/transaction';
+import {
+  hasGasFeeTokenSelected,
+  isTransactionMarkedAsGasFeeSponsored,
+} from '../../../Views/confirmations/utils/transaction';
 import Avatar, {
   AvatarSize,
   AvatarVariant,
@@ -58,6 +61,7 @@ import { AvatarAccountType } from '../../../../component-library/components/Avat
 import { WalletViewSelectorsIDs } from '../../../Views/Wallet/WalletView.testIds';
 import { TransactionType } from '@metamask/transaction-controller';
 import TagBase from '../../../../component-library/base-components/TagBase';
+import { isHardwareAccount } from '../../../../util/address';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -333,6 +337,10 @@ class TransactionDetails extends PureComponent {
     );
     const { updatedTransactionDetails } = this.state;
     const styles = this.getStyles();
+    const fromAddress = txParams?.from;
+    const isHardwareWallet = Boolean(
+      fromAddress && isHardwareAccount(fromAddress),
+    );
     const isBridgeTransaction =
       transactionObject?.type === TransactionType.bridge;
     const renderTxActions =
@@ -474,7 +482,10 @@ class TransactionDetails extends PureComponent {
             gasEstimationReady
             transactionType={updatedTransactionDetails.transactionType}
             chainId={chainId}
-            isGasFeeSponsored={transactionObject.isGasFeeSponsored}
+            isGasFeeSponsored={
+              isTransactionMarkedAsGasFeeSponsored(transactionObject) &&
+              !isHardwareWallet
+            }
           />
         </View>
         {updatedTransactionDetails.hash &&

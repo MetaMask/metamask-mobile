@@ -204,18 +204,6 @@ export const PerpsAmountDisplaySelectorsIDs = {
 // PERPS VIEWS SELECTORS
 // ========================================
 
-export const PerpsTabViewSelectorsIDs = {
-  START_NEW_TRADE_CTA: 'perps-tab-view-start-new-trade-cta',
-  GEO_BLOCK_BOTTOM_SHEET_TOOLTIP:
-    'perps-tab-view-geo-block-bottom-sheet-tooltip',
-  ONBOARDING_BUTTON: 'perps-start-trading-button',
-  BALANCE_BUTTON: 'perps-balance-button',
-  ADD_FUNDS_BUTTON: 'perps-add-funds-button',
-  WITHDRAW_BUTTON: 'perps-withdraw-button',
-  BALANCE_VALUE: 'perps-balance-value',
-  SCROLL_VIEW: 'perps-tab-scroll-view',
-};
-
 export const PerpsHomeViewSelectorsIDs = {
   SUPPORT_BUTTON: 'perps-home-support-button',
   LEARN_MORE_BUTTON: 'perps-home-learn-more-button',
@@ -224,10 +212,19 @@ export const PerpsHomeViewSelectorsIDs = {
   BACK_HOME_BUTTON: 'perps-home-back-button',
   SEARCH_TOGGLE: 'perps-home-search-toggle',
   SEARCH_INPUT: 'perps-home-search',
+  /** Scroll title row (`PerpsHomeHeader` with `segment="title"`) */
+  HOME_HEADING: 'perps-home-heading',
   SCROLL_CONTENT: 'scroll-content',
   WITHDRAW_BUTTON: 'perps-home-withdraw-button',
   ADD_FUNDS_BUTTON: 'perps-home-add-funds-button',
   POSITIONS_PNL_VALUE: 'perps-home-positions-pnl-value',
+  SERVICE_INTERRUPTION_BANNER: 'perps-service-interruption-banner',
+  COMPETITION_BANNER: 'perps-home-competition-banner',
+  TOP_MOVERS_SECTION: 'perps-home-top-movers-section',
+  TOP_MOVERS_HEADER: 'perps-home-top-movers-header',
+  TOP_MOVERS_GAINERS_PILL: 'perps-home-top-movers-gainers',
+  TOP_MOVERS_LOSERS_PILL: 'perps-home-top-movers-losers',
+  TOP_MOVERS_LIST: 'perps-home-top-movers-list',
   // TabBar mock items (for testing)
   TAB_BAR_WALLET: 'tab-bar-item-wallet',
   TAB_BAR_BROWSER: 'tab-bar-item-browser',
@@ -329,8 +326,8 @@ export const PerpsWithdrawViewSelectorsIDs = {
   RECEIVE_VALUE: 'perps-withdraw-receive-value',
   FEE_VALUE: 'perps-withdraw-fee-value',
   TIME_VALUE: 'perps-withdraw-time-value',
-  // Must render availableBalance only (not availableToTradeBalance):
-  // withdraw does not offer spot collateral.
+  // Renders withdrawableBalance (provider handles any spot→perps sweep
+  // internally, so the field already reflects the max that can exit).
   AVAILABLE_BALANCE_TEXT: 'perps-withdraw-available-balance-text',
 };
 
@@ -371,6 +368,8 @@ export const PerpsMarketDetailsViewSelectorsIDs = {
   MARKET_HOURS_BOTTOM_SHEET_TOOLTIP:
     'perps-market-details-market-hours-bottom-sheet-tooltip',
   STOP_LOSS_PROMPT_BANNER: 'perps-market-details-stop-loss-prompt-banner',
+  SERVICE_INTERRUPTION_BANNER:
+    'perps-market-details-service-interruption-banner',
   TITLE_SECTION_WRAPPER: 'perps-market-details-title-section-wrapper',
 };
 
@@ -556,7 +555,38 @@ export const PerpsOrderViewSelectorsIDs = {
   // Row touchables that open bottom sheets
   LEVERAGE_ROW: 'perps-order-view-leverage-row',
   LIMIT_PRICE_ROW: 'perps-order-view-limit-price-row',
+  // Slippage
+  SLIPPAGE_ROW: 'perps-order-view-slippage-row',
+  SLIPPAGE_VALUE: 'perps-order-view-slippage-value',
+  SERVICE_INTERRUPTION_BANNER: 'perps-order-view-service-interruption-banner',
 };
+
+// ========================================
+// PERPS SLIPPAGE CONFIG BOTTOM SHEET SELECTORS
+// ========================================
+
+export const PerpsSlippageConfigSelectorsIDs = {
+  SET: 'perps-slippage-config-set',
+  EDIT_CHIP: 'perps-slippage-config-edit-chip',
+} as const;
+
+export const getPerpsSlippageConfigSelector = {
+  preset: (pct: number) => `perps-slippage-config-preset-${pct}`,
+};
+
+// ========================================
+// PERPS CUSTOM SLIPPAGE BOTTOM SHEET SELECTORS
+// ========================================
+
+export const PerpsCustomSlippageBottomSheetSelectorsIDs = {
+  DISPLAY: 'perps-custom-slippage-display',
+  DECREMENT: 'perps-custom-slippage-decrement',
+  INCREMENT: 'perps-custom-slippage-increment',
+  KEYPAD: 'perps-custom-slippage-keypad',
+  CANCEL: 'perps-custom-slippage-cancel',
+  SET: 'perps-custom-slippage-set',
+  ERROR: 'perps-custom-slippage-error',
+} as const;
 
 // ========================================
 // PERPS LIMIT PRICE BOTTOM SHEET SELECTORS

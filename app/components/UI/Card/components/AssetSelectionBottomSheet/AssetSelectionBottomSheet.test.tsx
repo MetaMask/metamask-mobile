@@ -69,13 +69,6 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: jest.fn(),
 }));
 
-const mockNavigateToCardPage = jest.fn();
-jest.mock('../../hooks/useNavigateToCardPage', () => ({
-  useNavigateToCardPage: jest.fn(() => ({
-    navigateToCardPage: mockNavigateToCardPage,
-  })),
-}));
-
 jest.mock('../../hooks/useAssetBalances', () => ({
   useAssetBalances: jest.fn(),
 }));
@@ -130,7 +123,6 @@ import {
 import Routes from '../../../../../constants/navigation/Routes';
 import { ToastContext } from '../../../../../component-library/components/Toast';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { useNavigateToCardPage } from '../../hooks/useNavigateToCardPage';
 import { useUpdateFundingPriority } from '../../hooks/useUpdateFundingPriority';
 import { useCardHomeData } from '../../hooks/useCardHomeData';
 import { getAssetBalanceKey } from '../../util/getAssetBalanceKey';
@@ -253,10 +245,6 @@ describe('AssetSelectionBottomSheet', () => {
     });
 
     mockCreateEventBuilder.mockReturnValue(mockEventBuilder);
-
-    (useNavigateToCardPage as jest.Mock).mockReturnValue({
-      navigateToCardPage: mockNavigateToCardPage,
-    });
 
     // Mock useUpdateFundingPriority to call onSuccess by default
     mockUpdateFundingPriority.mockImplementation(async () => true);
@@ -711,7 +699,7 @@ describe('AssetSelectionBottomSheet', () => {
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.CARD.SPENDING_LIMIT,
         expect.objectContaining({
-          flow: 'manage',
+          flow: 'enable',
           selectedToken: expect.objectContaining({
             address: token.address,
             symbol: token.symbol,
@@ -1010,6 +998,66 @@ describe('AssetSelectionBottomSheet', () => {
       });
 
       expect(queryByText(/0x/)).not.toBeOnTheScreen();
+    });
+
+    it('replaces the truncated hex with the Money Account label when isMoneyAccountEntry is true', () => {
+      const moneyAccountToken = createMockToken({
+        symbol: 'mUSD',
+        address: '0xmusd',
+        walletAddress: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        isMoneyAccountEntry: true,
+      });
+      const delegationSettings = createMockDelegationSettings();
+
+      mockSdk.getSupportedTokensByChainId.mockReturnValue([
+        {
+          address: '0xmusd',
+          symbol: 'mUSD',
+          name: 'MetaMask USD',
+          decimals: 6,
+        },
+      ]);
+
+      const { getByText, queryByText } = setupComponent({
+        tokensWithAllowances: [moneyAccountToken],
+        delegationSettings,
+      });
+
+      expect(getByText('Money account')).toBeOnTheScreen();
+      expect(queryByText(/0xaa\.\.\./)).not.toBeOnTheScreen();
+    });
+
+    it('keeps the truncated hex for non-money-account rows in the same list', () => {
+      const moneyAccountToken = createMockToken({
+        symbol: 'mUSD',
+        address: '0xmusd',
+        walletAddress: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        isMoneyAccountEntry: true,
+      });
+      const walletToken = createMockToken({
+        symbol: 'USDC',
+        address: '0xusdc',
+        walletAddress: '0x1234567890abcdef1234567890abcdef12345678',
+      });
+      const delegationSettings = createMockDelegationSettings();
+
+      mockSdk.getSupportedTokensByChainId.mockReturnValue([
+        {
+          address: '0xmusd',
+          symbol: 'mUSD',
+          name: 'MetaMask USD',
+          decimals: 6,
+        },
+        { address: '0xusdc', symbol: 'USDC', name: 'USD Coin', decimals: 6 },
+      ]);
+
+      const { getByText } = setupComponent({
+        tokensWithAllowances: [moneyAccountToken, walletToken],
+        delegationSettings,
+      });
+
+      expect(getByText('Money account')).toBeOnTheScreen();
+      expect(getByText(/0x1234\.\.\./)).toBeOnTheScreen();
     });
   });
 

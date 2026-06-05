@@ -2,19 +2,22 @@
 ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
 import { samplePetnamesControllerInit } from '../../features/SampleFeature/controllers/sample-petnames-controller-init';
 ///: END:ONLY_INCLUDE_IF
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import {
   AppState,
   AppStateStatus,
   NativeEventSubscription,
 } from 'react-native';
 ///: END:ONLY_INCLUDE_IF
-import { CodefiTokenPricesServiceV2 } from '@metamask/assets-controllers';
+import {
+  CodefiTokenPricesServiceV2,
+  TokenListService,
+} from '@metamask/assets-controllers';
 import { AccountsController } from '@metamask/accounts-controller';
 import {
   KeyringController,
   KeyringControllerState,
-  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   KeyringTypes,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-controller';
@@ -29,15 +32,19 @@ import {
   type CaveatSpecificationConstraint,
   PermissionController,
   type PermissionSpecificationConstraint,
-  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   SubjectMetadataController,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/permission-controller';
-import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
+import {
+  QrKeyring,
+  QrKeyringDeferredPromiseBridge,
+} from '@metamask/eth-qr-keyring';
 import { isTestNet } from '../../util/networks';
 import { deprecatedGetNetworkId } from '../../util/networks/engineNetworkUtils';
 import AppConstants from '../AppConstants';
 import { store } from '../../store';
+import { selectIsAssetsUnifyStateEnabled } from '../../selectors/featureFlagController/assetsUnifyState';
 import {
   renderFromTokenMinimalUnit,
   balanceToFiatNumber,
@@ -46,18 +53,23 @@ import {
   hexToBN,
   renderFromWei,
 } from '../../util/number';
+import {
+  buildAssetsBalanceUpdateFromPush,
+  type BalanceUpdatedPushPayload,
+} from './utils/buildAssetsBalanceUpdateFromPush';
 import NotificationManager from '../NotificationManager';
 import Logger from '../../util/Logger';
 import { isZero } from '../../util/lodash';
 import { initializeRpcProviderDomains } from '../../util/rpc-domain-utils';
 
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { notificationServicesControllerInit } from './controllers/notifications/notification-services-controller-init';
 import { notificationServicesPushControllerInit } from './controllers/notifications/notification-services-push-controller-init';
 ///: END:ONLY_INCLUDE_IF
 import {
   backendWebSocketServiceInit,
   accountActivityServiceInit,
+  ohlcvServiceInit,
 } from './controllers/core-backend';
 import { assetsControllerInit } from './controllers/assets-controller/assets-controller-init';
 import { AppStateWebSocketManager } from '../AppStateWebSocketManager';
@@ -90,10 +102,9 @@ import { multichainAssetsControllerInit } from './controllers/multichain-assets-
 import { multichainAssetsRatesControllerInit } from './controllers/multichain-assets-rates-controller/multichain-assets-rates-controller-init';
 import { multichainTransactionsControllerInit } from './controllers/multichain-transactions-controller/multichain-transactions-controller-init';
 import { multichainAccountServiceInit } from './controllers/multichain-account-service/multichain-account-service-init';
-import { snapKeyringBuilderInit } from './controllers/snap-keyring/snap-keyring-builder-init';
 import { SnapKeyring } from '@metamask/eth-snap-keyring';
 ///: END:ONLY_INCLUDE_IF
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import {
   cronjobControllerInit,
   executionServiceInit,
@@ -110,6 +121,14 @@ import {
   getRootExtendedMessenger,
 } from './types';
 import { STATELESS_NON_CONTROLLER_NAMES } from './constants';
+import {
+  getAccountTrackerControllerAccountsByChainId,
+  getCurrencyRateControllerCurrencyRates,
+  getCurrencyRateControllerCurrentCurrency,
+  getTokenBalancesControllerTokenBalances,
+  getTokenRatesControllerMarketData,
+  getTokensControllerAllTokens,
+} from '../../selectors/assets/assets-migration';
 import { getGlobalChainId } from '../../util/networks/global-network';
 import { logEngineCreation } from './utils/logger';
 import { initMessengerClients } from './utils';
@@ -139,18 +158,16 @@ import type { GatorPermissionsController } from '@metamask/gator-permissions-con
 import { DelegationControllerInit } from './controllers/delegation/delegation-controller-init';
 import { selectedNetworkControllerInit } from './controllers/selected-network-controller-init';
 import { permissionControllerInit } from './controllers/permission-controller-init';
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { subjectMetadataControllerInit } from './controllers/subject-metadata-controller-init';
 ///: END:ONLY_INCLUDE_IF
 import { PreferencesController } from '@metamask/preferences-controller';
 import { preferencesControllerInit } from './controllers/preferences-controller-init';
-import { keyringControllerInit } from './controllers/keyring-controller/keyring-controller-init';
 import { networkControllerInit } from './controllers/network-controller-init';
 import { TransactionPayControllerInit } from './controllers/transaction-pay-controller';
 import { tokenSearchDiscoveryDataControllerInit } from './controllers/token-search-discovery-data-controller-init';
 import { assetsContractControllerInit } from './controllers/assets-contract-controller-init';
 import { tokensControllerInit } from './controllers/tokens-controller-init';
-import { tokenListControllerInit } from './controllers/token-list-controller-init';
 import { tokenDetectionControllerInit } from './controllers/token-detection-controller-init';
 import { tokenBalancesControllerInit } from './controllers/token-balances-controller-init';
 import { tokenRatesControllerInit } from './controllers/token-rates-controller-init';
@@ -167,7 +184,6 @@ import { geolocationApiServiceInit } from './controllers/geolocation-api-service
 import { geolocationControllerInit } from './controllers/geolocation-controller';
 import { rewardsDataServiceInit } from './controllers/rewards-data-service-init';
 import { remoteFeatureFlagControllerInit } from './controllers/remote-feature-flag-controller-init';
-import { storageServiceInit } from './controllers/storage-service/storage-service-init';
 import { loggingControllerInit } from './controllers/logging-controller-init';
 import { phishingControllerInit } from './controllers/phishing-controller-init';
 import { addressBookControllerInit } from './controllers/address-book-controller-init';
@@ -187,6 +203,11 @@ import { clientControllerInit } from './controllers/client-controller-init';
 import { transakServiceInit } from './controllers/ramps-controller/transak-service-init';
 import { complianceServiceInit } from './controllers/compliance/compliance-service-init';
 import { complianceControllerInit } from './controllers/compliance/compliance-controller-init';
+import { chompApiServiceInit } from './controllers/chomp-api-service-init';
+import { moneyAccountUpgradeControllerInit } from './controllers/money-account-upgrade-controller-init';
+import { initializeWallet } from './wallet-init/initialization';
+import { qrKeyringBridge } from './wallet-init/keyrings';
+import { Wallet } from '@metamask/wallet';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -222,7 +243,7 @@ export class Engine {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   lastIncomingTxBlockInfo: any;
 
-  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   /**
    * The app state event listener.
    * This is used to handle app state changes in snaps lifecycle hooks.
@@ -246,22 +267,18 @@ export class Engine {
   transactionController: TransactionController;
   preferencesController: PreferencesController;
 
-  readonly qrKeyringScanner = new QrKeyringDeferredPromiseBridge({
-    onScanRequested: (request) => {
-      store.dispatch(scanRequested(request));
-    },
-    onScanResolved: () => {
-      store.dispatch(scanCompleted());
-    },
-    onScanRejected: () => {
-      store.dispatch(scanCompleted());
-    },
-  });
-
   permissionController: PermissionController<
     PermissionSpecificationConstraint,
     CaveatSpecificationConstraint
   >;
+
+  /**
+   * Shared token list service. Stored so destroyEngineInstance can call
+   * destroy() to abort in-flight requests and clear the TanStack Query cache.
+   */
+  private tokenListService: TokenListService;
+
+  #wallet: Wallet;
 
   /**
    * Creates a CoreController instance
@@ -269,14 +286,25 @@ export class Engine {
   constructor(
     analyticsId: string,
     initialState: Partial<EngineState> = {},
-    initialKeyringState?: KeyringControllerState | null,
+    initialKeyringState?: KeyringControllerState,
   ) {
-    const keyringState = initialKeyringState ?? null;
-    logEngineCreation(initialState, keyringState);
+    logEngineCreation(initialState, initialKeyringState);
 
     this.controllerMessenger = getRootExtendedMessenger();
 
+    const mergedInitialState = {
+      ...initialState,
+      KeyringController: initialKeyringState ?? initialState.KeyringController,
+    };
+
+    this.#wallet = initializeWallet({
+      messenger: this.controllerMessenger,
+      state: mergedInitialState,
+    });
+
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
+    const tokenListService = new TokenListService();
+    this.tokenListService = tokenListService;
 
     const initRequest = {
       getState: () => store.getState(),
@@ -285,24 +313,19 @@ export class Engine {
       removeAccount: this.removeAccount.bind(this),
       ///: END:ONLY_INCLUDE_IF
       analyticsId,
-      initialKeyringState: keyringState,
-      qrKeyringScanner: this.qrKeyringScanner,
       codefiTokenApiV2,
+      tokenListService,
     };
     const { messengerClientsByName } = initMessengerClients({
+      wallet: this.#wallet,
       initFunctions: {
-        StorageService: storageServiceInit,
         LoggingController: loggingControllerInit,
         PreferencesController: preferencesControllerInit,
         RemoteFeatureFlagController: remoteFeatureFlagControllerInit,
         NetworkController: networkControllerInit,
         AccountsController: accountsControllerInit,
-        ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-        SnapKeyringBuilder: snapKeyringBuilderInit,
-        ///: END:ONLY_INCLUDE_IF
-        KeyringController: keyringControllerInit,
         PermissionController: permissionControllerInit,
-        ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+        ///: BEGIN:ONLY_INCLUDE_IF(snaps)
         SubjectMetadataController: subjectMetadataControllerInit,
         ///: END:ONLY_INCLUDE_IF
         AccountTreeController: accountTreeControllerInit,
@@ -330,7 +353,6 @@ export class Engine {
         MultichainNetworkController: multichainNetworkControllerInit,
         NetworkEnablementController: networkEnablementControllerInit,
         TokenRatesController: tokenRatesControllerInit,
-        TokenListController: tokenListControllerInit,
         TokenDetectionController: tokenDetectionControllerInit,
         TokenSearchDiscoveryDataController:
           tokenSearchDiscoveryDataControllerInit,
@@ -339,7 +361,7 @@ export class Engine {
         BridgeStatusController: bridgeStatusControllerInit,
         NftController: nftControllerInit,
         NftDetectionController: nftDetectionControllerInit,
-        ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+        ///: BEGIN:ONLY_INCLUDE_IF(snaps)
         ExecutionService: executionServiceInit,
         CronjobController: cronjobControllerInit,
         SnapRegistryController: snapRegistryControllerInit,
@@ -354,6 +376,7 @@ export class Engine {
         ///: END:ONLY_INCLUDE_IF
         BackendWebSocketService: backendWebSocketServiceInit,
         AccountActivityService: accountActivityServiceInit,
+        OHLCVService: ohlcvServiceInit,
         ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
         MultichainAssetsController: multichainAssetsControllerInit,
         MultichainAssetsRatesController: multichainAssetsRatesControllerInit,
@@ -371,12 +394,14 @@ export class Engine {
         // subscribes to ClientController:stateChange before ClientController can emit.
         AssetsController: assetsControllerInit,
         ClientController: clientControllerInit,
+        // PhishingController hydrates known recipients from AddressBookController
+        // during construction for address poisoning checks.
+        AddressBookController: addressBookControllerInit,
         PhishingController: phishingControllerInit,
         PredictController: predictControllerInit,
         RewardsController: rewardsControllerInit,
         RewardsDataService: rewardsDataServiceInit,
         DelegationController: DelegationControllerInit,
-        AddressBookController: addressBookControllerInit,
         ConnectivityController: connectivityControllerInit,
         ProfileMetricsController: profileMetricsControllerInit,
         ProfileMetricsService: profileMetricsServiceInit,
@@ -391,6 +416,8 @@ export class Engine {
         CardController: cardControllerInit,
         ComplianceService: complianceServiceInit,
         ComplianceController: complianceControllerInit,
+        ChompApiService: chompApiServiceInit,
+        MoneyAccountUpgradeController: moneyAccountUpgradeControllerInit,
       },
       persistedState: initialState as EngineState,
       baseControllerMessenger: this.controllerMessenger,
@@ -453,7 +480,7 @@ export class Engine {
     this.smartTransactionsController = smartTransactionsController;
     this.permissionController = messengerClientsByName.PermissionController;
     this.preferencesController = preferencesController;
-    this.keyringController = messengerClientsByName.KeyringController;
+    this.keyringController = this.#wallet.getInstance('KeyringController');
 
     const multichainNetworkController =
       messengerClientsByName.MultichainNetworkController;
@@ -466,7 +493,6 @@ export class Engine {
     const tokenBalancesController =
       messengerClientsByName.TokenBalancesController;
     const tokenRatesController = messengerClientsByName.TokenRatesController;
-    const tokenListController = messengerClientsByName.TokenListController;
     const tokenDetectionController =
       messengerClientsByName.TokenDetectionController;
     const tokenSearchDiscoveryDataController =
@@ -477,7 +503,7 @@ export class Engine {
       messengerClientsByName.NftDetectionController;
     const networkController = messengerClientsByName.NetworkController;
 
-    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    ///: BEGIN:ONLY_INCLUDE_IF(snaps)
     const cronjobController = messengerClientsByName.CronjobController;
     const executionService = messengerClientsByName.ExecutionService;
     const snapController = messengerClientsByName.SnapController;
@@ -505,6 +531,7 @@ export class Engine {
     );
     const accountActivityService =
       messengerClientsByName.AccountActivityService;
+    const ohlcvService = messengerClientsByName.OHLCVService;
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     const multichainAssetsController =
@@ -529,7 +556,7 @@ export class Engine {
       captureException(error);
     });
 
-    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    ///: BEGIN:ONLY_INCLUDE_IF(snaps)
     snapController.init();
     cronjobController.init();
     // Notification Setup
@@ -548,7 +575,6 @@ export class Engine {
       AssetsController: messengerClientsByName.AssetsController,
       NftController: nftController,
       TokensController: tokensController,
-      TokenListController: tokenListController,
       TokenDetectionController: tokenDetectionController,
       NftDetectionController: nftDetectionController,
       CurrencyRateController: currencyRateController,
@@ -568,7 +594,7 @@ export class Engine {
       SelectedNetworkController: selectedNetworkController,
       SignatureController: signatureController,
       LoggingController: loggingController,
-      ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       CronjobController: cronjobController,
       ExecutionService: executionService,
       SnapController: snapController,
@@ -583,6 +609,7 @@ export class Engine {
       ///: END:ONLY_INCLUDE_IF
       BackendWebSocketService: backendWebSocketService,
       AccountActivityService: accountActivityService,
+      OHLCVService: ohlcvService,
       AccountsController: accountsController,
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       MultichainBalancesController: multichainBalancesController,
@@ -623,6 +650,9 @@ export class Engine {
       ClientController: clientController,
       ComplianceService: complianceService,
       ComplianceController: complianceController,
+      ChompApiService: messengerClientsByName.ChompApiService,
+      MoneyAccountUpgradeController:
+        messengerClientsByName.MoneyAccountUpgradeController,
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -680,7 +710,7 @@ export class Engine {
       },
     );
 
-    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    ///: BEGIN:ONLY_INCLUDE_IF(snaps)
     this.controllerMessenger.subscribe(
       `${snapController.name}:snapTerminated`,
       (truncatedSnap) => {
@@ -734,6 +764,57 @@ export class Engine {
         } catch (error) {
           console.error(
             'Error handling BridgeStatusController:destinationTransactionCompleted event:',
+            error,
+          );
+        }
+      },
+    );
+
+    // Forward real-time websocket balance pushes into the AssetsController.
+    // When `assetsUnifyState` is enabled the UI reads balances from
+    // `AssetsController.assetsBalance`. Both `AccountActivityService` and the
+    // controller's internal `BackendWebsocketDataSource` open a separate
+    // websocket subscription to the same account-activity channel, but the
+    // backend routes each notification to a single subscriptionId, so the data
+    // source's subscription is starved and `assetsBalance` is not refreshed
+    // until the 30s poll. `AccountActivityService` reliably receives the push,
+    // so we bridge it into the controller's own public merge entrypoint.
+    this.controllerMessenger.subscribe(
+      'AccountActivityService:balanceUpdated',
+      (payload: BalanceUpdatedPushPayload) => {
+        try {
+          if (!selectIsAssetsUnifyStateEnabled(store.getState())) {
+            return;
+          }
+          const account = this.context.AccountsController.getAccountByAddress(
+            payload.address,
+          );
+          const accountId = account?.id;
+          if (!accountId) {
+            return;
+          }
+
+          const response = buildAssetsBalanceUpdateFromPush(payload, accountId);
+          if (!response) {
+            return;
+          }
+
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
+          Promise.resolve(
+            (
+              this.context.AssetsController as unknown as {
+                handleAssetsUpdate: (
+                  response: unknown,
+                  sourceId: string,
+                ) => Promise<void>;
+              }
+            ).handleAssetsUpdate(response, 'BackendWebsocketDataSource'),
+          ).catch(() => {
+            // Best-effort real-time refresh; the periodic poll remains a fallback.
+          });
+        } catch (error) {
+          console.error(
+            'Error forwarding AccountActivityService:balanceUpdated to AssetsController:',
             error,
           );
         }
@@ -835,15 +916,7 @@ export class Engine {
     totalNativeTokenBalance: string;
     ticker: string;
   } => {
-    const {
-      CurrencyRateController,
-      AccountsController,
-      AccountTrackerController,
-      TokenBalancesController,
-      TokenRatesController,
-      TokensController,
-      NetworkController,
-    } = this.context;
+    const { AccountsController, NetworkController } = this.context;
 
     const selectedInternalAccount =
       account ??
@@ -865,11 +938,14 @@ export class Engine {
     const selectedInternalAccountFormattedAddress = toFormattedAddress(
       selectedInternalAccount.address,
     );
-    const { currentCurrency } = CurrencyRateController.state;
-    const { settings: { showFiatOnTestnets } = {} } = store.getState();
+    const state = store.getState();
+    const currentCurrency = getCurrencyRateControllerCurrentCurrency(state);
+    const { settings: { showFiatOnTestnets } = {} } = state;
 
-    const { accountsByChainId } = AccountTrackerController.state;
-    const { marketData } = TokenRatesController.state;
+    const accountsByChainId =
+      getAccountTrackerControllerAccountsByChainId(state);
+    const marketData = getTokenRatesControllerMarketData(state);
+    const currencyRates = getCurrencyRateControllerCurrencyRates(state);
 
     let totalEthFiat = 0;
     let totalEthFiat1dAgo = 0;
@@ -905,9 +981,7 @@ export class Engine {
         return;
       }
 
-      const conversionRate =
-        CurrencyRateController.state?.currencyRates?.[ticker]?.conversionRate ??
-        0;
+      const conversionRate = currencyRates?.[ticker]?.conversionRate ?? 0;
 
       if (conversionRate === 0) {
         return;
@@ -971,14 +1045,13 @@ export class Engine {
       }
 
       const tokens =
-        TokensController.state.allTokens?.[chainIdHex]?.[
+        getTokensControllerAllTokens(state)?.[chainIdHex]?.[
           selectedInternalAccount.address
         ] || [];
       const tokenExchangeRates = marketData?.[chainIdHex];
 
       if (tokens.length > 0) {
-        const { tokenBalances: allTokenBalances } =
-          TokenBalancesController.state;
+        const allTokenBalances = getTokenBalancesControllerTokenBalances(state);
         const tokenBalances =
           allTokenBalances?.[selectedInternalAccount.address as Hex]?.[
             chainId
@@ -1155,15 +1228,16 @@ export class Engine {
       TokenRatesController,
       PermissionController,
       // SelectedNetworkController,
-      ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       SnapController,
       ///: END:ONLY_INCLUDE_IF
       LoggingController,
+      MoneyAccountController,
     } = this.context;
 
     // Remove all permissions.
     PermissionController?.clearState?.();
-    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    ///: BEGIN:ONLY_INCLUDE_IF(snaps)
     await SnapController.clearState();
     ///: END:ONLY_INCLUDE_IF
 
@@ -1189,12 +1263,15 @@ export class Engine {
     }));
 
     LoggingController.clear();
+
+    // Accounts:
+    MoneyAccountController.clearState();
   };
 
   removeAllListeners() {
     this.controllerMessenger.clearSubscriptions();
 
-    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    ///: BEGIN:ONLY_INCLUDE_IF(snaps)
     this.appStateListener?.remove();
     ///: END:ONLY_INCLUDE_IF
 
@@ -1210,6 +1287,7 @@ export class Engine {
         controller.destroy();
       }
     });
+    this.tokenListService.destroy();
     this.removeAllListeners();
     await this.resetState();
 
@@ -1388,7 +1466,6 @@ export default {
       SignatureController,
       SmartTransactionsController,
       TokenBalancesController,
-      TokenListController,
       TokenRatesController,
       TokensController,
       TokenSearchDiscoveryDataController,
@@ -1399,7 +1476,7 @@ export default {
       ClientController,
       SocialController,
       ComplianceController,
-      ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       AuthenticationController,
       CronjobController,
       NotificationServicesController,
@@ -1418,6 +1495,7 @@ export default {
       ///: END:ONLY_INCLUDE_IF
       ProfileMetricsController,
       MoneyAccountController,
+      MoneyAccountUpgradeController,
     } = instance.context;
 
     return {
@@ -1460,7 +1538,6 @@ export default {
       SignatureController: SignatureController.state,
       SmartTransactionsController: SmartTransactionsController.state,
       TokenBalancesController: TokenBalancesController.state,
-      TokenListController: TokenListController.state,
       TokenRatesController: TokenRatesController.state,
       TokensController: TokensController.state,
       TokenSearchDiscoveryDataController:
@@ -1473,7 +1550,7 @@ export default {
       CardController: CardController.state,
       ClientController: ClientController.state,
       ComplianceController: ComplianceController.state,
-      ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       AuthenticationController: AuthenticationController.state,
       CronjobController: CronjobController.state,
       NotificationServicesController: NotificationServicesController.state,
@@ -1493,6 +1570,7 @@ export default {
       ///: END:ONLY_INCLUDE_IF
       ProfileMetricsController: ProfileMetricsController.state,
       MoneyAccountController: MoneyAccountController.state,
+      MoneyAccountUpgradeController: MoneyAccountUpgradeController.state,
     };
   },
 
@@ -1519,7 +1597,7 @@ export default {
   init(
     analyticsId: string,
     state: Partial<EngineState> | undefined = {},
-    keyringState?: KeyringControllerState | null,
+    keyringState?: KeyringControllerState,
   ) {
     instance = Engine.instance || new Engine(analyticsId, state, keyringState);
     Object.freeze(instance);
@@ -1551,10 +1629,8 @@ export default {
     instance.setAccountLabel(address, label);
   },
 
-  getQrKeyringScanner: () => {
-    assertEngineExists(instance);
-    return instance.qrKeyringScanner;
-  },
+  // TODO: Use the KeyringController to find the appropriate QR keyring bridge instead of using a global.
+  getQrKeyringScanner: () => qrKeyringBridge,
 
   lookupEnabledNetworks: () => {
     assertEngineExists(instance);

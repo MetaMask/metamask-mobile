@@ -1,6 +1,4 @@
-///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 /* eslint-disable import-x/prefer-default-export */
-import SnapPermissions from './SnapPermissions';
-
-export { SnapPermissions };
+export { default as SnapPermissions } from './SnapPermissions';
 ///: END:ONLY_INCLUDE_IF

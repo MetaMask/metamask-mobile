@@ -23,6 +23,7 @@ export const tokensControllerInit: MessengerClientInitFunction<
   initMessenger,
   persistedState,
   getMessengerClient,
+  tokenListService,
 }) => {
   const networkController = getMessengerClient('NetworkController');
   const { provider } =
@@ -35,6 +36,7 @@ export const tokensControllerInit: MessengerClientInitFunction<
     messenger: controllerMessenger,
     chainId: getGlobalChainId(networkController),
     provider,
+    tokenListService,
   });
 
   return {
