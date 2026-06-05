@@ -3,6 +3,8 @@ import { ScrollView } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import {
   HeaderStandard,
+  Text,
+  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -12,6 +14,7 @@ import PredictThePitchPortfolio from '../components/Campaigns/PredictThePitchPor
 import { useGetPredictThePitchPositions } from '../hooks/useGetPredictThePitchPositions';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { getCampaignMechanicsButtonProps } from '../utils/campaignHeaderUtils';
+import { formatRewardsTimeOnly } from '../utils/formatUtils';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 
@@ -75,6 +78,18 @@ const PredictThePitchCampaignPortfolioView: React.FC = () => {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={tw.style('px-4 pb-4')}
         >
+          {positions?.computedAt && (
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+              twClassName="mb-3"
+            >
+              {strings(
+                'rewards.predict_the_pitch_campaign.positions_last_updated',
+                { time: formatRewardsTimeOnly(new Date(positions.computedAt)) },
+              )}
+            </Text>
+          )}
           <PredictThePitchPortfolio
             positions={positions}
             isLoading={isLoading}

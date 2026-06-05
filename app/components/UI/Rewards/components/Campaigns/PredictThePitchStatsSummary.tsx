@@ -6,14 +6,21 @@ import {
   IconColor,
   IconName,
   IconSize,
+  Text,
   TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import type {
   CampaignParticipantOutcomeStatus,
   PredictThePitchLeaderboardPositionDto,
 } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { strings } from '../../../../../../locales/i18n';
-import { formatPercentChange, formatUsd } from '../../utils/formatUtils';
+import {
+  formatPercentChange,
+  formatRewardsTimeOnly,
+  formatSignedUsd,
+  formatUsd,
+} from '../../utils/formatUtils';
 import RewardsErrorBanner from '../RewardsErrorBanner';
 import { CampaignOutcomeBanner } from './CampaignOutcomeBanners';
 import { PendingTag, StatCell } from './OndoCampaignStatsSummary';
@@ -77,6 +84,10 @@ const PredictThePitchStatsSummary: React.FC<
     Number.isFinite(leaderboardPosition.capitalDeployed)
       ? leaderboardPosition.capitalDeployed
       : null;
+  const pnl =
+    leaderboardPosition != null && Number.isFinite(leaderboardPosition.pnl)
+      ? leaderboardPosition.pnl
+      : null;
 
   const isPending =
     leaderboardPosition != null && !leaderboardPosition.eligible;
@@ -87,6 +98,7 @@ const PredictThePitchStatsSummary: React.FC<
   const roiDisplay = roi != null ? formatPercentChange(roi) : '-';
   const capitalDeployedDisplay =
     capitalDeployed != null ? formatUsd(capitalDeployed) : '-';
+  const pnlDisplay = pnl != null ? formatSignedUsd(pnl) : '-';
 
   return (
     <Box
@@ -147,7 +159,24 @@ const PredictThePitchStatsSummary: React.FC<
           isLoading={showSkeleton}
           testID={PREDICT_THE_PITCH_STATS_SUMMARY_TEST_IDS.TOTAL_VOLUME}
         />
+        <StatCell
+          label={strings('rewards.predict_the_pitch_campaign.label_pnl')}
+          value={pnlDisplay}
+          isLoading={showSkeleton}
+          valueColor={getMetricColor(pnl)}
+          testID={PREDICT_THE_PITCH_STATS_SUMMARY_TEST_IDS.PNL}
+        />
       </Box>
+
+      {leaderboardPosition?.computedAt && (
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          {strings('rewards.predict_the_pitch_campaign.last_updated', {
+            time: formatRewardsTimeOnly(
+              new Date(leaderboardPosition.computedAt),
+            ),
+          })}
+        </Text>
+      )}
 
       {isCampaignComplete && outcomeStatus != null && onWinnerPress != null && (
         <CampaignOutcomeBanner

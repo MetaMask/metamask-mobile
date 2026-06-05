@@ -9204,6 +9204,7 @@
       "positions_error": "Failed to load predictions",
       "positions_error_description": "Something went wrong while loading your predictions. Please try again.",
       "positions_retry": "Retry",
+      "positions_last_updated": "Last updated: {{time}}",
       "positions_empty": "No predictions yet",
       "positions_empty_description": "Your campaign predictions will appear here once you make them.",
       "leaderboard_title": "Leaderboard",
