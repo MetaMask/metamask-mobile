@@ -3,6 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import PerpsProducts from './PerpsProducts';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectPerpsProductsEnabledFlag } from '../../selectors/featureFlags';
+import type { PerpsCategory } from '../../hooks/usePerpsCategories';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -34,9 +35,33 @@ jest.mock('../../../../../core/Analytics', () => ({
   },
 }));
 
+let mockCategories: PerpsCategory[] = [];
+
+jest.mock('../../hooks/usePerpsCategories', () => ({
+  usePerpsCategories: () => mockCategories,
+}));
+
+const ALL_CATEGORIES: PerpsCategory[] = [
+  { id: 'crypto', label: 'Crypto' },
+  { id: 'stocks', label: 'Stocks' },
+  { id: 'commodities', label: 'Commodities' },
+  { id: 'forex', label: 'Forex' },
+];
+
+const ALL_SEVEN_CATEGORIES: PerpsCategory[] = [
+  { id: 'crypto', label: 'Crypto' },
+  { id: 'stocks', label: 'Stocks' },
+  { id: 'pre-ipo', label: 'Pre-IPO' },
+  { id: 'indices', label: 'Indices' },
+  { id: 'etfs', label: 'ETFs' },
+  { id: 'commodities', label: 'Commodities' },
+  { id: 'forex', label: 'Forex' },
+];
+
 describe('PerpsProducts', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCategories = ALL_CATEGORIES;
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectPerpsProductsEnabledFlag) return true;
       return undefined;
@@ -49,34 +74,27 @@ describe('PerpsProducts', () => {
       return undefined;
     });
 
-    const { toJSON } = render(
-      <PerpsProducts marketCounts={{ crypto: 10, stocks: 5 }} />,
-    );
+    const { toJSON } = render(<PerpsProducts />);
 
     expect(toJSON()).toBeNull();
   });
 
-  it('renders nothing when all market counts are zero', () => {
-    const { toJSON } = render(
-      <PerpsProducts
-        marketCounts={{ crypto: 0, stocks: 0, commodities: 0, forex: 0 }}
-      />,
-    );
+  it('renders nothing when no categories are available', () => {
+    mockCategories = [];
+
+    const { toJSON } = render(<PerpsProducts />);
 
     expect(toJSON()).toBeNull();
   });
 
-  it('renders pills only for categories with markets', () => {
-    const { getByText, queryByText } = render(
-      <PerpsProducts
-        marketCounts={{
-          crypto: 10,
-          stocks: 5,
-          commodities: 0,
-          forex: 3,
-        }}
-      />,
-    );
+  it('renders pills for available categories', () => {
+    mockCategories = [
+      { id: 'crypto', label: 'Crypto' },
+      { id: 'stocks', label: 'Stocks' },
+      { id: 'forex', label: 'Forex' },
+    ];
+
+    const { getByText, queryByText } = render(<PerpsProducts />);
 
     expect(getByText('Products')).toBeOnTheScreen();
     expect(getByText('Crypto')).toBeOnTheScreen();
@@ -86,9 +104,7 @@ describe('PerpsProducts', () => {
   });
 
   it('navigates to market list with category and product pill source', () => {
-    const { getByTestId } = render(
-      <PerpsProducts marketCounts={{ crypto: 10, stocks: 5 }} />,
-    );
+    const { getByTestId } = render(<PerpsProducts />);
 
     fireEvent.press(getByTestId('perps-products-crypto'));
 
@@ -102,9 +118,7 @@ describe('PerpsProducts', () => {
   });
 
   it('navigates with correct filter for stocks category', () => {
-    const { getByTestId } = render(
-      <PerpsProducts marketCounts={{ crypto: 10, stocks: 5 }} />,
-    );
+    const { getByTestId } = render(<PerpsProducts />);
 
     fireEvent.press(getByTestId('perps-products-stocks'));
 
@@ -118,19 +132,9 @@ describe('PerpsProducts', () => {
   });
 
   it('renders all seven categories when all have markets', () => {
-    const { getByText } = render(
-      <PerpsProducts
-        marketCounts={{
-          crypto: 10,
-          stocks: 5,
-          'pre-ipo': 2,
-          indices: 3,
-          etfs: 4,
-          commodities: 6,
-          forex: 8,
-        }}
-      />,
-    );
+    mockCategories = ALL_SEVEN_CATEGORIES;
+
+    const { getByText } = render(<PerpsProducts />);
 
     expect(getByText('Crypto')).toBeOnTheScreen();
     expect(getByText('Stocks')).toBeOnTheScreen();
@@ -142,9 +146,7 @@ describe('PerpsProducts', () => {
   });
 
   it('tracks analytics with product_pill_tapped, product, and pill_position', () => {
-    const { getByTestId } = render(
-      <PerpsProducts marketCounts={{ crypto: 10, stocks: 5 }} />,
-    );
+    const { getByTestId } = render(<PerpsProducts />);
 
     fireEvent.press(getByTestId('perps-products-stocks'));
 
@@ -160,9 +162,9 @@ describe('PerpsProducts', () => {
   });
 
   it('renders category icons', () => {
-    const { getByTestId } = render(
-      <PerpsProducts marketCounts={{ crypto: 10 }} />,
-    );
+    mockCategories = [{ id: 'crypto', label: 'Crypto' }];
+
+    const { getByTestId } = render(<PerpsProducts />);
 
     const pill = getByTestId('perps-products-crypto');
     expect(pill).toBeOnTheScreen();

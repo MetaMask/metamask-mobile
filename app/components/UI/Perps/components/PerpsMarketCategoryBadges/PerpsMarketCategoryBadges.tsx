@@ -32,28 +32,16 @@ const NEW_CATEGORY: PerpsCategory = {
 const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
   selectedCategory,
   onCategorySelect,
-  availableCategories,
   testID,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const categories = usePerpsCategories();
   const hasNewMarkets = useHasNewMarkets();
 
-  const displayCategories = useMemo(() => {
-    let result = categories;
-
-    if (hasNewMarkets) {
-      result = [...result, NEW_CATEGORY];
-    }
-
-    if (availableCategories && availableCategories.length > 0) {
-      result = result.filter((category) =>
-        availableCategories.includes(category.id),
-      );
-    }
-
-    return result;
-  }, [categories, availableCategories, hasNewMarkets]);
+  const displayCategories = useMemo(
+    () => (hasNewMarkets ? [...categories, NEW_CATEGORY] : categories),
+    [categories, hasNewMarkets],
+  );
 
   const handleCategoryPress = useCallback(
     (category: Exclude<MarketTypeFilter, 'all'>) => {

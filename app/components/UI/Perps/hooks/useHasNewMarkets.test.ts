@@ -8,11 +8,15 @@ const mockUsePerpsMarkets = usePerpsMarkets as jest.MockedFunction<
   typeof usePerpsMarkets
 >;
 
+function mockMarkets(markets: { isNewMarket: boolean }[]) {
+  mockUsePerpsMarkets.mockReturnValue({
+    markets,
+  } as unknown as ReturnType<typeof usePerpsMarkets>);
+}
+
 describe('useHasNewMarkets', () => {
   it('returns true when at least one market has isNewMarket set', () => {
-    mockUsePerpsMarkets.mockReturnValue({
-      markets: [{ isNewMarket: false }, { isNewMarket: true }],
-    } as ReturnType<typeof usePerpsMarkets>);
+    mockMarkets([{ isNewMarket: false }, { isNewMarket: true }]);
 
     const { result } = renderHook(() => useHasNewMarkets());
 
@@ -20,9 +24,7 @@ describe('useHasNewMarkets', () => {
   });
 
   it('returns false when no markets have isNewMarket set', () => {
-    mockUsePerpsMarkets.mockReturnValue({
-      markets: [{ isNewMarket: false }, { isNewMarket: false }],
-    } as ReturnType<typeof usePerpsMarkets>);
+    mockMarkets([{ isNewMarket: false }, { isNewMarket: false }]);
 
     const { result } = renderHook(() => useHasNewMarkets());
 
@@ -30,9 +32,7 @@ describe('useHasNewMarkets', () => {
   });
 
   it('returns false when the markets list is empty', () => {
-    mockUsePerpsMarkets.mockReturnValue({
-      markets: [],
-    } as ReturnType<typeof usePerpsMarkets>);
+    mockMarkets([]);
 
     const { result } = renderHook(() => useHasNewMarkets());
 
@@ -40,9 +40,7 @@ describe('useHasNewMarkets', () => {
   });
 
   it('returns true when all markets are new', () => {
-    mockUsePerpsMarkets.mockReturnValue({
-      markets: [{ isNewMarket: true }, { isNewMarket: true }],
-    } as ReturnType<typeof usePerpsMarkets>);
+    mockMarkets([{ isNewMarket: true }, { isNewMarket: true }]);
 
     const { result } = renderHook(() => useHasNewMarkets());
 

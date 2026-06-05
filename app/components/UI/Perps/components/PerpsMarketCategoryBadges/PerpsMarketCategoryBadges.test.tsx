@@ -1,6 +1,22 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import PerpsMarketCategoryBadges from './PerpsMarketCategoryBadges';
+import type { PerpsCategory } from '../../hooks/usePerpsCategories';
+
+const DEFAULT_CATEGORIES: PerpsCategory[] = [
+  { id: 'crypto', label: 'Crypto' },
+  { id: 'stocks', label: 'Stocks' },
+  { id: 'commodities', label: 'Commodities' },
+  { id: 'forex', label: 'Forex' },
+];
+
+jest.mock('../../hooks/usePerpsCategories', () => ({
+  usePerpsCategories: () => DEFAULT_CATEGORIES,
+}));
+
+jest.mock('../../hooks/useHasNewMarkets', () => ({
+  useHasNewMarkets: () => false,
+}));
 
 describe('PerpsMarketCategoryBadges', () => {
   const defaultProps = {
@@ -39,20 +55,6 @@ describe('PerpsMarketCategoryBadges', () => {
 
       fireEvent.press(getByText('Stocks'));
       expect(onCategorySelect).toHaveBeenCalledWith('stocks');
-    });
-
-    it('filters badges based on availableCategories', () => {
-      const { getByText, queryByText } = render(
-        <PerpsMarketCategoryBadges
-          {...defaultProps}
-          availableCategories={['crypto', 'stocks']}
-        />,
-      );
-
-      expect(getByText('Crypto')).toBeTruthy();
-      expect(getByText('Stocks')).toBeTruthy();
-      expect(queryByText('Commodities')).toBeNull();
-      expect(queryByText('Forex')).toBeNull();
     });
   });
 
@@ -128,41 +130,6 @@ describe('PerpsMarketCategoryBadges', () => {
   });
 
   describe('edge cases', () => {
-    it('falls back to "all" view when selected category is not in availableCategories', () => {
-      const onCategorySelect = jest.fn();
-      const { getByText, queryByText } = render(
-        <PerpsMarketCategoryBadges
-          {...defaultProps}
-          selectedCategory="forex"
-          availableCategories={['crypto', 'stocks']}
-          onCategorySelect={onCategorySelect}
-        />,
-      );
-
-      // Should show available categories (fallback to "all" view)
-      // No auto-reset — user must tap a badge to change selection
-      expect(getByText('Crypto')).toBeTruthy();
-      expect(getByText('Stocks')).toBeTruthy();
-      // Forex is not in availableCategories, so it shouldn't show
-      expect(queryByText('Forex')).toBeNull();
-      // No auto-reset — filter clears when user taps the selected category again
-      expect(onCategorySelect).not.toHaveBeenCalled();
-    });
-
-    it('shows all default categories when availableCategories is empty', () => {
-      const { getByText } = render(
-        <PerpsMarketCategoryBadges
-          {...defaultProps}
-          availableCategories={[]}
-        />,
-      );
-
-      expect(getByText('Crypto')).toBeTruthy();
-      expect(getByText('Stocks')).toBeTruthy();
-      expect(getByText('Commodities')).toBeTruthy();
-      expect(getByText('Forex')).toBeTruthy();
-    });
-
     it('has correct testIDs for all badges', () => {
       const { getByTestId } = render(
         <PerpsMarketCategoryBadges {...defaultProps} testID="badges" />,

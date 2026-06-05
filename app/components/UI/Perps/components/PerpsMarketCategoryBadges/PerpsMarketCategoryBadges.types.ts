@@ -10,11 +10,6 @@ export interface PerpsMarketCategoryBadgesProps {
    */
   onCategorySelect: (category: MarketTypeFilter) => void;
   /**
-   * Optional list of available categories to display (for hiding empty categories).
-   * If not provided, all categories derived from market data will be shown.
-   */
-  availableCategories?: Exclude<MarketTypeFilter, 'all'>[];
-  /**
    * Optional test ID for E2E testing
    */
   testID?: string;
