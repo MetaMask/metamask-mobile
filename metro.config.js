@@ -10,6 +10,29 @@ const { getDefaultConfig } = require('expo/metro-config');
 const { mergeConfig } = require('@react-native/metro-config');
 const { lockdownSerializer } = require('@lavamoat/react-native-lockdown');
 
+// eslint-disable-next-line import-x/no-commonjs
+const appConfig = require('./app.config.js');
+
+const reactCompilerEnabled =
+  appConfig.experiments?.reactCompiler?.enabled === true;
+
+/**
+ * Expo's `rewriteRequestUrl` only adds `transform.reactCompiler` for
+ * `/.expo/.virtual-metro-entry.bundle` requests. MetaMask loads
+ * `index.bundle` (etc.) directly, so Metro never saw `customTransformOptions
+ * .reactCompiler` and the hybrid transformer stayed on the RN path.
+ */
+function withReactCompilerBundleParam(url) {
+  if (!reactCompilerEnabled || !url.includes('.bundle')) {
+    return url;
+  }
+  if (url.includes('transform.reactCompiler=')) {
+    return url;
+  }
+  const separator = url.includes('?') ? '&' : '?';
+  return `${url}${separator}transform.reactCompiler=true`;
+}
+
 // eslint-disable-next-line import-x/no-nodejs-modules
 const { parseArgs } = require('node:util');
 // eslint-disable-next-line import-x/no-nodejs-modules
@@ -93,8 +116,18 @@ module.exports = function (baseConfig) {
         ),
       );
 
+  const expoRewriteRequestUrl = defaultConfig.server?.rewriteRequestUrl;
+
   return wrapWithReanimatedMetroConfig(
     mergeConfig(defaultConfig, {
+      server: {
+        rewriteRequestUrl: (url) =>
+          withReactCompilerBundleParam(
+            typeof expoRewriteRequestUrl === 'function'
+              ? expoRewriteRequestUrl(url)
+              : url,
+          ),
+      },
       resolver: {
         unstable_enablePackageExports: true,
         assetExts: [...assetExts.filter((ext) => ext !== 'svg'), 'riv'],
@@ -244,7 +277,12 @@ module.exports = function (baseConfig) {
         },
         getTransformOptions: async () => ({
           transform: {
-            experimentalImportSupport: true,
+            // `@expo/metro-config/babel-transformer` maps this to
+            // `supportsStaticESM`. `true` keeps interleaved `import` syntax and
+            // breaks side-effect order in entry shims like `shim.js`.
+            // NOTE: With React Compiler on, Expo's transform worker forces this
+            // back to `true` before Babel — see override in `metro.transform.js`.
+            experimentalImportSupport: false,
             inlineRequires: true,
           },
         }),

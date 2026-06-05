@@ -7,7 +7,7 @@ const {
   lintTransformedFile,
 } = require('@metamask/build-utils');
 const { ESLint } = require('eslint');
-const defaultTransformer = require('metro-react-native-babel-transformer');
+const expoTransformer = require('@expo/metro-config/babel-transformer');
 const svgTransformer = require('react-native-svg-transformer');
 
 // Code fence removal variables
@@ -120,6 +120,31 @@ function getBuildTypeFeatures() {
 }
 
 /**
+ * React Compiler requires `@expo/metro-config/babel-transformer` (`supportsReactCompiler`).
+ *
+ * `transform.reactCompiler=true` must be on Metro bundle requests (see
+ * `withReactCompilerBundleParam` in `metro.config.js`). Also set here so Babel
+ * always sees the flag even if a transform call omits it.
+ *
+ * With React Compiler on, Expo's transform worker forces `experimentalImportSupport:
+ * true` before Babel (`transformJSWithBabel`). Counteract that at the Babel boundary
+ * so `shim.js` keeps hoisted `require()` init order.
+ *
+ * @param {import('metro-transform-worker').TransformOptions['options']} options
+ * @returns {import('metro-transform-worker').TransformOptions['options']}
+ */
+function getTransformerOptions(options) {
+  return {
+    ...options,
+    customTransformOptions: {
+      ...options.customTransformOptions,
+      reactCompiler: 'true',
+    },
+    experimentalImportSupport: false,
+  };
+}
+
+/**
  * The Metro transformer function. Notably, handles code fence removal.
  * See https://github.com/MetaMask/core/tree/main/packages/build-utils for details.
  */
@@ -147,13 +172,17 @@ module.exports.transform = async ({ src, filename, options }) => {
     if (shouldLintFencedFiles && didModify) {
       await lintTransformedFile(getESLintInstance(), filename, processedSource);
     }
-    return defaultTransformer.transform({
+    return expoTransformer.transform({
       src: processedSource,
       filename,
-      options,
+      options: getTransformerOptions(options),
     });
   }
-  return defaultTransformer.transform({ src, filename, options });
+  return expoTransformer.transform({
+    src,
+    filename,
+    options: getTransformerOptions(options),
+  });
 };
 
 /**

@@ -45,6 +45,40 @@ const dynamicImportToRequire = ({ types: t }) => ({
   },
 });
 
+// eslint-disable-next-line import-x/no-commonjs, import-x/no-nodejs-modules
+const path = require('path');
+
+/** Writes to Metro stderr (visible in the bundler terminal, including worker threads). */
+const logCompilerLine = (line) => {
+  try {
+    process.stderr.write(`${line}\n`);
+  } catch {
+    // ignore
+  }
+};
+
+/** Live Metro logs. Set REACT_COMPILER_LOG=false to disable. */
+const compilerLogEnabled = process.env.REACT_COMPILER_LOG !== 'false';
+const compiledFiles = new Set();
+let loggedCompilerActive = false;
+
+const reactCompilerLogger = {
+  logEvent(filename, event) {
+    if (!compilerLogEnabled || event.kind !== 'CompileSuccess') {
+      return;
+    }
+    if (!loggedCompilerActive) {
+      loggedCompilerActive = true;
+      logCompilerLine('[react-compiler] active — compiling components…');
+    }
+    if (compiledFiles.has(filename)) {
+      return;
+    }
+    compiledFiles.add(filename);
+    logCompilerLine(`[react-compiler] ${path.relative(process.cwd(), filename)}`);
+  },
+};
+
 // eslint-disable-next-line import-x/no-commonjs
 module.exports = {
   ignore: [
@@ -57,7 +91,16 @@ module.exports = {
         // Babel must not transform it or it injects require("@babel/runtime/helpers/...")
         /\/expo\/virtual\/streams\.js$/.test(filename)),
   ],
-  presets: ['babel-preset-expo'],
+  presets: [
+    [
+      'babel-preset-expo',
+      {
+        'react-compiler': {
+          logger: reactCompilerLogger,
+        },
+      },
+    ],
+  ],
   plugins: [
     'transform-inline-environment-variables',
     dynamicImportToRequire,
