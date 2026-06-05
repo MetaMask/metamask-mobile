@@ -1,17 +1,15 @@
-import { useCallback, useRef, useState } from 'react';
+import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { useFocusEffect } from '@react-navigation/native';
+import { useQuery, type UseQueryOptions } from '@tanstack/react-query';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
+import type { V1AccountTransactionsResponse } from '@metamask/core-backend';
+import { apiClient } from '../../../../core/apiClient';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectIsMoneyAccountDelegatedForCard } from '../../../../selectors/cardController';
-import { selectCardFeatureFlag } from '../../../../selectors/featureFlagController/card';
 import { MUSD_MONEY_ACCOUNT_CHAIN_IDS } from '../../Earn/constants/musd';
-import Logger from '../../../../util/Logger';
+import { MINUTE } from '../../../../constants/time';
 import type { CardTransaction } from '../types/moneyActivity';
-import {
-  fetchAccountTransactions,
-  parseCardTransactions,
-} from '../utils/accountsApi';
+import { parseCardTransactions } from '../utils/accountsApi';
 
 export interface UseMoneyAccountCardTransactionsResult {
   cardTransactions: CardTransaction[];
@@ -23,79 +21,49 @@ export interface UseMoneyAccountCardTransactionsResult {
 const EMPTY: CardTransaction[] = [];
 
 /**
- * Card payments for the primary Money account, sourced from the Accounts API
- *
- * Fetches the latest page only and refetches on screen focus rather than polling.
+ * Card payments for the primary Money account, sourced from the Accounts API via
+ * the shared {@link apiClient} (same client/auth path as the unified activity
+ * list). Requests the latest page only; React Query handles caching, dedup and
+ * stale-while-revalidate refetching.
  */
 export function useMoneyAccountCardTransactions(): UseMoneyAccountCardTransactionsResult {
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
   const isLinked = useSelector(selectIsMoneyAccountDelegatedForCard);
-  const cardFeatureFlag = useSelector(selectCardFeatureFlag);
   const rawAddress = primaryMoneyAccount?.address;
-  // Same source `CardController` uses; falls back to the client default when the
-  // flag doesn't carry one.
-  const accountsApiUrl = cardFeatureFlag?.constants?.accountsApiUrl;
+  const moneyAddress = rawAddress ? toChecksumHexAddress(rawAddress) : '';
 
-  const [cardTransactions, setCardTransactions] =
-    useState<CardTransaction[]>(EMPTY);
-  const [hasLoaded, setHasLoaded] = useState(false);
-  const [error, setError] = useState(false);
-
-  // Guards against a fetch resolving after the screen blurs / address changes.
-  const requestId = useRef(0);
-  // The in-flight request, so we can abort the socket (not just ignore its
-  // result) on blur or when a newer load supersedes it.
-  const abortRef = useRef<AbortController | null>(null);
-
-  const load = useCallback(async () => {
-    if (!isLinked || !rawAddress) {
-      setCardTransactions(EMPTY);
-      setHasLoaded(true);
-      return;
-    }
-    const moneyAddress = toChecksumHexAddress(rawAddress);
-    const current = ++requestId.current;
-    abortRef.current?.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
-    setError(false);
-    try {
-      const response = await fetchAccountTransactions({
-        address: moneyAddress,
-        chainIds: MUSD_MONEY_ACCOUNT_CHAIN_IDS,
-        baseUrl: accountsApiUrl,
-        signal: controller.signal,
-      });
-      if (current !== requestId.current) return;
-      setCardTransactions(parseCardTransactions(response, moneyAddress));
-    } catch (e) {
-      // A superseded/blurred request was aborted on purpose — don't surface it.
-      if (current !== requestId.current) {
-        return;
-      }
-      Logger.error(e as Error, 'useMoneyAccountCardTransactions fetch failed');
-      setError(true);
-      setCardTransactions(EMPTY);
-    } finally {
-      if (current === requestId.current) setHasLoaded(true);
-    }
-  }, [isLinked, rawAddress, accountsApiUrl]);
-
-  useFocusEffect(
-    useCallback(() => {
-      load();
-      // Invalidate and abort any in-flight request when the screen blurs.
-      return () => {
-        requestId.current++;
-        abortRef.current?.abort();
-        abortRef.current = null;
-      };
-    }, [load]),
+  const queryOptions = apiClient.accounts.getV1AccountTransactionsQueryOptions(
+    moneyAddress,
+    { chainIds: MUSD_MONEY_ACCOUNT_CHAIN_IDS, sortDirection: 'DESC' },
   );
 
-  // Initial load only: linked accounts haven't resolved their first fetch yet.
-  // Unlinked accounts never fetch, so they're never "loading".
-  const isLoading = isLinked && !hasLoaded;
+  // Parse at the boundary: the cache holds raw rows, the view gets CardTransactions.
+  const select = useMemo(
+    () => (response: V1AccountTransactionsResponse) =>
+      parseCardTransactions(response, moneyAddress),
+    [moneyAddress],
+  );
 
-  return { cardTransactions, isLoading, error, refetch: load };
+  // `apiClient` is built against query-core v5; this repo's react-query is v4, so
+  // the query options aren't nominally compatible. The shapes match at runtime.
+  const query = useQuery({
+    ...queryOptions,
+    select,
+    enabled: isLinked && moneyAddress !== '',
+    staleTime: 5 * MINUTE,
+    retry: false,
+  } as unknown as UseQueryOptions<
+    V1AccountTransactionsResponse,
+    Error,
+    CardTransaction[]
+  >);
+
+  return {
+    cardTransactions: query.data ?? EMPTY,
+    // `isInitialLoading` (not `isLoading`) so a disabled query never reports
+    // loading and a background refetch doesn't flash the spinner.
+    isLoading: query.isInitialLoading,
+    error: query.isError,
+    refetch: query.refetch,
+  };
 }
