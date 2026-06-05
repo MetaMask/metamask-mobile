@@ -21,6 +21,7 @@ import {
 import {
   useNotificationStoragePreferences,
   type NotificationStoragePreferenceSection,
+  type NotificationStoragePreferenceChannelKey,
 } from './hooks/useNotificationStoragePreferences';
 import { AccountsList } from './AccountsList';
 import { strings } from '../../../../../locales/i18n';
@@ -31,6 +32,8 @@ import { useWalletActivityAccountSelection } from './AccountsList.hooks';
 import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
+import { NotificationChannel } from '../../../../core/Analytics/events/channels';
+import { useSessionProfileId } from '../../../../util/notifications/hooks/useSessionProfileId';
 
 type NotificationSettingsStyles = ReturnType<typeof styleSheet>;
 
@@ -39,7 +42,6 @@ interface SectionContentProps {
 }
 
 const WalletActivitySectionContent = ({ styles }: SectionContentProps) => {
-  const { trackEvent, createEventBuilder } = useAnalytics();
   const {
     accountProps,
     notificationAccountListProps,
@@ -49,17 +51,12 @@ const WalletActivitySectionContent = ({ styles }: SectionContentProps) => {
     toggleAllAccounts,
   } = useWalletActivityAccountSelection();
 
+  // Section-specific behaviour on toggling all accounts lives here. The
+  // push/in-app channel analytics are handled generically by the parent
+  // NotificationSettingsSection.
   const handleToggleAllAccounts = useCallback(async () => {
     await toggleAllAccounts();
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.NOTIFICATIONS_SETTINGS_UPDATED)
-        .addProperties({
-          settings_type: 'wallet_activity',
-          enabled: !hasEnabledAccount,
-        })
-        .build(),
-    );
-  }, [toggleAllAccounts, trackEvent, createEventBuilder, hasEnabledAccount]);
+  }, [toggleAllAccounts]);
 
   return (
     <>
@@ -146,6 +143,16 @@ const SECTION_CONTENT_BY_TYPE: Partial<
   marketing: MarketingSectionContent,
 };
 
+const SETTINGS_TYPE_BY_SECTION: Record<
+  NotificationStoragePreferenceSection,
+  string
+> = {
+  walletActivity: 'wallet_activity',
+  perps: 'perps',
+  socialAI: 'social_ai',
+  marketing: 'marketing',
+};
+
 export interface NotificationSettingsSectionProps {
   navigation: NavigationProp<ParamListBase>;
   route: RouteProp<
@@ -167,11 +174,42 @@ const NotificationSettingsSection = ({
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, { theme });
   const { type, title, description } = route.params;
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { profileId } = useSessionProfileId();
 
   const isMetamaskNotificationsEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
   const { preferences, updatePreference } = useNotificationStoragePreferences();
+
+  const trackChannelUpdate = useCallback(
+    (channel: NotificationChannel, enabled: boolean) => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.NOTIFICATIONS_SETTINGS_UPDATED)
+          .addProperties({
+            settings_type: SETTINGS_TYPE_BY_SECTION[type],
+            notification_channel: channel,
+            enabled,
+            ...(profileId ? { profile_id: profileId } : {}),
+          })
+          .build(),
+      );
+    },
+    [trackEvent, createEventBuilder, type, profileId],
+  );
+
+  const handleToggleChannel = useCallback(
+    (
+      key: NotificationStoragePreferenceChannelKey,
+      channel: NotificationChannel,
+      currentValue: boolean,
+    ) => {
+      const nextEnabled = !currentValue;
+      updatePreference(type, key, nextEnabled);
+      trackChannelUpdate(channel, nextEnabled);
+    },
+    [updatePreference, trackChannelUpdate, type],
+  );
 
   useEffect(() => {
     if (!isMetamaskNotificationsEnabled) {
@@ -196,7 +234,6 @@ const NotificationSettingsSection = ({
         style={styles.container}
         contentContainerStyle={styles.contentContainer}
       >
-        <Text>TESTINGGGG</Text>
         <View style={styles.setting}>
           <Text color={TextColor.TextDefault} variant={TextVariant.HeadingLg}>
             {title}
@@ -217,10 +254,10 @@ const NotificationSettingsSection = ({
           <Switch
             value={sectionPrefs.pushNotificationsEnabled}
             onChange={() =>
-              updatePreference(
-                type,
+              handleToggleChannel(
                 'pushNotificationsEnabled',
-                !sectionPrefs.pushNotificationsEnabled,
+                NotificationChannel.PUSH,
+                sectionPrefs.pushNotificationsEnabled,
               )
             }
             trackColor={{
@@ -244,10 +281,10 @@ const NotificationSettingsSection = ({
           <Switch
             value={sectionPrefs.inAppNotificationsEnabled}
             onChange={() =>
-              updatePreference(
-                type,
+              handleToggleChannel(
                 'inAppNotificationsEnabled',
-                !sectionPrefs.inAppNotificationsEnabled,
+                NotificationChannel.IN_APP,
+                sectionPrefs.inAppNotificationsEnabled,
               )
             }
             trackColor={{

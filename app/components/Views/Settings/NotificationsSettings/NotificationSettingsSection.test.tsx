@@ -4,6 +4,11 @@ import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import Routes from '../../../../constants/navigation/Routes';
 import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
+import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
+import { NotificationChannel } from '../../../../core/Analytics/events/channels';
 import NotificationSettingsSection, {
   type NotificationSettingsSectionProps,
 } from './NotificationSettingsSection';
@@ -12,6 +17,8 @@ const mockDispatch = jest.fn();
 const mockGoBack = jest.fn();
 const mockUpdatePreference = jest.fn();
 const mockToggleAllAccounts = jest.fn();
+const mockTrackEvent = jest.fn();
+const TEST_PROFILE_ID = 'test-profile-id';
 let mockIsMetamaskNotificationsEnabled = true;
 let mockHasEnabledAccount = true;
 let mockHasNotificationAccounts = true;
@@ -48,6 +55,15 @@ jest.mock('./hooks/useNotificationStoragePreferences', () => ({
   useNotificationStoragePreferences: () => ({
     preferences: mockPreferences,
     updatePreference: mockUpdatePreference,
+  }),
+}));
+
+jest.mock('../../../hooks/useAnalytics/useAnalytics');
+
+jest.mock('../../../../util/notifications/hooks/useSessionProfileId', () => ({
+  useSessionProfileId: () => ({
+    profileId: 'test-profile-id',
+    isLoading: false,
   }),
 }));
 
@@ -99,6 +115,12 @@ describe('NotificationSettingsSection', () => {
     mockHasEnabledAccount = true;
     mockHasNotificationAccounts = true;
     mockIsUpdatingAllAccounts = false;
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+      }),
+    );
   });
 
   it('renders section preferences when global notifications are enabled', () => {
@@ -146,6 +168,64 @@ describe('NotificationSettingsSection', () => {
     });
 
     expect(screen.getByText('Select all')).toBeOnTheScreen();
+  });
+
+  it('updates and tracks the push channel when toggling push notifications', () => {
+    renderSection({
+      type: 'perps',
+      title: 'Trading Activity',
+      description: 'Perps position changes',
+    });
+
+    const [pushSwitch] = screen.getAllByRole('switch');
+    fireEvent(pushSwitch, 'onChange', { nativeEvent: { value: false } });
+
+    expect(mockUpdatePreference).toHaveBeenCalledWith(
+      'perps',
+      'pushNotificationsEnabled',
+      false,
+    );
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.NOTIFICATIONS_SETTINGS_UPDATED,
+      )
+        .addProperties({
+          settings_type: 'perps',
+          notification_channel: NotificationChannel.PUSH,
+          enabled: false,
+          profile_id: TEST_PROFILE_ID,
+        })
+        .build(),
+    );
+  });
+
+  it('updates and tracks the in-app channel when toggling in-app notifications', () => {
+    renderSection({
+      type: 'perps',
+      title: 'Trading Activity',
+      description: 'Perps position changes',
+    });
+
+    const [, inAppSwitch] = screen.getAllByRole('switch');
+    fireEvent(inAppSwitch, 'onChange', { nativeEvent: { value: false } });
+
+    expect(mockUpdatePreference).toHaveBeenCalledWith(
+      'perps',
+      'inAppNotificationsEnabled',
+      false,
+    );
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.NOTIFICATIONS_SETTINGS_UPDATED,
+      )
+        .addProperties({
+          settings_type: 'perps',
+          notification_channel: NotificationChannel.IN_APP,
+          enabled: false,
+          profile_id: TEST_PROFILE_ID,
+        })
+        .build(),
+    );
   });
 
   it('redirects to notification settings when global notifications are disabled', async () => {
