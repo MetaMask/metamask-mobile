@@ -13,6 +13,9 @@ let mockRiveCallbacks: {
   onStateChanged?: (machine: string, state: string) => void;
   onError?: (error: { message: string; type: string }) => void;
 } = {};
+// When true, the MockRive component throws during render to simulate native
+// module registration failure on select Android devices.
+let mockRiveShouldThrow = false;
 
 jest.mock('rive-react-native', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -22,6 +25,11 @@ jest.mock('rive-react-native', () => {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const MockRive = MockReact.forwardRef((props: any, ref: any) => {
+    if (mockRiveShouldThrow) {
+      throw new Error(
+        "Invariant Violation: Native component for 'RiveReactNativeView' does not exist",
+      );
+    }
     // Capture latest callbacks on every render so tests can trigger them
     mockRiveCallbacks = {
       onPlay: props.onPlay,
@@ -84,6 +92,7 @@ describe('FoxLoader', () => {
     jest.clearAllMocks();
     mockRiveCallbacks = {};
     mockHasTestOverrides = false;
+    mockRiveShouldThrow = false;
   });
 
   it('renders the container, static fox, and Rive wrapper', () => {
@@ -216,6 +225,26 @@ describe('FoxLoader', () => {
     });
 
     expect(onAnimationComplete).not.toHaveBeenCalled();
+  });
+
+  it('calls onAnimationComplete when the Rive component throws a render error (Error Boundary path)', async () => {
+    // Simulate select Android devices where the Rive native component is not
+    // registered — the Error Boundary must catch the render throw and allow
+    // the app to proceed rather than crashing the entire React tree.
+    const consoleSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
+    mockRiveShouldThrow = true;
+
+    const onAnimationComplete = jest.fn();
+    render(
+      <FoxLoader appServicesReady={false} onAnimationComplete={onAnimationComplete} />,
+    );
+
+    await waitFor(() => expect(onAnimationComplete).toHaveBeenCalledTimes(1));
+    expect(hideAsync).toHaveBeenCalled();
+
+    consoleSpy.mockRestore();
   });
 
   it('fires the Start trigger only once even when the component remounts', () => {

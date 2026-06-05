@@ -14,6 +14,7 @@ import { hideAsync } from 'expo-splash-screen';
 import { useStyles } from '../../../component-library/hooks';
 import Logger from '../../../util/Logger';
 import { hasTestOverrides } from '../../../util/test/utils';
+import ComponentErrorBoundary from '../ComponentErrorBoundary';
 import styleSheet from './FoxLoader.styles';
 import { FoxLoaderSelectorsIDs } from './FoxLoader.testIds';
 
@@ -114,6 +115,26 @@ const FoxLoaderAnimation = ({
     }
   }, []);
 
+  // Called by ComponentErrorBoundary when the Rive component throws a render
+  // error (e.g. native module not registered on select Android devices). This
+  // is distinct from the Rive `onError` prop, which only fires for playback
+  // errors; render errors propagate as React exceptions that only an Error
+  // Boundary can intercept.
+  const handleRiveBoundaryError = useCallback(() => {
+    if (!isCompleteRef.current) {
+      hideAsync().catch((error: unknown) =>
+        Logger.error(
+          error as Error,
+          'Failed to hide splash screen on Rive boundary error',
+        ),
+      );
+      // eslint-disable-next-line react-compiler/react-compiler
+      animationComplete = true;
+      isCompleteRef.current = true;
+      onAnimationCompleteRef.current?.();
+    }
+  }, []);
+
   useEffect(() => {
     if (isPlaying) {
       startAnimation();
@@ -199,49 +220,54 @@ const FoxLoaderAnimation = ({
           testID={FoxLoaderSelectorsIDs.RIVE_WRAPPER}
           style={[styles.riveAnimation, { opacity: riveOpacity }]}
         >
-          <Rive
-            ref={riveRef}
-            source={splashRiveFile}
-            style={styles.riveAnimation}
-            autoplay
-            fit={Fit.Contain}
-            alignment={Alignment.Center}
-            stateMachineName={SPLASH_STATE_MACHINE}
-            onPlay={() => {
-              isPlayingRef.current = true;
-              setIsPlaying(true);
-            }}
-            onError={(riveError: RNRiveError) => {
-              // Only bail out if Rive never started — runtime errors during playback are non-fatal
-              if (!isCompleteRef.current && !isPlayingRef.current) {
-                Logger.error(
-                  new Error(riveError.message),
-                  `FoxLoader: Rive failed before playback (${riveError.type})`,
-                );
-                // onLoad may not have fired if Rive errored before the image rendered
-                hideAsync().catch((error: unknown) =>
+          <ComponentErrorBoundary
+            componentLabel="FoxLoaderRiveAnimation"
+            onError={handleRiveBoundaryError}
+          >
+            <Rive
+              ref={riveRef}
+              source={splashRiveFile}
+              style={styles.riveAnimation}
+              autoplay
+              fit={Fit.Contain}
+              alignment={Alignment.Center}
+              stateMachineName={SPLASH_STATE_MACHINE}
+              onPlay={() => {
+                isPlayingRef.current = true;
+                setIsPlaying(true);
+              }}
+              onError={(riveError: RNRiveError) => {
+                // Only bail out if Rive never started — runtime errors during playback are non-fatal
+                if (!isCompleteRef.current && !isPlayingRef.current) {
                   Logger.error(
-                    error as Error,
-                    'Failed to hide splash screen on Rive error',
-                  ),
-                );
-                // eslint-disable-next-line react-compiler/react-compiler
-                animationComplete = true;
-                isCompleteRef.current = true;
-                onAnimationCompleteRef.current?.();
-              }
-            }}
-            onStateChanged={(_machineName, stateName) => {
-              if (isCompleteRef.current) return;
-              setIsIdle(stateName === SPLASH_IDLE_STATE);
-              if (exitTriggered.current && stateName === 'ExitState') {
-                // eslint-disable-next-line react-compiler/react-compiler
-                animationComplete = true;
-                isCompleteRef.current = true;
-                onAnimationCompleteRef.current?.();
-              }
-            }}
-          />
+                    new Error(riveError.message),
+                    `FoxLoader: Rive failed before playback (${riveError.type})`,
+                  );
+                  // onLoad may not have fired if Rive errored before the image rendered
+                  hideAsync().catch((error: unknown) =>
+                    Logger.error(
+                      error as Error,
+                      'Failed to hide splash screen on Rive error',
+                    ),
+                  );
+                  // eslint-disable-next-line react-compiler/react-compiler
+                  animationComplete = true;
+                  isCompleteRef.current = true;
+                  onAnimationCompleteRef.current?.();
+                }
+              }}
+              onStateChanged={(_machineName, stateName) => {
+                if (isCompleteRef.current) return;
+                setIsIdle(stateName === SPLASH_IDLE_STATE);
+                if (exitTriggered.current && stateName === 'ExitState') {
+                  // eslint-disable-next-line react-compiler/react-compiler
+                  animationComplete = true;
+                  isCompleteRef.current = true;
+                  onAnimationCompleteRef.current?.();
+                }
+              }}
+            />
+          </ComponentErrorBoundary>
         </Animated.View>
       </View>
     </SafeAreaView>
