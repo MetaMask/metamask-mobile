@@ -48,7 +48,7 @@ RUN bash -c 'eval "$(/home/node/.rbenv/bin/rbenv init -)" \
     && gem install bundler -v 2.5.8 \
     && gem install bigdecimal cocoapods \
     && bundle install'
-# fix broken ipv6 on nodjs v24
+# workaround: disable Happy Eyeballs (250ms default timeout causes ETIMEDOUT in Docker)
 ENV NODE_OPTIONS="--no-network-family-autoselection --trace-warnings"
 # minimize ruby memory usage
 ENV MALLOC_ARENA_MAX=1
