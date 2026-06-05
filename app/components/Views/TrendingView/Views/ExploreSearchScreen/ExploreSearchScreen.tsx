@@ -19,6 +19,7 @@ import SearchFeedRow, {
   getItemId,
 } from '../../search/SearchFeedRow';
 import {
+  getExploreSearchResultCount,
   trackExploreSearchEvent,
   useScrollTracking,
   type SearchFeedPill,
@@ -67,10 +68,18 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
     flashListRef.current?.scrollToOffset({ offset: 0, animated: false });
   }, [searchQuery]);
 
-  const { onScrollBeginDrag } = useScrollTracking('scrolled', searchQuery, {
-    tab_name: tabName,
-    result_count: resultCount,
-  });
+  const { onScrollBeginDrag, resetScrollTracking } = useScrollTracking(
+    'scrolled',
+    searchQuery,
+    {
+      tab_name: tabName,
+      result_count: resultCount,
+    },
+  );
+
+  useEffect(() => {
+    resetScrollTracking();
+  }, [searchQuery, resetScrollTracking]);
 
   const resultCountRef = useRef(resultCount);
   resultCountRef.current = resultCount;
@@ -201,16 +210,10 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
 
     const currentPill = activePillRef.current;
     const currentSections = sectionsRef.current;
-    const currentSection = currentSections.find(
-      (s) => s.feedId === currentPill,
+    const resultCount = getExploreSearchResultCount(
+      currentPill,
+      currentSections,
     );
-    const resultCount =
-      currentPill === ALL_PILL_KEY
-        ? currentSections.reduce(
-            (sum, s) => sum + (s.total ?? s.items.length),
-            0,
-          )
-        : (currentSection?.total ?? currentSection?.items.length ?? 0);
 
     trackExploreSearchEvent({
       interaction_type: 'searched',
@@ -223,14 +226,10 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
 
   const handlePillSelect = useCallback((key: string) => {
     const targetSections = sectionsRef.current;
-    const targetSection = targetSections.find((s) => s.feedId === key);
-    const resultCount =
-      key === ALL_PILL_KEY
-        ? targetSections.reduce(
-            (sum, s) => sum + (s.total ?? s.items.length),
-            0,
-          )
-        : (targetSection?.total ?? targetSection?.items.length);
+    const resultCount = getExploreSearchResultCount(
+      key as SearchFeedPill,
+      targetSections,
+    );
     trackExploreSearchEvent({
       interaction_type: 'tab_switched',
       search_query: searchQueryRef.current,

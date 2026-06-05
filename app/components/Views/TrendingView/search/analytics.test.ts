@@ -1,9 +1,12 @@
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { analytics } from '../../../../util/analytics/analytics';
 import {
+  getExploreSearchResultCount,
+  getTotalSectionResultCount,
   trackExplorePredictTrendingAssetViewed,
   trackExploreSectionSeeAll,
 } from './analytics';
+import type { SearchFeedSection } from './useExploreSearch';
 
 jest.mock('../../../../util/analytics/analytics', () => ({
   analytics: {
@@ -14,6 +17,62 @@ jest.mock('../../../../util/analytics/analytics', () => ({
 const mockTrackEvent = analytics.trackEvent as jest.MockedFunction<
   typeof analytics.trackEvent
 >;
+
+const makeSection = (
+  feedId: SearchFeedSection['feedId'],
+  overrides: Partial<SearchFeedSection> = {},
+): SearchFeedSection => ({
+  feedId,
+  title: feedId,
+  items: [],
+  isLoading: false,
+  ...overrides,
+});
+
+describe('getTotalSectionResultCount', () => {
+  it('sums section totals when available, otherwise item counts', () => {
+    const sections = [
+      makeSection('tokens', { total: 100, items: [{ id: 1 }] as unknown[] }),
+      makeSection('perps', { items: [{ id: 1 }, { id: 2 }] as unknown[] }),
+      makeSection('predictions', { total: 0, items: [] }),
+    ];
+
+    expect(getTotalSectionResultCount(sections)).toBe(102);
+  });
+});
+
+describe('getExploreSearchResultCount', () => {
+  const sections = [
+    makeSection('tokens', { total: 10, items: [{ id: 1 }] as unknown[] }),
+    makeSection('perps', { items: [{ id: 1 }, { id: 2 }] as unknown[] }),
+    makeSection('predictions', { items: [] }),
+  ];
+
+  it('returns the total across sections for the All pill', () => {
+    expect(getExploreSearchResultCount('all', sections)).toBe(12);
+  });
+
+  it('returns the active section count when that feed has results', () => {
+    expect(getExploreSearchResultCount('tokens', sections)).toBe(10);
+    expect(getExploreSearchResultCount('perps', sections)).toBe(2);
+  });
+
+  it('returns the total across sections for an empty feed pill fallback', () => {
+    expect(getExploreSearchResultCount('predictions', sections)).toBe(12);
+  });
+
+  it('returns the active section count while that feed is loading', () => {
+    const loadingSections = sections.map((s) =>
+      s.feedId === 'predictions' ? { ...s, isLoading: true } : s,
+    );
+
+    expect(getExploreSearchResultCount('predictions', loadingSections)).toBe(0);
+  });
+
+  it('returns the total across sections when the active feed section is missing', () => {
+    expect(getExploreSearchResultCount('sites', sections)).toBe(12);
+  });
+});
 
 describe('Explore search analytics', () => {
   beforeEach(() => {

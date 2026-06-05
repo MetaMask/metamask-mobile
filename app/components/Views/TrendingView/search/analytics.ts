@@ -5,7 +5,33 @@ import {
 } from '../../../../core/Analytics';
 import { analytics } from '../../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
-import type { SearchFeedId } from './useExploreSearch';
+import type { SearchFeedId, SearchFeedSection } from './useExploreSearch';
+
+/** Sum of result counts across all feed sections. */
+export const getTotalSectionResultCount = (
+  sections: SearchFeedSection[],
+): number => sections.reduce((sum, s) => sum + (s.total ?? s.items.length), 0);
+
+/**
+ * Result count visible to the user for the active pill.
+ * Aggregated and empty-tab fallback views sum all sections; a feed pill with
+ * its own list uses that section's count only.
+ */
+export const getExploreSearchResultCount = (
+  pill: SearchFeedPill,
+  sections: SearchFeedSection[],
+): number => {
+  if (pill === 'all') {
+    return getTotalSectionResultCount(sections);
+  }
+  const section = sections.find((s) => s.feedId === pill);
+  const showsSingleFeedList =
+    section?.isLoading || (section?.items.length ?? 0) > 0;
+  if (showsSingleFeedList) {
+    return section?.total ?? section?.items.length ?? 0;
+  }
+  return getTotalSectionResultCount(sections);
+};
 
 export type SearchInteractionType =
   | 'result_clicked'
