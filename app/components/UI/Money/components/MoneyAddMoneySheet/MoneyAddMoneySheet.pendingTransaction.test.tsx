@@ -1,24 +1,3 @@
-/**
- * Integration test reproducing the Money-home "Add funds" bug.
- *
- * Bug report: tapping "Add" on Money home "did not take me to Add funds flow,
- * but instead landed me back on Money home, with a new activity titled
- * 'Deposited'." — and it only happens when there is an unconfirmed transaction
- * pending elsewhere in the app.
- *
- * Root cause: `useConfirmNavigation` (used by `initiateDeposit`) defers its
- * navigation when an unapproved transaction exists — it rejects the pending
- * transaction first and only navigates later, from a `useEffect`. But the Money
- * "Add" sheet calls `closeAndNavigate`, which closes the bottom sheet. Closing
- * runs the sheet's `goBack` (popping/unmounting the modal) *before* finishing
- * the deposit. The hook that owns the deferred navigation unmounts, so the
- * effect never fires — navigation is lost — yet the deposit transaction is
- * still created and shows up as "Deposited".
- *
- * Unlike the unit test in `useConfirmNavigation.test.ts`, this test does NOT
- * call `unmount()` manually: the unmount is a genuine consequence of the
- * sheet's own close behaviour (`goBack`) when the user presses "Add".
- */
 import React, { useEffect, useState } from 'react';
 import { act, fireEvent } from '@testing-library/react-native';
 import {
@@ -31,6 +10,7 @@ import MoneyAddMoneySheet from './MoneyAddMoneySheet';
 import { MoneyAddMoneySheetTestIds } from './MoneyAddMoneySheet.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
+import { updateBgState } from '../../../../../core/redux/slices/engine';
 import { addTransactionBatch } from '../../../../../util/transaction-controller';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
@@ -40,7 +20,6 @@ import { getRampRoutingDecision } from '../../../../../reducers/fiatOrders';
 const PENDING_TX_ID = 'pending-tx-from-elsewhere';
 
 const mockNavigate = jest.fn();
-// goBack mirrors production: closing the sheet pops the modal, unmounting it.
 let unmountSheet: () => void = () => undefined;
 const mockGoBack = jest.fn(() => unmountSheet());
 
@@ -57,6 +36,14 @@ const mockPrimaryMoneyAccount = {
   address: '0x1111111111111111111111111111111111111111',
 };
 
+// Mutable mock of Engine.state.TransactionController so the test can simulate
+// the TransactionController removing a transaction after it is rejected.
+const mockEngineState: {
+  TransactionController: { transactions: TransactionMeta[] };
+} = {
+  TransactionController: { transactions: [] },
+};
+
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   return {
@@ -65,9 +52,6 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-// Faithful BottomSheet stub: onCloseBottomSheet runs `goBack()` (which unmounts
-// the sheet here, as navigation would in production) and then the post-close
-// callback — exactly the order the real BottomSheet uses.
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
   const { forwardRef, useImperativeHandle } = jest.requireActual('react');
@@ -136,6 +120,10 @@ jest.mock('../../../../../core/Engine', () => ({
     },
     ApprovalController: { rejectRequest: jest.fn() },
   },
+
+  get state() {
+    return mockEngineState;
+  },
 }));
 
 jest.mock(
@@ -201,9 +189,14 @@ const flushAsync = async () => {
   });
 };
 
+/**
+ * Regression test for the Money-home "Add funds" bug where tapping "Add"
+ * landed the user back on money home, with an empty 'Deposited activity'.
+ */
 describe('MoneyAddMoneySheet — Add funds with a pending transaction', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockEngineState.TransactionController = { transactions: [] };
     (useMusdBalance as jest.Mock).mockReturnValue({
       fiatBalanceAggregated: '0',
       fiatBalanceAggregatedFormatted: '$0.00',
@@ -221,18 +214,13 @@ describe('MoneyAddMoneySheet — Add funds with a pending transaction', () => {
     (getRampRoutingDecision as jest.Mock).mockReturnValue(null);
   });
 
-  // Failing test (until the bug is fixed): pressing "Add" must take the user to
-  // the Add funds confirmation flow even when an unconfirmed transaction is
-  // already pending. Today it does not — the deferred navigation dies with the
-  // unmounted sheet, dropping the user back on Money home with only a
-  // "Deposited" activity to show for it.
   it('navigates to the Add funds flow even when an unconfirmed transaction is already pending', async () => {
     const pendingTx = {
       id: PENDING_TX_ID,
       status: TransactionStatus.unapproved,
     } as TransactionMeta;
 
-    const { getByTestId } = renderHarness([pendingTx]);
+    const { getByTestId, store } = renderHarness([pendingTx]);
 
     fireEvent.press(
       getByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
@@ -242,13 +230,26 @@ describe('MoneyAddMoneySheet — Add funds with a pending transaction', () => {
     // The sheet closed (goBack ran, modal popped → hook unmounted).
     expect(mockGoBack).toHaveBeenCalledTimes(1);
 
-    // The deposit batch is created (this is the "Deposited" activity that shows
-    // up on Money home).
+    // The pre-existing pending transaction is rejected before navigating, and
+    // the deposit batch is created (the "Deposited" activity on Money home).
+    expect(
+      jest.mocked(Engine.context.ApprovalController.rejectRequest),
+    ).toHaveBeenCalledWith(PENDING_TX_ID, expect.anything());
     expect(addTransactionBatch).toHaveBeenCalledTimes(1);
 
-    // The user must still land on the Add funds confirmation flow. This is the
-    // assertion that currently fails: the pre-existing pending transaction
-    // forces a deferred navigation that never fires once the sheet unmounts.
+    // Navigation is deferred until the rejected transaction clears from state,
+    // so it has not happened yet — but the sheet has already unmounted by this point.
+    expect(mockNavigate).not.toHaveBeenCalled();
+
+    // Simulate the TransactionController removing the rejected transaction.
+    mockEngineState.TransactionController = { transactions: [] };
+    await act(async () => {
+      store.dispatch(updateBgState({ key: 'TransactionController' }));
+    });
+
+    // The navigation now fires even though the sheet that triggered it is
+    // gone — the user reaches the Add funds confirmation flow instead of being
+    // stranded on Money home.
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.MONEY.CONFIRMATIONS_ROOT,
       expect.objectContaining({

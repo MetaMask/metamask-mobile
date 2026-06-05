@@ -105,12 +105,15 @@ export function useMoneyAccountDeposit() {
         provider,
       });
 
-      // Navigate early for better UX; recover on failure below.
+      // Navigate early for better UX; recover on failure below. The sheet that
+      // triggered this closes (unmounting the hook) as part of the deposit, so
+      // the deferred navigation must survive that unmount.
       navigateToConfirmation({
         loader: ConfirmationLoader.CustomAmount,
         stack: Routes.MONEY.CONFIRMATIONS_ROOT,
         preferredPaymentToken,
         autoSelectFiatPayment: options?.autoSelectFiatPayment,
+        deferAcrossUnmount: true,
       });
 
       try {
@@ -190,10 +193,13 @@ export function useMoneyAccountWithdrawal() {
       provider,
     });
 
-    // Navigate early for better UX; recover on failure below.
+    // Navigate early for better UX; recover on failure below. The sheet that
+    // triggered this closes (unmounting the hook) as part of the withdrawal, so
+    // the deferred navigation must survive that unmount.
     navigateToConfirmation({
       loader: ConfirmationLoader.CustomAmount,
       stack: Routes.MONEY.CONFIRMATIONS_ROOT,
+      deferAcrossUnmount: true,
     });
 
     try {
