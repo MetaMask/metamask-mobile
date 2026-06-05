@@ -16,6 +16,7 @@ import {
   buildMoneyAccountDepositBatch,
   buildMoneyAccountWithdrawBatch,
 } from '../utils/moneyAccountTransactions';
+import { cancelInternalTransactionApprovals } from '../utils/cancelInternalTransactionApprovals';
 import {
   getMoneyAccountDepositIntent,
   clearMoneyAccountDepositIntent,
@@ -49,6 +50,9 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 jest.mock('../utils/moneyAccountTransactions');
+jest.mock('../utils/cancelInternalTransactionApprovals', () => ({
+  cancelInternalTransactionApprovals: jest.fn(),
+}));
 jest.mock(
   '../../../Views/confirmations/components/confirm/confirm-component',
   () => ({
@@ -80,6 +84,10 @@ const mockAddTransactionBatch = addTransactionBatch as jest.MockedFunction<
 const mockBuildDepositBatch =
   buildMoneyAccountDepositBatch as jest.MockedFunction<
     typeof buildMoneyAccountDepositBatch
+  >;
+const mockCancelInternalTransactionApprovals =
+  cancelInternalTransactionApprovals as jest.MockedFunction<
+    typeof cancelInternalTransactionApprovals
   >;
 const mockBuildWithdrawBatch =
   buildMoneyAccountWithdrawBatch as jest.MockedFunction<
@@ -185,6 +193,7 @@ describe('useMoneyAccountDeposit', () => {
     ).rejects.toThrow('No provider available');
 
     expect(mockBuildDepositBatch).not.toHaveBeenCalled();
+    expect(mockCancelInternalTransactionApprovals).not.toHaveBeenCalled();
   });
 
   it('builds deposit batch, navigates, and submits transaction', async () => {
@@ -346,6 +355,61 @@ describe('useMoneyAccountDeposit', () => {
     ).rejects.toThrow('Network client not found');
 
     expect(mockBuildDepositBatch).not.toHaveBeenCalled();
+    expect(getNavigateToConfirmation()).not.toHaveBeenCalled();
+    expect(mockCancelInternalTransactionApprovals).not.toHaveBeenCalled();
+  });
+
+  it('cancels stale internal transaction approvals before navigating or submitting the batch', async () => {
+    const callOrder: string[] = [];
+    mockCancelInternalTransactionApprovals.mockImplementationOnce(() => {
+      callOrder.push('cancel');
+    });
+    mockUseConfirmNavigation.mockReturnValueOnce({
+      navigateToConfirmation: jest.fn(() => {
+        callOrder.push('navigate');
+      }),
+    } as never);
+    mockAddTransactionBatch.mockImplementationOnce(async () => {
+      callOrder.push('addBatch');
+      return {} as never;
+    });
+
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await act(async () => {
+      await result.current.initiateDeposit();
+    });
+
+    expect(mockCancelInternalTransactionApprovals).toHaveBeenCalledTimes(1);
+    expect(callOrder).toEqual(['cancel', 'navigate', 'addBatch']);
+  });
+
+  it('does not cancel approvals when vault config guard rejects', async () => {
+    setupSelectors({ vaultConfig: undefined });
+
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await expect(
+      act(async () => {
+        await result.current.initiateDeposit();
+      }),
+    ).rejects.toThrow('Missing vault config');
+
+    expect(mockCancelInternalTransactionApprovals).not.toHaveBeenCalled();
+  });
+
+  it('does not cancel approvals when building the deposit batch fails', async () => {
+    mockBuildDepositBatch.mockRejectedValueOnce(new Error('build failed'));
+
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await expect(
+      act(async () => {
+        await result.current.initiateDeposit();
+      }),
+    ).rejects.toThrow('build failed');
+
+    expect(mockCancelInternalTransactionApprovals).not.toHaveBeenCalled();
     expect(getNavigateToConfirmation()).not.toHaveBeenCalled();
   });
 });

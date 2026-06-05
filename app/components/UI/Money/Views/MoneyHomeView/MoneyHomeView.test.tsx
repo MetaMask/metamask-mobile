@@ -141,6 +141,17 @@ jest.mock('../../hooks/useMoneyAccount', () => ({
   })),
 }));
 
+const mockRouteAddMoney = jest.fn();
+jest.mock('../../hooks/useMoneyAccountAddRouting', () => ({
+  useMoneyAccountAddRouting: jest.fn(() => ({
+    hasMusdBalance: false,
+    convertCrypto: jest.fn(),
+    depositFunds: jest.fn(),
+    moveMusd: jest.fn(),
+    routeAddMoney: mockRouteAddMoney,
+  })),
+}));
+
 jest.mock('../../hooks/useOnboardingStep', () => ({
   useOnboardingStep: jest.fn(() => ({
     currentStep: 0,
