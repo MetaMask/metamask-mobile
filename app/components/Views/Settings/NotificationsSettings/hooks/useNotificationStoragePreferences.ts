@@ -5,7 +5,9 @@ import {
   AGENTIC_CLI_CLIENT_PREFERENCE_QUERY_KEY,
   AGENTIC_CLI_NOTIFICATION_PREFERENCE_SECTION,
   mergeAgenticCliIntoPreferences,
+  persistLocalAgenticCliPreference,
   readAgenticCliFromPreferences,
+  readLocalAgenticCliPreference,
   resolveAgenticCliPreference,
   stripAgenticCliFromNotificationPreferences,
   type AgenticCliPreference,
@@ -52,6 +54,15 @@ export const useNotificationStoragePreferences = () => {
       queryClient.removeQueries({
         queryKey: AGENTIC_CLI_CLIENT_PREFERENCE_QUERY_KEY,
       });
+      return;
+    }
+
+    const localPreference = readLocalAgenticCliPreference();
+    if (localPreference) {
+      queryClient.setQueryData<AgenticCliPreference>(
+        AGENTIC_CLI_CLIENT_PREFERENCE_QUERY_KEY,
+        localPreference,
+      );
     }
   }, [data, queryClient]);
 
@@ -73,6 +84,7 @@ export const useNotificationStoragePreferences = () => {
 
   const setAgenticCliClientPreference = useCallback(
     (preference: AgenticCliPreference) => {
+      persistLocalAgenticCliPreference(preference);
       queryClient.setQueryData<AgenticCliPreference>(
         AGENTIC_CLI_CLIENT_PREFERENCE_QUERY_KEY,
         preference,

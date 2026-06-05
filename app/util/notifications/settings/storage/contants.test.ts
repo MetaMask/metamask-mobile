@@ -18,6 +18,7 @@ describe('constants', () => {
       NOTIFICATION_DATE_FORMAT: 'DD/MM/YYYY HH:mm:ss',
       NOTIFICATIONS_SETTINGS: 'notifications-settings',
       PN_USER_STORAGE: 'pnUserStorage',
+      AGENTIC_CLI_NOTIFICATION_PREFERENCES: 'agenticCliNotificationPreferences',
     });
   });
 

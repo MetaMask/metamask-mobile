@@ -13,6 +13,7 @@ export const STORAGE_IDS = {
   NOTIFICATION_DATE_FORMAT: 'DD/MM/YYYY HH:mm:ss',
   NOTIFICATIONS_SETTINGS: 'notifications-settings',
   PN_USER_STORAGE: 'pnUserStorage',
+  AGENTIC_CLI_NOTIFICATION_PREFERENCES: 'agenticCliNotificationPreferences',
 };
 
 export const STORAGE_TYPES = {
@@ -30,6 +31,7 @@ export const mapStorageTypeToIds = (id: string) => {
     case STORAGE_IDS.MM_FCM_TOKEN:
     case STORAGE_IDS.NOTIFICATIONS_SETTINGS:
     case STORAGE_IDS.PN_USER_STORAGE:
+    case STORAGE_IDS.AGENTIC_CLI_NOTIFICATION_PREFERENCES:
       return STORAGE_TYPES.OBJECT;
     case STORAGE_IDS.PUSH_NOTIFICATIONS_PROMPT_COUNT:
       return STORAGE_TYPES.NUMBER;

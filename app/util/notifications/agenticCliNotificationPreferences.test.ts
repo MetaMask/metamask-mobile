@@ -1,13 +1,33 @@
 import {
   AGENTIC_CLI_NOTIFICATION_PREFERENCE_SECTION,
   DEFAULT_AGENTIC_CLI_PREFERENCE,
+  clearLocalAgenticCliPreference,
   mergeAgenticCliIntoPreferences,
+  persistLocalAgenticCliPreference,
+  readLocalAgenticCliPreference,
   resolveAgenticCliPreference,
   stripAgenticCliFromNotificationPreferences,
   type NotificationStoragePreferencesWithAgenticCli,
 } from './agenticCliNotificationPreferences';
 
+jest.mock('./settings/storage', () => ({
+  mmStorage: {
+    getLocal: jest.fn(),
+    saveLocal: jest.fn(),
+  },
+}));
+
+import { mmStorage } from './settings/storage';
+
+const mockGetLocal = jest.mocked(mmStorage.getLocal);
+const mockSaveLocal = jest.mocked(mmStorage.saveLocal);
+
 describe('agenticCliNotificationPreferences', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockGetLocal.mockReturnValue(undefined);
+  });
+
   it('uses agenticCli as the preference section key', () => {
     expect(AGENTIC_CLI_NOTIFICATION_PREFERENCE_SECTION).toBe('agenticCli');
   });
@@ -178,6 +198,65 @@ describe('agenticCliNotificationPreferences', () => {
 
     expect(resolveAgenticCliPreference(preferencesWithAgenticCli)).toEqual(
       agenticCli,
+    );
+  });
+
+  it('uses locally persisted agenticCli when API and session cache omit the section', () => {
+    const localPreference = {
+      pushNotificationsEnabled: true,
+      inAppNotificationsEnabled: true,
+    };
+
+    mockGetLocal.mockReturnValue(localPreference);
+
+    expect(
+      mergeAgenticCliIntoPreferences(
+        {
+          walletActivity: {
+            inAppNotificationsEnabled: true,
+            pushNotificationsEnabled: true,
+            accounts: [],
+          },
+          marketing: {
+            inAppNotificationsEnabled: false,
+            pushNotificationsEnabled: false,
+          },
+          perps: {
+            inAppNotificationsEnabled: true,
+            pushNotificationsEnabled: true,
+          },
+          socialAI: {
+            inAppNotificationsEnabled: true,
+            pushNotificationsEnabled: true,
+            mutedTraderProfileIds: [],
+          },
+        },
+        undefined,
+        undefined,
+        localPreference,
+      ).agenticCli,
+    ).toEqual(localPreference);
+  });
+
+  it('persists and reads local agenticCli preferences', () => {
+    const preference = {
+      pushNotificationsEnabled: true,
+      inAppNotificationsEnabled: false,
+    };
+
+    persistLocalAgenticCliPreference(preference);
+    expect(mockSaveLocal).toHaveBeenCalledWith(
+      'agenticCliNotificationPreferences',
+      preference,
+    );
+
+    mockGetLocal.mockReturnValue(preference);
+    expect(readLocalAgenticCliPreference()).toEqual(preference);
+
+    clearLocalAgenticCliPreference();
+    expect(mockSaveLocal).toHaveBeenCalledWith(
+      'agenticCliNotificationPreferences',
+      null,
     );
   });
 });
