@@ -2,11 +2,9 @@ import { MarketCategory } from '@metamask/perps-controller';
 import { renderHook } from '@testing-library/react-hooks';
 import { usePerpsCategories } from './usePerpsCategories';
 import { usePerpsMarkets } from './usePerpsMarkets';
+import { strings } from '../../../../../locales/i18n';
 
 jest.mock('./usePerpsMarkets');
-jest.mock('../../../../../locales/i18n', () => ({
-  strings: (key: string) => key,
-}));
 
 const mockUsePerpsMarkets = usePerpsMarkets as jest.MockedFunction<
   typeof usePerpsMarkets
@@ -38,7 +36,7 @@ describe('usePerpsCategories', () => {
     const { result } = renderHook(() => usePerpsCategories());
 
     expect(result.current).toEqual([
-      { id: 'crypto', label: 'perps.home.tabs.crypto' },
+      { id: 'crypto', label: strings('perps.home.tabs.crypto') },
     ]);
   });
 
@@ -48,7 +46,7 @@ describe('usePerpsCategories', () => {
     const { result } = renderHook(() => usePerpsCategories());
 
     expect(result.current).toEqual([
-      { id: 'stocks', label: 'perps.home.tabs.stocks' },
+      { id: 'stocks', label: strings('perps.home.tabs.stocks') },
     ]);
   });
 
@@ -75,7 +73,7 @@ describe('usePerpsCategories', () => {
     const { result } = renderHook(() => usePerpsCategories());
 
     expect(result.current).toEqual([
-      { id: 'crypto', label: 'perps.home.tabs.crypto' },
+      { id: 'crypto', label: strings('perps.home.tabs.crypto') },
     ]);
   });
 
@@ -128,11 +126,11 @@ describe('usePerpsCategories', () => {
     });
   });
 
-  it('normalises hyphenated ids for translation keys', () => {
+  it('resolves labels via the i18n strings function', () => {
     mockMarkets([{ isHip3: true, marketType: MarketCategory.PreIpo }]);
 
     const { result } = renderHook(() => usePerpsCategories());
 
-    expect(result.current[0].label).toBe('perps.home.tabs.pre_ipo');
+    expect(result.current[0].label).toBe(strings('perps.home.tabs.pre_ipo'));
   });
 });
