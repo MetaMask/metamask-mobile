@@ -73,6 +73,11 @@ export enum COMPONENT_NAMES {
   MONEY_ACTIVITY_SECTION = 'money_activity_section',
   MONEY_ACTIVITY_LIST_ITEM = 'money_activity_list_item',
 
+  // — Activity Filter Buttons —
+  MONEY_ACTIVITY_FILTER_ALL = 'money_activity_filter_all',
+  MONEY_ACTIVITY_FILTER_DEPOSITS = 'money_activity_filter_deposits',
+  MONEY_ACTIVITY_FILTER_TRANSFERS = 'money_activity_filter_transfers',
+
   // — Condensed Info Cards —
   MONEY_CONDENSED_INFO_CARDS_HOW_IT_WORKS = 'money_condensed_info_cards_how_it_works',
   MONEY_CONDENSED_INFO_CARDS_MUSD = 'money_condensed_info_cards_musd',
@@ -117,6 +122,7 @@ export enum MONEY_BUTTON_INTENTS {
   LEARN_MORE = 'learn_more',
   OPEN_MORE_MENU = 'open_more_menu',
   VIEW_ALL = 'view_all',
+  FILTER = 'filter',
 }
 
 export enum MONEY_BUTTON_TYPES {

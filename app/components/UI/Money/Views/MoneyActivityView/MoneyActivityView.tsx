@@ -31,7 +31,12 @@ import { MoneyActivityFilter } from '../../constants/mockActivityData';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MoneyActivityViewTestIds } from './MoneyActivityView.testIds';
 import useMountEffect from '../../hooks/useMountEffect';
-import { COMPONENT_NAMES, SCREEN_NAMES } from '../../constants/moneyEvents';
+import {
+  COMPONENT_NAMES,
+  MONEY_BUTTON_INTENTS,
+  MONEY_BUTTON_TYPES,
+  SCREEN_NAMES,
+} from '../../constants/moneyEvents';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 
 const styles = StyleSheet.create({
@@ -77,11 +82,30 @@ const MoneyActivityView = () => {
   const { colors } = useTheme();
   const [filter, setFilter] = useState(MoneyActivityFilter.All);
 
-  const { trackScreenViewed, trackActivitySurfaceClicked } = useMoneyAnalytics({
-    screen_name: SCREEN_NAMES.MONEY_ACTIVITY,
-  });
+  const { trackScreenViewed, trackActivitySurfaceClicked, trackButtonClicked } =
+    useMoneyAnalytics({
+      screen_name: SCREEN_NAMES.MONEY_ACTIVITY,
+    });
 
   useMountEffect(trackScreenViewed);
+
+  const filterLabels = useMemo(
+    () => ({
+      all: {
+        labelEn: strings('money.activity.filter_all', { locale: 'en' }),
+        labelLocalized: strings('money.activity.filter_all'),
+      },
+      deposits: {
+        labelEn: strings('money.activity.filter_deposits', { locale: 'en' }),
+        labelLocalized: strings('money.activity.filter_deposits'),
+      },
+      transfers: {
+        labelEn: strings('money.activity.filter_transfers', { locale: 'en' }),
+        labelLocalized: strings('money.activity.filter_transfers'),
+      },
+    }),
+    [],
+  );
 
   const {
     allTransactions,
@@ -114,6 +138,25 @@ const MoneyActivityView = () => {
     () =>
       mergeMoneyActivity(transfers, mockDataEnabled ? [] : cardTransactions),
     [transfers, cardTransactions, mockDataEnabled],
+  );
+
+  const handleFilterPress = useCallback(
+    (
+      filter: MoneyActivityFilter,
+      { labelEn, labelLocalized }: { labelEn: string; labelLocalized: string },
+      componentName: COMPONENT_NAMES,
+    ) => {
+      trackButtonClicked({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.FILTER,
+        label_localized: labelLocalized,
+        label_en: labelEn,
+        component_name: componentName,
+      });
+
+      setFilter(filter);
+    },
+    [trackButtonClicked],
   );
 
   const handleBackPress = useCallback(() => {
@@ -222,10 +265,16 @@ const MoneyActivityView = () => {
           }
           size={ButtonSize.Md}
           twClassName="min-w-0 shrink px-3"
-          onPress={() => setFilter(MoneyActivityFilter.All)}
+          onPress={() =>
+            handleFilterPress(
+              MoneyActivityFilter.All,
+              filterLabels.all,
+              COMPONENT_NAMES.MONEY_ACTIVITY_FILTER_ALL,
+            )
+          }
           testID={MoneyActivityViewTestIds.FILTER_ALL}
         >
-          {strings('money.activity.filter_all')}
+          {filterLabels.all.labelLocalized}
         </Button>
         <Button
           variant={
@@ -235,10 +284,16 @@ const MoneyActivityView = () => {
           }
           size={ButtonSize.Md}
           twClassName="min-w-0 shrink px-3"
-          onPress={() => setFilter(MoneyActivityFilter.Deposits)}
+          onPress={() =>
+            handleFilterPress(
+              MoneyActivityFilter.Deposits,
+              filterLabels.deposits,
+              COMPONENT_NAMES.MONEY_ACTIVITY_FILTER_DEPOSITS,
+            )
+          }
           testID={MoneyActivityViewTestIds.FILTER_DEPOSITS}
         >
-          {strings('money.activity.filter_deposits')}
+          {filterLabels.deposits.labelLocalized}
         </Button>
         <Button
           variant={
@@ -248,10 +303,16 @@ const MoneyActivityView = () => {
           }
           size={ButtonSize.Md}
           twClassName="min-w-0 shrink px-3"
-          onPress={() => setFilter(MoneyActivityFilter.Transfers)}
+          onPress={() =>
+            handleFilterPress(
+              MoneyActivityFilter.Transfers,
+              filterLabels.transfers,
+              COMPONENT_NAMES.MONEY_ACTIVITY_FILTER_TRANSFERS,
+            )
+          }
           testID={MoneyActivityViewTestIds.FILTER_TRANSFERS}
         >
-          {strings('money.activity.filter_transfers')}
+          {filterLabels.transfers.labelLocalized}
         </Button>
       </Box>
 
