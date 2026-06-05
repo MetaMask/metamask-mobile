@@ -374,7 +374,7 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
                 onPress={submit}
                 isFullWidth
                 isDisabled={!isValid || isLoading}
-                isLoading={isLoading}
+                isLoading={isLoading && !isMoneyAccountSource}
               >
                 {strings('card.card_spending_limit.confirm_new_limit')}
               </Button>

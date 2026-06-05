@@ -834,6 +834,18 @@ describe('SpendingLimit Component', () => {
 
       expect(screen.getByTestId('button-loading-indicator')).toBeOnTheScreen();
     });
+
+    it('omits the button spinner on Money Account submits to avoid duplicating the toast spinner', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        isLoading: true,
+        isMoneyAccountSource: true,
+      });
+
+      render();
+
+      expect(screen.queryByTestId('button-loading-indicator')).toBeNull();
+    });
   });
 
   describe('Onboarding Flow', () => {
