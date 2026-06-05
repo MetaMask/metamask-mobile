@@ -207,6 +207,7 @@ describe('useMoneyAccountDeposit', () => {
       stack: Routes.MONEY.CONFIRMATIONS_ROOT,
       preferredPaymentToken: undefined,
       autoSelectFiatPayment: undefined,
+      deferAcrossUnmount: true,
     });
 
     expect(mockAddTransactionBatch).toHaveBeenCalledWith(
@@ -232,6 +233,7 @@ describe('useMoneyAccountDeposit', () => {
       stack: Routes.MONEY.CONFIRMATIONS_ROOT,
       preferredPaymentToken: undefined,
       autoSelectFiatPayment: true,
+      deferAcrossUnmount: true,
     });
   });
 
@@ -263,6 +265,7 @@ describe('useMoneyAccountDeposit', () => {
       stack: Routes.MONEY.CONFIRMATIONS_ROOT,
       preferredPaymentToken,
       autoSelectFiatPayment: undefined,
+      deferAcrossUnmount: true,
     });
     expect(observedBatchId).toMatch(/^0x[0-9a-f]+$/);
     expect(intentAtCallTime).toBe('addMusd');
@@ -445,6 +448,7 @@ describe('useMoneyAccountWithdrawal', () => {
     expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
       loader: ConfirmationLoader.CustomAmount,
       stack: Routes.MONEY.CONFIRMATIONS_ROOT,
+      deferAcrossUnmount: true,
     });
 
     expect(mockAddTransactionBatch).toHaveBeenCalledWith(
