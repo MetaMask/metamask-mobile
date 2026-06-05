@@ -12,6 +12,7 @@ import SiteSkeleton from '../../../UI/Sites/components/SiteSkeleton/SiteSkeleton
 import type { SearchFeedId } from './useExploreSearch';
 import TapView from './TapView';
 import { trackExploreSearchEvent, type SearchFeedPill } from './analytics';
+import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
 
 interface SearchFeedRowProps {
   feedId: SearchFeedId;
@@ -25,7 +26,13 @@ const renderRow = (feedId: SearchFeedId, item: unknown, index: number) => {
   switch (feedId) {
     case 'tokens':
     case 'stocks':
-      return <TokenSearchRowItem token={item as TrendingAsset} index={index} />;
+      return (
+        <TokenSearchRowItem
+          token={item as TrendingAsset}
+          index={index}
+          tokenDetailsSource={TokenDetailsSource.ExploreSearch}
+        />
+      );
     case 'perps':
       return <PerpsRowItem market={item as PerpsMarketData} />;
     case 'predictions':
