@@ -62,11 +62,24 @@ These shaped the design and must hold for it to work:
 5. **Token support is checkable client-side** via `providerSupportsAsset(provider, assetId)`
    (`app/components/UI/Ramp/utils/providerSupportsAsset.ts`).
 
-6. **There is an existing live-keyboard alert pattern.** `AlertKeys.PerpsDepositMinimum`
-   is a pending-amount alert evaluated against the debounced amount and surfaced live
-   during keyboard entry (red amount + inline message + disabled Continue), wired
-   through `usePendingAmountAlerts` → `useTransactionCustomAmountAlerts` and registered
-   in `useConfirmationAlerts`. This is the template for our alert.
+6. **There is an existing live-keyboard alert pattern.** The template is
+   **`useInsufficientMoneyAccountBalanceAlert`**
+   (`app/components/Views/confirmations/hooks/alerts/useInsufficientMoneyAccountBalanceAlert.ts`):
+   a pending-amount alert evaluated against the debounced amount and surfaced live
+   during keyboard entry (red amount + inline message + disabled Continue). It is a
+   real, end-to-end-wired alert: its hook is invoked in `usePendingAmountAlerts`
+   (passed `pendingAmount`) **and** registered in `useConfirmationAlerts`, and its key
+   is listed in the filter arrays of `useTransactionCustomAmountAlerts`. The hook
+   takes `{ pendingAmount }`, sources everything else itself (transaction metadata,
+   etc.), gates on transaction type via `hasTransactionType`, and returns a blocking
+   `Alert[]` (`field: RowAlertKey.Amount`, `severity: Severity.Danger`,
+   `isBlocking: true`).
+
+   > NOTE: `AlertKeys.PerpsDepositMinimum` is **not** a usable template — it is an
+   > orphaned key with no emitter hook (it appears only in `constants/alerts.ts`,
+   > `useConfirmationAlertMetrics`, and the `useTransactionCustomAmountAlerts` filter
+   > arrays; no hook ever produces it). Model the new alert on
+   > `useInsufficientMoneyAccountBalanceAlert` instead.
 
 ## Design
 
@@ -132,6 +145,11 @@ Internals (all Ramps-domain, synchronous over already-cached data):
   `{ minAmount, maxAmount }`.
 - `amountLimitError = getProviderLimitMessage({ provider, fiatCurrency: currency,
   paymentMethodId, amount, currency, formatCurrency })` (existing util; localized).
+  `fiatCurrency` and `currency` are intentionally the same region currency here:
+  `fiatCurrency` selects the `provider.limits.fiat[...]` bucket (lowercased internally
+  by `getProviderBuyLimit`), and `currency` is used for display formatting of the
+  min/max in the message. They only differ if display currency ever diverges from the
+  limits-bucket currency, which is not the case in this flow.
 - Return `{ minAmount, maxAmount, amountLimitError, currency }`.
 
 Region is handled implicitly: the providers list is region-scoped at fetch time, and
@@ -148,15 +166,29 @@ limits are published for the provider, the hook returns `amountLimitError: null`
 - Add a new key, e.g. `AlertKeys.FiatBuyAmountLimit`, to
   `app/components/Views/confirmations/constants/alerts.ts`.
 - New alert hook `useFiatBuyLimitAlert` in
-  `app/components/Views/confirmations/hooks/alerts/`, modeled on the perps-minimum
-  alert. It calls `useRampsBuyLimits({ assetId, amount: <debounced fiat amount>,
-  paymentMethodId: selectedFiatPaymentMethodId })` and returns a **blocking** alert
-  with the `amountLimitError` message when non-null (and only for fiat
-  moneyAccountDeposit context).
-- Register it in `usePendingAmountAlerts` (so it evaluates against the debounced
-  amount and surfaces live during keyboard entry) and include the new key in the
-  `PENDING_AMOUNT_ALERTS` / `KEYBOARD_ALERTS` / `ON_CHANGE_ALERTS` arrays in
-  `useTransactionCustomAmountAlerts`, mirroring `PerpsDepositMinimum`.
+  `app/components/Views/confirmations/hooks/alerts/`, modeled **exactly on
+  `useInsufficientMoneyAccountBalanceAlert`** (the live template). It:
+  - takes `{ pendingAmount }` (the debounced fiat amount), matching the calling
+    convention `usePendingAmountAlerts` uses;
+  - sources `assetId` from the transaction metadata
+    (`useTransactionMetadataRequest`) and `paymentMethodId` from
+    `useTransactionPayFiatPayment()` itself — `usePendingAmountAlerts` only forwards
+    `pendingTokenAmount`, so the hook must read these other inputs internally;
+  - gates on fiat `moneyAccountDeposit` context (`hasTransactionType` +
+    `selectedPaymentMethodId` present);
+  - calls `useRampsBuyLimits({ assetId, amount: Number(pendingAmount), paymentMethodId })`;
+  - returns a **blocking** `Alert[]` (`field: RowAlertKey.Amount`,
+    `severity: Severity.Danger`, `isBlocking: true`) carrying `amountLimitError`
+    as `message` when it is non-null; otherwise `[]`.
+- Wire it the same way `useInsufficientMoneyAccountBalanceAlert` is wired (do **not**
+  follow the orphaned `PerpsDepositMinimum`):
+  - invoke the hook inside `usePendingAmountAlerts` (passing `pendingTokenAmount`) so
+    it evaluates against the debounced amount and surfaces live during keyboard entry;
+  - register it in `useConfirmationAlerts` (the context-level registry) as well;
+  - add the new `AlertKeys.FiatBuyAmountLimit` to the `PENDING_AMOUNT_ALERTS` /
+    `KEYBOARD_ALERTS` / `ON_CHANGE_ALERTS` arrays in
+    `useTransactionCustomAmountAlerts`, mirroring the
+    `InsufficientMoneyAccountBalance` entries.
 
 `custom-amount-info` itself needs **no new wiring**: the existing
 `useTransactionCustomAmountAlerts` already turns the amount red (`CustomAmount hasAlert`),
