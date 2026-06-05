@@ -1,11 +1,12 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import Animated, {
-  runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
+
 import {
   Box,
   Text,
@@ -137,7 +138,7 @@ const SlidingTextCarousel: React.FC<SlidingTextCarouselProps> = ({
         // Teleport the departing slot off-screen right while still invisible
         frontX.value = cw;
         // Hand off all ref mutations back to the JS thread
-        runOnJS(onSlideEnd)(aIsFront, capturedIdx);
+        scheduleOnRN(onSlideEnd, aIsFront, capturedIdx);
       }
     });
   }, [texts.length, slotAX, slotBX, onSlideEnd, onSlideStart]);

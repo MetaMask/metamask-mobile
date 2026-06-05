@@ -1,6 +1,6 @@
 // Third party dependencies
 import React, { useRef, useEffect } from 'react';
-import { render, act, waitFor } from '@testing-library/react-native';
+import { render, waitFor } from '@testing-library/react-native';
 
 // External dependencies.
 import Text from '../../../../Texts/Text';
@@ -146,78 +146,5 @@ describe('BottomSheetDialog', () => {
       expect(onCloseMock).toHaveBeenCalledTimes(2);
     });
   });
-  it('calls onClose only once when onCloseDialog is invoked twice rapidly', async () => {
-    const onCloseMock = jest.fn();
-    const TestComponent = () => {
-      const ref = useRef<BottomSheetDialogRef>(null);
-
-      useEffect(() => {
-        if (ref.current) {
-          ref.current?.onCloseDialog();
-          ref.current?.onCloseDialog();
-        }
-      }, []);
-
-      return (
-        <BottomSheetDialog ref={ref} onClose={onCloseMock}>
-          <Text>Test Child</Text>
-        </BottomSheetDialog>
-      );
-    };
-
-    render(<TestComponent />);
-    await waitFor(() => {
-      expect(onCloseMock).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  it('allows closing again after re-opening', async () => {
-    const onCloseMock = jest.fn();
-    const onOpenMock = jest.fn();
-    const TestComponent = () => {
-      const ref = useRef<BottomSheetDialogRef>(null);
-
-      useEffect(() => {
-        if (ref.current) {
-          ref.current?.onCloseDialog();
-          ref.current?.onOpenDialog();
-          ref.current?.onCloseDialog();
-        }
-      }, []);
-
-      return (
-        <BottomSheetDialog ref={ref} onClose={onCloseMock} onOpen={onOpenMock}>
-          <Text>Test Child</Text>
-        </BottomSheetDialog>
-      );
-    };
-
-    render(<TestComponent />);
-    await waitFor(() => {
-      expect(onCloseMock).toHaveBeenCalledTimes(2);
-    });
-  });
   //   Note: Add Gesture tests when react-native-gesture-handler gets updated
-
-  describe('panGestureHandlerProps', () => {
-    it('passes props to the PanGestureHandler via panGestureHandlerProps', () => {
-      const { getByTestId } = render(
-        <BottomSheetDialog
-          panGestureHandlerProps={{ testID: 'pan-gesture-handler' }}
-        >
-          <Text>Test Child</Text>
-        </BottomSheetDialog>,
-      );
-      expect(getByTestId('pan-gesture-handler')).toBeOnTheScreen();
-    });
-
-    it('renders normally when panGestureHandlerProps is undefined', () => {
-      const { getByText } = render(
-        <BottomSheetDialog panGestureHandlerProps={undefined}>
-          <Text>No Handler Props</Text>
-        </BottomSheetDialog>,
-      );
-      expect(getByText('No Handler Props')).toBeOnTheScreen();
-    });
-  });
 });

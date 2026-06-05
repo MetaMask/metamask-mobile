@@ -2,12 +2,13 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { View, StyleSheet, Image } from 'react-native';
 import Animated, {
   cancelAnimation,
-  runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withDelay,
   withTiming,
 } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
+
 import Device from '../../../../../../util/device';
 import BaseTitle from '../../../../../Base/Title';
 import ShapesBackgroundAnimation from '../ShapesBackgroundAnimation';
@@ -128,7 +129,7 @@ function LoadingAnimation({
       },
       () => {
         if (onAnimationEnd) {
-          runOnJS(onAnimationEnd)();
+          scheduleOnRN(onAnimationEnd);
         }
       },
     );

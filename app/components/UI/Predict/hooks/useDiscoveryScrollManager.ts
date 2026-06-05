@@ -6,8 +6,8 @@ import {
   withTiming,
   withDelay,
   Easing,
-  runOnJS,
 } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
 
 export const ANIMATION_DURATION = 300;
 export const SCROLL_THRESHOLD = 100;
@@ -27,13 +27,13 @@ interface UseDiscoveryScrollManagerParams {
   walletHeaderTranslateY?: SharedValue<number>;
   onPortfolioScroll?: () => void;
   /**
-   * Called from the scroll worklet (via runOnJS) with the current scroll Y and
+   * Called from the scroll worklet (via scheduleOnRN) with the current scroll Y and
    * viewport height. Use this to forward events to JS-thread scroll handlers
    * (e.g. analytics section tracking) without needing a separate ScrollView.
    */
   onScrollEvent?: (scrollY: number, viewportHeight: number) => void;
   /**
-   * Called via runOnJS at the exact moment the hide/show decision is made —
+   * Called via scheduleOnRN at the exact moment the hide/show decision is made —
    * same worklet frame as the withTiming call. Use this to sync sibling
    * animations (e.g. icon collapse) without position-based polling.
    */
@@ -98,7 +98,11 @@ export const useDiscoveryScrollManager = ({
       'worklet';
 
       const currentY = event.contentOffset.y;
-      runOnJS(callScrollCallbacks)(currentY, event.layoutMeasurement.height);
+      scheduleOnRN(
+        callScrollCallbacks,
+        currentY,
+        event.layoutMeasurement.height,
+      );
 
       // Skip settling events after a tab switch. Multiple events can fire
       // when views remain mounted (opacity approach) and settle back into view.
@@ -142,8 +146,8 @@ export const useDiscoveryScrollManager = ({
         walletHeaderTranslateY.value = withTiming(0, showAnimationConfig);
         accumulatedDelta.value = 0;
         lastDirection.value = 0;
-        runOnJS(setHeaderHidden)(false);
-        runOnJS(callHeaderHiddenChange)(false);
+        scheduleOnRN(setHeaderHidden, false);
+        scheduleOnRN(callHeaderHiddenChange, false);
         return;
       }
 
@@ -157,8 +161,8 @@ export const useDiscoveryScrollManager = ({
           hideAnimationConfig,
         );
         accumulatedDelta.value = 0;
-        runOnJS(setHeaderHidden)(true);
-        runOnJS(callHeaderHiddenChange)(true);
+        scheduleOnRN(setHeaderHidden, true);
+        scheduleOnRN(callHeaderHiddenChange, true);
       }
 
       // Scroll up — show header
@@ -166,8 +170,8 @@ export const useDiscoveryScrollManager = ({
         isHeaderHidden.value = 0;
         walletHeaderTranslateY.value = withTiming(0, showAnimationConfig);
         accumulatedDelta.value = 0;
-        runOnJS(setHeaderHidden)(false);
-        runOnJS(callHeaderHiddenChange)(false);
+        scheduleOnRN(setHeaderHidden, false);
+        scheduleOnRN(callHeaderHiddenChange, false);
       }
     },
   });

@@ -6,10 +6,11 @@ import {
   GestureHandlerRootView,
 } from 'react-native-gesture-handler';
 import Animated, {
-  runOnJS,
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
+
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { playImpact, ImpactMoment } from '../../../../../../../util/haptics';
 
@@ -145,18 +146,11 @@ export function QuickBuyPercentageSlider({
 
   const gesture = Gesture.Simultaneous(
     Gesture.Tap().onEnd((event) => {
-      // Tap: update display position + immediately commit (no drag phase).
-      runOnJS(updateValueFromPosition)(event.x, sliderWidth.value);
-      runOnJS(commitFromPosition)(event.x, sliderWidth.value);
+      scheduleOnRN(updateValueFromPosition, event.x, sliderWidth.value);
     }),
-    Gesture.Pan()
-      .onUpdate((event) => {
-        runOnJS(updateValueFromPosition)(event.x, sliderWidth.value);
-      })
-      .onEnd((event) => {
-        // Commit the final position when the user lifts their finger.
-        runOnJS(commitFromPosition)(event.x, sliderWidth.value);
-      }),
+    Gesture.Pan().onUpdate((event) => {
+      scheduleOnRN(updateValueFromPosition, event.x, sliderWidth.value);
+    }),
   );
 
   const handleAccessibilityAction = useCallback(

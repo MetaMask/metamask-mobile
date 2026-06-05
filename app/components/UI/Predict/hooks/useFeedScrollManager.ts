@@ -6,8 +6,8 @@ import {
   SharedValue,
   withTiming,
   Easing,
-  runOnJS,
 } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
 
 // =============================================================================
 // TYPES
@@ -198,8 +198,8 @@ export const useFeedScrollManager = ({
         }
         accumulatedDelta.value = 0;
         lastDirection.value = 0;
-        runOnJS(setHeaderHidden)(false);
-        if (onHeaderHiddenChange) runOnJS(onHeaderHiddenChange)(false);
+        scheduleOnRN(setHeaderHidden, false);
+        if (onHeaderHiddenChange) scheduleOnRN(onHeaderHiddenChange, false);
         return;
       }
 
@@ -225,8 +225,8 @@ export const useFeedScrollManager = ({
           );
         }
         accumulatedDelta.value = 0;
-        runOnJS(setHeaderHidden)(true);
-        if (onHeaderHiddenChange) runOnJS(onHeaderHiddenChange)(true);
+        scheduleOnRN(setHeaderHidden, true);
+        if (onHeaderHiddenChange) scheduleOnRN(onHeaderHiddenChange, true);
       }
 
       // Scrolling up -> show header
@@ -237,8 +237,8 @@ export const useFeedScrollManager = ({
           walletHeaderTranslateY.value = withTiming(0, animationConfig);
         }
         accumulatedDelta.value = 0;
-        runOnJS(setHeaderHidden)(false);
-        if (onHeaderHiddenChange) runOnJS(onHeaderHiddenChange)(false);
+        scheduleOnRN(setHeaderHidden, false);
+        if (onHeaderHiddenChange) scheduleOnRN(onHeaderHiddenChange, false);
       }
     },
   });

@@ -8,7 +8,7 @@ import React, {
 } from 'react';
 import { InteractionManager } from 'react-native';
 import { Gesture } from 'react-native-gesture-handler';
-import { runOnJS } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
 
 const TAB_LOAD_FALLBACK_TIMEOUT_MS = 250;
 
@@ -179,9 +179,9 @@ export function useTabsList<T extends BaseTabItem>({
           const { translationX, velocityX } = gestureEvent;
           if (Math.abs(translationX) > 50 || Math.abs(velocityX) > 500) {
             if (translationX > 0) {
-              runOnJS(goToPreviousTab)();
+              scheduleOnRN(goToPreviousTab);
             } else if (translationX < 0) {
-              runOnJS(goToNextTab)();
+              scheduleOnRN(goToNextTab);
             }
           }
         }),

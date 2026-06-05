@@ -4,10 +4,11 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   useSharedValue,
   withTiming,
-  runOnJS,
   useAnimatedStyle,
   type SharedValue,
 } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
+
 import {
   playImpact,
   ImpactMoment,
@@ -241,14 +242,14 @@ export const GestureWebViewWrapper: React.FC<GestureWebViewWrapperProps> = ({
             swipeProgress.value = 0;
             swipeStartTime.current = Date.now();
             stateManager.activate();
-            runOnJS(triggerHapticFeedback)(ImpactMoment.EdgeGestureEngage);
+            scheduleOnRN(triggerHapticFeedback, ImpactMoment.EdgeGestureEngage);
           } else if (isRightEdge) {
             gestureType.value = 'forward';
             swipeDirection.value = 'forward';
             swipeProgress.value = 0;
             swipeStartTime.current = Date.now();
             stateManager.activate();
-            runOnJS(triggerHapticFeedback)(ImpactMoment.EdgeGestureEngage);
+            scheduleOnRN(triggerHapticFeedback, ImpactMoment.EdgeGestureEngage);
           } else if (canPullToRefresh) {
             gestureType.value = 'pending_refresh';
             initialTouchY.value = y;
@@ -325,7 +326,10 @@ export const GestureWebViewWrapper: React.FC<GestureWebViewWrapperProps> = ({
 
             if (!pullHapticTriggered.value && event.translationY > 10) {
               pullHapticTriggered.value = true;
-              runOnJS(triggerHapticFeedback)(ImpactMoment.PullToRefreshEngage);
+              scheduleOnRN(
+                triggerHapticFeedback,
+                ImpactMoment.PullToRefreshEngage,
+              );
             }
 
             pullProgress.value = Math.min(
@@ -350,7 +354,8 @@ export const GestureWebViewWrapper: React.FC<GestureWebViewWrapperProps> = ({
 
           if (currentGestureType === 'back') {
             if (event.translationX >= swipeDistance) {
-              runOnJS(handleSwipeNavigation)(
+              scheduleOnRN(
+                handleSwipeNavigation,
                 'back',
                 event.translationX,
                 duration,
@@ -360,7 +365,8 @@ export const GestureWebViewWrapper: React.FC<GestureWebViewWrapperProps> = ({
             swipeDirection.value = null;
           } else if (currentGestureType === 'forward') {
             if (event.translationX <= -swipeDistance) {
-              runOnJS(handleSwipeNavigation)(
+              scheduleOnRN(
+                handleSwipeNavigation,
                 'forward',
                 Math.abs(event.translationX),
                 duration,
@@ -371,7 +377,7 @@ export const GestureWebViewWrapper: React.FC<GestureWebViewWrapperProps> = ({
           } else if (currentGestureType === 'refresh') {
             if (event.translationY >= PULL_THRESHOLD) {
               pullDistanceRef.current = event.translationY;
-              runOnJS(handleRefresh)();
+              scheduleOnRN(handleRefresh);
             }
             pullProgress.value = withTiming(0, { duration: 200 });
             isPulling.value = false;
