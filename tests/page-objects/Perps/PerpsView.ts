@@ -105,7 +105,6 @@ class PerpsView {
     return Matchers.getElementByText('Dismiss');
   }
 
-  /** PerpsTabView main scroll (embedded tab). Not mounted on Perps home (homepage redesign). */
   get anchor(): DetoxElement {
     return Matchers.getElementByID('perps-tab-scroll-view');
   }
