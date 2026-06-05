@@ -162,6 +162,8 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
     exposePagination: true,
   });
 
+  const isLoading = sections.some((s) => s.isLoading);
+
   const pills = useMemo<PillOption[]>(
     () => [
       { key: ALL_PILL_KEY, name: strings('trending.search_tabs.all') },
@@ -177,6 +179,23 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
     () => sections.find((s) => s.feedId === activePill),
     [sections, activePill],
   );
+
+  useEffect(() => {
+    if (!searchQuery || isLoading) return;
+
+    const resultCount =
+      activePill === ALL_PILL_KEY
+        ? sections.reduce((sum, s) => sum + (s.total ?? s.items.length), 0)
+        : (activeSection?.total ?? activeSection?.items.length ?? 0);
+
+    trackExploreSearchEvent({
+      interaction_type: 'searched',
+      search_query: searchQuery,
+      tab_name: activePill,
+      result_count: resultCount,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery, activePill, isLoading]);
 
   const handlePillSelect = useCallback((key: string) => {
     trackExploreSearchEvent({

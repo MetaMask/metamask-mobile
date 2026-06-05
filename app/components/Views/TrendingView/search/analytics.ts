@@ -10,7 +10,8 @@ import type { SearchFeedId } from './useExploreSearch';
 export type SearchInteractionType =
   | 'result_clicked'
   | 'scrolled'
-  | 'tab_switched';
+  | 'tab_switched'
+  | 'searched';
 
 /** 'all' = aggregated view; other values are a specific feed pill. */
 export type SearchFeedPill = SearchFeedId | 'all';
@@ -26,6 +27,8 @@ export interface ExploreSearchInteractedProperties {
   comes_from_view_all_tap?: boolean;
   item_clicked?: string;
   position?: number;
+  /** Only set on searched: total number of results visible to the user. */
+  result_count?: number;
 }
 
 export type ExploreTabName =
