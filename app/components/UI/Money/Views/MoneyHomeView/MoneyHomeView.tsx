@@ -70,6 +70,8 @@ import { TransactionMeta } from '@metamask/transaction-controller';
 
 const Divider = () => <Box twClassName="h-px bg-border-muted my-5" />;
 
+const ACTION_BUTTON_ROW_BUTTON_COUNT = 3;
+
 const MoneyHomeView = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
@@ -219,14 +221,12 @@ const MoneyHomeView = () => {
 
   const handleAddPress = useCallback(
     ({
-      buttonIntent,
       labelLocalized,
       labelEn,
       componentName,
       buttonPosition,
       buttonRowButtonCount,
     }: {
-      buttonIntent: MONEY_BUTTON_INTENTS;
       labelLocalized: string;
       labelEn: string;
       componentName: COMPONENT_NAMES;
@@ -235,7 +235,7 @@ const MoneyHomeView = () => {
     }) => {
       trackButtonClicked({
         button_type: MONEY_BUTTON_TYPES.TEXT,
-        button_intent: buttonIntent,
+        button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
         label_localized: labelLocalized,
         label_en: labelEn,
         component_name: componentName,
@@ -262,7 +262,7 @@ const MoneyHomeView = () => {
       redirect_target: BOTTOM_SHEET_NAMES.MONEY_TRANSFER_MONEY_SHEET,
       component_name: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
       button_position: 2,
-      button_row_button_count: 3,
+      button_row_button_count: ACTION_BUTTON_ROW_BUTTON_COUNT,
     });
 
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
@@ -281,6 +281,24 @@ const MoneyHomeView = () => {
       params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
     });
   }, [navigation, trackSurfaceClicked]);
+
+  const handleActionButtonCardPress = useCallback(() => {
+    trackButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+      button_intent: MONEY_BUTTON_INTENTS.CARD_HOME,
+      label_localized: strings('money.action.card'),
+      label_en: strings('money.action.card', { locale: 'en' }),
+      component_name: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
+      redirect_target: SCREEN_NAMES.CARD_HOME,
+      button_position: 3,
+      button_row_button_count: ACTION_BUTTON_ROW_BUTTON_COUNT,
+    });
+
+    navigation.navigate(Routes.CARD.ROOT, {
+      screen: Routes.CARD.HOME,
+      params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
+    });
+  }, [navigation, trackButtonClicked]);
 
   const handleCardPress = useCallback(() => {
     navigation.navigate(Routes.CARD.ROOT, {
@@ -546,16 +564,15 @@ const MoneyHomeView = () => {
         <MoneyActionButtonRow
           onAddPress={() =>
             handleAddPress({
-              buttonIntent: MONEY_BUTTON_INTENTS.ADD_MONEY,
               labelLocalized: strings('money.action.add'),
               labelEn: strings('money.action.add', { locale: 'en' }),
               componentName: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
               buttonPosition: 1,
-              buttonRowButtonCount: 3,
+              buttonRowButtonCount: ACTION_BUTTON_ROW_BUTTON_COUNT,
             })
           }
           onTransferPress={handleTransferPress}
-          onCardPress={handleCardPress}
+          onCardPress={handleActionButtonCardPress}
         />
         <MoneyOnboardingCard />
         {isOnboardingCardVisible && <Divider />}
@@ -595,7 +612,6 @@ const MoneyHomeView = () => {
               }
               onAddPress={() =>
                 handleAddPress({
-                  buttonIntent: MONEY_BUTTON_INTENTS.ADD_MONEY,
                   labelLocalized: strings('money.musd_row.add'),
                   labelEn: strings('money.musd_row.add', { locale: 'en' }),
                   componentName: COMPONENT_NAMES.MONEY_MUSD_TOKEN_SECTION,
@@ -680,7 +696,6 @@ const MoneyHomeView = () => {
         <MoneyFooter
           onAddMoneyPress={() =>
             handleAddPress({
-              buttonIntent: MONEY_BUTTON_INTENTS.ADD_MONEY,
               labelLocalized: strings('money.footer.add_money'),
               labelEn: strings('money.footer.add_money', { locale: 'en' }),
               componentName: COMPONENT_NAMES.MONEY_FOOTER,

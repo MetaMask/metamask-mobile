@@ -123,6 +123,7 @@ export enum MONEY_BUTTON_INTENTS {
   OPEN_MORE_MENU = 'open_more_menu',
   VIEW_ALL = 'view_all',
   FILTER = 'filter',
+  CARD_HOME = 'card_home',
 }
 
 export enum MONEY_BUTTON_TYPES {
