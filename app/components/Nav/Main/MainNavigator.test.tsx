@@ -1479,6 +1479,20 @@ describe('MainNavigator', () => {
         );
         expect(renderInner(AssetStackFlow).toJSON()).toBeTruthy();
       });
+
+      it('renders SnapsSettingsStack inside SettingsFlow', () => {
+        const { root: mainRoot } = renderWithProvider(<MainNavigator />, {
+          state: initialRootState,
+        });
+        const SettingsFlow = getScreenComponent(mainRoot, Routes.SETTINGS_VIEW);
+        const { root: settingsRoot } = renderInner(SettingsFlow);
+
+        const SnapsSettingsStack = getScreenComponent(
+          settingsRoot,
+          Routes.SNAPS.SNAPS_SETTINGS_LIST,
+        );
+        expect(renderInner(SnapsSettingsStack).toJSON()).toBeTruthy();
+      });
     });
 
     describe('Money account conditional rendering', () => {
