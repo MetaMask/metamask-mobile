@@ -64,12 +64,7 @@ module.exports = {
   presets: ['babel-preset-expo'],
   // Babel can find the plugin without the `babel-plugin-` prefix. Ex. `babel-plugin-react-compiler` -> `react-compiler`
   plugins: [
-    [
-      'react-compiler',
-      {
-        target: '18',
-      },
-    ],
+    ['react-compiler'],
     'transform-inline-environment-variables',
     dynamicImportToRequire,
     // NOTE: react-native-reanimated/plugin must be listed LAST.
