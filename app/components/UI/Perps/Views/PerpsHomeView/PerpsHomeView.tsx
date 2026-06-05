@@ -20,13 +20,25 @@ import {
   ButtonSize,
   TextColor,
   Box,
+  BoxFlexDirection,
   HeaderStandardAnimated,
   IconName,
   useHeaderStandardAnimated,
+  SensitiveText,
+  SensitiveTextLength,
+  Tag,
+  TagSeverity,
+  Text,
+  TextVariant,
+  TitleHub,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
-import { formatPnl, formatPercentage } from '../../utils/formatUtils';
+import {
+  formatPnl,
+  formatPercentage,
+  formatPerpsBalance,
+} from '../../utils/formatUtils';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   usePerpsHomeData,
@@ -57,7 +69,9 @@ import PerpsMarketTypeSection from '../../components/PerpsMarketTypeSection';
 import PerpsRecentActivityList from '../../components/PerpsRecentActivityList/PerpsRecentActivityList';
 import PerpsHomeSection from '../../components/PerpsHomeSection';
 import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
-import PerpsHomeTitleHub from '../../components/PerpsHomeTitleHub';
+import { usePerpsProvider } from '../../hooks/usePerpsProvider';
+import { selectPerpsNetwork } from '../../selectors/perpsController';
+import { PerpsProviderSelectorBadge } from '../../components/PerpsProviderSelector';
 import WhatsHappeningSection from '../../../../UI/WhatsHappening';
 import { WhatsHappeningSource } from '../../../../UI/WhatsHappening/constants';
 import { selectWhatsHappeningEnabled } from '../../../../../selectors/featureFlagController/whatsHappening';
@@ -73,7 +87,10 @@ import {
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
-import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
+import {
+  PerpsHomeViewSelectorsIDs,
+  PerpsMarketBalanceActionsSelectorsIDs,
+} from '../../Perps.testIds';
 import PerpsCloseAllPositionsView from '../PerpsCloseAllPositionsView/PerpsCloseAllPositionsView';
 import PerpsCancelAllOrdersView from '../PerpsCancelAllOrdersView/PerpsCancelAllOrdersView';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -207,8 +224,13 @@ const PerpsHomeView = ({
   // Get balance state directly from Redux
   const { account: perpsAccount } = usePerpsLiveAccount({ throttleMs: 1000 });
   const totalBalance = perpsAccount?.totalBalance || '0';
+  const spendableBalance = perpsAccount?.spendableBalance || '0';
   const totalBn = BigNumber(totalBalance);
   const isBalanceEmpty = !totalBn.isFinite() || totalBn.isZero();
+
+  const network = useSelector(selectPerpsNetwork);
+  const isTestnet = network === 'testnet';
+  const { isMultiProviderEnabled } = usePerpsProvider();
 
   // Calculate P&L for positions subtitle
   const unrealizedPnl = perpsAccount?.unrealizedPnl || '0';
@@ -512,10 +534,35 @@ const PerpsHomeView = ({
     () => [
       styles.scrollViewContent,
       topInset > 0 ? { paddingTop: topInset } : null,
-      !hideHeader ? { paddingBottom: insets.bottom } : null,
+      !hideHeader ? { paddingBottom: 16 + insets.bottom } : null,
     ],
     [styles.scrollViewContent, topInset, hideHeader, insets.bottom],
   );
+
+  const titleEndAccessory = useMemo(() => {
+    const homeHeadingTestID = PerpsHomeViewSelectorsIDs.HOME_HEADING;
+
+    if (isMultiProviderEnabled) {
+      return (
+        <PerpsProviderSelectorBadge
+          testID={`${homeHeadingTestID}-provider-badge`}
+        />
+      );
+    }
+
+    if (isTestnet) {
+      return (
+        <Tag
+          severity={TagSeverity.Warning}
+          testID={`${homeHeadingTestID}-testnet-badge`}
+        >
+          Testnet
+        </Tag>
+      );
+    }
+
+    return undefined;
+  }, [isMultiProviderEnabled, isTestnet]);
 
   // Always navigate to wallet home to avoid navigation loops (tutorial/onboarding flow)
   const handleBackPress = perpsNavigation.navigateToWallet;
@@ -559,7 +606,52 @@ const PerpsHomeView = ({
             setTitleSectionHeight(event.nativeEvent.layout.height)
           }
         >
-          <PerpsHomeTitleHub testID={PerpsHomeViewSelectorsIDs.HOME_HEADING} />
+          <TitleHub
+            testID={PerpsHomeViewSelectorsIDs.HOME_HEADING}
+            title={perpsScreenTitle}
+            titleEndAccessory={titleEndAccessory}
+            titleProps={{
+              testID: `${PerpsHomeViewSelectorsIDs.HOME_HEADING}-title`,
+            }}
+            amount={
+              !isBalanceEmpty ? (
+                <SensitiveText
+                  variant={TextVariant.DisplayLg}
+                  color={TextColor.TextDefault}
+                  testID={PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE}
+                  isHidden={privacyMode}
+                  length={SensitiveTextLength.Medium}
+                >
+                  {formatPerpsBalance(totalBalance)}
+                </SensitiveText>
+              ) : undefined
+            }
+            bottomLabel={
+              !isBalanceEmpty ? (
+                <Box flexDirection={BoxFlexDirection.Row}>
+                  <SensitiveText
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextAlternative}
+                    isHidden={privacyMode}
+                    length={SensitiveTextLength.Short}
+                    testID={
+                      PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT
+                    }
+                  >
+                    {formatPerpsBalance(spendableBalance)}
+                  </SensitiveText>
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextAlternative}
+                  >
+                    {' '}
+                    {strings('perps.available')}
+                  </Text>
+                </Box>
+              ) : undefined
+            }
+            twClassName="px-4 pb-3"
+          />
         </Box>
 
         {/* Service Interruption Banner */}
