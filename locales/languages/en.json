@@ -9248,7 +9248,7 @@
       "non_winner": {
         "title": "The results are in 🏅",
         "description": "See your ranking in the {{campaignName}}.",
-        "cta": "View"
+        "cta": "View details"
       }
     }
   },
