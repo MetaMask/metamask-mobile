@@ -5435,6 +5435,7 @@ describe('RewardsDataService', () => {
         rank: 1,
         totalParticipants: 10,
         roi: 0.5,
+        pnl: 100,
         capitalDeployed: 200,
         eligible: true,
         neighbors: [],

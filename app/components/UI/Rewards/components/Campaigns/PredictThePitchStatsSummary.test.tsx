@@ -47,6 +47,7 @@ jest.mock('../../utils/formatUtils', () => ({
   formatSignedUsd: (value: number) =>
     `${value >= 0 ? '+' : '-'}$${Math.abs(value).toFixed(2)}`,
   formatUsd: (value: number) => `$${value.toFixed(2)}`,
+  formatRewardsTimeOnly: () => '3:00 PM',
 }));
 
 const TEST_IDS = PREDICT_THE_PITCH_STATS_SUMMARY_TEST_IDS;
@@ -55,6 +56,7 @@ const basePosition: PredictThePitchLeaderboardPositionDto = {
   rank: 3,
   totalParticipants: 50,
   roi: 0.125,
+  pnl: 12.5,
   capitalDeployed: 100,
   eligible: true,
   neighbors: [],

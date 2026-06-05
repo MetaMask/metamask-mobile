@@ -1134,6 +1134,7 @@ export interface PredictThePitchLeaderboardPositionDto {
   rank: number | null;
   totalParticipants: number;
   roi: number;
+  pnl: number;
   capitalDeployed: number;
   eligible: boolean;
   neighbors: PredictThePitchLeaderboardEntryDto[];
@@ -1207,6 +1208,7 @@ export type PredictThePitchLeaderboardPositionFoundState = {
   rank: number | null;
   totalParticipants: number;
   roi: number;
+  pnl: number;
   capitalDeployed: number;
   eligible: boolean;
   neighbors: PredictThePitchLeaderboardEntryState[];
