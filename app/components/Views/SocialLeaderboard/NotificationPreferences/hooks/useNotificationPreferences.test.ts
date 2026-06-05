@@ -26,6 +26,20 @@ jest.mock('@tanstack/react-query', () => ({
   useQueryClient: jest.fn(),
 }));
 
+jest.mock(
+  '../../../../../util/notifications/agenticCliNotificationPreferences',
+  () => {
+    const actual = jest.requireActual<
+      typeof import('../../../../../util/notifications/agenticCliNotificationPreferences')
+    >('../../../../../util/notifications/agenticCliNotificationPreferences');
+    return {
+      ...actual,
+      readLocalAgenticCliPreference: jest.fn(() => null),
+      persistLocalAgenticCliPreference: jest.fn(),
+    };
+  },
+);
+
 const mockUseQuery = useQuery as jest.MockedFunction<typeof useQuery>;
 const mockUseQueryClient = useQueryClient as jest.MockedFunction<
   typeof useQueryClient
