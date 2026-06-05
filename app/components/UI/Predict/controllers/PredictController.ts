@@ -2844,8 +2844,7 @@ export class PredictController extends BaseController<
   }
 
   public async getBalance(params: GetBalanceParams): Promise<number> {
-    const selectedAddress = this.getSigner().address;
-    const address = params.address ?? selectedAddress;
+    const address = params.address ?? this.requireEvmAccountAddress();
     let wasCached = false;
 
     return withTrace(

@@ -8278,6 +8278,32 @@ describe('PredictController', () => {
       );
     });
 
+    it('fetches explicit address balance when no selected EVM account exists', async () => {
+      const explicitAddress = '0x2222222222222222222222222222222222222222';
+      mockPolymarketProvider.getBalance.mockResolvedValue(1000);
+
+      await withController(
+        async ({ controller }) => {
+          // Act
+          const result = await controller.getBalance({
+            address: explicitAddress,
+          });
+
+          // Assert
+          expect(result).toBe(1000);
+          expect(mockPolymarketProvider.getBalance).toHaveBeenCalledWith({
+            address: explicitAddress,
+          });
+          expect(controller.state.balances[explicitAddress].balance).toBe(1000);
+        },
+        {
+          mocks: {
+            getAccountsFromSelectedAccountGroup: jest.fn().mockReturnValue([]),
+          },
+        },
+      );
+    });
+
     it('fetches fresh balance when no cached balance exists', async () => {
       mockPolymarketProvider.getBalance.mockResolvedValue(1000);
 
