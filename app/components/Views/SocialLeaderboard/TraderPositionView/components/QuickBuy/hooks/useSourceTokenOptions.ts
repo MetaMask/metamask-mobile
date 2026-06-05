@@ -30,6 +30,7 @@ import {
   getCachedErc20Balance,
   getTokenPrice,
 } from './tokenBalanceUtils';
+import { useNetworkEnabledPredicate } from './useNetworkEnabledPredicate';
 
 /**
  * Returns the list of source token options for QuickBuy,
@@ -42,9 +43,13 @@ import {
 export const useSourceTokenOptions = (
   destChainId: Hex | CaipChainId | undefined,
 ): { options: BridgeToken[]; isLoading: boolean } => {
+  const isChainEnabled = useNetworkEnabledPredicate();
   const candidates = useMemo(
-    () => getSourceTokenCandidates(destChainId),
-    [destChainId],
+    () =>
+      getSourceTokenCandidates(destChainId).filter((candidate) =>
+        isChainEnabled(candidate.chainId),
+      ),
+    [destChainId, isChainEnabled],
   );
 
   const accountAddress = useSelector(
@@ -232,9 +237,13 @@ export const useSourceTokenOptions = (
 export const useSellDestTokenOptions = (
   preferredChainId: string | undefined,
 ): BridgeToken[] => {
+  const isChainEnabled = useNetworkEnabledPredicate();
   const candidates = useMemo(
-    () => getSellDestTokenCandidates(preferredChainId),
-    [preferredChainId],
+    () =>
+      getSellDestTokenCandidates(preferredChainId).filter((candidate) =>
+        isChainEnabled(candidate.chainId),
+      ),
+    [preferredChainId, isChainEnabled],
   );
 
   const accountAddress = useSelector(
