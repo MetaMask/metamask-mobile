@@ -34,6 +34,7 @@ import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import useBalance from '../../hooks/useBalance';
 import usePooledStakes from '../../hooks/usePooledStakes';
 import { useStakingChainByChainId } from '../../hooks/useStakingChain';
+import useStakingEligibility from '../../hooks/useStakingEligibility';
 import useVaultApyAverages from '../../hooks/useVaultApyAverages';
 import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
 import { multiplyValueByPowerOfTen } from '../../utils/bignumber';
@@ -90,6 +91,8 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
     hasEthToUnstake,
     isLoadingPooledStakesData,
   } = usePooledStakes(decimalChainId);
+
+  const { isEligible } = useStakingEligibility();
 
   const { vaultApyAverages, isLoadingVaultApyAverages } =
     useVaultApyAverages(decimalChainId);
@@ -186,7 +189,8 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
 
         {!hasStakedPositions &&
           !isLoadingVaultApyAverages &&
-          isPooledStakingEnabled && (
+          isPooledStakingEnabled &&
+          isEligible && (
             <StakingCta
               chainId={asset.chainId as Hex}
               estimatedRewardRate={formatPercent(vaultApyAverages.oneWeek, {

@@ -23,6 +23,7 @@ import {
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 import { selectPooledStakingEnabledFlag } from '../../../Earn/selectors/featureFlags';
 import { TokenI } from '../../../Tokens/types';
+import usePooledStakes from '../../hooks/usePooledStakes';
 import useStakingEligibility from '../../hooks/useStakingEligibility';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { createMockUseAnalyticsHook } from '../../../../../util/test/analyticsMock';
@@ -122,18 +123,7 @@ const mockVaultMetadata = MOCK_GET_VAULT_RESPONSE;
 // Mock hooks
 jest.mock('../../hooks/usePooledStakes', () => ({
   __esModule: true,
-  default: () => ({
-    pooledStakesData: mockPooledStakeData,
-    exchangeRate: mockExchangeRate,
-    loading: false,
-    error: null,
-    refreshPooledStakes: jest.fn(),
-    hasStakedPositions: true,
-    hasEthToUnstake: true,
-    hasNeverStaked: false,
-    hasRewards: true,
-    hasRewardsOnly: false,
-  }),
+  default: jest.fn(),
 }));
 
 jest.mock('../../hooks/useStakingEligibility', () => ({
@@ -143,6 +133,10 @@ jest.mock('../../hooks/useStakingEligibility', () => ({
 
 const mockUseStakingEligibility = useStakingEligibility as jest.MockedFunction<
   typeof useStakingEligibility
+>;
+
+const mockUsePooledStakes = usePooledStakes as jest.MockedFunction<
+  typeof usePooledStakes
 >;
 
 jest.mock('../../hooks/useVaultMetadata', () => ({
@@ -197,6 +191,18 @@ describe('StakingBalance', () => {
   beforeEach(() => {
     jest.resetAllMocks();
     jest.mocked(useAnalytics).mockReturnValue(createMockUseAnalyticsHook());
+    mockUsePooledStakes.mockReturnValue({
+      pooledStakesData: mockPooledStakeData,
+      exchangeRate: mockExchangeRate,
+      isLoadingPooledStakesData: false,
+      error: null,
+      refreshPooledStakes: jest.fn(),
+      hasStakedPositions: true,
+      hasEthToUnstake: true,
+      hasNeverStaked: false,
+      hasRewards: true,
+      hasRewardsOnly: false,
+    });
     mockUseStakingEligibility.mockReturnValue({
       isEligible: true,
       isLoadingEligibility: false,
@@ -237,6 +243,36 @@ describe('StakingBalance', () => {
     (
       earnSelectors.selectEarnOutputToken as unknown as jest.Mock
     ).mockImplementation((_token: TokenI) => mockEarnTokenPair.outputToken);
+  });
+
+  it('should not render staking cta when user is not eligible and has no staked positions', () => {
+    mockUsePooledStakes.mockReturnValue({
+      pooledStakesData: mockPooledStakeData,
+      exchangeRate: mockExchangeRate,
+      isLoadingPooledStakesData: false,
+      error: null,
+      refreshPooledStakes: jest.fn(),
+      hasStakedPositions: false,
+      hasEthToUnstake: false,
+      hasNeverStaked: true,
+      hasRewards: false,
+      hasRewardsOnly: false,
+    });
+    mockUseStakingEligibility.mockReturnValue({
+      isEligible: false,
+      isLoadingEligibility: false,
+      error: null,
+      refreshPooledStakingEligibility: jest.fn(),
+    });
+
+    const { queryByText } = renderWithProvider(
+      <StakingBalance asset={MOCK_ETH_MAINNET_ASSET} />,
+      { state: mockInitialState },
+    );
+
+    expect(
+      queryByText(strings('stake.stake_your_eth_cta.learn_more_with_period')),
+    ).toBeNull();
   });
 
   it('renders claim and unstake banners when user is not eligible', () => {
