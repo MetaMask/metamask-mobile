@@ -12,6 +12,7 @@ import { CardFundingToken, FundingStatus } from '../../types';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
+import { RampType } from '../../../../../reducers/fiatOrders/types';
 import { CardHomeSelectors } from '../../Views/CardHome/CardHome.testIds';
 import { RampsButtonClickData } from '../../../Ramp/hooks/useRampsButtonClickData';
 
@@ -19,7 +20,7 @@ import { RampsButtonClickData } from '../../../Ramp/hooks/useRampsButtonClickDat
 const mockUseParams = jest.fn();
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
-const mockGoToDeposit = jest.fn();
+const mockGoToBuy = jest.fn();
 
 // Mock dependencies
 jest.mock('../../../Ramp/hooks/useRampNavigation');
@@ -48,6 +49,7 @@ jest.mock('../../../../../util/trace', () => ({
   trace: jest.fn(),
   TraceName: {
     LoadDepositExperience: 'LoadDepositExperience',
+    LoadRampExperience: 'Load Ramp Experience',
   },
 }));
 
@@ -83,8 +85,6 @@ const mockButtonClickData: RampsButtonClickData = {
 jest.mock('../../../Ramp/hooks/useRampsButtonClickData', () => ({
   useRampsButtonClickData: jest.fn(() => mockButtonClickData),
 }));
-
-jest.mock('../../../Ramp/hooks/useRampsUnifiedV2Enabled');
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -148,7 +148,7 @@ describe('AddFundsBottomSheet', () => {
     });
 
     (useRampNavigation as jest.Mock).mockReturnValue({
-      goToDeposit: mockGoToDeposit,
+      goToBuy: mockGoToBuy,
     });
 
     (useDepositEnabled as jest.Mock).mockReturnValue({
@@ -239,7 +239,7 @@ describe('AddFundsBottomSheet', () => {
         button_text: 'Fund with cash',
         location: 'CardHome',
         chain_id_destination: '59144',
-        ramp_type: 'DEPOSIT',
+        ramp_type: 'UNIFIED_BUY_2',
         ramp_routing: undefined,
         is_authenticated: false,
         preferred_provider: undefined,
@@ -248,7 +248,8 @@ describe('AddFundsBottomSheet', () => {
     );
     expect(mockTrackEvent).toHaveBeenCalled();
     expect(trace).toHaveBeenCalledWith({
-      name: TraceName.LoadDepositExperience,
+      name: TraceName.LoadRampExperience,
+      tags: { rampType: RampType.BUY },
     });
   });
 
@@ -321,12 +322,16 @@ describe('AddFundsBottomSheet', () => {
     expect(getByText('Swap tokens into ETH on Linea')).toBeTruthy();
   });
 
-  it('navigates to deposit route when deposit callback is executed', () => {
+  it('navigates to buy flow when fund with cash callback is executed', () => {
     const { getByText } = setupComponent();
 
     fireEvent.press(getByText('Fund with cash'));
 
-    expect(mockGoToDeposit).toHaveBeenCalled();
+    expect(mockGoToBuy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        assetId: expect.stringContaining('eip155:59144'),
+      }),
+    );
   });
 
   it('renders component correctly', () => {
