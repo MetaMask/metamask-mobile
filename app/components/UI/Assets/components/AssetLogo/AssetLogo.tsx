@@ -44,7 +44,7 @@ const AssetLogo = ({ asset }: { asset: TokenI }) => {
       key={uniqueSourceImageKey}
       name={asset.symbol}
       src={source}
-      imageOrSvgProps={{ imageProps: { onError } }}
+      imageOrSvgProps={{ imageProps: { onError, testID: 'token-avatar-image' } }}
       size={AvatarTokenSize.Lg}
     />
   );
