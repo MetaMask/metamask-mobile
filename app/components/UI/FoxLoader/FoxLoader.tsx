@@ -13,7 +13,7 @@ import Rive, {
 import { hideAsync } from 'expo-splash-screen';
 import { useStyles } from '../../../component-library/hooks';
 import Logger from '../../../util/Logger';
-import { isE2E } from '../../../util/test/utils';
+import { hasTestOverrides } from '../../../util/test/utils';
 import styleSheet from './FoxLoader.styles';
 import { FoxLoaderSelectorsIDs } from './FoxLoader.testIds';
 
@@ -249,7 +249,7 @@ const FoxLoaderAnimation = ({
 };
 
 const FoxLoader = (props: FoxLoaderProps) => {
-  if (isE2E) {
+  if (hasTestOverrides) {
     return <FoxLoaderE2E onAnimationComplete={props.onAnimationComplete} />;
   }
 

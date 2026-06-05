@@ -309,6 +309,8 @@ describe('PredictController', () => {
     // Create mock PolymarketProvider with required methods
     mockPolymarketProvider = {
       getMarkets: jest.fn(),
+      listMarkets: jest.fn(),
+      listFilterOptions: jest.fn(),
       searchMarkets: jest.fn(),
       getCarouselMarkets: jest.fn(),
       getMarketsByIds: jest.fn(),
@@ -674,6 +676,87 @@ describe('PredictController', () => {
         );
 
         await expect(controller.getMarkets({})).rejects.toThrow(errorMessage);
+        expect(controller.state.lastError).toBe(errorMessage);
+      });
+    });
+
+    it('lists markets by delegating to the provider', async () => {
+      const mockMarkets = [
+        {
+          id: 'm1',
+          question: 'Will it rain tomorrow?',
+          outcomes: ['YES', 'NO'],
+        },
+      ];
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.listMarkets.mockResolvedValue({
+          markets: mockMarkets as any,
+          nextCursor: 'cursor-2',
+        });
+
+        const result = await controller.listMarkets({ order: 'liquidity' });
+
+        expect(result).toEqual({
+          markets: mockMarkets as any,
+          nextCursor: 'cursor-2',
+        });
+        expect(mockPolymarketProvider.listMarkets).toHaveBeenCalledWith({
+          order: 'liquidity',
+        });
+      });
+    });
+
+    it('handles errors when listing markets', async () => {
+      await withController(async ({ controller }) => {
+        const errorMessage = 'Network error';
+        mockPolymarketProvider.listMarkets.mockRejectedValue(
+          new Error(errorMessage),
+        );
+
+        await expect(controller.listMarkets({})).rejects.toThrow(errorMessage);
+        expect(controller.state.lastError).toBe(errorMessage);
+      });
+    });
+
+    it('lists filter options by delegating to the provider', async () => {
+      const mockOptions = [
+        {
+          id: 'nba',
+          label: 'NBA',
+          source: 'hot-tags',
+          params: { tagSlugs: ['nba'], order: 'volume24hr', status: 'open' },
+        },
+      ];
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.listFilterOptions.mockResolvedValue(
+          mockOptions as any,
+        );
+
+        const result = await controller.listFilterOptions({
+          source: 'hot-tags',
+          baseTagSlug: 'all',
+        });
+
+        expect(result).toEqual(mockOptions);
+        expect(mockPolymarketProvider.listFilterOptions).toHaveBeenCalledWith({
+          source: 'hot-tags',
+          baseTagSlug: 'all',
+        });
+      });
+    });
+
+    it('handles errors when listing filter options', async () => {
+      await withController(async ({ controller }) => {
+        const errorMessage = 'Network error';
+        mockPolymarketProvider.listFilterOptions.mockRejectedValue(
+          new Error(errorMessage),
+        );
+
+        await expect(
+          controller.listFilterOptions({ source: 'hot-tags' }),
+        ).rejects.toThrow(errorMessage);
         expect(controller.state.lastError).toBe(errorMessage);
       });
     });
