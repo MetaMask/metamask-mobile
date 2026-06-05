@@ -8,7 +8,6 @@ import {
 import { usePerpsMarkets } from './usePerpsMarkets';
 import {
   MARKET_SORTING_CONFIG,
-  MARKET_CATEGORIES,
   MarketCategory,
   sortMarkets,
   type Position,
@@ -16,9 +15,7 @@ import {
   type PerpsMarketData,
   type OrderFill,
   type SortField,
-  type MarketTypeFilter,
 } from '@metamask/perps-controller';
-import { getMarketTypeForFilter } from '../utils/marketCategoryMapping';
 
 import type { PerpsTransaction } from '../types/transactionHistory';
 import {
