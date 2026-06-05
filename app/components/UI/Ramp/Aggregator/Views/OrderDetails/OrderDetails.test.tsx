@@ -25,7 +25,6 @@ import {
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
-const mockSetNavigationOptions = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockDispatch = jest.fn();
 const mockGoToAggregator = jest.fn();
@@ -50,9 +49,6 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
       goBack: mockGoBack,
-      setOptions: mockSetNavigationOptions.mockImplementation(
-        actualReactNavigation.useNavigation().setOptions,
-      ),
     }),
   };
 });
@@ -173,9 +169,10 @@ describe('OrderDetails', () => {
     (processFiatOrder as jest.Mock).mockClear();
   });
 
-  it('calls setOptions when rendering', () => {
+  it('navigates back when the header back button is pressed', () => {
     render(OrderDetails);
-    expect(mockSetNavigationOptions).toHaveBeenCalled();
+    fireEvent.press(screen.getByTestId('button-icon'));
+    expect(mockGoBack).toHaveBeenCalled();
   });
 
   it('renders an empty screen layout if there is no order', () => {

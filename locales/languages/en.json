@@ -6976,8 +6976,8 @@
       "contact_support": "Contact support"
     },
     "transfer_sheet": {
-      "title": "Transfer funds",
-      "between_accounts": "Between accounts",
+      "title": "Transfer funds to",
+      "between_accounts": "Another account",
       "perps_account": "Perps account",
       "predictions_account": "Predictions account",
       "send_external": "Send to external address",
