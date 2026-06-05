@@ -12,7 +12,7 @@ export const PREDICT_MARKET_LIST_PAGE_SIZE = 20;
  * FIXED order and normalizes equivalent inputs to the same shape so the
  * React Query key is stable regardless of caller object key order or array order.
  *
- * `tags`/`series` are sorted (order-insensitive). `search` is trimmed and
+ * `tags`/`tagSlugs`/`series` are sorted (order-insensitive). `search` is trimmed and
  * blank/whitespace becomes `undefined` (browse mode). `live` only matters when
  * `true` (matches the provider query builder), so `false`/`undefined` collapse
  * to `undefined`. `limit` defaults to `PREDICT_MARKET_LIST_PAGE_SIZE`.
@@ -28,6 +28,9 @@ export const normalizeMarketListParams = (
   return {
     tags: params.tags?.length
       ? [...params.tags].sort((a, b) => a.localeCompare(b))
+      : undefined,
+    tagSlugs: params.tagSlugs?.length
+      ? [...params.tagSlugs].sort((a, b) => a.localeCompare(b))
       : undefined,
     series: params.series?.length
       ? [...params.series].sort((a, b) => a.localeCompare(b))
