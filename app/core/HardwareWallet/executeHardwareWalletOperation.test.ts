@@ -85,7 +85,7 @@ describe('executeHardwareWalletOperation', () => {
     expect(onRejected).not.toHaveBeenCalled();
   });
 
-  it('does not hide awaiting confirmation on error when showConfirmation is false', async () => {
+  it('still invokes onRejected on error when showConfirmation is false (no confirmation UI shown)', async () => {
     execute.mockRejectedValueOnce(new Error('signing failed'));
 
     await expect(

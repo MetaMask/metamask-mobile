@@ -9,6 +9,7 @@ import Engine from '../../../../core/Engine';
 import {
   executeHardwareWalletOperation,
   useHardwareWallet,
+  type HardwareWalletOperationType,
 } from '../../../../core/HardwareWallet';
 import { updateHardwareWalletsSwaps } from '../../../../core/redux/slices/bridge';
 import {
@@ -19,8 +20,15 @@ import {
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import Logger from '../../../../util/Logger';
+import { isValidHexAddress } from '../../../../util/address';
 import { KEYSTONE_TX_CANCELED } from '../../../../constants/error';
+
 import { STX_NO_HASH_ERROR } from '../../../../util/smart-transactions/smart-publish-hook';
+
+const HARDWARE_WALLET_OPERATION_TRANSACTION: HardwareWalletOperationType =
+  'transaction';
+
+const BATCH_CANCELLED_ERROR = 'Batch cancelled';
 
 const APPROVAL_TYPES: Set<TransactionType> = new Set([
   TransactionType.bridgeApproval,
@@ -71,11 +79,25 @@ function isBatchTransactionType(
   return Boolean(txType && ALL_BATCH_TYPES.has(txType));
 }
 
+/**
+ * Normalizes an address for case-insensitive comparison or storage.
+ *
+ * EVM hex addresses are lower-cased (case-insensitive by spec).
+ * Non-EVM addresses (Solana base58, Bitcoin base58check, bech32, etc.)
+ * are returned as-is because their encodings are case-sensitive —
+ * lower-casing would corrupt them and cause `matchesTx` to silently
+ * fail to match transactions from the active hardware wallet.
+ */
+function normalizeAddress(address: string | undefined): string | undefined {
+  if (!address) return undefined;
+  return isValidHexAddress(address) ? address.toLowerCase() : address;
+}
+
 function matchesTx(
   transactionMeta: TransactionMeta,
   targetFrom: string,
 ): boolean {
-  const normalizedFrom = transactionMeta.txParams.from?.toLowerCase();
+  const normalizedFrom = normalizeAddress(transactionMeta.txParams.from);
   if (normalizedFrom !== targetFrom) return false;
   return isBatchTransactionType(transactionMeta.type);
 }
@@ -96,20 +118,47 @@ function getTransactionById(txId: string): TransactionMeta | undefined {
   );
 }
 
+/**
+ * Returns the current pending ApprovalController approvals (always a plain
+ * object, never undefined). Centralized so callers don't have to repeat the
+ * `?? {}` fallback at every call site.
+ */
+function getPendingApprovals(): Record<
+  string,
+  { type: string; [key: string]: unknown }
+> {
+  return Engine.context.ApprovalController.state.pendingApprovals ?? {};
+}
+
 const POST_SIGN_BATCH_STATUSES: ReadonlySet<TransactionStatus> = new Set([
   TransactionStatus.signed,
   TransactionStatus.submitted,
   TransactionStatus.confirmed,
 ]);
 
+/** Transaction has been signed (or has progressed past signing). */
+function isPostSignBatchTransaction(tx: TransactionMeta): boolean {
+  return POST_SIGN_BATCH_STATUSES.has(tx.status);
+}
+
+/** Transaction is in a non-terminal, pre-broadcast state — still cancellable. */
+function isPendingBatchTransaction(tx: TransactionMeta): boolean {
+  return NON_TERMINAL_CANCEL_STATUSES.has(tx.status);
+}
+
+/** Transaction has failed or been rejected. */
+function isFailedOrRejectedBatchTransaction(tx: TransactionMeta): boolean {
+  return FAILED_OR_REJECTED_STATUSES.has(tx.status);
+}
+
 function hasSignedBatchFromAddress(batchId: string, address: string): boolean {
-  const normalizedAddress = address.toLowerCase();
+  const normalizedAddress = normalizeAddress(address);
+  if (!normalizedAddress) return false;
   return getTransactions().some(
     (tx) =>
       tx.batchId === batchId &&
-      tx.txParams.from?.toLowerCase() === normalizedAddress &&
-      POST_SIGN_BATCH_STATUSES.has(tx.status) &&
-      isBatchTransactionType(tx.type),
+      matchesTx(tx, normalizedAddress) &&
+      isPostSignBatchTransaction(tx),
   );
 }
 
@@ -117,13 +166,12 @@ function getCancellableBatchTxIds(
   address: string | undefined,
   trackedTxIds: Iterable<string>,
 ): string[] {
-  const nonTerminalTxIds = address
+  const normalizedAddress = normalizeAddress(address);
+  const nonTerminalTxIds = normalizedAddress
     ? getTransactions()
         .filter(
           (tx: TransactionMeta) =>
-            tx.txParams.from?.toLowerCase() === address &&
-            NON_TERMINAL_CANCEL_STATUSES.has(tx.status) &&
-            isBatchTransactionType(tx.type),
+            matchesTx(tx, normalizedAddress) && isPendingBatchTransaction(tx),
         )
         .map((tx: TransactionMeta) => tx.id)
     : [];
@@ -165,8 +213,7 @@ function rejectPendingBatchApprovals({
   relatedBatchIds: ReadonlySet<string>;
   relatedApprovalIds: ReadonlySet<string>;
 }): boolean {
-  const pendingApprovals =
-    Engine.context.ApprovalController.state.pendingApprovals ?? {};
+  const pendingApprovals = getPendingApprovals();
   let hadPendingApprovals = false;
 
   for (const [requestId, request] of Object.entries(pendingApprovals)) {
@@ -182,7 +229,7 @@ function rejectPendingBatchApprovals({
       continue;
     }
 
-    Engine.rejectPendingApproval(requestId, new Error('Batch cancelled'), {
+    Engine.rejectPendingApproval(requestId, new Error(BATCH_CANCELLED_ERROR), {
       ignoreMissing: true,
       logErrors: false,
     });
@@ -196,13 +243,13 @@ function getFailedBatchTxChainIds(
   address: string | undefined,
   relatedBatchIds: ReadonlySet<string>,
 ): Set<NonNullable<TransactionMeta['chainId']>> {
-  const failedBatchTxs = address
+  const normalizedAddress = normalizeAddress(address);
+  const failedBatchTxs = normalizedAddress
     ? getTransactions().filter(
         (tx: TransactionMeta) =>
-          tx.txParams.from?.toLowerCase() === address &&
+          matchesTx(tx, normalizedAddress) &&
           Boolean(tx.batchId && relatedBatchIds.has(tx.batchId)) &&
-          FAILED_OR_REJECTED_STATUSES.has(tx.status) &&
-          isBatchTransactionType(tx.type),
+          isFailedOrRejectedBatchTransaction(tx),
       )
     : [];
 
@@ -251,6 +298,11 @@ function abortTransactionSignings(
     try {
       Engine.context.TransactionController.abortTransactionSigning(txId);
     } catch {
+      // If the abort failed (e.g. tx transitioned out of the abortable window
+      // between our status check and the call, or already cleared by a parallel
+      // cancellation path), drop the id from the pending-abort set so the
+      // terminal-wait loop doesn't keep waiting for an abort that will never
+      // fire. The tx will still resolve naturally via its own status events.
       pendingAbortTxIds.delete(txId);
     }
   }
@@ -355,8 +407,11 @@ function shouldRejectPendingApprovalOnCancel(
     return false;
   }
 
+  // Get the latest transactions from the TransactionController
+  const transactions = getTransactions();
+
   if (request.type === 'transaction') {
-    const txMeta = Engine.context.TransactionController.state.transactions.find(
+    const txMeta = transactions.find(
       (tx: TransactionMeta) => tx.id === requestId,
     );
     return Boolean(txMeta && matchesTx(txMeta, targetFrom));
@@ -367,7 +422,7 @@ function shouldRejectPendingApprovalOnCancel(
       return true;
     }
 
-    return Engine.context.TransactionController.state.transactions.some(
+    return transactions.some(
       (tx: TransactionMeta) =>
         tx.batchId === requestId && matchesTx(tx, targetFrom),
     );
@@ -380,7 +435,7 @@ function hasMatchingBatchTransaction(
   batchId: string,
   targetFrom: string,
 ): boolean {
-  return Engine.context.TransactionController.state.transactions.some(
+  return getTransactions().some(
     (tx: TransactionMeta) =>
       tx.batchId === batchId && matchesTx(tx, targetFrom),
   );
@@ -488,7 +543,7 @@ export function useHwBatchSignTracker({
   const processApprovalQueueRef = useRef<(() => void) | undefined>(undefined);
   const cancelInFlightRef = useRef<Promise<void> | null>(null);
   const trackerLifecycleKeyRef = useRef<string | undefined>(
-    fromAddress && isEnabled ? fromAddress.toLowerCase() : undefined,
+    fromAddress && isEnabled ? normalizeAddress(fromAddress) : undefined,
   );
   const [confirmationTxId, setConfirmationTxId] = useState<
     string | undefined
@@ -508,6 +563,17 @@ export function useHwBatchSignTracker({
     setConfirmationTxId(undefined);
   }, []);
 
+  // Detects whether the caller has bumped `retryGenerationRef` since the last
+  // invocation. A bump signals that the consumer wants to restart the batch
+  // signing flow from scratch (e.g. the user retried after an error, or the
+  // parent component re-mounted the swap). When a change is detected we:
+  //   1. Record the new generation so subsequent calls are no-ops until the
+  //      ref is bumped again.
+  //   2. Invalidate all in-flight batch state via invalidateBatchStateForRetry
+  //      (clears the approval queue, marks seen batch IDs as stale, etc.).
+  // Returns true when a retry was detected (and state was invalidated), false
+  // otherwise. Callers use the boolean to short-circuit any work that would
+  // otherwise operate on the now-stale batch state.
   const checkGeneration = useCallback((): boolean => {
     const trackerState = trackerStateRef.current;
     if (
@@ -530,6 +596,7 @@ export function useHwBatchSignTracker({
       if (current && trackedTxIds.has(current)) {
         return current;
       }
+      // Fall back to the next tracked tx (insertion order = oldest pending) so the UI doesn't go blank mid-batch.
       return trackedTxIds.values().next().value;
     });
   }, []);
@@ -546,7 +613,9 @@ export function useHwBatchSignTracker({
     [],
   );
 
-  const isFromCurrentBatch = useCallback(
+  // Named to parallel isBatchIdFromCurrentBatch — same predicate, but takes a
+  // full TransactionMeta and delegates by extracting its batchId.
+  const isTransactionFromCurrentBatch = useCallback(
     (transactionMeta: TransactionMeta): boolean =>
       isBatchIdFromCurrentBatch(transactionMeta.batchId),
     [isBatchIdFromCurrentBatch],
@@ -576,7 +645,7 @@ export function useHwBatchSignTracker({
     const lifecycleKey = trackerLifecycleKeyRef.current;
     const cancelPromise = (async () => {
       const trackerState = trackerStateRef.current;
-      const address = latestValuesRef.current.fromAddress?.toLowerCase();
+      const address = normalizeAddress(latestValuesRef.current.fromAddress);
       const allTxIds = getCancellableBatchTxIds(
         address,
         trackerState.trackedTxIds,
@@ -607,10 +676,11 @@ export function useHwBatchSignTracker({
 
       // Wipe chains with rejected/failed bridge txs so their nonces don't block retry
       // batches. We can't rely on txIds (already cleared by failure handler),
-      // so scan all TC transactions for failed/rejected bridge txs from this
-      // address. If we leave these metas in TC state holding nonces N and N+1,
-      // TC may assign nonces N+2 and N+3 to the retry batch, creating a nonce
-      // gap that STX's simulator rejects with would_revert.
+      // so scan all TransactionController transactions for failed/rejected bridge
+      // txs from this address. If we leave these metas in TransactionController
+      // state holding nonces N and N+1, TransactionController may assign nonces
+      // N+2 and N+3 to the retry batch, creating a nonce gap that STX's
+      // simulator rejects with would_revert.
       //
       // TransactionController only exposes a typed chain/address-scoped wipe
       // action, not a single-transaction delete action. Skip missing chain IDs
@@ -635,6 +705,8 @@ export function useHwBatchSignTracker({
         trackerState.pendingAbortTxIds = new Set();
         trackerState.isCancellingBatch = false;
         if (trackerLifecycleKeyRef.current === lifecycleKey) {
+          // Fire-and-forget: defer re-triggering the approval queue to the next microtask
+          // to avoid synchronous recursion inside this cancel finally block.
           Promise.resolve().then(() => processApprovalQueueRef.current?.());
         }
       }
@@ -652,7 +724,7 @@ export function useHwBatchSignTracker({
 
   useEffect(() => {
     const trackerLifecycleKey =
-      fromAddress && isEnabled ? fromAddress.toLowerCase() : undefined;
+      fromAddress && isEnabled ? normalizeAddress(fromAddress) : undefined;
     if (trackerLifecycleKeyRef.current !== trackerLifecycleKey) {
       trackerLifecycleKeyRef.current = trackerLifecycleKey;
       cancelInFlightRef.current = null;
@@ -744,7 +816,7 @@ export function useHwBatchSignTracker({
             const latestValues = latestValuesRef.current;
             const result = await executeHardwareWalletOperation({
               address: latestValues.fromAddress ?? targetFrom,
-              operationType: 'transaction',
+              operationType: HARDWARE_WALLET_OPERATION_TRANSACTION,
               ensureDeviceReady: latestValues.ensureDeviceReady,
               setPendingOperationAddress:
                 latestValues.setPendingOperationAddress,
@@ -797,7 +869,7 @@ export function useHwBatchSignTracker({
                 return (
                   isStxSubmissionFailure ||
                   isKeystoneCancel ||
-                  message === 'Batch cancelled'
+                  message === BATCH_CANCELLED_ERROR
                 );
               },
               onRejected: handleApprovalRejection,
@@ -833,6 +905,10 @@ export function useHwBatchSignTracker({
           !deferredDueToDeviceNotReady &&
           trackerStateRef.current.approvalQueue.length > 0
         ) {
+          // Fire-and-forget: schedule another drain on the next microtask so
+          // we don't tight-loop in the current tick or recurse synchronously.
+          // Rejections inside processApprovalQueue are caught by its own
+          // try/catch, so we don't await here.
           Promise.resolve().then(processApprovalQueue);
         }
       }
@@ -840,8 +916,7 @@ export function useHwBatchSignTracker({
 
     const enqueuePendingApprovals = () => {
       checkGeneration();
-      const { ApprovalController } = Engine.context;
-      const pendingApprovals = ApprovalController.state.pendingApprovals ?? {};
+      const pendingApprovals = getPendingApprovals();
 
       for (const [requestId, request] of Object.entries(pendingApprovals)) {
         const trackerState = trackerStateRef.current;
@@ -850,10 +925,9 @@ export function useHwBatchSignTracker({
         }
 
         if (request.type === 'transaction') {
-          const txMeta =
-            Engine.context.TransactionController.state.transactions.find(
-              (tx: TransactionMeta) => tx.id === requestId,
-            );
+          const txMeta = getTransactions().find(
+            (tx: TransactionMeta) => tx.id === requestId,
+          );
           if (txMeta && matchesTx(txMeta, targetFrom)) {
             trackerState.acceptedApprovalIds.add(requestId);
             trackerState.approvalQueue.push(requestId);
@@ -885,10 +959,14 @@ export function useHwBatchSignTracker({
     const shouldIgnoreTerminalTx = (transactionMeta: TransactionMeta) => {
       if (!matchesTx(transactionMeta, targetFrom)) return true;
 
+      // If a retry bumped the batch generation between when this tx was
+      // dispatched and when it terminated, the terminal event belongs to an
+      // already-abandoned batch. Ignore it so we don't dispatch duplicate
+      // Rejected/Failed events for stale work — the new generation owns the UI.
       if (checkGeneration()) return true;
 
       if (handledTxIds.has(transactionMeta.id)) return true;
-      if (!isFromCurrentBatch(transactionMeta)) return true;
+      if (!isTransactionFromCurrentBatch(transactionMeta)) return true;
       if (trackerStateRef.current.pendingAbortTxIds.has(transactionMeta.id)) {
         trackerStateRef.current.pendingAbortTxIds.delete(transactionMeta.id);
         return true;
@@ -904,6 +982,11 @@ export function useHwBatchSignTracker({
     }) => {
       if (!matchesTx(transactionMeta, targetFrom)) return;
 
+      // checkGeneration() may invalidate state (resetting currentBatchId and
+      // marking the previous batch ids as stale). Combined with the stale-batch
+      // set check, this ensures we ignore status updates for the previous
+      // retry's batch — they would otherwise race against the new batch's
+      // events and confuse the UI.
       if (
         checkGeneration() &&
         transactionMeta.batchId &&
@@ -912,13 +995,12 @@ export function useHwBatchSignTracker({
         return;
       }
 
-      const { status } = transactionMeta;
-      const type = transactionMeta.type;
+      const { status, type } = transactionMeta;
       if (!isBatchTransactionType(type)) return;
       const stepKind = getStepKind(type);
 
       if (status === TransactionStatus.approved) {
-        if (!isFromCurrentBatch(transactionMeta)) {
+        if (!isTransactionFromCurrentBatch(transactionMeta)) {
           return;
         }
         if (transactionMeta.batchId) {
@@ -939,7 +1021,7 @@ export function useHwBatchSignTracker({
         });
         enqueuePendingApprovals();
       } else if (status === TransactionStatus.signed) {
-        if (!isFromCurrentBatch(transactionMeta)) {
+        if (!isTransactionFromCurrentBatch(transactionMeta)) {
           return;
         }
         if (transactionMeta.batchId) {
@@ -975,7 +1057,7 @@ export function useHwBatchSignTracker({
     }) => {
       if (shouldIgnoreTerminalTx(transactionMeta)) return;
 
-      const type = transactionMeta.type;
+      const { type } = transactionMeta;
       if (!isBatchTransactionType(type)) return;
       const stepKind = getStepKind(type);
       trackTransactionCancelledEvent();
@@ -1043,7 +1125,7 @@ export function useHwBatchSignTracker({
     isBatchIdFromCurrentBatch,
     isCancelledError,
     isEnabled,
-    isFromCurrentBatch,
+    isTransactionFromCurrentBatch,
     retryGenerationRef,
     syncConfirmationTxId,
     trackTransactionCancelledEvent,

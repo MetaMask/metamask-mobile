@@ -2,6 +2,12 @@ import { getDeviceIdForAddress } from './helpers';
 import { isUserCancellation } from './errors';
 
 /**
+ * Operation type accepted by {@link executeHardwareWalletOperation}.
+ * Drives confirmation copy and behavior for a transaction signature vs a message signature.
+ */
+export type HardwareWalletOperationType = 'transaction' | 'message';
+
+/**
  * Options for {@link executeHardwareWalletOperation}: resolve the device, gate on readiness,
  * show confirmation UI, and run the Ledger or QR wallet work.
  */
@@ -9,7 +15,7 @@ interface ExecuteHardwareWalletOperationOptions {
   /** Account address used to look up the device id and optional pending-operation context. */
   address: string;
   /** Drives confirmation copy and behavior for a transaction signature vs a message signature. */
-  operationType: 'transaction' | 'message';
+  operationType: HardwareWalletOperationType;
   /**
    * Returns whether the hardware device is ready to sign. Receives the id from
    * {@link getDeviceIdForAddress} when available.
@@ -25,7 +31,7 @@ interface ExecuteHardwareWalletOperationOptions {
    * if the user dismisses or rejects that prompt before signing completes.
    */
   showAwaitingConfirmation: (
-    operationType: 'transaction' | 'message',
+    operationType: HardwareWalletOperationType,
     onReject?: () => void,
   ) => void;
   /** Hides the awaiting-confirmation UI. */
