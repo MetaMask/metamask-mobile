@@ -189,8 +189,15 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
     [sections, activePill],
   );
 
+  const instrumentedSearchQueryRef = useRef<string | null>(null);
+
   useEffect(() => {
-    if (!searchQuery.trim() || isLoading) return;
+    if (!searchQuery.trim()) {
+      instrumentedSearchQueryRef.current = null;
+      return;
+    }
+    if (isLoading) return;
+    if (instrumentedSearchQueryRef.current === searchQuery) return;
 
     const currentPill = activePillRef.current;
     const currentSections = sectionsRef.current;
@@ -211,7 +218,7 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
       tab_name: currentPill,
       result_count: resultCount,
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    instrumentedSearchQueryRef.current = searchQuery;
   }, [searchQuery, isLoading]);
 
   const handlePillSelect = useCallback((key: string) => {
