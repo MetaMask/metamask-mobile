@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.80.0]
+
+### Added
+
+- Track explore conversions in swaps (#30720)
+- Added metrics to explore search V2 (#30376)
+- Add forward-looking CODEOWNERS glob for mobile assets namespace. (#30305)
+- Set up batch sell quotes (#29831)
+- Added a World Cup tab to the Predict feed when enabled. (#30205)
+- Add claude.md file to wrap agents.md (#30395)
+
+### Changed
+
+- Bumped bitcoin snap v1.11.0 (#30705)
+- Simplify explore v2 implementation (#30643)
+- chore(release): sync stable to main for version 7.78.0 (#30568)
+- chore: build android in prod (#30506)
+- chore(release): sync stable to main for version 7.77.2 (#30457)
+- chore(release): sync stable to main for version 7.77.0 (#30396)
+- Patched native crypto dependencies for Android 16KB page size compliance (Play Store requirement) and removed (#30119)
+  pre-built ecies.aar
+- Remove tokensChainsCache from file storage (#30356)
+- chore(release): sync stable to main for version 7.77.0 (#30340)
+- Bump assets controller to v7.2.1 (#30067)
+- Token details performance tweaking (#30214)
+- chore(theme): gate pure-black dark mode behind pureBlackDarkMode flag (#30068)
+- chore(deps): bump the `@metamask/tron-wallet-snap` to `^1.25.6` (#30200)
+- Removed the Palm network from the popular networks picker. (#30371)
+
+### Fixed
+
+- chore(pure black): fix elevated surface token use background.alternative for first-level sheets (#30696)
+- Show even zero APY values on money home (#30630)
+- chore(pure-black): use background.section for bottom sheets that disappear against pure black (#30411)
+- Fixed a bug that could allow prediction orders on markets that are no longer accepting bets. (#30403)
+
 ## [7.79.1]
 
 ### Fixed

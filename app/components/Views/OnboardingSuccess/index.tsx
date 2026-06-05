@@ -1,5 +1,4 @@
 import React, { useCallback, useLayoutEffect } from 'react';
-import { Platform } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {

@@ -697,9 +697,7 @@ describe('ChoosePassword', () => {
           routes: [
             {
               name: 'OnboardingSuccess',
-              params: {
-                successFlow: ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
-              },
+              params: { showPasswordHint: true },
             },
           ],
         });

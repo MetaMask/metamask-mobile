@@ -68,6 +68,11 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
     (isPerps && enablePerpsMoneyAccountTransactions) ||
     (isPredict && enablePredictMoneyAccountTransactions);
 
+  const isDeposit = hasTransactionType(transactionMeta, [
+    TransactionType.perpsDeposit,
+    TransactionType.predictDeposit,
+  ]);
+
   const handlePress = useCallback(() => {
     if (transactionId) {
       Engine.context.TransactionPayController.setTransactionConfig(
@@ -90,9 +95,11 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
     }
 
     const subtitle = totalFiatFormatted
-      ? strings('confirm.pay_with_bottom_sheet.available_balance', {
-          balance: totalFiatFormatted,
-        })
+      ? isDeposit
+        ? strings('confirm.pay_with_bottom_sheet.available_balance', {
+            balance: totalFiatFormatted,
+          })
+        : totalFiatFormatted
       : undefined;
 
     const row: PayWithRowConfig = {
@@ -119,6 +126,7 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
   }, [
     isEnabled,
     handlePress,
+    isDeposit,
     isMoneyAccountSelected,
     moneyAccount,
     totalFiatFormatted,

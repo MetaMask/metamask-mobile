@@ -23,7 +23,6 @@ export function shouldMarkWalletHomeOnboardingStepsEligible(
   return (
     successFlow === ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP ||
     successFlow === ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP ||
-    successFlow === ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE ||
-    successFlow === ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING
+    successFlow === ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE
   );
 }
