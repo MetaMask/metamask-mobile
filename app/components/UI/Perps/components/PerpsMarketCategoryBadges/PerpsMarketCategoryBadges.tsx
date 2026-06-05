@@ -22,8 +22,7 @@ const NEW_CATEGORY: PerpsCategory = {
  * PerpsMarketCategoryBadges - Container for category filter badges
  *
  * Categories are derived from live market data via `usePerpsCategories`.
- * The `'new'` sentinel is appended when `includeNew` is set and new markets
- * exist (determined by the `availableCategories` prop including `'new'`).
+ * The `'new'` sentinel is appended when `includeNew` is true.
  *
  * The selected category is visually highlighted.
  * Tapping a selected badge again deselects it (toggles back to 'all').
@@ -39,17 +38,19 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
   const categories = usePerpsCategories();
 
   const displayCategories = useMemo(() => {
-    let cats = categories;
+    let result = categories;
 
     if (includeNew) {
-      cats = [...cats, NEW_CATEGORY];
+      result = [...result, NEW_CATEGORY];
     }
 
     if (availableCategories && availableCategories.length > 0) {
-      cats = cats.filter((c) => availableCategories.includes(c.id));
+      result = result.filter((category) =>
+        availableCategories.includes(category.id),
+      );
     }
 
-    return cats;
+    return result;
   }, [categories, availableCategories, includeNew]);
 
   const handleCategoryPress = useCallback(
@@ -71,19 +72,19 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
       style={styles.scrollContainer}
       testID={testID}
     >
-      {displayCategories.map((cat, index) => {
-        const isCategorySelected = selectedCategory === cat.id;
+      {displayCategories.map((category, index) => {
+        const isCategorySelected = selectedCategory === category.id;
         return (
           <Animated.View
-            key={cat.id}
+            key={category.id}
             entering={FadeIn.duration(ANIMATION_DURATION).delay(index * 50)}
             layout={LinearTransition.duration(ANIMATION_DURATION)}
           >
             <PerpsMarketCategoryBadge
-              label={cat.label}
+              label={category.label}
               isSelected={isCategorySelected}
-              onPress={() => handleCategoryPress(cat.id)}
-              testID={testID ? `${testID}-${cat.id}` : undefined}
+              onPress={() => handleCategoryPress(category.id)}
+              testID={testID ? `${testID}-${category.id}` : undefined}
             />
           </Animated.View>
         );
