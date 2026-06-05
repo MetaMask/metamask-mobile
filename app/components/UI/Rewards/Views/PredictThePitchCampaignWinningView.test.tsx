@@ -65,6 +65,7 @@ describe('PredictThePitchCampaignWinningView', () => {
         rank: 3,
         totalParticipants: 10,
         roi: 0.2,
+        pnl: 20,
         capitalDeployed: 100,
         eligible: true,
         neighbors: [],

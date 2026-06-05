@@ -154,6 +154,7 @@ const basePosition: PredictThePitchLeaderboardPositionDto = {
   rank: 4,
   totalParticipants: 50,
   roi: 0.25,
+  pnl: 50,
   capitalDeployed: 200,
   eligible: true,
   neighbors: [{ rank: 3, referralCode: 'A', roi: 0.3 }],

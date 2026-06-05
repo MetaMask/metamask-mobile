@@ -4085,6 +4085,7 @@ describe('Rewards selectors', () => {
       rank: 1,
       totalParticipants: 10,
       roi: 0.25,
+      pnl: 50,
       capitalDeployed: 200,
       eligible: true,
       neighbors: [],

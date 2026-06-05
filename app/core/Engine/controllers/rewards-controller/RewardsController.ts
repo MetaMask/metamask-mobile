@@ -4891,6 +4891,7 @@ export class RewardsController extends BaseController<
             rank: cached.rank,
             totalParticipants: cached.totalParticipants,
             roi: cached.roi,
+            pnl: cached.pnl,
             capitalDeployed: cached.capitalDeployed,
             eligible: cached.eligible,
             neighbors: cached.neighbors,
