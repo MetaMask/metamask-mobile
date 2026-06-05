@@ -28,7 +28,6 @@ const PerpsMarketFiltersBar: React.FC<PerpsMarketFiltersBarProps> = ({
   onSortPress,
   marketTypeFilter,
   onCategorySelect,
-  includeNew,
   testID,
 }) => {
   const { styles } = useStyles(styleSheet, {});
@@ -39,7 +38,6 @@ const PerpsMarketFiltersBar: React.FC<PerpsMarketFiltersBarProps> = ({
       <PerpsMarketCategoryBadges
         selectedCategory={marketTypeFilter}
         onCategorySelect={onCategorySelect}
-        includeNew={includeNew}
         testID={testID ? `${testID}-categories` : undefined}
       />
 

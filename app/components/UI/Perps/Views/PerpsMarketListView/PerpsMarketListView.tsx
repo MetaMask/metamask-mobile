@@ -74,7 +74,6 @@ const PerpsMarketListView = ({
     sortState,
     favoritesState,
     marketTypeFilterState,
-    marketCounts,
     isLoading: isLoadingMarkets,
     error,
   } = usePerpsMarketListView({
@@ -112,8 +111,6 @@ const PerpsMarketListView = ({
     },
     [onMarketSelect, perpsNavigation, transactionActiveAbTests],
   );
-
-  const hasNewMarkets = marketCounts.new > 0;
 
   const { track } = usePerpsEventTracking();
 
@@ -334,7 +331,6 @@ const PerpsMarketListView = ({
           onSortPress={() => setIsSortFieldSheetVisible(true)}
           marketTypeFilter={marketTypeFilter}
           onCategorySelect={handleCategorySelect}
-          includeNew={hasNewMarkets}
           testID={PerpsMarketListViewSelectorsIDs.SORT_FILTERS}
         />
       )}

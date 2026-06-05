@@ -28,12 +28,6 @@ export interface PerpsMarketFiltersBarProps {
   onCategorySelect: (category: MarketTypeFilter) => void;
 
   /**
-   * Show the 'new' category badge when new markets exist.
-   * @default false
-   */
-  includeNew?: boolean;
-
-  /**
    * Optional test ID for testing
    */
   testID?: string;

@@ -163,14 +163,6 @@ describe('PerpsMarketFiltersBar', () => {
       fireEvent.press(getByTestId('filters-bar-categories-stocks'));
       expect(mockOnCategorySelect).toHaveBeenCalledWith('stocks');
     });
-
-    it('passes includeNew to badges', () => {
-      const { getByTestId } = render(
-        <PerpsMarketFiltersBar {...defaultProps} includeNew />,
-      );
-
-      expect(getByTestId('filters-bar-categories-new')).toBeTruthy();
-    });
   });
 
   describe('Sort Dropdown', () => {

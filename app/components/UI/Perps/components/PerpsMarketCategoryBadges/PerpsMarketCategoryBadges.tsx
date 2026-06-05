@@ -10,6 +10,7 @@ import {
   usePerpsCategories,
   type PerpsCategory,
 } from '../../hooks/usePerpsCategories';
+import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 
 const ANIMATION_DURATION = 250;
 
@@ -22,7 +23,8 @@ const NEW_CATEGORY: PerpsCategory = {
  * PerpsMarketCategoryBadges - Container for category filter badges
  *
  * Categories are derived from live market data via `usePerpsCategories`.
- * The `'new'` sentinel is appended when `includeNew` is true.
+ * The `'new'` badge is automatically appended when any market has
+ * `isNewMarket` set.
  *
  * The selected category is visually highlighted.
  * Tapping a selected badge again deselects it (toggles back to 'all').
@@ -31,16 +33,21 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
   selectedCategory,
   onCategorySelect,
   availableCategories,
-  includeNew = false,
   testID,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const categories = usePerpsCategories();
+  const { markets } = usePerpsMarkets();
+
+  const hasNewMarkets = useMemo(
+    () => markets.some((market) => market.isNewMarket),
+    [markets],
+  );
 
   const displayCategories = useMemo(() => {
     let result = categories;
 
-    if (includeNew) {
+    if (hasNewMarkets) {
       result = [...result, NEW_CATEGORY];
     }
 
@@ -51,7 +58,7 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
     }
 
     return result;
-  }, [categories, availableCategories, includeNew]);
+  }, [categories, availableCategories, hasNewMarkets]);
 
   const handleCategoryPress = useCallback(
     (category: Exclude<MarketTypeFilter, 'all'>) => {

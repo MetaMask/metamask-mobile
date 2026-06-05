@@ -15,11 +15,6 @@ export interface PerpsMarketCategoryBadgesProps {
    */
   availableCategories?: Exclude<MarketTypeFilter, 'all'>[];
   /**
-   * Append the 'new' sentinel category (not a data-model category).
-   * @default false
-   */
-  includeNew?: boolean;
-  /**
    * Optional test ID for E2E testing
    */
   testID?: string;
