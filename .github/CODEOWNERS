@@ -204,7 +204,6 @@ app/selectors/featureFlagController/rewards @MetaMask/rewards
 **/rewards/**                        @MetaMask/rewards
 
 # Perps Team
-scripts/perps/agentic/teams/perps/   @MetaMask/perps
 app/components/UI/Perps/             @MetaMask/perps
 app/components/UI/WalletAction/*perps* @MetaMask/perps
 app/core/Engine/controllers/perps-controller @MetaMask/perps
@@ -212,7 +211,6 @@ app/core/Engine/messengers/perps-controller-messenger @MetaMask/perps
 app/core/Engine/controllers/compliance/ @MetaMask/perps
 app/core/Engine/messengers/compliance/ @MetaMask/perps
 app/core/DeeplinkManager/Handlers/handlePerpsUrl.ts         @MetaMask/perps
-app/core/AgenticService/             @MetaMask/perps
 **/Perps/**                          @MetaMask/perps
 **/perps/**                          @MetaMask/perps
 app/components/Views/Homepage/Sections/Perpetuals/ @MetaMask/perps

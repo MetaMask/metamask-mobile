@@ -18,13 +18,16 @@ const ONE_YEAR_LABEL = strings('confirm.custom_amount.projected_balance', {
 
 function mockBalance({
   apyDecimal,
+  apyPercent = apyDecimal === undefined ? undefined : apyDecimal * 100,
   isLoading = false,
 }: {
   apyDecimal: number | undefined;
+  apyPercent?: number;
   isLoading?: boolean;
 }) {
   useMoneyAccountBalanceMock.mockReturnValue({
     apyDecimal,
+    apyPercent,
     vaultApyQuery: { isLoading },
   } as unknown as ReturnType<typeof useMoneyAccountBalance>);
 }
@@ -85,13 +88,38 @@ describe('BalanceProjection', () => {
     expect(queryNegative('balance-projection')).toBeNull();
   });
 
-  it('treats empty or non-numeric amountFiat as zero or null', () => {
-    mockBalance({ apyDecimal: 0.04 });
+  it('shows the "earn up to APY" prompt for empty or zero amounts', () => {
+    mockBalance({ apyDecimal: 0.04, apyPercent: 4 });
+    const earnLabel = strings('confirm.custom_amount.earn_up_to_apy', {
+      percentage: 4,
+    });
 
-    const { getByText } = render(
+    const { getByText: getByTextEmpty } = render(
       <BalanceProjection amountFiat="" projectedYears={1} />,
     );
-    expect(getByText('$0.00')).toBeOnTheScreen();
+    expect(getByTextEmpty(earnLabel)).toBeOnTheScreen();
+
+    const { getByText: getByTextZero } = render(
+      <BalanceProjection amountFiat="0" projectedYears={1} />,
+    );
+    expect(getByTextZero(earnLabel)).toBeOnTheScreen();
+  });
+
+  it('returns null for a zero amount when apyPercent is unavailable', () => {
+    useMoneyAccountBalanceMock.mockReturnValue({
+      apyDecimal: 0.04,
+      apyPercent: undefined,
+      vaultApyQuery: { isLoading: false },
+    } as unknown as ReturnType<typeof useMoneyAccountBalance>);
+
+    const { queryByTestId } = render(
+      <BalanceProjection amountFiat="0" projectedYears={1} />,
+    );
+    expect(queryByTestId('balance-projection')).toBeNull();
+  });
+
+  it('returns null for non-numeric amountFiat', () => {
+    mockBalance({ apyDecimal: 0.04 });
 
     const { queryByTestId } = render(
       <BalanceProjection amountFiat="abc" projectedYears={1} />,
