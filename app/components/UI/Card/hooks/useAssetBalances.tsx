@@ -686,6 +686,19 @@ export const useAssetBalances = (
       const rawTokenBalance = parseFloat(normalizedBalance);
       const balanceFormatted = `${parseFloat(normalizedBalance).toFixed(6)} ${token.symbol}`;
 
+      // Money Account (Veda) tokens are mUSD — a USD-pegged stablecoin with
+      // no token-icon CDN entry or market-data feed. The spendable amount
+      // Baanx returns is therefore the user's USD spend power 1:1, so derive
+      // fiat directly from the balance instead of leaving it empty.
+      if (token.isMoneyAccountEntry) {
+        const safeBalance = Number.isNaN(rawTokenBalance) ? 0 : rawTokenBalance;
+        balanceFiat = formatWithThreshold(safeBalance, 0.01, I18n.locale, {
+          style: 'currency',
+          currency: currentCurrency?.toUpperCase() || 'USD',
+        });
+        rawFiatNumber = safeBalance;
+      }
+
       // Build asset object
       const asset = buildAssetObject(
         token,
@@ -713,6 +726,7 @@ export const useAssetBalances = (
     calculateSolanaFiat,
     calculateEvmFiat,
     buildAssetObject,
+    currentCurrency,
   ]);
 
   return balancesMap;

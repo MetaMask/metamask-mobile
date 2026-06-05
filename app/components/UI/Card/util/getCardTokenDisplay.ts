@@ -16,13 +16,15 @@ export interface CardTokenDisplay {
  * icon asset; all other tokens fall back to the CDN-built icon URL.
  */
 export const getCardTokenDisplay = (
-  token: Pick<
-    CardFundingToken,
-    | 'address'
-    | 'caipChainId'
-    | 'symbol'
-    | 'displaySymbol'
-    | 'isMoneyAccountEntry'
+  token: Partial<
+    Pick<
+      CardFundingToken,
+      | 'address'
+      | 'caipChainId'
+      | 'symbol'
+      | 'displaySymbol'
+      | 'isMoneyAccountEntry'
+    >
   >,
 ): CardTokenDisplay => {
   const shouldRenderAsMoneyAccount =

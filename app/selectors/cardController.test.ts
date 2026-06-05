@@ -3,12 +3,14 @@ import {
   selectCardSelectedCountry,
   selectCardActiveProviderId,
   selectIsCardAuthenticated,
+  selectIsMoneyAccountCardLinkInProgress,
   selectCardholderAccounts,
   selectHasCardholderAccounts,
   selectIsCardholder,
   selectCardUserLocation,
   selectCardHomeData,
   selectCardHomeDataStatus,
+  selectHasMetalCard,
   selectCardPrimaryToken,
   selectCardAvailableTokens,
   selectCardFundingTokens,
@@ -24,7 +26,7 @@ import {
   type CardFundingAsset,
   type CardHomeData,
 } from '../core/Engine/controllers/card-controller/provider-types';
-import { FundingStatus } from '../components/UI/Card/types';
+import { FundingStatus, CardType } from '../components/UI/Card/types';
 import { selectSelectedInternalAccountByScope } from './multichainAccounts/accounts';
 import { isEthAccount } from '../core/Multichain/utils';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
@@ -81,6 +83,7 @@ const createMockRootState = (
           providerData: {},
           cardHomeData: null,
           cardHomeDataStatus: 'idle',
+          moneyAccountCardLinkInProgress: false,
           ...overrides,
         },
       },
@@ -88,6 +91,29 @@ const createMockRootState = (
   }) as unknown as RootState;
 
 describe('CardController selectors', () => {
+  describe('selectIsMoneyAccountCardLinkInProgress', () => {
+    it('returns false when CardController state is undefined', () => {
+      const state = {
+        engine: { backgroundState: {} },
+      } as unknown as RootState;
+      expect(selectIsMoneyAccountCardLinkInProgress(state)).toBe(false);
+    });
+
+    it('returns false when linkage is not in progress', () => {
+      const state = createMockRootState({
+        moneyAccountCardLinkInProgress: false,
+      });
+      expect(selectIsMoneyAccountCardLinkInProgress(state)).toBe(false);
+    });
+
+    it('returns true when linkage is in progress', () => {
+      const state = createMockRootState({
+        moneyAccountCardLinkInProgress: true,
+      });
+      expect(selectIsMoneyAccountCardLinkInProgress(state)).toBe(true);
+    });
+  });
+
   describe('selectCardSelectedCountry', () => {
     it('returns null when no country is selected', () => {
       const state = createMockRootState();
@@ -396,6 +422,53 @@ const mockCardHomeData: CardHomeData = {
     _links: { self: '/v1/delegation/chain/config' },
   },
 };
+
+describe('selectHasMetalCard', () => {
+  it('returns false when card home data is null', () => {
+    const state = createMockRootState({ cardHomeData: null });
+    expect(selectHasMetalCard(state)).toBe(false);
+  });
+
+  it('returns false when card is null', () => {
+    const state = createMockRootState({
+      cardHomeData: {
+        ...mockCardHomeData,
+        card: null,
+      } as unknown as CardControllerState['cardHomeData'],
+    });
+    expect(selectHasMetalCard(state)).toBe(false);
+  });
+
+  it('returns false for a virtual card', () => {
+    const state = createMockRootState({
+      cardHomeData: {
+        ...mockCardHomeData,
+        card: {
+          id: 'card-1',
+          status: 'ACTIVE' as never,
+          type: CardType.VIRTUAL,
+          lastFour: '1234',
+        },
+      } as unknown as CardControllerState['cardHomeData'],
+    });
+    expect(selectHasMetalCard(state)).toBe(false);
+  });
+
+  it('returns true for a metal card', () => {
+    const state = createMockRootState({
+      cardHomeData: {
+        ...mockCardHomeData,
+        card: {
+          id: 'card-1',
+          status: 'ACTIVE' as never,
+          type: CardType.METAL,
+          lastFour: '1234',
+        },
+      } as unknown as CardControllerState['cardHomeData'],
+    });
+    expect(selectHasMetalCard(state)).toBe(true);
+  });
+});
 
 describe('selectCardPrimaryToken', () => {
   it('returns null when cardHomeData is null', () => {

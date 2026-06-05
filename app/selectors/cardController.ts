@@ -11,6 +11,7 @@ import {
   type CardHomeData,
 } from '../core/Engine/controllers/card-controller/provider-types';
 import {
+  CardType,
   FundingStatus,
   type CardLocation,
   type CardFundingToken,
@@ -80,6 +81,12 @@ export const selectIsCardAuthenticated = createSelector(
   selectCardControllerState,
   (cardState: CardControllerState | undefined) =>
     cardState?.isAuthenticated ?? false,
+);
+
+export const selectIsMoneyAccountCardLinkInProgress = createSelector(
+  selectCardControllerState,
+  (cardState: CardControllerState | undefined) =>
+    cardState?.moneyAccountCardLinkInProgress ?? false,
 );
 
 export const selectCardholderAccounts = createSelector(
@@ -166,6 +173,11 @@ const toFundingTokenWithVedaContext = (
     isVedaEntry ? MONEY_ACCOUNT_DISPLAY_SYMBOL : undefined,
   );
 };
+
+export const selectHasMetalCard = createSelector(
+  selectCardHomeData,
+  (data): boolean => data?.card?.type === CardType.METAL,
+);
 
 export const selectCardPrimaryToken = createSelector(
   selectCardHomeData,

@@ -2305,6 +2305,13 @@
   },
   "predict": {
     "title": "MetaMask Predictions",
+    "home": {
+      "portfolio_module_placeholder": "Portfolio module",
+      "live_now_placeholder": "Live now",
+      "categories_placeholder": "Categories",
+      "popular_today_placeholder": "Popular today",
+      "trending_placeholder": "Trending"
+    },
     "homepage_discovery": {
       "btc_title": "BTC Price: {{price}}",
       "btc_price_to_beat": "Price to beat: {{price}}",

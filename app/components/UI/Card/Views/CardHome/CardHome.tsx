@@ -117,8 +117,11 @@ const CardHome = () => {
     useCardProvisioning(data);
 
   // --- Money Account linkage ---
-  const { canLink: canLinkMoneyAccount, startLinkFlow: startMoneyAccountLink } =
-    useMoneyAccountCardLinkage();
+  const {
+    canLink: canLinkMoneyAccount,
+    startLinkFlow: startMoneyAccountLink,
+    isLinking: isMoneyAccountLinkInProgress,
+  } = useMoneyAccountCardLinkage();
   const { apyPercent: moneyAccountApyPercent } = useMoneyAccountBalance();
   const hasMetalCard = data?.card?.type === CardType.METAL;
   const handleLinkMoneyAccountCard = useCallback(
@@ -420,6 +423,7 @@ const CardHome = () => {
                 hideCardImage
                 apy={moneyAccountApyPercent}
                 showMetalCard={hasMetalCard}
+                isLinkDisabled={isMoneyAccountLinkInProgress}
                 onGetNowPress={handleLinkMoneyAccountCard}
                 onHeaderPress={handleLinkMoneyAccountCard}
                 onLinkPress={handleLinkMoneyAccountCard}

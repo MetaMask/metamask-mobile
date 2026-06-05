@@ -108,6 +108,12 @@ const metadata: StateMetadata<CardControllerState> = {
     includeInStateLogs: false,
     usedInUi: true,
   },
+  moneyAccountCardLinkInProgress: {
+    persist: false,
+    includeInDebugSnapshot: false,
+    includeInStateLogs: false,
+    usedInUi: true,
+  },
 };
 
 export const defaultCardControllerState: CardControllerState = {
@@ -118,6 +124,7 @@ export const defaultCardControllerState: CardControllerState = {
   providerData: {},
   cardHomeData: null,
   cardHomeDataStatus: 'idle',
+  moneyAccountCardLinkInProgress: false,
 };
 
 /**
@@ -140,7 +147,6 @@ export class CardController extends BaseController<
   private fetchCardHomeDataPromise: Promise<void> | null = null;
   private fetchGeneration = 0;
   private previousEvmAddress: string | null = null;
-  private linkMoneyAccountCardInFlight = false;
 
   constructor({
     messenger,
@@ -950,19 +956,23 @@ export class CardController extends BaseController<
     moneyAccountAddress: string;
     delegationAmountHuman: string;
   }): Promise<void> {
-    if (this.linkMoneyAccountCardInFlight) {
+    if (this.state.moneyAccountCardLinkInProgress) {
       throw new CardLinkageInProgressError();
     }
-    this.linkMoneyAccountCardInFlight = true;
+    this.update((state) => {
+      state.moneyAccountCardLinkInProgress = true;
+    });
     try {
       await this.#linkMoneyAccountCardUnsafe(params);
     } finally {
-      this.linkMoneyAccountCardInFlight = false;
+      this.update((state) => {
+        state.moneyAccountCardLinkInProgress = false;
+      });
     }
   }
 
   isLinkageInProgress(): boolean {
-    return this.linkMoneyAccountCardInFlight;
+    return this.state.moneyAccountCardLinkInProgress;
   }
 
   async #linkMoneyAccountCardUnsafe(params: {

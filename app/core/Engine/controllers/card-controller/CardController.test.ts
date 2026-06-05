@@ -236,6 +236,7 @@ describe('CardController', () => {
       providerData: {},
       cardHomeData: null,
       cardHomeDataStatus: 'idle',
+      moneyAccountCardLinkInProgress: false,
     });
   });
 
@@ -2381,6 +2382,7 @@ describe('CardController — data pass-throughs', () => {
         await waitFor(() => controller.isLinkageInProgress() === true, 100);
 
         expect(controller.isLinkageInProgress()).toBe(true);
+        expect(controller.state.moneyAccountCardLinkInProgress).toBe(true);
 
         resolveApproveFunding();
         await linkPromise;

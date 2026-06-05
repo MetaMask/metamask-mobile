@@ -384,27 +384,36 @@ const AssetSelectionBottomSheet: React.FC = () => {
                     alignItems={BoxAlignItems.Center}
                     twClassName="flex-1"
                   >
-                    <BadgeWrapper
-                      style={tw.style('mr-3')}
-                      badgePosition={BadgePosition.BottomRight}
-                      badgeElement={
-                        item.caipChainId ? (
-                          <Badge
-                            variant={BadgeVariant.Network}
-                            imageSource={NetworkBadgeSource(
-                              safeFormatChainIdToHex(
-                                item.caipChainId,
-                              ) as `0x${string}`,
-                            )}
-                          />
-                        ) : null
-                      }
-                    >
+                    {item.isMoneyAccountEntry ? (
                       <AvatarToken
                         size={AvatarSize.Md}
+                        style={tw.style('mr-3')}
                         imageSource={iconSource}
                       />
-                    </BadgeWrapper>
+                    ) : (
+                      <BadgeWrapper
+                        style={tw.style('mr-3')}
+                        badgePosition={BadgePosition.BottomRight}
+                        badgeElement={
+                          item.caipChainId ? (
+                            <Badge
+                              variant={BadgeVariant.Network}
+                              imageSource={NetworkBadgeSource(
+                                safeFormatChainIdToHex(
+                                  item.caipChainId,
+                                ) as `0x${string}`,
+                              )}
+                            />
+                          ) : null
+                        }
+                      >
+                        <AvatarToken
+                          size={AvatarSize.Md}
+                          imageSource={iconSource}
+                        />
+                      </BadgeWrapper>
+                    )}
+
                     <Box
                       twClassName="flex-1"
                       justifyContent={BoxJustifyContent.Center}
