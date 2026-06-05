@@ -176,6 +176,11 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
     [handleViewMore, searchQuery],
   );
 
+  const sectionsMap = useMemo(
+    () => new Map(sections.map((s) => [s.feedId, s])),
+    [sections],
+  );
+
   const flatData = useMemo<FlatListItem[]>(() => {
     const result: FlatListItem[] = [];
     const visibleSections = isBasicFunctionalityEnabled ? sections : [];
@@ -224,14 +229,14 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
   const renderFlatItem: ListRenderItem<FlatListItem> = useCallback(
     ({ item }) => {
       if (item.type === 'header') {
-        const section = sections.find((s) => s.feedId === item.feedId);
+        const section = sectionsMap.get(item.feedId);
         if (!section) return null;
         return renderSectionHeader(item, section);
       }
       if (item.type === 'skeleton') {
         return <SearchFeedSkeleton feedId={item.feedId} />;
       }
-      const section = sections.find((s) => s.feedId === item.feedId);
+      const section = sectionsMap.get(item.feedId);
       return (
         <SearchFeedRow
           feedId={item.feedId}
@@ -243,7 +248,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
         />
       );
     },
-    [renderSectionHeader, sections, searchQuery, activeTab],
+    [renderSectionHeader, sectionsMap, searchQuery, activeTab],
   );
 
   const keyExtractor = useCallback((item: FlatListItem) => {

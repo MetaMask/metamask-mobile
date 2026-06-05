@@ -61,6 +61,8 @@ const SearchFeedRow: React.FC<SearchFeedRowProps> = ({
 }) => {
   const searchQueryRef = useRef(searchQuery);
   searchQueryRef.current = searchQuery;
+  const resultCountRef = useRef(resultCount);
+  resultCountRef.current = resultCount;
 
   const handleTap = useCallback(() => {
     trackExploreSearchEvent({
@@ -70,9 +72,9 @@ const SearchFeedRow: React.FC<SearchFeedRowProps> = ({
       tab_name: tabName,
       item_clicked: getItemId(feedId, item),
       position: index,
-      result_count: resultCount,
+      result_count: resultCountRef.current,
     });
-  }, [feedId, tabName, item, index, resultCount]);
+  }, [feedId, tabName, item, index]);
 
   return <TapView onTap={handleTap}>{renderRow(feedId, item, index)}</TapView>;
 };

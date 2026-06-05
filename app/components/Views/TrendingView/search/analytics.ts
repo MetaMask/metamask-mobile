@@ -27,7 +27,7 @@ export interface ExploreSearchInteractedProperties {
   comes_from_view_all_tap?: boolean;
   item_clicked?: string;
   position?: number;
-  /** Only set on searched: total number of results visible to the user. */
+  /** Total number of results visible to the user at the time of the interaction. */
   result_count?: number;
 }
 

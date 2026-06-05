@@ -72,6 +72,9 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
     result_count: resultCount,
   });
 
+  const resultCountRef = useRef(resultCount);
+  resultCountRef.current = resultCount;
+
   const renderItem: ListRenderItem<unknown> = useCallback(
     ({ item, index }) => (
       <SearchFeedRow
@@ -80,10 +83,10 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
         index={index}
         searchQuery={searchQuery}
         tabName={tabName}
-        resultCount={resultCount}
+        resultCount={resultCountRef.current}
       />
     ),
-    [feedId, searchQuery, tabName, resultCount],
+    [feedId, searchQuery, tabName],
   );
 
   const keyExtractor = useCallback(
@@ -213,14 +216,14 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
 
   const handlePillSelect = useCallback((key: string) => {
     const targetSections = sectionsRef.current;
+    const targetSection = targetSections.find((s) => s.feedId === key);
     const resultCount =
       key === ALL_PILL_KEY
         ? targetSections.reduce(
             (sum, s) => sum + (s.total ?? s.items.length),
             0,
           )
-        : (targetSections.find((s) => s.feedId === key)?.total ??
-          targetSections.find((s) => s.feedId === key)?.items.length);
+        : (targetSection?.total ?? targetSection?.items.length);
     trackExploreSearchEvent({
       interaction_type: 'tab_switched',
       search_query: searchQueryRef.current,
