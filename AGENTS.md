@@ -243,3 +243,39 @@ bash scripts/check-ab-testing-compliance.sh --staged
 ```
 
 If no files are staged, the checker automatically falls back to changed working-tree files.
+
+## Cursor Cloud specific instructions
+
+### Toolchain
+
+- Use **Node.js 20.18.0** (`.nvmrc`). The cloud VM may default to a newer Node at `/exec-daemon/node`; run `nvm use 20.18.0` (or `nvm install` first) before yarn commands.
+- **Yarn 4.14.1** via corepack (`corepack enable`).
+
+### First-time setup (after clone)
+
+```bash
+cp -n .js.env.example .js.env   # add MM_INFURA_PROJECT_ID for real RPC connectivity
+CI=true yarn setup:github-ci --node
+```
+
+`setup:github-ci --node` is the Linux/CI path: skips native iOS/Android builds, runs LavaMoat allow-scripts, patches, Husky, and generates `app/util/termsOfUse/termsOfUseContent.ts` (gitignored).
+
+### Recommended dev path on Linux
+
+Expo/JS-only development — no iOS simulator on Linux. For on-device UI, use an Android emulator + Runway `.apk` (see `docs/readme/expo-environment.md`).
+
+| Goal                  | Command                                                                                  |
+| --------------------- | ---------------------------------------------------------------------------------------- |
+| Metro bundler         | `yarn watch` (omit `CI=true` for hot reload)                                             |
+| Typecheck             | `yarn lint:tsc`                                                                          |
+| Unit test (one file)  | `NODE_OPTIONS='--max-old-space-size=8192' yarn jest <file> --forceExit --coverage=false` |
+| Prove bundle pipeline | `yarn gen-bundle:android`                                                                |
+| Verify Metro          | `curl http://localhost:8081/status` → `packager-status:running`                          |
+
+### Jest memory
+
+Large suites can OOM on default heap. CI uses 12–20 GB; cloud agents should set at least `NODE_OPTIONS='--max-old-space-size=8192'` for focused tests.
+
+### Secrets
+
+`.js.env` is required. Without `MM_INFURA_PROJECT_ID`, the app cannot reach blockchain networks. Sentry/card legacy keys may log warnings at Metro startup but do not block the bundler.
