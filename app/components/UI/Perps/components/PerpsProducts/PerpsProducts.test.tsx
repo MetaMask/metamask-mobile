@@ -50,10 +50,7 @@ describe('PerpsProducts', () => {
     });
 
     const { toJSON } = render(
-      <PerpsProducts
-        marketCounts={{ crypto: 10, stocks: 5 }}
-        testID="perps-products"
-      />,
+      <PerpsProducts marketCounts={{ crypto: 10, stocks: 5 }} />,
     );
 
     expect(toJSON()).toBeNull();
@@ -78,7 +75,6 @@ describe('PerpsProducts', () => {
           commodities: 0,
           forex: 3,
         }}
-        testID="perps-products"
       />,
     );
 
@@ -91,10 +87,7 @@ describe('PerpsProducts', () => {
 
   it('navigates to market list with category and product pill source', () => {
     const { getByTestId } = render(
-      <PerpsProducts
-        marketCounts={{ crypto: 10, stocks: 5 }}
-        testID="perps-products"
-      />,
+      <PerpsProducts marketCounts={{ crypto: 10, stocks: 5 }} />,
     );
 
     fireEvent.press(getByTestId('perps-products-crypto'));
@@ -110,10 +103,7 @@ describe('PerpsProducts', () => {
 
   it('navigates with correct filter for stocks category', () => {
     const { getByTestId } = render(
-      <PerpsProducts
-        marketCounts={{ crypto: 10, stocks: 5 }}
-        testID="perps-products"
-      />,
+      <PerpsProducts marketCounts={{ crypto: 10, stocks: 5 }} />,
     );
 
     fireEvent.press(getByTestId('perps-products-stocks'));
@@ -139,7 +129,6 @@ describe('PerpsProducts', () => {
           commodities: 6,
           forex: 8,
         }}
-        testID="perps-products"
       />,
     );
 
@@ -154,10 +143,7 @@ describe('PerpsProducts', () => {
 
   it('tracks analytics with product_pill_tapped, product, and pill_position', () => {
     const { getByTestId } = render(
-      <PerpsProducts
-        marketCounts={{ crypto: 10, stocks: 5 }}
-        testID="perps-products"
-      />,
+      <PerpsProducts marketCounts={{ crypto: 10, stocks: 5 }} />,
     );
 
     fireEvent.press(getByTestId('perps-products-stocks'));
@@ -175,7 +161,7 @@ describe('PerpsProducts', () => {
 
   it('renders category icons', () => {
     const { getByTestId } = render(
-      <PerpsProducts marketCounts={{ crypto: 10 }} testID="perps-products" />,
+      <PerpsProducts marketCounts={{ crypto: 10 }} />,
     );
 
     const pill = getByTestId('perps-products-crypto');

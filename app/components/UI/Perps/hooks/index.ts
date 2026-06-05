@@ -1,4 +1,5 @@
 // Core hooks (direct controller access)
+export { usePerpsCategories } from './usePerpsCategories';
 export { usePerpsMarkets } from './usePerpsMarkets';
 export { usePerpsTopMovers } from './usePerpsTopMovers';
 export { usePerpsNetwork } from './usePerpsNetwork';

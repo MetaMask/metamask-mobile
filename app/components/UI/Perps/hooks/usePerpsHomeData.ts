@@ -49,11 +49,6 @@ interface UsePerpsHomeDataReturn {
   forexMarkets: PerpsMarketData[]; // Forex markets
   recentActivity: PerpsTransaction[];
   sortBy: SortField;
-  /**
-   * Per-category market counts for the Products section.
-   * Keys are MARKET_CATEGORIES values; crypto counts non-HIP3 markets.
-   */
-  categoryMarketCounts: Partial<Record<MarketTypeFilter, number>>;
   isLoading: {
     positions: boolean;
     orders: boolean;
@@ -369,28 +364,6 @@ export const usePerpsHomeData = ({
     );
   }, [searchQuery, forexMarkets, filteredData.markets]);
 
-  // Per-category market counts for the Products pills section.
-  // Must mirror usePerpsMarketListView counting: "crypto" = non-HIP3,
-  // HIP-3 categories only count HIP-3 markets, "new" counts isNewMarket.
-  const categoryMarketCounts = useMemo(() => {
-    const counts: Partial<Record<MarketTypeFilter, number>> = {};
-    for (const category of MARKET_CATEGORIES) {
-      if (category === 'crypto') {
-        counts.crypto = allMarkets.filter((market) => !market.isHip3).length;
-      } else {
-        const targetType = getMarketTypeForFilter(category);
-        if (targetType) {
-          counts[category] = allMarkets.filter(
-            (market) => market.isHip3 && market.marketType === targetType,
-          ).length;
-        }
-      }
-    }
-    // 'new' is not in MARKET_CATEGORIES but is a valid MarketTypeFilter
-    counts.new = allMarkets.filter((market) => market.isNewMarket).length;
-    return counts;
-  }, [allMarkets]);
-
   return {
     positions: limitedPositions,
     orders: limitedOrders,
@@ -402,7 +375,6 @@ export const usePerpsHomeData = ({
     forexMarkets: searchedForexMarkets,
     recentActivity: limitedActivity,
     sortBy,
-    categoryMarketCounts,
     // Hooks handle reconnection internally: clearCache() sends null →
     // callback sets isInitialLoading=true. No need to override with
     // isConnecting, which would defeat disk-cache instant display on

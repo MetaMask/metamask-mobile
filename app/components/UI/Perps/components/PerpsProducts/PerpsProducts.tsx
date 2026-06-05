@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import { View, Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -12,7 +12,6 @@ import {
   IconColor,
 } from '@metamask/design-system-react-native';
 import {
-  MARKET_CATEGORIES,
   type MarketTypeFilter,
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -24,11 +23,10 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { selectPerpsProductsEnabledFlag } from '../../selectors/featureFlags';
+import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
+import { usePerpsCategories } from '../../hooks/usePerpsCategories';
 import { styleSheet } from './PerpsProducts.styles';
-import type {
-  PerpsProductsProps,
-  CategoryPillConfig,
-} from './PerpsProducts.types';
+import type { PerpsProductsProps } from './PerpsProducts.types';
 
 /**
  * Analytics constants for product pills — not yet in @metamask/perps-controller.
@@ -52,17 +50,6 @@ const CATEGORY_ICON_MAP: Record<string, IconName> = {
 };
 
 /**
- * Build pill configs from the controller-provided MARKET_CATEGORIES constant.
- * Labels use the existing i18n keys under `perps.home.tabs.*`.
- */
-const PILL_CONFIGS: CategoryPillConfig[] = MARKET_CATEGORIES.map(
-  (category) => ({
-    category,
-    labelKey: `perps.home.tabs.${category.replace(/-/g, '_')}`,
-  }),
-);
-
-/**
  * PerpsProducts – grid of category pills for the Perps home screen.
  *
  * Categories are driven by `MARKET_CATEGORIES` from `@metamask/perps-controller`.
@@ -70,23 +57,17 @@ const PILL_CONFIGS: CategoryPillConfig[] = MARKET_CATEGORIES.map(
  * Tapping a pill navigates to the Markets list screen with that category
  * pre-selected via `defaultMarketTypeFilter`.
  */
+const TEST_ID = PerpsHomeViewSelectorsIDs.PRODUCTS_SECTION;
+
 const PerpsProducts: React.FC<PerpsProductsProps> = ({
-  marketCounts,
   transactionActiveAbTests,
-  testID,
 }) => {
   const isEnabled = useSelector(selectPerpsProductsEnabledFlag);
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
-  const visiblePills = useMemo(
-    () =>
-      PILL_CONFIGS.filter(
-        (pillConfig) => (marketCounts[pillConfig.category] ?? 0) > 0,
-      ),
-    [marketCounts],
-  );
+  const categoriesWithLabels = usePerpsCategories();
 
   const handlePillPress = useCallback(
     (category: Exclude<MarketTypeFilter, 'all'>, pillPosition: number) => {
@@ -119,37 +100,37 @@ const PerpsProducts: React.FC<PerpsProductsProps> = ({
     [navigation, trackEvent, createEventBuilder, transactionActiveAbTests],
   );
 
-  if (!isEnabled || visiblePills.length === 0) {
+  if (!isEnabled || categoriesWithLabels.length === 0) {
     return null;
   }
 
   return (
-    <View style={styles.container} testID={testID}>
+    <View style={styles.container} testID={TEST_ID}>
       <SectionHeader
         title={strings('perps.home.products')}
         twClassName="px-0 mb-0"
       />
 
       <View style={styles.grid}>
-        {visiblePills.map((pillConfig, index) => (
+        {categoriesWithLabels.map((category, index) => (
           <Pressable
-            key={pillConfig.category}
+            key={category.id}
             style={({ pressed }) => [
               styles.pill,
               pressed && styles.pillPressed,
             ]}
-            onPress={() => handlePillPress(pillConfig.category, index)}
+            onPress={() => handlePillPress(category.id, index)}
             accessibilityRole="button"
-            accessibilityLabel={strings(pillConfig.labelKey)}
-            testID={testID ? `${testID}-${pillConfig.category}` : undefined}
+            accessibilityLabel={category.label}
+            testID={`${TEST_ID}-${category.id}`}
           >
             <Icon
-              name={CATEGORY_ICON_MAP[pillConfig.category] ?? IconName.Coin}
+              name={CATEGORY_ICON_MAP[category.id] ?? IconName.Coin}
               size={IconSize.Sm}
               color={IconColor.IconAlternative}
             />
             <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-              {strings(pillConfig.labelKey)}
+              {category.label}
             </Text>
           </Pressable>
         ))}

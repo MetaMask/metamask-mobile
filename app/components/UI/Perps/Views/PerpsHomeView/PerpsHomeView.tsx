@@ -216,7 +216,6 @@ const PerpsHomeView = ({
     forexMarkets,
     recentActivity,
     sortBy,
-    categoryMarketCounts,
     isLoading,
   } = usePerpsHomeData({});
 
@@ -602,11 +601,7 @@ const PerpsHomeView = ({
 
         {/* Products Section - Category pills grid */}
         <View onLayout={handleSectionLayout('products')}>
-          <PerpsProducts
-            marketCounts={categoryMarketCounts}
-            transactionActiveAbTests={transactionActiveAbTests}
-            testID="perps-products"
-          />
+          <PerpsProducts transactionActiveAbTests={transactionActiveAbTests} />
         </View>
 
         {/* Top Movers Section */}
