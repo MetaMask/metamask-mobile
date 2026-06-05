@@ -9,12 +9,16 @@ import PredictScreenStack, { PredictModalStack } from './index';
 
 let mockPayWithAnyTokenEnabled = false;
 let mockPredictPortfolioEnabled = true;
+let mockPredictHomeRedesignEnabled = false;
 
 const mockSelectPredictWithAnyTokenEnabledFlag = jest.fn(
   () => mockPayWithAnyTokenEnabled,
 );
 const mockSelectPredictPortfolioEnabledFlag = jest.fn(
   () => mockPredictPortfolioEnabled,
+);
+const mockSelectPredictHomeRedesignEnabledFlag = jest.fn(
+  () => mockPredictHomeRedesignEnabled,
 );
 
 jest.mock('react-redux', () => ({
@@ -27,6 +31,8 @@ jest.mock('../selectors/featureFlags', () => ({
     mockSelectPredictWithAnyTokenEnabledFlag(),
   selectPredictPortfolioEnabledFlag: () =>
     mockSelectPredictPortfolioEnabledFlag(),
+  selectPredictHomeRedesignEnabledFlag: () =>
+    mockSelectPredictHomeRedesignEnabledFlag(),
 }));
 
 jest.mock('../contexts', () => {
@@ -45,6 +51,15 @@ jest.mock('../views/PredictFeed', () => {
   return () => (
     <View testID="predict-feed">
       <Text>PredictFeed</Text>
+    </View>
+  );
+});
+
+jest.mock('../views/PredictHome', () => {
+  const { View, Text } = jest.requireActual('react-native');
+  return () => (
+    <View testID="predict-home">
+      <Text>PredictHome</Text>
     </View>
   );
 });
@@ -135,6 +150,7 @@ describe('PredictScreenStack', () => {
     jest.clearAllMocks();
     mockPayWithAnyTokenEnabled = false;
     mockPredictPortfolioEnabled = true;
+    mockPredictHomeRedesignEnabled = false;
     navigationRef = React.createRef();
   });
 
@@ -144,10 +160,20 @@ describe('PredictScreenStack', () => {
     expect(screen.getByTestId('preview-sheet-provider')).toBeOnTheScreen();
   });
 
-  it('renders PredictFeed as initial route', () => {
+  it('renders PredictFeed at market list when home redesign flag is disabled', () => {
+    mockPredictHomeRedesignEnabled = false;
     renderWithNavigation(<PredictScreenStack />);
 
     expect(screen.getByTestId('predict-feed')).toBeOnTheScreen();
+    expect(screen.queryByTestId('predict-home')).toBeNull();
+  });
+
+  it('renders PredictHome at market list when home redesign flag is enabled', () => {
+    mockPredictHomeRedesignEnabled = true;
+    renderWithNavigation(<PredictScreenStack />);
+
+    expect(screen.getByTestId('predict-home')).toBeOnTheScreen();
+    expect(screen.queryByTestId('predict-feed')).toBeNull();
   });
 
   it('navigates to MARKET_DETAILS screen', async () => {

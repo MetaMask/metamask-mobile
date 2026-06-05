@@ -26,7 +26,7 @@ export const usePredictClaim = () => {
 
   useSelector(selectSelectedAccountGroupId);
   const evmAccount = getEvmAccountFromSelectedAccountGroup();
-  const selectedAddress = evmAccount?.address ?? '0x0';
+  const selectedAddress = evmAccount?.address ?? '';
 
   const claimBatchId = useSelector(
     selectPredictPendingClaimByAddress({ address: selectedAddress }),

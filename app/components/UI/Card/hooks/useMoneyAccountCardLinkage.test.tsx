@@ -11,6 +11,7 @@ import {
   selectCardHomeDataStatus,
   selectIsCardAuthenticated,
   selectIsCardholder,
+  selectIsMoneyAccountCardLinkInProgress,
   selectIsMoneyAccountDelegatedForCard,
 } from '../../../../selectors/cardController';
 import {
@@ -141,6 +142,7 @@ const buildSelectors = (
     pendingMoneyAccountCardLink?: boolean;
     cardHomeDataStatus?: CardHomeDataStatusMock;
     isMonadSponsorshipEnabled?: boolean;
+    moneyAccountCardLinkInProgress?: boolean;
   } = {},
 ) => ({
   primaryMoneyAccount: { address: MONEY_ACCOUNT_ADDRESS },
@@ -153,6 +155,7 @@ const buildSelectors = (
   pendingMoneyAccountCardLink: false,
   cardHomeDataStatus: 'success' as CardHomeDataStatusMock,
   isMonadSponsorshipEnabled: true,
+  moneyAccountCardLinkInProgress: false,
   ...overrides,
 });
 
@@ -171,6 +174,8 @@ const applySelectorMocks = (state: ReturnType<typeof buildSelectors>) => {
     if (selector === selectCardHomeDataStatus) return state.cardHomeDataStatus;
     if (selector === selectIsMoneyAccountDelegatedForCard)
       return state.isAlreadyDelegated;
+    if (selector === selectIsMoneyAccountCardLinkInProgress)
+      return state.moneyAccountCardLinkInProgress;
     if (selector === selectPendingMoneyAccountCardLink)
       return state.pendingMoneyAccountCardLink;
     if (selector === getGasFeesSponsoredNetworkEnabled)
@@ -265,6 +270,50 @@ describe('useMoneyAccountCardLinkage', () => {
       applySelectorMocks(buildSelectors({ isMonadSponsorshipEnabled: false }));
       const { result } = renderLinkageHook();
       expect(result.current.canLink).toBe(false);
+    });
+
+    it('reports isLinking=true when controller linkage is in progress', () => {
+      applySelectorMocks(
+        buildSelectors({ moneyAccountCardLinkInProgress: true }),
+      );
+      const { result } = renderLinkageHook();
+      expect(result.current.isLinking).toBe(true);
+    });
+  });
+
+  describe('linkage in progress guards', () => {
+    const ORIGIN = {
+      screen: Routes.MONEY.ROOT,
+      params: { screen: Routes.MONEY.HOME },
+    } as const;
+
+    it('does not navigate from openLinkCardSheet when linkage is in progress', () => {
+      applySelectorMocks(
+        buildSelectors({ moneyAccountCardLinkInProgress: true }),
+      );
+      const { result } = renderLinkageHook();
+
+      act(() => {
+        result.current.openLinkCardSheet();
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it('does not navigate from startLinkFlow when linkage is in progress', () => {
+      applySelectorMocks(
+        buildSelectors({ moneyAccountCardLinkInProgress: true }),
+      );
+      const { result } = renderLinkageHook();
+
+      act(() => {
+        result.current.startLinkFlow(ORIGIN);
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalled();
     });
   });
 
