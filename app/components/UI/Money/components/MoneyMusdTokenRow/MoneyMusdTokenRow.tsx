@@ -26,8 +26,8 @@ interface MoneyMusdTokenRowProps {
    */
   onPress?: () => void;
   /**
-   * Handler fired when the Add button is tapped. Opens the Add money action
-   * sheet (MUSD-487).
+   * Handler fired when the Add button is tapped. Navigates directly to the
+   * MM Pay deposit input screen with a default payment method preselected.
    */
   onAddPress?: () => void;
   /**
