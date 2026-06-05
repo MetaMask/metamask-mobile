@@ -66,7 +66,11 @@ jobs:
       - name: Run hotfix backport alert
         run: node ./scripts/slack-hotfix-backport-alert.mjs
         env:
+          # Empty on cron → script auto-detects the latest release branch.
+          # On workflow_dispatch, set to a bare semver (e.g. "7.79.1"). Do NOT include -ota here.
           NEW_SEMVER: ${{ inputs.semver || '' }}
+          # Only used when NEW_SEMVER is explicitly set. Ignored during auto-detect (cron).
+          # Boolean dispatch inputs stringify to 'true'/'false'; '' on cron → 'false'.
           IS_OTA: ${{ inputs.is_ota || 'false' }}
           DRY_RUN: ${{ inputs.dry_run || 'false' }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
