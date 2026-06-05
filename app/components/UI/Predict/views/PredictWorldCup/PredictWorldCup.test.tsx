@@ -122,10 +122,21 @@ jest.mock('../../components/PredictMarket', () => {
     default: ({
       market,
       testID,
+      predictFeedTab,
+      predictScreen,
     }: {
       market: { title: string };
       testID: string;
-    }) => <Text testID={testID}>{market.title}</Text>,
+      predictFeedTab?: string;
+      predictScreen?: string;
+    }) => (
+      <Text
+        testID={testID}
+        accessibilityLabel={`${predictFeedTab ?? ''}|${predictScreen ?? ''}`}
+      >
+        {market.title}
+      </Text>
+    ),
   };
 });
 
@@ -365,6 +376,27 @@ describe('PredictWorldCup', () => {
     expect(
       screen.getByTestId(`${PREDICT_WORLD_CUP_SCREEN_TEST_IDS.MARKET_CARD}-1`),
     ).toHaveTextContent('World Cup winner');
+  });
+
+  it('forwards the active tab key and world_cup screen to market cards', () => {
+    mockUsePredictWorldCupMarkets.mockReturnValue({
+      marketData: [{ id: 'market-1', title: 'World Cup winner' }],
+      isFetching: false,
+      isFetchingMore: false,
+      error: null,
+      hasMore: false,
+      refetch: jest.fn(),
+      fetchMore: jest.fn(),
+    });
+
+    render(<PredictWorldCup />);
+
+    const card = screen.getByTestId(
+      `${PREDICT_WORLD_CUP_SCREEN_TEST_IDS.MARKET_CARD}-1`,
+    );
+    expect(card.props.accessibilityLabel).toBe(
+      `all|${PredictEventValues.PREDICT_SCREEN.WORLD_CUP}`,
+    );
   });
 
   it('does not render tabs hidden by availability', () => {

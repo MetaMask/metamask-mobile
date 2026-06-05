@@ -17,6 +17,13 @@ jest.mock('@react-navigation/stack', () => ({
   }),
 }));
 
+jest.mock('@react-navigation/native-stack', () => ({
+  createNativeStackNavigator: jest.fn().mockReturnValue({
+    Navigator: 'Navigator',
+    Screen: 'Screen',
+  }),
+}));
+
 jest.mock('@react-navigation/bottom-tabs', () => ({
   createBottomTabNavigator: jest.fn().mockReturnValue({
     Navigator: 'TabNavigator',
@@ -185,10 +192,10 @@ describe('MainNavigator', () => {
       )[0];
 
       // Then every screen in the wallet tab stack, including pushed screens,
-      // inherits the themed card background.
+      // inherits the themed content background (native-stack uses contentStyle).
       expect(stackNavigator?.props?.screenOptions).toEqual(
         expect.objectContaining({
-          cardStyle: {
+          contentStyle: {
             backgroundColor: mockTheme.colors.background.default,
           },
         }),

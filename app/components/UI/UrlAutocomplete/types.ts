@@ -3,6 +3,7 @@
  */
 
 import type { Hex } from '@metamask/utils';
+import type { MarketType } from '@metamask/perps-controller';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type UrlAutocompleteComponentProps = {
@@ -92,7 +93,7 @@ export type PerpsSearchResult = {
   change24hPercent: string;
   volume: string;
   openInterest?: string;
-  marketType?: 'crypto' | 'equity' | 'commodity' | 'forex';
+  marketType?: MarketType;
   marketSource?: string | null;
 };
 

@@ -1,4 +1,4 @@
-import { test } from '../../framework/fixture';
+import { test } from '../../framework/fixtures/playwright';
 import TimerHelper from '../../framework/TimerHelper';
 import { Performance, PerformancePreps } from '../../tags.performance.js';
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
@@ -8,6 +8,7 @@ import PerpsDepositView from '../../page-objects/Perps/PerpsDepositView';
 import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBottomSheet';
 import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
 import { asPlaywrightElement } from '../../framework/EncapsulatedElement';
+import TransactionPayConfirmation from '../../page-objects/Confirmation/TransactionPayConfirmation';
 
 /* Scenario 5: Perps add funds */
 test.describe(`${Performance} ${PerformancePreps}`, () => {
@@ -60,13 +61,7 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
       // Get quote
       await getQuoteTimer.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(PerpsDepositView.addFundsButton),
-        );
-        await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(PerpsDepositView.infoRow),
-        );
-        await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(PerpsDepositView.payWithRow),
+          asPlaywrightElement(TransactionPayConfirmation.transactionFee),
         );
       });
 

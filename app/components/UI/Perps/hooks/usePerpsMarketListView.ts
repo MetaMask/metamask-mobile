@@ -5,6 +5,7 @@ import { usePerpsSearch } from './usePerpsSearch';
 import { usePerpsSorting } from './usePerpsSorting';
 import {
   MARKET_SORTING_CONFIG,
+  MarketCategory,
   sortMarkets,
   type PerpsMarketData,
   type MarketTypeFilter,
@@ -17,6 +18,7 @@ import {
   selectPerpsMarketFilterPreferences,
 } from '../selectors/perpsController';
 import Engine from '../../../../core/Engine';
+import { isEquityAsset } from '../utils/marketHours';
 
 interface UsePerpsMarketListViewParams {
   /**
@@ -96,7 +98,7 @@ interface UsePerpsMarketListViewReturn {
    */
   marketCounts: {
     crypto: number;
-    equity: number;
+    stocks: number;
     commodity: number;
     forex: number;
     new: number;
@@ -194,15 +196,19 @@ export const usePerpsMarketListView = ({
 
     // HIP-3 categories - only show explicitly mapped markets
     if (marketTypeFilter === 'stocks') {
-      return searchedMarkets.filter((m) => m.marketType === 'equity');
+      return searchedMarkets.filter((m) => isEquityAsset(m.marketType));
     }
 
     if (marketTypeFilter === 'commodities') {
-      return searchedMarkets.filter((m) => m.marketType === 'commodity');
+      return searchedMarkets.filter(
+        (m) => m.marketType === MarketCategory.Commodity,
+      );
     }
 
     if (marketTypeFilter === 'forex') {
-      return searchedMarkets.filter((m) => m.marketType === 'forex');
+      return searchedMarkets.filter(
+        (m) => m.marketType === MarketCategory.Forex,
+      );
     }
 
     // Fallback: return all markets for unknown filter values
@@ -266,25 +272,26 @@ export const usePerpsMarketListView = ({
 
   // Calculate market counts by type (for hiding empty tabs)
   const marketCounts = useMemo(() => {
-    const counts = { crypto: 0, equity: 0, commodity: 0, forex: 0, new: 0 };
+    const counts = {
+      crypto: 0,
+      stocks: 0,
+      commodity: 0,
+      forex: 0,
+      new: 0,
+    };
     allMarkets.forEach((market) => {
-      // Count new markets (uncategorized HIP-3)
       if (market.isNewMarket) {
         counts.new++;
       }
-      // Crypto = non-HIP3 markets (no DEX prefix)
       if (!market.isHip3) {
         counts.crypto++;
-      } else if (market.marketType === 'equity') {
-        // HIP-3 markets with explicit equity type
-        counts.equity++;
-      } else if (market.marketType === 'commodity') {
+      } else if (isEquityAsset(market.marketType)) {
+        counts.stocks++;
+      } else if (market.marketType === MarketCategory.Commodity) {
         counts.commodity++;
-      } else if (market.marketType === 'forex') {
+      } else if (market.marketType === MarketCategory.Forex) {
         counts.forex++;
       }
-      // Note: uncategorized HIP-3 default to 'equity' marketType,
-      // so they're counted in equity AND in new
     });
     return counts;
   }, [allMarkets]);

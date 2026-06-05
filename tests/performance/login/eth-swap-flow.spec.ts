@@ -1,4 +1,4 @@
-import { test } from '../../framework/fixture';
+import { test } from '../../framework/fixtures/playwright';
 import TimerHelper from '../../framework/TimerHelper';
 import {
   Performance,
@@ -32,7 +32,6 @@ test.describe(`${Performance} ${System} ${PerformanceLogin} ${PerformanceSwaps}`
       );
 
       await WalletView.tapWalletSwapButton();
-
       await swapLoadTimer.measure(() => QuoteView.isVisible());
 
       const swapTimer = new TimerHelper(
@@ -41,7 +40,7 @@ test.describe(`${Performance} ${System} ${PerformanceLogin} ${PerformanceSwaps}`
         currentDeviceDetails.platform,
       );
       await QuoteView.selectNetworkAndTokenTo('Ethereum', 'USDC');
-      await QuoteView.enterSourceTokenAmount('0.0001');
+      await QuoteView.enterSourceTokenAmount('0.01');
 
       await QuoteView.dismissKeypad();
       await swapTimer.measure(() => QuoteView.isQuoteDisplayed());
