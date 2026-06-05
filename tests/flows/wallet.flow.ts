@@ -43,8 +43,11 @@ import PlaywrightUtilities from '../framework/PlaywrightUtilities';
 import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomSheet';
 import MetaMetricsOptInView from '../page-objects/Onboarding/MetaMetricsOptInView';
 import PredictModalView from '../page-objects/Predict/PredictModalView';
+import OnboardingCryptoExperienceQuestionnaireView from '../page-objects/Onboarding/OnboardingCryptoExperienceQuestionnaireView';
 import OnboardingInterestQuestionnaireView from '../page-objects/Onboarding/OnboardingInterestQuestionnaireView';
+import ExperienceEnhancerBottomSheet from '../page-objects/Onboarding/ExperienceEnhancerBottomSheet';
 import { fetchProductionFeatureFlags } from '../performance/feature-flag-helper';
+import { ExistingUserSheetSelectorsIDs } from '../../app/components/Views/Notifications/PushNotificationOnboarding/ExistingUserSheet/ExistingUserSheet.testIds';
 const logger = createLogger({
   name: 'WalletFlow',
 });
@@ -238,6 +241,7 @@ export const importWalletWithRecoveryPhrase = async ({
   }
   if (optInToMetrics) {
     await OnboardingInterestQuestionnaireView.tapContinueButton();
+    await OnboardingCryptoExperienceQuestionnaireView.tapContinueButton();
   }
   //'Should dismiss Enable device Notifications checks alert'
   await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
@@ -352,6 +356,7 @@ export const CreateNewWallet = async ({
 
   if (optInToMetrics) {
     await OnboardingInterestQuestionnaireView.tapContinueButton();
+    await OnboardingCryptoExperienceQuestionnaireView.tapContinueButton();
   }
 
   await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
@@ -459,11 +464,11 @@ export const dismissPushNotificationExistingUserSheet =
         encapsulated({
           detox: () =>
             Matchers.getElementByID(
-              'push-notification-existing-user-sheet-button-confirm',
+              ExistingUserSheetSelectorsIDs.BUTTON_CONFIRM,
             ),
           appium: () =>
             PlaywrightMatchers.getElementById(
-              'push-notification-existing-user-sheet-button-confirm',
+              ExistingUserSheetSelectorsIDs.BUTTON_CONFIRM,
               { exact: true },
             ),
         }),
@@ -477,6 +482,14 @@ export const dismissPushNotificationExistingUserSheet =
       // Sheet not present — no-op
     }
   };
+
+/**
+ * Dismisses the marketing consent (Experience Enhancer) modal if it appears
+ * after login. Safe to call when the modal is not shown.
+ */
+export const dismissExperienceEnhancerModal = async (): Promise<void> => {
+  await ExperienceEnhancerBottomSheet.dismissIfPresent();
+};
 
 /**
  * Logs into the application using the provided password or a default password.
@@ -496,6 +509,7 @@ export const loginToAppPlaywright = async (
 
   await PlaywrightUtilities.wait(5000);
   await dismissPushNotificationExistingUserSheet();
+  await dismissExperienceEnhancerModal();
 };
 
 /**
@@ -628,12 +642,7 @@ export const dismisspredictionsModalPlaywright = async (
         checkForDisplayed: true,
         checkForEnabled: true,
       });
-      const dismissedCheck = await asPlaywrightElement(
-        PredictModalView.notNowButton,
-      );
-      await dismissedCheck
-        .unwrap()
-        .waitForDisplayed({ reverse: true, timeout: 10_000 });
+      await btn.unwrap().waitForDisplayed({ reverse: true, timeout: 10_000 });
       return;
     } catch {
       if (attempt === maxRetries) {
