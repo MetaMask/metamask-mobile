@@ -534,9 +534,19 @@ const PerpsHomeView = ({
     () => [
       styles.scrollViewContent,
       topInset > 0 ? { paddingTop: topInset } : null,
-      !hideHeader ? { paddingBottom: 16 + insets.bottom } : null,
+      showsFixedFooter
+        ? { paddingBottom: 0 }
+        : !hideHeader
+          ? { paddingBottom: 16 + insets.bottom }
+          : null,
     ],
-    [styles.scrollViewContent, topInset, hideHeader, insets.bottom],
+    [
+      styles.scrollViewContent,
+      topInset,
+      hideHeader,
+      showsFixedFooter,
+      insets.bottom,
+    ],
   );
 
   const titleEndAccessory = useMemo(() => {
