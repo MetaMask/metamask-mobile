@@ -238,6 +238,38 @@ describe('WebSocketManager', () => {
       });
     });
 
+    it('ignores sports heartbeat PONG messages without reporting an error', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn();
+
+      manager.subscribeToGame('123', callback);
+      mockWebSocketInstances[0].simulateOpen();
+      mockGameCacheInstance.updateGame.mockClear();
+      mockedLoggerError.mockClear();
+
+      mockWebSocketInstances[0].simulateRawMessage('PONG');
+
+      expect(callback).not.toHaveBeenCalled();
+      expect(mockGameCacheInstance.updateGame).not.toHaveBeenCalled();
+      expect(mockedLoggerError).not.toHaveBeenCalled();
+    });
+
+    it('ignores malformed sports messages without reporting an error', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn();
+
+      manager.subscribeToGame('123', callback);
+      mockWebSocketInstances[0].simulateOpen();
+      mockGameCacheInstance.updateGame.mockClear();
+      mockedLoggerError.mockClear();
+
+      mockWebSocketInstances[0].simulateRawMessage('Invalid upstream payload');
+
+      expect(callback).not.toHaveBeenCalled();
+      expect(mockGameCacheInstance.updateGame).not.toHaveBeenCalled();
+      expect(mockedLoggerError).not.toHaveBeenCalled();
+    });
+
     it('does not call callback for unrelated gameId', () => {
       const manager = WebSocketManager.getInstance();
       const callback = jest.fn();
@@ -2353,27 +2385,14 @@ describe('WebSocketManager', () => {
       });
     });
 
-    it('logs to Logger.error when market WebSocket onerror fires', () => {
+    it('does not report transient market WebSocket onerror events', () => {
       const manager = WebSocketManager.getInstance();
       manager.subscribeToMarketPrices(['token1'], jest.fn());
       mockedLoggerError.mockClear();
 
       mockWebSocketInstances[0].simulateError();
 
-      expect(mockedLoggerError).toHaveBeenCalledTimes(1);
-      const [errorArg, optionsArg] = mockedLoggerError.mock.calls[0];
-      expect(errorArg).toBeInstanceOf(Error);
-      expect(optionsArg).toMatchObject({
-        tags: {
-          feature: PREDICT_CONSTANTS.FEATURE_NAME,
-          provider: POLYMARKET_PROVIDER_ID,
-          channel: 'market',
-        },
-        context: {
-          name: 'WebSocketManager',
-          data: { method: 'onerror' },
-        },
-      });
+      expect(mockedLoggerError).not.toHaveBeenCalled();
     });
 
     it('does not report transient sports WebSocket onerror events', () => {
@@ -2386,7 +2405,7 @@ describe('WebSocketManager', () => {
       expect(mockedLoggerError).not.toHaveBeenCalled();
     });
 
-    it('logs to Logger.error when RTDS WebSocket onerror fires', () => {
+    it('does not report transient RTDS WebSocket onerror events', () => {
       const manager = WebSocketManager.getInstance();
       manager.subscribeToCryptoPrices(['btc/usd'], jest.fn());
       const rtdsInstance =
@@ -2395,11 +2414,7 @@ describe('WebSocketManager', () => {
 
       rtdsInstance.simulateError();
 
-      expect(mockedLoggerError).toHaveBeenCalledTimes(1);
-      expect(mockedLoggerError.mock.calls[0][1]).toMatchObject({
-        tags: { channel: 'rtds' },
-        context: { data: { method: 'onerror' } },
-      });
+      expect(mockedLoggerError).not.toHaveBeenCalled();
     });
   });
 

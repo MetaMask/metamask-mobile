@@ -277,9 +277,41 @@ export class WebSocketManager {
     }
   }
 
-  private handleSportsMessage = (event: WebSocketMessageEvent): void => {
+  private parseSportsMessageData(
+    eventData: WebSocketMessageEvent['data'],
+  ): SportsWebSocketEvent | undefined {
+    if (typeof eventData !== 'string') {
+      DevLogger.log('WebSocketManager: Ignoring non-string sports message', {
+        dataType: typeof eventData,
+      });
+      return undefined;
+    }
+
+    const message = eventData.trim();
+
+    if (!message || message === 'PONG' || message === 'PING') {
+      return undefined;
+    }
+
     try {
-      const data: SportsWebSocketEvent = JSON.parse(event.data);
+      return JSON.parse(message) as SportsWebSocketEvent;
+    } catch (error) {
+      DevLogger.log('WebSocketManager: Ignoring non-JSON sports message', {
+        error,
+        bodySnippet: message.slice(0, 200),
+      });
+      return undefined;
+    }
+  }
+
+  private handleSportsMessage = (event: WebSocketMessageEvent): void => {
+    const data = this.parseSportsMessageData(event.data);
+
+    if (!data) {
+      return;
+    }
+
+    try {
       const gameId = String(data.gameId);
 
       const callbacks = this.gameSubscriptions.get(gameId);
@@ -702,13 +734,9 @@ export class WebSocketManager {
       };
 
       this.marketWs.onerror = () => {
-        DevLogger.log('WebSocketManager: market WebSocket onerror fired');
-        Logger.error(
-          new Error('WebSocketManager: market WebSocket onerror'),
-          this.getErrorContext('onerror', 'market', {
-            reconnectAttempts: this.marketReconnectAttempts,
-          }),
-        );
+        DevLogger.log('WebSocketManager: market WebSocket onerror fired', {
+          reconnectAttempts: this.marketReconnectAttempts,
+        });
       };
 
       this.marketWs.onmessage = this.handleMarketMessage;
@@ -1069,13 +1097,9 @@ export class WebSocketManager {
       };
 
       this.rtdsWs.onerror = () => {
-        DevLogger.log('WebSocketManager: RTDS WebSocket onerror fired');
-        Logger.error(
-          new Error('WebSocketManager: RTDS WebSocket onerror'),
-          this.getErrorContext('onerror', 'rtds', {
-            reconnectAttempts: this.rtdsReconnectAttempts,
-          }),
-        );
+        DevLogger.log('WebSocketManager: RTDS WebSocket onerror fired', {
+          reconnectAttempts: this.rtdsReconnectAttempts,
+        });
       };
 
       this.rtdsWs.onmessage = this.handleRtdsMessage;
