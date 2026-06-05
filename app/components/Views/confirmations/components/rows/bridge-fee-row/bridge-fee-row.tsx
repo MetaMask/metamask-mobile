@@ -209,6 +209,12 @@ function Tooltip({
   }
 
   if (
+    hasTransactionType(transactionMeta, [TransactionType.moneyAccountDeposit])
+  ) {
+    message = strings('confirm.tooltip.money_account_deposit.transaction_fee');
+  }
+
+  if (
     hasTransactionType(transactionMeta, [TransactionType.moneyAccountWithdraw])
   ) {
     message = strings('confirm.tooltip.money_account_withdraw.transaction_fee');
