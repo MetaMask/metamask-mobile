@@ -10,7 +10,7 @@ import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
 const RECIPIENT_ADDRESS = '0xb1D018BE7a9cFD7AC6c5Cce00835a8F2386173d8';
 
 /* System test: Send ETH from Account 1 to Account 2 on the same SRP */
-test.describe(`${System} ${PerformanceLogin}`, () => {
+test.describe(`${System}`, () => {
   test.setTimeout(5 * 60 * 1000);
 
   test(
