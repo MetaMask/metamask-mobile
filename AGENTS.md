@@ -253,12 +253,20 @@ If no files are staged, the checker automatically falls back to changed working-
 
 ### First-time setup (after clone)
 
+Configure `.js.env` (internal contributors: copy from 1Password; external: set `MM_INFURA_PROJECT_ID` from [developer.metamask.io](https://developer.metamask.io)), then:
+
 ```bash
-cp -n .js.env.example .js.env   # add MM_INFURA_PROJECT_ID for real RPC connectivity
-CI=true yarn setup:github-ci --node
+yarn setup:expo
 ```
 
-`setup:github-ci --node` is the Linux/CI path: skips native iOS/Android builds, runs LavaMoat allow-scripts, patches, Husky, and generates `app/util/termsOfUse/termsOfUseContent.ts` (gitignored).
+`setup:expo` skips native iOS/Android builds, runs LavaMoat allow-scripts, patches, Husky, and generates `app/util/termsOfUse/termsOfUseContent.ts` (gitignored). Use `yarn setup:github-ci --node` only for CI-style headless installs (no `yarn clean`).
+
+### Daily dev workflow
+
+```bash
+yarn watch:clean   # first Metro start, or after cache issues
+yarn watch         # subsequent starts
+```
 
 ### Recommended dev path on Linux
 
@@ -266,7 +274,7 @@ Expo/JS-only development — no iOS simulator on Linux. For on-device UI, use an
 
 | Goal                  | Command                                                                                  |
 | --------------------- | ---------------------------------------------------------------------------------------- |
-| Metro bundler         | `yarn watch` (omit `CI=true` for hot reload)                                             |
+| Metro bundler         | `yarn watch:clean` (first run) then `yarn watch`                                         |
 | Typecheck             | `yarn lint:tsc`                                                                          |
 | Unit test (one file)  | `NODE_OPTIONS='--max-old-space-size=8192' yarn jest <file> --forceExit --coverage=false` |
 | Prove bundle pipeline | `yarn gen-bundle:android`                                                                |
