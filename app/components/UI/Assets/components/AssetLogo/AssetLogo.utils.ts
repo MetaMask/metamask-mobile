@@ -4,6 +4,7 @@ import {
   hexToNumber,
   isCaipChainId,
   isStrictHexString,
+  isValidHexAddress,
   parseCaipAssetType,
   getChecksumAddress,
 } from '@metamask/utils';
@@ -36,7 +37,7 @@ export const getFallbackAssetImageUrls = (
     assetNamespace,
     assetReference,
   } = parseCaipAssetType(caipAssetId);
-  const checkSummedAddress = isStrictHexString(assetReference)
+  const checkSummedAddress = isValidHexAddress(assetReference)
     ? getChecksumAddress(assetReference)
     : assetReference;
   const lowercasedAddress = assetReference.toLowerCase();
