@@ -28,7 +28,7 @@ const DEFAULT_IOS_APP =
  * - ANDROID_APK_PATH — path to the APK (default: prod debug APK)
  * - IOS_APP_PATH — path to the .app (default: Debug-iphonesimulator/MetaMask.app)
  * - ANDROID_AVD_NAME — AVD name (default: 'Pixel_5_Pro_API_34')
- * - IOS_SIMULATOR_NAME — simulator name (default: 'iPhone 15 Pro')
+ * - IOS_SIMULATOR_NAME — simulator name (default: 'iPhone 16 Pro')
  *
  * Usage:
  * yarn appium-smoke:android
@@ -73,7 +73,7 @@ export default defineConfig({
         platform: Platform.IOS,
         device: {
           provider: ProviderName.SIMULATOR,
-          name: process.env.IOS_SIMULATOR_NAME || 'iPhone 15 Pro',
+          name: process.env.IOS_SIMULATOR_NAME || 'iPhone 16 Pro',
         },
         app: {
           appId: 'io.metamask.MetaMask',

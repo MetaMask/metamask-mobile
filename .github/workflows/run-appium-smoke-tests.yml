@@ -201,7 +201,7 @@ jobs:
         run: yarn appium-smoke:ios
         env:
           IOS_APP_PATH: artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
-          IOS_SIMULATOR_NAME: iPhone 15 Pro
+          IOS_SIMULATOR_NAME: iPhone 16 Pro
 
       - name: Upload test report (Namespace)
         if: ${{ always() && inputs.runner_provider == 'namespace' }}
