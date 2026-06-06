@@ -44,17 +44,25 @@ export function useFiatConfirm() {
       return;
     }
 
-    setIsHeadlessBuyInProgress(true);
-    setHeadlessBuyError(undefined);
-
-    const transactionId = transactionMetadata?.id;
-
     // Subtract the on-ramp provider fee from the total so the Ramps order
     // amount covers exactly the Relay leg of the intent (fees + deposit).
     // The on-ramp provider adds its own fee on top of what we request.
     const totalAmountToBuy = new BigNumber(totals?.total?.usd ?? 0)
       .minus(new BigNumber(totals?.fees.providerFiat?.usd ?? 0))
       .toNumber();
+
+    // Guard after computing totalAmountToBuy: totals may not be loaded yet
+    // (zero/undefined) or fees may exceed the total (stale quote, rounding).
+    // Either case would send amount: 0 or a negative value to the provider.
+    if (!(totalAmountToBuy > 0)) {
+      log('Fiat payment total amount invalid, aborting', { totalAmountToBuy });
+      return;
+    }
+
+    setIsHeadlessBuyInProgress(true);
+    setHeadlessBuyError(undefined);
+
+    const transactionId = transactionMetadata?.id;
 
     // Track whether an order has been created. Initialized from the current
     // fiatPayment snapshot (handles the case where orderId was set by a prior

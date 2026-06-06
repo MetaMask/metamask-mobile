@@ -322,7 +322,7 @@ describe('useFiatConfirm', () => {
       expect(setHeadlessBuyErrorMock).toHaveBeenCalledWith(expect.any(String));
     });
 
-    it('uses zero amount when totals are unavailable', () => {
+    it('aborts when totals are unavailable (zero amount guard)', () => {
       jest.mocked(useTransactionPayTotals).mockReturnValue(undefined);
 
       jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
@@ -338,10 +338,7 @@ describe('useFiatConfirm', () => {
         result.current.onFiatConfirm();
       });
 
-      expect(startHeadlessBuyMock).toHaveBeenCalledWith(
-        expect.objectContaining({ amount: 0 }),
-        expect.any(Object),
-      );
+      expect(startHeadlessBuyMock).not.toHaveBeenCalled();
     });
 
     it('subtracts providerFiat fee from total for buy amount', () => {
