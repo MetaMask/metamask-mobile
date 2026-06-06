@@ -2,7 +2,7 @@ import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import type { Nft } from '@metamask/assets-controllers';
 import { IconName } from '@metamask/design-system-react-native';
 import { SeasonRewardType } from '../../../core/Engine/controllers/rewards-controller/types';
-import type { CaipChainId , SemVerVersion } from '@metamask/utils';
+import type { CaipChainId, SemVerVersion } from '@metamask/utils';
 import { StatusTypes } from '@metamask/bridge-controller';
 import {
   DepositOrderType,

@@ -11,10 +11,10 @@ import { useNavigation } from '@react-navigation/native';
 import {
   HeaderStandard,
   TextColor as DSTextColor,
-
   Icon as DSIcon,
   IconName as DSIconName,
-  IconSize as DSIconSize} from '@metamask/design-system-react-native';
+  IconSize as DSIconSize,
+} from '@metamask/design-system-react-native';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import SelectSRP from '../SelectSRP';
 import { useSelector } from 'react-redux';
