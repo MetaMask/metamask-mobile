@@ -316,6 +316,28 @@ describe('HeadlessHost', () => {
       expect(ctx.currency).toBe('USD');
     });
 
+    it('falls back to the quote payment method when it is absent from the loaded catalog and no override is given', async () => {
+      // Catalog only has debit-credit-card and bank-transfer; the quote was
+      // priced with sepa-bank-transfer. The membership check misses, so the
+      // resolver must forward the quote's own payment method rather than
+      // sending an empty one (which Transak rejects with HTTP 400).
+      const quote = buildNativeQuote({
+        quote: {
+          amountIn: SAMPLE_AMOUNT,
+          amountOut: 0.011,
+          paymentMethod: '/payments/sepa-bank-transfer',
+          cryptoTranslation: { symbol: 'mUSD' },
+        },
+      } as unknown as Partial<Quote>);
+      const session = seedSession(quote);
+      renderHost({ headlessSessionId: session.id });
+      await waitFor(() =>
+        expect(mockContinueWithQuote).toHaveBeenCalledTimes(1),
+      );
+      const [, ctx] = mockContinueWithQuote.mock.calls[0];
+      expect(ctx.paymentMethodId).toBe('/payments/sepa-bank-transfer');
+    });
+
     it('falls back to userRegion currency when the session does not pin one', async () => {
       const quote = buildAggregatorQuote();
       const session = seedSession(quote);
