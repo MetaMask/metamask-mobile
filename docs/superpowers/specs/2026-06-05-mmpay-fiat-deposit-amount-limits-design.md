@@ -234,6 +234,26 @@ This work is constrained to the **Ramps domain** and **how ramps is used** — i
   response, so the TPC team reads it from there and surfaces it however they choose. We
   explicitly do **not** add `fiatPayment.quoteError`.
 
+## Backward compatibility (no breaking changes)
+
+We are not touching TPC, and everything we do touch must be **additive / non-breaking** —
+no consumer (UB2 or other) may regress:
+
+- **`RampsController` changes are purely additive.** `getBestProviderForAsset` /
+  `getBestQuote` are new methods + new messenger actions. Existing methods (`getQuotes`,
+  `getProviders`, `setSelectedProvider`, …), their signatures/messenger actions, and the
+  state shape are unchanged.
+- **No existing behavior changes.** The state-management guardrail (never mutate
+  `.selected` / `providerAutoSelected`) means current UB2 selection behavior is preserved.
+- **Mobile changes are scoped to the money-account fiat context.** The Part 2 change to
+  `useAutomaticTransactionPayToken` and the eligibility-gate change must be gated to fiat
+  `moneyAccountDeposit` so perps / predict / other flows that share these hooks do not
+  regress.
+- **The cascade is reimplemented in core, leaving the mobile util intact.** The mobile
+  `determinePreferredProvider` (used by UB2) is **not** modified; the controller method
+  gets its own cascade over `RampsOrder` state. This is temporary duplication, removed only
+  when UB2 migrates (Future Work) — keeping the change non-breaking now.
+
 ### Core change required
 
 - **`RampsController` (in scope):** add `getBestProviderForAsset(assetId)` and
