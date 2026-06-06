@@ -47,6 +47,7 @@ export default defineConfig({
       'html',
       { open: 'never', outputFolder: './test-reports/appium-smoke-report' },
     ],
+    ['junit', { outputFile: './test-reports/appium-smoke-junit.xml' }],
     ['list'],
   ],
   use: {
