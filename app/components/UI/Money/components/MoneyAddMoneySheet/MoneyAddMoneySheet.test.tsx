@@ -13,6 +13,7 @@ import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
 } from '../../../Earn/constants/musd';
+import { MONEY_ACCOUNT_FIAT_DEPOSIT_ASSET_ID } from '../../../Ramp/utils/getMoneyAccountFiatDepositAssetId';
 
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockNavigate = jest.fn();
@@ -356,18 +357,22 @@ describe('MoneyAddMoneySheet', () => {
     ).toBeNull();
   });
 
-  it('calls useCanFiatDepositAsset with the native ETH mainnet fiat deposit assetId', () => {
+  it('calls useCanFiatDepositAsset without an explicit assetId (resolved internally from the flag)', () => {
     (useCanFiatDepositAsset as jest.Mock).mockReturnValue(true);
 
     renderWithProvider(<MoneyAddMoneySheet />);
 
-    // Money-account fiat deposit on-ramps in native ETH on mainnet (slip44:60),
-    // mirroring core's ETH_MAINNET_FIAT_ASSET fallback for moneyAccountDeposit.
+    // The assetId is now resolved inside useCanFiatDepositAsset via
+    // useMoneyAccountFiatDepositAssetId, which reads the
+    // confirmations_pay_fiat.assetPerTransactionType flag and falls back to
+    // MONEY_ACCOUNT_FIAT_DEPOSIT_ASSET_ID (native ETH mainnet, eip155:1/slip44:60).
     expect(useCanFiatDepositAsset as jest.Mock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        assetId: 'eip155:1/slip44:60',
+      expect.not.objectContaining({
+        assetId: expect.anything(),
       }),
     );
+    // The default fallback constant is still eip155:1/slip44:60
+    expect(MONEY_ACCOUNT_FIAT_DEPOSIT_ASSET_ID).toBe('eip155:1/slip44:60');
   });
 
   it('initiates a deposit pre-selecting mUSD on the highest-balance chain when Move mUSD is pressed', () => {

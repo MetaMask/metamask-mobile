@@ -15,8 +15,19 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('./useMoneyAccountFiatDepositAssetId', () => ({
+  useMoneyAccountFiatDepositAssetId: jest.fn().mockReturnValue(
+    'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+  ),
+}));
+
+import { useMoneyAccountFiatDepositAssetId } from './useMoneyAccountFiatDepositAssetId';
+
 const mockGetBestProviderForAsset = Engine.context.RampsController
   .getBestProviderForAsset as jest.Mock;
+
+const mockUseMoneyAccountFiatDepositAssetId =
+  useMoneyAccountFiatDepositAssetId as jest.Mock;
 
 const mockProvider: Pick<RampProvider, 'id' | 'name'> = {
   id: 'test-provider',
@@ -72,10 +83,13 @@ const createWrapper = (store: ReturnType<typeof createMockStore>) => {
 describe('useCanFiatDepositAsset', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseMoneyAccountFiatDepositAssetId.mockReturnValue(
+      'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+    );
   });
 
   describe('returns true when flag on and provider resolves', () => {
-    it('returns true when isFiatDepositFlagEnabled is true, assetId is provided, and provider resolves', async () => {
+    it('returns true when isFiatDepositFlagEnabled is true and provider resolves', async () => {
       const store = createMockStore();
       const { Wrapper } = createWrapper(store);
 
@@ -84,7 +98,6 @@ describe('useCanFiatDepositAsset', () => {
       const { result } = renderHook(
         () =>
           useCanFiatDepositAsset({
-            assetId: 'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
             isFiatDepositFlagEnabled: true,
           }),
         { wrapper: Wrapper },
@@ -97,19 +110,18 @@ describe('useCanFiatDepositAsset', () => {
       await waitFor(() => expect(result.current).toBe(true));
     });
 
-    it('passes the assetId to getBestProviderForAsset', async () => {
+    it('passes the assetId from useMoneyAccountFiatDepositAssetId to getBestProviderForAsset', async () => {
       const store = createMockStore();
       const { Wrapper } = createWrapper(store);
 
-      mockGetBestProviderForAsset.mockResolvedValue(mockProvider);
-
       const assetId =
         'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da';
+      mockUseMoneyAccountFiatDepositAssetId.mockReturnValue(assetId);
+      mockGetBestProviderForAsset.mockResolvedValue(mockProvider);
 
       renderHook(
         () =>
           useCanFiatDepositAsset({
-            assetId,
             isFiatDepositFlagEnabled: true,
           }),
         { wrapper: Wrapper },
@@ -117,6 +129,30 @@ describe('useCanFiatDepositAsset', () => {
 
       await waitFor(() =>
         expect(mockGetBestProviderForAsset).toHaveBeenCalledWith({ assetId }),
+      );
+    });
+
+    it('uses the flag-derived assetId (e.g. mUSD) when the flag overrides the default', async () => {
+      const store = createMockStore();
+      const { Wrapper } = createWrapper(store);
+
+      const musdAssetId =
+        'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da';
+      mockUseMoneyAccountFiatDepositAssetId.mockReturnValue(musdAssetId);
+      mockGetBestProviderForAsset.mockResolvedValue(mockProvider);
+
+      renderHook(
+        () =>
+          useCanFiatDepositAsset({
+            isFiatDepositFlagEnabled: true,
+          }),
+        { wrapper: Wrapper },
+      );
+
+      await waitFor(() =>
+        expect(mockGetBestProviderForAsset).toHaveBeenCalledWith({
+          assetId: musdAssetId,
+        }),
       );
     });
   });
@@ -131,7 +167,6 @@ describe('useCanFiatDepositAsset', () => {
       const { result } = renderHook(
         () =>
           useCanFiatDepositAsset({
-            assetId: 'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
             isFiatDepositFlagEnabled: false,
           }),
         { wrapper: Wrapper },
@@ -139,45 +174,6 @@ describe('useCanFiatDepositAsset', () => {
 
       expect(result.current).toBe(false);
       // Query should not be called when flag is off
-      expect(mockGetBestProviderForAsset).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('returns false when assetId missing', () => {
-    it('returns false when assetId is undefined even if flag is on', async () => {
-      const store = createMockStore();
-      const { Wrapper } = createWrapper(store);
-
-      mockGetBestProviderForAsset.mockResolvedValue(mockProvider);
-
-      const { result } = renderHook(
-        () =>
-          useCanFiatDepositAsset({
-            assetId: undefined,
-            isFiatDepositFlagEnabled: true,
-          }),
-        { wrapper: Wrapper },
-      );
-
-      expect(result.current).toBe(false);
-      // Query should not be called when assetId is missing
-      expect(mockGetBestProviderForAsset).not.toHaveBeenCalled();
-    });
-
-    it('returns false when both assetId is undefined and flag is off', () => {
-      const store = createMockStore();
-      const { Wrapper } = createWrapper(store);
-
-      const { result } = renderHook(
-        () =>
-          useCanFiatDepositAsset({
-            assetId: undefined,
-            isFiatDepositFlagEnabled: false,
-          }),
-        { wrapper: Wrapper },
-      );
-
-      expect(result.current).toBe(false);
       expect(mockGetBestProviderForAsset).not.toHaveBeenCalled();
     });
   });
@@ -192,7 +188,6 @@ describe('useCanFiatDepositAsset', () => {
       const { result } = renderHook(
         () =>
           useCanFiatDepositAsset({
-            assetId: 'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
             isFiatDepositFlagEnabled: true,
           }),
         { wrapper: Wrapper },
@@ -215,7 +210,6 @@ describe('useCanFiatDepositAsset', () => {
       const { result } = renderHook(
         () =>
           useCanFiatDepositAsset({
-            assetId: 'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
             isFiatDepositFlagEnabled: true,
           }),
         { wrapper: Wrapper },
@@ -240,7 +234,6 @@ describe('useCanFiatDepositAsset', () => {
       const { result } = renderHook(
         () =>
           useCanFiatDepositAsset({
-            assetId: 'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
             isFiatDepositFlagEnabled: true,
           }),
         { wrapper: Wrapper },

@@ -10,7 +10,7 @@ import {
 import { hasTransactionType } from '../../utils/transaction';
 import { useTransactionPayFiatPayment } from '../pay/useTransactionPayData';
 import { useRampsBuyLimits } from '../../../../UI/Ramp/hooks/useRampsBuyLimits';
-import { MONEY_ACCOUNT_FIAT_DEPOSIT_ASSET_ID } from '../../../../UI/Ramp/utils/getMoneyAccountFiatDepositAssetId';
+import { useMoneyAccountFiatDepositAssetId } from '../../../../UI/Ramp/hooks/useMoneyAccountFiatDepositAssetId';
 
 export function useFiatBuyLimitAlert({
   pendingAmount,
@@ -21,7 +21,8 @@ export function useFiatBuyLimitAlert({
   const fiatPayment = useTransactionPayFiatPayment();
   const paymentMethodId = fiatPayment?.selectedPaymentMethodId;
 
-  const assetId = fiatPayment?.caipAssetId ?? MONEY_ACCOUNT_FIAT_DEPOSIT_ASSET_ID;
+  const flagAssetId = useMoneyAccountFiatDepositAssetId();
+  const assetId = fiatPayment?.caipAssetId ?? flagAssetId;
 
   const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountDeposit,

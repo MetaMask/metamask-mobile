@@ -31,7 +31,6 @@ import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/us
 import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
 import { useCanFiatDepositAsset } from '../../../Ramp/hooks/useCanFiatDepositAsset';
-import { MONEY_ACCOUNT_FIAT_DEPOSIT_ASSET_ID } from '../../../Ramp/utils/getMoneyAccountFiatDepositAssetId';
 import styleSheet from './MoneyAddMoneySheet.styles';
 import { MoneyAddMoneySheetTestIds } from './MoneyAddMoneySheet.testIds';
 
@@ -67,7 +66,6 @@ const MoneyAddMoneySheet: React.FC = () => {
   );
 
   const canDeposit = useCanFiatDepositAsset({
-    assetId: MONEY_ACCOUNT_FIAT_DEPOSIT_ASSET_ID,
     isFiatDepositFlagEnabled: isFiatDepositEnabled,
   });
 
