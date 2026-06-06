@@ -212,4 +212,102 @@ describe('useFiatBuyLimitAlert', () => {
 
     expect(result.current).toStrictEqual([]);
   });
+
+  describe('backend LIMIT_EXCEEDED fallback (UB2 parity)', () => {
+    it('prefers client-side structured limit message even when quoteError is present', () => {
+      useTransactionPayFiatPaymentMock.mockReturnValue({
+        selectedPaymentMethodId: 'pm-card',
+        amountFiat: '600',
+        quoteError: {
+          code: 'LIMIT_EXCEEDED',
+          message: 'Backend says minimum is $20',
+        },
+      });
+
+      // Provider WITH structured limits: getProviderLimitMessage returns the
+      // client-side message and ignores backendError.
+      useRampsBuyLimitsMock.mockReturnValue({
+        amountLimitError: 'Amount exceeds maximum limit of $500',
+        currency: 'USD',
+      });
+
+      const { result } = runHook({ pendingAmount: '600' });
+
+      expect(useRampsBuyLimitsMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          backendError: 'Backend says minimum is $20',
+        }),
+      );
+      expect(result.current).toEqual([
+        {
+          key: AlertKeys.FiatBuyAmountLimit,
+          field: RowAlertKey.Amount,
+          message: 'Amount exceeds maximum limit of $500',
+          severity: Severity.Danger,
+          isBlocking: true,
+        },
+      ]);
+    });
+
+    it('surfaces backend LIMIT_EXCEEDED message when provider has no structured limits', () => {
+      useTransactionPayFiatPaymentMock.mockReturnValue({
+        selectedPaymentMethodId: 'pm-card',
+        amountFiat: '10',
+        quoteError: {
+          code: 'LIMIT_EXCEEDED',
+          message: 'Minimum purchase is $20',
+        },
+      });
+
+      // Provider WITHOUT structured limits: useRampsBuyLimits would return null
+      // without a backendError, but echoes the backend message when one is
+      // passed (mirrors getProviderLimitMessage's fallback leg).
+      useRampsBuyLimitsMock.mockImplementation(({ backendError }) => ({
+        amountLimitError: backendError ?? null,
+        currency: 'USD',
+      }));
+
+      const { result } = runHook({ pendingAmount: '10' });
+
+      expect(useRampsBuyLimitsMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          backendError: 'Minimum purchase is $20',
+        }),
+      );
+      expect(result.current).toEqual([
+        {
+          key: AlertKeys.FiatBuyAmountLimit,
+          field: RowAlertKey.Amount,
+          message: 'Minimum purchase is $20',
+          severity: Severity.Danger,
+          isBlocking: true,
+        },
+      ]);
+    });
+
+    it('does not pass backendError (or surface limit) for QUOTE_FAILED errors', () => {
+      useTransactionPayFiatPaymentMock.mockReturnValue({
+        selectedPaymentMethodId: 'pm-card',
+        amountFiat: '50',
+        quoteError: {
+          code: 'QUOTE_FAILED',
+          message: 'Provider temporarily unavailable',
+        },
+      });
+
+      useRampsBuyLimitsMock.mockImplementation(({ backendError }) => ({
+        amountLimitError: backendError ?? null,
+        currency: 'USD',
+      }));
+
+      const { result } = runHook({ pendingAmount: '50' });
+
+      expect(useRampsBuyLimitsMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          backendError: undefined,
+        }),
+      );
+      expect(result.current).toStrictEqual([]);
+    });
+  });
 });

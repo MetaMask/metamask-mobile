@@ -31,10 +31,19 @@ export function useFiatBuyLimitAlert({
 
   const amount = Number(pendingAmount ?? fiatPayment?.amountFiat ?? '0');
 
+  // Only treat the backend message as a limit error when the provider
+  // explicitly classified it as LIMIT_EXCEEDED. Generic QUOTE_FAILED messages
+  // are left to useNoPayTokenQuotesAlert so they are not mislabelled as limits.
+  const backendError =
+    fiatPayment?.quoteError?.code === 'LIMIT_EXCEEDED'
+      ? fiatPayment.quoteError.message
+      : undefined;
+
   const { amountLimitError } = useRampsBuyLimits({
     assetId: isGated ? assetId : undefined,
     amount,
     paymentMethodId,
+    backendError,
   });
 
   return useMemo(() => {
