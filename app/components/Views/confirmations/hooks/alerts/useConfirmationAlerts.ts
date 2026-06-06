@@ -14,12 +14,14 @@ import { useNoPayTokenQuotesAlert } from './useNoPayTokenQuotesAlert';
 import { useInsufficientPredictBalanceAlert } from './useInsufficientPredictBalanceAlert';
 import { useInsufficientPerpsBalanceAlert } from './useInsufficientPerpsBalanceAlert';
 import { useInsufficientMoneyAccountBalanceAlert } from './useInsufficientMoneyAccountBalanceAlert';
+import { useFiatBuyLimitAlert } from './useFiatBuyLimitAlert';
 import { useBurnAddressAlert } from './useBurnAddressAlert';
 import { useTokenTrustSignalAlerts } from './useTokenTrustSignalAlerts';
 import { useAddressTrustSignalAlerts } from './useAddressTrustSignalAlerts';
 import { useOriginTrustSignalAlerts } from './useOriginTrustSignalAlerts';
 import { useHeadlessBuyErrorAlert } from './useHeadlessBuyErrorAlert';
 import { useFirstTimeInteractionAlert } from './useFirstTimeInteractionAlert';
+import { useAddressPoisoningAlert } from './useAddressPoisoningAlert';
 import { useTokenContractAlert } from './useTokenContractAlert';
 
 function useSignatureAlerts(): Alert[] {
@@ -42,10 +44,12 @@ function useTransactionAlerts(): Alert[] {
   const insufficientPerpsBalanceAlert = useInsufficientPerpsBalanceAlert();
   const insufficientMoneyAccountBalanceAlert =
     useInsufficientMoneyAccountBalanceAlert();
+  const fiatBuyLimitAlert = useFiatBuyLimitAlert();
   const burnAddressAlert = useBurnAddressAlert();
   const headlessBuyErrorAlert = useHeadlessBuyErrorAlert();
   const tokenTrustSignalAlerts = useTokenTrustSignalAlerts();
   const firstTimeInteractionAlert = useFirstTimeInteractionAlert();
+  const addressPoisoningAlert = useAddressPoisoningAlert();
   const tokenContractAlert = useTokenContractAlert();
 
   return useMemo(
@@ -61,10 +65,12 @@ function useTransactionAlerts(): Alert[] {
       ...insufficientPredictBalanceAlert,
       ...insufficientPerpsBalanceAlert,
       ...insufficientMoneyAccountBalanceAlert,
+      ...fiatBuyLimitAlert,
       ...burnAddressAlert,
       ...headlessBuyErrorAlert,
       ...tokenTrustSignalAlerts,
       ...firstTimeInteractionAlert,
+      ...addressPoisoningAlert,
       ...tokenContractAlert,
     ],
     [
@@ -79,10 +85,12 @@ function useTransactionAlerts(): Alert[] {
       insufficientPredictBalanceAlert,
       insufficientPerpsBalanceAlert,
       insufficientMoneyAccountBalanceAlert,
+      fiatBuyLimitAlert,
       burnAddressAlert,
       headlessBuyErrorAlert,
       tokenTrustSignalAlerts,
       firstTimeInteractionAlert,
+      addressPoisoningAlert,
       tokenContractAlert,
     ],
   );

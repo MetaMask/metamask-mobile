@@ -1,6 +1,10 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { TouchableOpacity, View } from 'react-native';
+import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import BigNumber from 'bignumber.js';
+import { TransactionType } from '@metamask/transaction-controller';
+import { Hex } from '@metamask/utils';
 import {
   BottomSheet,
   BottomSheetHeader,
@@ -17,14 +21,16 @@ import {
 import Tag from '../../../../../component-library/components/Tags/Tag';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
-import { useMusdConversionFlowData } from '../../../Earn/hooks/useMusdConversionFlowData';
-import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
-  MUSD_TOKEN_ASSET_ID_BY_CHAIN,
+  MUSD_TOKEN_ADDRESS_BY_CHAIN,
 } from '../../../Earn/constants/musd';
-import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
+import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
+import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
+import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
+import { useCanFiatDepositAsset } from '../../../Ramp/hooks/useCanFiatDepositAsset';
 import styleSheet from './MoneyAddMoneySheet.styles';
 import { MoneyAddMoneySheetTestIds } from './MoneyAddMoneySheet.testIds';
 
@@ -35,17 +41,33 @@ interface Option {
   icon: IconName;
   onPress: () => void;
   testID: string;
+  disabled?: boolean;
 }
 
 const MoneyAddMoneySheet: React.FC = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
+  const surfaceClass = useElevatedSurface();
 
-  const { totalFiatFormatted } = useMoneyAccountBalance();
-  const { getChainIdForBuyFlow } = useMusdConversionFlowData();
-  const { goToBuy } = useRampNavigation();
+  const {
+    fiatBalanceAggregated,
+    fiatBalanceAggregatedFormatted,
+    hasMusdBalanceOnAnyChain,
+    tokenBalanceAggregated,
+    tokenBalanceByChain,
+  } = useMusdBalance();
   const { initiateDeposit } = useMoneyAccountDeposit();
+  const { enabledTransactionTypes } = useMMPayFiatConfig();
+  const hasAnyCryptoBalance = useSelector(selectHasAnyNonZeroTokenBalance);
+  const isFiatDepositEnabled = useMemo(
+    () => enabledTransactionTypes.includes(TransactionType.moneyAccountDeposit),
+    [enabledTransactionTypes],
+  );
+
+  const canDeposit = useCanFiatDepositAsset({
+    isFiatDepositFlagEnabled: isFiatDepositEnabled,
+  });
 
   const closeAndNavigate = useCallback((navigateFn: () => void) => {
     sheetRef.current?.onCloseBottomSheet(navigateFn);
@@ -61,34 +83,49 @@ const MoneyAddMoneySheet: React.FC = () => {
     });
   }, [closeAndNavigate, initiateDeposit]);
 
-  // TODO(MUSD-479): point to the Ramps "Add funds" amount-entry screen
-  // (Figma 2547:8780). Interim: unified smart-routed Buy flow with mUSD
-  // pre-selected so the destination matches the Money Hub experience.
   const handleDepositFunds = useCallback(() => {
-    const chainId = getChainIdForBuyFlow
-      ? getChainIdForBuyFlow()
-      : MUSD_CONVERSION_DEFAULT_CHAIN_ID;
     closeAndNavigate(() => {
-      goToBuy({ assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[chainId] });
+      initiateDeposit({ autoSelectFiatPayment: true }).catch(() => undefined);
     });
-  }, [closeAndNavigate, getChainIdForBuyFlow, goToBuy]);
+  }, [closeAndNavigate, initiateDeposit]);
 
-  // TODO: wire to the "move external mUSD → Money Account" flow once the
-  // dedicated ticket lands. Interim: close sheet.
   const handleMoveMusd = useCallback(() => {
-    sheetRef.current?.onCloseBottomSheet();
-  }, []);
+    let sourceChainId: Hex = MUSD_CONVERSION_DEFAULT_CHAIN_ID;
+    let bestBalance = new BigNumber(0);
+    for (const [chainId, balance] of Object.entries(
+      tokenBalanceByChain ?? {},
+    )) {
+      const candidate = new BigNumber(balance ?? 0);
+      if (candidate.isGreaterThan(bestBalance)) {
+        sourceChainId = chainId as Hex;
+        bestBalance = candidate;
+      }
+    }
 
-  let moveMusdLabel: string;
-  if (totalFiatFormatted) {
-    moveMusdLabel = strings('money.add_money_sheet.move_musd', {
-      amount: totalFiatFormatted,
+    closeAndNavigate(() => {
+      initiateDeposit({
+        intent: 'addMusd',
+        preferredPaymentToken: {
+          address: MUSD_TOKEN_ADDRESS_BY_CHAIN[sourceChainId],
+          chainId: sourceChainId,
+        },
+      }).catch(() => undefined);
     });
-  } else {
-    moveMusdLabel = strings('money.add_money_sheet.move_musd_no_amount');
-  }
+  }, [closeAndNavigate, initiateDeposit, tokenBalanceByChain]);
 
-  const options: Option[] = [
+  const parsedMusdFiat = Number(fiatBalanceAggregated);
+  const hasParsedFiatBalance =
+    Number.isFinite(parsedMusdFiat) && parsedMusdFiat > 0;
+  const hasMusdBalance = hasMusdBalanceOnAnyChain || hasParsedFiatBalance;
+
+  const moveMusdAmount = hasParsedFiatBalance
+    ? fiatBalanceAggregatedFormatted
+    : new BigNumber(tokenBalanceAggregated).toFixed(2);
+  const moveMusdLabel = hasMusdBalance
+    ? strings('money.add_money_sheet.move_musd', { amount: moveMusdAmount })
+    : strings('money.add_money_sheet.add_musd');
+
+  const baseOptions: Option[] = [
     {
       label: strings('money.add_money_sheet.convert_crypto'),
       description: strings('money.add_money_sheet.convert_crypto_description'),
@@ -96,15 +133,27 @@ const MoneyAddMoneySheet: React.FC = () => {
       icon: IconName.Refresh,
       onPress: handleConvertCrypto,
       testID: MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
+      disabled: !hasAnyCryptoBalance,
     },
-    {
-      label: strings('money.add_money_sheet.deposit_funds'),
-      description: strings('money.add_money_sheet.deposit_funds_description'),
-      descriptionTestID: MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_DESCRIPTION,
-      icon: IconName.AttachMoney,
-      onPress: handleDepositFunds,
-      testID: MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
-    },
+    ...(canDeposit
+      ? [
+          {
+            label: strings('money.add_money_sheet.deposit_funds'),
+            description: strings(
+              'money.add_money_sheet.deposit_funds_description',
+            ),
+            descriptionTestID:
+              MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_DESCRIPTION,
+            icon: IconName.AttachMoney,
+            onPress: handleDepositFunds,
+            testID: MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
+          },
+        ]
+      : []),
+  ];
+
+  const options: Option[] = [
+    ...baseOptions,
     {
       label: moveMusdLabel,
       description: strings('money.add_money_sheet.move_musd_description'),
@@ -112,6 +161,7 @@ const MoneyAddMoneySheet: React.FC = () => {
       icon: IconName.Add,
       onPress: handleMoveMusd,
       testID: MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
+      disabled: !hasMusdBalance,
     },
   ];
 
@@ -121,6 +171,7 @@ const MoneyAddMoneySheet: React.FC = () => {
       goBack={handleGoBack}
       testID={MoneyAddMoneySheetTestIds.CONTAINER}
       keyboardAvoidingViewEnabled={false}
+      twClassName={surfaceClass}
     >
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
         <Text variant={TextVariant.HeadingSm}>
@@ -131,17 +182,24 @@ const MoneyAddMoneySheet: React.FC = () => {
         {options.map((item) => (
           <TouchableOpacity
             key={item.testID}
-            onPress={item.onPress}
+            disabled={item.disabled}
+            onPress={item.disabled ? undefined : item.onPress}
             style={styles.row}
             testID={item.testID}
           >
             <Icon
               name={item.icon}
               size={IconSize.Lg}
-              color={IconColor.IconDefault}
+              color={
+                item.disabled ? IconColor.IconMuted : IconColor.IconDefault
+              }
             />
             <View style={styles.rowLabelContainer}>
-              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={item.disabled ? TextColor.TextAlternative : undefined}
+              >
                 {item.label}
               </Text>
               {item.description ? (

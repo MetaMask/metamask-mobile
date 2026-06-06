@@ -9,6 +9,7 @@ const PENDING_AMOUNT_ALERTS: AlertKeys[] = [
   AlertKeys.InsufficientPredictBalance,
   AlertKeys.InsufficientPerpsBalance,
   AlertKeys.InsufficientMoneyAccountBalance,
+  AlertKeys.FiatBuyAmountLimit,
 ];
 
 const KEYBOARD_ALERTS: AlertKeys[] = [
@@ -19,6 +20,7 @@ const KEYBOARD_ALERTS: AlertKeys[] = [
   AlertKeys.InsufficientPredictBalance,
   AlertKeys.InsufficientPerpsBalance,
   AlertKeys.InsufficientMoneyAccountBalance,
+  AlertKeys.FiatBuyAmountLimit,
 ];
 
 const ON_CHANGE_ALERTS = [
@@ -27,6 +29,7 @@ const ON_CHANGE_ALERTS = [
   AlertKeys.InsufficientPredictBalance,
   AlertKeys.InsufficientPerpsBalance,
   AlertKeys.InsufficientMoneyAccountBalance,
+  AlertKeys.FiatBuyAmountLimit,
 ];
 
 export function useTransactionCustomAmountAlerts({
