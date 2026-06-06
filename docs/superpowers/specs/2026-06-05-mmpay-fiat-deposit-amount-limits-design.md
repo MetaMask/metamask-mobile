@@ -108,6 +108,31 @@ The best-provider cascade and best-quote pick move **into `RampsController`** (c
 additive (existing `setSelectedProvider` / `determinePreferredProvider` / `getQuotes`
 untouched). Mobile and `getFiatQuotes` delegate to them. Four implementable parts.
 
+### State management & multi-consumer safety (guardrail)
+
+`RampsController` is shared by multiple flows (UB2 buy, money-account deposit, …). Its
+state splits into two kinds, and the distinction is load-bearing:
+
+- **Shared DATA — safe to read from any flow:** `providers.data` (region-scoped,
+  reliability-sorted), `orders` (persisted), `userRegion`. Region/account-scoped, not
+  flow-specific.
+- **Shared SELECTION — single-valued, UB2-owned, do NOT multi-write:** `providers.selected`,
+  `tokens.selected`, `paymentMethods.selected`, `providerAutoSelected`. There is exactly
+  one slot each; they represent UB2's interactive selection. Writing them from another flow
+  corrupts UB2's state.
+
+Rules this design follows:
+1. **The new methods are PURE queries.** `getBestProviderForAsset` / `getBestQuote` read
+   only DATA (`providers.data` + `orders`) and **return** a result. They MUST NOT mutate
+   any `.selected` slot or `providerAutoSelected`, and MUST take `assetId` **explicitly**
+   (never fall back to `tokens.selected`, which `getQuotes` does at RampsController.ts:1635).
+   This makes them safe for concurrent consumers.
+2. **Money account never writes ramps SELECTION state.** Its per-flow choice (selected
+   payment method) lives in **TPC `fiatPayment`** state (per-transaction, isolated).
+3. **No change to the single-selection model.** It stays UB2-only; new consumers use pure
+   queries + their own state. When UB2 later adopts these methods, it may still drive its
+   `.selected` slots from the query *results* — but the queries themselves never mutate them.
+
 ### Part 0 — New `RampsController` methods (the single source of truth)
 
 - **`RampsController.getBestProviderForAsset(assetId)`** → `Provider | null`. Computes the
@@ -122,7 +147,10 @@ untouched). Mobile and `getFiatQuotes` delegate to them. Four implementable part
   hardcoded `pickBestFiatQuote`. Exposed as `RampsController:getBestQuote`. Callers
   (`getFiatQuotes`, and UB2 later) never deal with provider ids — they ask for the best
   quote and get it.
-- Both require `assetId` (Key fact #12) so they never return a spurious null.
+- Both require `assetId` (Key fact #12) so they never return a spurious null, **and so
+  they never read the shared `tokens.selected` slot** (see State management guardrail).
+- Both are **pure/read-only** w.r.t. selection state — they compute from `providers.data`
+  + `orders` and return; no `.selected` / `providerAutoSelected` mutation.
 
 Mobile-side consumers (all delegate; no provider logic in mobile):
 - **`useRampsBuyLimits({ amount, paymentMethodId })`** — calls
@@ -238,6 +266,10 @@ Alert wiring (modeled **exactly on `useInsufficientMoneyAccountBalanceAlert`**):
   preservation, region scoping, persisted-orders input.
 - `RampsController.getBestQuote`: returns the best provider's quote; returns/propagates the
   structured error when no success; passes `assetId` through.
+- **Purity / multi-consumer safety:** assert `getBestProviderForAsset` and `getBestQuote`
+  do **not** mutate `providers.selected` / `tokens.selected` / `paymentMethods.selected` /
+  `providerAutoSelected`, and do not read `tokens.selected` (require explicit `assetId`).
+  Verify a money-account call leaves a pre-set UB2 selection unchanged.
 - `getFiatQuotes`: uses `getBestQuote`, stays provider-agnostic, combines with relay fees,
   propagates the quote error into TPC state; `pickBestFiatQuote` removed.
 - `useRampsBuyLimits`: below-min / above-max / in-range; graceful when provider/limits
