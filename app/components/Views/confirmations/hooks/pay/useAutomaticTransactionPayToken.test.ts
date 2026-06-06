@@ -212,6 +212,7 @@ describe('useAutomaticTransactionPayToken', () => {
       paymentMethods: [],
       isReady: false,
       isSettled: false,
+      isLoading: false,
     });
   });
 
@@ -1381,6 +1382,7 @@ describe('useAutomaticTransactionPayToken', () => {
         ] as never,
         isReady: true,
         isSettled: true,
+        isLoading: false,
       });
 
       runMoneyAccountDepositHook();
@@ -1410,6 +1412,7 @@ describe('useAutomaticTransactionPayToken', () => {
         ] as never,
         isReady: true,
         isSettled: true,
+        isLoading: false,
       });
 
       jest.mocked(useMMPayFiatConfig).mockReturnValue({
@@ -1425,11 +1428,12 @@ describe('useAutomaticTransactionPayToken', () => {
       expect(fiatPaymentState.selectedPaymentMethodId).toBe(ELIGIBLE_METHOD_ID);
     });
 
-    it('does not write payment method while asset-provider methods are still resolving (not ready, not settled)', () => {
+    it('does not write payment method while asset-provider methods are still resolving (isLoading)', () => {
       useMoneyAccountDepositPaymentMethodsMock.mockReturnValue({
         paymentMethods: [],
         isReady: false,
         isSettled: false,
+        isLoading: true,
       });
 
       runMoneyAccountDepositHook();
@@ -1445,6 +1449,7 @@ describe('useAutomaticTransactionPayToken', () => {
         paymentMethods: [],
         isReady: false,
         isSettled: true,
+        isLoading: false,
       });
 
       // Global provider DOES have an eligible method — used as the fallback.
@@ -1477,6 +1482,7 @@ describe('useAutomaticTransactionPayToken', () => {
         ] as never,
         isReady: true,
         isSettled: true,
+        isLoading: false,
       });
 
       jest.mocked(useMMPayFiatConfig).mockReturnValue({
@@ -1527,6 +1533,7 @@ describe('useAutomaticTransactionPayToken', () => {
         ] as never,
         isReady: true,
         isSettled: true,
+        isLoading: false,
       });
 
       // fiatPayment already has a selected method
@@ -1561,6 +1568,7 @@ describe('useAutomaticTransactionPayToken', () => {
         ] as never,
         isReady: true,
         isSettled: true,
+        isLoading: false,
       });
 
       runMoneyAccountDepositHook();

@@ -30,6 +30,14 @@ export interface UseMoneyAccountDepositPaymentMethodsResult {
    * never hangs indefinitely. `isReady` implies `isSettled`.
    */
   isSettled: boolean;
+  /**
+   * True while at least one query is actively in-flight. Unlike `!isSettled`,
+   * this stays false when the region has not loaded yet (queries disabled), so
+   * the caller can distinguish "waiting for a network response" from "queries
+   * haven't started yet". Use this as the wait-condition in effects that must
+   * not make a decision until all relevant data has arrived.
+   */
+  isLoading: boolean;
 }
 
 /**
@@ -85,23 +93,34 @@ export function useMoneyAccountDepositPaymentMethods(
 
   const isReady = Boolean(provider && paymentMethodsQuery.isSuccess);
 
-  // The asset-provider resolution is "settled" once it can no longer make
-  // progress: the provider query finished, and either there is no provider, or
-  // the payment-methods query finished (success/error), or it cannot run
-  // because a precondition (region currency) is missing. This lets the caller
-  // stop waiting and fall back instead of spinning forever.
+  // "settled" once the resolution can no longer make progress: the provider
+  // query finished, and either there is no provider, the payment-methods query
+  // finished (success/error), or it cannot run because a precondition (region
+  // currency) is missing. This lets the caller stop waiting and fall back
+  // instead of spinning forever. Note: when !providerEnabled the queries are
+  // disabled and isSettled stays false — use isLoading as the wait-condition
+  // so the auto-select effect doesn't make a premature decision before the
+  // region loads.
   const providerResolved = providerQuery.isSuccess || providerQuery.isError;
   const methodsResolved =
     paymentMethodsQuery.isSuccess || paymentMethodsQuery.isError;
   const isSettled =
     isReady ||
-    (providerEnabled &&
-      providerResolved &&
+    (providerResolved &&
       (provider == null || !paymentMethodsEnabled || methodsResolved));
+
+  // True only while a network request is actually in-flight. Stays false when
+  // queries are disabled (region not loaded yet), so callers can use this as
+  // a precise "still fetching" signal distinct from "not started".
+  const isLoading =
+    providerEnabled &&
+    (providerQuery.isPending ||
+      Boolean(provider && paymentMethodsEnabled && paymentMethodsQuery.isPending));
 
   return {
     paymentMethods: paymentMethodsQuery.data ?? [],
     isReady,
     isSettled,
+    isLoading,
   };
 }

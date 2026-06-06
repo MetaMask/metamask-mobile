@@ -174,7 +174,7 @@ export function useAutomaticTransactionPayToken({
   const {
     paymentMethods: assetProviderPaymentMethods,
     isReady: assetProviderPaymentMethodsReady,
-    isSettled: assetProviderPaymentMethodsSettled,
+    isLoading: assetProviderPaymentMethodsLoading,
   } = useMoneyAccountDepositPaymentMethods(fiatPayment?.caipAssetId);
 
   useEffect(() => {
@@ -198,13 +198,11 @@ export function useAutomaticTransactionPayToken({
       // that methods load even in non-Transak regions where the global
       // selection is null or points to a different provider.
       if (autoSelectFiatPayment && isMoneyAccountDeposit) {
-        // Wait while the asset-provider resolution is still in progress.
-        // Once it SETTLES (ready, or terminal-without-result) we make a
-        // one-time decision below so the flow can never hang indefinitely.
-        if (
-          !assetProviderPaymentMethodsReady &&
-          !assetProviderPaymentMethodsSettled
-        ) {
+        // Wait while a query is actively in-flight. Using isLoading (rather
+        // than !isSettled) means we don't exit early when the region hasn't
+        // loaded yet — the effect will re-run once regionCode arrives and
+        // the queries actually start and finish.
+        if (assetProviderPaymentMethodsLoading) {
           return;
         }
 
@@ -284,8 +282,8 @@ export function useAutomaticTransactionPayToken({
     log('Automatically selected pay token', automaticToken);
   }, [
     assetProviderPaymentMethods,
+    assetProviderPaymentMethodsLoading,
     assetProviderPaymentMethodsReady,
-    assetProviderPaymentMethodsSettled,
     autoSelectFiatPayment,
     automaticToken,
     disable,
