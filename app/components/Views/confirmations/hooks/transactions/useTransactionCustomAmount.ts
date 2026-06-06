@@ -45,7 +45,9 @@ export function useTransactionCustomAmount({
   const [isInputChanged, setInputChanged] = useState(false);
   const [hasInput, setHasInput] = useState(false);
   const [amountHumanDebounced, setAmountHumanDebounced] = useState('0');
-  const [amountFiatDebounced, setAmountFiatDebounced] = useState(defaultAmount ?? '0');
+  const [amountFiatDebounced, setAmountFiatDebounced] = useState(
+    defaultAmount ?? '0',
+  );
   const totals = useTransactionPayTotals();
   const hasSourceAmount = useTransactionPayHasSourceAmount();
   const isPostQuote = useTransactionPayIsPostQuote();
