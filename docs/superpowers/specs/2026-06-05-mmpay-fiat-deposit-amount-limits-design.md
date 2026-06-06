@@ -229,8 +229,14 @@ has no relay-combined total — so MM Pay cannot source its fees from it. The fe
 quote therefore **must** go through the controller, which means quote errors must be
 surfaced **from the controller path**.
 
-`getFiatQuotes` (core, `@metamask/transaction-pay-controller`) currently swallows the
-ramps error (`catch` → returns `[]`). It must instead **propagate** the structured error
+`getFiatQuotes` (core, `@metamask/transaction-pay-controller`) **already calls
+`RampsController:getQuotes` under the hood and already has the full `{ success, error }`
+response in scope** — the same response (and error shape) UB2 reads directly. It simply
+**discards** it: when `pickBestFiatQuote(quotes)` finds no match it throws a generic
+error and the surrounding `catch` returns `[]`, dropping `quotes.error`. So nothing needs
+to be newly fetched in core — the error is already there. The change is to **capture
+`quotes.error` at that point instead of throwing it away** and **propagate** the
+structured error
 — distinguishing the ramps backend per-provider rejection (e.g. the limit message in
 `quotes.error`), an empty no-quotes result, and a relay/fetch failure — into TPC state
 (e.g. a `fiatPayment` quote-error field or on the quotes result), so the mobile input
