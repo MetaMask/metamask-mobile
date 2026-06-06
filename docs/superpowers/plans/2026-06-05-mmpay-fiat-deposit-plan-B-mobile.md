@@ -29,6 +29,22 @@ context.
   preview version in `package.json` (same pattern as the TPC preview swap done earlier),
   run `yarn`, confirm `RampsController:getBestProviderForAsset` is in the typings.
 
+## Cross-cutting constraints
+
+- **Region source = GeolocationController.** Wherever region/currency is needed, it MUST
+  originate from `GeolocationController` (the geolocation source of truth). `RampsController.userRegion`
+  (via `selectUserRegion`) is the correct ramps-domain accessor *because it is
+  GeolocationController-derived* — use it for `country.currency` / `regionCode`. Do **NOT**
+  source region from the legacy `fiatOrders` reducer, `useRampsSmartRouting`, or
+  `rampRoutingDecision`. If a raw region/location is ever needed directly, read
+  `selectGeolocationLocation` (`app/selectors/geolocationController`), not fiatOrders.
+- **Separate PRs, shared test branch.** Each logical fix below is its **own PR** off the
+  normal base (e.g. `main`): (1) `useRampsBuyLimits`, (2) eligibility gate, (3) provider/
+  payment resolution, (4) the alert + wiring + quote-gating. Each PR is independently
+  reviewable. For **integration testing**, merge each into `test-money-account` (the build
+  branch) — the same pattern used for the other ramps PRs this session. `test-money-account`
+  is the integration/test target, not a merge destination for production.
+
 ## File Structure
 
 - Create: `app/components/UI/Ramp/hooks/useRampsBuyLimits.ts` (+ `.test.ts`) — limits hook.

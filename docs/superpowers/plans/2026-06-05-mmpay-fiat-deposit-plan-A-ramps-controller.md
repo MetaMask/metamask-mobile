@@ -19,6 +19,10 @@ no existing method/state/behavior changes.
 
 **Repo for this plan:** `/Users/amitabh/Dev/consensys/core` (publishes a preview build consumed by mobile Plan B).
 
+**PR strategy:** This is its **own PR** in the core repo (or added to the agreed fiat PR #8987), independently reviewable. The published preview build is what mobile Plan B consumes and what ultimately gets integration-tested via `test-money-account`.
+
+**Region note:** these methods read `this.state.userRegion` (RampsController), which is **GeolocationController-derived** — the geolocation source of truth. They must not introduce any other region source.
+
 ---
 
 ## File Structure
