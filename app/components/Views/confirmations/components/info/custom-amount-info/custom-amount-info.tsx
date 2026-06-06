@@ -188,6 +188,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     const {
       amountFiat,
+      amountFiatDebounced,
       amountHuman,
       amountHumanDebounced,
       hasInput,
@@ -201,7 +202,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       isInputChanged,
       isKeyboardVisible,
       pendingTokenAmount: amountHumanDebounced,
-      pendingFiatAmount: amountFiat,
+      pendingFiatAmount: amountFiatDebounced,
     });
 
     const handleDone = useCallback(async () => {

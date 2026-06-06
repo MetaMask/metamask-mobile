@@ -45,6 +45,7 @@ export function useTransactionCustomAmount({
   const [isInputChanged, setInputChanged] = useState(false);
   const [hasInput, setHasInput] = useState(false);
   const [amountHumanDebounced, setAmountHumanDebounced] = useState('0');
+  const [amountFiatDebounced, setAmountFiatDebounced] = useState(defaultAmount ?? '0');
   const totals = useTransactionPayTotals();
   const hasSourceAmount = useTransactionPayHasSourceAmount();
   const isPostQuote = useTransactionPayIsPostQuote();
@@ -53,8 +54,9 @@ export function useTransactionCustomAmount({
 
   const debounceSetAmountDelayed = useMemo(
     () =>
-      debounce((value: string) => {
-        setAmountHumanDebounced(value);
+      debounce((humanValue: string, fiatValue: string) => {
+        setAmountHumanDebounced(humanValue);
+        setAmountFiatDebounced(fiatValue);
       }, DEBOUNCE_DELAY),
     [],
   );
@@ -113,8 +115,8 @@ export function useTransactionCustomAmount({
   );
 
   useEffect(() => {
-    debounceSetAmountDelayed(amountHuman);
-  }, [amountHuman, debounceSetAmountDelayed]);
+    debounceSetAmountDelayed(amountHuman, amountFiat);
+  }, [amountHuman, amountFiat, debounceSetAmountDelayed]);
 
   useEffect(() => {
     if (amountHumanDebounced !== '0') {
@@ -232,6 +234,7 @@ export function useTransactionCustomAmount({
 
   return {
     amountFiat,
+    amountFiatDebounced,
     amountHuman,
     amountHumanDebounced,
     hasInput,
