@@ -142,9 +142,8 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
   // Subscribe to account group changes so the hook re-renders when the user switches accounts
   useSelector(selectSelectedAccountGroupId);
   const bottomSheetEnabled = useSelector(selectPredictBottomSheetEnabledFlag);
-  const selectedAddress =
-    getEvmAccountFromSelectedAccountGroup()?.address ?? '0x0';
-  const normalizedSelectedAddress = selectedAddress.toLowerCase();
+  const selectedAddress = getEvmAccountFromSelectedAccountGroup()?.address;
+  const normalizedSelectedAddress = selectedAddress?.toLowerCase() ?? '';
   const handleTransactionStatusChanged = useCallback(
     (payload: unknown, showToast: ToastRef['showToast']): void => {
       const { type, status, senderAddress, transactionId, amount, marketId } =

@@ -763,6 +763,23 @@ describe('Transaction Controller Init', () => {
         expect(result).toEqual({ transactionHash: '0xde702' });
       });
 
+      it('prioritizes Delegation7702PublishHook over STX when isGasFeeIncluded is true', async () => {
+        submitSmartTransactionHookMock.mockResolvedValue({
+          transactionHash: '0xsmarthash',
+        });
+
+        const hooks = testConstructorOption('hooks');
+        const result = await hooks?.publish?.({
+          ...MOCK_TRANSACTION_META,
+          chainId: '0x13',
+          isGasFeeIncluded: true,
+        });
+
+        expect(mockDelegation7702Hook).toHaveBeenCalled();
+        expect(submitSmartTransactionHookMock).not.toHaveBeenCalled();
+        expect(result).toEqual({ transactionHash: '0xde702' });
+      });
+
       it('publishes via Smart Transactions when supported and returns its transactionHash', async () => {
         submitSmartTransactionHookMock.mockResolvedValue({
           transactionHash: '0xsmarthash',

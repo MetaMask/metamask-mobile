@@ -2051,7 +2051,10 @@
       "watchlist": "Watchlist",
       "markets": "Markets",
       "explore_markets": "Explore markets",
-      "see_all_perps": "See all perps"
+      "see_all_perps": "See all perps",
+      "top_movers": "Top movers",
+      "gainers": "Gainers",
+      "losers": "Losers"
     },
     "learn_more": {
       "title": "Learn about Perps",
@@ -2302,6 +2305,13 @@
   },
   "predict": {
     "title": "MetaMask Predictions",
+    "home": {
+      "portfolio_module_placeholder": "Portfolio module",
+      "live_now_placeholder": "Live now",
+      "categories_placeholder": "Categories",
+      "popular_today_placeholder": "Popular today",
+      "trending_placeholder": "Trending"
+    },
     "homepage_discovery": {
       "btc_title": "BTC Price: {{price}}",
       "btc_price_to_beat": "Price to beat: {{price}}",
@@ -2503,6 +2513,21 @@
       "crypto": "Crypto",
       "politics": "Politics",
       "hot": "Hot"
+    },
+    "feed": {
+      "live": "Live",
+      "popular_today": "Popular today",
+      "tabs": {
+        "basketball": "Basketball",
+        "tennis": "Tennis",
+        "soccer": "Soccer",
+        "baseball": "Baseball",
+        "football": "Football"
+      },
+      "filters": {
+        "all": "All",
+        "live": "Live"
+      }
     },
     "search_placeholder": "Search prediction markets",
     "search_cancel": "Cancel",
@@ -6973,8 +6998,8 @@
       "contact_support": "Contact support"
     },
     "transfer_sheet": {
-      "title": "Transfer funds",
-      "between_accounts": "Between accounts",
+      "title": "Transfer funds to",
+      "between_accounts": "Another account",
       "perps_account": "Perps account",
       "predictions_account": "Predictions account",
       "send_external": "Send to external address",
@@ -7520,7 +7545,8 @@
       "buy_button": "Buy crypto",
       "buy_predict": "Add funds to your wallet to use Predictions.",
       "buy_perps": "Add funds to your wallet to use Perps.",
-      "projected_balance": "Projected {{projectedYears}}-year balance:"
+      "projected_balance": "Projected {{projectedYears}}-year balance:",
+      "earn_up_to_apy": "Earn up to {{percentage}}% APY"
     },
     "unlimited": "Unlimited",
     "all": "All",
@@ -9299,6 +9325,20 @@
       "title": "Success",
       "description": "Return to the app to continue."
     },
+    "show_cli_link_success": {
+      "title": "MetaMask Agent CLI link successful",
+      "description": "Return to the CLI to continue."
+    },
+    "show_otp": {
+      "title": "Enter this code",
+      "description": "Enter {{otp}} in {{dappName}} to finish connecting. This code expires in {{seconds}} seconds.",
+      "modal_title": "Link MetaMask Agent CLI",
+      "modal_description": "Pair MetaMask Mobile with your MetaMask Agent CLI.",
+      "code_label": "ENTER THIS CODE IN THE CLI",
+      "expires_in": "Expires in {{time}}",
+      "expired": "Code expired",
+      "security_notice": "Securing the connection first. You'll authorize CLI access in the next step"
+    },
     "show_not_found": {
       "title": "Connection Not Found",
       "description": "Please establish a new connection from the app to continue."
@@ -9306,6 +9346,11 @@
     "show_internal_error": {
       "title": "Something went wrong",
       "description": "An unexpected error occurred. Please try again."
+    },
+    "agentic_cli_dashboard_webview": {
+      "title": "Select project",
+      "load_error": "Unable to load approval page.",
+      "closed_error": "Dashboard approval closed."
     },
     "show_method_error": {
       "title": "Request failed",
