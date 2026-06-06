@@ -78,11 +78,17 @@ export class EmulatorConfigBuilder {
         'appium:waitForIdleTimeout': 0, // Don't wait for idle
         'appium:wdaLaunchTimeout': 10 * 60_000, // 10 min — CI WDA build can take this long
         // Pin WDA's DerivedData to a fixed path so CI can cache and restore it.
-        // When the cache is restored, xcodebuild sees the existing build artifacts
-        // and skips recompilation (incremental build), cutting 3-5 min off CI.
+        // When USE_PREBUILT_WDA=true (set by CI after a cache hit), xcuitest-driver
+        // skips xcodebuild entirely and installs+launches the cached WDA binary
+        // directly — cutting ~8 min off CI per run. Without it, xcodebuild runs
+        // even when DerivedData is present because actions/cache restores files
+        // with current timestamps, causing a full rebuild.
         ...(platformName === Platform.IOS
           ? {
               'appium:derivedDataPath': `${process.env.HOME ?? '~'}/appium-wda`,
+              ...(process.env.USE_PREBUILT_WDA === 'true'
+                ? { 'appium:usePrebuiltWDA': true }
+                : {}),
             }
           : {}),
         'appium:includeSafariInWebviews': true,

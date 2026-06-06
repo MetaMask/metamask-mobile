@@ -155,9 +155,25 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/appium-wda
-          key: wda-derived-data-xcuitest-9.5.0-${{ steps.xcode-version.outputs.version }}-${{ runner.os }}
+          key: wda-derived-data-${{ hashFiles('**/appium-xcuitest-driver/package.json', '**/appium/package.json') }}-${{ steps.xcode-version.outputs.version }}-${{ runner.os }}
           restore-keys: |
-            wda-derived-data-xcuitest-9.5.0-${{ steps.xcode-version.outputs.version }}-
+            wda-derived-data-${{ hashFiles('**/appium-xcuitest-driver/package.json', '**/appium/package.json') }}-${{ steps.xcode-version.outputs.version }}-
+
+      # actions/cache restores files with current timestamps so xcodebuild treats
+      # everything as stale and rebuilds. If the WDA binary is already there from
+      # the cache, tell xcuitest-driver to skip xcodebuild entirely via
+      # USE_PREBUILT_WDA=true, cutting ~8 min off session creation.
+      - name: Check if WDA is prebuilt
+        id: wda-prebuilt
+        run: |
+          if [ -d ~/appium-wda/Build ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+            echo "WDA prebuilt artifacts found — skipping xcodebuild"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "No WDA prebuilt artifacts — xcodebuild will run on session start"
+          fi
+        shell: bash
 
       - name: Run Appium smoke tests (iOS)
         run: >-
@@ -169,6 +185,7 @@ jobs:
         env:
           IOS_APP_PATH: artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
           IOS_SIMULATOR_NAME: iPhone 16 Pro
+          USE_PREBUILT_WDA: ${{ steps.wda-prebuilt.outputs.ready }}
 
       - name: Upload test report (Namespace)
         if: ${{ always() && inputs.runner_provider == 'namespace' }}
