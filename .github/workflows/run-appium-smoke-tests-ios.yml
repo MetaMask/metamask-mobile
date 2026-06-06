@@ -123,6 +123,21 @@ jobs:
           echo "Restored execute permissions on main binary and all framework binaries"
         shell: bash
 
+      # Cache WDA DerivedData so xcodebuild can do an incremental build (or skip
+      # entirely) on subsequent runs. Key: xcuitest-driver version + Xcode version.
+      # On cache miss WDA builds normally and the result is saved for next time.
+      - name: Get Xcode version for WDA cache key
+        id: xcode-version
+        run: echo "version=$(xcodebuild -version | head -1 | tr ' ' '-')" >> "$GITHUB_OUTPUT"
+
+      - name: Restore WDA DerivedData cache
+        uses: actions/cache@v4
+        with:
+          path: ~/appium-wda
+          key: wda-derived-data-${{ hashFiles('**/appium-xcuitest-driver/package.json', '**/appium/package.json') }}-${{ steps.xcode-version.outputs.version }}-${{ runner.os }}
+          restore-keys: |
+            wda-derived-data-${{ hashFiles('**/appium-xcuitest-driver/package.json', '**/appium/package.json') }}-${{ steps.xcode-version.outputs.version }}-
+
       - name: Run Appium smoke tests (iOS)
         run: yarn appium-smoke:ios
         env:

@@ -77,6 +77,14 @@ export class EmulatorConfigBuilder {
         'appium:reduceMotion': true, // Reduce iOS animations
         'appium:waitForIdleTimeout': 0, // Don't wait for idle
         'appium:wdaLaunchTimeout': 10 * 60_000, // 10 min — CI WDA build can take this long
+        // Pin WDA's DerivedData to a fixed path so CI can cache and restore it.
+        // When the cache is restored, xcodebuild sees the existing build artifacts
+        // and skips recompilation (incremental build), cutting 3-5 min off CI.
+        ...(platformName === Platform.IOS
+          ? {
+              'appium:derivedDataPath': `${process.env.HOME ?? '~'}/appium-wda`,
+            }
+          : {}),
         'appium:includeSafariInWebviews': true,
         'appium:settings[actionAcknowledgmentTimeout]': 3000,
         'appium:settings[ignoreUnimportantViews]': true,
