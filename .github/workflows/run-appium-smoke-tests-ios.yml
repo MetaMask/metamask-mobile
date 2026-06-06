@@ -71,6 +71,7 @@ jobs:
           configure-keystores: 'false'
           install-foundry: 'true'
           skip-pod-install: 'true'
+          install-applesimutils: 'false'
           runner_provider: ${{ inputs.runner_provider }}
 
       - name: Download iOS build artifacts (Namespace)

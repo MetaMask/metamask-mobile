@@ -109,6 +109,12 @@ inputs:
       — Detox does not require the Pods directory to run tests.
     required: false
     default: 'false'
+  install-applesimutils:
+    description: >-
+      Whether to install applesimutils (iOS only). Required by Detox but not
+      by Appium — set to 'false' for Appium test jobs
+    required: false
+    default: 'true'
 
 runs:
   using: 'composite'
@@ -446,7 +452,7 @@ runs:
         COCOAPODS_DISABLE_STATS: 'true'
 
     - name: Install applesimutils
-      if: ${{ inputs.platform == 'ios' }}
+      if: ${{ inputs.platform == 'ios' && inputs.install-applesimutils == 'true' }}
       run: |
         if ! brew list applesimutils &>/dev/null; then
           brew tap wix/brew
@@ -457,6 +463,6 @@ runs:
       shell: bash
 
     - name: Check simutils
-      if: ${{ inputs.platform == 'ios' }}
+      if: ${{ inputs.platform == 'ios' && inputs.install-applesimutils == 'true' }}
       run: xcrun simctl list devices
       shell: bash
