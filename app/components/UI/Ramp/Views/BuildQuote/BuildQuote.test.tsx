@@ -321,7 +321,6 @@ describe('createBuildQuoteNavDetails', () => {
       nativeFlowError: 'error',
     });
   });
-
 });
 
 const mockSetSelectedProvider = jest.fn();
