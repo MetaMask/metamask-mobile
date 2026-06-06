@@ -176,7 +176,9 @@ runs:
       run: |
         set -euo pipefail
         sudo mkdir -p "$CACHE_PATH" /opt/android-sdk/.temp
-        sudo chown -R "$(id -u):$(id -g)" "$CACHE_PATH" /opt/android-sdk/.temp
+        # chown the parent dir too so sdkmanager can create x86_64.backup
+        # next to x86_64 during installation (requires write on the parent).
+        sudo chown -R "$(id -u):$(id -g)" "$(dirname "$CACHE_PATH")" /opt/android-sdk/.temp
       shell: bash
 
     # Restore exact system image from cache (GitHub only — Namespace uses nscloud-cache-action in callers)

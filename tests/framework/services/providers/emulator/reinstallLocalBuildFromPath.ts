@@ -6,6 +6,7 @@ import type { Logger } from '../../../logger.ts';
 import { Platform, type EmulatorConfig } from '../../../types.ts';
 import type { ProjectConfig } from '../../common/types.ts';
 import { resolveAndroidAdbUdidForDevice } from './android/resolveAndroidAdbUdid';
+import { getIosSimulatorUdid } from '../../appium/EmulatorHelpers';
 
 const execFileAsync = promisify(execFile);
 
@@ -83,13 +84,17 @@ export async function reinstallFromBuildPathForProject(
         'iOS: set `use.device.name` to the target simulator to reinstall from `use.app.buildPath` in global setup.',
       );
     }
+    // Resolve to UDID so simctl targets the booted simulator unambiguously.
+    // Using the display name is unreliable when multiple simulators share the
+    // same name across different iOS runtime versions.
+    const simUdid = await getIosSimulatorUdid(simDevice);
     logger.info(
       'Reinstalling iOS app from build path (simctl uninstall + install)…',
     );
     await reinstallLocalIOSBuildArtifact({
       buildPath,
       bundleId,
-      simDevice,
+      simDevice: simUdid,
       logger,
     });
   }
