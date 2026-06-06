@@ -21,9 +21,9 @@ export interface PerpsMarketCategoryBadgesProps {
 }
 
 /**
- * Configuration for a category badge
+ * Configuration for a category segment
  */
-export interface CategoryBadgeConfig {
-  category: Exclude<MarketTypeFilter, 'all'>;
+export interface CategorySegmentConfig {
+  category: MarketTypeFilter;
   labelKey: string;
 }

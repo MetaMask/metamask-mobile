@@ -3,42 +3,29 @@ import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsMarketSortDropdowns from './PerpsMarketSortDropdowns';
 import { type SortOptionId } from '@metamask/perps-controller';
 
-// Mock dependencies
-jest.mock('../../../../../component-library/hooks', () => ({
-  useStyles: () => ({
-    styles: {
-      container: {},
-      dropdownButton: {},
-      dropdownButtonPressed: {},
-      dropdownButtonActive: {},
-      dropdownText: {},
-      dropdownTextActive: {},
-    },
-  }),
-}));
-
-// Mock the design system components
 jest.mock('@metamask/design-system-react-native', () => {
-  const { View } = jest.requireActual('react-native');
+  const { Pressable, Text } = jest.requireActual('react-native');
   return {
-    Box: View,
-  };
-});
-
-// Mock component-library Text component
-jest.mock('../../../../../component-library/components/Texts/Text', () => {
-  const { Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({ children, ...props }: { children?: React.ReactNode }) => (
-      <Text {...props}>{children}</Text>
+    SelectButton: ({
+      value,
+      onPress,
+      testID,
+    }: {
+      value?: string;
+      onPress?: () => void;
+      testID?: string;
+    }) => (
+      <Pressable testID={testID} onPress={onPress}>
+        <Text>{value}</Text>
+      </Pressable>
     ),
-    TextColor: {
-      Default: 'Default',
+    SelectButtonVariant: {
+      Secondary: 'secondary',
     },
-    TextVariant: {
-      BodySM: 'BodySM',
-    },
+    Icon: () => null,
+    IconName: {},
+    IconColor: {},
+    IconSize: {},
   };
 });
 
@@ -75,7 +62,7 @@ describe('PerpsMarketSortDropdowns', () => {
       );
 
       expect(
-        screen.getByTestId('perps-market-sort-dropdowns'),
+        screen.getByTestId('perps-market-sort-dropdowns-sort-field'),
       ).toBeOnTheScreen();
     });
 
@@ -88,19 +75,8 @@ describe('PerpsMarketSortDropdowns', () => {
         />,
       );
 
-      expect(screen.getByTestId('custom-sort-dropdowns')).toBeOnTheScreen();
-    });
-
-    it('renders sort field button', () => {
-      render(
-        <PerpsMarketSortDropdowns
-          selectedOptionId="volume"
-          onSortPress={mockOnSortPress}
-        />,
-      );
-
       expect(
-        screen.getByTestId('perps-market-sort-dropdowns-sort-field'),
+        screen.getByTestId('custom-sort-dropdowns-sort-field'),
       ).toBeOnTheScreen();
     });
   });
@@ -115,9 +91,6 @@ describe('PerpsMarketSortDropdowns', () => {
       );
 
       expect(screen.getByText('Volume')).toBeOnTheScreen();
-      expect(
-        screen.getByTestId('perps-market-sort-dropdowns-sort-field'),
-      ).toBeOnTheScreen();
     });
 
     it('displays price change label when selectedOptionId is priceChange', () => {
@@ -144,7 +117,7 @@ describe('PerpsMarketSortDropdowns', () => {
   });
 
   describe('User Interactions', () => {
-    it('calls onSortPress when sort field button is pressed', () => {
+    it('calls onSortPress when sort button is pressed', () => {
       render(
         <PerpsMarketSortDropdowns
           selectedOptionId="volume"
@@ -152,15 +125,14 @@ describe('PerpsMarketSortDropdowns', () => {
         />,
       );
 
-      const sortButton = screen.getByTestId(
-        'perps-market-sort-dropdowns-sort-field',
+      fireEvent.press(
+        screen.getByTestId('perps-market-sort-dropdowns-sort-field'),
       );
-      fireEvent.press(sortButton);
 
       expect(mockOnSortPress).toHaveBeenCalledTimes(1);
     });
 
-    it('handles multiple rapid presses on sort field button', () => {
+    it('handles multiple rapid presses on sort button', () => {
       render(
         <PerpsMarketSortDropdowns
           selectedOptionId="volume"
@@ -201,10 +173,9 @@ describe('PerpsMarketSortDropdowns', () => {
 
       expect(screen.getByText('Price change')).toBeOnTheScreen();
 
-      const sortButton = screen.getByTestId(
-        'perps-market-sort-dropdowns-sort-field',
+      fireEvent.press(
+        screen.getByTestId('perps-market-sort-dropdowns-sort-field'),
       );
-      fireEvent.press(sortButton);
 
       expect(newOnSortPress).toHaveBeenCalledTimes(1);
       expect(mockOnSortPress).not.toHaveBeenCalled();

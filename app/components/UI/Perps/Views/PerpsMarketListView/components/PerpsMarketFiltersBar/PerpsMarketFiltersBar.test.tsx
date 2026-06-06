@@ -40,9 +40,15 @@ jest.mock('../../../../components/PerpsMarketCategoryBadges', () => {
     }) => (
       <View testID={testID}>
         <Text testID={`${testID}-selected`}>{selectedCategory}</Text>
-        {(
-          availableCategories || ['crypto', 'stocks', 'commodities', 'forex']
-        ).map((cat: string) => (
+        {[
+          'all',
+          ...(availableCategories || [
+            'crypto',
+            'stocks',
+            'commodities',
+            'forex',
+          ]),
+        ].map((cat: string) => (
           <TouchableOpacity
             key={cat}
             testID={`${testID}-${cat}`}
