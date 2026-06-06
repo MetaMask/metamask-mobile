@@ -40,6 +40,7 @@ import { MUSD_TOKEN_ADDRESS } from '../../../../UI/Earn/constants/musd';
 import { useWithdrawTokenFilter } from './useWithdrawTokenFilter';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 import { useRampsPaymentMethods } from '../../../../UI/Ramp/hooks/useRampsPaymentMethods';
+import { useMoneyAccountDepositPaymentMethods } from './useMoneyAccountDepositPaymentMethods';
 
 export interface SetPayTokenRequest {
   address: Hex;
@@ -106,6 +107,9 @@ export function useAutomaticTransactionPayToken({
   const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountWithdraw,
   ]);
+  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountDeposit,
+  ]);
   const paymentOverride = useSelector((state: RootState) =>
     selectPaymentOverrideByTransactionId(state, transactionId ?? ''),
   );
@@ -163,6 +167,14 @@ export function useAutomaticTransactionPayToken({
   const { maxDelayMinutesForPaymentMethods } = useMMPayFiatConfig();
   const isFiatEnabled = useIsFiatPaymentAvailable();
 
+  // Resolve payment methods from the ASSET's best provider for the
+  // moneyAccountDeposit path. Always called (hooks rules); only consumed below
+  // when `autoSelectFiatPayment && isMoneyAccountDeposit`.
+  const {
+    paymentMethods: assetProviderPaymentMethods,
+    isReady: assetProviderPaymentMethodsReady,
+  } = useMoneyAccountDepositPaymentMethods(fiatPayment?.caipAssetId);
+
   useEffect(() => {
     if (
       disable ||
@@ -175,7 +187,40 @@ export function useAutomaticTransactionPayToken({
     }
 
     if (autoSelectFiatPayment || tokens.length === 0) {
-      if (!isFiatEnabled || paymentMethods.length === 0) {
+      if (!isFiatEnabled) {
+        return;
+      }
+
+      // For the moneyAccountDeposit path, resolve payment methods from the
+      // asset's best provider rather than the global providers.selected, so
+      // that methods load even in non-Transak regions where the global
+      // selection is null or points to a different provider.
+      if (autoSelectFiatPayment && isMoneyAccountDeposit) {
+        if (!assetProviderPaymentMethodsReady) {
+          return;
+        }
+
+        const eligibleMethod = assetProviderPaymentMethods.find(
+          (pm) => !pm.delay || pm.delay[1] <= maxDelayMinutesForPaymentMethods,
+        );
+
+        if (eligibleMethod) {
+          Engine.context.TransactionPayController.updateFiatPayment({
+            transactionId,
+            callback: (fp) => {
+              fp.selectedPaymentMethodId = eligibleMethod.id;
+            },
+          });
+        }
+
+        isUpdated.current = transactionId;
+        log('Auto-selected fiat payment method (asset provider)', eligibleMethod?.name);
+        return;
+      }
+
+      // Non-moneyAccountDeposit fiat auto-select: use the global provider's
+      // payment methods (original behaviour).
+      if (paymentMethods.length === 0) {
         return;
       }
 
@@ -211,11 +256,14 @@ export function useAutomaticTransactionPayToken({
 
     log('Automatically selected pay token', automaticToken);
   }, [
+    assetProviderPaymentMethods,
+    assetProviderPaymentMethodsReady,
     autoSelectFiatPayment,
     automaticToken,
     disable,
     hasFiatPaymentSelected,
     isFiatEnabled,
+    isMoneyAccountDeposit,
     maxDelayMinutesForPaymentMethods,
     payToken,
     paymentMethods,
