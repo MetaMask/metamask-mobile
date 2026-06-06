@@ -155,9 +155,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/appium-wda
-          key: wda-derived-data-${{ hashFiles('**/appium-xcuitest-driver/package.json', '**/appium/package.json') }}-${{ steps.xcode-version.outputs.version }}-${{ runner.os }}
+          key: wda-derived-data-xcuitest-9.5.0-${{ steps.xcode-version.outputs.version }}-${{ runner.os }}
           restore-keys: |
-            wda-derived-data-${{ hashFiles('**/appium-xcuitest-driver/package.json', '**/appium/package.json') }}-${{ steps.xcode-version.outputs.version }}-
+            wda-derived-data-xcuitest-9.5.0-${{ steps.xcode-version.outputs.version }}-
 
       - name: Run Appium smoke tests (iOS)
         run: >-
