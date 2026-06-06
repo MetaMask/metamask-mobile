@@ -42,11 +42,13 @@ export class EmulatorConfigBuilder {
 
     return {
       port: 4723,
-      // XCUITest driver must build and install WDA on first run (3-4 min).
-      // Raise the WebDriverIO HTTP timeout well above the default 120 s so the
-      // session-creation request doesn't time out before Appium responds.
-      connectionRetryTimeout: 10 * 60 * 1000, // 10 min
-      connectionRetryCount: 1,
+      // XCUITest driver must build and install WDA on first run (3-4 min on
+      // local, up to 10 min on CI). Raise the WebDriverIO HTTP timeout so the
+      // session-creation POST doesn't time out before Appium responds.
+      // connectionRetryCount: 0 — no retries on session creation; a timeout
+      // here is not a transient error and retrying just doubles the wait.
+      connectionRetryTimeout: 12 * 60 * 1000, // 12 min
+      connectionRetryCount: 0,
       capabilities: {
         'appium:deviceName': emulatorDevice.name,
         'appium:udid': emulatorDevice.udid,
@@ -74,7 +76,7 @@ export class EmulatorConfigBuilder {
         'appium:animationCoolOffTimeout': 0, // Skip animation wait
         'appium:reduceMotion': true, // Reduce iOS animations
         'appium:waitForIdleTimeout': 0, // Don't wait for idle
-        'appium:wdaLaunchTimeout': 300_000,
+        'appium:wdaLaunchTimeout': 10 * 60_000, // 10 min — CI WDA build can take this long
         'appium:includeSafariInWebviews': true,
         'appium:settings[actionAcknowledgmentTimeout]': 3000,
         'appium:settings[ignoreUnimportantViews]': true,

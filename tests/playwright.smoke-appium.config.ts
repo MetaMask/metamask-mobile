@@ -37,7 +37,9 @@ const DEFAULT_IOS_APP =
 export default defineConfig({
   testDir: './smoke-appium',
   fullyParallel: false,
-  timeout: 5 * 60 * 1000,
+  // Per-test timeout: WDA build on CI can take up to 10 min on first run,
+  // plus test execution time. 15 min keeps CI healthy without hanging forever.
+  timeout: 15 * 60 * 1000,
   retries: 1,
   grep: /@SmokeAppium/,
   reporter: [

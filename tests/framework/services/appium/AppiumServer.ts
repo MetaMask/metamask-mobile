@@ -42,6 +42,9 @@ export async function startAppiumServer(
       ['appium', '--allow-insecure=chromedriver_autodownload'],
       {
         stdio: 'pipe',
+        // detached: true puts appium in its own process group so we can
+        // kill the whole group (yarn + appium children) with -pid later.
+        detached: true,
       },
     );
 
@@ -101,7 +104,15 @@ export async function startAppiumServer(
     // Create and track the new exit handler
     currentExitHandler = () => {
       logger.debug('Main process exiting. Killing Appium server...');
-      appiumProcess.kill();
+      if (appiumProcess.pid !== undefined) {
+        try {
+          process.kill(-appiumProcess.pid, 'SIGTERM');
+        } catch {
+          appiumProcess.kill('SIGTERM');
+        }
+      } else {
+        appiumProcess.kill('SIGTERM');
+      }
     };
     process.on('exit', currentExitHandler);
 
@@ -140,11 +151,29 @@ export function stopAppiumServer(): Promise<void> {
       return resolve();
     }
 
+    // Safety timeout: resolve after 10s even if 'close' never fires.
+    const fallbackTimer = setTimeout(() => {
+      logger.warn('Appium server did not exit within 10s; continuing anyway.');
+      resolve();
+    }, 10_000);
+
     proc.once('close', () => {
+      clearTimeout(fallbackTimer);
       logger.debug('Appium server stopped successfully.');
       resolve();
     });
 
-    proc.kill('SIGTERM');
+    // Kill the entire process group (-pid) so yarn AND the appium child
+    // process are both terminated. Falls back to killing just the direct
+    // child if process-group kill is unavailable (e.g. pid is undefined).
+    if (proc.pid !== undefined) {
+      try {
+        process.kill(-proc.pid, 'SIGTERM');
+      } catch {
+        proc.kill('SIGTERM');
+      }
+    } else {
+      proc.kill('SIGTERM');
+    }
   });
 }
