@@ -11,8 +11,7 @@ import { MONEY_ACCOUNT_FIAT_DEPOSIT_ASSET_ID } from '../utils/getMoneyAccountFia
  * expected to set that address directly (it uses the zero address or the
  * ERC-20 address for mUSD).
  */
-const NATIVE_TOKEN_ADDRESS =
-  '0x0000000000000000000000000000000000000000';
+const NATIVE_TOKEN_ADDRESS = '0x0000000000000000000000000000000000000000';
 
 /**
  * Build a CAIP-19 asset id from `{ address, chainId }` matching core's

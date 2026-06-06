@@ -290,7 +290,9 @@ describe('useFiatConfirm', () => {
       );
       // Must reject the underlying confirmation transaction so the next
       // deposit attempt is not blocked by an orphaned unapproved tx.
-      expect(Engine.context.ApprovalController.rejectRequest).toHaveBeenCalledWith(
+      expect(
+        Engine.context.ApprovalController.rejectRequest,
+      ).toHaveBeenCalledWith(
         TRANSACTION_ID_MOCK,
         expect.objectContaining({ code: expect.any(Number) }),
       );
@@ -417,10 +419,14 @@ describe('useFiatConfirm', () => {
       });
 
       act(() => {
-        startHeadlessBuyMock.mock.calls[0][1].onClose({ reason: 'user_dismissed' });
+        startHeadlessBuyMock.mock.calls[0][1].onClose({
+          reason: 'user_dismissed',
+        });
       });
 
-      expect(Engine.context.ApprovalController.rejectRequest).toHaveBeenCalledWith(
+      expect(
+        Engine.context.ApprovalController.rejectRequest,
+      ).toHaveBeenCalledWith(
         TRANSACTION_ID_MOCK,
         expect.objectContaining({ code: expect.any(Number) }),
       );
@@ -446,7 +452,9 @@ describe('useFiatConfirm', () => {
         startHeadlessBuyMock.mock.calls[0][1].onClose({ reason: 'completed' });
       });
 
-      expect(Engine.context.ApprovalController.rejectRequest).not.toHaveBeenCalled();
+      expect(
+        Engine.context.ApprovalController.rejectRequest,
+      ).not.toHaveBeenCalled();
     });
   });
 });

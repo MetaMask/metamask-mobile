@@ -2,7 +2,7 @@ import type { PaymentMethod } from '@metamask/ramps-controller';
 import { pickEligiblePaymentMethod } from './pickEligiblePaymentMethod';
 
 const method = (id: string, delay?: number[]): PaymentMethod =>
-  ({ id, name: id, delay } as unknown as PaymentMethod);
+  ({ id, name: id, delay }) as unknown as PaymentMethod;
 
 describe('pickEligiblePaymentMethod', () => {
   it('returns undefined for an empty list', () => {

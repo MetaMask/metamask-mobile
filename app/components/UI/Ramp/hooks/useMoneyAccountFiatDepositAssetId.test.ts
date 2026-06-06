@@ -9,9 +9,7 @@ import { MONEY_ACCOUNT_FIAT_DEPOSIT_ASSET_ID } from '../utils/getMoneyAccountFia
  * Build a minimal Redux store whose RemoteFeatureFlagController contains the
  * given `confirmations_pay_fiat` payload.
  */
-function makeStore(
-  confirmationsPayFiat?: Record<string, unknown>,
-) {
+function makeStore(confirmationsPayFiat?: Record<string, unknown>) {
   return configureStore({
     reducer: {
       engine: () => ({

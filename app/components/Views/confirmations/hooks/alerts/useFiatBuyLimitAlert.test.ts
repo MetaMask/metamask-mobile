@@ -17,14 +17,15 @@ jest.mock('../pay/useTransactionPayData');
 jest.mock('../../../../UI/Ramp/hooks/useRampsBuyLimits');
 // Default mock returns the ETH mainnet fallback (eip155:1/slip44:60),
 // matching MONEY_ACCOUNT_FIAT_DEPOSIT_ASSET_ID. Individual tests may override.
-jest.mock('../../../../UI/Ramp/hooks/useMoneyAccountFiatDepositAssetId', () => ({
-  useMoneyAccountFiatDepositAssetId: () => 'eip155:1/slip44:60',
-}));
+jest.mock(
+  '../../../../UI/Ramp/hooks/useMoneyAccountFiatDepositAssetId',
+  () => ({
+    useMoneyAccountFiatDepositAssetId: () => 'eip155:1/slip44:60',
+  }),
+);
 
 function runHook({ pendingAmount }: { pendingAmount?: string } = {}) {
-  return renderHookWithProvider(() =>
-    useFiatBuyLimitAlert({ pendingAmount }),
-  );
+  return renderHookWithProvider(() => useFiatBuyLimitAlert({ pendingAmount }));
 }
 
 describe('useFiatBuyLimitAlert', () => {

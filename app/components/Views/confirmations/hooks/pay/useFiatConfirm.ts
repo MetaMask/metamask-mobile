@@ -91,7 +91,10 @@ export function useFiatConfirm() {
                 providerErrors.userRejectedRequest(),
               );
             } catch {
-              log('Failed to reject transaction after headless buy error', transactionId);
+              log(
+                'Failed to reject transaction after headless buy error',
+                transactionId,
+              );
             }
           }
         },
@@ -113,7 +116,10 @@ export function useFiatConfirm() {
                 providerErrors.userRejectedRequest(),
               );
             } catch {
-              log('Failed to reject transaction after headless buy close', transactionId);
+              log(
+                'Failed to reject transaction after headless buy close',
+                transactionId,
+              );
             }
           }
         },

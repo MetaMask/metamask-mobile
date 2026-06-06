@@ -120,7 +120,8 @@ describe('useRampsBuyLimits', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseFormatters.mockReturnValue({
-      formatCurrency: (value: number, _currency: string) => `$${value.toFixed(2)}`,
+      formatCurrency: (value: number, _currency: string) =>
+        `$${value.toFixed(2)}`,
     } as unknown as ReturnType<typeof useFormatters>);
   });
 
@@ -149,8 +150,14 @@ describe('useRampsBuyLimits', () => {
         amountLimitError: null,
         currency: 'USD',
       });
-      expect(typeof result.current.minAmount === 'number' || result.current.minAmount === undefined).toBe(true);
-      expect(typeof result.current.maxAmount === 'number' || result.current.maxAmount === undefined).toBe(true);
+      expect(
+        typeof result.current.minAmount === 'number' ||
+          result.current.minAmount === undefined,
+      ).toBe(true);
+      expect(
+        typeof result.current.maxAmount === 'number' ||
+          result.current.maxAmount === undefined,
+      ).toBe(true);
     });
   });
 
@@ -261,9 +268,7 @@ describe('useRampsBuyLimits', () => {
         expect(mockGetBestProviderForAsset).toHaveBeenCalled(),
       );
 
-      await waitFor(() =>
-        expect(result.current.amountLimitError).toBeNull(),
-      );
+      await waitFor(() => expect(result.current.amountLimitError).toBeNull());
     });
 
     it('returns amountLimitError null at exact minAmount boundary', async () => {
@@ -282,9 +287,7 @@ describe('useRampsBuyLimits', () => {
         { wrapper: Wrapper },
       );
 
-      await waitFor(() =>
-        expect(result.current.amountLimitError).toBeNull(),
-      );
+      await waitFor(() => expect(result.current.amountLimitError).toBeNull());
     });
 
     it('returns amountLimitError null at exact maxAmount boundary', async () => {
@@ -303,9 +306,7 @@ describe('useRampsBuyLimits', () => {
         { wrapper: Wrapper },
       );
 
-      await waitFor(() =>
-        expect(result.current.amountLimitError).toBeNull(),
-      );
+      await waitFor(() => expect(result.current.amountLimitError).toBeNull());
     });
   });
 
@@ -349,9 +350,7 @@ describe('useRampsBuyLimits', () => {
         { wrapper: Wrapper },
       );
 
-      await waitFor(() =>
-        expect(result.current.minAmount).toBe(10),
-      );
+      await waitFor(() => expect(result.current.minAmount).toBe(10));
     });
   });
 
@@ -395,9 +394,7 @@ describe('useRampsBuyLimits', () => {
         { wrapper: Wrapper },
       );
 
-      await waitFor(() =>
-        expect(result.current.maxAmount).toBe(1000),
-      );
+      await waitFor(() => expect(result.current.maxAmount).toBe(1000));
     });
   });
 
@@ -504,9 +501,7 @@ describe('useRampsBuyLimits', () => {
         expect(mockGetBestProviderForAsset).toHaveBeenCalled(),
       );
 
-      await waitFor(() =>
-        expect(result.current.amountLimitError).toBeNull(),
-      );
+      await waitFor(() => expect(result.current.amountLimitError).toBeNull());
     });
 
     it('returns null when backendError is null and amount is 0', async () => {
@@ -526,9 +521,7 @@ describe('useRampsBuyLimits', () => {
         { wrapper: Wrapper },
       );
 
-      await waitFor(() =>
-        expect(result.current.amountLimitError).toBeNull(),
-      );
+      await waitFor(() => expect(result.current.amountLimitError).toBeNull());
     });
   });
 
@@ -555,7 +548,9 @@ describe('useRampsBuyLimits', () => {
 
       // EUR minAmount is 12, so amount=5 should trigger a min error
       await waitFor(() =>
-        expect(result.current.amountLimitError).toBe('Minimum purchase is $12.00'),
+        expect(result.current.amountLimitError).toBe(
+          'Minimum purchase is $12.00',
+        ),
       );
 
       expect(result.current.minAmount).toBe(12);

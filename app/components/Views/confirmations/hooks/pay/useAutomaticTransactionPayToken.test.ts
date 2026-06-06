@@ -1347,8 +1347,7 @@ describe('useAutomaticTransactionPayToken', () => {
 
     function runMoneyAccountDepositHook() {
       return renderHookWithProvider(
-        () =>
-          useAutomaticTransactionPayToken({ autoSelectFiatPayment: true }),
+        () => useAutomaticTransactionPayToken({ autoSelectFiatPayment: true }),
         { state: MONEY_ACCOUNT_DEPOSIT_STATE_MOCK },
       );
     }

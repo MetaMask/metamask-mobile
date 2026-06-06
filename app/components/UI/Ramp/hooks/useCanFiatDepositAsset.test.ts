@@ -16,9 +16,11 @@ jest.mock('../../../../core/Engine', () => ({
 }));
 
 jest.mock('./useMoneyAccountFiatDepositAssetId', () => ({
-  useMoneyAccountFiatDepositAssetId: jest.fn().mockReturnValue(
-    'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
-  ),
+  useMoneyAccountFiatDepositAssetId: jest
+    .fn()
+    .mockReturnValue(
+      'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+    ),
 }));
 
 import { useMoneyAccountFiatDepositAssetId } from './useMoneyAccountFiatDepositAssetId';
