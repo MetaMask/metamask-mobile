@@ -83,7 +83,6 @@ jest.mock('../../UI/Ramp/hooks/useRampNavigation', () => ({
 
 jest.mock('../../UI/Ramp/hooks/useRampsButtonClickData', () => ({
   useRampsButtonClickData: () => ({
-    ramp_routing: 'test_routing',
     is_authenticated: true,
     preferred_provider: 'test_provider',
     order_count: 5,
@@ -233,7 +232,6 @@ describe('AccountsMenu', () => {
         ramp_type: 'BUY',
         chain_id_destination: null,
         region: 'US',
-        ramp_routing: 'test_routing',
         is_authenticated: true,
         preferred_provider: 'test_provider',
         order_count: 5,

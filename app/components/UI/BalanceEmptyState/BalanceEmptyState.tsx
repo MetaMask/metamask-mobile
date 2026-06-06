@@ -55,7 +55,6 @@ const BalanceEmptyState: React.FC<BalanceEmptyStateProps> = ({
           chain_id_destination: getDecimalChainId(chainId),
           ramp_type: isV2UnifiedEnabled ? 'UNIFIED_BUY_2' : 'BUY',
           region: rampGeodetectedRegion,
-          ramp_routing: buttonClickData.ramp_routing,
           is_authenticated: buttonClickData.is_authenticated,
           preferred_provider: buttonClickData.preferred_provider,
           order_count: buttonClickData.order_count,

@@ -9,10 +9,6 @@ import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
 import {
-  getRampRoutingDecision,
-  UnifiedRampRoutingType,
-} from '../../../../../reducers/fiatOrders';
-import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
 } from '../../../Earn/constants/musd';
@@ -51,11 +47,6 @@ jest.mock(
 jest.mock('../../../../../selectors/tokenBalancesController', () => ({
   ...jest.requireActual('../../../../../selectors/tokenBalancesController'),
   selectHasAnyNonZeroTokenBalance: jest.fn(),
-}));
-
-jest.mock('../../../../../reducers/fiatOrders', () => ({
-  ...jest.requireActual('../../../../../reducers/fiatOrders'),
-  getRampRoutingDecision: jest.fn(),
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -107,7 +98,6 @@ describe('MoneyAddMoneySheet', () => {
     (selectHasAnyNonZeroTokenBalance as unknown as jest.Mock).mockReturnValue(
       true,
     );
-    (getRampRoutingDecision as jest.Mock).mockReturnValue(null);
   });
 
   it('renders all four options', () => {
@@ -323,62 +313,30 @@ describe('MoneyAddMoneySheet', () => {
     expect(mockInitiateDeposit).toHaveBeenCalledWith();
   });
 
-  it('hides the Deposit funds option when the ramp routing decision is UNSUPPORTED', () => {
-    (getRampRoutingDecision as jest.Mock).mockReturnValue(
-      UnifiedRampRoutingType.UNSUPPORTED,
-    );
+  it('shows the Deposit funds option when fiat deposit is enabled', () => {
+    (useMMPayFiatConfig as jest.Mock).mockReturnValue({
+      enabledTransactionTypes: [TransactionType.moneyAccountDeposit],
+      maxDelayMinutesForPaymentMethods: 10,
+    });
+
+    const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+    expect(
+      getByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides the Deposit funds option when fiat deposit is disabled', () => {
+    (useMMPayFiatConfig as jest.Mock).mockReturnValue({
+      enabledTransactionTypes: [],
+      maxDelayMinutesForPaymentMethods: 10,
+    });
 
     const { queryByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
 
     expect(
       queryByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
     ).toBeNull();
-  });
-
-  it('shows the Deposit funds option when the ramp routing decision is DEPOSIT', () => {
-    (getRampRoutingDecision as jest.Mock).mockReturnValue(
-      UnifiedRampRoutingType.DEPOSIT,
-    );
-
-    const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
-
-    expect(
-      getByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
-    ).toBeOnTheScreen();
-  });
-
-  it('shows the Deposit funds option when the ramp routing decision is AGGREGATOR', () => {
-    (getRampRoutingDecision as jest.Mock).mockReturnValue(
-      UnifiedRampRoutingType.AGGREGATOR,
-    );
-
-    const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
-
-    expect(
-      getByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
-    ).toBeOnTheScreen();
-  });
-
-  it('shows the Deposit funds option when the ramp routing decision is null (fail-open)', () => {
-    (getRampRoutingDecision as jest.Mock).mockReturnValue(null);
-
-    const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
-
-    expect(
-      getByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
-    ).toBeOnTheScreen();
-  });
-
-  it('shows the Deposit funds option when the ramp routing decision is ERROR (fail-open)', () => {
-    (getRampRoutingDecision as jest.Mock).mockReturnValue(
-      UnifiedRampRoutingType.ERROR,
-    );
-
-    const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
-
-    expect(
-      getByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
-    ).toBeOnTheScreen();
   });
 
   it('initiates a deposit pre-selecting mUSD on the highest-balance chain when Move mUSD is pressed', () => {

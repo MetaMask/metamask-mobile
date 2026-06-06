@@ -29,7 +29,6 @@ export const useRampsButtonClickedEvent = () => {
             location: 'TokensSection',
             ramp_type: rampType,
             region,
-            ramp_routing: buttonClickData.ramp_routing,
             is_authenticated: buttonClickData.is_authenticated,
             preferred_provider: buttonClickData.preferred_provider,
             order_count: buttonClickData.order_count,

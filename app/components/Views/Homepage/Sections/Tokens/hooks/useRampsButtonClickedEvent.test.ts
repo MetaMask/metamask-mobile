@@ -39,7 +39,6 @@ jest.mock('../../../../../../reducers/fiatOrders', () => ({
 }));
 
 const defaultButtonClickData = {
-  ramp_routing: 'SMART_ROUTING' as const,
   is_authenticated: false,
   preferred_provider: undefined,
   order_count: 0,
@@ -67,7 +66,6 @@ describe('useRampsButtonClickedEvent', () => {
       location: 'TokensSection',
       ramp_type: 'BUY',
       region: 'US',
-      ramp_routing: 'SMART_ROUTING',
       is_authenticated: false,
       preferred_provider: undefined,
       order_count: 0,
@@ -116,7 +114,6 @@ describe('useRampsButtonClickedEvent', () => {
 
   it('includes authentication and order data from useRampsButtonClickData', () => {
     mockUseRampsButtonClickData.mockReturnValue({
-      ramp_routing: undefined,
       is_authenticated: true,
       preferred_provider: 'transak',
       order_count: 3,
@@ -133,7 +130,6 @@ describe('useRampsButtonClickedEvent', () => {
         is_authenticated: true,
         preferred_provider: 'transak',
         order_count: 3,
-        ramp_routing: undefined,
       }),
     );
   });

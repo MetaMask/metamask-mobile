@@ -39,7 +39,6 @@ jest.mock('../../../../locales/i18n', () => ({
 }));
 
 const mockButtonClickData: RampsButtonClickData = {
-  ramp_routing: undefined,
   is_authenticated: false,
   preferred_provider: undefined,
   order_count: 0,
@@ -330,7 +329,6 @@ describe('FundActionMenu', () => {
           chain_id_destination: 1,
           ramp_type: 'BUY',
           region: undefined,
-          ramp_routing: undefined,
           is_authenticated: false,
           preferred_provider: undefined,
           order_count: 0,
@@ -397,7 +395,6 @@ describe('FundActionMenu', () => {
           chain_id_destination: 137,
           ramp_type: 'BUY',
           region: undefined,
-          ramp_routing: undefined,
           is_authenticated: false,
           preferred_provider: undefined,
           order_count: 0,

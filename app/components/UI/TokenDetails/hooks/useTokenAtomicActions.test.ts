@@ -30,7 +30,6 @@ import { selectAssetsBySelectedAccountGroup } from '../../../../selectors/assets
 import {
   getDetectedGeolocation,
   getOrders,
-  getRampRoutingDecision,
 } from '../../../../reducers/fiatOrders';
 import { selectRampsOrdersForSelectedAccountGroup } from '../../../../selectors/rampsController';
 import { getProviderToken } from '../../Ramp/Deposit/utils/ProviderTokenVault';
@@ -91,7 +90,6 @@ jest.mock('../../../../selectors/assets/assets-list', () => ({
 jest.mock('../../../../reducers/fiatOrders', () => ({
   getDetectedGeolocation: jest.fn(),
   getOrders: jest.fn(),
-  getRampRoutingDecision: jest.fn(),
 }));
 
 jest.mock('../../../../selectors/rampsController', () => ({
@@ -221,7 +219,6 @@ const mockSelectAssetsBySelectedAccountGroup = jest.mocked(
 );
 const mockGetDetectedGeolocation = jest.mocked(getDetectedGeolocation);
 const mockGetOrders = jest.mocked(getOrders);
-const mockGetRampRoutingDecision = jest.mocked(getRampRoutingDecision);
 const mockSelectRampsOrdersForSelectedAccountGroup = jest.mocked(
   selectRampsOrdersForSelectedAccountGroup,
 );
@@ -259,7 +256,6 @@ const setupSelectorDefaults = () => {
   mockSelectAssetsBySelectedAccountGroup.mockReturnValue({});
   mockGetDetectedGeolocation.mockReturnValue('US');
   mockGetOrders.mockReturnValue([]);
-  mockGetRampRoutingDecision.mockReturnValue(null);
   mockSelectRampsOrdersForSelectedAccountGroup.mockReturnValue([]);
   mockGetProviderToken.mockResolvedValue({
     success: true,

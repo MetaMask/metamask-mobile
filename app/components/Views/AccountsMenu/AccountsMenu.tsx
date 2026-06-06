@@ -69,7 +69,6 @@ const AccountsMenu = () => {
           ramp_type: isV2UnifiedEnabled ? 'UNIFIED_BUY_2' : 'BUY',
           chain_id_destination: null,
           region: rampGeodetectedRegion ?? null,
-          ramp_routing: rampsButtonClickData.ramp_routing ?? null,
           is_authenticated: rampsButtonClickData.is_authenticated ?? null,
           preferred_provider: rampsButtonClickData.preferred_provider ?? null,
           order_count: rampsButtonClickData.order_count,

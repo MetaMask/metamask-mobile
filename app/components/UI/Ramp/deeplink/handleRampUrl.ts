@@ -10,15 +10,18 @@ import Logger from '../../../../util/Logger';
 import NavigationService from '../../../../core/NavigationService';
 import ReduxService from '../../../../core/redux';
 import { isRampsUnifiedV2Enabled } from '../utils/isRampsUnifiedV2Enabled';
-import {
-  getRampRoutingDecision,
-  UnifiedRampRoutingType,
-} from '../../../../reducers/fiatOrders';
 import { createEligibilityFailedModalNavigationDetails } from '../components/EligibilityFailedModal/EligibilityFailedModal';
 import { createRampUnsupportedModalNavigationDetails } from '../components/RampUnsupportedModal/RampUnsupportedModal';
 import { createBuildQuoteNavDetails } from '../Views/BuildQuote';
 import { createTokenSelectionNavDetails } from '../Views/TokenSelection/TokenSelection';
-import { selectTokens } from '../../../../selectors/rampsController';
+import {
+  selectCountries,
+  selectTokens,
+  selectUserRegion,
+} from '../../../../selectors/rampsController';
+import { selectGeolocationLocation } from '../../../../selectors/geolocationController';
+import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
+import { isRampRegionDefinitivelyUnsupported } from '../utils/rampRegionEligibility';
 import { resolveRampControllerAssetId } from '../utils/resolveRampControllerAssetId';
 import Engine from '../../../../core/Engine';
 
@@ -45,14 +48,20 @@ export default function handleRampUrl({ rampPath, rampType }: RampUrlOptions) {
         try {
           const state = ReduxService.store.getState();
           if (isRampsUnifiedV2Enabled(state)) {
-            const routingDecision = getRampRoutingDecision(state);
-            if (routingDecision === UnifiedRampRoutingType.ERROR) {
+            // Eligibility gate sourced from RampsController + GeolocationController
+            // (replaces the legacy smart-routing decision).
+            const location = selectGeolocationLocation(state);
+            if (!location || location === UNKNOWN_LOCATION) {
               NavigationService.navigation.navigate(
                 ...createEligibilityFailedModalNavigationDetails(),
               );
               return;
             }
-            if (routingDecision === UnifiedRampRoutingType.UNSUPPORTED) {
+
+            // Non-blocking: only divert on a definitive negative signal.
+            const userRegion = selectUserRegion(state);
+            const countries = selectCountries(state).data;
+            if (isRampRegionDefinitivelyUnsupported(userRegion, countries)) {
               NavigationService.navigation.navigate(
                 ...createRampUnsupportedModalNavigationDetails(),
               );

@@ -34,7 +34,6 @@ import parseRampIntent from '../../Ramp/utils/parseRampIntent';
 import {
   getDetectedGeolocation,
   getOrders,
-  getRampRoutingDecision,
 } from '../../../../reducers/fiatOrders';
 import { selectRampsOrdersForSelectedAccountGroup } from '../../../../selectors/rampsController';
 import { getProviderToken } from '../../Ramp/Deposit/utils/ProviderTokenVault';
@@ -252,7 +251,6 @@ export const useHandleOnBuy = ({ token }: { token: TokenActionInput }) => {
     const rampGeodetectedRegion = getDetectedGeolocation(state);
     const orders = getOrders(state);
     const controllerOrders = selectRampsOrdersForSelectedAccountGroup(state);
-    const rampRoutingDecision = getRampRoutingDecision(state);
 
     const completedOrders = [
       ...completedOrdersFromFiatOrders(orders),
@@ -274,7 +272,6 @@ export const useHandleOnBuy = ({ token }: { token: TokenActionInput }) => {
           chain_id_destination: getDecimalChainId(tokenChainIdHex),
           ramp_type: isV2UnifiedEnabled ? 'UNIFIED_BUY_2' : 'BUY',
           region: rampGeodetectedRegion,
-          ramp_routing: rampRoutingDecision ?? undefined,
           is_authenticated: isAuthenticated,
           preferred_provider: preferredProvider,
           order_count: orders.length + controllerOrders.length,

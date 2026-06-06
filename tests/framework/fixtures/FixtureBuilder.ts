@@ -1977,9 +1977,6 @@ class FixtureBuilder {
     });
 
     this.fixture.state.fiatOrders = this.fixture.state.fiatOrders ?? {};
-    merge(this.fixture.state.fiatOrders, {
-      rampRoutingDecision: 'AGGREGATOR',
-    });
 
     this.withDetectedGeolocation('US');
 

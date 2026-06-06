@@ -51,7 +51,6 @@ jest.mock('./walletHomeOnboardingStepsStrings', () => ({
 }));
 
 const defaultButtonClickData = {
-  ramp_routing: 'SMART_ROUTING' as const,
   is_authenticated: true,
   preferred_provider: 'test-provider',
   order_count: 2,
@@ -87,7 +86,6 @@ describe('useWalletHomeOnboardingChecklistFundPress', () => {
       location: ActionLocation.ONBOARDING_CHECKLIST,
       ramp_type: 'BUY',
       region: 'US',
-      ramp_routing: 'SMART_ROUTING',
       is_authenticated: true,
       preferred_provider: 'test-provider',
       order_count: 2,
