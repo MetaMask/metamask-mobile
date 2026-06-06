@@ -167,20 +167,50 @@ export async function stopAndroidEmulator(): Promise<void> {
 }
 
 /**
+ * Per-process cache: deviceName → resolved UDID.
+ * The simulator UDID is stable for the lifetime of a test run so caching once
+ * is safe and avoids repeated `xcrun simctl list` shell-outs per test.
+ */
+const iosSimulatorUdidCache = new Map<string, string>();
+
+/**
  * Get the UDID of an available iOS simulator by display name.
- * Throws if no matching simulator is found.
+ *
+ * Multiple simulators can share the same display name across different iOS
+ * runtime versions. To target the right one:
+ * 1. If one is already Booted, return its UDID (it's the active device).
+ * 2. Otherwise return the first available match.
+ *
+ * Result is cached per process so repeated calls within a test run are free.
+ * Throws if no simulator with the given name is found at all.
  */
 export async function getIosSimulatorUdid(deviceName: string): Promise<string> {
+  const cached = iosSimulatorUdidCache.get(deviceName);
+  if (cached) {
+    return cached;
+  }
+
   const { stdout } = await execAsync('xcrun simctl list devices available -j');
   const list = JSON.parse(stdout) as {
     devices: Record<string, { name: string; udid: string; state: string }[]>;
   };
 
+  let firstMatch: string | undefined;
+
   for (const devices of Object.values(list.devices)) {
-    const match = devices.find((d) => d.name === deviceName);
-    if (match) {
-      return match.udid;
+    for (const d of devices) {
+      if (d.name !== deviceName) continue;
+      if (d.state === 'Booted') {
+        iosSimulatorUdidCache.set(deviceName, d.udid);
+        return d.udid; // prefer the already-booted one
+      }
+      firstMatch ??= d.udid;
     }
+  }
+
+  if (firstMatch) {
+    iosSimulatorUdidCache.set(deviceName, firstMatch);
+    return firstMatch;
   }
 
   throw new Error(

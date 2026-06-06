@@ -14,6 +14,7 @@ import { reinstallFromBuildPathForProject } from './reinstallLocalBuildFromPath'
 import {
   startAndroidEmulator,
   startIosSimulator,
+  getIosSimulatorUdid,
 } from '../../appium/EmulatorHelpers';
 
 /**
@@ -69,23 +70,23 @@ export class EmulatorProvider extends BaseServiceProvider {
       );
       return false;
     }
+    // Resolve to UDID to avoid ambiguity when multiple simulators share the same name
+    const simId = await getIosSimulatorUdid(deviceName).catch(() => deviceName);
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { exec } = require('child_process');
+    const { execFile } = require('child_process');
     return new Promise<boolean>((resolve) => {
-      // List installed apps on the given simulator and look for the bundle id
-      exec(
-        `xcrun simctl get_app_container "${deviceName}" "${bundleId}"`,
+      execFile(
+        'xcrun',
+        ['simctl', 'get_app_container', simId, bundleId],
         (error: Error | null, stdout: string) => {
           if (error) {
-            // If there's an error, assume app is not installed
             this.logger.debug(
-              `App with bundle id ${bundleId} NOT installed on simulator "${deviceName}". ${error.message}`,
+              `App with bundle id ${bundleId} NOT installed on simulator "${simId}". ${error.message}`,
             );
             resolve(false);
           } else {
-            // If stdout contains a path, the app is installed
             this.logger.debug(
-              `App with bundle id ${bundleId} IS installed on simulator "${deviceName}". App container: ${stdout.trim()}`,
+              `App with bundle id ${bundleId} IS installed on simulator "${simId}". App container: ${stdout.trim()}`,
             );
             resolve(true);
           }
@@ -151,7 +152,10 @@ export class EmulatorProvider extends BaseServiceProvider {
           'iOS device boot requires `use.device.name` (simulator name) in the project config.',
         );
       }
-      await startIosSimulator(deviceName);
+      const udid = await startIosSimulator(deviceName);
+      // Persist the UDID onto the device config so Appium's XCUITest driver
+      // targets this exact simulator (not a fresh one with the same display name).
+      (this.project.use.device as EmulatorConfig).udid = udid;
     }
   }
 
@@ -201,8 +205,9 @@ export class EmulatorProvider extends BaseServiceProvider {
   async getDriver(): Promise<Browser> {
     this.logger.debug('Creating driver for local emulator');
 
+    const emulatorDevice = this.project.use.device as EmulatorConfig;
+
     if (this.project.use.platform === Platform.ANDROID) {
-      const emulatorDevice = this.project.use.device as EmulatorConfig;
       if (!emulatorDevice.name && !emulatorDevice.udid) {
         throw new Error(
           'Android local emulator: set `use.device.name` (AVD name) or `use.device.udid` (e.g. emulator-5554).',
@@ -211,6 +216,18 @@ export class EmulatorProvider extends BaseServiceProvider {
       await applyResolvedAndroidAdbToDevice(emulatorDevice, {
         setAndroidSerialEnv: true,
       });
+    } else if (this.project.use.platform === Platform.IOS) {
+      // Resolve to the booted simulator's UDID so Appium's XCUITest driver
+      // attaches to the existing booted simulator rather than starting a new one.
+      // getIosSimulatorUdid prefers a Booted device when multiple simulators
+      // share the same display name across iOS runtime versions.
+      const deviceName = emulatorDevice.name;
+      if (deviceName && !emulatorDevice.udid) {
+        emulatorDevice.udid = await getIosSimulatorUdid(deviceName);
+        this.logger.debug(
+          `Resolved iOS simulator UDID: ${emulatorDevice.udid}`,
+        );
+      }
     }
 
     // Start Appium server

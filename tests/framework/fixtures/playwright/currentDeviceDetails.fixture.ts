@@ -7,6 +7,7 @@ import {
   type EmulatorConfig,
 } from '../../types.ts';
 import { applyResolvedAndroidAdbToDevice } from '../../services/providers/emulator/android/resolveAndroidAdbUdid.ts';
+import { getIosSimulatorUdid } from '../../services/appium/EmulatorHelpers.ts';
 import type { CurrentDeviceDetails } from './types.ts';
 
 export const currentDeviceDetailsFixture = {
@@ -53,11 +54,19 @@ export const currentDeviceDetailsFixture = {
       });
     }
 
+    // For iOS local simulators, resolve the UDID of the currently-booted device.
+    // Multiple simulators can share the same display name across iOS runtime versions;
+    // using the UDID ensures simctl commands target the booted one.
+    let resolvedIosUdid: string | undefined;
+    if (platform === Platform.IOS && isLocalEmulator && deviceNameField) {
+      resolvedIosUdid = await getIosSimulatorUdid(deviceNameField);
+    }
+
     const displayName = deviceNameField ?? deviceUdid ?? 'unknown';
     const deviceDetails: CurrentDeviceDetails = {
       platform: platform as 'android' | 'ios',
       deviceName: displayName,
-      udid: emulatorDevice?.udid,
+      udid: resolvedIosUdid ?? emulatorDevice?.udid,
       packageName,
       appId,
       launchableActivity,
