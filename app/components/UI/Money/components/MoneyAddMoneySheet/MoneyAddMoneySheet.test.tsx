@@ -356,20 +356,16 @@ describe('MoneyAddMoneySheet', () => {
     ).toBeNull();
   });
 
-  it('calls useCanFiatDepositAsset with the mUSD deposit assetId derived from the default chain', () => {
+  it('calls useCanFiatDepositAsset with the native ETH mainnet fiat deposit assetId', () => {
     (useCanFiatDepositAsset as jest.Mock).mockReturnValue(true);
 
     renderWithProvider(<MoneyAddMoneySheet />);
 
-    // Verify the hook was called with the correct mUSD CAIP assetId for the default deposit chain
-    const musdAddress =
-      MUSD_TOKEN_ADDRESS_BY_CHAIN[MUSD_CONVERSION_DEFAULT_CHAIN_ID];
-    const expectedChainRef = Number(MUSD_CONVERSION_DEFAULT_CHAIN_ID).toString();
-    const expectedAssetId = `eip155:${expectedChainRef}/erc20:${musdAddress}`;
-
+    // Money-account fiat deposit on-ramps in native ETH on mainnet (slip44:60),
+    // mirroring core's ETH_MAINNET_FIAT_ASSET fallback for moneyAccountDeposit.
     expect(useCanFiatDepositAsset as jest.Mock).toHaveBeenCalledWith(
       expect.objectContaining({
-        assetId: expectedAssetId,
+        assetId: 'eip155:1/slip44:60',
       }),
     );
   });

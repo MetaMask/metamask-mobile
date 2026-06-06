@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import BigNumber from 'bignumber.js';
 import { TransactionType } from '@metamask/transaction-controller';
-import { toCaipAssetType, Hex } from '@metamask/utils';
+import { Hex } from '@metamask/utils';
 import {
   BottomSheet,
   BottomSheetHeader,
@@ -31,6 +31,7 @@ import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/us
 import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
 import { useCanFiatDepositAsset } from '../../../Ramp/hooks/useCanFiatDepositAsset';
+import { MONEY_ACCOUNT_FIAT_DEPOSIT_ASSET_ID } from '../../../Ramp/utils/getMoneyAccountFiatDepositAssetId';
 import styleSheet from './MoneyAddMoneySheet.styles';
 import { MoneyAddMoneySheetTestIds } from './MoneyAddMoneySheet.testIds';
 
@@ -65,19 +66,8 @@ const MoneyAddMoneySheet: React.FC = () => {
     [enabledTransactionTypes],
   );
 
-  const depositAssetId = useMemo(() => {
-    const chainId = MUSD_CONVERSION_DEFAULT_CHAIN_ID;
-    const address = MUSD_TOKEN_ADDRESS_BY_CHAIN[chainId];
-    return toCaipAssetType(
-      'eip155',
-      Number(chainId).toString(),
-      'erc20',
-      address,
-    );
-  }, []);
-
   const canDeposit = useCanFiatDepositAsset({
-    assetId: depositAssetId,
+    assetId: MONEY_ACCOUNT_FIAT_DEPOSIT_ASSET_ID,
     isFiatDepositFlagEnabled: isFiatDepositEnabled,
   });
 
