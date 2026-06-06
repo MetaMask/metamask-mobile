@@ -11,11 +11,12 @@ gaps:
 1. **No amount validation.** The custom-amount screen (`custom-amount-info`) lets the
    user enter any fiat amount and proceed, with no check against the provider's buy
    limits. Out-of-range amounts fail later instead of being caught at input.
-2. **Entry point isn't fully eligibility-gated.** "Deposit Funds" is gated today by
-   `isFiatDepositEnabled && rampRoutingDecision !== UNSUPPORTED` (flag + region not
-   unsupported, MoneyAddMoneySheet.tsx:138-139). It does **not** check whether a
-   provider actually supports the *deposit asset* in the region — so users can still
-   enter a flow that can't complete because no provider sells that asset there.
+2. **Entry point isn't correctly eligibility-gated.** "Deposit Funds" is gated today by
+   `isFiatDepositEnabled && rampRoutingDecision !== UNSUPPORTED` (MoneyAddMoneySheet.tsx:138-139).
+   `rampRoutingDecision` is a **UB1/legacy** signal (see Key fact #8) — we should not
+   depend on it under the UB2-only constraint. And it does **not** check whether a
+   provider actually supports the *deposit asset* in the region, so users can still
+   enter a flow that can't complete.
 3. **Provider/payment resolution is fragile.** The flow relies on whatever provider
    `RampsBootstrap` happened to select globally (Transak, or `null` in non-Transak
    regions). In non-Transak regions with no order history, no provider is selected →
@@ -97,16 +98,22 @@ subtrees.
    amount) but is not required — the cached sorted list suffices.
 7. **`providerSupportsAsset(provider, assetId)`** checks token support client-side
    (providerSupportsAsset.ts).
-8. **Region eligibility already exists** as `rampRoutingDecision`
-   (`UnifiedRampRoutingType = DEPOSIT | AGGREGATOR | UNSUPPORTED | ERROR`), set by
-   `useRampsSmartRouting` from backend region eligibility. "Eligible for deposit" =
-   `rampRoutingDecision === DEPOSIT`.
-9. **Today's deposit gate = flag + region-not-unsupported.** The option-rendering gate
+8. **`rampRoutingDecision` is a UB1/legacy util — do not use it.** It
+   (`UnifiedRampRoutingType`, `setRampRoutingDecision`) lives in the legacy
+   `app/reducers/fiatOrders/` state, and `useRampsSmartRouting` (which sets it) imports
+   the legacy `@consensys/on-ramp-sdk`, references `FIAT_ORDER_PROVIDERS.AGGREGATOR`,
+   and uses `useRampsUnifiedV1Enabled`. Per the UB2-only constraint we avoid it.
+   **UB2-pure eligibility comes from the region-scoped providers list instead:** because
+   `getProviders(regionCode)` returns only providers available in the user's region,
+   `selectBestProviderForAsset(asset) != null` already means "region supported AND a
+   provider sells this asset here." `userRegion` (`selectUserRegion`, RampsController) is
+   UB2 state; if it's unset the providers query is disabled → empty → gate fails closed.
+9. **Today's deposit gate = flag + UB1 `rampRoutingDecision`.** The option-rendering gate
    is `isFiatDepositEnabled && rampRoutingDecision !== UnifiedRampRoutingType.UNSUPPORTED`
    (MoneyAddMoneySheet.tsx:138-139), where `isFiatDepositEnabled` is the flag check
-   (`enabledTransactionTypes.includes(moneyAccountDeposit)`). It already consults region
-   routing; it does **not** check provider-supports-asset. That asset/provider check is
-   the only thing this work adds to the gate.
+   (`enabledTransactionTypes.includes(moneyAccountDeposit)`). This work **replaces** the
+   UB1 `rampRoutingDecision` leg with the UB2-pure provider-availability check (Key fact
+   #8) and adds the per-asset dimension.
 10. **UB2 uses BOTH limit mechanisms, client-first.** `BuildQuote` runs `useProviderLimits`
     (client-side `provider.limits`) → `amountLimitError` as the **primary** check that
     gates Continue, and falls back to the backend `providerQuoteError`
@@ -151,19 +158,19 @@ Each numbered part can be a separate PR.
 
 ### Part 1 — Eligibility gate (separate; entry point)
 
-- **`canFiatDepositAsset({ assetId })`** — Ramps-domain predicate that **preserves the
-  existing region semantics and only adds the asset/provider check**:
-  feature flag enabled **AND** `rampRoutingDecision !== UNSUPPORTED` (unchanged from
-  today) **AND** `selectBestProviderForAsset({ ..., assetId }) != null` (new).
-  - Deliberately **not** `=== DEPOSIT`: money-account fiat deposit works via ramps in
-    `AGGREGATOR`-routed regions too, and a transient `ERROR` should not hide the entry
-    point. Keeping `!== UNSUPPORTED` avoids a silent behavior regression; the new
-    provider-availability check is the only added restriction.
-- Wire into `MoneyAddMoneySheet` by extending the **existing**
-  `isFiatDepositEnabled && rampRoutingDecision !== UNSUPPORTED` gate (lines 138-139)
-  with the supporting-provider check — do not rewrite/duplicate the existing region
-  check. The option is shown/enabled only when `canFiatDepositAsset` is true; hidden or
+- **`canFiatDepositAsset({ assetId })`** — UB2-pure Ramps-domain predicate:
+  feature flag enabled **AND** `selectBestProviderForAsset({ region-scoped providers,
+  completedOrders, assetId }) != null`. The single provider-availability check covers
+  both "region supported" and "asset buyable here" because the providers list is
+  region-scoped (Key fact #8) — no separate region check needed.
+- **Drops the UB1 `rampRoutingDecision` dependency** from the gate (per the UB2-only
+  constraint). In `MoneyAddMoneySheet`, replace the
+  `isFiatDepositEnabled && rampRoutingDecision !== UNSUPPORTED` condition (lines 138-139)
+  with `canFiatDepositAsset`. The option is shown/enabled only when it's true; hidden or
   disabled otherwise. No dead-end entry.
+- Fail-closed while loading: if `userRegion`/providers haven't resolved, the predicate is
+  false (option hidden/disabled) until data is available, rather than showing an option
+  that can't proceed.
 
 ### Part 2 — Money-account-scoped provider + payment resolution (no global mutation)
 
@@ -265,8 +272,10 @@ surfaced. This is part of core PR #8987.
 - `useRampsBuyLimits`: below-min / above-max / in-range; null/undefined graceful when
   provider/region/limits missing; `backendError` fallback path; read-only (never calls
   `setSelectedProvider`).
-- `canFiatDepositAsset`: true only when flag + `DEPOSIT` routing + supporting provider;
-  false on each missing condition.
+- `canFiatDepositAsset`: true only when flag enabled **and** a supporting provider exists
+  for the asset in the region (`selectBestProviderForAsset != null`); false when the flag
+  is off, region/providers unresolved, or no provider supports the asset. Does not consult
+  `rampRoutingDecision`.
 - Part 2 resolution: payment methods fetched for the computed provider; best method
   written to TPC; non-Transak region resolves a provider (no dead end); no global
   selection mutation.
