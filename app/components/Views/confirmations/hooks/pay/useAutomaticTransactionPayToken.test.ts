@@ -211,7 +211,6 @@ describe('useAutomaticTransactionPayToken', () => {
     useMoneyAccountDepositPaymentMethodsMock.mockReturnValue({
       paymentMethods: [],
       isReady: false,
-      isSettled: false,
       isLoading: false,
     });
   });
@@ -1381,7 +1380,6 @@ describe('useAutomaticTransactionPayToken', () => {
           { id: 'pm-bank', name: 'Bank Transfer', delay: [60, 1440] },
         ] as never,
         isReady: true,
-        isSettled: true,
         isLoading: false,
       });
 
@@ -1411,7 +1409,6 @@ describe('useAutomaticTransactionPayToken', () => {
           },
         ] as never,
         isReady: true,
-        isSettled: true,
         isLoading: false,
       });
 
@@ -1432,7 +1429,6 @@ describe('useAutomaticTransactionPayToken', () => {
       useMoneyAccountDepositPaymentMethodsMock.mockReturnValue({
         paymentMethods: [],
         isReady: false,
-        isSettled: false,
         isLoading: true,
       });
 
@@ -1448,7 +1444,6 @@ describe('useAutomaticTransactionPayToken', () => {
       useMoneyAccountDepositPaymentMethodsMock.mockReturnValue({
         paymentMethods: [],
         isReady: false,
-        isSettled: true,
         isLoading: false,
       });
 
@@ -1481,7 +1476,6 @@ describe('useAutomaticTransactionPayToken', () => {
           { id: 'pm-slow', name: 'Slow Method', delay: [600, 2880] },
         ] as never,
         isReady: true,
-        isSettled: true,
         isLoading: false,
       });
 
@@ -1532,7 +1526,6 @@ describe('useAutomaticTransactionPayToken', () => {
           { id: 'pm-card', name: 'Card', delay: [0, 5] },
         ] as never,
         isReady: true,
-        isSettled: true,
         isLoading: false,
       });
 
@@ -1567,7 +1560,6 @@ describe('useAutomaticTransactionPayToken', () => {
           { id: NON_TRANSAK_METHOD_ID, name: 'Local Bank', delay: [0, 5] },
         ] as never,
         isReady: true,
-        isSettled: true,
         isLoading: false,
       });
 

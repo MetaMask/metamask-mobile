@@ -20,17 +20,6 @@ export interface UseMoneyAccountDepositPaymentMethodsResult {
    */
   isReady: boolean;
   /**
-   * True once the asset-provider resolution has reached a terminal state —
-   * either it succeeded (`isReady`) OR it cannot produce a result (no provider
-   * for the asset, the payment-methods query errored, or it cannot run because
-   * the region currency is missing).
-   *
-   * Callers use this to distinguish "still loading" (keep waiting) from
-   * "settled with no usable result" (fall back to another source) so the flow
-   * never hangs indefinitely. `isReady` implies `isSettled`.
-   */
-  isSettled: boolean;
-  /**
    * True while at least one query is actively in-flight. Unlike `!isSettled`,
    * this stays false when the region has not loaded yet (queries disabled), so
    * the caller can distinguish "waiting for a network response" from "queries
@@ -93,22 +82,6 @@ export function useMoneyAccountDepositPaymentMethods(
 
   const isReady = Boolean(provider && paymentMethodsQuery.isSuccess);
 
-  // "settled" once the resolution can no longer make progress: the provider
-  // query finished, and either there is no provider, the payment-methods query
-  // finished (success/error), or it cannot run because a precondition (region
-  // currency) is missing. This lets the caller stop waiting and fall back
-  // instead of spinning forever. Note: when !providerEnabled the queries are
-  // disabled and isSettled stays false — use isLoading as the wait-condition
-  // so the auto-select effect doesn't make a premature decision before the
-  // region loads.
-  const providerResolved = providerQuery.isSuccess || providerQuery.isError;
-  const methodsResolved =
-    paymentMethodsQuery.isSuccess || paymentMethodsQuery.isError;
-  const isSettled =
-    isReady ||
-    (providerResolved &&
-      (provider == null || !paymentMethodsEnabled || methodsResolved));
-
   // True only while a network request is actually in-flight. Stays false when
   // queries are disabled (region not loaded yet), so callers can use this as
   // a precise "still fetching" signal distinct from "not started".
@@ -120,7 +93,6 @@ export function useMoneyAccountDepositPaymentMethods(
   return {
     paymentMethods: paymentMethodsQuery.data ?? [],
     isReady,
-    isSettled,
     isLoading,
   };
 }
