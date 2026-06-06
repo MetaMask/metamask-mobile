@@ -130,7 +130,7 @@ jobs:
       # On cache miss WDA builds normally and the result is saved for next time.
       - name: Get Xcode version for WDA cache key
         id: xcode-version
-        run: echo "version=$(xcodebuild -version | head -1 | tr ' ' '-')" >> "$GITHUB_OUTPUT"
+        run: echo "version=$(xcodebuild -version 2>/dev/null | head -1 | tr ' ' '-')" >> "$GITHUB_OUTPUT"
 
       - name: Restore WDA DerivedData cache
         uses: actions/cache@v4
