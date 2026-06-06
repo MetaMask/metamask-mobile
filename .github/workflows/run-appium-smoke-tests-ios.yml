@@ -25,6 +25,11 @@ on:
         required: false
         type: string
         default: 'current'
+      selected_tags:
+        description: 'JSON array of tags from smart E2E selector (e.g. ["SmokeAppium"] or ["ALL"])'
+        required: false
+        type: string
+        default: '["ALL"]'
   workflow_dispatch:
     inputs:
       build_type:
@@ -42,6 +47,11 @@ on:
         required: false
         type: string
         default: 'current'
+      selected_tags:
+        description: 'JSON array of tags from smart E2E selector (e.g. ["SmokeAppium"] or ["ALL"])'
+        required: false
+        type: string
+        default: '["ALL"]'
 
 permissions:
   contents: read
@@ -51,8 +61,18 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  ios:
-    name: iOS
+  appium-ios-smoke:
+    name: appium-ios-smoke-${{ matrix.shard }}
+    if: >-
+      ${{
+        !cancelled() &&
+        (contains(fromJson(inputs.selected_tags), 'ALL') ||
+         contains(fromJson(inputs.selected_tags), 'SmokeAppium'))
+      }}
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1]
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ios-e2e' || 'macos-latest' }}
 
     steps:
@@ -140,7 +160,12 @@ jobs:
             wda-derived-data-${{ hashFiles('**/appium-xcuitest-driver/package.json', '**/appium/package.json') }}-${{ steps.xcode-version.outputs.version }}-
 
       - name: Run Appium smoke tests (iOS)
-        run: yarn appium-smoke:ios
+        run: >-
+          yarn playwright test
+          --config tests/playwright.smoke-appium.config.ts
+          --project ios-smoke
+          --grep @SmokeAppium
+          --shard=${{ matrix.shard }}/${{ strategy.job-total }}
         env:
           IOS_APP_PATH: artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
           IOS_SIMULATOR_NAME: iPhone 16 Pro

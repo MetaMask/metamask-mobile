@@ -25,6 +25,11 @@ on:
         required: false
         type: string
         default: 'current'
+      selected_tags:
+        description: 'JSON array of tags from smart E2E selector (e.g. ["SmokeAppium"] or ["ALL"])'
+        required: false
+        type: string
+        default: '["ALL"]'
   workflow_dispatch:
     inputs:
       build_type:
@@ -42,6 +47,11 @@ on:
         required: false
         type: string
         default: 'current'
+      selected_tags:
+        description: 'JSON array of tags from smart E2E selector (e.g. ["SmokeAppium"] or ["ALL"])'
+        required: false
+        type: string
+        default: '["ALL"]'
 
 permissions:
   contents: read
@@ -51,8 +61,18 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  android:
-    name: Android
+  appium-android-smoke:
+    name: appium-android-smoke-${{ matrix.shard }}
+    if: >-
+      ${{
+        !cancelled() &&
+        (contains(fromJson(inputs.selected_tags), 'ALL') ||
+         contains(fromJson(inputs.selected_tags), 'SmokeAppium'))
+      }}
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1]
     # Namespace runner required: setup-e2e-env expects the Android SDK at
     # /opt/android-sdk which is pre-installed on this profile.
     runs-on: namespace-profile-metamask-android-build
@@ -96,7 +116,12 @@ jobs:
         # Device boot is handled by EmulatorProvider.globalSetup() inside the
         # test command. setup-e2e-env above creates the AVD; the framework
         # boots it on demand.
-        run: yarn appium-smoke:android
+        run: >-
+          yarn playwright test
+          --config tests/playwright.smoke-appium.config.ts
+          --project android-smoke
+          --grep @SmokeAppium
+          --shard=${{ matrix.shard }}/${{ strategy.job-total }}
         env:
           ANDROID_APK_PATH: android/app/build/outputs/apk/prod/release/app-prod-release.apk
           ANDROID_AVD_NAME: appium_smoke_avd

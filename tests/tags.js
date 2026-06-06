@@ -79,7 +79,7 @@ const smokeTags = {
   smokeAppium: {
     tag: 'SmokeAppium:',
     description:
-      'Appium smoke tests for testing CI integration and basic cross-platform functionality',
+      'Appium smoke tests covering cross-platform login and wallet unlock flows using the WebDriverIO/XCUITest/UIAutomator2 stack. Select this tag when changes touch the login screen, password entry, unlock flow, the Appium test framework itself (tests/framework/), or CI Appium infrastructure (.github/workflows/run-appium-smoke-tests-*.yml).',
   },
   smokeSnaps: {
     tag: 'SmokeSnaps:',

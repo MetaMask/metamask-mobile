@@ -41,7 +41,6 @@ export default defineConfig({
   // plus test execution time. 15 min keeps CI healthy without hanging forever.
   timeout: 15 * 60 * 1000,
   retries: 1,
-  grep: /@SmokeAppium/,
   reporter: [
     [
       'html',
