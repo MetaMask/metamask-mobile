@@ -121,22 +121,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     footerText,
     supportAccountSelection,
   }) => {
-    const transactionMeta = useTransactionMetadataRequest();
-    const isPredictDeposit = hasTransactionType(transactionMeta, [
-      TransactionType.predictDeposit,
-    ]);
-
-    const clearPendingPredictDeposit = useCallback(() => {
-      Engine.context.PredictController.clearPendingDeposit();
-    }, []);
-
-    useClearConfirmationOnBackSwipe({
-      rejectOnBeforeRemove: isPredictDeposit,
-      rejectOnBeforeRemoveWithoutGesture: isPredictDeposit,
-      skipNavigationOnGestureEnd: isPredictDeposit,
-      onBeforeReject: isPredictDeposit ? clearPendingPredictDeposit : undefined,
-    });
-
     const { canSelectWithdrawToken } = useTransactionPayWithdraw();
 
     useAutomaticTransactionPayToken({
@@ -168,6 +152,26 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
       TransactionType.moneyAccountDeposit,
     ]);
+    const isPredictDeposit = hasTransactionType(transactionMeta, [
+      TransactionType.predictDeposit,
+    ]);
+
+    const clearPendingPredictDeposit = useCallback(() => {
+      Engine.context.PredictController.clearPendingDeposit();
+    }, []);
+
+    // Reject the underlying transaction on any back navigation so the next
+    // deposit attempt is not blocked by an orphaned unapproved transaction.
+    // moneyAccountDeposit: header back button triggers beforeRemove but not
+    // gestureEnd — without this the tx stays unapproved and the next tap is
+    // silently dropped by useConfirmNavigation's deferred-renavigate path.
+    const shouldRejectOnBack = isMoneyAccountDeposit || isPredictDeposit;
+    useClearConfirmationOnBackSwipe({
+      rejectOnBeforeRemove: shouldRejectOnBack,
+      rejectOnBeforeRemoveWithoutGesture: shouldRejectOnBack,
+      skipNavigationOnGestureEnd: shouldRejectOnBack,
+      onBeforeReject: isPredictDeposit ? clearPendingPredictDeposit : undefined,
+    });
     const isResultReady = useIsResultReady({ isKeyboardVisible });
     const quotes = useTransactionPayQuotes();
     const isQuotesLoading = useIsTransactionPayLoading();
