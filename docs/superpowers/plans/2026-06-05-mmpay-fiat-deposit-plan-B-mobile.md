@@ -29,6 +29,12 @@ context.
   preview version in `package.json` (same pattern as the TPC preview swap done earlier),
   run `yarn`, confirm `RampsController:getBestProviderForAsset` is in the typings.
 
+> **`getBestProviderForAsset` is ASYNC** — `Promise<Provider | null>` (it may fetch
+> region providers). Call it via `messenger.call('RampsController:getBestProviderForAsset', { assetId })`
+> and wrap in React Query / an effect; do not assume a synchronous return. There is **no
+> `getBestQuote`** — the fee quote (TPC, out of scope) uses the existing `getQuotes`, which
+> is already provider-scoped.
+
 ## Cross-cutting constraints
 
 - **Region source = GeolocationController.** Wherever region/currency is needed, it MUST
@@ -105,10 +111,14 @@ export function useRampsBuyLimits({
   const currency = userRegion?.country?.currency ?? 'USD';
   const { formatCurrency } = useFormatters();
 
-  const provider = useMemo(
-    () => (assetId ? Engine.context.RampsController.getBestProviderForAsset(assetId) : null),
-    [assetId],
-  );
+  // getBestProviderForAsset is ASYNC → resolve via React Query (cached, deduped).
+  const { data: provider = null } = useQuery({
+    queryKey: ['ramps', 'bestProvider', assetId, userRegion?.regionCode],
+    queryFn: () =>
+      Engine.context.RampsController.getBestProviderForAsset({ assetId: assetId as string }),
+    enabled: Boolean(assetId),
+    staleTime: 5 * 60 * 1000,
+  });
 
   const limit = useMemo(
     () => getProviderBuyLimit(provider, currency, paymentMethodId),
@@ -167,22 +177,35 @@ reference `rampRoutingDecision`.
 
 - [ ] **Step 2: Run to verify fail** — `yarn jest app/components/UI/Ramp/utils/canFiatDepositAsset.test.ts` → FAIL.
 
-- [ ] **Step 3: Implement**
+- [ ] **Step 3: Implement as a hook (the accessor is async)**
+
+Because `getBestProviderForAsset` is async, expose eligibility as a hook backed by React
+Query (so `MoneyAddMoneySheet` can gate reactively, failing closed while pending):
 
 ```ts
+import { useQuery } from '@tanstack/react-query';
+import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
+import { selectUserRegion } from '../../../../selectors/rampsController';
 
-export function canFiatDepositAsset({
+export function useCanFiatDepositAsset({
   assetId,
   isFiatDepositFlagEnabled,
 }: {
   assetId?: string;
   isFiatDepositFlagEnabled: boolean;
 }): boolean {
-  if (!isFiatDepositFlagEnabled || !assetId) return false;
-  return Engine.context.RampsController.getBestProviderForAsset(assetId) != null;
+  const userRegion = useSelector(selectUserRegion);
+  const { data: provider = null } = useQuery({
+    queryKey: ['ramps', 'bestProvider', assetId, userRegion?.regionCode],
+    queryFn: () => Engine.context.RampsController.getBestProviderForAsset({ assetId: assetId as string }),
+    enabled: Boolean(isFiatDepositFlagEnabled && assetId),
+    staleTime: 5 * 60 * 1000,
+  });
+  return Boolean(isFiatDepositFlagEnabled && assetId) && provider != null;
 }
 ```
+(Shares the same query key as `useRampsBuyLimits`, so the provider is resolved once.)
 
 - [ ] **Step 4: Run to verify pass** → PASS.
 
@@ -213,11 +236,12 @@ Replace the condition at lines ~138-139:
 ```ts
 // before:
 ...(isFiatDepositEnabled && rampRoutingDecision !== UnifiedRampRoutingType.UNSUPPORTED ? [ ... ] : [])
-// after:
-...(canFiatDepositAsset({ assetId: depositAssetId, isFiatDepositFlagEnabled: isFiatDepositEnabled }) ? [ ... ] : [])
+// after (hook called at component top level):
+const canDeposit = useCanFiatDepositAsset({ assetId: depositAssetId, isFiatDepositFlagEnabled: isFiatDepositEnabled });
+...(canDeposit ? [ ... ] : [])
 ```
 Remove the now-unused `rampRoutingDecision` / `getRampRoutingDecision` import **only if**
-nothing else in the file uses it.
+nothing else in the file uses it. (`MoneyAddMoneySheet` is a component, so a hook is fine.)
 
 - [ ] **Step 6: Update/extend `MoneyAddMoneySheet` tests**
 

@@ -136,7 +136,19 @@ Rules this design follows:
    queries + their own state. When UB2 later adopts these methods, it may still drive its
    `.selected` slots from the query *results* — but the queries themselves never mutate them.
 
-### Part 0 — New `RampsController` methods (the single source of truth)
+> **IMPLEMENTATION UPDATE (core main already implements the cascade).** During execution
+> we found current `@metamask/ramps-controller` main already implements the full
+> provider-selection cascade privately: `#resolveProviderIdsForQuote` (selected →
+> preferred-from-orders → native/Transak → first supporting), `#getPreferredProviderIdsFromOrders`,
+> `#getSupportingProvidersForRegion`, and a public `getQuotes` that is **already
+> provider-scoped** (via `preferredProviderIds` / `restrictToKnownOrNativeProviders`). So
+> the design below is realized by: (a) **reusing** that existing cascade (extract a shared
+> `#resolveBestSupportingProvider`), (b) adding ONE public **`getBestProviderForAsset({ assetId })`**
+> accessor (async) for the limits use case, and (c) **dropping `getBestQuote`** — `getQuotes`
+> already does it. See Plan A. The text below describes the intent; the controller is the
+> single source of truth, as planned.
+
+### Part 0 — `RampsController` methods (the single source of truth)
 
 - **`RampsController.getBestProviderForAsset(assetId)`** → `Provider | null`. Computes the
   cascade from the controller's own state: most-recent **completed** `RampsOrder`'s
