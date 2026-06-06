@@ -220,13 +220,32 @@ Alert wiring (disables Continue + shows inline error during keyboard entry), mod
 
 ### Core change required (for UB2-faithful quote-error surfacing)
 
-`getFiatQuotes` (core, `@metamask/transaction-pay-controller`) must stop swallowing the
-ramps quote error. It should propagate the structured `RampsController:getQuotes` error
-(distinguishing no-quotes vs backend per-provider error vs fetch error) into TPC state
-(e.g. a `fiatPayment` error field or on the quotes result) so the mobile input screen can
-render the same error categories UB2 does. Without this, only the client-side limit error
-is available on the client and the backend fallback / no-quotes / fetch errors cannot be
-surfaced. This is part of core PR #8987.
+**Why this must be a core change, not "route via the mobile `getQuotes`".** MM Pay
+collects the **total fees in the controller**: `getFiatQuotes` combines the ramps quote
+(provider/network fee) with the relay quote (relay + source/target network + MetaMask
+fee) into the fee buckets and totals the UI renders (combineQuotes → calculateTotals).
+The mobile `useHeadlessBuy().getQuotes` helper returns only the **raw ramps quote** — it
+has no relay-combined total — so MM Pay cannot source its fees from it. The fee-bearing
+quote therefore **must** go through the controller, which means quote errors must be
+surfaced **from the controller path**.
+
+`getFiatQuotes` (core, `@metamask/transaction-pay-controller`) currently swallows the
+ramps error (`catch` → returns `[]`). It must instead **propagate** the structured error
+— distinguishing the ramps backend per-provider rejection (e.g. the limit message in
+`quotes.error`), an empty no-quotes result, and a relay/fetch failure — into TPC state
+(e.g. a `fiatPayment` quote-error field or on the quotes result), so the mobile input
+screen can render the same error categories UB2 does and combine them client-limit-first.
+This is part of core PR #8987.
+
+**Reuse Shane's classification, not his code path.** PR #31079
+(`fix/headless-buy-getquotes-surface-rejections`, already merged) added
+`LIMIT_EXCEEDED` vs `QUOTE_FAILED` classification of provider rejections — but in
+`useHeadlessBuy().getQuotes`, a helper the money-account fiat flow does **not** call
+(it uses `startHeadlessBuy` with a pre-fetched quote, and its fees come from the
+controller). So Shane's PR does **not** cover this flow's quote-error surfacing. Reuse
+his classification *approach* (the limit-vs-rate regex / error shape) when the core
+change surfaces the error so the messages classify consistently; do not attempt to route
+MM Pay's fee quote through that helper.
 
 ## Quote-error parity with UB2
 
