@@ -15,6 +15,8 @@ export interface UseMoneyAccountDepositPaymentMethodsResult {
   /**
    * True once both the provider and its payment methods have successfully
    * resolved. The caller should gate on this before using paymentMethods.
+   * Note: a successful response with zero methods still yields `isReady: true`
+   * (an empty `paymentMethods` list), so callers must handle the empty case.
    */
   isReady: boolean;
 }
@@ -43,7 +45,10 @@ export function useMoneyAccountDepositPaymentMethods(
   const assetId = caipAssetId ?? MONEY_ACCOUNT_FIAT_DEPOSIT_ASSET_ID;
 
   const { data: provider = null } = useQuery({
-    queryKey: ['ramps', 'bestProvider', assetId, regionCode],
+    // Use `userRegion?.regionCode` DIRECTLY in the key (not the `?? ''`
+    // normalized `regionCode`) so this query shares a cache entry with
+    // `useRampsBuyLimits`, which uses the same key shape.
+    queryKey: ['ramps', 'bestProvider', assetId, userRegion?.regionCode],
     queryFn: () =>
       Engine.context.RampsController.getBestProviderForAsset({ assetId }),
     enabled: Boolean(regionCode),
