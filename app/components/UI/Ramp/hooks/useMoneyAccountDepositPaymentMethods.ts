@@ -30,21 +30,19 @@ export interface UseMoneyAccountDepositPaymentMethodsResult {
 }
 
 /**
- * Resolves payment methods for the fiat moneyAccountDeposit path by:
- *   1. Calling `getBestProviderForAsset` for the fiat deposit asset (or the
- *      asset id supplied by the current fiat payment state) via React Query —
- *      same query-key shape as `useRampsBuyLimits` so results are shared.
- *   2. Fetching payment methods for THAT provider via React Query, using
- *      `rampsPaymentMethodsOptions`.
+ * Resolves payment methods for the fiat moneyAccountDeposit path by calling
+ * `getBestProviderForAsset` for the fiat deposit asset via React Query
+ * (same key shape as `useRampsBuyLimits`), then fetching payment methods for
+ * that provider via `rampsPaymentMethodsOptions`.
  *
  * This avoids relying on the globally-selected `providers.selected`, which may
  * be null or point to a different provider in non-Transak regions.
  *
  * @param caipAssetId - Optional CAIP-19 asset id from the fiat payment state.
- *   Falls back to the flag-resolved money-account deposit asset (mUSD, or the
- *   `MONEY_ACCOUNT_FIAT_DEPOSIT_ASSET_ID` native-ETH constant when the flag is
- *   absent) — matching the gate in `useCanFiatDepositAsset` so both resolve the
- *   provider for the SAME asset.
+ * Falls back to the flag-resolved money-account deposit asset (mUSD, or the
+ * `MONEY_ACCOUNT_FIAT_DEPOSIT_ASSET_ID` native-ETH constant when the flag is
+ * absent) — matching the gate in `useCanFiatDepositAsset` so both resolve the
+ * provider for the SAME asset.
  */
 export function useMoneyAccountDepositPaymentMethods(
   caipAssetId?: string,

@@ -44,9 +44,9 @@ function buildCaipAssetIdFromEntry(entry: {
  * Resolution order (mirrors core's `getFiatAssetPerTransactionType`):
  *
  * 1. `confirmations_pay_fiat.assetPerTransactionType.moneyAccountDeposit` —
- *    e.g. mUSD address when the LaunchDarkly flag is set.
+ * e.g. mUSD address when the LaunchDarkly flag is set.
  * 2. `MONEY_ACCOUNT_FIAT_DEPOSIT_ASSET_ID` — native ETH on mainnet
- *    (`eip155:1/slip44:60`), matching core's `ETH_MAINNET_FIAT_ASSET` fallback.
+ * (`eip155:1/slip44:60`), matching core's `ETH_MAINNET_FIAT_ASSET` fallback.
  */
 export function useMoneyAccountFiatDepositAssetId(): string {
   const fiatFlags = useSelector(selectMetaMaskPayFiatFlags);
