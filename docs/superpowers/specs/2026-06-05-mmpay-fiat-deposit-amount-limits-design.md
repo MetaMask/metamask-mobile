@@ -180,13 +180,16 @@ On entering the fiat deposit flow (asset known):
   (`rampsPaymentMethodsOptions({ regionCode, fiat, assetId, providerId })`) — **not**
   via global `providers.selected`.
 - Select the best eligible payment method (respecting the existing
-  `maxDelayMinutesForPaymentMethods` rule) and write it to TPC
-  `fiatPayment.selectedPaymentMethodId` via `updateFiatPayment`.
+  `maxDelayMinutesForPaymentMethods` rule) and write **both the resolved provider id and
+  the payment method id** to TPC `fiatPayment` via `updateFiatPayment` (e.g.
+  `fiatPayment.selectedProviderId` + `fiatPayment.selectedPaymentMethodId`).
 - This replaces the money-account fiat path's reliance on global `providers.selected`
   (currently in `useAutomaticTransactionPayToken`). It mutates only TPC `fiatPayment`
   state (this flow's own state), never global ramps selection — so UB2 is unaffected.
 - Resolves the non-Transak-region dead end (a provider is chosen, so payment methods
-  load) and keeps provider/payment/limits mutually consistent.
+  load) and keeps provider/payment/limits/quote mutually consistent.
+- **Writing `selectedProviderId` to TPC state is what lets the core quote call scope to
+  one provider** (see Core change) and eliminate `pickBestFiatQuote`.
 
 ### Part 3 — Amount validation, quote gating, error surfacing (the input screen)
 
@@ -218,9 +221,21 @@ Alert wiring (disables Continue + shows inline error during keyboard entry), mod
   the `PENDING_AMOUNT_ALERTS` / `KEYBOARD_ALERTS` / `ON_CHANGE_ALERTS` arrays in
   `useTransactionCustomAmountAlerts`. (Do **not** follow the orphaned `PerpsDepositMinimum`.)
 
-### Core change required (for UB2-faithful quote-error surfacing)
+### Core change required (provider-scoped quote + error surfacing)
 
-**Why this must be a core change, not "route via the mobile `getQuotes`".** MM Pay
+**Scope the quote to the resolved provider; delete `pickBestFiatQuote`.** Today
+`getFiatQuotes` calls `RampsController:getQuotes` **without** a `providers` param, so it
+fans out to all providers and `pickBestFiatQuote` picks one — currently a hardcoded
+`/providers/transak-native-staging` filter (a TODO). Since Part 2 resolves the provider
+and writes `fiatPayment.selectedProviderId`, `getFiatQuotes` should pass
+`providers: [selectedProviderId]` (exactly as UB2 passes `providers: [selectedProvider.id]`,
+quotes.ts:18,44). That returns exactly that provider's quote, so the "pick" step is
+unnecessary — take the single `success` quote (or the matching one) and **remove
+`pickBestFiatQuote` entirely**. This also guarantees the fee quote uses the *same*
+provider as eligibility/limits/payment-method (no divergence) and makes the surfaced
+error precisely that provider's rejection.
+
+**Why error surfacing must be a core change, not "route via the mobile `getQuotes`".** MM Pay
 collects the **total fees in the controller**: `getFiatQuotes` combines the ramps quote
 (provider/network fee) with the relay quote (relay + source/target network + MetaMask
 fee) into the fee buckets and totals the UI renders (combineQuotes → calculateTotals).
