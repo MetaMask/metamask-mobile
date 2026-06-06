@@ -56,6 +56,14 @@ export function useFiatConfirm() {
       .minus(new BigNumber(totals?.fees.providerFiat?.usd ?? 0))
       .toNumber();
 
+    // Track whether an order has been created. Initialized from the current
+    // fiatPayment snapshot (handles the case where orderId was set by a prior
+    // invocation) and set to true in onOrderCreated. Using a local variable
+    // rather than reading fiatPayment?.orderId inside onClose avoids the
+    // stale-closure problem where onClose would see the pre-onOrderCreated
+    // snapshot from the useCallback capture.
+    let orderCreated = Boolean(fiatPayment?.orderId);
+
     startHeadlessBuy(
       {
         quote: rampsQuote,
@@ -66,6 +74,7 @@ export function useFiatConfirm() {
       },
       {
         onOrderCreated: (orderIdFromCallback) => {
+          orderCreated = true;
           if (!transactionId) {
             return;
           }
@@ -106,10 +115,7 @@ export function useFiatConfirm() {
           // Without this the tx stays `unapproved`, causing useConfirmNavigation
           // to defer — and then drop — the next deposit attempt when the sheet
           // unmounts before the deferral resolves.
-          // `orderId` on fiatPayment means `onOrderCreated` already fired —
-          // the order went through and the tx will be handled by the relay.
-          const completed = Boolean(fiatPayment?.orderId);
-          if (!completed && transactionId) {
+          if (!orderCreated && transactionId) {
             try {
               Engine.context.ApprovalController.rejectRequest(
                 transactionId,

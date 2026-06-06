@@ -32,9 +32,7 @@ export function usePendingAmountAlerts({
       pendingAmount: pendingTokenAmount ?? '0',
     });
 
-  const fiatBuyLimitAlert = useFiatBuyLimitAlert({
-    pendingAmount: pendingTokenAmount,
-  });
+  const fiatBuyLimitAlert = useFiatBuyLimitAlert();
 
   const accountNoFundsAlert = useAccountNoFundsAlert();
 

@@ -232,13 +232,15 @@ export function useAutomaticTransactionPayToken({
               fp.selectedPaymentMethodId = eligibleMethod.id;
             },
           });
+          isUpdated.current = transactionId;
+          log(
+            'Auto-selected fiat payment method (asset provider)',
+            eligibleMethod.name,
+          );
         }
-
-        isUpdated.current = transactionId;
-        log(
-          'Auto-selected fiat payment method (asset provider)',
-          eligibleMethod?.name,
-        );
+        // When no eligible method was found (e.g. global methods still
+        // loading), do NOT stamp isUpdated — allow the effect to retry
+        // once paymentMethods resolves.
         return;
       }
 
