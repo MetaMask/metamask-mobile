@@ -21,8 +21,8 @@ const DEFAULT_IOS_APP =
  *
  * IMPORTANT: Requires a debug build with HAS_TEST_OVERRIDES=true so the app
  * fetches fixture state from /state.json on launch. Build with:
- *   CONFIGURATION=Debug yarn build:android:main:e2e   (Android)
- *   CONFIGURATION=Debug yarn build:ios:main:e2e       (iOS)
+ * CONFIGURATION=Debug yarn build:android:main:e2e (Android)
+ * CONFIGURATION=Debug yarn build:ios:main:e2e (iOS)
  *
  * Environment variables (all optional — defaults shown):
  * - ANDROID_APK_PATH — path to the APK (default: prod debug APK)

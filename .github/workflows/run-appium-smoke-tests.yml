@@ -1,14 +1,49 @@
-# Appium Smoke Tests — Emulator/Simulator
+# Appium Smoke Tests
 #
-# Runs the first Appium smoke test (reveal SRP) on a local Android emulator
-# and iOS simulator. Triggered manually until the test is proven stable.
+# Reusable workflow (workflow_call) that runs Appium smoke tests against
+# pre-built artifacts from build-android-e2e.yml / build-ios-e2e.yml.
+# The same release APK/app used by Detox is reused — HAS_TEST_OVERRIDES=true
+# is already baked into the Metro bundle and JS is embedded (release build).
 #
-# Both jobs run in parallel. Neither job changes the existing Detox CI.
+# Called from ci.yml after the build jobs, or triggered manually.
 
 name: Appium Smoke Tests
 
 on:
+  workflow_call:
+    inputs:
+      build_type:
+        description: 'Build type (main or flask)'
+        required: false
+        type: string
+        default: 'main'
+      metamask_environment:
+        description: 'MetaMask environment'
+        required: false
+        type: string
+        default: 'e2e'
+      runner_provider:
+        description: 'Runner provider (namespace or current)'
+        required: false
+        type: string
+        default: 'current'
   workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build type (main or flask)'
+        required: false
+        type: string
+        default: 'main'
+      metamask_environment:
+        description: 'MetaMask environment'
+        required: false
+        type: string
+        default: 'e2e'
+      runner_provider:
+        description: 'Runner provider (namespace or current)'
+        required: false
+        type: string
+        default: 'current'
 
 permissions:
   contents: read
@@ -19,12 +54,16 @@ concurrency:
 
 jobs:
   android:
-    name: Android (Emulator)
-    runs-on: ubuntu-latest
+    name: Android
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-android-build' || 'ubuntu-latest' }}
 
     steps:
+      - name: Checkout (Namespace)
+        uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
       - name: Checkout
         uses: actions/checkout@v4
+        if: ${{ inputs.runner_provider != 'namespace' }}
 
       - name: Setup E2E environment (Android)
         uses: ./.github/actions/setup-e2e-env
@@ -38,45 +77,36 @@ jobs:
           android-device: pixel_5
           configure-keystores: 'false'
           install-foundry: 'true'
+          runner_provider: ${{ inputs.runner_provider }}
 
-      - name: Build Android APK (e2e debug — HAS_TEST_OVERRIDES=true)
-        run: yarn build:android:main:e2e
-        env:
-          NODE_OPTIONS: --max-old-space-size=4096
-          HAS_TEST_OVERRIDES: 'true'
-          CONFIGURATION: Debug
-          # Removes prodDebug from debuggableVariants so the JS bundle is embedded
-          # in the debug APK. Appium tests don't start Metro, so the bundle must be
-          # baked in for ReadOnlyNetworkStore (hasTestOverrides) to activate.
-          APPIUM_TEST_BUILD: 'true'
-
-      - name: Boot Android emulator
-        run: |
-          echo "Starting emulator..."
-          $ANDROID_HOME/emulator/emulator \
-            -avd appium_smoke_avd \
-            -no-window \
-            -no-audio \
-            -gpu swiftshader_indirect \
-            -no-snapshot \
-            &
-
-          echo "Waiting for emulator to boot..."
-          adb wait-for-device
-          while [[ -z "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" ]]; do
-            sleep 2
-          done
-          echo "Emulator booted."
-          adb shell input keyevent 82
+      - name: Download Android build artifacts (Namespace)
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
+        with:
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
+          path: android/app/build/outputs/apk/prod/release/
+      - name: Download Android build artifacts (current)
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
+          path: android/app/build/outputs/apk/prod/release/
 
       - name: Run Appium smoke tests (Android)
         run: yarn appium-smoke:android
         env:
-          ANDROID_APK_PATH: android/app/build/outputs/apk/prod/debug/app-prod-debug.apk
+          ANDROID_APK_PATH: android/app/build/outputs/apk/prod/release/app-prod-release.apk
           ANDROID_AVD_NAME: appium_smoke_avd
 
-      - name: Upload test report
-        if: always()
+      - name: Upload test report (Namespace)
+        if: ${{ always() && inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        with:
+          name: appium-smoke-report-android
+          path: tests/test-reports/appium-smoke-report/
+          retention-days: 7
+      - name: Upload test report (current)
+        if: ${{ always() && inputs.runner_provider != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
           name: appium-smoke-report-android
@@ -84,12 +114,16 @@ jobs:
           retention-days: 7
 
   ios:
-    name: iOS (Simulator)
-    runs-on: macos-latest
+    name: iOS
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ios-e2e' || 'macos-latest' }}
 
     steps:
+      - name: Checkout (Namespace)
+        uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
       - name: Checkout
         uses: actions/checkout@v4
+        if: ${{ inputs.runner_provider != 'namespace' }}
 
       - name: Setup E2E environment (iOS)
         uses: ./.github/actions/setup-e2e-env
@@ -98,31 +132,74 @@ jobs:
           setup-simulator: 'false'
           configure-keystores: 'false'
           install-foundry: 'true'
+          skip-pod-install: 'true'
+          runner_provider: ${{ inputs.runner_provider }}
 
-      - name: Build iOS app (e2e debug — HAS_TEST_OVERRIDES=true)
-        run: yarn build:ios:main:e2e
+      - name: Download iOS build artifacts (Namespace)
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
+        with:
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
+          path: artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
+      - name: Download iOS build artifacts (current)
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
+          path: artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
+
+      # actions/upload-artifact strips execute permissions. Restore them so
+      # xcrun simctl can install and launch the app.
+      - name: Restore iOS bundle executable permissions
         env:
-          NODE_OPTIONS: --max-old-space-size=4096
-          HAS_TEST_OVERRIDES: 'true'
-          CONFIGURATION: Debug
-          IS_SIM_BUILD: 'true'
-
-      - name: Boot iOS simulator
+          APP_PATH: artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
         run: |
-          UDID=$(xcrun simctl list devices available | grep "iPhone 15 Pro" | grep -v "Plus\|Max" | head -1 | awk -F'[()]' '{print $2}')
-          echo "Booting simulator UDID: $UDID"
-          xcrun simctl boot "$UDID" || true
-          xcrun simctl bootstatus "$UDID" -b
-          echo "IOS_SIMULATOR_UDID=$UDID" >> "$GITHUB_ENV"
+          BUNDLE_EXEC=$(/usr/libexec/PlistBuddy -c "Print CFBundleExecutable" "$APP_PATH/Info.plist" 2>/dev/null)
+          if [ -z "$BUNDLE_EXEC" ]; then
+            echo "Could not read CFBundleExecutable from Info.plist"
+            exit 1
+          fi
+
+          ACTUAL_PATH=$(find "$APP_PATH" -maxdepth 1 -iname "$BUNDLE_EXEC" -type f | head -1)
+          if [ -z "$ACTUAL_PATH" ]; then
+            echo "Bundle executable not found: $BUNDLE_EXEC"
+            exit 1
+          fi
+
+          if [ "$(basename "$ACTUAL_PATH")" != "$BUNDLE_EXEC" ]; then
+            mv "$ACTUAL_PATH" "$APP_PATH/${BUNDLE_EXEC}_fix"
+            mv "$APP_PATH/${BUNDLE_EXEC}_fix" "$APP_PATH/$BUNDLE_EXEC"
+          fi
+
+          chmod +x "$APP_PATH/$BUNDLE_EXEC"
+
+          if [ -d "$APP_PATH/Frameworks" ]; then
+            find "$APP_PATH/Frameworks" -type d -name "*.framework" | while IFS= read -r fw; do
+              binary="$fw/$(basename "$fw" .framework)"
+              if [ -f "$binary" ]; then
+                chmod +x "$binary"
+              fi
+            done
+            find "$APP_PATH/Frameworks" -type f -name "*.dylib" -exec chmod +x {} \;
+          fi
+          echo "Restored execute permissions on main binary and all framework binaries"
+        shell: bash
 
       - name: Run Appium smoke tests (iOS)
         run: yarn appium-smoke:ios
         env:
-          IOS_APP_PATH: ios/build/Build/Products/Debug-iphonesimulator/MetaMask.app
+          IOS_APP_PATH: artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
           IOS_SIMULATOR_NAME: iPhone 15 Pro
 
-      - name: Upload test report
-        if: always()
+      - name: Upload test report (Namespace)
+        if: ${{ always() && inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        with:
+          name: appium-smoke-report-ios
+          path: tests/test-reports/appium-smoke-report/
+          retention-days: 7
+      - name: Upload test report (current)
+        if: ${{ always() && inputs.runner_provider != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
           name: appium-smoke-report-ios

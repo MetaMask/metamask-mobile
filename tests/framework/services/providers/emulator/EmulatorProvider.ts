@@ -11,6 +11,10 @@ import {
   resolveAndroidAdbUdidForDevice,
 } from './android/resolveAndroidAdbUdid';
 import { reinstallFromBuildPathForProject } from './reinstallLocalBuildFromPath';
+import {
+  startAndroidEmulator,
+  startIosSimulator,
+} from '../../appium/EmulatorHelpers';
 
 /**
  * Service provider for local emulator/simulator testing
@@ -117,13 +121,52 @@ export class EmulatorProvider extends BaseServiceProvider {
   }
 
   /**
-   * Global setup: validates local build artifact path, or that the app is
-   * already installed when `buildPath` is unset. `SKIP_APP_REINSTALL` can skip
-   * adb/simctl uninstall+install when `buildPath` is set. See
+   * Boot the configured device (emulator/simulator) if it is not already
+   * running. Controlled by the SKIP_DEVICE_BOOT env var:
+   *
+   * - SKIP_DEVICE_BOOT=true  — skip booting (device must already be running)
+   * - SKIP_DEVICE_BOOT=false — boot if needed (default)
+   *
+   * Booting must happen before any app-install steps because those use
+   * adb / simctl which require a running device.
+   */
+  private async bootDevice(): Promise<void> {
+    if (process.env.SKIP_DEVICE_BOOT === 'true') {
+      this.logger.info('SKIP_DEVICE_BOOT=true — skipping device boot.');
+      return;
+    }
+
+    if (this.project.use.platform === Platform.ANDROID) {
+      const avdName = (this.project.use.device as EmulatorConfig).name;
+      if (!avdName) {
+        throw new Error(
+          'Android device boot requires `use.device.name` (AVD name) in the project config.',
+        );
+      }
+      await startAndroidEmulator(avdName);
+    } else if (this.project.use.platform === Platform.IOS) {
+      const deviceName = this.project.use.device?.name;
+      if (!deviceName) {
+        throw new Error(
+          'iOS device boot requires `use.device.name` (simulator name) in the project config.',
+        );
+      }
+      await startIosSimulator(deviceName);
+    }
+  }
+
+  /**
+   * Global setup: boots the device if needed, then validates the local build
+   * artifact path, or checks that the app is already installed when `buildPath`
+   * is unset. `SKIP_APP_REINSTALL` can skip adb/simctl uninstall+install when
+   * `buildPath` is set. See
    * [PLAYWRIGHT_LOCAL_EMULATOR.md](../../../../docs/PLAYWRIGHT_LOCAL_EMULATOR.md).
    */
   async globalSetup(): Promise<void> {
     await super.globalSetup?.();
+
+    // Boot the device first — adb/simctl calls below require a running device
+    await this.bootDevice();
 
     if (this.project.use.app?.buildPath) {
       this.logger.debug(

@@ -1086,6 +1086,20 @@ jobs:
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
+  appium-smoke-tests:
+    name: 'Appium Smoke Tests'
+    if: ${{ !cancelled() && needs.build-android-apks.result == 'success' && needs.ios-tests-ready.result == 'success' }}
+    permissions:
+      contents: read
+      id-token: write
+    needs: [build-android-apks, ios-tests-ready]
+    uses: ./.github/workflows/run-appium-smoke-tests.yml
+    with:
+      build_type: 'main'
+      metamask_environment: 'e2e'
+      runner_provider: ${{ inputs.runner_provider }}
+    secrets: inherit
+
   # Fixture validation — ensures committed E2E fixtures match the live app state schema
   validate-e2e-fixtures:
     name: 'Validate E2E Fixtures'

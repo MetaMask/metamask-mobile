@@ -1,10 +1,25 @@
 /* eslint-disable import-x/no-nodejs-modules */
-import { exec } from 'child_process';
+import { exec, spawn } from 'child_process';
 import path from 'path';
 import { Platform } from '../../types.ts';
 import { createLogger } from '../../logger.ts';
 
 const logger = createLogger({ name: 'EmulatorHelpers' });
+
+const ANDROID_BOOT_TIMEOUT_MS = 3 * 60 * 1000;
+const ANDROID_BOOT_POLL_INTERVAL_MS = 2000;
+
+function execAsync(cmd: string): Promise<{ stdout: string; stderr: string }> {
+  return new Promise((resolve, reject) => {
+    exec(cmd, (error, stdout, stderr) => {
+      if (error) {
+        reject(Object.assign(error, { stdout, stderr }));
+      } else {
+        resolve({ stdout, stderr });
+      }
+    });
+  });
+}
 
 /**
  * Check if emulator is installed for the given platform
@@ -53,33 +68,186 @@ export function isEmulatorInstalled(platform: Platform): Promise<boolean> {
 }
 
 /**
- * Start Android emulator - to be implemented
+ * Check if any Android emulator is currently running and fully booted.
  */
-export function startAndroidEmulator(deviceName: string): void {
+export async function isAndroidEmulatorRunning(): Promise<boolean> {
+  try {
+    const { stdout } = await execAsync('adb devices');
+    // Each running device appears as "emulator-XXXX\tdevice" (state = "device" means booted)
+    const lines = stdout.trim().split('\n').slice(1); // skip "List of devices attached" header
+    return lines.some(
+      (line) => line.startsWith('emulator-') && line.includes('\tdevice'),
+    );
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Start the Android emulator and wait for it to fully boot.
+ * If an emulator is already running and booted, this is a no-op.
+ */
+export async function startAndroidEmulator(avdName: string): Promise<void> {
+  if (await isAndroidEmulatorRunning()) {
+    logger.info('Android emulator is already running — skipping boot.');
+    return;
+  }
+
+  const androidHome = process.env.ANDROID_HOME;
+  if (!androidHome) {
+    throw new Error(
+      'ANDROID_HOME is not set. Please set the ANDROID_HOME environment variable.',
+    );
+  }
+
+  const emulatorBin = path.join(androidHome, 'emulator', 'emulator');
+  const isCI = process.env.CI === 'true';
+
+  logger.info(`Starting Android emulator: ${avdName}`);
+
+  const args = ['-avd', avdName, '-no-snapshot-load'];
+  if (isCI) {
+    // Headless flags for CI runners
+    args.push('-no-window', '-no-audio', '-gpu', 'swiftshader_indirect');
+  }
+
+  // Detach so the emulator outlives the spawning process
+  const emulatorProcess = spawn(emulatorBin, args, {
+    stdio: 'ignore',
+    detached: true,
+  });
+  emulatorProcess.unref();
+
+  logger.info('Waiting for Android emulator to appear in adb...');
+  await execAsync('adb wait-for-device');
+
+  logger.info('Waiting for Android emulator to complete boot sequence...');
+  const deadline = Date.now() + ANDROID_BOOT_TIMEOUT_MS;
+  let booted = false;
+
+  while (Date.now() < deadline) {
+    try {
+      const { stdout } = await execAsync(
+        'adb shell getprop sys.boot_completed 2>/dev/null',
+      );
+      if (stdout.trim() === '1') {
+        booted = true;
+        break;
+      }
+    } catch {
+      // Device not yet ready — keep polling
+    }
+    await new Promise((r) => setTimeout(r, ANDROID_BOOT_POLL_INTERVAL_MS));
+  }
+
+  if (!booted) {
+    throw new Error(
+      `Android emulator did not complete booting within ${ANDROID_BOOT_TIMEOUT_MS / 1000}s.`,
+    );
+  }
+
+  // Unlock the screen so the app is visible
+  await execAsync('adb shell input keyevent 82').catch((_err) => {
+    /* screen may already be unlocked */
+  });
+  logger.info('Android emulator is booted and ready.');
+}
+
+/**
+ * Stop the running Android emulator gracefully.
+ */
+export async function stopAndroidEmulator(): Promise<void> {
+  logger.info('Stopping Android emulator...');
+  try {
+    await execAsync('adb emu kill');
+    logger.info('Android emulator stopped.');
+  } catch (error) {
+    logger.warn(`Could not stop Android emulator: ${error}`);
+  }
+}
+
+/**
+ * Get the UDID of an available iOS simulator by display name.
+ * Throws if no matching simulator is found.
+ */
+export async function getIosSimulatorUdid(deviceName: string): Promise<string> {
+  const { stdout } = await execAsync('xcrun simctl list devices available -j');
+  const list = JSON.parse(stdout) as {
+    devices: Record<string, { name: string; udid: string; state: string }[]>;
+  };
+
+  for (const devices of Object.values(list.devices)) {
+    const match = devices.find((d) => d.name === deviceName);
+    if (match) {
+      return match.udid;
+    }
+  }
+
   throw new Error(
-    `Starting Android emulator ${deviceName} - Not implemented yet`,
+    `iOS simulator "${deviceName}" not found in available devices. ` +
+      'Run `xcrun simctl list devices available` to see available simulators.',
   );
 }
 
 /**
- * Stop Android emulator - to be implemented
+ * Check if an iOS simulator is already in the Booted state.
  */
-export function stopAndroidEmulator(deviceName: string): void {
-  throw new Error(
-    `Stopping Android emulator ${deviceName} - Not implemented yet`,
-  );
+export async function isIosSimulatorBooted(udid: string): Promise<boolean> {
+  try {
+    const { stdout } = await execAsync('xcrun simctl list devices -j');
+    const list = JSON.parse(stdout) as {
+      devices: Record<string, { udid: string; state: string }[]>;
+    };
+    for (const devices of Object.values(list.devices)) {
+      const sim = devices.find((d) => d.udid === udid);
+      if (sim) {
+        return sim.state === 'Booted';
+      }
+    }
+  } catch {
+    return false;
+  }
+  return false;
 }
 
 /**
- * Start iOS simulator - to be implemented
+ * Boot an iOS simulator and wait for it to be fully ready.
+ * If the simulator is already booted, this is a no-op.
+ * @returns The UDID of the booted simulator.
  */
-export function startIosSimulator(deviceName: string): void {
-  throw new Error(`Starting iOS simulator ${deviceName} - Not implemented yet`);
+export async function startIosSimulator(deviceName: string): Promise<string> {
+  const udid = await getIosSimulatorUdid(deviceName);
+
+  if (await isIosSimulatorBooted(udid)) {
+    logger.info(
+      `iOS simulator "${deviceName}" (${udid}) is already booted — skipping boot.`,
+    );
+    return udid;
+  }
+
+  logger.info(`Booting iOS simulator: ${deviceName} (${udid})`);
+
+  // xcrun simctl boot exits with code 149 if already booted — treat that as success
+  await execAsync(`xcrun simctl boot "${udid}"`).catch((_err) => {
+    /* exit 149 means already booted — treat as success */
+  });
+
+  // bootstatus -b blocks until the simulator is fully booted
+  await execAsync(`xcrun simctl bootstatus "${udid}" -b`);
+
+  logger.info(`iOS simulator "${deviceName}" is booted and ready.`);
+  return udid;
 }
 
 /**
- * Stop iOS simulator - to be implemented
+ * Shut down an iOS simulator by UDID.
  */
-export function stopIosSimulator(deviceName: string): void {
-  throw new Error(`Stopping iOS simulator ${deviceName} - Not implemented yet`);
+export async function stopIosSimulator(udid: string): Promise<void> {
+  logger.info(`Shutting down iOS simulator: ${udid}`);
+  try {
+    await execAsync(`xcrun simctl shutdown "${udid}"`);
+    logger.info(`iOS simulator ${udid} shut down.`);
+  } catch (error) {
+    logger.warn(`Could not stop iOS simulator: ${error}`);
+  }
 }

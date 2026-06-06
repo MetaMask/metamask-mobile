@@ -2,7 +2,7 @@ import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import UnifiedGestures from '../../framework/UnifiedGestures';
 import { TabBarSelectorIDs } from '../../../app/components/Nav/Main/TabBar.testIds';
-import { Assertions, Utilities } from '../../framework';
+import { Assertions, PlaywrightAssertions, Utilities } from '../../framework';
 import {
   encapsulated,
   EncapsulatedElementType,
@@ -146,9 +146,35 @@ class TabBarComponent {
     });
   }
 
+  get homeButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText('Home'),
+      appium: () => PlaywrightMatchers.getElementById('tab-bar-item-Wallet'),
+    });
+  }
+
   async tapHome(): Promise<void> {
-    const homeButton = Matchers.getElementByText('Home');
-    await Gestures.waitAndTap(homeButton);
+    await encapsulatedAction({
+      detox: async () => {
+        await UnifiedGestures.waitAndTap(this.homeButton, {
+          timeout: 2000,
+        });
+        await Assertions.expectElementToBeVisible(WalletView.container, {
+          timeout: 500,
+        });
+      },
+      appium: async () => {
+        await PlaywrightGestures.waitAndTap(
+          await asPlaywrightElement(this.homeButton),
+        );
+        await PlaywrightAssertions.expectElementToBeVisible(
+          await asPlaywrightElement(WalletView.container),
+          {
+            timeout: 500,
+          },
+        );
+      },
+    });
   }
 
   async tapWallet(): Promise<void> {
