@@ -87,8 +87,10 @@ export function useMoneyAccountDepositPaymentMethods(
   // a precise "still fetching" signal distinct from "not started".
   const isLoading =
     providerEnabled &&
-    (providerQuery.isPending ||
-      Boolean(provider && paymentMethodsEnabled && paymentMethodsQuery.isPending));
+    (providerQuery.isLoading ||
+      Boolean(
+        provider && paymentMethodsEnabled && paymentMethodsQuery.isLoading,
+      ));
 
   return {
     paymentMethods: paymentMethodsQuery.data ?? [],

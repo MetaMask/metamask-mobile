@@ -254,5 +254,4 @@ describe('useMoneyAccountDepositPaymentMethods', () => {
       expect(result.current.paymentMethods).toEqual([]);
     });
   });
-
 });
