@@ -322,8 +322,9 @@ TPC state field**; the error rides in the quote response.
   do **not** mutate `providers.selected` / `tokens.selected` / `paymentMethods.selected` /
   `providerAutoSelected`, and do not read `tokens.selected` (require explicit `assetId`).
   Verify a money-account call leaves a pre-set UB2 selection unchanged.
-- `getFiatQuotes`: uses `getBestQuote`, stays provider-agnostic, combines with relay fees,
-  propagates the quote error into TPC state; `pickBestFiatQuote` removed.
+- `getFiatQuotes` (TPC team / out of scope): uses `getBestQuote`, stays provider-agnostic,
+  combines with relay fees, surfaces `getBestQuote`'s returned error (no new TPC state
+  field); `pickBestFiatQuote` removed. Listed for completeness; not built by this work.
 - `useRampsBuyLimits`: below-min / above-max / in-range; graceful when provider/limits
   missing; `backendError` fallback; read-only.
 - `canFiatDepositAsset`: true only when flag + `getBestProviderForAsset != null`; no
