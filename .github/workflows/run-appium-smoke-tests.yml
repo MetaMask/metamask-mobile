@@ -59,7 +59,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: appium-smoke-${{ github.ref }}
+  group: appium-smoke-${{ inputs.platform }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
