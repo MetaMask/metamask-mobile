@@ -1,0 +1,117 @@
+# Appium Smoke Tests — Android
+#
+# Reusable workflow that runs Appium smoke tests on a local Android emulator
+# against a pre-built APK from build-android-e2e.yml.
+#
+# Called from ci.yml after build-android-apks succeeds.
+
+name: Appium Smoke Tests (Android)
+
+on:
+  workflow_call:
+    inputs:
+      build_type:
+        description: 'Build type (main or flask)'
+        required: false
+        type: string
+        default: 'main'
+      metamask_environment:
+        description: 'MetaMask environment'
+        required: false
+        type: string
+        default: 'e2e'
+      runner_provider:
+        description: 'Runner provider (namespace or current)'
+        required: false
+        type: string
+        default: 'current'
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build type (main or flask)'
+        required: false
+        type: string
+        default: 'main'
+      metamask_environment:
+        description: 'MetaMask environment'
+        required: false
+        type: string
+        default: 'e2e'
+      runner_provider:
+        description: 'Runner provider (namespace or current)'
+        required: false
+        type: string
+        default: 'current'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: appium-smoke-android-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android:
+    name: Android
+    # Namespace runner required: setup-e2e-env expects the Android SDK at
+    # /opt/android-sdk which is pre-installed on this profile.
+    runs-on: namespace-profile-metamask-android-build
+
+    steps:
+      - name: Checkout (Namespace)
+        uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
+      - name: Checkout
+        uses: actions/checkout@v4
+        if: ${{ inputs.runner_provider != 'namespace' }}
+
+      - name: Setup E2E environment (Android)
+        uses: ./.github/actions/setup-e2e-env
+        with:
+          platform: android
+          setup-simulator: 'true'
+          android-avd-name: appium_smoke_avd
+          android-api-level: '34'
+          android-tag: google_apis
+          android-abi: x86_64
+          android-device: pixel_5
+          configure-keystores: 'false'
+          install-foundry: 'true'
+          runner_provider: ${{ inputs.runner_provider }}
+
+      - name: Download Android build artifacts (Namespace)
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
+        with:
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
+          path: android/app/build/outputs/apk/prod/release/
+      - name: Download Android build artifacts (current)
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
+          path: android/app/build/outputs/apk/prod/release/
+
+      - name: Run Appium smoke tests (Android)
+        # Device boot is handled by EmulatorProvider.globalSetup() inside the
+        # test command. setup-e2e-env above creates the AVD; the framework
+        # boots it on demand.
+        run: yarn appium-smoke:android
+        env:
+          ANDROID_APK_PATH: android/app/build/outputs/apk/prod/release/app-prod-release.apk
+          ANDROID_AVD_NAME: appium_smoke_avd
+
+      - name: Upload test report (Namespace)
+        if: ${{ always() && inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        with:
+          name: appium-smoke-report-android
+          path: tests/test-reports/appium-smoke-report/
+          retention-days: 7
+      - name: Upload test report (current)
+        if: ${{ always() && inputs.runner_provider != 'namespace' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: appium-smoke-report-android
+          path: tests/test-reports/appium-smoke-report/
+          retention-days: 7

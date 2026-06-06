@@ -1,22 +1,15 @@
-# Appium Smoke Tests
+# Appium Smoke Tests — iOS
 #
-# Reusable workflow (workflow_call) that runs Appium smoke tests against
-# pre-built artifacts from build-android-e2e.yml / build-ios-e2e.yml.
-# The same release APK/app used by Detox is reused — HAS_TEST_OVERRIDES=true
-# is already baked into the Metro bundle and JS is embedded (release build).
+# Reusable workflow that runs Appium smoke tests on a local iOS simulator
+# against a pre-built .app from build-ios-e2e.yml.
 #
-# Called from ci.yml after the build jobs, or triggered manually.
+# Called from ci.yml after ios-tests-ready succeeds.
 
-name: Appium Smoke Tests
+name: Appium Smoke Tests (iOS)
 
 on:
   workflow_call:
     inputs:
-      platform:
-        description: 'Platform to test (android, ios, or both)'
-        required: false
-        type: string
-        default: 'both'
       build_type:
         description: 'Build type (main or flask)'
         required: false
@@ -34,11 +27,6 @@ on:
         default: 'current'
   workflow_dispatch:
     inputs:
-      platform:
-        description: 'Platform to test (android, ios, or both)'
-        required: false
-        type: string
-        default: 'both'
       build_type:
         description: 'Build type (main or flask)'
         required: false
@@ -59,74 +47,12 @@ permissions:
   contents: read
 
 concurrency:
-  group: appium-smoke-${{ inputs.platform }}-${{ github.ref }}
+  group: appium-smoke-ios-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  android:
-    name: Android
-    if: ${{ inputs.platform == 'android' || inputs.platform == 'both' }}
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-android-build' || 'ubuntu-latest' }}
-
-    steps:
-      - name: Checkout (Namespace)
-        uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
-        if: ${{ inputs.runner_provider == 'namespace' }}
-      - name: Checkout
-        uses: actions/checkout@v4
-        if: ${{ inputs.runner_provider != 'namespace' }}
-
-      - name: Setup E2E environment (Android)
-        uses: ./.github/actions/setup-e2e-env
-        with:
-          platform: android
-          setup-simulator: 'true'
-          android-avd-name: appium_smoke_avd
-          android-api-level: '34'
-          android-tag: google_apis
-          android-abi: x86_64
-          android-device: pixel_5
-          configure-keystores: 'false'
-          install-foundry: 'true'
-          runner_provider: ${{ inputs.runner_provider }}
-
-      - name: Download Android build artifacts (Namespace)
-        if: ${{ inputs.runner_provider == 'namespace' }}
-        uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
-        with:
-          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
-          path: android/app/build/outputs/apk/prod/release/
-      - name: Download Android build artifacts (current)
-        if: ${{ inputs.runner_provider != 'namespace' }}
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
-          path: android/app/build/outputs/apk/prod/release/
-
-      - name: Run Appium smoke tests (Android)
-        run: yarn appium-smoke:android
-        env:
-          ANDROID_APK_PATH: android/app/build/outputs/apk/prod/release/app-prod-release.apk
-          ANDROID_AVD_NAME: appium_smoke_avd
-
-      - name: Upload test report (Namespace)
-        if: ${{ always() && inputs.runner_provider == 'namespace' }}
-        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
-        with:
-          name: appium-smoke-report-android
-          path: tests/test-reports/appium-smoke-report/
-          retention-days: 7
-      - name: Upload test report (current)
-        if: ${{ always() && inputs.runner_provider != 'namespace' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: appium-smoke-report-android
-          path: tests/test-reports/appium-smoke-report/
-          retention-days: 7
-
   ios:
     name: iOS
-    if: ${{ inputs.platform == 'ios' || inputs.platform == 'both' }}
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ios-e2e' || 'macos-latest' }}
 
     steps:

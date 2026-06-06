@@ -1093,9 +1093,8 @@ jobs:
       contents: read
       id-token: write
     needs: [build-android-apks]
-    uses: ./.github/workflows/run-appium-smoke-tests.yml
+    uses: ./.github/workflows/run-appium-smoke-tests-android.yml
     with:
-      platform: 'android'
       build_type: 'main'
       metamask_environment: 'e2e'
       runner_provider: ${{ inputs.runner_provider }}
@@ -1108,9 +1107,8 @@ jobs:
       contents: read
       id-token: write
     needs: [ios-tests-ready]
-    uses: ./.github/workflows/run-appium-smoke-tests.yml
+    uses: ./.github/workflows/run-appium-smoke-tests-ios.yml
     with:
-      platform: 'ios'
       build_type: 'main'
       metamask_environment: 'e2e'
       runner_provider: ${{ inputs.runner_provider }}
