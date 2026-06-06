@@ -1,0 +1,80 @@
+diff --git a/ios/NitroDevToolsReporter.mm b/ios/NitroDevToolsReporter.mm
+index d3122d0387e858e12d0ef9ef1d04255a1b3197c5..ee03e9c0e903dfbf2b63d1d986554430816dd3d5 100644
+--- a/ios/NitroDevToolsReporter.mm
++++ b/ios/NitroDevToolsReporter.mm
+@@ -30,6 +30,12 @@
+ #endif
+ }
+ 
++// RN 0.81+ changed requestId from NSString* to NSNumber*.
++// Convert the string-based ID to a numeric one for compatibility.
+++ (NSNumber *)numericRequestId:(NSString *)requestId {
++  return @([requestId hash]);
++}
++
+ + (BOOL)isDebuggingEnabled {
+   return [self reporterClass] != Nil;
+ }
+@@ -40,9 +46,10 @@
+   if (request == nil) return;
+   Class cls = [self reporterClass];
+   if (cls == Nil) return;
++  NSNumber *rid = [self numericRequestId:requestId];
+   int encoded = (int)(request.HTTPBody.length);
+-  [cls reportRequestStart:requestId request:request encodedDataLength:encoded];
+-  [cls reportConnectionTiming:requestId request:request];
++  [cls reportRequestStart:rid request:request encodedDataLength:encoded];
++  [cls reportConnectionTiming:rid request:request];
+ #endif
+ }
+ 
+@@ -64,9 +71,10 @@
+   if (bodyString.length > 0) {
+     req.HTTPBody = [bodyString dataUsingEncoding:NSUTF8StringEncoding];
+   }
++  NSNumber *rid = [self numericRequestId:requestId];
+   NSInteger encoded = bodyString ? (NSInteger)[bodyString lengthOfBytesUsingEncoding:NSUTF8StringEncoding] : 0;
+-  [cls reportRequestStart:requestId request:req encodedDataLength:(int)encoded];
+-  [cls reportConnectionTiming:requestId request:req];
++  [cls reportRequestStart:rid request:req encodedDataLength:(int)encoded];
++  [cls reportConnectionTiming:rid request:req];
+ #endif
+ }
+ 
+@@ -83,7 +91,8 @@
+                                                          statusCode:statusCode
+                                                         HTTPVersion:@"HTTP/1.1"
+                                                        headerFields:headers];
+-  [cls reportResponseStart:requestId
++  NSNumber *rid = [self numericRequestId:requestId];
++  [cls reportResponseStart:rid
+                   response:resp
+                 statusCode:(int)statusCode
+                    headers:headers];
+@@ -100,7 +109,7 @@
+   // intended length.
+   static uint8_t sentinel;
+   NSData *sized = [NSData dataWithBytesNoCopy:&sentinel length:(NSUInteger)length freeWhenDone:NO];
+-  [cls reportDataReceived:requestId data:sized];
++  [cls reportDataReceived:[self numericRequestId:requestId] data:sized];
+ #endif
+ }
+ 
+@@ -126,7 +135,7 @@
+ #if NITRO_HAS_NETWORK_REPORTER
+   Class cls = [self reporterClass];
+   if (cls == Nil) return;
+-  [cls maybeStoreResponseBody:requestId data:data base64Encoded:base64Encoded];
++  [cls maybeStoreResponseBody:[self numericRequestId:requestId] data:data base64Encoded:base64Encoded];
+ #endif
+ }
+ 
+@@ -134,7 +143,7 @@
+ #if NITRO_HAS_NETWORK_REPORTER
+   Class cls = [self reporterClass];
+   if (cls == Nil) return;
+-  [cls maybeStoreResponseBodyIncremental:requestId data:text];
++  [cls maybeStoreResponseBodyIncremental:[self numericRequestId:requestId] data:text];
+ #endif
+ }
+ 
