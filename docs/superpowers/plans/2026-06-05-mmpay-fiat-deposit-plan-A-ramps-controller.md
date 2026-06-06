@@ -304,11 +304,11 @@ async getBestQuote(options: {
     amount: options.amount,
     paymentMethods: options.paymentMethods,
     walletAddress: options.walletAddress,
-    ...(best ? { provider: [best.id] } : {}), // scope to chosen provider when known
+    ...(best ? { providers: [best.id] } : {}), // NOTE: option is `providers: string[]`
   });
 
   const quote = response.success?.find(
-    (q) => !best || normalizeProviderId(q.provider) === normalizeProviderId(best.id),
+    (q) => !best || normalizeProviderCode(q.provider) === normalizeProviderCode(best.id),
   ) ?? response.success?.[0];
   if (quote) return { quote };
 
@@ -320,10 +320,13 @@ async getBestQuote(options: {
 }
 ```
 
-> Confirm `getQuotes` accepts a `provider`/`providers` option (it builds `providerIds`
-> from `options.provider` in `RampsService`). Use the existing `normalizeProviderId`
-> helper if present; otherwise compare ids case-insensitively after stripping
-> `/providers/` and `-staging`/`-b`/`-m` suffixes (see `QuoteRankingService.sanitizeProviderId`).
+> `getQuotes` accepts `providers?: string[]` (RampsController.ts:1613-1625) — pass
+> `providers: [best.id]`, NOT `provider`. Use the exported **`normalizeProviderCode`**
+> helper (RampsController.ts:615, re-exported from `src/index.ts`) to reconcile
+> `/providers/...` ids and staging suffixes on both `q.provider` and `best.id`. Do not
+> reference `normalizeProviderId` or `QuoteRankingService` — those don't exist in this
+> package. The `LIMIT_EXCEEDED`/`QUOTE_FAILED` classifier is **open-coded** here (the regex
+> below); PR #31079's version lives in mobile and isn't importable.
 
 Register `'getBestQuote'` in `MESSENGER_EXPOSED_METHODS` and add its action type.
 

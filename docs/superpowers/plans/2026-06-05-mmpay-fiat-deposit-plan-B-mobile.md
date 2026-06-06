@@ -170,6 +170,26 @@ export function canFiatDepositAsset({
 
 - [ ] **Step 4: Run to verify pass** → PASS.
 
+- [ ] **Step 4b: Determine the deposit `assetId` at the sheet level (REQUIRED — no
+top-level assetId exists today)**
+
+In `MoneyAddMoneySheet.tsx` the deposit target is **mUSD**, and its address is derived
+**inside** `handleConvertCrypto` (`MUSD_TOKEN_ADDRESS_BY_CHAIN[sourceChainId]`, ~lines
+88-103) — there is no top-level CAIP asset for the gate to use, and mUSD spans multiple
+chains. So first compute, at the component top level, the deposit chain + mUSD address and
+build a CAIP assetId:
+- Pick the deposit chain deterministically (e.g. the default mUSD chain
+  `MUSD_CONVERSION_DEFAULT_CHAIN_ID`, or the chain with the best mUSD balance — match
+  whatever `handleConvertCrypto`/`handleDepositFunds` will actually use so the gate and the
+  flow agree).
+- Build the CAIP assetId with the existing helper (`toCaipAssetType`, as used in
+  `custom-amount-info.tsx:376`) from that chainId + mUSD address.
+- Memoize it as `depositAssetId`.
+
+This satisfies spec assumption A4 (assetId in CAIP form). If the chain choice is dynamic,
+gate on "buyable on *any* candidate chain" by OR-ing `canFiatDepositAsset` over the
+candidate chains; otherwise gate on the single default chain.
+
 - [ ] **Step 5: Gate the option in `MoneyAddMoneySheet.tsx`**
 
 Replace the condition at lines ~138-139:
@@ -180,8 +200,7 @@ Replace the condition at lines ~138-139:
 ...(canFiatDepositAsset({ assetId: depositAssetId, isFiatDepositFlagEnabled: isFiatDepositEnabled }) ? [ ... ] : [])
 ```
 Remove the now-unused `rampRoutingDecision` / `getRampRoutingDecision` import **only if**
-nothing else in the file uses it. Source `depositAssetId` from the money-account deposit
-asset already known in this sheet/its hook.
+nothing else in the file uses it.
 
 - [ ] **Step 6: Update/extend `MoneyAddMoneySheet` tests**
 
@@ -239,7 +258,8 @@ git commit -m "feat(confirmations): resolve fiat deposit provider + payment via 
 
 - [ ] **Step 1: Add the key**
 
-Add `FiatBuyAmountLimit = 'FiatBuyAmountLimit'` to `AlertKeys`.
+Add `FiatBuyAmountLimit = 'fiat_buy_amount_limit'` to `AlertKeys` (snake_case value,
+matching the existing `AlertKeys` convention, e.g. `InsufficientMoneyAccountBalance = 'insufficient_money_account_balance'`).
 
 - [ ] **Step 2: Write failing tests for `useFiatBuyLimitAlert`** (model on `useInsufficientMoneyAccountBalanceAlert.test.ts`)
 
@@ -336,16 +356,25 @@ git commit -m "feat(confirmations): surface fiat amount-limit alert during keybo
 **Files:**
 - Modify: `app/components/Views/confirmations/components/info/custom-amount-info/custom-amount-info.tsx`
 
-- [ ] **Step 1: Write failing test** — when the debounced amount is out of limits
-(blocking `FiatBuyAmountLimit` alert present), `handleDone` must NOT commit `amountFiat`
-to TPC (so no quote fires); when in range, it commits as today.
+> **Debounce caveat (from review):** `handleDone` (`custom-amount-info.tsx:201-229`)
+> commits the **live** `amountFiat` on Done press, but the `FiatBuyAmountLimit` alert is
+> computed from `amountHumanDebounced` — so gating the commit on the *debounced alert* is
+> racy (the debounced value can lag the committed amount). Gate on the **live** limit
+> result instead: compute it from the live `amountFiat`.
+
+- [ ] **Step 1: Write failing test** — when the **live** `amountFiat` is out of the
+provider's limits, `handleDone` must NOT commit `amountFiat` to TPC (so no quote fires);
+when in range, it commits as today.
 
 - [ ] **Step 2: Run to verify fail** → FAIL.
 
-- [ ] **Step 3: Implement** — in `handleDone`, guard the `updateFiatPayment({ amountFiat })`
-write on there being no blocking amount-limit alert (read via `useAlerts` /
-`amountLimitError` from `useRampsBuyLimits`). Continue is already disabled by
-`hasBlockingAlerts` (ConfirmButton), so no separate button wiring is needed.
+- [ ] **Step 3: Implement** — in `custom-amount-info`, compute a live limit check:
+`const { amountLimitError } = useRampsBuyLimits({ assetId, amount: Number(amountFiat), paymentMethodId: selectedFiatPaymentMethodId });`
+(live `amountFiat`, not debounced). In `handleDone`, guard the
+`updateFiatPayment({ amountFiat })` write on `!amountLimitError` — when out of limits, skip
+the commit (no quote fires). The inline error display + Continue-disable still come from
+the debounced `FiatBuyAmountLimit` alert (Task 5) via `hasBlockingAlerts`; this live check
+only gates the commit, avoiding the debounce race. No separate ConfirmButton wiring needed.
 
 - [ ] **Step 4: Run to verify pass** → PASS.
 
