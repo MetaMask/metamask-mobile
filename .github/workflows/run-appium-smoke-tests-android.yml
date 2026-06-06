@@ -45,7 +45,6 @@ on:
 
 permissions:
   contents: read
-  checks: write
 
 concurrency:
   group: appium-smoke-android-${{ github.ref }}
@@ -117,11 +116,30 @@ jobs:
           path: tests/test-reports/appium-smoke-report/
           retention-days: 7
 
-      - name: Publish test results
-        if: ${{ always() && inputs.runner_provider != 'namespace' }}
-        uses: dorny/test-reporter@v1
-        with:
-          name: Appium Smoke Tests (Android)
-          path: tests/test-reports/appium-smoke-junit.xml
-          reporter: java-junit
-          fail-on-error: false
+      - name: Post job summary
+        if: ${{ always() }}
+        run: |
+          JUNIT="tests/test-reports/appium-smoke-junit.xml"
+          if [ ! -f "$JUNIT" ]; then
+            echo "## Appium Smoke Tests — Android" >> "$GITHUB_STEP_SUMMARY"
+            echo "No test results found (tests may not have run)." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          TOTAL=$(grep -o 'tests="[^"]*"' "$JUNIT" | head -1 | grep -o '[0-9]*')
+          FAILURES=$(grep -o 'failures="[^"]*"' "$JUNIT" | head -1 | grep -o '[0-9]*')
+          ERRORS=$(grep -o 'errors="[^"]*"' "$JUNIT" | head -1 | grep -o '[0-9]*')
+          SKIPPED=$(grep -o 'skipped="[^"]*"' "$JUNIT" | head -1 | grep -o '[0-9]*')
+          PASSED=$(( TOTAL - FAILURES - ERRORS - ${SKIPPED:-0} ))
+          if [ "${FAILURES:-0}" -eq 0 ] && [ "${ERRORS:-0}" -eq 0 ]; then
+            STATUS="✅ passed"
+          else
+            STATUS="❌ FAILED"
+          fi
+          {
+            echo "## Appium Smoke Tests — Android"
+            echo ""
+            echo "| Result | Tests | Passed | Failed | Errors | Skipped |"
+            echo "|--------|------:|-------:|-------:|-------:|--------:|"
+            echo "| $STATUS | ${TOTAL:-0} | ${PASSED:-0} | ${FAILURES:-0} | ${ERRORS:-0} | ${SKIPPED:-0} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
