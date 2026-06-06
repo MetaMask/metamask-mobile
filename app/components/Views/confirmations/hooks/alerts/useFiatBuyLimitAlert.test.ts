@@ -67,6 +67,7 @@ describe('useFiatBuyLimitAlert', () => {
       {
         key: AlertKeys.FiatBuyAmountLimit,
         field: RowAlertKey.Amount,
+        title: 'Amount out of range',
         message: 'Amount exceeds maximum limit of $500',
         severity: Severity.Danger,
         isBlocking: true,
@@ -247,6 +248,7 @@ describe('useFiatBuyLimitAlert', () => {
         {
           key: AlertKeys.FiatBuyAmountLimit,
           field: RowAlertKey.Amount,
+          title: 'Amount out of range',
           message: 'Amount exceeds maximum limit of $500',
           severity: Severity.Danger,
           isBlocking: true,
@@ -283,6 +285,7 @@ describe('useFiatBuyLimitAlert', () => {
         {
           key: AlertKeys.FiatBuyAmountLimit,
           field: RowAlertKey.Amount,
+          title: 'Amount out of range',
           message: 'Minimum purchase is $20',
           severity: Severity.Danger,
           isBlocking: true,

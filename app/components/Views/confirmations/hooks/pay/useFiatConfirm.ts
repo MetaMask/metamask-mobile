@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { createProjectLogger } from '@metamask/utils';
+import { providerErrors } from '@metamask/rpc-errors';
 import BigNumber from 'bignumber.js';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -46,6 +47,8 @@ export function useFiatConfirm() {
     setIsHeadlessBuyInProgress(true);
     setHeadlessBuyError(undefined);
 
+    const transactionId = transactionMetadata?.id;
+
     // Subtract the on-ramp provider fee from the total so the Ramps order
     // amount covers exactly the Relay leg of the intent (fees + deposit).
     // The on-ramp provider adds its own fee on top of what we request.
@@ -63,11 +66,11 @@ export function useFiatConfirm() {
       },
       {
         onOrderCreated: (orderIdFromCallback) => {
-          if (!transactionMetadata?.id) {
+          if (!transactionId) {
             return;
           }
           Engine.context.TransactionPayController.updateFiatPayment({
-            transactionId: transactionMetadata.id,
+            transactionId,
             callback: (fp) => {
               fp.orderId = orderIdFromCallback;
             },
@@ -78,10 +81,41 @@ export function useFiatConfirm() {
           setHeadlessBuyError(
             error.message ?? strings('alert_system.headless_buy_error.message'),
           );
+          // Reject the underlying confirmation transaction so the user can
+          // start a fresh deposit without hitting the orphaned-transaction
+          // guard in useConfirmNavigation.
+          if (transactionId) {
+            try {
+              Engine.context.ApprovalController.rejectRequest(
+                transactionId,
+                providerErrors.userRejectedRequest(),
+              );
+            } catch {
+              log('Failed to reject transaction after headless buy error', transactionId);
+            }
+          }
         },
-        onClose: () => {
+        onClose: (info) => {
           setIsHeadlessBuyInProgress(false);
           setHeadlessBuyError(undefined);
+          // Reject the underlying confirmation transaction on any non-completed
+          // close (user dismissed the headless flow without completing the order).
+          // Without this the tx stays `unapproved`, causing useConfirmNavigation
+          // to defer — and then drop — the next deposit attempt when the sheet
+          // unmounts before the deferral resolves.
+          // `orderId` on fiatPayment means `onOrderCreated` already fired —
+          // the order went through and the tx will be handled by the relay.
+          const completed = Boolean(fiatPayment?.orderId);
+          if (!completed && transactionId) {
+            try {
+              Engine.context.ApprovalController.rejectRequest(
+                transactionId,
+                providerErrors.userRejectedRequest(),
+              );
+            } catch {
+              log('Failed to reject transaction after headless buy close', transactionId);
+            }
+          }
         },
       },
     );

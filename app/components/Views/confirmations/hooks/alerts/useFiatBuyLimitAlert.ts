@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Alert, Severity } from '../../types/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
+import { strings } from '../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import {
   TransactionMeta,
@@ -56,6 +57,7 @@ export function useFiatBuyLimitAlert({
       {
         key: AlertKeys.FiatBuyAmountLimit,
         field: RowAlertKey.Amount,
+        title: strings('alert_system.fiat_buy_amount_limit.title'),
         message: amountLimitError,
         severity: Severity.Danger,
         isBlocking: true,

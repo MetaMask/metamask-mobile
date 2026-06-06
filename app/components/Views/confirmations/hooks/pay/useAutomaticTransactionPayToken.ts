@@ -40,7 +40,8 @@ import { MUSD_TOKEN_ADDRESS } from '../../../../UI/Earn/constants/musd';
 import { useWithdrawTokenFilter } from './useWithdrawTokenFilter';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 import { useRampsPaymentMethods } from '../../../../UI/Ramp/hooks/useRampsPaymentMethods';
-import { useMoneyAccountDepositPaymentMethods } from './useMoneyAccountDepositPaymentMethods';
+import { useMoneyAccountDepositPaymentMethods } from '../../../../UI/Ramp/hooks/useMoneyAccountDepositPaymentMethods';
+import { pickEligiblePaymentMethod } from '../../../../UI/Ramp/utils/pickEligiblePaymentMethod';
 
 export interface SetPayTokenRequest {
   address: Hex;
@@ -173,6 +174,7 @@ export function useAutomaticTransactionPayToken({
   const {
     paymentMethods: assetProviderPaymentMethods,
     isReady: assetProviderPaymentMethodsReady,
+    isSettled: assetProviderPaymentMethodsSettled,
   } = useMoneyAccountDepositPaymentMethods(fiatPayment?.caipAssetId);
 
   useEffect(() => {
@@ -196,12 +198,31 @@ export function useAutomaticTransactionPayToken({
       // that methods load even in non-Transak regions where the global
       // selection is null or points to a different provider.
       if (autoSelectFiatPayment && isMoneyAccountDeposit) {
-        if (!assetProviderPaymentMethodsReady) {
+        // Wait while the asset-provider resolution is still in progress.
+        // Once it SETTLES (ready, or terminal-without-result) we make a
+        // one-time decision below so the flow can never hang indefinitely.
+        if (
+          !assetProviderPaymentMethodsReady &&
+          !assetProviderPaymentMethodsSettled
+        ) {
           return;
         }
 
-        const eligibleMethod = assetProviderPaymentMethods.find(
-          (pm) => !pm.delay || pm.delay[1] <= maxDelayMinutesForPaymentMethods,
+        // Prefer the asset's best-provider methods when they resolved. If that
+        // resolution settled WITHOUT a usable result (no provider for the
+        // asset in this region, or its methods couldn't be fetched), fall back
+        // to the globally-selected provider's payment methods rather than
+        // hanging. When the asset path is ready (correct provider) but returns
+        // no methods, we deliberately do NOT borrow another provider's methods
+        // — we commit a terminal no-selection and let the availability/limit
+        // error surface.
+        const methods = assetProviderPaymentMethodsReady
+          ? assetProviderPaymentMethods
+          : paymentMethods;
+
+        const eligibleMethod = pickEligiblePaymentMethod(
+          methods,
+          maxDelayMinutesForPaymentMethods,
         );
 
         if (eligibleMethod) {
@@ -214,7 +235,10 @@ export function useAutomaticTransactionPayToken({
         }
 
         isUpdated.current = transactionId;
-        log('Auto-selected fiat payment method (asset provider)', eligibleMethod?.name);
+        log(
+          'Auto-selected fiat payment method (asset provider)',
+          eligibleMethod?.name,
+        );
         return;
       }
 
@@ -224,8 +248,9 @@ export function useAutomaticTransactionPayToken({
         return;
       }
 
-      const eligibleMethod = paymentMethods.find(
-        (pm) => !pm.delay || pm.delay[1] <= maxDelayMinutesForPaymentMethods,
+      const eligibleMethod = pickEligiblePaymentMethod(
+        paymentMethods,
+        maxDelayMinutesForPaymentMethods,
       );
 
       if (eligibleMethod) {
@@ -258,6 +283,7 @@ export function useAutomaticTransactionPayToken({
   }, [
     assetProviderPaymentMethods,
     assetProviderPaymentMethodsReady,
+    assetProviderPaymentMethodsSettled,
     autoSelectFiatPayment,
     automaticToken,
     disable,

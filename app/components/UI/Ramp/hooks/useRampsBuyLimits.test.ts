@@ -56,12 +56,16 @@ const mockProvider: RampProvider = {
         '/payments/debit-credit-card': {
           minAmount: 10,
           maxAmount: 1000,
+          feeFixedRate: 0,
+          feeDynamicRate: 0,
         },
       },
       eur: {
         '/payments/debit-credit-card': {
           minAmount: 12,
           maxAmount: 900,
+          feeFixedRate: 0,
+          feeDynamicRate: 0,
         },
       },
     },

@@ -39,7 +39,7 @@ import { selectLastWithdrawTokenByType } from '../../../../../selectors/transact
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import { useIsFiatPaymentAvailable } from './useIsFiatPaymentAvailable';
 import { useMMPayFiatConfig } from './useMMPayFiatConfig';
-import { useMoneyAccountDepositPaymentMethods } from './useMoneyAccountDepositPaymentMethods';
+import { useMoneyAccountDepositPaymentMethods } from '../../../../UI/Ramp/hooks/useMoneyAccountDepositPaymentMethods';
 import Engine from '../../../../../core/Engine';
 
 jest.mock('../transactions/useTransactionMetadataRequest');
@@ -53,7 +53,7 @@ jest.mock('./useWithdrawTokenFilter');
 jest.mock('../../../../UI/Ramp/hooks/useRampsPaymentMethods');
 jest.mock('./useIsFiatPaymentAvailable');
 jest.mock('./useMMPayFiatConfig');
-jest.mock('./useMoneyAccountDepositPaymentMethods');
+jest.mock('../../../../UI/Ramp/hooks/useMoneyAccountDepositPaymentMethods');
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     TransactionPayController: {
@@ -211,6 +211,7 @@ describe('useAutomaticTransactionPayToken', () => {
     useMoneyAccountDepositPaymentMethodsMock.mockReturnValue({
       paymentMethods: [],
       isReady: false,
+      isSettled: false,
     });
   });
 
@@ -1380,6 +1381,7 @@ describe('useAutomaticTransactionPayToken', () => {
           { id: 'pm-bank', name: 'Bank Transfer', delay: [60, 1440] },
         ] as never,
         isReady: true,
+        isSettled: true,
       });
 
       runMoneyAccountDepositHook();
@@ -1408,6 +1410,7 @@ describe('useAutomaticTransactionPayToken', () => {
           },
         ] as never,
         isReady: true,
+        isSettled: true,
       });
 
       jest.mocked(useMMPayFiatConfig).mockReturnValue({
@@ -1423,15 +1426,49 @@ describe('useAutomaticTransactionPayToken', () => {
       expect(fiatPaymentState.selectedPaymentMethodId).toBe(ELIGIBLE_METHOD_ID);
     });
 
-    it('does not write payment method when asset-provider payment methods are not yet ready', () => {
+    it('does not write payment method while asset-provider methods are still resolving (not ready, not settled)', () => {
       useMoneyAccountDepositPaymentMethodsMock.mockReturnValue({
         paymentMethods: [],
         isReady: false,
+        isSettled: false,
       });
 
       runMoneyAccountDepositHook();
 
       expect(updateFiatPaymentMock).not.toHaveBeenCalled();
+    });
+
+    it('falls back to the global provider methods once the asset path settles without a result', () => {
+      const GLOBAL_METHOD_ID = 'pm-global-card';
+
+      // Asset-provider resolution settled but produced no usable provider/methods.
+      useMoneyAccountDepositPaymentMethodsMock.mockReturnValue({
+        paymentMethods: [],
+        isReady: false,
+        isSettled: true,
+      });
+
+      // Global provider DOES have an eligible method — used as the fallback.
+      jest.mocked(useRampsPaymentMethods).mockReturnValue({
+        paymentMethods: [
+          { id: GLOBAL_METHOD_ID, name: 'Global Card', delay: [0, 5] },
+        ] as never,
+        selectedPaymentMethod: null,
+        setSelectedPaymentMethod: jest.fn(),
+        isLoading: false,
+        isFetching: false,
+        status: 'success',
+        isSuccess: true,
+        error: null,
+      });
+
+      runMoneyAccountDepositHook();
+
+      expect(updateFiatPaymentMock).toHaveBeenCalled();
+      const callback = updateFiatPaymentMock.mock.calls[0][0].callback;
+      const fiatPaymentState = { selectedPaymentMethodId: undefined };
+      callback(fiatPaymentState);
+      expect(fiatPaymentState.selectedPaymentMethodId).toBe(GLOBAL_METHOD_ID);
     });
 
     it('does not write payment method when no eligible methods exist', () => {
@@ -1440,6 +1477,7 @@ describe('useAutomaticTransactionPayToken', () => {
           { id: 'pm-slow', name: 'Slow Method', delay: [600, 2880] },
         ] as never,
         isReady: true,
+        isSettled: true,
       });
 
       jest.mocked(useMMPayFiatConfig).mockReturnValue({
@@ -1489,6 +1527,7 @@ describe('useAutomaticTransactionPayToken', () => {
           { id: 'pm-card', name: 'Card', delay: [0, 5] },
         ] as never,
         isReady: true,
+        isSettled: true,
       });
 
       // fiatPayment already has a selected method
@@ -1522,6 +1561,7 @@ describe('useAutomaticTransactionPayToken', () => {
           { id: NON_TRANSAK_METHOD_ID, name: 'Local Bank', delay: [0, 5] },
         ] as never,
         isReady: true,
+        isSettled: true,
       });
 
       runMoneyAccountDepositHook();
