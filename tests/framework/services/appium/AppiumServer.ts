@@ -1,8 +1,11 @@
 /* eslint-disable import-x/no-nodejs-modules */
-import { spawn, exec, type ChildProcess } from 'child_process';
+import { spawn, type ChildProcess } from 'child_process';
 import { createLogger, LogLevel } from '../../logger';
 
 const logger = createLogger({ name: 'AppiumServer', level: LogLevel.INFO });
+
+// Track the running Appium process so we can kill it by PID instead of pkill.
+let appiumServerProcess: ChildProcess | null = null;
 
 // Track the current exit handler to prevent listener accumulation
 let currentExitHandler: (() => void) | null = null;
@@ -80,6 +83,7 @@ export async function startAppiumServer(
 
       if (output.includes('Appium REST http interface listener started')) {
         logger.debug('Appium server is up and running.');
+        appiumServerProcess = appiumProcess;
         settlePromise(resolve, appiumProcess);
       }
     });
@@ -116,35 +120,31 @@ export async function startAppiumServer(
 }
 
 /**
- * Stop the Appium server
- *
- * Note: pkill exit codes:
- * - 0: One or more processes matched and were signaled
- * - 1: No processes matched (not an error - server wasn't running)
- * - 2: Syntax error in command line
- * - 3: Fatal error
+ * Stop the Appium server.
+ * Kills the tracked process by PID to avoid accidentally matching and killing
+ * the parent test-runner process (which also has "appium" in its command line).
  */
-export function stopAppiumServer(): Promise<string> {
+export function stopAppiumServer(): Promise<void> {
   // Remove the exit handler since we're explicitly stopping the server
   if (currentExitHandler) {
     process.removeListener('exit', currentExitHandler);
     currentExitHandler = null;
   }
 
-  return new Promise((resolve, reject) => {
-    exec('pkill -f appium', (error, stdout) => {
-      if (error) {
-        // Exit code 1 means no processes matched - this is fine, server wasn't running
-        if ('code' in error && error.code === 1) {
-          logger.debug('No Appium server process found to stop.');
-          return resolve(stdout);
-        }
-        // Actual error (syntax error, fatal error, or system error)
-        logger.error(`Error stopping Appium server: ${error.message}`);
-        return reject(error);
-      }
+  return new Promise((resolve) => {
+    const proc = appiumServerProcess;
+    appiumServerProcess = null;
+
+    if (!proc || proc.exitCode !== null || proc.killed) {
+      logger.debug('No running Appium server process found to stop.');
+      return resolve();
+    }
+
+    proc.once('close', () => {
       logger.debug('Appium server stopped successfully.');
-      resolve(stdout);
+      resolve();
     });
+
+    proc.kill('SIGTERM');
   });
 }

@@ -42,6 +42,11 @@ export class EmulatorConfigBuilder {
 
     return {
       port: 4723,
+      // XCUITest driver must build and install WDA on first run (3-4 min).
+      // Raise the WebDriverIO HTTP timeout well above the default 120 s so the
+      // session-creation request doesn't time out before Appium responds.
+      connectionRetryTimeout: 10 * 60 * 1000, // 10 min
+      connectionRetryCount: 1,
       capabilities: {
         'appium:deviceName': emulatorDevice.name,
         'appium:udid': emulatorDevice.udid,

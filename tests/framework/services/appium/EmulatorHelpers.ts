@@ -257,9 +257,10 @@ export async function startIosSimulator(deviceName: string): Promise<string> {
 
   logger.info(`Booting iOS simulator: ${deviceName} (${udid})`);
 
-  // xcrun simctl boot exits with code 149 if already booted — treat that as success
+  // xcrun simctl boot exits with code 149 if already booted — treat that as success.
+  // child_process exec errors carry a numeric exit code, not a string ErrnoException code.
   await execAsync(`xcrun simctl boot "${udid}"`).catch(
-    (err: NodeJS.ErrnoException) => {
+    (err: { code?: number }) => {
       if (err.code !== 149) {
         throw err;
       }
