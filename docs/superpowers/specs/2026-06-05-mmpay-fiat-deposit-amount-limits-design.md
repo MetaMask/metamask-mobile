@@ -180,16 +180,19 @@ On entering the fiat deposit flow (asset known):
   (`rampsPaymentMethodsOptions({ regionCode, fiat, assetId, providerId })`) — **not**
   via global `providers.selected`.
 - Select the best eligible payment method (respecting the existing
-  `maxDelayMinutesForPaymentMethods` rule) and write **both the resolved provider id and
-  the payment method id** to TPC `fiatPayment` via `updateFiatPayment` (e.g.
-  `fiatPayment.selectedProviderId` + `fiatPayment.selectedPaymentMethodId`).
+  `maxDelayMinutesForPaymentMethods` rule) and write the payment method id to TPC
+  `fiatPayment.selectedPaymentMethodId` via `updateFiatPayment`.
 - This replaces the money-account fiat path's reliance on global `providers.selected`
   (currently in `useAutomaticTransactionPayToken`). It mutates only TPC `fiatPayment`
   state (this flow's own state), never global ramps selection — so UB2 is unaffected.
 - Resolves the non-Transak-region dead end (a provider is chosen, so payment methods
-  load) and keeps provider/payment/limits/quote mutually consistent.
-- **Writing `selectedProviderId` to TPC state is what lets the core quote call scope to
-  one provider** (see Core change) and eliminate `pickBestFiatQuote`.
+  load) and keeps the client-side payment-method/limits provider consistent.
+- The resolved provider is a **client/ramps concern** used for payment-method fetch and
+  limits only. It is **not** written to TPC and **not** passed into `getFiatQuotes` —
+  `getFiatQuotes` stays provider-agnostic (see Core change). Consistency with the quote
+  is maintained because both the client limits provider and the core best-quote pick
+  defer to the same backend reliability ranking; any residual mismatch is caught by the
+  quote-error fallback.
 
 ### Part 3 — Amount validation, quote gating, error surfacing (the input screen)
 
@@ -221,19 +224,24 @@ Alert wiring (disables Continue + shows inline error during keyboard entry), mod
   the `PENDING_AMOUNT_ALERTS` / `KEYBOARD_ALERTS` / `ON_CHANGE_ALERTS` arrays in
   `useTransactionCustomAmountAlerts`. (Do **not** follow the orphaned `PerpsDepositMinimum`.)
 
-### Core change required (provider-scoped quote + error surfacing)
+### Core change required (best-quote pick + error surfacing)
 
-**Scope the quote to the resolved provider; delete `pickBestFiatQuote`.** Today
-`getFiatQuotes` calls `RampsController:getQuotes` **without** a `providers` param, so it
-fans out to all providers and `pickBestFiatQuote` picks one — currently a hardcoded
-`/providers/transak-native-staging` filter (a TODO). Since Part 2 resolves the provider
-and writes `fiatPayment.selectedProviderId`, `getFiatQuotes` should pass
-`providers: [selectedProviderId]` (exactly as UB2 passes `providers: [selectedProvider.id]`,
-quotes.ts:18,44). That returns exactly that provider's quote, so the "pick" step is
-unnecessary — take the single `success` quote (or the matching one) and **remove
-`pickBestFiatQuote` entirely**. This also guarantees the fee quote uses the *same*
-provider as eligibility/limits/payment-method (no divergence) and makes the surfaced
-error precisely that provider's rejection.
+**`getFiatQuotes` stays provider-agnostic — fix how `pickBestFiatQuote` picks "best".**
+`getFiatQuotes` should not know about provider selection; it just wants the best quote.
+The bug is only in *how* `pickBestFiatQuote` picks: today it hardcodes a
+`/providers/transak-native-staging` filter (a TODO). Fix it to pick the **best quote by
+the backend's reliability ranking** — the `RampsController:getQuotes` response already
+carries `metadata.reliability` and `isMostReliable` / `isBestRate` tags and is
+reliability-sorted (the same data UB2 ranks via `sortQuotes(…, QuoteSortBy.reliability)`).
+So `pickBestFiatQuote` becomes "take the most-reliable / best-rate quote" — a ramps-owned
+definition of best — and `getFiatQuotes` continues to call `getQuotes` **without** a
+`providers` param. No `selectedProviderId` is threaded in; MM Pay/TPC never deals with
+provider selection.
+
+Consistency with the client-side limit check is maintained without coupling: the client
+limits provider (Part 2) and this best-quote pick both defer to the same backend
+reliability ranking, so they agree in practice; the quote-error fallback covers any
+residual mismatch.
 
 **Why error surfacing must be a core change, not "route via the mobile `getQuotes`".** MM Pay
 collects the **total fees in the controller**: `getFiatQuotes` combines the ramps quote
