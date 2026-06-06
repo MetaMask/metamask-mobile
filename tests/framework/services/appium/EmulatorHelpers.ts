@@ -228,9 +228,13 @@ export async function startIosSimulator(deviceName: string): Promise<string> {
   logger.info(`Booting iOS simulator: ${deviceName} (${udid})`);
 
   // xcrun simctl boot exits with code 149 if already booted — treat that as success
-  await execAsync(`xcrun simctl boot "${udid}"`).catch((_err) => {
-    /* exit 149 means already booted — treat as success */
-  });
+  await execAsync(`xcrun simctl boot "${udid}"`).catch(
+    (err: NodeJS.ErrnoException) => {
+      if (err.code !== 149) {
+        throw err;
+      }
+    },
+  );
 
   // bootstatus -b blocks until the simulator is fully booted
   await execAsync(`xcrun simctl bootstatus "${udid}" -b`);

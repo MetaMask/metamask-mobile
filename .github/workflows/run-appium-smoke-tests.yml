@@ -12,6 +12,11 @@ name: Appium Smoke Tests
 on:
   workflow_call:
     inputs:
+      platform:
+        description: 'Platform to test (android, ios, or both)'
+        required: false
+        type: string
+        default: 'both'
       build_type:
         description: 'Build type (main or flask)'
         required: false
@@ -29,6 +34,11 @@ on:
         default: 'current'
   workflow_dispatch:
     inputs:
+      platform:
+        description: 'Platform to test (android, ios, or both)'
+        required: false
+        type: string
+        default: 'both'
       build_type:
         description: 'Build type (main or flask)'
         required: false
@@ -55,6 +65,7 @@ concurrency:
 jobs:
   android:
     name: Android
+    if: ${{ inputs.platform == 'android' || inputs.platform == 'both' }}
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-android-build' || 'ubuntu-latest' }}
 
     steps:
@@ -115,6 +126,7 @@ jobs:
 
   ios:
     name: iOS
+    if: ${{ inputs.platform == 'ios' || inputs.platform == 'both' }}
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ios-e2e' || 'macos-latest' }}
 
     steps:

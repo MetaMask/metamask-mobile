@@ -1086,15 +1086,31 @@ jobs:
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
-  appium-smoke-tests:
-    name: 'Appium Smoke Tests'
-    if: ${{ !cancelled() && needs.build-android-apks.result == 'success' && needs.ios-tests-ready.result == 'success' }}
+  appium-smoke-tests-android:
+    name: 'Appium Smoke Tests (Android)'
+    if: ${{ !cancelled() && needs.build-android-apks.result == 'success' }}
     permissions:
       contents: read
       id-token: write
-    needs: [build-android-apks, ios-tests-ready]
+    needs: [build-android-apks]
     uses: ./.github/workflows/run-appium-smoke-tests.yml
     with:
+      platform: 'android'
+      build_type: 'main'
+      metamask_environment: 'e2e'
+      runner_provider: ${{ inputs.runner_provider }}
+    secrets: inherit
+
+  appium-smoke-tests-ios:
+    name: 'Appium Smoke Tests (iOS)'
+    if: ${{ !cancelled() && needs.ios-tests-ready.result == 'success' }}
+    permissions:
+      contents: read
+      id-token: write
+    needs: [ios-tests-ready]
+    uses: ./.github/workflows/run-appium-smoke-tests.yml
+    with:
+      platform: 'ios'
       build_type: 'main'
       metamask_environment: 'e2e'
       runner_provider: ${{ inputs.runner_provider }}
