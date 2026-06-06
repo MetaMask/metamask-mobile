@@ -1,280 +1,279 @@
-# MM Pay Fiat Deposit — Amount Limit Validation
+# MM Pay Money-Account Fiat Deposit — Eligibility, Provider/Payment Resolution & Amount Validation
 
 **Date:** 2026-06-05
 **Status:** Approved design, pending implementation plan
 
 ## Problem
 
-On the Money Account "Deposit Funds" (fiat) flow, the custom-amount screen
-(`custom-amount-info`) lets the user enter a fiat amount and confirm, but it does
-**not** validate that amount against the on-ramp provider's buy limits. A user can
-enter an amount below the provider minimum or above the provider maximum, proceed
-through the entire flow, and only hit a failure later. We want to validate the
-entered amount against the provider's min/max **as soon as the user finishes
-typing**, show a clear min/max error, and keep the Continue button disabled until
-the amount is within range.
+The Money Account "Deposit Funds" (fiat) flow has several dead-end / correctness
+gaps:
+
+1. **No amount validation.** The custom-amount screen (`custom-amount-info`) lets the
+   user enter any fiat amount and proceed, with no check against the provider's buy
+   limits. Out-of-range amounts fail later instead of being caught at input.
+2. **Entry point isn't eligibility-gated.** "Deposit Funds" is shown whenever the
+   feature flag enables it (`enabledTransactionTypes.includes(moneyAccountDeposit)`);
+   it does **not** check whether the asset is buyable in the user's region (region
+   eligibility / provider availability). Users can enter a flow that can't complete.
+3. **Provider/payment resolution is fragile.** The flow relies on whatever provider
+   `RampsBootstrap` happened to select globally (Transak, or `null` in non-Transak
+   regions). In non-Transak regions with no order history, no provider is selected →
+   no payment methods load → the flat flow can get stuck.
+4. **Quote errors aren't surfaced.** When the fee quote fails (limit, provider, or
+   network error), the error is swallowed in core rather than shown on the input
+   screen the way UB2 does.
+
+We want the Money Account fiat deposit to behave like UB2 (`BuildQuote`): an
+eligibility-gated entry point, a resolved provider + payment method, client-side
+limit validation **first**, a fee quote only when limits pass, and all quote errors
+surfaced back to the input screen — with no dead ends.
 
 ## Goals
 
-- After the user stops typing (debounced), show a localized limit error
-  ("Minimum deposit is $X" / "Maximum deposit is $Y") when the amount is out of range.
-- Keep the Continue/Confirm button disabled while the amount is out of range.
-- Provide instant feedback — limit validation must not wait on a pricing quote
-  round-trip (limits are static per provider/currency/payment-method).
-- Keep the MM Pay / confirmations layer **ignorant of all Ramps-specific concepts**
-  (providers, provider selection, reliability ranking, regions). It passes
-  primitives in and gets a result out.
+- **Eligibility gate:** show/enable "Deposit Funds" only when the deposit asset is
+  buyable in the user's region; otherwise hide/disable it.
+- **Robust provider + payment resolution:** on entering the flow, resolve the best
+  provider for the asset and auto-select the best payment method, sourced without
+  depending on or mutating global ramps selection state (UB2 must be unaffected), and
+  without getting stuck loading.
+- **Client-side limit validation first:** after the user stops typing, validate the
+  amount against the provider's `provider.limits` *before* any quote. Show a localized
+  min/max error and disable Continue when out of range.
+- **Quote only when limits pass:** do not fetch the fee quote for an amount already
+  known to be out of limits.
+- **UB2-faithful error surfacing:** surface all quote error categories UB2 surfaces
+  (network/fetch error, backend per-provider error, generic no-quotes, plus the client
+  limit error) to the input screen, combined client-limit-first.
+- **Reusable primitives:** build the Ramps-domain pieces generic so UB2 can adopt them
+  in a fast-follow.
+- Keep the MM Pay / confirmations layer ignorant of provider/region/reliability
+  concepts — it consumes simple Ramps-domain hooks.
 
 ## Non-Goals
 
-- Changing how pricing quotes are fetched or how the headless buy executes.
-- Changing `determinePreferredProvider`'s existing cascade logic.
-- Adding any new backend endpoint or new LaunchDarkly flag.
-- Building proactive "Min $X · Max $Y" hint text before the user types (only the
-  error-on-violation behavior is in scope; raw min/max are exposed by the hook for
-  optional future display).
-- Unifying the UB2 (`BuildQuote`) provider-selection flow onto these primitives
-  (see Future Work).
+- Unifying UB2 (`BuildQuote`) onto these primitives now (see Future Work — fast-follow).
+- Adding a new LaunchDarkly flag.
+- Changing `determinePreferredProvider`'s existing cascade (we reuse it and only
+  replace its `null` tail).
+- Proactive "Min $X · Max $Y" hint before the user types (validation is on stop-typing;
+  raw min/max are exposed by the hook for optional future display).
 
-## Future work (out of scope, enabled by this design)
+## UB2-flow code constraint
 
-These primitives are deliberately built as reusable Ramps-domain seams so the UB2
-(`BuildQuote`) flow can later be unified onto them:
-
-- **Unify provider selection.** `BuildQuote` today selects a provider via ad-hoc
-  effects: token-support filtering + `setSelectedProvider` inline, plus
-  `determinePreferredProvider` (orders → Transak → `null`). It can adopt
-  `selectBestProviderForAsset` to get the full token-aware cascade
-  (orders → Transak → reliability) in one place and drop the duplicated logic and the
-  `null`/hardcoded-Transak edge cases.
-- **Reuse `useRampsBuyLimits`.** `BuildQuote`'s direct `useProviderLimits` wiring can
-  be replaced by the same hook.
-- **Preserve the `providerAutoSelected` (soft/firm) semantics.** Today
-  `setSelectedProvider(provider, { autoSelected })` sets a flag that controls token-
-  conflict behavior: `autoSelected: true` (soft) lets the UI silently switch providers
-  on a token conflict; `autoSelected: false` (firm) shows the "Token Not Available"
-  modal. `determinePreferredProvider` marks both the order-history pick and the Transak
-  default as **firm** (`autoSelected: false`); BuildQuote's "first supporting provider"
-  fallback is **soft** (`autoSelected: true`). If `selectBestProviderForAsset` is ever
-  used to *set* the provider (not just read limits), the caller must map cascade tiers
-  to the right flag: orders/Transak → firm; reliability fallback (`supporting[0]`) →
-  soft. **This feature does not set the provider** — `useRampsBuyLimits` is read-only —
-  so the flag is untouched here.
+Use only UB2-flow code. The UB2 flow lives under `app/components/UI/Ramp/Views`,
+`hooks`, `utils`, `queries` (the V2 RampsController + React Query layer). Do **not**
+use the legacy `app/components/UI/Ramp/Aggregator/**` or `app/components/UI/Ramp/Deposit/**`
+subtrees.
 
 ## Key facts established during design
 
-These shaped the design and must hold for it to work:
-
-1. **The screen already auto-selects a fiat payment method.**
-   `useAutomaticTransactionPayToken` (`autoSelectFiatPayment` path) writes
-   `fiatPayment.selectedPaymentMethodId` into `TransactionPayController` state. So
-   `custom-amount-info` already has `selectedFiatPaymentMethodId` via
-   `useTransactionPayFiatPayment()`.
-
-2. **The deposit token (assetId) is known before the screen renders** — the deposit
-   is initiated from the money account home with a known target asset.
-
-3. **The providers list is region-scoped and reliability-sorted by the backend.**
-   The mobile providers React Query is keyed by `regionCode`
-   (`app/components/UI/Ramp/queries/providers.ts`) and calls
-   `RampsController.getProviders(regionCode)`, which hits the `regions-v2` endpoint
-   that returns providers "with reliability sorting" (default returned sort). Mobile
-   does **not** re-sort, so the cached list preserves backend reliability order.
-
-4. **Buy limits are static per (provider, currency, paymentMethod)** and live on the
-   `Provider` object: `provider.limits.fiat[currency][paymentMethodId]`. They do not
-   depend on the entered amount or on a quote.
-   (`app/components/UI/Ramp/utils/providerLimits.ts`)
-
-5. **Token support is checkable client-side** via `providerSupportsAsset(provider, assetId)`
-   (`app/components/UI/Ramp/utils/providerSupportsAsset.ts`).
-
-6. **There is an existing live-keyboard alert pattern.** The template is
-   **`useInsufficientMoneyAccountBalanceAlert`**
-   (`app/components/Views/confirmations/hooks/alerts/useInsufficientMoneyAccountBalanceAlert.ts`):
-   a pending-amount alert evaluated against the debounced amount and surfaced live
-   during keyboard entry (red amount + inline message + disabled Continue). It is a
-   real, end-to-end-wired alert: its hook is invoked in `usePendingAmountAlerts`
-   (passed `pendingAmount`) **and** registered in `useConfirmationAlerts`, and its key
-   is listed in the filter arrays of `useTransactionCustomAmountAlerts`. The hook
-   takes `{ pendingAmount }`, sources everything else itself (transaction metadata,
-   etc.), gates on transaction type via `hasTransactionType`, and returns a blocking
-   `Alert[]` (`field: RowAlertKey.Amount`, `severity: Severity.Danger`,
-   `isBlocking: true`).
-
-   > NOTE: `AlertKeys.PerpsDepositMinimum` is **not** a usable template — it is an
-   > orphaned key with no emitter hook (it appears only in `constants/alerts.ts`,
-   > `useConfirmationAlertMetrics`, and the `useTransactionCustomAmountAlerts` filter
-   > arrays; no hook ever produces it). Model the new alert on
-   > `useInsufficientMoneyAccountBalanceAlert` instead.
+1. **MM Pay fetches the ramps quote when there's an amount + payment method.** The TPC
+   `QuoteRefresher` subscribes to `TransactionPayController:stateChange` and re-runs
+   `refreshQuotes` on an interval whenever transaction-pay state exists. For fiat,
+   `getFiatQuotes` calls `RampsController:getQuotes` to compute provider + relay fees →
+   totals. The quote is driven by `fiatPayment.amountFiat` landing in TPC state, so the
+   client controls when it fires by controlling when it commits the amount.
+2. **`RampsController:getQuotes` returns `{ success, error }`** — the `error` array
+   carries backend per-provider messages, including limit messages
+   ("Minimum purchase is $X"). Core's `getFiatQuotes` currently **swallows** this
+   (returns `[]`), so today it never reaches the client.
+3. **Buy limits are static per (provider, currency, paymentMethod)** —
+   `provider.limits.fiat[currency][paymentMethodId]` → `{ minAmount, maxAmount }`;
+   **token-independent** (`getProviderBuyLimit`, providerLimits.ts:19).
+4. **Payment-method ids are standardized slugs** (e.g. `bank_transfer`,
+   `debit_credit_card`) used directly as keys across every provider's limits
+   (providerLimits.test.ts:41; BuildQuote passes `selectedPaymentMethod.id` straight in).
+   So a payment-method id is provider-agnostic.
+5. **Payment methods are provider-scoped at fetch time** — the React Query is keyed by
+   `providerId` and takes it as an explicit param
+   (`rampsPaymentMethodsOptions({ regionCode, fiat, assetId, providerId })`,
+   paymentMethods.ts:12,38). So payment methods can be fetched for a *computed* provider
+   without touching global `providers.selected`.
+6. **Providers list is region-scoped + reliability-sorted by the backend.** The query
+   is keyed by `regionCode` → `getProviders(regionCode)` (regions-v2, "reliability
+   sorting"); mobile does not re-sort, so order is preserved. A dedicated
+   `getMostReliableProvider` endpoint also exists (crypto/fiat/payments filters, no
+   amount) but is not required — the cached sorted list suffices.
+7. **`providerSupportsAsset(provider, assetId)`** checks token support client-side
+   (providerSupportsAsset.ts).
+8. **Region eligibility already exists** as `rampRoutingDecision`
+   (`UnifiedRampRoutingType = DEPOSIT | AGGREGATOR | UNSUPPORTED | ERROR`), set by
+   `useRampsSmartRouting` from backend region eligibility. "Eligible for deposit" =
+   `rampRoutingDecision === DEPOSIT`.
+9. **Today's deposit gate is flag-only** — `MoneyAddMoneySheet.isFiatDepositEnabled`
+   checks only `enabledTransactionTypes.includes(moneyAccountDeposit)`.
+10. **UB2 uses BOTH limit mechanisms, client-first.** `BuildQuote` runs `useProviderLimits`
+    (client-side `provider.limits`) → `amountLimitError` as the **primary** check that
+    gates Continue, and falls back to the backend `providerQuoteError`
+    (`quotesResponse.error[0].error`) only when the quote is empty. Combined:
+    `inlineQuoteError = displayedAmountLimitError ?? providerQuoteError ?? null`, and
+    `amountInputHasError = rampsError || quoteFetchError || inlineQuoteError || hasGenericNoQuotes`.
+    `getProviderLimitMessage` itself layers structured `provider.limits` → `backendError`
+    string via its `backendError` param.
+11. **The live keyboard alert template is `useInsufficientMoneyAccountBalanceAlert`**
+    (a real pending-amount alert: invoked in `usePendingAmountAlerts`, registered in
+    `useConfirmationAlerts`, keys listed in the `useTransactionCustomAmountAlerts` filter
+    arrays). `AlertKeys.PerpsDepositMinimum` is an orphaned key with no emitter — do not
+    model on it.
 
 ## Design
 
-Three pieces. All Ramps-domain logic lives in the Ramps layer; MM Pay consumes a
-single hook with primitive inputs.
+Built as generic Ramps-domain primitives plus money-account wiring, in four parts.
+Each numbered part can be a separate PR.
 
-### 1. `selectBestProviderForAsset` (Ramps util)
+### Part 0 — Shared Ramps-domain primitives (generic; UB2-adoptable)
 
-New file: `app/components/UI/Ramp/utils/selectBestProviderForAsset.ts`
+- **`selectBestProviderForAsset({ providers, completedOrders, assetId })`** — new util,
+  `app/components/UI/Ramp/utils/selectBestProviderForAsset.ts`. `providers` is the
+  region-scoped, reliability-sorted list. Filters by `providerSupportsAsset`, then runs
+  `determinePreferredProvider` **unchanged** (orders → Transak → null) scoped to the
+  supporting subset, and replaces its `null` tail with the most-reliable supporting
+  provider (`supporting[0]`). Returns the provider or `null` (only when nothing supports
+  the asset).
+- **`useRampsBuyLimits({ amount, paymentMethodId, backendError })`** — new hook,
+  `app/components/UI/Ramp/hooks/useRampsBuyLimits.ts`. Resolves the provider (see Part 2
+  for how it's supplied in the money-account flow), reads region currency, and returns
+  `{ minAmount, maxAmount, amountLimitError, currency }` via the existing
+  `getProviderBuyLimit` + `getProviderLimitMessage`. The `backendError` param is passed
+  through to `getProviderLimitMessage` so the structured-limit → backend-error fallback
+  happens in one place. **Read-only** — must not call `setSelectedProvider` or mutate
+  `providers.selected` / `providerAutoSelected`.
+- **Error combination** mirrors UB2: `inlineError = amountLimitError ?? quoteError`.
+  Extract as a small shared helper so both flows combine identically.
 
-Encapsulates the full "best provider for this token" cascade. Reuses the existing
-`determinePreferredProvider` **unchanged**; only replaces its `null` tail with the
-reliability winner.
+### Part 1 — Eligibility gate (separate; entry point)
 
-```ts
-function selectBestProviderForAsset({
-  providers,        // region-scoped AND reliability-sorted (backend order, mobile preserves it)
-  completedOrders,
-  assetId,
-}): Provider | null {
-  const supporting = providers.filter((p) => providerSupportsAsset(p, assetId));
-  if (!supporting.length) return null;
+- **`canFiatDepositAsset({ assetId })`** — Ramps-domain predicate: feature flag enabled
+  **AND** `rampRoutingDecision === DEPOSIT` **AND**
+  `selectBestProviderForAsset({ ..., assetId }) != null`.
+- Wire into `MoneyAddMoneySheet` so the "Deposit Funds" option is shown/enabled only
+  when `canFiatDepositAsset` is true (replacing the flag-only `isFiatDepositEnabled`
+  gate); hidden or disabled otherwise. No dead-end entry.
 
-  // determinePreferredProvider is UNCHANGED: orders → Transak (native) → null,
-  // scoped here to providers that support this token.
-  const preferred = determinePreferredProvider(completedOrders, supporting)?.provider;
-  if (preferred) return preferred;
+### Part 2 — Money-account-scoped provider + payment resolution (no global mutation)
 
-  // Was null → now the most reliable remaining supporting provider
-  // (first in the backend reliability-sorted list).
-  return supporting[0];
-}
-```
+On entering the fiat deposit flow (asset known):
+- Compute `selectBestProviderForAsset(assetId)` (read-only).
+- Fetch **that provider's** payment methods via the parameterized query
+  (`rampsPaymentMethodsOptions({ regionCode, fiat, assetId, providerId })`) — **not**
+  via global `providers.selected`.
+- Select the best eligible payment method (respecting the existing
+  `maxDelayMinutesForPaymentMethods` rule) and write it to TPC
+  `fiatPayment.selectedPaymentMethodId` via `updateFiatPayment`.
+- This replaces the money-account fiat path's reliance on global `providers.selected`
+  (currently in `useAutomaticTransactionPayToken`). It mutates only TPC `fiatPayment`
+  state (this flow's own state), never global ramps selection — so UB2 is unaffected.
+- Resolves the non-Transak-region dead end (a provider is chosen, so payment methods
+  load) and keeps provider/payment/limits mutually consistent.
 
-Resulting cascade:
-1. Previously-used provider (most recent completed order) that supports the token.
-2. Transak (native) default, if supported in region for this token.
-3. Most reliable remaining supporting provider (first in backend order).
-4. `null` only if no provider supports the token at all.
+### Part 3 — Amount validation, quote gating, error surfacing (the input screen)
 
-### 2. `useRampsBuyLimits` (Ramps hook — the single consumer-facing API)
+Order of operations after the user stops typing (debounced, via existing
+`amountHumanDebounced`):
 
-New file: `app/components/UI/Ramp/hooks/useRampsBuyLimits.ts`
+1. **Client-side limit validation first** — `useRampsBuyLimits({ amount, paymentMethodId })`
+   over `provider.limits`. No network.
+2. **If limits fail** — surface the localized min/max error on the input screen and
+   disable Continue, and **do not commit `amountFiat` to TPC** → no quote is fetched for
+   a known-invalid amount.
+3. **If limits pass** — commit `amountFiat` to TPC → the quote refreshes (fees) → if the
+   quote returns an error, surface it as the **fallback** leg.
+4. **Combine errors UB2-style:** `inlineError = amountLimitError ?? quoteError`;
+   `amountInputHasError` also accounts for fetch error, backend per-provider error, and
+   generic no-quotes. Continue is enabled only when there's an amount, no limit error,
+   the quote settled, and a usable quote exists (mirrors UB2's `canContinue`).
 
-```ts
-useRampsBuyLimits({ assetId, amount, paymentMethodId }): {
-  minAmount?: number;
-  maxAmount?: number;
-  amountLimitError: string | null;
-  currency: string;
-}
-```
+Alert wiring (disables Continue + shows inline error during keyboard entry), modeled
+**exactly on `useInsufficientMoneyAccountBalanceAlert`**:
+- New `AlertKeys.FiatBuyAmountLimit` in `constants/alerts.ts`.
+- New `useFiatBuyLimitAlert` hook: takes `{ pendingAmount }`, sources `paymentMethodId`
+  from `useTransactionPayFiatPayment()` and the deposit asset from transaction metadata,
+  gates on fiat `moneyAccountDeposit` context, calls `useRampsBuyLimits`, returns a
+  blocking `Alert[]` (`field: RowAlertKey.Amount`, `Severity.Danger`, `isBlocking: true`)
+  carrying `amountLimitError` (and the quote-error fallback) when present.
+- Wire it the way `useInsufficientMoneyAccountBalanceAlert` is wired: invoke in
+  `usePendingAmountAlerts`, register in `useConfirmationAlerts`, and add the new key to
+  the `PENDING_AMOUNT_ALERTS` / `KEYBOARD_ALERTS` / `ON_CHANGE_ALERTS` arrays in
+  `useTransactionCustomAmountAlerts`. (Do **not** follow the orphaned `PerpsDepositMinimum`.)
 
-Internals (all Ramps-domain, synchronous over already-cached data):
-- Read `userRegion` (`selectUserRegion`) → `currency = userRegion.country.currency ?? 'USD'`,
-  `regionCode = userRegion.regionCode`.
-- Read the cached, region-scoped, reliability-sorted providers list (existing React
-  Query keyed by `regionCode`).
-- Read `completedOrders` (existing selectors used by `useRampsProviders`:
-  legacy fiat orders + controller ramps orders).
-- `provider = selectBestProviderForAsset({ providers, completedOrders, assetId })`.
-- `limit = getProviderBuyLimit(provider, currency, paymentMethodId)` →
-  `{ minAmount, maxAmount }`.
-- `amountLimitError = getProviderLimitMessage({ provider, fiatCurrency: currency,
-  paymentMethodId, amount, currency, formatCurrency })` (existing util; localized).
-  `fiatCurrency` and `currency` are intentionally the same region currency here:
-  `fiatCurrency` selects the `provider.limits.fiat[...]` bucket (lowercased internally
-  by `getProviderBuyLimit`), and `currency` is used for display formatting of the
-  min/max in the message. They only differ if display currency ever diverges from the
-  limits-bucket currency, which is not the case in this flow.
-- Return `{ minAmount, maxAmount, amountLimitError, currency }`.
+### Core change required (for UB2-faithful quote-error surfacing)
 
-Region is handled implicitly: the providers list is region-scoped at fetch time, and
-`currency` (from region) selects the correct limits bucket. No region param is needed
-in the util.
+`getFiatQuotes` (core, `@metamask/transaction-pay-controller`) must stop swallowing the
+ramps quote error. It should propagate the structured `RampsController:getQuotes` error
+(distinguishing no-quotes vs backend per-provider error vs fetch error) into TPC state
+(e.g. a `fiatPayment` error field or on the quotes result) so the mobile input screen can
+render the same error categories UB2 does. Without this, only the client-side limit error
+is available on the client and the backend fallback / no-quotes / fetch errors cannot be
+surfaced. This is part of core PR #8987.
 
-**Read-only — does not mutate selection state.** The hook computes the provider
-purely to look up `.limits`. It MUST NOT call `setSelectedProvider` or otherwise touch
-`providers.selected` / `providerAutoSelected` in RampsController state. The
-`providerAutoSelected` soft/firm flag governs UB2 token-conflict UI behavior and is
-irrelevant to limits; mutating it here would have side effects on other ramps flows.
+## Quote-error parity with UB2
 
-**Graceful degradation:** if region/providers/provider can't be resolved, or no
-limits are published for the provider, the hook returns `amountLimitError: null` and
-`undefined` min/max. The caller then does not block — the pre-existing
-`useNoPayTokenQuotesAlert` still catches truly un-quotable amounts.
-
-### 3. New `AlertKey` wired through existing pending-amount-alert plumbing (MM Pay)
-
-- Add a new key, e.g. `AlertKeys.FiatBuyAmountLimit`, to
-  `app/components/Views/confirmations/constants/alerts.ts`.
-- New alert hook `useFiatBuyLimitAlert` in
-  `app/components/Views/confirmations/hooks/alerts/`, modeled **exactly on
-  `useInsufficientMoneyAccountBalanceAlert`** (the live template). It:
-  - takes `{ pendingAmount }` (the debounced fiat amount), matching the calling
-    convention `usePendingAmountAlerts` uses;
-  - sources `assetId` from the transaction metadata
-    (`useTransactionMetadataRequest`) and `paymentMethodId` from
-    `useTransactionPayFiatPayment()` itself — `usePendingAmountAlerts` only forwards
-    `pendingTokenAmount`, so the hook must read these other inputs internally;
-  - gates on fiat `moneyAccountDeposit` context (`hasTransactionType` +
-    `selectedPaymentMethodId` present);
-  - calls `useRampsBuyLimits({ assetId, amount: Number(pendingAmount), paymentMethodId })`;
-  - returns a **blocking** `Alert[]` (`field: RowAlertKey.Amount`,
-    `severity: Severity.Danger`, `isBlocking: true`) carrying `amountLimitError`
-    as `message` when it is non-null; otherwise `[]`.
-- Wire it the same way `useInsufficientMoneyAccountBalanceAlert` is wired (do **not**
-  follow the orphaned `PerpsDepositMinimum`):
-  - invoke the hook inside `usePendingAmountAlerts` (passing `pendingTokenAmount`) so
-    it evaluates against the debounced amount and surfaces live during keyboard entry;
-  - register it in `useConfirmationAlerts` (the context-level registry) as well;
-  - add the new `AlertKeys.FiatBuyAmountLimit` to the `PENDING_AMOUNT_ALERTS` /
-    `KEYBOARD_ALERTS` / `ON_CHANGE_ALERTS` arrays in
-    `useTransactionCustomAmountAlerts`, mirroring the
-    `InsufficientMoneyAccountBalance` entries.
-
-`custom-amount-info` itself needs **no new wiring**: the existing
-`useTransactionCustomAmountAlerts` already turns the amount red (`CustomAmount hasAlert`),
-shows the inline `AlertMessage`, shows the title on `DepositKeyboard`, and the existing
-`ConfirmButton` is already disabled by `hasBlockingAlerts`.
+| UB2 (`BuildQuote`) | Source | Money-account equivalent |
+|---|---|---|
+| `amountLimitError` | client `provider.limits` | `useRampsBuyLimits` (Part 0/3) |
+| `providerQuoteError` | `quotesResponse.error[0].error` | surfaced from core via the Core Change |
+| `hasGenericNoQuotes` | empty quote, no provider error | derived from surfaced quote state |
+| `quoteFetchError` | network error from quote call | surfaced from core via the Core Change |
+| `inlineQuoteError = amountLimitError ?? providerQuoteError` | combination | shared error-combination helper (Part 0) |
 
 ## Data / UX flow
 
-1. User taps "Deposit Funds" → assetId known, fiat payment method auto-selected,
-   providers already cached app-wide.
-2. Amount screen renders, keyboard up, `$0`, Continue disabled (amount 0). No error.
-3. User types → debounced (existing `amountHumanDebounced`); no error mid-keystroke.
-4. Debounce settles → `useRampsBuyLimits` evaluates (synchronous, no network):
-   - below min → red amount + "Minimum deposit is $X" + Continue disabled
-   - above max → red amount + "Maximum deposit is $Y" + Continue disabled
-   - in range → no error, Continue enabled
-5. Pricing quote still fetches in parallel for fees/totals; limit feedback does not
-   wait on it.
+1. **Tap "Deposit Funds"** → `canFiatDepositAsset` gates the option. If eligible, enter
+   flow; resolve provider + best payment method for the asset (Part 2).
+2. **Amount screen renders**, keyboard up, `$0`, Continue disabled. No error.
+3. **User types → stops (debounce)** → client-side limit check (Part 3 step 1).
+4. **Out of range** → red amount + "Minimum/Maximum deposit is $X" + Continue disabled +
+   **no quote**.
+5. **In range** → commit amount → quote (fees) → on quote error, surface as fallback;
+   Continue enabled when the quote is good.
 
 ## Assumptions to verify during implementation
 
-- **A1:** Mobile's `RampsController.getProviders(regionCode)` resolves to the
-  reliability-sorted `regions-v2` providers endpoint and the order is preserved through
-  to the cached React Query data the hook reads. (Strongly indicated; verify no
-  intermediate re-sort.)
-- **A2:** `userRegion` (with `regionCode` and `country.currency`) is populated by
-  `GeolocationController` at Engine startup, independent of `RampsBootstrap`, by the
-  time the deposit screen renders. (Per `RampsBootstrap` docstring; verify in the
-  UB2 path since `RampsBootstrap` is a temporary non-V2 fix.)
-- **A3:** The fiat payment method id stored in `fiatPayment.selectedPaymentMethodId`
-  matches the key shape used in `provider.limits.fiat[currency][paymentMethodId]`
-  (i.e. `getProviderBuyLimit` resolves with it). Verify keying / any sanitization.
-- **A4:** The deposit assetId available to `custom-amount-info` is in the CAIP form
-  `providerSupportsAsset` expects (it normalizes case but not format).
+- **A1:** `RampsController.getProviders(regionCode)` resolves to the reliability-sorted
+  regions-v2 endpoint and order is preserved through the cached query.
+- **A2:** `userRegion` (`regionCode`, `country.currency`) is populated by
+  `GeolocationController` at Engine startup, independent of `RampsBootstrap`, in the UB2
+  path.
+- **A3:** `fiatPayment.selectedPaymentMethodId` matches the slug key shape used in
+  `provider.limits.fiat[currency][paymentMethodId]`.
+- **A4:** The deposit `assetId` available to the flow is in the CAIP form
+  `providerSupportsAsset` / the payment-methods query expect.
+- **A5:** Committing `amountFiat` to TPC is the sole trigger for the fiat quote (so
+  gating the commit gates the quote). Confirm no other path triggers it for this flow.
+- **A6:** The core `getFiatQuotes` error-propagation change lands in PR #8987 and exposes
+  enough granularity for the parity table.
 
 ## Testing
 
-- `selectBestProviderForAsset`: unit tests for each cascade branch — previous order
-  wins; Transak default when no order; reliability fallback when no order and no
-  Transak; `null` when no supporting provider; respects token-support filtering and
-  preserves reliability order.
-- `useRampsBuyLimits`: returns correct min/max/error for below-min, above-max, and
-  in-range amounts; returns null/undefined gracefully when region/providers/provider
-  or limits are missing; uses region currency for the limits bucket.
-- Alert wiring: blocking alert appears for out-of-range debounced amount, clears when
-  in range, only active in the fiat moneyAccountDeposit context, and disables Continue.
+- `selectBestProviderForAsset`: each cascade branch (previous order → Transak →
+  reliability fallback → null), token-support filtering, reliability-order preservation.
+- `useRampsBuyLimits`: below-min / above-max / in-range; null/undefined graceful when
+  provider/region/limits missing; `backendError` fallback path; read-only (never calls
+  `setSelectedProvider`).
+- `canFiatDepositAsset`: true only when flag + `DEPOSIT` routing + supporting provider;
+  false on each missing condition.
+- Part 2 resolution: payment methods fetched for the computed provider; best method
+  written to TPC; non-Transak region resolves a provider (no dead end); no global
+  selection mutation.
+- Part 3: limit error blocks Continue and suppresses the quote; passing limits commits
+  amount and allows the quote; quote-error categories surface and combine client-first;
+  alert only active in fiat `moneyAccountDeposit` context.
 - Reuse existing `getProviderBuyLimit` / `getProviderLimitMessage` / `providerSupportsAsset`
-  tests; do not duplicate their coverage.
+  tests; don't duplicate.
+
+## Future work (out of scope, enabled by this design)
+
+- **Unify UB2 (`BuildQuote`) onto the shared primitives** — adopt
+  `selectBestProviderForAsset`, `useRampsBuyLimits` (replacing inline `useProviderLimits`),
+  and the shared error-combination helper. Preserve the `providerAutoSelected` soft/firm
+  semantics: when selection is *set* (UB2 path), map orders/Transak → firm
+  (`autoSelected: false`) and the reliability fallback → soft (`autoSelected: true`).
+  **This feature never sets the provider** (`useRampsBuyLimits` is read-only), so the flag
+  is untouched here.
 
 ## Boundary summary
 
-MM Pay passes `{ assetId, amount, paymentMethodId }` and receives
-`{ minAmount, maxAmount, amountLimitError, currency }`. All provider discovery,
-region scoping, reliability ranking, Transak defaulting, and limits lookup live behind
-`useRampsBuyLimits` in the Ramps domain. No Ramps concept leaks into the confirmations
-layer.
+MM Pay passes primitives (`assetId`, `amount`, `paymentMethodId`) and consumes simple
+Ramps-domain hooks; all provider discovery, region scoping, reliability ranking, Transak
+defaulting, and limits lookup live behind those hooks. No global ramps state is mutated,
+so UB2 is unaffected; the primitives are generic so UB2 can adopt them later.
