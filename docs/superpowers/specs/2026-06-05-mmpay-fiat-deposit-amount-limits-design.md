@@ -77,9 +77,12 @@ RampsController + React Query layer) and the `@metamask/ramps-controller` /
    needs in persisted state:** `providers` (region-scoped, **reliability-sorted** by the
    backend; mobile preserves order) and `orders: RampsOrder[]` (`persist: true`,
    RampsController.ts:267,323 — "the controller is the authority for V2 orders … and
-   persists them"). The backend also exposes `getMostReliableProvider` and tags quotes
-   with `isMostReliable`/`isBestRate`. So best-provider/best-quote can be computed
-   **inside the controller** from its own state.
+   persists them"). Reliability signals available **in code**: `providers.data` is backend
+   reliability-sorted (order preserved), and quotes carry a `reliability` score and
+   `isMostReliable`/`isBestRate` tags (`RampsService.ts:289,299-301`). (A backend
+   `getMostReliableProvider` endpoint exists but is **not** wrapped in core/mobile — do
+   not rely on it; use the sorted `providers.data` + quote tags.) So best-provider/
+   best-quote can be computed **inside the controller** from its own state.
 7. **`providerSupportsAsset(provider, assetId)`** checks token support.
 8. **`rampRoutingDecision` is UB1/legacy — do not use it.** It lives in `fiatOrders`,
    set by `useRampsSmartRouting` (which imports `@consensys/on-ramp-sdk`, references
@@ -190,7 +193,8 @@ After the user stops typing (debounced via `amountHumanDebounced`):
 2. **If limits fail** — show the localized min/max error, disable Continue, and **do not
    commit `amountFiat` to TPC** → no quote for a known-invalid amount.
 3. **If limits pass** — commit `amountFiat` → the fee quote runs (`getFiatQuotes` →
-   `RampsController:getBestQuote`) → on error, surface as the **fallback** leg.
+   `RampsController:getBestQuote`) → on error, `getFiatQuotes` writes
+   `fiatPayment.quoteError`, surfaced as the **fallback** leg.
 4. **Combine UB2-style:** `inlineError = amountLimitError ?? quoteError`; `amountInputHasError`
    also accounts for fetch error / generic no-quotes. Continue enabled only with an amount,
    no limit error, a settled usable quote (mirrors UB2's `canContinue`).
@@ -214,11 +218,17 @@ Alert wiring (modeled **exactly on `useInsufficientMoneyAccountBalanceAlert`**):
 - **`getFiatQuotes`** (TPC fiat strategy): replace `RampsController:getQuotes` +
   `pickBestFiatQuote` (hardcoded Transak) with `RampsController:getBestQuote({ assetId, … })`.
   It stays provider-agnostic — asks ramps for the best quote, then combines with the relay
-  quote for fees (its existing job). **Propagate the `getBestQuote` error into TPC state**
-  (instead of swallowing) so the input screen can surface it. Reuse Shane's
-  `LIMIT_EXCEEDED`/`QUOTE_FAILED` classification approach (PR #31079) for consistent
-  messages — but note that PR fixed `useHeadlessBuy().getQuotes`, a path this flow does not
-  use, so it does **not** cover this flow.
+  quote for fees (its existing job).
+- **New TPC state field for the quote error.** `TransactionData` / `TransactionFiatPayment`
+  (`@metamask/transaction-pay-controller` `types.ts`) today have **no error field** — only
+  `quotes?`, `quotesLastUpdated?`, `isQuotesLoading`, `amountFiat`, `selectedPaymentMethodId`.
+  Add a structured field, **`fiatPayment.quoteError?: { code: 'LIMIT_EXCEEDED' | 'QUOTE_FAILED'; message?: string }`**
+  (reusing Shane's `LIMIT_EXCEEDED`/`QUOTE_FAILED` codes, PR #31079). `getFiatQuotes` writes
+  it when `getBestQuote` returns/propagates an error (instead of swallowing), and clears it
+  on success. The mobile input screen (`useFiatBuyLimitAlert` / the error-combination helper)
+  reads `fiatPayment.quoteError` for the fallback leg.
+- Reuse Shane's classification *approach* only — PR #31079 fixed `useHeadlessBuy().getQuotes`,
+  a path this flow does **not** use, so it does not cover this flow.
 - Delete `pickBestFiatQuote`.
 
 ## Quote-error parity with UB2
@@ -226,9 +236,9 @@ Alert wiring (modeled **exactly on `useInsufficientMoneyAccountBalanceAlert`**):
 | UB2 (`BuildQuote`) | Source | Money-account equivalent |
 |---|---|---|
 | `amountLimitError` | client `provider.limits` | `useRampsBuyLimits` → `getBestProviderForAsset` |
-| `providerQuoteError` | `quotesResponse.error[0].error` | `getBestQuote` error surfaced via TPC state |
-| `hasGenericNoQuotes` | empty quote, no provider error | derived from surfaced quote state |
-| `quoteFetchError` | network error | `getBestQuote` error surfaced via TPC state |
+| `providerQuoteError` | `quotesResponse.error[0].error` | `fiatPayment.quoteError` (`code: LIMIT_EXCEEDED`) written by `getFiatQuotes` |
+| `hasGenericNoQuotes` | empty quote, no provider error | `fiatPayment.quoteError` (`code: QUOTE_FAILED`, no message) |
+| `quoteFetchError` | network error | `fiatPayment.quoteError` (`code: QUOTE_FAILED`) |
 | `inlineQuoteError = amountLimitError ?? providerQuoteError` | combination | shared error-combination helper |
 
 ## Data / UX flow
@@ -256,8 +266,9 @@ Alert wiring (modeled **exactly on `useInsufficientMoneyAccountBalanceAlert`**):
   the commit gates the quote).
 - **A6:** `RampsController` persisted `orders` contain enough to extract the most-recent
   completed order's provider for the cascade (status + `provider.id`).
-- **A7:** Adding `getBestQuote`/`getBestProviderForAsset` + the `getFiatQuotes` rewrite land
-  in core PR #8987.
+- **A7:** Adding `getBestQuote`/`getBestProviderForAsset`, the new
+  `fiatPayment.quoteError` TPC state field, and the `getFiatQuotes` rewrite land in core
+  PR #8987.
 
 ## Testing
 
