@@ -8,10 +8,7 @@ import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
-import {
-  getRampRoutingDecision,
-  UnifiedRampRoutingType,
-} from '../../../../../reducers/fiatOrders';
+import { useCanFiatDepositAsset } from '../../../Ramp/hooks/useCanFiatDepositAsset';
 import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
@@ -53,9 +50,8 @@ jest.mock('../../../../../selectors/tokenBalancesController', () => ({
   selectHasAnyNonZeroTokenBalance: jest.fn(),
 }));
 
-jest.mock('../../../../../reducers/fiatOrders', () => ({
-  ...jest.requireActual('../../../../../reducers/fiatOrders'),
-  getRampRoutingDecision: jest.fn(),
+jest.mock('../../../Ramp/hooks/useCanFiatDepositAsset', () => ({
+  useCanFiatDepositAsset: jest.fn(),
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -107,7 +103,8 @@ describe('MoneyAddMoneySheet', () => {
     (selectHasAnyNonZeroTokenBalance as unknown as jest.Mock).mockReturnValue(
       true,
     );
-    (getRampRoutingDecision as jest.Mock).mockReturnValue(null);
+    // Default: canDeposit = true (flag on + provider available)
+    (useCanFiatDepositAsset as jest.Mock).mockReturnValue(true);
   });
 
   it('renders all four options', () => {
@@ -281,6 +278,8 @@ describe('MoneyAddMoneySheet', () => {
       enabledTransactionTypes: [],
       maxDelayMinutesForPaymentMethods: 10,
     });
+    // useCanFiatDepositAsset returns false when flag is off
+    (useCanFiatDepositAsset as jest.Mock).mockReturnValue(false);
 
     const { queryByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
 
@@ -323,10 +322,22 @@ describe('MoneyAddMoneySheet', () => {
     expect(mockInitiateDeposit).toHaveBeenCalledWith();
   });
 
-  it('hides the Deposit funds option when the ramp routing decision is UNSUPPORTED', () => {
-    (getRampRoutingDecision as jest.Mock).mockReturnValue(
-      UnifiedRampRoutingType.UNSUPPORTED,
-    );
+  it('shows Deposit funds when canDeposit is true (flag on + provider available)', () => {
+    (useCanFiatDepositAsset as jest.Mock).mockReturnValue(true);
+
+    const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+    expect(
+      getByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides Deposit funds when canDeposit is false (flag off)', () => {
+    (useMMPayFiatConfig as jest.Mock).mockReturnValue({
+      enabledTransactionTypes: [],
+      maxDelayMinutesForPaymentMethods: 10,
+    });
+    (useCanFiatDepositAsset as jest.Mock).mockReturnValue(false);
 
     const { queryByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
 
@@ -335,50 +346,32 @@ describe('MoneyAddMoneySheet', () => {
     ).toBeNull();
   });
 
-  it('shows the Deposit funds option when the ramp routing decision is DEPOSIT', () => {
-    (getRampRoutingDecision as jest.Mock).mockReturnValue(
-      UnifiedRampRoutingType.DEPOSIT,
-    );
+  it('hides Deposit funds when canDeposit is false (no supporting provider in region)', () => {
+    (useCanFiatDepositAsset as jest.Mock).mockReturnValue(false);
 
-    const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+    const { queryByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
 
     expect(
-      getByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
-    ).toBeOnTheScreen();
+      queryByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
+    ).toBeNull();
   });
 
-  it('shows the Deposit funds option when the ramp routing decision is AGGREGATOR', () => {
-    (getRampRoutingDecision as jest.Mock).mockReturnValue(
-      UnifiedRampRoutingType.AGGREGATOR,
+  it('calls useCanFiatDepositAsset with the mUSD deposit assetId derived from the default chain', () => {
+    (useCanFiatDepositAsset as jest.Mock).mockReturnValue(true);
+
+    renderWithProvider(<MoneyAddMoneySheet />);
+
+    // Verify the hook was called with the correct mUSD CAIP assetId for the default deposit chain
+    const musdAddress =
+      MUSD_TOKEN_ADDRESS_BY_CHAIN[MUSD_CONVERSION_DEFAULT_CHAIN_ID];
+    const expectedChainRef = Number(MUSD_CONVERSION_DEFAULT_CHAIN_ID).toString();
+    const expectedAssetId = `eip155:${expectedChainRef}/erc20:${musdAddress}`;
+
+    expect(useCanFiatDepositAsset as jest.Mock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        assetId: expectedAssetId,
+      }),
     );
-
-    const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
-
-    expect(
-      getByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
-    ).toBeOnTheScreen();
-  });
-
-  it('shows the Deposit funds option when the ramp routing decision is null (fail-open)', () => {
-    (getRampRoutingDecision as jest.Mock).mockReturnValue(null);
-
-    const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
-
-    expect(
-      getByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
-    ).toBeOnTheScreen();
-  });
-
-  it('shows the Deposit funds option when the ramp routing decision is ERROR (fail-open)', () => {
-    (getRampRoutingDecision as jest.Mock).mockReturnValue(
-      UnifiedRampRoutingType.ERROR,
-    );
-
-    const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
-
-    expect(
-      getByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
-    ).toBeOnTheScreen();
   });
 
   it('initiates a deposit pre-selecting mUSD on the highest-balance chain when Move mUSD is pressed', () => {

@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import BigNumber from 'bignumber.js';
 import { TransactionType } from '@metamask/transaction-controller';
+import { toCaipAssetType, Hex } from '@metamask/utils';
 import {
   BottomSheet,
   BottomSheetHeader,
@@ -25,15 +26,11 @@ import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
 } from '../../../Earn/constants/musd';
-import { Hex } from '@metamask/utils';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
 import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
-import {
-  getRampRoutingDecision,
-  UnifiedRampRoutingType,
-} from '../../../../../reducers/fiatOrders';
+import { useCanFiatDepositAsset } from '../../../Ramp/hooks/useCanFiatDepositAsset';
 import styleSheet from './MoneyAddMoneySheet.styles';
 import { MoneyAddMoneySheetTestIds } from './MoneyAddMoneySheet.testIds';
 
@@ -63,11 +60,26 @@ const MoneyAddMoneySheet: React.FC = () => {
   const { initiateDeposit } = useMoneyAccountDeposit();
   const { enabledTransactionTypes } = useMMPayFiatConfig();
   const hasAnyCryptoBalance = useSelector(selectHasAnyNonZeroTokenBalance);
-  const rampRoutingDecision = useSelector(getRampRoutingDecision);
   const isFiatDepositEnabled = useMemo(
     () => enabledTransactionTypes.includes(TransactionType.moneyAccountDeposit),
     [enabledTransactionTypes],
   );
+
+  const depositAssetId = useMemo(() => {
+    const chainId = MUSD_CONVERSION_DEFAULT_CHAIN_ID;
+    const address = MUSD_TOKEN_ADDRESS_BY_CHAIN[chainId];
+    return toCaipAssetType(
+      'eip155',
+      Number(chainId).toString(),
+      'erc20',
+      address,
+    );
+  }, []);
+
+  const canDeposit = useCanFiatDepositAsset({
+    assetId: depositAssetId,
+    isFiatDepositFlagEnabled: isFiatDepositEnabled,
+  });
 
   const closeAndNavigate = useCallback((navigateFn: () => void) => {
     sheetRef.current?.onCloseBottomSheet(navigateFn);
@@ -135,8 +147,7 @@ const MoneyAddMoneySheet: React.FC = () => {
       testID: MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
       disabled: !hasAnyCryptoBalance,
     },
-    ...(isFiatDepositEnabled &&
-    rampRoutingDecision !== UnifiedRampRoutingType.UNSUPPORTED
+    ...(canDeposit
       ? [
           {
             label: strings('money.add_money_sheet.deposit_funds'),
