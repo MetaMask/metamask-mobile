@@ -36,16 +36,21 @@ export function useTransactionCustomAmountAlerts({
   isInputChanged,
   isKeyboardVisible,
   pendingTokenAmount,
+  pendingFiatAmount,
 }: {
   isInputChanged: boolean;
   isKeyboardVisible: boolean;
   pendingTokenAmount: string;
+  pendingFiatAmount?: string;
 }): {
   alertMessage?: string;
   alertTitle?: string;
 } {
   const { alerts: confirmationAlerts } = useAlerts();
-  const pendingTokenAlerts = usePendingAmountAlerts({ pendingTokenAmount });
+  const pendingTokenAlerts = usePendingAmountAlerts({
+    pendingTokenAmount,
+    pendingFiatAmount,
+  });
 
   const filteredAlerts = useMemo(() => {
     const relevantAlerts = confirmationAlerts.filter((a) => a.isBlocking);

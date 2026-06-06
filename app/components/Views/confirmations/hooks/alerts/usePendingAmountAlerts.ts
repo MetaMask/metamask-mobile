@@ -10,8 +10,10 @@ import { useAccountNoFundsAlert } from './useAccountNoFundsAlert';
 
 export function usePendingAmountAlerts({
   pendingTokenAmount,
+  pendingFiatAmount,
 }: {
   pendingTokenAmount: string | undefined;
+  pendingFiatAmount?: string;
 }): Alert[] {
   const insufficientTokenFundsAlert = useInsufficientPayTokenBalanceAlert({
     pendingAmountUsd: pendingTokenAmount,
@@ -32,7 +34,9 @@ export function usePendingAmountAlerts({
       pendingAmount: pendingTokenAmount ?? '0',
     });
 
-  const fiatBuyLimitAlert = useFiatBuyLimitAlert();
+  const fiatBuyLimitAlert = useFiatBuyLimitAlert({
+    pendingAmount: pendingFiatAmount,
+  });
 
   const accountNoFundsAlert = useAccountNoFundsAlert();
 
