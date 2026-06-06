@@ -55,7 +55,9 @@ interface PayWithRouteParams {
   preferredPaymentToken?: SetPayTokenRequest;
 }
 
-export function PayWithRow() {
+export function PayWithRow({
+  isResultReady,
+}: { isResultReady?: boolean } = {}) {
   const transactionId = useTransactionMetadataRequest()?.id ?? '';
   const paymentOverride = useSelector((state: RootState) =>
     selectPaymentOverrideByTransactionId(state, transactionId),
@@ -63,8 +65,9 @@ export function PayWithRow() {
   const initialPayWithOption = useInitialPayWithOption();
 
   if (
-    paymentOverride === PaymentOverride.MoneyAccount ||
-    initialPayWithOption === PayWithOption.MoneyAccount
+    !isResultReady &&
+    (paymentOverride === PaymentOverride.MoneyAccount ||
+      initialPayWithOption === PayWithOption.MoneyAccount)
   ) {
     return <PayWithRowMoneyAccount />;
   }
