@@ -174,16 +174,17 @@ export function canFiatDepositAsset({
 top-level assetId exists today)**
 
 In `MoneyAddMoneySheet.tsx` the deposit target is **mUSD**, and its address is derived
-**inside** `handleConvertCrypto` (`MUSD_TOKEN_ADDRESS_BY_CHAIN[sourceChainId]`, ~lines
-88-103) — there is no top-level CAIP asset for the gate to use, and mUSD spans multiple
-chains. So first compute, at the component top level, the deposit chain + mUSD address and
-build a CAIP assetId:
+**inside** `handleMoveMusd` (`MUSD_TOKEN_ADDRESS_BY_CHAIN[sourceChainId]`, ~lines 92-110) —
+there is no top-level CAIP asset for the gate to use, and mUSD spans multiple chains. So
+first compute, at the component top level, the deposit chain + mUSD address and build a
+CAIP assetId:
 - Pick the deposit chain deterministically (e.g. the default mUSD chain
   `MUSD_CONVERSION_DEFAULT_CHAIN_ID`, or the chain with the best mUSD balance — match
   whatever `handleConvertCrypto`/`handleDepositFunds` will actually use so the gate and the
   flow agree).
-- Build the CAIP assetId with the existing helper (`toCaipAssetType`, as used in
-  `custom-amount-info.tsx:376`) from that chainId + mUSD address.
+- Build the CAIP assetId with the existing helper, signature
+  `toCaipAssetType('eip155', chainId, 'erc20', address)` (as used in
+  `custom-amount-info.tsx:376-381`).
 - Memoize it as `depositAssetId`.
 
 This satisfies spec assumption A4 (assetId in CAIP form). If the chain choice is dynamic,
