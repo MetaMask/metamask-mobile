@@ -15,6 +15,11 @@ jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('./useTransactionPayData');
 jest.mock('../../../../UI/Ramp/headless');
 jest.mock('../../context/confirmation-context');
+
+const mockGoBack = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({ goBack: mockGoBack }),
+}));
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     TransactionPayController: {
@@ -35,6 +40,7 @@ describe('useFiatConfirm', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+    mockGoBack.mockClear();
 
     jest.mocked(useHeadlessBuy).mockReturnValue({
       startHeadlessBuy: startHeadlessBuyMock,
@@ -452,6 +458,55 @@ describe('useFiatConfirm', () => {
       expect(
         Engine.context.ApprovalController.rejectRequest,
       ).not.toHaveBeenCalled();
+    });
+
+    it('calls navigation.goBack() on close when no order was created', () => {
+      // Closing without completing an order → confirmation screen must navigate
+      // back so it doesn't stay stuck in the <Loader>/<CustomAmountInfoSkeleton>
+      // state after the approval request is rejected.
+      jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
+        selectedPaymentMethodId: 'pm-123',
+        amountFiat: '50.00',
+        rampsQuote: { id: 'quote-1' },
+        caipAssetId: 'eip155:1/erc20:0xabc',
+        orderId: undefined,
+      } as never);
+
+      const { result } = renderHook(() => useFiatConfirm());
+
+      act(() => {
+        result.current.onFiatConfirm();
+      });
+
+      act(() => {
+        startHeadlessBuyMock.mock.calls[0][1].onClose({
+          reason: 'user_dismissed',
+        });
+      });
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('does NOT call navigation.goBack() when an order was already created on close', () => {
+      jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
+        selectedPaymentMethodId: 'pm-123',
+        amountFiat: '50.00',
+        rampsQuote: { id: 'quote-1' },
+        caipAssetId: 'eip155:1/erc20:0xabc',
+        orderId: 'order-abc',
+      } as never);
+
+      const { result } = renderHook(() => useFiatConfirm());
+
+      act(() => {
+        result.current.onFiatConfirm();
+      });
+
+      act(() => {
+        startHeadlessBuyMock.mock.calls[0][1].onClose({ reason: 'completed' });
+      });
+
+      expect(mockGoBack).not.toHaveBeenCalled();
     });
   });
 });

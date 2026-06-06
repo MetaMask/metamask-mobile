@@ -223,22 +223,37 @@ export function useAutomaticTransactionPayToken({
           maxDelayMinutesForPaymentMethods,
         );
 
-        if (eligibleMethod) {
+        // When the asset-provider data settled but no method passes the delay
+        // filter (e.g. region only has slow bank-transfer methods), fall back
+        // to the provider's first method so PayWithRow isn't stuck in skeleton
+        // state. The user can tap the row to change the method.
+        const methodToSelect =
+          eligibleMethod ??
+          (assetProviderPaymentMethodsReady && methods.length > 0
+            ? methods[0]
+            : undefined);
+
+        if (methodToSelect) {
           Engine.context.TransactionPayController.updateFiatPayment({
             transactionId,
             callback: (fp) => {
-              fp.selectedPaymentMethodId = eligibleMethod.id;
+              fp.selectedPaymentMethodId = methodToSelect.id;
             },
           });
           isUpdated.current = transactionId;
           log(
             'Auto-selected fiat payment method (asset provider)',
-            eligibleMethod.name,
+            methodToSelect.name,
           );
+        } else if (assetProviderPaymentMethodsReady) {
+          // Provider returned zero methods — stamp isUpdated to prevent an
+          // indefinite no-op loop. UI will surface the empty-methods state.
+          isUpdated.current = transactionId;
+          log('No fiat payment methods found from asset provider');
         }
-        // When no eligible method was found (e.g. global methods still
-        // loading), do NOT stamp isUpdated — allow the effect to retry
-        // once paymentMethods resolves.
+        // When assetProviderPaymentMethodsReady is false and no eligible
+        // global method was found, do NOT stamp isUpdated — allow the effect
+        // to retry once paymentMethods (global fallback) resolves.
         return;
       }
 

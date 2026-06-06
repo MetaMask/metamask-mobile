@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import { createProjectLogger } from '@metamask/utils';
 import { providerErrors } from '@metamask/rpc-errors';
 import BigNumber from 'bignumber.js';
@@ -20,6 +21,7 @@ import { useConfirmationContext } from '../../context/confirmation-context';
 const log = createProjectLogger('fiat-confirm');
 
 export function useFiatConfirm() {
+  const navigation = useNavigation();
   const transactionMetadata = useTransactionMetadataRequest();
   const fiatPayment = useTransactionPayFiatPayment();
   const { setIsHeadlessBuyInProgress, setHeadlessBuyError } =
@@ -135,12 +137,19 @@ export function useFiatConfirm() {
                 transactionId,
               );
             }
+            // Navigate back so the confirmation screen does not remain mounted
+            // in the indefinite <Loader>/<CustomAmountInfoSkeleton> state.
+            // Once the approval is rejected, <Confirm> renders <Loader> and
+            // blocks the hardware back button waiting for a new request that
+            // will never arrive — programmatic goBack bypasses that guard.
+            navigation.goBack();
           }
         },
       },
     );
   }, [
     fiatPayment,
+    navigation,
     totals,
     setHeadlessBuyError,
     setIsHeadlessBuyInProgress,
