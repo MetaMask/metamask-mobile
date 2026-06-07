@@ -4,19 +4,24 @@ import {
   isLocalEmulatorProvider,
   isVideoRecordingOnFailureEnabled,
   sanitizeRecordingFileName,
+  shouldPersistRecordingAlways,
 } from './ScreenRecording.ts';
 import { ProviderName } from '../../types.ts';
 
 describe('ScreenRecording', () => {
   const recordVideoKey = 'APPIUM_RECORD_VIDEO_ON_FAILURE';
+  const recordVideoAlwaysKey = 'APPIUM_RECORD_VIDEO_ALWAYS';
   const ciKey = 'CI';
   let previousRecordVideo: string | undefined;
+  let previousRecordVideoAlways: string | undefined;
   let previousCi: string | undefined;
 
   beforeEach(() => {
     previousRecordVideo = process.env[recordVideoKey];
+    previousRecordVideoAlways = process.env[recordVideoAlwaysKey];
     previousCi = process.env[ciKey];
     delete process.env[recordVideoKey];
+    delete process.env[recordVideoAlwaysKey];
     delete process.env[ciKey];
   });
 
@@ -25,6 +30,11 @@ describe('ScreenRecording', () => {
       delete process.env[recordVideoKey];
     } else {
       process.env[recordVideoKey] = previousRecordVideo;
+    }
+    if (previousRecordVideoAlways === undefined) {
+      delete process.env[recordVideoAlwaysKey];
+    } else {
+      process.env[recordVideoAlwaysKey] = previousRecordVideoAlways;
     }
     if (previousCi === undefined) {
       delete process.env[ciKey];
@@ -80,6 +90,17 @@ describe('ScreenRecording', () => {
       expect(sanitizeRecordingFileName('should login @SmokeAppium')).toBe(
         'should_login_SmokeAppium',
       );
+    });
+  });
+
+  describe('shouldPersistRecordingAlways', () => {
+    it('returns false by default', () => {
+      expect(shouldPersistRecordingAlways()).toBe(false);
+    });
+
+    it('returns true when APPIUM_RECORD_VIDEO_ALWAYS is true', () => {
+      process.env[recordVideoAlwaysKey] = 'true';
+      expect(shouldPersistRecordingAlways()).toBe(true);
     });
   });
 

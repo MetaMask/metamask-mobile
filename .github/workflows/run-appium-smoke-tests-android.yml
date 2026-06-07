@@ -143,6 +143,8 @@ jobs:
           APPIUM_SMOKE_ARTIFACT_NAME: appium-smoke-report-android
           APPIUM_SMOKE_VIDEOS_ARTIFACT_NAME: appium-smoke-videos-android
           APPIUM_RECORD_VIDEO_ON_FAILURE: 'true'
+          # Temporary: upload recordings for every test while validating capture.
+          APPIUM_RECORD_VIDEO_ALWAYS: 'true'
           # Keep Appium alive between tests/retries (cold start once per job).
           SKIP_APPIUM_STOP: 'true'
 

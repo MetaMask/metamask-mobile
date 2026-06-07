@@ -8,6 +8,7 @@ import { createLogger } from '../../logger.ts';
 const logger = createLogger({ name: 'ScreenRecording' });
 
 const RECORD_VIDEO_ON_FAILURE_ENV_KEY = 'APPIUM_RECORD_VIDEO_ON_FAILURE';
+const RECORD_VIDEO_ALWAYS_ENV_KEY = 'APPIUM_RECORD_VIDEO_ALWAYS';
 const RECORD_VIDEO_TIME_LIMIT_ENV_KEY = 'APPIUM_RECORD_VIDEO_TIME_LIMIT_SEC';
 const CI_ENV_KEY = 'CI';
 
@@ -145,7 +146,20 @@ function buildRecordingBaseName(testInfo: TestInfo): string {
   return `${project}-${sanitizeRecordingFileName(testInfo.title)}${retrySuffix}`;
 }
 
+/**
+ * Temporary CI toggle: persist recordings for every test (not only failures).
+ * Remove APPIUM_RECORD_VIDEO_ALWAYS once video capture is validated.
+ */
+export function shouldPersistRecordingAlways(): boolean {
+  const raw = process.env[RECORD_VIDEO_ALWAYS_ENV_KEY]?.trim().toLowerCase();
+  return raw === 'true' || raw === '1' || raw === 'yes';
+}
+
 function shouldPersistRecording(testInfo: TestInfo): boolean {
+  if (shouldPersistRecordingAlways()) {
+    return true;
+  }
+
   return (
     testInfo.status === 'failed' ||
     testInfo.status === 'timedOut' ||

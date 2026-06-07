@@ -9,23 +9,19 @@ import {
 describe('AppiumServer', () => {
   const hostKey = 'APPIUM_HOST';
   const portKey = 'APPIUM_PORT';
-  const prestartedKey = 'APPIUM_PRESTARTED';
   const skipStopKey = 'SKIP_APPIUM_STOP';
 
   let previousHost: string | undefined;
   let previousPort: string | undefined;
-  let previousPrestarted: string | undefined;
   let previousSkipStop: string | undefined;
   let fetchMock: jest.SpiedFunction<typeof fetch>;
 
   beforeEach(() => {
     previousHost = process.env[hostKey];
     previousPort = process.env[portKey];
-    previousPrestarted = process.env[prestartedKey];
     previousSkipStop = process.env[skipStopKey];
     delete process.env[hostKey];
     delete process.env[portKey];
-    delete process.env[prestartedKey];
     delete process.env[skipStopKey];
     fetchMock = jest.spyOn(globalThis, 'fetch');
   });
@@ -41,11 +37,6 @@ describe('AppiumServer', () => {
       delete process.env[portKey];
     } else {
       process.env[portKey] = previousPort;
-    }
-    if (previousPrestarted === undefined) {
-      delete process.env[prestartedKey];
-    } else {
-      process.env[prestartedKey] = previousPrestarted;
     }
     if (previousSkipStop === undefined) {
       delete process.env[skipStopKey];
@@ -92,11 +83,6 @@ describe('AppiumServer', () => {
   describe('shouldSkipAppiumStop', () => {
     it('returns false by default', () => {
       expect(shouldSkipAppiumStop()).toBe(false);
-    });
-
-    it('returns true when APPIUM_PRESTARTED is true', () => {
-      process.env[prestartedKey] = 'true';
-      expect(shouldSkipAppiumStop()).toBe(true);
     });
 
     it('returns true when SKIP_APPIUM_STOP is true', () => {

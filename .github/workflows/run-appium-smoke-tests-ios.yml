@@ -208,13 +208,13 @@ jobs:
           APPIUM_SMOKE_ARTIFACT_NAME: appium-smoke-report-ios
           APPIUM_SMOKE_VIDEOS_ARTIFACT_NAME: appium-smoke-videos-ios
           APPIUM_RECORD_VIDEO_ON_FAILURE: 'true'
+          # Temporary: upload recordings for every test while validating capture.
+          APPIUM_RECORD_VIDEO_ALWAYS: 'true'
           # Runner prep already simctl-installs and boots; skip duplicate work in globalSetup.
           SKIP_DEVICE_BOOT: 'true'
           SKIP_APP_REINSTALL: 'true'
           IOS_APPIUM_USE_BUNDLE_ID_ONLY: 'true'
           USE_PREBUILT_WDA: 'true'
-          # prepare-ios-appium-runner.mjs starts Appium in parallel with sim boot.
-          APPIUM_PRESTARTED: 'true'
 
       - name: Upload Playwright HTML report (Namespace)
         if: ${{ always() && inputs.runner_provider == 'namespace' }}

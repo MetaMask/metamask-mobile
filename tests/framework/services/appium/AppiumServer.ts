@@ -44,18 +44,15 @@ export function getAppiumServerUrl(): string {
 }
 
 /**
- * Whether the test runner should leave a pre-started Appium process running.
- * Set by CI prepare scripts (APPIUM_PRESTARTED=true) or explicitly via SKIP_APPIUM_STOP.
+ * Whether the test runner should leave Appium running after the job.
+ * Set explicitly via SKIP_APPIUM_STOP (e.g. Android CI keeps one server per job).
  */
 export function shouldSkipAppiumStop(): boolean {
-  return (
-    process.env.SKIP_APPIUM_STOP === 'true' ||
-    process.env.APPIUM_PRESTARTED === 'true'
-  );
+  return process.env.SKIP_APPIUM_STOP === 'true';
 }
 
 /**
- * Check whether Appium is already listening (e.g. prewarmed by a prepare script).
+ * Check whether Appium is already listening on the configured host/port.
  */
 export async function isAppiumServerRunning(): Promise<boolean> {
   try {
@@ -75,7 +72,7 @@ export async function startAppiumServer(
 ): Promise<ChildProcess | null> {
   if (await isAppiumServerRunning()) {
     logger.info(
-      `Reusing existing Appium server at ${getAppiumServerUrl()} (prewarmed).`,
+      `Reusing existing Appium server at ${getAppiumServerUrl()}.`,
     );
     return null;
   }
@@ -215,14 +212,11 @@ export async function startAppiumServer(
  * Stop the Appium server.
  * Kills the tracked process by PID to avoid accidentally matching and killing
  * the parent test-runner process (which also has "appium" in its command line).
- * Skips stop when APPIUM_PRESTARTED/SKIP_APPIUM_STOP is set or when this
- * process did not spawn Appium (prewarmed server).
+ * Skips stop when SKIP_APPIUM_STOP is set or when this process did not spawn Appium.
  */
 export function stopAppiumServer(): Promise<void> {
   if (shouldSkipAppiumStop()) {
-    logger.debug(
-      'Skipping Appium server stop (APPIUM_PRESTARTED or SKIP_APPIUM_STOP).',
-    );
+    logger.debug('Skipping Appium server stop (SKIP_APPIUM_STOP).');
     return Promise.resolve();
   }
 
