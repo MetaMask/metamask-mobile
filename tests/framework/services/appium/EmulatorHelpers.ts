@@ -8,6 +8,10 @@ const logger = createLogger({ name: 'EmulatorHelpers' });
 
 const ANDROID_BOOT_TIMEOUT_MS = 3 * 60 * 1000;
 const ANDROID_BOOT_POLL_INTERVAL_MS = 2000;
+const ANDROID_CI_POST_BOOT_SETTLE_MS = 20_000;
+const ANDROID_ANR_DISMISS_ATTEMPTS = 6;
+const ANDROID_ANR_DISMISS_INTERVAL_MS = 3000;
+const UI_AUTOMATOR_DUMP_PATH = '/sdcard/window_dump.xml';
 
 interface AdbDevice {
   serial: string;
@@ -85,6 +89,125 @@ async function findEmulatorSerialForAvd(
   return undefined;
 }
 
+interface TapPoint {
+  x: number;
+  y: number;
+}
+
+function parseUiNodeCenter(bounds: string): TapPoint | undefined {
+  const match = bounds.match(/\[(\d+),(\d+)\]\[(\d+),(\d+)\]/);
+  if (!match) {
+    return undefined;
+  }
+  const left = Number.parseInt(match[1], 10);
+  const top = Number.parseInt(match[2], 10);
+  const right = Number.parseInt(match[3], 10);
+  const bottom = Number.parseInt(match[4], 10);
+  return {
+    x: Math.floor((left + right) / 2),
+    y: Math.floor((top + bottom) / 2),
+  };
+}
+
+/**
+ * Finds the tap target for an Android "app isn't responding" dialog.
+ * Prefers "Wait" over "Close app" so the launcher can recover.
+ */
+export function findAnrDialogWaitTapPoint(
+  uiDump: string,
+): TapPoint | undefined {
+  if (!/isn.t responding/i.test(uiDump)) {
+    return undefined;
+  }
+
+  const waitNode = uiDump.match(
+    /text="Wait"[^>]*bounds="(\[[^\]]+\]\[[^\]]+\])"/,
+  );
+  if (waitNode) {
+    return parseUiNodeCenter(waitNode[1]);
+  }
+
+  const closeNode = uiDump.match(
+    /text="Close app"[^>]*bounds="(\[[^\]]+\]\[[^\]]+\])"/,
+  );
+  if (closeNode) {
+    return parseUiNodeCenter(closeNode[1]);
+  }
+
+  return undefined;
+}
+
+async function dumpUiHierarchy(serial: string): Promise<string> {
+  await execAsync(
+    `adb -s ${serial} shell uiautomator dump ${UI_AUTOMATOR_DUMP_PATH}`,
+  ).catch(() => undefined);
+  const { stdout } = await execAsync(
+    `adb -s ${serial} shell cat ${UI_AUTOMATOR_DUMP_PATH}`,
+  ).catch(() => ({ stdout: '', stderr: '' }));
+  return stdout;
+}
+
+async function disableAndroidAnimations(serial: string): Promise<void> {
+  const settings = [
+    'settings put global window_animation_scale 0',
+    'settings put global transition_animation_scale 0',
+    'settings put global animator_duration_scale 0',
+  ];
+  for (const command of settings) {
+    await execAsync(`adb -s ${serial} shell ${command}`).catch(() => undefined);
+  }
+}
+
+async function dismissAndroidAnrDialogs(serial: string): Promise<void> {
+  const uiDump = await dumpUiHierarchy(serial);
+  const tapPoint = findAnrDialogWaitTapPoint(uiDump);
+  if (!tapPoint) {
+    return;
+  }
+
+  logger.warn(
+    `Android system ANR dialog detected on ${serial} — tapping recovery action.`,
+  );
+  await execAsync(
+    `adb -s ${serial} shell input tap ${tapPoint.x} ${tapPoint.y}`,
+  );
+}
+
+/**
+ * After cold `-wipe-data` boot, Pixel Launcher and other system apps can ANR
+ * while indexing. Give the device time to settle and dismiss any blocking dialogs.
+ */
+async function stabilizeAndroidEmulatorAfterBoot(
+  serial: string,
+): Promise<void> {
+  if (process.env.CI !== 'true') {
+    return;
+  }
+
+  logger.info('Stabilizing Android emulator after cold boot...');
+  await disableAndroidAnimations(serial);
+  await execAsync(`adb -s ${serial} shell input keyevent 3`).catch(() => {
+    /* HOME — ensure launcher is foreground for ANR detection */
+  });
+
+  const settleMs = Number.parseInt(
+    process.env.ANDROID_EMULATOR_POST_BOOT_SETTLE_MS ??
+      String(ANDROID_CI_POST_BOOT_SETTLE_MS),
+    10,
+  );
+  if (settleMs > 0) {
+    logger.info(
+      `Waiting ${settleMs / 1000}s for Android system apps to settle...`,
+    );
+    await sleep(settleMs);
+  }
+
+  for (let attempt = 0; attempt < ANDROID_ANR_DISMISS_ATTEMPTS; attempt += 1) {
+    await dismissAndroidAnrDialogs(serial);
+    await sleep(ANDROID_ANR_DISMISS_INTERVAL_MS);
+  }
+}
+
 async function waitForEmulatorBoot(serial: string): Promise<void> {
   await execAsync(`adb -s ${serial} wait-for-device`);
 
@@ -119,6 +242,8 @@ async function waitForEmulatorBoot(serial: string): Promise<void> {
   await execAsync(`adb -s ${serial} shell input keyevent 82`).catch(() => {
     /* screen may already be unlocked */
   });
+
+  await stabilizeAndroidEmulatorAfterBoot(serial);
 }
 
 /**
@@ -193,6 +318,8 @@ export async function startAndroidEmulator(avdName: string): Promise<string> {
   const args = ['-avd', avdName];
   if (isCI) {
     args.push(
+      '-skin',
+      '1080x2340',
       '-memory',
       '12288',
       '-cores',
@@ -210,6 +337,7 @@ export async function startAndroidEmulator(avdName: string): Promise<string> {
       '-accel',
       'on',
       '-wipe-data',
+      '-read-only',
       '-no-window',
     );
   } else {
