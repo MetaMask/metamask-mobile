@@ -372,6 +372,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
           isInteractive
           onPress={handleViewAllPerps}
           testID={homepageSectionTitleTestId(analyticsName)}
+          twClassName="pb-1"
         />
         <Box gap={3}>
           {showHomepageUnrealizedPnl && (
