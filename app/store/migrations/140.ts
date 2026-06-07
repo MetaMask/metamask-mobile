@@ -90,7 +90,8 @@ export default function migrate(versionedState: unknown) {
       ],
     };
 
-    networkConfigurationsByChainId[ARC_CHAIN_ID] = arcConfiguration;
+    (networkConfigurationsByChainId as Record<string, unknown>)[ARC_CHAIN_ID] =
+      arcConfiguration;
 
     return state;
   } catch (error) {
