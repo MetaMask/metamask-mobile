@@ -208,6 +208,7 @@ const createStyles = ({ colors }: Theme) =>
     portfolioHeaderCluster: {
       flexDirection: 'column',
       gap: 16,
+      paddingBottom: 12,
     },
     tabContainer: {
       flex: 1,

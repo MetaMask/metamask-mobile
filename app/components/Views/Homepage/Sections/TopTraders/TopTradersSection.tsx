@@ -1,4 +1,8 @@
-import { Box } from '@metamask/design-system-react-native';
+import {
+  Box,
+  SectionDivider,
+  SectionHeader,
+} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
@@ -12,8 +16,6 @@ import { View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
-import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
-import { SectionDivider } from '@metamask/design-system-react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import type { RootStackParamList } from '../../../../../core/NavigationService/types';
 import { selectSocialLeaderboardEnabled } from '../../../../../selectors/featureFlagController/socialLeaderboard';
@@ -151,10 +153,11 @@ const TopTradersSection = forwardRef<
         onLayout={onLayout}
         testID="homepage-top-traders-section-root"
       >
-        <SectionDivider />
-        <Box gap={3}>
+        <Box paddingBottom={3}>
+          <SectionDivider />
           <SectionHeader
             title={title}
+            isInteractive
             onPress={handleViewAll}
             testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(
               'top-traders',
@@ -177,14 +180,14 @@ const TopTradersSection = forwardRef<
       onLayout={onLayout}
       testID="homepage-top-traders-section-root"
     >
-      <SectionDivider />
-      <Box gap={3}>
+      <Box paddingBottom={3}>
+        <SectionDivider />
         <SectionHeader
           title={title}
+          isInteractive
           onPress={handleViewAll}
           testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('top-traders')}
         />
-
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}

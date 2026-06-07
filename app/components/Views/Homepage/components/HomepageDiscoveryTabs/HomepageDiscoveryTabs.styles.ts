@@ -22,6 +22,7 @@ const styleSheet = (_params: { theme: Theme }) =>
     portfolioHeaderCluster: {
       flexDirection: 'column',
       gap: 16,
+      paddingBottom: 12,
     },
   });
 

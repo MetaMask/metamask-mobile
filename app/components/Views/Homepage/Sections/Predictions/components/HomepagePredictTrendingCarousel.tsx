@@ -1,8 +1,11 @@
 import React, { useCallback } from 'react';
 import { ScrollView } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box, SectionDivider } from '@metamask/design-system-react-native';
-import SectionHeader from '../../../../../../component-library/components-temp/SectionHeader';
+import {
+  Box,
+  SectionDivider,
+  SectionHeader,
+} from '@metamask/design-system-react-native';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../../Wallet/WalletView.testIds';
 import type { PredictMarket } from '../../../../../UI/Predict/types';
@@ -46,40 +49,37 @@ const HomepagePredictTrendingCarousel = ({
   return (
     <>
       <SectionDivider />
-      <Box gap={3}>
-        <SectionHeader
-          title={title}
-          onPress={handleViewAll}
-          testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(
-            headerTestIdKey,
-          )}
-        />
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={tw.style('px-4 gap-3')}
-        >
-          {isLoadingMarkets ? (
-            CAROUSEL_SKELETON_KEYS.map((key) => (
-              <PredictMarketCardSkeleton key={key} />
-            ))
-          ) : (
-            <>
-              {markets.map((market) => (
-                <PredictMarketCard
-                  key={market.id}
-                  market={market}
-                  transactionActiveAbTests={transactionActiveAbTests}
-                />
-              ))}
-              <ViewMoreCard
-                onPress={handleViewAll}
-                twClassName="w-[180px] flex-1"
+      <SectionHeader
+        title={title}
+        isInteractive
+        onPress={handleViewAll}
+        testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(headerTestIdKey)}
+      />
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={tw.style('px-4 gap-3')}
+      >
+        {isLoadingMarkets ? (
+          CAROUSEL_SKELETON_KEYS.map((key) => (
+            <PredictMarketCardSkeleton key={key} />
+          ))
+        ) : (
+          <>
+            {markets.map((market) => (
+              <PredictMarketCard
+                key={market.id}
+                market={market}
+                transactionActiveAbTests={transactionActiveAbTests}
               />
-            </>
-          )}
-        </ScrollView>
-      </Box>
+            ))}
+            <ViewMoreCard
+              onPress={handleViewAll}
+              twClassName="w-[180px] flex-1"
+            />
+          </>
+        )}
+      </ScrollView>
     </>
   );
 };

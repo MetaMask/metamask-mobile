@@ -10,8 +10,11 @@ import React, {
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
-import { SectionDivider, Box } from '@metamask/design-system-react-native';
+import {
+  SectionDivider,
+  Box,
+  SectionHeader,
+} from '@metamask/design-system-react-native';
 import ErrorState from '../../components/ErrorState';
 import Routes from '../../../../../constants/navigation/Routes';
 import SectionRow from '../../components/SectionRow';
@@ -241,12 +244,13 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     return (
       <View ref={sectionViewRef} onLayout={onLayout}>
         <SectionDivider />
+        <SectionHeader
+          title={title}
+          isInteractive
+          onPress={handleViewAllTokens}
+          testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('tokens')}
+        />
         <Box gap={3}>
-          <SectionHeader
-            title={title}
-            onPress={handleViewAllTokens}
-            testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('tokens')}
-          />
           {showTokensError ? (
             <ErrorState
               title={strings('homepage.error.unable_to_load', {
@@ -358,10 +362,11 @@ const TokensSectionTrendingOnly = forwardRef<
 
     return (
       <View ref={sectionViewRef} onLayout={onLayout}>
-        <SectionDivider />
-        <Box gap={3}>
+        <Box paddingBottom={3}>
+          <SectionDivider />
           <SectionHeader
             title={title}
+            isInteractive
             onPress={handleViewAllTokens}
             testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('tokens')}
           />

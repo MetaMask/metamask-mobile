@@ -10,11 +10,11 @@ import {
   IconSize,
   SectionDivider,
   Box,
+  SectionHeader,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
 import SectionRow from '../../components/SectionRow';
 import Routes from '../../../../../constants/navigation/Routes';
 import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
@@ -125,32 +125,28 @@ const MoreSection = () => {
   return (
     <View testID={HomepageMoreSelectorsIDs.HOMEPAGE_MORE_SECTION}>
       <SectionDivider />
-      <Box gap={3}>
-        <SectionHeader title={strings('homepage.sections.more.title')} />
-        <SectionRow>
-          <MoreActionRow
-            label={strings('homepage.sections.more.import_token')}
-            startIconName={IconName.Add}
-            onPress={handleImportToken}
-            testID={HomepageMoreSelectorsIDs.IMPORT_TOKEN_BUTTON}
-          />
-          <MoreActionRow
-            label={strings('homepage.sections.more.import_nft')}
-            startIconName={IconName.Add}
-            onPress={handleImportNft}
-            testID={HomepageMoreSelectorsIDs.IMPORT_NFT_BUTTON}
-          />
-          <MoreActionRow
-            label={strings('homepage.sections.more.contact_support')}
-            startIconName={IconName.MessageQuestion}
-            endIconName={IconName.Export}
-            onPress={handleContactSupport}
-            testID={
-              HomepageMoreSelectorsIDs.HOMEPAGE_MORE_CONTACT_SUPPORT_BUTTON
-            }
-          />
-        </SectionRow>
-      </Box>
+      <SectionHeader title={strings('homepage.sections.more.title')} />
+      <SectionRow>
+        <MoreActionRow
+          label={strings('homepage.sections.more.import_token')}
+          startIconName={IconName.Add}
+          onPress={handleImportToken}
+          testID={HomepageMoreSelectorsIDs.IMPORT_TOKEN_BUTTON}
+        />
+        <MoreActionRow
+          label={strings('homepage.sections.more.import_nft')}
+          startIconName={IconName.Add}
+          onPress={handleImportNft}
+          testID={HomepageMoreSelectorsIDs.IMPORT_NFT_BUTTON}
+        />
+        <MoreActionRow
+          label={strings('homepage.sections.more.contact_support')}
+          startIconName={IconName.MessageQuestion}
+          endIconName={IconName.Export}
+          onPress={handleContactSupport}
+          testID={HomepageMoreSelectorsIDs.HOMEPAGE_MORE_CONTACT_SUPPORT_BUTTON}
+        />
+      </SectionRow>
     </View>
   );
 };

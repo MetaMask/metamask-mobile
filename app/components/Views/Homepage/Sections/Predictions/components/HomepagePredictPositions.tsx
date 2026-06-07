@@ -1,6 +1,9 @@
 import React from 'react';
-import { Box, SectionDivider } from '@metamask/design-system-react-native';
-import SectionHeader from '../../../../../../component-library/components-temp/SectionHeader';
+import {
+  Box,
+  SectionDivider,
+  SectionHeader,
+} from '@metamask/design-system-react-native';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../../Wallet/WalletView.testIds';
 import { strings } from '../../../../../../../locales/i18n';
@@ -42,28 +45,27 @@ const HomepagePredictPositions = ({
   showHeader = true,
 }: HomepagePredictPositionsProps) => (
   <>
-    {showHeader && <SectionDivider />}
-    <Box gap={3}>
-      {showHeader && (
-        <Box gap={1}>
-          <SectionHeader
-            title={title}
-            onPress={onViewAll}
-            testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(
-              'predictions',
-            )}
+    {showHeader && (
+      <>
+        <SectionDivider />
+        <SectionHeader
+          title={title}
+          isInteractive
+          onPress={onViewAll}
+          testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('predictions')}
+        />
+        {predictHomepageUnrealizedPnl.show && (
+          <HomepageSectionUnrealizedPnlRow
+            isLoading={predictHomepageUnrealizedPnl.isLoading}
+            valueText={predictHomepageUnrealizedPnl.valueText}
+            tone={predictHomepageUnrealizedPnl.tone}
+            label={strings('predict.unrealized_pnl_label')}
+            testID="homepage-predict-unrealized-pnl"
           />
-          {predictHomepageUnrealizedPnl.show && (
-            <HomepageSectionUnrealizedPnlRow
-              isLoading={predictHomepageUnrealizedPnl.isLoading}
-              valueText={predictHomepageUnrealizedPnl.valueText}
-              tone={predictHomepageUnrealizedPnl.tone}
-              label={strings('predict.unrealized_pnl_label')}
-              testID="homepage-predict-unrealized-pnl"
-            />
-          )}
-        </Box>
-      )}
+        )}
+      </>
+    )}
+    <Box gap={3}>
       {isLoadingPositions ? (
         <>
           <PredictPositionRowSkeleton />

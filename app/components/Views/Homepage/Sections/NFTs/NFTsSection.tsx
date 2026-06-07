@@ -12,8 +12,8 @@ import {
   Box,
   BoxFlexDirection,
   SectionDivider,
+  SectionHeader,
 } from '@metamask/design-system-react-native';
-import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
 import SectionRow from '../../components/SectionRow';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useOwnedNfts } from './hooks';
@@ -103,10 +103,11 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
 
     return (
       <View ref={sectionViewRef} onLayout={onLayout}>
-        <SectionDivider />
-        <Box gap={3}>
+        <Box paddingBottom={3}>
+          <SectionDivider />
           <SectionHeader
             title={title}
+            isInteractive
             onPress={handleViewAllNfts}
             testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('nfts')}
           />
