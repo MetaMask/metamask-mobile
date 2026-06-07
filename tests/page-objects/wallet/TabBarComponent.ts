@@ -220,10 +220,27 @@ class TabBarComponent {
   async tapAccountsMenu(): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
-        await UnifiedGestures.waitAndTap(this.tabBarWalletButton);
-        await Assertions.expectElementToBeVisible(WalletView.container);
-        await Gestures.waitAndTap(WalletView.hamburgerMenuButton);
-        await Assertions.expectElementToBeVisible(AccountMenu.container);
+        await UnifiedGestures.waitAndTap(this.tabBarWalletButton, {
+          timeout: 2000,
+        });
+        await encapsulatedAction({
+          detox: async () => {
+            await Assertions.expectElementToBeVisible(WalletView.container);
+            await UnifiedGestures.waitAndTap(WalletView.hamburgerMenuButton);
+            await Assertions.expectElementToBeVisible(AccountMenu.container);
+          },
+          appium: async () => {
+            await PlaywrightAssertions.expectElementToBeVisible(
+              await asPlaywrightElement(WalletView.container),
+              { timeout: 500 },
+            );
+            await UnifiedGestures.waitAndTap(WalletView.hamburgerMenuButton);
+            await PlaywrightAssertions.expectElementToBeVisible(
+              await asPlaywrightElement(AccountMenu.container),
+              { timeout: 500 },
+            );
+          },
+        });
       },
       {
         timeout: 45000,
@@ -235,7 +252,17 @@ class TabBarComponent {
   async tapSettings(): Promise<void> {
     await this.tapAccountsMenu();
     await AccountMenu.tapSettings();
-    await Assertions.expectElementToBeVisible(SettingsView.title);
+    await encapsulatedAction({
+      detox: async () => {
+        await Assertions.expectElementToBeVisible(SettingsView.title);
+      },
+      appium: async () => {
+        await PlaywrightAssertions.expectElementToBeVisible(
+          await asPlaywrightElement(SettingsView.title),
+          { description: 'Settings view title' },
+        );
+      },
+    });
   }
   async tapExploreButton(): Promise<void> {
     await Utilities.executeWithRetry(

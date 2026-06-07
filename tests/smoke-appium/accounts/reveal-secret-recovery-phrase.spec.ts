@@ -7,8 +7,9 @@ import SettingsView from '../../page-objects/Settings/SettingsView.js';
 import SecurityAndPrivacy from '../../page-objects/Settings/SecurityAndPrivacy/SecurityAndPrivacyView.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
-import Assertions from '../../framework/Assertions.js';
 import { defaultGanacheOptions } from '../../framework/Constants.js';
+import { asPlaywrightElement } from '../../framework/EncapsulatedElement.js';
+import PlaywrightAssertions from '../../framework/PlaywrightAssertions.js';
 
 appiumTest.describe(
   SmokeAccounts('Secret Recovery Phrase Reveal from Settings'),
@@ -34,8 +35,11 @@ appiumTest.describe(
             await SecurityAndPrivacy.tapRevealSecretRecoveryPhraseButton();
             await completeSrpQuiz(defaultGanacheOptions.mnemonic);
 
-            await Assertions.expectElementToBeVisible(
-              SecurityAndPrivacy.securityAndPrivacyHeading,
+            await PlaywrightAssertions.expectElementToBeVisible(
+              await asPlaywrightElement(
+                SecurityAndPrivacy.securityAndPrivacyHeading,
+              ),
+              { description: 'Security and privacy heading' },
             );
           },
         );

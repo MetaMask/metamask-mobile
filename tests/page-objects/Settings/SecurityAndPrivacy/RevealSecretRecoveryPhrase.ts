@@ -5,12 +5,32 @@ import {
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
 import Utilities from '../../../framework/Utilities';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+  asPlaywrightElement,
+  asDetoxElement,
+} from '../../../framework/EncapsulatedElement';
+import { encapsulatedAction } from '../../../framework/encapsulatedAction';
+import PlaywrightMatchers from '../../../framework/PlaywrightMatchers';
+import PlaywrightAssertions from '../../../framework/PlaywrightAssertions';
+import PlaywrightGestures from '../../../framework/PlaywrightGestures';
+import UnifiedGestures from '../../../framework/UnifiedGestures';
+import { PlatformDetector } from '../../../framework/PlatformLocator';
 
 class RevealSecretRecoveryPhrase {
-  get container(): DetoxElement {
-    return Matchers.getElementByID(
-      RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID,
-    );
+  get container(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID,
+          { exact: true },
+        ),
+    });
   }
 
   get passwordWarning(): DetoxElement {
@@ -19,10 +39,24 @@ class RevealSecretRecoveryPhrase {
     );
   }
 
-  get passwordInputToRevealCredential(): DetoxElement {
-    return Matchers.getElementByLabel(
-      RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
-    );
+  get passwordInputToRevealCredential(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByLabel(
+          RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
+        ),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementByAndroidUIAutomator(
+            `.description("${RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID}")`,
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementById(
+            RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
+            { exact: true },
+          ),
+      },
+    });
   }
 
   get scrollViewIdentifier(): Promise<DetoxMatcher> {
@@ -36,63 +70,141 @@ class RevealSecretRecoveryPhrase {
       RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW_TEXT,
     );
   }
+
   get tabScrollViewQRCodeIdentifier(): Promise<DetoxMatcher> {
     return Matchers.getIdentifier(
       RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW_QR_CODE,
     );
   }
 
-  get revealSecretRecoveryPhraseButton(): DetoxElement {
-    return Matchers.getElementByID(
-      RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BUTTON_ID,
-    );
+  get revealSecretRecoveryPhraseButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BUTTON_ID,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BUTTON_ID,
+          { exact: true },
+        ),
+    });
   }
 
-  get revealCredentialCopyToClipboardButton(): DetoxElement {
-    return Matchers.getElementByID(
-      RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_COPY_TO_CLIPBOARD_BUTTON,
-    );
+  get revealCredentialCopyToClipboardButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_COPY_TO_CLIPBOARD_BUTTON,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_COPY_TO_CLIPBOARD_BUTTON,
+          { exact: true },
+        ),
+    });
   }
 
-  get revealCredentialQRCodeTab(): DetoxElement {
-    return Matchers.getElementByText(
-      RevealSeedViewSelectorsText.REVEAL_CREDENTIAL_QR_CODE_TAB_ID,
-    );
+  get revealCredentialQRCodeTab(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          RevealSeedViewSelectorsText.REVEAL_CREDENTIAL_QR_CODE_TAB_ID,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          RevealSeedViewSelectorsText.REVEAL_CREDENTIAL_QR_CODE_TAB_ID,
+          true,
+        ),
+    });
   }
 
-  get revealCredentialQRCodeImage(): DetoxElement {
-    return Matchers.getElementByID(
-      RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_QR_CODE_IMAGE_ID,
-    );
+  get revealCredentialQRCodeImage(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_QR_CODE_IMAGE_ID,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_QR_CODE_IMAGE_ID,
+          { exact: true },
+        ),
+    });
   }
 
-  get doneButton(): DetoxElement {
-    return Matchers.getElementByText(
-      RevealSeedViewSelectorsText.REVEAL_CREDENTIAL_DONE,
-    );
+  get doneButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          RevealSeedViewSelectorsText.REVEAL_CREDENTIAL_DONE,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          RevealSeedViewSelectorsText.REVEAL_CREDENTIAL_DONE,
+          true,
+        ),
+    });
   }
 
-  get confirmButton(): DetoxElement {
-    return Matchers.getElementByID(
-      RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID,
-    );
+  get confirmButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID,
+          { exact: true },
+        ),
+    });
   }
 
   async enterPasswordToRevealSecretCredential(password: string): Promise<void> {
-    // Wait for password screen to be ready (e.g. after navigation or quiz on iOS/Android CI)
-    await Utilities.waitForElementToBeVisible(
-      this.passwordInputToRevealCredential,
-      15000,
-    );
-    await Gestures.typeText(this.passwordInputToRevealCredential, password, {
-      hideKeyboard: true,
-      elemDescription: 'Password input to reveal credential',
+    await encapsulatedAction({
+      detox: async () => {
+        await Utilities.waitForElementToBeVisible(
+          asDetoxElement(this.passwordInputToRevealCredential),
+          15000,
+        );
+        await Gestures.typeText(
+          asDetoxElement(this.passwordInputToRevealCredential),
+          password,
+          {
+            hideKeyboard: true,
+            elemDescription: 'Password input to reveal credential',
+          },
+        );
+      },
+      appium: async () => {
+        await PlaywrightAssertions.expectElementToBeVisible(
+          await asPlaywrightElement(this.passwordInputToRevealCredential),
+          {
+            timeout: 15000,
+            description: 'Password input to reveal credential',
+          },
+        );
+        const textToType = PlatformDetector.isIOS()
+          ? `${password}\n`
+          : password;
+        await UnifiedGestures.typeText(
+          this.passwordInputToRevealCredential,
+          textToType,
+          {
+            description: 'Password input to reveal credential',
+          },
+        );
+        if (PlatformDetector.isAndroid()) {
+          await PlaywrightGestures.hideKeyboard();
+        }
+      },
     });
   }
 
   async tapConfirmButton(): Promise<void> {
-    await Gestures.waitAndTap(this.confirmButton, {
-      elemDescription: 'Confirm button to reveal credential',
+    await UnifiedGestures.waitAndTap(this.confirmButton, {
+      description: 'Confirm button to reveal credential',
     });
   }
 
@@ -102,10 +214,20 @@ class RevealSecretRecoveryPhrase {
    */
   async isUnlocked(): Promise<boolean> {
     try {
-      await Utilities.waitForElementToBeVisible(
-        this.revealSecretRecoveryPhraseButton,
-        3000,
-      );
+      await encapsulatedAction({
+        detox: async () => {
+          await Utilities.waitForElementToBeVisible(
+            asDetoxElement(this.revealSecretRecoveryPhraseButton),
+            3000,
+          );
+        },
+        appium: async () => {
+          await PlaywrightAssertions.expectElementToBeVisible(
+            await asPlaywrightElement(this.revealSecretRecoveryPhraseButton),
+            { timeout: 3000 },
+          );
+        },
+      });
       return true;
     } catch {
       return false;
@@ -113,53 +235,87 @@ class RevealSecretRecoveryPhrase {
   }
 
   async tapToReveal(): Promise<void> {
-    await Gestures.waitAndTap(this.revealSecretRecoveryPhraseButton, {
-      elemDescription: 'Reveal secret recovery phrase button',
+    await UnifiedGestures.waitAndTap(this.revealSecretRecoveryPhraseButton, {
+      description: 'Reveal secret recovery phrase button',
     });
   }
 
   async tapToCopyCredentialToClipboard() {
-    await Gestures.tap(this.revealCredentialCopyToClipboardButton, {
-      elemDescription: 'Reveal credential copy to clipboard button',
+    await UnifiedGestures.tap(this.revealCredentialCopyToClipboardButton, {
+      description: 'Reveal credential copy to clipboard button',
     });
   }
 
   async tapToRevealPrivateCredentialQRCode(): Promise<void> {
-    await Gestures.tap(this.revealCredentialQRCodeTab, {
-      elemDescription: 'Reveal credential QR code tab',
+    await UnifiedGestures.tap(this.revealCredentialQRCodeTab, {
+      description: 'Reveal credential QR code tab',
     });
   }
 
   async scrollToDone(): Promise<void> {
-    await Gestures.scrollToElement(this.doneButton, this.scrollViewIdentifier, {
-      elemDescription: 'Done button',
+    await encapsulatedAction({
+      detox: async () => {
+        await UnifiedGestures.scrollToElement(
+          this.doneButton,
+          this.scrollViewIdentifier,
+          {
+            description: 'Done button',
+          },
+        );
+      },
+      appium: async () => {
+        await PlaywrightGestures.scrollIntoView(
+          await asPlaywrightElement(this.doneButton),
+          { scrollParams: { direction: 'down' } },
+        );
+      },
     });
   }
 
   async tapDoneButton(): Promise<void> {
-    await Gestures.waitAndTap(this.doneButton, {
-      elemDescription: 'Done button',
+    await UnifiedGestures.waitAndTap(this.doneButton, {
+      description: 'Done button',
     });
   }
 
   async scrollToCopyToClipboardButton(): Promise<void> {
-    await Gestures.scrollToElement(
-      this.revealCredentialCopyToClipboardButton,
-      this.tabScrollViewTextIdentifier,
-      {
-        elemDescription: 'Copy to clipboard button',
+    await encapsulatedAction({
+      detox: async () => {
+        await UnifiedGestures.scrollToElement(
+          this.revealCredentialCopyToClipboardButton,
+          this.tabScrollViewTextIdentifier,
+          {
+            description: 'Copy to clipboard button',
+          },
+        );
       },
-    );
+      appium: async () => {
+        await PlaywrightGestures.scrollIntoView(
+          await asPlaywrightElement(this.revealCredentialCopyToClipboardButton),
+          { scrollParams: { direction: 'down' } },
+        );
+      },
+    });
   }
 
   async scrollToQR(): Promise<void> {
-    await Gestures.scrollToElement(
-      this.revealCredentialQRCodeImage,
-      this.tabScrollViewQRCodeIdentifier,
-      {
-        elemDescription: 'QR code',
+    await encapsulatedAction({
+      detox: async () => {
+        await UnifiedGestures.scrollToElement(
+          this.revealCredentialQRCodeImage,
+          this.tabScrollViewQRCodeIdentifier,
+          {
+            description: 'QR code',
+          },
+        );
       },
-    );
+      appium: async () => {
+        await PlaywrightGestures.scrollIntoView(
+          await asPlaywrightElement(this.revealCredentialQRCodeImage),
+          { scrollParams: { direction: 'down' } },
+        );
+      },
+    });
   }
 }
 

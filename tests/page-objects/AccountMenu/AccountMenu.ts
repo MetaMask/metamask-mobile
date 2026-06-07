@@ -1,20 +1,40 @@
 import { AccountsMenuSelectorsIDs } from '../../../app/components/Views/AccountsMenu/AccountsMenu.testIds';
 import Matchers from '../../../tests/framework/Matchers';
 import Gestures from '../../../tests/framework/Gestures';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class AccountMenu {
-  get container(): DetoxElement {
-    return Matchers.getElementByID(
-      AccountsMenuSelectorsIDs.ACCOUNTS_MENU_SCROLL_ID,
-    );
+  get container(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          AccountsMenuSelectorsIDs.ACCOUNTS_MENU_SCROLL_ID,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          AccountsMenuSelectorsIDs.ACCOUNTS_MENU_SCROLL_ID,
+          { exact: true },
+        ),
+    });
   }
 
   get backButton(): DetoxElement {
     return Matchers.getElementByID(AccountsMenuSelectorsIDs.BACK_BUTTON);
   }
 
-  get settingsButton(): DetoxElement {
-    return Matchers.getElementByID(AccountsMenuSelectorsIDs.SETTINGS);
+  get settingsButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(AccountsMenuSelectorsIDs.SETTINGS),
+      appium: () =>
+        PlaywrightMatchers.getElementById(AccountsMenuSelectorsIDs.SETTINGS, {
+          exact: true,
+        }),
+    });
   }
 
   get contactsButton(): DetoxElement {
@@ -52,8 +72,8 @@ class AccountMenu {
   }
 
   async tapSettings(): Promise<void> {
-    await Gestures.waitAndTap(this.settingsButton, {
-      elemDescription: 'Settings button',
+    await UnifiedGestures.waitAndTap(this.settingsButton, {
+      description: 'Settings button',
     });
   }
 
