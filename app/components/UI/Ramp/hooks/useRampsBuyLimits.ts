@@ -20,6 +20,10 @@ import { useFormatters } from '../../../hooks/useFormatters';
  * @param options.paymentMethodId - The selected payment method ID.
  * @param options.backendError - Optional raw provider error from the quotes
  * response, used as a fallback when structured limits are not available.
+ * @param options.currency - Fiat currency code to look up limits for. Defaults
+ * to `userRegion.country.currency`. Pass `'usd'` when the amount is
+ * USD-denominated (e.g. money-account deposit where the input is always in USD)
+ * so the limit lookup uses USD limits rather than the local currency.
  *
  * @returns `{ minAmount, maxAmount, amountLimitError, currency }`.
  */
@@ -28,11 +32,13 @@ export function useRampsBuyLimits({
   amount,
   paymentMethodId,
   backendError,
+  currency: currencyOverride,
 }: {
   assetId?: string;
   amount: number;
   paymentMethodId?: string | null;
   backendError?: string | null;
+  currency?: string;
 }): {
   minAmount?: number;
   maxAmount?: number;
@@ -40,7 +46,7 @@ export function useRampsBuyLimits({
   currency: string;
 } {
   const userRegion = useSelector(selectUserRegion);
-  const currency = userRegion?.country?.currency ?? 'USD';
+  const currency = currencyOverride ?? userRegion?.country?.currency ?? 'USD';
   const { formatCurrency } = useFormatters();
 
   const { data: provider = null } = useQuery({

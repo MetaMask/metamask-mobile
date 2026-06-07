@@ -41,11 +41,16 @@ export function useFiatBuyLimitAlert({
       ? fiatPayment.quoteError.message
       : undefined;
 
+  // The money-account deposit input is always USD-denominated (MONEY_ACCOUNT_CURRENCY
+  // = 'usd'). Pass 'usd' so the limit lookup uses USD limits rather than the
+  // user's local currency (e.g. BRL), preventing a raw-number mismatch where
+  // $5 USD would be incorrectly compared against R$26 BRL.
   const { amountLimitError } = useRampsBuyLimits({
     assetId: isGated ? assetId : undefined,
     amount,
     paymentMethodId,
     backendError,
+    currency: isMoneyAccountDeposit ? 'usd' : undefined,
   });
 
   return useMemo(() => {

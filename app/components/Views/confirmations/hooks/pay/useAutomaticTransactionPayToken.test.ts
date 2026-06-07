@@ -1470,12 +1470,10 @@ describe('useAutomaticTransactionPayToken', () => {
       expect(fiatPaymentState.selectedPaymentMethodId).toBe(GLOBAL_METHOD_ID);
     });
 
-    it('falls back to first available method when all methods exceed the delay limit', () => {
-      const SLOW_METHOD_ID = 'pm-slow';
-
+    it('does not select any method when all methods exceed the delay limit', () => {
       useMoneyAccountDepositPaymentMethodsMock.mockReturnValue({
         paymentMethods: [
-          { id: SLOW_METHOD_ID, name: 'Slow Method', delay: [600, 2880] },
+          { id: 'pm-slow', name: 'Slow Method', delay: [600, 2880] },
           { id: 'pm-even-slower', name: 'Even Slower', delay: [1440, 4320] },
         ] as never,
         isReady: true,
@@ -1489,12 +1487,10 @@ describe('useAutomaticTransactionPayToken', () => {
 
       runMoneyAccountDepositHook();
 
-      // Fallback: provider's first method selected even though delay exceeds limit
-      expect(updateFiatPaymentMock).toHaveBeenCalled();
-      const callback = updateFiatPaymentMock.mock.calls[0][0].callback;
-      const fiatPaymentState = { selectedPaymentMethodId: undefined };
-      callback(fiatPaymentState);
-      expect(fiatPaymentState.selectedPaymentMethodId).toBe(SLOW_METHOD_ID);
+      // No eligible method: updateFiatPayment is NOT called (we don't fall back
+      // to an ineligible bank-transfer method). isUpdated is stamped to prevent
+      // a retry loop and the UI surfaces the "not available in your region" state.
+      expect(updateFiatPaymentMock).not.toHaveBeenCalled();
     });
 
     it('does not write fiatPayment when asset provider is ready but returns no methods', () => {

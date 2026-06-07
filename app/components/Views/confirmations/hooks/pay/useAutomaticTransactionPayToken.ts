@@ -189,14 +189,12 @@ export function useAutomaticTransactionPayToken({
     }
 
     if (autoSelectFiatPayment || tokens.length === 0) {
-      if (!isFiatEnabled) {
-        return;
-      }
-
-      // For the moneyAccountDeposit path, resolve payment methods from the
-      // asset's best provider rather than the global providers.selected, so
-      // that methods load even in non-Transak regions where the global
-      // selection is null or points to a different provider.
+      // moneyAccountDeposit uses React Query payment methods fetched directly
+      // from the asset's best provider — NOT the global Redux paymentMethods.
+      // The global Redux state may be empty for regions where the legacy Ramps
+      // flow never ran (e.g. India with Onramp.money), which would cause
+      // `isFiatEnabled` to be false and exit before reaching this branch.
+      // Keep this branch FIRST so it bypasses the isFiatEnabled guard below.
       if (autoSelectFiatPayment && isMoneyAccountDeposit) {
         // Wait while a query is actively in-flight. Using isLoading (rather
         // than !isSettled) means we don't exit early when the region hasn't
@@ -218,47 +216,47 @@ export function useAutomaticTransactionPayToken({
           ? assetProviderPaymentMethods
           : paymentMethods;
 
+        // Only select methods whose settlement delay is within the configured
+        // threshold. Bank-transfer methods (UPI, IMPS, PIX) with delays
+        // exceeding the limit are not eligible for the headless deposit flow.
+        // We do NOT fall back to methods[0] here — selecting an ineligible
+        // method would surface a confusing bank-transfer flow to the user.
+        // Instead let the UI show a "not available in your region" state.
         const eligibleMethod = pickEligiblePaymentMethod(
           methods,
           maxDelayMinutesForPaymentMethods,
         );
 
-        // When the asset-provider data settled but no method passes the delay
-        // filter (e.g. region only has slow bank-transfer methods), fall back
-        // to the provider's first method so PayWithRow isn't stuck in skeleton
-        // state. The user can tap the row to change the method.
-        const methodToSelect =
-          eligibleMethod ??
-          (assetProviderPaymentMethodsReady && methods.length > 0
-            ? methods[0]
-            : undefined);
-
-        if (methodToSelect) {
+        if (eligibleMethod) {
           Engine.context.TransactionPayController.updateFiatPayment({
             transactionId,
             callback: (fp) => {
-              fp.selectedPaymentMethodId = methodToSelect.id;
+              fp.selectedPaymentMethodId = eligibleMethod.id;
             },
           });
           isUpdated.current = transactionId;
           log(
             'Auto-selected fiat payment method (asset provider)',
-            methodToSelect.name,
+            eligibleMethod.name,
           );
         } else if (assetProviderPaymentMethodsReady) {
-          // Provider returned zero methods — stamp isUpdated to prevent an
-          // indefinite no-op loop. UI will surface the empty-methods state.
+          // Provider returned zero eligible methods — stamp isUpdated to
+          // prevent an indefinite no-op loop. UI will surface the
+          // no-eligible-methods state (e.g. "not available in your region").
           isUpdated.current = transactionId;
-          log('No fiat payment methods found from asset provider');
+          log(
+            'No eligible fiat payment methods for asset provider in this region',
+          );
         }
-        // When assetProviderPaymentMethodsReady is false and no eligible
-        // global method was found, do NOT stamp isUpdated — allow the effect
-        // to retry once paymentMethods (global fallback) resolves.
         return;
       }
 
-      // Non-moneyAccountDeposit fiat auto-select: use the global provider's
-      // payment methods (original behaviour).
+      // Non-moneyAccountDeposit fiat auto-select: requires global isFiatEnabled
+      // (feature flag on + global Ramps payment methods loaded).
+      if (!isFiatEnabled) {
+        return;
+      }
+
       if (paymentMethods.length === 0) {
         return;
       }
