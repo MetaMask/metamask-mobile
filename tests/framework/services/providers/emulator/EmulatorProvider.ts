@@ -144,7 +144,8 @@ export class EmulatorProvider extends BaseServiceProvider {
           'Android device boot requires `use.device.name` (AVD name) in the project config.',
         );
       }
-      await startAndroidEmulator(avdName);
+      const serial = await startAndroidEmulator(avdName);
+      (this.project.use.device as EmulatorConfig).udid = serial;
     } else if (this.project.use.platform === Platform.IOS) {
       const deviceName = this.project.use.device?.name;
       if (!deviceName) {

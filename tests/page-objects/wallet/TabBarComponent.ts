@@ -149,7 +149,10 @@ class TabBarComponent {
   get homeButton(): EncapsulatedElementType {
     return encapsulated({
       detox: () => Matchers.getElementByText('Home'),
-      appium: () => PlaywrightMatchers.getElementById('tab-bar-item-Wallet'),
+      appium: () =>
+        PlaywrightMatchers.getElementById(TabBarSelectorIDs.WALLET, {
+          exact: true,
+        }),
     });
   }
 

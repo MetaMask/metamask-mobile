@@ -74,9 +74,7 @@ jobs:
       fail-fast: false
       matrix:
         shard: [1]
-    # Namespace runner required: setup-e2e-env expects the Android SDK at
-    # /opt/android-sdk which is pre-installed on this profile.
-    runs-on: namespace-profile-metamask-android-build
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-android-build' || (startsWith(github.base_ref, 'release/') && fromJSON('["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg"]') || fromJSON('["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg", "low-priority"]')) }}
 
     steps:
       - name: Checkout (Namespace)
@@ -100,18 +98,33 @@ jobs:
           install-foundry: 'true'
           runner_provider: ${{ inputs.runner_provider }}
 
+      - name: Determine Android artifact paths
+        id: android-artifacts
+        run: |
+          if [[ "${{ inputs.build_type }}" == "flask" ]]; then
+            {
+              echo "apk-target-path=android/app/build/outputs/apk/flask/release"
+              echo "apk-file-name=app-flask-release.apk"
+            } >> "$GITHUB_OUTPUT"
+          else
+            {
+              echo "apk-target-path=android/app/build/outputs/apk/prod/release"
+              echo "apk-file-name=app-prod-release.apk"
+            } >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Download Android build artifacts (Namespace)
         if: ${{ inputs.runner_provider == 'namespace' }}
         uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
-          path: android/app/build/outputs/apk/prod/release/
+          path: ${{ steps.android-artifacts.outputs.apk-target-path }}
       - name: Download Android build artifacts (current)
         if: ${{ inputs.runner_provider != 'namespace' }}
         uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
-          path: android/app/build/outputs/apk/prod/release/
+          path: ${{ steps.android-artifacts.outputs.apk-target-path }}
 
       - name: Run Appium smoke tests (Android)
         # Device boot is handled by EmulatorProvider.globalSetup() inside the
@@ -124,7 +137,7 @@ jobs:
           --grep @SmokeAppium
           --shard=${{ matrix.shard }}/${{ strategy.job-total }}
         env:
-          ANDROID_APK_PATH: android/app/build/outputs/apk/prod/release/app-prod-release.apk
+          ANDROID_APK_PATH: ${{ steps.android-artifacts.outputs.apk-target-path }}/${{ steps.android-artifacts.outputs.apk-file-name }}
           ANDROID_AVD_NAME: appium_smoke_avd
           APPIUM_SMOKE_JOB_TITLE: Appium Smoke Tests (Android)
           APPIUM_SMOKE_ARTIFACT_NAME: appium-smoke-report-android
