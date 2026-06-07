@@ -218,29 +218,19 @@ async function startIosRecording(
   driver: WebdriverIO.Browser,
 ): Promise<ScreenRecordingBackend | undefined> {
   const appiumDriver = driver as AppiumScreenRecorder;
-  const timeLimit = String(recordingTimeLimitSec());
-
-  if (typeof appiumDriver.startRecordingScreen === 'function') {
-    try {
-      await appiumDriver.startRecordingScreen({
-        timeLimit,
-        videoQuality: 'medium',
-      });
-      logRecordingIssue('iOS screen recording started (Appium extension API)');
-      return 'ios';
-    } catch (error) {
-      logRecordingIssue(
-        `iOS startRecordingScreen failed, trying mobile: execute: ${formatRecordingError(error)}`,
-      );
-    }
+  if (typeof appiumDriver.startRecordingScreen !== 'function') {
+    logRecordingIssue(
+      'startRecordingScreen is not available on this WebDriver session',
+    );
+    return undefined;
   }
 
   try {
-    await driver.execute('mobile: startRecordingScreen', {
-      timeLimit: recordingTimeLimitSec(),
+    await appiumDriver.startRecordingScreen({
+      timeLimit: String(recordingTimeLimitSec()),
       videoQuality: 'medium',
     });
-    logRecordingIssue('iOS screen recording started (mobile: execute)');
+    logRecordingIssue('iOS screen recording started');
     return 'ios';
   } catch (error) {
     logRecordingIssue(
@@ -254,29 +244,14 @@ async function stopIosRecording(
   driver: WebdriverIO.Browser,
 ): Promise<string | undefined> {
   const appiumDriver = driver as AppiumScreenRecorder;
-  const attempts: ('extension' | 'mobile')[] = ['extension', 'mobile'];
-
-  let lastError: unknown;
-  for (const attempt of attempts) {
-    try {
-      const result =
-        attempt === 'extension' &&
-        typeof appiumDriver.stopRecordingScreen === 'function'
-          ? await appiumDriver.stopRecordingScreen()
-          : await driver.execute('mobile: stopRecordingScreen');
-      const payload = extractRecordingPayload(result);
-      if (payload) {
-        return payload;
-      }
-    } catch (error) {
-      lastError = error;
-    }
+  if (typeof appiumDriver.stopRecordingScreen !== 'function') {
+    throw new Error(
+      'stopRecordingScreen is not available on this WebDriver session',
+    );
   }
 
-  if (lastError) {
-    throw lastError;
-  }
-  return undefined;
+  const result = await appiumDriver.stopRecordingScreen();
+  return extractRecordingPayload(result);
 }
 
 /**

@@ -95,6 +95,19 @@ jobs:
           install-applesimutils: 'false'
           runner_provider: ${{ inputs.runner_provider }}
 
+      - name: Cache ffmpeg (Homebrew)
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/mms-ffmpeg
+          key: brew-ffmpeg-${{ runner.os }}-v1
+          restore-keys: |
+            brew-ffmpeg-${{ runner.os }}-
+
+      - name: Install ffmpeg for XCUITest screen recording
+        # Appium XCUITest startRecordingScreen encodes simulator video via ffmpeg.
+        run: bash scripts/e2e/ensure-ffmpeg-ci.sh
+        shell: bash
+
       - name: Download iOS build artifacts (Namespace)
         if: ${{ inputs.runner_provider == 'namespace' }}
         uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1

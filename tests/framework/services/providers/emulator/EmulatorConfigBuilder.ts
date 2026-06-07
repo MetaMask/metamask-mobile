@@ -41,10 +41,15 @@ export class EmulatorConfigBuilder {
     //   `EmulatorProvider.globalSetup()`.
     // - iOS CI: globalSetup already simctl-installs from `buildPath`; set
     //   IOS_APPIUM_USE_BUNDLE_ID_ONLY=true to skip a redundant Appium-side install.
+    // - Android CI: globalSetup already adb-installs; set
+    //   ANDROID_APPIUM_USE_PACKAGE_ONLY=true to avoid a second install at session start.
     const hasLocalApp = Boolean(buildPath);
     const skipIosAppiumAppInstall =
       platformName === Platform.IOS &&
       process.env.IOS_APPIUM_USE_BUNDLE_ID_ONLY === 'true';
+    const skipAndroidAppiumAppInstall =
+      platformName === Platform.ANDROID &&
+      process.env.ANDROID_APPIUM_USE_PACKAGE_ONLY === 'true';
     const usePrebuiltWda =
       platformName === Platform.IOS && process.env.USE_PREBUILT_WDA === 'true';
 
@@ -75,7 +80,9 @@ export class EmulatorConfigBuilder {
         platformName,
         'appium:newCommandTimeout': 300,
         'appium:deviceOrientation': emulatorDevice.orientation,
-        ...(hasLocalApp && !skipIosAppiumAppInstall
+        ...(hasLocalApp &&
+        !skipIosAppiumAppInstall &&
+        !skipAndroidAppiumAppInstall
           ? { 'appium:app': buildPath }
           : {}),
         'appium:autoGrantPermissions': true,

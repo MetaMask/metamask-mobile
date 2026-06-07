@@ -139,6 +139,7 @@ jobs:
         env:
           ANDROID_APK_PATH: ${{ steps.android-artifacts.outputs.apk-target-path }}/${{ steps.android-artifacts.outputs.apk-file-name }}
           ANDROID_AVD_NAME: appium_smoke_avd
+          ANDROID_APPIUM_USE_PACKAGE_ONLY: 'true'
           APPIUM_SMOKE_JOB_TITLE: Appium Smoke Tests (Android)
           APPIUM_SMOKE_ARTIFACT_NAME: appium-smoke-report-android
           APPIUM_SMOKE_VIDEOS_ARTIFACT_NAME: appium-smoke-videos-android

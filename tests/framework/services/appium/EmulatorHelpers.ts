@@ -9,10 +9,10 @@ const logger = createLogger({ name: 'EmulatorHelpers' });
 const ANDROID_BOOT_TIMEOUT_MS = 3 * 60 * 1000;
 const ANDROID_BOOT_POLL_INTERVAL_MS = 2000;
 
-type AdbDevice = {
+interface AdbDevice {
   serial: string;
   state: string;
-};
+}
 
 function execAsync(cmd: string): Promise<{ stdout: string; stderr: string }> {
   return new Promise((resolve, reject) => {
@@ -186,9 +186,34 @@ export async function startAndroidEmulator(avdName: string): Promise<string> {
 
   logger.info(`Starting Android emulator: ${avdName}`);
 
-  const args = ['-avd', avdName, '-no-snapshot-load'];
+  // Match Detox CI emulator flags (.detoxrc.js → android.github_ci.emulator) so
+  // Appium smoke gets the same RAM/CPU and clean `-wipe-data` boot. The minimal
+  // flags we used previously (-no-snapshot-load only) left emulators under-resourced
+  // and prone to system app crashes (e.g. Messages ANR) on cold boot.
+  const args = ['-avd', avdName];
   if (isCI) {
-    args.push('-no-window', '-no-audio', '-gpu', 'swiftshader_indirect');
+    args.push(
+      '-memory',
+      '12288',
+      '-cores',
+      '8',
+      '-gpu',
+      'swiftshader_indirect',
+      '-no-audio',
+      '-no-boot-anim',
+      '-partition-size',
+      '8192',
+      '-no-snapshot-save',
+      '-no-snapshot-load',
+      '-cache-size',
+      '2048',
+      '-accel',
+      'on',
+      '-wipe-data',
+      '-no-window',
+    );
+  } else {
+    args.push('-no-snapshot-load');
   }
 
   const emulatorProcess = spawn(emulatorBin, args, {
