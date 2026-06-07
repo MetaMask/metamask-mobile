@@ -50,8 +50,13 @@ export class EmulatorConfigBuilder {
     const skipAndroidAppiumAppInstall =
       platformName === Platform.ANDROID &&
       process.env.ANDROID_APPIUM_USE_PACKAGE_ONLY === 'true';
+    const usePreinstalledWda =
+      platformName === Platform.IOS &&
+      process.env.IOS_WDA_PREINSTALLED === 'true';
     const usePrebuiltWda =
-      platformName === Platform.IOS && process.env.USE_PREBUILT_WDA === 'true';
+      platformName === Platform.IOS &&
+      process.env.USE_PREBUILT_WDA === 'true' &&
+      !usePreinstalledWda;
 
     return {
       hostname: getAppiumHost(),
@@ -61,7 +66,11 @@ export class EmulatorConfigBuilder {
       // session-creation POST doesn't time out before Appium responds.
       // connectionRetryCount: 0 — no retries on session creation; a timeout
       // here is not a transient error and retrying just doubles the wait.
-      connectionRetryTimeout: usePrebuiltWda ? 3 * 60 * 1000 : 12 * 60 * 1000,
+      connectionRetryTimeout: usePreinstalledWda
+        ? 2 * 60 * 1000
+        : usePrebuiltWda
+          ? 5 * 60 * 1000
+          : 12 * 60 * 1000,
       connectionRetryCount: 0,
       capabilities: {
         'appium:deviceName': emulatorDevice.name,
@@ -94,19 +103,30 @@ export class EmulatorConfigBuilder {
         'appium:animationCoolOffTimeout': 0, // Skip animation wait
         'appium:reduceMotion': true, // Reduce iOS animations
         'appium:waitForIdleTimeout': 0, // Don't wait for idle
-        ...(usePrebuiltWda
+        ...(usePreinstalledWda
           ? {
-              // Prebuilt WDA on CI: install+launch only (~seconds). Fail fast if broken.
+              // WDA was simctl-installed in prepare-ios-appium-runner; launch only.
+              'appium:usePreinstalledWDA': true,
+              'appium:updatedWDABundleId':
+                process.env.IOS_WDA_BUNDLE_ID?.trim() ||
+                'com.facebook.WebDriverAgentRunner',
               'appium:wdaLaunchTimeout': 60_000,
               'appium:wdaConnectionTimeout': 10_000,
-              // Sim is booted in getDriver(); this covers XCUITest attach on loaded CI hosts.
-              'appium:simulatorStartupTimeout': 180_000,
+              'appium:simulatorStartupTimeout': 120_000,
             }
-          : {
-              // Cold WDA build (local dev / cache miss): allow up to 10 min.
-              'appium:wdaLaunchTimeout': 10 * 60_000,
-              'appium:simulatorStartupTimeout': 10 * 60_000,
-            }),
+          : usePrebuiltWda
+            ? {
+                // Prebuilt WDA on CI: xcodebuild test-without-building (~minutes).
+                'appium:wdaLaunchTimeout': 60_000,
+                'appium:wdaConnectionTimeout': 10_000,
+                // Sim is booted in getDriver(); this covers XCUITest attach on loaded CI hosts.
+                'appium:simulatorStartupTimeout': 180_000,
+              }
+            : {
+                // Cold WDA build (local dev / cache miss): allow up to 10 min.
+                'appium:wdaLaunchTimeout': 10 * 60_000,
+                'appium:simulatorStartupTimeout': 10 * 60_000,
+              }),
         // Pin WDA's DerivedData to a fixed path so CI can cache and restore it.
         // When USE_PREBUILT_WDA=true (set by CI after prebuild/cache hit), xcuitest-driver
         // skips xcodebuild entirely and installs+launches the cached WDA binary
@@ -117,14 +137,19 @@ export class EmulatorConfigBuilder {
           ? {
               'appium:derivedDataPath': `${process.env.HOME ?? '~'}/appium-wda`,
               'appium:skipLogCapture': true,
-              ...(usePrebuiltWda
+              ...(usePreinstalledWda
                 ? {
-                    'appium:usePrebuiltWDA': true,
-                    // Reuse a WDA instance already listening on the sim (retries / multi-test).
                     'appium:useNewWDA': false,
                     'appium:showXcodeLog': false,
                   }
-                : {}),
+                : usePrebuiltWda
+                  ? {
+                      'appium:usePrebuiltWDA': true,
+                      // Reuse a WDA instance already listening on the sim (retries / multi-test).
+                      'appium:useNewWDA': false,
+                      'appium:showXcodeLog': false,
+                    }
+                  : {}),
             }
           : {}),
         'appium:includeSafariInWebviews': true,

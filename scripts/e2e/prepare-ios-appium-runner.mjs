@@ -4,7 +4,7 @@
  * Prepares the iOS Appium runner before Playwright tests:
  * - Boots the simulator
  * - Prebuilds WDA (unless SKIP_WDA_PREBUILD=true)
- * - Installs the .app via simctl
+ * - Installs prebuilt WDA + MetaMask .app via simctl
  *
  * Simulator boot and WDA prebuild run in parallel to shave wall-clock time on
  * cache miss (WDA ~8 min, sim boot ~1–2 min → overlap saves ~1–2 min).
@@ -12,7 +12,14 @@
 import { spawnSync } from 'node:child_process';
 import { appendFileSync, existsSync } from 'node:fs';
 import { bootIosSimulator, installIosApp } from './ios-simulator-lib.mjs';
-import { ensureWdaPrebuilt } from './wda-lib.mjs';
+import {
+  ensureWdaPrebuilt,
+  findWdaArtifacts,
+  getDerivedDataPath,
+  hasUsableWdaArtifacts,
+  installWdaOnSimulator,
+  toWdaBundleIdBase,
+} from './wda-lib.mjs';
 
 const simulatorName = process.env.IOS_SIMULATOR_NAME ?? 'iPhone 16 Pro';
 const appPath = process.env.IOS_APP_PATH;
@@ -36,21 +43,54 @@ const [udid] = await Promise.all([
     : ensureWdaPrebuilt(),
 ]);
 
+const installTasks = [];
+
 if (appPath) {
   if (!existsSync(appPath)) {
     console.error(`IOS_APP_PATH does not exist: ${appPath}`);
     process.exit(1);
   }
-  await installIosApp({ udid, bundleId, appPath });
+  installTasks.push(installIosApp({ udid, bundleId, appPath }));
 }
 
+let iosWdaPreinstalled = 'false';
+let iosWdaBundleIdBase = '';
+
+if (hasUsableWdaArtifacts()) {
+  const { wdaApp } = findWdaArtifacts(getDerivedDataPath());
+  if (wdaApp) {
+    installTasks.push(
+      installWdaOnSimulator({ udid, wdaApp }).then((installedBundleId) => {
+        iosWdaPreinstalled = 'true';
+        iosWdaBundleIdBase = toWdaBundleIdBase(installedBundleId);
+      }),
+    );
+  }
+} else {
+  console.log(
+    'WDA artifacts not found — skipping sim WDA install (tests will use xcodebuild).',
+  );
+}
+
+await Promise.all(installTasks);
+
 console.log(`IOS_SIMULATOR_UDID=${udid}`);
+if (iosWdaPreinstalled === 'true') {
+  console.log(`IOS_WDA_PREINSTALLED=true`);
+  console.log(`IOS_WDA_BUNDLE_ID=${iosWdaBundleIdBase}`);
+}
 
 if (process.env.GITHUB_OUTPUT) {
   appendFileSync(
     process.env.GITHUB_OUTPUT,
-    `ios-simulator-udid=${udid}\n`,
+    `ios-simulator-udid=${udid}\nios-wda-preinstalled=${iosWdaPreinstalled}\n`,
   );
+  if (iosWdaBundleIdBase) {
+    appendFileSync(
+      process.env.GITHUB_OUTPUT,
+      `ios-wda-bundle-id=${iosWdaBundleIdBase}\n`,
+    );
+  }
 }
 
 console.log('iOS Appium runner ready.');

@@ -1139,6 +1139,8 @@ jobs:
 
   prebuild-wda-for-appium-ios:
     name: 'Prebuild WDA (Appium iOS)'
+    # Best-effort cache warm-up; not gated in check-all-jobs-pass. Smoke job
+    # prebuilds WDA on cache miss via prepare-ios-appium-runner.mjs.
     if: >-
       ${{
         !cancelled() &&
@@ -1438,7 +1440,6 @@ jobs:
       - build-ios-apps
       - e2e-smoke-tests-android
       - e2e-smoke-tests-ios
-      - prebuild-wda-for-appium-ios
       - appium-smoke-tests-android
       - appium-smoke-tests-ios
     steps:
@@ -1461,7 +1462,7 @@ jobs:
         with:
           needs-json: ${{ toJSON(needs) }}
           requirement-context-json: ${{ toJSON(needs.get_requirements.outputs) }}
-          e2e-job-regex: '^(build-android-apks|build-ios-apps|e2e-smoke-tests-android|e2e-smoke-tests-ios|prebuild-wda-for-appium-ios|appium-smoke-tests-android|appium-smoke-tests-ios)$'
+          e2e-job-regex: '^(build-android-apks|build-ios-apps|e2e-smoke-tests-android|e2e-smoke-tests-ios|appium-smoke-tests-android|appium-smoke-tests-ios)$'
           event-name: ${{ github.event_name }}
           is-fork: ${{ github.event.pull_request.head.repo.fork == true }}
 

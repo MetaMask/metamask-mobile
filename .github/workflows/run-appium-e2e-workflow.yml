@@ -286,6 +286,8 @@ jobs:
           IOS_APP_PATH: artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
           IOS_SIMULATOR_NAME: iPhone 16 Pro
           IOS_SIMULATOR_UDID: ${{ steps.prepare-ios-appium.outputs.ios-simulator-udid }}
+          IOS_WDA_PREINSTALLED: ${{ steps.prepare-ios-appium.outputs.ios-wda-preinstalled }}
+          IOS_WDA_BUNDLE_ID: ${{ steps.prepare-ios-appium.outputs.ios-wda-bundle-id }}
           SKIP_DEVICE_BOOT: 'true'
           SKIP_APP_REINSTALL: 'true'
           IOS_APPIUM_USE_BUNDLE_ID_ONLY: 'true'

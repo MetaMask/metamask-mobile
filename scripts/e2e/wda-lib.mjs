@@ -1,10 +1,13 @@
 #!/usr/bin/env node
 /* eslint-disable import-x/no-nodejs-modules */
-import { spawnSync } from 'node:child_process';
+import { execFile, spawnSync } from 'node:child_process';
 import { existsSync, readdirSync, statSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
+import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
+
+const execFileAsync = promisify(execFile);
 
 export const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -120,6 +123,52 @@ export function findWdaArtifacts(derivedDataPath) {
 export function hasUsableWdaArtifacts(derivedDataPath = getDerivedDataPath()) {
   const artifacts = findWdaArtifacts(derivedDataPath);
   return Boolean(artifacts.wdaApp && artifacts.xctestrun);
+}
+
+/**
+ * @param {string} appPath Path to .app bundle
+ * @returns {string} CFBundleIdentifier from Info.plist
+ */
+export function readAppBundleId(appPath) {
+  const plistPath = join(appPath, 'Info.plist');
+  const result = spawnSync(
+    '/usr/libexec/PlistBuddy',
+    ['-c', 'Print CFBundleIdentifier', plistPath],
+    { encoding: 'utf8' },
+  );
+  if (result.status !== 0) {
+    throw new Error(
+      `Could not read CFBundleIdentifier from ${plistPath}: ${result.stderr?.trim() ?? 'unknown error'}`,
+    );
+  }
+  return result.stdout.trim();
+}
+
+/**
+ * Appium `updatedWDABundleId` expects the base id; the driver adds `.xctrunner`.
+ * @param {string} bundleId
+ */
+export function toWdaBundleIdBase(bundleId) {
+  return bundleId.replace(/\.xctrunner$/, '');
+}
+
+/**
+ * Installs prebuilt WebDriverAgentRunner onto a booted simulator.
+ * @param {{ udid: string; wdaApp: string }} options
+ * @returns {Promise<string>} installed bundle id (may include `.xctrunner`)
+ */
+export async function installWdaOnSimulator({ udid, wdaApp }) {
+  if (!existsSync(wdaApp)) {
+    throw new Error(`WDA app not found: ${wdaApp}`);
+  }
+
+  console.log(`Installing WebDriverAgent on simulator ${udid}…`);
+  console.log(`  app: ${wdaApp}`);
+  await execFileAsync('xcrun', ['simctl', 'install', udid, wdaApp]);
+
+  const bundleId = readAppBundleId(wdaApp);
+  console.log(`WebDriverAgent installed (bundleId=${bundleId}).`);
+  return bundleId;
 }
 
 function logArtifacts(label, derivedDataPath, { wdaApp, xctestrun }) {
