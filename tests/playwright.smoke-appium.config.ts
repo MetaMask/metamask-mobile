@@ -17,7 +17,8 @@ const DEFAULT_IOS_APP =
 /**
  * Playwright runner config for Appium smoke tests.
  *
- * Runs tests tagged @SmokeAppium against a local Android emulator or iOS simulator.
+ * Runs Appium smoke specs from tests/smoke-appium. Tags live in describe titles
+ * via tags.js (same convention as Detox); --grep uses the tag id (e.g. SmokeAccounts).
  *
  * IMPORTANT: Requires a debug build with HAS_TEST_OVERRIDES=true so the app
  * fetches fixture state from /state.json on launch. Build with:
@@ -29,11 +30,20 @@ const DEFAULT_IOS_APP =
  * - IOS_APP_PATH — path to the .app (default: Debug-iphonesimulator/MetaMask.app)
  * - ANDROID_AVD_NAME — AVD name (default: 'Pixel_5_Pro_API_34')
  * - IOS_SIMULATOR_NAME — simulator name (default: 'iPhone 16 Pro')
+ * - APPIUM_SMOKE_SUITE_NAME — CI suite id for per-job report/video paths
  *
  * Usage:
  * yarn appium-smoke:android
  * yarn appium-smoke:ios
  */
+const suiteName = process.env.APPIUM_SMOKE_SUITE_NAME?.trim();
+const htmlReportDir = suiteName
+  ? `./test-reports/appium-smoke-report/${suiteName}`
+  : './test-reports/appium-smoke-report';
+const junitReportPath = suiteName
+  ? `./test-reports/appium-smoke-junit/${suiteName}.xml`
+  : './test-reports/appium-smoke-junit.xml';
+
 export default defineConfig({
   testDir: './smoke-appium',
   fullyParallel: false,
@@ -42,11 +52,8 @@ export default defineConfig({
   timeout: 15 * 60 * 1000,
   retries: 1,
   reporter: [
-    [
-      'html',
-      { open: 'never', outputFolder: './test-reports/appium-smoke-report' },
-    ],
-    ['junit', { outputFile: './test-reports/appium-smoke-junit.xml' }],
+    ['html', { open: 'never', outputFolder: htmlReportDir }],
+    ['junit', { outputFile: junitReportPath }],
     ['list'],
     // CI: step summary + JUnit (dorny/test-reporter). Skip the `github` reporter —
     // it emits error annotations for failed retry attempts even when the test

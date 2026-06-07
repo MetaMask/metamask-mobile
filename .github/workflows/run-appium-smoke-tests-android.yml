@@ -1,7 +1,7 @@
 # Appium Smoke Tests — Android
 #
-# Reusable workflow that runs Appium smoke tests on a local Android emulator
-# against a pre-built APK from build-android-e2e.yml.
+# Fans out reusable workflow jobs per Appium smoke tag. Only SmokeAccounts is
+# wired today; add more jobs here as Appium specs land for other categories.
 #
 # Called from ci.yml after build-android-apks succeeds.
 
@@ -26,7 +26,7 @@ on:
         type: string
         default: 'current'
       selected_tags:
-        description: 'JSON array of tags from smart E2E selector (e.g. ["SmokeAppium"] or ["ALL"])'
+        description: 'JSON array of tags from smart E2E selector (e.g. ["SmokeAccounts"] or ["ALL"])'
         required: false
         type: string
         default: '["ALL"]'
@@ -48,7 +48,7 @@ on:
         type: string
         default: 'current'
       selected_tags:
-        description: 'JSON array of tags from smart E2E selector (e.g. ["SmokeAppium"] or ["ALL"])'
+        description: 'JSON array of tags from smart E2E selector'
         required: false
         type: string
         default: '["ALL"]'
@@ -62,133 +62,19 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  appium-android-smoke:
-    name: appium-android-smoke-${{ matrix.shard }}
+  appium-accounts-android-smoke:
     if: >-
       ${{
         !cancelled() &&
         (contains(fromJson(inputs.selected_tags), 'ALL') ||
-         contains(fromJson(inputs.selected_tags), 'SmokeAppium'))
+         contains(fromJson(inputs.selected_tags), 'SmokeAccounts'))
       }}
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: [1]
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-android-build' || (startsWith(github.base_ref, 'release/') && fromJSON('["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg"]') || fromJSON('["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg", "low-priority"]')) }}
-
-    steps:
-      - name: Checkout (Namespace)
-        uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
-        if: ${{ inputs.runner_provider == 'namespace' }}
-      - name: Checkout
-        uses: actions/checkout@v4
-        if: ${{ inputs.runner_provider != 'namespace' }}
-
-      - name: Setup E2E environment (Android)
-        uses: ./.github/actions/setup-e2e-env
-        with:
-          platform: android
-          setup-simulator: 'true'
-          android-avd-name: appium_smoke_avd
-          android-api-level: '34'
-          android-tag: google_apis
-          android-abi: x86_64
-          android-device: pixel_5
-          configure-keystores: 'false'
-          install-foundry: 'true'
-          runner_provider: ${{ inputs.runner_provider }}
-
-      - name: Determine Android artifact paths
-        id: android-artifacts
-        run: |
-          if [[ "${{ inputs.build_type }}" == "flask" ]]; then
-            {
-              echo "apk-target-path=android/app/build/outputs/apk/flask/release"
-              echo "apk-file-name=app-flask-release.apk"
-            } >> "$GITHUB_OUTPUT"
-          else
-            {
-              echo "apk-target-path=android/app/build/outputs/apk/prod/release"
-              echo "apk-file-name=app-prod-release.apk"
-            } >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Download Android build artifacts (Namespace)
-        if: ${{ inputs.runner_provider == 'namespace' }}
-        uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
-        with:
-          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
-          path: ${{ steps.android-artifacts.outputs.apk-target-path }}
-      - name: Download Android build artifacts (current)
-        if: ${{ inputs.runner_provider != 'namespace' }}
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
-          path: ${{ steps.android-artifacts.outputs.apk-target-path }}
-
-      - name: Run Appium smoke tests (Android)
-        # Device boot is handled by EmulatorProvider.globalSetup() inside the
-        # test command. setup-e2e-env above creates the AVD; the framework
-        # boots it on demand.
-        run: >-
-          yarn playwright test
-          --config tests/playwright.smoke-appium.config.ts
-          --project android-smoke
-          --grep @SmokeAppium
-          --shard=${{ matrix.shard }}/${{ strategy.job-total }}
-        env:
-          ANDROID_APK_PATH: ${{ steps.android-artifacts.outputs.apk-target-path }}/${{ steps.android-artifacts.outputs.apk-file-name }}
-          ANDROID_AVD_NAME: appium_smoke_avd
-          ANDROID_APPIUM_USE_PACKAGE_ONLY: 'true'
-          APPIUM_SMOKE_JOB_TITLE: Appium Smoke Tests (Android)
-          APPIUM_SMOKE_ARTIFACT_NAME: appium-smoke-report-android
-          APPIUM_SMOKE_VIDEOS_ARTIFACT_NAME: appium-smoke-videos-android
-          APPIUM_RECORD_VIDEO_ON_FAILURE: 'true'
-          # Temporary: upload recordings for every test while validating capture.
-          APPIUM_RECORD_VIDEO_ALWAYS: 'true'
-          # Keep Appium alive between tests/retries (cold start once per job).
-          SKIP_APPIUM_STOP: 'true'
-
-      - name: Upload Playwright HTML report (Namespace)
-        if: ${{ always() && inputs.runner_provider == 'namespace' }}
-        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
-        with:
-          name: appium-smoke-report-android
-          path: tests/test-reports/appium-smoke-report/
-          retention-days: 7
-      - name: Upload Playwright HTML report (current)
-        if: ${{ always() && inputs.runner_provider != 'namespace' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: appium-smoke-report-android
-          path: tests/test-reports/appium-smoke-report/
-          retention-days: 7
-
-      - name: Upload failure screen recordings (Namespace)
-        if: ${{ always() && inputs.runner_provider == 'namespace' }}
-        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
-        with:
-          name: appium-smoke-videos-android
-          path: tests/test-reports/appium-smoke-videos/
-          if-no-files-found: ignore
-          retention-days: 7
-      - name: Upload failure screen recordings (current)
-        if: ${{ always() && inputs.runner_provider != 'namespace' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: appium-smoke-videos-android
-          path: tests/test-reports/appium-smoke-videos/
-          if-no-files-found: ignore
-          retention-days: 7
-
-      - name: Publish test results to GitHub Checks
-        if: always()
-        uses: dorny/test-reporter@dc3a92680fcc15842eef52e8c4606ea7ce6bd3f3
-        with:
-          name: Appium Smoke Tests (Android)
-          path: tests/test-reports/appium-smoke-junit.xml
-          reporter: java-junit
-          fail-on-error: false
-          list-suites: all
-          list-tests: failed
-
+    uses: ./.github/workflows/run-appium-e2e-workflow.yml
+    with:
+      test-suite-name: appium-accounts-android-smoke
+      platform: android
+      test_suite_tag: SmokeAccounts
+      build_type: ${{ inputs.build_type }}
+      metamask_environment: ${{ inputs.metamask_environment }}
+      runner_provider: ${{ inputs.runner_provider }}
+    secrets: inherit

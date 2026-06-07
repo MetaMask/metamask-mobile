@@ -14,11 +14,6 @@ on:
         required: false
         type: string
         default: 'current'
-      selected_tags:
-        description: 'JSON array of tags from smart E2E selector'
-        required: false
-        type: string
-        default: '["ALL"]'
 
 permissions:
   contents: read
@@ -26,12 +21,6 @@ permissions:
 jobs:
   prebuild-wda:
     name: prebuild-wda-ios
-    if: >-
-      ${{
-        !cancelled() &&
-        (contains(fromJson(inputs.selected_tags), 'ALL') ||
-         contains(fromJson(inputs.selected_tags), 'SmokeAppium'))
-      }}
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ios-e2e' || 'macos-latest' }}
 
     steps:

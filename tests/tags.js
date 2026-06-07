@@ -5,6 +5,7 @@
  *
  * Selection logic is defined in: tests/tools/e2e-ai-analyzer/modes/select-tags/prompt.ts
  */
+
 const smokeTags = {
   smokeAccounts: {
     tag: 'SmokeAccounts:',
@@ -76,11 +77,6 @@ const smokeTags = {
     description:
       'Tests the in-app browser (BrowserTab/BrowserUrlBar WebView). Covers browser navigation: visiting invalid URLs and returning home, ENS domain resolution via mocked IPFS gateway, and cross-origin redirect URL bar updates. Tests browser security: camera permission prompts within WebView and history disclosure prevention. Tests file download handling from web pages. Tests phishing detection via mocked dapp-scanning API responses. Browser tests use local HTML fixture servers (DappServer) and testSpecificMock for API mocking rather than live external websites. When changes touch BrowserTab, BrowserUrlBar, WebView configuration, or dapp-scanning integration, select this tag. Related to SmokeWalletPlatform for Trending browser navigation integration.',
   },
-  smokeAppium: {
-    tag: 'SmokeAppium:',
-    description:
-      'Appium smoke tests covering cross-platform login and wallet unlock flows using the WebDriverIO/XCUITest/UIAutomator2 stack. Select this tag when changes touch the login screen, password entry, unlock flow, the Appium test framework itself (tests/framework/), or CI Appium infrastructure (.github/workflows/run-appium-smoke-tests-*.yml).',
-  },
   smokeSnaps: {
     tag: 'SmokeSnaps:',
     description:
@@ -106,56 +102,70 @@ const otherTags = {
   fixtureValidation: 'FixtureValidation:',
 };
 
-// Smoke test tag functions
-const SmokeAccounts = (testName) =>
-  `${smokeTags.smokeAccounts.tag} ${testName}`;
-const SmokeConfirmations = (testName) =>
-  `${smokeTags.smokeConfirmations.tag} ${testName}`;
-const SmokeIdentity = (testName) =>
-  `${smokeTags.smokeIdentity.tag} ${testName}`;
-const SmokeNetworkAbstractions = (testName) =>
-  `${smokeTags.smokeNetworkAbstractions.tag} ${testName}`;
-const SmokeNetworkExpansion = (testName) =>
-  `${smokeTags.smokeNetworkExpansion.tag} ${testName}`;
-const SmokeSwap = (testName) => `${smokeTags.smokeSwap.tag} ${testName}`;
-const SmokeStake = (testName) => `${smokeTags.smokeStake.tag} ${testName}`;
-const SmokeWalletPlatform = (testName) =>
-  `${smokeTags.smokeWalletPlatform.tag} ${testName}`;
-const SmokeMoney = (testName) => `${smokeTags.smokeMoney.tag} ${testName}`;
-const SmokePerps = (testName) => `${smokeTags.smokePerps.tag} ${testName}`;
-const SmokeMultiChainAPI = (testName) =>
-  `${smokeTags.smokeMultiChainAPI.tag} ${testName}`;
-const SmokePredictions = (testName) =>
-  `${smokeTags.smokePredictions.tag} ${testName}`;
-const SmokeSeedlessOnboarding = (testName) =>
-  `${smokeTags.smokeSeedlessOnboarding.tag} ${testName}`;
-const SmokeBrowser = (testName) => `${smokeTags.smokeBrowser.tag} ${testName}`;
-const SmokeAppium = (testName) => `${smokeTags.smokeAppium.tag} ${testName}`;
-const SmokeSnaps = (testName) => `${smokeTags.smokeSnaps.tag} ${testName}`;
-// Other test tags functions.
-const RegressionAccounts = (testName) =>
-  `${otherTags.regressionAccounts} ${testName}`;
-const RegressionConfirmations = (testName) =>
-  `${otherTags.regressionConfirmations} ${testName}`;
-const RegressionIdentity = (testName) =>
-  `${otherTags.regressionIdentity} ${testName}`;
-const RegressionNetworkAbstractions = (testName) =>
-  `${otherTags.regressionNetworkAbstractions} ${testName}`;
-const RegressionWalletPlatform = (testName) =>
-  `${otherTags.regressionWalletPlatform} ${testName}`;
-const RegressionNetworkExpansion = (testName) =>
-  `${otherTags.regressionNetworkExpansion} ${testName}`;
-const RegressionAssets = (testName) =>
-  `${otherTags.regressionAssets} ${testName}`;
-const RegressionWalletUX = (testName) =>
-  `${otherTags.regressionWalletUX} ${testName}`;
-const RegressionTrade = (testName) =>
-  `${otherTags.regressionTrade} ${testName}`;
-const RegressionSampleFeature = (testName) =>
-  `${otherTags.regressionSampleFeature} ${testName}`;
-const SmokePerformance = (testName) => `${otherTags.performance} ${testName}`;
-const FixtureValidation = (testName) =>
-  `${otherTags.fixtureValidation} ${testName}`;
+/** @param {string} tagPrefix Tag label including trailing colon, e.g. "SmokeAccounts:" */
+const tagDescribe = (tagPrefix) => (testName) => `${tagPrefix} ${testName}`;
+
+/** smokeAccounts → SmokeAccounts */
+const smokeExportName = (key) => `Smoke${key.slice('smoke'.length)}`;
+
+/** regressionAccounts → RegressionAccounts; performance → SmokePerformance (tag stays "Performance:") */
+const otherExportName = (key) => {
+  if (key === 'performance') {
+    return 'SmokePerformance';
+  }
+  return key.charAt(0).toUpperCase() + key.slice(1);
+};
+
+/** @param {Record<string, { tag: string, description: string }>} tags */
+const createSmokeDescribeFunctions = (tags) =>
+  Object.fromEntries(
+    Object.entries(tags).map(([key, { tag }]) => [
+      smokeExportName(key),
+      tagDescribe(tag),
+    ]),
+  );
+
+/** @param {Record<string, string>} tags */
+const createOtherDescribeFunctions = (tags) =>
+  Object.fromEntries(
+    Object.entries(tags).map(([key, tag]) => [
+      otherExportName(key),
+      tagDescribe(tag),
+    ]),
+  );
+
+const {
+  SmokeAccounts,
+  SmokeConfirmations,
+  SmokeIdentity,
+  SmokeNetworkAbstractions,
+  SmokeNetworkExpansion,
+  SmokeSwap,
+  SmokeStake,
+  SmokeWalletPlatform,
+  SmokeMoney,
+  SmokePerps,
+  SmokeMultiChainAPI,
+  SmokePredictions,
+  SmokeSeedlessOnboarding,
+  SmokeBrowser,
+  SmokeSnaps,
+} = createSmokeDescribeFunctions(smokeTags);
+
+const {
+  RegressionAccounts,
+  RegressionConfirmations,
+  RegressionIdentity,
+  RegressionNetworkAbstractions,
+  RegressionWalletPlatform,
+  RegressionNetworkExpansion,
+  RegressionAssets,
+  RegressionWalletUX,
+  RegressionTrade,
+  RegressionSampleFeature,
+  SmokePerformance,
+  FixtureValidation,
+} = createOtherDescribeFunctions(otherTags);
 
 export {
   smokeTags,
@@ -174,7 +184,6 @@ export {
   SmokePredictions,
   SmokeSeedlessOnboarding,
   SmokeBrowser,
-  SmokeAppium,
   RegressionAccounts,
   RegressionConfirmations,
   RegressionIdentity,

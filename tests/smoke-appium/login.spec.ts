@@ -1,17 +1,14 @@
 import { test as appiumTest } from '../framework/fixtures/playwright/index.js';
-import { SmokeAppium } from '../tags.js';
+import { SmokeAccounts } from '../tags.js';
 import { loginToAppPlaywright } from '../flows/wallet.flow.js';
 import TabBarComponent from '../page-objects/wallet/TabBarComponent.js';
 import FixtureBuilder from '../framework/fixtures/FixtureBuilder.js';
 import { withFixtures } from '../framework/fixtures/FixtureHelper.js';
 
-appiumTest.describe(SmokeAppium('Login to app'), () => {
+appiumTest.describe(SmokeAccounts('Login to app'), () => {
   appiumTest(
-    'logs in successfully @SmokeAppium',
-    async ({
-      driver: _driver, // required: sets globalThis.driver so FrameworkDetector picks up Appium
-      currentDeviceDetails,
-    }) => {
+    'logs in successfully',
+    async ({ driver: _driver, currentDeviceDetails }) => {
       await withFixtures(
         {
           fixture: new FixtureBuilder().build(),

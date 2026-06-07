@@ -1,4 +1,5 @@
 import {
+  buildRecordingFileBaseName,
   extractRecordingPayload,
   isAndroidPlatform,
   isLocalEmulatorProvider,
@@ -87,8 +88,29 @@ describe('ScreenRecording', () => {
 
   describe('sanitizeRecordingFileName', () => {
     it('replaces unsafe characters', () => {
-      expect(sanitizeRecordingFileName('should login @SmokeAppium')).toBe(
-        'should_login_SmokeAppium',
+      expect(sanitizeRecordingFileName('should login')).toBe('should_login');
+    });
+  });
+
+  describe('buildRecordingFileBaseName', () => {
+    it('includes describe block and test title in the file name', () => {
+      expect(
+        buildRecordingFileBaseName({
+          projectName: 'android-smoke',
+          titlePath: ['SmokeAccounts: Login to app', 'logs in successfully'],
+        }),
+      ).toBe('android-smoke-SmokeAccounts_Login_to_app__logs_in_successfully');
+    });
+
+    it('adds a retry suffix when the test is retried', () => {
+      expect(
+        buildRecordingFileBaseName({
+          projectName: 'ios-smoke',
+          titlePath: ['SmokeAccounts: Login to app', 'logs in successfully'],
+          retry: 1,
+        }),
+      ).toBe(
+        'ios-smoke-SmokeAccounts_Login_to_app__logs_in_successfully-retry1',
       );
     });
   });

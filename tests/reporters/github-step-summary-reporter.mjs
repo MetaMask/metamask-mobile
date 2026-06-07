@@ -38,8 +38,13 @@ export default class GitHubStepSummaryReporter {
     const title =
       process.env.APPIUM_SMOKE_JOB_TITLE ?? 'Appium Smoke Tests';
     const statusEmoji = result.status === 'passed' ? '✅' : '❌';
-    const reportDir = join(testsRoot, 'test-reports/appium-smoke-report');
-    const videosDir = join(testsRoot, 'test-reports/appium-smoke-videos');
+    const suiteName = process.env.APPIUM_SMOKE_SUITE_NAME?.trim();
+    const reportDir = suiteName
+      ? join(testsRoot, 'test-reports/appium-smoke-report', suiteName)
+      : join(testsRoot, 'test-reports/appium-smoke-report');
+    const videosDir = suiteName
+      ? join(testsRoot, 'test-reports/appium-smoke-videos', suiteName)
+      : join(testsRoot, 'test-reports/appium-smoke-videos');
     const videosArtifactName =
       process.env.APPIUM_SMOKE_VIDEOS_ARTIFACT_NAME ??
       'appium-smoke-videos';

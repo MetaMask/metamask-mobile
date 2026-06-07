@@ -16,6 +16,7 @@ const CI_ENV_KEY = 'CI';
 export const APPIUM_SMOKE_VIDEOS_DIR = join(
   process.cwd(),
   'tests/test-reports/appium-smoke-videos',
+  process.env.APPIUM_SMOKE_SUITE_NAME?.trim() ?? '',
 );
 
 const DEFAULT_TIME_LIMIT_SEC = 600;
@@ -67,6 +68,35 @@ export function sanitizeRecordingFileName(title: string): string {
 }
 
 /** @internal exported for unit tests */
+export function buildRecordingFileBaseName(options: {
+  projectName: string;
+  titlePath: string[];
+  retry?: number;
+}): string {
+  const scenarioName = options.titlePath
+    .map((segment) => sanitizeRecordingFileName(segment))
+    .filter(Boolean)
+    .join('__');
+
+  const retrySuffix =
+    options.retry && options.retry > 0 ? `-retry${options.retry}` : '';
+
+  if (!scenarioName) {
+    return `${options.projectName}-unknown-test${retrySuffix}`;
+  }
+
+  return `${options.projectName}-${scenarioName}${retrySuffix}`;
+}
+
+function buildRecordingBaseName(testInfo: TestInfo): string {
+  return buildRecordingFileBaseName({
+    projectName: testInfo.project.name,
+    titlePath: testInfo.titlePath,
+    retry: testInfo.retry,
+  });
+}
+
+/** @internal exported for unit tests */
 export function extractRecordingPayload(result: unknown): string | undefined {
   if (typeof result === 'string' && result.length > 0) {
     return result;
@@ -100,7 +130,7 @@ export function isAndroidPlatform(platformName: string | undefined): boolean {
 }
 
 function resolveIsAndroid(
-  driver: WebdriverIO.Browser,
+  browser: WebdriverIO.Browser,
   platform?: Platform,
 ): boolean {
   if (platform === Platform.ANDROID) {
@@ -109,17 +139,17 @@ function resolveIsAndroid(
   if (platform === Platform.IOS) {
     return false;
   }
-  if (driver.isAndroid) {
+  if (browser.isAndroid) {
     return true;
   }
-  if (driver.isIOS) {
+  if (browser.isIOS) {
     return false;
   }
-  return isAndroidPlatform(resolvePlatformName(driver));
+  return isAndroidPlatform(resolvePlatformName(browser));
 }
 
-function resolvePlatformName(driver: WebdriverIO.Browser): string | undefined {
-  const capabilities = driver.capabilities as Record<string, unknown>;
+function resolvePlatformName(browser: WebdriverIO.Browser): string | undefined {
+  const capabilities = browser.capabilities as Record<string, unknown>;
   const raw = capabilities.platformName ?? capabilities['appium:platformName'];
   return typeof raw === 'string' ? raw : undefined;
 }
@@ -142,9 +172,9 @@ type AppiumScreenRecorder = WebdriverIO.Browser & {
 };
 
 async function startAndroidScreenRecord(
-  driver: WebdriverIO.Browser,
+  browser: WebdriverIO.Browser,
 ): Promise<ScreenRecordingBackend | undefined> {
-  const appiumDriver = driver as AppiumScreenRecorder;
+  const appiumDriver = browser as AppiumScreenRecorder;
   if (typeof appiumDriver.startRecordingScreen === 'function') {
     try {
       await appiumDriver.startRecordingScreen({
@@ -160,7 +190,7 @@ async function startAndroidScreenRecord(
   }
 
   try {
-    const started = await driver.execute(
+    const started = await browser.execute(
       'mobile: startMediaProjectionRecording',
       {
         maxDurationSec: recordingTimeLimitSec(),
@@ -182,10 +212,10 @@ async function startAndroidScreenRecord(
 }
 
 async function stopAndroidRecording(
-  driver: WebdriverIO.Browser,
+  browser: WebdriverIO.Browser,
   backend: ScreenRecordingBackend,
 ): Promise<string | undefined> {
-  const appiumDriver = driver as AppiumScreenRecorder;
+  const appiumDriver = browser as AppiumScreenRecorder;
   const attempts: ScreenRecordingBackend[] =
     backend === 'android-screenrecord'
       ? ['android-screenrecord', 'android-media-projection']
@@ -198,7 +228,7 @@ async function stopAndroidRecording(
         attempt === 'android-screenrecord' &&
         typeof appiumDriver.stopRecordingScreen === 'function'
           ? await appiumDriver.stopRecordingScreen()
-          : await driver.execute('mobile: stopMediaProjectionRecording');
+          : await browser.execute('mobile: stopMediaProjectionRecording');
       const payload = extractRecordingPayload(result);
       if (payload) {
         return payload;
@@ -215,9 +245,9 @@ async function stopAndroidRecording(
 }
 
 async function startIosRecording(
-  driver: WebdriverIO.Browser,
+  browser: WebdriverIO.Browser,
 ): Promise<ScreenRecordingBackend | undefined> {
-  const appiumDriver = driver as AppiumScreenRecorder;
+  const appiumDriver = browser as AppiumScreenRecorder;
   if (typeof appiumDriver.startRecordingScreen !== 'function') {
     logRecordingIssue(
       'startRecordingScreen is not available on this WebDriver session',
@@ -241,9 +271,9 @@ async function startIosRecording(
 }
 
 async function stopIosRecording(
-  driver: WebdriverIO.Browser,
+  browser: WebdriverIO.Browser,
 ): Promise<string | undefined> {
-  const appiumDriver = driver as AppiumScreenRecorder;
+  const appiumDriver = browser as AppiumScreenRecorder;
   if (typeof appiumDriver.stopRecordingScreen !== 'function') {
     throw new Error(
       'stopRecordingScreen is not available on this WebDriver session',
@@ -259,15 +289,15 @@ async function stopIosRecording(
  * Android tries adb screenrecord first (reliable on emulators), then media projection.
  */
 export async function startFailureRecording(
-  driver: WebdriverIO.Browser,
+  browser: WebdriverIO.Browser,
   platform?: Platform,
 ): Promise<ScreenRecordingBackend | undefined> {
   try {
-    if (resolveIsAndroid(driver, platform)) {
-      return await startAndroidScreenRecord(driver);
+    if (resolveIsAndroid(browser, platform)) {
+      return await startAndroidScreenRecord(browser);
     }
 
-    return await startIosRecording(driver);
+    return await startIosRecording(browser);
   } catch (error) {
     logRecordingIssue(
       `Could not start screen recording: ${formatRecordingError(error)}`,
@@ -276,15 +306,9 @@ export async function startFailureRecording(
   }
 }
 
-function buildRecordingBaseName(testInfo: TestInfo): string {
-  const project = testInfo.project.name;
-  const retrySuffix = testInfo.retry > 0 ? `-retry${testInfo.retry}` : '';
-  return `${project}-${sanitizeRecordingFileName(testInfo.title)}${retrySuffix}`;
-}
-
 /**
- * Temporary CI toggle: persist recordings for every test (not only failures).
- * Remove APPIUM_RECORD_VIDEO_ALWAYS once video capture is validated.
+ * Optional override: set APPIUM_RECORD_VIDEO_ALWAYS=true to persist every recording
+ * (useful for local debugging). CI defaults to failure-only via shouldPersistRecording.
  */
 export function shouldPersistRecordingAlways(): boolean {
   const raw = process.env[RECORD_VIDEO_ALWAYS_ENV_KEY]?.trim().toLowerCase();
@@ -309,7 +333,7 @@ function shouldPersistRecording(testInfo: TestInfo): boolean {
  * Always attempts stop when recording was started (even on pass) to free resources.
  */
 export async function stopFailureRecordingAndAttach(
-  driver: WebdriverIO.Browser,
+  browser: WebdriverIO.Browser,
   testInfo: TestInfo,
   recordingBackend: ScreenRecordingBackend | undefined,
   platform?: Platform,
@@ -323,11 +347,11 @@ export async function stopFailureRecordingAndAttach(
     if (
       recordingBackend === 'android-screenrecord' ||
       recordingBackend === 'android-media-projection' ||
-      resolveIsAndroid(driver, platform)
+      resolveIsAndroid(browser, platform)
     ) {
-      payload = await stopAndroidRecording(driver, recordingBackend);
+      payload = await stopAndroidRecording(browser, recordingBackend);
     } else {
-      payload = await stopIosRecording(driver);
+      payload = await stopIosRecording(browser);
     }
   } catch (error) {
     logRecordingIssue(
@@ -367,7 +391,7 @@ export async function stopFailureRecordingAndAttach(
   }
 
   try {
-    await testInfo.attach('failure-recording', {
+    await testInfo.attach(buildRecordingBaseName(testInfo), {
       body: videoBuffer,
       contentType: 'video/mp4',
     });

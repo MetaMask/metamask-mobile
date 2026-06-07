@@ -1,7 +1,8 @@
 # Appium Smoke Tests — iOS
 #
-# Reusable workflow that runs Appium smoke tests on a local iOS simulator
-# against a pre-built .app from build-ios-e2e.yml.
+# Fans out reusable workflow jobs per Appium smoke tag. Only SmokeAccounts is
+# wired today; add more jobs here as Appium specs land for other categories.
+# Also append new tags to scripts/e2e/appium-ios-smoke-tags.mjs (CI WDA gate).
 #
 # Called from ci.yml after ios-tests-ready succeeds.
 
@@ -26,7 +27,7 @@ on:
         type: string
         default: 'current'
       selected_tags:
-        description: 'JSON array of tags from smart E2E selector (e.g. ["SmokeAppium"] or ["ALL"])'
+        description: 'JSON array of tags from smart E2E selector (e.g. ["SmokeAccounts"] or ["ALL"])'
         required: false
         type: string
         default: '["ALL"]'
@@ -48,7 +49,7 @@ on:
         type: string
         default: 'current'
       selected_tags:
-        description: 'JSON array of tags from smart E2E selector (e.g. ["SmokeAppium"] or ["ALL"])'
+        description: 'JSON array of tags from smart E2E selector'
         required: false
         type: string
         default: '["ALL"]'
@@ -62,213 +63,19 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  appium-ios-smoke:
-    name: appium-ios-smoke-${{ matrix.shard }}
+  appium-accounts-ios-smoke:
     if: >-
       ${{
         !cancelled() &&
         (contains(fromJson(inputs.selected_tags), 'ALL') ||
-         contains(fromJson(inputs.selected_tags), 'SmokeAppium'))
+         contains(fromJson(inputs.selected_tags), 'SmokeAccounts'))
       }}
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: [1]
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ios-e2e' || 'macos-latest' }}
-
-    steps:
-      - name: Checkout (Namespace)
-        uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
-        if: ${{ inputs.runner_provider == 'namespace' }}
-      - name: Checkout
-        uses: actions/checkout@v4
-        if: ${{ inputs.runner_provider != 'namespace' }}
-
-      - name: Setup E2E environment (iOS)
-        uses: ./.github/actions/setup-e2e-env
-        with:
-          platform: ios
-          setup-simulator: 'false'
-          configure-keystores: 'false'
-          install-foundry: 'true'
-          skip-pod-install: 'true'
-          install-applesimutils: 'false'
-          runner_provider: ${{ inputs.runner_provider }}
-
-      - name: Cache ffmpeg (Homebrew)
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/mms-ffmpeg
-          key: brew-ffmpeg-${{ runner.os }}-v1
-          restore-keys: |
-            brew-ffmpeg-${{ runner.os }}-
-
-      - name: Install ffmpeg for XCUITest screen recording
-        # Appium XCUITest startRecordingScreen encodes simulator video via ffmpeg.
-        run: bash scripts/e2e/ensure-ffmpeg-ci.sh
-        shell: bash
-
-      - name: Download iOS build artifacts (Namespace)
-        if: ${{ inputs.runner_provider == 'namespace' }}
-        uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
-        with:
-          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
-          path: artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
-      - name: Download iOS build artifacts (current)
-        if: ${{ inputs.runner_provider != 'namespace' }}
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
-          path: artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
-
-      # actions/upload-artifact strips execute permissions. Restore them so
-      # xcrun simctl can install and launch the app.
-      - name: Restore iOS bundle executable permissions
-        env:
-          APP_PATH: artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
-        run: |
-          BUNDLE_EXEC=$(/usr/libexec/PlistBuddy -c "Print CFBundleExecutable" "$APP_PATH/Info.plist" 2>/dev/null)
-          if [ -z "$BUNDLE_EXEC" ]; then
-            echo "Could not read CFBundleExecutable from Info.plist"
-            exit 1
-          fi
-
-          ACTUAL_PATH=$(find "$APP_PATH" -maxdepth 1 -iname "$BUNDLE_EXEC" -type f | head -1)
-          if [ -z "$ACTUAL_PATH" ]; then
-            echo "Bundle executable not found: $BUNDLE_EXEC"
-            exit 1
-          fi
-
-          if [ "$(basename "$ACTUAL_PATH")" != "$BUNDLE_EXEC" ]; then
-            mv "$ACTUAL_PATH" "$APP_PATH/${BUNDLE_EXEC}_fix"
-            mv "$APP_PATH/${BUNDLE_EXEC}_fix" "$APP_PATH/$BUNDLE_EXEC"
-          fi
-
-          chmod +x "$APP_PATH/$BUNDLE_EXEC"
-
-          if [ -d "$APP_PATH/Frameworks" ]; then
-            find "$APP_PATH/Frameworks" -type d -name "*.framework" | while IFS= read -r fw; do
-              binary="$fw/$(basename "$fw" .framework)"
-              if [ -f "$binary" ]; then
-                chmod +x "$binary"
-              fi
-            done
-            find "$APP_PATH/Frameworks" -type f -name "*.dylib" -exec chmod +x {} \;
-          fi
-          echo "Restored execute permissions on main binary and all framework binaries"
-        shell: bash
-
-      # Cache WDA DerivedData so xcodebuild can do an incremental build (or skip
-      # entirely) on subsequent runs. Key: xcuitest-driver version + Xcode version.
-      # On cache miss WDA builds normally and the result is saved for next time.
-      - name: Resolve XCUITest driver version for WDA cache key
-        id: xcuitest-version
-        run: echo "version=$(node scripts/e2e/resolve-xcuitest-driver-version.mjs)" >> "$GITHUB_OUTPUT"
-
-      - name: Get Xcode version for WDA cache key
-        id: xcode-version
-        run: echo "version=$(xcodebuild -version 2>/dev/null | head -1 | tr ' ' '-')" >> "$GITHUB_OUTPUT"
-
-      - name: Restore WDA DerivedData cache
-        uses: actions/cache@v4
-        with:
-          path: ~/appium-wda
-          # Version from package.json — bumps appium-xcuitest-driver invalidate the cache
-          # automatically. Do NOT use hashFiles('**/appium-xcuitest-driver/**'): nested
-          # node_modules globs are non-deterministic and produced a new key every run.
-          key: wda-derived-data-xcuitest-${{ steps.xcuitest-version.outputs.version }}-${{ steps.xcode-version.outputs.version }}-${{ runner.os }}
-          restore-keys: |
-            wda-derived-data-xcuitest-${{ steps.xcuitest-version.outputs.version }}-${{ steps.xcode-version.outputs.version }}-
-
-      # actions/cache restores files with current timestamps so xcodebuild treats
-      # everything as stale and rebuilds. prepare-ios-appium-runner.mjs boots the
-      # sim in parallel with a fallback WDA prebuild (usually skipped when the
-      # prebuild-wda-ios job already populated the cache).
-      - name: Check if WDA is prebuilt
-        id: wda-prebuilt
-        run: |
-          WDA_APP=$(find ~/appium-wda/Build/Products -name 'WebDriverAgentRunner-Runner.app' -type d 2>/dev/null | head -1 || true)
-          XCTESTRUN=$(find ~/appium-wda/Build/Products -name '*.xctestrun' 2>/dev/null | head -1 || true)
-          if [ -n "$WDA_APP" ] && [ -n "$XCTESTRUN" ]; then
-            echo "ready=true" >> "$GITHUB_OUTPUT"
-            echo "WDA prebuilt artifacts found"
-          else
-            echo "ready=false" >> "$GITHUB_OUTPUT"
-            echo "WDA cache miss — prepare step will prebuild (parallel with sim boot)"
-          fi
-        shell: bash
-
-      - name: Prepare iOS Appium runner
-        timeout-minutes: 30
-        run: node scripts/e2e/prepare-ios-appium-runner.mjs
-        env:
-          IOS_SIMULATOR_NAME: iPhone 16 Pro
-          IOS_APP_PATH: artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
-          IOS_BUNDLE_ID: io.metamask.MetaMask
-          SKIP_WDA_PREBUILD: ${{ steps.wda-prebuilt.outputs.ready == 'true' && 'true' || 'false' }}
-
-      - name: Run Appium smoke tests (iOS)
-        run: >-
-          yarn playwright test
-          --config tests/playwright.smoke-appium.config.ts
-          --project ios-smoke
-          --grep @SmokeAppium
-          --shard=${{ matrix.shard }}/${{ strategy.job-total }}
-        env:
-          IOS_APP_PATH: artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
-          IOS_SIMULATOR_NAME: iPhone 16 Pro
-          APPIUM_SMOKE_JOB_TITLE: Appium Smoke Tests (iOS)
-          APPIUM_SMOKE_ARTIFACT_NAME: appium-smoke-report-ios
-          APPIUM_SMOKE_VIDEOS_ARTIFACT_NAME: appium-smoke-videos-ios
-          APPIUM_RECORD_VIDEO_ON_FAILURE: 'true'
-          # Temporary: upload recordings for every test while validating capture.
-          APPIUM_RECORD_VIDEO_ALWAYS: 'true'
-          # Runner prep already simctl-installs and boots; skip duplicate work in globalSetup.
-          SKIP_DEVICE_BOOT: 'true'
-          SKIP_APP_REINSTALL: 'true'
-          IOS_APPIUM_USE_BUNDLE_ID_ONLY: 'true'
-          USE_PREBUILT_WDA: 'true'
-
-      - name: Upload Playwright HTML report (Namespace)
-        if: ${{ always() && inputs.runner_provider == 'namespace' }}
-        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
-        with:
-          name: appium-smoke-report-ios
-          path: tests/test-reports/appium-smoke-report/
-          retention-days: 7
-      - name: Upload Playwright HTML report (current)
-        if: ${{ always() && inputs.runner_provider != 'namespace' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: appium-smoke-report-ios
-          path: tests/test-reports/appium-smoke-report/
-          retention-days: 7
-
-      - name: Upload failure screen recordings (Namespace)
-        if: ${{ always() && inputs.runner_provider == 'namespace' }}
-        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
-        with:
-          name: appium-smoke-videos-ios
-          path: tests/test-reports/appium-smoke-videos/
-          if-no-files-found: ignore
-          retention-days: 7
-      - name: Upload failure screen recordings (current)
-        if: ${{ always() && inputs.runner_provider != 'namespace' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: appium-smoke-videos-ios
-          path: tests/test-reports/appium-smoke-videos/
-          if-no-files-found: ignore
-          retention-days: 7
-
-      - name: Publish test results to GitHub Checks
-        if: always()
-        uses: dorny/test-reporter@dc3a92680fcc15842eef52e8c4606ea7ce6bd3f3
-        with:
-          name: Appium Smoke Tests (iOS)
-          path: tests/test-reports/appium-smoke-junit.xml
-          reporter: java-junit
-          fail-on-error: false
-          list-suites: all
-          list-tests: failed
-
+    uses: ./.github/workflows/run-appium-e2e-workflow.yml
+    with:
+      test-suite-name: appium-accounts-ios-smoke
+      platform: ios
+      test_suite_tag: SmokeAccounts
+      build_type: ${{ inputs.build_type }}
+      metamask_environment: ${{ inputs.metamask_environment }}
+      runner_provider: ${{ inputs.runner_provider }}
+    secrets: inherit
