@@ -118,8 +118,15 @@ describe('ScreenRecording', () => {
       expect(extractRecordingPayload('abc123')).toBe('abc123');
     });
 
+    it('ignores empty strings', () => {
+      expect(extractRecordingPayload('')).toBeUndefined();
+    });
+
     it('reads payload from object wrappers', () => {
       expect(extractRecordingPayload({ payload: 'video-data' })).toBe(
+        'video-data',
+      );
+      expect(extractRecordingPayload({ media: 'video-data' })).toBe(
         'video-data',
       );
     });

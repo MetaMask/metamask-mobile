@@ -16,8 +16,9 @@ export const driverFixture = {
     testInfo: TestInfo,
   ) => {
     let driver: WebdriverIO.Browser | undefined;
-    let recordingStarted = false;
+    let recordingBackend: Awaited<ReturnType<typeof startFailureRecording>>;
     const project = testInfo.project as FullProject<WebDriverConfig>;
+    const platform = project.use.platform;
     const recordVideoOnFailure = isVideoRecordingOnFailureEnabled(
       project.use.device?.provider,
     );
@@ -74,7 +75,7 @@ export const driverFixture = {
       }
 
       if (recordVideoOnFailure) {
-        recordingStarted = await startFailureRecording(driver);
+        recordingBackend = await startFailureRecording(driver, platform);
       }
 
       await use(driver);
@@ -87,7 +88,8 @@ export const driverFixture = {
           await stopFailureRecordingAndAttach(
             driver,
             testInfo,
-            recordingStarted,
+            recordingBackend,
+            platform,
           );
         }
       } catch (error) {

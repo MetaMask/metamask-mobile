@@ -48,13 +48,11 @@ export default defineConfig({
     ],
     ['junit', { outputFile: './test-reports/appium-smoke-junit.xml' }],
     ['list'],
-    // CI: `github` → log annotations; github-step-summary-reporter → job summary panel.
-    // JUnit is kept for the GitHub Checks tab (dorny/test-reporter).
+    // CI: step summary + JUnit (dorny/test-reporter). Skip the `github` reporter —
+    // it emits error annotations for failed retry attempts even when the test
+    // eventually passes, which makes passing jobs look failed in the UI.
     ...(process.env.CI === 'true'
-      ? ([
-          ['github'] as const,
-          ['./reporters/github-step-summary-reporter.mjs'] as const,
-        ] as const)
+      ? ([['./reporters/github-step-summary-reporter.mjs'] as const] as const)
       : []),
   ],
 

@@ -2,7 +2,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { TestInfo } from '@playwright/test';
-import type { ProviderName } from '../../types.ts';
+import { Platform, type ProviderName } from '../../types.ts';
 import { createLogger } from '../../logger.ts';
 
 const logger = createLogger({ name: 'ScreenRecording' });
@@ -19,6 +19,12 @@ export const APPIUM_SMOKE_VIDEOS_DIR = join(
 );
 
 const DEFAULT_TIME_LIMIT_SEC = 600;
+
+/** Which Appium recording API was started for the active session. */
+export type ScreenRecordingBackend =
+  | 'ios'
+  | 'android-screenrecord'
+  | 'android-media-projection';
 
 /**
  * Local emulator/simulator runs only — BrowserStack records server-side.
@@ -67,7 +73,7 @@ export function extractRecordingPayload(result: unknown): string | undefined {
   }
   if (result && typeof result === 'object') {
     const record = result as Record<string, unknown>;
-    for (const key of ['payload', 'value', 'video'] as const) {
+    for (const key of ['payload', 'value', 'video', 'media'] as const) {
       const candidate = record[key];
       if (typeof candidate === 'string' && candidate.length > 0) {
         return candidate;
@@ -93,35 +99,132 @@ export function isAndroidPlatform(platformName: string | undefined): boolean {
   return platformName?.trim().toLowerCase() === 'android';
 }
 
+function resolveIsAndroid(
+  driver: WebdriverIO.Browser,
+  platform?: Platform,
+): boolean {
+  if (platform === Platform.ANDROID) {
+    return true;
+  }
+  if (platform === Platform.IOS) {
+    return false;
+  }
+  if (driver.isAndroid) {
+    return true;
+  }
+  if (driver.isIOS) {
+    return false;
+  }
+  return isAndroidPlatform(resolvePlatformName(driver));
+}
+
 function resolvePlatformName(driver: WebdriverIO.Browser): string | undefined {
   const capabilities = driver.capabilities as Record<string, unknown>;
   const raw = capabilities.platformName ?? capabilities['appium:platformName'];
   return typeof raw === 'string' ? raw : undefined;
 }
 
+function formatRecordingError(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function logRecordingIssue(message: string): void {
+  logger.warn(message);
+  // Visible in CI step logs without logger level tuning.
+  console.warn(`[ScreenRecording] ${message}`);
+}
+
+type AppiumScreenRecorder = WebdriverIO.Browser & {
+  startRecordingScreen?: (
+    options?: Record<string, string | number>,
+  ) => Promise<string>;
+  stopRecordingScreen?: (options?: Record<string, unknown>) => Promise<string>;
+};
+
+async function startAndroidScreenRecord(
+  driver: WebdriverIO.Browser,
+): Promise<ScreenRecordingBackend | undefined> {
+  const appiumDriver = driver as AppiumScreenRecorder;
+  if (typeof appiumDriver.startRecordingScreen === 'function') {
+    try {
+      await appiumDriver.startRecordingScreen({
+        timeLimit: String(recordingTimeLimitSec()),
+      });
+      logRecordingIssue('Android adb screenrecord started');
+      return 'android-screenrecord';
+    } catch (error) {
+      logRecordingIssue(
+        `adb screenrecord failed, trying media projection: ${formatRecordingError(error)}`,
+      );
+    }
+  }
+
+  try {
+    const started = await driver.execute(
+      'mobile: startMediaProjectionRecording',
+      {
+        maxDurationSec: recordingTimeLimitSec(),
+        resolution: '1280x720',
+      },
+    );
+    logRecordingIssue(
+      started === false
+        ? 'Android media projection already running'
+        : 'Android media projection recording started',
+    );
+    return 'android-media-projection';
+  } catch (error) {
+    logRecordingIssue(
+      `Could not start Android recording: ${formatRecordingError(error)}`,
+    );
+    return undefined;
+  }
+}
+
+async function stopAndroidRecording(
+  driver: WebdriverIO.Browser,
+  backend: ScreenRecordingBackend,
+): Promise<string | undefined> {
+  const appiumDriver = driver as AppiumScreenRecorder;
+  const attempts: ScreenRecordingBackend[] =
+    backend === 'android-screenrecord'
+      ? ['android-screenrecord', 'android-media-projection']
+      : ['android-media-projection', 'android-screenrecord'];
+
+  let lastError: unknown;
+  for (const attempt of attempts) {
+    try {
+      const result =
+        attempt === 'android-screenrecord' &&
+        typeof appiumDriver.stopRecordingScreen === 'function'
+          ? await appiumDriver.stopRecordingScreen()
+          : await driver.execute('mobile: stopMediaProjectionRecording');
+      const payload = extractRecordingPayload(result);
+      if (payload) {
+        return payload;
+      }
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  if (lastError) {
+    throw lastError;
+  }
+  return undefined;
+}
+
 /**
  * Starts Appium device screen recording for the active session.
- * Android UIAutomator2 uses Media Projection; iOS XCUITest uses startRecordingScreen.
+ * Android tries adb screenrecord first (reliable on emulators), then media projection.
  */
 export async function startFailureRecording(
   driver: WebdriverIO.Browser,
-): Promise<boolean> {
+  platform?: Platform,
+): Promise<ScreenRecordingBackend | undefined> {
   try {
-    const platformName = resolvePlatformName(driver);
-    if (isAndroidPlatform(platformName)) {
-      const started = await driver.execute(
-        'mobile: startMediaProjectionRecording',
-        {
-          maxDurationSec: recordingTimeLimitSec(),
-          resolution: '1280x720',
-        },
-      );
-      if (started === false) {
-        logger.debug('Android media projection recording already running');
-      } else {
-        logger.debug('Android media projection recording started');
-      }
-      return true;
+    if (resolveIsAndroid(driver, platform)) {
+      return await startAndroidScreenRecord(driver);
     }
 
     await driver.execute('mobile: startRecordingScreen', {
@@ -129,14 +232,12 @@ export async function startFailureRecording(
       videoQuality: 'medium',
     });
     logger.debug('iOS screen recording started');
-    return true;
+    return 'ios';
   } catch (error) {
-    logger.warn(
-      `Could not start screen recording: ${
-        error instanceof Error ? error.message : String(error)
-      }`,
+    logRecordingIssue(
+      `Could not start screen recording: ${formatRecordingError(error)}`,
     );
-    return false;
+    return undefined;
   }
 }
 
@@ -175,29 +276,40 @@ function shouldPersistRecording(testInfo: TestInfo): boolean {
 export async function stopFailureRecordingAndAttach(
   driver: WebdriverIO.Browser,
   testInfo: TestInfo,
-  recordingStarted: boolean,
+  recordingBackend: ScreenRecordingBackend | undefined,
+  platform?: Platform,
 ): Promise<void> {
-  if (!recordingStarted) {
+  if (!recordingBackend) {
     return;
   }
 
   let payload: string | undefined;
   try {
-    const platformName = resolvePlatformName(driver);
-    const result = isAndroidPlatform(platformName)
-      ? await driver.execute('mobile: stopMediaProjectionRecording')
-      : await driver.execute('mobile: stopRecordingScreen');
-    payload = extractRecordingPayload(result);
+    if (
+      recordingBackend === 'android-screenrecord' ||
+      recordingBackend === 'android-media-projection' ||
+      resolveIsAndroid(driver, platform)
+    ) {
+      payload = await stopAndroidRecording(driver, recordingBackend);
+    } else {
+      const result = await driver.execute('mobile: stopRecordingScreen');
+      payload = extractRecordingPayload(result);
+    }
   } catch (error) {
-    logger.warn(
-      `Could not stop screen recording: ${
-        error instanceof Error ? error.message : String(error)
-      }`,
+    logRecordingIssue(
+      `Could not stop screen recording: ${formatRecordingError(error)}`,
     );
     return;
   }
 
-  if (!payload || !shouldPersistRecording(testInfo)) {
+  if (!payload) {
+    logRecordingIssue(
+      `Screen recording stopped but returned no payload (status=${testInfo.status ?? 'unknown'})`,
+    );
+    return;
+  }
+
+  if (!shouldPersistRecording(testInfo)) {
     logger.debug(
       `Discarding screen recording (status=${testInfo.status ?? 'unknown'})`,
     );
@@ -211,12 +323,12 @@ export async function stopFailureRecordingAndAttach(
   try {
     mkdirSync(APPIUM_SMOKE_VIDEOS_DIR, { recursive: true });
     writeFileSync(filePath, videoBuffer);
-    logger.info(`Saved failure recording: ${filePath}`);
+    logRecordingIssue(
+      `Saved recording (${videoBuffer.length} bytes): ${filePath}`,
+    );
   } catch (error) {
-    logger.warn(
-      `Could not write failure recording to disk: ${
-        error instanceof Error ? error.message : String(error)
-      }`,
+    logRecordingIssue(
+      `Could not write recording to disk: ${formatRecordingError(error)}`,
     );
   }
 
@@ -226,10 +338,8 @@ export async function stopFailureRecordingAndAttach(
       contentType: 'video/mp4',
     });
   } catch (error) {
-    logger.warn(
-      `Could not attach failure recording to Playwright report: ${
-        error instanceof Error ? error.message : String(error)
-      }`,
+    logRecordingIssue(
+      `Could not attach recording to Playwright report: ${formatRecordingError(error)}`,
     );
   }
 }
