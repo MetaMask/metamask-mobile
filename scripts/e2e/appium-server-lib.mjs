@@ -11,6 +11,22 @@ const DEFAULT_PORT = Number(process.env.APPIUM_PORT ?? 4723);
 const STARTUP_TIMEOUT_MS = 60_000;
 
 /**
+ * Drop stdio pipe handles so a detached Appium child does not keep the prepare
+ * script's Node process alive after readiness is confirmed via /status.
+ *
+ * @param {import('node:child_process').ChildProcess} childProcess
+ */
+function releaseChildProcessStdio(childProcess) {
+  childProcess.stdout?.removeAllListeners();
+  childProcess.stderr?.removeAllListeners();
+  childProcess.removeAllListeners('error');
+  childProcess.removeAllListeners('close');
+  childProcess.stdout?.destroy();
+  childProcess.stderr?.destroy();
+  childProcess.stdin?.destroy();
+}
+
+/**
  * @param {string} [host]
  * @param {number} [port]
  * @returns {Promise<boolean>}
@@ -119,7 +135,12 @@ export async function ensureAppiumServerRunning(options = {}) {
     }
   });
 
-  await waitForAppiumServerReady(host, port, timeoutMs);
-  settled = true;
-  console.log(`Appium server ready at http://${host}:${port}`);
+  try {
+    await waitForAppiumServerReady(host, port, timeoutMs);
+    settled = true;
+    console.log(`Appium server ready at http://${host}:${port}`);
+  } finally {
+    // Detached Appium keeps running; closing pipes lets the prepare script exit.
+    releaseChildProcessStdio(appiumProcess);
+  }
 }
