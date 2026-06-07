@@ -20,10 +20,7 @@ import { useFormatters } from '../../../hooks/useFormatters';
  * @param options.paymentMethodId - The selected payment method ID.
  * @param options.backendError - Optional raw provider error from the quotes
  * response, used as a fallback when structured limits are not available.
- * @param options.currency - Fiat currency code to look up limits for. Defaults
- * to `userRegion.country.currency`. Pass `'usd'` when the amount is
- * USD-denominated (e.g. money-account deposit where the input is always in USD)
- * so the limit lookup uses USD limits rather than the local currency.
+ * @param options.currency - Override fiat currency for limit lookup; defaults to `userRegion.country.currency`.
  *
  * @returns `{ minAmount, maxAmount, amountLimitError, currency }`.
  */

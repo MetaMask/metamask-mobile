@@ -218,9 +218,6 @@ export function useAutomaticTransactionPayToken({
           return;
         }
 
-        // Only select methods whose settlement delay is within the configured
-        // threshold. Bank-transfer methods (UPI, IMPS, PIX) with delays
-        // exceeding the limit are not eligible for the headless deposit flow.
         const eligibleMethod = pickEligiblePaymentMethod(
           assetProviderPaymentMethods,
           maxDelayMinutesForPaymentMethods,
@@ -250,8 +247,6 @@ export function useAutomaticTransactionPayToken({
         return;
       }
 
-      // Non-moneyAccountDeposit fiat auto-select: requires global isFiatEnabled
-      // (feature flag on + global Ramps payment methods loaded).
       if (!isFiatEnabled) {
         return;
       }
