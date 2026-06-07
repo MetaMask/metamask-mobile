@@ -1,5 +1,6 @@
 import {
   extractRecordingPayload,
+  isAndroidPlatform,
   isLocalEmulatorProvider,
   isVideoRecordingOnFailureEnabled,
   sanitizeRecordingFileName,
@@ -79,6 +80,15 @@ describe('ScreenRecording', () => {
       expect(sanitizeRecordingFileName('should login @SmokeAppium')).toBe(
         'should_login_SmokeAppium',
       );
+    });
+  });
+
+  describe('isAndroidPlatform', () => {
+    it('detects Android platform names case-insensitively', () => {
+      expect(isAndroidPlatform('Android')).toBe(true);
+      expect(isAndroidPlatform('android')).toBe(true);
+      expect(isAndroidPlatform('iOS')).toBe(false);
+      expect(isAndroidPlatform(undefined)).toBe(false);
     });
   });
 

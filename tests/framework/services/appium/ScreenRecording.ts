@@ -87,18 +87,47 @@ function recordingTimeLimitSec(): number {
     : DEFAULT_TIME_LIMIT_SEC;
 }
 
+/** @internal exported for unit tests */
+export function isAndroidPlatform(platformName: string | undefined): boolean {
+  return platformName?.trim().toLowerCase() === 'android';
+}
+
+function resolvePlatformName(driver: WebdriverIO.Browser): string | undefined {
+  const capabilities = driver.capabilities as Record<string, unknown>;
+  const raw = capabilities.platformName ?? capabilities['appium:platformName'];
+  return typeof raw === 'string' ? raw : undefined;
+}
+
 /**
  * Starts Appium device screen recording for the active session.
+ * Android UIAutomator2 uses Media Projection; iOS XCUITest uses startRecordingScreen.
  */
 export async function startFailureRecording(
   driver: WebdriverIO.Browser,
 ): Promise<boolean> {
   try {
+    const platformName = resolvePlatformName(driver);
+    if (isAndroidPlatform(platformName)) {
+      const started = await driver.execute(
+        'mobile: startMediaProjectionRecording',
+        {
+          maxDurationSec: recordingTimeLimitSec(),
+          resolution: '1280x720',
+        },
+      );
+      if (started === false) {
+        logger.debug('Android media projection recording already running');
+      } else {
+        logger.debug('Android media projection recording started');
+      }
+      return true;
+    }
+
     await driver.execute('mobile: startRecordingScreen', {
       timeLimit: recordingTimeLimitSec(),
       videoQuality: 'medium',
     });
-    logger.debug('Screen recording started');
+    logger.debug('iOS screen recording started');
     return true;
   } catch (error) {
     logger.warn(
@@ -140,7 +169,10 @@ export async function stopFailureRecordingAndAttach(
 
   let payload: string | undefined;
   try {
-    const result = await driver.execute('mobile: stopRecordingScreen');
+    const platformName = resolvePlatformName(driver);
+    const result = isAndroidPlatform(platformName)
+      ? await driver.execute('mobile: stopMediaProjectionRecording')
+      : await driver.execute('mobile: stopRecordingScreen');
     payload = extractRecordingPayload(result);
   } catch (error) {
     logger.warn(

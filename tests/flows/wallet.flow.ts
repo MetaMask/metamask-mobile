@@ -499,6 +499,21 @@ export const loginToAppPlaywright = async (
 ): Promise<void> => {
   const { scenarioType = 'login' } = options;
 
+  await PlaywrightAssertions.expectElementToBeVisible(
+    asPlaywrightElement(LoginView.container),
+    {
+      description: 'Login view container',
+      timeout: 45_000,
+    },
+  );
+  await PlaywrightAssertions.expectElementToBeVisible(
+    asPlaywrightElement(LoginView.passwordInput),
+    {
+      description: 'Login password input',
+      timeout: 15_000,
+    },
+  );
+
   const password = getPasswordForScenario(scenarioType);
   // Type password and unlock
   await LoginView.enterPassword(password ?? '');
