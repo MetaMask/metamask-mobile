@@ -24,6 +24,7 @@ import {
   useAutomaticTransactionPayToken,
 } from '../../../hooks/pay/useAutomaticTransactionPayToken';
 import { useIsFiatPaymentAvailable } from '../../../hooks/pay/useIsFiatPaymentAvailable';
+import { useIsMoneyAccountDepositFiatAvailable } from '../../../hooks/pay/useIsMoneyAccountDepositFiatAvailable';
 import { useTransactionPayPostQuote } from '../../../hooks/pay/useTransactionPayPostQuote';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { AlertMessage } from '../../alerts/alert-message';
@@ -139,7 +140,23 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const fiatPayment = useTransactionPayFiatPayment();
     const selectedFiatPaymentMethodId = fiatPayment?.selectedPaymentMethodId;
     const isFiatAvailable = useIsFiatPaymentAvailable();
-    const hasPaymentOption = hasAvailableTokens || isFiatAvailable;
+    const {
+      isAvailable: isMoneyAccountFiatAvailable,
+      isLoading: isMoneyAccountFiatLoading,
+    } = useIsMoneyAccountDepositFiatAvailable();
+    // For moneyAccountDeposit: use asset-provider availability (global Redux
+    // paymentMethods may be empty for regions like India). For all other flows:
+    // use the global isFiatAvailable flag as before.
+    const hasFiatOption = isMoneyAccountDeposit
+      ? isMoneyAccountFiatAvailable
+      : isFiatAvailable;
+    const hasPaymentOption = hasAvailableTokens || hasFiatOption;
+    // True when we've confirmed there are no eligible fiat methods in this
+    // region (still loading = optimistically available, so keyboard stays up).
+    const isMoneyAccountFiatUnavailable =
+      isMoneyAccountDeposit &&
+      !isMoneyAccountFiatAvailable &&
+      !isMoneyAccountFiatLoading;
     const fiatEverSelectedRef = useRef(false);
     if (selectedFiatPaymentMethodId) {
       fiatEverSelectedRef.current = true;
@@ -319,7 +336,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               {footerText}
             </Text>
           )}
-          {isKeyboardVisible && hasPaymentOption && (
+          {isKeyboardVisible && hasPaymentOption && !isMoneyAccountFiatUnavailable && (
             <DepositKeyboard
               hidePercentageButtons={
                 Boolean(selectedFiatPaymentMethodId) ||
@@ -334,11 +351,22 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               hasMax={hasMax && (isWithdraw || !isNativePayToken)}
             />
           )}
-          {!hasPaymentOption && <BuySection />}
-          {!isKeyboardVisible && (
+          {isMoneyAccountFiatUnavailable && (
+            <Text
+              variant={TextVariant.BodySM}
+              color={TextColor.Alternative}
+              style={styles.footerText}
+            >
+              {strings('confirm.custom_amount.not_available_in_region')}
+            </Text>
+          )}
+          {!isMoneyAccountFiatUnavailable && !hasPaymentOption && <BuySection />}
+          {(!isKeyboardVisible || isMoneyAccountFiatUnavailable) && (
             <ConfirmButton
               alertTitle={alertTitle}
-              disableConfirm={disableConfirm || isAccountSelectionNeeded}
+              disableConfirm={
+                disableConfirm || isAccountSelectionNeeded || isMoneyAccountFiatUnavailable
+              }
             />
           )}
         </Box>
