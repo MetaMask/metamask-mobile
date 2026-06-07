@@ -1,10 +1,11 @@
 import React, { useCallback } from 'react';
-import { FlatList, View, type StyleProp, type ViewStyle } from 'react-native';
+import { FlatList, type StyleProp, type ViewStyle } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
+import {
+  Box,
+  SectionDivider,
+  SectionHeader,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
@@ -13,8 +14,6 @@ import {
   type Order,
 } from '@metamask/perps-controller';
 import PerpsMarketRowItem from '../PerpsMarketRowItem';
-import { useStyles } from '../../../../../component-library/hooks';
-import styleSheet from './PerpsWatchlistMarkets.styles';
 import PerpsRowSkeleton from '../PerpsRowSkeleton';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
@@ -45,19 +44,15 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
   source,
   transactionActiveAbTests,
   sectionStyle,
-  headerStyle,
   contentContainerStyle,
 }) => {
-  const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
 
   const handleMarketPress = useCallback(
     (market: PerpsMarketData) => {
-      // Check if user has a position or order for this market
       const hasPosition = positions.some((p) => p.symbol === market.symbol);
       const hasOrder = orders.some((o) => o.symbol === market.symbol);
 
-      // Determine which tab to open (same logic as PerpsCard)
       let initialTab: 'position' | 'orders' | undefined;
       if (hasPosition) {
         initialTab = 'position';
@@ -91,50 +86,28 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
     [handleMarketPress],
   );
 
-  // Header component
-  const SectionHeader = useCallback(
-    () => (
-      <View style={[styles.header, headerStyle]}>
-        <Text variant={TextVariant.BodyLGMedium} color={TextColor.Default}>
-          {strings('perps.home.watchlist')}
-        </Text>
-      </View>
-    ),
-    [styles.header, headerStyle],
-  );
-
-  // Show skeleton during initial load
-  if (isLoading) {
-    return (
-      <View style={[styles.section, sectionStyle]}>
-        <SectionHeader />
-        <View style={contentContainerStyle}>
-          <PerpsRowSkeleton count={3} />
-        </View>
-      </View>
-    );
-  }
-
-  // Hide section entirely when no markets
-  if (markets.length === 0) {
+  if (!isLoading && markets.length === 0) {
     return null;
   }
 
-  // Render market list
   return (
-    <View style={[styles.section, sectionStyle]}>
-      <SectionHeader />
-      <View style={contentContainerStyle}>
-        <FlatList
-          data={markets}
-          renderItem={renderMarket}
-          keyExtractor={(item) => item.symbol}
-          showsVerticalScrollIndicator={false}
-          scrollEnabled={false}
-          contentContainerStyle={styles.listContent}
-        />
-      </View>
-    </View>
+    <Box style={sectionStyle}>
+      <SectionDivider />
+      <SectionHeader title={strings('perps.home.watchlist')} />
+      <Box paddingHorizontal={4} style={contentContainerStyle}>
+        {isLoading ? (
+          <PerpsRowSkeleton count={3} />
+        ) : (
+          <FlatList
+            data={markets}
+            renderItem={renderMarket}
+            keyExtractor={(item) => item.symbol}
+            showsVerticalScrollIndicator={false}
+            scrollEnabled={false}
+          />
+        )}
+      </Box>
+    </Box>
   );
 };
 
