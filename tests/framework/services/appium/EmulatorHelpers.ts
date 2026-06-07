@@ -161,8 +161,7 @@ export async function startAndroidEmulator(avdName: string): Promise<string> {
 
   const devices = await listAdbDevices();
   const offlineEmulator = devices.find(
-    (device) =>
-      device.state === 'offline' || device.state === 'authorizing',
+    (device) => device.state === 'offline' || device.state === 'authorizing',
   );
   if (offlineEmulator) {
     const offlineAvdName = await getEmulatorAvdName(offlineEmulator.serial);
