@@ -147,6 +147,10 @@ jobs:
       # Cache WDA DerivedData so xcodebuild can do an incremental build (or skip
       # entirely) on subsequent runs. Key: xcuitest-driver version + Xcode version.
       # On cache miss WDA builds normally and the result is saved for next time.
+      - name: Resolve XCUITest driver version for WDA cache key
+        id: xcuitest-version
+        run: echo "version=$(node scripts/e2e/resolve-xcuitest-driver-version.mjs)" >> "$GITHUB_OUTPUT"
+
       - name: Get Xcode version for WDA cache key
         id: xcode-version
         run: echo "version=$(xcodebuild -version 2>/dev/null | head -1 | tr ' ' '-')" >> "$GITHUB_OUTPUT"
@@ -155,25 +159,38 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/appium-wda
-          key: wda-derived-data-${{ hashFiles('**/appium-xcuitest-driver/package.json', '**/appium/package.json') }}-${{ steps.xcode-version.outputs.version }}-${{ runner.os }}
+          # Version from package.json — bumps appium-xcuitest-driver invalidate the cache
+          # automatically. Do NOT use hashFiles('**/appium-xcuitest-driver/**'): nested
+          # node_modules globs are non-deterministic and produced a new key every run.
+          key: wda-derived-data-xcuitest-${{ steps.xcuitest-version.outputs.version }}-${{ steps.xcode-version.outputs.version }}-${{ runner.os }}
           restore-keys: |
-            wda-derived-data-${{ hashFiles('**/appium-xcuitest-driver/package.json', '**/appium/package.json') }}-${{ steps.xcode-version.outputs.version }}-
+            wda-derived-data-xcuitest-${{ steps.xcuitest-version.outputs.version }}-${{ steps.xcode-version.outputs.version }}-
 
       # actions/cache restores files with current timestamps so xcodebuild treats
-      # everything as stale and rebuilds. If the WDA binary is already there from
-      # the cache, tell xcuitest-driver to skip xcodebuild entirely via
-      # USE_PREBUILT_WDA=true, cutting ~8 min off session creation.
+      # everything as stale and rebuilds. prepare-ios-appium-runner.mjs boots the
+      # sim in parallel with a fallback WDA prebuild (usually skipped when the
+      # prebuild-wda-ios job already populated the cache).
       - name: Check if WDA is prebuilt
         id: wda-prebuilt
         run: |
-          if [ -d ~/appium-wda/Build ]; then
+          WDA_APP=$(find ~/appium-wda/Build/Products -name 'WebDriverAgentRunner-Runner.app' -type d 2>/dev/null | head -1 || true)
+          XCTESTRUN=$(find ~/appium-wda/Build/Products -name '*.xctestrun' 2>/dev/null | head -1 || true)
+          if [ -n "$WDA_APP" ] && [ -n "$XCTESTRUN" ]; then
             echo "ready=true" >> "$GITHUB_OUTPUT"
-            echo "WDA prebuilt artifacts found — skipping xcodebuild"
+            echo "WDA prebuilt artifacts found"
           else
             echo "ready=false" >> "$GITHUB_OUTPUT"
-            echo "No WDA prebuilt artifacts — xcodebuild will run on session start"
+            echo "WDA cache miss — prepare step will prebuild (parallel with sim boot)"
           fi
         shell: bash
+
+      - name: Prepare iOS Appium runner
+        run: node scripts/e2e/prepare-ios-appium-runner.mjs
+        env:
+          IOS_SIMULATOR_NAME: iPhone 16 Pro
+          IOS_APP_PATH: artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
+          IOS_BUNDLE_ID: io.metamask.MetaMask
+          SKIP_WDA_PREBUILD: ${{ steps.wda-prebuilt.outputs.ready == 'true' && 'true' || 'false' }}
 
       - name: Run Appium smoke tests (iOS)
         run: >-
@@ -185,7 +202,11 @@ jobs:
         env:
           IOS_APP_PATH: artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
           IOS_SIMULATOR_NAME: iPhone 16 Pro
-          USE_PREBUILT_WDA: ${{ steps.wda-prebuilt.outputs.ready }}
+          # Runner prep already simctl-installs and boots; skip duplicate work in globalSetup.
+          SKIP_DEVICE_BOOT: 'true'
+          SKIP_APP_REINSTALL: 'true'
+          IOS_APPIUM_USE_BUNDLE_ID_ONLY: 'true'
+          USE_PREBUILT_WDA: 'true'
 
       - name: Upload test report (Namespace)
         if: ${{ always() && inputs.runner_provider == 'namespace' }}

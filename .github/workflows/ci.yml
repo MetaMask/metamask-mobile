@@ -1106,13 +1106,42 @@ jobs:
         }}
     secrets: inherit
 
-  appium-smoke-tests-ios:
-    name: 'Appium Smoke Tests (iOS)'
-    if: ${{ !cancelled() && needs.ios-tests-ready.result == 'success' }}
+  prebuild-wda-for-appium-ios:
+    name: 'Prebuild WDA (Appium iOS)'
+    if: >-
+      ${{
+        !cancelled() &&
+        needs.get_requirements.outputs.ios_e2e_needed == 'true' &&
+        !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
+      }}
     permissions:
       contents: read
       id-token: write
-    needs: [ios-tests-ready, smart-e2e-selection]
+    needs: [get_requirements, smart-e2e-selection]
+    uses: ./.github/workflows/prebuild-wda-ios.yml
+    with:
+      runner_provider: ${{ inputs.runner_provider }}
+      selected_tags: >-
+        ${{
+          (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 &&
+           needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
+          '["ALL"]'
+        }}
+    secrets: inherit
+
+  appium-smoke-tests-ios:
+    name: 'Appium Smoke Tests (iOS)'
+    if: >-
+      ${{
+        !cancelled() &&
+        needs.ios-tests-ready.result == 'success' &&
+        (needs.prebuild-wda-for-appium-ios.result == 'success' ||
+         needs.prebuild-wda-for-appium-ios.result == 'skipped')
+      }}
+    permissions:
+      contents: read
+      id-token: write
+    needs: [ios-tests-ready, smart-e2e-selection, prebuild-wda-for-appium-ios]
     uses: ./.github/workflows/run-appium-smoke-tests-ios.yml
     with:
       build_type: 'main'

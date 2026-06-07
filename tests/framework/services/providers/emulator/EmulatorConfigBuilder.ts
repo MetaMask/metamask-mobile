@@ -38,7 +38,14 @@ export class EmulatorConfigBuilder {
     // - No `buildPath`: omit `appium:app` and target the existing install via
     //   bundleId / package+activity. Install presence is enforced in
     //   `EmulatorProvider.globalSetup()`.
+    // - iOS CI: globalSetup already simctl-installs from `buildPath`; set
+    //   IOS_APPIUM_USE_BUNDLE_ID_ONLY=true to skip a redundant Appium-side install.
     const hasLocalApp = Boolean(buildPath);
+    const skipIosAppiumAppInstall =
+      platformName === Platform.IOS &&
+      process.env.IOS_APPIUM_USE_BUNDLE_ID_ONLY === 'true';
+    const usePrebuiltWda =
+      platformName === Platform.IOS && process.env.USE_PREBUILT_WDA === 'true';
 
     return {
       port: 4723,
@@ -47,7 +54,7 @@ export class EmulatorConfigBuilder {
       // session-creation POST doesn't time out before Appium responds.
       // connectionRetryCount: 0 — no retries on session creation; a timeout
       // here is not a transient error and retrying just doubles the wait.
-      connectionRetryTimeout: 12 * 60 * 1000, // 12 min
+      connectionRetryTimeout: usePrebuiltWda ? 3 * 60 * 1000 : 12 * 60 * 1000,
       connectionRetryCount: 0,
       capabilities: {
         'appium:deviceName': emulatorDevice.name,
@@ -66,7 +73,9 @@ export class EmulatorConfigBuilder {
         platformName,
         'appium:newCommandTimeout': 300,
         'appium:deviceOrientation': emulatorDevice.orientation,
-        ...(hasLocalApp ? { 'appium:app': buildPath } : {}),
+        ...(hasLocalApp && !skipIosAppiumAppInstall
+          ? { 'appium:app': buildPath }
+          : {}),
         'appium:autoGrantPermissions': true,
         'appium:autoAcceptAlerts': true,
         'appium:fullReset': false,
@@ -76,9 +85,20 @@ export class EmulatorConfigBuilder {
         'appium:animationCoolOffTimeout': 0, // Skip animation wait
         'appium:reduceMotion': true, // Reduce iOS animations
         'appium:waitForIdleTimeout': 0, // Don't wait for idle
-        'appium:wdaLaunchTimeout': 10 * 60_000, // 10 min — CI WDA build can take this long
+        ...(usePrebuiltWda
+          ? {
+              // Prebuilt WDA on CI: install+launch only (~seconds). Fail fast if broken.
+              'appium:wdaLaunchTimeout': 60_000,
+              'appium:wdaConnectionTimeout': 10_000,
+              'appium:simulatorStartupTimeout': 120_000,
+            }
+          : {
+              // Cold WDA build (local dev / cache miss): allow up to 10 min.
+              'appium:wdaLaunchTimeout': 10 * 60_000,
+              'appium:simulatorStartupTimeout': 10 * 60_000,
+            }),
         // Pin WDA's DerivedData to a fixed path so CI can cache and restore it.
-        // When USE_PREBUILT_WDA=true (set by CI after a cache hit), xcuitest-driver
+        // When USE_PREBUILT_WDA=true (set by CI after prebuild/cache hit), xcuitest-driver
         // skips xcodebuild entirely and installs+launches the cached WDA binary
         // directly — cutting ~8 min off CI per run. Without it, xcodebuild runs
         // even when DerivedData is present because actions/cache restores files
@@ -86,8 +106,14 @@ export class EmulatorConfigBuilder {
         ...(platformName === Platform.IOS
           ? {
               'appium:derivedDataPath': `${process.env.HOME ?? '~'}/appium-wda`,
-              ...(process.env.USE_PREBUILT_WDA === 'true'
-                ? { 'appium:usePrebuiltWDA': true }
+              'appium:skipLogCapture': true,
+              ...(usePrebuiltWda
+                ? {
+                    'appium:usePrebuiltWDA': true,
+                    // Reuse a WDA instance already listening on the sim (retries / multi-test).
+                    'appium:useNewWDA': false,
+                    'appium:showXcodeLog': false,
+                  }
                 : {}),
             }
           : {}),
