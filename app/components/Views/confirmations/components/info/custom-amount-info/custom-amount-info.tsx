@@ -140,6 +140,19 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const fiatPayment = useTransactionPayFiatPayment();
     const selectedFiatPaymentMethodId = fiatPayment?.selectedPaymentMethodId;
     const isFiatAvailable = useIsFiatPaymentAvailable();
+    const fiatEverSelectedRef = useRef(false);
+    if (selectedFiatPaymentMethodId) {
+      fiatEverSelectedRef.current = true;
+    }
+    const shouldHideAccountSelector =
+      hideAccountSelector && !fiatEverSelectedRef.current;
+    const transactionMeta = useTransactionMetadataRequest();
+    const transactionId = transactionMeta?.id;
+    const accountOverride = useTransactionAccountOverride();
+    const isWithdraw = isTransactionPayWithdraw(transactionMeta);
+    const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
+      TransactionType.moneyAccountDeposit,
+    ]);
     const {
       isAvailable: isMoneyAccountFiatAvailable,
       isLoading: isMoneyAccountFiatLoading,
@@ -157,19 +170,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       isMoneyAccountDeposit &&
       !isMoneyAccountFiatAvailable &&
       !isMoneyAccountFiatLoading;
-    const fiatEverSelectedRef = useRef(false);
-    if (selectedFiatPaymentMethodId) {
-      fiatEverSelectedRef.current = true;
-    }
-    const shouldHideAccountSelector =
-      hideAccountSelector && !fiatEverSelectedRef.current;
-    const transactionMeta = useTransactionMetadataRequest();
-    const transactionId = transactionMeta?.id;
-    const accountOverride = useTransactionAccountOverride();
-    const isWithdraw = isTransactionPayWithdraw(transactionMeta);
-    const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
-      TransactionType.moneyAccountDeposit,
-    ]);
     const isPredictDeposit = hasTransactionType(transactionMeta, [
       TransactionType.predictDeposit,
     ]);
@@ -336,21 +336,23 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               {footerText}
             </Text>
           )}
-          {isKeyboardVisible && hasPaymentOption && !isMoneyAccountFiatUnavailable && (
-            <DepositKeyboard
-              hidePercentageButtons={
-                Boolean(selectedFiatPaymentMethodId) ||
-                shouldHideAccountSelector
-              }
-              alertMessage={alertTitle}
-              value={amountFiat}
-              onChange={updatePendingAmount}
-              onDonePress={handleDone}
-              onPercentagePress={updatePendingAmountPercentage}
-              hasInput={hasInput}
-              hasMax={hasMax && (isWithdraw || !isNativePayToken)}
-            />
-          )}
+          {isKeyboardVisible &&
+            hasPaymentOption &&
+            !isMoneyAccountFiatUnavailable && (
+              <DepositKeyboard
+                hidePercentageButtons={
+                  Boolean(selectedFiatPaymentMethodId) ||
+                  shouldHideAccountSelector
+                }
+                alertMessage={alertTitle}
+                value={amountFiat}
+                onChange={updatePendingAmount}
+                onDonePress={handleDone}
+                onPercentagePress={updatePendingAmountPercentage}
+                hasInput={hasInput}
+                hasMax={hasMax && (isWithdraw || !isNativePayToken)}
+              />
+            )}
           {isMoneyAccountFiatUnavailable && (
             <Text
               variant={TextVariant.BodySM}
@@ -360,12 +362,16 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               {strings('confirm.custom_amount.not_available_in_region')}
             </Text>
           )}
-          {!isMoneyAccountFiatUnavailable && !hasPaymentOption && <BuySection />}
+          {!isMoneyAccountFiatUnavailable && !hasPaymentOption && (
+            <BuySection />
+          )}
           {(!isKeyboardVisible || isMoneyAccountFiatUnavailable) && (
             <ConfirmButton
               alertTitle={alertTitle}
               disableConfirm={
-                disableConfirm || isAccountSelectionNeeded || isMoneyAccountFiatUnavailable
+                disableConfirm ||
+                isAccountSelectionNeeded ||
+                isMoneyAccountFiatUnavailable
               }
             />
           )}

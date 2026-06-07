@@ -1437,20 +1437,20 @@ describe('useAutomaticTransactionPayToken', () => {
       expect(updateFiatPaymentMock).not.toHaveBeenCalled();
     });
 
-    it('falls back to the global provider methods once the asset path settles without a result', () => {
-      const GLOBAL_METHOD_ID = 'pm-global-card';
-
-      // Asset-provider resolution settled but produced no usable provider/methods.
+    it('does not fall back to global provider methods when asset-provider query fails', () => {
+      // Asset-provider resolution settled but produced no usable provider/methods
+      // (isReady=false, isLoading=false → error/disabled state).
       useMoneyAccountDepositPaymentMethodsMock.mockReturnValue({
         paymentMethods: [],
         isReady: false,
         isLoading: false,
       });
 
-      // Global provider DOES have an eligible method — used as the fallback.
+      // Global provider has an eligible method, but it should NOT be used —
+      // it may belong to a different provider than the one priced for this asset.
       jest.mocked(useRampsPaymentMethods).mockReturnValue({
         paymentMethods: [
-          { id: GLOBAL_METHOD_ID, name: 'Global Card', delay: [0, 5] },
+          { id: 'pm-global-card', name: 'Global Card', delay: [0, 5] },
         ] as never,
         selectedPaymentMethod: null,
         setSelectedPaymentMethod: jest.fn(),
@@ -1463,11 +1463,9 @@ describe('useAutomaticTransactionPayToken', () => {
 
       runMoneyAccountDepositHook();
 
-      expect(updateFiatPaymentMock).toHaveBeenCalled();
-      const callback = updateFiatPaymentMock.mock.calls[0][0].callback;
-      const fiatPaymentState = { selectedPaymentMethodId: undefined };
-      callback(fiatPaymentState);
-      expect(fiatPaymentState.selectedPaymentMethodId).toBe(GLOBAL_METHOD_ID);
+      // No payment method must be selected — using a global method from a
+      // different provider would break quotes and the headless buy path.
+      expect(updateFiatPaymentMock).not.toHaveBeenCalled();
     });
 
     it('does not select any method when all methods exceed the delay limit', () => {

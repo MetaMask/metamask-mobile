@@ -204,26 +204,25 @@ export function useAutomaticTransactionPayToken({
           return;
         }
 
-        // Prefer the asset's best-provider methods when they resolved. If that
-        // resolution settled WITHOUT a usable result (no provider for the
-        // asset in this region, or its methods couldn't be fetched), fall back
-        // to the globally-selected provider's payment methods rather than
-        // hanging. When the asset path is ready (correct provider) but returns
-        // no methods, we deliberately do NOT borrow another provider's methods
-        // — we commit a terminal no-selection and let the availability/limit
-        // error surface.
-        const methods = assetProviderPaymentMethodsReady
-          ? assetProviderPaymentMethods
-          : paymentMethods;
+        if (!assetProviderPaymentMethodsReady) {
+          // Query settled without success (fetch error, no provider for asset).
+          // Do NOT fall back to the global paymentMethods — those may belong to
+          // a different provider than the one priced for this deposit asset and
+          // would break quotes and the headless buy path.
+          // Stamp isUpdated to prevent an indefinite retry loop; the UI will
+          // surface the no-provider / error state.
+          isUpdated.current = transactionId;
+          log(
+            'Asset-provider payment methods query did not settle successfully; skipping auto-select',
+          );
+          return;
+        }
 
         // Only select methods whose settlement delay is within the configured
         // threshold. Bank-transfer methods (UPI, IMPS, PIX) with delays
         // exceeding the limit are not eligible for the headless deposit flow.
-        // We do NOT fall back to methods[0] here — selecting an ineligible
-        // method would surface a confusing bank-transfer flow to the user.
-        // Instead let the UI show a "not available in your region" state.
         const eligibleMethod = pickEligiblePaymentMethod(
-          methods,
+          assetProviderPaymentMethods,
           maxDelayMinutesForPaymentMethods,
         );
 
@@ -239,7 +238,7 @@ export function useAutomaticTransactionPayToken({
             'Auto-selected fiat payment method (asset provider)',
             eligibleMethod.name,
           );
-        } else if (assetProviderPaymentMethodsReady) {
+        } else {
           // Provider returned zero eligible methods — stamp isUpdated to
           // prevent an indefinite no-op loop. UI will surface the
           // no-eligible-methods state (e.g. "not available in your region").

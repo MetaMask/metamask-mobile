@@ -32,13 +32,10 @@ export function useIsMoneyAccountDepositFiatAvailable(): {
   ]);
   const fiatPayment = useTransactionPayFiatPayment();
   const { maxDelayMinutesForPaymentMethods } = useMMPayFiatConfig();
-  const {
-    paymentMethods,
-    isReady,
-    isLoading,
-  } = useMoneyAccountDepositPaymentMethods(
-    isMoneyAccountDeposit ? fiatPayment?.caipAssetId : undefined,
-  );
+  const { paymentMethods, isReady, isLoading } =
+    useMoneyAccountDepositPaymentMethods(
+      isMoneyAccountDeposit ? fiatPayment?.caipAssetId : undefined,
+    );
 
   if (!isMoneyAccountDeposit) {
     return { isAvailable: true, isLoading: false };
