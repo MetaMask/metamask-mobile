@@ -65,9 +65,8 @@ export function PayWithRow({
   const initialPayWithOption = useInitialPayWithOption();
 
   if (
-    !isResultReady &&
-    (paymentOverride === PaymentOverride.MoneyAccount ||
-      initialPayWithOption === PayWithOption.MoneyAccount)
+    paymentOverride === PaymentOverride.MoneyAccount ||
+    (!isResultReady && initialPayWithOption === PayWithOption.MoneyAccount)
   ) {
     return <PayWithRowMoneyAccount />;
   }
