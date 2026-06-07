@@ -13,7 +13,7 @@ import {
 import { reinstallFromBuildPathForProject } from './reinstallLocalBuildFromPath';
 import {
   startAndroidEmulator,
-  startIosSimulator,
+  ensureIosSimulatorReady,
   getIosSimulatorUdid,
 } from '../../appium/EmulatorHelpers';
 
@@ -153,7 +153,10 @@ export class EmulatorProvider extends BaseServiceProvider {
           'iOS device boot requires `use.device.name` (simulator name) in the project config.',
         );
       }
-      const udid = await startIosSimulator(deviceName);
+      const udid = await ensureIosSimulatorReady(
+        deviceName,
+        (this.project.use.device as EmulatorConfig).udid,
+      );
       // Persist the UDID onto the device config so Appium's XCUITest driver
       // targets this exact simulator (not a fresh one with the same display name).
       (this.project.use.device as EmulatorConfig).udid = udid;
@@ -218,17 +221,21 @@ export class EmulatorProvider extends BaseServiceProvider {
         setAndroidSerialEnv: true,
       });
     } else if (this.project.use.platform === Platform.IOS) {
-      // Resolve to the booted simulator's UDID so Appium's XCUITest driver
-      // attaches to the existing booted simulator rather than starting a new one.
-      // getIosSimulatorUdid prefers a Booted device when multiple simulators
-      // share the same display name across iOS runtime versions.
       const deviceName = emulatorDevice.name;
-      if (deviceName && !emulatorDevice.udid) {
-        emulatorDevice.udid = await getIosSimulatorUdid(deviceName);
-        this.logger.debug(
-          `Resolved iOS simulator UDID: ${emulatorDevice.udid}`,
+      if (!deviceName) {
+        throw new Error(
+          'iOS local simulator: set `use.device.name` (simulator name) in the project config.',
         );
       }
+      // Boot (or re-boot) before Appium session creation. CI sets IOS_SIMULATOR_UDID
+      // from prepare-ios-appium-runner so we attach to the sim that received the .app.
+      emulatorDevice.udid = await ensureIosSimulatorReady(
+        deviceName,
+        emulatorDevice.udid,
+      );
+      this.logger.debug(
+        `iOS simulator ready for Appium (udid=${emulatorDevice.udid})`,
+      );
     }
 
     // Start Appium server

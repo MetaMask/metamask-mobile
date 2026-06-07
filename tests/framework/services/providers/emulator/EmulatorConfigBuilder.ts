@@ -99,7 +99,8 @@ export class EmulatorConfigBuilder {
               // Prebuilt WDA on CI: install+launch only (~seconds). Fail fast if broken.
               'appium:wdaLaunchTimeout': 60_000,
               'appium:wdaConnectionTimeout': 10_000,
-              'appium:simulatorStartupTimeout': 120_000,
+              // Sim is booted in getDriver(); this covers XCUITest attach on loaded CI hosts.
+              'appium:simulatorStartupTimeout': 180_000,
             }
           : {
               // Cold WDA build (local dev / cache miss): allow up to 10 min.

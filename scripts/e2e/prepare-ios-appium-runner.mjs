@@ -10,7 +10,7 @@
  * cache miss (WDA ~8 min, sim boot ~1–2 min → overlap saves ~1–2 min).
  */
 import { spawnSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { appendFileSync, existsSync } from 'node:fs';
 import { bootIosSimulator, installIosApp } from './ios-simulator-lib.mjs';
 import { ensureWdaPrebuilt } from './wda-lib.mjs';
 
@@ -42,6 +42,15 @@ if (appPath) {
     process.exit(1);
   }
   await installIosApp({ udid, bundleId, appPath });
+}
+
+console.log(`IOS_SIMULATOR_UDID=${udid}`);
+
+if (process.env.GITHUB_OUTPUT) {
+  appendFileSync(
+    process.env.GITHUB_OUTPUT,
+    `ios-simulator-udid=${udid}\n`,
+  );
 }
 
 console.log('iOS Appium runner ready.');

@@ -30,6 +30,7 @@ const DEFAULT_IOS_APP =
  * - IOS_APP_PATH — path to the .app (default: Debug-iphonesimulator/MetaMask.app)
  * - ANDROID_AVD_NAME — AVD name (default: 'Pixel_5_Pro_API_34')
  * - IOS_SIMULATOR_NAME — simulator name (default: 'iPhone 16 Pro')
+ * - IOS_SIMULATOR_UDID — booted sim UDID (CI sets this from prepare-ios-appium-runner)
  * - APPIUM_SMOKE_SUITE_NAME — CI suite id for per-job report/video paths
  *
  * Usage:
@@ -86,6 +87,9 @@ export default defineConfig({
         device: {
           provider: ProviderName.SIMULATOR,
           name: process.env.IOS_SIMULATOR_NAME || 'iPhone 16 Pro',
+          ...(process.env.IOS_SIMULATOR_UDID?.trim()
+            ? { udid: process.env.IOS_SIMULATOR_UDID.trim() }
+            : {}),
         },
         app: {
           appId: 'io.metamask.MetaMask',

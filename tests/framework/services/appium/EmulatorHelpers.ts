@@ -318,8 +318,11 @@ const iosSimulatorUdidCache = new Map<string, string>();
 
 export async function getIosSimulatorUdid(deviceName: string): Promise<string> {
   const cached = iosSimulatorUdidCache.get(deviceName);
-  if (cached) {
+  if (cached && (await isIosSimulatorBooted(cached))) {
     return cached;
+  }
+  if (cached) {
+    iosSimulatorUdidCache.delete(deviceName);
   }
 
   const { stdout } = await execAsync('xcrun simctl list devices available -j');
@@ -341,7 +344,7 @@ export async function getIosSimulatorUdid(deviceName: string): Promise<string> {
   }
 
   if (firstMatch) {
-    iosSimulatorUdidCache.set(deviceName, firstMatch);
+    // Do not cache shutdown simulators — callers may boot a different UDID next.
     return firstMatch;
   }
 
@@ -369,17 +372,13 @@ export async function isIosSimulatorBooted(udid: string): Promise<boolean> {
   return false;
 }
 
-export async function startIosSimulator(deviceName: string): Promise<string> {
-  const udid = await getIosSimulatorUdid(deviceName);
-
+export async function bootIosSimulatorByUdid(udid: string): Promise<string> {
   if (await isIosSimulatorBooted(udid)) {
-    logger.info(
-      `iOS simulator "${deviceName}" (${udid}) is already booted — skipping boot.`,
-    );
+    logger.info(`iOS simulator ${udid} is already booted — skipping boot.`);
     return udid;
   }
 
-  logger.info(`Booting iOS simulator: ${deviceName} (${udid})`);
+  logger.info(`Booting iOS simulator: ${udid}`);
 
   await execAsync(`xcrun simctl boot "${udid}"`).catch(
     (err: { code?: number }) => {
@@ -391,8 +390,33 @@ export async function startIosSimulator(deviceName: string): Promise<string> {
 
   await execAsync(`xcrun simctl bootstatus "${udid}" -b`);
 
-  logger.info(`iOS simulator "${deviceName}" is booted and ready.`);
+  logger.info(`iOS simulator ${udid} is booted and ready.`);
   return udid;
+}
+
+export async function startIosSimulator(deviceName: string): Promise<string> {
+  const udid = await getIosSimulatorUdid(deviceName);
+  const bootedUdid = await bootIosSimulatorByUdid(udid);
+  iosSimulatorUdidCache.set(deviceName, bootedUdid);
+  return bootedUdid;
+}
+
+/**
+ * Ensures an iOS simulator is booted before Appium session creation.
+ * Prefers `preferredUdid` or `IOS_SIMULATOR_UDID` (set by CI prepare step)
+ * so tests attach to the same sim that received the app install.
+ */
+export async function ensureIosSimulatorReady(
+  deviceName: string,
+  preferredUdid?: string,
+): Promise<string> {
+  const udid = preferredUdid?.trim() || process.env.IOS_SIMULATOR_UDID?.trim();
+  if (udid) {
+    const bootedUdid = await bootIosSimulatorByUdid(udid);
+    iosSimulatorUdidCache.set(deviceName, bootedUdid);
+    return bootedUdid;
+  }
+  return startIosSimulator(deviceName);
 }
 
 export async function stopIosSimulator(udid: string): Promise<void> {

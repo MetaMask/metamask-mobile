@@ -231,6 +231,7 @@ jobs:
 
       - name: Prepare iOS Appium runner
         if: ${{ inputs.platform == 'ios' }}
+        id: prepare-ios-appium
         timeout-minutes: 30
         run: node scripts/e2e/prepare-ios-appium-runner.mjs
         env:
@@ -284,6 +285,7 @@ jobs:
           SKIP_APPIUM_STOP: 'true'
           IOS_APP_PATH: artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
           IOS_SIMULATOR_NAME: iPhone 16 Pro
+          IOS_SIMULATOR_UDID: ${{ steps.prepare-ios-appium.outputs.ios-simulator-udid }}
           SKIP_DEVICE_BOOT: 'true'
           SKIP_APP_REINSTALL: 'true'
           IOS_APPIUM_USE_BUNDLE_ID_ONLY: 'true'
