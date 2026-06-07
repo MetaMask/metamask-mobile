@@ -214,6 +214,71 @@ async function stopAndroidRecording(
   return undefined;
 }
 
+async function startIosRecording(
+  driver: WebdriverIO.Browser,
+): Promise<ScreenRecordingBackend | undefined> {
+  const appiumDriver = driver as AppiumScreenRecorder;
+  const timeLimit = String(recordingTimeLimitSec());
+
+  if (typeof appiumDriver.startRecordingScreen === 'function') {
+    try {
+      await appiumDriver.startRecordingScreen({
+        timeLimit,
+        videoQuality: 'medium',
+      });
+      logRecordingIssue('iOS screen recording started (Appium extension API)');
+      return 'ios';
+    } catch (error) {
+      logRecordingIssue(
+        `iOS startRecordingScreen failed, trying mobile: execute: ${formatRecordingError(error)}`,
+      );
+    }
+  }
+
+  try {
+    await driver.execute('mobile: startRecordingScreen', {
+      timeLimit: recordingTimeLimitSec(),
+      videoQuality: 'medium',
+    });
+    logRecordingIssue('iOS screen recording started (mobile: execute)');
+    return 'ios';
+  } catch (error) {
+    logRecordingIssue(
+      `Could not start iOS recording: ${formatRecordingError(error)}`,
+    );
+    return undefined;
+  }
+}
+
+async function stopIosRecording(
+  driver: WebdriverIO.Browser,
+): Promise<string | undefined> {
+  const appiumDriver = driver as AppiumScreenRecorder;
+  const attempts: ('extension' | 'mobile')[] = ['extension', 'mobile'];
+
+  let lastError: unknown;
+  for (const attempt of attempts) {
+    try {
+      const result =
+        attempt === 'extension' &&
+        typeof appiumDriver.stopRecordingScreen === 'function'
+          ? await appiumDriver.stopRecordingScreen()
+          : await driver.execute('mobile: stopRecordingScreen');
+      const payload = extractRecordingPayload(result);
+      if (payload) {
+        return payload;
+      }
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  if (lastError) {
+    throw lastError;
+  }
+  return undefined;
+}
+
 /**
  * Starts Appium device screen recording for the active session.
  * Android tries adb screenrecord first (reliable on emulators), then media projection.
@@ -227,12 +292,7 @@ export async function startFailureRecording(
       return await startAndroidScreenRecord(driver);
     }
 
-    await driver.execute('mobile: startRecordingScreen', {
-      timeLimit: recordingTimeLimitSec(),
-      videoQuality: 'medium',
-    });
-    logger.debug('iOS screen recording started');
-    return 'ios';
+    return await startIosRecording(driver);
   } catch (error) {
     logRecordingIssue(
       `Could not start screen recording: ${formatRecordingError(error)}`,
@@ -292,8 +352,7 @@ export async function stopFailureRecordingAndAttach(
     ) {
       payload = await stopAndroidRecording(driver, recordingBackend);
     } else {
-      const result = await driver.execute('mobile: stopRecordingScreen');
-      payload = extractRecordingPayload(result);
+      payload = await stopIosRecording(driver);
     }
   } catch (error) {
     logRecordingIssue(
