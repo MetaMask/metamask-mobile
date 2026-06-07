@@ -5,12 +5,14 @@
  * - Boots the simulator
  * - Prebuilds WDA (unless SKIP_WDA_PREBUILD=true)
  * - Installs the .app via simctl
+ * - Starts Appium (unless already running) so Playwright skips cold start
  *
- * Simulator boot and WDA prebuild run in parallel to shave wall-clock time on
- * cache miss (WDA ~8 min, sim boot ~1–2 min → overlap saves ~1–2 min).
+ * Simulator boot, WDA prebuild, and Appium prewarm run in parallel to shave
+ * wall-clock time on cache miss (WDA ~8 min, sim boot ~1–2 min → overlap saves ~1–2 min).
  */
 import { spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
+import { ensureAppiumServerRunning } from './appium-server-lib.mjs';
 import { bootIosSimulator, installIosApp } from './ios-simulator-lib.mjs';
 import { ensureWdaPrebuilt } from './wda-lib.mjs';
 
@@ -25,7 +27,9 @@ spawnSync(
   { stdio: 'inherit' },
 );
 
-console.log('Preparing iOS Appium runner (sim boot ∥ WDA prebuild)…');
+console.log(
+  'Preparing iOS Appium runner (sim boot ∥ WDA prebuild ∥ Appium prewarm)…',
+);
 
 const [udid] = await Promise.all([
   bootIosSimulator(simulatorName),
@@ -34,6 +38,7 @@ const [udid] = await Promise.all([
         console.log('SKIP_WDA_PREBUILD=true — skipping WDA prebuild'),
       )
     : ensureWdaPrebuilt(),
+  ensureAppiumServerRunning(),
 ]);
 
 if (appPath) {

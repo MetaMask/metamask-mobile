@@ -1091,6 +1091,7 @@ jobs:
     if: ${{ !cancelled() && needs.build-android-apks.result == 'success' }}
     permissions:
       contents: read
+      checks: write
       id-token: write
     needs: [build-android-apks, smart-e2e-selection]
     uses: ./.github/workflows/run-appium-smoke-tests-android.yml
@@ -1140,6 +1141,7 @@ jobs:
       }}
     permissions:
       contents: read
+      checks: write
       id-token: write
     needs: [ios-tests-ready, smart-e2e-selection, prebuild-wda-for-appium-ios]
     uses: ./.github/workflows/run-appium-smoke-tests-ios.yml

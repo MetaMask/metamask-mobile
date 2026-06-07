@@ -1,5 +1,6 @@
 import { Platform, type EmulatorConfig } from '../../../types.ts';
 import type { ProjectConfig } from '../../common/types.ts';
+import { getAppiumHost, getAppiumPort } from '../../appium/AppiumServer.ts';
 
 /**
  * Builder for Emulator WebDriver configuration (local Android/iOS).
@@ -48,7 +49,8 @@ export class EmulatorConfigBuilder {
       platformName === Platform.IOS && process.env.USE_PREBUILT_WDA === 'true';
 
     return {
-      port: 4723,
+      hostname: getAppiumHost(),
+      port: getAppiumPort(),
       // XCUITest driver must build and install WDA on first run (3-4 min on
       // local, up to 10 min on CI). Raise the WebDriverIO HTTP timeout so the
       // session-creation POST doesn't time out before Appium responds.

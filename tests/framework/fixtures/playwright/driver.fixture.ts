@@ -3,6 +3,11 @@ import { WebDriverConfig } from '../../types.ts';
 import { DEFAULT_IMPLICIT_WAIT_MS } from '../../Constants.ts';
 import { setDeviceInfo } from '../../DeviceInfoCache.ts';
 import type { TestLevelFixtures } from './types.ts';
+import {
+  isVideoRecordingOnFailureEnabled,
+  startFailureRecording,
+  stopFailureRecordingAndAttach,
+} from '../../services/appium/ScreenRecording.ts';
 
 export const driverFixture = {
   driver: async (
@@ -11,7 +16,11 @@ export const driverFixture = {
     testInfo: TestInfo,
   ) => {
     let driver: WebdriverIO.Browser | undefined;
+    let recordingStarted = false;
     const project = testInfo.project as FullProject<WebDriverConfig>;
+    const recordVideoOnFailure = isVideoRecordingOnFailureEnabled(
+      project.use.device?.provider,
+    );
 
     try {
       driver = await deviceProvider.getDriver();
@@ -64,10 +73,26 @@ export const driverFixture = {
         console.error('Failed to sync pre-test details:', error);
       }
 
+      if (recordVideoOnFailure) {
+        recordingStarted = await startFailureRecording(driver);
+      }
+
       await use(driver);
     } finally {
       const testStatus = testInfo.status;
       const testError = testInfo.error?.message;
+
+      try {
+        if (driver) {
+          await stopFailureRecordingAndAttach(
+            driver,
+            testInfo,
+            recordingStarted,
+          );
+        }
+      } catch (error) {
+        console.error('Failed to stop/attach failure screen recording:', error);
+      }
 
       try {
         await deviceProvider.syncTestDetails?.({

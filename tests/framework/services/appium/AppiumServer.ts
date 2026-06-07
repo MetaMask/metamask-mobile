@@ -13,20 +13,83 @@ let currentExitHandler: (() => void) | null = null;
 // Default timeout for Appium server startup (in milliseconds)
 const APPIUM_STARTUP_TIMEOUT_MS = 60_000;
 
+const DEFAULT_APPIUM_HOST = '127.0.0.1';
+const DEFAULT_APPIUM_PORT = 4723;
+
+/**
+ * Resolve Appium host from env (default: 127.0.0.1).
+ */
+export function getAppiumHost(): string {
+  return process.env.APPIUM_HOST ?? DEFAULT_APPIUM_HOST;
+}
+
+/**
+ * Resolve Appium port from env (default: 4723).
+ */
+export function getAppiumPort(): number {
+  const parsed = Number(process.env.APPIUM_PORT ?? DEFAULT_APPIUM_PORT);
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    throw new Error(
+      `Invalid APPIUM_PORT "${process.env.APPIUM_PORT}". Expected a positive integer.`,
+    );
+  }
+  return parsed;
+}
+
+/**
+ * Build the Appium server base URL for health checks and WebDriverIO.
+ */
+export function getAppiumServerUrl(): string {
+  return `http://${getAppiumHost()}:${getAppiumPort()}`;
+}
+
+/**
+ * Whether the test runner should leave a pre-started Appium process running.
+ * Set by CI prepare scripts (APPIUM_PRESTARTED=true) or explicitly via SKIP_APPIUM_STOP.
+ */
+export function shouldSkipAppiumStop(): boolean {
+  return (
+    process.env.SKIP_APPIUM_STOP === 'true' ||
+    process.env.APPIUM_PRESTARTED === 'true'
+  );
+}
+
+/**
+ * Check whether Appium is already listening (e.g. prewarmed by a prepare script).
+ */
+export async function isAppiumServerRunning(): Promise<boolean> {
+  try {
+    const response = await fetch(`${getAppiumServerUrl()}/status`);
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Start the Appium server
  * @param timeoutMs - Maximum time to wait for Appium to start (default: 60 seconds)
  */
 export async function startAppiumServer(
   timeoutMs: number = APPIUM_STARTUP_TIMEOUT_MS,
-): Promise<ChildProcess> {
+): Promise<ChildProcess | null> {
+  if (await isAppiumServerRunning()) {
+    logger.info(
+      `Reusing existing Appium server at ${getAppiumServerUrl()} (prewarmed).`,
+    );
+    return null;
+  }
+
+  const host = getAppiumHost();
+  const port = getAppiumPort();
+
   return new Promise((resolve, reject) => {
     let isSettled = false;
     let startupTimeout: NodeJS.Timeout | null = null;
 
     const settlePromise = (
       settler: typeof resolve | typeof reject,
-      value: ChildProcess | Error,
+      value: ChildProcess | Error | null,
     ) => {
       if (isSettled) return;
       isSettled = true;
@@ -34,12 +97,19 @@ export async function startAppiumServer(
         clearTimeout(startupTimeout);
         startupTimeout = null;
       }
-      settler(value as ChildProcess & Error);
+      settler(value as ChildProcess & Error & null);
     };
 
     const appiumProcess = spawn(
       'yarn',
-      ['appium', '--allow-insecure=chromedriver_autodownload'],
+      [
+        'appium',
+        '--allow-insecure=chromedriver_autodownload',
+        '--port',
+        String(port),
+        '--address',
+        host,
+      ],
       {
         stdio: 'pipe',
         // detached: true puts appium in its own process group so we can
@@ -75,11 +145,19 @@ export async function startAppiumServer(
       logger.debug(output);
 
       if (output.includes('Error: listen EADDRINUSE')) {
+        if (await isAppiumServerRunning()) {
+          logger.info(
+            `Appium port ${port} already in use — reusing existing server.`,
+          );
+          appiumProcess.kill();
+          settlePromise(resolve, null);
+          return;
+        }
         logger.error(`Appium: ${data}`);
         settlePromise(
           reject,
           new Error(
-            'Appium server is already running. Please stop the server before running tests.',
+            `Appium port ${port} is in use but /status is not reachable.`,
           ),
         );
       }
@@ -103,6 +181,9 @@ export async function startAppiumServer(
 
     // Create and track the new exit handler
     currentExitHandler = () => {
+      if (shouldSkipAppiumStop()) {
+        return;
+      }
       logger.debug('Main process exiting. Killing Appium server...');
       if (appiumProcess.pid !== undefined) {
         try {
@@ -134,8 +215,17 @@ export async function startAppiumServer(
  * Stop the Appium server.
  * Kills the tracked process by PID to avoid accidentally matching and killing
  * the parent test-runner process (which also has "appium" in its command line).
+ * Skips stop when APPIUM_PRESTARTED/SKIP_APPIUM_STOP is set or when this
+ * process did not spawn Appium (prewarmed server).
  */
 export function stopAppiumServer(): Promise<void> {
+  if (shouldSkipAppiumStop()) {
+    logger.debug(
+      'Skipping Appium server stop (APPIUM_PRESTARTED or SKIP_APPIUM_STOP).',
+    );
+    return Promise.resolve();
+  }
+
   // Remove the exit handler since we're explicitly stopping the server
   if (currentExitHandler) {
     process.removeListener('exit', currentExitHandler);

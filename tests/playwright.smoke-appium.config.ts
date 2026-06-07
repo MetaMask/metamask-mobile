@@ -48,10 +48,15 @@ export default defineConfig({
     ],
     ['junit', { outputFile: './test-reports/appium-smoke-junit.xml' }],
     ['list'],
+    // CI: `github` → log annotations; github-step-summary-reporter → job summary panel.
+    // JUnit is kept for the GitHub Checks tab (dorny/test-reporter).
+    ...(process.env.CI === 'true'
+      ? ([
+          ['github'] as const,
+          ['./reporters/github-step-summary-reporter.mjs'] as const,
+        ] as const)
+      : []),
   ],
-  use: {
-    trace: 'on-first-retry',
-  },
 
   projects: [
     {
