@@ -1,9 +1,9 @@
 import React, { useCallback, useLayoutEffect, useMemo, useState } from 'react';
 import { Alert, TouchableOpacity } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   Box,
   Text,
@@ -28,6 +28,7 @@ import {
   MOCK_NFT_FULL_IMAGE_PARAMS,
   MOCK_OFFLINE_MODE_PARAMS,
   MOCK_PR4A_PARAMS,
+  MOCK_REWARDS_HOME_PARAMS,
   MOCK_SET_PASSWORD_FLOW_PARAMS,
   MOCK_WEBVIEW_PARAMS,
   resolvePr4aTransactionsHomeParams,
@@ -36,6 +37,7 @@ import {
   seedDevPanelDepositOrder,
   seedDevPanelRampsOrder,
   seedDevPanelSellOrder,
+  type Pr4aTransactionsHomeContext,
 } from './NavigationDevPanel.mockParams';
 
 /**
@@ -58,6 +60,8 @@ interface RouteEntry {
   needsParams?: boolean;
   /** Resolves params from wallet state (with dev fallbacks) and opens via Activity tab. */
   pr4aTransactionsHome?: boolean;
+  /** Opens via Rewards tab stack (RewardsHome). */
+  rewardsHome?: boolean;
 }
 
 interface RouteGroup {
@@ -66,7 +70,8 @@ interface RouteGroup {
 }
 
 // NOTE: Scoped to in-progress native-stack migration PRs. PR2 = single-screen
-// wrappers; PR3 = multi-screen leaf flows; PR4a = wallet + activity tab stacks.
+// wrappers; PR3 = multi-screen leaf flows; PR4a = wallet + activity tab stacks;
+// PR4b = rewards tab stack.
 // Uncomment groups below as each subsequent PR lands so the panel reflects
 // what is currently being migrated.
 const ROUTE_GROUPS: RouteGroup[] = [
@@ -196,6 +201,47 @@ const ROUTE_GROUPS: RouteGroup[] = [
         name: Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS,
         label: 'BridgeTransactionDetails',
         pr4aTransactionsHome: true,
+      },
+    ],
+  },
+  {
+    title: 'PR4b — RewardsHome',
+    routes: [
+      {
+        name: Routes.REWARDS_VIEW,
+        label: 'RewardsNavigator (stack root)',
+        rewardsHome: true,
+      },
+      {
+        name: Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+        label: 'RewardsBottomSheetModal',
+        params: MOCK_REWARDS_HOME_PARAMS.REWARDS_BOTTOM_SHEET_MODAL,
+        rewardsHome: true,
+      },
+      {
+        name: Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL,
+        label: 'RewardsClaimBottomSheetModal',
+        params: MOCK_REWARDS_HOME_PARAMS.REWARDS_CLAIM_BOTTOM_SHEET_MODAL,
+        rewardsHome: true,
+      },
+      {
+        name: Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL,
+        label: 'RewardOptInAccountGroupModal',
+        params: MOCK_REWARDS_HOME_PARAMS.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL,
+        rewardsHome: true,
+      },
+      {
+        name: Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET,
+        label: 'EndOfSeasonClaimBottomSheet',
+        params:
+          MOCK_REWARDS_HOME_PARAMS.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET,
+        rewardsHome: true,
+      },
+      {
+        name: Routes.MODAL.REWARDS_SELECT_SHEET,
+        label: 'RewardsSelectSheet',
+        params: MOCK_REWARDS_HOME_PARAMS.REWARDS_SELECT_SHEET,
+        rewardsHome: true,
       },
     ],
   },
@@ -362,7 +408,7 @@ const NavigationDevPanel = () => {
   const transactions = useSelector(selectTransactions);
   const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
 
-  const pr4aTransactionsHomeContext = useMemo(
+  const pr4aTransactionsHomeContext = useMemo<Pr4aTransactionsHomeContext>(
     () => ({
       rampsOrders,
       fiatOrders,
@@ -372,18 +418,8 @@ const NavigationDevPanel = () => {
     [rampsOrders, fiatOrders, transactions, bridgeHistory],
   );
 
-  useLayoutEffect(() => {
-    navigation.setOptions(
-      getNavigationOptionsTitle(
-        'Navigation Dev Panel',
-        navigation,
-        false,
-        colors,
-        null,
-      ),
-    );
-  }, [navigation, colors]);
-
+  // Dev tool navigates to arbitrary registered routes, so the param list can't
+  // be statically typed here.
   const navigateUntyped = useCallback(
     (name: string, params?: Record<string, unknown>) => {
       (
@@ -397,6 +433,18 @@ const NavigationDevPanel = () => {
     },
     [navigation],
   );
+
+  useLayoutEffect(() => {
+    navigation.setOptions(
+      getNavigationOptionsTitle(
+        'Navigation Dev Panel',
+        navigation,
+        false,
+        colors,
+        null,
+      ),
+    );
+  }, [navigation, colors]);
 
   const navigateToTransactionsHomeScreen = useCallback(
     (screenName: string, screenParams: Record<string, unknown>) => {
@@ -420,8 +468,34 @@ const NavigationDevPanel = () => {
     [isMoneyAccountEnabled, navigateUntyped],
   );
 
+  const navigateToRewardsHomeScreen = useCallback(
+    (screenName?: string, screenParams?: Record<string, unknown>) => {
+      if (!screenName) {
+        navigateUntyped('Home', { screen: Routes.REWARDS_VIEW });
+        return;
+      }
+
+      navigateUntyped('Home', {
+        screen: Routes.REWARDS_VIEW,
+        params: {
+          screen: screenName,
+          params: screenParams,
+        },
+      });
+    },
+    [navigateUntyped],
+  );
+
   const handleNavigate = useCallback(
     (entry: RouteEntry) => {
+      if (entry.rewardsHome) {
+        navigateToRewardsHomeScreen(
+          entry.name === Routes.REWARDS_VIEW ? undefined : entry.name,
+          entry.params,
+        );
+        return;
+      }
+
       if (entry.pr4aTransactionsHome) {
         let screenParams: Record<string, unknown> | null = null;
 
@@ -484,6 +558,7 @@ const NavigationDevPanel = () => {
       bridgeHistory,
       dispatch,
       fiatOrders,
+      navigateToRewardsHomeScreen,
       navigateToTransactionsHomeScreen,
       navigateUntyped,
       pr4aTransactionsHomeContext,
