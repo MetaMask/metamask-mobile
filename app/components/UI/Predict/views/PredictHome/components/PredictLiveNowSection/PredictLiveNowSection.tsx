@@ -1,32 +1,142 @@
-import React from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
-  Box,
-  Text,
-  TextColor,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+  Dimensions,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+} from 'react-native';
+import { Box, BoxBorderColor } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { FlashList, type ListRenderItem } from '@shopify/flash-list';
 import { strings } from '../../../../../../../../locales/i18n';
-import { PredictHomeSelectorsIDs } from '../../../../Predict.testIds';
+import SectionHeader from '../../../../../../../component-library/components-temp/SectionHeader';
+import PredictMarket from '../../../../components/PredictMarket';
+import PredictMarketSkeleton from '../../../../components/PredictMarketSkeleton';
+import { PaginationDots } from '../../../../components/FeaturedCarousel/FeaturedCarousel';
+import { PredictEventValues } from '../../../../constants/eventNames';
+import type { PredictMarket as PredictMarketType } from '../../../../types';
+import { PREDICT_LIVE_NOW_SECTION_TEST_IDS } from './PredictLiveNowSection.testIds';
+import { usePredictLiveNowSection } from './usePredictLiveNowSection';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const CARD_WIDTH = SCREEN_WIDTH * 0.8;
+const CARD_HEIGHT = 220;
+const SKELETON_COUNT = 3;
 
 interface PredictLiveNowSectionProps {
   testID?: string;
 }
 
+type CarouselItem = PredictMarketType | undefined;
+
 /**
- * Placeholder for the Predict home "Live now" carousel section.
- * Replaced by the real section in a later ticket; the shell composes it as-is.
+ * Predict home "Live Now" carousel (PRED-834).
+ *
+ * Horizontal rail interleaving live sports markets with the BTC Up/Down crypto
+ * card (see {@link usePredictLiveNowSection}), reusing the shared
+ * `PredictMarket` carousel card. Renders skeletons while loading and hides
+ * itself entirely when there is no data (empty/error) so it never blocks the
+ * home screen.
  */
 const PredictLiveNowSection: React.FC<PredictLiveNowSectionProps> = ({
-  testID = PredictHomeSelectorsIDs.LIVE_NOW_SECTION,
-}) => (
-  <Box
-    testID={testID}
-    twClassName="my-2 items-center justify-center rounded-xl bg-muted py-8 px-4"
-  >
-    <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-      {strings('predict.home.live_now_placeholder')}
-    </Text>
-  </Box>
-);
+  testID = PREDICT_LIVE_NOW_SECTION_TEST_IDS.SECTION,
+}) => {
+  const tw = useTailwind();
+  const { items, isLoading, isEmpty } = usePredictLiveNowSection();
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const handleViewAll = useCallback(() => {
+    // TODO(PRED-834): navigate to Routes.PREDICT.FEED with { feedId: 'live' }
+    // once the generic feed route/view land (see predict-home-redesign.md).
+  }, []);
+
+  const carouselData = useMemo<CarouselItem[]>(
+    () =>
+      isLoading ? Array.from<CarouselItem>({ length: SKELETON_COUNT }) : items,
+    [isLoading, items],
+  );
+
+  const handleScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const offsetX = event.nativeEvent.contentOffset.x;
+      const newIndex = Math.min(
+        Math.max(0, Math.round(offsetX / CARD_WIDTH)),
+        items.length - 1,
+      );
+      setActiveIndex(newIndex);
+    },
+    [items.length],
+  );
+
+  const renderItem: ListRenderItem<CarouselItem> = useCallback(
+    ({ item, index }) => {
+      const isLastItem = index === carouselData.length - 1;
+
+      return (
+        <Box style={tw.style({ width: CARD_WIDTH, minHeight: CARD_HEIGHT })}>
+          <Box
+            borderColor={BoxBorderColor.BorderDefault}
+            twClassName={`rounded-2xl overflow-hidden ${
+              isLastItem ? '' : 'pr-3'
+            }`}
+          >
+            {isLoading || !item ? (
+              <PredictMarketSkeleton
+                isCarousel
+                testID={`${PREDICT_LIVE_NOW_SECTION_TEST_IDS.SKELETON_PREFIX}-${index}`}
+              />
+            ) : (
+              <PredictMarket
+                market={item}
+                isCarousel
+                entryPoint={PredictEventValues.ENTRY_POINT.CAROUSEL}
+                testID={`${PREDICT_LIVE_NOW_SECTION_TEST_IDS.CARD_PREFIX}-${item.id}`}
+              />
+            )}
+          </Box>
+        </Box>
+      );
+    },
+    [carouselData.length, isLoading, tw],
+  );
+
+  if (isEmpty) {
+    return null;
+  }
+
+  return (
+    <Box testID={testID} twClassName="my-2">
+      <SectionHeader
+        testID={PREDICT_LIVE_NOW_SECTION_TEST_IDS.SEE_ALL}
+        title={strings('predict.home.live_now_title')}
+        onPress={handleViewAll}
+        twClassName="px-0 mb-2"
+      />
+
+      <Box twClassName="-mx-4">
+        <FlashList<CarouselItem>
+          testID={PREDICT_LIVE_NOW_SECTION_TEST_IDS.CAROUSEL}
+          data={carouselData}
+          renderItem={renderItem}
+          keyExtractor={(item, index) =>
+            isLoading || !item
+              ? `${PREDICT_LIVE_NOW_SECTION_TEST_IDS.SKELETON_PREFIX}-${index}`
+              : `${PREDICT_LIVE_NOW_SECTION_TEST_IDS.CARD_PREFIX}-${item.id}`
+          }
+          contentContainerStyle={tw.style('px-4')}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          snapToInterval={CARD_WIDTH}
+          decelerationRate="fast"
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
+        />
+      </Box>
+
+      {!isLoading && (
+        <PaginationDots count={items.length} activeIndex={activeIndex} />
+      )}
+    </Box>
+  );
+};
 
 export default PredictLiveNowSection;
