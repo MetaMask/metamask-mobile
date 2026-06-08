@@ -50,7 +50,9 @@ jobs:
     if: >-
       github.event_name != 'workflow_dispatch'
         || (!inputs.browserstack_app_url_android
-            && !inputs.browserstack_clean_app_url_android)
+            && !inputs.browserstack_clean_app_url_android
+            && !inputs.browserstack_app_url_ios
+            && !inputs.browserstack_clean_app_url_ios)
     with:
       branch_name: ${{ github.ref_name }}
       build_variant: 'e2e'
@@ -61,7 +63,9 @@ jobs:
     uses: ./.github/workflows/build-ios-upload-to-browserstack.yml
     if: >-
       github.event_name != 'workflow_dispatch'
-        || (!inputs.browserstack_app_url_ios
+        || (!inputs.browserstack_app_url_android
+            && !inputs.browserstack_clean_app_url_android
+            && !inputs.browserstack_app_url_ios
             && !inputs.browserstack_clean_app_url_ios)
     with:
       branch_name: ${{ github.ref_name }}
