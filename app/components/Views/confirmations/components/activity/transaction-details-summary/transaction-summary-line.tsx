@@ -10,7 +10,7 @@ import { useMultichainBlockExplorerTxUrl } from '../../../../../UI/Bridge/hooks/
 import { ProgressListItem } from '../../progress-list';
 import { getErrorMessage, getSeverity } from '../../../utils/transaction';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import { trackExternalLinkClicked } from '../../../../../../util/analytics/externalLinkTracking';
 
 interface TransactionSummaryLineProps {
   chainId?: Hex;
@@ -57,15 +57,11 @@ export function TransactionSummaryLine({
       return;
     }
 
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.EXTERNAL_LINK_CLICKED)
-        .addProperties({
-          location: 'transaction_details_summary',
-          text: explorerName ?? title,
-          url_domain: explorerTxUrl,
-        })
-        .build(),
-    );
+    trackExternalLinkClicked(trackEvent, createEventBuilder, {
+      location: 'transaction_details_summary',
+      text: explorerName ?? title,
+      url_domain: explorerTxUrl,
+    });
 
     navigation.navigate(Routes.WEBVIEW.MAIN, {
       screen: Routes.WEBVIEW.SIMPLE,

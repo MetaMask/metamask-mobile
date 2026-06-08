@@ -39,7 +39,7 @@ import {
   getBlockExplorerName,
 } from '../../../util/networks';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { trackExternalLinkClicked } from '../../../util/analytics/externalLinkTracking';
 import { useTheme } from '../../../util/theme';
 import { updateIncomingTransactions } from '../../../util/transaction-controller';
 import { useStyles } from '../../hooks/useStyles';
@@ -403,17 +403,13 @@ const UnifiedTransactionsView = ({
         : undefined;
     }
 
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.EXTERNAL_LINK_CLICKED)
-        .addProperties({
-          location: 'activity_tab',
-          text: title
-            ? `${strings('transactions.view_full_history_on')} ${title}`
-            : strings('asset_details.options.view_on_block'),
-          url_domain: url,
-        })
-        .build(),
-    );
+    trackExternalLinkClicked(trackEvent, createEventBuilder, {
+      location: 'activity_tab',
+      text: title
+        ? `${strings('transactions.view_full_history_on')} ${title}`
+        : strings('asset_details.options.view_on_block'),
+      url_domain: url,
+    });
 
     navigation.navigate('Webview', {
       screen: 'SimpleWebview',
@@ -470,15 +466,11 @@ const UnifiedTransactionsView = ({
       return;
     }
 
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.EXTERNAL_LINK_CLICKED)
-        .addProperties({
-          location: 'activity_tab',
-          text: `${strings('transactions.view_full_history_on')} ${getBlockExplorerName(nonEvmExplorerUrl)}`,
-          url_domain: nonEvmExplorerUrl,
-        })
-        .build(),
-    );
+    trackExternalLinkClicked(trackEvent, createEventBuilder, {
+      location: 'activity_tab',
+      text: `${strings('transactions.view_full_history_on')} ${getBlockExplorerName(nonEvmExplorerUrl)}`,
+      url_domain: nonEvmExplorerUrl,
+    });
 
     navigation.navigate('Webview', {
       screen: 'SimpleWebview',

@@ -25,7 +25,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { useMultichainBlockExplorerTxUrl } from '../../hooks/useMultichainBlockExplorerTxUrl';
 import { Transaction } from '@metamask/keyring-api';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { trackExternalLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
 
 const styleSheet = (params: { theme: Theme }) =>
   StyleSheet.create({
@@ -92,15 +92,11 @@ const BlockExplorersModal = () => {
             variant={ButtonVariant.Secondary}
             isFullWidth
             onPress={() => {
-              trackEvent(
-                createEventBuilder(MetaMetricsEvents.EXTERNAL_LINK_CLICKED)
-                  .addProperties({
-                    location: 'bridge_transaction_details',
-                    text: srcExplorerData.explorerName,
-                    url_domain: srcExplorerData.explorerTxUrl,
-                  })
-                  .build(),
-              );
+              trackExternalLinkClicked(trackEvent, createEventBuilder, {
+                location: 'bridge_transaction_details',
+                text: srcExplorerData.explorerName,
+                url_domain: srcExplorerData.explorerTxUrl,
+              });
               navigation.navigate(Routes.WEBVIEW.MAIN, {
                 screen: Routes.WEBVIEW.SIMPLE,
                 params: {
@@ -131,15 +127,11 @@ const BlockExplorersModal = () => {
             variant={ButtonVariant.Secondary}
             isFullWidth
             onPress={() => {
-              trackEvent(
-                createEventBuilder(MetaMetricsEvents.EXTERNAL_LINK_CLICKED)
-                  .addProperties({
-                    location: 'bridge_transaction_details',
-                    text: bridgeDestExplorerData.explorerName,
-                    url_domain: bridgeDestExplorerData.explorerTxUrl,
-                  })
-                  .build(),
-              );
+              trackExternalLinkClicked(trackEvent, createEventBuilder, {
+                location: 'bridge_transaction_details',
+                text: bridgeDestExplorerData.explorerName,
+                url_domain: bridgeDestExplorerData.explorerTxUrl,
+              });
               navigation.navigate(Routes.WEBVIEW.MAIN, {
                 screen: Routes.WEBVIEW.SIMPLE,
                 params: {

@@ -42,7 +42,7 @@ import Device from '../../../util/device';
 import Logger from '../../../util/Logger';
 import { analytics } from '../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { trackExternalLinkClicked } from '../../../util/analytics/externalLinkTracking';
 import {
   findBlockExplorerForNonEvmChainId,
   findBlockExplorerForRpc,
@@ -478,18 +478,16 @@ class Transactions extends PureComponent {
         title = result.title;
       }
 
-      analytics.trackEvent(
-        AnalyticsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.EXTERNAL_LINK_CLICKED,
-        )
-          .addProperties({
-            location: 'transactions_list',
-            text: title
-              ? `${strings('transactions.view_full_history_on')} ${title}`
-              : strings('asset_details.options.view_on_block'),
-            url_domain: url,
-          })
-          .build(),
+      trackExternalLinkClicked(
+        analytics.trackEvent,
+        AnalyticsEventBuilder.createEventBuilder,
+        {
+          location: 'transactions_list',
+          text: title
+            ? `${strings('transactions.view_full_history_on')} ${title}`
+            : strings('asset_details.options.view_on_block'),
+          url_domain: url,
+        },
       );
 
       navigation.push('Webview', {

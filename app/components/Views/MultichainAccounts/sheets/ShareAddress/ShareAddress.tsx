@@ -32,7 +32,7 @@ import {
   getQrCodeViewedAccountType,
   trackQrCodeViewed,
 } from '../../../../../util/analytics/qrCodeViewedTracking';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { trackExternalLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
 
 interface RootNavigationParamList extends ParamListBase {
   ShareAddress: {
@@ -77,15 +77,11 @@ export const ShareAddress = () => {
 
   const handleExplorerLinkPress = useCallback(() => {
     if (blockExplorer) {
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.EXTERNAL_LINK_CLICKED)
-          .addProperties({
-            location: 'share_address',
-            text: explorerButtonText,
-            url_domain: blockExplorer.url,
-          })
-          .build(),
-      );
+      trackExternalLinkClicked(trackEvent, createEventBuilder, {
+        location: 'share_address',
+        text: explorerButtonText,
+        url_domain: blockExplorer.url,
+      });
       navigation.navigate('Webview', {
         screen: 'SimpleWebview',
         params: {

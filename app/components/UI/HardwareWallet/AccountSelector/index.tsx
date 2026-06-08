@@ -8,7 +8,7 @@ import { strings } from '../../../../../locales/i18n';
 import { IAccount } from './types';
 import useBlockExplorer from '../../../hooks/useBlockExplorer';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { trackExternalLinkClicked } from '../../../../util/analytics/externalLinkTracking';
 import { useAccountsBalance } from './hooks';
 import { useTheme } from '../../../../util/theme';
 import { createStyle } from './styles';
@@ -52,15 +52,11 @@ const AccountSelector = (props: ISelectQRAccountsProps) => {
     (address: string) => {
       const url = getBlockExplorerUrl(address);
       if (url) {
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.EXTERNAL_LINK_CLICKED)
-            .addProperties({
-              location: 'hardware_wallet_account',
-              text: 'external-link',
-              url_domain: url,
-            })
-            .build(),
-        );
+        trackExternalLinkClicked(trackEvent, createEventBuilder, {
+          location: 'hardware_wallet_account',
+          text: 'external-link',
+          url_domain: url,
+        });
       }
       toBlockExplorer(address);
     },
