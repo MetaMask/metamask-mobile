@@ -164,12 +164,6 @@
       "prettier --write"
     ]
   },
-  "previewBuilds": {
-    "@metamask/wallet": {
-      "type": "breaking",
-      "previewVersion": "2.0.0-preview-ecd6b75"
-    }
-  },
   "resolutions": {
     "@metamask/network-controller": "32.0.0",
     "@react-native-community/viewpager": "patch:@react-native-community/viewpager@npm%3A3.3.0#~/.yarn/patches/@react-native-community-viewpager-npm-3.3.0.patch",
@@ -353,7 +347,7 @@
     "@metamask/transaction-pay-controller": "^23.3.0",
     "@metamask/tron-wallet-snap": "^1.25.6",
     "@metamask/utils": "^11.11.0",
-    "@metamask/wallet": "^2.0.0",
+    "@metamask/wallet": "npm:@metamask-previews/wallet@2.0.0-preview-ecd6b75",
     "@myx-trade/sdk": "^0.1.265",
     "@ngraveio/bc-ur": "^1.1.6",
     "@nktkas/hyperliquid": "^0.32.2",
