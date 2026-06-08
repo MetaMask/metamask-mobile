@@ -350,7 +350,8 @@ const MoneyHomeView = () => {
     isCardAuthenticated,
     isCardLinkedToMoneyAccount,
   });
-  const isCardAnalyticsReady = cardHomeDataStatus !== 'loading';
+  const isCardAnalyticsReady =
+    cardHomeDataStatus === 'success' || cardHomeDataStatus === 'error';
 
   return (
     <Box
