@@ -3,7 +3,7 @@ import { createLogger, LogLevel } from './logger.ts';
 
 /**
  * Resolves log level for Playwright framework modules.
- * Defaults to INFO so debug traces are hidden unless E2E_LOG_LEVEL is lowered.
+ * Defaults to INFO so debug traces are hidden unless E2E_LOG_LEVEL is set to "debug" (or "trace").
  */
 export function resolvePlaywrightLogLevel(): LogLevel {
   const value = process.env.E2E_LOG_LEVEL?.toLowerCase();
