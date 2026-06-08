@@ -1,6 +1,5 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { Box } from '@metamask/design-system-react-native';
 import type { ListRenderItem } from '@shopify/flash-list';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import type { SiteData } from '../../../UI/Sites/components/SiteRowItem/SiteRowItem';
@@ -21,6 +20,7 @@ import TileCarousel from '../components/TileCarousel';
 import type { TabProps } from '../hooks/useExploreRefresh';
 import { trackExploreInteracted } from '../search/analytics';
 import { TrendingViewSelectorsIDs } from '../TrendingView.testIds';
+import { Box, SectionDivider } from '@metamask/design-system-react-native';
 
 const DappsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -72,6 +72,28 @@ const DappsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const showFavorites = favorites.isLoading || favorites.data.length > 0;
   const showSites = sites.isLoading || sites.data.length > 0;
 
+  const sectionLayout = useMemo(() => {
+    const sections: Array<{ key: string; isVerticalList: boolean }> = [];
+    if (showRecents) sections.push({ key: 'recents', isVerticalList: false });
+    if (showFavorites) {
+      sections.push({ key: 'favorites', isVerticalList: true });
+    }
+    sections.push({ key: 'networks', isVerticalList: false });
+    if (showSites) sections.push({ key: 'sites', isVerticalList: true });
+
+    return (key: string) => {
+      const index = sections.findIndex((section) => section.key === key);
+      if (index === -1) {
+        return { showDivider: false, addSectionTailGap: false };
+      }
+      const { isVerticalList } = sections[index];
+      return {
+        showDivider: index > 0,
+        addSectionTailGap: index < sections.length - 1 && !isVerticalList,
+      };
+    };
+  }, [showRecents, showFavorites, showSites]);
+
   return (
     <ExploreScroll
       refreshing={refreshing}
@@ -79,7 +101,14 @@ const DappsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
       testID={TrendingViewSelectorsIDs.EXPLORE_DAPPS_SCROLL_VIEW}
     >
       {showRecents && (
-        <Box>
+        <Box
+          twClassName={
+            sectionLayout('recents').addSectionTailGap ? 'pb-3' : undefined
+          }
+        >
+          {sectionLayout('recents').showDivider ? (
+            <SectionDivider twClassName="-mx-4" />
+          ) : null}
           <SectionHeader
             title={strings('autocomplete.recents')}
             testID="section-header-view-all-dapps_recents"
@@ -104,7 +133,6 @@ const DappsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
             )}
             keyExtractor={(site) => site.url}
             Skeleton={SiteTileSkeleton}
-            compactSectionTail
             testID="explore-dapps_recents-carousel"
           />
         </Box>
@@ -112,6 +140,9 @@ const DappsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
 
       {showFavorites && (
         <Box>
+          {sectionLayout('favorites').showDivider ? (
+            <SectionDivider twClassName="-mx-4" />
+          ) : null}
           <SectionHeader
             title={strings('autocomplete.favorites')}
             onViewAll={() =>
@@ -131,7 +162,14 @@ const DappsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
         </Box>
       )}
 
-      <Box>
+      <Box
+        twClassName={
+          sectionLayout('networks').addSectionTailGap ? 'pb-3' : undefined
+        }
+      >
+        {sectionLayout('networks').showDivider ? (
+          <SectionDivider twClassName="-mx-4" />
+        ) : null}
         <SectionHeader
           title={strings('trending.ecosystems')}
           subtitle={strings('trending.ecosystems_subtitle')}
@@ -163,6 +201,9 @@ const DappsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
 
       {showSites && (
         <Box>
+          {sectionLayout('sites').showDivider ? (
+            <SectionDivider twClassName="-mx-4" />
+          ) : null}
           <SectionHeader
             title={strings('trending.popular')}
             onViewAll={() => navigation.navigate(Routes.SITES_FULL_VIEW)}

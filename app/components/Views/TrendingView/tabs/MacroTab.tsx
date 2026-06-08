@@ -22,11 +22,15 @@ import type { TabProps } from '../hooks/useExploreRefresh';
 interface MacroPerpsBlockProps {
   refresh: TabProps['refresh'];
   onViewAll: (filter: string, sortOptionId: SortOptionId) => void;
+  showDivider?: boolean;
+  addSectionTailGap?: boolean;
 }
 
 const MacroPerpsBlock: React.FC<MacroPerpsBlockProps> = ({
   refresh,
   onViewAll,
+  showDivider,
+  addSectionTailGap,
 }) => {
   const perps = usePerpsFeed({ variant: 'macro', refresh });
 
@@ -70,11 +74,17 @@ const MacroPerpsBlock: React.FC<MacroPerpsBlockProps> = ({
       idPrefix="macro_stocks_commodity_perps"
       testIdPrefix="macro-stocks-commodity-pills"
       listTestId="macro-stocks-commodity-perps-list"
+      showDivider={showDivider}
+      addSectionTailGap={addSectionTailGap}
     />
   );
 };
 
-const MacroTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
+const MacroTabContent: React.FC<TabProps> = ({
+  refresh,
+  refreshing,
+  onRefresh,
+}) => {
   const appNavigation = useNavigation<AppNavigationProp>();
   const perpsNavigation =
     useNavigation<NavigationProp<PerpsNavigationParamList>>();
@@ -82,6 +92,32 @@ const MacroTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
 
   const politics = usePredictionsFeed({ variant: 'politics', refresh });
+  const macroPerps = usePerpsFeed({ variant: 'macro', refresh });
+
+  const showPredictions =
+    isPredictEnabled && (politics.isLoading || politics.data.length > 0);
+  const showPerps =
+    isPerpsEnabled && (macroPerps.isLoading || macroPerps.data.length > 0);
+
+  const sectionLayout = useMemo(() => {
+    const sections: Array<{ key: string; isVerticalList: boolean }> = [];
+    if (showPredictions) {
+      sections.push({ key: 'predictions', isVerticalList: false });
+    }
+    if (showPerps) sections.push({ key: 'perps', isVerticalList: true });
+
+    return (key: string) => {
+      const index = sections.findIndex((section) => section.key === key);
+      if (index === -1) {
+        return { showDivider: false, addSectionTailGap: false };
+      }
+      const { isVerticalList } = sections[index];
+      return {
+        showDivider: index > 0,
+        addSectionTailGap: index < sections.length - 1 && !isVerticalList,
+      };
+    };
+  }, [showPredictions, showPerps]);
 
   return (
     <ExploreScroll refreshing={refreshing} onRefresh={onRefresh}>
@@ -96,20 +132,26 @@ const MacroTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
           navigateToExplorePredictionsList(appNavigation, 'politics')
         }
         isEnabled={isPredictEnabled}
+        {...sectionLayout('predictions')}
       />
 
       {isPerpsEnabled && (
-        <PerpsSectionProvider>
-          <MacroPerpsBlock
-            refresh={refresh}
-            onViewAll={(filter, sortOptionId) =>
-              navigateToPerpsMarketList(perpsNavigation, filter, sortOptionId)
-            }
-          />
-        </PerpsSectionProvider>
+        <MacroPerpsBlock
+          refresh={refresh}
+          onViewAll={(filter, sortOptionId) =>
+            navigateToPerpsMarketList(perpsNavigation, filter, sortOptionId)
+          }
+          {...sectionLayout('perps')}
+        />
       )}
     </ExploreScroll>
   );
 };
+
+const MacroTab: React.FC<TabProps> = (props) => (
+  <PerpsSectionProvider>
+    <MacroTabContent {...props} />
+  </PerpsSectionProvider>
+);
 
 export default MacroTab;

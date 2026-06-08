@@ -32,7 +32,7 @@ const PillRow: React.FC<PillRowProps> = ({
   const tw = useTailwind();
 
   return (
-    <Box twClassName="-mx-4 mb-2">
+    <Box twClassName="-mx-4">
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
