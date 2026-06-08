@@ -15,6 +15,9 @@ import { useTokenAmount } from '../../../hooks/useTokenAmount';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
 import { ReceiveSummaryLine } from './receive-summary-line';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../../../util/test/analyticsMock';
+import { AnalyticsEventBuilder } from '../../../../../../util/analytics/AnalyticsEventBuilder';
 
 jest.mock('../../../../../UI/Bridge/hooks/useMultichainBlockExplorerTxUrl');
 jest.mock('../../../hooks/useNetworkName');
@@ -23,6 +26,9 @@ jest.mock('../../../../../../util/bridge/hooks/useBridgeTxHistoryData');
 jest.mock('../../../hooks/useTokenAmount');
 jest.mock('../../../hooks/activity/useTransactionDetails');
 jest.mock('../../../hooks/tokens/useTokenWithBalance');
+jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
+}));
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -54,6 +60,12 @@ describe('ReceiveSummaryLine', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+      }),
+    );
 
     useMultichainBlockExplorerTxUrlMock.mockReturnValue({
       explorerTxUrl: 'https://explorer.example',
