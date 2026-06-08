@@ -26,7 +26,7 @@ import {
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
 } from '../../../Earn/constants/musd';
 import { Hex } from '@metamask/utils';
-import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
+import { requestMoneyAction } from '../../utils/moneyActionBus';
 import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
 import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
@@ -60,7 +60,6 @@ const MoneyAddMoneySheet: React.FC = () => {
     tokenBalanceAggregated,
     tokenBalanceByChain,
   } = useMusdBalance();
-  const { initiateDeposit } = useMoneyAccountDeposit();
   const { enabledTransactionTypes } = useMMPayFiatConfig();
   const hasAnyCryptoBalance = useSelector(selectHasAnyNonZeroTokenBalance);
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
@@ -78,16 +77,17 @@ const MoneyAddMoneySheet: React.FC = () => {
   }, [navigation]);
 
   const handleConvertCrypto = useCallback(() => {
-    closeAndNavigate(() => {
-      initiateDeposit().catch(() => undefined);
-    });
-  }, [closeAndNavigate, initiateDeposit]);
+    closeAndNavigate(() => requestMoneyAction({ type: 'deposit' }));
+  }, [closeAndNavigate]);
 
   const handleDepositFunds = useCallback(() => {
-    closeAndNavigate(() => {
-      initiateDeposit({ autoSelectFiatPayment: true }).catch(() => undefined);
-    });
-  }, [closeAndNavigate, initiateDeposit]);
+    closeAndNavigate(() =>
+      requestMoneyAction({
+        type: 'deposit',
+        options: { autoSelectFiatPayment: true },
+      }),
+    );
+  }, [closeAndNavigate]);
 
   const handleMoveMusd = useCallback(() => {
     let sourceChainId: Hex = MUSD_CONVERSION_DEFAULT_CHAIN_ID;
@@ -102,16 +102,19 @@ const MoneyAddMoneySheet: React.FC = () => {
       }
     }
 
-    closeAndNavigate(() => {
-      initiateDeposit({
-        intent: 'addMusd',
-        preferredPaymentToken: {
-          address: MUSD_TOKEN_ADDRESS_BY_CHAIN[sourceChainId],
-          chainId: sourceChainId,
+    closeAndNavigate(() =>
+      requestMoneyAction({
+        type: 'deposit',
+        options: {
+          intent: 'addMusd',
+          preferredPaymentToken: {
+            address: MUSD_TOKEN_ADDRESS_BY_CHAIN[sourceChainId],
+            chainId: sourceChainId,
+          },
         },
-      }).catch(() => undefined);
-    });
-  }, [closeAndNavigate, initiateDeposit, tokenBalanceByChain]);
+      }),
+    );
+  }, [closeAndNavigate, tokenBalanceByChain]);
 
   const parsedMusdFiat = Number(fiatBalanceAggregated);
   const hasParsedFiatBalance =

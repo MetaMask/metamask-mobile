@@ -5,7 +5,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyAddMoneySheet from './MoneyAddMoneySheet';
 import { MoneyAddMoneySheetTestIds } from './MoneyAddMoneySheet.testIds';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
-import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
+import { requestMoneyAction } from '../../utils/moneyActionBus';
 import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
 import {
@@ -20,7 +20,6 @@ import {
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
-const mockInitiateDeposit = jest.fn(() => Promise.resolve());
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -37,8 +36,8 @@ jest.mock('../../../Earn/hooks/useMusdBalance', () => ({
   useMusdBalance: jest.fn(),
 }));
 
-jest.mock('../../hooks/useMoneyAccount', () => ({
-  useMoneyAccountDeposit: jest.fn(),
+jest.mock('../../utils/moneyActionBus', () => ({
+  requestMoneyAction: jest.fn(),
 }));
 
 jest.mock(
@@ -96,9 +95,6 @@ describe('MoneyAddMoneySheet', () => {
       hasMusdBalanceOnAnyChain: true,
       tokenBalanceAggregated: '1203.89',
       tokenBalanceByChain: { [CHAIN_IDS.MAINNET]: '1203.89' },
-    });
-    (useMoneyAccountDeposit as jest.Mock).mockReturnValue({
-      initiateDeposit: mockInitiateDeposit,
     });
     (useMMPayFiatConfig as jest.Mock).mockReturnValue({
       enabledTransactionTypes: [TransactionType.moneyAccountDeposit],
@@ -187,7 +183,7 @@ describe('MoneyAddMoneySheet', () => {
     fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION));
 
     expect(mockOnCloseBottomSheet).not.toHaveBeenCalled();
-    expect(mockInitiateDeposit).not.toHaveBeenCalled();
+    expect(requestMoneyAction).not.toHaveBeenCalled();
   });
 
   it('shows the move-mUSD row disabled with the "Add mUSD" label when the selected EVM account mUSD fiat balance is zero', () => {
@@ -211,7 +207,7 @@ describe('MoneyAddMoneySheet', () => {
     fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION));
 
     expect(mockOnCloseBottomSheet).not.toHaveBeenCalled();
-    expect(mockInitiateDeposit).not.toHaveBeenCalled();
+    expect(requestMoneyAction).not.toHaveBeenCalled();
   });
 
   it('shows the move-mUSD row with the "Add your $X mUSD" label when the selected EVM account mUSD fiat balance is positive', () => {
@@ -260,8 +256,9 @@ describe('MoneyAddMoneySheet', () => {
     );
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(mockInitiateDeposit).toHaveBeenCalledWith({
-      autoSelectFiatPayment: true,
+    expect(requestMoneyAction).toHaveBeenCalledWith({
+      type: 'deposit',
+      options: { autoSelectFiatPayment: true },
     });
   });
 
@@ -273,7 +270,7 @@ describe('MoneyAddMoneySheet', () => {
     );
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(mockInitiateDeposit).toHaveBeenCalledWith();
+    expect(requestMoneyAction).toHaveBeenCalledWith({ type: 'deposit' });
   });
 
   it('hides the Deposit funds option when moneyAccountDeposit is not in enabledTransactionTypes', () => {
@@ -305,7 +302,7 @@ describe('MoneyAddMoneySheet', () => {
     );
 
     expect(mockOnCloseBottomSheet).not.toHaveBeenCalled();
-    expect(mockInitiateDeposit).not.toHaveBeenCalled();
+    expect(requestMoneyAction).not.toHaveBeenCalled();
   });
 
   it('enables the Convert crypto option when at least one account has a crypto balance', () => {
@@ -320,7 +317,7 @@ describe('MoneyAddMoneySheet', () => {
     );
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(mockInitiateDeposit).toHaveBeenCalledWith();
+    expect(requestMoneyAction).toHaveBeenCalledWith({ type: 'deposit' });
   });
 
   it('hides the Deposit funds option when the ramp routing decision is UNSUPPORTED', () => {
@@ -398,11 +395,14 @@ describe('MoneyAddMoneySheet', () => {
     fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION));
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(mockInitiateDeposit).toHaveBeenCalledWith({
-      intent: 'addMusd',
-      preferredPaymentToken: {
-        address: MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.LINEA_MAINNET],
-        chainId: CHAIN_IDS.LINEA_MAINNET,
+    expect(requestMoneyAction).toHaveBeenCalledWith({
+      type: 'deposit',
+      options: {
+        intent: 'addMusd',
+        preferredPaymentToken: {
+          address: MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.LINEA_MAINNET],
+          chainId: CHAIN_IDS.LINEA_MAINNET,
+        },
       },
     });
   });
@@ -420,11 +420,15 @@ describe('MoneyAddMoneySheet', () => {
 
     fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION));
 
-    expect(mockInitiateDeposit).toHaveBeenCalledWith({
-      intent: 'addMusd',
-      preferredPaymentToken: {
-        address: MUSD_TOKEN_ADDRESS_BY_CHAIN[MUSD_CONVERSION_DEFAULT_CHAIN_ID],
-        chainId: MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+    expect(requestMoneyAction).toHaveBeenCalledWith({
+      type: 'deposit',
+      options: {
+        intent: 'addMusd',
+        preferredPaymentToken: {
+          address:
+            MUSD_TOKEN_ADDRESS_BY_CHAIN[MUSD_CONVERSION_DEFAULT_CHAIN_ID],
+          chainId: MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+        },
       },
     });
   });

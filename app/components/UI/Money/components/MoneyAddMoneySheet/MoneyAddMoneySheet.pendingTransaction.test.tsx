@@ -12,6 +12,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import { updateBgState } from '../../../../../core/redux/slices/engine';
 import { addTransactionBatch } from '../../../../../util/transaction-controller';
+import { useMoneyActionExecutor } from '../../hooks/useMoneyActionExecutor';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
@@ -113,6 +114,16 @@ jest.mock('../../../../../util/transaction-controller', () => ({
   addTransactionBatch: jest.fn().mockResolvedValue(undefined),
 }));
 
+// Keep the real deposit flow (so the reject-then-navigate deferral is
+// exercised) but stub withdrawal, which the executor also owns but this test
+// does not drive — and whose selectors would otherwise need extra state.
+jest.mock('../../hooks/useMoneyAccount', () => ({
+  ...jest.requireActual('../../hooks/useMoneyAccount'),
+  useMoneyAccountWithdrawal: () => ({
+    initiateWithdrawal: jest.fn().mockResolvedValue(undefined),
+  }),
+}));
+
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     NetworkController: {
@@ -158,8 +169,17 @@ jest.mock('../../../../../reducers/fiatOrders', () => ({
   getRampRoutingDecision: jest.fn(),
 }));
 
+// The executor owns the deposit flow and stays mounted for the whole Money tab
+// — modelling MoneyTabScreenStack, which survives the sheet closing.
+const ExecutorHarness = () => {
+  useMoneyActionExecutor();
+  return null;
+};
+
 // Wrapper that unmounts the sheet when `goBack` runs — modelling the modal
-// being popped on close, which is what tears the hook down in production.
+// being popped on close. The sheet only *requests* the deposit; with the
+// executor mounted separately, tearing the sheet down no longer kills the
+// in-flight navigation.
 const SheetHarness = () => {
   const [open, setOpen] = useState(true);
   useEffect(() => {
@@ -172,15 +192,21 @@ const SheetHarness = () => {
 };
 
 function renderHarness(pendingTransactions: TransactionMeta[]) {
-  return renderWithProvider(<SheetHarness />, {
-    state: {
-      engine: {
-        backgroundState: {
-          TransactionController: { transactions: pendingTransactions },
+  return renderWithProvider(
+    <>
+      <ExecutorHarness />
+      <SheetHarness />
+    </>,
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            TransactionController: { transactions: pendingTransactions },
+          },
         },
       },
     },
-  });
+  );
 }
 
 const flushAsync = async () => {
@@ -227,7 +253,8 @@ describe('MoneyAddMoneySheet — Add funds with a pending transaction', () => {
     );
     await flushAsync();
 
-    // The sheet closed (goBack ran, modal popped → hook unmounted).
+    // The sheet closed (goBack ran, modal popped → sheet unmounted). The
+    // executor that owns the deposit flow stays mounted.
     expect(mockGoBack).toHaveBeenCalledTimes(1);
 
     // The pre-existing pending transaction is rejected before navigating, and
@@ -238,7 +265,8 @@ describe('MoneyAddMoneySheet — Add funds with a pending transaction', () => {
     expect(addTransactionBatch).toHaveBeenCalledTimes(1);
 
     // Navigation is deferred until the rejected transaction clears from state,
-    // so it has not happened yet — but the sheet has already unmounted by this point.
+    // so it has not happened yet — and the sheet has already unmounted by this
+    // point, yet the deferral lives on in the still-mounted executor.
     expect(mockNavigate).not.toHaveBeenCalled();
 
     // Simulate the TransactionController removing the rejected transaction.

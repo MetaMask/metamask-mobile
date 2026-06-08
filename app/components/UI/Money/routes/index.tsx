@@ -22,6 +22,7 @@ import MoneyTransactionDetailsSheet from '../components/MoneyTransactionDetailsS
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import { useEmptyNavHeaderForConfirmations } from '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
 import { useUpgradeMoneyAccountOnMount } from '../hooks/useUpgradeMoneyAccountOnMount';
+import { useMoneyActionExecutor } from '../hooks/useMoneyActionExecutor';
 
 const Stack = createNativeStackNavigator();
 const ModalStack = createNativeStackNavigator();
@@ -31,6 +32,10 @@ const MoneyTabScreenStack = () => {
   const { colors } = useTheme();
 
   useUpgradeMoneyAccountOnMount();
+  // Owns deposit/withdrawal execution so the reject-then-navigate deferral
+  // survives the "Add"/"Transfer" sheets closing. This stack stays mounted
+  // under those modals and under the confirmation screen.
+  useMoneyActionExecutor();
 
   return (
     <Stack.Navigator

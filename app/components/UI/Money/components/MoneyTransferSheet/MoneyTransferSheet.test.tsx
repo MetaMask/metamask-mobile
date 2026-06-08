@@ -4,15 +4,13 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyTransferSheet from './MoneyTransferSheet';
 import { MoneyTransferSheetTestIds } from './MoneyTransferSheet.testIds';
 import { strings } from '../../../../../../locales/i18n';
-import { useMoneyAccountWithdrawal } from '../../hooks/useMoneyAccount';
+import { requestMoneyAction } from '../../utils/moneyActionBus';
 
-const mockInitiateWithdrawal = jest.fn().mockResolvedValue(undefined);
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockGoBack = jest.fn();
 
-jest.mock('../../hooks/useMoneyAccount', () => ({
-  useMoneyAccountWithdrawal: jest.fn(),
-  useMoneyAccountDeposit: jest.fn(),
+jest.mock('../../utils/moneyActionBus', () => ({
+  requestMoneyAction: jest.fn(),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -57,9 +55,6 @@ describe('MoneyTransferSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     global.alert = jest.fn();
-    (useMoneyAccountWithdrawal as jest.Mock).mockReturnValue({
-      initiateWithdrawal: mockInitiateWithdrawal,
-    });
   });
 
   it('renders the sheet title', () => {
@@ -97,7 +92,7 @@ describe('MoneyTransferSheet', () => {
     expect(comingSoonTags).toHaveLength(2);
   });
 
-  it('closes the sheet and calls initiateWithdrawal when "Between accounts" is pressed', () => {
+  it('closes the sheet and requests a withdrawal when "Between accounts" is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
 
     fireEvent.press(
@@ -105,7 +100,7 @@ describe('MoneyTransferSheet', () => {
     );
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(mockInitiateWithdrawal).toHaveBeenCalledTimes(1);
+    expect(requestMoneyAction).toHaveBeenCalledWith({ type: 'withdrawal' });
     expect(global.alert).not.toHaveBeenCalled();
   });
 

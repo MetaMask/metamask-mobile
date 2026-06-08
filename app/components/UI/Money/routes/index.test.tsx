@@ -13,6 +13,12 @@ jest.mock('../hooks/useUpgradeMoneyAccountOnMount', () => ({
   useUpgradeMoneyAccountOnMount: jest.fn(),
 }));
 
+// Executor owns the deposit/withdrawal flows; its selectors need account state
+// that this structural navigator test doesn't provide. Not under test here.
+jest.mock('../hooks/useMoneyActionExecutor', () => ({
+  useMoneyActionExecutor: jest.fn(),
+}));
+
 const mockUseUpgradeMoneyAccountOnMount = jest.mocked(
   useUpgradeMoneyAccountOnMount,
 );

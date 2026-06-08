@@ -17,8 +17,7 @@ import {
 import Tag from '../../../../../component-library/components/Tags/Tag';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
-import { useMoneyAccountWithdrawal } from '../../hooks/useMoneyAccount';
-import Logger from '../../../../../util/Logger';
+import { requestMoneyAction } from '../../utils/moneyActionBus';
 import styleSheet from './MoneyTransferSheet.styles';
 import { MoneyTransferSheetTestIds } from './MoneyTransferSheet.testIds';
 import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
@@ -40,7 +39,6 @@ const MoneyTransferSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
-  const { initiateWithdrawal } = useMoneyAccountWithdrawal();
   const surfaceClass = useElevatedSurface();
 
   const handleGoBack = useCallback(() => {
@@ -48,15 +46,10 @@ const MoneyTransferSheet = () => {
   }, [navigation]);
 
   const handleBetweenAccounts = useCallback(() => {
-    sheetRef.current?.onCloseBottomSheet(() => {
-      initiateWithdrawal().catch((error: Error) => {
-        Logger.error(
-          error,
-          '[MoneyTransferSheet] Withdrawal initiation failed',
-        );
-      });
-    });
-  }, [initiateWithdrawal]);
+    sheetRef.current?.onCloseBottomSheet(() =>
+      requestMoneyAction({ type: 'withdrawal' }),
+    );
+  }, []);
 
   const handlePerpsAccount = useCallback(() => {
     // eslint-disable-next-line no-alert
