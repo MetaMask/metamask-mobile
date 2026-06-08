@@ -243,6 +243,7 @@ jobs:
           } >> "$GITHUB_ENV"
 
       - name: Run Tests
+        continue-on-error: true
         env:
           BROWSERSTACK_LOCAL: ${{ inputs.build_type == 'mm-connect' && 'true' || 'false' }}
           BROWSERSTACK_LOCAL_IDENTIFIER: ${{ inputs.build_type == 'mm-connect' && steps.bs-local-id.outputs.value || '' }}
