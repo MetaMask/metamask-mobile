@@ -39,6 +39,8 @@ interface UsePerpsHomeDataReturn {
   positions: Position[];
   orders: Order[];
   watchlistMarkets: PerpsMarketData[];
+  /** Top 5 markets by 24h volume, used as suggestions when watchlist is empty */
+  suggestedWatchlistMarkets: PerpsMarketData[];
   perpsMarkets: PerpsMarketData[]; // Crypto markets (renamed from trending)
   stocksMarkets: PerpsMarketData[]; // Equity markets
   commoditiesMarkets: PerpsMarketData[]; // Commodity markets
@@ -163,6 +165,13 @@ export const usePerpsHomeData = ({
     () =>
       allMarkets.filter((market) => watchlistSymbols.includes(market.symbol)),
     [allMarkets, watchlistSymbols],
+  );
+
+  // Top 5 markets by 24h volume across all types — shown when watchlist is empty.
+  // allMarkets is pre-sorted by volume desc by usePerpsMarkets/filterAndSortMarkets.
+  const suggestedWatchlistMarkets = useMemo(
+    () => allMarkets.slice(0, 5),
+    [allMarkets],
   );
 
   const sortBy = MARKET_SORTING_CONFIG.SortFields.Volume;
@@ -361,6 +370,7 @@ export const usePerpsHomeData = ({
     positions: limitedPositions,
     orders: limitedOrders,
     watchlistMarkets: limitedWatchlistMarkets,
+    suggestedWatchlistMarkets,
     perpsMarkets: searchedPerpsMarkets, // Crypto markets (renamed from trendingMarkets)
     stocksMarkets: searchedStocksMarkets,
     commoditiesMarkets: searchedCommoditiesMarkets,

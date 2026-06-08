@@ -150,6 +150,20 @@ export const PerpsMarketListViewSelectorsIDs = {
 };
 
 // ========================================
+// PERPS WATCHLIST SECTION SELECTORS
+// ========================================
+
+export const PerpsWatchlistSelectorsIDs = {
+  SECTION: 'perps-watchlist-section',
+  HEADER: 'perps-watchlist-header',
+  EMPTY_STATE: 'perps-watchlist-empty-state',
+  EMPTY_STATE_TITLE: 'perps-watchlist-empty-state-title',
+  EMPTY_STATE_SUBTITLE: 'perps-watchlist-empty-state-subtitle',
+  SHOW_MORE_BUTTON: 'perps-watchlist-show-more-button',
+  SHOW_LESS_BUTTON: 'perps-watchlist-show-less-button',
+} as const;
+
+// ========================================
 // PERPS MARKET ROW ITEM SELECTORS
 // ========================================
 
@@ -165,6 +179,21 @@ export const getPerpsMarketRowItemSelector = {
     `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${symbol}-token-logo`,
   badge: (symbol: string) =>
     `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${symbol}-badge`,
+};
+
+// ========================================
+// PERPS SUGGESTED MARKET ROW SELECTORS
+// ========================================
+
+const SUGGESTED_MARKET_ROW_PREFIX = 'perps-suggested-market-row';
+
+// Helper functions for dynamic suggested market row selectors
+export const getPerpsSuggestedMarketRowSelector = {
+  row: (symbol: string) => `${SUGGESTED_MARKET_ROW_PREFIX}-${symbol}`,
+  tokenLogo: (symbol: string) =>
+    `${SUGGESTED_MARKET_ROW_PREFIX}-${symbol}-token-logo`,
+  addButton: (symbol: string) =>
+    `${SUGGESTED_MARKET_ROW_PREFIX}-${symbol}-add-button`,
 };
 
 // ========================================

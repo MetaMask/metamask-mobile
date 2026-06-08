@@ -113,7 +113,9 @@ jest.mock('../../hooks', () => ({
   usePerpsTabExploreData: jest.fn(() => ({
     exploreMarkets: [],
     watchlistMarkets: [],
+    suggestedWatchlistMarkets: [],
     isLoading: false,
+    hasWatchlistSymbols: false,
   })),
 }));
 

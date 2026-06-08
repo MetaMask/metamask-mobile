@@ -2138,6 +2138,13 @@
     "search_by_token_symbol": "Search by token symbol",
     "no_favorites_found": "No markets in watchlist",
     "no_favorites_description": "Tap the star icon on any market to add it to your watchlist",
+    "watchlist": {
+      "empty_title": "Start with the most-traded markets",
+      "empty_subtitle": "Tap + to add a market to your watchlist.",
+      "show_more": "Show {{count}} more",
+      "show_less": "Show less",
+      "add_error": "Failed to add market to watchlist"
+    },
     "no_tokens_found": "No tokens found",
     "no_tokens_found_description": "We couldn't find any tokens with the name \"{{searchQuery}}\". Try a different search.",
     "testnet": "Testnet",

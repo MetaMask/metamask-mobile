@@ -209,6 +209,7 @@ const PerpsHomeView = ({
     positions,
     orders,
     watchlistMarkets,
+    suggestedWatchlistMarkets,
     perpsMarkets, // Crypto markets (renamed from trendingMarkets)
     commoditiesMarkets, // Commodity markets
     stocksMarkets, // Equity markets only
@@ -591,6 +592,7 @@ const PerpsHomeView = ({
         {/* Watchlist Section */}
         <PerpsWatchlistMarkets
           markets={watchlistMarkets}
+          suggestedMarkets={suggestedWatchlistMarkets}
           isLoading={isLoading.markets}
           positions={positions}
           orders={orders}

@@ -41,7 +41,7 @@ import { usePerpsLiveAccount, usePerpsLiveOrders } from '../../hooks/stream';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { getPositionDirection } from '../../utils/positionCalculations';
 import styleSheet from './PerpsTabView.styles';
-import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
+import PerpsWatchlistMarkets from '../../components/PerpsWatchlistMarkets/PerpsWatchlistMarkets';
 import PerpsMarketRowItem from '../../components/PerpsMarketRowItem';
 
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
@@ -87,6 +87,7 @@ const PerpsTabView = () => {
   const {
     exploreMarkets,
     watchlistMarkets,
+    suggestedWatchlistMarkets = [],
     isLoading: isExploreLoading,
   } = usePerpsTabExploreData({ enabled: hasNoPositionsOrOrders });
 
@@ -100,8 +101,11 @@ const PerpsTabView = () => {
     ? styles.watchlistHeaderStyleWithBalance // 24px/4px
     : styles.watchlistHeaderStyleNoBalance; // 16px/4px
 
-  // Check if watchlist is visible (for conditional rendering)
-  const isWatchlistVisible = watchlistMarkets.length > 0;
+  // The watchlist section is visible if the user has watchlist markets OR when suggested
+  // markets are available (empty state is shown instead of hiding the section entirely).
+  const isWatchlistVisible =
+    watchlistMarkets.length > 0 ||
+    (suggestedWatchlistMarkets.length > 0 && !isExploreLoading);
 
   // Explore header: depends on position and balance
   const exploreSectionHeaderStyle = isWatchlistVisible
@@ -295,48 +299,6 @@ const PerpsTabView = () => {
     });
   }, [navigation]);
 
-  const renderWatchlistSection = useCallback(() => {
-    if (isExploreLoading) {
-      return (
-        <View style={styles.watchlistSection}>
-          <View style={watchlistHeaderStyle}>
-            <Text variant={TextVariant.BodyLGMedium} color={TextColor.Default}>
-              {strings('perps.home.watchlist')}
-            </Text>
-          </View>
-          <PerpsRowSkeleton count={3} />
-        </View>
-      );
-    }
-
-    if (watchlistMarkets.length === 0) {
-      return null;
-    }
-
-    return (
-      <View style={styles.watchlistSection}>
-        <View style={watchlistHeaderStyle}>
-          <Text variant={TextVariant.BodyLGMedium} color={TextColor.Default}>
-            {strings('perps.home.watchlist')}
-          </Text>
-        </View>
-        {watchlistMarkets.map((market) => (
-          <PerpsMarketRowItem
-            key={market.symbol}
-            market={market}
-            showBadge={false}
-            onPress={() => handleExploreMarketPress(market)}
-          />
-        ))}
-      </View>
-    );
-  }, [
-    isExploreLoading,
-    watchlistMarkets,
-    styles,
-    watchlistHeaderStyle,
-    handleExploreMarketPress,
-  ]);
 
   const renderExploreSection = useCallback(() => {
     if (isExploreLoading) {
@@ -408,8 +370,15 @@ const PerpsTabView = () => {
       >
         {!isInitialLoading && hasNoPositionsOrOrders ? (
           <View style={styles.emptyStateContainer}>
-            {/* Watchlist section - inline render with PerpsTabView-specific styling */}
-            {renderWatchlistSection()}
+            {/* Watchlist section — shared component with PerpsTabView style overrides */}
+            <PerpsWatchlistMarkets
+              markets={watchlistMarkets}
+              suggestedMarkets={suggestedWatchlistMarkets}
+              isLoading={isExploreLoading}
+              source={PERPS_EVENT_VALUE.SOURCE.PERPS_TAB}
+              sectionStyle={styles.watchlistSection}
+              headerStyle={watchlistHeaderStyle}
+            />
 
             {/* Explore markets section - custom render for PerpsTabView styling */}
             {renderExploreSection()}

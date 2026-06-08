@@ -214,7 +214,7 @@ const PerpsMarketRowItem = ({
         </Box>
       </Box>
 
-      {/* Right section: Price + change */}
+      {/* Right section: Price + 24h change */}
       <Box
         alignItems={BoxAlignItems.End}
         justifyContent={BoxJustifyContent.End}

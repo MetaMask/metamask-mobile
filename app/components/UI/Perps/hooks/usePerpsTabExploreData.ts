@@ -5,6 +5,7 @@ import { selectPerpsWatchlistMarkets } from '../selectors/perpsController';
 import { type PerpsMarketData } from '@metamask/perps-controller';
 
 const EXPLORE_MARKETS_LIMIT = 8;
+const SUGGESTED_WATCHLIST_LIMIT = 5;
 
 interface UsePerpsTabExploreDataOptions {
   /** Skip fetching when user has positions/orders */
@@ -16,6 +17,8 @@ interface UsePerpsTabExploreDataResult {
   exploreMarkets: PerpsMarketData[];
   /** Markets in user's watchlist */
   watchlistMarkets: PerpsMarketData[];
+  /** Top 5 markets by 24h volume, used as suggestions when watchlist is empty */
+  suggestedWatchlistMarkets: PerpsMarketData[];
   /** Loading state for markets data */
   isLoading: boolean;
   /** Whether user has any watchlist symbols (available before markets load) */
@@ -55,9 +58,17 @@ export const usePerpsTabExploreData = ({
     return markets.filter((m) => watchlistSymbols.includes(m.symbol));
   }, [markets, watchlistSymbols, enabled]);
 
+  // Top 5 markets by 24h volume — shown when watchlist is empty.
+  // markets is pre-sorted by volume desc by usePerpsMarkets/filterAndSortMarkets.
+  const suggestedWatchlistMarkets = useMemo(() => {
+    if (!enabled) return [];
+    return markets.slice(0, SUGGESTED_WATCHLIST_LIMIT);
+  }, [markets, enabled]);
+
   return {
     exploreMarkets,
     watchlistMarkets,
+    suggestedWatchlistMarkets,
     isLoading,
     hasWatchlistSymbols: watchlistSymbols.length > 0,
   };

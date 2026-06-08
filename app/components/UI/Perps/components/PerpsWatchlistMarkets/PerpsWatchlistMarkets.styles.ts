@@ -13,8 +13,14 @@ const styleSheet = (params: { theme: Theme }) => {
     header: {
       flexDirection: 'row',
       alignItems: 'center',
+      justifyContent: 'space-between',
       paddingHorizontal: 16,
       marginBottom: 8,
+    },
+    headerLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
     },
     titleRow: {
       flexDirection: 'row',
@@ -23,6 +29,27 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     listContent: {
       paddingHorizontal: 16,
+    },
+    // Empty state
+    emptyStateContainer: {
+      paddingHorizontal: 16,
+      paddingTop: 4,
+      paddingBottom: 8,
+    },
+    emptyStateTitle: {
+      marginBottom: 4,
+    },
+    emptyStateSubtitle: {
+      marginBottom: 12,
+    },
+    // Show more / show less toggle
+    showMoreRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      gap: 4,
     },
   });
 };
