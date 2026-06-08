@@ -4,6 +4,11 @@ import { useSelector } from 'react-redux';
 import { usePredictMarketList } from '../../../../hooks/usePredictMarketList';
 import { useCurrentPredictMarketFromSeries } from '../../../../hooks/useCurrentPredictMarketFromSeries';
 import { selectPredictUpDownEnabledFlag } from '../../../../selectors/featureFlags';
+import {
+  BTC_UP_OR_DOWN_5M_SERIES,
+  ETH_UP_OR_DOWN_5M_SERIES,
+  BTC_UP_OR_DOWN_15M_SERIES,
+} from '../../../../constants/liveNowCryptoSeries';
 import type { PredictMarket, PredictMarketListParams } from '../../../../types';
 import { CRYPTO_TAG, UP_OR_DOWN_TAG } from '../../../../utils/cryptoUpDown';
 import PredictLiveNowSection from './PredictLiveNowSection';
@@ -48,7 +53,12 @@ const mockUsePredictMarketList = usePredictMarketList as jest.Mock;
 const mockUseCurrentPredictMarketFromSeries =
   useCurrentPredictMarketFromSeries as jest.Mock;
 
+// Scoreboard-capable live market (has `game`) — survives the rail's filter.
 const createLiveMarket = (id: string): PredictMarket =>
+  ({ id, game: { id: `game-${id}` } }) as unknown as PredictMarket;
+
+// "Regular" live market (no `game`) — filtered out of the rail.
+const createRegularMarket = (id: string): PredictMarket =>
   ({ id }) as unknown as PredictMarket;
 
 const createCryptoMarket = (id: string): PredictMarket =>
@@ -78,6 +88,7 @@ const setLiveMarketList = (
   });
 };
 
+// Default: no crypto market resolved for any series.
 const setCryptoMarket = (
   overrides: Partial<{ market?: PredictMarket; isLoading: boolean }> = {},
 ) => {
@@ -86,6 +97,19 @@ const setCryptoMarket = (
     isLoading: false,
     ...overrides,
   });
+};
+
+// Resolve a distinct crypto market per series id (BTC 5m / ETH 5m / BTC 15m),
+// since the hook now calls useCurrentPredictMarketFromSeries once per series.
+const setCryptoMarketsBySeries = (
+  bySeriesId: Record<string, PredictMarket | undefined>,
+) => {
+  mockUseCurrentPredictMarketFromSeries.mockImplementation(
+    ({ series }: { series?: { id: string } }) => ({
+      market: series ? bySeriesId[series.id] : undefined,
+      isLoading: false,
+    }),
+  );
 };
 
 // Mock `useSelector` by selector identity so we only control the Up/Down
@@ -116,8 +140,23 @@ describe('PredictLiveNowSection', () => {
       live: true,
       order: 'volume24hr',
       status: 'open',
-      limit: 7,
+      limit: 15,
     } as PredictMarketListParams);
+  });
+
+  it('filters out "regular" live markets without a game (scoreboard) object', () => {
+    setLiveMarketList({
+      markets: [createLiveMarket('L1'), createRegularMarket('R1')],
+    });
+
+    const { getByTestId, queryByTestId } = render(<PredictLiveNowSection />);
+
+    expect(
+      getByTestId(`${PREDICT_LIVE_NOW_SECTION_TEST_IDS.CARD_PREFIX}-L1`),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(`${PREDICT_LIVE_NOW_SECTION_TEST_IDS.CARD_PREFIX}-R1`),
+    ).not.toBeOnTheScreen();
   });
 
   it('renders skeleton cards while loading with no markets yet', () => {
@@ -128,6 +167,25 @@ describe('PredictLiveNowSection', () => {
     expect(
       getByTestId(`${PREDICT_LIVE_NOW_SECTION_TEST_IDS.SKELETON_PREFIX}-0`),
     ).toBeOnTheScreen();
+  });
+
+  it('keeps showing skeletons while live markets load even if crypto already resolved', () => {
+    setUpDownEnabled(true);
+    setLiveMarketList({ markets: [], isLoading: true });
+    setCryptoMarketsBySeries({
+      [BTC_UP_OR_DOWN_5M_SERIES.id]: createCryptoMarket('BTC5M'),
+      [ETH_UP_OR_DOWN_5M_SERIES.id]: createCryptoMarket('ETH5M'),
+      [BTC_UP_OR_DOWN_15M_SERIES.id]: createCryptoMarket('BTC15M'),
+    });
+
+    const { getByTestId, queryByTestId } = render(<PredictLiveNowSection />);
+
+    expect(
+      getByTestId(`${PREDICT_LIVE_NOW_SECTION_TEST_IDS.SKELETON_PREFIX}-0`),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(`${PREDICT_LIVE_NOW_SECTION_TEST_IDS.CARD_PREFIX}-BTC5M`),
+    ).not.toBeOnTheScreen();
   });
 
   it('renders a market card for each live market on success', () => {
@@ -154,12 +212,45 @@ describe('PredictLiveNowSection', () => {
         createLiveMarket('L3'),
       ],
     });
-    setCryptoMarket({ market: createCryptoMarket('CRYPTO') });
+    setCryptoMarketsBySeries({
+      [BTC_UP_OR_DOWN_5M_SERIES.id]: createCryptoMarket('CRYPTO'),
+    });
 
     const { getByTestId } = render(<PredictLiveNowSection />);
 
     expect(
       getByTestId(`${PREDICT_LIVE_NOW_SECTION_TEST_IDS.CARD_PREFIX}-CRYPTO`),
+    ).toBeOnTheScreen();
+  });
+
+  it('sources all three crypto series (BTC 5m, ETH 5m, BTC 15m) when Up/Down is enabled', () => {
+    setUpDownEnabled(true);
+    setLiveMarketList({
+      markets: [
+        createLiveMarket('L1'),
+        createLiveMarket('L2'),
+        createLiveMarket('L3'),
+        createLiveMarket('L4'),
+        createLiveMarket('L5'),
+        createLiveMarket('L6'),
+      ],
+    });
+    setCryptoMarketsBySeries({
+      [BTC_UP_OR_DOWN_5M_SERIES.id]: createCryptoMarket('BTC5M'),
+      [ETH_UP_OR_DOWN_5M_SERIES.id]: createCryptoMarket('ETH5M'),
+      [BTC_UP_OR_DOWN_15M_SERIES.id]: createCryptoMarket('BTC15M'),
+    });
+
+    const { getByTestId } = render(<PredictLiveNowSection />);
+
+    expect(
+      getByTestId(`${PREDICT_LIVE_NOW_SECTION_TEST_IDS.CARD_PREFIX}-BTC5M`),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(`${PREDICT_LIVE_NOW_SECTION_TEST_IDS.CARD_PREFIX}-ETH5M`),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(`${PREDICT_LIVE_NOW_SECTION_TEST_IDS.CARD_PREFIX}-BTC15M`),
     ).toBeOnTheScreen();
   });
 
