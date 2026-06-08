@@ -1,4 +1,8 @@
 import { StyleSheet, TextStyle } from 'react-native';
+import {
+  getFontFamily,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 import { Theme } from '../../../util/theme/models';
 import { getElevatedSurfaceColor } from '../../../util/theme/themeUtils';
 
@@ -7,6 +11,8 @@ const TAB_PADDING_BOTTOM = 8;
 const TAB_PADDING_VERTICAL = 8;
 const DELETE_CONTAINER_PADDING_LEFT = 16;
 const DELETE_CONTAINER_PADDING_RIGHT = 8;
+
+const BODY_MD_FONT_FAMILY = getFontFamily(TextVariant.BodyMD);
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -32,6 +38,7 @@ const createStyles = (params: { theme: Theme }) => {
     },
     textStyle: {
       ...(typography.sBodyMD as TextStyle),
+      fontFamily: BODY_MD_FONT_FAMILY,
       fontWeight: '500',
     },
     tabBar: {
