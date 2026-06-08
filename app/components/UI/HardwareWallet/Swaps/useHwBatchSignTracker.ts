@@ -72,6 +72,7 @@ const FAILED_OR_REJECTED_STATUSES: ReadonlySet<TransactionStatus> = new Set([
 const TX_STATUS_UPDATED_EVENT =
   'TransactionController:transactionStatusUpdated';
 const CANCEL_TERMINAL_WAIT_TIMEOUT_MS = 30_000;
+const DEVICE_NOT_READY_RETRY_DELAY_MS = 1_000;
 
 function isBatchTransactionType(
   txType: TransactionMeta['type'],
@@ -542,6 +543,9 @@ export function useHwBatchSignTracker({
   );
   const processApprovalQueueRef = useRef<(() => void) | undefined>(undefined);
   const cancelInFlightRef = useRef<Promise<void> | null>(null);
+  const deferredApprovalQueueRetryTimeoutRef = useRef<
+    ReturnType<typeof setTimeout> | undefined
+  >(undefined);
   const trackerLifecycleKeyRef = useRef<string | undefined>(
     fromAddress && isEnabled ? normalizeAddress(fromAddress) : undefined,
   );
@@ -574,7 +578,7 @@ export function useHwBatchSignTracker({
   // Returns true when a retry was detected (and state was invalidated), false
   // otherwise. Callers use the boolean to short-circuit any work that would
   // otherwise operate on the now-stale batch state.
-  const checkGeneration = useCallback((): boolean => {
+  const detectAndApplyRetryGeneration = useCallback((): boolean => {
     const trackerState = trackerStateRef.current;
     if (
       retryGenerationRef &&
@@ -725,7 +729,17 @@ export function useHwBatchSignTracker({
   useEffect(() => {
     const trackerLifecycleKey =
       fromAddress && isEnabled ? normalizeAddress(fromAddress) : undefined;
+    const clearDeferredApprovalQueueRetry = () => {
+      if (!deferredApprovalQueueRetryTimeoutRef.current) {
+        return;
+      }
+
+      clearTimeout(deferredApprovalQueueRetryTimeoutRef.current);
+      deferredApprovalQueueRetryTimeoutRef.current = undefined;
+    };
+
     if (trackerLifecycleKeyRef.current !== trackerLifecycleKey) {
+      clearDeferredApprovalQueueRetry();
       trackerLifecycleKeyRef.current = trackerLifecycleKey;
       cancelInFlightRef.current = null;
       trackerStateRef.current = createInitialBatchSignTrackerState(
@@ -740,15 +754,28 @@ export function useHwBatchSignTracker({
 
     const targetFrom = trackerLifecycleKey;
     const handledTxIds = new Set<string>();
+    const scheduleDeferredApprovalQueueRetry = () => {
+      clearDeferredApprovalQueueRetry();
+      const lifecycleKey = trackerLifecycleKeyRef.current;
+      deferredApprovalQueueRetryTimeoutRef.current = setTimeout(() => {
+        deferredApprovalQueueRetryTimeoutRef.current = undefined;
+        if (trackerLifecycleKeyRef.current !== lifecycleKey) {
+          return;
+        }
+
+        processApprovalQueueRef.current?.();
+      }, DEVICE_NOT_READY_RETRY_DELAY_MS);
+    };
 
     const processApprovalQueue = async () => {
-      if (checkGeneration()) {
+      if (detectAndApplyRetryGeneration()) {
         return;
       }
       const trackerState = trackerStateRef.current;
       if (trackerState.isProcessingQueue || trackerState.isCancellingBatch) {
         return;
       }
+      clearDeferredApprovalQueueRetry();
       trackerState.isProcessingQueue = true;
 
       let deferredDueToDeviceNotReady = false;
@@ -901,10 +928,11 @@ export function useHwBatchSignTracker({
         }
       } finally {
         trackerStateRef.current.isProcessingQueue = false;
-        if (
-          !deferredDueToDeviceNotReady &&
-          trackerStateRef.current.approvalQueue.length > 0
-        ) {
+        const hasQueuedApprovals =
+          trackerStateRef.current.approvalQueue.length > 0;
+        if (deferredDueToDeviceNotReady && hasQueuedApprovals) {
+          scheduleDeferredApprovalQueueRetry();
+        } else if (hasQueuedApprovals) {
           // Fire-and-forget: schedule another drain on the next microtask so
           // we don't tight-loop in the current tick or recurse synchronously.
           // Rejections inside processApprovalQueue are caught by its own
@@ -915,7 +943,7 @@ export function useHwBatchSignTracker({
     };
 
     const enqueuePendingApprovals = () => {
-      checkGeneration();
+      detectAndApplyRetryGeneration();
       const pendingApprovals = getPendingApprovals();
 
       for (const [requestId, request] of Object.entries(pendingApprovals)) {
@@ -963,7 +991,7 @@ export function useHwBatchSignTracker({
       // dispatched and when it terminated, the terminal event belongs to an
       // already-abandoned batch. Ignore it so we don't dispatch duplicate
       // Rejected/Failed events for stale work — the new generation owns the UI.
-      if (checkGeneration()) return true;
+      if (detectAndApplyRetryGeneration()) return true;
 
       if (handledTxIds.has(transactionMeta.id)) return true;
       if (!isTransactionFromCurrentBatch(transactionMeta)) return true;
@@ -982,13 +1010,13 @@ export function useHwBatchSignTracker({
     }) => {
       if (!matchesTx(transactionMeta, targetFrom)) return;
 
-      // checkGeneration() may invalidate state (resetting currentBatchId and
+      // detectAndApplyRetryGeneration() may invalidate state (resetting currentBatchId and
       // marking the previous batch ids as stale). Combined with the stale-batch
       // set check, this ensures we ignore status updates for the previous
       // retry's batch — they would otherwise race against the new batch's
       // events and confuse the UI.
       if (
-        checkGeneration() &&
+        detectAndApplyRetryGeneration() &&
         transactionMeta.batchId &&
         trackerStateRef.current.staleBatchIds.has(transactionMeta.batchId)
       ) {
@@ -1100,6 +1128,7 @@ export function useHwBatchSignTracker({
     enqueuePendingApprovals();
 
     return () => {
+      clearDeferredApprovalQueueRetry();
       processApprovalQueueRef.current = undefined;
       Engine.controllerMessenger.unsubscribe(
         TX_STATUS_UPDATED_EVENT,
@@ -1120,7 +1149,7 @@ export function useHwBatchSignTracker({
     };
   }, [
     cancelCurrentBatch,
-    checkGeneration,
+    detectAndApplyRetryGeneration,
     fromAddress,
     isBatchIdFromCurrentBatch,
     isCancelledError,

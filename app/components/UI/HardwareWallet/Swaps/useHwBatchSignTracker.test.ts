@@ -1310,6 +1310,49 @@ describe('useHwBatchSignTracker', () => {
       expect(mockAcceptRequest).not.toHaveBeenCalled();
     });
 
+    it('retries a requeued approval after the device is not ready without requiring another approval event', async () => {
+      jest.useFakeTimers();
+
+      try {
+        mockExecuteHardwareWalletOperation.mockImplementationOnce(
+          async ({ onRejected }) => {
+            await onRejected?.();
+            return false;
+          },
+        );
+        const batchId = 'batch-device-not-ready-retry-001';
+        setMockTransactions([matchingBatchTx(batchId)]);
+        setMockPendingApprovals({
+          [batchId]: { id: batchId, type: 'transaction_batch' },
+        });
+
+        renderEnabledHook();
+
+        await act(async () => {
+          await Promise.resolve();
+          await Promise.resolve();
+        });
+
+        expect(mockExecuteHardwareWalletOperation).toHaveBeenCalledTimes(1);
+        expect(mockAcceptRequest).not.toHaveBeenCalled();
+
+        act(() => {
+          jest.advanceTimersByTime(1_000);
+        });
+        await act(async () => {
+          await Promise.resolve();
+          await Promise.resolve();
+        });
+
+        expect(mockExecuteHardwareWalletOperation).toHaveBeenCalledTimes(2);
+        expect(mockAcceptRequest).toHaveBeenCalledWith(batchId, undefined, {
+          waitForResult: true,
+        });
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
     it('accepts pending transaction_batch approval requests through the hardware wallet operation flow', async () => {
       const batchId = 'batch-approval-001';
       setMockTransactions([matchingBatchTx(batchId)]);
