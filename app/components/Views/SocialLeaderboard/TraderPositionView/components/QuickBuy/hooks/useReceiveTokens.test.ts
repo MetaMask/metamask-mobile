@@ -1,9 +1,14 @@
 import { renderHook } from '@testing-library/react-native';
 import { useReceiveTokens } from './useReceiveTokens';
 import { enrichTokenBalance } from './enrichTokenBalance';
+import { useNetworkEnabledPredicate } from './useNetworkEnabledPredicate';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(() => undefined),
+}));
+
+jest.mock('./useNetworkEnabledPredicate', () => ({
+  useNetworkEnabledPredicate: jest.fn(),
 }));
 
 jest.mock(
@@ -53,10 +58,12 @@ jest.mock('./enrichTokenBalance', () => ({
 }));
 
 const mockEnrich = enrichTokenBalance as jest.Mock;
+const mockUseNetworkEnabledPredicate = useNetworkEnabledPredicate as jest.Mock;
 
 describe('useReceiveTokens', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseNetworkEnabledPredicate.mockReturnValue(() => true);
     mockEnrich.mockReturnValue({
       balance: '0',
       balanceFiat: '$0.00',
@@ -89,5 +96,17 @@ describe('useReceiveTokens', () => {
       expect.any(Object),
       { fallbackExchangeRate: 1.0, includeZeroBalance: true },
     );
+  });
+
+  it('drops candidates on networks the user has not enabled', () => {
+    mockUseNetworkEnabledPredicate.mockReturnValue(
+      (chainId: string | undefined) => chainId === '0x1',
+    );
+
+    const { result } = renderHook(() => useReceiveTokens(undefined));
+
+    const chainIds = result.current.map((t) => t.chainId);
+    expect(chainIds).toContain('0x1');
+    expect(chainIds).not.toContain('0x89');
   });
 });

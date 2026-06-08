@@ -15,11 +15,11 @@ import { ETH_USDT_ADDRESS } from '../../../../../../../constants/bridge';
 import { NETWORK_CHAIN_ID } from '../../../../../../../util/networks/customNetworks';
 import { EVM_SCOPE } from '../../../../../../UI/Earn/constants/networks';
 import { enrichTokenBalance } from './enrichTokenBalance';
+import { isStablecoinSymbol } from './stablecoins';
+import { useNetworkEnabledPredicate } from './useNetworkEnabledPredicate';
 
 /** Stablecoins are assumed to be ~$1.00 when no market price is available. */
 const STABLECOIN_FALLBACK_RATE = 1.0;
-
-const ALLOWED_SYMBOLS = new Set(['mUSD', 'USDC', 'USDT']);
 
 /**
  * Static EVM stablecoin candidates for the Sell "Receive" picker, extracted
@@ -31,7 +31,7 @@ const STABLECOIN_CANDIDATES: BridgeToken[] = Object.values(
 )
   .filter(
     (token) =>
-      ALLOWED_SYMBOLS.has(token.symbol) &&
+      isStablecoinSymbol(token.symbol) &&
       typeof token.chainId === 'string' &&
       token.chainId.startsWith('0x'),
   )
@@ -80,9 +80,13 @@ const getReceiveTokenCandidates = (
 export const useReceiveTokens = (
   preferredChainId: string | undefined,
 ): BridgeToken[] => {
+  const isChainEnabled = useNetworkEnabledPredicate();
   const candidates = useMemo(
-    () => getReceiveTokenCandidates(preferredChainId),
-    [preferredChainId],
+    () =>
+      getReceiveTokenCandidates(preferredChainId).filter((candidate) =>
+        isChainEnabled(candidate.chainId),
+      ),
+    [preferredChainId, isChainEnabled],
   );
 
   const accountAddress = useSelector(

@@ -16,11 +16,15 @@ import {
 } from '../../../../../../../selectors/multichain/multichain';
 import { EVM_SCOPE } from '../../../../../../UI/Earn/constants/networks';
 import { enrichTokenBalance } from './enrichTokenBalance';
+import { isStablecoinSymbol } from './stablecoins';
+import { useNetworkEnabledPredicate } from './useNetworkEnabledPredicate';
 
 /**
- * Tokens with no market price still resolve to a $1.00 rate so held stablecoins
- * surface even when price data is briefly unavailable; everything else with no
- * resolvable USD price is dropped (the fiat-first amount entry needs a price).
+ * Held stablecoins with no market price still resolve to a $1.00 rate so they
+ * surface even when price data is briefly unavailable. The fallback is gated to
+ * stablecoin symbols only — every other token with no resolvable USD price is
+ * dropped, since the fiat-first amount entry would otherwise convert dollars at
+ * a fake $1/token rate (the controller relies on a real `currencyExchangeRate`).
  */
 const STABLECOIN_FALLBACK_RATE = 1.0;
 
@@ -41,6 +45,7 @@ export const usePayWithTokens = (): {
 } => {
   const sourceChainIds = useSelector(selectSelectedSourceChainIds);
   const heldTokens = useTokensWithBalance({ chainIds: sourceChainIds });
+  const isChainEnabled = useNetworkEnabledPredicate();
 
   const accountAddress = useSelector(
     (state: RootState) =>
@@ -81,8 +86,12 @@ export const usePayWithTokens = (): {
 
     const result: BridgeToken[] = [];
     for (const token of heldTokens) {
+      // Scope holdings to networks the user has enabled in wallet settings.
+      if (!isChainEnabled(token.chainId)) continue;
       const enrichment = enrichTokenBalance(token, deps, {
-        fallbackExchangeRate: STABLECOIN_FALLBACK_RATE,
+        fallbackExchangeRate: isStablecoinSymbol(token.symbol)
+          ? STABLECOIN_FALLBACK_RATE
+          : undefined,
       });
       if (!enrichment) continue;
       result.push({ ...token, ...enrichment });
@@ -92,6 +101,7 @@ export const usePayWithTokens = (): {
     return result;
   }, [
     heldTokens,
+    isChainEnabled,
     accountAddress,
     accountsByChainId,
     tokenBalances,

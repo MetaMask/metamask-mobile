@@ -3,6 +3,7 @@ import { useTokensWithBalance } from '../../../../../../UI/Bridge/hooks/useToken
 import type { BridgeToken } from '../../../../../../UI/Bridge/types';
 import { enrichTokenBalance } from './enrichTokenBalance';
 import { usePayWithTokens } from './usePayWithTokens';
+import { useNetworkEnabledPredicate } from './useNetworkEnabledPredicate';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(() => undefined),
@@ -16,8 +17,13 @@ jest.mock('./enrichTokenBalance', () => ({
   enrichTokenBalance: jest.fn(),
 }));
 
+jest.mock('./useNetworkEnabledPredicate', () => ({
+  useNetworkEnabledPredicate: jest.fn(),
+}));
+
 const mockUseTokensWithBalance = useTokensWithBalance as jest.Mock;
 const mockEnrich = enrichTokenBalance as jest.Mock;
+const mockUseNetworkEnabledPredicate = useNetworkEnabledPredicate as jest.Mock;
 
 const token = (symbol: string, chainId = '0x1'): BridgeToken =>
   ({
@@ -31,6 +37,7 @@ const token = (symbol: string, chainId = '0x1'): BridgeToken =>
 describe('usePayWithTokens', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseNetworkEnabledPredicate.mockReturnValue(() => true);
   });
 
   it('returns the held tokens enriched with priced balances', () => {
@@ -99,5 +106,53 @@ describe('usePayWithTokens', () => {
 
     expect(result.current.options).toEqual([]);
     expect(mockEnrich).not.toHaveBeenCalled();
+  });
+
+  it('drops held tokens on networks the user has not enabled', () => {
+    mockUseTokensWithBalance.mockReturnValue([
+      token('USDC', '0x1'),
+      token('CAKE', '0x38'),
+    ]);
+    mockUseNetworkEnabledPredicate.mockReturnValue(
+      (chainId: string | undefined) => chainId === '0x1',
+    );
+    mockEnrich.mockImplementation((t: BridgeToken) => ({
+      balance: '10',
+      balanceFiat: '$10.00',
+      tokenFiatAmount: 10,
+      currencyExchangeRate: 1,
+    }));
+
+    const { result } = renderHook(() => usePayWithTokens());
+
+    expect(result.current.options.map((o) => o.symbol)).toEqual(['USDC']);
+    expect(mockEnrich).not.toHaveBeenCalledWith(
+      expect.objectContaining({ symbol: 'CAKE' }),
+      expect.anything(),
+      expect.anything(),
+    );
+  });
+
+  it('applies the $1 fallback rate only to stablecoin symbols', () => {
+    mockUseTokensWithBalance.mockReturnValue([token('USDC'), token('CAKE')]);
+    mockEnrich.mockReturnValue({
+      balance: '10',
+      balanceFiat: '$10.00',
+      tokenFiatAmount: 10,
+      currencyExchangeRate: 1,
+    });
+
+    renderHook(() => usePayWithTokens());
+
+    expect(mockEnrich).toHaveBeenCalledWith(
+      expect.objectContaining({ symbol: 'USDC' }),
+      expect.anything(),
+      { fallbackExchangeRate: 1.0 },
+    );
+    expect(mockEnrich).toHaveBeenCalledWith(
+      expect.objectContaining({ symbol: 'CAKE' }),
+      expect.anything(),
+      { fallbackExchangeRate: undefined },
+    );
   });
 });
