@@ -104,6 +104,7 @@ const PredictPositionsView = () => {
     selectPredictPortfolioEnabledFlag,
   );
   const hasTrackedScreenViewedRef = useRef(false);
+  const hasTrackedHistoryTabViewedRef = useRef(false);
   const [activeTab, setActiveTab] = useState<PredictPositionsTabKey>(
     route.params?.initialTab ?? 'positions',
   );
@@ -156,11 +157,12 @@ const PredictPositionsView = () => {
       analyticsProperties,
     );
 
-    if (activeTab === 'history') {
+    if (activeTab === 'history' && !hasTrackedHistoryTabViewedRef.current) {
       Engine.context.PredictController.trackPositionsTabViewed({
         ...analyticsProperties,
         predictFeedTab: PredictEventValues.PREDICT_FEED_TAB.HISTORY,
       });
+      hasTrackedHistoryTabViewedRef.current = true;
     }
 
     hasTrackedScreenViewedRef.current = true;
@@ -172,6 +174,10 @@ const PredictPositionsView = () => {
         ...analyticsProperties,
         predictFeedTab: tab,
       });
+
+      if (tab === 'history') {
+        hasTrackedHistoryTabViewedRef.current = true;
+      }
     },
     [analyticsProperties],
   );

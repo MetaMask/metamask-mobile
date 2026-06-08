@@ -344,6 +344,46 @@ describe('PredictPositionsView', () => {
     );
   });
 
+  it('does not duplicate History tab tracking when data loads after the tab press', () => {
+    let portfolio = createPortfolio({
+      isLoading: true,
+    });
+    mockUsePredictPortfolio.mockImplementation(() => portfolio);
+
+    const { rerender } = renderScreen();
+
+    fireEvent.press(
+      screen.getByTestId(PredictPositionsViewSelectorsIDs.HISTORY_TAB),
+    );
+
+    expect(mockTrackPositionsScreenViewed).not.toHaveBeenCalled();
+    expect(mockTrackPositionsTabViewed).toHaveBeenCalledTimes(1);
+    expect(mockTrackPositionsTabViewed).toHaveBeenCalledWith(
+      expectedPositionsAnalyticsContext({
+        predictFeedTab: PredictEventValues.PREDICT_FEED_TAB.HISTORY,
+      }),
+    );
+
+    portfolio = createPortfolio({
+      claimablePositionCount: 3,
+      hasClaimableWinnings: true,
+      isLoading: false,
+      openPositionCount: 6,
+    });
+
+    rerender(<PredictPositionsView />);
+
+    expect(mockTrackPositionsScreenViewed).toHaveBeenCalledTimes(1);
+    expect(mockTrackPositionsScreenViewed).toHaveBeenCalledWith(
+      expectedPositionsAnalyticsContext({
+        claimablePositionsCount: 3,
+        hasClaimableWinnings: true,
+        openPositionsCount: 6,
+      }),
+    );
+    expect(mockTrackPositionsTabViewed).toHaveBeenCalledTimes(1);
+  });
+
   it('tracks Active positions tab when the selected tab is pressed again', () => {
     renderScreen();
 
