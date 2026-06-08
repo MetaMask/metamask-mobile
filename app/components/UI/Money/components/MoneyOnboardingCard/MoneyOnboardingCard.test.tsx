@@ -58,11 +58,13 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 }));
 
 const mockIsCardholder = jest.fn(() => true);
+const mockCardHomeDataStatus = jest.fn(() => 'success');
 jest.mock('react-redux', () => ({
-  useSelector: () => mockIsCardholder(),
+  useSelector: (selector: (state: unknown) => unknown) => selector(undefined),
 }));
 jest.mock('../../../../../selectors/cardController', () => ({
-  selectIsCardholder: jest.fn(),
+  selectIsCardholder: () => mockIsCardholder(),
+  selectCardHomeDataStatus: () => mockCardHomeDataStatus(),
 }));
 
 const mockUseOnboardingStep = useOnboardingStep as jest.MockedFunction<
@@ -319,6 +321,50 @@ describe('MoneyOnboardingCard', () => {
       });
 
       mockIsCardholder.mockReturnValue(true);
+    });
+
+    it('does not emit Card view while card home data is still loading', () => {
+      mockCardHomeDataStatus.mockReturnValue('loading');
+      setupDefaultMocks({ currentStep: 1, isCardAuthenticated: false });
+
+      render(<MoneyOnboardingCard />);
+
+      expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.CARD_VIEWED,
+      );
+
+      mockCardHomeDataStatus.mockReturnValue('success');
+    });
+
+    it('defers Card view tracking until card flags settle and emits the resolved card_state', () => {
+      // Initial render mirrors a rehydrating store: card data is loading and the
+      // cardholder flag has not been restored yet (would derive non_cardholder).
+      mockIsCardholder.mockReturnValue(false);
+      mockCardHomeDataStatus.mockReturnValue('loading');
+      setupDefaultMocks({ currentStep: 1, isCardAuthenticated: false });
+
+      const { rerender } = render(<MoneyOnboardingCard />);
+
+      expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.CARD_VIEWED,
+      );
+
+      // Card data settles: the account is a cardholder without an active card.
+      mockIsCardholder.mockReturnValue(true);
+      mockCardHomeDataStatus.mockReturnValue('success');
+      rerender(<MoneyOnboardingCard />);
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.CARD_VIEWED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        screen: CardScreens.MONEY_HOME,
+        entrypoint: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
+        card_state: 'no_card',
+      });
+
+      mockIsCardholder.mockReturnValue(true);
+      mockCardHomeDataStatus.mockReturnValue('success');
     });
   });
 

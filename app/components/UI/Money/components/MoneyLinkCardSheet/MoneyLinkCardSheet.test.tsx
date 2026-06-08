@@ -6,7 +6,10 @@ import { MoneyLinkCardSheetTestIds } from './MoneyLinkCardSheet.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
-import { selectCardHomeData } from '../../../../../selectors/cardController';
+import {
+  selectCardHomeData,
+  selectCardHomeDataStatus,
+} from '../../../../../selectors/cardController';
 import { CardType } from '../../../Card/types';
 import mmCardRegular from '../../../../../images/mm_card_regular.png';
 import mmCardMetal from '../../../../../images/mm_card_metal.png';
@@ -52,6 +55,7 @@ jest.mock('../../hooks/useMoneyAccountBalance', () => ({
 
 jest.mock('../../../../../selectors/cardController', () => ({
   selectCardHomeData: jest.fn(),
+  selectCardHomeDataStatus: jest.fn(),
 }));
 
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
@@ -92,6 +96,8 @@ const mockUseMoneyAccountCardLinkage =
 const mockUseMoneyAccountBalance =
   useMoneyAccountBalance as jest.MockedFunction<typeof useMoneyAccountBalance>;
 const mockSelectCardHomeData = selectCardHomeData as unknown as jest.Mock;
+const mockSelectCardHomeDataStatus =
+  selectCardHomeDataStatus as unknown as jest.Mock;
 
 describe('MoneyLinkCardSheet', () => {
   let mockConfirmLinkInBackground: jest.Mock;
@@ -109,6 +115,7 @@ describe('MoneyLinkCardSheet', () => {
     mockSelectCardHomeData.mockReturnValue({
       card: { type: CardType.VIRTUAL },
     });
+    mockSelectCardHomeDataStatus.mockReturnValue('success');
   });
 
   it('renders the container', () => {
@@ -131,6 +138,53 @@ describe('MoneyLinkCardSheet', () => {
       screen: CardScreens.MONEY_LINK_CARD_SHEET,
       entrypoint: CardEntryPoint.MONEY_LINK_CARD_SHEET,
       origin_entrypoint: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
+      card_type: 'virtual',
+    });
+  });
+
+  it('does not emit Card Viewed while the card home data fetch is still loading', () => {
+    mockSelectCardHomeData.mockReturnValue(null);
+    mockSelectCardHomeDataStatus.mockReturnValue('loading');
+
+    renderWithProvider(<MoneyLinkCardSheet />);
+
+    expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+      MetaMetricsEvents.CARD_VIEWED,
+    );
+  });
+
+  it('emits the resolved card_type once the card home data fetch has succeeded', () => {
+    mockSelectCardHomeData.mockReturnValue({
+      card: { type: CardType.METAL },
+    });
+    mockSelectCardHomeDataStatus.mockReturnValue('success');
+
+    renderWithProvider(<MoneyLinkCardSheet />);
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.CARD_VIEWED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      screen: CardScreens.MONEY_LINK_CARD_SHEET,
+      entrypoint: CardEntryPoint.MONEY_LINK_CARD_SHEET,
+      origin_entrypoint: CardEntryPoint.MONEY_LINK_CARD_SHEET,
+      card_type: 'metal',
+    });
+  });
+
+  it('still emits Card Viewed (virtual fallback) when card home data fails to load', () => {
+    mockSelectCardHomeData.mockReturnValue(null);
+    mockSelectCardHomeDataStatus.mockReturnValue('error');
+
+    renderWithProvider(<MoneyLinkCardSheet />);
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.CARD_VIEWED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      screen: CardScreens.MONEY_LINK_CARD_SHEET,
+      entrypoint: CardEntryPoint.MONEY_LINK_CARD_SHEET,
+      origin_entrypoint: CardEntryPoint.MONEY_LINK_CARD_SHEET,
       card_type: 'virtual',
     });
   });

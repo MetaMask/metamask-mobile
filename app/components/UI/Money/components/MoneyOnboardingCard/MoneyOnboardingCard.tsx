@@ -20,7 +20,10 @@ import {
   deriveCardState,
 } from '../../../Card/util/metrics';
 import { useSelector } from 'react-redux';
-import { selectIsCardholder } from '../../../../../selectors/cardController';
+import {
+  selectIsCardholder,
+  selectCardHomeDataStatus,
+} from '../../../../../selectors/cardController';
 
 // REMINDER: Must be updated when the number of steps is changed.
 export const MONEY_ONBOARDING_TOTAL_STEPS = 2;
@@ -48,10 +51,13 @@ const MoneyOnboardingCard = () => {
     isLinking,
   } = useMoneyAccountCardLinkage();
   const isCardholder = useSelector(selectIsCardholder);
+  const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
 
   const isMoneyAccountFunded = Boolean(
     !isAggregatedBalanceLoading && tokenTotal?.isGreaterThan(0),
   );
+  const isCardAnalyticsReady =
+    cardHomeDataStatus === 'success' || cardHomeDataStatus === 'error';
 
   const cardState = deriveCardState({
     isCardholder,
@@ -135,6 +141,7 @@ const MoneyOnboardingCard = () => {
     if (
       hasTrackedCardStepViewRef.current ||
       isAggregatedBalanceLoading ||
+      !isCardAnalyticsReady ||
       !isOnboardingCardVisible ||
       !isVisibleAfterAutoSkip ||
       effectiveCurrentStep !== 1
@@ -157,6 +164,7 @@ const MoneyOnboardingCard = () => {
     createEventBuilder,
     effectiveCurrentStep,
     isAggregatedBalanceLoading,
+    isCardAnalyticsReady,
     isOnboardingCardVisible,
     isVisibleAfterAutoSkip,
     cardState,

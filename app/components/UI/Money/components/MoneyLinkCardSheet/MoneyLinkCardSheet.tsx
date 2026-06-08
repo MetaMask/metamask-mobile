@@ -18,7 +18,10 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
-import { selectCardHomeData } from '../../../../../selectors/cardController';
+import {
+  selectCardHomeData,
+  selectCardHomeDataStatus,
+} from '../../../../../selectors/cardController';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { CardType } from '../../../Card/types';
@@ -58,15 +61,18 @@ const MoneyLinkCardSheet = () => {
   const { apyPercent } = useMoneyAccountBalance();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const cardHomeData = useSelector(selectCardHomeData);
+  const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
   const surfaceClass = useElevatedSurface();
   const isMetalCard = cardHomeData?.card?.type === CardType.METAL;
   const routeParams = route.params as MoneyLinkCardSheetRouteParams | undefined;
   const originEntryPoint =
     routeParams?.entrypoint ?? CardEntryPoint.MONEY_LINK_CARD_SHEET;
   const cardType = isMetalCard ? 'metal' : 'virtual';
+  const isCardDataReady =
+    cardHomeDataStatus === 'success' || cardHomeDataStatus === 'error';
 
   useEffect(() => {
-    if (hasTrackedViewRef.current) return;
+    if (hasTrackedViewRef.current || !isCardDataReady) return;
     hasTrackedViewRef.current = true;
 
     trackEvent(
@@ -79,7 +85,13 @@ const MoneyLinkCardSheet = () => {
         })
         .build(),
     );
-  }, [trackEvent, createEventBuilder, originEntryPoint, cardType]);
+  }, [
+    trackEvent,
+    createEventBuilder,
+    originEntryPoint,
+    cardType,
+    isCardDataReady,
+  ]);
 
   const handleGoBack = useCallback(() => {
     navigation.goBack();
