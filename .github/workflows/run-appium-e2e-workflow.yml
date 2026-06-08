@@ -304,7 +304,6 @@ jobs:
           IOS_WDA_BUNDLE_ID: ${{ steps.prepare-ios-appium.outputs.ios-wda-bundle-id }}
           SKIP_DEVICE_BOOT: 'true'
           SKIP_APP_REINSTALL: 'true'
-          IOS_APPIUM_USE_BUNDLE_ID_ONLY: 'true'
           USE_PREBUILT_WDA: 'true'
 
       - name: Upload Playwright HTML report (Namespace)

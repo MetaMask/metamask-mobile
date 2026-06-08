@@ -84,10 +84,11 @@ export async function reinstallFromBuildPathForProject(
         'iOS: set `use.device.name` to the target simulator to reinstall from `use.app.buildPath` in global setup.',
       );
     }
-    // Resolve to UDID so simctl targets the booted simulator unambiguously.
-    // Using the display name is unreliable when multiple simulators share the
-    // same name across different iOS runtime versions.
-    const simUdid = await getIosSimulatorUdid(simDevice);
+    // Prefer CI/prepare UDID so simctl targets the sim that received the .app.
+    const configuredUdid =
+      (project.use.device as EmulatorConfig | undefined)?.udid?.trim() ||
+      process.env.IOS_SIMULATOR_UDID?.trim();
+    const simUdid = configuredUdid || (await getIosSimulatorUdid(simDevice));
     logger.info(
       'Reinstalling iOS app from build path (simctl uninstall + install)…',
     );
@@ -177,7 +178,7 @@ export async function reinstallLocalIOSBuildArtifact({
     );
   }
 
-  logger.info(`simctl install: ${absApp}`);
+  logger.info(`simctl install: ${absApp} → simulator ${simDevice}`);
   const { stdout, stderr } = await execFileAsync(
     'xcrun',
     ['simctl', 'install', simDevice, absApp],
@@ -186,5 +187,20 @@ export async function reinstallLocalIOSBuildArtifact({
   const out = (stdout + stderr).trim();
   if (out) {
     logger.info(out);
+  }
+
+  try {
+    await execFileAsync(
+      'xcrun',
+      ['simctl', 'get_app_container', simDevice, bundleId],
+      { timeout: 120_000, maxBuffer: 2 * 1024 * 1024 },
+    );
+    logger.info(`Verified ${bundleId} is installed on simulator ${simDevice}.`);
+  } catch (error) {
+    throw new Error(
+      `App "${bundleId}" is not installed on simulator ${simDevice} after simctl install: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    );
   }
 }

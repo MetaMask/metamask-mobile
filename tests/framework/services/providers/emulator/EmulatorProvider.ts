@@ -10,7 +10,10 @@ import {
   applyResolvedAndroidAdbToDevice,
   resolveAndroidAdbUdidForDevice,
 } from './android/resolveAndroidAdbUdid';
-import { reinstallFromBuildPathForProject } from './reinstallLocalBuildFromPath';
+import {
+  reinstallFromBuildPathForProject,
+  shouldSkipAppReinstallFromEnv,
+} from './reinstallLocalBuildFromPath';
 import {
   startAndroidEmulator,
   ensureIosSimulatorReady,
@@ -57,21 +60,33 @@ export class EmulatorProvider extends BaseServiceProvider {
     });
   }
 
+  private async resolveIosSimulatorUdid(): Promise<string | undefined> {
+    const emulatorDevice = this.project.use.device as EmulatorConfig;
+    const deviceName = emulatorDevice?.name;
+    const configuredUdid =
+      emulatorDevice?.udid?.trim() || process.env.IOS_SIMULATOR_UDID?.trim();
+    if (configuredUdid) {
+      return configuredUdid;
+    }
+    if (!deviceName) {
+      return undefined;
+    }
+    return getIosSimulatorUdid(deviceName).catch(() => deviceName);
+  }
+
   /**
    * Check if the iOS app is installed on the device
    * @returns True if the app is installed, false otherwise
    */
   private async isIOSAppInstalled(): Promise<boolean> {
     const bundleId = this.project.use.app?.appId;
-    const deviceName = this.project.use.device?.name;
-    if (!deviceName || !bundleId) {
+    const simId = await this.resolveIosSimulatorUdid();
+    if (!simId || !bundleId) {
       this.logger.error(
-        'No device name or bundle id specified in project config',
+        'No simulator UDID or bundle id specified in project config',
       );
       return false;
     }
-    // Resolve to UDID to avoid ambiguity when multiple simulators share the same name
-    const simId = await getIosSimulatorUdid(deviceName).catch(() => deviceName);
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { execFile } = require('child_process');
     return new Promise<boolean>((resolve) => {
@@ -190,6 +205,20 @@ export class EmulatorProvider extends BaseServiceProvider {
         buildPath,
         this.logger,
       );
+      if (
+        shouldSkipAppReinstallFromEnv() &&
+        this.project.use.platform === Platform.IOS
+      ) {
+        const isInstalled = await this.isIOSAppInstalled();
+        if (!isInstalled) {
+          throw new Error(
+            `SKIP_APP_REINSTALL is enabled but ${this.project.use.app?.appId} is not installed on the target simulator. The prepare step may have failed to install the .app.`,
+          );
+        }
+        this.logger.info(
+          'Verified MetaMask is installed on the target iOS simulator.',
+        );
+      }
     } else {
       const isInstalled = await this.isAppInstalled();
       if (!isInstalled) {

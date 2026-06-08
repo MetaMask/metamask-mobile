@@ -107,6 +107,33 @@ export async function ensureIosSimulatorBooted(udid) {
 }
 
 /**
+ * @param {string} udid
+ * @param {string} bundleId
+ * @returns {Promise<boolean>}
+ */
+export async function isIosAppInstalled(udid, bundleId) {
+  try {
+    await execFileAsync('xcrun', ['simctl', 'get_app_container', udid, bundleId]);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * @param {string} udid
+ * @param {string} bundleId
+ */
+export async function assertIosAppInstalled(udid, bundleId) {
+  if (!(await isIosAppInstalled(udid, bundleId))) {
+    throw new Error(
+      `App "${bundleId}" is not installed on simulator ${udid} after simctl install.`,
+    );
+  }
+  console.log(`Verified ${bundleId} is installed on simulator ${udid}.`);
+}
+
+/**
  * @param {{ udid: string; bundleId: string; appPath: string }} options
  */
 export async function installIosApp({ udid, bundleId, appPath }) {
@@ -116,6 +143,7 @@ export async function installIosApp({ udid, bundleId, appPath }) {
     // App may not be installed yet.
   }
 
-  console.log(`simctl install: ${appPath}`);
+  console.log(`simctl install: ${appPath} → simulator ${udid}`);
   await execFileAsync('xcrun', ['simctl', 'install', udid, appPath]);
+  await assertIosAppInstalled(udid, bundleId);
 }

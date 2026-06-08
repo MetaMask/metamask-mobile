@@ -46,35 +46,28 @@ const [udid] = await Promise.all([
     : ensureWdaPrebuilt(),
 ]);
 
-const installTasks = [];
-
-if (appPath) {
-  if (!existsSync(appPath)) {
-    console.error(`IOS_APP_PATH does not exist: ${appPath}`);
-    process.exit(1);
-  }
-  installTasks.push(installIosApp({ udid, bundleId, appPath }));
+if (appPath && !existsSync(appPath)) {
+  console.error(`IOS_APP_PATH does not exist: ${appPath}`);
+  process.exit(1);
 }
 
 let iosWdaPreinstalled = 'false';
 let iosWdaBundleIdBase = '';
 
+// simctl install must be sequential on the same UDID — parallel WDA + app installs race.
 if (hasUsableWdaArtifacts()) {
   const { wdaApp } = findWdaArtifacts(getDerivedDataPath());
   if (wdaApp) {
-    installTasks.push(
-      installWdaOnSimulator({ udid, wdaApp })
-        .then((installedBundleId) => {
-          iosWdaPreinstalled = 'true';
-          iosWdaBundleIdBase = toWdaBundleIdBase(installedBundleId);
-        })
-        .catch((error) => {
-          const message = error instanceof Error ? error.message : String(error);
-          console.warn(
-            `WDA simctl install failed — tests will use xcodebuild path: ${message}`,
-          );
-        }),
-    );
+    try {
+      const installedBundleId = await installWdaOnSimulator({ udid, wdaApp });
+      iosWdaPreinstalled = 'true';
+      iosWdaBundleIdBase = toWdaBundleIdBase(installedBundleId);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.warn(
+        `WDA simctl install failed — tests will use xcodebuild path: ${message}`,
+      );
+    }
   }
 } else {
   console.log(
@@ -82,7 +75,9 @@ if (hasUsableWdaArtifacts()) {
   );
 }
 
-await Promise.all(installTasks);
+if (appPath) {
+  await installIosApp({ udid, bundleId, appPath });
+}
 
 if (iosWdaPreinstalled === 'true' && iosWdaBundleIdBase) {
   try {
