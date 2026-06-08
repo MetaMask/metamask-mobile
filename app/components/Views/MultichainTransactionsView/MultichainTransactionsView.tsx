@@ -157,6 +157,9 @@ const MultichainTransactionsView = ({
       showDisclaimer={showDisclaimer}
       showExplorerLink={!isBitcoinNetwork}
       onViewMore={() => {
+        if (!url) {
+          return;
+        }
         trackExternalLinkClicked(trackEvent, createEventBuilder, {
           location: 'multichain_activity_tab',
           text: `${strings('transactions.view_full_history_on')} ${getBlockExplorerName(url)}`,

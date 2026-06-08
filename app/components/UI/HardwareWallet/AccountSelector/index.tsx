@@ -54,7 +54,7 @@ const AccountSelector = (props: ISelectQRAccountsProps) => {
       if (url) {
         trackExternalLinkClicked(trackEvent, createEventBuilder, {
           location: 'hardware_wallet_account',
-          text: 'external-link',
+          text: strings('asset_details.options.view_on_block'),
           url_domain: url,
         });
       }
