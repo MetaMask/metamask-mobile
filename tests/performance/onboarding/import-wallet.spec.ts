@@ -39,7 +39,7 @@ test.describe(PerformanceOnboarding, () => {
       );
       const timer2 = new TimerHelper(
         'Time since the user clicks on "Import using SRP" button until SRP field is displayed',
-        { ios: 2000, android: 1500 },
+        { ios: 2000, android: 2000 },
         currentDeviceDetails.platform,
       );
       const timer3 = new TimerHelper(

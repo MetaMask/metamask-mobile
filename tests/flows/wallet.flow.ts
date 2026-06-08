@@ -552,6 +552,44 @@ const ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_MS = 3_000;
 const ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_INTERVAL_MS = 250;
 
 /**
+ * Advances past the optional crypto experience questionnaire (Playwright / Appium only).
+ * No-op when the screen is not shown.
+ */
+export const dismissOnboardingCryptoExperienceQuestionnaire =
+  async (): Promise<void> => {
+    const deadline = Date.now() + ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_MS;
+
+    while (Date.now() < deadline) {
+      try {
+        const successDoneButton = await asPlaywrightElement(
+          OnboardingSuccessView.doneButton,
+        );
+        if (await successDoneButton.unwrap().isExisting()) {
+          return;
+        }
+
+        const continueButton = await asPlaywrightElement(
+          OnboardingCryptoExperienceQuestionnaireView.continueButton,
+        );
+        if (await continueButton.unwrap().isExisting()) {
+          await PlaywrightGestures.waitAndTap(continueButton, {
+            timeout: 10_000,
+            checkForDisplayed: true,
+            checkForEnabled: true,
+          });
+          await continueButton
+            .unwrap()
+            .waitForDisplayed({ reverse: true, timeout: 10_000 });
+          return;
+        }
+      } catch {
+        // Stale element / screen transition while the next route loads.
+      }
+      await sleep(ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_INTERVAL_MS);
+    }
+  };
+
+/**
  * Advances past the optional onboarding interest questionnaire (Playwright / Appium only).
  * No-op when the app navigates straight to onboarding success (common on some builds/flags).
  */
@@ -693,6 +731,7 @@ export const onboardingFlowImportSRPPlaywright = async (
   );
   await MetaMetricsOptInView.tapIAgreeButton();
   await dismissOnboardingInterestQuestionnaire();
+  await dismissOnboardingCryptoExperienceQuestionnaire();
   await PlaywrightAssertions.expectElementToBeVisible(
     await asPlaywrightElement(OnboardingSuccessView.doneButton),
     { timeout: 30_000 },
