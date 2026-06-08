@@ -203,6 +203,9 @@ const createStyles = (colors: Colors) =>
     noNetworkFeeContainer: {
       alignSelf: 'center',
     },
+    networkNameText: {
+      flex: 1,
+    },
   });
 
 export default createStyles;

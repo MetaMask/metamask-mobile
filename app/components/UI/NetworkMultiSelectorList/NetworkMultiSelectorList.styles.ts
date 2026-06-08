@@ -28,6 +28,9 @@ const createStyles = (params: { theme: Theme }) => {
     noNetworkFeeContainer: {
       alignSelf: 'center',
     },
+    networkNameText: {
+      flex: 1,
+    },
   });
 };
 
