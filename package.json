@@ -807,6 +807,24 @@
       "@metamask/transaction-pay-controller>@metamask/bridge-status-controller>@metamask/keyring-controller>ethereumjs-wallet>ethereum-cryptography>keccak": false
     }
   },
+  "previewBuilds": {
+    "@metamask/bridge-controller": {
+      "type": "breaking",
+      "previewVersion": "73.2.1-preview-f5ff6e53c"
+    },
+    "@metamask/bridge-status-controller": {
+      "type": "breaking",
+      "previewVersion": "72.0.2-preview-f5ff6e53c"
+    },
+    "@metamask/transaction-controller": {
+      "type": "breaking",
+      "previewVersion": "66.0.1-preview-f5ff6e53c"
+    },
+    "@metamask/transaction-pay-controller": {
+      "type": "breaking",
+      "previewVersion": "23.1.0-preview-f5ff6e53c"
+    }
+  },
   "packageManager": "yarn@4.14.1",
   "foundryup": {
     "binaries": [
