@@ -11,4 +11,5 @@ export const PREDICT_LIVE_NOW_SECTION_TEST_IDS = {
   CAROUSEL: 'predict-home-live-now-carousel',
   CARD_PREFIX: 'predict-home-live-now-card',
   SKELETON_PREFIX: 'predict-home-live-now-skeleton',
+  PAGINATION_DOTS: 'predict-home-live-now-pagination-dots',
 } as const;

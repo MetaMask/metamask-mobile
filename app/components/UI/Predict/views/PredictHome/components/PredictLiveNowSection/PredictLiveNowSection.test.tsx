@@ -3,6 +3,7 @@ import { fireEvent, render } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { usePredictMarketList } from '../../../../hooks/usePredictMarketList';
 import { useCurrentPredictMarketFromSeries } from '../../../../hooks/useCurrentPredictMarketFromSeries';
+import { selectPredictUpDownEnabledFlag } from '../../../../selectors/featureFlags';
 import type { PredictMarket, PredictMarketListParams } from '../../../../types';
 import { CRYPTO_TAG, UP_OR_DOWN_TAG } from '../../../../utils/cryptoUpDown';
 import PredictLiveNowSection from './PredictLiveNowSection';
@@ -87,9 +88,17 @@ const setCryptoMarket = (
   });
 };
 
+// Mock `useSelector` by selector identity so we only control the Up/Down
+// feature flag and leave every other selector at a safe default of `false`.
+const setUpDownEnabled = (enabled: boolean) => {
+  mockUseSelector.mockImplementation((selector) =>
+    selector === selectPredictUpDownEnabledFlag ? enabled : false,
+  );
+};
+
 describe('PredictLiveNowSection', () => {
   beforeEach(() => {
-    mockUseSelector.mockReturnValue(false);
+    setUpDownEnabled(false);
     setLiveMarketList();
     setCryptoMarket();
   });
@@ -137,7 +146,7 @@ describe('PredictLiveNowSection', () => {
   });
 
   it('interleaves the crypto card after two live cards when Up/Down is enabled', () => {
-    mockUseSelector.mockReturnValue(true);
+    setUpDownEnabled(true);
     setLiveMarketList({
       markets: [
         createLiveMarket('L1'),
@@ -186,5 +195,42 @@ describe('PredictLiveNowSection', () => {
     fireEvent.press(seeAll);
 
     expect(seeAll).toBeOnTheScreen();
+  });
+
+  it('renders pagination dots when there are 2+ markets after load', () => {
+    setLiveMarketList({
+      markets: [createLiveMarket('L1'), createLiveMarket('L2')],
+    });
+
+    const { getByTestId } = render(<PredictLiveNowSection />);
+
+    expect(
+      getByTestId(PREDICT_LIVE_NOW_SECTION_TEST_IDS.PAGINATION_DOTS),
+    ).toBeOnTheScreen();
+  });
+
+  it('does not render pagination dots when there is fewer than 2 markets', () => {
+    setLiveMarketList({ markets: [createLiveMarket('L1')] });
+
+    const { queryByTestId } = render(<PredictLiveNowSection />);
+
+    expect(
+      queryByTestId(PREDICT_LIVE_NOW_SECTION_TEST_IDS.PAGINATION_DOTS),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('handles scrolling the carousel without crashing', () => {
+    setLiveMarketList({
+      markets: [createLiveMarket('L1'), createLiveMarket('L2')],
+    });
+
+    const { getByTestId } = render(<PredictLiveNowSection />);
+    const carousel = getByTestId(PREDICT_LIVE_NOW_SECTION_TEST_IDS.CAROUSEL);
+
+    fireEvent.scroll(carousel, {
+      nativeEvent: { contentOffset: { x: 320, y: 0 } },
+    });
+
+    expect(carousel).toBeOnTheScreen();
   });
 });

@@ -1,6 +1,6 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  Dimensions,
+  useWindowDimensions,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native';
@@ -11,15 +11,17 @@ import { strings } from '../../../../../../../../locales/i18n';
 import SectionHeader from '../../../../../../../component-library/components-temp/SectionHeader';
 import PredictMarket from '../../../../components/PredictMarket';
 import PredictMarketSkeleton from '../../../../components/PredictMarketSkeleton';
-import { PaginationDots } from '../../../../components/FeaturedCarousel/FeaturedCarousel';
+import { PaginationDots } from '../../../../components/PaginationDots/PaginationDots';
 import { PredictEventValues } from '../../../../constants/eventNames';
 import type { PredictMarket as PredictMarketType } from '../../../../types';
 import { PREDICT_LIVE_NOW_SECTION_TEST_IDS } from './PredictLiveNowSection.testIds';
 import { usePredictLiveNowSection } from './usePredictLiveNowSection';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const CARD_WIDTH = SCREEN_WIDTH * 0.8;
+// Cards peek the next item by occupying ~80% of the screen width, hinting that
+// the rail is horizontally scrollable.
+const CARD_WIDTH_RATIO = 0.8;
 const CARD_HEIGHT = 220;
+const CARD_GAP = 12;
 const SKELETON_COUNT = 3;
 
 interface PredictLiveNowSectionProps {
@@ -41,8 +43,17 @@ const PredictLiveNowSection: React.FC<PredictLiveNowSectionProps> = ({
   testID = PREDICT_LIVE_NOW_SECTION_TEST_IDS.SECTION,
 }) => {
   const tw = useTailwind();
+  const { width: screenWidth } = useWindowDimensions();
+  const cardWidth = useMemo(
+    () => screenWidth * CARD_WIDTH_RATIO,
+    [screenWidth],
+  );
   const { items, isLoading, isEmpty } = usePredictLiveNowSection();
   const [activeIndex, setActiveIndex] = useState(0);
+
+  useEffect(() => {
+    setActiveIndex((prev) => (prev >= items.length ? 0 : prev));
+  }, [items.length]);
 
   const handleViewAll = useCallback(() => {
     // TODO(PRED-834): navigate to Routes.PREDICT.FEED with { feedId: 'live' }
@@ -59,12 +70,12 @@ const PredictLiveNowSection: React.FC<PredictLiveNowSectionProps> = ({
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       const offsetX = event.nativeEvent.contentOffset.x;
       const newIndex = Math.min(
-        Math.max(0, Math.round(offsetX / CARD_WIDTH)),
+        Math.max(0, Math.round(offsetX / cardWidth)),
         items.length - 1,
       );
       setActiveIndex(newIndex);
     },
-    [items.length],
+    [cardWidth, items.length],
   );
 
   const renderItem: ListRenderItem<CarouselItem> = useCallback(
@@ -72,12 +83,15 @@ const PredictLiveNowSection: React.FC<PredictLiveNowSectionProps> = ({
       const isLastItem = index === carouselData.length - 1;
 
       return (
-        <Box style={tw.style({ width: CARD_WIDTH, minHeight: CARD_HEIGHT })}>
+        <Box
+          style={tw.style(
+            { width: cardWidth, minHeight: CARD_HEIGHT },
+            !isLastItem && { marginRight: CARD_GAP },
+          )}
+        >
           <Box
             borderColor={BoxBorderColor.BorderDefault}
-            twClassName={`rounded-2xl overflow-hidden ${
-              isLastItem ? '' : 'pr-3'
-            }`}
+            twClassName="rounded-2xl overflow-hidden"
           >
             {isLoading || !item ? (
               <PredictMarketSkeleton
@@ -96,7 +110,7 @@ const PredictLiveNowSection: React.FC<PredictLiveNowSectionProps> = ({
         </Box>
       );
     },
-    [carouselData.length, isLoading, tw],
+    [carouselData.length, cardWidth, isLoading, tw],
   );
 
   if (isEmpty) {
@@ -125,7 +139,7 @@ const PredictLiveNowSection: React.FC<PredictLiveNowSectionProps> = ({
           contentContainerStyle={tw.style('px-4')}
           horizontal
           showsHorizontalScrollIndicator={false}
-          snapToInterval={CARD_WIDTH}
+          snapToInterval={cardWidth + CARD_GAP}
           decelerationRate="fast"
           onScroll={handleScroll}
           scrollEventThrottle={16}
@@ -133,7 +147,11 @@ const PredictLiveNowSection: React.FC<PredictLiveNowSectionProps> = ({
       </Box>
 
       {!isLoading && (
-        <PaginationDots count={items.length} activeIndex={activeIndex} />
+        <PaginationDots
+          count={items.length}
+          activeIndex={activeIndex}
+          testID={PREDICT_LIVE_NOW_SECTION_TEST_IDS.PAGINATION_DOTS}
+        />
       )}
     </Box>
   );
