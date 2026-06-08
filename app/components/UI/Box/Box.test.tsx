@@ -1,6 +1,9 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import { Box } from './Box';
+import Text, {
+  TextColor,
+} from '../../../component-library/components/Texts/Text';
 import { View } from 'react-native';
 import {
   Display,
@@ -9,7 +12,6 @@ import {
   TextAlign,
   AlignItems,
 } from '../../UI/Box/box.types';
-import { Text, TextColor } from '@metamask/design-system-react-native';
 
 describe('Box', () => {
   it('renders children correctly', () => {
@@ -108,7 +110,7 @@ describe('Box', () => {
 
   it('applies color style correctly', () => {
     const { getByTestId } = render(
-      <Box testID="test-box" color={TextColor.TextDefault}>
+      <Box testID="test-box" color={TextColor.Default}>
         <Text>Test Content</Text>
       </Box>,
     );

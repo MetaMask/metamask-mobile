@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, ViewProps } from 'react-native';
+import { TextColor } from '../../../component-library/components/Texts/Text';
 import {
   AlignItems,
   Display,
@@ -7,7 +8,6 @@ import {
   JustifyContent,
   TextAlign,
 } from './box.types';
-import { TextColor } from '@metamask/design-system-react-native';
 
 const getBoxStyles = (props: {
   display?: Display;

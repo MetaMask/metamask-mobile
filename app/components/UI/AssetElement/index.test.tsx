@@ -8,8 +8,8 @@ import {
   SECONDARY_BALANCE_TEST_ID,
 } from './index.constants';
 import { TOKEN_BALANCE_LOADING } from '../Tokens/constants';
-import { mockTheme } from '../../../util/theme';
 import { TextColor } from '../../../component-library/components/Texts/Text';
+import { mockTheme } from '../../../util/theme';
 
 describe('AssetElement', () => {
   const onPressMock = jest.fn();

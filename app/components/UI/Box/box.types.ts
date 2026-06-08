@@ -1,6 +1,6 @@
 import React from 'react';
 import { IconColor } from '../../../component-library/components/Icons/Icon';
-import { TextColor } from '@metamask/design-system-react-native';
+import { TextColor } from '../../../component-library/components/Texts/Text';
 
 export enum Display {
   Block = 'block',

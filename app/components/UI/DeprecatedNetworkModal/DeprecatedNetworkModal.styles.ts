@@ -1,6 +1,10 @@
 import Device from '../../../util/device';
 import { StyleSheet, TextStyle } from 'react-native';
 import { Theme } from '../../../util/theme/models';
+import {
+  getFontFamily,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -33,6 +37,7 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     buttonLabel: {
       ...typography.sBodySMMedium,
+      fontFamily: getFontFamily(TextVariant.BodySMMedium),
     } as TextStyle,
   });
 };
