@@ -1,5 +1,5 @@
 import { test } from '../../framework/fixtures/playwright';
-import { System, PerformanceLogin } from '../../tags.performance.js';
+import { System } from '../../tags.performance.js';
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
 import WalletView from '../../page-objects/wallet/WalletView';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';

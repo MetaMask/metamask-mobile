@@ -498,37 +498,14 @@ const PERF_INFRA_REGEX = /^tests\/(performance|framework)\//;
 /**
  * Parses a spec file's content and returns the @Performance* area tags it uses.
  *
- * Two complementary strategies are combined:
- * 1. Import-name derivation — finds `import { PerformanceSwaps } from '...tags.performance...'`
- * and maps the identifier `PerformanceSwaps` → `@PerformanceSwaps`. Works as long as the
- * identifier name matches the exported string value (convention in this repo).
- * 2. Inline string scan — searches the full file for `@Performance\w+` occurrences. This
- * catches tags that appear directly in `test.describe(` title strings or `{ tag: '...' }`
- * objects, and is immune to any naming-convention drift between the import identifier and
- * the runtime value. The two strategies are unioned so either source is sufficient.
+ * Only inline runtime tag values are considered. Import names are intentionally
+ * ignored because a spec can import a Performance* symbol without using it in a
+ * `test.describe` title or tag object.
  */
 function extractTagsFromSpecContent(content: string): string[] {
-  const tags: string[] = [];
-
-  // Strategy 1: derive from import identifier names
-  const importPattern =
-    /import\s*\{([^}]+)\}\s*from\s*['"][^'"]*tags\.performance[^'"]*['"]/g;
-  let match;
-  while ((match = importPattern.exec(content)) !== null) {
-    const names = match[1]
-      .split(',')
-      .map((n) => n.trim())
-      // Only keep area tags like PerformanceSwaps, not base Performance or System
-      .filter((n) => /^Performance[A-Z]/.test(n));
-    tags.push(...names.map((n) => `@${n}`));
-  }
-
-  // Strategy 2: scan for @Performance* string literals anywhere in the file
-  // (covers describe titles, { tag: '@PerformanceSwaps' } objects, etc.)
+  // Covers describe titles and `{ tag: '@PerformanceSwaps' }` objects.
   const inlineMatches = content.match(/@Performance[A-Z]\w*/g) ?? [];
-  tags.push(...inlineMatches);
-
-  return [...new Set(tags)];
+  return [...new Set(inlineMatches)];
 }
 
 /**
@@ -548,6 +525,7 @@ export function detectDirectPerformanceChanges(
   const selectedTags: string[] = [];
   const reasons: string[] = [];
   const unreadableFiles: string[] = [];
+  const untaggedFiles: string[] = [];
 
   for (const specFile of changedSpecFiles) {
     try {
@@ -558,8 +536,7 @@ export function detectDirectPerformanceChanges(
       if (fileTags.length > 0) {
         selectedTags.push(...fileTags);
       } else {
-        // File readable but no tags found (e.g. deleted spec, or unusual format)
-        unreadableFiles.push(specFile);
+        untaggedFiles.push(specFile);
       }
     } catch {
       // File not accessible (e.g. deleted)
@@ -580,6 +557,11 @@ export function detectDirectPerformanceChanges(
   if (readableChanged.length > 0) {
     reasons.push(
       `Changed spec files: ${readableChanged.map((f) => path.basename(f)).join(', ')}`,
+    );
+  }
+  if (untaggedFiles.length > 0) {
+    reasons.push(
+      `Changed spec files without performance tags: ${untaggedFiles.map((f) => path.basename(f)).join(', ')}`,
     );
   }
 
