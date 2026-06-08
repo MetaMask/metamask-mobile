@@ -1,5 +1,10 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { TouchableOpacity, Animated, StyleSheet } from 'react-native';
+import {
+  TouchableOpacity,
+  Animated,
+  StyleSheet,
+  type LayoutRectangle,
+} from 'react-native';
 import {
   Box,
   BoxFlexDirection,
@@ -14,17 +19,12 @@ import type { QuickBuyTradeMode } from '../types';
 import { useTheme } from '../../../../../../../util/theme';
 import { playSelection } from '../../../../../../../util/haptics';
 
-const TOGGLE_PADDING = 4;
-
 const styles = StyleSheet.create({
   container: {
     position: 'relative',
   },
   slider: {
     position: 'absolute',
-    top: TOGGLE_PADDING,
-    bottom: TOGGLE_PADDING,
-    left: TOGGLE_PADDING,
     borderRadius: 10,
   },
 });
@@ -39,7 +39,7 @@ const QuickBuyTradeModeToggle: React.FC<QuickBuyTradeModeToggleProps> = ({
   const { tradeMode, setTradeMode, hasSellableBalance } = useQuickBuyContext();
   const { colors } = useTheme();
   const slideAnim = useRef(new Animated.Value(0)).current;
-  const [buyWidth, setBuyWidth] = useState(0);
+  const [buyLayout, setBuyLayout] = useState<LayoutRectangle | null>(null);
   const [sellWidth, setSellWidth] = useState(0);
 
   const handlePress = (mode: QuickBuyTradeMode) => {
@@ -49,19 +49,17 @@ const QuickBuyTradeModeToggle: React.FC<QuickBuyTradeModeToggleProps> = ({
     }
   };
 
-  // buyWidth is the translateX offset for the sell position regardless of active mode.
-  // sellWidth is only used for the slider pill width when sell is active.
   useEffect(() => {
-    if (buyWidth === 0) return;
+    if (!buyLayout) return;
     Animated.spring(slideAnim, {
-      toValue: tradeMode === 'buy' ? 0 : buyWidth,
+      toValue: tradeMode === 'buy' ? 0 : buyLayout.width,
       useNativeDriver: true,
       tension: 180,
       friction: 20,
     }).start();
-  }, [tradeMode, buyWidth, slideAnim]);
+  }, [tradeMode, buyLayout, slideAnim]);
 
-  const sliderWidth = tradeMode === 'buy' ? buyWidth : sellWidth;
+  const sliderWidth = tradeMode === 'buy' ? (buyLayout?.width ?? 0) : sellWidth;
 
   return (
     <Box
@@ -70,11 +68,14 @@ const QuickBuyTradeModeToggle: React.FC<QuickBuyTradeModeToggleProps> = ({
       testID={testID}
       style={styles.container}
     >
-      {sliderWidth > 0 && (
+      {buyLayout && sliderWidth > 0 && (
         <Animated.View
           style={[
             styles.slider,
             {
+              left: buyLayout.x,
+              top: buyLayout.y,
+              height: buyLayout.height,
               width: sliderWidth,
               backgroundColor: colors.background.muted,
               transform: [{ translateX: slideAnim }],
@@ -85,7 +86,7 @@ const QuickBuyTradeModeToggle: React.FC<QuickBuyTradeModeToggleProps> = ({
 
       <TouchableOpacity
         onPress={() => handlePress('buy')}
-        onLayout={(e) => setBuyWidth(e.nativeEvent.layout.width)}
+        onLayout={(e) => setBuyLayout(e.nativeEvent.layout)}
         accessibilityRole="button"
         accessibilityState={{ selected: tradeMode === 'buy' }}
         testID="quick-buy-trade-mode-buy"
