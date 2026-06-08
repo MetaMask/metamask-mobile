@@ -248,6 +248,23 @@ describe('PredictPortfolioModule', () => {
     );
   });
 
+  it('does not track add funds initiated when the action guard short-circuits', () => {
+    mockExecuteGuardedAction.mockImplementationOnce(() => undefined);
+
+    renderWithProvider(<PredictPortfolioModule />);
+
+    fireEvent.press(
+      screen.getByTestId(PREDICT_PORTFOLIO_TEST_IDS.ACTION_ADD_FUNDS),
+    );
+
+    expect(mockExecuteGuardedAction).toHaveBeenCalledWith(
+      expect.any(Function),
+      { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.DEPOSIT },
+    );
+    expect(mockDeposit).not.toHaveBeenCalled();
+    expect(mockTrackPortfolioTransactionInitiated).not.toHaveBeenCalled();
+  });
+
   it('opens the withdraw fallback for deposit wallets without withdraw support', () => {
     const onDepositWalletWithdrawPress = jest.fn();
     mockUsePredictPortfolio.mockReturnValue(
@@ -270,6 +287,28 @@ describe('PredictPortfolioModule', () => {
       PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_WITHDRAW,
       PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE,
     );
+  });
+
+  it('does not track withdraw initiated when the action guard short-circuits', () => {
+    mockUsePredictPortfolio.mockReturnValue(
+      createPortfolio({
+        walletType: 'safe',
+      }),
+    );
+    mockExecuteGuardedAction.mockImplementationOnce(() => undefined);
+
+    renderWithProvider(<PredictPortfolioModule />);
+
+    fireEvent.press(
+      screen.getByTestId(PREDICT_PORTFOLIO_TEST_IDS.ACTION_WITHDRAW),
+    );
+
+    expect(mockExecuteGuardedAction).toHaveBeenCalledWith(
+      expect.any(Function),
+      { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.WITHDRAW },
+    );
+    expect(mockWithdraw).not.toHaveBeenCalled();
+    expect(mockTrackPortfolioTransactionInitiated).not.toHaveBeenCalled();
   });
 
   it('does not open withdraw fallback while wallet type is loading', () => {
@@ -341,6 +380,29 @@ describe('PredictPortfolioModule', () => {
       PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
       { hasClaimableWinnings: true },
     );
+  });
+
+  it('does not track claim initiated when the action guard short-circuits', () => {
+    mockUsePredictPortfolio.mockReturnValue(
+      createPortfolio({
+        claimableAmount: 46.35,
+        hasClaimableWinnings: true,
+      }),
+    );
+    mockExecuteGuardedAction.mockImplementationOnce(() => undefined);
+
+    renderWithProvider(<PredictPortfolioModule />);
+
+    fireEvent.press(
+      screen.getByTestId(PREDICT_PORTFOLIO_TEST_IDS.CLAIM_BUTTON),
+    );
+
+    expect(mockExecuteGuardedAction).toHaveBeenCalledWith(
+      expect.any(Function),
+      { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CLAIM },
+    );
+    expect(mockClaim).not.toHaveBeenCalled();
+    expect(mockTrackPortfolioTransactionInitiated).not.toHaveBeenCalled();
   });
 
   it('uses the temporary Positions fallback until the route lands', () => {

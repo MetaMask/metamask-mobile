@@ -88,35 +88,36 @@ const PredictPortfolioModule: React.FC<PredictPortfolioModuleProps> = ({
   }, [navigation, onPositionsPress, portfolioAnalyticsProperties]);
 
   const handleAddFundsPress = useCallback(() => {
-    trackPortfolioTransactionInitiated(
-      PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_DEPOSIT,
-      PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE,
-    );
-
     executeGuardedAction(
-      () =>
-        deposit({
+      () => {
+        trackPortfolioTransactionInitiated(
+          PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_DEPOSIT,
+          PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE,
+        );
+
+        return deposit({
           analyticsProperties: {
             entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE,
             predictComponent:
               PredictEventValues.PREDICT_COMPONENT.PREDICT_PORTFOLIO_MODULE,
           },
-        }),
+        });
+      },
       { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.DEPOSIT },
     );
   }, [deposit, executeGuardedAction, trackPortfolioTransactionInitiated]);
 
   const handleWithdrawPress = useCallback(() => {
-    trackPortfolioTransactionInitiated(
-      PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_WITHDRAW,
-      PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE,
-    );
-
     executeGuardedAction(
       async () => {
         if (!walletType) {
           return;
         }
+
+        trackPortfolioTransactionInitiated(
+          PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_WITHDRAW,
+          PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE,
+        );
 
         if (walletType === 'deposit-wallet' && !enableDepositWalletWithdraw) {
           onDepositWalletWithdrawPress?.();
@@ -137,14 +138,19 @@ const PredictPortfolioModule: React.FC<PredictPortfolioModuleProps> = ({
   ]);
 
   const handleClaimPress = useCallback(() => {
-    trackPortfolioTransactionInitiated(
-      PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_CLAIM,
-      PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
-    );
+    executeGuardedAction(
+      () => {
+        trackPortfolioTransactionInitiated(
+          PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_CLAIM,
+          PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+        );
 
-    executeGuardedAction(() => claim(), {
-      attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CLAIM,
-    });
+        return claim();
+      },
+      {
+        attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CLAIM,
+      },
+    );
   }, [claim, executeGuardedAction, trackPortfolioTransactionInitiated]);
 
   const isWithdrawDisabled = availableBalance > 0 && !walletType;

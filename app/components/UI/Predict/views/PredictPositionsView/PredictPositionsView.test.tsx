@@ -379,7 +379,12 @@ describe('PredictPositionsView', () => {
     expect(mockTrackPositionsScreenViewed).toHaveBeenCalledWith(
       expectedPositionsAnalyticsContext(),
     );
-    expect(mockTrackPositionsTabViewed).not.toHaveBeenCalled();
+    expect(mockTrackPositionsTabViewed).toHaveBeenCalledTimes(1);
+    expect(mockTrackPositionsTabViewed).toHaveBeenCalledWith(
+      expectedPositionsAnalyticsContext({
+        predictFeedTab: PredictEventValues.PREDICT_FEED_TAB.HISTORY,
+      }),
+    );
   });
 
   it('switches between Positions and History tabs', () => {

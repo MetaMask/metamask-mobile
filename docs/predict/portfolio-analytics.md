@@ -30,6 +30,8 @@ No new Predict event name is introduced by this implementation. Funding, withdra
 - Portfolio module Add funds and Withdraw taps use `entry_point: homepage_balance`.
 - Positions screen and tab events inherit `entry_point` from the route, defaulting to `homepage_positions`.
 - The embedded History transaction list does not emit its generic activity-list view event inside the Positions screen; the Positions screen owns History tab tracking so the contextual event is emitted once.
+- `Predict Position Viewed` with `action_type: viewed` is used for both Positions screen entry and Positions tab views. Consumers can distinguish them with `predict_feed_tab`: absent for the screen view and `positions` for the tab view.
+- The default Positions tab is not tracked separately on screen entry. History is tracked on screen entry only when the Positions screen opens directly with `initialTab: history`, because the embedded History list disables its own generic view event.
 - Portfolio action, Positions screen, and tab count context comes from `usePredictPortfolio`: `openPositionCount`, `claimablePositionCount`, and `hasClaimableWinnings`.
 
 ## Sensitive Value Guardrails
@@ -56,7 +58,7 @@ Existing transaction lifecycle events continue to own amount-bearing funding, wi
 - `PredictAnalytics` maps typed helper arguments to MetaMetrics events through `PREDICT_ANALYTICS_EVENTS`.
 - `PredictFeed` passes the portfolio module feature flag into `PredictFeedSessionManager`, which extends the real feed session events when the module is enabled.
 - Positions screen view tracking fires once per screen mount.
-- Tab tracking fires on explicit tab presses, including repeated taps on the active tab. The default active tab is not tracked separately on screen entry to avoid duplicating the Positions screen view event.
+- Tab tracking fires on explicit tab presses, including repeated taps on the active tab.
 
 ## Verification
 

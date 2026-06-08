@@ -77,17 +77,18 @@ const PredictPositionsViewHeader = ({
   );
 
   const handleClaimPress = useCallback(async () => {
-    Engine.context.PredictController.trackPortfolioTransactionInitiated({
-      entryPoint,
-      openPositionsCount: portfolio.openPositionCount,
-      claimablePositionsCount: portfolio.claimablePositionCount,
-      hasClaimableWinnings: portfolio.hasClaimableWinnings,
-      predictScreen: PredictEventValues.PREDICT_SCREEN.PREDICT_POSITIONS_SCREEN,
-      transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_CLAIM,
-    });
-
     await executeGuardedAction(
       async () => {
+        Engine.context.PredictController.trackPortfolioTransactionInitiated({
+          entryPoint,
+          openPositionsCount: portfolio.openPositionCount,
+          claimablePositionsCount: portfolio.claimablePositionCount,
+          hasClaimableWinnings: portfolio.hasClaimableWinnings,
+          predictScreen:
+            PredictEventValues.PREDICT_SCREEN.PREDICT_POSITIONS_SCREEN,
+          transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_CLAIM,
+        });
+
         await claim();
       },
       { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CLAIM },

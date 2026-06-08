@@ -192,6 +192,32 @@ describe('PredictPositionsViewHeader', () => {
     expect(mockClaim).toHaveBeenCalledTimes(1);
   });
 
+  it('does not track claim initiated when the action guard short-circuits', async () => {
+    mockExecuteGuardedAction.mockImplementationOnce(async () => undefined);
+
+    renderHeader({
+      portfolio: createPortfolio({
+        claimableAmount: 46.35,
+        claimablePositionCount: 1,
+        hasClaimableWinnings: true,
+        openPositionCount: 2,
+      }),
+    });
+
+    fireEvent.press(
+      screen.getByTestId(PredictPositionsViewSelectorsIDs.CLAIM_CTA),
+    );
+
+    await waitFor(() => {
+      expect(mockExecuteGuardedAction).toHaveBeenCalledWith(
+        expect.any(Function),
+        { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CLAIM },
+      );
+    });
+    expect(mockTrackPortfolioTransactionInitiated).not.toHaveBeenCalled();
+    expect(mockClaim).not.toHaveBeenCalled();
+  });
+
   it('supports privacy mode with SensitiveText masking', () => {
     renderHeader({
       isPrivacyMode: true,

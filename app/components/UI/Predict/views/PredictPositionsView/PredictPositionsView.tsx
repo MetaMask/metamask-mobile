@@ -155,8 +155,16 @@ const PredictPositionsView = () => {
     Engine.context.PredictController.trackPositionsScreenViewed(
       analyticsProperties,
     );
+
+    if (activeTab === 'history') {
+      Engine.context.PredictController.trackPositionsTabViewed({
+        ...analyticsProperties,
+        predictFeedTab: PredictEventValues.PREDICT_FEED_TAB.HISTORY,
+      });
+    }
+
     hasTrackedScreenViewedRef.current = true;
-  }, [analyticsProperties, portfolio.isLoading]);
+  }, [activeTab, analyticsProperties, portfolio.isLoading]);
 
   const trackTabViewed = useCallback(
     (tab: PredictPositionsTabKey) => {
