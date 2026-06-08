@@ -90,7 +90,6 @@ import AssetDetailsQuickBuy from '../../../TokenDetails/components/AssetDetailsQ
 import type { TokenDetailsRouteParams } from '../../../TokenDetails/constants/constants';
 import { selectSocialAiAssetDetailsQuickBuyEnabled } from '../../../../../selectors/featureFlagController/socialAiAssetDetailsQuickBuy';
 import { ImpactMoment, playImpact } from '../../../../../util/haptics';
-import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 
 const feedbackByDigest = new Map<string, 'up' | 'down'>();
 
@@ -642,13 +641,6 @@ const MarketInsightsView: React.FC = () => {
   if (!report || error) {
     return null;
   }
-
-  DevLogger.log('[TAT-3116] BUG_MARKER v2: MarketInsights perps footer render', {
-    isPerps,
-    isAtOICap: route.params.isAtOICap,
-    hasPerpsPosition,
-    longShortButtonsRendered: isPerps && !(isPerps && hasPerpsPosition),
-  });
 
   return (
     <Box
