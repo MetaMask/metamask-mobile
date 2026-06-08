@@ -4,7 +4,6 @@ import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import BigNumber from 'bignumber.js';
 import { TransactionType } from '@metamask/transaction-controller';
-import { Hex } from '@metamask/utils';
 import {
   BottomSheet,
   BottomSheetHeader,
@@ -26,11 +25,16 @@ import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
 } from '../../../Earn/constants/musd';
+import { Hex } from '@metamask/utils';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
 import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
-import { useCanFiatDepositAsset } from '../../../Ramp/hooks/useCanFiatDepositAsset';
+import { useHasNativeFiatProvider } from '../../../Ramp/hooks/useHasNativeFiatProvider';
+import {
+  getRampRoutingDecision,
+  UnifiedRampRoutingType,
+} from '../../../../../reducers/fiatOrders';
 import styleSheet from './MoneyAddMoneySheet.styles';
 import { MoneyAddMoneySheetTestIds } from './MoneyAddMoneySheet.testIds';
 
@@ -42,7 +46,7 @@ interface Option {
   onPress: () => void;
   testID: string;
   disabled?: boolean;
-  tag?: string;
+  comingSoon?: boolean;
 }
 
 const MoneyAddMoneySheet: React.FC = () => {
@@ -61,14 +65,12 @@ const MoneyAddMoneySheet: React.FC = () => {
   const { initiateDeposit } = useMoneyAccountDeposit();
   const { enabledTransactionTypes } = useMMPayFiatConfig();
   const hasAnyCryptoBalance = useSelector(selectHasAnyNonZeroTokenBalance);
+  const rampRoutingDecision = useSelector(getRampRoutingDecision);
+  const hasNativeFiatProvider = useHasNativeFiatProvider();
   const isFiatDepositEnabled = useMemo(
     () => enabledTransactionTypes.includes(TransactionType.moneyAccountDeposit),
     [enabledTransactionTypes],
   );
-
-  const canDeposit = useCanFiatDepositAsset({
-    isFiatDepositFlagEnabled: isFiatDepositEnabled,
-  });
 
   const closeAndNavigate = useCallback((navigateFn: () => void) => {
     sheetRef.current?.onCloseBottomSheet(navigateFn);
@@ -136,7 +138,8 @@ const MoneyAddMoneySheet: React.FC = () => {
       testID: MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
       disabled: !hasAnyCryptoBalance,
     },
-    ...(isFiatDepositEnabled
+    ...(isFiatDepositEnabled &&
+    rampRoutingDecision !== UnifiedRampRoutingType.UNSUPPORTED
       ? [
           {
             label: strings('money.add_money_sheet.deposit_funds'),
@@ -148,10 +151,8 @@ const MoneyAddMoneySheet: React.FC = () => {
             icon: IconName.AttachMoney,
             onPress: handleDepositFunds,
             testID: MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
-            disabled: !canDeposit,
-            tag: !canDeposit
-              ? strings('money.add_money_sheet.coming_soon')
-              : undefined,
+            disabled: !hasNativeFiatProvider,
+            comingSoon: !hasNativeFiatProvider,
           },
         ]
       : []),
@@ -170,6 +171,11 @@ const MoneyAddMoneySheet: React.FC = () => {
     },
   ];
 
+  const orderedOptions: Option[] = [
+    ...options.filter((option) => !option.disabled),
+    ...options.filter((option) => option.disabled),
+  ];
+
   return (
     <BottomSheet
       ref={sheetRef}
@@ -184,11 +190,10 @@ const MoneyAddMoneySheet: React.FC = () => {
         </Text>
       </BottomSheetHeader>
       <View style={styles.list}>
-        {options.map((item) => (
+        {orderedOptions.map((item) => (
           <TouchableOpacity
             key={item.testID}
             disabled={item.disabled}
-            accessibilityState={{ disabled: !!item.disabled }}
             onPress={item.disabled ? undefined : item.onPress}
             style={styles.row}
             testID={item.testID}
@@ -200,8 +205,22 @@ const MoneyAddMoneySheet: React.FC = () => {
                 item.disabled ? IconColor.IconMuted : IconColor.IconDefault
               }
             />
-            <View style={styles.rowLabelContainer}>
-              <View style={item.tag ? styles.disabledRowContent : undefined}>
+            {item.comingSoon ? (
+              <View style={styles.disabledRowContent}>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextAlternative}
+                >
+                  {item.label}
+                </Text>
+                <Tag
+                  label={strings('money.add_money_sheet.coming_soon')}
+                  style={styles.comingSoonTag}
+                />
+              </View>
+            ) : (
+              <View style={styles.rowLabelContainer}>
                 <Text
                   variant={TextVariant.BodyMd}
                   fontWeight={FontWeight.Medium}
@@ -209,20 +228,17 @@ const MoneyAddMoneySheet: React.FC = () => {
                 >
                   {item.label}
                 </Text>
-                {item.tag ? (
-                  <Tag label={item.tag} style={styles.comingSoonTag} />
+                {item.description ? (
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextAlternative}
+                    testID={item.descriptionTestID}
+                  >
+                    {item.description}
+                  </Text>
                 ) : null}
               </View>
-              {item.description ? (
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.TextAlternative}
-                  testID={item.descriptionTestID}
-                >
-                  {item.description}
-                </Text>
-              ) : null}
-            </View>
+            )}
           </TouchableOpacity>
         ))}
         <View
