@@ -683,7 +683,7 @@ describe('Network Selector', () => {
 
       const { getByText } = renderComponent(initialState);
 
-      const nameText = getByText('BNB Chain');
+      const nameText = getByText('Avalanche Mainnet C-Chain');
       expect(nameText.props.numberOfLines).toBe(1);
     });
 
