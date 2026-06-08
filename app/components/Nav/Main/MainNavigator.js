@@ -160,7 +160,6 @@ import { TokenDetails } from '../../UI/TokenDetails/Views/TokenDetails';
 import BenefitFullView from '../../UI/Rewards/Views/BenefitFullView';
 import BenefitsFullView from '../../UI/Rewards/Views/BenefitsFullView';
 import { getDeFiProtocolPositionDetailsNavbarOptions } from '../../UI/Navbar';
-import NavigationDevPanel from '../../Views/NavigationDevPanel/NavigationDevPanel';
 
 const Stack = createStackNavigator();
 const NativeStack = createNativeStackNavigator();
@@ -1393,13 +1392,6 @@ const MainNavigator = () => {
           name={Routes.FEATURE_FLAG_OVERRIDE}
           component={FeatureFlagOverride}
           options={{ headerShown: false }}
-        />
-      )}
-      {process.env.METAMASK_ENVIRONMENT !== 'production' && (
-        <Stack.Screen
-          name={Routes.NAVIGATION_DEV_PANEL}
-          component={NavigationDevPanel}
-          options={{ headerShown: true, ...slideFromRightAnimation }}
         />
       )}
       <Stack.Screen
