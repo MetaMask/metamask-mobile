@@ -177,6 +177,79 @@ describe('getRampsV2AnalyticsPayload', () => {
     expect(params).toBeNull();
   });
 
+  // The V2 unified API returns orderType: 'DEPOSIT' for native flows
+  // (e.g. Transak + Apple Pay). DEPOSIT must map to the on-ramp events,
+  // not the off-ramp events. See TRAM-3534.
+  describe('DEPOSIT orders (Transak native on-ramp)', () => {
+    const mockDepositOrder = {
+      ...mockBuyOrder,
+      orderType: 'DEPOSIT',
+    };
+
+    it('returns ONRAMP_PURCHASE_FAILED for DEPOSIT orders', () => {
+      const [eventName, params] = getRampsV2AnalyticsPayload(
+        mockDepositOrder as FiatOrder,
+      );
+
+      expect(eventName).toBe('ONRAMP_PURCHASE_FAILED');
+      expect(params).toEqual({
+        amount: 100,
+        currency_source: 'USD',
+        currency_destination: 'ETH',
+        order_type: 'DEPOSIT',
+        payment_method_id: '/payments/debit-credit-card',
+        chain_id_destination: '1',
+        provider_onramp: 'Transak',
+      });
+    });
+
+    it('returns ONRAMP_PURCHASE_CANCELLED for DEPOSIT orders', () => {
+      const [eventName, params] = getRampsV2AnalyticsPayload({
+        ...mockDepositOrder,
+        state: FIAT_ORDER_STATES.CANCELLED,
+      } as FiatOrder);
+
+      expect(eventName).toBe('ONRAMP_PURCHASE_CANCELLED');
+      expect(params).toEqual({
+        amount: 100,
+        currency_source: 'USD',
+        currency_destination: 'ETH',
+        order_type: 'DEPOSIT',
+        payment_method_id: '/payments/debit-credit-card',
+        chain_id_destination: '1',
+        provider_onramp: 'Transak',
+      });
+    });
+
+    it('returns ONRAMP_PURCHASE_COMPLETED for DEPOSIT orders', () => {
+      const [eventName, params] = getRampsV2AnalyticsPayload({
+        ...mockDepositOrder,
+        state: FIAT_ORDER_STATES.COMPLETED,
+        fee: '1',
+        cryptoAmount: '0.01',
+        data: {
+          ...mockDepositOrder.data,
+          fiatAmountInUsd: 99,
+        },
+      } as FiatOrder);
+
+      expect(eventName).toBe('ONRAMP_PURCHASE_COMPLETED');
+      expect(params).toEqual({
+        amount: 100,
+        amount_in_usd: 99,
+        crypto_out: '0.01',
+        currency_source: 'USD',
+        currency_destination: 'ETH',
+        order_type: 'DEPOSIT',
+        payment_method_id: '/payments/debit-credit-card',
+        chain_id_destination: '1',
+        exchange_rate: 9900,
+        provider_onramp: 'Transak',
+        total_fee: 1,
+      });
+    });
+  });
+
   it('handles missing optional data fields gracefully', () => {
     const orderWithNoData = {
       ...mockBuyOrder,
