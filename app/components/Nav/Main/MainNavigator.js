@@ -423,20 +423,26 @@ const ExploreHome = () => {
 };
 
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-const SnapsSettingsStack = () => (
-  <Stack.Navigator>
-    <Stack.Screen
-      name={Routes.SNAPS.SNAPS_SETTINGS_LIST}
-      component={SnapsSettingsList}
-      options={SnapsSettingsList.navigationOptions}
-    />
-    <Stack.Screen
-      name={Routes.SNAPS.SNAP_SETTINGS}
-      component={SnapSettings}
-      options={SnapSettings.navigationOptions}
-    />
-  </Stack.Navigator>
-);
+const SnapsSettingsStack = () => {
+  const { colors } = useTheme();
+  return (
+    <NativeStack.Navigator
+      screenOptions={{
+        headerShown: false,
+        contentStyle: { backgroundColor: colors.background.default },
+      }}
+    >
+      <NativeStack.Screen
+        name={Routes.SNAPS.SNAPS_SETTINGS_LIST}
+        component={SnapsSettingsList}
+      />
+      <NativeStack.Screen
+        name={Routes.SNAPS.SNAP_SETTINGS}
+        component={SnapSettings}
+      />
+    </NativeStack.Navigator>
+  );
+};
 ///: END:ONLY_INCLUDE_IF
 
 const SettingsFlow = () => {
