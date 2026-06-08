@@ -145,11 +145,25 @@ jest.mock(
   }),
 );
 
+const mockTrackEvent = jest.fn();
+
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(() => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: jest.requireActual(
+      '../../../../../util/analytics/AnalyticsEventBuilder',
+    ).AnalyticsEventBuilder.createEventBuilder,
+  })),
+}));
+
 // Mock useBlockExplorer hook
 jest.mock('../../../../hooks/useBlockExplorer', () => ({
   __esModule: true,
   default: jest.fn().mockReturnValue({
     toBlockExplorer: jest.fn(),
+    getBlockExplorerUrl: jest
+      .fn()
+      .mockReturnValue('https://etherscan.io/address/0x123'),
     getBlockExplorerName: jest.fn().mockReturnValue('Etherscan (Multichain)'),
   }),
 }));
@@ -332,6 +346,9 @@ describe('ShareAddressQR', () => {
   it('navigates to block explorer when View on Etherscan button is pressed', () => {
     // Arrange
     const mockToBlockExplorer = jest.fn();
+    const mockGetBlockExplorerUrl = jest
+      .fn()
+      .mockReturnValue('https://etherscan.io/address/0x123');
     const mockGetBlockExplorerName = jest
       .fn()
       .mockReturnValue('Etherscan (Multichain)');
@@ -340,6 +357,7 @@ describe('ShareAddressQR', () => {
     ).default;
     useBlockExplorer.mockReturnValue({
       toBlockExplorer: mockToBlockExplorer,
+      getBlockExplorerUrl: mockGetBlockExplorerUrl,
       getBlockExplorerName: mockGetBlockExplorerName,
     });
 
@@ -350,6 +368,15 @@ describe('ShareAddressQR', () => {
     fireEvent.press(explorerButton);
 
     // Assert
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'External Link Clicked',
+        properties: expect.objectContaining({
+          location: 'share_address_qr',
+          url_domain: 'https://etherscan.io/address/0x123',
+        }),
+      }),
+    );
     expect(mockToBlockExplorer).toHaveBeenCalledTimes(1);
   });
 

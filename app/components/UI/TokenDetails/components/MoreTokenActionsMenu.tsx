@@ -128,16 +128,27 @@ const MoreTokenActionsMenu = () => {
     }
 
     if (url) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.EXTERNAL_LINK_CLICKED)
+          .addProperties({
+            location: 'token_details_menu',
+            text: strings('asset_details.options.view_on_block'),
+            url_domain: url,
+          })
+          .build(),
+      );
       onActionTapped?.(TokenDetailsAction.ViewOnExplorer);
       goToBrowserUrl(url, explorer.getBlockExplorerName(asset.chainId));
     }
   }, [
+    createEventBuilder,
     isNativeCurrency,
     explorer,
     asset.chainId,
     asset.address,
     goToBrowserUrl,
     onActionTapped,
+    trackEvent,
   ]);
 
   const handleRemoveToken = useCallback(() => {

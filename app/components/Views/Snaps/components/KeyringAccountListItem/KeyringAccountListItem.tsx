@@ -21,6 +21,9 @@ import {
   KEYRING_ACCOUNT_LIST_ITEM,
   KEYRING_ACCOUNT_LIST_ITEM_BUTTON,
 } from './KeyringAccountListItem.constants';
+import { analytics } from '../../../../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
 interface KeyringAccountListItemProps {
   account: InternalAccount;
@@ -34,6 +37,19 @@ const KeyringAccountListItem = ({
   const { styles } = useStyles(stylesheet, {});
 
   const handlePress = useCallback(() => {
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.EXTERNAL_LINK_CLICKED,
+      )
+        .addProperties({
+          location: 'snap_keyring_account',
+          text: strings(
+            'app_settings.snaps.keyring_account_list_item.public_address',
+          ),
+          url_domain: blockExplorerUrl,
+        })
+        .build(),
+    );
     Linking.openURL(blockExplorerUrl);
   }, [blockExplorerUrl]);
 

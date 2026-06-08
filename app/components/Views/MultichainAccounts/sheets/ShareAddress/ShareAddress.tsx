@@ -27,6 +27,8 @@ import { getFormattedAddressFromInternalAccount } from '../../../../../core/Mult
 import { getMultichainBlockExplorer } from '../../../../../core/Multichain/networks';
 import { ShareAddressIds } from './ShareAddress.testIds';
 import PNG_MM_LOGO_PATH from '../../../../../images/branding/fox.png';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
 interface RootNavigationParamList extends ParamListBase {
   ShareAddress: {
@@ -42,6 +44,7 @@ export const ShareAddress = () => {
   const route = useRoute<ShareAddressRouteProp>();
   const { account } = route.params;
   const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const formattedAddress = getFormattedAddressFromInternalAccount(account);
 
   const blockExplorer:
@@ -52,8 +55,26 @@ export const ShareAddress = () => {
       }
     | undefined = useMemo(() => getMultichainBlockExplorer(account), [account]);
 
+  const explorerButtonText = strings(
+    'multichain_accounts.share_address.view_on_explorer_button',
+    {
+      explorer:
+        blockExplorer?.blockExplorerName ??
+        strings('multichain_accounts.share_address.view_on_block_explorer'),
+    },
+  );
+
   const handleExplorerLinkPress = useCallback(() => {
     if (blockExplorer) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.EXTERNAL_LINK_CLICKED)
+          .addProperties({
+            location: 'share_address',
+            text: explorerButtonText,
+            url_domain: blockExplorer.url,
+          })
+          .build(),
+      );
       navigation.navigate('Webview', {
         screen: 'SimpleWebview',
         params: {
@@ -62,7 +83,13 @@ export const ShareAddress = () => {
         },
       });
     }
-  }, [blockExplorer, navigation]);
+  }, [
+    blockExplorer,
+    createEventBuilder,
+    explorerButtonText,
+    navigation,
+    trackEvent,
+  ]);
 
   const handleOnBack = useCallback(() => {
     navigation.goBack();
@@ -104,16 +131,7 @@ export const ShareAddress = () => {
           testID={ShareAddressIds.SHARE_ADDRESS_VIEW_ON_EXPLORER_BUTTON}
           style={tw.style('mt-1 self-center')}
         >
-          {strings(
-            'multichain_accounts.share_address.view_on_explorer_button',
-            {
-              explorer:
-                blockExplorer?.blockExplorerName ??
-                strings(
-                  'multichain_accounts.share_address.view_on_block_explorer',
-                ),
-            },
-          )}
+          {explorerButtonText}
         </Button>
       </Box>
     </BottomSheet>

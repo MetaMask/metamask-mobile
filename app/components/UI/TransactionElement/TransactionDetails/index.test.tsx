@@ -10,6 +10,12 @@ import { mockNetworkState } from '../../../../util/test/network';
 import type { NetworkState } from '@metamask/network-controller';
 import { isHardwareAccount } from '../../../../util/address';
 import { TransactionType } from '@metamask/transaction-controller';
+import { analytics } from '../../../../util/analytics/analytics';
+jest.mock('../../../../util/analytics/analytics', () => ({
+  analytics: {
+    trackEvent: jest.fn(),
+  },
+}));
 
 const Stack = createStackNavigator();
 const mockEthQuery = {
@@ -309,6 +315,15 @@ describe('TransactionDetails', () => {
 
     fireEvent.press(getByText(props.buttonText));
 
+    expect(analytics.trackEvent).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        name: 'External Link Clicked',
+        properties: expect.objectContaining({
+          location: 'transaction_details',
+          url_domain: props.expectedUrl,
+        }),
+      }),
+    );
     expect(navigationMock.push).toHaveBeenCalledWith('Webview', {
       params: expect.objectContaining({ url: props.expectedUrl }),
       screen: 'SimpleWebview',

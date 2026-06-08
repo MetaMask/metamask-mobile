@@ -28,6 +28,8 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import QRAccountDisplay from '../../../QRAccountDisplay';
 import QRCode from 'react-native-qrcode-svg';
 import useBlockExplorer from '../../../../hooks/useBlockExplorer';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { ShareAddressQRIds } from './ShareAddressQR.testIds';
 import { selectAccountGroupById } from '../../../../../selectors/multichainAccounts/accountTreeController';
@@ -60,16 +62,44 @@ export const ShareAddressQR = () => {
   const accountGroupName = accountGroup?.metadata.name;
 
   const navigation = useNavigation();
-  const { toBlockExplorer, getBlockExplorerName } = useBlockExplorer(chainId);
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { toBlockExplorer, getBlockExplorerUrl, getBlockExplorerName } =
+    useBlockExplorer(chainId);
   const networkImageSource = getNetworkImageSource({ chainId });
+  const explorerButtonText = strings(
+    'multichain_accounts.share_address.view_on_explorer_button',
+    {
+      explorer: getBlockExplorerName(),
+    },
+  );
 
   const handleOnBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
   const handleViewOnBlockExplorer = useCallback(() => {
+    const url = getBlockExplorerUrl(address);
+    if (!url) {
+      return;
+    }
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.EXTERNAL_LINK_CLICKED)
+        .addProperties({
+          location: 'share_address_qr',
+          text: explorerButtonText,
+          url_domain: url,
+        })
+        .build(),
+    );
     toBlockExplorer(address);
-  }, [address, toBlockExplorer]);
+  }, [
+    address,
+    createEventBuilder,
+    explorerButtonText,
+    getBlockExplorerUrl,
+    toBlockExplorer,
+    trackEvent,
+  ]);
 
   return (
     <BottomSheet ref={sheetRef} goBack={handleOnBack}>
@@ -139,12 +169,7 @@ export const ShareAddressQR = () => {
           testID={ShareAddressQRIds.SHARE_ADDRESS_QR_COPY_BUTTON}
           style={tw.style('mt-1 self-center')}
         >
-          {strings(
-            'multichain_accounts.share_address.view_on_explorer_button',
-            {
-              explorer: getBlockExplorerName(),
-            },
-          )}
+          {explorerButtonText}
         </Button>
       </Box>
     </BottomSheet>

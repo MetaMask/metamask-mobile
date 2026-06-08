@@ -7,6 +7,8 @@ import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import { IAccount } from './types';
 import useBlockExplorer from '../../../hooks/useBlockExplorer';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAccountsBalance } from './hooks';
 import { useTheme } from '../../../../util/theme';
 import { createStyle } from './styles';
@@ -43,7 +45,27 @@ const AccountSelector = (props: ISelectQRAccountsProps) => {
   const styles = createStyle(colors);
   const providerConfig = useSelector(selectProviderConfig);
   const accountsBalance = useAccountsBalance(accounts);
-  const { toBlockExplorer } = useBlockExplorer();
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { toBlockExplorer, getBlockExplorerUrl } = useBlockExplorer();
+
+  const handleToBlockExplorer = useCallback(
+    (address: string) => {
+      const url = getBlockExplorerUrl(address);
+      if (url) {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.EXTERNAL_LINK_CLICKED)
+            .addProperties({
+              location: 'hardware_wallet_account',
+              text: 'external-link',
+              url_domain: url,
+            })
+            .build(),
+        );
+      }
+      toBlockExplorer(address);
+    },
+    [createEventBuilder, getBlockExplorerUrl, toBlockExplorer, trackEvent],
+  );
 
   const [checkedAccounts, setCheckedAccounts] = useState<Set<number>>(
     new Set(),
@@ -108,7 +130,7 @@ const AccountSelector = (props: ISelectQRAccountsProps) => {
               address={item.address}
               balance={item.balance}
               ticker={providerConfig.ticker}
-              toBlockExplorer={toBlockExplorer}
+              toBlockExplorer={handleToBlockExplorer}
             />
           </View>
         )}

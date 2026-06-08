@@ -40,6 +40,8 @@ import {
 } from '../../../core/Multichain/utils';
 import Routes from '../../../constants/navigation/Routes';
 import { useTheme } from '../../../util/theme';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 
 export interface MultichainTransactionDetailsSheetParams {
   displayData: MultichainTransactionDisplayData;
@@ -71,6 +73,7 @@ const styles = StyleSheet.create({
 
 const MultichainTransactionDetailsSheet: React.FC = () => {
   const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const route = useRoute<MultichainTransactionDetailsSheetRouteProp>();
   const sheetRef = useRef<BottomSheetRef>(null);
   const { typography } = useTheme();
@@ -102,6 +105,16 @@ const MultichainTransactionDetailsSheet: React.FC = () => {
 
       if (!url) return;
 
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.EXTERNAL_LINK_CLICKED)
+          .addProperties({
+            location: 'transaction_details_modal',
+            text: label,
+            url_domain: url,
+          })
+          .build(),
+      );
+
       // Close the bottom sheet and navigate to webview
       sheetRef.current?.onCloseBottomSheet(() => {
         navigation.navigate(Routes.WEBVIEW.MAIN, {
@@ -110,7 +123,15 @@ const MultichainTransactionDetailsSheet: React.FC = () => {
         });
       });
     },
-    [id, chain, from?.address, to?.address, navigation],
+    [
+      id,
+      chain,
+      createEventBuilder,
+      from?.address,
+      navigation,
+      to?.address,
+      trackEvent,
+    ],
   );
 
   const renderDetailRow = (
