@@ -156,6 +156,28 @@ const NftDetails = () => {
     }
   };
 
+  const openBlockExplorer = useCallback(
+    (url: string | undefined, text: string) => {
+      if (!url) {
+        return;
+      }
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.EXTERNAL_LINK_CLICKED)
+          .addProperties({
+            location: 'nft_details',
+            text,
+            url_domain: url,
+          })
+          .build(),
+      );
+      navigation.navigate('Webview', {
+        screen: 'SimpleWebview',
+        params: { url },
+      });
+    },
+    [createEventBuilder, navigation, trackEvent],
+  );
+
   const getDateCreatedTimestamp = (dateString: string) => {
     const date = new Date(dateString);
     return Math.floor(date.getTime() / 1000);
@@ -435,12 +457,10 @@ const NftDetails = () => {
                   </TouchableOpacity>
                 }
                 onValuePress={() => {
-                  navigation.navigate('Webview', {
-                    screen: 'SimpleWebview',
-                    params: {
-                      url: blockExplorerTokenLink(),
-                    },
-                  });
+                  openBlockExplorer(
+                    blockExplorerTokenLink(),
+                    strings('nft_details.contract_address'),
+                  );
                 }}
               />
             ) : null}
@@ -465,12 +485,10 @@ const NftDetails = () => {
               }
               onValuePress={() => {
                 if (collectible.collection?.creator) {
-                  navigation.navigate('Webview', {
-                    screen: 'SimpleWebview',
-                    params: {
-                      url: blockExplorerTokenLink(),
-                    },
-                  });
+                  openBlockExplorer(
+                    blockExplorerTokenLink(),
+                    strings('nft_details.contract_address'),
+                  );
                 }
               }}
             />
@@ -579,12 +597,10 @@ const NftDetails = () => {
             }
             onValuePress={() => {
               if (collectible.collection?.creator) {
-                navigation.navigate('Webview', {
-                  screen: 'SimpleWebview',
-                  params: {
-                    url: blockExplorerAccountLink(),
-                  },
-                });
+                openBlockExplorer(
+                  blockExplorerAccountLink(),
+                  strings('nft_details.creator'),
+                );
               }
             }}
           />

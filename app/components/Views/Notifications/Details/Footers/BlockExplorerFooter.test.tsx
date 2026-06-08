@@ -95,6 +95,17 @@ describe('BlockExplorerFooter', () => {
     expect(Linking.openURL).toHaveBeenCalled();
     expect(trackEventMock).toHaveBeenCalledWith(
       AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.EXTERNAL_LINK_CLICKED,
+      )
+        .addProperties({
+          location: 'notification_detail',
+          text: strings('asset_details.options.view_on_block'),
+          url_domain: 'https://blockexplorer.com/tx/0x123',
+        })
+        .build(),
+    );
+    expect(trackEventMock).toHaveBeenCalledWith(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.NOTIFICATION_DETAIL_CLICKED,
       )
         .addProperties({

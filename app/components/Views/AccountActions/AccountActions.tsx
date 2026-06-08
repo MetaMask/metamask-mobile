@@ -112,6 +112,15 @@ const AccountActions = () => {
   const viewOnBlockExplorer = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
       if (blockExplorer) {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.EXTERNAL_LINK_CLICKED)
+            .addProperties({
+              location: 'account_actions',
+              text: `${strings('drawer.view_in')} ${blockExplorer.blockExplorerName}`,
+              url_domain: blockExplorer.url,
+            })
+            .build(),
+        );
         goToBrowserUrl(blockExplorer.url, blockExplorer.title);
       }
       trackEvent(

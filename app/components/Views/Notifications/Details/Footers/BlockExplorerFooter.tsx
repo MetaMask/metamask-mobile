@@ -56,6 +56,15 @@ export default function BlockExplorerFooter(props: BlockExplorerFooterProps) {
   const txHashUrl = `${url}/tx/${props.txHash}`;
 
   const onPress = () => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.EXTERNAL_LINK_CLICKED)
+        .addProperties({
+          location: 'notification_detail',
+          text: strings('asset_details.options.view_on_block'),
+          url_domain: txHashUrl,
+        })
+        .build(),
+    );
     Linking.openURL(txHashUrl);
     trackEvent(
       createEventBuilder(MetaMetricsEvents.NOTIFICATION_DETAIL_CLICKED)

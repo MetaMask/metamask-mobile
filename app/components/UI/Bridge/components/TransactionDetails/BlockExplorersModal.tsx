@@ -24,6 +24,8 @@ import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import { useMultichainBlockExplorerTxUrl } from '../../hooks/useMultichainBlockExplorerTxUrl';
 import { Transaction } from '@metamask/keyring-api';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
 const styleSheet = (params: { theme: Theme }) =>
   StyleSheet.create({
@@ -43,6 +45,7 @@ interface BlockExplorersModalRouteParams {
 
 const BlockExplorersModal = () => {
   const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const route =
     useRoute<RouteProp<{ params: BlockExplorersModalRouteParams }, 'params'>>();
   const { styles } = useStyles(styleSheet, {});
@@ -89,6 +92,15 @@ const BlockExplorersModal = () => {
             variant={ButtonVariant.Secondary}
             isFullWidth
             onPress={() => {
+              trackEvent(
+                createEventBuilder(MetaMetricsEvents.EXTERNAL_LINK_CLICKED)
+                  .addProperties({
+                    location: 'bridge_transaction_details',
+                    text: srcExplorerData.explorerName,
+                    url_domain: srcExplorerData.explorerTxUrl,
+                  })
+                  .build(),
+              );
               navigation.navigate(Routes.WEBVIEW.MAIN, {
                 screen: Routes.WEBVIEW.SIMPLE,
                 params: {
@@ -119,6 +131,15 @@ const BlockExplorersModal = () => {
             variant={ButtonVariant.Secondary}
             isFullWidth
             onPress={() => {
+              trackEvent(
+                createEventBuilder(MetaMetricsEvents.EXTERNAL_LINK_CLICKED)
+                  .addProperties({
+                    location: 'bridge_transaction_details',
+                    text: bridgeDestExplorerData.explorerName,
+                    url_domain: bridgeDestExplorerData.explorerTxUrl,
+                  })
+                  .build(),
+              );
               navigation.navigate(Routes.WEBVIEW.MAIN, {
                 screen: Routes.WEBVIEW.SIMPLE,
                 params: {

@@ -42,6 +42,9 @@ import {
 } from 'react-native-gesture-handler';
 import AppConstants from '../../../core/AppConstants';
 import { useTheme } from '../../../util/theme';
+import { analytics } from '../../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { selectChainId } from '../../../selectors/networkController';
 import {
   selectDisplayNftMedia,
@@ -253,10 +256,24 @@ const CollectibleOverview = ({
       key: strings('collectible.collectible_asset_contract'),
       value: renderShortAddress(collectible?.address),
       onPress: () => {
-        if (isMainNet(chainId))
-          openLink(
-            etherscanLink.createTokenTrackerLink(collectible?.address, chainId),
+        if (isMainNet(chainId)) {
+          const url = etherscanLink.createTokenTrackerLink(
+            collectible?.address,
+            chainId,
           );
+          analytics.trackEvent(
+            AnalyticsEventBuilder.createEventBuilder(
+              MetaMetricsEvents.EXTERNAL_LINK_CLICKED,
+            )
+              .addProperties({
+                location: 'collectible_overview',
+                text: strings('collectible.collectible_asset_contract'),
+                url_domain: url,
+              })
+              .build(),
+          );
+          openLink(url);
+        }
       },
       type: FieldType.Text,
     }),
