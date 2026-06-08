@@ -4,11 +4,10 @@ import {
   TransactionStatus,
   type TransactionMeta,
 } from '@metamask/transaction-controller';
-import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import type { RootState } from '../../../../../reducers';
 import { selectBridgeHistoryForAccount } from '../../../../../selectors/bridgeStatusController';
 import { selectTransactionMetadataById } from '../../../../../selectors/transactionController';
-import { equalsIgnoreCase } from '../../../../../util/string';
+import { findBridgeHistoryItem } from '../../../../../util/bridge/findBridgeHistoryItem';
 import { PostTradeStatus } from './PostTradeBottomSheet.types';
 
 interface UsePostTradeTxStatusParams {
@@ -17,45 +16,6 @@ interface UsePostTradeTxStatusParams {
   transactionMetaId?: string;
   transactionHash?: string;
 }
-
-const findBridgeHistoryItem = ({
-  bridgeHistory,
-  transactionMetaId,
-  transactionActionId,
-  transactionHash,
-}: {
-  bridgeHistory: Record<string, BridgeHistoryItem>;
-  transactionMetaId?: string;
-  transactionActionId?: string;
-  transactionHash?: string;
-}) => {
-  if (transactionMetaId && bridgeHistory[transactionMetaId]) {
-    return bridgeHistory[transactionMetaId];
-  }
-
-  if (transactionActionId && bridgeHistory[transactionActionId]) {
-    return bridgeHistory[transactionActionId];
-  }
-
-  if (transactionMetaId) {
-    const matchingEntry = Object.entries(bridgeHistory).find(
-      ([, historyItem]) =>
-        (historyItem as { originalTransactionId?: string })
-          .originalTransactionId === transactionMetaId,
-    );
-    if (matchingEntry) {
-      return matchingEntry[1];
-    }
-  }
-
-  if (!transactionHash) {
-    return undefined;
-  }
-
-  return Object.values(bridgeHistory).find((item) =>
-    equalsIgnoreCase(item.status?.srcChain?.txHash, transactionHash),
-  );
-};
 
 export const usePostTradeTxStatus = ({
   initialStatus,
