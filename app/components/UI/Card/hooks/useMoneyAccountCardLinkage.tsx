@@ -33,6 +33,7 @@ import {
   selectCardHomeDataStatus,
   selectIsCardAuthenticated,
   selectIsCardholder,
+  selectIsMoneyAccountCardLinkInProgress,
   selectIsMoneyAccountDelegatedForCard,
 } from '../../../../selectors/cardController';
 import {
@@ -111,6 +112,7 @@ export const useMoneyAccountCardLinkage =
     const pendingMoneyAccountCardLink = useSelector(
       selectPendingMoneyAccountCardLink,
     );
+    const linkInProgress = useSelector(selectIsMoneyAccountCardLinkInProgress);
     const isMonadSponsorshipEnabled = useSelector(
       getGasFeesSponsoredNetworkEnabled,
     )(vaultConfig?.chainId ?? '');
@@ -201,6 +203,9 @@ export const useMoneyAccountCardLinkage =
     }, [theme.colors.error.default, toastRef]);
 
     const openLinkCardSheet = useCallback((): void => {
+      if (linkInProgress) {
+        return;
+      }
       if (!canLink || !primaryMoneyAccount?.address) {
         showErrorToast();
         return;
@@ -208,10 +213,19 @@ export const useMoneyAccountCardLinkage =
       navigation.navigate(Routes.MONEY.MODALS.ROOT, {
         screen: Routes.MONEY.MODALS.LINK_CARD_SHEET,
       });
-    }, [canLink, primaryMoneyAccount?.address, navigation, showErrorToast]);
+    }, [
+      linkInProgress,
+      canLink,
+      primaryMoneyAccount?.address,
+      navigation,
+      showErrorToast,
+    ]);
 
     const startLinkFlow = useCallback(
       (origin: LinkFlowOrigin): void => {
+        if (linkInProgress) {
+          return;
+        }
         if (!hasRequirements || !primaryMoneyAccount?.address) {
           showErrorToast();
           return;
@@ -252,6 +266,7 @@ export const useMoneyAccountCardLinkage =
         });
       },
       [
+        linkInProgress,
         hasRequirements,
         moneyAccountCardToken,
         primaryMoneyAccount?.address,
@@ -374,7 +389,7 @@ export const useMoneyAccountCardLinkage =
       canLink,
 
       status,
-      isLinking: status === 'pending',
+      isLinking: linkInProgress,
       error,
 
       startLinkFlow,

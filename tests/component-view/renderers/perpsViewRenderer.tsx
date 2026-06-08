@@ -27,7 +27,6 @@ import PerpsMarketDetailsView from '../../../app/components/UI/Perps/Views/Perps
 import PerpsMarketListView from '../../../app/components/UI/Perps/Views/PerpsMarketListView/PerpsMarketListView';
 import PerpsSelectModifyActionView from '../../../app/components/UI/Perps/Views/PerpsSelectModifyActionView/PerpsSelectModifyActionView';
 import PerpsSelectProviderView from '../../../app/components/UI/Perps/Views/PerpsSelectProviderView/PerpsSelectProviderView';
-import PerpsTabView from '../../../app/components/UI/Perps/Views/PerpsTabView/PerpsTabView';
 import PerpsPositionsView from '../../../app/components/UI/Perps/Views/PerpsPositionsView/PerpsPositionsView';
 import PerpsHomeView from '../../../app/components/UI/Perps/Views/PerpsHomeView/PerpsHomeView';
 import PerpsClosePositionView from '../../../app/components/UI/Perps/Views/PerpsClosePositionView/PerpsClosePositionView';
@@ -123,7 +122,7 @@ const PerpsTestProviders = ({
   </QueryClientProvider>
 );
 
-/** Minimal account so usePerpsLiveAccount sets isInitialLoading=false; non-zero totalBalance so PerpsTabControlBar shows balance button */
+/** Minimal account so usePerpsLiveAccount sets isInitialLoading=false; non-zero totalBalance so balance UI renders */
 const initialAccount: AccountState = {
   spendableBalance: '1',
   withdrawableBalance: '1',
@@ -355,7 +354,7 @@ const DefaultRouteProbe =
  * Renders a Perps view with preset state. State is driven by Redux; use overrides
  * to set e.g. PerpsController.isEligible for geo-restriction tests.
  * Wraps with PerpsConnectionProvider and PerpsStreamProvider so views that use
- * usePerpsStream() (e.g. PerpsTabView, PerpsMarketListView) render without errors.
+ * usePerpsStream() (e.g. PerpsMarketListView) render without errors.
  * When extraRoutes is provided, those routes are registered so navigation can be asserted.
  */
 export function renderPerpsView(
@@ -405,7 +404,7 @@ export function renderPerpsView(
     const rootRoutes = extraRoutes.filter(
       ({ mount }) => mount !== 'perps-root',
     );
-    // PerpsTabView navigates via navigation.navigate(PERPS.ROOT, { screen: MARKET_LIST }).
+    // Some Perps views navigate via navigation.navigate(PERPS.ROOT, { screen: MARKET_LIST }).
     // So we register PERPS.ROOT as a nested stack containing the extra routes; then
     // navigating to ROOT with screen: MARKET_LIST shows the route probe.
     const nestedScreens = (
@@ -570,17 +569,6 @@ export function renderPerpsMarketListView(
   return renderPerpsView(
     PerpsMarketListView as unknown as React.ComponentType,
     'PerpsMarketListView',
-    options,
-  );
-}
-
-/**
- * Renders PerpsTabView. Use in PerpsTabView.view.test.tsx.
- */
-export function renderPerpsTabView(options: RenderPerpsViewOptions = {}) {
-  return renderPerpsView(
-    PerpsTabView as unknown as React.ComponentType,
-    'PerpsTabView',
     options,
   );
 }
