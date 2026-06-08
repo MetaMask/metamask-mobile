@@ -1,10 +1,6 @@
 import React, { useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -15,13 +11,18 @@ import Icon, {
   IconSize,
   IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
-
 import { strings } from '../../../../../../locales/i18n';
+
 import { useTheme } from '../../../../../util/theme';
 import { Colors } from '../../../../../util/theme/models';
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { getHardwareWalletTypeName } from '../../../helpers';
 import { ContentLayout } from './ContentLayout';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 
 export const AWAITING_APP_CONTENT_TEST_ID = 'awaiting-app-content';
 
@@ -89,8 +90,8 @@ export const AwaitingAppContent: React.FC<AwaitingAppContentProps> = ({
       body={
         <>
           <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Default}
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextDefault}
             style={styles.messageText}
           >
             {strings('hardware_wallet.awaiting_app.message', {
@@ -102,8 +103,8 @@ export const AwaitingAppContent: React.FC<AwaitingAppContentProps> = ({
           {showCurrentApp && (
             <View style={styles.currentAppContainer}>
               <Text
-                variant={TextVariant.BodySM}
-                color={TextColor.Default}
+                variant={TextVariant.BodySm}
+                color={TextColor.TextDefault}
                 style={styles.currentAppText}
               >
                 {strings('hardware_wallet.awaiting_app.current_app', {

@@ -1,12 +1,8 @@
 import React from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
-
 import { strings } from '../../../../../../locales/i18n';
+
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import {
   getHardwareWalletTypeName,
@@ -14,6 +10,11 @@ import {
 } from '../../../helpers';
 import { ContentLayout } from './ContentLayout';
 import { useTheme } from '../../../../../util/theme';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 
 export const CONNECTING_CONTENT_TEST_ID = 'connecting-content';
 export const CONNECTING_CONTENT_SPINNER_TEST_ID = 'connecting-content-spinner';
@@ -62,8 +63,8 @@ export const ConnectingContent: React.FC<ConnectingContentProps> = ({
           {connectionTips.length > 0 && (
             <View>
               <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Default}
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextDefault}
                 style={styles.tipsHeader}
               >
                 {strings('hardware_wallet.connecting.tips_header')}
@@ -72,15 +73,15 @@ export const ConnectingContent: React.FC<ConnectingContentProps> = ({
               {connectionTips.map((tipKey) => (
                 <View key={tipKey} style={styles.tipItem}>
                   <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Default}
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextDefault}
                     style={styles.tipBullet}
                   >
                     •
                   </Text>
                   <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Default}
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextDefault}
                     style={styles.tipText}
                   >
                     {strings(tipKey, { device: deviceName })}

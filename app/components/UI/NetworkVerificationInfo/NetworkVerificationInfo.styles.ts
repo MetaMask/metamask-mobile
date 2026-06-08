@@ -1,10 +1,6 @@
 import { StyleSheet, TextStyle } from 'react-native';
 // External dependencies.
 import { Theme } from '../../../util/theme/models';
-import {
-  getFontFamily,
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -36,7 +32,6 @@ const styleSheet = (params: { theme: Theme }) => {
       marginVertical: 10,
       paddingHorizontal: 16,
       ...typography.sBodyMDBold,
-      fontFamily: getFontFamily(TextVariant.BodyMDBold),
     } as TextStyle,
     bottomSpace: {
       marginBottom: 10,
@@ -57,7 +52,6 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     boldText: {
       ...typography.sBodyMDBold,
-      fontFamily: getFontFamily(TextVariant.BodyMDBold),
     } as TextStyle,
 
     networkSection: { marginBottom: 16 },

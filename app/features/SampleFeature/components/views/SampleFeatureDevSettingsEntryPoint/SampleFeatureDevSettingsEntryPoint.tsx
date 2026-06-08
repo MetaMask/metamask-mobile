@@ -1,9 +1,5 @@
 import React from 'react';
 import { useTheme } from '../../../../../util/theme';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -15,6 +11,11 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useNavigation } from '@react-navigation/native';
 import styleSheet from './SampleFeatureDevSettingsEntryPoint.styles';
 import { useAnalytics } from '../../../../../components/hooks/useAnalytics/useAnalytics';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 
 function NavigateToSampleFeature() {
   const theme = useTheme();
@@ -32,8 +33,8 @@ function NavigateToSampleFeature() {
   return (
     <>
       <Text
-        color={TextColor.Alternative}
-        variant={TextVariant.BodyMD}
+        color={TextColor.TextAlternative}
+        variant={TextVariant.BodyMd}
         style={styles.desc}
       >
         {strings('app_settings.developer_options.sample_feature_desc')}
@@ -64,8 +65,8 @@ export default function SampleFeatureDevSettingsEntryPoint() {
   return (
     <>
       <Text
-        color={TextColor.Default}
-        variant={TextVariant.HeadingLG}
+        color={TextColor.TextDefault}
+        variant={TextVariant.HeadingLg}
         style={styles.heading}
       >
         {strings('sample_feature.title')}

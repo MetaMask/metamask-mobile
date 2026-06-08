@@ -7,10 +7,6 @@ import {
   FlatList,
 } from 'react-native';
 
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -21,14 +17,20 @@ import Icon, {
   IconSize,
   IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
-
 import { strings } from '../../../../../../locales/i18n';
+
 import { useTheme } from '../../../../../util/theme';
 import { Colors } from '../../../../../util/theme/models';
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { DiscoveredDevice } from '../../../types';
 import { getHardwareWalletTypeName } from '../../../helpers';
 import { ContentLayout } from './ContentLayout';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+  FontWeight,
+} from '@metamask/design-system-react-native';
 
 export const DEVICE_SELECTION_CONTENT_TEST_ID = 'device-selection-content';
 export const DEVICE_SELECTION_ITEM_TEST_ID = 'device-selection-item';
@@ -159,15 +161,18 @@ export const DeviceSelectionContent: React.FC<DeviceSelectionContentProps> = ({
         </View>
         <View style={styles.deviceInfo}>
           <Text
-            variant={TextVariant.BodyMDBold}
-            color={isSelected ? TextColor.Primary : TextColor.Default}
+            variant={TextVariant.BodyMd}
+            color={
+              isSelected ? TextColor.PrimaryDefault : TextColor.TextDefault
+            }
             style={styles.deviceName}
+            fontWeight={FontWeight.Bold}
           >
             {item.name ||
               strings('hardware_wallet.device_selection.unknown_device')}
           </Text>
           {item.metadata?.rssi !== undefined && (
-            <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+            <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
               {strings('hardware_wallet.device_selection.signal_strength', {
                 rssi: String(item.metadata.rssi),
               })}
@@ -196,8 +201,8 @@ export const DeviceSelectionContent: React.FC<DeviceSelectionContentProps> = ({
         style={styles.emptyIcon}
       />
       <Text
-        variant={TextVariant.BodyMD}
-        color={TextColor.Default}
+        variant={TextVariant.BodyMd}
+        color={TextColor.TextDefault}
         style={styles.emptyText}
       >
         {isScanning
@@ -206,8 +211,8 @@ export const DeviceSelectionContent: React.FC<DeviceSelectionContentProps> = ({
       </Text>
       {!isScanning && (
         <Text
-          variant={TextVariant.BodySM}
-          color={TextColor.Default}
+          variant={TextVariant.BodySm}
+          color={TextColor.TextDefault}
           style={styles.emptySubtext}
         >
           {strings('hardware_wallet.device_selection.no_devices_hint', {
@@ -240,8 +245,8 @@ export const DeviceSelectionContent: React.FC<DeviceSelectionContentProps> = ({
             >
               <ActivityIndicator color={colors.primary.default} />
               <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Default}
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextDefault}
                 style={styles.scanningText}
               >
                 {strings('hardware_wallet.device_selection.scanning')}
@@ -251,8 +256,8 @@ export const DeviceSelectionContent: React.FC<DeviceSelectionContentProps> = ({
 
           <View style={styles.tipsContainer}>
             <Text
-              variant={TextVariant.BodySM}
-              color={TextColor.Default}
+              variant={TextVariant.BodySm}
+              color={TextColor.TextDefault}
               style={styles.tipText}
             >
               {strings('hardware_wallet.device_selection.tips', {

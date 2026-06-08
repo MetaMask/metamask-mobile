@@ -1,10 +1,6 @@
 import { StyleSheet } from 'react-native';
 import Device from '../../../util/device';
 import type { ThemeColors, ThemeTypography } from '@metamask/design-tokens';
-import {
-  getFontFamily,
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
 
 const createStyles = (colors: ThemeColors, typography: ThemeTypography) =>
   StyleSheet.create({
@@ -21,7 +17,6 @@ const createStyles = (colors: ThemeColors, typography: ThemeTypography) =>
     },
     intro: {
       ...typography.sHeadingMD,
-      fontFamily: getFontFamily(TextVariant.HeadingMD),
       textAlign: 'center',
       color: colors.text.default,
       marginBottom: 8,
@@ -29,7 +24,6 @@ const createStyles = (colors: ThemeColors, typography: ThemeTypography) =>
     },
     intro_reconnect: {
       ...typography.sHeadingMD,
-      fontFamily: getFontFamily(TextVariant.HeadingMD),
       textAlign: 'center',
       color: colors.text.default,
       marginBottom: 8,
@@ -46,7 +40,6 @@ const createStyles = (colors: ThemeColors, typography: ThemeTypography) =>
     },
     warning: {
       ...typography.sBodyMD,
-      fontFamily: getFontFamily(TextVariant.BodyMD),
       color: colors.text.default,
       paddingHorizontal: 24,
       marginBottom: 16,
@@ -118,7 +111,6 @@ const createStyles = (colors: ThemeColors, typography: ThemeTypography) =>
     },
     optionText: {
       ...typography.sBodyMD,
-      fontFamily: getFontFamily(TextVariant.BodyMD),
       color: colors.text.default,
       marginHorizontal: 1,
     },

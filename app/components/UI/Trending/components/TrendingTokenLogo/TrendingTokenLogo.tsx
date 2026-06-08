@@ -1,11 +1,9 @@
 import { Image } from 'expo-image';
 import React, { memo, useMemo } from 'react';
 import { ActivityIndicator, View, ViewStyle } from 'react-native';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { useTokenLogo } from '../../../../hooks/useTokenLogo';
 import { getTrendingTokenImageUrl } from '../../utils/getTrendingTokenImageUrl';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 
 interface TrendingTokenLogoProps {
   assetId: string;
@@ -51,7 +49,7 @@ const TrendingTokenLogo: React.FC<TrendingTokenLogoProps> = ({
   if (!symbol || hasError) {
     return (
       <View style={[containerStyle, style]} testID={testID}>
-        <Text variant={TextVariant.BodyMD} style={fallbackTextStyle}>
+        <Text variant={TextVariant.BodyMd} style={fallbackTextStyle}>
           {fallbackText}
         </Text>
       </View>

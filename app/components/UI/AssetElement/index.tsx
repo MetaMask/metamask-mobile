@@ -1,18 +1,14 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
 import { TouchableOpacity, StyleSheet, View } from 'react-native';
-import {
-  TextVariant,
-  TextColor,
-} from '../../../component-library/components/Texts/Text';
 import SkeletonText from '../Ramp/Aggregator/components/SkeletonText';
 import { TokenI } from '../Tokens/types';
 import { getAssetTestId } from '../../../../tests/selectors/Wallet/WalletView.selectors';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../component-library/components/Texts/SensitiveText';
-
 import { useTheme } from '../../../util/theme';
+
 import { Colors } from '../../../util/theme/models';
 import {
   TOKEN_BALANCE_LOADING,
@@ -24,6 +20,10 @@ import {
   SECONDARY_BALANCE_BUTTON_TEST_ID,
   SECONDARY_BALANCE_TEST_ID,
 } from './index.constants';
+import {
+  TextVariant,
+  TextColor,
+} from '../../../component-library/components/Texts/Text';
 
 interface AssetElementProps {
   children?: React.ReactNode;

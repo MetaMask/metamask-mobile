@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
 import { KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import Card from '../../../../../component-library/components/Cards/Card';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './SamplePetNames.styles';
@@ -11,6 +8,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { SamplePetNamesList } from './SamplePetNamesList';
 import { SamplePetNamesForm } from './SamplePetNamesForm';
 import useSampleNetwork from '../../hooks/useSampleNetwork/useSampleNetwork';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 
 /**
  * SamplePetNames Component
@@ -66,7 +64,7 @@ export function SamplePetNames() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <Card style={styles.card}>
-          <Text variant={TextVariant.HeadingSM}>
+          <Text variant={TextVariant.HeadingSm}>
             {strings('sample_feature.pet_name.list_count_text')}
           </Text>
           <SamplePetNamesList

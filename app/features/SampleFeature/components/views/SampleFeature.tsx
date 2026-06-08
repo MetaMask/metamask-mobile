@@ -2,10 +2,6 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 
 import { strings } from '../../../../../locales/i18n';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
 import { SampleCounterPane } from './SampleCounterPane/SampleCounterPane';
 import { SampleNetworkDisplay } from './SampleNetworkDisplay/SampleNetworkDisplay';
 import { SamplePetNames } from './SamplePetNames/SamplePetNames';
@@ -15,6 +11,11 @@ import styleSheet from './SampleFeature.styles';
 import { baseStyles } from '../../../../styles/common';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { selectSampleFeatureCounterEnabled } from '../../selectors/sampleFeatureCounter';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 
 /**
  * SampleFeature Component
@@ -54,15 +55,15 @@ const SampleFeature = () => {
       testID="sample-feature-container"
     >
       <Text
-        color={TextColor.Default}
-        variant={TextVariant.HeadingLG}
+        color={TextColor.TextDefault}
+        variant={TextVariant.HeadingLg}
         style={styles.heading}
       >
         {strings('sample_feature.title')}
       </Text>
       <Text
-        color={TextColor.Alternative}
-        variant={TextVariant.BodyMD}
+        color={TextColor.TextAlternative}
+        variant={TextVariant.BodyMd}
         style={styles.desc}
       >
         {strings('sample_feature.description')}

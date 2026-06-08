@@ -1,8 +1,5 @@
 import React from 'react';
 import { View, TouchableOpacity } from 'react-native';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import ListItem from '../../../../../component-library/components/List/ListItem';
 import Avatar, {
   AvatarSize,
@@ -13,6 +10,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './SamplePetNamesList.styles';
 import { SamplePetNamesListProps } from './SamplePetNamesList.types';
 import { useSamplePetNames } from '../../hooks/useSamplePetNames';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 
 /**
  * SamplePetNamesList Component
@@ -70,8 +68,8 @@ export function SamplePetNamesList({
               size={AvatarSize.Md}
             />
             <View style={styles.listItemTextContainer}>
-              <Text variant={TextVariant.HeadingMD}>{name}</Text>
-              <Text variant={TextVariant.BodySM}>
+              <Text variant={TextVariant.HeadingMd}>{name}</Text>
+              <Text variant={TextVariant.BodySm}>
                 {renderShortAddress(address)}
               </Text>
             </View>

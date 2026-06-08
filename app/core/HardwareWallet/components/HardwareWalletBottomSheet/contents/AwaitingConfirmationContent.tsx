@@ -5,10 +5,6 @@ import { ETHSignature } from '@keystonehq/bc-ur-registry-eth';
 import { stringify as uuidStringify } from 'uuid';
 import { QrScanRequestType } from '@metamask/eth-qr-keyring';
 
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -20,8 +16,8 @@ import Icon, {
   IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
 import Alert, { AlertType } from '../../../../../components/Base/Alert';
-
 import { strings } from '../../../../../../locales/i18n';
+
 import { useTheme } from '../../../../../util/theme';
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { getHardwareWalletTypeName } from '../../../helpers';
@@ -33,6 +29,11 @@ import AnimatedQRCode from '../../../../../components/UI/QRHardware/AnimatedQRCo
 import AnimatedQRScannerModal from '../../../../../components/UI/QRHardware/AnimatedQRScanner';
 import { MetaMetricsEvents } from '../../../../Analytics';
 import { useAnalytics } from '../../../../../components/hooks/useAnalytics/useAnalytics';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 
 export const AWAITING_CONFIRMATION_CONTENT_TEST_ID =
   'awaiting-confirmation-content';
@@ -226,8 +227,8 @@ export const AwaitingConfirmationContent: React.FC<
                     onPress={() => setErrorMessage(undefined)}
                   >
                     <Text
-                      variant={TextVariant.BodyMD}
-                      color={TextColor.Default}
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextDefault}
                       style={styles.qrErrorText}
                     >
                       {errorMessage}
@@ -243,15 +244,15 @@ export const AwaitingConfirmationContent: React.FC<
                 </View>
                 <View style={styles.qrDescriptionContainer}>
                   <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Default}
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextDefault}
                     style={styles.qrDescriptionText}
                   >
                     {strings('transactions.sign_description_1')}
                   </Text>
                   <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Default}
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextDefault}
                     style={styles.qrDescriptionText}
                   >
                     {strings('transactions.sign_description_2')}
@@ -261,15 +262,15 @@ export const AwaitingConfirmationContent: React.FC<
             ) : (
               <>
                 <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Default}
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextDefault}
                   style={styles.messageText}
                 >
                   {strings('transactions.sign_description_1')}
                 </Text>
                 <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Default}
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextDefault}
                   style={styles.messageText}
                 >
                   {strings('transactions.sign_description_2')}
@@ -334,8 +335,8 @@ export const AwaitingConfirmationContent: React.FC<
       body={
         <>
           <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Default}
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextDefault}
             style={styles.messageText}
           >
             {strings('hardware_wallet.awaiting_confirmation.message', {

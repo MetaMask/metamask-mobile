@@ -16,10 +16,6 @@ import { strings } from '../../../../locales/i18n';
 // Internal dependencies
 import { AddNewAccountProps } from './AddNewAccount.types';
 import { AddNewAccountIds } from './AddHdAccount.testIds';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
 import Input from '../../../component-library/components/Form/TextField/foundation/Input';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './AddNewAccount.styles';
@@ -45,6 +41,13 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { useHdKeyringsWithSnapAccounts } from '../../hooks/useHdKeyringsWithSnapAccounts';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+  FontWeight,
+} from '@metamask/design-system-react-native';
+import { TextVariant as LegacyTextVariant } from '../../../component-library/components/Texts/Text';
 
 const AddNewAccount = ({
   scope,
@@ -184,7 +187,7 @@ const AddNewAccount = ({
               <View style={styles.accountInputContainer}>
                 <Input
                   testID={AddNewAccountIds.NAME_INPUT}
-                  textVariant={TextVariant.BodyMDMedium}
+                  textVariant={LegacyTextVariant.BodyMDMedium}
                   style={styles.accountInput}
                   value={accountName}
                   onChangeText={(newName: string) => {
@@ -197,7 +200,10 @@ const AddNewAccount = ({
               </View>
               {hasMultipleSRPs && (
                 <View style={styles.srpSelectorContainer}>
-                  <Text variant={TextVariant.BodyMDMedium}>
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Medium}
+                  >
                     {strings('accounts.select_secret_recovery_phrase')}
                   </Text>
                   <View style={styles.srpSelector}>
@@ -221,7 +227,7 @@ const AddNewAccount = ({
                       testID={AddNewAccountIds.SRP_SELECTOR}
                     />
                   </View>
-                  <Text variant={TextVariant.BodySM}>
+                  <Text variant={TextVariant.BodySm}>
                     {strings('accounts.add_new_hd_account_helper_text')}
                   </Text>
                 </View>
@@ -233,7 +239,7 @@ const AddNewAccount = ({
                   style={styles.button}
                   variant={ButtonVariants.Secondary}
                   onPress={handleOnBack}
-                  labelTextVariant={TextVariant.BodyMD}
+                  labelTextVariant={LegacyTextVariant.BodyMDMedium}
                   label={strings('accounts.cancel')}
                 />
                 <Button
@@ -243,12 +249,15 @@ const AddNewAccount = ({
                   style={styles.button}
                   variant={ButtonVariants.Primary}
                   onPress={onSubmit}
-                  labelTextVariant={TextVariant.BodyMD}
+                  labelTextVariant={LegacyTextVariant.BodyMDMedium}
                   label={strings('accounts.add')}
                 />
               </View>
               {error && (
-                <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.ErrorDefault}
+                >
                   {error}
                 </Text>
               )}
