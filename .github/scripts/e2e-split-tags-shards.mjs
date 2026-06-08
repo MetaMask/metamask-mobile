@@ -437,6 +437,73 @@ function runYarn(scriptName, args, extraEnv = {}) {
   });
 }
 
+// ---------------------------------------------------------------------------
+// Shard assignment persistence — keeps the spec list stable across re-runs
+// so a failing test stays on the shard that GitHub will re-run.
+// ---------------------------------------------------------------------------
+
+const REPORTS_DIR = 'tests/reports';
+const SHARD_ASSIGNMENT_FILENAME = 'shard-assignment.json';
+
+/**
+ * Write the canonical spec list for this shard into the reports directory so
+ * it is uploaded with the junit artifact and can be recovered on re-run.
+ * @param {string[]} files - The full set of spec files assigned to this shard
+ */
+function persistShardAssignment(files) {
+  try {
+    fs.mkdirSync(REPORTS_DIR, { recursive: true });
+    const assignment = {
+      splitNumber: env.SPLIT_NUMBER,
+      totalSplits: env.TOTAL_SPLITS,
+      platform: env.PLATFORM,
+      testSuiteTag: env.TEST_SUITE_TAG,
+      files,
+    };
+    fs.writeFileSync(
+      path.join(REPORTS_DIR, SHARD_ASSIGNMENT_FILENAME),
+      JSON.stringify(assignment, null, 2),
+    );
+    console.log(`💾 Persisted shard assignment (${files.length} files) to ${REPORTS_DIR}/${SHARD_ASSIGNMENT_FILENAME}`);
+  } catch (e) {
+    console.warn(`⚠️  Failed to persist shard assignment: ${e?.message || e}`);
+  }
+}
+
+/**
+ * Load the shard assignment written by the previous attempt.
+ * Returns null when the file is missing, unreadable, or was produced by a
+ * different matrix configuration (different split count or split index).
+ * @returns {string[] | null}
+ */
+function loadPreviousShardAssignment() {
+  if (!env.PREVIOUS_RESULTS_PATH) return null;
+  const filePath = path.join(env.PREVIOUS_RESULTS_PATH, SHARD_ASSIGNMENT_FILENAME);
+  if (!fs.existsSync(filePath)) return null;
+  try {
+    const raw = fs.readFileSync(filePath, 'utf-8');
+    const assignment = JSON.parse(raw);
+    if (
+      assignment.splitNumber !== env.SPLIT_NUMBER ||
+      assignment.totalSplits !== env.TOTAL_SPLITS
+    ) {
+      console.log(
+        `⚠️  Persisted shard assignment is for split ${assignment.splitNumber}/${assignment.totalSplits} ` +
+        `but current config is ${env.SPLIT_NUMBER}/${env.TOTAL_SPLITS} — ignoring stale assignment.`,
+      );
+      return null;
+    }
+    if (!Array.isArray(assignment.files) || assignment.files.length === 0) {
+      console.log('⚠️  Persisted shard assignment has no files — ignoring.');
+      return null;
+    }
+    return assignment.files;
+  } catch (e) {
+    console.warn(`⚠️  Failed to load persisted shard assignment: ${e?.message || e}`);
+    return null;
+  }
+}
+
 /**
  * Derive the retry filename for a given spec: base -> base-retry-N
  * @param {*} originalPath - The original path to the spec file
@@ -575,7 +642,24 @@ async function main() {
   console.log(`Found ${allMatches.length} matching spec files to split across ${env.TOTAL_SPLITS} shards`);
 
   // 2) Shard by measured times when timings JSON exists, else by file count
-  const splitFiles = await selectShardFiles(allMatches, env.SPLIT_NUMBER, env.TOTAL_SPLITS, env.PLATFORM);
+  let splitFiles = await selectShardFiles(allMatches, env.SPLIT_NUMBER, env.TOTAL_SPLITS, env.PLATFORM);
+
+  // 2a) On re-runs, restore the original shard assignment so the same spec files
+  //     are owned by this shard. Without this, live bin-packing timings can shift
+  //     a failing test to a different shard that GitHub won't re-run, hiding the failure.
+  if (env.RUN_ATTEMPT > 1 && env.PREVIOUS_RESULTS_PATH) {
+    const persisted = loadPreviousShardAssignment();
+    if (persisted) {
+      console.log(`📋 Restored persisted shard assignment (${persisted.length} files) — overriding live bin-pack.`);
+      splitFiles = persisted;
+    } else {
+      console.log('ℹ️  No persisted shard assignment found — using live bin-pack (assignment may differ from attempt 1).');
+    }
+  }
+
+  // Persist the canonical file list for this shard so future re-runs can restore it.
+  persistShardAssignment(splitFiles);
+
   let runFiles = [...splitFiles];
 
   if (runFiles.length === 0) {
