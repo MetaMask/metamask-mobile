@@ -81,9 +81,6 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
     resetScrollTracking();
   }, [searchQuery, resetScrollTracking]);
 
-  const resultCountRef = useRef(resultCount);
-  resultCountRef.current = resultCount;
-
   const renderItem: ListRenderItem<unknown> = useCallback(
     ({ item, index }) => (
       <SearchFeedRow
@@ -92,10 +89,10 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
         index={index}
         searchQuery={searchQuery}
         tabName={tabName}
-        resultCount={resultCountRef.current}
+        resultCount={resultCount}
       />
     ),
-    [feedId, searchQuery, tabName],
+    [feedId, searchQuery, tabName, resultCount],
   );
 
   const keyExtractor = useCallback(
