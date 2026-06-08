@@ -19,6 +19,7 @@ import {
   PAY_ENABLE_DEPOSIT_WALLET_WITHDRAW_DEFAULT,
   PAY_ENABLE_PERPS_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT,
   PAY_ENABLE_PREDICT_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT,
+  PAY_ENABLE_MONEY_HOME_PAGE_PERPS_TRANSACTION_DEFAULT,
   PAY_HARDWARE_ENABLED_DEFAULT,
   PreferredToken,
   getPreferredTokensForTransactionType,
@@ -628,5 +629,75 @@ describe('selectMetaMaskPayFlags extended flags', () => {
     expect(
       selectMetaMaskPayFlags(state).enablePredictMoneyAccountTransactions,
     ).toBe(true);
+  });
+
+  describe('enableMoneyHomePagePerpsTransaction', () => {
+    afterEach(() => {
+      delete process.env.MONEY_HOME_PAGE_PERPS_PREDICT_ENABLED;
+    });
+
+    it('returns default (false) when flag is absent and env var is unset', () => {
+      const state = cloneDeep(mockedEmptyFlagsState);
+
+      expect(
+        selectMetaMaskPayFlags(state).enablePerpsMoneyAccountTransactions,
+      ).toEqual(PAY_ENABLE_MONEY_HOME_PAGE_PERPS_TRANSACTION_DEFAULT);
+    });
+
+    it('returns false when remote flag is true but env var is unset', () => {
+      const state = cloneDeep(mockedEmptyFlagsState);
+      state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+        {
+          confirmations_pay_extended: {
+            enablePerpsMoneyAccountTransactions: true,
+          },
+        };
+
+      expect(
+        selectMetaMaskPayFlags(state).enableMoneyHomePagePerpsTransaction,
+      ).toBe(false);
+    });
+
+    it('returns false when env var is true but remote flag is absent', () => {
+      process.env.MONEY_HOME_PAGE_PERPS_PREDICT_ENABLED = 'true';
+
+      const state = cloneDeep(mockedEmptyFlagsState);
+
+      expect(
+        selectMetaMaskPayFlags(state).enableMoneyHomePagePerpsTransaction,
+      ).toBe(false);
+    });
+
+    it('returns true when both env var and remote flag are true', () => {
+      process.env.MONEY_HOME_PAGE_PERPS_PREDICT_ENABLED = 'true';
+
+      const state = cloneDeep(mockedEmptyFlagsState);
+      state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+        {
+          confirmations_pay_extended: {
+            enablePerpsMoneyAccountTransactions: true,
+          },
+        };
+
+      expect(
+        selectMetaMaskPayFlags(state).enableMoneyHomePagePerpsTransaction,
+      ).toBe(true);
+    });
+
+    it('returns false when env var is set to a non-true value', () => {
+      process.env.MONEY_HOME_PAGE_PERPS_PREDICT_ENABLED = 'false';
+
+      const state = cloneDeep(mockedEmptyFlagsState);
+      state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+        {
+          confirmations_pay_extended: {
+            enablePerpsMoneyAccountTransactions: true,
+          },
+        };
+
+      expect(
+        selectMetaMaskPayFlags(state).enableMoneyHomePagePerpsTransaction,
+      ).toBe(false);
+    });
   });
 });
