@@ -2,7 +2,7 @@
 #
 # Fans out reusable workflow jobs per Appium smoke tag. Only SmokeAccounts is
 # wired today; add more jobs here as Appium specs land for other categories.
-# Also append new tags to scripts/e2e/appium-ios-smoke-tags.mjs (CI WDA gate).
+# Also append new tags to scripts/e2e/appium-smoke-tags.mjs (CI Appium smoke gate).
 #
 # Called from ci.yml after ios-tests-ready succeeds.
 
