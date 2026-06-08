@@ -15,7 +15,7 @@ import Button, {
 import { CONNECTING_TO_DEPRECATED_NETWORK } from '../../../constants/urls';
 import BottomSheet from '../../../component-library/components/BottomSheets/BottomSheet';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { trackExternalLinkClicked } from '../../../util/analytics/externalLinkTracking';
 
 const DeprecatedNetworkModal = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -28,15 +28,11 @@ const DeprecatedNetworkModal = () => {
 
   const goToLearnMore = () => {
     Linking.openURL(CONNECTING_TO_DEPRECATED_NETWORK);
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.EXTERNAL_LINK_CLICKED)
-        .addProperties({
-          location: 'dapp_connection_request',
-          text: 'Learn More',
-          url_domain: CONNECTING_TO_DEPRECATED_NETWORK,
-        })
-        .build(),
-    );
+    trackExternalLinkClicked(trackEvent, createEventBuilder, {
+      location: 'dapp_connection_request',
+      text: 'Learn More',
+      url_domain: CONNECTING_TO_DEPRECATED_NETWORK,
+    });
   };
 
   const sheetRef = useRef(null);
