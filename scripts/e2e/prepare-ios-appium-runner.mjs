@@ -77,12 +77,18 @@ if (hasUsableWdaArtifacts()) {
 await Promise.all(installTasks);
 
 if (iosWdaPreinstalled === 'true' && iosWdaBundleIdBase) {
-  await warmUpIosAppiumWda({
-    udid,
-    wdaBundleIdBase: iosWdaBundleIdBase,
-    simulatorName,
-    appBundleId: bundleId,
-  });
+  try {
+    await warmUpIosAppiumWda({
+      udid,
+      wdaBundleIdBase: iosWdaBundleIdBase,
+      simulatorName,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn(
+      `WDA warm-up failed — prepare continues; Playwright will attach to WDA (may be cold): ${message}`,
+    );
+  }
 }
 
 console.log(`IOS_SIMULATOR_UDID=${udid}`);

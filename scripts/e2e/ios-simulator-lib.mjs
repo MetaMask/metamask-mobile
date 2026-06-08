@@ -98,6 +98,15 @@ export async function bootIosSimulator(deviceName) {
 }
 
 /**
+ * Blocks until simctl reports the simulator fully booted (SpringBoard ready).
+ * Call before Appium warm-up so XCUITest does not race simctl bootstatus.
+ * @param {string} udid
+ */
+export async function ensureIosSimulatorBooted(udid) {
+  await execFileAsync('xcrun', ['simctl', 'bootstatus', udid, '-b']);
+}
+
+/**
  * @param {{ udid: string; bundleId: string; appPath: string }} options
  */
 export async function installIosApp({ udid, bundleId, appPath }) {
