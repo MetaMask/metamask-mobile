@@ -129,6 +129,7 @@ const usdcNetworkFeeAsset = {
   decimals: 6,
 };
 
+let mockShouldUseSmartTransaction = false;
 let mockSelectedTokens: BridgeToken[] = [ethToken, uniToken];
 let mockSelectedDestinationToken: BridgeToken | undefined = usdcToken;
 let mockBatchSellSourceTokenAmounts: Partial<
@@ -203,6 +204,10 @@ jest.mock('../../../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: jest.fn(() => 'USD'),
 }));
 
+jest.mock('../../../../../selectors/smartTransactionsController', () => ({
+  selectShouldUseSmartTransaction: jest.fn(() => mockShouldUseSmartTransaction),
+}));
+
 jest.mock('../../../../../util/Logger', () => ({
   __esModule: true,
   default: {
@@ -214,6 +219,7 @@ jest.mock('../../../../../util/Logger', () => ({
 describe('useBatchSellQuoteData', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockShouldUseSmartTransaction = false;
     mockSelectedTokens = [ethToken, uniToken];
     mockSelectedDestinationToken = usdcToken;
     mockBatchSellSourceTokenAmounts = {
@@ -296,7 +302,7 @@ describe('useBatchSellQuoteData', () => {
     );
     expect(
       Engine.context.BridgeController.updateBatchSellTrades,
-    ).toHaveBeenCalledWith(mockBatchSellQuotes.recommendedQuotes);
+    ).toHaveBeenCalledWith(mockBatchSellQuotes.recommendedQuotes, false);
     expect(result.current.tokenData).toEqual({
       [ethAssetId]: expect.objectContaining({
         key: ethAssetId,
@@ -512,6 +518,26 @@ describe('useBatchSellQuoteData', () => {
     ).toHaveBeenCalledTimes(2);
   });
 
+  it('passes isSmartTransaction=false to updateBatchSellTrades when STX is disabled', () => {
+    mockShouldUseSmartTransaction = false;
+
+    renderHook(() => useBatchSellQuoteData());
+
+    expect(
+      Engine.context.BridgeController.updateBatchSellTrades,
+    ).toHaveBeenCalledWith(expect.any(Array), false);
+  });
+
+  it('passes isSmartTransaction=true to updateBatchSellTrades when STX is enabled', () => {
+    mockShouldUseSmartTransaction = true;
+
+    renderHook(() => useBatchSellQuoteData());
+
+    expect(
+      Engine.context.BridgeController.updateBatchSellTrades,
+    ).toHaveBeenCalledWith(expect.any(Array), true);
+  });
+
   it('falls back to destination token amounts when display currency values are unavailable', () => {
     mockBatchSellQuotes = {
       ...mockBatchSellQuotes,
@@ -705,7 +731,7 @@ describe('useBatchSellQuoteData', () => {
     expect(result.current.hasPendingQuoteRows).toBe(false);
     expect(
       Engine.context.BridgeController.updateBatchSellTrades,
-    ).toHaveBeenCalledWith([mockBatchSellQuotes.recommendedQuotes[0]]);
+    ).toHaveBeenCalledWith([mockBatchSellQuotes.recommendedQuotes[0]], false);
     expect(result.current.tokenData[uniAssetId]).toEqual(
       expect.objectContaining({
         tokenSymbol: 'UNI',
@@ -770,7 +796,7 @@ describe('useBatchSellQuoteData', () => {
     expect(result.current.hasPendingQuoteRows).toBe(false);
     expect(
       Engine.context.BridgeController.updateBatchSellTrades,
-    ).toHaveBeenCalledWith(mockBatchSellQuotes.recommendedQuotes);
+    ).toHaveBeenCalledWith(mockBatchSellQuotes.recommendedQuotes, false);
   });
 
   it('hides stale quotes when a refresh starts and reveals new streamed quotes progressively', () => {
