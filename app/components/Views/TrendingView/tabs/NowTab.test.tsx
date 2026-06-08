@@ -42,16 +42,21 @@ jest.mock('../../../../hooks', () => ({
     Reflect.apply(mockUseABTest, undefined, args),
 }));
 
-const mockUsePerpsFeed = jest.fn(() => ({
-  data: [],
+const mockUsePerpsTopMovers = jest.fn(() => ({
+  data: [] as { symbol: string; change24hPercent?: string }[],
   isLoading: false,
-  refetch: jest.fn(),
-  defaultSortOptionId: 'priceChange' as const,
 }));
 
-jest.mock('../feeds/perps/usePerpsFeed', () => ({
-  ...jest.requireActual('../feeds/perps/usePerpsFeed'),
-  usePerpsFeed: () => mockUsePerpsFeed(),
+const mockRefetchMarkets = jest.fn();
+
+jest.mock('../../../UI/Perps/hooks/usePerpsTopMovers', () => ({
+  usePerpsTopMovers: (...args: unknown[]) => mockUsePerpsTopMovers(...args),
+}));
+
+jest.mock('../../../UI/Perps/hooks', () => ({
+  usePerpsMarkets: () => ({
+    refresh: mockRefetchMarkets,
+  }),
 }));
 
 jest.mock('../feeds/perps/PerpsPillItem', () => {
@@ -240,11 +245,9 @@ const mockTreatmentAbTest = () =>
 beforeEach(() => {
   jest.clearAllMocks();
   mockControlAbTest();
-  mockUsePerpsFeed.mockReturnValue({
+  mockUsePerpsTopMovers.mockReturnValue({
     data: [],
     isLoading: false,
-    refetch: jest.fn(),
-    defaultSortOptionId: 'priceChange' as const,
   });
   mockUsePredictionsFeed.mockReturnValue({ data: [], isLoading: false });
   mockUseWorldCupPredictionsFeed.mockReturnValue({
@@ -389,11 +392,9 @@ describe('NowTab — Perps Movers "View All" navigation', () => {
 
   it('calls navigateToPerpsMarketList with "all" filter, price change sort, and gainers direction by default', () => {
     // Return one market so PerpsBlock does not bail out with an early null return.
-    mockUsePerpsFeed.mockReturnValue({
-      data: [{ market: { symbol: 'BTC', change24hPercent: '5' } }] as never,
+    mockUsePerpsTopMovers.mockReturnValue({
+      data: [{ symbol: 'BTC', change24hPercent: '5' }],
       isLoading: false,
-      refetch: jest.fn(),
-      defaultSortOptionId: 'priceChange' as const,
     });
 
     renderNowTab();
@@ -410,14 +411,12 @@ describe('NowTab — Perps Movers "View All" navigation', () => {
   });
 
   it('renders Gainers by default and filters out negative price changes', () => {
-    mockUsePerpsFeed.mockReturnValue({
+    mockUsePerpsTopMovers.mockReturnValue({
       data: [
-        { market: { symbol: 'BTC', change24hPercent: '5' } },
-        { market: { symbol: 'ETH', change24hPercent: '-3' } },
-      ] as never,
+        { symbol: 'BTC', change24hPercent: '5' },
+        { symbol: 'ETH', change24hPercent: '-3' },
+      ],
       isLoading: false,
-      refetch: jest.fn(),
-      defaultSortOptionId: 'priceChange' as const,
     });
 
     renderNowTab();
@@ -428,11 +427,9 @@ describe('NowTab — Perps Movers "View All" navigation', () => {
   });
 
   it('renders pill skeletons while Perps Movers are loading', () => {
-    mockUsePerpsFeed.mockReturnValue({
+    mockUsePerpsTopMovers.mockReturnValue({
       data: [],
       isLoading: true,
-      refetch: jest.fn(),
-      defaultSortOptionId: 'priceChange' as const,
     });
 
     renderNowTab();
@@ -443,14 +440,12 @@ describe('NowTab — Perps Movers "View All" navigation', () => {
   });
 
   it('renders placeholder perps when price change data is unavailable after loading', () => {
-    mockUsePerpsFeed.mockReturnValue({
+    mockUsePerpsTopMovers.mockReturnValue({
       data: [
-        { market: { symbol: 'BTC', change24hPercent: '' } },
-        { market: { symbol: 'ETH', change24hPercent: undefined } },
-      ] as never,
+        { symbol: 'BTC', change24hPercent: '' },
+        { symbol: 'ETH', change24hPercent: undefined },
+      ],
       isLoading: false,
-      refetch: jest.fn(),
-      defaultSortOptionId: 'priceChange' as const,
     });
 
     renderNowTab();
@@ -461,14 +456,12 @@ describe('NowTab — Perps Movers "View All" navigation', () => {
   });
 
   it('does not render pill skeletons when price change data is valid but filtered out', () => {
-    mockUsePerpsFeed.mockReturnValue({
+    mockUsePerpsTopMovers.mockReturnValue({
       data: [
-        { market: { symbol: 'BTC', change24hPercent: '0%' } },
-        { market: { symbol: 'ETH', change24hPercent: '0.00%' } },
-      ] as never,
+        { symbol: 'BTC', change24hPercent: '0%' },
+        { symbol: 'ETH', change24hPercent: '0.00%' },
+      ],
       isLoading: false,
-      refetch: jest.fn(),
-      defaultSortOptionId: 'priceChange' as const,
     });
 
     renderNowTab();
@@ -477,16 +470,21 @@ describe('NowTab — Perps Movers "View All" navigation', () => {
   });
 
   it('renders Losers sorted by biggest negative move and passes ascending sort direction to the market list', () => {
-    mockUsePerpsFeed.mockReturnValue({
-      data: [
-        { market: { symbol: 'BTC', change24hPercent: '5' } },
-        { market: { symbol: 'ETH', change24hPercent: '-3' } },
-        { market: { symbol: 'SOL', change24hPercent: '-8' } },
-      ] as never,
+    mockUsePerpsTopMovers.mockImplementation(({ direction }) => ({
+      data:
+        direction === 'asc'
+          ? [
+              { symbol: 'SOL', change24hPercent: '-8' },
+              { symbol: 'ETH', change24hPercent: '-3' },
+              { symbol: 'BTC', change24hPercent: '5' },
+            ]
+          : [
+              { symbol: 'BTC', change24hPercent: '5' },
+              { symbol: 'ETH', change24hPercent: '-3' },
+              { symbol: 'SOL', change24hPercent: '-8' },
+            ],
       isLoading: false,
-      refetch: jest.fn(),
-      defaultSortOptionId: 'priceChange' as const,
-    });
+    }));
 
     renderNowTab();
 

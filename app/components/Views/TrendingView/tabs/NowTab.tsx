@@ -14,6 +14,8 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 import type { PerpsNavigationParamList } from '../../../UI/Perps/types/navigation';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
 import { selectPredictEnabledFlag } from '../../../UI/Predict';
+import { usePerpsTopMovers } from '../../../UI/Perps/hooks/usePerpsTopMovers';
+import { usePerpsMarkets } from '../../../UI/Perps/hooks';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { TrendingViewSelectorsIDs } from '../TrendingView.testIds';
@@ -27,7 +29,6 @@ import { TimeOption } from '../../../UI/Trending/components/TrendingTokensBottom
 import {
   filterAndSortByPriceChangeDirection,
   PERPS_PRICE_CHANGE_SORT_DIRECTION,
-  usePerpsFeed,
   type PerpsFeedItem,
   type PerpsPriceChangeDirection,
 } from '../feeds/perps/usePerpsFeed';
@@ -52,6 +53,7 @@ import PillScrollList from '../components/PillScrollList';
 import PillRow, { type PillOption } from '../components/PillRow';
 import SectionHeader from '../components/SectionHeader';
 import type { TabProps } from '../hooks/useExploreRefresh';
+import { useFeedRefresh } from '../hooks/useFeedRefresh';
 import { trackExploreInteracted } from '../search/analytics';
 import WhatsHappeningSection from '../../../UI/WhatsHappening';
 import { WhatsHappeningSource } from '../../../UI/WhatsHappening/constants';
@@ -72,10 +74,13 @@ interface PerpsBlockProps {
 const PerpsBlock: React.FC<PerpsBlockProps> = ({ refresh, navigation }) => {
   const [activeMoverDirection, setActiveMoverDirection] =
     useState<PerpsPriceChangeDirection>('gainers');
-  const perps = usePerpsFeed({
-    variant: 'all',
-    refresh,
-    withTileExtras: false,
+  const sortDirection = PERPS_PRICE_CHANGE_SORT_DIRECTION[activeMoverDirection];
+  const { refresh: refetchMarkets } = usePerpsMarkets();
+
+  useFeedRefresh(refresh, refetchMarkets);
+
+  const { data: topMovers, isLoading } = usePerpsTopMovers({
+    direction: sortDirection,
   });
 
   const moverPills: PillOption[] = [
@@ -96,42 +101,32 @@ const PerpsBlock: React.FC<PerpsBlockProps> = ({ refresh, navigation }) => {
   };
 
   const data = useMemo<PerpsFeedItem[]>(() => {
-    const feedItemsBySymbol = new Map(
-      perps.data.map((item) => [item.market.symbol, item]),
-    );
     const markets = filterAndSortByPriceChangeDirection(
-      perps.data.map((item) => item.market),
+      topMovers,
       activeMoverDirection,
     );
-    return markets
-      .map((market) => feedItemsBySymbol.get(market.symbol))
-      .filter((item): item is PerpsFeedItem => item !== undefined);
-  }, [activeMoverDirection, perps.data]);
+    return markets.map((market) => ({ market, isWatchlisted: false }));
+  }, [activeMoverDirection, topMovers]);
+
   const pillData =
     data.length === 0 &&
-    perps.data.length > 0 &&
-    perps.data.every(({ market }) =>
+    topMovers.length > 0 &&
+    topMovers.every((market) =>
       Number.isNaN(parseFloat(market.change24hPercent)),
     )
-      ? perps.data
+      ? topMovers.map((market) => ({ market, isWatchlisted: false }))
       : data;
 
-  if (!perps.isLoading && perps.data.length === 0) return null;
+  if (!isLoading && topMovers.length === 0) return null;
 
   return (
     <Box>
       <SectionHeader
         title={strings('trending.perps_movers')}
         onViewAll={() =>
-          navigateToPerpsMarketList(
-            navigation,
-            'all',
-            perps.defaultSortOptionId,
-            {
-              sortDirection:
-                PERPS_PRICE_CHANGE_SORT_DIRECTION[activeMoverDirection],
-            },
-          )
+          navigateToPerpsMarketList(navigation, 'all', 'priceChange', {
+            sortDirection,
+          })
         }
         testID="section-header-view-all-perps"
         tabName="Now"
@@ -145,7 +140,7 @@ const PerpsBlock: React.FC<PerpsBlockProps> = ({ refresh, navigation }) => {
       />
       <PillScrollList<PerpsFeedItem>
         data={pillData}
-        isLoading={perps.isLoading}
+        isLoading={isLoading}
         renderItem={(item, index) => (
           <PerpsPillItem
             item={item}

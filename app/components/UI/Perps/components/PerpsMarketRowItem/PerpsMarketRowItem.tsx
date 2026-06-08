@@ -15,11 +15,19 @@ import {
 import {
   PERPS_CONSTANTS,
   getPerpsDisplaySymbol,
+  type PerpsMarketData,
 } from '@metamask/perps-controller';
 import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
-import { usePerpsLiveMarket } from '../../hooks/stream';
+import { usePerpsLivePrices } from '../../hooks/stream';
 import { getMarketBadgeType } from '../../utils/marketUtils';
-import { formatFundingRate } from '../../utils/formatUtils';
+import {
+  formatFundingRate,
+  formatPercentage,
+  formatPerpsFiat,
+  formatPnl,
+  formatVolume,
+  PRICE_RANGES_UNIVERSAL,
+} from '../../utils/formatUtils';
 import PerpsBadge from '../PerpsBadge';
 import PerpsLeverage from '../PerpsLeverage/PerpsLeverage';
 import PerpsTokenLogo from '../PerpsTokenLogo';
@@ -33,7 +41,73 @@ const PerpsMarketRowItem = ({
   showBadge = false,
   compact = false,
 }: PerpsMarketRowItemProps) => {
-  const displayMarket = usePerpsLiveMarket(market);
+  // Subscribe to live prices for just this symbol
+  const livePrices = usePerpsLivePrices({
+    symbols: [market.symbol],
+    throttleMs: 3000, // 3 seconds for list view
+  });
+
+  // Merge live price into market data
+  const displayMarket = useMemo(() => {
+    const livePrice = livePrices[market.symbol];
+    if (!livePrice) {
+      return market;
+    }
+
+    const currentPrice = parseFloat(livePrice.price);
+
+    const formattedPrice = formatPerpsFiat(currentPrice, {
+      ranges: PRICE_RANGES_UNIVERSAL,
+    });
+    const comparisonPrice = formatPerpsFiat(currentPrice, {
+      minimumDecimals: 2,
+      maximumDecimals: 2,
+    });
+
+    const fundingRateChanged =
+      livePrice.funding !== undefined &&
+      livePrice.funding !== market.fundingRate;
+
+    if (comparisonPrice === market.price && !fundingRateChanged) {
+      return market;
+    }
+
+    const updatedMarket: PerpsMarketData = {
+      ...market,
+      price: formattedPrice,
+    };
+
+    if (livePrice.percentChange24h) {
+      const changePercent = parseFloat(livePrice.percentChange24h);
+      updatedMarket.change24hPercent = formatPercentage(changePercent);
+
+      // If current price is P and change is x%, price 24h ago = P / (1 + x/100)
+      const divisor = 1 + changePercent / 100;
+      const priceChange =
+        divisor !== 0 ? currentPrice - currentPrice / divisor : -currentPrice;
+      updatedMarket.change24h = formatPnl(priceChange);
+    }
+
+    if (livePrice.volume24h !== undefined) {
+      const volume = livePrice.volume24h;
+      if (volume > 0) {
+        updatedMarket.volume = formatVolume(volume);
+      } else {
+        updatedMarket.volume = PERPS_CONSTANTS.ZeroAmountDetailedDisplay;
+      }
+    } else if (
+      !market.volume ||
+      market.volume === PERPS_CONSTANTS.ZeroAmountDisplay
+    ) {
+      updatedMarket.volume = PERPS_CONSTANTS.FallbackPriceDisplay;
+    }
+
+    if (livePrice.funding !== undefined) {
+      updatedMarket.fundingRate = livePrice.funding;
+    }
+
+    return updatedMarket;
+  }, [market, livePrices]);
 
   const handlePress = () => {
     onPress?.(displayMarket);

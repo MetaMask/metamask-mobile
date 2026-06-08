@@ -12,10 +12,6 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
 }));
 
-jest.mock('../../hooks/stream', () => ({
-  usePerpsLiveMarket: jest.fn((market) => market),
-}));
-
 describe('PerpsPillItem', () => {
   beforeEach(() => {
     jest.clearAllMocks();

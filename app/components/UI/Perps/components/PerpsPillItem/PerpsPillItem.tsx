@@ -11,7 +11,6 @@ import { formatPercentChange } from '../../../Trending/utils/formatPercentChange
 import { ExplorePill } from '../../../Trending/components/ExplorePill';
 import type { PerpsFeedItem } from '../../types/perpsFeedTypes';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
-import { usePerpsLiveMarket } from '../../hooks/stream';
 
 const LOGO_SIZE = 24;
 
@@ -41,7 +40,7 @@ const PerpsPillItem: React.FC<PerpsPillItemProps> = ({
   transactionActiveAbTests,
 }) => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
-  const market = usePerpsLiveMarket(item.market);
+  const { market } = item;
 
   const { changeLabel, changeTextColor } = useMemo(
     () => formatPercentChange(market.change24hPercent),
