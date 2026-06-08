@@ -1,11 +1,39 @@
 import { useCallback, useEffect, useRef, useMemo } from 'react';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
+import {
+  MetaMetricsEvents,
+  mergeAssetViewedProperties,
+} from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import { PERPS_EVENT_PROPERTY } from '@metamask/perps-controller';
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
 
 // Static helper function - moved outside component to avoid recreation
 const allTrue = (conditionArray: boolean[]): boolean =>
   conditionArray.length > 0 && conditionArray.every(Boolean);
+
+/**
+ * Perps screen types excluded from the parallel Asset Viewed emission.
+ *
+ * `screen_type: 'cancel_all_orders'` (PERPS_EVENT_VALUE.SCREEN_TYPE.CANCEL_ALL_ORDERS)
+ * sends open-order count in legacy `open_position`. `mergeAssetViewedProperties`
+ * would map that to `open_positions_count`, so we skip Asset Viewed for this flow.
+ */
+const PERPS_SCREEN_TYPES_SKIP_ASSET_VIEWED: ReadonlySet<string> = new Set([
+  PERPS_EVENT_VALUE.SCREEN_TYPE.CANCEL_ALL_ORDERS,
+]);
+
+const shouldEmitAssetViewedForPerpsScreenViewed = (
+  perpsScreenViewedProperties: Record<string, unknown>,
+): boolean => {
+  const screenType =
+    perpsScreenViewedProperties[PERPS_EVENT_PROPERTY.SCREEN_TYPE];
+  return !(
+    typeof screenType === 'string' &&
+    PERPS_SCREEN_TYPES_SKIP_ASSET_VIEWED.has(screenType)
+  );
+};
 
 interface EventTrackingOptions {
   eventName: (typeof MetaMetricsEvents)[keyof typeof MetaMetricsEvents];
@@ -63,6 +91,17 @@ export const usePerpsEventTracking = (options?: EventTrackingOptions) => {
         ...properties,
       };
       trackEvent(createEventBuilder(eventName).addProperties(props).build());
+
+      if (
+        eventName === MetaMetricsEvents.PERPS_SCREEN_VIEWED &&
+        shouldEmitAssetViewedForPerpsScreenViewed(props)
+      ) {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.ASSET_VIEWED)
+            .addProperties(mergeAssetViewedProperties('Perps', props))
+            .build(),
+        );
+      }
     },
     [trackEvent, createEventBuilder],
   );

@@ -7,7 +7,7 @@ import {
   usePushPrePromptVariant,
   type PushPrePromptVariant,
 } from '../../../../util/notifications/hooks/usePushPrePromptVariant';
-import { isE2E } from '../../../../util/test/utils';
+import { isE2EOrExpEnvironment } from '../../../../util/test/utils';
 import { selectPrePushPromptEnabled } from '../../../../selectors/featureFlagController/engagement';
 import PushNotificationPermissionFallback from './PushNotificationPermissionFallback';
 
@@ -64,7 +64,7 @@ const PushNotificationOnboardingRootContent = () => {
 const PushNotificationOnboardingRoot = () => {
   const isPrePromptEnabled = useSelector(selectPrePushPromptEnabled);
 
-  if (isE2E) {
+  if (isE2EOrExpEnvironment) {
     return null;
   }
 

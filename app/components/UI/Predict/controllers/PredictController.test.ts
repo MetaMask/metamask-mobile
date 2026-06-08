@@ -309,9 +309,11 @@ describe('PredictController', () => {
     // Create mock PolymarketProvider with required methods
     mockPolymarketProvider = {
       getMarkets: jest.fn(),
+      listMarkets: jest.fn(),
       searchMarkets: jest.fn(),
       getCarouselMarkets: jest.fn(),
       getMarketsByIds: jest.fn(),
+      getMarketSeries: jest.fn(),
       getPositions: jest.fn(),
       getMarketDetails: jest.fn(),
       getActivity: jest.fn(),
@@ -674,6 +676,45 @@ describe('PredictController', () => {
         );
 
         await expect(controller.getMarkets({})).rejects.toThrow(errorMessage);
+        expect(controller.state.lastError).toBe(errorMessage);
+      });
+    });
+
+    it('lists markets by delegating to the provider', async () => {
+      const mockMarkets = [
+        {
+          id: 'm1',
+          question: 'Will it rain tomorrow?',
+          outcomes: ['YES', 'NO'],
+        },
+      ];
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.listMarkets.mockResolvedValue({
+          markets: mockMarkets as any,
+          nextCursor: 'cursor-2',
+        });
+
+        const result = await controller.listMarkets({ order: 'liquidity' });
+
+        expect(result).toEqual({
+          markets: mockMarkets as any,
+          nextCursor: 'cursor-2',
+        });
+        expect(mockPolymarketProvider.listMarkets).toHaveBeenCalledWith({
+          order: 'liquidity',
+        });
+      });
+    });
+
+    it('handles errors when listing markets', async () => {
+      await withController(async ({ controller }) => {
+        const errorMessage = 'Network error';
+        mockPolymarketProvider.listMarkets.mockRejectedValue(
+          new Error(errorMessage),
+        );
+
+        await expect(controller.listMarkets({})).rejects.toThrow(errorMessage);
         expect(controller.state.lastError).toBe(errorMessage);
       });
     });
@@ -2437,7 +2478,8 @@ describe('PredictController', () => {
       minimumVersion?: string;
       highlights: {
         category: string;
-        markets: string[];
+        markets?: string[];
+        series?: string[];
       }[];
     }) => ({
       remoteFeatureFlags: {
@@ -2717,7 +2759,7 @@ describe('PredictController', () => {
       );
     });
 
-    it('handles getMarketsByIds failure gracefully', async () => {
+    it('handles an empty getMarketsByIds result gracefully', async () => {
       const regularMarkets = [createMockMarket('regular-1')];
 
       await withController(
@@ -2734,6 +2776,38 @@ describe('PredictController', () => {
 
           expect(result.markets).toHaveLength(1);
           expect(result.markets[0].id).toBe('regular-1');
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest.fn().mockReturnValue(
+              createFlagState({
+                enabled: true,
+                highlights: [
+                  { category: 'trending', markets: ['highlight-1'] },
+                ],
+              }),
+            ),
+          },
+        },
+      );
+    });
+
+    it('propagates getMarketsByIds rejections so the caller sees the failure', async () => {
+      const regularMarkets = [createMockMarket('regular-1')];
+
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.getMarkets.mockResolvedValue({
+            markets: regularMarkets as any,
+            nextCursor: null,
+          });
+          mockPolymarketProvider.getMarketsByIds.mockRejectedValue(
+            new Error('market-ids provider failed'),
+          );
+
+          await expect(
+            controller.getMarkets({ category: 'trending' }),
+          ).rejects.toBeDefined();
         },
         {
           mocks: {
@@ -3080,6 +3154,387 @@ describe('PredictController', () => {
                   {
                     category: 'trending',
                     markets: ['highlight-1'],
+                  },
+                ],
+              }),
+            ),
+          },
+        },
+      );
+    });
+
+    it('resolves a series highlight to its currently live market and prepends it', async () => {
+      const expiredMarket = {
+        ...createMockMarket('series-expired'),
+        endDate: new Date(Date.now() - 60_000).toISOString(),
+      };
+      const liveMarket = {
+        ...createMockMarket('series-live'),
+        endDate: new Date(Date.now() + 60_000).toISOString(),
+      };
+      const regularMarkets = [createMockMarket('regular-1')];
+
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.getMarkets.mockResolvedValue({
+            markets: regularMarkets as any,
+            nextCursor: null,
+          });
+          mockPolymarketProvider.getMarketSeries.mockResolvedValue([
+            expiredMarket,
+            liveMarket,
+          ] as any);
+
+          const result = await controller.getMarkets({ category: 'crypto' });
+
+          expect(result.markets).toHaveLength(2);
+          expect(result.markets[0].id).toBe('series-live');
+          expect(result.markets[0].isHighlighted).toBe(true);
+          expect(result.markets[1].id).toBe('regular-1');
+          expect(result.markets[1].isHighlighted).toBeUndefined();
+          expect(mockPolymarketProvider.getMarketSeries).toHaveBeenCalledWith(
+            expect.objectContaining({
+              seriesId: 'series-abc',
+              endDateMin: expect.any(String),
+              endDateMax: expect.any(String),
+              limit: 50,
+            }),
+          );
+          expect(mockPolymarketProvider.getMarketsByIds).not.toHaveBeenCalled();
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest.fn().mockReturnValue(
+              createFlagState({
+                enabled: true,
+                highlights: [{ category: 'crypto', series: ['series-abc'] }],
+              }),
+            ),
+          },
+        },
+      );
+    });
+
+    it('prepends market-id highlights before series-resolved highlights when both are configured', async () => {
+      const directMarket = createMockMarket('direct-1');
+      const liveSeriesMarket = {
+        ...createMockMarket('series-live'),
+        endDate: new Date(Date.now() + 60_000).toISOString(),
+      };
+      const regularMarkets = [createMockMarket('regular-1')];
+
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.getMarkets.mockResolvedValue({
+            markets: regularMarkets as any,
+            nextCursor: null,
+          });
+          mockPolymarketProvider.getMarketsByIds.mockResolvedValue([
+            directMarket,
+          ] as any);
+          mockPolymarketProvider.getMarketSeries.mockResolvedValue([
+            liveSeriesMarket,
+          ] as any);
+
+          const result = await controller.getMarkets({ category: 'crypto' });
+
+          expect(result.markets).toHaveLength(3);
+          expect(result.markets.map((m) => m.id)).toEqual([
+            'direct-1',
+            'series-live',
+            'regular-1',
+          ]);
+          expect(result.markets[0].isHighlighted).toBe(true);
+          expect(result.markets[1].isHighlighted).toBe(true);
+          expect(result.markets[2].isHighlighted).toBeUndefined();
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest.fn().mockReturnValue(
+              createFlagState({
+                enabled: true,
+                highlights: [
+                  {
+                    category: 'crypto',
+                    markets: ['direct-1'],
+                    series: ['series-abc'],
+                  },
+                ],
+              }),
+            ),
+          },
+        },
+      );
+    });
+
+    it('falls back to the nearest market when no future market exists in the series window', async () => {
+      const expiredMarket = {
+        ...createMockMarket('series-expired'),
+        endDate: new Date(Date.now() - 60_000).toISOString(),
+      };
+
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.getMarkets.mockResolvedValue({
+            markets: [],
+            nextCursor: null,
+          });
+          mockPolymarketProvider.getMarketSeries.mockResolvedValue([
+            expiredMarket,
+          ] as any);
+
+          const result = await controller.getMarkets({ category: 'crypto' });
+
+          expect(result.markets).toHaveLength(1);
+          expect(result.markets[0].id).toBe('series-expired');
+          expect(result.markets[0].isHighlighted).toBe(true);
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest.fn().mockReturnValue(
+              createFlagState({
+                enabled: true,
+                highlights: [{ category: 'crypto', series: ['series-abc'] }],
+              }),
+            ),
+          },
+        },
+      );
+    });
+
+    it('skips a series highlight when the series returns no markets', async () => {
+      const regularMarkets = [createMockMarket('regular-1')];
+
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.getMarkets.mockResolvedValue({
+            markets: regularMarkets as any,
+            nextCursor: null,
+          });
+          mockPolymarketProvider.getMarketSeries.mockResolvedValue([]);
+
+          const result = await controller.getMarkets({ category: 'crypto' });
+
+          expect(result.markets).toHaveLength(1);
+          expect(result.markets[0].id).toBe('regular-1');
+          expect(result.markets[0].isHighlighted).toBeUndefined();
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest.fn().mockReturnValue(
+              createFlagState({
+                enabled: true,
+                highlights: [{ category: 'crypto', series: ['series-empty'] }],
+              }),
+            ),
+          },
+        },
+      );
+    });
+
+    it('filters out series-resolved markets that are not open', async () => {
+      const closedSeriesMarket = {
+        ...createMockMarket('series-closed'),
+        endDate: new Date(Date.now() + 60_000).toISOString(),
+        status: 'closed',
+      };
+      const regularMarkets = [createMockMarket('regular-1')];
+
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.getMarkets.mockResolvedValue({
+            markets: regularMarkets as any,
+            nextCursor: null,
+          });
+          mockPolymarketProvider.getMarketSeries.mockResolvedValue([
+            closedSeriesMarket,
+          ] as any);
+
+          const result = await controller.getMarkets({ category: 'crypto' });
+
+          expect(result.markets).toHaveLength(1);
+          expect(result.markets[0].id).toBe('regular-1');
+          expect(
+            result.markets.find((m) => m.id === 'series-closed'),
+          ).toBeUndefined();
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest.fn().mockReturnValue(
+              createFlagState({
+                enabled: true,
+                highlights: [{ category: 'crypto', series: ['series-abc'] }],
+              }),
+            ),
+          },
+        },
+      );
+    });
+
+    it('silently skips a series highlight when getMarketSeries throws', async () => {
+      const regularMarkets = [createMockMarket('regular-1')];
+
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.getMarkets.mockResolvedValue({
+            markets: regularMarkets as any,
+            nextCursor: null,
+          });
+          mockPolymarketProvider.getMarketSeries.mockRejectedValue(
+            new Error('series provider failed'),
+          );
+
+          const result = await controller.getMarkets({ category: 'crypto' });
+
+          expect(result.markets).toHaveLength(1);
+          expect(result.markets[0].id).toBe('regular-1');
+          expect(result.markets[0].isHighlighted).toBeUndefined();
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest.fn().mockReturnValue(
+              createFlagState({
+                enabled: true,
+                highlights: [{ category: 'crypto', series: ['series-abc'] }],
+              }),
+            ),
+          },
+        },
+      );
+    });
+
+    it('still resolves remaining series highlights when one entry in the batch throws', async () => {
+      const liveMarket = {
+        ...createMockMarket('series-live'),
+        endDate: new Date(Date.now() + 60_000).toISOString(),
+      };
+
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.getMarkets.mockResolvedValue({
+            markets: [createMockMarket('regular-1')] as any,
+            nextCursor: null,
+          });
+          mockPolymarketProvider.getMarketSeries
+            .mockImplementationOnce(() =>
+              Promise.reject(new Error('first series failed')),
+            )
+            .mockImplementationOnce(() => Promise.resolve([liveMarket] as any));
+
+          const result = await controller.getMarkets({ category: 'crypto' });
+
+          expect(result.markets).toHaveLength(2);
+          expect(result.markets[0].id).toBe('series-live');
+          expect(result.markets[0].isHighlighted).toBe(true);
+          expect(result.markets[1].id).toBe('regular-1');
+          expect(mockPolymarketProvider.getMarketSeries).toHaveBeenCalledTimes(
+            2,
+          );
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest.fn().mockReturnValue(
+              createFlagState({
+                enabled: true,
+                highlights: [
+                  {
+                    category: 'crypto',
+                    series: ['series-failing', 'series-healthy'],
+                  },
+                ],
+              }),
+            ),
+          },
+        },
+      );
+    });
+
+    it('picks the live market even when the series returns many earlier-ending events first', async () => {
+      // Regression guard for the endDate-ASC + limit interaction.
+      // For a 5m series, the provider's default pagination places ~12 past
+      // events ahead of the live slot. The fetch limit must be high enough
+      // (SERIES_MAX_EVENTS) that the live market is included in the response.
+      const now = Date.now();
+      const pastMarkets = Array.from({ length: 12 }, (_, i) => ({
+        ...createMockMarket(`series-past-${i}`),
+        endDate: new Date(now - (12 - i) * 5 * 60_000).toISOString(),
+      }));
+      const liveMarket = {
+        ...createMockMarket('series-live'),
+        endDate: new Date(now + 60_000).toISOString(),
+      };
+
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.getMarkets.mockResolvedValue({
+            markets: [createMockMarket('regular-1')] as any,
+            nextCursor: null,
+          });
+          mockPolymarketProvider.getMarketSeries.mockResolvedValue([
+            ...pastMarkets,
+            liveMarket,
+          ] as any);
+
+          const result = await controller.getMarkets({ category: 'crypto' });
+
+          expect(result.markets[0].id).toBe('series-live');
+          expect(result.markets[0].isHighlighted).toBe(true);
+          expect(mockPolymarketProvider.getMarketSeries).toHaveBeenCalledWith(
+            expect.objectContaining({ limit: 50 }),
+          );
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest.fn().mockReturnValue(
+              createFlagState({
+                enabled: true,
+                highlights: [{ category: 'crypto', series: ['series-abc'] }],
+              }),
+            ),
+          },
+        },
+      );
+    });
+
+    it('deduplicates when the same market is referenced both as a market id and via a series', async () => {
+      const sharedMarket = {
+        ...createMockMarket('shared'),
+        endDate: new Date(Date.now() + 60_000).toISOString(),
+      };
+
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.getMarkets.mockResolvedValue({
+            markets: [createMockMarket('regular-1')] as any,
+            nextCursor: null,
+          });
+          mockPolymarketProvider.getMarketsByIds.mockResolvedValue([
+            sharedMarket,
+          ] as any);
+          mockPolymarketProvider.getMarketSeries.mockResolvedValue([
+            sharedMarket,
+          ] as any);
+
+          const result = await controller.getMarkets({ category: 'crypto' });
+
+          expect(result.markets).toHaveLength(2);
+          expect(result.markets[0].id).toBe('shared');
+          expect(result.markets[0].isHighlighted).toBe(true);
+          expect(result.markets[1].id).toBe('regular-1');
+          expect(result.markets.filter((m) => m.id === 'shared')).toHaveLength(
+            1,
+          );
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest.fn().mockReturnValue(
+              createFlagState({
+                enabled: true,
+                highlights: [
+                  {
+                    category: 'crypto',
+                    markets: ['shared'],
+                    series: ['series-abc'],
                   },
                 ],
               }),
@@ -4007,6 +4462,7 @@ describe('PredictController', () => {
         expect(addTransactionBatch).toHaveBeenCalledWith({
           from: '0x1234567890123456789012345678901234567890',
           origin: 'metamask',
+          isInternal: true,
           networkClientId: 'polygon-mainnet',
           disableHook: true,
           disableSequential: true,
@@ -4487,6 +4943,39 @@ describe('PredictController', () => {
         // Verify deposit transaction remains undefined
         const address = '0x1234567890123456789012345678901234567890';
         expect(controller.state.pendingDeposits[address]).toBe(undefined);
+      });
+    });
+  });
+
+  describe('clearPendingClaim', () => {
+    it('clears pending claim from state', () => {
+      withController(({ controller }) => {
+        const address = '0x1234567890123456789012345678901234567890';
+
+        controller.updateStateForTesting((state) => {
+          state.pendingClaims = {
+            [address]: 'batch-id-123',
+          };
+        });
+
+        expect(controller.state.pendingClaims[address]).toBe('batch-id-123');
+
+        controller.clearPendingClaim();
+
+        expect(controller.state.pendingClaims[address]).toBe(undefined);
+      });
+    });
+
+    it('handles clearing empty pending claim state', () => {
+      withController(({ controller }) => {
+        controller.updateStateForTesting((state) => {
+          state.pendingClaims = {};
+        });
+
+        expect(() => controller.clearPendingClaim()).not.toThrow();
+
+        const address = '0x1234567890123456789012345678901234567890';
+        expect(controller.state.pendingClaims[address]).toBe(undefined);
       });
     });
   });
@@ -8644,7 +9133,7 @@ describe('PredictController', () => {
           entryPoint: 'test',
           marketDetailsViewed: 'test',
         });
-        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(2);
       });
     });
 
@@ -8680,7 +9169,7 @@ describe('PredictController', () => {
           numPagesViewed: 1,
           sessionTime: 1000,
         });
-        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(2);
       });
     });
 

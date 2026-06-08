@@ -54,7 +54,10 @@ jest.mock('@metamask/key-tree', () => ({
 
 import ChoosePassword from './index.tsx';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import { AccountType } from '../../../constants/onboarding';
+import {
+  AccountType,
+  ONBOARDING_SUCCESS_FLOW,
+} from '../../../constants/onboarding';
 import {
   TraceName,
   TraceOperation,
@@ -229,7 +232,6 @@ const mockMetrics = {
   trackEvent: mockTrackEvent,
   enable: mockEnable,
   identify: jest.fn().mockResolvedValue(undefined),
-  addTraitsToUser: jest.fn().mockResolvedValue(undefined),
   createEventBuilder: jest.fn(() => ({
     addProperties: jest.fn().mockReturnThis(),
     build: jest.fn(() => ({ name: 'Analytics Preference Selected' })),
@@ -581,19 +583,14 @@ describe('ChoosePassword', () => {
 
   describe('Navigation', () => {
     it('back button navigates to the previous screen', async () => {
-      renderWithProviders(<ChoosePassword />);
+      const { getByTestId } = renderWithProviders(<ChoosePassword />);
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
-      expect(mockNavigation.setOptions).toHaveBeenCalledWith(
-        expect.objectContaining({ headerLeft: expect.any(Function) }),
-      );
-
-      const headerLeftFn =
-        mockNavigation.setOptions.mock.calls[0][0].headerLeft;
+      const backButton = getByTestId(ChoosePasswordSelectorsIDs.BACK_BUTTON_ID);
       await act(async () => {
-        headerLeftFn().props.onPress();
+        fireEvent.press(backButton);
       });
 
       expect(mockNavigation.goBack).toHaveBeenCalled();
@@ -705,7 +702,7 @@ describe('ChoosePassword', () => {
           ],
         });
         expect(mockTrackEvent).toHaveBeenCalled();
-        expect(mockMetrics.addTraitsToUser).toHaveBeenCalled();
+        expect(mockMetrics.identify).toHaveBeenCalled();
       });
 
       mockNewWalletAndKeychain.mockRestore();
@@ -1024,7 +1021,7 @@ describe('ChoosePassword', () => {
         expect(mockNewWalletAndKeychain).toHaveBeenCalledTimes(1);
         expect(spyUpdateMarketingOptInStatus).toHaveBeenCalledWith(true);
         expect(mockTrackEvent).toHaveBeenCalled();
-        expect(mockMetrics.addTraitsToUser).toHaveBeenCalled();
+        expect(mockMetrics.identify).toHaveBeenCalled();
       });
 
       mockNewWalletAndKeychain.mockRestore();
@@ -1061,7 +1058,7 @@ describe('ChoosePassword', () => {
         expect(mockNewWalletAndKeychain).toHaveBeenCalledTimes(1);
         expect(spyUpdateMarketingOptInStatus).toHaveBeenCalledWith(false);
         expect(mockTrackEvent).toHaveBeenCalled();
-        expect(mockMetrics.addTraitsToUser).toHaveBeenCalled();
+        expect(mockMetrics.identify).toHaveBeenCalled();
       });
 
       mockNewWalletAndKeychain.mockRestore();
