@@ -63,8 +63,8 @@ const CUSTOM_SVG_ICONS_DARK: Record<string, SvgComponent> = {
 
 const CategoryIcon: React.FC<{ categoryId: string }> = ({ categoryId }) => {
   const { themeAppearance } = useTheme();
-  const icons =
-    themeAppearance === 'dark' ? CUSTOM_SVG_ICONS_DARK : CUSTOM_SVG_ICONS_LIGHT;
+  const isDark = themeAppearance === 'dark';
+  const icons = isDark ? CUSTOM_SVG_ICONS_DARK : CUSTOM_SVG_ICONS_LIGHT;
   const CustomIcon = icons[categoryId];
   if (CustomIcon) {
     return <CustomIcon width={24} height={24} />;
@@ -73,7 +73,7 @@ const CategoryIcon: React.FC<{ categoryId: string }> = ({ categoryId }) => {
     <Icon
       name={BADGE_CATEGORY_ICON_MAP[categoryId] ?? IconName.Coin}
       size={IconSize.Lg}
-      color={IconColor.IconAlternative}
+      color={isDark ? IconColor.IconDefault : IconColor.IconAlternative}
     />
   );
 };
