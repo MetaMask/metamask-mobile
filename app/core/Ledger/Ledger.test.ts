@@ -14,7 +14,10 @@ import {
   checkAccountNameExists,
 } from './Ledger';
 import Engine from '../../core/Engine';
-import { SignTypedDataVersion } from '@metamask/keyring-controller';
+import {
+  SignTypedDataVersion,
+  type RestrictedController,
+} from '@metamask/keyring-controller';
 import {
   LedgerKeyring as LegacyLedgerKeyring,
   LedgerMobileBridge,
@@ -34,10 +37,17 @@ jest.mock('../../core/Engine', () => ({
   context: {
     KeyringController: {
       state: {
-        keyrings: [{ type: 'Ledger Hardware', accounts: [] }],
+        keyrings: [
+          {
+            type: 'Ledger Hardware',
+            accounts: [],
+            metadata: { id: 'ledger', name: 'Ledger Hardware' },
+          },
+        ],
       },
       signTypedMessage: jest.fn(),
       addNewKeyring: jest.fn(),
+      withController: jest.fn(),
       withKeyringV2: jest.fn(),
     },
     AccountsController: {
@@ -52,6 +62,7 @@ jest.mock('../../core/Engine', () => ({
   setSelectedAddress: jest.fn(),
 }));
 const MockEngine = jest.mocked(Engine);
+const mockRestrictedAddNewLedgerKeyring = jest.fn();
 
 jest.mock('../../core/Permissions', () => ({
   removeAccountsFromPermissions: jest.fn(),
@@ -80,6 +91,38 @@ const ledgerKeyring = new LedgerKeyring({
   entropySource: 'test-entropy-source',
 });
 
+function createRestrictedControllerMock(
+  keyringController: typeof MockEngine.context.KeyringController,
+): RestrictedController {
+  const restrictedKeyrings = keyringController.state.keyrings.map(
+    ({ type }) => ({
+      keyring: { type },
+      metadata: { id: type, name: type },
+    }),
+  );
+
+  return {
+    get keyrings() {
+      return restrictedKeyrings;
+    },
+    addNewKeyring: async (type: string) => {
+      mockRestrictedAddNewLedgerKeyring(type);
+      const entry = {
+        keyring: { type },
+        metadata: { id: type, name: type },
+      };
+      restrictedKeyrings.push(entry);
+      keyringController.state.keyrings.push({
+        type,
+        accounts: [],
+        metadata: { id: type, name: type },
+      });
+      return entry;
+    },
+    removeKeyring: jest.fn(),
+  } as unknown as RestrictedController;
+}
+
 describe('Ledger core', () => {
   beforeEach(() => {
     jest.resetAllMocks();
@@ -88,6 +131,13 @@ describe('Ledger core', () => {
     MockEngine.context.AccountsController.state.internalAccounts.accounts = {};
 
     const mockKeyringController = MockEngine.context.KeyringController;
+    mockKeyringController.state.keyrings = [
+      {
+        type: LegacyLedgerKeyring.type,
+        accounts: [],
+        metadata: { id: 'ledger', name: LegacyLedgerKeyring.type },
+      },
+    ];
 
     // Re-establish bridge mock implementations after `jest.resetAllMocks`
     // wipes them.
@@ -159,6 +209,17 @@ describe('Ledger core', () => {
           metadata: { id: '1234', name: '' },
         }),
     );
+    let withControllerQueue = Promise.resolve();
+    mockKeyringController.withController.mockImplementation((operation) => {
+      const runOperation = () =>
+        operation(createRestrictedControllerMock(mockKeyringController));
+      const result = withControllerQueue.then(runOperation, runOperation);
+      withControllerQueue = result.then(
+        () => undefined,
+        () => undefined,
+      );
+      return result;
+    });
     mockKeyringController.signTypedMessage.mockResolvedValue('signature');
   });
 
@@ -331,9 +392,20 @@ describe('Ledger core', () => {
 
       await getDeviceId();
 
-      expect(
-        MockEngine.context.KeyringController.addNewKeyring,
-      ).toHaveBeenCalledWith(LegacyLedgerKeyring.type);
+      expect(mockRestrictedAddNewLedgerKeyring).toHaveBeenCalledWith(
+        LegacyLedgerKeyring.type,
+      );
+    });
+
+    it('creates only one Ledger keyring for concurrent callers', async () => {
+      MockEngine.context.KeyringController.state.keyrings = [];
+
+      await Promise.all([getDeviceId(), getDeviceId()]);
+
+      expect(mockRestrictedAddNewLedgerKeyring).toHaveBeenCalledTimes(1);
+      expect(mockRestrictedAddNewLedgerKeyring).toHaveBeenCalledWith(
+        LegacyLedgerKeyring.type,
+      );
     });
   });
 

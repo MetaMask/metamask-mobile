@@ -37,18 +37,19 @@ const throwIfLedgerOperationAborted = (abortSignal?: AbortSignal) => {
  * Ensure a Ledger keyring exists in the controller before invoking a V2 operation.
  *
  * `withKeyringV2` has no `createIfMissing` option, so callers that need
- * on-demand creation perform the check + create dance here. The window
- * between the check and the create is serialized by the calling UI flow
- * (single button + spinner) so concurrent creations aren't reachable.
+ * on-demand creation perform the check + create inside `withController` so the
+ * operation is serialized by the KeyringController mutex.
  */
 async function ensureLedgerKeyringExists(): Promise<void> {
   const keyringController = Engine.context.KeyringController;
-  const hasKeyring = keyringController.state.keyrings.some(
-    ({ type }) => type === LegacyLedgerKeyring.type,
-  );
-  if (!hasKeyring) {
-    await keyringController.addNewKeyring(LegacyLedgerKeyring.type);
-  }
+  await keyringController.withController(async (controller) => {
+    const hasKeyring = controller.keyrings.some(
+      ({ keyring }) => keyring.type === LegacyLedgerKeyring.type,
+    );
+    if (!hasKeyring) {
+      await controller.addNewKeyring(LegacyLedgerKeyring.type);
+    }
+  });
 }
 
 /**
