@@ -84,6 +84,36 @@ describe('resolveNetworkDisplayName', () => {
     expect(result).toBe(UNKNOWN);
   });
 
+  it('falls back to the curated name for MegaETH when not in configurations', () => {
+    const result = resolveNetworkDisplayName({
+      chainId: '0x10e6' as Hex,
+      evmNetworkConfigurations: emptyEvm,
+      nonEvmNetworkConfigurations: emptyNonEvm,
+    });
+
+    expect(result).toBe('MegaETH');
+  });
+
+  it('falls back to the curated name for HyperEVM when not in configurations', () => {
+    const result = resolveNetworkDisplayName({
+      chainId: '0x3e7' as Hex,
+      evmNetworkConfigurations: emptyEvm,
+      nonEvmNetworkConfigurations: emptyNonEvm,
+    });
+
+    expect(result).toBe('HyperEVM');
+  });
+
+  it('falls back to the curated name for an eip155 CAIP chainId missing from configurations', () => {
+    const result = resolveNetworkDisplayName({
+      chainId: 'eip155:4326',
+      evmNetworkConfigurations: emptyEvm,
+      nonEvmNetworkConfigurations: emptyNonEvm,
+    });
+
+    expect(result).toBe('MegaETH');
+  });
+
   it('returns non-EVM network name for CAIP chainId from configurations', () => {
     const solanaMainnet = SolScope.Mainnet;
     const nonEvm = {

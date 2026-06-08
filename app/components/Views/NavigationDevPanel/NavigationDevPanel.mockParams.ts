@@ -1,5 +1,8 @@
 import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import type { Nft } from '@metamask/assets-controllers';
+import { IconName } from '@metamask/design-system-react-native';
+import { SeasonRewardType } from '../../../core/Engine/controllers/rewards-controller/types';
+import type { CaipChainId } from '@metamask/utils';
 import { StatusTypes } from '@metamask/bridge-controller';
 import {
   DepositOrderType,
@@ -124,6 +127,70 @@ export const MOCK_SET_PASSWORD_FLOW_PARAMS = {
 
 export const MOCK_PR4A_PARAMS = {
   REVEAL_PRIVATE_CREDENTIAL: { shouldUpdateNav: true },
+};
+
+/** Static params so RewardsHome stack screens render from the dev panel. */
+export const MOCK_REWARDS_HOME_PARAMS = {
+  REWARDS_BOTTOM_SHEET_MODAL: {
+    title: 'Dev panel confirmation',
+    description: 'Mock rewards bottom sheet for navigation testing.',
+    confirmAction: {
+      label: 'Confirm',
+      onPress: () => {
+        // Dev panel noop — real flow runs confirmAction from rewards UI.
+      },
+    },
+    showCancelButton: true,
+    cancelLabel: 'Cancel',
+  },
+  REWARDS_CLAIM_BOTTOM_SHEET_MODAL: {
+    title: 'Dev panel claim reward',
+    description: 'Mock claim sheet for navigation testing.',
+    rewardId: 'dev-panel-reward-id',
+    seasonRewardId: 'dev-panel-season-reward-id',
+    rewardType: SeasonRewardType.GENERIC,
+    isLocked: false,
+    hasClaimed: false,
+    icon: IconName.Lock,
+  },
+  REWARDS_OPTIN_ACCOUNT_GROUP_MODAL: {
+    accountGroupId: 'keyring:wallet-1/ethereum',
+    addressData: [
+      {
+        address: '0x1234567890123456789012345678901234567890',
+        hasOptedIn: true,
+        scopes: ['eip155:1' as CaipChainId],
+        isSupported: true,
+      },
+      {
+        address: '0x0987654321098765432109876543210987654321',
+        hasOptedIn: false,
+        scopes: ['eip155:1' as CaipChainId],
+        isSupported: true,
+      },
+    ],
+  },
+  REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET: {
+    rewardId: 'dev-panel-end-of-season-reward-id',
+    seasonRewardId: 'dev-panel-end-of-season-season-reward-id',
+    title: 'Dev panel end-of-season reward',
+    description: 'Mock end-of-season claim sheet for navigation testing.',
+    rewardType: SeasonRewardType.METAL_CARD,
+    showEmail: 'required' as const,
+    showTelegram: 'optional' as const,
+  },
+  REWARDS_SELECT_SHEET: {
+    title: 'Select tier',
+    options: [
+      { key: 'bronze', label: 'Bronze', value: 'STARTER' },
+      { key: 'silver', label: 'Silver', value: 'MID' },
+      { key: 'platinum', label: 'Platinum', value: 'UPPER' },
+    ],
+    selectedValue: 'MID',
+    onSelect: (_value: string) => {
+      // Dev panel noop — real flow persists selection in rewards UI.
+    },
+  },
 };
 
 // --- PR4a TransactionsHome: dev order IDs & seed payloads ---
