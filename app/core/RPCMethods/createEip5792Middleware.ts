@@ -20,7 +20,6 @@ export function createEip5792Middleware({
   getCapabilities,
   processSendCalls,
 }: {
-  getPermittedAccounts: (origin: string) => Promise<string[]>;
   getCallsStatus: GetCallsStatusHook;
   getCapabilities: GetCapabilitiesHook;
   processSendCalls: ProcessSendCallsHook;
