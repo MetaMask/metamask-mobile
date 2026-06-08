@@ -5,6 +5,7 @@ import {
   REDIRECT_TARGETS_TYPES,
 } from '../constants/moneyEvents';
 import { resolveRedirectTargetType } from './moneyRedirectTarget';
+import Logger from '../../../../util/Logger';
 
 jest.mock('../../../../core/AppConstants', () => ({
   __esModule: true,
@@ -17,6 +18,11 @@ jest.mock('../../../../core/AppConstants', () => ({
 
 jest.mock('../../../../constants/urls', () => ({
   METAMASK_SUPPORT_URL: 'https://mock.metamask.support',
+}));
+
+jest.mock('../../../../util/Logger', () => ({
+  __esModule: true,
+  default: { error: jest.fn() },
 }));
 
 describe('resolveRedirectTargetType', () => {
@@ -47,11 +53,17 @@ describe('resolveRedirectTargetType', () => {
     },
   );
 
-  it('throws an error for an unknown target', () => {
+  it('returns undefined and logs an error for an unknown target', () => {
     const unknownTarget = 'completely_unknown_target' as SCREEN_NAMES;
 
-    expect(() => resolveRedirectTargetType(unknownTarget)).toThrow(
-      '[moneyAnalytics] No redirect_target_type for target: completely_unknown_target',
+    const result = resolveRedirectTargetType(unknownTarget);
+
+    expect(result).toBeUndefined();
+    expect(Logger.error).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message:
+          '[moneyAnalytics] No redirect_target_type for target: completely_unknown_target',
+      }),
     );
   });
 });

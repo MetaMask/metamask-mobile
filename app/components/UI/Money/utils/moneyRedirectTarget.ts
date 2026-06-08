@@ -4,10 +4,13 @@ import {
   REDIRECT_TARGETS_TYPES,
   SCREEN_NAMES,
 } from '../constants/moneyEvents';
+import Logger from '../../../../util/Logger';
 
 const SCREEN_TARGETS = new Set<string>(Object.values(SCREEN_NAMES));
 const BOTTOM_SHEET_TARGETS = new Set<string>(Object.values(BOTTOM_SHEET_NAMES));
 const URL_TARGETS = new Set<string>(Object.values(MONEY_URLS));
+
+const LOG_PREFIX = '[moneyAnalytics]';
 
 /**
  * Resolves a redirect target's type from the target itself. A target's type is
@@ -20,13 +23,13 @@ const URL_TARGETS = new Set<string>(Object.values(MONEY_URLS));
  */
 export const resolveRedirectTargetType = (
   target: SCREEN_NAMES | BOTTOM_SHEET_NAMES | MONEY_URLS,
-): REDIRECT_TARGETS_TYPES => {
+): REDIRECT_TARGETS_TYPES | undefined => {
   if (SCREEN_TARGETS.has(target)) return REDIRECT_TARGETS_TYPES.SCREEN;
   if (BOTTOM_SHEET_TARGETS.has(target)) {
     return REDIRECT_TARGETS_TYPES.BOTTOM_SHEET;
   }
   if (URL_TARGETS.has(target)) return REDIRECT_TARGETS_TYPES.EXTERNAL_BROWSER;
-  throw new Error(
-    `[moneyAnalytics] No redirect_target_type for target: ${target}`,
+  Logger.error(
+    new Error(`${LOG_PREFIX} No redirect_target_type for target: ${target}`),
   );
 };
