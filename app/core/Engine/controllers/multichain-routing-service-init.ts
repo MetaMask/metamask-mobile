@@ -21,7 +21,7 @@ export const multichainRoutingServiceInit: MessengerClientInitFunction<
   const snapAccountService = getMessengerClient('SnapAccountService');
 
   const getSnapKeyring = async (): Promise<SnapKeyring> =>
-    (await snapAccountService.getLegacySnapKeyring()) as SnapKeyring;
+    await snapAccountService.getLegacySnapKeyring();
 
   const withSnapKeyring = async (
     operation: ({ keyring }: { keyring: unknown }) => void,
