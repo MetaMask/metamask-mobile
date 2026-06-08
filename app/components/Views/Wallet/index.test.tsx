@@ -230,7 +230,6 @@ import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { mockedPerpsFeatureFlagsEnabledState } from '../../UI/Perps/mocks/remoteFeatureFlagMocks';
 import { initialState as cardInitialState } from '../../../core/redux/slices/card';
-import { initialState as networkConnectionBannerInitialState } from '../../../reducers/networkConnectionBanner';
 import {
   NavigationProp,
   ParamListBase,
@@ -477,7 +476,6 @@ const mockInitialState = {
     newPrivacyPolicyToastShownDate: null,
     newPrivacyPolicyToastClickedOrClosed: false,
   },
-  networkConnectionBanner: networkConnectionBannerInitialState,
   engine: {
     backgroundState: {
       ...backgroundState,

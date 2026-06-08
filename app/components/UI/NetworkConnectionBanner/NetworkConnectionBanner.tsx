@@ -3,7 +3,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useAppTheme } from '../../../util/theme';
 import { useNetworkConnectionBanner } from '../../hooks/useNetworkConnectionBanner';
 import { strings } from '../../../../locales/i18n';
-import { NetworkConnectionBannerState } from '../../../reducers/networkConnectionBanner';
+import type { NetworkConnectionBannerState } from './types';
 import BannerBase from '../../../component-library/components/Banners/Banner/foundation/BannerBase';
 import { Theme } from '../../../util/theme/models';
 import Animated, {
