@@ -1,7 +1,7 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { TransactionType } from '@metamask/transaction-controller';
-import type { SubAccountInfo } from '@metamask/perps-controller';
+import type { SubAccountInfo } from '../../types/subAccount';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import PerpsAccountPicker, {

@@ -6,8 +6,9 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import type { SubAccountInfo } from '@metamask/perps-controller';
+
 import { TransactionType } from '@metamask/transaction-controller';
+import type { SubAccountInfo } from '../../types/subAccount';
 import {
   BottomSheet,
   BottomSheetRef,

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
-import type { SubAccountInfo } from '@metamask/perps-controller';
+import type { SubAccountInfo } from '../types/subAccount';
 import Engine from '../../../../core/Engine';
 import { selectInternalAccounts } from '../../../../selectors/accountsController';
 import { selectAccountToGroupMap } from '../../../../selectors/multichainAccounts/accountTreeController';
@@ -29,9 +29,7 @@ export function usePerpsSubAccounts(): UsePerpsSubAccountsReturn {
       }
     >
   >({});
-  const [selectedId, setSelectedId] = useState<string | null>(
-    fromAddress ?? null,
-  );
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const evmAccounts = useMemo(
     () => allAccounts.filter((a) => a.type.startsWith(EVM_TYPE_PREFIX)),
@@ -100,10 +98,12 @@ export function usePerpsSubAccounts(): UsePerpsSubAccountsReturn {
   );
 
   useEffect(() => {
-    if (selectedId === null && subAccounts.length > 0) {
+    if (fromAddress) {
+      setSelectedId(fromAddress);
+    } else if (subAccounts.length > 0) {
       setSelectedId(subAccounts[0].id);
     }
-  }, [selectedId, subAccounts]);
+  }, [fromAddress, subAccounts]);
 
   const selectedSubAccount =
     subAccounts.find((a) => a.id === selectedId) ?? null;
