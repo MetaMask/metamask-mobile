@@ -3052,6 +3052,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  earnMusdBalanceChainIds: {
+    name: 'earnMusdBalanceChainIds',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: '0x1,0xe708,0x8f',
+    status: FeatureFlagStatus.Active,
+  },
+
   earnMusdConversionAssetOverviewCtaEnabled: {
     name: 'earnMusdConversionAssetOverviewCtaEnabled',
     type: FeatureFlagType.Remote,
