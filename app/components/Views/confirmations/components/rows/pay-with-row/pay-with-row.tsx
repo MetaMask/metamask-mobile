@@ -32,6 +32,7 @@ import {
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './pay-with-row.styles';
 import { BigNumber } from 'bignumber.js';
+import { TransactionType } from '@metamask/transaction-controller';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
@@ -48,7 +49,6 @@ import { useParams } from '../../../../../../util/navigation/navUtils';
 import { PayWithOption } from '../../confirm/confirm-component';
 import { useInitialPayWithOption } from '../../../hooks/pay/useInitialPayWithOption';
 import { hasTransactionType } from '../../../utils/transaction';
-import { TransactionType } from '@metamask/transaction-controller';
 import { SetPayTokenRequest } from '../../../hooks/pay/useAutomaticTransactionPayToken';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useTheme } from '../../../../../../util/theme';

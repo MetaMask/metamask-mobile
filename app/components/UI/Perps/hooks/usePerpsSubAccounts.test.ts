@@ -151,20 +151,6 @@ describe('usePerpsSubAccounts', () => {
     expect(result.current.selectedSubAccount?.id).toBe('0xabc');
   });
 
-  it('allows manual account selection', async () => {
-    const { result } = renderHook(() => usePerpsSubAccounts());
-
-    await waitFor(() => {
-      expect(result.current.subAccounts).toHaveLength(2);
-    });
-
-    act(() => {
-      result.current.selectSubAccount('0xdef');
-    });
-
-    expect(result.current.selectedSubAccount?.id).toBe('0xdef');
-  });
-
   it('returns empty array when no EVM accounts exist', async () => {
     setupSelectorMock([NON_EVM_ACCOUNT], {});
 

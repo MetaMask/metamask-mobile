@@ -28,9 +28,9 @@ import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 import { useGaslessSupportedSmartTransactions } from '../gas/useGaslessSupportedSmartTransactions';
 import { useMusdConfirmNavigation } from '../../../../UI/Earn/hooks/useMusdConfirmNavigation';
 import { isHardwareAccount } from '../../../../../util/address';
-import { useFiatConfirm } from '../pay/useFiatConfirm';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { PayWithOption } from '../../components/confirm/confirm-component';
+import { useFiatConfirm } from '../pay/useFiatConfirm';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();

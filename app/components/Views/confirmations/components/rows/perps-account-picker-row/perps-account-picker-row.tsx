@@ -43,44 +43,44 @@ import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTr
 import { hasTransactionType } from '../../../utils/transaction';
 import stylesheet from './perps-account-picker-row.styles';
 
-interface PerpsAccountPickerProps {
-  visible: boolean;
-  accounts: SubAccountInfo[];
-  selectedAccountId: string | null;
-  onSelect: (id: string) => void;
-  onClose: () => void;
-}
-
-const PerpsAccountPicker: React.FC<PerpsAccountPickerProps> = ({
-  visible,
-  accounts,
-  selectedAccountId,
-  onSelect,
-  onClose,
-}) => {
+const PerpsAccountPickerRowContent: React.FC = () => {
   const { styles } = useStyles(stylesheet, {});
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const surfaceClass = useElevatedSurface();
+  const [isPickerVisible, setIsPickerVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
+  const transactionMeta = useTransactionMetadataRequest();
+  const { subAccounts, selectedSubAccount } = usePerpsSubAccounts();
+
   const filteredAccounts = useMemo(() => {
-    if (!searchQuery.trim()) return accounts;
+    if (!searchQuery.trim()) return subAccounts;
     const query = searchQuery.toLowerCase();
-    return accounts.filter((a) => a.name.toLowerCase().includes(query));
-  }, [accounts, searchQuery]);
+    return subAccounts.filter((a) => a.name.toLowerCase().includes(query));
+  }, [subAccounts, searchQuery]);
 
   const handleSelect = useCallback(
     (id: string) => {
-      onSelect(id);
+      const transactionId = transactionMeta?.id;
+      if (transactionId) {
+        updateTransaction(
+          {
+            ...transactionMeta,
+            txParams: { ...transactionMeta?.txParams, from: id },
+          },
+          transactionId,
+        );
+      }
+
       bottomSheetRef.current?.onCloseBottomSheet();
     },
-    [onSelect],
+    [transactionMeta],
   );
 
   const handleSheetClosed = useCallback(() => {
     setSearchQuery('');
-    onClose();
-  }, [onClose]);
+    setIsPickerVisible(false);
+  }, []);
 
   const handleModalRequestClose = useCallback(() => {
     bottomSheetRef.current?.onCloseBottomSheet();
@@ -88,7 +88,7 @@ const PerpsAccountPicker: React.FC<PerpsAccountPickerProps> = ({
 
   const renderItem = useCallback(
     ({ item }: { item: SubAccountInfo }) => {
-      const isSelected = item.id === selectedAccountId;
+      const isSelected = item.id === selectedSubAccount?.id;
       return (
         <TouchableOpacity
           onPress={() => handleSelect(item.id)}
@@ -109,85 +109,7 @@ const PerpsAccountPicker: React.FC<PerpsAccountPickerProps> = ({
         </TouchableOpacity>
       );
     },
-    [handleSelect, selectedAccountId, styles],
-  );
-
-  if (!visible) return null;
-
-  return (
-    <Modal
-      visible
-      animationType="none"
-      transparent
-      presentationStyle="overFullScreen"
-      onRequestClose={handleModalRequestClose}
-    >
-      <View style={styles.modalRoot}>
-        <BottomSheet
-          testID={PerpsAccountPickerSelectorsIDs.SHEET}
-          ref={bottomSheetRef}
-          isFullscreen
-          keyboardAvoidingViewEnabled={false}
-          onClose={handleSheetClosed}
-          twClassName={surfaceClass}
-        >
-          <HeaderStandard
-            title={strings('perps.select_perps_account')}
-            onClose={handleModalRequestClose}
-          />
-          <View style={styles.searchContainer}>
-            <Icon
-              name={IconName.Search}
-              size={IconSize.Md}
-              color={IconColor.Alternative}
-            />
-            <TextInput
-              testID={PerpsAccountPickerSelectorsIDs.SEARCH_INPUT}
-              style={styles.searchInput}
-              placeholder={strings('perps.search_account')}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-          </View>
-          <FlatList
-            data={filteredAccounts}
-            renderItem={renderItem}
-            keyExtractor={(item) => item.id}
-            style={styles.list}
-          />
-        </BottomSheet>
-      </View>
-    </Modal>
-  );
-};
-
-const PerpsAccountPickerRowContent: React.FC = () => {
-  const { styles } = useStyles(stylesheet, {});
-  const transactionMeta = useTransactionMetadataRequest();
-  const { subAccounts, selectedSubAccount, selectSubAccount } =
-    usePerpsSubAccounts();
-  const [isPickerVisible, setIsPickerVisible] = useState(false);
-
-  const handleAccountSelected = useCallback(
-    (address: string) => {
-      selectSubAccount(address);
-
-      const transactionId = transactionMeta?.id;
-      if (!transactionId) {
-        return;
-      }
-
-      updateTransaction(
-        {
-          ...transactionMeta,
-          txParams: { ...transactionMeta?.txParams, from: address },
-        },
-        transactionId,
-      );
-    },
-    [selectSubAccount, transactionMeta],
+    [handleSelect, selectedSubAccount?.id, styles],
   );
 
   if (subAccounts.length === 0) {
@@ -238,13 +160,53 @@ const PerpsAccountPickerRowContent: React.FC = () => {
           </View>
         </TouchableOpacity>
       </View>
-      <PerpsAccountPicker
-        visible={isPickerVisible}
-        accounts={subAccounts}
-        selectedAccountId={selectedSubAccount?.id ?? null}
-        onSelect={handleAccountSelected}
-        onClose={() => setIsPickerVisible(false)}
-      />
+      {isPickerVisible && (
+        <Modal
+          visible
+          animationType="none"
+          transparent
+          presentationStyle="overFullScreen"
+          onRequestClose={handleModalRequestClose}
+        >
+          <View style={styles.modalRoot}>
+            <BottomSheet
+              testID={PerpsAccountPickerSelectorsIDs.SHEET}
+              ref={bottomSheetRef}
+              isFullscreen
+              keyboardAvoidingViewEnabled={false}
+              onClose={handleSheetClosed}
+              twClassName={surfaceClass}
+            >
+              <HeaderStandard
+                title={strings('perps.select_perps_account')}
+                onClose={handleModalRequestClose}
+              />
+              <View style={styles.searchContainer}>
+                <Icon
+                  name={IconName.Search}
+                  size={IconSize.Md}
+                  color={IconColor.Alternative}
+                />
+                <TextInput
+                  testID={PerpsAccountPickerSelectorsIDs.SEARCH_INPUT}
+                  style={styles.searchInput}
+                  placeholder={strings('perps.search_account')}
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+              </View>
+              <FlatList
+                data={filteredAccounts}
+                renderItem={renderItem}
+                keyExtractor={(item) => item.id}
+                style={styles.list}
+              />
+            </BottomSheet>
+          </View>
+        </Modal>
+      )}
     </>
   );
 };

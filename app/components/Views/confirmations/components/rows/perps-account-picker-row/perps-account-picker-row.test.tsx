@@ -122,15 +122,12 @@ const STATE_MOCK = {
 };
 
 describe('PerpsAccountPickerRow', () => {
-  const mockSelectSubAccount = jest.fn();
-
   beforeEach(() => {
     jest.clearAllMocks();
 
     jest.mocked(usePerpsSubAccounts).mockReturnValue({
       subAccounts: MOCK_ACCOUNTS,
       selectedSubAccount: MOCK_ACCOUNTS[0],
-      selectSubAccount: mockSelectSubAccount,
     });
 
     jest.mocked(useTransactionMetadataRequest).mockReturnValue({
@@ -178,7 +175,6 @@ describe('PerpsAccountPickerRow', () => {
     jest.mocked(usePerpsSubAccounts).mockReturnValue({
       subAccounts: [],
       selectedSubAccount: null,
-      selectSubAccount: mockSelectSubAccount,
     });
 
     const { queryByTestId } = renderWithProvider(<PerpsAccountPickerRow />, {
@@ -220,7 +216,6 @@ describe('PerpsAccountPickerRow', () => {
       getByTestId(`${PerpsAccountPickerSelectorsIDs.ACCOUNT_ITEM}-0xdef`),
     );
 
-    expect(mockSelectSubAccount).toHaveBeenCalledWith('0xdef');
     expect(updateTransaction).toHaveBeenCalledWith(
       expect.objectContaining({
         id: 'tx-1',
@@ -245,7 +240,6 @@ describe('PerpsAccountPickerRow', () => {
       getByTestId(`${PerpsAccountPickerSelectorsIDs.ACCOUNT_ITEM}-0xdef`),
     );
 
-    expect(mockSelectSubAccount).toHaveBeenCalledWith('0xdef');
     expect(updateTransaction).not.toHaveBeenCalled();
   });
 
@@ -255,7 +249,6 @@ describe('PerpsAccountPickerRow', () => {
     jest.mocked(usePerpsSubAccounts).mockReturnValue({
       subAccounts: MOCK_ACCOUNTS,
       selectedSubAccount: MOCK_ACCOUNTS[0],
-      selectSubAccount: mockSelectSubAccount,
     });
 
     jest.mocked(useParams).mockReturnValue({

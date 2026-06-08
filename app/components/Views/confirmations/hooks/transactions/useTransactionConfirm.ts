@@ -9,12 +9,12 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
+import { isHardwareAccount } from '../../../../../util/address';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import {
   ConfirmationParams,
   PayWithOption,
 } from '../../components/confirm/confirm-component';
-import { isHardwareAccount } from '../../../../../util/address';
 import { createProjectLogger } from '@metamask/utils';
 import { useSelectedGasFeeToken } from '../gas/useGasFeeToken';
 import {
