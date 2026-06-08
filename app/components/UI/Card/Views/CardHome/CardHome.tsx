@@ -38,6 +38,7 @@ import { strings } from '../../../../../../locales/i18n';
 import {
   selectIsCardAuthenticated,
   selectCardUserLocation,
+  selectCardHomeDataStatus,
 } from '../../../../../selectors/cardController';
 import {
   CardStatus,
@@ -125,6 +126,9 @@ const CardHome = () => {
   } = useMoneyAccountCardLinkage();
   const { apyPercent: moneyAccountApyPercent } = useMoneyAccountBalance();
   const hasMetalCard = data?.card?.type === CardType.METAL;
+  const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
+  const isCardAnalyticsReady =
+    cardHomeDataStatus === 'success' || cardHomeDataStatus === 'error';
   const handleLinkMoneyAccountCard = useCallback(
     () =>
       startMoneyAccountLink({
@@ -438,6 +442,7 @@ const CardHome = () => {
                 }
                 analyticsFlow={CardFlow.MONEY_ACCOUNT_LINKAGE}
                 analyticsCardState="unlinked_card"
+                analyticsReady={isCardAnalyticsReady}
               />
             </Box>
             <Box
