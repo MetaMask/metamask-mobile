@@ -49,6 +49,13 @@ interface HomepageProps {
   perpsProvidersHoisted?: boolean;
 }
 
+// TEMP perf experiment (predict isolation profiling) — DO NOT MERGE enabled.
+// Renders only the Predict section so we can profile its Time to Content without
+// other sections contending for the JS thread / network. Flip back to false
+// before committing. See .brain/.performance/predict-performance-investigation-plan.md
+// (Priority Investigation -> Experiment protocol).
+const PREDICT_ISOLATION_PROFILING = true;
+
 /**
  * Homepage component - Main view for the redesigned wallet homepage.
  *
@@ -116,6 +123,10 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
     // they come back to the homepage.
     useFocusEffect(
       useCallback(() => {
+        // TEMP perf experiment: skip cross-section side effects during isolation.
+        if (PREDICT_ISOLATION_PROFILING) {
+          return;
+        }
         if (!areAllPopularNetworksEnabled) {
           enableAllPopularNetworks();
         }
@@ -124,6 +135,10 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
 
     useFocusEffect(
       useCallback(() => {
+        // TEMP perf experiment: skip NFT detection network/work during isolation.
+        if (PREDICT_ISOLATION_PROFILING) {
+          return;
+        }
         detectNfts().catch(() => {
           // AbortError is expected when detection is cancelled on blur
         });
@@ -222,6 +237,33 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
     useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
     const sectionMode = separateTrending ? 'positions-only' : 'default';
+
+    // TEMP perf experiment (predict isolation profiling): render ONLY the Predict
+    // section so its Time to Content can be profiled without the other sections
+    // (Cash/Tokens/Perps/TopTraders/DeFi/NFTs/More) contending for the JS thread.
+    // Placed after all hooks to respect rules-of-hooks. Remove before merge.
+    if (PREDICT_ISOLATION_PROFILING) {
+      return (
+        <HomepageTrendingAbTestContext.Provider
+          value={trendingAbTestContextValue}
+        >
+          <Box
+            gap={8}
+            marginBottom={8}
+            paddingTop={6}
+            testID={WalletViewSelectorsIDs.HOMEPAGE_CONTAINER}
+            accessible={false}
+          >
+            <PredictionsSection
+              ref={predictionsSectionRef}
+              sectionIndex={0}
+              totalSectionsLoaded={1}
+              mode={sectionMode}
+            />
+          </Box>
+        </HomepageTrendingAbTestContext.Provider>
+      );
+    }
 
     if (separateTrending) {
       const renderTreatmentNonPerpsSections = (
