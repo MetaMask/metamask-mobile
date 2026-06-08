@@ -498,8 +498,13 @@ export function useQuickBuyController(
     return Number.isFinite(v) ? v : 0;
   }, [usdAmount]);
   const quotesAnalyticsContext = useMemo(
-    () => ({ traderAddress, caip19, amountUsd: quotedUsdAmountNumber }),
-    [traderAddress, caip19, quotedUsdAmountNumber],
+    () => ({
+      traderAddress,
+      caip19,
+      amountUsd: quotedUsdAmountNumber,
+      source: analyticsContext?.source,
+    }),
+    [traderAddress, caip19, quotedUsdAmountNumber, analyticsContext?.source],
   );
 
   const {
