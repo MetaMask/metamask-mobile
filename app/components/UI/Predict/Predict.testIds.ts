@@ -48,7 +48,6 @@ export const PredictHomeSelectorsIDs = {
   SCROLL_VIEW: 'predict-home-scroll-view',
   TITLE_SECTION: 'predict-home-title-section',
   TITLE: 'predict-home-title',
-  PORTFOLIO_MODULE: 'predict-home-portfolio-module',
   LIVE_NOW_SECTION: 'predict-home-live-now-section',
   CATEGORIES_SECTION: 'predict-home-categories-section',
   POPULAR_TODAY_SECTION: 'predict-home-popular-today-section',

@@ -21,6 +21,7 @@ import {
   PredictSearchSelectorsIDs,
 } from '../../Predict.testIds';
 import { PREDICT_HEADER_STACKED_TEST_IDS } from '../../components/PredictHeaderStacked';
+import { PREDICT_PORTFOLIO_TEST_IDS } from './components/PredictPortfolio';
 import { MOCK_PREDICT_MARKET } from '../../../../../../tests/component-view/fixtures/predict';
 
 const SEARCH_PLACEHOLDER = 'Search prediction markets';
@@ -99,9 +100,7 @@ describe('PredictHome', () => {
       // Wait for the shell to mount.
       await findByTestId(PredictHomeSelectorsIDs.CONTAINER);
 
-      expect(
-        getByTestId(PredictHomeSelectorsIDs.PORTFOLIO_MODULE),
-      ).toBeOnTheScreen();
+      expect(getByTestId(PREDICT_PORTFOLIO_TEST_IDS.MODULE)).toBeOnTheScreen();
       expect(
         getByTestId(PredictHomeSelectorsIDs.LIVE_NOW_SECTION),
       ).toBeOnTheScreen();
