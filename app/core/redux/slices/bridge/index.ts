@@ -353,7 +353,9 @@ const slice = createSlice({
         action.meta.arg.chainId === state.sourceToken.chainId &&
         action.meta.arg.tokenAddress === state.sourceToken.address
       ) {
-        state.sourceToken.currencyExchangeRate = action.payload ?? undefined;
+        const rate = action.payload;
+        state.sourceToken.currencyExchangeRate =
+          typeof rate === 'number' ? rate : undefined;
       }
     });
     builder.addCase(setDestTokenExchangeRate.fulfilled, (state, action) => {
@@ -363,7 +365,9 @@ const slice = createSlice({
         action.meta.arg.chainId === state.destToken.chainId &&
         action.meta.arg.tokenAddress === state.destToken.address
       ) {
-        state.destToken.currencyExchangeRate = action.payload ?? undefined;
+        const rate = action.payload;
+        state.destToken.currencyExchangeRate =
+          typeof rate === 'number' ? rate : undefined;
       }
     });
   },

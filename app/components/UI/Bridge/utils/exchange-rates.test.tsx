@@ -753,6 +753,7 @@ describe('exchange-rates', () => {
         const result = await fetchTokenExchangeRates(
           solanaChainId,
           currency,
+          undefined,
           ...tokenAddresses,
         );
 
@@ -771,6 +772,7 @@ describe('exchange-rates', () => {
         const result = await fetchTokenExchangeRates(
           solanaChainId,
           currency,
+          undefined,
           ...tokenAddresses,
         );
 
@@ -795,6 +797,7 @@ describe('exchange-rates', () => {
         const result = await fetchTokenExchangeRates(
           evmChainId,
           currency,
+          undefined,
           ...tokenAddresses,
         );
 
@@ -810,6 +813,7 @@ describe('exchange-rates', () => {
         const result = await fetchTokenExchangeRates(
           evmChainId,
           currency,
+          undefined,
           ...tokenAddresses,
         );
 
@@ -823,7 +827,12 @@ describe('exchange-rates', () => {
           new Error('API error'),
         );
 
-        const result = await fetchTokenExchangeRates('0x1', 'USD', '0x123');
+        const result = await fetchTokenExchangeRates(
+          '0x1',
+          'USD',
+          undefined,
+          '0x123',
+        );
 
         expect(result).toEqual({});
       });
