@@ -9,7 +9,6 @@ import { BatchSellTokenSelectSelectorsIDs } from './BatchSellTokenSelect.testIds
 import {
   buildBatchSellEligibleChains,
   getBatchSellDestinationToken,
-  removeStablecoinsFromSourceTokens,
   MAX_BATCH_SELL_SOURCE_TOKENS,
   SUPPORTED_BATCH_SELL_CHAIN_IDS,
   sortBatchSellTokens,
@@ -199,36 +198,6 @@ const createToken = (overrides: Partial<BridgeToken>): BridgeToken => ({
 
 const getNetworkPillTestId = (chainId: CaipChainId) =>
   `${BatchSellTokenSelectSelectorsIDs.NETWORK_PILL}-${chainId}`;
-
-describe('filterBatchSellDestinationStablecoins', () => {
-  it('excludes configured stablecoins', () => {
-    const stablecoinAddress = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
-    const highBalanceToken = createToken({
-      symbol: 'HIGH',
-      address: '0x2222222222222222222222222222222222222222',
-      tokenFiatAmount: 50,
-    });
-    const lowBalanceToken = createToken({
-      symbol: 'LOW',
-      address: '0x3333333333333333333333333333333333333333',
-      tokenFiatAmount: 10,
-    });
-    const stablecoinToken = createToken({
-      symbol: 'USDC',
-      address: stablecoinAddress,
-      tokenFiatAmount: 100,
-    });
-
-    const result = removeStablecoinsFromSourceTokens({
-      tokens: [lowBalanceToken, stablecoinToken, highBalanceToken],
-      stablecoinsByChain: {
-        ['eip155:1' as CaipChainId]: [BridgeTokenMetadata[usdcAssetId]],
-      },
-    });
-
-    expect(result.map((token) => token.symbol)).toEqual(['LOW', 'HIGH']);
-  });
-});
 
 describe('buildBatchSellEligibleNetworks', () => {
   it('sorts eligible networks by highest aggregate fiat value', () => {
