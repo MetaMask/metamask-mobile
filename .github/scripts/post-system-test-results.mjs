@@ -1,0 +1,98 @@
+#!/usr/bin/env node
+
+import { execSync } from 'child_process';
+import fs from 'fs';
+
+const {
+  GITHUB_SERVER_URL = 'https://github.com',
+  GITHUB_REPOSITORY = '',
+  GITHUB_RUN_ID = '',
+  GITHUB_REF_NAME = '',
+  GITHUB_EVENT_NAME = '',
+  METAMASK_VERSION = '',
+} = process.env;
+
+const reportsPath = process.argv[2] || 'all-reports';
+const visualPath = process.argv[3] || 'all-visual-reports';
+
+const results = JSON.parse(
+  execSync(
+    `node .github/scripts/format-system-test-results.mjs "${reportsPath}" "${visualPath}"`,
+    { encoding: 'utf-8' },
+  ),
+);
+
+const allPassed = results.failed === 0;
+const emoji = allPassed ? ':white_check_mark:' : ':x:';
+const status = allPassed ? 'Passed' : 'Failed';
+const runUrl = `${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}`;
+
+const blocks = [
+  {
+    type: 'header',
+    text: {
+      type: 'plain_text',
+      text: `${allPassed ? '✅' : '❌'} Mobile Nightly System Tests Run ${status}`,
+    },
+  },
+  {
+    type: 'context',
+    elements: [
+      {
+        type: 'mrkdwn',
+        text: [
+          METAMASK_VERSION && `MetaMask Version: ${METAMASK_VERSION}`,
+          `Triggered: ${GITHUB_EVENT_NAME}`,
+          `Branch: ${GITHUB_REF_NAME}`,
+        ]
+          .filter(Boolean)
+          .join(' | '),
+      },
+    ],
+  },
+  {
+    type: 'section',
+    text: {
+      type: 'mrkdwn',
+      text: `*Summary:* ${results.passed} passed, ${results.failed} failed, ${results.skipped} skipped`,
+    },
+  },
+  {
+    type: 'context',
+    elements: [{ type: 'mrkdwn', text: `<${runUrl}|View test results>` }],
+  },
+];
+
+if (results.failedTests.length > 0) {
+  let list = '*Failed Tests:*\n';
+
+  for (const t of results.failedTests.slice(0, 15)) {
+    list += `:x: [${t.platform}] \`${t.specFile}\` — ${t.testName}\n`;
+  }
+
+  if (results.failedTests.length > 15) {
+    list += `_...and ${results.failedTests.length - 15} more failures_\n`;
+  }
+
+  blocks.push({ type: 'section', text: { type: 'mrkdwn', text: list } });
+}
+
+if (results.hasVisualFailures) {
+  blocks.push({
+    type: 'context',
+    elements: [
+      {
+        type: 'mrkdwn',
+        text: `:warning: Some AI visual regression checks failed — <${runUrl}#artifacts|review visual artifacts>`,
+      },
+    ],
+  });
+}
+
+const payload = {
+  text: `${emoji} Mobile Nightly System Tests Run ${status}`,
+  blocks,
+};
+
+fs.writeFileSync('/tmp/slack-payload.json', JSON.stringify(payload, null, 2));
+console.log(JSON.stringify(payload, null, 2));
