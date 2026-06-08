@@ -6,7 +6,6 @@ import {
   TransactionControllerOptions,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
-import { PreferencesController } from '@metamask/preferences-controller';
 
 import {
   REDESIGNED_TRANSACTION_TYPES,
@@ -15,10 +14,7 @@ import {
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import Logger from '../../../../util/Logger';
 import { TransactionControllerInitMessenger } from '../../messengers/transaction-controller-messenger';
-import type {
-  MessengerClientInitFunction,
-  MessengerClientInitRequest,
-} from '../../types';
+import type { MessengerClientInitFunction } from '../../types';
 import AppConstants from '../../../../core/AppConstants';
 import type { TransactionEventHandlerRequest } from './types';
 import {
@@ -45,16 +41,14 @@ export const TransactionControllerInit: MessengerClientInitFunction<
   const { controllerMessenger, getState, initMessenger, persistedState } =
     request;
 
-  const {
-    keyringController,
-    preferencesController,
-    smartTransactionsController,
-  } = getControllers(request);
-
   addTransactionControllerListeners({
+    getSmartTransactionByMinedTxHash: (txHash) =>
+      initMessenger.call(
+        'SmartTransactionsController:getSmartTransactionByMinedTxHash',
+        txHash,
+      ),
     initMessenger,
     getState,
-    smartTransactionsController,
   });
 
   try {
@@ -65,11 +59,9 @@ export const TransactionControllerInit: MessengerClientInitFunction<
           getState,
           getTransactionController: () => transactionController,
           initMessenger,
-          keyringController,
-          smartTransactionsController,
         }),
         incomingTransactions: {
-          isEnabled: () => isIncomingTransactionsEnabled(preferencesController),
+          isEnabled: () => isIncomingTransactionsEnabled(initMessenger),
           updateTransactions: true,
         },
         isAutomaticGasFeeUpdateEnabled,
@@ -77,7 +69,7 @@ export const TransactionControllerInit: MessengerClientInitFunction<
           if (
             !(await accountSupports7702(
               transactionMeta.txParams?.from,
-              keyringController as Parameters<typeof accountSupports7702>[1],
+              getKeyringController(initMessenger),
             ))
           ) {
             return false;
@@ -104,9 +96,10 @@ export const TransactionControllerInit: MessengerClientInitFunction<
           );
         },
         isFirstTimeInteractionEnabled: () =>
-          isFirstTimeInteractionEnabled(preferencesController),
+          isFirstTimeInteractionEnabled(initMessenger),
         isSimulationEnabled: () =>
-          preferencesController.state.useTransactionSimulations,
+          initMessenger.call('PreferencesController:getState')
+            .useTransactionSimulations,
         messenger: controllerMessenger,
         publicKeyEIP7702: AppConstants.EIP_7702_PUBLIC_KEY as Hex | undefined,
         state: persistedState.TransactionController,
@@ -122,29 +115,26 @@ export const TransactionControllerInit: MessengerClientInitFunction<
 };
 
 function isIncomingTransactionsEnabled(
-  preferencesController: PreferencesController,
+  initMessenger: TransactionControllerInitMessenger,
 ): boolean {
-  return preferencesController.state?.privacyMode !== true;
+  return (
+    initMessenger.call('PreferencesController:getState')?.privacyMode !== true
+  );
 }
 
 function isFirstTimeInteractionEnabled(
-  preferencesController: PreferencesController,
+  initMessenger: TransactionControllerInitMessenger,
 ): boolean {
-  return preferencesController.state?.securityAlertsEnabled === true;
+  return (
+    initMessenger.call('PreferencesController:getState')
+      ?.securityAlertsEnabled === true
+  );
 }
 
-function getControllers(
-  request: MessengerClientInitRequest<
-    TransactionControllerMessenger,
-    TransactionControllerInitMessenger
-  >,
-) {
+function getKeyringController(messenger: TransactionControllerInitMessenger) {
   return {
-    keyringController: request.getMessengerClient('KeyringController'),
-    preferencesController: request.getMessengerClient('PreferencesController'),
-    smartTransactionsController: request.getMessengerClient(
-      'SmartTransactionsController',
-    ),
+    getKeyringForAccount: (address: string) =>
+      messenger.call('KeyringController:getKeyringForAccount', address),
   };
 }
 

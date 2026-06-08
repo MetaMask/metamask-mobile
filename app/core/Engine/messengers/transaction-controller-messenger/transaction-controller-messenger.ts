@@ -30,15 +30,21 @@ import {
   TransactionControllerUpdateTransactionAction,
 } from '@metamask/transaction-controller';
 import {
+  SmartTransactionsControllerGetFeesAction,
+  SmartTransactionsControllerGetSmartTransactionByMinedTxHashAction,
+  SmartTransactionsControllerSetStatusRefreshIntervalAction,
   SmartTransactionsControllerSmartTransactionEvent,
   SmartTransactionsControllerSmartTransactionConfirmationDoneEvent,
+  SmartTransactionsControllerSubmitSignedTransactionsAction,
 } from '@metamask/smart-transactions-controller';
 import {
+  KeyringControllerGetKeyringForAccountAction,
   KeyringControllerGetStateAction,
   KeyringControllerSignEip7702AuthorizationAction,
   KeyringControllerSignTransactionAction,
   KeyringControllerSignTypedMessageAction,
 } from '@metamask/keyring-controller';
+import type { PreferencesControllerGetStateAction } from '@metamask/preferences-controller';
 import {
   BridgeStatusControllerActions,
   BridgeStatusControllerEvents,
@@ -112,18 +118,24 @@ type InitMessengerActions =
   | CurrencyRateControllerActions
   | DelegationControllerSignDelegationAction
   | GasFeeControllerFetchGasFeeEstimatesAction
-  | NetworkControllerFindNetworkClientIdByChainIdAction
-  | NetworkControllerGetNetworkClientByIdAction
+  | KeyringControllerGetKeyringForAccountAction
   | KeyringControllerGetStateAction
   | KeyringControllerSignEip7702AuthorizationAction
   | KeyringControllerSignTransactionAction
   | KeyringControllerSignTypedMessageAction
+  | NetworkControllerFindNetworkClientIdByChainIdAction
+  | NetworkControllerGetNetworkClientByIdAction
   | NetworkControllerGetEIP1559CompatibilityAction
   | NetworkControllerGetNetworkClientByIdAction
   | NetworkControllerGetNetworkClientRegistryAction
   | NetworkControllerGetNetworkConfigurationByChainIdAction
   | NetworkControllerGetStateAction
+  | PreferencesControllerGetStateAction
   | RemoteFeatureFlagControllerGetStateAction
+  | SmartTransactionsControllerGetFeesAction
+  | SmartTransactionsControllerGetSmartTransactionByMinedTxHashAction
+  | SmartTransactionsControllerSetStatusRefreshIntervalAction
+  | SmartTransactionsControllerSubmitSignedTransactionsAction
   | TransactionControllerAddTransactionAction
   | TransactionControllerAddTransactionBatchAction
   | TransactionControllerEstimateGasBatchAction
@@ -178,17 +190,23 @@ export function getTransactionControllerInitMessenger(
       'CurrencyRateController:getState',
       'DelegationController:signDelegation',
       'GasFeeController:fetchGasFeeEstimates',
+      'KeyringController:getKeyringForAccount',
+      'KeyringController:getState',
+      'KeyringController:signEip7702Authorization',
+      'KeyringController:signTransaction',
+      'KeyringController:signTypedMessage',
       'NetworkController:findNetworkClientIdByChainId',
       'NetworkController:getEIP1559Compatibility',
       'NetworkController:getNetworkClientById',
       'NetworkController:getNetworkClientRegistry',
       'NetworkController:getNetworkConfigurationByChainId',
       'NetworkController:getState',
-      'KeyringController:getState',
-      'KeyringController:signEip7702Authorization',
-      'KeyringController:signTransaction',
-      'KeyringController:signTypedMessage',
+      'PreferencesController:getState',
       'RemoteFeatureFlagController:getState',
+      'SmartTransactionsController:getFees',
+      'SmartTransactionsController:getSmartTransactionByMinedTxHash',
+      'SmartTransactionsController:setStatusRefreshInterval',
+      'SmartTransactionsController:submitSignedTransactions',
       'TransactionController:addTransaction',
       'TransactionController:addTransactionBatch',
       'TransactionController:estimateGasBatch',

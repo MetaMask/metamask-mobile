@@ -9,6 +9,11 @@ import { isProduction } from '../environment';
 
 const TIMEOUT_FOR_SMART_TRANSACTION_CONFIRMATION_DONE_EVENT = 10000;
 
+export type SmartTransactionMetricsController = Pick<
+  SmartTransactionsController,
+  'getSmartTransactionByMinedTxHash'
+>;
+
 const waitForSmartTransactionConfirmationDone = (
   controllerMessenger: RootExtendedMessenger,
 ): Promise<SmartTransaction | undefined> =>
@@ -25,7 +30,7 @@ const waitForSmartTransactionConfirmationDone = (
   });
 
 export const getSmartTransactionMetricsProperties = async (
-  smartTransactionsController: SmartTransactionsController,
+  smartTransactionsController: SmartTransactionMetricsController,
   transactionMeta: TransactionMeta | undefined,
   waitForSmartTransaction: boolean,
   controllerMessenger?: RootExtendedMessenger,

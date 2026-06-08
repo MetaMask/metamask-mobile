@@ -144,6 +144,21 @@ function buildInitRequestMock(
         return predictControllerMock.publish(params);
       }
 
+      if (actionType === 'PreferencesController:getState') {
+        return {
+          privacyMode: false,
+          securityAlertsEnabled: true,
+          useTransactionSimulations: true,
+        };
+      }
+
+      if (
+        actionType ===
+        'SmartTransactionsController:getSmartTransactionByMinedTxHash'
+      ) {
+        return undefined;
+      }
+
       throw new Error(`Unexpected init messenger action: ${actionType}`);
     },
   );
@@ -270,17 +285,6 @@ describe('Transaction Controller Init', () => {
   });
 
   describe('throws error', () => {
-    it('if requested controller is not found', () => {
-      const requestMock = buildInitRequestMock({
-        getMessengerClient: () => {
-          throw new Error('Controller not found');
-        },
-      });
-      expect(() => TransactionControllerInit(requestMock)).toThrow(
-        'Controller not found',
-      );
-    });
-
     it('if controller initialisation fails', () => {
       transactionControllerClassMock.mockImplementationOnce(() => {
         throw new Error('Controller initialisation failed');
@@ -895,9 +899,9 @@ describe('Transaction Controller Init', () => {
     } as TransactionMeta;
 
     const handlerContext = {
+      getSmartTransactionByMinedTxHash: expect.any(Function),
       getState: expect.any(Function),
       initMessenger: expect.any(Object),
-      smartTransactionsController: expect.any(Object),
     };
 
     const handleUnapprovedTransactionAddedForMoneyAccountMock = jest.mocked(

@@ -1,6 +1,6 @@
 import { toHex } from '@metamask/controller-utils';
 import { NetworkClientId } from '@metamask/network-controller';
-import { SmartTransactionsController } from '@metamask/smart-transactions-controller';
+import type { SmartTransactionsController } from '@metamask/smart-transactions-controller';
 import {
   type PublishBatchHookRequest,
   type PublishBatchHookResult,
@@ -48,8 +48,6 @@ export interface TransactionControllerHookRequest {
   getState: () => RootState;
   getTransactionController: () => TransactionController;
   initMessenger: TransactionControllerInitMessenger;
-  keyringController: Parameters<typeof accountSupports7702>[1];
-  smartTransactionsController: SmartTransactionsController;
 }
 
 export function getTransactionControllerHooks(
@@ -95,8 +93,6 @@ function publishHook({
   getState,
   getTransactionController,
   initMessenger,
-  keyringController,
-  smartTransactionsController,
 }: TransactionControllerHookRequest) {
   return async (
     transactionMeta: TransactionMeta,
@@ -136,7 +132,7 @@ function publishHook({
 
     const keyringSupports7702 = await accountSupports7702(
       transactionMeta.txParams?.from,
-      keyringController,
+      getKeyringController(initMessenger),
     );
 
     const isSwapGasIncluded7702 = Boolean(transactionMeta.isGasFeeIncluded);
@@ -191,7 +187,8 @@ function publishHook({
         featureFlags,
         shouldUseSmartTransaction,
         signedTransactionInHex,
-        smartTransactionsController,
+        smartTransactionsController:
+          getSmartTransactionsController(initMessenger),
         transactionController: getTransactionController(),
         transactionMeta,
       });
@@ -237,7 +234,6 @@ function publishBatchHook({
   getState,
   getTransactionController,
   initMessenger,
-  smartTransactionsController,
 }: TransactionControllerHookRequest) {
   return async (
     request: PublishBatchHookRequest,
@@ -270,7 +266,8 @@ function publishBatchHook({
         initMessenger as unknown as SubmitSmartTransactionRequest['controllerMessenger'],
       featureFlags,
       shouldUseSmartTransaction,
-      smartTransactionsController,
+      smartTransactionsController:
+        getSmartTransactionsController(initMessenger),
       transactionController,
       transactionMeta,
       transactions,
@@ -303,4 +300,38 @@ function publishBatchHook({
 
     return result;
   };
+}
+
+function getKeyringController(messenger: TransactionControllerInitMessenger) {
+  return {
+    getKeyringForAccount: (address: string) =>
+      messenger.call('KeyringController:getKeyringForAccount', address),
+  };
+}
+
+function getSmartTransactionsController(
+  messenger: TransactionControllerInitMessenger,
+): SmartTransactionsController {
+  return {
+    getFees: (...args: Parameters<SmartTransactionsController['getFees']>) =>
+      messenger.call('SmartTransactionsController:getFees', ...args),
+    setStatusRefreshInterval: (
+      ...args: Parameters<
+        SmartTransactionsController['setStatusRefreshInterval']
+      >
+    ) =>
+      messenger.call(
+        'SmartTransactionsController:setStatusRefreshInterval',
+        ...args,
+      ),
+    submitSignedTransactions: (
+      ...args: Parameters<
+        SmartTransactionsController['submitSignedTransactions']
+      >
+    ) =>
+      messenger.call(
+        'SmartTransactionsController:submitSignedTransactions',
+        ...args,
+      ),
+  } as unknown as SmartTransactionsController;
 }

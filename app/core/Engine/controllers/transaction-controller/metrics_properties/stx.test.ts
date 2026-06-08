@@ -38,8 +38,8 @@ const createMockRequest = (
   allTransactions: [],
   getUIMetrics: () => EMPTY_METRICS,
   getState: jest.fn() as TransactionMetricsBuilderRequest['getState'],
+  getSmartTransactionByMinedTxHash: jest.fn(),
   initMessenger: {} as never,
-  smartTransactionsController: {} as never,
   ...overrides,
 });
 

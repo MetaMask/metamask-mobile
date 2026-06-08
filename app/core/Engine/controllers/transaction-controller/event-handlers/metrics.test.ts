@@ -87,7 +87,6 @@ const mockSmartTransactionMetricsProperties = {
 describe('Transaction Metric Event Handlers', () => {
   const mockGetState = jest.fn();
   const mockInitMessengerCall = jest.fn();
-  const mockSmartTransactionsController = jest.fn();
 
   // Mock variables for selectors
   const mockSelectShouldUseSmartTransaction = jest.mocked(
@@ -110,9 +109,9 @@ describe('Transaction Metric Event Handlers', () => {
   } as unknown as TransactionMeta;
 
   const mockTransactionMetricRequest = {
+    getSmartTransactionByMinedTxHash: jest.fn(),
     getState: mockGetState,
     initMessenger: { call: mockInitMessengerCall },
-    smartTransactionsController: mockSmartTransactionsController,
   } as unknown as TransactionEventHandlerRequest;
 
   // Mock for MetricsEventBuilder (used by generateEvent in utils.ts)

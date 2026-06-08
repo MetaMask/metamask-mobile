@@ -100,10 +100,6 @@ function buildRequest(
     getState: jest.fn().mockReturnValue({}),
     getTransactionController: () => transactionController,
     initMessenger,
-    keyringController:
-      {} as TransactionControllerHookRequest['keyringController'],
-    smartTransactionsController:
-      {} as TransactionControllerHookRequest['smartTransactionsController'],
     ...overrides,
   };
 }
