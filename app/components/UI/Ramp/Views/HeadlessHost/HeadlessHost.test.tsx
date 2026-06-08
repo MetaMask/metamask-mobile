@@ -60,6 +60,15 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+// Focus-dismissal is unit-tested in its own suite. Here we only assert the
+// Host wires the `disabled` flag correctly from its params, so mock the hook
+// and capture its arguments.
+const mockUseHeadlessSessionFocusDismissal = jest.fn();
+jest.mock('../../headless/useHeadlessSessionFocusDismissal', () => ({
+  useHeadlessSessionFocusDismissal: (...args: unknown[]) =>
+    mockUseHeadlessSessionFocusDismissal(...args),
+}));
+
 jest.mock('../../hooks/useContinueWithQuote', () => ({
   __esModule: true,
   default: (options?: unknown) => {
@@ -568,6 +577,47 @@ describe('HeadlessHost', () => {
       unmount();
 
       expect(callbacks.onClose).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Focus-dismissal suppression wiring', () => {
+    it('disables the focus-dismissal hook when suppressFocusDismissal param is set', () => {
+      const quote = buildNativeQuote();
+      const session = seedSession(quote);
+      renderHost({
+        headlessSessionId: session.id,
+        suppressFocusDismissal: true,
+      });
+      expect(mockUseHeadlessSessionFocusDismissal).toHaveBeenCalledWith(
+        session.id,
+        mockIsFocused,
+        { disabled: true },
+      );
+    });
+
+    it('disables the focus-dismissal hook when nativeFlowError param is set', () => {
+      const quote = buildNativeQuote();
+      const session = seedSession(quote);
+      renderHost({
+        headlessSessionId: session.id,
+        nativeFlowError: 'OTP rejected',
+      });
+      expect(mockUseHeadlessSessionFocusDismissal).toHaveBeenCalledWith(
+        session.id,
+        mockIsFocused,
+        { disabled: true },
+      );
+    });
+
+    it('leaves the focus-dismissal hook enabled when neither suppress nor error params are set', () => {
+      const quote = buildNativeQuote();
+      const session = seedSession(quote);
+      renderHost({ headlessSessionId: session.id });
+      expect(mockUseHeadlessSessionFocusDismissal).toHaveBeenCalledWith(
+        session.id,
+        mockIsFocused,
+        { disabled: false },
+      );
     });
   });
 });
