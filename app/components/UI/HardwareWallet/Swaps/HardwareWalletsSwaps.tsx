@@ -7,7 +7,7 @@ import React, {
   useState,
 } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import {
   Box,
   BoxAlignItems,
@@ -20,7 +20,6 @@ import {
   ButtonVariant,
   IconName,
   Text,
-  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -41,20 +40,19 @@ import {
 import {
   HardwareWalletsSwapsState,
   HardwareWalletsSwapsStatus,
-  HardwareWalletsSwapsStepKind,
   HardwareWalletsSwapsEventType,
   HardwareWalletsSwapsStepStatus,
 } from './HardwareWalletsSwaps.state';
 import { HardwareWalletsSwapsSelectorsIDs } from './HardwareWalletsSwaps.testIds';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import useSubmitBridgeTx from '../../../../util/bridge/hooks/useSubmitBridgeTx';
-import {
-  getBridgeSubmissionCache,
-  clearBridgeSubmissionCache,
-  setBridgeSubmissionCache,
-} from '../../Bridge/hooks/bridgeSubmissionCache';
-import { useFreshQuoteForRetry } from './hooks/useFreshQuoteForRetry';
-import { isRetryQuoteAcceptable } from './retryQuoteSafety';
+import type {
+  QuoteMetadata,
+  QuoteResponse,
+  MetaMetricsSwapsEventSource,
+} from '@metamask/bridge-controller';
+import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+
 import {
   ToastContext,
   ToastVariants,
@@ -68,6 +66,12 @@ import { useHwConnectionMonitoring } from './useHwConnectionMonitoring';
 import { useHwQrState } from './hooks/useHwQrState';
 import { ConnectionStatus } from '@metamask/hw-wallet-sdk';
 import { StepRow } from './StepRow';
+
+interface SubmissionParams {
+  quoteResponse: QuoteResponse & QuoteMetadata;
+  location?: MetaMetricsSwapsEventSource;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+}
 
 const HARDWARE_WALLET_RIVE_ARTBOARD = 'Generic';
 const HARDWARE_WALLET_RIVE_STATE_MACHINE = 'wallet_states';
@@ -163,7 +167,11 @@ export function HardwareWalletsSwaps() {
   }, [isQrHardwareWallet, setForceHideBottomSheet]);
 
   const { submitBridgeTx } = useSubmitBridgeTx();
-  const { fetchFreshQuote } = useFreshQuoteForRetry();
+  const { params: routeParams } = useRoute();
+  const cachedSubmissionParams = useRef<SubmissionParams | null>(
+    (routeParams as { submissionParams?: SubmissionParams })?.submissionParams ??
+      null,
+  );
   const toastRef = useContext(ToastContext)?.toastRef;
   const hasAutoNavigatedRef = useRef(false);
   const hasInitialSubmissionRef = useRef(false);
@@ -243,8 +251,7 @@ export function HardwareWalletsSwaps() {
   }, [allStepsSigned, navigateToTransactions]);
 
   const submitWithDeviceReady = useCallback(async () => {
-    const cachedParams = getBridgeSubmissionCache();
-    if (!cachedParams) {
+    if (!cachedSubmissionParams.current) {
       dispatch(
         updateHardwareWalletsSwaps({
           type: HardwareWalletsSwapsEventType.TransactionFailed,
@@ -262,7 +269,7 @@ export function HardwareWalletsSwaps() {
     }
     const myGeneration = submissionGenerationRef.current;
     try {
-      await submitBridgeTx(cachedParams);
+      await submitBridgeTx(cachedSubmissionParams.current);
     } catch (error) {
       if (submissionGenerationRef.current !== myGeneration) {
         return;
@@ -289,7 +296,7 @@ export function HardwareWalletsSwaps() {
     if (progress.status !== HardwareWalletsSwapsStatus.Waiting) return;
     if (hasInitialSubmissionRef.current) return;
     if (hasAutoNavigatedRef.current) return;
-    if (!getBridgeSubmissionCache()) {
+    if (!cachedSubmissionParams) {
       dispatch(
         updateHardwareWalletsSwaps({
           type: HardwareWalletsSwapsEventType.TransactionFailed,
@@ -341,13 +348,13 @@ export function HardwareWalletsSwaps() {
 
   const handleCancel = useCallback(() => {
     cancelCurrentBatch();
-    clearBridgeSubmissionCache();
+    cachedSubmissionParams.current = null;
     dispatch(resetHardwareWalletsSwaps());
     navigation.navigate(Routes.BRIDGE.BRIDGE_VIEW);
   }, [dispatch, navigation, cancelCurrentBatch]);
 
   const bounceToBridgeView = useCallback(() => {
-    clearBridgeSubmissionCache();
+    cachedSubmissionParams.current = null;
     dispatch(resetHardwareWalletsSwaps());
     navigation.navigate(Routes.BRIDGE.BRIDGE_VIEW);
   }, [dispatch, navigation]);
@@ -355,8 +362,7 @@ export function HardwareWalletsSwaps() {
   const retrySubmission = useCallback(
     async (checkConnection: boolean) => {
       if (retryingMutexRef.current) return;
-      const cachedParams = getBridgeSubmissionCache();
-      if (!cachedParams) {
+      if (!cachedSubmissionParams.current) {
         bounceToBridgeView();
         return;
       }
@@ -378,26 +384,6 @@ export function HardwareWalletsSwaps() {
           if (!canRetry) return;
         }
 
-        // Refetch quote before retrying. The cached quote's calldata embeds a
-        // slippage-protected min-out; replaying it after the market moves
-        // results in STX simulation reverts (would_revert) that never mine.
-        // Only proceed in-place when the fresh quote's min-out is at least
-        // as good as the user's originally approved terms; otherwise bounce
-        // back to BRIDGE_VIEW so the user sees the new rate.
-        const freshQuote = await fetchFreshQuote();
-        if (!freshQuote) {
-          bounceToBridgeView();
-          return;
-        }
-        if (!isRetryQuoteAcceptable(cachedParams.quoteResponse, freshQuote)) {
-          bounceToBridgeView();
-          return;
-        }
-        setBridgeSubmissionCache({
-          ...cachedParams,
-          quoteResponse: freshQuote,
-        });
-
         submissionGenerationRef.current += 1;
         resetHandledError();
         dispatch(
@@ -417,7 +403,6 @@ export function HardwareWalletsSwaps() {
       submitWithDeviceReady,
       connectionState.status,
       resetHandledError,
-      fetchFreshQuote,
       bounceToBridgeView,
     ],
   );
@@ -433,7 +418,7 @@ export function HardwareWalletsSwaps() {
   );
 
   const handleDone = useCallback(() => {
-    clearBridgeSubmissionCache();
+    cachedSubmissionParams.current = null;
     dispatch(resetHardwareWalletsSwaps());
     navigation.navigate(Routes.TRANSACTIONS_VIEW);
   }, [dispatch, navigation]);

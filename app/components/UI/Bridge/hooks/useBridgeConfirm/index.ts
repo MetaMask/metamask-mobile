@@ -12,7 +12,6 @@ import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import { isHardwareAccount } from '../../../../../util/address';
-import { setBridgeSubmissionCache } from '../bridgeSubmissionCache';
 import { buildStartPayload } from '../../../HardwareWallet/Swaps/HardwareWalletsSwaps.state';
 
 interface Params {
@@ -45,13 +44,15 @@ export const useBridgeConfirm = ({
       if (isHardwareWalletBridgeSubmission) {
         dispatch(resetHardwareWalletsSwaps());
         dispatch(updateHardwareWalletsSwaps(buildStartPayload(activeQuote)));
-        setBridgeSubmissionCache({
-          quoteResponse: activeQuote,
-          location,
-          transactionActiveAbTests,
-        });
         navigation.navigate(Routes.BRIDGE.ROOT, {
           screen: Routes.BRIDGE.HARDWARE_WALLETS_SWAPS,
+          params: {
+            submissionParams: {
+              quoteResponse: activeQuote,
+              location,
+              transactionActiveAbTests,
+            },
+          },
         });
         return;
       }
