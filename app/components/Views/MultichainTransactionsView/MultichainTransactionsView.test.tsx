@@ -7,6 +7,9 @@ import MultichainTransactionsView from './MultichainTransactionsView';
 import { selectNonEvmTransactions } from '../../../selectors/multichain';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { ButtonProps } from '../../../component-library/components/Buttons/Button/Button.types';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 
 jest.useFakeTimers();
 
@@ -67,6 +70,10 @@ jest.mock('../../../util/networks', () => ({
   getBlockExplorerName: jest.fn(() => 'Explorer'),
 }));
 
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
+}));
+
 describe('MultichainTransactionsView', () => {
   const mockNavigation = { navigate: jest.fn() };
   const mockSelectedAddress = '7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV';
@@ -109,6 +116,12 @@ describe('MultichainTransactionsView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.clearAllTimers();
+
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+      }),
+    );
 
     // Ensure selector returns a static instance
     const mockTransactionsData = { transactions: mockTransactions };
