@@ -114,7 +114,7 @@
       "title": "Insufficient funds for post quote"
     },
     "no_pay_token_quotes": {
-      "message": "This payment route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
+      "message": "This payment route isn't available right now. Try changing the amount or payment method and we'll find the best option.",
       "title": "No quotes"
     },
     "account_no_funds": {
@@ -7465,6 +7465,9 @@
       },
       "musd_conversion": {
         "transaction_fee": "mUSD conversion fees include network costs and may include provider fees. No MetaMask fee applies when you convert to mUSD."
+      },
+      "money_account_deposit": {
+        "transaction_fee": "Money Account deposit fees include network costs and may include provider fees."
       },
       "money_account_withdraw": {
         "transaction_fee": "MetaMask will swap your mUSD for your desired token. Swap providers may charge a fee, but MetaMask won't."
