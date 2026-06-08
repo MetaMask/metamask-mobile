@@ -21,8 +21,8 @@ export function useCanFiatDepositAsset({
   if (!isFiatDepositFlagEnabled || !isReady) return false;
 
   return (
-    pickEligiblePaymentMethod(paymentMethods, maxDelayMinutesForPaymentMethods) !=
-    null
+    pickEligiblePaymentMethod(paymentMethods, maxDelayMinutesForPaymentMethods) !==
+    undefined
   );
 }
 

@@ -16,18 +16,17 @@ const mockPickEligiblePaymentMethod = pickEligiblePaymentMethod as jest.Mock;
 
 const mockMethod = { id: '/payments/card', name: 'Card' } as PaymentMethod;
 
-beforeEach(() => {
-  jest.clearAllMocks();
-  mockUseMMPayFiatConfig.mockReturnValue({ maxDelayMinutesForPaymentMethods: 10 });
-  mockUseMoneyAccountDepositPaymentMethods.mockReturnValue({
-    paymentMethods: [mockMethod],
-    isReady: true,
-    isLoading: false,
-  });
-  mockPickEligiblePaymentMethod.mockReturnValue(mockMethod);
-});
-
 describe('useCanFiatDepositAsset', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseMMPayFiatConfig.mockReturnValue({ maxDelayMinutesForPaymentMethods: 10 });
+    mockUseMoneyAccountDepositPaymentMethods.mockReturnValue({
+      paymentMethods: [mockMethod],
+      isReady: true,
+    });
+    mockPickEligiblePaymentMethod.mockReturnValue(mockMethod);
+  });
+
   it('returns true when flag on, isReady, and an eligible method exists', () => {
     const { result } = renderHook(() =>
       useCanFiatDepositAsset({ isFiatDepositFlagEnabled: true }),
@@ -41,6 +40,7 @@ describe('useCanFiatDepositAsset', () => {
       useCanFiatDepositAsset({ isFiatDepositFlagEnabled: false }),
     );
     expect(result.current).toBe(false);
+    expect(mockPickEligiblePaymentMethod).not.toHaveBeenCalled();
   });
 
   it('returns false when isReady is false (queries still loading)', () => {
