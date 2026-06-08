@@ -41,21 +41,32 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'money.how_it_works_page.description_3':
         'Money account is powered by Monad.',
       'money.how_it_works_page.faq_title': 'Frequently asked questions',
-      'money.how_it_works_page.faq_placeholder_answer': 'Coming soon.',
-      'money.how_it_works_page.faq_q1': 'How does the 4% APY work?',
-      'money.how_it_works_page.faq_q2': 'What is mUSD?',
-      'money.how_it_works_page.faq_q3': 'Where does the yield come from?',
-      'money.how_it_works_page.faq_q4':
-        'Is my money locked? Can I withdraw anytime?',
+      'money.how_it_works_page.faq_q1': 'What is a MetaMask Money Account?',
+      'money.how_it_works_page.faq_a1': 'Money Account answer 1',
+      'money.how_it_works_page.faq_q2': 'Is MetaMask Money Account safe?',
+      'money.how_it_works_page.faq_a2': 'Money Account answer 2',
+      'money.how_it_works_page.faq_q3':
+        'Who controls my MetaMask Money Account?',
+      'money.how_it_works_page.faq_a3': 'Money Account answer 3',
+      'money.how_it_works_page.faq_q4': 'What are MetaMask Money Account fees?',
+      'money.how_it_works_page.faq_a4': 'Money Account answer 4',
       'money.how_it_works_page.faq_q5':
-        'How does spending with the MetaMask Card work?',
-      'money.how_it_works_page.faq_q6': 'Are there any fees?',
-      'money.how_it_works_page.faq_q7': 'Does the APY rate change?',
+        'How much can I earn with a MetaMask Money Account?',
+      'money.how_it_works_page.faq_a5': 'Money Account answer 5',
+      'money.how_it_works_page.faq_q6': 'Where does the yield come from?',
+      'money.how_it_works_page.faq_a6': 'Money Account answer 6',
+      'money.how_it_works_page.faq_q7':
+        'Which tokens can I deposit into the Money Account?',
+      'money.how_it_works_page.faq_a7': 'Money Account answer 7',
       'money.how_it_works_page.faq_q8':
-        'Is this a savings account or a spending account?',
-      'money.how_it_works_page.faq_q9': 'Who controls my money?',
+        'Can I withdraw from the MetaMask Money Account anytime?',
+      'money.how_it_works_page.faq_a8': 'Money Account answer 8',
+      'money.how_it_works_page.faq_q9':
+        'Do I need to complete KYC to use MetaMask Money Account?',
+      'money.how_it_works_page.faq_a9': 'Money Account answer 9',
       'money.how_it_works_page.faq_q10':
-        'What cash back do I get with the MetaMask Card?',
+        'Which countries is MetaMask Money Account available in?',
+      'money.how_it_works_page.faq_a10': 'Money Account answer 10',
     };
     return map[key] ?? key;
   },
@@ -121,32 +132,44 @@ describe('MoneyHowItWorksView', () => {
     expect(getByText('Frequently asked questions')).toBeOnTheScreen();
   });
 
-  it('includes "4% APY" in the FAQ questions', () => {
-    const { getAllByText } = renderWithProvider(<MoneyHowItWorksView />);
+  it('reveals the matching answer when a FAQ item is expanded', () => {
+    const { getByTestId, getByText, queryByText } = renderWithProvider(
+      <MoneyHowItWorksView />,
+    );
 
-    expect(getAllByText(/4% APY/).length).toBeGreaterThan(0);
+    expect(queryByText('Money Account answer 1')).toBeNull();
+
+    fireEvent.press(getByTestId(MoneyHowItWorksViewTestIds.FAQ_ITEM(1)));
+
+    expect(getByText('Money Account answer 1')).toBeOnTheScreen();
   });
 
   it('renders all 10 FAQ questions', () => {
     const { getByText } = renderWithProvider(<MoneyHowItWorksView />);
 
-    expect(getByText('How does the 4% APY work?')).toBeOnTheScreen();
-    expect(getByText('What is mUSD?')).toBeOnTheScreen();
+    expect(getByText('What is a MetaMask Money Account?')).toBeOnTheScreen();
+    expect(getByText('Is MetaMask Money Account safe?')).toBeOnTheScreen();
+    expect(
+      getByText('Who controls my MetaMask Money Account?'),
+    ).toBeOnTheScreen();
+    expect(
+      getByText('What are MetaMask Money Account fees?'),
+    ).toBeOnTheScreen();
+    expect(
+      getByText('How much can I earn with a MetaMask Money Account?'),
+    ).toBeOnTheScreen();
     expect(getByText('Where does the yield come from?')).toBeOnTheScreen();
     expect(
-      getByText('Is my money locked? Can I withdraw anytime?'),
+      getByText('Which tokens can I deposit into the Money Account?'),
     ).toBeOnTheScreen();
     expect(
-      getByText('How does spending with the MetaMask Card work?'),
+      getByText('Can I withdraw from the MetaMask Money Account anytime?'),
     ).toBeOnTheScreen();
-    expect(getByText('Are there any fees?')).toBeOnTheScreen();
-    expect(getByText('Does the APY rate change?')).toBeOnTheScreen();
     expect(
-      getByText('Is this a savings account or a spending account?'),
+      getByText('Do I need to complete KYC to use MetaMask Money Account?'),
     ).toBeOnTheScreen();
-    expect(getByText('Who controls my money?')).toBeOnTheScreen();
     expect(
-      getByText('What cash back do I get with the MetaMask Card?'),
+      getByText('Which countries is MetaMask Money Account available in?'),
     ).toBeOnTheScreen();
   });
 
