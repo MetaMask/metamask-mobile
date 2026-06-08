@@ -22,6 +22,9 @@ import {
 } from '../../../../selectors/assets/assets-migration';
 import { CARD_CHAIN_IDS } from '../constants';
 import { balanceToFiatNumber } from '../../../../util/number/bigint';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../../Earn/constants/musd';
+import { toChecksumAddress } from '../../../../util/address';
 
 const extractTrailingCurrencyCode = (value: string): string | undefined => {
   const match = value.trim().match(/([A-Za-z]{3})$/);
@@ -183,6 +186,29 @@ export const useAssetBalances = (
   }, [tokens, networkConfigs, currencyRates, marketData]);
 
   const currentCurrency = useSelector(selectCurrentCurrency);
+
+  const musdFiatRate = useMemo<number | undefined>(() => {
+    const musdAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.MAINNET];
+    if (!musdAddress) {
+      return undefined;
+    }
+
+    const checksumAddress = toChecksumAddress(musdAddress) as Hex;
+    const nativeCurrency = networkConfigs?.[CHAIN_IDS.MAINNET]?.nativeCurrency;
+    const conversionRate = nativeCurrency
+      ? currencyRates?.[nativeCurrency]?.conversionRate
+      : undefined;
+
+    const priceInNativeCurrency =
+      marketData?.[CHAIN_IDS.MAINNET]?.[checksumAddress]?.price ??
+      marketData?.[CHAIN_IDS.MAINNET]?.[musdAddress]?.price;
+
+    if (!conversionRate || priceInNativeCurrency === undefined) {
+      return undefined;
+    }
+
+    return priceInNativeCurrency * conversionRate;
+  }, [marketData, currencyRates, networkConfigs]);
 
   // Helper: Determine which balance to use based on token state
   const determineBalanceToUse = useCallback(
@@ -686,6 +712,17 @@ export const useAssetBalances = (
       const rawTokenBalance = parseFloat(normalizedBalance);
       const balanceFormatted = `${parseFloat(normalizedBalance).toFixed(6)} ${token.symbol}`;
 
+      if (token.isMoneyAccountEntry) {
+        const safeBalance = Number.isNaN(rawTokenBalance) ? 0 : rawTokenBalance;
+        const convertedFiat =
+          musdFiatRate !== undefined ? safeBalance * musdFiatRate : safeBalance;
+        balanceFiat = formatWithThreshold(convertedFiat, 0.01, I18n.locale, {
+          style: 'currency',
+          currency: currentCurrency?.toUpperCase() || 'USD',
+        });
+        rawFiatNumber = convertedFiat;
+      }
+
       // Build asset object
       const asset = buildAssetObject(
         token,
@@ -713,6 +750,8 @@ export const useAssetBalances = (
     calculateSolanaFiat,
     calculateEvmFiat,
     buildAssetObject,
+    currentCurrency,
+    musdFiatRate,
   ]);
 
   return balancesMap;

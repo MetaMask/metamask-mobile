@@ -7,6 +7,10 @@ import {
   CardNetwork,
 } from '../types';
 import { SUPPORTED_ASSET_NETWORKS } from '../constants';
+import {
+  MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
+  MONEY_ACCOUNT_DISPLAY_SYMBOL,
+} from './vedaToken';
 
 /** CAIP chain ID for Linea mainnet */
 export const LINEA_CAIP_CHAIN_ID = 'eip155:59144' as CaipChainId;
@@ -72,7 +76,9 @@ export function buildDelegationTokenList({
     const caipChainId = getCaipChainId(network);
     const isNonProduction = network.environment !== 'production';
 
-    for (const [, tokenConfig] of Object.entries(network.tokens || {})) {
+    for (const [tokenKey, tokenConfig] of Object.entries(
+      network.tokens || {},
+    )) {
       if (!tokenConfig.address) continue;
 
       // Check for duplicates
@@ -82,6 +88,26 @@ export function buildDelegationTokenList({
           t.caipChainId === caipChainId,
       );
       if (isDuplicate) continue;
+
+      const isVedaEntry = tokenKey === MONEY_ACCOUNT_DELEGATION_TOKEN_KEY;
+
+      if (isVedaEntry) {
+        tokens.push({
+          address: tokenConfig.address,
+          symbol: tokenConfig.symbol,
+          name: tokenConfig.symbol,
+          decimals: tokenConfig.decimals,
+          caipChainId,
+          walletAddress: undefined,
+          fundingStatus: FundingStatus.NotEnabled,
+          spendableBalance: '0',
+          delegationContract: network.delegationContract,
+          priority: undefined,
+          stagingTokenAddress: undefined,
+          displaySymbol: MONEY_ACCOUNT_DISPLAY_SYMBOL,
+        });
+        continue;
+      }
 
       // Get metadata from SDK if available
       const sdkTokens = getSupportedTokensByChainId?.(caipChainId) ?? [];
