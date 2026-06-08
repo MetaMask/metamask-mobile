@@ -68,7 +68,7 @@ function getStatusColorAndText(order: FiatOrder): [TextColor, string] {
       break;
     case 'PENDING':
       statusText =
-        order.orderType === 'BUY'
+        order.orderType === 'BUY' || order.orderType === 'DEPOSIT'
           ? strings('fiat_on_ramp_aggregator.order_status_pending')
           : strings('fiat_on_ramp_aggregator.order_status_processing');
       break;
@@ -84,7 +84,7 @@ function getStatusColorAndText(order: FiatOrder): [TextColor, string] {
 function OrderListItem({ order }: Props) {
   const styles = createStyles();
   const amount = getOrderAmount(order);
-  const isBuy = order.orderType === 'BUY';
+  const isBuy = order.orderType === 'BUY' || order.orderType === 'DEPOSIT';
   const isDeposit = order.provider === 'DEPOSIT';
   const isPurchase = isBuy || isDeposit;
   const [statusColor, statusText] = getStatusColorAndText(order);

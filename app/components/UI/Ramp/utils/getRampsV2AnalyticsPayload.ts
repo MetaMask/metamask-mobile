@@ -25,7 +25,8 @@ const getRampsV2AnalyticsPayload = (
   fiatOrder: FiatOrder,
 ): [EventName, EventParams] => {
   const data = fiatOrder.data as RampsOrder | undefined;
-  const isBuy = fiatOrder.orderType === 'BUY';
+  const isBuy =
+    fiatOrder.orderType === 'BUY' || fiatOrder.orderType === 'DEPOSIT';
 
   let failedOrCancelledParams:
     | AnalyticsEvents['ONRAMP_PURCHASE_FAILED']
