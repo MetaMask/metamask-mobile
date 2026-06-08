@@ -28,8 +28,8 @@ const createMockRequest = (
   allTransactions: [],
   getUIMetrics: () => EMPTY_METRICS,
   getState: jest.fn(),
-  getSmartTransactionByMinedTxHash: jest.fn(),
   initMessenger: {} as never,
+  smartTransactionsController: {} as never,
 });
 
 describe('getRPCMetricsProperties', () => {

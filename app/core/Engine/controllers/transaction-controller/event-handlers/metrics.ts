@@ -204,8 +204,7 @@ async function getBuilderMetrics({
           getUIMetrics,
           getState,
           initMessenger: request.initMessenger,
-          getSmartTransactionByMinedTxHash:
-            request.getSmartTransactionByMinedTxHash,
+          smartTransactionsController: request.smartTransactionsController,
         });
       } catch (error) {
         return EMPTY_METRICS;

@@ -899,9 +899,9 @@ describe('Transaction Controller Init', () => {
     } as TransactionMeta;
 
     const handlerContext = {
-      getSmartTransactionByMinedTxHash: expect.any(Function),
       getState: expect.any(Function),
       initMessenger: expect.any(Object),
+      smartTransactionsController: expect.any(Object),
     };
 
     const handleUnapprovedTransactionAddedForMoneyAccountMock = jest.mocked(

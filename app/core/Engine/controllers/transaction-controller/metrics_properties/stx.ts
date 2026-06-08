@@ -20,7 +20,7 @@ export async function getStxMetricsProperties({
   transactionMeta,
   getState,
   initMessenger,
-  getSmartTransactionByMinedTxHash,
+  smartTransactionsController,
 }: TransactionMetricsBuilderRequest): Promise<TransactionMetrics> {
   try {
     const state = getState();
@@ -47,7 +47,7 @@ export async function getStxMetricsProperties({
     }
 
     const smartMetrics = await getSmartTransactionMetricsProperties(
-      { getSmartTransactionByMinedTxHash },
+      smartTransactionsController,
       transactionMeta,
       true,
       initMessenger as unknown as RootExtendedMessenger,

@@ -29,8 +29,8 @@ describe('getSimulationValuesProperties', () => {
       allTransactions: [],
       getUIMetrics: getUIMetricsMock,
       getState: getStateMock,
-      getSmartTransactionByMinedTxHash: jest.fn(),
       initMessenger: {} as never,
+      smartTransactionsController: {} as never,
     };
   });
 

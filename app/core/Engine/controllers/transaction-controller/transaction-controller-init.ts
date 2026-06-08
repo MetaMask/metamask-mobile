@@ -5,6 +5,7 @@ import {
   type TransactionMeta,
   TransactionControllerOptions,
 } from '@metamask/transaction-controller';
+import type { SmartTransactionsController } from '@metamask/smart-transactions-controller';
 import { Hex } from '@metamask/utils';
 
 import {
@@ -42,13 +43,9 @@ export const TransactionControllerInit: MessengerClientInitFunction<
     request;
 
   addTransactionControllerListeners({
-    getSmartTransactionByMinedTxHash: (txHash) =>
-      initMessenger.call(
-        'SmartTransactionsController:getSmartTransactionByMinedTxHash',
-        txHash,
-      ),
     initMessenger,
     getState,
+    smartTransactionsController: getSmartTransactionsController(initMessenger),
   });
 
   try {
@@ -136,6 +133,22 @@ function getKeyringController(messenger: TransactionControllerInitMessenger) {
     getKeyringForAccount: (address: string) =>
       messenger.call('KeyringController:getKeyringForAccount', address),
   };
+}
+
+function getSmartTransactionsController(
+  messenger: TransactionControllerInitMessenger,
+): SmartTransactionsController {
+  return {
+    getSmartTransactionByMinedTxHash: (
+      ...args: Parameters<
+        SmartTransactionsController['getSmartTransactionByMinedTxHash']
+      >
+    ) =>
+      messenger.call(
+        'SmartTransactionsController:getSmartTransactionByMinedTxHash',
+        ...args,
+      ),
+  } as unknown as SmartTransactionsController;
 }
 
 function isAutomaticGasFeeUpdateEnabled(transaction: TransactionMeta) {

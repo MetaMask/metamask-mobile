@@ -56,8 +56,8 @@ describe('Metamask Pay Metrics', () => {
       allTransactions: [],
       getUIMetrics: jest.fn(),
       getState: getStateMock,
-      getSmartTransactionByMinedTxHash: jest.fn(),
       initMessenger: {} as never,
+      smartTransactionsController: {} as never,
     };
   });
 
