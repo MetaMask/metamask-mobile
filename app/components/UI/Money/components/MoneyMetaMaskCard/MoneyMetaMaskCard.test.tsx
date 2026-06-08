@@ -11,7 +11,9 @@ describe('MoneyMetaMaskCard', () => {
       <MoneyMetaMaskCard onGetNowPress={jest.fn()} />,
     );
 
-    expect(getByText(strings('money.metamask_card.title'))).toBeOnTheScreen();
+    expect(
+      getByText(strings('money.metamask_card.upsell_title')),
+    ).toBeOnTheScreen();
     expect(
       getByText(strings('money.metamask_card.subtitle')),
     ).toBeOnTheScreen();
