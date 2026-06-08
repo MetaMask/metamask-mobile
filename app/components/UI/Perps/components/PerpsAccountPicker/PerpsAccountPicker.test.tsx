@@ -1,33 +1,12 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import { TransactionType } from '@metamask/transaction-controller';
+
 import type { SubAccountInfo } from '../../types/subAccount';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import PerpsAccountPicker, {
-  PerpsAccountPickerRow,
-} from './PerpsAccountPicker';
-import { useTransactionMetadataRequest } from '../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
-import { usePerpsSubAccounts } from '../../hooks';
-import { useParams } from '../../../../../util/navigation/navUtils';
-import { updateTransaction } from '../../../../../util/transaction-controller';
 import { PerpsAccountPickerSelectorsIDs } from '../../Perps.testIds';
+import PerpsAccountPicker from './PerpsAccountPicker';
 
-jest.mock(
-  '../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest',
-);
-jest.mock('../../hooks', () => ({
-  usePerpsSubAccounts: jest.fn(),
-}));
-jest.mock('../../../../../util/navigation/navUtils');
-jest.mock('../../../../../util/transaction-controller', () => ({
-  updateTransaction: jest.fn(),
-}));
-jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    PerpsController: {},
-  },
-}));
 jest.mock('../../utils/formatUtils', () => ({
   formatPerpsBalance: (val: string) => `$${val}`,
 }));
@@ -88,11 +67,6 @@ jest.mock('../../../../../component-library/components/Avatars/Avatar', () => {
     AvatarVariant: { Account: 'Account' },
   };
 });
-
-jest.mock('../../../../Views/confirmations/utils/transaction', () => ({
-  hasTransactionType: (meta: { type?: string } | undefined, types: string[]) =>
-    meta?.type ? types.includes(meta.type) : false,
-}));
 
 const MOCK_ACCOUNTS: SubAccountInfo[] = [
   {
@@ -219,154 +193,5 @@ describe('PerpsAccountPicker', () => {
     );
 
     expect(onSelectMock).toHaveBeenCalledWith('0xdef');
-  });
-});
-
-describe('PerpsAccountPickerRow', () => {
-  const mockSelectSubAccount = jest.fn();
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-
-    jest.mocked(usePerpsSubAccounts).mockReturnValue({
-      subAccounts: MOCK_ACCOUNTS,
-      selectedSubAccount: MOCK_ACCOUNTS[0],
-      selectSubAccount: mockSelectSubAccount,
-    });
-
-    jest.mocked(useTransactionMetadataRequest).mockReturnValue({
-      id: 'tx-1',
-      type: TransactionType.perpsDeposit,
-    } as never);
-
-    jest.mocked(useParams).mockReturnValue({
-      payWithOption: 'money_account',
-    });
-  });
-
-  it('renders when perps deposit with MoneyAccount option', () => {
-    const { getByTestId } = renderWithProvider(<PerpsAccountPickerRow />, {
-      state: STATE_MOCK,
-    });
-
-    expect(getByTestId(PerpsAccountPickerSelectorsIDs.ROW)).toBeDefined();
-  });
-
-  it('renders nothing when not a perps deposit', () => {
-    jest.mocked(useTransactionMetadataRequest).mockReturnValue({
-      id: 'tx-1',
-      type: TransactionType.simpleSend,
-    } as never);
-
-    const { queryByTestId } = renderWithProvider(<PerpsAccountPickerRow />, {
-      state: STATE_MOCK,
-    });
-
-    expect(queryByTestId(PerpsAccountPickerSelectorsIDs.ROW)).toBeNull();
-  });
-
-  it('renders nothing when payWithOption is not MoneyAccount', () => {
-    jest.mocked(useParams).mockReturnValue({});
-
-    const { queryByTestId } = renderWithProvider(<PerpsAccountPickerRow />, {
-      state: STATE_MOCK,
-    });
-
-    expect(queryByTestId(PerpsAccountPickerSelectorsIDs.ROW)).toBeNull();
-  });
-
-  it('renders nothing when no sub-accounts available', () => {
-    jest.mocked(usePerpsSubAccounts).mockReturnValue({
-      subAccounts: [],
-      selectedSubAccount: null,
-      selectSubAccount: mockSelectSubAccount,
-    });
-
-    const { queryByTestId } = renderWithProvider(<PerpsAccountPickerRow />, {
-      state: STATE_MOCK,
-    });
-
-    expect(queryByTestId(PerpsAccountPickerSelectorsIDs.ROW)).toBeNull();
-  });
-
-  it('displays the selected account name', () => {
-    const { getByText } = renderWithProvider(<PerpsAccountPickerRow />, {
-      state: STATE_MOCK,
-    });
-
-    expect(getByText('Account 1 (Perps)')).toBeDefined();
-  });
-
-  it('opens picker on row press', () => {
-    const { getByTestId, queryByTestId } = renderWithProvider(
-      <PerpsAccountPickerRow />,
-      { state: STATE_MOCK },
-    );
-
-    expect(queryByTestId(PerpsAccountPickerSelectorsIDs.SHEET)).toBeNull();
-
-    fireEvent.press(getByTestId(PerpsAccountPickerSelectorsIDs.ROW));
-
-    expect(getByTestId(PerpsAccountPickerSelectorsIDs.SHEET)).toBeDefined();
-  });
-
-  it('calls updateTransaction with updated from address on account selection', () => {
-    const { getByTestId } = renderWithProvider(<PerpsAccountPickerRow />, {
-      state: STATE_MOCK,
-    });
-
-    fireEvent.press(getByTestId(PerpsAccountPickerSelectorsIDs.ROW));
-
-    fireEvent.press(
-      getByTestId(`${PerpsAccountPickerSelectorsIDs.ACCOUNT_ITEM}-0xdef`),
-    );
-
-    expect(mockSelectSubAccount).toHaveBeenCalledWith('0xdef');
-    expect(updateTransaction).toHaveBeenCalledWith(
-      expect.objectContaining({
-        id: 'tx-1',
-        txParams: expect.objectContaining({ from: '0xdef' }),
-      }),
-      'tx-1',
-    );
-  });
-
-  it('does not call updateTransaction when transactionMeta has no id', () => {
-    jest.mocked(useTransactionMetadataRequest).mockReturnValue({
-      type: TransactionType.perpsDeposit,
-    } as never);
-
-    const { getByTestId } = renderWithProvider(<PerpsAccountPickerRow />, {
-      state: STATE_MOCK,
-    });
-
-    fireEvent.press(getByTestId(PerpsAccountPickerSelectorsIDs.ROW));
-
-    fireEvent.press(
-      getByTestId(`${PerpsAccountPickerSelectorsIDs.ACCOUNT_ITEM}-0xdef`),
-    );
-
-    expect(mockSelectSubAccount).toHaveBeenCalledWith('0xdef');
-    expect(updateTransaction).not.toHaveBeenCalled();
-  });
-
-  it('does not render when transactionMeta is undefined', () => {
-    jest.mocked(useTransactionMetadataRequest).mockReturnValue(undefined);
-
-    jest.mocked(usePerpsSubAccounts).mockReturnValue({
-      subAccounts: MOCK_ACCOUNTS,
-      selectedSubAccount: MOCK_ACCOUNTS[0],
-      selectSubAccount: mockSelectSubAccount,
-    });
-
-    jest.mocked(useParams).mockReturnValue({
-      payWithOption: 'money_account',
-    });
-
-    const { queryByTestId } = renderWithProvider(<PerpsAccountPickerRow />, {
-      state: STATE_MOCK,
-    });
-
-    expect(queryByTestId(PerpsAccountPickerSelectorsIDs.ROW)).toBeNull();
   });
 });

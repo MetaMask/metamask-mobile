@@ -68,7 +68,7 @@ import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import PayAccountSelector from '../../PayAccountSelector';
-import { PerpsAccountPickerRow } from '../../../../../UI/Perps/components/PerpsAccountPicker';
+import { PerpsAccountPickerRow } from '../../rows/perps-account-picker-row';
 import { useTransactionAccountOverride } from '../../../hooks/transactions/useTransactionAccountOverride';
 import { CustomAmountInfoTestIds } from './custom-amount-info.testIds';
 import { useConfirmationContext } from '../../../context/confirmation-context';

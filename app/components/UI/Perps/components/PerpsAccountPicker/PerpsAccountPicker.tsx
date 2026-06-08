@@ -7,40 +7,29 @@ import {
   View,
 } from 'react-native';
 
-import { TransactionType } from '@metamask/transaction-controller';
-import type { SubAccountInfo } from '../../types/subAccount';
 import {
   BottomSheet,
   BottomSheetRef,
   HeaderStandard,
   Text,
-  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+
+import Avatar, {
+  AvatarSize,
+  AvatarVariant,
+} from '../../../../../component-library/components/Avatars/Avatar';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import Avatar, {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../../../component-library/components/Avatars/Avatar';
 import { useStyles } from '../../../../../component-library/hooks/useStyles';
 import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
-import { useTransactionMetadataRequest } from '../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
-import Engine from '../../../../../core/Engine';
-import { updateTransaction } from '../../../../../util/transaction-controller';
-import { hasTransactionType } from '../../../../Views/confirmations/utils/transaction';
-import {
-  ConfirmationParams,
-  PayWithOption,
-} from '../../../../Views/confirmations/components/confirm/confirm-component';
-import { useParams } from '../../../../../util/navigation/navUtils';
-import { usePerpsSubAccounts } from '../../hooks';
+import { strings } from '../../../../../../locales/i18n';
+import type { SubAccountInfo } from '../../types/subAccount';
 import { formatPerpsBalance } from '../../utils/formatUtils';
 import { PerpsAccountPickerSelectorsIDs } from '../../Perps.testIds';
-import { strings } from '../../../../../../locales/i18n';
 import stylesheet from './PerpsAccountPicker.styles';
 
 interface PerpsAccountPickerProps {
@@ -160,98 +149,6 @@ const PerpsAccountPicker: React.FC<PerpsAccountPickerProps> = ({
         </BottomSheet>
       </View>
     </Modal>
-  );
-};
-
-export const PerpsAccountPickerRow: React.FC = () => {
-  const { styles } = useStyles(stylesheet, {});
-  const transactionMeta = useTransactionMetadataRequest();
-  const { subAccounts, selectedSubAccount, selectSubAccount } =
-    usePerpsSubAccounts();
-  const [isPickerVisible, setIsPickerVisible] = useState(false);
-
-  const { payWithOption } = useParams<ConfirmationParams>({});
-
-  const isPerpsDeposit =
-    payWithOption === PayWithOption.MoneyAccount &&
-    hasTransactionType(transactionMeta, [TransactionType.perpsDeposit]);
-
-  const handleAccountSelected = useCallback(
-    (address: string) => {
-      selectSubAccount(address);
-
-      const transactionId = transactionMeta?.id;
-      if (!transactionId) {
-        return;
-      }
-
-      updateTransaction(
-        {
-          ...transactionMeta,
-          txParams: { ...transactionMeta?.txParams, from: address },
-        },
-        transactionId,
-      );
-    },
-    [selectSubAccount, transactionMeta],
-  );
-
-  if (!isPerpsDeposit || subAccounts.length === 0) {
-    return null;
-  }
-
-  return (
-    <>
-      <View style={styles.rowContainer}>
-        <TouchableOpacity
-          onPress={() => setIsPickerVisible(true)}
-          style={styles.row}
-          testID={PerpsAccountPickerSelectorsIDs.ROW}
-        >
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-            {strings('confirm.label.to')}
-          </Text>
-          <View style={styles.valueContainer}>
-            {selectedSubAccount ? (
-              <>
-                <Avatar
-                  variant={AvatarVariant.Account}
-                  accountAddress={selectedSubAccount.id || '0x0'}
-                  size={AvatarSize.Sm}
-                />
-                <Text
-                  variant={TextVariant.BodyMd}
-                  numberOfLines={1}
-                  ellipsizeMode="middle"
-                  twClassName="shrink"
-                >
-                  {selectedSubAccount.name}
-                </Text>
-              </>
-            ) : (
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-              >
-                {strings('confirm.label.to')}
-              </Text>
-            )}
-            <Icon
-              name={IconName.ArrowDown}
-              size={IconSize.Sm}
-              color={IconColor.Alternative}
-            />
-          </View>
-        </TouchableOpacity>
-      </View>
-      <PerpsAccountPicker
-        visible={isPickerVisible}
-        accounts={subAccounts}
-        selectedAccountId={selectedSubAccount?.id ?? null}
-        onSelect={handleAccountSelected}
-        onClose={() => setIsPickerVisible(false)}
-      />
-    </>
   );
 };
 
