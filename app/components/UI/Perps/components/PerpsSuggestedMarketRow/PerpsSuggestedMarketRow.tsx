@@ -1,20 +1,18 @@
 import React, { useMemo } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
 import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
   Card,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import {
   getPerpsDisplaySymbol,
@@ -107,7 +105,7 @@ const PerpsSuggestedMarketRow = ({
       onPress={onPress}
       testID={getPerpsSuggestedMarketRowSelector.row(market.symbol)}
       touchableOpacityProps={{ activeOpacity: 0.7 }}
-      twClassName="flex-row justify-between items-center border-0 rounded-none bg-transparent px-0 py-3"
+      twClassName="flex-row justify-between items-center border-0 rounded-none bg-transparent px-0 py-2"
     >
       {/* Left: icon + symbol + leverage + volume */}
       <Box
@@ -130,7 +128,7 @@ const PerpsSuggestedMarketRow = ({
             alignItems={BoxAlignItems.Center}
             gap={2}
           >
-            <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+            <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
               {getPerpsDisplaySymbol(market.symbol)}
             </Text>
             <PerpsLeverage maxLeverage={market.maxLeverage} />
@@ -145,12 +143,14 @@ const PerpsSuggestedMarketRow = ({
         gap={1}
         twClassName="mr-3"
       >
-        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
           {displayMarket.price}
         </Text>
         <Text
-          variant={TextVariant.BodySM}
-          color={isPositiveChange ? TextColor.Success : TextColor.Error}
+          variant={TextVariant.BodySm}
+          color={
+            isPositiveChange ? TextColor.SuccessDefault : TextColor.ErrorDefault
+          }
         >
           {displayMarket.change24hPercent}
         </Text>
@@ -167,7 +167,7 @@ const PerpsSuggestedMarketRow = ({
           <Icon
             name={IconName.Add}
             size={IconSize.Md}
-            color={IconColor.Default}
+            color={IconColor.IconDefault}
           />
         </View>
       </TouchableOpacity>
