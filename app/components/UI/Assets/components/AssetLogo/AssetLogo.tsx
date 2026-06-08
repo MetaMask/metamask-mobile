@@ -19,7 +19,7 @@ const AssetLogo = ({ asset }: { asset: TokenI }) => {
         asset.image,
         ...(getFallbackAssetImageUrls(asset.chainId, asset.address) ?? []),
       ]
-        .filter((image) => image !== undefined)
+        .filter((image): image is string => Boolean(image))
         .map((image) => ({ uri: image })),
     [asset.image, asset.chainId, asset.address],
   );

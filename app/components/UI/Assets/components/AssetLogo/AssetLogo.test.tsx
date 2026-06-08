@@ -144,9 +144,7 @@ describe('AssetLogo', () => {
     expect(assetAvatar.props).toStrictEqual(
       expect.objectContaining({
         name: 'TEST',
-        src: {
-          uri: '',
-        },
+        src: undefined,
         size: AvatarTokenSize.Lg,
       }),
     );
