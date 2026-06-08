@@ -30,7 +30,7 @@ import {
 } from '../../utils/formatUtils';
 import { styleSheet } from './PerpsFundingTransactionView.styles';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { trackExternalLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
 
 const PerpsFundingTransactionView: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -73,15 +73,11 @@ const PerpsFundingTransactionView: React.FC = () => {
     if (!explorerUrl) {
       return;
     }
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.EXTERNAL_LINK_CLICKED)
-        .addProperties({
-          location: 'perps_transaction_details',
-          text: strings('perps.transactions.view_on_explorer'),
-          url_domain: explorerUrl,
-        })
-        .build(),
-    );
+    trackExternalLinkClicked(trackEvent, createEventBuilder, {
+      location: 'perps_transaction_details',
+      text: strings('perps.transactions.view_on_explorer'),
+      url_domain: explorerUrl,
+    });
     navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {

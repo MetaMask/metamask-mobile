@@ -16,7 +16,7 @@ import { baseStyles } from '../../../styles/common';
 import { getAddressUrl } from '../../../core/Multichain/utils';
 import { getBlockExplorerName } from '../../../util/networks';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { trackExternalLinkClicked } from '../../../util/analytics/externalLinkTracking';
 import { selectNonEvmTransactions } from '../../../selectors/multichain/multichain';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import MultichainTransactionListItem from '../../UI/MultichainTransactionListItem';
@@ -157,15 +157,11 @@ const MultichainTransactionsView = ({
       showDisclaimer={showDisclaimer}
       showExplorerLink={!isBitcoinNetwork}
       onViewMore={() => {
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.EXTERNAL_LINK_CLICKED)
-            .addProperties({
-              location: 'multichain_activity_tab',
-              text: `${strings('transactions.view_full_history_on')} ${getBlockExplorerName(url)}`,
-              url_domain: url,
-            })
-            .build(),
-        );
+        trackExternalLinkClicked(trackEvent, createEventBuilder, {
+          location: 'multichain_activity_tab',
+          text: `${strings('transactions.view_full_history_on')} ${getBlockExplorerName(url)}`,
+          url_domain: url,
+        });
         nav.navigate('Webview', {
           screen: 'SimpleWebview',
           params: { url },

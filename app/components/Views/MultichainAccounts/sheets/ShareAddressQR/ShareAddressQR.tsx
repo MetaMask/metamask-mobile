@@ -29,7 +29,7 @@ import QRAccountDisplay from '../../../QRAccountDisplay';
 import QRCode from 'react-native-qrcode-svg';
 import useBlockExplorer from '../../../../hooks/useBlockExplorer';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { trackExternalLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { ShareAddressQRIds } from './ShareAddressQR.testIds';
 import { selectAccountGroupById } from '../../../../../selectors/multichainAccounts/accountTreeController';
@@ -82,15 +82,11 @@ export const ShareAddressQR = () => {
     if (!url) {
       return;
     }
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.EXTERNAL_LINK_CLICKED)
-        .addProperties({
-          location: 'share_address_qr',
-          text: explorerButtonText,
-          url_domain: url,
-        })
-        .build(),
-    );
+    trackExternalLinkClicked(trackEvent, createEventBuilder, {
+      location: 'share_address_qr',
+      text: explorerButtonText,
+      url_domain: url,
+    });
     toBlockExplorer(address);
   }, [
     address,

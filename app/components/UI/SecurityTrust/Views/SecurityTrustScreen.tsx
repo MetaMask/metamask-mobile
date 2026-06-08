@@ -43,6 +43,7 @@ import TokenDetailsStickyFooter from '../../TokenDetails/components/TokenDetails
 import useBlockExplorer from '../../../hooks/useBlockExplorer';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { trackExternalLinkClicked } from '../../../../util/analytics/externalLinkTracking';
 import { isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
 
 const SectionHeader: React.FC<{ title: string }> = ({ title }) => (
@@ -179,15 +180,11 @@ const SecurityTrustScreen: React.FC = () => {
       );
 
       if (ctaType === 'block_explorer') {
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.EXTERNAL_LINK_CLICKED)
-            .addProperties({
-              location: 'security_trust_page',
-              text: linkText ?? strings('security_trust.etherscan'),
-              url_domain: url,
-            })
-            .build(),
-        );
+        trackExternalLinkClicked(trackEvent, createEventBuilder, {
+          location: 'security_trust_page',
+          text: linkText ?? strings('security_trust.etherscan'),
+          url_domain: url,
+        });
       }
 
       Linking.openURL(url).catch(() => null);

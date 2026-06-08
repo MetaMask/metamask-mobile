@@ -25,7 +25,7 @@ import Spinner from '../../../AnimatedSpinner';
 import useAnalytics from '../../hooks/useAnalytics';
 import { analytics } from '../../../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { trackExternalLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
 import { PROVIDER_LINKS } from '../types';
 import Account from './Account';
 import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
@@ -261,16 +261,14 @@ const OrderDetails: React.FC<Props> = ({ order }: Props) => {
 
   const handleExplorerLinkPress = useCallback(
     (url: string) => {
-      analytics.trackEvent(
-        AnalyticsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.EXTERNAL_LINK_CLICKED,
-        )
-          .addProperties({
-            location: 'ramp_order_details',
-            text: 'Etherscan Transaction',
-            url_domain: url,
-          })
-          .build(),
+      trackExternalLinkClicked(
+        analytics.trackEvent,
+        AnalyticsEventBuilder.createEventBuilder,
+        {
+          location: 'ramp_order_details',
+          text: 'Etherscan Transaction',
+          url_domain: url,
+        },
       );
       Linking.openURL(url);
       trackEvent('ONRAMP_EXTERNAL_LINK_CLICKED', {
