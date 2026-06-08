@@ -7,10 +7,6 @@ import { mockNetworkState } from '../../../../util/test/network';
 import { RootState } from '../../../../reducers';
 import { SolScope } from '@metamask/keyring-api';
 
-jest.mock(
-  '../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork',
-  () => 'AvatarNetwork',
-);
 jest.mock('../../Name/Name', () => 'Name');
 jest.mock('../../../hooks/useStyles', () => ({
   useStyles: () => ({ styles: {} }),
