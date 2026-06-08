@@ -1,5 +1,4 @@
 import { NetworkController } from '@metamask/network-controller';
-import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller';
 import {
   PublishHook,
   TransactionController,
@@ -294,51 +293,6 @@ describe('Transaction Controller Init', () => {
     });
   });
 
-  it.each([
-    [
-      'networkController',
-      'getEIP1559Compatibility',
-      'getCurrentNetworkEIP1559Compatibility',
-    ],
-    ['gasFeeController', 'fetchGasFeeEstimates', 'getGasFeeEstimates'],
-    [
-      'networkController',
-      'getNetworkClientRegistry',
-      'getNetworkClientRegistry',
-    ],
-    ['keyringController', 'signTransaction', 'sign'],
-  ])('calls %s.%s on option %s', (_controller, method, option) => {
-    const mock = jest.fn();
-
-    const optionFn = testConstructorOption(
-      option as keyof TransactionControllerOptions,
-      {
-        [method]: mock,
-      },
-    ) as unknown as () => void;
-
-    optionFn();
-
-    expect(mock).toHaveBeenCalled();
-  });
-
-  it('calls smartTransactionsController.getTransactions on option getExternalPendingTransactions', () => {
-    const MOCK_STX = [{ id: '123' }];
-    const MOCK_ADDRESS = '0x123';
-    const getTransactionsMock = jest.fn().mockReturnValue(MOCK_STX);
-
-    const optionFn = testConstructorOption('getExternalPendingTransactions', {
-      getTransactions: getTransactionsMock,
-    });
-
-    optionFn?.(MOCK_ADDRESS);
-
-    expect(getTransactionsMock).toHaveBeenCalledWith({
-      addressFrom: MOCK_ADDRESS,
-      status: SmartTransactionStatuses.PENDING,
-    });
-  });
-
   it('determines if simulation enabled using preference', () => {
     const optionFn = testConstructorOption('isSimulationEnabled', {
       state: {
@@ -347,14 +301,6 @@ describe('Transaction Controller Init', () => {
     });
 
     expect(optionFn?.()).toBe(true);
-  });
-
-  it('determines if resubmit enabled for pending transactions', () => {
-    const optionFn = testConstructorOption(
-      'pendingTransactions',
-    )?.isResubmitEnabled;
-
-    expect(optionFn?.()).toBe(false);
   });
 
   describe('beforePublish hook', () => {
@@ -923,19 +869,6 @@ describe('Transaction Controller Init', () => {
 
       expect(result).toBe(true);
     });
-  });
-
-  it('gets network state from network controller on option getNetworkState', () => {
-    const MOCK_NETWORK_STATE = {
-      chainId: '0x1',
-    };
-    const option = testConstructorOption('getNetworkState', {
-      state: {
-        ...MOCK_NETWORK_STATE,
-      },
-    });
-
-    expect(option?.()).toStrictEqual(MOCK_NETWORK_STATE);
   });
 
   it('calls appropriate handlers when transaction events are triggered', () => {

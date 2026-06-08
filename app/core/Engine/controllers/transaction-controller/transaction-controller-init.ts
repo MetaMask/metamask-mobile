@@ -10,10 +10,7 @@ import {
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { PreferencesController } from '@metamask/preferences-controller';
-import {
-  SmartTransactionsController,
-  SmartTransactionStatuses,
-} from '@metamask/smart-transactions-controller';
+import { SmartTransactionsController } from '@metamask/smart-transactions-controller';
 
 import {
   REDESIGNED_TRANSACTION_TYPES,
@@ -78,9 +75,7 @@ export const TransactionControllerInit: MessengerClientInitFunction<
     request;
 
   const {
-    gasFeeController,
     keyringController,
-    networkController,
     preferencesController,
     smartTransactionsController,
   } = getControllers(request);
@@ -94,25 +89,12 @@ export const TransactionControllerInit: MessengerClientInitFunction<
   try {
     const transactionController: TransactionController =
       new TransactionController({
-        isAutomaticGasFeeUpdateEnabled,
-        disableHistory: true,
-        disableSendFlowHistory: true,
         disableSwaps: true,
-        getCurrentNetworkEIP1559Compatibility: (...args) =>
-          // @ts-expect-error Controller type does not support undefined return value
-          networkController.getEIP1559Compatibility(...args),
-        // @ts-expect-error - TransactionController expects TransactionMeta[] but SmartTransactionsController returns SmartTransaction[]
-        getExternalPendingTransactions: (address: string) =>
-          smartTransactionsController.getTransactions({
-            addressFrom: address,
-            status: SmartTransactionStatuses.PENDING,
-          }),
-        getGasFeeEstimates: (...args) =>
-          gasFeeController.fetchGasFeeEstimates(...args),
-        getNetworkClientRegistry: (...args) =>
-          networkController.getNetworkClientRegistry(...args),
-        getNetworkState: () => networkController.state,
         hooks: {
+          beforePublish: (transactionMeta: TransactionMeta) =>
+            beforePublish(transactionMeta, initMessenger),
+          beforeSign: (_request: { transactionMeta: TransactionMeta }) =>
+            beforeSign(_request, request),
           // @ts-expect-error - TransactionController actually sends a signedTx as a second argument, but its type doesn't reflect that.
           publish: (
             transactionMeta: TransactionMeta,
@@ -136,17 +118,12 @@ export const TransactionControllerInit: MessengerClientInitFunction<
               transactions:
                 _request.transactions as PublishBatchHookTransaction[],
             }),
-          beforePublish: (transactionMeta: TransactionMeta) =>
-            beforePublish(transactionMeta, initMessenger),
-          beforeSign: (_request: { transactionMeta: TransactionMeta }) =>
-            beforeSign(_request, request),
         },
         incomingTransactions: {
           isEnabled: () => isIncomingTransactionsEnabled(preferencesController),
           updateTransactions: true,
         },
-        isFirstTimeInteractionEnabled: () =>
-          isFirstTimeInteractionEnabled(preferencesController),
+        isAutomaticGasFeeUpdateEnabled,
         isEIP7702GasFeeTokensEnabled: async (transactionMeta) => {
           if (
             !(await accountSupports7702(
@@ -177,18 +154,15 @@ export const TransactionControllerInit: MessengerClientInitFunction<
             Boolean(isExternalSign)
           );
         },
+        isFirstTimeInteractionEnabled: () =>
+          isFirstTimeInteractionEnabled(preferencesController),
         isSimulationEnabled: () =>
           preferencesController.state.useTransactionSimulations,
         messenger: controllerMessenger,
-        pendingTransactions: {
-          isResubmitEnabled: () => false,
-        },
-        // @ts-expect-error - TransactionMeta mismatch type with TypedTransaction from '@ethereumjs/tx'
-        sign: (...args) => keyringController.signTransaction(...args),
+        publicKeyEIP7702: AppConstants.EIP_7702_PUBLIC_KEY as Hex | undefined,
         state: persistedState.TransactionController,
         // Expected type mismatch with TransactionControllerOptions['trace']
         trace: trace as unknown as TransactionControllerOptions['trace'],
-        publicKeyEIP7702: AppConstants.EIP_7702_PUBLIC_KEY as Hex | undefined,
       });
 
     return { controller: transactionController };
@@ -450,9 +424,7 @@ function getControllers(
   >,
 ) {
   return {
-    gasFeeController: request.getMessengerClient('GasFeeController'),
     keyringController: request.getMessengerClient('KeyringController'),
-    networkController: request.getMessengerClient('NetworkController'),
     preferencesController: request.getMessengerClient('PreferencesController'),
     smartTransactionsController: request.getMessengerClient(
       'SmartTransactionsController',
