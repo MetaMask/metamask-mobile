@@ -39,28 +39,28 @@ jest.mock('react-redux', () => ({
   }),
 }));
 
-jest.mock('../../../../../selectors/preferencesController', () => ({
+jest.mock('../../../../../../../selectors/preferencesController', () => ({
   selectPrivacyMode: 'selectPrivacyMode',
 }));
 
 jest.mock(
-  '../../../../../selectors/featureFlagController/confirmations',
+  '../../../../../../../selectors/featureFlagController/confirmations',
   () => ({
     selectMetaMaskPayFlags: 'selectMetaMaskPayFlags',
   }),
 );
 
-jest.mock('../../hooks/usePredictActionGuard', () => ({
+jest.mock('../../../../hooks/usePredictActionGuard', () => ({
   usePredictActionGuard: () => ({
     executeGuardedAction: mockExecuteGuardedAction,
   }),
 }));
 
-jest.mock('../../hooks/usePredictPortfolio', () => ({
+jest.mock('../../../../hooks/usePredictPortfolio', () => ({
   usePredictPortfolio: jest.fn(),
 }));
 
-jest.mock('../../../../../../locales/i18n', () => ({
+jest.mock('../../../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, params?: Record<string, string>) => {
     const mockStrings: Record<string, string> = {
       'predict.claim_amount_text': `Claim $${params?.amount}`,

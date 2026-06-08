@@ -8,19 +8,19 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { typography } from '@metamask/design-tokens';
-import { strings } from '../../../../../../locales/i18n';
+import { strings } from '../../../../../../../../locales/i18n';
 import SensitiveText, {
   SensitiveTextLength,
-} from '../../../../../component-library/components/Texts/SensitiveText';
+} from '../../../../../../../component-library/components/Texts/SensitiveText';
 import {
   TextColor as ComponentTextColor,
   TextVariant as ComponentTextVariant,
-} from '../../../../../component-library/components/Texts/Text/Text.types';
-import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
+} from '../../../../../../../component-library/components/Texts/Text/Text.types';
+import { Skeleton } from '../../../../../../../component-library/components-temp/Skeleton';
 import {
   formatPredictUnrealizedPnLStringParts,
   formatPrice,
-} from '../../utils/format';
+} from '../../../../utils/format';
 import { PREDICT_PORTFOLIO_TEST_IDS } from './PredictPortfolio.testIds';
 
 const PRIMARY_SKELETON_HEIGHT = typography.sDisplayLG.lineHeight;
