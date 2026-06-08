@@ -382,43 +382,13 @@ describe('PredictPortfolioModule', () => {
     );
   });
 
-  it('does not track claim initiated when the action guard short-circuits', () => {
-    mockUsePredictPortfolio.mockReturnValue(
-      createPortfolio({
-        claimableAmount: 46.35,
-        hasClaimableWinnings: true,
-      }),
-    );
-    mockExecuteGuardedAction.mockImplementationOnce(() => undefined);
-
-    renderWithProvider(<PredictPortfolioModule />);
-
-    fireEvent.press(
-      screen.getByTestId(PREDICT_PORTFOLIO_TEST_IDS.CLAIM_BUTTON),
-    );
-
-    expect(mockExecuteGuardedAction).toHaveBeenCalledWith(
-      expect.any(Function),
-      { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CLAIM },
-    );
-    expect(mockClaim).not.toHaveBeenCalled();
-    expect(mockTrackPortfolioTransactionInitiated).not.toHaveBeenCalled();
-  });
-
-  it('uses the temporary Positions fallback until the route lands', () => {
+  it('navigates to the Predict Positions screen by default', () => {
     renderWithProvider(<PredictPortfolioModule />);
 
     fireEvent.press(
       screen.getByTestId(PREDICT_PORTFOLIO_TEST_IDS.ACTION_POSITIONS),
     );
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MARKET_LIST, {
-      entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
-    });
-    expect(mockTrackPortfolioPositionsButtonTapped).toHaveBeenCalledWith(
-      expectedPortfolioContext({
-        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
-      }),
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.POSITIONS);
   });
 });

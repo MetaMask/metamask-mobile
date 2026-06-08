@@ -81,11 +81,8 @@ const PredictPortfolioModule: React.FC<PredictPortfolioModuleProps> = ({
       return;
     }
 
-    // Temporary fallback until the dedicated Predict Positions route lands.
-    navigation.navigate(Routes.PREDICT.MARKET_LIST, {
-      entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
-    });
-  }, [navigation, onPositionsPress, portfolioAnalyticsProperties]);
+    navigation.navigate(Routes.PREDICT.POSITIONS);
+  }, [navigation, onPositionsPress]);
 
   const handleAddFundsPress = useCallback(() => {
     executeGuardedAction(
