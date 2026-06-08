@@ -1135,7 +1135,7 @@ export interface PredictThePitchLeaderboardPositionDto {
   totalParticipants: number;
   roi: number;
   pnl: number;
-  capitalDeployed: number;
+  volume: number;
   eligible: boolean;
   neighbors: PredictThePitchLeaderboardEntryDto[];
   computedAt: string;
@@ -1179,7 +1179,7 @@ export interface PredictThePitchPrizeBreakdownEntryDto {
 }
 
 export interface PredictThePitchPrizePoolDto {
-  totalCapitalDeployedUsd: number;
+  totalVolumeUsd: number;
   unlockedPoolUsd: number;
   thresholdsUsd: number[];
   poolScheduleUsd: number[];
@@ -1209,7 +1209,7 @@ export type PredictThePitchLeaderboardPositionFoundState = {
   totalParticipants: number;
   roi: number;
   pnl: number;
-  capitalDeployed: number;
+  volume: number;
   eligible: boolean;
   neighbors: PredictThePitchLeaderboardEntryState[];
   computedAt: string;
@@ -1268,7 +1268,7 @@ export type PredictThePitchPrizeBreakdownEntryState = {
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PredictThePitchPrizePoolState = {
-  totalCapitalDeployedUsd: number;
+  totalVolumeUsd: number;
   unlockedPoolUsd: number;
   thresholdsUsd: number[];
   poolScheduleUsd: number[];

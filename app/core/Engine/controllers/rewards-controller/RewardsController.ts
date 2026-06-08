@@ -4892,7 +4892,7 @@ export class RewardsController extends BaseController<
             totalParticipants: cached.totalParticipants,
             roi: cached.roi,
             pnl: cached.pnl,
-            capitalDeployed: cached.capitalDeployed,
+            volume: cached.volume,
             eligible: cached.eligible,
             neighbors: cached.neighbors,
             computedAt: cached.computedAt,
@@ -5034,7 +5034,7 @@ export class RewardsController extends BaseController<
   ): Promise<PredictThePitchPrizePoolDto> {
     if (!this.isRewardsFeatureEnabled()) {
       return {
-        totalCapitalDeployedUsd: 0,
+        totalVolumeUsd: 0,
         unlockedPoolUsd: 0,
         thresholdsUsd: [],
         poolScheduleUsd: [],
@@ -5051,7 +5051,7 @@ export class RewardsController extends BaseController<
         if (!cached) return undefined;
         return {
           payload: {
-            totalCapitalDeployedUsd: cached.totalCapitalDeployedUsd,
+            totalVolumeUsd: cached.totalVolumeUsd,
             unlockedPoolUsd: cached.unlockedPoolUsd,
             thresholdsUsd: cached.thresholdsUsd,
             poolScheduleUsd: cached.poolScheduleUsd,

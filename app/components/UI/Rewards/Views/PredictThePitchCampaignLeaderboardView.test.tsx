@@ -155,7 +155,7 @@ const basePosition: PredictThePitchLeaderboardPositionDto = {
   totalParticipants: 50,
   roi: 0.25,
   pnl: 50,
-  capitalDeployed: 200,
+  volume: 200,
   eligible: true,
   neighbors: [{ rank: 3, referralCode: 'A', roi: 0.3 }],
   computedAt: '2025-01-01T00:00:00.000Z',
@@ -281,7 +281,7 @@ describe('PredictThePitchCampaignLeaderboardView', () => {
       refetch: jest.fn(),
     });
     mockUseGetPosition.mockReturnValue({
-      position: { ...basePosition, capitalDeployed: 0 },
+      position: { ...basePosition, volume: 0 },
       isLoading: false,
       hasError: false,
       hasFetched: true,

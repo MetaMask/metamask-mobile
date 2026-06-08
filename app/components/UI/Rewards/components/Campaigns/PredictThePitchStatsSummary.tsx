@@ -79,10 +79,9 @@ const PredictThePitchStatsSummary: React.FC<
     leaderboardPosition != null && Number.isFinite(leaderboardPosition.roi)
       ? leaderboardPosition.roi
       : null;
-  const capitalDeployed =
-    leaderboardPosition != null &&
-    Number.isFinite(leaderboardPosition.capitalDeployed)
-      ? leaderboardPosition.capitalDeployed
+  const volume =
+    leaderboardPosition != null && Number.isFinite(leaderboardPosition.volume)
+      ? leaderboardPosition.volume
       : null;
   const pnl =
     leaderboardPosition != null && Number.isFinite(leaderboardPosition.pnl)
@@ -96,8 +95,7 @@ const PredictThePitchStatsSummary: React.FC<
 
   const rankDisplay = rank != null ? String(rank).padStart(2, '0') : '-';
   const roiDisplay = roi != null ? formatPercentChange(roi) : '-';
-  const capitalDeployedDisplay =
-    capitalDeployed != null ? formatUsd(capitalDeployed) : '-';
+  const volumeDisplay = volume != null ? formatUsd(volume) : '-';
   const pnlDisplay = pnl != null ? formatSignedUsd(pnl) : '-';
 
   return (
@@ -155,7 +153,7 @@ const PredictThePitchStatsSummary: React.FC<
           label={strings(
             'rewards.predict_the_pitch_campaign.label_total_volume',
           )}
-          value={capitalDeployedDisplay}
+          value={volumeDisplay}
           isLoading={showSkeleton}
           testID={PREDICT_THE_PITCH_STATS_SUMMARY_TEST_IDS.TOTAL_VOLUME}
         />
