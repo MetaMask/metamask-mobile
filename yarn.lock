@@ -7879,7 +7879,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/assets-controller@npm:^8.2.0, @metamask/assets-controller@npm:^8.3.1, @metamask/assets-controller@npm:^8.3.2":
+"@metamask/assets-controller@npm:^8.3.1, @metamask/assets-controller@npm:^8.3.2":
   version: 8.3.2
   resolution: "@metamask/assets-controller@npm:8.3.2"
   dependencies:
@@ -7916,7 +7916,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/assets-controllers@npm:^108.3.0, @metamask/assets-controllers@npm:^108.4.0, @metamask/assets-controllers@npm:^108.5.0":
+"@metamask/assets-controllers@npm:^108.4.0, @metamask/assets-controllers@npm:^108.5.0":
   version: 108.5.0
   resolution: "@metamask/assets-controllers@npm:108.5.0"
   dependencies:
@@ -8114,7 +8114,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/bridge-status-controller@npm:^72.0.0, @metamask/bridge-status-controller@npm:^72.0.2":
+"@metamask/bridge-status-controller@npm:^72.0.2":
   version: 72.0.2
   resolution: "@metamask/bridge-status-controller@npm:72.0.2"
   dependencies:
@@ -9700,15 +9700,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@npm:^14.1.0":
-  version: 14.1.0
-  resolution: "@metamask/ramps-controller@npm:14.1.0"
+"@metamask/ramps-controller@npm:^14.1.0, @metamask/ramps-controller@npm:^14.1.1":
+  version: 14.1.1
+  resolution: "@metamask/ramps-controller@npm:14.1.1"
   dependencies:
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/controller-utils": "npm:^12.1.0"
     "@metamask/messenger": "npm:^1.2.0"
     "@metamask/profile-sync-controller": "npm:^28.1.1"
-  checksum: 10/248112e5dc9258b2cda77f89eb63ad9cc13d9632df9b8b5ac112f54951c3e8e8ae797ba7462a57f084fa22fc00a68eb13d9b78f534659ad833baffa49a0abfc7
+  checksum: 10/f018f6514e2bd336d13225e1df1f48a07f487ea7de26cdd72b1fe03e337c1ce0473f9b025c01ee37f1936141e222039b99930dce0474aa7b74b65fa97aa373a6
   languageName: node
   linkType: hard
 
@@ -10433,32 +10433,33 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-pay-controller@npm:^23.1.0":
-  version: 23.1.0
-  resolution: "@metamask/transaction-pay-controller@npm:23.1.0"
+"@metamask/transaction-pay-controller@npm:^23.2.0":
+  version: 23.2.0
+  resolution: "@metamask/transaction-pay-controller@npm:23.2.0"
   dependencies:
     "@ethersproject/abi": "npm:^5.7.0"
     "@ethersproject/contracts": "npm:^5.7.0"
     "@ethersproject/providers": "npm:^5.7.0"
-    "@metamask/assets-controller": "npm:^8.2.0"
-    "@metamask/assets-controllers": "npm:^108.3.0"
+    "@metamask/assets-controller": "npm:^8.3.2"
+    "@metamask/assets-controllers": "npm:^108.5.0"
     "@metamask/base-controller": "npm:^9.1.0"
-    "@metamask/bridge-controller": "npm:^73.2.0"
-    "@metamask/bridge-status-controller": "npm:^72.0.0"
+    "@metamask/bridge-controller": "npm:^73.2.1"
+    "@metamask/bridge-status-controller": "npm:^72.0.2"
     "@metamask/controller-utils": "npm:^12.1.0"
     "@metamask/gas-fee-controller": "npm:^26.2.2"
+    "@metamask/keyring-controller": "npm:^26.0.0"
     "@metamask/messenger": "npm:^1.2.0"
     "@metamask/metamask-eth-abis": "npm:^3.1.1"
     "@metamask/network-controller": "npm:^32.0.0"
-    "@metamask/ramps-controller": "npm:^14.1.0"
-    "@metamask/remote-feature-flag-controller": "npm:^4.2.1"
-    "@metamask/transaction-controller": "npm:^66.0.0"
+    "@metamask/ramps-controller": "npm:^14.1.1"
+    "@metamask/remote-feature-flag-controller": "npm:^4.2.2"
+    "@metamask/transaction-controller": "npm:^67.0.0"
     "@metamask/utils": "npm:^11.9.0"
     bignumber.js: "npm:^9.1.2"
     bn.js: "npm:^5.2.1"
     immer: "npm:^9.0.6"
     lodash: "npm:^4.17.21"
-  checksum: 10/67269d459f4c95bf7416a7ebf1e35d5b2195733e7b638f54a63deb3a907fcd528973a07cfc4cb79e4c5cd324d4ed92e4f01a74283af749f19ded652e3aab2e90
+  checksum: 10/4d4e9f060eebc0c131ee7cd287f467138ea39164d40d301c7c71abef31f61c3294e0f6f9608e43c9b6ea277cb1ba7edc5551d179402a4ca8b5af69af62fc2867
   languageName: node
   linkType: hard
 
@@ -35467,7 +35468,7 @@ __metadata:
     "@metamask/test-dapp-multichain": "npm:^0.17.1"
     "@metamask/test-dapp-solana": "npm:^0.3.0"
     "@metamask/transaction-controller": "npm:^66.0.0"
-    "@metamask/transaction-pay-controller": "npm:^23.1.0"
+    "@metamask/transaction-pay-controller": "npm:^23.2.0"
     "@metamask/tron-wallet-snap": "npm:^1.25.6"
     "@metamask/utils": "npm:^11.11.0"
     "@metamask/wallet": "npm:^2.0.0"
