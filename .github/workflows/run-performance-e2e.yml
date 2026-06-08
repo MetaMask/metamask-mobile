@@ -178,17 +178,23 @@ jobs:
           FILE="tests/performance/device-matrix.json"
 
           # PRs: run the AI-selected performance tests on Android low profile only.
-          # Non-PR runs: use the full device matrix, including high profile devices.
+          # Pushes keep the previous low-device behavior to control cost and flakes.
+          # Schedule and workflow_dispatch use the full device matrix.
           if [ -n "$PR_NUMBER" ]; then
             ANDROID_MATRIX=$(jq '[.android_devices[] | select(.category == "low")]' "$FILE")
             ANDROID_MM_CONNECT_MATRIX="$ANDROID_MATRIX"
             IOS_MATRIX='[]'
             echo "PR mode: Android low category devices only (PR: $PR_NUMBER, branch: $BRANCH_NAME)"
+          elif [ "${{ github.event_name }}" = "push" ]; then
+            ANDROID_MATRIX=$(jq '[.android_devices[] | select(.category == "low")]' "$FILE")
+            ANDROID_MM_CONNECT_MATRIX=$(jq '[.android_devices[] | select(.name | contains("Samsung"))]' "$FILE")
+            IOS_MATRIX=$(jq '[.ios_devices[] | select(.category == "low")]' "$FILE")
+            echo "Push mode: low category devices only (event: ${{ github.event_name }}, branch: $BRANCH_NAME)"
           else
             ANDROID_MATRIX=$(jq ".android_devices" "$FILE")
             ANDROID_MM_CONNECT_MATRIX=$(jq '[.android_devices[] | select(.name | contains("Samsung"))]' "$FILE")
             IOS_MATRIX=$(jq ".ios_devices" "$FILE")
-            echo "Non-PR mode: All devices (event: ${{ github.event_name }}, branch: $BRANCH_NAME)"
+            echo "Full mode: All devices (event: ${{ github.event_name }}, branch: $BRANCH_NAME)"
           fi
 
           {
