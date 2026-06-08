@@ -314,12 +314,15 @@ export function BatchSellFinalReviewModal() {
     ],
   );
   const isBatchSellTradesLoading = batchSellQuoteData.isBatchSellTradesLoading;
+  const isNetworkFeeUnavailable = batchSellQuoteData.isNetworkFeeUnavailable;
   const hasInsufficientGaslessDestinationToken =
     batchSellQuoteData.isGasless &&
     !isBatchSellTradesLoading &&
     !batchSellQuoteData.isBatchSellTradeAvailable;
   const hasInsufficientGas =
-    hasSufficientGas === false || hasInsufficientGaslessDestinationToken;
+    !isNetworkFeeUnavailable &&
+    (hasSufficientGas === false || hasInsufficientGaslessDestinationToken);
+  const hasNetworkFeeError = hasInsufficientGas || isNetworkFeeUnavailable;
   const isSellAllDisabled =
     batchSellQuoteData.isLoading ||
     isBatchSellTradesLoading ||
@@ -341,6 +344,10 @@ export function BatchSellFinalReviewModal() {
   const actionButtonLabel = (() => {
     if (batchSellQuoteData.needsNewQuote) {
       return strings('quote_expired_modal.get_new_quote');
+    }
+
+    if (isNetworkFeeUnavailable) {
+      return strings('bridge.insufficient_balance');
     }
 
     if (hasInsufficientGas) {
@@ -427,7 +434,7 @@ export function BatchSellFinalReviewModal() {
       />
       <NetworkFeeRow
         networkFee={batchSellQuoteData.networkFee}
-        hasInsufficientGas={hasInsufficientGas}
+        hasInsufficientGas={hasNetworkFeeError}
         isLoading={isBatchSellTradesLoading}
         onInfoPress={handleOpenNetworkFeeInfo}
       />

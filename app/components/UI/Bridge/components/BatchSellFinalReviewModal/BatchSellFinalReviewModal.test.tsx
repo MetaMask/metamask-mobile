@@ -67,6 +67,7 @@ interface MockBatchSellQuoteData {
   isGasless: boolean;
   isBatchSellTradeAvailable: boolean;
   isBatchSellTradesLoading: boolean;
+  isNetworkFeeUnavailable: boolean;
   hasAnyQuote: boolean;
   hasPendingQuoteRows: boolean;
   needsNewQuote: boolean;
@@ -118,6 +119,7 @@ const defaultQuoteData: MockBatchSellQuoteData = {
   isGasless: false,
   isBatchSellTradeAvailable: true,
   isBatchSellTradesLoading: false,
+  isNetworkFeeUnavailable: false,
   hasAnyQuote: true,
   hasPendingQuoteRows: false,
   needsNewQuote: false,
@@ -474,6 +476,38 @@ describe('BatchSellFinalReviewModal', () => {
       getByTestId(BatchSellFinalReviewModalSelectorsIDs.SELL_ALL_BUTTON).props
         .accessibilityState.disabled,
     ).toBe(true);
+  });
+
+  it('shows insufficient balance when the network fee is unavailable', () => {
+    const { getByTestId, getByText, queryByTestId } = renderModal({
+      isBatchSellTradeAvailable: false,
+      isBatchSellTradesLoading: false,
+      isNetworkFeeUnavailable: true,
+      networkFee: {
+        formatted: '--',
+        formattedFiat: '-',
+      },
+    });
+    const getTextColor = (text: string) =>
+      StyleSheet.flatten(getByText(text).props.style).color;
+
+    expect(
+      queryByTestId(
+        BatchSellFinalReviewModalSelectorsIDs.NETWORK_FEE_VALUES_SKELETON,
+      ),
+    ).toBeNull();
+    expect(getByText('Insufficient balance')).toBeOnTheScreen();
+    expect(getTextColor('Network fee')).toBe(errorTextColor);
+    expect(getTextColor('--')).toBe(errorTextColor);
+    expect(getTextColor('-')).toBe(errorTextColor);
+    expect(
+      getByTestId(BatchSellFinalReviewModalSelectorsIDs.SELL_ALL_BUTTON).props
+        .accessibilityState.disabled,
+    ).toBe(true);
+    expect(
+      getByTestId(BatchSellFinalReviewModalSelectorsIDs.SELL_ALL_BUTTON).props
+        .accessibilityState.busy,
+    ).not.toBe(true);
   });
 
   it('shows insufficient funds when gasless destination-token fee cannot be covered', () => {
