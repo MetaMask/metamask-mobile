@@ -13,7 +13,7 @@ import { usePredictStackedHeader } from '../../hooks/usePredictStackedHeader';
 import { PredictNavigationParamList } from '../../types/navigation';
 import PredictHeaderStacked from '../../components/PredictHeaderStacked';
 import PredictSearchOverlay from '../../components/PredictSearchOverlay';
-import PredictPortfolioModule from './components/PredictPortfolioModule';
+import { PredictPortfolioModule } from './components/PredictPortfolio';
 import PredictLiveNowSection from './components/PredictLiveNowSection';
 import PredictCategoriesSection from './components/PredictCategoriesSection';
 import PredictPopularTodaySection from './components/PredictPopularTodaySection';
