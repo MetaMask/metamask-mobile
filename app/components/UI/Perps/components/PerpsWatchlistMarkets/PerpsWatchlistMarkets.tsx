@@ -123,8 +123,8 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
           {onSeeAllPress && (
             <Icon
               name={IconName.ArrowRight}
-              size={IconSize.Sm}
-              color={IconColor.Default}
+              size={IconSize.Md}
+              color={IconColor.Alternative}
             />
           )}
         </View>
@@ -196,9 +196,7 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
   // Populated watchlist — apply expand/collapse when > INITIAL_DISPLAY_COUNT items
   const hasMore = markets.length > INITIAL_DISPLAY_COUNT;
   const displayedMarkets =
-    hasMore && !expanded
-      ? markets.slice(0, INITIAL_DISPLAY_COUNT)
-      : markets;
+    hasMore && !expanded ? markets.slice(0, INITIAL_DISPLAY_COUNT) : markets;
   const hiddenCount = markets.length - INITIAL_DISPLAY_COUNT;
 
   const renderMarket = ({ item }: { item: PerpsMarketData }) => (

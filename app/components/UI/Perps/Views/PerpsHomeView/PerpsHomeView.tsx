@@ -598,6 +598,15 @@ const PerpsHomeView = ({
           orders={orders}
           source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
           transactionActiveAbTests={transactionActiveAbTests}
+          onSeeAllPress={
+            watchlistMarkets.length > 0
+              ? () =>
+                  perpsNavigation.navigateToMarketList({
+                    showWatchlistOnly: true,
+                    source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+                  })
+              : undefined
+          }
         />
 
         {/* Top Movers Section */}
