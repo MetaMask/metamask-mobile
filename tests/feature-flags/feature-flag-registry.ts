@@ -2982,16 +2982,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  earnChompApiConfig: {
-    name: 'earnChompApiConfig',
-    type: FeatureFlagType.Remote,
-    inProd: false,
-    productionDefault: {
-      baseUrl: 'https://chomp.dev-api.cx.metamask.io',
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   earnFeatureFlagTemplate: {
     name: 'earnFeatureFlagTemplate',
     type: FeatureFlagType.Remote,
@@ -3581,6 +3571,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  perpsProductsEnabled: {
+    name: 'perpsProductsEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      minimumVersion: '0.0.0',
+      enabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   perpsPerpGtmOnboardingModalEnabled: {
     name: 'perpsPerpGtmOnboardingModalEnabled',
     type: FeatureFlagType.Remote,
@@ -3630,6 +3631,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       enabled: false,
       minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  perpsTopMoversEnabled: {
+    name: 'perpsTopMoversEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      minimumVersion: '0.0.0',
+      enabled: false,
     },
     status: FeatureFlagStatus.Active,
   },
@@ -4562,7 +4574,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      baseUrl: 'https://chomp.dev-api.cx.metamask.io',
+      baseUrl: 'https://chomp.api.cx.metamask.io',
     },
     status: FeatureFlagStatus.Active,
   },

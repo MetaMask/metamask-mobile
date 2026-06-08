@@ -280,6 +280,22 @@ export const selectPerpsMYXProviderEnabledFlag = createSelector(
 );
 
 /**
+ * Selector for Perps Products section feature flag
+ * Controls visibility of the category pills grid on Perps home screen
+ *
+ * @returns boolean - true if Products section should be shown, false otherwise
+ */
+export const selectPerpsProductsEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.perpsProductsEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
  * Selector for Perps Competition Banner feature flag
  * Controls visibility of the competition promotion banner on Perps home screen
  *
@@ -290,6 +306,22 @@ export const selectPerpsCompetitionBannerEnabledFlag = createSelector(
   (remoteFeatureFlags) => {
     const remoteFlag =
       remoteFeatureFlags?.perpsCompetitionBannerEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
+ * Selector for Perps Top Movers feature flag
+ * Controls visibility of the Top Movers (Gainers/Losers) section on the Perps home screen
+ *
+ * @returns boolean - true if Top Movers section should be shown, false otherwise
+ */
+export const selectPerpsTopMoversEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.perpsTopMoversEnabled as unknown as VersionGatedFeatureFlag;
 
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },

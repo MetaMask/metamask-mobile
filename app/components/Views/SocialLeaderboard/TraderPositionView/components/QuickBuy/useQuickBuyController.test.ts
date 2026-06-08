@@ -5,10 +5,8 @@ import { useQuickBuyController } from './hooks/useQuickBuyController';
 import { positionToQuickBuyTarget } from './types';
 import { selectDefaultSourceToken } from '../../../utils/tokenSelection';
 import { useQuickBuySetup } from './hooks/useQuickBuySetup';
-import {
-  useSourceTokenOptions,
-  useSellDestTokenOptions,
-} from './hooks/useSourceTokenOptions';
+import { usePayWithTokens } from './hooks/usePayWithTokens';
+import { useReceiveTokens } from './hooks/useReceiveTokens';
 import { usePositionTokenBalance } from './hooks/usePositionTokenBalance';
 import {
   useQuickBuyQuotes,
@@ -37,6 +35,14 @@ import { TextColor } from '@metamask/design-system-react-native';
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
 import { ChainId } from '@metamask/bridge-controller';
 import Logger from '../../../../../../util/Logger';
+import { trackQuickBuyTrade } from './quickBuyTradeTracker';
+import { buildQuickBuyToastOptions } from './quickBuyToastOptions';
+import { resolveQuickBuyTerminalToast } from './resolveQuickBuyTerminalToast';
+import {
+  playImpact,
+  playErrorNotification,
+  ImpactMoment,
+} from '../../../../../../util/haptics';
 
 jest.mock('../../../../../../util/Logger', () => ({
   __esModule: true,
@@ -79,9 +85,12 @@ jest.mock('./hooks/useQuickBuySetup', () => ({
   useQuickBuySetup: jest.fn(),
 }));
 
-jest.mock('./hooks/useSourceTokenOptions', () => ({
-  useSourceTokenOptions: jest.fn(),
-  useSellDestTokenOptions: jest.fn().mockReturnValue([]),
+jest.mock('./hooks/usePayWithTokens', () => ({
+  usePayWithTokens: jest.fn(),
+}));
+
+jest.mock('./hooks/useReceiveTokens', () => ({
+  useReceiveTokens: jest.fn().mockReturnValue([]),
 }));
 
 jest.mock('./hooks/usePositionTokenBalance', () => ({
@@ -201,6 +210,45 @@ jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
+const mockShowToast = jest.fn();
+jest.mock('../../../../../../component-library/components/Toast', () => {
+  const actualReact = jest.requireActual('react');
+  return {
+    __esModule: true,
+    ToastContext: actualReact.createContext({
+      // Defer to mockShowToast lazily: this object is built at mock-factory
+      // eval time, before the `mockShowToast` const is initialised.
+      toastRef: {
+        current: {
+          showToast: (...args: unknown[]) => mockShowToast(...args),
+        },
+      },
+    }),
+    ToastVariants: { Plain: 'Plain', Icon: 'Icon' },
+  };
+});
+
+jest.mock('./quickBuyTradeTracker', () => ({
+  trackQuickBuyTrade: jest.fn(),
+  getTrackedQuickBuyTrade: jest.fn(),
+  getTrackedQuickBuyTradeIds: jest.fn(() => []),
+  untrackQuickBuyTrade: jest.fn(),
+}));
+
+jest.mock('./quickBuyToastOptions', () => ({
+  buildQuickBuyToastOptions: jest.fn((kind: string) => ({ kind })),
+}));
+
+jest.mock('./resolveQuickBuyTerminalToast', () => ({
+  resolveQuickBuyTerminalToast: jest.fn(),
+}));
+
+jest.mock('../../../../../../util/haptics', () => ({
+  playImpact: jest.fn(),
+  playErrorNotification: jest.fn(),
+  ImpactMoment: { PrimaryCTA: 'primaryCta' },
+}));
+
 const mockTrack = jest.fn();
 jest.mock('../../../analytics', () => {
   const actual = jest.requireActual('../../../analytics');
@@ -311,9 +359,9 @@ const setupDefaultMocks = () => {
     isUnsupportedChain: false,
   });
 
-  (useSellDestTokenOptions as jest.Mock).mockReturnValue([]);
+  (useReceiveTokens as jest.Mock).mockReturnValue([]);
   (usePositionTokenBalance as jest.Mock).mockReturnValue(undefined);
-  (useSourceTokenOptions as jest.Mock).mockReturnValue({
+  (usePayWithTokens as jest.Mock).mockReturnValue({
     options: [createSourceToken()],
     isLoading: false,
   });
@@ -326,6 +374,7 @@ const setupDefaultMocks = () => {
     isNoQuotesAvailable: false,
     quoteFetchError: null,
     isActiveQuoteForCurrentTokenPair: true,
+    isQuoteRequestStale: false,
     quoteCount: 0,
     quotesLastFetchedAt: null,
     refreshCount: 0,
@@ -347,6 +396,9 @@ const setupDefaultMocks = () => {
   (
     Engine.context.BridgeStatusController.submitTx as jest.Mock
   ).mockResolvedValue(undefined);
+  (buildQuickBuyToastOptions as jest.Mock).mockImplementation(
+    (kind: string) => ({ kind }),
+  );
 };
 
 describe('useQuickBuyController', () => {
@@ -404,7 +456,7 @@ describe('useQuickBuyController', () => {
         atomicBalance: '100000000',
       });
       const sourceWithRate = createSourceToken({ currencyExchangeRate: 1 });
-      (useSourceTokenOptions as jest.Mock).mockReturnValue({
+      (usePayWithTokens as jest.Mock).mockReturnValue({
         options: [sourceWithRate],
       });
 
@@ -434,7 +486,7 @@ describe('useQuickBuyController', () => {
         atomicBalance: '100000000',
       });
       const sourceWithRate = createSourceToken({ currencyExchangeRate: 1 });
-      (useSourceTokenOptions as jest.Mock).mockReturnValue({
+      (usePayWithTokens as jest.Mock).mockReturnValue({
         options: [sourceWithRate],
       });
 
@@ -456,7 +508,7 @@ describe('useQuickBuyController', () => {
         atomicBalance: '100000000',
       });
       const sourceWithRate = createSourceToken({ currencyExchangeRate: 1 });
-      (useSourceTokenOptions as jest.Mock).mockReturnValue({
+      (usePayWithTokens as jest.Mock).mockReturnValue({
         options: [sourceWithRate],
       });
 
@@ -482,7 +534,7 @@ describe('useQuickBuyController', () => {
         atomicBalance: '100000000',
       });
       const sourceWithRate = createSourceToken({ currencyExchangeRate: 1 });
-      (useSourceTokenOptions as jest.Mock).mockReturnValue({
+      (usePayWithTokens as jest.Mock).mockReturnValue({
         options: [sourceWithRate],
       });
 
@@ -509,7 +561,7 @@ describe('useQuickBuyController', () => {
         atomicBalance: '100000000',
       });
       const sourceWithRate = createSourceToken({ currencyExchangeRate: 1 });
-      (useSourceTokenOptions as jest.Mock).mockReturnValue({
+      (usePayWithTokens as jest.Mock).mockReturnValue({
         options: [sourceWithRate],
       });
 
@@ -541,7 +593,7 @@ describe('useQuickBuyController', () => {
         address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
         currencyExchangeRate: 1,
       });
-      (useSourceTokenOptions as jest.Mock).mockReturnValue({
+      (usePayWithTokens as jest.Mock).mockReturnValue({
         options: [usdc, usdt],
       });
 
@@ -627,6 +679,7 @@ describe('useQuickBuyController', () => {
         isNoQuotesAvailable: false,
         quoteFetchError: null,
         isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
         sortedQuotes: [],
         quoteCount: 0,
         quotesLastFetchedAt: null,
@@ -672,6 +725,7 @@ describe('useQuickBuyController', () => {
         isNoQuotesAvailable: false,
         quoteFetchError: null,
         isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
         sortedQuotes: [],
         quoteCount: 0,
         quotesLastFetchedAt: null,
@@ -713,7 +767,7 @@ describe('useQuickBuyController', () => {
     });
 
     it('is disabled when the source token is missing even if a quote exists', () => {
-      (useSourceTokenOptions as jest.Mock).mockReturnValue({
+      (usePayWithTokens as jest.Mock).mockReturnValue({
         options: [],
         isLoading: false,
       });
@@ -724,6 +778,7 @@ describe('useQuickBuyController', () => {
         isNoQuotesAvailable: false,
         quoteFetchError: null,
         isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
         sortedQuotes: [],
         quoteCount: 0,
         quotesLastFetchedAt: null,
@@ -754,6 +809,7 @@ describe('useQuickBuyController', () => {
         isNoQuotesAvailable: false,
         quoteFetchError: null,
         isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
         sortedQuotes: [],
         quoteCount: 0,
         quotesLastFetchedAt: null,
@@ -783,6 +839,7 @@ describe('useQuickBuyController', () => {
         isNoQuotesAvailable: false,
         quoteFetchError: null,
         isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
         sortedQuotes: [],
         quoteCount: 0,
         quotesLastFetchedAt: null,
@@ -828,6 +885,7 @@ describe('useQuickBuyController', () => {
         isNoQuotesAvailable: false,
         quoteFetchError: null,
         isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
         sortedQuotes: [],
         quoteCount: 0,
         quotesLastFetchedAt: null,
@@ -878,6 +936,7 @@ describe('useQuickBuyController', () => {
         isNoQuotesAvailable: false,
         quoteFetchError: null,
         isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
         sortedQuotes: [],
         quoteCount: 0,
         quotesLastFetchedAt: null,
@@ -935,6 +994,7 @@ describe('useQuickBuyController', () => {
         isNoQuotesAvailable: false,
         quoteFetchError: null,
         isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
         sortedQuotes: [],
         quoteCount: 0,
         quotesLastFetchedAt: null,
@@ -975,13 +1035,151 @@ describe('useQuickBuyController', () => {
       // QuickBuyContext.handleBuy which routes to priceImpactConfirm instead.
       expect(result.current.isConfirmDisabled).toBe(false);
     });
+
+    it('keeps the CTA enabled during a background refresh of a usable quote', () => {
+      const quoteState: UseQuickBuyQuotesResult = {
+        activeQuote: undefined,
+        destTokenAmount: undefined,
+        isQuoteLoading: false,
+        isNoQuotesAvailable: false,
+        quoteFetchError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
+        sortedQuotes: [],
+        quoteCount: 0,
+        quotesLastFetchedAt: null,
+        refreshCount: 0,
+        quoteRefreshRateMs: 30000,
+        maxRefreshCount: 5,
+        refetchQuotes: jest.fn(),
+      };
+      (useQuickBuyQuotes as jest.Mock).mockImplementation(() => quoteState);
+
+      const props = {
+        target: createTarget(),
+        onClose: jest.fn(),
+      };
+      const { result, rerender } = renderHook(
+        ({ target, onClose }) => useQuickBuyController(target, onClose),
+        { initialProps: props },
+      );
+
+      act(() => {
+        result.current.handleAmountChange('20');
+      });
+      quoteState.isQuoteLoading = true;
+      rerender(props);
+      quoteState.isQuoteLoading = false;
+      quoteState.activeQuote = createActiveQuote();
+      rerender(props);
+      rerender(props);
+
+      expect(result.current.isConfirmDisabled).toBe(false);
+
+      quoteState.isQuoteLoading = true;
+      rerender(props);
+
+      expect(result.current.isBlockingQuoteLoad).toBe(false);
+      expect(result.current.isConfirmDisabled).toBe(false);
+      expect(result.current.isTotalLoading).toBe(false);
+    });
+
+    it('blocks the CTA on the initial load when no usable quote exists yet', () => {
+      const quoteState: UseQuickBuyQuotesResult = {
+        activeQuote: undefined,
+        destTokenAmount: undefined,
+        isQuoteLoading: false,
+        isNoQuotesAvailable: false,
+        quoteFetchError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
+        sortedQuotes: [],
+        quoteCount: 0,
+        quotesLastFetchedAt: null,
+        refreshCount: 0,
+        quoteRefreshRateMs: 30000,
+        maxRefreshCount: 5,
+        refetchQuotes: jest.fn(),
+      };
+      (useQuickBuyQuotes as jest.Mock).mockImplementation(() => quoteState);
+
+      const props = {
+        target: createTarget(),
+        onClose: jest.fn(),
+      };
+      const { result, rerender } = renderHook(
+        ({ target, onClose }) => useQuickBuyController(target, onClose),
+        { initialProps: props },
+      );
+
+      act(() => {
+        result.current.handleAmountChange('20');
+      });
+      quoteState.isQuoteLoading = true;
+      rerender(props);
+
+      expect(result.current.isBlockingQuoteLoad).toBe(true);
+      expect(result.current.isConfirmDisabled).toBe(true);
+      expect(result.current.isTotalLoading).toBe(true);
+    });
+
+    it('blocks the CTA when a request input change makes the displayed quote stale', () => {
+      const quoteState: UseQuickBuyQuotesResult = {
+        activeQuote: undefined,
+        destTokenAmount: undefined,
+        isQuoteLoading: false,
+        isNoQuotesAvailable: false,
+        quoteFetchError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
+        sortedQuotes: [],
+        quoteCount: 0,
+        quotesLastFetchedAt: null,
+        refreshCount: 0,
+        quoteRefreshRateMs: 30000,
+        maxRefreshCount: 5,
+        refetchQuotes: jest.fn(),
+      };
+      (useQuickBuyQuotes as jest.Mock).mockImplementation(() => quoteState);
+
+      const props = {
+        target: createTarget(),
+        onClose: jest.fn(),
+      };
+      const { result, rerender } = renderHook(
+        ({ target, onClose }) => useQuickBuyController(target, onClose),
+        { initialProps: props },
+      );
+
+      act(() => {
+        result.current.handleAmountChange('20');
+      });
+      quoteState.isQuoteLoading = true;
+      rerender(props);
+      quoteState.isQuoteLoading = false;
+      quoteState.activeQuote = createActiveQuote();
+      rerender(props);
+      rerender(props);
+
+      expect(result.current.isConfirmDisabled).toBe(false);
+
+      // Slippage/destination address/gas settings changed: the quotes hook keeps
+      // the prior activeQuote but flags the request as stale. The CTA must
+      // disable even before a new fetch starts (no blocking load reported yet).
+      quoteState.isQuoteRequestStale = true;
+      rerender(props);
+
+      expect(result.current.isBlockingQuoteLoad).toBe(false);
+      expect(result.current.isConfirmDisabled).toBe(true);
+      expect(result.current.isTotalLoading).toBe(true);
+    });
   });
 
   describe('source token auto-selection', () => {
     it('auto-selects the first option when options load (legacy — native on dest chain matches priority 1)', () => {
       const firstToken = createSourceToken({ symbol: 'ETH' });
 
-      (useSourceTokenOptions as jest.Mock).mockReturnValue({
+      (usePayWithTokens as jest.Mock).mockReturnValue({
         options: [firstToken, createSourceToken({ symbol: 'USDC' })],
         isLoading: false,
       });
@@ -1024,7 +1222,7 @@ describe('useQuickBuyController', () => {
         isUnsupportedChain: false,
       });
 
-      (useSourceTokenOptions as jest.Mock).mockReturnValue({
+      (usePayWithTokens as jest.Mock).mockReturnValue({
         options: [ethOnMainnet, usdcOnMainnet],
         isLoading: false,
       });
@@ -1094,7 +1292,7 @@ describe('useQuickBuyController', () => {
         isUnsupportedChain: false,
       });
 
-      (useSourceTokenOptions as jest.Mock).mockReturnValue({
+      (usePayWithTokens as jest.Mock).mockReturnValue({
         options: [usdcOnSolana, solNative],
         isLoading: false,
       });
@@ -1451,6 +1649,7 @@ describe('useQuickBuyController', () => {
         isNoQuotesAvailable: false,
         quoteFetchError: null,
         isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
         quoteCount: sortedQuotes.length,
         quotesLastFetchedAt: Date.now(),
         refreshCount: 1,
@@ -1509,6 +1708,7 @@ describe('useQuickBuyController', () => {
         isNoQuotesAvailable: false,
         quoteFetchError: null,
         isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
         sortedQuotes: [],
         quoteCount: 0,
         quotesLastFetchedAt: null,
@@ -1547,6 +1747,7 @@ describe('useQuickBuyController', () => {
         isNoQuotesAvailable: false,
         quoteFetchError: null,
         isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
         sortedQuotes: [],
         quoteCount: 0,
         quotesLastFetchedAt: null,
@@ -1582,6 +1783,7 @@ describe('useQuickBuyController', () => {
         isNoQuotesAvailable: false,
         quoteFetchError: null,
         isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
         sortedQuotes: [],
         quoteCount: 0,
         quotesLastFetchedAt: null,
@@ -1624,6 +1826,7 @@ describe('useQuickBuyController', () => {
           isNoQuotesAvailable: false,
           quoteFetchError: null,
           isActiveQuoteForCurrentTokenPair: true,
+          isQuoteRequestStale: false,
           sortedQuotes: [],
           quoteCount: 0,
           quotesLastFetchedAt: null,
@@ -1690,6 +1893,160 @@ describe('useQuickBuyController', () => {
         expect(mockTrackTradeSubmitted).toHaveBeenCalledWith(
           expect.objectContaining({ trader_address: '0xTRADER' }),
         );
+      });
+    });
+
+    describe('stay-on-screen swap toasts', () => {
+      const mockUsableQuote = () => {
+        (useQuickBuyQuotes as jest.Mock).mockReturnValue({
+          activeQuote: createActiveQuote(),
+          destTokenAmount: '1',
+          isQuoteLoading: false,
+          isNoQuotesAvailable: false,
+          quoteFetchError: null,
+          isActiveQuoteForCurrentTokenPair: true,
+          isQuoteRequestStale: false,
+          sortedQuotes: [],
+          quoteCount: 0,
+          quotesLastFetchedAt: null,
+          refreshCount: 0,
+          quoteRefreshRateMs: 30000,
+          maxRefreshCount: 5,
+          refetchQuotes: jest.fn(),
+        });
+      };
+
+      it('closes the sheet immediately on confirm', async () => {
+        mockUsableQuote();
+        (
+          Engine.context.BridgeStatusController.submitTx as jest.Mock
+        ).mockResolvedValue({ id: 'tx-1', hash: '0xabc' });
+        const onClose = jest.fn();
+
+        const { result } = renderHook(() =>
+          useQuickBuyController(createTarget(), onClose),
+        );
+
+        await act(async () => {
+          await result.current.handleConfirm();
+        });
+
+        expect(onClose).toHaveBeenCalledTimes(1);
+      });
+
+      it('shows the pending toast immediately on close, before submit resolves', async () => {
+        mockUsableQuote();
+        let resolveSubmit: (value: unknown) => void = () => undefined;
+        (
+          Engine.context.BridgeStatusController.submitTx as jest.Mock
+        ).mockReturnValue(
+          new Promise((resolve) => {
+            resolveSubmit = resolve;
+          }),
+        );
+        const onClose = jest.fn();
+
+        const { result } = renderHook(() =>
+          useQuickBuyController(createTarget(), onClose),
+        );
+
+        let confirmPromise: Promise<void> | undefined;
+        act(() => {
+          confirmPromise = result.current.handleConfirm();
+        });
+
+        expect(onClose).toHaveBeenCalledTimes(1);
+        expect(buildQuickBuyToastOptions).toHaveBeenCalledWith('pending', {
+          trade: expect.objectContaining({
+            tokenSymbol: 'TEST',
+            tradeMode: 'buy',
+          }),
+          theme: expect.any(Object),
+        });
+        expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
+        expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
+
+        await act(async () => {
+          resolveSubmit({ id: 'tx-1', hash: '0xabc' });
+          await confirmPromise;
+        });
+      });
+
+      it('tracks the trade and shows a pending toast on successful submit', async () => {
+        mockUsableQuote();
+        (
+          Engine.context.BridgeStatusController.submitTx as jest.Mock
+        ).mockResolvedValue({ id: 'tx-1', hash: '0xabc' });
+
+        const { result } = renderHook(() =>
+          useQuickBuyController(createTarget(), jest.fn()),
+        );
+
+        await act(async () => {
+          await result.current.handleConfirm();
+        });
+
+        expect(trackQuickBuyTrade).toHaveBeenCalledWith(
+          'tx-1',
+          expect.objectContaining({ tokenSymbol: 'TEST', tradeMode: 'buy' }),
+        );
+        expect(buildQuickBuyToastOptions).toHaveBeenCalledWith('pending', {
+          trade: expect.objectContaining({
+            tokenSymbol: 'TEST',
+            tradeMode: 'buy',
+          }),
+          theme: expect.any(Object),
+        });
+        expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
+      });
+
+      it('reconciles against the current bridge status right after tracking', async () => {
+        mockUsableQuote();
+        (
+          Engine.context.BridgeStatusController.submitTx as jest.Mock
+        ).mockResolvedValue({ id: 'tx-1', hash: '0xabc' });
+
+        const { result } = renderHook(() =>
+          useQuickBuyController(createTarget(), jest.fn()),
+        );
+
+        await act(async () => {
+          await result.current.handleConfirm();
+        });
+
+        expect(resolveQuickBuyTerminalToast).toHaveBeenCalledWith(
+          'tx-1',
+          expect.any(Function),
+          expect.any(Object),
+        );
+      });
+
+      it('shows a failed toast and does not track the trade when submit throws', async () => {
+        mockUsableQuote();
+        (
+          Engine.context.BridgeStatusController.submitTx as jest.Mock
+        ).mockRejectedValue(new Error('user rejected'));
+        const onClose = jest.fn();
+
+        const { result } = renderHook(() =>
+          useQuickBuyController(createTarget(), onClose),
+        );
+
+        await act(async () => {
+          await result.current.handleConfirm();
+        });
+
+        expect(onClose).toHaveBeenCalledTimes(1);
+        expect(buildQuickBuyToastOptions).toHaveBeenCalledWith('failed', {
+          trade: expect.objectContaining({
+            tokenSymbol: 'TEST',
+            tradeMode: 'buy',
+          }),
+          theme: expect.any(Object),
+        });
+        expect(mockShowToast).toHaveBeenCalledWith({ kind: 'failed' });
+        expect(playErrorNotification).toHaveBeenCalledTimes(1);
+        expect(trackQuickBuyTrade).not.toHaveBeenCalled();
       });
     });
   });

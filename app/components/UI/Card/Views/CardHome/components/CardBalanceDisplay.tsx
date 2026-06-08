@@ -25,6 +25,7 @@ import { strings } from '../../../../../../../locales/i18n';
 interface CardBalanceDisplayData {
   asset?: TokenI;
   balanceFormatted?: string;
+  isMoneyAccountEntry?: boolean;
 }
 
 interface CardBalanceDisplayProps {
@@ -97,6 +98,7 @@ const CardBalanceDisplay = ({
           asset={assetBalance?.asset}
           privacyMode={privacyMode}
           balanceFormatted={assetBalance?.balanceFormatted}
+          isMoneyAccountEntry={assetBalance?.isMoneyAccountEntry}
         />
       )}
     </Box>

@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Image, StyleSheet, Keyboard, Platform } from 'react-native';
-import { createStackNavigator } from '@react-navigation/stack';
+import {
+  createStackNavigator,
+  TransitionPresets,
+} from '@react-navigation/stack';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { useSelector, useDispatch } from 'react-redux';
-import { mainNavigatorReady } from '../../../actions/navigation';
+import { useSelector } from 'react-redux';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Browser from '../../Views/Browser';
 import { ChainId } from '@metamask/controller-utils';
@@ -82,7 +84,10 @@ import { SnapSettings } from '../../Views/Snaps/SnapSettings';
 import { CAN_INSTALL_THIRD_PARTY_SNAPS } from '../../../constants/snaps';
 ///: END:ONLY_INCLUDE_IF
 import Routes from '../../../constants/navigation/Routes';
-import { clearStackNavigatorOptionsWithTransitionAnimation } from '../../../constants/navigation/clearStackNavigatorOptions';
+import {
+  clearStackNavigatorOptionsWithTransitionAnimation,
+  transparentModalScreenOptions,
+} from '../../../constants/navigation/clearStackNavigatorOptions';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { TabBarIconKey } from '../../../component-library/components/Navigation/TabBar/TabBar.types';
 import { selectProviderConfig } from '../../../selectors/networkController';
@@ -155,7 +160,6 @@ import { TokenDetails } from '../../UI/TokenDetails/Views/TokenDetails';
 import BenefitFullView from '../../UI/Rewards/Views/BenefitFullView';
 import BenefitsFullView from '../../UI/Rewards/Views/BenefitsFullView';
 import { getDeFiProtocolPositionDetailsNavbarOptions } from '../../UI/Navbar';
-import NavigationDevPanel from '../../Views/NavigationDevPanel/NavigationDevPanel';
 
 const Stack = createStackNavigator();
 const NativeStack = createNativeStackNavigator();
@@ -231,7 +235,6 @@ const AssetStackFlow = (props) => (
     <Stack.Screen
       name={Routes.TRANSACTION_DETAILS}
       component={TransactionDetails}
-      options={{ headerShown: true }}
     />
   </Stack.Navigator>
 );
@@ -253,124 +256,118 @@ const AssetNavigator = (props) => (
 const WalletTabStackFlow = () => {
   const { colors } = useTheme();
   return (
-    <Stack.Navigator
+    <NativeStack.Navigator
       initialRouteName={'WalletView'}
       screenOptions={{
-        cardStyle: { backgroundColor: colors.background.default },
+        contentStyle: { backgroundColor: colors.background.default },
       }}
     >
-      <Stack.Screen
+      <NativeStack.Screen
         name="WalletView"
         component={Wallet}
         options={{
           headerShown: false,
-          animationEnabled: false,
+          animation: 'none',
         }}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
         component={RevealPrivateCredential}
         options={{ headerShown: false }}
       />
-    </Stack.Navigator>
+    </NativeStack.Navigator>
   );
 };
 
 const TransactionsHome = () => {
   const { colors } = useTheme();
   return (
-    <Stack.Navigator
+    <NativeStack.Navigator
       screenOptions={{
-        cardStyle: { backgroundColor: colors.background.default },
+        headerShown: false,
+        contentStyle: { backgroundColor: colors.background.default },
       }}
     >
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.TRANSACTIONS_VIEW}
         component={ActivityView}
-        options={{ headerShown: false }}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.TRANSACTION_DETAILS}
         component={TransactionDetails}
       />
-      <Stack.Screen name={Routes.RAMP.ORDER_DETAILS} component={OrderDetails} />
-      <Stack.Screen
+      <NativeStack.Screen
+        name={Routes.RAMP.ORDER_DETAILS}
+        component={OrderDetails}
+      />
+      <NativeStack.Screen
         name={Routes.RAMP.RAMPS_ORDER_DETAILS}
         component={RampsOrderDetails}
-        options={{ headerShown: false }}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.DEPOSIT.ORDER_DETAILS}
         component={DepositOrderDetails}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.RAMP.BANK_DETAILS_STANDALONE}
         component={V2BankDetails}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.RAMP.SEND_TRANSACTION}
         component={SendTransaction}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS}
         component={BridgeTransactionDetails}
       />
-    </Stack.Navigator>
+    </NativeStack.Navigator>
   );
 };
 
 const RewardsHome = () => {
   const { colors } = useTheme();
+  const rewardsModalScreenOptions = {
+    ...transparentModalScreenOptions,
+    contentStyle: { backgroundColor: 'transparent' },
+  };
   return (
-    <Stack.Navigator
+    <NativeStack.Navigator
       screenOptions={{
-        ...clearStackNavigatorOptionsWithTransitionAnimation,
-        cardStyle: { backgroundColor: colors.background.default },
+        headerShown: false,
+        animation: 'none',
+        contentStyle: { backgroundColor: colors.background.default },
       }}
     >
-      <Stack.Screen name={Routes.REWARDS_VIEW} component={RewardsNavigator} />
-      <Stack.Screen
+      <NativeStack.Screen
+        name={Routes.REWARDS_VIEW}
+        component={RewardsNavigator}
+      />
+      <NativeStack.Screen
         name={Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL}
         component={RewardsBottomSheetModal}
-        options={{
-          presentation: 'transparentModal',
-          cardStyle: { backgroundColor: 'transparent' },
-        }}
+        options={rewardsModalScreenOptions}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL}
         component={RewardsClaimBottomSheetModal}
-        options={{
-          presentation: 'transparentModal',
-          cardStyle: { backgroundColor: 'transparent' },
-        }}
+        options={rewardsModalScreenOptions}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL}
         component={RewardOptInAccountGroupModal}
-        options={{
-          headerShown: false,
-          presentation: 'transparentModal',
-          cardStyle: { backgroundColor: 'transparent' },
-        }}
+        options={rewardsModalScreenOptions}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET}
         component={EndOfSeasonClaimBottomSheet}
-        options={{
-          presentation: 'transparentModal',
-          cardStyle: { backgroundColor: 'transparent' },
-        }}
+        options={rewardsModalScreenOptions}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.MODAL.REWARDS_SELECT_SHEET}
         component={RewardsSelectSheet}
-        options={{
-          presentation: 'transparentModal',
-          cardStyle: { backgroundColor: 'transparent' },
-        }}
+        options={rewardsModalScreenOptions}
       />
-    </Stack.Navigator>
+    </NativeStack.Navigator>
   );
 };
 
@@ -1005,15 +1002,6 @@ const SampleFeatureFlow = () => (
 ///: END:ONLY_INCLUDE_IF
 
 const MainNavigator = () => {
-  const dispatch = useDispatch();
-  // Announce to the saga layer (deeplink pipeline) that post-login screens
-  // are now registered with React Navigation. Before this dispatch, a
-  // `navigate('Wallet'|'RampTokenSelection'|...)` call would be silently
-  // dropped because the target screen isn't in the navigation state yet.
-  useEffect(() => {
-    dispatch(mainNavigatorReady());
-  }, [dispatch]);
-
   // Get feature flag state for conditional Money home screen registration
   const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
   // Get feature flag state for conditional Perps screen registration
@@ -1406,13 +1394,6 @@ const MainNavigator = () => {
           options={{ headerShown: false }}
         />
       )}
-      {process.env.METAMASK_ENVIRONMENT !== 'production' && (
-        <Stack.Screen
-          name={Routes.NAVIGATION_DEV_PANEL}
-          component={NavigationDevPanel}
-          options={{ headerShown: true, ...slideFromRightAnimation }}
-        />
-      )}
       <Stack.Screen
         name="DeFiProtocolPositionDetails"
         component={DeFiProtocolPositionDetails}
@@ -1439,7 +1420,7 @@ const MainNavigator = () => {
       <Stack.Screen
         name={Routes.CARD.ROOT}
         component={CardRoutes}
-        options={{ presentation: 'modal' }}
+        options={TransitionPresets.ModalSlideFromBottomIOS}
       />
       <Stack.Screen
         name={Routes.RAMP.MODALS.PROCESSING_INFO}

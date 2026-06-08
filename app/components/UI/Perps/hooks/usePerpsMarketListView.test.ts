@@ -8,6 +8,7 @@ import {
   PERPS_CONSTANTS,
   sortMarkets,
   type PerpsMarketData,
+  type MarketTypeFilter,
   type SortField,
   type SortDirection,
 } from '@metamask/perps-controller';
@@ -649,7 +650,10 @@ describe('usePerpsMarketListView', () => {
       expect(result.current.marketCounts).toEqual({
         crypto: 3,
         stocks: 0,
-        commodity: 0,
+        'pre-ipo': 0,
+        indices: 0,
+        etfs: 0,
+        commodities: 0,
         forex: 0,
         new: 0,
       });
@@ -703,7 +707,10 @@ describe('usePerpsMarketListView', () => {
       expect(result.current.marketCounts).toEqual({
         crypto: 2,
         stocks: 2,
-        commodity: 1,
+        'pre-ipo': 0,
+        indices: 0,
+        etfs: 0,
+        commodities: 1,
         forex: 1,
         new: 0,
       });
@@ -730,7 +737,10 @@ describe('usePerpsMarketListView', () => {
       expect(result.current.marketCounts).toEqual({
         crypto: 0,
         stocks: 0,
-        commodity: 0,
+        'pre-ipo': 0,
+        indices: 0,
+        etfs: 0,
+        commodities: 0,
         forex: 0,
         new: 0,
       });
@@ -921,6 +931,31 @@ describe('usePerpsMarketListView', () => {
       expect(
         typeof result.current.marketTypeFilterState.setMarketTypeFilter,
       ).toBe('function');
+    });
+
+    it('syncs filter when defaultMarketTypeFilter changes on rerender', () => {
+      const { result, rerender } = renderHook(
+        ({
+          defaultMarketTypeFilter,
+        }: {
+          defaultMarketTypeFilter: MarketTypeFilter;
+        }) => usePerpsMarketListView({ defaultMarketTypeFilter }),
+        {
+          initialProps: {
+            defaultMarketTypeFilter: 'crypto' as MarketTypeFilter,
+          },
+        },
+      );
+
+      expect(result.current.marketTypeFilterState.marketTypeFilter).toBe(
+        'crypto',
+      );
+
+      rerender({ defaultMarketTypeFilter: 'stocks' });
+
+      expect(result.current.marketTypeFilterState.marketTypeFilter).toBe(
+        'stocks',
+      );
     });
   });
 });

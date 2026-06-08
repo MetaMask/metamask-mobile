@@ -182,7 +182,13 @@ describe('OnboardingInterestQuestionnaire', () => {
       renderComponent();
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.ONBOARDING_INTEREST_QUESTION_VIEWED,
+        MetaMetricsEvents.ONBOARDING_QUESTION_VIEWED,
+      );
+      const viewedBuilder = mockCreateEventBuilder.mock.results[0]?.value;
+      expect(viewedBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          question_type: 'interest',
+        }),
       );
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
     });
@@ -194,7 +200,9 @@ describe('OnboardingInterestQuestionnaire', () => {
 
       const viewedBuilder = mockCreateEventBuilder.mock.results[0]?.value;
 
-      expect(viewedBuilder.addProperties).toHaveBeenCalledWith({});
+      expect(viewedBuilder.addProperties).toHaveBeenCalledWith({
+        question_type: 'interest',
+      });
     });
 
     it('includes account_type in Viewed event when route supplies accountType', () => {
@@ -206,6 +214,7 @@ describe('OnboardingInterestQuestionnaire', () => {
 
       expect(viewedBuilder.addProperties).toHaveBeenCalledWith(
         expect.objectContaining({
+          question_type: 'interest',
           account_type: 'imported',
         }),
       );
@@ -272,10 +281,11 @@ describe('OnboardingInterestQuestionnaire', () => {
 
       expect(mockCreateEventBuilder).toHaveBeenNthCalledWith(
         2,
-        MetaMetricsEvents.ONBOARDING_INTEREST_QUESTION_SUBMITTED,
+        MetaMetricsEvents.ONBOARDING_QUESTION_SUBMITTED,
       );
       expect(builderInstance.addProperties).toHaveBeenCalledWith(
         expect.objectContaining({
+          question_type: 'interest',
           selected_interests: [],
           item_count: 0,
           skipped: true,
@@ -301,6 +311,7 @@ describe('OnboardingInterestQuestionnaire', () => {
 
       expect(builderInstance.addProperties).toHaveBeenCalledWith(
         expect.objectContaining({
+          question_type: 'interest',
           selected_interests: [],
           skipped: true,
           account_type: 'hardware_wallet',
@@ -334,6 +345,7 @@ describe('OnboardingInterestQuestionnaire', () => {
 
       expect(builderInstance.addProperties).toHaveBeenCalledWith(
         expect.objectContaining({
+          question_type: 'interest',
           selected_interests: expect.arrayContaining([
             'buy_and_sell_crypto',
             'predict_sports_events',
