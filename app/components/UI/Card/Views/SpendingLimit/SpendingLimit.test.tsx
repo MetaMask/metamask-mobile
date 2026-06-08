@@ -186,19 +186,18 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.card_spending_limit.money_account_label': 'Money account',
       'card.card_spending_limit.money_account_token_symbol': 'mUSD',
       'card.card_spending_limit.use_money_account_cta': 'Use Money account',
-      'card.card_spending_limit.spend_and_earn_title': 'Spend while you earn',
-      'card.card_spending_limit.spend_and_earn_cta': 'Link to Money account',
+      'card.card_spending_limit.spend_and_earn_title': 'Spend and earn',
+      'card.card_spending_limit.spend_and_earn_description_prefix':
+        'Link your balance to your card and get mUSD back on purchases. Plus, earn up to ',
+      'card.card_spending_limit.spend_and_earn_description_suffix':
+        ' (variable) on your balance.',
+      'card.card_spending_limit.spend_and_earn_description_no_apy':
+        'Link your balance to your card and get mUSD back on purchases.',
+      'card.card_spending_limit.spend_and_earn_cta': 'Link card',
     };
-    if (key === 'card.card_spending_limit.spend_and_earn_description') {
+    if (key === 'card.card_spending_limit.spend_and_earn_description_apy') {
       const apy = (params as { apy?: number | string } | undefined)?.apy;
-      const cashback = (params as { cashback?: number | string } | undefined)
-        ?.cashback;
-      return `Spend with your Money account and earn up to ${apy}% APY on your balance. Also get ${cashback}% mUSD back.`;
-    }
-    if (key === 'card.card_spending_limit.spend_and_earn_description_no_apy') {
-      const cashback = (params as { cashback?: number | string } | undefined)
-        ?.cashback;
-      return `Spend with your Money account and earn APY on your balance. Also get ${cashback}% mUSD back.`;
+      return `${apy}% APY`;
     }
     return strings[key] || key;
   },
@@ -277,7 +276,7 @@ jest.spyOn(Logger, 'error').mockImplementation(() => undefined);
 
 interface MockRoute {
   params?: {
-    flow?: 'manage' | 'enable' | 'onboarding';
+    flow?: 'manage' | 'enable' | 'onboarding' | 'enable_card';
     selectedToken?: CardFundingToken;
     returnedSelectedToken?: CardFundingToken;
   };
@@ -347,6 +346,7 @@ describe('SpendingLimit Component', () => {
     needsFaucet: false,
     isFaucetCheckLoading: false,
     isMoneyAccountSource: false,
+    isMoneyAccountLocked: false,
     canShowMoneyAccountCta: false,
     selectMoneyAccountAsSource: mockSelectMoneyAccountAsSource,
     moneyAccountTotalFiatFormatted: undefined as string | undefined,
@@ -834,6 +834,18 @@ describe('SpendingLimit Component', () => {
 
       expect(screen.getByTestId('button-loading-indicator')).toBeOnTheScreen();
     });
+
+    it('omits the button spinner on Money Account submits to avoid duplicating the toast spinner', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        isLoading: true,
+        isMoneyAccountSource: true,
+      });
+
+      render();
+
+      expect(screen.queryByTestId('button-loading-indicator')).toBeNull();
+    });
   });
 
   describe('Onboarding Flow', () => {
@@ -1059,12 +1071,24 @@ describe('SpendingLimit Component', () => {
       expect(screen.getByText('Money account')).toBeOnTheScreen();
     });
 
-    it('renders the locked token row (no chevron, not pressable) with the mUSD display label and fiat balance', () => {
+    it('renders the account row as a pressable (non-locked) row showing Money Account on onboarding-like flows', () => {
       mountWithMoneyAccount();
 
-      expect(screen.getByTestId('token-row-locked')).toBeOnTheScreen();
+      expect(screen.getByTestId('account-row')).toBeOnTheScreen();
+      expect(screen.queryByTestId('account-row-locked')).not.toBeOnTheScreen();
+      expect(screen.getByTestId('account-row-money-account')).toBeOnTheScreen();
+
+      // Tapping the row opens the account picker (exits Money Account mode).
+      mockHandleAccountSelect.mockClear();
+      fireEvent.press(screen.getByTestId('account-row'));
+      expect(mockHandleAccountSelect).toHaveBeenCalledTimes(1);
+    });
+
+    it('hides the token row entirely when Money Account is the source on onboarding-like flows', () => {
+      mountWithMoneyAccount();
+
       expect(screen.queryByTestId('token-row')).not.toBeOnTheScreen();
-      expect(screen.getByText('mUSD ($12.34)')).toBeOnTheScreen();
+      expect(screen.queryByTestId('token-row-locked')).not.toBeOnTheScreen();
       expect(screen.queryByText('USDC on Linea')).not.toBeOnTheScreen();
     });
 
@@ -1088,13 +1112,13 @@ describe('SpendingLimit Component', () => {
       render({ params: { flow: 'onboarding' } });
 
       expect(screen.getByTestId('use-money-account-cta')).toBeOnTheScreen();
-      expect(screen.getByText('Spend while you earn')).toBeOnTheScreen();
+      expect(screen.getByText('Spend and earn')).toBeOnTheScreen();
       expect(
         screen.getByText(
-          'Spend with your Money account and earn up to 4% APY on your balance. Also get 1% mUSD back.',
+          /Link your balance to your card and get mUSD back on purchases\. Plus, earn up to 4% APY \(variable\) on your balance\./,
         ),
       ).toBeOnTheScreen();
-      expect(screen.getByText('Link to Money account')).toBeOnTheScreen();
+      expect(screen.getByText('Link card')).toBeOnTheScreen();
     });
 
     it('drops the explicit APY clause when moneyAccountApyPercent is undefined', () => {
@@ -1109,15 +1133,15 @@ describe('SpendingLimit Component', () => {
       render({ params: { flow: 'onboarding' } });
 
       expect(screen.getByTestId('use-money-account-cta')).toBeOnTheScreen();
-      expect(screen.getByText('Spend while you earn')).toBeOnTheScreen();
+      expect(screen.getByText('Spend and earn')).toBeOnTheScreen();
       expect(
         screen.getByText(
-          'Spend with your Money account and earn APY on your balance. Also get 1% mUSD back.',
+          'Link your balance to your card and get mUSD back on purchases.',
         ),
       ).toBeOnTheScreen();
     });
 
-    it('advertises 3% mUSD back when the user has a Metal card', () => {
+    it('renders the same promo copy when the user has a Metal card', () => {
       mockUseSpendingLimit.mockReturnValue({
         ...getDefaultUseSpendingLimitMock(),
         isMoneyAccountSource: false,
@@ -1130,7 +1154,7 @@ describe('SpendingLimit Component', () => {
 
       expect(
         screen.getByText(
-          'Spend with your Money account and earn up to 4% APY on your balance. Also get 3% mUSD back.',
+          /Link your balance to your card and get mUSD back on purchases\. Plus, earn up to 4% APY \(variable\) on your balance\./,
         ),
       ).toBeOnTheScreen();
     });
@@ -1163,39 +1187,50 @@ describe('SpendingLimit Component', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('falls back to the mUSD symbol alone when the fiat balance is not yet formatted', () => {
-      mountWithMoneyAccount({ moneyAccountTotalFiatFormatted: undefined });
+    it('does NOT render the money-account CTA when canLinkMoneyAccount is false (sponsorship/7702 gating propagates through canShowMoneyAccountCta)', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        isMoneyAccountSource: false,
+        canLinkMoneyAccount: false,
+        canShowMoneyAccountCta: false,
+      });
 
-      expect(screen.getByText('mUSD')).toBeOnTheScreen();
+      render({ params: { flow: 'onboarding' } });
+
+      expect(
+        screen.queryByTestId('use-money-account-cta'),
+      ).not.toBeOnTheScreen();
     });
 
-    it('renders Money Account rows in the manage flow when Money Account is the source', () => {
+    it('locks the Account row and hides the Token row on the manage flow when Money Account is the source', () => {
       mockUseSpendingLimit.mockReturnValue({
         ...getDefaultUseSpendingLimitMock(),
         isMoneyAccountSource: true,
+        isMoneyAccountLocked: true,
         selectedToken: moneyAccountToken,
         moneyAccountTotalFiatFormatted: '$12.34',
       });
 
       render({ params: { flow: 'manage' } });
 
+      expect(screen.getByTestId('account-row-locked')).toBeOnTheScreen();
+      expect(screen.queryByTestId('account-row')).not.toBeOnTheScreen();
       expect(screen.getByTestId('account-row-money-account')).toBeOnTheScreen();
-      expect(screen.getByTestId('token-row-locked')).toBeOnTheScreen();
+      expect(screen.queryByTestId('token-row-locked')).not.toBeOnTheScreen();
       expect(screen.queryByTestId('token-row')).not.toBeOnTheScreen();
-      expect(screen.getByText('mUSD ($12.34)')).toBeOnTheScreen();
       expect(
         screen.queryByTestId('use-money-account-cta'),
       ).not.toBeOnTheScreen();
     });
 
-    it('renders the switch-back CTA in the manage flow when canShowMoneyAccountCta is true', () => {
+    it('renders the Money Account CTA in the enable flow when canShowMoneyAccountCta is true (NotEnabled token + funded)', () => {
       mockUseSpendingLimit.mockReturnValue({
         ...getDefaultUseSpendingLimitMock(),
         isMoneyAccountSource: false,
         canShowMoneyAccountCta: true,
       });
 
-      render({ params: { flow: 'manage' } });
+      render({ params: { flow: 'enable', selectedToken: mockMUSDToken } });
 
       expect(screen.getByTestId('use-money-account-cta')).toBeOnTheScreen();
     });
@@ -1255,7 +1290,7 @@ describe('SpendingLimit Component', () => {
       expect(screen.getByTestId('account-row')).toBeOnTheScreen();
     });
 
-    it('still blocks the manage flow UI on the Money Account balance when linking is possible', () => {
+    it('does NOT block the manage flow UI on the Money Account balance even when linking is possible', () => {
       mockUseSpendingLimit.mockReturnValue({
         ...getDefaultUseSpendingLimitMock(),
         isMoneyAccountBalanceLoading: true,
@@ -1265,9 +1300,41 @@ describe('SpendingLimit Component', () => {
       render({ params: { flow: 'manage' } });
 
       expect(
+        screen.queryByTestId('spending-limit-loading-indicator'),
+      ).not.toBeOnTheScreen();
+      expect(screen.getByTestId('account-row')).toBeOnTheScreen();
+    });
+
+    it('shows the loading state on the enable_card flow while the Money Account balance is still resolving', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        isMoneyAccountBalanceLoading: true,
+        canLinkMoneyAccount: true,
+      });
+
+      render({ params: { flow: 'enable_card' } });
+
+      expect(
         screen.getByTestId('spending-limit-loading-indicator'),
       ).toBeOnTheScreen();
-      expect(screen.queryByTestId('account-row')).not.toBeOnTheScreen();
+    });
+
+    it('renders a pressable (NOT locked) Money Account row and hides the Token row on the enable_card flow when Money Account is the source', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        isMoneyAccountSource: true,
+        isMoneyAccountLocked: false,
+        selectedToken: moneyAccountToken,
+        moneyAccountTotalFiatFormatted: '$12.34',
+      });
+
+      render({ params: { flow: 'enable_card' } });
+
+      expect(screen.getByTestId('account-row')).toBeOnTheScreen();
+      expect(screen.queryByTestId('account-row-locked')).not.toBeOnTheScreen();
+      expect(screen.getByTestId('account-row-money-account')).toBeOnTheScreen();
+      expect(screen.queryByTestId('token-row')).not.toBeOnTheScreen();
+      expect(screen.queryByTestId('token-row-locked')).not.toBeOnTheScreen();
     });
   });
 });

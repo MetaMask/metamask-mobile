@@ -254,6 +254,17 @@ describe('OnboardingSuccessComponent', () => {
     expect(getByTestId('onboarding-success-end-animation')).toBeOnTheScreen();
   });
 
+  it('renders OnboardingSuccessEndAnimation for seedless onboarding flow', () => {
+    const { getByTestId } = renderWithProvider(
+      <OnboardingSuccessComponent
+        onDone={jest.fn()}
+        successFlow={ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING}
+      />,
+    );
+
+    expect(getByTestId('onboarding-success-end-animation')).toBeOnTheScreen();
+  });
+
   it('hides manage default settings button for SETTINGS_BACKUP flow', () => {
     const { queryByTestId } = renderWithProvider(
       <OnboardingSuccessComponent

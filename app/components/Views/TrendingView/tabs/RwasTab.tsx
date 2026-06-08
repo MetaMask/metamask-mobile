@@ -5,8 +5,8 @@ import { Box } from '@metamask/design-system-react-native';
 import type { ListRenderItem } from '@shopify/flash-list';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import type { PerpsMarketData, SortOptionId } from '@metamask/perps-controller';
+import { isEquityAsset } from '../../../UI/Perps/utils/marketHours';
 import type { PerpsNavigationParamList } from '../../../UI/Perps/types/navigation';
-import type { PredictMarket as PredictMarketType } from '../../../UI/Predict/types';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
 import { selectPredictEnabledFlag } from '../../../UI/Predict';
@@ -15,23 +15,25 @@ import { strings } from '../../../../../locales/i18n';
 import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
 import { TokenRowItem } from '../feeds/tokens/TokenRowItem';
 import TrendingTokensSkeleton from '../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
-import { useStocksFeed } from '../feeds/stocks/useStocksFeed';
+import {
+  STOCKS_FEED_PREVIEW_PAGE_SIZE,
+  useStocksFeed,
+} from '../feeds/stocks/useStocksFeed';
 import { getCaipChainIdFromAssetId } from '../../../UI/Trending/components/TrendingTokenRowItem/utils';
 import { usePerpsFeed } from '../feeds/perps/usePerpsFeed';
 import PerpsSectionProvider from '../feeds/perps/PerpsSectionProvider';
 import PerpsToggleBlock from '../feeds/perps/PerpsToggleBlock';
 import { navigateToPerpsMarketList } from '../feeds/perps/perpsNavigation';
 import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
-import { PredictionCarouselRowItem } from '../feeds/predictions/PredictionRowItem';
-import PredictionsSkeleton from '../feeds/predictions/PredictionsSkeleton';
-import { navigateToPredictionsList } from '../feeds/predictions/predictionsNavigation';
+import PredictionsCarouselSection from '../feeds/predictions/PredictionsCarouselSection';
+import { navigateToExplorePredictionsList } from '../feeds/predictions/predictionsNavigation';
 import CardList from '../components/CardList';
 import ExploreScroll from '../components/ExploreScroll';
-import HorizontalCarousel from '../components/HorizontalCarousel';
 import type { PillToggleCardListTab } from '../components/PillToggleCardList';
 import SectionHeader from '../components/SectionHeader';
 import type { TabProps } from '../hooks/useExploreRefresh';
 import { trackExploreInteracted } from '../search/analytics';
+import { TrendingViewSelectorsIDs } from '../TrendingView.testIds';
 
 interface RwaPerpsBlockProps {
   refresh: TabProps['refresh'];
@@ -50,6 +52,10 @@ const RwaPerpsBlock: React.FC<RwaPerpsBlockProps> = ({
         .filter((d) => d.market.marketType === type)
         .slice(0, 3)
         .map((d) => d.market);
+    const stockLikeItems = perps.data
+      .filter((d) => isEquityAsset(d.market.marketType))
+      .slice(0, 3)
+      .map((d) => d.market);
     return [
       {
         key: 'commodities',
@@ -59,7 +65,7 @@ const RwaPerpsBlock: React.FC<RwaPerpsBlockProps> = ({
       {
         key: 'stocks',
         name: strings('trending.rwa_pill_stocks'),
-        items: byType('equity'),
+        items: stockLikeItems,
       },
       {
         key: 'forex',
@@ -97,35 +103,10 @@ const RwasTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
 
   const politics = usePredictionsFeed({ variant: 'politics', refresh });
-  const stocks = useStocksFeed({ refresh });
-
-  const renderPredictionItem: ListRenderItem<PredictMarketType> = useCallback(
-    ({ item, index }) => (
-      <PredictionCarouselRowItem
-        market={item}
-        testIdPrefix="predict-rwa-politics-market-row-item"
-        onCardPress={() =>
-          trackExploreInteracted({
-            interaction_type: 'section_item_tapped',
-            tab_name: 'RWAs',
-            section_name: 'predictions_politics',
-            asset_type: 'prediction',
-            position: index,
-            item_clicked: item.id,
-          })
-        }
-        onBuyButtonPress={(marketId) =>
-          trackExploreInteracted({
-            interaction_type: 'prediction_voted',
-            tab_name: 'RWAs',
-            section_name: 'predictions_politics',
-            item_clicked: marketId,
-          })
-        }
-      />
-    ),
-    [],
-  );
+  const stocks = useStocksFeed({
+    refresh,
+    pageSize: STOCKS_FEED_PREVIEW_PAGE_SIZE,
+  });
 
   const renderStockItem: ListRenderItem<TrendingAsset> = useCallback(
     ({ item, index }) => (
@@ -150,32 +131,26 @@ const RwasTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
     [],
   );
 
-  const showPolitics =
-    isPredictEnabled && (politics.isLoading || politics.data.length > 0);
   const showStocks = stocks.isLoading || stocks.data.length > 0;
 
   return (
-    <ExploreScroll refreshing={refreshing} onRefresh={onRefresh}>
-      {showPolitics && (
-        <Box>
-          <SectionHeader
-            title={strings('trending.predictions')}
-            onViewAll={() =>
-              navigateToPredictionsList(appNavigation, 'politics')
-            }
-            testID="section-header-view-all-politics_predictions"
-            tabName="RWAs"
-            sectionName="predictions_politics"
-          />
-          <HorizontalCarousel<PredictMarketType>
-            data={politics.data}
-            isLoading={politics.isLoading}
-            renderItem={renderPredictionItem}
-            Skeleton={PredictionsSkeleton}
-            idPrefix="politics_predictions"
-          />
-        </Box>
-      )}
+    <ExploreScroll
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      testID={TrendingViewSelectorsIDs.EXPLORE_RWAS_SCROLL_VIEW}
+    >
+      <PredictionsCarouselSection
+        feed={politics}
+        tabName="RWAs"
+        sectionName="predictions_politics"
+        title={strings('trending.predictions')}
+        testIdPrefix="predict-rwa-politics-market-row-item"
+        idPrefix="politics_predictions"
+        onViewAll={() =>
+          navigateToExplorePredictionsList(appNavigation, 'politics')
+        }
+        isEnabled={isPredictEnabled}
+      />
 
       {showStocks && (
         <Box>

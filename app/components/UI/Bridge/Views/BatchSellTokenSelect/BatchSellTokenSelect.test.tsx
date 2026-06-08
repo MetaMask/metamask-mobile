@@ -9,13 +9,13 @@ import { BatchSellTokenSelectSelectorsIDs } from './BatchSellTokenSelect.testIds
 import {
   buildBatchSellEligibleChains,
   getBatchSellDestinationToken,
-  removeStablecoinsFromSourceTokens,
   MAX_BATCH_SELL_SOURCE_TOKENS,
   SUPPORTED_BATCH_SELL_CHAIN_IDS,
   sortBatchSellTokens,
 } from './BatchSellTokenSelect.utils';
 import Routes from '../../../../../constants/navigation/Routes';
 import { BridgeTokenMetadata } from '../../constants/tokens';
+import { DEFAULT_BATCH_SELL_SLIPPAGE } from '../../components/SlippageModal/utils';
 import {
   TextColor as ComponentLibraryTextColor,
   TextVariant as ComponentLibraryTextVariant,
@@ -119,6 +119,22 @@ jest.mock('../../../../../core/redux/slices/bridge', () => ({
     type: 'bridge/setBatchSellSourceTokens',
     payload: tokens,
   })),
+  setBatchSellSourceTokenAmounts: jest.fn(
+    (amounts: Partial<Record<CaipAssetType, string | undefined>>) => ({
+      type: 'bridge/setBatchSellSourceTokenAmounts',
+      payload: amounts,
+    }),
+  ),
+  setBatchSellDestToken: jest.fn((token: BridgeToken | undefined) => ({
+    type: 'bridge/setBatchSellDestToken',
+    payload: token,
+  })),
+  setBatchSellTokenSlippages: jest.fn(
+    (slippages: Partial<Record<CaipAssetType, string | undefined>>) => ({
+      type: 'bridge/setBatchSellTokenSlippages',
+      payload: slippages,
+    }),
+  ),
 }));
 
 jest.mock('../../components/TokenSelectorItem', () => {
@@ -182,36 +198,6 @@ const createToken = (overrides: Partial<BridgeToken>): BridgeToken => ({
 
 const getNetworkPillTestId = (chainId: CaipChainId) =>
   `${BatchSellTokenSelectSelectorsIDs.NETWORK_PILL}-${chainId}`;
-
-describe('filterBatchSellDestinationStablecoins', () => {
-  it('excludes configured stablecoins', () => {
-    const stablecoinAddress = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
-    const highBalanceToken = createToken({
-      symbol: 'HIGH',
-      address: '0x2222222222222222222222222222222222222222',
-      tokenFiatAmount: 50,
-    });
-    const lowBalanceToken = createToken({
-      symbol: 'LOW',
-      address: '0x3333333333333333333333333333333333333333',
-      tokenFiatAmount: 10,
-    });
-    const stablecoinToken = createToken({
-      symbol: 'USDC',
-      address: stablecoinAddress,
-      tokenFiatAmount: 100,
-    });
-
-    const result = removeStablecoinsFromSourceTokens({
-      tokens: [lowBalanceToken, stablecoinToken, highBalanceToken],
-      stablecoinsByChain: {
-        ['eip155:1' as CaipChainId]: [BridgeTokenMetadata[usdcAssetId]],
-      },
-    });
-
-    expect(result.map((token) => token.symbol)).toEqual(['LOW', 'HIGH']);
-  });
-});
 
 describe('buildBatchSellEligibleNetworks', () => {
   it('sorts eligible networks by highest aggregate fiat value', () => {
@@ -402,16 +388,17 @@ describe('BatchSellTokenSelect', () => {
     expect(queryByText('USDC')).not.toBeOnTheScreen();
   });
 
-  it('resets bridge state on unmount', () => {
+  it('resets bridge state on mount', () => {
     const { unmount } = render(<BatchSellTokenSelect />);
 
-    expect(mockDispatch).not.toHaveBeenCalledWith({
+    expect(mockDispatch).toHaveBeenCalledWith({
       type: 'bridge/resetBridgeState',
     });
 
+    mockDispatch.mockClear();
     unmount();
 
-    expect(mockDispatch).toHaveBeenCalledWith({
+    expect(mockDispatch).not.toHaveBeenCalledWith({
       type: 'bridge/resetBridgeState',
     });
   });
@@ -841,12 +828,15 @@ describe('BatchSellTokenSelect', () => {
     });
   });
 
-  it('dispatches selected source tokens for multi-token handoff', () => {
+  it('dispatches Batch Sell Redux handoff data for multi-token Continue', () => {
+    const stablecoinAssetId =
+      'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as CaipAssetType;
     const firstToken = createToken({ symbol: 'ONE' });
     const secondToken = createToken({
       symbol: 'TWO',
       address: '0x2222222222222222222222222222222222222222',
     });
+    mockDestinationStablecoins = [BridgeTokenMetadata[stablecoinAssetId]];
     mockWalletTokens = [firstToken, secondToken];
 
     const { getByTestId, getByText } = render(<BatchSellTokenSelect />);
@@ -855,11 +845,32 @@ describe('BatchSellTokenSelect', () => {
     fireEvent.press(getByText('TWO'));
     expect(getByText('Continue with (2) tokens')).toBeOnTheScreen();
 
+    mockDispatch.mockClear();
     fireEvent.press(getByTestId(BatchSellTokenSelectSelectorsIDs.NEXT_BUTTON));
 
-    expect(mockDispatch).toHaveBeenCalledWith({
+    expect(mockDispatch).toHaveBeenNthCalledWith(1, {
       type: 'bridge/setBatchSellSourceTokens',
       payload: [firstToken, secondToken],
+    });
+    expect(mockDispatch).toHaveBeenNthCalledWith(2, {
+      type: 'bridge/setBatchSellSourceTokenAmounts',
+      payload: {
+        'eip155:1/erc20:0x1111111111111111111111111111111111111111': '1',
+        'eip155:1/erc20:0x2222222222222222222222222222222222222222': '1',
+      },
+    });
+    expect(mockDispatch).toHaveBeenNthCalledWith(3, {
+      type: 'bridge/setBatchSellDestToken',
+      payload: BridgeTokenMetadata[stablecoinAssetId],
+    });
+    expect(mockDispatch).toHaveBeenNthCalledWith(4, {
+      type: 'bridge/setBatchSellTokenSlippages',
+      payload: {
+        'eip155:1/erc20:0x1111111111111111111111111111111111111111':
+          DEFAULT_BATCH_SELL_SLIPPAGE,
+        'eip155:1/erc20:0x2222222222222222222222222222222222222222':
+          DEFAULT_BATCH_SELL_SLIPPAGE,
+      },
     });
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.BATCH_SELL_REVIEW);
   });

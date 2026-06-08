@@ -482,6 +482,7 @@ const routeExtractors: Record<
   [DeepLinkRoute.CARD_HOME]: extractCardHomeProperties,
   [DeepLinkRoute.NFT]: extractNftProperties,
   [DeepLinkRoute.MMC_MWP]: extractMmcMwpProperties,
+  [DeepLinkRoute.AGENTIC_CLI]: extractInvalidProperties,
   [DeepLinkRoute.INVALID]: extractInvalidProperties,
 };
 
@@ -621,6 +622,8 @@ export const mapSupportedActionToRoute = (
       return DeepLinkRoute.CARD_HOME;
     case ACTIONS.NFT:
       return DeepLinkRoute.NFT;
+    case ACTIONS.AGENTIC_CLI:
+      return DeepLinkRoute.AGENTIC_CLI;
     default:
       return DeepLinkRoute.INVALID;
   }
@@ -681,6 +684,8 @@ export const extractRouteFromUrl = (url: string): DeepLinkRoute => {
         return DeepLinkRoute.CARD_HOME;
       case 'nft':
         return DeepLinkRoute.NFT;
+      case 'agentic-cli':
+        return DeepLinkRoute.AGENTIC_CLI;
       case undefined: // Empty path (no segments after filtering)
         return DeepLinkRoute.HOME;
       default:
@@ -705,8 +710,14 @@ export const createDeepLinkUsedEventBuilder = async (
 ): Promise<ReturnType<typeof AnalyticsEventBuilder.createEventBuilder>> => {
   const { url, route, signatureStatus } = context;
 
+  // Resolve the fire-and-forget Branch fetch lazily here so callers don't
+  // block on it. `branchParams` takes precedence for paths (MWP, push) that
+  // resolve it eagerly.
+  const branchParams: BranchParams | undefined =
+    context.branchParams ?? (await (context.branchParamsPromise ?? undefined));
+
   // Pass branchParams to avoid duplicate fetch
-  const wasAppInstalled = await detectAppInstallation(context.branchParams);
+  const wasAppInstalled = await detectAppInstallation(branchParams);
 
   // Extract sensitive properties
   const sensitiveProperties = extractSensitiveProperties(
@@ -714,8 +725,12 @@ export const createDeepLinkUsedEventBuilder = async (
     context.urlParams,
   );
 
-  // Determine interstitial state
-  const interstitial = determineInterstitialState(context);
+  // Use the resolved branchParams so `determineInterstitialState` sees the
+  // same value it did under the previous eager-fetch implementation.
+  const interstitial = determineInterstitialState({
+    ...context,
+    branchParams,
+  });
 
   // Create the AnalyticsEventBuilder with all deep link properties
   const eventBuilder = AnalyticsEventBuilder.createEventBuilder(

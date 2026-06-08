@@ -2268,8 +2268,7 @@
         "group_i": "Bảng I",
         "group_j": "Bảng J",
         "group_k": "Bảng K",
-        "group_l": "Bảng L",
-        "third_place_match": "Trận tranh hạng ba"
+        "group_l": "Bảng L"
       }
     },
     "prediction_markets": "Thị trường dự đoán",
@@ -8348,8 +8347,6 @@
     "report_submitted": "Báo cáo lỗi đã được gửi."
   },
   "pay_with_modal": {
-    "title": "Chọn phương thức thanh toán",
-    "title_receive": "Chọn token nhận được",
     "no_gas": "Không có số dư token gốc để trả phí gas",
     "not_supported": "Không được hỗ trợ",
     "crypto": "Crypto"
@@ -8457,13 +8454,14 @@
     "main_title": "Phần thưởng",
     "vip": {
       "bps_unit": "bps",
+      "badge_label": "VIP Fox {{tier}}",
       "swaps_label": "Swaps",
       "perps_label": "Perps",
       "error_title": "We couldn’t load your VIP dashboard",
       "error_description": "Check your connection and try again.",
       "retry_button": "Retry",
       "tiers_title": "Tiers",
-      "tier_thresholds": "{{points}} total",
+      "tier_thresholds": "{{points}} points",
       "bps_value": "{{bps}} bps",
       "equity_rebate_label": "Equity rebate",
       "equity_rebate_header": "Equity rebate: {{value}}%",
@@ -8900,7 +8898,7 @@
       "stats_notional_volume_threshold": "Yêu cầu ${{amount}}",
       "stats_qualified_title": "Bạn đủ điều kiện",
       "stats_qualified_description": "Tiếp tục giao dịch để cải thiện Lãi/Lỗ và leo lên bảng xếp hạng trước khi cuộc thi kết thúc.",
-      "stats_qualify_for_rank_title": "Đủ điều kiện cho hạng này",
+      "stats_qualify_for_rank_title": "Đủ điều kiện vào bảng xếp hạng",
       "stats_qualify_for_rank_description": "Giao dịch thêm {{notionalRemaining}} khối lượng danh nghĩa để đủ điều kiện tham gia.",
       "stats_error_title": "Không thể tải số liệu thống kê",
       "stats_error_description": "Chúng tôi đã gặp sự cố khi tải số liệu thống kê của bạn. Vui lòng thử lại.",
@@ -8973,7 +8971,7 @@
       "non_winner": {
         "title": "Kết quả đã có 🏅",
         "description": "Xem thứ hạng của bạn trong {{campaignName}}.",
-        "cta": "Xem"
+        "cta": "Xem chi tiết"
       }
     }
   },

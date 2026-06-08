@@ -4,6 +4,7 @@ import Engine from '../../../core/Engine';
 import ConnectQRHardware from './index';
 import { StyleSheet } from 'react-native';
 import { fireEvent, act, waitFor } from '@testing-library/react-native';
+import { CommonActions } from '@react-navigation/native';
 import { ConnectQRHardwareSelectorsIDs } from './ConnectQRHardware.testIds';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { AccountSelectorSelectorsIDs } from '../../UI/HardwareWallet/AccountSelector/AccountSelector.testIds';
@@ -13,6 +14,7 @@ import { removeAccountsFromPermissions } from '../../../core/Permissions';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
 import { strings } from '../../../../locales/i18n';
+import Routes from '../../../constants/navigation/Routes';
 
 jest.mock('../../../core/Permissions', () => ({
   removeAccountsFromPermissions: jest.fn(),
@@ -111,6 +113,8 @@ jest.mock('../../UI/QRHardware/AnimatedQRScanner', () => ({
 }));
 
 const mockedNavigate = {
+  navigate: jest.fn(),
+  dispatch: jest.fn(),
   pop: jest.fn(),
   goBack: jest.fn(),
 };
@@ -556,6 +560,35 @@ describe('ConnectQRHardware', () => {
       MetaMetricsEvents.HARDWARE_WALLET_FORGOTTEN,
     );
     expect(mockTrackEvent).toHaveBeenCalled();
+  });
+
+  it('resets to the home screen after forgetting the QR device', async () => {
+    mockKeyringController.getAccounts.mockResolvedValue([]);
+
+    const { getByTestId } = renderWithProvider(
+      <ConnectQRHardware navigation={mockedNavigate} />,
+      { state: mockInitialState },
+    );
+
+    await act(async () => {
+      fireEvent.press(
+        getByTestId(ConnectQRHardwareSelectorsIDs.CONTINUE_BUTTON),
+      );
+    });
+
+    await act(async () => {
+      fireEvent.press(getByTestId(AccountSelectorSelectorsIDs.FORGET_BUTTON));
+    });
+
+    expect(mockedNavigate.dispatch).toHaveBeenCalledWith(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+      }),
+    );
+    expect(mockedNavigate.navigate).not.toHaveBeenCalled();
+    expect(mockedNavigate.goBack).not.toHaveBeenCalled();
+    expect(mockedNavigate.pop).not.toHaveBeenCalled();
   });
 
   it('includes device type property in continue connection event', async () => {

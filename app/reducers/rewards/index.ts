@@ -20,6 +20,10 @@ import {
   PerpsTradingCampaignLeaderboardDto,
   PerpsTradingCampaignLeaderboardPositionDto,
   PerpsTradingCampaignVolumeDto,
+  PredictThePitchLeaderboardDto,
+  PredictThePitchLeaderboardPositionDto,
+  PredictThePitchPositionsDto,
+  PredictThePitchPrizePoolDto,
   VipDashboardState,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { OnboardingStep } from './types';
@@ -134,6 +138,7 @@ export interface RewardsState {
   vipDashboard: Record<string, VipDashboardState>;
   vipDashboardLoading: boolean;
   vipDashboardError: boolean;
+  vipSplashAccepted: Record<string, boolean>;
 
   // Campaigns state
   campaigns: CampaignDto[];
@@ -189,6 +194,25 @@ export interface RewardsState {
   perpsTradingCampaignVolumeLoading: boolean;
   perpsTradingCampaignVolumeError: boolean;
 
+  // Predict The Pitch leaderboard
+  predictThePitchLeaderboard: PredictThePitchLeaderboardDto | null;
+  predictThePitchLeaderboardLoading: boolean;
+  predictThePitchLeaderboardError: boolean;
+
+  // Predict The Pitch leaderboard position (user's own position)
+  predictThePitchLeaderboardPositions: Record<
+    string,
+    PredictThePitchLeaderboardPositionDto
+  >;
+
+  // Predict The Pitch portfolio positions
+  predictThePitchPositions: Record<string, PredictThePitchPositionsDto>;
+
+  // Predict The Pitch prize pool
+  predictThePitchPrizePool: PredictThePitchPrizePoolDto | null;
+  predictThePitchPrizePoolLoading: boolean;
+  predictThePitchPrizePoolError: boolean;
+
   // Pending deeplink navigation intent, stored in Redux so it survives the
   // UnmountOnBlur remount of RewardsHome when navigating from outside the tab.
   pendingDeeplink: PendingDeeplink | null;
@@ -203,7 +227,7 @@ export interface RewardsState {
  */
 export interface PendingDeeplink {
   page?: 'campaigns' | 'musd' | 'benefits';
-  campaign?: 'ondo' | 'season1' | 'perps-comp';
+  campaign?: 'ondo' | 'season1' | 'perps-comp' | 'predict-the-pitch';
 }
 
 export const initialState: RewardsState = {
@@ -271,6 +295,7 @@ export const initialState: RewardsState = {
   vipDashboard: {},
   vipDashboardLoading: false,
   vipDashboardError: false,
+  vipSplashAccepted: {},
 
   // Campaigns initial state
   campaigns: [],
@@ -314,6 +339,14 @@ export const initialState: RewardsState = {
   perpsTradingCampaignVolume: null,
   perpsTradingCampaignVolumeLoading: false,
   perpsTradingCampaignVolumeError: false,
+  predictThePitchLeaderboard: null,
+  predictThePitchLeaderboardLoading: false,
+  predictThePitchLeaderboardError: false,
+  predictThePitchLeaderboardPositions: {},
+  predictThePitchPositions: {},
+  predictThePitchPrizePool: null,
+  predictThePitchPrizePoolLoading: false,
+  predictThePitchPrizePoolError: false,
 
   pendingDeeplink: null,
 
@@ -430,6 +463,15 @@ const rewardsSlice = createSlice({
       state.vipDashboard = {};
       state.vipDashboardLoading = false;
       state.vipDashboardError = false;
+      state.vipSplashAccepted = {};
+      state.predictThePitchLeaderboard = null;
+      state.predictThePitchLeaderboardLoading = false;
+      state.predictThePitchLeaderboardError = false;
+      state.predictThePitchLeaderboardPositions = {};
+      state.predictThePitchPositions = {};
+      state.predictThePitchPrizePool = null;
+      state.predictThePitchPrizePoolLoading = false;
+      state.predictThePitchPrizePoolError = false;
     },
 
     setOnboardingActiveStep: (state, action: PayloadAction<OnboardingStep>) => {
@@ -480,6 +522,7 @@ const rewardsSlice = createSlice({
           hideUnlinkedAccountsBanner: state.hideUnlinkedAccountsBanner,
           bulkLink: state.bulkLink,
           dismissedCampaignOutcomeToasts: state.dismissedCampaignOutcomeToasts,
+          vipSplashAccepted: state.vipSplashAccepted,
           versionGuardMinimumMobileVersion:
             state.versionGuardMinimumMobileVersion,
           versionGuardLoading: state.versionGuardLoading,
@@ -732,6 +775,13 @@ const rewardsSlice = createSlice({
       state.vipDashboardError = action.payload;
     },
 
+    acceptVipInvite: (
+      state,
+      action: PayloadAction<{ subscriptionId: string }>,
+    ) => {
+      state.vipSplashAccepted[action.payload.subscriptionId] = true;
+    },
+
     setOndoCampaignActivity: (
       state,
       action: PayloadAction<{
@@ -826,6 +876,87 @@ const rewardsSlice = createSlice({
       action: PayloadAction<boolean>,
     ) => {
       state.perpsTradingCampaignVolumeError = action.payload;
+    },
+
+    // Predict The Pitch leaderboard reducers
+    setPredictThePitchLeaderboard: (
+      state,
+      action: PayloadAction<PredictThePitchLeaderboardDto | null>,
+    ) => {
+      state.predictThePitchLeaderboard = action.payload;
+      state.predictThePitchLeaderboardError = false;
+    },
+    setPredictThePitchLeaderboardLoading: (
+      state,
+      action: PayloadAction<boolean>,
+    ) => {
+      if (action.payload && state.predictThePitchLeaderboard) {
+        return;
+      }
+      state.predictThePitchLeaderboardLoading = action.payload;
+    },
+    setPredictThePitchLeaderboardError: (
+      state,
+      action: PayloadAction<boolean>,
+    ) => {
+      state.predictThePitchLeaderboardError = action.payload;
+    },
+
+    setPredictThePitchLeaderboardPosition: (
+      state,
+      action: PayloadAction<{
+        subscriptionId: string;
+        campaignId: string;
+        position: PredictThePitchLeaderboardPositionDto | null;
+      }>,
+    ) => {
+      const key = `${action.payload.subscriptionId}:${action.payload.campaignId}`;
+      if (action.payload.position) {
+        state.predictThePitchLeaderboardPositions[key] =
+          action.payload.position;
+      } else {
+        delete state.predictThePitchLeaderboardPositions[key];
+      }
+    },
+
+    setPredictThePitchPositions: (
+      state,
+      action: PayloadAction<{
+        subscriptionId: string;
+        campaignId: string;
+        positions: PredictThePitchPositionsDto | null;
+      }>,
+    ) => {
+      const key = `${action.payload.subscriptionId}:${action.payload.campaignId}`;
+      if (action.payload.positions) {
+        state.predictThePitchPositions[key] = action.payload.positions;
+      } else {
+        delete state.predictThePitchPositions[key];
+      }
+    },
+
+    // Predict The Pitch prize pool reducers
+    setPredictThePitchPrizePool: (
+      state,
+      action: PayloadAction<PredictThePitchPrizePoolDto | null>,
+    ) => {
+      state.predictThePitchPrizePool = action.payload;
+      state.predictThePitchPrizePoolError = false;
+    },
+    setPredictThePitchPrizePoolLoading: (
+      state,
+      action: PayloadAction<boolean>,
+    ) => {
+      if (action.payload && state.predictThePitchPrizePool) {
+        return;
+      }
+      state.predictThePitchPrizePoolLoading = action.payload;
+    },
+    setPredictThePitchPrizePoolError: (
+      state,
+      action: PayloadAction<boolean>,
+    ) => {
+      state.predictThePitchPrizePoolError = action.payload;
     },
 
     // Bulk link reducers
@@ -947,6 +1078,7 @@ const rewardsSlice = createSlice({
               unlockedRewards: action.payload.rewards.unlockedRewards,
               campaigns: action.payload.rewards.campaigns ?? [],
               vipDashboard: action.payload.rewards.vipDashboard ?? {},
+              vipSplashAccepted: action.payload.rewards.vipSplashAccepted ?? {},
               campaignParticipantStatuses:
                 action.payload.rewards.campaignParticipantStatuses ?? {},
               ondoCampaignLeaderboardPositions:
@@ -955,6 +1087,15 @@ const rewardsSlice = createSlice({
                 action.payload.rewards.ondoCampaignPortfolio ?? {},
               ondoCampaignActivity:
                 action.payload.rewards.ondoCampaignActivity ?? {},
+              predictThePitchLeaderboard:
+                action.payload.rewards.predictThePitchLeaderboard ?? null,
+              predictThePitchLeaderboardPositions:
+                action.payload.rewards.predictThePitchLeaderboardPositions ??
+                {},
+              predictThePitchPositions:
+                action.payload.rewards.predictThePitchPositions ?? {},
+              predictThePitchPrizePool:
+                action.payload.rewards.predictThePitchPrizePool ?? null,
               hideUnlinkedAccountsBanner:
                 action.payload.rewards.hideUnlinkedAccountsBanner,
               hideCurrentAccountNotOptedInBanner:
@@ -1019,6 +1160,7 @@ export const {
   setVipDashboard,
   setVipDashboardError,
   setVipDashboardLoading,
+  acceptVipInvite,
   // Campaigns actions
   setCampaigns,
   setCampaignsLoading,
@@ -1048,6 +1190,14 @@ export const {
   setPerpsTradingCampaignVolume,
   setPerpsTradingCampaignVolumeLoading,
   setPerpsTradingCampaignVolumeError,
+  setPredictThePitchLeaderboard,
+  setPredictThePitchLeaderboardLoading,
+  setPredictThePitchLeaderboardError,
+  setPredictThePitchLeaderboardPosition,
+  setPredictThePitchPositions,
+  setPredictThePitchPrizePool,
+  setPredictThePitchPrizePoolLoading,
+  setPredictThePitchPrizePoolError,
   // Bulk link actions
   bulkLinkStarted,
   bulkLinkAccountResult,

@@ -8,8 +8,8 @@ import { RampType } from '../types';
 import Routes from '../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 
-jest.mock('@react-navigation/stack', () => ({
-  createStackNavigator: jest.fn().mockReturnValue({
+jest.mock('@react-navigation/native-stack', () => ({
+  createNativeStackNavigator: jest.fn().mockReturnValue({
     Navigator: ({ children }: { children: React.ReactNode }) => children,
     Screen: ({
       name,

@@ -53,7 +53,7 @@ import {
   resetMetricsOptInUISeen,
 } from '../../../util/metrics/metricsOptInUIUtils';
 import { ThemeContext } from '../../../util/theme';
-import { isE2E } from '../../../util/test/utils';
+import { hasTestOverrides } from '../../../util/test/utils';
 import { OnboardingSelectorIDs } from './Onboarding.testIds';
 import Routes from '../../../constants/navigation/Routes';
 import { selectExistingUser } from '../../../reducers/user/selectors';
@@ -95,6 +95,7 @@ import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
 import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { setupSentry } from '../../../util/sentry/utils';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorBoundary from '../ErrorBoundary';
 import FastOnboarding from './FastOnboarding';
 import {
@@ -302,10 +303,10 @@ const Onboarding = () => {
 
       hasCheckedVaultBackup.current = true;
 
-      // Skip check in E2E test environment
+      // Skip check when hasTestOverrides is true
       // E2E tests start with fresh state but may have vault backups from fixtures/previous runs
       // This would trigger false positive vault recovery redirects and break onboarding tests
-      if (isE2E) {
+      if (hasTestOverrides) {
         return;
       }
 
@@ -1232,7 +1233,7 @@ const Onboarding = () => {
 
         <FadeOutOverlay />
 
-        {!isE2E && (
+        {!hasTestOverrides && (
           <FoxAnimation hasFooter={false} trigger={startFoxAnimation} />
         )}
 

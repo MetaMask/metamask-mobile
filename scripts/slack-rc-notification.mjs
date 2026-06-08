@@ -7,12 +7,37 @@
  * Required env: SEMVER, SLACK_BOT_TOKEN
  * Optional env: IOS_BUILD_NUMBER, ANDROID_BUILD_NUMBER, ANDROID_PUBLIC_URL,
  *               IOS_PUBLIC_URL, BUILD_PIPELINE_URL, PR_NUMBER, GITHUB_REPOSITORY,
- *               SLACK_RC_NOTIFICATION_DRY_RUN
+ *               SLACK_RC_NOTIFICATION_DRY_RUN,
+ *               ANDROID_PLAY_STORE_CHECK_MRKDWN_FILE (PLAY_STORE_CHECK_STATUS=pass|fail)
  */
+
+import fs from 'fs';
 
 const REPO_URL = process.env.GITHUB_REPOSITORY
   ? `https://github.com/${process.env.GITHUB_REPOSITORY}`
   : 'https://github.com/MetaMask/metamask-mobile';
+
+/**
+ * Optional Android Play Store lint/bundletool report from CI (see android-play-store-check-slack.mjs).
+ * @returns {string|null} Slack mrkdwn body or null to omit
+ */
+function loadPlayStoreCheckMrkdwn() {
+  const p = process.env.ANDROID_PLAY_STORE_CHECK_MRKDWN_FILE?.trim();
+  if (!p || !fs.existsSync(p)) {
+    return null;
+  }
+  const raw = fs.readFileSync(p, 'utf8').trim();
+  if (!raw) {
+    return null;
+  }
+  const lines = raw.split('\n');
+  const statusLine = lines[0] ?? '';
+  if (statusLine === 'PLAY_STORE_CHECK_STATUS=pass') {
+    return null;
+  }
+  const body = lines.slice(1).join('\n').trim();
+  return body || null;
+}
 
 /**
  * Check if a URL is valid
@@ -38,16 +63,19 @@ function isValidUrl(url) {
 /**
  * Build the Slack message payload
  * @param {Object} options - Message options
+ * @param {string|null} [options.playStoreCheckMrkdwn] - Optional mrkdwn from Android Play Store check
  * @returns {Object} Slack message payload
  */
 function buildSlackMessage(options) {
   const {
     version,
     buildNumber,
+    androidBuildNumber,
     androidUrl,
     iosUrl,
     pipelineUrl,
     prNumber,
+    playStoreCheckMrkdwn,
   } = options;
 
   const blocks = [
@@ -92,15 +120,18 @@ function buildSlackMessage(options) {
           type: 'mrkdwn',
           text: isValidUrl(iosUrl)
             ? `*iOS Build:*\n<${iosUrl}|TestFlight>`
-            : '*iOS Build:*\n_Check TestFlight_',
+            : '*iOS Build:*\n<https://testflight.apple.com/join/hBrjtFuA|Check TestFlight>',
         },
       ],
     },
   ];
 
   // Add link to cherry-picks section in PR comment
+  // Note: GitHub prefixes user-provided anchor IDs with 'user-content-'
+  // We use build number in anchor to link to the correct comment (not older builds)
   if (prNumber) {
-    const cherryPicksLink = `<${REPO_URL}/pull/${prNumber}#cherry-picks|View cherry-picks>`;
+    const anchorSuffix = androidBuildNumber && androidBuildNumber !== 'N/A' ? `-${androidBuildNumber}` : '';
+    const cherryPicksLink = `<${REPO_URL}/pull/${prNumber}#user-content-cherry-picks${anchorSuffix}|View cherry-picks>`;
     blocks.push(
       {
         type: 'divider',
@@ -122,6 +153,25 @@ function buildSlackMessage(options) {
         text: `_Cherry-picks available in the release PR. ${releaseNotesMrkdwn}_`,
       },
     });
+  }
+
+  if (playStoreCheckMrkdwn) {
+    const truncated =
+      playStoreCheckMrkdwn.length > 2800
+        ? `${playStoreCheckMrkdwn.slice(0, 2800)}\n_…truncated_`
+        : playStoreCheckMrkdwn;
+    blocks.push(
+      {
+        type: 'divider',
+      },
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `*⚠️ Android Play Store check (non-blocking)*\n${truncated}`,
+        },
+      },
+    );
   }
 
   // Add pipeline link
@@ -167,6 +217,8 @@ async function postToSlack(botToken, channelName, payload) {
         channel: channelName,
         blocks: payload.blocks,
         text: payload.text,
+        unfurl_links: false,
+        unfurl_media: false,
       }),
     });
 
@@ -227,6 +279,7 @@ async function main() {
   const botToken = process.env.SLACK_BOT_TOKEN;
 
   const prNumber = process.env.PR_NUMBER || '';
+  const playStoreCheckMrkdwn = loadPlayStoreCheckMrkdwn();
   const expectedChannelName = getSlackChannel(version);
 
   console.log(`\n📣 Preparing Slack notification for RC v${version} (${buildNumber})`);
@@ -245,10 +298,12 @@ async function main() {
   const payload = buildSlackMessage({
     version,
     buildNumber,
+    androidBuildNumber,
     androidUrl,
     iosUrl,
     pipelineUrl,
     prNumber,
+    playStoreCheckMrkdwn,
   });
 
   if (isDryRun) {

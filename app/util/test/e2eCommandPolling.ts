@@ -1,5 +1,5 @@
 import axios, { AxiosResponse } from 'axios';
-import { isE2E, getCommandQueueServerPortInApp } from './utils';
+import { hasTestOverrides, getCommandQueueServerPortInApp } from './utils';
 import DevLogger from '../../core/SDKConnect/utils/DevLogger';
 import { E2ECommandTypes } from '../../../tests/framework/types';
 import { handleExportStateCommand } from './e2eStateExport';
@@ -14,7 +14,7 @@ const POLL_INTERVAL_MS = 2000;
 const FETCH_TIMEOUT = 40000;
 
 function scheduleNext(delay: number): void {
-  if (!isE2E || pollingDisabled) return;
+  if (!hasTestOverrides || pollingDisabled) return;
   if (pollTimeout) clearTimeout(pollTimeout);
   pollTimeout = setTimeout(pollOnce, delay);
 }
@@ -133,10 +133,10 @@ async function pollOnce(): Promise<void> {
  * Start polling the command queue for E2E commands.
  * Handles all command types (generic + perps).
  * Probes the server first — if unreachable, polling never starts.
- * Should only be called once, guarded by isE2E.
+ * Should only be called once, guarded by hasTestOverrides.
  */
 export async function startE2ECommandPolling(): Promise<void> {
-  if (!isE2E || hasStartedPolling) return;
+  if (!hasTestOverrides || hasStartedPolling) return;
 
   // If the server isn't running (test didn't opt in with useCommandQueueServer),
   // we skip polling entirely instead of making wasted requests.

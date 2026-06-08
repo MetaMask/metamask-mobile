@@ -30,19 +30,15 @@ jest.mock('../../../../components/PerpsMarketCategoryBadges', () => {
     default: ({
       selectedCategory,
       onCategorySelect,
-      availableCategories,
       testID,
     }: {
       selectedCategory: MarketTypeFilter;
       onCategorySelect: (category: MarketTypeFilter) => void;
-      availableCategories?: Exclude<MarketTypeFilter, 'all'>[];
       testID?: string;
     }) => (
       <View testID={testID}>
         <Text testID={`${testID}-selected`}>{selectedCategory}</Text>
-        {(
-          availableCategories || ['crypto', 'stocks', 'commodities', 'forex']
-        ).map((cat: string) => (
+        {['crypto', 'stocks', 'commodities', 'forex'].map((cat: string) => (
           <TouchableOpacity
             key={cat}
             testID={`${testID}-${cat}`}
@@ -162,20 +158,6 @@ describe('PerpsMarketFiltersBar', () => {
 
       fireEvent.press(getByTestId('filters-bar-categories-stocks'));
       expect(mockOnCategorySelect).toHaveBeenCalledWith('stocks');
-    });
-
-    it('passes available categories to badges', () => {
-      const { getByTestId, queryByTestId } = render(
-        <PerpsMarketFiltersBar
-          {...defaultProps}
-          availableCategories={['crypto', 'stocks']}
-        />,
-      );
-
-      expect(getByTestId('filters-bar-categories-crypto')).toBeTruthy();
-      expect(getByTestId('filters-bar-categories-stocks')).toBeTruthy();
-      expect(queryByTestId('filters-bar-categories-commodities')).toBeNull();
-      expect(queryByTestId('filters-bar-categories-forex')).toBeNull();
     });
   });
 

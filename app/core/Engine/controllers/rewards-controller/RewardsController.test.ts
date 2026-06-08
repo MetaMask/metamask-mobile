@@ -24,6 +24,7 @@ import {
   type OndoGmPortfolioState,
   type OndoGmActivityState,
   type PerpsTradingCampaignLeaderboardPositionState,
+  type PredictThePitchPositionsDto,
   type SubscriptionBenefitsState,
   type SubscriptionBenefitDto,
   type OffDeviceSubscriptionAccountsState,
@@ -6928,7 +6929,7 @@ describe('RewardsController', () => {
       },
       pointsAllocation: {
         earned: 24400000,
-        max: 100000000,
+        threshold: 100000000,
         percent: 24.4,
       },
       tiers: [
@@ -6940,26 +6941,33 @@ describe('RewardsController', () => {
           revenueShareBps: 150,
           swapsBps: 15,
           perpsBps: 4,
-          equityRebateBps: 0,
           referralCarryoverBps: 2000,
           status: 'current',
         },
       ],
       localizedText: {
-        period: 'Mar 31 - Apr 30',
-        progressToNextTier: 'Subline',
+        periodTitle: 'Mar 31 - Apr 30',
         memberIdTitle: 'Member ID',
         swapsFeeTitle: 'Swaps fee',
         perpsFeeTitle: 'Perps fee',
         nextTierSwapsFeeDelta: '↓ 12 bps next tier',
         nextTierPerpsFeeDelta: '↓ 3 bps next tier',
         revenueShareTitle: 'Revenue share',
+        referralPointsTitle: 'Referral points',
         nextTierRevenueShareDelta: '↑ 2% next tier',
+        nextTierReferralPointsDelta: '↑ 20% next tier',
+        topTierDescription: 'Top tier reached',
         statsTitle: 'Volume',
-        statusMessage: 'On track',
         pointsTitle: 'Points',
-        pointsAllocationTitle: 'Earn VIP allocations',
-        pointsAllocationDescription: 'Body copy',
+        swapsVolumeTitle: 'Swaps Volume',
+        pointsFromReferralsTitle: 'Points from Referrals',
+        perpsVolumeTitle: 'Perps Volume',
+        vipReferralsTitle: 'VIP Referrals',
+        totalPointsTitle: 'Points',
+        equityLockedTitle: 'Earn VIP allocations',
+        equityLockedDescription: 'Body copy',
+        equityUnlockedTitle: 'VIP allocation unlocked',
+        equityUnlockedDescription: 'Unlocked body copy',
       },
       ...overrides,
     });
@@ -9541,23 +9549,31 @@ describe('RewardsController', () => {
                 referrals: 2,
                 referralsCap: 10,
               },
-              pointsAllocation: { earned: 0, max: 1, percent: 0 },
+              pointsAllocation: { earned: 0, threshold: 1, percent: 0 },
               tiers: [],
               localizedText: {
-                period: 'Mar 31 - Apr 30',
-                progressToNextTier: 'Subline',
+                periodTitle: 'Mar 31 - Apr 30',
                 memberIdTitle: 'Member ID',
                 swapsFeeTitle: 'Swaps fee',
                 perpsFeeTitle: 'Perps fee',
                 nextTierSwapsFeeDelta: '↓ 12 bps next tier',
                 nextTierPerpsFeeDelta: '↓ 3 bps next tier',
                 revenueShareTitle: 'Revenue share',
+                referralPointsTitle: 'Referral points',
                 nextTierRevenueShareDelta: '↑ 2% next tier',
+                nextTierReferralPointsDelta: '↑ 20% next tier',
+                topTierDescription: 'Top tier reached',
                 statsTitle: 'Volume',
-                statusMessage: 'On track',
                 pointsTitle: 'Points',
-                pointsAllocationTitle: 'Earn VIP allocations',
-                pointsAllocationDescription: 'Body copy',
+                swapsVolumeTitle: 'Swaps Volume',
+                pointsFromReferralsTitle: 'Points from Referrals',
+                perpsVolumeTitle: 'Perps Volume',
+                vipReferralsTitle: 'VIP Referrals',
+                totalPointsTitle: 'Points',
+                equityLockedTitle: 'Earn VIP allocations',
+                equityLockedDescription: 'Body copy',
+                equityUnlockedTitle: 'VIP allocation unlocked',
+                equityUnlockedDescription: 'Unlocked body copy',
               },
               lastFetched: 123,
             },
@@ -16418,6 +16434,10 @@ describe('RewardsController', () => {
       perpsTradingCampaignLeaderboard: {},
       perpsTradingCampaignLeaderboardPositions: {},
       perpsTradingCampaignVolume: {},
+      predictThePitchLeaderboard: {},
+      predictThePitchLeaderboardPositions: {},
+      predictThePitchPositions: {},
+      predictThePitchPrizePool: {},
       pointsEstimateHistory: [],
       pointsEvents: {},
       seasonStatuses: {},
@@ -16450,6 +16470,10 @@ describe('RewardsController', () => {
       perpsTradingCampaignLeaderboard: {},
       perpsTradingCampaignLeaderboardPositions: {},
       perpsTradingCampaignVolume: {},
+      predictThePitchLeaderboard: {},
+      predictThePitchLeaderboardPositions: {},
+      predictThePitchPositions: {},
+      predictThePitchPrizePool: {},
       pointsEstimateHistory: [],
       pointsEvents: {},
       rewardsEnvUrl: null,
@@ -16487,6 +16511,10 @@ describe('RewardsController', () => {
       perpsTradingCampaignLeaderboard: {},
       perpsTradingCampaignLeaderboardPositions: {},
       perpsTradingCampaignVolume: {},
+      predictThePitchLeaderboard: {},
+      predictThePitchLeaderboardPositions: {},
+      predictThePitchPositions: {},
+      predictThePitchPrizePool: {},
       pointsEvents: {},
       rewardsEnvUrl: null,
       seasonStatuses: {},
@@ -17734,18 +17762,22 @@ describe('RewardsController', () => {
       } as OndoGmActivityState;
       initialState.perpsTradingCampaignLeaderboardPositions[campaignKey1] = {
         rank: 4,
+        totalParticipants: 0,
         pnl: 0,
-        notionalVolume: 0,
-        qualified: true,
+        volume: 0,
+        eligible: true,
+        minVolumeForEligibility: 25000,
         neighbors: [],
         computedAt: '',
         lastFetched: Date.now(),
       } as PerpsTradingCampaignLeaderboardPositionState;
       initialState.perpsTradingCampaignLeaderboardPositions[campaignKey2] = {
         rank: 6,
+        totalParticipants: 0,
         pnl: 0,
-        notionalVolume: 0,
-        qualified: true,
+        volume: 0,
+        eligible: true,
+        minVolumeForEligibility: 25000,
         neighbors: [],
         computedAt: '',
         lastFetched: Date.now(),
@@ -17930,9 +17962,11 @@ describe('RewardsController', () => {
       } as OndoGmActivityState;
       initialState.perpsTradingCampaignLeaderboardPositions[campaignKey1] = {
         rank: 4,
+        totalParticipants: 0,
         pnl: 0,
-        notionalVolume: 0,
-        qualified: true,
+        volume: 0,
+        eligible: true,
+        minVolumeForEligibility: 25000,
         neighbors: [],
         computedAt: '',
         lastFetched: Date.now(),
@@ -17940,9 +17974,11 @@ describe('RewardsController', () => {
       initialState.perpsTradingCampaignLeaderboardPositions[otherCampaignKey] =
         {
           rank: 1,
+          totalParticipants: 0,
           pnl: 0,
-          notionalVolume: 0,
-          qualified: true,
+          volume: 0,
+          eligible: true,
+          minVolumeForEligibility: 25000,
           neighbors: [],
           computedAt: '',
           lastFetched: Date.now(),
@@ -21265,6 +21301,252 @@ describe('RewardsController', () => {
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Fetching Perps Trading campaign participant outcome',
       );
+    });
+  });
+
+  describe('Predict The Pitch data methods', () => {
+    let predictMessenger: jest.Mocked<RewardsControllerMessenger>;
+    const mockCampaignId = 'predict-campaign-1';
+    const mockSubscriptionId = 'sub-predict-1';
+    const compositeKey = `${mockSubscriptionId}:${mockCampaignId}`;
+    const mockLeaderboard = {
+      campaignId: mockCampaignId,
+      computedAt: '2026-06-30T12:00:00.000Z',
+      entries: [],
+      totalParticipants: 0,
+    };
+    const mockPosition = {
+      rank: 1,
+      totalParticipants: 10,
+      roi: 0.5,
+      pnl: 100,
+      volume: 200,
+      eligible: true,
+      neighbors: [],
+      computedAt: '2026-06-30T12:00:00.000Z',
+    };
+    const mockPositions: PredictThePitchPositionsDto = {
+      positions: [
+        {
+          outcomeAssetId: 'token-1',
+          outcomeAsset: 'Yes',
+          conditionId: '0xcondition',
+          conditionName: 'Brazil vs Argentina',
+          conditionSlug: 'brazil-vs-argentina',
+          eventId: '0xnav',
+          eventSlug: 'world-cup',
+          iconUrl: null,
+          capitalDeployed: 100,
+          pnl: 25,
+          roi: 0.25,
+          status: 'open',
+          fillShares: 50,
+          fillSharesBought: 50,
+          fillSharesSold: 0,
+          fillPrice: 2,
+          fillDate: '2026-06-30T12:00:00.000Z',
+        },
+      ],
+      computedAt: '2026-06-30T12:00:00.000Z',
+    };
+    const mockOutcome = {
+      subscriptionId: mockSubscriptionId,
+      outcomeStatus: 'pending' as const,
+      winnerVerificationCode: 'PITCH-123',
+      rank: 1,
+    };
+    const mockPrizePool = {
+      totalVolumeUsd: 1000,
+      unlockedPoolUsd: 500,
+      thresholdsUsd: [0, 1000],
+      poolScheduleUsd: [250, 500],
+      breakdown: [{ rank: 1, amountUsd: 500 }],
+      computedAt: null,
+    };
+
+    beforeEach(() => {
+      predictMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+    });
+
+    it('caches public leaderboard and prize pool in state', async () => {
+      const ctrl = new RewardsController({
+        messenger: predictMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      predictMessenger.call
+        .mockResolvedValueOnce(mockLeaderboard)
+        .mockResolvedValueOnce(mockPrizePool);
+
+      await expect(
+        ctrl.getPredictThePitchLeaderboard(mockCampaignId),
+      ).resolves.toEqual(mockLeaderboard);
+      await expect(
+        ctrl.getPredictThePitchPrizePool(mockCampaignId),
+      ).resolves.toEqual(mockPrizePool);
+
+      expect(
+        ctrl.state.predictThePitchLeaderboard[mockCampaignId],
+      ).toMatchObject(mockLeaderboard);
+      expect(ctrl.state.predictThePitchPrizePool[mockCampaignId]).toMatchObject(
+        mockPrizePool,
+      );
+
+      predictMessenger.call.mockClear();
+
+      await ctrl.getPredictThePitchLeaderboard(mockCampaignId);
+      await ctrl.getPredictThePitchPrizePool(mockCampaignId);
+
+      expect(predictMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('stores authenticated leaderboard position and positions by subscription/campaign key', async () => {
+      const ctrl = new RewardsController({
+        messenger: predictMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      predictMessenger.call
+        .mockResolvedValueOnce(mockPosition)
+        .mockResolvedValueOnce(mockPositions);
+
+      await expect(
+        ctrl.getPredictThePitchLeaderboardPosition(
+          mockCampaignId,
+          mockSubscriptionId,
+        ),
+      ).resolves.toEqual(mockPosition);
+      await expect(
+        ctrl.getPredictThePitchPositions(mockCampaignId, mockSubscriptionId),
+      ).resolves.toEqual(mockPositions);
+
+      expect(
+        ctrl.state.predictThePitchLeaderboardPositions[compositeKey],
+      ).toMatchObject(mockPosition);
+      expect(ctrl.state.predictThePitchPositions[compositeKey]).toMatchObject(
+        mockPositions,
+      );
+    });
+
+    it('caches not-found leaderboard positions', async () => {
+      const ctrl = new RewardsController({
+        messenger: predictMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      predictMessenger.call.mockResolvedValueOnce(null);
+
+      await expect(
+        ctrl.getPredictThePitchLeaderboardPosition(
+          mockCampaignId,
+          mockSubscriptionId,
+        ),
+      ).resolves.toBeNull();
+
+      expect(
+        ctrl.state.predictThePitchLeaderboardPositions[compositeKey],
+      ).toMatchObject({ notFound: true });
+    });
+
+    it('clears Predict private caches on subscription cache invalidation', async () => {
+      const ctrl = new RewardsController({
+        messenger: predictMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      predictMessenger.call
+        .mockResolvedValueOnce(mockPosition)
+        .mockResolvedValueOnce(mockPositions)
+        .mockResolvedValueOnce(mockOutcome);
+
+      await ctrl.getPredictThePitchLeaderboardPosition(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+      await ctrl.getPredictThePitchPositions(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+      await ctrl.getPredictThePitchParticipantOutcome(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      ctrl.invalidateSubscriptionCache({
+        subscriptionId: mockSubscriptionId,
+        campaignId: mockCampaignId,
+      });
+
+      expect(
+        ctrl.state.predictThePitchLeaderboardPositions[compositeKey],
+      ).toBeUndefined();
+      expect(ctrl.state.predictThePitchPositions[compositeKey]).toBeUndefined();
+
+      predictMessenger.call.mockClear();
+      predictMessenger.call.mockResolvedValueOnce({
+        ...mockOutcome,
+        winnerVerificationCode: 'PITCH-456',
+      });
+
+      await expect(
+        ctrl.getPredictThePitchParticipantOutcome(
+          mockCampaignId,
+          mockSubscriptionId,
+        ),
+      ).resolves.toMatchObject({ winnerVerificationCode: 'PITCH-456' });
+      expect(predictMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getPredictThePitchParticipantOutcome',
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+    });
+
+    it('clears Predict public and private caches on resetState', async () => {
+      const ctrl = new RewardsController({
+        messenger: predictMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      predictMessenger.call
+        .mockResolvedValueOnce(mockLeaderboard)
+        .mockResolvedValueOnce(mockPrizePool)
+        .mockResolvedValueOnce(mockOutcome);
+
+      await ctrl.getPredictThePitchLeaderboard(mockCampaignId);
+      await ctrl.getPredictThePitchPrizePool(mockCampaignId);
+      await ctrl.getPredictThePitchParticipantOutcome(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      ctrl.resetState();
+
+      expect(ctrl.state.predictThePitchLeaderboard).toEqual({});
+      expect(ctrl.state.predictThePitchPrizePool).toEqual({});
+
+      predictMessenger.call.mockClear();
+      predictMessenger.call.mockResolvedValueOnce({
+        ...mockOutcome,
+        winnerVerificationCode: 'PITCH-RESET',
+      });
+
+      await expect(
+        ctrl.getPredictThePitchParticipantOutcome(
+          mockCampaignId,
+          mockSubscriptionId,
+        ),
+      ).resolves.toMatchObject({ winnerVerificationCode: 'PITCH-RESET' });
+      expect(predictMessenger.call).toHaveBeenCalledTimes(1);
     });
   });
 });
