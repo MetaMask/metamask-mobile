@@ -135,7 +135,20 @@ jobs:
 
       - name: Download Android build artifacts (Namespace)
         if: ${{ inputs.platform == 'android' && inputs.runner_provider == 'namespace' }}
+        id: download-android-apk-namespace
+        continue-on-error: true
         uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
+        with:
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
+          path: ${{ steps.android-artifacts.outputs.apk-target-path }}
+      - name: Download Android build artifacts (GitHub — build may be on Cirrus)
+        if: >-
+          ${{
+            inputs.platform == 'android' &&
+            inputs.runner_provider == 'namespace' &&
+            steps.download-android-apk-namespace.outcome != 'success'
+          }}
+        uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
           path: ${{ steps.android-artifacts.outputs.apk-target-path }}
