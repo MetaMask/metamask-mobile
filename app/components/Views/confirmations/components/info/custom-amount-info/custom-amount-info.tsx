@@ -288,7 +288,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               {supportAccountSelection &&
                 !selectedFiatPaymentMethodId &&
                 !shouldHideAccountSelector && <PayAccountSelector />}
-              {disablePay !== true && hasPaymentOption && <PayWithRow />}
+              {disablePay !== true && hasPaymentOption && (
+                <PayWithRow isResultReady />
+              )}
               {showPaymentDetails && (
                 <>
                   <BridgeFeeRow />

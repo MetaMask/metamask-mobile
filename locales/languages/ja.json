@@ -8971,7 +8971,7 @@
       "non_winner": {
         "title": "結果が出ました 🏅",
         "description": "{{campaignName}}でのランキングをご覧ください.",
-        "cta": "表示"
+        "cta": "詳細を表示"
       }
     }
   },

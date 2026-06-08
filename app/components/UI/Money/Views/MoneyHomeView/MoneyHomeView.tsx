@@ -43,6 +43,7 @@ import {
   selectIsCardholder,
 } from '../../../../../selectors/cardController';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
+import { useCardHomeData } from '../../../Card/hooks/useCardHomeData';
 import { MONEY_HOME_CARD_ORIGIN } from '../../../Card/hooks/useCardPostAuthRedirect';
 import Logger from '../../../../../util/Logger';
 import { useTheme } from '../../../../../util/theme';
@@ -289,10 +290,8 @@ const MoneyHomeView = () => {
     metamaskCardMode = 'upsell';
   }
 
-  // No selector yet for the user's card balance — fall back to a locale-
-  // formatted zero so the manage row always shows a value rather than a
-  // blank slot under "Avail. balance".
-  const cardBalance: string = formattedZero;
+  const { primaryToken: cardPrimaryToken } = useCardHomeData();
+  const cardBalance = cardPrimaryToken?.balanceFiat ?? formattedZero;
 
   return (
     <Box
