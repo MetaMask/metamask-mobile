@@ -1,46 +1,98 @@
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
-import { useSelector } from 'react-redux';
-import { usePredictMarketList } from '../../../../hooks/usePredictMarketList';
-import { useCurrentPredictMarketFromSeries } from '../../../../hooks/useCurrentPredictMarketFromSeries';
-import { selectPredictUpDownEnabledFlag } from '../../../../selectors/featureFlags';
-import {
-  BTC_UP_OR_DOWN_5M_SERIES,
-  ETH_UP_OR_DOWN_5M_SERIES,
-  BTC_UP_OR_DOWN_15M_SERIES,
-} from '../../../../constants/liveNowCryptoSeries';
-import type { PredictMarket, PredictMarketListParams } from '../../../../types';
+import { fireEvent } from '@testing-library/react-native';
+import { backgroundState } from '../../../../../../../util/test/initial-root-state';
+import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
+import { strings } from '../../../../../../../../locales/i18n';
+import type { PredictMarket } from '../../../../types';
 import { CRYPTO_TAG, UP_OR_DOWN_TAG } from '../../../../utils/cryptoUpDown';
 import PredictLiveNowSection from './PredictLiveNowSection';
 import { PREDICT_LIVE_NOW_SECTION_TEST_IDS } from './PredictLiveNowSection.testIds';
+import { usePredictLiveNowSection } from './usePredictLiveNowSection';
 
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(),
+// Mock only the data boundary: the section's own data hook. The hook's own
+// logic (params, filtering, interleave, loading) is covered by
+// usePredictLiveNowSection.test.ts. Here we exercise the real PredictMarket /
+// PredictMarketSkeleton presentation against controlled hook output.
+jest.mock('./usePredictLiveNowSection');
+
+// Keep the Up/Down flag on so crypto markets route to the crypto card via the
+// real PredictMarket dispatcher.
+jest.mock('../../../../selectors/featureFlags', () => ({
+  selectPredictUpDownEnabledFlag: jest.fn(() => true),
 }));
 
-jest.mock('../../../../hooks/usePredictMarketList');
+// Tailwind preset is environment-only styling; stub it like sibling carousels.
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => ({ style: jest.fn(() => ({})) }),
+}));
 
-jest.mock('../../../../hooks/useCurrentPredictMarketFromSeries');
+// FlashList renders asynchronously via layout effects; swap it for a simple
+// ScrollView so renders are deterministic (no act() warnings) while still
+// invoking renderItem/keyExtractor/onScroll exactly as the component wires them.
+jest.mock('@shopify/flash-list', () => {
+  const MockReact = jest.requireActual('react');
+  const { View: MockView, ScrollView: MockScrollView } =
+    jest.requireActual('react-native');
 
-jest.mock('../../../../components/PredictMarket', () => {
-  const { View, Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({
-      testID,
-      market,
-    }: {
-      testID?: string;
-      market: { id: string };
-    }) => (
-      <View testID={testID}>
-        <Text>{market.id}</Text>
-      </View>
-    ),
-  };
+  const MockFlashList = MockReact.forwardRef(
+    (
+      {
+        data,
+        renderItem,
+        keyExtractor,
+        testID,
+        onScroll,
+      }: {
+        data: unknown[];
+        renderItem: (info: { item: unknown; index: number }) => React.ReactNode;
+        keyExtractor: (item: unknown, index: number) => string;
+        testID?: string;
+        onScroll?: (event: unknown) => void;
+      },
+      ref: React.Ref<unknown>,
+    ) => {
+      MockReact.useImperativeHandle(ref, () => ({}));
+
+      return (
+        <MockScrollView testID={testID} onScroll={onScroll}>
+          {data?.map((item, index) => (
+            <MockView key={keyExtractor?.(item, index) ?? index}>
+              {renderItem({ item, index })}
+            </MockView>
+          ))}
+        </MockScrollView>
+      );
+    },
+  );
+
+  return { FlashList: MockFlashList, FlashListRef: {} };
 });
 
-jest.mock('../../../../components/PredictMarketSkeleton', () => {
+// Mock the heavy leaf cards (charts/images/timers) — the same boundary the
+// canonical PredictMarket.test.tsx uses — forwarding the section's testID so
+// real PredictMarket dispatch (game -> sport, crypto -> up/down) is exercised.
+jest.mock('../../../../components/PredictMarketSportCard', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ testID }: { testID?: string }) => <View testID={testID} />,
+  };
+});
+jest.mock('../../../../components/PredictCryptoUpDownMarketCard', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ testID }: { testID?: string }) => <View testID={testID} />,
+  };
+});
+jest.mock('../../../../components/PredictMarketSingle', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ testID }: { testID?: string }) => <View testID={testID} />,
+  };
+});
+jest.mock('../../../../components/PredictMarketMultiple', () => {
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
@@ -48,152 +100,56 @@ jest.mock('../../../../components/PredictMarketSkeleton', () => {
   };
 });
 
-const mockUseSelector = useSelector as jest.Mock;
-const mockUsePredictMarketList = usePredictMarketList as jest.Mock;
-const mockUseCurrentPredictMarketFromSeries =
-  useCurrentPredictMarketFromSeries as jest.Mock;
+const mockUsePredictLiveNowSection = usePredictLiveNowSection as jest.Mock;
 
-// Scoreboard-capable live market (has `game`) — survives the rail's filter.
 const createLiveMarket = (id: string): PredictMarket =>
-  ({ id, game: { id: `game-${id}` } }) as unknown as PredictMarket;
-
-// "Regular" live market (no `game`) — filtered out of the rail.
-const createRegularMarket = (id: string): PredictMarket =>
-  ({ id }) as unknown as PredictMarket;
+  ({
+    id,
+    outcomes: [{ id: `${id}-o1` }],
+    game: { id: `game-${id}` },
+  }) as unknown as PredictMarket;
 
 const createCryptoMarket = (id: string): PredictMarket =>
   ({
     id,
+    outcomes: [{ id: `${id}-o1` }],
     tags: [CRYPTO_TAG, UP_OR_DOWN_TAG],
     series: { id: '10684', slug: 'btc-up-or-down-5m', recurrence: '5m' },
   }) as unknown as PredictMarket;
 
-const setLiveMarketList = (
+const setSection = (
   overrides: Partial<{
-    markets: PredictMarket[];
+    items: PredictMarket[];
     isLoading: boolean;
-    error: Error | null;
+    isEmpty: boolean;
   }> = {},
 ) => {
-  mockUsePredictMarketList.mockReturnValue({
-    markets: [],
+  mockUsePredictLiveNowSection.mockReturnValue({
+    items: [],
     isLoading: false,
-    isFetching: false,
-    isFetchingNextPage: false,
-    error: null,
-    hasNextPage: false,
-    refetch: jest.fn(),
-    fetchNextPage: jest.fn(),
+    isEmpty: false,
     ...overrides,
   });
 };
 
-// Default: no crypto market resolved for any series.
-const setCryptoMarket = (
-  overrides: Partial<{ market?: PredictMarket; isLoading: boolean }> = {},
-) => {
-  mockUseCurrentPredictMarketFromSeries.mockReturnValue({
-    market: undefined,
-    isLoading: false,
-    ...overrides,
+const renderSection = () =>
+  renderWithProvider(<PredictLiveNowSection />, {
+    state: { engine: { backgroundState } },
   });
-};
-
-// Resolve a distinct crypto market per series id (BTC 5m / ETH 5m / BTC 15m),
-// since the hook now calls useCurrentPredictMarketFromSeries once per series.
-const setCryptoMarketsBySeries = (
-  bySeriesId: Record<string, PredictMarket | undefined>,
-) => {
-  mockUseCurrentPredictMarketFromSeries.mockImplementation(
-    ({ series }: { series?: { id: string } }) => ({
-      market: series ? bySeriesId[series.id] : undefined,
-      isLoading: false,
-    }),
-  );
-};
-
-// Mock `useSelector` by selector identity so we only control the Up/Down
-// feature flag and leave every other selector at a safe default of `false`.
-const setUpDownEnabled = (enabled: boolean) => {
-  mockUseSelector.mockImplementation((selector) =>
-    selector === selectPredictUpDownEnabledFlag ? enabled : false,
-  );
-};
 
 describe('PredictLiveNowSection', () => {
   beforeEach(() => {
-    setUpDownEnabled(false);
-    setLiveMarketList();
-    setCryptoMarket();
+    setSection();
   });
 
   afterEach(() => {
     jest.clearAllMocks();
   });
 
-  it('requests live markets with the live param and v1 query', () => {
-    setLiveMarketList({ markets: [createLiveMarket('L1')] });
+  it('renders a market card for each live item', () => {
+    setSection({ items: [createLiveMarket('L1'), createLiveMarket('L2')] });
 
-    render(<PredictLiveNowSection />);
-
-    expect(mockUsePredictMarketList).toHaveBeenCalledWith({
-      live: true,
-      order: 'volume24hr',
-      status: 'open',
-      limit: 15,
-    } as PredictMarketListParams);
-  });
-
-  it('filters out "regular" live markets without a game (scoreboard) object', () => {
-    setLiveMarketList({
-      markets: [createLiveMarket('L1'), createRegularMarket('R1')],
-    });
-
-    const { getByTestId, queryByTestId } = render(<PredictLiveNowSection />);
-
-    expect(
-      getByTestId(`${PREDICT_LIVE_NOW_SECTION_TEST_IDS.CARD_PREFIX}-L1`),
-    ).toBeOnTheScreen();
-    expect(
-      queryByTestId(`${PREDICT_LIVE_NOW_SECTION_TEST_IDS.CARD_PREFIX}-R1`),
-    ).not.toBeOnTheScreen();
-  });
-
-  it('renders skeleton cards while loading with no markets yet', () => {
-    setLiveMarketList({ markets: [], isLoading: true });
-
-    const { getByTestId } = render(<PredictLiveNowSection />);
-
-    expect(
-      getByTestId(`${PREDICT_LIVE_NOW_SECTION_TEST_IDS.SKELETON_PREFIX}-0`),
-    ).toBeOnTheScreen();
-  });
-
-  it('keeps showing skeletons while live markets load even if crypto already resolved', () => {
-    setUpDownEnabled(true);
-    setLiveMarketList({ markets: [], isLoading: true });
-    setCryptoMarketsBySeries({
-      [BTC_UP_OR_DOWN_5M_SERIES.id]: createCryptoMarket('BTC5M'),
-      [ETH_UP_OR_DOWN_5M_SERIES.id]: createCryptoMarket('ETH5M'),
-      [BTC_UP_OR_DOWN_15M_SERIES.id]: createCryptoMarket('BTC15M'),
-    });
-
-    const { getByTestId, queryByTestId } = render(<PredictLiveNowSection />);
-
-    expect(
-      getByTestId(`${PREDICT_LIVE_NOW_SECTION_TEST_IDS.SKELETON_PREFIX}-0`),
-    ).toBeOnTheScreen();
-    expect(
-      queryByTestId(`${PREDICT_LIVE_NOW_SECTION_TEST_IDS.CARD_PREFIX}-BTC5M`),
-    ).not.toBeOnTheScreen();
-  });
-
-  it('renders a market card for each live market on success', () => {
-    setLiveMarketList({
-      markets: [createLiveMarket('L1'), createLiveMarket('L2')],
-    });
-
-    const { getByTestId } = render(<PredictLiveNowSection />);
+    const { getByTestId } = renderSection();
 
     expect(
       getByTestId(`${PREDICT_LIVE_NOW_SECTION_TEST_IDS.CARD_PREFIX}-L1`),
@@ -203,119 +159,74 @@ describe('PredictLiveNowSection', () => {
     ).toBeOnTheScreen();
   });
 
-  it('interleaves the crypto card after two live cards when Up/Down is enabled', () => {
-    setUpDownEnabled(true);
-    setLiveMarketList({
-      markets: [
-        createLiveMarket('L1'),
-        createLiveMarket('L2'),
-        createLiveMarket('L3'),
-      ],
-    });
-    setCryptoMarketsBySeries({
-      [BTC_UP_OR_DOWN_5M_SERIES.id]: createCryptoMarket('CRYPTO'),
-    });
+  it('renders a crypto Up/Down card through the shared PredictMarket dispatcher', () => {
+    setSection({ items: [createCryptoMarket('CRYPTO')] });
 
-    const { getByTestId } = render(<PredictLiveNowSection />);
+    const { getByTestId } = renderSection();
 
     expect(
       getByTestId(`${PREDICT_LIVE_NOW_SECTION_TEST_IDS.CARD_PREFIX}-CRYPTO`),
     ).toBeOnTheScreen();
   });
 
-  it('sources all three crypto series (BTC 5m, ETH 5m, BTC 15m) when Up/Down is enabled', () => {
-    setUpDownEnabled(true);
-    setLiveMarketList({
-      markets: [
-        createLiveMarket('L1'),
-        createLiveMarket('L2'),
-        createLiveMarket('L3'),
-        createLiveMarket('L4'),
-        createLiveMarket('L5'),
-        createLiveMarket('L6'),
-      ],
-    });
-    setCryptoMarketsBySeries({
-      [BTC_UP_OR_DOWN_5M_SERIES.id]: createCryptoMarket('BTC5M'),
-      [ETH_UP_OR_DOWN_5M_SERIES.id]: createCryptoMarket('ETH5M'),
-      [BTC_UP_OR_DOWN_15M_SERIES.id]: createCryptoMarket('BTC15M'),
-    });
+  it('renders skeleton cards while loading with no items yet', () => {
+    setSection({ items: [], isLoading: true });
 
-    const { getByTestId } = render(<PredictLiveNowSection />);
+    const { getByTestId } = renderSection();
 
     expect(
-      getByTestId(`${PREDICT_LIVE_NOW_SECTION_TEST_IDS.CARD_PREFIX}-BTC5M`),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(`${PREDICT_LIVE_NOW_SECTION_TEST_IDS.CARD_PREFIX}-ETH5M`),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(`${PREDICT_LIVE_NOW_SECTION_TEST_IDS.CARD_PREFIX}-BTC15M`),
+      getByTestId(`${PREDICT_LIVE_NOW_SECTION_TEST_IDS.SKELETON_PREFIX}-0`),
     ).toBeOnTheScreen();
   });
 
-  it('hides the section when there are no markets after loading', () => {
-    setLiveMarketList({ markets: [], isLoading: false });
+  it('returns null (renders no section) when empty', () => {
+    setSection({ items: [], isEmpty: true });
 
-    const { queryByTestId } = render(<PredictLiveNowSection />);
+    const { queryByTestId } = renderSection();
 
     expect(
       queryByTestId(PREDICT_LIVE_NOW_SECTION_TEST_IDS.SECTION),
     ).not.toBeOnTheScreen();
   });
 
-  it('hides the section on error (empty markets, not loading)', () => {
-    setLiveMarketList({
-      markets: [],
-      isLoading: false,
-      error: new Error('failed'),
-    });
+  it('renders a non-pressable "Live now" header without a navigation chevron', () => {
+    setSection({ items: [createLiveMarket('L1')] });
 
-    const { queryByTestId } = render(<PredictLiveNowSection />);
+    const { getByTestId, queryByTestId, getByText } = renderSection();
 
     expect(
-      queryByTestId(PREDICT_LIVE_NOW_SECTION_TEST_IDS.SECTION),
-    ).not.toBeOnTheScreen();
+      getByTestId(PREDICT_LIVE_NOW_SECTION_TEST_IDS.HEADER),
+    ).toBeOnTheScreen();
+    expect(getByText(strings('predict.home.live_now_title'))).toBeOnTheScreen();
+    // The chevron only renders when the header is pressable (onPress set); the
+    // "See all" target route does not exist yet, so it must be absent.
+    expect(queryByTestId('section-header-arrow-icon')).not.toBeOnTheScreen();
   });
 
-  it('renders a See all action that is pressable without crashing', () => {
-    setLiveMarketList({ markets: [createLiveMarket('L1')] });
+  it('renders pagination dots when there are 2+ items after load', () => {
+    setSection({ items: [createLiveMarket('L1'), createLiveMarket('L2')] });
 
-    const { getByTestId } = render(<PredictLiveNowSection />);
-    const seeAll = getByTestId(PREDICT_LIVE_NOW_SECTION_TEST_IDS.SEE_ALL);
-    fireEvent.press(seeAll);
-
-    expect(seeAll).toBeOnTheScreen();
-  });
-
-  it('renders pagination dots when there are 2+ markets after load', () => {
-    setLiveMarketList({
-      markets: [createLiveMarket('L1'), createLiveMarket('L2')],
-    });
-
-    const { getByTestId } = render(<PredictLiveNowSection />);
+    const { getByTestId } = renderSection();
 
     expect(
       getByTestId(PREDICT_LIVE_NOW_SECTION_TEST_IDS.PAGINATION_DOTS),
     ).toBeOnTheScreen();
   });
 
-  it('does not render pagination dots when there is fewer than 2 markets', () => {
-    setLiveMarketList({ markets: [createLiveMarket('L1')] });
+  it('does not render pagination dots when there is fewer than 2 items', () => {
+    setSection({ items: [createLiveMarket('L1')] });
 
-    const { queryByTestId } = render(<PredictLiveNowSection />);
+    const { queryByTestId } = renderSection();
 
     expect(
       queryByTestId(PREDICT_LIVE_NOW_SECTION_TEST_IDS.PAGINATION_DOTS),
     ).not.toBeOnTheScreen();
   });
 
-  it('handles scrolling the carousel without crashing', () => {
-    setLiveMarketList({
-      markets: [createLiveMarket('L1'), createLiveMarket('L2')],
-    });
+  it('updates the active card without crashing when the carousel is scrolled', () => {
+    setSection({ items: [createLiveMarket('L1'), createLiveMarket('L2')] });
 
-    const { getByTestId } = render(<PredictLiveNowSection />);
+    const { getByTestId } = renderSection();
     const carousel = getByTestId(PREDICT_LIVE_NOW_SECTION_TEST_IDS.CAROUSEL);
 
     fireEvent.scroll(carousel, {

@@ -61,11 +61,6 @@ const PredictLiveNowSection: React.FC<PredictLiveNowSectionProps> = ({
     );
   }, [items.length]);
 
-  const handleViewAll = useCallback(() => {
-    // TODO(PRED-834): navigate to Routes.PREDICT.FEED with { feedId: 'live' }
-    // once the generic feed route/view land (see predict-home-redesign.md).
-  }, []);
-
   const carouselData = useMemo<CarouselItem[]>(
     () =>
       isLoading ? Array.from<CarouselItem>({ length: SKELETON_COUNT }) : items,
@@ -129,10 +124,14 @@ const PredictLiveNowSection: React.FC<PredictLiveNowSectionProps> = ({
 
   return (
     <Box testID={testID} twClassName="my-2">
+      {/* Static (non-pressable) header for now: the "See all" target — a generic
+          PredictFeedView with feedId 'live' — does not exist yet, so we render
+          plain header text rather than a dead control. Pass `onPress` (and the
+          chevron returns) once Routes.PREDICT.FEED lands. See
+          predict-home-redesign.md (Upcoming Tickets A + B). */}
       <SectionHeader
-        testID={PREDICT_LIVE_NOW_SECTION_TEST_IDS.SEE_ALL}
+        testID={PREDICT_LIVE_NOW_SECTION_TEST_IDS.HEADER}
         title={strings('predict.home.live_now_title')}
-        onPress={handleViewAll}
         twClassName="px-0 mb-2"
       />
 

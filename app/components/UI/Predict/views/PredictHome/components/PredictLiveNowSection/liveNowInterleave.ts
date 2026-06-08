@@ -22,24 +22,28 @@ export const interleaveLiveNowMarkets = (
   liveMarkets: PredictMarket[],
   cryptoMarkets: PredictMarket[],
 ): PredictMarket[] => {
-  const live = [...liveMarkets];
   const crypto = cryptoMarkets.slice(0, LIVE_NOW_MAX_CRYPTO);
 
   const result: PredictMarket[] = [];
+  let liveIndex = 0;
+  let cryptoIndex = 0;
   let sinceCrypto = 0;
 
-  while (live.length > 0 || crypto.length > 0) {
-    const shouldPlaceCrypto =
-      sinceCrypto >= LIVE_PER_CRYPTO || live.length === 0;
+  while (liveIndex < liveMarkets.length || cryptoIndex < crypto.length) {
+    const liveRemaining = liveIndex < liveMarkets.length;
+    const cryptoRemaining = cryptoIndex < crypto.length;
+    const shouldPlaceCrypto = sinceCrypto >= LIVE_PER_CRYPTO || !liveRemaining;
 
-    if (shouldPlaceCrypto && crypto.length > 0) {
-      result.push(crypto.shift() as PredictMarket);
+    if (shouldPlaceCrypto && cryptoRemaining) {
+      result.push(crypto[cryptoIndex]);
+      cryptoIndex += 1;
       sinceCrypto = 0;
       continue;
     }
 
-    if (live.length > 0) {
-      result.push(live.shift() as PredictMarket);
+    if (liveRemaining) {
+      result.push(liveMarkets[liveIndex]);
+      liveIndex += 1;
       sinceCrypto += 1;
       continue;
     }
