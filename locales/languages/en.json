@@ -1130,7 +1130,13 @@
       "pay_with_filter_all": "All",
       "buy_label": "Buy",
       "sell_label": "Sell",
-      "receive": "Receive"
+      "receive": "Receive",
+      "toast_pending_buy": "Buying {{amount}} of {{symbol}} with {{counter}}",
+      "toast_pending_sell": "Selling {{amount}} of {{symbol}} for {{counter}}",
+      "toast_complete_buy": "Bought {{amount}} of {{symbol}} with {{counter}}",
+      "toast_complete_sell": "Sold {{amount}} of {{symbol}} for {{counter}}",
+      "toast_failed_buy": "Couldn't buy {{symbol}}",
+      "toast_failed_sell": "Couldn't sell {{symbol}}"
     }
   },
   "perps": {
@@ -1441,7 +1447,8 @@
         "liquidation_warning": "You will be liquidated if price {{direction}} by {{percentage}}",
         "drops": "drops",
         "rises": "rises",
-        "set_leverage": "Set {{leverage}}x"
+        "set_leverage": "Set {{leverage}}x",
+        "price_unavailable": "Price information unavailable"
       },
       "type": {
         "title": "Order type",
@@ -1846,10 +1853,13 @@
       "pay_attention_to_volatility": "Pay attention to volatility and slippage",
       "badge": {
         "experimental": "EXPERIMENTAL",
-        "equity": "STOCK",
         "commodity": "COMMODITY",
         "crypto": "CRYPTO",
-        "forex": "FOREX"
+        "forex": "FOREX",
+        "stock": "STOCK",
+        "pre-ipo": "PRE-IPO",
+        "index": "INDEX",
+        "etf": "ETF"
       }
     },
     "buttons": {
@@ -2031,14 +2041,20 @@
         "stocks": "Stocks",
         "commodities": "Commodities",
         "forex": "Forex",
-        "new": "New"
+        "new": "New",
+        "pre_ipo": "Pre-IPO",
+        "indices": "Indices",
+        "etfs": "ETFs"
       },
       "filter_by": "Filter by",
       "forex": "Forex",
       "watchlist": "Watchlist",
       "markets": "Markets",
       "explore_markets": "Explore markets",
-      "see_all_perps": "See all perps"
+      "see_all_perps": "See all perps",
+      "top_movers": "Top movers",
+      "gainers": "Gainers",
+      "losers": "Losers"
     },
     "learn_more": {
       "title": "Learn about Perps",
@@ -2289,6 +2305,13 @@
   },
   "predict": {
     "title": "MetaMask Predictions",
+    "home": {
+      "portfolio_module_placeholder": "Portfolio module",
+      "live_now_placeholder": "Live now",
+      "categories_placeholder": "Categories",
+      "popular_today_placeholder": "Popular today",
+      "trending_placeholder": "Trending"
+    },
     "homepage_discovery": {
       "btc_title": "BTC Price: {{price}}",
       "btc_price_to_beat": "Price to beat: {{price}}",
@@ -2491,6 +2514,21 @@
       "politics": "Politics",
       "hot": "Hot"
     },
+    "feed": {
+      "live": "Live",
+      "popular_today": "Popular today",
+      "tabs": {
+        "basketball": "Basketball",
+        "tennis": "Tennis",
+        "soccer": "Soccer",
+        "baseball": "Baseball",
+        "football": "Football"
+      },
+      "filters": {
+        "all": "All",
+        "live": "Live"
+      }
+    },
     "search_placeholder": "Search prediction markets",
     "search_cancel": "Cancel",
     "search_empty_state": "No {{category}} markets available",
@@ -2552,6 +2590,11 @@
       "buy_title": "Predicted",
       "sell_title": "Cashed out",
       "claim_title": "Claimed winnings",
+      "claim_pending": "Claim pending",
+      "claim_pending_accessibility_label": "{{predictionStatus}}, {{marketTitle}}, opens market details",
+      "prediction_lost_title": "Prediction lost",
+      "prediction_resolved_title": "Prediction resolved",
+      "prediction_won_title": "Prediction won",
       "buy_detail": "Bought {{amountUsd}} on {{outcome}} · {{priceCents}} per share",
       "sell_detail": "Sold at {{priceCents}} per share",
       "claim_detail": "Claimed winnings",
@@ -3056,6 +3099,14 @@
     "option_predict_sports_events": "Predict sports and events",
     "option_crypto_as_money": "Use crypto as money",
     "option_connect_apps_sites": "Connect to apps or sites",
+    "continue": "Continue"
+  },
+  "onboarding_crypto_experience_questionnaire": {
+    "title": "What's your experience with crypto?",
+    "option_new": "New",
+    "option_beginner": "Beginner",
+    "option_intermediate": "Intermediate",
+    "option_advanced": "Advanced",
     "continue": "Continue"
   },
   "template_confirmation": {
@@ -5367,17 +5418,15 @@
     "push_onboarding": {
       "new_user": {
         "title": "Never miss a move",
-        "body": "Get real-time alerts when prices hit your targets, your trades confirm, and your portfolio moves. Plus product updates and rewards along the way. We'll share updates based on your interactions with MetaMask.",
-        "button_yes": "Yes",
+        "body": "Get real-time alerts on price moves, trade confirmations, portfolio activity, and rewards based on how you use MetaMask.",
+        "button_yes": "Enable notifications",
         "button_not_now": "Not now",
         "preview_card_1": {
-          "eyebrow": "METAMASK",
           "time": "now",
           "title": "ETH is up 4.2% today",
           "message": "Now at $2,668.51 — above your price alert"
         },
         "preview_card_2": {
-          "eyebrow": "METAMASK",
           "time": "1h ago",
           "title": "Received 0.25 ETH",
           "message": "From 0x9a21…4f8c · $640.29"
@@ -5395,7 +5444,7 @@
       },
       "existing_user": {
         "title": "Introducing personalized alerts",
-        "body": "Get notifications that match how you trade. Update anytime.",
+        "body": "Get notifications that match how you trade, based on how you use MetaMask.",
         "card_title": "What you'll get",
         "card_description": "Personalized alerts and updates tailored to your trading activity.",
         "button_confirm": "Confirm",
@@ -5500,6 +5549,15 @@
     "title": "Something went wrong",
     "message": "We couldn't load that page",
     "return_home": "Return to home page"
+  },
+  "agentic_cli_approval": {
+    "title": "Review request",
+    "error": {
+      "title": "Something went wrong",
+      "load_description": "We couldn't load this approval request. Check your connection and try again.",
+      "submit_description": "We couldn't complete this approval. Close this screen and start the CLI request again.",
+      "try_again": "Try again"
+    }
   },
   "offline_mode": {
     "title": "You're offline",
@@ -6940,8 +6998,8 @@
       "contact_support": "Contact support"
     },
     "transfer_sheet": {
-      "title": "Transfer funds",
-      "between_accounts": "Between accounts",
+      "title": "Transfer funds to",
+      "between_accounts": "Another account",
       "perps_account": "Perps account",
       "predictions_account": "Predictions account",
       "send_external": "Send to external address",
@@ -6981,7 +7039,7 @@
     },
     "earn_crypto_info_sheet": {
       "title": "Earn on your crypto",
-      "body": "Illustration assumes {{percentage}}% Annual Percentage Yield (APY) remains unchanged for one year. APY is variable and is not guaranteed. No guarantee of return."
+      "body": "Projection assumes {{percentage}}% Annual Percentage Yield (APY) remains unchanged for one year. APY is variable and is not guaranteed. No guarantee of return."
     },
     "activity": {
       "title": "Activity",
@@ -7313,7 +7371,7 @@
       "other_assets": "Other assets",
       "other_assets_description": "Select from your tokens",
       "other_assets_receive_description": "Select the token you want to receive",
-      "money_account": "Money account"
+      "money_balance": "Money balance"
     },
     "staking_footer": {
       "part1": "By continuing, you agree to our ",
@@ -7487,7 +7545,8 @@
       "buy_button": "Buy crypto",
       "buy_predict": "Add funds to your wallet to use Predictions.",
       "buy_perps": "Add funds to your wallet to use Perps.",
-      "projected_balance": "Projected {{projectedYears}}-year balance:"
+      "projected_balance": "Projected {{projectedYears}}-year balance:",
+      "earn_up_to_apy": "Earn up to {{percentage}}% APY"
     },
     "unlimited": "Unlimited",
     "all": "All",
@@ -9266,6 +9325,20 @@
       "title": "Success",
       "description": "Return to the app to continue."
     },
+    "show_cli_link_success": {
+      "title": "MetaMask Agent CLI link successful",
+      "description": "Return to the CLI to continue."
+    },
+    "show_otp": {
+      "title": "Enter this code",
+      "description": "Enter {{otp}} in {{dappName}} to finish connecting. This code expires in {{seconds}} seconds.",
+      "modal_title": "Link MetaMask Agent CLI",
+      "modal_description": "Pair MetaMask Mobile with your MetaMask Agent CLI.",
+      "code_label": "ENTER THIS CODE IN THE CLI",
+      "expires_in": "Expires in {{time}}",
+      "expired": "Code expired",
+      "security_notice": "Securing the connection first. You'll authorize CLI access in the next step"
+    },
     "show_not_found": {
       "title": "Connection Not Found",
       "description": "Please establish a new connection from the app to continue."
@@ -9273,6 +9346,11 @@
     "show_internal_error": {
       "title": "Something went wrong",
       "description": "An unexpected error occurred. Please try again."
+    },
+    "agentic_cli_dashboard_webview": {
+      "title": "Select project",
+      "load_error": "Unable to load approval page.",
+      "closed_error": "Dashboard approval closed."
     },
     "show_method_error": {
       "title": "Request failed",

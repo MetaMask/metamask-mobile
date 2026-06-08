@@ -283,40 +283,53 @@ describe('ManualBackupStep1', () => {
   });
 
   describe('header visibility', () => {
-    it('hides header during onboarding flow', () => {
-      const { setOptions } = renderComponent({
+    it('hides header during onboarding flow', async () => {
+      const { wrapper } = renderComponent({
         backupFlow: false,
         settingsBackup: false,
       });
 
-      expect(setOptions).toHaveBeenCalled();
-      expect(setOptions.mock.calls[0][0].headerShown).toBe(false);
+      await waitFor(() => {
+        expect(
+          wrapper.queryByTestId(ManualBackUpStepsSelectorsIDs.BACK_BUTTON),
+        ).toBeNull();
+      });
     });
 
-    it('shows header with back button for backup flow', () => {
-      const { setOptions } = renderComponent({
+    it('shows header with back button for backup flow', async () => {
+      const { wrapper, goBack } = renderComponent({
         backupFlow: true,
         settingsBackup: false,
       });
 
-      expect(setOptions).toHaveBeenCalled();
-      const opts = setOptions.mock.calls[0][0];
-      expect(opts.headerShown).toBeUndefined();
-      expect(opts.headerLeft).toBeDefined();
-      expect(opts.headerTitle).toBe('');
+      await waitFor(() => {
+        expect(
+          wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.BACK_BUTTON),
+        ).toBeOnTheScreen();
+      });
+
+      fireEvent.press(
+        wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.BACK_BUTTON),
+      );
+      expect(goBack).toHaveBeenCalled();
     });
 
-    it('shows header with back button for settings backup flow', () => {
-      const { setOptions } = renderComponent({
+    it('shows header with back button for settings backup flow', async () => {
+      const { wrapper, goBack } = renderComponent({
         backupFlow: false,
         settingsBackup: true,
       });
 
-      expect(setOptions).toHaveBeenCalled();
-      const opts = setOptions.mock.calls[0][0];
-      expect(opts.headerShown).toBeUndefined();
-      expect(opts.headerLeft).toBeDefined();
-      expect(opts.headerTitle).toBe('');
+      await waitFor(() => {
+        expect(
+          wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.BACK_BUTTON),
+        ).toBeOnTheScreen();
+      });
+
+      fireEvent.press(
+        wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.BACK_BUTTON),
+      );
+      expect(goBack).toHaveBeenCalled();
     });
   });
 
