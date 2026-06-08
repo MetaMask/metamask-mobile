@@ -365,9 +365,7 @@ const HomepageDiscoveryTabs = forwardRef<
                     refreshControl={refreshControl}
                     contentContainerStyle={styles.portfolioScrollContent}
                   >
-                    <View style={styles.portfolioHeaderCluster}>
-                      {portfolioHeader}
-                    </View>
+                    {portfolioHeader}
                     <Homepage ref={homepageRef} perpsProvidersHoisted />
                   </Reanimated.ScrollView>
                 </DiscoveryTabView>

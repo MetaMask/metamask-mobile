@@ -19,11 +19,6 @@ const styleSheet = (_params: { theme: Theme }) =>
     portfolioScrollContent: {
       paddingTop: 14,
     },
-    portfolioHeaderCluster: {
-      flexDirection: 'column',
-      gap: 16,
-      paddingBottom: 12,
-    },
   });
 
 export default styleSheet;
