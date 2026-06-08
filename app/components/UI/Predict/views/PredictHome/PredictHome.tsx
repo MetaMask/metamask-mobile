@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { LayoutChangeEvent } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -13,6 +13,9 @@ import { usePredictStackedHeader } from '../../hooks/usePredictStackedHeader';
 import { PredictNavigationParamList } from '../../types/navigation';
 import PredictHeaderStacked from '../../components/PredictHeaderStacked';
 import PredictSearchOverlay from '../../components/PredictSearchOverlay';
+import PredictWithdrawUnavailableSheet, {
+  type PredictWithdrawUnavailableSheetRef,
+} from '../../components/PredictWithdrawUnavailableSheet';
 import { PredictPortfolioModule } from './components/PredictPortfolio';
 import PredictLiveNowSection from './components/PredictLiveNowSection';
 import PredictCategoriesSection from './components/PredictCategoriesSection';
@@ -68,6 +71,12 @@ const PredictHome: React.FC = () => {
     [setTitleSectionHeight],
   );
 
+  const withdrawUnavailableSheetRef =
+    useRef<PredictWithdrawUnavailableSheetRef>(null);
+  const handleDepositWalletWithdrawPress = useCallback(() => {
+    withdrawUnavailableSheetRef.current?.onOpenBottomSheet();
+  }, []);
+
   return (
     <SafeAreaView
       edges={{ bottom: 'additive' }}
@@ -106,7 +115,9 @@ const PredictHome: React.FC = () => {
             </Text>
           </Box>
 
-          <PredictPortfolioModule />
+          <PredictPortfolioModule
+            onDepositWalletWithdrawPress={handleDepositWalletWithdrawPress}
+          />
           <PredictLiveNowSection />
           <PredictCategoriesSection />
           <PredictPopularTodaySection />
@@ -120,6 +131,9 @@ const PredictHome: React.FC = () => {
           onClose={clearSearchAndClose}
           transactionActiveAbTests={transactionActiveAbTests}
         />
+      </Box>
+      <Box pointerEvents="box-none" twClassName="absolute inset-0 z-50">
+        <PredictWithdrawUnavailableSheet ref={withdrawUnavailableSheetRef} />
       </Box>
     </SafeAreaView>
   );
