@@ -45,6 +45,7 @@ import { deprecatedGetNetworkId } from '../../util/networks/engineNetworkUtils';
 import AppConstants from '../AppConstants';
 import { store } from '../../store';
 import { selectIsAssetsUnifyStateEnabled } from '../../selectors/featureFlagController/assetsUnifyState';
+import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 import {
   renderFromTokenMinimalUnit,
   balanceToFiatNumber,
@@ -182,7 +183,7 @@ import { moneyAccountBalanceServiceInit } from './controllers/money-account-bala
 import { geolocationApiServiceInit } from './controllers/geolocation-api-service-init';
 import { geolocationControllerInit } from './controllers/geolocation-controller';
 import { rewardsDataServiceInit } from './controllers/rewards-data-service-init';
-import { remoteFeatureFlagControllerInit } from './controllers/remote-feature-flag-controller-init';
+import { isRemoteFeatureFlagOverrideActivated } from './controllers/remote-feature-flag-controller';
 import { loggingControllerInit } from './controllers/logging-controller-init';
 import { phishingControllerInit } from './controllers/phishing-controller-init';
 import { addressBookControllerInit } from './controllers/address-book-controller-init';
@@ -296,9 +297,19 @@ export class Engine {
       KeyringController: initialKeyringState ?? initialState.KeyringController,
     };
 
+    // `RemoteFeatureFlagController` is constructed by `@metamask/wallet`, which
+    // only takes the initial `disabled` value. The dynamic enable/disable
+    // toggling and the startup `updateRemoteFeatureFlags()` fetch stay
+    // client-side; compute `disabled` once here so the wallet option and the
+    // startup orchestration below agree on the same value.
+    const remoteFeatureFlagControllerDisabled =
+      !selectBasicFunctionalityEnabled(store.getState());
+
     this.#wallet = initializeWallet({
       messenger: this.controllerMessenger,
       state: mergedInitialState,
+      analyticsId,
+      remoteFeatureFlagControllerDisabled,
     });
 
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
@@ -320,7 +331,6 @@ export class Engine {
       initFunctions: {
         LoggingController: loggingControllerInit,
         PreferencesController: preferencesControllerInit,
-        RemoteFeatureFlagController: remoteFeatureFlagControllerInit,
         NetworkController: networkControllerInit,
         AccountsController: accountsControllerInit,
         PermissionController: permissionControllerInit,
@@ -424,8 +434,11 @@ export class Engine {
 
     const analyticsController = messengerClientsByName.AnalyticsController;
     const loggingController = messengerClientsByName.LoggingController;
-    const remoteFeatureFlagController =
-      messengerClientsByName.RemoteFeatureFlagController;
+    // `RemoteFeatureFlagController` is constructed by `@metamask/wallet`, so it
+    // is resolved from the wallet rather than the local messenger-client map.
+    const remoteFeatureFlagController = this.#wallet.getInstance(
+      'RemoteFeatureFlagController',
+    );
     const accountsController = messengerClientsByName.AccountsController;
     const accountTreeController = messengerClientsByName.AccountTreeController;
     // `ApprovalController` is constructed by `@metamask/wallet`, so it is
@@ -847,6 +860,23 @@ export class Engine {
     this.configureControllersOnNetworkChange();
     this.startPolling();
     this.handleVaultBackup();
+
+    // `@metamask/wallet` constructs the `RemoteFeatureFlagController` but does
+    // not trigger the initial feature-flag fetch — that startup orchestration
+    // stays client-side. Mirror the previous local-init behavior: skip the
+    // fetch when disabled or when overrides are active, otherwise kick it off.
+    if (remoteFeatureFlagControllerDisabled) {
+      Logger.log('Feature flag controller disabled.');
+    } else if (isRemoteFeatureFlagOverrideActivated) {
+      Logger.log('Remote feature flags override activated.');
+    } else {
+      remoteFeatureFlagController
+        .updateRemoteFeatureFlags()
+        .then(() => {
+          Logger.log('Feature flags updated');
+        })
+        .catch((error) => Logger.log('Feature flags update failed: ', error));
+    }
 
     Engine.instance = this;
   }
