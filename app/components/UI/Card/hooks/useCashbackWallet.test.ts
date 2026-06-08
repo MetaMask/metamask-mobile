@@ -72,12 +72,9 @@ describe('useCashbackWallet', () => {
 
     expect(result.current.isLoading).toBe(true);
 
-    await waitFor(
-      () => {
-        expect(result.current.isLoading).toBe(false);
-      },
-      { timeout: 5000 },
-    );
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
 
     expect(result.current.cashbackWallet).toEqual(walletData);
     expect(result.current.error).toBeNull();
@@ -91,12 +88,9 @@ describe('useCashbackWallet', () => {
       wrapper: Wrapper,
     });
 
-    await waitFor(
-      () => {
-        expect(result.current.isLoading).toBe(false);
-      },
-      { timeout: 5000 },
-    );
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
 
     expect(result.current.cashbackWallet).toBeNull();
     expect(result.current.error).toBeTruthy();
@@ -119,23 +113,17 @@ describe('useCashbackWallet', () => {
       wrapper: Wrapper,
     });
 
-    await waitFor(
-      () => {
-        expect(result.current.isLoading).toBe(false);
-      },
-      { timeout: 5000 },
-    );
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
 
     act(() => {
       result.current.withdraw('5.00');
     });
 
-    await waitFor(
-      () => {
-        expect(result.current.monitoringStatus).toBe('monitoring');
-      },
-      { timeout: 5000 },
-    );
+    await waitFor(() => {
+      expect(result.current.monitoringStatus).toBe('monitoring');
+    });
 
     expect(mockWithdrawCashback).toHaveBeenCalledWith({ amount: '5.00' });
   });
@@ -159,12 +147,9 @@ describe('useCashbackWallet', () => {
         wrapper: Wrapper,
       });
 
-      await waitFor(
-        () => {
-          expect(result.current.isLoading).toBe(false);
-        },
-        { timeout: 5000 },
-      );
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
 
       act(() => {
         result.current.withdraw('5.00');
@@ -199,12 +184,9 @@ describe('useCashbackWallet', () => {
         wrapper: Wrapper,
       });
 
-      await waitFor(
-        () => {
-          expect(result.current.isLoading).toBe(false);
-        },
-        { timeout: 5000 },
-      );
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
 
       act(() => {
         result.current.withdraw('5.00');
@@ -241,23 +223,17 @@ describe('useCashbackWallet', () => {
       wrapper: Wrapper,
     });
 
-    await waitFor(
-      () => {
-        expect(result.current.isLoading).toBe(false);
-      },
-      { timeout: 5000 },
-    );
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
 
     act(() => {
       result.current.withdraw('5.00');
     });
 
-    await waitFor(
-      () => {
-        expect(result.current.monitoringStatus).toBe('monitoring');
-      },
-      { timeout: 5000 },
-    );
+    await waitFor(() => {
+      expect(result.current.monitoringStatus).toBe('monitoring');
+    });
 
     act(() => {
       result.current.resetWithdraw();
@@ -288,12 +264,9 @@ describe('useCashbackWallet', () => {
       wrapper: Wrapper,
     });
 
-    await waitFor(
-      () => {
-        expect(result.current.isLoading).toBe(false);
-      },
-      { timeout: 5000 },
-    );
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
 
     await act(async () => {
       await result.current.fetchEstimation();
@@ -318,22 +291,16 @@ describe('useCashbackWallet', () => {
       wrapper: Wrapper,
     });
 
-    await waitFor(
-      () => {
-        expect(result.current.isLoading).toBe(false);
-      },
-      { timeout: 5000 },
-    );
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
 
     act(() => {
       result.current.withdraw('5.00');
     });
 
-    await waitFor(
-      () => {
-        expect(result.current.withdrawError).toBeTruthy();
-      },
-      { timeout: 5000 },
-    );
+    await waitFor(() => {
+      expect(result.current.withdrawError).toBeTruthy();
+    });
   });
 });
