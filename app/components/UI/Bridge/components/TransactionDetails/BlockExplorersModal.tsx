@@ -92,15 +92,22 @@ const BlockExplorersModal = () => {
             variant={ButtonVariant.Secondary}
             isFullWidth
             onPress={() => {
+              const url = srcExplorerData.explorerTxUrl;
+              if (!url) {
+                return;
+              }
               trackExternalLinkClicked(trackEvent, createEventBuilder, {
                 location: 'bridge_transaction_details',
-                text: srcExplorerData.explorerName,
-                url_domain: srcExplorerData.explorerTxUrl,
+                text:
+                  srcExplorerData.explorerName ??
+                  srcExplorerData.chainName ??
+                  '',
+                url_domain: url,
               });
               navigation.navigate(Routes.WEBVIEW.MAIN, {
                 screen: Routes.WEBVIEW.SIMPLE,
                 params: {
-                  url: srcExplorerData.explorerTxUrl,
+                  url,
                 },
               });
             }}
@@ -127,15 +134,22 @@ const BlockExplorersModal = () => {
             variant={ButtonVariant.Secondary}
             isFullWidth
             onPress={() => {
+              const url = bridgeDestExplorerData.explorerTxUrl;
+              if (!url) {
+                return;
+              }
               trackExternalLinkClicked(trackEvent, createEventBuilder, {
                 location: 'bridge_transaction_details',
-                text: bridgeDestExplorerData.explorerName,
-                url_domain: bridgeDestExplorerData.explorerTxUrl,
+                text:
+                  bridgeDestExplorerData.explorerName ??
+                  bridgeDestExplorerData.chainName ??
+                  '',
+                url_domain: url,
               });
               navigation.navigate(Routes.WEBVIEW.MAIN, {
                 screen: Routes.WEBVIEW.SIMPLE,
                 params: {
-                  url: bridgeDestExplorerData.explorerTxUrl,
+                  url,
                 },
               });
             }}
