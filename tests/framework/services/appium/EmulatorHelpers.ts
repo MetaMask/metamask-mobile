@@ -8,10 +8,29 @@ const logger = createLogger({ name: 'EmulatorHelpers' });
 
 const ANDROID_BOOT_TIMEOUT_MS = 3 * 60 * 1000;
 const ANDROID_BOOT_POLL_INTERVAL_MS = 2000;
-const ANDROID_CI_POST_BOOT_SETTLE_MS = 20_000;
-const ANDROID_ANR_DISMISS_ATTEMPTS = 6;
+const ANDROID_CI_INITIAL_SETTLE_MS = 15_000;
 const ANDROID_ANR_DISMISS_INTERVAL_MS = 3000;
+const ANDROID_ANR_CLEAR_STREAK_REQUIRED = 3;
+const ANDROID_ANR_STABILIZE_TIMEOUT_MS = 90_000;
+const ANDROID_EMULATOR_CI_CORES_DEFAULT = '8';
 const UI_AUTOMATOR_DUMP_PATH = '/sdcard/window_dump.xml';
+
+/** Play Store / GMS packages disabled after cold boot — not needed for Appium E2E. */
+export const ANDROID_E2E_PACKAGES_TO_DISABLE = [
+  'com.android.vending',
+  'com.google.android.gms',
+  'com.google.android.gsf',
+  'com.google.android.partnersetup',
+  'com.google.android.setupwizard',
+  'com.google.android.apps.restore',
+  'com.google.android.apps.wellbeing',
+] as const;
+
+/** Launcher packages force-stopped so ANR dialogs do not cover the test app. */
+export const ANDROID_E2E_LAUNCHER_PACKAGES = [
+  'com.google.android.apps.nexuslauncher',
+  'com.android.launcher3',
+] as const;
 
 interface AdbDevice {
   serial: string;
@@ -89,6 +108,17 @@ async function findEmulatorSerialForAvd(
   return undefined;
 }
 
+/**
+ * Only reuse an offline/authorizing emulator when its AVD name is known and matches.
+ * If `adb emu avd name` fails, do not attach — another host's emulator may be starting.
+ */
+export function shouldWaitForOfflineEmulator(
+  requestedAvdName: string,
+  resolvedAvdName: string | undefined,
+): boolean {
+  return resolvedAvdName === requestedAvdName;
+}
+
 interface TapPoint {
   x: number;
   y: number;
@@ -116,20 +146,45 @@ function parseUiNodeCenter(bounds: string): TapPoint | undefined {
 export function findAnrDialogWaitTapPoint(
   uiDump: string,
 ): TapPoint | undefined {
+  return findAnrDialogRecoveryTapPoint(uiDump, { preferCloseApp: false });
+}
+
+/**
+ * Finds an ANR recovery tap target. Prefers "Close app" for launcher ANRs
+ * (Pixel/Nexus Launcher) since we launch MetaMask directly and do not need HOME.
+ */
+export function findAnrDialogRecoveryTapPoint(
+  uiDump: string,
+  options?: { preferCloseApp?: boolean },
+): TapPoint | undefined {
   if (!/isn.t responding/i.test(uiDump)) {
     return undefined;
   }
 
+  const preferCloseApp =
+    options?.preferCloseApp ??
+    /Pixel Launcher|Nexus Launcher|launcher/i.test(uiDump);
+
   const waitNode = uiDump.match(
     /text="Wait"[^>]*bounds="(\[[^\]]+\]\[[^\]]+\])"/,
   );
-  if (waitNode) {
-    return parseUiNodeCenter(waitNode[1]);
-  }
-
   const closeNode = uiDump.match(
     /text="Close app"[^>]*bounds="(\[[^\]]+\]\[[^\]]+\])"/,
   );
+
+  if (preferCloseApp) {
+    if (closeNode) {
+      return parseUiNodeCenter(closeNode[1]);
+    }
+    if (waitNode) {
+      return parseUiNodeCenter(waitNode[1]);
+    }
+    return undefined;
+  }
+
+  if (waitNode) {
+    return parseUiNodeCenter(waitNode[1]);
+  }
   if (closeNode) {
     return parseUiNodeCenter(closeNode[1]);
   }
@@ -158,11 +213,38 @@ async function disableAndroidAnimations(serial: string): Promise<void> {
   }
 }
 
-async function dismissAndroidAnrDialogs(serial: string): Promise<void> {
+async function runAdbShell(serial: string, command: string): Promise<void> {
+  await execAsync(`adb -s ${serial} shell ${command}`).catch(() => undefined);
+}
+
+async function trimAndroidSystemForE2e(serial: string): Promise<void> {
+  logger.info(
+    'Trimming Android system for E2E (skip setup wizard, disable bloat packages)...',
+  );
+
+  const setupWizardSettings = [
+    'settings put global device_provisioned 1',
+    'settings put secure user_setup_complete 1',
+    'settings put global setup_wizard_has_run 1',
+  ];
+  for (const command of setupWizardSettings) {
+    await runAdbShell(serial, command);
+  }
+
+  for (const packageName of ANDROID_E2E_PACKAGES_TO_DISABLE) {
+    await runAdbShell(serial, `pm disable-user --user 0 ${packageName}`);
+  }
+
+  for (const packageName of ANDROID_E2E_LAUNCHER_PACKAGES) {
+    await runAdbShell(serial, `am force-stop ${packageName}`);
+  }
+}
+
+async function dismissAndroidAnrDialogs(serial: string): Promise<boolean> {
   const uiDump = await dumpUiHierarchy(serial);
-  const tapPoint = findAnrDialogWaitTapPoint(uiDump);
+  const tapPoint = findAnrDialogRecoveryTapPoint(uiDump);
   if (!tapPoint) {
-    return;
+    return false;
   }
 
   logger.warn(
@@ -171,11 +253,53 @@ async function dismissAndroidAnrDialogs(serial: string): Promise<void> {
   await execAsync(
     `adb -s ${serial} shell input tap ${tapPoint.x} ${tapPoint.y}`,
   );
+  return true;
 }
 
 /**
- * After cold `-wipe-data` boot, Pixel Launcher and other system apps can ANR
- * while indexing. Give the device time to settle and dismiss any blocking dialogs.
+ * Poll until ANR dialogs are absent for several consecutive checks, dismissing
+ * any that appear. Falls through after timeout so boot does not hang forever.
+ */
+async function waitForAndroidSystemReady(serial: string): Promise<void> {
+  const initialSettleMs = Number.parseInt(
+    process.env.ANDROID_EMULATOR_POST_BOOT_SETTLE_MS ??
+      String(ANDROID_CI_INITIAL_SETTLE_MS),
+    10,
+  );
+  if (initialSettleMs > 0) {
+    logger.info(
+      `Waiting ${initialSettleMs / 1000}s before checking Android system readiness...`,
+    );
+    await sleep(initialSettleMs);
+  }
+
+  const deadline = Date.now() + ANDROID_ANR_STABILIZE_TIMEOUT_MS;
+  let clearStreak = 0;
+
+  while (Date.now() < deadline) {
+    const hadAnr = await dismissAndroidAnrDialogs(serial);
+    if (hadAnr) {
+      clearStreak = 0;
+    } else {
+      clearStreak += 1;
+      if (clearStreak >= ANDROID_ANR_CLEAR_STREAK_REQUIRED) {
+        logger.info(
+          `Android system stable (${clearStreak} consecutive ANR-free checks).`,
+        );
+        return;
+      }
+    }
+    await sleep(ANDROID_ANR_DISMISS_INTERVAL_MS);
+  }
+
+  logger.warn(
+    `Android system did not stabilize within ${ANDROID_ANR_STABILIZE_TIMEOUT_MS / 1000}s — continuing.`,
+  );
+}
+
+/**
+ * After cold `-wipe-data` boot, system apps can ANR while indexing.
+ * Trim bloat, wait for ANR-free window, then force-stop the launcher.
  */
 async function stabilizeAndroidEmulatorAfterBoot(
   serial: string,
@@ -186,25 +310,15 @@ async function stabilizeAndroidEmulatorAfterBoot(
 
   logger.info('Stabilizing Android emulator after cold boot...');
   await disableAndroidAnimations(serial);
+  await trimAndroidSystemForE2e(serial);
   await execAsync(`adb -s ${serial} shell input keyevent 3`).catch(() => {
-    /* HOME — ensure launcher is foreground for ANR detection */
+    /* HOME — surface any remaining system dialogs */
   });
 
-  const settleMs = Number.parseInt(
-    process.env.ANDROID_EMULATOR_POST_BOOT_SETTLE_MS ??
-      String(ANDROID_CI_POST_BOOT_SETTLE_MS),
-    10,
-  );
-  if (settleMs > 0) {
-    logger.info(
-      `Waiting ${settleMs / 1000}s for Android system apps to settle...`,
-    );
-    await sleep(settleMs);
-  }
+  await waitForAndroidSystemReady(serial);
 
-  for (let attempt = 0; attempt < ANDROID_ANR_DISMISS_ATTEMPTS; attempt += 1) {
-    await dismissAndroidAnrDialogs(serial);
-    await sleep(ANDROID_ANR_DISMISS_INTERVAL_MS);
+  for (const packageName of ANDROID_E2E_LAUNCHER_PACKAGES) {
+    await runAdbShell(serial, `am force-stop ${packageName}`);
   }
 }
 
@@ -290,12 +404,21 @@ export async function startAndroidEmulator(avdName: string): Promise<string> {
   );
   if (offlineEmulator) {
     const offlineAvdName = await getEmulatorAvdName(offlineEmulator.serial);
-    if (!offlineAvdName || offlineAvdName === avdName) {
+    if (shouldWaitForOfflineEmulator(avdName, offlineAvdName)) {
       logger.info(
-        `Waiting for Android emulator ${offlineEmulator.serial} (${offlineAvdName ?? 'unknown AVD'}) to finish booting instead of spawning a duplicate.`,
+        `Waiting for Android emulator ${offlineEmulator.serial} (${offlineAvdName}) to finish booting instead of spawning a duplicate.`,
       );
       await waitForEmulatorBoot(offlineEmulator.serial);
       return offlineEmulator.serial;
+    }
+    if (offlineAvdName) {
+      logger.info(
+        `Ignoring offline emulator ${offlineEmulator.serial} (AVD "${offlineAvdName}") — requested "${avdName}".`,
+      );
+    } else {
+      logger.info(
+        `Ignoring offline emulator ${offlineEmulator.serial} (AVD unknown) — requested "${avdName}".`,
+      );
     }
   }
 
@@ -311,19 +434,20 @@ export async function startAndroidEmulator(avdName: string): Promise<string> {
 
   logger.info(`Starting Android emulator: ${avdName}`);
 
-  // Match Detox CI emulator flags (.detoxrc.js → android.github_ci.emulator) so
-  // Appium smoke gets the same RAM/CPU and clean `-wipe-data` boot. The minimal
-  // flags we used previously (-no-snapshot-load only) left emulators under-resourced
-  // and prone to system app crashes (e.g. Messages ANR) on cold boot.
+  // Appium smoke CI uses AOSP (`default` image) — lighter cold boot than google_apis.
+  // RAM/CPU flags align with Detox CI where noted; cores overridable via env.
   const args = ['-avd', avdName];
   if (isCI) {
+    const cores =
+      process.env.ANDROID_EMULATOR_CI_CORES?.trim() ||
+      ANDROID_EMULATOR_CI_CORES_DEFAULT;
     args.push(
       '-skin',
       '1080x2340',
       '-memory',
       '12288',
       '-cores',
-      '8',
+      cores,
       '-gpu',
       'swiftshader_indirect',
       '-no-audio',

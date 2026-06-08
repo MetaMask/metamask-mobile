@@ -105,3 +105,6 @@ if (process.env.GITHUB_OUTPUT) {
 }
 
 console.log('iOS Appium runner ready.');
+
+// Detached Appium + WebdriverIO can leave open handles; exit so GHA does not hang.
+process.exit(0);

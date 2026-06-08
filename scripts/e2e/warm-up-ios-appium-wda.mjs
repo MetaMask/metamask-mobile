@@ -20,6 +20,17 @@ async function isAppiumRunning() {
   }
 }
 
+async function waitForAppiumReady(timeoutMs) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (await isAppiumRunning()) {
+      return;
+    }
+    await sleep(250);
+  }
+  throw new Error(`Appium did not start within ${timeoutMs}ms`);
+}
+
 async function startAppiumServer() {
   if (await isAppiumRunning()) {
     console.log(`Appium already running at http://${APPIUM_HOST}:${APPIUM_PORT} — reusing.`);
@@ -28,55 +39,28 @@ async function startAppiumServer() {
 
   console.log(`Starting Appium on http://${APPIUM_HOST}:${APPIUM_PORT} for WDA warm-up…`);
 
-  await new Promise((resolve, reject) => {
-    let settled = false;
-    const proc = spawn(
-      'yarn',
-      [
-        'appium',
-        '--allow-insecure=chromedriver_autodownload',
-        '--port',
-        String(APPIUM_PORT),
-        '--address',
-        APPIUM_HOST,
-      ],
-      { stdio: 'pipe', detached: true },
-    );
+  // stdio: 'ignore' — do not pipe stdout/stderr into this process. Piped stdio keeps
+  // Node's event loop alive after warm-up even when Appium is detached/unref'd, which
+  // makes the GHA prepare step hang until job timeout.
+  const proc = spawn(
+    'yarn',
+    [
+      'appium',
+      '--allow-insecure=chromedriver_autodownload',
+      '--port',
+      String(APPIUM_PORT),
+      '--address',
+      APPIUM_HOST,
+    ],
+    { stdio: 'ignore', detached: true },
+  );
 
-    const timeout = setTimeout(() => {
-      if (!settled) {
-        settled = true;
-        proc.kill();
-        reject(new Error(`Appium did not start within ${APPIUM_STARTUP_TIMEOUT_MS}ms`));
-      }
-    }, APPIUM_STARTUP_TIMEOUT_MS);
-
-    proc.stdout.on('data', (chunk) => {
-      const output = chunk.toString();
-      if (output.includes('Appium REST http interface listener started') && !settled) {
-        settled = true;
-        clearTimeout(timeout);
-        proc.unref();
-        resolve(undefined);
-      }
-    });
-
-    proc.on('error', (error) => {
-      if (!settled) {
-        settled = true;
-        clearTimeout(timeout);
-        reject(error);
-      }
-    });
-
-    proc.on('close', (code) => {
-      if (!settled) {
-        settled = true;
-        clearTimeout(timeout);
-        reject(new Error(`Appium exited with code ${code} before starting`));
-      }
-    });
+  proc.on('error', (error) => {
+    console.error('Failed to spawn Appium:', error);
   });
+
+  proc.unref();
+  await waitForAppiumReady(APPIUM_STARTUP_TIMEOUT_MS);
 }
 
 /**
@@ -117,6 +101,9 @@ export async function warmUpIosAppiumWda({
   });
 
   await driver.deleteSession();
+  if (typeof driver.close === 'function') {
+    await driver.close().catch(() => undefined);
+  }
   console.log('WDA warm-up complete — Appium left running for Playwright.');
   await sleep(2000);
 }

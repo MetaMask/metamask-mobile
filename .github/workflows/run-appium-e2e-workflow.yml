@@ -84,7 +84,7 @@ jobs:
           setup-simulator: 'true'
           android-avd-name: appium_smoke_avd
           android-api-level: '34'
-          android-tag: google_apis
+          android-tag: default
           android-abi: x86_64
           android-device: pixel_5
           configure-keystores: 'false'
@@ -265,6 +265,7 @@ jobs:
           ANDROID_APK_PATH: ${{ steps.android-artifacts.outputs.apk-target-path }}/${{ steps.android-artifacts.outputs.apk-file-name }}
           ANDROID_AVD_NAME: appium_smoke_avd
           ANDROID_APPIUM_USE_PACKAGE_ONLY: 'true'
+          ANDROID_EMULATOR_CI_CORES: '4'
 
       - name: Run Appium smoke tests (iOS)
         if: ${{ inputs.platform == 'ios' }}
