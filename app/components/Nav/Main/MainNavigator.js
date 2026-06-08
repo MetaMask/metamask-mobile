@@ -86,6 +86,7 @@ import { CAN_INSTALL_THIRD_PARTY_SNAPS } from '../../../constants/snaps';
 import Routes from '../../../constants/navigation/Routes';
 import {
   clearStackNavigatorOptionsWithTransitionAnimation,
+  clearNativeStackNavigatorOptions,
   transparentModalScreenOptions,
 } from '../../../constants/navigation/clearStackNavigatorOptions';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -213,43 +214,43 @@ const fadeAnimation = {
 
 /* eslint-disable react/prop-types */
 const AssetStackFlow = (props) => (
-  <Stack.Navigator
+  <NativeStack.Navigator
     screenOptions={{
       headerShown: false,
     }}
   >
-    <Stack.Screen
+    <NativeStack.Screen
       name={'Asset'}
       component={TokenDetails}
       initialParams={props.route.params}
     />
-    <Stack.Screen
+    <NativeStack.Screen
       name={'AssetDetails'}
       component={AssetDetails}
       initialParams={{ address: props.route.params?.address }}
     />
-    <Stack.Screen
+    <NativeStack.Screen
       name={Routes.SECURITY_TRUST}
       component={SecurityTrustScreen}
     />
-    <Stack.Screen
+    <NativeStack.Screen
       name={Routes.TRANSACTION_DETAILS}
       component={TransactionDetails}
     />
-  </Stack.Navigator>
+  </NativeStack.Navigator>
 );
 
 const AssetNavigator = (props) => (
-  <Stack.Navigator
+  <NativeStack.Navigator
     initialRouteName={'AssetStackFlow'}
-    screenOptions={clearStackNavigatorOptionsWithTransitionAnimation}
+    screenOptions={clearNativeStackNavigatorOptions}
   >
-    <Stack.Screen
+    <NativeStack.Screen
       name={'AssetStackFlow'}
       component={AssetStackFlow}
       initialParams={props.route.params}
     />
-  </Stack.Navigator>
+  </NativeStack.Navigator>
 );
 /* eslint-enable react/prop-types */
 
@@ -295,6 +296,7 @@ const TransactionsHome = () => {
       <NativeStack.Screen
         name={Routes.TRANSACTION_DETAILS}
         component={TransactionDetails}
+        options={{ headerShown: false }}
       />
       <NativeStack.Screen
         name={Routes.RAMP.ORDER_DETAILS}
@@ -421,20 +423,26 @@ const ExploreHome = () => {
 };
 
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-const SnapsSettingsStack = () => (
-  <Stack.Navigator>
-    <Stack.Screen
-      name={Routes.SNAPS.SNAPS_SETTINGS_LIST}
-      component={SnapsSettingsList}
-      options={SnapsSettingsList.navigationOptions}
-    />
-    <Stack.Screen
-      name={Routes.SNAPS.SNAP_SETTINGS}
-      component={SnapSettings}
-      options={SnapSettings.navigationOptions}
-    />
-  </Stack.Navigator>
-);
+const SnapsSettingsStack = () => {
+  const { colors } = useTheme();
+  return (
+    <NativeStack.Navigator
+      screenOptions={{
+        headerShown: false,
+        contentStyle: { backgroundColor: colors.background.default },
+      }}
+    >
+      <NativeStack.Screen
+        name={Routes.SNAPS.SNAPS_SETTINGS_LIST}
+        component={SnapsSettingsList}
+      />
+      <NativeStack.Screen
+        name={Routes.SNAPS.SNAP_SETTINGS}
+        component={SnapSettings}
+      />
+    </NativeStack.Navigator>
+  );
+};
 ///: END:ONLY_INCLUDE_IF
 
 const SettingsFlow = () => {
