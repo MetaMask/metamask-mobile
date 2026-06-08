@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.4
-FROM node:20-bookworm
+FROM node:22-bookworm
 
 RUN apt-get update \
   && apt-get install -y \
@@ -49,8 +49,7 @@ RUN bash -c 'eval "$(/home/node/.rbenv/bin/rbenv init -)" \
     && gem install bigdecimal cocoapods \
     && bundle install'
 
-# fix broken ipv6 on nodejs v20
-ENV NODE_OPTIONS="--no-network-family-autoselection --trace-warnings"
+ENV NODE_OPTIONS="--trace-warnings"
 # minimize ruby memory usage
 ENV MALLOC_ARENA_MAX=1
 ENV PATH=/home/node/.rbenv/shims/:$PATH
