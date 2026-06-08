@@ -21,6 +21,7 @@ import SearchFeedRow, {
 import {
   getExploreSearchResultCount,
   trackExploreSearchEvent,
+  useInstrumentedSearchEffect,
   useScrollTracking,
   type SearchFeedPill,
 } from '../../search/analytics';
@@ -195,31 +196,15 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
     [sections, activePill],
   );
 
-  const instrumentedSearchQueryRef = useRef<string | null>(null);
+  const getActivePill = useCallback(() => activePillRef.current, []);
+  const getSections = useCallback(() => sectionsRef.current, []);
 
-  useEffect(() => {
-    if (!searchQuery.trim()) {
-      instrumentedSearchQueryRef.current = null;
-      return;
-    }
-    if (isLoading) return;
-    if (instrumentedSearchQueryRef.current === searchQuery) return;
-
-    const currentPill = activePillRef.current;
-    const currentSections = sectionsRef.current;
-    const resultCount = getExploreSearchResultCount(
-      currentPill,
-      currentSections,
-    );
-
-    trackExploreSearchEvent({
-      interaction_type: 'searched',
-      search_query: searchQuery,
-      tab_name: currentPill,
-      result_count: resultCount,
-    });
-    instrumentedSearchQueryRef.current = searchQuery;
-  }, [searchQuery, isLoading]);
+  useInstrumentedSearchEffect({
+    searchQuery,
+    isLoading,
+    getPill: getActivePill,
+    getSections,
+  });
 
   const handlePillSelect = useCallback((key: string) => {
     const targetSections = sectionsRef.current;

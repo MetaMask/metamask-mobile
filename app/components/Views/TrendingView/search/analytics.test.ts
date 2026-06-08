@@ -1,3 +1,4 @@
+import { renderHook, act } from '@testing-library/react-hooks';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { analytics } from '../../../../util/analytics/analytics';
 import {
@@ -5,6 +6,7 @@ import {
   getTotalSectionResultCount,
   trackExplorePredictTrendingAssetViewed,
   trackExploreSectionSeeAll,
+  useInstrumentedSearchEffect,
 } from './analytics';
 import type { SearchFeedSection } from './useExploreSearch';
 
@@ -71,6 +73,121 @@ describe('getExploreSearchResultCount', () => {
 
   it('returns the total across sections when the active feed section is missing', () => {
     expect(getExploreSearchResultCount('sites', sections)).toBe(12);
+  });
+});
+
+describe('useInstrumentedSearchEffect', () => {
+  const sections = [
+    makeSection('tokens', { total: 5, items: [{}] as unknown[] }),
+  ];
+  const getPill = jest.fn(() => 'all' as const);
+  const getSections = jest.fn(() => sections);
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    getPill.mockReturnValue('all');
+    getSections.mockReturnValue(sections);
+  });
+
+  it('fires the searched event once when loading settles', () => {
+    const { rerender } = renderHook(
+      ({ isLoading }: { isLoading: boolean }) =>
+        useInstrumentedSearchEffect({
+          searchQuery: 'eth',
+          isLoading,
+          getPill,
+          getSections,
+        }),
+      { initialProps: { isLoading: true } },
+    );
+
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+
+    act(() => {
+      rerender({ isLoading: false });
+    });
+
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    expect(mockTrackEvent.mock.calls[0][0].properties).toMatchObject({
+      interaction_type: 'searched',
+      search_query: 'eth',
+      tab_name: 'all',
+      result_count: 5,
+    });
+  });
+
+  it('does not fire again for the same query', () => {
+    const { rerender } = renderHook(() =>
+      useInstrumentedSearchEffect({
+        searchQuery: 'eth',
+        isLoading: false,
+        getPill,
+        getSections,
+      }),
+    );
+
+    act(() => {
+      rerender();
+    });
+
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it('fires again when the query changes', () => {
+    const { rerender } = renderHook(
+      ({ query }: { query: string }) =>
+        useInstrumentedSearchEffect({
+          searchQuery: query,
+          isLoading: false,
+          getPill,
+          getSections,
+        }),
+      { initialProps: { query: 'eth' } },
+    );
+
+    act(() => {
+      rerender({ query: 'btc' });
+    });
+
+    expect(mockTrackEvent).toHaveBeenCalledTimes(2);
+    expect(mockTrackEvent.mock.calls[1][0].properties).toMatchObject({
+      search_query: 'btc',
+    });
+  });
+
+  it('does not fire for an empty or whitespace-only query', () => {
+    renderHook(() =>
+      useInstrumentedSearchEffect({
+        searchQuery: '   ',
+        isLoading: false,
+        getPill,
+        getSections,
+      }),
+    );
+
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+  });
+
+  it('resets and fires again after the query is cleared then re-entered', () => {
+    const { rerender } = renderHook(
+      ({ query }: { query: string }) =>
+        useInstrumentedSearchEffect({
+          searchQuery: query,
+          isLoading: false,
+          getPill,
+          getSections,
+        }),
+      { initialProps: { query: 'eth' } },
+    );
+
+    act(() => {
+      rerender({ query: '' });
+    });
+    act(() => {
+      rerender({ query: 'eth' });
+    });
+
+    expect(mockTrackEvent).toHaveBeenCalledTimes(2);
   });
 });
 

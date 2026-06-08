@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import {
   mergeAssetViewedProperties,
   MetaMetricsEvents,
@@ -165,6 +165,45 @@ export const trackExploreSearchEvent = (
       .addProperties(properties as unknown as Record<string, unknown>)
       .build(),
   );
+};
+
+/**
+ * Side effect hook to invoke analytics when searching.
+ * Fires the 'searched' event once per unique settled query (after loading
+ * completes). Resets when the query is cleared.
+ */
+export const useInstrumentedSearchEffect = ({
+  searchQuery,
+  isLoading,
+  getPill,
+  getSections,
+}: {
+  searchQuery: string;
+  isLoading: boolean;
+  getPill: () => SearchFeedPill;
+  getSections: () => SearchFeedSection[];
+}): void => {
+  const instrumentedQueryRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      instrumentedQueryRef.current = null;
+      return;
+    }
+    if (isLoading) return;
+    if (instrumentedQueryRef.current === searchQuery) return;
+
+    const pill = getPill();
+    const resultCount = getExploreSearchResultCount(pill, getSections());
+
+    trackExploreSearchEvent({
+      interaction_type: 'searched',
+      search_query: searchQuery,
+      tab_name: pill,
+      result_count: resultCount,
+    });
+    instrumentedQueryRef.current = searchQuery;
+  }, [searchQuery, isLoading, getPill, getSections]);
 };
 
 /**
