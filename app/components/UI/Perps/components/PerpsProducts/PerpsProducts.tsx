@@ -26,6 +26,9 @@ import { selectPerpsProductsEnabledFlag } from '../../selectors/featureFlags';
 import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
 import { usePerpsCategories } from '../../hooks/usePerpsCategories';
 import { BADGE_CATEGORY_ICON_MAP } from '../../constants/categoryIcons';
+import PreIpoRocketIcon from './PreIpoRocketIcon';
+import EtfsLayersIcon from './EtfsLayersIcon';
+import IndicesChartIcon from './IndicesChartIcon';
 import { styleSheet } from './PerpsProducts.styles';
 import type { PerpsProductsProps } from './PerpsProducts.types';
 
@@ -54,7 +57,7 @@ const PerpsProducts: React.FC<PerpsProductsProps> = ({
   transactionActiveAbTests,
 }) => {
   const isEnabled = useSelector(selectPerpsProductsEnabledFlag);
-  const { styles } = useStyles(styleSheet, {});
+  const { styles, theme } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
@@ -115,11 +118,25 @@ const PerpsProducts: React.FC<PerpsProductsProps> = ({
             accessibilityLabel={category.label}
             testID={`${TEST_ID}-${category.id}`}
           >
-            <Icon
-              name={BADGE_CATEGORY_ICON_MAP[category.id] ?? IconName.Coin}
-              size={IconSize.Lg}
-              color={IconColor.IconAlternative}
-            />
+            {category.id === 'pre-ipo' ? (
+              <PreIpoRocketIcon
+                size={24}
+                color={theme.colors.icon.alternative}
+              />
+            ) : category.id === 'etfs' ? (
+              <EtfsLayersIcon size={24} color={theme.colors.icon.alternative} />
+            ) : category.id === 'indices' ? (
+              <IndicesChartIcon
+                size={24}
+                color={theme.colors.icon.alternative}
+              />
+            ) : (
+              <Icon
+                name={BADGE_CATEGORY_ICON_MAP[category.id] ?? IconName.Coin}
+                size={IconSize.Lg}
+                color={IconColor.IconAlternative}
+              />
+            )}
             <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
               {category.label}
             </Text>
