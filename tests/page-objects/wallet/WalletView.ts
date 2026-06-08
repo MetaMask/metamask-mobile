@@ -6,7 +6,6 @@ import { EARN_TEST_IDS } from '../../../app/components/UI/Earn/constants/testIds
 import { CashGetMusdEmptyStateSelectors } from '../../../app/components/Views/Homepage/Sections/Cash/CashGetMusdEmptyState.testIds';
 import { SECONDARY_BALANCE_BUTTON_TEST_ID } from '../../../app/components/UI/AssetElement/index.constants';
 import {
-  PredictTabViewSelectorsIDs,
   PredictPositionsHeaderSelectorsIDs,
   PredictPositionSelectorsIDs,
   PredictClaimConfirmationSelectorsIDs,
@@ -782,10 +781,6 @@ class WalletView {
       PredictClaimConfirmationSelectorsIDs.CLAIM_CONFIRM_BUTTON,
     );
   }
-  get predictScrollViewIdentifier() {
-    return Matchers.getIdentifier(PredictTabViewSelectorsIDs.SCROLL_VIEW);
-  }
-
   get defiPositionDetailsContainer(): DetoxElement {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.DEFI_POSITIONS_DETAILS_CONTAINER,
@@ -794,10 +789,6 @@ class WalletView {
 
   get predictionsTab(): DetoxElement {
     return Matchers.getElementByLabel(WalletViewSelectorsText.PREDICTIONS_TAB);
-  }
-
-  get PredictionsTabContainer(): DetoxElement {
-    return Matchers.getElementByID(PredictTabViewSelectorsIDs.SCROLL_VIEW);
   }
 
   get availableBalanceLabel(): DetoxElement {
@@ -907,34 +898,6 @@ class WalletView {
     await this.scrollAndTapSection(
       elem,
       `Predictions Position: ${positionName}`,
-    );
-  }
-
-  async scrollDownOnPredictionsTab(): Promise<void> {
-    await Gestures.swipe(this.PredictionsTabContainer, 'up', {
-      speed: 'slow',
-      percentage: 0.4,
-    });
-  }
-
-  async scrollUpOnPredictionsTab(): Promise<void> {
-    await Gestures.swipe(this.PredictionsTabContainer, 'down', {
-      speed: 'slow',
-      percentage: 0.4,
-    });
-  }
-
-  async scrollToPosition(
-    positionName: string,
-    direction: 'up' | 'down' = 'down',
-  ): Promise<void> {
-    const positionElement = (await Matchers.getElementByText(
-      positionName,
-    )) as unknown as DetoxElement;
-    await Gestures.scrollToElement(
-      positionElement,
-      this.predictScrollViewIdentifier,
-      { direction },
     );
   }
 

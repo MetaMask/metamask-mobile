@@ -27,7 +27,11 @@ import {
   type GasFeeEstimates,
 } from '@metamask/transaction-controller';
 import { LedgerReplacementTxTypes } from '../../UI/LedgerModals/LedgerTransactionModal';
-import { createQRSigningTransactionModalNavDetails } from '../../UI/QRHardware/QRSigningTransactionModal';
+import {
+  createQRSigningTransactionModalNavDetails,
+  QRSignMode,
+} from '../../UI/QRHardware/QRSigningTransactionModal';
+import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 
 const mockNavigate = jest.fn();
 
@@ -63,6 +67,10 @@ jest.mock('../../UI/QRHardware/QRSigningTransactionModal', () => ({
   createQRSigningTransactionModalNavDetails: jest
     .fn()
     .mockReturnValue(['QRSigningModal', {}]),
+  QRSignMode: {
+    SpeedUp: 'speedup',
+    Cancel: 'cancel',
+  },
 }));
 
 jest.mock('@metamask/rpc-errors', () => ({
@@ -1000,6 +1008,73 @@ describe('useUnifiedTxActions', () => {
           expect(result.current.cancelIsOpen).toBe(false);
           expect(result.current.cancelTxId).toBeNull();
           expect(result.current.existingTx).toBeNull();
+        });
+      });
+
+      describe('QR hardware account transactions', () => {
+        beforeEach(() => {
+          (isHardwareAccount as jest.Mock).mockImplementation(
+            (_address: string, keyringTypes?: string[]) =>
+              Boolean(keyringTypes?.includes(ExtendedKeyringTypes.qr)),
+          );
+        });
+
+        afterEach(() => {
+          (isHardwareAccount as jest.Mock).mockReturnValue(false);
+        });
+
+        it('passes speed-up transaction id to QR signing modal and closes gas modal', async () => {
+          const { result } = renderUnifiedTxActions();
+          const tx = { id: 'qr-speedup-1' } as unknown as TransactionMeta;
+
+          act(() => result.current.onSpeedUpAction(true, tx));
+          await act(async () => {
+            await result.current.speedUpTransaction({
+              maxFeePerGas: '0xaa',
+              maxPriorityFeePerGas: '0xbb',
+            });
+          });
+
+          expect(
+            createQRSigningTransactionModalNavDetails,
+          ).toHaveBeenCalledWith(
+            expect.objectContaining({
+              transactionId: 'qr-speedup-1',
+              signMode: QRSignMode.SpeedUp,
+            }),
+          );
+          expect(mockNavigate).toHaveBeenCalledWith('QRSigningModal', {});
+          expect(result.current.speedUpIsOpen).toBe(false);
+          expect(result.current.speedUpTxId).toBeNull();
+          expect(speedUpTx).not.toHaveBeenCalled();
+        });
+
+        it('passes cancel transaction id to QR signing modal and closes gas modal', async () => {
+          const { result } = renderUnifiedTxActions();
+          const tx = { id: 'qr-cancel-1' } as unknown as TransactionMeta;
+
+          act(() => result.current.onCancelAction(true, tx));
+          await act(async () => {
+            await result.current.cancelTransaction({
+              maxFeePerGas: '0x11',
+              maxPriorityFeePerGas: '0x22',
+            });
+          });
+
+          expect(
+            createQRSigningTransactionModalNavDetails,
+          ).toHaveBeenCalledWith(
+            expect.objectContaining({
+              transactionId: 'qr-cancel-1',
+              signMode: QRSignMode.Cancel,
+            }),
+          );
+          expect(mockNavigate).toHaveBeenCalledWith('QRSigningModal', {});
+          expect(result.current.cancelIsOpen).toBe(false);
+          expect(result.current.cancelTxId).toBeNull();
+          expect(
+            engineContext.TransactionController.stopTransaction,
+          ).not.toHaveBeenCalled();
         });
       });
     });

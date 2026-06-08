@@ -11,6 +11,7 @@ import {
   selectCardHomeDataStatus,
   selectIsCardAuthenticated,
   selectIsCardholder,
+  selectIsMoneyAccountCardLinkInProgress,
   selectIsMoneyAccountDelegatedForCard,
 } from '../../../../selectors/cardController';
 import {
@@ -54,11 +55,6 @@ jest.mock('../../../../core/Engine', () => ({
       },
     },
   },
-}));
-
-const mockUseIsMoneyAccount7702Ready = jest.fn<boolean | undefined, []>();
-jest.mock('./useIsMoneyAccount7702Ready', () => ({
-  useIsMoneyAccount7702Ready: () => mockUseIsMoneyAccount7702Ready(),
 }));
 
 jest.mock('./useCardDelegation', () => {
@@ -146,6 +142,7 @@ const buildSelectors = (
     pendingMoneyAccountCardLink?: boolean;
     cardHomeDataStatus?: CardHomeDataStatusMock;
     isMonadSponsorshipEnabled?: boolean;
+    moneyAccountCardLinkInProgress?: boolean;
   } = {},
 ) => ({
   primaryMoneyAccount: { address: MONEY_ACCOUNT_ADDRESS },
@@ -158,6 +155,7 @@ const buildSelectors = (
   pendingMoneyAccountCardLink: false,
   cardHomeDataStatus: 'success' as CardHomeDataStatusMock,
   isMonadSponsorshipEnabled: true,
+  moneyAccountCardLinkInProgress: false,
   ...overrides,
 });
 
@@ -176,6 +174,8 @@ const applySelectorMocks = (state: ReturnType<typeof buildSelectors>) => {
     if (selector === selectCardHomeDataStatus) return state.cardHomeDataStatus;
     if (selector === selectIsMoneyAccountDelegatedForCard)
       return state.isAlreadyDelegated;
+    if (selector === selectIsMoneyAccountCardLinkInProgress)
+      return state.moneyAccountCardLinkInProgress;
     if (selector === selectPendingMoneyAccountCardLink)
       return state.pendingMoneyAccountCardLink;
     if (selector === getGasFeesSponsoredNetworkEnabled)
@@ -207,8 +207,6 @@ describe('useMoneyAccountCardLinkage', () => {
     // Default: no in-flight linkage. Singleflight-specific tests override
     // this within their own `it` blocks.
     mockIsLinkageInProgress.mockReturnValue(false);
-    // Default: 7702 upgrade resolved. Gating tests override per-case.
-    mockUseIsMoneyAccount7702Ready.mockReturnValue(true);
   });
 
   describe('derived state', () => {
@@ -274,16 +272,48 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(result.current.canLink).toBe(false);
     });
 
-    it('reports canLink=false when the money account is not 7702-upgraded on Monad', () => {
-      mockUseIsMoneyAccount7702Ready.mockReturnValue(false);
+    it('reports isLinking=true when controller linkage is in progress', () => {
+      applySelectorMocks(
+        buildSelectors({ moneyAccountCardLinkInProgress: true }),
+      );
       const { result } = renderLinkageHook();
-      expect(result.current.canLink).toBe(false);
+      expect(result.current.isLinking).toBe(true);
+    });
+  });
+
+  describe('linkage in progress guards', () => {
+    const ORIGIN = {
+      screen: Routes.MONEY.ROOT,
+      params: { screen: Routes.MONEY.HOME },
+    } as const;
+
+    it('does not navigate from openLinkCardSheet when linkage is in progress', () => {
+      applySelectorMocks(
+        buildSelectors({ moneyAccountCardLinkInProgress: true }),
+      );
+      const { result } = renderLinkageHook();
+
+      act(() => {
+        result.current.openLinkCardSheet();
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
     });
 
-    it('reports canLink=false while the 7702 readiness check is still pending', () => {
-      mockUseIsMoneyAccount7702Ready.mockReturnValue(undefined);
+    it('does not navigate from startLinkFlow when linkage is in progress', () => {
+      applySelectorMocks(
+        buildSelectors({ moneyAccountCardLinkInProgress: true }),
+      );
       const { result } = renderLinkageHook();
-      expect(result.current.canLink).toBe(false);
+
+      act(() => {
+        result.current.startLinkFlow(ORIGIN);
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalled();
     });
   });
 

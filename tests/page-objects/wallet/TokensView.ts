@@ -35,6 +35,22 @@ class TokensView {
     });
   }
 
+  /**
+   * Wait for a token row to display a non-zero balance.
+   * Useful when the balance is seeded on an Anvil fork and the app needs
+   * time to refresh from the chain before the UI reflects it.
+   */
+  async waitForTokenBalance(
+    tokenSymbol: string,
+    timeout = 30000,
+  ): Promise<void> {
+    const assetTestId = getAssetTestId(tokenSymbol);
+    const zeroBalance = element(
+      by.text(`0 ${tokenSymbol}`).withAncestor(by.id(assetTestId)),
+    );
+    await waitFor(zeroBalance).not.toBeVisible().withTimeout(timeout);
+  }
+
   async tapToken(tokenSymbol: string): Promise<void> {
     const elem = Matchers.getElementByID(getAssetTestId(tokenSymbol));
     await Utilities.waitForElementToStopMoving(elem, {
