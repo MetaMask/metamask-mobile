@@ -447,6 +447,20 @@ function hasMatchingBatchTransaction(
   );
 }
 
+function getApprovedBatchTransactionIds(
+  batchId: string,
+  targetFrom: string,
+): string[] {
+  return getTransactions()
+    .filter(
+      (tx: TransactionMeta) =>
+        tx.batchId === batchId &&
+        matchesTx(tx, targetFrom) &&
+        tx.status === TransactionStatus.approved,
+    )
+    .map((tx: TransactionMeta) => tx.id);
+}
+
 interface UseHwBatchSignTrackerOptions {
   fromAddress: string | undefined;
   isEnabled: boolean;
@@ -969,6 +983,9 @@ export function useHwBatchSignTracker({
           );
           if (txMeta && matchesTx(txMeta, targetFrom)) {
             trackerState.acceptedApprovalIds.add(requestId);
+            if (txMeta.status === TransactionStatus.approved) {
+              trackerState.trackedTxIds.add(txMeta.id);
+            }
             trackerState.approvalQueue.push(requestId);
           }
         } else if (
@@ -977,6 +994,9 @@ export function useHwBatchSignTracker({
           hasMatchingBatchTransaction(requestId, targetFrom)
         ) {
           trackerState.acceptedApprovalIds.add(requestId);
+          getApprovedBatchTransactionIds(requestId, targetFrom).forEach(
+            (txId) => trackerState.trackedTxIds.add(txId),
+          );
           trackerState.approvalQueue.push(requestId);
         }
       }
@@ -988,6 +1008,33 @@ export function useHwBatchSignTracker({
     const dispatchSwapEvent = (event: HardwareWalletsSwapsEvent) => {
       latestValuesRef.current.dispatch(updateHardwareWalletsSwaps(event));
     };
+
+    const hasPendingApprovalForTransactionMeta = (
+      transactionMeta: TransactionMeta,
+    ): boolean => {
+      const pendingApprovals = getPendingApprovals();
+      const transactionApproval = pendingApprovals[transactionMeta.id];
+      if (transactionApproval?.type === 'transaction') {
+        return true;
+      }
+
+      const { batchId } = transactionMeta;
+      if (!batchId) {
+        return false;
+      }
+
+      return pendingApprovals[batchId]?.type === 'transaction_batch';
+    };
+
+    const shouldAcceptRetryApprovalForStaleBatch = (
+      transactionMeta: TransactionMeta,
+    ): boolean =>
+      transactionMeta.status === TransactionStatus.approved &&
+      Boolean(
+        transactionMeta.batchId &&
+          trackerStateRef.current.staleBatchIds.has(transactionMeta.batchId) &&
+          hasPendingApprovalForTransactionMeta(transactionMeta),
+      );
 
     const completeTrackedTx = (txId: string) => {
       handledTxIds.add(txId);
@@ -1032,12 +1079,15 @@ export function useHwBatchSignTracker({
       // set check, this ensures we ignore status updates for the previous
       // retry's batch — they would otherwise race against the new batch's
       // events and confuse the UI.
-      if (
-        detectAndApplyRetryGeneration() &&
-        transactionMeta.batchId &&
-        trackerStateRef.current.staleBatchIds.has(transactionMeta.batchId)
-      ) {
-        return;
+      const didAdvanceRetryGeneration = detectAndApplyRetryGeneration();
+      if (didAdvanceRetryGeneration && transactionMeta.batchId) {
+        if (shouldAcceptRetryApprovalForStaleBatch(transactionMeta)) {
+          trackerStateRef.current.staleBatchIds.delete(transactionMeta.batchId);
+        } else if (
+          trackerStateRef.current.staleBatchIds.has(transactionMeta.batchId)
+        ) {
+          return;
+        }
       }
 
       const { status, type } = transactionMeta;
