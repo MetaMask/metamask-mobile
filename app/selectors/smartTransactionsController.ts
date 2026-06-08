@@ -15,6 +15,7 @@ import { selectSelectedAccountGroupInternalAccounts } from './multichainAccounts
 import { getAllowedSmartTransactionsChainIds } from '../../app/constants/smartTransactions';
 import { createDeepEqualSelector } from './util';
 import { CaipChainId, Hex } from '@metamask/utils';
+import { selectAllowedSmartTransactionsRpcHosts } from './featureFlagController/smartTransactions';
 import { getIsAllowedRpcUrlForSmartTransactions } from '../util/smart-transactions';
 import { getFeatureFlagDeviceKey } from '../reducers/swaps/utils';
 
@@ -67,6 +68,7 @@ export const isSmartTransactionEnabledWithNetworkFeatureFlag = (
 export const selectSmartTransactionsEnabled = createDeepEqualSelector(
   [
     selectEvmChainId,
+    selectAllowedSmartTransactionsRpcHosts,
     (_state: RootState, chainId?: Hex) => chainId,
     (state: RootState, chainId?: Hex) =>
       selectRpcUrlByChainId(state, chainId || selectEvmChainId(state)),
@@ -80,6 +82,7 @@ export const selectSmartTransactionsEnabled = createDeepEqualSelector(
   ],
   (
     globalChainId,
+    allowedSmartTransactionsRpcHosts,
     transactionChainId,
     providerConfigRpcUrl,
     smartTransactionsFeatureFlags,
@@ -95,7 +98,10 @@ export const selectSmartTransactionsEnabled = createDeepEqualSelector(
 
     return Boolean(
       isAllowedNetwork &&
-        getIsAllowedRpcUrlForSmartTransactions(providerConfigRpcUrl) &&
+        getIsAllowedRpcUrlForSmartTransactions(
+          allowedSmartTransactionsRpcHosts,
+          providerConfigRpcUrl,
+        ) &&
         isSmartTransactionEnabledOnNetworkWithFeatureFlags &&
         smartTransactionsLivenessByChainId?.[effectiveChainId],
     );

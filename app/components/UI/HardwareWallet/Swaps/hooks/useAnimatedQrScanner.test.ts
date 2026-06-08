@@ -8,6 +8,7 @@ import type { JsonMap } from '../../../../../core/Analytics/MetaMetrics.types';
 import { SUPPORTED_UR_TYPE } from '../../../../../constants/qr';
 import { HardwareDeviceTypes } from '../../../../../constants/keyringTypes';
 import { QRHardwareScanErrorType } from '../../../../../core/HardwareWallet/errors';
+import type { UR } from '@ngraveio/bc-ur';
 
 import {
   getCapturedCallbacks,
@@ -72,13 +73,6 @@ type CapturedOnCodeScanned = NonNullable<
 >;
 type QRScannerCodes = Parameters<CapturedOnCodeScanned>[0];
 
-const expectCapturedCallback = <TCallback>(
-  callback: TCallback | null,
-): NonNullable<TCallback> => {
-  expect(callback).toEqual(expect.any(Function));
-  return callback as NonNullable<TCallback>;
-};
-
 function setupSuccessfulDecoder(urType = SUPPORTED_UR_TYPE.CRYPTO_HDKEY) {
   const instance = {
     receivePart: jest.fn(),
@@ -98,10 +92,11 @@ function setupSuccessfulDecoder(urType = SUPPORTED_UR_TYPE.CRYPTO_HDKEY) {
 }
 
 describe('useAnimatedQrScanner', () => {
-  const mockOnScanSuccess = jest.fn();
+  const mockOnScanSuccess = jest.fn((_ur: UR) => true);
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockOnScanSuccess.mockReturnValue(true);
     mockBuild.mockReturnValue({});
     resetCapturedCallbacks();
     mockRequestPermission.mockResolvedValue('granted');
@@ -233,6 +228,31 @@ describe('useAnimatedQrScanner', () => {
       });
 
       expect(mockOnScanSuccess).toHaveBeenCalledTimes(1);
+    });
+
+    it('pauses scanning when onScanSuccess rejects the UR and resumes after reset', async () => {
+      setupSuccessfulDecoder(SUPPORTED_UR_TYPE.CRYPTO_HDKEY);
+      mockOnScanSuccess.mockReturnValue(false);
+      const { result } = renderScannerHook();
+      const scanSuccessCode = [
+        { value: 'ur:crypto-hdkey/mock-part', type: 'qr' as const },
+      ];
+
+      await mockOnCodeScanned(result, scanSuccessCode);
+      expect(mockOnScanSuccess).toHaveBeenCalledTimes(1);
+
+      await mockOnCodeScanned(result, scanSuccessCode);
+      expect(mockOnScanSuccess).toHaveBeenCalledTimes(1);
+
+      act(() => {
+        result.current.reset();
+      });
+
+      setupSuccessfulDecoder(SUPPORTED_UR_TYPE.CRYPTO_HDKEY);
+      mockOnScanSuccess.mockReturnValue(true);
+      await mockOnCodeScanned(result, scanSuccessCode);
+
+      expect(mockOnScanSuccess).toHaveBeenCalledTimes(2);
     });
   });
 
@@ -621,7 +641,7 @@ describe('useAnimatedQrScanner', () => {
 
       expect(onErrorResult).toBeUndefined();
       await waitFor(() => {
-        expect(mockCreateEventBuilder).toHaveBeenCalledTimes(2);
+        expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
       });
       expect(mockTrackEvent).not.toHaveBeenCalled();
     });

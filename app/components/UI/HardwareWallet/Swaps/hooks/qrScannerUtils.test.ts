@@ -6,13 +6,7 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { HardwareDeviceTypes } from '../../../../../constants/keyringTypes';
 import type { UseAnalyticsHook } from '../../../../../components/hooks/useAnalytics/useAnalytics.types';
 import {
-  type QRHardwareScanError,
-  QRHardwareScanErrorType,
-} from '../../../../../core/HardwareWallet/errors';
-import {
-  buildQrHardwareWalletErrorAnalyticsProperties,
-  getExpectedURTypes,
-  isSameScanError,
+  getExpectedUrTypes,
   sendQrHardwareErrorAnalytics,
   useCameraPermissionRefresh,
 } from './qrScannerUtils';
@@ -26,143 +20,16 @@ jest.mock('../../../../../core/QrKeyring/QrKeyring', () => ({
   ),
 }));
 
-function makeScanError(
-  overrides: {
-    message?: string;
-    qrHardwareScanErrorType?: QRHardwareScanErrorType;
-    isUrFormat?: boolean;
-    receivedUrType?: string;
-  } = {},
-): QRHardwareScanError {
-  return {
-    message: overrides.message ?? 'Error',
-    metadata: {
-      qrHardwareScanErrorType:
-        overrides.qrHardwareScanErrorType ??
-        QRHardwareScanErrorType.NonURQrScanned,
-      isUrFormat: overrides.isUrFormat ?? false,
-      receivedUrType: overrides.receivedUrType,
-    },
-  } as unknown as QRHardwareScanError;
-}
-
-describe('isSameScanError', () => {
-  it('returns false when there is no previous scan error', () => {
-    expect(isSameScanError(null, makeScanError())).toBe(false);
-  });
-
-  it('returns true when all metadata fields match', () => {
-    const shared = {
-      message: 'Expected crypto-hdkey QR code',
-      qrHardwareScanErrorType: QRHardwareScanErrorType.WrongURType,
-      isUrFormat: true,
-      receivedUrType: SUPPORTED_UR_TYPE.ETH_SIGNATURE,
-    };
-
-    expect(isSameScanError(makeScanError(shared), makeScanError(shared))).toBe(
-      true,
-    );
-  });
-
-  it('returns true when both receivedUrType are undefined', () => {
-    const shared = {
-      message: 'Scanned QR code is not in UR format',
-      qrHardwareScanErrorType: QRHardwareScanErrorType.NonURQrScanned,
-      isUrFormat: false,
-    };
-
-    expect(isSameScanError(makeScanError(shared), makeScanError(shared))).toBe(
-      true,
-    );
-  });
-
-  it.each([
-    [
-      'receivedUrType',
-      { receivedUrType: SUPPORTED_UR_TYPE.ETH_SIGNATURE },
-      { receivedUrType: SUPPORTED_UR_TYPE.CRYPTO_ACCOUNT },
-    ],
-    ['message', { message: 'Error A' }, { message: 'Error B' }],
-    ['isUrFormat', { isUrFormat: true }, { isUrFormat: false }],
-    [
-      'qrHardwareScanErrorType',
-      { qrHardwareScanErrorType: QRHardwareScanErrorType.NonURQrScanned },
-      { qrHardwareScanErrorType: QRHardwareScanErrorType.URDecodeError },
-    ],
-  ] as const)(
-    'returns false when %s differs',
-    (_field, prevOverrides, currOverrides) => {
-      const base = {
-        message: 'Error',
-        isUrFormat: false,
-        qrHardwareScanErrorType: QRHardwareScanErrorType.NonURQrScanned,
-      } as const;
-      expect(
-        isSameScanError(
-          makeScanError({ ...base, ...prevOverrides }),
-          makeScanError({ ...base, ...currOverrides }),
-        ),
-      ).toBe(false);
-    },
-  );
-});
-
-describe('buildQrHardwareWalletErrorAnalyticsProperties', () => {
-  it('includes received_ur_type only for wrong UR type errors', () => {
-    expect(
-      buildQrHardwareWalletErrorAnalyticsProperties({
-        error: 'Wrong QR',
-        error_category: QRHardwareScanErrorType.WrongURType,
-        is_ur_format: true,
-        received_ur_type: SUPPORTED_UR_TYPE.ETH_SIGNATURE,
-      }),
-    ).toEqual({
-      error: 'Wrong QR',
-      error_category: QRHardwareScanErrorType.WrongURType,
-      is_ur_format: true,
-      received_ur_type: SUPPORTED_UR_TYPE.ETH_SIGNATURE,
-    });
-
-    expect(
-      buildQrHardwareWalletErrorAnalyticsProperties({
-        error: 'Decode failed',
-        error_category: QRHardwareScanErrorType.URDecodeError,
-        is_ur_format: true,
-        received_ur_type: SUPPORTED_UR_TYPE.ETH_SIGNATURE,
-      }),
-    ).toEqual({
-      error: 'Decode failed',
-      error_category: QRHardwareScanErrorType.URDecodeError,
-      is_ur_format: true,
-    });
-  });
-
-  it('falls back to an empty received_ur_type for wrong UR type errors', () => {
-    expect(
-      buildQrHardwareWalletErrorAnalyticsProperties({
-        error: 'Wrong QR',
-        error_category: QRHardwareScanErrorType.WrongURType,
-        is_ur_format: true,
-      }),
-    ).toEqual({
-      error: 'Wrong QR',
-      error_category: QRHardwareScanErrorType.WrongURType,
-      is_ur_format: true,
-      received_ur_type: '',
-    });
-  });
-});
-
 describe('getExpectedURTypes', () => {
   it('returns pairing UR types for pair requests', () => {
-    expect(getExpectedURTypes(QrScanRequestType.PAIR)).toEqual([
+    expect(getExpectedUrTypes(QrScanRequestType.PAIR)).toEqual([
       SUPPORTED_UR_TYPE.CRYPTO_HDKEY,
       SUPPORTED_UR_TYPE.CRYPTO_ACCOUNT,
     ]);
   });
 
   it('returns signature UR type for sign requests', () => {
-    expect(getExpectedURTypes(QrScanRequestType.SIGN)).toEqual([
+    expect(getExpectedUrTypes(QrScanRequestType.SIGN)).toEqual([
       SUPPORTED_UR_TYPE.ETH_SIGNATURE,
     ]);
   });
@@ -228,6 +95,27 @@ describe('sendQrHardwareErrorAnalytics', () => {
       error: 'Camera failed',
       is_ur_format: false,
       device_model: 'Unknown',
+      device_type: HardwareDeviceTypes.QR,
+    });
+  });
+
+  it('does not retry analytics when trackEvent fails after keyring lookup succeeds', async () => {
+    mockTrackEvent.mockImplementationOnce(() => {
+      throw new Error('Analytics failed');
+    });
+
+    await expect(
+      sendQrHardwareErrorAnalytics(
+        { error: 'Camera failed', is_ur_format: false },
+        analyticsDependencies,
+      ),
+    ).rejects.toThrow('Analytics failed');
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      error: 'Camera failed',
+      is_ur_format: false,
+      device_model: 'MockDevice',
       device_type: HardwareDeviceTypes.QR,
     });
   });

@@ -1,21 +1,6 @@
 import enContent from '../../../../locales/languages/en.json';
 
 // ========================================
-// PREDICT TAB VIEW SELECTORS
-// ========================================
-
-export const PredictTabViewSelectorsIDs = {
-  // Main container
-  CONTAINER: 'predict-tab-view-container',
-
-  // Scroll view
-  SCROLL_VIEW: 'predict-tab-view-scroll-view',
-
-  // FlashList
-  FLASH_LIST: 'predict-tab-view-flash-list',
-} as const;
-
-// ========================================
 // PREDICT MARKET LIST SELECTORS
 // ========================================
 
@@ -52,6 +37,22 @@ export const PredictFeedSelectorsIDs = {
   TAB_BAR_CONTAINER: 'predict-feed-tab-bar-container',
   TABS: 'predict-feed-tabs',
   PAGER: 'predict-feed-pager',
+} as const;
+
+// ========================================
+// PREDICT HOME (REDESIGN SHELL) SELECTORS
+// ========================================
+
+export const PredictHomeSelectorsIDs = {
+  CONTAINER: 'predict-home-container',
+  SCROLL_VIEW: 'predict-home-scroll-view',
+  TITLE_SECTION: 'predict-home-title-section',
+  TITLE: 'predict-home-title',
+  PORTFOLIO_MODULE: 'predict-home-portfolio-module',
+  LIVE_NOW_SECTION: 'predict-home-live-now-section',
+  CATEGORIES_SECTION: 'predict-home-categories-section',
+  POPULAR_TODAY_SECTION: 'predict-home-popular-today-section',
+  TRENDING_SECTION: 'predict-home-trending-section',
 } as const;
 
 // ========================================
@@ -95,7 +96,14 @@ export const PredictPositionsListSelectorsIDs = {
 } as const;
 
 export const PredictPositionsHistoryListSelectorsIDs = {
+  CLAIM_PENDING_SECTION: 'predict-positions-history-claim-pending-section',
+  CLAIM_PENDING_ROW: 'predict-positions-history-claim-pending-row',
   CONTAINER: 'predict-positions-history-list',
+} as const;
+
+export const getPredictPositionsHistoryListSelector = {
+  claimPendingRow: (positionId: string) =>
+    `${PredictPositionsHistoryListSelectorsIDs.CLAIM_PENDING_ROW}-${positionId}`,
 } as const;
 
 export const getPredictFeedSelector = {
@@ -345,6 +353,7 @@ export const getPredictSearchSelector = {
 
 export const PredictBalanceSelectorsIDs = {
   BALANCE_CARD: 'predict-balance-card',
+  POSITIONS_BUTTON: 'predict-balance-positions-button',
   WITHDRAW_BUTTON: 'predict-balance-withdraw-button',
 } as const;
 

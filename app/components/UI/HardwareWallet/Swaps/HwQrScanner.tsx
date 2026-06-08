@@ -1,6 +1,10 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { Image, Linking, StyleSheet, View } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import {
+  useIsFocused,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import { Camera } from 'react-native-vision-camera';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -22,11 +26,14 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import { ETHSignature } from '@keystonehq/bc-ur-registry-eth';
+import { UR } from '@ngraveio/bc-ur';
 import { stringify as uuidStringify } from 'uuid';
 import { QrScanRequestType } from '@metamask/eth-qr-keyring';
 import { useAnimatedQrScanner } from './hooks/useAnimatedQrScanner';
 import { HwQrScannerSelectorsIDs } from './HwQrScanner.testIds';
 import { useHardwareWallet } from '../../../../core/HardwareWallet';
+import { useAnalytics } from '../../../../components/hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import frameImage from '../../../../images/frame.png';
 
 const QR_HARDWARE_LEARN_MORE_URL =
@@ -34,6 +41,73 @@ const QR_HARDWARE_LEARN_MORE_URL =
 
 const CAMERA_PREVIEW_HEIGHT = 293;
 const SCAN_FRAME_SIZE = 220;
+
+const REQUEST_ID_MISMATCH_ANALYTICS_ERROR =
+  'received signature request id is not matched with origin request';
+const NO_PENDING_SCAN_REQUEST_ANALYTICS_ERROR =
+  'no pending scan request found when signature was received';
+
+interface ScannerRecoveryProps {
+  title?: string | null;
+  message?: string | null;
+  onLearnMore: () => void;
+  onTryAgain: () => void;
+}
+
+function ScannerRecovery({
+  title,
+  message,
+  onLearnMore,
+  onTryAgain,
+}: ScannerRecoveryProps) {
+  return (
+    <Box
+      flexDirection={BoxFlexDirection.Column}
+      alignItems={BoxAlignItems.Center}
+      justifyContent={BoxJustifyContent.Center}
+      twClassName="flex-1 px-4"
+    >
+      {title ? (
+        <Text
+          variant={TextVariant.HeadingSm}
+          color={TextColor.ErrorDefault}
+          twClassName="text-center"
+        >
+          {title}
+        </Text>
+      ) : null}
+      {message ? (
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextDefault}
+          twClassName={title ? 'mt-2 text-center' : 'text-center'}
+        >
+          {message}
+        </Text>
+      ) : null}
+      <Box gap={3} twClassName="mt-8 w-full">
+        <Button
+          variant={ButtonVariant.Secondary}
+          size={ButtonBaseSize.Lg}
+          isFullWidth
+          testID={HwQrScannerSelectorsIDs.LEARN_MORE_BUTTON}
+          onPress={onLearnMore}
+        >
+          {strings('hardware_wallet.common.learn_more')}
+        </Button>
+        <Button
+          variant={ButtonVariant.Primary}
+          size={ButtonBaseSize.Lg}
+          isFullWidth
+          testID={HwQrScannerSelectorsIDs.TRY_AGAIN_BUTTON}
+          onPress={onTryAgain}
+        >
+          {strings('hardware_wallet.common.try_again')}
+        </Button>
+      </Box>
+    </Box>
+  );
+}
 
 const styles = StyleSheet.create({
   cameraPreview: {
@@ -58,17 +132,44 @@ const styles = StyleSheet.create({
   },
 });
 
+/**
+ * Route parameters passed to the {@link HwQrScanner} screen.
+ *
+ * @property currentStep - The current step number in the multi-step signing flow (1-based).
+ * @property totalSteps - The total number of steps in the signing flow.
+ */
 interface HwQrScannerRouteParams {
   currentStep: number;
   totalSteps: number;
 }
 
+/**
+ * Screen component that uses the device camera to scan animated QR codes
+ * from a QR-based hardware wallet (e.g. Keystone) during a multi-step
+ * transaction signing flow.
+ *
+ * The scanner decodes UR-encoded QR parts, validates the request ID against
+ * the pending scan request, and resolves the scan via
+ * `Engine.getQrKeyringScanner()` when IDs match. On mismatch, the pending
+ * request stays open and the user can scan again.
+ *
+ * Supported route params: {@link HwQrScannerRouteParams}.
+ */
 export function HwQrScanner() {
   const tw = useTailwind();
   const navigation = useNavigation();
   const route = useRoute();
+  const isFocused = useIsFocused();
   const { qr } = useHardwareWallet();
-  const pendingScanRequest = qr.pendingScanRequest;
+  const {
+    pendingScanRequest,
+    setRequestCompleted,
+    cancelQRScanRequestIfPresent,
+  } = qr;
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const [requestIdMismatchError, setRequestIdMismatchError] = useState<
+    string | null
+  >(null);
 
   const { currentStep = 1, totalSteps = 1 } =
     (route.params as HwQrScannerRouteParams) ?? {};
@@ -76,7 +177,7 @@ export function HwQrScanner() {
   const isLastStep = currentStep >= totalSteps;
 
   const onScanSuccess = useCallback(
-    (ur: { type: string; cbor: Buffer }) => {
+    (ur: UR): boolean => {
       const signature = ETHSignature.fromCBOR(ur.cbor);
       const buffer = signature.getRequestId();
       if (buffer) {
@@ -86,16 +187,32 @@ export function HwQrScanner() {
             type: ur.type,
             cbor: Buffer.from(ur.cbor).toString('hex'),
           });
+          setRequestCompleted();
           navigation.goBack();
-          return;
+          return true;
         }
       }
-      Engine.getQrKeyringScanner().rejectPendingScan(
-        new Error('Request ID mismatch'),
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
+          .addProperties({
+            error: pendingScanRequest
+              ? REQUEST_ID_MISMATCH_ANALYTICS_ERROR
+              : NO_PENDING_SCAN_REQUEST_ANALYTICS_ERROR,
+          })
+          .build(),
       );
-      navigation.goBack();
+      setRequestIdMismatchError(
+        strings('transaction.mismatched_qr_request_id'),
+      );
+      return false;
     },
-    [pendingScanRequest, navigation],
+    [
+      pendingScanRequest,
+      navigation,
+      setRequestCompleted,
+      trackEvent,
+      createEventBuilder,
+    ],
   );
 
   const {
@@ -108,15 +225,58 @@ export function HwQrScanner() {
     reset,
     onError,
   } = useAnimatedQrScanner({
-    isActive: true,
+    isActive: isFocused,
     purpose: QrScanRequestType.SIGN,
     onScanSuccess,
   });
 
-  const handleCancel = useCallback(() => {
-    Engine.getQrKeyringScanner().rejectPendingScan(new Error('Scan cancelled'));
-    navigation.goBack();
-  }, [navigation]);
+  const handleCancel = useCallback(async () => {
+    try {
+      await cancelQRScanRequestIfPresent();
+    } catch {
+      // Keep navigation responsive even if QR cleanup has already been handled.
+    } finally {
+      navigation.goBack();
+    }
+  }, [cancelQRScanRequestIfPresent, navigation]);
+
+  const handleLearnMore = useCallback(
+    () => Linking.openURL(QR_HARDWARE_LEARN_MORE_URL),
+    [],
+  );
+
+  const handleOpenSettings = useCallback(() => Linking.openSettings(), []);
+
+  const handleRetryAfterRequestIdMismatch = useCallback(() => {
+    setRequestIdMismatchError(null);
+    reset();
+  }, [reset]);
+
+  const recoveryPanel = useMemo(() => {
+    if (scanError) {
+      return {
+        title: errorTitle,
+        message: scanError.userMessage ?? null,
+        onTryAgain: reset,
+      };
+    }
+
+    if (requestIdMismatchError) {
+      return {
+        title: null,
+        message: requestIdMismatchError,
+        onTryAgain: handleRetryAfterRequestIdMismatch,
+      };
+    }
+
+    return null;
+  }, [
+    scanError,
+    errorTitle,
+    requestIdMismatchError,
+    handleRetryAfterRequestIdMismatch,
+    reset,
+  ]);
 
   const stepText = useMemo(() => {
     if (isLastStep) {
@@ -129,53 +289,14 @@ export function HwQrScanner() {
   }, [isLastStep, currentStep, totalSteps]);
 
   const renderCameraContent = () => {
-    if (scanError) {
+    if (recoveryPanel) {
       return (
-        <Box
-          flexDirection={BoxFlexDirection.Column}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-          twClassName="flex-1 px-4"
-        >
-          {errorTitle ? (
-            <Text
-              variant={TextVariant.HeadingSm}
-              color={TextColor.ErrorDefault}
-              twClassName="text-center"
-            >
-              {errorTitle}
-            </Text>
-          ) : null}
-          {scanError.userMessage ? (
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextDefault}
-              twClassName="mt-2 text-center"
-            >
-              {scanError.userMessage}
-            </Text>
-          ) : null}
-          <Box gap={3} twClassName="mt-8 w-full">
-            <Button
-              variant={ButtonVariant.Secondary}
-              size={ButtonBaseSize.Lg}
-              isFullWidth
-              testID="hw-qr-scanner-learn-more-button"
-              onPress={() => Linking.openURL(QR_HARDWARE_LEARN_MORE_URL)}
-            >
-              {strings('hardware_wallet.common.learn_more')}
-            </Button>
-            <Button
-              variant={ButtonVariant.Primary}
-              size={ButtonBaseSize.Lg}
-              isFullWidth
-              testID="hw-qr-scanner-try-again-button"
-              onPress={reset}
-            >
-              {strings('hardware_wallet.common.try_again')}
-            </Button>
-          </Box>
-        </Box>
+        <ScannerRecovery
+          title={recoveryPanel.title}
+          message={recoveryPanel.message}
+          onLearnMore={handleLearnMore}
+          onTryAgain={recoveryPanel.onTryAgain}
+        />
       );
     }
 
@@ -199,8 +320,8 @@ export function HwQrScanner() {
               variant={ButtonVariant.Secondary}
               size={ButtonBaseSize.Lg}
               isFullWidth
-              testID="hw-qr-scanner-open-settings-button"
-              onPress={() => Linking.openSettings()}
+              testID={HwQrScannerSelectorsIDs.OPEN_SETTINGS_BUTTON}
+              onPress={handleOpenSettings}
             >
               {strings('qr_scanner.open_settings')}
             </Button>
@@ -214,7 +335,7 @@ export function HwQrScanner() {
         <Camera
           style={StyleSheet.absoluteFillObject}
           device={cameraDevice}
-          isActive
+          isActive={isFocused && hasPermission}
           codeScanner={codeScanner}
           torch="off"
           onError={onError}

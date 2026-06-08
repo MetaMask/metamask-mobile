@@ -17,18 +17,35 @@ import {
 } from '../../../../../core/HardwareWallet/errors';
 import {
   buildQrHardwareWalletErrorAnalyticsProperties,
-  getExpectedURTypes,
   isSameScanError,
+} from '../../../QRHardware/AnimatedQRScanner.utils';
+import {
+  getExpectedUrTypes,
   sendQrHardwareErrorAnalytics,
   useCameraPermissionRefresh,
 } from './qrScannerUtils';
 
+/**
+ * Options for {@link useAnimatedQrScanner}.
+ *
+ * @property isActive - Whether the scanner should actively process QR codes.
+ * @property purpose - The type of QR scan being performed (e.g. `SIGN` or `PAIR`).
+ * @property onScanSuccess - Callback with the decoded {@link UR}. Return `true` to accept and ignore further frames, or `false` to reject and keep scanning.
+ */
 interface UseAnimatedQrScannerOptions {
   isActive: boolean;
   purpose: QrScanRequestType;
-  onScanSuccess: (ur: UR) => void;
+  onScanSuccess: (ur: UR) => boolean;
 }
 
+/**
+ * Options for the internal `showScanError` helper.
+ *
+ * @property errorType - Categorisation of the scan error.
+ * @property technicalMessage - Optional low-level error detail for debugging.
+ * @property receivedUrType - The UR type that was actually received (when applicable).
+ * @property isUrFormat - Whether the scanned content used the UR encoding format.
+ */
 interface ShowScanErrorOptions {
   errorType: QRHardwareScanErrorType;
   technicalMessage?: string;
@@ -36,12 +53,25 @@ interface ShowScanErrorOptions {
   isUrFormat: boolean;
 }
 
+/**
+ * Hook that manages an animated QR code scanner for hardware wallet interactions.
+ *
+ * Handles the full lifecycle of scanning multi-part animated QR codes:
+ * - Camera device selection and permission management.
+ * - UR decoding progress tracking.
+ * - Error detection, deduplication, and analytics reporting.
+ * - Validation of decoded UR types against the expected types for the scan purpose.
+ *
+ * @param options - See {@link UseAnimatedQrScannerOptions}.
+ * @returns Scanner state and controls including the camera device, code scanner
+ * configuration, progress percentage, current error (if any), and a reset function.
+ */
 export function useAnimatedQrScanner({
   isActive,
   purpose,
   onScanSuccess,
 }: UseAnimatedQrScannerOptions) {
-  const [urDecoder, setURDecoder] = useState(() => new URRegistryDecoder());
+  const urDecoderRef = useRef(new URRegistryDecoder());
   const [progress, setProgress] = useState(0);
   const [scanError, setScanError] = useState<QRHardwareScanError | null>(null);
 
@@ -53,12 +83,12 @@ export function useAnimatedQrScanner({
   const cameraDevice = useCameraDevice('back');
   const { hasPermission, requestPermission } = useCameraPermission();
 
-  const expectedURTypes = useMemo(() => getExpectedURTypes(purpose), [purpose]);
+  const expectedUrTypes = useMemo(() => getExpectedUrTypes(purpose), [purpose]);
 
   useCameraPermissionRefresh({ isActive, hasPermission, requestPermission });
 
   const resetDecoder = useCallback(() => {
-    setURDecoder(new URRegistryDecoder());
+    urDecoderRef.current = new URRegistryDecoder();
     setProgress(0);
   }, []);
 
@@ -124,9 +154,11 @@ export function useAnimatedQrScanner({
   const handleScanSuccess = useCallback(
     (ur: UR) => {
       scanSuccessActiveRef.current = true;
-      lastForwardedScanErrorRef.current = null;
-      onScanSuccess(ur);
-      resetDecoder();
+      const accepted = onScanSuccess(ur);
+      if (accepted) {
+        lastForwardedScanErrorRef.current = null;
+        resetDecoder();
+      }
     },
     [onScanSuccess, resetDecoder],
   );
@@ -141,12 +173,13 @@ export function useAnimatedQrScanner({
       ) {
         return;
       }
-      const response = { data: codes[0].value };
-      if (!response.data) {
+      const value = codes[0].value;
+      if (!value) {
         return;
       }
-      const content = response.data.trim();
+      const content = value.trim();
       const isUrFormat = content.toLowerCase().startsWith('ur:');
+      const decoder = urDecoderRef.current;
 
       try {
         if (!isUrFormat) {
@@ -157,18 +190,18 @@ export function useAnimatedQrScanner({
           return;
         }
 
-        urDecoder.receivePart(content);
-        setProgress(Math.ceil(urDecoder.getProgress() * 100));
+        decoder.receivePart(content);
+        setProgress(Math.ceil(decoder.getProgress() * 100));
 
-        if (urDecoder.isError()) {
+        if (decoder.isError()) {
           await showScanError({
             errorType: QRHardwareScanErrorType.URDecodeError,
-            technicalMessage: urDecoder.resultError(),
+            technicalMessage: decoder.resultError(),
             isUrFormat: true,
           });
-        } else if (urDecoder.isSuccess()) {
-          const ur = urDecoder.resultUR();
-          if (expectedURTypes.includes(ur.type)) {
+        } else if (decoder.isSuccess()) {
+          const ur = decoder.resultUR();
+          if (expectedUrTypes.includes(ur.type)) {
             handleScanSuccess(ur);
           } else {
             await showScanError({
@@ -186,7 +219,7 @@ export function useAnimatedQrScanner({
         });
       }
     },
-    [isActive, urDecoder, expectedURTypes, handleScanSuccess, showScanError],
+    [isActive, expectedUrTypes, handleScanSuccess, showScanError],
   );
 
   const codeScanner = useCodeScanner({

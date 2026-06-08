@@ -1,12 +1,22 @@
 import React from 'react';
 import { Linking } from 'react-native';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, act, waitFor } from '@testing-library/react-native';
+import { HwQrScanner } from './HwQrScanner';
+import { HwQrScannerSelectorsIDs } from './HwQrScanner.testIds';
+import { useHardwareWallet } from '../../../../core/HardwareWallet';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { QrScanRequestType } from '@metamask/eth-qr-keyring';
+
+const mockTrackEvent = jest.fn();
+const mockBuild = jest.fn();
+const mockAddProperties = jest.fn();
+const mockCreateEventBuilder = jest.fn();
 
 jest.mock('../../../../components/hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: jest.fn(() => ({
-    trackEvent: jest.fn(),
-    createEventBuilder: jest.fn().mockReturnValue({
-      addProperties: jest.fn().mockReturnValue({ build: jest.fn() }),
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder.mockReturnValue({
+      addProperties: mockAddProperties,
     }),
   })),
 }));
@@ -55,11 +65,13 @@ const mockNavigate = jest.fn();
 const mockUseRoute = jest.fn();
 const mockResolvePendingScan = jest.fn();
 const mockRejectPendingScan = jest.fn();
+const mockSetRequestCompleted = jest.fn();
+const mockCancelQRScanRequestIfPresent = jest.fn();
 const mockUseAnimatedQrScanner = jest.fn();
 const mockReset = jest.fn();
 const mockOnError = jest.fn();
 let capturedOnScanSuccess:
-  | ((ur: { type: string; cbor: Buffer }) => void)
+  | ((ur: { type: string; cbor: Buffer }) => boolean | void)
   | undefined;
 
 jest.mock('@react-navigation/native', () => ({
@@ -68,6 +80,7 @@ jest.mock('@react-navigation/native', () => ({
     navigate: mockNavigate,
   })),
   useRoute: () => mockUseRoute(),
+  useIsFocused: jest.fn(() => true),
 }));
 
 jest.mock('../../../../core/Engine', () => ({
@@ -93,8 +106,8 @@ jest.mock('../../../../core/HardwareWallet', () => ({
         },
       },
       isSigningQRObject: true,
-      cancelQRScanRequestIfPresent: jest.fn(),
-      setRequestCompleted: jest.fn(),
+      cancelQRScanRequestIfPresent: mockCancelQRScanRequestIfPresent,
+      setRequestCompleted: mockSetRequestCompleted,
       isRequestCompleted: false,
     },
   })),
@@ -112,10 +125,6 @@ jest.mock('uuid', () => ({
   stringify: jest.fn(() => 'test-request-id'),
 }));
 
-import { HwQrScanner } from './HwQrScanner';
-import { HwQrScannerSelectorsIDs } from './HwQrScanner.testIds';
-import { useHardwareWallet } from '../../../../core/HardwareWallet';
-
 const mockUseHardwareWallet = useHardwareWallet as jest.Mock;
 
 const mockScannerResult = {
@@ -132,6 +141,11 @@ const mockScannerResult = {
 describe('HwQrScanner', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCreateEventBuilder.mockReturnValue({
+      addProperties: mockAddProperties,
+    });
+    mockAddProperties.mockReturnValue({ build: mockBuild });
+    mockBuild.mockReturnValue({ event: 'hardware-wallet-error' });
     capturedOnScanSuccess = undefined;
     jest.requireMock('uuid').stringify.mockReturnValue('test-request-id');
     jest
@@ -157,8 +171,8 @@ describe('HwQrScanner', () => {
           },
         },
         isSigningQRObject: true,
-        cancelQRScanRequestIfPresent: jest.fn(),
-        setRequestCompleted: jest.fn(),
+        cancelQRScanRequestIfPresent: mockCancelQRScanRequestIfPresent,
+        setRequestCompleted: mockSetRequestCompleted,
         isRequestCompleted: false,
       },
     });
@@ -215,14 +229,15 @@ describe('HwQrScanner', () => {
   });
 
   describe('cancel', () => {
-    it('rejects pending scan and navigates back on cancel press', () => {
+    it('cancels pending QR scan through hardware wallet state and navigates back on cancel press', async () => {
       const { getByTestId } = render(<HwQrScanner />);
 
       fireEvent.press(getByTestId(HwQrScannerSelectorsIDs.CANCEL_BUTTON));
 
-      expect(mockRejectPendingScan).toHaveBeenCalledTimes(1);
-      expect(mockRejectPendingScan).toHaveBeenCalledWith(expect.any(Error));
-      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockCancelQRScanRequestIfPresent).toHaveBeenCalledTimes(1);
+      expect(mockRejectPendingScan).not.toHaveBeenCalled();
+      expect(mockSetRequestCompleted).not.toHaveBeenCalled();
+      await waitFor(() => expect(mockGoBack).toHaveBeenCalledTimes(1));
     });
   });
 
@@ -237,6 +252,30 @@ describe('HwQrScanner', () => {
 
       expect(getByTestId('camera-mock')).toBeOnTheScreen();
       expect(getByText('qr_scanner.scanning 42%')).toBeOnTheScreen();
+    });
+
+    it('passes scanner hook result to Camera via useAnimatedQrScanner with isFocused isActive', () => {
+      render(<HwQrScanner />);
+
+      expect(mockUseAnimatedQrScanner).toHaveBeenCalledWith(
+        expect.objectContaining({
+          isActive: true,
+          purpose: QrScanRequestType.SIGN,
+        }),
+      );
+    });
+
+    it('deactivates scanner when screen loses focus', () => {
+      const { useIsFocused } = jest.requireMock('@react-navigation/native');
+      (useIsFocused as jest.Mock).mockReturnValue(false);
+
+      render(<HwQrScanner />);
+
+      expect(mockUseAnimatedQrScanner).toHaveBeenCalledWith(
+        expect.objectContaining({
+          isActive: false,
+        }),
+      );
     });
 
     it('renders scanner error title, message, and actions', () => {
@@ -254,8 +293,8 @@ describe('HwQrScanner', () => {
         getByText('Try scanning a Keystone signature QR.'),
       ).toBeOnTheScreen();
 
-      fireEvent.press(getByTestId('hw-qr-scanner-learn-more-button'));
-      fireEvent.press(getByTestId('hw-qr-scanner-try-again-button'));
+      fireEvent.press(getByTestId(HwQrScannerSelectorsIDs.LEARN_MORE_BUTTON));
+      fireEvent.press(getByTestId(HwQrScannerSelectorsIDs.TRY_AGAIN_BUTTON));
 
       expect(Linking.openURL).toHaveBeenCalledWith(
         'https://support.metamask.io/more-web3/wallets/hardware-wallet-hub/#qr-codean-gapped-wallets',
@@ -272,7 +311,9 @@ describe('HwQrScanner', () => {
 
       const { getByTestId, queryByText } = render(<HwQrScanner />);
 
-      expect(getByTestId('hw-qr-scanner-try-again-button')).toBeOnTheScreen();
+      expect(
+        getByTestId(HwQrScannerSelectorsIDs.TRY_AGAIN_BUTTON),
+      ).toBeOnTheScreen();
       expect(queryByText('Wrong QR code')).toBeNull();
     });
 
@@ -288,7 +329,9 @@ describe('HwQrScanner', () => {
 
       expect(getByText('transaction.no_camera_permission')).toBeOnTheScreen();
 
-      fireEvent.press(getByTestId('hw-qr-scanner-open-settings-button'));
+      fireEvent.press(
+        getByTestId(HwQrScannerSelectorsIDs.OPEN_SETTINGS_BUTTON),
+      );
 
       expect(Linking.openSettings).toHaveBeenCalledTimes(1);
     });
@@ -324,66 +367,103 @@ describe('HwQrScanner', () => {
         cbor: Buffer.from('signature').toString('hex'),
       });
       expect(mockRejectPendingScan).not.toHaveBeenCalled();
+      expect(mockSetRequestCompleted).toHaveBeenCalledTimes(1);
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 
-    it('rejects pending scan when request IDs do not match', () => {
+    it('shows mismatch message and keeps pending scan when request IDs do not match', () => {
       jest
         .requireMock('uuid')
         .stringify.mockReturnValue('different-request-id');
-      render(<HwQrScanner />);
+      const { getByText, getByTestId, queryByText } = render(<HwQrScanner />);
 
-      capturedOnScanSuccess?.({
-        type: 'eth-signature',
-        cbor: Buffer.from('signature'),
+      act(() => {
+        capturedOnScanSuccess?.({
+          type: 'eth-signature',
+          cbor: Buffer.from('signature'),
+        });
       });
 
       expect(mockResolvePendingScan).not.toHaveBeenCalled();
-      expect(mockRejectPendingScan).toHaveBeenCalledWith(expect.any(Error));
-      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockRejectPendingScan).not.toHaveBeenCalled();
+      expect(mockSetRequestCompleted).not.toHaveBeenCalled();
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.HARDWARE_WALLET_ERROR,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        error:
+          'received signature request id is not matched with origin request',
+      });
+      expect(mockTrackEvent).toHaveBeenCalledWith({
+        event: 'hardware-wallet-error',
+      });
+      expect(
+        getByText('transaction.mismatched_qr_request_id'),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(getByTestId(HwQrScannerSelectorsIDs.TRY_AGAIN_BUTTON));
+
+      expect(queryByText('transaction.mismatched_qr_request_id')).toBeNull();
+      expect(mockReset).toHaveBeenCalledTimes(1);
     });
 
-    it('rejects pending scan when a signature has no request ID', () => {
+    it('shows mismatch message when a signature has no request ID', () => {
       jest
         .requireMock('@keystonehq/bc-ur-registry-eth')
         .ETHSignature.fromCBOR.mockReturnValue({
           getRequestId: jest.fn(() => undefined),
         });
 
-      render(<HwQrScanner />);
+      const { getByText } = render(<HwQrScanner />);
 
-      capturedOnScanSuccess?.({
-        type: 'eth-signature',
-        cbor: Buffer.from('signature'),
+      act(() => {
+        capturedOnScanSuccess?.({
+          type: 'eth-signature',
+          cbor: Buffer.from('signature'),
+        });
       });
 
       expect(mockResolvePendingScan).not.toHaveBeenCalled();
-      expect(mockRejectPendingScan).toHaveBeenCalledWith(expect.any(Error));
-      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockRejectPendingScan).not.toHaveBeenCalled();
+      expect(mockSetRequestCompleted).not.toHaveBeenCalled();
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(
+        getByText('transaction.mismatched_qr_request_id'),
+      ).toBeOnTheScreen();
     });
 
-    it('rejects pending scan when pending request is missing', () => {
+    it('shows mismatch message and tracks specific analytics when pending request is missing', () => {
       mockUseHardwareWallet.mockReturnValue({
         walletType: 'qr',
         qr: {
           pendingScanRequest: undefined,
           isSigningQRObject: true,
-          cancelQRScanRequestIfPresent: jest.fn(),
-          setRequestCompleted: jest.fn(),
+          cancelQRScanRequestIfPresent: mockCancelQRScanRequestIfPresent,
+          setRequestCompleted: mockSetRequestCompleted,
           isRequestCompleted: false,
         },
       });
 
-      render(<HwQrScanner />);
+      const { getByText } = render(<HwQrScanner />);
 
-      capturedOnScanSuccess?.({
-        type: 'eth-signature',
-        cbor: Buffer.from('signature'),
+      act(() => {
+        capturedOnScanSuccess?.({
+          type: 'eth-signature',
+          cbor: Buffer.from('signature'),
+        });
       });
 
       expect(mockResolvePendingScan).not.toHaveBeenCalled();
-      expect(mockRejectPendingScan).toHaveBeenCalledWith(expect.any(Error));
-      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockRejectPendingScan).not.toHaveBeenCalled();
+      expect(mockSetRequestCompleted).not.toHaveBeenCalled();
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        error: 'no pending scan request found when signature was received',
+      });
+      expect(
+        getByText('transaction.mismatched_qr_request_id'),
+      ).toBeOnTheScreen();
     });
   });
 

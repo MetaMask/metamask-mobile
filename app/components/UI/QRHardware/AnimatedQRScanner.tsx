@@ -49,35 +49,11 @@ import {
   type QRHardwareScanError,
   QRHardwareScanErrorType,
 } from '../../../core/HardwareWallet/errors';
-import { isSameScanError } from './AnimatedQRScanner.utils';
+import {
+  buildQrHardwareWalletErrorAnalyticsProperties,
+  isSameScanError,
+} from './AnimatedQRScanner.utils';
 import usePrevious from '../../../components/hooks/usePrevious';
-
-/**
- * Builds {@link MetaMetricsEvents.HARDWARE_WALLET_ERROR} properties for QR hardware flows.
- *
- * - `error_category` — set for decode / scan pipeline failures (not for native camera errors).
- * - `received_ur_type` — only when `error_category` is `wrong_ur_type` (decoded UR type mismatch).
- * - `is_ur_format` — whether the scanned payload (trimmed) starts with `ur:` (case-insensitive).
- */
-function buildQrHardwareWalletErrorAnalyticsProperties(options: {
-  error: string;
-  error_category?: QRHardwareScanErrorType;
-  is_ur_format: boolean;
-  received_ur_type?: string;
-}): Record<string, unknown> {
-  const { error, error_category, is_ur_format, received_ur_type } = options;
-  const payload: Record<string, unknown> = {
-    error,
-    is_ur_format,
-  };
-  if (error_category !== undefined) {
-    payload.error_category = error_category;
-  }
-  if (error_category === QRHardwareScanErrorType.WrongURType) {
-    payload.received_ur_type = received_ur_type ?? '';
-  }
-  return payload;
-}
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -271,14 +247,14 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
   const { hasPermission, requestPermission } = useCameraPermission();
   const appState = useRef(AppState.currentState);
 
-  let expectedURTypes: string[];
+  let expectedUrTypes: string[];
   if (purpose === QrScanRequestType.PAIR) {
-    expectedURTypes = [
+    expectedUrTypes = [
       SUPPORTED_UR_TYPE.CRYPTO_HDKEY,
       SUPPORTED_UR_TYPE.CRYPTO_ACCOUNT,
     ];
   } else {
-    expectedURTypes = [SUPPORTED_UR_TYPE.ETH_SIGNATURE];
+    expectedUrTypes = [SUPPORTED_UR_TYPE.ETH_SIGNATURE];
   }
 
   const refreshCameraPermission = useCallback(() => {
@@ -469,7 +445,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
           );
         } else if (urDecoder.isSuccess()) {
           const ur = urDecoder.resultUR();
-          if (expectedURTypes.includes(ur.type)) {
+          if (expectedUrTypes.includes(ur.type)) {
             scanErrorActiveRef.current = false;
             lastForwardedScanErrorRef.current = null;
             onScanSuccess(ur);
@@ -500,7 +476,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
     [
       visible,
       urDecoder,
-      expectedURTypes,
+      expectedUrTypes,
       purpose,
       onScanSuccess,
       showScannerError,

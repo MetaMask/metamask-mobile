@@ -75,6 +75,27 @@ export function getBatchSellAtomicSourceAmount(
   return atomicAmount.toFixed(0);
 }
 
+export function hasValidBatchSellSourceAmounts(
+  sourceTokens: BridgeToken[],
+  batchSellSourceTokenAmounts: Record<string, string | undefined>,
+  destToken: BridgeToken | undefined,
+) {
+  if (!destToken) return false;
+
+  return sourceTokens.some((token) => {
+    const assetId = formatAddressToAssetId(token.address, token.chainId);
+
+    if (!assetId) return false;
+
+    return (
+      getBatchSellAtomicSourceAmount(
+        token,
+        batchSellSourceTokenAmounts[assetId],
+      ) !== undefined
+    );
+  });
+}
+
 function getBatchSellUsdAmountSource(token: BridgeToken, sourceAmount: string) {
   const balance = token.balance ? Number(token.balance) : 0;
   const numericSourceAmount = Number(sourceAmount);
