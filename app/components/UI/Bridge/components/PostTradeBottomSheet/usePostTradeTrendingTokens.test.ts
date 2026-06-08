@@ -6,7 +6,6 @@ import {
   type TrendingAsset,
 } from '@metamask/assets-controllers';
 import {
-  getDestinationCaipChainId,
   POST_TRADE_TRENDING_TOKENS_LIMIT,
   usePostTradeTrendingTokens,
 } from './usePostTradeTrendingTokens';
@@ -69,17 +68,6 @@ describe('usePostTradeTrendingTokens', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetTrendingTokens.mockResolvedValue([]);
-  });
-
-  it('converts destination token chain IDs to CAIP chain IDs', () => {
-    expect(getDestinationCaipChainId(createBridgeToken())).toBe('eip155:1');
-    expect(
-      getDestinationCaipChainId(
-        createBridgeToken({
-          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-        }),
-      ),
-    ).toBe('solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp');
   });
 
   it('fetches, sorts by market cap descending, and caps results', async () => {

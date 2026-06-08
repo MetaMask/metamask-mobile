@@ -6,8 +6,6 @@ import {
   type TrendingAsset,
 } from '@metamask/assets-controllers';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
-import type { CaipChainId } from '@metamask/utils';
-import { isCaipChainId } from '@metamask/utils';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import type { BridgeToken } from '../../types';
 import {
@@ -26,25 +24,6 @@ const MARKET_CAP_SORT_OPTION =
 const DESCENDING_SORT_DIRECTION =
   'descending' as Parameters<typeof sortTrendingTokens>[2];
 
-export const getDestinationCaipChainId = (
-  destToken?: Pick<BridgeToken, 'chainId'>,
-): CaipChainId | undefined => {
-  const chainId = destToken?.chainId?.toString();
-  if (!chainId) {
-    return undefined;
-  }
-
-  if (isCaipChainId(chainId)) {
-    return chainId;
-  }
-
-  try {
-    return formatChainIdToCaip(chainId) as CaipChainId;
-  } catch {
-    return undefined;
-  }
-};
-
 export const usePostTradeTrendingTokens = ({
   destToken,
   enabled = true,
@@ -53,14 +32,10 @@ export const usePostTradeTrendingTokens = ({
   enabled?: boolean;
 }) => {
   const currentCurrency = useSelector(selectCurrentCurrency) || 'usd';
-  const destinationCaipChainId = useMemo(
-    () => getDestinationCaipChainId(destToken),
-    [destToken],
-  );
-  const chainIds = useMemo(
-    () => (destinationCaipChainId ? [destinationCaipChainId] : []),
-    [destinationCaipChainId],
-  );
+  const destinationCaipChainId = destToken?.chainId
+    ? formatChainIdToCaip(destToken.chainId)
+    : undefined;
+  const chainIds = destinationCaipChainId ? [destinationCaipChainId] : [];
   const isQueryEnabled = enabled && Boolean(destinationCaipChainId);
 
   const query = useQuery<TrendingAsset[], Error>({
