@@ -80,10 +80,10 @@ jobs:
       BROWSERSTACK_ANDROID_APP_URL: ${{ needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_android }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Restore node_modules cache
-        uses: actions/cache@v6
+        uses: actions/cache@v4
         with:
           path: |
             node_modules
@@ -109,7 +109,7 @@ jobs:
 
       - name: Restore .metamask folder
         id: restore-metamask
-        uses: actions/cache@v6
+        uses: actions/cache@v4
         with:
           path: .metamask
           key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
@@ -153,7 +153,7 @@ jobs:
             echo "TEST_SRP_2=${{ secrets.TEST_SRP_2 }}"
             echo "TEST_SRP_3=${{ secrets.TEST_SRP_3 }}"
             echo "E2E_PASSWORD=${{ secrets.E2E_PASSWORD }}"
-            echo "ANTHROPIC_API_KEY=${{ secrets.E2E_CLAUDE_API_KEY }}"
+            echo "ANTHROPIC_API_KEY=${{ secrets.VISUAL_TEST_API_KEY }}"
             echo "AI_VISUAL_TESTING_ENABLED=true"
           } >> "$GITHUB_ENV"
 
@@ -161,7 +161,7 @@ jobs:
         run: yarn run-system-tests:android-login
 
       - name: Upload test results
-        uses: actions/upload-artifact@v8
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: system-test-report-android-login
@@ -170,7 +170,7 @@ jobs:
           retention-days: 7
 
       - name: Upload visual regression artifacts
-        uses: actions/upload-artifact@v8
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: visual-regression-android-login
@@ -190,10 +190,10 @@ jobs:
       BROWSERSTACK_ANDROID_CLEAN_APP_URL: ${{ needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_clean_app_url_android }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Restore node_modules cache
-        uses: actions/cache@v6
+        uses: actions/cache@v4
         with:
           path: |
             node_modules
@@ -219,7 +219,7 @@ jobs:
 
       - name: Restore .metamask folder
         id: restore-metamask
-        uses: actions/cache@v6
+        uses: actions/cache@v4
         with:
           path: .metamask
           key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
@@ -269,7 +269,7 @@ jobs:
         run: yarn run-system-tests:android-onboarding
 
       - name: Upload test results
-        uses: actions/upload-artifact@v8
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: system-test-report-android-onboarding
@@ -289,10 +289,10 @@ jobs:
       BROWSERSTACK_IOS_APP_URL: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_ios }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Restore node_modules cache
-        uses: actions/cache@v6
+        uses: actions/cache@v4
         with:
           path: |
             node_modules
@@ -318,7 +318,7 @@ jobs:
 
       - name: Restore .metamask folder
         id: restore-metamask
-        uses: actions/cache@v6
+        uses: actions/cache@v4
         with:
           path: .metamask
           key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
@@ -362,7 +362,7 @@ jobs:
             echo "TEST_SRP_2=${{ secrets.TEST_SRP_2 }}"
             echo "TEST_SRP_3=${{ secrets.TEST_SRP_3 }}"
             echo "E2E_PASSWORD=${{ secrets.E2E_PASSWORD }}"
-            echo "ANTHROPIC_API_KEY=${{ secrets.E2E_CLAUDE_API_KEY }}"
+            echo "ANTHROPIC_API_KEY=${{ secrets.VISUAL_TEST_API_KEY }}"
             echo "AI_VISUAL_TESTING_ENABLED=true"
           } >> "$GITHUB_ENV"
 
@@ -370,7 +370,7 @@ jobs:
         run: yarn run-system-tests:ios-login
 
       - name: Upload test results
-        uses: actions/upload-artifact@v8
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: system-test-report-ios-login
@@ -379,7 +379,7 @@ jobs:
           retention-days: 7
 
       - name: Upload visual regression artifacts
-        uses: actions/upload-artifact@v8
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: visual-regression-ios-login
@@ -399,10 +399,10 @@ jobs:
       BROWSERSTACK_IOS_CLEAN_APP_URL: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_clean_app_url_ios }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Restore node_modules cache
-        uses: actions/cache@v6
+        uses: actions/cache@v4
         with:
           path: |
             node_modules
@@ -428,7 +428,7 @@ jobs:
 
       - name: Restore .metamask folder
         id: restore-metamask
-        uses: actions/cache@v6
+        uses: actions/cache@v4
         with:
           path: .metamask
           key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
@@ -478,7 +478,7 @@ jobs:
         run: yarn run-system-tests:ios-onboarding
 
       - name: Upload test results
-        uses: actions/upload-artifact@v8
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: system-test-report-ios-onboarding
@@ -497,7 +497,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download all test reports
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@v4
         with:
           pattern: system-test-report-*
           path: all-reports
