@@ -66,8 +66,10 @@ export class EmulatorConfigBuilder {
       // session-creation POST doesn't time out before Appium responds.
       // connectionRetryCount: 0 — no retries on session creation; a timeout
       // here is not a transient error and retrying just doubles the wait.
+      // Preinstalled WDA on CI: prepare step warm-up already launched WDA; attach
+      // should complete in seconds. Prebuilt/cold paths still need minutes.
       connectionRetryTimeout: usePreinstalledWda
-        ? 2 * 60 * 1000
+        ? 90 * 1000
         : usePrebuiltWda
           ? 5 * 60 * 1000
           : 12 * 60 * 1000,
@@ -82,6 +84,9 @@ export class EmulatorConfigBuilder {
           ? {
               'appium:appPackage': this.project.use.app?.packageName,
               'appium:appActivity': this.project.use.app?.launchableActivity,
+              // Release E2E launches with many intent extras; default 20s adbExecTimeout
+              // is too low on CI after a prior test (see appium-accounts-android-smoke).
+              'appium:adbExecTimeout': 120_000,
             }
           : {
               'appium:bundleId': this.project.use.app?.appId,

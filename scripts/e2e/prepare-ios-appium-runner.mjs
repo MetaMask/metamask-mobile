@@ -5,6 +5,7 @@
  * - Boots the simulator
  * - Prebuilds WDA (unless SKIP_WDA_PREBUILD=true)
  * - Installs prebuilt WDA + MetaMask .app via simctl
+ * - Warms up WDA via a throwaway Appium session (when WDA was preinstalled)
  *
  * Simulator boot and WDA prebuild run in parallel to shave wall-clock time on
  * cache miss (WDA ~8 min, sim boot ~1–2 min → overlap saves ~1–2 min).
@@ -20,6 +21,7 @@ import {
   installWdaOnSimulator,
   toWdaBundleIdBase,
 } from './wda-lib.mjs';
+import { warmUpIosAppiumWda } from './warm-up-ios-appium-wda.mjs';
 
 const simulatorName = process.env.IOS_SIMULATOR_NAME ?? 'iPhone 16 Pro';
 const appPath = process.env.IOS_APP_PATH;
@@ -73,6 +75,15 @@ if (hasUsableWdaArtifacts()) {
 }
 
 await Promise.all(installTasks);
+
+if (iosWdaPreinstalled === 'true' && iosWdaBundleIdBase) {
+  await warmUpIosAppiumWda({
+    udid,
+    wdaBundleIdBase: iosWdaBundleIdBase,
+    simulatorName,
+    appBundleId: bundleId,
+  });
+}
 
 console.log(`IOS_SIMULATOR_UDID=${udid}`);
 if (iosWdaPreinstalled === 'true') {

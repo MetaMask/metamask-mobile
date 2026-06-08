@@ -23,7 +23,8 @@ const deviceMatrix: DeviceMatrix = require('../performance/device-matrix.json');
 
 type AndroidIntentExtra = ['s', string, string];
 
-/** Appium `mobile: startActivity` options — not passed to the app via launch arguments. */
+/** Brief pause after force-stopping Android before startActivity (CI emulators). */
+const ANDROID_PRE_LAUNCH_SETTLE_MS = 1500;
 const APPIUM_START_ACTIVITY_CONTROL_KEYS = new Set<keyof LaunchArgs>([
   'stop',
   'wait',
@@ -434,6 +435,12 @@ class PlaywrightUtilities {
     });
     const stop = launchArgs?.stop ?? true;
     const wait = launchArgs?.wait ?? true;
+
+    // Mirror iOS: terminate before launch so `-W -S` startActivity is not stuck on a hung process.
+    await drv.terminateApp(pkg).catch(() => undefined);
+    await new Promise((resolve) =>
+      setTimeout(resolve, ANDROID_PRE_LAUNCH_SETTLE_MS),
+    );
 
     await drv.execute('mobile: startActivity', {
       component: `${pkg}/${activity}`,
