@@ -691,6 +691,157 @@ describe('useHwBatchSignTracker', () => {
       expect(mockAbortTransactionSigning).toHaveBeenCalledWith(meta.id);
     });
 
+    it('does not abort or drop non-terminal bridge txs from a different batch on cancelCurrentBatch', async () => {
+      const { result } = renderEnabledHook();
+      const activeBatchId = 'batch-active-cancel-001';
+      const otherBatchId = 'batch-other-in-flight-001';
+      const activeTx = txMeta({
+        id: 'tx-active-batch-cancel-001',
+        type: TransactionType.bridgeApproval,
+        status: TransactionStatus.approved,
+        batchId: activeBatchId,
+      });
+      const otherBatchTx = txMeta({
+        id: 'tx-other-batch-cancel-001',
+        type: TransactionType.bridge,
+        status: TransactionStatus.approved,
+        batchId: otherBatchId,
+      });
+
+      setMockTransactions([activeTx, otherBatchTx]);
+      fireTxEvent(activeTx);
+
+      let cancelPromise = Promise.resolve();
+      act(() => {
+        cancelPromise = result.current.cancelCurrentBatch();
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(mockAbortTransactionSigning).toHaveBeenCalledWith(activeTx.id);
+      expect(mockAbortTransactionSigning).not.toHaveBeenCalledWith(
+        otherBatchTx.id,
+      );
+      expect(mockControllerMessengerCall).toHaveBeenCalledWith(
+        'TransactionController:updateTransaction',
+        expect.objectContaining({
+          id: activeTx.id,
+          status: TransactionStatus.dropped,
+        }),
+        expect.any(String),
+      );
+      expect(mockControllerMessengerCall).not.toHaveBeenCalledWith(
+        'TransactionController:updateTransaction',
+        expect.objectContaining({
+          id: otherBatchTx.id,
+          status: TransactionStatus.dropped,
+        }),
+        expect.any(String),
+      );
+
+      broadcastTxEvent({ ...activeTx, status: TransactionStatus.dropped });
+      await cancelPromise;
+    });
+
+    it('does not reject pending approvals for a different in-flight batch on cancelCurrentBatch', async () => {
+      const { result } = renderEnabledHook();
+      const activeBatchId = 'batch-active-approval-cancel-001';
+      const otherBatchId = 'batch-other-approval-cancel-001';
+      const activeTx = txMeta({
+        id: 'tx-active-approval-cancel-001',
+        type: TransactionType.bridgeApproval,
+        status: TransactionStatus.approved,
+        batchId: activeBatchId,
+      });
+      const otherBatchTx = txMeta({
+        id: 'tx-other-approval-cancel-001',
+        type: TransactionType.bridge,
+        status: TransactionStatus.approved,
+        batchId: otherBatchId,
+      });
+
+      setMockTransactions([activeTx, otherBatchTx]);
+      setMockPendingApprovals({
+        [activeBatchId]: { id: activeBatchId, type: 'transaction_batch' },
+        [otherBatchId]: { id: otherBatchId, type: 'transaction_batch' },
+        [otherBatchTx.id]: { id: otherBatchTx.id, type: 'transaction' },
+      });
+      fireTxEvent(activeTx);
+
+      let cancelPromise = Promise.resolve();
+      act(() => {
+        cancelPromise = result.current.cancelCurrentBatch();
+      });
+
+      const expectRejected = (id: string) =>
+        expect(Engine.rejectPendingApproval).toHaveBeenCalledWith(
+          id,
+          expect.any(Error),
+          { ignoreMissing: true, logErrors: false },
+        );
+      const expectNotRejected = (id: string) =>
+        expect(Engine.rejectPendingApproval).not.toHaveBeenCalledWith(
+          id,
+          expect.any(Error),
+          expect.anything(),
+        );
+
+      await waitFor(() => expectRejected(activeBatchId));
+      expectNotRejected(otherBatchId);
+      expectNotRejected(otherBatchTx.id);
+
+      broadcastTxEvent({ ...activeTx, status: TransactionStatus.dropped });
+      await cancelPromise;
+    });
+
+    it('aborts untracked non-terminal txs from the same batch on cancelCurrentBatch', async () => {
+      const { result } = renderEnabledHook();
+      const batchId = 'batch-same-batch-untracked-001';
+      const approvalTx = txMeta({
+        id: 'tx-approval-same-batch-001',
+        type: TransactionType.bridgeApproval,
+        status: TransactionStatus.approved,
+        batchId,
+      });
+      const tradeTx = txMeta({
+        id: 'tx-trade-same-batch-001',
+        type: TransactionType.bridge,
+        status: TransactionStatus.approved,
+        batchId,
+      });
+
+      setMockTransactions([approvalTx, tradeTx]);
+      fireTxEvent(approvalTx);
+
+      let cancelPromise = Promise.resolve();
+      act(() => {
+        cancelPromise = result.current.cancelCurrentBatch();
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(mockAbortTransactionSigning).toHaveBeenCalledWith(approvalTx.id);
+      expect(mockAbortTransactionSigning).toHaveBeenCalledWith(tradeTx.id);
+      expect(mockControllerMessengerCall).toHaveBeenCalledWith(
+        'TransactionController:updateTransaction',
+        expect.objectContaining({
+          id: tradeTx.id,
+          status: TransactionStatus.dropped,
+        }),
+        expect.any(String),
+      );
+
+      broadcastTxEvent({ ...approvalTx, status: TransactionStatus.dropped });
+      broadcastTxEvent({ ...tradeTx, status: TransactionStatus.dropped });
+      await cancelPromise;
+    });
+
     it('does not locally abort or drop submitted batch transactions on cancelCurrentBatch', async () => {
       const { result } = renderEnabledHook();
       const approvedTx = txMeta({
@@ -707,6 +858,7 @@ describe('useHwBatchSignTracker', () => {
       });
 
       setMockTransactions([approvedTx, submittedTx]);
+      fireTxEvent(approvedTx);
 
       let cancelPromise = Promise.resolve();
       act(() => {

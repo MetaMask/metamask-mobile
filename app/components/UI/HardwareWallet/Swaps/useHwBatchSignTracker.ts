@@ -171,18 +171,23 @@ function hasSignedTrackedBatchFromAddress(
 function getCancellableBatchTxIds(
   address: string | undefined,
   trackedTxIds: Iterable<string>,
+  relatedBatchIds: ReadonlySet<string>,
 ): string[] {
+  const trackedTxIdList = [...trackedTxIds];
   const normalizedAddress = normalizeAddress(address);
-  const nonTerminalTxIds = normalizedAddress
-    ? getTransactions()
-        .filter(
-          (tx: TransactionMeta) =>
-            matchesTx(tx, normalizedAddress) && isPendingBatchTransaction(tx),
-        )
-        .map((tx: TransactionMeta) => tx.id)
-    : [];
+  const nonTerminalTxIds =
+    normalizedAddress && relatedBatchIds.size > 0
+      ? getTransactions()
+          .filter(
+            (tx: TransactionMeta) =>
+              matchesTx(tx, normalizedAddress) &&
+              isPendingBatchTransaction(tx) &&
+              Boolean(tx.batchId && relatedBatchIds.has(tx.batchId)),
+          )
+          .map((tx: TransactionMeta) => tx.id)
+      : [];
 
-  return [...new Set([...trackedTxIds, ...nonTerminalTxIds])];
+  return [...new Set([...trackedTxIdList, ...nonTerminalTxIds])];
 }
 
 function getRelatedBatchIds(
@@ -413,24 +418,21 @@ function shouldRejectPendingApprovalOnCancel(
     return false;
   }
 
-  // Get the latest transactions from the TransactionController
-  const transactions = getTransactions();
-
-  if (request.type === 'transaction') {
-    const txMeta = transactions.find(
-      (tx: TransactionMeta) => tx.id === requestId,
-    );
-    return Boolean(txMeta && matchesTx(txMeta, targetFrom));
+  if (request.type === 'transaction_batch') {
+    return relatedBatchIds.has(requestId) || relatedApprovalIds.has(requestId);
   }
 
-  if (request.type === 'transaction_batch') {
-    if (relatedBatchIds.has(requestId) || relatedApprovalIds.has(requestId)) {
-      return true;
+  if (request.type === 'transaction') {
+    if (!relatedApprovalIds.has(requestId)) {
+      return false;
     }
 
-    return transactions.some(
-      (tx: TransactionMeta) =>
-        tx.batchId === requestId && matchesTx(tx, targetFrom),
+    const txMeta = getTransactionById(requestId);
+    return Boolean(
+      txMeta &&
+        matchesTx(txMeta, targetFrom) &&
+        txMeta.batchId &&
+        relatedBatchIds.has(txMeta.batchId),
     );
   }
 
@@ -671,14 +673,15 @@ export function useHwBatchSignTracker({
     const cancelPromise = (async () => {
       const trackerState = trackerStateRef.current;
       const address = normalizeAddress(latestValuesRef.current.fromAddress);
-      const allTxIds = getCancellableBatchTxIds(
-        address,
-        trackerState.trackedTxIds,
-      );
       const relatedBatchIds = getRelatedBatchIds(
         trackerState.currentBatchId,
         trackerState.seenBatchIds,
-        allTxIds,
+        trackerState.trackedTxIds,
+      );
+      const allTxIds = getCancellableBatchTxIds(
+        address,
+        trackerState.trackedTxIds,
+        relatedBatchIds,
       );
 
       const relatedApprovalIds = new Set([
@@ -981,7 +984,11 @@ export function useHwBatchSignTracker({
           const txMeta = getTransactions().find(
             (tx: TransactionMeta) => tx.id === requestId,
           );
-          if (txMeta && matchesTx(txMeta, targetFrom)) {
+          if (
+            txMeta &&
+            matchesTx(txMeta, targetFrom) &&
+            isTransactionFromCurrentBatch(txMeta)
+          ) {
             trackerState.acceptedApprovalIds.add(requestId);
             if (txMeta.status === TransactionStatus.approved) {
               trackerState.trackedTxIds.add(txMeta.id);
