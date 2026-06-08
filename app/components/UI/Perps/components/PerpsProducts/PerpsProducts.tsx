@@ -25,6 +25,7 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { selectPerpsProductsEnabledFlag } from '../../selectors/featureFlags';
 import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
 import { usePerpsCategories } from '../../hooks/usePerpsCategories';
+import { BADGE_CATEGORY_ICON_MAP } from '../../constants/categoryIcons';
 import { styleSheet } from './PerpsProducts.styles';
 import type { PerpsProductsProps } from './PerpsProducts.types';
 
@@ -38,16 +39,6 @@ const PRODUCTS_ANALYTICS = {
   PROPERTY_PILL_POSITION: 'pill_position',
   SOURCE: 'perps_home__product_pill',
 } as const;
-
-const CATEGORY_ICON_MAP: Record<string, IconName> = {
-  crypto: IconName.Coin,
-  stocks: IconName.Briefcase,
-  'pre-ipo': IconName.Rocket,
-  forex: IconName.Exchange,
-  commodities: IconName.MoneyBag,
-  indices: IconName.Chart,
-  etfs: IconName.PieChart,
-};
 
 /**
  * PerpsProducts – grid of category pills for the Perps home screen.
@@ -125,8 +116,8 @@ const PerpsProducts: React.FC<PerpsProductsProps> = ({
             testID={`${TEST_ID}-${category.id}`}
           >
             <Icon
-              name={CATEGORY_ICON_MAP[category.id] ?? IconName.Coin}
-              size={IconSize.Sm}
+              name={BADGE_CATEGORY_ICON_MAP[category.id] ?? IconName.Coin}
+              size={IconSize.Lg}
               color={IconColor.IconAlternative}
             />
             <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
