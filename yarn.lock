@@ -10518,18 +10518,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/wallet@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "@metamask/wallet@npm:2.0.0"
+"@metamask/wallet@npm:@metamask-previews/wallet@2.0.0-preview-3989ae5":
+  version: 2.0.0-preview-3989ae5
+  resolution: "@metamask-previews/wallet@npm:2.0.0-preview-3989ae5"
   dependencies:
+    "@metamask/approval-controller": "npm:^9.0.1"
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/browser-passworder": "npm:^6.0.0"
+    "@metamask/controller-utils": "npm:^12.1.0"
     "@metamask/keyring-controller": "npm:^26.0.0"
     "@metamask/messenger": "npm:^1.2.0"
+    "@metamask/remote-feature-flag-controller": "npm:^4.2.2"
     "@metamask/scure-bip39": "npm:^2.1.1"
     "@metamask/storage-service": "npm:^1.0.1"
     "@metamask/utils": "npm:^11.9.0"
-  checksum: 10/f38c50e55e9333b68c1972b898de95bb8681814d851ed2cf4b12f2b58af18b2f0c78d341563d490cbb4258871c2fd134508e0cff4a0b48d179aa46cda0a5c057
+  checksum: 10/ed1adc413c3fb2af7b8515b107b8be31cadf78ff52d54748af761dc23a0e6678855f89d508b492bfe31bee174f7238d9c7f7ad52fe8c40b7d7cf6b6d6a6e2afc
   languageName: node
   linkType: hard
 
