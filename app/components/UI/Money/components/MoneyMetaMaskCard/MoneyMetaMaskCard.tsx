@@ -367,8 +367,10 @@ const MoneyMetaMaskCard = ({
   let headerTitleKey: string;
   if (mode === 'link') {
     headerTitleKey = 'money.metamask_card.link_title';
-  } else {
+  } else if (mode === 'manage') {
     headerTitleKey = 'money.metamask_card.title';
+  } else {
+    headerTitleKey = 'money.metamask_card.upsell_title';
   }
 
   return (
