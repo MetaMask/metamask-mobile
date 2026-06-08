@@ -133,6 +133,10 @@ jest.mock('../../../../../UI/Ramp/hooks/useRampNavigation', () => ({
   }),
 }));
 
+jest.mock('../../../../../UI/Ramp/hooks/useHasNativeFiatProvider', () => ({
+  useHasNativeFiatProvider: () => true,
+}));
+
 jest.mock('../../../../../UI/Ramp/hooks/useRampsPaymentMethods', () => ({
   useRampsPaymentMethods: () => ({
     paymentMethods: [],

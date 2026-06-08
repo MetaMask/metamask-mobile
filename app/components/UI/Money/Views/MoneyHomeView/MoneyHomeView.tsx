@@ -48,7 +48,6 @@ import { Hex } from '@metamask/utils';
 import { AssetType } from '../../../../Views/confirmations/types/token';
 import { MONEY_ONBOARDING_TOTAL_STEPS } from '../../components/MoneyOnboardingCard/MoneyOnboardingCard';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
-import { useMoneyAccountDepositPaymentMethods } from '../../../Ramp/hooks/useMoneyAccountDepositPaymentMethods';
 const Divider = () => <Box twClassName="h-px bg-border-muted my-5" />;
 
 type MoneyHomeState = 'empty' | 'milestone' | 'filled';
@@ -94,10 +93,6 @@ const MoneyHomeView = () => {
   const { hasMoneyAccount } = useMoneyAccountInfo();
   const { fiatBalanceAggregatedFormatted: musdFiatFormatted } =
     useMusdBalance();
-
-  // Pre-warm the React Query cache so MoneyAddMoneySheet sees an instant
-  // result when it checks payment-method eligibility for the Deposit button.
-  useMoneyAccountDepositPaymentMethods();
 
   const { tokens: depositTokens, isNoFeeToken } = useMoneyDepositTokens();
   const { initiateDeposit } = useMoneyAccountDeposit();
