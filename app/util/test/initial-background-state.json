@@ -726,7 +726,8 @@
     "cardHomeDataStatus": "idle",
     "isAuthenticated": false,
     "cardholderAccounts": [],
-    "providerData": {}
+    "providerData": {},
+    "moneyAccountCardLinkInProgress": false
   },
   "ClientController": {
     "isUiOpen": false
