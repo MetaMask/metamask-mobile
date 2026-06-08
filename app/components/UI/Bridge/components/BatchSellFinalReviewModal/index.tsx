@@ -330,6 +330,7 @@ export function BatchSellFinalReviewModal() {
     !batchSellQuoteData.hasAnyQuote ||
     batchSellQuoteData.hasPendingQuoteRows ||
     isSubmittingTx ||
+    isNetworkFeeUnavailable ||
     hasInsufficientGas;
   const isButtonDisabled = batchSellQuoteData.needsNewQuote
     ? false

@@ -510,6 +510,24 @@ describe('BatchSellFinalReviewModal', () => {
     ).not.toBe(true);
   });
 
+  it('blocks Sell all when the network fee is unavailable even if trades are available', () => {
+    const { getByTestId, getByText } = renderModal({
+      isBatchSellTradeAvailable: true,
+      isBatchSellTradesLoading: false,
+      isNetworkFeeUnavailable: true,
+      networkFee: {
+        formatted: '--',
+        formattedFiat: '-',
+      },
+    });
+
+    expect(getByText('Insufficient balance')).toBeOnTheScreen();
+    expect(
+      getByTestId(BatchSellFinalReviewModalSelectorsIDs.SELL_ALL_BUTTON).props
+        .accessibilityState.disabled,
+    ).toBe(true);
+  });
+
   it('shows insufficient funds when gasless destination-token fee cannot be covered', () => {
     const { getByTestId, getByText, queryByTestId } = renderModal({
       isGasless: true,
