@@ -100,10 +100,14 @@ export function usePerpsSubAccounts(): UsePerpsSubAccountsReturn {
   useEffect(() => {
     if (fromAddress) {
       setSelectedId(fromAddress);
-    } else if (subAccounts.length > 0) {
+    }
+  }, [fromAddress]);
+
+  useEffect(() => {
+    if (selectedId === null && !fromAddress && subAccounts.length > 0) {
       setSelectedId(subAccounts[0].id);
     }
-  }, [fromAddress, subAccounts]);
+  }, [selectedId, fromAddress, subAccounts]);
 
   const selectedSubAccount =
     subAccounts.find((a) => a.id === selectedId) ?? null;
