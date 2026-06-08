@@ -563,7 +563,6 @@ const Routes = {
     ID: 'AgenticCliApproval',
     CONFIRM: 'AgenticCliApprovalConfirm',
   },
-  NAVIGATION_DEV_PANEL: 'NavigationDevPanel',
 };
 
 export default Routes;
