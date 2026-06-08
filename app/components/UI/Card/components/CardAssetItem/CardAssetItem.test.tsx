@@ -10,16 +10,11 @@ jest.mock('../../../../../util/networks');
 jest.mock('../../../../../util/networks/customNetworks');
 jest.mock('../../../../Base/RemoteImage', () => 'RemoteImage');
 
-import {
-  isTestNet,
-  getTestNetImageByChainId,
-} from '../../../../../util/networks';
+import { getNetworkImageSource } from '../../../../../util/networks';
 
-const mockIsTestNet = isTestNet as jest.MockedFunction<typeof isTestNet>;
-const mockGetTestNetImageByChainId =
-  getTestNetImageByChainId as jest.MockedFunction<
-    typeof getTestNetImageByChainId
-  >;
+const mockGetNetworkImageSource = getNetworkImageSource as jest.MockedFunction<
+  typeof getNetworkImageSource
+>;
 
 function renderWithProvider(
   component: React.ComponentType | (() => React.ReactElement | null),
@@ -58,7 +53,6 @@ describe('CardAssetItem Component', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockIsTestNet.mockReturnValue(false);
   });
 
   it('renders with required props', () => {
@@ -126,17 +120,15 @@ describe('CardAssetItem Component', () => {
     expect(getByTestId('card-asset-item-money-account')).toBeOnTheScreen();
   });
 
-  it('handles test network correctly', () => {
-    mockIsTestNet.mockReturnValue(true);
-    mockGetTestNetImageByChainId.mockReturnValue({
-      uri: 'https://example.com/testnet.png',
+  it('resolves the network image from the asset chainId', () => {
+    mockGetNetworkImageSource.mockReturnValue({
+      uri: 'https://example.com/network.png',
     });
 
     renderWithProvider(() => <CardAssetItem asset={mockAsset} />);
 
-    expect(mockIsTestNet).toHaveBeenCalledWith(mockAsset.chainId);
-    expect(mockGetTestNetImageByChainId).toHaveBeenCalledWith(
-      mockAsset.chainId,
-    );
+    expect(mockGetNetworkImageSource).toHaveBeenCalledWith({
+      chainId: mockAsset.chainId,
+    });
   });
 });

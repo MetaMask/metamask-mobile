@@ -1,16 +1,14 @@
-import React, { useMemo } from 'react';
-import { Image } from 'react-native';
+import React from 'react';
 import { TokenI } from '../../../Tokens/types';
 import { Hex } from '@metamask/utils';
-import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
-import musdAssetIcon from '../../../../../images/musd-icon-2x.png';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   BadgeNetwork,
   BadgeWrapper,
   BadgeWrapperPosition,
 } from '@metamask/design-system-react-native';
+import { getNetworkImageSource } from '../../../../../util/networks';
+import MoneyBalanceIcon from '../../../../../images/money-balance.svg';
 
 interface CardAssetItemProps {
   asset: (TokenI & { isMoneyAccountEntry?: boolean }) | undefined;
@@ -25,17 +23,14 @@ const CardAssetItem: React.FC<CardAssetItemProps> = ({
   isMoneyAccountEntry,
 }) => {
   const chainId = asset?.chainId as Hex;
-  const tw = useTailwind();
-  const networkBadgeSource = useMemo(
-    () => (chainId ? NetworkBadgeSource(chainId) : null),
-    [chainId],
-  );
+  const networkImage = chainId ? getNetworkImageSource({ chainId }) : undefined;
 
   if (isMoneyAccountEntry ?? asset?.isMoneyAccountEntry) {
     return (
-      <Image
-        source={musdAssetIcon}
-        style={tw.style('w-10 h-10 rounded-10')}
+      <MoneyBalanceIcon
+        width={40}
+        height={40}
+        name="money-balance"
         testID="card-asset-item-money-account"
       />
     );
@@ -49,11 +44,7 @@ const CardAssetItem: React.FC<CardAssetItemProps> = ({
   return (
     <BadgeWrapper
       position={BadgeWrapperPosition.BottomRight}
-      badge={
-        networkBadgeSource ? (
-          <BadgeNetwork imageOrSvgProps={networkBadgeSource} />
-        ) : null
-      }
+      badge={networkImage ? <BadgeNetwork src={networkImage} /> : null}
     >
       <AssetLogo asset={asset} />
     </BadgeWrapper>

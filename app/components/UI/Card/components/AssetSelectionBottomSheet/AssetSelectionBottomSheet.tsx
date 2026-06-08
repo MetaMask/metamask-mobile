@@ -13,19 +13,16 @@ import {
   BoxJustifyContent,
   Text,
   TextVariant,
+  AvatarToken,
+  AvatarTokenSize,
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
 } from '@metamask/design-system-react-native';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../../constants/navigation/Routes';
-import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import { getCardTokenDisplay } from '../../util/getCardTokenDisplay';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../component-library/components/Badges/BadgeWrapper';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../component-library/components/Badges/Badge';
-import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
+import { getNetworkImageSource } from '../../../../../util/networks';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -49,6 +46,7 @@ import {
   useParams,
 } from '../../../../../util/navigation/navUtils';
 import { useCardHomeData } from '../../hooks/useCardHomeData';
+import MoneyBalanceIcon from '../../../../../images/money-balance.svg';
 
 interface AssetSelectionModalNavigationDetails {
   navigateToCardHomeOnPriorityToken?: boolean;
@@ -381,31 +379,32 @@ const AssetSelectionBottomSheet: React.FC = () => {
                     twClassName="flex-1"
                   >
                     {item.isMoneyAccountEntry ? (
-                      <AvatarToken
-                        size={AvatarSize.Md}
+                      <MoneyBalanceIcon
                         style={tw.style('mr-3')}
-                        imageSource={iconSource}
+                        width={32}
+                        height={32}
+                        name="money-balance"
                       />
                     ) : (
                       <BadgeWrapper
                         style={tw.style('mr-3')}
-                        badgePosition={BadgePosition.BottomRight}
-                        badgeElement={
+                        position={BadgeWrapperPosition.BottomRight}
+                        badge={
                           item.caipChainId ? (
-                            <Badge
-                              variant={BadgeVariant.Network}
-                              imageSource={NetworkBadgeSource(
-                                safeFormatChainIdToHex(
+                            <BadgeNetwork
+                              src={getNetworkImageSource({
+                                chainId: safeFormatChainIdToHex(
                                   item.caipChainId,
                                 ) as `0x${string}`,
-                              )}
+                              })}
                             />
                           ) : null
                         }
                       >
                         <AvatarToken
-                          size={AvatarSize.Md}
-                          imageSource={iconSource}
+                          name={displaySymbol}
+                          src={iconSource as { uri?: string } | number}
+                          size={AvatarTokenSize.Md}
                         />
                       </BadgeWrapper>
                     )}
