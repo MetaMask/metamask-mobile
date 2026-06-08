@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { selectNativeCurrencyByChainId } from '../../../../selectors/networkController';
@@ -112,12 +112,16 @@ export const useTokenPrice = ({
   const [fetchedMarketData, setFetchedMarketData] = useState<
     MarketDataDetails | undefined
   >();
+  const fetchIdRef = useRef(0);
 
   // For non-imported tokens (not in Redux), fetch price + market data in a
   // single call. This gives us both the exchange rate and the pre-computed
   // percentage changes from the spot-prices API, avoiding the historical-prices
   // endpoint's incomplete-data problem for newly-listed tokens.
   useEffect(() => {
+    setFetchedRate(undefined);
+    setFetchedMarketData(undefined);
+
     if (marketDataRate !== undefined || !itemAddress) {
       return;
     }
@@ -131,6 +135,8 @@ export const useTokenPrice = ({
       return;
     }
 
+    const id = ++fetchIdRef.current;
+
     const fetchData = async () => {
       try {
         const data = (await getTokenExchangeRate({
@@ -139,6 +145,8 @@ export const useTokenPrice = ({
           currency: currentCurrency,
           includeMarketData: true,
         })) as MarketDataDetails | undefined;
+
+        if (id !== fetchIdRef.current) return;
 
         if (!data?.price) {
           setFetchedRate(undefined);
@@ -154,6 +162,7 @@ export const useTokenPrice = ({
           setFetchedRate(data.price / nativeTokenConversionRate);
         }
       } catch {
+        if (id !== fetchIdRef.current) return;
         setFetchedRate(undefined);
         setFetchedMarketData(undefined);
       }
