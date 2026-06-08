@@ -1013,15 +1013,6 @@ jobs:
         needs.smart-e2e-selection.outputs.ai_performance_test_tags != '[]'
       }}
     needs: [smart-e2e-selection]
-    # TODO: remove continue-on-error once performance tests are stable enough to block PRs.
-    # To make failures blocking again: delete the line below and add this job as a required
-    # status check in the branch protection rules for main.
-    continue-on-error: true
-    permissions:
-      contents: write
-      id-token: write
-      actions: write
-      pull-requests: write
     uses: ./.github/workflows/run-performance-e2e.yml
     with:
       performance_tags: ${{ needs.smart-e2e-selection.outputs.ai_performance_test_tags }}
@@ -1030,6 +1021,11 @@ jobs:
       branch_name: ${{ github.head_ref }}
       pr_number: ${{ github.event.pull_request.number }}
     secrets: inherit
+    permissions:
+      contents: write
+      id-token: write
+      actions: write
+      pull-requests: write
 
   build-android-apks:
     name: 'Build Android APKs'

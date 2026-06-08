@@ -551,7 +551,7 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
           node tests/scripts/generate-performance-pr-comment.mjs \
-            aggregated-reports/summary.json \
+            aggregated-reports/tests/aggregated-reports/summary.json \
             performance-pr-comment.md
 
       - name: Delete previous performance results comments
@@ -613,7 +613,7 @@ jobs:
         run: |
           {
             echo "summary<<EOF"
-            ./tests/scripts/generate-slack-summary.sh aggregated-reports/summary.json
+            ./tests/scripts/generate-slack-summary.sh aggregated-reports/tests/aggregated-reports/summary.json
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
