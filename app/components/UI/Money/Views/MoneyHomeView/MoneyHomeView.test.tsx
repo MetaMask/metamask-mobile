@@ -32,6 +32,7 @@ import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountC
 import { MONEY_HOME_CARD_ORIGIN } from '../../../Card/hooks/useCardPostAuthRedirect';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
+import { useMoneyAccountDepositPaymentMethods } from '../../../Ramp/hooks/useMoneyAccountDepositPaymentMethods';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -141,6 +142,10 @@ jest.mock('../../hooks/useMoneyAccount', () => ({
   })),
 }));
 
+jest.mock('../../../Ramp/hooks/useMoneyAccountDepositPaymentMethods', () => ({
+  useMoneyAccountDepositPaymentMethods: jest.fn(),
+}));
+
 jest.mock('../../hooks/useOnboardingStep', () => ({
   useOnboardingStep: jest.fn(() => ({
     currentStep: 0,
@@ -161,6 +166,9 @@ const mockUseMoneyAccountTransactions = jest.mocked(
 );
 
 const mockUseMusdBalance = jest.mocked(useMusdBalance);
+const mockUseMoneyAccountDepositPaymentMethods = jest.mocked(
+  useMoneyAccountDepositPaymentMethods,
+);
 
 const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
 const mockUseMoneyAccountInfo = jest.mocked(useMoneyAccountInfo);
@@ -305,6 +313,12 @@ describe('MoneyHomeView', () => {
 
     mockRefetchBalance.mockReset();
     mockRefetchBalance.mockResolvedValue([]);
+
+    mockUseMoneyAccountDepositPaymentMethods.mockReturnValue({
+      paymentMethods: [],
+      isReady: false,
+      isLoading: true,
+    } as unknown as ReturnType<typeof useMoneyAccountDepositPaymentMethods>);
   });
 
   it('renders the main container', () => {
@@ -1288,5 +1302,11 @@ describe('MoneyHomeView', () => {
         params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
       });
     });
+  });
+
+  it('calls useMoneyAccountDepositPaymentMethods on mount to pre-warm the React Query cache', () => {
+    renderWithProvider(<MoneyHomeView />);
+
+    expect(mockUseMoneyAccountDepositPaymentMethods).toHaveBeenCalled();
   });
 });

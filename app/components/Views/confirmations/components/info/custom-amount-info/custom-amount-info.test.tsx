@@ -146,13 +146,6 @@ jest.mock('../../../../../UI/Ramp/hooks/useRampsPaymentMethods', () => ({
   }),
 }));
 
-jest.mock('../../../hooks/pay/useIsMoneyAccountDepositFiatAvailable', () => ({
-  useIsMoneyAccountDepositFiatAvailable: () => ({
-    isAvailable: true,
-    isLoading: false,
-  }),
-}));
-
 const TOKEN_ADDRESS_MOCK = '0x123' as Hex;
 const CHAIN_ID_MOCK = '0x1' as Hex;
 

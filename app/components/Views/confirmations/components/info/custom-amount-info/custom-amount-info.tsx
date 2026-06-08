@@ -24,7 +24,6 @@ import {
   useAutomaticTransactionPayToken,
 } from '../../../hooks/pay/useAutomaticTransactionPayToken';
 import { useIsFiatPaymentAvailable } from '../../../hooks/pay/useIsFiatPaymentAvailable';
-import { useIsMoneyAccountDepositFiatAvailable } from '../../../hooks/pay/useIsMoneyAccountDepositFiatAvailable';
 import { useTransactionPayPostQuote } from '../../../hooks/pay/useTransactionPayPostQuote';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { AlertMessage } from '../../alerts/alert-message';
@@ -153,23 +152,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
       TransactionType.moneyAccountDeposit,
     ]);
-    const {
-      isAvailable: isMoneyAccountFiatAvailable,
-      isLoading: isMoneyAccountFiatLoading,
-    } = useIsMoneyAccountDepositFiatAvailable();
-    // For moneyAccountDeposit: use asset-provider availability (global Redux
-    // paymentMethods may be empty for regions like India). For all other flows:
-    // use the global isFiatAvailable flag as before.
-    const hasFiatOption = isMoneyAccountDeposit
-      ? isMoneyAccountFiatAvailable
-      : isFiatAvailable;
+    const hasFiatOption = isFiatAvailable;
     const hasPaymentOption = hasAvailableTokens || hasFiatOption;
-    // True when we've confirmed there are no eligible fiat methods in this
-    // region (still loading = optimistically available, so keyboard stays up).
-    const isMoneyAccountFiatUnavailable =
-      isMoneyAccountDeposit &&
-      !isMoneyAccountFiatAvailable &&
-      !isMoneyAccountFiatLoading;
     const isPredictDeposit = hasTransactionType(transactionMeta, [
       TransactionType.predictDeposit,
     ]);
@@ -336,43 +320,26 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               {footerText}
             </Text>
           )}
-          {isKeyboardVisible &&
-            hasPaymentOption &&
-            !isMoneyAccountFiatUnavailable && (
-              <DepositKeyboard
-                hidePercentageButtons={
-                  Boolean(selectedFiatPaymentMethodId) ||
-                  shouldHideAccountSelector
-                }
-                alertMessage={alertTitle}
-                value={amountFiat}
-                onChange={updatePendingAmount}
-                onDonePress={handleDone}
-                onPercentagePress={updatePendingAmountPercentage}
-                hasInput={hasInput}
-                hasMax={hasMax && (isWithdraw || !isNativePayToken)}
-              />
-            )}
-          {isMoneyAccountFiatUnavailable && (
-            <Text
-              variant={TextVariant.BodySM}
-              color={TextColor.Alternative}
-              style={styles.footerText}
-            >
-              {strings('confirm.custom_amount.not_available_in_region')}
-            </Text>
+          {isKeyboardVisible && hasPaymentOption && (
+            <DepositKeyboard
+              hidePercentageButtons={
+                Boolean(selectedFiatPaymentMethodId) ||
+                shouldHideAccountSelector
+              }
+              alertMessage={alertTitle}
+              value={amountFiat}
+              onChange={updatePendingAmount}
+              onDonePress={handleDone}
+              onPercentagePress={updatePendingAmountPercentage}
+              hasInput={hasInput}
+              hasMax={hasMax && (isWithdraw || !isNativePayToken)}
+            />
           )}
-          {!isMoneyAccountFiatUnavailable && !hasPaymentOption && (
-            <BuySection />
-          )}
-          {(!isKeyboardVisible || isMoneyAccountFiatUnavailable) && (
+          {!hasPaymentOption && <BuySection />}
+          {!isKeyboardVisible && (
             <ConfirmButton
               alertTitle={alertTitle}
-              disableConfirm={
-                disableConfirm ||
-                isAccountSelectionNeeded ||
-                isMoneyAccountFiatUnavailable
-              }
+              disableConfirm={disableConfirm || isAccountSelectionNeeded}
             />
           )}
         </Box>
