@@ -1,6 +1,4 @@
-const ReactCompilerConfig = {
-  target: '18',
-};
+const isTestEnv = process.env.NODE_ENV === 'test';
 
 // Hermes (RN's bytecode compiler) does not accept dynamic `import()` syntax —
 // even inside dead code branches — and aborts with "Invalid expression
@@ -64,20 +62,9 @@ module.exports = {
   presets: ['babel-preset-expo'],
   // Babel can find the plugin without the `babel-plugin-` prefix. Ex. `babel-plugin-react-compiler` -> `react-compiler`
   plugins: [
-    [
-      'react-compiler',
-      {
-        target: '18',
-        sources: (filename) => {
-          // Match file paths or directories to include in the React Compiler.
-          const pathsToInclude = [
-            'app/components/Nav',
-            'app/components/UI/DeepLinkModal',
-          ];
-          return pathsToInclude.some((path) => filename.includes(path));
-        },
-      },
-    ],
+    // Disabled under Jest (see isTestEnv note above) to avoid the jest.mock
+    // hoisting conflict with the compiler-injected `_c` helper.
+    ...(isTestEnv ? [] : ['react-compiler']),
     'transform-inline-environment-variables',
     dynamicImportToRequire,
     // NOTE: react-native-reanimated/plugin must be listed LAST.
