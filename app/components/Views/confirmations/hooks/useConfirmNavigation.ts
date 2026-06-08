@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback } from 'react';
 import Routes from '../../../../constants/navigation/Routes';
 import {
   ConfirmationLoader,
@@ -22,24 +22,13 @@ const ROUTE = Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS;
 const ROUTE_NO_HEADER = Routes.FULL_SCREEN_CONFIRMATIONS.NO_HEADER;
 
 // Upper bound on how long we wait for rejected transactions to clear before
-// navigating anyway. A successful rejection clears the transaction in well
-// under a second, and a failed one won't clear no matter how long we wait — so
-// this is kept short: it only trips when a rejection silently fails, bounding
-// the worst-case wait (and preventing a leaked store subscription) without
-// affecting the normal path.
+// navigating anyway.
 const REJECTION_CLEAR_TIMEOUT_MS = 1_500;
 
 export type ConfirmNavigateOptions = {
   amount?: string;
   headerShown?: boolean;
   stack?: string;
-  /**
-   * Deferred navigation (when pending transactions must be rejected first) is
-   * abandoned if the calling component unmounts before it completes. Set this
-   * for flows that intentionally close their own UI as part of navigating —
-   * e.g. the Money "Add" bottom sheet — so the navigation still happens.
-   */
-  deferAcrossUnmount?: boolean;
 } & ConfirmationParams;
 
 // The store API we depend on — kept minimal so we rely only on what we use.
@@ -54,98 +43,84 @@ function getPendingTransactions(state: RootState): TransactionMeta[] {
   );
 }
 
-// A deferred navigation outlives the component that triggers it, so its
-// single-flight guard must live outside React state. Only one reject-then-
-// navigate can be in flight at a time (there is a single confirmation screen);
-// a newer request supersedes any older one.
-let cancelActiveDeferral: (() => void) | undefined;
+// A reject-then-navigate intentionally outlives the component that triggers it
+// (e.g. the Money "Add" sheet closes as part of the action), so it can't live
+// in React state. Only one can be in flight — there is a single confirmation
+// screen — so a newer request aborts any older one.
+let abortActiveDeferral: (() => void) | undefined;
 
 /**
- * Waits for the given transactions to clear from state, then runs `navigate`.
- * Returns a `cancel` that abandons the pending navigation. Supersedes any
- * deferral already in flight, and is bounded by a timeout so a rejection that
- * never clears can neither leak the subscription nor strand the user.
+ * Rejects `transactions`, waits for them to clear from state, then runs
+ * `navigate`. After a timeout the fires navigation anyway and tears
+ * down the subscription.
  */
-function scheduleNavigationAfterRejection(
+function rejectThenNavigate(
   store: StoreLike,
-  idsToRemove: Set<string>,
+  transactions: TransactionMeta[],
   navigate: () => void,
-): () => void {
-  cancelActiveDeferral?.();
+): void {
+  abortActiveDeferral?.();
 
-  // Held in a mutable object so `settle` can tear them down without forward
-  // references to bindings declared later in the function.
-  const handle: {
+  const idsToRemove = new Set(transactions.map((tx) => tx.id));
+  const handles: {
     settled: boolean;
     unsubscribe: () => void;
-    timeoutId: ReturnType<typeof setTimeout> | undefined;
-  } = { settled: false, unsubscribe: () => undefined, timeoutId: undefined };
+    timeoutId?: ReturnType<typeof setTimeout>;
+  } = { settled: false, unsubscribe: () => undefined };
 
-  function settle(shouldNavigate: boolean) {
-    if (handle.settled) {
+  const abort = () => {
+    if (handles.settled) {
       return;
     }
-    handle.settled = true;
-    if (handle.timeoutId !== undefined) {
-      clearTimeout(handle.timeoutId);
+    handles.settled = true;
+    if (handles.timeoutId !== undefined) {
+      clearTimeout(handles.timeoutId);
     }
-    handle.unsubscribe();
-    if (cancelActiveDeferral === cancel) {
-      cancelActiveDeferral = undefined;
+    handles.unsubscribe();
+    if (abortActiveDeferral === abort) {
+      abortActiveDeferral = undefined;
     }
-    if (shouldNavigate) {
-      navigate();
-    }
-  }
+  };
 
-  function cancel() {
-    settle(false);
-  }
+  const navigateAfterClear = () => {
+    if (handles.settled) {
+      return;
+    }
+    abort();
+    navigate();
+  };
+
+  rejectTransactions(transactions);
 
   // We listen on the store directly rather than via a React effect because the
   // navigation must still happen even if the component that triggered it
-  // unmounts first — e.g. the Money "Add" bottom sheet, which closes (tearing
-  // down its hook) as part of initiating the deposit.
-  handle.unsubscribe = store.subscribe(() => {
+  // unmounts first.
+  handles.unsubscribe = store.subscribe(() => {
     const stillPending = getPendingTransactions(store.getState()).some((tx) =>
       idsToRemove.has(tx.id),
     );
-
     if (stillPending) {
       return;
     }
-
     log('Navigating after rejecting pending transactions');
-    settle(true);
+    navigateAfterClear();
   });
 
-  handle.timeoutId = setTimeout(() => {
+  handles.timeoutId = setTimeout(() => {
     log('Timed out waiting for rejected transactions to clear; navigating');
-    settle(true);
+    navigateAfterClear();
   }, REJECTION_CLEAR_TIMEOUT_MS);
 
-  cancelActiveDeferral = cancel;
-  return cancel;
+  abortActiveDeferral = abort;
 }
 
 export function useConfirmNavigation() {
   const { navigate } = useNavigation();
   const store = useStore<RootState>();
 
-  // Abandons a deferred navigation this hook instance started when the
-  // component unmounts — unless the caller opted into surviving unmount.
-  const cancelOnUnmount = useRef<(() => void) | undefined>(undefined);
-
-  useEffect(
-    () => () => {
-      cancelOnUnmount.current?.();
-    },
-    [],
-  );
-
   const performNavigate = useCallback(
     (options: ConfirmNavigateOptions) => {
-      const { headerShown, stack, deferAcrossUnmount, ...params } = options;
+      const { headerShown, stack, ...params } = options;
       const route = headerShown === false ? ROUTE_NO_HEADER : ROUTE;
 
       log('Navigating', { route, params, stack });
@@ -174,26 +149,9 @@ export function useConfirmNavigation() {
         pendingTransactions.length
       ) {
         log('Rejecting pending transactions before navigating');
-
-        const idsToRemove = new Set(pendingTransactions.map((tx) => tx.id));
-        rejectTransactions(pendingTransactions);
-
-        const cancel = scheduleNavigationAfterRejection(
-          store,
-          idsToRemove,
-          () => {
-            cancelOnUnmount.current = undefined;
-            performNavigate(resolvedOptions);
-          },
+        rejectThenNavigate(store, pendingTransactions, () =>
+          performNavigate(resolvedOptions),
         );
-
-        cancelOnUnmount.current = resolvedOptions.deferAcrossUnmount
-          ? undefined
-          : () => {
-              cancel();
-              cancelOnUnmount.current = undefined;
-            };
-
         return;
       }
 
