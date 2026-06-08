@@ -3,18 +3,31 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { useIsFiatPaymentAvailable } from './useIsFiatPaymentAvailable';
 import { useMMPayFiatConfig } from './useMMPayFiatConfig';
 import { useRampsPaymentMethods } from '../../../../UI/Ramp/hooks/useRampsPaymentMethods';
+import { useRampsProviders } from '../../../../UI/Ramp/hooks/useRampsProviders';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 
 jest.mock('./useMMPayFiatConfig');
 jest.mock('../../../../UI/Ramp/hooks/useRampsPaymentMethods');
+jest.mock('../../../../UI/Ramp/hooks/useRampsProviders');
 jest.mock('../transactions/useTransactionMetadataRequest');
 
 describe('useIsFiatPaymentAvailable', () => {
   const useMMPayFiatConfigMock = jest.mocked(useMMPayFiatConfig);
   const useRampsPaymentMethodsMock = jest.mocked(useRampsPaymentMethods);
+  const useRampsProvidersMock = jest.mocked(useRampsProviders);
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
   );
+
+  const transakNativeProvider = {
+    id: '/providers/transak-native',
+    name: 'Transak',
+  };
+
+  const transakAggregatorProvider = {
+    id: '/providers/transak',
+    name: 'Transak',
+  };
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -27,6 +40,11 @@ describe('useIsFiatPaymentAvailable', () => {
     useRampsPaymentMethodsMock.mockReturnValue({
       paymentMethods: [{ id: 'apple-pay' }],
     } as unknown as ReturnType<typeof useRampsPaymentMethods>);
+
+    useRampsProvidersMock.mockReturnValue({
+      providers: [transakNativeProvider],
+      selectedProvider: transakNativeProvider,
+    } as unknown as ReturnType<typeof useRampsProviders>);
 
     useTransactionMetadataRequestMock.mockReturnValue({
       type: TransactionType.perpsDeposit,
@@ -68,6 +86,26 @@ describe('useIsFiatPaymentAvailable', () => {
 
   it('returns false when transaction metadata is undefined', () => {
     useTransactionMetadataRequestMock.mockReturnValue(undefined);
+
+    const { result } = renderHook(() => useIsFiatPaymentAvailable());
+    expect(result.current).toBe(false);
+  });
+
+  it('returns false when payment methods are for Transak aggregator only', () => {
+    useRampsProvidersMock.mockReturnValue({
+      providers: [transakAggregatorProvider],
+      selectedProvider: transakAggregatorProvider,
+    } as unknown as ReturnType<typeof useRampsProviders>);
+
+    const { result } = renderHook(() => useIsFiatPaymentAvailable());
+    expect(result.current).toBe(false);
+  });
+
+  it('returns false when selected Transak Native provider is stale for the current region', () => {
+    useRampsProvidersMock.mockReturnValue({
+      providers: [transakAggregatorProvider],
+      selectedProvider: transakNativeProvider,
+    } as unknown as ReturnType<typeof useRampsProviders>);
 
     const { result } = renderHook(() => useIsFiatPaymentAvailable());
     expect(result.current).toBe(false);

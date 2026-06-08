@@ -60,6 +60,11 @@ const mockTransakProvider: Provider = {
   },
 };
 
+const mockTransakNativeProvider: Provider = {
+  ...mockTransakProvider,
+  id: '/providers/transak-native',
+};
+
 const makeFiatOrder = (
   overrides: Partial<FiatOrder> & { provider: string },
 ): FiatOrder => ({
@@ -221,6 +226,21 @@ describe('determinePreferredProvider', () => {
       });
     });
 
+    it('prefers Transak Native over Transak aggregator', () => {
+      const providers = [
+        mockProvider1,
+        mockTransakProvider,
+        mockTransakNativeProvider,
+      ];
+
+      const result = determinePreferredProvider([], providers);
+
+      expect(result).toEqual({
+        provider: mockTransakNativeProvider,
+        autoSelected: false,
+      });
+    });
+
     it('returns null if Transak is not available (no preselection without signal)', () => {
       const providers = [mockProvider1, mockProvider2];
 
@@ -269,6 +289,18 @@ describe('determinePreferredProvider', () => {
 
       expect(result).toEqual({
         provider: transakVariant,
+        autoSelected: false,
+      });
+    });
+
+    it('prefers Transak Native when legacy history ambiguously maps to Transak by name', () => {
+      const completedOrders = [{ providerId: 'TRANSAK', completedAt: 1000 }];
+      const providers = [mockTransakProvider, mockTransakNativeProvider];
+
+      const result = determinePreferredProvider(completedOrders, providers);
+
+      expect(result).toEqual({
+        provider: mockTransakNativeProvider,
         autoSelected: false,
       });
     });

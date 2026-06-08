@@ -71,12 +71,24 @@ export interface PreferredProviderResult {
   autoSelected: boolean;
 }
 
+function isTransakNativeProvider(provider: Provider): boolean {
+  return provider.id?.toLowerCase().includes('transak-native') ?? false;
+}
+
+function isTransakProvider(provider: Provider): boolean {
+  return (
+    provider.id?.toLowerCase().includes('transak') ||
+    provider.name?.toLowerCase().includes('transak') ||
+    false
+  );
+}
+
 /**
  * Determines the preferred provider based on user's completed order history.
  *
  * Fallback order:
  * 1. Provider from most recent completed order (autoSelected: false)
- * 2. Transak (autoSelected: false)
+ * 2. Transak Native, then any Transak provider (autoSelected: false)
  * 3. null — no preselection; wait for the user to pick a token, then
  * choose the first provider that supports it.
  *
@@ -98,22 +110,22 @@ export function determinePreferredProvider(
       (a, b) => b.completedAt - a.completedAt,
     );
 
-    const foundProvider = availableProviders.find(
+    const matchingProviders = availableProviders.filter(
       (provider) =>
         provider.id?.toLowerCase() === mostRecent.providerId.toLowerCase() ||
         provider.name?.toLowerCase() === mostRecent.providerId.toLowerCase(),
     );
+    const foundProvider =
+      matchingProviders.find(isTransakNativeProvider) ?? matchingProviders[0];
 
     if (foundProvider) {
       return { provider: foundProvider, autoSelected: false };
     }
   }
 
-  const transakProvider = availableProviders.find(
-    (provider) =>
-      provider.id?.toLowerCase().includes('transak') ||
-      provider.name?.toLowerCase().includes('transak'),
-  );
+  const transakProvider =
+    availableProviders.find(isTransakNativeProvider) ??
+    availableProviders.find(isTransakProvider);
 
   if (transakProvider) {
     return { provider: transakProvider, autoSelected: false };
