@@ -791,6 +791,7 @@ async function main() {
         mode,
         analysisContext,
         availableSkills,
+        { skipHardRules: Boolean(e2eHardRuleResult) },
       );
 
       // Success - output results and exit
