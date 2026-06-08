@@ -36,7 +36,6 @@ export function getCardControllerMessenger(
       'TransactionController:addTransaction',
       'TransactionController:addTransactionBatch',
       'TransactionController:getState',
-      'TransactionController:isAtomicBatchSupported',
     ],
     events: [
       'AccountTreeController:stateChange',

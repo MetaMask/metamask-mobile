@@ -1,8 +1,9 @@
 import React, { useCallback, useLayoutEffect, useMemo, useState } from 'react';
-import { TouchableOpacity } from 'react-native';
+import { Alert, TouchableOpacity } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   Box,
   Text,
@@ -15,12 +16,28 @@ import {
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
+import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
+import { selectTransactions } from '../../../selectors/transactionController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
+import { selectRampsOrdersForSelectedAccountGroup } from '../../../selectors/rampsController';
+import { getOrders } from '../../../reducers/fiatOrders';
+import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/featureFlags';
 import {
   MOCK_ADD_BOOKMARK_PARAMS,
   MOCK_NFT_DETAILS_PARAMS,
   MOCK_NFT_FULL_IMAGE_PARAMS,
   MOCK_OFFLINE_MODE_PARAMS,
+  MOCK_PR4A_PARAMS,
+  MOCK_REWARDS_HOME_PARAMS,
+  MOCK_SET_PASSWORD_FLOW_PARAMS,
   MOCK_WEBVIEW_PARAMS,
+  resolvePr4aTransactionsHomeParams,
+  seedDevPanelAggregatorOrder,
+  seedDevPanelBridgeTransaction,
+  seedDevPanelDepositOrder,
+  seedDevPanelRampsOrder,
+  seedDevPanelSellOrder,
+  type Pr4aTransactionsHomeContext,
 } from './NavigationDevPanel.mockParams';
 
 /**
@@ -28,7 +45,7 @@ import {
  * so navigation behavior (animations, headers, gestures, presentation) can be
  * eyeballed before/after the native-stack migration.
  *
- * Routes that need params ship with dev mocks in NavigationDevPanel.mockParams.ts
+ * Route params and PR4a seed helpers live in NavigationDevPanel.mockParams.ts
  * so screens render without crashing when opened from this panel.
  */
 
@@ -41,6 +58,10 @@ interface RouteEntry {
   params?: Record<string, unknown>;
   /** Marks routes known to require params (best opened from their real flow) */
   needsParams?: boolean;
+  /** Resolves params from wallet state (with dev fallbacks) and opens via Activity tab. */
+  pr4aTransactionsHome?: boolean;
+  /** Opens via Rewards tab stack (RewardsHome). */
+  rewardsHome?: boolean;
 }
 
 interface RouteGroup {
@@ -48,10 +69,11 @@ interface RouteGroup {
   routes: RouteEntry[];
 }
 
-// NOTE: Scoped to the PR1+PR2 work only — the trivial single-screen wrapper
-// navigators being migrated to native-stack first. All other route groups are
-// commented out below and will be re-enabled as each subsequent PR lands so the
-// panel always reflects exactly what's currently being migrated.
+// NOTE: Scoped to in-progress native-stack migration PRs. PR2 = single-screen
+// wrappers; PR3 = multi-screen leaf flows; PR4a = wallet + activity tab stacks;
+// PR4b = rewards tab stack.
+// Uncomment groups below as each subsequent PR lands so the panel reflects
+// what is currently being migrated.
 const ROUTE_GROUPS: RouteGroup[] = [
   {
     title: 'PR2 — Single-screen wrappers',
@@ -82,6 +104,147 @@ const ROUTE_GROUPS: RouteGroup[] = [
       ///: END:ONLY_INCLUDE_IF
     ],
   },
+  {
+    title: 'PR3 — Multi-screen leaf flows',
+    routes: [
+      { name: Routes.NOTIFICATIONS.VIEW, label: 'Notifications' },
+      { name: 'SetPasswordFlow', label: 'Set Password Flow' },
+      { name: Routes.TRENDING_VIEW, label: 'Explore Home' },
+      { name: Routes.BROWSER.HOME, label: 'Browser Flow' },
+    ],
+  },
+  {
+    title: 'PR3 — Set Password Flow (inner screens)',
+    routes: [
+      {
+        name: 'SetPasswordFlow',
+        label: 'Choose Password (step 1 of 3)',
+        params: MOCK_SET_PASSWORD_FLOW_PARAMS.CHOOSE_PASSWORD,
+      },
+      {
+        name: 'SetPasswordFlow',
+        label: 'Account Backup Step 1 (step 2 of 3)',
+        params: MOCK_SET_PASSWORD_FLOW_PARAMS.ACCOUNT_BACKUP_STEP_1,
+      },
+      {
+        name: 'SetPasswordFlow',
+        label: 'Account Backup Step 1B',
+        params: MOCK_SET_PASSWORD_FLOW_PARAMS.ACCOUNT_BACKUP_STEP_1B,
+      },
+      {
+        name: 'SetPasswordFlow',
+        label: 'Manual Backup Step 1',
+        params: MOCK_SET_PASSWORD_FLOW_PARAMS.MANUAL_BACKUP_STEP_1,
+      },
+      {
+        name: 'SetPasswordFlow',
+        label: 'Manual Backup Step 2',
+        params: MOCK_SET_PASSWORD_FLOW_PARAMS.MANUAL_BACKUP_STEP_2,
+      },
+      {
+        name: 'SetPasswordFlow',
+        label: 'Manual Backup Step 3',
+        params: MOCK_SET_PASSWORD_FLOW_PARAMS.MANUAL_BACKUP_STEP_3,
+      },
+      {
+        name: 'SetPasswordFlow',
+        label: 'Optin Metrics',
+        params: MOCK_SET_PASSWORD_FLOW_PARAMS.OPTIN_METRICS,
+      },
+    ],
+  },
+  {
+    title: 'PR4a — WalletTabStackFlow',
+    routes: [
+      { name: Routes.WALLET_VIEW, label: 'WalletView' },
+      {
+        name: Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
+        label: 'RevealPrivateCredentialView',
+        params: MOCK_PR4A_PARAMS.REVEAL_PRIVATE_CREDENTIAL,
+      },
+    ],
+  },
+  {
+    title: 'PR4a — TransactionsHome',
+    routes: [
+      {
+        name: Routes.TRANSACTION_DETAILS,
+        label: 'TransactionDetails (stack)',
+        pr4aTransactionsHome: true,
+      },
+      {
+        name: Routes.RAMP.ORDER_DETAILS,
+        label: 'OrderDetails (legacy aggregator)',
+        pr4aTransactionsHome: true,
+      },
+      {
+        name: Routes.RAMP.RAMPS_ORDER_DETAILS,
+        label: 'RampsOrderDetails (v2)',
+        pr4aTransactionsHome: true,
+      },
+      {
+        name: Routes.DEPOSIT.ORDER_DETAILS,
+        label: 'DepositOrderDetails',
+        pr4aTransactionsHome: true,
+      },
+      {
+        name: Routes.RAMP.BANK_DETAILS_STANDALONE,
+        label: 'BankDetailsStandalone',
+        pr4aTransactionsHome: true,
+      },
+      {
+        name: Routes.RAMP.SEND_TRANSACTION,
+        label: 'SendTransaction',
+        pr4aTransactionsHome: true,
+      },
+      {
+        name: Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS,
+        label: 'BridgeTransactionDetails',
+        pr4aTransactionsHome: true,
+      },
+    ],
+  },
+  {
+    title: 'PR4b — RewardsHome',
+    routes: [
+      {
+        name: Routes.REWARDS_VIEW,
+        label: 'RewardsNavigator (stack root)',
+        rewardsHome: true,
+      },
+      {
+        name: Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+        label: 'RewardsBottomSheetModal',
+        params: MOCK_REWARDS_HOME_PARAMS.REWARDS_BOTTOM_SHEET_MODAL,
+        rewardsHome: true,
+      },
+      {
+        name: Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL,
+        label: 'RewardsClaimBottomSheetModal',
+        params: MOCK_REWARDS_HOME_PARAMS.REWARDS_CLAIM_BOTTOM_SHEET_MODAL,
+        rewardsHome: true,
+      },
+      {
+        name: Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL,
+        label: 'RewardOptInAccountGroupModal',
+        params: MOCK_REWARDS_HOME_PARAMS.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL,
+        rewardsHome: true,
+      },
+      {
+        name: Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET,
+        label: 'EndOfSeasonClaimBottomSheet',
+        params:
+          MOCK_REWARDS_HOME_PARAMS.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET,
+        rewardsHome: true,
+      },
+      {
+        name: Routes.MODAL.REWARDS_SELECT_SHEET,
+        label: 'RewardsSelectSheet',
+        params: MOCK_REWARDS_HOME_PARAMS.REWARDS_SELECT_SHEET,
+        rewardsHome: true,
+      },
+    ],
+  },
   // --- Routes below are out of scope for the current PR. Uncomment a group
   // --- when its migration PR begins. ---
   // {
@@ -89,10 +252,8 @@ const ROUTE_GROUPS: RouteGroup[] = [
   //   routes: [
   //     { name: Routes.HOME_TABS, label: 'Home (Tabs)' },
   //     { name: Routes.SETTINGS_VIEW, label: 'Settings Flow' },
-  //     { name: Routes.NOTIFICATIONS.VIEW, label: 'Notifications' },
   //     { name: Routes.QR_TAB_SWITCHER, label: 'QR Tab Switcher' },
   //     { name: 'GeneralSettings' },
-  //     { name: 'SetPasswordFlow' },
   //   ],
   // },
   // {
@@ -119,12 +280,11 @@ const ROUTE_GROUPS: RouteGroup[] = [
   //   ],
   // },
   // {
-  //   title: 'Explore & Browser',
+  //   title: 'Explore & Browser (nested screens)',
   //   routes: [
   //     { name: Routes.EXPLORE_SEARCH, label: 'Explore Search' },
   //     { name: Routes.SITES_FULL_VIEW, label: 'Sites Full View' },
   //     { name: Routes.WHATS_HAPPENING_DETAIL, label: "What's Happening Detail" },
-  //     { name: Routes.BROWSER.HOME, label: 'Browser' },
   //   ],
   // },
   // {
@@ -238,6 +398,41 @@ const NavigationDevPanel = () => {
   const { colors } = theme;
   const { bottom: bottomInset } = useSafeAreaInsets();
   const [search, setSearch] = useState('');
+  const dispatch = useDispatch();
+  const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
+  const rampsOrders = useSelector(selectRampsOrdersForSelectedAccountGroup);
+  const fiatOrders = useSelector(getOrders);
+  const transactions = useSelector(selectTransactions);
+  const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
+
+  const pr4aTransactionsHomeContext = useMemo<Pr4aTransactionsHomeContext>(
+    () => ({
+      rampsOrders,
+      fiatOrders,
+      transactions,
+      bridgeHistory,
+    }),
+    [rampsOrders, fiatOrders, transactions, bridgeHistory],
+  );
+
+  // Dev tool navigates to arbitrary registered routes, so the param list can't
+  // be statically typed here.
+  const navigateUntyped = useCallback(
+    (name: string, params?: Record<string, unknown>) => {
+      (
+        navigation as unknown as {
+          navigate: (
+            routeName: string,
+            routeParams?: Record<string, unknown>,
+          ) => void;
+        }
+      ).navigate(name, params);
+    },
+    [navigation],
+  );
 
   useLayoutEffect(() => {
     navigation.setOptions(
@@ -251,17 +446,126 @@ const NavigationDevPanel = () => {
     );
   }, [navigation, colors]);
 
+  const navigateToTransactionsHomeScreen = useCallback(
+    (screenName: string, screenParams: Record<string, unknown>) => {
+      // TransactionsHome lives on the Activity tab (or as a root overlay when Money tab is on).
+      if (isMoneyAccountEnabled) {
+        navigateUntyped(Routes.TRANSACTIONS_VIEW, {
+          screen: screenName,
+          params: screenParams,
+        });
+        return;
+      }
+
+      navigateUntyped('Home', {
+        screen: Routes.TRANSACTIONS_VIEW,
+        params: {
+          screen: screenName,
+          params: screenParams,
+        },
+      });
+    },
+    [isMoneyAccountEnabled, navigateUntyped],
+  );
+
+  const navigateToRewardsHomeScreen = useCallback(
+    (screenName?: string, screenParams?: Record<string, unknown>) => {
+      if (!screenName) {
+        navigateUntyped('Home', { screen: Routes.REWARDS_VIEW });
+        return;
+      }
+
+      navigateUntyped('Home', {
+        screen: Routes.REWARDS_VIEW,
+        params: {
+          screen: screenName,
+          params: screenParams,
+        },
+      });
+    },
+    [navigateUntyped],
+  );
+
   const handleNavigate = useCallback(
     (entry: RouteEntry) => {
-      // Dev tool navigates to arbitrary registered routes, so the param list
-      // can't be statically typed here.
-      (
-        navigation as unknown as {
-          navigate: (name: string, params?: Record<string, unknown>) => void;
+      if (entry.rewardsHome) {
+        navigateToRewardsHomeScreen(
+          entry.name === Routes.REWARDS_VIEW ? undefined : entry.name,
+          entry.params,
+        );
+        return;
+      }
+
+      if (entry.pr4aTransactionsHome) {
+        let screenParams: Record<string, unknown> | null = null;
+
+        if (entry.name === Routes.RAMP.SEND_TRANSACTION) {
+          screenParams = {
+            orderId: seedDevPanelSellOrder(
+              fiatOrders,
+              dispatch,
+              selectedAddress,
+            ),
+          };
+        } else if (entry.name === Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS) {
+          screenParams = seedDevPanelBridgeTransaction(
+            selectedAddress,
+            bridgeHistory,
+            transactions,
+          );
+        } else {
+          screenParams = resolvePr4aTransactionsHomeParams(
+            entry.name,
+            pr4aTransactionsHomeContext,
+          );
         }
-      ).navigate(entry.name, entry.params);
+
+        if (!screenParams) {
+          const isTransactionDetails =
+            entry.name === Routes.TRANSACTION_DETAILS;
+          Alert.alert(
+            'No transactions',
+            isTransactionDetails
+              ? 'Complete a transaction on this wallet first, then try again.'
+              : 'No matching data on this wallet for this screen.',
+          );
+          return;
+        }
+
+        if (entry.name === Routes.RAMP.ORDER_DETAILS) {
+          screenParams = {
+            orderId: seedDevPanelAggregatorOrder(fiatOrders, dispatch),
+          };
+        } else if (entry.name === Routes.RAMP.RAMPS_ORDER_DETAILS) {
+          screenParams = seedDevPanelRampsOrder(rampsOrders, selectedAddress);
+        } else if (entry.name === Routes.DEPOSIT.ORDER_DETAILS) {
+          screenParams = {
+            orderId: seedDevPanelDepositOrder(
+              fiatOrders,
+              dispatch,
+              selectedAddress,
+            ),
+          };
+        }
+
+        navigateToTransactionsHomeScreen(entry.name, screenParams);
+        return;
+      }
+
+      navigateUntyped(entry.name, entry.params);
     },
-    [navigation],
+    [
+      bridgeHistory,
+      dispatch,
+      fiatOrders,
+      navigateToRewardsHomeScreen,
+      navigateToTransactionsHomeScreen,
+      navigateUntyped,
+      pr4aTransactionsHomeContext,
+      rampsOrders,
+      selectedAddress,
+      transactions,
+    ],
   );
 
   const filteredGroups = useMemo(() => {
@@ -303,7 +607,7 @@ const NavigationDevPanel = () => {
             </Text>
             {group.routes.map((route) => (
               <TouchableOpacity
-                key={route.name}
+                key={`${route.name}-${route.label ?? ''}`}
                 onPress={() => handleNavigate(route)}
                 activeOpacity={0.6}
               >

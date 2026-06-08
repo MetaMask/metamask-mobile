@@ -2,8 +2,14 @@ import { renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { toChecksumAddress } from '../../../../../../util/address';
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
-import { getSourceTokenCandidates } from './sourceTokenCandidates';
-import { useSourceTokenOptions } from './hooks/useSourceTokenOptions';
+import {
+  getSellDestTokenCandidates,
+  getSourceTokenCandidates,
+} from './sourceTokenCandidates';
+import {
+  useSellDestTokenOptions,
+  useSourceTokenOptions,
+} from './hooks/useSourceTokenOptions';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -11,6 +17,7 @@ jest.mock('react-redux', () => ({
 
 jest.mock('./sourceTokenCandidates', () => ({
   getSourceTokenCandidates: jest.fn(),
+  getSellDestTokenCandidates: jest.fn(),
 }));
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
@@ -18,6 +25,12 @@ const mockGetSourceTokenCandidates =
   getSourceTokenCandidates as jest.MockedFunction<
     typeof getSourceTokenCandidates
   >;
+const mockGetSellDestTokenCandidates =
+  getSellDestTokenCandidates as jest.MockedFunction<
+    typeof getSellDestTokenCandidates
+  >;
+
+const SOLANA_SCOPE = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
@@ -34,32 +47,43 @@ const createCandidate = (
 const toHexBalance = (value: bigint): string => `0x${value.toString(16)}`;
 
 const mockSelectorValues = ({
+  evmEnabledNetworks = ['0x1'],
+  nonEvmEnabledNetworks = [SOLANA_SCOPE],
   accountAddress,
   accountsByChainId = {},
   tokenBalances = {},
   tokenMarketData = {},
   currencyRates = {},
+  currentCurrency = 'usd',
   solanaAccount,
   multichainBalances = {},
   multichainRates = {},
   allNetworkConfigs = {},
 }: {
+  evmEnabledNetworks?: string[];
+  nonEvmEnabledNetworks?: string[];
   accountAddress?: string;
   accountsByChainId?: Record<string, unknown>;
   tokenBalances?: Record<string, unknown>;
   tokenMarketData?: Record<string, unknown>;
   currencyRates?: Record<string, unknown>;
+  currentCurrency?: string;
   solanaAccount?: { id: string; address: string };
   multichainBalances?: Record<string, unknown>;
   multichainRates?: Record<string, unknown>;
   allNetworkConfigs?: Record<string, unknown>;
 }) => {
+  // The first two selectors are read by `useNetworkEnabledPredicate`
+  // (selectEVMEnabledNetworks, then selectNonEVMEnabledNetworks).
   mockUseSelector
+    .mockReturnValueOnce(evmEnabledNetworks)
+    .mockReturnValueOnce(nonEvmEnabledNetworks)
     .mockReturnValueOnce(accountAddress)
     .mockReturnValueOnce(accountsByChainId)
     .mockReturnValueOnce(tokenBalances)
     .mockReturnValueOnce(tokenMarketData)
     .mockReturnValueOnce(currencyRates)
+    .mockReturnValueOnce(currentCurrency)
     .mockReturnValueOnce(solanaAccount)
     .mockReturnValueOnce(multichainBalances)
     .mockReturnValueOnce(multichainRates)
@@ -356,5 +380,106 @@ describe('useSourceTokenOptions', () => {
       isLoading: false,
       options: [],
     });
+  });
+
+  it('excludes candidates on networks the user has not enabled', () => {
+    const accountAddress = '0x742d35cc6634c0532925a3b844bc454e4438f44e';
+    const checksummedAccountAddress = toChecksumAddress(accountAddress);
+
+    mockGetSourceTokenCandidates.mockReturnValue([
+      createCandidate({
+        address: ZERO_ADDRESS,
+        chainId: '0x1',
+        symbol: 'ETH',
+        name: 'Ethereum',
+      }),
+      // HyperEVM (0x3e7) — has a balance but the user hasn't enabled it.
+      createCandidate({
+        address: ZERO_ADDRESS,
+        chainId: '0x3e7',
+        symbol: 'HYPE',
+        name: 'HyperEVM',
+      }),
+    ]);
+    mockSelectorValues({
+      evmEnabledNetworks: ['0x1'],
+      accountAddress,
+      accountsByChainId: {
+        '0x1': {
+          [checksummedAccountAddress]: {
+            balance: toHexBalance(1n * 10n ** 18n),
+          },
+        },
+        '0x3e7': {
+          [checksummedAccountAddress]: {
+            balance: toHexBalance(1n * 10n ** 18n),
+          },
+        },
+      },
+      currencyRates: {
+        ETH: { usdConversionRate: 2000 },
+        HYPE: { usdConversionRate: 5 },
+      },
+      allNetworkConfigs: {
+        '0x1': { nativeCurrency: 'ETH' },
+        '0x3e7': { nativeCurrency: 'HYPE' },
+      },
+    });
+
+    const { result } = renderHook(() => useSourceTokenOptions('0x1'));
+
+    expect(result.current.options.map((token) => token.symbol)).toEqual([
+      'ETH',
+    ]);
+  });
+});
+
+describe('useSellDestTokenOptions', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
+  // `useSellDestTokenOptions` reads selectors in a fixed order; the first two
+  // are the enabled-network selectors consumed by `useNetworkEnabledPredicate`.
+  const mockSellDestSelectors = (evmEnabledNetworks: string[]) => {
+    mockUseSelector
+      .mockReturnValueOnce(evmEnabledNetworks)
+      .mockReturnValueOnce([])
+      .mockReturnValueOnce('0x742d35cc6634c0532925a3b844bc454e4438f44e')
+      .mockReturnValueOnce({})
+      .mockReturnValueOnce({})
+      .mockReturnValueOnce({})
+      .mockReturnValueOnce({})
+      .mockReturnValueOnce('usd')
+      .mockReturnValueOnce({});
+  };
+
+  it('excludes stable candidates on networks the user has not enabled', () => {
+    mockGetSellDestTokenCandidates.mockReturnValue([
+      createCandidate({
+        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        chainId: '0x1',
+        decimals: 6,
+        symbol: 'USDC',
+        name: 'USD Coin',
+      }),
+      createCandidate({
+        address: '0xb0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        chainId: '0x3e7',
+        decimals: 6,
+        symbol: 'USDC',
+        name: 'USD Coin',
+      }),
+    ]);
+    mockSellDestSelectors(['0x1']);
+
+    const { result } = renderHook(() => useSellDestTokenOptions('0x1'));
+
+    expect(result.current).toHaveLength(1);
+    expect(result.current[0].chainId).toBe('0x1');
   });
 });
