@@ -32,25 +32,10 @@ import {
   PostTradeBottomSheetTestIds,
 } from './PostTradeBottomSheet.testIds';
 
-const LOGO_SIZE = 24;
-const ROW_COUNT = 2;
-
-interface PostTradeTokenSuggestionsProps {
-  status: PostTradeStatus;
-  destToken?: BridgeToken;
-  onTokenPress: (token: TrendingAsset) => void;
-}
-
 interface PostTradeSuggestionPillProps {
   token: TrendingAsset;
   onPress: (token: TrendingAsset) => void;
 }
-
-const SuggestionsSkeleton = ({ rowCount }: { rowCount?: number }) => (
-  <Box testID={PostTradeBottomSheetTestIds.SUGGESTIONS_SKELETON}>
-    <SectionPillsSkeleton rowCount={rowCount} />
-  </Box>
-);
 
 const PostTradeSuggestionPill = React.memo(
   ({ token, onPress }: PostTradeSuggestionPillProps) => {
@@ -83,7 +68,7 @@ const PostTradeSuggestionPill = React.memo(
           <TrendingTokenLogo
             assetId={token.assetId}
             symbol={token.symbol}
-            size={LOGO_SIZE}
+            size={24}
             recyclingKey={token.assetId}
           />
         </BadgeWrapper>
@@ -107,6 +92,12 @@ const PostTradeSuggestionPill = React.memo(
     );
   },
 );
+
+interface PostTradeTokenSuggestionsProps {
+  status: PostTradeStatus;
+  destToken?: BridgeToken;
+  onTokenPress: (token: TrendingAsset) => void;
+}
 
 export const PostTradeTokenSuggestions = ({
   status,
@@ -143,8 +134,8 @@ export const PostTradeTokenSuggestions = ({
         isLoading={isLoading}
         renderItem={renderItem}
         keyExtractor={(token) => token.assetId}
-        Skeleton={SuggestionsSkeleton}
-        rowCount={ROW_COUNT}
+        Skeleton={SectionPillsSkeleton}
+        rowCount={2}
         maxPills={20}
         listTestId={PostTradeBottomSheetTestIds.SUGGESTIONS_LIST}
         wrapperTwClassName="-mx-4 bg-transparent mt-3 mb-0"

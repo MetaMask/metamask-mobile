@@ -123,14 +123,12 @@ describe('PostTradeBottomSheet', () => {
       refetch: jest.fn(),
     };
 
-    const { getByText, getByTestId } = render(
+    const { getAllByTestId, getByText } = render(
       React.createElement(PostTradeBottomSheet),
     );
 
     expect(getByText('What to swap next')).toBeTruthy();
-    expect(
-      getByTestId(PostTradeBottomSheetTestIds.SUGGESTIONS_SKELETON),
-    ).toBeTruthy();
+    expect(getAllByTestId('section-pills-skeleton').length).toBeGreaterThan(0);
   });
 
   it('prefills the swap form when a suggestion is pressed', () => {

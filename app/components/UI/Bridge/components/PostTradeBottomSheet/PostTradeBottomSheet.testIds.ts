@@ -4,7 +4,6 @@ export const PostTradeBottomSheetTestIds = {
   TRY_AGAIN_BUTTON: 'post-trade-bottom-sheet-try-again-button',
   SUGGESTIONS_SECTION: 'post-trade-bottom-sheet-suggestions-section',
   SUGGESTIONS_LIST: 'post-trade-bottom-sheet-suggestions-list',
-  SUGGESTIONS_SKELETON: 'post-trade-bottom-sheet-suggestions-skeleton',
   SUGGESTION_PILL: 'post-trade-bottom-sheet-suggestion-pill',
 } as const;
 
