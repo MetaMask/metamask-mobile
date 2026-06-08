@@ -495,17 +495,52 @@ const PERF_SPEC_REGEX = /^tests\/performance\/.+\.spec\.ts$/;
 // Non-spec files under tests/performance/ or tests/framework/ that performance tests depend on
 const PERF_INFRA_REGEX = /^tests\/(performance|framework)\//;
 
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 /**
  * Parses a spec file's content and returns the @Performance* area tags it uses.
  *
- * Only inline runtime tag values are considered. Import names are intentionally
- * ignored because a spec can import a Performance* symbol without using it in a
- * `test.describe` title or tag object.
+ * Imported tag constants are only counted when their local identifier is used
+ * outside the import declaration. This avoids selecting tags from stale imports
+ * while still supporting describe titles such as `${PerformanceSwaps}`.
  */
 function extractTagsFromSpecContent(content: string): string[] {
-  // Covers describe titles and `{ tag: '@PerformanceSwaps' }` objects.
+  const tags: string[] = [];
+  const importPattern =
+    /import\s*\{([^}]+)\}\s*from\s*['"][^'"]*tags\.performance[^'"]*['"]/g;
+  const contentWithoutTagImports = content.replace(importPattern, '');
+
+  let importMatch;
+  while ((importMatch = importPattern.exec(content)) !== null) {
+    const names = importMatch[1]
+      .split(',')
+      .map((name) => name.trim())
+      .map((name) => {
+        const [imported, local = imported] = name
+          .split(/\s+as\s+/)
+          .map((part) => part.trim());
+        return { imported, local };
+      })
+      .filter(({ imported }) => /^Performance[A-Z]/.test(imported));
+
+    for (const { imported, local } of names) {
+      if (
+        new RegExp(`\\b${escapeRegExp(local)}\\b`).test(
+          contentWithoutTagImports,
+        )
+      ) {
+        tags.push(`@${imported}`);
+      }
+    }
+  }
+
+  // Covers literal describe titles and `{ tag: '@PerformanceSwaps' }` objects.
   const inlineMatches = content.match(/@Performance[A-Z]\w*/g) ?? [];
-  return [...new Set(inlineMatches)];
+  tags.push(...inlineMatches);
+
+  return [...new Set(tags)];
 }
 
 /**
