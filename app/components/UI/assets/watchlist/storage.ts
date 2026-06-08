@@ -7,10 +7,6 @@ import {
   object,
   string,
 } from '@metamask/superstruct';
-import type {
-  AuthenticatedUserStorageServiceGetAssetsWatchlistAction,
-  AuthenticatedUserStorageServiceSetAssetsWatchlistAction,
-} from '@metamask/authenticated-user-storage';
 
 import Engine from '../../../../core/Engine';
 
@@ -29,17 +25,15 @@ const GET_ASSETS_WATCHLIST_ACTION =
 const SET_ASSETS_WATCHLIST_ACTION =
   'AuthenticatedUserStorageService:setAssetsWatchlist' as const;
 
-type GetAssetsWatchlistResult = Awaited<
-  ReturnType<AuthenticatedUserStorageServiceGetAssetsWatchlistAction['handler']>
->;
-type SetAssetsWatchlistBlob = Parameters<
-  AuthenticatedUserStorageServiceSetAssetsWatchlistAction['handler']
->[0];
+type ControllerMessengerCall = (
+  action: string,
+  ...args: readonly unknown[]
+) => Promise<unknown>;
+const callControllerMessenger =
+  Engine.controllerMessenger.call as unknown as ControllerMessengerCall;
 
 export async function readFromTokenWatchList(): Promise<WatchlistBlob> {
-  const blob = (await Engine.controllerMessenger.call(
-    GET_ASSETS_WATCHLIST_ACTION,
-  )) as GetAssetsWatchlistResult;
+  const blob = await callControllerMessenger(GET_ASSETS_WATCHLIST_ACTION);
 
   if (!blob) {
     return EMPTY_BLOB;
@@ -51,9 +45,9 @@ export async function readFromTokenWatchList(): Promise<WatchlistBlob> {
 export async function writeToTokenWatchList(
   blob: WatchlistBlob,
 ): Promise<void> {
-  const validated = create(blob, WatchlistBlobSchema) as SetAssetsWatchlistBlob;
+  const validated = create(blob, WatchlistBlobSchema);
 
-  await Engine.controllerMessenger.call(
+  await callControllerMessenger(
     SET_ASSETS_WATCHLIST_ACTION,
     validated,
     CLIENT_TYPE,
