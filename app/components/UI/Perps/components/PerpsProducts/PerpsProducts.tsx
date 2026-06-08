@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import { View, Pressable } from 'react-native';
+import React, { useCallback, useMemo } from 'react';
+import { View, ScrollView, Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
@@ -94,55 +94,74 @@ const PerpsProducts: React.FC<PerpsProductsProps> = ({
     [navigation, trackEvent, createEventBuilder, transactionActiveAbTests],
   );
 
+  const rows = useMemo(() => {
+    const mid = Math.ceil(categoriesWithLabels.length / 2);
+    return [
+      categoriesWithLabels.slice(0, mid),
+      categoriesWithLabels.slice(mid),
+    ];
+  }, [categoriesWithLabels]);
+
   if (!isEnabled || categoriesWithLabels.length === 0) {
     return null;
   }
+
+  const renderPill = (
+    category: (typeof categoriesWithLabels)[number],
+    index: number,
+  ) => (
+    <Pressable
+      key={category.id}
+      style={({ pressed }) => [styles.pill, pressed && styles.pillPressed]}
+      onPress={() => handlePillPress(category.id, index)}
+      accessibilityRole="button"
+      accessibilityLabel={category.label}
+      testID={`${TEST_ID}-${category.id}`}
+    >
+      {category.id === 'pre-ipo' ? (
+        <PreIpoRocketIcon size={24} color={theme.colors.icon.alternative} />
+      ) : category.id === 'etfs' ? (
+        <EtfsLayersIcon size={24} color={theme.colors.icon.alternative} />
+      ) : category.id === 'indices' ? (
+        <IndicesChartIcon size={24} color={theme.colors.icon.alternative} />
+      ) : (
+        <Icon
+          name={BADGE_CATEGORY_ICON_MAP[category.id] ?? IconName.Coin}
+          size={IconSize.Lg}
+          color={IconColor.IconAlternative}
+        />
+      )}
+      <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+        {category.label}
+      </Text>
+    </Pressable>
+  );
 
   return (
     <View style={styles.container} testID={TEST_ID}>
       <SectionHeader
         title={strings('perps.home.products')}
-        twClassName="px-0 mb-0"
+        twClassName="mb-0"
       />
 
-      <View style={styles.grid}>
-        {categoriesWithLabels.map((category, index) => (
-          <Pressable
-            key={category.id}
-            style={({ pressed }) => [
-              styles.pill,
-              pressed && styles.pillPressed,
-            ]}
-            onPress={() => handlePillPress(category.id, index)}
-            accessibilityRole="button"
-            accessibilityLabel={category.label}
-            testID={`${TEST_ID}-${category.id}`}
-          >
-            {category.id === 'pre-ipo' ? (
-              <PreIpoRocketIcon
-                size={24}
-                color={theme.colors.icon.alternative}
-              />
-            ) : category.id === 'etfs' ? (
-              <EtfsLayersIcon size={24} color={theme.colors.icon.alternative} />
-            ) : category.id === 'indices' ? (
-              <IndicesChartIcon
-                size={24}
-                color={theme.colors.icon.alternative}
-              />
-            ) : (
-              <Icon
-                name={BADGE_CATEGORY_ICON_MAP[category.id] ?? IconName.Coin}
-                size={IconSize.Lg}
-                color={IconColor.IconAlternative}
-              />
-            )}
-            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-              {category.label}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+        style={styles.scrollContainer}
+      >
+        <View style={styles.columnLayout}>
+          {rows.map((row, rowIndex) => (
+            <View key={rowIndex} style={styles.row}>
+              {row.map((category, colIndex) => {
+                const originalIndex =
+                  rowIndex === 0 ? colIndex : rows[0].length + colIndex;
+                return renderPill(category, originalIndex);
+              })}
+            </View>
+          ))}
+        </View>
+      </ScrollView>
     </View>
   );
 };

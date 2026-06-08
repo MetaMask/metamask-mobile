@@ -6,15 +6,22 @@ export const styleSheet = (params: { theme: Theme }) => {
 
   return StyleSheet.create({
     container: {
-      paddingHorizontal: 16,
       paddingTop: 8,
       paddingBottom: 24,
     },
-    grid: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: 8,
+    scrollContainer: {
       marginTop: 12,
+    },
+    scrollContent: {
+      paddingHorizontal: 16,
+    },
+    columnLayout: {
+      flexDirection: 'column',
+      gap: 8,
+    },
+    row: {
+      flexDirection: 'row',
+      gap: 8,
     },
     pill: {
       flexDirection: 'row',
