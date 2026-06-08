@@ -136,12 +136,18 @@ export interface HardwareWalletAdapter {
 
   /**
    * Subscribe to transport availability changes (e.g., Bluetooth on/off).
-   * The adapter will call the callback when transport state changes.
+   * The adapter will call the callback when transport state changes, and
+   * MUST invoke it once at subscription time with the current state.
+   *
+   * All adapter implementations (Ledger, QR, NonHardware) are required to
+   * provide this — the provider always wires transport monitoring.
    *
    * @param callback - Called when transport state changes
    * @returns Cleanup function to unsubscribe
    */
-  onTransportStateChange?(callback: (isAvailable: boolean) => void): () => void;
+  onTransportStateChange(
+    callback: (isAvailable: boolean) => void,
+  ): () => void;
 
   /**
    * Get the required app name for this wallet type.

@@ -1,13 +1,8 @@
 import TransportBLE from '@ledgerhq/react-native-hw-transport-ble';
 import { State as BleState } from 'react-native-ble-plx';
 import { Linking, Platform } from 'react-native';
-import { Subscription, firstValueFrom, distinctUntilChanged, debounceTime } from 'rxjs';
-import DevLogger from '../../SDKConnect/utils/DevLogger';
-import type {
-  DeviceManagementKit,
-  DiscoveredDevice as DmkDiscoveredDevice,
-  DeviceSessionState,
-} from '@ledgerhq/device-management-kit';
+import { Observable, Subscription } from 'rxjs';
+import Eth from '@ledgerhq/hw-app-eth';
 import {
   HardwareWalletType,
   DeviceEvent,
@@ -32,13 +27,12 @@ import {
   closeRunningAppOnLedger,
 } from '../../Ledger/Ledger';
 import { DISCONNECT_ERROR_NAMES } from '../../Ledger/ledgerErrors';
-import { getDmk } from '../../Ledger/dmk';
+import DevLogger from '../../SDKConnect/utils/DevLogger';
 
 const DEVICE_LOCKED_STATUS_CODE = 0x6b0c;
 const LEDGER_OPERATION_TIMEOUT_MS = 10000;
 const DEFAULT_SCAN_TIMEOUT_MS = 30000;
 const MAX_DISCONNECT_RETRIES = 3;
-const CONNECT_RETRIES = 2;
 const RETRY_DELAY_MS = 2000;
 
 /**
@@ -53,15 +47,13 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
   readonly walletType = HardwareWalletType.Ledger;
   readonly requiresDeviceDiscovery = true;
 
-  #sessionId: string | null = null;
+  #transport: TransportBLE | null = null;
   #deviceId: string | null = null;
   get deviceId(): string | null {
     return this.#deviceId;
   }
   #options: HardwareWalletAdapterOptions;
   #isDestroyed = false;
-  #backgroundReconnectInFlight: Promise<boolean> | null = null;
-  #lastConnectedDevice: DmkDiscoveredDevice | null = null;
   #connectInFlight: Promise<void> | null = null;
   #flowComplete = false;
   #isBluetoothOn = false;
@@ -72,8 +64,6 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
   #scanSubscription: Subscription | null = null;
   #scanTimeoutId: ReturnType<typeof setTimeout> | null = null;
   #transportStateCallbacks: Set<(isAvailable: boolean) => void> = new Set();
-  #discoveredDevices: Map<string, DmkDiscoveredDevice> = new Map();
-  #sessionStateSubscription: { unsubscribe: () => void } | null = null;
 
   constructor(options: HardwareWalletAdapterOptions) {
     this.#options = options;
@@ -90,19 +80,17 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
 
     if (this.#connectInFlight) {
       await this.#connectInFlight;
-      if (this.#sessionId && this.#deviceId === deviceId) return;
+      if (this.#transport && this.#deviceId === deviceId) return;
       if (this.#isDestroyed) throw new Error('Adapter has been destroyed');
     }
 
-    if (this.#sessionId && this.#deviceId === deviceId) {
+    if (this.#transport && this.#deviceId === deviceId) {
       return;
     }
 
-    if (this.#sessionId) {
+    if (this.#transport) {
       await this.disconnect();
     }
-
-    this.stopDeviceDiscovery();
 
     this.#connectInFlight = this.#doConnect(deviceId);
     try {
@@ -112,248 +100,70 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
     }
   }
 
-  async backgroundReconnect(
-    targetDeviceId: string,
-    timeoutMs = 10000,
-  ): Promise<boolean> {
-    if (this.#isDestroyed) return false;
-
-    if (this.#backgroundReconnectInFlight) {
-      DevLogger.log('[DMK] backgroundReconnect - already in flight, reusing');
-      return this.#backgroundReconnectInFlight;
-    }
-
-    this.#backgroundReconnectInFlight = this.#doBackgroundReconnect(
-      targetDeviceId,
-      timeoutMs,
-    );
-
-    try {
-      return await this.#backgroundReconnectInFlight;
-    } finally {
-      this.#backgroundReconnectInFlight = null;
-    }
-  }
-
-  async #doBackgroundReconnect(
-    targetDeviceId: string,
-    timeoutMs: number,
-  ): Promise<boolean> {
-    const dmk = getDmk();
-
-    // Strategy 1: Direct connect using cached device info (no scan).
-    // DMK's connect() only uses device.id + device.transport → BleManager.connectToDevice().
-    if (
-      this.#lastConnectedDevice &&
-      this.#lastConnectedDevice.id === targetDeviceId
-    ) {
-      DevLogger.log(
-        '[DMK] backgroundReconnect - attempting direct connect (no scan) for:',
-        targetDeviceId,
-      );
-      try {
-        const sessionId = await dmk.connect({
-          device: this.#lastConnectedDevice,
-        });
-        if (this.#isDestroyed) {
-          try { await dmk.disconnect({ sessionId }); } catch { /* ignore */ }
-          return false;
-        }
-
-        this.#sessionId = sessionId;
-        this.#deviceId = targetDeviceId;
-
-        try {
-          dmk.disableDeviceSessionRefresher({ sessionId });
-        } catch { /* ignore */ }
-
-        this.#startSessionMonitoring(sessionId);
-        this.#emitEvent({
-          event: DeviceEvent.Connected,
-          deviceId: targetDeviceId,
-        });
-        DevLogger.log(
-          '[DMK] backgroundReconnect - direct connect succeeded, sessionId:',
-          sessionId,
-        );
-        return true;
-      } catch (error) {
-        DevLogger.log(
-          '[DMK] backgroundReconnect - direct connect failed, falling back to scan:',
-          error,
-        );
-      }
-    }
-
-    // Strategy 2: Scan for the device (fallback).
-    DevLogger.log(
-      '[DMK] backgroundReconnect - scanning for:',
-      targetDeviceId,
-      'timeout:',
-      timeoutMs,
-    );
-
-    try {
-      const discovered = await new Promise<DmkDiscoveredDevice | null>(
-        (resolve) => {
-          const timer = setTimeout(() => {
-            sub.unsubscribe();
-            resolve(null);
-          }, timeoutMs);
-
-          const sub = dmk.listenToAvailableDevices({}).subscribe({
-            next: (devices: DmkDiscoveredDevice[]) => {
-              for (const device of devices) {
-                if (device.id === targetDeviceId) {
-                  clearTimeout(timer);
-                  sub.unsubscribe();
-                  resolve(device);
-                  return;
-                }
-              }
-            },
-            error: () => {
-              clearTimeout(timer);
-              resolve(null);
-            },
-          });
-        },
-      );
-
-      if (!discovered) {
-        DevLogger.log(
-          '[DMK] backgroundReconnect - device not found within timeout',
-        );
-        return false;
-      }
-
-      this.#discoveredDevices.set(targetDeviceId, discovered);
-      this.#lastConnectedDevice = discovered;
-      DevLogger.log('[DMK] backgroundReconnect - device found, connecting');
-
-      await this.connect(targetDeviceId);
-      return true;
-    } catch (error) {
-      DevLogger.log('[DMK] backgroundReconnect - error:', error);
-      return false;
-    }
-  }
-
   async #doConnect(deviceId: string): Promise<void> {
-    const device = this.#discoveredDevices.get(deviceId);
-    if (!device) {
-      this.#clearTransportState();
-      this.#emitEvent({
-        event: DeviceEvent.ConnectionFailed,
-        error: new Error(`No cached DiscoveredDevice for deviceId: ${deviceId}`),
-      });
-      return;
-    }
+    try {
+      const transport = await TransportBLE.open(deviceId);
 
-    const dmk = getDmk();
-    await this.#cleanupStaleConnections();
-    let lastError: unknown;
-
-    for (let attempt = 1; attempt <= CONNECT_RETRIES; attempt++) {
-      try {
-        DevLogger.log('[DMK] #doConnect - attempt', attempt, 'for device:', deviceId);
-        const sessionId = await dmk.connect({ device });
-        DevLogger.log('[DMK] #doConnect - got sessionId:', sessionId);
-
-        if (this.#isDestroyed) {
-          try {
-            await dmk.disconnect({ sessionId });
-          } catch {
-            // Ignore
-          }
-          return;
-        }
-
-        this.#sessionId = sessionId;
-        this.#deviceId = deviceId;
-        this.#lastConnectedDevice = device;
-
-        try {
-          getDmk().disableDeviceSessionRefresher({ sessionId });
-          DevLogger.log('[DMK] #doConnect - session refresher disabled');
-        } catch (e) {
-          DevLogger.log('[DMK] #doConnect - disableDeviceSessionRefresher error:', e);
-        }
-
-        this.#startSessionMonitoring(sessionId);
-
+      if (transport == null) {
+        this.#clearTransportState();
         this.#emitEvent({
-          event: DeviceEvent.Connected,
-          deviceId,
+          event: DeviceEvent.ConnectionFailed,
+          error: new Error('Failed to open transport'),
         });
         return;
-      } catch (error) {
-        lastError = error;
-        DevLogger.log('[DMK] #doConnect - attempt', attempt, 'failed:', JSON.stringify({
-          message: error instanceof Error ? error.message : String(error),
-          name: error instanceof Error ? error.constructor?.name : undefined,
-          _tag: (error as { _tag?: string })?._tag,
-          originalError: (error as { originalError?: unknown })?.originalError instanceof Error
-            ? { message: ((error as { originalError?: Error }).originalError as Error).message }
-            : undefined,
-        }));
-        if (attempt < CONNECT_RETRIES) {
-          DevLogger.log('[DMK] #doConnect - retrying in', RETRY_DELAY_MS, 'ms');
-          await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
-        }
       }
-    }
 
-    DevLogger.log('[DMK] #doConnect - all attempts exhausted');
-    this.#clearTransportState();
+      if (this.#isDestroyed) {
+        try {
+          await transport.close();
+        } catch {
+          // Ignore close errors
+        }
+        return;
+      }
 
-    this.#emitEvent({
-      event: DeviceEvent.ConnectionFailed,
-      error: this.#toError(lastError),
-    });
+      this.#transport = transport;
+      this.#deviceId = deviceId;
 
-    throw lastError;
-  }
-
-  #startSessionMonitoring(sessionId: string): void {
-    this.#sessionStateSubscription?.unsubscribe();
-    DevLogger.log('[DMK] #startSessionMonitoring - subscribing to session state for:', sessionId);
-
-    const dmk = getDmk();
-    this.#sessionStateSubscription = dmk
-      .getDeviceSessionState({ sessionId })
-      .pipe(
-        distinctUntilChanged(
-          (a: DeviceSessionState, b: DeviceSessionState) =>
-            a.deviceStatus === b.deviceStatus,
-        ),
-        debounceTime(3000),
-      )
-      .subscribe({
-        next: (state: DeviceSessionState) => {
-          if (
-            state.deviceStatus === 'NOT CONNECTED' ||
-            state.deviceStatus === 'LOCKED'
-          ) {
-            DevLogger.log('[DMK] #startSessionMonitoring - deviceStatus:', state.deviceStatus);
-          }
-          if (state.deviceStatus === 'NOT CONNECTED') {
-            this.#handleDisconnect();
-          }
-        },
-        complete: () => {
-          this.#handleDisconnect();
-        },
-        error: () => {
-          this.#handleDisconnect();
-        },
+      transport.on('disconnect', () => {
+        if (this.#transport !== transport) return;
+        this.#handleDisconnect();
       });
+
+      transport.on('error', (error: Error) => {
+        if (this.#transport !== transport) return;
+        DevLogger.log(
+          '[LedgerBluetoothAdapter] Transport error:',
+          error.message,
+        );
+        if (this.#flowComplete) {
+          DevLogger.log(
+            '[LedgerBluetoothAdapter] Flow complete - ignoring transport error',
+          );
+          return;
+        }
+        this.#handleDisconnect();
+      });
+
+      this.#emitEvent({
+        event: DeviceEvent.Connected,
+        deviceId,
+      });
+    } catch (error) {
+      this.#clearTransportState();
+
+      this.#emitEvent({
+        event: DeviceEvent.ConnectionFailed,
+        error: this.#toError(error),
+      });
+
+      throw error;
+    }
   }
 
   async disconnect(): Promise<void> {
-    DevLogger.log('[DMK] disconnect() called');
     const previousDeviceId = this.#deviceId;
-    await this.#closeSession('disconnect');
+    await this.#closeTransport();
     this.#clearTransportState();
 
     if (previousDeviceId && !this.#flowComplete) {
@@ -367,7 +177,7 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
   reset(): void {
     DevLogger.log('[LedgerBluetoothAdapter] Resetting adapter state');
     this.#flowComplete = false;
-    void this.#closeSession('reset');
+    void this.#closeTransport();
     this.#clearTransportState();
   }
 
@@ -383,6 +193,7 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
   resetFlowState(): void {
     DevLogger.log('[LedgerBluetoothAdapter] Resetting flow state');
     this.#flowComplete = false;
+    void this.#closeTransport();
   }
 
   getConnectedDeviceId(): string | null {
@@ -390,7 +201,7 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
   }
 
   isConnected(): boolean {
-    return this.#sessionId !== null;
+    return this.#transport !== null;
   }
 
   startDeviceDiscovery(
@@ -403,18 +214,6 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
 
     DevLogger.log('[LedgerBluetoothAdapter] startDeviceDiscovery called');
 
-    this.stopDeviceDiscovery();
-
-    void this.#startDiscoveryInner(onDeviceFound, onError);
-
-    return () => this.stopDeviceDiscovery();
-  }
-
-  async #startDiscoveryInner(
-    onDeviceFound: (device: DiscoveredDevice) => void,
-    onError: (error: Error) => void,
-  ): Promise<void> {
-
     // Note: We don't check isBluetoothOn here because:
     // 1. The BLE state observer is async - it may not have fired yet
     // 2. TransportBLE.listen will fail naturally if BLE is unavailable
@@ -422,49 +221,43 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
 
     this.stopDeviceDiscovery(); // TODO: rename to stopScanning()
 
-    await this.#cleanupStaleConnections();
-
     const seenDevices = new Set<string>();
 
-    DevLogger.log('[LedgerBluetoothAdapter] Starting DMK discovery');
+    DevLogger.log('[LedgerBluetoothAdapter] Starting TransportBLE.listen');
 
-    const dmk = getDmk();
-
-    DevLogger.log('[DMK] startDeviceDiscovery - calling dmk.listenToAvailableDevices()');
-    this.#scanSubscription = dmk
-      .listenToAvailableDevices({})
-      .subscribe({
-        next: (devices: DmkDiscoveredDevice[]) => {
+    this.#scanSubscription = new Observable(TransportBLE.listen).subscribe({
+      next: (event: {
+        type: string;
+        descriptor: { id: string; name: string };
+      }) => {
+        DevLogger.log(
+          '[LedgerBluetoothAdapter] BLE event:',
+          event.type,
+          event.descriptor?.name,
+          event.descriptor?.id,
+        );
+        if (event.type === 'add' && !seenDevices.has(event.descriptor.id)) {
+          seenDevices.add(event.descriptor.id);
+          const discoveredDev: DiscoveredDevice = {
+            id: event.descriptor.id,
+            name: event.descriptor.name || 'Unknown Device',
+          };
           DevLogger.log(
-            '[LedgerBluetoothAdapter] DMK scan batch:',
-            devices.length,
-            'devices',
+            '[LedgerBluetoothAdapter] Found device:',
+            discoveredDev.name,
           );
-          for (const device of devices) {
-            if (!seenDevices.has(device.id)) {
-              seenDevices.add(device.id);
-              this.#discoveredDevices.set(device.id, device);
-              const discoveredDev: DiscoveredDevice = {
-                id: device.id,
-                name: device.name || 'Unknown Device',
-              };
-              DevLogger.log(
-                '[LedgerBluetoothAdapter] Found device:',
-                discoveredDev.name,
-              );
-              onDeviceFound(discoveredDev);
-            }
-          }
-        },
-        error: (error: Error) => {
-          DevLogger.log('[LedgerBluetoothAdapter] DMK scan error:', error);
-          this.stopDeviceDiscovery();
-          onError(error);
-        },
-        complete: () => {
-          DevLogger.log('[LedgerBluetoothAdapter] DMK scan completed');
-        },
-      });
+          onDeviceFound(discoveredDev);
+        }
+      },
+      error: (error: Error) => {
+        DevLogger.log('[LedgerBluetoothAdapter] BLE scan error:', error);
+        this.stopDeviceDiscovery();
+        onError(error);
+      },
+      complete: () => {
+        DevLogger.log('[LedgerBluetoothAdapter] BLE scan completed');
+      },
+    });
 
     this.#scanTimeoutId = setTimeout(() => {
       DevLogger.log('[LedgerBluetoothAdapter] Scan timeout reached');
@@ -477,6 +270,8 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
         );
       }
     }, DEFAULT_SCAN_TIMEOUT_MS);
+
+    return () => this.stopDeviceDiscovery();
   }
 
   stopDeviceDiscovery(): void {
@@ -485,9 +280,6 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
     if (this.#scanSubscription) {
       this.#scanSubscription.unsubscribe();
       this.#scanSubscription = null;
-      getDmk().stopDiscovering().catch((e: unknown) => {
-        DevLogger.log('[DMK] stopDiscovering error (ignored):', e);
-      });
     }
 
     if (this.#scanTimeoutId) {
@@ -596,7 +388,7 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
           DevLogger.log(
             `[LedgerBluetoothAdapter] Transient BLE error during check (attempt ${attempt}/${MAX_DISCONNECT_RETRIES}), retrying...`,
           );
-    await this.#closeSession('disconnect');
+          await this.#closeTransport();
           await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
           continue;
         }
@@ -616,8 +408,8 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
       await this.connect(deviceId);
     }
 
-    if (!this.#sessionId) {
-      DevLogger.log('[LedgerBluetoothAdapter] No session after connect');
+    if (!this.#transport) {
+      DevLogger.log('[LedgerBluetoothAdapter] No transport after connect');
       return false;
     }
 
@@ -626,7 +418,7 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
       const abortController = new AbortController();
       const currentAppName = await this.#withTimeout(
         connectLedgerHardware(
-          this.#sessionId,
+          this.#transport,
           deviceId,
           abortController.signal,
         ),
@@ -634,16 +426,13 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
         'Device unresponsive',
         () => {
           abortController.abort();
-          return this.#closeSession('handleWrongApp');
+          return this.#closeTransport();
         },
       );
       DevLogger.log('[LedgerBluetoothAdapter] Got app name:', currentAppName);
 
       if (currentAppName === 'Ethereum') {
-        DevLogger.log('[LedgerBluetoothAdapter] Ethereum app confirmed, verifying unlocked...');
-        const verified = await this.#verifyEthereumAppUnlocked();
-        DevLogger.log('[LedgerBluetoothAdapter] Verification result:', verified);
-        return verified;
+        return await this.#verifyEthereumAppUnlocked();
       }
 
       await this.#handleWrongApp(currentAppName);
@@ -675,31 +464,16 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
     );
 
     try {
-      if (!this.#sessionId) {
-        throw new Error('No active session');
+      if (!this.#transport) {
+        throw new Error('Transport not available');
       }
-
-      const dmk = getDmk();
-      DevLogger.log('[DMK] #verifyEthereumAppUnlocked - checking session state for:', this.#sessionId);
-      const state = await this.#withTimeout(
-        firstValueFrom(dmk.getDeviceSessionState({ sessionId: this.#sessionId })),
+      const eth = new Eth(this.#transport);
+      await this.#withTimeout(
+        eth.getAddress("44'/60'/0'/0/0", false),
         LEDGER_OPERATION_TIMEOUT_MS,
         'Device unresponsive during verification',
-        () => this.#closeSession('timeout'),
+        () => this.#closeTransport(),
       );
-
-      DevLogger.log('[DMK] #verifyEthereumAppUnlocked - state:', JSON.stringify(state));
-
-      if (state.deviceStatus === 'LOCKED') {
-        DevLogger.log('[DMK] #verifyEthereumAppUnlocked - device is LOCKED');
-        DevLogger.log('[LedgerBluetoothAdapter] Device is locked');
-        this.#emitEvent({
-          event: DeviceEvent.DeviceLocked,
-          error: new Error('Device is locked'),
-        });
-        return false;
-      }
-
       DevLogger.log('[LedgerBluetoothAdapter] Device verified unlocked!');
 
       this.#emitEvent({
@@ -752,7 +526,7 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
           openEthereumAppOnLedger(),
           LEDGER_OPERATION_TIMEOUT_MS,
           'Device unresponsive while opening Ethereum app',
-          () => this.#closeSession('timeout'),
+          () => this.#closeTransport(),
         );
         DevLogger.log('[LedgerBluetoothAdapter] Open app command sent');
       } catch (openError) {
@@ -760,7 +534,7 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
           '[LedgerBluetoothAdapter] Failed to send open app command:',
           openError,
         );
-        await this.#closeSession('handleWrongApp-error');
+        await this.#closeTransport();
       }
     } else {
       try {
@@ -769,7 +543,7 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
           closeRunningAppOnLedger(),
           LEDGER_OPERATION_TIMEOUT_MS,
           'Device unresponsive while closing current app',
-          () => this.#closeSession('timeout'),
+          () => this.#closeTransport(),
         );
         DevLogger.log('[LedgerBluetoothAdapter] Close app command sent');
       } catch (closeError) {
@@ -777,7 +551,7 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
           '[LedgerBluetoothAdapter] Failed to close app:',
           closeError,
         );
-        await this.#closeSession('closeApp-error');
+        await this.#closeTransport();
       }
     }
   }
@@ -789,7 +563,8 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
     this.stopDeviceDiscovery();
     this.#transportStateCallbacks.clear();
 
-    void this.#closeSession('destroy');
+    void this.#closeTransport();
+    this.#clearTransportState();
   }
 
   /**
@@ -802,12 +577,9 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
    * transient BLE disconnects (e.g. Ledger app switching).
    */
   #handleDisconnect(): void {
-    DevLogger.log('[DMK] #handleDisconnect - clearing session');
-    this.#sessionId = null;
-    this.#sessionStateSubscription?.unsubscribe();
-    this.#sessionStateSubscription = null;
+    this.#transport = null;
     DevLogger.log(
-      '[LedgerBluetoothAdapter] handleDisconnect - session cleared',
+      '[LedgerBluetoothAdapter] handleDisconnect - transport cleared',
     );
   }
 
@@ -815,50 +587,35 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
     this.#options.onDeviceEvent(payload);
   }
 
-  async #closeSession(reason?: string): Promise<void> {
-    const sessionId = this.#sessionId;
+  async #closeTransport(): Promise<void> {
+    const transport = this.#transport;
     const deviceId = this.#deviceId;
-    this.#sessionId = null;
-    this.#sessionStateSubscription?.unsubscribe();
-    this.#sessionStateSubscription = null;
-    DevLogger.log('[DMK] #closeSession - closing session:', sessionId, 'device:', deviceId, 'reason:', reason ?? 'unknown');
+    this.#transport = null;
 
     try {
-      if (sessionId) {
-        await getDmk().disconnect({ sessionId });
-        DevLogger.log('[DMK] #closeSession - disconnected session:', sessionId);
+      if (transport) {
+        if (deviceId) {
+          // TransportBLE.close() queues a delayed disconnect (5s timeout).
+          // Force an immediate BLE disconnection so in-flight signing is
+          // aborted without delay.
+          await TransportBLE.disconnectDevice(deviceId);
+        } else {
+          await transport.close();
+        }
+      } else if (deviceId) {
+        // Transport already cleared (e.g. by #handleDisconnect) but device
+        // ID still set — force BLE cleanup so the OS stack doesn't keep a
+        // stale connection that blocks the next TransportBLE.open() call.
+        await TransportBLE.disconnectDevice(deviceId);
       }
-    } catch (error) {
-      DevLogger.log('[DMK] #closeSession - disconnect error (expected if device gone):', error);
+    } catch {
+      // Ignore close errors — device may already be disconnected
     }
   }
 
   #clearTransportState(): void {
-    this.#sessionId = null;
+    this.#transport = null;
     this.#deviceId = null;
-  }
-
-  async #cleanupStaleConnections(): Promise<void> {
-    const dmk = getDmk();
-
-    try {
-      const connected = dmk.listConnectedDevices();
-      DevLogger.log(
-        '[DMK] #cleanupStaleConnections - DMK connected devices:',
-        connected.length,
-        connected.map((d: { id: string; name: string }) => `${d.name}(${d.id})`),
-      );
-      for (const device of connected) {
-        DevLogger.log('[DMK] #cleanupStaleConnections - disconnecting DMK session:', (device as { sessionId: string }).sessionId);
-        try {
-          await dmk.disconnect({ sessionId: (device as { sessionId: string }).sessionId });
-        } catch (e) {
-          DevLogger.log('[DMK] #cleanupStaleConnections - DMK disconnect error:', e);
-        }
-      }
-    } catch (e) {
-      DevLogger.log('[DMK] #cleanupStaleConnections - listConnectedDevices error:', e);
-    }
   }
 
   /**
@@ -946,30 +703,17 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
    * for BLE errors that use generic Error names after a device power-cycle.
    */
   #isTransientBleError(error: unknown): boolean {
-    if (!(error instanceof Object)) return false;
+    if (!(error instanceof Error)) return false;
 
-    const err = error as { _tag?: string; originalError?: { name?: string }; message?: string };
-
-    const transientDmkTags: readonly string[] = [
-      'ConnectionOpeningError',
-      'DeviceDisconnectedWhileSendingError',
-      'DeviceDisconnectedBeforeSendingApdu',
-      'DeviceSessionNotFound',
+    const transientBleErrorNames: readonly string[] = [
+      ...DISCONNECT_ERROR_NAMES,
+      'PairingFailed',
+      'PeerRemovedPairing',
+      'BleError',
     ];
-    if (err._tag && transientDmkTags.includes(err._tag)) return true;
+    if (transientBleErrorNames.includes(error.name)) return true;
 
-    const rawError = err.originalError;
-    if (rawError?.name) {
-      const transientBleErrorNames: readonly string[] = [
-        ...DISCONNECT_ERROR_NAMES,
-        'PairingFailed',
-        'PeerRemovedPairing',
-        'BleError',
-      ];
-      if (transientBleErrorNames.includes(rawError.name)) return true;
-    }
-
-    const message = err.message?.toLowerCase() ?? '';
+    const message = error.message?.toLowerCase() ?? '';
     return (
       message.includes('disconnected') ||
       message.includes('connection lost') ||
@@ -988,20 +732,20 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
       return false;
     }
 
-    const err = error as {
-      _tag?: string;
+    // Type guard for error-like objects
+    const errorObj = error as {
       name?: string;
       statusCode?: number;
       message?: string;
     };
 
-    if (err._tag === 'DeviceLockedError') return true;
-
-    if (err.name === 'TransportStatusError') {
-      return err.statusCode === DEVICE_LOCKED_STATUS_CODE;
+    if (errorObj.name === 'TransportStatusError') {
+      return errorObj.statusCode === DEVICE_LOCKED_STATUS_CODE;
     }
-
-    if (typeof err.message === 'string' && err.message.includes('Locked device')) {
+    if (
+      typeof errorObj.message === 'string' &&
+      errorObj.message.includes('Locked device')
+    ) {
       return true;
     }
     return false;

@@ -13,7 +13,7 @@ interface RemoteFeatureFlagControllerState {
   localOverrides?: Record<string, unknown>;
 }
 
-interface HasGetState {
+export interface HasGetState {
   call: (
     action: 'RemoteFeatureFlagController:getState',
   ) => RemoteFeatureFlagControllerState;
@@ -26,9 +26,7 @@ interface HasGetState {
  */
 export const isDmkEnabled = (messenger: HasGetState): boolean => {
   try {
-    const flagState = messenger.call(
-      'RemoteFeatureFlagController:getState',
-    );
+    const flagState = messenger.call('RemoteFeatureFlagController:getState');
 
     // Local overrides (dev tools) take precedence over remote flags
     const localOverride = flagState?.localOverrides?.[DMK_FEATURE_FLAG_KEY];
@@ -49,7 +47,11 @@ export const isDmkEnabled = (messenger: HasGetState): boolean => {
       );
     }
     return false;
-  } catch {
+  } catch (error) {
+    DevLogger.log(
+      '[DMK] Failed to resolve enableDMK feature flag, defaulting to false:',
+      error,
+    );
     return false;
   }
 };
