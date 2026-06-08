@@ -85,6 +85,8 @@ interface UsePerpsMarketListViewReturn {
   favoritesState: {
     showFavoritesOnly: boolean;
     setShowFavoritesOnly: (show: boolean) => void;
+    /** True when the user has at least one market on their watchlist */
+    hasWatchlistMarkets: boolean;
   };
   /**
    * Market type filter state (not persisted, UI-only)
@@ -312,6 +314,7 @@ export const usePerpsMarketListView = ({
     favoritesState: {
       showFavoritesOnly,
       setShowFavoritesOnly,
+      hasWatchlistMarkets: watchlistMarkets.length > 0,
     },
     marketTypeFilterState: {
       marketTypeFilter,

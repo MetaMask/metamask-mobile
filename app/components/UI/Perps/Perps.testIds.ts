@@ -147,6 +147,8 @@ export const PerpsMarketListViewSelectorsIDs = {
   MARKET_LIST: 'perps-market-list',
   SORT_FILTERS: 'perps-market-list-sort-filters',
   WATCHLIST_TOGGLE: 'perps-market-list-watchlist-toggle',
+  /** Star badge in the category row that filters to watchlisted markets */
+  WATCHLIST_FILTER_BADGE: 'perps-market-list-sort-filters-categories-watchlist',
 };
 
 // ========================================

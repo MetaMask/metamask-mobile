@@ -2,6 +2,7 @@ import React, { useCallback, useMemo } from 'react';
 import Animated, { FadeIn, LinearTransition } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import PerpsMarketCategoryBadge from '../PerpsMarketCategoryBadge';
 import { styleSheet } from './PerpsMarketCategoryBadges.styles';
 import type {
@@ -28,9 +29,11 @@ const DEFAULT_CATEGORIES: CategoryBadgeConfig[] = [
 /**
  * PerpsMarketCategoryBadges - Container for category filter badges
  *
- * Always displays all category badges in a horizontal scroll.
- * The selected category is visually highlighted.
- * Tapping a selected badge again deselects it (toggles back to 'all').
+ * Displays category pills and, when the user has watchlist items, a leading star
+ * badge that filters the list to watchlisted markets only. The watchlist badge
+ * and category badges are mutually exclusive — selecting one deselects the other.
+ *
+ * Tapping an already-selected badge deselects it (toggles back to 'all' / off).
  *
  * @example
  * ```tsx
@@ -38,6 +41,9 @@ const DEFAULT_CATEGORIES: CategoryBadgeConfig[] = [
  *   selectedCategory={selectedCategory}
  *   onCategorySelect={handleCategorySelect}
  *   availableCategories={['crypto', 'stocks']}
+ *   showWatchlistBadge={watchlistMarkets.length > 0}
+ *   isWatchlistSelected={showFavoritesOnly}
+ *   onWatchlistToggle={handleWatchlistToggle}
  * />
  * ```
  */
@@ -45,6 +51,9 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
   selectedCategory,
   onCategorySelect,
   availableCategories,
+  showWatchlistBadge = false,
+  isWatchlistSelected = false,
+  onWatchlistToggle,
   testID,
 }) => {
   const { styles } = useStyles(styleSheet, {});
@@ -73,7 +82,6 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
     [onCategorySelect, selectedCategory],
   );
 
-  // Always show all category badges; highlight the selected one
   return (
     <Animated.ScrollView
       horizontal
@@ -82,6 +90,22 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
       style={styles.scrollContainer}
       testID={testID}
     >
+      {/* Watchlist star badge — shown first, only when user has watchlist items */}
+      {showWatchlistBadge && (
+        <Animated.View
+          entering={FadeIn.duration(ANIMATION_DURATION)}
+          layout={LinearTransition.duration(ANIMATION_DURATION)}
+        >
+          <PerpsMarketCategoryBadge
+            icon={IconName.StarFilled}
+            accessibilityLabel={strings('perps.watchlist.filter_badge_label')}
+            isSelected={isWatchlistSelected}
+            onPress={onWatchlistToggle ?? (() => undefined)}
+            testID={testID ? `${testID}-watchlist` : undefined}
+          />
+        </Animated.View>
+      )}
+
       {displayCategories.map((config, index) => {
         const isCategorySelected = selectedCategory === config.category;
         return (
@@ -92,6 +116,7 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
           >
             <PerpsMarketCategoryBadge
               label={strings(config.labelKey)}
+              accessibilityLabel={strings(config.labelKey)}
               isSelected={isCategorySelected}
               onPress={() => handleCategoryPress(config.category)}
               testID={testID ? `${testID}-${config.category}` : undefined}

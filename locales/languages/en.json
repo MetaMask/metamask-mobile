@@ -2143,7 +2143,8 @@
       "empty_subtitle": "Tap + to add a market to your watchlist.",
       "show_more": "Show {{count}} more",
       "show_less": "Show less",
-      "add_error": "Failed to add market to watchlist"
+      "add_error": "Failed to add market to watchlist",
+      "filter_badge_label": "Watchlist"
     },
     "no_tokens_found": "No tokens found",
     "no_tokens_found_description": "We couldn't find any tokens with the name \"{{searchQuery}}\". Try a different search.",

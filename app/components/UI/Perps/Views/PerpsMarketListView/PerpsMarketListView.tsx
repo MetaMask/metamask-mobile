@@ -98,7 +98,8 @@ const PerpsMarketListView = ({
   const { selectedOptionId, sortBy, direction, handleOptionChange } = sortState;
 
   // Destructure favorites state for easier access
-  const { showFavoritesOnly } = favoritesState;
+  const { showFavoritesOnly, setShowFavoritesOnly, hasWatchlistMarkets } =
+    favoritesState;
 
   // Destructure market type filter state
   const { marketTypeFilter, setMarketTypeFilter } = marketTypeFilterState;
@@ -132,7 +133,7 @@ const PerpsMarketListView = ({
 
   const { track } = usePerpsEventTracking();
 
-  // Handle category badge selection
+  // Handle category badge selection — clears watchlist filter (mutual exclusivity)
   const handleCategorySelect = useCallback(
     (category: MarketTypeFilter) => {
       // Track analytics for category changes
@@ -159,9 +160,22 @@ const PerpsMarketListView = ({
         });
       }
       setMarketTypeFilter(category);
+      // Deactivate the watchlist filter whenever a category badge is activated
+      if (category !== 'all') {
+        setShowFavoritesOnly(false);
+      }
     },
-    [setMarketTypeFilter, track],
+    [setMarketTypeFilter, setShowFavoritesOnly, track],
   );
+
+  // Toggle watchlist-only filter — clears category filter (mutual exclusivity)
+  const handleWatchlistToggle = useCallback(() => {
+    const willActivate = !showFavoritesOnly;
+    setShowFavoritesOnly(willActivate);
+    if (willActivate) {
+      setMarketTypeFilter('all');
+    }
+  }, [showFavoritesOnly, setShowFavoritesOnly, setMarketTypeFilter]);
 
   useEffect(() => {
     if (filteredMarkets.length > 0) {
@@ -361,6 +375,9 @@ const PerpsMarketListView = ({
           marketTypeFilter={marketTypeFilter}
           onCategorySelect={handleCategorySelect}
           availableCategories={availableCategories}
+          showWatchlistBadge={hasWatchlistMarkets}
+          isWatchlistSelected={showFavoritesOnly}
+          onWatchlistToggle={handleWatchlistToggle}
           testID={PerpsMarketListViewSelectorsIDs.SORT_FILTERS}
         />
       )}
