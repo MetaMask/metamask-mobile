@@ -80,6 +80,8 @@ jest.mock(
 jest.mock('@metamask/bridge-controller', () => ({
   formatChainIdToHex: () => '0x1',
   isNonEvmChainId: () => false,
+  isNativeAddress: () => false,
+  getNativeAssetForChainId: () => undefined,
 }));
 
 describe('QuickBuyPayWithScreen', () => {

@@ -16,6 +16,7 @@ import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings'
 import { selectCompletedOnboarding } from '../../../../selectors/onboarding';
 import { store } from '../../../../store';
 import { trace } from '../../../../util/trace';
+import { selectIsUnlocked } from '../../../../selectors/keyringController';
 
 type QueryApiClient = AssetsControllerOptions['queryApiClient'];
 
@@ -106,6 +107,9 @@ export const assetsControllerInit: MessengerClientInitFunction<
    */
   const isEnabled = (): boolean => {
     try {
+      if (!selectIsUnlocked(store.getState())) {
+        return false;
+      }
       const remoteFeatureFlagState = initMessenger.call(
         'RemoteFeatureFlagController:getState',
       );

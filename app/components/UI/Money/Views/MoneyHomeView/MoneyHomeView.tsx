@@ -35,10 +35,12 @@ import { MUSD_MAINNET_ASSET_FOR_DETAILS } from '../../../../Views/Homepage/Secti
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import AppConstants from '../../../../../core/AppConstants';
 import NavigationService from '../../../../../core/NavigationService';
-import { selectIsCardholder } from '../../../../../selectors/cardController';
+import {
+  selectHasMetalCard,
+  selectIsCardholder,
+} from '../../../../../selectors/cardController';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
 import { MONEY_HOME_CARD_ORIGIN } from '../../../Card/hooks/useCardPostAuthRedirect';
-import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
 import Logger from '../../../../../util/Logger';
 import { useTheme } from '../../../../../util/theme';
 import { MoneyBalanceDisplayState } from '../../types';
@@ -98,9 +100,9 @@ const MoneyHomeView = () => {
     useMoneyAccountTransactions();
 
   const isCardholder = useSelector(selectIsCardholder);
-  const { startLinkFlow } = useMoneyAccountCardLinkage();
-  const geolocation = useSelector(getDetectedGeolocation);
-  const isUS = geolocation?.toUpperCase().split('-')[0] === 'US';
+  const hasMetalCard = useSelector(selectHasMetalCard);
+  const { startLinkFlow, isCardLinkedToMoneyAccount, isLinking } =
+    useMoneyAccountCardLinkage();
 
   const { isVisible: isOnboardingCardVisible } = useOnboardingStep({
     stepperId: STEPPER_IDS.MONEY,
@@ -109,7 +111,6 @@ const MoneyHomeView = () => {
 
   const homeState = getMoneyHomeState(allTransactions.length);
   const isMilestone = homeState === 'milestone' || homeState === 'filled';
-  const isCardholderWithMilestone = isMilestone && isCardholder;
 
   let displayState: MoneyBalanceDisplayState;
   if (!hasMoneyAccount) {
@@ -264,9 +265,9 @@ const MoneyHomeView = () => {
   );
 
   let metamaskCardMode: 'upsell' | 'link' | 'manage';
-  if (isCardholderWithMilestone && isUS) {
+  if (isCardLinkedToMoneyAccount) {
     metamaskCardMode = 'manage';
-  } else if (isCardholderWithMilestone) {
+  } else if (isCardholder) {
     metamaskCardMode = 'link';
   } else {
     metamaskCardMode = 'upsell';
@@ -374,7 +375,8 @@ const MoneyHomeView = () => {
           onHeaderPress={handleCardPress}
           onLinkPress={handleLinkCardPress}
           onManagePress={handleCardPress}
-          showMetalCard={isUS}
+          showMetalCard={hasMetalCard}
+          isLinkDisabled={isLinking}
           cardBalance={cardBalance}
           apy={apyPercent}
         />
