@@ -7,8 +7,8 @@ import MoneyOnboardingCard, {
 import { useOnboardingStep } from '../../hooks/useOnboardingStep';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
+import { MONEY_HOME_CARD_ORIGIN } from '../../../Card/hooks/useCardPostAuthRedirect';
 import { strings } from '../../../../../../locales/i18n';
-import Routes from '../../../../../constants/navigation/Routes';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 
 jest.mock('@metamask/design-system-twrnc-preset', () => {
@@ -222,10 +222,7 @@ describe('MoneyOnboardingCard', () => {
       fireEvent.press(getByTestId('money-onboarding-card-cta-button'));
 
       expect(mockStartLinkFlow).toHaveBeenCalledTimes(1);
-      expect(mockStartLinkFlow).toHaveBeenCalledWith({
-        screen: Routes.MONEY.ROOT,
-        params: { screen: Routes.MONEY.HOME },
-      });
+      expect(mockStartLinkFlow).toHaveBeenCalledWith(MONEY_HOME_CARD_ORIGIN);
     });
 
     it('calls incrementStep when Skip CTA is pressed', () => {
@@ -302,10 +299,7 @@ describe('MoneyOnboardingCard', () => {
       fireEvent.press(getByTestId('money-onboarding-card-cta-button'));
 
       expect(mockStartLinkFlow).toHaveBeenCalledTimes(1);
-      expect(mockStartLinkFlow).toHaveBeenCalledWith({
-        screen: Routes.MONEY.ROOT,
-        params: { screen: Routes.MONEY.HOME },
-      });
+      expect(mockStartLinkFlow).toHaveBeenCalledWith(MONEY_HOME_CARD_ORIGIN);
     });
 
     it('calls incrementStep when Skip CTA is pressed', () => {
