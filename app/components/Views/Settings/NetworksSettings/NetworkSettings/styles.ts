@@ -34,9 +34,6 @@ export const createCustomNetworkStyles = (params: { colors: Colors }) =>
     nameAndTagContainer: {
       flexDirection: 'column',
     },
-    networkNameText: {
-      flex: 1,
-    },
     tagLabelBelowName: {
       marginTop: 4,
       alignSelf: 'flex-start',

@@ -1,5 +1,4 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
@@ -174,49 +173,6 @@ describe('CustomNetwork component', () => {
     expect(getByText('Arbitrum')).toBeOnTheScreen();
 
     expect(getAllByText('No network fee').length).toBe(1);
-  });
-
-  it('truncates long network name to single line when gas is sponsored', () => {
-    const customNetworksList: Network[] = [
-      {
-        chainId: '0x38',
-        nickname:
-          'Monad Mainnet YOYOMI JOK.OK.OK.OK.OK.OK.OK.OK very long name',
-        rpcPrefs: { blockExplorerUrl: 'https://bscscan.com' },
-        rpcUrl: 'https://bsc-dataseed.binance.org',
-        ticker: 'BNB',
-      },
-    ];
-
-    const props = getMockCustomNetworkProps({
-      showAddedNetworks: true,
-      customNetworksList,
-    });
-
-    const state = {
-      engine: {
-        backgroundState: {
-          ...backgroundState,
-          RemoteFeatureFlagController: {
-            ...backgroundState.RemoteFeatureFlagController,
-            remoteFeatureFlags: {
-              ...backgroundState.RemoteFeatureFlagController.remoteFeatureFlags,
-              gasFeesSponsoredNetwork: { '0x38': true },
-            },
-          },
-        },
-      },
-    };
-
-    const { getByText } = renderWithProvider(<CustomNetwork {...props} />, {
-      state,
-    });
-
-    const nameEl = getByText(
-      'Monad Mainnet YOYOMI JOK.OK.OK.OK.OK.OK.OK.OK very long name',
-    );
-    expect(nameEl.props.numberOfLines).toBe(1);
-    expect(StyleSheet.flatten(nameEl.props.style)).toMatchObject({ flex: 1 });
   });
 
   describe('skipConfirmation prop', () => {

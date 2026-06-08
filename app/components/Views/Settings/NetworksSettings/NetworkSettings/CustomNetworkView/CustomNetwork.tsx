@@ -185,12 +185,8 @@ const CustomNetwork = ({
               />
             </View>
             <View style={customNetworkStyles.nameAndTagContainer}>
-              <Box twClassName="flex-row gap-2 items-center">
-                <CustomText
-                  bold={!isNetworkUiRedesignEnabled()}
-                  numberOfLines={1}
-                  style={customNetworkStyles.networkNameText}
-                >
+              <Box twClassName="flex-row gap-2">
+                <CustomText bold={!isNetworkUiRedesignEnabled()}>
                   {networkConfiguration.nickname}
                 </CustomText>
                 {!isHardwareWallet &&
