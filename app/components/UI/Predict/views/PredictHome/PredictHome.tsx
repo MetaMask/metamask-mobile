@@ -131,6 +131,7 @@ const PredictHome: React.FC = () => {
           onSearchChange={setSearchQuery}
           onClose={clearSearchAndClose}
           transactionActiveAbTests={transactionActiveAbTests}
+          entryPoint={entryPoint}
         />
       </Box>
     </SafeAreaView>

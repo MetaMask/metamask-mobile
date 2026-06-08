@@ -333,6 +333,19 @@ describe('PredictFeed', () => {
       expect(within(resultCard).getByText(/Yes/)).toBeOnTheScreen();
       expect(within(resultCard).getByText(/No/)).toBeOnTheScreen();
 
+      // Assert — the `queried` event fires once with the resolved results count
+      await waitFor(() => {
+        expect(
+          Engine.context.PredictController.trackSearchInteracted,
+        ).toHaveBeenCalledWith(
+          expect.objectContaining({
+            interactionType: 'queried',
+            searchQuery: 'bitcoin',
+            resultsCount: 1,
+          }),
+        );
+      });
+
       searchMarketsSpy.mockRestore();
     });
 
@@ -366,6 +379,18 @@ describe('PredictFeed', () => {
       expect(
         await findByTestId(`route-${Routes.PREDICT.ROOT}`),
       ).toBeOnTheScreen();
+
+      // Assert — the `result_clicked` event fires with the tapped market's id/title
+      expect(
+        Engine.context.PredictController.trackSearchInteracted,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          interactionType: 'result_clicked',
+          searchQuery: 'bitcoin',
+          marketId: MOCK_PREDICT_MARKET.id,
+          marketTitle: MOCK_PREDICT_MARKET.title,
+        }),
+      );
 
       searchMarketsSpy.mockRestore();
     });

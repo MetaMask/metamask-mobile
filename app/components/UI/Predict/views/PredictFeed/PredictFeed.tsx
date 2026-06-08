@@ -741,6 +741,8 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
           onSearchChange={setSearchQuery}
           onClose={clearSearchAndClose}
           transactionActiveAbTests={transactionActiveAbTests}
+          predictFeedTab={tabs[activeIndex]?.key}
+          entryPoint={listEntryPoint}
         />
       </Box>
       <Box pointerEvents="box-none" twClassName="absolute inset-0 z-50">
