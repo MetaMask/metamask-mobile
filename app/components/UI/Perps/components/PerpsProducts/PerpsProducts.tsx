@@ -28,11 +28,8 @@ import { usePerpsCategories } from '../../hooks/usePerpsCategories';
 import { useTheme } from '../../../../../util/theme';
 import { BADGE_CATEGORY_ICON_MAP } from '../../constants/categoryIcons';
 import PreIpoRocketSVG from './assets/pre-ipo-rocket.svg';
-import PreIpoRocketDarkSVG from './assets/pre-ipo-rocket-dark.svg';
 import EtfsLayersSVG from './assets/etfs-layers.svg';
-import EtfsLayersDarkSVG from './assets/etfs-layers-dark.svg';
 import IndicesChartSVG from './assets/indices-chart.svg';
-import IndicesChartDarkSVG from './assets/indices-chart-dark.svg';
 import { styleSheet } from './PerpsProducts.styles';
 import type { PerpsProductsProps } from './PerpsProducts.types';
 
@@ -51,25 +48,25 @@ const PRODUCTS_ANALYTICS = {
   SOURCE: 'perps_home__product_pill',
 } as const;
 
-const CUSTOM_SVG_ICONS_LIGHT: Record<string, SvgComponent> = {
+const CUSTOM_SVG_ICONS: Record<string, SvgComponent> = {
   'pre-ipo': PreIpoRocketSVG,
   etfs: EtfsLayersSVG,
   indices: IndicesChartSVG,
 };
 
-const CUSTOM_SVG_ICONS_DARK: Record<string, SvgComponent> = {
-  'pre-ipo': PreIpoRocketDarkSVG,
-  etfs: EtfsLayersDarkSVG,
-  indices: IndicesChartDarkSVG,
-};
-
 const CategoryIcon: React.FC<{ categoryId: string }> = ({ categoryId }) => {
-  const { themeAppearance } = useTheme();
+  const { themeAppearance, colors } = useTheme();
   const isDark = themeAppearance === 'dark';
-  const icons = isDark ? CUSTOM_SVG_ICONS_DARK : CUSTOM_SVG_ICONS_LIGHT;
-  const CustomIcon = icons[categoryId];
+  const CustomIcon = CUSTOM_SVG_ICONS[categoryId];
   if (CustomIcon) {
-    return <CustomIcon width={24} height={24} name={categoryId} />;
+    return (
+      <CustomIcon
+        width={24}
+        height={24}
+        name={categoryId}
+        color={isDark ? colors.icon.default : colors.icon.alternative}
+      />
+    );
   }
   return (
     <Icon
