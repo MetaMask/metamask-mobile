@@ -42,6 +42,7 @@ interface Option {
   onPress: () => void;
   testID: string;
   disabled?: boolean;
+  tag?: string;
 }
 
 const MoneyAddMoneySheet: React.FC = () => {
@@ -135,7 +136,7 @@ const MoneyAddMoneySheet: React.FC = () => {
       testID: MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
       disabled: !hasAnyCryptoBalance,
     },
-    ...(canDeposit
+    ...(isFiatDepositEnabled
       ? [
           {
             label: strings('money.add_money_sheet.deposit_funds'),
@@ -147,6 +148,10 @@ const MoneyAddMoneySheet: React.FC = () => {
             icon: IconName.AttachMoney,
             onPress: handleDepositFunds,
             testID: MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
+            disabled: !canDeposit,
+            tag: !canDeposit
+              ? strings('money.add_money_sheet.coming_soon')
+              : undefined,
           },
         ]
       : []),
@@ -195,13 +200,18 @@ const MoneyAddMoneySheet: React.FC = () => {
               }
             />
             <View style={styles.rowLabelContainer}>
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={item.disabled ? TextColor.TextAlternative : undefined}
-              >
-                {item.label}
-              </Text>
+              <View style={item.tag ? styles.disabledRowContent : undefined}>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  color={item.disabled ? TextColor.TextAlternative : undefined}
+                >
+                  {item.label}
+                </Text>
+                {item.tag ? (
+                  <Tag label={item.tag} style={styles.comingSoonTag} />
+                ) : null}
+              </View>
               {item.description ? (
                 <Text
                   variant={TextVariant.BodySm}

@@ -347,14 +347,34 @@ describe('MoneyAddMoneySheet', () => {
     ).toBeNull();
   });
 
-  it('hides Deposit funds when canDeposit is false (no supporting provider in region)', () => {
+  it('shows Deposit funds disabled with "Coming soon" tag when flag is on but canDeposit is false', () => {
     (useCanFiatDepositAsset as jest.Mock).mockReturnValue(false);
 
-    const { queryByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+    const { getByTestId, getAllByText } = renderWithProvider(
+      <MoneyAddMoneySheet />,
+    );
 
+    // Row is present
     expect(
-      queryByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
-    ).toBeNull();
+      getByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
+    ).toBeOnTheScreen();
+
+    // "Coming soon" tag appears on the Deposit row (plus the existing one on Receive external)
+    expect(getAllByText('Coming soon')).toHaveLength(2);
+
+    // Pressing does nothing (disabled)
+    fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION));
+    expect(mockOnCloseBottomSheet).not.toHaveBeenCalled();
+    expect(mockInitiateDeposit).not.toHaveBeenCalled();
+  });
+
+  it('does not show a "Coming soon" tag on Deposit funds when canDeposit is true', () => {
+    (useCanFiatDepositAsset as jest.Mock).mockReturnValue(true);
+
+    const { getAllByText } = renderWithProvider(<MoneyAddMoneySheet />);
+
+    // Only the hardcoded "Receive external" row has a "Coming soon" tag
+    expect(getAllByText('Coming soon')).toHaveLength(1);
   });
 
   it('calls useCanFiatDepositAsset without an explicit assetId (resolved internally from the flag)', () => {
