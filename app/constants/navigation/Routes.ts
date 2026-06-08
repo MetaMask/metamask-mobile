@@ -125,6 +125,14 @@ const Routes = {
   REWARDS_CAMPAIGN_TOUR_STEP: 'RewardsCampaignTourStep',
   REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW:
     'RewardsPerpsTradingCampaignDetails',
+  REWARDS_PREDICT_THE_PITCH_CAMPAIGN_DETAILS_VIEW:
+    'RewardsPredictThePitchCampaignDetails',
+  REWARDS_PREDICT_THE_PITCH_CAMPAIGN_WINNING_VIEW:
+    'RewardsPredictThePitchCampaignWinning',
+  REWARDS_PREDICT_THE_PITCH_CAMPAIGN_LEADERBOARD:
+    'RewardsPredictThePitchCampaignLeaderboard',
+  REWARDS_PREDICT_THE_PITCH_CAMPAIGN_PORTFOLIO_VIEW:
+    'RewardsPredictThePitchCampaignPortfolioView',
   REWARDS_PERPS_TRADING_CAMPAIGN_LEADERBOARD:
     'RewardsPerpsTradingCampaignLeaderboard',
   REWARDS_PERPS_TRADING_CAMPAIGN_STATS: 'RewardsPerpsTradingCampaignStats',
@@ -555,7 +563,6 @@ const Routes = {
     ID: 'AgenticCliApproval',
     CONFIRM: 'AgenticCliApprovalConfirm',
   },
-  NAVIGATION_DEV_PANEL: 'NavigationDevPanel',
 };
 
 export default Routes;
