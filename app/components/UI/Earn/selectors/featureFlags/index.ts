@@ -376,13 +376,13 @@ export const selectMusdBalanceChainIds = createSelector(
     const remoteFlag = remoteFeatureFlags?.earnMusdBalanceChainIds;
     if (typeof remoteFlag === 'string' && remoteFlag.trim() !== '') {
       const parsed = parseCommaSeparatedString(remoteFlag);
-      if (parsed.length > 0) return parsed;
+      if (parsed.length > 0) return [...new Set(parsed)];
     }
 
     const envValue = process.env.MM_MONEY_MUSD_BALANCE_CHAIN_IDS;
     if (envValue && envValue.trim() !== '') {
       const parsed = parseCommaSeparatedString(envValue);
-      if (parsed.length > 0) return parsed;
+      if (parsed.length > 0) return [...new Set(parsed)];
     }
 
     return MUSD_BALANCE_CHAIN_IDS_FALLBACK;

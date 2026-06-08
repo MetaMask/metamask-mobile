@@ -2286,5 +2286,25 @@ describe('Earn Feature Flag Selectors', () => {
 
       expect(result).toEqual(MUSD_BALANCE_CHAIN_IDS_FALLBACK);
     });
+
+    it('deduplicates repeated chain IDs from the remote flag', () => {
+      const stateWithDuplicates = createStateWithRemoteFlags({
+        earnMusdBalanceChainIds: '0x1,0xe708,0x1',
+      });
+
+      const result = selectMusdBalanceChainIds(stateWithDuplicates);
+
+      expect(result).toEqual(['0x1', '0xe708']);
+    });
+
+    it('deduplicates repeated chain IDs from the env var', () => {
+      delete process.env.MM_MONEY_MUSD_BALANCE_CHAIN_IDS;
+      process.env.MM_MONEY_MUSD_BALANCE_CHAIN_IDS = '0x1,0xe708,0x1';
+      const stateWithoutRemote = createStateWithRemoteFlags({});
+
+      const result = selectMusdBalanceChainIds(stateWithoutRemote);
+
+      expect(result).toEqual(['0x1', '0xe708']);
+    });
   });
 });
