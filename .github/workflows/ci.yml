@@ -1098,6 +1098,7 @@ jobs:
     with:
       build_type: 'main'
       metamask_environment: 'e2e'
+      # Appium Android uses Namespace (metamask-android-build) — same profile as Detox E2E.
       runner_provider: namespace
       selected_tags: >-
         ${{

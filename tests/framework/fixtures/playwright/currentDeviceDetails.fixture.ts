@@ -55,11 +55,14 @@ export const currentDeviceDetailsFixture = {
     }
 
     // For iOS local simulators, resolve the UDID of the currently-booted device.
-    // Multiple simulators can share the same display name across iOS runtime versions;
-    // using the UDID ensures simctl commands target the booted one.
+    // CI sets IOS_SIMULATOR_UDID (and project device.udid) from prepare-ios-appium-runner;
+    // prefer those over name lookup when multiple simulators share a display name.
     let resolvedIosUdid: string | undefined;
     if (platform === Platform.IOS && isLocalEmulator && deviceNameField) {
-      resolvedIosUdid = await getIosSimulatorUdid(deviceNameField);
+      const preferredUdid =
+        emulatorDevice?.udid?.trim() || process.env.IOS_SIMULATOR_UDID?.trim();
+      resolvedIosUdid =
+        preferredUdid || (await getIosSimulatorUdid(deviceNameField));
     }
 
     const displayName = deviceNameField ?? deviceUdid ?? 'unknown';

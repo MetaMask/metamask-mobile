@@ -157,27 +157,36 @@ class TabBarComponent {
   }
 
   async tapHome(): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await UnifiedGestures.waitAndTap(this.homeButton, {
-          timeout: 2000,
-        });
-        await Assertions.expectElementToBeVisible(WalletView.container, {
-          timeout: 500,
-        });
-      },
-      appium: async () => {
-        await PlaywrightGestures.waitAndTap(
-          await asPlaywrightElement(this.homeButton),
-        );
-        await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(WalletView.container),
-          {
-            timeout: 500,
+    await Utilities.executeWithRetry(
+      async () => {
+        await encapsulatedAction({
+          detox: async () => {
+            await UnifiedGestures.waitAndTap(this.homeButton, {
+              timeout: 2000,
+            });
+            await Assertions.expectElementToBeVisible(WalletView.container, {
+              timeout: 500,
+            });
           },
-        );
+          appium: async () => {
+            await PlaywrightGestures.waitAndTap(
+              await asPlaywrightElement(this.homeButton),
+            );
+            await PlaywrightAssertions.expectElementToBeVisible(
+              await asPlaywrightElement(WalletView.container),
+              {
+                timeout: 500,
+              },
+            );
+          },
+        });
       },
-    });
+      {
+        maxRetries: 15,
+        timeout: 45000,
+        description: 'Tap Home Button with Validation',
+      },
+    );
   }
 
   async tapWallet(): Promise<void> {

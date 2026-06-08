@@ -2,10 +2,11 @@
 /* eslint-disable import-x/no-nodejs-modules */
 /**
  * Prepares the iOS Appium runner before Playwright tests:
- * - Boots the simulator
- * - Prebuilds WDA (unless SKIP_WDA_PREBUILD=true)
- * - Installs prebuilt WDA + MetaMask .app via simctl
- * - Warms up WDA via a throwaway Appium session (when WDA was preinstalled)
+ * - Boots the simulator (critical — job fails if this fails)
+ * - Prebuilds WDA (critical on cache miss — job fails if this fails)
+ * - Installs prebuilt WDA + MetaMask .app via simctl (app install critical;
+ *   WDA simctl install is best-effort — tests fall back to xcodebuild)
+ * - Warms up WDA via a throwaway Appium session (best-effort — job continues)
  *
  * Simulator boot and WDA prebuild run in parallel to shave wall-clock time on
  * cache miss (WDA ~8 min, sim boot ~1–2 min → overlap saves ~1–2 min).
@@ -62,10 +63,17 @@ if (hasUsableWdaArtifacts()) {
   const { wdaApp } = findWdaArtifacts(getDerivedDataPath());
   if (wdaApp) {
     installTasks.push(
-      installWdaOnSimulator({ udid, wdaApp }).then((installedBundleId) => {
-        iosWdaPreinstalled = 'true';
-        iosWdaBundleIdBase = toWdaBundleIdBase(installedBundleId);
-      }),
+      installWdaOnSimulator({ udid, wdaApp })
+        .then((installedBundleId) => {
+          iosWdaPreinstalled = 'true';
+          iosWdaBundleIdBase = toWdaBundleIdBase(installedBundleId);
+        })
+        .catch((error) => {
+          const message = error instanceof Error ? error.message : String(error);
+          console.warn(
+            `WDA simctl install failed — tests will use xcodebuild path: ${message}`,
+          );
+        }),
     );
   }
 } else {
