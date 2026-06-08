@@ -1111,18 +1111,32 @@ export function useQuickBuyController(
       return hasNonZeroInputAmount;
     }
   }, [sourceTokenAmount, sourceToken?.decimals]);
-  const settledSourceTokenAmountRef = useRef(sourceTokenAmount);
-  const wasQuoteLoadingRef = useRef(isQuoteLoading);
-
-  useEffect(() => {
-    const loadingJustFinished = wasQuoteLoadingRef.current && !isQuoteLoading;
-
-    if (loadingJustFinished || hasError) {
-      settledSourceTokenAmountRef.current = sourceTokenAmount;
+  // A displayed quote corresponds to the current amount when the quote's own
+  // srcTokenAmount equals the requested amount. The quote request is built with
+  // `calcTokenValue(sourceTokenAmount, decimals).toFixed(0)` and the bridge
+  // echoes that exact value back, so a string equality is reliable. Deriving
+  // this synchronously (rather than tracking the last-settled amount in a ref
+  // updated from an effect) lets the CTA enable on the same render the matching
+  // quote arrives — in lockstep with the loader — instead of a render later.
+  const isActiveQuoteForCurrentAmount = useMemo(() => {
+    if (
+      !activeQuote ||
+      !sourceToken ||
+      sourceToken.decimals == null ||
+      !sourceTokenAmount
+    ) {
+      return false;
     }
-
-    wasQuoteLoadingRef.current = isQuoteLoading;
-  }, [isQuoteLoading, sourceTokenAmount, hasError]);
+    try {
+      const requested = calcTokenValue(
+        sourceTokenAmount,
+        sourceToken.decimals,
+      ).toFixed(0);
+      return activeQuote.quote.srcTokenAmount === requested;
+    } catch {
+      return false;
+    }
+  }, [activeQuote, sourceToken, sourceTokenAmount]);
 
   const hasCompleteQuoteInputs = Boolean(
     sourceToken &&
@@ -1131,8 +1145,7 @@ export function useQuickBuyController(
       !isDestinationAddressMissing,
   );
   const isPendingQuoteRefresh =
-    settledSourceTokenAmountRef.current !== sourceTokenAmount &&
-    hasCompleteQuoteInputs;
+    hasCompleteQuoteInputs && !isActiveQuoteForCurrentAmount;
   const hasQuoteMismatch =
     Boolean(activeQuote) && !isActiveQuoteForCurrentTokenPair;
 

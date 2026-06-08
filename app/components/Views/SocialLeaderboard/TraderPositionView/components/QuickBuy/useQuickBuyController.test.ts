@@ -877,6 +877,56 @@ describe('useQuickBuyController', () => {
       expect(result.current.isConfirmDisabled).toBe(false);
     });
 
+    it('enables the CTA on the same render the loader clears when the quote arrives', () => {
+      const quoteState: UseQuickBuyQuotesResult = {
+        activeQuote: undefined,
+        destTokenAmount: undefined,
+        isQuoteLoading: false,
+        isNoQuotesAvailable: false,
+        quoteFetchError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
+        sortedQuotes: [],
+        quoteCount: 0,
+        quotesLastFetchedAt: null,
+        refreshCount: 0,
+        quoteRefreshRateMs: 30000,
+        maxRefreshCount: 5,
+        refetchQuotes: jest.fn(),
+      };
+
+      (useQuickBuyQuotes as jest.Mock).mockImplementation(() => quoteState);
+
+      const props = {
+        target: createTarget(),
+        onClose: jest.fn(),
+      };
+      const { result, rerender } = renderHook(
+        ({ target, onClose }) => useQuickBuyController(target, onClose),
+        { initialProps: props },
+      );
+
+      act(() => {
+        result.current.handleAmountChange('20');
+      });
+
+      quoteState.isQuoteLoading = true;
+      rerender(props);
+
+      expect(result.current.isBlockingQuoteLoad).toBe(true);
+      expect(result.current.isConfirmDisabled).toBe(true);
+
+      // A single render with the matching quote both clears the loader and
+      // enables the CTA — no extra render needed (regression: the button used to
+      // lag the loader by a render because settling lived in a post-commit ref).
+      quoteState.isQuoteLoading = false;
+      quoteState.activeQuote = createActiveQuote();
+      rerender(props);
+
+      expect(result.current.isBlockingQuoteLoad).toBe(false);
+      expect(result.current.isConfirmDisabled).toBe(false);
+    });
+
     it('is disabled when amount changes after quote loading settles', () => {
       const quoteState: UseQuickBuyQuotesResult = {
         activeQuote: undefined,
@@ -1022,10 +1072,14 @@ describe('useQuickBuyController', () => {
       quoteState.isQuoteLoading = true;
       rerender(props);
       quoteState.isQuoteLoading = false;
-      // Inject a high-price-impact active quote.
+      // Inject a high-price-impact active quote. Keep srcTokenAmount so the
+      // quote still matches the requested amount (isPendingQuoteRefresh = false).
       quoteState.activeQuote = {
         ...createActiveQuote(),
-        quote: { priceData: { priceImpact: '0.30' } },
+        quote: {
+          srcTokenAmount: '10000000000000000',
+          priceData: { priceImpact: '0.30' },
+        },
       } as never;
       rerender(props);
       rerender(props);
