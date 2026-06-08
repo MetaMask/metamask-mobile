@@ -167,7 +167,7 @@
   "previewBuilds": {
     "@metamask/wallet": {
       "type": "breaking",
-      "previewVersion": "2.0.0-preview-3989ae5"
+      "previewVersion": "2.0.0-preview-ecd6b75"
     }
   },
   "resolutions": {
