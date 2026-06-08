@@ -20,7 +20,7 @@ import {
 import type { BridgeToken } from '../../../../../../UI/Bridge/types';
 import { getNetworkImageSource } from '../../../../../../../util/networks';
 import { getBridgeTokenImageSource } from '../getBridgeTokenImageSource';
-import { getTokenKey } from '../sourceTokenCandidates';
+import { getTokenKey } from '../tokenKey';
 
 interface QuickBuyPayWithRowProps {
   token: BridgeToken;

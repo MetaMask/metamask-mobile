@@ -46,7 +46,7 @@ export interface QuickBuySetupResult {
  * Resolves a Position from the Social API into a destination BridgeToken
  * that can be used by the Bridge/Swaps system.
  *
- * Source token selection is handled separately by useSourceTokenOptions.
+ * Source token selection is handled separately by usePayWithTokens.
  */
 export const useQuickBuySetup = (
   target: QuickBuyTarget | null,

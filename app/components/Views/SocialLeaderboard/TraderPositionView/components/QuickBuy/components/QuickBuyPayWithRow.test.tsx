@@ -2,7 +2,7 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import type { BridgeToken } from '../../../../../../UI/Bridge/types';
 import QuickBuyPayWithRow from './QuickBuyPayWithRow';
-import { getTokenKey } from '../sourceTokenCandidates';
+import { getTokenKey } from '../tokenKey';
 
 const getRowTestId = (token: BridgeToken): string =>
   `quick-buy-pay-with-row-${getTokenKey(token)}`;
