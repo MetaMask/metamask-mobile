@@ -1,10 +1,8 @@
 # Appium Smoke Tests — iOS
 #
-# Fans out reusable workflow jobs per Appium smoke tag. Only SmokeAccounts is
-# wired today; add more jobs here as Appium specs land for other categories.
-# Also append new tags to scripts/e2e/appium-smoke-tags.mjs (CI Appium smoke gate).
-#
-# Called from ci.yml after ios-tests-ready succeeds.
+# Fans out one reusable job per Appium smoke tag.
+# Register tags in scripts/e2e/appium-smoke-tags.mjs and add a matching job below.
+# Invoked by run-appium-smoke-tests-ios-scheduled.yml and workflow_dispatch.
 
 name: Appium Smoke Tests (iOS)
 

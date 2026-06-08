@@ -1,10 +1,8 @@
 # Appium Smoke Tests — Android
 #
-# Fans out reusable workflow jobs per Appium smoke tag. Only SmokeAccounts is
-# wired today; add more jobs here as Appium specs land for other categories.
-# Also append new tags to scripts/e2e/appium-smoke-tags.mjs (CI Appium smoke gate).
-#
-# Called from ci.yml after build-android-apks succeeds and appium-smoke-gate enables.
+# Fans out one reusable job per Appium smoke tag.
+# Register tags in scripts/e2e/appium-smoke-tags.mjs and add a matching job below.
+# Invoked from ci.yml when appium-smoke-gate and build-android-apks succeed.
 
 name: Appium Smoke Tests (Android)
 

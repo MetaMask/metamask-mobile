@@ -1116,6 +1116,7 @@ jobs:
           enabled=$(node scripts/e2e/appium-smoke-tags.mjs "$SELECTED_TAGS")
           echo "enabled=${enabled}" >> "$GITHUB_OUTPUT"
 
+  # Android Appium smoke (PR CI). iOS: run-appium-smoke-tests-ios-scheduled.yml.
   appium-smoke-tests-android:
     name: 'Appium Smoke Tests (Android)'
     if: >-
@@ -1135,55 +1136,6 @@ jobs:
       metamask_environment: 'e2e'
       # Appium Android uses Namespace (metamask-android-build) — same profile as Detox E2E.
       runner_provider: namespace
-      selected_tags: >-
-        ${{
-          (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 &&
-           needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
-          '["ALL"]'
-        }}
-    secrets: inherit
-
-  prebuild-wda-for-appium-ios:
-    name: 'Prebuild WDA (Appium iOS)'
-    # Best-effort cache warm-up; not gated in check-all-jobs-pass. Smoke job
-    # prebuilds WDA on cache miss via prepare-ios-appium-runner.mjs.
-    if: >-
-      ${{
-        !cancelled() &&
-        needs.appium-smoke-gate.outputs.enabled == 'true' &&
-        needs.get_requirements.outputs.ios_e2e_needed == 'true' &&
-        !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
-      }}
-    permissions:
-      contents: read
-      id-token: write
-    needs: [get_requirements, smart-e2e-selection, appium-smoke-gate]
-    uses: ./.github/workflows/prebuild-wda-ios.yml
-    with:
-      runner_provider: ${{ inputs.runner_provider }}
-    secrets: inherit
-
-  appium-smoke-tests-ios:
-    name: 'Appium Smoke Tests (iOS)'
-    if: >-
-      ${{
-        !cancelled() &&
-        needs.appium-smoke-gate.outputs.enabled == 'true' &&
-        needs.ios-tests-ready.result == 'success' &&
-        (needs.prebuild-wda-for-appium-ios.result == 'success' ||
-         needs.prebuild-wda-for-appium-ios.result == 'skipped' ||
-         needs.prebuild-wda-for-appium-ios.result == 'failure')
-      }}
-    permissions:
-      contents: read
-      checks: write
-      id-token: write
-    needs: [ios-tests-ready, smart-e2e-selection, prebuild-wda-for-appium-ios, appium-smoke-gate]
-    uses: ./.github/workflows/run-appium-smoke-tests-ios.yml
-    with:
-      build_type: 'main'
-      metamask_environment: 'e2e'
-      runner_provider: ${{ inputs.runner_provider }}
       selected_tags: >-
         ${{
           (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 &&

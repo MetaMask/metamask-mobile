@@ -99,7 +99,7 @@ export async function bootIosSimulator(deviceName) {
 
 /**
  * Blocks until simctl reports the simulator fully booted (SpringBoard ready).
- * Call before Appium warm-up so XCUITest does not race simctl bootstatus.
+ * Call before Appium session creation so XCUITest does not race sim boot.
  * @param {string} udid
  */
 export async function ensureIosSimulatorBooted(udid) {

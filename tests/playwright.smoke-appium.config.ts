@@ -48,8 +48,7 @@ const junitReportPath = suiteName
 export default defineConfig({
   testDir: './smoke-appium',
   fullyParallel: false,
-  // Per-test timeout: WDA build on CI can take up to 10 min on first run,
-  // plus test execution time. 15 min keeps CI healthy without hanging forever.
+  // Per-test timeout: cold WDA build on CI can take up to 10 min plus test time.
   timeout: 15 * 60 * 1000,
   retries: 1,
   reporter: [

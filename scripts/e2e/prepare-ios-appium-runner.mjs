@@ -2,14 +2,13 @@
 /* eslint-disable import-x/no-nodejs-modules */
 /**
  * Prepares the iOS Appium runner before Playwright tests:
- * - Boots the simulator (critical — job fails if this fails)
- * - Prebuilds WDA (critical on cache miss — job fails if this fails)
- * - Installs prebuilt WDA + MetaMask .app via simctl (app install critical;
- *   WDA simctl install is best-effort — tests fall back to xcodebuild)
- * - Warms up WDA via a throwaway Appium session (best-effort — job continues)
+ * 1. Boot simulator (parallel with WDA prebuild unless SKIP_WDA_PREBUILD=true)
+ * 2. Prebuild WDA into ~/appium-wda on cache miss
+ * 3. simctl install WebDriverAgentRunner + MetaMask.app (sequential — same UDID)
+ * 4. Warm WDA via a throwaway Appium session; leaves Appium running for tests
  *
- * Simulator boot and WDA prebuild run in parallel to shave wall-clock time on
- * cache miss (WDA ~8 min, sim boot ~1–2 min → overlap saves ~1–2 min).
+ * Sets GITHUB_OUTPUT: ios-simulator-udid, ios-wda-preinstalled, ios-wda-bundle-id.
+ * WDA simctl install failures fall back to the xcodebuild path in tests.
  */
 import { spawnSync } from 'node:child_process';
 import { appendFileSync, existsSync } from 'node:fs';
@@ -89,7 +88,7 @@ if (iosWdaPreinstalled === 'true' && iosWdaBundleIdBase) {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.warn(
-      `WDA warm-up failed — prepare continues; Playwright will attach to WDA (may be cold): ${message}`,
+      `WDA warm-up failed — prepare continues; first Playwright session will launch WDA: ${message}`,
     );
   }
 }

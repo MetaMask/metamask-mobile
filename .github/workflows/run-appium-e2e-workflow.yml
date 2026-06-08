@@ -238,7 +238,7 @@ jobs:
             echo "WDA prebuilt artifacts found"
           else
             echo "ready=false" >> "$GITHUB_OUTPUT"
-            echo "WDA cache miss — prepare step will prebuild (parallel with sim boot)"
+            echo "WDA cache miss — prepare-ios-appium-runner will prebuild (parallel with sim boot)"
           fi
         shell: bash
 

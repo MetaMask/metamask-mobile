@@ -66,8 +66,8 @@ export class EmulatorConfigBuilder {
       // session-creation POST doesn't time out before Appium responds.
       // connectionRetryCount: 0 — no retries on session creation; a timeout
       // here is not a transient error and retrying just doubles the wait.
-      // Preinstalled WDA on CI: prepare step warm-up already launched WDA; attach
-      // should complete in seconds. Prebuilt/cold paths still need minutes.
+      // Preinstalled WDA: prepare-ios-appium-runner already launched WDA on CI.
+      // Prebuilt/cold paths still need minutes for xcodebuild or first launch.
       connectionRetryTimeout: usePreinstalledWda
         ? 90 * 1000
         : usePrebuiltWda

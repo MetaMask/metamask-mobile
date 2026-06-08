@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 /**
- * Tags that have jobs in run-appium-smoke-tests-{android,ios}.yml.
- * When adding Appium smoke coverage for a category, append the tag here
- * and add matching jobs to both orchestrator workflows.
+ * Smoke tags executed by Appium CI.
+ * Android: run-appium-smoke-tests-android.yml (ci.yml).
+ * iOS: run-appium-smoke-tests-ios.yml (run-appium-smoke-tests-ios-scheduled.yml).
+ * Append a tag here and add a matching job to each orchestrator.
  */
 export const APPIUM_SMOKE_TAGS = ['SmokeAccounts'];
 

@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /* eslint-disable import-x/no-nodejs-modules */
 /**
- * Creates a throwaway Appium/XCUITest session so WDA is launched before Playwright tests.
- * Leaves Appium running (for the test step to reuse) and WDA on the sim (useNewWDA: false).
- *
- * WDA-only session — no MetaMask bundleId — so warm-up does not wait on app launch.
+ * Launches WDA on a booted simulator before Playwright tests.
+ * Starts a detached Appium server (reused when SKIP_APPIUM_STOP=true) and opens a
+ * WDA-only WebDriverIO session (no app bundleId). useNewWDA:false keeps WDA alive
+ * after deleteSession so the test step attaches instead of cold-starting.
  */
 import { spawn } from 'node:child_process';
 import { setTimeout as sleep } from 'node:timers/promises';
@@ -45,9 +45,7 @@ async function startAppiumServer() {
 
   console.log(`Starting Appium on http://${APPIUM_HOST}:${APPIUM_PORT} for WDA warm-up…`);
 
-  // stdio: 'ignore' — do not pipe stdout/stderr into this process. Piped stdio keeps
-  // Node's event loop alive after warm-up even when Appium is detached/unref'd, which
-  // makes the GHA prepare step hang until job timeout.
+  // stdio: 'ignore' — piped stdio would keep Node's event loop alive after unref().
   const proc = spawn(
     'yarn',
     [

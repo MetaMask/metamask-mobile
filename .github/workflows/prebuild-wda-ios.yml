@@ -1,8 +1,7 @@
 # Prebuild WebDriverAgent for Appium iOS smoke tests.
 #
-# Runs in parallel with build-ios-e2e.yml so WDA is cached before the Appium
-# runner job starts. On cache miss this job takes ~8–10 min but overlaps the
-# iOS app build instead of blocking the test runner.
+# Called from run-appium-smoke-tests-ios-scheduled.yml alongside build-ios-e2e.yml.
+# Writes DerivedData to ~/appium-wda for prepare-ios-appium-runner.mjs and actions/cache.
 
 name: Prebuild WDA (Appium iOS)
 
