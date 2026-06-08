@@ -249,7 +249,7 @@ const leaderboard: PredictThePitchLeaderboardDto = {
 };
 
 const prizePool: PredictThePitchPrizePoolDto = {
-  totalCapitalDeployedUsd: 100,
+  totalVolumeUsd: 100,
   unlockedPoolUsd: 10,
   thresholdsUsd: [0, 100],
   poolScheduleUsd: [10, 20],

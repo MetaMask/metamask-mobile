@@ -66,7 +66,7 @@ describe('PredictThePitchCampaignWinningView', () => {
         totalParticipants: 10,
         roi: 0.2,
         pnl: 20,
-        capitalDeployed: 100,
+        volume: 100,
         eligible: true,
         neighbors: [],
         computedAt: '2025-01-01T00:00:00.000Z',

@@ -71,9 +71,7 @@ const PredictThePitchCampaignLeaderboardView: React.FC = () => {
     );
 
   const hasPosition =
-    position != null &&
-    Number.isFinite(position.capitalDeployed) &&
-    position.capitalDeployed > 0;
+    position != null && Number.isFinite(position.volume) && position.volume > 0;
 
   const {
     leaderboard,

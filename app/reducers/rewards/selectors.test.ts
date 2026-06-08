@@ -4086,7 +4086,7 @@ describe('Rewards selectors', () => {
       totalParticipants: 10,
       roi: 0.25,
       pnl: 50,
-      capitalDeployed: 200,
+      volume: 200,
       eligible: true,
       neighbors: [],
       computedAt: '2026-06-30T12:00:00.000Z',
@@ -4096,7 +4096,7 @@ describe('Rewards selectors', () => {
       computedAt: null,
     };
     const mockPrizePool = {
-      totalCapitalDeployedUsd: 1000,
+      totalVolumeUsd: 1000,
       unlockedPoolUsd: 500,
       thresholdsUsd: [0, 1000],
       poolScheduleUsd: [250, 500],

@@ -65,7 +65,7 @@ const MOCK_POSITION: PredictThePitchLeaderboardPositionDto = {
   totalParticipants: 10,
   roi: 0.25,
   pnl: 50,
-  capitalDeployed: 200,
+  volume: 200,
   eligible: true,
   neighbors: [],
   computedAt: '2026-06-30T12:00:00.000Z',

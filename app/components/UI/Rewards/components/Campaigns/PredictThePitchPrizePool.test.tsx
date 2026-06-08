@@ -71,7 +71,7 @@ jest.mock('../../utils/formatUtils', () => ({
 const TEST_IDS = PREDICT_THE_PITCH_PRIZE_POOL_TEST_IDS;
 
 const prizePool: PredictThePitchPrizePoolDto = {
-  totalCapitalDeployedUsd: 150,
+  totalVolumeUsd: 150,
   unlockedPoolUsd: 20,
   thresholdsUsd: [0, 100, 200],
   poolScheduleUsd: [10, 20, 30],
@@ -105,7 +105,7 @@ describe('PredictThePitchPrizePool', () => {
       <PredictThePitchPrizePool
         prizePool={{
           ...prizePool,
-          totalCapitalDeployedUsd: 250,
+          totalVolumeUsd: 250,
           unlockedPoolUsd: 30,
         }}
         isLoading={false}

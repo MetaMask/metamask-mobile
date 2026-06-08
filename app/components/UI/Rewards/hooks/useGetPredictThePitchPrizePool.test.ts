@@ -51,7 +51,7 @@ const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseDispatch = useDispatch as jest.MockedFunction<typeof useDispatch>;
 const CAMPAIGN_ID = 'predict-campaign-1';
 const MOCK_PRIZE_POOL: PredictThePitchPrizePoolDto = {
-  totalCapitalDeployedUsd: 1000,
+  totalVolumeUsd: 1000,
   unlockedPoolUsd: 500,
   thresholdsUsd: [0, 1000],
   poolScheduleUsd: [250, 500],

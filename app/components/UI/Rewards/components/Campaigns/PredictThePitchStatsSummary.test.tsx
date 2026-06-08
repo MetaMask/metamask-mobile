@@ -57,7 +57,7 @@ const basePosition: PredictThePitchLeaderboardPositionDto = {
   totalParticipants: 50,
   roi: 0.125,
   pnl: 12.5,
-  capitalDeployed: 100,
+  volume: 100,
   eligible: true,
   neighbors: [],
   computedAt: '2025-01-01T00:00:00.000Z',
