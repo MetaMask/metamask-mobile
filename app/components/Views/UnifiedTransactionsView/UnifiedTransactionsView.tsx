@@ -403,6 +403,10 @@ const UnifiedTransactionsView = ({
         : undefined;
     }
 
+    if (!url) {
+      return;
+    }
+
     trackExternalLinkClicked(trackEvent, createEventBuilder, {
       location: 'activity_tab',
       text: title
