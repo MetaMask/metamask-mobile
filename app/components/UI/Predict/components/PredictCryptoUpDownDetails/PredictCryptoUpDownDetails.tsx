@@ -535,7 +535,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
 
         <Box
           flexDirection={BoxFlexDirection.Row}
-          twClassName="px-4 pt-5 gap-4"
+          twClassName="px-4 pt-3 gap-4"
           testID={PredictCryptoUpDownDetailsSelectorsIDs.PRICE_SUMMARY}
         >
           <Box twClassName="flex-1">
