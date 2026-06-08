@@ -1,9 +1,9 @@
-import React, { useCallback, useMemo } from 'react';
 import {
   formatChainIdToHex,
   isNonEvmChainId,
 } from '@metamask/bridge-controller';
 import type { CaipChainId } from '@metamask/utils';
+import React, { useCallback, useMemo } from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
 import QuickBuyTokenSelectList from './QuickBuyTokenSelectList';

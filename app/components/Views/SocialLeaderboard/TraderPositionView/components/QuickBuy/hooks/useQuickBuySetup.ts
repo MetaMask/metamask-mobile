@@ -1,21 +1,21 @@
-import { useMemo } from 'react';
-import { useSelector } from 'react-redux';
+import {
+  formatAddressToAssetId,
+  formatChainIdToHex,
+  isNonEvmChainId,
+} from '@metamask/bridge-controller';
 import {
   CaipChainId,
   Hex,
   isCaipAssetType,
   parseCaipAssetType,
 } from '@metamask/utils';
-import {
-  formatAddressToAssetId,
-  formatChainIdToHex,
-  isNonEvmChainId,
-} from '@metamask/bridge-controller';
-import type { QuickBuyTarget } from '../types';
+import { useMemo } from 'react';
+import { useSelector } from 'react-redux';
+import { selectIsBridgeEnabledSourceFactory } from '../../../../../../../core/redux/slices/bridge';
 import { useAssetMetadata } from '../../../../../../UI/Bridge/hooks/useAssetMetadata';
 import type { BridgeToken } from '../../../../../../UI/Bridge/types';
 import { getNativeSourceToken } from '../../../../../../UI/Bridge/utils/tokenUtils';
-import { selectIsBridgeEnabledSourceFactory } from '../../../../../../../core/redux/slices/bridge';
+import type { QuickBuyTarget } from '../types';
 
 /**
  * Splits a CAIP-19 asset type (`<chainId>/<namespace>:<reference>`) into its

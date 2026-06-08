@@ -1,5 +1,3 @@
-import React, { useCallback, useMemo, useState } from 'react';
-import { ScrollView as GestureHandlerScrollView } from 'react-native-gesture-handler';
 import {
   BottomSheetHeader,
   Box,
@@ -10,8 +8,10 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import type { BridgeToken } from '../../../../../UI/Bridge/types';
+import React, { useCallback, useMemo, useState } from 'react';
+import { ScrollView as GestureHandlerScrollView } from 'react-native-gesture-handler';
 import { strings } from '../../../../../../../locales/i18n';
+import type { BridgeToken } from '../../../../../UI/Bridge/types';
 import QuickBuyPayWithChainFilter from './components/QuickBuyPayWithChainFilter';
 import QuickBuyPayWithRow from './components/QuickBuyPayWithRow';
 import { useChainDisplayInfos } from './hooks/useChainDisplayInfos';

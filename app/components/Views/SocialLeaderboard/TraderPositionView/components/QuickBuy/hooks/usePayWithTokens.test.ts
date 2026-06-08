@@ -1,8 +1,8 @@
 import { renderHook } from '@testing-library/react-native';
-import type { BridgeToken } from '../../../../../../UI/Bridge/types';
-import { usePayWithTokens } from './usePayWithTokens';
 import { useTokensWithBalance } from '../../../../../../UI/Bridge/hooks/useTokensWithBalance';
+import type { BridgeToken } from '../../../../../../UI/Bridge/types';
 import { enrichTokenBalance } from './enrichTokenBalance';
+import { usePayWithTokens } from './usePayWithTokens';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(() => undefined),

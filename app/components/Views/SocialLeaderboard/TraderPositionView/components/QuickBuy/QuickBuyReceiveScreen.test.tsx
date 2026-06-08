@@ -1,10 +1,10 @@
-import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
+import React from 'react';
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
-import QuickBuyReceiveScreen from './QuickBuyReceiveScreen';
-import { useQuickBuyContext } from './useQuickBuyContext';
 import { useChainDisplayInfos } from './hooks/useChainDisplayInfos';
+import QuickBuyReceiveScreen from './QuickBuyReceiveScreen';
 import { getTokenKey } from './tokenKey';
+import { useQuickBuyContext } from './useQuickBuyContext';
 
 jest.mock('./useQuickBuyContext', () => ({
   useQuickBuyContext: jest.fn(),
