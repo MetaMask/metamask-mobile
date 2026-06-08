@@ -109,9 +109,6 @@ export { useStableArray } from './useStableArray';
 export { usePerpsMarketForAsset } from './usePerpsMarketForAsset';
 export { usePerpsPositionForAsset } from './usePerpsPositionForAsset';
 
-// Tab view hooks
-export { usePerpsTabExploreData } from './usePerpsTabExploreData';
-
 // Stream hooks (WebSocket subscriptions)
 export * from './stream';
 

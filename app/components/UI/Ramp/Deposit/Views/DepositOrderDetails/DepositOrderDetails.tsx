@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, RefreshControl } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import useThunkDispatch from '../../../../../hooks/useThunkDispatch';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
@@ -11,7 +12,6 @@ import {
   updateFiatOrder,
 } from '../../../../../../reducers/fiatOrders';
 import { strings } from '../../../../../../../locales/i18n';
-import { getDepositNavbarOptions } from '../../../../Navbar';
 import Routes from '../../../../../../constants/navigation/Routes';
 import {
   createNavigationDetails,
@@ -46,7 +46,6 @@ const DepositOrderDetails = () => {
   );
   const [error, setError] = useState<string | null>(null);
   const { colors } = useTheme();
-  const theme = useTheme();
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const dispatchThunk = useThunkDispatch();
@@ -54,17 +53,11 @@ const DepositOrderDetails = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isRefreshingInterval, setIsRefreshingInterval] = useState(false);
 
-  useEffect(() => {
-    navigation.setOptions(
-      getDepositNavbarOptions(
-        navigation,
-        {
-          title: strings('deposit.order_details.title'),
-        },
-        theme,
-      ),
-    );
-  }, [theme, navigation]);
+  const title = strings('deposit.order_details.title');
+
+  const handleHeaderBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
   const dispatchUpdateFiatOrder = useCallback(
     (updatedOrder: FiatOrder) => dispatch(updateFiatOrder(updatedOrder)),
@@ -125,12 +118,27 @@ const DepositOrderDetails = () => {
   });
 
   if (!order) {
-    return <ScreenLayout />;
+    return (
+      <ScreenLayout>
+        <HeaderStandard
+          title={title}
+          onBack={handleHeaderBack}
+          backButtonProps={{ testID: 'deposit-order-details-back-button' }}
+          includesTopInset
+        />
+      </ScreenLayout>
+    );
   }
 
   if (isLoading) {
     return (
       <ScreenLayout>
+        <HeaderStandard
+          title={title}
+          onBack={handleHeaderBack}
+          backButtonProps={{ testID: 'deposit-order-details-back-button' }}
+          includesTopInset
+        />
         <ScreenLayout.Body>
           <ScreenLayout.Content>
             <ActivityIndicator />
@@ -143,6 +151,12 @@ const DepositOrderDetails = () => {
   if (error) {
     return (
       <ScreenLayout>
+        <HeaderStandard
+          title={title}
+          onBack={handleHeaderBack}
+          backButtonProps={{ testID: 'deposit-order-details-back-button' }}
+          includesTopInset
+        />
         <ScreenLayout.Body>
           <ErrorView
             title={strings('deposit.order_details.error_title')}
@@ -156,6 +170,12 @@ const DepositOrderDetails = () => {
 
   return (
     <ScreenLayout>
+      <HeaderStandard
+        title={title}
+        onBack={handleHeaderBack}
+        backButtonProps={{ testID: 'deposit-order-details-back-button' }}
+        includesTopInset
+      />
       <ScrollView
         refreshControl={
           <RefreshControl

@@ -2306,6 +2306,13 @@
   },
   "predict": {
     "title": "MetaMask Predictions",
+    "home": {
+      "portfolio_module_placeholder": "Portfolio module",
+      "live_now_placeholder": "Live now",
+      "categories_placeholder": "Categories",
+      "popular_today_placeholder": "Popular today",
+      "trending_placeholder": "Trending"
+    },
     "homepage_discovery": {
       "btc_title": "BTC Price: {{price}}",
       "btc_price_to_beat": "Price to beat: {{price}}",
@@ -2507,6 +2514,21 @@
       "crypto": "Crypto",
       "politics": "Politics",
       "hot": "Hot"
+    },
+    "feed": {
+      "live": "Live",
+      "popular_today": "Popular today",
+      "tabs": {
+        "basketball": "Basketball",
+        "tennis": "Tennis",
+        "soccer": "Soccer",
+        "baseball": "Baseball",
+        "football": "Football"
+      },
+      "filters": {
+        "all": "All",
+        "live": "Live"
+      }
     },
     "search_placeholder": "Search prediction markets",
     "search_cancel": "Cancel",
@@ -6977,8 +6999,8 @@
       "contact_support": "Contact support"
     },
     "transfer_sheet": {
-      "title": "Transfer funds",
-      "between_accounts": "Between accounts",
+      "title": "Transfer funds to",
+      "between_accounts": "Another account",
       "perps_account": "Perps account",
       "predictions_account": "Predictions account",
       "send_external": "Send to external address",
