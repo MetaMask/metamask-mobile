@@ -203,14 +203,17 @@ function HeadlessHost() {
     const { quote, amount, assetId, currency, paymentMethodId } =
       currentSession.params;
     // Caller override wins. Otherwise `find` is a membership check on the
-    // loaded catalog, not a remap: when it matches, `?.id` equals
-    // `quote.quote.paymentMethod`; when the quote id is absent from
-    // `paymentMethods` (stale quote, filters, load race), we omit
-    // `ctx.paymentMethodId` instead of forwarding an unverified id, and
-    // `useContinueWithQuote` falls back to controller-selected payment method.
+    // loaded catalog: when it matches, `?.id` equals
+    // `quote.quote.paymentMethod`. When the quote id is absent from
+    // `paymentMethods` (stale quote, filters, load race), fall back to the
+    // quote's own `paymentMethod` — it's the method the quote was priced
+    // with, and the native Transak flow requires a payment method on the
+    // quote fetch. Omitting it sends an empty `paymentMethod` to Transak,
+    // which rejects the request with HTTP 400.
     const resolvedPaymentMethodId =
       paymentMethodId ??
-      paymentMethods?.find((pm) => pm.id === quote.quote.paymentMethod)?.id;
+      paymentMethods?.find((pm) => pm.id === quote.quote.paymentMethod)?.id ??
+      quote.quote.paymentMethod;
 
     const ctx: ContinueWithQuoteContext = {
       amount,
