@@ -19,7 +19,7 @@ const MEDIA_TYPE_BY_EXT: Record<string, ImageMediaType> = {
   '.gif': 'image/gif',
 };
 
-const DEFAULT_MODEL = 'claude-sonnet-4-20250514';
+const DEFAULT_MODEL = 'claude-sonnet-4-6';
 const DEFAULT_MAX_TOKENS = 2048;
 
 export class ClaudeProvider implements AIProvider {
@@ -40,7 +40,9 @@ export class ClaudeProvider implements AIProvider {
 
     this.model = config.model ?? DEFAULT_MODEL;
     this.maxTokens = config.maxTokens ?? DEFAULT_MAX_TOKENS;
-    this.client = new Anthropic({ apiKey });
+
+    const baseURL = config.baseURL ?? process.env.ANTHROPIC_BASE_URL;
+    this.client = new Anthropic({ apiKey, ...(baseURL && { baseURL }) });
   }
 
   async analyzeImage(

@@ -18,6 +18,7 @@ import Tag from '../../../../../component-library/components/Tags/Tag';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import { useMoneyAccountWithdrawal } from '../../hooks/useMoneyAccount';
+import { useMoneyPerpsDeposit } from '../../../../Views/confirmations/hooks/pay/useMoneyPerpsDeposit';
 import Logger from '../../../../../util/Logger';
 import styleSheet from './MoneyTransferSheet.styles';
 import { MoneyTransferSheetTestIds } from './MoneyTransferSheet.testIds';
@@ -42,6 +43,8 @@ const MoneyTransferSheet = () => {
   const { styles } = useStyles(styleSheet, {});
   const { initiateWithdrawal } = useMoneyAccountWithdrawal();
   const surfaceClass = useElevatedSurface();
+  const { isEnabled: isPerpsEnabled, initiatePerpsDeposit } =
+    useMoneyPerpsDeposit();
 
   const handleGoBack = useCallback(() => {
     navigation.goBack();
@@ -59,9 +62,14 @@ const MoneyTransferSheet = () => {
   }, [initiateWithdrawal]);
 
   const handlePerpsAccount = useCallback(() => {
-    // eslint-disable-next-line no-alert
-    alert('Under construction 🚧');
-  }, []);
+    if (!isPerpsEnabled) {
+      return;
+    }
+
+    sheetRef.current?.onCloseBottomSheet(() => {
+      initiatePerpsDeposit();
+    });
+  }, [isPerpsEnabled, initiatePerpsDeposit]);
 
   const handlePredictionsAccount = useCallback(() => {
     // eslint-disable-next-line no-alert
