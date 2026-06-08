@@ -3,31 +3,17 @@ import {
   TransactionType,
   type TransactionControllerMessenger,
   type TransactionMeta,
-  type PublishBatchHookRequest,
-  type PublishBatchHookTransaction,
-  type PublishBatchHookResult,
   TransactionControllerOptions,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { PreferencesController } from '@metamask/preferences-controller';
-import { SmartTransactionsController } from '@metamask/smart-transactions-controller';
 
 import {
   REDESIGNED_TRANSACTION_TYPES,
   RELAY_DEPOSIT_TYPES,
 } from '../../../../components/Views/confirmations/constants/confirmations';
-import {
-  getSmartTransactionsFeatureFlagsForChain,
-  selectShouldUseSmartTransaction,
-} from '../../../../selectors/smartTransactionsController';
+import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import Logger from '../../../../util/Logger';
-import {
-  submitSmartTransactionHook,
-  submitBatchSmartTransactionHook,
-  type SubmitSmartTransactionRequest,
-} from '../../../../util/smart-transactions/smart-publish-hook';
-import { getTransactionById } from '../../../../util/transactions';
-import type { RootState } from '../../../../reducers';
 import { TransactionControllerInitMessenger } from '../../messengers/transaction-controller-messenger';
 import type {
   MessengerClientInitFunction,
@@ -44,27 +30,12 @@ import {
 } from './event-handlers/metrics';
 import { handleShowNotification } from './event-handlers/notification';
 import { handleUnapprovedTransactionAddedForMoneyAccount } from './event-handlers/money-account-override';
-import {
-  TransactionPayControllerMessenger,
-  TransactionPayPublishHook,
-} from '@metamask/transaction-pay-controller';
-import { selectMetaMaskPayFlags } from '../../../../selectors/featureFlagController/confirmations';
 import { trace } from '../../../../util/trace';
 import { accountSupports7702 } from '../../../../util/transactions/account-supports-7702';
-import { Delegation7702PublishHook } from '../../../../util/transactions/hooks/delegation-7702-publish';
 import { isSendBundleSupported } from '../../../../util/transactions/sentinel-api';
-import { NetworkClientId } from '@metamask/network-controller';
-import { ORIGIN_METAMASK, toHex } from '@metamask/controller-utils';
+import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { hasTransactionType } from '../../../../components/Views/confirmations/utils/transaction';
-import { updateConfirmationMetric } from '../../../redux/slices/confirmationMetrics';
-import { store } from '../../../../store';
-
-const TRANSACTION_SUBMISSION_METHOD_METRIC_NAME =
-  'transaction_submission_method';
-const TRANSACTION_SUBMISSION_METHOD = {
-  SENTINEL_STX: 'sentinel_stx',
-  SENTINEL_RELAY: 'sentinel_relay',
-} as const;
+import { getTransactionControllerHooks } from '../../../../util/transactions/hooks';
 
 export const TransactionControllerInit: MessengerClientInitFunction<
   TransactionController,
@@ -90,35 +61,13 @@ export const TransactionControllerInit: MessengerClientInitFunction<
     const transactionController: TransactionController =
       new TransactionController({
         disableSwaps: true,
-        hooks: {
-          beforePublish: (transactionMeta: TransactionMeta) =>
-            beforePublish(transactionMeta, initMessenger),
-          beforeSign: (_request: { transactionMeta: TransactionMeta }) =>
-            beforeSign(_request, request),
-          // @ts-expect-error - TransactionController actually sends a signedTx as a second argument, but its type doesn't reflect that.
-          publish: (
-            transactionMeta: TransactionMeta,
-            signedTransactionInHex: Hex,
-          ) =>
-            publishHook({
-              transactionMeta,
-              getState,
-              keyringController,
-              transactionController,
-              smartTransactionsController,
-              initMessenger,
-              signedTransactionInHex,
-            }),
-          publishBatch: async (_request: PublishBatchHookRequest) =>
-            await publishBatchSmartTransactionHook({
-              transactionController,
-              smartTransactionsController,
-              initMessenger,
-              getState,
-              transactions:
-                _request.transactions as PublishBatchHookTransaction[],
-            }),
-        },
+        hooks: getTransactionControllerHooks({
+          getState,
+          getTransactionController: () => transactionController,
+          initMessenger,
+          keyringController,
+          smartTransactionsController,
+        }),
         incomingTransactions: {
           isEnabled: () => isIncomingTransactionsEnabled(preferencesController),
           updateTransactions: true,
@@ -172,239 +121,6 @@ export const TransactionControllerInit: MessengerClientInitFunction<
   }
 };
 
-async function getNextNonce(
-  transactionController: TransactionController,
-  address: string,
-  networkClientId: NetworkClientId,
-): Promise<Hex> {
-  const nonceLock = await transactionController.getNonceLock(
-    address,
-    networkClientId,
-  );
-  nonceLock.releaseLock();
-  return toHex(nonceLock.nextNonce);
-}
-
-async function publishHook({
-  transactionMeta,
-  getState,
-  keyringController,
-  transactionController,
-  smartTransactionsController,
-  initMessenger,
-  signedTransactionInHex,
-}: {
-  transactionMeta: TransactionMeta;
-  getState: () => RootState;
-  keyringController: Parameters<typeof accountSupports7702>[1];
-  transactionController: TransactionController;
-  smartTransactionsController: SmartTransactionsController;
-  initMessenger: TransactionControllerInitMessenger;
-  signedTransactionInHex: Hex;
-}): Promise<{ transactionHash?: string }> {
-  const { transactionHash: predictTransactionHash } = await initMessenger.call(
-    'PredictController:publish',
-    { transactionMeta },
-  );
-
-  if (predictTransactionHash) {
-    return { transactionHash: predictTransactionHash };
-  }
-
-  const state = getState();
-
-  const { shouldUseSmartTransaction, featureFlags } =
-    getSmartTransactionCommonParams(state, transactionMeta.chainId);
-  const sendBundleSupport = await isSendBundleSupported(
-    transactionMeta.chainId,
-  );
-
-  const { stxDisabled } = selectMetaMaskPayFlags(state);
-
-  const payResult = await new TransactionPayPublishHook({
-    isSmartTransaction: () => shouldUseSmartTransaction && !stxDisabled,
-    messenger: initMessenger as TransactionPayControllerMessenger,
-  }).getHook()(transactionMeta, signedTransactionInHex);
-
-  if (payResult?.transactionHash) {
-    return payResult;
-  }
-
-  const { isExternalSign } = transactionMeta;
-  const isRevokeDelegation =
-    transactionMeta.type === TransactionType.revokeDelegation;
-
-  const keyringSupports7702 = await accountSupports7702(
-    transactionMeta.txParams?.from,
-    keyringController,
-  );
-
-  const isSwapGasIncluded7702 = Boolean(transactionMeta.isGasFeeIncluded);
-
-  if (
-    keyringSupports7702 &&
-    !isRevokeDelegation &&
-    (isSwapGasIncluded7702 ||
-      !shouldUseSmartTransaction ||
-      !sendBundleSupport ||
-      isExternalSign)
-  ) {
-    const hook = new Delegation7702PublishHook({
-      isAtomicBatchSupported: transactionController.isAtomicBatchSupported.bind(
-        transactionController,
-      ),
-      messenger: initMessenger,
-      getNextNonce: (address: string, networkClientId: NetworkClientId) =>
-        getNextNonce(transactionController, address, networkClientId),
-    }).getHook();
-
-    const result = await hook(transactionMeta, signedTransactionInHex);
-    if (result?.transactionHash) {
-      try {
-        store.dispatch(
-          updateConfirmationMetric({
-            id: transactionMeta.id,
-            params: {
-              properties: {
-                [TRANSACTION_SUBMISSION_METHOD_METRIC_NAME]:
-                  TRANSACTION_SUBMISSION_METHOD.SENTINEL_RELAY,
-              },
-            },
-          }),
-        );
-      } catch (e) {
-        console.error('Failed to record sentinel_relay metrics fragment', e);
-      }
-      return result;
-    }
-    // else, fall back to regular regular transaction submission
-  }
-
-  if (
-    shouldUseSmartTransaction &&
-    (sendBundleSupport || transactionMeta.selectedGasFeeToken === undefined)
-  ) {
-    const result = await submitSmartTransactionHook({
-      transactionMeta,
-      transactionController,
-      smartTransactionsController,
-      shouldUseSmartTransaction,
-      controllerMessenger:
-        initMessenger as unknown as SubmitSmartTransactionRequest['controllerMessenger'],
-      featureFlags,
-      signedTransactionInHex,
-    });
-
-    if (result?.transactionHash) {
-      try {
-        store.dispatch(
-          updateConfirmationMetric({
-            id: transactionMeta.id,
-            params: {
-              properties: {
-                [TRANSACTION_SUBMISSION_METHOD_METRIC_NAME]:
-                  TRANSACTION_SUBMISSION_METHOD.SENTINEL_STX,
-              },
-            },
-          }),
-        );
-      } catch (e) {
-        console.error('Failed to record sentinel_stx metrics fragment', e);
-      }
-      return result;
-    }
-  }
-
-  // Default: fall back to regular transaction submission
-  return { transactionHash: undefined };
-}
-
-function getSmartTransactionCommonParams(state: RootState, chainId: Hex) {
-  const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
-    state,
-    chainId,
-  );
-  const featureFlags = getSmartTransactionsFeatureFlagsForChain(state, chainId);
-
-  return {
-    shouldUseSmartTransaction,
-    featureFlags,
-  };
-}
-
-async function publishBatchSmartTransactionHook({
-  transactionController,
-  smartTransactionsController,
-  initMessenger,
-  getState,
-  transactions,
-}: {
-  transactionController: TransactionController;
-  smartTransactionsController: SmartTransactionsController;
-  initMessenger: TransactionControllerInitMessenger;
-  getState: () => RootState;
-  transactions: PublishBatchHookTransaction[];
-}): Promise<PublishBatchHookResult> {
-  // Get transactionMeta based on the last transaction ID
-  const lastTransaction = transactions[transactions.length - 1];
-  const transactionMeta = getTransactionById(
-    lastTransaction.id ?? '',
-    transactionController,
-  );
-  const state = getState();
-
-  if (!transactionMeta) {
-    throw new Error(
-      `publishBatchSmartTransactionHook: Could not find transaction with id ${lastTransaction.id}`,
-    );
-  }
-
-  const { shouldUseSmartTransaction, featureFlags } =
-    getSmartTransactionCommonParams(state, transactionMeta.chainId);
-
-  if (!shouldUseSmartTransaction) {
-    return undefined;
-  }
-
-  const result = await submitBatchSmartTransactionHook({
-    transactions,
-    transactionController,
-    smartTransactionsController,
-    controllerMessenger:
-      initMessenger as unknown as SubmitSmartTransactionRequest['controllerMessenger'],
-    shouldUseSmartTransaction,
-    featureFlags,
-    transactionMeta,
-  });
-
-  if (result) {
-    for (const tx of transactions) {
-      if (tx.id) {
-        try {
-          store.dispatch(
-            updateConfirmationMetric({
-              id: tx.id,
-              params: {
-                properties: {
-                  [TRANSACTION_SUBMISSION_METHOD_METRIC_NAME]:
-                    TRANSACTION_SUBMISSION_METHOD.SENTINEL_STX,
-                },
-              },
-            }),
-          );
-        } catch (e) {
-          console.error(
-            'Failed to record sentinel_stx metrics fragment for batch tx',
-            e,
-          );
-        }
-      }
-    }
-  }
-
-  return result;
-}
-
 function isIncomingTransactionsEnabled(
   preferencesController: PreferencesController,
 ): boolean {
@@ -430,26 +146,6 @@ function getControllers(
       'SmartTransactionsController',
     ),
   };
-}
-
-function beforePublish(
-  transactionMeta: TransactionMeta,
-  initMessenger: TransactionControllerInitMessenger,
-) {
-  return initMessenger.call('PredictController:beforePublish', {
-    transactionMeta,
-  });
-}
-
-function beforeSign(
-  hookRequest: { transactionMeta: TransactionMeta },
-  request: MessengerClientInitRequest<
-    TransactionControllerMessenger,
-    TransactionControllerInitMessenger
-  >,
-) {
-  const predictController = request.getMessengerClient('PredictController');
-  return predictController.beforeSign(hookRequest);
 }
 
 function isAutomaticGasFeeUpdateEnabled(transaction: TransactionMeta) {

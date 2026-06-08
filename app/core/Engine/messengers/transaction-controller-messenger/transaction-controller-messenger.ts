@@ -58,6 +58,7 @@ import {
   MessengerEvents,
 } from '@metamask/messenger';
 import type {
+  PredictControllerBeforeSignAction,
   PredictControllerBeforePublishAction,
   PredictControllerPublishAction,
 } from '../../../../components/UI/Predict/controllers/PredictController-method-action-types';
@@ -131,6 +132,7 @@ type InitMessengerActions =
   | TransactionPayControllerActions
   | AnalyticsControllerActions
   | PredictControllerBeforePublishAction
+  | PredictControllerBeforeSignAction
   | PredictControllerPublishAction;
 
 type InitMessengerEvents =
@@ -201,6 +203,7 @@ export function getTransactionControllerInitMessenger(
       'TransactionPayController:polymarketSubmitDepositWalletBatch',
       'AnalyticsController:trackEvent',
       'PredictController:beforePublish',
+      'PredictController:beforeSign',
       'PredictController:publish',
       // Missing actions to use fiat payment hook from publish hook
       // Actions below are provided by patched controllers not yet in upstream types

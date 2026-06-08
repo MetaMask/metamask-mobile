@@ -55,6 +55,7 @@ describe('getTransactionControllerInitMessenger', () => {
           'KeyringController:signTransaction',
           'NetworkController:getNetworkClientRegistry',
           'NetworkController:getState',
+          'PredictController:beforeSign',
         ]),
       }),
     );
