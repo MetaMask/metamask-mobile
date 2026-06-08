@@ -95,8 +95,12 @@ const AnimatedFlashList = Animated.createAnimatedComponent(
 
 const PredictFeedHeader: React.FC<{
   onDepositWalletWithdrawPress?: () => void;
-}> = ({ onDepositWalletWithdrawPress }) => (
-  <Box twClassName="pb-4">
+  topInset?: number;
+}> = ({ onDepositWalletWithdrawPress, topInset = 0 }) => (
+  <Box
+    twClassName="pb-4"
+    style={topInset > 0 ? { paddingTop: topInset } : undefined}
+  >
     <PredictBalance
       onDepositWalletWithdrawPress={onDepositWalletWithdrawPress}
     />
@@ -145,6 +149,7 @@ interface AnimatedHeaderProps {
   onHeaderLayout: (event: LayoutChangeEvent) => void;
   onTabBarLayout: (event: LayoutChangeEvent) => void;
   onDepositWalletWithdrawPress?: () => void;
+  topInset?: number;
 }
 
 const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
@@ -158,6 +163,7 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
   onHeaderLayout,
   onTabBarLayout,
   onDepositWalletWithdrawPress,
+  topInset = 0,
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -197,6 +203,7 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
       >
         <PredictFeedHeader
           onDepositWalletWithdrawPress={onDepositWalletWithdrawPress}
+          topInset={topInset}
         />
         {isFeaturedCarouselEnabled && (
           <Box twClassName="pb-3">
@@ -515,6 +522,12 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
 
 interface PredictFeedProps {
   hideHeader?: boolean;
+  /**
+   * Top padding before the title/balance header when embedded in
+   * HomepageDiscoveryTabs — keeps the predict background flush under the
+   * discovery tab bar and adds spacing before the screen title (32px).
+   */
+  topInset?: number;
   entryPoint?: PredictEntryPoint;
   onHeaderHiddenChange?: (hidden: boolean) => void;
   walletHeaderTranslateY?: SharedValue<number>;
@@ -523,6 +536,7 @@ interface PredictFeedProps {
 
 const PredictFeed: React.FC<PredictFeedProps> = ({
   hideHeader = false,
+  topInset = 0,
   entryPoint: propEntryPoint,
   onHeaderHiddenChange,
   walletHeaderTranslateY,
@@ -631,6 +645,8 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
     withdrawUnavailableSheetRef.current?.onOpenBottomSheet();
   }, []);
 
+  const headerTopInset = hideHeader ? topInset : 0;
+
   return (
     <SafeAreaView
       edges={hideHeader ? [] : { bottom: 'additive' }}
@@ -676,6 +692,7 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
             onHeaderLayout={onHeaderLayout}
             onTabBarLayout={onTabBarLayout}
             onDepositWalletWithdrawPress={handleDepositWalletWithdrawPress}
+            topInset={headerTopInset}
           />
 
           {layoutReady && (
