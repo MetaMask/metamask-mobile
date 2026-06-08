@@ -25,12 +25,18 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { selectPerpsProductsEnabledFlag } from '../../selectors/featureFlags';
 import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
 import { usePerpsCategories } from '../../hooks/usePerpsCategories';
+import { useTheme } from '../../../../../util/theme';
 import { BADGE_CATEGORY_ICON_MAP } from '../../constants/categoryIcons';
-import PreIpoRocketIcon from './PreIpoRocketIcon';
-import EtfsLayersIcon from './EtfsLayersIcon';
-import IndicesChartIcon from './IndicesChartIcon';
+import PreIpoRocketSVG from './assets/pre-ipo-rocket.svg';
+import PreIpoRocketDarkSVG from './assets/pre-ipo-rocket-dark.svg';
+import EtfsLayersSVG from './assets/etfs-layers.svg';
+import EtfsLayersDarkSVG from './assets/etfs-layers-dark.svg';
+import IndicesChartSVG from './assets/indices-chart.svg';
+import IndicesChartDarkSVG from './assets/indices-chart-dark.svg';
 import { styleSheet } from './PerpsProducts.styles';
 import type { PerpsProductsProps } from './PerpsProducts.types';
+
+type SvgComponent = React.FC<import('react-native-svg').SvgProps>;
 
 /**
  * Analytics constants for product pills — not yet in @metamask/perps-controller.
@@ -42,6 +48,18 @@ const PRODUCTS_ANALYTICS = {
   PROPERTY_PILL_POSITION: 'pill_position',
   SOURCE: 'perps_home__product_pill',
 } as const;
+
+const CUSTOM_SVG_ICONS_LIGHT: Record<string, SvgComponent> = {
+  'pre-ipo': PreIpoRocketSVG,
+  etfs: EtfsLayersSVG,
+  indices: IndicesChartSVG,
+};
+
+const CUSTOM_SVG_ICONS_DARK: Record<string, SvgComponent> = {
+  'pre-ipo': PreIpoRocketDarkSVG,
+  etfs: EtfsLayersDarkSVG,
+  indices: IndicesChartDarkSVG,
+};
 
 /**
  * PerpsProducts – grid of category pills for the Perps home screen.
@@ -58,8 +76,11 @@ const PerpsProducts: React.FC<PerpsProductsProps> = ({
 }) => {
   const isEnabled = useSelector(selectPerpsProductsEnabledFlag);
   const { styles, theme } = useStyles(styleSheet, {});
+  const { themeAppearance } = useTheme();
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const customSvgIcons =
+    themeAppearance === 'dark' ? CUSTOM_SVG_ICONS_DARK : CUSTOM_SVG_ICONS_LIGHT;
 
   const categoriesWithLabels = usePerpsCategories();
 
@@ -118,12 +139,11 @@ const PerpsProducts: React.FC<PerpsProductsProps> = ({
       accessibilityLabel={category.label}
       testID={`${TEST_ID}-${category.id}`}
     >
-      {category.id === 'pre-ipo' ? (
-        <PreIpoRocketIcon size={24} color={theme.colors.icon.alternative} />
-      ) : category.id === 'etfs' ? (
-        <EtfsLayersIcon size={24} color={theme.colors.icon.alternative} />
-      ) : category.id === 'indices' ? (
-        <IndicesChartIcon size={24} color={theme.colors.icon.alternative} />
+      {customSvgIcons[category.id] ? (
+        React.createElement(customSvgIcons[category.id], {
+          width: 24,
+          height: 24,
+        })
       ) : (
         <Icon
           name={BADGE_CATEGORY_ICON_MAP[category.id] ?? IconName.Coin}
