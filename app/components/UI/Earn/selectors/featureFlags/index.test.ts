@@ -16,6 +16,8 @@ import {
   selectMusdConversionMinAssetBalanceRequired,
   selectMusdTokenRegistrationChainIds,
   MUSD_TOKEN_REGISTRATION_CHAIN_IDS_FALLBACK,
+  selectMusdBalanceChainIds,
+  MUSD_BALANCE_CHAIN_IDS_FALLBACK,
 } from '.';
 import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
 import type { Json } from '@metamask/utils';
@@ -2200,6 +2202,89 @@ describe('Earn Feature Flag Selectors', () => {
       );
 
       expect(result).toEqual(MUSD_TOKEN_REGISTRATION_CHAIN_IDS_FALLBACK);
+    });
+  });
+
+  describe('selectMusdBalanceChainIds', () => {
+    it('returns chain IDs from remote flag when value is a non-empty comma-separated string', () => {
+      const stateWithRemote = createStateWithRemoteFlags({
+        earnMusdBalanceChainIds: '0x1,0xe708',
+      });
+
+      const result = selectMusdBalanceChainIds(stateWithRemote);
+
+      expect(result).toEqual(['0x1', '0xe708']);
+    });
+
+    it('falls through to env var when remote flag is an empty string', () => {
+      process.env.MM_MONEY_MUSD_BALANCE_CHAIN_IDS = '0x1,0xe708';
+      const stateWithEmptyRemote = createStateWithRemoteFlags({
+        earnMusdBalanceChainIds: '',
+      });
+
+      const result = selectMusdBalanceChainIds(stateWithEmptyRemote);
+
+      expect(result).toEqual(['0x1', '0xe708']);
+    });
+
+    it('returns MUSD_BALANCE_CHAIN_IDS_FALLBACK when remote flag is an empty string and env var is absent', () => {
+      delete process.env.MM_MONEY_MUSD_BALANCE_CHAIN_IDS;
+      const stateWithEmptyRemote = createStateWithRemoteFlags({
+        earnMusdBalanceChainIds: '',
+      });
+
+      const result = selectMusdBalanceChainIds(stateWithEmptyRemote);
+
+      expect(result).toEqual(MUSD_BALANCE_CHAIN_IDS_FALLBACK);
+    });
+
+    it('falls through to env var when remote flag is absent', () => {
+      process.env.MM_MONEY_MUSD_BALANCE_CHAIN_IDS = '0x1,0xe708';
+      const stateWithoutRemote = createStateWithRemoteFlags({});
+
+      const result = selectMusdBalanceChainIds(stateWithoutRemote);
+
+      expect(result).toEqual(['0x1', '0xe708']);
+    });
+
+    it('returns MUSD_BALANCE_CHAIN_IDS_FALLBACK when remote flag is absent and env var is absent', () => {
+      delete process.env.MM_MONEY_MUSD_BALANCE_CHAIN_IDS;
+      const stateWithoutRemote = createStateWithRemoteFlags({});
+
+      const result = selectMusdBalanceChainIds(stateWithoutRemote);
+
+      expect(result).toEqual(MUSD_BALANCE_CHAIN_IDS_FALLBACK);
+    });
+
+    it('falls through to env var when remote flag is not a string', () => {
+      process.env.MM_MONEY_MUSD_BALANCE_CHAIN_IDS = '0x1,0xe708';
+      const stateWithInvalidRemote = createStateWithRemoteFlags({
+        earnMusdBalanceChainIds: { chainIds: ['0x1'] },
+      });
+
+      const result = selectMusdBalanceChainIds(stateWithInvalidRemote);
+
+      expect(result).toEqual(['0x1', '0xe708']);
+    });
+
+    it('returns MUSD_BALANCE_CHAIN_IDS_FALLBACK when remote flag is not a string and env var is absent', () => {
+      delete process.env.MM_MONEY_MUSD_BALANCE_CHAIN_IDS;
+      const stateWithInvalidRemote = createStateWithRemoteFlags({
+        earnMusdBalanceChainIds: { chainIds: ['0x1'] },
+      });
+
+      const result = selectMusdBalanceChainIds(stateWithInvalidRemote);
+
+      expect(result).toEqual(MUSD_BALANCE_CHAIN_IDS_FALLBACK);
+    });
+
+    it('returns MUSD_BALANCE_CHAIN_IDS_FALLBACK when remote flag is absent and env var is an empty string', () => {
+      process.env.MM_MONEY_MUSD_BALANCE_CHAIN_IDS = '';
+      const stateWithoutRemote = createStateWithRemoteFlags({});
+
+      const result = selectMusdBalanceChainIds(stateWithoutRemote);
+
+      expect(result).toEqual(MUSD_BALANCE_CHAIN_IDS_FALLBACK);
     });
   });
 });

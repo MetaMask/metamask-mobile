@@ -10,6 +10,7 @@ import {
 } from '../../utils/wildcardTokenList';
 import { DEFAULT_MUSD_BLOCKED_COUNTRIES } from '../../constants/musd';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { parseCommaSeparatedString } from '../../utils';
 
 export const selectPooledStakingEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
@@ -357,6 +358,34 @@ export const selectMusdTokenRegistrationChainIds = createSelector(
     }
 
     return MUSD_TOKEN_REGISTRATION_CHAIN_IDS_FALLBACK;
+  },
+);
+
+export const MUSD_BALANCE_CHAIN_IDS_FALLBACK = [
+  CHAIN_IDS.MAINNET,
+  CHAIN_IDS.LINEA_MAINNET,
+  CHAIN_IDS.MONAD,
+];
+
+/**
+ * Selects the chain IDs on which mUSD token balance is tracked in useMusdBalance
+ */
+export const selectMusdBalanceChainIds = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): string[] => {
+    const remoteFlag = remoteFeatureFlags?.earnMusdBalanceChainIds;
+    if (typeof remoteFlag === 'string' && remoteFlag.trim() !== '') {
+      const parsed = parseCommaSeparatedString(remoteFlag);
+      if (parsed.length > 0) return parsed;
+    }
+
+    const envValue = process.env.MM_MONEY_MUSD_BALANCE_CHAIN_IDS;
+    if (envValue && envValue.trim() !== '') {
+      const parsed = parseCommaSeparatedString(envValue);
+      if (parsed.length > 0) return parsed;
+    }
+
+    return MUSD_BALANCE_CHAIN_IDS_FALLBACK;
   },
 );
 
