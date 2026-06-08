@@ -14,13 +14,17 @@ import {
   getMinLiquidityForChains,
   getMinVolume24hForChains,
 } from '../../../Trending/hooks/useTrendingRequest/useTrendingRequest';
-import { getCaipChainIdFromAssetId } from '../../../Trending/components/TrendingTokenRowItem/utils';
+import { sortTrendingTokens } from '../../../Trending/utils/sortTrendingTokens';
 
 export const POST_TRADE_TRENDING_TOKENS_LIMIT = 20;
 
 const STALE_TIME_MS = 5 * 60 * 1000;
 const POST_TRADE_TRENDING_TOKENS_QUERY_KEY =
   'bridge-post-trade-trending-tokens';
+const MARKET_CAP_SORT_OPTION =
+  'market_cap' as Parameters<typeof sortTrendingTokens>[1];
+const DESCENDING_SORT_DIRECTION =
+  'descending' as Parameters<typeof sortTrendingTokens>[2];
 
 export const getDestinationCaipChainId = (
   destToken?: Pick<BridgeToken, 'chainId'>,
@@ -40,13 +44,6 @@ export const getDestinationCaipChainId = (
     return undefined;
   }
 };
-
-const sortByMarketCapDescending = (tokens: TrendingAsset[]) =>
-  [...tokens].sort((a, b) => {
-    const aMarketCap = a.marketCap ?? Number.NEGATIVE_INFINITY;
-    const bMarketCap = b.marketCap ?? Number.NEGATIVE_INFINITY;
-    return bMarketCap - aMarketCap;
-  });
 
 export const usePostTradeTrendingTokens = ({
   destToken,
@@ -94,18 +91,16 @@ export const usePostTradeTrendingTokens = ({
   });
 
   const tokens = useMemo(() => {
-    if (!destinationCaipChainId || !query.data?.length) {
+    if (!query.data?.length) {
       return [];
     }
 
-    return sortByMarketCapDescending(
-      query.data.filter(
-        (token) =>
-          getCaipChainIdFromAssetId(token.assetId) ===
-          destinationCaipChainId,
-      ),
+    return sortTrendingTokens(
+      query.data,
+      MARKET_CAP_SORT_OPTION,
+      DESCENDING_SORT_DIRECTION,
     ).slice(0, POST_TRADE_TRENDING_TOKENS_LIMIT);
-  }, [destinationCaipChainId, query.data]);
+  }, [query.data]);
 
   return {
     tokens,

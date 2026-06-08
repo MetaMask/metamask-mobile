@@ -180,8 +180,6 @@ export const PostTradeBottomSheet = () => {
       dispatch(setIsDestTokenManuallySet(true));
     }
     dispatch(setSourceAmount(params.sourceAmount));
-    dispatch(setDestAmount(undefined));
-    dispatch(setSelectedQuoteRequestId(undefined));
 
     Engine.context.BridgeController?.resetState?.();
     // Re-request a quote since resetState() cleared it and identical inputs

@@ -82,7 +82,7 @@ describe('usePostTradeTrendingTokens', () => {
     ).toBe('solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp');
   });
 
-  it('fetches, filters, sorts by market cap descending, and caps results', async () => {
+  it('fetches, sorts by market cap descending, and caps results', async () => {
     const { Wrapper } = createWrapper();
     const tokens = [
       createTrendingToken(
@@ -124,11 +124,9 @@ describe('usePostTradeTrendingTokens', () => {
     expect(result.current.tokens).toHaveLength(
       POST_TRADE_TRENDING_TOKENS_LIMIT,
     );
-    expect(result.current.tokens[0].symbol).toBe('ETH25');
-    expect(result.current.tokens[19].symbol).toBe('ETH6');
-    expect(result.current.tokens.some((token) => token.symbol === 'POLY')).toBe(
-      false,
-    );
+    expect(result.current.tokens[0].symbol).toBe('POLY');
+    expect(result.current.tokens[1].symbol).toBe('ETH25');
+    expect(result.current.tokens[19].symbol).toBe('ETH7');
     expect(result.current.tokens.some((token) => token.symbol === 'NOCAP')).toBe(
       false,
     );
