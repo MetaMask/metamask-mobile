@@ -265,10 +265,15 @@ async function publishHook({
     keyringController,
   );
 
+  const isSwapGasIncluded7702 = Boolean(transactionMeta.isGasFeeIncluded);
+
   if (
     keyringSupports7702 &&
     !isRevokeDelegation &&
-    (!shouldUseSmartTransaction || !sendBundleSupport || isExternalSign)
+    (isSwapGasIncluded7702 ||
+      !shouldUseSmartTransaction ||
+      !sendBundleSupport ||
+      isExternalSign)
   ) {
     const hook = new Delegation7702PublishHook({
       isAtomicBatchSupported: transactionController.isAtomicBatchSupported.bind(

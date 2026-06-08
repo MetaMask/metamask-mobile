@@ -97,7 +97,7 @@ describe('MoneyTransferSheet', () => {
     expect(comingSoonTags).toHaveLength(2);
   });
 
-  it('closes the sheet and calls initiateWithdrawal when "Between accounts" is pressed', () => {
+  it('closes the sheet and calls initiateWithdrawal when "Another account" is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
 
     fireEvent.press(
