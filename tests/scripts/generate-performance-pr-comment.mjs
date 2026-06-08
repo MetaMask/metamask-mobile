@@ -16,6 +16,7 @@
  */
 
 import fs from 'fs';
+import path from 'path';
 
 const SUMMARY_FILE = process.argv[2] || 'aggregated-reports/summary.json';
 const OUTPUT_FILE = process.argv[3] || 'performance-pr-comment.md';
@@ -27,6 +28,10 @@ if (!fs.existsSync(SUMMARY_FILE)) {
 }
 
 const summary = JSON.parse(fs.readFileSync(SUMMARY_FILE, 'utf8'));
+const resultsFile = path.join(path.dirname(SUMMARY_FILE), 'performance-results.json');
+const performanceResults = fs.existsSync(resultsFile)
+  ? JSON.parse(fs.readFileSync(resultsFile, 'utf8'))
+  : null;
 
 const totalTests = summary.uniqueTests ?? summary.totalTests ?? 0;
 const androidDevices = summary.platformDevices?.Android ?? [];
@@ -58,12 +63,105 @@ function formatDevice(key) {
 /** Map raw failureReason to a human-readable label */
 function formatReason(reason) {
   switch (reason) {
-    case 'quality_gates_exceeded': return 'Quality gates exceeded';
-    case 'timedOut':               return 'Timed out';
+    case 'quality_gates_exceeded':
+      return 'Quality gates exceeded';
+    case 'timedOut':
+      return 'Timed out';
     case 'test_error':
-    case 'failed':                 return 'Test error';
-    default:                       return reason ?? 'Unknown';
+    case 'failed':
+      return 'Test error';
+    default:
+      return reason ?? 'Unknown';
   }
+}
+
+function escapeMarkdownTable(value) {
+  return String(value ?? '—')
+    .replaceAll('|', '\\|')
+    .replaceAll('\n', ' ');
+}
+
+function getDeviceKey(device) {
+  if (!device) {
+    return '';
+  }
+
+  if (typeof device === 'object') {
+    return `${device.name ?? ''}+${device.osVersion ?? ''}`;
+  }
+
+  return String(device);
+}
+
+function getDeviceLabel(device, fallbackPlatform) {
+  if (typeof device === 'object') {
+    const name = device?.name ?? fallbackPlatform;
+    const version = device?.osVersion ? ` (v${device.osVersion})` : '';
+    return `${name}${version}`;
+  }
+
+  return device ? formatDevice(String(device)) : fallbackPlatform;
+}
+
+function getFailedTestKeys() {
+  const failedTests = Object.values(failedByTeam).flatMap(
+    (teamData) => teamData.tests ?? [],
+  );
+  const bySessionId = new Map();
+  const byTestIdentity = new Map();
+
+  for (const test of failedTests) {
+    if (test.sessionId) {
+      bySessionId.set(test.sessionId, test);
+    }
+
+    byTestIdentity.set(
+      `${test.platform}|${getDeviceKey(test.device)}|${test.testName}`,
+      test,
+    );
+  }
+
+  return { bySessionId, byTestIdentity };
+}
+
+function getAllTestRuns() {
+  if (!performanceResults) {
+    return [];
+  }
+
+  const failedTestKeys = getFailedTestKeys();
+
+  return Object.entries(performanceResults).flatMap(([platform, devices]) =>
+    Object.entries(devices ?? {}).flatMap(([deviceKey, tests]) =>
+      (tests ?? []).map((test) => {
+        const failedTest =
+          failedTestKeys.bySessionId.get(test.sessionId) ??
+          failedTestKeys.byTestIdentity.get(
+            `${platform}|${deviceKey}|${test.testName}`,
+          );
+        const qualityGatesFailed = test.qualityGates?.passed === false;
+        const failed = Boolean(failedTest) || qualityGatesFailed;
+        const duration =
+          typeof test.totalTime === 'number' ? `${test.totalTime.toFixed(2)}s` : '—';
+
+        return {
+          status: failed ? '❌ Failed' : '✅ Passed',
+          testName: test.testName,
+          platform,
+          device: getDeviceLabel(test.device ?? deviceKey, platform),
+          duration,
+          reason: failed
+            ? formatReason(
+                failedTest?.failureReason ??
+                  (qualityGatesFailed ? 'quality_gates_exceeded' : undefined),
+              )
+            : '—',
+          team: test.team?.teamId ?? 'Unknown Team',
+          recordingLink: test.videoURL ?? failedTest?.recordingLink,
+        };
+      }),
+    ),
+  );
 }
 
 // ─── Build the comment ────────────────────────────────────────────────────────
@@ -72,6 +170,7 @@ let md = '';
 
 // Title
 md += `## ⚡ Performance Test Results\n\n`;
+md += `> ℹ️ Performance test results are currently non-blocking and will not block this PR.\n\n`;
 
 // Overall status line
 if (summary.warning || summary.error) {
@@ -96,6 +195,30 @@ if (totalDevices > 0) {
     md += `**iOS:** ${iosDevices.map(formatDevice).join(', ')}\n\n`;
   }
   md += `</details>\n\n`;
+}
+
+const allTestRuns = getAllTestRuns();
+
+if (allTestRuns.length > 0) {
+  md += `### Tests Run (${allTestRuns.length})\n\n`;
+  md += `| Status | Test | Platform | Device | Duration | Reason | Team | Recording |\n`;
+  md += `|--------|------|----------|--------|----------|--------|------|-----------|\n`;
+
+  for (const test of allTestRuns) {
+    const recording = test.recordingLink
+      ? `[📹 Watch](${test.recordingLink})`
+      : '—';
+
+    md += `| ${test.status} | ${escapeMarkdownTable(test.testName)} | ${
+      test.platform
+    } | ${escapeMarkdownTable(test.device)} | ${test.duration} | ${escapeMarkdownTable(
+      test.reason,
+    )} | ${escapeMarkdownTable(
+      test.team,
+    )} | ${recording} |\n`;
+  }
+
+  md += '\n';
 }
 
 // Failed tests table (one section per team)
