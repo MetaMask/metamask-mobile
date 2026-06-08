@@ -11,6 +11,9 @@ import Engine from '../../../../../core/Engine';
 jest.mock('./useMMPayFiatConfig');
 jest.mock('./useTransactionPayData');
 jest.mock('../../../../UI/Ramp/hooks/useRampsPaymentMethods');
+jest.mock('../../../../UI/Ramp/hooks/useHasNativeFiatProvider', () => ({
+  useHasNativeFiatProvider: () => true,
+}));
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../../../../../core/Engine', () => ({
   context: {
