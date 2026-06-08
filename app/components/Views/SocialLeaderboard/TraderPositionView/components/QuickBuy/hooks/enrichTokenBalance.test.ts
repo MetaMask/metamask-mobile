@@ -120,7 +120,7 @@ describe('enrichTokenBalance', () => {
       expect(result).toBeNull();
     });
 
-    it('returns a zero enrichment for an unpriceable token when lenient', () => {
+    it('returns a zero enrichment for an unheld token when lenient', () => {
       const result = enrichTokenBalance(
         token({ address: USDC, chainId: '0x1', symbol: 'USDC', decimals: 6 }),
         baseDeps(),
@@ -130,6 +130,21 @@ describe('enrichTokenBalance', () => {
       expect(result).toEqual({
         balance: '0',
         balanceFiat: '$0.00',
+        tokenFiatAmount: 0,
+        currencyExchangeRate: undefined,
+      });
+    });
+
+    it('keeps the held balance for an unpriceable token when lenient', () => {
+      const result = enrichTokenBalance(
+        token({ address: USDC, chainId: '0x1', symbol: 'USDC', decimals: 6 }),
+        withUsdcBalance(),
+        { includeZeroBalance: true },
+      );
+
+      expect(result).toEqual({
+        balance: '250.0',
+        balanceFiat: undefined,
         tokenFiatAmount: 0,
         currencyExchangeRate: undefined,
       });
@@ -192,6 +207,29 @@ describe('enrichTokenBalance', () => {
       );
 
       expect(result).toBeNull();
+    });
+
+    it('keeps the held Solana balance when the rate is missing and lenient', () => {
+      const deps = baseDeps({
+        solanaAccount,
+        multichainBalances: {
+          [solanaAccount.id]: { [solAssetId]: { amount: '12.5' } },
+        },
+        multichainRates: {},
+      });
+
+      const result = enrichTokenBalance(
+        token({ address: solAssetId, chainId: solanaScope, symbol: 'SOL' }),
+        deps,
+        { includeZeroBalance: true },
+      );
+
+      expect(result).toEqual({
+        balance: '12.5',
+        balanceFiat: undefined,
+        tokenFiatAmount: 0,
+        currencyExchangeRate: undefined,
+      });
     });
   });
 });

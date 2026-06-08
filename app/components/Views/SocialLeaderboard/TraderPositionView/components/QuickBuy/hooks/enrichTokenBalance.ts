@@ -16,13 +16,14 @@ import {
 
 /**
  * The priced balance fields shared by every QuickBuy token row. `balance` is a
- * non-truncated decimal amount, `balanceFiat` the formatted fiat string, and
- * `currencyExchangeRate` the USD-per-token rate the controller uses to convert
- * the entered USD amount into a token amount.
+ * non-truncated decimal amount, `balanceFiat` the formatted fiat string (left
+ * `undefined` when the token's USD price can't be resolved, so the row renders
+ * a dash), and `currencyExchangeRate` the USD-per-token rate the controller
+ * uses to convert the entered USD amount into a token amount.
  */
 export interface TokenBalanceEnrichment {
   balance: string;
-  balanceFiat: string;
+  balanceFiat?: string;
   tokenFiatAmount: number;
   currencyExchangeRate?: number;
 }
@@ -49,10 +50,11 @@ export interface TokenBalanceDeps {
 
 export interface EnrichTokenBalanceOptions {
   /**
-   * When `true`, tokens with no/zero balance (or no resolvable price) are still
-   * returned (balance "0", $0.00 fiat) instead of being dropped. Used by the
-   * "Receive" picker, which lists every stable regardless of whether the user
-   * holds it.
+   * When `true`, tokens are still returned instead of being dropped: unheld
+   * tokens come back as balance "0" / $0.00 fiat, and held-but-unpriceable
+   * tokens keep their real balance with an undefined fiat (rendered as a dash).
+   * Used by the "Receive" picker, which lists every stable regardless of
+   * whether the user holds it.
    */
   includeZeroBalance?: boolean;
 }
@@ -69,6 +71,19 @@ const USD_CURRENCY = 'usd' as Parameters<typeof addCurrencySymbol>[1];
 const zeroEnrichment = (): TokenBalanceEnrichment => ({
   balance: '0',
   balanceFiat: addCurrencySymbol('0.00', USD_CURRENCY),
+  tokenFiatAmount: 0,
+  currencyExchangeRate: undefined,
+});
+
+/**
+ * Lenient result for a token the user *does* hold but whose USD price can't be
+ * resolved: keeps the real on-chain `balance` so the Receive picker still shows
+ * the holding, while leaving fiat `undefined` (the row renders a dash rather
+ * than a misleading $0.00) and the rate undefined.
+ */
+const unpricedEnrichment = (balance: string): TokenBalanceEnrichment => ({
+  balance,
+  balanceFiat: undefined,
   tokenFiatAmount: 0,
   currencyExchangeRate: undefined,
 });
@@ -150,8 +165,9 @@ const enrichEvmTokenBalance = (
   if (!(exchangeRate > 0)) {
     // No resolvable USD price. Strict callers (Pay with) drop the token because
     // the fiat-first amount entry needs a real price; lenient callers (Receive)
-    // surface it with a zero fiat value.
-    return dropOrZero();
+    // keep the real held balance with a zero fiat value so the holding still
+    // shows up.
+    return includeZeroBalance ? unpricedEnrichment(displayBalance) : null;
   }
 
   return priced(displayBalance, exchangeRate, balanceNum);
@@ -180,7 +196,9 @@ const enrichSolanaTokenBalance = (
   const rateNum = rateStr ? parseFloat(rateStr) : NaN;
 
   if (isNaN(rateNum) || rateNum <= 0) {
-    return dropOrZero();
+    // Held but no resolvable rate: keep the real balance when lenient (Receive),
+    // drop it when strict (Pay with).
+    return includeZeroBalance ? unpricedEnrichment(amountStr) : null;
   }
 
   return priced(amountStr, rateNum, balanceNum);
