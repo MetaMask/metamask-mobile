@@ -232,6 +232,17 @@ jest.mock('../../../core/Engine', () => ({
       getAccounts: jest.fn(),
       getKeyringsByType: jest.fn().mockResolvedValue([]),
       addNewKeyring: jest.fn(),
+      withController: jest.fn(async (operation) =>
+        operation({
+          keyrings: [
+            {
+              keyring: { type: 'QR Hardware Wallet Device' },
+              metadata: { id: '1234', name: 'QR Hardware Wallet Device' },
+            },
+          ],
+          addNewKeyring: jest.fn(),
+        }),
+      ),
       withKeyringV2: (_selector: unknown, operation: (args: unknown) => void) =>
         operation({
           keyring: mockQrKeyring,
