@@ -7,8 +7,10 @@
  *
  * Run with: yarn jest -c jest.config.view.js PredictFeed.view.test --runInBand --silent --coverage=false
  */
+import React from 'react';
 import '../../../../../../tests/component-view/mocks';
 import Engine from '../../../../../../app/core/Engine';
+import { useRoute } from '@react-navigation/native';
 import {
   renderPredictFeedView,
   renderPredictFeedViewWithRoutes,
@@ -19,6 +21,7 @@ import {
   waitFor,
   within,
 } from '@testing-library/react-native';
+import { Text } from 'react-native';
 import {
   PredictMarketListSelectorsIDs,
   PredictSearchSelectorsIDs,
@@ -96,6 +99,33 @@ const createCryptoUpDownMarket = (
 const SEARCH_PLACEHOLDER = 'Search prediction markets';
 const CANCEL_TEXT = 'Cancel';
 const RETRY_TEXT = 'Retry';
+
+interface PredictRootRouteParams {
+  screen?: string;
+  params?: {
+    predictFeedTab?: string;
+  };
+}
+
+const PredictRootRouteParamsProbe = () => {
+  const route = useRoute<{
+    key: string;
+    name: string;
+    params?: PredictRootRouteParams;
+  }>();
+  const predictFeedTab = route.params?.params?.predictFeedTab ?? 'missing';
+
+  return (
+    <>
+      <Text testID={`route-${Routes.PREDICT.ROOT}`}>
+        {route.params?.screen ?? 'unknown'}
+      </Text>
+      <Text testID={`predict-root-tab-${predictFeedTab}`}>
+        {predictFeedTab}
+      </Text>
+    </>
+  );
+};
 
 const createPredictMarket = ({
   id,
@@ -349,6 +379,52 @@ describe('PredictFeed', () => {
       searchMarketsSpy.mockRestore();
     });
 
+    it('tracks the same query again after the user clears and retypes it', async () => {
+      const searchMarketsSpy = jest.spyOn(
+        Engine.context.PredictController,
+        'searchMarkets',
+      );
+      searchMarketsSpy.mockResolvedValue({
+        markets: [MOCK_PREDICT_MARKET],
+        totalResults: 1,
+      });
+
+      const trackSearchInteractedMock = Engine.context.PredictController
+        .trackSearchInteracted as jest.Mock;
+      const { getByTestId, findByPlaceholderText } = renderPredictFeedView();
+
+      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
+      trackSearchInteractedMock.mockClear();
+
+      const searchInput = await findByPlaceholderText(SEARCH_PLACEHOLDER);
+      fireEvent.changeText(searchInput, 'bitcoin');
+
+      const getQueriedEvents = () =>
+        trackSearchInteractedMock.mock.calls
+          .map(([args]) => args as { interactionType?: string })
+          .filter((args) => args.interactionType === 'queried');
+
+      await waitFor(() => {
+        expect(getQueriedEvents()).toHaveLength(1);
+      });
+
+      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.CLEAR_BUTTON));
+
+      await waitFor(() => {
+        expect(searchMarketsSpy).toHaveBeenCalledWith(
+          expect.objectContaining({ q: '' }),
+        );
+      });
+
+      fireEvent.changeText(searchInput, 'bitcoin');
+
+      await waitFor(() => {
+        expect(getQueriedEvents()).toHaveLength(2);
+      });
+
+      searchMarketsSpy.mockRestore();
+    });
+
     it('navigates to market details when the user taps a search result card', async () => {
       const searchMarketsSpy = jest.spyOn(
         Engine.context.PredictController,
@@ -361,7 +437,12 @@ describe('PredictFeed', () => {
 
       const { getByTestId, findByPlaceholderText, findByTestId } =
         renderPredictFeedViewWithRoutes({
-          extraRoutes: [{ name: Routes.PREDICT.ROOT }],
+          extraRoutes: [
+            {
+              name: Routes.PREDICT.ROOT,
+              Component: PredictRootRouteParamsProbe,
+            },
+          ],
         });
 
       fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
@@ -379,6 +460,7 @@ describe('PredictFeed', () => {
       expect(
         await findByTestId(`route-${Routes.PREDICT.ROOT}`),
       ).toBeOnTheScreen();
+      expect(await findByTestId('predict-root-tab-trending')).toBeOnTheScreen();
 
       // Assert — the `result_clicked` event fires with the tapped market's id/title
       expect(

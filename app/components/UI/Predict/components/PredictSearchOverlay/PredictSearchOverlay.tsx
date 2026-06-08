@@ -87,8 +87,16 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
 
   // Fire `queried` once per resolved (non-empty) query — i.e. after debounce
   // settles and the fetch completes without error. The ref guards against
-  // re-firing for the same query when `marketData` re-renders.
+  // re-firing for the same query when `marketData` re-renders, but clearing the
+  // live input resets the guard immediately so the same term can be tracked if
+  // the user searches again without closing the overlay.
   const lastTrackedQueryRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      lastTrackedQueryRef.current = null;
+    }
+  }, [searchQuery]);
+
   useEffect(() => {
     if (!isVisible) {
       lastTrackedQueryRef.current = null;
@@ -136,11 +144,12 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
         market={info.item}
         entryPoint={PredictEventValues.ENTRY_POINT.SEARCH}
         testID={getPredictSearchSelector.resultCard(info.index)}
+        predictFeedTab={predictFeedTab}
         transactionActiveAbTests={transactionActiveAbTests}
         onCardPress={() => handleResultPress(info.item)}
       />
     ),
-    [transactionActiveAbTests, handleResultPress],
+    [predictFeedTab, transactionActiveAbTests, handleResultPress],
   );
 
   const keyExtractor = useCallback((item: PredictMarketType) => item.id, []);
