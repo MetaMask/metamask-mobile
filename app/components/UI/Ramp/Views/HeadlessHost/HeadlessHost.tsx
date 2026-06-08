@@ -24,6 +24,7 @@ import {
   setStatus,
 } from '../../headless/sessionRegistry';
 import { setHeadlessEntryCardTouchThrough } from '../../headless/headlessEntryNavigation';
+import { useHeadlessSessionFocusDismissal } from '../../headless/useHeadlessSessionFocusDismissal';
 import { useHeadlessSessionDismissal } from '../../headless/useHeadlessSessionDismissal';
 import { getChainIdFromAssetId } from '../../headless/useHeadlessBuy';
 import useContinueWithQuote, {
@@ -48,6 +49,14 @@ export interface HeadlessHostParams {
    * then closes the session.
    */
   nativeFlowError?: string;
+  /**
+   * Set by programmatic navigations that re-reveal this Host without a user
+   * back-out (e.g. OtpCode routing back after a successful OTP with no
+   * amount/currency/assetId). Disables the focus-dismissal heuristic so the
+   * regained focus is not misread as `user_dismissed` and the live session
+   * is kept. A genuine subsequent back-out still closes the session.
+   */
+  suppressFocusDismissal?: boolean;
 }
 
 /**
@@ -62,7 +71,7 @@ function HeadlessHost() {
   const navigation = useNavigation();
   const isFocused = useIsFocused();
   const { styles } = useStyles(styleSheet, {});
-  const { headlessSessionId, nativeFlowError } =
+  const { headlessSessionId, nativeFlowError, suppressFocusDismissal } =
     useParams<HeadlessHostParams>();
   const session = getSession(headlessSessionId);
 
@@ -75,6 +84,9 @@ function HeadlessHost() {
   }, [navigation, isFocused]);
 
   useHeadlessSessionDismissal(headlessSessionId);
+  useHeadlessSessionFocusDismissal(headlessSessionId, isFocused, {
+    disabled: Boolean(nativeFlowError) || Boolean(suppressFocusDismissal),
+  });
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', (e) => {
