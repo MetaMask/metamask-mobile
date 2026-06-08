@@ -778,6 +778,7 @@ export function useHwBatchSignTracker({
 
     const targetFrom = trackerLifecycleKey;
     const handledTxIds = new Set<string>();
+    const signingDispatchedTxIds = new Set<string>();
     const scheduleDeferredApprovalQueueRetry = () => {
       clearDeferredApprovalQueueRetry();
       const lifecycleKey = trackerLifecycleKeyRef.current;
@@ -1105,6 +1106,9 @@ export function useHwBatchSignTracker({
         if (!isTransactionFromCurrentBatch(transactionMeta)) {
           return;
         }
+        if (signingDispatchedTxIds.has(transactionMeta.id)) {
+          return;
+        }
         if (transactionMeta.batchId) {
           const trackerState = trackerStateRef.current;
           trackerState.seenBatchIds.add(transactionMeta.batchId);
@@ -1115,6 +1119,7 @@ export function useHwBatchSignTracker({
             trackerState.currentBatchId = transactionMeta.batchId;
           }
         }
+        signingDispatchedTxIds.add(transactionMeta.id);
         trackerStateRef.current.trackedTxIds.add(transactionMeta.id);
         setConfirmationTxId(transactionMeta.id);
         dispatchSwapEvent({
@@ -1123,7 +1128,7 @@ export function useHwBatchSignTracker({
         });
         enqueuePendingApprovals();
       } else if (status === TransactionStatus.signed) {
-        if (!isTransactionFromCurrentBatch(transactionMeta)) {
+        if (shouldIgnoreTerminalTx(transactionMeta)) {
           return;
         }
         if (transactionMeta.batchId) {

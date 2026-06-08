@@ -472,6 +472,44 @@ describe('useHwBatchSignTracker', () => {
     expect(mockUpdateSwaps).toHaveBeenCalledTimes(1);
   });
 
+  it('does not dispatch SIGNING twice for repeated approved updates', () => {
+    renderEnabledHook();
+
+    const meta = txMeta({
+      type: TransactionType.bridgeApproval,
+      status: TransactionStatus.approved,
+      batchId: 'batch-duplicate-signing',
+    });
+
+    const handler = getStatusHandler();
+    act(() => {
+      handler({ transactionMeta: meta });
+      handler({ transactionMeta: meta });
+    });
+
+    expect(mockUpdateSwaps).toHaveBeenCalledTimes(1);
+    expect(mockUpdateSwaps).toHaveBeenCalledWith(EXPECT_SIGNING_APPROVAL);
+  });
+
+  it('does not dispatch SIGNED twice for the same transaction', () => {
+    renderEnabledHook();
+
+    const meta = txMeta({
+      type: TransactionType.bridgeApproval,
+      status: TransactionStatus.signed,
+      batchId: 'batch-signed-dedupe',
+    });
+
+    const handler = getStatusHandler();
+    act(() => {
+      handler({ transactionMeta: meta });
+      handler({ transactionMeta: meta });
+    });
+
+    expect(mockUpdateSwaps).toHaveBeenCalledTimes(1);
+    expect(mockUpdateSwaps).toHaveBeenCalledWith(EXPECT_SIGNED_APPROVAL);
+  });
+
   describe('stale batch filtering', () => {
     it('accepts all events when batch ID is undefined (initial state)', () => {
       renderEnabledHook();
