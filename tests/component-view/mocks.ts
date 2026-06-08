@@ -333,6 +333,10 @@ jest.mock('../../app/core/Engine', () => {
           markets: [],
           nextCursor: null,
         }),
+        listMarkets: jest.fn().mockResolvedValue({
+          markets: [],
+          nextCursor: null,
+        }),
         searchMarkets: jest
           .fn()
           .mockResolvedValue({ markets: [], totalResults: 0 }),

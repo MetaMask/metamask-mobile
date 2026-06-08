@@ -45,6 +45,8 @@ import {
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 import { type PaymentMethod } from '@metamask/ramps-controller';
 import { useParams } from '../../../../../../util/navigation/navUtils';
+import { PayWithOption } from '../../confirm/confirm-component';
+import { useInitialPayWithOption } from '../../../hooks/pay/useInitialPayWithOption';
 import { SetPayTokenRequest } from '../../../hooks/pay/useAutomaticTransactionPayToken';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useTheme } from '../../../../../../util/theme';
@@ -53,13 +55,19 @@ interface PayWithRouteParams {
   preferredPaymentToken?: SetPayTokenRequest;
 }
 
-export function PayWithRow() {
+export function PayWithRow({
+  isResultReady,
+}: { isResultReady?: boolean } = {}) {
   const transactionId = useTransactionMetadataRequest()?.id ?? '';
   const paymentOverride = useSelector((state: RootState) =>
     selectPaymentOverrideByTransactionId(state, transactionId),
   );
+  const initialPayWithOption = useInitialPayWithOption();
 
-  if (paymentOverride === PaymentOverride.MoneyAccount) {
+  if (
+    paymentOverride === PaymentOverride.MoneyAccount ||
+    (!isResultReady && initialPayWithOption === PayWithOption.MoneyAccount)
+  ) {
     return <PayWithRowMoneyAccount />;
   }
 

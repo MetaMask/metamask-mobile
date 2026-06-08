@@ -75,6 +75,14 @@ import {
   selectOndoCampaignPortfolio,
   selectOndoCampaignPortfolioById,
   selectOndoCampaignActivityById,
+  selectPredictThePitchLeaderboard,
+  selectPredictThePitchLeaderboardLoading,
+  selectPredictThePitchLeaderboardError,
+  selectPredictThePitchLeaderboardPositionById,
+  selectPredictThePitchPositionsById,
+  selectPredictThePitchPrizePool,
+  selectPredictThePitchPrizePoolLoading,
+  selectPredictThePitchPrizePoolError,
   selectDismissedCampaignOutcomeToasts,
 } from './selectors';
 // eslint-disable-next-line import-x/no-namespace
@@ -4063,6 +4071,88 @@ describe('Rewards selectors', () => {
       expect(
         selectOndoCampaignActivityById('sub-1', 'campaign-1')(state),
       ).toEqual(mockEntries);
+    });
+  });
+
+  describe('Predict The Pitch selectors', () => {
+    const mockLeaderboard = {
+      campaignId: 'predict-c-1',
+      computedAt: '2026-06-30T12:00:00.000Z',
+      entries: [],
+      totalParticipants: 10,
+    };
+    const mockPosition = {
+      rank: 1,
+      totalParticipants: 10,
+      roi: 0.25,
+      pnl: 50,
+      volume: 200,
+      eligible: true,
+      neighbors: [],
+      computedAt: '2026-06-30T12:00:00.000Z',
+    };
+    const mockPositions = {
+      positions: [],
+      computedAt: null,
+    };
+    const mockPrizePool = {
+      totalVolumeUsd: 1000,
+      unlockedPoolUsd: 500,
+      thresholdsUsd: [0, 1000],
+      poolScheduleUsd: [250, 500],
+      breakdown: [],
+      computedAt: null,
+    };
+
+    it('selects leaderboard and status flags', () => {
+      const state = createMockRootState({
+        predictThePitchLeaderboard: mockLeaderboard,
+        predictThePitchLeaderboardLoading: true,
+        predictThePitchLeaderboardError: true,
+      });
+
+      expect(selectPredictThePitchLeaderboard(state)).toEqual(mockLeaderboard);
+      expect(selectPredictThePitchLeaderboardLoading(state)).toBe(true);
+      expect(selectPredictThePitchLeaderboardError(state)).toBe(true);
+    });
+
+    it('selects leaderboard position and positions by composite ID', () => {
+      const state = createMockRootState({
+        predictThePitchLeaderboardPositions: {
+          'sub-1:predict-c-1': mockPosition,
+        },
+        predictThePitchPositions: {
+          'sub-1:predict-c-1': mockPositions,
+        },
+      });
+
+      expect(
+        selectPredictThePitchLeaderboardPositionById(
+          'sub-1',
+          'predict-c-1',
+        )(state),
+      ).toEqual(mockPosition);
+      expect(
+        selectPredictThePitchLeaderboardPositionById('sub-1', undefined)(state),
+      ).toBeNull();
+      expect(
+        selectPredictThePitchPositionsById('sub-1', 'predict-c-1')(state),
+      ).toEqual(mockPositions);
+      expect(
+        selectPredictThePitchPositionsById(undefined, 'predict-c-1')(state),
+      ).toBeNull();
+    });
+
+    it('selects prize pool and status flags', () => {
+      const state = createMockRootState({
+        predictThePitchPrizePool: mockPrizePool,
+        predictThePitchPrizePoolLoading: true,
+        predictThePitchPrizePoolError: true,
+      });
+
+      expect(selectPredictThePitchPrizePool(state)).toEqual(mockPrizePool);
+      expect(selectPredictThePitchPrizePoolLoading(state)).toBe(true);
+      expect(selectPredictThePitchPrizePoolError(state)).toBe(true);
     });
   });
 

@@ -8971,7 +8971,7 @@
       "non_winner": {
         "title": "결과가 발표되었습니다 🏅",
         "description": "{{campaignName}}에서 내 순위 보기.",
-        "cta": "보기"
+        "cta": "세부 정보 보기"
       }
     }
   },
