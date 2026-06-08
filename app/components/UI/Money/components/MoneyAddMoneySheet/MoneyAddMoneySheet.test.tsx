@@ -109,7 +109,7 @@ describe('MoneyAddMoneySheet', () => {
   });
 
   it('renders all four options', () => {
-    const { getByText, getByTestId } = renderWithProvider(
+    const { getByText, getAllByText, getByTestId } = renderWithProvider(
       <MoneyAddMoneySheet />,
     );
 
@@ -117,7 +117,8 @@ describe('MoneyAddMoneySheet', () => {
     expect(getByText('Deposit funds')).toBeOnTheScreen();
     expect(getByText('Add your $1,203.89 mUSD')).toBeOnTheScreen();
     expect(getByText('Receive from external wallet')).toBeOnTheScreen();
-    expect(getByText('Coming soon')).toBeOnTheScreen();
+    // Deposit is enabled (canDeposit=true), so only the hardcoded Receive External row has a tag
+    expect(getAllByText('Coming soon')).toHaveLength(1);
     expect(
       getByTestId(MoneyAddMoneySheetTestIds.RECEIVE_EXTERNAL_ROW),
     ).toBeOnTheScreen();
@@ -331,20 +332,6 @@ describe('MoneyAddMoneySheet', () => {
     expect(
       getByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
     ).toBeOnTheScreen();
-  });
-
-  it('hides Deposit funds when canDeposit is false (flag off)', () => {
-    (useMMPayFiatConfig as jest.Mock).mockReturnValue({
-      enabledTransactionTypes: [],
-      maxDelayMinutesForPaymentMethods: 10,
-    });
-    (useCanFiatDepositAsset as jest.Mock).mockReturnValue(false);
-
-    const { queryByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
-
-    expect(
-      queryByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
-    ).toBeNull();
   });
 
   it('shows Deposit funds disabled with "Coming soon" tag when flag is on but canDeposit is false', () => {

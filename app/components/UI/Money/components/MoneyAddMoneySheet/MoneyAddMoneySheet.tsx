@@ -188,6 +188,7 @@ const MoneyAddMoneySheet: React.FC = () => {
           <TouchableOpacity
             key={item.testID}
             disabled={item.disabled}
+            accessibilityState={{ disabled: !!item.disabled }}
             onPress={item.disabled ? undefined : item.onPress}
             style={styles.row}
             testID={item.testID}
