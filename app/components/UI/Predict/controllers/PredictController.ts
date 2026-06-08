@@ -3388,5 +3388,6 @@ export type {
   PredictControllerTrackMarketDetailsOpenedAction,
   PredictControllerTrackPositionViewedAction,
   PredictControllerTrackPredictOrderEventAction,
+  PredictControllerTrackSearchInteractedAction,
   PredictControllerTrackShareActionAction,
 } from './PredictController-method-action-types';
