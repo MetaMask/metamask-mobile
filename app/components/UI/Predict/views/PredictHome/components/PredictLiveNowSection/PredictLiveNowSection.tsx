@@ -48,11 +48,17 @@ const PredictLiveNowSection: React.FC<PredictLiveNowSectionProps> = ({
     () => screenWidth * CARD_WIDTH_RATIO,
     [screenWidth],
   );
+  // Cards snap on width + gap, so the active-dot math must divide by the same
+  // interval (not just cardWidth) to stay in sync with the snapped card.
+  const snapInterval = useMemo(() => cardWidth + CARD_GAP, [cardWidth]);
   const { items, isLoading, isEmpty } = usePredictLiveNowSection();
   const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
-    setActiveIndex((prev) => (prev >= items.length ? 0 : prev));
+    const lastIndex = items.length - 1;
+    setActiveIndex((prev) =>
+      lastIndex < 0 ? 0 : Math.min(Math.max(prev, 0), lastIndex),
+    );
   }, [items.length]);
 
   const handleViewAll = useCallback(() => {
@@ -68,14 +74,18 @@ const PredictLiveNowSection: React.FC<PredictLiveNowSectionProps> = ({
 
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const lastIndex = items.length - 1;
+      if (lastIndex < 0) {
+        return;
+      }
       const offsetX = event.nativeEvent.contentOffset.x;
       const newIndex = Math.min(
-        Math.max(0, Math.round(offsetX / cardWidth)),
-        items.length - 1,
+        Math.max(0, Math.round(offsetX / snapInterval)),
+        lastIndex,
       );
       setActiveIndex(newIndex);
     },
-    [cardWidth, items.length],
+    [snapInterval, items.length],
   );
 
   const renderItem: ListRenderItem<CarouselItem> = useCallback(
@@ -139,7 +149,7 @@ const PredictLiveNowSection: React.FC<PredictLiveNowSectionProps> = ({
           contentContainerStyle={tw.style('px-4')}
           horizontal
           showsHorizontalScrollIndicator={false}
-          snapToInterval={cardWidth + CARD_GAP}
+          snapToInterval={snapInterval}
           decelerationRate="fast"
           onScroll={handleScroll}
           scrollEventThrottle={16}
