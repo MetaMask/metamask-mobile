@@ -1,5 +1,9 @@
 import { Theme } from '@metamask/design-tokens';
 import { StyleSheet, TextStyle } from 'react-native';
+import {
+  getFontFamily,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 
 const styleSheet = ({ theme: { colors, typography } }: { theme: Theme }) =>
   StyleSheet.create({
@@ -27,6 +31,7 @@ const styleSheet = ({ theme: { colors, typography } }: { theme: Theme }) =>
       backgroundColor: colors.background.default,
       marginRight: 10,
       ...typography.lHeadingSM,
+      fontFamily: getFontFamily(TextVariant.HeadingSM),
     } as TextStyle,
     bookmarkIco: {
       width: 26,
@@ -40,10 +45,12 @@ const styleSheet = ({ theme: { colors, typography } }: { theme: Theme }) =>
     name: {
       color: colors.text.default,
       ...typography.sBodyMDMedium,
+      fontFamily: getFontFamily(TextVariant.BodyMDMedium),
     } as TextStyle,
     url: {
       color: colors.text.alternative,
       ...typography.sBodySM,
+      fontFamily: getFontFamily(TextVariant.BodySM),
     } as TextStyle,
     item: {
       paddingVertical: 8,
