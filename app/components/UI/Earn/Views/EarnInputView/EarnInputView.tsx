@@ -473,6 +473,7 @@ const EarnInputView = () => {
         from: (selectedAccount?.address as Hex) || '0x',
         networkClientId,
         origin: ORIGIN_METAMASK,
+        isInternal: true,
         transactions: [approveTx, lendingDepositTx],
         requireApproval: true,
       });
@@ -899,12 +900,6 @@ const EarnInputView = () => {
     earnToken?.experience.apr,
     navigateToLearnMoreModal,
   ]);
-
-  useEffect(() => {
-    navigation.setOptions({
-      headerShown: false,
-    });
-  }, [navigation]);
 
   const headerTitle = useMemo(() => {
     const isLending =

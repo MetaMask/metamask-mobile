@@ -10,6 +10,7 @@ import {
   RequestStatus,
   type QuoteResponse,
   MetaMetricsSwapsEventSource,
+  BRIDGE_MM_FEE_RATE,
 } from '@metamask/bridge-controller';
 import { Hex } from '@metamask/utils';
 import { isHardwareAccount } from '../../../../../util/address';
@@ -71,6 +72,16 @@ jest.mock('../../components/ApprovalText', () => {
     __esModule: true,
     default: () =>
       MockReact.createElement(View, { testID: 'approval-tooltip' }),
+  };
+});
+
+jest.mock('../../../Rewards/components/RewardsVipBadge/RewardsVipBadge', () => {
+  const MockReact = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      MockReact.createElement(View, { testID: 'rewards-vip-badge' }),
   };
 });
 
@@ -303,6 +314,29 @@ describe('BridgeViewFooter', () => {
       });
     });
 
+    it('shows discounted fee disclaimer with fee percentage when fee is less than base fee', async () => {
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          activeQuote: {
+            ...mockQuoteWithMetadata,
+            quote: {
+              feeData: { metabridge: { quoteBpsFee: 57.5, baseBpsFee: 90 } },
+            },
+          },
+        }));
+
+      const { getByTestId } = renderFooter(buildActiveQuoteState());
+
+      await waitFor(() => {
+        expect(getByTestId('rewards-vip-badge')).toBeTruthy();
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.FEE_DISCLAIMER),
+        ).toHaveTextContent('Includes0.9%0.575% MM fee.');
+      });
+    });
+
     it('shows no MM fee disclaimer when dest token is mUSD and fee is zero', async () => {
       const musdAddress = '0xaca92e438df0b2401ff60da7e4337b687a2435da' as Hex;
 
@@ -313,7 +347,14 @@ describe('BridgeViewFooter', () => {
           isLoading: false,
           activeQuote: {
             ...(mockQuoteWithMetadata as unknown as QuoteResponse),
-            quote: { feeData: { metabridge: { quoteBpsFee: 0 } } },
+            quote: {
+              ...mockQuoteWithMetadata.quote,
+              destAsset: {
+                ...mockQuoteWithMetadata.quote.destAsset,
+                symbol: 'mUSD',
+              },
+              feeData: { metabridge: { quoteBpsFee: 0, baseBpsFee: 87.5 } },
+            },
           } as unknown as QuoteResponse,
         }));
 
@@ -350,6 +391,72 @@ describe('BridgeViewFooter', () => {
         expect(
           getByText(
             strings('bridge.no_mm_fee_disclaimer', { destTokenSymbol: 'mUSD' }),
+          ),
+        ).toBeTruthy();
+      });
+    });
+
+    it('shows fee disclaimer when fee is undefined', async () => {
+      const musdAddress = '0xaca92e438df0b2401ff60da7e4337b687a2435da' as Hex;
+
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          isLoading: false,
+          activeQuote: {
+            ...(mockQuoteWithMetadata as unknown as QuoteResponse),
+            quote: {
+              ...mockQuoteWithMetadata.quote,
+              destAsset: {
+                ...mockQuoteWithMetadata.quote.destAsset,
+                symbol: 'mUSD',
+              },
+              feeData: {
+                metabridge: { quoteBpsFee: undefined, baseBpsFee: undefined },
+              },
+            },
+          } as unknown as QuoteResponse,
+        }));
+
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides: {
+          quotesLoadingStatus: RequestStatus.FETCHED,
+          quotes: [mockQuoteWithMetadata as unknown as QuoteResponse],
+          quotesLastFetched: 12,
+        },
+        bridgeReducerOverrides: {
+          sourceAmount: '1.0',
+          sourceToken: {
+            address: '0x0000000000000000000000000000000000000000',
+            chainId: '0x1' as Hex,
+            decimals: 18,
+            image: '',
+            name: 'Ether',
+            symbol: 'ETH',
+          },
+          destToken: {
+            address: musdAddress,
+            chainId: '0x1' as Hex,
+            decimals: 6,
+            image: '',
+            name: 'MetaMask USD',
+            symbol: 'mUSD',
+          },
+        },
+      });
+
+      const { getByText } = renderFooter(testState as DeepPartial<RootState>);
+
+      await waitFor(() => {
+        expect(
+          getByText(
+            strings('bridge.fee_disclaimer', {
+              feePercentage: BRIDGE_MM_FEE_RATE,
+            }),
+            {
+              exact: false,
+            },
           ),
         ).toBeTruthy();
       });

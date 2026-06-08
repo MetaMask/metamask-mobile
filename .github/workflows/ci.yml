@@ -94,7 +94,12 @@ jobs:
 
       - name: Install Foundry if cache missed
         if: steps.restore-metamask.outputs.cache-hit != 'true'
-        run: yarn install:foundryup
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install:foundryup
       - name: Clean state and following up dependencies installation with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
@@ -112,8 +117,8 @@ jobs:
             echo "No changes detected"
           fi
 
-  post-build-source-hash:
-    name: Post build-source-hash commit status
+  native-build-fingerprint:
+    name: Compute native build fingerprint
     runs-on: ubuntu-latest
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     permissions:
@@ -142,12 +147,12 @@ jobs:
           max_attempts: 3
           retry_wait_seconds: 30
           command: yarn install --immutable
-      - name: Post build-source-hash commit status
-        if: ${{ inputs.runner_provider != 'namespace' }}
+      - name: Compute native build fingerprint and post build-source-hash
         id: publish
         uses: ./.github/actions/post-build-source-hash
         with:
           github-token: ${{ github.token }}
+          post-status: ${{ inputs.runner_provider != 'namespace' }}
           # Commit statuses must be posted on a real commit SHA (not the merge ref).
           # `find-reusable-build` looks up the status via `run.head_sha` from
           # `listWorkflowRuns`, which GitHub reports as the PR head SHA for pull_request
@@ -646,13 +651,15 @@ jobs:
       # TEMP: artifact fallback for non-Namespace runners.
       # Remove these two steps once Namespace passes the trial and becomes the default.
       - name: Download CI JS deps artifact
+        id: download-ci-js-deps
         if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
+        continue-on-error: true
         uses: actions/download-artifact@v4
         with:
           name: ci-js-deps
           path: .
       - name: Extract CI JS deps
-        if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
+        if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' && steps.download-ci-js-deps.outcome == 'success' }}
         run: tar -xzf ci-js-deps.tar.gz && rm ci-js-deps.tar.gz
       - uses: ./.github/actions/setup-ci-js-deps
         with:
@@ -703,7 +710,7 @@ jobs:
   merge-unit-and-component-view-tests:
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     needs: [prepare-ci-js-deps, unit-tests, component-view-tests]
-    if: ${{ !cancelled() && github.event_name != 'merge_group' }}
+    if: ${{ github.event_name != 'merge_group' }}
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ inputs.runner_provider == 'namespace' }}
@@ -712,13 +719,15 @@ jobs:
       # TEMP: artifact fallback for non-Namespace runners.
       # Remove these two steps once Namespace passes the trial and becomes the default.
       - name: Download CI JS deps artifact
+        id: download-ci-js-deps
         if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
+        continue-on-error: true
         uses: actions/download-artifact@v4
         with:
           name: ci-js-deps
           path: .
       - name: Extract CI JS deps
-        if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
+        if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' && steps.download-ci-js-deps.outcome == 'success' }}
         run: tar -xzf ci-js-deps.tar.gz && rm ci-js-deps.tar.gz
       - uses: ./.github/actions/setup-ci-js-deps
         with:
@@ -897,13 +906,15 @@ jobs:
       # TEMP: artifact fallback for non-Namespace runners.
       # Remove these two steps once Namespace passes the trial and becomes the default.
       - name: Download CI JS deps artifact
+        id: download-ci-js-deps
         if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
+        continue-on-error: true
         uses: actions/download-artifact@v4
         with:
           name: ci-js-deps
           path: .
       - name: Extract CI JS deps
-        if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
+        if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' && steps.download-ci-js-deps.outcome == 'success' }}
         run: tar -xzf ci-js-deps.tar.gz && rm ci-js-deps.tar.gz
       - uses: ./.github/actions/setup-ci-js-deps
         with:
@@ -992,7 +1003,7 @@ jobs:
       ${{
         !cancelled() &&
         needs.get_requirements.outputs.android_e2e_needed == 'true' &&
-        !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
+        !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
       }}
     permissions:
       contents: read
@@ -1000,12 +1011,12 @@ jobs:
       actions: read
       statuses: read
       pull-requests: read
-    needs: [get_requirements, smart-e2e-selection, post-build-source-hash]
+    needs: [get_requirements, smart-e2e-selection, native-build-fingerprint]
     uses: ./.github/workflows/build-android-e2e.yml
     with:
       build_type: 'main'
       metamask_environment: 'e2e'
-      source-fingerprint: ${{ needs.post-build-source-hash.outputs.fingerprint }}
+      source-fingerprint: ${{ needs.native-build-fingerprint.outputs.fingerprint }}
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
@@ -1021,7 +1032,7 @@ jobs:
       changed_files: ${{ needs.get_requirements.outputs.changed_files }}
       selected_tags: >-
         ${{
-          (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
+          (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
           '["ALL"]'
         }}
       runner_provider: ${{ inputs.runner_provider }}
@@ -1033,7 +1044,7 @@ jobs:
       ${{
         !cancelled() &&
         needs.get_requirements.outputs.ios_e2e_needed == 'true' &&
-        !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
+        !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
       }}
     permissions:
       contents: read
@@ -1041,10 +1052,10 @@ jobs:
       actions: read
       statuses: read
       pull-requests: read
-    needs: [get_requirements, smart-e2e-selection, post-build-source-hash]
+    needs: [get_requirements, smart-e2e-selection, native-build-fingerprint]
     uses: ./.github/workflows/build-ios-e2e.yml
     with:
-      source-fingerprint: ${{ needs.post-build-source-hash.outputs.fingerprint }}
+      source-fingerprint: ${{ needs.native-build-fingerprint.outputs.fingerprint }}
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
@@ -1069,7 +1080,7 @@ jobs:
       changed_files: ${{ needs.get_requirements.outputs.changed_files }}
       selected_tags: >-
         ${{
-          (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
+          (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
           '["ALL"]'
         }}
       runner_provider: ${{ inputs.runner_provider }}
@@ -1137,7 +1148,7 @@ jobs:
     name: SonarCloud analysis
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     needs: merge-unit-and-component-view-tests
-    if: ${{ !cancelled() && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
+    if: ${{ github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ inputs.runner_provider == 'namespace' }}
@@ -1204,7 +1215,7 @@ jobs:
     name: SonarCloud quality gate status
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     needs: sonar-cloud
-    if: ${{ !cancelled() && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
+    if: ${{ github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ inputs.runner_provider == 'namespace' }}
@@ -1232,8 +1243,6 @@ jobs:
           if [[ "$LABEL" == "skip-sonar-cloud" ]]; then
             echo "skip-sonar-cloud label found. Skipping SonarCloud Quality Gate check."
           else
-            sleep 30
-
             PROJECT_KEY="metamask-mobile"
             PR_NUMBER="${{ github.event.pull_request.number }}"
             SONAR_TOKEN="${{ secrets.SONAR_TOKEN }}"
@@ -1243,22 +1252,72 @@ jobs:
               exit 1
             fi
 
-            RESPONSE=$(curl -s -u "$SONAR_TOKEN:" \
-              "https://sonarcloud.io/api/qualitygates/project_status?projectKey=$PROJECT_KEY&pullRequest=$PR_NUMBER")
-            echo "SonarCloud API Response: $RESPONSE"
+            # Poll until SonarCloud has finished ingesting the analysis (status OK or ERROR),
+            # retrying on NONE/empty which means ingestion is still in progress.
+            # Retries up to 12 times, 15s apart (~2m45s total), then fails the check on timeout.
+            MAX_ATTEMPTS=12
+            SLEEP_INTERVAL=15
+            for i in $(seq 1 $MAX_ATTEMPTS); do
+              RESPONSE=$(curl -s -u "$SONAR_TOKEN:" \
+                "https://sonarcloud.io/api/qualitygates/project_status?projectKey=$PROJECT_KEY&pullRequest=$PR_NUMBER")
+              echo "SonarCloud API Response (attempt $i/$MAX_ATTEMPTS): $RESPONSE"
+              STATUS=$(echo "$RESPONSE" | jq -r '.projectStatus.status')
 
-            STATUS=$(echo "$RESPONSE" | jq -r '.projectStatus.status')
+              if [[ "$STATUS" == "OK" ]]; then
+                echo "Quality Gate passed."
+                exit 0
+              elif [[ "$STATUS" == "ERROR" ]]; then
+                echo "Quality Gate failed."
+                exit 1
+              fi
 
-            if [[ "$STATUS" == "ERROR" ]]; then
-              echo "Quality Gate failed."
-              exit 1
-            elif [[ "$STATUS" == "OK" ]]; then
-              echo "Quality Gate passed."
-            else
-              echo "Could not determine Quality Gate status."
-              exit 1
-            fi
+              echo "Quality Gate status not yet settled (got: '$STATUS'). Retrying in ${SLEEP_INTERVAL}s..."
+              if [[ $i -lt $MAX_ATTEMPTS ]]; then
+                sleep "$SLEEP_INTERVAL"
+              fi
+            done
+
+            echo "Could not determine Quality Gate status after $MAX_ATTEMPTS attempts."
+            exit 1
           fi
+
+  # TEMP: delete the ci-js-deps artifact once all consumers have finished so it
+  # does not sit in GitHub artifact storage for the full retention-days: 1
+  # window. Every push re-creates this artifact from scratch, so there is never
+  # a reason to keep it after the run's consumers are done.
+  # Remove this job together with the upload/download steps once Namespace
+  # becomes the default runner.
+  cleanup-ci-js-deps:
+    name: Delete CI JS deps artifact
+    runs-on: ubuntu-latest
+    if: ${{ always() && inputs.runner_provider != 'namespace' }}
+    needs:
+      - unit-tests
+      - component-view-tests
+      - merge-unit-and-component-view-tests
+    permissions:
+      actions: write
+    steps:
+      - name: Delete CI JS deps artifact
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.runId,
+            });
+            const target = artifacts.data.artifacts.find(a => a.name === 'ci-js-deps');
+            if (target) {
+              await github.rest.actions.deleteArtifact({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                artifact_id: target.id,
+              });
+              core.info(`Deleted artifact ci-js-deps (id=${target.id})`);
+            } else {
+              core.info('Artifact ci-js-deps not found (already deleted or never created)');
+            }
 
   check-all-jobs-pass:
     name: Check all jobs pass

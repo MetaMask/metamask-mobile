@@ -257,15 +257,23 @@ async function publishHook({
   }
 
   const { isExternalSign } = transactionMeta;
+  const isRevokeDelegation =
+    transactionMeta.type === TransactionType.revokeDelegation;
 
   const keyringSupports7702 = await accountSupports7702(
     transactionMeta.txParams?.from,
     keyringController,
   );
 
+  const isSwapGasIncluded7702 = Boolean(transactionMeta.isGasFeeIncluded);
+
   if (
     keyringSupports7702 &&
-    (!shouldUseSmartTransaction || !sendBundleSupport || isExternalSign)
+    !isRevokeDelegation &&
+    (isSwapGasIncluded7702 ||
+      !shouldUseSmartTransaction ||
+      !sendBundleSupport ||
+      isExternalSign)
   ) {
     const hook = new Delegation7702PublishHook({
       isAtomicBatchSupported: transactionController.isAtomicBatchSupported.bind(

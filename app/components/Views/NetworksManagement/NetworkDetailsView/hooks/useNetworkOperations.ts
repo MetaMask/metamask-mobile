@@ -84,7 +84,7 @@ export const useNetworkOperations = (): UseNetworkOperationsReturn => {
   const providerConfig = useSelector(selectProviderConfig);
   const isAllNetworks = useSelector(selectIsAllNetworks);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
-  const { trackEvent, addTraitsToUser, createEventBuilder } = useAnalytics();
+  const { trackEvent, identify, createEventBuilder } = useAnalytics();
 
   // ---- Handle network add/update ------------------------------------------
   const handleNetworkUpdate = useCallback(
@@ -204,7 +204,7 @@ export const useNetworkOperations = (): UseNetworkOperationsReturn => {
         await NetworkController.addNetwork({
           ...networkConfig,
         } as unknown as AddNetworkFields);
-        addTraitsToUser(addItemToChainIdList(networkConfig.chainId));
+        identify(addItemToChainIdList(networkConfig.chainId));
       }
 
       if (!skipPostSaveNavigation) {
@@ -221,7 +221,7 @@ export const useNetworkOperations = (): UseNetworkOperationsReturn => {
       navigation,
       networkConfigurations,
       trackEvent,
-      addTraitsToUser,
+      identify,
       createEventBuilder,
     ],
   );
@@ -396,11 +396,11 @@ export const useNetworkOperations = (): UseNetworkOperationsReturn => {
       const { NetworkController } = Engine.context;
       NetworkController.removeNetwork(hexChainId);
 
-      addTraitsToUser(removeItemFromChainIdList(hexChainId));
+      identify(removeItemFromChainIdList(hexChainId));
 
       navigation.goBack();
     },
-    [navigation, networkConfigurations, providerConfig, addTraitsToUser],
+    [navigation, networkConfigurations, providerConfig, identify],
   );
 
   // ---- Navigate to edit ---------------------------------------------------

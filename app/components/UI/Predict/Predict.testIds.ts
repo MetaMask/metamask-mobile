@@ -1,21 +1,6 @@
 import enContent from '../../../../locales/languages/en.json';
 
 // ========================================
-// PREDICT TAB VIEW SELECTORS
-// ========================================
-
-export const PredictTabViewSelectorsIDs = {
-  // Main container
-  CONTAINER: 'predict-tab-view-container',
-
-  // Scroll view
-  SCROLL_VIEW: 'predict-tab-view-scroll-view',
-
-  // FlashList
-  FLASH_LIST: 'predict-tab-view-flash-list',
-} as const;
-
-// ========================================
 // PREDICT MARKET LIST SELECTORS
 // ========================================
 
@@ -52,6 +37,73 @@ export const PredictFeedSelectorsIDs = {
   TAB_BAR_CONTAINER: 'predict-feed-tab-bar-container',
   TABS: 'predict-feed-tabs',
   PAGER: 'predict-feed-pager',
+} as const;
+
+// ========================================
+// PREDICT HOME (REDESIGN SHELL) SELECTORS
+// ========================================
+
+export const PredictHomeSelectorsIDs = {
+  CONTAINER: 'predict-home-container',
+  SCROLL_VIEW: 'predict-home-scroll-view',
+  TITLE_SECTION: 'predict-home-title-section',
+  TITLE: 'predict-home-title',
+  PORTFOLIO_MODULE: 'predict-home-portfolio-module',
+  LIVE_NOW_SECTION: 'predict-home-live-now-section',
+  CATEGORIES_SECTION: 'predict-home-categories-section',
+  POPULAR_TODAY_SECTION: 'predict-home-popular-today-section',
+  TRENDING_SECTION: 'predict-home-trending-section',
+} as const;
+
+// ========================================
+// PREDICT POSITIONS VIEW SELECTORS
+// ========================================
+
+export const PredictPositionsViewSelectorsIDs = {
+  AVAILABLE_BALANCE_LABEL: 'predict-positions-view-available-balance-label',
+  AVAILABLE_BALANCE_SKELETON:
+    'predict-positions-view-available-balance-skeleton',
+  AVAILABLE_BALANCE_VALUE: 'predict-positions-view-available-balance-value',
+  BACK_BUTTON: 'predict-positions-view-back-button',
+  CLAIM_CTA: 'predict-positions-view-claim-cta',
+  CONTAINER: 'predict-positions-view-container',
+  HEADER: 'predict-positions-view-header',
+  HISTORY_TAB: 'predict-positions-view-history-tab',
+  HISTORY_TAB_CONTENT: 'predict-positions-view-history-tab-content',
+  POSITIONS_TAB: 'predict-positions-view-positions-tab',
+  POSITIONS_TAB_CONTENT: 'predict-positions-view-positions-tab-content',
+  SUMMARY: 'predict-positions-view-summary',
+  SUMMARY_CARD: 'predict-positions-view-summary-card',
+  TABS: 'predict-positions-view-tabs',
+  UNREALIZED_PNL_LABEL: 'predict-positions-view-unrealized-pnl-label',
+  UNREALIZED_PNL_ROW: 'predict-positions-view-unrealized-pnl-row',
+  UNREALIZED_PNL_SKELETON: 'predict-positions-view-unrealized-pnl-skeleton',
+  UNREALIZED_PNL_VALUE: 'predict-positions-view-unrealized-pnl-value',
+} as const;
+
+export const PredictPositionsEmptySelectorsIDs = {
+  BROWSE_MARKETS_CTA: 'predict-positions-empty-browse-markets-cta',
+  CONTAINER: 'predict-positions-empty',
+  DESCRIPTION: 'predict-positions-empty-description',
+  ICON: 'predict-positions-empty-icon',
+} as const;
+
+export const PredictPositionsListSelectorsIDs = {
+  CONTAINER: 'predict-positions-list',
+  LOADING_STATE: 'predict-positions-list-loading-state',
+  OPEN_POSITIONS_LIST: 'predict-positions-list-open-positions',
+  SKELETON_ROW: 'predict-positions-list-skeleton-row',
+} as const;
+
+export const PredictPositionsHistoryListSelectorsIDs = {
+  CLAIM_PENDING_SECTION: 'predict-positions-history-claim-pending-section',
+  CLAIM_PENDING_ROW: 'predict-positions-history-claim-pending-row',
+  CONTAINER: 'predict-positions-history-list',
+} as const;
+
+export const getPredictPositionsHistoryListSelector = {
+  claimPendingRow: (positionId: string) =>
+    `${PredictPositionsHistoryListSelectorsIDs.CLAIM_PENDING_ROW}-${positionId}`,
 } as const;
 
 export const getPredictFeedSelector = {
@@ -130,6 +182,9 @@ export const PredictMarketDetailsSelectorsIDs = {
   DETAILS_BUTTONS_SKELETON_BUTTON_1:
     'predict-details-buttons-skeleton-button-1',
 
+  // Empty / unavailable states
+  MARKET_UNAVAILABLE: 'predict-market-details-market-unavailable',
+
   // BottomSheet wrappers
   BUY_PREVIEW_SHEET: 'predict-buy-preview-sheet',
   SELL_PREVIEW_SHEET: 'predict-sell-preview-sheet',
@@ -146,6 +201,36 @@ export const PredictCryptoUpDownDetailsSelectorsIDs = {
   SHARE_BUTTON: 'predict-crypto-up-down-details-share-button',
   SCROLL_VIEW: 'predict-crypto-up-down-details-scroll-view',
   TITLE_SECTION: 'predict-crypto-up-down-details-title-section',
+  PRICE_SUMMARY: 'predict-crypto-up-down-details-price-summary',
+} as const;
+
+export const PredictCryptoUpDownPositionsSelectorsIDs = {
+  SECTION: 'predict-crypto-up-down-positions-section',
+  SECTION_HEADER: 'predict-crypto-up-down-positions-section-header',
+  LIST: 'predict-crypto-up-down-positions-list',
+  POSITION_ROW: 'predict-crypto-up-down-positions-row',
+  CASH_OUT_BUTTON: 'predict-crypto-up-down-positions-cash-out-button',
+  CLAIM_BUTTON: 'predict-crypto-up-down-positions-claim-button',
+} as const;
+
+export const getPredictCryptoUpDownPositionSelector = {
+  row: (positionId: string) =>
+    `${PredictCryptoUpDownPositionsSelectorsIDs.POSITION_ROW}-${positionId}`,
+  cashOutButton: (positionId: string) =>
+    `${PredictCryptoUpDownPositionsSelectorsIDs.CASH_OUT_BUTTON}-${positionId}`,
+  claimButton: (positionId: string) =>
+    `${PredictCryptoUpDownPositionsSelectorsIDs.CLAIM_BUTTON}-${positionId}`,
+};
+
+export const PredictCryptoUpDownMarketCardSelectorsIDs = {
+  CARD: 'predict-crypto-up-down-market-card',
+  SKELETON: 'predict-crypto-up-down-market-card-skeleton',
+  LIVE_BADGE: 'predict-crypto-up-down-market-card-live-badge',
+  PROBABILITY: 'predict-crypto-up-down-market-card-probability',
+  SPARKLINE: 'predict-crypto-up-down-market-card-sparkline',
+  SPARKLINE_EMPTY: 'predict-crypto-up-down-market-card-sparkline-empty',
+  UP_BUTTON: 'predict-crypto-up-down-market-card-up-button',
+  DOWN_BUTTON: 'predict-crypto-up-down-market-card-down-button',
 } as const;
 
 export const PredictMarketDetailsSelectorsText = {
@@ -268,6 +353,7 @@ export const getPredictSearchSelector = {
 
 export const PredictBalanceSelectorsIDs = {
   BALANCE_CARD: 'predict-balance-card',
+  POSITIONS_BUTTON: 'predict-balance-positions-button',
   WITHDRAW_BUTTON: 'predict-balance-withdraw-button',
 } as const;
 

@@ -1,5 +1,6 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import React from 'react';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+import React, { useEffect } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import {
@@ -7,13 +8,16 @@ import {
   transparentModalScreenOptions,
 } from '../../../../constants/navigation/clearStackNavigatorOptions';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
+import { PayWithBottomSheet } from '../../../Views/confirmations/components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet';
+import { PayWithModal } from '../../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
 import PredictMarketDetails from '../views/PredictMarketDetails';
 import PredictUnavailableModal from '../views/PredictUnavailableModal';
 import { useEmptyNavHeaderForConfirmations } from '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
 import PredictActivityDetail from '../components/PredictActivityDetail/PredictActivityDetail';
 import { PredictNavigationParamList } from '../types/navigation';
 import PredictAddFundsModal from '../views/PredictAddFundsModal/PredictAddFundsModal';
-import PredictFeed from '../views/PredictFeed';
+import PredictPositionsView from '../views/PredictPositionsView';
+import PredictMarketListRoute from './PredictMarketListRoute';
 import PredictWorldCup from '../views/PredictWorldCup';
 import PredictGTMModal from '../components/PredictGTMModal';
 import { useSelector } from 'react-redux';
@@ -21,10 +25,40 @@ import { PredictPreviewSheetProvider } from '../contexts';
 import PredictBuyPreview from '../views/PredictBuyPreview/PredictBuyPreview';
 import PredictBuyWithAnyToken from '../views/PredictBuyWithAnyToken';
 import PredictSellPreview from '../views/PredictSellPreview/PredictSellPreview';
-import { selectPredictWithAnyTokenEnabledFlag } from '../selectors/featureFlags';
+import {
+  selectPredictPortfolioEnabledFlag,
+  selectPredictWithAnyTokenEnabledFlag,
+} from '../selectors/featureFlags';
 
 const Stack = createNativeStackNavigator<PredictNavigationParamList>();
 const ModalStack = createNativeStackNavigator<PredictNavigationParamList>();
+
+const PredictPositionsRoute = () => {
+  const navigation =
+    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const predictPortfolioEnabled = useSelector(
+    selectPredictPortfolioEnabledFlag,
+  );
+
+  useEffect(() => {
+    if (predictPortfolioEnabled) {
+      return;
+    }
+
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+      return;
+    }
+
+    navigation.navigate(Routes.PREDICT.MARKET_LIST);
+  }, [navigation, predictPortfolioEnabled]);
+
+  if (!predictPortfolioEnabled) {
+    return null;
+  }
+
+  return <PredictPositionsView />;
+};
 
 const PredictModalStack = () => {
   const emptyNavHeaderOptions = useEmptyNavHeaderForConfirmations();
@@ -83,7 +117,7 @@ const PredictScreenStack = () => {
       >
         <Stack.Screen
           name={Routes.PREDICT.MARKET_LIST}
-          component={PredictFeed}
+          component={PredictMarketListRoute}
           options={{
             title: strings('predict.markets.title'),
             animation: 'none',
@@ -93,6 +127,11 @@ const PredictScreenStack = () => {
         <Stack.Screen
           name={Routes.PREDICT.WORLD_CUP}
           component={PredictWorldCup}
+        />
+
+        <Stack.Screen
+          name={Routes.PREDICT.POSITIONS}
+          component={PredictPositionsRoute}
         />
 
         <Stack.Screen
@@ -119,6 +158,23 @@ const PredictScreenStack = () => {
         <Stack.Screen
           name={Routes.PREDICT.MARKET_DETAILS}
           component={PredictMarketDetails}
+        />
+
+        <Stack.Screen
+          name={Routes.CONFIRMATION_PAY_WITH_MODAL}
+          component={PayWithModal}
+          options={{
+            ...clearNativeStackNavigatorOptions,
+            ...transparentModalScreenOptions,
+          }}
+        />
+        <Stack.Screen
+          name={Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET}
+          component={PayWithBottomSheet}
+          options={{
+            ...clearNativeStackNavigatorOptions,
+            ...transparentModalScreenOptions,
+          }}
         />
       </Stack.Navigator>
     </PredictPreviewSheetProvider>

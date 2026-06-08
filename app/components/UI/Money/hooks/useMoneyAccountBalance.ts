@@ -1,5 +1,5 @@
 import { useSelector } from 'react-redux';
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import {
   type MusdEquivalentValueResponse,
   NormalizedVaultApyResponse,
@@ -22,7 +22,7 @@ import {
 import { toChecksumAddress } from '../../../../util/address';
 import { MoneyAccountBalanceServiceQueryKeys } from '../queryKeys';
 import Engine from '../../../../core/Engine';
-import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
+import useMoneyAccountInfo from './useMoneyAccountInfo';
 
 const DEFAULT_REFETCH_INTERVAL = 30 * 1000; // 30 seconds
 
@@ -46,7 +46,8 @@ export const getLiveVedaVaultExchangeRate = async () =>
 const useMoneyAccountBalance = (
   refetchInterval: number = DEFAULT_REFETCH_INTERVAL,
 ) => {
-  const moneyAccountAddress = useSelector(selectPrimaryMoneyAccount)?.address;
+  const { primaryMoneyAccount } = useMoneyAccountInfo();
+  const moneyAccountAddress = primaryMoneyAccount?.address;
 
   const tokenMarketData = useSelector(selectTokenMarketData);
   const currencyRates = useSelector(selectCurrencyRates);
@@ -112,6 +113,30 @@ const useMoneyAccountBalance = (
     [musdBalanceQuery.isLoading, musdEquivalentBalanceQuery.isLoading],
   );
 
+  /** True when either balance query has errored. Any failure → full error state. */
+  const isBalanceFetchError = useMemo(
+    () => musdBalanceQuery.isError || musdEquivalentBalanceQuery.isError,
+    [musdBalanceQuery.isError, musdEquivalentBalanceQuery.isError],
+  );
+
+  /**
+   * True while a user-initiated refetch is in flight (has isError + isFetching).
+   * Distinguishes retry-in-flight (show skeleton) from auto-refetch (has cache,
+   * update silently).
+   */
+  const isBalanceFetching = useMemo(
+    () => musdBalanceQuery.isFetching || musdEquivalentBalanceQuery.isFetching,
+    [musdBalanceQuery.isFetching, musdEquivalentBalanceQuery.isFetching],
+  );
+
+  const refetchMusdBalance = musdBalanceQuery.refetch;
+  const refetchMusdEquivalentBalance = musdEquivalentBalanceQuery.refetch;
+
+  const refetchBalance = useCallback(
+    () => Promise.all([refetchMusdBalance(), refetchMusdEquivalentBalance()]),
+    [refetchMusdBalance, refetchMusdEquivalentBalance],
+  );
+
   const { musdFiat, musdSHFvdFiat, tokenTotal, totalFiat, withdrawableMusd } =
     useMemo(() => {
       // mUSD balance: raw uint256 (6 decimals) → decimal BigNumber
@@ -136,19 +161,21 @@ const useMoneyAccountBalance = (
         : new BigNumber(0);
 
       // vmUSD shares expressed in mUSD via the vault rate — this is the withdrawable amount.
-      // Undefined while loading so callers can distinguish "loading" from a genuine zero balance.
-      const computedWithdrawableMusd = isAggregatedBalanceLoading
-        ? undefined
-        : musdSHFvdDecimal;
+      // Undefined while loading or on error so callers can distinguish from a genuine zero.
+      const computedWithdrawableMusd =
+        isAggregatedBalanceLoading || isBalanceFetchError
+          ? undefined
+          : musdSHFvdDecimal;
 
       if (!musdFiatRate) {
         return {
           musdFiat: undefined,
           musdSHFvdFiat: undefined,
-          // Undefined during loading so callers can distinguish "loading" from a genuine zero balance.
-          tokenTotal: isAggregatedBalanceLoading
-            ? undefined
-            : musdDecimal.plus(musdSHFvdDecimal),
+          // Undefined during loading or error so callers can distinguish from a genuine zero.
+          tokenTotal:
+            isAggregatedBalanceLoading || isBalanceFetchError
+              ? undefined
+              : musdDecimal.plus(musdSHFvdDecimal),
           totalFiat: undefined,
           withdrawableMusd: computedWithdrawableMusd,
         };
@@ -160,32 +187,40 @@ const useMoneyAccountBalance = (
       return {
         musdFiat: computedMusdFiat,
         musdSHFvdFiat: computedMusdSHFvdFiat,
-        // Undefined during loading so callers can distinguish "loading" from a genuine zero balance.
-        tokenTotal: isAggregatedBalanceLoading
-          ? undefined
-          : musdDecimal.plus(musdSHFvdDecimal),
+        // Undefined during loading or error so callers can distinguish from a genuine zero.
+        tokenTotal:
+          isAggregatedBalanceLoading || isBalanceFetchError
+            ? undefined
+            : musdDecimal.plus(musdSHFvdDecimal),
         // Both fiat values share musdFiatRate as their sole dependency — computing
         // them inside this guard means no null assertions are needed.
-        totalFiat: computedMusdFiat.plus(computedMusdSHFvdFiat),
+        totalFiat: isBalanceFetchError
+          ? undefined
+          : computedMusdFiat.plus(computedMusdSHFvdFiat),
         withdrawableMusd: computedWithdrawableMusd,
       };
     }, [
       isAggregatedBalanceLoading,
+      isBalanceFetchError,
       musdBalanceQuery.data,
       musdEquivalentBalanceQuery.data,
       musdFiatRate,
     ]);
 
-  const musdFiatFormatted = musdFiat
-    ? moneyFormatFiat(musdFiat, currentCurrency)
-    : undefined;
-  const musdSHFvdFiatFormatted = musdSHFvdFiat
-    ? moneyFormatFiat(musdSHFvdFiat, currentCurrency)
-    : undefined;
-  const totalFiatFormatted = totalFiat
-    ? moneyFormatFiat(totalFiat, currentCurrency)
-    : undefined;
-  const totalFiatRaw = totalFiat ? totalFiat.toString() : undefined;
+  const musdFiatFormatted =
+    !isBalanceFetchError && musdFiat
+      ? moneyFormatFiat(musdFiat, currentCurrency)
+      : undefined;
+  const musdSHFvdFiatFormatted =
+    !isBalanceFetchError && musdSHFvdFiat
+      ? moneyFormatFiat(musdSHFvdFiat, currentCurrency)
+      : undefined;
+  const totalFiatFormatted =
+    !isBalanceFetchError && totalFiat
+      ? moneyFormatFiat(totalFiat, currentCurrency)
+      : undefined;
+  const totalFiatRaw =
+    !isBalanceFetchError && totalFiat ? totalFiat.toString() : undefined;
 
   const rawApy = vaultApyQuery.data?.apy;
 
@@ -199,6 +234,9 @@ const useMoneyAccountBalance = (
     vaultApyQuery,
     musdEquivalentBalanceQuery,
     isAggregatedBalanceLoading,
+    isBalanceFetchError,
+    isBalanceFetching,
+    refetchBalance,
     musdFiatFormatted,
     musdSHFvdFiatFormatted,
     tokenTotal,

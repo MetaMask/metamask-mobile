@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Routes from '../../../../constants/navigation/Routes';
 import {
@@ -6,8 +6,6 @@ import {
   transparentModalScreenOptions,
 } from '../../../../constants/navigation/clearStackNavigatorOptions';
 import { useTheme } from '../../../../util/theme';
-import useThunkDispatch from '../../../hooks/useThunkDispatch';
-import { upgradeMoneyAccount } from '../../../../actions/money';
 import MoneyHomeView from '../Views/MoneyHomeView';
 import MoneyActivityView from '../Views/MoneyActivityView';
 import MoneyHowItWorksView from '../Views/MoneyHowItWorksView';
@@ -21,15 +19,19 @@ import MoneyBalanceInfoSheet from '../components/MoneyBalanceInfoSheet';
 import MoneyLinkCardSheet from '../components/MoneyLinkCardSheet';
 import MoneyEarnCryptoInfoSheet from '../components/MoneyEarnCryptoInfoSheet';
 import MoneyTransactionDetailsSheet from '../components/MoneyTransactionDetailsSheet';
+import MoneyCardTransactionDetailsSheet from '../components/MoneyCardTransactionDetailsSheet/MoneyCardTransactionDetailsSheet';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import { useEmptyNavHeaderForConfirmations } from '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
+import { useUpgradeMoneyAccountOnMount } from '../hooks/useUpgradeMoneyAccountOnMount';
 
 const Stack = createNativeStackNavigator();
 const ModalStack = createNativeStackNavigator();
 
-const MoneyScreenStack = () => {
+// For Money screens that require bottom navbar.
+const MoneyTabScreenStack = () => {
   const { colors } = useTheme();
-  const emptyNavHeaderOptions = useEmptyNavHeaderForConfirmations();
+
+  useUpgradeMoneyAccountOnMount();
 
   return (
     <Stack.Navigator
@@ -52,6 +54,28 @@ const MoneyScreenStack = () => {
         name={Routes.MONEY.POTENTIAL_EARNINGS}
         component={MoneyPotentialEarningsView}
       />
+    </Stack.Navigator>
+  );
+};
+
+// We separate the confirmation screen so we can define it separately in the MainNavigator outside of the HomeTabs.
+// This way we don't want to show the bottom navbar.
+const MoneyConfirmationScreenStack = () => {
+  const { colors } = useTheme();
+  const emptyNavHeaderOptions = useEmptyNavHeaderForConfirmations();
+
+  useUpgradeMoneyAccountOnMount();
+
+  return (
+    <Stack.Navigator
+      initialRouteName={
+        Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS
+      }
+      screenOptions={{
+        headerShown: false,
+        contentStyle: { backgroundColor: colors.background.default },
+      }}
+    >
       <Stack.Screen
         name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
         options={emptyNavHeaderOptions}
@@ -113,17 +137,12 @@ const MoneyModalStack = () => (
       component={MoneyTransactionDetailsSheet}
       options={{ headerShown: false }}
     />
+    <ModalStack.Screen
+      name={Routes.MONEY.MODALS.CARD_TRANSACTION_DETAILS_SHEET}
+      component={MoneyCardTransactionDetailsSheet}
+      options={{ headerShown: false }}
+    />
   </ModalStack.Navigator>
 );
 
-const MoneyAccountStackGate = () => {
-  const dispatch = useThunkDispatch();
-
-  useEffect(() => {
-    dispatch(upgradeMoneyAccount());
-  }, [dispatch]);
-
-  return <MoneyScreenStack />;
-};
-
-export { MoneyAccountStackGate, MoneyScreenStack, MoneyModalStack };
+export { MoneyConfirmationScreenStack, MoneyModalStack, MoneyTabScreenStack };

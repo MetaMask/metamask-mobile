@@ -123,7 +123,6 @@ export class BackgroundBridge extends EventEmitter {
     isWalletConnect,
     wcRequestActions,
     getApprovedHosts,
-    remoteConnHost,
     isMMSDK,
     sdkVersion = 'v1',
     channelId,
@@ -132,7 +131,6 @@ export class BackgroundBridge extends EventEmitter {
     this.url = url;
     this.origin = new URL(url).origin;
     // TODO - When WalletConnect and MMSDK uses the Permission System, URL does not apply in all conditions anymore since hosts may not originate from web. This will need to change!
-    this.remoteConnHost = remoteConnHost;
     this.isMainFrame = isMainFrame;
     this.isWalletConnect = isWalletConnect;
     this.isMMSDK = isMMSDK;
@@ -435,8 +433,8 @@ export class BackgroundBridge extends EventEmitter {
       this.networkVersionSent = publicState.networkVersion;
       await this.notifyChainChanged(publicState);
     }
-    // ONLY NEEDED FOR WC FOR NOW, THE BROWSER HANDLES THIS NOTIFICATION BY ITSELF
-    if (this.isWalletConnect || this.isRemoteConn) {
+    // WalletConnect now relies exclusively on AccountTreeController:selectedAccountGroupChange.
+    if (this.isRemoteConn) {
       const accountControllerSelectedAddress = toFormattedAddress(
         Engine.context.AccountsController.getSelectedAccount().address,
       );
@@ -1234,24 +1232,7 @@ export class BackgroundBridge extends EventEmitter {
         Caip25CaveatType,
       );
       if (caip25Caveat) {
-        // TODO: Remove this setTimeout once the core issue in https://github.com/MetaMask/core/pull/8261 is resolved.
-        // Two issues still exist. One is that the AccountGroup metadata is not available when the wallet is locked.
-        // The other is that the EVM metadata is not updated by by the time the selectedAccountGroupChange event is fired.
-        // The former issue mainly affects Extension, not Mobile, but to keep both in sync, we'll keep the setTimeout for now.
-        // The latter issue is what requires the setTimeout below.
-        setTimeout(() => {
-          // We refetch the caip25Caveat to get the latest value in case it
-          // has changed since we first fetched it.
-          const caip25CaveatRefetched =
-            Engine.context.PermissionController.getCaveat(
-              this.channelIdOrOrigin,
-              Caip25EndowmentPermissionName,
-              Caip25CaveatType,
-            );
-          if (caip25CaveatRefetched) {
-            this.notifyCaipAuthorizationChange(caip25CaveatRefetched.value);
-          }
-        }, 1000);
+        this.notifyCaipAuthorizationChange(caip25Caveat.value);
       }
     } catch (err) {
       if (err instanceof PermissionDoesNotExistError) {

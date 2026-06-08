@@ -38,10 +38,6 @@ const styleSheet = (params: { theme: Theme }) => {
     header: {
       margin: 16,
     },
-
-    text: {
-      color: colors.text.alternative,
-    },
   });
 };
 

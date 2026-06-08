@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import {
+  HeaderStandard,
   Icon,
   IconName,
   IconSize,
@@ -15,7 +16,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import MainActionButton from '../../../component-library/components-temp/MainActionButton';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard/HeaderCompactStandard';
 import ActionListItem from '../../../component-library/components-temp/ActionListItem';
 import { IconName as LocalIconName } from '../../../component-library/components/Icons/Icon';
 import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
@@ -31,6 +31,7 @@ import AppConstants from '../../../core/AppConstants';
 import DeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
 import { useRampsButtonClickData } from '../../UI/Ramp/hooks/useRampsButtonClickData';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
 import { useRampNavigation } from '../../UI/Ramp/hooks/useRampNavigation';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
@@ -99,7 +100,7 @@ const AccountsMenu = () => {
           .build(),
       );
     } else {
-      navigation.navigate(Routes.NOTIFICATIONS.OPT_IN_STACK);
+      navigation.navigate(Routes.NOTIFICATIONS.VIEW);
       trackEvent(
         createEventBuilder(EVENT_NAME.NOTIFICATIONS_ACTIVATED)
           .addProperties({
@@ -357,7 +358,7 @@ const AccountsMenu = () => {
       edges={{ bottom: 'additive' }}
       style={tw.style('flex-1', { backgroundColor: colors.background.default })}
     >
-      <HeaderCompactStandard
+      <HeaderStandard
         onBack={handleBack}
         backButtonProps={{ testID: AccountsMenuSelectorsIDs.BACK_BUTTON }}
         includesTopInset

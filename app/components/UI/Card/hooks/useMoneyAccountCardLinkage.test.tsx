@@ -5,11 +5,13 @@ import { ToastContext } from '../../../../component-library/components/Toast';
 import Logger from '../../../../util/Logger';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
+import { getGasFeesSponsoredNetworkEnabled } from '../../../../selectors/featureFlagController/gasFeesSponsored';
 import {
   selectCardDelegationSettings,
   selectCardHomeDataStatus,
   selectIsCardAuthenticated,
   selectIsCardholder,
+  selectIsMoneyAccountCardLinkInProgress,
   selectIsMoneyAccountDelegatedForCard,
 } from '../../../../selectors/cardController';
 import {
@@ -131,7 +133,7 @@ type CardHomeDataStatusMock = 'idle' | 'loading' | 'success' | 'error';
 const buildSelectors = (
   overrides: {
     primaryMoneyAccount?: { address: string } | undefined;
-    vaultConfig?: unknown;
+    vaultConfig?: { chainId?: string } | undefined;
     isMoneyAccountEnabled?: boolean;
     isCardAuthenticated?: boolean;
     isCardholder?: boolean;
@@ -139,10 +141,12 @@ const buildSelectors = (
     isAlreadyDelegated?: boolean;
     pendingMoneyAccountCardLink?: boolean;
     cardHomeDataStatus?: CardHomeDataStatusMock;
+    isMonadSponsorshipEnabled?: boolean;
+    moneyAccountCardLinkInProgress?: boolean;
   } = {},
 ) => ({
   primaryMoneyAccount: { address: MONEY_ACCOUNT_ADDRESS },
-  vaultConfig: { id: 'vault-1' },
+  vaultConfig: { chainId: '0x8f' },
   isMoneyAccountEnabled: true,
   isCardAuthenticated: true,
   isCardholder: false,
@@ -150,6 +154,8 @@ const buildSelectors = (
   isAlreadyDelegated: false,
   pendingMoneyAccountCardLink: false,
   cardHomeDataStatus: 'success' as CardHomeDataStatusMock,
+  isMonadSponsorshipEnabled: true,
+  moneyAccountCardLinkInProgress: false,
   ...overrides,
 });
 
@@ -168,8 +174,12 @@ const applySelectorMocks = (state: ReturnType<typeof buildSelectors>) => {
     if (selector === selectCardHomeDataStatus) return state.cardHomeDataStatus;
     if (selector === selectIsMoneyAccountDelegatedForCard)
       return state.isAlreadyDelegated;
+    if (selector === selectIsMoneyAccountCardLinkInProgress)
+      return state.moneyAccountCardLinkInProgress;
     if (selector === selectPendingMoneyAccountCardLink)
       return state.pendingMoneyAccountCardLink;
+    if (selector === getGasFeesSponsoredNetworkEnabled)
+      return (_chainId: string) => state.isMonadSponsorshipEnabled;
     return undefined;
   });
 };
@@ -206,10 +216,18 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(result.current.canLink).toBe(true);
       expect(result.current.hasMoneyAccountRequirements).toBe(true);
       expect(result.current.isCardAuthenticated).toBe(true);
+      expect(result.current.isCardLinkedToMoneyAccount).toBe(false);
       expect(result.current.moneyAccountCardToken).toBe(MOCK_TOKEN);
       expect(result.current.status).toBe('idle');
       expect(result.current.isLinking).toBe(false);
       expect(result.current.error).toBeNull();
+    });
+
+    it('reports isCardLinkedToMoneyAccount=true when the Money Account is already delegated for card', () => {
+      applySelectorMocks(buildSelectors({ isAlreadyDelegated: true }));
+      const { result } = renderLinkageHook();
+
+      expect(result.current.isCardLinkedToMoneyAccount).toBe(true);
     });
 
     it('reports canLink=false when the card is not authenticated', () => {
@@ -247,6 +265,56 @@ describe('useMoneyAccountCardLinkage', () => {
       const { result } = renderLinkageHook();
       expect(result.current.canLink).toBe(false);
     });
+
+    it('reports canLink=false when Monad gas-fee sponsorship is disabled', () => {
+      applySelectorMocks(buildSelectors({ isMonadSponsorshipEnabled: false }));
+      const { result } = renderLinkageHook();
+      expect(result.current.canLink).toBe(false);
+    });
+
+    it('reports isLinking=true when controller linkage is in progress', () => {
+      applySelectorMocks(
+        buildSelectors({ moneyAccountCardLinkInProgress: true }),
+      );
+      const { result } = renderLinkageHook();
+      expect(result.current.isLinking).toBe(true);
+    });
+  });
+
+  describe('linkage in progress guards', () => {
+    const ORIGIN = {
+      screen: Routes.MONEY.ROOT,
+      params: { screen: Routes.MONEY.HOME },
+    } as const;
+
+    it('does not navigate from openLinkCardSheet when linkage is in progress', () => {
+      applySelectorMocks(
+        buildSelectors({ moneyAccountCardLinkInProgress: true }),
+      );
+      const { result } = renderLinkageHook();
+
+      act(() => {
+        result.current.openLinkCardSheet();
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it('does not navigate from startLinkFlow when linkage is in progress', () => {
+      applySelectorMocks(
+        buildSelectors({ moneyAccountCardLinkInProgress: true }),
+      );
+      const { result } = renderLinkageHook();
+
+      act(() => {
+        result.current.startLinkFlow(ORIGIN);
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalled();
+    });
   });
 
   describe('openLinkCardSheet (sheet entrypoint)', () => {
@@ -278,7 +346,7 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(mockLinkMoneyAccountCard).not.toHaveBeenCalled();
       expect(mockShowToast).toHaveBeenCalledTimes(1);
       expect(mockShowToast.mock.calls[0][0]).toMatchObject({
-        labelOptions: [{ label: "Couldn't link card", isBold: true }],
+        labelOptions: [{ label: 'Something went wrong linking your card' }],
       });
     });
 
@@ -405,7 +473,7 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(mockShowToast).not.toHaveBeenCalled();
     });
 
-    it('routes a not-authenticated non-cardholder to Card Onboarding with moneyAccountLinkIntent and sets the pending flag', () => {
+    it('routes a not-authenticated non-cardholder to Card Onboarding without arming the sheet-resume flag', () => {
       applySelectorMocks(
         buildSelectors({ isCardAuthenticated: false, isCardholder: false }),
       );
@@ -415,16 +483,13 @@ describe('useMoneyAccountCardLinkage', () => {
         result.current.startLinkFlow(ORIGIN);
       });
 
-      expect(mockDispatch).toHaveBeenCalledTimes(1);
-      expect(mockDispatch).toHaveBeenCalledWith(
-        setPendingMoneyAccountCardLink(true),
-      );
+      expect(mockDispatch).not.toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
         screen: Routes.CARD.HOME,
         params: {
           screen: Routes.CARD.ONBOARDING.ROOT,
-          params: { moneyAccountLinkIntent: true },
+          params: { postAuthRedirect: ORIGIN },
         },
       });
       expect(mockShowToast).not.toHaveBeenCalled();
@@ -454,7 +519,7 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(mockShowToast).not.toHaveBeenCalled();
     });
 
-    it('still routes a not-authenticated non-cardholder to onboarding when the funding token is null (token resolves after login)', () => {
+    it('still routes a not-authenticated non-cardholder to onboarding without arming the sheet-resume flag when the funding token is null (token resolves after login)', () => {
       mockResolveMoneyAccountCardToken.mockReturnValueOnce(null);
       applySelectorMocks(
         buildSelectors({ isCardAuthenticated: false, isCardholder: false }),
@@ -465,14 +530,12 @@ describe('useMoneyAccountCardLinkage', () => {
         result.current.startLinkFlow(ORIGIN);
       });
 
-      expect(mockDispatch).toHaveBeenCalledWith(
-        setPendingMoneyAccountCardLink(true),
-      );
+      expect(mockDispatch).not.toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
         screen: Routes.CARD.HOME,
         params: {
           screen: Routes.CARD.ONBOARDING.ROOT,
-          params: { moneyAccountLinkIntent: true },
+          params: { postAuthRedirect: ORIGIN },
         },
       });
       expect(mockShowToast).not.toHaveBeenCalled();
@@ -665,7 +728,7 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('shows the Predict-style pending toast with a Spinner startAccessory before the success toast', async () => {
+    it('shows the single-line pending toast with a Spinner startAccessory before the success toast', async () => {
       let resolveLink: () => void = () => undefined;
       mockLinkMoneyAccountCard.mockReturnValueOnce(
         new Promise<void>((resolve) => {
@@ -683,11 +746,7 @@ describe('useMoneyAccountCardLinkage', () => {
       const pendingCall = mockShowToast.mock.calls[0]?.[0];
       expect(pendingCall).toMatchObject({
         hasNoTimeout: true,
-        labelOptions: [
-          { label: 'Linking card', isBold: true },
-          { label: '\n', isBold: false },
-          { label: 'Approving spending limit…', isBold: false },
-        ],
+        labelOptions: [{ label: 'Linking your card' }],
       });
       expect(pendingCall?.startAccessory).toBeDefined();
 
@@ -698,12 +757,40 @@ describe('useMoneyAccountCardLinkage', () => {
 
       const successCall = mockShowToast.mock.calls[1]?.[0];
       expect(successCall).toMatchObject({
-        labelOptions: [
-          { label: 'Card linked successfully', isBold: true },
-          { label: '\n', isBold: false },
-          { label: 'You can now spend while you earn', isBold: false },
-        ],
+        labelOptions: [{ label: 'Your card is ready to use' }],
         hasNoTimeout: false,
+      });
+    });
+
+    it('passes the caller-supplied delegationAmountHuman through to the controller', async () => {
+      mockLinkMoneyAccountCard.mockResolvedValueOnce(undefined);
+
+      const { result } = renderLinkageHook();
+
+      await act(async () => {
+        await result.current.confirmLinkInBackground({
+          delegationAmountHuman: '100',
+        });
+      });
+
+      expect(mockLinkMoneyAccountCard).toHaveBeenCalledWith({
+        moneyAccountAddress: MONEY_ACCOUNT_ADDRESS,
+        delegationAmountHuman: '100',
+      });
+    });
+
+    it('falls back to BAANX_MAX_LIMIT when no delegationAmountHuman is provided (sheet caller path)', async () => {
+      mockLinkMoneyAccountCard.mockResolvedValueOnce(undefined);
+
+      const { result } = renderLinkageHook();
+
+      await act(async () => {
+        await result.current.confirmLinkInBackground();
+      });
+
+      expect(mockLinkMoneyAccountCard).toHaveBeenCalledWith({
+        moneyAccountAddress: MONEY_ACCOUNT_ADDRESS,
+        delegationAmountHuman: BAANX_MAX_LIMIT,
       });
     });
   });
@@ -726,7 +813,7 @@ describe('useMoneyAccountCardLinkage', () => {
 
       const errorCall = mockShowToast.mock.calls.at(-1)?.[0];
       expect(errorCall).toMatchObject({
-        labelOptions: [{ label: "Couldn't link card", isBold: true }],
+        labelOptions: [{ label: 'Something went wrong linking your card' }],
         hasNoTimeout: false,
       });
     });
@@ -766,8 +853,88 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(mockLinkMoneyAccountCard).not.toHaveBeenCalled();
       expect(mockShowToast).toHaveBeenCalledTimes(1);
       expect(mockShowToast.mock.calls[0][0]).toMatchObject({
-        labelOptions: [{ label: "Couldn't link card", isBold: true }],
+        labelOptions: [{ label: 'Something went wrong linking your card' }],
       });
+    });
+
+    it('still submits the delegation when already delegated (Manage Limit update / revoke path)', async () => {
+      applySelectorMocks(buildSelectors({ isAlreadyDelegated: true }));
+      const { result } = renderLinkageHook();
+
+      // canLink is gated on !isAlreadyDelegated, but submit must work so the
+      // user can change the spending cap or revoke it via Manage Limit.
+      expect(result.current.canLink).toBe(false);
+
+      let returned: boolean | undefined;
+      await act(async () => {
+        returned = await result.current.confirmLinkInBackground({
+          delegationAmountHuman: '0',
+        });
+      });
+
+      expect(returned).toBe(true);
+      expect(mockLinkMoneyAccountCard).toHaveBeenCalledTimes(1);
+      expect(mockLinkMoneyAccountCard).toHaveBeenCalledWith(
+        expect.objectContaining({ delegationAmountHuman: '0' }),
+      );
+    });
+
+    it('shows the unlink pending + success toasts when delegationAmountHuman is 0', async () => {
+      applySelectorMocks(buildSelectors({ isAlreadyDelegated: true }));
+      let resolveLink: (() => void) | undefined;
+      mockLinkMoneyAccountCard.mockImplementationOnce(
+        () =>
+          new Promise<void>((resolve) => {
+            resolveLink = resolve;
+          }),
+      );
+
+      const { result } = renderLinkageHook();
+
+      let linkPromise: Promise<boolean> | undefined;
+      await act(async () => {
+        linkPromise = result.current.confirmLinkInBackground({
+          delegationAmountHuman: '0',
+        });
+      });
+
+      expect(mockShowToast).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          labelOptions: [{ label: 'Unlinking your card' }],
+        }),
+      );
+
+      await act(async () => {
+        resolveLink?.();
+        await linkPromise;
+      });
+
+      expect(mockShowToast).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          labelOptions: [{ label: 'Your card was unlinked' }],
+        }),
+      );
+    });
+
+    it('shows the unlink error toast when the revoke submission fails', async () => {
+      applySelectorMocks(buildSelectors({ isAlreadyDelegated: true }));
+      mockLinkMoneyAccountCard.mockRejectedValueOnce(new Error('revoke boom'));
+
+      const { result } = renderLinkageHook();
+
+      let returned: boolean | undefined;
+      await act(async () => {
+        returned = await result.current.confirmLinkInBackground({
+          delegationAmountHuman: '0',
+        });
+      });
+
+      expect(returned).toBe(false);
+      expect(mockShowToast).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          labelOptions: [{ label: 'Something went wrong unlinking your card' }],
+        }),
+      );
     });
   });
 

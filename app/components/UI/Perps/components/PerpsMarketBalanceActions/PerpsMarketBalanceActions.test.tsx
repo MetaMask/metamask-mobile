@@ -124,6 +124,10 @@ jest.mock('../../hooks/usePerpsDepositProgress', () => ({
   })),
 }));
 
+const mockUsePerpsDepositProgress = jest.requireMock(
+  '../../hooks/usePerpsDepositProgress',
+).usePerpsDepositProgress as jest.Mock;
+
 // Mock design system
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({
@@ -380,6 +384,10 @@ describe('PerpsMarketBalanceActions', () => {
       navigateToConfirmation: mockNavigateToConfirmation,
     });
 
+    mockUsePerpsDepositProgress.mockReturnValue({
+      isDepositInProgress: false,
+    });
+
     mockDepositWithConfirmation.mockResolvedValue({});
   });
 
@@ -497,6 +505,94 @@ describe('PerpsMarketBalanceActions', () => {
           `${PerpsMarketBalanceActionsSelectorsIDs.CONTAINER}_skeleton`,
         ),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('hideBalanceSection', () => {
+    it('does not show balance skeleton while loading when balance is in TitleHub', () => {
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: null,
+        isInitialLoading: true,
+        isLoading: true,
+        error: null,
+      });
+
+      const { queryByTestId } = renderWithProvider(
+        <PerpsMarketBalanceActions hideBalanceSection />,
+        { state: createMockState() },
+        false,
+      );
+
+      expect(
+        queryByTestId(
+          `${PerpsMarketBalanceActionsSelectorsIDs.CONTAINER}_skeleton`,
+        ),
+      ).toBeNull();
+    });
+
+    it('shows deposit-in-progress UI while loading when balance is hidden', () => {
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: null,
+        isInitialLoading: true,
+        isLoading: true,
+        error: null,
+      });
+      mockUsePerpsDepositProgress.mockReturnValue({
+        isDepositInProgress: true,
+      });
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <PerpsMarketBalanceActions hideBalanceSection />,
+        { state: createMockState() },
+        false,
+      );
+
+      expect(
+        getByTestId(PerpsMarketBalanceActionsSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+      expect(getByText('perps.deposit_in_progress')).toBeOnTheScreen();
+    });
+
+    it('shows empty-balance add funds UI after loading when balance is hidden', () => {
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          ...defaultPerpsAccount,
+          totalBalance: '0.00',
+          spendableBalance: '0.00',
+          withdrawableBalance: '0.00',
+        },
+        isInitialLoading: false,
+        isLoading: false,
+        error: null,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsMarketBalanceActions hideBalanceSection />,
+        { state: createMockState() },
+        false,
+      );
+
+      expect(
+        getByTestId(PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows action buttons without balance display when balance is hidden', () => {
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <PerpsMarketBalanceActions hideBalanceSection showActionButtons />,
+        { state: createMockState() },
+        false,
+      );
+
+      expect(
+        getByTestId(PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(PerpsMarketBalanceActionsSelectorsIDs.WITHDRAW_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE),
+      ).toBeNull();
     });
   });
 

@@ -7,7 +7,6 @@ import {
 } from '@metamask/assets-controllers';
 import {
   computeBuySourceToken,
-  getSwapTokens,
   useHandleOnBuy,
   useHandleOnReceive,
   useHandleOnSend,
@@ -286,19 +285,6 @@ beforeEach(() => {
     networkModal: null,
   });
   mockRampsUnifiedV1Enabled.mockReturnValue(false);
-});
-
-describe('useTokenAtomicActions - getSwapTokens', () => {
-  it('returns sourceToken as the token and destToken as undefined for regular tokens', () => {
-    const result = getSwapTokens(defaultToken);
-
-    expect(result.sourceToken).toMatchObject({
-      address: defaultToken.address,
-      chainId: defaultToken.chainId,
-      symbol: defaultToken.symbol,
-    });
-    expect(result.destToken).toBeUndefined();
-  });
 });
 
 /**
@@ -886,6 +872,84 @@ describe('useTokenAtomicActions - useHandleOnSwap', () => {
 
     const [sourceToken, destToken] = mockGoToSwaps.mock.lastCall ?? [];
     assertSwapCall(sourceToken, destToken);
+  });
+});
+
+describe('useTokenAtomicActions - useHandleOnSwap explore swap location', () => {
+  it('uses TrendingExplore location when token.source is an Explore tab source', () => {
+    renderHook(() =>
+      useHandleOnSwap({
+        token: {
+          ...defaultToken,
+          balance: '1',
+          source: TokenDetailsSource.ExploreCryptoTrending,
+        },
+      }),
+    );
+
+    expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith(
+      expect.objectContaining({
+        location: 'TrendingExplore',
+        skipLocationUpdate: false,
+      }),
+    );
+  });
+
+  it('uses TrendingExplore location when token.source is ExploreSearch', () => {
+    renderHook(() =>
+      useHandleOnSwap({
+        token: {
+          ...defaultToken,
+          balance: '1',
+          source: TokenDetailsSource.ExploreSearch,
+        },
+      }),
+    );
+
+    expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith(
+      expect.objectContaining({
+        location: 'TrendingExplore',
+        skipLocationUpdate: false,
+      }),
+    );
+  });
+
+  it('uses TokenView location when token.source is not from Explore', () => {
+    renderHook(() =>
+      useHandleOnSwap({
+        token: {
+          ...defaultToken,
+          balance: '1',
+          source: TokenDetailsSource.MobileTokenList,
+        },
+      }),
+    );
+
+    expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith(
+      expect.objectContaining({
+        location: 'TokenView',
+        skipLocationUpdate: false,
+      }),
+    );
+  });
+
+  it('skips location update when opened from the bridge asset picker', () => {
+    renderHook(() =>
+      useHandleOnSwap({
+        token: {
+          ...defaultToken,
+          balance: '1',
+          source: TokenDetailsSource.Swap,
+        },
+      }),
+    );
+
+    expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith(
+      expect.objectContaining({
+        location: 'TokenView',
+        skipLocationUpdate: true,
+      }),
+    );
   });
 });
 

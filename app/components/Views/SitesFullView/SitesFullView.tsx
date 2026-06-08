@@ -18,8 +18,13 @@ import {
   bookmarkUrlForRemoval,
   type SiteData,
 } from '../../UI/Sites/components/SiteRowItem/SiteRowItem';
+import {
+  HeaderSearch,
+  HeaderSearchVariant,
+  HeaderStandard,
+  IconName as DSIconName,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
-import ListHeaderWithSearch from '../../UI/shared/ListHeaderWithSearch/ListHeaderWithSearch';
 
 type SitesFullViewParams = { mode?: 'favorites' } | undefined;
 
@@ -36,6 +41,7 @@ const createStyles = (theme: Theme) =>
       flex: 1,
       paddingLeft: 16,
       paddingRight: 16,
+      marginTop: 8,
     },
   });
 
@@ -84,6 +90,10 @@ const SitesFullView: React.FC = () => {
     });
   }, []);
 
+  const handleSearchClear = useCallback(() => {
+    setSearchQuery('');
+  }, []);
+
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
@@ -123,17 +133,47 @@ const SitesFullView: React.FC = () => {
           },
         ]}
       >
-        <ListHeaderWithSearch
-          defaultTitle={title}
-          isSearchVisible={isSearchActive}
-          searchQuery={searchQuery}
-          searchPlaceholder={strings('trending.search_sites')}
-          cancelText={strings('browser.cancel')}
-          onSearchQueryChange={setSearchQuery}
-          onBack={handleBackPress}
-          onSearchToggle={handleSearchToggle}
-          testID="sites-full-view-header"
-        />
+        {isSearchActive ? (
+          <HeaderSearch
+            variant={HeaderSearchVariant.Inline}
+            textFieldSearchProps={{
+              value: searchQuery,
+              onChangeText: setSearchQuery,
+              placeholder: strings('trending.search_sites'),
+              onPressClearButton: handleSearchClear,
+              autoFocus: true,
+              testID: 'sites-full-view-header-search-bar',
+              clearButtonProps: {
+                testID: 'sites-full-view-header-search-field-clear',
+              },
+            }}
+            onPressCancelButton={handleSearchToggle}
+            cancelButtonProps={{
+              testID: 'sites-full-view-header-search-close',
+              twClassName: 'self-center',
+              textProps: {
+                twClassName: 'text-default',
+              },
+            }}
+            twClassName="mr-0 mb-0"
+          />
+        ) : (
+          <HeaderStandard
+            title={title}
+            onBack={handleBackPress}
+            backButtonProps={{
+              testID: 'sites-full-view-header-back-button',
+            }}
+            endButtonIconProps={[
+              {
+                iconName: DSIconName.Search,
+                onPress: handleSearchToggle,
+                testID: 'sites-full-view-header-search-toggle',
+              },
+            ]}
+            testID="sites-full-view-header"
+          />
+        )}
       </View>
 
       {isLoading ? (

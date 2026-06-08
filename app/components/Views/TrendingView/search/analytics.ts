@@ -1,7 +1,61 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
+import {
+  mergeAssetViewedProperties,
+  MetaMetricsEvents,
+} from '../../../../core/Analytics';
 import { analytics } from '../../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
-import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
+import type { SearchFeedId, SearchFeedSection } from './useExploreSearch';
+
+/** Sum of result counts across all feed sections. */
+export const getTotalSectionResultCount = (
+  sections: SearchFeedSection[],
+): number => sections.reduce((sum, s) => sum + (s.total ?? s.items.length), 0);
+
+/**
+ * Result count visible to the user for the active pill.
+ * Aggregated and empty-tab fallback views sum all sections; a feed pill with
+ * its own list uses that section's count only.
+ */
+export const getExploreSearchResultCount = (
+  pill: SearchFeedPill,
+  sections: SearchFeedSection[],
+): number => {
+  if (pill === 'all') {
+    return getTotalSectionResultCount(sections);
+  }
+  const section = sections.find((s) => s.feedId === pill);
+  const showsSingleFeedList =
+    section?.isLoading || (section?.items.length ?? 0) > 0;
+  if (showsSingleFeedList) {
+    return section?.total ?? section?.items.length ?? 0;
+  }
+  return getTotalSectionResultCount(sections);
+};
+
+export type SearchInteractionType =
+  | 'result_clicked'
+  | 'scrolled'
+  | 'tab_switched'
+  | 'searched';
+
+/** 'all' = aggregated view; other values are a specific feed pill. */
+export type SearchFeedPill = SearchFeedId | 'all';
+
+export interface ExploreSearchInteractedProperties {
+  interaction_type: SearchInteractionType;
+  search_query: string;
+  /** Only set on result_clicked when tab_name is 'all'. */
+  section_name?: SearchFeedId;
+  tab_name?: SearchFeedPill;
+  previous_tab?: SearchFeedPill;
+  /** True when tab_switched came from a section header button, not the pill row. */
+  comes_from_view_all_tap?: boolean;
+  item_clicked?: string;
+  position?: number;
+  /** Total number of results visible to the user at the time of the interaction. */
+  result_count?: number;
+}
 
 export type ExploreTabName =
   | 'Now'
@@ -60,26 +114,106 @@ export const trackExploreInteracted = (
   );
 };
 
-/** Single-line wrapper around the analytics builder boilerplate. */
-export const trackExploreEvent = (
-  event: Parameters<typeof AnalyticsEventBuilder.createEventBuilder>[0],
-  properties: Record<string, string>,
+const PREDICTIONS_TRENDING_SECTION: ExploreSectionName = 'predictions_trending';
+
+/**
+ * Trade funnel: `Asset Viewed` when the user taps View all / the Predict section
+ * header on Explore (`predictions_trending`).
+ */
+export const trackExplorePredictTrendingAssetViewed = (
+  tabName: ExploreTabName,
 ): void => {
   analytics.trackEvent(
-    AnalyticsEventBuilder.createEventBuilder(event)
-      .addProperties(properties)
+    AnalyticsEventBuilder.createEventBuilder(MetaMetricsEvents.ASSET_VIEWED)
+      .addProperties(
+        mergeAssetViewedProperties('Predict', {
+          section_name: PREDICTIONS_TRENDING_SECTION,
+          asset_type: 'prediction',
+          tab_name: tabName,
+          interaction_type: 'section_see_all_tapped',
+        }),
+      )
+      .build(),
+  );
+};
+
+export const trackExploreSectionSeeAll = ({
+  tabName,
+  sectionName,
+}: {
+  tabName: ExploreTabName;
+  sectionName: ExploreSectionName;
+}): void => {
+  trackExploreInteracted({
+    interaction_type: 'section_see_all_tapped',
+    tab_name: tabName,
+    section_name: sectionName,
+  });
+
+  if (sectionName === PREDICTIONS_TRENDING_SECTION) {
+    trackExplorePredictTrendingAssetViewed(tabName);
+  }
+};
+
+export const trackExploreSearchEvent = (
+  properties: ExploreSearchInteractedProperties,
+): void => {
+  analytics.trackEvent(
+    AnalyticsEventBuilder.createEventBuilder(
+      MetaMetricsEvents.EXPLORE_SEARCH_INTERACTED,
+    )
+      .addProperties(properties as unknown as Record<string, unknown>)
       .build(),
   );
 };
 
 /**
- * Returns a stable `onScrollBeginDrag` handler that fires a one-shot analytics
- * event the first time the user begins scrolling.
+ * Side effect hook to invoke analytics when searching.
+ * Fires the 'searched' event once per unique settled query (after loading
+ * completes). Resets when the query is cleared.
+ */
+export const useInstrumentedSearchEffect = ({
+  searchQuery,
+  isLoading,
+  getPill,
+  getSections,
+}: {
+  searchQuery: string;
+  isLoading: boolean;
+  getPill: () => SearchFeedPill;
+  getSections: () => SearchFeedSection[];
+}): void => {
+  const instrumentedQueryRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      instrumentedQueryRef.current = null;
+      return;
+    }
+    if (isLoading) return;
+    if (instrumentedQueryRef.current === searchQuery) return;
+
+    const pill = getPill();
+    const resultCount = getExploreSearchResultCount(pill, getSections());
+
+    trackExploreSearchEvent({
+      interaction_type: 'searched',
+      search_query: searchQuery,
+      tab_name: pill,
+      result_count: resultCount,
+    });
+    instrumentedQueryRef.current = searchQuery;
+  }, [searchQuery, isLoading, getPill, getSections]);
+};
+
+/**
+ * One-shot scroll analytics: fires on the first onScrollBeginDrag, then resets
+ * when searchQuery or activeTab changes.
  */
 export const useScrollTracking = (
-  interactionType: string,
+  interactionType: SearchInteractionType,
   searchQuery: string,
-  extraProperties?: Record<string, string>,
+  extraProperties?: Partial<ExploreSearchInteractedProperties>,
 ) => {
   const hasTracked = useRef(false);
   const searchQueryRef = useRef(searchQuery);
@@ -91,7 +225,7 @@ export const useScrollTracking = (
   const onScrollBeginDrag = useCallback(() => {
     if (hasTracked.current) return;
     hasTracked.current = true;
-    trackExploreEvent(MetaMetricsEvents.EXPLORE_SEARCH_INTERACTED, {
+    trackExploreSearchEvent({
       interaction_type: interactionType,
       search_query: searchQueryRef.current,
       ...extraPropsRef.current,

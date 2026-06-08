@@ -4,7 +4,7 @@ import type {
   LoginResponseDto,
   EstimatePointsDto,
   EstimatedPointsDto,
-  SubscriptionSeasonReferralDetailsDto,
+  SubscriptionReferralDetailsDto,
   PaginatedPointsEventsDto,
   GetPointsEventsDto,
   MobileLoginDto,
@@ -37,6 +37,11 @@ import type {
   PerpsTradingCampaignLeaderboardPositionDto,
   PerpsTradingCampaignVolumeDto,
   PerpsTradingCampaignParticipantOutcomeDto,
+  PredictThePitchLeaderboardDto,
+  PredictThePitchLeaderboardPositionDto,
+  PredictThePitchPositionsDto,
+  PredictThePitchCampaignParticipantOutcomeDto,
+  PredictThePitchPrizePoolDto,
   VipDashboardDto,
   VipFeesResponseDto,
 } from '../types';
@@ -281,6 +286,31 @@ export interface RewardsDataServiceGetPerpsTradingCampaignParticipantOutcomeActi
   handler: RewardsDataService['getPerpsTradingCampaignParticipantOutcome'];
 }
 
+export interface RewardsDataServiceGetPredictThePitchLeaderboardAction {
+  type: `${typeof SERVICE_NAME}:getPredictThePitchLeaderboard`;
+  handler: RewardsDataService['getPredictThePitchLeaderboard'];
+}
+
+export interface RewardsDataServiceGetPredictThePitchLeaderboardPositionAction {
+  type: `${typeof SERVICE_NAME}:getPredictThePitchLeaderboardPosition`;
+  handler: RewardsDataService['getPredictThePitchLeaderboardPosition'];
+}
+
+export interface RewardsDataServiceGetPredictThePitchPositionsAction {
+  type: `${typeof SERVICE_NAME}:getPredictThePitchPositions`;
+  handler: RewardsDataService['getPredictThePitchPositions'];
+}
+
+export interface RewardsDataServiceGetPredictThePitchParticipantOutcomeAction {
+  type: `${typeof SERVICE_NAME}:getPredictThePitchParticipantOutcome`;
+  handler: RewardsDataService['getPredictThePitchParticipantOutcome'];
+}
+
+export interface RewardsDataServiceGetPredictThePitchPrizePoolAction {
+  type: `${typeof SERVICE_NAME}:getPredictThePitchPrizePool`;
+  handler: RewardsDataService['getPredictThePitchPrizePool'];
+}
+
 export interface RewardsDataServiceGetRewardsEnvUrlAction {
   type: `${typeof SERVICE_NAME}:getRewardsEnvUrl`;
   handler: RewardsDataService['getRewardsEnvUrl'];
@@ -367,7 +397,12 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetPerpsTradingCampaignLeaderboardAction
   | RewardsDataServiceGetPerpsTradingCampaignLeaderboardPositionAction
   | RewardsDataServiceGetPerpsTradingCampaignVolumeAction
-  | RewardsDataServiceGetPerpsTradingCampaignParticipantOutcomeAction;
+  | RewardsDataServiceGetPerpsTradingCampaignParticipantOutcomeAction
+  | RewardsDataServiceGetPredictThePitchLeaderboardAction
+  | RewardsDataServiceGetPredictThePitchLeaderboardPositionAction
+  | RewardsDataServiceGetPredictThePitchPositionsAction
+  | RewardsDataServiceGetPredictThePitchParticipantOutcomeAction
+  | RewardsDataServiceGetPredictThePitchPrizePoolAction;
 
 export type RewardsDataServiceMessenger = Messenger<
   typeof SERVICE_NAME,
@@ -553,6 +588,26 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getPerpsTradingCampaignParticipantOutcome`,
       this.getPerpsTradingCampaignParticipantOutcome.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getPredictThePitchLeaderboard`,
+      this.getPredictThePitchLeaderboard.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getPredictThePitchLeaderboardPosition`,
+      this.getPredictThePitchLeaderboardPosition.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getPredictThePitchPositions`,
+      this.getPredictThePitchPositions.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getPredictThePitchParticipantOutcome`,
+      this.getPredictThePitchParticipantOutcome.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getPredictThePitchPrizePool`,
+      this.getPredictThePitchPrizePool.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getRewardsEnvUrl`,
@@ -960,17 +1015,15 @@ export class RewardsDataService {
   }
 
   /**
-   * Get referral details for a specific subscription and season.
-   * @param seasonId - The season ID to get referral details for.
+   * Get referral details for the current subscription.
    * @param subscriptionId - The subscription ID for authentication.
    * @returns The referral details DTO.
    */
   async getReferralDetails(
-    seasonId: string,
     subscriptionId: string,
-  ): Promise<SubscriptionSeasonReferralDetailsDto> {
+  ): Promise<SubscriptionReferralDetailsDto> {
     const response = await this.makeRequest(
-      `/seasons/${seasonId}/referral-details`,
+      `/subscriptions/referral-details`,
       {
         method: 'GET',
       },
@@ -981,7 +1034,7 @@ export class RewardsDataService {
       throw new Error(`Get referral details failed: ${response.status}`);
     }
     const data = await response.json();
-    return data as SubscriptionSeasonReferralDetailsDto;
+    return data as SubscriptionReferralDetailsDto;
   }
 
   /**
@@ -1862,5 +1915,100 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as PerpsTradingCampaignParticipantOutcomeDto;
+  }
+
+  async getPredictThePitchLeaderboard(
+    campaignId: string,
+  ): Promise<PredictThePitchLeaderboardDto> {
+    const response = await this.makeRequest(
+      `/predict-the-pitch/${campaignId}/leaderboard`,
+      { method: 'GET' },
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Get Predict The Pitch leaderboard failed: ${response.status}`,
+      );
+    }
+
+    return (await response.json()) as PredictThePitchLeaderboardDto;
+  }
+
+  async getPredictThePitchLeaderboardPosition(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<PredictThePitchLeaderboardPositionDto | null> {
+    const response = await this.makeRequest(
+      `/predict-the-pitch/${campaignId}/leaderboard/me`,
+      { method: 'GET' },
+      subscriptionId,
+    );
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (!response.ok) {
+      throw new Error(
+        `Get Predict The Pitch leaderboard position failed: ${response.status}`,
+      );
+    }
+
+    return (await response.json()) as PredictThePitchLeaderboardPositionDto;
+  }
+
+  async getPredictThePitchPositions(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<PredictThePitchPositionsDto> {
+    const response = await this.makeRequest(
+      `/predict-the-pitch/${campaignId}/positions/me`,
+      { method: 'GET' },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Get Predict The Pitch positions failed: ${response.status}`,
+      );
+    }
+
+    return (await response.json()) as PredictThePitchPositionsDto;
+  }
+
+  async getPredictThePitchParticipantOutcome(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<PredictThePitchCampaignParticipantOutcomeDto> {
+    const response = await this.makeRequest(
+      `/predict-the-pitch/${campaignId}/outcome/me`,
+      { method: 'GET' },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Get Predict The Pitch participant outcome failed: ${response.status}`,
+      );
+    }
+
+    return (await response.json()) as PredictThePitchCampaignParticipantOutcomeDto;
+  }
+
+  async getPredictThePitchPrizePool(
+    campaignId: string,
+  ): Promise<PredictThePitchPrizePoolDto> {
+    const response = await this.makeRequest(
+      `/predict-the-pitch/${campaignId}/prize-pool`,
+      { method: 'GET' },
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Get Predict The Pitch prize pool failed: ${response.status}`,
+      );
+    }
+
+    return (await response.json()) as PredictThePitchPrizePoolDto;
   }
 }

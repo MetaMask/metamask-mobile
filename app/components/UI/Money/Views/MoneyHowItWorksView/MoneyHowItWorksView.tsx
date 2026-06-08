@@ -184,6 +184,13 @@ const MoneyHowItWorksView = () => {
           >
             {strings('money.how_it_works_page.description_2')}
           </Text>
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            testID={MoneyHowItWorksViewTestIds.DESCRIPTION_3}
+          >
+            {strings('money.how_it_works_page.description_3')}
+          </Text>
         </Box>
 
         <SectionDivider />
@@ -205,7 +212,9 @@ const MoneyHowItWorksView = () => {
               question={strings(`money.how_it_works_page.${key}`, {
                 percentage,
               })}
-              answer={strings('money.how_it_works_page.faq_placeholder_answer')}
+              answer={strings(`money.how_it_works_page.faq_a${index + 1}`, {
+                percentage,
+              })}
               testID={MoneyHowItWorksViewTestIds.FAQ_ITEM(index + 1)}
             />
           </React.Fragment>

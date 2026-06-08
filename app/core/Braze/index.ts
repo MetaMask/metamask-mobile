@@ -1,10 +1,14 @@
 import Braze, { Banner } from '@braze/react-native-sdk';
 import I18n, { I18nEvents } from '../../../locales/i18n';
 import Logger from '../../util/Logger';
-import { isE2E } from '../../util/test/utils';
+import { hasTestOverrides } from '../../util/test/utils';
 import Engine from '../Engine/Engine';
 import { BrazePlugin } from '../Engine/controllers/analytics-controller/BrazePlugin';
 import { ALL_BRAZE_BANNER_PLACEMENT_IDS } from './constants';
+import {
+  BANNER_EVENT_DISMISSED,
+  BANNER_EVENT_DISPLAY,
+} from '../../constants/engagement';
 
 let brazePlugin: BrazePlugin | undefined;
 
@@ -36,7 +40,7 @@ export function getBrazePlugin(): BrazePlugin {
  * identity sessions.
  */
 export async function setBrazeUser(): Promise<void> {
-  if (isE2E) {
+  if (hasTestOverrides) {
     return;
   }
 
@@ -56,7 +60,7 @@ export async function setBrazeUser(): Promise<void> {
  * Call on sign-out to stop attributing events to the previous user.
  */
 export function clearBrazeUser(): void {
-  if (isE2E) {
+  if (hasTestOverrides) {
     return;
   }
 
@@ -97,14 +101,14 @@ export function refreshBrazeBanners(
 }
 
 /**
- * Log a `Banner Dismissed` custom event with the supplied properties and flush immediately.
+ * Log the Braze banner dismissal event with the supplied properties and flush immediately.
  */
 export function dismissBrazeBanner(properties: {
   [key: string]: unknown;
 }): void {
   try {
     Logger.log('[Braze] Dismissing banner', properties);
-    Braze.logCustomEvent('Banner Dismissed', properties);
+    Braze.logCustomEvent(BANNER_EVENT_DISMISSED, properties);
     Braze.requestImmediateDataFlush();
   } catch (error) {
     Logger.error(error as Error, '[Braze] Failed to log banner dismissal');
@@ -112,7 +116,7 @@ export function dismissBrazeBanner(properties: {
 }
 
 /**
- * Log a Braze banner impression and a corresponding `Banner Impression`
+ * Log a Braze banner impression and a corresponding display
  * custom event with the supplied properties.
  *
  * Pass `null` when there are no extra properties to attach (e.g. the banner
@@ -127,10 +131,10 @@ export function logBrazeBannerImpression(
     Braze.logBannerImpression(placementId);
 
     if (properties) {
-      Braze.logCustomEvent('Banner Impression', properties);
+      Braze.logCustomEvent(BANNER_EVENT_DISPLAY, properties);
     }
   } catch (error) {
-    Logger.error(error as Error, '[Braze] Failed to log banner impression');
+    Logger.error(error as Error, '[Braze] Failed to log banner display event');
   }
 }
 

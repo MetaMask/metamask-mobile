@@ -3,6 +3,7 @@ import { StyleSheet, ViewStyle } from 'react-native';
 
 // External dependencies.
 import { Theme } from '../../../util/theme/models';
+import { getElevatedSurfaceColor } from '../../../util/theme/themeUtils';
 
 // Internal dependencies.
 import { ListItemMultiSelectButtonStyleSheetVars } from './ListItemMultiSelectButton.types';
@@ -23,16 +24,10 @@ const styleSheet = (params: {
   const { colors } = theme;
   const { style, isDisabled, isSelected } = vars;
   return StyleSheet.create({
-    base: Object.assign(
-      {
-        flex: 1,
-        position: 'relative',
-        opacity: isDisabled ? 0.5 : 1,
-        padding: 16,
-        zIndex: 1,
-      } as ViewStyle,
-      style,
-    ) as ViewStyle,
+    base: {
+      flex: 1,
+      padding: 16,
+    } as ViewStyle,
     listItem: {
       paddingRight: 0,
       paddingTop: 0,
@@ -46,7 +41,6 @@ const styleSheet = (params: {
       paddingLeft: 0,
       paddingTop: 0,
       paddingBottom: 0,
-      zIndex: 2,
     },
     containerRow: {
       flexDirection: 'row',
@@ -54,13 +48,17 @@ const styleSheet = (params: {
       marginBottom: 0,
       marginLeft: 40,
     },
-    container: {
-      backgroundColor: isSelected
-        ? colors.background.muted
-        : colors.background.default,
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
+    container: Object.assign(
+      {
+        backgroundColor: isSelected
+          ? colors.background.muted
+          : getElevatedSurfaceColor(theme),
+        flexDirection: 'row',
+        alignItems: 'center',
+        opacity: isDisabled ? 0.5 : 1,
+      } as ViewStyle,
+      style,
+    ) as ViewStyle,
     itemColumn: {
       display: 'flex',
       marginTop: 0,

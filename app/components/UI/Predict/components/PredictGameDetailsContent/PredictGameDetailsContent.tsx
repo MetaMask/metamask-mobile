@@ -146,6 +146,9 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
   }, [activeChipKey, stickyHeaderY]);
 
   const showStickyHeader = showTabBar || showChips;
+  const hasExtendedOutcomes = tabsEnabled && groupMap.size > 0;
+  const showFooter =
+    !hasExtendedOutcomes || (claimableAmount > 0 && Boolean(onClaimPress));
   const stickyHeaderIndices = useMemo(
     () => (showStickyHeader ? [CHIPS_STICKY_INDEX] : undefined),
     [showStickyHeader],
@@ -253,20 +256,23 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
             claimablePositions={claimablePositions}
             groupMap={groupMap}
             activeChipKey={activeChipKey}
+            onBetPress={onBetPress}
           />
         </Box>
       </ScrollView>
 
-      <PredictGameDetailsFooter
-        market={market}
-        outcome={outcome}
-        onBetPress={onBetPress}
-        onClaimPress={onClaimPress}
-        onInfoPress={handleInfoPress}
-        claimableAmount={claimableAmount}
-        isLoading={isLoading}
-        isClaimPending={isClaimPending}
-      />
+      {showFooter && (
+        <PredictGameDetailsFooter
+          market={market}
+          outcome={outcome}
+          onBetPress={onBetPress}
+          onClaimPress={onClaimPress}
+          onInfoPress={handleInfoPress}
+          claimableAmount={claimableAmount}
+          isLoading={isLoading}
+          isClaimPending={isClaimPending}
+        />
+      )}
 
       {isVisible && (
         <PredictGameAboutSheet

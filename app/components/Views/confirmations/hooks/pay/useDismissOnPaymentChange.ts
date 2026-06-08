@@ -4,17 +4,24 @@ import { isMatchingPayToken } from '../../utils/transaction-pay';
 import { useTransactionPayFiatPayment } from './useTransactionPayData';
 import { useTransactionPayToken } from './useTransactionPayToken';
 
+interface UseDismissOnPaymentChangeOptions {
+  dismissOnPayTokenChange?: boolean;
+}
+
 /**
  * Dismisses the current navigation route the first time the active
- * transaction's payment selection changes after the component mounts. Used by
- * `PayWithBottomSheet` so that picking a token in the underlying
- * `PayWithModal` OR selecting a fiat payment method collapses the picker back
- * to the confirmation screen.
+ * transaction's payment selection changes after the component mounts. By
+ * default this observes both transaction pay-token changes and fiat payment
+ * method changes.
  *
  * Initial values are captured on mount, so the hook does not fire for the
  * values that were already on the controller when the sheet opened.
+ * `dismissOnPayTokenChange` can be disabled for flows where the transaction
+ * pay token may still be hydrating in the background after the picker opens.
  */
-export function useDismissOnPaymentChange(): void {
+export function useDismissOnPaymentChange({
+  dismissOnPayTokenChange = true,
+}: UseDismissOnPaymentChangeOptions = {}): void {
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
   const fiatPayment = useTransactionPayFiatPayment();
@@ -31,6 +38,7 @@ export function useDismissOnPaymentChange(): void {
 
     const initialPayToken = initialPayTokenRef.current;
     const payTokenMatchesInitial =
+      !dismissOnPayTokenChange ||
       (!initialPayToken && !payToken) ||
       (!!initialPayToken &&
         !!payToken &&
@@ -46,7 +54,12 @@ export function useDismissOnPaymentChange(): void {
       return;
     }
 
+    if (!navigation.isFocused()) {
+      isDismissingRef.current = true;
+      return;
+    }
+
     isDismissingRef.current = true;
     navigation.goBack();
-  }, [navigation, payToken, selectedPaymentMethodId]);
+  }, [dismissOnPayTokenChange, navigation, payToken, selectedPaymentMethodId]);
 }

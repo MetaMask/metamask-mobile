@@ -12,13 +12,13 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
-import { useTheme } from '../../../../util/theme';
 import HeaderRoot from '../../../../component-library/components-temp/HeaderRoot';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
 import Routes from '../../../../constants/navigation/Routes';
 import {
   selectActiveTab,
+  selectHasAcceptedVipInvite,
   selectHideUnlinkedAccountsBanner,
   selectHideCurrentAccountNotOptedInBannerArray,
 } from '../../../../reducers/rewards/selectors';
@@ -42,7 +42,8 @@ import BenefitsPreview from '../components/Benefits/BenefitsPreview.tsx';
 import { Pressable, ScrollView } from 'react-native';
 import { useOndoOutcomeToast } from '../hooks/useOndoOutcomeToast';
 import { usePerpsTradingCampaignEndedOutcomeToast } from '../hooks/usePerpsTradingCampaignEndedOutcomeToast';
-import CrownIcon from '../../../../images/rewards/crown.svg';
+import { useGetPredictThePitchOutcomeToast } from '../hooks/useGetPredictThePitchOutcomeToast';
+import VipIcon from '../../../../images/rewards/vip.svg';
 import Engine from '../../../../core/Engine';
 
 const VIP_UNLOCK_TAP_COUNT = 5;
@@ -50,10 +51,12 @@ const VIP_UNLOCK_TAP_WINDOW_MS = 3000;
 
 const RewardsDashboard: React.FC = () => {
   const tw = useTailwind();
-  const { colors } = useTheme();
   const navigation = useNavigation();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const isVipEnabled = useSelector(selectIsCurrentSubscriptionVipEnabled);
+  const hasAcceptedVipInvite = useSelector(
+    selectHasAcceptedVipInvite(subscriptionId),
+  );
   const activeTab = useSelector(selectActiveTab);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const hasTrackedDashboardViewed = useRef(false);
@@ -61,6 +64,7 @@ const RewardsDashboard: React.FC = () => {
   useTrackRewardsPageView({ page_type: 'home' });
   useOndoOutcomeToast();
   usePerpsTradingCampaignEndedOutcomeToast();
+  useGetPredictThePitchOutcomeToast();
 
   const hideUnlinkedAccountsBanner = useSelector(
     selectHideUnlinkedAccountsBanner,
@@ -258,6 +262,14 @@ const RewardsDashboard: React.FC = () => {
     })();
   }, [isVipEnabled, subscriptionId]);
 
+  const handleVipPress = useCallback(() => {
+    navigation.navigate(
+      hasAcceptedVipInvite
+        ? Routes.REWARDS_VIP_VIEW
+        : Routes.REWARDS_VIP_SPLASH_VIEW,
+    );
+  }, [hasAcceptedVipInvite, navigation]);
+
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.REWARDS_DASHBOARD_TAB_VIEWED)
@@ -279,16 +291,11 @@ const RewardsDashboard: React.FC = () => {
               {isVipEnabled && (
                 <Pressable
                   accessibilityRole="button"
-                  onPress={() => navigation.navigate(Routes.REWARDS_VIP_VIEW)}
+                  onPress={handleVipPress}
                   style={tw.style('h-8 w-8 items-center justify-center')}
                   testID={REWARDS_VIEW_SELECTORS.VIP_BUTTON}
                 >
-                  <CrownIcon
-                    color={colors.icon.default}
-                    name="crown"
-                    width={24}
-                    height={24}
-                  />
+                  <VipIcon width={24} height={24} name="VipIcon" />
                 </Pressable>
               )}
               <ButtonIcon

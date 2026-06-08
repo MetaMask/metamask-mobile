@@ -214,10 +214,13 @@ describe('PredictWorldCupSchema', () => {
       showMainFeedBanner: true,
       showMainFeedTab: true,
       showWorldCupScreen: true,
-      seriesId: '11433',
       tagSlug: 'fifa-world-cup',
       gamesTagId: '100639',
-      bannerImageUrl: 'https://example.com/banner.png',
+      bannerImage: {
+        url: 'https://example.com/banner.png',
+        width: 400,
+        height: 200,
+      },
       stages: [
         {
           key: 'group_stage',
@@ -230,6 +233,29 @@ describe('PredictWorldCupSchema', () => {
     const result = create(input, PredictWorldCupSchema);
 
     expect(result).toStrictEqual(input);
+  });
+
+  it('tolerates unknown/legacy keys in the remote payload without disabling the flag', () => {
+    // Remote feature flags are managed independently of client releases, so a
+    // legacy key such as `seriesId` (removed from the client) must not cause a
+    // parse failure that would fall back to the disabled default.
+    const result = create(
+      {
+        enabled: true,
+        minimumVersion: '1.0.0',
+        showWorldCupScreen: true,
+        tagSlug: 'fifa-world-cup',
+        seriesId: '11433',
+        someFutureField: 'ignored',
+      },
+      PredictWorldCupSchema,
+    );
+
+    expect(result.enabled).toBe(true);
+    expect(result.showWorldCupScreen).toBe(true);
+    expect(result.tagSlug).toBe('fifa-world-cup');
+    // Declared defaults are still applied for omitted fields.
+    expect(result.gamesTagId).toBe(DEFAULT_PREDICT_WORLD_CUP_FLAG.gamesTagId);
   });
 
   it('throws for invalid stage event IDs', () => {

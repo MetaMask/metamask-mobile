@@ -15,6 +15,7 @@ import { initialStateTrending } from '../presets/trending';
 interface RenderTrendingViewOptions {
   overrides?: DeepPartial<RootState>;
   deterministicFiat?: boolean;
+  initialParams?: Record<string, unknown>;
 }
 
 function withQueryClient(
@@ -40,7 +41,7 @@ function withQueryClient(
 export function renderTrendingViewWithRoutes(
   options: RenderTrendingViewOptions = {},
 ): ReturnType<typeof renderScreenWithRoutes> {
-  const { overrides, deterministicFiat } = options;
+  const { overrides, deterministicFiat, initialParams } = options;
 
   const builder = initialStateTrending({ deterministicFiat });
   if (overrides) {
@@ -73,6 +74,30 @@ export function renderTrendingViewWithRoutes(
         Component: RWATokensFullView as unknown as React.ComponentType<unknown>,
       },
     ],
+    { state },
+    initialParams,
+  );
+}
+
+/**
+ * Renders ExploreSearchScreen directly (skips navigating from ExploreFeed),
+ * so tests start on the search screen without pressing the search button first.
+ */
+export function renderExploreSearchScreenWithRoutes(
+  options: RenderTrendingViewOptions = {},
+): ReturnType<typeof renderScreenWithRoutes> {
+  const { overrides, deterministicFiat } = options;
+
+  const builder = initialStateTrending({ deterministicFiat });
+  if (overrides) {
+    builder.withOverrides(overrides);
+  }
+  const state = builder.build();
+
+  return renderScreenWithRoutes(
+    ExploreSearchScreen as unknown as React.ComponentType,
+    { name: Routes.EXPLORE_SEARCH },
+    [],
     { state },
   );
 }
