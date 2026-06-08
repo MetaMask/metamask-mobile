@@ -7,14 +7,16 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import { updateTransaction } from '../../../../../../util/transaction-controller';
-import { PerpsAccountPickerSelectorsIDs } from '../../../../../UI/Perps/Perps.testIds';
-import { usePerpsSubAccounts } from '../../../../../UI/Perps/hooks';
-import type { SubAccountInfo } from '../../../../../UI/Perps/types/subAccount';
+import { PerpsAccountPickerSelectorsIDs } from '../../../ConfirmationView.testIds';
+import {
+  usePerpsSubAccounts,
+  type SubAccountInfo,
+} from '../../../hooks/transactions/usePerpsSubAccounts';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { PerpsAccountPickerRow } from './perps-account-picker-row';
 
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
-jest.mock('../../../../../UI/Perps/hooks', () => ({
+jest.mock('../../../hooks/transactions/usePerpsSubAccounts', () => ({
   usePerpsSubAccounts: jest.fn(),
 }));
 jest.mock('../../../../../../util/navigation/navUtils', () => ({

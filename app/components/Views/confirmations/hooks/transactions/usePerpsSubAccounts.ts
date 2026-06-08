@@ -1,17 +1,24 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
-import type { SubAccountInfo } from '../types/subAccount';
-import Engine from '../../../../core/Engine';
-import { selectInternalAccounts } from '../../../../selectors/accountsController';
-import { selectAccountToGroupMap } from '../../../../selectors/multichainAccounts/accountTreeController';
-import { useTransactionMetadataRequest } from '../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
+
+import Engine from '../../../../../core/Engine';
+import { selectInternalAccounts } from '../../../../../selectors/accountsController';
+import { selectAccountToGroupMap } from '../../../../../selectors/multichainAccounts/accountTreeController';
+import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 
 const EVM_TYPE_PREFIX = 'eip155:';
+
+export interface SubAccountInfo {
+  id: string;
+  name: string;
+  spendableBalance: string;
+  withdrawableBalance: string;
+  totalBalance: string;
+}
 
 interface UsePerpsSubAccountsReturn {
   subAccounts: SubAccountInfo[];
   selectedSubAccount: SubAccountInfo | null;
-  selectSubAccount: (id: string) => void;
 }
 
 export function usePerpsSubAccounts(): UsePerpsSubAccountsReturn {
@@ -29,7 +36,6 @@ export function usePerpsSubAccounts(): UsePerpsSubAccountsReturn {
       }
     >
   >({});
-  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const evmAccounts = useMemo(
     () => allAccounts.filter((a) => a.type.startsWith(EVM_TYPE_PREFIX)),
@@ -97,28 +103,14 @@ export function usePerpsSubAccounts(): UsePerpsSubAccountsReturn {
     [evmAccounts, accountToGroupMap, balances],
   );
 
-  useEffect(() => {
-    if (fromAddress) {
-      setSelectedId(fromAddress);
-    }
-  }, [fromAddress]);
-
-  useEffect(() => {
-    if (selectedId === null && !fromAddress && subAccounts.length > 0) {
-      setSelectedId(subAccounts[0].id);
-    }
-  }, [selectedId, fromAddress, subAccounts]);
-
-  const selectedSubAccount =
-    subAccounts.find((a) => a.id === selectedId) ?? null;
-
-  const selectSubAccount = useCallback((id: string) => {
-    setSelectedId(id);
-  }, []);
+  const selectedSubAccount = useMemo(
+    () =>
+      subAccounts.find((a) => a.id === fromAddress) ?? subAccounts[0] ?? null,
+    [fromAddress, subAccounts],
+  );
 
   return {
     subAccounts,
     selectedSubAccount,
-    selectSubAccount,
   };
 }

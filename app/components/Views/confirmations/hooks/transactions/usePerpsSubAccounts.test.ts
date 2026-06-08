@@ -1,23 +1,21 @@
-import { renderHook, act, waitFor } from '@testing-library/react-native';
+import { renderHook, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
+
+import Engine from '../../../../../core/Engine';
+import { selectInternalAccounts } from '../../../../../selectors/accountsController';
+import { selectAccountToGroupMap } from '../../../../../selectors/multichainAccounts/accountTreeController';
+import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 import { usePerpsSubAccounts } from './usePerpsSubAccounts';
-import Engine from '../../../../core/Engine';
-import { selectInternalAccounts } from '../../../../selectors/accountsController';
-import { selectAccountToGroupMap } from '../../../../selectors/multichainAccounts/accountTreeController';
-import { useTransactionMetadataRequest } from '../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-jest.mock(
-  '../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest',
-  () => ({
-    useTransactionMetadataRequest: jest.fn(() => undefined),
-  }),
-);
+jest.mock('./useTransactionMetadataRequest', () => ({
+  useTransactionMetadataRequest: jest.fn(() => undefined),
+}));
 
-jest.mock('../../../../core/Engine', () => ({
+jest.mock('../../../../../core/Engine', () => ({
   context: {
     PerpsController: {
       getAccountState: jest.fn(),
@@ -25,12 +23,12 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../../../selectors/accountsController', () => ({
+jest.mock('../../../../../selectors/accountsController', () => ({
   selectInternalAccounts: jest.fn(),
 }));
 
 jest.mock(
-  '../../../../selectors/multichainAccounts/accountTreeController',
+  '../../../../../selectors/multichainAccounts/accountTreeController',
   () => ({
     selectAccountToGroupMap: jest.fn(),
   }),
@@ -128,20 +126,14 @@ describe('usePerpsSubAccounts', () => {
     });
 
     expect(Engine.context.PerpsController.getAccountState).toHaveBeenCalledWith(
-      {
-        standalone: true,
-        userAddress: '0xabc',
-      },
+      { standalone: true, userAddress: '0xabc' },
     );
     expect(Engine.context.PerpsController.getAccountState).toHaveBeenCalledWith(
-      {
-        standalone: true,
-        userAddress: '0xdef',
-      },
+      { standalone: true, userAddress: '0xdef' },
     );
   });
 
-  it('auto-selects first account when none is selected', async () => {
+  it('auto-selects first account when fromAddress is not set', async () => {
     const { result } = renderHook(() => usePerpsSubAccounts());
 
     await waitFor(() => {
@@ -187,7 +179,7 @@ describe('usePerpsSubAccounts', () => {
     });
   });
 
-  it('initializes selected account from transactionMeta.txParams.from', async () => {
+  it('selects account matching transactionMeta.txParams.from', async () => {
     jest.mocked(useTransactionMetadataRequest).mockReturnValue({
       txParams: { from: '0xdef' },
     } as never);

@@ -31,10 +31,12 @@ import { useParams } from '../../../../../../util/navigation/navUtils';
 import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
 import { updateTransaction } from '../../../../../../util/transaction-controller';
 import { strings } from '../../../../../../../locales/i18n';
-import { PerpsAccountPickerSelectorsIDs } from '../../../../../UI/Perps/Perps.testIds';
-import { usePerpsSubAccounts } from '../../../../../UI/Perps/hooks';
-import type { SubAccountInfo } from '../../../../../UI/Perps/types/subAccount';
 import { formatPerpsBalance } from '../../../../../UI/Perps/utils/formatUtils';
+import { PerpsAccountPickerSelectorsIDs } from '../../../ConfirmationView.testIds';
+import {
+  usePerpsSubAccounts,
+  type SubAccountInfo,
+} from '../../../hooks/transactions/usePerpsSubAccounts';
 import {
   ConfirmationParams,
   PayWithOption,
