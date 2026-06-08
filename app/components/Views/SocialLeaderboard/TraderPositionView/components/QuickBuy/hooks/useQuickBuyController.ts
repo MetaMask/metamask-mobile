@@ -1111,13 +1111,23 @@ export function useQuickBuyController(
       return hasNonZeroInputAmount;
     }
   }, [sourceTokenAmount, sourceToken?.decimals]);
-  // A displayed quote corresponds to the current amount when the quote's own
-  // srcTokenAmount equals the requested amount. The quote request is built with
-  // `calcTokenValue(sourceTokenAmount, decimals).toFixed(0)` and the bridge
-  // echoes that exact value back, so a string equality is reliable. Deriving
-  // this synchronously (rather than tracking the last-settled amount in a ref
-  // updated from an effect) lets the CTA enable on the same render the matching
-  // quote arrives — in lockstep with the loader — instead of a render later.
+  // A displayed quote corresponds to the current amount when the amount the
+  // user actually spends matches the requested amount. The request is built
+  // with `calcTokenValue(sourceTokenAmount, decimals).toFixed(0)`, so we
+  // normalise both sides to atomic units and compare.
+  //
+  // We compare against the quote's `sentAmount` (the full wallet deduction:
+  // routing amount + src-token fees, or the fixed intent commitment) rather
+  // than `quote.srcTokenAmount`. `quote.srcTokenAmount` is the post-fee swap
+  // amount, so for gas-included / gas-sponsored quotes it is smaller than the
+  // requested amount and an exact equality would never pass — leaving the Buy
+  // CTA stuck disabled even with a valid quote on screen. `sentAmount` adds
+  // those src-token fees back, reconstructing the requested amount.
+  //
+  // Deriving this synchronously (rather than tracking the last-settled amount
+  // in a ref updated from an effect) lets the CTA enable on the same render the
+  // matching quote arrives — in lockstep with the loader — instead of a render
+  // later.
   const isActiveQuoteForCurrentAmount = useMemo(() => {
     if (
       !activeQuote ||
@@ -1132,7 +1142,11 @@ export function useQuickBuyController(
         sourceTokenAmount,
         sourceToken.decimals,
       ).toFixed(0);
-      return activeQuote.quote.srcTokenAmount === requested;
+      const sent = calcTokenValue(
+        activeQuote.sentAmount.amount,
+        sourceToken.decimals,
+      ).toFixed(0);
+      return sent === requested;
     } catch {
       return false;
     }

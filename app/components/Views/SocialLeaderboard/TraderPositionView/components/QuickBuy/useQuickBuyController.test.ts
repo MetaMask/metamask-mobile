@@ -308,6 +308,15 @@ const createActiveQuote = (
       srcTokenAmount: '10000000000000000',
       ...((overrides.quote as Record<string, unknown> | undefined) ?? {}),
     },
+    // The full wallet deduction (routing amount + src-token fees), in decimal
+    // token units. 0.01 ETH matches the $20 / $2000 amount the disabled-state
+    // tests enter, and is what `isActiveQuoteForCurrentAmount` compares against
+    // (not the post-fee `quote.srcTokenAmount`, which lags for gas-included
+    // quotes).
+    sentAmount: {
+      amount: '0.01',
+      ...((overrides.sentAmount as Record<string, unknown> | undefined) ?? {}),
+    },
     totalNetworkFee: {
       amount: '0.0001',
       ...((overrides.totalNetworkFee as Record<string, unknown> | undefined) ??
@@ -927,6 +936,54 @@ describe('useQuickBuyController', () => {
       expect(result.current.isConfirmDisabled).toBe(false);
     });
 
+    it('enables the CTA for a gas-included quote whose srcTokenAmount is the post-fee amount', () => {
+      const quoteState: UseQuickBuyQuotesResult = {
+        activeQuote: undefined,
+        destTokenAmount: undefined,
+        isQuoteLoading: false,
+        isNoQuotesAvailable: false,
+        quoteFetchError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
+        sortedQuotes: [],
+        quoteCount: 0,
+        quotesLastFetchedAt: null,
+        refreshCount: 0,
+        quoteRefreshRateMs: 30000,
+        maxRefreshCount: 5,
+        refetchQuotes: jest.fn(),
+      };
+      (useQuickBuyQuotes as jest.Mock).mockImplementation(() => quoteState);
+
+      const props = {
+        target: createTarget(),
+        onClose: jest.fn(),
+      };
+      const { result, rerender } = renderHook(
+        ({ target, onClose }) => useQuickBuyController(target, onClose),
+        { initialProps: props },
+      );
+
+      act(() => {
+        result.current.handleAmountChange('20');
+      });
+      quoteState.isQuoteLoading = true;
+      rerender(props);
+      quoteState.isQuoteLoading = false;
+      // Requested amount is 0.01 ETH ($20 / $2000). For a gas-included quote the
+      // bridge deducts the fee from the routing amount, so quote.srcTokenAmount
+      // comes back smaller than requested (0.009 here). sentAmount adds the fee
+      // back, reconstructing the requested 0.01 — that is what must be matched.
+      quoteState.activeQuote = createActiveQuote({
+        quote: { srcTokenAmount: '9000000000000000' },
+        sentAmount: { amount: '0.01' },
+      });
+      rerender(props);
+      rerender(props);
+
+      expect(result.current.isConfirmDisabled).toBe(false);
+    });
+
     it('is disabled when amount changes after quote loading settles', () => {
       const quoteState: UseQuickBuyQuotesResult = {
         activeQuote: undefined,
@@ -1072,8 +1129,9 @@ describe('useQuickBuyController', () => {
       quoteState.isQuoteLoading = true;
       rerender(props);
       quoteState.isQuoteLoading = false;
-      // Inject a high-price-impact active quote. Keep srcTokenAmount so the
-      // quote still matches the requested amount (isPendingQuoteRefresh = false).
+      // Inject a high-price-impact active quote. The spread keeps the default
+      // sentAmount (0.01) so the quote still matches the requested amount
+      // (isPendingQuoteRefresh = false).
       quoteState.activeQuote = {
         ...createActiveQuote(),
         quote: {
