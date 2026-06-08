@@ -28,8 +28,12 @@ const MoneyOnboardingCard = () => {
   const { initiateDeposit } = useMoneyAccountDeposit();
   const { tokenTotal, isAggregatedBalanceLoading } = useMoneyAccountBalance();
 
-  const { startLinkFlow, isCardAuthenticated, isCardLinkedToMoneyAccount } =
-    useMoneyAccountCardLinkage();
+  const {
+    startLinkFlow,
+    isCardAuthenticated,
+    isCardLinkedToMoneyAccount,
+    isLinking,
+  } = useMoneyAccountCardLinkage();
 
   const handleRedirectToCryptoDeposit = useCallback(async () => {
     await initiateDeposit().catch(() => undefined);
@@ -112,6 +116,7 @@ const MoneyOnboardingCard = () => {
                 'money.onboarding.step_2.unlinked_card_account.cta_primary',
               ),
               onPress: handleCardCtaPress,
+              disabled: isLinking,
             },
             secondaryCta: {
               text: strings(
@@ -132,6 +137,7 @@ const MoneyOnboardingCard = () => {
                 'money.onboarding.step_2.no_card_account.cta_primary',
               ),
               onPress: handleCardCtaPress,
+              disabled: isLinking,
             },
             secondaryCta: {
               text: strings(
@@ -148,6 +154,7 @@ const MoneyOnboardingCard = () => {
     isVisibleAfterAutoSkip,
     isCardAuthenticated,
     isCardLinkedToMoneyAccount,
+    isLinking,
     handleRedirectToCryptoDeposit,
     handleCardCtaPress,
     handleSkipPress,

@@ -24,6 +24,7 @@ describe('marketList query', () => {
     it('defaults limit to the page size and drops absent fields', () => {
       expect(normalizeMarketListParams()).toEqual({
         tags: undefined,
+        tagSlugs: undefined,
         series: undefined,
         order: undefined,
         status: undefined,
@@ -33,15 +34,31 @@ describe('marketList query', () => {
       });
     });
 
-    it('sorts tags and series so array order does not affect the result', () => {
+    it('sorts tags, tagSlugs and series so array order does not affect the result', () => {
       expect(
-        normalizeMarketListParams({ tags: ['b', 'a'], series: ['2', '1'] }),
+        normalizeMarketListParams({
+          tags: ['b', 'a'],
+          tagSlugs: ['nfl', 'nba'],
+          series: ['2', '1'],
+        }),
       ).toEqual(
         expect.objectContaining({
           tags: ['a', 'b'],
+          tagSlugs: ['nba', 'nfl'],
           series: ['1', '2'],
         }),
       );
+    });
+
+    it('produces distinct keys for different tagSlugs (no chip cache collision)', () => {
+      const nba = predictMarketListKeys.list(
+        normalizeMarketListParams({ tagSlugs: ['nba'] }),
+      );
+      const nfl = predictMarketListKeys.list(
+        normalizeMarketListParams({ tagSlugs: ['nfl'] }),
+      );
+
+      expect(nba).not.toEqual(nfl);
     });
 
     it('trims search and treats blank/whitespace as absent', () => {

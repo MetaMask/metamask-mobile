@@ -1,4 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useCallback } from 'react';
+import { ScrollView, View } from 'react-native';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import { Box } from '../../../../../UI/Box/Box';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './transaction-details.styles';
@@ -6,8 +8,6 @@ import { TransactionDetailDivider } from '../transaction-detail-divider/transact
 import { TransactionDetailsDateRow } from '../transaction-details-date-row';
 import { TransactionDetailsStatusRow } from '../transaction-details-status-row';
 import { useNavigation } from '@react-navigation/native';
-import { getNavigationOptionsTitle } from '../../../../../UI/Navbar';
-import { useTheme } from '../../../../../../util/theme';
 import { TransactionDetailsPaidWithRow } from '../transaction-details-paid-with-row';
 import { TransactionDetailsSummary } from '../transaction-details-summary';
 import { TransactionDetailsHero } from '../transaction-details-hero';
@@ -21,7 +21,6 @@ import { strings } from '../../../../../../../locales/i18n';
 import { TransactionDetailsNetworkFeeRow } from '../transaction-details-network-fee-row';
 import { TransactionDetailsBridgeFeeRow } from '../transaction-details-bridge-fee-row';
 import { hasTransactionType } from '../../../utils/transaction';
-import { ScrollView } from 'react-native';
 import { TransactionDetailsRetry } from '../transaction-details-retry';
 import { TransactionDetailsAccountRow } from '../transaction-details-account-row';
 
@@ -38,18 +37,12 @@ export const SUMMARY_SECTION_TYPES = [
 export function TransactionDetails() {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
-  const theme = useTheme();
   const { transactionMeta } = useTransactionDetails();
-
-  const { colors } = theme;
   const title = getTitle(transactionMeta);
 
-  useEffect(() => {
-    navigation.setOptions({
-      ...getNavigationOptionsTitle(title, navigation, false, colors),
-      headerTintColor: colors.text.default,
-    });
-  }, [colors, navigation, theme, title]);
+  const handleBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
   const showSummarySection = hasTransactionType(
     transactionMeta,
@@ -57,30 +50,44 @@ export function TransactionDetails() {
   );
 
   return (
-    <ScrollView>
-      <Box style={styles.container} gap={12}>
-        <TransactionDetailsHero />
-        <TransactionDetailsStatusRow />
-        <TransactionDetailsDateRow />
-        <TransactionDetailsAccountRow />
-        <TransactionDetailDivider />
-        <TransactionDetailsPaidWithRow />
-        <TransactionDetailsNetworkFeeRow />
-        <TransactionDetailsBridgeFeeRow />
-        <TransactionDetailsTotalRow />
-        {showSummarySection && (
-          <>
+    <View style={styles.wrapper}>
+      <HeaderStandard
+        title={title}
+        onBack={handleBack}
+        backButtonProps={{ testID: 'transaction-details-back-button' }}
+        includesTopInset
+      />
+      {transactionMeta ? (
+        <ScrollView>
+          <Box style={styles.container} gap={12}>
+            <TransactionDetailsHero />
+            <TransactionDetailsStatusRow />
+            <TransactionDetailsDateRow />
+            <TransactionDetailsAccountRow />
             <TransactionDetailDivider />
-            <TransactionDetailsSummary />
-            <TransactionDetailsRetry />
-          </>
-        )}
-      </Box>
-    </ScrollView>
+            <TransactionDetailsPaidWithRow />
+            <TransactionDetailsNetworkFeeRow />
+            <TransactionDetailsBridgeFeeRow />
+            <TransactionDetailsTotalRow />
+            {showSummarySection && (
+              <>
+                <TransactionDetailDivider />
+                <TransactionDetailsSummary />
+                <TransactionDetailsRetry />
+              </>
+            )}
+          </Box>
+        </ScrollView>
+      ) : null}
+    </View>
   );
 }
 
-function getTitle(transactionMeta: TransactionMeta) {
+function getTitle(transactionMeta: TransactionMeta | undefined) {
+  if (!transactionMeta) {
+    return strings('transaction_details.title.default');
+  }
+
   if (
     hasTransactionType(transactionMeta, [TransactionType.moneyAccountDeposit])
   ) {

@@ -28,11 +28,6 @@ export interface PerpsMarketFiltersBarProps {
   onCategorySelect: (category: MarketTypeFilter) => void;
 
   /**
-   * Optional list of available categories (for hiding empty categories)
-   */
-  availableCategories?: Exclude<MarketTypeFilter, 'all'>[];
-
-  /**
    * Whether to show the watchlist (star) filter badge.
    * Should be true only when the user has at least one market on their watchlist.
    */

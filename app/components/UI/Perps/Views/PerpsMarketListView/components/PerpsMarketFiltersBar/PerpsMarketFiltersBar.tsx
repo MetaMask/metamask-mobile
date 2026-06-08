@@ -28,7 +28,6 @@ const PerpsMarketFiltersBar: React.FC<PerpsMarketFiltersBarProps> = ({
   onSortPress,
   marketTypeFilter,
   onCategorySelect,
-  availableCategories,
   showWatchlistBadge,
   isWatchlistSelected,
   onWatchlistToggle,
@@ -42,7 +41,6 @@ const PerpsMarketFiltersBar: React.FC<PerpsMarketFiltersBarProps> = ({
       <PerpsMarketCategoryBadges
         selectedCategory={marketTypeFilter}
         onCategorySelect={onCategorySelect}
-        availableCategories={availableCategories}
         showWatchlistBadge={showWatchlistBadge}
         isWatchlistSelected={isWatchlistSelected}
         onWatchlistToggle={onWatchlistToggle}

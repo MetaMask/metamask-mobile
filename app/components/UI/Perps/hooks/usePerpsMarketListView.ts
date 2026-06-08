@@ -1,11 +1,11 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { usePerpsMarkets } from './usePerpsMarkets';
 import { usePerpsSearch } from './usePerpsSearch';
 import { usePerpsSorting } from './usePerpsSorting';
 import {
   MARKET_SORTING_CONFIG,
-  MarketCategory,
+  MARKET_CATEGORIES,
   sortMarkets,
   type PerpsMarketData,
   type MarketTypeFilter,
@@ -14,11 +14,14 @@ import {
   type SortOptionId,
 } from '@metamask/perps-controller';
 import {
+  getMarketTypeForFilter,
+  getFilterForMarketType,
+} from '../utils/marketCategoryMapping';
+import {
   selectPerpsWatchlistMarkets,
   selectPerpsMarketFilterPreferences,
 } from '../selectors/perpsController';
 import Engine from '../../../../core/Engine';
-import { isEquityAsset } from '../utils/marketHours';
 
 interface UsePerpsMarketListViewParams {
   /**
@@ -96,15 +99,9 @@ interface UsePerpsMarketListViewReturn {
     setMarketTypeFilter: (filter: MarketTypeFilter) => void;
   };
   /**
-   * Market counts by type (for hiding empty tabs)
+   * Market counts by type (for hiding empty tabs/pills)
    */
-  marketCounts: {
-    crypto: number;
-    stocks: number;
-    commodity: number;
-    forex: number;
-    new: number;
-  };
+  marketCounts: Record<Exclude<MarketTypeFilter, 'all'>, number>;
   /**
    * Loading state
    */
@@ -175,6 +172,12 @@ export const usePerpsMarketListView = ({
     defaultMarketTypeFilter,
   );
 
+  // Sync filter when route params change (e.g. navigating from PerpsProducts
+  // to an already-mounted market list screen — useState ignores new initials).
+  useEffect(() => {
+    setMarketTypeFilter(defaultMarketTypeFilter);
+  }, [defaultMarketTypeFilter]);
+
   // Use search hook for search state and filtering (search bar always visible in UI)
   const searchHook = usePerpsSearch({ markets: allMarkets });
 
@@ -188,28 +191,18 @@ export const usePerpsMarketListView = ({
 
     // Special handling for 'crypto' filter - crypto markets are non-HIP3 (main DEX)
     if (marketTypeFilter === 'crypto') {
-      return searchedMarkets.filter((m) => !m.isHip3);
+      return searchedMarkets.filter((market) => !market.isHip3);
     }
 
     // Special handling for 'new' filter - shows uncategorized HIP-3 markets
     if (marketTypeFilter === 'new') {
-      return searchedMarkets.filter((m) => m.isNewMarket);
+      return searchedMarkets.filter((market) => market.isNewMarket);
     }
 
-    // HIP-3 categories - only show explicitly mapped markets
-    if (marketTypeFilter === 'stocks') {
-      return searchedMarkets.filter((m) => isEquityAsset(m.marketType));
-    }
-
-    if (marketTypeFilter === 'commodities') {
+    const targetType = getMarketTypeForFilter(marketTypeFilter);
+    if (targetType) {
       return searchedMarkets.filter(
-        (m) => m.marketType === MarketCategory.Commodity,
-      );
-    }
-
-    if (marketTypeFilter === 'forex') {
-      return searchedMarkets.filter(
-        (m) => m.marketType === MarketCategory.Forex,
+        (market) => market.marketType === targetType,
       );
     }
 
@@ -272,27 +265,23 @@ export const usePerpsMarketListView = ({
     [favoritesFilteredMarkets, sortingHook.sortBy, sortingHook.direction],
   );
 
-  // Calculate market counts by type (for hiding empty tabs)
+  // Calculate market counts per category (for hiding empty pills/tabs)
   const marketCounts = useMemo(() => {
-    const counts = {
-      crypto: 0,
-      stocks: 0,
-      commodity: 0,
-      forex: 0,
-      new: 0,
-    };
+    const counts = Object.fromEntries(
+      [...MARKET_CATEGORIES, 'new' as const].map((category) => [category, 0]),
+    ) as Record<Exclude<MarketTypeFilter, 'all'>, number>;
+
     allMarkets.forEach((market) => {
       if (market.isNewMarket) {
         counts.new++;
       }
       if (!market.isHip3) {
         counts.crypto++;
-      } else if (isEquityAsset(market.marketType)) {
-        counts.stocks++;
-      } else if (market.marketType === MarketCategory.Commodity) {
-        counts.commodity++;
-      } else if (market.marketType === MarketCategory.Forex) {
-        counts.forex++;
+      } else if (market.marketType) {
+        const filterKey = getFilterForMarketType(market.marketType);
+        if (filterKey && filterKey !== 'all' && filterKey in counts) {
+          counts[filterKey]++;
+        }
       }
     });
     return counts;
