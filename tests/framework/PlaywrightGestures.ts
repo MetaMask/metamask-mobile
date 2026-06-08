@@ -3,7 +3,10 @@ import { CurrentDeviceDetails } from './fixtures/playwright';
 import { PlatformDetector } from './PlatformLocator';
 import { PlaywrightElement } from './PlaywrightAdapter';
 import { boxedStep, getDriver } from './PlaywrightUtilities';
-import { createPlaywrightLogger, describeElement } from './playwrightLogger.ts';
+import {
+  createPlaywrightLogger,
+  debugElementAction,
+} from './playwrightLogger.ts';
 
 const logger = createPlaywrightLogger('PlaywrightGestures');
 
@@ -37,7 +40,7 @@ export default class PlaywrightGestures {
    */
   @boxedStep
   static async tap(elem: PlaywrightElement): Promise<void> {
-    logger.debug(`Tapping element${await describeElement(elem)}`);
+    await debugElementAction(logger, 'Tapping element', elem);
     await elem.unwrap().click();
   }
 
@@ -196,7 +199,7 @@ export default class PlaywrightGestures {
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
 
-    logger.debug(`Wait and tap element${await describeElement(elem)}`);
+    await debugElementAction(logger, 'Wait and tap element', elem);
     await elem.unwrap().click();
   }
 
@@ -208,7 +211,7 @@ export default class PlaywrightGestures {
    */
   @boxedStep
   static async typeText(elem: PlaywrightElement, text: string): Promise<void> {
-    logger.debug(`Typing into element${await describeElement(elem)}`);
+    await debugElementAction(logger, 'Typing into element', elem);
     await elem.unwrap().addValue(text);
   }
 
@@ -267,7 +270,7 @@ export default class PlaywrightGestures {
     const x = location.x + size.width / 2;
     const y = location.y + size.height / 2;
 
-    logger.debug(`Long pressing element${await describeElement(elem)}`);
+    await debugElementAction(logger, 'Long pressing element', elem);
     await elem
       .unwrap()
       .touchAction([
@@ -288,7 +291,7 @@ export default class PlaywrightGestures {
   static async dblTap(elem: PlaywrightElement, intervalMs = 60): Promise<void> {
     const wrapped = elem.unwrap();
 
-    logger.debug(`Double tapping element${await describeElement(elem)}`);
+    await debugElementAction(logger, 'Double tapping element', elem);
     await wrapped.click();
 
     if (intervalMs > 0) {
@@ -314,7 +317,7 @@ export default class PlaywrightGestures {
       scrollableElement,
       duration,
     } = options || {};
-    logger.debug(`Scrolling element into view${await describeElement(elem)}`);
+    await debugElementAction(logger, 'Scrolling element into view', elem);
     await elem.unwrap().scrollIntoView({
       direction: scrollParams.direction,
       from,
@@ -351,8 +354,10 @@ export default class PlaywrightGestures {
     const safeBottom = windowSize.height * 0.85;
 
     if (elementBottom > safeBottom) {
-      logger.debug(
-        `Adjusting scroll to clear bottom nav for element${await describeElement(elem)}`,
+      await debugElementAction(
+        logger,
+        'Adjusting scroll to clear bottom nav for element',
+        elem,
       );
       const overshoot = Math.ceil(elementBottom - safeBottom) + 20;
       const midX = Math.floor(windowSize.width / 2);

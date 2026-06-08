@@ -1,10 +1,10 @@
 import type { FullProject, TestInfo } from '@playwright/test';
 import {
-  WebDriverConfig,
   Platform,
   ProviderName,
   type DeviceConfig,
   type EmulatorConfig,
+  type WebDriverConfig,
 } from '../../types.ts';
 import { applyResolvedAndroidAdbToDevice } from '../../services/providers/emulator/android/resolveAndroidAdbUdid.ts';
 import { createPlaywrightLogger } from '../../playwrightLogger.ts';

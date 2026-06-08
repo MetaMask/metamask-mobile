@@ -1,5 +1,5 @@
 import type { FullProject, TestInfo } from '@playwright/test';
-import { WebDriverConfig } from '../../types.ts';
+import type { WebDriverConfig } from '../../types.ts';
 import { DEFAULT_IMPLICIT_WAIT_MS } from '../../Constants.ts';
 import { setDeviceInfo } from '../../DeviceInfoCache.ts';
 import type { TestLevelFixtures } from './types.ts';

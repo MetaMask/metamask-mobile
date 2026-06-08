@@ -90,10 +90,7 @@ export const performanceTrackerFixture = {
         } steps, ${metrics.total.toFixed(2)}s total`,
       );
     } catch (error) {
-      logger.error(
-        'Failed to attach performance metrics:',
-        (error as Error).message,
-      );
+      logger.error('Failed to attach performance metrics:', error);
     }
 
     const sessionId = getSessionIdFromAnnotations(testInfo.annotations);
@@ -121,7 +118,7 @@ export const performanceTrackerFixture = {
       } catch (error) {
         logger.error(
           `Failed to publish scenario "${testInfo.title}" to Sentry:`,
-          (error as Error).message,
+          error,
         );
       }
     }

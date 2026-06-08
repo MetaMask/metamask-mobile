@@ -1,6 +1,6 @@
 import type { FullProject, TestInfo } from '@playwright/test';
 import { createServiceProvider, type ServiceProvider } from '../../services';
-import { WebDriverConfig } from '../../types.ts';
+import type { WebDriverConfig } from '../../types.ts';
 import { createPlaywrightLogger } from '../../playwrightLogger.ts';
 
 const logger = createPlaywrightLogger('deviceProvider');
