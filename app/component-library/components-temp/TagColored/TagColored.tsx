@@ -18,6 +18,11 @@ import {
   TAGCOLORED_TEXT_TESTID,
 } from './TagColored.constants';
 
+/**
+ * @deprecated Please update your code to use `Tag` from `@metamask/design-system-react-native`.
+ * The API may have changed — compare props before migrating.
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/Tag/README.md}
+ */
 const TagColored: React.FC<TagColoredProps> = ({
   style,
   color = DEFAULT_TAGCOLORED_COLOR,
