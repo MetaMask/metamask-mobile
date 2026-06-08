@@ -96,7 +96,7 @@ const PredictHome: React.FC = () => {
           <Box
             testID={PredictHomeSelectorsIDs.TITLE_SECTION}
             onLayout={handleTitleLayout}
-            twClassName="pt-2 pb-4"
+            twClassName="pt-2 pb-2"
           >
             <Text
               testID={PredictHomeSelectorsIDs.TITLE}
