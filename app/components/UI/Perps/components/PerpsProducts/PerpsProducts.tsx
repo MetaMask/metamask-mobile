@@ -36,7 +36,9 @@ import IndicesChartDarkSVG from './assets/indices-chart-dark.svg';
 import { styleSheet } from './PerpsProducts.styles';
 import type { PerpsProductsProps } from './PerpsProducts.types';
 
-type SvgComponent = React.FC<import('react-native-svg').SvgProps>;
+type SvgComponent = React.FC<
+  import('react-native-svg').SvgProps & { name: string }
+>;
 
 /**
  * Analytics constants for product pills — not yet in @metamask/perps-controller.
@@ -67,7 +69,7 @@ const CategoryIcon: React.FC<{ categoryId: string }> = ({ categoryId }) => {
   const icons = isDark ? CUSTOM_SVG_ICONS_DARK : CUSTOM_SVG_ICONS_LIGHT;
   const CustomIcon = icons[categoryId];
   if (CustomIcon) {
-    return <CustomIcon width={24} height={24} />;
+    return <CustomIcon width={24} height={24} name={categoryId} />;
   }
   return (
     <Icon
