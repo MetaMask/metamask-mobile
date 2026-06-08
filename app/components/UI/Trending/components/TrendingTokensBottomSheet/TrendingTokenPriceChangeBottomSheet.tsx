@@ -1,17 +1,15 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { TrendingTokensBottomSheetTestIds } from './TrendingTokensBottomSheet.testIds';
-import {
-  HeaderStandard,
-  Text,
-  TextVariant,
-  TextColor,
-  FontWeight,
-} from '@metamask/design-system-react-native';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import { View, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { useTheme } from '../../../../../util/theme';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../../../component-library/components/Texts/Text';
 import Icon, {
   IconName,
   IconSize,
@@ -168,15 +166,14 @@ const TrendingTokenPriceChangeBottomSheet: React.FC<
           activeOpacity={1}
           onPress={() => onOptionPress(PriceChangeOption.PriceChange)}
         >
-          <Text variant={TextVariant.BodyMd}>
+          <Text variant={TextVariant.BodyMD}>
             {strings('trending.price_change')}
           </Text>
           {selectedOption === PriceChangeOption.PriceChange && (
             <View style={optionStyles.arrowContainer}>
               <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-                fontWeight={FontWeight.Medium}
+                variant={TextVariant.BodyMDMedium}
+                color={TextColor.Alternative}
               >
                 {sortDirection === SortDirection.Ascending
                   ? strings('trending.low_to_high')
@@ -204,13 +201,12 @@ const TrendingTokenPriceChangeBottomSheet: React.FC<
           activeOpacity={1} // this disables the default opacity change when pressing the option
           onPress={() => onOptionPress(PriceChangeOption.Volume)}
         >
-          <Text variant={TextVariant.BodyMd}>{strings('trending.volume')}</Text>
+          <Text variant={TextVariant.BodyMD}>{strings('trending.volume')}</Text>
           {selectedOption === PriceChangeOption.Volume && (
             <View style={optionStyles.arrowContainer}>
               <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-                fontWeight={FontWeight.Medium}
+                variant={TextVariant.BodyMDMedium}
+                color={TextColor.Alternative}
               >
                 {sortDirection === SortDirection.Ascending
                   ? strings('trending.low_to_high')
@@ -238,15 +234,14 @@ const TrendingTokenPriceChangeBottomSheet: React.FC<
           activeOpacity={1}
           onPress={() => onOptionPress(PriceChangeOption.MarketCap)}
         >
-          <Text variant={TextVariant.BodyMd}>
+          <Text variant={TextVariant.BodyMD}>
             {strings('trending.market_cap')}
           </Text>
           {selectedOption === PriceChangeOption.MarketCap && (
             <View style={optionStyles.arrowContainer}>
               <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-                fontWeight={FontWeight.Medium}
+                variant={TextVariant.BodyMDMedium}
+                color={TextColor.Alternative}
               >
                 {sortDirection === SortDirection.Ascending
                   ? strings('trending.low_to_high')

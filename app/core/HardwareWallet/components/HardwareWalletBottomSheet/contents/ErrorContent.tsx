@@ -9,13 +9,15 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
-  Text,
-  TextVariant,
-  TextColor,
 } from '@metamask/design-system-react-native';
 import Icon, {
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
+
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../../../component-library/components/Texts/Text';
 
 import { strings } from '../../../../../../locales/i18n';
 
@@ -164,8 +166,8 @@ export const ErrorContent: React.FC<ErrorContentProps> = ({
         errorMessage ? (
           <Text
             testID={ERROR_CONTENT_MESSAGE_TEST_ID}
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextDefault}
+            variant={TextVariant.BodyMD}
+            color={TextColor.Default}
             style={styles.message}
           >
             {errorMessage}

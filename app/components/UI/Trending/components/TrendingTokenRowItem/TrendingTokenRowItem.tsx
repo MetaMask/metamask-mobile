@@ -2,6 +2,10 @@ import React, { useCallback, useMemo } from 'react';
 import { getTrendingTokenRowItemTestId } from './TrendingTokenRowItem.testIds';
 import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './TrendingTokenRowItem.styles';
 import { TrendingAsset } from '@metamask/assets-controllers';
@@ -32,19 +36,13 @@ import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import { useTrendingTokenPress } from '../../hooks/useTrendingTokenPress/useTrendingTokenPress';
 import SecurityTrustInlineBadge from '../../../SecurityTrust/components/SecurityTrustInlineBadge/SecurityTrustInlineBadge';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
-import {
-  Text,
-  TextVariant,
-  TextColor,
-  FontWeight,
-} from '@metamask/design-system-react-native';
 
 /**
  * Gets the text color for price percentage change
  */
 const getPriceChangeColor = (priceChange: number): TextColor => {
-  if (priceChange === 0) return TextColor.TextDefault;
-  return priceChange > 0 ? TextColor.SuccessDefault : TextColor.ErrorDefault;
+  if (priceChange === 0) return TextColor.Default;
+  return priceChange > 0 ? TextColor.Success : TextColor.Error;
 };
 
 /**
@@ -217,12 +215,11 @@ const TrendingTokenRowItem = ({
       <View style={styles.leftContainer}>
         <View style={styles.tokenHeaderRow}>
           <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextDefault}
+            variant={TextVariant.BodyMDMedium}
+            color={TextColor.Default}
             numberOfLines={1}
             ellipsizeMode="tail"
             style={styles.tokenName}
-            fontWeight={FontWeight.Medium}
           >
             {token?.name ?? token?.symbol}
           </Text>
@@ -235,7 +232,7 @@ const TrendingTokenRowItem = ({
             />
           )}
         </View>
-        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
           {formatMarketStats(
             token.marketCap ?? 0,
             token.aggregatedUsdVolume ?? 0,
@@ -244,21 +241,17 @@ const TrendingTokenRowItem = ({
         </Text>
       </View>
       <View style={styles.rightContainer}>
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextDefault}
-          fontWeight={FontWeight.Medium}
-        >
+        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
           {formatPriceWithSubscriptNotation(token.price, currentCurrency)}
         </Text>
         {parseFloat(token.price) === 0 ? (
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
             —
           </Text>
         ) : (
           hasPercentageChange && (
             <Text
-              variant={TextVariant.BodySm}
+              variant={TextVariant.BodySM}
               color={getPriceChangeColor(pricePercentChange)}
             >
               {getPriceChangePrefix(pricePercentChange, isPositiveChange)}

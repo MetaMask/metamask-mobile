@@ -1,4 +1,7 @@
 import React from 'react';
+import Text, {
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
 import Button, {
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
@@ -9,7 +12,6 @@ import Card from '../../../../../component-library/components/Cards/Card';
 import { useStyles } from '../../../../../component-library/hooks';
 import { useAnalytics } from '../../../../../components/hooks/useAnalytics/useAnalytics';
 import { SAMPLE_FEATURE_EVENTS } from '../../../analytics/events';
-import { Text, TextVariant } from '@metamask/design-system-react-native';
 
 /**
  * SampleCounterPane Component
@@ -51,12 +53,13 @@ export function SampleCounterPane() {
 
   return (
     <Card style={styles.card}>
-      <Text variant={TextVariant.HeadingSm} testID="sample-counter-pane-title">
+      <Text variant={TextVariant.HeadingSM} testID="sample-counter-pane-title">
         {strings('sample_feature.counter.title')}
       </Text>
       <Text testID="sample-counter-pane-value">
         {strings('sample_feature.counter.value', { value: counter.count })}
       </Text>
+
       <Button
         variant={ButtonVariants.Primary}
         style={styles.button}

@@ -1,14 +1,13 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
-import {
-  HeaderStandard,
-  Text,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { useTheme } from '../../../../../util/theme';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import Text, {
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
 import Icon, {
   IconName,
   IconSize,
@@ -155,7 +154,7 @@ const TrendingTokenTimeBottomSheet: React.FC<
           onPress={() => onTimeOptionPress(TimeOption.TwentyFourHours)}
           testID="time-select-24h"
         >
-          <Text variant={TextVariant.BodyMd}>
+          <Text variant={TextVariant.BodyMD}>
             {strings('trending.24_hours')}
           </Text>
           {selectedTime === TimeOption.TwentyFourHours && (
@@ -171,7 +170,7 @@ const TrendingTokenTimeBottomSheet: React.FC<
           onPress={() => onTimeOptionPress(TimeOption.SixHours)}
           testID="time-select-6h"
         >
-          <Text variant={TextVariant.BodyMd}>
+          <Text variant={TextVariant.BodyMD}>
             {strings('trending.6_hours')}
           </Text>
           {selectedTime === TimeOption.SixHours && (
@@ -187,7 +186,7 @@ const TrendingTokenTimeBottomSheet: React.FC<
           onPress={() => onTimeOptionPress(TimeOption.OneHour)}
           testID="time-select-1h"
         >
-          <Text variant={TextVariant.BodyMd}>{strings('trending.1_hour')}</Text>
+          <Text variant={TextVariant.BodyMD}>{strings('trending.1_hour')}</Text>
           {selectedTime === TimeOption.OneHour && (
             <Icon name={IconName.Check} size={IconSize.Md} />
           )}
@@ -201,7 +200,7 @@ const TrendingTokenTimeBottomSheet: React.FC<
           onPress={() => onTimeOptionPress(TimeOption.FiveMinutes)}
           testID="time-select-5m"
         >
-          <Text variant={TextVariant.BodyMd}>
+          <Text variant={TextVariant.BodyMD}>
             {strings('trending.5_minutes')}
           </Text>
           {selectedTime === TimeOption.FiveMinutes && (

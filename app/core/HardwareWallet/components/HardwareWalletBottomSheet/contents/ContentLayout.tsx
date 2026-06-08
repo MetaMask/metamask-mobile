@@ -1,11 +1,10 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 
-import {
-  Text,
+import Text, {
   TextVariant,
   TextColor,
-} from '@metamask/design-system-react-native';
+} from '../../../../../component-library/components/Texts/Text';
 
 export const CONTENT_LAYOUT_TEST_ID = 'content-layout';
 
@@ -74,8 +73,8 @@ export const ContentLayout: React.FC<ContentLayoutProps> = ({
     <View style={icon ? styles.titleContainer : styles.titleContainerNoIcon}>
       <Text
         testID={titleTestID}
-        variant={TextVariant.HeadingMd}
-        color={TextColor.TextDefault}
+        variant={TextVariant.HeadingMD}
+        color={TextColor.Default}
         style={styles.title}
       >
         {title}
