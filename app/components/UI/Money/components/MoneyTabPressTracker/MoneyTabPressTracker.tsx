@@ -8,6 +8,8 @@ import {
 import { LABEL_BY_TAB_BAR_ICON_KEY } from '../../../../../component-library/components/Navigation/TabBar/TabBar.constants';
 import { TabBarIconKey } from '../../../../../component-library/components/Navigation/TabBar/TabBar.types';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import { selectMoneyOnboardingSeen } from '../../../../../reducers/user';
+import { useSelector } from 'react-redux';
 
 /**
  * Renders nothing — exists purely to host the Money analytics hook chain so it
@@ -23,23 +25,36 @@ interface MoneyTabPressTrackerProps {
 
 const MoneyTabPressTracker = ({ onRegister }: MoneyTabPressTrackerProps) => {
   const { trackButtonClicked } = useMoneyAnalytics({
-    component_name: COMPONENT_NAMES.HOME_TAB,
+    component_name: COMPONENT_NAMES.MONEY_HOME_TAB,
   });
+
+  const hasSeenMoneyOnboarding = useSelector(selectMoneyOnboardingSeen);
 
   useEffect(() => {
     onRegister(() => {
+      let redirectTarget: SCREEN_NAMES;
+      let buttonIntent: MONEY_BUTTON_INTENTS;
+
+      if (hasSeenMoneyOnboarding) {
+        redirectTarget = SCREEN_NAMES.MONEY_HOME;
+        buttonIntent = MONEY_BUTTON_INTENTS.GO_TO_MONEY_HOME;
+      } else {
+        redirectTarget = SCREEN_NAMES.MONEY_ONBOARDING;
+        buttonIntent = MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING;
+      }
+
       const labelKey = LABEL_BY_TAB_BAR_ICON_KEY[TabBarIconKey.Money];
       trackButtonClicked({
         button_type: MONEY_BUTTON_TYPES.TEXT,
-        button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_HOME,
+        button_intent: buttonIntent,
         label_key: labelKey,
-        redirect_target: SCREEN_NAMES.MONEY_HOME,
+        redirect_target: redirectTarget,
       });
     });
     return () => {
       onRegister(null);
     };
-  }, [trackButtonClicked, onRegister]);
+  }, [trackButtonClicked, onRegister, hasSeenMoneyOnboarding]);
 
   return null;
 };

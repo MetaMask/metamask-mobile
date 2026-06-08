@@ -8,6 +8,7 @@ import {
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 import MoneyTabPressTracker from './MoneyTabPressTracker';
+import { selectMoneyOnboardingSeen } from '../../../../../reducers/user';
 
 jest.mock('../../../../../core/AppConstants', () => ({
   __esModule: true,
@@ -19,6 +20,15 @@ jest.mock('../../../../../constants/urls', () => ({
 }));
 
 const mockTrackButtonClicked = jest.fn();
+const mockUseSelector = jest.fn();
+
+jest.mock('react-redux', () => ({
+  useSelector: (selector: unknown) => mockUseSelector(selector),
+}));
+
+jest.mock('../../../../../reducers/user', () => ({
+  selectMoneyOnboardingSeen: jest.fn(),
+}));
 
 jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
@@ -29,6 +39,10 @@ describe('MoneyTabPressTracker', () => {
     jest.clearAllMocks();
     (useMoneyAnalytics as jest.Mock).mockReturnValue({
       trackButtonClicked: mockTrackButtonClicked,
+    });
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectMoneyOnboardingSeen) return true;
+      return undefined;
     });
   });
 
@@ -51,29 +65,57 @@ describe('MoneyTabPressTracker', () => {
     expect(onRegister).toHaveBeenCalledWith(null);
   });
 
-  it('registered function calls trackButtonClicked with GO_TO_MONEY_HOME intent and Money label', () => {
-    const onRegister = jest.fn();
-    render(<MoneyTabPressTracker onRegister={onRegister} />);
-
-    const registeredFn = onRegister.mock.calls[0][0] as () => void;
-    act(() => {
-      registeredFn();
-    });
-
-    expect(mockTrackButtonClicked).toHaveBeenCalledWith({
-      button_type: MONEY_BUTTON_TYPES.TEXT,
-      button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_HOME,
-      label_key: 'bottom_nav.money',
-      redirect_target: SCREEN_NAMES.MONEY_HOME,
-    });
-  });
-
-  it('initialises useMoneyAnalytics with HOME_TAB component_name', () => {
+  it('initialises useMoneyAnalytics with MONEY_HOME_TAB component_name', () => {
     const onRegister = jest.fn();
     render(<MoneyTabPressTracker onRegister={onRegister} />);
 
     expect(useMoneyAnalytics).toHaveBeenCalledWith({
-      component_name: COMPONENT_NAMES.HOME_TAB,
+      component_name: COMPONENT_NAMES.MONEY_HOME_TAB,
+    });
+  });
+
+  describe('when onboarding has been seen', () => {
+    it('registered function calls trackButtonClicked with GO_TO_MONEY_HOME intent and MONEY_HOME redirect', () => {
+      const onRegister = jest.fn();
+      render(<MoneyTabPressTracker onRegister={onRegister} />);
+
+      const registeredFn = onRegister.mock.calls[0][0] as () => void;
+      act(() => {
+        registeredFn();
+      });
+
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_HOME,
+        label_key: 'bottom_nav.money',
+        redirect_target: SCREEN_NAMES.MONEY_HOME,
+      });
+    });
+  });
+
+  describe('when onboarding has not been seen', () => {
+    beforeEach(() => {
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectMoneyOnboardingSeen) return false;
+        return undefined;
+      });
+    });
+
+    it('registered function calls trackButtonClicked with GO_TO_MONEY_ONBOARDING intent and MONEY_ONBOARDING redirect', () => {
+      const onRegister = jest.fn();
+      render(<MoneyTabPressTracker onRegister={onRegister} />);
+
+      const registeredFn = onRegister.mock.calls[0][0] as () => void;
+      act(() => {
+        registeredFn();
+      });
+
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
+        label_key: 'bottom_nav.money',
+        redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
+      });
     });
   });
 });
