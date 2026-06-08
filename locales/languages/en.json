@@ -2308,7 +2308,7 @@
     "title": "MetaMask Predictions",
     "home": {
       "portfolio_module_placeholder": "Portfolio module",
-      "live_now_placeholder": "Live now",
+      "live_now_title": "Live now",
       "categories_placeholder": "Categories",
       "popular_today_placeholder": "Popular today",
       "trending_placeholder": "Trending"
