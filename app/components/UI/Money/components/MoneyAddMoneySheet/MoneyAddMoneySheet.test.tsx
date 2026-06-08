@@ -8,6 +8,7 @@ import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
+import { useHasNativeFiatProvider } from '../../../Ramp/hooks/useHasNativeFiatProvider';
 import {
   getRampRoutingDecision,
   UnifiedRampRoutingType,
@@ -51,6 +52,10 @@ jest.mock(
 jest.mock('../../../../../selectors/tokenBalancesController', () => ({
   ...jest.requireActual('../../../../../selectors/tokenBalancesController'),
   selectHasAnyNonZeroTokenBalance: jest.fn(),
+}));
+
+jest.mock('../../../Ramp/hooks/useHasNativeFiatProvider', () => ({
+  useHasNativeFiatProvider: jest.fn(),
 }));
 
 jest.mock('../../../../../reducers/fiatOrders', () => ({
@@ -107,6 +112,7 @@ describe('MoneyAddMoneySheet', () => {
     (selectHasAnyNonZeroTokenBalance as unknown as jest.Mock).mockReturnValue(
       true,
     );
+    (useHasNativeFiatProvider as jest.Mock).mockReturnValue(true);
     (getRampRoutingDecision as jest.Mock).mockReturnValue(null);
   });
 
@@ -335,50 +341,101 @@ describe('MoneyAddMoneySheet', () => {
     ).toBeNull();
   });
 
-  it('shows the Deposit funds option when the ramp routing decision is DEPOSIT', () => {
-    (getRampRoutingDecision as jest.Mock).mockReturnValue(
-      UnifiedRampRoutingType.DEPOSIT,
+  it('shows the Deposit funds option enabled when a native provider is available', () => {
+    (useHasNativeFiatProvider as jest.Mock).mockReturnValue(true);
+
+    const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+    fireEvent.press(
+      getByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
     );
 
-    const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
-
-    expect(
-      getByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
-    ).toBeOnTheScreen();
+    expect(mockInitiateDeposit).toHaveBeenCalledWith({
+      autoSelectFiatPayment: true,
+    });
   });
 
-  it('shows the Deposit funds option when the ramp routing decision is AGGREGATOR', () => {
-    (getRampRoutingDecision as jest.Mock).mockReturnValue(
-      UnifiedRampRoutingType.AGGREGATOR,
+  it('shows the Deposit funds option disabled with "Coming soon" when no native provider serves the region', () => {
+    (useHasNativeFiatProvider as jest.Mock).mockReturnValue(false);
+
+    const { getByTestId, getAllByText } = renderWithProvider(
+      <MoneyAddMoneySheet />,
     );
 
-    const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
-
-    expect(
+    fireEvent.press(
       getByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
-    ).toBeOnTheScreen();
-  });
-
-  it('shows the Deposit funds option when the ramp routing decision is null (fail-open)', () => {
-    (getRampRoutingDecision as jest.Mock).mockReturnValue(null);
-
-    const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
-
-    expect(
-      getByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
-    ).toBeOnTheScreen();
-  });
-
-  it('shows the Deposit funds option when the ramp routing decision is ERROR (fail-open)', () => {
-    (getRampRoutingDecision as jest.Mock).mockReturnValue(
-      UnifiedRampRoutingType.ERROR,
     );
 
-    const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+    // Two "Coming soon" tags now: the disabled Deposit row + Receive external.
+    expect(getAllByText('Coming soon')).toHaveLength(2);
+    expect(mockOnCloseBottomSheet).not.toHaveBeenCalled();
+    expect(mockInitiateDeposit).not.toHaveBeenCalled();
+  });
 
-    expect(
-      getByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
-    ).toBeOnTheScreen();
+  // Returns the option-row testIDs in rendered order. Each row carries its
+  // testID on both the composite TouchableOpacity and its host view, so we
+  // dedupe to first occurrence (which preserves render order).
+  const getOptionOrder = (
+    root: ReturnType<typeof renderWithProvider>['UNSAFE_root'],
+  ): string[] => {
+    const optionTestIds: string[] = [
+      MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
+      MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
+      MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
+    ];
+    const seen = new Set<string>();
+    return root
+      .findAll((node) => optionTestIds.includes(node.props.testID))
+      .map((node) => node.props.testID as string)
+      .filter((id) => {
+        if (seen.has(id)) {
+          return false;
+        }
+        seen.add(id);
+        return true;
+      });
+  };
+
+  it('keeps the original order when all options are enabled', () => {
+    (useHasNativeFiatProvider as jest.Mock).mockReturnValue(true);
+
+    const { UNSAFE_root } = renderWithProvider(<MoneyAddMoneySheet />);
+    const order = getOptionOrder(UNSAFE_root);
+
+    expect(order).toEqual([
+      MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
+      MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
+      MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
+    ]);
+  });
+
+  it('moves the disabled Deposit funds (Coming soon) row to the bottom of the options', () => {
+    (useHasNativeFiatProvider as jest.Mock).mockReturnValue(false);
+
+    const { UNSAFE_root } = renderWithProvider(<MoneyAddMoneySheet />);
+    const order = getOptionOrder(UNSAFE_root);
+
+    expect(order).toEqual([
+      MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
+      MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
+      MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
+    ]);
+  });
+
+  it('groups multiple disabled options at the bottom preserving their relative order', () => {
+    (selectHasAnyNonZeroTokenBalance as unknown as jest.Mock).mockReturnValue(
+      false,
+    );
+    (useHasNativeFiatProvider as jest.Mock).mockReturnValue(false);
+
+    const { UNSAFE_root } = renderWithProvider(<MoneyAddMoneySheet />);
+    const order = getOptionOrder(UNSAFE_root);
+
+    expect(order).toEqual([
+      MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
+      MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
+      MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
+    ]);
   });
 
   it('initiates a deposit pre-selecting mUSD on the highest-balance chain when Move mUSD is pressed', () => {

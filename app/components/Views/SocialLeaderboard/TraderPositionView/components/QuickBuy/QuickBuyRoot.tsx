@@ -17,7 +17,7 @@ import Animated, { useSharedValue } from 'react-native-reanimated';
 import { useSelector } from 'react-redux';
 import { selectIsSubmittingTx } from '../../../../../../core/redux/slices/bridge';
 import QuickBuyAmountScreen from './QuickBuyAmountScreen';
-import QuickBuyPayWithScreen from './QuickBuyPayWithScreen';
+import QuickBuyTokenSelectScreen from './QuickBuyTokenSelectScreen';
 import QuickBuyPriceImpactConfirmScreen from './QuickBuyPriceImpactConfirmScreen';
 import QuickBuyQuoteDetailsScreen from './QuickBuyQuoteDetailsScreen';
 import QuickBuySelectQuoteScreen from './QuickBuySelectQuoteScreen';
@@ -54,7 +54,7 @@ function renderActiveScreen(
 
   switch (activeScreen) {
     case 'payWith':
-      return <QuickBuyPayWithScreen />;
+      return <QuickBuyTokenSelectScreen />;
     case 'quoteDetails':
       return <QuickBuyQuoteDetailsScreen />;
     case 'selectQuote':

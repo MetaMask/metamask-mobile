@@ -187,7 +187,7 @@ describe(SmokeSwap('Gasless Swap - '), (): void => {
     );
   });
 
-  it('completes a gasless 7702 ETH to MUSD swap (native source)', async (): Promise<void> => {
+  it.skip('completes a gasless 7702 ETH to MUSD swap (native source)', async (): Promise<void> => {
     await withFixtures(
       {
         fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {

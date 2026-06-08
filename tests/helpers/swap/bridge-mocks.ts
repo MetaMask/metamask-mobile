@@ -54,6 +54,7 @@ export const testSpecificMock: TestSpecificMock = async (
     stxMigrationCancel: false,
     stxMigrationGetFees: false,
     stxMigrationSubmitTransactions: false,
+    swapsSWAPS4543AbtestPostTradeModal: 'control',
   });
   // Mock Ethereum token list
   await setupMockRequest(mockServer, {
