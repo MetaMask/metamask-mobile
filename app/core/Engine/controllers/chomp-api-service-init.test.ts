@@ -46,7 +46,7 @@ describe('chompApiServiceInit', () => {
     const { controller } = chompApiServiceInit(
       getInitRequestMock({
         remoteFeatureFlags: {
-          earnChompApiConfig: { baseUrl: 'https://chomp.example.com' },
+          moneyAccountChompConfig: { baseUrl: 'https://chomp.example.com' },
         },
       }),
     );
@@ -58,7 +58,7 @@ describe('chompApiServiceInit', () => {
     chompApiServiceInit(
       getInitRequestMock({
         remoteFeatureFlags: {
-          earnChompApiConfig: { baseUrl: 'https://chomp.example.com' },
+          moneyAccountChompConfig: { baseUrl: 'https://chomp.example.com' },
         },
       }),
     );
@@ -96,7 +96,7 @@ describe('chompApiServiceInit', () => {
       chompApiServiceInit(
         getInitRequestMock({
           remoteFeatureFlags: {
-            earnChompApiConfig: { baseUrl: 'https://chomp.example.com' },
+            moneyAccountChompConfig: { baseUrl: 'https://chomp.example.com' },
           },
         }),
       );
