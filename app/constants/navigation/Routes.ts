@@ -12,6 +12,7 @@ const Routes = {
     BUY: 'RampBuy',
     SELL: 'RampSell',
     TOKEN_SELECTION: 'RampTokenSelection',
+    TOKEN_SELECTION_ROOT: 'RampTokenSelectionRoot',
     GET_STARTED: 'GetStarted',
     BUILD_QUOTE: 'BuildQuote',
     BUILD_QUOTE_HAS_STARTED: 'BuildQuoteHasStarted',
@@ -563,7 +564,6 @@ const Routes = {
     ID: 'AgenticCliApproval',
     CONFIRM: 'AgenticCliApprovalConfirm',
   },
-  NAVIGATION_DEV_PANEL: 'NavigationDevPanel',
 };
 
 export default Routes;
