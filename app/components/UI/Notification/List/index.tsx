@@ -78,8 +78,6 @@ export function useNotificationOnClick(
         createEventBuilder(MetaMetricsEvents.NOTIFICATION_CLICKED)
           .addProperties({
             ...notificationAnalyticsProperties(item, profileId),
-            previously_read: item.isRead,
-            data: item, // data blob for feature teams to analyse their notification shapes
           })
           .build(),
       );

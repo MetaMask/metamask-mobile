@@ -8,6 +8,8 @@ import AppConstants from '../../../../../core/AppConstants';
 import Logger from '../../../../../util/Logger';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { notificationAnalyticsProperties } from '../../../../../util/notifications/methods/notification-analytics';
+import { useSessionProfileId } from '../../../../../util/notifications/hooks/useSessionProfileId';
 
 type AnnouncementCtaFooterProps = ModalFooterAnnouncementCta;
 
@@ -16,13 +18,13 @@ export default function AnnouncementCtaFooter(
 ) {
   const { styles } = useStyles();
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const { profileId } = useSessionProfileId();
 
   const callEvent = () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.NOTIFICATION_DETAIL_CLICKED)
         .addProperties({
-          notification_id: props.notification.id,
-          notification_type: props.notification.type,
+          ...notificationAnalyticsProperties(props.notification, profileId),
           clicked_item: 'cta_button',
         })
         .build(),
