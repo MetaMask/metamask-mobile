@@ -83,10 +83,16 @@ export const useMoneyAnalytics = ({
   const { isCardLinkedToMoneyAccount, isCardAuthenticated } =
     useMoneyAccountCardLinkage();
 
-  const { totalFiatRaw } = useMoneyAccountBalance();
+  const { totalFiatRaw, isBalanceFetching } = useMoneyAccountBalance();
 
-  const getBaseProperties = useCallback(
-    (): MoneyBaseEventProperties => ({
+  const getBaseProperties = useCallback((): MoneyBaseEventProperties => {
+    // react-query v4 keeps disabled queries (no money account) at status: 'loading'
+    // forever, so isLoading would falsely flag empty-state users as "loading" permanently.
+    // isBalanceFetching + no settled value = a genuine in-flight first fetch.
+    const isMoneyBalanceLoading =
+      isBalanceFetching && totalFiatRaw === undefined;
+
+    return {
       ...(screen_name ? { screen_name } : {}),
       ...(component_name ? { component_name } : {}),
       ...(bottom_sheet_name ? { bottom_sheet_name } : {}),
@@ -99,17 +105,20 @@ export const useMoneyAnalytics = ({
        * We should be checking selectIsCardAuthenticated instead.
        */
       is_card_holder: isCardAuthenticated,
-      is_account_funded: new BigNumber(totalFiatRaw ?? '0').gt(0),
-    }),
-    [
-      component_name,
-      isCardAuthenticated,
-      isCardLinkedToMoneyAccount,
-      screen_name,
-      bottom_sheet_name,
-      totalFiatRaw,
-    ],
-  );
+      is_money_balance_loading: isMoneyBalanceLoading,
+      is_account_funded: isMoneyBalanceLoading
+        ? null
+        : new BigNumber(totalFiatRaw ?? '0').gt(0),
+    };
+  }, [
+    component_name,
+    isCardAuthenticated,
+    isCardLinkedToMoneyAccount,
+    isBalanceFetching,
+    screen_name,
+    bottom_sheet_name,
+    totalFiatRaw,
+  ]);
 
   /**
    * Used to track when a button is clicked.

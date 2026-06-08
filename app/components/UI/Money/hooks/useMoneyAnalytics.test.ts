@@ -235,6 +235,59 @@ describe('useMoneyAnalytics', () => {
         expect.objectContaining({ is_account_funded: false }),
       );
     });
+
+    describe('is_money_balance_loading', () => {
+      it('sets is_money_balance_loading to true and is_account_funded to null during initial fetch', () => {
+        (useMoneyAccountBalance as jest.Mock).mockReturnValue({
+          totalFiatRaw: undefined,
+          isBalanceFetching: true,
+        });
+        const { result } = renderHook(() => useMoneyAnalytics());
+
+        result.current.trackScreenViewed();
+
+        expect(mockAddProperties).toHaveBeenCalledWith(
+          expect.objectContaining({
+            is_money_balance_loading: true,
+            is_account_funded: null,
+          }),
+        );
+      });
+
+      it('sets is_money_balance_loading to false and is_account_funded to false when settled with zero balance', () => {
+        (useMoneyAccountBalance as jest.Mock).mockReturnValue({
+          totalFiatRaw: '0',
+          isBalanceFetching: false,
+        });
+        const { result } = renderHook(() => useMoneyAnalytics());
+
+        result.current.trackScreenViewed();
+
+        expect(mockAddProperties).toHaveBeenCalledWith(
+          expect.objectContaining({
+            is_money_balance_loading: false,
+            is_account_funded: false,
+          }),
+        );
+      });
+
+      it('does not null out is_account_funded during a background refetch when cached value exists', () => {
+        (useMoneyAccountBalance as jest.Mock).mockReturnValue({
+          totalFiatRaw: '100',
+          isBalanceFetching: true,
+        });
+        const { result } = renderHook(() => useMoneyAnalytics());
+
+        result.current.trackScreenViewed();
+
+        expect(mockAddProperties).toHaveBeenCalledWith(
+          expect.objectContaining({
+            is_money_balance_loading: false,
+            is_account_funded: true,
+          }),
+        );
+      });
+    });
   });
 
   describe('trackButtonClicked', () => {

@@ -30,7 +30,8 @@ export type MoneyCardEventProperties = {
 };
 
 type MoneyFundedEventProperties = {
-  is_account_funded: boolean;
+  is_account_funded: boolean | null;
+  is_money_balance_loading: boolean;
 };
 
 export type MoneyRedirectEventProperties = {
