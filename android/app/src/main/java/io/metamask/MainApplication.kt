@@ -31,6 +31,7 @@ import io.metamask.nativeModules.RCTMinimizerPackage
 import io.metamask.nativeModules.RNTar.RNTarPackage
 import io.metamask.nativeModules.NotificationPackage
 import com.braze.BrazeActivityLifecycleCallbackListener
+import com.margelo.nitro.nitrofetch.AutoPrefetcher
 
 class MainApplication : Application(), ShareApplication, ReactApplication {
 
@@ -89,6 +90,10 @@ class MainApplication : Application(), ShareApplication, ReactApplication {
         if (BuildConfig.DEBUG) {
             WebView.setWebContentsDebuggingEnabled(true)
         }
+
+        // Fire prefetchOnAppStart queue before JS loads (Android requires explicit call;
+        // iOS is auto-bootstrapped via NitroBootstrap.mm +load).
+        AutoPrefetcher.prefetchOnStart(this)
 
         loadReactNative(this)
 
