@@ -129,11 +129,10 @@ describe('usePayWithTokens', () => {
     expect(mockEnrich).not.toHaveBeenCalledWith(
       expect.objectContaining({ symbol: 'CAKE' }),
       expect.anything(),
-      expect.anything(),
     );
   });
 
-  it('applies the $1 fallback rate only to stablecoin symbols', () => {
+  it('enriches held tokens without a price fallback', () => {
     mockUseTokensWithBalance.mockReturnValue([token('USDC'), token('CAKE')]);
     mockEnrich.mockReturnValue({
       balance: '10',
@@ -147,12 +146,10 @@ describe('usePayWithTokens', () => {
     expect(mockEnrich).toHaveBeenCalledWith(
       expect.objectContaining({ symbol: 'USDC' }),
       expect.anything(),
-      { fallbackExchangeRate: 1.0 },
     );
     expect(mockEnrich).toHaveBeenCalledWith(
       expect.objectContaining({ symbol: 'CAKE' }),
       expect.anything(),
-      { fallbackExchangeRate: undefined },
     );
   });
 });

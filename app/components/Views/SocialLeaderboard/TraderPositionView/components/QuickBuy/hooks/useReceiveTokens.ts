@@ -18,9 +18,6 @@ import { enrichTokenBalance } from './enrichTokenBalance';
 import { isStablecoinSymbol } from './stablecoins';
 import { useNetworkEnabledPredicate } from './useNetworkEnabledPredicate';
 
-/** Stablecoins are assumed to be ~$1.00 when no market price is available. */
-const STABLECOIN_FALLBACK_RATE = 1.0;
-
 /**
  * Static EVM stablecoin candidates for the Sell "Receive" picker, extracted
  * from `DefaultSwapDestTokens` and filtered to mUSD, USDC, and USDT on EVM
@@ -117,7 +114,6 @@ export const useReceiveTokens = (
             allNetworkConfigs,
           },
           {
-            fallbackExchangeRate: STABLECOIN_FALLBACK_RATE,
             includeZeroBalance: true,
           },
         );

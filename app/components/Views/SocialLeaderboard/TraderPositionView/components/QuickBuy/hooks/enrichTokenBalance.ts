@@ -49,15 +49,10 @@ export interface TokenBalanceDeps {
 
 export interface EnrichTokenBalanceOptions {
   /**
-   * USD-per-token rate to assume when the token has no market price (e.g.
-   * stablecoins). When omitted, a token without a resolvable positive rate is
-   * dropped (the function returns `null`).
-   */
-  fallbackExchangeRate?: number;
-  /**
-   * When `true`, tokens with no/zero balance are still returned (balance "0",
-   * $0.00 fiat) instead of being dropped. Used by the "Receive" picker, which
-   * lists every stable regardless of whether the user holds it.
+   * When `true`, tokens with no/zero balance (or no resolvable price) are still
+   * returned (balance "0", $0.00 fiat) instead of being dropped. Used by the
+   * "Receive" picker, which lists every stable regardless of whether the user
+   * holds it.
    */
   includeZeroBalance?: boolean;
 }
@@ -71,13 +66,11 @@ export interface EnrichTokenBalanceOptions {
  */
 const USD_CURRENCY = 'usd' as Parameters<typeof addCurrencySymbol>[1];
 
-const zeroEnrichment = (
-  fallbackExchangeRate?: number,
-): TokenBalanceEnrichment => ({
+const zeroEnrichment = (): TokenBalanceEnrichment => ({
   balance: '0',
   balanceFiat: addCurrencySymbol('0.00', USD_CURRENCY),
   tokenFiatAmount: 0,
-  currencyExchangeRate: fallbackExchangeRate,
+  currencyExchangeRate: undefined,
 });
 
 const priced = (
@@ -99,7 +92,7 @@ const enrichEvmTokenBalance = (
   deps: TokenBalanceDeps,
   options: EnrichTokenBalanceOptions,
 ): TokenBalanceEnrichment | null => {
-  const { fallbackExchangeRate, includeZeroBalance } = options;
+  const { includeZeroBalance } = options;
   const {
     accountAddress,
     accountsByChainId,
@@ -109,8 +102,7 @@ const enrichEvmTokenBalance = (
     allNetworkConfigs,
   } = deps;
 
-  const dropOrZero = () =>
-    includeZeroBalance ? zeroEnrichment(fallbackExchangeRate) : null;
+  const dropOrZero = () => (includeZeroBalance ? zeroEnrichment() : null);
 
   if (!accountAddress) return dropOrZero();
 
@@ -152,19 +144,14 @@ const enrichEvmTokenBalance = (
       candidate.address,
     );
     exchangeRate =
-      tokenPrice !== undefined
-        ? tokenPrice * nativeConversionRate
-        : (fallbackExchangeRate ?? 0);
+      tokenPrice !== undefined ? tokenPrice * nativeConversionRate : 0;
   }
 
   if (!(exchangeRate > 0)) {
-    // No positive USD rate. Lenient callers (Receive) fall back to the stable
-    // rate so the held balance still shows; strict callers (Pay with) drop the
-    // token because the fiat-first amount entry needs a real price.
-    if (includeZeroBalance && (fallbackExchangeRate ?? 0) > 0) {
-      return priced(displayBalance, fallbackExchangeRate as number, balanceNum);
-    }
-    return includeZeroBalance ? zeroEnrichment(fallbackExchangeRate) : null;
+    // No resolvable USD price. Strict callers (Pay with) drop the token because
+    // the fiat-first amount entry needs a real price; lenient callers (Receive)
+    // surface it with a zero fiat value.
+    return dropOrZero();
   }
 
   return priced(displayBalance, exchangeRate, balanceNum);
@@ -175,11 +162,10 @@ const enrichSolanaTokenBalance = (
   deps: TokenBalanceDeps,
   options: EnrichTokenBalanceOptions,
 ): TokenBalanceEnrichment | null => {
-  const { fallbackExchangeRate, includeZeroBalance } = options;
+  const { includeZeroBalance } = options;
   const { solanaAccount, multichainBalances, multichainRates } = deps;
 
-  const dropOrZero = () =>
-    includeZeroBalance ? zeroEnrichment(fallbackExchangeRate) : null;
+  const dropOrZero = () => (includeZeroBalance ? zeroEnrichment() : null);
 
   if (!solanaAccount) return dropOrZero();
 
@@ -194,10 +180,7 @@ const enrichSolanaTokenBalance = (
   const rateNum = rateStr ? parseFloat(rateStr) : NaN;
 
   if (isNaN(rateNum) || rateNum <= 0) {
-    if (includeZeroBalance && (fallbackExchangeRate ?? 0) > 0) {
-      return priced(amountStr, fallbackExchangeRate as number, balanceNum);
-    }
-    return null;
+    return dropOrZero();
   }
 
   return priced(amountStr, rateNum, balanceNum);

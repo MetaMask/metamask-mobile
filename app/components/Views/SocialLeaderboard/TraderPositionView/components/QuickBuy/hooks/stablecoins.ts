@@ -1,10 +1,9 @@
 /**
- * Stablecoin symbols treated as ~$1.00 when no live market price is available.
+ * Stablecoin symbols a user can receive when selling a position.
  *
- * This gates the QuickBuy $1 fallback exchange rate: a held stable can still
- * surface during a brief price-data gap, while a non-stable with no resolvable
- * price (e.g. CAKE) is dropped instead of mispriced at a fake $1/token rate.
- * Matching is case-insensitive so arbitrary held-token lists are handled.
+ * Used to curate the QuickBuy "Receive" candidate set from the broader
+ * `DefaultSwapDestTokens` list. Matching is case-insensitive so the source
+ * token definitions are handled regardless of their symbol casing.
  */
 const STABLECOIN_SYMBOLS = new Set(['musd', 'usdc', 'usdt']);
 

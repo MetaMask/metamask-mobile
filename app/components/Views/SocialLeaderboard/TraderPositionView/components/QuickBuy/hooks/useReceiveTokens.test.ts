@@ -88,13 +88,13 @@ describe('useReceiveTokens', () => {
     expect(result.current[0].chainId).toBe('0x89');
   });
 
-  it('enriches every candidate leniently (include zero balances with the stable fallback rate)', () => {
+  it('enriches every candidate leniently (include zero balances)', () => {
     renderHook(() => useReceiveTokens('0x1'));
 
     expect(mockEnrich).toHaveBeenCalledWith(
       expect.objectContaining({ symbol: expect.any(String) }),
       expect.any(Object),
-      { fallbackExchangeRate: 1.0, includeZeroBalance: true },
+      { includeZeroBalance: true },
     );
   });
 

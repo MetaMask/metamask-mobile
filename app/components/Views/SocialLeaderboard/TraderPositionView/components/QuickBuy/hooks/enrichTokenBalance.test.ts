@@ -98,17 +98,13 @@ describe('enrichTokenBalance', () => {
       });
     });
 
-    it('falls back to the stablecoin rate when no market price exists', () => {
+    it('drops a held token with no market price (strict)', () => {
       const result = enrichTokenBalance(
         token({ address: USDC, chainId: '0x1', symbol: 'USDC', decimals: 6 }),
         withUsdcBalance(),
-        { fallbackExchangeRate: 1.0 },
       );
 
-      expect(result).toMatchObject({
-        currencyExchangeRate: 1,
-        tokenFiatAmount: 250,
-      });
+      expect(result).toBeNull();
     });
 
     it('returns null when the computed exchange rate is zero (strict)', () => {
@@ -119,24 +115,23 @@ describe('enrichTokenBalance', () => {
       const result = enrichTokenBalance(
         token({ address: USDC, chainId: '0x1', symbol: 'USDC', decimals: 6 }),
         deps,
-        { fallbackExchangeRate: 1.0 },
       );
 
       expect(result).toBeNull();
     });
 
-    it('includes a zero-balance token with the fallback rate when lenient', () => {
+    it('returns a zero enrichment for an unpriceable token when lenient', () => {
       const result = enrichTokenBalance(
         token({ address: USDC, chainId: '0x1', symbol: 'USDC', decimals: 6 }),
         baseDeps(),
-        { fallbackExchangeRate: 1.0, includeZeroBalance: true },
+        { includeZeroBalance: true },
       );
 
       expect(result).toEqual({
         balance: '0',
         balanceFiat: '$0.00',
         tokenFiatAmount: 0,
-        currencyExchangeRate: 1.0,
+        currencyExchangeRate: undefined,
       });
     });
   });

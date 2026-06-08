@@ -16,17 +16,7 @@ import {
 } from '../../../../../../../selectors/multichain/multichain';
 import { EVM_SCOPE } from '../../../../../../UI/Earn/constants/networks';
 import { enrichTokenBalance } from './enrichTokenBalance';
-import { isStablecoinSymbol } from './stablecoins';
 import { useNetworkEnabledPredicate } from './useNetworkEnabledPredicate';
-
-/**
- * Held stablecoins with no market price still resolve to a $1.00 rate so they
- * surface even when price data is briefly unavailable. The fallback is gated to
- * stablecoin symbols only — every other token with no resolvable USD price is
- * dropped, since the fiat-first amount entry would otherwise convert dollars at
- * a fake $1/token rate (the controller relies on a real `currencyExchangeRate`).
- */
-const STABLECOIN_FALLBACK_RATE = 1.0;
 
 /**
  * Returns the "Pay with" token options for QuickBuy Buy mode: every tradable
@@ -88,11 +78,7 @@ export const usePayWithTokens = (): {
     for (const token of heldTokens) {
       // Scope holdings to networks the user has enabled in wallet settings.
       if (!isChainEnabled(token.chainId)) continue;
-      const enrichment = enrichTokenBalance(token, deps, {
-        fallbackExchangeRate: isStablecoinSymbol(token.symbol)
-          ? STABLECOIN_FALLBACK_RATE
-          : undefined,
-      });
+      const enrichment = enrichTokenBalance(token, deps);
       if (!enrichment) continue;
       result.push({ ...token, ...enrichment });
     }
