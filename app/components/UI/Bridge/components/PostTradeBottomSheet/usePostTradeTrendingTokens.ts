@@ -19,10 +19,12 @@ export const POST_TRADE_TRENDING_TOKENS_LIMIT = 20;
 const STALE_TIME_MS = 5 * 60 * 1000;
 const POST_TRADE_TRENDING_TOKENS_QUERY_KEY =
   'bridge-post-trade-trending-tokens';
-const MARKET_CAP_SORT_OPTION =
-  'market_cap' as Parameters<typeof sortTrendingTokens>[1];
-const DESCENDING_SORT_DIRECTION =
-  'descending' as Parameters<typeof sortTrendingTokens>[2];
+const MARKET_CAP_SORT_OPTION = 'market_cap' as Parameters<
+  typeof sortTrendingTokens
+>[1];
+const DESCENDING_SORT_DIRECTION = 'descending' as Parameters<
+  typeof sortTrendingTokens
+>[2];
 
 export const usePostTradeTrendingTokens = ({
   destToken,

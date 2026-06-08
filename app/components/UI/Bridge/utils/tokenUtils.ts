@@ -101,9 +101,7 @@ export const getNativeSourceToken = (
  * Converts API tokens to BridgeTokens with proper address and chainId formatting
  * based on whether the chain is EVM or non-EVM.
  */
-export const convertApiTokenToBridgeToken = <
-  T extends ApiTokenForBridgeToken,
->(
+export const convertApiTokenToBridgeToken = <T extends ApiTokenForBridgeToken>(
   token: T,
   image?: string,
 ): BridgeToken & { assetId: CaipAssetType } => {

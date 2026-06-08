@@ -62,7 +62,7 @@ const createTrendingToken = (
     price: '1',
     aggregatedUsdVolume: 1000,
     priceChangePct: { h24: '1' },
-  } as TrendingAsset);
+  }) as TrendingAsset;
 
 describe('usePostTradeTrendingTokens', () => {
   beforeEach(() => {
@@ -115,9 +115,9 @@ describe('usePostTradeTrendingTokens', () => {
     expect(result.current.tokens[0].symbol).toBe('POLY');
     expect(result.current.tokens[1].symbol).toBe('ETH25');
     expect(result.current.tokens[19].symbol).toBe('ETH7');
-    expect(result.current.tokens.some((token) => token.symbol === 'NOCAP')).toBe(
-      false,
-    );
+    expect(
+      result.current.tokens.some((token) => token.symbol === 'NOCAP'),
+    ).toBe(false);
   });
 
   it('does not fetch when disabled', () => {
