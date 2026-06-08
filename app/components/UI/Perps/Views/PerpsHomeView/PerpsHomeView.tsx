@@ -620,11 +620,15 @@ const PerpsHomeView = ({
         >
           <TitleHub
             testID={PerpsHomeViewSelectorsIDs.HOME_HEADING}
-            title={perpsScreenTitle}
-            titleEndAccessory={titleEndAccessory}
-            titleProps={{
-              testID: `${PerpsHomeViewSelectorsIDs.HOME_HEADING}-title`,
-            }}
+            title={hideHeader ? undefined : perpsScreenTitle}
+            titleEndAccessory={hideHeader ? undefined : titleEndAccessory}
+            titleProps={
+              hideHeader
+                ? undefined
+                : {
+                    testID: `${PerpsHomeViewSelectorsIDs.HOME_HEADING}-title`,
+                  }
+            }
             amount={
               !isBalanceEmpty ? (
                 <SensitiveText

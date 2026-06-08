@@ -96,13 +96,15 @@ const AnimatedFlashList = Animated.createAnimatedComponent(
 const PredictFeedHeader: React.FC<{
   onDepositWalletWithdrawPress?: () => void;
   topInset?: number;
-}> = ({ onDepositWalletWithdrawPress, topInset = 0 }) => (
+  hideTitle?: boolean;
+}> = ({ onDepositWalletWithdrawPress, topInset = 0, hideTitle = false }) => (
   <Box
     twClassName="pb-4"
     style={topInset > 0 ? { paddingTop: topInset } : undefined}
   >
     <PredictBalance
       onDepositWalletWithdrawPress={onDepositWalletWithdrawPress}
+      hideTitle={hideTitle}
     />
   </Box>
 );
@@ -150,6 +152,7 @@ interface AnimatedHeaderProps {
   onTabBarLayout: (event: LayoutChangeEvent) => void;
   onDepositWalletWithdrawPress?: () => void;
   topInset?: number;
+  hideTitle?: boolean;
 }
 
 const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
@@ -164,6 +167,7 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
   onTabBarLayout,
   onDepositWalletWithdrawPress,
   topInset = 0,
+  hideTitle = false,
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -204,6 +208,7 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
         <PredictFeedHeader
           onDepositWalletWithdrawPress={onDepositWalletWithdrawPress}
           topInset={topInset}
+          hideTitle={hideTitle}
         />
         {isFeaturedCarouselEnabled && (
           <Box twClassName="pb-3">
@@ -693,6 +698,7 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
             onTabBarLayout={onTabBarLayout}
             onDepositWalletWithdrawPress={handleDepositWalletWithdrawPress}
             topInset={headerTopInset}
+            hideTitle={hideHeader}
           />
 
           {layoutReady && (
