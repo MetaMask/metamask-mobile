@@ -71,9 +71,7 @@ export async function startAppiumServer(
   timeoutMs: number = APPIUM_STARTUP_TIMEOUT_MS,
 ): Promise<ChildProcess | null> {
   if (await isAppiumServerRunning()) {
-    logger.info(
-      `Reusing existing Appium server at ${getAppiumServerUrl()}.`,
-    );
+    logger.info(`Reusing existing Appium server at ${getAppiumServerUrl()}.`);
     return null;
   }
 
