@@ -11,7 +11,9 @@ describe('MoneyMetaMaskCard', () => {
       <MoneyMetaMaskCard onGetNowPress={jest.fn()} />,
     );
 
-    expect(getByText(strings('money.metamask_card.title'))).toBeOnTheScreen();
+    expect(
+      getByText(strings('money.metamask_card.upsell_title')),
+    ).toBeOnTheScreen();
     expect(
       getByText(strings('money.metamask_card.subtitle')),
     ).toBeOnTheScreen();
@@ -117,7 +119,7 @@ describe('MoneyMetaMaskCard', () => {
         getByTestId(MoneyMetaMaskCardTestIds.LINK_BULLET_APY),
       ).toBeOnTheScreen();
       expect(getByText('Get 1% mUSD back')).toBeOnTheScreen();
-      expect(getByText('Earn up to ~4% APY (variable)')).toBeOnTheScreen();
+      expect(getByText('Earn up to ~4% APY')).toBeOnTheScreen();
       expect(queryByText('Get 3% mUSD back')).not.toBeOnTheScreen();
     });
 
@@ -138,7 +140,7 @@ describe('MoneyMetaMaskCard', () => {
         getByTestId(MoneyMetaMaskCardTestIds.LINK_BULLET_APY),
       ).toBeOnTheScreen();
       expect(getByText('Get 3% mUSD back')).toBeOnTheScreen();
-      expect(getByText('Earn up to ~4% APY (variable)')).toBeOnTheScreen();
+      expect(getByText('Earn up to ~4% APY')).toBeOnTheScreen();
       expect(queryByText('Get 1% mUSD back')).not.toBeOnTheScreen();
     });
 
@@ -269,7 +271,7 @@ describe('MoneyMetaMaskCard', () => {
           getByTestId(MoneyMetaMaskCardTestIds.LINK_BULLET_APY),
         ).toBeOnTheScreen();
         expect(getByText('Get 1% mUSD back')).toBeOnTheScreen();
-        expect(getByText('Earn up to ~4% APY (variable)')).toBeOnTheScreen();
+        expect(getByText('Earn up to ~4% APY')).toBeOnTheScreen();
         expect(
           getByTestId(MoneyMetaMaskCardTestIds.LINK_BUTTON),
         ).toBeOnTheScreen();
