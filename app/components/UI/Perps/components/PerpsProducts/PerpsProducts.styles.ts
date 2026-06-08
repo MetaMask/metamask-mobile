@@ -8,6 +8,8 @@ export const styleSheet = (params: { theme: Theme }) => {
     container: {
       paddingTop: 8,
       paddingBottom: 24,
+      borderTopWidth: 1,
+      borderTopColor: theme.colors.border.muted,
     },
     scrollContainer: {
       marginTop: 12,
