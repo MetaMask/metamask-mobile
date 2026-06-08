@@ -216,6 +216,18 @@ jest.mock('../../../../../util/Logger', () => ({
   },
 }));
 
+jest.mock('../../../../../util/bridge', () => ({
+  getMaybeHexChainId: jest.fn(
+    (chainId?: string): string | undefined => chainId,
+  ),
+}));
+
+const { selectShouldUseSmartTransaction: mockSelectShouldUseSmartTransaction } =
+  jest.requireMock('../../../../../selectors/smartTransactionsController');
+const { getMaybeHexChainId: mockGetMaybeHexChainId } = jest.requireMock(
+  '../../../../../util/bridge',
+);
+
 describe('useBatchSellQuoteData', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -892,6 +904,30 @@ describe('useBatchSellQuoteData', () => {
         isLoading: true,
         isQuoteUnavailable: false,
       }),
+    );
+  });
+
+  it('passes the normalized source chain ID to selectShouldUseSmartTransaction', () => {
+    mockSelectedTokens = [{ ...ethToken, chainId: '0x1' as Hex }];
+
+    renderHook(() => useBatchSellQuoteData());
+
+    expect(mockGetMaybeHexChainId).toHaveBeenCalledWith('0x1');
+    expect(mockSelectShouldUseSmartTransaction).toHaveBeenCalledWith(
+      expect.anything(),
+      '0x1',
+    );
+  });
+
+  it('passes undefined chain ID to selectShouldUseSmartTransaction when there are no source tokens', () => {
+    mockSelectedTokens = [];
+
+    renderHook(() => useBatchSellQuoteData());
+
+    expect(mockGetMaybeHexChainId).toHaveBeenCalledWith(undefined);
+    expect(mockSelectShouldUseSmartTransaction).toHaveBeenCalledWith(
+      expect.anything(),
+      undefined,
     );
   });
 
