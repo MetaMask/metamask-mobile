@@ -2039,12 +2039,12 @@
       "tabs": {
         "crypto": "Crypto",
         "stocks": "Stocks",
-        "commodities": "Commodities",
-        "forex": "Forex",
-        "new": "New",
         "pre_ipo": "Pre-IPO",
         "indices": "Indices",
-        "etfs": "ETFs"
+        "etfs": "ETFs",
+        "commodities": "Commodities",
+        "forex": "Forex",
+        "new": "New"
       },
       "filter_by": "Filter by",
       "forex": "Forex",
@@ -2052,6 +2052,7 @@
       "markets": "Markets",
       "explore_markets": "Explore markets",
       "see_all_perps": "See all perps",
+      "products": "Products",
       "top_movers": "Top movers",
       "gainers": "Gainers",
       "losers": "Losers"
