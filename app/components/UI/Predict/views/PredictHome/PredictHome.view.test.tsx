@@ -125,6 +125,18 @@ describe('PredictHome', () => {
 
       expect(await findByPlaceholderText(SEARCH_PLACEHOLDER)).toBeOnTheScreen();
     });
+
+    it('tracks the search opened event when the user presses the search icon', async () => {
+      const { getByTestId } = renderPredictHomeView();
+
+      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
+
+      expect(
+        Engine.context.PredictController.trackSearchInteracted,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({ interactionType: 'opened' }),
+      );
+    });
   });
 
   describe('stacked header scroll wiring', () => {

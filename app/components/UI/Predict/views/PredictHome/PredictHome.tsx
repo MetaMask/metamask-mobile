@@ -7,7 +7,9 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
+import Engine from '../../../../../core/Engine';
 import { useTheme } from '../../../../../util/theme';
+import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictSearch } from '../../hooks/usePredictSearch';
 import { usePredictStackedHeader } from '../../hooks/usePredictStackedHeader';
 import { PredictNavigationParamList } from '../../types/navigation';
@@ -39,6 +41,8 @@ const PredictHome: React.FC = () => {
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictMarketList'>>();
   const transactionActiveAbTests = route.params?.transactionActiveAbTests;
+  const entryPoint =
+    route.params?.entryPoint ?? PredictEventValues.ENTRY_POINT.PREDICT_FEED;
 
   const { scrollY, titleSectionHeight, onScroll, setTitleSectionHeight } =
     usePredictStackedHeader();
@@ -50,6 +54,14 @@ const PredictHome: React.FC = () => {
     showSearch,
     clearSearchAndClose,
   } = usePredictSearch();
+
+  const handleShowSearch = useCallback(() => {
+    Engine.context.PredictController.trackSearchInteracted({
+      interactionType: PredictEventValues.SEARCH_INTERACTION.OPENED,
+      entryPoint,
+    });
+    showSearch();
+  }, [entryPoint, showSearch]);
 
   const handleBackPress = useCallback(() => {
     if (navigation.canGoBack()) {
@@ -82,7 +94,7 @@ const PredictHome: React.FC = () => {
           scrollY={scrollY}
           titleSectionHeight={titleSectionHeight}
           onBack={handleBackPress}
-          onSearchPress={showSearch}
+          onSearchPress={handleShowSearch}
         />
 
         <Animated.ScrollView

@@ -199,6 +199,22 @@ describe('PredictFeed', () => {
       expect(await findByPlaceholderText(SEARCH_PLACEHOLDER)).toBeOnTheScreen();
     });
 
+    it('tracks the search opened event with the active feed tab and entry point', async () => {
+      const { getByTestId } = renderPredictFeedView();
+
+      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
+
+      expect(
+        Engine.context.PredictController.trackSearchInteracted,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          interactionType: 'opened',
+          predictFeedTab: expect.any(String),
+          entryPoint: 'predict_feed',
+        }),
+      );
+    });
+
     it('calls PredictController.searchMarkets with the typed query after the user searches', async () => {
       const searchMarketsSpy = jest.spyOn(
         Engine.context.PredictController,
