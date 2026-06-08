@@ -23,6 +23,7 @@ import {
   PERPS_TRADING_MAX_WINNERS,
 } from '../../utils/perpsCampaignConstants';
 import HyperTrackerLogo from '../../../../../images/rewards/hypertracker.svg';
+import { useTheme } from '../../../../../util/theme';
 
 export const PERPS_CAMPAIGN_LEADERBOARD_TEST_IDS = {
   CONTAINER: 'perps-campaign-leaderboard-container',
@@ -76,6 +77,7 @@ const PerpsTradingCampaignLeaderboard: React.FC<
   isCampaignComplete = false,
 }) => {
   const navigation = useNavigation();
+  const { colors } = useTheme();
 
   const handleHyperTrackerPress = useCallback(() => {
     navigation.navigate(Routes.BROWSER.HOME, {
@@ -195,7 +197,7 @@ const PerpsTradingCampaignLeaderboard: React.FC<
         {visibleEntries.map((entry) => (
           <CampaignLeaderboardEntryRow
             key={`${entry.rank}-${entry.referralCode}`}
-            entry={entry}
+            entry={{ ...entry, qualified: true }}
             isCurrentUser={isCurrentUser(entry)}
             showCrown={!isPreview && entry.rank <= PERPS_TRADING_MAX_WINNERS}
             isCampaignComplete={isCampaignComplete}
@@ -209,7 +211,7 @@ const PerpsTradingCampaignLeaderboard: React.FC<
             {userPosition.neighbors.map((entry) => (
               <CampaignLeaderboardEntryRow
                 key={`neighbor-${entry.rank}-${entry.referralCode}`}
-                entry={entry}
+                entry={{ ...entry, qualified: true }}
                 isCurrentUser={isCurrentUser(entry)}
                 showCrown={
                   !isPreview && entry.rank <= PERPS_TRADING_MAX_WINNERS
@@ -239,7 +241,12 @@ const PerpsTradingCampaignLeaderboard: React.FC<
           onPress={handleHyperTrackerPress}
           testID={PERPS_CAMPAIGN_LEADERBOARD_TEST_IDS.HYPERTRACKER_LOGO}
         >
-          <HyperTrackerLogo width={117} height={24} name="HyperTrackerLogo" />
+          <HyperTrackerLogo
+            width={117}
+            height={24}
+            name="HyperTrackerLogo"
+            color={colors.text.default}
+          />
         </Pressable>
       </Box>
     </Box>

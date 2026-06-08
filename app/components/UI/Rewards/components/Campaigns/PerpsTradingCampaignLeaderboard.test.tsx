@@ -5,6 +5,7 @@ import PerpsTradingCampaignLeaderboard, {
 } from './PerpsTradingCampaignLeaderboard';
 import type { PerpsTradingCampaignLeaderboardEntry } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { PERPS_TRADING_MAX_WINNERS } from '../../utils/perpsCampaignConstants';
+import { mockTheme, ThemeContext } from '../../../../../util/theme';
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -62,7 +63,7 @@ const createPerpsEntry = (
   rank: 1,
   referralCode: 'REF001',
   pnl: 100,
-  qualified: true,
+  volume: 30_000,
   ...overrides,
 });
 
@@ -105,6 +106,30 @@ describe('PerpsTradingCampaignLeaderboard', () => {
             'https://hypertracker.io?utm_source=metamask&utm_medium=leaderboard&utm_campaign=partner-attribution',
         }),
       }),
+    );
+  });
+
+  it('uses the theme text color for the HyperTracker wordmark', () => {
+    const logoTextColor = mockTheme.colors.text.alternative;
+    const theme = {
+      ...mockTheme,
+      colors: {
+        ...mockTheme.colors,
+        text: {
+          ...mockTheme.colors.text,
+          default: logoTextColor,
+        },
+      },
+    };
+
+    const { UNSAFE_getByProps } = render(
+      <ThemeContext.Provider value={theme}>
+        <PerpsTradingCampaignLeaderboard {...defaultProps} />
+      </ThemeContext.Provider>,
+    );
+
+    expect(UNSAFE_getByProps({ name: 'HyperTrackerLogo' }).props.color).toBe(
+      logoTextColor,
     );
   });
 

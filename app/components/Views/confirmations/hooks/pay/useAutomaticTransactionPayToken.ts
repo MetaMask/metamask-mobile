@@ -110,8 +110,7 @@ export function useAutomaticTransactionPayToken({
     selectPaymentOverrideByTransactionId(state, transactionId ?? ''),
   );
   const isMoneyPaymentOverride =
-    paymentOverride === PaymentOverride.MoneyAccount &&
-    !postQuoteTransactionType;
+    paymentOverride === PaymentOverride.MoneyAccount;
   const accountOverride = useTransactionAccountOverride();
   const lastWithdrawToken = useSelector((state: RootState) =>
     selectLastWithdrawTokenByType(state, postQuoteTransactionType),
@@ -265,16 +264,18 @@ export function useAutomaticTransactionPayToken({
   // money account. Money account deposits are locked to MUSD on MONAD.
   const previsMoneyPaymentOverrideRef = useRef(false);
   useEffect(() => {
+    const prev = previsMoneyPaymentOverrideRef.current;
+    previsMoneyPaymentOverrideRef.current = !!isMoneyPaymentOverride;
+
     if (
       disable ||
       hasFiatPaymentSelected ||
       !from ||
-      isMoneyPaymentOverride === previsMoneyPaymentOverrideRef.current ||
-      postQuoteTransactionType
+      isMoneyPaymentOverride !== true ||
+      isMoneyPaymentOverride === prev
     ) {
       return;
     }
-    previsMoneyPaymentOverrideRef.current = isMoneyPaymentOverride;
 
     if (automaticToken) {
       setPayToken({
@@ -288,7 +289,6 @@ export function useAutomaticTransactionPayToken({
     disable,
     from,
     hasFiatPaymentSelected,
-    postQuoteTransactionType,
     setPayToken,
     isMoneyPaymentOverride,
   ]);

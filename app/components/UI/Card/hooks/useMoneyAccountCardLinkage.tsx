@@ -33,6 +33,7 @@ import {
   selectCardHomeDataStatus,
   selectIsCardAuthenticated,
   selectIsCardholder,
+  selectIsMoneyAccountCardLinkInProgress,
   selectIsMoneyAccountDelegatedForCard,
 } from '../../../../selectors/cardController';
 import {
@@ -48,7 +49,6 @@ import { CardLinkageInProgressError } from '../../../../core/Engine/controllers/
 import { BAANX_MAX_LIMIT } from '../constants';
 import { CardFundingToken } from '../types';
 import { UserCancelledError } from './useCardDelegation';
-import { useIsMoneyAccount7702Ready } from './useIsMoneyAccount7702Ready';
 
 export type LinkageStatus =
   | 'idle'
@@ -112,10 +112,10 @@ export const useMoneyAccountCardLinkage =
     const pendingMoneyAccountCardLink = useSelector(
       selectPendingMoneyAccountCardLink,
     );
+    const linkInProgress = useSelector(selectIsMoneyAccountCardLinkInProgress);
     const isMonadSponsorshipEnabled = useSelector(
       getGasFeesSponsoredNetworkEnabled,
     )(vaultConfig?.chainId ?? '');
-    const is7702Ready = useIsMoneyAccount7702Ready();
 
     const [status, setStatus] = useState<LinkageStatus>('idle');
     const [error, setError] = useState<Error | null>(null);
@@ -135,75 +135,102 @@ export const useMoneyAccountCardLinkage =
       hasRequirements &&
         isCardAuthenticated &&
         moneyAccountCardToken &&
-        isMonadSponsorshipEnabled &&
-        is7702Ready === true,
+        isMonadSponsorshipEnabled,
     );
     const canLink = Boolean(canSubmitDelegation && !isAlreadyDelegated);
 
-    const showPendingToast = useCallback(() => {
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        labelOptions: [
-          {
-            label: strings('money.metamask_card.link_pending_title'),
-          },
-        ],
-        iconName: IconName.Loading,
-        hasNoTimeout: true,
-        startAccessory: (
-          <Box twClassName="pr-3">
-            <Spinner
-              color={IconColor.IconDefault}
-              spinnerIconProps={{ size: IconSize.Lg }}
-            />
-          </Box>
-        ),
-      });
-    }, [toastRef]);
+    const showPendingToast = useCallback(
+      (isRevoke: boolean = false) => {
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Icon,
+          labelOptions: [
+            {
+              label: strings(
+                isRevoke
+                  ? 'money.metamask_card.unlink_pending_title'
+                  : 'money.metamask_card.link_pending_title',
+              ),
+            },
+          ],
+          iconName: IconName.Loading,
+          hasNoTimeout: true,
+          startAccessory: (
+            <Box twClassName="pr-3">
+              <Spinner
+                color={IconColor.IconDefault}
+                spinnerIconProps={{ size: IconSize.Lg }}
+              />
+            </Box>
+          ),
+        });
+      },
+      [toastRef],
+    );
 
-    const showSuccessToast = useCallback(() => {
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        labelOptions: [
-          {
-            label: strings('money.metamask_card.link_success_title'),
-          },
-        ],
-        iconName: IconName.Confirmation,
-        iconColor: theme.colors.success.default,
-        hasNoTimeout: false,
-        startAccessory: (
-          <Box twClassName="pr-3">
-            <Icon
-              name={IconName.Confirmation}
-              color={IconColor.SuccessDefault}
-              size={IconSize.Lg}
-            />
-          </Box>
-        ),
-      });
-    }, [theme.colors.success.default, toastRef]);
+    const showSuccessToast = useCallback(
+      (isRevoke: boolean = false) => {
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Icon,
+          labelOptions: [
+            {
+              label: strings(
+                isRevoke
+                  ? 'money.metamask_card.unlink_success_title'
+                  : 'money.metamask_card.link_success_title',
+              ),
+            },
+          ],
+          iconName: IconName.Confirmation,
+          iconColor: theme.colors.success.default,
+          hasNoTimeout: false,
+          startAccessory: (
+            <Box twClassName="pr-3">
+              <Icon
+                name={IconName.Confirmation}
+                color={IconColor.SuccessDefault}
+                size={IconSize.Lg}
+              />
+            </Box>
+          ),
+        });
+      },
+      [theme.colors.success.default, toastRef],
+    );
 
-    const showErrorToast = useCallback(() => {
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        labelOptions: [{ label: strings('money.metamask_card.link_error') }],
-        iconName: IconName.Error,
-        iconColor: theme.colors.error.default,
-        hasNoTimeout: false,
-        startAccessory: (
-          <Box twClassName="pr-3">
-            <Icon
-              name={IconName.Error}
-              color={IconColor.ErrorDefault}
-              size={IconSize.Lg}
-            />
-          </Box>
-        ),
-      });
-    }, [theme.colors.error.default, toastRef]);
+    const showErrorToast = useCallback(
+      (isRevoke: boolean = false) => {
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Icon,
+          labelOptions: [
+            {
+              label: strings(
+                isRevoke
+                  ? 'money.metamask_card.unlink_error'
+                  : 'money.metamask_card.link_error',
+              ),
+            },
+          ],
+          iconName: IconName.Error,
+          iconColor: theme.colors.error.default,
+          hasNoTimeout: false,
+          startAccessory: (
+            <Box twClassName="pr-3">
+              <Icon
+                name={IconName.Error}
+                color={IconColor.ErrorDefault}
+                size={IconSize.Lg}
+              />
+            </Box>
+          ),
+        });
+      },
+      [theme.colors.error.default, toastRef],
+    );
 
     const openLinkCardSheet = useCallback((): void => {
+      if (linkInProgress) {
+        return;
+      }
       if (!canLink || !primaryMoneyAccount?.address) {
         showErrorToast();
         return;
@@ -211,10 +238,19 @@ export const useMoneyAccountCardLinkage =
       navigation.navigate(Routes.MONEY.MODALS.ROOT, {
         screen: Routes.MONEY.MODALS.LINK_CARD_SHEET,
       });
-    }, [canLink, primaryMoneyAccount?.address, navigation, showErrorToast]);
+    }, [
+      linkInProgress,
+      canLink,
+      primaryMoneyAccount?.address,
+      navigation,
+      showErrorToast,
+    ]);
 
     const startLinkFlow = useCallback(
       (origin: LinkFlowOrigin): void => {
+        if (linkInProgress) {
+          return;
+        }
         if (!hasRequirements || !primaryMoneyAccount?.address) {
           showErrorToast();
           return;
@@ -255,6 +291,7 @@ export const useMoneyAccountCardLinkage =
         });
       },
       [
+        linkInProgress,
         hasRequirements,
         moneyAccountCardToken,
         primaryMoneyAccount?.address,
@@ -310,8 +347,12 @@ export const useMoneyAccountCardLinkage =
       async (options?: {
         delegationAmountHuman?: string;
       }): Promise<boolean> => {
+        const isRevoke =
+          options?.delegationAmountHuman !== undefined &&
+          parseFloat(options.delegationAmountHuman) === 0;
+
         if (!canSubmitDelegation || !primaryMoneyAccount?.address) {
-          showErrorToast();
+          showErrorToast(isRevoke);
           return false;
         }
 
@@ -321,7 +362,7 @@ export const useMoneyAccountCardLinkage =
 
         setStatus('pending');
         setError(null);
-        showPendingToast();
+        showPendingToast(isRevoke);
 
         try {
           await Engine.context.CardController.linkMoneyAccountCard({
@@ -330,7 +371,7 @@ export const useMoneyAccountCardLinkage =
               options?.delegationAmountHuman ?? BAANX_MAX_LIMIT,
           });
           setStatus('success');
-          showSuccessToast();
+          showSuccessToast(isRevoke);
           return true;
         } catch (caught) {
           const linkageError =
@@ -350,7 +391,7 @@ export const useMoneyAccountCardLinkage =
           Logger.error(linkageError, 'useMoneyAccountCardLinkage failed');
           setError(linkageError);
           setStatus('error');
-          showErrorToast();
+          showErrorToast(isRevoke);
           return false;
         }
       },
@@ -377,7 +418,7 @@ export const useMoneyAccountCardLinkage =
       canLink,
 
       status,
-      isLinking: status === 'pending',
+      isLinking: linkInProgress,
       error,
 
       startLinkFlow,

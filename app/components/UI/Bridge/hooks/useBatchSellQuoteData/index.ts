@@ -11,6 +11,7 @@ import {
   selectBatchSellDestToken,
   selectBatchSellQuotes,
   selectBatchSellSlippages,
+  selectBatchSellSourceTokenAmounts,
   selectBatchSellSourceTokens,
   selectBatchSellTrades,
   selectBridgeFeatureFlags,
@@ -26,6 +27,7 @@ import {
   getSlippageDisplayValue,
 } from '../../components/SlippageModal/utils';
 import type { BridgeToken } from '../../types';
+import { hasValidBatchSellSourceAmounts } from '../useBatchSellQuoteRequest';
 import { getQuoteRefreshRate, isQuoteExpired } from '../../utils/quoteUtils';
 
 const UNKNOWN_DESTINATION_TOKEN_SYMBOL = 'UNKNOWN';
@@ -214,6 +216,9 @@ export function useBatchSellQuoteData({
 }: UseBatchSellQuoteDataOptions = {}) {
   const sourceTokens = useSelector(selectBatchSellSourceTokens);
   const selectedDestinationToken = useSelector(selectBatchSellDestToken);
+  const batchSellSourceTokenAmounts = useSelector(
+    selectBatchSellSourceTokenAmounts,
+  );
   const batchSellSlippages = useSelector(selectBatchSellSlippages);
   const batchSellQuotes = useSelector(selectBatchSellQuotes);
   const batchSellTrades = useSelector(selectBatchSellTrades);
@@ -251,16 +256,28 @@ export function useBatchSellQuoteData({
     }
   }, [batchSellQuotes.isLoading, recommendedQuotesRequestKey]);
 
+  const hasValidSourceAmounts = useMemo(
+    () =>
+      hasValidBatchSellSourceAmounts(
+        sourceTokens,
+        batchSellSourceTokenAmounts,
+        selectedDestinationToken,
+      ),
+    [batchSellSourceTokenAmounts, selectedDestinationToken, sourceTokens],
+  );
   const shouldHideStaleRefreshQuotes = Boolean(
     batchSellQuotes.isLoading &&
       lastFetchedRecommendedQuotesRequestKey.current &&
       lastFetchedRecommendedQuotesRequestKey.current ===
         recommendedQuotesRequestKey,
   );
-  const visibleRecommendedQuotes = useMemo(
-    () => (shouldHideStaleRefreshQuotes ? [] : recommendedQuotes),
-    [recommendedQuotes, shouldHideStaleRefreshQuotes],
-  );
+  const activeRecommendedQuotes = useMemo(() => {
+    if (!hasValidSourceAmounts || shouldHideStaleRefreshQuotes) {
+      return [];
+    }
+
+    return recommendedQuotes;
+  }, [hasValidSourceAmounts, recommendedQuotes, shouldHideStaleRefreshQuotes]);
   const hasStaleDestinationQuotes = recommendedQuotes.some(
     (quote) =>
       quote && !isQuoteForDestinationAssetId(quote, destinationAssetId),
@@ -268,7 +285,7 @@ export function useBatchSellQuoteData({
   const hasQuoteResultsForSelectedTokens =
     sourceTokens.length > 0 &&
     (Boolean(batchSellQuotes.quotesLastFetchedMs) ||
-      visibleRecommendedQuotes.length === sourceTokens.length);
+      activeRecommendedQuotes.length === sourceTokens.length);
   const quoteRows = useMemo(
     () =>
       sourceTokens.reduce<BatchSellQuoteRow[]>((rows, token) => {
@@ -279,7 +296,7 @@ export function useBatchSellQuoteData({
         rows.push({
           assetId,
           recommendedQuote: getRecommendedQuoteBySourceAndDestinationAssetId(
-            visibleRecommendedQuotes,
+            activeRecommendedQuotes,
             assetId,
             destinationAssetId,
           ),
@@ -288,7 +305,7 @@ export function useBatchSellQuoteData({
 
         return rows;
       }, []),
-    [destinationAssetId, sourceTokens, visibleRecommendedQuotes],
+    [activeRecommendedQuotes, destinationAssetId, sourceTokens],
   );
   const availableRecommendedQuotes = useMemo(
     () =>
@@ -299,20 +316,22 @@ export function useBatchSellQuoteData({
   );
   const hasAnyQuote = availableRecommendedQuotes.length > 0;
   const totalNetworkFee = batchSellTrades.totalNetworkFee;
+  const isBatchSellTradesLoading = Boolean(batchSellTrades.isLoading);
+
   // Quote-level gasless params are not reliable for Batch Sell because gasless
   // behavior is only simulated when the controller calls obtainGaslessBatch.
   // Clients do not consume that API response directly; selectBatchSellTrades
   // exposes the controller-interpreted result, so derive gasless state from it.
   const isGasless =
     hasAnyQuote &&
-    batchSellTrades.isBatchSellTradeAvailable &&
     Boolean(
       totalNetworkFee?.asset && !isNativeAddress(totalNetworkFee.asset.address),
     );
   const isWaitingForQuoteRows =
-    !hasQuoteResultsForSelectedTokens ||
-    batchSellQuotes.isLoading ||
-    hasStaleDestinationQuotes;
+    hasValidSourceAmounts &&
+    (!hasQuoteResultsForSelectedTokens ||
+      batchSellQuotes.isLoading ||
+      hasStaleDestinationQuotes);
   const hasPendingQuoteRows = quoteRows.some(
     ({ recommendedQuote }) => !recommendedQuote && isWaitingForQuoteRows,
   );
@@ -327,11 +346,14 @@ export function useBatchSellQuoteData({
       batchSellQuotes.quotesLastFetchedMs ?? null,
     );
   const isLoading =
-    batchSellQuotes.isLoading ||
-    !hasQuoteResultsForSelectedTokens ||
-    hasStaleDestinationQuotes;
+    hasValidSourceAmounts &&
+    (batchSellQuotes.isLoading ||
+      !hasQuoteResultsForSelectedTokens ||
+      hasStaleDestinationQuotes);
   const isSummaryLoading =
-    (!hasAnyQuote || hasStaleDestinationQuotes) && isLoading;
+    hasValidSourceAmounts &&
+    (!hasAnyQuote || hasStaleDestinationQuotes) &&
+    isLoading;
   const totalReceived = useMemo(
     () =>
       sumRecommendedQuoteAmounts(availableRecommendedQuotes, 'toTokenAmount'),
@@ -349,7 +371,6 @@ export function useBatchSellQuoteData({
     () => getBatchSellTradesRequestKey(availableRecommendedQuotes),
     [availableRecommendedQuotes],
   );
-  const networkFeeIsLoading = !batchSellTrades.isBatchSellTradeAvailable;
   const totalReceivedAmount = canDisplayAggregatedQuoteData
     ? totalReceived.amount
     : undefined;
@@ -496,11 +517,13 @@ export function useBatchSellQuoteData({
     isLoading,
     isSummaryLoading,
     isGasless,
+    isBatchSellTradeAvailable: batchSellTrades.isBatchSellTradeAvailable,
+    isBatchSellTradesLoading,
     hasAnyQuote,
     hasPendingQuoteRows,
     needsNewQuote,
-    networkFeeIsLoading,
     networkFee: networkFeeData,
     quotePercentFee,
+    recommendedQuotes: availableRecommendedQuotes,
   };
 }
