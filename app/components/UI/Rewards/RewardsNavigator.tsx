@@ -1,10 +1,8 @@
 import React, { useEffect, useRef } from 'react';
-import {
-  createStackNavigator,
-  TransitionPresets,
-} from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { darkTheme } from '@metamask/design-tokens';
 import Routes from '../../../constants/navigation/Routes';
+import { slideFromRightNativeOptions } from '../../../constants/navigation/clearStackNavigatorOptions';
 import OnboardingNavigator from './OnboardingNavigator';
 import RewardsDashboard from './Views/RewardsDashboard';
 import ReferralRewardsView from './Views/RewardsReferralView';
@@ -47,7 +45,7 @@ import PerpsTradingCampaignWinningView from './Views/PerpsTradingCampaignWinning
 import { getActiveRouteNameFromNavigationState } from './utils';
 
 let sessionNotificationsNudgeShown = false;
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 
 const RewardsNavigator: React.FC = () => {
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
@@ -199,14 +197,24 @@ const RewardsNavigator: React.FC = () => {
     return <RewardsUpdateRequired />;
   }
 
+  const vipScreenOptions = {
+    headerShown: false,
+    ...slideFromRightNativeOptions,
+    contentStyle: {
+      backgroundColor: darkTheme.colors.background.default,
+    },
+  };
+
   return (
-    <Stack.Navigator initialRouteName={getInitialRoute()}>
+    <Stack.Navigator
+      initialRouteName={getInitialRoute()}
+      screenOptions={{ headerShown: false }}
+    >
       <Stack.Screen
         name={Routes.REWARDS_ONBOARDING_FLOW}
         component={OnboardingNavigator}
         options={{
-          headerShown: false,
-          cardStyle: { backgroundColor: colors.background.default },
+          contentStyle: { backgroundColor: colors.background.default },
         }}
       />
       {subscriptionId ? (
@@ -214,125 +222,89 @@ const RewardsNavigator: React.FC = () => {
           <Stack.Screen
             name={Routes.REWARDS_DASHBOARD}
             component={RewardsDashboard}
-            options={{ headerShown: false }}
           />
           <Stack.Screen
             name={Routes.REFERRAL_REWARDS_VIEW}
             component={ReferralRewardsView}
-            options={{ headerShown: false }}
           />
           <Stack.Screen
             name={Routes.REWARDS_SETTINGS_VIEW}
             component={RewardsSettingsView}
-            options={{ headerShown: false }}
           />
           <Stack.Screen
             name={Routes.REWARDS_VIP_SPLASH_VIEW}
             component={RewardsVipSplashView}
-            options={{
-              headerShown: false,
-              ...TransitionPresets.SlideFromRightIOS,
-              cardStyle: {
-                backgroundColor: darkTheme.colors.background.default,
-              },
-            }}
+            options={vipScreenOptions}
           />
           <Stack.Screen
             name={Routes.REWARDS_VIP_VIEW}
             component={RewardsVipView}
-            options={{
-              headerShown: false,
-              ...TransitionPresets.SlideFromRightIOS,
-              cardStyle: {
-                backgroundColor: darkTheme.colors.background.default,
-              },
-            }}
+            options={vipScreenOptions}
           />
           <Stack.Screen
             name={Routes.REWARDS_VIP_TIERS_VIEW}
             component={RewardsVipTiersView}
-            options={{
-              headerShown: false,
-              ...TransitionPresets.SlideFromRightIOS,
-              cardStyle: {
-                backgroundColor: darkTheme.colors.background.default,
-              },
-            }}
+            options={vipScreenOptions}
           />
           <Stack.Screen
             name={Routes.REWARDS_CAMPAIGNS_VIEW}
             component={CampaignsView}
-            options={{ headerShown: false }}
           />
           <Stack.Screen
             name={Routes.REWARDS_CAMPAIGN_TOUR_STEP}
             component={CampaignTourStepView}
-            options={{ headerShown: false }}
           />
           <Stack.Screen
             name={Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW}
             component={OndoCampaignDetailsView}
-            options={{ headerShown: false }}
           />
           <Stack.Screen
             name={Routes.REWARDS_ONDO_CAMPAIGN_WINNING_VIEW}
             component={OndoCampaignWinningView}
-            options={{ headerShown: false }}
           />
           <Stack.Screen
             name={Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW}
             component={SeasonOneCampaignDetailsView}
-            options={{ headerShown: false }}
           />
           <Stack.Screen
             name={Routes.REWARDS_CAMPAIGN_MECHANICS}
             component={CampaignMechanicsView}
-            options={{ headerShown: false }}
           />
           <Stack.Screen
             name={Routes.REWARDS_MUSD_CALCULATOR_VIEW}
             component={MusdCalculatorView}
-            options={{ headerShown: false }}
           />
           <Stack.Screen
             name={Routes.REWARDS_ONDO_CAMPAIGN_LEADERBOARD}
             component={OndoLeaderboardView}
-            options={{ headerShown: false }}
           />
           <Stack.Screen
             name={Routes.REWARDS_ONDO_CAMPAIGN_RWA_ASSET_SELECTOR}
             component={OndoCampaignRwaSelectorView}
-            options={{ headerShown: false }}
           />
           <Stack.Screen
             name={Routes.REWARDS_ONDO_CAMPAIGN_PORTFOLIO_VIEW}
             component={OndoCampaignPortfolioView}
-            options={{ headerShown: false }}
           />
           <Stack.Screen
             name={Routes.REWARDS_ONDO_CAMPAIGN_STATS}
             component={OndoCampaignStatsView}
-            options={{ headerShown: false }}
           />
           <Stack.Screen
             name={Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW}
             component={PerpsTradingCampaignDetailsView}
-            options={{ headerShown: false }}
           />
           <Stack.Screen
             name={Routes.REWARDS_PERPS_TRADING_CAMPAIGN_LEADERBOARD}
             component={PerpsTradingCampaignLeaderboardView}
-            options={{ headerShown: false }}
           />
           <Stack.Screen
             name={Routes.REWARDS_PERPS_TRADING_CAMPAIGN_STATS}
             component={PerpsTradingCampaignStatsView}
-            options={{ headerShown: false }}
           />
           <Stack.Screen
             name={Routes.REWARDS_PERPS_TRADING_CAMPAIGN_WINNING_VIEW}
             component={PerpsTradingCampaignWinningView}
-            options={{ headerShown: false }}
           />
         </>
       ) : null}
