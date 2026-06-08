@@ -5,7 +5,6 @@
  * Supports multiple LLM providers with automatic fallback.
  */
 
-import path from 'node:path';
 import { ParsedArgs, AnalysisContext, SelectTagsAnalysis } from './types';
 import { APP_CONFIG, LLM_CONFIG } from './config';
 import {
@@ -35,12 +34,6 @@ import {
   fetchFeatureFlags,
   formatFeatureFlagSummary,
 } from './utils/feature-flags';
-import {
-  detectDirectPerformanceChanges,
-  detectAppCodePerformanceChanges,
-  detectInfraPerformanceChanges,
-  PERFORMANCE_TAGS_CONFIG,
-} from './modes/select-tags/handlers';
 
 /**
  * Validates provided files against actual git changes
@@ -397,48 +390,6 @@ async function main() {
   if (checkHardRules) {
     const hardRuleResult = checkHardRules(allChangedFiles, analysisContext);
     if (hardRuleResult) {
-      // For select-tags mode: E2E tags come from the hard rule (correct — infra
-      // changes warrant full E2E coverage), but performance test selection runs
-      // independently via the deterministic mapping so that test-infrastructure-only
-      // changes (e.g. a console.log removal in a fixture file) do not
-      // unnecessarily trigger all performance tests.
-      if (mode === 'select-tags') {
-        const selectTagsResult = hardRuleResult as SelectTagsAnalysis;
-
-        const directPerf = detectDirectPerformanceChanges(
-          allChangedFiles,
-          baseDir,
-        );
-        const appCodePerf = detectAppCodePerformanceChanges(allChangedFiles);
-
-        const specificTags = [
-          ...new Set([
-            ...(directPerf?.selectedTags ?? []),
-            ...(appCodePerf?.selectedTags ?? []),
-          ]),
-        ];
-
-        const perfReasonParts = [
-          directPerf?.reasoning,
-          appCodePerf?.reasoning,
-        ].filter(Boolean) as string[];
-
-        // Performance tests only run when app code or performance spec files
-        // explicitly match — test infrastructure changes alone don't count.
-        if (specificTags.length > 0) {
-          selectTagsResult.performanceTests = {
-            selectedTags: specificTags,
-            reasoning: perfReasonParts.join('. '),
-          };
-        } else {
-          selectTagsResult.performanceTests = {
-            selectedTags: [],
-            reasoning:
-              'E2E hard rule fired (test infrastructure change) but no performance-sensitive app code or spec files changed — skipping performance tests.',
-          };
-        }
-      }
-
       (MODES[mode].outputAnalysis as (a: unknown) => void)(hardRuleResult);
       return;
     }
@@ -818,74 +769,6 @@ async function main() {
         analysisContext,
         availableSkills,
       );
-
-      // For select-tags mode: merge deterministic performance test detection on top
-      // of whatever the AI selected. This ensures changed spec files, shared
-      // performance infrastructure, and mapped app source files always trigger the
-      // appropriate performance tests, regardless of AI judgment.
-      //
-      // Infra expansion rule: shared infrastructure changes (fixtures, framework
-      // helpers) conservatively expand to ALL tags — but ONLY when no specific tags
-      // are already identified from spec files or app code changes. If specific tests
-      // are already going to run, infra changes are implicitly covered.
-      if (mode === 'select-tags') {
-        const selectTagsAnalysis = analysis as SelectTagsAnalysis;
-
-        const directPerf = detectDirectPerformanceChanges(
-          allChangedFiles,
-          baseDir,
-        );
-        const appCodePerf = detectAppCodePerformanceChanges(allChangedFiles);
-        const infraFiles = detectInfraPerformanceChanges(allChangedFiles);
-
-        // Collect specific tags from spec files and app code changes
-        const specificTags = [
-          ...(directPerf?.selectedTags ?? []),
-          ...(appCodePerf?.selectedTags ?? []),
-        ];
-
-        const deterministicReasonParts = [
-          directPerf?.reasoning,
-          appCodePerf?.reasoning,
-        ].filter(Boolean) as string[];
-
-        // Apply infra expansion only when no specific tags exist
-        if (infraFiles) {
-          const shown = infraFiles.slice(0, 3).map((f) => path.basename(f));
-          const extra =
-            infraFiles.length > 3 ? ` (+${infraFiles.length - 3} more)` : '';
-          if (specificTags.length === 0) {
-            specificTags.push(...PERFORMANCE_TAGS_CONFIG.map((c) => c.tag));
-            deterministicReasonParts.push(
-              `Changed shared performance infrastructure: ${shown.join(', ')}${extra} — running all tags conservatively`,
-            );
-          } else {
-            deterministicReasonParts.push(
-              `Changed shared performance infrastructure: ${shown.join(', ')}${extra} — covered by specific tests already selected`,
-            );
-          }
-        }
-
-        const deterministicTags = [...new Set(specificTags)];
-
-        if (deterministicTags.length > 0) {
-          const merged = [
-            ...new Set([
-              ...selectTagsAnalysis.performanceTests.selectedTags,
-              ...deterministicTags,
-            ]),
-          ];
-          const prevReasoning =
-            selectTagsAnalysis.performanceTests.reasoning || '';
-          const deterministicReasoning = deterministicReasonParts.join('. ');
-          selectTagsAnalysis.performanceTests = {
-            selectedTags: merged,
-            reasoning: prevReasoning
-              ? `${prevReasoning}. ${deterministicReasoning}`
-              : deterministicReasoning,
-          };
-        }
-      }
 
       // Success - output results and exit
       (MODES[mode].outputAnalysis as (a: unknown) => void)(analysis);

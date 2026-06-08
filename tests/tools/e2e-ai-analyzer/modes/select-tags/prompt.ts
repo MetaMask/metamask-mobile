@@ -55,23 +55,11 @@ The following types of changes have zero functional impact and must NOT trigger 
 If a PR only contains cosmetic changes across all files, select zero E2E tags and zero performance tags.`;
 
   const performanceGuidanceSection = `PERFORMANCE TEST GUIDANCE:
-Performance tests measure app responsiveness and render times. Select performance tests when changes could impact:
-- UI rendering performance (component changes, list rendering, animations)
-- Data loading and state management (Redux, controllers, API calls)
-- Account/network list components (AccountSelector, NetworkSelector, related hooks)
-- Critical user flows (login, balance loading, swap flows, send flows)
-- App startup and initialization (Engine, background services, navigation)
-Be generous: when app code changes touch components or flows that performance tests exercise, select the relevant tags. Err on the side of running more performance tests rather than fewer — a missed regression is worse than an extra test run.
-Exception: if the ONLY changes are to tests/framework/ helper files (non-spec utilities, fixtures, page objects) with no app code changes, you do NOT need to select performance tests — the CI handles those separately. However, if any tests/performance/*.spec.ts files changed, always select the tags those specs test (check their imports from tags.performance to identify which tags apply).
-Exception: apply the COSMETIC CHANGES rule above before selecting performance tags — a console.log removal in a framework file is not a performance-sensitive change.
-
-PERFORMANCE FILE → TAG MAPPING (use this to guide your selection):
-- app/components/UI/Bridge/** or app/reducers/swaps** or app/selectors/swaps** → @PerformanceSwaps
-- app/components/Views/AccountSelector/** or app/component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/** → @PerformanceAccountList
-- app/core/Engine/controllers/assets-controller/** or app/core/Engine/controllers/multichain-balances-controller/** → @PerformanceAssetLoading
-- app/components/UI/Perps/** or app/components/Views/Homepage/Sections/Perpetuals/** or app/core/Engine/controllers/perps-controller/** → @PerformancePreps
-- app/components/UI/Predict/** or app/core/Engine/controllers/predict-controller/** → @PerformancePredict
-- app/core/LockManagerService/** → @PerformanceLogin + @PerformanceLaunch`;
+Performance tests measure app responsiveness and render times. Decide performance_tests the same way you decide E2E tags: use the available performance tag list, inspect the changed files and diffs, reason about impacted user flows, and select only the relevant performance tags.
+Do not rely on a hardcoded file-to-tag mapping. If a changed app file could impact one of the performance scenarios described in AVAILABLE PERFORMANCE TEST TAGS, select that tag and explain why.
+If any tests/performance/*.spec.ts files changed, inspect the spec content with read_file/get_git_diff and select performance tags only when the changed spec actually declares or exercises those performance tags. System-only specs under tests/performance must not trigger performance_tests.
+If the ONLY changes are to tests/framework/ helper files, fixtures, page objects, or other non-spec test utilities with no app code changes, select performance tags only if the diff plausibly affects measured performance behavior.
+Apply the COSMETIC CHANGES rule before selecting performance tags.`;
 
   const prompt = [
     role,
@@ -133,7 +121,7 @@ export function buildTaskPrompt(
 1. Select E2E test tags to run so the changes can be verified safely with minimal risk
 2. Determine if performance tests should run based on potential performance impact`;
   const tagsSection = `AVAILABLE E2E TEST TAGS (these are the ONLY valid E2E tags - do NOT search for tags.ts or any tags file, they are already provided here):\n${tagCoverageList}`;
-  const performanceTagsSection = `AVAILABLE PERFORMANCE TEST TAGS (select when changes could impact app performance):\n${performanceTagList}`;
+  const performanceTagsSection = `AVAILABLE PERFORMANCE TEST TAGS (derived from tags.performance.js; these are the ONLY valid performance tags - select when changes could impact app performance):\n${performanceTagList}`;
   const filesSection = `CHANGED FILES (${
     allFiles.length
   } total):\n${fileList.join('\n')}`;
