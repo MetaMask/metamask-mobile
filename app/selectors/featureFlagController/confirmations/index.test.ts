@@ -586,143 +586,47 @@ describe('selectMetaMaskPayFlags extended flags', () => {
     );
   });
 
-  describe('enablePerpsMoneyAccountTransactions', () => {
-    afterEach(() => {
-      delete process.env.MONEY_ACCOUNT_PERPS_PREDICT_ENABLED;
-    });
+  it('returns default enablePerpsMoneyAccountTransactions when flag is absent', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
 
-    it('returns default (false) when flag is absent and env var is unset', () => {
-      const state = cloneDeep(mockedEmptyFlagsState);
-
-      expect(
-        selectMetaMaskPayFlags(state).enablePerpsMoneyAccountTransactions,
-      ).toEqual(PAY_ENABLE_PERPS_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT);
-    });
-
-    it('returns false when remote flag is true but env var is unset', () => {
-      const state = cloneDeep(mockedEmptyFlagsState);
-      state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
-        {
-          confirmations_pay_extended: {
-            enablePerpsMoneyAccountTransactions: true,
-          },
-        };
-
-      expect(
-        selectMetaMaskPayFlags(state).enablePerpsMoneyAccountTransactions,
-      ).toBe(false);
-    });
-
-    it('returns false when env var is true but remote flag is absent', () => {
-      process.env.MONEY_ACCOUNT_PERPS_PREDICT_ENABLED = 'true';
-
-      const state = cloneDeep(mockedEmptyFlagsState);
-
-      expect(
-        selectMetaMaskPayFlags(state).enablePerpsMoneyAccountTransactions,
-      ).toBe(false);
-    });
-
-    it('returns true when both env var and remote flag are true', () => {
-      process.env.MONEY_ACCOUNT_PERPS_PREDICT_ENABLED = 'true';
-
-      const state = cloneDeep(mockedEmptyFlagsState);
-      state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
-        {
-          confirmations_pay_extended: {
-            enablePerpsMoneyAccountTransactions: true,
-          },
-        };
-
-      expect(
-        selectMetaMaskPayFlags(state).enablePerpsMoneyAccountTransactions,
-      ).toBe(true);
-    });
-
-    it('returns false when env var is set to a non-true value', () => {
-      process.env.MONEY_ACCOUNT_PERPS_PREDICT_ENABLED = 'false';
-
-      const state = cloneDeep(mockedEmptyFlagsState);
-      state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
-        {
-          confirmations_pay_extended: {
-            enablePerpsMoneyAccountTransactions: true,
-          },
-        };
-
-      expect(
-        selectMetaMaskPayFlags(state).enablePerpsMoneyAccountTransactions,
-      ).toBe(false);
-    });
+    expect(
+      selectMetaMaskPayFlags(state).enablePerpsMoneyAccountTransactions,
+    ).toEqual(PAY_ENABLE_PERPS_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT);
   });
 
-  describe('enablePredictMoneyAccountTransactions', () => {
-    afterEach(() => {
-      delete process.env.MONEY_ACCOUNT_PERPS_PREDICT_ENABLED;
-    });
+  it('returns enablePerpsMoneyAccountTransactions from flag value', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay_extended: {
+          enablePerpsMoneyAccountTransactions: true,
+        },
+      };
 
-    it('returns default (false) when flag is absent and env var is unset', () => {
-      const state = cloneDeep(mockedEmptyFlagsState);
+    expect(
+      selectMetaMaskPayFlags(state).enablePerpsMoneyAccountTransactions,
+    ).toBe(true);
+  });
 
-      expect(
-        selectMetaMaskPayFlags(state).enablePredictMoneyAccountTransactions,
-      ).toEqual(PAY_ENABLE_PREDICT_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT);
-    });
+  it('returns default enablePredictMoneyAccountTransactions when flag is absent', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
 
-    it('returns false when remote flag is true but env var is unset', () => {
-      const state = cloneDeep(mockedEmptyFlagsState);
-      state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
-        {
-          confirmations_pay_extended: {
-            enablePredictMoneyAccountTransactions: true,
-          },
-        };
+    expect(
+      selectMetaMaskPayFlags(state).enablePredictMoneyAccountTransactions,
+    ).toEqual(PAY_ENABLE_PREDICT_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT);
+  });
 
-      expect(
-        selectMetaMaskPayFlags(state).enablePredictMoneyAccountTransactions,
-      ).toBe(false);
-    });
+  it('returns enablePredictMoneyAccountTransactions from flag value', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay_extended: {
+          enablePredictMoneyAccountTransactions: true,
+        },
+      };
 
-    it('returns false when env var is true but remote flag is absent', () => {
-      process.env.MONEY_ACCOUNT_PERPS_PREDICT_ENABLED = 'true';
-
-      const state = cloneDeep(mockedEmptyFlagsState);
-
-      expect(
-        selectMetaMaskPayFlags(state).enablePredictMoneyAccountTransactions,
-      ).toBe(false);
-    });
-
-    it('returns true when both env var and remote flag are true', () => {
-      process.env.MONEY_ACCOUNT_PERPS_PREDICT_ENABLED = 'true';
-
-      const state = cloneDeep(mockedEmptyFlagsState);
-      state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
-        {
-          confirmations_pay_extended: {
-            enablePredictMoneyAccountTransactions: true,
-          },
-        };
-
-      expect(
-        selectMetaMaskPayFlags(state).enablePredictMoneyAccountTransactions,
-      ).toBe(true);
-    });
-
-    it('returns false when env var is set to a non-true value', () => {
-      process.env.MONEY_ACCOUNT_PERPS_PREDICT_ENABLED = 'false';
-
-      const state = cloneDeep(mockedEmptyFlagsState);
-      state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
-        {
-          confirmations_pay_extended: {
-            enablePredictMoneyAccountTransactions: true,
-          },
-        };
-
-      expect(
-        selectMetaMaskPayFlags(state).enablePredictMoneyAccountTransactions,
-      ).toBe(false);
-    });
+    expect(
+      selectMetaMaskPayFlags(state).enablePredictMoneyAccountTransactions,
+    ).toBe(true);
   });
 });
