@@ -152,11 +152,16 @@ function isFailedOrRejectedBatchTransaction(tx: TransactionMeta): boolean {
   return FAILED_OR_REJECTED_STATUSES.has(tx.status);
 }
 
-function hasSignedBatchFromAddress(batchId: string, address: string): boolean {
+function hasSignedTrackedBatchFromAddress(
+  batchId: string,
+  address: string,
+  trackedTxIds: ReadonlySet<string>,
+): boolean {
   const normalizedAddress = normalizeAddress(address);
   if (!normalizedAddress) return false;
   return getTransactions().some(
     (tx) =>
+      trackedTxIds.has(tx.id) &&
       tx.batchId === batchId &&
       matchesTx(tx, normalizedAddress) &&
       isPostSignBatchTransaction(tx),
@@ -557,6 +562,8 @@ export function useHwBatchSignTracker({
     const trackerState = trackerStateRef.current;
     trackerState.acceptedApprovalIds = new Set();
     trackerState.approvalQueue = [];
+    trackerState.signedBatchIds = new Set();
+    trackerState.trackedTxIds = new Set();
     trackerState.batchGeneration += 1;
 
     for (const id of trackerState.seenBatchIds) {
@@ -817,7 +824,11 @@ export function useHwBatchSignTracker({
               (batchId) =>
                 typeof batchId === 'string' &&
                 (trackerState.signedBatchIds.has(batchId) ||
-                  hasSignedBatchFromAddress(batchId, targetFrom)),
+                  hasSignedTrackedBatchFromAddress(
+                    batchId,
+                    targetFrom,
+                    trackerState.trackedTxIds,
+                  )),
             );
             if (isLateSignedBatchRejection) {
               return;
@@ -987,11 +998,17 @@ export function useHwBatchSignTracker({
     const shouldIgnoreTerminalTx = (transactionMeta: TransactionMeta) => {
       if (!matchesTx(transactionMeta, targetFrom)) return true;
 
-      // If a retry bumped the batch generation between when this tx was
-      // dispatched and when it terminated, the terminal event belongs to an
-      // already-abandoned batch. Ignore it so we don't dispatch duplicate
-      // Rejected/Failed events for stale work — the new generation owns the UI.
-      if (detectAndApplyRetryGeneration()) return true;
+      // If a retry bumped the batch generation, only terminal events from the
+      // previous generation's batches should be ignored. A new batch can hit a
+      // terminal event before any approved/signed status event, and the swaps UI
+      // still needs that Rejected/Failed signal.
+      if (
+        detectAndApplyRetryGeneration() &&
+        transactionMeta.batchId &&
+        trackerStateRef.current.staleBatchIds.has(transactionMeta.batchId)
+      ) {
+        return true;
+      }
 
       if (handledTxIds.has(transactionMeta.id)) return true;
       if (!isTransactionFromCurrentBatch(transactionMeta)) return true;

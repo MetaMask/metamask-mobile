@@ -13,6 +13,8 @@ import {
 import { KEYSTONE_TX_CANCELED } from '../../../../constants/error';
 import { STX_NO_HASH_ERROR } from '../../../../util/smart-transactions/smart-publish-hook';
 
+const DEVICE_NOT_READY_RETRY_DELAY_MS = 1_000;
+
 jest.mock('../../../../core/Engine', () => ({
   rejectPendingApproval: jest.fn(),
   controllerMessenger: {
@@ -1337,7 +1339,7 @@ describe('useHwBatchSignTracker', () => {
         expect(mockAcceptRequest).not.toHaveBeenCalled();
 
         act(() => {
-          jest.advanceTimersByTime(1_000);
+          jest.advanceTimersByTime(DEVICE_NOT_READY_RETRY_DELAY_MS);
         });
         await act(async () => {
           await Promise.resolve();
@@ -1730,12 +1732,24 @@ describe('useHwBatchSignTracker', () => {
       });
       mockUpdateSwaps.mockClear();
 
+      let rejectionPromise = Promise.resolve();
+      act(() => {
+        rejectionPromise = Promise.resolve(rejectHardwareOperation?.());
+      });
       await act(async () => {
-        await rejectHardwareOperation?.();
+        await Promise.resolve();
       });
 
       expect(Engine.rejectPendingApproval).not.toHaveBeenCalled();
       expect(mockUpdateSwaps).not.toHaveBeenCalledWith(EXPECT_TX_FAILED);
+
+      broadcastTxEvent({
+        ...approvedMeta,
+        status: TransactionStatus.dropped,
+      });
+      await act(async () => {
+        await rejectionPromise;
+      });
     });
 
     it('ignores late transaction_batch rejection after a signed batch is cancelled', async () => {
@@ -1857,6 +1871,43 @@ describe('useHwBatchSignTracker', () => {
       expect(mockUpdateSwaps).not.toHaveBeenCalledWith(EXPECT_TX_FAILED);
     });
 
+    it('ignores late transaction_batch rejection for an existing pending approval without an approved status event', async () => {
+      const batchId = 'batch-existing-tc-signed-fallback-001';
+      const txId = 'tx-existing-tc-signed-fallback-001';
+      let rejectHardwareOperation: (() => void | Promise<void>) | undefined;
+      const approvedMeta = txMeta({
+        id: txId,
+        type: TransactionType.bridgeApproval,
+        status: TransactionStatus.approved,
+        batchId,
+      });
+      const signedMeta = { ...approvedMeta, status: TransactionStatus.signed };
+
+      mockHwOpOnce(({ execute, onRejected }) => {
+        rejectHardwareOperation = onRejected;
+        return execute().then(() => false);
+      });
+      setMockTransactions([approvedMeta]);
+      setMockPendingApprovals({
+        [batchId]: { id: batchId, type: 'transaction_batch' },
+      });
+
+      renderEnabledHook();
+
+      await act(async () => {
+        await getApprovalHandler()();
+        setMockTransactions([signedMeta]);
+      });
+      mockUpdateSwaps.mockClear();
+
+      await act(async () => {
+        await rejectHardwareOperation?.();
+      });
+
+      expect(Engine.rejectPendingApproval).not.toHaveBeenCalled();
+      expect(mockUpdateSwaps).not.toHaveBeenCalledWith(EXPECT_TX_FAILED);
+    });
+
     it('processes only one approval when stateChange fires concurrently', async () => {
       const batchId = 'batch-concurrent-001';
       setMockTransactions([matchingBatchTx(batchId)]);
@@ -1951,6 +2002,230 @@ describe('useHwBatchSignTracker', () => {
       );
 
       expect(mockUpdateSwaps).toHaveBeenCalledWith(EXPECT_SIGNING_APPROVAL);
+    });
+
+    it('accepts a retry approved event for the same stale batch when a matching approval is pending', () => {
+      const retryGenerationRef = { current: 0 };
+      const batchId = 'batch-retry-same-stale-batch';
+      renderWithRetry(retryGenerationRef);
+
+      fireTxEvent(
+        txMeta({
+          id: 'tx-stale-approved-before-retry',
+          type: TransactionType.bridgeApproval,
+          status: TransactionStatus.approved,
+          batchId,
+        }),
+      );
+      mockUpdateSwaps.mockClear();
+
+      retryGenerationRef.current = 1;
+      setMockTransactions([
+        matchingBatchTx(batchId, { id: 'tx-current-approved-after-retry' }),
+      ]);
+      setMockPendingApprovals({
+        [batchId]: { id: batchId, type: 'transaction_batch' },
+      });
+
+      fireTxEvent(
+        txMeta({
+          id: 'tx-current-approved-after-retry',
+          type: TransactionType.bridgeApproval,
+          status: TransactionStatus.approved,
+          batchId,
+        }),
+      );
+
+      expect(mockUpdateSwaps).toHaveBeenCalledWith(EXPECT_SIGNING_APPROVAL);
+    });
+
+    it('does not restore a prior generation tx as confirmationTxId after the retry tx signs', () => {
+      const retryGenerationRef = { current: 0 };
+      const staleTxId = 'tx-stale-confirmation-before-retry';
+      const staleBatchId = 'batch-stale-confirmation-before-retry';
+      const nextTxId = 'tx-new-confirmation-after-retry';
+      const nextBatchId = 'batch-new-confirmation-after-retry';
+      const { result } = renderWithRetry(retryGenerationRef);
+
+      fireTxEvent(
+        txMeta({
+          id: staleTxId,
+          type: TransactionType.bridgeApproval,
+          status: TransactionStatus.approved,
+          batchId: staleBatchId,
+        }),
+      );
+      expect(result.current.confirmationTxId).toBe(staleTxId);
+
+      retryGenerationRef.current = 1;
+      fireTxEvent(
+        txMeta({
+          id: nextTxId,
+          type: TransactionType.bridgeApproval,
+          status: TransactionStatus.approved,
+          batchId: nextBatchId,
+        }),
+      );
+      expect(result.current.confirmationTxId).toBe(nextTxId);
+
+      fireTxEvent(
+        txMeta({
+          id: nextTxId,
+          type: TransactionType.bridgeApproval,
+          status: TransactionStatus.signed,
+          batchId: nextBatchId,
+        }),
+      );
+
+      expect(result.current.confirmationTxId).toBeUndefined();
+    });
+
+    it('does not treat a retry rejection as late-signed because a prior generation signed the same batch id', async () => {
+      const retryGenerationRef = { current: 0 };
+      const batchId = 'batch-retry-rejection-same-id';
+      const staleSignedTx = txMeta({
+        id: 'tx-stale-signed-before-retry',
+        type: TransactionType.bridgeApproval,
+        status: TransactionStatus.signed,
+        batchId,
+      });
+      const retryTx = matchingBatchTx(batchId, {
+        id: 'tx-retry-approved-same-batch',
+      });
+      renderWithRetry(retryGenerationRef);
+
+      fireTxEvent(staleSignedTx);
+
+      retryGenerationRef.current = 1;
+      setMockTransactions([staleSignedTx, retryTx]);
+      setMockPendingApprovals({
+        [batchId]: { id: batchId, type: 'transaction_batch' },
+      });
+      mockExecuteHardwareWalletOperation.mockImplementationOnce(
+        async ({ execute, onRejected }) => {
+          await execute();
+          await onRejected?.();
+          return false;
+        },
+      );
+
+      fireTxEvent(retryTx);
+      let approvalPromise = Promise.resolve();
+      act(() => {
+        approvalPromise = (getApprovalHandler() as () => Promise<void>)();
+      });
+
+      await waitFor(() => {
+        expect(Engine.rejectPendingApproval).toHaveBeenCalledWith(
+          batchId,
+          expect.any(Error),
+          { ignoreMissing: true, logErrors: false },
+        );
+      });
+      expect(mockUpdateSwaps).toHaveBeenCalledWith(EXPECT_TX_FAILED);
+
+      broadcastTxEvent({
+        ...staleSignedTx,
+        status: TransactionStatus.dropped,
+      });
+      broadcastTxEvent({
+        ...retryTx,
+        status: TransactionStatus.dropped,
+      });
+
+      await act(async () => {
+        await approvalPromise;
+      });
+    });
+
+    it.each([
+      {
+        name: 'failed',
+        status: TransactionStatus.failed,
+        eventKey: 'failed' as const,
+        expected: EXPECT_TX_FAILED,
+      },
+      {
+        name: 'rejected',
+        status: TransactionStatus.rejected,
+        eventKey: 'rejected' as const,
+        expected: EXPECT_REJECTED_TX,
+      },
+      {
+        name: 'dropped',
+        status: TransactionStatus.dropped,
+        eventKey: 'status' as const,
+        expected: EXPECT_REJECTED_TX,
+      },
+    ])(
+      'dispatches terminal $name events for a new batch after retryGenerationRef advances',
+      ({ status, eventKey, expected }) => {
+        const retryGenerationRef = { current: 0 };
+        const staleBatchId = 'batch-stale-terminal-before-retry';
+        const nextBatchId = `batch-new-terminal-${status}`;
+
+        renderWithRetry(retryGenerationRef);
+        fireTxEvent(
+          txMeta({
+            type: TransactionType.bridgeApproval,
+            status: TransactionStatus.approved,
+            batchId: staleBatchId,
+          }),
+        );
+        mockUpdateSwaps.mockClear();
+
+        retryGenerationRef.current = 1;
+        fireTxEvent(
+          txMeta({
+            type: TransactionType.bridge,
+            status,
+            batchId: nextBatchId,
+          }),
+          undefined,
+          eventKey,
+        );
+
+        expect(mockUpdateSwaps).toHaveBeenCalledWith(expected);
+      },
+    );
+
+    it('handles a confirmed event for a new batch after retryGenerationRef advances', () => {
+      const retryGenerationRef = { current: 0 };
+      const staleBatchId = 'batch-stale-confirmed-before-retry';
+      const nextBatchId = 'batch-new-confirmed-after-retry';
+      const nextTxId = 'tx-new-confirmed-after-retry';
+
+      renderWithRetry(retryGenerationRef);
+      fireTxEvent(
+        txMeta({
+          type: TransactionType.bridgeApproval,
+          status: TransactionStatus.approved,
+          batchId: staleBatchId,
+        }),
+      );
+      mockUpdateSwaps.mockClear();
+
+      retryGenerationRef.current = 1;
+      fireTxEvent(
+        txMeta({
+          id: nextTxId,
+          type: TransactionType.bridge,
+          status: TransactionStatus.confirmed,
+          batchId: nextBatchId,
+        }),
+      );
+      fireTxEvent(
+        txMeta({
+          id: nextTxId,
+          type: TransactionType.bridge,
+          status: TransactionStatus.failed,
+          batchId: nextBatchId,
+        }),
+        undefined,
+        'failed',
+      );
+
+      expect(mockUpdateSwaps).not.toHaveBeenCalled();
     });
 
     it('stops queued batch approvals when retryGenerationRef advances', async () => {
