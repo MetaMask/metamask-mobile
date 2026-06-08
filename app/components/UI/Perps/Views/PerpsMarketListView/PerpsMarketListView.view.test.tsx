@@ -22,7 +22,7 @@ const cryptoMarket: PerpsMarketData = {
   volume: '$1M',
 };
 
-/** Commodity market (HIP-3): counted in marketCounts.commodity so "Commodities" badge appears */
+/** Commodity market (HIP-3): counted in marketCounts.commodities so "Commodities" badge appears */
 const commodityMarket: PerpsMarketData = {
   symbol: 'XAU',
   name: 'Gold',

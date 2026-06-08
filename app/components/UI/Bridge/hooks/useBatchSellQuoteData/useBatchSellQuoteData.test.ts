@@ -10,6 +10,15 @@ jest.mock('../useBatchSellQuoteRequest', () => ({
     (_token: BridgeToken, sourceAmount?: string) =>
       sourceAmount && Number(sourceAmount) > 0 ? '1' : undefined,
   ),
+  hasValidBatchSellSourceAmounts: jest.fn(
+    (
+      _sourceTokens: BridgeToken[],
+      batchSellSourceTokenAmounts: Record<string, string | undefined>,
+    ) =>
+      Object.values(batchSellSourceTokenAmounts).some(
+        (amount) => amount !== undefined && Number(amount) > 0,
+      ),
+  ),
 }));
 
 jest.mock('../../../../../core/Engine', () => ({
@@ -154,6 +163,7 @@ let mockBatchSellTrades: {
       }
     | undefined;
   isBatchSellTradeAvailable: boolean;
+  isLoading: boolean;
 } = {
   totalNetworkFee: {
     amount: '1.2',
@@ -161,6 +171,7 @@ let mockBatchSellTrades: {
     asset: ethNetworkFeeAsset,
   },
   isBatchSellTradeAvailable: true,
+  isLoading: false,
 };
 let mockBridgeFeatureFlags: {
   chains: Record<string, { refreshRate?: number }>;
@@ -226,6 +237,7 @@ describe('useBatchSellQuoteData', () => {
         asset: ethNetworkFeeAsset,
       },
       isBatchSellTradeAvailable: true,
+      isLoading: false,
     };
     mockBridgeFeatureFlags = {
       chains: {},
@@ -234,11 +246,36 @@ describe('useBatchSellQuoteData', () => {
     };
   });
 
+  it('reports no quotes when all source amounts are zero even if stale quotes exist', () => {
+    mockBatchSellSourceTokenAmounts = {
+      [ethAssetId]: '0',
+      [uniAssetId]: '0',
+    };
+
+    const { result } = renderHook(() => useBatchSellQuoteData());
+
+    expect(result.current.hasAnyQuote).toBe(false);
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.isSummaryLoading).toBe(false);
+    expect(result.current.hasPendingQuoteRows).toBe(false);
+    expect(result.current.totalReceived.formattedFiat).toBe('-');
+    expect(
+      Engine.context.BridgeController.updateBatchSellTrades,
+    ).not.toHaveBeenCalled();
+    expect(result.current.tokenData[ethAssetId]).toEqual(
+      expect.objectContaining({
+        isQuoteUnavailable: true,
+      }),
+    );
+  });
+
   it('formats complete Batch Sell quote data', () => {
     const { result } = renderHook(() => useBatchSellQuoteData());
 
     expect(result.current.hasAnyQuote).toBe(true);
     expect(result.current.isGasless).toBe(false);
+    expect(result.current.isBatchSellTradeAvailable).toBe(true);
+    expect(result.current.isBatchSellTradesLoading).toBe(false);
     expect(result.current.isLoading).toBe(false);
     expect(result.current.isSummaryLoading).toBe(false);
     expect(result.current.hasPendingQuoteRows).toBe(false);
@@ -252,9 +289,11 @@ describe('useBatchSellQuoteData', () => {
     expect(result.current.totalReceived.formatted).toBe('200 USDC');
     expect(result.current.totalReceived.formattedFiat).toBe('$201.34');
     expect(result.current.minimumReceived.formatted).toBe('200 USDC');
-    expect(result.current.networkFeeIsLoading).toBe(false);
     expect(result.current.networkFee.formatted).toBe('1.2 ETH');
     expect(result.current.networkFee.formattedFiat).toBe('$1.25');
+    expect(result.current.recommendedQuotes).toEqual(
+      mockBatchSellQuotes.recommendedQuotes,
+    );
     expect(
       Engine.context.BridgeController.updateBatchSellTrades,
     ).toHaveBeenCalledWith(mockBatchSellQuotes.recommendedQuotes);
@@ -323,6 +362,18 @@ describe('useBatchSellQuoteData', () => {
     const { result } = renderHook(() => useBatchSellQuoteData());
 
     expect(result.current.isGasless).toBe(true);
+  });
+
+  it('returns the Batch Sell trades loading state', () => {
+    mockBatchSellTrades = {
+      ...mockBatchSellTrades,
+      isBatchSellTradeAvailable: false,
+      isLoading: true,
+    };
+
+    const { result } = renderHook(() => useBatchSellQuoteData());
+
+    expect(result.current.isBatchSellTradesLoading).toBe(true);
   });
 
   it('does not need a new quote when the quote is expired but going to refresh', () => {
@@ -500,12 +551,15 @@ describe('useBatchSellQuoteData', () => {
     mockBatchSellTrades = {
       totalNetworkFee: undefined,
       isBatchSellTradeAvailable: false,
+      isLoading: false,
     };
 
     const { result } = renderHook(() => useBatchSellQuoteData());
 
     expect(result.current.networkFee.formatted).toBe('--');
-    expect(result.current.networkFeeIsLoading).toBe(true);
+    expect(result.current.isBatchSellTradeAvailable).toBe(false);
+    expect(result.current.isBatchSellTradesLoading).toBe(false);
+    expect(result.current.isNetworkFeeUnavailable).toBe(true);
     expect(result.current.networkFee.formattedFiat).toBe('-');
   });
 

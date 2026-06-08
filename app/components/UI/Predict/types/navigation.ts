@@ -15,6 +15,7 @@ import {
 import { PredictEventValues } from '../constants/eventNames';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import type { PredictWorldCupTabKey } from '../constants/worldCupTabs';
+import type { PredictFeedId } from '../constants/feedConfig';
 
 export type PredictEntryPoint =
   | typeof PredictEventValues.ENTRY_POINT.CAROUSEL
@@ -33,10 +34,22 @@ export type PredictEntryPoint =
   | typeof PredictEventValues.ENTRY_POINT.HOME_SECTION
   | typeof PredictEventValues.ENTRY_POINT.EXPLORE;
 
-/** Predict market list parameters */
-export interface PredictMarketListParams {
+/** Predict market list route parameters */
+export interface PredictMarketListRouteParams {
   entryPoint?: PredictEntryPoint;
+  feedId?: PredictFeedId;
+  /**
+   * Legacy top-level Predict feed tab key (hot / world-cup / base tabs).
+   * Consumed by `usePredictTabs`. Not interchangeable with `tabId`.
+   */
   tab?: PredictCategory;
+  /**
+   * Sub-tab id within a feed defined in the feed registry
+   * (e.g. `basketball`, `tennis`, `all`, `live`). Paired with `feedId`
+   * for deep-linking to a specific tab inside a feed. Kept as a plain
+   * string so the route stays decoupled from the registry shape.
+   */
+  tabId?: string;
   query?: string;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
@@ -48,6 +61,10 @@ export interface PredictMarketDetailsParams {
   seriesId?: string;
   seriesRecurrence?: string;
   entryPoint?: PredictEntryPoint;
+  /** Active feed tab key at the time the market card was tapped (e.g. "trending", "world-cup"). */
+  predictFeedTab?: string;
+  /** Screen context the trade originated from (e.g. "world_cup"). */
+  predictScreen?: string;
   title?: string;
   image?: string;
   isGame?: boolean;
@@ -85,6 +102,10 @@ export interface PredictBuyPreviewParams {
   outcome: PredictOutcome;
   outcomeToken: PredictOutcomeToken;
   entryPoint?: PredictEntryPoint;
+  /** Active feed tab key at the time the market card was tapped (e.g. "trending", "world-cup"). */
+  predictFeedTab?: string;
+  /** Screen context the trade originated from (e.g. "world_cup"). */
+  predictScreen?: string;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   /**
    * When true, the beforeRemove listener in PredictBuyPreview will fire
@@ -127,7 +148,7 @@ export type PredictSellPreviewProps =
 
 export interface PredictNavigationParamList extends ParamListBase {
   Predict: undefined;
-  PredictMarketList: PredictMarketListParams;
+  PredictMarketList: PredictMarketListRouteParams;
   PredictMarketDetails: PredictMarketDetailsParams;
   PredictPositions: PredictPositionsParams | undefined;
   PredictWorldCup: PredictWorldCupParams | undefined;

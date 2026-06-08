@@ -362,6 +362,8 @@ jest.mock('../../UI/Earn/hooks/useMusdConversionTokens', () => ({
 }));
 
 const mockEnableAllPopularNetworks = jest.fn();
+let mockPopularNetworks: string[] = [];
+const mockIsNetworkEnabled = jest.fn(() => true);
 jest.mock('../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
   useNetworkEnablement: () => ({
     namespace: 'eip155',
@@ -374,8 +376,8 @@ jest.mock('../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
     enableAllPopularNetworks: mockEnableAllPopularNetworks,
     popularEvmNetworks: [],
     popularMultichainNetworks: [],
-    popularNetworks: [],
-    isNetworkEnabled: jest.fn(),
+    popularNetworks: mockPopularNetworks,
+    isNetworkEnabled: mockIsNetworkEnabled,
     hasOneEnabledNetwork: false,
     tryEnableEvmNetwork: jest.fn(),
   }),
@@ -425,12 +427,26 @@ describe('Homepage', () => {
     mockUseMusdConversionEligibility.mockReturnValue({ isEligible: false });
     mockUseABTest.mockImplementation(defaultUseABTestImplementation);
     mockUseOwnedNfts.mockReturnValue([]);
+    mockPopularNetworks = [];
+    mockIsNetworkEnabled.mockReturnValue(true);
   });
 
-  it('calls enableAllPopularNetworks when Homepage is focused (useFocusEffect)', () => {
+  it('calls enableAllPopularNetworks when Homepage is focused and a popular network is disabled', () => {
+    mockPopularNetworks = ['eip155:1'];
+    mockIsNetworkEnabled.mockReturnValue(false);
+
     renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
     expect(mockEnableAllPopularNetworks).toHaveBeenCalled();
+  });
+
+  it('does not call enableAllPopularNetworks when all popular networks are already enabled', () => {
+    mockPopularNetworks = ['eip155:1'];
+    mockIsNetworkEnabled.mockReturnValue(true);
+
+    renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+    expect(mockEnableAllPopularNetworks).not.toHaveBeenCalled();
   });
 
   it('triggers NFT detection when Homepage is focused', () => {

@@ -65,7 +65,7 @@ const AddFundsBottomSheet: React.FC = () => {
   });
   const { trackEvent, createEventBuilder } = useAnalytics();
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
-  const { goToDeposit } = useRampNavigation();
+  const { goToBuy } = useRampNavigation();
   const buttonClickData = useRampsButtonClickData();
   const isV2UnifiedEnabled = useRampsUnifiedV2Enabled();
 
@@ -84,8 +84,13 @@ const AddFundsBottomSheet: React.FC = () => {
   }, [priorityToken, openSwaps, closeBottomSheetAndNavigate]);
 
   const openDeposit = useCallback(() => {
+    const assetId =
+      priorityToken?.address && priorityToken?.caipChainId
+        ? `${priorityToken.caipChainId}/erc20:${priorityToken.address}`
+        : undefined;
+
     closeBottomSheetAndNavigate(() => {
-      goToDeposit();
+      goToBuy(assetId ? { assetId } : undefined);
     });
     trackEvent(
       createEventBuilder(
@@ -115,7 +120,7 @@ const AddFundsBottomSheet: React.FC = () => {
   }, [
     rampGeodetectedRegion,
     closeBottomSheetAndNavigate,
-    goToDeposit,
+    goToBuy,
     trackEvent,
     createEventBuilder,
     priorityToken,

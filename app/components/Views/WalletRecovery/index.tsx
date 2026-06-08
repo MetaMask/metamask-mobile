@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useState } from 'react';
+import React, { useCallback, useMemo, useEffect, useState } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../../../util/theme';
@@ -7,8 +7,14 @@ import Text, {
   TextColor,
 } from '../../../component-library/components/Texts/Text';
 import { strings } from '../../../../locales/i18n';
-import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import { useNavigation } from '@react-navigation/native';
+import {
+  HeaderStandard,
+  TextColor as DSTextColor,
+  Icon as DSIcon,
+  IconName as DSIconName,
+  IconSize as DSIconSize,
+} from '@metamask/design-system-react-native';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import SelectSRP from '../SelectSRP';
 import { useSelector } from 'react-redux';
@@ -22,11 +28,6 @@ import Icon, {
   IconSize,
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
-import {
-  Icon as DSIcon,
-  IconName as DSIconName,
-  IconSize as DSIconSize,
-} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import GoogleIcon from 'images/google.svg';
 import AppleIcon from 'images/apple.svg';
@@ -276,16 +277,9 @@ const WalletRecovery = () => {
     },
   });
 
-  useEffect(() => {
-    navigation.setOptions(
-      getNavigationOptionsTitle(
-        strings('app_settings.manage_recovery_method'),
-        navigation,
-        false,
-        colors,
-      ),
-    );
-  }, [navigation, colors]);
+  const handleBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
   const [finalUserEmail, setFinalUserEmail] = useState(userEmail);
   useEffect(() => {
@@ -300,6 +294,16 @@ const WalletRecovery = () => {
 
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.safeArea}>
+      <HeaderStandard
+        title={strings('app_settings.manage_recovery_method')}
+        titleProps={{ color: DSTextColor.PrimaryDefault }}
+        onBack={handleBack}
+        includesTopInset
+        testID="wallet-recovery-header"
+        backButtonProps={{
+          testID: 'wallet-recovery-back-button',
+        }}
+      />
       <ScrollView>
         <View style={styles.root}>
           {authConnection && (

@@ -15,6 +15,16 @@ jest.mock('@react-navigation/stack', () => ({
     Navigator: 'Navigator',
     Screen: 'Screen',
   }),
+  TransitionPresets: {
+    ModalSlideFromBottomIOS: {},
+  },
+}));
+
+jest.mock('@react-navigation/native-stack', () => ({
+  createNativeStackNavigator: jest.fn().mockReturnValue({
+    Navigator: 'Navigator',
+    Screen: 'Screen',
+  }),
 }));
 
 jest.mock('@react-navigation/bottom-tabs', () => ({
@@ -185,10 +195,10 @@ describe('MainNavigator', () => {
       )[0];
 
       // Then every screen in the wallet tab stack, including pushed screens,
-      // inherits the themed card background.
+      // inherits the themed content background (native-stack uses contentStyle).
       expect(stackNavigator?.props?.screenOptions).toEqual(
         expect.objectContaining({
-          cardStyle: {
+          contentStyle: {
             backgroundColor: mockTheme.colors.background.default,
           },
         }),
@@ -1471,6 +1481,20 @@ describe('MainNavigator', () => {
           'AssetStackFlow',
         );
         expect(renderInner(AssetStackFlow).toJSON()).toBeTruthy();
+      });
+
+      it('renders SnapsSettingsStack inside SettingsFlow', () => {
+        const { root: mainRoot } = renderWithProvider(<MainNavigator />, {
+          state: initialRootState,
+        });
+        const SettingsFlow = getScreenComponent(mainRoot, Routes.SETTINGS_VIEW);
+        const { root: settingsRoot } = renderInner(SettingsFlow);
+
+        const SnapsSettingsStack = getScreenComponent(
+          settingsRoot,
+          Routes.SNAPS.SNAPS_SETTINGS_LIST,
+        );
+        expect(renderInner(SnapsSettingsStack).toJSON()).toBeTruthy();
       });
     });
 

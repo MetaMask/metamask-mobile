@@ -28,11 +28,6 @@ export interface PerpsMarketFiltersBarProps {
   onCategorySelect: (category: MarketTypeFilter) => void;
 
   /**
-   * Optional list of available categories (for hiding empty categories)
-   */
-  availableCategories?: Exclude<MarketTypeFilter, 'all'>[];
-
-  /**
    * Optional test ID for testing
    */
   testID?: string;

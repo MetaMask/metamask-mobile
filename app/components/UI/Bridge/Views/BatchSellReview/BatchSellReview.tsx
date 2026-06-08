@@ -48,8 +48,8 @@ import { getBatchSellSlippage } from '../../components/SlippageModal/utils';
 import { BatchSellReviewSelectorsIDs } from './BatchSellReview.testIds';
 import { BatchSellReviewTokenRow } from './BatchSellReviewTokenRow';
 import {
-  getBatchSellAtomicSourceAmount,
   getBatchSellSourceTokenAmount,
+  hasValidBatchSellSourceAmounts,
   useBatchSellQuoteRequest,
 } from '../../hooks/useBatchSellQuoteRequest';
 import { useBatchSellQuoteData } from '../../hooks/useBatchSellQuoteData';
@@ -129,19 +129,13 @@ export function BatchSellReview() {
   const { updateBatchSellQuoteParams, getNewQuote: handleGetNewQuote } =
     useBatchSellQuoteRequest();
   const batchSellQuoteData = useBatchSellQuoteData();
-  const hasValidBatchSellInputs = useMemo(
+  const hasValidSourceAmounts = useMemo(
     () =>
-      Boolean(selectedDestinationToken) &&
-      selectedTokens.some((token) => {
-        const assetId = formatAddressToAssetId(token.address, token.chainId);
-        return (
-          assetId &&
-          getBatchSellAtomicSourceAmount(
-            token,
-            batchSellSourceTokenAmounts[assetId],
-          )
-        );
-      }),
+      hasValidBatchSellSourceAmounts(
+        selectedTokens,
+        batchSellSourceTokenAmounts,
+        selectedDestinationToken,
+      ),
     [batchSellSourceTokenAmounts, selectedDestinationToken, selectedTokens],
   );
 
@@ -164,14 +158,17 @@ export function BatchSellReview() {
   }, [selectedTokens]);
 
   useEffect(() => {
-    if (hasValidBatchSellInputs) {
+    if (hasValidSourceAmounts) {
       updateBatchSellQuoteParams();
+    } else {
+      updateBatchSellQuoteParams.cancel();
+      Engine.context.BridgeController?.resetState?.();
     }
 
     return () => {
       updateBatchSellQuoteParams.cancel();
     };
-  }, [hasValidBatchSellInputs, updateBatchSellQuoteParams]);
+  }, [hasValidSourceAmounts, updateBatchSellQuoteParams]);
 
   useEffect(
     () => () => {
@@ -324,6 +321,21 @@ export function BatchSellReview() {
     [dispatch, isRemoveTokenDisabled, selectedTokens],
   );
 
+  const shouldGetNewQuote = batchSellQuoteData.needsNewQuote;
+  const isFetchingQuotes = batchSellQuoteData.isLoading && !shouldGetNewQuote;
+  const hasReviewableQuote =
+    batchSellQuoteData.hasAnyQuote && !batchSellQuoteData.hasPendingQuoteRows;
+  const isReviewButtonDisabled =
+    !hasValidSourceAmounts ||
+    (!shouldGetNewQuote && (isFetchingQuotes || !hasReviewableQuote));
+  let reviewButtonLabel = strings('bridge.batch_sell_review');
+
+  if (shouldGetNewQuote) {
+    reviewButtonLabel = strings('quote_expired_modal.get_new_quote');
+  } else if (isFetchingQuotes) {
+    reviewButtonLabel = strings('bridge.batch_sell_searching_best_quotes');
+  }
+
   return (
     <SafeAreaView
       style={tw.style('flex-1 bg-default')}
@@ -370,7 +382,6 @@ export function BatchSellReview() {
               size={ButtonSize.Md}
               testID={BatchSellReviewSelectorsIDs.DESTINATION_TOKEN_PILL}
               onPress={handleOpenDestinationTokenSelector}
-              style={tw.style('rounded-xl px-3 py-3')}
             >
               <Box
                 flexDirection={BoxFlexDirection.Row}
@@ -446,22 +457,13 @@ export function BatchSellReview() {
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             isFullWidth
-            isDisabled={
-              batchSellQuoteData.needsNewQuote
-                ? false
-                : !batchSellQuoteData.hasAnyQuote ||
-                  batchSellQuoteData.hasPendingQuoteRows
-            }
+            isDisabled={isReviewButtonDisabled}
             onPress={
-              batchSellQuoteData.needsNewQuote
-                ? handleGetNewQuote
-                : handleOpenFinalReview
+              shouldGetNewQuote ? handleGetNewQuote : handleOpenFinalReview
             }
             testID={BatchSellReviewSelectorsIDs.REVIEW_BUTTON}
           >
-            {batchSellQuoteData.needsNewQuote
-              ? strings('quote_expired_modal.get_new_quote')
-              : strings('bridge.batch_sell_review')}
+            {reviewButtonLabel}
           </Button>
         </Box>
       </Box>

@@ -2268,8 +2268,7 @@
         "group_i": "グループI",
         "group_j": "グループJ",
         "group_k": "グループK",
-        "group_l": "グループL",
-        "third_place_match": "3位決定戦"
+        "group_l": "グループL"
       }
     },
     "prediction_markets": "予測市場",
@@ -8348,8 +8347,6 @@
     "report_submitted": "エラーレポートが送信されました。"
   },
   "pay_with_modal": {
-    "title": "支払方法を選択",
-    "title_receive": "トークンの受取を選択してください",
     "no_gas": "ガスの支払いに使えるネイティブ残高がありません",
     "not_supported": "未対応",
     "crypto": "仮想通貨"
@@ -8901,7 +8898,7 @@
       "stats_notional_volume_threshold": "${{amount}}が必要です",
       "stats_qualified_title": "対象となります",
       "stats_qualified_description": "取引を続けて損益を改善し、コンテンストが終了するまでリーダーボードの順位を上げていきましょう。",
-      "stats_qualify_for_rank_title": "このランクの資格を満たすには",
+      "stats_qualify_for_rank_title": "リーダーボードの資格を満たすには",
       "stats_qualify_for_rank_description": "名目取引量があと{{notionalRemaining}}で条件が満たされます。",
       "stats_error_title": "統計を読み込めません",
       "stats_error_description": "統計の読み込み中に問題が発生しました。もう一度お試しください。",
@@ -8974,7 +8971,7 @@
       "non_winner": {
         "title": "結果が出ました 🏅",
         "description": "{{campaignName}}でのランキングをご覧ください.",
-        "cta": "表示"
+        "cta": "詳細を表示"
       }
     }
   },

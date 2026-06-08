@@ -2268,8 +2268,7 @@
         "group_i": "ग्रुप आई",
         "group_j": "ग्रुप जे",
         "group_k": "ग्रुप के",
-        "group_l": "ग्रुप एल",
-        "third_place_match": "थर्ड प्लेस मैच"
+        "group_l": "ग्रुप एल"
       }
     },
     "prediction_markets": "प्रेडिक्शन मार्केट",
@@ -8348,8 +8347,6 @@
     "report_submitted": "गड़बड़ी रिपोर्ट सबमिट कर दी गई है।"
   },
   "pay_with_modal": {
-    "title": "भुगतान विधि चुनें",
-    "title_receive": "प्राप्त करने के लिए टोकन चुनें",
     "no_gas": "गैस के लिए कोई नेटिव बैलेंस नहीं है",
     "not_supported": "सपोर्ट नहीं किया गया",
     "crypto": "क्रिप्टो"
@@ -8901,7 +8898,7 @@
       "stats_notional_volume_threshold": "${{amount}} ज़रूरी है",
       "stats_qualified_title": "आप क्वालिफ़ाई कर चुके हैं",
       "stats_qualified_description": "लीडरबोर्ड में ऊपर आने और अपने PnL को बेहतर बनाने के लिए प्रतियोगिता खत्म होने से पहले ट्रेडिंग जारी रखें।",
-      "stats_qualify_for_rank_title": "इस रैंक के लिए क्वालिफ़ाई करें",
+      "stats_qualify_for_rank_title": "लीडरबोर्ड के लिए क्वालिफ़ाई करें",
       "stats_qualify_for_rank_description": "योग्य बनने के लिए नोशनल वॉल्यूम में {{notionalRemaining}} और ट्रेड करें।",
       "stats_error_title": "स्टैट्स लोड नहीं हो पा रहे हैं",
       "stats_error_description": "हमें आपके स्टैट्स लोड करने में दिक्कत हुई। कृपया फिर से कोशिश करें।",
@@ -8974,7 +8971,7 @@
       "non_winner": {
         "title": "रिज़ल्ट आ गए हैं 🏅",
         "description": "{{campaignName}} में अपनी रैंकिंग देखें।",
-        "cta": "देखें"
+        "cta": "विवरण देखें"
       }
     }
   },

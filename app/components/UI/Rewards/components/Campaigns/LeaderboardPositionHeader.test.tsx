@@ -169,7 +169,7 @@ describe('LeaderboardPositionHeader', () => {
       );
       expect(getByTestId(TEST_IDS.PRIZE_POOL_VALUE)).toBeDefined();
       expect(getByText('$25,000')).toBeDefined();
-      expect(getByText('rewards.ondo_campaign_prize_pool.title')).toBeDefined();
+      expect(getByText('rewards.campaign_prize_pool.title')).toBeDefined();
     });
 
     it('shows dash when showPrizePool is true but prizePoolValue is undefined', () => {
