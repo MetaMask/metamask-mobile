@@ -8,10 +8,7 @@ import {
   HUB_PAGE_DISCOVERY_TABS_AB_TEST_ANALYTICS_MAPPING,
   WALLET_HOME_POST_ONBOARDING_AB_TEST_ANALYTICS_MAPPING,
 } from '../../components/Views/Homepage/abTestConfig';
-import {
-  AMBIENT_PRICE_COLOR_AB_TEST_ANALYTICS_MAPPING,
-  STICKY_FOOTER_SWAP_LABEL_AB_TEST_ANALYTICS_MAPPING,
-} from '../../components/UI/TokenDetails/components/abTestConfig';
+import { AMBIENT_PRICE_COLOR_AB_TEST_ANALYTICS_MAPPING } from '../../components/UI/TokenDetails/components/abTestConfig';
 import { WHATS_HAPPENING_EXPLORE_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/TrendingView/abTestConfig';
 import { ONBOARDING_CHECKLIST_STEPPER_AB_TEST_ANALYTICS_MAPPING } from '../../components/UI/WalletHomeOnboardingSteps/abTestConfig';
 
@@ -37,5 +34,4 @@ export const AB_TEST_ANALYTICS_MAPPINGS: readonly ABTestAnalyticsMapping[] = [
 
   // Token Details
   AMBIENT_PRICE_COLOR_AB_TEST_ANALYTICS_MAPPING,
-  STICKY_FOOTER_SWAP_LABEL_AB_TEST_ANALYTICS_MAPPING,
 ];
