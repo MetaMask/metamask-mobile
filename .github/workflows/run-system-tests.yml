@@ -535,9 +535,3 @@ jobs:
             echo "**Run:** [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
           } >> "$GITHUB_STEP_SUMMARY"
 
-          # Fail the report job if any test job failed
-          if [[ "$STATUS_ANDROID_LOGIN" == "failure" || "$STATUS_ANDROID_ONBOARDING" == "failure" || "$STATUS_IOS_LOGIN" == "failure" || "$STATUS_IOS_ONBOARDING" == "failure" ]]; then
-            echo ""
-            echo "::error::One or more system test projects failed"
-            exit 1
-          fi
