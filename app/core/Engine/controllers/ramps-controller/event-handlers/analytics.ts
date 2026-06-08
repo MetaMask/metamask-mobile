@@ -52,7 +52,7 @@ function buildV2AnalyticsPayload(
   order: RampsOrder,
   _previousStatus: RampsOrderStatus,
 ) {
-  const isBuy = order.orderType === 'BUY';
+  const isBuy = order.orderType === 'BUY' || order.orderType === 'DEPOSIT';
 
   const baseParams = {
     amount: order.fiatAmount,

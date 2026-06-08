@@ -156,6 +156,72 @@ describe('handleOrderStatusChangedForMetrics', () => {
     });
   });
 
+  describe('DEPOSIT orders (Transak native on-ramp)', () => {
+    // The V2 unified API returns orderType: 'DEPOSIT' for native flows
+    // (e.g. Transak + Apple Pay). DEPOSIT must map to the on-ramp events,
+    // not the off-ramp events. See TRAM-3534.
+    it('tracks ONRAMP_PURCHASE_COMPLETED for DEPOSIT orders', () => {
+      const order = createMockOrder({
+        orderType: 'DEPOSIT',
+        status: Status.Completed,
+      });
+
+      handleOrderStatusChangedForMetrics({
+        order,
+        previousStatus: Status.Pending,
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'On-ramp Purchase Completed',
+          properties: expect.objectContaining({
+            order_type: 'DEPOSIT',
+            chain_id_destination: 'eip155:1',
+            provider_onramp: 'Transak',
+          }),
+        }),
+      );
+    });
+
+    it('tracks ONRAMP_PURCHASE_FAILED for DEPOSIT orders', () => {
+      const order = createMockOrder({
+        orderType: 'DEPOSIT',
+        status: Status.Failed,
+      });
+
+      handleOrderStatusChangedForMetrics({
+        order,
+        previousStatus: Status.Pending,
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'On-ramp Purchase Failed',
+          properties: expect.objectContaining({ order_type: 'DEPOSIT' }),
+        }),
+      );
+    });
+
+    it('tracks ONRAMP_PURCHASE_CANCELLED for DEPOSIT orders', () => {
+      const order = createMockOrder({
+        orderType: 'DEPOSIT',
+        status: Status.Cancelled,
+      });
+
+      handleOrderStatusChangedForMetrics({
+        order,
+        previousStatus: Status.Pending,
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'On-ramp Purchase Cancelled',
+          properties: expect.objectContaining({ order_type: 'DEPOSIT' }),
+        }),
+      );
+    });
+  });
+
   describe('SELL orders', () => {
     it('tracks OFFRAMP_PURCHASE_COMPLETED', () => {
       const order = createMockOrder({
