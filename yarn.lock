@@ -9495,6 +9495,7 @@ __metadata:
   linkType: hard
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 "@metamask/notification-services-controller@npm:@metamask-previews/notification-services-controller@24.1.2-preview-5620ede0b":
   version: 24.1.2-preview-5620ede0b
   resolution: "@metamask-previews/notification-services-controller@npm:24.1.2-preview-5620ede0b"
@@ -9503,14 +9504,19 @@ __metadata:
   version: 24.1.1
   resolution: "@metamask/notification-services-controller@npm:24.1.1"
 >>>>>>> 9b317501e2 (chore: revert package.json)
+=======
+"@metamask/notification-services-controller@npm:@metamask-previews/notification-services-controller@24.1.2-preview-5620ede0b":
+  version: 24.1.2-preview-5620ede0b
+  resolution: "@metamask-previews/notification-services-controller@npm:24.1.2-preview-5620ede0b"
+>>>>>>> 68477ad095 (chore: install preview build of core)
   dependencies:
     "@contentful/rich-text-html-renderer": "npm:^16.5.2"
     "@metamask/authenticated-user-storage": "npm:^2.0.0"
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/controller-utils": "npm:^12.1.0"
-    "@metamask/keyring-controller": "npm:^25.5.0"
+    "@metamask/keyring-controller": "npm:^26.0.0"
     "@metamask/messenger": "npm:^1.2.0"
-    "@metamask/profile-sync-controller": "npm:^28.1.0"
+    "@metamask/profile-sync-controller": "npm:^28.1.1"
     "@metamask/utils": "npm:^11.9.0"
     bignumber.js: "npm:^9.1.2"
     firebase: "npm:^11.2.0"
@@ -9519,10 +9525,14 @@ __metadata:
     semver: "npm:^7.6.3"
     uuid: "npm:^8.3.2"
 <<<<<<< HEAD
+<<<<<<< HEAD
   checksum: 10/a2c3a1f8d24c866eb42b515975ef1d9b59383f466f1ed769cea5c16362fd793d119dcb3f05795f3aac50e79aaf92a86096a531b02c2e708f99f9f76455fa7d9e
 =======
   checksum: 10/8f5249dea67dc7168c9254fde1de81e24483f9b054ba1ac282c36849e2090515f0cff0ed7cd4beaf6aefed6382f966277e02d3259f69aea67dee1c84c2ec7400
 >>>>>>> 9b317501e2 (chore: revert package.json)
+=======
+  checksum: 10/a2c3a1f8d24c866eb42b515975ef1d9b59383f466f1ed769cea5c16362fd793d119dcb3f05795f3aac50e79aaf92a86096a531b02c2e708f99f9f76455fa7d9e
+>>>>>>> 68477ad095 (chore: install preview build of core)
   languageName: node
   linkType: hard
 
@@ -35433,8 +35443,12 @@ __metadata:
 =======
     "@metamask/network-controller": "npm:^31.0.0"
     "@metamask/network-enablement-controller": "npm:^5.1.0"
+<<<<<<< HEAD
     "@metamask/notification-services-controller": "npm:24.1.1"
 >>>>>>> 9b317501e2 (chore: revert package.json)
+=======
+    "@metamask/notification-services-controller": "npm:@metamask-previews/notification-services-controller@24.1.2-preview-5620ede0b"
+>>>>>>> 68477ad095 (chore: install preview build of core)
     "@metamask/object-multiplex": "npm:^1.1.0"
     "@metamask/permission-controller": "npm:^13.1.1"
     "@metamask/perps-controller": "npm:^7.0.0"
