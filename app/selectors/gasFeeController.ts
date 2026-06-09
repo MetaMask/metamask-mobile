@@ -9,7 +9,6 @@ import {
 } from '@metamask/transaction-controller';
 
 import { RootState } from '../reducers';
-import { createDeepEqualSelector } from './util';
 import { selectPendingApprovals } from './approvalController';
 import { selectTransactionMetadataById } from './transactionController';
 
@@ -58,14 +57,9 @@ function getTransactionGasFeeEstimatesByChainId(
 export const selectGasFeeControllerState = (state: RootState) =>
   state.engine.backgroundState.GasFeeController;
 
-const selectGasFeeControllerEstimatesStrict = createSelector(
+export const selectGasFeeControllerEstimates = createSelector(
   selectGasFeeControllerState,
   (gasFeeControllerState: GasFeeState) => gasFeeControllerState.gasFeeEstimates,
-);
-
-export const selectGasFeeControllerEstimates = createDeepEqualSelector(
-  selectGasFeeControllerEstimatesStrict,
-  (gasFeeEstimates) => gasFeeEstimates,
 );
 
 export const selectGasFeeControllerEstimateType = createSelector(

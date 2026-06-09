@@ -8,6 +8,7 @@ import { selectEvmEnabledCaipNetworks } from '../../../selectors/networkEnableme
 import { useTransactionsQuery } from './useTransactionsQuery';
 import { MINUTE } from '../../../constants/time';
 import { selectRequiredTransactionHashes } from '../../../selectors/transactionController';
+import { selectPopularNetworkConfigurationsByCaipChainId } from '../../../selectors/networkController';
 
 jest.mock('@tanstack/react-query', () => ({
   useInfiniteQuery: jest.fn(),
@@ -44,9 +45,18 @@ jest.mock('../../../selectors/transactionController', () => ({
   selectRequiredTransactionHashes: jest.fn(),
 }));
 
+jest.mock('../../../selectors/networkController', () => ({
+  selectPopularNetworkConfigurationsByCaipChainId: jest.fn(),
+}));
+
 const ADDRESS_MOCK = '0x1234567890123456789012345678901234567890';
 const GROUP_EVM_ADDRESS_MOCK = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
 const NETWORKS_MOCK = ['eip155:1', 'eip155:137'];
+const POPULAR_NETWORKS_MOCK = [
+  { chainId: '0x1', caipChainId: 'eip155:1' },
+  { chainId: '0x89', caipChainId: 'eip155:137' },
+  { chainId: 'solana:mainnet', caipChainId: 'solana:mainnet' },
+];
 const QUERY_OPTIONS_MOCK = {
   queryKey: ['transactions'],
   queryFn: jest.fn(),
@@ -64,10 +74,12 @@ describe('useTransactionsQuery', () => {
     evmAddress = ADDRESS_MOCK,
     groupEvmAccount = null as { address: string } | null,
     networks = NETWORKS_MOCK,
+    popularNetworks = POPULAR_NETWORKS_MOCK,
   }: {
     evmAddress?: string;
     groupEvmAccount?: { address: string } | null;
     networks?: string[];
+    popularNetworks?: { chainId: string; caipChainId: string }[];
   } = {}) {
     useSelectorMock.mockImplementation((selector) => {
       if (selector === selectSelectedAccountGroupEvmInternalAccount) {
@@ -78,6 +90,9 @@ describe('useTransactionsQuery', () => {
       }
       if (selector === selectEvmEnabledCaipNetworks) {
         return networks;
+      }
+      if (selector === selectPopularNetworkConfigurationsByCaipChainId) {
+        return popularNetworks;
       }
       if (selector === selectRequiredTransactionHashes) {
         return new Set<string>();
@@ -104,6 +119,34 @@ describe('useTransactionsQuery', () => {
     expect(getQueryOptionsMock).toHaveBeenCalledWith({
       accountAddresses: [`eip155:0:${ADDRESS_MOCK}`],
       networks: NETWORKS_MOCK,
+      includeTxMetadata: true,
+    });
+  });
+
+  it('queries all popular EVM networks when all popular EVM networks are enabled', () => {
+    setupSelectors({
+      networks: ['eip155:1', 'eip155:137'],
+    });
+
+    renderHook(() => useTransactionsQuery());
+
+    expect(getQueryOptionsMock).toHaveBeenCalledWith({
+      accountAddresses: [`eip155:0:${ADDRESS_MOCK}`],
+      networks: ['eip155:1', 'eip155:137'],
+      includeTxMetadata: true,
+    });
+  });
+
+  it('keeps explicit enabled networks when only one popular EVM network is enabled', () => {
+    setupSelectors({
+      networks: ['eip155:1'],
+    });
+
+    renderHook(() => useTransactionsQuery());
+
+    expect(getQueryOptionsMock).toHaveBeenCalledWith({
+      accountAddresses: [`eip155:0:${ADDRESS_MOCK}`],
+      networks: ['eip155:1'],
       includeTxMetadata: true,
     });
   });
