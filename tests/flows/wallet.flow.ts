@@ -614,13 +614,13 @@ export const dismissOnboardingInterestQuestionnaire =
         );
         if (await continueButton.unwrap().isExisting()) {
           await PlaywrightGestures.waitAndTap(continueButton, {
-            timeout: 10_000,
+            timeout: 5000,
             checkForDisplayed: true,
             checkForEnabled: true,
           });
           await continueButton
             .unwrap()
-            .waitForDisplayed({ reverse: true, timeout: 10_000 });
+            .waitForDisplayed({ reverse: true, timeout: 5000 });
           return;
         }
       } catch {
@@ -670,25 +670,19 @@ export const resolvePredictGtmOnboardingModalEnabled = async (
  * @returns {Promise<void>} Resolves when the predictions modal is dismissed.
  */
 export const dismisspredictionsModalPlaywright = async (
-  maxRetries = 3,
+  maxRetries = 2,
 ): Promise<void> => {
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      const btn = await asPlaywrightElement(PredictModalView.notNowButton);
-      await PlaywrightGestures.waitAndTap(btn, {
-        timeout: 10_000,
-        checkForDisplayed: true,
-        checkForEnabled: true,
-      });
-      await btn.unwrap().waitForDisplayed({ reverse: true, timeout: 10_000 });
-      return;
-    } catch {
-      if (attempt === maxRetries) {
-        logger.error(
-          `Predict modal not dismissed after ${maxRetries} attempts`,
-        );
-      }
-    }
+  try {
+    const btn = await asPlaywrightElement(PredictModalView.notNowButton);
+    await PlaywrightGestures.waitAndTap(btn, {
+      timeout: 3000,
+      checkForDisplayed: true,
+      checkForEnabled: true,
+    });
+    await btn.unwrap().waitForDisplayed({ reverse: true, timeout: 3000 });
+    return;
+  } catch {
+    logger.error(`Predict modal not dismissed after ${maxRetries} attempts`);
   }
 };
 
@@ -750,9 +744,8 @@ export const onboardingFlowImportSRPPlaywright = async (
     'predictGtmOnboardingModalEnabled',
     predictGtmOnboardingModalEnabled,
   );
-  // f (predictGtmOnboardingModalEnabled) {
   await dismisspredictionsModalPlaywright();
-  //}
+
   await PlaywrightAssertions.expectElementToBeVisible(
     await asPlaywrightElement(WalletView.container),
   );
