@@ -37,6 +37,7 @@ import ActivityTypeFilterSheet, {
 import { TrendingTokenNetworkBottomSheet } from '../../UI/Trending/components/TrendingTokensBottomSheet/TrendingTokenNetworkBottomSheet';
 import { TRENDING_NETWORKS_LIST } from '../../UI/Trending/utils/trendingNetworksList';
 import { useRampNavigation } from '../../UI/Ramp/hooks/useRampNavigation';
+import { useMoneyAccountDeposit } from '../../UI/Money/hooks/useMoneyAccount';
 import type { CaipChainId } from '@metamask/utils';
 import { ActivityEmptyStateAction, getActivityEmptyState } from './utils';
 import { ActivityTypeFilter } from './types';
@@ -48,6 +49,7 @@ const ActivityScreen = () => {
   const designSystemTheme = useDesignSystemTheme();
   const navigation = useNavigation();
   const { goToBuy } = useRampNavigation();
+  const { initiateDeposit } = useMoneyAccountDeposit();
   const ActivityEmptyIcon =
     designSystemTheme === Theme.Dark
       ? ActivityEmptyDarkIcon
@@ -153,14 +155,15 @@ const ActivityScreen = () => {
         });
         return;
       case ActivityEmptyStateAction.TransferToMoney:
-        navigation.navigate(Routes.MONEY.ROOT, {
-          screen: Routes.MONEY.HOME,
-        });
+        initiateDeposit().catch(() => undefined);
+        return;
+      case ActivityEmptyStateAction.OpenMetamaskCard:
+        navigation.navigate(Routes.CARD.ROOT);
         return;
       default:
         return;
     }
-  }, [emptyState.action, navigation, goToBuy]);
+  }, [emptyState.action, navigation, goToBuy, initiateDeposit]);
 
   const handleBackPress = useCallback(() => {
     if (navigation.canGoBack()) {
