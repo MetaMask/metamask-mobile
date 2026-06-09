@@ -5,6 +5,7 @@ import { isHardwareAccount } from '../../../../util/address';
 import AppConstants from '../../../AppConstants';
 import NavigationService from '../../../NavigationService';
 import ReduxService from '../../../redux';
+import { selectIsSwapsEnabled } from '../../../redux/slices/bridge';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
 
 export const handleBatchSellUrl = async () => {
@@ -13,12 +14,18 @@ export const handleBatchSellUrl = async () => {
   try {
     const state = ReduxService.store.getState();
     const isBatchSellEnabled = selectBatchSellEnabled(state);
+    const isSwapsEnabled = selectIsSwapsEnabled(state);
     const selectedAddress = selectSelectedInternalAccountAddress(state);
     const isHardwareWallet = selectedAddress
       ? Boolean(isHardwareAccount(selectedAddress))
       : false;
 
-    if (!isBatchSellEnabled || !AppConstants.SWAPS.ACTIVE || isHardwareWallet) {
+    if (
+      !isBatchSellEnabled ||
+      !isSwapsEnabled ||
+      !AppConstants.SWAPS.ACTIVE ||
+      isHardwareWallet
+    ) {
       DevLogger.log('[handleBatchSellUrl] Batch Sell is disabled');
       NavigationService.navigation.navigate(Routes.WALLET.HOME);
       return;

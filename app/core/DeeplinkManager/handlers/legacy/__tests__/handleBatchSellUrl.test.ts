@@ -7,6 +7,7 @@ import AppConstants from '../../../../AppConstants';
 import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
 import { selectBatchSellEnabled } from '../../../../../selectors/featureFlagController/batchSell';
 import { isHardwareAccount } from '../../../../../util/address';
+import { selectIsSwapsEnabled } from '../../../../redux/slices/bridge';
 
 jest.mock('../../../../NavigationService');
 jest.mock('../../../../SDKConnect/utils/DevLogger');
@@ -35,6 +36,9 @@ jest.mock('../../../../../selectors/featureFlagController/batchSell', () => ({
 jest.mock('../../../../../util/address', () => ({
   isHardwareAccount: jest.fn(),
 }));
+jest.mock('../../../../redux/slices/bridge', () => ({
+  selectIsSwapsEnabled: jest.fn(),
+}));
 
 const setSwapsActive = (isActive: boolean) => {
   (AppConstants.SWAPS as unknown as { ACTIVE: boolean }).ACTIVE = isActive;
@@ -45,6 +49,7 @@ describe('handleBatchSellUrl', () => {
   let mockGetState: jest.Mock;
   let mockSelectSelectedInternalAccountAddress: jest.Mock;
   let mockSelectBatchSellEnabled: jest.Mock;
+  let mockSelectIsSwapsEnabled: jest.Mock;
   let mockIsHardwareAccount: jest.Mock;
 
   beforeEach(() => {
@@ -65,6 +70,8 @@ describe('handleBatchSellUrl', () => {
     );
     mockSelectBatchSellEnabled = selectBatchSellEnabled as unknown as jest.Mock;
     mockSelectBatchSellEnabled.mockReturnValue(true);
+    mockSelectIsSwapsEnabled = selectIsSwapsEnabled as unknown as jest.Mock;
+    mockSelectIsSwapsEnabled.mockReturnValue(true);
     mockIsHardwareAccount = isHardwareAccount as jest.Mock;
     mockIsHardwareAccount.mockReturnValue(false);
     setSwapsActive(true);
@@ -74,6 +81,9 @@ describe('handleBatchSellUrl', () => {
     await handleBatchSellUrl();
 
     expect(mockSelectBatchSellEnabled).toHaveBeenCalledWith({
+      mockState: true,
+    });
+    expect(mockSelectIsSwapsEnabled).toHaveBeenCalledWith({
       mockState: true,
     });
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.ROOT, {
@@ -94,6 +104,17 @@ describe('handleBatchSellUrl', () => {
 
   it('navigates to WALLET.HOME when swaps are inactive', async () => {
     setSwapsActive(false);
+
+    await handleBatchSellUrl();
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+    expect(mockNavigate).not.toHaveBeenCalledWith(Routes.BRIDGE.ROOT, {
+      screen: Routes.BRIDGE.BATCH_SELL_TOKEN_SELECT,
+    });
+  });
+
+  it('navigates to WALLET.HOME when swaps are disabled for the selected account', async () => {
+    mockSelectIsSwapsEnabled.mockReturnValue(false);
 
     await handleBatchSellUrl();
 
