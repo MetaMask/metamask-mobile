@@ -4,13 +4,14 @@ import {
   SNAP_SETTINGS_REMOVE_BUTTON,
   SNAP_SETTINGS_SCROLLVIEW,
 } from '../../../app/components/Views/Snaps/SnapSettings/SnapSettings.constants';
-import { SNAPS_SETTINGS_LIST_BACK_BUTTON } from '../../../app/components/Views/Snaps/SnapsSettingsList/SnapsSettingsList.constants';
 import {
   encapsulated,
   EncapsulatedElementType,
 } from '../../framework/EncapsulatedElement';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import UnifiedGestures from '../../framework/UnifiedGestures';
+
+const SNAPS_SETTINGS_LIST_BACK_BUTTON = 'snaps-settings-list-back-button';
 
 class SnapSettingsView {
   get enabledToggle(): EncapsulatedElementType {
