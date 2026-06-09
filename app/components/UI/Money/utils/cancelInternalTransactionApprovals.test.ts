@@ -1,5 +1,10 @@
 import { ApprovalType, ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { providerErrors } from '@metamask/rpc-errors';
+import {
+  TransactionMeta,
+  TransactionBatchMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import Engine from '../../../../core/Engine';
 import { cancelInternalTransactionApprovals } from './cancelInternalTransactionApprovals';
 
@@ -10,6 +15,12 @@ jest.mock('../../../../core/Engine', () => ({
       ApprovalController: {
         state: {
           pendingApprovals: {},
+        },
+      },
+      TransactionController: {
+        state: {
+          transactions: [],
+          transactionBatches: [],
         },
       },
     },
@@ -44,13 +55,27 @@ const setPendingApprovals = (
     pendingApprovals as never;
 };
 
+const setTransactions = (transactions: Partial<TransactionMeta>[]) => {
+  Engine.context.TransactionController.state.transactions =
+    transactions as never;
+};
+
+const setTransactionBatches = (
+  transactionBatches: Partial<TransactionBatchMeta>[],
+) => {
+  Engine.context.TransactionController.state.transactionBatches =
+    transactionBatches as never;
+};
+
 describe('cancelInternalTransactionApprovals', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     setPendingApprovals({});
+    setTransactions([]);
+    setTransactionBatches([]);
   });
 
-  it('rejects a single internal Transaction approval', () => {
+  it('rejects a single internal money-deposit Transaction approval', () => {
     setPendingApprovals({
       'tx-1': {
         id: 'tx-1',
@@ -58,6 +83,9 @@ describe('cancelInternalTransactionApprovals', () => {
         type: ApprovalType.Transaction,
       },
     });
+    setTransactions([
+      { id: 'tx-1', type: TransactionType.moneyAccountDeposit },
+    ]);
 
     cancelInternalTransactionApprovals();
 
@@ -70,58 +98,112 @@ describe('cancelInternalTransactionApprovals', () => {
     expect(mockUserRejectedRequest).toHaveBeenCalledTimes(1);
   });
 
-  it('rejects multiple internal Transaction and TransactionBatch approvals', () => {
+  it('rejects a money-deposit TransactionBatch approval', () => {
     setPendingApprovals({
-      'tx-1': {
-        id: 'tx-1',
-        origin: ORIGIN_METAMASK,
-        type: ApprovalType.Transaction,
-      },
-      'tx-2': {
-        id: 'tx-2',
+      'batch-1': {
+        id: 'batch-1',
         origin: ORIGIN_METAMASK,
         type: ApprovalType.TransactionBatch,
       },
-      'tx-3': {
-        id: 'tx-3',
-        origin: ORIGIN_METAMASK,
-        type: ApprovalType.Transaction,
-      },
     });
+    setTransactionBatches([
+      {
+        id: 'batch-1',
+        transactions: [
+          { type: TransactionType.tokenMethodApprove },
+          { type: TransactionType.moneyAccountDeposit },
+        ],
+      },
+    ]);
 
     cancelInternalTransactionApprovals();
 
-    expect(mockRejectPendingApproval).toHaveBeenCalledTimes(3);
+    expect(mockRejectPendingApproval).toHaveBeenCalledTimes(1);
     expect(mockRejectPendingApproval).toHaveBeenCalledWith(
-      'tx-1',
-      expect.any(Error),
-      { ignoreMissing: true, logErrors: false },
-    );
-    expect(mockRejectPendingApproval).toHaveBeenCalledWith(
-      'tx-2',
-      expect.any(Error),
-      { ignoreMissing: true, logErrors: false },
-    );
-    expect(mockRejectPendingApproval).toHaveBeenCalledWith(
-      'tx-3',
+      'batch-1',
       expect.any(Error),
       { ignoreMissing: true, logErrors: false },
     );
   });
 
-  it('does not reject approvals from non-internal origins', () => {
+  it('rejects money-deposit identified via nested transactions on a Transaction approval', () => {
+    setPendingApprovals({
+      'tx-nested': {
+        id: 'tx-nested',
+        origin: ORIGIN_METAMASK,
+        type: ApprovalType.Transaction,
+      },
+    });
+    setTransactions([
+      {
+        id: 'tx-nested',
+        type: TransactionType.batch,
+        nestedTransactions: [
+          { type: TransactionType.tokenMethodApprove },
+          { type: TransactionType.moneyAccountDeposit },
+        ],
+      },
+    ]);
+
+    cancelInternalTransactionApprovals();
+
+    expect(mockRejectPendingApproval).toHaveBeenCalledTimes(1);
+    expect(mockRejectPendingApproval).toHaveBeenCalledWith(
+      'tx-nested',
+      expect.any(Error),
+      { ignoreMissing: true, logErrors: false },
+    );
+  });
+
+  it('does not reject internal swap Transaction approvals', () => {
+    setPendingApprovals({
+      'swap-tx': {
+        id: 'swap-tx',
+        origin: ORIGIN_METAMASK,
+        type: ApprovalType.Transaction,
+      },
+    });
+    setTransactions([{ id: 'swap-tx', type: TransactionType.swap }]);
+
+    cancelInternalTransactionApprovals();
+
+    expect(mockRejectPendingApproval).not.toHaveBeenCalled();
+  });
+
+  it('does not reject internal non-deposit TransactionBatch approvals', () => {
+    setPendingApprovals({
+      'swap-batch': {
+        id: 'swap-batch',
+        origin: ORIGIN_METAMASK,
+        type: ApprovalType.TransactionBatch,
+      },
+    });
+    setTransactionBatches([
+      {
+        id: 'swap-batch',
+        transactions: [
+          { type: TransactionType.tokenMethodApprove },
+          { type: TransactionType.swap },
+        ],
+      },
+    ]);
+
+    cancelInternalTransactionApprovals();
+
+    expect(mockRejectPendingApproval).not.toHaveBeenCalled();
+  });
+
+  it('does not reject a money-deposit Transaction approval from a non-internal origin', () => {
     setPendingApprovals({
       'tx-dapp': {
         id: 'tx-dapp',
         origin: 'https://uniswap.org',
         type: ApprovalType.Transaction,
       },
-      'tx-wc': {
-        id: 'tx-wc',
-        origin: 'wc:topic@2',
-        type: ApprovalType.TransactionBatch,
-      },
     });
+    setTransactions([
+      { id: 'tx-dapp', type: TransactionType.moneyAccountDeposit },
+    ]);
 
     cancelInternalTransactionApprovals();
 
@@ -152,17 +234,41 @@ describe('cancelInternalTransactionApprovals', () => {
     expect(mockRejectPendingApproval).not.toHaveBeenCalled();
   });
 
-  it('only rejects the internal Transaction approvals when a mixed set is pending', () => {
+  it('does not reject when no backing transaction or batch is found', () => {
     setPendingApprovals({
-      'internal-tx': {
-        id: 'internal-tx',
+      'tx-missing': {
+        id: 'tx-missing',
         origin: ORIGIN_METAMASK,
         type: ApprovalType.Transaction,
       },
-      'internal-batch': {
-        id: 'internal-batch',
+      'batch-missing': {
+        id: 'batch-missing',
         origin: ORIGIN_METAMASK,
         type: ApprovalType.TransactionBatch,
+      },
+    });
+
+    cancelInternalTransactionApprovals();
+
+    expect(mockRejectPendingApproval).not.toHaveBeenCalled();
+  });
+
+  it('only rejects the internal money-deposit approvals when a mixed set is pending', () => {
+    setPendingApprovals({
+      'deposit-tx': {
+        id: 'deposit-tx',
+        origin: ORIGIN_METAMASK,
+        type: ApprovalType.Transaction,
+      },
+      'deposit-batch': {
+        id: 'deposit-batch',
+        origin: ORIGIN_METAMASK,
+        type: ApprovalType.TransactionBatch,
+      },
+      'swap-tx': {
+        id: 'swap-tx',
+        origin: ORIGIN_METAMASK,
+        type: ApprovalType.Transaction,
       },
       'dapp-tx': {
         id: 'dapp-tx',
@@ -175,14 +281,26 @@ describe('cancelInternalTransactionApprovals', () => {
         type: ApprovalType.PersonalSign,
       },
     });
+    setTransactions([
+      { id: 'deposit-tx', type: TransactionType.moneyAccountDeposit },
+      { id: 'swap-tx', type: TransactionType.swap },
+      { id: 'dapp-tx', type: TransactionType.moneyAccountDeposit },
+    ]);
+    setTransactionBatches([
+      {
+        id: 'deposit-batch',
+        transactions: [{ type: TransactionType.moneyAccountDeposit }],
+      },
+    ]);
 
     cancelInternalTransactionApprovals();
 
     expect(mockRejectPendingApproval).toHaveBeenCalledTimes(2);
     const rejectedIds = mockRejectPendingApproval.mock.calls.map(([id]) => id);
     expect(rejectedIds).toEqual(
-      expect.arrayContaining(['internal-tx', 'internal-batch']),
+      expect.arrayContaining(['deposit-tx', 'deposit-batch']),
     );
+    expect(rejectedIds).not.toContain('swap-tx');
     expect(rejectedIds).not.toContain('dapp-tx');
     expect(rejectedIds).not.toContain('internal-sig');
   });
