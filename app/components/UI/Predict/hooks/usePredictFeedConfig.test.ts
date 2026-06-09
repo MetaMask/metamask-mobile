@@ -357,7 +357,11 @@ describe('usePredictFeedConfig', () => {
       const { result, rerender } = renderHook(
         ({ initialFilterId }: { initialFilterId?: string }) =>
           usePredictFeedConfig('sports', { initialFilterId }),
-        { initialProps: { initialFilterId: undefined } },
+        {
+          initialProps: { initialFilterId: undefined } as {
+            initialFilterId?: string;
+          },
+        },
       );
 
       expect(result.current.activeFilterId).toBe('all');
@@ -374,7 +378,11 @@ describe('usePredictFeedConfig', () => {
       const { result, rerender } = renderHook(
         ({ initialFilterId }: { initialFilterId?: string }) =>
           usePredictFeedConfig('politics', { initialFilterId }),
-        { initialProps: { initialFilterId: undefined } },
+        {
+          initialProps: { initialFilterId: undefined } as {
+            initialFilterId?: string;
+          },
+        },
       );
 
       expect(result.current.activeFilterId).toBe('all');
