@@ -394,5 +394,28 @@ describe('usePredictFeedConfig', () => {
         expect(result.current.activeFilterId).toBe('elections');
       });
     });
+
+    it('keeps activeTabId consistent with the resolved feed after a feedId change', () => {
+      const { result, rerender } = renderHook(
+        ({ feedId }: { feedId: string }) => usePredictFeedConfig(feedId),
+        { initialProps: { feedId: 'sports' } },
+      );
+
+      // Select a non-first tab so the prior id would be invalid in the next feed.
+      act(() => {
+        result.current.setActiveTabId('tennis');
+      });
+      expect(result.current.activeTabId).toBe('tennis');
+
+      rerender({ feedId: 'politics' });
+
+      // The exposed activeTabId must reflect the new (single-tab) feed and agree
+      // with the rendered tabs/content, never the stale "tennis".
+      expect(result.current.activeTabId).toBe('all');
+      expect(result.current.tabs).toEqual([
+        { id: 'all', titleKey: 'predict.category.politics' },
+      ]);
+      expect(result.current.activeFilterId).toBe('all');
+    });
   });
 });

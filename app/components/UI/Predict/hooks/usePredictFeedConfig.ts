@@ -340,6 +340,15 @@ export const usePredictFeedConfig = (
     [dynamicStatus],
   );
 
+  // Expose the *resolved* selection ids so the public values always agree with
+  // the rendered content. `activeTab`/`activeFilter` reconcile via `findTab`/
+  // fallback every render, whereas the underlying state is only re-seeded by the
+  // effect a tick later — so on a `feedId` change the raw state can briefly hold
+  // the previous feed's (now-invalid) ids. Deriving from the resolved values
+  // removes that transient disagreement.
+  const resolvedActiveTabId = activeTab?.id ?? activeTabId;
+  const resolvedActiveFilterId = activeFilter?.id ?? activeFilterId;
+
   return {
     status: config ? 'ready' : 'not-found',
     feedId: config?.id,
@@ -347,11 +356,11 @@ export const usePredictFeedConfig = (
     header: config?.header,
     tabs,
     showTabBar: tabs.length > 1,
-    activeTabId,
+    activeTabId: resolvedActiveTabId,
     setActiveTabId,
     filters,
     dynamicFilters: dynamicFiltersInfo,
-    activeFilterId,
+    activeFilterId: resolvedActiveFilterId,
     setActiveFilterId,
     activeFilter,
   };
