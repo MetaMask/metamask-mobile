@@ -24,8 +24,8 @@ describe('TokenNetworkFilterBar', () => {
     jest.clearAllMocks();
   });
 
-  it('renders correctly with all networks selected (null)', () => {
-    const { toJSON } = render(
+  it('renders All button and all network names when networkFilter is null', () => {
+    const { getByText } = render(
       <TokenNetworkFilterBar
         networks={mockNetworks}
         networkFilter={null}
@@ -33,11 +33,14 @@ describe('TokenNetworkFilterBar', () => {
       />,
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('All')).toBeOnTheScreen();
+    expect(getByText('Ethereum')).toBeOnTheScreen();
+    expect(getByText('Optimism')).toBeOnTheScreen();
+    expect(getByText('Polygon')).toBeOnTheScreen();
   });
 
-  it('renders correctly with all networks selected (empty array)', () => {
-    const { toJSON } = render(
+  it('renders All button and all network names when networkFilter is empty array', () => {
+    const { getByText } = render(
       <TokenNetworkFilterBar
         networks={mockNetworks}
         networkFilter={[]}
@@ -45,11 +48,12 @@ describe('TokenNetworkFilterBar', () => {
       />,
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('All')).toBeOnTheScreen();
+    expect(getByText('Ethereum')).toBeOnTheScreen();
   });
 
-  it('renders correctly with single network selected', () => {
-    const { toJSON } = render(
+  it('renders All button and individual network buttons when single network is selected', () => {
+    const { getByText } = render(
       <TokenNetworkFilterBar
         networks={mockNetworks}
         networkFilter={['eip155:1'] as CaipChainId[]}
@@ -57,7 +61,8 @@ describe('TokenNetworkFilterBar', () => {
       />,
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('All')).toBeOnTheScreen();
+    expect(getByText('Ethereum')).toBeOnTheScreen();
   });
 
   describe('handleAllPress', () => {

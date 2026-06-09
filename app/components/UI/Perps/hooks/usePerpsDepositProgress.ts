@@ -20,7 +20,7 @@ export const usePerpsDepositProgress = () => {
 
   // Track if we're expecting a deposit
   const [isDepositInProgress, setIsDepositInProgress] = useState(false);
-  const prevAvailableBalanceRef = useRef<string>('0');
+  const prevSpendableBalanceRef = useRef<string>('0');
   const liveAccountRef = useRef(liveAccount);
 
   // Update the ref whenever liveAccount changes
@@ -46,8 +46,8 @@ export const usePerpsDepositProgress = () => {
       // Handle PerpsDeposit approved - set deposit in progress
       if (transactionMeta.status === TransactionStatus.approved) {
         setIsDepositInProgress(true);
-        prevAvailableBalanceRef.current =
-          liveAccountRef.current?.availableBalance || '0';
+        prevSpendableBalanceRef.current =
+          liveAccountRef.current?.spendableBalance || '0';
       }
 
       // Handle PerpsDeposit failed - clear deposit in progress
@@ -69,24 +69,22 @@ export const usePerpsDepositProgress = () => {
     };
   }, []);
 
-  // Watch for balance increases when expecting a deposit
+  // Watch for spendable-balance increases when expecting a deposit. A live
+  // totalBalance move can be pure unrealized PnL and must not clear progress.
+  const liveSpendable = liveAccount?.spendableBalance;
   useEffect(() => {
-    if (!isDepositInProgress || !liveAccount) {
+    if (!isDepositInProgress || liveSpendable == null) {
       return;
     }
 
-    const currentBalance = Number.parseFloat(
-      liveAccount.availableBalance || '0',
-    );
-    const previousBalance = Number.parseFloat(prevAvailableBalanceRef.current);
+    const currentBalance = Number.parseFloat(liveSpendable || '0');
+    const previousBalance = Number.parseFloat(prevSpendableBalanceRef.current);
 
-    // Check if balance increased
     if (currentBalance > previousBalance) {
-      // Deposit completed successfully
       setIsDepositInProgress(false);
-      prevAvailableBalanceRef.current = liveAccount.availableBalance;
+      prevSpendableBalanceRef.current = liveSpendable;
     }
-  }, [isDepositInProgress, liveAccount]);
+  }, [isDepositInProgress, liveSpendable]);
 
   return { isDepositInProgress };
 };

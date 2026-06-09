@@ -25,11 +25,6 @@ describe('BackupAndSyncSettings', () => {
     jest.clearAllMocks();
   });
 
-  it('renders correctly', () => {
-    const { toJSON } = renderWithProvider(<BackupAndSyncSettings />);
-    expect(toJSON()).toMatchSnapshot();
-  });
-
   it('wraps content in SafeAreaView', () => {
     const { getByTestId } = renderWithProvider(<BackupAndSyncSettings />);
 
@@ -38,7 +33,7 @@ describe('BackupAndSyncSettings', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders HeaderCompactStandard with backup and sync title', () => {
+  it('renders HeaderStandard with backup and sync title', () => {
     const { getByTestId } = renderWithProvider(<BackupAndSyncSettings />);
 
     const header = getByTestId(BackupAndSyncSettingsSelectorsIDs.HEADER);

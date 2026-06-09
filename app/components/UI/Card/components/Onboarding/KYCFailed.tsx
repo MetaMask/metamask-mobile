@@ -12,11 +12,6 @@ import { useDispatch } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
@@ -26,7 +21,14 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardScreens } from '../../util/metrics';
 import MM_CARD_ONBOARDING_FAILED from '../../../../../images/mm-card-onboarding-failed.png';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Box,
+  Text,
+  TextVariant,
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
 import { brandColor } from '@metamask/design-tokens';
 import { colors as importedColors } from '../../../../../styles/common';
 import { resetOnboardingState } from '../../../../../core/redux/slices/card';
@@ -154,13 +156,14 @@ const KYCFailed = () => {
       >
         <Box twClassName="pt-2 pb-4">
           <Button
-            variant={ButtonVariants.Primary}
-            label={strings('card.card_onboarding.kyc_failed.close_button')}
+            variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             onPress={navigateToHome}
-            width={ButtonWidthTypes.Full}
+            isFullWidth
             testID="kyc-failed-close-button"
-          />
+          >
+            {strings('card.card_onboarding.kyc_failed.close_button')}
+          </Button>
         </Box>
       </SafeAreaView>
     </Box>

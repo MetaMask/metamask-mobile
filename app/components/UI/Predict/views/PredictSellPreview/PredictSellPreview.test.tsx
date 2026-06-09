@@ -225,8 +225,9 @@ const mockNavigation: NavigationProp<PredictNavigationParamList> = {
   removeListener: jest.fn(),
   canGoBack: jest.fn(),
   isFocused: jest.fn(),
-  dangerouslyGetParent: jest.fn(),
-  dangerouslyGetState: jest.fn(),
+  getParent: jest.fn(),
+  getState: jest.fn(),
+  getId: jest.fn(),
 };
 
 const initialState = {
@@ -529,6 +530,82 @@ describe('PredictSellPreview', () => {
       expect(
         screen.getByText('Will Bitcoin reach $150,000?'),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('sheet mode', () => {
+    const sheetContentProps = {
+      mode: 'sheet' as const,
+      market: mockMarket,
+      position: mockPosition,
+      outcome: mockOutcome,
+      onClose: jest.fn(),
+    };
+
+    beforeEach(() => {
+      sheetContentProps.onClose = jest.fn();
+    });
+
+    it('hides BottomSheetHeader in sheet mode', () => {
+      renderWithProvider(<PredictSellPreview {...sheetContentProps} />, {
+        state: initialState,
+      });
+
+      const cashOutTexts = screen.getAllByText('Cash out');
+      expect(cashOutTexts.length).toBe(1);
+    });
+
+    it('renders value section with HeadingLg variant in sheet mode', () => {
+      renderWithProvider(<PredictSellPreview {...sheetContentProps} />, {
+        state: initialState,
+      });
+
+      expect(screen.getByText('$60')).toBeOnTheScreen();
+      expect(screen.getByText('+$10 (20%)')).toBeOnTheScreen();
+    });
+
+    it('hides position icon row in sheet mode', () => {
+      renderWithProvider(<PredictSellPreview {...sheetContentProps} />, {
+        state: initialState,
+      });
+
+      expect(
+        screen.queryByText('Will Bitcoin reach $150,000?'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('calls onClose on successful result in sheet mode', () => {
+      mockPlaceOrderResult = {
+        success: true,
+        response: { transactionHash: '0xabc123' },
+      };
+
+      renderWithProvider(<PredictSellPreview {...sheetContentProps} />, {
+        state: initialState,
+      });
+
+      expect(sheetContentProps.onClose).toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalledWith(StackActions.pop());
+    });
+
+    it('shows skeleton in sheet mode when preview is loading', () => {
+      mockPreview = null;
+      mockIsCalculating = true;
+      mockPreviewError = null;
+
+      renderWithProvider(<PredictSellPreview {...sheetContentProps} />, {
+        state: initialState,
+      });
+
+      expect(screen.queryByText('$60')).toBeNull();
+    });
+
+    it('reads params from contentProps instead of route in sheet mode', () => {
+      renderWithProvider(<PredictSellPreview {...sheetContentProps} />, {
+        state: initialState,
+      });
+
+      expect(screen.getByText('$60')).toBeOnTheScreen();
     });
   });
 });

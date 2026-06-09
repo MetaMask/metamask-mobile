@@ -18,9 +18,9 @@
   },
   "AccountTreeController": {
     "accountTree": {
-      "selectedAccountGroup": "",
       "wallets": {}
     },
+    "selectedAccountGroup": "",
     "accountGroupsMetadata": {},
     "accountWalletsMetadata": {},
     "hasAccountTreeSyncingSyncedAtLeastOnce": false,
@@ -34,10 +34,10 @@
     "optedIn": false
   },
   "GatorPermissionsController": {
-    "gatorPermissionsMapSerialized": "{\"native-token-stream\":{},\"native-token-periodic\":{},\"erc20-token-stream\":{},\"erc20-token-periodic\":{},\"other\":{}}",
-    "gatorPermissionsProviderSnapId": "npm:@metamask/gator-permissions-snap",
+    "grantedPermissions": [],
     "isFetchingGatorPermissions": false,
-    "isGatorPermissionsEnabled": false
+    "lastSyncedTimestamp": -1,
+    "pendingRevocations": []
   },
   "NftController": {
     "allNftContracts": {},
@@ -48,9 +48,6 @@
     "allTokens": {},
     "allIgnoredTokens": {},
     "allDetectedTokens": {}
-  },
-  "TokenListController": {
-    "tokensChainsCache": {}
   },
   "CurrencyRateController": {
     "currentCurrency": "usd",
@@ -240,6 +237,21 @@
             "url": "https://base-mainnet.infura.io/v3/{infuraProjectId}"
           }
         ]
+      },
+      "0x8f": {
+        "blockExplorerUrls": [],
+        "chainId": "0x8f",
+        "defaultRpcEndpointIndex": 0,
+        "name": "Monad Mainnet",
+        "nativeCurrency": "MON",
+        "rpcEndpoints": [
+          {
+            "failoverUrls": [],
+            "networkClientId": "monad-mainnet",
+            "type": "infura",
+            "url": "https://monad-mainnet.infura.io/v3/{infuraProjectId}"
+          }
+        ]
       }
     }
   },
@@ -256,6 +268,7 @@
         "0x38": true,
         "0x531": true,
         "0x89": true,
+        "0x8f": true,
         "0xa": true,
         "0xa4b1": true,
         "0xe708": true
@@ -386,11 +399,16 @@
   "SnapInterfaceController": {
     "interfaces": {}
   },
-  "SnapsRegistry": {
+  "SnapRegistryController": {
     "database": null,
     "databaseUnavailable": false,
     "lastUpdated": null,
     "signature": null
+  },
+  "SocialController": {
+    "followingAddresses": [],
+    "followingProfileIds": [],
+    "leaderboardEntries": []
   },
   "SubjectMetadataController": {
     "subjectMetadata": {}
@@ -416,7 +434,26 @@
   "AssetsController": {
     "assetPreferences": {},
     "assetsBalance": {},
-    "assetsInfo": {},
+    "assetsInfo": {
+      "eip155:1/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA": {
+        "decimals": 6,
+        "name": "MetaMask USD",
+        "symbol": "mUSD",
+        "type": "erc20"
+      },
+      "eip155:143/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA": {
+        "decimals": 6,
+        "name": "MetaMask USD",
+        "symbol": "mUSD",
+        "type": "erc20"
+      },
+      "eip155:59144/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA": {
+        "decimals": 6,
+        "name": "MetaMask USD",
+        "symbol": "mUSD",
+        "type": "erc20"
+      }
+    },
     "assetsPrice": {},
     "customAssets": {},
     "selectedCurrency": "usd"
@@ -443,6 +480,8 @@
       "activeWithdrawalId": null
     },
     "lastWithdrawResult": null,
+    "lastCompletedWithdrawalTimestamp": null,
+    "lastCompletedWithdrawalTxHashes": [],
     "lastError": null,
     "lastUpdateTimestamp": 0,
     "isEligible": false,
@@ -495,7 +534,8 @@
     "unapprovedTypedMessagesCount": 0
   },
   "AuthenticationController": {
-    "isSignedIn": false
+    "isSignedIn": false,
+    "needsProfilePairing": true
   },
   "NotificationServicesController": {
     "isCheckingAccountsPresence": false,
@@ -614,16 +654,23 @@
   },
   "BridgeController": {
     "assetExchangeRates": {},
+    "batchSellTrades": null,
+    "batchSellTradesLoadingStatus": null,
     "minimumBalanceForRentExemptionInLamports": "0",
     "quoteFetchError": null,
-    "quoteRequest": {
-      "srcTokenAddress": "0x0000000000000000000000000000000000000000"
-    },
+    "quoteRequest": [
+      {
+        "srcTokenAddress": "0x0000000000000000000000000000000000000000"
+      }
+    ],
     "quotes": [],
     "quotesInitialLoadTime": null,
     "quotesLastFetched": null,
     "quotesLoadingStatus": null,
-    "quotesRefreshCount": 0
+    "quotesRefreshCount": 0,
+    "quoteStreamComplete": null,
+    "tokenSecurityTypeDestination": null,
+    "tokenWarnings": []
   },
   "BridgeStatusController": {
     "txHistory": {}
@@ -631,9 +678,15 @@
   "CardController": {
     "selectedCountry": null,
     "activeProviderId": "baanx",
+    "cardHomeData": null,
+    "cardHomeDataStatus": "idle",
     "isAuthenticated": false,
     "cardholderAccounts": [],
-    "providerData": {}
+    "providerData": {},
+    "moneyAccountCardLinkInProgress": false
+  },
+  "ClientController": {
+    "isUiOpen": false
   },
   "ComplianceController": {},
   "ConnectivityController": {
@@ -692,7 +745,8 @@
         }
       ],
       "isEligible": false
-    }
+    },
+    "tron_staking": null
   },
   "DeFiPositionsController": {
     "allDeFiPositions": {},
@@ -709,10 +763,26 @@
     "pointsEstimateHistory": [],
     "pointsEvents": {},
     "campaigns": {},
+    "ondoCampaignLeaderboardPositions": {},
+    "ondoCampaignPortfolio": {},
+    "ondoCampaignActivity": {},
+    "ondoCampaignDeposits": {},
+    "ondoCampaignLeaderboard": {},
+    "perpsTradingCampaignLeaderboard": {},
+    "perpsTradingCampaignLeaderboardPositions": {},
+    "perpsTradingCampaignVolume": {},
+    "predictThePitchLeaderboard": {},
+    "predictThePitchLeaderboardPositions": {},
+    "predictThePitchPositions": {},
+    "predictThePitchPrizePool": {},
+    "clientVersionRequirements": null,
     "campaignParticipantStatus": {},
     "unlockedRewards": {},
     "seasonStatuses": {},
     "seasons": {},
+    "subscriptionBenefits": {},
+    "vipDashboard": {},
+    "vipPerpsFees": {},
     "subscriptionReferralDetails": {},
     "subscriptions": {},
     "rewardsEnvUrl": null
@@ -728,7 +798,7 @@
     "pendingDeposits": {},
     "pendingClaims": {},
     "withdrawTransaction": null,
-    "activeOrder": null,
+    "activeBuyOrders": {},
     "selectedPaymentToken": null,
     "accountMeta": {}
   },
@@ -744,6 +814,7 @@
       "isLoading": false,
       "error": null
     },
+    "providerAutoSelected": false,
     "providers": {
       "data": [],
       "selected": null,
@@ -786,6 +857,11 @@
       }
     },
     "requests": {},
-    "orders": []
-  }
+    "orders": [],
+    "providerAutoSelected": false
+  },
+  "MoneyAccountController": {
+    "moneyAccounts": {}
+  },
+  "MoneyAccountUpgradeController": {}
 }

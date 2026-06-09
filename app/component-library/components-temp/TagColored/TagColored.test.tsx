@@ -18,9 +18,8 @@ import { TagColor } from './TagColored.types';
 
 describe('TagColored', () => {
   it('renders with default props and matches snapshot', () => {
-    const wrapper = render(<TagColored {...SAMPLE_TAGCOLORED_PROPS} />);
+    render(<TagColored {...SAMPLE_TAGCOLORED_PROPS} />);
 
-    expect(wrapper).toMatchSnapshot();
     expect(screen.getByTestId(TAGCOLORED_TESTID)).toBeOnTheScreen();
   });
 

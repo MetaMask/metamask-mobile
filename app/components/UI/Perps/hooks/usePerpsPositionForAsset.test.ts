@@ -50,7 +50,8 @@ const mockPosition: Position = {
 };
 
 const mockAccountState: AccountState = {
-  availableBalance: '10000',
+  spendableBalance: '10000',
+  withdrawableBalance: '10000',
   marginUsed: '800',
   unrealizedPnl: '100',
   returnOnEquity: '0.03',
@@ -58,19 +59,23 @@ const mockAccountState: AccountState = {
 };
 
 const mockUserAddress = '0x1234567890123456789012345678901234567890';
+const mockNonEvmAddress = 'bc1qn7ag0000000000000000000000000000000000';
 
 const createMockState = (
-  overrides?: Partial<{ isTestnet: boolean }>,
+  overrides?: Partial<{
+    isTestnet: boolean;
+    selectedAccountId: string;
+    selectedGroupAccountIds: string[];
+  }>,
 ): DeepPartial<RootState> => ({
   engine: {
     backgroundState: {
       PerpsController: {
-        isTestnet: false,
-        ...overrides,
+        isTestnet: overrides?.isTestnet ?? false,
       },
       AccountsController: {
         internalAccounts: {
-          selectedAccount: 'account-1',
+          selectedAccount: overrides?.selectedAccountId ?? 'account-1',
           accounts: {
             'account-1': {
               id: 'account-1',
@@ -85,6 +90,53 @@ const createMockState = (
               scopes: ['eip155:1'],
               methods: [],
               options: {},
+            },
+            'account-btc': {
+              id: 'account-btc',
+              type: 'bip122:p2wpkh',
+              address: mockNonEvmAddress,
+              metadata: {
+                name: 'Bitcoin Account',
+                keyring: { type: 'Snap Keyring' },
+                importTime: 1234567890,
+                lastSelected: 1234567891,
+              },
+              scopes: ['bip122:000000000019d6689c085ae165831e93'],
+              methods: [],
+              options: {},
+            },
+          },
+        },
+      },
+      KeyringController: {
+        keyrings: [
+          {
+            accounts: [mockUserAddress],
+            type: 'HD Key Tree',
+          },
+        ],
+      },
+      AccountTreeController: {
+        selectedAccountGroup: 'entropy:wallet-1/0',
+        accountTree: {
+          wallets: {
+            'entropy:wallet-1': {
+              id: 'entropy:wallet-1',
+              metadata: {
+                name: 'Wallet 1',
+              },
+              groups: {
+                'entropy:wallet-1/0': {
+                  id: 'entropy:wallet-1/0',
+                  metadata: {
+                    name: 'Account 1',
+                  },
+                  accounts: overrides?.selectedGroupAccountIds ?? [
+                    'account-1',
+                    'account-btc',
+                  ],
+                },
+              },
             },
           },
         },
@@ -209,6 +261,50 @@ describe('usePerpsPositionForAsset', () => {
         standalone: true,
         userAddress: mockUserAddress,
       });
+    });
+
+    it('uses the selected account group EVM address when the selected account is non-EVM', async () => {
+      renderHookWithProvider(() => usePerpsPositionForAsset('ETH'), {
+        state: createMockState({ selectedAccountId: 'account-btc' }),
+      });
+
+      await waitFor(() => {
+        expect(mockGetPositions).toHaveBeenCalledWith({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+      });
+
+      expect(mockGetAccountState).toHaveBeenCalledWith({
+        standalone: true,
+        userAddress: mockUserAddress,
+      });
+      expect(mockGetAccountState).not.toHaveBeenCalledWith(
+        expect.objectContaining({ userAddress: mockNonEvmAddress }),
+      );
+    });
+
+    it('returns empty state when the selected account group has no EVM account', async () => {
+      const { result } = renderHookWithProvider(
+        () => usePerpsPositionForAsset('ETH'),
+        {
+          state: createMockState({
+            selectedAccountId: 'account-btc',
+            selectedGroupAccountIds: ['account-btc'],
+          }),
+        },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.position).toBeNull();
+      expect(result.current.hasFundsInPerps).toBe(false);
+      expect(result.current.accountState).toBeNull();
+      expect(result.current.error).toBeNull();
+      expect(mockGetPositions).not.toHaveBeenCalled();
+      expect(mockGetAccountState).not.toHaveBeenCalled();
     });
 
     it('handles case-insensitive symbol matching', async () => {

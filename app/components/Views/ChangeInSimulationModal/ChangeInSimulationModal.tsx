@@ -1,4 +1,5 @@
 import React, { useCallback, useRef } from 'react';
+import { RouteProp, useRoute } from '@react-navigation/native';
 import { StyleSheet, View } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import BottomSheet, {
@@ -16,7 +17,7 @@ import {
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
-import Text from '../../../component-library/components/Texts/Text';
+import { Text } from '@metamask/design-system-react-native';
 
 export const PROCEED_BUTTON_TEST_ID = 'proceed-button';
 export const REJECT_BUTTON_TEST_ID = 'reject-button';
@@ -38,11 +39,16 @@ const createStyles = () =>
     },
   });
 
-const ChangeInSimulationModal = ({
-  route,
-}: {
-  route: { params: { onProceed: () => void; onReject: () => void } };
-}) => {
+interface ChangeInSimulationModalRouteParams {
+  onProceed: () => void;
+  onReject: () => void;
+}
+
+const ChangeInSimulationModal = () => {
+  const route =
+    useRoute<
+      RouteProp<{ params: ChangeInSimulationModalRouteParams }, 'params'>
+    >();
   const styles = createStyles();
   const sheetRef = useRef<BottomSheetRef>(null);
   const { onProceed, onReject } = route.params;

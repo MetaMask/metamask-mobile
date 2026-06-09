@@ -1,13 +1,22 @@
 import React from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Box,
+  HeaderStandard,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  useCardHeaderHandlers,
+  type CardHeaderMode,
+} from '../../hooks/useCardHeaderHandlers';
 
 interface OnboardingStepProps {
   title: string;
-  description: string;
+  description?: string;
   formFields: React.ReactNode;
   actions: React.ReactNode;
   /**
@@ -16,6 +25,11 @@ interface OnboardingStepProps {
    * @default false
    */
   stickyActions?: boolean;
+  /**
+   * Controls the in-screen header rendered via HeaderStandard.
+   * Navigator headers are hidden; onboarding screens own their header chrome.
+   */
+  headerMode?: CardHeaderMode;
 }
 
 const OnboardingStep = ({
@@ -24,8 +38,24 @@ const OnboardingStep = ({
   formFields,
   actions,
   stickyActions = false,
+  headerMode = 'none',
 }: OnboardingStepProps) => {
   const tw = useTailwind();
+  const headerHandlers = useCardHeaderHandlers(headerMode);
+
+  const renderHeader = () => {
+    if (headerMode === 'none') {
+      return null;
+    }
+
+    return (
+      <HeaderStandard
+        includesTopInset
+        twClassName="bg-background-default"
+        {...headerHandlers}
+      />
+    );
+  };
 
   const renderContent = () => (
     <>
@@ -40,14 +70,15 @@ const OnboardingStep = ({
           {title}
         </Text>
 
-        {/* Description */}
-        <Text
-          variant={TextVariant.BodyMd}
-          testID="onboarding-step-description"
-          twClassName="text-text-alternative"
-        >
-          {description}
-        </Text>
+        {description ? (
+          <Text
+            variant={TextVariant.BodyMd}
+            testID="onboarding-step-description"
+            twClassName="text-text-alternative"
+          >
+            {description}
+          </Text>
+        ) : null}
       </Box>
       {/* Form */}
       <Box testID="onboarding-step-form" twClassName="gap-4 flex-1">
@@ -62,10 +93,10 @@ const OnboardingStep = ({
         style={tw.style('flex-1 bg-background-default')}
         edges={['bottom']}
       >
+        {renderHeader()}
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={tw.style('flex-1')}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
         >
           <ScrollView
             contentContainerStyle={tw.style('flex-grow px-4')}
@@ -93,6 +124,7 @@ const OnboardingStep = ({
       style={tw.style('flex-1 bg-background-default')}
       edges={['bottom']}
     >
+      {renderHeader()}
       <KeyboardAwareScrollView
         contentContainerStyle={tw.style('flex-grow px-4')}
         showsVerticalScrollIndicator={false}

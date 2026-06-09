@@ -1,5 +1,6 @@
 import type { DeepPartial } from 'app/util/test/renderWithProvider';
 import type { RootState } from 'app/reducers';
+import { BtcAccountType } from '@metamask/keyring-api';
 
 /**
  * Base state overrides for Send view component tests.
@@ -52,6 +53,12 @@ export interface TronSendFixture {
   tronOverrides: DeepPartial<RootState>;
   recipientAddresses: [string, string];
 }
+
+export const NON_EVM_SOLANA_ACCOUNT_ID = 'solana-acc-1';
+export const NON_EVM_BTC_ACCOUNT_ID = 'btc-acc-1';
+
+const SOLANA_MAINNET_SCOPE = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+const BTC_MAINNET_SCOPE = 'bip122:000000000019d6689c085ae165831e93';
 
 /**
  * Builds state overrides and recipient addresses for TRON send view tests.
@@ -117,7 +124,7 @@ export function buildTronSendFixture(
     ...sendViewOverrides,
     engine: {
       backgroundState: {
-        ...(baseEngine?.backgroundState ?? {}),
+        ...baseEngine?.backgroundState,
         MultichainNetworkController: {
           isEvmSelected: false,
         },
@@ -129,7 +136,6 @@ export function buildTronSendFixture(
         },
         AccountTreeController: {
           accountTree: {
-            selectedAccountGroup: TRON_SEND_GROUP_ID,
             wallets: {
               [TRON_SEND_WALLETS_KEY]: {
                 id: TRON_SEND_WALLETS_KEY,
@@ -143,6 +149,7 @@ export function buildTronSendFixture(
                       name: 'Group 1',
                       pinned: false,
                       hidden: false,
+                      lastSelected: 0,
                     },
                     accounts: TRON_SEND_ACCOUNT_IDS,
                   },
@@ -150,6 +157,7 @@ export function buildTronSendFixture(
               },
             },
           },
+          selectedAccountGroup: TRON_SEND_GROUP_ID,
         },
         RemoteFeatureFlagController: {
           remoteFeatureFlags: {
@@ -189,6 +197,48 @@ export function buildAddressBookOverridesWithEvmContact(
         },
         MultichainNetworkController: {
           isEvmSelected: false,
+        },
+      },
+    },
+  } as unknown as DeepPartial<RootState>;
+}
+
+/**
+ * Builds non-EVM internal accounts (Solana + Bitcoin) for send CV tests that
+ * need a concrete `fromAccount` to drive snap amount/submit validation.
+ */
+export function buildNonEvmSendAccountsOverrides(): DeepPartial<RootState> {
+  return {
+    engine: {
+      backgroundState: {
+        AccountsController: {
+          internalAccounts: {
+            accounts: {
+              [NON_EVM_SOLANA_ACCOUNT_ID]: {
+                id: NON_EVM_SOLANA_ACCOUNT_ID,
+                address: '11111111111111111111111111111111',
+                type: 'solana:data-account',
+                options: {},
+                methods: [],
+                metadata: {
+                  name: 'Solana Account 1',
+                },
+                scopes: [SOLANA_MAINNET_SCOPE],
+              },
+              [NON_EVM_BTC_ACCOUNT_ID]: {
+                id: NON_EVM_BTC_ACCOUNT_ID,
+                address: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
+                type: BtcAccountType.P2wpkh,
+                options: {},
+                methods: [],
+                metadata: {
+                  name: 'Bitcoin Account 1',
+                },
+                scopes: [BTC_MAINNET_SCOPE],
+              },
+            },
+            selectedAccount: NON_EVM_SOLANA_ACCOUNT_ID,
+          },
         },
       },
     },

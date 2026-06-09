@@ -1,18 +1,16 @@
-import { SetStateAction, useCallback, useMemo, useRef, useState } from 'react';
-
+import { SetStateAction, useCallback, useRef, useState } from 'react';
 import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
-import { RouteProp, useRoute } from '@react-navigation/native';
-import { PredictNavigationParamList } from '../../../types/navigation';
 
-export const usePredictBuyInputState = () => {
-  const { activeOrder, updateActiveOrder } = usePredictActiveOrder();
+interface UsePredictBuyInputStateOptions {
+  initialKeypadOpen?: boolean;
+}
 
-  const route =
-    useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
+export const usePredictBuyInputState = ({
+  initialKeypadOpen = true,
+}: UsePredictBuyInputStateOptions = {}) => {
+  const { clearOrderError } = usePredictActiveOrder();
 
-  const { isConfirming: initialIsConfirmingFromRoute = false } = route.params;
-
-  const currentValue = activeOrder?.amount ?? 0;
+  const [currentValue, setCurrentValueState] = useState(0);
 
   const currentValueRef = useRef(currentValue);
   currentValueRef.current = currentValue;
@@ -21,24 +19,18 @@ export const usePredictBuyInputState = () => {
     currentValue ? currentValue.toString() : '',
   );
 
-  const isInputFocused = useMemo(
-    () => activeOrder?.isInputFocused ?? false,
-    [activeOrder],
-  );
+  const [isKeypadOpen, setIsKeypadOpenState] = useState(initialKeypadOpen);
+  const shouldSyncCurrentValueRef = useRef(false);
+  const shouldClearAmountErrorRef = useRef(false);
+  const shouldSyncKeypadOpenRef = useRef(false);
 
-  const setIsInputFocused = useCallback(
-    (_isInputFocused: boolean) => {
-      updateActiveOrder({
-        isInputFocused: _isInputFocused,
-      });
-    },
-    [updateActiveOrder],
-  );
+  const setIsKeypadOpen = useCallback((nextIsKeypadOpen: boolean) => {
+    shouldSyncKeypadOpenRef.current = true;
+    setIsKeypadOpenState(nextIsKeypadOpen);
+  }, []);
 
   const [isUserInputChange, setIsUserInputChange] = useState(false);
-  const [isConfirming, setIsConfirming] = useState(
-    initialIsConfirmingFromRoute,
-  );
+  const [isConfirming, setIsConfirming] = useState(false);
 
   const setCurrentValue = useCallback(
     (value: SetStateAction<number>) => {
@@ -50,16 +42,19 @@ export const usePredictBuyInputState = () => {
 
       const isUserInput = nextValue !== previousValue && nextValue > 0;
 
+      if (isUserInput) {
+        clearOrderError();
+      }
+
       if (nextValue !== previousValue) {
         setIsUserInputChange(isUserInput);
       }
 
-      updateActiveOrder({
-        amount: nextValue,
-        ...(isUserInput ? { error: null } : {}),
-      });
+      shouldSyncCurrentValueRef.current = true;
+      shouldClearAmountErrorRef.current = isUserInput;
+      setCurrentValueState(nextValue);
     },
-    [updateActiveOrder],
+    [clearOrderError],
   );
 
   return {
@@ -67,8 +62,8 @@ export const usePredictBuyInputState = () => {
     setCurrentValue,
     currentValueUSDString,
     setCurrentValueUSDString,
-    isInputFocused,
-    setIsInputFocused,
+    isKeypadOpen,
+    setIsKeypadOpen,
     isUserInputChange,
     setIsUserInputChange,
     isConfirming,

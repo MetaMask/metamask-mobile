@@ -25,8 +25,14 @@ import { Hex } from '@metamask/utils';
 import { ethers } from 'ethers';
 import { toFormattedAddress } from '../../../../util/address';
 import Routes from '../../../../constants/navigation/Routes';
-import { useNavigation } from '@react-navigation/native';
 import Engine from '../../../../core/Engine';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+
+export const isBridgeTxHistoryItemBridge = (
+  bridgeTxHistoryItem: BridgeHistoryItem,
+) =>
+  bridgeTxHistoryItem.quote.srcChainId !==
+  bridgeTxHistoryItem.quote.destChainId;
 
 export const getSwapBridgeTxActivityTitle = (
   bridgeTxHistoryItem: BridgeHistoryItem,
@@ -34,8 +40,7 @@ export const getSwapBridgeTxActivityTitle = (
   const { quote } = bridgeTxHistoryItem;
 
   // Swap
-  const isSwap = quote.srcAsset.chainId === quote.destAsset.chainId;
-  if (isSwap) {
+  if (!isBridgeTxHistoryItemBridge(bridgeTxHistoryItem)) {
     return strings('swaps.transaction_label.swap', {
       sourceToken: quote.srcAsset.symbol,
       destinationToken: quote.destAsset.symbol,
@@ -140,12 +145,15 @@ export const decodeSwapsTx = (args: {
 
   const sourceTokenSymbol = quote.srcAsset?.symbol;
   const destTokenSymbol = quote.destAsset?.symbol;
-  const rawSourceAmount = parseFloat(
-    ethers.utils.formatUnits(
-      bridgeTxHistoryItem.quote.srcTokenAmount,
-      quote.srcAsset.decimals,
-    ),
-  );
+  const rawSourceAmount =
+    quote.gasSponsored && bridgeTxHistoryItem.pricingData?.amountSent
+      ? parseFloat(bridgeTxHistoryItem.pricingData.amountSent)
+      : parseFloat(
+          ethers.utils.formatUnits(
+            bridgeTxHistoryItem.quote.srcTokenAmount,
+            quote.srcAsset.decimals,
+          ),
+        );
   const sourceAmountSent = formatAmountWithThreshold(rawSourceAmount, 5);
 
   const renderTo = tx.txParams.to;
@@ -240,7 +248,7 @@ export const handleUnifiedSwapsTxHistoryItemClick = ({
   multiChainTx,
   bridgeTxHistoryItem,
 }: {
-  navigation: ReturnType<typeof useNavigation>;
+  navigation: AppNavigationProp;
   evmTxMeta?: TransactionMeta;
   multiChainTx?: Transaction;
   bridgeTxHistoryItem?: BridgeHistoryItem;
@@ -252,8 +260,8 @@ export const handleUnifiedSwapsTxHistoryItemClick = ({
 
   // Reset attempts if the bridge transaction has reached the max attempts and user has clicked on the transaction
   if (bridgeTxHistoryItem) {
-    const { quote, attempts } = bridgeTxHistoryItem;
-    const isBridge = quote.srcAsset.chainId !== quote.destAsset.chainId;
+    const { attempts } = bridgeTxHistoryItem;
+    const isBridge = isBridgeTxHistoryItemBridge(bridgeTxHistoryItem);
 
     if (isBridge && attempts && attempts.counter >= MAX_ATTEMPTS) {
       Engine.context.BridgeStatusController.restartPollingForFailedAttempts({

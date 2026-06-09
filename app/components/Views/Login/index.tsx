@@ -7,13 +7,13 @@ import React, {
 } from 'react';
 import {
   Alert,
-  SafeAreaView,
   BackHandler,
   TouchableOpacity,
   Platform,
   Image,
-  StatusBar,
+  TextInput,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -21,15 +21,10 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
-  TextVariant,
-  FontWeight,
   TextField,
-  TextFieldSize,
   Button,
   ButtonSize,
   ButtonVariant,
-  Text,
-  TextColor,
 } from '@metamask/design-system-react-native';
 import { ThemeContext } from '../../../util/theme';
 import { TextVariant as DSTextVariant } from '../../../component-library/components/Texts/Text';
@@ -49,7 +44,9 @@ import { Dispatch } from 'redux';
 import { DeviceAuthenticationButton } from '../../UI/DeviceAuthenticationButton';
 import Logger from '../../../util/Logger';
 import Routes from '../../../constants/navigation/Routes';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorBoundary from '../ErrorBoundary';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { createRestoreWalletNavDetailsNested } from '../RestoreWallet/RestoreWallet';
 import { parseVaultValue } from '../../../util/validators';
 import { getVaultFromBackup } from '../../../core/BackupVault';
@@ -69,7 +66,6 @@ import HelpText, {
   HelpTextSeverity,
 } from '../../../component-library/components/Form/HelpText';
 import {
-  DENY_PIN_ERROR_ANDROID,
   JSON_PARSE_ERROR_UNEXPECTED_TOKEN,
   VAULT_ERROR,
   PASSCODE_NOT_SET_ERROR,
@@ -77,7 +73,6 @@ import {
   WRONG_PASSWORD_ERROR_ANDROID,
   WRONG_PASSWORD_ERROR_ANDROID_2,
 } from './constants';
-import { UNLOCK_WALLET_ERROR_MESSAGES } from '../../../core/Authentication/constants';
 import {
   RouteProp,
   StackActions,
@@ -88,11 +83,12 @@ import ReduxService from '../../../core/redux';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import type { AnalyticsTrackingEvent } from '../../../util/analytics/AnalyticsEventBuilder';
 import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
-import { isE2E } from '../../../util/test/utils';
+import { hasTestOverrides } from '../../../util/test/utils';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import useAuthentication from '../../../core/Authentication/hooks/useAuthentication';
 import { SeedlessOnboardingControllerError } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
 import useAuthCapabilities from '../../../core/Authentication/hooks/useAuthCapabilities';
+import { isBiometricUnlockCancelledByUser } from '../../../core/Authentication/utils';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 
 interface LoginRouteParams {
@@ -107,7 +103,7 @@ interface LoginProps {
  * View where returning users can authenticate
  */
 const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
-  const fieldRef = useRef<React.ElementRef<typeof TextField> | null>(null);
+  const fieldRef = useRef<TextInput | null>(null);
 
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -140,18 +136,21 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       op: TraceOperation.Login,
     });
     trackOnboarding(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, saveOnboardingEvent);
-    BackHandler.addEventListener('hardwareBackPress', handleBackPress);
+    const backHandlerSubscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      handleBackPress,
+    );
 
     setStartFoxAnimation('Start');
 
     return () => {
-      BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
+      backHandlerSubscription.remove();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    if (Platform.OS === 'android' && !isE2E) {
+    if (Platform.OS === 'android' && !hasTestOverrides) {
       KeyboardController.setInputMode(
         AndroidSoftInputModes.SOFT_INPUT_ADJUST_PAN,
       );
@@ -231,11 +230,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       }
 
       const isBiometricCancellation =
-        containsErrorMessage(loginError, DENY_PIN_ERROR_ANDROID) ||
-        containsErrorMessage(
-          loginError,
-          UNLOCK_WALLET_ERROR_MESSAGES.IOS_USER_CANCELLED_BIOMETRICS,
-        );
+        isBiometricUnlockCancelledByUser(loginError);
 
       if (isBiometricCancellation) {
         setLoading(false);
@@ -397,14 +392,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
   return (
     <ErrorBoundary navigation={navigation} view="Login">
-      <SafeAreaView
-        style={[
-          tw.style('flex-1'),
-          Platform.OS === 'android' && {
-            paddingTop: StatusBar.currentHeight ?? 0,
-          },
-        ]}
-      >
+      <SafeAreaView style={tw.style('flex-1')}>
         <KeyboardAwareScrollView
           keyboardShouldPersistTaps="handled"
           style={tw.style('flex-1')}
@@ -439,15 +427,9 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
             >
               <TextField
                 placeholder={strings('login.password_placeholder')}
-                testID={LoginViewSelectors.PASSWORD_INPUT}
-                accessibilityLabel={LoginViewSelectors.PASSWORD_INPUT}
-                returnKeyType={'done'}
-                autoCapitalize="none"
-                secureTextEntry
-                ref={fieldRef}
+                inputRef={fieldRef}
                 onChangeText={handlePasswordChange}
                 value={password}
-                onSubmitEditing={unlockWithPassword}
                 endAccessory={
                   capabilities ? (
                     <DeviceAuthenticationButton
@@ -458,10 +440,17 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                     />
                   ) : null
                 }
-                keyboardAppearance={themeAppearance}
                 isError={!!error}
                 isDisabled={loading}
-                size={TextFieldSize.Lg}
+                inputProps={{
+                  testID: LoginViewSelectors.PASSWORD_INPUT,
+                  accessibilityLabel: LoginViewSelectors.PASSWORD_INPUT,
+                  returnKeyType: 'done',
+                  autoCapitalize: 'none',
+                  secureTextEntry: true,
+                  onSubmitEditing: unlockWithPassword,
+                  keyboardAppearance: themeAppearance,
+                }}
               />
             </Box>
 
@@ -500,28 +489,22 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
               >
                 {strings('login.unlock_button')}
               </Button>
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessible
-                testID={LoginViewSelectors.RESET_WALLET}
+              <Button
+                variant={ButtonVariant.Tertiary}
+                size={ButtonSize.Lg}
                 onPress={toggleWarningModal}
-                disabled={loading}
-                style={tw.style('my-0 self-center pt-4')}
+                isDisabled={loading}
+                testID={LoginViewSelectors.RESET_WALLET}
+                isFullWidth
+                twClassName="mt-4"
               >
-                <Text
-                  twClassName="self-center"
-                  color={TextColor.TextAlternative}
-                  fontWeight={FontWeight.Medium}
-                  variant={TextVariant.BodyMd}
-                >
-                  {strings('login.forgot_password')}
-                </Text>
-              </TouchableOpacity>
+                {strings('login.forgot_password')}
+              </Button>
             </Box>
           </Box>
         </KeyboardAwareScrollView>
         <FadeOutOverlay />
-        {!isE2E && (
+        {!hasTestOverrides && (
           <TouchableOpacity
             style={tw.style('absolute bottom-0 left-0 right-0 h-[200px]')}
             delayLongPress={10 * 1000} // 10 seconds

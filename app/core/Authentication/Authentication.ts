@@ -17,8 +17,8 @@ import {
   setIsConnectionRemoved,
 } from '../../actions/user';
 import {
+  clearOnboarding,
   setCompletedOnboarding,
-  clearAccountType,
 } from '../../actions/onboarding';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import AuthenticationError from './AuthenticationError';
@@ -34,6 +34,7 @@ import StorageWrapper from '../../store/storage-wrapper';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import { TraceName, TraceOperation, trace, endTrace } from '../../util/trace';
+import { isE2EMockOAuth } from '../../util/environment';
 import { discoverAccounts } from '../../multichain-accounts/discovery';
 import ReduxService from '../redux';
 import { retryWithExponentialDelay } from '../../util/exponential-retry';
@@ -93,6 +94,7 @@ import { IconName } from '@metamask/design-system-react-native';
 import { containsErrorMessage } from '../../util/errorHandling';
 import { ensureError } from '../../util/errorUtils';
 import { captureException } from '@sentry/react-native';
+import { navigateToPostUnlockHome } from '../DeeplinkManager/utils/startupDeeplinkNavigation';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -129,6 +131,7 @@ class AuthenticationService {
     await MultichainAccountService.init();
 
     ReduxService.store.dispatch(logIn());
+    ReduxService.store.dispatch(setCompletedOnboarding(true));
   }
 
   /**
@@ -143,6 +146,20 @@ class AuthenticationService {
   private dispatchPasswordSet(): void {
     ReduxService.store.dispatch(passwordSet());
   }
+
+  /**
+   * Clears all auth-related storage flags and resets the allow-login-with-remember-me
+   * Redux state. Centralised here so that both `storePassword` and `resetPassword`
+   * stay in sync when new flags are added in the future.
+   */
+  private clearAuthStorageFlags = async (): Promise<void> => {
+    await StorageWrapper.removeItem(BIOMETRY_CHOICE_DISABLED);
+    await StorageWrapper.removeItem(PASSCODE_DISABLED);
+    await StorageWrapper.removeItem(PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME);
+    if (ReduxService.store.getState().security?.allowLoginWithRememberMe) {
+      ReduxService.store.dispatch(setAllowLoginWithRememberMe(false));
+    }
+  };
 
   private dispatchLogout(): void {
     ReduxService.store.dispatch(logOut());
@@ -381,13 +398,8 @@ class AuthenticationService {
       // Store password in keychain with appropriate type
       await SecureKeychain.setGenericPassword(password, authType);
 
-      // Remove legacy authentication flags
-      await StorageWrapper.removeItem(BIOMETRY_CHOICE_DISABLED);
-      await StorageWrapper.removeItem(PASSCODE_DISABLED);
-      await StorageWrapper.removeItem(PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME);
-      if (ReduxService.store.getState().security?.allowLoginWithRememberMe) {
-        ReduxService.store.dispatch(setAllowLoginWithRememberMe(false));
-      }
+      // Remove legacy authentication flags and reset remember-me state
+      await this.clearAuthStorageFlags();
 
       // Keep Redux in sync with keychain so getAuthCapabilities reflects actual access control
       this.updateOsAuthEnabled(
@@ -414,6 +426,9 @@ class AuthenticationService {
   resetPassword = async () => {
     try {
       await SecureKeychain.resetGenericPassword();
+
+      await this.clearAuthStorageFlags();
+      this.updateOsAuthEnabled(false);
     } catch (error) {
       throw new AuthenticationError(
         `${AUTHENTICATION_RESET_PASSWORD_FAILED_MESSAGE} ${
@@ -538,8 +553,7 @@ class AuthenticationService {
     authData: AuthData,
   ): Promise<void> => {
     try {
-      // check for oauth2 login
-      if (authData.oauth2Login) {
+      if (authData.oauth2Login && !isE2EMockOAuth()) {
         await this.createAndBackupSeedPhrase(password);
       } else {
         await this.createWalletVaultAndKeychain(password);
@@ -722,15 +736,18 @@ class AuthenticationService {
    *
    * @param options - Options for unlocking the wallet.
    * @param options.password - The password to use to unlock the wallet.
+   * @param options.onBeforeNavigate - When set, awaited after unlock succeeds and before navigation to home/opt-in.
    * @returns - void
    */
   unlockWallet = async (
     {
       password,
       authPreference,
+      onBeforeNavigate,
     }: {
       password?: string;
       authPreference?: AuthData;
+      onBeforeNavigate?: () => Promise<void>;
     } = {
       password: undefined,
       authPreference: undefined,
@@ -796,6 +813,10 @@ class AuthenticationService {
           // Mark user as existing after successful unlock
           ReduxService.store.dispatch(setExistingUser(true));
 
+          if (onBeforeNavigate) {
+            await onBeforeNavigate();
+          }
+
           // TODO: Refactor this orchestration to sagas.
           // Navigate to optin metrics or home screen based on metrics consent and UI seen.
           const isMetricsEnabled = analytics.isEnabled();
@@ -817,9 +838,7 @@ class AuthenticationService {
               ],
             });
           } else {
-            NavigationService.navigation?.reset({
-              routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-            });
+            await navigateToPostUnlockHome();
           }
         } else {
           // No password provided or derived. Navigate to login.
@@ -841,9 +860,42 @@ class AuthenticationService {
     } catch (error) {
       // Error while submitting password.
 
+      let shouldResetOnLock = false;
+      // Only check for specific error messages when the thrown value is an actual
+      // Error instance; strings or other primitives should not trigger the alert.
+      if (
+        error instanceof Error &&
+        error.message.includes(
+          UNLOCK_WALLET_ERROR_MESSAGES.USER_NOT_AUTHENTICATED,
+        )
+      ) {
+        shouldResetOnLock = await new Promise<boolean>((resolve) => {
+          // Alert user biometric changed
+          Alert.alert(
+            strings('login.biometric_changed'),
+            strings('login.biometric_changed_alert_desc'),
+            [
+              {
+                text: strings('login.biometric_changed_alert_confirm'),
+                onPress: async () => {
+                  resolve(true);
+                },
+              },
+            ],
+            {
+              // Prevent dismissing without confirmation, which can otherwise deadlock unlock flow.
+              cancelable: false,
+            },
+          );
+        });
+      }
+
       // TODO: Refactor lockApp to be more deterministic or create another clean up method.
       try {
-        await this.lockApp({ reset: false, navigateToLogin: false });
+        await this.lockApp({
+          reset: shouldResetOnLock,
+          navigateToLogin: false,
+        });
       } catch (lockError) {
         // Log but don't replace the original error
         Logger.error(
@@ -1082,7 +1134,7 @@ class AuthenticationService {
     );
     const entropySource = wallet.entropySource;
 
-    const [newAccountAddress] = await KeyringController.withKeyring(
+    const [newAccount] = await KeyringController.withKeyringV2(
       { id: entropySource },
       async ({ keyring }) => keyring.getAccounts(),
     );
@@ -1098,7 +1150,7 @@ class AuthenticationService {
       // handle seedless controller import error by reverting keyring controller mnemonic import
       await MultichainAccountService.removeMultichainAccountWallet(
         entropySource,
-        newAccountAddress,
+        newAccount.address,
       );
       throw error;
     }
@@ -1550,17 +1602,16 @@ class AuthenticationService {
    * Deletes the wallet by resetting wallet state and deleting user data.
    * This is the main public method for wallet deletion/reset flows.
    * It calls resetWalletState() followed by deleteUser(), and also clears
-   * metrics opt-in UI state and resets onboarding completion status.
+   * metrics opt-in UI state and resets onboarding Redux state.
    *
    * @returns {Promise<void>}
    */
   deleteWallet = async (): Promise<void> => {
     await this.resetWalletState();
     await this.deleteUser();
-    // Clear metrics opt-in UI state and reset onboarding completion
+    // Clear metrics opt-in UI state and reset onboarding Redux state
     await StorageWrapper.removeItem(OPTIN_META_METRICS_UI_SEEN);
-    ReduxService.store.dispatch(setCompletedOnboarding(false));
-    ReduxService.store.dispatch(clearAccountType());
+    ReduxService.store.dispatch(clearOnboarding());
   };
 
   /**

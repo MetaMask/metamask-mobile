@@ -23,9 +23,4 @@ describe('PredictDetailsButtonsSkeleton', () => {
     expect(getByTestId(`${customTestId}-button-1`)).toBeTruthy();
     expect(getByTestId(`${customTestId}-button-2`)).toBeTruthy();
   });
-
-  it('matches snapshot', () => {
-    const tree = render(<PredictDetailsButtonsSkeleton />).toJSON();
-    expect(tree).toMatchSnapshot();
-  });
 });

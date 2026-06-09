@@ -1,4 +1,3 @@
-///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import InstallSnapPermissionsRequest from '../InstallSnapPermissionsRequest';
@@ -59,4 +58,3 @@ describe('InstallSnapPermissionsRequest', () => {
     expect(permissionCells).toHaveLength(3);
   });
 });
-///: END:ONLY_INCLUDE_IF

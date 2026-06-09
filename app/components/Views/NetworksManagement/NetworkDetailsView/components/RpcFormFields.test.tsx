@@ -25,7 +25,7 @@ const defaultProps = {
   onRpcUrlValidationChange: jest.fn(),
   styles,
   themeAppearance: 'light' as const,
-  placeholderTextColor: '#999',
+  placeholderTextColor: mockTheme.colors.text.muted,
 };
 
 describe('RpcFormFields', () => {

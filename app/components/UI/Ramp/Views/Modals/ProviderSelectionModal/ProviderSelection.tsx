@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
-import { StyleSheet } from 'react-native';
-import { FlatList } from 'react-native-gesture-handler';
 import {
+  HeaderStandard,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -11,13 +10,14 @@ import {
   TextColor,
   FontWeight,
 } from '@metamask/design-system-react-native';
+import { StyleSheet } from 'react-native';
+import { FlatList } from 'react-native-gesture-handler';
 import { PaymentType } from '@consensys/on-ramp-sdk';
-import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import ListItemSelect from '../../../../../../component-library/components/List/ListItemSelect';
 import ListItemColumn, {
   WidthType,
 } from '../../../../../../component-library/components/List/ListItemColumn';
-import { Skeleton } from '../../../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import type {
   Provider,
   Quote,
@@ -31,6 +31,8 @@ import PaymentSelectionAlert from '../PaymentSelectionModal/PaymentSelectionAler
 import PaymentMethodIcon from '../../../Aggregator/components/PaymentMethodIcon';
 import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { useTheme } from '../../../../../../util/theme';
+import { providerSupportsAsset } from '../../../utils/providerSupportsAsset';
+import { getProviderLimitMessage } from '../../../utils/getProviderLimitMessage';
 
 const SKELETON_ROW_COUNT = 5;
 const SKELETON_NAME_WIDTH = 120;
@@ -43,6 +45,7 @@ const styles = StyleSheet.create({
 
 interface ProviderSelectionProps {
   providers?: Provider[];
+  amount?: number;
   quotes: QuotesResponse | null;
   quotesLoading: boolean;
   quotesError: string | null;
@@ -147,6 +150,7 @@ function getProviderTag(
 
 const ProviderSelection: React.FC<ProviderSelectionProps> = ({
   providers: providersOverride,
+  amount = 0,
   quotes,
   quotesLoading,
   quotesError,
@@ -175,7 +179,27 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
 
   const sortedListItems = useMemo((): ProviderListItem[] => {
     if (!displayQuotes || !quotes || quotesLoading) {
-      return providers.map((provider) => ({ type: 'provider', provider }));
+      // When quotes aren't available, separate by supportedCryptoCurrencies
+      const assetId = selectedToken?.assetId;
+      const [supported, unsupported] = providers.reduce<
+        [ProviderListItem[], ProviderListItem[]]
+      >(
+        ([sup, unsup], provider) => {
+          const item: ProviderListItem = { type: 'provider', provider };
+          if (!assetId) {
+            return [[...sup, item], unsup];
+          }
+          return providerSupportsAsset(provider, assetId)
+            ? [[...sup, item], unsup]
+            : [sup, [...unsup, item]];
+        },
+        [[], []],
+      );
+
+      if (assetId && supported.length > 0 && unsupported.length > 0) {
+        return [...supported, { type: 'separator' as const }, ...unsupported];
+      }
+      return [...supported, ...unsupported];
     }
 
     const sortOrder =
@@ -219,7 +243,7 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
     }
 
     return items;
-  }, [providers, quotes, quotesLoading, displayQuotes]);
+  }, [providers, quotes, quotesLoading, displayQuotes, selectedToken?.assetId]);
 
   const handleProviderSelect = useCallback(
     (provider: Provider, _matchedQuote: Quote | null) => {
@@ -249,6 +273,10 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
           (q) => q.provider === provider.id && !isCustomActionQuote(q),
         ) ??
         null;
+      const providerError = showQuotes
+        ? quotes?.error?.find((e) => e.provider === provider.id)?.error
+        : undefined;
+      const isUnavailable = Boolean(providerError && !matchedQuote);
       const amountOut = matchedQuote?.quote?.amountOut;
       const cryptoAmount =
         amountOut != null && symbol
@@ -262,14 +290,31 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
           ? formatCurrency(Number(matchedQuote.quote.amountOutInFiat), currency)
           : null;
       const isSelected = selectedProvider?.id === provider.id;
-      const tag = displayQuotes
-        ? getProviderTag(provider.id, matchedQuote, ordersProviders)
-        : null;
+      const tag =
+        !isUnavailable && displayQuotes
+          ? getProviderTag(provider.id, matchedQuote, ordersProviders)
+          : null;
+      const subtitle = isUnavailable
+        ? (getProviderLimitMessage({
+            provider,
+            fiatCurrency: currency,
+            paymentMethodId: selectedPaymentMethod?.id,
+            amount,
+            currency,
+            formatCurrency,
+            backendError: providerError,
+          }) ?? strings('fiat_on_ramp.quote_unavailable'))
+        : tag;
 
       return (
         <ListItemSelect
           isSelected={isSelected}
-          onPress={() => handleProviderSelect(provider, matchedQuote)}
+          isDisabled={isUnavailable}
+          onPress={
+            isUnavailable
+              ? undefined
+              : () => handleProviderSelect(provider, matchedQuote)
+          }
           accessibilityRole="button"
           accessible
         >
@@ -277,12 +322,12 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
             <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
               {provider.name}
             </Text>
-            {tag ? (
+            {subtitle ? (
               <Text
                 variant={TextVariant.BodySm}
                 color={TextColor.TextAlternative}
               >
-                {tag}
+                {subtitle}
               </Text>
             ) : null}
           </ListItemColumn>
@@ -299,11 +344,13 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
     },
     [
       quotes,
+      amount,
       symbol,
       currency,
       selectedProvider,
       selectedPaymentMethod,
       displayQuotes,
+      showQuotes,
       ordersProviders,
       handleProviderSelect,
       formatToken,
@@ -320,7 +367,7 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
   if (providers.length === 0) {
     return (
       <Box twClassName="flex-1 min-h-0">
-        <HeaderCompactStandard
+        <HeaderStandard
           title={strings('fiat_on_ramp.providers')}
           onBack={showBackButton ? onBack : undefined}
         />
@@ -340,7 +387,7 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
 
   return (
     <Box twClassName="flex-1 min-h-0">
-      <HeaderCompactStandard
+      <HeaderStandard
         title={strings('fiat_on_ramp.providers')}
         onBack={showBackButton ? onBack : undefined}
       />

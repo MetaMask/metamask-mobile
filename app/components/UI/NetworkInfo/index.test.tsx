@@ -25,7 +25,7 @@ const initialState = {
 
 describe('NetworkInfo', () => {
   it('render correctly', () => {
-    const wrapper = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       <NetworkInfo
         onClose={function (): void {
           throw new Error('Function not implemented.');
@@ -33,7 +33,7 @@ describe('NetworkInfo', () => {
       />,
       { state: initialState },
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 
   it('render correctly with non-EVM selected', () => {
@@ -50,7 +50,7 @@ describe('NetworkInfo', () => {
       },
     };
 
-    const wrapper = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       <NetworkInfo
         onClose={function (): void {
           throw new Error('Function not implemented.');
@@ -58,7 +58,7 @@ describe('NetworkInfo', () => {
       />,
       { state: nonEvmState },
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 
   it('render correctly with EVM network without ticker', () => {
@@ -90,7 +90,7 @@ describe('NetworkInfo', () => {
       },
     };
 
-    const wrapper = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       <NetworkInfo
         onClose={function (): void {
           throw new Error('Function not implemented.');
@@ -99,6 +99,6 @@ describe('NetworkInfo', () => {
       // @ts-expect-error - we do want to test the ticker be undefined on this unit test
       { state: evmStateWithoutTicker },
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 });

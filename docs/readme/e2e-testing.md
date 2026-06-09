@@ -28,7 +28,7 @@ Firstly, you need to have installed [Xcode for IOS](https://developer.apple.com/
 
 Ensure that following devices are set up:
 
-- **iOS**: iPhone 15 Pro
+- **iOS**: iPhone 16 Pro
 - **Android**: Pixel 5 API 34
 
 > **Note**: You can change the default devices at any time by updating the `device.type` in the Detox config located at `.detoxrc.js`.
@@ -38,7 +38,7 @@ Ensure that following devices are set up:
 1. Open Xcode
 2. Go to **Window** → **Devices and Simulators**
 3. Click the **+** button to add a new simulator
-4. Select **iPhone 15 Pro** and create the simulator
+4. Select **iPhone 16 Pro** and create the simulator
 
 **Android:**
 
@@ -351,179 +351,11 @@ yarn test:e2e:android:flask:run
 
 ~~We currently utilize [Appium](https://appium.io/), [Webdriver.io](http://webdriver.io/), and [Cucumber](https://cucumber.io/) to test the application launch times and the upgrade between different versions. As a brief explanation, webdriver.io is the test framework that uses Appium Server as a service. This is responsible for communicating between our tests and devices, and cucumber as the test framework.~~
 
-**Current approach**: Performance testing is now handled by [Appwright](https://github.com/nickmaxwell10/appwright), a Playwright-based mobile testing framework. See the `tests/performance` directory for performance tests including app launch times and feature-specific performance measurements.
+**Current approach**: Performance testing is now handled by a Playwright-based mobile testing framework. See the `tests/performance` directory for performance tests including app launch times and feature-specific performance measurements.
 
 **Test Location**: `tests/performance/`
 
 ---
-
-<details>
-<summary>Legacy Appium Documentation (for reference only)</summary>
-
-**Supported Platform**: Android  
-**Test Location**: `wdio`
-
-## Configuration for Testing
-
-We have two separate configurations for testing the different variants of our applications:
-
-- **QA Variant (local)**: Runs in debug mode on your local machine.
-- **QA Variant (production)**: Runs in production mode on BrowserStack.
-
-We use the QA variant for Appium tests because of our screen-blocking mechanism, which would otherwise prevent tests from getting past the wallet setup screen.
-
-### Capabilities Setup
-
-We require two sets of capabilities to handle app upgrade tests, leading to the creation of two configurations: `defaultCapabilities` and `upgradeCapabilities`.
-
-#### Default Capabilities
-
-```javascript
-const defaultCapabilities = [
-  {
-    platformName: 'Android',
-    noReset: false,
-    fullReset: false,
-    maxInstances: 1,
-    build: 'Android App Launch Times Tests',
-    device: process.env.BROWSERSTACK_DEVICE || 'Google Pixel 6',
-    os_version: process.env.BROWSERSTACK_OS_VERSION || '12.0',
-    app: process.env.BROWSERSTACK_APP_URL,
-    'browserstack.debug': true,
-    'browserstack.local': true,
-  },
-];
-```
-
-This configuration is our standard, as it only requires one app per install.
-
-#### Upgrade Capabilities
-
-```javascript
-const upgradeCapabilities = [
-  {
-    platformName: 'Android',
-    noReset: false,
-    fullReset: false,
-    maxInstances: 1,
-    build: 'Android App Upgrade Tests',
-    device: process.env.BROWSERSTACK_DEVICE || 'Google Pixel 6',
-    os_version: process.env.BROWSERSTACK_OS_VERSION || '12.0',
-    app: process.env.PRODUCTION_APP_URL || process.env.BROWSERSTACK_APP_URL,
-    'browserstack.debug': true,
-    'browserstack.local': true,
-    'browserstack.midSessionInstallApps': [process.env.BROWSERSTACK_APP_URL],
-  },
-];
-```
-
-This configuration requires two applications: the current production app and the app built from the branch.
-
-**Note**: You can, if you choose to, run the tests against any one of the devices and operating systems mentioned in the browserstack device [list](https://www.browserstack.com/list-of-browsers-and-platforms/app_automate).
-
-### Flag-Based Capability Selection
-
-We use flags like `--performance` and `--upgrade` to determine which capabilities to use for specific tests.
-
-```javascript
-const { selectedCapabilities, defaultTagExpression } = (() => {
-  if (isAppUpgrade) {
-    return {
-      selectedCapabilities: upgradeCapabilities,
-      defaultTagExpression: '@upgrade and @androidApp',
-    };
-  } else if (isPerformance) {
-    return {
-      selectedCapabilities: defaultCapabilities,
-      defaultTagExpression: '@performance and @androidApp',
-    };
-  } else {
-    return {
-      selectedCapabilities: defaultCapabilities,
-      defaultTagExpression: '@smoke and @androidApp',
-    };
-  }
-})();
-```
-
-## Running Tests Locally Against QA Build
-
-You can run your E2E tests on local simulators either in development mode (with automatic code refresh) or without it.
-
-Install dependencies:
-
-```bash
-yarn setup
-```
-
-Ensure that the bundler compiles all files before running the tests to avoid build breaks. Use:
-
-```bash
-yarn watch:clean
-```
-
-### iOS
-
-To start an iOS QA build:
-
-```bash
-yarn start:ios:qa
-```
-
-### Android
-
-To start an Android QA build:
-
-```bash
-yarn start:android:qa
-```
-
-Then, run the tests on the simulator:
-
-### iOS
-
-```bash
-yarn test:wdio:ios
-```
-
-### Android
-
-```bash
-yarn test:wdio:android
-```
-
-To run specific tests, use the `--spec` option:
-
-```bash
-yarn test:wdio:android --spec ./wdio/features/performance/ColdStartLaunchTimes.feature
-```
-
-**Note**: Ensure that your installed simulator names match the configurations in `wdio/config/android.config.debug.js` and `wdio/config/ios.config.debug.js`.
-
-## Running Tests on BrowserStack
-
-To trigger tests locally on BrowserStack:
-
-1. Retrieve your BrowserStack username and access key from the App Automate section.
-2. Update `config.user` and `config.key` in `android.config.browserstack` with your BrowserStack credentials.
-3. Upload your app to BrowserStack via the `create_qa_builds_pipeline`. Grab the `app_url` from `browserstack_uploaded_apps.json`.
-4. Update `process.env.BROWSERSTACK_APP_URL` with the correct `app_url`.
-5. Run your tests using the appropriate flag (e.g., for performance tests):
-
-```bash
-yarn test:wdio:android:browserstack --performance
-```
-
-## Running Appium Tests on CI (Bitrise)
-
-You can also run Appium tests on CI using Bitrise pipelines:
-
-- `app_launch_times_pipeline`
-- `app_upgrade_pipeline`
-
-For more details on our CI pipelines, see the [Bitrise Pipelines Overview](#bitrise-pipelines-overview).
-
-</details>
 
 ### API Spec Tests
 
@@ -548,10 +380,6 @@ The API Spec tests use the `@open-rpc/test-coverage` tool to generate tests from
    yarn test:api-specs
    ```
 
-### Appwright
-
-This is a recent mobile framework which was built using appium and playwright. We adopted it to meet our need for running performance focused end to end tests on real iOS and Android devices through BrowserStack.
-
 #### Running Tests Against BrowserStack Devices
 
 You can get your BrowserStack username and access key from the Access key dropdown on the app automate screen in BrowserStack.
@@ -563,14 +391,22 @@ export BROWSERSTACK_USERNAME='your_username'
 export BROWSERSTACK_ACCESS_KEY='your_access_key'
 ```
 
+For **MM Connect** performance tests on BrowserStack, you also need the **BrowserStack Local tunnel** running so the cloud device can reach the local Browser Playground dapp. Start the [BrowserStack Local](https://www.browserstack.com/docs/local-testing/binary-params) binary, then set:
+
+```bash
+export BROWSERSTACK_LOCAL='true'
+```
+
+Do **not** set `BROWSERSTACK_LOCAL=true` unless the tunnel is running. Other BrowserStack performance suites (for example onboarding) run **without** local testing unless you intentionally enable it.
+
 Update the config file with the appropriate BrowserStack app URL. You’ll need a BrowserStack URL first. To get it:
 
-1. Run `create_qa_builds_pipeline` on Bitrise
-2. Once done, open the **Artifacts** tab and find `browserstack_uploaded_apps.json` (from `build_android_qa` and `build_ios_qa`).
+1. Run [Build Mobile App](https://github.com/MetaMask/metamask-mobile/actions/workflows/build.yml) in Github Actions.
+2. Once done, open scroll down to the **Artifacts** section in the workflow and find the build artifacts.
 
-See this [build](https://app.bitrise.io/app/be69d4368ee7e86d/pipelines/de2bf4ee-b000-4a7c-bd5b-c995ae0f3b4d?tab=artifacts) as an example.
+See this [workflow](https://github.com/MetaMask/metamask-mobile/actions/runs/25391553223) as an example.
 
-The first entry in that JSON will include your app’s URL (look for the bs:// prefix).
+Download the build artifact and upload it to BrowserStack App Automate service. Once the upload is complete, it will provide a BrowserStack URL that you can copy.
 
 Add it to the config file by replacing `process.env.BROWSERSTACK_ANDROID_APP_URL` in the `buildPath` with the appropriate BrowserStack application URL:
 
@@ -581,8 +417,8 @@ Add it to the config file by replacing `process.env.BROWSERSTACK_ANDROID_APP_URL
     platform: Platform.ANDROID,
     device: {
       provider: 'browserstack',
-      name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S23 Ultra', // this can be changed
-      osVersion: process.env.BROWSERSTACK_OS_VERSION || '13.0', // this can be changed
+      name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S25 Ultra', // this can be changed
+      osVersion: process.env.BROWSERSTACK_OS_VERSION || '15.0', // this can be changed
     },
     buildPath: process.env.BROWSERSTACK_ANDROID_APP_URL, // Path to BrowserStack URL bs:// link
   },
@@ -594,18 +430,20 @@ You can repeat the same for iOS builds by replacing `process.env.BROWSERSTACK_IO
 ##### Run Android Tests on BrowserStack
 
 ```bash
-yarn run-appwright:android-bs
+yarn run-playwright:android-bs
 ```
 
 ##### Run iOS Tests on BrowserStack
 
 ```bash
-yarn run-appwright:ios-bs
+yarn run-playwright:ios-bs
 ```
 
 #### Testing Locally (Simulators/Emulators)
 
-You need to make sure that the artifact is created. Download the binary from the [runway](https://github.com/MetaMask/metamask-mobile/tree/MMQA-521-part-2?tab=readme-ov-file#download-and-install-the-development-build) and place it in a folder accessible to Appwright.
+_Important Note:_ We strongly advise the use of Browserstack for this as we're still going through the migration and the amulator interface isn't yet fully ready.
+
+You need to make sure that the artifact is created. Download the binary from the [runway](https://github.com/MetaMask/metamask-mobile/tree/main?tab=readme-ov-file#download-and-install-the-development-build) and place it in a folder accessible to Playwright.
 
 Then update the build path in the `ios` or `android` config:
 
@@ -626,44 +464,16 @@ Then update the build path in the `ios` or `android` config:
 ##### Test on Your Local Android Emulator
 
 ```bash
-yarn run-appwright:android
+yarn run-playwright:android
 ```
 
 ##### Test on Your Local iOS Simulator
 
 ```bash
-yarn run-appwright:ios
+yarn run-playwright:ios
 ```
 
 **Important**: If the test fail to start, double check the OS version your simulator/emulator is running and make sure the config has the correct version.
-
-### Bitrise Pipelines Overview
-
-Our CI/CD process is automated through various Bitrise pipelines, each designed to streamline and optimize different aspects of our E2E testing.
-
-#### **1. Release_e2e_Pipeline**
-
-- **Workflows**:
-  - **Build**: Creates iOS and Android artifacts.
-  - **Test**: Executes regression tests across both platforms.
-- **Manual Trigger**: Typically run on release branches but can be manually triggered in the Bitrise dashboard.
-
-#### **2. App Launch Times Pipeline**
-
-- **Function**: Measures and monitors app launch times on real devices using BrowserStack to ensure consistent performance over time.
-- **Nightly**: Automatically runs on the main branch.
-- **Manual Trigger**: Select the desired branch in the Bitrise dashboard and choose `app_upgrade_pipeline` from the pipeline dropdown menu.
-
-#### **3. App Upgrade Pipeline**
-
-- **Function**: Automates testing of app upgrades to verify smooth transitions between versions.
-- **Configuration**: Requires the `PRODUCTION_APP_URL` environment variable to be set with the current production build's BrowserStack URL.You would need to search and update `PRODUCTION_APP_URL` in the bitrise.yml with the production browserstack build URL.
-- **Manual Trigger**: Select the desired branch in the Bitrise dashboard and choose `app_upgrade_pipeline` from the pipeline dropdown menu.
-
-### Test Reports in Bitrise
-
-- **Detox Tests**: Test reports are displayed directly in the Bitrise UI, offering a visual representation of test results and execution details. Screenshots on test failures are also captured and stored in a zip file. You can download these screenshots from the `Artifacts` tab in Bitrise.
-- **API Spec and Appium Tests**: HTML reporters generate and display test results. Access these HTML reports through the Bitrise build artifacts section for detailed analysis.
 
 ### Debugging Failed Tests
 

@@ -9,7 +9,7 @@ export const predictPositionsKeys = {
 };
 
 export const predictPositionsOptions = ({ address }: { address: string }) =>
-  queryOptions({
+  queryOptions<PredictPosition[], Error>({
     queryKey: predictPositionsKeys.byAddress(address),
     queryFn: async (): Promise<PredictPosition[]> =>
       Engine.context.PredictController.getPositions({ address }),

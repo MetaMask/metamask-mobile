@@ -6,6 +6,7 @@ import { backgroundState } from '../../../../util/test/initial-root-state';
 import IPFSGatewaySettings from './';
 import { IPFS_GATEWAY_SECTION, IPFS_GATEWAY_SELECTED } from './index.constants';
 import { timeoutFetch } from '../../../../util/general';
+import { strings } from '../../../../../locales/i18n';
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -45,10 +46,10 @@ describe('IPFSGatewaySettings', () => {
   });
 
   it('render matches snapshot', () => {
-    const { toJSON } = renderWithProvider(<IPFSGatewaySettings />, {
+    const { getByText } = renderWithProvider(<IPFSGatewaySettings />, {
       state: initialState,
     });
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText(strings('app_settings.ipfs_gateway'))).toBeOnTheScreen();
   });
 
   it('renders IPFS gateway toggle switch', () => {
@@ -101,7 +102,7 @@ describe('IPFSGatewaySettings', () => {
     const { queryByTestId } = renderWithProvider(<IPFSGatewaySettings />, {
       state: initialState,
     });
-    expect(queryByTestId(IPFS_GATEWAY_SELECTED)).toBeNull();
+    expect(queryByTestId(IPFS_GATEWAY_SELECTED)).not.toBeOnTheScreen();
   });
 
   it('calls timeoutFetch with correct parameters', async () => {

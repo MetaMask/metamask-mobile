@@ -3,7 +3,6 @@ import { useSelector } from 'react-redux';
 
 import Engine from '../../../core/Engine';
 import { useNftDetection } from '../../hooks/useNftDetection';
-import { selectTokenNetworkFilter } from '../../../selectors/preferencesController';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
 
 interface UseNftRefreshReturn {
@@ -13,14 +12,13 @@ interface UseNftRefreshReturn {
 
 export const useNftRefresh = (): UseNftRefreshReturn => {
   const allEVMNetworks = useSelector(selectEvmNetworkConfigurationsByChainId);
-  const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
-  const { detectNfts } = useNftDetection();
+  const { detectNfts, chainIdsToDetectNftsFor } = useNftDetection();
 
   const [refreshing, setRefreshing] = useState(false);
 
   const allNetworkClientIds = useMemo(
     () =>
-      Object.keys(tokenNetworkFilter).flatMap((chainId) => {
+      chainIdsToDetectNftsFor.flatMap((chainId) => {
         const entry = allEVMNetworks[chainId as `0x${string}`];
         if (!entry) {
           return [];
@@ -29,7 +27,7 @@ export const useNftRefresh = (): UseNftRefreshReturn => {
         const endpoint = entry.rpcEndpoints[index];
         return endpoint?.networkClientId ? [endpoint.networkClientId] : [];
       }),
-    [tokenNetworkFilter, allEVMNetworks],
+    [chainIdsToDetectNftsFor, allEVMNetworks],
   );
 
   const onRefresh = useCallback(async () => {
@@ -44,7 +42,7 @@ export const useNftRefresh = (): UseNftRefreshReturn => {
       // - Handles analytics tracking
       const detectNftsPromise = detectNfts();
 
-      // Also update ownership status for all NFTs
+      // Also update ownership status for all NFTs across all enabled networks
       const ownershipPromises = allNetworkClientIds.map((networkClientId) =>
         NftController.checkAndUpdateAllNftsOwnershipStatus(networkClientId),
       );

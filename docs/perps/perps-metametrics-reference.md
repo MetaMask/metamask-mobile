@@ -74,7 +74,7 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
   - **Deposit screens:** `'deposit_input'` | `'deposit_review'`
   - **Market list screens:** `'market_list'` | `'market_list_all'` | `'market_list_crypto'` | `'market_list_stocks'`
   - **Position management:** `'close_all_positions'` | `'cancel_all_orders'` | `'increase_exposure'` | `'add_margin'` | `'remove_margin'`
-  - **Other screens:** `'pnl_hero_card'` | `'order_book'` | `'full_screen_chart'` | `'activity'` | `'geo_block_notif'`
+  - **Other screens:** `'pnl_hero_card'` | `'order_book'` | `'full_screen_chart'` | `'activity'` | `'geo_block_notif'` | `'compliance_block_notif'`
 - `asset` (optional): Asset symbol (e.g., `'BTC'`, `'ETH'`)
 - `direction` (optional): `'long' | 'short'`
 - `source` (optional): Where user came from
@@ -97,6 +97,7 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
 - `percent_pnl` (optional): P&L as percentage (number, used for pnl_hero_card screen)
 - `button_clicked` (optional): Button that led to this screen (entry point tracking, see [Entry Point Tracking](#entry-point-tracking))
 - `button_location` (optional): Location of the button clicked (entry point tracking, see [Entry Point Tracking](#entry-point-tracking))
+- `outage_banner_shown` (optional): Whether the service interruption banner is displayed (boolean, used for perps_home, asset_details, trading screens)
 - `ab_test_button_color` (optional): Button color test variant (`'control' | 'monochrome'`), only included when test is enabled (for baseline exposure tracking)
 - Future AB tests: `ab_test_{test_name}` (see [Multiple Concurrent Tests](#multiple-concurrent-tests))
 
@@ -126,7 +127,7 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
 - `input_method` (optional): How value was entered: `'slider' | 'keyboard' | 'preset' | 'manual' | 'percentage_button'`
 - `candle_period` (optional): Selected candle period
 - `favorites_count` (optional): Total number of markets in watchlist after toggle (number, used with `favorite_toggled`)
-- `button_clicked` (optional): Button identifier for entry point tracking (see [Entry Point Tracking](#entry-point-tracking)): `'deposit'` | `'withdraw'` | `'perps_home'` | `'tutorial'` | `'tooltip'` | `'market_list'` | `'open_position'` | `'magnifying_glass'` | `'crypto'` | `'stocks'` | `'give_feedback'`
+- `button_clicked` (optional): Button identifier for entry point tracking (see [Entry Point Tracking](#entry-point-tracking)): `'deposit'` | `'withdraw'` | `'perps_home'` | `'tutorial'` | `'tooltip'` | `'market_list'` | `'open_position'` | `'magnifying_glass'` | `'crypto'` | `'stocks'` | `'give_feedback'` | `'competition_banner_engage'` | `'competition_banner_close'`
 - `button_location` (optional): Location of the button for entry point tracking (see [Entry Point Tracking](#entry-point-tracking)): `'perps_home'` | `'perps_tutorial'` | `'perps_home_empty_state'` | `'perps_asset_screen'` | `'perps_tab'` | `'trade_menu_action'` | `'wallet_home'` | `'market_list'` | `'screen'` | `'tooltip'` | `'perp_market_details'` | `'order_book'` | `'full_screen_chart'`
 - `initial_payment_method` (optional): Payment method before change (e.g. `'perps_balance'` or token symbol; used with `payment_method_changed`)
 - `new_payment_method` (optional): Payment method after change (e.g. `'perps_balance'` or token symbol; used with `payment_method_changed`)
@@ -445,22 +446,24 @@ Entry point tracking captures how users navigate to screens, enabling analysis o
 
 ### Button Clicked Values
 
-| Value                | Description                             |
-| -------------------- | --------------------------------------- |
-| `'deposit'`          | Add funds / deposit button              |
-| `'withdraw'`         | Withdraw funds button                   |
-| `'perps_home'`       | Navigate to perps home button           |
-| `'tutorial'`         | Learn more / tutorial button            |
-| `'tooltip'`          | Got it button in tooltip bottom sheets  |
-| `'market_list'`      | Market list navigation button           |
-| `'open_position'`    | Tap on a position card                  |
-| `'magnifying_glass'` | Search icon button                      |
-| `'crypto'`           | Crypto tab in market list               |
-| `'stocks'`           | Stocks & Commodities tab in market list |
-| `'commodities'`      | Commodities tab                         |
-| `'forex'`            | Forex tab                               |
-| `'new'`              | New markets                             |
-| `'give_feedback'`    | Give feedback button                    |
+| Value                         | Description                                               |
+| ----------------------------- | --------------------------------------------------------- |
+| `'deposit'`                   | Add funds / deposit button                                |
+| `'withdraw'`                  | Withdraw funds button                                     |
+| `'perps_home'`                | Navigate to perps home button                             |
+| `'tutorial'`                  | Learn more / tutorial button                              |
+| `'tooltip'`                   | Got it button in tooltip bottom sheets                    |
+| `'market_list'`               | Market list navigation button                             |
+| `'open_position'`             | Tap on a position card                                    |
+| `'magnifying_glass'`          | Search icon button                                        |
+| `'crypto'`                    | Crypto tab in market list                                 |
+| `'stocks'`                    | Stocks & Commodities tab in market list                   |
+| `'commodities'`               | Commodities tab                                           |
+| `'forex'`                     | Forex tab                                                 |
+| `'new'`                       | New markets                                               |
+| `'give_feedback'`             | Give feedback button                                      |
+| `'competition_banner_engage'` | User tapped the competition banner to navigate to rewards |
+| `'competition_banner_close'`  | User dismissed the competition banner                     |
 
 ### Button Location Values
 
@@ -554,6 +557,52 @@ usePerpsEventTracking({
   },
 });
 ```
+
+---
+
+## Compliance (OFAC) Blocking Tracking
+
+When a wallet is blocked by an OFAC compliance check, the `compliance_block_notif` screen type is used. The event fires automatically via `AccessRestrictedContext` whenever `showAccessRestrictedModal()` is called — no per-action tracking is needed.
+
+### Properties
+
+- `screen_type`: `'compliance_block_notif'`
+
+### Constant
+
+```typescript
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
+
+// PERPS_EVENT_VALUE.SCREEN_TYPE.COMPLIANCE_BLOCK_NOTIF === 'compliance_block_notif'
+```
+
+### Where the event fires
+
+The event is tracked in `showAccessRestrictedModal` inside `AccessRestrictedContext.tsx`. All call sites — `useComplianceGate` and every gated action handler — call this method, so coverage is automatic.
+
+```typescript
+// app/components/UI/Compliance/contexts/AccessRestrictedContext.tsx
+const showAccessRestrictedModal = useCallback(() => {
+  notificationAsync(NotificationFeedbackType.Warning);
+  setIsVisible(true);
+  track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+    [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+      PERPS_EVENT_VALUE.SCREEN_TYPE.COMPLIANCE_BLOCK_NOTIF,
+  });
+}, [track]);
+```
+
+### Difference from geo-blocking
+
+|                    | Geo-blocking                       | Compliance blocking                            |
+| ------------------ | ---------------------------------- | ---------------------------------------------- |
+| `screen_type`      | `geo_block_notif`                  | `compliance_block_notif`                       |
+| Tracked per action | Yes — each handler tracks `source` | No — tracked once in context                   |
+| Source property    | Identifies the blocked action      | Not included (all routes share the same modal) |
+| Feature flag       | Geo eligibility                    | `complianceEnabled`                            |
 
 ---
 

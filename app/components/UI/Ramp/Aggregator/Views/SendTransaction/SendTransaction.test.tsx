@@ -273,7 +273,6 @@ function render(Component: React.ComponentType, orders = mockedOrders) {
   );
 }
 
-const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockReset = jest.fn();
@@ -287,12 +286,9 @@ jest.mock('@react-navigation/native', () => {
     ...actualReactNavigation,
     useNavigation: () => ({
       navigate: mockNavigate,
-      setOptions: mockSetOptions.mockImplementation(
-        actualReactNavigation.useNavigation().setOptions,
-      ),
       goBack: mockGoBack,
       reset: mockReset,
-      dangerouslyGetParent: () => ({
+      getParent: () => ({
         pop: mockPop,
       }),
     }),
@@ -329,7 +325,6 @@ describe('SendTransaction View', () => {
   afterEach(() => {
     mockNavigate.mockClear();
     mockGoBack.mockClear();
-    mockSetOptions.mockClear();
     mockReset.mockClear();
     mockPop.mockClear();
     mockDispatch.mockClear();
@@ -343,14 +338,41 @@ describe('SendTransaction View', () => {
     };
   });
 
-  it('calls setOptions when rendering', async () => {
+  it('shows header with back navigation when order data has no cryptoCurrency', async () => {
+    const orderWithoutCrypto = {
+      ...mockOrder,
+      id: 'test-id-no-crypto',
+      data: {
+        ...mockOrder.data,
+        cryptoCurrency: undefined,
+      } as DeepPartial<SellOrder>,
+    } as FiatOrder;
+
+    mockUseParamsValues = { orderId: 'test-id-no-crypto' };
+    render(SendTransaction, [orderWithoutCrypto]);
+    expect(screen.getByText('Sell crypto')).toBeOnTheScreen();
+    expect(screen.queryByText('Next')).not.toBeOnTheScreen();
+    fireEvent.press(screen.getByTestId('send-transaction-back-button'));
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows header with back navigation when order is missing', async () => {
+    mockUseParamsValues = { orderId: 'invalid-order-id' };
     render(SendTransaction);
-    expect(mockSetOptions).toBeCalledTimes(1);
+    expect(screen.getByText('Sell crypto')).toBeOnTheScreen();
+    fireEvent.press(screen.getByTestId('send-transaction-back-button'));
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('navigates back when header back button is pressed', async () => {
+    render(SendTransaction);
+    fireEvent.press(screen.getByTestId('send-transaction-back-button'));
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
   it('renders correctly', async () => {
     render(SendTransaction);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByRole('button', { name: 'Next' })).toBeOnTheScreen();
   });
 
   it('calls analytics when rendering', async () => {
@@ -375,13 +397,14 @@ describe('SendTransaction View', () => {
   it('renders correctly for token', async () => {
     mockUseParamsValues = { orderId: 'test-id-2' };
     render(SendTransaction);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByRole('button', { name: 'Next' })).toBeOnTheScreen();
+    expect(screen.getByText('USDC')).toBeOnTheScreen();
   });
 
   it('renders correctly for custom action payment method', async () => {
     mockUseParamsValues = { orderId: 'test-id-3' };
     render(SendTransaction);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByRole('button', { name: 'Next' })).toBeOnTheScreen();
   });
 
   it('calls addTransaction for native coin when clicking on send button', async () => {
@@ -400,6 +423,7 @@ describe('SendTransaction View', () => {
           },
           {
             "deviceConfirmedOn": "metamask_mobile",
+            "isInternal": true,
             "networkClientId": "mainnet",
             "origin": "RAMPS_SEND",
           },
@@ -446,6 +470,7 @@ describe('SendTransaction View', () => {
           },
           {
             "deviceConfirmedOn": "metamask_mobile",
+            "isInternal": true,
             "networkClientId": "mainnet",
             "origin": "RAMPS_SEND",
           },
@@ -528,5 +553,61 @@ describe('SendTransaction View', () => {
         },
       ]
     `);
+  });
+
+  describe('transactionAnalyticsPayload with partial order data', () => {
+    it('handles missing cryptoCurrency gracefully in analytics', async () => {
+      const partialOrder = {
+        ...mockOrder,
+        id: 'test-partial-crypto',
+        data: {
+          ...mockOrder.data,
+          cryptoCurrency: undefined,
+        } as DeepPartial<SellOrder>,
+      } as FiatOrder;
+
+      mockUseParamsValues = { orderId: 'test-partial-crypto' };
+      render(SendTransaction, [partialOrder]);
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'OFFRAMP_SEND_CRYPTO_PROMPT_VIEWED',
+        expect.objectContaining({
+          chain_id_source: undefined,
+          currency_source: undefined,
+          crypto_amount: '0.012361263',
+          order_id: 'test-partial-crypto',
+        }),
+      );
+    });
+
+    it('handles missing cryptoCurrency.network gracefully in analytics and does not invoke send', async () => {
+      const partialOrder = {
+        ...mockOrder,
+        id: 'test-partial-network',
+        data: {
+          ...mockOrder.data,
+          cryptoCurrency: {
+            ...(mockOrder.data as DeepPartial<SellOrder>).cryptoCurrency,
+            network: undefined,
+          },
+        } as DeepPartial<SellOrder>,
+      } as FiatOrder;
+
+      mockUseParamsValues = { orderId: 'test-partial-network' };
+      render(SendTransaction, [partialOrder]);
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'OFFRAMP_SEND_CRYPTO_PROMPT_VIEWED',
+        expect.objectContaining({
+          chain_id_source: undefined,
+          currency_source: 'ETH',
+          currency_destination: 'USD',
+          payment_method_id: '/payments/instant-bank-transfer',
+          provider_offramp: 'Test (Staging)',
+        }),
+      );
+
+      const nextButton = screen.getByRole('button', { name: 'Next' });
+      await act(async () => fireEvent.press(nextButton));
+      expect(mockAddTransaction).not.toHaveBeenCalled();
+    });
   });
 });

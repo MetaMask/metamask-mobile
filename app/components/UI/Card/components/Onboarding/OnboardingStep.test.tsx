@@ -4,11 +4,11 @@ import { Text, View, TouchableOpacity } from 'react-native';
 import OnboardingStep from './OnboardingStep';
 
 // Mock dependencies
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: jest.fn(() => ({
-    style: jest.fn((...args) => args.join(' ')),
-  })),
-}));
+jest.mock('@metamask/design-system-twrnc-preset', () => {
+  const tw = (..._args: unknown[]) => ({});
+  tw.style = jest.fn(() => ({}));
+  return { useTailwind: () => tw };
+});
 
 jest.mock('@metamask/design-system-react-native', () => {
   const ReactActual = jest.requireActual('react');
@@ -58,8 +58,13 @@ jest.mock('@metamask/design-system-react-native', () => {
       HeadingLg: 'HeadingLg',
       BodyMd: 'BodyMd',
     },
+    HeaderStandard: () => null,
   };
 });
+
+jest.mock('../../hooks/useCardHeaderHandlers', () => ({
+  useCardHeaderHandlers: jest.fn(() => ({})),
+}));
 
 describe('OnboardingStep Component', () => {
   const defaultProps = {
@@ -422,12 +427,11 @@ describe('OnboardingStep Component', () => {
         description: '',
       };
 
-      const { getByTestId } = render(
+      const { queryByTestId } = render(
         <OnboardingStep {...propsWithEmptyDescription} />,
       );
 
-      const description = getByTestId('onboarding-step-description');
-      expect(description.props.children).toBe('');
+      expect(queryByTestId('onboarding-step-description')).toBeNull();
     });
   });
 

@@ -218,4 +218,19 @@ describe('TransactionDetailsHero', () => {
     const { queryByTestId } = render();
     expect(queryByTestId('transaction-details-hero')).toBeNull();
   });
+
+  it.each([
+    TransactionType.moneyAccountDeposit,
+    TransactionType.moneyAccountWithdraw,
+  ])('renders hero amount for %s', (type) => {
+    useTransactionDetailsMock.mockReturnValue({
+      transactionMeta: {
+        ...TRANSACTION_META_MOCK,
+        type,
+      } as unknown as TransactionMeta,
+    });
+
+    const { getByText } = render();
+    expect(getByText('$123.46')).toBeDefined();
+  });
 });

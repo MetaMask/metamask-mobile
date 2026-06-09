@@ -31,7 +31,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { clearOnboardingEvents } from '../../../actions/onboarding';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
 import { setDataCollectionForMarketing } from '../../../actions/security';
-import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { markMetricsOptInUISeen } from '../../../util/metrics/metricsOptInUIUtils';
 import { MetaMetricsOptInSelectorsIDs } from './MetaMetricsOptIn.testIds';
 import Checkbox from '../../../component-library/components/Checkbox';
@@ -48,8 +50,8 @@ import {
 } from '../../../util/trace';
 import { setupSentry } from '../../../util/sentry/utils';
 import PrivacyIllustration from '../../../images/privacy_metrics_illustration.png';
-import { selectIsPna25FlagEnabled } from '../../../selectors/featureFlagController/legalNotices';
 import Device from '../../../util/device';
+import { HOWTO_MANAGE_METAMETRICS } from '../../../constants/urls';
 import type { OptinMetricsRouteParams } from './OptinMetrics.types';
 import {
   useNavigation,
@@ -58,6 +60,8 @@ import {
   type ParamListBase,
 } from '@react-navigation/native';
 import type { RootState } from '../../../reducers';
+import { useOnboardingInterestQuestionnaireEligibility } from '../../Views/OnboardingInterestQuestionnaire/useOnboardingInterestQuestionnaireEligibility';
+import Logger from '../../../util/Logger';
 
 /**
  * View that is displayed in the flow to agree to metrics
@@ -73,11 +77,10 @@ const OptinMetrics = () => {
       >
     >();
   const tw = useTailwind();
-  const metrics = useMetrics();
+  const metrics = useAnalytics();
 
   // Redux state selectors
   const events = useSelector((state: RootState) => state.onboarding.events);
-  const isPna25FlagEnabled = useSelector(selectIsPna25FlagEnabled);
   const reduxAccountType = useSelector(selectOnboardingAccountType);
 
   // State
@@ -100,6 +103,9 @@ const OptinMetrics = () => {
     [isMediumDevice],
   );
 
+  const getShouldShowQuestionnaire =
+    useOnboardingInterestQuestionnaireEligibility();
+
   /**
    * Temporary disabling the back button so users can't go back
    */
@@ -113,10 +119,13 @@ const OptinMetrics = () => {
 
   // Component lifecycle effects
   useEffect(() => {
-    BackHandler.addEventListener('hardwareBackPress', handleBackPress);
+    const backHandlerSubscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      handleBackPress,
+    );
 
     return () => {
-      BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
+      backHandlerSubscription.remove();
     };
   }, [handleBackPress]);
 
@@ -198,7 +207,7 @@ const OptinMetrics = () => {
         .build(),
     );
 
-    await metrics.addTraitsToUser({
+    await metrics.identify({
       ...generateDeviceAnalyticsMetaData(),
       ...generateUserSettingsAnalyticsMetaData(),
       [UserProfileProperty.CHAIN_IDS]: getConfiguredCaipChainIds(),
@@ -217,13 +226,36 @@ const OptinMetrics = () => {
         // as precision is only to the milisecond
         // and loop seems to runs faster than that
         setTimeout(() => {
-          metrics.trackEvent(...eventArgs);
+          const event = AnalyticsEventBuilder.createEventBuilder(
+            eventArgs[0],
+          ).build();
+          metrics.trackEvent(event);
         }, delay);
         delay += eventTrackingDelay;
       });
     }
     dispatch(clearOnboardingEvents());
-    continueNavigation();
+
+    let shouldShowInterestQuestionnaire = false;
+    if (isBasicUsageChecked) {
+      try {
+        shouldShowInterestQuestionnaire = await getShouldShowQuestionnaire();
+      } catch (error) {
+        Logger.error(
+          error instanceof Error ? error : new Error(String(error)),
+          'OptinMetrics: interest questionnaire eligibility check failed',
+        );
+      }
+    }
+
+    if (isBasicUsageChecked && shouldShowInterestQuestionnaire) {
+      navigation.navigate(Routes.ONBOARDING.INTEREST_QUESTIONNAIRE, {
+        onComplete: continueNavigation,
+        ...(accountType && { accountType }),
+      });
+    } else {
+      continueNavigation();
+    }
   }, [
     isBasicUsageChecked,
     isMarketingChecked,
@@ -232,6 +264,8 @@ const OptinMetrics = () => {
     dispatch,
     continueNavigation,
     accountType,
+    getShouldShowQuestionnaire,
+    navigation,
   ]);
 
   /**
@@ -254,7 +288,7 @@ const OptinMetrics = () => {
   const openLearnMore = useCallback(
     () =>
       onPressLink({
-        url: 'https://support.metamask.io/configure/privacy/how-to-manage-your-metametrics-settings/',
+        url: HOWTO_MANAGE_METAMETRICS,
         title: 'How to manage your MetaMetrics settings',
       }),
     [onPressLink],
@@ -432,12 +466,7 @@ const OptinMetrics = () => {
                 color={TextColor.TextAlternative}
                 twClassName="mt-1"
               >
-                {isPna25FlagEnabled
-                  ? strings(
-                      'privacy_policy.gather_basic_usage_description_updated',
-                    ) + ' '
-                  : strings('privacy_policy.gather_basic_usage_description') +
-                    ' '}
+                {strings('privacy_policy.gather_basic_usage_description') + ' '}
                 <Text
                   color={TextColor.PrimaryDefault}
                   variant={TextVariant.BodySm}

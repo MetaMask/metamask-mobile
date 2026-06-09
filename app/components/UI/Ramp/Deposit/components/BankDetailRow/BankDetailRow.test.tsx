@@ -17,16 +17,18 @@ describe('BankDetailRow', () => {
     jest.clearAllMocks();
   });
 
-  it('render matches snapshot', () => {
-    const { toJSON } = render(<BankDetailRow {...defaultProps} />);
-    expect(toJSON()).toMatchSnapshot();
+  it('renders label and value', () => {
+    const { getByText } = render(<BankDetailRow {...defaultProps} />);
+    expect(getByText('Account Number')).toBeOnTheScreen();
+    expect(getByText('1234567890')).toBeOnTheScreen();
   });
 
-  it('render matches snapshot with different values', () => {
-    const { toJSON } = render(
+  it('renders with different label and value', () => {
+    const { getByText } = render(
       <BankDetailRow label="Bank Name" value="Chase Bank" />,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('Bank Name')).toBeOnTheScreen();
+    expect(getByText('Chase Bank')).toBeOnTheScreen();
   });
 
   it('copies value to clipboard when copy button is pressed', () => {

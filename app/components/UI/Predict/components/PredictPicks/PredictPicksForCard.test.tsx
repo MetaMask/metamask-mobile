@@ -7,13 +7,6 @@ import { formatPrice } from '../../utils/format';
 
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 jest.mock('../../hooks/usePredictPositions');
-jest.mock('../../hooks/usePredictLivePositions', () => ({
-  usePredictLivePositions: jest.fn((positions: unknown[]) => ({
-    livePositions: positions ?? [],
-    isConnected: false,
-    lastUpdateTime: null,
-  })),
-}));
 jest.mock('../../utils/format');
 
 const mockUsePredictPositions = usePredictPositions as jest.Mock;
@@ -132,7 +125,7 @@ describe('PredictPicksForCard', () => {
 
       render(<PredictPicksForCard marketId="market-1" />);
 
-      expect(screen.getByText(/Yes to win/)).toBeOnTheScreen();
+      expect(screen.getByText(/on Yes/)).toBeOnTheScreen();
     });
 
     it('displays formatted initialValue', () => {
@@ -289,8 +282,8 @@ describe('PredictPicksForCard', () => {
 
       render(<PredictPicksForCard marketId="market-1" />);
 
-      expect(screen.getByText(/Yes to win/)).toBeOnTheScreen();
-      expect(screen.getByText(/No to win/)).toBeOnTheScreen();
+      expect(screen.getByText(/on Yes/)).toBeOnTheScreen();
+      expect(screen.getByText(/on No/)).toBeOnTheScreen();
     });
 
     it('calls formatPrice for each position cashPnl', () => {
@@ -327,12 +320,12 @@ describe('PredictPicksForCard', () => {
 
       expect(mockUsePredictPositions).toHaveBeenCalledWith({
         marketId: 'specific-market-456',
-        refetchInterval: 10000,
         enabled: true,
+        livePriceUpdates: true,
       });
     });
 
-    it('passes refetchInterval of 10000ms to hook when no positions prop', () => {
+    it('enables livePriceUpdates when no positions prop', () => {
       mockUsePredictPositions.mockReturnValue({
         data: [],
         isLoading: false,
@@ -345,7 +338,7 @@ describe('PredictPicksForCard', () => {
 
       expect(mockUsePredictPositions).toHaveBeenCalledWith(
         expect.objectContaining({
-          refetchInterval: 10000,
+          livePriceUpdates: true,
         }),
       );
     });
@@ -362,8 +355,8 @@ describe('PredictPicksForCard', () => {
 
       expect(mockUsePredictPositions).toHaveBeenCalledWith({
         marketId: 'market-1',
-        refetchInterval: undefined,
         enabled: false,
+        livePriceUpdates: false,
       });
     });
   });
@@ -389,8 +382,8 @@ describe('PredictPicksForCard', () => {
         />,
       );
 
-      expect(screen.getByText(/Provided Yes to win/)).toBeOnTheScreen();
-      expect(screen.queryByText(/Fetched to win/)).toBeNull();
+      expect(screen.getByText(/on Provided Yes/)).toBeOnTheScreen();
+      expect(screen.queryByText(/on Fetched/)).toBeNull();
     });
 
     it('renders provided positions correctly', () => {
@@ -406,8 +399,8 @@ describe('PredictPicksForCard', () => {
         />,
       );
 
-      expect(screen.getByText(/Team A to win/)).toBeOnTheScreen();
-      expect(screen.getByText(/Team B to win/)).toBeOnTheScreen();
+      expect(screen.getByText(/on Team A/)).toBeOnTheScreen();
+      expect(screen.getByText(/on Team B/)).toBeOnTheScreen();
     });
 
     it('returns null when provided positions is empty', () => {
@@ -445,7 +438,7 @@ describe('PredictPicksForCard', () => {
 
       render(<PredictPicksForCard marketId="market-1" />);
 
-      expect(screen.getByText(/Maybe to win/)).toBeOnTheScreen();
+      expect(screen.getByText(/on Maybe/)).toBeOnTheScreen();
     });
   });
 

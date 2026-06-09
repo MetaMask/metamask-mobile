@@ -1,5 +1,5 @@
 import React, { useCallback, useRef } from 'react';
-import { TouchableOpacity, TextStyle } from 'react-native';
+import { StyleSheet, TouchableOpacity, TextStyle } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { Transaction } from '@metamask/keyring-api';
 import { capitalize } from 'lodash';
@@ -13,10 +13,6 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
-import Text, {
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
-import { TextColor } from '../../../component-library/components/Texts/Text/Text.types';
 import Icon, {
   IconName,
   IconSize,
@@ -27,6 +23,9 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   BoxAlignItems,
+  Text,
+  TextVariant,
+  TextColor,
 } from '@metamask/design-system-react-native';
 
 import { MultichainTransactionDisplayData } from '../../hooks/useMultichainTransactionDisplay';
@@ -60,6 +59,14 @@ const TransactionDetailRow = {
   NetworkFee: strings('transactions.network_fee'),
   PriorityFee: strings('transactions.multichain_priority_fee'),
 } as const;
+
+const styles = StyleSheet.create({
+  blockExplorerLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+});
 
 const MultichainTransactionDetailsSheet: React.FC = () => {
   const navigation = useNavigation();
@@ -96,13 +103,10 @@ const MultichainTransactionDetailsSheet: React.FC = () => {
 
       // Close the bottom sheet and navigate to webview
       sheetRef.current?.onCloseBottomSheet(() => {
-        navigation.navigate(
-          Routes.WEBVIEW.MAIN as never,
-          {
-            screen: Routes.WEBVIEW.SIMPLE,
-            params: { url },
-          } as never,
-        );
+        navigation.navigate(Routes.WEBVIEW.MAIN, {
+          screen: Routes.WEBVIEW.SIMPLE,
+          params: { url },
+        });
       });
     },
     [id, chain, from?.address, to?.address, navigation],
@@ -120,7 +124,7 @@ const MultichainTransactionDetailsSheet: React.FC = () => {
       alignItems={BoxAlignItems.Center}
       twClassName="py-3 border-b border-muted"
     >
-      <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+      <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
         {label}
       </Text>
       <Box
@@ -128,21 +132,18 @@ const MultichainTransactionDetailsSheet: React.FC = () => {
         alignItems={BoxAlignItems.Center}
       >
         {isLink ? (
-          <TouchableOpacity onPress={() => viewOnBlockExplorer(label)}>
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              twClassName="gap-1"
-            >
-              <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
-                {formatAddress(value, 'short')}
-              </Text>
-              <Icon
-                name={IconName.Export}
-                size={IconSize.Sm}
-                color={IconColor.Primary}
-              />
-            </Box>
+          <TouchableOpacity
+            onPress={() => viewOnBlockExplorer(label)}
+            style={styles.blockExplorerLink}
+          >
+            <Text variant={TextVariant.BodyMd} color={TextColor.PrimaryDefault}>
+              {formatAddress(value, 'short')}
+            </Text>
+            <Icon
+              name={IconName.Export}
+              size={IconSize.Sm}
+              color={IconColor.Primary}
+            />
           </TouchableOpacity>
         ) : label === TransactionDetailRow.Status ? (
           <StatusText
@@ -152,7 +153,7 @@ const MultichainTransactionDetailsSheet: React.FC = () => {
             context="transaction"
           />
         ) : (
-          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
             {value}
           </Text>
         )}
@@ -163,12 +164,11 @@ const MultichainTransactionDetailsSheet: React.FC = () => {
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
       <BottomSheetHeader onClose={handleClose}>
-        <Text variant={TextVariant.HeadingMD}>{title}</Text>
-        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+        <Text variant={TextVariant.HeadingMd}>{title}</Text>
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           {timestamp && toDateFormat(new Date(timestamp * 1000))}
         </Text>
       </BottomSheetHeader>
-
       <Box twClassName="px-4 pb-4">
         {renderDetailRow(TransactionDetailRow.Status, capitalize(status))}
         {renderDetailRow(TransactionDetailRow.TransactionID, id, true)}
@@ -192,7 +192,6 @@ const MultichainTransactionDetailsSheet: React.FC = () => {
             `${priorityFee.amount} ${priorityFee.unit}`,
           )}
       </Box>
-
       <Box twClassName="px-4">
         <Button
           variant={ButtonVariants.Link}

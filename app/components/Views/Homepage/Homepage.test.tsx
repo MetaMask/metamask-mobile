@@ -1,9 +1,67 @@
+import type { Nft } from '@metamask/assets-controllers';
 import React, { createRef } from 'react';
-import { screen } from '@testing-library/react-native';
+import { act, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import Homepage from './Homepage';
 import { SectionRefreshHandle } from './types';
+import {
+  HOMEPAGE_PERPS_PILLS_EMPTY_AB_KEY,
+  HOMEPAGE_PERPS_PILLS_EMPTY_VARIANTS,
+  HomepagePerpsPillsEmptyVariant,
+  HOMEPAGE_TRENDING_SECTIONS_AB_KEY,
+  HOMEPAGE_TRENDING_SECTIONS_VARIANTS,
+  HomepageTrendingSectionsVariant,
+} from './abTestConfig';
+
+const defaultUseABTestImplementation = (key: string) => {
+  if (key === HOMEPAGE_PERPS_PILLS_EMPTY_AB_KEY) {
+    return {
+      variant:
+        HOMEPAGE_PERPS_PILLS_EMPTY_VARIANTS[
+          HomepagePerpsPillsEmptyVariant.Control
+        ],
+      variantName: HomepagePerpsPillsEmptyVariant.Control,
+      isActive: true,
+    };
+  }
+  if (key === HOMEPAGE_TRENDING_SECTIONS_AB_KEY) {
+    return {
+      variant:
+        HOMEPAGE_TRENDING_SECTIONS_VARIANTS[
+          HomepageTrendingSectionsVariant.Control
+        ],
+      variantName: HomepageTrendingSectionsVariant.Control,
+      isActive: true,
+    };
+  }
+  return {
+    variant: { separateTrending: false },
+    variantName: 'control',
+    isActive: true,
+  };
+};
+
+const separateTrendingTreatmentUseABTestImplementation = (key: string) => {
+  if (key === HOMEPAGE_PERPS_PILLS_EMPTY_AB_KEY) {
+    return {
+      variant:
+        HOMEPAGE_PERPS_PILLS_EMPTY_VARIANTS[
+          HomepagePerpsPillsEmptyVariant.Control
+        ],
+      variantName: HomepagePerpsPillsEmptyVariant.Control,
+      isActive: true,
+    };
+  }
+  return {
+    variant:
+      HOMEPAGE_TRENDING_SECTIONS_VARIANTS[
+        HomepageTrendingSectionsVariant.TrendingSections
+      ],
+    variantName: HomepageTrendingSectionsVariant.TrendingSections,
+    isActive: true,
+  };
+};
 
 // Mock navigation
 jest.mock('@react-navigation/native', () => {
@@ -19,6 +77,17 @@ jest.mock('@react-navigation/native', () => {
     },
   };
 });
+
+const mockUseABTest = jest.fn(defaultUseABTestImplementation);
+jest.mock('../../../hooks', () => ({
+  useABTest: (...args: unknown[]) =>
+    Reflect.apply(mockUseABTest, undefined, args),
+}));
+
+const mockUseOwnedNfts = jest.fn((): Nft[] => []);
+jest.mock('./Sections/NFTs/hooks', () => ({
+  useOwnedNfts: () => mockUseOwnedNfts(),
+}));
 
 // Mock feature flags - enable all sections by default
 const mockDetectNfts = jest.fn().mockResolvedValue(undefined);
@@ -37,10 +106,25 @@ jest.mock('../../UI/Perps', () => ({
   selectPerpsEnabledFlag: jest.fn(() => true),
 }));
 
-jest.mock('../../UI/Perps/providers/PerpsConnectionProvider', () => ({
-  PerpsConnectionProvider: ({ children }: { children: React.ReactNode }) =>
-    children,
-}));
+jest.mock('../../UI/Perps/providers/PerpsConnectionProvider', () => {
+  const ReactLib = jest.requireActual<typeof import('react')>('react');
+  const PerpsConnectionContext = ReactLib.createContext({
+    isConnected: true,
+    isConnecting: false,
+    isInitialized: true,
+    error: null,
+    connect: jest.fn(),
+    disconnect: jest.fn(),
+    resetError: jest.fn(),
+    reconnectWithNewContext: jest.fn().mockResolvedValue(undefined),
+  });
+
+  return {
+    PerpsConnectionContext,
+    PerpsConnectionProvider: ({ children }: { children: React.ReactNode }) =>
+      children,
+  };
+});
 
 jest.mock('../../UI/Perps/providers/PerpsStreamManager', () => ({
   PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
@@ -57,6 +141,13 @@ jest.mock('../../UI/Perps/hooks', () => ({
   })),
   usePerpsLiveOrders: jest.fn(() => ({
     orders: [],
+    isInitialLoading: false,
+  })),
+  usePerpsLiveAccount: jest.fn(() => ({
+    account: {
+      unrealizedPnl: '0',
+      returnOnEquity: '0',
+    },
     isInitialLoading: false,
   })),
   usePerpsMarkets: jest.fn(() => ({
@@ -104,8 +195,68 @@ jest.mock('react-native-skeleton-placeholder', () => {
   return MockSkeletonPlaceholder;
 });
 
+jest.mock('../../UI/NftGrid/NftGridItemBottomSheet', () => () => null);
+
 jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
   selectPredictEnabledFlag: jest.fn(() => true),
+  selectPredictWorldCupConfig: jest.fn(() => ({
+    enabled: false,
+    minimumVersion: '',
+    showMainFeedBanner: false,
+    showMainFeedTab: false,
+    showWorldCupScreen: false,
+    seriesId: '10218',
+    tagSlug: 'fifa-world-cup',
+    gamesTagId: '100639',
+    stages: [],
+  })),
+  selectPredictWorldCupScreenEnabledFlag: jest.fn(() => false),
+  selectPredictHomepageDiscoveryNbaChampionEnabledFlag: jest.fn(() => false),
+}));
+
+jest.mock('../../UI/Predict/hooks/usePredictWorldCup', () => ({
+  usePredictWorldCupMarkets: () => ({
+    marketData: [],
+    isFetching: false,
+    isFetchingMore: false,
+    error: null,
+    hasMore: false,
+    refetch: jest.fn().mockResolvedValue(undefined),
+    fetchMore: jest.fn().mockResolvedValue(undefined),
+  }),
+  usePredictWorldCupAvailability: () => ({
+    availability: { live: false, props: false, stages: {} },
+    isFetching: false,
+    isLoading: false,
+    errors: [],
+    refetch: jest.fn(),
+  }),
+  usePredictWorldCupAvailableTabs: () => ({
+    availability: { live: false, props: false, stages: {} },
+    tabs: [],
+    isFetching: false,
+    isLoading: false,
+    errors: [],
+    refetch: jest.fn(),
+  }),
+}));
+
+jest.mock('@tanstack/react-query', () => {
+  const actual = jest.requireActual('@tanstack/react-query');
+  return {
+    ...actual,
+    useQueryClient: jest.fn(() => ({
+      invalidateQueries: jest.fn(() => Promise.resolve()),
+    })),
+  };
+});
+
+jest.mock('../../UI/Predict/hooks/useUnrealizedPnL', () => ({
+  useUnrealizedPnL: jest.fn(() => ({
+    data: null,
+    isLoading: false,
+    error: null,
+  })),
 }));
 
 jest.mock('../../UI/Predict/hooks/usePredictPositions', () => ({
@@ -129,12 +280,23 @@ jest.mock('../../UI/Predict/hooks/usePredictMarketData', () => ({
   }),
 }));
 
-jest.mock(
-  '../../../selectors/featureFlagController/assetsDefiPositions',
-  () => ({
-    selectAssetsDefiPositionsEnabled: jest.fn(() => true),
-  }),
-);
+jest.mock('../../../selectors/deFiPositionsSectionEnabled', () => ({
+  selectDeFiPositionsSectionEnabled: jest.fn(() => true),
+}));
+
+jest.mock('../../../selectors/featureFlagController/socialLeaderboard', () => ({
+  selectSocialLeaderboardEnabled: jest.fn(() => false),
+}));
+
+jest.mock('./Sections/TopTraders/hooks', () => ({
+  useTopTraders: jest.fn(() => ({
+    traders: [],
+    isLoading: false,
+    error: null,
+    refresh: jest.fn().mockResolvedValue(undefined),
+    toggleFollow: jest.fn(),
+  })),
+}));
 
 /** Shape of first argument to useHomeViewedEvent (for asserting in tests). */
 interface UseHomeViewedEventParamsSnapshot {
@@ -153,11 +315,15 @@ jest.mock('./hooks/useHomeViewedEvent', () => ({
   HomeSectionNames: {
     CASH: 'cash',
     TOKENS: 'tokens',
+    TOP_TRADERS: 'top_traders',
     WHATS_HAPPENING: 'whats_happening',
     PERPS: 'perps',
     DEFI: 'defi',
     PREDICT: 'predict',
     NFTS: 'nfts',
+    TRENDING_TOKENS: 'trending_tokens',
+    TRENDING_PERPS: 'trending_perps',
+    TRENDING_PREDICT: 'trending_predict',
   },
 }));
 
@@ -176,7 +342,7 @@ jest.mock('../../UI/Earn/selectors/featureFlags', () => ({
   selectMusdConversionCTATokens: jest.fn(() => ({})),
   selectIsMusdConversionTokenListItemCtaEnabledFlag: jest.fn(() => false),
   selectIsMusdConversionAssetOverviewEnabledFlag: jest.fn(() => false),
-  selectMusdQuickConvertEnabledFlag: jest.fn(() => false),
+  selectMerklCampaignClaimingEnabledFlag: jest.fn(() => false),
 }));
 
 const mockUseMusdConversionEligibility = jest.fn(() => ({ isEligible: false }));
@@ -196,6 +362,8 @@ jest.mock('../../UI/Earn/hooks/useMusdConversionTokens', () => ({
 }));
 
 const mockEnableAllPopularNetworks = jest.fn();
+let mockPopularNetworks: string[] = [];
+const mockIsNetworkEnabled = jest.fn(() => true);
 jest.mock('../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
   useNetworkEnablement: () => ({
     namespace: 'eip155',
@@ -208,8 +376,8 @@ jest.mock('../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
     enableAllPopularNetworks: mockEnableAllPopularNetworks,
     popularEvmNetworks: [],
     popularMultichainNetworks: [],
-    popularNetworks: [],
-    isNetworkEnabled: jest.fn(),
+    popularNetworks: mockPopularNetworks,
+    isNetworkEnabled: mockIsNetworkEnabled,
     hasOneEnabledNetwork: false,
     tryEnableEvmNetwork: jest.fn(),
   }),
@@ -229,9 +397,18 @@ const stateWithPreferences = {
   },
 };
 
+const mockOwnedNft = {
+  address: '0x123',
+  tokenId: '1',
+  isCurrentlyOwned: true,
+  name: 'NFT 1',
+  image: 'https://example.com/nft.png',
+} as Nft;
+
 describe('Homepage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockDetectNfts.mockResolvedValue(undefined);
     jest
       .requireMock('../../UI/Perps')
       .selectPerpsEnabledFlag.mockReturnValue(true);
@@ -239,28 +416,85 @@ describe('Homepage', () => {
       .requireMock('../../UI/Predict/selectors/featureFlags')
       .selectPredictEnabledFlag.mockReturnValue(true);
     jest
-      .requireMock(
-        '../../../selectors/featureFlagController/assetsDefiPositions',
-      )
-      .selectAssetsDefiPositionsEnabled.mockReturnValue(true);
+      .requireMock('../../../selectors/deFiPositionsSectionEnabled')
+      .selectDeFiPositionsSectionEnabled.mockReturnValue(true);
+    jest
+      .requireMock('../../../selectors/featureFlagController/socialLeaderboard')
+      .selectSocialLeaderboardEnabled.mockReturnValue(false);
+    jest
+      .requireMock('../../UI/Earn/selectors/featureFlags')
+      .selectIsMusdConversionFlowEnabledFlag.mockReturnValue(false);
+    mockUseMusdConversionEligibility.mockReturnValue({ isEligible: false });
+    mockUseABTest.mockImplementation(defaultUseABTestImplementation);
+    mockUseOwnedNfts.mockReturnValue([]);
+    mockPopularNetworks = [];
+    mockIsNetworkEnabled.mockReturnValue(true);
   });
 
-  it('calls enableAllPopularNetworks when Homepage is focused (useFocusEffect)', () => {
+  it('calls enableAllPopularNetworks when Homepage is focused and a popular network is disabled', () => {
+    mockPopularNetworks = ['eip155:1'];
+    mockIsNetworkEnabled.mockReturnValue(false);
+
     renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
     expect(mockEnableAllPopularNetworks).toHaveBeenCalled();
   });
 
-  it('renders NFTs section title', () => {
+  it('does not call enableAllPopularNetworks when all popular networks are already enabled', () => {
+    mockPopularNetworks = ['eip155:1'];
+    mockIsNetworkEnabled.mockReturnValue(true);
+
+    renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+    expect(mockEnableAllPopularNetworks).not.toHaveBeenCalled();
+  });
+
+  it('triggers NFT detection when Homepage is focused', () => {
+    renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+    expect(mockDetectNfts).toHaveBeenCalledTimes(1);
+  });
+
+  it('aborts NFT detection on unmount', () => {
+    const { unmount } = renderWithProvider(<Homepage />, {
+      state: stateWithPreferences,
+    });
+
+    unmount();
+
+    expect(mockAbortDetection).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders without error when NFT detection rejects', async () => {
+    mockDetectNfts.mockRejectedValueOnce(new Error('Aborted'));
+
+    renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+    await act(async () => undefined);
+
+    expect(screen.getByText('More')).toBeOnTheScreen();
+  });
+
+  it('does not render NFTs section when user has no NFTs', () => {
+    renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+    expect(screen.queryByText('NFTs')).not.toBeOnTheScreen();
+  });
+
+  it('renders More section actions', () => {
+    renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+    expect(screen.getByText('More')).toBeOnTheScreen();
+    expect(screen.getByText('Import a token')).toBeOnTheScreen();
+    expect(screen.getByText('Import an NFT')).toBeOnTheScreen();
+  });
+
+  it('renders NFTs section when user has NFTs', () => {
+    mockUseOwnedNfts.mockReturnValue([mockOwnedNft]);
+
     renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
     expect(screen.getByText('NFTs')).toBeOnTheScreen();
-  });
-
-  it('renders NFTs section empty state when user has no NFTs', () => {
-    renderWithProvider(<Homepage />, { state: stateWithPreferences });
-
-    expect(screen.getByText('Import NFTs')).toBeOnTheScreen();
   });
 
   it('exposes refresh function via ref', () => {
@@ -285,7 +519,7 @@ describe('Homepage', () => {
     it('passes correct sectionIndex to each section when all flags are on', () => {
       renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
-      // Tokens=0, Perps=1, Predict=2, DeFi=3, NFTs=4 → total=5
+      // Tokens=0, Perps=1, Predict=2, DeFi=3 → total=4
       const calls = getUseHomeViewedEventCalls();
       const callBySectionName = (name: string) =>
         calls.find((c) => c[0]?.sectionName === name)?.[0];
@@ -294,13 +528,28 @@ describe('Homepage', () => {
       expect(callBySectionName('perps')?.sectionIndex).toBe(1);
       expect(callBySectionName('predict')?.sectionIndex).toBe(2);
       expect(callBySectionName('defi')?.sectionIndex).toBe(3);
-      expect(callBySectionName('nfts')?.sectionIndex).toBe(4);
+      expect(callBySectionName('nfts')).toBeUndefined();
     });
 
-    it('passes totalSectionsLoaded=5 when all flags are enabled', () => {
+    it('passes totalSectionsLoaded=4 when all flags are enabled and there are no NFTs', () => {
       renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
       const calls = getUseHomeViewedEventCalls();
+      calls.forEach((call) => {
+        expect(call[0]?.totalSectionsLoaded).toBe(4);
+      });
+    });
+
+    it('includes NFTs in section indices when user has NFTs', () => {
+      mockUseOwnedNfts.mockReturnValue([mockOwnedNft]);
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      const calls = getUseHomeViewedEventCalls();
+      const callBySectionName = (name: string) =>
+        calls.find((c) => c[0]?.sectionName === name)?.[0];
+
+      expect(callBySectionName('nfts')?.sectionIndex).toBe(4);
       calls.forEach((call) => {
         expect(call[0]?.totalSectionsLoaded).toBe(5);
       });
@@ -324,15 +573,15 @@ describe('Homepage', () => {
       expect(callBySectionName('tokens')?.sectionIndex).toBe(0);
       expect(callBySectionName('predict')?.sectionIndex).toBe(1);
       expect(callBySectionName('defi')?.sectionIndex).toBe(2);
-      expect(callBySectionName('nfts')?.sectionIndex).toBe(3);
+      expect(callBySectionName('nfts')).toBeUndefined();
     });
 
-    it('passes totalSectionsLoaded=4 when Perps is disabled', () => {
+    it('passes totalSectionsLoaded=3 when Perps is disabled and there are no NFTs', () => {
       renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
       const calls = getUseHomeViewedEventCalls();
       calls.forEach((call) => {
-        expect(call[0]?.totalSectionsLoaded).toBe(4);
+        expect(call[0]?.totalSectionsLoaded).toBe(3);
       });
     });
   });
@@ -346,13 +595,11 @@ describe('Homepage', () => {
         .requireMock('../../UI/Predict/selectors/featureFlags')
         .selectPredictEnabledFlag.mockReturnValue(false);
       jest
-        .requireMock(
-          '../../../selectors/featureFlagController/assetsDefiPositions',
-        )
-        .selectAssetsDefiPositionsEnabled.mockReturnValue(false);
+        .requireMock('../../../selectors/deFiPositionsSectionEnabled')
+        .selectDeFiPositionsSectionEnabled.mockReturnValue(false);
     });
 
-    it('passes totalSectionsLoaded=2 when only Tokens and NFTs are enabled', () => {
+    it('passes totalSectionsLoaded=1 when only Tokens is enabled and there are no NFTs', () => {
       renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
       const calls = getUseHomeViewedEventCalls();
@@ -360,8 +607,42 @@ describe('Homepage', () => {
         calls.find((c) => c[0]?.sectionName === name)?.[0];
 
       expect(callBySectionName('tokens')?.sectionIndex).toBe(0);
-      expect(callBySectionName('nfts')?.sectionIndex).toBe(1);
-      expect(callBySectionName('tokens')?.totalSectionsLoaded).toBe(2);
+      expect(callBySectionName('nfts')).toBeUndefined();
+      expect(callBySectionName('tokens')?.totalSectionsLoaded).toBe(1);
+    });
+  });
+
+  describe('section indices — Social Leaderboard enabled', () => {
+    beforeEach(() => {
+      jest
+        .requireMock(
+          '../../../selectors/featureFlagController/socialLeaderboard',
+        )
+        .selectSocialLeaderboardEnabled.mockReturnValue(true);
+    });
+
+    it('passes correct sectionIndex including top_traders and shifts following sections', () => {
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      const calls = getUseHomeViewedEventCalls();
+      const callBySectionName = (name: string) =>
+        calls.find((c) => c[0]?.sectionName === name)?.[0];
+
+      expect(callBySectionName('tokens')?.sectionIndex).toBe(0);
+      expect(callBySectionName('perps')?.sectionIndex).toBe(1);
+      expect(callBySectionName('predict')?.sectionIndex).toBe(2);
+      expect(callBySectionName('top_traders')?.sectionIndex).toBe(3);
+      expect(callBySectionName('defi')?.sectionIndex).toBe(4);
+      expect(callBySectionName('nfts')).toBeUndefined();
+    });
+
+    it('passes totalSectionsLoaded=5 when Social Leaderboard flag is on and there are no NFTs', () => {
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      const calls = getUseHomeViewedEventCalls();
+      calls.forEach((call) => {
+        expect(call[0]?.totalSectionsLoaded).toBe(5);
+      });
     });
   });
 
@@ -383,8 +664,143 @@ describe('Homepage', () => {
       expect(callBySectionName('cash')?.sectionIndex).toBe(0);
       expect(callBySectionName('tokens')?.sectionIndex).toBe(1);
       expect(callBySectionName('perps')?.sectionIndex).toBe(2);
-      expect(callBySectionName('nfts')?.sectionIndex).toBe(5);
-      expect(callBySectionName('cash')?.totalSectionsLoaded).toBe(6);
+      expect(callBySectionName('nfts')).toBeUndefined();
+      expect(callBySectionName('cash')?.totalSectionsLoaded).toBe(5);
+    });
+  });
+
+  describe('treatment variant — separateTrending enabled', () => {
+    beforeEach(() => {
+      mockUseABTest.mockImplementation(
+        separateTrendingTreatmentUseABTestImplementation,
+      );
+    });
+
+    it('passes correct section indices when separateTrending is active (no NFTs)', () => {
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      const calls = getUseHomeViewedEventCalls();
+      const callBySectionName = (name: string) =>
+        calls.find((c) => c[0]?.sectionName === name)?.[0];
+
+      expect(callBySectionName('tokens')?.sectionIndex).toBe(0);
+      expect(callBySectionName('perps')?.sectionIndex).toBe(1);
+      expect(callBySectionName('predict')?.sectionIndex).toBe(2);
+      expect(callBySectionName('defi')?.sectionIndex).toBe(3);
+      expect(callBySectionName('trending_tokens')?.sectionIndex).toBe(4);
+      expect(callBySectionName('trending_perps')?.sectionIndex).toBe(5);
+      expect(callBySectionName('trending_predict')?.sectionIndex).toBe(6);
+      expect(callBySectionName('nfts')).toBeUndefined();
+
+      calls.forEach((call) => {
+        expect(call[0]?.totalSectionsLoaded).toBe(7);
+      });
+    });
+
+    it('places NFTs above trending sections when user has NFTs', () => {
+      mockUseOwnedNfts.mockReturnValue([mockOwnedNft]);
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      const calls = getUseHomeViewedEventCalls();
+      const callBySectionName = (name: string) =>
+        calls.find((c) => c[0]?.sectionName === name)?.[0];
+
+      expect(callBySectionName('tokens')?.sectionIndex).toBe(0);
+      expect(callBySectionName('perps')?.sectionIndex).toBe(1);
+      expect(callBySectionName('predict')?.sectionIndex).toBe(2);
+      expect(callBySectionName('defi')?.sectionIndex).toBe(3);
+      expect(callBySectionName('nfts')?.sectionIndex).toBe(4);
+      expect(callBySectionName('trending_tokens')?.sectionIndex).toBe(5);
+      expect(callBySectionName('trending_perps')?.sectionIndex).toBe(6);
+      expect(callBySectionName('trending_predict')?.sectionIndex).toBe(7);
+
+      calls.forEach((call) => {
+        expect(call[0]?.totalSectionsLoaded).toBe(8);
+      });
+    });
+
+    it('excludes trending_perps when Perps is disabled', () => {
+      jest
+        .requireMock('../../UI/Perps')
+        .selectPerpsEnabledFlag.mockReturnValue(false);
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      const calls = getUseHomeViewedEventCalls();
+      const callBySectionName = (name: string) =>
+        calls.find((c) => c[0]?.sectionName === name)?.[0];
+
+      expect(callBySectionName('tokens')?.sectionIndex).toBe(0);
+      expect(callBySectionName('predict')?.sectionIndex).toBe(1);
+      expect(callBySectionName('defi')?.sectionIndex).toBe(2);
+      expect(callBySectionName('trending_tokens')?.sectionIndex).toBe(3);
+      expect(callBySectionName('trending_predict')?.sectionIndex).toBe(4);
+      expect(callBySectionName('nfts')).toBeUndefined();
+
+      expect(calls.some((c) => c[0]?.sectionName === 'perps')).toBe(false);
+      expect(calls.some((c) => c[0]?.sectionName === 'trending_perps')).toBe(
+        false,
+      );
+
+      calls.forEach((call) => {
+        expect(call[0]?.totalSectionsLoaded).toBe(5);
+      });
+    });
+
+    it('includes top_traders in section order when Social Leaderboard is enabled', () => {
+      jest
+        .requireMock(
+          '../../../selectors/featureFlagController/socialLeaderboard',
+        )
+        .selectSocialLeaderboardEnabled.mockReturnValue(true);
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      const calls = getUseHomeViewedEventCalls();
+      const callBySectionName = (name: string) =>
+        calls.find((c) => c[0]?.sectionName === name)?.[0];
+
+      expect(callBySectionName('tokens')?.sectionIndex).toBe(0);
+      expect(callBySectionName('perps')?.sectionIndex).toBe(1);
+      expect(callBySectionName('predict')?.sectionIndex).toBe(2);
+      expect(callBySectionName('top_traders')?.sectionIndex).toBe(3);
+      expect(callBySectionName('defi')?.sectionIndex).toBe(4);
+      expect(callBySectionName('trending_tokens')?.sectionIndex).toBe(5);
+      expect(callBySectionName('trending_perps')?.sectionIndex).toBe(6);
+      expect(callBySectionName('trending_predict')?.sectionIndex).toBe(7);
+      expect(callBySectionName('nfts')).toBeUndefined();
+
+      calls.forEach((call) => {
+        expect(call[0]?.totalSectionsLoaded).toBe(8);
+      });
+    });
+  });
+
+  describe('perpsProvidersHoisted + Perps feature flag', () => {
+    it('does not render PerpsSection when perpsProvidersHoisted=true and Perps flag is disabled', () => {
+      jest
+        .requireMock('../../UI/Perps')
+        .selectPerpsEnabledFlag.mockReturnValue(false);
+
+      renderWithProvider(<Homepage perpsProvidersHoisted />, {
+        state: stateWithPreferences,
+      });
+
+      const calls = getUseHomeViewedEventCalls();
+      expect(calls.some((c) => c[0]?.sectionName === 'perps')).toBe(false);
+    });
+
+    it('renders PerpsSection when perpsProvidersHoisted=true and Perps flag is enabled', () => {
+      jest
+        .requireMock('../../UI/Perps')
+        .selectPerpsEnabledFlag.mockReturnValue(true);
+
+      renderWithProvider(<Homepage perpsProvidersHoisted />, {
+        state: stateWithPreferences,
+      });
+
+      const calls = getUseHomeViewedEventCalls();
+      expect(calls.some((c) => c[0]?.sectionName === 'perps')).toBe(true);
     });
   });
 });

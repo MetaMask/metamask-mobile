@@ -4,13 +4,14 @@ import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import styleSheet from '../../../../Settings/DeveloperOptions/DeveloperOptions.styles';
 import { Hex } from '@metamask/utils';
-import Button, {
+import {
+  Button,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../../component-library/components/Buttons/Button';
+  ButtonVariant,
+} from '@metamask/design-system-react-native';
 import { useTheme } from '@react-navigation/native';
 import { addTransactionBatch } from '../../../../../../util/transaction-controller';
 import { useSelector } from 'react-redux';
@@ -24,7 +25,11 @@ import { useConfirmNavigation } from '../../../hooks/useConfirmNavigation';
 import { selectSelectedInternalAccountAddress } from '../../../../../../selectors/accountsController';
 import { RootState } from '../../../../../../reducers';
 import { ConfirmationsDeveloperOptionsTestIds } from './confirmations-developer-options.testIds';
-import { ARBITRUM_USDC } from '../../../constants/perps';
+import {
+  selectMoneyAccountDepositEnabledFlag,
+  selectMoneyAccountWithdrawEnabledFlag,
+} from '../../../../../../selectors/featureFlagController/moneyAccount';
+import { usePerpsWithdrawConfirmation } from '../../../../../../components/UI/Perps/hooks/usePerpsWithdrawConfirmation';
 
 const POLYGON_USDCE_ADDRESS =
   '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as Hex;
@@ -33,25 +38,31 @@ const POLYGON_USDCE_ADDRESS =
 const PROXY_ADDRESS = '0x13032833b30f3388208cda38971fdc839936b042' as Hex;
 
 export function ConfirmationsDeveloperOptions() {
+  const isMoneyAccountDepositEnabled = useSelector(
+    selectMoneyAccountDepositEnabledFlag,
+  );
+  const isMoneyAccountWithdrawEnabled = useSelector(
+    selectMoneyAccountWithdrawEnabledFlag,
+  );
+
   return (
     <>
       <PredictDeposit />
       <PredictClaim />
       <PredictWithdraw />
       <PerpsWithdraw />
+      {isMoneyAccountDepositEnabled && <MoneyAccountDeposit />}
+      {isMoneyAccountWithdrawEnabled && <MoneyAccountWithdraw />}
     </>
   );
 }
 
 function PerpsWithdraw() {
-  const { addTransactionBatchAndNavigate } = useAddPerpsTransactionBatch();
+  const { withdrawWithConfirmation } = usePerpsWithdrawConfirmation();
 
   const handleWithdraw = useCallback(() => {
-    addTransactionBatchAndNavigate({
-      loader: ConfirmationLoader.CustomAmount,
-      transactionType: TransactionType.perpsWithdraw,
-    });
-  }, [addTransactionBatchAndNavigate]);
+    withdrawWithConfirmation();
+  }, [withdrawWithConfirmation]);
 
   return (
     <DeveloperButton
@@ -125,6 +136,50 @@ function PredictDeposit() {
   );
 }
 
+function MoneyAccountDeposit() {
+  const { addTransactionBatchAndNavigate } = useAddTransactionBatch();
+
+  const handleDeposit = useCallback(() => {
+    addTransactionBatchAndNavigate({
+      loader: ConfirmationLoader.CustomAmount,
+      transactionType: TransactionType.moneyAccountDeposit,
+    });
+  }, [addTransactionBatchAndNavigate]);
+
+  return (
+    <DeveloperButton
+      title="Money Account Deposit"
+      description="Trigger a Money Account deposit confirmation."
+      buttonLabel="Deposit"
+      onPress={handleDeposit}
+      testID={ConfirmationsDeveloperOptionsTestIds.MONEY_ACCOUNT_DEPOSIT_BUTTON}
+    />
+  );
+}
+
+function MoneyAccountWithdraw() {
+  const { addTransactionBatchAndNavigate } = useAddTransactionBatch();
+
+  const handleWithdraw = useCallback(() => {
+    addTransactionBatchAndNavigate({
+      loader: ConfirmationLoader.CustomAmount,
+      transactionType: TransactionType.moneyAccountWithdraw,
+    });
+  }, [addTransactionBatchAndNavigate]);
+
+  return (
+    <DeveloperButton
+      title="Money Account Withdraw"
+      description="Trigger a Money Account withdraw confirmation."
+      buttonLabel="Withdraw"
+      onPress={handleWithdraw}
+      testID={
+        ConfirmationsDeveloperOptionsTestIds.MONEY_ACCOUNT_WITHDRAW_BUTTON
+      }
+    />
+  );
+}
+
 function useAddTransactionBatch() {
   const selectedAccount = useSelector(selectSelectedInternalAccountAddress);
   const { navigateToConfirmation } = useConfirmNavigation();
@@ -136,7 +191,7 @@ function useAddTransactionBatch() {
 
   const transferData = generateTransferData('transfer', {
     toAddress: PROXY_ADDRESS,
-    amount: '0x0',
+    amount: '0xF4240',
   }) as Hex;
 
   const addTransactionBatchAndNavigate = useCallback(
@@ -165,6 +220,7 @@ function useAddTransactionBatch() {
           {
             params: {
               to: PROXY_ADDRESS,
+              data: '0x',
               value: '0x1',
             },
           },
@@ -178,60 +234,6 @@ function useAddTransactionBatch() {
         ],
       }).catch((e) => {
         console.error('Predict transaction error', e);
-      });
-    },
-    [navigateToConfirmation, networkClientId, selectedAccount, transferData],
-  );
-
-  return {
-    addTransactionBatchAndNavigate,
-  };
-}
-
-function useAddPerpsTransactionBatch() {
-  const selectedAccount = useSelector(selectSelectedInternalAccountAddress);
-  const { navigateToConfirmation } = useConfirmNavigation();
-
-  const { networkClientId } =
-    useSelector((state: RootState) =>
-      selectDefaultEndpointByChainId(state, CHAIN_IDS.ARBITRUM),
-    ) ?? {};
-
-  const transferData = generateTransferData('transfer', {
-    toAddress: ARBITRUM_USDC.address,
-    amount: '0x0',
-  }) as Hex;
-
-  const addTransactionBatchAndNavigate = useCallback(
-    async ({
-      loader,
-      transactionType,
-    }: {
-      loader?: ConfirmationLoader;
-      transactionType: TransactionType;
-    }) => {
-      navigateToConfirmation({
-        loader,
-        stack: Routes.PERPS.ROOT,
-      });
-
-      addTransactionBatch({
-        from: selectedAccount as Hex,
-        origin: ORIGIN_METAMASK,
-        networkClientId,
-        disableHook: true,
-        disableSequential: true,
-        transactions: [
-          {
-            params: {
-              to: ARBITRUM_USDC.address,
-              data: transferData,
-            },
-            type: transactionType,
-          },
-        ],
-      }).catch((e) => {
-        console.error('Perps transaction error', e);
       });
     },
     [navigateToConfirmation, networkClientId, selectedAccount, transferData],
@@ -275,14 +277,15 @@ function DeveloperButton({
         {description}
       </Text>
       <Button
-        variant={ButtonVariants.Secondary}
+        variant={ButtonVariant.Secondary}
         size={ButtonSize.Lg}
-        label={buttonLabel}
         onPress={onPress}
         testID={testID}
-        width={ButtonWidthTypes.Full}
+        isFullWidth
         style={styles.accessory}
-      />
+      >
+        {buttonLabel}
+      </Button>
     </>
   );
 }

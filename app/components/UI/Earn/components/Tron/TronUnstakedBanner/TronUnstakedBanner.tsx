@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import type { CaipChainId } from '@metamask/utils';
 import { strings } from '../../../../../../../locales/i18n';
 import Banner, {
@@ -13,6 +14,7 @@ import {
 } from '@metamask/design-system-react-native';
 import useTronClaimUnstakedTrx from '../../../hooks/useTronClaimUnstakedTrx';
 import useEarnToasts from '../../../hooks/useEarnToasts';
+import { selectTronClaimUnstakedTrxButtonEnabled } from '../../../../../../selectors/featureFlagController/tronClaimUnstakedTrxButtonEnabled';
 import { TronUnstakedBannerTestIds } from './TronUnstakedBanner.testIds';
 
 interface TronUnstakedBannerProps {
@@ -21,6 +23,7 @@ interface TronUnstakedBannerProps {
 }
 
 const TronUnstakedBanner = ({ amount, chainId }: TronUnstakedBannerProps) => {
+  const showClaimButton = useSelector(selectTronClaimUnstakedTrxButtonEnabled);
   const { handleClaimUnstakedTrx, isSubmitting, errors } =
     useTronClaimUnstakedTrx({ chainId });
   const { showToast, EarnToastOptions } = useEarnToasts();
@@ -41,19 +44,21 @@ const TronUnstakedBanner = ({ amount, chainId }: TronUnstakedBannerProps) => {
         <>
           <Text
             testID={TronUnstakedBannerTestIds.BANNER_DESCRIPTION}
-            twClassName="pt-1 pb-4"
+            twClassName={showClaimButton ? 'pt-1 pb-4' : 'pt-1'}
           >
             {strings('stake.tron.unstaked_banner.description')}
           </Text>
-          <Button
-            testID={TronUnstakedBannerTestIds.CLAIM_BUTTON}
-            variant={ButtonVariant.Primary}
-            size={ButtonSize.Md}
-            onPress={handleClaimUnstakedTrx}
-            isDisabled={isSubmitting}
-          >
-            {strings('stake.tron.unstaked_banner.button')}
-          </Button>
+          {showClaimButton ? (
+            <Button
+              testID={TronUnstakedBannerTestIds.CLAIM_BUTTON}
+              variant={ButtonVariant.Primary}
+              size={ButtonSize.Md}
+              onPress={handleClaimUnstakedTrx}
+              isDisabled={isSubmitting}
+            >
+              {strings('stake.tron.unstaked_banner.button')}
+            </Button>
+          ) : null}
         </>
       }
     />

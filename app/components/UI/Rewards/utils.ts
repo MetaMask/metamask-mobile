@@ -104,6 +104,9 @@ export enum RewardsMetricsButtons {
   OPT_OUT = 'opt_out',
   OPT_OUT_CANCEL = 'opt_out_cancel',
   VISIT_APP_STORE = 'visit_app_store',
+  BUY_MUSD = 'buy_musd',
+  SWAP_TO_MUSD = 'swap_to_musd',
+  COPY_WINNER_VERIFICATION_CODE = 'copy_winner_verification_code',
 }
 
 export const deriveAccountMetricProps = (account?: InternalAccount) => {
@@ -132,6 +135,29 @@ export const deriveAccountMetricProps = (account?: InternalAccount) => {
     scope,
     account_type: type,
   };
+};
+
+interface NavigationRouteLike {
+  name?: string;
+  state?: NavigationStateLike;
+}
+
+export interface NavigationStateLike {
+  index?: number;
+  routes?: readonly NavigationRouteLike[];
+}
+
+export const getActiveRouteNameFromNavigationState = (
+  state?: NavigationStateLike,
+): string | undefined => {
+  const routeIndex = typeof state?.index === 'number' ? state.index : 0;
+  const route = state?.routes?.[routeIndex];
+
+  if (!route) {
+    return undefined;
+  }
+
+  return getActiveRouteNameFromNavigationState(route.state) ?? route.name;
 };
 
 // Referral URL builder

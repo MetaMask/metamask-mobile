@@ -176,6 +176,7 @@ const StakeButtonContent = ({ earnToken }: StakeButtonContentProps) => {
 
   return (
     <TouchableOpacity
+      accessible={false}
       onPress={onEarnButtonPress}
       testID={WalletViewSelectorsIDs.STAKE_BUTTON}
       style={styles.stakeButton}

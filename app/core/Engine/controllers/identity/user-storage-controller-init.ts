@@ -1,5 +1,5 @@
 import { scrypt } from 'react-native-fast-crypto';
-import { ControllerInitFunction } from '../../types';
+import { MessengerClientInitFunction } from '../../types';
 import {
   Controller as UserStorageController,
   UserStorageControllerMessenger,
@@ -8,6 +8,7 @@ import type { UserStorageControllerInitMessenger } from '../../messengers/identi
 import { MetaMetricsEvents } from '../../../Analytics';
 import { trace } from '../../../../util/trace';
 import { buildAndTrackEvent } from '../../utils/analytics';
+import { authEnv } from '../../../devApiEnv';
 
 /**
  * Initialize the user storage controller.
@@ -16,7 +17,7 @@ import { buildAndTrackEvent } from '../../utils/analytics';
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @returns The initialized controller.
  */
-export const userStorageControllerInit: ControllerInitFunction<
+export const userStorageControllerInit: MessengerClientInitFunction<
   UserStorageController,
   UserStorageControllerMessenger,
   UserStorageControllerInitMessenger
@@ -33,6 +34,8 @@ export const userStorageControllerInit: ControllerInitFunction<
     trace,
 
     config: {
+      env: authEnv(),
+
       contactSyncing: {
         onContactUpdated: (profileId) => {
           buildAndTrackEvent(

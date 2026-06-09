@@ -15,7 +15,7 @@ import {
   NGRAVE_BUY,
   NGRAVE_LEARN_MORE,
 } from '../../../../constants/urls';
-import { QR_CONTINUE_BUTTON } from '../../../../../wdio/screen-objects/testIDs/Components/ConnectQRHardware.testIds';
+import { ConnectQRHardwareSelectorsIDs } from '../ConnectQRHardware.testIds';
 import { AppThemeKey } from '../../../../util/theme/models';
 
 jest.mock('../../../../../locales/i18n', () => ({
@@ -149,6 +149,22 @@ describe('ConnectQRInstruction', () => {
     expect(getByText('connect_qr_hardware.button_continue')).toBeTruthy();
   });
 
+  it('hides vendor marketing content when requested', () => {
+    const { queryByText } = renderWithProvider(
+      <ConnectQRInstruction
+        navigation={mockNavigation}
+        onConnect={mockOnConnect}
+        renderAlert={mockRenderAlert}
+        hideMarketingContent
+      />,
+      { state: initialState },
+    );
+
+    expect(queryByText('connect_qr_hardware.description2')).toBeNull();
+    expect(queryByText('connect_qr_hardware.keystone')).toBeNull();
+    expect(queryByText('connect_qr_hardware.ngravezero')).toBeNull();
+  });
+
   it('calls onConnect when continue button is pressed', () => {
     const { getByTestId } = renderWithProvider(
       <ConnectQRInstruction
@@ -159,7 +175,9 @@ describe('ConnectQRInstruction', () => {
       { state: initialState },
     );
 
-    const continueButton = getByTestId(QR_CONTINUE_BUTTON);
+    const continueButton = getByTestId(
+      ConnectQRHardwareSelectorsIDs.CONTINUE_BUTTON,
+    );
     fireEvent.press(continueButton);
 
     expect(mockOnConnect).toHaveBeenCalledTimes(1);

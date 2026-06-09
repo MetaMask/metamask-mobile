@@ -30,39 +30,32 @@ jest.mock('../../../Trending/services/TrendingFeedSessionManager', () => ({
   },
 }));
 
-jest.mock('../PredictSportScoreboard/PredictSportScoreboard', () => {
-  const { View, Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: function MockPredictSportScoreboard({
-      testID,
-    }: {
-      testID?: string;
-    }) {
-      return (
-        <View testID={testID ?? 'mock-scoreboard'}>
-          <Text>Mock Scoreboard</Text>
-        </View>
-      );
-    },
-  };
-});
+jest.mock('../../contexts', () => ({
+  usePredictEntryPoint: () => undefined,
+  usePredictPreviewSheet: () => ({
+    openBuySheet: jest.fn(),
+  }),
+}));
 
-jest.mock('../PredictSportCardFooter', () => {
-  const { View, Text } = jest.requireActual('react-native');
-  return {
-    PredictSportCardFooter: function MockPredictSportCardFooter({
-      testID,
-    }: {
-      testID?: string;
-    }) {
-      return (
-        <View testID={testID ?? 'mock-footer'}>
-          <Text>Mock Footer</Text>
-        </View>
-      );
-    },
-  };
+jest.mock('../../hooks/usePredictActionGuard', () => ({
+  usePredictActionGuard: () => ({
+    executeGuardedAction: (action: () => void) => action(),
+  }),
+}));
+
+jest.mock('../../hooks/useLiveGameUpdates', () => ({
+  useLiveGameUpdates: () => ({ gameUpdate: null }),
+}));
+
+jest.mock('../../constants/sportLeagueConfigs', () => ({
+  getLeagueConfig: () => ({}),
+}));
+
+jest.mock('../PredictSportTeamLogo/PredictSportTeamLogo', () => {
+  const { View } = jest.requireActual('react-native');
+  return ({ testID }: { testID?: string }) => (
+    <View testID={testID ?? 'predict-sport-team-logo'} />
+  );
 });
 
 const mockMarket: PredictMarketType = {

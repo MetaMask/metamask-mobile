@@ -6,9 +6,6 @@ import { strings } from '../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
-import Text, {
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
 import createStyles from './styles';
 import BottomSheetFooter, {
   ButtonsAlignment,
@@ -24,6 +21,7 @@ import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytic
 import { HOW_TO_MANAGE_METRAMETRICS_SETTINGS } from '../../../constants/urls';
 import { ExperienceEnhancerBottomSheetSelectorsIDs } from './ExperienceEnhancerModal.testIds';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 
 const ExperienceEnhancerModal = () => {
   const dispatch = useDispatch();
@@ -40,7 +38,7 @@ const ExperienceEnhancerModal = () => {
       bottomSheetRef.current?.onCloseBottomSheet();
 
       identify({
-        [UserProfileProperty.HAS_MARKETING_CONSENT]: UserProfileProperty.OFF,
+        [UserProfileProperty.HAS_MARKETING_CONSENT]: false,
       });
       trackEvent(
         createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
@@ -64,7 +62,7 @@ const ExperienceEnhancerModal = () => {
       bottomSheetRef.current?.onCloseBottomSheet();
 
       identify({
-        [UserProfileProperty.HAS_MARKETING_CONSENT]: UserProfileProperty.ON,
+        [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
       });
       trackEvent(
         createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
@@ -85,7 +83,7 @@ const ExperienceEnhancerModal = () => {
       testID={ExperienceEnhancerBottomSheetSelectorsIDs.BOTTOM_SHEET}
     >
       <Text
-        variant={TextVariant.HeadingMD}
+        variant={TextVariant.HeadingMd}
         style={styles.title}
         testID={ExperienceEnhancerBottomSheetSelectorsIDs.TITLE}
       >
@@ -95,7 +93,7 @@ const ExperienceEnhancerModal = () => {
         style={styles.content}
         testID={ExperienceEnhancerBottomSheetSelectorsIDs.CONTENT}
       >
-        <Text variant={TextVariant.BodyMD}>
+        <Text variant={TextVariant.BodyMd}>
           {strings('experience_enhancer_modal.paragraph1a')}
           <Button
             variant={ButtonVariants.Link}
@@ -107,7 +105,7 @@ const ExperienceEnhancerModal = () => {
         </Text>
 
         <Text
-          variant={TextVariant.BodyMD}
+          variant={TextVariant.BodyMd}
           testID={ExperienceEnhancerBottomSheetSelectorsIDs.PARAGRAPH_2}
         >
           {strings('experience_enhancer_modal.paragraph2')}
@@ -136,7 +134,7 @@ const ExperienceEnhancerModal = () => {
           </Text>
         </View>
         <Text
-          variant={TextVariant.BodyMD}
+          variant={TextVariant.BodyMd}
           testID={ExperienceEnhancerBottomSheetSelectorsIDs.FOOTER}
         >
           {strings('experience_enhancer_modal.footer')}

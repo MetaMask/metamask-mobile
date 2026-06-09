@@ -40,6 +40,17 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   })),
 }));
 
+jest.mock('../../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      CardController: {
+        validateAndRefreshSession: jest.fn().mockResolvedValue(undefined),
+      },
+    },
+  },
+}));
+
 // Mock utility functions
 jest.mock('../../util/cardTokenVault', () => ({
   storeCardBaanxToken: jest.fn().mockResolvedValue({ success: true }),
@@ -54,11 +65,11 @@ jest.mock('../../util/extractTokenExpiration', () => ({
 }));
 
 // Mock useTailwind
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: jest.fn(() => ({
-    style: jest.fn((...args: string[]) => args),
-  })),
-}));
+jest.mock('@metamask/design-system-twrnc-preset', () => {
+  const tw = (..._args: unknown[]) => ({});
+  tw.style = jest.fn(() => ({}));
+  return { useTailwind: () => tw };
+});
 
 // Mock Checkbox component
 jest.mock('../../../../../component-library/components/Checkbox', () => {
@@ -155,14 +166,40 @@ jest.mock('@metamask/design-system-react-native', () => {
   }: React.PropsWithChildren<Record<string, unknown>>) =>
     React.createElement(RNText, props, children);
 
+  const { TouchableOpacity } = jest.requireActual('react-native');
+
+  const Button = ({
+    children,
+    testID,
+    onPress,
+    isDisabled,
+    ...props
+  }: React.PropsWithChildren<Record<string, unknown>>) =>
+    React.createElement(
+      TouchableOpacity,
+      { testID, onPress, disabled: isDisabled, ...props },
+      React.createElement(RNText, {}, children),
+    );
+
   return {
     Box,
     Label,
     Text,
     Icon,
+    Button,
     TextVariant: {
       BodySm: 'BodySm',
       BodyMd: 'BodyMd',
+    },
+    ButtonVariant: {
+      Primary: 'Primary',
+      Secondary: 'Secondary',
+      Link: 'Link',
+    },
+    ButtonSize: {
+      Sm: 'Sm',
+      Md: 'Md',
+      Lg: 'Lg',
     },
     IconName: {
       ArrowDown: 'arrow-down',
@@ -356,7 +393,6 @@ const createTestStore = (initialState = {}) =>
             onboardingId: 'test-id',
             contactVerificationId: 'contact-id',
           },
-          userCardLocation: 'us',
           ...initialState,
         },
         action = { type: '', payload: null },
@@ -672,7 +708,7 @@ describe('PhysicalAddress Component', () => {
       );
 
       const button = getByTestId('physical-address-continue-button');
-      expect(button.props.disabled).toBe(true);
+      expect(button).toBeDisabled();
     });
 
     it('enables continue button when all required fields are filled', async () => {
@@ -712,7 +748,7 @@ describe('PhysicalAddress Component', () => {
       await new Promise((resolve) => setTimeout(resolve, 50));
 
       const button = getByTestId('physical-address-continue-button');
-      expect(button.props.disabled).toBe(false);
+      expect(button).not.toBeDisabled();
     });
 
     it('requires state for US users', () => {
@@ -742,12 +778,12 @@ describe('PhysicalAddress Component', () => {
       fireEvent.changeText(getByTestId('zip-code-input'), '12345');
 
       const button = getByTestId('physical-address-continue-button');
-      expect(button.props.disabled).toBe(true);
+      expect(button).toBeDisabled();
     });
   });
 
   describe('Navigation', () => {
-    it('navigates to VERIFYING_REGISTRATION when registration is complete', async () => {
+    it('navigates to ChooseYourCard when registration is complete', async () => {
       const mockGetOnboardingConsentSetByOnboardingId = jest
         .fn()
         .mockResolvedValue(null);
@@ -823,7 +859,7 @@ describe('PhysicalAddress Component', () => {
 
       await waitFor(() => {
         const button = getByTestId('physical-address-continue-button');
-        expect(button.props.disabled).toBe(false);
+        expect(button).not.toBeDisabled();
       });
 
       const button = getByTestId('physical-address-continue-button');
@@ -947,7 +983,7 @@ describe('PhysicalAddress Component', () => {
 
       await waitFor(() => {
         const button = getByTestId('physical-address-continue-button');
-        expect(button.props.disabled).toBe(false);
+        expect(button).not.toBeDisabled();
       });
 
       const button = getByTestId('physical-address-continue-button');
@@ -1056,7 +1092,7 @@ describe('PhysicalAddress Component', () => {
 
       await waitFor(() => {
         const button = getByTestId('physical-address-continue-button');
-        expect(button.props.disabled).toBe(false);
+        expect(button).not.toBeDisabled();
       });
 
       const button = getByTestId('physical-address-continue-button');
@@ -1147,7 +1183,7 @@ describe('PhysicalAddress Component', () => {
 
       await waitFor(() => {
         const button = getByTestId('physical-address-continue-button');
-        expect(button.props.disabled).toBe(false);
+        expect(button).not.toBeDisabled();
       });
 
       const button = getByTestId('physical-address-continue-button');
@@ -1250,7 +1286,7 @@ describe('PhysicalAddress Component', () => {
 
       await waitFor(() => {
         const button = getByTestId('physical-address-continue-button');
-        expect(button.props.disabled).toBe(false);
+        expect(button).not.toBeDisabled();
       });
 
       const button = getByTestId('physical-address-continue-button');
@@ -1360,7 +1396,7 @@ describe('PhysicalAddress Component', () => {
       );
 
       const button = getByTestId('physical-address-continue-button');
-      expect(button.props.disabled).toBe(true);
+      expect(button).toBeDisabled();
     });
 
     it('disables button during consent loading', () => {
@@ -1386,7 +1422,7 @@ describe('PhysicalAddress Component', () => {
       );
 
       const button = getByTestId('physical-address-continue-button');
-      expect(button.props.disabled).toBe(true);
+      expect(button).toBeDisabled();
     });
   });
 
@@ -1567,7 +1603,7 @@ describe('PhysicalAddress Component', () => {
       fireEvent.changeText(getByTestId('zip-code-input'), '12345');
 
       const button = getByTestId('physical-address-continue-button');
-      expect(button.props.disabled).toBe(true);
+      expect(button).toBeDisabled();
     });
 
     it('enables continue button when checkbox is checked and all fields filled', async () => {
@@ -1599,7 +1635,7 @@ describe('PhysicalAddress Component', () => {
 
       // Button should be disabled without checkboxes
       const buttonBefore = getByTestId('physical-address-continue-button');
-      expect(buttonBefore.props.disabled).toBe(true);
+      expect(buttonBefore).toBeDisabled();
 
       // Check all consent checkboxes (required for US users)
       fireEvent.press(
@@ -1610,7 +1646,7 @@ describe('PhysicalAddress Component', () => {
 
       await waitFor(() => {
         const buttonAfter = getByTestId('physical-address-continue-button');
-        expect(buttonAfter.props.disabled).toBe(false);
+        expect(buttonAfter).not.toBeDisabled();
       });
     });
 
@@ -1786,7 +1822,7 @@ describe('PhysicalAddress Component', () => {
     });
 
     it('displays translated text correctly', () => {
-      const { getByTestId } = render(
+      const { getByTestId, getByText } = render(
         <Provider store={store}>
           <PhysicalAddress />
         </Provider>,
@@ -1794,13 +1830,12 @@ describe('PhysicalAddress Component', () => {
 
       const title = getByTestId('onboarding-step-title');
       const description = getByTestId('onboarding-step-description');
-      const buttonText = getByTestId('button-text');
 
       expect(title.props.children).toBe('Physical Address');
       expect(description.props.children).toBe(
         'Enter your physical address information',
       );
-      expect(buttonText.props.children).toBe('Continue');
+      expect(getByText('Continue')).toBeTruthy();
     });
   });
 

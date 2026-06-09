@@ -32,6 +32,9 @@ const mockTrackEvent = jest.fn();
 
 jest.mock('../../../../../../../../hooks/useAnalytics/useAnalytics');
 jest.mock('../../../../../../hooks/useGetTokenStandardAndDetails');
+jest.mock('../../../../../../../../hooks/useTokensData/useTokensData', () => ({
+  useTokensData: jest.fn().mockReturnValue({}),
+}));
 
 jest.mock('../../../../../../../../../util/address', () => ({
   getTokenDetails: jest.fn(),

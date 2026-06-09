@@ -34,9 +34,17 @@ export const initialStateBridge = (options?: InitialStateBridgeOptions) => {
     .withMinimalTokenRates()
     .withMinimalMultichainAssetsRates()
     .withMinimalMultichainBalances()
+    .withOverrides({
+      engine: {
+        backgroundState: {
+          // useBridgeQuoteEvents -> selectTokensBalances
+          TokenBalancesController: { tokenBalances: {} },
+        },
+      },
+    } as unknown as DeepPartial<RootState>)
     .withMinimalAnalyticsController()
     .withAccountTreeForSelectedAccount()
-    .withRemoteFeatureFlags({});
+    .withRemoteFeatureFlags({ enableFiatToggle: true });
 
   if (options?.deterministicFiat) {
     builder.withOverrides({

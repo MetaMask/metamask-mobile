@@ -2,10 +2,7 @@ import React from 'react';
 import { StyleSheet } from 'react-native';
 import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import Button, {
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+import { Button, ButtonVariant } from '@metamask/design-system-react-native';
 import { Box } from '../../../Box/Box';
 import {
   AlignItems,
@@ -21,7 +18,7 @@ import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
 import { Theme } from '../../../../../util/theme/models';
-import { useNavigation } from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -39,21 +36,19 @@ const styleSheet = (params: { theme: Theme }) =>
     },
   });
 
-interface BlockExplorersModalProps {
-  route: {
-    params: {
-      evmTxMeta?: TransactionMeta;
-      multiChainTx?: Transaction;
-    };
-  };
+interface BlockExplorersModalRouteParams {
+  evmTxMeta?: TransactionMeta;
+  multiChainTx?: Transaction;
 }
 
-const BlockExplorersModal = (props: BlockExplorersModalProps) => {
+const BlockExplorersModal = () => {
   const navigation = useNavigation();
+  const route =
+    useRoute<RouteProp<{ params: BlockExplorersModalRouteParams }, 'params'>>();
   const { styles } = useStyles(styleSheet, {});
 
-  const evmTxMeta = props.route.params.evmTxMeta;
-  const multiChainTx = props.route.params.multiChainTx;
+  const evmTxMeta = route.params.evmTxMeta;
+  const multiChainTx = route.params.multiChainTx;
 
   const { bridgeTxHistoryItem } = useBridgeTxHistoryData({
     evmTxMeta,
@@ -91,24 +86,8 @@ const BlockExplorersModal = (props: BlockExplorersModalProps) => {
         </Text>
         {srcExplorerData?.explorerTxUrl && (
           <Button
-            variant={ButtonVariants.Secondary}
-            width={ButtonWidthTypes.Full}
-            label={
-              <Box
-                flexDirection={FlexDirection.Row}
-                alignItems={AlignItems.center}
-                gap={8}
-              >
-                <Badge
-                  variant={BadgeVariant.Network}
-                  name={srcExplorerData.chainName}
-                  imageSource={srcExplorerData.networkImageSource}
-                />
-                <Text variant={TextVariant.BodyMDMedium} style={styles.text}>
-                  {srcExplorerData.explorerName}
-                </Text>
-              </Box>
-            }
+            variant={ButtonVariant.Secondary}
+            isFullWidth
             onPress={() => {
               navigation.navigate(Routes.WEBVIEW.MAIN, {
                 screen: Routes.WEBVIEW.SIMPLE,
@@ -117,29 +96,28 @@ const BlockExplorersModal = (props: BlockExplorersModalProps) => {
                 },
               });
             }}
-          />
+          >
+            <Box
+              flexDirection={FlexDirection.Row}
+              alignItems={AlignItems.center}
+              gap={8}
+            >
+              <Badge
+                variant={BadgeVariant.Network}
+                name={srcExplorerData.chainName}
+                imageSource={srcExplorerData.networkImageSource}
+              />
+              <Text variant={TextVariant.BodyMDMedium} style={styles.text}>
+                {srcExplorerData.explorerName}
+              </Text>
+            </Box>
+          </Button>
         )}
 
         {bridgeDestExplorerData?.explorerTxUrl && (
           <Button
-            variant={ButtonVariants.Secondary}
-            width={ButtonWidthTypes.Full}
-            label={
-              <Box
-                flexDirection={FlexDirection.Row}
-                alignItems={AlignItems.center}
-                gap={8}
-              >
-                <Badge
-                  variant={BadgeVariant.Network}
-                  name={bridgeDestExplorerData.chainName}
-                  imageSource={bridgeDestExplorerData.networkImageSource}
-                />
-                <Text variant={TextVariant.BodyMDMedium} style={styles.text}>
-                  {bridgeDestExplorerData.explorerName}
-                </Text>
-              </Box>
-            }
+            variant={ButtonVariant.Secondary}
+            isFullWidth
             onPress={() => {
               navigation.navigate(Routes.WEBVIEW.MAIN, {
                 screen: Routes.WEBVIEW.SIMPLE,
@@ -148,7 +126,22 @@ const BlockExplorersModal = (props: BlockExplorersModalProps) => {
                 },
               });
             }}
-          />
+          >
+            <Box
+              flexDirection={FlexDirection.Row}
+              alignItems={AlignItems.center}
+              gap={8}
+            >
+              <Badge
+                variant={BadgeVariant.Network}
+                name={bridgeDestExplorerData.chainName}
+                imageSource={bridgeDestExplorerData.networkImageSource}
+              />
+              <Text variant={TextVariant.BodyMDMedium} style={styles.text}>
+                {bridgeDestExplorerData.explorerName}
+              </Text>
+            </Box>
+          </Button>
         )}
       </Box>
     </BottomSheet>

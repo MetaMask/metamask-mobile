@@ -5,7 +5,7 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import { IconName } from '../../../../../../../component-library/components/Icons/Icon';
+import { IconName } from '@metamask/design-system-react-native';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { createNavigationDetails } from '../../../../../../../util/navigation/navUtils';
 import MenuItem from '../../../../components/MenuItem';
@@ -49,7 +49,7 @@ function SettingsModal() {
       order_count: buttonClickData.order_count,
     });
     sheetRef.current?.onCloseBottomSheet();
-    navigation.dangerouslyGetParent()?.dangerouslyGetParent()?.goBack();
+    navigation.getParent()?.getParent()?.goBack();
     goToDeposit();
   }, [
     navigation,

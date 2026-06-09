@@ -78,8 +78,33 @@ describe('useRampsButtonClickedEvent', () => {
       is_authenticated: false,
       preferred_provider: undefined,
       order_count: 0,
+      asset_symbol: undefined,
     });
     expect(mockTrackEvent).toHaveBeenCalledWith({ event: 'built' });
+  });
+
+  it('includes asset_symbol when provided', () => {
+    const { result } = renderHook(() => useRampsButtonClickedEvent());
+
+    act(() => {
+      result.current.trackBuyButtonClicked('ETH');
+    });
+
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({ asset_symbol: 'ETH' }),
+    );
+  });
+
+  it('omits asset_symbol when not provided', () => {
+    const { result } = renderHook(() => useRampsButtonClickedEvent());
+
+    act(() => {
+      result.current.trackBuyButtonClicked();
+    });
+
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({ asset_symbol: undefined }),
+    );
   });
 
   it('fires with ramp_type UNIFIED_BUY when V1 is enabled', () => {

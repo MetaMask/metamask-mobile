@@ -50,7 +50,7 @@ describe('getDefaultBaanxApiBaseUrlForMetaMaskEnv', () => {
     });
   });
 
-  describe('when not BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY (Bitrise / .js.env path)', () => {
+  describe('when not BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY (legacy .js.env path)', () => {
     beforeEach(() => {
       delete process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY;
     });

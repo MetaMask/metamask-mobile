@@ -13,6 +13,7 @@ import {
   AuthServerUrl,
   web3AuthNetwork,
 } from '../../../../app/core/OAuthService/OAuthLoginHandlers/constants';
+import type { BaseHandlerOptions } from '../../../../app/core/OAuthService/OAuthLoginHandlers/baseHandler';
 
 /**
  * Login result type
@@ -36,6 +37,7 @@ interface AuthResponse {
   refresh_token: string;
   revoke_token: string;
   metadata_access_token: string;
+  account_name?: string;
 }
 
 /**
@@ -45,6 +47,8 @@ abstract class MockBaseLoginHandler {
   abstract authConnection: string;
   abstract scope: string[];
   abstract authServerPath: string;
+
+  public options!: BaseHandlerOptions;
 
   protected authServerUrl: string;
   protected web3AuthNetwork: string;
@@ -107,6 +111,21 @@ abstract class MockBaseLoginHandler {
       return '{}';
     }
   }
+
+  getUserInfo(authResponse: AuthResponse): {
+    userId: string;
+    accountName: string;
+  } {
+    const payload = JSON.parse(this.decodeIdToken(authResponse.id_token)) as {
+      sub?: string;
+      email?: string;
+    };
+
+    return {
+      userId: payload.sub ?? '',
+      accountName: authResponse.account_name ?? payload.email ?? '',
+    };
+  }
 }
 
 /**
@@ -124,6 +143,11 @@ class MockGoogleLoginHandler extends MockBaseLoginHandler {
     super();
     this.clientId = params.clientId;
     this.redirectUri = params.redirectUri || 'metamask://';
+    this.options = {
+      clientId: this.clientId,
+      authServerUrl: this.authServerUrl,
+      web3AuthNetwork: this.web3AuthNetwork,
+    };
   }
 
   async login(): Promise<LoginHandlerResult> {
@@ -171,6 +195,11 @@ class MockAppleLoginHandler extends MockBaseLoginHandler {
   constructor(params: { clientId: string }) {
     super();
     this.clientId = params.clientId;
+    this.options = {
+      clientId: this.clientId,
+      authServerUrl: this.authServerUrl,
+      web3AuthNetwork: this.web3AuthNetwork,
+    };
   }
 
   async login(): Promise<LoginHandlerResult> {
@@ -228,6 +257,7 @@ export function createLoginHandler(
   _platformOS: Platform['OS'],
   provider: string,
   _fallback = false,
+  _options?: { telegramLoginEnabled?: boolean },
 ): MockBaseLoginHandler {
   console.log(`[E2E Mock] createLoginHandler called for provider: ${provider}`);
 

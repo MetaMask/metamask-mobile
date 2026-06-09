@@ -1,32 +1,52 @@
 import { BigNumber } from 'bignumber.js';
 import { useMemo } from 'react';
 import { useTransactionPayTotals } from '../../../../../Views/confirmations/hooks/pay/useTransactionPayData';
-import { OrderPreview } from '../../../types';
 import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
-import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
+import { OrderPreview } from '../../../types';
+import { useInsufficientPayTokenBalanceAlert } from '../../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert';
+import { useNoPayTokenQuotesAlert } from '../../../../../Views/confirmations/hooks/alerts/useNoPayTokenQuotesAlert';
+import {
+  getPredictBuyAllInCost,
+  getPredictExchangeFee,
+} from '../../../utils/orders';
 
 interface UsePredictBuyInfoParams {
-  currentValue: number;
   preview?: OrderPreview | null;
   previewError: string | null;
-  placeOrderError?: string | null;
-  isOrderNotFilled: boolean;
-  isPlaceOrderLoading: boolean;
   isConfirming: boolean;
+  isPlacingOrder: boolean;
 }
 
 export const usePredictBuyInfo = ({
   preview,
   previewError,
-  currentValue,
-  placeOrderError,
-  isOrderNotFilled,
-  isPlaceOrderLoading,
   isConfirming,
+  isPlacingOrder,
 }: UsePredictBuyInfoParams) => {
   const { isPredictBalanceSelected } = usePredictPaymentToken();
   const payTotals = useTransactionPayTotals();
-  const { activeOrder } = usePredictActiveOrder();
+  const fees = preview?.fees;
+
+  const insufficientPayAlerts = useInsufficientPayTokenBalanceAlert();
+  const noQuotesAlerts = useNoPayTokenQuotesAlert();
+
+  const blockingPayAlerts = useMemo(() => {
+    const allPayAlerts = [...insufficientPayAlerts, ...noQuotesAlerts];
+    return allPayAlerts.filter((a) => a.isBlocking);
+  }, [insufficientPayAlerts, noQuotesAlerts]);
+
+  const hasBlockingPayAlerts =
+    !isPredictBalanceSelected && blockingPayAlerts.length > 0;
+
+  const blockingPayAlertMessage = useMemo(
+    () => blockingPayAlerts[0]?.message ?? blockingPayAlerts[0]?.title,
+    [blockingPayAlerts],
+  );
+
+  const totalPayForPredictBalance = useMemo(
+    () => getPredictBuyAllInCost(preview),
+    [preview],
+  );
 
   const depositFee = useMemo(() => {
     if (isPredictBalanceSelected || !payTotals?.fees) return 0;
@@ -35,46 +55,26 @@ export const usePredictBuyInfo = ({
       .plus(sourceNetwork?.estimate?.usd ?? 0)
       .plus(targetNetwork?.usd ?? 0)
       .toNumber();
-  }, [isPredictBalanceSelected, payTotals]);
+  }, [isPredictBalanceSelected, payTotals?.fees]);
 
   const rewardsFeeAmount =
-    isPlaceOrderLoading || previewError
-      ? undefined
-      : (preview?.fees?.totalFee ?? 0);
+    isPlacingOrder || previewError ? undefined : (fees?.totalFee ?? 0);
 
-  const { toWin, metamaskFee, providerFee, total } = useMemo(
+  const { toWin, metamaskFee, providerFee, exchangeFee, total } = useMemo(
     () => ({
       toWin: preview?.minAmountReceived ?? 0,
       isRateLimited: preview?.rateLimited ?? false,
-      metamaskFee: preview?.fees?.metamaskFee ?? 0,
-      providerFee: preview?.fees?.providerFee ?? 0,
-      total:
-        currentValue +
-        (preview?.fees?.providerFee ?? 0) +
-        (preview?.fees?.metamaskFee ?? 0) +
-        depositFee,
+      metamaskFee: fees?.metamaskFee ?? 0,
+      providerFee: fees?.providerFee ?? 0,
+      exchangeFee: getPredictExchangeFee(fees),
+      total: totalPayForPredictBalance + depositFee,
     }),
     [
-      currentValue,
       depositFee,
-      preview?.fees?.metamaskFee,
-      preview?.fees?.providerFee,
+      fees,
       preview?.minAmountReceived,
       preview?.rateLimited,
-    ],
-  );
-
-  const errorMessage = useMemo(
-    () =>
-      isOrderNotFilled || isConfirming
-        ? undefined
-        : (previewError ?? placeOrderError ?? activeOrder?.error),
-    [
-      isOrderNotFilled,
-      isConfirming,
-      previewError,
-      placeOrderError,
-      activeOrder?.error,
+      totalPayForPredictBalance,
     ],
   );
 
@@ -82,9 +82,12 @@ export const usePredictBuyInfo = ({
     toWin,
     metamaskFee,
     providerFee,
+    exchangeFee,
     depositFee,
     total,
     rewardsFeeAmount,
-    errorMessage,
+    totalPayForPredictBalance,
+    blockingPayAlertMessage,
+    hasBlockingPayAlerts,
   };
 };

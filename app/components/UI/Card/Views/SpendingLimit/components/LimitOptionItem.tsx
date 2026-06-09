@@ -53,13 +53,14 @@ const LimitOptionItem: React.FC<LimitOptionItemProps> = ({
 
     {/* Input field for spending limit */}
     {showInput && isSelected && (
-      <Box twClassName="mt-3 ml-8">
+      <Box twClassName="mt-3">
         <TextField
           value={inputValue}
           onChangeText={onInputChange}
           placeholder="0"
           keyboardType="decimal-pad"
           returnKeyType="done"
+          maxLength={12}
           testID={`${testID}-input`}
         />
       </Box>

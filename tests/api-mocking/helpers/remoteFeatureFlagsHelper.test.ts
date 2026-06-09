@@ -255,6 +255,26 @@ describe('Remote Feature Flags Helper', () => {
         arrayFlag: { replaced: 'with object' },
       });
     });
+
+    it('pins homepage trending sections A/B test to control by default', () => {
+      const result = createRemoteFeatureFlagsMock();
+
+      const response = result.response as Record<string, unknown>[];
+      expect(response).toContainEqual({
+        homeTMCU470AbtestTrendingSections: 'control',
+      });
+    });
+
+    it('allows homepage trending sections A/B test override', () => {
+      const result = createRemoteFeatureFlagsMock({
+        homeTMCU470AbtestTrendingSections: 'trendingSections',
+      });
+
+      const response = result.response as Record<string, unknown>[];
+      expect(response).toContainEqual({
+        homeTMCU470AbtestTrendingSections: 'trendingSections',
+      });
+    });
   });
 
   describe('setupRemoteFeatureFlagsMock', () => {
@@ -285,6 +305,7 @@ describe('Remote Feature Flags Helper', () => {
               response: expect.any(Array),
               responseCode: 200,
             },
+            undefined,
           );
           callIndex++;
         });
@@ -294,18 +315,20 @@ describe('Remote Feature Flags Helper', () => {
       const response = callArgs.response as Record<string, unknown>[];
       expect(Array.isArray(response)).toBe(true);
       expect(response.length).toBeGreaterThan(0);
-      expect(response).toContainEqual({ addBitcoinAccountDummyFlag: false });
+      const firstEntry = response[0];
+      expect(typeof firstEntry).toBe('object');
+      expect(Object.keys(firstEntry as object).length).toBe(1);
     });
 
     it('applies flag overrides to both distributions', async () => {
       await setupRemoteFeatureFlagsMock(mockServer, {
-        addBitcoinAccountDummyFlag: true,
+        testOverrideFlag: true,
       });
 
       expect(mockSetupMockRequest).toHaveBeenCalledTimes(6);
       const callArgs = mockSetupMockRequest.mock.calls[0][1];
       expect(callArgs.response).toContainEqual({
-        addBitcoinAccountDummyFlag: true,
+        testOverrideFlag: true,
       });
     });
 
@@ -357,7 +380,9 @@ describe('Remote Feature Flags Helper', () => {
       const response = result.response as Record<string, unknown>[];
       expect(Array.isArray(response)).toBe(true);
       expect(response.length).toBeGreaterThan(0);
-      expect(response).toContainEqual({ addBitcoinAccountDummyFlag: false });
+      const firstEntry = response[0];
+      expect(typeof firstEntry).toBe('object');
+      expect(Object.keys(firstEntry as object).length).toBe(1);
     });
 
     it('passes through undefined values in overrides', () => {
@@ -381,7 +406,6 @@ describe('Remote Feature Flags Helper', () => {
       const response = result.response as Record<string, unknown>[];
       expect(response.length).toBe(baselineCount + 1);
       expect(response).toContainEqual({ newFlag: true });
-      expect(response).toContainEqual({ addBitcoinAccountDummyFlag: false });
     });
 
     it('passes through function values in overrides', () => {

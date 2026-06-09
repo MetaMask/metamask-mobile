@@ -1,8 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../component-library/components/BottomSheets/BottomSheet';
 import { selectSelectedAccountGroupId } from '../../../selectors/multichainAccounts/accountTreeController';
 
 import { useDispatch, useSelector } from 'react-redux';
@@ -11,17 +8,19 @@ import { RootState } from '../../../reducers';
 import { AddressSelectorParams } from './AddressSelector.types';
 import { AccountGroupId } from '@metamask/account-api';
 import {
+  BottomSheet,
+  BottomSheetHeader,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { isCaipChainId } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import { FlashList } from '@shopify/flash-list';
 import { MultichainAddressRow } from '../../../component-library/components-temp/MultichainAccounts';
-import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 import ListItemSelect from '../../../component-library/components/List/ListItemSelect';
 import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
 import Routes from '../../../constants/navigation/Routes';
@@ -36,10 +35,12 @@ import {
   useParams,
 } from '../../../util/navigation/navUtils';
 import { useAccountName } from '../../hooks/useAccountName';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { createAccountSelectorNavDetails } from '../AccountSelector';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { strings } from '../../../../locales/i18n';
 import { AddressSelectorSelectors } from './AddressSelector.testIds';
+import { useElevatedSurface } from '../../../util/theme/themeUtils';
 
 export const createAddressSelectorNavDetails =
   createNavigationDetails<AddressSelectorParams>(
@@ -72,6 +73,7 @@ const AddressSelector = () => {
   );
 
   const accountName = useAccountName();
+  const surfaceClass = useElevatedSurface();
   const selectedCaipChainId = isCaipChainId(selectedChainId)
     ? selectedChainId
     : toEvmCaipChainId(selectedChainId);
@@ -151,7 +153,12 @@ const AddressSelector = () => {
   }, [internalAccountsSpreadByScopes, isEvmOnly, displayOnlyCaipChainIds]);
 
   return (
-    <BottomSheet ref={sheetRef} isFullscreen>
+    <BottomSheet
+      ref={sheetRef}
+      isFullscreen
+      goBack={navigation.goBack}
+      twClassName={surfaceClass}
+    >
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
         {strings('address_selector.select_an_address')}
       </BottomSheetHeader>

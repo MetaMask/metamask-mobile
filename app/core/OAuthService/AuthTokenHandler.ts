@@ -6,6 +6,13 @@ import type {
   RenewRefreshToken,
   RevokeRefreshToken,
 } from '@metamask/seedless-onboarding-controller/dist/types.d.cts';
+import ReduxService from '../redux';
+import Device from '../../util/device';
+import {
+  AuthConnectionConfig,
+  IosGID,
+  SupportedPlatforms,
+} from './OAuthLoginHandlers/constants';
 
 export const AUTH_SERVER_RENEW_PATH = '/api/v2/oauth/renew_refresh_token';
 export const AUTH_SERVER_REVOKE_PATH = '/api/v2/oauth/revoke';
@@ -32,6 +39,57 @@ interface AuthTokenHandlerInterface {
   revokeRefreshToken: RevokeRefreshToken;
 }
 
+/**
+ * Returns the iOS Google client ID to use for refresh-token requests.
+ *
+ * Refresh flows must keep using the client ID tied to the original login when
+ * it has been persisted in onboarding state. If no persisted value exists, this
+ * falls back to the legacy `IosGID` so existing iOS Google users can continue
+ * refreshing tokens after the supported login config changes.
+ */
+const getActiveIosGoogleClientId = () => {
+  const clientId =
+    ReduxService.store.getState().onboarding.seedlessOnboarding?.clientId;
+  if (clientId) {
+    return clientId;
+  }
+  // if client id is not set, use the default legacy IosGID
+  if (!IosGID) {
+    throw new Error('IosGID is not set');
+  }
+  return IosGID;
+};
+
+const getTokenRefreshClientId = ({
+  connection,
+  fallbackClientId,
+}: {
+  connection: AuthConnection;
+  fallbackClientId: string;
+}) => {
+  if (connection === AuthConnection.Telegram) {
+    // Telegram refresh must use the Telegram bot/client id that auth-service
+    // stored during mint, not the Web3Auth verifier connection id.
+    const platform = Device.isIos()
+      ? SupportedPlatforms.IOS
+      : SupportedPlatforms.Android;
+    const telegramClientId =
+      AuthConnectionConfig[platform][AuthConnection.Telegram].clientId;
+
+    if (!telegramClientId) {
+      throw new Error('Telegram client id is not set');
+    }
+
+    return telegramClientId;
+  }
+
+  if (Device.isIos() && connection === AuthConnection.Google) {
+    return getActiveIosGoogleClientId();
+  }
+
+  return fallbackClientId;
+};
+
 class AuthTokenHandler implements AuthTokenHandlerInterface {
   /**
    * Refresh the JWT Token using the refresh token.
@@ -50,10 +108,16 @@ class AuthTokenHandler implements AuthTokenHandlerInterface {
     metadataAccessToken: string;
   }> {
     const { connection, refreshToken } = params;
-    const loginHandler = createLoginHandler(Platform.OS, connection);
+    const loginHandler = createLoginHandler(Platform.OS, connection, false, {
+      telegramLoginEnabled: true,
+    });
+    const clientId = getTokenRefreshClientId({
+      connection,
+      fallbackClientId: loginHandler.options.clientId,
+    });
 
     const requestData = {
-      client_id: loginHandler.options.clientId,
+      client_id: clientId,
       login_provider: connection,
       network: loginHandler.options.web3AuthNetwork,
       refresh_token: refreshToken,
@@ -112,7 +176,9 @@ class AuthTokenHandler implements AuthTokenHandlerInterface {
     revokeToken: string;
   }) {
     const { connection, revokeToken } = params;
-    const loginHandler = createLoginHandler(Platform.OS, connection);
+    const loginHandler = createLoginHandler(Platform.OS, connection, false, {
+      telegramLoginEnabled: true,
+    });
 
     const requestData = {
       revoke_token: revokeToken,
@@ -161,7 +227,9 @@ class AuthTokenHandler implements AuthTokenHandlerInterface {
     revokeToken: string;
   }) {
     const { connection, revokeToken } = params;
-    const loginHandler = createLoginHandler(Platform.OS, connection);
+    const loginHandler = createLoginHandler(Platform.OS, connection, false, {
+      telegramLoginEnabled: true,
+    });
 
     const requestData = {
       revoke_token: revokeToken,

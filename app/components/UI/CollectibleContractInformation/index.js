@@ -6,10 +6,10 @@ import {
   StyleSheet,
   Text,
   View,
-  SafeAreaView,
   InteractionManager,
   Image,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';

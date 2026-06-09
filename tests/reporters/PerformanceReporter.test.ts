@@ -226,6 +226,70 @@ describe('PerformanceReporter', () => {
 
       // Basic entry created — verified by onEnd still having metrics
     });
+
+    it('retry pass clears only the matching project, not same title in another project', () => {
+      const sharedTitle = 'Shared Title Flow';
+      const device = { name: 'Pixel 6', osVersion: '12' };
+      const androidCase = makeTest({
+        title: sharedTitle,
+        parent: {
+          project: { name: 'project-android', use: { device } },
+        },
+      });
+      const iosCase = makeTest({
+        title: sharedTitle,
+        parent: {
+          project: { name: 'project-ios', use: { device } },
+        },
+      });
+      const failAttachments = [makeMetricsAttachment()];
+      const passAttachments = [makeMetricsAttachment()];
+
+      reporter.onTestEnd(
+        androidCase as never,
+        makeResult({ status: 'failed', attachments: failAttachments }) as never,
+      );
+      reporter.onTestEnd(
+        iosCase as never,
+        makeResult({ status: 'failed', attachments: failAttachments }) as never,
+      );
+      reporter.onTestEnd(
+        androidCase as never,
+        makeResult({ status: 'passed', attachments: passAttachments }) as never,
+      );
+
+      interface ReporterInternals {
+        metrics: {
+          testName: string;
+          projectName?: string;
+          testFailed?: boolean;
+        }[];
+        failedTestsByTeam: Record<
+          string,
+          { tests: { testName: string; projectName: string }[] }
+        >;
+      }
+      const { metrics, failedTestsByTeam } =
+        reporter as unknown as ReporterInternals;
+
+      const androidMetric = metrics.find(
+        (m) =>
+          m.testName === sharedTitle && m.projectName === 'project-android',
+      );
+      const iosMetric = metrics.find(
+        (m) => m.testName === sharedTitle && m.projectName === 'project-ios',
+      );
+      expect(androidMetric?.testFailed).toBe(false);
+      expect(iosMetric?.testFailed).toBe(true);
+
+      const teamTests = failedTestsByTeam['@performance-team']?.tests ?? [];
+      expect(teamTests.filter((t) => t.testName === sharedTitle)).toHaveLength(
+        1,
+      );
+      expect(
+        teamTests.find((t) => t.testName === sharedTitle)?.projectName,
+      ).toBe('project-ios');
+    });
   });
 
   describe('onEnd', () => {
@@ -258,6 +322,46 @@ describe('PerformanceReporter', () => {
         ],
       });
       reporter.onTestEnd(makeTest() as never, result as never);
+
+      await reporter.onEnd();
+
+      expect(BrowserStackEnricher).toHaveBeenCalled();
+    });
+
+    it('enriches sessions when project name ends with browserstack', async () => {
+      const result = makeResult({
+        attachments: [
+          makeSessionAttachment({
+            projectName: 'mm-connect-android-browserstack',
+          }),
+          makeMetricsAttachment(),
+        ],
+      });
+      reporter.onTestEnd(
+        makeTest({
+          parent: { project: { name: 'mm-connect-android-browserstack' } },
+        }) as never,
+        result as never,
+      );
+
+      await reporter.onEnd();
+
+      expect(BrowserStackEnricher).toHaveBeenCalled();
+    });
+
+    it('enriches sessions for onboarding BrowserStack projects', async () => {
+      const result = makeResult({
+        attachments: [
+          makeSessionAttachment({ projectName: 'android-onboarding' }),
+          makeMetricsAttachment(),
+        ],
+      });
+      reporter.onTestEnd(
+        makeTest({
+          parent: { project: { name: 'android-onboarding' } },
+        }) as never,
+        result as never,
+      );
 
       await reporter.onEnd();
 
@@ -307,7 +411,7 @@ describe('PerformanceReporter', () => {
       await reporter.onEnd();
 
       // BrowserStackEnricher should still be constructed but enrichSession should not be called
-      // because the project name doesn't include "browserstack-"
+      // because the project name doesn't include "browserstack"
       const enricherInstance = (BrowserStackEnricher as unknown as jest.Mock)
         .mock.results[0];
       if (enricherInstance) {

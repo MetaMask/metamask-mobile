@@ -1,10 +1,20 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
+import type { CaipChainId } from '@metamask/utils';
 import TronUnstakedBanner from './TronUnstakedBanner';
 import { strings } from '../../../../../../../locales/i18n';
 import useTronClaimUnstakedTrx from '../../../hooks/useTronClaimUnstakedTrx';
 import useEarnToasts from '../../../hooks/useEarnToasts';
+import renderWithProvider from '../../../../../../util/test/renderWithProvider';
+import { selectTronClaimUnstakedTrxButtonEnabled } from '../../../../../../selectors/featureFlagController/tronClaimUnstakedTrxButtonEnabled';
 import { TronUnstakedBannerTestIds } from './TronUnstakedBanner.testIds';
+
+jest.mock(
+  '../../../../../../selectors/featureFlagController/tronClaimUnstakedTrxButtonEnabled',
+  () => ({
+    selectTronClaimUnstakedTrxButtonEnabled: jest.fn(),
+  }),
+);
 
 jest.mock('../../../hooks/useTronClaimUnstakedTrx');
 const mockUseTronClaimUnstakedTrx =
@@ -23,11 +33,18 @@ jest.mock('../../../hooks/useEarnToasts');
   },
 });
 
+const mockSelectTronClaimUnstakedTrxButtonEnabled =
+  selectTronClaimUnstakedTrxButtonEnabled as unknown as jest.Mock;
+
+const renderBanner = (props: { amount: string; chainId: CaipChainId }) =>
+  renderWithProvider(<TronUnstakedBanner {...props} />, undefined, false);
+
 describe('TronUnstakedBanner', () => {
   const mockHandleClaimUnstakedTrx = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSelectTronClaimUnstakedTrxButtonEnabled.mockReturnValue(true);
     mockUseTronClaimUnstakedTrx.mockReturnValue({
       handleClaimUnstakedTrx: mockHandleClaimUnstakedTrx,
       isSubmitting: false,
@@ -42,9 +59,10 @@ describe('TronUnstakedBanner', () => {
   });
 
   it('renders the title with the given amount', () => {
-    const { getByText } = render(
-      <TronUnstakedBanner amount="100" chainId="tron:728126428" />,
-    );
+    const { getByText } = renderBanner({
+      amount: '100',
+      chainId: 'tron:728126428',
+    });
 
     const expectedTitle = strings('stake.tron.unstaked_banner.title', {
       amount: '100',
@@ -53,9 +71,10 @@ describe('TronUnstakedBanner', () => {
   });
 
   it('renders the description', () => {
-    const { getByText } = render(
-      <TronUnstakedBanner amount="100" chainId="tron:728126428" />,
-    );
+    const { getByText } = renderBanner({
+      amount: '100',
+      chainId: 'tron:728126428',
+    });
 
     const expectedDescription = strings(
       'stake.tron.unstaked_banner.description',
@@ -63,20 +82,38 @@ describe('TronUnstakedBanner', () => {
     expect(getByText(expectedDescription)).toBeOnTheScreen();
   });
 
-  it('renders the Withdraw button', () => {
-    const { getByTestId } = render(
-      <TronUnstakedBanner amount="100" chainId="tron:728126428" />,
-    );
+  it('renders the claim button when tronClaimUnstakedTrxButtonEnabled is true', () => {
+    const { getByTestId } = renderBanner({
+      amount: '100',
+      chainId: 'tron:728126428',
+    });
 
     expect(
       getByTestId(TronUnstakedBannerTestIds.CLAIM_BUTTON),
     ).toBeOnTheScreen();
   });
 
+  it('does not render the claim button when tronClaimUnstakedTrxButtonEnabled is false', () => {
+    mockSelectTronClaimUnstakedTrxButtonEnabled.mockReturnValue(false);
+
+    const { getByText, queryByTestId } = renderBanner({
+      amount: '100',
+      chainId: 'tron:728126428',
+    });
+
+    expect(
+      queryByTestId(TronUnstakedBannerTestIds.CLAIM_BUTTON),
+    ).not.toBeOnTheScreen();
+    expect(
+      getByText(strings('stake.tron.unstaked_banner.description')),
+    ).toBeOnTheScreen();
+  });
+
   it('calls handleClaimUnstakedTrx when button is pressed', () => {
-    const { getByTestId } = render(
-      <TronUnstakedBanner amount="100" chainId="tron:728126428" />,
-    );
+    const { getByTestId } = renderBanner({
+      amount: '100',
+      chainId: 'tron:728126428',
+    });
 
     fireEvent.press(getByTestId(TronUnstakedBannerTestIds.CLAIM_BUTTON));
     expect(mockHandleClaimUnstakedTrx).toHaveBeenCalledTimes(1);
@@ -89,9 +126,10 @@ describe('TronUnstakedBanner', () => {
       errors: undefined,
     });
 
-    const { getByTestId } = render(
-      <TronUnstakedBanner amount="100" chainId="tron:728126428" />,
-    );
+    const { getByTestId } = renderBanner({
+      amount: '100',
+      chainId: 'tron:728126428',
+    });
 
     const button = getByTestId(TronUnstakedBannerTestIds.CLAIM_BUTTON);
     expect(button.props.accessibilityState?.disabled).toBe(true);
@@ -104,7 +142,7 @@ describe('TronUnstakedBanner', () => {
       errors: ['InsufficientBalance'],
     });
 
-    render(<TronUnstakedBanner amount="100" chainId="tron:728126428" />);
+    renderBanner({ amount: '100', chainId: 'tron:728126428' });
 
     expect(mockFailedToastFn).toHaveBeenCalledWith(['InsufficientBalance']);
     expect(mockShowToast).toHaveBeenCalledWith(mockFailedToastResult);
@@ -117,14 +155,14 @@ describe('TronUnstakedBanner', () => {
       errors: [],
     });
 
-    render(<TronUnstakedBanner amount="100" chainId="tron:728126428" />);
+    renderBanner({ amount: '100', chainId: 'tron:728126428' });
 
     expect(mockFailedToastFn).toHaveBeenCalledWith([]);
     expect(mockShowToast).toHaveBeenCalledWith(mockFailedToastResult);
   });
 
   it('does not show error toast when there are no errors', () => {
-    render(<TronUnstakedBanner amount="100" chainId="tron:728126428" />);
+    renderBanner({ amount: '100', chainId: 'tron:728126428' });
 
     expect(mockShowToast).not.toHaveBeenCalled();
   });

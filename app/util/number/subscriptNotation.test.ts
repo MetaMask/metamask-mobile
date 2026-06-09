@@ -29,4 +29,13 @@ describe('formatSubscriptNotation', () => {
     expect(formatSubscriptNotation(Infinity)).toBeNull();
     expect(formatSubscriptNotation(-Infinity)).toBeNull();
   });
+
+  it('caps digits after the subscript when maxDigitsAfterSubscript is set', () => {
+    expect(
+      formatSubscriptNotation(0.00003415, { maxDigitsAfterSubscript: 2 }),
+    ).toBe('0.0₄34');
+    expect(
+      formatSubscriptNotation(0.000000337, { maxDigitsAfterSubscript: 2 }),
+    ).toBe('0.0₆33');
+  });
 });

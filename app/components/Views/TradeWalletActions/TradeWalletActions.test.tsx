@@ -5,6 +5,7 @@ import {
   renderScreen,
 } from '../../../util/test/renderWithProvider';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletActionsBottomSheetSelectorsIDs } from '../WalletActions/WalletActionsBottomSheet.testIds';
 import { RootState } from '../../../reducers';
 import { earnSelectors } from '../../../selectors/earnController/earn';
@@ -24,11 +25,23 @@ import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
 import { selectPredictEnabledFlag } from '../../UI/Predict';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import { isHardwareAccount } from '../../../util/address';
+import { selectBatchSellEnabled } from '../../../selectors/featureFlagController/batchSell';
 import TradeWalletActions from './TradeWalletActions';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('1.0.0'),
 }));
+
+jest.mock('react-native-gesture-handler', () => {
+  const RN = jest.requireActual('react-native');
+  const React = jest.requireActual('react');
+  return {
+    ...jest.requireActual('react-native-gesture-handler'),
+    GestureHandlerRootView: RN.View,
+    GestureHandlerRootViewContext: React.createContext(true),
+  };
+});
 
 jest.mock('../../UI/Perps', () => ({
   selectPerpsEnabledFlag: jest.fn(),
@@ -137,10 +150,6 @@ jest.mock('../../../core/redux/slices/bridge', () => ({
   selectEnabledSourceChains: jest.fn().mockReturnValue([]),
 }));
 
-jest.mock('../../../selectors/tokenListController', () => ({
-  selectTokenList: jest.fn().mockReturnValue([]),
-}));
-
 jest.mock('../../UI/Stake/hooks/useStakingEligibility', () => ({
   __esModule: true,
   default: jest.fn(),
@@ -180,6 +189,15 @@ jest.mock('../../../core/AppConstants', () => {
     },
   };
 });
+
+jest.mock('../../../selectors/featureFlagController/batchSell', () => ({
+  selectBatchSellEnabled: jest.fn().mockReturnValue(true),
+}));
+
+jest.mock('../../../util/address', () => ({
+  ...jest.requireActual('../../../util/address'),
+  isHardwareAccount: jest.fn(),
+}));
 
 const mockInitialState: DeepPartial<RootState> = {
   swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
@@ -276,22 +294,10 @@ jest.mock('../../../util/navigation/navUtils', () => ({
   useParams: () => mockUseParams(),
 }));
 
-jest.mock('react-native-safe-area-context', () => {
-  const inset = { top: 0, right: 0, bottom: 0, left: 0 };
-  const frame = { width: 0, height: 0, x: 0, y: 0 };
-  return {
-    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
-    SafeAreaConsumer: jest
-      .fn()
-      .mockImplementation(({ children }) => children(inset)),
-    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
-    useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
-  };
-});
-
 describe('TradeWalletActions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(isHardwareAccount).mockReturnValue(false);
 
     mockUseStakingEligibility.mockReturnValue({
       isEligible: true,
@@ -309,6 +315,8 @@ describe('TradeWalletActions', () => {
         y: 321,
       },
     });
+
+    jest.mocked(selectBatchSellEnabled).mockReturnValue(true);
   });
 
   afterEach(() => {
@@ -324,7 +332,7 @@ describe('TradeWalletActions', () => {
         .fn()
         .mockImplementation((callback) => callback(mockInitialState)),
     }));
-    const { getByTestId, queryByTestId } = renderScreen(
+    const { getByTestId, getByText, queryByTestId } = renderScreen(
       TradeWalletActions,
       {
         name: 'TradeWalletActions',
@@ -334,6 +342,10 @@ describe('TradeWalletActions', () => {
       },
     );
 
+    expect(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.BATCH_SELL_BUTTON),
+    ).toBeDefined();
+    expect(getByText('New')).toBeOnTheScreen();
     expect(
       getByTestId(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON),
     ).toBeDefined();
@@ -370,6 +382,45 @@ describe('TradeWalletActions', () => {
     expect(
       getByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
     ).toBeDefined();
+  });
+
+  it('does not render Batch Sell for hardware wallets', () => {
+    jest.mocked(isHardwareAccount).mockReturnValue(true);
+
+    const { getByTestId, queryByTestId } = renderScreen(
+      TradeWalletActions,
+      {
+        name: 'TradeWalletActions',
+      },
+      {
+        state: mockInitialState,
+      },
+    );
+
+    expect(
+      queryByTestId(WalletActionsBottomSheetSelectorsIDs.BATCH_SELL_BUTTON),
+    ).toBeNull();
+    expect(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON),
+    ).toBeDefined();
+  });
+
+  it('does not render Batch Sell when feature flag is disabled', () => {
+    jest.mocked(selectBatchSellEnabled).mockReturnValue(false);
+
+    const { queryByTestId } = renderScreen(
+      TradeWalletActions,
+      {
+        name: 'TradeWalletActions',
+      },
+      {
+        state: mockInitialState,
+      },
+    );
+
+    expect(
+      queryByTestId(WalletActionsBottomSheetSelectorsIDs.BATCH_SELL_BUTTON),
+    ).toBeNull();
   });
 
   it('does not render earn button when user is not eligible', () => {
@@ -521,7 +572,7 @@ describe('TradeWalletActions', () => {
 
     // Verify button exists and is enabled for returning users
     expect(perpsButton).toBeDefined();
-    expect(perpsButton.props.accessibilityState?.disabled).toBeFalsy();
+    expect(perpsButton).toBeEnabled();
   });
 
   it('should set up perps navigation to tutorial for first-time users', () => {
@@ -650,6 +701,9 @@ describe('TradeWalletActions', () => {
     const swapButton = getByTestId(
       WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON,
     );
+    const batchSellButton = getByTestId(
+      WalletActionsBottomSheetSelectorsIDs.BATCH_SELL_BUTTON,
+    );
     const earnButton = getByTestId(
       WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON,
     );
@@ -662,6 +716,7 @@ describe('TradeWalletActions', () => {
 
     // Test that disabled buttons don't execute their actions when pressed
     fireEvent.press(swapButton);
+    fireEvent.press(batchSellButton);
     fireEvent.press(earnButton);
     fireEvent.press(perpsButton);
     fireEvent.press(predictButton);

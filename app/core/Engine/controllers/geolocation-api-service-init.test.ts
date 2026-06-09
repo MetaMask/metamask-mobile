@@ -1,7 +1,7 @@
-import { buildControllerInitRequestMock } from '../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import { getGeolocationApiServiceMessenger } from '../messengers/geolocation-api-service-messenger';
-import type { ControllerInitRequest } from '../types';
+import type { MessengerClientInitRequest } from '../types';
 import { geolocationApiServiceInit } from './geolocation-api-service-init';
 import {
   GeolocationApiService,
@@ -21,14 +21,14 @@ import { SdkEnvironment } from '@consensys/native-ramps-sdk';
 const mockGetSdkEnvironment = jest.mocked(getSdkEnvironment);
 
 function getInitRequestMock(): jest.Mocked<
-  ControllerInitRequest<GeolocationApiServiceMessenger>
+  MessengerClientInitRequest<GeolocationApiServiceMessenger>
 > {
   const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>({
     namespace: MOCK_ANY_NAMESPACE,
   });
 
   return {
-    ...buildControllerInitRequestMock(baseMessenger),
+    ...buildMessengerClientInitRequestMock(baseMessenger),
     controllerMessenger: getGeolocationApiServiceMessenger(baseMessenger),
     initMessenger: undefined,
   };

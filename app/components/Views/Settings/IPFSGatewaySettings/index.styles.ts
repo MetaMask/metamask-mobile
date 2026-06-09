@@ -19,21 +19,18 @@ const styleSheet = (params: { theme: Theme }) => {
       alignSelf: 'flex-start',
     },
     halfSetting: {
-      marginTop: 16,
+      marginTop: 24,
     },
     desc: {
       marginTop: 8,
     },
     setting: {
-      marginTop: 32,
+      marginTop: 24,
     },
     accessory: {
       marginTop: 16,
     },
     picker: {
-      borderColor: colors.border.default,
-      borderRadius: 5,
-      borderWidth: 2,
       marginTop: 16,
     },
   });

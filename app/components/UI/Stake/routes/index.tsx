@@ -1,5 +1,5 @@
 import React from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Routes from '../../../../constants/navigation/Routes';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import StakeConfirmationView from '../Views/StakeConfirmationView/StakeConfirmationView';
@@ -16,17 +16,16 @@ import EarnTokenList from '../../Earn/components/EarnTokenList';
 import EarnInputView from '../../Earn/Views/EarnInputView/EarnInputView';
 import EarnWithdrawInputView from '../../Earn/Views/EarnWithdrawInputView/EarnWithdrawInputView';
 import { useEmptyNavHeaderForConfirmations } from '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
+import {
+  clearNativeStackNavigatorOptions,
+  transparentModalScreenOptions,
+} from '../../../../constants/navigation/clearStackNavigatorOptions';
 
-const Stack = createStackNavigator();
-const ModalStack = createStackNavigator();
+const Stack = createNativeStackNavigator();
+const ModalStack = createNativeStackNavigator();
 
-const clearStackNavigatorOptions = {
-  headerShown: false,
-  cardStyle: {
-    backgroundColor: 'transparent',
-  },
-  animationEnabled: false,
-};
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ScreenComponent = React.ComponentType<any>;
 
 // Regular Stack for Screens
 const StakeScreenStack = () => {
@@ -34,23 +33,35 @@ const StakeScreenStack = () => {
 
   return (
     <StakeSDKProvider>
-      <Stack.Navigator headerMode="screen">
-        <Stack.Screen name={Routes.STAKING.STAKE} component={EarnInputView} />
+      <Stack.Navigator
+        screenOptions={{
+          headerShadowVisible: false,
+        }}
+      >
+        <Stack.Screen
+          name={Routes.STAKING.STAKE}
+          component={EarnInputView}
+          options={{ headerShown: false }}
+        />
         <Stack.Screen
           name={Routes.STAKING.UNSTAKE}
           component={EarnWithdrawInputView}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name={Routes.STAKING.STAKE_CONFIRMATION}
-          component={StakeConfirmationView}
+          component={StakeConfirmationView as ScreenComponent}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name={Routes.STAKING.UNSTAKE_CONFIRMATION}
-          component={UnstakeConfirmationView}
+          component={UnstakeConfirmationView as ScreenComponent}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name={Routes.STAKING.EARNINGS_HISTORY}
           component={StakeEarningsHistoryView}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
@@ -67,8 +78,10 @@ const StakeScreenStack = () => {
 const StakeModalStack = () => (
   <StakeSDKProvider>
     <ModalStack.Navigator
-      mode={'modal'}
-      screenOptions={clearStackNavigatorOptions}
+      screenOptions={{
+        ...clearNativeStackNavigatorOptions,
+        ...transparentModalScreenOptions,
+      }}
     >
       <ModalStack.Screen
         name={Routes.STAKING.MODALS.LEARN_MORE}
@@ -93,7 +106,7 @@ const StakeModalStack = () => (
       />
       <ModalStack.Screen
         name={Routes.STAKING.MODALS.GAS_IMPACT}
-        component={GasImpactModal}
+        component={GasImpactModal as ScreenComponent}
         options={{ headerShown: false }}
       />
       <ModalStack.Screen

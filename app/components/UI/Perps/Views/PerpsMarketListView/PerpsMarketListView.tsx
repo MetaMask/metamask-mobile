@@ -1,17 +1,11 @@
-import React, {
-  useEffect,
-  useRef,
-  useState,
-  useMemo,
-  useCallback,
-} from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import { View, Animated } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch/TextFieldSearch';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
@@ -44,6 +38,7 @@ import { TraceName } from '../../../../../util/trace';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsNavigationParamList } from '../../types/navigation';
+import { normalizeFilterKey } from '../../utils/marketCategoryMapping';
 
 const PerpsMarketListView = ({
   onMarketSelect,
@@ -67,6 +62,9 @@ const PerpsMarketListView = ({
     route.params?.showWatchlistOnly ?? propShowWatchlistOnly ?? false;
   const defaultMarketTypeFilter =
     route.params?.defaultMarketTypeFilter ?? 'all';
+  const defaultSortOptionId = route.params?.defaultSortOptionId;
+  const defaultSortDirection = route.params?.defaultSortDirection;
+  const transactionActiveAbTests = route.params?.transactionActiveAbTests;
 
   const fadeAnimation = useRef(new Animated.Value(0)).current;
   const [isSortFieldSheetVisible, setIsSortFieldSheetVisible] = useState(false);
@@ -77,13 +75,14 @@ const PerpsMarketListView = ({
     sortState,
     favoritesState,
     marketTypeFilterState,
-    marketCounts,
     isLoading: isLoadingMarkets,
     error,
   } = usePerpsMarketListView({
     enablePolling: false,
     showWatchlistOnly,
     defaultMarketTypeFilter,
+    defaultSortOptionId,
+    defaultSortDirection,
     showZeroVolume: __DEV__,
   });
 
@@ -107,44 +106,23 @@ const PerpsMarketListView = ({
         perpsNavigation.navigateToMarketDetails(
           market,
           PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS,
+          transactionActiveAbTests,
         );
       }
     },
-    [onMarketSelect, perpsNavigation],
+    [onMarketSelect, perpsNavigation, transactionActiveAbTests],
   );
-
-  // Compute available categories based on market counts (hide empty categories)
-  const availableCategories = useMemo(() => {
-    const categories: Exclude<MarketTypeFilter, 'all'>[] = [];
-    if (marketCounts.crypto > 0) categories.push('crypto');
-    if (marketCounts.equity > 0) categories.push('stocks');
-    if (marketCounts.commodity > 0) categories.push('commodities');
-    if (marketCounts.forex > 0) categories.push('forex');
-    if (marketCounts.new > 0) categories.push('new');
-    return categories;
-  }, [marketCounts]);
 
   const { track } = usePerpsEventTracking();
 
   // Handle category badge selection
   const handleCategorySelect = useCallback(
     (category: MarketTypeFilter) => {
-      // Track analytics for category changes
-      const categoryMap: Record<string, string | null> = {
-        crypto: PERPS_EVENT_VALUE.BUTTON_CLICKED.CRYPTO,
-        stocks: PERPS_EVENT_VALUE.BUTTON_CLICKED.STOCKS,
-        commodities: PERPS_EVENT_VALUE.BUTTON_CLICKED.COMMODITIES,
-        forex: PERPS_EVENT_VALUE.BUTTON_CLICKED.FOREX,
-        new: PERPS_EVENT_VALUE.BUTTON_CLICKED.NEW,
-        all: null,
-      };
-
-      const targetCategory = categoryMap[category];
-      if (targetCategory) {
+      if (category !== 'all') {
         track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
           [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
             PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
-          [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]: targetCategory,
+          [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]: category,
           [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
             PERPS_EVENT_VALUE.BUTTON_LOCATION.MARKET_LIST,
         });
@@ -196,6 +174,9 @@ const PerpsMarketListView = ({
       [PERPS_EVENT_PROPERTY.SOURCE]: source,
       [PERPS_EVENT_PROPERTY.HAS_PERP_BALANCE]: hasPerpBalance,
       [PERPS_EVENT_PROPERTY.MARKET_CATEGORY]: marketTypeFilter,
+      ...(marketTypeFilter !== 'all' && {
+        product_filter: normalizeFilterKey(marketTypeFilter),
+      }),
       ...(buttonClicked && {
         [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]: buttonClicked,
       }),
@@ -317,7 +298,7 @@ const PerpsMarketListView = ({
 
   return (
     <SafeAreaView style={styles.container}>
-      <HeaderCompactStandard
+      <HeaderStandard
         title={title || strings('perps.home.markets')}
         onBack={handleBackPressed}
         backButtonProps={{
@@ -351,7 +332,6 @@ const PerpsMarketListView = ({
           onSortPress={() => setIsSortFieldSheetVisible(true)}
           marketTypeFilter={marketTypeFilter}
           onCategorySelect={handleCategorySelect}
-          availableCategories={availableCategories}
           testID={PerpsMarketListViewSelectorsIDs.SORT_FILTERS}
         />
       )}

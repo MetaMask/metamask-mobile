@@ -28,6 +28,22 @@ jest.mock('@react-navigation/native', () => ({
   },
 }));
 
+jest.mock('react-native-linear-gradient', () => 'LinearGradient');
+
+// Mock useCardHomeData hook (SpendingLimit now reads from it)
+jest.mock('../../hooks/useCardHomeData', () => ({
+  useCardHomeData: jest.fn(() => ({
+    data: null,
+    isLoading: false,
+    isError: false,
+    refetch: jest.fn(),
+    primaryToken: null,
+    availableTokens: [],
+    fundingTokens: [],
+    balanceMap: new Map(),
+  })),
+}));
+
 // Mock useSpendingLimitData hook
 jest.mock('../../hooks/useSpendingLimitData', () => jest.fn());
 
@@ -36,10 +52,12 @@ const mockSubmit = jest.fn();
 const mockCancel = jest.fn();
 const mockSkip = jest.fn();
 const mockSetSelectedToken = jest.fn();
-const mockHandleQuickSelectToken = jest.fn();
+const mockHandleAccountSelect = jest.fn();
 const mockHandleOtherSelect = jest.fn();
+const mockHandleLimitSelect = jest.fn();
 const mockSetLimitType = jest.fn();
 const mockSetCustomLimit = jest.fn();
+const mockSelectMoneyAccountAsSource = jest.fn();
 
 jest.mock('../../hooks/useSpendingLimit', () => jest.fn());
 
@@ -49,44 +67,39 @@ jest.mock('react-redux', () => ({
 }));
 
 // Import types after mocks but before usage
-import {
-  AllowanceState,
-  CardTokenAllowance,
-  DelegationSettingsResponse,
-  CardExternalWalletDetailsResponse,
-} from '../../types';
+import { FundingStatus, CardFundingToken } from '../../types';
 
-const mockPriorityToken: CardTokenAllowance = {
+const mockPriorityToken: CardFundingToken = {
   address: '0x123',
   symbol: 'USDC',
   name: 'USD Coin',
   decimals: 6,
   caipChainId: 'eip155:59144' as `${string}:${string}`,
-  allowanceState: AllowanceState.Limited,
-  allowance: '1000000',
+  fundingStatus: FundingStatus.Limited,
+  spendableBalance: '1000000',
   walletAddress: '0xwallet123',
 };
 
-const mockSolanaToken: CardTokenAllowance = {
+const mockSolanaToken: CardFundingToken = {
   address: 'solana123',
   symbol: 'SOL',
   name: 'Solana',
   decimals: 9,
   caipChainId:
     'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as `${string}:${string}`,
-  allowanceState: AllowanceState.Enabled,
-  allowance: '500000',
+  fundingStatus: FundingStatus.Enabled,
+  spendableBalance: '500000',
   walletAddress: '0xwallet123',
 };
 
-const mockMUSDToken: CardTokenAllowance = {
+const mockMUSDToken: CardFundingToken = {
   address: '0xmusd',
   symbol: 'mUSD',
   name: 'Meta USD',
   decimals: 18,
   caipChainId: 'eip155:59144' as `${string}:${string}`,
-  allowanceState: AllowanceState.Enabled,
-  allowance: '2000000',
+  fundingStatus: FundingStatus.Enabled,
+  spendableBalance: '2000000',
   walletAddress: '0xwallet123',
 };
 
@@ -146,13 +159,18 @@ jest.mock('../../../../../component-library/components/Toast', () => {
 });
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string) => {
+  strings: (key: string, params?: Record<string, unknown>) => {
     const strings: { [key: string]: string } = {
+      'card.card_spending_limit.setup_title': 'Set up your card',
+      'card.card_spending_limit.setup_description':
+        "Select the token you'd like to use and set a limit.",
+      'card.card_spending_limit.account_label': 'Account',
+      'card.card_spending_limit.token_label': 'Token',
       'card.card_spending_limit.full_access_title': 'Full access',
       'card.card_spending_limit.full_access_description':
         'Card can spend any amount',
       'card.card_spending_limit.set_new_limit': 'Set a limit',
-      'card.card_spending_limit.restricted_limit_title': 'Restricted',
+      'card.card_spending_limit.restricted_limit_title': 'Spending limit',
       'card.card_spending_limit.restricted_limit_description':
         'Set a spending limit',
       'card.card_spending_limit.confirm_new_limit': 'Confirm',
@@ -165,7 +183,22 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.card_spending_limit.load_error':
         'Unable to load tokens. Please try again.',
       'card.card_spending_limit.retry': 'Try again',
+      'card.card_spending_limit.money_account_label': 'Money account',
+      'card.card_spending_limit.money_account_token_symbol': 'mUSD',
+      'card.card_spending_limit.use_money_account_cta': 'Use Money account',
+      'card.card_spending_limit.spend_and_earn_title': 'Spend and earn',
+      'card.card_spending_limit.spend_and_earn_description_prefix':
+        'Link your balance to your card and get mUSD back on purchases. Plus, earn up to ',
+      'card.card_spending_limit.spend_and_earn_description_suffix':
+        ' (variable) on your balance.',
+      'card.card_spending_limit.spend_and_earn_description_no_apy':
+        'Link your balance to your card and get mUSD back on purchases.',
+      'card.card_spending_limit.spend_and_earn_cta': 'Link card',
     };
+    if (key === 'card.card_spending_limit.spend_and_earn_description_apy') {
+      const apy = (params as { apy?: number | string } | undefined)?.apy;
+      return `${apy}% APY`;
+    }
     return strings[key] || key;
   },
 }));
@@ -184,8 +217,52 @@ jest.mock('../../components/AssetSelectionBottomSheet', () => ({
   ]),
 }));
 
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const ReactActual = jest.requireActual('react');
+  const {
+    View,
+    Text,
+    TouchableOpacity,
+    ActivityIndicator: RNActivityIndicator,
+  } = jest.requireActual('react-native');
+
+  return {
+    ...actual,
+    Box: ({
+      children,
+      testID,
+      ...props
+    }: React.PropsWithChildren<Record<string, unknown>>) =>
+      ReactActual.createElement(View, { testID, ...props }, children),
+    Text: ({
+      children,
+      testID,
+      ...props
+    }: React.PropsWithChildren<Record<string, unknown>>) =>
+      ReactActual.createElement(Text, { testID, ...props }, children),
+    Button: ({
+      children,
+      testID,
+      onPress,
+      label,
+      isDisabled,
+      isLoading,
+      ...props
+    }: React.PropsWithChildren<Record<string, unknown>>) =>
+      ReactActual.createElement(
+        TouchableOpacity,
+        { testID, onPress, disabled: isDisabled || isLoading, ...props },
+        isLoading
+          ? ReactActual.createElement(RNActivityIndicator, {
+              testID: 'button-loading-indicator',
+            })
+          : ReactActual.createElement(Text, {}, children || label),
+      ),
+  };
+});
+
 import React from 'react';
-import { ActivityIndicator } from 'react-native';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import SpendingLimit from './SpendingLimit';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
@@ -199,24 +276,9 @@ jest.spyOn(Logger, 'error').mockImplementation(() => undefined);
 
 interface MockRoute {
   params?: {
-    flow?: 'manage' | 'enable' | 'onboarding';
-    selectedToken?: CardTokenAllowance;
-    priorityToken?: CardTokenAllowance | null;
-    allTokens?: CardTokenAllowance[];
-    delegationSettings?: DelegationSettingsResponse | null;
-    externalWalletDetailsData?:
-      | {
-          walletDetails: never[];
-          mappedWalletDetails: never[];
-          priorityWalletDetail: null;
-        }
-      | {
-          walletDetails: CardExternalWalletDetailsResponse;
-          mappedWalletDetails: CardTokenAllowance[];
-          priorityWalletDetail: CardTokenAllowance | undefined;
-        }
-      | null;
-    returnedSelectedToken?: CardTokenAllowance;
+    flow?: 'manage' | 'enable' | 'onboarding' | 'enable_card';
+    selectedToken?: CardFundingToken;
+    returnedSelectedToken?: CardFundingToken;
   };
 }
 
@@ -232,10 +294,6 @@ const mockRoute: MockRoute = {
   params: {
     flow: 'manage' as const,
     selectedToken: undefined,
-    priorityToken: mockPriorityToken,
-    allTokens: [mockPriorityToken, mockMUSDToken],
-    delegationSettings: null,
-    externalWalletDetailsData: null,
   },
 };
 
@@ -269,6 +327,35 @@ describe('SpendingLimit Component', () => {
     );
   };
 
+  /** Default mock return for the settings-list UI. */
+  const getDefaultUseSpendingLimitMock = () => ({
+    selectedToken: mockPriorityToken,
+    limitType: 'full' as const,
+    customLimit: '',
+    isLoading: false,
+    setSelectedToken: mockSetSelectedToken,
+    handleAccountSelect: mockHandleAccountSelect,
+    handleOtherSelect: mockHandleOtherSelect,
+    handleLimitSelect: mockHandleLimitSelect,
+    setLimitType: mockSetLimitType,
+    setCustomLimit: mockSetCustomLimit,
+    submit: mockSubmit,
+    cancel: mockCancel,
+    skip: mockSkip,
+    isValid: true,
+    needsFaucet: false,
+    isFaucetCheckLoading: false,
+    isMoneyAccountSource: false,
+    isMoneyAccountLocked: false,
+    canShowMoneyAccountCta: false,
+    selectMoneyAccountAsSource: mockSelectMoneyAccountAsSource,
+    moneyAccountTotalFiatFormatted: undefined as string | undefined,
+    isMoneyAccountBalanceLoading: false,
+    canLinkMoneyAccount: true,
+    moneyAccountApyPercent: 4 as number | undefined,
+    hasMetalCard: false,
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockSubmitDelegation.mockResolvedValue(undefined);
@@ -298,45 +385,22 @@ describe('SpendingLimit Component', () => {
     });
 
     // Reset useSpendingLimit mock to default state
-    mockUseSpendingLimit.mockReturnValue({
-      selectedToken: mockPriorityToken,
-      limitType: 'full',
-      customLimit: '',
-      quickSelectTokens: [
-        { symbol: 'mUSD', token: mockMUSDToken },
-        { symbol: 'USDC', token: mockPriorityToken },
-      ],
-      isOtherSelected: false,
-      isLoading: false,
-      setSelectedToken: mockSetSelectedToken,
-      handleQuickSelectToken: mockHandleQuickSelectToken,
-      handleOtherSelect: mockHandleOtherSelect,
-      setLimitType: mockSetLimitType,
-      setCustomLimit: mockSetCustomLimit,
-      submit: mockSubmit,
-      cancel: mockCancel,
-      skip: mockSkip,
-      isValid: true,
-      needsFaucet: false,
-      isFaucetCheckLoading: false,
-    });
+    mockUseSpendingLimit.mockReturnValue(getDefaultUseSpendingLimitMock());
   });
 
   describe('Initial Rendering', () => {
-    it('renders correctly with full access option', () => {
+    it('renders settings card with three rows', () => {
+      render();
+
+      expect(screen.getByTestId('account-row')).toBeOnTheScreen();
+      expect(screen.getByTestId('token-row')).toBeOnTheScreen();
+      expect(screen.getByTestId('spending-limit-row')).toBeOnTheScreen();
+    });
+
+    it('shows "Full access" in spending limit row when limitType is full', () => {
       render();
 
       expect(screen.getByText('Full access')).toBeOnTheScreen();
-      expect(screen.getByText('Card can spend any amount')).toBeOnTheScreen();
-      expect(screen.getByTestId('limit-option-restricted')).toBeOnTheScreen();
-    });
-
-    it('displays selected token information', () => {
-      render();
-
-      // Token symbols are displayed in asset cards
-      expect(screen.getByText('USDC')).toBeOnTheScreen();
-      expect(screen.getByText('mUSD')).toBeOnTheScreen();
     });
 
     it('renders confirm and cancel buttons', () => {
@@ -345,160 +409,187 @@ describe('SpendingLimit Component', () => {
       expect(screen.getByText('Confirm')).toBeOnTheScreen();
       expect(screen.getByText('Cancel')).toBeOnTheScreen();
     });
+
+    it('displays token label in "SYMBOL on NETWORK" format', () => {
+      render();
+
+      expect(screen.getByText('USDC on Linea')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Token Row', () => {
+    it('displays selected token in "SYMBOL on NETWORK" format', () => {
+      render();
+
+      expect(screen.getByText('USDC on Linea')).toBeOnTheScreen();
+      expect(screen.getByTestId('token-row')).toBeOnTheScreen();
+    });
+
+    it('displays mUSD token label when mUSD is selected', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        selectedToken: mockMUSDToken,
+      });
+
+      render();
+
+      expect(screen.getByText('mUSD on Linea')).toBeOnTheScreen();
+    });
+
+    it('renders token row with no icon when token has no iconUrl', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        selectedToken: null,
+      });
+
+      render();
+
+      expect(screen.getByTestId('token-row')).toBeOnTheScreen();
+    });
+
+    it('calls handleOtherSelect when token row is pressed', () => {
+      render();
+
+      fireEvent.press(screen.getByTestId('token-row'));
+
+      expect(mockHandleOtherSelect).toHaveBeenCalled();
+    });
+  });
+
+  describe('Account Row', () => {
+    it('renders account row', () => {
+      render();
+
+      expect(screen.getByTestId('account-row')).toBeOnTheScreen();
+    });
+
+    it('calls handleAccountSelect when account row is pressed', () => {
+      render();
+
+      fireEvent.press(screen.getByTestId('account-row'));
+
+      expect(mockHandleAccountSelect).toHaveBeenCalled();
+    });
+  });
+
+  describe('Spending Limit Row', () => {
+    it('shows "Full access" when limitType is full', () => {
+      render();
+
+      expect(screen.getByText('Full access')).toBeOnTheScreen();
+    });
+
+    it('shows custom amount when limitType is restricted', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        limitType: 'restricted',
+        customLimit: '500',
+      });
+
+      render();
+
+      expect(screen.getByText('500')).toBeOnTheScreen();
+    });
+
+    it('shows "0" when limitType is restricted with empty customLimit', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        limitType: 'restricted',
+        customLimit: '',
+      });
+
+      render();
+
+      expect(screen.getByText('0')).toBeOnTheScreen();
+    });
+
+    it('calls handleLimitSelect when spending limit row is pressed', () => {
+      render();
+
+      fireEvent.press(screen.getByTestId('spending-limit-row'));
+
+      expect(mockHandleLimitSelect).toHaveBeenCalled();
+    });
   });
 
   describe('Token Selection - Enable Flow', () => {
     it('uses token from route params when flow is enable', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        selectedToken: mockMUSDToken,
+      });
+
       const enableRoute: MockRoute = {
         params: {
           flow: 'enable' as const,
           selectedToken: mockMUSDToken,
-          priorityToken: mockPriorityToken,
-          allTokens: [mockPriorityToken, mockMUSDToken],
-          delegationSettings: null,
-          externalWalletDetailsData: null,
         },
       };
 
       render(enableRoute);
 
-      expect(screen.getByText('mUSD')).toBeOnTheScreen();
+      expect(screen.getByText('mUSD on Linea')).toBeOnTheScreen();
+      expect(screen.getByTestId('token-row')).toBeOnTheScreen();
     });
   });
 
   describe('Token Selection - Manage Flow', () => {
-    it('pre-selects priority token when it is not Solana', () => {
+    it('shows selected token in token row', () => {
       render();
 
-      // Token symbols are displayed in asset cards
-      expect(screen.getByText('USDC')).toBeOnTheScreen();
-      expect(screen.getByTestId('asset-card-usdc')).toBeOnTheScreen();
+      expect(screen.getByText('USDC on Linea')).toBeOnTheScreen();
+      expect(screen.getByTestId('token-row')).toBeOnTheScreen();
     });
 
-    it('renders asset cards for Solana route', () => {
+    it('renders token row for Solana route', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        selectedToken: mockSolanaToken,
+      });
+
       const solanaRoute: MockRoute = {
         params: {
           flow: 'manage' as const,
-          selectedToken: undefined,
-          priorityToken: mockSolanaToken,
-          allTokens: [mockSolanaToken, mockMUSDToken],
-          delegationSettings: null,
-          externalWalletDetailsData: null,
         },
       };
 
       render(solanaRoute);
 
-      // Asset cards are always rendered
-      expect(screen.getByTestId('asset-card-musd')).toBeOnTheScreen();
+      expect(screen.getByTestId('token-row')).toBeOnTheScreen();
     });
 
-    it('renders asset cards when no priority token exists', () => {
+    it('renders token row when no token is selected', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        selectedToken: null,
+      });
+
       const emptyRoute: MockRoute = {
         params: {
           flow: 'manage' as const,
-          selectedToken: undefined,
-          priorityToken: null,
-          allTokens: [],
-          delegationSettings: null,
-          externalWalletDetailsData: null,
         },
       };
 
       render(emptyRoute);
 
-      // Asset cards are always rendered from quickSelectTokens
-      expect(screen.getByTestId('asset-card-musd')).toBeOnTheScreen();
+      expect(screen.getByTestId('token-row')).toBeOnTheScreen();
     });
 
-    it('renders asset cards when priority is Solana', () => {
+    it('renders Solana token in token row', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        selectedToken: mockSolanaToken,
+      });
+
       const solanaOnlyRoute: MockRoute = {
         params: {
           flow: 'manage' as const,
-          selectedToken: undefined,
-          priorityToken: mockSolanaToken,
-          allTokens: [mockSolanaToken],
-          delegationSettings: null,
-          externalWalletDetailsData: null,
         },
       };
 
       render(solanaOnlyRoute);
 
-      // USDC is always shown in quick select tokens
-      expect(screen.getByText('USDC')).toBeOnTheScreen();
-    });
-  });
-
-  describe('Option Selection', () => {
-    it('shows both limit options on initial render', () => {
-      render();
-
-      // Both options are always visible
-      expect(screen.getByTestId('limit-option-full')).toBeOnTheScreen();
-      expect(screen.getByTestId('limit-option-restricted')).toBeOnTheScreen();
-    });
-
-    it('displays radio buttons for limit options', () => {
-      render();
-
-      // Both options are always visible
-      expect(screen.getByTestId('limit-option-full')).toBeOnTheScreen();
-      expect(screen.getByTestId('limit-option-restricted')).toBeOnTheScreen();
-    });
-
-    it('calls setLimitType when restricted option is pressed', () => {
-      render();
-
-      // Press the Restricted option using testID
-      const restrictedOption = screen.getByTestId('limit-option-restricted');
-      fireEvent.press(restrictedOption);
-
-      expect(mockSetLimitType).toHaveBeenCalledWith('restricted');
-    });
-
-    it('calls setLimitType when full access option is pressed', () => {
-      render();
-
-      const fullAccessOption = screen.getByText('Full access');
-      fireEvent.press(fullAccessOption);
-
-      expect(mockSetLimitType).toHaveBeenCalledWith('full');
-    });
-  });
-
-  describe('Limit Amount Input', () => {
-    it('calls setLimitType when restricted option is pressed', () => {
-      render();
-
-      const restrictedOption = screen.getByTestId('limit-option-restricted');
-      fireEvent.press(restrictedOption);
-
-      expect(mockSetLimitType).toHaveBeenCalledWith('restricted');
-    });
-
-    it('shows restricted option for token with limited allowance', () => {
-      const tokenWithLimit: CardTokenAllowance = {
-        ...mockPriorityToken,
-        allowance: '750000',
-        allowanceState: AllowanceState.Limited,
-      };
-
-      const limitedRoute: MockRoute = {
-        params: {
-          flow: 'manage' as const,
-          selectedToken: undefined,
-          priorityToken: tokenWithLimit,
-          allTokens: [tokenWithLimit],
-          delegationSettings: null,
-          externalWalletDetailsData: null,
-        },
-      };
-
-      render(limitedRoute);
-
-      const restrictedOption = screen.getByTestId('limit-option-restricted');
-      expect(restrictedOption).toBeOnTheScreen();
+      expect(screen.getByTestId('token-row')).toBeOnTheScreen();
     });
   });
 
@@ -508,19 +599,20 @@ describe('SpendingLimit Component', () => {
 
       const confirmButton = screen.getByText('Confirm');
 
-      // Button is enabled when not disabled
       expect(confirmButton).toBeOnTheScreen();
     });
 
     it('renders confirm button when restricted mode is selected', () => {
-      render();
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        limitType: 'restricted',
+        customLimit: '100',
+      });
 
-      const restrictedOption = screen.getByTestId('limit-option-restricted');
-      fireEvent.press(restrictedOption);
+      render();
 
       const confirmButton = screen.getByText('Confirm');
 
-      // Check that button is present
       expect(confirmButton).toBeOnTheScreen();
     });
 
@@ -529,10 +621,6 @@ describe('SpendingLimit Component', () => {
         params: {
           flow: 'enable' as const,
           selectedToken: mockSolanaToken,
-          priorityToken: mockPriorityToken,
-          allTokens: [mockSolanaToken, mockPriorityToken],
-          delegationSettings: null,
-          externalWalletDetailsData: null,
         },
       };
 
@@ -540,7 +628,6 @@ describe('SpendingLimit Component', () => {
 
       const confirmButton = screen.getByText('Confirm');
 
-      // Button should be present for Solana tokens
       expect(confirmButton).toBeOnTheScreen();
     });
 
@@ -557,32 +644,13 @@ describe('SpendingLimit Component', () => {
 
     it('renders loading state when isLoading is true', () => {
       mockUseSpendingLimit.mockReturnValue({
-        selectedToken: mockPriorityToken,
-        limitType: 'full',
-        customLimit: '',
-        quickSelectTokens: [
-          { symbol: 'mUSD', token: mockMUSDToken },
-          { symbol: 'USDC', token: mockPriorityToken },
-        ],
-        isOtherSelected: false,
+        ...getDefaultUseSpendingLimitMock(),
         isLoading: true,
-        setSelectedToken: mockSetSelectedToken,
-        handleQuickSelectToken: mockHandleQuickSelectToken,
-        handleOtherSelect: mockHandleOtherSelect,
-        setLimitType: mockSetLimitType,
-        setCustomLimit: mockSetCustomLimit,
-        submit: mockSubmit,
-        cancel: mockCancel,
-        skip: mockSkip,
-        isValid: true,
-        needsFaucet: false,
-        isFaucetCheckLoading: false,
       });
 
       render();
 
-      // Loading state shows ActivityIndicator instead of text
-      expect(screen.UNSAFE_queryByType(ActivityIndicator)).toBeTruthy();
+      expect(screen.getByTestId('button-loading-indicator')).toBeOnTheScreen();
     });
   });
 
@@ -598,30 +666,31 @@ describe('SpendingLimit Component', () => {
       });
     });
 
-    it('calls setLimitType when restricted option is pressed', async () => {
+    it('calls handleLimitSelect when spending limit row is pressed', () => {
       render();
 
-      const restrictedOption = screen.getByTestId('limit-option-restricted');
-      fireEvent.press(restrictedOption);
+      fireEvent.press(screen.getByTestId('spending-limit-row'));
 
-      expect(mockSetLimitType).toHaveBeenCalledWith('restricted');
+      expect(mockHandleLimitSelect).toHaveBeenCalled();
     });
 
     it('renders mUSD token in enable flow', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        selectedToken: mockMUSDToken,
+      });
+
       const enableRoute: MockRoute = {
         params: {
           flow: 'enable' as const,
           selectedToken: mockMUSDToken,
-          priorityToken: mockPriorityToken,
-          allTokens: [mockPriorityToken, mockMUSDToken],
-          delegationSettings: null,
-          externalWalletDetailsData: null,
         },
       };
 
       render(enableRoute);
 
-      expect(screen.getByText('mUSD')).toBeOnTheScreen();
+      expect(screen.getByText('mUSD on Linea')).toBeOnTheScreen();
+      expect(screen.getByTestId('token-row')).toBeOnTheScreen();
     });
 
     it('renders Solana token route', () => {
@@ -629,34 +698,27 @@ describe('SpendingLimit Component', () => {
         params: {
           flow: 'enable' as const,
           selectedToken: mockSolanaToken,
-          priorityToken: mockPriorityToken,
-          allTokens: [mockSolanaToken, mockPriorityToken],
-          delegationSettings: null,
-          externalWalletDetailsData: null,
         },
       };
 
       render(solanaRoute);
 
-      // Component should render
       expect(screen.getByText('Confirm')).toBeOnTheScreen();
     });
 
-    it('renders both limit options', () => {
+    it('renders spending limit row', () => {
       render();
 
-      // Options view should be visible (using testIDs to avoid duplicate text issues)
-      expect(screen.getByTestId('limit-option-restricted')).toBeOnTheScreen();
-      expect(screen.getByTestId('limit-option-full')).toBeOnTheScreen();
+      expect(screen.getByTestId('spending-limit-row')).toBeOnTheScreen();
+      expect(screen.getByText('Full access')).toBeOnTheScreen();
     });
 
-    it('renders limit options after pressing restricted', () => {
+    it('pressing spending limit row opens limit selector', () => {
       render();
 
-      const restrictedOption = screen.getByTestId('limit-option-restricted');
-      fireEvent.press(restrictedOption);
+      fireEvent.press(screen.getByTestId('spending-limit-row'));
 
-      expect(mockSetLimitType).toHaveBeenCalledWith('restricted');
+      expect(mockHandleLimitSelect).toHaveBeenCalled();
     });
   });
 
@@ -672,33 +734,14 @@ describe('SpendingLimit Component', () => {
 
     it('renders cancel button when loading', () => {
       mockUseSpendingLimit.mockReturnValue({
-        selectedToken: mockPriorityToken,
-        limitType: 'full',
-        customLimit: '',
-        quickSelectTokens: [
-          { symbol: 'mUSD', token: mockMUSDToken },
-          { symbol: 'USDC', token: mockPriorityToken },
-        ],
-        isOtherSelected: false,
+        ...getDefaultUseSpendingLimitMock(),
         isLoading: true,
-        setSelectedToken: mockSetSelectedToken,
-        handleQuickSelectToken: mockHandleQuickSelectToken,
-        handleOtherSelect: mockHandleOtherSelect,
-        setLimitType: mockSetLimitType,
-        setCustomLimit: mockSetCustomLimit,
-        submit: mockSubmit,
-        cancel: mockCancel,
-        skip: mockSkip,
-        isValid: true,
-        needsFaucet: false,
-        isFaucetCheckLoading: false,
       });
 
       render();
 
       const cancelButton = screen.getByText('Cancel');
 
-      // Cancel button should be visible
       expect(cancelButton).toBeOnTheScreen();
     });
   });
@@ -715,26 +758,8 @@ describe('SpendingLimit Component', () => {
 
     it('blocks navigation when isLoading is true', () => {
       mockUseSpendingLimit.mockReturnValue({
-        selectedToken: mockPriorityToken,
-        limitType: 'full',
-        customLimit: '',
-        quickSelectTokens: [
-          { symbol: 'mUSD', token: mockMUSDToken },
-          { symbol: 'USDC', token: mockPriorityToken },
-        ],
-        isOtherSelected: false,
+        ...getDefaultUseSpendingLimitMock(),
         isLoading: true,
-        setSelectedToken: mockSetSelectedToken,
-        handleQuickSelectToken: mockHandleQuickSelectToken,
-        handleOtherSelect: mockHandleOtherSelect,
-        setLimitType: mockSetLimitType,
-        setCustomLimit: mockSetCustomLimit,
-        submit: mockSubmit,
-        cancel: mockCancel,
-        skip: mockSkip,
-        isValid: true,
-        needsFaucet: false,
-        isFaucetCheckLoading: false,
       });
 
       render();
@@ -770,42 +795,12 @@ describe('SpendingLimit Component', () => {
     });
   });
 
-  describe('Asset Selection', () => {
-    it('calls handleOtherSelect when other asset card is pressed', () => {
-      render();
-
-      const otherCard = screen.getByTestId('asset-card-other');
-      fireEvent.press(otherCard);
-
-      expect(mockHandleOtherSelect).toHaveBeenCalled();
-    });
-
-    it('calls handleQuickSelectToken when mUSD asset card is pressed', () => {
-      render();
-
-      const musdCard = screen.getByTestId('asset-card-musd');
-      fireEvent.press(musdCard);
-
-      expect(mockHandleQuickSelectToken).toHaveBeenCalledWith('mUSD');
-    });
-
-    it('calls handleQuickSelectToken when USDC asset card is pressed', () => {
-      render();
-
-      const usdcCard = screen.getByTestId('asset-card-usdc');
-      fireEvent.press(usdcCard);
-
-      expect(mockHandleQuickSelectToken).toHaveBeenCalledWith('USDC');
-    });
-  });
-
   describe('Network Derivation', () => {
-    it('displays token with EIP155 chain ID', () => {
+    it('displays token with EIP155 chain ID in "SYMBOL on NETWORK" format', () => {
       render();
 
-      // Token with Linea (EIP155) chain ID should be displayed in asset cards
-      expect(screen.getByText('USDC')).toBeOnTheScreen();
-      expect(screen.getByTestId('asset-card-usdc')).toBeOnTheScreen();
+      expect(screen.getByText('USDC on Linea')).toBeOnTheScreen();
+      expect(screen.getByTestId('token-row')).toBeOnTheScreen();
     });
 
     it('renders component with Solana token route', () => {
@@ -819,16 +814,11 @@ describe('SpendingLimit Component', () => {
         params: {
           flow: 'enable' as const,
           selectedToken: solanaTokenWithFullChainId,
-          priorityToken: mockPriorityToken,
-          allTokens: [solanaTokenWithFullChainId, mockPriorityToken],
-          delegationSettings: null,
-          externalWalletDetailsData: null,
         },
       };
 
       render(solanaRoute);
 
-      // Verify component renders
       expect(screen.getByText('Confirm')).toBeOnTheScreen();
     });
   });
@@ -836,32 +826,25 @@ describe('SpendingLimit Component', () => {
   describe('Loading States', () => {
     it('renders loading indicator when isLoading is true', () => {
       mockUseSpendingLimit.mockReturnValue({
-        selectedToken: mockPriorityToken,
-        limitType: 'full',
-        customLimit: '',
-        quickSelectTokens: [
-          { symbol: 'mUSD', token: mockMUSDToken },
-          { symbol: 'USDC', token: mockPriorityToken },
-        ],
-        isOtherSelected: false,
+        ...getDefaultUseSpendingLimitMock(),
         isLoading: true,
-        setSelectedToken: mockSetSelectedToken,
-        handleQuickSelectToken: mockHandleQuickSelectToken,
-        handleOtherSelect: mockHandleOtherSelect,
-        setLimitType: mockSetLimitType,
-        setCustomLimit: mockSetCustomLimit,
-        submit: mockSubmit,
-        cancel: mockCancel,
-        skip: mockSkip,
-        isValid: true,
-        needsFaucet: false,
-        isFaucetCheckLoading: false,
       });
 
       render();
 
-      // Loading state shows ActivityIndicator instead of text
-      expect(screen.UNSAFE_queryByType(ActivityIndicator)).toBeTruthy();
+      expect(screen.getByTestId('button-loading-indicator')).toBeOnTheScreen();
+    });
+
+    it('omits the button spinner on Money Account submits to avoid duplicating the toast spinner', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        isLoading: true,
+        isMoneyAccountSource: true,
+      });
+
+      render();
+
+      expect(screen.queryByTestId('button-loading-indicator')).toBeNull();
     });
   });
 
@@ -869,11 +852,6 @@ describe('SpendingLimit Component', () => {
     const onboardingRoute: MockRoute = {
       params: {
         flow: 'onboarding' as const,
-        selectedToken: undefined,
-        priorityToken: null,
-        allTokens: undefined,
-        delegationSettings: undefined,
-        externalWalletDetailsData: null,
       },
     };
 
@@ -901,7 +879,9 @@ describe('SpendingLimit Component', () => {
       render(onboardingRoute);
 
       expect(screen.getByText('Loading available tokens...')).toBeOnTheScreen();
-      expect(screen.UNSAFE_queryByType(ActivityIndicator)).toBeTruthy();
+      expect(
+        screen.getByTestId('spending-limit-loading-indicator'),
+      ).toBeOnTheScreen();
     });
 
     it('displays error state with retry and skip buttons when fetch fails', () => {
@@ -954,15 +934,12 @@ describe('SpendingLimit Component', () => {
       const skipButton = screen.getByText('Skip for now');
       fireEvent.press(skipButton);
 
-      // The skip button in error state calls the skip function from the hook
       expect(mockSkip).toHaveBeenCalled();
     });
 
-    it('renders Cancel button in onboarding flow (skip is handled internally)', () => {
+    it('renders Cancel button in onboarding flow', () => {
       render(onboardingRoute);
 
-      // In the new UI, the cancel button is always shown as "Cancel"
-      // The skip behavior is handled internally by the hook
       expect(screen.getByText('Cancel')).toBeOnTheScreen();
     });
 
@@ -972,7 +949,6 @@ describe('SpendingLimit Component', () => {
       const cancelButton = screen.getByText('Cancel');
       fireEvent.press(cancelButton);
 
-      // In onboarding flow, cancel calls skip
       expect(mockSkip).toHaveBeenCalled();
     });
 
@@ -987,11 +963,10 @@ describe('SpendingLimit Component', () => {
 
       render(onboardingRoute);
 
-      // Confirm button should be present
       expect(screen.getByText('Confirm')).toBeOnTheScreen();
     });
 
-    it('renders asset cards in onboarding flow', () => {
+    it('renders token row with selected token in onboarding flow', () => {
       mockUseSpendingLimitData.mockReturnValue({
         availableTokens: [mockMUSDToken],
         delegationSettings: null,
@@ -1000,10 +975,15 @@ describe('SpendingLimit Component', () => {
         fetchData: mockFetchSpendingLimitData,
       });
 
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        selectedToken: mockMUSDToken,
+      });
+
       render(onboardingRoute);
 
-      // Asset cards should be rendered
-      expect(screen.getByTestId('asset-card-musd')).toBeOnTheScreen();
+      expect(screen.getByText('mUSD on Linea')).toBeOnTheScreen();
+      expect(screen.getByTestId('token-row')).toBeOnTheScreen();
     });
 
     it('calls submit when confirm is pressed in onboarding flow', async () => {
@@ -1011,10 +991,6 @@ describe('SpendingLimit Component', () => {
         params: {
           flow: 'onboarding' as const,
           selectedToken: mockPriorityToken,
-          priorityToken: mockPriorityToken,
-          allTokens: [mockPriorityToken],
-          delegationSettings: null,
-          externalWalletDetailsData: null,
         },
       };
 
@@ -1033,58 +1009,332 @@ describe('SpendingLimit Component', () => {
         params: {
           flow: 'onboarding' as const,
           selectedToken: mockPriorityToken,
-          priorityToken: mockPriorityToken,
-          allTokens: [mockPriorityToken],
-          delegationSettings: null,
-          externalWalletDetailsData: null,
         },
       };
 
       render(onboardingWithToken);
 
-      // Component should render
       expect(screen.getByText('Confirm')).toBeOnTheScreen();
     });
 
     it('renders cancel button during loading state in onboarding', () => {
       mockUseSpendingLimit.mockReturnValue({
-        selectedToken: mockPriorityToken,
-        limitType: 'full',
-        customLimit: '',
-        quickSelectTokens: [
-          { symbol: 'mUSD', token: mockMUSDToken },
-          { symbol: 'USDC', token: mockPriorityToken },
-        ],
-        isOtherSelected: false,
+        ...getDefaultUseSpendingLimitMock(),
         isLoading: true,
-        setSelectedToken: mockSetSelectedToken,
-        handleQuickSelectToken: mockHandleQuickSelectToken,
-        handleOtherSelect: mockHandleOtherSelect,
-        setLimitType: mockSetLimitType,
-        setCustomLimit: mockSetCustomLimit,
-        submit: mockSubmit,
-        cancel: mockCancel,
-        skip: mockSkip,
-        isValid: true,
-        needsFaucet: false,
-        isFaucetCheckLoading: false,
       });
 
       const onboardingWithToken: MockRoute = {
         params: {
           flow: 'onboarding' as const,
           selectedToken: mockPriorityToken,
-          priorityToken: mockPriorityToken,
-          allTokens: [mockPriorityToken],
-          delegationSettings: null,
-          externalWalletDetailsData: null,
         },
       };
 
       render(onboardingWithToken);
 
-      // Cancel button should be present
       expect(screen.getByText('Cancel')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Money Account source (onboarding flow)', () => {
+    const moneyAccountToken: CardFundingToken = {
+      address: '0xMonadUsdc',
+      symbol: 'USDC',
+      name: 'USDC',
+      decimals: 6,
+      caipChainId: 'eip155:143' as `${string}:${string}`,
+      fundingStatus: FundingStatus.NotEnabled,
+      spendableBalance: '0',
+      walletAddress: undefined as unknown as string,
+      delegationContract: '0xMonadDelegation',
+    };
+
+    const mountWithMoneyAccount = (
+      overrides: Partial<
+        ReturnType<typeof getDefaultUseSpendingLimitMock>
+      > = {},
+    ) => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        isMoneyAccountSource: true,
+        selectedToken: moneyAccountToken,
+        moneyAccountTotalFiatFormatted: '$12.34',
+        ...overrides,
+      });
+      render({ params: { flow: 'onboarding' } });
+    };
+
+    it('renders the Money account label in the account row when Money Account is the source', () => {
+      mountWithMoneyAccount();
+
+      expect(screen.getByTestId('account-row-money-account')).toBeOnTheScreen();
+      expect(screen.getByText('Money account')).toBeOnTheScreen();
+    });
+
+    it('renders the account row as a pressable (non-locked) row showing Money Account on onboarding-like flows', () => {
+      mountWithMoneyAccount();
+
+      expect(screen.getByTestId('account-row')).toBeOnTheScreen();
+      expect(screen.queryByTestId('account-row-locked')).not.toBeOnTheScreen();
+      expect(screen.getByTestId('account-row-money-account')).toBeOnTheScreen();
+
+      // Tapping the row opens the account picker (exits Money Account mode).
+      mockHandleAccountSelect.mockClear();
+      fireEvent.press(screen.getByTestId('account-row'));
+      expect(mockHandleAccountSelect).toHaveBeenCalledTimes(1);
+    });
+
+    it('hides the token row entirely when Money Account is the source on onboarding-like flows', () => {
+      mountWithMoneyAccount();
+
+      expect(screen.queryByTestId('token-row')).not.toBeOnTheScreen();
+      expect(screen.queryByTestId('token-row-locked')).not.toBeOnTheScreen();
+      expect(screen.queryByText('USDC on Linea')).not.toBeOnTheScreen();
+    });
+
+    it('does NOT render the switch-back CTA while Money Account is the source', () => {
+      mountWithMoneyAccount();
+
+      expect(
+        screen.queryByTestId('use-money-account-cta'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders the spend-and-earn promo card with title, full description and CTA label when canShowMoneyAccountCta is true', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        isMoneyAccountSource: false,
+        canShowMoneyAccountCta: true,
+        moneyAccountApyPercent: 4,
+        hasMetalCard: false,
+      });
+
+      render({ params: { flow: 'onboarding' } });
+
+      expect(screen.getByTestId('use-money-account-cta')).toBeOnTheScreen();
+      expect(screen.getByText('Spend and earn')).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          /Link your balance to your card and get mUSD back on purchases\. Plus, earn up to 4% APY \(variable\) on your balance\./,
+        ),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('Link card')).toBeOnTheScreen();
+    });
+
+    it('drops the explicit APY clause when moneyAccountApyPercent is undefined', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        isMoneyAccountSource: false,
+        canShowMoneyAccountCta: true,
+        moneyAccountApyPercent: undefined,
+        hasMetalCard: false,
+      });
+
+      render({ params: { flow: 'onboarding' } });
+
+      expect(screen.getByTestId('use-money-account-cta')).toBeOnTheScreen();
+      expect(screen.getByText('Spend and earn')).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          'Link your balance to your card and get mUSD back on purchases.',
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders the same promo copy when the user has a Metal card', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        isMoneyAccountSource: false,
+        canShowMoneyAccountCta: true,
+        moneyAccountApyPercent: 4,
+        hasMetalCard: true,
+      });
+
+      render({ params: { flow: 'onboarding' } });
+
+      expect(
+        screen.getByText(
+          /Link your balance to your card and get mUSD back on purchases\. Plus, earn up to 4% APY \(variable\) on your balance\./,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('invokes selectMoneyAccountAsSource when the switch-back CTA is pressed', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        isMoneyAccountSource: false,
+        canShowMoneyAccountCta: true,
+      });
+
+      render({ params: { flow: 'onboarding' } });
+
+      fireEvent.press(screen.getByTestId('use-money-account-cta'));
+
+      expect(mockSelectMoneyAccountAsSource).toHaveBeenCalledTimes(1);
+    });
+
+    it('does NOT render the switch-back CTA when canShowMoneyAccountCta is false (e.g. balance is zero)', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        isMoneyAccountSource: false,
+        canShowMoneyAccountCta: false,
+      });
+
+      render({ params: { flow: 'onboarding' } });
+
+      expect(
+        screen.queryByTestId('use-money-account-cta'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does NOT render the money-account CTA when canLinkMoneyAccount is false (sponsorship/7702 gating propagates through canShowMoneyAccountCta)', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        isMoneyAccountSource: false,
+        canLinkMoneyAccount: false,
+        canShowMoneyAccountCta: false,
+      });
+
+      render({ params: { flow: 'onboarding' } });
+
+      expect(
+        screen.queryByTestId('use-money-account-cta'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('locks the Account row and hides the Token row on the manage flow when Money Account is the source', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        isMoneyAccountSource: true,
+        isMoneyAccountLocked: true,
+        selectedToken: moneyAccountToken,
+        moneyAccountTotalFiatFormatted: '$12.34',
+      });
+
+      render({ params: { flow: 'manage' } });
+
+      expect(screen.getByTestId('account-row-locked')).toBeOnTheScreen();
+      expect(screen.queryByTestId('account-row')).not.toBeOnTheScreen();
+      expect(screen.getByTestId('account-row-money-account')).toBeOnTheScreen();
+      expect(screen.queryByTestId('token-row-locked')).not.toBeOnTheScreen();
+      expect(screen.queryByTestId('token-row')).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('use-money-account-cta'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders the Money Account CTA in the enable flow when canShowMoneyAccountCta is true (NotEnabled token + funded)', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        isMoneyAccountSource: false,
+        canShowMoneyAccountCta: true,
+      });
+
+      render({ params: { flow: 'enable', selectedToken: mockMUSDToken } });
+
+      expect(screen.getByTestId('use-money-account-cta')).toBeOnTheScreen();
+    });
+
+    it('never surfaces Money Account UI on the enable flow (managing an existing asset)', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        isMoneyAccountSource: false,
+        canShowMoneyAccountCta: false,
+      });
+
+      render({ params: { flow: 'enable', selectedToken: mockMUSDToken } });
+
+      expect(
+        screen.queryByTestId('account-row-money-account'),
+      ).not.toBeOnTheScreen();
+      expect(screen.queryByTestId('token-row-locked')).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('use-money-account-cta'),
+      ).not.toBeOnTheScreen();
+      expect(screen.getByTestId('account-row')).toBeOnTheScreen();
+    });
+
+    it('shows the onboarding loading state while the Money Account balance is still resolving', () => {
+      mockUseSpendingLimitData.mockReturnValue({
+        availableTokens: [mockPriorityToken, mockMUSDToken],
+        delegationSettings: null,
+        isLoading: false,
+        error: null,
+        fetchData: mockFetchSpendingLimitData,
+      });
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        isMoneyAccountBalanceLoading: true,
+      });
+
+      render({ params: { flow: 'onboarding' } });
+
+      expect(
+        screen.getByTestId('spending-limit-loading-indicator'),
+      ).toBeOnTheScreen();
+      expect(screen.queryByTestId('account-row')).not.toBeOnTheScreen();
+    });
+
+    it('does not block the manage flow UI on the Money Account balance when the user cannot link a Money Account', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        isMoneyAccountBalanceLoading: true,
+        canLinkMoneyAccount: false,
+      });
+
+      render({ params: { flow: 'manage' } });
+
+      expect(
+        screen.queryByTestId('spending-limit-loading-indicator'),
+      ).not.toBeOnTheScreen();
+      expect(screen.getByTestId('account-row')).toBeOnTheScreen();
+    });
+
+    it('does NOT block the manage flow UI on the Money Account balance even when linking is possible', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        isMoneyAccountBalanceLoading: true,
+        canLinkMoneyAccount: true,
+      });
+
+      render({ params: { flow: 'manage' } });
+
+      expect(
+        screen.queryByTestId('spending-limit-loading-indicator'),
+      ).not.toBeOnTheScreen();
+      expect(screen.getByTestId('account-row')).toBeOnTheScreen();
+    });
+
+    it('shows the loading state on the enable_card flow while the Money Account balance is still resolving', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        isMoneyAccountBalanceLoading: true,
+        canLinkMoneyAccount: true,
+      });
+
+      render({ params: { flow: 'enable_card' } });
+
+      expect(
+        screen.getByTestId('spending-limit-loading-indicator'),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders a pressable (NOT locked) Money Account row and hides the Token row on the enable_card flow when Money Account is the source', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        isMoneyAccountSource: true,
+        isMoneyAccountLocked: false,
+        selectedToken: moneyAccountToken,
+        moneyAccountTotalFiatFormatted: '$12.34',
+      });
+
+      render({ params: { flow: 'enable_card' } });
+
+      expect(screen.getByTestId('account-row')).toBeOnTheScreen();
+      expect(screen.queryByTestId('account-row-locked')).not.toBeOnTheScreen();
+      expect(screen.getByTestId('account-row-money-account')).toBeOnTheScreen();
+      expect(screen.queryByTestId('token-row')).not.toBeOnTheScreen();
+      expect(screen.queryByTestId('token-row-locked')).not.toBeOnTheScreen();
     });
   });
 });

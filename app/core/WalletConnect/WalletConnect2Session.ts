@@ -1,10 +1,20 @@
 import { WalletDevice } from '@metamask/transaction-controller';
-import { NavigationContainerRef } from '@react-navigation/native';
+import {
+  NavigationContainerRef,
+  ParamListBase,
+} from '@react-navigation/native';
 import { IWalletKit, WalletKitTypes } from '@reown/walletkit';
 import { SessionTypes } from '@walletconnect/types';
 import { ImageSourcePropType, Linking, Platform } from 'react-native';
+import { isEqual } from 'lodash';
 
-import { CaipChainId, Hex, KnownCaipNamespace } from '@metamask/utils';
+import {
+  CaipAccountId,
+  CaipChainId,
+  Hex,
+  KnownCaipNamespace,
+  parseCaipChainId,
+} from '@metamask/utils';
 import Routes from '../../../app/constants/navigation/Routes';
 import ppomUtil from '../../../app/lib/ppom/ppom-util';
 import {
@@ -17,14 +27,13 @@ import Logger from '../../util/Logger';
 import { addTransaction } from '../../util/transaction-controller';
 import BackgroundBridge from '../BackgroundBridge/BackgroundBridge';
 import { Minimizer } from '../NativeModules';
-import { getPermittedAccounts, getPermittedChains } from '../Permissions';
+import { getPermittedAccounts, getPermittedCaipChainIds } from '../Permissions';
 import { INTERNAL_ORIGINS } from '../../constants/transaction';
 import getRpcMethodMiddleware, {
   getRpcMethodMiddlewareHooks,
 } from '../RPCMethods/RPCMethodMiddleware';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import { ERROR_MESSAGES } from './WalletConnectV2';
-import METHODS_TO_REDIRECT from './wc-config';
 import {
   getScopedPermissions,
   hideWCLoadingState,
@@ -35,7 +44,18 @@ import {
   getChainIdForCaipChainId,
   getHostname,
   normalizeDappUrl,
+  isEIP155RedirectMethodForChain,
+  isEIP155Scope,
 } from './wc-utils';
+import {
+  handleRequestByAdapter as handleMultichainRequestByAdapter,
+  normalizeCaipChainIdInboundByAdapter,
+  getScopedPermissionsByAdapters,
+  doesProposalOrSessionIncludeNamespace,
+  filterNamespaces,
+  isRedirectMethodByAdapterChain,
+} from './multichain';
+
 import { selectPerOriginChainId } from '../../selectors/selectedNetworkController';
 import { errorCodes, providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import { switchToNetwork } from '../RPCMethods/lib/ethereum-chain-utils';
@@ -47,9 +67,6 @@ const ERROR_CODES = {
   USER_REJECT_CODE: 5000,
 };
 
-const RPC_WALLET_SWITCHETHEREUMCHAIN = 'wallet_switchEthereumChain';
-const RPC_WALLET_ADDETHEREUMCHAIN = 'wallet_addEthereumChain';
-
 interface BackgroundBridgeFactory {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   create: (options: any) => BackgroundBridge;
@@ -58,7 +75,7 @@ interface BackgroundBridgeFactory {
 class WalletConnect2Session {
   private channelId: string;
   private backgroundBridge: BackgroundBridge;
-  private navigation?: NavigationContainerRef;
+  private navigation?: NavigationContainerRef<ParamListBase>;
   private web3Wallet: IWalletKit;
   private deeplink: boolean;
   // timeoutRef is used on android to prevent automatic redirect on switchChain and wait for wallet_addEthereumChain.
@@ -66,11 +83,7 @@ class WalletConnect2Session {
   private timeoutRef: NodeJS.Timeout | null = null;
   private requestsToRedirect: { [request: string]: boolean } = {};
   private topicByRequestId: { [requestId: string]: string } = {};
-  private requestByRequestId: {
-    [requestId: string]: WalletKitTypes.SessionRequest;
-  } = {};
-  private lastChainId: Hex;
-  private isHandlingChainChange = false;
+
   private _isHandlingRequest = false;
 
   public session: SessionTypes.Struct;
@@ -90,7 +103,7 @@ class WalletConnect2Session {
     channelId: string;
     session: SessionTypes.Struct;
     deeplink: boolean;
-    navigation?: NavigationContainerRef;
+    navigation?: NavigationContainerRef<ParamListBase>;
     backgroundBridgeFactory?: BackgroundBridgeFactory;
   }) {
     this.channelId = channelId;
@@ -158,13 +171,9 @@ class WalletConnect2Session {
       getApprovedHosts: undefined,
       isRemoteConn: false,
       sendMessage: undefined,
-      remoteConnHost: undefined,
     });
 
     this.checkPendingRequests();
-    this.lastChainId = this.getCurrentChainId();
-    // Subscribe to store changes to detect chain switches
-    store.subscribe(this.onStoreChange.bind(this));
   }
 
   /**
@@ -187,20 +196,6 @@ class WalletConnect2Session {
    */
   private get selfReportedHostname() {
     return getHostname(this.selfReportedUrl);
-  }
-
-  private onStoreChange() {
-    const newChainId = this.getCurrentChainId();
-    if (newChainId !== this.lastChainId && !this.isHandlingChainChange) {
-      this.lastChainId = newChainId;
-      const decimalChainId = Number.parseInt(newChainId, 16);
-      this.handleChainChange(decimalChainId).catch((error) => {
-        console.warn(
-          'WC2::store.subscribe Error handling chain change:',
-          error,
-        );
-      });
-    }
   }
 
   public getCurrentChainId() {
@@ -289,100 +284,29 @@ class WalletConnect2Session {
 
   isHandlingRequest = () => this._isHandlingRequest;
 
-  emitEvent = async (eventName: string, data: unknown) => {
+  emitEvent = async (
+    eventName: string,
+    data: unknown,
+    chainId: CaipChainId,
+  ) => {
     await this.web3Wallet.emitSessionEvent({
       topic: this.session.topic,
       event: { name: eventName, data },
-      chainId: `eip155:${data}`,
+      chainId,
     });
   };
 
   public get getAllowedChainIds(): CaipChainId[] {
-    return (
-      this.session.namespaces.eip155?.chains?.map(
-        (chain) => chain as CaipChainId,
-      ) || []
+    return Object.values(this.session.namespaces).flatMap(
+      (ns) =>
+        ns?.chains?.map((chain) =>
+          normalizeCaipChainIdInboundByAdapter(chain as CaipChainId),
+        ) ?? [],
     );
-  }
-
-  /** Handle chain change by updating session namespaces and emitting event */
-  private async handleChainChange(chainIdDecimal: number) {
-    if (this.isHandlingChainChange) return;
-    this.isHandlingChainChange = true;
-
-    try {
-      // Update session namespaces
-      const currentNamespaces = this.session.namespaces;
-      const newChainId = `eip155:${chainIdDecimal}`;
-      const updatedChains = [
-        ...new Set([...(currentNamespaces?.eip155?.chains || []), newChainId]),
-      ];
-
-      const accounts = [
-        ...new Set(
-          (currentNamespaces?.eip155?.accounts || []).map(
-            (acc) => acc.split(':')[2],
-          ),
-        ),
-      ].map((account) => `${newChainId}:${account}`);
-
-      const updatedAccounts = [
-        ...new Set([
-          ...(currentNamespaces?.eip155?.accounts || []),
-          ...accounts,
-        ]),
-      ];
-
-      const updatedNamespaces = {
-        ...currentNamespaces,
-        eip155: {
-          ...(currentNamespaces?.eip155 || {}),
-          chains: updatedChains,
-          methods: currentNamespaces?.eip155?.methods || [],
-          events: currentNamespaces?.eip155?.events || [],
-          accounts: updatedAccounts,
-        },
-      };
-
-      DevLogger.log(
-        `WC2::handleChainChange updating session with namespaces`,
-        updatedNamespaces,
-      );
-
-      await this.web3Wallet.updateSession({
-        topic: this.session.topic,
-        namespaces: updatedNamespaces,
-      });
-      // await acknowledged();
-
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      // Emit chainChanged event
-      await this.emitEvent('chainChanged', chainIdDecimal);
-    } catch (error) {
-      DevLogger.log(
-        `WC2::handleChainChange error while updating session`,
-        error,
-      );
-      throw error;
-    } finally {
-      this.isHandlingChainChange = false;
-    }
   }
 
   approveRequest = async ({ id, result }: { id: string; result: unknown }) => {
     const topic = this.topicByRequestId[id];
-    const initialRequest = this.requestByRequestId[id];
-    const method = initialRequest?.params.request.method;
-
-    if (
-      method === RPC_WALLET_ADDETHEREUMCHAIN ||
-      method === RPC_WALLET_SWITCHETHEREUMCHAIN
-    ) {
-      const chainIdHex = initialRequest.params.request.params[0].chainId;
-      const chainIdDecimal = parseInt(chainIdHex, 16);
-      await this.handleChainChange(chainIdDecimal);
-    }
 
     try {
       await this.web3Wallet.respondSessionRequest({
@@ -466,25 +390,9 @@ class WalletConnect2Session {
         `WC2::updateSession selfReportedUrl=${this.selfReportedUrl} selfReportedHostname=${this.selfReportedHostname} - chainId=${chainId} - accounts=${accounts}`,
       );
 
-      if (accounts.length === 0) {
-        const approvedAccounts = getPermittedAccounts(this.channelId);
-        if (approvedAccounts.length > 0) {
-          DevLogger.log(
-            `WC2::updateSession found approved accounts`,
-            approvedAccounts,
-          );
-          accounts = approvedAccounts;
-        } else {
-          console.warn(
-            `WC2::updateSession no permitted accounts found for topic=${this.session.topic} selfReportedUrl=${this.selfReportedUrl}`,
-          );
-          return;
-        }
-      }
-
       if (chainId === 0) {
         DevLogger.log(
-          `WC2::updateSession invalid chainId --- skip ${typeof chainId} chainId=${chainId} accounts=${accounts})`,
+          `WC2::updateSession invalid chainId --- skip ${typeof chainId} chainId=${chainId})`,
         );
         chainId = parseInt(selectEvmChainId(store.getState()), 16);
         DevLogger.log(
@@ -492,20 +400,57 @@ class WalletConnect2Session {
         );
       }
 
-      const namespaces = await getScopedPermissions({
+      // Use getScopedPermissions to get properly formatted namespaces
+      const evmNamespaces = await getScopedPermissions({
         channelId: this.channelId,
       });
-      DevLogger.log(
-        `🔴🔴 WC2::updateSession updating with namespaces`,
-        namespaces,
-      );
+      const adaptersNamespaces = await getScopedPermissionsByAdapters({
+        channelId: this.channelId,
+      });
+      const namespaces = {
+        ...evmNamespaces,
+        ...adaptersNamespaces,
+      };
 
-      await this.web3Wallet.updateSession({
-        topic: this.session.topic,
+      const onlyApprovedNamespaces = filterNamespaces({
+        proposalOrSession: this.session,
         namespaces,
       });
 
-      await this.emitEvent('chainChanged', chainId);
+      if (!isEqual(this.session.namespaces, onlyApprovedNamespaces)) {
+        await this.web3Wallet.updateSession({
+          topic: this.session.topic,
+          namespaces: onlyApprovedNamespaces,
+        });
+
+        // Keep local session in sync with WalletConnect's canonical active session,
+        this.session.namespaces = onlyApprovedNamespaces;
+      }
+
+      // We decided not to support chain switching for non-EVM
+      // We only keep the chainChanged emission logic for EVM though
+      const doesSessionIncludeEip155 = doesProposalOrSessionIncludeNamespace({
+        proposalOrSession: this.session,
+        namespace: KnownCaipNamespace.Eip155,
+      });
+      if (doesSessionIncludeEip155) {
+        // Check if the chain is in the approved chains list before emitting event
+        const caipChainId = `eip155:${chainId}` as CaipChainId;
+        const walletChainIdHex = `0x${chainId.toString(16)}`;
+        const approvedChains = namespaces?.eip155?.chains || [];
+
+        DevLogger.log(`WC2::session_proposal emitSessionEvent`, {
+          topic: this.session.topic,
+          event: {
+            name: 'chainChanged',
+            data: walletChainIdHex,
+          },
+          chainId: caipChainId,
+          approvedChains,
+        });
+
+        await this.emitEvent('chainChanged', walletChainIdHex, caipChainId);
+      }
     } catch (err) {
       console.warn(
         `WC2::updateSession can't update session topic=${this.session.topic}`,
@@ -626,7 +571,6 @@ class WalletConnect2Session {
       JSON.stringify(requestEvent, null, 2),
     );
     this.topicByRequestId[requestEvent.id] = requestEvent.topic;
-    this.requestByRequestId[requestEvent.id] = requestEvent;
 
     if (this.timeoutRef) {
       // Always clear the timeout ref on new message, it is only used for wallet_switchEthereumChain auto reject on android
@@ -664,7 +608,66 @@ class WalletConnect2Session {
       });
     }
 
+    let normalizedRequestChainId: CaipChainId;
+    try {
+      normalizedRequestChainId = normalizeCaipChainIdInboundByAdapter(
+        requestEvent.params.chainId as CaipChainId,
+      );
+    } catch {
+      this._isHandlingRequest = false;
+      return this.web3Wallet.respondSessionRequest({
+        topic: this.session.topic,
+        response: {
+          id: requestEvent.id,
+          jsonrpc: '2.0',
+          error: { code: 4902, message: ERROR_MESSAGES.INVALID_CHAIN },
+        },
+      });
+    }
     const method = requestEvent.params.request.method;
+    const permittedChains = await getPermittedCaipChainIds(this.channelId);
+
+    // Mark redirect before any routing so all namespaces benefit from it.
+    const isEvmRedirect = isEIP155RedirectMethodForChain({
+      scope: normalizedRequestChainId,
+      method,
+    });
+    const isAdapterRedirect = isRedirectMethodByAdapterChain({
+      scope: normalizedRequestChainId,
+      method,
+    });
+
+    // Set only if true, the `needsRedirect` method only deletes entries that are truthy
+    if (isEvmRedirect || isAdapterRedirect) {
+      this.requestsToRedirect[requestEvent.id] = true;
+    }
+
+    // If the request is for a non-EVM chain.
+    if (!isEIP155Scope(normalizedRequestChainId)) {
+      const isPermittedChains = permittedChains.includes(
+        normalizedRequestChainId,
+      );
+      if (!isPermittedChains) {
+        this._isHandlingRequest = false;
+        return this.web3Wallet.respondSessionRequest({
+          topic: this.session.topic,
+          response: {
+            id: requestEvent.id,
+            jsonrpc: '2.0',
+            error: providerErrors.unauthorized({
+              message: `Requested chain is not permitted for this WalletConnect session. Reconnect and approve ${normalizedRequestChainId} to continue.`,
+            }),
+          },
+        });
+      }
+
+      return this.handleAdapterRequest({
+        channelId: this.channelId,
+        requestEvent,
+        scope: normalizedRequestChainId,
+      });
+    }
+
     const isSwitchingChain = isSwitchingChainRequest(requestEvent);
 
     let caip2ChainId: CaipChainId;
@@ -672,7 +675,7 @@ class WalletConnect2Session {
     try {
       hexChainId = isSwitchingChain
         ? requestEvent.params.request.params[0].chainId
-        : getChainIdForCaipChainId(requestEvent.params.chainId as CaipChainId);
+        : getChainIdForCaipChainId(normalizedRequestChainId);
       caip2ChainId = `eip155:${parseInt(hexChainId, 16)}` as CaipChainId;
     } catch (err) {
       this._isHandlingRequest = false;
@@ -706,12 +709,7 @@ class WalletConnect2Session {
       `WalletConnect2Session::handleRequest caip2ChainId=${caip2ChainId} method=${method} unverifiedOrigin=${unverifiedOrigin}`,
     );
 
-    const permittedChains = await getPermittedChains(this.channelId);
     const isAllowedChainId = permittedChains.includes(caip2ChainId);
-
-    if (METHODS_TO_REDIRECT[method]) {
-      this.requestsToRedirect[requestEvent.id] = true;
-    }
 
     if (method === 'wallet_switchEthereumChain') {
       try {
@@ -742,9 +740,7 @@ class WalletConnect2Session {
       DevLogger.log(`WC::handleRequest switching to chainId=${caip2ChainId}`);
       await this.switchToChain(caip2ChainId, this.channelId);
       await new Promise((resolve) => setTimeout(resolve, 100));
-
-      // Emit chainChanged event
-      await this.emitEvent('chainChanged', parseInt(hexChainId, 16));
+      // Chain change notification is handled by BackgroundBridge → WalletConnectPort
     }
 
     if (!isAllowedChainId) {
@@ -788,6 +784,44 @@ class WalletConnect2Session {
       },
       origin: unverifiedOrigin,
     });
+  };
+
+  /**
+   * Handle a WalletConnect session request through the adapter registered for
+   * the request namespace.
+   */
+  private handleAdapterRequest = async ({
+    channelId,
+    requestEvent,
+    scope,
+  }: {
+    channelId: string;
+    requestEvent: WalletKitTypes.SessionRequest;
+    scope: CaipChainId;
+  }) => {
+    const { method, params } = requestEvent.params.request;
+    const { namespace } = parseCaipChainId(scope);
+    const connectedAddresses = (this.session.namespaces?.[namespace]
+      ?.accounts ?? []) as CaipAccountId[];
+
+    try {
+      const result = await handleMultichainRequestByAdapter({
+        channelId,
+        connectedAddresses,
+        scope,
+        requestId: requestEvent.id,
+        method,
+        params,
+      });
+      await this.approveRequest({
+        id: requestEvent.id + '',
+        result,
+      });
+    } catch (error) {
+      await this.rejectRequest({ id: requestEvent.id + '', error });
+    } finally {
+      this._isHandlingRequest = false;
+    }
   };
 
   removeListeners = async () => {

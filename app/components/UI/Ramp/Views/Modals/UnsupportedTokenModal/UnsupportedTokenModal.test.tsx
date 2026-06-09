@@ -7,11 +7,12 @@ import { fireEvent } from '@testing-library/react-native';
 
 const mockOnCloseBottomSheet = jest.fn();
 
-jest.mock(
-  '../../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    return ReactActual.forwardRef(
+jest.mock('@metamask/design-system-react-native', () => {
+  const ReactActual = jest.requireActual('react');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    BottomSheet: ReactActual.forwardRef(
       (
         {
           children,
@@ -25,9 +26,9 @@ jest.mock(
         }));
         return <>{children}</>;
       },
-    );
-  },
-);
+    ),
+  };
+});
 
 function render(component: React.ComponentType) {
   return renderScreen(
@@ -51,9 +52,14 @@ describe('UnsupportedTokenModal', () => {
   });
 
   it('renders the modal with correct title and description', () => {
-    const { toJSON } = render(UnsupportedTokenModal);
+    const { getByText } = render(UnsupportedTokenModal);
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('Not available')).toBeOnTheScreen();
+    expect(
+      getByText(
+        'This token may not be available in your region or supported by any local payment providers',
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('closes the modal when the close button is pressed', () => {

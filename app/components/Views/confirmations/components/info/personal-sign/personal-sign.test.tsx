@@ -9,13 +9,6 @@ import {
 import PersonalSign from './personal-sign';
 import { MAINNET_DISPLAY_NAME } from '../../../../../../core/Engine/constants';
 
-jest.mock(
-  '../../../../../../selectors/featureFlagController/multichainAccounts',
-  () => ({
-    selectMultichainAccountsState2Enabled: () => false,
-  }),
-);
-
 jest.mock('../../../../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
   context: {

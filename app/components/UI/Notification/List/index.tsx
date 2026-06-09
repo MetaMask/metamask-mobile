@@ -18,7 +18,7 @@ import {
   useMarkNotificationAsRead,
 } from '../../../../util/notifications/hooks/useNotifications';
 import onChainAnalyticProperties from '../../../../util/notifications/methods/notification-analytics';
-import { useMetrics } from '../../../hooks/useMetrics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import Empty from '../Empty';
 import { NotificationMenuItem } from '../NotificationMenuItem';
 import useStyles from './useStyles';
@@ -60,7 +60,7 @@ export function useNotificationOnClick(
   props: Pick<NotificationsListItemProps, 'navigation'>,
 ) {
   const { markNotificationAsRead } = useMarkNotificationAsRead();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const handleNotificationClickMetricsAndUpdates = useCallback(
     (item: INotification) => {

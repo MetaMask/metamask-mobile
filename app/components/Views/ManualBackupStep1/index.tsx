@@ -9,7 +9,6 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   FlatList,
-  TouchableOpacity,
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -24,25 +23,18 @@ import {
   Text,
   TextVariant,
   FontWeight,
-  Icon,
-  IconName,
-  IconSize,
-  IconColor,
   TextField,
-  TextFieldSize,
   Button,
   ButtonVariant,
   ButtonSize,
-  TextButton,
-  TextButtonSize,
   BoxAlignItems,
   BoxJustifyContent,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import Logger from '../../../util/Logger';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
-import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import {
   MANUAL_BACKUP_STEPS,
@@ -56,6 +48,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import type { ITrackingEvent } from '../../../core/Analytics/MetaMetrics.types';
 import { Authentication } from '../../../core';
 import { ManualBackUpStepsSelectorsIDs } from './ManualBackUpSteps.testIds';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import SeedPhraseConcealer from '../RevealPrivateCredential/components/SeedPhraseConcealer';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
@@ -83,7 +76,7 @@ const ManualBackupStep1 = () => {
   );
 
   const [seedPhraseHidden, setSeedPhraseHidden] = useState(true);
-  const [password, setPassword] = useState<string | undefined>(undefined);
+  const [password, setPassword] = useState('');
   const [warningIncorrectPassword, setWarningIncorrectPassword] = useState<
     string | undefined
   >(undefined);
@@ -91,7 +84,7 @@ const ManualBackupStep1 = () => {
   const [view, setView] = useState(SEED_PHRASE);
   const [words, setWords] = useState<string[]>([]);
   const [hasFunds, setHasFunds] = useState(false);
-  const { colors, themeAppearance } = useTheme();
+  const { themeAppearance } = useTheme();
   const { isEnabled: isMetricsEnabled } = useAnalytics();
 
   const backupFlow = route?.params?.backupFlow || false;
@@ -101,48 +94,12 @@ const ManualBackupStep1 = () => {
 
   const seedPhrase = route?.params?.seedPhrase;
 
-  const headerLeft = useCallback(
-    () => (
-      <TouchableOpacity onPress={() => navigation.goBack()}>
-        <Icon
-          name={IconName.ArrowLeft}
-          size={IconSize.Lg}
-          color={IconColor.IconDefault}
-          style={tw.style('ml-4')}
-        />
-      </TouchableOpacity>
-    ),
-    [navigation, tw],
-  );
+  const showHeader = settingsBackup || backupFlow;
 
   const track = useMemo(
     () => createTrackFunction(saveOnboardingEvent),
     [saveOnboardingEvent],
   );
-
-  const updateNavBar = useCallback(() => {
-    // Show back button for settings backup and reminder
-    if (settingsBackup || backupFlow) {
-      navigation.setOptions(
-        getOnboardingNavbarOptions(
-          route,
-          {
-            headerLeft,
-            // Explicitly set headerRight to undefined to prevent any default
-            // header right component from appearing in backup flows
-            headerRight: undefined,
-          },
-          colors,
-          false,
-        ),
-      );
-    } else {
-      // Hide header for onboarding flow
-      navigation.setOptions({
-        headerShown: false,
-      });
-    }
-  }, [navigation, settingsBackup, backupFlow, colors, route, headerLeft]);
 
   const tryExportSeedPhrase = async (pwd: string): Promise<string[]> => {
     const { KeyringController } = Engine.context;
@@ -212,10 +169,6 @@ const ManualBackupStep1 = () => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  useEffect(() => {
-    updateNavBar();
-  }, [updateNavBar]);
 
   useEffect(() => {
     // Check if user has funds
@@ -325,16 +278,16 @@ const ManualBackupStep1 = () => {
                 placeholder={strings('manual_backup_step_1.password')}
                 value={password}
                 onChangeText={onPasswordChange}
-                secureTextEntry
-                onSubmitEditing={tryUnlock}
-                testID={ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT}
-                accessibilityLabel={
-                  ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT
-                }
-                keyboardAppearance={themeAppearance}
-                autoCapitalize="none"
                 autoFocus
-                size={TextFieldSize.Lg}
+                inputProps={{
+                  secureTextEntry: true,
+                  onSubmitEditing: tryUnlock,
+                  testID: ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT,
+                  accessibilityLabel:
+                    ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT,
+                  keyboardAppearance: themeAppearance,
+                  autoCapitalize: 'none',
+                }}
               />
               {warningIncorrectPassword && (
                 <Text
@@ -423,8 +376,9 @@ const ManualBackupStep1 = () => {
                       variant={TextVariant.BodyMd}
                       color={TextColor.TextDefault}
                       key={index}
-                      ellipsizeMode="tail"
                       numberOfLines={1}
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.7}
                       style={tw.style('flex-1')}
                       testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-${index}`}
                       maxFontSizeMultiplier={1}
@@ -452,38 +406,49 @@ const ManualBackupStep1 = () => {
           {strings('manual_backup_step_1.continue')}
         </Button>
         {!hasFunds && !backupFlow && !settingsBackup && (
-          <TextButton
+          <Button
+            variant={ButtonVariant.Tertiary}
             onPress={showRemindLater}
-            size={TextButtonSize.BodyMd}
+            size={ButtonSize.Lg}
+            isFullWidth
             testID={ManualBackUpStepsSelectorsIDs.REMIND_ME_LATER_BUTTON}
           >
             {strings('account_backup_step_1.remind_me_later')}
-          </TextButton>
+          </Button>
         )}
       </Box>
     </Box>
   );
 
-  return ready ? (
+  return (
     <SafeAreaView
-      edges={
-        settingsBackup || backupFlow
-          ? { bottom: 'additive' }
-          : ['top', 'bottom']
-      }
+      edges={showHeader ? { bottom: 'additive' } : ['top', 'bottom']}
       style={tw.style('bg-default flex-1')}
     >
-      <Box twClassName="flex-1 px-4">
-        {view === SEED_PHRASE
-          ? renderSeedphraseView()
-          : renderConfirmPassword()}
-      </Box>
-      <ScreenshotDeterrent hasNavigation enabled isSRP />
+      {showHeader ? (
+        <HeaderStandard
+          includesTopInset
+          onBack={() => navigation.goBack()}
+          backButtonProps={{
+            testID: ManualBackUpStepsSelectorsIDs.BACK_BUTTON,
+          }}
+        />
+      ) : null}
+      {ready ? (
+        <>
+          <Box twClassName="flex-1 px-4">
+            {view === SEED_PHRASE
+              ? renderSeedphraseView()
+              : renderConfirmPassword()}
+          </Box>
+          <ScreenshotDeterrent hasNavigation enabled isSRP />
+        </>
+      ) : (
+        <Box twClassName="flex-1 justify-center items-center">
+          <ActivityIndicator size="small" />
+        </Box>
+      )}
     </SafeAreaView>
-  ) : (
-    <Box twClassName="bg-default flex-1 min-h-[300px] justify-center items-center">
-      <ActivityIndicator size="small" />
-    </Box>
   );
 };
 

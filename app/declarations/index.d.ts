@@ -1,3 +1,9 @@
+// Deep imports used only by app/shims (Metro resolves bare package to shim; src/ needs codegen).
+declare module 'react-native-safe-area-context/src/SafeAreaContext';
+declare module 'react-native-safe-area-context/src/SafeAreaView';
+declare module 'react-native-safe-area-context/src/InitialWindow';
+declare module 'react-native-safe-area-context/src/SafeArea.types';
+
 // This file contains type declarations for asset types.
 // Ex. This makes it so that when you import CloseIcon from './close-icon.svg, CloseIcon, will be detected as a React.FC component.
 declare module '*.mp4';
@@ -37,7 +43,7 @@ declare module '@react-native-community/checkbox' {
   /**
    * @deprecated The `<CheckBox />` component has been deprecated in favor of `<Checkbox>` from `@metamask/design-system-react-native`.
    *
-   * @see {@link https://github.com/MetaMask/metamask-design-system/tree/main/packages/design-system-react-native/src/components/Checkbox | Checkbox component}
+   * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/Checkbox/README.md | Checkbox component}
    *
    * Please replace this component with the equivalent component from `@metamask/design-system-react-native`.
    *
@@ -54,7 +60,7 @@ declare module 'react-native-vector-icons/Ionicons' {
   /**
    * @deprecated The `<IonicIcon />` component has been deprecated in favor of `<Icon>` from `@metamask/design-system-react-native`.
    *
-   * @see {@link https://github.com/MetaMask/metamask-design-system/tree/main/packages/design-system-react-native/src/components/Icon | Icon component}
+   * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/Icon/README.md | Icon component}
    *
    * Please replace this component with the equivalent component from `@metamask/design-system-react-native`.
    *
@@ -71,7 +77,7 @@ declare module 'react-native-vector-icons/FontAwesome' {
   /**
    * @deprecated The `<FontAwesomeIcon />` component has been deprecated in favor of `<Icon>` from `@metamask/design-system-react-native`.
    *
-   * @see {@link https://github.com/MetaMask/metamask-design-system/tree/main/packages/design-system-react-native/src/components/Icon | Icon component}
+   * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/Icon/README.md | Icon component}
    *
    * Please replace this component with the equivalent component from `@metamask/design-system-react-native`.
    *
@@ -88,7 +94,7 @@ declare module 'react-native-vector-icons/AntDesign' {
   /**
    * @deprecated The `<AntDesignIcon />` component has been deprecated in favor of `<Icon>` from `@metamask/design-system-react-native`.
    *
-   * @see {@link https://github.com/MetaMask/metamask-design-system/tree/main/packages/design-system-react-native/src/components/Icon | Icon component}
+   * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/Icon/README.md | Icon component}
    *
    * Please replace this component with the equivalent component from `@metamask/design-system-react-native`.
    *
@@ -104,7 +110,7 @@ declare module 'react-native-vector-icons/MaterialCommunityIcons' {
   /**
    * @deprecated The `<MaterialCommunityIconsIcon />` component has been deprecated in favor of `<Icon>` from `@metamask/design-system-react-native`.
    *
-   * @see {@link https://github.com/MetaMask/metamask-design-system/tree/main/packages/design-system-react-native/src/components/Icon | Icon component}
+   * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/Icon/README.md | Icon component}
    *
    * Please replace this component with the equivalent component from `@metamask/design-system-react-native`.
    *
@@ -121,7 +127,7 @@ declare module 'react-native-vector-icons/Feather' {
   /**
    * @deprecated The `<FeatherIcon />` component has been deprecated in favor of `<Icon>` from `@metamask/design-system-react-native`.
    *
-   * @see {@link https://github.com/MetaMask/metamask-design-system/tree/main/packages/design-system-react-native/src/components/Icon | Icon component}
+   * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/Icon/README.md | Icon component}
    *
    * Please replace this component with the equivalent component from `@metamask/design-system-react-native`.
    *
@@ -138,7 +144,7 @@ declare module 'react-native-vector-icons/EvilIcons' {
   /**
    * @deprecated The `<EvilIconsIcon />` component has been deprecated in favor of `<Icon>` from `@metamask/design-system-react-native`.
    *
-   * @see {@link https://github.com/MetaMask/metamask-design-system/tree/main/packages/design-system-react-native/src/components/Icon | Icon component}
+   * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/Icon/README.md | Icon component}
    *
    * Please replace this component with the equivalent component from `@metamask/design-system-react-native`.
    *
@@ -155,7 +161,7 @@ declare module 'react-native-vector-icons/SimpleLineIcons' {
   /**
    * @deprecated The `<SimpleLineIconsIcon />` component has been deprecated in favor of `<Icon>` from `@metamask/design-system-react-native`.
    *
-   * @see {@link https://github.com/MetaMask/metamask-design-system/tree/main/packages/design-system-react-native/src/components/Icon | Icon component}
+   * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/Icon/README.md | Icon component}
    *
    * Please replace this component with the equivalent component from `@metamask/design-system-react-native`.
    *
@@ -172,7 +178,7 @@ declare module 'react-native-vector-icons/MaterialIcons' {
   /**
    * @deprecated The `<MaterialIconsIcon />` component has been deprecated in favor of `<Icon>` from `@metamask/design-system-react-native`.
    *
-   * @see {@link https://github.com/MetaMask/metamask-design-system/tree/main/packages/design-system-react-native/src/components/Icon | Icon component}
+   * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/Icon/README.md | Icon component}
    *
    * Please replace this component with the equivalent component from `@metamask/design-system-react-native`.
    *
@@ -189,7 +195,7 @@ declare module 'react-native-vector-icons/FontAwesome5' {
   /**
    * @deprecated The `<FontAwesome5Icon />` component has been deprecated in favor of `<Icon>` from `@metamask/design-system-react-native`.
    *
-   * @see {@link https://github.com/MetaMask/metamask-design-system/tree/main/packages/design-system-react-native/src/components/Icon | Icon component}
+   * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/Icon/README.md | Icon component}
    *
    * Please replace this component with the equivalent component from `@metamask/design-system-react-native`.
    *
@@ -206,7 +212,7 @@ declare module 'react-native-vector-icons/Octicons' {
   /**
    * @deprecated The `<OcticonsIcon />` component has been deprecated in favor of `<Icon>` from `@metamask/design-system-react-native`.
    *
-   * @see {@link https://github.com/MetaMask/metamask-design-system/tree/main/packages/design-system-react-native/src/components/Icon | Icon component}
+   * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/Icon/README.md | Icon component}
    *
    * Please replace this component with the equivalent component from `@metamask/design-system-react-native`.
    *
@@ -223,7 +229,7 @@ declare module 'react-native-vector-icons/Entypo' {
   /**
    * @deprecated The `<EntypoIcon />` component has been deprecated in favor of `<Icon>` from `@metamask/design-system-react-native`.
    *
-   * @see {@link https://github.com/MetaMask/metamask-design-system/tree/main/packages/design-system-react-native/src/components/Icon | Icon component}
+   * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/Icon/README.md | Icon component}
    *
    * Please replace this component with the equivalent component from `@metamask/design-system-react-native`.
    *
@@ -240,7 +246,7 @@ declare module 'react-native-vector-icons/Foundation' {
   /**
    * @deprecated The `<FoundationIcon />` component has been deprecated in favor of `<Icon>` from `@metamask/design-system-react-native`.
    *
-   * @see {@link https://github.com/MetaMask/metamask-design-system/tree/main/packages/design-system-react-native/src/components/Icon | Icon component}
+   * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/Icon/README.md | Icon component}
    *
    * Please replace this component with the equivalent component from `@metamask/design-system-react-native`.
    *
@@ -257,7 +263,7 @@ declare module 'react-native-vector-icons/Fontisto' {
   /**
    * @deprecated The `<FontistoIcon />` component has been deprecated in favor of `<Icon>` from `@metamask/design-system-react-native`.
    *
-   * @see {@link https://github.com/MetaMask/metamask-design-system/tree/main/packages/design-system-react-native/src/components/Icon | Icon component}
+   * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/Icon/README.md | Icon component}
    *
    * Please replace this component with the equivalent component from `@metamask/design-system-react-native`.
    *
@@ -274,7 +280,7 @@ declare module 'react-native-vector-icons/Zocial' {
   /**
    * @deprecated The `<ZocialIcon />` component has been deprecated in favor of `<Icon>` from `@metamask/design-system-react-native`.
    *
-   * @see {@link https://github.com/MetaMask/metamask-design-system/tree/main/packages/design-system-react-native/src/components/Icon | Icon component}
+   * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/Icon/README.md | Icon component}
    *
    * Please replace this component with the equivalent component from `@metamask/design-system-react-native`.
    *
@@ -424,10 +430,10 @@ declare module '@sentry/react-native' {
   export { getDataFromUri } from '@sentry/react-native/dist/js/wrapper';
 
   // Enforce exception to be of type Error for more reliable stack traces - https://docs.sentry.io/platforms/javascript/usage/#capturing-errors
-  import { ExclusiveEventHintOrCaptureContext } from '@sentry/core/build/types/utils/prepareEvent';
+  // Hint type matches @sentry/core captureException without deep imports (not in package "exports").
   export function captureException(
     exception: Error,
-    hint?: ExclusiveEventHintOrCaptureContext,
+    hint?: Parameters<typeof import('@sentry/core').captureException>[1],
   ): string;
 }
 declare module '@tommasini/react-native-scrollable-tab-view';

@@ -9,7 +9,11 @@ import {
   SubjectPermissions,
 } from '@metamask/permission-controller';
 import { SemVerVersion } from '@metamask/utils';
-import { SNAP_SETTINGS_REMOVE_BUTTON } from '../SnapSettings.constants';
+import {
+  SNAP_SETTINGS_BACK_BUTTON,
+  SNAP_SETTINGS_HEADER,
+  SNAP_SETTINGS_REMOVE_BUTTON,
+} from '../SnapSettings.constants';
 import { SNAP_DETAILS_CELL } from '../../components/SnapDetails/SnapDetails.constants';
 import SNAP_PERMISSIONS from '../../components/SnapPermissions/SnapPermissions.contants';
 import { SNAP_PERMISSION_CELL } from '../../components/SnapPermissionCell/SnapPermissionCell.constants';
@@ -31,20 +35,6 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
   MOCK_ADDRESS_1,
   MOCK_ADDRESS_2,
 ]);
-
-jest.mock('react-native-safe-area-context', () => {
-  // using disting digits for mock rects to make sure they are not mixed up
-  const inset = { top: 1, right: 2, bottom: 3, left: 4 };
-  const frame = { width: 5, height: 6, x: 7, y: 8 };
-  return {
-    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
-    SafeAreaConsumer: jest
-      .fn()
-      .mockImplementation(({ children }) => children(inset)),
-    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
-    useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
-  };
-});
 
 const mockUseParams = jest.fn();
 jest.mock('../../../../../util/navigation/navUtils', () => ({
@@ -270,6 +260,9 @@ describe('SnapSettings with non keyring snap', () => {
       },
     );
 
+    expect(getByTestId(SNAP_SETTINGS_HEADER)).toBeOnTheScreen();
+    expect(getByTestId(SNAP_SETTINGS_BACK_BUTTON)).toBeOnTheScreen();
+
     const removeButton = getByTestId(SNAP_SETTINGS_REMOVE_BUTTON);
     const description = getByTestId(SNAP_DETAILS_CELL);
     const permissionContainer = getByTestId(SNAP_PERMISSIONS);
@@ -278,9 +271,17 @@ describe('SnapSettings with non keyring snap', () => {
     expect(description).toBeTruthy();
     expect(permissionContainer).toBeTruthy();
     expect(permissions.length).toBe(7);
-    expect(removeButton.props.children[1].props.children).toBe(
-      'Remove Filsnap',
-    );
+    expect(removeButton).toHaveTextContent('Remove Filsnap');
+  });
+
+  it('calls navigation.goBack when header back button is pressed', () => {
+    const { getByTestId } = renderWithProvider(<SnapSettings />, {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      state: initialState as any,
+    });
+
+    fireEvent(getByTestId(SNAP_SETTINGS_BACK_BUTTON), 'onPress');
+    expect(mockGoBack).toHaveBeenCalled();
   });
 
   it('remove snap and goes back when Remove button is pressed', async () => {

@@ -1,4 +1,4 @@
-import { ControllerInitFunction } from '../types';
+import { MessengerClientInitFunction } from '../types';
 import {
   PhishingController,
   type PhishingControllerMessenger,
@@ -11,7 +11,7 @@ import {
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @returns The initialized controller.
  */
-export const phishingControllerInit: ControllerInitFunction<
+export const phishingControllerInit: MessengerClientInitFunction<
   PhishingController,
   PhishingControllerMessenger
 > = ({ controllerMessenger }) => {

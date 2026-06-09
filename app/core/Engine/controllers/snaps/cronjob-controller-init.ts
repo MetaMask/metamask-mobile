@@ -1,5 +1,5 @@
 import { CronjobController } from '@metamask/snaps-controllers';
-import { ControllerInitFunction } from '../../types';
+import { MessengerClientInitFunction } from '../../types';
 import { CronjobControllerMessenger } from '../../messengers/snaps';
 import { CronjobControllerStorageManager } from '../../../CronjobControllerStorageManager/CronjobControllerStorageManager';
 
@@ -11,7 +11,7 @@ import { CronjobControllerStorageManager } from '../../../CronjobControllerStora
  * @param request.persistedState - The persisted state of the extension.
  * @returns The initialized controller.
  */
-export const cronjobControllerInit: ControllerInitFunction<
+export const cronjobControllerInit: MessengerClientInitFunction<
   CronjobController,
   CronjobControllerMessenger
 > = ({ controllerMessenger, persistedState }) => {

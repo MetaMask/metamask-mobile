@@ -49,6 +49,8 @@ import {
   getTransactionById,
   UPGRADE_SMART_ACCOUNT_ACTION_KEY,
   DOWNGRADE_SMART_ACCOUNT_ACTION_KEY,
+  SEND_ETHER_ACTION_KEY,
+  SMART_CONTRACT_INTERACTION_ACTION_KEY,
   isLegacyTransaction,
   getTokenAddressParam,
   getTokenValueParamAsHex,
@@ -172,15 +174,6 @@ ENGINE_MOCK.context = {
     getNetworkClientById: () => ({
       provider: {} as Provider,
     }),
-  },
-  TokenListController: {
-    state: {
-      tokensChainsCache: {
-        '0x1': {
-          data: [],
-        },
-      },
-    },
   },
 };
 
@@ -748,6 +741,42 @@ describe('Transactions utils :: getActionKey', () => {
       MOCK_CHAIN_ID,
     );
     expect(result).toBe(strings('transactions.smart_contract_interaction'));
+  });
+
+  it('should be labeled as deposit to Money Account for money account deposit txs', async () => {
+    spyOnQueryMethod(UNI_ADDRESS);
+    const tx = {
+      type: TransactionType.moneyAccountDeposit,
+      txParams: {
+        from: MOCK_ADDRESS1,
+        to: UNI_ADDRESS,
+      },
+    };
+    const result = await getActionKey(
+      tx,
+      MOCK_ADDRESS1,
+      undefined,
+      MOCK_CHAIN_ID,
+    );
+    expect(result).toBe(strings('transactions.money_account_deposit'));
+  });
+
+  it('should be labeled as transfer from Money Account for money account withdraw txs', async () => {
+    spyOnQueryMethod(UNI_ADDRESS);
+    const tx = {
+      type: TransactionType.moneyAccountWithdraw,
+      txParams: {
+        from: MOCK_ADDRESS1,
+        to: UNI_ADDRESS,
+      },
+    };
+    const result = await getActionKey(
+      tx,
+      MOCK_ADDRESS1,
+      undefined,
+      MOCK_CHAIN_ID,
+    );
+    expect(result).toBe(strings('transactions.money_account_withdraw'));
   });
 
   it('should be labeled as "Contract Deployment" if the tx has no receiver', async () => {
@@ -1667,7 +1696,10 @@ describe('Transactions utils :: getTransactionActionKey', () => {
     TransactionType.lendingDeposit,
     TransactionType.lendingWithdraw,
     TransactionType.perpsDeposit,
+    TransactionType.perpsWithdraw,
     TransactionType.predictDeposit,
+    TransactionType.moneyAccountDeposit,
+    TransactionType.moneyAccountWithdraw,
   ])('returns transaction type if type is %s', async (type) => {
     const transaction = { type };
     const chainId = '1';
@@ -1675,6 +1707,34 @@ describe('Transactions utils :: getTransactionActionKey', () => {
     const actionKey = await getTransactionActionKey(transaction, chainId);
 
     expect(actionKey).toBe(type);
+  });
+
+  it('returns moneyAccountDeposit when type is contractInteraction and nested has money account deposit', async () => {
+    const transaction = {
+      type: TransactionType.contractInteraction,
+      nestedTransactions: [{ type: TransactionType.moneyAccountDeposit }],
+      txParams: {
+        to: '0x0000000000000000000000000000000000000001',
+        from: '0x0000000000000000000000000000000000000002',
+        data: '0x',
+      },
+    };
+    const actionKey = await getTransactionActionKey(transaction, '0x1');
+    expect(actionKey).toBe(TransactionType.moneyAccountDeposit);
+  });
+
+  it('returns moneyAccountWithdraw when type is contractInteraction and nested has money account withdraw', async () => {
+    const transaction = {
+      type: TransactionType.contractInteraction,
+      nestedTransactions: [{ type: TransactionType.moneyAccountWithdraw }],
+      txParams: {
+        to: '0x0000000000000000000000000000000000000001',
+        from: '0x0000000000000000000000000000000000000002',
+        data: '0x',
+      },
+    };
+    const actionKey = await getTransactionActionKey(transaction, '0x1');
+    expect(actionKey).toBe(TransactionType.moneyAccountWithdraw);
   });
 
   it('returns TRANSFER_FROM_ACTION_KEY for tokenMethodTransferFrom type', async () => {
@@ -1740,6 +1800,48 @@ describe('Transactions utils :: getTransactionActionKey', () => {
 
       expect(actionKey).toBe(TOKEN_METHOD_MINT);
     }
+  });
+
+  describe('simpleSend type bypasses smart contract check (gas-sponsored native sends)', () => {
+    it('returns SEND_ETHER_ACTION_KEY for simpleSend even when to is a smart contract', async () => {
+      const transaction = {
+        type: TransactionType.simpleSend,
+        toSmartContract: true,
+        txParams: {
+          to: '0xSmartContractAddress',
+        },
+      };
+
+      const actionKey = await getTransactionActionKey(transaction, '0x1');
+
+      expect(actionKey).toBe(SEND_ETHER_ACTION_KEY);
+    });
+
+    it('returns SEND_ETHER_ACTION_KEY for simpleSend without toSmartContract flag', async () => {
+      const transaction = {
+        type: TransactionType.simpleSend,
+        txParams: {
+          to: '0x0000000000000000000000000000000000000001',
+        },
+      };
+
+      const actionKey = await getTransactionActionKey(transaction, '0x1');
+
+      expect(actionKey).toBe(SEND_ETHER_ACTION_KEY);
+    });
+
+    it('returns SMART_CONTRACT_INTERACTION_ACTION_KEY when type is not simpleSend and to is a smart contract', async () => {
+      const transaction = {
+        toSmartContract: true,
+        txParams: {
+          to: '0xSmartContractAddress',
+        },
+      };
+
+      const actionKey = await getTransactionActionKey(transaction, '0x1');
+
+      expect(actionKey).toBe(SMART_CONTRACT_INTERACTION_ACTION_KEY);
+    });
   });
 });
 
@@ -2593,31 +2695,9 @@ describe('Transactions utils :: isSmartContractAddress', () => {
     expect(result).toBe(false);
   });
 
-  it('returns true when address is in token cache for mainnet', async () => {
-    const address = '0x1234567890123456789012345678901234567890';
-
-    // Mock the Engine context for mainnet with cached token
-    ENGINE_MOCK.context.TokenListController.state.tokensChainsCache = {
-      '0x1': {
-        data: {
-          [address]: { symbol: 'TEST' },
-        },
-      },
-    };
-
-    const result = await isSmartContractAddress(address, '0x1');
-    expect(result).toBe(true);
-  });
-
   it('returns true when contract code is found', async () => {
     const address = '0x1234567890123456789012345678901234567890';
 
-    // Clear token cache
-    ENGINE_MOCK.context.TokenListController.state.tokensChainsCache = {
-      '0x5': { data: {} },
-    };
-
-    // Mock contract code
     spyOnQueryMethod('0x608060405234801561001057600080fd5b50');
 
     const result = await isSmartContractAddress(address, '0x5');
@@ -2627,12 +2707,6 @@ describe('Transactions utils :: isSmartContractAddress', () => {
   it('returns false when no contract code is found', async () => {
     const address = '0x1234567890123456789012345678901234567890';
 
-    // Clear token cache
-    ENGINE_MOCK.context.TokenListController.state.tokensChainsCache = {
-      '0x5': { data: {} },
-    };
-
-    // Mock empty contract code
     spyOnQueryMethod('0x');
 
     const result = await isSmartContractAddress(address, '0x5');
@@ -2642,10 +2716,6 @@ describe('Transactions utils :: isSmartContractAddress', () => {
   it('uses provided networkClientId when specified', async () => {
     const address = '0x1234567890123456789012345678901234567890';
     const customNetworkClientId = 'custom-network';
-
-    ENGINE_MOCK.context.TokenListController.state.tokensChainsCache = {
-      '0x5': { data: {} },
-    };
 
     spyOnQueryMethod('0x608060405234801561001057600080fd5b50');
 

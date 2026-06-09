@@ -4,8 +4,9 @@ import { reloadAsync } from 'expo-updates';
 import {
   Box,
   Button,
-  ButtonVariant,
   ButtonSize,
+  ButtonVariant,
+  HeaderStandard,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -17,12 +18,10 @@ import Logger from '../../../util/Logger';
 import { useAssetFromTheme } from '../../../util/theme';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
-import { useMetrics } from '../../hooks/useMetrics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
-
 /* eslint-disable import-x/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const foxLogo = require('../../../images/branding/fox.png');
 const metamaskNameLightMode = require('../../../images/branding/metamask-name.png');
@@ -35,7 +34,7 @@ export const createOTAUpdatesModalNavDetails = createNavigationDetails(
 
 const OTAUpdatesModal = () => {
   const tw = useTailwind();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const bottomSheetRef = useRef<BottomSheetRef | null>(null);
   const metamaskName = useAssetFromTheme(
     metamaskNameLightMode,
@@ -96,16 +95,17 @@ const OTAUpdatesModal = () => {
       shouldNavigateBack
       style={tw.style('bg-default')}
     >
-      <HeaderCompactStandard
+      <HeaderStandard
         twClassName="px-4"
         onClose={() => dismissBottomSheet()}
+        closeButtonProps={{ testID: 'close-button' }}
       >
         <Image
           style={tw.style('h-8')}
           source={metamaskName}
           resizeMode="contain"
         />
-      </HeaderCompactStandard>
+      </HeaderStandard>
       <Box twClassName="px-6 pt-2 items-center">
         <Box twClassName="items-center py-6">
           <Box twClassName="items-center mb-6">

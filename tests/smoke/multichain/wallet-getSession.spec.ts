@@ -57,7 +57,7 @@ describe(SmokeMultiChainAPI('wallet_getSession'), () => {
     );
   });
 
-  it('should successfully receive result that specifies its permitted session scopes for selected chains', async () => {
+  it('should return correct and consistent session scopes for selected chains', async () => {
     await withFixtures(
       {
         dapps: [
@@ -65,98 +65,23 @@ describe(SmokeMultiChainAPI('wallet_getSession'), () => {
             dappVariant: DappVariants.MULTICHAIN_TEST_DAPP,
           },
         ],
-        fixture: new FixtureBuilder().withPopularNetworks().build(),
+        fixture: new FixtureBuilder()
+          .withPopularNetworks()
+          .withPermissionControllerConnectedToTestDapp()
+          .build(),
         restartDevice: true,
       },
       async () => {
         await MultichainTestDApp.setupAndNavigateToTestDapp();
         const networksToTest =
           MultichainUtilities.NETWORK_COMBINATIONS.SINGLE_ETHEREUM;
-        await MultichainTestDApp.createSessionWithNetworks(networksToTest);
 
-        const sessionData = await MultichainTestDApp.getSessionData();
-        const createAssertions = MultichainUtilities.generateSessionAssertions(
-          sessionData,
-          networksToTest,
-        );
-
-        if (!createAssertions.success) {
-          throw new Error('Initial session creation failed');
+        await MultichainTestDApp.scrollToPageTop();
+        const connected = await MultichainTestDApp.useAutoConnectButton();
+        if (!connected) {
+          throw new Error('Failed to connect to dapp');
         }
-
-        const getSessionResult = await MultichainTestDApp.getSessionData();
-        const getAssertions = MultichainUtilities.generateSessionAssertions(
-          getSessionResult,
-          networksToTest,
-        );
-
-        if (!getAssertions.structureValid) {
-          throw new Error('Invalid session structure');
-        }
-
-        if (!getAssertions.success) {
-          throw new Error('Failed to retrieve session data');
-        }
-
-        if (!getAssertions.chainsValid) {
-          MultichainUtilities.logSessionDetails(
-            getSessionResult,
-            'Failed Session Validation',
-          );
-          throw new Error(
-            `Chain validation failed. Missing chains: ${getAssertions.missingChains.join(
-              ', ',
-            )}`,
-          );
-        }
-
-        if (getAssertions.chainCount !== networksToTest.length) {
-          throw new Error(
-            `Expected ${networksToTest.length} chains, but found ${getAssertions.chainCount}`,
-          );
-        }
-
-        const expectedScope = MultichainUtilities.getEIP155Scope(
-          MultichainUtilities.CHAIN_IDS.ETHEREUM_MAINNET,
-        );
-        if (!getSessionResult.sessionScopes?.[expectedScope]) {
-          throw new Error(`Expected session scope ${expectedScope} not found`);
-        }
-
-        const ethereumScope = getSessionResult.sessionScopes[expectedScope];
-        if (!ethereumScope.accounts || ethereumScope.accounts.length === 0) {
-          throw new Error('Expected session scope to have accounts');
-        }
-      },
-    );
-  });
-
-  it('should return consistent session data across multiple getSession calls', async () => {
-    await withFixtures(
-      {
-        dapps: [
-          {
-            dappVariant: DappVariants.MULTICHAIN_TEST_DAPP,
-          },
-        ],
-        fixture: new FixtureBuilder().withPopularNetworks().build(),
-        restartDevice: true,
-      },
-      async () => {
-        await MultichainTestDApp.setupAndNavigateToTestDapp();
-        const networksToTest =
-          MultichainUtilities.NETWORK_COMBINATIONS.SINGLE_ETHEREUM;
-        await MultichainTestDApp.createSessionWithNetworks(networksToTest);
-
-        const sessionData = await MultichainTestDApp.getSessionData();
-        const createAssertions = MultichainUtilities.generateSessionAssertions(
-          sessionData,
-          networksToTest,
-        );
-
-        if (!createAssertions.success) {
-          throw new Error('Session creation failed');
-        }
+        await MultichainTestDApp.tapGetSessionButton();
 
         const getSessionResult1 = await MultichainTestDApp.getSessionData();
         const getSessionResult2 = await MultichainTestDApp.getSessionData();
@@ -175,6 +100,10 @@ describe(SmokeMultiChainAPI('wallet_getSession'), () => {
           networksToTest,
         );
 
+        if (!assertions1.structureValid) {
+          throw new Error('Invalid session structure');
+        }
+
         if (
           !assertions1.success ||
           !assertions2.success ||
@@ -183,22 +112,40 @@ describe(SmokeMultiChainAPI('wallet_getSession'), () => {
           throw new Error('One or more getSession calls failed');
         }
 
+        if (!assertions1.chainsValid) {
+          MultichainUtilities.logSessionDetails(
+            getSessionResult1,
+            'Failed Session Validation',
+          );
+          throw new Error(
+            `Chain validation failed. Missing chains: ${assertions1.missingChains.join(', ')}`,
+          );
+        }
+
+        if (assertions1.chainCount !== networksToTest.length) {
+          throw new Error(
+            `Expected ${networksToTest.length} chain(s), but found ${assertions1.chainCount}`,
+          );
+        }
+
+        const expectedScope = MultichainUtilities.getEIP155Scope(
+          MultichainUtilities.CHAIN_IDS.ETHEREUM_MAINNET,
+        );
+        if (!getSessionResult1.sessionScopes?.[expectedScope]) {
+          throw new Error(`Expected session scope ${expectedScope} not found`);
+        }
+
+        const ethereumScope = getSessionResult1.sessionScopes[expectedScope];
+        if (!ethereumScope.accounts || ethereumScope.accounts.length === 0) {
+          throw new Error('Expected session scope to have accounts');
+        }
+
         const scopes1 = JSON.stringify(getSessionResult1.sessionScopes);
         const scopes2 = JSON.stringify(getSessionResult2.sessionScopes);
         const scopes3 = JSON.stringify(getSessionResult3.sessionScopes);
 
         if (scopes1 !== scopes2 || scopes2 !== scopes3) {
           throw new Error('Session data inconsistent across multiple calls');
-        }
-
-        const actualChains = assertions1.foundChains;
-        console.log(
-          `Session consistency test passed with ${
-            actualChains.length
-          } chains: ${actualChains.join(', ')}`,
-        );
-        if (actualChains.length === 0) {
-          throw new Error('No chains found in session');
         }
 
         if (
@@ -221,7 +168,10 @@ describe(SmokeMultiChainAPI('wallet_getSession'), () => {
             dappVariant: DappVariants.MULTICHAIN_TEST_DAPP,
           },
         ],
-        fixture: new FixtureBuilder().withPopularNetworks().build(),
+        fixture: new FixtureBuilder()
+          .withPopularNetworks()
+          .withPermissionControllerConnectedToTestDapp()
+          .build(),
         restartDevice: true,
       },
       async () => {
@@ -229,17 +179,13 @@ describe(SmokeMultiChainAPI('wallet_getSession'), () => {
 
         const initialNetworks =
           MultichainUtilities.NETWORK_COMBINATIONS.SINGLE_ETHEREUM;
-        await MultichainTestDApp.createSessionWithNetworks(initialNetworks);
 
-        const sessionData1 = await MultichainTestDApp.getSessionData();
-        const createAssertions1 = MultichainUtilities.generateSessionAssertions(
-          sessionData1,
-          initialNetworks,
-        );
-
-        if (!createAssertions1.success) {
-          throw new Error('Initial session creation failed');
+        await MultichainTestDApp.scrollToPageTop();
+        const connected = await MultichainTestDApp.useAutoConnectButton();
+        if (!connected) {
+          throw new Error('Failed to connect to dapp');
         }
+        await MultichainTestDApp.tapGetSessionButton();
 
         const getSessionResult1 = await MultichainTestDApp.getSessionData();
         const getAssertions1 = MultichainUtilities.generateSessionAssertions(
@@ -281,6 +227,12 @@ describe(SmokeMultiChainAPI('wallet_getSession'), () => {
             `Chain validation failed. Missing chains: ${getAssertions2.missingChains.join(
               ', ',
             )}`,
+          );
+        }
+
+        if (getAssertions2.chainCount !== newNetworks.length) {
+          throw new Error(
+            `Expected ${newNetworks.length} chain(s), but found ${getAssertions2.chainCount}`,
           );
         }
 

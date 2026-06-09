@@ -1,246 +1,771 @@
 import React, {
   forwardRef,
   useCallback,
+  useEffect,
   useImperativeHandle,
+  useMemo,
   useRef,
+  type ReactNode,
 } from 'react';
-import { ScrollView, View } from 'react-native';
-import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box } from '@metamask/design-system-react-native';
-import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
-import Routes from '../../../../../constants/navigation/Routes';
-import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
+import { strings } from '../../../../../../locales/i18n';
 import { SectionRefreshHandle } from '../../types';
 import { selectPredictEnabledFlag } from '../../../../UI/Predict/selectors/featureFlags';
-import { strings } from '../../../../../../locales/i18n';
+import useHomeViewedEvent, {
+  HomeSectionNames,
+  type HomeSectionName,
+} from '../../hooks/useHomeViewedEvent';
+import { useSectionPerformance } from '../../hooks/useSectionPerformance';
+import HomepagePredictWorldCupDiscovery from './components/HomepagePredictWorldCupDiscovery';
+import HomepagePredictTrendingMarkets from './components/HomepagePredictTrendingMarkets';
+import HomepagePredictPositions from './components/HomepagePredictPositions';
 import {
   usePredictMarketsForHomepage,
   usePredictPositionsForHomepage,
+  useHomepagePredictTaggedMarkets,
+  useHomepagePredictWorldCupMarkets,
+  HOMEPAGE_PREDICT_TAG_QUERIES,
+  usePredictHomepageDiscoveryExperiment,
 } from './hooks';
+import { MAX_MARKETS_DISPLAYED } from './predictionsSectionConstants';
+import type { PredictionsSectionProps } from './predictionsSectionTypes';
 import {
-  PredictMarketCard,
-  PredictMarketCardSkeleton,
-  PredictPositionRow,
-  PredictPositionRowSkeleton,
-} from './components';
-import ViewMoreCard from '../../components/ViewMoreCard';
-import type { PredictPosition } from '../../../../UI/Predict/types';
-import type { PredictNavigationParamList } from '../../../../UI/Predict/types/navigation';
-import { PredictEventValues } from '../../../../UI/Predict/constants/eventNames';
-import { PredictClaimButton } from '../../../../UI/Predict/components/PredictActionButtons';
+  usePredictionsCommonSetup,
+  usePredictNavigationHandlers,
+  useRefreshPredictPositions,
+} from './hooks/usePredictionsSectionNavigation';
+import { usePredictionsDefaultSectionModel } from './hooks/usePredictionsDefaultSectionModel';
+import { useTreatmentDiscoveryFeedsLoading } from './hooks/useTreatmentDiscoveryFeedsLoading';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { usePredictClaim } from '../../../../UI/Predict/hooks/usePredictClaim';
-import useHomeViewedEvent, {
-  HomeSectionNames,
-} from '../../hooks/useHomeViewedEvent';
+import { useUnrealizedPnL } from '../../../../UI/Predict/hooks/useUnrealizedPnL';
+import { getPredictHomepageUnrealizedPnlRowState } from './utils/getPredictHomepageUnrealizedPnlRowState';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { PredictEventProperties } from '../../../../UI/Predict/constants/eventNames';
+import {
+  PredictPositionsEmptyStateVariant,
+  type PredictEmptyStateCtaName,
+} from '../../abTestConfig';
+import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
-const MAX_MARKETS_DISPLAYED = 5;
+/** Loads both feeds the World Cup discovery rail needs (World Cup tag + NBA Champion event). */
+const useWorldCupDiscoveryFeeds = (enabled: boolean) => ({
+  worldCup: useHomepagePredictWorldCupMarkets({ enabled }),
+  nbaChampion: useHomepagePredictTaggedMarkets({
+    enabled,
+    customQueryParams: HOMEPAGE_PREDICT_TAG_QUERIES.nbaChampion,
+  }),
+});
 
-// Skeleton keys for loading state
-const SKELETON_KEYS = Array.from(
-  { length: MAX_MARKETS_DISPLAYED },
-  (__, i) => `skeleton-${i}`,
-);
+const mergeActiveAbTests = (
+  ...testGroups: (TransactionActiveAbTestEntry[] | undefined)[]
+): TransactionActiveAbTestEntry[] | undefined => {
+  const merged = new Map<string, TransactionActiveAbTestEntry>();
 
-interface PredictionsSectionProps {
+  testGroups.flat().forEach((assignment) => {
+    if (!assignment) {
+      return;
+    }
+    merged.set(assignment.key, assignment);
+  });
+
+  return merged.size > 0 ? Array.from(merged.values()) : undefined;
+};
+
+const usePredictEmptyStateAnalytics = ({
+  activeAbTests,
+  isAssignmentActive,
+  shouldTrackExposure,
+  variantName,
+}: {
+  activeAbTests?: TransactionActiveAbTestEntry[];
+  isAssignmentActive: boolean;
+  shouldTrackExposure: boolean;
+  variantName: string;
+}) => {
+  const { createEventBuilder, trackEvent } = useAnalytics();
+  const viewedAssignmentRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!isAssignmentActive || !shouldTrackExposure || !activeAbTests?.length) {
+      return;
+    }
+
+    const assignmentKey =
+      activeAbTests[0].key_value_pair ??
+      `${activeAbTests[0].key}=${activeAbTests[0].value}`;
+
+    if (viewedAssignmentRef.current === assignmentKey) {
+      return;
+    }
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.PREDICT_EMPTY_STATE_VIEWED)
+        .addProperties({
+          [PredictEventProperties.SURFACE]: 'predict',
+          [PredictEventProperties.VARIANT]: variantName,
+          [PredictEventProperties.ACTIVE_AB_TESTS]: activeAbTests,
+        })
+        .build(),
+    );
+    viewedAssignmentRef.current = assignmentKey;
+  }, [
+    activeAbTests,
+    createEventBuilder,
+    isAssignmentActive,
+    shouldTrackExposure,
+    trackEvent,
+    variantName,
+  ]);
+
+  return useCallback(
+    (ctaName: PredictEmptyStateCtaName, categoryName?: string) => {
+      if (
+        !isAssignmentActive ||
+        variantName !== PredictPositionsEmptyStateVariant.Treatment ||
+        !activeAbTests?.length
+      ) {
+        return;
+      }
+
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.PREDICT_EMPTY_STATE_CTA_CLICKED)
+          .addProperties({
+            [PredictEventProperties.CTA_NAME]: ctaName,
+            ...(categoryName && {
+              [PredictEventProperties.CATEGORY_NAME]: categoryName,
+            }),
+            [PredictEventProperties.ACTIVE_AB_TESTS]: activeAbTests,
+          })
+          .build(),
+      );
+    },
+    [
+      activeAbTests,
+      createEventBuilder,
+      isAssignmentActive,
+      trackEvent,
+      variantName,
+    ],
+  );
+};
+
+interface PredictionsSectionShellProps {
+  /** Whether to mount the section View at all. When false, returns `null`. */
+  enabled: boolean;
+  /**
+   * Whether the section is "ready" for the viewed-event fan-out (i.e. real
+   * content is on screen). Decoupled from `enabled` because some sections
+   * render a loading skeleton without firing analytics.
+   */
+  viewed: boolean;
+  refresh: () => Promise<void>;
+  isLoading: boolean;
+  isEmpty: boolean;
+  itemCount: number;
+  analyticsName: HomeSectionName;
   sectionIndex: number;
   totalSectionsLoaded: number;
+  children: ReactNode;
 }
 
 /**
- * PredictionsSection - Displays prediction content on the homepage
- *
- * Unified section that shows:
- * - User's positions if they have any
- * - Trending markets if they don't have positions
- *
- * Returns null if the Predict feature flag is disabled.
+ * Shared boilerplate for the four `PredictionsSection*` variants:
+ * mounts/unmounts the section view, wires `useHomeViewedEvent` to the layout,
+ * and forwards a `refresh()` imperative handle.
  */
-const PredictionsSection = forwardRef<
+const PredictionsSectionShell = forwardRef<
   SectionRefreshHandle,
-  PredictionsSectionProps
->(({ sectionIndex, totalSectionsLoaded }, ref) => {
-  const sectionViewRef = useRef<View>(null);
-  const tw = useTailwind();
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
-  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
-  const title = strings('homepage.sections.predictions');
+  PredictionsSectionShellProps
+>(
+  (
+    {
+      enabled,
+      viewed,
+      refresh,
+      isLoading,
+      isEmpty,
+      itemCount,
+      analyticsName,
+      sectionIndex,
+      totalSectionsLoaded,
+      children,
+    },
+    ref,
+  ) => {
+    const sectionViewRef = useRef<View>(null);
+    const { onLayout } = useHomeViewedEvent({
+      sectionRef: viewed ? sectionViewRef : null,
+      isLoading,
+      sectionName: analyticsName,
+      sectionIndex,
+      totalSectionsLoaded,
+      isEmpty,
+      itemCount,
+    });
+    useImperativeHandle(ref, () => ({ refresh }), [refresh]);
+    if (!enabled) {
+      return null;
+    }
+    return (
+      <View ref={sectionViewRef} onLayout={onLayout}>
+        {children}
+      </View>
+    );
+  },
+);
+
+/** Co-located so `usePredictPositionsForHomepage` resolves through `jest.mock('./hooks')` in tests. */
+const usePredictPositionsSectionData = (homepageQueriesEnabled: boolean) => {
+  const privacyMode = useSelector(selectPrivacyMode);
   const { claim } = usePredictClaim();
 
-  // Fetch both positions and markets
   const {
     positions,
     isLoading: isLoadingPositions,
     error: positionsError,
     refetch: refetchPositions,
-  } = usePredictPositionsForHomepage();
-
-  const {
-    markets,
-    isLoading: isLoadingMarkets,
-    error: marketsError,
-    refetch: refetchMarkets,
-  } = usePredictMarketsForHomepage(MAX_MARKETS_DISPLAYED);
-
+  } = usePredictPositionsForHomepage({
+    enabled: homepageQueriesEnabled,
+  });
   const { totalClaimableValue, isLoading: isLoadingClaimable } =
-    usePredictPositionsForHomepage({ claimable: true });
+    usePredictPositionsForHomepage({
+      claimable: true,
+      enabled: homepageQueriesEnabled,
+    });
 
   const handleClaim = useCallback(async () => {
     await claim();
   }, [claim]);
 
-  // Determine if user has positions
   const hasPositions = positions.length > 0;
-
-  const isLoading = isLoadingPositions || isLoadingMarkets;
-
-  const hasError =
-    !isLoadingPositions &&
-    !isLoadingMarkets &&
-    !hasPositions &&
-    markets.length === 0 &&
-    (positionsError || marketsError);
-
-  const isEmpty =
-    !isLoading && !hasPositions && markets.length === 0 && !hasError;
-
-  const itemCount = hasPositions ? positions.length : markets.length;
-
-  // Determine whether the section will actually render visible content.
-  // Pass null when the section returns null so the event fires immediately.
-  // !isLoading is required: isEmpty is false during loading (its formula starts
-  // with !isLoading), so without this guard the hook would fire with stale
-  // itemCount/isEmpty values before data arrives.
-  const willRender = isPredictEnabled && !isLoading && !isEmpty && !hasError;
-
-  const { onLayout } = useHomeViewedEvent({
-    sectionRef: willRender ? sectionViewRef : null,
-    isLoading,
-    sectionName: HomeSectionNames.PREDICT,
-    sectionIndex,
-    totalSectionsLoaded,
-    // Treat error state as empty — there is no useful content to show.
-    isEmpty: isEmpty || !!hasError,
-    itemCount,
+  const {
+    data: predictUnrealizedPnL,
+    isLoading: isPredictUnrealizedPnLLoading,
+  } = useUnrealizedPnL({
+    enabled: hasPositions,
   });
 
-  const refresh = useCallback(async () => {
-    await Promise.all([refetchPositions(), refetchMarkets()]);
-  }, [refetchPositions, refetchMarkets]);
+  const predictHomepageUnrealizedPnl = useMemo(
+    () =>
+      getPredictHomepageUnrealizedPnlRowState({
+        hasPositions,
+        privacyMode,
+        isPnlLoading: isPredictUnrealizedPnLLoading,
+        pnl: predictUnrealizedPnL,
+      }),
+    [
+      hasPositions,
+      privacyMode,
+      isPredictUnrealizedPnLLoading,
+      predictUnrealizedPnL,
+    ],
+  );
 
-  useImperativeHandle(ref, () => ({ refresh }), [refresh]);
+  return {
+    privacyMode,
+    positions,
+    isLoadingPositions,
+    positionsError,
+    refetchPositions,
+    totalClaimableValue,
+    isLoadingClaimable,
+    handleClaim,
+    hasPositions,
+    predictHomepageUnrealizedPnl,
+  };
+};
 
-  const handleViewAllPredictions = useCallback(() => {
-    navigation.navigate(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.MARKET_LIST,
-    });
-  }, [navigation]);
-
-  const handlePositionPress = useCallback(
-    (position: PredictPosition) => {
-      navigation.navigate(Routes.PREDICT.ROOT, {
-        screen: Routes.PREDICT.MARKET_DETAILS,
-        params: {
-          marketId: position.marketId,
-          entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
-          headerShown: false,
-        },
-      });
+const PredictionsSectionDefault = forwardRef<
+  SectionRefreshHandle,
+  PredictionsSectionProps
+>(
+  (
+    {
+      sectionIndex,
+      totalSectionsLoaded,
+      sectionName: sectionNameOverride,
+      titleOverride,
     },
-    [navigation],
-  );
+    ref,
+  ) => {
+    const {
+      isPredictEnabled,
+      queryClient,
+      title,
+      analyticsName,
+      handleViewAllPredictions,
+      handleViewAllFromPositions,
+      handlePositionPress,
+    } = usePredictionsCommonSetup({
+      sectionNameOverride,
+      titleOverride,
+    });
+    const {
+      privacyMode,
+      positions,
+      isLoadingPositions,
+      positionsError,
+      refetchPositions,
+      totalClaimableValue,
+      isLoadingClaimable,
+      handleClaim,
+      hasPositions,
+      predictHomepageUnrealizedPnl,
+    } = usePredictPositionsSectionData(isPredictEnabled);
+    const {
+      markets,
+      isLoading: isLoadingMarkets,
+      error: marketsError,
+      refetch: refetchMarkets,
+    } = usePredictMarketsForHomepage(MAX_MARKETS_DISPLAYED, {
+      enabled: isPredictEnabled,
+    });
 
-  // Don't render if Predict is disabled
-  if (!isPredictEnabled) {
-    return null;
-  }
+    const {
+      discoveryLayout,
+      isTreatmentDiscovery,
+      trendingTransactionActiveAbTests,
+      predictEmptyStateActiveAbTests,
+      predictEmptyStateVariantName,
+      isPredictEmptyStateAssignmentActive,
+    } = usePredictHomepageDiscoveryExperiment();
 
-  // Don't render if there is a connection error
-  if (hasError) {
-    return null;
-  }
+    const {
+      worldCup: worldCupHomepageMarkets,
+      nbaChampion: nbaChampionHomepageMarkets,
+    } = useWorldCupDiscoveryFeeds(isPredictEnabled && isTreatmentDiscovery);
+    const { refetch: refetchWorldCupHomepageMarkets } = worldCupHomepageMarkets;
+    const { refetch: refetchNbaChampionHomepageMarkets } =
+      nbaChampionHomepageMarkets;
+    const isLoadingWorldCupHomepage = useTreatmentDiscoveryFeedsLoading({
+      isTreatmentDiscovery,
+      isWorldCupFetching: worldCupHomepageMarkets.isFetching,
+      isNbaChampionFetching: nbaChampionHomepageMarkets.isFetching,
+    });
 
-  // Render positions if user has any
-  if (hasPositions || isLoadingPositions) {
-    return (
-      <View ref={sectionViewRef} onLayout={onLayout}>
-        <Box gap={3}>
-          <SectionHeader
-            title={title}
-            onPress={handleViewAllPredictions}
-            testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(
-              'predictions',
-            )}
-          />
-          <Box>
-            {isLoadingPositions ? (
-              <>
-                <PredictPositionRowSkeleton />
-                <PredictPositionRowSkeleton />
-              </>
-            ) : (
-              positions.map((position) => (
-                <PredictPositionRow
-                  key={`${position.outcomeId}:${position.outcomeIndex}`}
-                  position={position}
-                  onPress={handlePositionPress}
-                />
-              ))
-            )}
-            {!isLoadingPositions &&
-              !isLoadingClaimable &&
-              totalClaimableValue > 0 && (
-                <Box paddingHorizontal={4} paddingTop={1} paddingBottom={3}>
-                  <PredictClaimButton
-                    amount={totalClaimableValue}
-                    onPress={handleClaim}
-                  />
-                </Box>
-              )}
-          </Box>
-        </Box>
-      </View>
+    const {
+      hasAnyPositions,
+      hasError,
+      isEmpty,
+      showTrendingAbove,
+      predictTimeToContentReady,
+      willRender,
+      isLoading,
+      itemCount,
+    } = usePredictionsDefaultSectionModel({
+      isPredictEnabled,
+      isLoadingPositions,
+      isLoadingClaimable,
+      isLoadingMarkets,
+      isTreatmentDiscovery,
+      isLoadingWorldCupHomepage,
+      hasPositions,
+      positionsLength: positions.length,
+      positionsError,
+      marketsError,
+      marketsLength: markets.length,
+      totalClaimableValue,
+    });
+
+    useSectionPerformance({
+      sectionId: analyticsName,
+      contentReady: predictTimeToContentReady,
+      isEmpty: isEmpty && !hasError,
+      contentStateForTrace: hasError ? 'error' : undefined,
+      isLoading,
+      enabled: isPredictEnabled,
+    });
+
+    const shouldTrackEmptyState =
+      isPredictEnabled &&
+      !hasError &&
+      !hasAnyPositions &&
+      (isTreatmentDiscovery ? willRender : !isLoading && markets.length > 0);
+
+    const trackEmptyStateTreatmentCtaClick = usePredictEmptyStateAnalytics({
+      activeAbTests: predictEmptyStateActiveAbTests,
+      isAssignmentActive: isPredictEmptyStateAssignmentActive,
+      shouldTrackExposure: shouldTrackEmptyState,
+      variantName: predictEmptyStateVariantName,
+    });
+
+    const emptyStateTransactionActiveAbTests = shouldTrackEmptyState
+      ? predictEmptyStateActiveAbTests
+      : undefined;
+    const discoveryTransactionActiveAbTests = mergeActiveAbTests(
+      trendingTransactionActiveAbTests,
+      emptyStateTransactionActiveAbTests,
     );
-  }
 
-  // Don't render if no markets and not loading (avoids showing ViewMoreCard alone)
-  if (!isLoadingMarkets && markets.length === 0) {
-    return null;
-  }
+    const refreshPositions = useRefreshPredictPositions({
+      queryClient,
+      refetchPositions,
+    });
 
-  // Render trending markets if no positions
-  return (
-    <View ref={sectionViewRef} onLayout={onLayout}>
-      <Box gap={3}>
-        <SectionHeader
+    const refresh = useCallback(async () => {
+      const tasks: Promise<unknown>[] = [refreshPositions(), refetchMarkets()];
+      if (isTreatmentDiscovery) {
+        tasks.push(refetchWorldCupHomepageMarkets());
+        tasks.push(refetchNbaChampionHomepageMarkets());
+      }
+      await Promise.all(tasks);
+    }, [
+      refreshPositions,
+      refetchMarkets,
+      isTreatmentDiscovery,
+      refetchWorldCupHomepageMarkets,
+      refetchNbaChampionHomepageMarkets,
+    ]);
+
+    const positionsLayout =
+      hasAnyPositions || isLoadingPositions || isLoadingClaimable;
+    // Trending-only branch is hidden when not treatment discovery and there
+    // are no markets to show; mirrors the legacy early-return.
+    const trendingHasNothingToShow =
+      !isTreatmentDiscovery && !isLoadingMarkets && markets.length === 0;
+    const enabled =
+      isPredictEnabled &&
+      !hasError &&
+      (positionsLayout || !trendingHasNothingToShow);
+
+    return (
+      <PredictionsSectionShell
+        ref={ref}
+        enabled={enabled}
+        viewed={willRender}
+        refresh={refresh}
+        isLoading={isLoading}
+        isEmpty={isEmpty || !!hasError}
+        itemCount={itemCount}
+        analyticsName={analyticsName}
+        sectionIndex={sectionIndex}
+        totalSectionsLoaded={totalSectionsLoaded}
+      >
+        {positionsLayout ? (
+          <>
+            {showTrendingAbove && (
+              <Box paddingBottom={3}>
+                <HomepagePredictTrendingMarkets
+                  title={title}
+                  onViewAll={handleViewAllPredictions}
+                  headerTestIdKey="predictions"
+                  discoveryLayout={discoveryLayout}
+                  isLoadingMarkets={isLoadingMarkets}
+                  markets={markets}
+                  transactionActiveAbTests={discoveryTransactionActiveAbTests}
+                  worldCupHomepage={worldCupHomepageMarkets}
+                  nbaChampionHomepage={nbaChampionHomepageMarkets}
+                  emptyStateTransactionActiveAbTests={
+                    discoveryTransactionActiveAbTests
+                  }
+                  onEmptyStateTreatmentCtaClick={
+                    shouldTrackEmptyState
+                      ? trackEmptyStateTreatmentCtaClick
+                      : undefined
+                  }
+                />
+              </Box>
+            )}
+            <HomepagePredictPositions
+              title={title}
+              onViewAll={handleViewAllFromPositions}
+              privacyMode={privacyMode}
+              isLoadingPositions={isLoadingPositions}
+              positions={positions}
+              isLoadingClaimable={isLoadingClaimable}
+              totalClaimableValue={totalClaimableValue}
+              predictHomepageUnrealizedPnl={predictHomepageUnrealizedPnl}
+              onClaim={handleClaim}
+              onPositionPress={handlePositionPress}
+              showHeader={!showTrendingAbove}
+            />
+          </>
+        ) : (
+          <HomepagePredictTrendingMarkets
+            title={title}
+            onViewAll={handleViewAllPredictions}
+            headerTestIdKey="predictions"
+            discoveryLayout={discoveryLayout}
+            isLoadingMarkets={isLoadingMarkets}
+            markets={markets}
+            transactionActiveAbTests={discoveryTransactionActiveAbTests}
+            worldCupHomepage={worldCupHomepageMarkets}
+            nbaChampionHomepage={nbaChampionHomepageMarkets}
+            emptyStateTransactionActiveAbTests={
+              discoveryTransactionActiveAbTests
+            }
+            onEmptyStateTreatmentCtaClick={
+              shouldTrackEmptyState
+                ? trackEmptyStateTreatmentCtaClick
+                : undefined
+            }
+          />
+        )}
+      </PredictionsSectionShell>
+    );
+  },
+);
+
+const PredictionsSectionPositionsOnly = forwardRef<
+  SectionRefreshHandle,
+  PredictionsSectionProps
+>(
+  (
+    {
+      sectionIndex,
+      totalSectionsLoaded,
+      sectionName: sectionNameOverride,
+      titleOverride,
+    },
+    ref,
+  ) => {
+    const {
+      isPredictEnabled,
+      queryClient,
+      title,
+      analyticsName,
+      handleViewAllFromPositions,
+      handlePositionPress,
+    } = usePredictionsCommonSetup({
+      sectionNameOverride,
+      titleOverride,
+    });
+    const {
+      privacyMode,
+      positions,
+      isLoadingPositions,
+      refetchPositions,
+      totalClaimableValue,
+      isLoadingClaimable,
+      handleClaim,
+      hasPositions,
+      predictHomepageUnrealizedPnl,
+    } = usePredictPositionsSectionData(isPredictEnabled);
+
+    const hasClaimablePositions =
+      !isLoadingClaimable && totalClaimableValue > 0;
+    const hasAnyPositions = hasPositions || hasClaimablePositions;
+    const isLoading = isLoadingPositions || isLoadingClaimable;
+    const willRender = isPredictEnabled && !isLoading && hasAnyPositions;
+    const itemCount = hasPositions
+      ? positions.length
+      : hasClaimablePositions
+        ? 1
+        : 0;
+
+    const refresh = useRefreshPredictPositions({
+      queryClient,
+      refetchPositions,
+    });
+
+    return (
+      <PredictionsSectionShell
+        ref={ref}
+        enabled={isPredictEnabled && (isLoading || hasAnyPositions)}
+        viewed={willRender}
+        refresh={refresh}
+        isLoading={isLoading}
+        isEmpty={!isLoading && !hasAnyPositions}
+        itemCount={itemCount}
+        analyticsName={analyticsName}
+        sectionIndex={sectionIndex}
+        totalSectionsLoaded={totalSectionsLoaded}
+      >
+        <HomepagePredictPositions
           title={title}
-          onPress={handleViewAllPredictions}
-          testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('predictions')}
+          onViewAll={handleViewAllFromPositions}
+          privacyMode={privacyMode}
+          isLoadingPositions={isLoadingPositions}
+          positions={positions}
+          isLoadingClaimable={isLoadingClaimable}
+          totalClaimableValue={totalClaimableValue}
+          predictHomepageUnrealizedPnl={predictHomepageUnrealizedPnl}
+          onClaim={handleClaim}
+          onPositionPress={handlePositionPress}
         />
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={tw.style('px-4 gap-3')}
-        >
-          {isLoadingMarkets ? (
-            SKELETON_KEYS.map((key) => <PredictMarketCardSkeleton key={key} />)
-          ) : (
-            <>
-              {markets.map((market) => (
-                <PredictMarketCard key={market.id} market={market} />
-              ))}
-              <ViewMoreCard
-                onPress={handleViewAllPredictions}
-                twClassName="w-[180px] flex-1"
-              />
-            </>
-          )}
-        </ScrollView>
-      </Box>
-    </View>
-  );
+      </PredictionsSectionShell>
+    );
+  },
+);
+
+const PredictionsSectionTrendingOnly = forwardRef<
+  SectionRefreshHandle,
+  PredictionsSectionProps
+>(
+  (
+    {
+      sectionIndex,
+      totalSectionsLoaded,
+      sectionName: sectionNameOverride,
+      titleOverride,
+    },
+    ref,
+  ) => {
+    const isPredictEnabled = useSelector(selectPredictEnabledFlag);
+    const title = titleOverride ?? strings('homepage.sections.predictions');
+    const analyticsName = sectionNameOverride ?? HomeSectionNames.PREDICT;
+    const { handleViewAllPredictions } = usePredictNavigationHandlers();
+
+    const {
+      markets,
+      isLoading: isLoadingMarkets,
+      refetch: refetchMarkets,
+    } = usePredictMarketsForHomepage(MAX_MARKETS_DISPLAYED, {
+      enabled: isPredictEnabled,
+    });
+
+    const { discoveryLayout, trendingTransactionActiveAbTests } =
+      usePredictHomepageDiscoveryExperiment();
+
+    const isListLayout = discoveryLayout === 'list';
+    const {
+      worldCup: worldCupHomepageMarkets,
+      nbaChampion: nbaChampionHomepageMarkets,
+    } = useWorldCupDiscoveryFeeds(isPredictEnabled && isListLayout);
+    const { refetch: refetchWorldCupHomepageMarkets } = worldCupHomepageMarkets;
+    const { refetch: refetchNbaChampionHomepageMarkets } =
+      nbaChampionHomepageMarkets;
+
+    const itemCount = isListLayout ? 1 : markets.length;
+    const willRender =
+      isPredictEnabled &&
+      (isListLayout || (!isLoadingMarkets && itemCount > 0));
+
+    const refresh = useCallback(async () => {
+      const tasks: Promise<unknown>[] = [refetchMarkets()];
+      if (isListLayout) {
+        tasks.push(refetchWorldCupHomepageMarkets());
+        tasks.push(refetchNbaChampionHomepageMarkets());
+      }
+      await Promise.all(tasks);
+    }, [
+      refetchMarkets,
+      isListLayout,
+      refetchWorldCupHomepageMarkets,
+      refetchNbaChampionHomepageMarkets,
+    ]);
+
+    return (
+      <PredictionsSectionShell
+        ref={ref}
+        enabled={
+          isPredictEnabled &&
+          (isListLayout || isLoadingMarkets || markets.length > 0)
+        }
+        viewed={willRender}
+        refresh={refresh}
+        isLoading={
+          isListLayout
+            ? worldCupHomepageMarkets.isFetching ||
+              nbaChampionHomepageMarkets.isFetching
+            : isLoadingMarkets
+        }
+        isEmpty={isListLayout ? false : !isLoadingMarkets && itemCount === 0}
+        itemCount={itemCount}
+        analyticsName={analyticsName}
+        sectionIndex={sectionIndex}
+        totalSectionsLoaded={totalSectionsLoaded}
+      >
+        <HomepagePredictTrendingMarkets
+          title={title}
+          onViewAll={handleViewAllPredictions}
+          headerTestIdKey="trending-predictions"
+          discoveryLayout={discoveryLayout}
+          isLoadingMarkets={isLoadingMarkets}
+          markets={markets}
+          transactionActiveAbTests={trendingTransactionActiveAbTests}
+          emptyStateTransactionActiveAbTests={trendingTransactionActiveAbTests}
+          worldCupHomepage={worldCupHomepageMarkets}
+          nbaChampionHomepage={nbaChampionHomepageMarkets}
+        />
+      </PredictionsSectionShell>
+    );
+  },
+);
+
+/**
+ * Sports-only section: World Cup discovery rail (BTC row, men's summary, winner market, bracket pills).
+ * Renders whenever Predict is enabled.
+ */
+const PredictionsSectionSportsOnly = forwardRef<
+  SectionRefreshHandle,
+  PredictionsSectionProps
+>(
+  (
+    {
+      sectionIndex,
+      totalSectionsLoaded,
+      sectionName: sectionNameOverride,
+      titleOverride,
+    },
+    ref,
+  ) => {
+    const isPredictEnabled = useSelector(selectPredictEnabledFlag);
+    const title = titleOverride ?? strings('homepage.sections.predictions');
+    const analyticsName = sectionNameOverride ?? HomeSectionNames.PREDICT;
+    const { handleViewAllPredictions } = usePredictNavigationHandlers();
+
+    const {
+      worldCup: worldCupHomepageMarkets,
+      nbaChampion: nbaChampionHomepageMarkets,
+    } = useWorldCupDiscoveryFeeds(isPredictEnabled);
+    const { refetch: refetchWorldCupHomepageMarkets } = worldCupHomepageMarkets;
+    const { refetch: refetchNbaChampionHomepageMarkets } =
+      nbaChampionHomepageMarkets;
+
+    const refresh = useCallback(async () => {
+      await Promise.all([
+        refetchWorldCupHomepageMarkets(),
+        refetchNbaChampionHomepageMarkets(),
+      ]);
+    }, [refetchWorldCupHomepageMarkets, refetchNbaChampionHomepageMarkets]);
+
+    return (
+      <PredictionsSectionShell
+        ref={ref}
+        enabled={isPredictEnabled}
+        viewed={isPredictEnabled}
+        refresh={refresh}
+        isLoading={
+          worldCupHomepageMarkets.isFetching ||
+          nbaChampionHomepageMarkets.isFetching
+        }
+        isEmpty={false}
+        itemCount={1}
+        analyticsName={analyticsName}
+        sectionIndex={sectionIndex}
+        totalSectionsLoaded={totalSectionsLoaded}
+      >
+        <HomepagePredictWorldCupDiscovery
+          title={title}
+          onViewAll={handleViewAllPredictions}
+          headerTestIdKey="trending-predictions"
+          worldCup={worldCupHomepageMarkets}
+          nbaChampion={nbaChampionHomepageMarkets}
+        />
+      </PredictionsSectionShell>
+    );
+  },
+);
+
+const PredictionsSection = forwardRef<
+  SectionRefreshHandle,
+  PredictionsSectionProps
+>(({ mode = 'default', ...props }, ref) => {
+  if (mode === 'trending-only') {
+    return <PredictionsSectionTrendingOnly {...props} ref={ref} />;
+  }
+  if (mode === 'positions-only') {
+    return <PredictionsSectionPositionsOnly {...props} ref={ref} />;
+  }
+  if (mode === 'sports') {
+    return <PredictionsSectionSportsOnly {...props} ref={ref} />;
+  }
+  return <PredictionsSectionDefault {...props} ref={ref} />;
 });
 
 export default PredictionsSection;

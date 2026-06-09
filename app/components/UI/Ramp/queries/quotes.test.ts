@@ -1,4 +1,8 @@
-import { rampsQuotesKeys, rampsQuotesOptions } from './quotes';
+import {
+  RAMPS_QUOTES_STALE_TIME_MS,
+  rampsQuotesKeys,
+  rampsQuotesOptions,
+} from './quotes';
 
 describe('rampsQuotesOptions', () => {
   it('creates a stable query key for quotes', () => {
@@ -28,7 +32,6 @@ describe('rampsQuotesOptions', () => {
       walletAddress: '0x123',
       paymentMethods: ['/payments/card'],
       providers: ['/providers/transak'],
-      forceRefresh: true,
     });
 
     expect(opts.queryKey).toEqual([
@@ -41,6 +44,6 @@ describe('rampsQuotesOptions', () => {
       '/providers/transak',
     ]);
     expect(typeof opts.queryFn).toBe('function');
-    expect(opts.staleTime).toBe(0);
+    expect(opts.staleTime).toBe(RAMPS_QUOTES_STALE_TIME_MS);
   });
 });

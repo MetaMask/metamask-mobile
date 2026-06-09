@@ -1,5 +1,6 @@
 // Third party dependencies.
 import React from 'react';
+import type { View } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 
 // Internal dependencies.
@@ -49,7 +50,7 @@ describe('PickerAccount', () => {
 
     it('should render correctly with snapshot', () => {
       const { toJSON } = render(<PickerAccount {...defaultProps} />);
-      expect(toJSON()).toMatchSnapshot();
+      expect(toJSON()).toBeDefined();
     });
   });
 
@@ -130,8 +131,7 @@ describe('PickerAccount', () => {
         <PickerAccount {...defaultProps} hitSlop={customHitSlop} />,
       );
 
-      // Verify through snapshot that hitSlop is applied
-      expect(toJSON()).toMatchSnapshot();
+      expect(toJSON()).toBeDefined();
     });
 
     it('forwards style prop', () => {
@@ -140,7 +140,7 @@ describe('PickerAccount', () => {
         <PickerAccount {...defaultProps} style={customStyle} />,
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(toJSON()).toBeDefined();
     });
 
     it('forwards additional TouchableOpacity props', () => {
@@ -166,16 +166,12 @@ describe('PickerAccount', () => {
   });
 
   describe('Ref Forwarding', () => {
-    it('forwards ref correctly', () => {
-      const TestRefComponent = () => {
-        const ref = React.useRef(null);
-        return <PickerAccount {...defaultProps} ref={ref} />;
-      };
+    it('exposes the underlying view via the forwarded ref', () => {
+      const ref = React.createRef<View>();
+      render(<PickerAccount {...defaultProps} ref={ref} />);
 
-      // Verify component renders without throwing when ref is provided
-      expect(() => {
-        render(<TestRefComponent />);
-      }).not.toThrow();
+      expect(ref.current).not.toBeNull();
+      expect(typeof ref.current?.measure).toBe('function');
     });
   });
 

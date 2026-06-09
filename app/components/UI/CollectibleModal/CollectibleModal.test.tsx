@@ -94,11 +94,11 @@ describe('CollectibleModal', () => {
       if (selector === selectChainId) return '0x1';
       return undefined;
     });
-    const { toJSON } = renderWithProvider(<CollectibleModal />, {
+    const { getByText } = renderWithProvider(<CollectibleModal />, {
       state: mockInitialState,
     });
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('Leopard')).toBeOnTheScreen();
   });
 
   it('renders the correct token name and ID', async () => {

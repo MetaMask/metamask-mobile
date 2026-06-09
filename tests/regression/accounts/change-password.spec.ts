@@ -4,6 +4,7 @@ import Matchers from '../../framework/Matchers';
 import Assertions from '../../framework/Assertions';
 import { loginToApp } from '../../flows/wallet.flow';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
+import AccountMenu from '../../page-objects/AccountMenu/AccountMenu';
 import SettingsView from '../../page-objects/Settings/SettingsView';
 import SecurityAndPrivacy from '../../page-objects/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 import WalletView from '../../page-objects/wallet/WalletView';
@@ -81,8 +82,8 @@ describe(RegressionAccounts('change password'), () => {
         await AccountListBottomSheet.swipeToDismissAccountsModal();
 
         // Lock the app and verify again the accounts are still there
-        await TabBarComponent.tapSettings();
-        await SettingsView.tapLock();
+        await TabBarComponent.tapAccountsMenu();
+        await AccountMenu.tapLock();
         await SettingsView.tapYesAlertButton();
         await LoginView.enterPassword(NEWPASSWORD);
 

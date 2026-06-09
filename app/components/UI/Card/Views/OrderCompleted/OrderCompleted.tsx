@@ -8,13 +8,13 @@ import {
   Text,
   TextVariant,
   FontWeight,
-} from '@metamask/design-system-react-native';
-import { strings } from '../../../../../../locales/i18n';
-import Button, {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+  HeaderStandard,
+} from '@metamask/design-system-react-native';
+import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
+import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -33,6 +33,7 @@ const OrderCompleted: React.FC = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const navigation = useNavigation();
   const tw = useTailwind();
+  const headerHandlers = useCardHeaderHandlers('back');
   const { fromUpgrade } = useParams<OrderCompletedParams>();
 
   useEffect(() => {
@@ -77,6 +78,11 @@ const OrderCompleted: React.FC = () => {
       edges={['bottom']}
       testID={OrderCompletedSelectors.CONTAINER}
     >
+      <HeaderStandard
+        includesTopInset
+        twClassName="bg-background-default"
+        {...headerHandlers}
+      />
       <Box twClassName="flex-1 px-4">
         <Box twClassName="flex-1 items-center ">
           <Image
@@ -120,13 +126,14 @@ const OrderCompleted: React.FC = () => {
 
         <Box twClassName="pb-4">
           <Button
-            variant={ButtonVariants.Primary}
-            label={buttonLabel}
+            variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             onPress={handleSetUpCard}
-            width={ButtonWidthTypes.Full}
+            isFullWidth
             testID={OrderCompletedSelectors.SET_UP_CARD_BUTTON}
-          />
+          >
+            {buttonLabel}
+          </Button>
         </Box>
       </Box>
     </SafeAreaView>

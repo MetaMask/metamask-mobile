@@ -72,6 +72,10 @@ jest.mock('./TokenList/TokenList', () => ({
   TokenList: jest.fn().mockImplementation(() => null),
 }));
 
+jest.mock('./TokenListControlBar/TokenListControlBar', () => ({
+  TokenListControlBar: jest.fn().mockImplementation(() => null),
+}));
+
 /**
  * For these unit tests, we do not need to test all the actual components, and can mock them.
  * If we do need to test the actual components in this test, we can use `mockReset` to get back the original component
@@ -394,24 +398,21 @@ describe('Tokens', () => {
   });
 
   describe('showOnlyMusd (Cash view)', () => {
-    it('passes showAddToken false and hideSort true to TokenListControlBar', async () => {
+    it('does not render TokenListControlBar when showOnlyMusd', async () => {
       const { mockSelectSortedAssetsBySelectedAccountGroup } =
         arrangeMockSelectors();
       mockSelectSortedAssetsBySelectedAccountGroup.mockReturnValue([]);
 
-      renderComponent(initialState, true, true);
+      const { queryByTestId } = renderComponent(initialState, true, true);
 
       await waitFor(() => {
-        expect(
-          TokenListControlBarModule.TokenListControlBar,
-        ).toHaveBeenCalledWith(
-          expect.objectContaining({
-            showAddToken: false,
-            hideSort: true,
-          }),
-          expect.anything(),
-        );
+        expect(queryByTestId('tokens-empty-state')).toBeOnTheScreen();
       });
+
+      expect(queryByTestId('token-list-control-bar')).toBeNull();
+      expect(
+        TokenListControlBarModule.TokenListControlBar,
+      ).not.toHaveBeenCalled();
     });
 
     it('does not render add token button when showOnlyMusd', async () => {
@@ -489,12 +490,12 @@ describe('Tokens', () => {
               expect.objectContaining({ address: MUSD_TOKEN_ADDRESS }),
             ]),
           }),
-          expect.anything(),
+          undefined,
         );
       });
     });
 
-    it('includes mUSD when conversion flow is enabled but homepage sections are disabled (legacy wallet view)', async () => {
+    it('includes mUSD when conversion flow is enabled but Money Hub is disabled', async () => {
       const stateWithMusdEnabled = clone(initialRootState);
       (
         stateWithMusdEnabled as Record<string, unknown> &
@@ -530,12 +531,12 @@ describe('Tokens', () => {
               expect.objectContaining({ address: MUSD_TOKEN_ADDRESS }),
             ]),
           }),
-          expect.anything(),
+          undefined,
         );
       });
     });
 
-    it('excludes mUSD from token list when both conversion flow and homepage sections are enabled', async () => {
+    it('excludes mUSD from token list when conversion flow and Money Hub are enabled', async () => {
       const stateWithBothEnabled = clone(initialRootState);
       (
         stateWithBothEnabled as Record<string, unknown> &
@@ -548,7 +549,7 @@ describe('Tokens', () => {
             enabled: true,
             minimumVersion: '1.0.0',
           },
-          homepageSectionsV1: {
+          earnMoneyHubEnabled: {
             enabled: true,
             minimumVersion: '1.0.0',
           },
@@ -575,7 +576,7 @@ describe('Tokens', () => {
               expect.objectContaining({ address: MUSD_TOKEN_ADDRESS }),
             ]),
           }),
-          expect.anything(),
+          undefined,
         );
       });
     });

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dimensions, ScrollView, Platform } from 'react-native';
+import { ScrollView, Platform, useWindowDimensions } from 'react-native';
 import {
   Box,
   BoxJustifyContent,
@@ -30,6 +30,8 @@ const SRPTabView = ({
   onTabChange,
 }: SRPTabViewProps) => {
   const { colors } = useTheme();
+  const { width } = useWindowDimensions();
+  const qrSize = width - 200;
   const trimmedCredential = clipboardPrivateCredential.trim();
   const words = trimmedCredential ? trimmedCredential.split(/\s+/) : [];
   const hasCredential = words.length > 0;
@@ -44,7 +46,7 @@ const SRPTabView = ({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         onChangeTab={(event: any) => onTabChange(event)}
         style={tw.style(
-          `min-h-[${Platform.OS === 'android' ? 320 : 0}px] flex-grow flex-shrink-0 mb-[${Platform.OS === 'android' ? 20 : 0}px]`,
+          `min-h-[${Platform.OS === 'android' ? width : 0}px] mb-[${Platform.OS === 'android' ? 20 : 0}px]`,
         )}
       >
         <CustomTabView
@@ -78,14 +80,21 @@ const SRPTabView = ({
             }
           >
             {hasCredential ? (
-              <QRCode
-                value={clipboardPrivateCredential}
-                size={Dimensions.get('window').width - 200}
-                logo={logo}
-                logoSize={50}
-                backgroundColor={colors.background.default}
-                color={colors.text.default}
-              />
+              <Box
+                twClassName="rounded-2xl overflow-hidden p-3"
+                style={{ backgroundColor: colors.text.default }}
+              >
+                <QRCode
+                  value={clipboardPrivateCredential}
+                  size={qrSize}
+                  color={colors.background.default}
+                  backgroundColor={colors.text.default}
+                  logo={logo}
+                  logoSize={Math.round(qrSize * 0.2)}
+                  logoBackgroundColor={colors.text.default}
+                  logoMargin={4}
+                />
+              </Box>
             ) : null}
           </Box>
         </CustomTabView>

@@ -130,6 +130,16 @@ export const selectRampsOrdersForSelectedAccountGroup = createDeepEqualSelector(
 );
 
 /**
+ * Selects whether the current provider was auto-selected by the system
+ * (soft selection) rather than chosen by the user or derived from order history.
+ */
+export const selectProviderAutoSelected = createSelector(
+  selectRampsControllerState,
+  (rampsControllerState): boolean =>
+    rampsControllerState?.providerAutoSelected ?? false,
+);
+
+/**
  * Selects the transak native provider state (isAuthenticated, userDetails, buyQuote, kycRequirement).
  */
 export const selectTransak = createSelector(

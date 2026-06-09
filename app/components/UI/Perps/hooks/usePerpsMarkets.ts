@@ -76,16 +76,29 @@ export const usePerpsMarkets = (
   } = options;
 
   const streamManager = usePerpsStream();
+  const initialChannelMarkets = streamManager.marketData.getSnapshot();
   const [markets, setMarkets] = useState<PerpsMarketDataWithVolumeNumber[]>(
     () => {
-      const cached = getPreloadedData<PerpsMarketData[]>('cachedMarketData');
-      if (!cached) return [];
-      return filterAndSortMarkets({ marketData: cached, showZeroVolume });
+      const cached =
+        initialChannelMarkets ??
+        getPreloadedData<PerpsMarketData[]>('cachedMarketData');
+      if (!cached) {
+        return [];
+      }
+      const sorted = filterAndSortMarkets({
+        marketData: cached,
+        showZeroVolume,
+      });
+      return sorted;
     },
   );
   const [isLoading, setIsLoading] = useState(() => {
-    if (skipInitialFetch) return false;
-    return !hasPreloadedData('cachedMarketData');
+    if (initialChannelMarkets !== null && initialChannelMarkets !== undefined) {
+      return false;
+    }
+    const hit = hasPreloadedData('cachedMarketData');
+    const loading = skipInitialFetch ? false : !hit;
+    return loading;
   });
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);

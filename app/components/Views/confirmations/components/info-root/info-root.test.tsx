@@ -55,6 +55,7 @@ jest.mock('../info/custom-amount-info', () => ({
 
 jest.mock('../../hooks/gas/useGasFeeToken');
 jest.mock('../../hooks/tokens/useTokenWithBalance');
+jest.mock('../../hooks/pay/useTransactionPayAutoFiatSubmission');
 
 jest.mock('../../../../hooks/useRefreshSmartTransactionsLiveness', () => ({
   useRefreshSmartTransactionsLiveness: jest.fn(),
@@ -173,9 +174,10 @@ describe('Info', () => {
     ).toBeDefined();
   });
 
-  it('renders QRInfo if user is signing using QR hardware', () => {
+  it('renders QRInfo if user is signing using QR hardware and has confirmed', () => {
     jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
       isSigningQRObject: true,
+      signingConfirmed: true,
     } as unknown as QRHardwareHook.QRHardwareContextType);
     const { getByTestId } = renderWithProvider(<Info />, {
       state: personalSignatureConfirmationState,
@@ -231,6 +233,48 @@ describe('Info', () => {
   it('renders CustomAmountInfo for perps withdraw confirmations', () => {
     const { getByTestId } = renderWithProvider(<Info />, {
       state: getAppStateForConfirmation(perpsWithdrawConfirmation),
+    });
+
+    expect(getByTestId('custom-amount-info')).toBeOnTheScreen();
+  });
+
+  it('renders CustomAmountInfo for money account deposit confirmations', () => {
+    const moneyAccountDepositConfirmation = {
+      chainId: '0x89',
+      id: 'money-account-deposit-confirmation-id',
+      networkClientId: 'polygon',
+      origin: 'metamask',
+      txParams: {
+        from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+        to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+        value: '0x0',
+      },
+      type: TransactionType.moneyAccountDeposit,
+    } as unknown as TransactionMeta;
+
+    const { getByTestId } = renderWithProvider(<Info />, {
+      state: getAppStateForConfirmation(moneyAccountDepositConfirmation),
+    });
+
+    expect(getByTestId('custom-amount-info')).toBeOnTheScreen();
+  });
+
+  it('renders CustomAmountInfo for money account withdraw confirmations', () => {
+    const moneyAccountWithdrawConfirmation = {
+      chainId: '0x89',
+      id: 'money-account-withdraw-confirmation-id',
+      networkClientId: 'polygon',
+      origin: 'metamask',
+      txParams: {
+        from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+        to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+        value: '0x0',
+      },
+      type: TransactionType.moneyAccountWithdraw,
+    } as unknown as TransactionMeta;
+
+    const { getByTestId } = renderWithProvider(<Info />, {
+      state: getAppStateForConfirmation(moneyAccountWithdrawConfirmation),
     });
 
     expect(getByTestId('custom-amount-info')).toBeOnTheScreen();

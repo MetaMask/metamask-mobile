@@ -1,11 +1,9 @@
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
-import Text, {
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { Theme } from '@metamask/design-tokens';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 
 interface ConnectHeaderProps {
   action: () => void;
@@ -43,7 +41,7 @@ const ConnectHeader: React.FC<ConnectHeaderProps> = ({ title, action }) => {
       <TouchableOpacity style={styles.back} onPress={action}>
         <IonicIcon name={'arrow-back'} size={24} color={colors.text.default} />
       </TouchableOpacity>
-      <Text variant={TextVariant.BodyMD} style={styles.title}>
+      <Text variant={TextVariant.BodyMd} style={styles.title}>
         {title}
       </Text>
     </View>

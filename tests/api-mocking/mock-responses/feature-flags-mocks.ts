@@ -134,13 +134,6 @@ export const remoteFeatureFlagPredictEnabled = (enabled = true) => ({
   },
 });
 
-export const remoteFeatureFlagHomepageSectionsV1Enabled = (enabled = true) => ({
-  homepageSectionsV1: {
-    enabled,
-    minimumVersion: '0.0.0',
-  },
-});
-
 export const remoteFeatureFlagRampsUnifiedV1Enabled = (active = true) => ({
   rampsUnifiedBuyV1: {
     active,
@@ -186,12 +179,21 @@ export const remoteFeatureFlagTrendingTokensEnabled = (enabled = true) => ({
   trendingTokens: enabled,
 });
 
-export const remoteFeatureFlagExtensionUxPna25 = (enabled = true) => ({
-  extensionUxPna25: enabled,
-});
-
 export const remoteFeatureFlagTronAccounts = (enabled = true) => ({
   tronAccounts: {
+    enabled,
+    minimumVersion: '0.0.0',
+  },
+});
+
+/**
+ * Enables the Market Insights (AI social market analysis) feature on asset details.
+ * Uses minimumVersion '0.0.0' so debug/test builds always pass the version gate.
+ * Selector: selectMarketInsightsEnabled (featureFlagController/marketInsights/index.ts)
+ * Flag key: aiSocialMarketAnalysisEnabled
+ */
+export const remoteFeatureFlagMarketInsightsEnabled = (enabled = true) => ({
+  aiSocialMarketAnalysisEnabled: {
     enabled,
     minimumVersion: '0.0.0',
   },

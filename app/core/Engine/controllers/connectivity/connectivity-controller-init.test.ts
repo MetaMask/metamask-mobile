@@ -1,7 +1,7 @@
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { getConnectivityControllerMessenger } from '../../messengers/connectivity-controller-messenger';
-import { ControllerInitRequest } from '../../types';
+import { MessengerClientInitRequest } from '../../types';
 import { connectivityControllerInit } from './connectivity-controller-init';
 import {
   ConnectivityController,
@@ -15,14 +15,14 @@ import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 jest.mock('./netinfo-connectivity-adapter');
 
 function getInitRequestMock(): jest.Mocked<
-  ControllerInitRequest<ConnectivityControllerMessenger>
+  MessengerClientInitRequest<ConnectivityControllerMessenger>
 > {
   const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>({
     namespace: MOCK_ANY_NAMESPACE,
   });
 
   const requestMock = {
-    ...buildControllerInitRequestMock(baseMessenger),
+    ...buildMessengerClientInitRequestMock(baseMessenger),
     controllerMessenger: getConnectivityControllerMessenger(baseMessenger),
   };
 

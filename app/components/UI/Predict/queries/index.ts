@@ -4,20 +4,39 @@ import {
 } from './accountState';
 import { predictActivityKeys, predictActivityOptions } from './activity';
 import { predictBalanceKeys, predictBalanceOptions } from './balance';
+import {
+  predictFeaturedCarouselKeys,
+  predictFeaturedCarouselOptions,
+} from './featuredCarousel';
+import {
+  predictFilterOptionsKeys,
+  predictFilterOptionsOptions,
+} from './filterOptions';
 import { predictMarketKeys, predictMarketOptions } from './market';
+import { predictMarketListKeys, predictMarketListOptions } from './marketList';
 import {
   predictOrderPreviewKeys,
   predictOrderPreviewOptions,
 } from './orderPreview';
 import { predictPositionsKeys, predictPositionsOptions } from './positions';
 import {
+  predictCryptoPriceHistoryKeys,
+  predictCryptoPriceHistoryOptions,
+} from './cryptoPriceHistory';
+import {
   predictPriceHistoryKeys,
   predictPriceHistoryOptions,
 } from './priceHistory';
+import { predictSeriesKeys, predictSeriesOptions } from './series';
+import {
+  predictCryptoTargetPriceKeys,
+  predictCryptoTargetPriceOptions,
+} from './cryptoTargetPrice';
 import {
   predictUnrealizedPnLKeys,
   predictUnrealizedPnLOptions,
 } from './unrealizedPnL';
+import { predictWorldCupKeys, predictWorldCupOptions } from './worldCup';
 
 export const predictQueries = {
   accountState: {
@@ -32,9 +51,25 @@ export const predictQueries = {
     keys: predictBalanceKeys,
     options: predictBalanceOptions,
   },
+  cryptoTargetPrice: {
+    keys: predictCryptoTargetPriceKeys,
+    options: predictCryptoTargetPriceOptions,
+  },
+  featuredCarousel: {
+    keys: predictFeaturedCarouselKeys,
+    options: predictFeaturedCarouselOptions,
+  },
+  filterOptions: {
+    keys: predictFilterOptionsKeys,
+    options: predictFilterOptionsOptions,
+  },
   market: {
     keys: predictMarketKeys,
     options: predictMarketOptions,
+  },
+  marketList: {
+    keys: predictMarketListKeys,
+    options: predictMarketListOptions,
   },
   orderPreview: {
     keys: predictOrderPreviewKeys,
@@ -44,12 +79,24 @@ export const predictQueries = {
     keys: predictPositionsKeys,
     options: predictPositionsOptions,
   },
+  cryptoPriceHistory: {
+    keys: predictCryptoPriceHistoryKeys,
+    options: predictCryptoPriceHistoryOptions,
+  },
   priceHistory: {
     keys: predictPriceHistoryKeys,
     options: predictPriceHistoryOptions,
   },
+  series: {
+    keys: predictSeriesKeys,
+    options: predictSeriesOptions,
+  },
   unrealizedPnL: {
     keys: predictUnrealizedPnLKeys,
     options: predictUnrealizedPnLOptions,
+  },
+  worldCup: {
+    keys: predictWorldCupKeys,
+    options: predictWorldCupOptions,
   },
 };

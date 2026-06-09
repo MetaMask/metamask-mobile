@@ -1,10 +1,10 @@
 {
   "android_devices": [
     {
-      "name": "Samsung Galaxy S23 Ultra",
-      "os_version": "13.0",
+      "name": "Samsung Galaxy S25 Ultra",
+      "os_version": "15.0",
       "category": "high",
-      "description": "High-end Samsung flagship device with Android 13"
+      "description": "High-end Samsung flagship device with Android 15"
     },
     {
       "name": "Google Pixel 8 Pro",

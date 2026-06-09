@@ -27,8 +27,8 @@ const PredictPicksForCardItem: React.FC<PredictPicksForCardItemProps> = ({
       testID={testID}
       twClassName="flex-row justify-between items-center gap-2"
     >
-      <Text>
-        {strings('predict.position_pick_info_to_win', {
+      <Text numberOfLines={1} twClassName="flex-shrink">
+        {strings('predict.position_pick_info', {
           initialValue: formatPrice(position.initialValue, {
             maximumDecimals: 2,
           }),

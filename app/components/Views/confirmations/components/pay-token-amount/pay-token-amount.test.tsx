@@ -121,4 +121,18 @@ describe('PayTokenAmount', () => {
     expect(queryByTestId('pay-token-amount-skeleton')).toBeNull();
     expect(queryByText(PAY_TOKEN_SYMBOL_MOCK)).toBeNull();
   });
+
+  it.each([
+    TransactionType.moneyAccountDeposit,
+    TransactionType.perpsDeposit,
+    TransactionType.perpsDepositAndOrder,
+    TransactionType.predictDeposit,
+    TransactionType.predictDepositAndOrder,
+  ])('returns null for %s transactions', (transactionType) => {
+    const { queryByTestId, queryByText } = render({ transactionType });
+
+    expect(queryByTestId('pay-token-amount')).toBeNull();
+    expect(queryByTestId('pay-token-amount-skeleton')).toBeNull();
+    expect(queryByText(PAY_TOKEN_SYMBOL_MOCK)).toBeNull();
+  });
 });

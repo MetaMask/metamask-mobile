@@ -4,23 +4,21 @@ import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { useNavigation, type ParamListBase } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import {
-  Text,
-  TextVariant,
-  TextColor,
+  BottomSheet,
   Button,
-  ButtonVariant,
   ButtonBaseSize,
-} from '@metamask/design-system-react-native';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
-import Icon, {
+  ButtonVariant,
+  HeaderStandard,
+  Icon,
+  IconColor,
   IconName,
   IconSize,
-  IconColor,
-} from '../../../../../../component-library/components/Icons/Icon';
-import { useStyles } from '../../../../../../component-library/hooks';
+  Text,
+  TextColor,
+  TextVariant,
+  type BottomSheetRef,
+} from '@metamask/design-system-react-native';
+import { useStyles } from '../../../../../hooks/useStyles';
 import {
   createNavigationDetails,
   useParams,
@@ -29,6 +27,7 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import Logger from '../../../../../../util/Logger';
 import styleSheet from './ErrorDetailsModal.styles';
+import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
 
 export interface ErrorDetailsModalParams {
   errorMessage: string;
@@ -59,6 +58,7 @@ function ErrorDetailsModal() {
     showChangeProvider,
     amount,
   } = useParams<ErrorDetailsModalParams>();
+  const surfaceClass = useElevatedSurface();
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -93,8 +93,12 @@ function ErrorDetailsModal() {
   }, [navigation, amount]);
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <HeaderCompactStandard
+    <BottomSheet
+      ref={sheetRef}
+      goBack={navigation.goBack}
+      twClassName={surfaceClass}
+    >
+      <HeaderStandard
         onClose={handleClose}
         closeButtonProps={{ testID: 'error-details-close-button' }}
       >
@@ -102,13 +106,13 @@ function ErrorDetailsModal() {
           <Icon
             name={IconName.Danger}
             size={IconSize.Md}
-            color={IconColor.Error}
+            color={IconColor.ErrorDefault}
           />
           <Text variant={TextVariant.HeadingMd}>
             {strings('deposit.errors.error_details_title')}
           </Text>
         </View>
-      </HeaderCompactStandard>
+      </HeaderStandard>
 
       <ScrollView style={styles.scrollView}>
         <View style={styles.contentContainer}>

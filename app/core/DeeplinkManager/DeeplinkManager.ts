@@ -8,6 +8,15 @@ import { handleDeeplink } from './handlers/legacy/handleDeeplink';
 import FCMService from '../../util/notifications/services/FCMService';
 import AppConstants from '../AppConstants';
 import { BranchParams } from './types/deepLinkAnalytics.types';
+import {
+  getBrazeInitialDeeplink,
+  subscribeToBrazePushDeeplinks,
+} from '../Braze/BrazeDeeplinks';
+import type { DeeplinkIntent } from './types/DeeplinkIntent';
+
+// `false` means the deeplink was handled but intentionally rejected, for
+// example when the user dismisses the interstitial during startup resolution.
+export type DeeplinkResolveResult = DeeplinkIntent | false | null;
 
 /**
  * When Branch resolves a short link (e.g. metamask-alternate.app.link/1WkF6GmE40b),
@@ -72,14 +81,38 @@ export class DeeplinkManager {
       origin: string;
       onHandled?: () => void;
     },
-  ) {
-    return await parseDeeplink({
+  ): Promise<boolean> {
+    const result = await parseDeeplink({
       deeplinkManager: this,
       url,
       origin,
       browserCallBack,
       onHandled,
     });
+
+    return typeof result === 'boolean' ? result : Boolean(result);
+  }
+
+  async resolve(
+    url: string,
+    {
+      origin,
+    }: {
+      origin: string;
+    },
+  ): Promise<DeeplinkResolveResult> {
+    const result = await parseDeeplink({
+      deeplinkManager: this,
+      url,
+      origin,
+      mode: 'resolve',
+    });
+
+    if (result === false) {
+      return false;
+    }
+
+    return result && typeof result !== 'boolean' ? result : null;
   }
 
   static start() {
@@ -131,6 +164,22 @@ export class DeeplinkManager {
       }
     });
 
+    getBrazeInitialDeeplink().then((deeplink) => {
+      if (deeplink) {
+        handleDeeplink({
+          uri: deeplink,
+          source: AppConstants.DEEPLINKS.ORIGIN_BRAZE,
+        });
+      }
+    });
+
+    subscribeToBrazePushDeeplinks((deeplink) => {
+      handleDeeplink({
+        uri: deeplink,
+        source: AppConstants.DEEPLINKS.ORIGIN_BRAZE,
+      });
+    });
+
     Linking.getInitialURL().then((url) => {
       if (!url) {
         return;
@@ -176,6 +225,12 @@ export default {
       onHandled?: () => void;
     },
   ) => DeeplinkManager.getInstance().parse(url, args),
+  resolve: (
+    url: string,
+    args: {
+      origin: string;
+    },
+  ) => DeeplinkManager.getInstance().resolve(url, args),
   setDeeplink: (url: string) => DeeplinkManager.getInstance().setDeeplink(url),
   getPendingDeeplink: () => DeeplinkManager.getInstance().getPendingDeeplink(),
   expireDeeplink: () => DeeplinkManager.getInstance().expireDeeplink(),

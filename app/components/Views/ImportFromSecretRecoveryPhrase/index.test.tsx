@@ -1,19 +1,23 @@
 import React from 'react';
-import renderWithProvider, {
-  renderScreen,
+import baseRenderWithProvider, {
+  renderScreen as baseRenderScreen,
 } from '../../../util/test/renderWithProvider';
+import ReduxService from '../../../core/redux';
+import type { ReduxStore } from '../../../core/redux/types';
 import ImportFromSecretRecoveryPhrase from '.';
 import Routes from '../../../constants/navigation/Routes';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { ImportFromSeedSelectorsIDs } from './ImportFromSeed.testIds';
 import { strings } from '../../../../locales/i18n';
 import { Authentication } from '../../../core';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ChoosePasswordSelectorsIDs } from '../ChoosePassword/ChoosePassword.testIds';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { MIN_PASSWORD_LENGTH } from '../../../util/password';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { Alert, InteractionManager } from 'react-native';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
@@ -26,15 +30,15 @@ import {
   endTrace,
 } from '../../../util/trace';
 import type { Span } from '@sentry/core';
-import ReduxService from '../../../core/redux/ReduxService';
-import { RootState } from '../../../reducers';
-import { ReduxStore } from '../../../core/redux/types';
 
-jest.mock('react-native/Libraries/Components/Keyboard/Keyboard', () => ({
-  dismiss: jest.fn(),
-  addListener: jest.fn(() => ({ remove: jest.fn() })),
-  removeListener: jest.fn(),
-}));
+jest.mock('react-native/Libraries/Components/Keyboard/Keyboard', () => {
+  const keyboard = {
+    dismiss: jest.fn(),
+    addListener: jest.fn(() => ({ remove: jest.fn() })),
+    removeListener: jest.fn(),
+  };
+  return { __esModule: true, default: keyboard, ...keyboard };
+});
 
 // Mock for keyboard state visibility
 const mockUseKeyboardState = jest.fn();
@@ -94,13 +98,6 @@ const initialState = {
   },
 };
 
-jest.mock(
-  '../../../selectors/featureFlagController/importSrpWordSuggestion',
-  () => ({
-    selectImportSrpWordSuggestionEnabledFlag: () => true,
-  }),
-);
-
 const mockIsEnabled = jest.fn().mockReturnValue(true);
 
 jest.mock('../../hooks/useAnalytics/useAnalytics', () => {
@@ -116,47 +113,27 @@ jest.mock('../../hooks/useAnalytics/useAnalytics', () => {
   };
 });
 
+function renderWithProvider(
+  ...args: Parameters<typeof baseRenderWithProvider>
+) {
+  const result = baseRenderWithProvider(...args);
+  ReduxService.store = result.store as unknown as ReduxStore;
+  return result;
+}
+
+function renderScreen(...args: Parameters<typeof baseRenderScreen>) {
+  const result = baseRenderScreen(...args);
+  ReduxService.store = result.store as unknown as ReduxStore;
+  return result;
+}
+
 describe('ImportFromSecretRecoveryPhrase', () => {
-  const createMockReduxStore = (
-    stateOverrides?: Partial<RootState>,
-  ): ReduxStore => {
-    const defaultState = {
-      user: {
-        existingUser: false,
-        passwordSet: true,
-        seedphraseBackedUp: false,
-      },
-      security: {
-        allowLoginWithRememberMe: false,
-      },
-      settings: {
-        lockTime: -1,
-      },
-      ...(stateOverrides || {}),
-    } as RootState;
-
-    return {
-      dispatch: jest.fn(),
-      getState: jest.fn(() => defaultState),
-      subscribe: jest.fn(),
-      replaceReducer: jest.fn(),
-      [Symbol.observable]: jest.fn(),
-    } as unknown as ReduxStore;
-  };
-
   afterEach(() => {
     jest.clearAllMocks();
-    // Restore Redux store mock after clearing mocks
-    const mockStore = createMockReduxStore();
-    jest.spyOn(ReduxService, 'store', 'get').mockReturnValue(mockStore);
   });
 
   beforeEach(() => {
     jest.clearAllMocks();
-    // Mock Redux store for all tests
-    const mockStore = createMockReduxStore();
-    jest.spyOn(ReduxService, 'store', 'get').mockReturnValue(mockStore);
-
     mockUseKeyboardState.mockImplementation(
       (selector: (state: { isVisible: boolean }) => boolean) =>
         selector({ isVisible: false }),
@@ -177,15 +154,6 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     });
 
   describe('Import a wallet UI', () => {
-    it('render matches snapshot', () => {
-      const { toJSON } = renderScreen(
-        ImportFromSecretRecoveryPhrase,
-        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
-        { state: initialState },
-      );
-      expect(toJSON()).toMatchSnapshot();
-    });
-
     it('renders SRP input screen on initial render', () => {
       const { getByText } = renderScreen(
         ImportFromSecretRecoveryPhrase,
@@ -193,7 +161,6 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         { state: initialState },
       );
 
-      // The component shows the SRP input screen initially
       expect(getByText(strings('import_from_seed.title'))).toBeOnTheScreen();
     });
 
@@ -220,7 +187,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       );
 
       const continueButton = getByRole('button', { name: 'Continue' });
-      expect(continueButton.props.disabled).toBe(true);
+      expect(continueButton).toBeDisabled();
     });
 
     it('renders paste button when no seed phrase is entered', () => {
@@ -237,7 +204,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       jest.mocked(Clipboard.getString).mockResolvedValue('');
     });
 
-    it('renders show all and Paste button when no seed phrase is entered', async () => {
+    it('renders show all and Paste button when no seed phrase is entered', () => {
       const { getByText } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
@@ -335,7 +302,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       // Wait for continue button to be enabled
       await waitFor(
         () => {
-          expect(continueButton.props.disabled).toBe(false);
+          expect(continueButton).toBeEnabled();
         },
         { timeout: 3000 },
       );
@@ -414,7 +381,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       });
     });
 
-    it('renders qr code button', async () => {
+    it('renders qr code button', () => {
       const { getByTestId } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
@@ -513,7 +480,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
       // Verify continue button is still disabled (since it's not a complete seed phrase)
       const continueButton = getByRole('button', { name: 'Continue' });
-      expect(continueButton.props.disabled).toBe(false);
+      expect(continueButton).toBeEnabled();
     });
 
     it('on backspace key press, the input field length is updated', async () => {
@@ -729,7 +696,10 @@ describe('ImportFromSecretRecoveryPhrase', () => {
                 {({ navigation }) => {
                   const navigationSpy = jest.spyOn(navigation, 'goBack');
                   navigationSpy.mockImplementation(mockGoBack);
-                  return React.cloneElement(children, { navigation });
+                  return React.cloneElement(
+                    children as React.ReactElement<{ navigation?: unknown }>,
+                    { navigation },
+                  );
                 }}
               </Stack.Screen>
             </Stack.Navigator>
@@ -1058,7 +1028,10 @@ describe('ImportFromSecretRecoveryPhrase', () => {
                   {({ navigation }) => {
                     navigationSpy = jest.spyOn(navigation, 'navigate');
                     navigationSpy.mockImplementation(() => undefined);
-                    return React.cloneElement(children, { navigation });
+                    return React.cloneElement(
+                      children as React.ReactElement<{ navigation?: unknown }>,
+                      { navigation },
+                    );
                   }}
                 </Stack.Screen>
               </Stack.Navigator>
@@ -1287,16 +1260,16 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       );
 
       // Initially passwords should be hidden
-      expect(passwordInput.props.secureTextEntry).toBe(true);
-      expect(confirmPasswordInput.props.secureTextEntry).toBe(true);
+      expect(passwordInput).toHaveProp('secureTextEntry', true);
+      expect(confirmPasswordInput).toHaveProp('secureTextEntry', true);
 
       // Toggle visibility for new password
       fireEvent.press(newPasswordVisibilityIcon);
-      expect(passwordInput.props.secureTextEntry).toBe(false);
+      expect(passwordInput).toHaveProp('secureTextEntry', false);
 
       // Toggle visibility for confirm password
       fireEvent.press(confirmPasswordVisibilityIcon);
-      expect(confirmPasswordInput.props.secureTextEntry).toBe(false);
+      expect(confirmPasswordInput).toHaveProp('secureTextEntry', false);
     });
 
     it('error message is shown when passwords do not match', async () => {
@@ -1325,7 +1298,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       const confirmPasswordInput = getByTestId(
         ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
       );
-      expect(confirmPasswordInput.props.editable).toBe(false);
+      expect(confirmPasswordInput).toHaveProp('editable', false);
 
       const passwordInput = getByTestId(
         ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
@@ -1333,7 +1306,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       fireEvent.changeText(passwordInput, 'StrongPass123!');
 
       await waitFor(() => {
-        expect(confirmPasswordInput.props.editable).toBe(true);
+        expect(confirmPasswordInput).toHaveProp('editable', true);
       });
     });
 
@@ -1515,7 +1488,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       fireEvent(passwordInput, 'submitEditing');
 
       // Verify that confirm password field is enabled and ready for input
-      expect(confirmPasswordInput.props.editable).toBe(true);
+      expect(confirmPasswordInput).toHaveProp('editable', true);
       expect(confirmPasswordInput.props.value).toBe('');
     });
 
@@ -1961,7 +1934,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
   });
 
   describe('SRP Word Suggestions Feature', () => {
-    it('renders SRP input grid with word suggestions support', async () => {
+    it('renders SRP input grid with word suggestions support', () => {
       const { getByTestId } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         {
@@ -2001,7 +1974,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       expect(srpInput).toBeTruthy();
     });
 
-    it('renders with KeyboardProvider wrapper', async () => {
+    it('renders with KeyboardProvider wrapper', () => {
       const { getByTestId } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         {
@@ -2110,6 +2083,134 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       });
 
       expect(continueButton).toBeTruthy();
+    });
+  });
+
+  describe('account_type analytics', () => {
+    const renderCreatePasswordUIWithParams = async (
+      params: Record<string, unknown> = {},
+    ) => {
+      const { getByText, getByPlaceholderText, getByRole, getByTestId } =
+        renderScreen(
+          ImportFromSecretRecoveryPhrase,
+          { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+          { state: initialState },
+          params,
+        );
+
+      const input = getByPlaceholderText(
+        strings('import_from_seed.srp_placeholder'),
+      );
+
+      await act(async () => {
+        fireEvent.changeText(
+          input,
+          'say devote wasp video cool lunch brief add fever uncover novel offer',
+        );
+      });
+
+      const continueButton = getByRole('button', { name: 'Continue' });
+      fireEvent.press(continueButton);
+
+      return { getByText, getByPlaceholderText, getByRole, getByTestId };
+    };
+
+    it('uses SrpImport account_type on trace when oauthLoginSuccess is false', async () => {
+      const mockTrace = trace as jest.MockedFunction<typeof trace>;
+      mockTrace.mockClear();
+
+      jest
+        .spyOn(Authentication, 'componentAuthenticationType')
+        .mockResolvedValueOnce({
+          currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+          availableBiometryType: BIOMETRY_TYPE.FACE_ID,
+        });
+      jest.spyOn(Authentication, 'newWalletAndRestore').mockResolvedValueOnce();
+
+      const { getByTestId } = await renderCreatePasswordUIWithParams({
+        oauthLoginSuccess: false,
+      });
+
+      const passwordInput = getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+      const confirmPasswordInput = getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+
+      fireEvent.changeText(passwordInput, 'StrongPass123!');
+      fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
+
+      const learnMoreCheckbox = getByTestId(
+        ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
+      );
+      fireEvent.press(learnMoreCheckbox);
+
+      const confirmButton = getByTestId(
+        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      );
+      fireEvent.press(confirmButton);
+
+      await waitFor(() => {
+        expect(mockTrace).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: TraceName.OnboardingSRPAccountImportTime,
+            tags: expect.objectContaining({
+              account_type: 'srp_import',
+              is_social_login: false,
+            }),
+          }),
+        );
+      });
+    });
+
+    it('uses SocialImport account_type on trace when oauthLoginSuccess is true', async () => {
+      const mockTrace = trace as jest.MockedFunction<typeof trace>;
+      mockTrace.mockClear();
+
+      jest
+        .spyOn(Authentication, 'componentAuthenticationType')
+        .mockResolvedValueOnce({
+          currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+          availableBiometryType: BIOMETRY_TYPE.FACE_ID,
+        });
+      jest.spyOn(Authentication, 'newWalletAndRestore').mockResolvedValueOnce();
+
+      const { getByTestId } = await renderCreatePasswordUIWithParams({
+        oauthLoginSuccess: true,
+      });
+
+      const passwordInput = getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+      const confirmPasswordInput = getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+
+      fireEvent.changeText(passwordInput, 'StrongPass123!');
+      fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
+
+      const learnMoreCheckbox = getByTestId(
+        ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
+      );
+      fireEvent.press(learnMoreCheckbox);
+
+      const confirmButton = getByTestId(
+        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      );
+      fireEvent.press(confirmButton);
+
+      await waitFor(() => {
+        expect(mockTrace).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: TraceName.OnboardingSRPAccountImportTime,
+            tags: expect.objectContaining({
+              account_type: 'social_import',
+              is_social_login: true,
+            }),
+          }),
+        );
+      });
     });
   });
 });

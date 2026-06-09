@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react-native';
+import { render, screen, fireEvent } from '@testing-library/react-native';
 import Logger from '../../../../../util/Logger';
 import PerpsAdjustMarginView from './PerpsAdjustMarginView';
 import { type Position } from '@metamask/perps-controller';
@@ -19,20 +19,6 @@ jest.mock('react-native-gesture-handler', () => ({
     }),
   },
 }));
-
-jest.mock('react-native-safe-area-context', () => {
-  const { View } = jest.requireActual('react-native');
-  const inset = { top: 0, right: 0, bottom: 0, left: 0 };
-  return {
-    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
-    SafeAreaView: jest
-      .fn()
-      .mockImplementation(({ children, ...props }) => (
-        <View {...props}>{children}</View>
-      )),
-    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
-  };
-});
 
 const mockHandleAddMargin = jest.fn();
 const mockHandleRemoveMargin = jest.fn();
@@ -127,7 +113,74 @@ jest.mock('../../components/PerpsOrderHeader', () => {
   };
 });
 jest.mock('../../components/PerpsAmountDisplay', () => 'PerpsAmountDisplay');
-jest.mock('../../components/PerpsSlider', () => 'PerpsSlider');
+jest.mock(
+  '../../components/PerpsBottomSheetTooltip',
+  () => 'PerpsBottomSheetTooltip',
+);
+jest.mock('../../components/PerpsSlider', () => {
+  const ReactModule = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return function MockPerpsSlider({
+    onValueChange,
+  }: {
+    onValueChange?: (value: number) => void;
+  }) {
+    return ReactModule.createElement(View, {
+      testID: 'mock-perps-slider',
+      onValueChange,
+    });
+  };
+});
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const { TouchableOpacity, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    Button: ({
+      label,
+      onPress,
+      isDisabled,
+      isLoading,
+      children,
+      ...props
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    }: any) => (
+      <TouchableOpacity
+        onPress={onPress}
+        disabled={isDisabled}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        {...props}
+      >
+        {!isLoading && <Text>{label ?? children}</Text>}
+      </TouchableOpacity>
+    ),
+    ButtonVariant: {
+      Primary: 'Primary',
+      Secondary: 'Secondary',
+    },
+    ButtonSize: {
+      Lg: 'Lg',
+      Sm: 'Sm',
+    },
+  };
+});
+
+jest.mock('../../../../../component-library/components/Icons/Icon', () => {
+  const ReactModule = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ name }: { name: string }) =>
+      ReactModule.createElement(View, { accessibilityLabel: name }),
+    IconName: {
+      ArrowRight: 'ArrowRight',
+      Info: 'Info',
+    },
+    IconSize: { Sm: 'Sm' },
+    IconColor: { Alternative: 'Alternative' },
+  };
+});
 
 describe('PerpsAdjustMarginView', () => {
   const mockPosition: Position = {
@@ -169,7 +222,7 @@ describe('PerpsAdjustMarginView', () => {
       newLiquidationPrice: 1900,
       currentLiquidationDistance: 5,
       newLiquidationDistance: 5,
-      availableBalance: 1000,
+      spendableBalance: 1000,
       currentPrice: 2000,
       isAddMode: true,
       positionLeverage: 10,
@@ -252,7 +305,7 @@ describe('PerpsAdjustMarginView', () => {
         newLiquidationPrice: 1900,
         currentLiquidationDistance: 5,
         newLiquidationDistance: 5,
-        availableBalance: 1000,
+        spendableBalance: 1000,
         currentPrice: 2000,
         isAddMode: false,
         positionLeverage: 10,
@@ -320,7 +373,7 @@ describe('PerpsAdjustMarginView', () => {
         newLiquidationPrice: 0,
         currentLiquidationDistance: 0,
         newLiquidationDistance: 0,
-        availableBalance: 0,
+        spendableBalance: 0,
         currentPrice: 0,
         isAddMode: true,
         positionLeverage: 10,
@@ -440,7 +493,7 @@ describe('PerpsAdjustMarginView', () => {
         newLiquidationPrice: 1900,
         currentLiquidationDistance: 5,
         newLiquidationDistance: 5,
-        availableBalance: 1000,
+        spendableBalance: 1000,
         currentPrice: 2000,
         isAddMode: false,
         positionLeverage: 10,
@@ -454,6 +507,25 @@ describe('PerpsAdjustMarginView', () => {
         screen.getByText('perps.adjust_margin.margin_available_to_remove'),
       ).toBeOnTheScreen();
       expect(screen.getByText('$200.00')).toBeOnTheScreen();
+    });
+  });
+
+  describe('arrow icon correctness', () => {
+    beforeEach(() => {
+      mockRouteParams = {
+        position: mockPosition,
+        mode: 'add',
+      };
+    });
+
+    it('uses ArrowRight (not Arrow2Right) for liquidation price and distance transition arrows', () => {
+      const { getByTestId } = render(<PerpsAdjustMarginView />);
+
+      // Trigger showTransition by setting a non-zero margin amount via the slider
+      fireEvent(getByTestId('mock-perps-slider'), 'valueChange', 100);
+
+      const arrowIcons = screen.getAllByLabelText('ArrowRight');
+      expect(arrowIcons).toHaveLength(2);
     });
   });
 });

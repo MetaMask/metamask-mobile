@@ -51,10 +51,27 @@ export enum DeepLinkRoute {
   PREDICT = 'predict',
   SHIELD = 'shield',
   TRENDING = 'trending',
-  ENABLE_CARD_BUTTON = 'enable-card-button',
+  WHATS_HAPPENING = 'whats-happening',
+  TOP_TRADERS = 'top-traders',
+  SOCIAL_TRADER_POSITION = 'social-trader-position',
   CARD_ONBOARDING = 'card-onboarding',
   CARD_HOME = 'card-home',
   NFT = 'nft',
+  // MetaMask Connect (MMC) over the Mobile Wallet Protocol — the current
+  // `@metamask/connect` product, internally still named "SDKConnectV2".
+  // Its `connect/mwp` deeplinks are intercepted earlier (see handleDeeplink.ts)
+  // and tracked here; this is a separate surface from the MetaMask SDK routes
+  // below.
+  MMC_MWP = 'mmc-mwp',
+  AGENTIC_CLI = 'agentic-cli',
+  // MetaMask SDK deeplinks (`@metamask/sdk` / sdk-communication-layer) — the
+  // older SDK, sometimes called "SDKv1". `connect` and `bind` (ANDROID_SDK) are
+  // the same connect surface. `sdk-` (not `mm-`/`mmc-`) keeps this distinct from
+  // MMC_MWP above: MetaMask Connect (a.k.a. "SDKv2") is a different product and
+  // does NOT map here.
+  SDK_CONNECT = 'sdk-connect',
+  // MetaMask SDK `mmsdk` deeplinks (the SDK's RPC message channel).
+  SDK_MMSDK = 'sdk-mmsdk',
   INVALID = 'invalid',
 }
 
@@ -91,6 +108,13 @@ export interface DeepLinkAnalyticsContext {
 
   /** Branch.io parameters for app installation detection */
   branchParams?: BranchParams;
+
+  /**
+   * Fire-and-forget Branch.io fetch started by `handleUniversalLink` so the
+   * interstitial / handler flow isn't blocked on it. Awaited later by
+   * `createDeepLinkUsedEventBuilder` when building the analytics event
+   */
+  branchParamsPromise?: Promise<BranchParams | undefined>;
 
   /** URL parameters */
   urlParams: Partial<DeeplinkUrlParams>;

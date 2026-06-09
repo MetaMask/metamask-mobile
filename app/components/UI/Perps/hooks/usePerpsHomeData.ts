@@ -8,6 +8,7 @@ import {
 import { usePerpsMarkets } from './usePerpsMarkets';
 import {
   MARKET_SORTING_CONFIG,
+  MarketCategory,
   sortMarkets,
   type Position,
   type Order,
@@ -15,8 +16,12 @@ import {
   type OrderFill,
   type SortField,
 } from '@metamask/perps-controller';
+
 import type { PerpsTransaction } from '../types/transactionHistory';
-import { transformFillsToTransactions } from '../utils/transactionTransforms';
+import {
+  transformFillsToTransactions,
+  mergeOrderFills,
+} from '../utils/transactionTransforms';
 import Engine from '../../../../core/Engine';
 import { HOME_SCREEN_CONFIG } from '../constants/perpsConfig';
 import { selectPerpsWatchlistMarkets } from '../selectors/perpsController';
@@ -94,8 +99,10 @@ export const usePerpsHomeData = ({
   // Note: We don't track loading state - WebSocket data displays immediately,
   // REST fills merge silently in the background via mergedFills
   useEffect(() => {
-    // Guard: Skip REST fetch until connection is ready
-    if (!isConnected || !isInitialized) {
+    // Clear REST history whenever the perps context is reconnecting so we
+    // never blend the previous account/provider's fills into the new context.
+    if (!isConnected || !isInitialized || isConnecting) {
+      setRestFills([]);
       return;
     }
 
@@ -103,12 +110,15 @@ export const usePerpsHomeData = ({
     const fetchFills = async () => {
       try {
         const controller = Engine.context.PerpsController;
-        const provider = controller?.getActiveProviderOrNull();
-        if (!provider) {
+        if (!controller?.getActiveProviderOrNull()) {
           return;
         }
 
-        const fills = await provider.getOrderFills({ aggregateByTime: false });
+        // Route through the controller so the MarketDataService request-coalesce
+        // layer absorbs bursty mounts.
+        const fills = await controller.getOrderFills({
+          aggregateByTime: false,
+        });
         if (isMounted) {
           setRestFills(fills);
         }
@@ -121,42 +131,12 @@ export const usePerpsHomeData = ({
     return () => {
       isMounted = false;
     };
-  }, [isConnected, isInitialized]);
+  }, [isConnected, isInitialized, isConnecting]);
 
-  // Merge REST + WebSocket fills with deduplication
-  // Live fills take precedence over REST fills (more up-to-date)
-  const mergedFills = useMemo(() => {
-    // Use Map for efficient deduplication
-    const fillsMap = new Map<string, OrderFill>();
-
-    // Add REST fills first
-    for (const fill of restFills) {
-      const key = `${fill.orderId}-${fill.timestamp}`;
-      fillsMap.set(key, fill);
-    }
-
-    // Add live fills (overwrites duplicates from REST - live data is fresher)
-    // Preserve detailedOrderType from REST fills since WS fills lack it
-    for (const fill of liveFills) {
-      const key = `${fill.orderId}-${fill.timestamp}`;
-      const existing = fillsMap.get(key);
-      if (existing?.detailedOrderType && !fill.detailedOrderType) {
-        fillsMap.set(key, {
-          ...fill,
-          detailedOrderType: existing.detailedOrderType,
-          ...(existing.liquidation &&
-            !fill.liquidation && { liquidation: existing.liquidation }),
-        });
-      } else {
-        fillsMap.set(key, fill);
-      }
-    }
-
-    // Convert back to array and sort by timestamp descending (newest first)
-    return Array.from(fillsMap.values()).sort(
-      (a, b) => b.timestamp - a.timestamp,
-    );
-  }, [restFills, liveFills]);
+  const mergedFills = useMemo(
+    () => mergeOrderFills(restFills, liveFills),
+    [restFills, liveFills],
+  );
 
   // Transform merged fills to PerpsTransaction format for activity display
   const tradesOnly = useMemo(
@@ -200,11 +180,13 @@ export const usePerpsHomeData = ({
     [allMarkets, sortBy, direction, trendingLimit],
   );
 
-  // Stocks (equity) - top N by user preference
+  // Stocks - top N by user preference
   const stocksMarkets = useMemo(
     () =>
       sortMarkets({
-        markets: allMarkets.filter((m) => m.marketType === 'equity'),
+        markets: allMarkets.filter(
+          (market) => market.marketType === MarketCategory.Stock,
+        ),
         sortBy,
         direction,
       }).slice(0, trendingLimit),
@@ -215,7 +197,9 @@ export const usePerpsHomeData = ({
   const commoditiesMarkets = useMemo(
     () =>
       sortMarkets({
-        markets: allMarkets.filter((m) => m.marketType === 'commodity'),
+        markets: allMarkets.filter(
+          (market) => market.marketType === MarketCategory.Commodity,
+        ),
         sortBy,
         direction,
       }).slice(0, trendingLimit),
@@ -227,7 +211,9 @@ export const usePerpsHomeData = ({
     () =>
       sortMarkets({
         markets: allMarkets.filter(
-          (m) => m.marketType === 'equity' || m.marketType === 'commodity',
+          (market) =>
+            market.marketType === MarketCategory.Stock ||
+            market.marketType === MarketCategory.Commodity,
         ),
         sortBy,
         direction,
@@ -239,7 +225,9 @@ export const usePerpsHomeData = ({
   const forexMarkets = useMemo(
     () =>
       sortMarkets({
-        markets: allMarkets.filter((m) => m.marketType === 'forex'),
+        markets: allMarkets.filter(
+          (m) => m.marketType === MarketCategory.Forex,
+        ),
         sortBy,
         direction,
       }).slice(0, trendingLimit),
@@ -339,14 +327,18 @@ export const usePerpsHomeData = ({
     if (!searchQuery.trim()) {
       return stocksMarkets;
     }
-    return filteredData.markets.filter((m) => m.marketType === 'equity');
+    return filteredData.markets.filter(
+      (market) => market.marketType === MarketCategory.Stock,
+    );
   }, [searchQuery, stocksMarkets, filteredData.markets]);
 
   const searchedCommoditiesMarkets = useMemo(() => {
     if (!searchQuery.trim()) {
       return commoditiesMarkets;
     }
-    return filteredData.markets.filter((m) => m.marketType === 'commodity');
+    return filteredData.markets.filter(
+      (m) => m.marketType === MarketCategory.Commodity,
+    );
   }, [searchQuery, commoditiesMarkets, filteredData.markets]);
 
   const searchedStocksAndCommoditiesMarkets = useMemo(() => {
@@ -354,7 +346,9 @@ export const usePerpsHomeData = ({
       return stocksAndCommoditiesMarkets;
     }
     return filteredData.markets.filter(
-      (m) => m.marketType === 'equity' || m.marketType === 'commodity',
+      (market) =>
+        market.marketType === MarketCategory.Stock ||
+        market.marketType === MarketCategory.Commodity,
     );
   }, [searchQuery, stocksAndCommoditiesMarkets, filteredData.markets]);
 
@@ -362,7 +356,9 @@ export const usePerpsHomeData = ({
     if (!searchQuery.trim()) {
       return forexMarkets;
     }
-    return filteredData.markets.filter((m) => m.marketType === 'forex');
+    return filteredData.markets.filter(
+      (m) => m.marketType === MarketCategory.Forex,
+    );
   }, [searchQuery, forexMarkets, filteredData.markets]);
 
   return {
@@ -376,14 +372,15 @@ export const usePerpsHomeData = ({
     forexMarkets: searchedForexMarkets,
     recentActivity: limitedActivity,
     sortBy,
+    // Hooks handle reconnection internally: clearCache() sends null →
+    // callback sets isInitialLoading=true. No need to override with
+    // isConnecting, which would defeat disk-cache instant display on
+    // cold start (isConnecting is true while WS connects, but cached
+    // data is already available).
     isLoading: {
-      // During reconnection, treat WebSocket-backed data as loading so the UI
-      // shows skeletons instead of briefly flashing "no positions" → positions.
-      positions: isPositionsLoading || isConnecting,
-      orders: isOrdersLoading || isConnecting,
+      positions: isPositionsLoading,
+      orders: isOrdersLoading,
       markets: isMarketsLoading,
-      // Only wait for WebSocket fills (fast ~100ms), not REST fills (slow 3s+)
-      // REST fills merge in background via mergedFills without blocking initial render
       activity: isFillsLoading || isConnecting,
     },
     refresh,

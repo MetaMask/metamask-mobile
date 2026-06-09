@@ -1,6 +1,13 @@
 import React, { useEffect, useCallback, useMemo, useRef } from 'react';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { Box, IconName } from '@metamask/design-system-react-native';
+import {
+  Box,
+  ButtonIcon,
+  ButtonIconSize,
+  IconName,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -11,31 +18,54 @@ import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
 import Routes from '../../../../constants/navigation/Routes';
 import {
   selectActiveTab,
+  selectHasAcceptedVipInvite,
   selectHideUnlinkedAccountsBanner,
   selectHideCurrentAccountNotOptedInBannerArray,
 } from '../../../../reducers/rewards/selectors';
-import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
+import {
+  selectIsCurrentSubscriptionVipEnabled,
+  selectRewardsSubscriptionId,
+} from '../../../../selectors/rewards';
 import { useRewardOptinSummary } from '../hooks/useRewardOptinSummary';
 import {
   useRewardDashboardModals,
   RewardsDashboardModalType,
 } from '../hooks/useRewardDashboardModals';
 import { useBulkLinkState } from '../hooks/useBulkLinkState';
-import Toast from '../../../../component-library/components/Toast';
-import { ToastRef } from '../../../../component-library/components/Toast/Toast.types';
-import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
 import CampaignsPreview from '../components/Campaigns/CampaignsPreview';
 import EarnRewardsPreview from '../components/EarnRewards/EarnRewardsPreview';
+import BenefitsPreview from '../components/Benefits/BenefitsPreview.tsx';
+import { Pressable, ScrollView } from 'react-native';
+import { useOndoOutcomeToast } from '../hooks/useOndoOutcomeToast';
+import { usePerpsTradingCampaignEndedOutcomeToast } from '../hooks/usePerpsTradingCampaignEndedOutcomeToast';
+import { useGetPredictThePitchOutcomeToast } from '../hooks/useGetPredictThePitchOutcomeToast';
+import VipIcon from '../../../../images/rewards/vip.svg';
+import Engine from '../../../../core/Engine';
+
+const VIP_UNLOCK_TAP_COUNT = 5;
+const VIP_UNLOCK_TAP_WINDOW_MS = 3000;
 
 const RewardsDashboard: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
-  const toastRef = useRef<ToastRef>(null);
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const isVipEnabled = useSelector(selectIsCurrentSubscriptionVipEnabled);
+  const hasAcceptedVipInvite = useSelector(
+    selectHasAcceptedVipInvite(subscriptionId),
+  );
   const activeTab = useSelector(selectActiveTab);
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const hasTrackedDashboardViewed = useRef(false);
+
+  useTrackRewardsPageView({ page_type: 'home' });
+  useOndoOutcomeToast();
+  usePerpsTradingCampaignEndedOutcomeToast();
+  useGetPredictThePitchOutcomeToast();
+
   const hideUnlinkedAccountsBanner = useSelector(
     selectHideUnlinkedAccountsBanner,
   );
@@ -167,6 +197,79 @@ const RewardsDashboard: React.FC = () => {
     }
   }, [trackEvent, createEventBuilder]);
 
+  // Hidden VIP unlock: 5 taps on the title within 3s, once per dashboard visit,
+  // only attempted when the user isn't already VIP. A non-null
+  // getVIPDashboard response means the backend considers them VIP-eligible,
+  // so we flip the cached subscription flag locally.
+  const vipUnlockTapCountRef = useRef(0);
+  const vipUnlockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const vipUnlockTriggeredRef = useRef(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      vipUnlockTapCountRef.current = 0;
+      vipUnlockTriggeredRef.current = false;
+      return () => {
+        if (vipUnlockTimerRef.current) {
+          clearTimeout(vipUnlockTimerRef.current);
+          vipUnlockTimerRef.current = null;
+        }
+        vipUnlockTapCountRef.current = 0;
+      };
+    }, []),
+  );
+
+  const handleTitlePress = useCallback(() => {
+    if (isVipEnabled || vipUnlockTriggeredRef.current || !subscriptionId) {
+      return;
+    }
+
+    vipUnlockTapCountRef.current += 1;
+
+    if (vipUnlockTimerRef.current) {
+      clearTimeout(vipUnlockTimerRef.current);
+    }
+    vipUnlockTimerRef.current = setTimeout(() => {
+      vipUnlockTapCountRef.current = 0;
+      vipUnlockTimerRef.current = null;
+    }, VIP_UNLOCK_TAP_WINDOW_MS);
+
+    if (vipUnlockTapCountRef.current < VIP_UNLOCK_TAP_COUNT) {
+      return;
+    }
+
+    vipUnlockTriggeredRef.current = true;
+    vipUnlockTapCountRef.current = 0;
+    if (vipUnlockTimerRef.current) {
+      clearTimeout(vipUnlockTimerRef.current);
+      vipUnlockTimerRef.current = null;
+    }
+
+    (async () => {
+      try {
+        // The controller flips `subscription.features.vip.enabled` as a side
+        // effect when the VIP dashboard fetch returns a non-null payload, so
+        // calling this is enough to update the icon visibility.
+        await Engine.controllerMessenger.call(
+          'RewardsController:getVIPDashboard',
+          subscriptionId,
+        );
+      } catch {
+        // Network/other error — leave the flag as-is. The easter-egg can be
+        // retried by re-entering the dashboard.
+        vipUnlockTriggeredRef.current = false;
+      }
+    })();
+  }, [isVipEnabled, subscriptionId]);
+
+  const handleVipPress = useCallback(() => {
+    navigation.navigate(
+      hasAcceptedVipInvite
+        ? Routes.REWARDS_VIP_VIEW
+        : Routes.REWARDS_VIP_SPLASH_VIEW,
+    );
+  }, [hasAcceptedVipInvite, navigation]);
+
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.REWARDS_DASHBOARD_TAB_VIEWED)
@@ -183,22 +286,59 @@ const RewardsDashboard: React.FC = () => {
         testID={REWARDS_VIEW_SELECTORS.SAFE_AREA_VIEW}
       >
         <HeaderRoot
-          title={strings('rewards.main_title')}
-          endButtonIconProps={[
-            {
-              iconName: IconName.Setting,
-              onPress: () => navigation.navigate(Routes.REWARDS_SETTINGS_VIEW),
-              disabled: !subscriptionId,
-              testID: REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON,
-            },
-          ]}
-        />
-        <Box twClassName="flex-1 gap-4">
-          <CampaignsPreview />
-          <EarnRewardsPreview />
-        </Box>
+          endAccessory={
+            <Box twClassName="flex-row gap-2">
+              {isVipEnabled && (
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={handleVipPress}
+                  style={tw.style('h-8 w-8 items-center justify-center')}
+                  testID={REWARDS_VIEW_SELECTORS.VIP_BUTTON}
+                >
+                  <VipIcon width={24} height={24} name="VipIcon" />
+                </Pressable>
+              )}
+              <ButtonIcon
+                iconName={IconName.UserCircleAdd}
+                onPress={() =>
+                  navigation.navigate(Routes.REFERRAL_REWARDS_VIEW)
+                }
+                size={ButtonIconSize.Md}
+                testID={REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON}
+              />
+              <ButtonIcon
+                disabled={!subscriptionId}
+                iconName={IconName.Setting}
+                onPress={() =>
+                  navigation.navigate(Routes.REWARDS_SETTINGS_VIEW)
+                }
+                size={ButtonIconSize.Md}
+                testID={REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON}
+              />
+            </Box>
+          }
+        >
+          <Pressable
+            accessibilityRole="header"
+            onPress={handleTitlePress}
+            testID={REWARDS_VIEW_SELECTORS.TITLE}
+          >
+            <Text variant={TextVariant.HeadingLg}>
+              {strings('rewards.main_title')}
+            </Text>
+          </Pressable>
+        </HeaderRoot>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          style={tw.style('flex-1')}
+        >
+          <Box twClassName="gap-3">
+            <CampaignsPreview />
+            <EarnRewardsPreview />
+            <BenefitsPreview />
+          </Box>
+        </ScrollView>
       </SafeAreaView>
-      <Toast ref={toastRef} />
     </ErrorBoundary>
   );
 };

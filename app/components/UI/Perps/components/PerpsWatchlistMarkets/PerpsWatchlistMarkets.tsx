@@ -16,6 +16,7 @@ import PerpsMarketRowItem from '../PerpsMarketRowItem';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './PerpsWatchlistMarkets.styles';
 import PerpsRowSkeleton from '../PerpsRowSkeleton';
+import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 interface PerpsWatchlistMarketsProps {
   markets: PerpsMarketData[];
@@ -26,6 +27,8 @@ interface PerpsWatchlistMarketsProps {
   orders?: Order[];
   /** Analytics source identifying the parent screen (e.g., 'perps_home') */
   source?: string;
+  /** Bound onto market-details routes for downstream transaction attribution. */
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   /** Override section styles (e.g., to adjust margins) */
   sectionStyle?: StyleProp<ViewStyle>;
   /** Override header styles (e.g., to remove horizontal padding) */
@@ -40,6 +43,7 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
   positions = [],
   orders = [],
   source,
+  transactionActiveAbTests,
   sectionStyle,
   headerStyle,
   contentContainerStyle,
@@ -67,10 +71,13 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
           market,
           initialTab,
           source,
+          ...(transactionActiveAbTests?.length
+            ? { transactionActiveAbTests }
+            : {}),
         },
       });
     },
-    [navigation, positions, orders, source],
+    [navigation, positions, orders, source, transactionActiveAbTests],
   );
 
   const renderMarket = useCallback(
@@ -101,7 +108,7 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
     return (
       <View style={[styles.section, sectionStyle]}>
         <SectionHeader />
-        <View style={[styles.contentContainer, contentContainerStyle]}>
+        <View style={contentContainerStyle}>
           <PerpsRowSkeleton count={3} />
         </View>
       </View>
@@ -117,7 +124,7 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
   return (
     <View style={[styles.section, sectionStyle]}>
       <SectionHeader />
-      <View style={[styles.contentContainer, contentContainerStyle]}>
+      <View style={contentContainerStyle}>
         <FlatList
           data={markets}
           renderItem={renderMarket}

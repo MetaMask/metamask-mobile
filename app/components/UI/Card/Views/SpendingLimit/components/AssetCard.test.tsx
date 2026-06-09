@@ -16,10 +16,6 @@ jest.mock('../../../util/safeFormatChainIdToHex', () => ({
   safeFormatChainIdToHex: jest.fn(() => '0xe708'),
 }));
 
-jest.mock('../../../../AssetOverview/Balance/Balance', () => ({
-  NetworkBadgeSource: jest.fn(() => ({ uri: 'https://network-badge.url' })),
-}));
-
 const mockBuildTokenIconUrl = buildTokenIconUrl as jest.MockedFunction<
   typeof buildTokenIconUrl
 >;
@@ -90,7 +86,7 @@ describe('AssetCard', () => {
     it('does not render token avatar for "Other" option', () => {
       render({ isOther: true, symbol: 'Other' });
 
-      expect(screen.queryByTestId('token-avatar-image')).toBeNull();
+      expect(screen.queryByTestId('token-avatar-image')).not.toBeOnTheScreen();
     });
   });
 

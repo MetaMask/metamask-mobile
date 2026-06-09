@@ -12,7 +12,6 @@ import {
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import Engine from '../../../core/Engine';
 import { AddNewAccountProps } from './AddNewAccount.types';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 import { MultichainNetwork } from '@metamask/multichain-transactions-controller';
 import { RootState } from '../../../reducers';
@@ -22,32 +21,13 @@ import Logger from '../../../util/Logger';
 import { SolAccountType, TrxScope } from '@metamask/keyring-api';
 import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
 
-const mockAddNewHdAccount = jest.fn().mockResolvedValue(null);
 const mockNavigate = jest.fn();
-
-jest.mock('react-native-safe-area-context', () => {
-  const inset = { top: 0, right: 0, bottom: 0, left: 0 };
-  const frame = { width: 0, height: 0, x: 0, y: 0 };
-  return {
-    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
-    SafeAreaConsumer: jest
-      .fn()
-      .mockImplementation(({ children }) => children(inset)),
-    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
-    useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
-  };
-});
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
   }),
-}));
-
-jest.mock('../../../actions/multiSrp', () => ({
-  addNewHdAccount: (keyringId?: string, name?: string) =>
-    mockAddNewHdAccount(keyringId, name),
 }));
 
 const mockCreateMultichainAccount = jest.fn().mockResolvedValue(null);
@@ -162,12 +142,12 @@ const render = (
   state: RootState,
   params: AddNewAccountProps,
 ): ReturnType<typeof renderWithProvider> =>
-  renderWithProvider(
-    <SafeAreaProvider>
-      <AddNewAccount {...params} />
-    </SafeAreaProvider>,
-    { state },
-  );
+  renderWithProvider(<AddNewAccount {...params} />, { state });
+
+const defaultMultichainParams: AddNewAccountProps = {
+  scope: MultichainNetwork.Solana,
+  clientType: WalletClientType.Solana,
+};
 
 describe('AddNewAccount', () => {
   beforeEach(() => {
@@ -175,7 +155,7 @@ describe('AddNewAccount', () => {
   });
 
   it('shows SRP list when selector is clicked', () => {
-    const { getByText } = render(initialState, {});
+    const { getByText } = render(initialState, defaultMultichainParams);
 
     const srpSelector = getByText(
       strings('accounts.select_secret_recovery_phrase'),
@@ -187,8 +167,11 @@ describe('AddNewAccount', () => {
     ).toBeDefined();
   });
 
-  it('handles SRP selection', async () => {
-    const { getByText, queryByText } = render(initialState, {});
+  it('handles SRP selection', () => {
+    const { getByText, queryByText } = render(
+      initialState,
+      defaultMultichainParams,
+    );
 
     const srpSelector = getByText(
       strings('accounts.select_secret_recovery_phrase'),
@@ -207,53 +190,13 @@ describe('AddNewAccount', () => {
     expect(queryByText('Secret Recovery Phrase 1')).toBeNull();
   });
 
-  it('handles account creation', async () => {
-    const { getByText } = render(initialState, {});
-
-    const addButton = getByText(strings('accounts.add'));
-    fireEvent.press(addButton);
-
-    expect(mockAddNewHdAccount).toHaveBeenCalledWith(
-      mockKeyring2.metadata.id,
-      '',
-    );
-  });
-
   it('handles cancellation', () => {
-    const { getByText } = render(initialState, {});
+    const { getByText } = render(initialState, defaultMultichainParams);
 
     const cancelButton = getByText(strings('accounts.cancel'));
     fireEvent.press(cancelButton);
 
     expect(mockNavigate).toHaveBeenCalled();
-  });
-
-  it('handles back navigation from SRP list', () => {
-    const { getByText } = render(initialState, {});
-
-    const srpSelector = getByText(
-      strings('accounts.select_secret_recovery_phrase'),
-    );
-    fireEvent.press(srpSelector);
-
-    const backButton = getByText(
-      strings('accounts.select_secret_recovery_phrase'),
-    );
-    fireEvent.press(backButton);
-
-    expect(getByText(strings('account_actions.add_account'))).toBeDefined();
-  });
-
-  it('handles error during account creation', async () => {
-    const mockError = new Error('Failed to create account');
-    mockAddNewHdAccount.mockRejectedValueOnce(mockError);
-
-    const { getByText } = render(initialState, {});
-
-    const addButton = getByText(strings('accounts.add'));
-    await fireEvent.press(addButton);
-
-    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   describe('multichain', () => {
@@ -315,7 +258,7 @@ describe('AddNewAccount', () => {
       },
     );
 
-    it('disables buttons while loading', async () => {
+    it('disables buttons while loading', () => {
       const { getByTestId } = render(initialState, {
         scope: MultichainNetwork.Solana,
         clientType: WalletClientType.Solana,
@@ -324,7 +267,7 @@ describe('AddNewAccount', () => {
       const addButton = getByTestId(AddNewAccountIds.CONFIRM);
       fireEvent.press(addButton);
 
-      expect(addButton.props.disabled).toBe(true);
+      expect(addButton).toBeDisabled();
     });
 
     it.each([
@@ -445,7 +388,10 @@ describe('AddNewAccount', () => {
           },
         },
       } as unknown as RootState;
-      const { getByText } = render(stateWithSnapAccount, {});
+      const { getByText } = render(
+        stateWithSnapAccount,
+        defaultMultichainParams,
+      );
 
       // 2 accounts are associated with the primary srp. 1 hd and 1 solana
       expect(getByText('Show 2 accounts')).toBeDefined();

@@ -96,8 +96,46 @@ jest.mock('@metamask/design-system-react-native', () => {
         },
         children,
       ),
+    Button: ({
+      children,
+      testID,
+      onPress,
+      label,
+      isDisabled,
+      disabled,
+      ...props
+    }: {
+      children?: React.ReactNode;
+      testID?: string;
+      onPress?: () => void;
+      label?: string;
+      isDisabled?: boolean;
+      disabled?: boolean;
+      [key: string]: unknown;
+    }) => {
+      const { TouchableOpacity } = jest.requireActual('react-native');
+      return React.createElement(
+        TouchableOpacity,
+        { testID, onPress, disabled: disabled || isDisabled, ...props },
+        React.createElement(
+          Text,
+          { testID: 'button-label' },
+          children || label,
+        ),
+      );
+    },
     TextVariant: {
       BodyLg: 'BodyLg',
+    },
+    ButtonVariant: {
+      Primary: 'Primary',
+      Secondary: 'Secondary',
+      Link: 'Link',
+    },
+    ButtonSize: {
+      Sm: 'Sm',
+      Md: 'Md',
+      Lg: 'Lg',
     },
   };
 });
@@ -581,7 +619,7 @@ describe('ConfirmEmail Component', () => {
       );
 
       const button = getByTestId('confirm-email-continue-button');
-      expect(button.props.disabled).toBe(true);
+      expect(button).toBeDisabled();
     });
 
     it('should remain enabled when confirmation code is incomplete', () => {
@@ -596,7 +634,7 @@ describe('ConfirmEmail Component', () => {
       fireEvent.changeText(codeFieldInput, '123');
 
       const button = getByTestId('confirm-email-continue-button');
-      expect(button.props.disabled).toBe(false);
+      expect(button).not.toBeDisabled();
     });
 
     it('should be enabled when confirmation code is complete', () => {
@@ -611,7 +649,7 @@ describe('ConfirmEmail Component', () => {
       fireEvent.changeText(codeFieldInput, '123456');
 
       const button = getByTestId('confirm-email-continue-button');
-      expect(button.props.disabled).toBe(false);
+      expect(button).not.toBeDisabled();
     });
 
     it('should navigate to CONFIRM_PHONE_NUMBER when continue button is pressed', async () => {

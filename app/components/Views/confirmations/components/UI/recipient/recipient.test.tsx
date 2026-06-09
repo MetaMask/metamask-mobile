@@ -10,7 +10,7 @@ describe('Recipient', () => {
   const createMockRecipient = (
     overrides: Partial<RecipientType> = {},
   ): RecipientType => ({
-    accountName: 'John Doe',
+    accountGroupName: 'John Doe',
     address: '0x1234567890123456789012345678901234567890',
     ...overrides,
   });
@@ -23,7 +23,7 @@ describe('Recipient', () => {
 
   it('renders recipient name correctly', () => {
     const mockRecipient = createMockRecipient({
-      accountName: 'Alice Smith',
+      accountGroupName: 'Alice Smith',
     });
 
     const { getByText } = renderWithProvider(
@@ -111,7 +111,7 @@ describe('Recipient', () => {
     expect(getByText('0x12345...67890')).toBeOnTheScreen();
   });
 
-  it('renders contact name when BIP44 is true and account group name is not provided', () => {
+  it('renders contact name when account group name is not provided', () => {
     const mockRecipient = createMockRecipient({
       accountGroupName: undefined,
       contactName: 'Contact Name',
@@ -120,7 +120,6 @@ describe('Recipient', () => {
     const { getByText } = renderWithProvider(
       <Recipient
         recipient={mockRecipient}
-        isBIP44
         accountAvatarType={AvatarAccountType.JazzIcon}
         onPress={mockOnPress}
       />,
@@ -129,8 +128,26 @@ describe('Recipient', () => {
     expect(getByText('Contact Name')).toBeOnTheScreen();
   });
 
+  it('renders account group name when provided', () => {
+    const mockRecipient = createMockRecipient({
+      accountGroupName: 'My Wallet',
+      contactName: 'Contact Name',
+    });
+
+    const { getByText } = renderWithProvider(
+      <Recipient
+        recipient={mockRecipient}
+        accountAvatarType={AvatarAccountType.JazzIcon}
+        onPress={mockOnPress}
+      />,
+    );
+
+    expect(getByText('My Wallet')).toBeOnTheScreen();
+  });
+
   it('renders BTC account type label when account type is BTC', () => {
     const mockRecipient = createMockRecipient({
+      accountGroupName: 'BTC Wallet',
       accountType: BtcAccountType.P2wpkh,
     });
 

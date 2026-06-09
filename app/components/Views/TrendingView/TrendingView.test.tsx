@@ -2,6 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -53,6 +54,20 @@ const TrendingView: React.FC = () => (
     <Stack.Screen name={Routes.TRENDING_FEED} component={ExploreFeed} />
   </Stack.Navigator>
 );
+
+const renderTrendingView = () => {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false, cacheTime: 0 } },
+  });
+
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <NavigationContainer>
+        <TrendingView />
+      </NavigationContainer>
+    </QueryClientProvider>,
+  );
+};
 
 jest.mock('../../../components/hooks/useMetrics', () => ({
   useMetrics: () => ({
@@ -193,11 +208,7 @@ describe('TrendingView', () => {
         createMockSelectorImplementation({ browserTabsCount: 0 }),
       );
 
-      const { getByTestId, queryByText } = render(
-        <NavigationContainer>
-          <TrendingView />
-        </NavigationContainer>,
-      );
+      const { getByTestId, queryByText } = renderTrendingView();
 
       const browserButton = getByTestId('trending-view-browser-button');
       expect(browserButton).toBeOnTheScreen();
@@ -209,11 +220,7 @@ describe('TrendingView', () => {
         createMockSelectorImplementation({ browserTabsCount: 1 }),
       );
 
-      const { getByText } = render(
-        <NavigationContainer>
-          <TrendingView />
-        </NavigationContainer>,
-      );
+      const { getByText } = renderTrendingView();
 
       expect(getByText('1')).toBeOnTheScreen();
     });
@@ -223,11 +230,7 @@ describe('TrendingView', () => {
         createMockSelectorImplementation({ browserTabsCount: 5 }),
       );
 
-      const { getByText } = render(
-        <NavigationContainer>
-          <TrendingView />
-        </NavigationContainer>,
-      );
+      const { getByText } = renderTrendingView();
 
       expect(getByText('5')).toBeOnTheScreen();
     });
@@ -237,11 +240,7 @@ describe('TrendingView', () => {
         createMockSelectorImplementation({ browserTabsCount: 99 }),
       );
 
-      const { getByText } = render(
-        <NavigationContainer>
-          <TrendingView />
-        </NavigationContainer>,
-      );
+      const { getByText } = renderTrendingView();
 
       expect(getByText('99')).toBeOnTheScreen();
     });
@@ -251,11 +250,7 @@ describe('TrendingView', () => {
         createMockSelectorImplementation({ browserTabsCount: 0 }),
       );
 
-      const { getByTestId } = render(
-        <NavigationContainer>
-          <TrendingView />
-        </NavigationContainer>,
-      );
+      const { getByTestId } = renderTrendingView();
 
       const browserButton = getByTestId('trending-view-browser-button');
       fireEvent.press(browserButton);
@@ -277,11 +272,7 @@ describe('TrendingView', () => {
         createMockSelectorImplementation({ browserTabsCount: 3 }),
       );
 
-      const { getByTestId } = render(
-        <NavigationContainer>
-          <TrendingView />
-        </NavigationContainer>,
-      );
+      const { getByTestId } = renderTrendingView();
 
       const browserButton = getByTestId('trending-view-browser-button');
       fireEvent.press(browserButton);
@@ -309,21 +300,13 @@ describe('TrendingView', () => {
   });
 
   it('renders title in header', () => {
-    const { getByText } = render(
-      <NavigationContainer>
-        <TrendingView />
-      </NavigationContainer>,
-    );
+    const { getByText } = renderTrendingView();
 
     expect(getByText('Explore')).toBeOnTheScreen();
   });
 
   it('wraps screen in SafeAreaView', () => {
-    const { getByTestId } = render(
-      <NavigationContainer>
-        <TrendingView />
-      </NavigationContainer>,
-    );
+    const { getByTestId } = renderTrendingView();
 
     expect(
       getByTestId(TrendingViewSelectorsIDs.EXPLORE_SAFE_AREA),
@@ -331,11 +314,7 @@ describe('TrendingView', () => {
   });
 
   it('renders HeaderRoot', () => {
-    const { getByTestId } = render(
-      <NavigationContainer>
-        <TrendingView />
-      </NavigationContainer>,
-    );
+    const { getByTestId } = renderTrendingView();
 
     expect(
       getByTestId(TrendingViewSelectorsIDs.EXPLORE_HEADER_ROOT),
@@ -343,11 +322,7 @@ describe('TrendingView', () => {
   });
 
   it('renders search bar button', () => {
-    const { getByTestId } = render(
-      <NavigationContainer>
-        <TrendingView />
-      </NavigationContainer>,
-    );
+    const { getByTestId } = renderTrendingView();
 
     const searchButton = getByTestId('explore-view-search-button');
 
@@ -355,11 +330,7 @@ describe('TrendingView', () => {
   });
 
   it('navigates to ExploreSearch route when search bar is pressed', () => {
-    const { getByTestId } = render(
-      <NavigationContainer>
-        <TrendingView />
-      </NavigationContainer>,
-    );
+    const { getByTestId } = renderTrendingView();
 
     const searchButton = getByTestId('explore-view-search-button');
     fireEvent.press(searchButton);
@@ -373,11 +344,7 @@ describe('TrendingView', () => {
         createMockSelectorImplementation({ basicFunctionalityEnabled: false }),
       );
 
-      const { getByTestId } = render(
-        <NavigationContainer>
-          <TrendingView />
-        </NavigationContainer>,
-      );
+      const { getByTestId } = renderTrendingView();
 
       expect(getByTestId('basic-functionality-empty-state')).toBeOnTheScreen();
     });

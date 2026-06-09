@@ -1,24 +1,51 @@
 import AppConstants from '../../../AppConstants';
+import { ACTIONS, PROTOCOLS } from '../../../../constants/deeplinks';
 
 const {
   MM_UNIVERSAL_LINK_HOST,
   MM_UNIVERSAL_LINK_HOST_ALTERNATE,
+  MM_UNIVERSAL_LINK_TEST_APP_HOST,
+  MM_UNIVERSAL_LINK_TEST_APP_HOST_ALTERNATE,
   MM_IO_UNIVERSAL_LINK_HOST,
   MM_IO_UNIVERSAL_LINK_TEST_HOST,
 } = AppConstants;
 
-const METAMASK_HOSTS = [
+export const METAMASK_DEEPLINK_HOSTS: readonly string[] = [
   ...new Set(
     [
-      MM_UNIVERSAL_LINK_HOST || 'link.metamask.io',
-      MM_UNIVERSAL_LINK_HOST_ALTERNATE || 'metamask-alternate.app.link',
-      MM_IO_UNIVERSAL_LINK_HOST || 'link.metamask.io',
-      MM_IO_UNIVERSAL_LINK_TEST_HOST || 'link-test.metamask.io',
-      'metamask.app.link',
-      'metamask.test-app.link',
+      MM_UNIVERSAL_LINK_HOST,
+      MM_UNIVERSAL_LINK_HOST_ALTERNATE,
+      MM_IO_UNIVERSAL_LINK_HOST,
+      MM_IO_UNIVERSAL_LINK_TEST_HOST,
+      MM_UNIVERSAL_LINK_TEST_APP_HOST,
+      MM_UNIVERSAL_LINK_TEST_APP_HOST_ALTERNATE,
     ].filter(Boolean),
   ),
 ];
+
+export const METAMASK_SDK_DEEPLINK_ACTIONS = [
+  ACTIONS.ANDROID_SDK,
+  ACTIONS.CONNECT,
+  ACTIONS.MMSDK,
+] as const;
+
+export const SDK_SERVICE_DEEPLINK_ACTIONS = [
+  ...METAMASK_SDK_DEEPLINK_ACTIONS,
+  ACTIONS.WC,
+] as const;
+
+type MetaMaskSDKDeeplinkAction = (typeof METAMASK_SDK_DEEPLINK_ACTIONS)[number];
+type SDKServiceDeeplinkAction = (typeof SDK_SERVICE_DEEPLINK_ACTIONS)[number];
+
+export const isMetaMaskSDKDeeplinkAction = (
+  action: string,
+): action is MetaMaskSDKDeeplinkAction =>
+  METAMASK_SDK_DEEPLINK_ACTIONS.includes(action as MetaMaskSDKDeeplinkAction);
+
+const isSDKServiceDeeplinkAction = (
+  action: string,
+): action is SDKServiceDeeplinkAction =>
+  SDK_SERVICE_DEEPLINK_ACTIONS.includes(action as SDKServiceDeeplinkAction);
 
 /**
  * Checks if a URL is a MetaMask universal link (host-based only).
@@ -37,7 +64,45 @@ export const isMetaMaskUniversalLink = (
 
   try {
     const urlObj = new URL(url);
-    return METAMASK_HOSTS.includes(urlObj.hostname);
+    return METAMASK_DEEPLINK_HOSTS.includes(urlObj.hostname);
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * Checks if a deeplink is backed by SDKConnect / WalletConnect services.
+ *
+ * Used by the cold-start saga to preserve the fast path for normal deeplinks
+ * while waiting for SDK/WC initialization before service-backed deeplinks are
+ * parsed.
+ */
+export const isSDKServiceDeeplink = (
+  url: string | null | undefined,
+): boolean => {
+  if (!url) return false;
+
+  try {
+    const urlObj = new URL(url);
+    const protocol = urlObj.protocol.replace(':', '');
+
+    if (protocol === PROTOCOLS.WC) {
+      return true;
+    }
+
+    if (protocol === PROTOCOLS.METAMASK) {
+      return isSDKServiceDeeplinkAction(urlObj.hostname);
+    }
+
+    if (
+      (protocol === PROTOCOLS.HTTP || protocol === PROTOCOLS.HTTPS) &&
+      METAMASK_DEEPLINK_HOSTS.includes(urlObj.hostname)
+    ) {
+      const action = urlObj.pathname.split('/').filter(Boolean)[0] ?? '';
+      return isSDKServiceDeeplinkAction(action);
+    }
+
+    return false;
   } catch {
     return false;
   }

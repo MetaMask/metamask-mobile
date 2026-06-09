@@ -1,10 +1,12 @@
 import { NativeEventSubscription } from 'react-native';
-import { analytics } from '@metamask/sdk-analytics';
 import Logger from '../../util/Logger';
 import AppConstants from '../AppConstants';
 
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
-import { NavigationContainerRef } from '@react-navigation/native';
+import {
+  NavigationContainerRef,
+  ParamListBase,
+} from '@react-navigation/native';
 import Engine from '../../core/Engine';
 import { Connection, ConnectionProps } from './Connection';
 import {
@@ -51,7 +53,7 @@ export interface approveHostProps {
 }
 
 export interface SDKConnectState {
-  navigation?: NavigationContainerRef;
+  navigation?: NavigationContainerRef<ParamListBase>;
   reconnected: boolean;
 
   // Track init status to ensure connection recovery priority and prevent double initialization.
@@ -357,8 +359,6 @@ export class SDKConnect {
     const navigation = NavigationService.navigation;
     const instance = SDKConnect.getInstance();
 
-    analytics.setGlobalProperty('platform', 'mobile');
-    analytics.enable();
     await init({ navigation, context, instance });
     await instance.postInit();
   }

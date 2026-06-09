@@ -2,16 +2,14 @@ import { renderHook, act } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { usePredictActiveOrder } from './usePredictActiveOrder';
-import { ActiveOrderState, Recurrence } from '../types';
-import { PredictTradeStatus } from '../constants/eventNames';
+import { ActiveOrderState } from '../types';
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PredictController: {
-      setActiveOrder: jest.fn(),
       clearActiveOrder: jest.fn(),
-      setSelectedPaymentToken: jest.fn(),
-      trackPredictOrderEvent: jest.fn(),
+      clearOrderError: jest.fn(),
+      initializeOrder: jest.fn(),
     },
   },
 }));
@@ -20,336 +18,67 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-jest.mock('../utils/analytics', () => ({
-  parseAnalyticsProperties: jest.fn(() => ({ marketId: 'market-1' })),
-}));
-
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+
+const MOCK_ADDRESS = '0xabc123';
+
+const mockAccountsController = {
+  internalAccounts: {
+    selectedAccount: 'acct-1',
+    accounts: {
+      'acct-1': {
+        address: MOCK_ADDRESS,
+        type: 'eip155:eoa',
+        id: 'acct-1',
+        metadata: {
+          name: 'Account 1',
+          keyring: { type: 'HD Key Tree' },
+          importTime: 0,
+          lastSelected: 0,
+        },
+        options: {},
+        methods: [],
+        scopes: [],
+      },
+    },
+  },
+};
+
+const createMockState = (activeBuyOrder: Record<string, unknown> | null) => ({
+  engine: {
+    backgroundState: {
+      PredictController: {
+        activeBuyOrders: activeBuyOrder
+          ? { [MOCK_ADDRESS]: activeBuyOrder }
+          : {},
+      },
+      AccountsController: mockAccountsController,
+    },
+  },
+});
 
 describe('usePredictActiveOrder', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseSelector.mockReturnValue(undefined);
-  });
+    mockUseSelector.mockImplementation((selector) => {
+      if (typeof selector === 'function') {
+        return selector(createMockState({ state: ActiveOrderState.PREVIEW }));
+      }
 
-  describe('updateActiveOrder', () => {
-    it('sets full order when state property is present', () => {
-      const { result } = renderHook(() => usePredictActiveOrder());
-
-      act(() => {
-        result.current.updateActiveOrder({ state: ActiveOrderState.PREVIEW });
-      });
-
-      expect(
-        Engine.context.PredictController.setActiveOrder,
-      ).toHaveBeenCalledWith({ state: ActiveOrderState.PREVIEW });
-    });
-
-    it('clears activeOrder when called with null', () => {
-      const { result } = renderHook(() => usePredictActiveOrder());
-
-      act(() => {
-        result.current.updateActiveOrder(null);
-      });
-
-      expect(
-        Engine.context.PredictController.clearActiveOrder,
-      ).toHaveBeenCalled();
-    });
-
-    it('calls clearActiveOrder and setSelectedPaymentToken(null) when null', () => {
-      const { result } = renderHook(() => usePredictActiveOrder());
-
-      act(() => {
-        result.current.updateActiveOrder(null);
-      });
-
-      expect(
-        Engine.context.PredictController.clearActiveOrder,
-      ).toHaveBeenCalled();
-      expect(
-        Engine.context.PredictController.setSelectedPaymentToken,
-      ).toHaveBeenCalledWith(null);
-    });
-
-    it('deletes amount property when amount is null in patch', () => {
-      mockUseSelector.mockReturnValue({
-        state: ActiveOrderState.PREVIEW,
-        amount: '100',
-      });
-
-      const { result } = renderHook(() => usePredictActiveOrder());
-
-      act(() => {
-        result.current.updateActiveOrder({ amount: null });
-      });
-
-      const callArg = (
-        Engine.context.PredictController.setActiveOrder as jest.Mock
-      ).mock.calls[0][0];
-      expect(callArg).not.toHaveProperty('amount');
-    });
-
-    it('deletes batchId property when batchId is null in patch', () => {
-      mockUseSelector.mockReturnValue({
-        state: ActiveOrderState.PREVIEW,
-        batchId: 'batch-123',
-      });
-
-      const { result } = renderHook(() => usePredictActiveOrder());
-
-      act(() => {
-        result.current.updateActiveOrder({ batchId: null });
-      });
-
-      const callArg = (
-        Engine.context.PredictController.setActiveOrder as jest.Mock
-      ).mock.calls[0][0];
-      expect(callArg).not.toHaveProperty('batchId');
-    });
-
-    it('deletes isInputFocused when null in patch', () => {
-      mockUseSelector.mockReturnValue({
-        state: ActiveOrderState.PREVIEW,
-        isInputFocused: true,
-      });
-
-      const { result } = renderHook(() => usePredictActiveOrder());
-
-      act(() => {
-        result.current.updateActiveOrder({ isInputFocused: null });
-      });
-
-      const callArg = (
-        Engine.context.PredictController.setActiveOrder as jest.Mock
-      ).mock.calls[0][0];
-      expect(callArg).not.toHaveProperty('isInputFocused');
-    });
-
-    it('deletes state when null in patch', () => {
-      mockUseSelector.mockReturnValue({
-        state: ActiveOrderState.PREVIEW,
-      });
-
-      const { result } = renderHook(() => usePredictActiveOrder());
-
-      act(() => {
-        result.current.updateActiveOrder({ state: null });
-      });
-
-      expect(
-        Engine.context.PredictController.setActiveOrder,
-      ).toHaveBeenCalledWith(null);
-    });
-
-    it('deletes error when null in patch', () => {
-      mockUseSelector.mockReturnValue({
-        state: ActiveOrderState.PREVIEW,
-        error: 'some error',
-      });
-
-      const { result } = renderHook(() => usePredictActiveOrder());
-
-      act(() => {
-        result.current.updateActiveOrder({ error: null });
-      });
-
-      const callArg = (
-        Engine.context.PredictController.setActiveOrder as jest.Mock
-      ).mock.calls[0][0];
-      expect(callArg).not.toHaveProperty('error');
-    });
-
-    it('merges patch with existing activeOrder state', () => {
-      mockUseSelector.mockReturnValue({
-        state: ActiveOrderState.PREVIEW,
-        isInputFocused: true,
-      });
-
-      const { result } = renderHook(() => usePredictActiveOrder());
-
-      act(() => {
-        result.current.updateActiveOrder({
-          state: ActiveOrderState.PLACING_ORDER,
-        });
-      });
-
-      expect(
-        Engine.context.PredictController.setActiveOrder,
-      ).toHaveBeenCalledWith({
-        state: ActiveOrderState.PLACING_ORDER,
-        isInputFocused: true,
-      });
-    });
-
-    it('passes null to setActiveOrder when state is removed from nextOrder', () => {
-      mockUseSelector.mockReturnValue({
-        state: ActiveOrderState.PREVIEW,
-        isInputFocused: true,
-      });
-
-      const { result } = renderHook(() => usePredictActiveOrder());
-
-      act(() => {
-        result.current.updateActiveOrder({ state: null });
-      });
-
-      expect(
-        Engine.context.PredictController.setActiveOrder,
-      ).toHaveBeenCalledWith(null);
+      return undefined;
     });
   });
 
-  describe('initializeActiveOrder', () => {
-    it('sets state to PREVIEW and isInputFocused to true', () => {
+  describe('clearOrderError', () => {
+    it('delegates to PredictController.clearOrderError', () => {
       const { result } = renderHook(() => usePredictActiveOrder());
 
       act(() => {
-        result.current.initializeActiveOrder({
-          market: {
-            id: 'market-1',
-            providerId: 'provider-1',
-            slug: 'market-slug',
-            title: 'Market Title',
-            description: 'Market Description',
-            image: 'image-url',
-            status: 'open',
-            recurrence: Recurrence.NONE,
-            category: 'trending' as const,
-            tags: [],
-            outcomes: [],
-            liquidity: 1000,
-            volume: 5000,
-          },
-          outcomeToken: { id: 'token-1', title: 'Yes', price: 0.6 },
-        });
+        result.current.clearOrderError();
       });
 
       expect(
-        Engine.context.PredictController.setActiveOrder,
-      ).toHaveBeenCalledWith({
-        state: ActiveOrderState.PREVIEW,
-        isInputFocused: true,
-      });
-    });
-
-    it('calls setSelectedPaymentToken with null', () => {
-      const { result } = renderHook(() => usePredictActiveOrder());
-
-      act(() => {
-        result.current.initializeActiveOrder({
-          market: {
-            id: 'market-1',
-            providerId: 'provider-1',
-            slug: 'market-slug',
-            title: 'Market Title',
-            description: 'Market Description',
-            image: 'image-url',
-            status: 'open',
-            recurrence: Recurrence.NONE,
-            category: 'trending' as const,
-            tags: [],
-            outcomes: [],
-            liquidity: 1000,
-            volume: 5000,
-          },
-          outcomeToken: { id: 'token-1', title: 'Yes', price: 0.6 },
-        });
-      });
-
-      expect(
-        Engine.context.PredictController.setSelectedPaymentToken,
-      ).toHaveBeenCalledWith(null);
-    });
-
-    it('calls trackPredictOrderEvent with INITIATED status', () => {
-      const { result } = renderHook(() => usePredictActiveOrder());
-
-      act(() => {
-        result.current.initializeActiveOrder({
-          market: {
-            id: 'market-1',
-            providerId: 'provider-1',
-            slug: 'market-slug',
-            title: 'Market Title',
-            description: 'Market Description',
-            image: 'image-url',
-            status: 'open',
-            recurrence: Recurrence.NONE,
-            category: 'trending' as const,
-            tags: [],
-            outcomes: [],
-            liquidity: 1000,
-            volume: 5000,
-          },
-          outcomeToken: { id: 'token-1', title: 'Yes', price: 0.6 },
-        });
-      });
-
-      expect(
-        Engine.context.PredictController.trackPredictOrderEvent,
-      ).toHaveBeenCalledWith(
-        expect.objectContaining({ status: PredictTradeStatus.INITIATED }),
-      );
-    });
-
-    it('passes parsed analytics properties from market/outcomeToken/entryPoint', () => {
-      const { parseAnalyticsProperties } = jest.requireMock(
-        '../utils/analytics',
-      ) as { parseAnalyticsProperties: jest.Mock };
-
-      const mockMarket = {
-        id: 'market-1',
-        providerId: 'provider-1',
-        slug: 'market-slug',
-        title: 'Market Title',
-        description: 'Market Description',
-        image: 'image-url',
-        status: 'open' as const,
-        recurrence: Recurrence.NONE,
-        category: 'trending' as const,
-        tags: [],
-        outcomes: [],
-        liquidity: 1000,
-        volume: 5000,
-      };
-      const mockOutcomeToken = { id: 'token-1', title: 'Yes', price: 0.6 };
-      const mockEntryPoint = 'carousel' as const;
-
-      const { result } = renderHook(() => usePredictActiveOrder());
-
-      act(() => {
-        result.current.initializeActiveOrder({
-          market: mockMarket,
-          outcomeToken: mockOutcomeToken,
-          entryPoint: mockEntryPoint,
-        });
-      });
-
-      expect(parseAnalyticsProperties).toHaveBeenCalledWith(
-        mockMarket,
-        mockOutcomeToken,
-        mockEntryPoint,
-      );
-      expect(
-        Engine.context.PredictController.trackPredictOrderEvent,
-      ).toHaveBeenCalledWith({
-        status: PredictTradeStatus.INITIATED,
-        analyticsProperties: { marketId: 'market-1' },
-      });
-    });
-  });
-
-  describe('clearActiveOrder', () => {
-    it('calls PredictController.clearActiveOrder', () => {
-      const { result } = renderHook(() => usePredictActiveOrder());
-
-      act(() => {
-        result.current.clearActiveOrder();
-      });
-
-      expect(
-        Engine.context.PredictController.clearActiveOrder,
+        Engine.context.PredictController.clearOrderError,
       ).toHaveBeenCalled();
     });
   });
@@ -358,13 +87,64 @@ describe('usePredictActiveOrder', () => {
     it('returns activeOrder from useSelector', () => {
       const mockActiveOrder = {
         state: ActiveOrderState.PREVIEW,
-        isInputFocused: true,
       };
-      mockUseSelector.mockReturnValue(mockActiveOrder);
+      mockUseSelector.mockImplementation((selector) => {
+        if (typeof selector === 'function') {
+          return selector(createMockState(mockActiveOrder));
+        }
+        return undefined;
+      });
 
       const { result } = renderHook(() => usePredictActiveOrder());
 
       expect(result.current.activeOrder).toEqual(mockActiveOrder);
+    });
+
+    it('returns isDepositing when active order is depositing', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (typeof selector === 'function') {
+          return selector(
+            createMockState({ state: ActiveOrderState.DEPOSITING }),
+          );
+        }
+        return undefined;
+      });
+
+      const { result } = renderHook(() => usePredictActiveOrder());
+
+      expect(result.current.isDepositing).toBe(true);
+      expect(result.current.isPlacingOrder).toBe(true);
+    });
+
+    it('returns isPlacingOrder when active order is placing order', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (typeof selector === 'function') {
+          return selector(
+            createMockState({ state: ActiveOrderState.PLACING_ORDER }),
+          );
+        }
+        return undefined;
+      });
+
+      const { result } = renderHook(() => usePredictActiveOrder());
+
+      expect(result.current.isDepositing).toBe(false);
+      expect(result.current.isPlacingOrder).toBe(true);
+    });
+
+    it('returns false flags when there is no active buy order', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (typeof selector === 'function') {
+          return selector(createMockState(null));
+        }
+        return undefined;
+      });
+
+      const { result } = renderHook(() => usePredictActiveOrder());
+
+      expect(result.current.activeOrder).toBeNull();
+      expect(result.current.isDepositing).toBe(false);
+      expect(result.current.isPlacingOrder).toBe(false);
     });
   });
 });

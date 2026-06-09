@@ -34,9 +34,11 @@ import {
 } from '../../../actions/notification';
 
 import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
+import PushNotificationOnboardingRoot from '../../Views/Notifications/PushNotificationOnboarding/PushNotificationOnboardingRoot';
 import MainNavigator from './MainNavigator';
 import { query } from '@metamask/controller-utils';
 import EarnTransactionMonitor from '../../UI/Earn/components/EarnTransactionMonitor';
+import MoneyTransactionMonitor from '../../UI/Money/components/MoneyTransactionMonitor/MoneyTransactionMonitor';
 
 import {
   setInfuraAvailabilityBlocked,
@@ -71,6 +73,7 @@ import {
   DEPRECATED_NETWORKS,
   NETWORKS_CHAIN_ID,
 } from '../../../constants/network';
+import Routes from '../../../constants/navigation/Routes';
 import WarningAlert from '../../../components/UI/WarningAlert';
 import { GOERLI_DEPRECATED_ARTICLE } from '../../../constants/urls';
 import {
@@ -94,7 +97,7 @@ import {
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
 import { useIsOnBridgeRoute } from '../../UI/Bridge/hooks/useIsOnBridgeRoute';
-import { CardVerification } from '../../UI/Card/sdk';
+import { shouldShowNetworkListToast } from './utils';
 
 const Stack = createStackNavigator();
 
@@ -299,11 +302,9 @@ const Main = (props) => {
     );
 
     // Emit network addition/deletion toast if network list changes
-    // Bridge routes are skipped as they interfere with bridge UI
     if (
       previousNetworkValues.length &&
-      currentNetworkValues.length !== previousNetworkValues.length &&
-      !isOnBridgeRoute
+      currentNetworkValues.length !== previousNetworkValues.length
     ) {
       // Find the newly added network by comparing chainIds
       const newNetwork = currentNetworkValues.find(
@@ -319,27 +320,33 @@ const Main = (props) => {
           ),
       );
 
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Plain,
-        labelOptions: [
-          {
-            label: `${
-              (newNetwork?.name || deletedNetwork?.name) ??
-              strings('asset_details.network')
-            } `,
-            isBold: true,
-          },
-          {
-            label: deletedNetwork
-              ? strings('toast.network_removed')
-              : strings('toast.network_added'),
-          },
-        ],
-        networkImageSource: networkImage,
+      const shouldShowToast = shouldShowNetworkListToast({
+        newNetworkChainId: newNetwork?.chainId,
+        hasDeletedNetwork: Boolean(deletedNetwork),
       });
+      if (shouldShowToast) {
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Plain,
+          labelOptions: [
+            {
+              label: `${
+                (deletedNetwork?.name || newNetwork?.name) ??
+                strings('asset_details.network')
+              } `,
+              isBold: true,
+            },
+            {
+              label: deletedNetwork
+                ? strings('toast.network_removed')
+                : strings('toast.network_added'),
+            },
+          ],
+          networkImageSource: networkImage,
+        });
+      }
     }
     previousNetworkConfigurations.current = networkConfigurations;
-  }, [isOnBridgeRoute, networkConfigurations, networkImage, toastRef]);
+  }, [networkConfigurations, networkImage, toastRef]);
 
   useEffect(() => {
     if (locale.current !== I18n.locale) {
@@ -420,8 +427,8 @@ const Main = (props) => {
         <FadeOutOverlay />
         <Notification navigation={props.navigation} />
         <RampOrders />
-        <CardVerification />
         <EarnTransactionMonitor />
+        <MoneyTransactionMonitor />
         {renderDeprecatedNetworkAlert(
           props.chainId,
           props.backUpSeedphraseVisible,
@@ -429,6 +436,7 @@ const Main = (props) => {
         <ProtectYourWalletModal navigation={props.navigation} />
         <RootRPCMethodsUI navigation={props.navigation} />
         <ProtectWalletMandatoryModal />
+        <PushNotificationOnboardingRoot />
       </View>
     </React.Fragment>
   );
@@ -511,21 +519,24 @@ const mapDispatchToProps = (dispatch) => ({
 
 const ConnectedMain = connect(mapStateToProps, mapDispatchToProps)(Main);
 
-const MainFlow = () => (
-  <Stack.Navigator
-    initialRouteName={'Main'}
-    mode={'modal'}
-    screenOptions={{
-      headerShown: false,
-    }}
-  >
-    <Stack.Screen name={'Main'} component={ConnectedMain} />
-    <Stack.Screen
-      name={'ReviewModal'}
-      component={ReviewModal}
-      options={{ animationEnabled: false }}
-    />
-  </Stack.Navigator>
-);
+const MainFlow = () => {
+  const { colors } = useTheme();
+  return (
+    <Stack.Navigator
+      initialRouteName={Routes.MAIN_FLOW}
+      screenOptions={{
+        headerShown: false,
+        cardStyle: { backgroundColor: colors.background.default },
+      }}
+    >
+      <Stack.Screen name={Routes.MAIN_FLOW} component={ConnectedMain} />
+      <Stack.Screen
+        name={'ReviewModal'}
+        component={ReviewModal}
+        options={{ animationEnabled: false, presentation: 'modal' }}
+      />
+    </Stack.Navigator>
+  );
+};
 
 export default MainFlow;

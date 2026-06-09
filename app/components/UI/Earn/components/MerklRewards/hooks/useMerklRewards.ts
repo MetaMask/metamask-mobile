@@ -17,6 +17,7 @@ import Logger from '../../../../../../util/Logger';
 
 const MUSD_ADDRESS = MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.LINEA_MAINNET];
 const MUSD_ADDRESS_MAINNET = MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.MAINNET];
+const MERKL_REWARDS_AUTO_REFRESH_INTERVAL_MS = 60_000;
 
 // Map of chains and eligible tokens
 // mUSD on mainnet is eligible because users earn rewards for holding it,
@@ -57,8 +58,10 @@ interface UseMerklRewardsOptions {
 
 interface UseMerklRewardsReturn {
   claimableReward: string | null;
+  lifetimeBonusClaimed: string | null;
   hasClaimedBefore: boolean;
   refetch: () => void;
+  rewardsFetchVersion: number;
 }
 
 /**
@@ -68,7 +71,11 @@ export const useMerklRewards = ({
   asset,
 }: UseMerklRewardsOptions): UseMerklRewardsReturn => {
   const [claimableReward, setClaimableReward] = useState<string | null>(null);
+  const [lifetimeBonusClaimed, setLifetimeBonusClaimed] = useState<
+    string | null
+  >(null);
   const [hasClaimedBefore, setHasClaimedBefore] = useState(false);
+  const [rewardsFetchVersion, setRewardsFetchVersion] = useState(0);
 
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
@@ -79,6 +86,7 @@ export const useMerklRewards = ({
       // Guard against undefined asset (can happen when selector returns undefined)
       if (!asset) {
         setClaimableReward(null);
+        setLifetimeBonusClaimed(null);
         setHasClaimedBefore(false);
         return;
       }
@@ -90,6 +98,7 @@ export const useMerklRewards = ({
 
       if (!isEligible || !selectedAddress) {
         setClaimableReward(null);
+        setLifetimeBonusClaimed(null);
         setHasClaimedBefore(false);
         return;
       }
@@ -111,6 +120,8 @@ export const useMerklRewards = ({
         }
 
         if (!matchingReward) {
+          setClaimableReward(null);
+          setLifetimeBonusClaimed(null);
           setHasClaimedBefore(false);
           return;
         }
@@ -133,17 +144,28 @@ export const useMerklRewards = ({
             ? claimedFromContract
             : matchingReward.claimed;
 
+        // Use token decimals from API response, fallback to asset decimals
+        const tokenDecimals =
+          matchingReward.token.decimals ?? asset.decimals ?? 18;
+
         if (!controller.signal.aborted) {
           setHasClaimedBefore(BigInt(claimedAmount) > 0n);
+
+          // Compute lifetime bonus claimed as a human-readable dollar amount
+          const claimedBigInt = BigInt(claimedAmount);
+          if (claimedBigInt > 0n) {
+            const claimedDecimal =
+              Number(claimedBigInt) / Math.pow(10, tokenDecimals);
+            setLifetimeBonusClaimed(claimedDecimal.toFixed(2));
+          } else {
+            setLifetimeBonusClaimed('0.00');
+          }
         }
 
         // Use unclaimed amount as it represents claimable rewards in the Merkle tree
-        // Use token decimals from API response, fallback to asset decimals
         // Convert string amounts to BigInt for subtraction, then back to string
         const unclaimedBaseUnits =
           BigInt(matchingReward.amount) - BigInt(claimedAmount);
-        const tokenDecimals =
-          matchingReward.token.decimals ?? asset.decimals ?? 18;
 
         if (unclaimedBaseUnits > 0n) {
           const unclaimedDecimal =
@@ -169,6 +191,10 @@ export const useMerklRewards = ({
           error as Error,
           'useMerklRewards: Error fetching claimable rewards',
         );
+      } finally {
+        if (!controller.signal.aborted) {
+          setRewardsFetchVersion((version) => version + 1);
+        }
       }
     },
     [asset, selectedAddress],
@@ -191,9 +217,25 @@ export const useMerklRewards = ({
     };
   }, [fetchClaimableRewards]);
 
+  useEffect(() => {
+    if (!asset || !selectedAddress) {
+      return;
+    }
+
+    const intervalId = setInterval(() => {
+      refetch();
+    }, MERKL_REWARDS_AUTO_REFRESH_INTERVAL_MS);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [asset, selectedAddress, refetch]);
+
   return {
     claimableReward,
+    lifetimeBonusClaimed,
     hasClaimedBefore,
     refetch,
+    rewardsFetchVersion,
   };
 };

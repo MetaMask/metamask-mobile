@@ -8,10 +8,11 @@ import {
 import { pickBy } from 'lodash';
 
 import { useStyles } from '../../../../../../component-library/hooks';
-import Button, {
-  ButtonVariants,
+import {
+  Button,
   ButtonSize,
-} from '../../../../../../component-library/components/Buttons/Button';
+  ButtonVariant,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { updateTransactionGasFees } from '../../../../../../util/transaction-controller';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
@@ -134,12 +135,13 @@ export const AdvancedEIP1559Modal = ({
         </View>
         <Button
           isDisabled={hasError}
-          label={strings('transactions.gas_modal.save')}
           onPress={handleSaveClick}
           size={ButtonSize.Lg}
           style={styles.button}
-          variant={ButtonVariants.Primary}
-        />
+          variant={ButtonVariant.Primary}
+        >
+          {strings('transactions.gas_modal.save')}
+        </Button>
       </View>
     </BottomModal>
   );

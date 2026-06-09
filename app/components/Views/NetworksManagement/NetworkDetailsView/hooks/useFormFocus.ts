@@ -5,11 +5,11 @@ import type { FocusState } from '../NetworkDetailsView.types';
 export interface UseFormFocusReturn {
   focus: FocusState;
 
-  inputRpcURL: React.RefObject<TextInput>;
-  inputNameRpcURL: React.RefObject<TextInput>;
-  inputChainId: React.RefObject<TextInput>;
-  inputSymbol: React.RefObject<TextInput>;
-  inputBlockExplorerURL: React.RefObject<TextInput>;
+  inputRpcURL: React.RefObject<TextInput | null>;
+  inputNameRpcURL: React.RefObject<TextInput | null>;
+  inputChainId: React.RefObject<TextInput | null>;
+  inputSymbol: React.RefObject<TextInput | null>;
+  inputBlockExplorerURL: React.RefObject<TextInput | null>;
 
   onNameFocused: () => void;
   onNameBlur: () => void;

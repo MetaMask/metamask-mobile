@@ -8,7 +8,7 @@ import { useMerklClaimStatus } from './useMerklClaimStatus';
 import useEarnToasts, { EarnToastOptionsConfig } from './useEarnToasts';
 import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
-import { NotificationFeedbackType } from 'expo-haptics';
+import { NotificationMoment } from '../../../../util/haptics';
 import { MERKL_CLAIM_ORIGIN } from '../components/MerklRewards/constants';
 import Logger from '../../../../util/Logger';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
@@ -97,7 +97,7 @@ describe('useMerklClaimStatus', () => {
     iconName: IconName.Loading,
     hasNoTimeout: true,
     backgroundColor: mockTheme.colors.background.default,
-    hapticsType: NotificationFeedbackType.Warning,
+    hapticsType: NotificationMoment.Warning,
     labelOptions: [{ label: 'Claiming bonus', isBold: true }],
   };
   const mockSuccessToast = {
@@ -106,7 +106,7 @@ describe('useMerklClaimStatus', () => {
     hasNoTimeout: false,
     iconColor: mockTheme.colors.success.default,
     backgroundColor: mockTheme.colors.background.default,
-    hapticsType: NotificationFeedbackType.Success,
+    hapticsType: NotificationMoment.Success,
     labelOptions: [{ label: 'Your mUSD is here!', isBold: true }],
   };
   const mockFailedToast = {
@@ -115,7 +115,7 @@ describe('useMerklClaimStatus', () => {
     hasNoTimeout: false,
     iconColor: mockTheme.colors.error.default,
     backgroundColor: mockTheme.colors.background.default,
-    hapticsType: NotificationFeedbackType.Error,
+    hapticsType: NotificationMoment.Error,
     labelOptions: [{ label: 'Bonus claim failed', isBold: true }],
   };
   const mockEarnToastOptions: EarnToastOptionsConfig = {

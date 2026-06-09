@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { RouteProp, useRoute } from '@react-navigation/native';
 import { ImageSourcePropType, StyleSheet, View } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { getUrlObj, prefixUrlWithProtocol } from '../../../util/browser';
@@ -18,11 +19,9 @@ import {
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
-import Text, {
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
 import TagUrl from '../../../component-library/components/Tags/TagUrl';
 import { resetOriginSpamState } from '../../../core/redux/slices/originThrottling';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 
 export const BLOCK_BUTTON_TEST_ID = 'block-origin-button';
 export const CONTINUE_BUTTON_TEST_ID = 'continue-origin-button';
@@ -93,7 +92,7 @@ const MultipleRequestContent = ({
         size={IconSize.Xl}
       />
       <View style={styles.titleWrapper}>
-        <Text style={styles.title} variant={TextVariant.HeadingMD}>
+        <Text style={styles.title} variant={TextVariant.HeadingMd}>
           {strings('spam_filter.title')}
         </Text>
       </View>
@@ -160,11 +159,13 @@ const SiteBlockedContent = ({ onCloseModal }: { onCloseModal: () => void }) => {
   );
 };
 
-const OriginSpamModal = ({
-  route,
-}: {
-  route: { params: { origin: string } };
-}) => {
+interface OriginSpamModalRouteParams {
+  origin: string;
+}
+
+const OriginSpamModal = () => {
+  const route =
+    useRoute<RouteProp<{ params: OriginSpamModalRouteParams }, 'params'>>();
   const dispatch = useDispatch();
   const { origin } = route.params;
   const styles = createStyles();

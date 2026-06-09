@@ -6,6 +6,7 @@ import CreatePasswordView from '../../../../page-objects/Onboarding/CreatePasswo
 import WalletView from '../../../../page-objects/wallet/WalletView';
 import Browser from '../../../../page-objects/Browser/BrowserView';
 import SettingsView from '../../../../page-objects/Settings/SettingsView';
+import AccountMenu from '../../../../page-objects/AccountMenu/AccountMenu';
 import TabBarComponent from '../../../../page-objects/wallet/TabBarComponent';
 import SkipAccountSecurityModal from '../../../../page-objects/Onboarding/SkipAccountSecurityModal';
 import ConnectedAccountsModal from '../../../../page-objects/Browser/ConnectedAccountsModal';
@@ -61,9 +62,9 @@ describe(RegressionNetworkAbstractions('Permission System'), () => {
         await ConnectedAccountsModal.scrollToBottomOfModal();
         await TestHelpers.delay(2000);
 
-        //go to settings then security & privacy
-        await TabBarComponent.tapSettings();
-        await SettingsView.tapLock();
+        //go to accounts menu and lock
+        await TabBarComponent.tapAccountsMenu();
+        await AccountMenu.tapLock();
         await SettingsView.tapYesAlertButton();
         await Assertions.expectElementToBeVisible(LoginView.container);
 

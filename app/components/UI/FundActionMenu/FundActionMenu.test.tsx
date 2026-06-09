@@ -10,8 +10,8 @@ import { WalletActionsBottomSheetSelectorsIDs } from '../../Views/WalletActions/
 import { RampType } from '../../../reducers/fiatOrders/types';
 
 // Internal dependencies.
-import { useMetrics } from '../../hooks/useMetrics';
-import useRampNetwork from '../Ramp/Aggregator/hooks/useRampNetwork';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 import useDepositEnabled from '../Ramp/Deposit/hooks/useDepositEnabled';
 import useRampsUnifiedV1Enabled from '../Ramp/hooks/useRampsUnifiedV1Enabled';
 import { useRampNavigation } from '../Ramp/hooks/useRampNavigation';
@@ -19,49 +19,14 @@ import { trace, TraceName } from '../../../util/trace';
 import FundActionMenu from './FundActionMenu';
 import { RampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
 
-// Mock BottomSheet component
-jest.mock(
-  '../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const { View } = jest.requireActual('react-native');
-    const { forwardRef, useImperativeHandle } = jest.requireActual('react');
-
-    const MockBottomSheet = forwardRef(
-      (props: { children: React.ReactNode }, ref: React.Ref<unknown>) => {
-        useImperativeHandle(ref, () => ({
-          onOpenBottomSheet: jest.fn(),
-          onCloseBottomSheet: jest.fn((callback?: () => void) => {
-            if (callback) callback();
-          }),
-        }));
-
-        return (
-          <View testID="bottom-sheet" {...props}>
-            {props.children}
-          </View>
-        );
-      },
-    );
-
-    return {
-      __esModule: true,
-      default: MockBottomSheet,
-    };
-  },
-);
-
 // Mock dependencies
 jest.mock('@react-navigation/native');
-jest.mock('@react-navigation/compat', () => ({
-  withNavigation: jest.fn((component) => component),
-}));
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
   connect: jest.fn(() => (component: React.ComponentType) => component),
 }));
-jest.mock('../../hooks/useMetrics');
-jest.mock('../Ramp/Aggregator/hooks/useRampNetwork');
+jest.mock('../../hooks/useAnalytics/useAnalytics');
 jest.mock('../Ramp/Deposit/hooks/useDepositEnabled');
 jest.mock('../Ramp/hooks/useRampsUnifiedV1Enabled');
 jest.mock('../Ramp/hooks/useRampsUnifiedV2Enabled');
@@ -95,10 +60,7 @@ const mockUseNavigation = useNavigation as jest.MockedFunction<
 >;
 const mockUseRoute = useRoute as jest.MockedFunction<typeof useRoute>;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
-const mockUseMetrics = useMetrics as jest.MockedFunction<typeof useMetrics>;
-const mockUseRampNetwork = useRampNetwork as jest.MockedFunction<
-  typeof useRampNetwork
->;
+const mockUseAnalytics = jest.mocked(useAnalytics);
 const mockUseDepositEnabled = useDepositEnabled as jest.MockedFunction<
   typeof useDepositEnabled
 >;
@@ -132,6 +94,7 @@ describe('FundActionMenu', () => {
     // Setup default mocks
     mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
+      goBack: jest.fn(),
     } as never);
 
     mockUseRoute.mockReturnValue({
@@ -140,7 +103,7 @@ describe('FundActionMenu', () => {
 
     mockUseSelector.mockImplementation((selector) => {
       const selectorString = selector.toString();
-      if (selectorString.includes('selectChainId')) return '0x1';
+      if (selectorString.includes('selectEvmChainId')) return '0x1';
       if (selectorString.includes('selectCanSignTransactions')) return true;
       return undefined;
     });
@@ -155,12 +118,13 @@ describe('FundActionMenu', () => {
       build: mockBuild,
     });
 
-    mockUseMetrics.mockReturnValue({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: mockCreateEventBuilder,
-    } as never);
+    mockUseAnalytics.mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
 
-    mockUseRampNetwork.mockReturnValue([true, true]);
     mockUseDepositEnabled.mockReturnValue({ isDepositEnabled: true });
     mockUseRampsUnifiedV1Enabled.mockReturnValue(false);
     mockUseRampNavigation.mockReturnValue({
@@ -177,7 +141,7 @@ describe('FundActionMenu', () => {
   describe('Component Rendering', () => {
     it('renders correctly with default props', () => {
       const { getByTestId } = render(<FundActionMenu />);
-      expect(getByTestId('bottom-sheet')).toBeOnTheScreen();
+      expect(getByTestId('fund-action-menu-bottom-sheet')).toBeOnTheScreen();
     });
 
     it('renders deposit button when deposit is enabled', () => {
@@ -206,7 +170,7 @@ describe('FundActionMenu', () => {
       ).toBeNull();
     });
 
-    it('renders buy button when ramp network is supported', () => {
+    it('renders buy button independently of the selected network', () => {
       const { getByTestId } = render(<FundActionMenu />);
 
       expect(
@@ -220,7 +184,7 @@ describe('FundActionMenu', () => {
       expect(buyButton).toHaveTextContent(/fund_actionmenu\.buy_description/);
     });
 
-    it('renders sell button when ramp network is supported', () => {
+    it('renders sell button independently of the selected network', () => {
       const { getByTestId } = render(<FundActionMenu />);
 
       expect(
@@ -234,20 +198,25 @@ describe('FundActionMenu', () => {
       expect(sellButton).toHaveTextContent(/fund_actionmenu\.sell_description/);
     });
 
-    it('does not render sell button when ramp network is not supported', () => {
-      mockUseRampNetwork.mockReturnValue([false, false]);
+    it('renders sell button when the selected network changes', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        const selectorString = selector.toString();
+        if (selectorString.includes('selectEvmChainId')) return '0x279f';
+        if (selectorString.includes('selectCanSignTransactions')) return true;
+        return undefined;
+      });
 
-      const { queryByTestId } = render(<FundActionMenu />);
+      const { getByTestId } = render(<FundActionMenu />);
 
       expect(
-        queryByTestId(WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON),
-      ).toBeNull();
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON),
+      ).toBeOnTheScreen();
     });
 
     it('renders sell button as disabled when user cannot sign transactions', () => {
       mockUseSelector.mockImplementation((selector) => {
         const selectorString = selector.toString();
-        if (selectorString.includes('selectChainId')) return '0x1';
+        if (selectorString.includes('selectEvmChainId')) return '0x1';
         if (selectorString.includes('selectCanSignTransactions')) return false;
         return undefined;
       });
@@ -258,7 +227,7 @@ describe('FundActionMenu', () => {
         WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON,
       );
       expect(sellButton).toBeOnTheScreen();
-      expect(sellButton.props.accessibilityState.disabled).toBe(true);
+      expect(sellButton).toBeDisabled();
     });
 
     it('renders all buttons when all features are enabled', () => {
@@ -324,7 +293,7 @@ describe('FundActionMenu', () => {
     it('does not trigger navigation when sell button is pressed but disabled', () => {
       mockUseSelector.mockImplementation((selector) => {
         const selectorString = selector.toString();
-        if (selectorString.includes('selectChainId')) return '0x1';
+        if (selectorString.includes('selectEvmChainId')) return '0x1';
         if (selectorString.includes('selectCanSignTransactions')) return false;
         return undefined;
       });
@@ -336,7 +305,7 @@ describe('FundActionMenu', () => {
 
       fireEvent.press(sellButton);
 
-      expect(sellButton.props.accessibilityState.disabled).toBe(true);
+      expect(sellButton).toBeDisabled();
     });
 
     it('calls buy action when unified buy button is pressed and useRampsUnifiedV1Enabled is true', async () => {
@@ -437,12 +406,11 @@ describe('FundActionMenu', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('shows buy button with custom onBuy even when ramp network is not supported', () => {
+    it('shows buy button with custom onBuy independently of the selected network', () => {
       const customOnBuy = jest.fn();
       mockUseRoute.mockReturnValue({
         params: { onBuy: customOnBuy },
       } as never);
-      mockUseRampNetwork.mockReturnValue([false, false]);
 
       const { getByTestId } = render(<FundActionMenu />);
 
@@ -638,7 +606,7 @@ describe('FundActionMenu', () => {
     it('handles different chain IDs correctly', () => {
       mockUseSelector.mockImplementation((selector) => {
         const selectorString = selector.toString();
-        if (selectorString.includes('selectChainId')) return '0x89';
+        if (selectorString.includes('selectEvmChainId')) return '0x89';
         if (selectorString.includes('selectCanSignTransactions')) return true;
         return undefined;
       });
@@ -662,7 +630,7 @@ describe('FundActionMenu', () => {
     it('properly integrates with BottomSheet ref methods', () => {
       const { getByTestId } = render(<FundActionMenu />);
 
-      expect(getByTestId('bottom-sheet')).toBeOnTheScreen();
+      expect(getByTestId('fund-action-menu-bottom-sheet')).toBeOnTheScreen();
     });
 
     it('displays correct strings from i18n', () => {
@@ -688,7 +656,7 @@ describe('FundActionMenu', () => {
 
       mockUseSelector.mockImplementation((selector) => {
         const selectorString = selector.toString();
-        if (selectorString.includes('selectChainId')) return '0x1';
+        if (selectorString.includes('selectEvmChainId')) return '0x1';
         if (selectorString.includes('selectCanSignTransactions')) return false;
         return undefined;
       });
@@ -699,7 +667,7 @@ describe('FundActionMenu', () => {
       const sellButton = getByTestId(
         WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON,
       );
-      expect(sellButton.props.accessibilityState.disabled).toBe(true);
+      expect(sellButton).toBeDisabled();
     });
   });
 });

@@ -23,6 +23,8 @@ jest.mock('@metamask/design-system-react-native', () => ({
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
+  __esModule: true,
+  default: { locale: 'en-US' },
   strings: jest.fn((key: string, params?: Record<string, string>) =>
     params ? `${key}:${JSON.stringify(params)}` : key,
   ),
@@ -44,6 +46,7 @@ function buildCampaignDto(overrides: Partial<CampaignDto> = {}): CampaignDto {
     excludedRegions: [],
     details: null,
     featured: true,
+    showUpcomingDate: false,
     ...overrides,
   };
 }
@@ -193,7 +196,7 @@ describe('CampaignTile.utils', () => {
   });
 
   describe('getCampaignPillLabel', () => {
-    it('returns pill_up_next for upcoming status', () => {
+    it('returns pill_up_next (Coming soon) for upcoming status', () => {
       const result = getCampaignPillLabel('upcoming');
 
       expect(strings).toHaveBeenCalledWith('rewards.campaign.pill_up_next');

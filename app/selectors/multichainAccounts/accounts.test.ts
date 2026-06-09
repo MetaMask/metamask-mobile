@@ -184,12 +184,16 @@ const createMockState = (
 const createStateWithNetworkConfigurations = (
   accountTreeState: Record<string, unknown>,
   accountsState: Record<string, unknown>,
-): RootState =>
-  ({
+): RootState => {
+  const { selectedAccountGroup, ...accountTreeBody } = accountTreeState;
+  return {
     engine: {
       backgroundState: {
         AccountTreeController: {
-          accountTree: accountTreeState,
+          accountTree: accountTreeBody,
+          ...(selectedAccountGroup !== undefined
+            ? { selectedAccountGroup }
+            : {}),
         },
         AccountsController: {
           internalAccounts: accountsState,
@@ -233,7 +237,8 @@ const createStateWithNetworkConfigurations = (
         },
       },
     },
-  }) as unknown as RootState;
+  } as unknown as RootState;
+};
 
 // Ensure all states created with createStateWithNetworkConfigurations have KeyringController
 const createStateWithNetworkConfigurationsAndKeyring = (
@@ -524,9 +529,9 @@ describe('accounts selectors', () => {
     it('returns undefined when selectedAccountGroup is undefined', () => {
       const mockState = createMockState({
         accountTree: {
-          selectedAccountGroup: undefined,
           wallets: {},
         },
+        selectedAccountGroup: undefined,
       });
 
       const selector = selectSelectedInternalAccountByScope(mockState);
@@ -537,9 +542,9 @@ describe('accounts selectors', () => {
     it('returns undefined when wallet does not exist', () => {
       const mockState = createMockState({
         accountTree: {
-          selectedAccountGroup: ACCOUNT_GROUP_ID_1,
           wallets: {},
         },
+        selectedAccountGroup: ACCOUNT_GROUP_ID_1,
       });
 
       const selector = selectSelectedInternalAccountByScope(mockState);
@@ -550,7 +555,6 @@ describe('accounts selectors', () => {
     it('returns undefined when selected account group does not exist', () => {
       const mockState = createMockState({
         accountTree: {
-          selectedAccountGroup: ACCOUNT_GROUP_ID_1,
           wallets: {
             [WALLET_ID_1]: {
               id: WALLET_ID_1,
@@ -559,6 +563,7 @@ describe('accounts selectors', () => {
             },
           },
         },
+        selectedAccountGroup: ACCOUNT_GROUP_ID_1,
       });
 
       const selector = selectSelectedInternalAccountByScope(mockState);
@@ -570,7 +575,6 @@ describe('accounts selectors', () => {
       const mockState = createMockState(
         {
           accountTree: {
-            selectedAccountGroup: ACCOUNT_GROUP_ID_2,
             wallets: {
               [WALLET_ID_2]: {
                 id: WALLET_ID_2,
@@ -583,6 +587,7 @@ describe('accounts selectors', () => {
               },
             },
           },
+          selectedAccountGroup: ACCOUNT_GROUP_ID_2,
         },
         { [ACCOUNT_ID_2]: mockSolanaAccount },
       );
@@ -596,7 +601,6 @@ describe('accounts selectors', () => {
       const mockState = createMockState(
         {
           accountTree: {
-            selectedAccountGroup: ACCOUNT_GROUP_ID_1,
             wallets: {
               [WALLET_ID_1]: {
                 id: WALLET_ID_1,
@@ -609,6 +613,7 @@ describe('accounts selectors', () => {
               },
             },
           },
+          selectedAccountGroup: ACCOUNT_GROUP_ID_1,
         },
         { [ACCOUNT_ID_1]: mockEvmAccount },
       );
@@ -622,7 +627,6 @@ describe('accounts selectors', () => {
       const mockState = createMockState(
         {
           accountTree: {
-            selectedAccountGroup: ACCOUNT_GROUP_ID_1,
             wallets: {
               [WALLET_ID_1]: {
                 id: WALLET_ID_1,
@@ -635,6 +639,7 @@ describe('accounts selectors', () => {
               },
             },
           },
+          selectedAccountGroup: ACCOUNT_GROUP_ID_1,
         },
         { [ACCOUNT_ID_1]: mockEvmAccount },
       );
@@ -648,7 +653,6 @@ describe('accounts selectors', () => {
       const mockState = createMockState(
         {
           accountTree: {
-            selectedAccountGroup: ACCOUNT_GROUP_ID_2,
             wallets: {
               [WALLET_ID_2]: {
                 id: WALLET_ID_2,
@@ -661,6 +665,7 @@ describe('accounts selectors', () => {
               },
             },
           },
+          selectedAccountGroup: ACCOUNT_GROUP_ID_2,
         },
         { [ACCOUNT_ID_2]: mockSolanaAccount },
       );
@@ -674,7 +679,6 @@ describe('accounts selectors', () => {
       const mockState = createMockState(
         {
           accountTree: {
-            selectedAccountGroup: ACCOUNT_GROUP_ID_1,
             wallets: {
               [WALLET_ID_1]: {
                 id: WALLET_ID_1,
@@ -687,6 +691,7 @@ describe('accounts selectors', () => {
               },
             },
           },
+          selectedAccountGroup: ACCOUNT_GROUP_ID_1,
         },
         { [ACCOUNT_ID_1]: mockEvmAccount },
       );
@@ -699,7 +704,6 @@ describe('accounts selectors', () => {
     it('handles empty accounts array in selected group', () => {
       const mockState = createMockState({
         accountTree: {
-          selectedAccountGroup: ACCOUNT_GROUP_ID_1,
           wallets: {
             [WALLET_ID_1]: {
               id: WALLET_ID_1,
@@ -712,6 +716,7 @@ describe('accounts selectors', () => {
             },
           },
         },
+        selectedAccountGroup: ACCOUNT_GROUP_ID_1,
       });
 
       const selector = selectSelectedInternalAccountByScope(mockState);
@@ -1169,7 +1174,6 @@ describe('accounts selectors', () => {
         const mockState = createMockState(
           {
             accountTree: {
-              selectedAccountGroup: ENTROPY_GROUP_ID,
               wallets: {
                 [ENTROPY_WALLET_ID]: {
                   id: ENTROPY_WALLET_ID,
@@ -1185,6 +1189,7 @@ describe('accounts selectors', () => {
                 },
               },
             },
+            selectedAccountGroup: ENTROPY_GROUP_ID,
           },
           {
             [ENTROPY_EVM_ACCOUNT_ID]: mockEntropyEvmAccount,

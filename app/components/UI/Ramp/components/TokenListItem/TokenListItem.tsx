@@ -11,11 +11,11 @@ import BadgeNetwork from '../../../../../component-library/components/Badges/Bad
 import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
-import Text, {
+import {
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import {
+  FontWeight,
   ButtonIcon,
   ButtonIconSize,
   IconName,
@@ -28,7 +28,7 @@ interface TokenListItemProps {
   token: DepositCryptoCurrency;
   isSelected?: boolean;
   onPress: () => void;
-  textColor?: string;
+  textColor?: TextColor;
   isDisabled?: boolean;
   onInfoPress?: () => void;
 }
@@ -37,7 +37,7 @@ function TokenListItem({
   token,
   isSelected,
   onPress,
-  textColor = TextColor.Alternative,
+  textColor = TextColor.TextAlternative,
   isDisabled = false,
   onInfoPress,
 }: Readonly<TokenListItemProps>) {
@@ -78,8 +78,14 @@ function TokenListItem({
         </BadgeWrapper>
       </ListItemColumn>
       <ListItemColumn widthType={WidthType.Fill}>
-        <Text variant={TextVariant.BodyMDMedium}>{token.name}</Text>
-        <Text variant={TextVariant.BodySMMedium} color={textColor}>
+        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+          {token.name}
+        </Text>
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={textColor}
+        >
           {token.symbol}
         </Text>
       </ListItemColumn>

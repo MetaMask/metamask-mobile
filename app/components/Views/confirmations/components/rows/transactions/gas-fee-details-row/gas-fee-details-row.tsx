@@ -36,7 +36,7 @@ import { GasFeeModal } from '../../../modals/gas-fee-modal';
 import AlertRow from '../../../UI/info-row/alert-row';
 import { RowAlertKey } from '../../../UI/info-row/alert-row/constants';
 import InfoSection from '../../../UI/info-row/info-section';
-import { Skeleton } from '../../../../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../../../../component-library/components-temp/Skeleton';
 import styleSheet from './gas-fee-details-row.styles';
 import { IconColor } from '../../../../../../../component-library/components/Icons/Icon/Icon.types';
 import { selectNetworkConfigurationByChainId } from '../../../../../../../selectors/networkController';
@@ -45,24 +45,28 @@ import useNetworkInfo from '../../../../hooks/useNetworkInfo';
 import TagColored, {
   TagColor,
 } from '../../../../../../../component-library/components-temp/TagColored';
+import { shouldApplyGasFeeSponsorship } from '../../../../utils/transaction';
 
-const PaidByMetaMask = () => (
-  <TagColored
-    color={TagColor.Success}
-    labelProps={{
-      variant: TextVariant.BodySM,
-      style: {
-        textTransform: 'none',
-        textAlign: 'center',
-        bottom: 1,
-        fontWeight: 'normal',
-      },
-      testID: 'paid-by-metamask',
-    }}
-  >
-    {strings('transactions.paid_by_metamask')}
-  </TagColored>
-);
+const PaidByMetaMask = () => {
+  const { styles } = useStyles(styleSheet, {});
+  return (
+    <TagColored
+      color={TagColor.Success}
+      style={styles.paidByMetaMask}
+      labelProps={{
+        variant: TextVariant.BodySM,
+        style: {
+          textTransform: 'none',
+          textAlign: 'center',
+          fontWeight: 'normal',
+        },
+        testID: 'paid-by-metamask',
+      }}
+    >
+      {strings('transactions.paid_by_metamask')}
+    </TagColored>
+  );
+};
 
 const SkeletonEstimationInfo = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -262,10 +266,7 @@ const GasFeesDetailsRow = ({
   const transactionBatchesMetadata = useTransactionBatchesMetadata();
   const gasFeeToken = useSelectedGasFeeToken();
   const metamaskFeeFiat = gasFeeToken?.metamaskFeeFiat;
-  const {
-    userFeeLevel: isUserFeeLevelExists,
-    isGasFeeSponsored: doesSentinelAllowSponsorship,
-  } = transactionMetadata ?? {};
+  const { userFeeLevel: isUserFeeLevelExists } = transactionMetadata ?? {};
 
   const hideFiatForTestnet = useHideFiatForTestnet(
     transactionMetadata?.chainId,
@@ -274,7 +275,10 @@ const GasFeesDetailsRow = ({
 
   // Gasless support (including HW check) is centralized in useIsGaslessSupported.
   const { isSupported: isGaslessSupported } = useIsGaslessSupported();
-  const isGasFeeSponsored = isGaslessSupported && doesSentinelAllowSponsorship;
+  const isGasFeeSponsored = shouldApplyGasFeeSponsorship({
+    transactionMeta: transactionMetadata,
+    isGaslessSupported,
+  });
 
   const handleNetworkFeeTooltipClickedEvent = () => {
     trackTooltipClickedEvent({

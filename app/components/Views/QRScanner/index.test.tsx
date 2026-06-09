@@ -1,5 +1,5 @@
 import React from 'react';
-import { waitFor, act } from '@testing-library/react-native';
+import { waitFor, act, screen } from '@testing-library/react-native';
 import {
   useCameraPermission,
   useCameraDevice,
@@ -111,17 +111,12 @@ jest.mock('eth-url-parser', () => ({
   }),
 }));
 
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  openURL: jest.fn(),
-  addEventListener: jest.fn(() => ({ remove: jest.fn() })),
-  removeEventListener: jest.fn(),
-  canOpenURL: jest.fn().mockResolvedValue(true),
-  getInitialURL: jest.fn().mockResolvedValue(null),
-}));
-
-jest.mock('react-native/Libraries/Alert/Alert', () => ({
-  alert: jest.fn(),
-}));
+jest.mock('react-native/Libraries/Alert/Alert', () => {
+  const alert = {
+    alert: jest.fn(),
+  };
+  return { __esModule: true, default: alert, ...alert };
+});
 
 const { InteractionManager } = jest.requireActual('react-native');
 
@@ -274,11 +269,10 @@ describe('QrScanner', () => {
   });
 
   it('render matches snapshot', () => {
-    const { toJSON } = renderWithProvider(
-      <QrScanner onScanSuccess={jest.fn()} />,
-      { state: initialState },
-    );
-    expect(toJSON()).toMatchSnapshot();
+    renderWithProvider(<QrScanner onScanSuccess={jest.fn()} />, {
+      state: initialState,
+    });
+    expect(screen.getByText('Scan a QR code')).toBeOnTheScreen();
   });
 
   it('requests permission when hasPermission is false', async () => {

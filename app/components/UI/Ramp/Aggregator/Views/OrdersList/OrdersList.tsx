@@ -19,10 +19,10 @@ import {
 import { getOrders } from '../../../../../../reducers/fiatOrders';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
-import ButtonFilter from '../../../../../../component-library/components-temp/ButtonFilter';
 import {
   Box,
-  ButtonSize as ButtonBaseSize,
+  ButtonFilter,
+  ButtonBaseSize,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useRampsOrders } from '../../../hooks/useRampsOrders';
@@ -309,9 +309,10 @@ function OrdersList() {
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={tw.style('flex-row gap-3')}
+            contentContainerStyle={tw.style('flex-row gap-2')}
           >
             <ButtonFilter
+              twClassName="min-w-0"
               onPress={() => setCurrentFilter('ALL')}
               isActive={currentFilter === 'ALL'}
               size={ButtonBaseSize.Md}
@@ -320,6 +321,7 @@ function OrdersList() {
               {strings('fiat_on_ramp_aggregator.All')}
             </ButtonFilter>
             <ButtonFilter
+              twClassName="min-w-0"
               onPress={() => setCurrentFilter('PURCHASE')}
               isActive={currentFilter === 'PURCHASE'}
               size={ButtonBaseSize.Md}
@@ -328,6 +330,7 @@ function OrdersList() {
               {strings('fiat_on_ramp_aggregator.Purchased')}
             </ButtonFilter>
             <ButtonFilter
+              twClassName="min-w-0"
               onPress={() => setCurrentFilter('SELL')}
               isActive={currentFilter === 'SELL'}
               size={ButtonBaseSize.Md}

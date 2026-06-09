@@ -2,25 +2,35 @@ import React from 'react';
 import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import useCashbackWallet from './useCashbackWallet';
-import { CardSDK } from '../sdk/CardSDK';
+import Engine from '../../../../core/Engine';
 
-const mockSdk = {
-  getCashbackWallet: jest.fn(),
-  getCashbackWithdrawEstimation: jest.fn(),
-  withdrawCashback: jest.fn(),
-  getTransactionReceipt: jest.fn(),
-} as unknown as CardSDK;
-
-jest.mock('../sdk', () => ({
-  useCardSDK: jest.fn(() => ({
-    sdk: mockSdk,
-  })),
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    CardController: {
+      getCashbackWallet: jest.fn(),
+      getCashbackWithdrawEstimation: jest.fn(),
+      withdrawCashback: jest.fn(),
+    },
+    NetworkController: {
+      findNetworkClientIdByChainId: jest.fn(() => 'mainnet'),
+      getNetworkClientById: jest.fn(),
+    },
+  },
 }));
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(() => true),
 }));
+
+const mockGetCashbackWallet = Engine.context.CardController
+  .getCashbackWallet as jest.Mock;
+const mockGetCashbackWithdrawEstimation = Engine.context.CardController
+  .getCashbackWithdrawEstimation as jest.Mock;
+const mockWithdrawCashback = Engine.context.CardController
+  .withdrawCashback as jest.Mock;
+const mockGetNetworkClientById = Engine.context.NetworkController
+  .getNetworkClientById as jest.Mock;
 
 const createWrapper = () => {
   const queryClient = new QueryClient({
@@ -35,8 +45,14 @@ const POLL_WAIT_TIMEOUT = 8000;
 const POLL_TEST_TIMEOUT = 15000;
 
 describe('useCashbackWallet', () => {
+  let mockRequest: jest.Mock;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRequest = jest.fn();
+    mockGetNetworkClientById.mockReturnValue({
+      provider: { request: mockRequest },
+    });
   });
 
   it('fetches wallet data on mount when authenticated', async () => {
@@ -47,7 +63,7 @@ describe('useCashbackWallet', () => {
       isWithdrawable: true,
       type: 'reward',
     };
-    (mockSdk.getCashbackWallet as jest.Mock).mockResolvedValue(walletData);
+    mockGetCashbackWallet.mockResolvedValue(walletData);
 
     const { Wrapper } = createWrapper();
     const { result } = renderHook(() => useCashbackWallet(), {
@@ -65,9 +81,7 @@ describe('useCashbackWallet', () => {
   });
 
   it('returns null wallet when query errors', async () => {
-    (mockSdk.getCashbackWallet as jest.Mock).mockRejectedValue(
-      new Error('Network error'),
-    );
+    mockGetCashbackWallet.mockRejectedValue(new Error('Network error'));
 
     const { Wrapper } = createWrapper();
     const { result } = renderHook(() => useCashbackWallet(), {
@@ -90,11 +104,9 @@ describe('useCashbackWallet', () => {
       isWithdrawable: true,
       type: 'reward',
     };
-    (mockSdk.getCashbackWallet as jest.Mock).mockResolvedValue(walletData);
-    (mockSdk.withdrawCashback as jest.Mock).mockResolvedValue({
-      txHash: '0xabc123',
-    });
-    (mockSdk.getTransactionReceipt as jest.Mock).mockResolvedValue(null);
+    mockGetCashbackWallet.mockResolvedValue(walletData);
+    mockWithdrawCashback.mockResolvedValue({ txHash: '0xabc123' });
+    mockRequest.mockResolvedValue(null);
 
     const { Wrapper } = createWrapper();
     const { result } = renderHook(() => useCashbackWallet(), {
@@ -113,7 +125,7 @@ describe('useCashbackWallet', () => {
       expect(result.current.monitoringStatus).toBe('monitoring');
     });
 
-    expect(mockSdk.withdrawCashback).toHaveBeenCalledWith({ amount: '5.00' });
+    expect(mockWithdrawCashback).toHaveBeenCalledWith({ amount: '5.00' });
   });
 
   it(
@@ -126,13 +138,9 @@ describe('useCashbackWallet', () => {
         isWithdrawable: true,
         type: 'reward',
       };
-      (mockSdk.getCashbackWallet as jest.Mock).mockResolvedValue(walletData);
-      (mockSdk.withdrawCashback as jest.Mock).mockResolvedValue({
-        txHash: '0xabc123',
-      });
-      (mockSdk.getTransactionReceipt as jest.Mock).mockResolvedValue({
-        status: 1,
-      });
+      mockGetCashbackWallet.mockResolvedValue(walletData);
+      mockWithdrawCashback.mockResolvedValue({ txHash: '0xabc123' });
+      mockRequest.mockResolvedValue({ status: 1 });
 
       const { Wrapper } = createWrapper();
       const { result } = renderHook(() => useCashbackWallet(), {
@@ -167,13 +175,9 @@ describe('useCashbackWallet', () => {
         isWithdrawable: true,
         type: 'reward',
       };
-      (mockSdk.getCashbackWallet as jest.Mock).mockResolvedValue(walletData);
-      (mockSdk.withdrawCashback as jest.Mock).mockResolvedValue({
-        txHash: '0xabc123',
-      });
-      (mockSdk.getTransactionReceipt as jest.Mock).mockResolvedValue({
-        status: 0,
-      });
+      mockGetCashbackWallet.mockResolvedValue(walletData);
+      mockWithdrawCashback.mockResolvedValue({ txHash: '0xabc123' });
+      mockRequest.mockResolvedValue({ status: 0 });
 
       const { Wrapper } = createWrapper();
       const { result } = renderHook(() => useCashbackWallet(), {
@@ -210,11 +214,9 @@ describe('useCashbackWallet', () => {
       isWithdrawable: true,
       type: 'reward',
     };
-    (mockSdk.getCashbackWallet as jest.Mock).mockResolvedValue(walletData);
-    (mockSdk.withdrawCashback as jest.Mock).mockResolvedValue({
-      txHash: '0xabc123',
-    });
-    (mockSdk.getTransactionReceipt as jest.Mock).mockResolvedValue(null);
+    mockGetCashbackWallet.mockResolvedValue(walletData);
+    mockWithdrawCashback.mockResolvedValue({ txHash: '0xabc123' });
+    mockRequest.mockResolvedValue(null);
 
     const { Wrapper } = createWrapper();
     const { result } = renderHook(() => useCashbackWallet(), {
@@ -254,10 +256,8 @@ describe('useCashbackWallet', () => {
       eth: '0.000004648201084656',
       price: '0.00892136699188968037536',
     };
-    (mockSdk.getCashbackWallet as jest.Mock).mockResolvedValue(walletData);
-    (mockSdk.getCashbackWithdrawEstimation as jest.Mock).mockResolvedValue(
-      estimationData,
-    );
+    mockGetCashbackWallet.mockResolvedValue(walletData);
+    mockGetCashbackWithdrawEstimation.mockResolvedValue(estimationData);
 
     const { Wrapper } = createWrapper();
     const { result } = renderHook(() => useCashbackWallet(), {
@@ -272,16 +272,27 @@ describe('useCashbackWallet', () => {
       await result.current.fetchEstimation();
     });
 
-    expect(mockSdk.getCashbackWithdrawEstimation).toHaveBeenCalled();
+    expect(mockGetCashbackWithdrawEstimation).toHaveBeenCalled();
   });
 
-  it('throws error when withdrawing without sdk', async () => {
-    const { useCardSDK } = jest.requireMock('../sdk');
-    (useCardSDK as jest.Mock).mockReturnValueOnce({ sdk: null });
+  it('sets withdrawError when withdrawCashback throws', async () => {
+    const walletData = {
+      id: 'w1',
+      balance: '5.00',
+      currency: 'musd',
+      isWithdrawable: true,
+      type: 'reward',
+    };
+    mockGetCashbackWallet.mockResolvedValue(walletData);
+    mockWithdrawCashback.mockRejectedValue(new Error('Withdraw failed'));
 
     const { Wrapper } = createWrapper();
     const { result } = renderHook(() => useCashbackWallet(), {
       wrapper: Wrapper,
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
     });
 
     act(() => {

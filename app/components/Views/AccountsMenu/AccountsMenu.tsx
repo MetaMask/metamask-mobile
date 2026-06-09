@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import {
+  HeaderStandard,
   Icon,
   IconName,
   IconSize,
@@ -15,24 +16,22 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import MainActionButton from '../../../component-library/components-temp/MainActionButton';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard/HeaderCompactStandard';
 import ActionListItem from '../../../component-library/components-temp/ActionListItem';
 import { IconName as LocalIconName } from '../../../component-library/components/Icons/Icon';
 import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
 import { Authentication } from '../../../core/';
 import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
-import { selectDisplayCardButton } from '../../../core/redux/slices/card';
 import { strings } from '../../../../locales/i18n';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { AccountsMenuSelectorsIDs } from './AccountsMenu.testIds';
-import { isPermissionsSettingsV1Enabled } from '../../../util/networks';
 import useRampsUnifiedV1Enabled from '../../UI/Ramp/hooks/useRampsUnifiedV1Enabled';
 import useRampsUnifiedV2Enabled from '../../UI/Ramp/hooks/useRampsUnifiedV2Enabled';
 import AppConstants from '../../../core/AppConstants';
 import DeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
 import { useRampsButtonClickData } from '../../UI/Ramp/hooks/useRampsButtonClickData';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
 import { useRampNavigation } from '../../UI/Ramp/hooks/useRampNavigation';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
@@ -42,13 +41,13 @@ import {
   selectIsMetamaskNotificationsEnabled,
 } from '../../../selectors/notifications';
 import { selectIsBackupAndSyncEnabled } from '../../../selectors/identity';
+import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
 
 const AccountsMenu = () => {
   const tw = useTailwind();
   const { colors } = useTheme();
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const shouldDisplayCardButton = useSelector(selectDisplayCardButton);
   const { goToBuy } = useRampNavigation();
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
   const rampsButtonClickData = useRampsButtonClickData();
@@ -101,7 +100,7 @@ const AccountsMenu = () => {
           .build(),
       );
     } else {
-      navigation.navigate(Routes.NOTIFICATIONS.OPT_IN_STACK);
+      navigation.navigate(Routes.NOTIFICATIONS.VIEW);
       trackEvent(
         createEventBuilder(EVENT_NAME.NOTIFICATIONS_ACTIVATED)
           .addProperties({
@@ -177,11 +176,13 @@ const AccountsMenu = () => {
   }, [goToBrowserUrl, trackEvent, createEventBuilder]);
 
   const onPressSupport = useCallback(() => {
-    let supportUrl = 'https://support.metamask.io';
+    let supportUrl;
 
     ///: BEGIN:ONLY_INCLUDE_IF(beta)
     supportUrl = 'https://intercom.help/internal-beta-testing/en/';
     ///: END:ONLY_INCLUDE_IF
+
+    supportUrl = supportUrl || METAMASK_SUPPORT_URL;
 
     goToBrowserUrl(supportUrl, strings('app_settings.contact_support'));
     trackEvent(createEventBuilder(EVENT_NAME.NAVIGATION_TAPS_GET_HELP).build());
@@ -357,7 +358,7 @@ const AccountsMenu = () => {
       edges={{ bottom: 'additive' }}
       style={tw.style('flex-1', { backgroundColor: colors.background.default })}
     >
-      <HeaderCompactStandard
+      <HeaderStandard
         onBack={handleBack}
         backButtonProps={{ testID: AccountsMenuSelectorsIDs.BACK_BUTTON }}
         includesTopInset
@@ -404,15 +405,13 @@ const AccountsMenu = () => {
         )}
 
         {/* MetaMask Card Row */}
-        {shouldDisplayCardButton && (
-          <ActionListItem
-            startAccessory={<Icon name={IconName.Card} size={IconSize.Lg} />}
-            label={strings('accounts_menu.card_title')}
-            onPress={onPressManageWallet}
-            endAccessory={arrowRightIcon}
-            testID={AccountsMenuSelectorsIDs.MANAGE_CARD}
-          />
-        )}
+        <ActionListItem
+          startAccessory={<Icon name={IconName.Card} size={IconSize.Lg} />}
+          label={strings('accounts_menu.card_title')}
+          onPress={onPressManageWallet}
+          endAccessory={arrowRightIcon}
+          testID={AccountsMenuSelectorsIDs.MANAGE_CARD}
+        />
 
         {separator}
 
@@ -442,17 +441,15 @@ const AccountsMenu = () => {
         />
 
         {/* Permissions Row */}
-        {isPermissionsSettingsV1Enabled && (
-          <ActionListItem
-            startAccessory={
-              <Icon name={IconName.SecurityTick} size={IconSize.Lg} />
-            }
-            label={strings('accounts_menu.permissions')}
-            endAccessory={arrowRightIcon}
-            onPress={onPressPermissions}
-            testID={AccountsMenuSelectorsIDs.PERMISSIONS}
-          />
-        )}
+        <ActionListItem
+          startAccessory={
+            <Icon name={IconName.SecurityTick} size={IconSize.Lg} />
+          }
+          label={strings('accounts_menu.permissions')}
+          endAccessory={arrowRightIcon}
+          onPress={onPressPermissions}
+          testID={AccountsMenuSelectorsIDs.PERMISSIONS}
+        />
 
         {/* Networks Row */}
         <ActionListItem

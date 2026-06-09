@@ -14,58 +14,11 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: () => ({ params: { campaignId: 'campaign-1' } }),
 }));
 
-jest.mock('react-native-safe-area-context', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  const actual = jest.requireActual('react-native-safe-area-context');
-  return {
-    ...actual,
-    useSafeAreaInsets: jest.fn(() => ({
-      top: 0,
-      right: 0,
-      bottom: 0,
-      left: 0,
-    })),
-    SafeAreaView: ({
-      children,
-      testID,
-      ...props
-    }: {
-      children: React.ReactNode;
-      testID?: string;
-    }) => ReactActual.createElement(View, { ...props, testID }, children),
-  };
+jest.mock('@metamask/design-system-twrnc-preset', () => {
+  const tw = (..._args: unknown[]) => ({});
+  tw.style = jest.fn(() => ({}));
+  return { useTailwind: () => tw };
 });
-
-jest.mock('@metamask/design-system-react-native', () => {
-  const actual = jest.requireActual('@metamask/design-system-react-native');
-  return { ...actual };
-});
-
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({ style: (...args: unknown[]) => args }),
-}));
-
-jest.mock(
-  '../../../../component-library/components-temp/HeaderCompactStandard',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const { View, Text, Pressable } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: ({ title, onBack }: { title: string; onBack: () => void }) =>
-        ReactActual.createElement(
-          View,
-          { testID: 'header' },
-          ReactActual.createElement(Text, null, title),
-          ReactActual.createElement(Pressable, {
-            onPress: onBack,
-            testID: 'header-back-button',
-          }),
-        ),
-    };
-  },
-);
 
 jest.mock('../../../Views/ErrorBoundary', () => {
   const ReactActual = jest.requireActual('react');
@@ -150,6 +103,7 @@ const createTestCampaign = (
     excludedRegions: [],
     details: null,
     featured: true,
+    showUpcomingDate: false,
     ...overrides,
   };
 };
@@ -301,7 +255,7 @@ describe('SeasonOneCampaignDetailsView', () => {
         campaigns: [createTestCampaign()],
       });
       const { getByTestId } = render(<SeasonOneCampaignDetailsView />);
-      fireEvent.press(getByTestId('header-back-button'));
+      fireEvent.press(getByTestId('season-one-campaign-details-back-button'));
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
   });

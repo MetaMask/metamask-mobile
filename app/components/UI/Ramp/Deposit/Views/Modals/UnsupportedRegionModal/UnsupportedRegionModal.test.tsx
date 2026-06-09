@@ -11,7 +11,7 @@ const mockGoToAggregator = jest.fn();
 const mockUseDepositSDK = jest.fn();
 const mockGoBack = jest.fn();
 const mockPop = jest.fn();
-const mockDangerouslyGetParent = jest.fn(() => ({
+const mockGetParent = jest.fn(() => ({
   pop: mockPop,
 }));
 
@@ -22,11 +22,35 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
       goBack: mockGoBack,
-      dangerouslyGetParent: mockDangerouslyGetParent,
+      getParent: mockGetParent,
       isFocused: jest.fn(() => true),
     }),
   };
 });
+
+jest.mock(
+  '../../../../../../../component-library/components/BottomSheets/BottomSheet',
+  () => {
+    const ReactMock = jest.requireActual('react');
+    const MockBottomSheet = ReactMock.forwardRef(
+      (
+        { children }: { children: React.ReactNode },
+        ref: React.Ref<unknown>,
+      ) => {
+        ReactMock.useImperativeHandle(ref, () => ({
+          onCloseBottomSheet: (callback?: () => void) => callback?.(),
+          onOpenBottomSheet: (callback?: () => void) => callback?.(),
+        }));
+        return <>{children}</>;
+      },
+    );
+    MockBottomSheet.displayName = 'MockBottomSheet';
+    return {
+      __esModule: true,
+      default: MockBottomSheet,
+    };
+  },
+);
 
 jest.mock('../../../sdk', () => ({
   useDepositSDK: () => mockUseDepositSDK(),
@@ -56,7 +80,7 @@ describe('UnsupportedRegionModal', () => {
     jest.clearAllMocks();
   });
 
-  it('render match snapshot', () => {
+  it('renders title, region name and action buttons', () => {
     mockUseDepositSDK.mockReturnValue({
       selectedRegion: {
         isoCode: 'BR',
@@ -72,8 +96,11 @@ describe('UnsupportedRegionModal', () => {
       },
     });
 
-    const { toJSON } = render(UnsupportedRegionModal);
-    expect(toJSON()).toMatchSnapshot();
+    const { getByText } = render(UnsupportedRegionModal);
+    expect(getByText('Region not supported')).toBeOnTheScreen();
+    expect(getByText('Brazil')).toBeOnTheScreen();
+    expect(getByText('Buy crypto')).toBeOnTheScreen();
+    expect(getByText('Change region')).toBeOnTheScreen();
   });
 
   it('closes parent navigator and navigates to buy screen when Buy Crypto button is pressed', () => {
@@ -92,12 +119,12 @@ describe('UnsupportedRegionModal', () => {
       },
     });
 
-    const { getByText } = render(UnsupportedRegionModal);
+    const { getByRole } = render(UnsupportedRegionModal);
 
-    const buyCryptoButton = getByText('Buy crypto');
+    const buyCryptoButton = getByRole('button', { name: 'Buy crypto' });
     fireEvent.press(buyCryptoButton);
 
-    expect(mockDangerouslyGetParent).toHaveBeenCalled();
+    expect(mockGetParent).toHaveBeenCalled();
     expect(mockPop).toHaveBeenCalled();
     expect(mockGoToAggregator).toHaveBeenCalledWith();
   });
@@ -137,8 +164,8 @@ describe('UnsupportedRegionModal', () => {
       selectedRegion: null,
     });
 
-    const { toJSON } = render(UnsupportedRegionModal);
+    const { getByText } = render(UnsupportedRegionModal);
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('Region not supported')).toBeOnTheScreen();
   });
 });

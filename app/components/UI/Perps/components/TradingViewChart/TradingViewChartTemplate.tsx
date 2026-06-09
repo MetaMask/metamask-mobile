@@ -1,5 +1,13 @@
 import { Theme } from '../../../../../util/theme/models';
 
+const hexToRgba = (hex: string, alpha: number): string => {
+  const clean = hex.length === 9 && hex.startsWith('#') ? hex.slice(0, 7) : hex;
+  const r = parseInt(clean.slice(1, 3), 16);
+  const g = parseInt(clean.slice(3, 5), 16);
+  const b = parseInt(clean.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
 export const createTradingViewChartTemplate = (
   theme: Theme,
   lightweightChartsLib: string,
@@ -808,7 +816,7 @@ export const createTradingViewChartTemplate = (
                 // Use the old API: chart.addSeries(SeriesType, options, paneIndex)
                 // Pane index 1 creates a NEW separate pane below the default pane 0
                 window.volumeSeries = window.chart.addSeries(window.LightweightCharts.HistogramSeries, {
-                    color: '${theme.colors.success.default}',
+                    color: '${hexToRgba(theme.colors.success.default, 0.3)}',
                     priceFormat: {
                         type: 'custom',
                         formatter: window.formatVolumeEmpty, // Use empty formatter to hide Y-axis labels
@@ -1005,8 +1013,8 @@ export const createTradingViewChartTemplate = (
                                     time: candle.time,
                                     value: (parseFloat(candle.volume) * parseFloat(candle.close)) || 0,
                                     color: window.coloredVolume
-                                        ? (candle.close >= candle.open ? '${theme.colors.success.default}' : '${theme.colors.error.default}')
-                                        : '${theme.colors.border.muted}'
+                                        ? (candle.close >= candle.open ? '${hexToRgba(theme.colors.success.default, 0.3)}' : '${hexToRgba(theme.colors.error.default, 0.3)}')
+                                        : '${hexToRgba(theme.colors.border.muted, 0.3)}'
                                 }));
                                 window.volumeSeries.setData(volumeData);
 
@@ -1380,8 +1388,8 @@ export const createTradingViewChartTemplate = (
                                                 time: candle.time,
                                                 value: (parseFloat(candle.volume) * parseFloat(candle.close)) || 0, // USD notional = volume × price
                                                 color: window.coloredVolume
-                                                    ? (candle.close >= candle.open ? '${theme.colors.success.default}' : '${theme.colors.error.default}')
-                                                    : '${theme.colors.border.muted}'
+                                                    ? (candle.close >= candle.open ? '${hexToRgba(theme.colors.success.default, 0.3)}' : '${hexToRgba(theme.colors.error.default, 0.3)}')
+                                                    : '${hexToRgba(theme.colors.border.muted, 0.3)}'
                                             }));
 
                                             window.volumeSeries.setData(volumeData);
@@ -1426,6 +1434,63 @@ export const createTradingViewChartTemplate = (
 
                                 // Price line is updated via ADD_AUXILIARY_LINES with mark price from React Native
                                 // Do NOT use candle close price here - it differs from header's mark price
+                            }
+                        }
+                        break;
+                    case 'UPDATE_LAST_CANDLE':
+                        // Incremental update path: apply only the last 1-2 candles
+                        // via series.update() instead of resetting the full dataset.
+                        // This preserves the user's visible range / zoom and avoids
+                        // the viewport flicker that series.setData() causes — the
+                        // bug that appeared when revisiting a previously-visited
+                        // interval while live ticks continued to stream in.
+                        if (
+                            window.chart &&
+                            window.candlestickSeries &&
+                            Array.isArray(message.candles) &&
+                            message.candles.length > 0
+                        ) {
+                            try {
+                                message.candles.forEach(function (candle) {
+                                    // Update candlestick series (handles both in-place
+                                    // tick updates and newly appended bars).
+                                    window.candlestickSeries.update(candle);
+
+                                    // Keep allCandleData in sync so zoom/price-range
+                                    // calculations use the latest candle values.
+                                    if (window.allCandleData && window.allCandleData.length > 0) {
+                                        var existingIndex = -1;
+                                        for (var i = window.allCandleData.length - 1; i >= 0; i--) {
+                                            if (window.allCandleData[i].time === candle.time) {
+                                                existingIndex = i;
+                                                break;
+                                            }
+                                        }
+                                        if (existingIndex >= 0) {
+                                            window.allCandleData[existingIndex] = candle;
+                                        } else {
+                                            window.allCandleData.push(candle);
+                                        }
+                                    }
+
+                                    // Mirror the update on the volume series when visible.
+                                    if (window.volumeSeries) {
+                                        var volumePoint = {
+                                            time: candle.time,
+                                            value: (parseFloat(candle.volume) * parseFloat(candle.close)) || 0,
+                                            color: window.coloredVolume
+                                                ? (candle.close >= candle.open ? '${hexToRgba(theme.colors.success.default, 0.3)}' : '${hexToRgba(theme.colors.error.default, 0.3)}')
+                                                : '${hexToRgba(theme.colors.border.muted, 0.3)}'
+                                        };
+                                        window.volumeSeries.update(volumePoint);
+                                    }
+                                });
+
+                                // Refresh dynamic Y-axis decimal precision without
+                                // triggering a zoom/range change.
+                                window.updateVisiblePriceRange();
+                            } catch (error) {
+                                console.error('TradingView: Error applying incremental update:', error);
                             }
                         }
                         break;
@@ -1534,8 +1599,8 @@ export const createTradingViewChartTemplate = (
                                                 time: candle.time,
                                                 value: (parseFloat(candle.volume) * parseFloat(candle.close)) || 0, // USD notional = volume × price
                                                 color: window.coloredVolume
-                                                    ? (candle.close >= candle.open ? '${theme.colors.success.default}' : '${theme.colors.error.default}')
-                                                    : '${theme.colors.border.muted}'
+                                                    ? (candle.close >= candle.open ? '${hexToRgba(theme.colors.success.default, 0.3)}' : '${hexToRgba(theme.colors.error.default, 0.3)}')
+                                                    : '${hexToRgba(theme.colors.border.muted, 0.3)}'
                                             }));
                                             window.volumeSeries.setData(volumeData);
                                         }

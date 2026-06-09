@@ -41,12 +41,17 @@ import Networks, {
   isMainNet,
 } from '../../../util/networks';
 import { LINEA_MAINNET, MAINNET } from '../../../constants/network';
-import Button from '../../../component-library/components/Buttons/Button/Button';
 import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
+  Box,
+} from '@metamask/design-system-react-native';
+import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
+import {
+  ButtonSize as InternalButtonSize,
+  ButtonProps,
+} from '../../../component-library/components/Buttons/Button/Button.types';
 import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
 import { NetworkListModalSelectorsIDs } from './NetworkListModal.testIds';
@@ -63,17 +68,20 @@ import { ShowConfirmDeleteModalState, infuraNetwork } from './types';
 import { InfuraNetworkType } from '@metamask/controller-utils';
 import InfoModal from '../../Base/InfoModal';
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import CustomNetwork from '../Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { NetworksSelectorSelectorsIDs } from '../Settings/NetworksSettings/NetworksView.testIds';
 import { PopularList } from '../../../util/networks/customNetworks';
 import NetworkSearchTextInput from './NetworkSearchTextInput';
 import { useAddPopularNetwork } from '../../hooks/useAddPopularNetwork';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import AccountAction from '../AccountAction';
 import { ButtonsAlignment } from '../../../component-library/components/BottomSheets/BottomSheetFooter';
-import { ButtonProps } from '../../../component-library/components/Buttons/Button/Button.types';
 import BottomSheetFooter from '../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ExtendedNetwork } from '../Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
 import { CaipChainId, Hex } from '@metamask/utils';
@@ -81,7 +89,6 @@ import hideProtocolFromUrl from '../../../util/hideProtocolFromUrl';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { NetworkConfiguration } from '@metamask/network-controller';
-import { Box } from '@metamask/design-system-react-native';
 import RpcSelectionModal from './RpcSelectionModal/RpcSelectionModal';
 import {
   TraceName,
@@ -916,14 +923,14 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
   const cancelButtonProps: ButtonProps = {
     variant: ButtonVariants.Secondary,
     label: strings('accountApproval.cancel'),
-    size: ButtonSize.Lg,
+    size: InternalButtonSize.Lg,
     onPress: () => closeDeleteModal(),
   };
 
   const deleteButtonProps: ButtonProps = {
     variant: ButtonVariants.Primary,
     label: strings('app_settings.delete'),
-    size: ButtonSize.Lg,
+    size: InternalButtonSize.Lg,
     onPress: () => confirmRemoveRpc(),
   };
 
@@ -983,14 +990,15 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
           </ScrollView>
           {!isSendFlow ? (
             <Button
-              variant={ButtonVariants.Secondary}
-              label={strings(buttonLabelAddNetwork)}
+              variant={ButtonVariant.Secondary}
               onPress={goToNetworkSettings}
-              width={ButtonWidthTypes.Full}
+              isFullWidth
               size={ButtonSize.Lg}
               style={styles.addNetworkButton}
               testID={NetworkListModalSelectorsIDs.ADD_BUTTON}
-            />
+            >
+              {strings(buttonLabelAddNetwork)}
+            </Button>
           ) : null}
         </KeyboardAvoidingView>
 

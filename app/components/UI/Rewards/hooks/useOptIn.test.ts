@@ -3,7 +3,9 @@ import { useSelector, useDispatch } from 'react-redux';
 import useOptin from './useOptIn';
 import Engine from '../../../../core/Engine';
 import { setCandidateSubscriptionId } from '../../../../reducers/rewards';
-import { useMetrics } from '../../../hooks/useMetrics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import {
   selectSelectedAccountGroup,
   selectAccountGroupsByWallet,
@@ -33,14 +35,7 @@ jest.mock('../../../../reducers/rewards', () => ({
   setCandidateSubscriptionId: jest.fn(),
 }));
 
-jest.mock('../../../hooks/useMetrics', () => ({
-  MetaMetricsEvents: {
-    REWARDS_OPT_IN_STARTED: 'Rewards Opt-in Started',
-    REWARDS_OPT_IN_COMPLETED: 'Rewards Opt-in Completed',
-    REWARDS_OPT_IN_FAILED: 'Rewards Opt-in Failed',
-  },
-  useMetrics: jest.fn(),
-}));
+jest.mock('../../../hooks/useAnalytics/useAnalytics');
 
 jest.mock(
   '../../../../selectors/multichainAccounts/accountTreeController',
@@ -99,7 +94,7 @@ describe('useOptIn', () => {
   const mockEngineCall = Engine.controllerMessenger.call as jest.MockedFunction<
     typeof Engine.controllerMessenger.call
   >;
-  const mockUseMetrics = jest.mocked(useMetrics);
+  const mockUseAnalytics = jest.mocked(useAnalytics);
   const mockSetCandidateSubscriptionId =
     setCandidateSubscriptionId as jest.MockedFunction<
       typeof setCandidateSubscriptionId
@@ -134,7 +129,7 @@ describe('useOptIn', () => {
       properties: expect.any(Object),
     }),
   });
-  const mockAddTraitsToUser = jest.fn();
+  const mockIdentify = jest.fn();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mockAccountGroup = {
@@ -203,7 +198,7 @@ describe('useOptIn', () => {
     // Reset mock event builder functions
     mockCreateEventBuilder.mockClear();
     mockTrackEvent.mockClear();
-    mockAddTraitsToUser.mockClear();
+    mockIdentify.mockClear();
 
     // Setup default selector values
     mockSelectSelectedAccountGroup.mockReturnValue(mockAccountGroup);
@@ -232,12 +227,14 @@ describe('useOptIn', () => {
       return undefined;
     });
 
-    // Setup useMetrics mock
-    mockUseMetrics.mockReturnValue({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: mockCreateEventBuilder,
-      addTraitsToUser: mockAddTraitsToUser,
-    } as never);
+    // Setup useAnalytics mock
+    mockUseAnalytics.mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+        identify: mockIdentify,
+      }),
+    );
 
     // Setup useLinkAccountGroup mock
     mockUseLinkAccountGroup.mockReturnValue({
@@ -295,7 +292,7 @@ describe('useOptIn', () => {
       expect(mockDispatch).toHaveBeenCalledWith(
         mockSetCandidateSubscriptionId('subscription-123'),
       );
-      expect(mockAddTraitsToUser).toHaveBeenCalledWith({
+      expect(mockIdentify).toHaveBeenCalledWith({
         has_rewards_opted_in: 'on',
       });
       expect(mockTrackEvent).toHaveBeenCalledWith(
@@ -326,10 +323,10 @@ describe('useOptIn', () => {
         'ABC123',
       );
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        'Rewards Opt-in Started',
+        MetaMetricsEvents.REWARDS_OPT_IN_STARTED,
       );
       expect(mockTrackEvent).toHaveBeenCalledTimes(2); // Started and Completed
-      expect(mockAddTraitsToUser).toHaveBeenCalledWith({
+      expect(mockIdentify).toHaveBeenCalledWith({
         has_rewards_opted_in: 'on',
         rewards_referred: true,
         rewards_referral_code_used: 'ABC123',
@@ -855,10 +852,10 @@ describe('useOptIn', () => {
       });
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        'Rewards Opt-in Started',
+        MetaMetricsEvents.REWARDS_OPT_IN_STARTED,
       );
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        'Rewards Opt-in Completed',
+        MetaMetricsEvents.REWARDS_OPT_IN_COMPLETED,
       );
 
       const eventBuilder = mockCreateEventBuilder.mock.results[0].value;

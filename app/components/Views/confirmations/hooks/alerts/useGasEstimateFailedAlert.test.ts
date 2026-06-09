@@ -10,6 +10,10 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import { AlertKeys } from '../../constants/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { Severity } from '../../types/alerts';
+import { useIsGasSponsored } from '../gas/useIsGasSponsored';
+
+jest.mock('../transactions/useTransactionMetadataRequest');
+jest.mock('../gas/useIsGasSponsored');
 
 const MOCK_TRANSACTION_META = {
   id: '1',
@@ -24,12 +28,15 @@ const MOCK_TRANSACTION_META_WITH_SIMULATION_FAILS = {
   status: TransactionStatus.unapproved,
   type: TransactionType.contractInteraction,
   chainId: '0x1',
+  txParams: {
+    from: '0x13b7e6EBcd40777099E4c45d407745aB2de1D1F8',
+  },
   simulationFails: {
     reason: 'execution reverted',
   },
 } as unknown as TransactionMeta;
 
-jest.mock('../transactions/useTransactionMetadataRequest');
+const mockUseIsGasSponsored = jest.mocked(useIsGasSponsored);
 
 describe('useGasEstimateFailedAlert', () => {
   const mockUseTransactionMetadataRequest = jest.mocked(
@@ -38,6 +45,7 @@ describe('useGasEstimateFailedAlert', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseIsGasSponsored.mockReturnValue(false);
   });
 
   it('returns alert when simulationFails is truthy', () => {
@@ -99,6 +107,18 @@ describe('useGasEstimateFailedAlert', () => {
       userFeeLevel: UserFeeLevel.CUSTOM,
     } as unknown as TransactionMeta);
 
+    const { result } = renderHookWithProvider(() =>
+      useGasEstimateFailedAlert(),
+    );
+
+    expect(result.current).toEqual([]);
+  });
+
+  it('returns no alerts if simulation fails but network is sponsored', () => {
+    mockUseTransactionMetadataRequest.mockReturnValue(
+      MOCK_TRANSACTION_META_WITH_SIMULATION_FAILS,
+    );
+    mockUseIsGasSponsored.mockReturnValue(true);
     const { result } = renderHookWithProvider(() =>
       useGasEstimateFailedAlert(),
     );

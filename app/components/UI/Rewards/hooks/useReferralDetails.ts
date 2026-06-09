@@ -1,27 +1,29 @@
 import { useCallback, useMemo, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
-import { selectSeasonId } from '../../../../reducers/rewards/selectors';
 import {
   setReferralDetails,
   setReferralDetailsError,
   setReferralDetailsLoading,
 } from '../../../../reducers/rewards';
 import Engine from '../../../../core/Engine';
-import type { SubscriptionSeasonReferralDetailState } from '../../../../core/Engine/controllers/rewards-controller/types';
+import type { SubscriptionReferralDetailState } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { useFocusEffect } from '@react-navigation/native';
 import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
 
-export const useReferralDetails = (): {
+export const useReferralDetails = ({
+  fetchOnMount = true,
+}: {
+  fetchOnMount?: boolean;
+} = {}): {
   fetchReferralDetails: () => Promise<void>;
 } => {
   const dispatch = useDispatch();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
-  const seasonId = useSelector(selectSeasonId);
   const isLoadingRef = useRef(false);
 
   const fetchReferralDetails = useCallback(async (): Promise<void> => {
-    if (!subscriptionId || !seasonId) {
+    if (!subscriptionId) {
       dispatch(setReferralDetailsError(false));
       dispatch(setReferralDetailsLoading(false));
       return;
@@ -35,11 +37,10 @@ export const useReferralDetails = (): {
       dispatch(setReferralDetailsLoading(true));
       dispatch(setReferralDetailsError(false));
 
-      const referralDetails: SubscriptionSeasonReferralDetailState | null =
+      const referralDetails: SubscriptionReferralDetailState | null =
         await Engine.controllerMessenger.call(
           'RewardsController:getReferralDetails',
           subscriptionId,
-          seasonId,
         );
 
       dispatch(
@@ -47,7 +48,6 @@ export const useReferralDetails = (): {
           referralCode: referralDetails?.referralCode,
           refereeCount: referralDetails?.totalReferees,
           referredByCode: referralDetails?.referredByCode,
-          referralPoints: referralDetails?.referralPoints,
         }),
       );
     } catch (error) {
@@ -56,25 +56,29 @@ export const useReferralDetails = (): {
       isLoadingRef.current = false;
       dispatch(setReferralDetailsLoading(false));
     }
-  }, [dispatch, subscriptionId, seasonId]);
+  }, [dispatch, subscriptionId]);
 
   useFocusEffect(
     useCallback(() => {
+      if (!fetchOnMount) {
+        return;
+      }
       fetchReferralDetails();
-    }, [fetchReferralDetails]),
+    }, [fetchReferralDetails, fetchOnMount]),
   );
 
   const invalidateEvents = useMemo(
     () =>
-      [
-        'RewardsController:accountLinked',
-        'RewardsController:rewardClaimed',
-        'RewardsController:balanceUpdated',
-      ] as const,
-    [],
+      fetchOnMount
+        ? [
+            'RewardsController:accountLinked' as const,
+            'RewardsController:rewardClaimed' as const,
+            'RewardsController:balanceUpdated' as const,
+          ]
+        : [],
+    [fetchOnMount],
   );
 
-  // Listen for events that should trigger a refetch of referral details
   useInvalidateByRewardEvents(invalidateEvents, fetchReferralDetails);
 
   return { fetchReferralDetails };

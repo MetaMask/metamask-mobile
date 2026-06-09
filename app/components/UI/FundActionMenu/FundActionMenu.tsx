@@ -1,23 +1,24 @@
 // Third party dependencies.
 import React, { useCallback, useRef, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 
 // External dependencies.
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../component-library/components/BottomSheets/BottomSheet';
-import { selectChainId } from '../../../selectors/networkController';
+import { selectEvmChainId } from '../../../selectors/networkController';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { IconName, Box } from '@metamask/design-system-react-native';
+import {
+  IconName,
+  Box,
+  BottomSheet,
+  BottomSheetRef,
+} from '@metamask/design-system-react-native';
 import ActionListItem from '../../../component-library/components-temp/ActionListItem';
-import useRampNetwork from '../Ramp/Aggregator/hooks/useRampNetwork';
 import { getDecimalChainId } from '../../../util/networks';
 import { WalletActionsBottomSheetSelectorsIDs } from '../../Views/WalletActions/WalletActionsBottomSheet.testIds';
 import { strings } from '../../../../locales/i18n';
 
 // Internal dependencies
-import { useMetrics } from '../../hooks/useMetrics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { trace, TraceName } from '../../../util/trace';
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
 import { RampType } from '../../../reducers/fiatOrders/types';
@@ -33,19 +34,21 @@ import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
 import useRampsUnifiedV1Enabled from '../Ramp/hooks/useRampsUnifiedV1Enabled';
 import useRampsUnifiedV2Enabled from '../Ramp/hooks/useRampsUnifiedV2Enabled';
 import { useRampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
+import { useElevatedSurface } from '../../../util/theme/themeUtils';
 
 const FundActionMenu = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
+  const navigation = useNavigation();
+  const surfaceClass = useElevatedSurface();
   const route = useRoute<FundActionMenuRouteProp>();
 
   const customOnBuy = route.params?.onBuy;
   const assetContext = route.params?.asset;
 
-  const chainId = useSelector(selectChainId);
-  const [isNetworkRampSupported] = useRampNetwork();
+  const evmChainId = useSelector(selectEvmChainId);
 
   const { isDepositEnabled } = useDepositEnabled();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
   const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
@@ -96,14 +99,14 @@ const FundActionMenu = () => {
         assetContext.chainId.startsWith('0x')
       ) {
         const parsed = parseInt(assetContext.chainId, 16);
-        return isNaN(parsed) ? getDecimalChainId(chainId) : parsed;
+        return isNaN(parsed) ? getDecimalChainId(evmChainId) : parsed;
       }
       // If it's already a decimal string, convert to number
       const parsed = parseInt(assetContext.chainId, 10);
-      return isNaN(parsed) ? getDecimalChainId(chainId) : parsed;
+      return isNaN(parsed) ? getDecimalChainId(evmChainId) : parsed;
     }
-    return getDecimalChainId(chainId);
-  }, [assetContext?.chainId, chainId]);
+    return getDecimalChainId(evmChainId);
+  }, [assetContext?.chainId, evmChainId]);
 
   const actionConfigs: ActionConfig[] = useMemo(
     () =>
@@ -146,7 +149,7 @@ const FundActionMenu = () => {
           analyticsProperties: {
             button_text: 'Deposit',
             location: 'FundActionMenu',
-            chain_id_destination: getDecimalChainId(chainId),
+            chain_id_destination: getDecimalChainId(evmChainId),
             ramp_type: 'DEPOSIT',
             region: rampGeodetectedRegion,
             ramp_routing: rampsButtonClickData.ramp_routing,
@@ -192,13 +195,13 @@ const FundActionMenu = () => {
           description: strings('fund_actionmenu.sell_description'),
           iconName: IconName.MinusBold,
           testID: WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON,
-          isVisible: isNetworkRampSupported,
+          isVisible: true,
           isDisabled: !canSignTransactions,
           analyticsEvent: MetaMetricsEvents.RAMPS_BUTTON_CLICKED,
           analyticsProperties: {
             button_text: 'Sell',
             location: 'FundActionMenu',
-            chain_id_source: getDecimalChainId(chainId),
+            chain_id_source: getChainIdForAsset(),
             ramp_type: 'SELL',
             region: rampGeodetectedRegion,
             ramp_routing: rampsButtonClickData.ramp_routing,
@@ -215,10 +218,9 @@ const FundActionMenu = () => {
       isDepositEnabled,
       rampUnifiedV1Enabled,
       isV2UnifiedEnabled,
-      chainId,
+      evmChainId,
       rampGeodetectedRegion,
       getChainIdForAsset,
-      isNetworkRampSupported,
       canSignTransactions,
       customOnBuy,
       assetContext,
@@ -231,7 +233,12 @@ const FundActionMenu = () => {
   );
 
   return (
-    <BottomSheet ref={sheetRef}>
+    <BottomSheet
+      ref={sheetRef}
+      goBack={navigation.goBack}
+      testID="fund-action-menu-bottom-sheet"
+      twClassName={surfaceClass}
+    >
       <Box twClassName="py-4">
         {actionConfigs.map(
           (config) =>

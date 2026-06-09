@@ -9,11 +9,6 @@ import React, {
 import { Alert, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import Button, {
-  ButtonVariants,
-  ButtonSize,
-  ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import {
   KeyboardAwareScrollView,
@@ -27,7 +22,11 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  Button,
   ButtonIcon,
+  ButtonSize,
+  ButtonVariant,
+  HeaderStandard,
   IconName,
   IconColor,
   Text,
@@ -37,7 +36,6 @@ import {
 import { ImportSRPIDs } from './SRPImport.testIds';
 import { importNewSecretRecoveryPhrase } from '../../../actions/multiSrp';
 import { IconName as ComponentIconName } from '../../../component-library/components/Icons/Icon';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import TitleStandard from '../../../component-library/components-temp/TitleStandard';
 import {
   ToastContext,
@@ -50,12 +48,12 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import { Authentication } from '../../../core';
 import Routes from '../../../constants/navigation/Routes';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import Logger from '../../../util/Logger';
 import { v4 as uuidv4 } from 'uuid';
 import SrpInputGrid, { SrpInputGridRef } from '../../UI/SrpInputGrid';
 import SrpWordSuggestions from '../../UI/SrpWordSuggestions';
-import { selectImportSrpWordSuggestionEnabledFlag } from '../../../selectors/featureFlagController/importSrpWordSuggestion';
 import { isSRPLengthValid, SPACE_CHAR } from '../../../util/srp/srpInputUtils';
 import {
   validateSRP,
@@ -79,11 +77,6 @@ const ImportNewSecretRecoveryPhrase = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [currentInputWord, setCurrentInputWord] = useState('');
-
-  // Feature flag for SRP word suggestions
-  const isSrpWordSuggestionsEnabled = useSelector(
-    selectImportSrpWordSuggestionEnabledFlag,
-  );
 
   const isKeyboardVisible = useKeyboardState((state) => state.isVisible);
 
@@ -249,7 +242,7 @@ const ImportNewSecretRecoveryPhrase = () => {
       edges={{ bottom: 'additive' }}
       style={tw.style('flex-1 bg-default')}
     >
-      <HeaderCompactStandard
+      <HeaderStandard
         includesTopInset
         backButtonProps={{
           onPress: dismiss,
@@ -320,17 +313,18 @@ const ImportNewSecretRecoveryPhrase = () => {
       </KeyboardAwareScrollView>
       <Box twClassName="px-4 py-4 bg-default">
         <Button
-          variant={ButtonVariants.Primary}
+          variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          label={strings('import_new_secret_recovery_phrase.cta_text')}
+          isFullWidth
           onPress={onSubmit}
           isDisabled={isSRPContinueButtonDisabled || loading}
-          loading={loading}
+          isLoading={loading}
           testID={ImportSRPIDs.IMPORT_BUTTON}
-        />
+        >
+          {strings('import_new_secret_recovery_phrase.cta_text')}
+        </Button>
       </Box>
-      {isSrpWordSuggestionsEnabled && isKeyboardVisible && (
+      {isKeyboardVisible && (
         <KeyboardStickyView
           offset={{ closed: 0, opened: 0 }}
           style={tw.style('absolute bottom-0 left-0 right-0')}

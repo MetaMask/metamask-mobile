@@ -24,15 +24,16 @@ import {
   useTransactionPayFiatPayment,
   useTransactionPayRequiredTokens,
 } from '../../../hooks/pay/useTransactionPayData';
-import { useFiatPaymentHighlightedActions } from '../../../hooks/pay/useFiatPaymentHighlightedActions';
+import { getAvailableTokens } from '../../../utils/transaction-pay';
+import { useWithdrawTokenFilter } from '../../../hooks/pay/useWithdrawTokenFilter';
 import { EthAccountType, SolAccountType } from '@metamask/keyring-api';
 import { Hex } from '@metamask/utils';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { EMPTY_ADDRESS } from '../../../../../../constants/transaction';
-import { getAvailableTokens } from '../../../utils/transaction-pay';
-import { useWithdrawTokenFilter } from '../../../hooks/pay/useWithdrawTokenFilter';
 import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
 import { usePerpsBalanceTokenFilter } from '../../../../../UI/Perps/hooks/usePerpsBalanceTokenFilter';
+import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
+import { usePredictBalanceTokenFilter } from '../../../../../UI/Predict/hooks/usePredictBalanceTokenFilter';
 
 const mockAddTokens = jest.fn().mockResolvedValue(undefined);
 const mockFindNetworkClientIdByChainId = jest
@@ -54,12 +55,16 @@ jest.mock('../../../../../../core/Engine', () => ({
 jest.mock('../../../hooks/pay/useTransactionPayToken');
 jest.mock('../../../hooks/pay/useTransactionPayData');
 jest.mock('../../../hooks/pay/useTransactionPayWithdraw');
-jest.mock('../../../hooks/pay/useFiatPaymentHighlightedActions');
 jest.mock('../../../hooks/pay/useWithdrawTokenFilter');
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
-jest.mock('../../../utils/transaction-pay');
+jest.mock('../../../utils/transaction-pay', () => ({
+  ...jest.requireActual('../../../utils/transaction-pay'),
+  getAvailableTokens: jest.fn(),
+}));
 jest.mock('../../../../../UI/Perps/hooks/usePerpsPaymentToken');
 jest.mock('../../../../../UI/Perps/hooks/usePerpsBalanceTokenFilter');
+jest.mock('../../../../../UI/Predict/hooks/usePredictPaymentToken');
+jest.mock('../../../../../UI/Predict/hooks/usePredictBalanceTokenFilter');
 
 jest.mock('../../../hooks/send/useAccountTokens', () => {
   // Return a stable reference to avoid infinite re-render loops.
@@ -217,9 +222,14 @@ describe('PayWithModal', () => {
   const usePerpsBalanceTokenFilterMock = jest.mocked(
     usePerpsBalanceTokenFilter,
   );
+  const onPredictPaymentTokenChangeMock = jest.fn();
+  const usePredictPaymentTokenMock = jest.mocked(usePredictPaymentToken);
+  const usePredictBalanceTokenFilterMock = jest.mocked(
+    usePredictBalanceTokenFilter,
+  );
 
   beforeEach(() => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
 
     useTransactionPayWithdrawMock.mockReturnValue({
       isWithdraw: false,
@@ -227,7 +237,6 @@ describe('PayWithModal', () => {
     });
 
     jest.mocked(useTransactionPayFiatPayment).mockReturnValue(undefined);
-    jest.mocked(useFiatPaymentHighlightedActions).mockReturnValue([]);
 
     getAvailableTokensMock.mockReturnValue(TOKENS_MOCK);
     useWithdrawTokenFilterMock.mockReturnValue(
@@ -259,9 +268,20 @@ describe('PayWithModal', () => {
     usePerpsBalanceTokenFilterMock.mockReturnValue(
       jest.fn((tokens: AssetType[]) => tokens),
     );
+
+    usePredictPaymentTokenMock.mockReturnValue({
+      onPaymentTokenChange: onPredictPaymentTokenChangeMock,
+      isPredictBalanceSelected: true,
+      selectedPaymentToken: null,
+      resetSelectedPaymentToken: jest.fn(),
+    } as ReturnType<typeof usePredictPaymentToken>);
+
+    usePredictBalanceTokenFilterMock.mockReturnValue(
+      jest.fn((tokens: AssetType[]) => tokens),
+    );
   });
 
-  it('renders tokens', async () => {
+  it('renders tokens', () => {
     const { getByText } = render();
 
     expect(getByText('Native Token 1')).toBeDefined();
@@ -275,11 +295,9 @@ describe('PayWithModal', () => {
 
   describe('on token select', () => {
     it('sets pay asset', async () => {
-      const { getByText } = render();
+      const { findByText } = render();
 
-      await waitFor(() => {
-        fireEvent.press(getByText('Test Token 1'));
-      });
+      fireEvent.press(await findByText('Test Token 1'));
 
       expect(setPayTokenMock).toHaveBeenCalledWith({
         address: TOKENS_MOCK[1].address,
@@ -298,11 +316,9 @@ describe('PayWithModal', () => {
         type: TransactionType.perpsDepositAndOrder,
       } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
 
-      const { getByText } = render();
+      const { findByText } = render();
 
-      await waitFor(() => {
-        fireEvent.press(getByText('Test Token 1'));
-      });
+      fireEvent.press(await findByText('Test Token 1'));
 
       expect(onPerpsPaymentTokenChangeMock).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -310,6 +326,30 @@ describe('PayWithModal', () => {
           chainId: TOKENS_MOCK[1].chainId,
         }),
       );
+    });
+
+    it('calls onPredictPaymentTokenChange via close callback when type is predictDepositAndOrder', async () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        chainId: CHAIN_ID_1_MOCK,
+        networkClientId: '',
+        status: TransactionStatus.unapproved,
+        time: 0,
+        txParams: { from: EMPTY_ADDRESS },
+        type: TransactionType.predictDepositAndOrder,
+      } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
+
+      const { findByText } = render();
+
+      fireEvent.press(await findByText('Test Token 1'));
+
+      expect(onPredictPaymentTokenChangeMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          address: TOKENS_MOCK[1].address,
+          chainId: TOKENS_MOCK[1].chainId,
+        }),
+      );
+      expect(setPayTokenMock).not.toHaveBeenCalled();
     });
   });
 
@@ -332,6 +372,25 @@ describe('PayWithModal', () => {
     expect(perpsFilterFn).toHaveBeenCalledWith(TOKENS_MOCK);
   });
 
+  it('uses predictBalanceTokenFilter when transaction type is predictDepositAndOrder', () => {
+    const predictFilterFn = jest.fn((tokens: AssetType[]) => tokens);
+    usePredictBalanceTokenFilterMock.mockReturnValue(predictFilterFn);
+
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: transactionIdMock,
+      chainId: CHAIN_ID_1_MOCK,
+      networkClientId: '',
+      status: TransactionStatus.unapproved,
+      time: 0,
+      txParams: { from: EMPTY_ADDRESS },
+      type: TransactionType.predictDepositAndOrder,
+    } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
+
+    render();
+
+    expect(predictFilterFn).toHaveBeenCalledWith(TOKENS_MOCK);
+  });
+
   describe('withdraw mode', () => {
     beforeEach(() => {
       useTransactionPayWithdrawMock.mockReturnValue({
@@ -351,9 +410,9 @@ describe('PayWithModal', () => {
       } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
     });
 
-    it('shows "Select receive token" title for withdrawal transactions', () => {
+    it('shows "Select a token" title for withdrawal transactions', () => {
       const { getByText } = render();
-      expect(getByText('Select receive token')).toBeDefined();
+      expect(getByText('Select a token')).toBeDefined();
     });
 
     it('bypasses getAvailableTokens for withdrawal transactions', () => {
@@ -373,7 +432,23 @@ describe('PayWithModal', () => {
       expect(getAvailableTokensMock).not.toHaveBeenCalled();
     });
 
-    it('adds zero-balance token to TokensController on withdraw selection', async () => {
+    it('awaits addTokens before calling setPayToken for zero-balance withdraw token', async () => {
+      const callOrder: string[] = [];
+
+      mockAddTokens.mockImplementation(
+        () =>
+          new Promise<void>((resolve) => {
+            setTimeout(() => {
+              callOrder.push('addTokens');
+              resolve();
+            }, 0);
+          }),
+      );
+
+      setPayTokenMock.mockImplementation(() => {
+        callOrder.push('setPayToken');
+      });
+
       const zeroBalanceToken = {
         accountType: EthAccountType.Eoa,
         address: '0xZeroBalanceToken',
@@ -390,14 +465,53 @@ describe('PayWithModal', () => {
         jest.fn(() => [zeroBalanceToken]),
       );
 
-      const { getByText } = render();
+      const { findByText } = render();
+
+      fireEvent.press(await findByText('Zero Token'));
 
       await waitFor(() => {
-        fireEvent.press(getByText('Zero Token'));
+        expect(setPayTokenMock).toHaveBeenCalled();
       });
 
       expect(mockAddTokens).toHaveBeenCalled();
-      expect(setPayTokenMock).toHaveBeenCalled();
+      expect(callOrder).toStrictEqual(['addTokens', 'setPayToken']);
+    });
+
+    it('passes image to addTokens when available on zero-balance token', async () => {
+      mockFindNetworkClientIdByChainId.mockReturnValue('network-client-1');
+
+      const zeroBalanceToken = {
+        accountType: EthAccountType.Eoa,
+        address: '0xZeroBalanceToken',
+        balance: '0',
+        balanceInSelectedCurrency: '$0.00',
+        chainId: CHAIN_ID_1_MOCK,
+        decimals: 6,
+        image: 'https://example.com/token.png',
+        name: 'Zero Token',
+        standard: TokenStandard.ERC20,
+        symbol: 'ZERO',
+      } as AssetType;
+
+      useWithdrawTokenFilterMock.mockReturnValue(
+        jest.fn(() => [zeroBalanceToken]),
+      );
+
+      const { findByText } = render();
+
+      fireEvent.press(await findByText('Zero Token'));
+
+      expect(mockAddTokens).toHaveBeenCalledWith(
+        [
+          expect.objectContaining({
+            address: '0xZeroBalanceToken',
+            symbol: 'ZERO',
+            decimals: 6,
+            image: 'https://example.com/token.png',
+          }),
+        ],
+        'network-client-1',
+      );
     });
   });
 
@@ -413,26 +527,6 @@ describe('PayWithModal', () => {
       expect(getAvailableTokensMock).toHaveBeenCalledWith(
         expect.objectContaining({ fiatPayment: fiatPaymentMock }),
       );
-    });
-
-    it('prepends fiat highlighted actions to token list', () => {
-      const fiatAction = {
-        position: 'outside_of_asset_list' as const,
-        icon: 'card-icon',
-        paymentType: 'debit-credit-card',
-        name: 'Credit Card',
-        name_description: '5-10 min',
-        action: jest.fn(),
-        isSelected: false,
-      };
-
-      jest
-        .mocked(useFiatPaymentHighlightedActions)
-        .mockReturnValue([fiatAction]);
-
-      const { getByText } = render();
-
-      expect(getByText('Credit Card')).toBeDefined();
     });
   });
 });

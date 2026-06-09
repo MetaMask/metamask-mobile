@@ -13,11 +13,14 @@ import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsContr
 import { strings } from '../../../../locales/i18n';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { ChoosePasswordSelectorsIDs } from './ChoosePassword.testIds';
+import { RESET_PASSWORD_GUIDE_URL } from '../../../constants/urls';
 import Device from '../../../util/device';
 import StorageWrapper from '../../../store/storage-wrapper';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import { Authentication } from '../../../core';
+import ReduxService from '../../../core/redux';
+import type { ReduxStore } from '../../../core/redux/types';
 import { InteractionManager, Platform } from 'react-native';
 import { EVENT_NAME } from '../../../core/Analytics';
 import type { AnalyticsTrackingEvent } from '../../../util/analytics/AnalyticsEventBuilder';
@@ -51,6 +54,10 @@ jest.mock('@metamask/key-tree', () => ({
 
 import ChoosePassword from './index.tsx';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+import {
+  AccountType,
+  ONBOARDING_SUCCESS_FLOW,
+} from '../../../constants/onboarding';
 import {
   TraceName,
   TraceOperation,
@@ -146,9 +153,12 @@ jest.mock('expo-local-authentication', () => ({
   authenticateAsync: (...args: unknown[]) => mockAuthenticateAsync(...args),
 }));
 
-jest.mock('react-native/Libraries/Alert/Alert', () => ({
-  alert: jest.fn(),
-}));
+jest.mock('react-native/Libraries/Alert/Alert', () => {
+  const alert = {
+    alert: jest.fn(),
+  };
+  return { __esModule: true, default: alert, ...alert };
+});
 
 const mockMetricsIsEnabled = jest.fn().mockReturnValue(true);
 const mockTrackEvent = jest.fn();
@@ -195,6 +205,7 @@ const initialState = {
   },
 };
 const store = mockStore(initialState);
+ReduxService.store = store as unknown as ReduxStore;
 
 const mockNavigation = {
   setOptions: jest.fn(),
@@ -220,10 +231,10 @@ const mockMetrics = {
   isEnabled: mockMetricsIsEnabled,
   trackEvent: mockTrackEvent,
   enable: mockEnable,
-  addTraitsToUser: jest.fn(),
+  identify: jest.fn().mockResolvedValue(undefined),
   createEventBuilder: jest.fn(() => ({
     addProperties: jest.fn().mockReturnThis(),
-    build: jest.fn(),
+    build: jest.fn(() => ({ name: 'Analytics Preference Selected' })),
   })),
   getMetaMetricsId: jest.fn(),
 };
@@ -329,7 +340,9 @@ describe('ChoosePassword', () => {
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
     });
-    expect(component.toJSON()).toMatchSnapshot();
+    expect(
+      component.getByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
+    ).toBeOnTheScreen();
   });
 
   describe('UI State', () => {
@@ -461,6 +474,21 @@ describe('ChoosePassword', () => {
         ),
       ).toBeOnTheScreen();
     });
+
+    it('toggles password visibility when the show/hide icon is pressed', async () => {
+      const component = renderWithProviders(<ChoosePassword />);
+      await waitForInit();
+
+      const showPasswordButton = component.getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_SHOW_ICON_ID,
+      );
+
+      await act(async () => {
+        fireEvent.press(showPasswordButton);
+      });
+
+      expect(showPasswordButton).toBeOnTheScreen();
+    });
   });
 
   describe('Form Validation', () => {
@@ -555,19 +583,14 @@ describe('ChoosePassword', () => {
 
   describe('Navigation', () => {
     it('back button navigates to the previous screen', async () => {
-      renderWithProviders(<ChoosePassword />);
+      const { getByTestId } = renderWithProviders(<ChoosePassword />);
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
-      expect(mockNavigation.setOptions).toHaveBeenCalledWith(
-        expect.objectContaining({ headerLeft: expect.any(Function) }),
-      );
-
-      const headerLeftFn =
-        mockNavigation.setOptions.mock.calls[0][0].headerLeft;
+      const backButton = getByTestId(ChoosePasswordSelectorsIDs.BACK_BUTTON_ID);
       await act(async () => {
-        headerLeftFn().props.onPress();
+        fireEvent.press(backButton);
       });
 
       expect(mockNavigation.goBack).toHaveBeenCalled();
@@ -658,6 +681,7 @@ describe('ChoosePassword', () => {
         ...mockRoute.params,
         [PREVIOUS_SCREEN]: ONBOARDING,
         oauthLoginSuccess: true,
+        provider: 'google',
       };
 
       const component = renderWithProviders(<ChoosePassword />);
@@ -673,10 +697,14 @@ describe('ChoosePassword', () => {
           routes: [
             {
               name: 'OnboardingSuccess',
-              params: { showPasswordHint: true },
+              params: {
+                successFlow: ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
+              },
             },
           ],
         });
+        expect(mockTrackEvent).toHaveBeenCalled();
+        expect(mockMetrics.identify).toHaveBeenCalled();
       });
 
       mockNewWalletAndKeychain.mockRestore();
@@ -702,7 +730,7 @@ describe('ChoosePassword', () => {
       expect(mockNavigation.navigate).toHaveBeenCalledWith('Webview', {
         screen: 'SimpleWebview',
         params: {
-          url: 'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/',
+          url: RESET_PASSWORD_GUIDE_URL,
           title: 'support.metamask.io',
         },
       });
@@ -980,6 +1008,7 @@ describe('ChoosePassword', () => {
         ...mockRoute.params,
         [PREVIOUS_SCREEN]: ONBOARDING,
         oauthLoginSuccess: true,
+        provider: 'google',
       };
       const spyUpdateMarketingOptInStatus = jest
         .spyOn(OAuthLoginService, 'updateMarketingOptInStatus')
@@ -993,6 +1022,8 @@ describe('ChoosePassword', () => {
       await waitFor(() => {
         expect(mockNewWalletAndKeychain).toHaveBeenCalledTimes(1);
         expect(spyUpdateMarketingOptInStatus).toHaveBeenCalledWith(true);
+        expect(mockTrackEvent).toHaveBeenCalled();
+        expect(mockMetrics.identify).toHaveBeenCalled();
       });
 
       mockNewWalletAndKeychain.mockRestore();
@@ -1014,6 +1045,7 @@ describe('ChoosePassword', () => {
         ...mockRoute.params,
         [PREVIOUS_SCREEN]: ONBOARDING,
         oauthLoginSuccess: true,
+        provider: 'apple',
       };
       const spyUpdateMarketingOptInStatus = jest
         .spyOn(OAuthLoginService, 'updateMarketingOptInStatus')
@@ -1027,6 +1059,8 @@ describe('ChoosePassword', () => {
       await waitFor(() => {
         expect(mockNewWalletAndKeychain).toHaveBeenCalledTimes(1);
         expect(spyUpdateMarketingOptInStatus).toHaveBeenCalledWith(false);
+        expect(mockTrackEvent).toHaveBeenCalled();
+        expect(mockMetrics.identify).toHaveBeenCalled();
       });
 
       mockNewWalletAndKeychain.mockRestore();
@@ -1088,6 +1122,7 @@ describe('ChoosePassword', () => {
         ...mockRoute.params,
         [PREVIOUS_SCREEN]: ONBOARDING,
         oauthLoginSuccess: true,
+        provider: 'google',
       };
 
       const component = renderWithProviders(<ChoosePassword />);
@@ -1112,6 +1147,7 @@ describe('ChoosePassword', () => {
             params: expect.objectContaining({
               metricsEnabled: true,
               error: walletError,
+              accountType: AccountType.MetamaskGoogle,
             }),
           },
         ],
@@ -1335,6 +1371,113 @@ describe('ChoosePassword', () => {
       );
       expect(mockEndTrace).not.toHaveBeenCalledWith({
         name: TraceName.OnboardingPasswordSetupError,
+      });
+    });
+  });
+
+  describe('account_type analytics', () => {
+    it('uses metamask account_type when no provider is set', async () => {
+      mockTrackOnboarding.mockClear();
+
+      mockRoute.params = {
+        ...mockRoute.params,
+        [PREVIOUS_SCREEN]: ONBOARDING,
+      };
+
+      const component = renderWithProviders(<ChoosePassword />);
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      const passwordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+      const confirmPasswordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+      const checkbox = component.getByTestId(
+        ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'StrongPass123!');
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+      await act(async () => {
+        fireEvent.press(checkbox);
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      const submitButton = component.getByTestId(
+        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      );
+      await act(async () => {
+        fireEvent.press(submitButton);
+      });
+
+      await waitFor(() => {
+        expect(mockTrackOnboarding).toHaveBeenCalledWith(
+          expect.objectContaining({
+            properties: expect.objectContaining({
+              account_type: 'metamask',
+            }),
+          }),
+          expect.any(Function),
+        );
+      });
+    });
+
+    it('uses metamask_google account_type when provider is google', async () => {
+      mockTrackOnboarding.mockClear();
+
+      mockRoute.params = {
+        ...mockRoute.params,
+        [PREVIOUS_SCREEN]: ONBOARDING,
+        provider: 'google',
+        oauthLoginSuccess: true,
+      };
+
+      const component = renderWithProviders(<ChoosePassword />);
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      const passwordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+      const confirmPasswordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'StrongPass123!');
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      const submitButton = component.getByTestId(
+        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      );
+      await act(async () => {
+        fireEvent.press(submitButton);
+      });
+
+      await waitFor(() => {
+        expect(mockTrackOnboarding).toHaveBeenCalledWith(
+          expect.objectContaining({
+            properties: expect.objectContaining({
+              account_type: 'metamask_google',
+            }),
+          }),
+          expect.any(Function),
+        );
       });
     });
   });

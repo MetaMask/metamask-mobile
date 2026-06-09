@@ -4,7 +4,7 @@ import {
   Controller as NotificationServicesPushController,
   defaultState,
 } from '@metamask/notification-services-controller/push-services';
-import { ControllerInitFunction } from '../../types';
+import { MessengerClientInitFunction } from '../../types';
 import Logger from '../../../../util/Logger';
 import { createNotificationServicesPushController } from './create-notification-services-push-controller';
 
@@ -25,7 +25,7 @@ const logControllerCreation = (
   }
 };
 
-export const notificationServicesPushControllerInit: ControllerInitFunction<
+export const notificationServicesPushControllerInit: MessengerClientInitFunction<
   NotificationServicesPushController,
   NotificationServicesPushControllerMessenger
 > = (request) => {

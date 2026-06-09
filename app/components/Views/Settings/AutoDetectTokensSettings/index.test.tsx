@@ -6,6 +6,7 @@ import { fireEvent } from '@testing-library/react-native';
 import Engine from '../../../../core/Engine';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
+import { strings } from '../../../../../locales/i18n';
 
 // Internal dependencies
 import AssetSettings from '.';
@@ -43,7 +44,7 @@ describe('AssetSettings', () => {
     jest
       .mocked(useAnalytics)
       .mockReturnValue(
-        createMockUseAnalyticsHook({ addTraitsToUser: mockAddTraitsToUser }),
+        createMockUseAnalyticsHook({ identify: mockAddTraitsToUser }),
       );
   });
 
@@ -60,10 +61,12 @@ describe('AssetSettings', () => {
   };
 
   it('render matches snapshot', () => {
-    const tree = renderWithProvider(<AssetSettings />, {
+    const { getByText } = renderWithProvider(<AssetSettings />, {
       state: initialState,
     });
-    expect(tree).toMatchSnapshot();
+    expect(
+      getByText(strings('app_settings.token_detection_title')),
+    ).toBeOnTheScreen();
   });
 
   describe('Token Detection', () => {

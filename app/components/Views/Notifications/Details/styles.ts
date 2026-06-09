@@ -136,6 +136,7 @@ export const createStyles = ({ colors, typography }: Theme) =>
     },
     modalContainer: {
       flex: 1,
+      backgroundColor: colors.background.default,
     },
     navContainer: {
       flexDirection: 'row',

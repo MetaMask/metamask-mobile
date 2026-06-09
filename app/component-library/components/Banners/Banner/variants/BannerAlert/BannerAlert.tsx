@@ -18,6 +18,13 @@ import {
   BANNERALERT_TEST_ID,
 } from './BannerAlert.constants';
 
+/**
+ * @deprecated Please update your code to use `BannerAlert` from `@metamask/design-system-react-native`.
+ * The API may have changed — compare props before migrating.
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/BannerAlert/README.md}
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/MIGRATION.md#banneralert-component Migration docs}
+ * @since @metamask/design-system-react-native@0.11.0
+ */
 const BannerAlert: React.FC<BannerAlertProps> = ({
   style,
   severity = DEFAULT_BANNERALERT_SEVERITY,

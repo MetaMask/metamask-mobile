@@ -1,0 +1,707 @@
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { View, Platform } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
+import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
+import { strings } from '../../../../../locales/i18n';
+import { useStyles } from '../../../../component-library/hooks';
+import { addCurrencySymbol } from '../../../../util/number';
+import { toDateFormat } from '../../../../util/date';
+import { formatPriceWithSubscriptNotation } from '../../Predict/utils/format';
+import styleSheet from './Price.styles';
+import {
+  CHART_DATA_THRESHOLD,
+  TOKEN_OVERVIEW_CHART_HEIGHT as CHART_HEIGHT,
+} from './tokenOverviewChart.constants';
+import { TokenOverviewSelectorsIDs } from '../TokenOverview.testIds';
+import { TokenI } from '../../Tokens/types';
+import { formatAddressToAssetId } from '@metamask/bridge-controller';
+import { Hex } from '@metamask/utils';
+import { normalizeTokenAddress } from '../../Bridge/utils/tokenUtils';
+import AdvancedChart from '../../Charts/AdvancedChart/AdvancedChart';
+import { Skeleton } from '../../../../component-library/components-temp/Skeleton';
+import { advancedChartLineChromePresets } from '../../Charts/AdvancedChart/advancedChartLineChrome.presets';
+import {
+  ChartType,
+  type ChartInteractedPayload,
+  type CrosshairData,
+  type IndicatorType,
+} from '../../Charts/AdvancedChart/AdvancedChart.types';
+import TimeRangeSelector, {
+  TIME_RANGE_CONFIGS,
+  type TimeRange,
+} from '../../Charts/AdvancedChart/TimeRangeSelector';
+import { useOHLCVChart } from '../../Charts/AdvancedChart/useOHLCVChart';
+import { useOHLCVRealtime } from '../../Charts/AdvancedChart/useOHLCVRealtime';
+import { OHLCVBar } from '../../Charts/AdvancedChart/OHLCVBar/OHLCVBar';
+import {
+  Box,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
+import { AMBIENT_NEGATIVE_COLOR } from '../../TokenDetails/components/abTestConfig';
+import { AppThemeKey } from '../../../../util/theme/models';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { selectTokenOverviewChartType } from '../../../../reducers/user/selectors';
+import { setTokenOverviewChartType } from '../../../../actions/user';
+import type {
+  TimePeriod,
+  TokenPrice,
+} from '../../../../components/hooks/useTokenHistoricalPrices';
+import PriceLegacy from './Price.legacy';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../util/trace';
+import { selectTokenDetailsOhlcvWsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsOhlcvWsIntegration';
+
+const EMPTY_INDICATORS: IndicatorType[] = [];
+
+/**
+ * Maps UI time-range selections to the WebSocket candle interval used by
+ * OHLCVService. These match the default intervals the REST OHLCV API returns
+ * for each timePeriod.
+ */
+const WS_INTERVAL_BY_TIME_RANGE: Record<TimeRange, string> = {
+  '1H': '1m',
+  '1D': '15m',
+  '1W': '1h',
+  '1M': '1d',
+  '1Y': '1d',
+};
+
+const TIME_RANGE_LABELS: Record<TimeRange, string> = {
+  '1H': 'asset_overview.chart_time_period.1h',
+  '1D': 'asset_overview.chart_time_period.1d',
+  '1W': 'asset_overview.chart_time_period.1w',
+  '1M': 'asset_overview.chart_time_period.1m',
+  '1Y': 'asset_overview.chart_time_period.1y',
+};
+
+/** Maps {@link ohlcvSeriesKey} transitions to Sentry trace name/op (dashboards filter by name or op). */
+function getAdvancedChartVisibilityTraceRequest(
+  previousSeriesKey: string | null,
+  nextSeriesKey: string,
+): { name: TraceName; op: TraceOperation } {
+  if (previousSeriesKey === null) {
+    return {
+      name: TraceName.TokenOverviewAdvancedChartInitialVisible,
+      op: TraceOperation.TokenOverviewAdvancedChart,
+    };
+  }
+  const prev = previousSeriesKey.split('|');
+  const next = nextSeriesKey.split('|');
+  if (prev.length >= 4 && next.length >= 4) {
+    const sameAsset = prev[0] === next[0];
+    const sameCurrency = prev[prev.length - 1] === next[next.length - 1];
+    const rangeChanged = prev[1] !== next[1] || prev[2] !== next[2];
+    if (sameAsset && sameCurrency && rangeChanged) {
+      return {
+        name: TraceName.TokenOverviewAdvancedChartTimeRangeVisible,
+        op: TraceOperation.TokenOverviewAdvancedChartTimeRange,
+      };
+    }
+  }
+  return {
+    name: TraceName.TokenOverviewAdvancedChartInitialVisible,
+    op: TraceOperation.TokenOverviewAdvancedChart,
+  };
+}
+
+export interface PriceAdvancedProps {
+  asset: TokenI;
+  currentPrice: number;
+  currentCurrency: string;
+  /** From parent (`Price`); used when falling back to {@link PriceLegacy}. */
+  priceDiff: number;
+  /** From parent (`Price`); used when falling back to {@link PriceLegacy}. */
+  comparePrice: number;
+  isLoading: boolean;
+  prices?: TokenPrice[];
+  timePeriod?: TimePeriod;
+  chartNavigationButtons?: TimePeriod[];
+  setTimePeriod?: (period: TimePeriod) => void;
+  onPriceDirectionChange?: (isPositive: boolean) => void;
+  useAmbientColor?: boolean;
+}
+
+const PriceAdvanced = ({
+  asset,
+  currentPrice,
+  currentCurrency,
+  priceDiff,
+  comparePrice,
+  isLoading,
+  prices = [],
+  timePeriod = '1d',
+  chartNavigationButtons = [],
+  setTimePeriod,
+  onPriceDirectionChange,
+  useAmbientColor = false,
+}: PriceAdvancedProps) => {
+  const dispatch = useDispatch();
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const [timeRange, setTimeRange] = useState<TimeRange>('1D');
+  const chartType = useSelector(selectTokenOverviewChartType);
+  const isOhlcvWsEnabled = useSelector(selectTokenDetailsOhlcvWsEnabled);
+  const [crosshairData, setCrosshairData] = useState<CrosshairData | null>(
+    null,
+  );
+  const handleCrosshairMove = useCallback(
+    (data: CrosshairData | null) => setCrosshairData(data),
+    [],
+  );
+
+  const handleChartInteracted = useCallback(
+    (payload: ChartInteractedPayload) => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
+          .addProperties({
+            interaction_type: payload.interaction_type,
+            chart_type:
+              chartType === ChartType.Candles ? 'candlestick' : 'line',
+          })
+          .build(),
+      );
+    },
+    [createEventBuilder, trackEvent, chartType],
+  );
+
+  const handleChartTradingViewClicked = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
+        .addProperties({
+          interaction_type: 'tradingview_clicked',
+          chart_type: chartType === ChartType.Candles ? 'candlestick' : 'line',
+        })
+        .build(),
+    );
+  }, [createEventBuilder, trackEvent, chartType]);
+
+  const toggleChartType = useCallback(() => {
+    const next =
+      chartType === ChartType.Candles ? ChartType.Line : ChartType.Candles;
+    if (next !== ChartType.Candles) {
+      setCrosshairData(null);
+    }
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
+        .addProperties({
+          interaction_type: 'chart_type_changed',
+          chart_type: next === ChartType.Candles ? 'candlestick' : 'line',
+        })
+        .build(),
+    );
+    dispatch(setTokenOverviewChartType(next));
+  }, [chartType, createEventBuilder, trackEvent, dispatch]);
+
+  const handleTimeRangeSelect = useCallback(
+    (range: TimeRange) => {
+      if (range === timeRange) {
+        return;
+      }
+      // Clear crosshair data when changing timeframes to reset price/percentage display
+      setCrosshairData(null);
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
+          .addProperties({
+            interaction_type: 'timeframe_changed',
+            chart_timeframe: range,
+            chart_type:
+              chartType === ChartType.Candles ? 'candlestick' : 'line',
+          })
+          .build(),
+      );
+      setTimeRange(range);
+    },
+    [createEventBuilder, timeRange, trackEvent, chartType],
+  );
+
+  const assetId = useMemo(() => {
+    // Normalize Polygon's native token address (0x...001010) to zero address
+    // before formatting to CAIP-19 assetId. formatAddressToAssetId will convert
+    // zero address to proper SLIP-44 format (e.g., eip155:137/slip44:966 for Polygon)
+    const normalizedAddress = normalizeTokenAddress(
+      asset.address,
+      asset.chainId as Hex,
+    );
+
+    try {
+      return (
+        formatAddressToAssetId(normalizedAddress, asset.chainId as Hex) ?? ''
+      );
+    } catch {
+      // formatAddressToAssetId can throw for chains not supported by XChain Swaps/Bridge
+      // (e.g., Linea Sepolia, custom networks). Fall back to empty string
+      return '';
+    }
+  }, [asset.address, asset.chainId]);
+  const config = TIME_RANGE_CONFIGS[timeRange];
+
+  /**
+   * Used to make sure changing time range always sends a full SET_OHLCV_DATA
+   */
+  const ohlcvSeriesKey = useMemo(
+    () =>
+      `${assetId}|${config.timePeriod}|${config.interval}|${currentCurrency}`,
+    [assetId, config.timePeriod, config.interval, currentCurrency],
+  );
+
+  const assetIdRef = useRef(assetId);
+  assetIdRef.current = assetId;
+
+  const visibilityTraceStartedRef = useRef<string | null>(null);
+  /** Matches pending manual trace so {@link endTrace} uses the same `TraceName` as {@link trace}. */
+  const activeVisibilityTraceRef = useRef<{
+    seriesKey: string;
+    traceName: TraceName;
+  } | null>(null);
+
+  const handleAdvancedChartSkeletonHidden = useCallback(() => {
+    const open = activeVisibilityTraceRef.current;
+    if (!open) {
+      return;
+    }
+    endTrace({
+      name: open.traceName,
+      id: open.seriesKey,
+    });
+    activeVisibilityTraceRef.current = null;
+  }, []);
+
+  const handleAdvancedChartError = useCallback((error: string) => {
+    const open = activeVisibilityTraceRef.current;
+    if (!open) {
+      return;
+    }
+    endTrace({
+      name: open.traceName,
+      id: open.seriesKey,
+      data: {
+        errorMessage: error.slice(0, 200),
+      },
+    });
+    activeVisibilityTraceRef.current = null;
+  }, []);
+
+  const {
+    ohlcvData,
+    isLoading: chartLoading,
+    error: chartError,
+    hasMore,
+    nextCursor,
+    hasEmptyData,
+  } = useOHLCVChart({
+    assetId,
+    timePeriod: config.timePeriod,
+    interval: config.interval,
+    vsCurrency: currentCurrency,
+  });
+
+  const wsInterval = WS_INTERVAL_BY_TIME_RANGE[timeRange];
+  const wsEnabled =
+    isOhlcvWsEnabled &&
+    !chartLoading &&
+    ohlcvData.length >= CHART_DATA_THRESHOLD &&
+    !hasEmptyData &&
+    !chartError;
+
+  const { latestBar } = useOHLCVRealtime({
+    assetId,
+    interval: wsInterval,
+    currency: currentCurrency,
+    timePeriod: timeRange.toLowerCase(),
+    enabled: wsEnabled,
+  });
+
+  // TradingView Advanced Charts Bar.time expects milliseconds
+  // https://www.tradingview.com/charting-library-docs/latest/api/interfaces/Datafeed.Bar/
+  // OHLCVService delivers bars with `timestamp` in Unix seconds — multiply by 1000
+  const realtimeBar = useMemo(() => {
+    if (!wsEnabled || !latestBar) return undefined;
+    return {
+      time: latestBar.timestamp * 1000,
+      open: latestBar.open,
+      high: latestBar.high,
+      low: latestBar.low,
+      close: latestBar.close,
+      volume: latestBar.volume,
+    };
+  }, [wsEnabled, latestBar]);
+
+  const ohlcvPagination = useMemo(
+    () => ({
+      nextCursor,
+      hasMore,
+      assetId,
+      vsCurrency: currentCurrency,
+    }),
+    [nextCursor, hasMore, assetId, currentCurrency],
+  );
+  // Anchor the visible window to the last candle so the timeframe constructor
+  // spans exactly durationMs (e.g. 24 h) and the leftmost rendered bar matches
+  // the reference price used for the header percentage.
+  const lastBarTime = ohlcvData[ohlcvData.length - 1]?.time;
+
+  const visibleFromMs = useMemo(() => {
+    if (lastBarTime == null) return undefined;
+    return lastBarTime - config.durationMs;
+  }, [lastBarTime, config.durationMs]);
+
+  const visibleToMs = lastBarTime;
+
+  const dateLabel = strings(TIME_RANGE_LABELS[timeRange]);
+
+  // Calculate the current compare price from OHLCV data
+  const currentComparePrice = useMemo(() => {
+    if (ohlcvData.length === 0 || visibleFromMs == null) return null;
+    const firstVisible =
+      ohlcvData.find((c) => c.time >= visibleFromMs) ?? ohlcvData[0];
+    return firstVisible.close;
+  }, [ohlcvData, visibleFromMs]);
+
+  // Store last good compare price to show during loading
+  const stableComparePriceRef = useRef<number | null>(null);
+  const stableSeriesKeyRef = useRef<string>(ohlcvSeriesKey);
+
+  // Update stable compare price when chart finishes loading AND series matches
+  useEffect(() => {
+    if (stableSeriesKeyRef.current !== ohlcvSeriesKey) {
+      stableSeriesKeyRef.current = ohlcvSeriesKey;
+    } else if (!chartLoading && currentComparePrice !== null) {
+      stableComparePriceRef.current = currentComparePrice;
+    }
+  }, [chartLoading, currentComparePrice, ohlcvSeriesKey]);
+
+  // Use stable while (loading OR series mismatch), otherwise use current
+  const dynamicComparePrice =
+    (chartLoading || stableSeriesKeyRef.current !== ohlcvSeriesKey) &&
+    stableComparePriceRef.current !== null
+      ? stableComparePriceRef.current
+      : currentComparePrice;
+
+  // Use last bar's close price for consistent percentage calculation with chart data
+  const lastBarClose = ohlcvData[ohlcvData.length - 1]?.close;
+  const realtimeClose = wsEnabled ? latestBar?.close : undefined;
+
+  // Hold the last WS price during time-range transitions to avoid stale API flicker
+  const lastRealtimeRef = useRef<number | undefined>(undefined);
+  if (realtimeClose !== undefined) {
+    lastRealtimeRef.current = realtimeClose;
+  }
+  const stablePrice = realtimeClose ?? lastRealtimeRef.current;
+
+  const displayPrice =
+    crosshairData?.close ?? stablePrice ?? lastBarClose ?? currentPrice;
+  const displayDiff = useMemo(() => {
+    if (dynamicComparePrice === null) return null;
+    return (
+      (crosshairData?.close ?? stablePrice ?? lastBarClose ?? currentPrice) -
+      dynamicComparePrice
+    );
+  }, [
+    crosshairData,
+    stablePrice,
+    lastBarClose,
+    currentPrice,
+    dynamicComparePrice,
+  ]);
+
+  const { styles, theme } = useStyles(styleSheet);
+  const { themeAppearance } = useTheme();
+  const isLightMode = themeAppearance === AppThemeKey.light;
+
+  const ambientSuccessGreen = isLightMode
+    ? LIGHT_MODE_SUCCESS_GREEN
+    : theme.colors.success.default;
+
+  // Initial ambient color for chart/buttons - based on non-crosshair price diff
+  // This stays constant even when user hovers crosshair
+  const initialPriceDiff = useMemo(() => {
+    const rtClose = realtimeBar?.close;
+    const lbClose = ohlcvData[ohlcvData.length - 1]?.close;
+    const currentDisplayPrice = rtClose ?? lbClose ?? currentPrice;
+
+    if (dynamicComparePrice === null) return null;
+    return currentDisplayPrice - dynamicComparePrice;
+  }, [realtimeBar, ohlcvData, currentPrice, dynamicComparePrice]);
+
+  const initialAmbientColor = useMemo(() => {
+    if (!useAmbientColor) return undefined;
+    if (initialPriceDiff === null) return undefined;
+    return initialPriceDiff >= 0 ? ambientSuccessGreen : AMBIENT_NEGATIVE_COLOR;
+  }, [useAmbientColor, initialPriceDiff, ambientSuccessGreen]);
+
+  // Dynamic ambient color for price diff text only - changes during crosshair hover
+  const ambientColor = useMemo(() => {
+    if (!useAmbientColor) return undefined;
+    if (displayDiff === null) return ambientSuccessGreen;
+    return displayDiff >= 0 ? ambientSuccessGreen : AMBIENT_NEGATIVE_COLOR;
+  }, [useAmbientColor, displayDiff, ambientSuccessGreen]);
+
+  const shouldFallbackToLegacy =
+    !chartLoading &&
+    (ohlcvData.length < CHART_DATA_THRESHOLD || hasEmptyData || chartError);
+
+  useLayoutEffect(() => {
+    if (initialPriceDiff !== null && !shouldFallbackToLegacy) {
+      onPriceDirectionChange?.(initialPriceDiff >= 0);
+    }
+  }, [initialPriceDiff, onPriceDirectionChange, shouldFallbackToLegacy]);
+
+  const displayDate = crosshairData
+    ? toDateFormat(crosshairData.time)
+    : dateLabel;
+
+  const shouldFallbackToLegacyRef = useRef(shouldFallbackToLegacy);
+  shouldFallbackToLegacyRef.current = shouldFallbackToLegacy;
+
+  useEffect(() => {
+    if (!shouldFallbackToLegacy) {
+      return;
+    }
+    const pendingId = visibilityTraceStartedRef.current;
+    if (pendingId === null) {
+      return;
+    }
+    const open = activeVisibilityTraceRef.current;
+    if (open?.seriesKey === pendingId) {
+      endTrace({
+        name: open.traceName,
+        id: pendingId,
+        data: { fallbackToLegacy: true },
+      });
+      activeVisibilityTraceRef.current = null;
+    }
+    visibilityTraceStartedRef.current = null;
+  }, [shouldFallbackToLegacy]);
+
+  useEffect(() => {
+    if (shouldFallbackToLegacyRef.current) {
+      return;
+    }
+    if (visibilityTraceStartedRef.current === ohlcvSeriesKey) {
+      return;
+    }
+
+    const previousSeriesId = visibilityTraceStartedRef.current;
+    if (previousSeriesId !== null && previousSeriesId !== ohlcvSeriesKey) {
+      const supersededOpen = activeVisibilityTraceRef.current;
+      if (supersededOpen?.seriesKey === previousSeriesId) {
+        endTrace({
+          name: supersededOpen.traceName,
+          id: previousSeriesId,
+          data: { superseded: true },
+        });
+        activeVisibilityTraceRef.current = null;
+      }
+    }
+    const { name: visibilityTraceName, op: visibilityTraceOp } =
+      getAdvancedChartVisibilityTraceRequest(previousSeriesId, ohlcvSeriesKey);
+
+    visibilityTraceStartedRef.current = ohlcvSeriesKey;
+    activeVisibilityTraceRef.current = {
+      seriesKey: ohlcvSeriesKey,
+      traceName: visibilityTraceName,
+    };
+
+    const currentAssetId = assetIdRef.current;
+    trace({
+      name: visibilityTraceName,
+      op: visibilityTraceOp,
+      id: ohlcvSeriesKey,
+      ...(currentAssetId.length > 0
+        ? { data: { assetId: currentAssetId } }
+        : {}),
+    });
+  }, [ohlcvSeriesKey]);
+
+  useEffect(
+    () => () => {
+      const open = activeVisibilityTraceRef.current;
+      if (open) {
+        endTrace({
+          name: open.traceName,
+          id: open.seriesKey,
+          data: { unmounted: true },
+        });
+        activeVisibilityTraceRef.current = null;
+        visibilityTraceStartedRef.current = null;
+      }
+    },
+    [],
+  );
+
+  if (shouldFallbackToLegacy) {
+    return (
+      <PriceLegacy
+        prices={prices}
+        timePeriod={timePeriod}
+        chartNavigationButtons={chartNavigationButtons}
+        onTimePeriodChange={setTimePeriod}
+        priceDiff={priceDiff}
+        currentPrice={currentPrice}
+        currentCurrency={currentCurrency}
+        comparePrice={comparePrice}
+        isLoading={isLoading}
+        onPriceDirectionChange={onPriceDirectionChange}
+        useAmbientColor={useAmbientColor}
+      />
+    );
+  }
+
+  return (
+    <>
+      <View style={styles.wrapper}>
+        {!isNaN(currentPrice) && (
+          <Text
+            testID={TokenOverviewSelectorsIDs.TOKEN_PRICE}
+            variant={TextVariant.DisplayLg}
+          >
+            {isLoading ? (
+              <View style={styles.loadingPrice}>
+                <SkeletonPlaceholder
+                  backgroundColor={theme.colors.background.section}
+                  highlightColor={theme.colors.background.subsection}
+                >
+                  <SkeletonPlaceholder.Item
+                    width={100}
+                    height={40}
+                    borderRadius={6}
+                  />
+                </SkeletonPlaceholder>
+              </View>
+            ) : (
+              formatPriceWithSubscriptNotation(displayPrice, currentCurrency)
+            )}
+          </Text>
+        )}
+        <Text allowFontScaling={false}>
+          {isLoading ? (
+            <View testID="loading-price-diff" style={styles.loadingPriceDiff}>
+              <SkeletonPlaceholder
+                backgroundColor={theme.colors.background.section}
+                highlightColor={theme.colors.background.subsection}
+              >
+                <SkeletonPlaceholder.Item
+                  width={150}
+                  height={24}
+                  borderRadius={6}
+                />
+              </SkeletonPlaceholder>
+            </View>
+          ) : displayDiff !== null && dynamicComparePrice !== null ? (
+            <Text
+              testID={TokenOverviewSelectorsIDs.TODAYS_CHANGE}
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={
+                displayDiff > 0
+                  ? TextColor.SuccessDefault
+                  : displayDiff < 0
+                    ? TextColor.ErrorDefault
+                    : TextColor.TextAlternative
+              }
+              style={
+                ambientColor
+                  ? { color: ambientColor }
+                  : isLightMode && displayDiff > 0
+                    ? { color: LIGHT_MODE_SUCCESS_GREEN }
+                    : undefined
+              }
+              allowFontScaling={false}
+            >
+              {displayDiff > 0 ? '+' : ''}
+              {addCurrencySymbol(displayDiff, currentCurrency, true)} (
+              {displayDiff > 0 ? '+' : ''}
+              {displayDiff === 0 || dynamicComparePrice === 0
+                ? '0'
+                : ((displayDiff / dynamicComparePrice) * 100).toFixed(2)}
+              %){' '}
+              <Text
+                testID="price-label"
+                color={TextColor.TextAlternative}
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                allowFontScaling={false}
+              >
+                {displayDate}
+              </Text>
+            </Text>
+          ) : null}
+        </Text>
+      </View>
+      <Box twClassName="mt-3 w-full">
+        {crosshairData && chartType === ChartType.Candles && (
+          <OHLCVBar data={crosshairData} currency={currentCurrency} />
+        )}
+        <View
+          testID="advanced-chart-touch-container"
+          style={[styles.chartContainer, { height: CHART_HEIGHT }]}
+        >
+          {Platform.OS === 'ios' && (
+            <View style={styles.edgeOverlay} pointerEvents="box-only" />
+          )}
+          {useAmbientColor && initialAmbientColor === undefined ? (
+            <Skeleton height={CHART_HEIGHT} width="100%" />
+          ) : (
+            <AdvancedChart
+              ohlcvData={ohlcvData}
+              ohlcvSeriesKey={ohlcvSeriesKey}
+              realtimeBar={realtimeBar}
+              height={CHART_HEIGHT}
+              showVolume={chartType === ChartType.Candles}
+              volumeOverlay
+              chartType={chartType}
+              indicators={EMPTY_INDICATORS}
+              lineChrome={advancedChartLineChromePresets.tokenOverview}
+              isLoading={chartLoading}
+              ohlcvPagination={ohlcvPagination}
+              visibleFromMs={visibleFromMs}
+              visibleToMs={visibleToMs}
+              onCrosshairMove={handleCrosshairMove}
+              onChartInteracted={handleChartInteracted}
+              onChartTradingViewClicked={handleChartTradingViewClicked}
+              onSkeletonHidden={handleAdvancedChartSkeletonHidden}
+              onError={handleAdvancedChartError}
+              lineColorOverride={initialAmbientColor}
+              successColorOverride={
+                initialAmbientColor ? ambientSuccessGreen : undefined
+              }
+              errorColorOverride={
+                initialAmbientColor ? AMBIENT_NEGATIVE_COLOR : undefined
+              }
+            />
+          )}
+        </View>
+      </Box>
+
+      <View style={styles.timeRangeContainer}>
+        <View style={styles.timeRangeSelectorWrap}>
+          <TimeRangeSelector
+            isChartLoading={chartLoading}
+            selected={timeRange}
+            onSelect={handleTimeRangeSelect}
+            chartType={chartType}
+            onChartTypeToggle={toggleChartType}
+            selectedColor={initialAmbientColor}
+          />
+        </View>
+      </View>
+    </>
+  );
+};
+
+export default PriceAdvanced;

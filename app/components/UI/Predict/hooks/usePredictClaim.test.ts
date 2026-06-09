@@ -159,8 +159,8 @@ describe('usePredictClaim', () => {
       getBalance: jest.fn(),
       previewOrder: jest.fn(),
       deposit: jest.fn(),
-      payWithAnyTokenConfirmation: jest.fn(),
       prepareWithdraw: jest.fn(),
+      initPayWithAnyToken: jest.fn(),
     } as ReturnType<typeof usePredictTrading>);
 
     mockUseConfirmNavigation.mockReturnValue({
@@ -284,7 +284,7 @@ describe('usePredictClaim', () => {
       });
     });
 
-    it('falls back to 0x0 when no EVM account is selected', () => {
+    it('uses an empty selector key when no EVM account is selected', () => {
       // Arrange
       mockGetEvmAccountFromSelectedAccountGroup.mockReturnValue(null);
 
@@ -292,7 +292,7 @@ describe('usePredictClaim', () => {
 
       // Assert
       expect(mockSelectPredictPendingClaimByAddress).toHaveBeenCalledWith({
-        address: '0x0',
+        address: '',
       });
     });
   });

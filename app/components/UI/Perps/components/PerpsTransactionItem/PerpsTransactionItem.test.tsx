@@ -7,7 +7,7 @@ import {
   PerpsOrderTransactionStatus,
   PerpsOrderTransactionStatusType,
 } from '../../types/transactionHistory';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -66,11 +66,6 @@ jest.mock('../PerpsTokenLogo', () => ({
 // Mock localization
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
-}));
-
-// Mock Linking
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  openURL: jest.fn(() => Promise.resolve()),
 }));
 
 // Mock usePerpsEventTracking

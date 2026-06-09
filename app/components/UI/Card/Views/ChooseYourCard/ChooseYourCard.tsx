@@ -24,13 +24,16 @@ import {
   Text,
   TextVariant,
   FontWeight,
-} from '@metamask/design-system-react-native';
-import { strings } from '../../../../../../locales/i18n';
-import Button, {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+  HeaderStandard,
+} from '@metamask/design-system-react-native';
+import {
+  useCardHeaderHandlers,
+  type CardHeaderMode,
+} from '../../hooks/useCardHeaderHandlers';
+import { strings } from '../../../../../../locales/i18n';
 import Icon, {
   IconName,
   IconSize,
@@ -41,13 +44,7 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, CardScreens } from '../../util/metrics';
 import { ChooseYourCardSelectors } from './ChooseYourCard.testIds';
-import {
-  CardType,
-  CardStatus,
-  DelegationSettingsResponse,
-  CardExternalWalletDetailsResponse,
-  CardTokenAllowance,
-} from '../../types';
+import { CardType, CardStatus } from '../../types';
 import CardImage from '../../components/CardImage/CardImage';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import type { ShippingAddress } from '../ReviewOrder';
@@ -57,21 +54,6 @@ export type ChooseYourCardFlow = 'onboarding' | 'upgrade' | 'home';
 export interface ChooseYourCardParams {
   flow?: ChooseYourCardFlow;
   shippingAddress?: ShippingAddress;
-  priorityToken?: CardTokenAllowance | null;
-  allTokens?: CardTokenAllowance[];
-  delegationSettings?: DelegationSettingsResponse | null;
-  externalWalletDetailsData?:
-    | {
-        walletDetails: never[];
-        mappedWalletDetails: never[];
-        priorityWalletDetail: null;
-      }
-    | {
-        walletDetails: CardExternalWalletDetailsResponse;
-        mappedWalletDetails: CardTokenAllowance[];
-        priorityWalletDetail: CardTokenAllowance | undefined;
-      }
-    | null;
 }
 
 interface CardOption {
@@ -95,15 +77,13 @@ const ChooseYourCard = () => {
   const [hasUserSwiped, setHasUserSwiped] = useState(false);
   const arrowAnimValue = useRef(new Animated.Value(0)).current;
 
-  const {
-    flow = 'onboarding',
-    shippingAddress,
-    priorityToken,
-    allTokens,
-    delegationSettings,
-    externalWalletDetailsData,
-  } = useParams<ChooseYourCardParams>();
+  const { flow = 'onboarding', shippingAddress } =
+    useParams<ChooseYourCardParams>();
   const isUpgradeFlow = flow === 'upgrade';
+  // 'onboarding' is the linear sign-up flow; no header chrome there.
+  // 'upgrade' / 'home' are user-initiated entries, so show a back button.
+  const headerMode: CardHeaderMode = flow === 'onboarding' ? 'none' : 'back';
+  const headerHandlers = useCardHeaderHandlers(headerMode);
 
   // Arrow bounce animation for swipe indicator
   useEffect(() => {
@@ -272,18 +252,9 @@ const ChooseYourCard = () => {
     );
 
     if (selectedCard.id === CardType.VIRTUAL) {
-      navigate(
-        Routes.CARD.SPENDING_LIMIT,
-        flow === 'onboarding'
-          ? { flow: 'onboarding' }
-          : {
-              flow: 'manage',
-              priorityToken,
-              allTokens,
-              delegationSettings,
-              externalWalletDetailsData,
-            },
-      );
+      navigate(Routes.CARD.SPENDING_LIMIT, {
+        flow: flow === 'onboarding' ? 'onboarding' : 'manage',
+      });
     } else {
       navigate(Routes.CARD.REVIEW_ORDER, {
         shippingAddress,
@@ -300,10 +271,6 @@ const ChooseYourCard = () => {
     shippingAddress,
     isUpgradeFlow,
     stopPeekAnimation,
-    priorityToken,
-    allTokens,
-    delegationSettings,
-    externalWalletDetailsData,
   ]);
 
   const handleScrollToMetal = useCallback(() => {
@@ -408,9 +375,16 @@ const ChooseYourCard = () => {
   return (
     <SafeAreaView
       style={tw.style('flex-1 bg-background-default')}
-      edges={['bottom']}
+      edges={headerMode === 'none' ? ['top', 'bottom'] : ['bottom']}
       testID={ChooseYourCardSelectors.CONTAINER}
     >
+      {headerMode !== 'none' && (
+        <HeaderStandard
+          includesTopInset
+          twClassName="bg-background-default"
+          {...headerHandlers}
+        />
+      )}
       <Box twClassName="flex-1">
         <Box twClassName="px-4 py-4">
           <Text
@@ -528,17 +502,16 @@ const ChooseYourCard = () => {
 
         <Box twClassName="px-4 pb-4 gap-2">
           <Button
-            variant={ButtonVariants.Primary}
-            label={
-              selectedCard.id === CardType.METAL
-                ? strings('card.choose_your_card.upgrade_title')
-                : strings('card.choose_your_card.continue_button')
-            }
+            variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             onPress={handleContinue}
-            width={ButtonWidthTypes.Full}
+            isFullWidth
             testID={ChooseYourCardSelectors.CONTINUE_BUTTON}
-          />
+          >
+            {selectedCard.id === CardType.METAL
+              ? strings('card.choose_your_card.upgrade_title')
+              : strings('card.choose_your_card.continue_button')}
+          </Button>
           {activeIndex === 0 && !isUpgradeFlow && (
             <TouchableOpacity
               onPress={handleScrollToMetal}

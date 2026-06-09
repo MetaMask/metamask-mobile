@@ -21,6 +21,7 @@ jest.mock('./usePredictBalance');
 jest.mock('./usePredictDeposit');
 const mockQueryClient = { invalidateQueries: jest.fn() };
 jest.mock('@tanstack/react-query', () => ({
+  ...jest.requireActual('@tanstack/react-query'),
   useQueryClient: () => mockQueryClient,
 }));
 jest.mock('../../../../../locales/i18n', () => ({
@@ -123,7 +124,7 @@ describe('usePredictPlaceOrder', () => {
       previewOrder: jest.fn(),
       prepareWithdraw: jest.fn(),
       deposit: jest.fn(),
-      payWithAnyTokenConfirmation: jest.fn(),
+      initPayWithAnyToken: jest.fn(),
     });
     mockRefetchBalance.mockResolvedValue({ data: 1000 });
     mockUsePredictBalance.mockReturnValue({
@@ -149,6 +150,7 @@ describe('usePredictPlaceOrder', () => {
       expect(result.current.error).toBeUndefined();
       expect(result.current.result).toBeNull();
       expect(typeof result.current.placeOrder).toBe('function');
+      expect(typeof result.current.invalidateOrderQueries).toBe('function');
     });
   });
 
@@ -189,6 +191,27 @@ describe('usePredictPlaceOrder', () => {
             }),
           ]),
           hasNoTimeout: false,
+        }),
+      );
+
+      expect(mockQueryClient.invalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'balance'],
+        }),
+      );
+      expect(mockQueryClient.invalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'positions'],
+        }),
+      );
+      expect(mockQueryClient.invalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'activity'],
+        }),
+      );
+      expect(mockQueryClient.invalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'unrealizedPnL'],
         }),
       );
     });
@@ -526,6 +549,43 @@ describe('usePredictPlaceOrder', () => {
       expect(mockToastRef.current?.showToast).not.toHaveBeenCalled();
     });
 
+    it('uses rounded BUY all-in cost including market fee for balance check and deposit', async () => {
+      mockUsePredictBalance.mockReturnValue({
+        data: 105,
+      } as never);
+
+      const orderParamsWithMarketFee = {
+        ...mockOrderParams,
+        preview: createMockOrderPreview({
+          maxAmountSpent: 100,
+          fees: {
+            totalFee: 5,
+            metamaskFee: 2,
+            providerFee: 3,
+            marketFee: 0.001,
+            totalFeePercentage: 5,
+            collector: '0xCollector',
+          },
+        }),
+      };
+
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      await act(async () => {
+        await result.current.placeOrder(orderParamsWithMarketFee);
+      });
+
+      expect(mockDeposit).toHaveBeenCalledTimes(1);
+      expect(mockDeposit).toHaveBeenCalledWith({
+        amountUsd: 105.01,
+        analyticsProperties: {
+          marketId: mockOrderParams.preview.marketId,
+          entryPoint: 'buy_preview',
+        },
+      });
+      expect(mockPlaceOrder).not.toHaveBeenCalled();
+    });
+
     it('triggers deposit with merged analytics properties when orderParams has analyticsProperties', async () => {
       mockUsePredictBalance.mockReturnValue({ data: INSUFFICIENT_BALANCE });
 
@@ -580,6 +640,14 @@ describe('usePredictPlaceOrder', () => {
         preview: createMockOrderPreview({
           side: Side.SELL,
           minAmountReceived: 150,
+          fees: {
+            totalFee: 5,
+            metamaskFee: 2,
+            providerFee: 3,
+            marketFee: 0.001,
+            totalFeePercentage: 5,
+            collector: '0xCollector',
+          },
         }),
       };
 
@@ -590,6 +658,7 @@ describe('usePredictPlaceOrder', () => {
       });
 
       expect(mockDeposit).not.toHaveBeenCalled();
+      expect(mockRefetchBalance).not.toHaveBeenCalled();
       expect(mockPlaceOrder).toHaveBeenCalledTimes(1);
     });
 

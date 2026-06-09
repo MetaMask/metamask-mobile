@@ -22,7 +22,7 @@ import {
   KeyboardStickyView,
   useKeyboardState,
 } from 'react-native-keyboard-controller';
-import { isTest } from '../../../util/test/utils';
+import { isTestEnvironment } from '../../../util/test/utils';
 import AppConstants from '../../../core/AppConstants';
 import {
   failedSeedPhraseRequirements,
@@ -39,17 +39,22 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useTheme } from '../../../util/theme';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { QRTabSwitcherScreens } from '../../../components/Views/QRTabSwitcher';
 import { setLockTime } from '../../../actions/settings';
 import { strings } from '../../../../locales/i18n';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import Routes from '../../../constants/navigation/Routes';
+import { RESET_PASSWORD_GUIDE_URL } from '../../../constants/urls';
 import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   FontWeight,
   Label,
   Text,
@@ -61,14 +66,14 @@ import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { passcodeType } from '../../../util/authentication';
 import { ImportFromSeedSelectorsIDs } from './ImportFromSeed.testIds';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ChoosePasswordSelectorsIDs } from '../ChoosePassword/ChoosePassword.testIds';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
 import Checkbox from '../../../component-library/components/Checkbox';
-import Button, {
+import OldButton, {
   ButtonVariants,
-  ButtonWidthTypes,
-  ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
 import Icon, {
   IconName,
@@ -95,7 +100,6 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import SrpInputGrid from '../../UI/SrpInputGrid';
 import SrpWordSuggestions from '../../UI/SrpWordSuggestions';
-import { selectImportSrpWordSuggestionEnabledFlag } from '../../../selectors/featureFlagController/importSrpWordSuggestion';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -112,6 +116,9 @@ const ImportFromSecretRecoveryPhrase = ({
   saveOnboardingEvent,
   route,
 }) => {
+  const walletSetupCompletedAttributionProps = useSelector(
+    selectWalletSetupCompletedAttributionAnalyticsProps,
+  );
   const { colors, themeAppearance } = useTheme();
   const tw = useTailwind();
 
@@ -135,11 +142,6 @@ const ImportFromSecretRecoveryPhrase = ({
   const srpInputGridRef = useRef(null);
   const slideAnim = useRef(new Animated.Value(0)).current;
   const [currentInputWord, setCurrentInputWord] = useState('');
-
-  // Feature flag for SRP word suggestions
-  const isSrpWordSuggestionsEnabled = useSelector(
-    selectImportSrpWordSuggestionEnabledFlag,
-  );
 
   const isKeyboardVisible = useKeyboardState((state) => state.isVisible);
 
@@ -200,7 +202,7 @@ const ImportFromSecretRecoveryPhrase = ({
 
   const animateToStep = useCallback(
     (nextStep) => {
-      if (isTest) {
+      if (isTestEnvironment) {
         setCurrentStep(nextStep);
         return;
       }
@@ -467,7 +469,8 @@ const ImportFromSecretRecoveryPhrase = ({
         track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
           wallet_setup_type: 'import',
           new_wallet: false,
-          account_type: 'imported',
+          account_type: AccountType.Imported,
+          ...walletSetupCompletedAttributionProps,
         });
 
         fetchAccountsWithActivity();
@@ -567,7 +570,7 @@ const ImportFromSecretRecoveryPhrase = ({
     navigation.push('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/',
+        url: RESET_PASSWORD_GUIDE_URL,
         title: 'support.metamask.io',
       },
     });
@@ -782,7 +785,7 @@ const ImportFromSecretRecoveryPhrase = ({
                   style={tw.style('items-start')}
                   testID={ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID}
                 />
-                <Button
+                <OldButton
                   variant={ButtonVariants.Link}
                   onPress={() => setLearnMore(!learnMore)}
                   style={tw.style(
@@ -815,16 +818,16 @@ const ImportFromSecretRecoveryPhrase = ({
                 )}
               >
                 <Button
-                  loading={loading}
-                  width={ButtonWidthTypes.Full}
-                  variant={ButtonVariants.Primary}
-                  label={strings('import_from_seed.import_create_password_cta')}
+                  isLoading={loading}
+                  isFullWidth
+                  variant={ButtonVariant.Primary}
                   onPress={onPressImport}
-                  disabled={isContinueButtonDisabled}
                   size={ButtonSize.Lg}
                   isDisabled={isContinueButtonDisabled}
                   testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
-                />
+                >
+                  {strings('import_from_seed.import_create_password_cta')}
+                </Button>
               </Box>
             </Box>
           )}
@@ -833,31 +836,30 @@ const ImportFromSecretRecoveryPhrase = ({
       {currentStep === 0 && (
         <Box twClassName="px-4 py-4 bg-default">
           <Button
-            variant={ButtonVariants.Primary}
-            label={strings('import_from_seed.continue')}
+            variant={ButtonVariant.Primary}
             onPress={handleContinueImportFlow}
-            width={ButtonWidthTypes.Full}
+            isFullWidth
             size={ButtonSize.Lg}
             isDisabled={isSRPContinueButtonDisabled}
             testID={ImportFromSeedSelectorsIDs.CONTINUE_BUTTON_ID}
-          />
+          >
+            {strings('import_from_seed.continue')}
+          </Button>
         </Box>
       )}
-      {isSrpWordSuggestionsEnabled &&
-        currentStep === 0 &&
-        isKeyboardVisible && (
-          <KeyboardStickyView
-            offset={{ closed: 0, opened: 0 }}
-            style={tw.style('absolute bottom-0 left-0 right-0')}
-          >
-            <SrpWordSuggestions
-              currentInputWord={currentInputWord}
-              onSuggestionSelect={(word) => {
-                srpInputGridRef.current?.handleSuggestionSelect(word);
-              }}
-            />
-          </KeyboardStickyView>
-        )}
+      {currentStep === 0 && isKeyboardVisible && (
+        <KeyboardStickyView
+          offset={{ closed: 0, opened: 0 }}
+          style={tw.style('absolute bottom-0 left-0 right-0')}
+        >
+          <SrpWordSuggestions
+            currentInputWord={currentInputWord}
+            onSuggestionSelect={(word) => {
+              srpInputGridRef.current?.handleSuggestionSelect(word);
+            }}
+          />
+        </KeyboardStickyView>
+      )}
       <ScreenshotDeterrent enabled isSRP />
     </SafeAreaView>
   );
@@ -893,9 +895,6 @@ ImportFromSecretRecoveryPhrase.propTypes = {
    * Object that represents the current route info like params passed to it
    */
   route: PropTypes.object,
-  /**
-   * Action to save onboarding event
-   */
 };
 
 const mapDispatchToProps = (dispatch) => ({

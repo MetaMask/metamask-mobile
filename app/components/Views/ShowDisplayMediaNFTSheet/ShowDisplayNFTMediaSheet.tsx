@@ -1,5 +1,12 @@
 // Third party dependencies
 import React, { useRef } from 'react';
+import {
+  HeaderStandard,
+  Text,
+  TextVariant,
+  TextColor,
+  FontWeight,
+} from '@metamask/design-system-react-native';
 
 // External dependencies
 import BottomSheet, {
@@ -12,23 +19,18 @@ import {
   ButtonSize,
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../component-library/components/Texts/Text/';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
 
 // Internal dependencies
 import createStyles from './ShowDisplayNFTMediaSheet.styles';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
-import { useMetrics } from '../../hooks/useMetrics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 
 const ShowDisplayNftMediaSheet = () => {
   const styles = createStyles();
   const sheetRef = useRef<BottomSheetRef>(null);
-  const { addTraitsToUser } = useMetrics();
+  const { identify } = useAnalytics();
 
   const onConfirm = () => {
     const { PreferencesController } = Engine.context;
@@ -37,7 +39,7 @@ const ShowDisplayNftMediaSheet = () => {
       const traits = {
         [UserProfileProperty.ENABLE_OPENSEA_API]: UserProfileProperty.ON,
       };
-      addTraitsToUser(traits);
+      identify(traits);
     });
   };
 
@@ -47,23 +49,31 @@ const ShowDisplayNftMediaSheet = () => {
 
   return (
     <BottomSheet ref={sheetRef}>
-      <HeaderCompactStandard
+      <HeaderStandard
         title={strings('show_display_nft_media.show_display_nft_media_title')}
         onClose={onCancel}
       />
-      <Text style={styles.textContent} color={TextColor.Alternative}>
+      <Text style={styles.textContent} color={TextColor.TextAlternative}>
         {strings('show_display_nft_media.show_display_nft_media_content_1')}{' '}
         {
-          <Text variant={TextVariant.BodyMDBold} color={TextColor.Alternative}>
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            fontWeight={FontWeight.Bold}
+          >
             {strings('show_display_nft_media.show_display_nft_media_content_2')}
           </Text>
         }{' '}
         {strings('show_display_nft_media.show_display_nft_media_content_3')}
         {'\n'}
         {'\n'}
-        <Text color={TextColor.Alternative}>
+        <Text color={TextColor.TextAlternative}>
           {strings('show_display_nft_media.show_display_nft_media_content_4')}{' '}
-          <Text variant={TextVariant.BodyMDBold} color={TextColor.Alternative}>
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            fontWeight={FontWeight.Bold}
+          >
             {strings('show_display_nft_media.show_display_nft_media_content_5')}
           </Text>
         </Text>

@@ -39,10 +39,7 @@ import {
   logIn,
   passwordSet,
 } from '../../actions/user';
-import {
-  setCompletedOnboarding,
-  clearAccountType,
-} from '../../actions/onboarding';
+import { clearOnboarding } from '../../actions/onboarding';
 import {
   setAllowLoginWithRememberMe,
   setOsAuthEnabled,
@@ -179,6 +176,10 @@ const mockHdKeyring = {
   getAccounts: jest.fn().mockResolvedValue([mockAddress]),
 };
 
+const mockHdKeyringV2 = {
+  getAccounts: jest.fn().mockResolvedValue([{ address: mockAddress }]),
+};
+
 jest.mock('../Engine', () => ({
   resetState: jest.fn(),
   controllerMessenger: {
@@ -227,6 +228,8 @@ const mockNavigation = {
   navigate: mockNavigate,
 };
 
+const mockNavigateToPostUnlockHome = jest.fn();
+
 jest.mock('../NavigationService', () => ({
   __esModule: true,
   default: {
@@ -237,6 +240,10 @@ jest.mock('../NavigationService', () => ({
       // Mock setter - does nothing but prevents errors
     },
   },
+}));
+
+jest.mock('../DeeplinkManager/utils/startupDeeplinkNavigation', () => ({
+  navigateToPostUnlockHome: () => mockNavigateToPostUnlockHome(),
 }));
 
 jest.mock('../SecureKeychain', () => ({
@@ -253,6 +260,11 @@ jest.mock('../SecureKeychain', () => ({
 
 jest.mock('../OAuthService/OAuthService', () => ({
   resetOauthState: jest.fn(),
+}));
+
+const mockIsE2EMockOAuth = jest.fn().mockReturnValue(false);
+jest.mock('../../util/environment', () => ({
+  isE2EMockOAuth: () => mockIsE2EMockOAuth(),
 }));
 
 jest.mock('../BackupVault/backupVault', () => ({
@@ -374,6 +386,10 @@ describe('Authentication', () => {
 
   beforeEach(() => {
     mockDispatch = jest.fn();
+    mockNavigate.mockClear();
+    mockReset.mockClear();
+    mockNavigateToPostUnlockHome.mockReset();
+    mockNavigateToPostUnlockHome.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -1248,6 +1264,67 @@ describe('Authentication', () => {
         }
       });
 
+      it('skips createAndBackupSeedPhrase for OAuth when E2E_MOCK_OAUTH is true', async () => {
+        mockIsE2EMockOAuth.mockReturnValue(true);
+
+        const mockDispatchLocal = jest.fn();
+        jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+          dispatch: mockDispatchLocal,
+          getState: () => ({ security: { allowLoginWithRememberMe: true } }),
+        } as unknown as ReduxStore);
+
+        const createWalletSpy = jest
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .spyOn(Authentication as any, 'createWalletVaultAndKeychain')
+          .mockResolvedValue(undefined);
+        const backupSpy = jest
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .spyOn(Authentication as any, 'createAndBackupSeedPhrase')
+          .mockResolvedValue(undefined);
+
+        await Authentication.newWalletAndKeychain('password', {
+          currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+          oauth2Login: true,
+        });
+
+        expect(createWalletSpy).toHaveBeenCalledWith('password');
+        expect(backupSpy).not.toHaveBeenCalled();
+
+        createWalletSpy.mockRestore();
+        backupSpy.mockRestore();
+        mockIsE2EMockOAuth.mockReturnValue(false);
+      });
+
+      it('calls createAndBackupSeedPhrase for OAuth when E2E_MOCK_OAUTH is not set', async () => {
+        mockIsE2EMockOAuth.mockReturnValue(false);
+
+        const mockDispatchLocal = jest.fn();
+        jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+          dispatch: mockDispatchLocal,
+          getState: () => ({ security: { allowLoginWithRememberMe: true } }),
+        } as unknown as ReduxStore);
+
+        const createWalletSpy = jest
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .spyOn(Authentication as any, 'createWalletVaultAndKeychain')
+          .mockResolvedValue(undefined);
+        const backupSpy = jest
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .spyOn(Authentication as any, 'createAndBackupSeedPhrase')
+          .mockResolvedValue(undefined);
+
+        await Authentication.newWalletAndKeychain('password', {
+          currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+          oauth2Login: true,
+        });
+
+        expect(backupSpy).toHaveBeenCalledWith('password');
+        expect(createWalletSpy).not.toHaveBeenCalled();
+
+        createWalletSpy.mockRestore();
+        backupSpy.mockRestore();
+      });
+
       it('falls back to PASSWORD when biometric storePassword fails in newWalletAndKeychain', async () => {
         const fallbackMockDispatch = jest.fn();
         jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
@@ -1564,6 +1641,15 @@ describe('Authentication', () => {
   });
 
   describe('resetPassword', () => {
+    beforeEach(() => {
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: mockDispatch,
+        getState: () => ({
+          security: { allowLoginWithRememberMe: false },
+        }),
+      } as unknown as ReduxStore);
+    });
+
     it('calls SecureKeychain.resetGenericPassword', async () => {
       const resetGenericPasswordSpy = jest.spyOn(
         SecureKeychain,
@@ -1573,6 +1659,29 @@ describe('Authentication', () => {
       await Authentication.resetPassword();
 
       expect(resetGenericPasswordSpy).toHaveBeenCalled();
+    });
+
+    it('clears auth storage flags and syncs Redux security state', async () => {
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: mockDispatch,
+        getState: () => ({
+          security: { allowLoginWithRememberMe: true },
+        }),
+      } as unknown as ReduxStore);
+
+      const removeItemSpy = jest.spyOn(StorageWrapper, 'removeItem');
+
+      await Authentication.resetPassword();
+
+      expect(removeItemSpy).toHaveBeenCalledWith(BIOMETRY_CHOICE_DISABLED);
+      expect(removeItemSpy).toHaveBeenCalledWith(PASSCODE_DISABLED);
+      expect(removeItemSpy).toHaveBeenCalledWith(
+        PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME,
+      );
+      expect(mockDispatch).toHaveBeenCalledWith(setOsAuthEnabled(false));
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setAllowLoginWithRememberMe(false),
+      );
     });
 
     it('throws AuthenticationError when SecureKeychain fails', async () => {
@@ -1799,6 +1908,12 @@ describe('Authentication', () => {
             async ({ id: _id }, callback) =>
               await callback({ keyring: mockHdKeyring }),
           ),
+        withKeyringV2: jest
+          .fn()
+          .mockImplementation(
+            async ({ id: _id }, callback) =>
+              await callback({ keyring: mockHdKeyringV2 }),
+          ),
         state: {
           keyrings: [createMockHdKeyringObject()],
         },
@@ -1851,7 +1966,7 @@ describe('Authentication', () => {
         uint8ArrayToMnemonic(mockSeedPhrase1, []),
         false,
       );
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(7); // logIn, passwordSet, setOsAuthEnabled, setAllowLoginWithRememberMe (from storePassword), dispatchLogin, dispatchOauthReset, and setExistingUser
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(8); // logIn, setCompletedOnboarding, passwordSet, setOsAuthEnabled, setAllowLoginWithRememberMe (from storePassword), dispatchLogin, dispatchOauthReset, and setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -1928,7 +2043,7 @@ describe('Authentication', () => {
         keyringId: mockMultichainAccountWallet.entropySource,
         type: 'mnemonic',
       });
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(7); // logIn, passwordSet, setOsAuthEnabled, setAllowLoginWithRememberMe (from storePassword), dispatchLogin, dispatchOauthReset, and setExistingUser
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(8); // logIn, setCompletedOnboarding, passwordSet, setOsAuthEnabled, setAllowLoginWithRememberMe (from storePassword), dispatchLogin, dispatchOauthReset, and setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -1978,7 +2093,7 @@ describe('Authentication', () => {
           shouldSelectAccount: false,
         },
       );
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(7); // logIn, passwordSet, setOsAuthEnabled, setAllowLoginWithRememberMe (from storePassword), dispatchLogin, dispatchOauthReset, and setExistingUser
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(8); // logIn, setCompletedOnboarding, passwordSet, setOsAuthEnabled, setAllowLoginWithRememberMe (from storePassword), dispatchLogin, dispatchOauthReset, and setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -2012,7 +2127,7 @@ describe('Authentication', () => {
 
       expect(newWalletAndRestoreSpy).toHaveBeenCalled();
       expect(Logger.error).toHaveBeenCalledWith(expect.any(Error), 'unknown');
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(7); // logIn, passwordSet, setOsAuthEnabled, setAllowLoginWithRememberMe (from storePassword), dispatchLogin, dispatchOauthReset, and setExistingUser
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(8); // logIn, setCompletedOnboarding, passwordSet, setOsAuthEnabled, setAllowLoginWithRememberMe (from storePassword), dispatchLogin, dispatchOauthReset, and setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -2055,7 +2170,7 @@ describe('Authentication', () => {
         importError,
         'Error in rehydrateSeedPhrase- SeedlessOnboardingController',
       );
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(7); // logIn, passwordSet, setOsAuthEnabled, setAllowLoginWithRememberMe (from storePassword), dispatchLogin, dispatchOauthReset, and setExistingUser
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(8); // logIn, setCompletedOnboarding, passwordSet, setOsAuthEnabled, setAllowLoginWithRememberMe (from storePassword), dispatchLogin, dispatchOauthReset, and setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -2149,7 +2264,7 @@ describe('Authentication', () => {
         error,
         'Error in rehydrateSeedPhrase- SeedlessOnboardingController',
       );
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(7); // logIn, passwordSet, setOsAuthEnabled, setAllowLoginWithRememberMe (from storePassword), dispatchLogin, dispatchOauthReset, and setExistingUser
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(8); // logIn, setCompletedOnboarding, passwordSet, setOsAuthEnabled, setAllowLoginWithRememberMe (from storePassword), dispatchLogin, dispatchOauthReset, and setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -2930,6 +3045,12 @@ describe('Authentication', () => {
             async ({ id: _id }, callback) =>
               await callback({ keyring: mockHdKeyring }),
           ),
+        withKeyringV2: jest
+          .fn()
+          .mockImplementation(
+            async ({ id: _id }, callback) =>
+              await callback({ keyring: mockHdKeyringV2 }),
+          ),
         state: {
           keyrings: [createMockHdKeyringObject()],
         },
@@ -3055,7 +3176,7 @@ describe('Authentication', () => {
       // Arrange
       const mnemonic = 'test mnemonic phrase for wallet';
       const error = new Error('Failed to get accounts');
-      mockHdKeyring.getAccounts.mockRejectedValue(error);
+      mockHdKeyringV2.getAccounts.mockRejectedValue(error);
       Engine.context.MultichainAccountService.createMultichainAccountWallet.mockResolvedValue(
         mockMultichainAccountWallet,
       );
@@ -4066,10 +4187,7 @@ describe('Authentication', () => {
       );
       expect(createDataDeletionTaskMock).toHaveBeenCalledTimes(1);
       expect(removeItemSpy).toHaveBeenCalledWith(OPTIN_META_METRICS_UI_SEEN);
-      expect(deleteWalletMockDispatch).toHaveBeenCalledWith(
-        setCompletedOnboarding(false),
-      );
-      expect(deleteWalletMockDispatch).toHaveBeenCalledWith(clearAccountType());
+      expect(deleteWalletMockDispatch).toHaveBeenCalledWith(clearOnboarding());
       expect(EngineClass.disableAutomaticVaultBackup).toBe(false);
     });
   });
@@ -4947,24 +5065,45 @@ describe('Authentication', () => {
       });
     });
 
-    it('navigates to the home flow when a password is provided', async () => {
+    it('navigates to the post-unlock home destination when a password is provided', async () => {
       // Call unlockWallet with a password.
       await Authentication.unlockWallet({ password: passwordToUse });
 
-      // Verify that it navigates to the home flow.
-      expect(mockReset).toHaveBeenCalledWith({
+      expect(mockNavigateToPostUnlockHome).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not navigate home directly after login', async () => {
+      await Authentication.unlockWallet({ password: passwordToUse });
+
+      expect(mockNavigateToPostUnlockHome).toHaveBeenCalledTimes(1);
+      expect(mockReset).not.toHaveBeenCalledWith({
         routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
       });
     });
 
-    it('navigates to the home flow when biometric credentials are provided', async () => {
+    it('runs onBeforeNavigate before navigating home', async () => {
+      mockReset.mockClear();
+      const onBeforeNavigate = jest.fn(async () => {
+        await Promise.resolve();
+      });
+
+      await Authentication.unlockWallet({
+        password: passwordToUse,
+        onBeforeNavigate,
+      });
+
+      expect(onBeforeNavigate).toHaveBeenCalledTimes(1);
+      expect(onBeforeNavigate.mock.invocationCallOrder[0]).toBeLessThan(
+        mockNavigateToPostUnlockHome.mock.invocationCallOrder[0],
+      );
+      expect(mockNavigateToPostUnlockHome).toHaveBeenCalledTimes(1);
+    });
+
+    it('navigates to the post-unlock home destination when biometric credentials are provided', async () => {
       // Call unlockWallet without a password.
       await Authentication.unlockWallet();
 
-      // Verify that it navigates to the home flow.
-      expect(mockReset).toHaveBeenCalledWith({
-        routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-      });
+      expect(mockNavigateToPostUnlockHome).toHaveBeenCalledTimes(1);
     });
 
     it('navigates to the optin metrics flow when metrics are not enabled and UI has not been seen', async () => {
@@ -5314,6 +5453,111 @@ describe('Authentication', () => {
           authType: AUTHENTICATION_TYPE.BIOMETRIC,
           password: passwordToUse,
           fallbackToPassword: false,
+        });
+      });
+
+      describe('when biometric authentication fails due to changed biometrics', () => {
+        const userNotAuthenticatedError = new Error('User not authenticated');
+
+        beforeEach(() => {
+          const Engine = jest.requireMock('../Engine');
+          // Mock submitPassword to throw the user not authenticated error.
+          (
+            Engine.context.KeyringController.submitPassword as jest.Mock
+          ).mockRejectedValueOnce(userNotAuthenticatedError);
+        });
+
+        it('shows biometric changed alert when error contains USER_NOT_AUTHENTICATED', async () => {
+          const alertSpy = jest
+            .spyOn(Alert, 'alert')
+            .mockImplementation((_title, _message, buttons) => {
+              buttons?.[0]?.onPress?.();
+            });
+          const resetPasswordSpy = jest
+            .spyOn(Authentication, 'resetPassword')
+            .mockResolvedValueOnce();
+
+          await expect(
+            Authentication.unlockWallet({ password: passwordToUse }),
+          ).rejects.toThrow('User not authenticated');
+
+          expect(alertSpy).toHaveBeenCalledWith(
+            strings('login.biometric_changed'),
+            strings('login.biometric_changed_alert_desc'),
+            [
+              {
+                text: strings('login.biometric_changed_alert_confirm'),
+                onPress: expect.any(Function),
+              },
+            ],
+            {
+              cancelable: false,
+            },
+          );
+
+          alertSpy.mockRestore();
+          resetPasswordSpy.mockRestore();
+        });
+
+        it('calls lockApp with reset enabled when alert confirm button is pressed', async () => {
+          const alertSpy = jest
+            .spyOn(Alert, 'alert')
+            .mockImplementation((_title, _message, buttons) => {
+              buttons?.[0]?.onPress?.();
+            });
+          const lockAppSpy = jest.spyOn(Authentication, 'lockApp');
+
+          await expect(
+            Authentication.unlockWallet({ password: passwordToUse }),
+          ).rejects.toThrow('User not authenticated');
+
+          expect(lockAppSpy).toHaveBeenCalledWith({
+            reset: true,
+            navigateToLogin: false,
+          });
+
+          alertSpy.mockRestore();
+          lockAppSpy.mockRestore();
+        });
+
+        it('does not show alert when error does not contain USER_NOT_AUTHENTICATED', async () => {
+          const Engine = jest.requireMock('../Engine');
+          (
+            Engine.context.KeyringController.submitPassword as jest.Mock
+          ).mockReset();
+          (
+            Engine.context.KeyringController.submitPassword as jest.Mock
+          ).mockRejectedValueOnce(new Error('Some other error'));
+
+          const alertSpy = jest.spyOn(Alert, 'alert');
+
+          await expect(
+            Authentication.unlockWallet({ password: passwordToUse }),
+          ).rejects.toThrow('Some other error');
+
+          expect(alertSpy).not.toHaveBeenCalled();
+
+          alertSpy.mockRestore();
+        });
+
+        it('does not show alert when error is not an Error instance', async () => {
+          const Engine = jest.requireMock('../Engine');
+          (
+            Engine.context.KeyringController.submitPassword as jest.Mock
+          ).mockReset();
+          (
+            Engine.context.KeyringController.submitPassword as jest.Mock
+          ).mockRejectedValueOnce('User not authenticated string');
+
+          const alertSpy = jest.spyOn(Alert, 'alert');
+
+          await expect(
+            Authentication.unlockWallet({ password: passwordToUse }),
+          ).rejects.toThrow('User not authenticated string');
+
+          expect(alertSpy).not.toHaveBeenCalled();
+
+          alertSpy.mockRestore();
         });
       });
     });

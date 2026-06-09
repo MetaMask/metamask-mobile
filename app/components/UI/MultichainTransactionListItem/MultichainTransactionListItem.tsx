@@ -1,5 +1,5 @@
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import React, { useCallback } from 'react';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import {
   Image,
   TouchableHighlight,
@@ -21,6 +21,7 @@ import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrap
 import Badge, {
   BadgeVariant,
 } from '../../../component-library/components/Badges/Badge';
+import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import { getNetworkImageSource } from '../../../util/networks';
 import Routes from '../../../constants/navigation/Routes';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
@@ -38,7 +39,7 @@ const MultichainTransactionListItem = ({
 }: {
   transaction: Transaction;
   chainId: SupportedCaipChainId;
-  navigation: NavigationProp<ParamListBase>;
+  navigation: AppNavigationProp;
   index?: number;
   location?: TransactionDetailLocation;
 }) => {
@@ -63,13 +64,10 @@ const MultichainTransactionListItem = ({
         .build(),
     );
 
-    navigation.navigate(
-      Routes.MODAL.ROOT_MODAL_FLOW as never,
-      {
-        screen: Routes.SHEET.MULTICHAIN_TRANSACTION_DETAILS,
-        params: { displayData, transaction },
-      } as never,
-    );
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.MULTICHAIN_TRANSACTION_DETAILS,
+      params: { displayData, transaction },
+    });
   }, [
     navigation,
     displayData,
@@ -94,10 +92,13 @@ const MultichainTransactionListItem = ({
 
     return (
       <BadgeWrapper
+        badgePosition={{ bottom: -4, right: -4 }}
         badgeElement={
           <Badge
             variant={BadgeVariant.Network}
             imageSource={networkImageSource}
+            isScaled={false}
+            size={AvatarSize.Xs}
           />
         }
       >

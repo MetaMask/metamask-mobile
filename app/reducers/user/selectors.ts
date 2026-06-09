@@ -1,4 +1,5 @@
 import { RootState } from '..';
+import { ChartType } from '../../components/UI/Charts/AdvancedChart/AdvancedChart.types';
 
 /**
  * Selects the user state
@@ -55,3 +56,21 @@ export const selectMusdConversionEducationSeen = (state: RootState) =>
  */
 export const selectMusdConversionAssetDetailCtasSeen = (state: RootState) =>
   state.user?.musdConversionAssetDetailCtasSeen ?? {};
+
+/**
+ * Selects the moneyOnboardingSeen state
+ */
+export const selectMoneyOnboardingSeen = (state: RootState) =>
+  state.user?.moneyOnboardingSeen ?? false;
+
+/**
+ * Selects the token overview chart type preference
+ */
+export const selectTokenOverviewChartType = (state: RootState) =>
+  state.user?.tokenOverviewChartType ?? ChartType.Line;
+
+/**
+ * Selects the onboarding stepper progress record (keyed by stepper ID)
+ */
+export const selectOnboardingStepperProgress = (state: RootState) =>
+  state.user?.onboardingStepperProgress ?? {};

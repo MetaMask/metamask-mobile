@@ -63,6 +63,9 @@ const E2E_SAFE_DEFAULTS: Record<string, unknown> = {
   mobileMinimumVersions: {
     appMinimumBuild: 1,
   },
+  // Production uses a percentage rollout for this A/B test. Pin E2E to control
+  // so homepage section labels do not depend on the generated analytics ID.
+  homeTMCU470AbtestTrendingSections: 'control',
 };
 
 /**
@@ -131,6 +134,7 @@ export const createRemoteFeatureFlagsMock = (
 export const setupRemoteFeatureFlagsMock = async (
   mockServer: Mockttp,
   flagOverrides: Record<string, unknown> = {},
+  priority?: number,
 ): Promise<void> => {
   const environments = ['dev', 'test', 'prod'] as const;
   const distributions = ['main', 'flask'] as const;
@@ -140,12 +144,16 @@ export const setupRemoteFeatureFlagsMock = async (
       const { urlEndpoint, response, responseCode } =
         createRemoteFeatureFlagsMock(flagOverrides, distribution, environment);
 
-      return setupMockRequest(mockServer, {
-        requestMethod: 'GET',
-        url: urlEndpoint,
-        response,
-        responseCode,
-      });
+      return setupMockRequest(
+        mockServer,
+        {
+          requestMethod: 'GET',
+          url: urlEndpoint,
+          response,
+          responseCode,
+        },
+        priority,
+      );
     }),
   );
 

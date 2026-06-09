@@ -73,9 +73,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 // Mock selectors
-jest.mock('../../../../../core/redux/slices/card', () => ({
-  selectIsAuthenticatedCard: 'selectIsAuthenticatedCard',
-  selectUserCardLocation: 'selectUserCardLocation',
+jest.mock('../../../../../selectors/cardController', () => ({
+  selectIsCardAuthenticated: 'selectIsCardAuthenticated',
+  selectCardUserLocation: 'selectCardUserLocation',
 }));
 
 // Mock feature flag selectors
@@ -106,6 +106,7 @@ describe('usePushProvisioning', () => {
 
   const defaultOptions = {
     cardDetails: mockCardDetails,
+    provisioningEligible: true,
     onSuccess: jest.fn(),
     onError: jest.fn(),
     onCancel: jest.fn(),
@@ -115,8 +116,8 @@ describe('usePushProvisioning', () => {
     jest.clearAllMocks();
     // Default selector returns
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === 'selectIsAuthenticatedCard') return true;
-      if (selector === 'selectUserCardLocation') return 'us';
+      if (selector === 'selectIsCardAuthenticated') return true;
+      if (selector === 'selectCardUserLocation') return 'us';
       // Feature flags enabled by default for tests
       if (selector === 'selectGalileoAppleWalletProvisioningEnabled')
         return true;
@@ -214,8 +215,8 @@ describe('usePushProvisioning', () => {
 
     it('returns false when not authenticated', async () => {
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === 'selectIsAuthenticatedCard') return false;
-        if (selector === 'selectUserCardLocation') return 'us';
+        if (selector === 'selectIsCardAuthenticated') return false;
+        if (selector === 'selectCardUserLocation') return 'us';
         if (selector === 'selectGalileoAppleWalletProvisioningEnabled')
           return true;
         if (selector === 'selectGalileoGoogleWalletProvisioningEnabled')
@@ -285,6 +286,22 @@ describe('usePushProvisioning', () => {
       unmount();
     });
 
+    it('returns false when provisioningEligible is false', async () => {
+      const { result, unmount } = renderHook(() =>
+        usePushProvisioning({
+          ...defaultOptions,
+          provisioningEligible: false,
+        }),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.canAddToWallet).toBe(false);
+      unmount();
+    });
+
     it('returns false when card status is not ACTIVE', async () => {
       const inactiveCard = { ...mockCardDetails, status: 'INACTIVE' };
 
@@ -320,8 +337,8 @@ describe('usePushProvisioning', () => {
       Object.defineProperty(Platform, 'OS', { value: 'ios', writable: true });
 
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === 'selectIsAuthenticatedCard') return true;
-        if (selector === 'selectUserCardLocation') return 'us';
+        if (selector === 'selectIsCardAuthenticated') return true;
+        if (selector === 'selectCardUserLocation') return 'us';
         if (selector === 'selectGalileoAppleWalletProvisioningEnabled')
           return false;
         if (selector === 'selectGalileoGoogleWalletProvisioningEnabled')
@@ -354,8 +371,8 @@ describe('usePushProvisioning', () => {
       });
 
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === 'selectIsAuthenticatedCard') return true;
-        if (selector === 'selectUserCardLocation') return 'us';
+        if (selector === 'selectIsCardAuthenticated') return true;
+        if (selector === 'selectCardUserLocation') return 'us';
         if (selector === 'selectGalileoAppleWalletProvisioningEnabled')
           return true;
         if (selector === 'selectGalileoGoogleWalletProvisioningEnabled')
@@ -385,8 +402,8 @@ describe('usePushProvisioning', () => {
       Object.defineProperty(Platform, 'OS', { value: 'ios', writable: true });
 
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === 'selectIsAuthenticatedCard') return true;
-        if (selector === 'selectUserCardLocation') return 'us';
+        if (selector === 'selectIsCardAuthenticated') return true;
+        if (selector === 'selectCardUserLocation') return 'us';
         if (selector === 'selectGalileoAppleWalletProvisioningEnabled')
           return true;
         if (selector === 'selectGalileoGoogleWalletProvisioningEnabled')
@@ -419,8 +436,8 @@ describe('usePushProvisioning', () => {
       });
 
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === 'selectIsAuthenticatedCard') return true;
-        if (selector === 'selectUserCardLocation') return 'us';
+        if (selector === 'selectIsCardAuthenticated') return true;
+        if (selector === 'selectCardUserLocation') return 'us';
         if (selector === 'selectGalileoAppleWalletProvisioningEnabled')
           return false;
         if (selector === 'selectGalileoGoogleWalletProvisioningEnabled')
@@ -451,8 +468,8 @@ describe('usePushProvisioning', () => {
 
       // iOS flag disabled, Android flag enabled - should be false on iOS
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === 'selectIsAuthenticatedCard') return true;
-        if (selector === 'selectUserCardLocation') return 'us';
+        if (selector === 'selectIsCardAuthenticated') return true;
+        if (selector === 'selectCardUserLocation') return 'us';
         if (selector === 'selectGalileoAppleWalletProvisioningEnabled')
           return false;
         if (selector === 'selectGalileoGoogleWalletProvisioningEnabled')
@@ -486,8 +503,8 @@ describe('usePushProvisioning', () => {
 
       // iOS flag enabled, Android flag disabled - should be false on Android
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === 'selectIsAuthenticatedCard') return true;
-        if (selector === 'selectUserCardLocation') return 'us';
+        if (selector === 'selectIsCardAuthenticated') return true;
+        if (selector === 'selectCardUserLocation') return 'us';
         if (selector === 'selectGalileoAppleWalletProvisioningEnabled')
           return true;
         if (selector === 'selectGalileoGoogleWalletProvisioningEnabled')
@@ -743,6 +760,74 @@ describe('usePushProvisioning', () => {
       unmount();
     });
 
+    it('sets status to success when service returns success directly (Apple Wallet flow)', async () => {
+      mockInitiateProvisioning.mockResolvedValue({
+        status: 'success',
+        tokenId: 'token-abc',
+      });
+      const onSuccess = jest.fn();
+
+      const { result, unmount } = renderHook(() =>
+        usePushProvisioning({ ...defaultOptions, onSuccess }),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      await act(async () => {
+        await result.current.initiateProvisioning();
+      });
+
+      expect(result.current.status).toBe('success');
+      expect(result.current.isProvisioning).toBe(false);
+      expect(result.current.isSuccess).toBe(true);
+      expect(onSuccess).toHaveBeenCalledWith({
+        status: 'success',
+        tokenId: 'token-abc',
+      });
+      unmount();
+    });
+
+    it('does not double-handle success when activation listener fires after direct success', async () => {
+      let activationCallback:
+        | ((event: { status: string; tokenId?: string }) => void)
+        | undefined;
+      mockAddActivationListener.mockImplementation((callback) => {
+        activationCallback = callback;
+        return () => undefined;
+      });
+
+      mockInitiateProvisioning.mockResolvedValue({ status: 'success' });
+      const onSuccess = jest.fn();
+
+      const { result, unmount } = renderHook(() =>
+        usePushProvisioning({ ...defaultOptions, onSuccess }),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      await act(async () => {
+        await result.current.initiateProvisioning();
+      });
+
+      // Success already handled from direct return
+      expect(result.current.status).toBe('success');
+      expect(onSuccess).toHaveBeenCalledTimes(1);
+
+      // Simulate activation listener firing after status is already 'success'
+      // It should be ignored since statusRef.current is no longer 'provisioning'
+      await act(async () => {
+        activationCallback?.({ status: 'activated', tokenId: 'token-123' });
+      });
+
+      // onSuccess should NOT be called again
+      expect(onSuccess).toHaveBeenCalledTimes(1);
+      unmount();
+    });
+
     it('tracks analytics on cancel', async () => {
       mockInitiateProvisioning.mockResolvedValue({ status: 'canceled' });
 
@@ -828,20 +913,28 @@ describe('usePushProvisioning', () => {
   });
 
   describe('computed states', () => {
-    it('isSuccess is true when status is success', async () => {
+    it('isSuccess is true when service returns success', async () => {
       mockInitiateProvisioning.mockResolvedValue({ status: 'success' });
 
+      const onSuccess = jest.fn();
       const { result, unmount } = renderHook(() =>
-        usePushProvisioning(defaultOptions),
+        usePushProvisioning({ ...defaultOptions, onSuccess }),
       );
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      // Note: success status is set via activation listener, not directly
-      // This test validates the computed property logic
-      expect(result.current.isSuccess).toBe(false); // Initially false
+      await act(async () => {
+        await result.current.initiateProvisioning();
+      });
+
+      expect(result.current.status).toBe('success');
+      expect(result.current.isSuccess).toBe(true);
+      expect(onSuccess).toHaveBeenCalledWith({
+        status: 'success',
+        tokenId: undefined,
+      });
       unmount();
     });
 

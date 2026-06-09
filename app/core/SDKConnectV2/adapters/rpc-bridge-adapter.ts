@@ -4,6 +4,7 @@ import { IRPCBridgeAdapter } from '../types/rpc-bridge-adapter';
 import Engine, { RootExtendedMessenger } from '../../Engine';
 import AppConstants from '../../AppConstants';
 import getRpcMethodMiddleware from '../../RPCMethods/RPCMethodMiddleware';
+import { TransportType } from '../../../components/hooks/useAnalytics/useAnalytics.types';
 import { ImageSourcePropType } from 'react-native';
 import { ConnectionInfo } from '../types/connection-info';
 import { whenEngineReady } from '../utils/when-engine-ready';
@@ -127,7 +128,6 @@ export class RPCBridgeAdapter
       isRemoteConn: true,
       channelId: this.connInfo.id,
       url: selfReportedDappUrl,
-      remoteConnHost: selfReportedDappUrl,
       sendMessage: (response: unknown) => {
         this.emit('response', response);
       },
@@ -153,9 +153,12 @@ export class RPCBridgeAdapter
           isWalletConnect: false,
           analytics: {
             isRemoteConn: true,
+            transport: TransportType.MWP,
             platform:
               this.connInfo.metadata.sdk.platform ??
               AppConstants.MM_SDK.UNKNOWN_PARAM,
+            remote_session_id:
+              this.connInfo.metadata.analytics?.remote_session_id ?? '',
           },
         }),
       isMainFrame: true,

@@ -1,5 +1,6 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useDispatch, useSelector } from 'react-redux';
+import { captureException } from '@sentry/react-native';
 import { useCandidateSubscriptionId } from './useCandidateSubscriptionId';
 import Engine from '../../../../core/Engine';
 import { setCandidateSubscriptionId } from '../../../../actions/rewards';
@@ -9,6 +10,10 @@ import { useFocusEffect } from '@react-navigation/native';
 jest.mock('react-redux', () => ({
   useDispatch: jest.fn(),
   useSelector: jest.fn(),
+}));
+
+jest.mock('@sentry/react-native', () => ({
+  captureException: jest.fn(),
 }));
 
 jest.mock('../../../../core/Engine', () => ({
@@ -41,6 +46,9 @@ describe('useCandidateSubscriptionId', () => {
   >;
   const mockEngineCall = Engine.controllerMessenger.call as jest.MockedFunction<
     typeof Engine.controllerMessenger.call
+  >;
+  const mockCaptureException = captureException as jest.MockedFunction<
+    typeof captureException
   >;
 
   beforeEach(() => {
@@ -105,6 +113,12 @@ describe('useCandidateSubscriptionId', () => {
     expect(mockEngineCall).toHaveBeenCalledWith(
       'RewardsController:getCandidateSubscriptionId',
     );
+    expect(mockCaptureException).toHaveBeenCalledWith(mockError, {
+      tags: {
+        feature: 'rewards',
+        context: 'candidateSubscriptionId.fetch_failed',
+      },
+    });
     expect(mockDispatch).toHaveBeenCalledWith(
       setCandidateSubscriptionId('error'),
     );
@@ -157,6 +171,12 @@ describe('useCandidateSubscriptionId', () => {
     expect(mockEngineCall).toHaveBeenCalledWith(
       'RewardsController:getCandidateSubscriptionId',
     );
+    expect(mockCaptureException).toHaveBeenCalledWith(mockError, {
+      tags: {
+        feature: 'rewards',
+        context: 'candidateSubscriptionId.fetch_failed',
+      },
+    });
     expect(mockDispatch).toHaveBeenCalledWith(
       setCandidateSubscriptionId('error'),
     );

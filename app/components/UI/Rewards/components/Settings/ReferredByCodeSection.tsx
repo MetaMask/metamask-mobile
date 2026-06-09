@@ -19,8 +19,8 @@ import {
 import TextField from '../../../../../component-library/components/Form/TextField';
 import { useReferralDetails } from '../../hooks/useReferralDetails';
 import {
+  REFERRAL_CODE_MIN_LENGTH,
   useValidateReferralCode,
-  REFERRAL_CODE_LENGTH,
 } from '../../hooks/useValidateReferralCode';
 import { useApplyReferralCode } from '../../hooks/useApplyReferralCode';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
@@ -49,9 +49,11 @@ const ReferredByCodeSection: React.FC = () => {
     applyReferralCodeSuccess,
   } = useApplyReferralCode();
 
-  const { fetchReferralDetails } = useReferralDetails();
+  const { fetchReferralDetails } = useReferralDetails({ fetchOnMount: false });
 
   const hasReferredByCode = Boolean(referredByCode);
+  const inputCodeReadyForValidation =
+    inputCode.length >= REFERRAL_CODE_MIN_LENGTH;
 
   const isApplyingRef = useRef(false);
 
@@ -102,7 +104,7 @@ const ReferredByCodeSection: React.FC = () => {
     }
 
     if (
-      (inputCode.length >= 6 && !clientCheckValid) ||
+      (inputCodeReadyForValidation && !clientCheckValid) ||
       applyReferralCodeError
     ) {
       return (
@@ -118,7 +120,7 @@ const ReferredByCodeSection: React.FC = () => {
   };
 
   const showClientValidationError =
-    inputCode.length >= 6 &&
+    inputCodeReadyForValidation &&
     !clientCheckValid &&
     !isValidating &&
     !isUnknownError &&
@@ -142,85 +144,93 @@ const ReferredByCodeSection: React.FC = () => {
 
   if (referralDetailsError && !referredByCode) {
     return (
-      <Box
-        testID="referred-by-code-section-error"
-        twClassName="gap-4 flex-col py-4 px-4 border-t border-muted"
-      >
-        <Box twClassName="gap-2">
-          <Text variant={TextVariant.HeadingSm}>
-            {strings('rewards.referred_by_code.title')}
-          </Text>
-          <Text variant={TextVariant.BodySm} twClassName="text-alternative">
-            {strings('rewards.referred_by_code.description_not_linked')}
-          </Text>
+      <>
+        {/* Divider */}
+        <Box twClassName="mt-4 border-b border-border-muted" />
+        <Box
+          testID="referred-by-code-section-error"
+          twClassName="gap-4 flex-col px-4"
+        >
+          <Box twClassName="gap-2 mt-2">
+            <Text variant={TextVariant.HeadingMd}>
+              {strings('rewards.referred_by_code.title')}
+            </Text>
+            <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
+              {strings('rewards.referred_by_code.description_not_linked')}
+            </Text>
+          </Box>
+          <RewardsErrorBanner
+            testID="referred-by-code-error-banner"
+            title={strings(
+              'rewards.referral_details_error.error_fetching_title',
+            )}
+            description={strings(
+              'rewards.referral_details_error.error_fetching_description',
+            )}
+            onConfirm={fetchReferralDetails}
+            confirmButtonLabel={strings(
+              'rewards.referral_details_error.retry_button',
+            )}
+          />
         </Box>
-        <RewardsErrorBanner
-          testID="referred-by-code-error-banner"
-          title={strings('rewards.referral_details_error.error_fetching_title')}
-          description={strings(
-            'rewards.referral_details_error.error_fetching_description',
-          )}
-          onConfirm={fetchReferralDetails}
-          confirmButtonLabel={strings(
-            'rewards.referral_details_error.retry_button',
-          )}
-        />
-      </Box>
+      </>
     );
   }
 
   return (
-    <Box
-      testID="referred-by-code-section"
-      twClassName="gap-4 flex-col py-4 px-4 border-t border-muted"
-    >
-      <Box twClassName="gap-2">
-        <Text variant={TextVariant.HeadingSm}>
-          {strings('rewards.referred_by_code.title')}
-        </Text>
-        <Text variant={TextVariant.BodySm} twClassName="text-alternative">
-          {hasReferredByCode
-            ? strings('rewards.referred_by_code.description_linked')
-            : strings('rewards.referred_by_code.description_not_linked')}
-        </Text>
-      </Box>
-
-      <Box>
-        <TextField
-          testID="referred-by-code-input"
-          placeholder={strings('rewards.referred_by_code.input_placeholder')}
-          value={hasReferredByCode ? (referredByCode ?? '') : inputCode}
-          onChangeText={hasReferredByCode ? undefined : handleInputChange}
-          maxLength={REFERRAL_CODE_LENGTH}
-          isDisabled={hasReferredByCode}
-          autoCapitalize="characters"
-          endAccessory={renderIcon()}
-          isError={showClientValidationError || Boolean(applyReferralCodeError)}
-        />
-        {showClientValidationError && (
-          <Text
-            variant={TextVariant.BodySm}
-            twClassName="text-error-default mt-1"
-            testID="referred-by-code-invalid-code"
-          >
-            {strings('rewards.referred_by_code.invalid_code')}
+    <>
+      {/* Divider */}
+      <Box twClassName="mt-4 border-b border-border-muted" />
+      <Box testID="referred-by-code-section" twClassName="gap-4 flex-col px-4">
+        <Box twClassName="gap-2 mt-2">
+          <Text variant={TextVariant.HeadingMd}>
+            {strings('rewards.referred_by_code.title')}
           </Text>
-        )}
-        {applyReferralCodeError &&
-          !isApplyingReferralCode &&
-          !showClientValidationError &&
-          !applyReferralCodeSuccess &&
-          inputCode.length >= 6 && (
+          <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
+            {hasReferredByCode
+              ? strings('rewards.referred_by_code.description_linked')
+              : strings('rewards.referred_by_code.description_not_linked')}
+          </Text>
+        </Box>
+
+        <Box>
+          <TextField
+            testID="referred-by-code-input"
+            placeholder={strings('rewards.referred_by_code.input_placeholder')}
+            value={hasReferredByCode ? (referredByCode ?? '') : inputCode}
+            onChangeText={hasReferredByCode ? undefined : handleInputChange}
+            isDisabled={hasReferredByCode}
+            autoCapitalize="characters"
+            endAccessory={renderIcon()}
+            isError={
+              showClientValidationError || Boolean(applyReferralCodeError)
+            }
+          />
+          {showClientValidationError && (
             <Text
               variant={TextVariant.BodySm}
               twClassName="text-error-default mt-1"
-              testID="apply-referral-code-error"
+              testID="referred-by-code-invalid-code"
             >
-              {applyReferralCodeError}
+              {strings('rewards.referred_by_code.invalid_code')}
             </Text>
           )}
+          {applyReferralCodeError &&
+            !isApplyingReferralCode &&
+            !showClientValidationError &&
+            !applyReferralCodeSuccess &&
+            inputCodeReadyForValidation && (
+              <Text
+                variant={TextVariant.BodySm}
+                twClassName="text-error-default mt-1"
+                testID="apply-referral-code-error"
+              >
+                {applyReferralCodeError}
+              </Text>
+            )}
+        </Box>
       </Box>
-    </Box>
+    </>
   );
 };
 

@@ -334,4 +334,63 @@ describe('isConnectionRequest', () => {
     (req.metadata.sdk as Record<string, unknown>).platform = 'p'.repeat(65);
     expect(isConnectionRequest(req)).toBe(false);
   });
+
+  // ──────────────────────────────────────────
+  // metadata.analytics (optional)
+  // ──────────────────────────────────────────
+  it('accepts a request without metadata.analytics', () => {
+    const req = validRequest();
+    delete (req.metadata as unknown as Record<string, unknown>).analytics;
+    expect(isConnectionRequest(req)).toBe(true);
+  });
+
+  it('preserves valid metadata.analytics.remote_session_id (UUID)', () => {
+    const req = validRequest();
+    (req.metadata as unknown as Record<string, unknown>).analytics = {
+      remote_session_id: 'aabbccdd-1122-3344-5566-778899aabbcc',
+    };
+    expect(isConnectionRequest(req)).toBe(true);
+    expect(req.metadata.analytics).toEqual({
+      remote_session_id: 'aabbccdd-1122-3344-5566-778899aabbcc',
+    });
+  });
+
+  it('strips analytics when it is not an object', () => {
+    const req = validRequest();
+    (req.metadata as unknown as Record<string, unknown>).analytics = 'bad';
+    expect(isConnectionRequest(req)).toBe(true);
+    expect(req.metadata.analytics).toBeUndefined();
+  });
+
+  it('strips analytics when it is null', () => {
+    const req = validRequest();
+    (req.metadata as unknown as Record<string, unknown>).analytics = null;
+    expect(isConnectionRequest(req)).toBe(true);
+    expect(req.metadata.analytics).toBeUndefined();
+  });
+
+  it('strips analytics when remote_session_id is missing', () => {
+    const req = validRequest();
+    (req.metadata as unknown as Record<string, unknown>).analytics = {};
+    expect(isConnectionRequest(req)).toBe(true);
+    expect(req.metadata.analytics).toBeUndefined();
+  });
+
+  it('strips analytics when remote_session_id is not a string', () => {
+    const req = validRequest();
+    (req.metadata as unknown as Record<string, unknown>).analytics = {
+      remote_session_id: 42,
+    };
+    expect(isConnectionRequest(req)).toBe(true);
+    expect(req.metadata.analytics).toBeUndefined();
+  });
+
+  it('strips analytics when remote_session_id is not a valid UUID', () => {
+    const req = validRequest();
+    (req.metadata as unknown as Record<string, unknown>).analytics = {
+      remote_session_id: 'not-a-uuid',
+    };
+    expect(isConnectionRequest(req)).toBe(true);
+    expect(req.metadata.analytics).toBeUndefined();
+  });
 });

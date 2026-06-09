@@ -1,4 +1,3 @@
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import BigNumber from 'bignumber.js';
 import {
   normalizeToDotDecimal,
@@ -14,6 +13,7 @@ import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { safeParseBigNumber } from '../../../../util/number/bignumber';
 import type { TronSpecialAssetsMap } from '../../../../selectors/assets/assets-list';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 
 /**
  * Returns the total staked TRX (sTRX) amount from Tron special assets.
@@ -139,7 +139,7 @@ export const getLocalizedErrorMessage = (errors?: string[]): string => {
 };
 
 export const handleTronStakingNavigationResult = (
-  navigation: NavigationProp<ParamListBase>,
+  navigation: AppNavigationProp,
   result: TronStakingNavigationResult,
   action: TronStakingAction,
   accountId?: string,

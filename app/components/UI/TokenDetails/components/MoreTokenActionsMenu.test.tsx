@@ -4,6 +4,7 @@ import MoreTokenActionsMenu, {
   MoreTokenActionsMenuParams,
 } from './MoreTokenActionsMenu';
 import { TokenI } from '../../Tokens/types';
+import { TokenDetailsAction } from '../constants/constants';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { WalletActionsBottomSheetSelectorsIDs } from '../../../Views/WalletActions/WalletActionsBottomSheet.testIds';
@@ -12,19 +13,6 @@ import { MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
 import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../../core/Engine';
 import NotificationManager from '../../../../core/NotificationManager';
-
-jest.mock('react-native-safe-area-context', () => {
-  const inset = { top: 0, right: 0, bottom: 0, left: 0 };
-  const frame = { width: 390, height: 844, x: 0, y: 0 };
-
-  return {
-    ...jest.requireActual('react-native-safe-area-context'),
-    SafeAreaProvider: jest.fn(({ children }) => children),
-    SafeAreaConsumer: jest.fn(({ children }) => children(inset)),
-    useSafeAreaInsets: jest.fn(() => inset),
-    useSafeAreaFrame: jest.fn(() => frame),
-  };
-});
 
 // Mock BottomSheet so that onCloseBottomSheet(callback) immediately invokes the callback.
 // This allows testing the action handlers (Buy, Receive, View explorer, Remove token).
@@ -195,11 +183,6 @@ jest.mock('../../../../util/Logger', () => ({
   },
 }));
 
-const mockSelectTokenList = jest.fn();
-jest.mock('../../../../selectors/tokenListController', () => ({
-  selectTokenList: (state: unknown) => mockSelectTokenList(state),
-}));
-
 const mockInitialState = {
   engine: {
     backgroundState: {
@@ -216,7 +199,6 @@ describe('MoreTokenActionsMenu', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (selectAsset as unknown as jest.Mock).mockReturnValue({});
-    mockSelectTokenList.mockReturnValue({});
     Object.assign(mockRouteParams, {
       hasPerpsMarket: false,
       hasBalance: false,
@@ -552,9 +534,6 @@ describe('MoreTokenActionsMenu', () => {
         isBuyable: false,
         isNativeCurrency: false,
       });
-      mockSelectTokenList.mockReturnValue({
-        '0x123': { symbol: 'TEST' },
-      });
       (
         Engine.context.NetworkController
           .findNetworkClientIdByChainId as jest.Mock
@@ -604,6 +583,46 @@ describe('MoreTokenActionsMenu', () => {
         }),
       );
       expect(mockTrackEvent).toHaveBeenCalled();
+    });
+
+    it('fires onActionTapped with view_on_explorer when View on block explorer is pressed', async () => {
+      const mockOnActionTapped = jest.fn();
+      updateRouteParams({
+        hasPerpsMarket: false,
+        hasBalance: true,
+        isBuyable: false,
+        isNativeCurrency: false,
+        onActionTapped: mockOnActionTapped,
+      });
+
+      const { getByTestId } = renderWithProvider(<MoreTokenActionsMenu />, {
+        state: mockInitialState,
+      });
+
+      await userEvent.press(getByTestId('more-actions-view-explorer'));
+      expect(mockOnActionTapped).toHaveBeenCalledWith(
+        TokenDetailsAction.ViewOnExplorer,
+      );
+    });
+
+    it('fires onActionTapped with remove_token when Remove token is pressed', async () => {
+      const mockOnActionTapped = jest.fn();
+      updateRouteParams({
+        hasPerpsMarket: false,
+        hasBalance: true,
+        isBuyable: false,
+        isNativeCurrency: false,
+        onActionTapped: mockOnActionTapped,
+      });
+
+      const { getByTestId } = renderWithProvider(<MoreTokenActionsMenu />, {
+        state: mockInitialState,
+      });
+
+      await userEvent.press(getByTestId('more-actions-remove-token'));
+      expect(mockOnActionTapped).toHaveBeenCalledWith(
+        TokenDetailsAction.RemoveToken,
+      );
     });
 
     it('logs error when hide token fails', async () => {

@@ -1,6 +1,4 @@
-///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 /* eslint-disable import-x/prefer-default-export */
-import SnapVersionBadge from './SnapVersionTag';
-
-export { SnapVersionBadge };
+export { default as SnapVersionBadge } from './SnapVersionTag';
 ///: END:ONLY_INCLUDE_IF

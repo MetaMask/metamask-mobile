@@ -21,7 +21,8 @@ interface UsePerpsOrderValidationParams {
   orderForm: OrderFormState;
   positionSize: string;
   assetPrice: number;
-  availableBalance: number;
+  /** Max USD that can collateralize a new position (mirrors AccountState.spendableBalance). */
+  spendableBalance: number;
   marginRequired: string;
   existingPositionLeverage?: number;
   skipValidation?: boolean;
@@ -53,7 +54,7 @@ export function usePerpsOrderValidation(
     orderForm,
     positionSize,
     assetPrice,
-    availableBalance,
+    spendableBalance,
     marginRequired,
     existingPositionLeverage,
     skipValidation,
@@ -76,6 +77,8 @@ export function usePerpsOrderValidation(
 
   // Use ref to track debounce timer
   const validationTimerRef = useRef<NodeJS.Timeout | null>(null);
+  // Track whether we've completed the first validation so we can skip the debounce for it
+  const hasValidatedOnceRef = useRef(false);
 
   const performValidation = useCallback(async () => {
     // Set validation state to indicate we're validating
@@ -90,11 +93,11 @@ export function usePerpsOrderValidation(
 
     // Balance validation (immediate)
     const requiredMargin = Number.parseFloat(marginRequired);
-    if (requiredMargin > availableBalance) {
+    if (requiredMargin > spendableBalance) {
       immediateErrors.push(
         strings('perps.order.validation.insufficient_balance', {
           required: marginRequired,
-          available: availableBalance.toString(),
+          available: spendableBalance.toString(),
         }),
       );
     }
@@ -226,7 +229,7 @@ export function usePerpsOrderValidation(
     orderForm.type,
     positionSize,
     assetPrice,
-    availableBalance,
+    spendableBalance,
     marginRequired,
     existingPositionLeverage,
     originalUsdAmount,
@@ -256,7 +259,14 @@ export function usePerpsOrderValidation(
       clearTimeout(validationTimerRef.current);
     }
 
-    // Debounce validation to avoid excessive calls
+    // Run first validation immediately to enable the place-order button ASAP;
+    // subsequent changes are debounced to avoid excessive calls during input.
+    if (!hasValidatedOnceRef.current) {
+      hasValidatedOnceRef.current = true;
+      performValidation();
+      return;
+    }
+
     validationTimerRef.current = setTimeout(() => {
       performValidation();
       validationTimerRef.current = null;

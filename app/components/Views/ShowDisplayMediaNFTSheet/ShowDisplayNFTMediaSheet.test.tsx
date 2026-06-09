@@ -7,7 +7,8 @@ import ShowDisplayNFTMediaSheet from './ShowDisplayNFTMediaSheet';
 import Routes from '../../../constants/navigation/Routes';
 import { fireEvent } from '@testing-library/react-native';
 import Engine from '../../../core/Engine';
-import { useMetrics } from '../../hooks/useMetrics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 
 const setDisplayNftMediaSpy = jest.spyOn(
   Engine.context.PreferencesController,
@@ -28,23 +29,15 @@ const initialState = {
   },
 };
 
-jest.mock('../../hooks/useMetrics');
+jest.mock('../../hooks/useAnalytics/useAnalytics');
 
-const mockAddTraitsToUser = jest.fn();
+const mockIdentify = jest.fn();
 
-(useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
-  trackEvent: jest.fn(),
-  createEventBuilder: jest.fn(),
-  enable: jest.fn(),
-  addTraitsToUser: mockAddTraitsToUser,
-  createDataDeletionTask: jest.fn(),
-  checkDataDeleteStatus: jest.fn(),
-  getDeleteRegulationCreationDate: jest.fn(),
-  getDeleteRegulationId: jest.fn(),
-  isDataRecorded: jest.fn(),
-  isEnabled: jest.fn(),
-  getMetaMetricsId: jest.fn(),
-});
+jest.mocked(useAnalytics).mockReturnValue(
+  createMockUseAnalyticsHook({
+    identify: mockIdentify,
+  }),
+);
 
 const Stack = createStackNavigator();
 
@@ -53,8 +46,8 @@ describe('ShowNftSheet', () => {
     jest.clearAllMocks();
   });
 
-  it('render matches snapshot', () => {
-    const { toJSON } = renderWithProvider(
+  it('renders the sheet title', () => {
+    const { getByText } = renderWithProvider(
       <Stack.Navigator>
         <Stack.Screen name={Routes.SHEET.SHOW_NFT_DISPLAY_MEDIA}>
           {() => <ShowDisplayNFTMediaSheet />}
@@ -65,7 +58,7 @@ describe('ShowNftSheet', () => {
       },
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('Display NFT media')).toBeOnTheScreen();
   });
 
   it('setDisplayNftMedia to true on confirm', () => {
@@ -85,7 +78,7 @@ describe('ShowNftSheet', () => {
     fireEvent.press(confirmButton);
 
     expect(setDisplayNftMediaSpy).toHaveBeenCalledWith(true);
-    expect(mockAddTraitsToUser).toHaveBeenCalledWith({
+    expect(mockIdentify).toHaveBeenCalledWith({
       'Enable OpenSea API': 'ON',
     });
   });
@@ -107,6 +100,6 @@ describe('ShowNftSheet', () => {
     fireEvent.press(cancelButton);
 
     expect(setDisplayNftMediaSpy).not.toHaveBeenCalled();
-    expect(mockAddTraitsToUser).not.toHaveBeenCalled();
+    expect(mockIdentify).not.toHaveBeenCalled();
   });
 });

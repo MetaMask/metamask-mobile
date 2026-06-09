@@ -30,6 +30,7 @@ import { TransactionType } from '@metamask/transaction-controller';
 import {
   decodeBridgeTx,
   decodeSwapsTx,
+  isBridgeTxHistoryItemBridge,
 } from '../Bridge/utils/transaction-history';
 import { calculateTotalGas, renderGwei } from './utils-gas';
 import { getTokenTransferData } from '../../Views/confirmations/utils/transaction-pay';
@@ -52,8 +53,11 @@ const POSITIVE_TRANSFER_TRANSACTION_TYPES = [
   TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,
+  TransactionType.perpsWithdraw,
   TransactionType.predictDeposit,
   TransactionType.predictWithdraw,
+  TransactionType.moneyAccountDeposit,
+  TransactionType.moneyAccountWithdraw,
 ];
 
 function getTokenTransfer(args) {
@@ -230,8 +234,12 @@ function getMetamaskPayTargetFiat(tx, decimals) {
 // user-currency fiat from the USD targetFiat stored in metamaskPay.
 function getPostQuoteDisplay(tx, currentCurrency) {
   const { metamaskPay } = tx ?? {};
+
   if (
-    !hasTransactionType(tx, [TransactionType.predictWithdraw]) ||
+    !hasTransactionType(tx, [
+      TransactionType.predictWithdraw,
+      TransactionType.perpsWithdraw,
+    ]) ||
     !metamaskPay?.isPostQuote ||
     !metamaskPay?.targetFiat
   ) {
@@ -832,15 +840,7 @@ function decodeConfirmTx(args) {
 
   const renderFrom = renderFullAddress(from);
   const renderTo = renderFullAddress(to);
-  const chainId = txChainId;
 
-  const tokenList =
-    Engine.context.TokenListController.state.tokensChainsCache?.[chainId]
-      ?.data || [];
-  let symbol;
-  if (renderTo in tokenList) {
-    symbol = tokenList[renderTo].symbol;
-  }
   let transactionType;
   if (actionKey === strings('transactions.approve'))
     transactionType = TRANSACTION_TYPES.APPROVE;
@@ -869,7 +869,7 @@ function decodeConfirmTx(args) {
   const transactionElement = {
     renderTo,
     renderFrom,
-    actionKey: symbol ? `${symbol} ${actionKey}` : actionKey,
+    actionKey,
     value: renderTotalEth,
     fiatValue: renderTotalEthFiat,
     transactionType,
@@ -1023,22 +1023,25 @@ export default async function decodeTransaction(args) {
   );
   let transactionElement, transactionDetails;
 
-  if (args.bridgeTxHistoryData?.bridgeTxHistoryItem) {
+  const bridgeTxHistoryItem = args.bridgeTxHistoryData?.bridgeTxHistoryItem;
+  if (bridgeTxHistoryItem) {
     // Unified Swaps, reads tx data from BridgeStatusController
-    if (tx.type === TransactionType.swap) {
-      const [transactionElement, transactionDetails] = decodeSwapsTx({
-        ...args,
-        actionKey,
-      });
-      return [transactionElement, transactionDetails];
-    }
-    if (tx.type === TransactionType.bridge) {
+    if (
+      tx.type === TransactionType.bridge ||
+      isBridgeTxHistoryItemBridge(bridgeTxHistoryItem)
+    ) {
       const [transactionElement, transactionDetails] = decodeBridgeTx({
         ...args,
         actionKey,
       });
       return [transactionElement, transactionDetails];
     }
+
+    const [transactionElement, transactionDetails] = decodeSwapsTx({
+      ...args,
+      actionKey,
+    });
+    return [transactionElement, transactionDetails];
   }
 
   if (isTransfer) {
@@ -1050,8 +1053,11 @@ export default async function decodeTransaction(args) {
     switch (actionKey) {
       case strings('transactions.tx_review_musd_conversion'):
       case strings('transactions.tx_review_perps_deposit'):
+      case strings('transactions.tx_review_perps_withdraw'):
       case strings('transactions.tx_review_predict_deposit'):
       case strings('transactions.tx_review_predict_withdraw'):
+      case strings('transactions.money_account_deposit'):
+      case strings('transactions.money_account_withdraw'):
         [transactionElement, transactionDetails] = await decodeTransferTx({
           ...args,
           actionKey,

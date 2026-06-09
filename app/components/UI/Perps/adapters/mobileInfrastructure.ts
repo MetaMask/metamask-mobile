@@ -6,6 +6,7 @@
  */
 
 import Logger from '../../../../util/Logger';
+import StorageWrapper from '../../../../store/storage-wrapper';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
@@ -35,6 +36,8 @@ import {
 } from '@metamask/perps-controller';
 import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
 import { validatedVersionGatedFeatureFlag } from '../../../../util/remoteFeatureFlag';
+import { store } from '../../../../store';
+import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
 import {
   formatVolume,
   formatPerpsFiat,
@@ -287,13 +290,29 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
     // === Cache Invalidation ===
     cacheInvalidator: createCacheInvalidatorAdapter(),
 
+    // === Disk Cache (cold-start persistence via MMKV) ===
+    diskCache: {
+      getItem: (key: string) => StorageWrapper.getItem(key),
+      getItemSync: (key: string) => StorageWrapper.getItemSync(key),
+      setItem: (key: string, value: string) =>
+        StorageWrapper.setItem(key, value),
+      removeItem: (key: string) =>
+        StorageWrapper.removeItem(key).then(() => undefined),
+    },
+
     // === Rewards (DI — no RewardsController in Core yet) ===
     rewards: {
       getPerpsDiscountForAccount(
         caipAccountId: `${string}:${string}:${string}`,
+        baseFeeBips: number,
       ) {
+        const isVipEnabled = selectVipProgramEnabled(store.getState());
+        if (!isVipEnabled) {
+          return Promise.resolve(0);
+        }
         return Engine.context.RewardsController.getPerpsDiscountForAccount(
           caipAccountId,
+          baseFeeBips,
         );
       },
     },

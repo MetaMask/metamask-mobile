@@ -63,6 +63,11 @@ interface TransactionsFooterProps {
    */
   isNonEvmChain?: boolean;
   /**
+   * When true, do not use the globally selected network's provider type to show
+   * a generic "Etherscan" fallback (e.g. token details must match the asset chain only).
+   */
+  omitGlobalProviderExplorerFallback?: boolean;
+  /**
    * Handler for view block explorer button press
    */
   onViewBlockExplorer: () => void;
@@ -77,6 +82,7 @@ const TransactionsFooter = ({
   providerType,
   rpcBlockExplorer,
   isNonEvmChain = false,
+  omitGlobalProviderExplorerFallback = false,
   onViewBlockExplorer,
   showDisclaimer = true,
 }: TransactionsFooterProps) => {
@@ -105,7 +111,12 @@ const TransactionsFooter = ({
       }
     }
 
-    if (isMainnetByChainId(chainId) || (providerType && providerType !== RPC)) {
+    const allowProviderFallback =
+      !omitGlobalProviderExplorerFallback &&
+      providerType &&
+      providerType !== RPC;
+
+    if (isMainnetByChainId(chainId) || allowProviderFallback) {
       return strings('transactions.view_full_history_on_etherscan');
     }
 

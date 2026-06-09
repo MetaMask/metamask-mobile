@@ -3,14 +3,6 @@ import { render, fireEvent } from '@testing-library/react-native';
 import PerpsEmptyBalance from './PerpsEmptyBalance';
 import { PerpsMarketBalanceActionsSelectorsIDs } from '../../Perps.testIds';
 
-jest.mock('../../../../../component-library/hooks', () => ({
-  useStyles: jest.fn(() => ({
-    styles: {
-      balanceText: { fontWeight: '500' },
-    },
-  })),
-}));
-
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const mockStrings: Record<string, string> = {

@@ -2,8 +2,8 @@ import {
   CurrencyRateController,
   CurrencyRateMessenger,
 } from '@metamask/assets-controllers';
-import type { ControllerInitRequest } from '../../types';
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import type { MessengerClientInitRequest } from '../../types';
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import { currencyRateControllerInit } from './currency-rate-controller-init';
 import { defaultCurrencyRateState } from './constants';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
@@ -14,7 +14,7 @@ jest.mock('@metamask/assets-controllers');
 describe('currency rate controller init', () => {
   const currencyRateControllerClassMock = jest.mocked(CurrencyRateController);
   let initRequestMock: jest.Mocked<
-    ControllerInitRequest<CurrencyRateMessenger>
+    MessengerClientInitRequest<CurrencyRateMessenger>
   >;
 
   beforeEach(() => {
@@ -22,8 +22,10 @@ describe('currency rate controller init', () => {
     const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
       namespace: MOCK_ANY_NAMESPACE,
     });
-    // Create controller init request mock
-    initRequestMock = buildControllerInitRequestMock(baseControllerMessenger);
+    // Create messenger client init request mock
+    initRequestMock = buildMessengerClientInitRequestMock(
+      baseControllerMessenger,
+    );
   });
 
   it('returns controller instance', () => {

@@ -2,6 +2,7 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { selectNetworkName } from '../../../../selectors/networkInfos';
+import { strings } from '../../../../../locales/i18n';
 import OnboardingGeneralSettings from '.';
 
 jest.mock('@react-navigation/native', () => {
@@ -13,7 +14,7 @@ jest.mock('@react-navigation/native', () => {
       setOptions: jest.fn(),
       goBack: jest.fn(),
       reset: jest.fn(),
-      dangerouslyGetParent: () => ({
+      getParent: () => ({
         pop: jest.fn(),
       }),
     }),
@@ -32,7 +33,9 @@ describe('OnboardingGeneralSettings', () => {
     (useSelector as jest.Mock).mockImplementation((selector) => {
       if (selector === selectNetworkName) return mockNetworkName;
     });
-    const { toJSON } = renderWithProvider(<OnboardingGeneralSettings />);
-    expect(toJSON()).toMatchSnapshot();
+    const { getByText } = renderWithProvider(<OnboardingGeneralSettings />);
+    expect(
+      getByText(strings('default_settings.basic_functionality')),
+    ).toBeOnTheScreen();
   });
 });

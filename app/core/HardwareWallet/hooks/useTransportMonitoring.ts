@@ -58,8 +58,12 @@ export const useTransportMonitoring = ({
 
   const checkTransportEnabledOrShowError = useCallback(
     async (adapter: HardwareWalletAdapter): Promise<boolean> => {
-      const isReady = await adapter.isTransportAvailable();
       const error = createTransportDisabledError();
+      if (!error) {
+        return false;
+      }
+
+      const isReady = await adapter.isTransportAvailable();
       if (!isReady && error) {
         updateConnectionState({
           status: ConnectionStatus.ErrorState,

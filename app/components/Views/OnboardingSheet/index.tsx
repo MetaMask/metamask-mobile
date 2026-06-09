@@ -1,16 +1,16 @@
 import React, { useRef } from 'react';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../component-library/components/BottomSheets/BottomSheet';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
 import { AppThemeKey } from '../../../util/theme/models';
+import { useElevatedSurface } from '../../../util/theme/themeUtils';
+
 import GoogleIcon from 'images/google.svg';
 import AppleIcon from 'images/apple.svg';
 import AppleWhiteIcon from 'images/apple-white.svg';
 import { OnboardingSheetSelectorIDs } from './OnboardingSheet.testIds';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import AppConstants from '../../../core/AppConstants';
+import { colors as commonColors } from '../../../styles/common';
 import {
   Box,
   BoxAlignItems,
@@ -20,9 +20,14 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
+  Icon,
+  IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
+  BottomSheet,
+  BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
@@ -31,28 +36,29 @@ export interface OnboardingSheetParams {
   onPressImport?: () => void;
   onPressContinueWithGoogle?: (createWallet: boolean) => void;
   onPressContinueWithApple?: (createWallet: boolean) => void;
+  onPressContinueWithTelegram?: (createWallet: boolean) => void;
   createWallet?: boolean;
 }
 
-export interface OnboardingSheetProps {
-  route: {
-    params: OnboardingSheetParams;
-  };
-}
+type OnboardingSheetRouteProp = RouteProp<
+  { OnboardingSheet: OnboardingSheetParams },
+  'OnboardingSheet'
+>;
 
-const OnboardingSheet = (props: OnboardingSheetProps) => {
+const OnboardingSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
+  const { params } = useRoute<OnboardingSheetRouteProp>();
   const {
     onPressCreate,
     onPressImport,
     onPressContinueWithGoogle,
     onPressContinueWithApple,
+    onPressContinueWithTelegram,
     createWallet = false,
-  } = props.route.params ?? {};
+  } = params ?? {};
   const { colors } = useTheme();
   const tw = useTailwind();
-
   const onPressCreateAction = () => {
     if (onPressCreate) {
       onPressCreate();
@@ -77,6 +83,12 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
     }
   };
 
+  const onPressContinueWithTelegramAction = () => {
+    if (onPressContinueWithTelegram) {
+      onPressContinueWithTelegram(createWallet);
+    }
+  };
+
   const goTo = (url: string, title: string) => {
     navigation.navigate('Webview', {
       screen: 'SimpleWebview',
@@ -98,10 +110,15 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
   };
 
   const { themeAppearance } = useTheme();
+  const surfaceClass = useElevatedSurface();
   const isDark = themeAppearance === AppThemeKey.dark;
 
   return (
-    <BottomSheet ref={sheetRef}>
+    <BottomSheet
+      goBack={navigation.goBack}
+      ref={sheetRef}
+      twClassName={surfaceClass}
+    >
       <Box
         flexDirection={BoxFlexDirection.Column}
         alignItems={BoxAlignItems.Center}
@@ -169,6 +186,30 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
               ? strings('onboarding.continue_with_apple')
               : strings('onboarding.sign_in_with_apple')}
           </Button>
+          {onPressContinueWithTelegram ? (
+            <Button
+              variant={ButtonVariant.Secondary}
+              onPress={onPressContinueWithTelegramAction}
+              testID={OnboardingSheetSelectorIDs.TELEGRAM_LOGIN_BUTTON}
+              startAccessory={
+                <Icon
+                  name={IconName.Telegram}
+                  size={IconSize.Lg}
+                  style={tw.style({ color: commonColors.telegramBlue })}
+                />
+              }
+              isFullWidth
+              size={ButtonSize.Lg}
+              style={tw.style('border border-muted', {
+                backgroundColor: colors.text.default,
+              })}
+              textProps={{ style: { color: colors.background.default } }}
+            >
+              {createWallet
+                ? strings('onboarding.continue_with_telegram')
+                : strings('onboarding.sign_in_with_telegram')}
+            </Button>
+          ) : null}
         </Box>
         <Box
           flexDirection={BoxFlexDirection.Row}

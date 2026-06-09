@@ -39,6 +39,7 @@ import { SnapUICopyable } from '../../Snaps/SnapUICopyable/SnapUICopyable';
 import { SnapUIAccountSelector } from '../../Snaps/SnapUIAccountSelector/SnapUIAccountSelector';
 import { SnapUIRadioGroup } from '../../Snaps/SnapUIRadioGroup/SnapUIRadioGroup';
 import { SnapUIDateTimePicker } from '../../Snaps/SnapUIDateTimePicker/SnapUIDateTimePicker';
+import { SnapUICollapsibleSection } from '../../Snaps/SnapUICollapsibleSection/SnapUICollapsibleSection';
 
 export const safeComponentList = {
   BottomSheetFooter,
@@ -80,6 +81,7 @@ export const safeComponentList = {
   Skeleton,
   SnapUICopyable,
   TouchableHighlight,
+  SnapUICollapsibleSection,
 };
 
 export type SafeComponentListValues = typeof safeComponentList;

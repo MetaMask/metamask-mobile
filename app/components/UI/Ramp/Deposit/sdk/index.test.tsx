@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { Text } from 'react-native';
-import { screen, act } from '@testing-library/react-native';
+import { screen, act, fireEvent } from '@testing-library/react-native';
 import {
   DepositSDK,
   DepositSDKContext,
@@ -136,7 +136,6 @@ describe('Deposit SDK Context', () => {
           state: mockedState,
         },
       );
-      expect(screen.toJSON()).toMatchSnapshot();
       const textElement = screen.getByText('API Key: test-provider-api-key');
       expect(textElement).toBeOnTheScreen();
     });
@@ -183,7 +182,6 @@ describe('Deposit SDK Context', () => {
           state: mockedState,
         },
       );
-      expect(screen.toJSON()).toMatchSnapshot();
 
       const mockSdkInstance = (NativeRampsSdk as jest.Mock).mock.results[0]
         .value;
@@ -196,7 +194,7 @@ describe('Deposit SDK Context', () => {
       );
     });
 
-    it('allows calling SDK methods through the context', async () => {
+    it('allows calling SDK methods through the context', () => {
       const TestComponent = () => {
         const { sdk } = useDepositSDK();
         return (
@@ -221,7 +219,7 @@ describe('Deposit SDK Context', () => {
       );
 
       const button = getByTestId('sdk-test');
-      button.props.onPress();
+      fireEvent.press(button);
 
       const mockSdkInstance = (NativeRampsSdk as jest.Mock).mock.results[0]
         .value;
@@ -236,7 +234,7 @@ describe('Deposit SDK Context', () => {
   });
 
   describe('NativeRampsSdk integration', () => {
-    it('allows calling SDK methods through the context', async () => {
+    it('allows calling SDK methods through the context', () => {
       const TestComponent = () => {
         const { sdk } = useDepositSDK();
         return (
@@ -261,7 +259,7 @@ describe('Deposit SDK Context', () => {
       );
 
       const button = getByTestId('sdk-test');
-      button.props.onPress();
+      fireEvent.press(button);
 
       const mockSdkInstance = (NativeRampsSdk as jest.Mock).mock.results[0]
         .value;

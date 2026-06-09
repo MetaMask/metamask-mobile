@@ -1,9 +1,9 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-   <item android:drawable="@color/theme" />
-    <item>
-        <bitmap
-            android:src="@drawable/fox"
-            android:gravity="center"
-            android:tileMode="disabled" />
+    <item android:drawable="@color/theme" />
+    <item
+        android:width="130dp"
+        android:height="130dp"
+        android:gravity="center">
+        <bitmap android:src="@mipmap/splash" />
     </item>
 </layer-list>

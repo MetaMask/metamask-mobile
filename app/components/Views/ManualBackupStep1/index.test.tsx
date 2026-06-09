@@ -36,25 +36,29 @@ jest.mock('react-native', () => {
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => {
-    const tw = (...args: unknown[]) => ({
-      fontSize: 14,
-      lineHeight: 20,
-      ...(typeof args[0] === 'string' ? { testStyle: args[0] } : {}),
-    });
-    tw.style = (...args: unknown[]) => args;
+    const tw = (..._args: unknown[]) => ({});
+    tw.style = jest.fn(() => ({}));
     return tw;
   },
   useTheme: () => 'light',
   Theme: { Light: 'light', Dark: 'dark' },
 }));
 
+const { mockTheme } = jest.requireActual('../../../util/theme');
+
 const mockUseTheme = jest.fn().mockReturnValue({
   colors: {
-    text: { default: '#000000' },
-    background: { default: '#FFFFFF', muted: '#F2F4F6' },
-    icon: { default: '#24272A' },
-    border: { default: '#BBC0C5', muted: '#D6D9DC' },
-    error: { default: '#D73A49' },
+    text: { default: mockTheme.colors.text.default },
+    background: {
+      default: mockTheme.colors.background.default,
+      muted: mockTheme.colors.background.muted,
+    },
+    icon: { default: mockTheme.colors.icon.default },
+    border: {
+      default: mockTheme.colors.border.default,
+      muted: mockTheme.colors.border.muted,
+    },
+    error: { default: mockTheme.colors.error.default },
   },
   themeAppearance: 'dark',
 });
@@ -211,9 +215,11 @@ describe('ManualBackupStep1', () => {
     jest.clearAllMocks();
   });
 
-  it('matches snapshot', () => {
+  it('renders correctly', () => {
     const { wrapper } = renderComponent();
-    expect(wrapper).toMatchSnapshot();
+    expect(
+      wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.STEP_1_CONTAINER),
+    ).toBeOnTheScreen();
   });
 
   describe('seed phrase reveal', () => {
@@ -277,40 +283,53 @@ describe('ManualBackupStep1', () => {
   });
 
   describe('header visibility', () => {
-    it('hides header during onboarding flow', () => {
-      const { setOptions } = renderComponent({
+    it('hides header during onboarding flow', async () => {
+      const { wrapper } = renderComponent({
         backupFlow: false,
         settingsBackup: false,
       });
 
-      expect(setOptions).toHaveBeenCalled();
-      expect(setOptions.mock.calls[0][0].headerShown).toBe(false);
+      await waitFor(() => {
+        expect(
+          wrapper.queryByTestId(ManualBackUpStepsSelectorsIDs.BACK_BUTTON),
+        ).toBeNull();
+      });
     });
 
-    it('shows header with back button for backup flow', () => {
-      const { setOptions } = renderComponent({
+    it('shows header with back button for backup flow', async () => {
+      const { wrapper, goBack } = renderComponent({
         backupFlow: true,
         settingsBackup: false,
       });
 
-      expect(setOptions).toHaveBeenCalled();
-      const opts = setOptions.mock.calls[0][0];
-      expect(opts.headerShown).toBeUndefined();
-      expect(opts.headerLeft).toBeDefined();
-      expect(opts.headerTitle).toBeNull();
+      await waitFor(() => {
+        expect(
+          wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.BACK_BUTTON),
+        ).toBeOnTheScreen();
+      });
+
+      fireEvent.press(
+        wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.BACK_BUTTON),
+      );
+      expect(goBack).toHaveBeenCalled();
     });
 
-    it('shows header with back button for settings backup flow', () => {
-      const { setOptions } = renderComponent({
+    it('shows header with back button for settings backup flow', async () => {
+      const { wrapper, goBack } = renderComponent({
         backupFlow: false,
         settingsBackup: true,
       });
 
-      expect(setOptions).toHaveBeenCalled();
-      const opts = setOptions.mock.calls[0][0];
-      expect(opts.headerShown).toBeUndefined();
-      expect(opts.headerLeft).toBeDefined();
-      expect(opts.headerTitle).toBeNull();
+      await waitFor(() => {
+        expect(
+          wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.BACK_BUTTON),
+        ).toBeOnTheScreen();
+      });
+
+      fireEvent.press(
+        wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.BACK_BUTTON),
+      );
+      expect(goBack).toHaveBeenCalled();
     });
   });
 
@@ -318,37 +337,72 @@ describe('ManualBackupStep1', () => {
     afterEach(() => {
       mockUseTheme.mockReturnValue({
         colors: {
-          text: { default: '#000000' },
-          background: { default: '#FFFFFF', muted: '#F2F4F6' },
-          icon: { default: '#24272A' },
-          border: { default: '#BBC0C5', muted: '#D6D9DC' },
-          error: { default: '#D73A49' },
+          text: { default: mockTheme.colors.text.default },
+          background: {
+            default: mockTheme.colors.background.default,
+            muted: mockTheme.colors.background.muted,
+          },
+          icon: { default: mockTheme.colors.icon.default },
+          border: {
+            default: mockTheme.colors.border.default,
+            muted: mockTheme.colors.border.muted,
+          },
+          error: { default: mockTheme.colors.error.default },
         },
         themeAppearance: 'dark',
       });
       Platform.OS = 'ios';
     });
 
-    it('renders with dark theme', () => {
+    it('renders blur overlay before seed phrase is revealed (dark theme, iOS)', () => {
+      mockUseTheme.mockReturnValue({
+        colors: {
+          text: { default: mockTheme.colors.text.default },
+          background: {
+            default: mockTheme.colors.background.default,
+            muted: mockTheme.colors.background.muted,
+          },
+          icon: { default: mockTheme.colors.icon.default },
+          border: {
+            default: mockTheme.colors.border.default,
+            muted: mockTheme.colors.border.muted,
+          },
+          error: { default: mockTheme.colors.error.default },
+        },
+        themeAppearance: 'dark',
+      });
+
       const { wrapper } = renderComponent();
-      expect(wrapper).toMatchSnapshot();
+
+      expect(
+        wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.BLUR_BUTTON),
+      ).toBeOnTheScreen();
     });
 
-    it('renders with light theme on Android', () => {
+    it('renders blur overlay before seed phrase is revealed (light theme, Android)', () => {
       Platform.OS = 'android';
       mockUseTheme.mockReturnValue({
         colors: {
-          text: { default: '#000000' },
-          background: { default: '#FFFFFF', muted: '#F2F4F6' },
-          icon: { default: '#24272A' },
-          border: { default: '#BBC0C5', muted: '#D6D9DC' },
-          error: { default: '#D73A49' },
+          text: { default: mockTheme.colors.text.default },
+          background: {
+            default: mockTheme.colors.background.default,
+            muted: mockTheme.colors.background.muted,
+          },
+          icon: { default: mockTheme.colors.icon.default },
+          border: {
+            default: mockTheme.colors.border.default,
+            muted: mockTheme.colors.border.muted,
+          },
+          error: { default: mockTheme.colors.error.default },
         },
         themeAppearance: 'light',
       });
 
       const { wrapper } = renderComponent();
-      expect(wrapper).toMatchSnapshot();
+
+      expect(
+        wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.BLUR_BUTTON),
+      ).toBeOnTheScreen();
     });
   });
 

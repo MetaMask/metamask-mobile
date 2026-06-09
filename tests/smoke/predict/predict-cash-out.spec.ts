@@ -6,10 +6,7 @@ import PredictDetailsPage from '../../page-objects/Predict/PredictDetailsPage';
 import PredictMarketList from '../../page-objects/Predict/PredictMarketList';
 import Assertions from '../../framework/Assertions';
 import WalletView from '../../page-objects/wallet/WalletView';
-import {
-  remoteFeatureFlagHomepageSectionsV1Enabled,
-  remoteFeatureFlagPredictEnabled,
-} from '../../api-mocking/mock-responses/feature-flags-mocks';
+import { remoteFeatureFlagPredictEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import {
   POLYMARKET_COMPLETE_MOCKS,
   POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS,
@@ -24,6 +21,7 @@ import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
 import PredictActivityDetails from '../../page-objects/Transactions/predictionsActivityDetails';
 import { predictCashOutFlowAnalyticsExpectations } from '../../helpers/analytics/expectations/predict-cash-out.analytics';
+import { SPURS_PELICANS_POSITION_ID } from '../../api-mocking/mock-responses/polymarket/polymarket-constants';
 
 /*
 Test Scenario: Cash out on open position - Spurs vs. Pelicans
@@ -41,7 +39,6 @@ const positionDetails = {
 
 const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
-    ...remoteFeatureFlagHomepageSectionsV1Enabled(),
     ...remoteFeatureFlagPredictEnabled(true),
     carouselBanners: false,
   });
@@ -68,7 +65,9 @@ describe(SmokePredictions('Predictions'), () => {
         await Assertions.expectElementToBeVisible(PredictDetailsPage.container);
         await POLYMARKET_POST_CASH_OUT_MOCKS(mockServer);
 
-        await PredictDetailsPage.tapCashOutButton();
+        await PredictDetailsPage.tapGameCashOutButton(
+          SPURS_PELICANS_POSITION_ID,
+        );
         await Assertions.expectElementToBeVisible(PredictCashOutPage.container);
 
         await Assertions.expectElementToBeVisible(

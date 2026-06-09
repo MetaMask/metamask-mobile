@@ -11,18 +11,52 @@ export interface PredictLiveSportsFlag {
 
 export interface PredictMarketHighlight {
   category: string;
-  markets: string[];
+  markets?: string[];
+  series?: string[];
 }
 
 export interface PredictMarketHighlightsFlag extends VersionGatedFeatureFlag {
   highlights: PredictMarketHighlight[];
 }
 
+export interface PredictExtendedSportsMarketsFlag
+  extends VersionGatedFeatureFlag {
+  leagues: string[];
+}
+
+export interface PredictWorldCupStageConfig {
+  key: string;
+  labelKey?: string;
+  label?: string;
+  eventIds: string[];
+}
+
+export interface PredictWorldCupConfig extends VersionGatedFeatureFlag {
+  showMainFeedBanner: boolean;
+  showMainFeedTab: boolean;
+  showWorldCupScreen: boolean;
+  tagSlug: string;
+  gamesTagId: string;
+  bannerImage?: {
+    url: string;
+    width: number;
+    height: number;
+  };
+  stages: PredictWorldCupStageConfig[];
+}
+
 export interface PredictFeatureFlags {
   feeCollection: PredictFeeCollection;
   liveSportsLeagues: string[];
+  extendedSportsMarketsLeagues: string[];
   marketHighlightsFlag: PredictMarketHighlightsFlag;
   fakOrdersEnabled: boolean;
+  predictWithAnyTokenEnabled: boolean;
+  predictUpDownEnabled: boolean;
+  predictHomepageDiscoveryNbaChampionEnabled: boolean;
+  predictWorldCup: PredictWorldCupConfig;
+  predictPortfolioEnabled: boolean;
+  predictHomeRedesignEnabled: boolean;
 }
 
 export interface PredictHotTabFlag extends VersionGatedFeatureFlag {

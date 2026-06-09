@@ -4,5 +4,5 @@
  * Exports for card provider adapter interfaces and implementations.
  */
 
-export { type ICardProviderAdapter } from './ICardProviderAdapter';
-export { GalileoCardAdapter } from './GalileoCardAdapter';
+export type { ICardProviderAdapter } from './ICardProviderAdapter';
+export { ControllerCardAdapter } from './ControllerCardAdapter';

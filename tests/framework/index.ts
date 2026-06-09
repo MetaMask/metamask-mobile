@@ -12,7 +12,15 @@ export {
   deriveEventNamesForFetch,
   shouldRunAnalyticsExpectations,
 } from '../helpers/analytics/runAnalyticsExpectations.ts';
-export { boxedStep, getDriver } from './PlaywrightUtilities.ts';
+export {
+  boxedStep,
+  getDriver,
+  withSnapshotSettings,
+  startOverheadTracking,
+  addOverhead,
+  stopOverheadTracking,
+  isOverheadTrackingActive,
+} from './PlaywrightUtilities.ts';
 
 // Mock server utilities
 export { safeGetBodyText } from '../api-mocking/MockServerE2E.ts';
@@ -22,7 +30,7 @@ export {
   type WaitForAdditionalProxiedRequestsOptions,
 } from '../api-mocking/helpers/mockHelpers.ts';
 
-// Dapp server exports for standalone usage (e.g., Appwright tests)
+// Dapp server exports for standalone usage (e.g., Playwright tests)
 export { default as DappServer } from './DappServer.ts';
 export { DappVariants, TestDapps } from './Constants.ts';
 
@@ -32,6 +40,7 @@ export { DappVariants, TestDapps } from './Constants.ts';
 export { PlaywrightElement, wrapElement, $, $$ } from './PlaywrightAdapter.ts';
 export { default as PlaywrightMatchers } from './PlaywrightMatchers.ts';
 export { default as PlaywrightGestures } from './PlaywrightGestures.ts';
+export { default as PlaywrightAssertions } from './PlaywrightAssertions.ts';
 
 // Export unified framework (Detox + WebdriverIO compatibility)
 export {
@@ -49,6 +58,19 @@ export { FrameworkDetector, TestFramework } from './FrameworkDetector.ts';
 export { PlatformDetector } from './PlatformLocator.ts';
 export { default as UnifiedGestures } from './UnifiedGestures.ts';
 export { encapsulatedAction } from './encapsulatedAction.ts';
+export {
+  DeviceCommandHandler,
+  AndroidDeviceCommandHandler,
+  IOSDeviceCommandHandler,
+  type ClearAppDataOptions,
+  type DeviceCommandHandlerOptions,
+  type DeviceCommandLogger,
+  type InstallAppOptions,
+  type IsAppInstalledOptions,
+  type PlatformDeviceCommandHandler,
+  type ReinstallAppOptions,
+  type UninstallAppOptions,
+} from './services/device-commands';
 export {
   DetoxGestureStrategy,
   AppiumGestureStrategy,

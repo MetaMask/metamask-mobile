@@ -5,6 +5,9 @@ import { reloadAsync } from 'expo-updates';
 import Logger from '../../../util/Logger';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import renderWithProvider from '../../../util/test/renderWithProvider';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 
 // Mock theme utility
 jest.mock('../../../util/theme', () => ({
@@ -23,32 +26,6 @@ const mockTw = Object.assign(
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => mockTw,
 }));
-
-// Mock HeaderCompactStandard
-jest.mock(
-  '../../../component-library/components-temp/HeaderCompactStandard',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const {
-      View: ReactNativeView,
-      Pressable: ReactNativePressable,
-      Text: ReactNativeText,
-    } = jest.requireActual('react-native');
-
-    return (props: { children: React.ReactNode; onClose?: () => void }) =>
-      ReactActual.createElement(
-        ReactNativeView,
-        { testID: 'header' },
-        props.children,
-        props.onClose &&
-          ReactActual.createElement(
-            ReactNativePressable,
-            { testID: 'close-button', onPress: props.onClose },
-            ReactActual.createElement(ReactNativeText, {}, 'Close'),
-          ),
-      );
-  },
-);
 
 // Mock for BottomSheet onCloseBottomSheet
 const mockOnCloseBottomSheet = jest.fn((callback?: () => void) => {
@@ -107,31 +84,9 @@ const mockLoggerError = Logger.error as jest.MockedFunction<
   typeof Logger.error
 >;
 
-interface MockEventBuilder {
-  addProperties: jest.Mock;
-  build: jest.Mock;
-}
-
-const mockCreateEventBuilder = jest.fn((event: string): MockEventBuilder => {
-  const builder: MockEventBuilder = {
-    addProperties: jest.fn(),
-    build: jest.fn(),
-  };
-
-  builder.addProperties.mockReturnValue(builder);
-  builder.build.mockReturnValue({ event });
-
-  return builder;
-});
-
 const mockTrackEvent = jest.fn();
 
-jest.mock('../../hooks/useMetrics', () => ({
-  useMetrics: () => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
-  }),
-}));
+jest.mock('../../hooks/useAnalytics/useAnalytics');
 
 // Import component AFTER all mocks are defined
 import OTAUpdatesModal from './OTAUpdatesModal';
@@ -139,6 +94,12 @@ import OTAUpdatesModal from './OTAUpdatesModal';
 describe('OTAUpdatesModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+      }),
+    );
     (Platform as unknown as { OS: string }).OS = 'ios';
     mockOnCloseBottomSheet.mockImplementation((callback?: () => void) => {
       if (callback) callback();
@@ -150,7 +111,7 @@ describe('OTAUpdatesModal', () => {
 
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        event: MetaMetricsEvents.OTA_UPDATES_MODAL_VIEWED,
+        name: MetaMetricsEvents.OTA_UPDATES_MODAL_VIEWED.category,
       }),
     );
   });
@@ -163,7 +124,8 @@ describe('OTAUpdatesModal', () => {
     await waitFor(() => {
       expect(mockTrackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
-          event: MetaMetricsEvents.OTA_UPDATES_MODAL_PRIMARY_ACTION_CLICKED,
+          name: MetaMetricsEvents.OTA_UPDATES_MODAL_PRIMARY_ACTION_CLICKED
+            .category,
         }),
       );
     });

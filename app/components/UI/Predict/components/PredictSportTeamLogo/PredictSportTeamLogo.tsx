@@ -9,7 +9,6 @@ import {
 
 interface PredictSportTeamLogoProps {
   uri: string; // Remote image URL (team.logo field)
-  color: string; // Team primary color (hex) — used as placeholder background
   size?: number; // Size in pixels (default: 48, same as helmet default)
   flipped?: boolean; // Accepted for API compatibility but IGNORED (logos don't need mirroring)
   testID?: string;
@@ -21,7 +20,6 @@ interface PredictSportTeamLogoProps {
  */
 const PredictSportTeamLogo: React.FC<PredictSportTeamLogoProps> = ({
   uri,
-  color,
   size = 48,
   testID,
 }) => {
@@ -36,7 +34,6 @@ const PredictSportTeamLogo: React.FC<PredictSportTeamLogoProps> = ({
       style={tw.style('overflow-hidden rounded-lg', {
         width: size,
         height: size,
-        backgroundColor: color,
       })}
     >
       {!hasError && (

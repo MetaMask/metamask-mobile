@@ -4,6 +4,10 @@ import RewardsCard from './RewardsCard';
 import { RewardsCardProps } from './RewardsCard.types';
 import { fireEvent } from '@testing-library/react-native';
 import { strings } from '../../../../../../../locales/i18n';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../../../util/test/analyticsMock';
+
+jest.mock('../../../../../hooks/useAnalytics/useAnalytics');
 
 const mockNavigate = jest.fn();
 
@@ -20,24 +24,21 @@ jest.mock('@react-navigation/native', () => {
 describe('RewardsCard', () => {
   beforeEach(() => {
     jest.resetAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(createMockUseAnalyticsHook());
   });
 
-  it('render matches snapshot', () => {
+  it('renders reward rate, ETH rewards, and fiat rewards', () => {
     const props: RewardsCardProps = {
       rewardRate: '2.6%',
       rewardsEth: '0.13 ETH',
       rewardsFiat: '$334.93',
     };
 
-    const { getByText, toJSON } = renderWithProvider(
-      <RewardsCard {...props} />,
-    );
+    const { getByText } = renderWithProvider(<RewardsCard {...props} />);
 
-    expect(getByText(props.rewardRate)).toBeDefined();
-    expect(getByText(props.rewardsEth)).toBeDefined();
-    expect(getByText(props.rewardsFiat)).toBeDefined();
-
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText(props.rewardRate)).toBeOnTheScreen();
+    expect(getByText(props.rewardsEth)).toBeOnTheScreen();
+    expect(getByText(props.rewardsFiat)).toBeOnTheScreen();
   });
 
   it('reward rate tooltip displayed when pressed', () => {
@@ -47,9 +48,7 @@ describe('RewardsCard', () => {
       rewardsFiat: '$334.93',
     };
 
-    const { toJSON, getByLabelText } = renderWithProvider(
-      <RewardsCard {...props} />,
-    );
+    const { getByLabelText } = renderWithProvider(<RewardsCard {...props} />);
 
     fireEvent.press(
       getByLabelText(`${strings('tooltip_modal.reward_rate.title')} tooltip`),
@@ -65,8 +64,6 @@ describe('RewardsCard', () => {
       },
       screen: 'tooltipModal',
     });
-
-    expect(toJSON()).toMatchSnapshot();
   });
 
   it('reward frequency tooltip displayed when pressed', () => {
@@ -76,9 +73,7 @@ describe('RewardsCard', () => {
       rewardsFiat: '$334.93',
     };
 
-    const { toJSON, getByLabelText } = renderWithProvider(
-      <RewardsCard {...props} />,
-    );
+    const { getByLabelText } = renderWithProvider(<RewardsCard {...props} />);
 
     fireEvent.press(
       getByLabelText(
@@ -96,7 +91,5 @@ describe('RewardsCard', () => {
       },
       screen: 'tooltipModal',
     });
-
-    expect(toJSON()).toMatchSnapshot();
   });
 });

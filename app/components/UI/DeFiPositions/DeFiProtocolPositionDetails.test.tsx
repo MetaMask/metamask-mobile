@@ -5,15 +5,6 @@ import DeFiProtocolPositionDetails, {
   DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID,
 } from './DeFiProtocolPositionDetails';
 
-const mockSetOptions = jest.fn();
-
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({
-    setOptions: mockSetOptions,
-  }),
-}));
-
 jest.mock('../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../util/navigation/navUtils'),
   useParams: jest.fn(() => ({
@@ -64,10 +55,6 @@ const mockInitialState = {
 };
 
 describe('DeFiProtocolPositionDetails', () => {
-  beforeEach(() => {
-    mockSetOptions.mockClear();
-  });
-
   it('renders the protocol name header and aggregated balance', async () => {
     const { findByText, findByTestId } = renderWithProvider(
       <DeFiProtocolPositionDetails />,
@@ -76,7 +63,6 @@ describe('DeFiProtocolPositionDetails', () => {
       },
     );
 
-    expect(mockSetOptions).toHaveBeenCalledTimes(1);
     expect(await findByText('Protocol 1')).toBeOnTheScreen();
     expect(
       await findByTestId(DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID),
@@ -101,7 +87,6 @@ describe('DeFiProtocolPositionDetails', () => {
       },
     );
 
-    expect(mockSetOptions).toHaveBeenCalledTimes(1);
     expect(await findByText('Protocol 1')).toBeOnTheScreen();
     expect(queryByText(/^\$\d+\.\d{2}$/)).not.toBeOnTheScreen(); // Matches dollar amounts like "$100.00"
     expect(

@@ -1,3 +1,23 @@
+// Device Matrix
+
+export interface DeviceMatrixEntry {
+  name: string;
+  os_version: string;
+  category: 'high' | 'medium' | 'low';
+  description: string;
+}
+
+export interface DeviceMatrix {
+  android_devices: DeviceMatrixEntry[];
+  ios_devices: DeviceMatrixEntry[];
+  device_categories: Record<string, string>;
+  os_coverage: {
+    android: string[];
+    ios: string[];
+  };
+  notes: Record<string, string>;
+}
+
 // Gestures
 
 import { LanguageAndLocale } from 'detox/detox';
@@ -10,10 +30,18 @@ import type { EventPayload } from '../helpers/analytics/helpers.ts';
 import FixtureBuilder from './fixtures/FixtureBuilder.ts';
 import type { Fixture } from './fixtures/types.ts';
 import CommandQueueServer from './fixtures/CommandQueueServer.ts';
+import { CurrentDeviceDetails } from './fixtures/playwright';
+import type { PlatformDeviceCommandHandler } from './services/device-commands/types';
 
 /*
  * WDIO PLAYWRIGHT TESTS
  */
+export enum ProviderName {
+  EMULATOR = 'emulator',
+  SIMULATOR = 'simulator',
+  BROWSERSTACK = 'browserstack',
+}
+
 export enum Platform {
   ANDROID = 'android',
   IOS = 'ios',
@@ -24,22 +52,41 @@ export enum DeviceOrientation {
   LANDSCAPE = 'landscape',
 }
 
+/**
+ * Local emulator / simulator profile for WebDriver.
+ *
+ * **Android:** `name` is usually the AVD name (as returned by
+ * `adb -s <serial> emu avd name`, e.g. `Pixel_5_Pro_API_34`). Omitted
+ * `udid` is resolved to an adb serial such as `emulator-5554` at setup time.
+ * You may set `udid` directly to that serial; if both are set, a mismatch
+ * with the AVD name is warned.
+ *
+ * **iOS:** `name` is the simulator name/identifier used with `xcrun simctl`
+ * (e.g. booted device name or UDID, depending on your environment).
+ */
 export interface EmulatorConfig {
-  provider: 'emulator';
+  provider: ProviderName;
   name?: string;
   osVersion?: string;
-  packageName?: string;
-  launchableActivity?: string;
   udid?: string;
   orientation?: DeviceOrientation;
 }
 
 export interface BrowserStackConfig {
-  provider: 'browserstack';
+  provider: ProviderName;
   name: string;
   osVersion: string;
   orientation?: DeviceOrientation;
   enableCameraImageInjection?: boolean;
+  selfHeal?: boolean;
+  otherApps?: string[];
+}
+
+export interface AppConfig {
+  appId?: string;
+  packageName?: string;
+  launchableActivity?: string;
+  buildPath?: string;
 }
 
 export type DeviceConfig = EmulatorConfig | BrowserStackConfig;
@@ -54,10 +101,9 @@ export interface TimeoutOptions {
 export interface WebDriverConfig {
   platform: Platform;
   device: DeviceConfig;
-  buildPath: string;
   appBundleId: string;
-  launchableActivity: string;
   expectTimeout: number;
+  app: AppConfig;
 }
 /**
  * END OF WDIO PLAYWRIIGHT
@@ -95,6 +141,7 @@ export interface LongPressOptions extends GestureOptions {
 
 export interface MatcherOptions {
   exact?: boolean;
+  lastElement?: boolean;
 }
 
 /**
@@ -234,6 +281,12 @@ export interface LaunchArgs {
   fixtureServerPort: string;
   detoxURLBlacklistRegex: string;
   mockServerPort: string;
+  commandQueueServerPort: string;
+  /** Account-activity WebSocket mock port; launch-arg key matches `launchArgKey` in `tests/websocket/constants.ts`. */
+  accountActivityWsPort: string;
+  /** Appium specific launch args */
+  stop: boolean;
+  wait: boolean;
 }
 
 /**
@@ -267,6 +320,7 @@ export interface TestSuiteParams {
   mockServer: Mockttp;
   localNodes?: LocalNode[];
   commandQueueServer?: CommandQueueServer;
+  deviceCommands?: PlatformDeviceCommandHandler;
 }
 
 /**
@@ -390,6 +444,7 @@ export interface AnalyticsExpectations {
  * @param {Record<string, unknown>} [permissions] - The permissions to set for the device.
  * @param {() => Promise<void>} [endTestfn] - The function to execute after the test is finished.
  * @param {AnalyticsExpectations} [analyticsExpectations] - Optional MetaMetrics assertions run after `endTestfn`, before mock drain.
+ * @param {CurrentDeviceDetails} [currentDeviceDetails] - The current device details to use for the test.
  */
 export interface WithFixturesOptions {
   fixture:
@@ -417,4 +472,6 @@ export interface WithFixturesOptions {
   skipReactNativeReload?: boolean;
   useCommandQueueServer?: boolean;
   analyticsExpectations?: AnalyticsExpectations;
+  currentDeviceDetails?: CurrentDeviceDetails;
+  disableSynchronization?: boolean;
 }

@@ -1,7 +1,7 @@
 // Third party dependencies
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor, screen } from '@testing-library/react-native';
 
 // External dependencies
 import renderWithProvider from '../../../util/test/renderWithProvider';
@@ -331,14 +331,18 @@ const renderComponent = (state: any = {}) =>
 describe('Network Selector', () => {
   it('renders correctly', () => {
     (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => false);
-    const { toJSON } = renderComponent(initialState);
-    expect(toJSON()).toMatchSnapshot();
+    renderComponent(initialState);
+    expect(
+      screen.getByTestId(NetworkListModalSelectorsIDs.TEST_NET_TOGGLE),
+    ).toBeOnTheScreen();
   });
 
   it('renders correctly when network UI redesign is enabled', () => {
     (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
-    const { toJSON } = renderComponent(initialState);
-    expect(toJSON()).toMatchSnapshot();
+    renderComponent(initialState);
+    expect(
+      screen.getByTestId(NetworkListModalSelectorsIDs.TEST_NET_TOGGLE),
+    ).toBeOnTheScreen();
   });
 
   it('renders correctly when network UI redesign is enabled and calls setNetworkClientIdForDomain', async () => {
@@ -373,7 +377,7 @@ describe('Network Selector', () => {
     expect(popularNetworksTitle).toBeTruthy();
   });
 
-  it('changes network when another network cell is pressed', async () => {
+  it('changes network when another network cell is pressed', () => {
     (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => false);
     const { getByText } = renderComponent(initialState);
     const polygonCell = getByText('Polygon Mainnet');
@@ -455,10 +459,10 @@ describe('Network Selector', () => {
     );
 
     expect(testNetworksSwitch.props.value).toBeTruthy();
-    expect(testNetworksSwitch.props.disabled).toBeTruthy();
+    expect(testNetworksSwitch).toHaveProp('disabled', true);
   });
 
-  it('changes to non infura network when another network cell is pressed', async () => {
+  it('changes to non infura network when another network cell is pressed', () => {
     const { getByText } = renderComponent(initialState);
     const gnosisCell = getByText('Gnosis Chain');
 
@@ -606,7 +610,7 @@ describe('Network Selector', () => {
 
     // Polygon should appear, but others should not
     expect(queryByText('Polygon Mainnet')).toBeTruthy();
-    expect(queryByText('Avalanche Mainnet C-Chain')).toBeNull();
+    expect(queryByText('Avalanche Mainnet C-Chain')).not.toBeOnTheScreen();
 
     // Clear search and check if all networks appear
     fireEvent.changeText(searchInput, '');
@@ -722,8 +726,17 @@ describe('Network Selector', () => {
 
   describe('network switching with connected dapp', () => {
     beforeEach(() => {
-      // Reset the mock before each test
-      jest.clearAllMocks();
+      // Reset only the specific mocks being asserted, not all mocks
+      // (jest.clearAllMocks() would clear Engine mock implementations too)
+      (
+        mockEngine.context.SelectedNetworkController
+          .setNetworkClientIdForDomain as jest.Mock
+      ).mockClear();
+      (
+        mockEngine.context.MultichainNetworkController
+          .setActiveNetwork as jest.Mock
+      ).mockClear();
+      (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
     });
 
     it('should not call setNetworkClientIdForDomain when dapp is not connected', async () => {

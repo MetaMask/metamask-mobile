@@ -1,27 +1,27 @@
 import React, { useCallback, useRef } from 'react';
 import { View, Linking } from 'react-native';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import Button, {
+import { useNavigation } from '@react-navigation/native';
+import {
+  BottomSheet,
+  BottomSheetHeader,
+  Button,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
-
+  ButtonVariant,
+  Text,
+  TextColor,
+  TextVariant,
+  type BottomSheetRef,
+} from '@metamask/design-system-react-native';
 import styleSheet from './EligibilityFailedModal.styles';
 import { useStyles } from '../../../../hooks/useStyles';
 import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { ELIGIBILITY_FAILED_MODAL_TEST_IDS } from './EligibilityFailedModal.testIds';
+import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
+import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
-const SUPPORT_URL = 'https://support.metamask.io';
+const SUPPORT_URL = METAMASK_SUPPORT_URL;
 
 export const createEligibilityFailedModalNavigationDetails =
   createNavigationDetails(
@@ -31,7 +31,9 @@ export const createEligibilityFailedModalNavigationDetails =
 
 function EligibilityFailedModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
+  const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
+  const surfaceClass = useElevatedSurface();
 
   const navigateToContactSupport = useCallback(() => {
     Linking.openURL(SUPPORT_URL).catch((error: unknown) => {
@@ -46,9 +48,10 @@ function EligibilityFailedModal() {
   return (
     <BottomSheet
       ref={sheetRef}
-      shouldNavigateBack
+      goBack={navigation.goBack}
       isInteractable={false}
       testID={ELIGIBILITY_FAILED_MODAL_TEST_IDS.MODAL}
+      twClassName={surfaceClass}
     >
       <BottomSheetHeader
         onClose={handleClose}
@@ -56,13 +59,13 @@ function EligibilityFailedModal() {
           testID: ELIGIBILITY_FAILED_MODAL_TEST_IDS.CLOSE_BUTTON,
         }}
       >
-        <Text variant={TextVariant.HeadingMD}>
+        <Text variant={TextVariant.HeadingMd}>
           {strings('fiat_on_ramp_aggregator.eligibility_failed_modal.title')}
         </Text>
       </BottomSheetHeader>
 
       <View style={styles.content}>
-        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings(
             'fiat_on_ramp_aggregator.eligibility_failed_modal.description',
           )}
@@ -73,21 +76,21 @@ function EligibilityFailedModal() {
         <Button
           size={ButtonSize.Lg}
           onPress={navigateToContactSupport}
-          label={strings(
+          variant={ButtonVariant.Secondary}
+          isFullWidth
+        >
+          {strings(
             'fiat_on_ramp_aggregator.eligibility_failed_modal.contact_support',
           )}
-          variant={ButtonVariants.Secondary}
-          width={ButtonWidthTypes.Full}
-        />
+        </Button>
         <Button
           size={ButtonSize.Lg}
           onPress={handleClose}
-          label={strings(
-            'fiat_on_ramp_aggregator.eligibility_failed_modal.got_it',
-          )}
-          variant={ButtonVariants.Primary}
-          width={ButtonWidthTypes.Full}
-        />
+          variant={ButtonVariant.Primary}
+          isFullWidth
+        >
+          {strings('fiat_on_ramp_aggregator.eligibility_failed_modal.got_it')}
+        </Button>
       </View>
     </BottomSheet>
   );

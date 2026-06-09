@@ -22,56 +22,61 @@ const inlineHeaderStyles = (params: {
     container: {
       backgroundColor: colors.background.default,
       flexDirection: 'row',
+      justifyContent: 'space-between',
       alignItems: 'center',
-      height: 48,
-      gap: 16,
+      alignSelf: 'stretch',
+      paddingVertical: 8,
+      paddingHorizontal: 4,
       marginTop: insets.top,
     },
-    leftButton: {
-      marginLeft: 16,
-    },
-    rightButton: {
-      marginRight: 16,
+    backButtonHitArea: {
+      width: 40,
+      height: 40,
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: 10,
+      flexShrink: 0,
     },
     rightPlaceholder: {
-      marginRight: 16,
       width: 24,
-    },
-    spacer: {
-      flex: 1,
     },
   });
 };
 
 export const TokenDetailsInlineHeader = ({
   onBackPress,
-  onOptionsPress,
+  iconColor,
+  useAmbientColor = false,
 }: {
   onBackPress: () => void;
-  onOptionsPress: (() => void) | undefined;
+  /** Hex color string for the back button icon (A/B test). */
+  iconColor?: string;
+  useAmbientColor?: boolean;
 }) => {
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(inlineHeaderStyles, { insets });
+
+  // In control (useAmbientColor=false): always show button
+  // In treatment (useAmbientColor=true): only show when iconColor is defined
+  const shouldShowButton = !useAmbientColor || iconColor !== undefined;
+
   return (
     <View style={styles.container}>
-      <ButtonIcon
-        style={styles.leftButton}
-        onPress={onBackPress}
-        size={ButtonIconSize.Md}
-        iconName={IconName.ArrowLeft}
-        testID="back-arrow-button"
-      />
-      <View style={styles.spacer} />
-      {onOptionsPress ? (
-        <ButtonIcon
-          style={styles.rightButton}
-          onPress={onOptionsPress}
-          size={ButtonIconSize.Lg}
-          iconName={IconName.MoreVertical}
-        />
-      ) : (
-        <View style={styles.rightPlaceholder} />
-      )}
+      <View style={styles.backButtonHitArea}>
+        {shouldShowButton && (
+          <ButtonIcon
+            onPress={onBackPress}
+            size={ButtonIconSize.Md}
+            iconName={IconName.ArrowLeft}
+            iconProps={
+              iconColor ? { twClassName: `text-[${iconColor}]` } : undefined
+            }
+            testID="back-arrow-button"
+          />
+        )}
+      </View>
+      <View style={styles.rightPlaceholder} />
     </View>
   );
 };

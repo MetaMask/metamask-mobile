@@ -7,6 +7,7 @@ import { handleFetch } from '@metamask/controller-utils';
 
 export interface TokenAsset {
   assetId: string;
+  decimals?: number;
   iconUrl: string;
   name: string;
   symbol: string;

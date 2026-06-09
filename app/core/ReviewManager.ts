@@ -1,7 +1,7 @@
 import React from 'react';
 import { Platform, Linking } from 'react-native';
 /* eslint-disable-next-line */
-import { NavigationContainerRef } from '@react-navigation/core';
+import { NavigationContainerRef, ParamListBase } from '@react-navigation/core';
 import InAppReview from 'react-native-in-app-review';
 import StorageWrapper from '../store/storage-wrapper';
 import { REVIEW_EVENT_COUNT, REVIEW_SHOWN_TIME } from '../constants/storage';
@@ -13,7 +13,7 @@ const TIME_THRESHOLD = 10519200000; // 4 months in milliseconds
 const MM_APP_STORE_DEEPLINK = `${MM_APP_STORE_LINK}?action=write-review`;
 
 class ReviewManager {
-  navigationRef?: React.MutableRefObject<NavigationContainerRef>;
+  navigationRef?: React.MutableRefObject<NavigationContainerRef<ParamListBase>>;
 
   private addEventCount = async () => {
     try {

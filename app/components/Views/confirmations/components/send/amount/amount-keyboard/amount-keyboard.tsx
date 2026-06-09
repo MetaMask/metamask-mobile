@@ -2,11 +2,11 @@ import React, { useCallback } from 'react';
 
 import { strings } from '../../../../../../../../locales/i18n';
 import Routes from '../../../../../../../constants/navigation/Routes';
-import Button, {
+import {
+  Button,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../../../component-library/components/Buttons/Button';
+  ButtonVariant,
+} from '@metamask/design-system-react-native';
 import { useParams } from '../../../../../../../util/navigation/navUtils.ts';
 import { useStyles } from '../../../../../../hooks/useStyles';
 import { AssetType, TokenStandard } from '../../../../types/token';
@@ -16,11 +16,13 @@ import { useAmountValidation } from '../../../../hooks/send/useAmountValidation'
 import { useCurrencyConversions } from '../../../../hooks/send/useCurrencyConversions';
 import { usePercentageAmount } from '../../../../hooks/send/usePercentageAmount';
 import { useSendType } from '../../../../hooks/send/useSendType';
+import { useUnreliableNetworkAlert } from '../../../../hooks/send/alerts/useUnreliableNetworkAlert';
 import { useSendContext } from '../../../../context/send-context';
 import { type PredefinedRecipient } from '../../../../utils/send';
 import { useSendScreenNavigation } from '../../../../hooks/send/useSendScreenNavigation';
 import { useSendActions } from '../../../../hooks/send/useSendActions';
 import { EditAmountKeyboard } from '../../../edit-amount-keyboard';
+import { AmountAlerts } from '../amount-alerts';
 import { styleSheet } from './amount-keyboard.styles';
 
 const ADDITIONAL_KAYBOARD_BUTTONS = [
@@ -50,6 +52,7 @@ export const AmountKeyboard = ({
   const { asset, updateValue, updateTo } = useSendContext();
   const { handleSubmitPress } = useSendActions();
   const { isNonEvmSendType } = useSendType();
+  const { alert: unreliableNetworkAlert } = useUnreliableNetworkAlert();
   const isNFT = asset?.standard === TokenStandard.ERC1155;
   const { styles } = useStyles(styleSheet, {
     amountError: Boolean(amountError),
@@ -126,34 +129,40 @@ export const AmountKeyboard = ({
   ]);
 
   return (
-    <EditAmountKeyboard
-      additionalButtons={
-        isMaxAmountSupported
-          ? ADDITIONAL_KAYBOARD_BUTTONS_INCLUDING_MAX
-          : ADDITIONAL_KAYBOARD_BUTTONS
-      }
-      additionalRow={
-        amount.length > 0 || isNFT ? (
-          <Button
-            disabled={Boolean(amountError) || !amount}
-            label={
-              amountError ??
-              (isNFT ? strings('send.next') : strings('send.continue'))
-            }
-            onPress={goToNextPage}
-            size={ButtonSize.Lg}
-            style={styles.continueButton}
-            variant={ButtonVariants.Primary}
-            width={ButtonWidthTypes.Full}
-          />
-        ) : undefined
-      }
-      enableEmptyValueString
-      hideDoneButton
-      onChange={updateToNewAmount}
-      onPercentagePress={updateToPercentageAmount}
-      showAdditionalKeyboard={amount.length < 1 && !isNFT}
-      value={amount}
-    />
+    <>
+      <EditAmountKeyboard
+        additionalButtons={
+          isMaxAmountSupported
+            ? ADDITIONAL_KAYBOARD_BUTTONS_INCLUDING_MAX
+            : ADDITIONAL_KAYBOARD_BUTTONS
+        }
+        additionalRow={
+          amount.length > 0 || isNFT ? (
+            <Button
+              isDisabled={
+                Boolean(amountError) ||
+                !amount ||
+                Boolean(unreliableNetworkAlert)
+              }
+              onPress={goToNextPage}
+              size={ButtonSize.Lg}
+              style={styles.continueButton}
+              variant={ButtonVariant.Primary}
+              isFullWidth
+            >
+              {amountError ??
+                (isNFT ? strings('send.next') : strings('send.continue'))}
+            </Button>
+          ) : undefined
+        }
+        enableEmptyValueString
+        hideDoneButton
+        onChange={updateToNewAmount}
+        onPercentagePress={updateToPercentageAmount}
+        showAdditionalKeyboard={amount.length < 1 && !isNFT}
+        value={amount}
+      />
+      <AmountAlerts />
+    </>
   );
 };

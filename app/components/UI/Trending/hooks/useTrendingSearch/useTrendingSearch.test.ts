@@ -9,6 +9,7 @@ import { sortTrendingTokens } from '../../utils/sortTrendingTokens';
 import {
   PriceChangeOption,
   SortDirection,
+  TimeOption,
 } from '../../components/TrendingTokensBottomSheet';
 
 // Mock dependencies
@@ -73,6 +74,10 @@ describe('useTrendingSearch', () => {
       isLoading: false,
       error: null,
       search: jest.fn(),
+      loadMore: jest.fn(),
+      isLoadingMore: false,
+      hasNextPage: false,
+      totalCount: undefined,
     });
 
     mockUseTrendingRequest.mockReturnValue({
@@ -104,6 +109,7 @@ describe('useTrendingSearch', () => {
       mockTrendingResults,
       PriceChangeOption.PriceChange,
       SortDirection.Descending,
+      undefined,
     );
     expect(result.current.isLoading).toBe(false);
   });
@@ -129,6 +135,33 @@ describe('useTrendingSearch', () => {
       mockTrendingResults,
       PriceChangeOption.MarketCap,
       SortDirection.Ascending,
+      undefined,
+    );
+  });
+
+  it('passes custom time option to sortTrendingTokens', async () => {
+    const sortedResults = [mockTrendingResults[1], mockTrendingResults[0]];
+    mockSortTrendingTokens.mockReturnValue(sortedResults);
+
+    const { result } = renderHookWithProvider(() =>
+      useTrendingSearch({
+        sortTrendingTokensOptions: {
+          option: PriceChangeOption.PriceChange,
+          direction: SortDirection.Descending,
+          timeOption: TimeOption.OneHour,
+        },
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.data).toEqual(sortedResults);
+    });
+
+    expect(mockSortTrendingTokens).toHaveBeenCalledWith(
+      mockTrendingResults,
+      PriceChangeOption.PriceChange,
+      SortDirection.Descending,
+      TimeOption.OneHour,
     );
   });
 
@@ -139,6 +172,10 @@ describe('useTrendingSearch', () => {
       isLoading: false,
       error: null,
       search: jest.fn(),
+      loadMore: jest.fn(),
+      isLoadingMore: false,
+      hasNextPage: false,
+      totalCount: undefined,
     });
 
     const { result } = renderHookWithProvider(() =>
@@ -176,6 +213,10 @@ describe('useTrendingSearch', () => {
       isLoading: false,
       error: null,
       search: jest.fn(),
+      loadMore: jest.fn(),
+      isLoadingMore: false,
+      hasNextPage: false,
+      totalCount: undefined,
     });
 
     const { result } = renderHookWithProvider(() =>
@@ -220,6 +261,10 @@ describe('useTrendingSearch', () => {
       isLoading: true,
       error: null,
       search: jest.fn(),
+      loadMore: jest.fn(),
+      isLoadingMore: false,
+      hasNextPage: false,
+      totalCount: undefined,
     });
 
     const { result } = renderHookWithProvider(() =>
@@ -314,12 +359,89 @@ describe('useTrendingSearch', () => {
     });
   });
 
+  describe('includeStocks option', () => {
+    const mockSearchResultsWithRwa = [
+      ...mockSearchResults,
+      {
+        assetId: 'eip155:1/erc20:0xrwa' as CaipChainId,
+        symbol: 'AAPL',
+        name: 'Apple Stock',
+        decimals: 18,
+        price: '150',
+        aggregatedUsdVolume: 200000,
+        marketCap: 2000000000,
+        pricePercentChange1d: '0.5',
+        rwaData: { instrumentType: 'equity' },
+      },
+    ];
+
+    it('filters out items with rwaData by default (includeStocks: false)', async () => {
+      mockUseSearchRequest.mockReturnValue({
+        results: mockSearchResultsWithRwa,
+        isLoading: false,
+        error: null,
+        search: jest.fn(),
+        loadMore: jest.fn(),
+        isLoadingMore: false,
+        hasNextPage: false,
+        totalCount: undefined,
+      });
+
+      const { result } = renderHookWithProvider(() =>
+        useTrendingSearch({ searchQuery: 'USDC' }),
+      );
+
+      jest.advanceTimersByTime(200);
+
+      await waitFor(() => {
+        expect(result.current.data).not.toEqual(
+          expect.arrayContaining([expect.objectContaining({ symbol: 'AAPL' })]),
+        );
+        expect(result.current.data).toEqual(
+          expect.arrayContaining([expect.objectContaining({ symbol: 'USDC' })]),
+        );
+      });
+    });
+
+    it('includes items with rwaData when includeStocks is true', async () => {
+      mockUseSearchRequest.mockReturnValue({
+        results: mockSearchResultsWithRwa,
+        isLoading: false,
+        error: null,
+        search: jest.fn(),
+        loadMore: jest.fn(),
+        isLoadingMore: false,
+        hasNextPage: false,
+        totalCount: undefined,
+      });
+
+      const { result } = renderHookWithProvider(() =>
+        useTrendingSearch({ searchQuery: 'USDC', includeStocks: true }),
+      );
+
+      jest.advanceTimersByTime(200);
+
+      await waitFor(() => {
+        expect(result.current.data).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({ symbol: 'USDC' }),
+            expect.objectContaining({ symbol: 'AAPL' }),
+          ]),
+        );
+      });
+    });
+  });
+
   it('uses search immediately when debounce disabled', async () => {
     mockUseSearchRequest.mockReturnValue({
       results: mockSearchResults,
       isLoading: false,
       error: null,
       search: jest.fn(),
+      loadMore: jest.fn(),
+      isLoadingMore: false,
+      hasNextPage: false,
+      totalCount: undefined,
     });
 
     const { result } = renderHookWithProvider(() =>

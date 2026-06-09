@@ -7,9 +7,25 @@ class HistoryDisclosureWebsite {
     await Assertions.expectElementToNotBeVisible(
       Matchers.getElementByXPath(
         BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-        "//*[contains(text(), 'uniswap.org')]",
+        "//p[@id='result' and contains(text(), 'uniswap.org was visited')]",
       ),
-      { timeout: 3000 },
+      {
+        timeout: 3000,
+        description: 'Uniswap visited indicator is not visible',
+      },
+    );
+  }
+
+  async verifyVisitedTargetNotLeaked(): Promise<void> {
+    await Assertions.expectElementToNotBeVisible(
+      Matchers.getElementByXPath(
+        BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+        "//p[@id='result' and contains(text(), 'visited-target.html was visited')]",
+      ),
+      {
+        timeout: 3000,
+        description: 'Visited target page indicator is not visible',
+      },
     );
   }
 }

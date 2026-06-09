@@ -1,12 +1,7 @@
 // Third party dependencies.
-import {
-  BottomTabBarOptions,
-  BottomTabBarProps,
-} from '@react-navigation/bottom-tabs';
-import {
-  BottomTabDescriptor,
-  BottomTabNavigationOptions,
-} from '@react-navigation/bottom-tabs/lib/typescript/src/types';
+import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { BottomTabNavigationOptions } from '@react-navigation/bottom-tabs/lib/typescript/src/types';
+import { TabNavigationState, ParamListBase } from '@react-navigation/native';
 
 // External dependencies.
 import { IconName } from '../../Icons/Icon';
@@ -23,6 +18,7 @@ export enum TabBarIconKey {
   Setting = 'Setting',
   Rewards = 'Rewards',
   Trending = 'Trending',
+  Money = 'Money',
 }
 
 /**
@@ -32,28 +28,29 @@ export type IconByTabBarIconKey = {
   [key in TabBarIconKey]: IconName;
 };
 
-export interface ExtendedBottomTabDescriptor extends BottomTabDescriptor {
-  options: BottomTabNavigationOptions & {
-    tabBarIconKey: TabBarIconKey;
-    callback: () => void;
-    rootScreenName: string;
-    isSelected?: (rootScreenName: string) => boolean;
-    isHidden?: boolean;
-    /**
-     * Callback fired when leaving this tab (switching to another tab).
-     * Useful for cleanup actions like ending analytics sessions.
-     */
-    onLeave?: () => void;
-  };
+export interface ExtendedBottomTabNavigationOptions
+  extends BottomTabNavigationOptions {
+  tabBarIconKey: TabBarIconKey;
+  callback?: () => void;
+  rootScreenName: string;
+  isSelected?: (rootScreenName: string) => boolean;
+  isHidden?: boolean;
+  /**
+   * Callback fired when leaving this tab (switching to another tab).
+   * Useful for cleanup actions like ending analytics sessions.
+   */
+  onLeave?: () => void;
 }
 
-type TabBarOptions = BottomTabBarOptions & {
-  descriptors: {
-    [key: string]: ExtendedBottomTabDescriptor;
-  };
-};
+export interface ExtendedBottomTabDescriptor {
+  options: ExtendedBottomTabNavigationOptions;
+}
 
 /**
  * TabBar component props.
  */
-export type TabBarProps = BottomTabBarProps<TabBarOptions>;
+export interface TabBarProps {
+  state: TabNavigationState<ParamListBase>;
+  descriptors: Record<string, ExtendedBottomTabDescriptor>;
+  navigation: BottomTabBarProps['navigation'];
+}

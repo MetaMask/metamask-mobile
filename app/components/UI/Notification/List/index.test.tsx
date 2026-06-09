@@ -17,6 +17,8 @@ import NotificationsList, {
   useNotificationOnClick,
 } from './';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
 import { mockNotificationsWithMetaData } from '../__mocks__/mock_notifications';
 import { createNavigationProps } from '../../../../util/testUtils';
 import { NotificationsViewSelectorsIDs } from '../../../Views/Notifications/NotificationsView.testIds';
@@ -26,21 +28,17 @@ import * as UseNotificationsModule from '../../../../util/notifications/hooks/us
 
 const mockNavigation = createNavigationProps({});
 const mockTrackEvent = jest.fn();
-const mockCreateEventBuilder = jest.fn(() => ({
-  addProperties: jest.fn(() => ({
-    build: jest.fn(),
-  })),
-}));
 
-jest.mock('../../../hooks/useMetrics', () => ({
-  useMetrics: () => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
-  }),
-  MetaMetricsEvents: {
-    NOTIFICATION_CLICKED: 'NOTIFICATION_CLICKED',
-  },
-}));
+jest.mock('../../../hooks/useAnalytics/useAnalytics');
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  jest
+    .mocked(useAnalytics)
+    .mockReturnValue(
+      createMockUseAnalyticsHook({ trackEvent: mockTrackEvent }),
+    );
+});
 
 describe('NotificationsList States', () => {
   const mockNotifSlice = mockNotificationsWithMetaData.slice(0, 1);
@@ -199,10 +197,6 @@ describe('useNotificationOnClick', () => {
       mockNavigation: createNavigationProps({}).navigation,
     };
   };
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
 
   it.each(mockNotificationsWithMetaData)(
     'invokes click callback and attempts navigation for notification - $type',

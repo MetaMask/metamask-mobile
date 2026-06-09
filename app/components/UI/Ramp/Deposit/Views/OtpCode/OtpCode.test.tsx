@@ -126,9 +126,10 @@ describe('OtpCode Screen', () => {
     mockGetString.mockResolvedValue('');
   });
 
-  it('render matches snapshot', () => {
+  it('renders initial state with OTP input and resend button', () => {
     render(OtpCode);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByTestId('otp-code-input')).toBeOnTheScreen();
+    expect(screen.getByText('Resend it')).toBeOnTheScreen();
   });
 
   it('calls setOptions when the component mounts', () => {
@@ -140,7 +141,7 @@ describe('OtpCode Screen', () => {
     );
   });
 
-  it('renders error snapshot when API call fails', async () => {
+  it('shows error message when API call fails', async () => {
     mockVerifyUserOtp.mockImplementation(() => {
       throw new Error('API call failed');
     });
@@ -149,7 +150,9 @@ describe('OtpCode Screen', () => {
       const codeInput = getByTestId('otp-code-input');
       fireEvent.changeText(codeInput, '123456');
     });
-    expect(screen.toJSON()).toMatchSnapshot();
+    await waitFor(() => {
+      expect(screen.getByText('API call failed')).toBeOnTheScreen();
+    });
   });
 
   it('disables submit button when code length is invalid', () => {
@@ -159,23 +162,23 @@ describe('OtpCode Screen', () => {
     expect(mockVerifyUserOtp).not.toHaveBeenCalled();
   });
 
-  it('calls resendOtp when resend link is clicked and properly handles cooldown timer', async () => {
+  it('calls resendOtp when resend link is clicked and shows cooldown timer', async () => {
     mockSendUserOtp.mockResolvedValue('success');
     render(OtpCode);
     const resendButton = screen.getByText('Resend it');
     fireEvent.press(resendButton);
     expect(mockSendUserOtp).toHaveBeenCalled();
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText(/Resend code in \d+ seconds/)).toBeOnTheScreen();
   });
 
-  it('renders cooldown timer snapshot after resending OTP', async () => {
+  it('shows cooldown timer after resending OTP', async () => {
     render(OtpCode);
     const resendButton = screen.getByText('Resend it');
     fireEvent.press(resendButton);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText(/Resend code in \d+ seconds/)).toBeOnTheScreen();
   });
 
-  it('renders resend error snapshot when resend fails', async () => {
+  it('shows resend error message when resend fails', async () => {
     mockSendUserOtp.mockRejectedValue(new Error('Failed to resend'));
     render(OtpCode);
     const resendButton = screen.getByText('Resend it');
@@ -187,8 +190,6 @@ describe('OtpCode Screen', () => {
     await waitFor(() => {
       expect(screen.getByText('Error resending code.')).toBeOnTheScreen();
     });
-
-    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('navigates to build quote when valid code is input', async () => {
@@ -253,7 +254,7 @@ describe('OtpCode Screen', () => {
     });
   });
 
-  it('should call trace when valid OTP code is submitted', async () => {
+  it('calls trace when valid OTP code is submitted', async () => {
     const mockTrace = trace as jest.MockedFunction<typeof trace>;
     mockTrace.mockClear();
 

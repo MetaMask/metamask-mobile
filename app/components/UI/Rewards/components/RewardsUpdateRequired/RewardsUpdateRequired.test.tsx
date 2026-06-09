@@ -7,24 +7,23 @@ import {
   MM_APP_STORE_LINK,
   MM_PLAY_STORE_LINK,
 } from '../../../../../constants/urls';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import {
+  createMockUseAnalyticsHook,
+  createMockEventBuilder,
+} from '../../../../../util/test/analyticsMock';
 
 const mockTrackEvent = jest.fn();
-const mockCreateEventBuilder = jest.fn(() => ({
-  build: jest.fn(() => 'built-event'),
-  addProperties: jest.fn().mockReturnThis(),
-}));
+const mockCreateEventBuilder = jest.fn(() => createMockEventBuilder());
 
-jest.mock('../../../../hooks/useMetrics', () => ({
-  useMetrics: () => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
-  }),
-}));
+jest.mock('../../../../hooks/useAnalytics/useAnalytics');
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({
-    style: (...args: string[]) => args,
-  }),
+  useTailwind: () => {
+    const tw = (..._args: unknown[]) => ({});
+    tw.style = jest.fn(() => ({}));
+    return tw;
+  },
 }));
 
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
@@ -35,6 +34,12 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
 describe('RewardsUpdateRequired', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
   });
 
   it('renders the title, description, and update button', () => {

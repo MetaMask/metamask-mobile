@@ -23,6 +23,8 @@ jest.mock('../framework/PlaywrightMatchers.ts', () => ({
     getElementById: jest.fn().mockResolvedValue({}),
     getElementByText: jest.fn().mockResolvedValue({}),
     getElementByAccessibilityId: jest.fn().mockResolvedValue({}),
+    getElementByCatchAll: jest.fn().mockResolvedValue({}),
+    getElementByXPath: jest.fn().mockResolvedValue({}),
   },
 }));
 

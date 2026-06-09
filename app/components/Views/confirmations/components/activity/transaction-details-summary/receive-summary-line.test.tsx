@@ -8,11 +8,12 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../../../locales/i18n';
 import { useMultichainBlockExplorerTxUrl } from '../../../../../UI/Bridge/hooks/useMultichainBlockExplorerTxUrl';
 import { useNetworkName } from '../../../hooks/useNetworkName';
-import { POLYGON_USDCE } from '../../../constants/predict';
+import { POLYGON_PUSD } from '../../../constants/predict';
 import { selectBridgeHistoryForAccount } from '../../../../../../selectors/bridgeStatusController';
 import { useBridgeTxHistoryData } from '../../../../../../util/bridge/hooks/useBridgeTxHistoryData';
 import { useTokenAmount } from '../../../hooks/useTokenAmount';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
+import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
 import { ReceiveSummaryLine } from './receive-summary-line';
 
 jest.mock('../../../../../UI/Bridge/hooks/useMultichainBlockExplorerTxUrl');
@@ -21,6 +22,7 @@ jest.mock('../../../../../../selectors/bridgeStatusController');
 jest.mock('../../../../../../util/bridge/hooks/useBridgeTxHistoryData');
 jest.mock('../../../hooks/useTokenAmount');
 jest.mock('../../../hooks/activity/useTransactionDetails');
+jest.mock('../../../hooks/tokens/useTokenWithBalance');
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -118,7 +120,7 @@ describe('ReceiveSummaryLine', () => {
     expect(
       getByText(
         strings('transaction_details.summary_title.bridge_receive', {
-          targetSymbol: POLYGON_USDCE.symbol,
+          targetSymbol: POLYGON_PUSD.symbol,
           targetChain: 'Arbitrum',
         }),
       ),
@@ -158,6 +160,38 @@ describe('ReceiveSummaryLine', () => {
     expect(
       getByText(
         strings('transaction_details.summary_title.bridge_receive_loading'),
+      ),
+    ).toBeDefined();
+  });
+
+  it('renders predict withdraw title using source token symbol and source network', () => {
+    useNetworkNameMock.mockImplementation((chainId?: Hex) =>
+      chainId === '0x1' ? 'Ethereum' : 'Polygon',
+    );
+    jest
+      .mocked(useTokenWithBalance)
+      .mockReturnValue({ symbol: 'USDC' } as ReturnType<
+        typeof useTokenWithBalance
+      >);
+
+    const { getByText } = render({
+      id: 'tx-id',
+      chainId: '0x89' as Hex,
+      hash: '0x123',
+      submittedTime: 1755719285723,
+      type: TransactionType.predictWithdraw,
+      metamaskPay: {
+        chainId: '0x1' as Hex,
+        tokenAddress: '0xabc' as Hex,
+      },
+    } as Partial<TransactionMeta>);
+
+    expect(
+      getByText(
+        strings('transaction_details.summary_title.bridge_receive', {
+          targetSymbol: 'USDC',
+          targetChain: 'Ethereum',
+        }),
       ),
     ).toBeDefined();
   });

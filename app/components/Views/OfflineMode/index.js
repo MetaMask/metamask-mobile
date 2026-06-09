@@ -1,6 +1,7 @@
 'use strict';
 import React from 'react';
-import { SafeAreaView, Image, View, StyleSheet } from 'react-native';
+import { Image, View, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Text from '../../Base/Text';
 import NetInfo from '@react-native-community/netinfo';
 import { baseStyles, fontStyles } from '../../../styles/common';
@@ -8,6 +9,7 @@ import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
 import StyledButton from '../../UI/StyledButton';
 import { getOfflineModalNavbar } from '../../UI/Navbar';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import AndroidBackHandler from '../AndroidBackHandler';
 import Device from '../../../util/device';
 import AppConstants from '../../../core/AppConstants';

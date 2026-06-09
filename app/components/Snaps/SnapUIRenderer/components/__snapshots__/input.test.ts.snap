@@ -32,7 +32,25 @@ exports[`SnapUIInput handles disabled input 1`] = `
       testID="snap-ui-renderer__scrollview"
     >
       <View>
-        <TouchableHighlight>
+        <View
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          focusable={false}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+        >
           <View
             color="Default"
             flexDirection="column"
@@ -148,7 +166,7 @@ exports[`SnapUIInput handles disabled input 1`] = `
               </View>
             </View>
           </View>
-        </TouchableHighlight>
+        </View>
       </View>
     </RCTScrollView>
   </View>
@@ -191,7 +209,25 @@ exports[`SnapUIInput renders with initial value 1`] = `
       testID="snap-ui-renderer__scrollview"
     >
       <View>
-        <TouchableHighlight>
+        <View
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          focusable={false}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+        >
           <View
             color="Default"
             flexDirection="column"
@@ -307,7 +343,7 @@ exports[`SnapUIInput renders with initial value 1`] = `
               </View>
             </View>
           </View>
-        </TouchableHighlight>
+        </View>
       </View>
     </RCTScrollView>
   </View>

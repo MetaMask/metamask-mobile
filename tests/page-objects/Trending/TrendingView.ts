@@ -9,12 +9,15 @@ import {
   SECTION_BACK_BUTTONS,
   DETAILS_BACK_BUTTONS,
   SECTION_FULL_VIEW_HEADERS,
+  SECTION_TAB_CONFIG,
 } from '../../locators/Trending/TrendingView.selectors';
 import { PredictMarketListSelectorsIDs } from '../../../app/components/UI/Predict/Predict.testIds';
 import TabBarComponent from '../wallet/TabBarComponent';
 import BrowserView from '../Browser/BrowserView';
 
 class TrendingView {
+  private activeScrollViewID: string = TrendingViewSelectorsIDs.NOW_SCROLL_VIEW;
+
   get searchButton(): DetoxElement {
     return Matchers.getElementByID(TrendingViewSelectorsIDs.SEARCH_BUTTON);
   }
@@ -23,8 +26,12 @@ class TrendingView {
     return Matchers.getElementByID(TrendingViewSelectorsIDs.BROWSER_BUTTON);
   }
 
-  get searchInput(): DetoxElement {
+  get searchInputContainer(): DetoxElement {
     return Matchers.getElementByID(TrendingViewSelectorsIDs.SEARCH_INPUT);
+  }
+
+  get searchInput(): DetoxElement {
+    return Matchers.getElementByID(TrendingViewSelectorsIDs.SEARCH_TEXT_INPUT);
   }
 
   get searchCancelButton(): DetoxElement {
@@ -33,9 +40,19 @@ class TrendingView {
     );
   }
 
-  get searchEngineButton(): DetoxElement {
+  get searchAllPill(): DetoxElement {
+    return Matchers.getElementByID(TrendingViewSelectorsIDs.SEARCH_PILL_ALL);
+  }
+
+  get searchCryptosPill(): DetoxElement {
     return Matchers.getElementByID(
-      TrendingViewSelectorsIDs.SEARCH_FOOTER_SEARCH_LINK,
+      TrendingViewSelectorsIDs.SEARCH_PILL_CRYPTOS,
+    );
+  }
+
+  get searchResultsList(): DetoxElement {
+    return Matchers.getElementByID(
+      TrendingViewSelectorsIDs.SEARCH_RESULTS_LIST,
     );
   }
 
@@ -88,6 +105,35 @@ class TrendingView {
 
   async tapTrendingTab(): Promise<void> {
     await TabBarComponent.tapExploreButton();
+    this.activeScrollViewID = TrendingViewSelectorsIDs.NOW_SCROLL_VIEW;
+  }
+
+  async tapTab(tabTestID: string): Promise<void> {
+    await Gestures.tap(Matchers.getElementByID(`${tabTestID}-label`), {
+      elemDescription: `Tap tab ${tabTestID}`,
+      checkVisibility: false,
+    });
+  }
+
+  async navigateToSectionTab(sectionTitle: string): Promise<void> {
+    const sectionTabConfig = SECTION_TAB_CONFIG[sectionTitle];
+
+    if (!sectionTabConfig) {
+      throw new Error(`Unknown Explore section tab config: ${sectionTitle}`);
+    }
+
+    if (this.activeScrollViewID !== sectionTabConfig.scrollViewTestID) {
+      await this.tapTab(sectionTabConfig.tabTestID);
+      this.activeScrollViewID = sectionTabConfig.scrollViewTestID;
+    }
+
+    await Assertions.expectElementToBeVisible(
+      Matchers.getElementByID(sectionTabConfig.scrollViewTestID),
+      {
+        description: `${sectionTitle} tab content should be visible`,
+        timeout: 10000,
+      },
+    );
   }
 
   async tapSearchButton(): Promise<void> {
@@ -127,7 +173,7 @@ class TrendingView {
   ): Promise<void> {
     await Gestures.scrollToElement(
       targetElement,
-      Matchers.getIdentifier(TrendingViewSelectorsIDs.SCROLL_VIEW),
+      Matchers.getIdentifier(this.activeScrollViewID),
       {
         direction,
         scrollAmount: 300,
@@ -142,7 +188,7 @@ class TrendingView {
    */
   private getSectionId(sectionTitle: string): string {
     const sectionIdMap: Record<string, string> = {
-      'Trending tokens': 'tokens',
+      Trending: 'tokens',
       Stocks: 'stocks',
       Sites: 'sites',
       Predictions: 'predictions',
@@ -151,74 +197,29 @@ class TrendingView {
     return sectionIdMap[sectionTitle] || sectionTitle.toLowerCase();
   }
 
-  /**
-   * Get QuickAction button element for a section
-   */
-  getQuickActionButton(sectionTitle: string): DetoxElement {
-    const sectionId = this.getSectionId(sectionTitle);
-    return Matchers.getElementByID(`quick-action-${sectionId}`);
-  }
-
-  /**
-   * Scroll horizontally to make QuickAction button visible
-   */
-  private async scrollToQuickAction(
-    targetElement: DetoxElement,
-    description: string,
-  ): Promise<void> {
-    await Gestures.scrollToElement(
-      targetElement,
-      Matchers.getIdentifier(
-        TrendingViewSelectorsIDs.QUICK_ACTIONS_SCROLL_VIEW,
-      ),
-      {
-        direction: 'right',
-        scrollAmount: 200,
-        elemDescription: description,
-        startPositionX: 0.5,
-        startPositionY: 0,
-      },
-    );
-  }
-
-  /**
-   * Tap on QuickAction button (buttons below search bar)
-   */
-  async tapQuickAction(sectionTitle: string): Promise<void> {
-    const quickActionButton = this.getQuickActionButton(sectionTitle);
-
-    // Scroll horizontally if needed to make the button visible
-    await this.scrollToQuickAction(
-      quickActionButton,
-      `Scroll to ${sectionTitle} QuickAction button`,
-    );
-
-    await Gestures.tap(quickActionButton, {
-      elemDescription: `Tap QuickAction button for ${sectionTitle}`,
-      checkStability: true, // Wait for element to stop moving after horizontal scroll
-    });
-  }
-
   async tapViewAll(sectionTitle: string): Promise<void> {
     const id = this.getSectionId(sectionTitle);
     const viewAllButton = Matchers.getElementByID(
-      `section-header-view-all-${id}`,
+      `${TrendingViewSelectorsIDs.VIEW_ALL_BUTTON_PREFIX}${id}`,
     );
 
-    // Trending tokens is at the top of the feed; scroll up to find it.
-    // All other sections (stocks, perps, predictions, sites) are below.
-    const direction = sectionTitle === 'Trending tokens' ? 'up' : 'down';
-
-    // Use generic scroll method
-    await this.scrollToElementInFeed(
-      viewAllButton,
-      `Scroll to ${sectionTitle} View All button`,
-      direction,
-    );
+    try {
+      await Assertions.expectElementToBeVisible(viewAllButton, {
+        description: `${sectionTitle} View All button`,
+        timeout: 3000,
+      });
+    } catch {
+      const direction = sectionTitle === 'Predictions' ? 'up' : 'down';
+      await this.scrollToElementInFeed(
+        viewAllButton,
+        `Scroll to ${sectionTitle} View All button`,
+        direction,
+      );
+    }
 
     await Gestures.tap(viewAllButton, {
       elemDescription: `Tap View All for ${sectionTitle}`,
-      checkStability: true, // Wait for element to stop moving after scroll
+      checkStability: true,
     });
   }
 
@@ -266,7 +267,6 @@ class TrendingView {
   }
 
   async tapBackFromBrowser(): Promise<void> {
-    // Browser now uses close button (X) to return to feed
     await BrowserView.tapCloseBrowserButton();
   }
 
@@ -288,13 +288,15 @@ class TrendingView {
     getElement: () => DetoxElement,
     identifier: string,
     itemType: string,
+    options: Partial<ScrollOptions> = {},
   ): Promise<void> {
     const targetElement = getElement();
 
-    // Scroll to element to ensure it's fully visible
     await this.scrollToElementInFeed(
       targetElement,
       `Scroll to ${identifier} ${itemType} row for verification`,
+      'down',
+      options,
     );
 
     await Assertions.expectElementToBeVisible(targetElement, {
@@ -313,7 +315,6 @@ class TrendingView {
   ): Promise<void> {
     const targetElement = getElement();
 
-    // Sites section is typically lower in the feed; give scroll retry more time (same idea as WalletView.scrollDownToAssetOverviewMusdCta)
     const scrollOptions: Partial<ScrollOptions> =
       itemType === 'site' ? { timeout: 15000 } : {};
 
@@ -362,17 +363,9 @@ class TrendingView {
   }
 
   async verifySiteVisible(name: string): Promise<void> {
-    const siteRow = () => this.getSiteRow(name);
-
-    // Scroll until Site row is visible (same pattern as WalletView.scrollDownToAssetOverviewMusdCta)
-    await this.scrollToElementInFeed(
-      siteRow(),
-      `Scroll to Site row for ${name}`,
-      'down',
-      { timeout: 15000 },
-    );
-
-    await this.verifyItemVisible(siteRow, name, 'site');
+    await this.verifyItemVisible(() => this.getSiteRow(name), name, 'site', {
+      timeout: 15000,
+    });
   }
 
   async tapSiteRow(name: string): Promise<void> {
@@ -467,24 +460,22 @@ class TrendingView {
     );
   }
 
-  /**
-   * Scroll down in search results to ensure the search engine option is visible
-   */
-  async scrollToSearchEngineOption(): Promise<void> {
-    await Gestures.scrollToElement(
-      this.searchEngineButton,
-      Matchers.getIdentifier(TrendingViewSelectorsIDs.SEARCH_RESULTS_LIST),
-      {
-        direction: 'down',
-        scrollAmount: 300,
-        elemDescription: 'Scroll to search engine option',
-      },
-    );
+  async verifySearchPillsVisible(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.searchAllPill, {
+      description: 'All search pill should be visible',
+      timeout: 10000,
+    });
+
+    await Assertions.expectElementToBeVisible(this.searchCryptosPill, {
+      description: 'Crypto search pill should be visible',
+      timeout: 10000,
+    });
   }
 
-  async verifySearchEngineOptionVisible(): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.searchEngineButton, {
-      description: 'Search engine option should be visible',
+  async verifySearchResultsListVisible(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.searchResultsList, {
+      description: 'Search results list should be visible',
+      timeout: 10000,
     });
   }
 

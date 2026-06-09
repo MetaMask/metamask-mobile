@@ -5,7 +5,22 @@ name: API Specs E2E Tests
 
 on:
   workflow_call:
+    inputs:
+      runner_provider:
+        description: Runner provider forwarded from the caller
+        required: false
+        type: string
+        default: current
   workflow_dispatch:
+    inputs:
+      runner_provider:
+        description: Runner provider for this manual trial run
+        required: false
+        type: choice
+        options:
+          - current
+          - namespace
+        default: current
   pull_request:
     types: [opened, synchronize]
 
@@ -13,7 +28,7 @@ jobs:
   api-specs-ios:
     name: 'api-specs-ios'
     if: false
-    runs-on: macos-latest-xlarge
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ios-build' || 'macos-latest-xlarge' }}
     continue-on-error: true
 
     env:
@@ -23,8 +38,6 @@ jobs:
       SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
       SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
       SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
-      MAIN_IOS_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_IOS_GOOGLE_CLIENT_ID_UAT }}
-      MAIN_IOS_GOOGLE_REDIRECT_URI_UAT: ${{ secrets.MAIN_IOS_GOOGLE_REDIRECT_URI_UAT }}
       SEGMENT_REGULATIONS_ENDPOINT_QA: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_QA }}
       MM_SENTRY_DSN_TEST: ${{ secrets.MM_SENTRY_DSN_TEST }}
       MM_SOLANA_E2E_TEST_SRP: ${{ secrets.MM_SOLANA_E2E_TEST_SRP }}
@@ -45,7 +58,7 @@ jobs:
       - name: Enable Corepack and setup Yarn
         run: |
           corepack enable
-          corepack prepare yarn@4.10.3 --activate
+          corepack prepare yarn@4.14.1 --activate
 
       - name: Install JavaScript dependencies with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
@@ -61,7 +74,7 @@ jobs:
         run: yarn detox --version
 
       - name: Setup Xcode
-        run: sudo xcode-select -s /Applications/Xcode_16.3.app
+        run: sudo xcode-select -s /Applications/Xcode_26.3.app
 
       - name: Install applesimutils for iOS simulator control
         run: |

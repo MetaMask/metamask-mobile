@@ -13,6 +13,7 @@ import {
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
 import SettingsView from '../../../page-objects/Settings/SettingsView';
 import BackupAndSyncView from '../../../page-objects/Settings/BackupAndSyncView';
+import AccountMenu from '../../../page-objects/AccountMenu/AccountMenu';
 import CommonView from '../../../page-objects/CommonView';
 import { createUserStorageController } from '../utils/mocks';
 import {
@@ -100,7 +101,8 @@ describe(SmokeIdentity('Account syncing - Setting'), () => {
         );
 
         // Phase 2: Disable account sync and create third account
-        await AccountListBottomSheet.swipeToDismissAccountsModal();
+        // V2 multichain account list stacks Add Wallet actions; two swipes fully dismiss.
+        await AccountListBottomSheet.tapBackButton();
         await Assertions.expectElementToNotBeVisible(
           AccountListBottomSheet.accountList,
         );
@@ -118,18 +120,10 @@ describe(SmokeIdentity('Account syncing - Setting'), () => {
         );
         await BackupAndSyncView.toggleAccountSync();
 
-        // Navigate back to wallet to create third account
+        // Navigate back: BackupAndSync → Settings → AccountsMenu → close SettingsFlow → Wallet
         await CommonView.tapBackButton();
-        await Assertions.expectElementToBeVisible(
-          SettingsView.backupAndSyncSectionButton,
-        );
-        // Close settings drawer (opened from hamburger menu) to return to wallet view
         await SettingsView.tapBackButton();
-        await Assertions.expectElementToBeVisible(WalletView.container);
-        // Wait for settings drawer to fully close and tab bar to be visible
-        await Assertions.expectElementToBeVisible(
-          TabBarComponent.tabBarWalletButton,
-        );
+        await AccountMenu.tapBack();
 
         // Create third account with sync disabled - this should NOT sync to user storage
         await WalletView.tapIdenticon();

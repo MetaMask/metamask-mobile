@@ -6,7 +6,7 @@ import {
 import { WebSocketServiceMessenger } from '@metamask/snaps-controllers';
 import { RootMessenger } from '../../types';
 
-export { type WebSocketServiceMessenger };
+export type { WebSocketServiceMessenger };
 
 /**
  * Get a messenger for the WebSocket service. This is scoped to the

@@ -17,6 +17,9 @@ import {
   Icon,
   IconName,
   IconSize,
+  Button,
+  ButtonVariant,
+  ButtonSize,
 } from '@metamask/design-system-react-native';
 import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import BadgeNetwork from '../../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
@@ -30,11 +33,6 @@ import { formatSubscriptNotation } from '../../../../../util/number/subscriptNot
 import { formatWithThreshold } from '../../../../../util/assets';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import Logger from '../../../../../util/Logger';
-import Button, {
-  ButtonVariants,
-  ButtonSize,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import { hasDepositOrderField } from '../../Deposit/utils';
 import BankDetailRow from '../../Deposit/components/BankDetailRow/BankDetailRow';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -54,6 +52,15 @@ const localStyles = StyleSheet.create({
   },
   inlineIcon: {
     transform: [{ translateY: 4 }],
+  },
+  providerLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  orderIdRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
 });
 
@@ -387,25 +394,23 @@ const OrderContent: React.FC<OrderContentProps> = ({
                 {getStatusText()}
               </Text>
               {providerOrderLink && (
-                <TouchableOpacity onPress={handleProviderLinkPress}>
-                  <Box
-                    flexDirection={BoxFlexDirection.Row}
-                    twClassName="items-center mt-1"
+                <TouchableOpacity
+                  onPress={handleProviderLinkPress}
+                  style={localStyles.providerLink}
+                >
+                  <Text
+                    variant={TextVariant.BodySm}
+                    twClassName="text-primary-default mr-1"
                   >
-                    <Text
-                      variant={TextVariant.BodySm}
-                      twClassName="text-primary-default mr-1"
-                    >
-                      {strings('ramps_order_details.view_on_provider', {
-                        provider: providerName,
-                      })}
-                    </Text>
-                    <Icon
-                      name={IconName.Export}
-                      size={IconSize.Sm}
-                      twClassName="text-primary-default"
-                    />
-                  </Box>
+                    {strings('ramps_order_details.view_on_provider', {
+                      provider: providerName,
+                    })}
+                  </Text>
+                  <Icon
+                    name={IconName.Export}
+                    size={IconSize.Sm}
+                    twClassName="text-primary-default"
+                  />
                 </TouchableOpacity>
               )}
             </>
@@ -428,24 +433,22 @@ const OrderContent: React.FC<OrderContentProps> = ({
         {isLoading ? (
           <Box twClassName="bg-muted rounded h-[18px] w-32" />
         ) : (
-          <TouchableOpacity onPress={handleCopyOrderId}>
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              twClassName="items-center"
+          <TouchableOpacity
+            onPress={handleCopyOrderId}
+            style={localStyles.orderIdRow}
+          >
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              twClassName="mr-2"
             >
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                twClassName="mr-2"
-              >
-                {shortOrderId}
-              </Text>
-              <Icon
-                name={IconName.Copy}
-                size={IconSize.Md}
-                twClassName="text-default"
-              />
-            </Box>
+              {shortOrderId}
+            </Text>
+            <Icon
+              name={IconName.Copy}
+              size={IconSize.Md}
+              twClassName="text-default"
+            />
           </TouchableOpacity>
         )}
       </Box>
@@ -599,11 +602,12 @@ const OrderContent: React.FC<OrderContentProps> = ({
           {showManageBankTransfer && (
             <Box twClassName="mt-4">
               <Button
-                variant={ButtonVariants.Secondary}
+                variant={ButtonVariant.Secondary}
                 size={ButtonSize.Lg}
-                label={strings('deposit.bank_details.button')}
                 onPress={handleManageBankTransfer}
-              />
+              >
+                {strings('deposit.bank_details.button')}
+              </Button>
             </Box>
           )}
         </Box>
@@ -614,23 +618,14 @@ const OrderContent: React.FC<OrderContentProps> = ({
           showCloseButton ? 'w-full pb-4 mt-auto' : 'w-full pb-4 pt-4'
         }
       >
-        {order.statusDescription && (
+        {order.statusDescription && isTerminal && (
           <Box twClassName={showCloseButton ? 'mb-4' : ''}>
             <TouchableOpacity onPress={handleInfoPress}>
               <Text
                 variant={TextVariant.BodySm}
                 twClassName="text-alternative text-center"
               >
-                {(order.status === RampsOrderStatus.Pending ||
-                  order.status === RampsOrderStatus.Created ||
-                  order.status === RampsOrderStatus.Precreated ||
-                  order.status === RampsOrderStatus.Unknown) &&
-                order.statusDescription.startsWith('Your order')
-                  ? order.statusDescription.replace(
-                      /^Your order.*?is processing\.\s*/,
-                      '',
-                    ) || order.statusDescription
-                  : order.statusDescription}{' '}
+                {order.statusDescription}{' '}
                 <Icon
                   name={IconName.Info}
                   size={IconSize.Sm}
@@ -644,12 +639,13 @@ const OrderContent: React.FC<OrderContentProps> = ({
         {showCloseButton && (
           <Button
             testID={RampsOrderDetailsSelectorsIDs.CLOSE_BUTTON}
-            variant={ButtonVariants.Primary}
+            variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-            label={strings('ramps_order_details.close')}
+            isFullWidth
             onPress={handleClose}
-          />
+          >
+            {strings('ramps_order_details.close')}
+          </Button>
         )}
       </Box>
     </Box>

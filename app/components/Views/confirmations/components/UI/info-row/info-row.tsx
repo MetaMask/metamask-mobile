@@ -13,7 +13,7 @@ import { useStyles } from '../../../../../../component-library/hooks';
 import Tooltip from '../Tooltip/Tooltip';
 import styleSheet from './info-row.styles';
 import CopyIcon from './copy-icon/copy-icon';
-import { Skeleton } from '../../../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 
 export enum InfoRowVariant {
   Default = 'default',
@@ -28,6 +28,7 @@ export interface InfoRowProps {
   tooltip?: ReactNode;
   tooltipTitle?: string;
   tooltipColor?: IconColor;
+  tooltipDisabled?: boolean;
   style?: Record<string, unknown>;
   labelChildren?: React.ReactNode;
   testID?: string;
@@ -52,6 +53,7 @@ const InfoRow = ({
   tooltip,
   tooltipTitle,
   tooltipColor,
+  tooltipDisabled,
   testID,
   variant = TextColor.Alternative,
   copyText,
@@ -89,6 +91,7 @@ const InfoRow = ({
             {!labelChildren && tooltip && (
               <Tooltip
                 content={tooltip}
+                disabled={tooltipDisabled}
                 onPress={onTooltipPress}
                 title={tooltipTitle ?? label}
                 iconColor={tooltipColor}

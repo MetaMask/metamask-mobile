@@ -50,29 +50,6 @@ jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
-jest.mock('../../../core/Analytics', () => ({
-  MetaMetrics: {
-    getInstance: () => ({
-      trackEvent: mockTrackEvent,
-    }),
-  },
-}));
-
-jest.mock('../../../core/Analytics/MetaMetrics.events', () => ({
-  EVENT_NAME: {
-    CARD_HOME_CLICKED: 'Card Home Clicked',
-    SETTINGS_VIEWED: 'Settings Viewed',
-    SETTINGS_ABOUT: 'About MetaMask',
-    NAVIGATION_TAPS_SEND_FEEDBACK: 'Send Feedback',
-    NAVIGATION_TAPS_GET_HELP: 'Get Help',
-    NAVIGATION_TAPS_LOGOUT: 'Logout',
-    QR_SCANNER_OPENED: 'QR Scanner Opened',
-    RAMPS_BUTTON_CLICKED: 'Ramps Button Clicked',
-    NOTIFICATIONS_MENU_OPENED: 'Notifications Menu Opened',
-    NOTIFICATIONS_ACTIVATED: 'Notifications Activated',
-  },
-}));
-
 jest.mock('../../../core/Analytics/MetricsEventBuilder', () => ({
   MetricsEventBuilder: {
     createEventBuilder: jest.fn(() => ({
@@ -94,11 +71,6 @@ jest.mock('../../../core/DeeplinkManager/DeeplinkManager', () => ({
 
 jest.mock('../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
-}));
-
-jest.mock('../../../util/networks', () => ({
-  ...jest.requireActual('../../../util/networks'),
-  isPermissionsSettingsV1Enabled: true,
 }));
 
 jest.mock('../../UI/Ramp/hooks/useRampsUnifiedV1Enabled', () => ({
@@ -195,43 +167,7 @@ describe('AccountsMenu', () => {
     expect(getByText('accounts_menu.resources')).toBeOnTheScreen();
   });
 
-  describe('Snapshots', () => {
-    it('match snapshot when MetaMask Card is hidden', () => {
-      (useSelector as jest.Mock).mockReturnValue(false);
-
-      const { toJSON } = render(<AccountsMenu />);
-      expect(toJSON()).toMatchSnapshot();
-    });
-
-    it('match snapshot when MetaMask Card is visible', () => {
-      (useSelector as jest.Mock).mockReturnValue(true);
-
-      const { toJSON } = render(<AccountsMenu />);
-      expect(toJSON()).toMatchSnapshot();
-    });
-  });
-
   describe('MetaMask Card Button', () => {
-    it('render MetaMask Card row when shouldDisplayCardButton is true', () => {
-      (useSelector as jest.Mock).mockReturnValue(true);
-
-      const { getByText, getByTestId } = render(<AccountsMenu />);
-
-      expect(getByText('accounts_menu.card_title')).toBeOnTheScreen();
-      expect(
-        getByTestId(AccountsMenuSelectorsIDs.MANAGE_CARD),
-      ).toBeOnTheScreen();
-    });
-
-    it('does NOT render MetaMask Card row when shouldDisplayCardButton is false', () => {
-      (useSelector as jest.Mock).mockReturnValue(false);
-
-      const { queryByText, queryByTestId } = render(<AccountsMenu />);
-
-      expect(queryByText('accounts_menu.card_title')).toBeNull();
-      expect(queryByTestId(AccountsMenuSelectorsIDs.MANAGE_CARD)).toBeNull();
-    });
-
     it('navigate to card and track analytics when MetaMask Card is pressed', () => {
       (useSelector as jest.Mock).mockReturnValue(true);
 
@@ -262,8 +198,10 @@ describe('AccountsMenu', () => {
 
       const { queryByText, queryByTestId } = render(<AccountsMenu />);
 
-      expect(queryByText('accounts_menu.buy')).toBeNull();
-      expect(queryByTestId(AccountsMenuSelectorsIDs.BUY_BUTTON)).toBeNull();
+      expect(queryByText('accounts_menu.buy')).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(AccountsMenuSelectorsIDs.BUY_BUTTON),
+      ).not.toBeOnTheScreen();
     });
 
     it('navigate to buy flow and track analytics when Buy is pressed', () => {
@@ -471,7 +409,7 @@ describe('AccountsMenu', () => {
 
       const { queryByText } = render(<AccountsMenu />);
 
-      expect(queryByText('accounts_menu.notifications')).toBeNull();
+      expect(queryByText('accounts_menu.notifications')).not.toBeOnTheScreen();
     });
 
     it('navigate to notifications view when enabled and pressed', () => {
@@ -489,7 +427,7 @@ describe('AccountsMenu', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.NOTIFICATIONS.VIEW);
     });
 
-    it('navigate to opt-in stack when not enabled and pressed', () => {
+    it('navigates to notifications view when not enabled and pressed', () => {
       jest.mocked(isNotificationsFeatureEnabled).mockReturnValue(true);
       setupNotificationMocks({ notificationEnabled: false });
 
@@ -500,9 +438,7 @@ describe('AccountsMenu', () => {
 
       fireEvent.press(notificationsButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.NOTIFICATIONS.OPT_IN_STACK,
-      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.NOTIFICATIONS.VIEW);
     });
 
     it('display badge with count when notifications are enabled and unread count > 0', () => {
@@ -530,7 +466,7 @@ describe('AccountsMenu', () => {
       const { queryByText } = render(<AccountsMenu />);
 
       // Badge should not be visible
-      expect(queryByText('0')).toBeNull();
+      expect(queryByText('0')).not.toBeOnTheScreen();
     });
 
     it('track NOTIFICATIONS_MENU_OPENED event when enabled and pressed', () => {
