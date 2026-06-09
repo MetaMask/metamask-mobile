@@ -540,16 +540,21 @@ const MoneyHomeView = () => {
           onApyInfoPress={handleApyInfoPress}
         />
         <MoneyActionButtonRow
-          onAddPress={() =>
-            handleAddPress({
-              labelKey: 'money.action.add',
-              componentName: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
-              buttonPosition: 1,
-              buttonRowButtonCount: ACTION_BUTTON_ROW_BUTTON_COUNT,
-            })
-          }
-          onTransferPress={handleTransferPress}
-          onCardPress={handleActionButtonCardPress}
+          add={{
+            onPress: () =>
+              handleAddPress({
+                labelKey: 'money.action.add',
+                componentName: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
+                buttonPosition: 1,
+                buttonRowButtonCount: ACTION_BUTTON_ROW_BUTTON_COUNT,
+              }),
+          }}
+          transfer={{
+            onPress: handleTransferPress,
+            disabled:
+              isAggregatedBalanceLoading || !isAccountFunded(tokenTotal),
+          }}
+          card={{ onPress: handleActionButtonCardPress }}
         />
         <MoneyOnboardingCard />
         {/* Only show earnings if balance is available and non-zero */}

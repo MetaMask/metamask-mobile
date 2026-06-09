@@ -693,6 +693,60 @@ describe('MoneyHomeView', () => {
     });
   });
 
+  describe('transfer button disabled state', () => {
+    it('disables Transfer button when initial balance is loading', () => {
+      mockUseMoneyAccountBalance.mockReturnValue({
+        ...mockUseMoneyAccountBalance.mock.results[0]?.value,
+        tokenTotal: undefined,
+        isAggregatedBalanceLoading: true,
+        isBalanceFetchError: false,
+        isBalanceFetching: true,
+      } as unknown as ReturnType<typeof useMoneyAccountBalance>);
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      const transferButton = getByTestId(
+        MoneyActionButtonRowTestIds.TRANSFER_BUTTON,
+      );
+
+      expect(transferButton.props.accessibilityState?.disabled).toBe(true);
+    });
+
+    it('disables Transfer button when account has zero balance', () => {
+      mockUseMoneyAccountBalance.mockReturnValue({
+        ...mockUseMoneyAccountBalance.mock.results[0]?.value,
+        tokenTotal: new BigNumber(0),
+        isAggregatedBalanceLoading: false,
+        isBalanceFetchError: false,
+        isBalanceFetching: false,
+      } as unknown as ReturnType<typeof useMoneyAccountBalance>);
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      const transferButton = getByTestId(
+        MoneyActionButtonRowTestIds.TRANSFER_BUTTON,
+      );
+
+      expect(transferButton.props.accessibilityState?.disabled).toBe(true);
+    });
+
+    it('does not navigate to Transfer sheet when Transfer button is pressed while disabled', () => {
+      mockUseMoneyAccountBalance.mockReturnValue({
+        ...mockUseMoneyAccountBalance.mock.results[0]?.value,
+        tokenTotal: new BigNumber(0),
+        isAggregatedBalanceLoading: false,
+        isBalanceFetchError: false,
+        isBalanceFetching: false,
+      } as unknown as ReturnType<typeof useMoneyAccountBalance>);
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.TRANSFER_BUTTON));
+
+      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.TRANSFER_MONEY_SHEET,
+      });
+    });
+  });
+
   it('navigates to Card root when Card button is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
