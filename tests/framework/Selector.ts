@@ -70,10 +70,14 @@ export function resolve(selector: Selector): EncapsulatedElementType {
       detox: detoxEl,
       appium: {
         android: () =>
-          PlaywrightMatchers.getElementById(selector.testID, { exact: true }),
+          PlaywrightMatchers.getElementById(selector.testID, {
+            exact: true,
+            index: selector.index,
+          }),
         ios: () =>
           PlaywrightMatchers.getElementByAccessibilityId(
             selector.iosAppiumTestID,
+            { index: selector.index },
           ),
       },
     });
@@ -89,8 +93,12 @@ export function resolve(selector: Selector): EncapsulatedElementType {
         android: () =>
           PlaywrightMatchers.getElementByAndroidUIAutomator(
             `.description("${selector.label}")`,
+            { index: selector.index },
           ),
-        ios: () => PlaywrightMatchers.getElementByCatchAll(selector.label),
+        ios: () =>
+          PlaywrightMatchers.getElementByCatchAll(selector.label, {
+            index: selector.index,
+          }),
       },
     });
   }
@@ -101,7 +109,10 @@ export function resolve(selector: Selector): EncapsulatedElementType {
         element(by.text(selector.text)).atIndex(
           selector.index ?? 0,
         ) as unknown as DetoxElement,
-      appium: () => PlaywrightMatchers.getElementByText(selector.text),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(selector.text, false, {
+          index: selector.index,
+        }),
     });
   }
 
@@ -116,9 +127,14 @@ export function resolve(selector: Selector): EncapsulatedElementType {
     detox: detoxEl,
     appium: {
       android: () =>
-        PlaywrightMatchers.getElementById(selector.testID, { exact: true }),
+        PlaywrightMatchers.getElementById(selector.testID, {
+          exact: true,
+          index: selector.index,
+        }),
       ios: () =>
-        PlaywrightMatchers.getElementByAccessibilityId(selector.testID),
+        PlaywrightMatchers.getElementByAccessibilityId(selector.testID, {
+          index: selector.index,
+        }),
     },
   });
 }

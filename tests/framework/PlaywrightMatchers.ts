@@ -32,9 +32,15 @@ export default class PlaywrightMatchers {
    */
   static async getElementByAccessibilityId(
     elementId: string,
+    options: MatcherOptions = {},
   ): Promise<PlaywrightElement> {
+    const { index } = options;
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
+    if (index !== undefined) {
+      const elements = await drv.$$(`~${elementId}`);
+      return wrapElement(elements[index] as unknown as ChainablePromiseElement);
+    }
     const element = await drv.$(`~${elementId}`);
     return wrapElement(element);
   }
@@ -68,6 +74,12 @@ export default class PlaywrightMatchers {
 
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
+    if (options.index !== undefined) {
+      const elements = await drv.$$(locator);
+      return wrapElement(
+        elements[options.index] as unknown as ChainablePromiseElement,
+      );
+    }
     const element = await drv.$(locator);
     return wrapElement(element);
   }
@@ -80,12 +92,13 @@ export default class PlaywrightMatchers {
   static async getElementByText(
     text: string,
     exactMatch: boolean = false,
+    options: MatcherOptions = {},
   ): Promise<PlaywrightElement> {
     let xpath = `//*[contains(@name,'${text}') or contains(@label,'${text}') or contains(@text,'${text}')]`;
     if (exactMatch) {
       xpath = `//*[@name='${text}' or @label='${text}' or @text='${text}']`;
     }
-    return await this.getElementByXPath(xpath);
+    return await this.getElementByXPath(xpath, options);
   }
 
   /**
@@ -95,6 +108,7 @@ export default class PlaywrightMatchers {
    */
   static async getElementByCatchAll(
     identifier: string,
+    options: MatcherOptions = {},
   ): Promise<PlaywrightElement> {
     const isAndroid = await PlatformDetector.isAndroid();
     let xpath = '';
@@ -103,7 +117,7 @@ export default class PlaywrightMatchers {
     } else {
       xpath = `//*[contains(@name,'${identifier}') or contains(@label,'${identifier}') or contains(@text,'${identifier}')]`;
     }
-    return await this.getElementByXPath(xpath);
+    return await this.getElementByXPath(xpath, options);
   }
 
   /**
@@ -131,14 +145,19 @@ export default class PlaywrightMatchers {
     xpath: string,
     options: MatcherOptions = {},
   ): Promise<PlaywrightElement> {
-    const { lastElement = true } = options;
+    const { lastElement = true, index } = options;
 
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
     const elements = await drv.$$(xpath);
     const length = await elements.length;
     if (length === 0) throw new Error(`No elements found for XPath: ${xpath}`);
-    const element = lastElement ? elements[length - 1] : elements[0];
+    const element =
+      index !== undefined
+        ? elements[index]
+        : lastElement
+          ? elements[length - 1]
+          : elements[0];
 
     return wrapElement(element);
   }
@@ -201,11 +220,16 @@ export default class PlaywrightMatchers {
    */
   static async getElementByAndroidUIAutomator(
     selector: string,
+    options: MatcherOptions = {},
   ): Promise<PlaywrightElement> {
     const baseUiAutomatorSelector = 'android=new UiSelector()';
+    const instanceSuffix =
+      options.index !== undefined ? `.instance(${options.index})` : '';
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
-    const element = await drv.$(`${baseUiAutomatorSelector}${selector}`);
+    const element = await drv.$(
+      `${baseUiAutomatorSelector}${selector}${instanceSuffix}`,
+    );
     return wrapElement(element);
   }
 
