@@ -95,6 +95,18 @@ class TestSnaps {
     return Matchers.getIdentifier('snap-ui-renderer__scrollview');
   }
 
+  get dialogInput(): DetoxElement {
+    return Matchers.getElementByID('example-input-snap-ui-input');
+  }
+
+  get cancelButton(): DetoxElement {
+    return Matchers.getElementByText('Cancel');
+  }
+
+  get submitButton(): DetoxElement {
+    return Matchers.getElementByText('Submit');
+  }
+
   async checkResultSpan(
     selector: keyof typeof TestSnapResultSelectorWebIDS,
     expectedMessage: string,
@@ -252,9 +264,20 @@ class TestSnaps {
     });
   }
 
+  async openSnapDialog(
+    buttonKey: keyof typeof TestSnapViewSelectorWebIDS,
+  ): Promise<void> {
+    await this.tapButton(buttonKey);
+    await Assertions.expectElementToBeVisible(this.dialogInput, {
+      timeout: 10_000,
+      description: 'snap dialog fully rendered',
+    });
+  }
+
   async tapOkButton() {
-    const button = Matchers.getElementByText('OK');
-    await Gestures.waitAndTap(button);
+    await Gestures.waitAndTap(this.dateTimePickerOkButton, {
+      elemDescription: 'OK button',
+    });
   }
 
   async tapApproveButton() {
@@ -268,8 +291,10 @@ class TestSnaps {
   }
 
   async tapCancelButton() {
-    const button = Matchers.getElementByText('Cancel');
-    await Gestures.waitAndTap(button);
+    await Gestures.waitAndTap(this.cancelButton, {
+      checkStability: true,
+      elemDescription: 'Cancel button',
+    });
   }
 
   async tapFooterButton() {
@@ -277,8 +302,10 @@ class TestSnaps {
   }
 
   async tapSubmitButton() {
-    const button = Matchers.getElementByText('Submit');
-    await Gestures.waitAndTap(button);
+    await Gestures.waitAndTap(this.submitButton, {
+      checkStability: true,
+      elemDescription: 'Submit button',
+    });
   }
 
   async dismissAlert() {
@@ -329,6 +356,9 @@ class TestSnaps {
     const input = Matchers.getElementByID(`${name}-snap-ui-input`);
 
     await Gestures.typeText(input, text, { hideKeyboard: true });
+    if (device.getPlatform() === 'android') {
+      await new Promise((resolve) => setTimeout(resolve, 600));
+    }
   }
 
   async selectInNativeDropdown(
@@ -339,23 +369,31 @@ class TestSnaps {
       NativeDropdownSelectorWebIDS[selector],
     );
 
-    await Gestures.tap(dropdown);
+    await Gestures.tap(dropdown, {
+      elemDescription: `open dropdown ${selector}`,
+    });
 
     const selectorItem = element(
       by.text(text).withAncestor(by.id('snap-ui-renderer__selector-item')),
     ) as unknown as DetoxElement;
-    await Gestures.tap(selectorItem);
+    await Gestures.tap(selectorItem, {
+      elemDescription: `select "${text}" in dropdown`,
+    });
   }
 
   async selectRadioButton(text: string) {
     const radioButton = element(
       by.text(text).withAncestor(by.id('snap-ui-renderer__radio-button')),
     ) as unknown as DetoxElement;
-    await Gestures.tap(radioButton);
+    await Gestures.tap(radioButton, {
+      elemDescription: `radio button "${text}"`,
+    });
   }
 
   async tapCheckbox() {
-    await Gestures.tap(this.checkboxElement);
+    await Gestures.tap(this.checkboxElement, {
+      elemDescription: 'snap UI checkbox',
+    });
   }
 
   async selectDateInDateTimePicker() {

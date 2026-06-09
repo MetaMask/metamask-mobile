@@ -37,7 +37,8 @@ describe(SmokeSnaps('Interactive UI Snap Tests'), () => {
         disableSynchronization: true,
       },
       async () => {
-        await TestSnaps.tapButton('createDialogButton');
+        await TestSnaps.navigateToTestSnap();
+        await TestSnaps.openSnapDialog('createDialogButton');
 
         // Create the expected date when the pickers are mounted.
         // This is needed to compare later with the values submitted by the snap.
@@ -83,7 +84,8 @@ describe(SmokeSnaps('Interactive UI Snap Tests'), () => {
         disableSynchronization: true,
       },
       async () => {
-        await TestSnaps.tapButton('createDialogDisabledButton');
+        await TestSnaps.navigateToTestSnap();
+        await TestSnaps.openSnapDialog('createDialogDisabledButton');
 
         const input = Matchers.getElementByID('example-input-snap-ui-input');
         await Assertions.expectElementToBeVisible(input);
