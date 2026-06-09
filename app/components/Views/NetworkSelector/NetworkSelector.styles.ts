@@ -205,6 +205,7 @@ const createStyles = (colors: Colors) =>
     },
     networkNameText: {
       flex: 1,
+      minWidth: 0,
     },
   });
 

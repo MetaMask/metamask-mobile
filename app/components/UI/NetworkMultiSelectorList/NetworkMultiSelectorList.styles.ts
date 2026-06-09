@@ -30,6 +30,7 @@ const createStyles = (params: { theme: Theme }) => {
     },
     networkNameText: {
       flex: 1,
+      minWidth: 0,
     },
   });
 };
