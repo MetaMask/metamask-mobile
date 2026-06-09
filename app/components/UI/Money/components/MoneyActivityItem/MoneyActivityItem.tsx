@@ -28,7 +28,7 @@ const MoneyActivityItem = ({
       display={display}
       isFailed={tx.status === TransactionStatus.failed}
       chainId={tx.chainId}
-      onPress={onPress}
+      onPress={() => onPress?.(tx)}
       showNetworkBadge={showNetworkBadge}
     />
   );

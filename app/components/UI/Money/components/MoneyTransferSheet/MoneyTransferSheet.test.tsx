@@ -238,6 +238,11 @@ describe('MoneyTransferSheet', () => {
     });
 
     it('calls trackSurfaceClicked with PERPS_ACCOUNT component when "Perps account" is pressed', () => {
+      (useMoneyPerpsDeposit as jest.Mock).mockReturnValue({
+        isEnabled: true,
+        initiatePerpsDeposit: mockInitiatePerpsDeposit,
+      });
+
       const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
 
       fireEvent.press(

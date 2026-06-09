@@ -9,6 +9,7 @@ import MoneySectionHeader from '../MoneySectionHeader';
 import type { MoneyActivityItem } from '../../types/moneyActivity';
 import { MoneyActivityListTestIds } from './MoneyActivityList.testIds';
 import MoneyActivityRow from '../MoneyActivityRow/MoneyActivityRow';
+import { TransactionMeta } from '@metamask/transaction-controller';
 
 const MAX_PREVIEW_ITEMS = 5;
 
