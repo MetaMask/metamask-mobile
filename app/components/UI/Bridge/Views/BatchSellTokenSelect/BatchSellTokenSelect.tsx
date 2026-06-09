@@ -255,25 +255,38 @@ export function BatchSellTokenSelect() {
       return;
     }
 
-    dispatch(setBatchSellSourceTokens(selectedTokens));
+    const orderedSelectedTokens = sortBatchSellTokens(
+      selectedTokens,
+      tokenSortDirection,
+    );
+
+    dispatch(setBatchSellSourceTokens(orderedSelectedTokens));
     dispatch(
       setBatchSellSourceTokenAmounts(
-        getDefaultBatchSellSourceTokenAmounts(selectedTokens),
+        getDefaultBatchSellSourceTokenAmounts(orderedSelectedTokens),
       ),
     );
     dispatch(
       setBatchSellDestToken(
         getBatchSellDestinationToken(
-          selectedTokens[0].chainId,
+          orderedSelectedTokens[0].chainId,
           destinationStablecoins,
         ),
       ),
     );
     dispatch(
-      setBatchSellTokenSlippages(getDefaultBatchSellSlippages(selectedTokens)),
+      setBatchSellTokenSlippages(
+        getDefaultBatchSellSlippages(orderedSelectedTokens),
+      ),
     );
     navigation.navigate(Routes.BRIDGE.BATCH_SELL_REVIEW);
-  }, [destinationStablecoins, dispatch, navigation, selectedTokens]);
+  }, [
+    destinationStablecoins,
+    dispatch,
+    navigation,
+    selectedTokens,
+    tokenSortDirection,
+  ]);
 
   const handleExploreTokensPress = useCallback(() => {
     navigation.navigate(Routes.TRENDING_VIEW, {
