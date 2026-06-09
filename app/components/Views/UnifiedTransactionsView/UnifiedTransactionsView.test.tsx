@@ -20,6 +20,17 @@ import type { ActivityListItem } from './types';
 // Type helper for UNSAFE_queryByType with mocked string components
 const asComponentType = (name: string) => name as unknown as ComponentType;
 
+const formatExpectedDateHeader = (timestamp: string) => {
+  const date = new Date(timestamp);
+  date.setHours(0, 0, 0, 0);
+
+  return new Intl.DateTimeFormat(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(date);
+};
+
 type TransactionsQueryData = ReturnType<
   ReturnType<typeof selectApiEvmTransactions>
 >;
@@ -579,6 +590,74 @@ describe('UnifiedTransactionsView with transactions', () => {
       asComponentType('ActivityListItemRow'),
     );
     expect(activityItems.length).toBeGreaterThanOrEqual(0);
+  });
+
+  it('renders date headers for grouped confirmed activity rows', () => {
+    const firstTimestamp = '2026-04-29T19:28:41.000Z';
+    const secondTimestamp = '2026-04-28T19:28:41.000Z';
+    mockUseTransactionsQuery(
+      createConfirmedEvmQueryData([
+        {
+          accountId: `eip155:1:${ACTIVE_EVM_ADDRESS}`,
+          blockHash: '0xblock-1',
+          blockNumber: 1,
+          chainId: 1,
+          cumulativeGasUsed: 21000,
+          effectiveGasPrice: '1',
+          from: ACTIVE_EVM_ADDRESS,
+          gas: 21000,
+          gasPrice: '1',
+          gasUsed: 21000,
+          hash: BRIDGE_TX_HASH,
+          isError: false,
+          logs: [],
+          methodId: '0x',
+          nonce: 1,
+          readable: 'Transfer',
+          timestamp: firstTimestamp,
+          to: '0x1111111111111111111111111111111111111111',
+          transactionCategory: 'TRANSFER',
+          transactionType: 'SIMPLE_SEND',
+          value: '1',
+          valueTransfers: [],
+        } as V1TransactionByHashResponse,
+        {
+          accountId: `eip155:1:${ACTIVE_EVM_ADDRESS}`,
+          blockHash: '0xblock-2',
+          blockNumber: 2,
+          chainId: 1,
+          cumulativeGasUsed: 21000,
+          effectiveGasPrice: '1',
+          from: ACTIVE_EVM_ADDRESS,
+          gas: 21000,
+          gasPrice: '1',
+          gasUsed: 21000,
+          hash: OTHER_TX_HASH,
+          isError: false,
+          logs: [],
+          methodId: '0x',
+          nonce: 2,
+          readable: 'Transfer',
+          timestamp: secondTimestamp,
+          to: '0x2222222222222222222222222222222222222222',
+          transactionCategory: 'TRANSFER',
+          transactionType: 'SIMPLE_SEND',
+          value: '1',
+          valueTransfers: [],
+        } as V1TransactionByHashResponse,
+      ]),
+    );
+
+    const { getByText } = renderWithProvider(<UnifiedTransactionsView />, {
+      state: stateWithConfirmedBridgeTransaction,
+    });
+
+    expect(
+      getByText(formatExpectedDateHeader(firstTimestamp)),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(formatExpectedDateHeader(secondTimestamp)),
+    ).toBeOnTheScreen();
   });
 
   it('uses the Accounts API bridge transaction when the source hash matches bridge history', () => {
