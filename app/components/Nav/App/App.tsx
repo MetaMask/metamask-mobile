@@ -79,6 +79,7 @@ import FiatOnTestnetsFriction from '../../../components/Views/Settings/AdvancedS
 import WalletActions from '../../Views/WalletActions';
 import FundActionMenu from '../../UI/FundActionMenu';
 import MoreTokenActionsMenu from '../../UI/TokenDetails/components/MoreTokenActionsMenu';
+import IntervalPickerSheet from '../../UI/Charts/AdvancedChart/IntervalPickerSheet';
 import SecurityBadgeBottomSheet from '../../UI/TokenDetails/components/SecurityBadgeBottomSheet';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
 import ReturnToAppNotification from '../../Views/ReturnToAppNotification';
@@ -464,6 +465,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.MODAL.MORE_TOKEN_ACTIONS_MENU}
       component={MoreTokenActionsMenu}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.INTERVAL_PICKER}
+      component={IntervalPickerSheet}
     />
     <Stack.Screen
       name={Routes.MODAL.SECURITY_BADGE_BOTTOM_SHEET}

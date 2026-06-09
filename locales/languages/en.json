@@ -4113,6 +4113,7 @@
       "3y": "3Y",
       "all": "All"
     },
+    "interval_picker_title": "Interval",
     "no_chart_data": {
       "title": "No chart data",
       "description": "We could not fetch any data for this token",

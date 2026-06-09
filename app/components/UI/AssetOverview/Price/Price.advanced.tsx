@@ -41,6 +41,8 @@ import { useOHLCVChart } from '../../Charts/AdvancedChart/useOHLCVChart';
 import { useOHLCVRealtime } from '../../Charts/AdvancedChart/useOHLCVRealtime';
 import { OHLCVBar } from '../../Charts/AdvancedChart/OHLCVBar/OHLCVBar';
 import IndicatorBar from '../../Charts/AdvancedChart/IndicatorBar';
+import { createIntervalPickerNavDetails } from '../../Charts/AdvancedChart/IntervalPickerSheet';
+import { useNavigation } from '@react-navigation/native';
 import {
   Box,
   FontWeight,
@@ -153,6 +155,7 @@ const PriceAdvanced = ({
   useAmbientColor = false,
 }: PriceAdvancedProps) => {
   const dispatch = useDispatch();
+  const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [timeRange, setTimeRange] = useState<TimeRange>('1D');
   const chartType = useSelector(selectTokenOverviewChartType);
@@ -314,6 +317,25 @@ const PriceAdvanced = ({
   });
 
   const wsInterval = WS_INTERVAL_BY_TIME_RANGE[timeRange];
+  const [displayInterval, setDisplayInterval] = useState(
+    wsInterval.toUpperCase(),
+  );
+
+  useEffect(() => {
+    setDisplayInterval(wsInterval.toUpperCase());
+  }, [wsInterval]);
+
+  const handleIntervalPress = useCallback(() => {
+    navigation.navigate(
+      ...createIntervalPickerNavDetails({
+        selectedInterval: displayInterval,
+        onSelect: (interval: string) => {
+          setDisplayInterval(interval);
+        },
+      }),
+    );
+  }, [navigation, displayInterval]);
+
   const wsEnabled =
     isOhlcvWsEnabled &&
     !chartLoading &&
@@ -704,7 +726,10 @@ const PriceAdvanced = ({
       </Box>
       {chartType === ChartType.Candles ? (
         <Box twClassName="w-full mb-3">
-          <IndicatorBar intervalLabel={wsInterval.toUpperCase()} />
+          <IndicatorBar
+            intervalLabel={displayInterval}
+            onIntervalPress={handleIntervalPress}
+          />
         </Box>
       ) : (
         <Box twClassName="pb-4" />

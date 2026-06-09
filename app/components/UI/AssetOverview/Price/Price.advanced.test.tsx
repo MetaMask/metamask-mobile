@@ -36,6 +36,15 @@ jest.mock('react-redux', () => {
   };
 });
 
+const mockNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+    goBack: jest.fn(),
+  }),
+}));
+
 jest.mock('react-native-skeleton-placeholder', () => {
   const { View } = jest.requireActual('react-native');
   const MockSkeleton = ({ children }: { children: React.ReactNode }) => (

@@ -16,9 +16,14 @@ import {
 interface IndicatorBarProps {
   /** Current interval label to display (e.g. "15M", "1H", "1D"). */
   intervalLabel: string;
+  /** Called when the interval dropdown is pressed. */
+  onIntervalPress?: () => void;
 }
 
-const IndicatorBar: React.FC<IndicatorBarProps> = ({ intervalLabel }) => {
+const IndicatorBar: React.FC<IndicatorBarProps> = ({
+  intervalLabel,
+  onIntervalPress,
+}) => {
   const tw = useTailwind();
 
   return (
@@ -35,6 +40,7 @@ const IndicatorBar: React.FC<IndicatorBarProps> = ({ intervalLabel }) => {
             pressed && 'opacity-70',
           )
         }
+        onPress={onIntervalPress}
         accessibilityRole="button"
         accessibilityLabel={`Interval ${intervalLabel}`}
       >
