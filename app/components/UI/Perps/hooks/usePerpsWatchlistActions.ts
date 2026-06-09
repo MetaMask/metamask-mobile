@@ -38,7 +38,7 @@ interface UsePerpsWatchlistActionsResult {
  * and structural seams for optimistic UI and the future User Storage API.
  *
  * @param source - Analytics source identifying where the action was triggered
- *   (e.g. PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_WATCHLIST).
+ * (e.g. PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_WATCHLIST).
  */
 export const usePerpsWatchlistActions = (
   source: string = PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_WATCHLIST,
