@@ -42,26 +42,17 @@ export class NetInfoConnectivityAdapter implements ConnectivityAdapter {
   /**
    * Returns the current connectivity status.
    *
-   * For initial state, we default to online since NetInfo requires async
-   * fetch for initial state. The actual state will be determined once
-   * the subscription callback fires or initial fetch completes.
+   * If no NetInfo state has been observed yet, fetches it asynchronously so
+   * the controller's `init()` resolves with an accurate initial value rather
+   * than a default-online guess.
    *
-   * @returns The current connectivity status.
+   * @returns A promise resolving to the current connectivity status.
    */
-  getStatus(): ConnectivityStatus {
+  async getStatus(): Promise<ConnectivityStatus> {
     if (!this.#currentState) {
-      return CONNECTIVITY_STATUSES.Online;
+      this.#currentState = await netInfoFetch();
     }
-
-    // Use isInternetReachable for actual internet connectivity
-    // Falls back to isConnected if isInternetReachable is null (still determining)
-    const isOnline =
-      this.#currentState.isInternetReachable ??
-      this.#currentState.isConnected ??
-      false;
-    return isOnline
-      ? CONNECTIVITY_STATUSES.Online
-      : CONNECTIVITY_STATUSES.Offline;
+    return this.#statusFromState(this.#currentState);
   }
 
   /**
@@ -81,13 +72,29 @@ export class NetInfoConnectivityAdapter implements ConnectivityAdapter {
   }
 
   /**
+   * Derives a {@link ConnectivityStatus} from a NetInfo state.
+   *
+   * Uses `isInternetReachable` for actual internet connectivity and falls
+   * back to `isConnected` if `isInternetReachable` is null (still determining).
+   *
+   * @param state - The NetInfo state to inspect.
+   * @returns The derived connectivity status.
+   */
+  #statusFromState(state: NetInfoState): ConnectivityStatus {
+    const isOnline = state.isInternetReachable ?? state.isConnected ?? false;
+    return isOnline
+      ? CONNECTIVITY_STATUSES.Online
+      : CONNECTIVITY_STATUSES.Offline;
+  }
+
+  /**
    * Updates the current state and notifies all registered callbacks.
    *
    * @param state - The new NetInfo state.
    */
   #update(state: NetInfoState): void {
     this.#currentState = state;
-    const status = this.getStatus();
+    const status = this.#statusFromState(state);
 
     this.#onConnectivityChangeCallbacks.forEach((callback) => callback(status));
   }

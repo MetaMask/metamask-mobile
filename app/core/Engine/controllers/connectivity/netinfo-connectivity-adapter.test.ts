@@ -31,12 +31,19 @@ describe('NetInfoConnectivityAdapter', () => {
   });
 
   describe('getStatus', () => {
-    it('returns Online by default when no state is available', () => {
+    it('fetches NetInfo state when none has been observed yet', async () => {
+      (netInfoFetch as jest.Mock).mockResolvedValue({
+        isConnected: true,
+        isInternetReachable: true,
+      });
       adapter = new NetInfoConnectivityAdapter();
-      expect(adapter.getStatus()).toBe(CONNECTIVITY_STATUSES.Online);
+      await expect(adapter.getStatus()).resolves.toBe(
+        CONNECTIVITY_STATUSES.Online,
+      );
+      expect(netInfoFetch).toHaveBeenCalled();
     });
 
-    it('returns Online when isInternetReachable is true', () => {
+    it('returns Online when isInternetReachable is true', async () => {
       adapter = new NetInfoConnectivityAdapter();
       const callback = jest.fn();
       adapter.onConnectivityChange(callback);
@@ -49,10 +56,12 @@ describe('NetInfoConnectivityAdapter', () => {
         isInternetReachable: true,
       });
 
-      expect(adapter.getStatus()).toBe(CONNECTIVITY_STATUSES.Online);
+      await expect(adapter.getStatus()).resolves.toBe(
+        CONNECTIVITY_STATUSES.Online,
+      );
     });
 
-    it('returns Offline when isInternetReachable is false', () => {
+    it('returns Offline when isInternetReachable is false', async () => {
       adapter = new NetInfoConnectivityAdapter();
       const callback = jest.fn();
       adapter.onConnectivityChange(callback);
@@ -65,10 +74,12 @@ describe('NetInfoConnectivityAdapter', () => {
         isInternetReachable: false,
       });
 
-      expect(adapter.getStatus()).toBe(CONNECTIVITY_STATUSES.Offline);
+      await expect(adapter.getStatus()).resolves.toBe(
+        CONNECTIVITY_STATUSES.Offline,
+      );
     });
 
-    it('falls back to isConnected when isInternetReachable is null', () => {
+    it('falls back to isConnected when isInternetReachable is null', async () => {
       adapter = new NetInfoConnectivityAdapter();
       const callback = jest.fn();
       adapter.onConnectivityChange(callback);
@@ -81,10 +92,12 @@ describe('NetInfoConnectivityAdapter', () => {
         isInternetReachable: null,
       });
 
-      expect(adapter.getStatus()).toBe(CONNECTIVITY_STATUSES.Online);
+      await expect(adapter.getStatus()).resolves.toBe(
+        CONNECTIVITY_STATUSES.Online,
+      );
     });
 
-    it('returns Offline when both isInternetReachable and isConnected are false', () => {
+    it('returns Offline when both isInternetReachable and isConnected are false', async () => {
       adapter = new NetInfoConnectivityAdapter();
       const callback = jest.fn();
       adapter.onConnectivityChange(callback);
@@ -97,7 +110,9 @@ describe('NetInfoConnectivityAdapter', () => {
         isInternetReachable: false,
       });
 
-      expect(adapter.getStatus()).toBe(CONNECTIVITY_STATUSES.Offline);
+      await expect(adapter.getStatus()).resolves.toBe(
+        CONNECTIVITY_STATUSES.Offline,
+      );
     });
   });
 
@@ -230,7 +245,10 @@ describe('NetInfoConnectivityAdapter', () => {
       adapter.destroy();
 
       expect(mockUnsubscribe).toHaveBeenCalled();
-      expect(adapter.getStatus()).toBe(CONNECTIVITY_STATUSES.Online); // Should still work but with no state
+      // After destroy, state is cleared; getStatus refetches and falls back to the default mock (Online).
+      await expect(adapter.getStatus()).resolves.toBe(
+        CONNECTIVITY_STATUSES.Online,
+      );
     });
 
     it('can be called multiple times without error', () => {

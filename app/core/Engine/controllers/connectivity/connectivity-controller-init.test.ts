@@ -37,7 +37,7 @@ describe('ConnectivityControllerInit', () => {
 
     // Mock NetInfoConnectivityAdapter
     mockNetInfoAdapter = {
-      getStatus: jest.fn().mockReturnValue(CONNECTIVITY_STATUSES.Online),
+      getStatus: jest.fn().mockResolvedValue(CONNECTIVITY_STATUSES.Online),
       onConnectivityChange: jest.fn(),
       destroy: jest.fn(),
     } as unknown as jest.Mocked<NetInfoConnectivityAdapter>;
