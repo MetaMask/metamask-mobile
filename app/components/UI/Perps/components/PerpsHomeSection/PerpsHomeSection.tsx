@@ -7,6 +7,9 @@ import {
   FontWeight,
   SectionDivider,
   SectionHeader,
+  ButtonIcon,
+  ButtonIconSize,
+  IconName,
 } from '@metamask/design-system-react-native';
 import HomepageSectionUnrealizedPnlRow from '../../../../Views/Homepage/components/HomepageSectionUnrealizedPnlRow';
 import { PerpsHomeSectionTestIds } from './PerpsHomeSection.testIds';
@@ -47,7 +50,7 @@ export interface PerpsHomeSectionProps {
    */
   showWhenEmpty?: boolean;
   /**
-   * Optional action handler - when provided, shows "..." icon and makes header row pressable
+   * Optional action handler - when provided, shows "..." icon on the right of the header
    */
   onActionPress?: () => void;
   /**
@@ -93,40 +96,44 @@ const PerpsHomeSection: React.FC<PerpsHomeSectionProps> = ({
 
   const showAction = onActionPress && !isLoading && !isEmpty;
 
-  const headerAccessory =
-    subtitle && subtitleSuffix ? (
-      <HomepageSectionUnrealizedPnlRow
-        label={subtitleSuffix}
-        valueText={subtitle}
-        valueColor={subtitleColor}
-        paddingHorizontal={4}
-        valueTestID={subtitleTestID}
-        labelTestID={subtitleTestID ? `${subtitleTestID}-suffix` : undefined}
-      />
-    ) : subtitle ? (
-      <Box paddingHorizontal={4}>
-        <Text
-          variant={TextVariant.BodyMd}
-          color={subtitleColor}
-          fontWeight={FontWeight.Medium}
-          testID={subtitleTestID}
-        >
-          {subtitle}
-        </Text>
-      </Box>
-    ) : null;
-
   return (
     <Box testID={testID}>
       <SectionDivider />
       <SectionHeader
         title={title}
-        isInteractive={Boolean(showAction)}
-        onPress={showAction ? onActionPress : undefined}
-        testID={showAction ? PerpsHomeSectionTestIds.ACTION_BUTTON : undefined}
-        twClassName={'pb-1'}
+        twClassName={showAction ? 'pb-1 justify-between' : 'pb-1'}
+        endAccessory={
+          showAction ? (
+            <ButtonIcon
+              iconName={IconName.MoreHorizontal}
+              size={ButtonIconSize.Md}
+              onPress={onActionPress}
+              testID={PerpsHomeSectionTestIds.ACTION_BUTTON}
+            />
+          ) : undefined
+        }
       />
-      {headerAccessory}
+      {subtitle && subtitleSuffix ? (
+        <HomepageSectionUnrealizedPnlRow
+          label={subtitleSuffix}
+          valueText={subtitle}
+          valueColor={subtitleColor}
+          paddingHorizontal={4}
+          valueTestID={subtitleTestID}
+          labelTestID={subtitleTestID ? `${subtitleTestID}-suffix` : undefined}
+        />
+      ) : subtitle ? (
+        <Box paddingHorizontal={4}>
+          <Text
+            variant={TextVariant.BodyMd}
+            color={subtitleColor}
+            fontWeight={FontWeight.Medium}
+            testID={subtitleTestID}
+          >
+            {subtitle}
+          </Text>
+        </Box>
+      ) : null}
       {isLoading ? renderSkeleton() : children}
     </Box>
   );
