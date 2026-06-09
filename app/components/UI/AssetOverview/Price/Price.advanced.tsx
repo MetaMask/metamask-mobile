@@ -40,6 +40,7 @@ import TimeRangeSelector, {
 import { useOHLCVChart } from '../../Charts/AdvancedChart/useOHLCVChart';
 import { useOHLCVRealtime } from '../../Charts/AdvancedChart/useOHLCVRealtime';
 import { OHLCVBar } from '../../Charts/AdvancedChart/OHLCVBar/OHLCVBar';
+import IndicatorBar from '../../Charts/AdvancedChart/IndicatorBar';
 import {
   Box,
   FontWeight,
@@ -657,7 +658,7 @@ const PriceAdvanced = ({
           />
         </View>
       </View>
-      <Box twClassName="w-full pb-4">
+      <Box twClassName="w-full">
         {crosshairData && chartType === ChartType.Candles && (
           <OHLCVBar data={crosshairData} currency={currentCurrency} />
         )}
@@ -701,6 +702,13 @@ const PriceAdvanced = ({
           )}
         </View>
       </Box>
+      {chartType === ChartType.Candles ? (
+        <Box twClassName="w-full mb-3">
+          <IndicatorBar intervalLabel={wsInterval.toUpperCase()} />
+        </Box>
+      ) : (
+        <Box twClassName="pb-4" />
+      )}
     </>
   );
 };
