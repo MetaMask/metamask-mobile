@@ -3,11 +3,15 @@ import {
   FundingStatus,
   DelegationSettingsResponse,
 } from '../../../../../components/UI/Card/types';
+import { getVedaTokenConfig } from '../../../../../components/UI/Card/util/vedaToken';
 import {
   hasMoneyAccountCardRequirements,
   isMoneyAccountDelegatedForCard,
   resolveMoneyAccountCardToken,
 } from './moneyAccountCardToken';
+
+const VEDA_ADDRESS = '0xb4563bcD3B7764CCBf497f515585f70B6C3EA5Ae';
+const DELEGATION_CONTRACT = '0xC7f1b2228fbf28451c7bf791C4f610111f0f32cb';
 
 const createDelegationSettings = (
   overrides: Partial<DelegationSettingsResponse['networks'][0]> = {},
@@ -17,14 +21,19 @@ const createDelegationSettings = (
   networks: [
     {
       network: 'monad',
-      environment: 'production',
+      environment: 'staging',
       chainId: '143',
-      delegationContract: '0xdelegation',
+      delegationContract: DELEGATION_CONTRACT,
       tokens: {
         usdc: {
-          symbol: 'USDC',
+          symbol: 'usdc',
           decimals: 6,
-          address: '0xusdc',
+          address: '0x3F9608bb41f7C30E82cFD4C812b3Ac2f9cb91198',
+        },
+        veda: {
+          symbol: 'veda',
+          decimals: 6,
+          address: VEDA_ADDRESS,
         },
       },
       ...overrides,
@@ -33,19 +42,20 @@ const createDelegationSettings = (
 });
 
 describe('resolveMoneyAccountCardToken', () => {
-  it('returns Monad USDC from delegation settings', () => {
+  it('returns the Veda token from delegation settings', () => {
     expect(resolveMoneyAccountCardToken(createDelegationSettings())).toEqual({
-      address: '0xusdc',
-      symbol: 'USDC',
-      name: 'USDC',
+      address: VEDA_ADDRESS,
+      symbol: 'veda',
+      name: 'veda',
       decimals: 6,
       caipChainId: 'eip155:143',
       walletAddress: undefined,
       fundingStatus: FundingStatus.NotEnabled,
       spendableBalance: '0',
-      delegationContract: '0xdelegation',
+      delegationContract: DELEGATION_CONTRACT,
       priority: undefined,
       stagingTokenAddress: undefined,
+      displaySymbol: 'mUSD',
     });
   });
 
@@ -57,18 +67,30 @@ describe('resolveMoneyAccountCardToken', () => {
     ).toBeNull();
   });
 
-  it('returns null when USDC is missing', () => {
+  it('returns null when the veda key is missing', () => {
     expect(
-      resolveMoneyAccountCardToken(createDelegationSettings({ tokens: {} })),
+      resolveMoneyAccountCardToken(
+        createDelegationSettings({
+          tokens: {
+            usdc: { symbol: 'USDC', decimals: 6, address: '0xusdc' },
+          },
+        }),
+      ),
     ).toBeNull();
   });
 
-  it('keeps staging token address for non-production settings', () => {
-    expect(
-      resolveMoneyAccountCardToken(
-        createDelegationSettings({ environment: 'staging' }),
-      )?.stagingTokenAddress,
-    ).toBe('0xusdc');
+  it('uses the delegation-settings address directly (no SDK remap)', () => {
+    const customAddress = '0x1111111111111111111111111111111111111111';
+    const result = resolveMoneyAccountCardToken(
+      createDelegationSettings({
+        environment: 'production',
+        tokens: {
+          veda: { symbol: 'veda', decimals: 6, address: customAddress },
+        },
+      }),
+    );
+    expect(result?.address).toBe(customAddress);
+    expect(result?.stagingTokenAddress).toBeUndefined();
   });
 });
 
@@ -116,22 +138,24 @@ describe('hasMoneyAccountCardRequirements', () => {
 
 describe('isMoneyAccountDelegatedForCard', () => {
   const MA_ADDRESS = '0x1234567890abcdef1234567890abcdef12345678';
+  const vedaConfig = getVedaTokenConfig(createDelegationSettings());
 
   const createFundingToken = (
     overrides: Partial<CardFundingToken> = {},
   ): CardFundingToken =>
     ({
-      address: '0xusdc',
-      symbol: 'USDC',
-      name: 'USDC',
+      address: VEDA_ADDRESS,
+      symbol: 'veda',
+      name: 'veda',
       decimals: 6,
       caipChainId: 'eip155:143',
       walletAddress: MA_ADDRESS,
       fundingStatus: FundingStatus.Enabled,
       spendableBalance: '0',
-      delegationContract: '0xdelegation',
+      delegationContract: DELEGATION_CONTRACT,
       priority: undefined,
       stagingTokenAddress: undefined,
+      displaySymbol: 'mUSD',
       ...overrides,
     }) as CardFundingToken;
 
@@ -140,6 +164,17 @@ describe('isMoneyAccountDelegatedForCard', () => {
       isMoneyAccountDelegatedForCard({
         fundingTokens: [createFundingToken()],
         moneyAccountAddress: undefined,
+        vedaConfig,
+      }),
+    ).toBe(false);
+  });
+
+  it('returns false when vedaConfig is null', () => {
+    expect(
+      isMoneyAccountDelegatedForCard({
+        fundingTokens: [createFundingToken()],
+        moneyAccountAddress: MA_ADDRESS,
+        vedaConfig: null,
       }),
     ).toBe(false);
   });
@@ -149,52 +184,55 @@ describe('isMoneyAccountDelegatedForCard', () => {
       isMoneyAccountDelegatedForCard({
         fundingTokens: [],
         moneyAccountAddress: MA_ADDRESS,
+        vedaConfig,
       }),
     ).toBe(false);
   });
 
-  it('returns true when an enabled Monad USDC row matches the Money Account address', () => {
+  it('returns true when an enabled Veda row matches the Money Account address', () => {
     expect(
       isMoneyAccountDelegatedForCard({
         fundingTokens: [
           createFundingToken({ fundingStatus: FundingStatus.Enabled }),
         ],
         moneyAccountAddress: MA_ADDRESS,
+        vedaConfig,
       }),
     ).toBe(true);
   });
 
-  it('returns true when the matching row has Limited status (allowance below the cap still counts as delegated)', () => {
+  it('returns true when the matching row has Limited status', () => {
     expect(
       isMoneyAccountDelegatedForCard({
         fundingTokens: [
           createFundingToken({ fundingStatus: FundingStatus.Limited }),
         ],
         moneyAccountAddress: MA_ADDRESS,
+        vedaConfig,
       }),
     ).toBe(true);
   });
 
-  it('returns false when the matching row has NotEnabled status (delegation was revoked / never approved)', () => {
+  it('returns false when the matching row has NotEnabled status', () => {
     expect(
       isMoneyAccountDelegatedForCard({
         fundingTokens: [
           createFundingToken({ fundingStatus: FundingStatus.NotEnabled }),
         ],
         moneyAccountAddress: MA_ADDRESS,
+        vedaConfig,
       }),
     ).toBe(false);
   });
 
-  it('matches addresses case-insensitively (checksum vs all-lowercase)', () => {
+  it('matches addresses case-insensitively', () => {
     expect(
       isMoneyAccountDelegatedForCard({
         fundingTokens: [
-          createFundingToken({
-            walletAddress: MA_ADDRESS.toUpperCase(),
-          }),
+          createFundingToken({ walletAddress: MA_ADDRESS.toUpperCase() }),
         ],
         moneyAccountAddress: MA_ADDRESS,
+        vedaConfig,
       }),
     ).toBe(true);
   });
@@ -208,6 +246,7 @@ describe('isMoneyAccountDelegatedForCard', () => {
           }),
         ],
         moneyAccountAddress: MA_ADDRESS,
+        vedaConfig,
       }),
     ).toBe(false);
   });
@@ -217,15 +256,22 @@ describe('isMoneyAccountDelegatedForCard', () => {
       isMoneyAccountDelegatedForCard({
         fundingTokens: [createFundingToken({ caipChainId: 'eip155:59144' })],
         moneyAccountAddress: MA_ADDRESS,
+        vedaConfig,
       }),
     ).toBe(false);
   });
 
-  it('returns false when the matching row is not USDC', () => {
+  it('returns false when the matching row is not Veda', () => {
     expect(
       isMoneyAccountDelegatedForCard({
-        fundingTokens: [createFundingToken({ symbol: 'mUSD' })],
+        fundingTokens: [
+          createFundingToken({
+            address: '0x3F9608bb41f7C30E82cFD4C812b3Ac2f9cb91198',
+            symbol: 'usdc',
+          }),
+        ],
         moneyAccountAddress: MA_ADDRESS,
+        vedaConfig,
       }),
     ).toBe(false);
   });
@@ -235,16 +281,14 @@ describe('isMoneyAccountDelegatedForCard', () => {
       isMoneyAccountDelegatedForCard({
         fundingTokens: [
           createFundingToken({
-            symbol: 'USDC',
-            caipChainId: 'eip155:59144',
+            address: '0x3F9608bb41f7C30E82cFD4C812b3Ac2f9cb91198',
+            symbol: 'usdc',
           }),
-          createFundingToken({
-            walletAddress: '0xother',
-            symbol: 'USDC',
-          }),
+          createFundingToken({ walletAddress: '0xother' }),
           createFundingToken({ fundingStatus: FundingStatus.Enabled }),
         ],
         moneyAccountAddress: MA_ADDRESS,
+        vedaConfig,
       }),
     ).toBe(true);
   });

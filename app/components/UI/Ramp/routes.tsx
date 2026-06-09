@@ -161,11 +161,11 @@ const TokenListRoutes = () => {
   return (
     <QueryClientProvider client={reactQueryService.queryClient}>
       <RootStack.Navigator
-        initialRouteName={Routes.RAMP.TOKEN_SELECTION}
+        initialRouteName={Routes.RAMP.TOKEN_SELECTION_ROOT}
         screenOptions={{ headerShown: false }}
       >
         <RootStack.Screen
-          name={Routes.RAMP.TOKEN_SELECTION}
+          name={Routes.RAMP.TOKEN_SELECTION_ROOT}
           component={MainRoutes}
         />
         <RootStack.Screen
