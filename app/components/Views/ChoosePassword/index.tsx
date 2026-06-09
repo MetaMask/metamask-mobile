@@ -92,8 +92,8 @@ import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { hasTestOverrides } from '../../../util/test/utils';
 import { AccountImportStrategy } from '@metamask/keyring-controller';
 import { setDataCollectionForMarketing } from '../../../actions/security';
-import { selectAttributionRecord } from '../../../selectors/attribution';
-import { getWalletSetupCompletedAttributionAnalyticsProps } from '../../../util/analytics/walletSetupCompletedAttribution';
+import { persistAttributionFromPendingDeeplink } from '../../../util/analytics/persistAttributionFromPendingDeeplink';
+import { getWalletSetupAttributionPropsFromStore } from '../../../util/analytics/walletSetupCompletedAttribution';
 import { ChoosePasswordRouteParams } from './ChoosePassword.types';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
@@ -130,7 +130,6 @@ const ChoosePassword = () => {
     useRoute<RouteProp<{ params: ChoosePasswordRouteParams }, 'params'>>();
 
   const dispatch = useDispatch();
-  const attributionRecord = useSelector(selectAttributionRecord);
   const metrics = useAnalytics();
 
   const [isSelected, setIsSelected] = useState(false);
@@ -507,14 +506,21 @@ const ChoosePassword = () => {
         biometrics_enabled: Boolean(biometryType),
         account_type: accountType,
       });
+
+      let walletSetupAttributionProps = {};
+      if (isSocialLogin) {
+        if (isSelected) {
+          persistAttributionFromPendingDeeplink(dispatch);
+        }
+        walletSetupAttributionProps =
+          getWalletSetupAttributionPropsFromStore(isSelected);
+      }
+
       track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
         wallet_setup_type: 'new',
         new_wallet: true,
         account_type: accountType,
-        ...getWalletSetupCompletedAttributionAnalyticsProps(
-          attributionRecord,
-          isSelected,
-        ),
+        ...walletSetupAttributionProps,
       });
       endTrace({ name: TraceName.OnboardingSRPAccountCreationTime });
     } catch (err) {
@@ -531,8 +537,8 @@ const ChoosePassword = () => {
     handlePostWalletCreation,
     handleWalletCreationError,
     metrics,
-    attributionRecord,
     isSelected,
+    dispatch,
   ]);
 
   const onPasswordChange = useCallback(
