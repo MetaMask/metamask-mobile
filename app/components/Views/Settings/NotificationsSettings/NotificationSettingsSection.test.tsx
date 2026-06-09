@@ -1,6 +1,6 @@
 import React from 'react';
 import { StackActions } from '@react-navigation/native';
-import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import Routes from '../../../../constants/navigation/Routes';
 import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
@@ -10,7 +10,7 @@ import NotificationSettingsSection, {
 
 const mockDispatch = jest.fn();
 const mockGoBack = jest.fn();
-const mockUpdatePreference = jest.fn();
+const mockUpdateSectionChannel = jest.fn();
 const mockToggleAllAccounts = jest.fn();
 let mockIsMetamaskNotificationsEnabled = true;
 let mockHasEnabledAccount = true;
@@ -47,7 +47,7 @@ jest.mock('../../../../selectors/notifications', () => ({
 jest.mock('./hooks/useNotificationStoragePreferences', () => ({
   useNotificationStoragePreferences: () => ({
     preferences: mockPreferences,
-    updatePreference: mockUpdatePreference,
+    updateSectionChannel: mockUpdateSectionChannel,
   }),
 }));
 
@@ -95,6 +95,7 @@ const renderSection = (
 describe('NotificationSettingsSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUpdateSectionChannel.mockResolvedValue(undefined);
     mockIsMetamaskNotificationsEnabled = true;
     mockHasEnabledAccount = true;
     mockHasNotificationAccounts = true;
@@ -159,5 +160,74 @@ describe('NotificationSettingsSection', () => {
       );
     });
     expect(screen.queryByText('Trading Signals')).toBeNull();
+  });
+
+  it('uses explicit next value for push notifications toggle', async () => {
+    renderSection();
+
+    const pushToggle = screen.getByTestId(
+      NotificationSettingsViewSelectorsIDs.PUSH_NOTIFICATIONS_TOGGLE,
+    );
+    await act(async () => {
+      fireEvent(pushToggle, 'onValueChange', false);
+      await Promise.resolve();
+    });
+
+    await waitFor(() => {
+      expect(mockUpdateSectionChannel).toHaveBeenCalledWith(
+        'socialAI',
+        'pushNotificationsEnabled',
+        false,
+      );
+    });
+  });
+
+  it('uses explicit next value for in-app notifications toggle', async () => {
+    renderSection();
+
+    const inAppToggle = screen.getByTestId(
+      NotificationSettingsViewSelectorsIDs.FEATURE_ANNOUNCEMENTS_TOGGLE,
+    );
+    await act(async () => {
+      fireEvent(inAppToggle, 'onValueChange', false);
+      await Promise.resolve();
+    });
+
+    await waitFor(() => {
+      expect(mockUpdateSectionChannel).toHaveBeenCalledWith(
+        'socialAI',
+        'inAppNotificationsEnabled',
+        false,
+      );
+    });
+  });
+
+  it('forwards rapid toggle events in order', async () => {
+    renderSection();
+
+    const pushToggle = screen.getByTestId(
+      NotificationSettingsViewSelectorsIDs.PUSH_NOTIFICATIONS_TOGGLE,
+    );
+    await act(async () => {
+      fireEvent(pushToggle, 'onValueChange', false);
+      fireEvent(pushToggle, 'onValueChange', true);
+      await Promise.resolve();
+    });
+
+    expect(mockUpdateSectionChannel).toHaveBeenNthCalledWith(
+      1,
+      'socialAI',
+      'pushNotificationsEnabled',
+      false,
+    );
+    await waitFor(() => {
+      expect(mockUpdateSectionChannel).toHaveBeenCalledTimes(2);
+    });
+    expect(mockUpdateSectionChannel).toHaveBeenNthCalledWith(
+      2,
+      'socialAI',
+      'pushNotificationsEnabled',
+      true,
+    );
   });
 });

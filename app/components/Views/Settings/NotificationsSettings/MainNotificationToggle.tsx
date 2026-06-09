@@ -40,7 +40,7 @@ export const MainNotificationToggle = () => {
         </Text>
         <Switch
           value={value}
-          onChange={onToggle}
+          onValueChange={onToggle}
           trackColor={{
             true: theme.colors.primary.default,
             false: theme.colors.border.muted,

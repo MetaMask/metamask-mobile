@@ -4,7 +4,7 @@ import {
   RouteProp,
   StackActions,
 } from '@react-navigation/native';
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { ScrollView, Switch, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -20,6 +20,7 @@ import {
 } from '@metamask/design-system-react-native';
 import {
   useNotificationStoragePreferences,
+  type NotificationStoragePreferenceChannelKey,
   type NotificationStoragePreferenceSection,
 } from './hooks/useNotificationStoragePreferences';
 import { AccountsList } from './AccountsList';
@@ -29,6 +30,7 @@ import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/noti
 import Routes from '../../../../constants/navigation/Routes';
 import { useWalletActivityAccountSelection } from './AccountsList.hooks';
 import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
+import Logger from '../../../../util/Logger';
 
 type NotificationSettingsStyles = ReturnType<typeof styleSheet>;
 
@@ -156,7 +158,8 @@ const NotificationSettingsSection = ({
   const isMetamaskNotificationsEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
-  const { preferences, updatePreference } = useNotificationStoragePreferences();
+  const { preferences, updateSectionChannel } =
+    useNotificationStoragePreferences();
 
   useEffect(() => {
     if (!isMetamaskNotificationsEnabled) {
@@ -164,11 +167,33 @@ const NotificationSettingsSection = ({
     }
   }, [isMetamaskNotificationsEnabled, navigation]);
 
+  const handleChannelToggle = useCallback(
+    (channel: NotificationStoragePreferenceChannelKey, nextValue: boolean) => {
+      updateSectionChannel(type, channel, nextValue)
+        .catch(() => {
+          Logger.error(
+            new Error('Failed to update notification section channel'),
+            {
+              message: 'NotificationSettingsSection: update channel failed',
+              type,
+              channel,
+              nextValue,
+            },
+          );
+        });
+    },
+    [type, updateSectionChannel],
+  );
+
   if (!isMetamaskNotificationsEnabled || !preferences) {
     return null;
   }
 
   const sectionPrefs = preferences[type];
+  if (!sectionPrefs) {
+    return null;
+  }
+
   const SectionContent = SECTION_CONTENT_BY_TYPE[type];
 
   return (
@@ -200,12 +225,8 @@ const NotificationSettingsSection = ({
           </Text>
           <Switch
             value={sectionPrefs.pushNotificationsEnabled}
-            onChange={() =>
-              updatePreference(
-                type,
-                'pushNotificationsEnabled',
-                !sectionPrefs.pushNotificationsEnabled,
-              )
+            onValueChange={(nextValue) =>
+              handleChannelToggle('pushNotificationsEnabled', nextValue)
             }
             trackColor={{
               true: theme.colors.primary.default,
@@ -214,6 +235,9 @@ const NotificationSettingsSection = ({
             thumbColor={theme.brandColors.white}
             style={styles.switch}
             ios_backgroundColor={theme.colors.border.muted}
+            testID={
+              NotificationSettingsViewSelectorsIDs.PUSH_NOTIFICATIONS_TOGGLE
+            }
           />
         </View>
 
@@ -227,12 +251,8 @@ const NotificationSettingsSection = ({
           </Text>
           <Switch
             value={sectionPrefs.inAppNotificationsEnabled}
-            onChange={() =>
-              updatePreference(
-                type,
-                'inAppNotificationsEnabled',
-                !sectionPrefs.inAppNotificationsEnabled,
-              )
+            onValueChange={(nextValue) =>
+              handleChannelToggle('inAppNotificationsEnabled', nextValue)
             }
             trackColor={{
               true: theme.colors.primary.default,
@@ -241,6 +261,9 @@ const NotificationSettingsSection = ({
             thumbColor={theme.brandColors.white}
             style={styles.switch}
             ios_backgroundColor={theme.colors.border.muted}
+            testID={
+              NotificationSettingsViewSelectorsIDs.FEATURE_ANNOUNCEMENTS_TOGGLE
+            }
           />
         </View>
 

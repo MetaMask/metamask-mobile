@@ -49,10 +49,10 @@ describe('MainNotificationToggle', () => {
       NotificationSettingsViewSelectorsIDs.NOTIFICATIONS_TOGGLE,
     );
 
-    fireEvent(toggleSwitch, 'onChange', { nativeEvent: { value: false } });
+    fireEvent(toggleSwitch, 'onValueChange', false);
 
     await waitFor(() => {
-      expect(mocks.mockOnToggle).toHaveBeenCalled();
+      expect(mocks.mockOnToggle).toHaveBeenCalledWith(false);
     });
   });
 });
