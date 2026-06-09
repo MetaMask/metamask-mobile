@@ -577,7 +577,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
               variant={TextVariant.BodySm}
               color={
                 unitDisplay === 'base'
-                  ? TextColor.TextInverse
+                  ? TextColor.PrimaryInverse
                   : TextColor.TextDefault
               }
             >
@@ -596,7 +596,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
               variant={TextVariant.BodySm}
               color={
                 unitDisplay === 'usd'
-                  ? TextColor.TextInverse
+                  ? TextColor.PrimaryInverse
                   : TextColor.TextDefault
               }
             >
