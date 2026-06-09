@@ -167,6 +167,12 @@ export const usePerpsMarketListView = ({
   // Favorites filter state
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(showWatchlistOnly);
 
+  // Sync favorites filter when route params change (useState ignores new initials
+  // if the screen is already mounted, e.g. navigating from home watchlist header).
+  useEffect(() => {
+    setShowFavoritesOnly(showWatchlistOnly);
+  }, [showWatchlistOnly]);
+
   // Market type filter state (can be changed in UI, not persisted)
   const [marketTypeFilter, setMarketTypeFilter] = useState<MarketTypeFilter>(
     defaultMarketTypeFilter,

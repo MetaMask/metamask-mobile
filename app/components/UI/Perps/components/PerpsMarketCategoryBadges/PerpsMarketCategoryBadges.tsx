@@ -91,7 +91,7 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
           >
             <PerpsMarketCategoryBadge
               label={category.label}
-              accessibilityLabel={strings(category.label)}
+              accessibilityLabel={category.label}
               isSelected={isCategorySelected}
               onPress={() => handleCategoryPress(category.id)}
               testID={testID ? `${testID}-${category.id}` : undefined}
