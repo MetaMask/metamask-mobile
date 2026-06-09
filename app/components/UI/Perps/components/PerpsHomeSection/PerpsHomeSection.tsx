@@ -102,7 +102,7 @@ const PerpsHomeSection: React.FC<PerpsHomeSectionProps> = ({
       <SectionDivider />
       <SectionHeader
         title={title}
-        twClassName={showAction ? 'pb-1 justify-between' : 'pb-1'}
+        twClassName={showAction ? 'pb-1 justify-between pr-3' : 'pb-1'}
         endAccessory={
           showAction ? (
             <ButtonIcon
