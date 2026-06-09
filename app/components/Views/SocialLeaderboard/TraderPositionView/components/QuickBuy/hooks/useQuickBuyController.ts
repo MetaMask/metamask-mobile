@@ -1113,18 +1113,46 @@ export function useQuickBuyController(
       return hasNonZeroInputAmount;
     }
   }, [sourceTokenAmount, sourceToken?.decimals]);
-  const settledSourceTokenAmountRef = useRef(sourceTokenAmount);
-  const wasQuoteLoadingRef = useRef(isQuoteLoading);
-
-  useEffect(() => {
-    const loadingJustFinished = wasQuoteLoadingRef.current && !isQuoteLoading;
-
-    if (loadingJustFinished || hasError) {
-      settledSourceTokenAmountRef.current = sourceTokenAmount;
+  // A displayed quote corresponds to the current amount when the amount the
+  // user actually spends matches the requested amount. The request is built
+  // with `calcTokenValue(sourceTokenAmount, decimals).toFixed(0)`, so we
+  // normalise both sides to atomic units and compare.
+  //
+  // We compare against the quote's `sentAmount` (the full wallet deduction:
+  // routing amount + src-token fees, or the fixed intent commitment) rather
+  // than `quote.srcTokenAmount`. `quote.srcTokenAmount` is the post-fee swap
+  // amount, so for gas-included / gas-sponsored quotes it is smaller than the
+  // requested amount and an exact equality would never pass — leaving the Buy
+  // CTA stuck disabled even with a valid quote on screen. `sentAmount` adds
+  // those src-token fees back, reconstructing the requested amount.
+  //
+  // Deriving this synchronously (rather than tracking the last-settled amount
+  // in a ref updated from an effect) lets the CTA enable on the same render the
+  // matching quote arrives — in lockstep with the loader — instead of a render
+  // later.
+  const isActiveQuoteForCurrentAmount = useMemo(() => {
+    if (
+      !activeQuote ||
+      !sourceToken ||
+      sourceToken.decimals == null ||
+      !sourceTokenAmount
+    ) {
+      return false;
     }
-
-    wasQuoteLoadingRef.current = isQuoteLoading;
-  }, [isQuoteLoading, sourceTokenAmount, hasError]);
+    try {
+      const requested = calcTokenValue(
+        sourceTokenAmount,
+        sourceToken.decimals,
+      ).toFixed(0);
+      const sent = calcTokenValue(
+        activeQuote.sentAmount.amount,
+        sourceToken.decimals,
+      ).toFixed(0);
+      return sent === requested;
+    } catch {
+      return false;
+    }
+  }, [activeQuote, sourceToken, sourceTokenAmount]);
 
   const hasCompleteQuoteInputs = Boolean(
     sourceToken &&
@@ -1133,8 +1161,7 @@ export function useQuickBuyController(
       !isDestinationAddressMissing,
   );
   const isPendingQuoteRefresh =
-    settledSourceTokenAmountRef.current !== sourceTokenAmount &&
-    hasCompleteQuoteInputs;
+    hasCompleteQuoteInputs && !isActiveQuoteForCurrentAmount;
   const hasQuoteMismatch =
     Boolean(activeQuote) && !isActiveQuoteForCurrentTokenPair;
 
