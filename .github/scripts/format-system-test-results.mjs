@@ -100,7 +100,7 @@ function detectVisualFailures(dir) {
       try {
         const data = JSON.parse(fs.readFileSync(full, 'utf-8'));
         const checks = Array.isArray(data) ? data : data.results || [];
-        return checks.some((c) => c.passed === false);
+        if (checks.some((c) => c.passed === false)) return true;
       } catch {
         continue;
       }
