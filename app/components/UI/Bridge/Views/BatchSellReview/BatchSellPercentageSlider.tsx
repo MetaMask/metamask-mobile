@@ -27,29 +27,6 @@ export function clampToPercentage(value: number): number {
   return Math.max(MIN_PERCENTAGE, Math.min(MAX_PERCENTAGE, Math.round(value)));
 }
 
-/**
- * Snaps a raw percentage value to the nearest entry in PERCENTAGE_STEPS.
- * Ties (exact midpoint) snap to the higher step.
- * Marked as a worklet so it can be called directly from gesture callbacks
- * on the UI thread without bridge overhead.
- */
-export function snapToStep(rawPercentage: number): number {
-  'worklet';
-  // Inline the step values so the worklet does not need to capture the
-  // module-level `as const` tuple across the JS/UI thread boundary.
-  const steps = [0, 25, 50, 75, 100];
-  let closest = steps[0];
-  let minDiff = Math.abs(rawPercentage - closest);
-  for (let i = 1; i < steps.length; i++) {
-    const diff = Math.abs(rawPercentage - steps[i]);
-    if (diff <= minDiff) {
-      minDiff = diff;
-      closest = steps[i];
-    }
-  }
-  return closest;
-}
-
 interface BatchSellPercentageSliderProps {
   value: number;
   onValueChange: (value: number) => void;
@@ -82,7 +59,9 @@ export function BatchSellPercentageSlider({
       }
 
       const clampedPosition = Math.max(0, Math.min(position, width));
-      const nextValue = snapToStep((clampedPosition / width) * MAX_PERCENTAGE);
+      const nextValue = clampToPercentage(
+        (clampedPosition / width) * MAX_PERCENTAGE,
+      );
 
       updatePosition(nextValue, width);
       onValueChange(nextValue);
@@ -147,14 +126,12 @@ export function BatchSellPercentageSlider({
 
   const handleAccessibilityAction = useCallback(
     (event: AccessibilityActionEvent) => {
-      const steps = [...PERCENTAGE_STEPS] as number[];
-      const currentIndex = steps.indexOf(snapToStep(clampedValue));
-      const nextIndex =
+      const nextValue =
         event.nativeEvent.actionName === 'increment'
-          ? Math.min(currentIndex + 1, steps.length - 1)
-          : Math.max(currentIndex - 1, 0);
+          ? clampToPercentage(clampedValue + 1)
+          : clampToPercentage(clampedValue - 1);
 
-      onValueChange(PERCENTAGE_STEPS[nextIndex]);
+      onValueChange(nextValue);
     },
     [onValueChange, clampedValue],
   );

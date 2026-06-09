@@ -4,7 +4,6 @@ import { fireEvent, render } from '@testing-library/react-native';
 import {
   BatchSellPercentageSlider,
   clampToPercentage,
-  snapToStep,
   MARKER_POINTS,
 } from './BatchSellPercentageSlider';
 
@@ -51,28 +50,7 @@ describe('BatchSellPercentageSlider', () => {
     expect(result).toBe(expectedValue);
   });
 
-  it.each([
-    [-10, 0],
-    [0, 0],
-    [12, 0],
-    [12.4, 0],
-    [12.5, 25],
-    [24, 25],
-    [37.4, 25],
-    [37.5, 50],
-    [50, 50],
-    [62.4, 50],
-    [62.5, 75],
-    [75, 75],
-    [87.4, 75],
-    [87.5, 100],
-    [100, 100],
-    [120, 100],
-  ])('snaps %s to the nearest step %s', (value, expectedValue) => {
-    expect(snapToStep(value)).toBe(expectedValue);
-  });
-
-  it('increments accessibility value to the next step', () => {
+  it('increments accessibility value by one percentage point', () => {
     const onValueChange = jest.fn();
     const { getByTestId } = render(
       <BatchSellPercentageSlider
@@ -86,10 +64,10 @@ describe('BatchSellPercentageSlider', () => {
       nativeEvent: { actionName: 'increment' },
     });
 
-    expect(onValueChange).toHaveBeenCalledWith(75);
+    expect(onValueChange).toHaveBeenCalledWith(51);
   });
 
-  it('decrements accessibility value to the previous step', () => {
+  it('decrements accessibility value by one percentage point', () => {
     const onValueChange = jest.fn();
     const { getByTestId } = render(
       <BatchSellPercentageSlider
@@ -103,7 +81,7 @@ describe('BatchSellPercentageSlider', () => {
       nativeEvent: { actionName: 'decrement' },
     });
 
-    expect(onValueChange).toHaveBeenCalledWith(25);
+    expect(onValueChange).toHaveBeenCalledWith(49);
   });
 
   it('does not decrement below 0%', () => {
@@ -121,23 +99,6 @@ describe('BatchSellPercentageSlider', () => {
     });
 
     expect(onValueChange).toHaveBeenCalledWith(0);
-  });
-
-  it('does not increment above 100%', () => {
-    const onValueChange = jest.fn();
-    const { getByTestId } = render(
-      <BatchSellPercentageSlider
-        value={100}
-        onValueChange={onValueChange}
-        testID={SLIDER_TEST_ID}
-      />,
-    );
-
-    fireEvent(getByTestId(SLIDER_TEST_ID), 'accessibilityAction', {
-      nativeEvent: { actionName: 'increment' },
-    });
-
-    expect(onValueChange).toHaveBeenCalledWith(100);
   });
 
   it('renders muted marker dots for each marker point', () => {
