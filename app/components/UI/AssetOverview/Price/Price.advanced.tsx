@@ -71,8 +71,6 @@ import {
 } from '../../../../util/trace';
 import { selectTokenDetailsOhlcvWsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsOhlcvWsIntegration';
 
-const EMPTY_INDICATORS: IndicatorType[] = [];
-
 /**
  * Maps UI time-range selections to the WebSocket candle interval used by
  * OHLCVService. These match the default intervals the REST OHLCV API returns
@@ -355,6 +353,30 @@ const PriceAdvanced = ({
       }),
     );
   }, [navigation, selectedMAs]);
+
+  const [activeIndicators, setActiveIndicators] = useState<Set<string>>(
+    new Set(),
+  );
+
+  const indicatorsArray = useMemo(
+    () =>
+      ([...activeIndicators, ...selectedMAs] as IndicatorType[]).filter(
+        (i) => i !== 'Volume',
+      ),
+    [activeIndicators, selectedMAs],
+  );
+
+  const handleIndicatorToggle = useCallback((name: string) => {
+    setActiveIndicators((prev) => {
+      const next = new Set(prev);
+      if (next.has(name)) {
+        next.delete(name);
+      } else {
+        next.add(name);
+      }
+      return next;
+    });
+  }, []);
 
   const wsEnabled =
     isOhlcvWsEnabled &&
@@ -719,10 +741,13 @@ const PriceAdvanced = ({
               ohlcvSeriesKey={ohlcvSeriesKey}
               realtimeBar={realtimeBar}
               height={CHART_HEIGHT}
-              showVolume={chartType === ChartType.Candles}
+              showVolume={
+                chartType === ChartType.Candles &&
+                activeIndicators.has('Volume')
+              }
               volumeOverlay
               chartType={chartType}
-              indicators={EMPTY_INDICATORS}
+              indicators={indicatorsArray}
               lineChrome={advancedChartLineChromePresets.tokenOverview}
               isLoading={chartLoading}
               ohlcvPagination={ohlcvPagination}
@@ -751,6 +776,8 @@ const PriceAdvanced = ({
             onIntervalPress={handleIntervalPress}
             maLabel={maLabel}
             onMAPress={handleMAPress}
+            activeIndicators={activeIndicators}
+            onIndicatorToggle={handleIndicatorToggle}
           />
         </Box>
       ) : (

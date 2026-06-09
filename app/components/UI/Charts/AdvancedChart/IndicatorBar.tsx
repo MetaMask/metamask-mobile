@@ -22,6 +22,10 @@ interface IndicatorBarProps {
   maLabel?: string;
   /** Called when the MA dropdown is pressed. */
   onMAPress?: () => void;
+  /** Set of currently active indicator names (e.g. "MACD", "RSI"). */
+  activeIndicators?: Set<string>;
+  /** Called when an indicator toggle button is pressed. */
+  onIndicatorToggle?: (name: string) => void;
 }
 
 const IndicatorBar: React.FC<IndicatorBarProps> = ({
@@ -29,8 +33,12 @@ const IndicatorBar: React.FC<IndicatorBarProps> = ({
   onIntervalPress,
   maLabel = 'MA',
   onMAPress,
+  activeIndicators,
+  onIndicatorToggle,
 }) => {
   const tw = useTailwind();
+
+  const isActive = (name: string) => activeIndicators?.has(name) ?? false;
 
   return (
     <Box
@@ -93,34 +101,40 @@ const IndicatorBar: React.FC<IndicatorBarProps> = ({
         />
       </Pressable>
 
-      {/* BB */}
+      {/* BOL (Bollinger Bands) */}
       <Pressable
         style={({ pressed }) => tw.style('px-3', pressed && 'opacity-70')}
+        onPress={() => onIndicatorToggle?.('BOL')}
         accessibilityRole="button"
-        accessibilityLabel="BB"
+        accessibilityLabel="BOL"
       >
         <Text
           variant={TextVariant.BodyXs}
-          fontWeight={FontWeight.Medium}
-          twClassName="text-text-alternative"
+          fontWeight={isActive('BOL') ? FontWeight.Bold : FontWeight.Medium}
+          twClassName={
+            isActive('BOL') ? 'text-text-default' : 'text-text-alternative'
+          }
         >
-          BB
+          BOL
         </Text>
       </Pressable>
 
-      {/* Divider between BB and RSI */}
+      {/* Divider between BOL and RSI */}
       <Box twClassName="h-4 w-px bg-border-muted" />
 
       {/* RSI */}
       <Pressable
         style={({ pressed }) => tw.style('px-3', pressed && 'opacity-70')}
+        onPress={() => onIndicatorToggle?.('RSI')}
         accessibilityRole="button"
         accessibilityLabel="RSI"
       >
         <Text
           variant={TextVariant.BodyXs}
-          fontWeight={FontWeight.Medium}
-          twClassName="text-text-alternative"
+          fontWeight={isActive('RSI') ? FontWeight.Bold : FontWeight.Medium}
+          twClassName={
+            isActive('RSI') ? 'text-text-default' : 'text-text-alternative'
+          }
         >
           RSI
         </Text>
@@ -129,13 +143,16 @@ const IndicatorBar: React.FC<IndicatorBarProps> = ({
       {/* Volume */}
       <Pressable
         style={({ pressed }) => tw.style('px-3', pressed && 'opacity-70')}
+        onPress={() => onIndicatorToggle?.('Volume')}
         accessibilityRole="button"
         accessibilityLabel="Volume"
       >
         <Text
           variant={TextVariant.BodyXs}
-          fontWeight={FontWeight.Medium}
-          twClassName="text-text-alternative"
+          fontWeight={isActive('Volume') ? FontWeight.Bold : FontWeight.Medium}
+          twClassName={
+            isActive('Volume') ? 'text-text-default' : 'text-text-alternative'
+          }
         >
           Volume
         </Text>
@@ -144,13 +161,16 @@ const IndicatorBar: React.FC<IndicatorBarProps> = ({
       {/* MACD */}
       <Pressable
         style={({ pressed }) => tw.style('px-3', pressed && 'opacity-70')}
+        onPress={() => onIndicatorToggle?.('MACD')}
         accessibilityRole="button"
         accessibilityLabel="MACD"
       >
         <Text
           variant={TextVariant.BodyXs}
-          fontWeight={FontWeight.Medium}
-          twClassName="text-text-alternative"
+          fontWeight={isActive('MACD') ? FontWeight.Bold : FontWeight.Medium}
+          twClassName={
+            isActive('MACD') ? 'text-text-default' : 'text-text-alternative'
+          }
         >
           MACD
         </Text>

@@ -52,7 +52,6 @@ export const DEFAULT_DISABLED_FEATURES: string[] = [
   'legend_context_menu',
   'symbol_search_hot_key',
   'symbol_info',
-  'legend_widget',
   'display_market_status',
   'scales_context_menu',
   'property_pages',

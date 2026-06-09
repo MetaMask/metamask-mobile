@@ -615,19 +615,29 @@ function handleAddIndicator(payload) {
         studyName = 'Relative Strength Index';
         inputs = { in_0: 14 };
         break;
+      case 'BOL':
+        studyName = 'Bollinger Bands';
+        inputs = { in_0: 20, in_1: 2 };
+        break;
       case 'MA200':
         studyName = 'Moving Average';
-        inputs = { in_0: 200 };
+        inputs = { length: 200 };
         break;
       default:
-        studyName = indicatorName;
-        inputs = payload.inputs || {};
+        var maMatch = indicatorName.match(/^MA(\\d+)$/);
+        if (maMatch) {
+          studyName = 'Moving Average';
+          inputs = { length: parseInt(maMatch[1], 10) };
+        } else {
+          studyName = indicatorName;
+          inputs = payload.inputs || {};
+        }
         break;
     }
 
-    chart
-      .createStudy(studyName, false, false, inputs)
-      .then(function (studyId) {
+    var promise = chart.createStudy(studyName, false, false, inputs);
+
+    promise.then(function (studyId) {
         window.activeStudies.set(indicatorName, studyId);
         sendToReactNative('INDICATOR_ADDED', {
           name: indicatorName,
@@ -724,7 +734,8 @@ function getSeriesColorOverrides(color) {
  */
 function applySeriesColors() {
   if (!window.chartWidget) return;
-  const color = window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
+  const color =
+    window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
   try {
     window.chartWidget.applyOverrides(getSeriesColorOverrides(color));
     var series = window.chartWidget.activeChart().getSeries();
@@ -2257,7 +2268,8 @@ function createLineLastPriceLine() {
 
   var lastBar = window.ohlcvData[window.ohlcvData.length - 1];
   var chart = window.chartWidget.activeChart();
-  const color = window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
+  const color =
+    window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
   var seriesPt = resolveLineEndOverlayPoint(chart);
   var linePrice =
     seriesPt && isFinite(seriesPt.price) ? seriesPt.price : lastBar.close;
@@ -3039,7 +3051,8 @@ function refreshLineEndDot() {
     return;
   }
 
-  const color = window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
+  const color =
+    window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
 
   function placeLineEndIcon() {
     if (placementGen !== window.__lineEndDotPlacementGen) {
@@ -3728,7 +3741,11 @@ function initChart() {
       // Keep default logo placement on the *bottom* pane so it stays in the same corner when
       // toggling line (single pane) vs candle + volume (logo on volume strip). Forcing
       // move_logo_to_main_pane shifts the mark into the price pane and it jumps above volume.
-      enabled_features: ['study_templates', 'iframe_loading_same_origin'],
+      enabled_features: [
+        'study_templates',
+        'iframe_loading_same_origin',
+        'always_show_legend_values_on_mobile',
+      ],
 
       custom_themes: {
         dark: {
@@ -3756,6 +3773,11 @@ function initChart() {
           'scalesProperties.showTimeScaleCrosshairLabel': !initCustomLabels,
           'scalesProperties.crosshairLabelBgColorDark': '#FFFFFF',
           'scalesProperties.crosshairLabelBgColorLight': '#FFFFFF',
+          'paneProperties.legendProperties.showSeriesTitle': false,
+          'paneProperties.legendProperties.showSeriesOHLC': false,
+          'paneProperties.legendProperties.showBarChange': false,
+          'paneProperties.legendProperties.showVolume': false,
+          'paneProperties.legendProperties.showBackground': false,
           'mainSeriesProperties.showPriceLine': !initCustomDashed,
 
           'mainSeriesProperties.candleStyle.upColor': theme.successColor,
