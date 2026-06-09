@@ -30,6 +30,7 @@ import KeyValueRow from '../../../../../component-library/components-temp/KeyVal
 import Icon, {
   IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
+import { TextVariant as LegacyTextVariant } from '../../../../../component-library/components/Texts/Text';
 import Engine from '../../../../../core/Engine';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../../util/Logger';
@@ -556,7 +557,7 @@ const PerpsWithdrawView: React.FC = () => {
             field={{
               label: {
                 text: strings('perps.withdrawal.you_will_receive'),
-                variant: TextVariant.BodyMd,
+                variant: LegacyTextVariant.BodyMD,
               },
             }}
             value={{
