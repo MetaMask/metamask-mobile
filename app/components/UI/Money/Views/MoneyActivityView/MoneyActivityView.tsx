@@ -2,7 +2,6 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { SectionList, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import type { TransactionMeta } from '@metamask/transaction-controller';
 import {
   Box,
   BoxAlignItems,
@@ -21,9 +20,12 @@ import {
 } from '@metamask/design-system-react-native';
 import I18n, { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
-import MoneyActivityItem from '../../components/MoneyActivityItem';
+import MoneyActivityRow from '../../components/MoneyActivityRow/MoneyActivityRow';
+import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyActivityLoading';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
-import { getMoneyActivityDateKeyUtc } from '../../constants/moneyActivityFilters';
+import { useMoneyAccountCardTransactions } from '../../hooks/useMoneyAccountCardTransactions';
+import { mergeMoneyActivity } from '../../hooks/useMoneyActivityItems';
+import { onchainItem, type MoneyActivityItem } from '../../types/moneyActivity';
 import { MoneyActivityFilter } from '../../constants/mockActivityData';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MoneyActivityViewTestIds } from './MoneyActivityView.testIds';
@@ -34,21 +36,25 @@ const styles = StyleSheet.create({
 
 interface DateSection {
   title: string;
-  data: TransactionMeta[];
+  data: MoneyActivityItem[];
+}
+
+function dateKeyUtc(time: number): string {
+  return new Date(time).toISOString().slice(0, 10);
 }
 
 function groupByDate(
-  transactions: TransactionMeta[],
+  items: MoneyActivityItem[],
   locale: string,
 ): DateSection[] {
-  const groups = new Map<string, TransactionMeta[]>();
-  for (const tx of transactions) {
-    const key = getMoneyActivityDateKeyUtc(tx);
+  const groups = new Map<string, MoneyActivityItem[]>();
+  for (const item of items) {
+    const key = dateKeyUtc(item.time);
     const existing = groups.get(key);
     if (existing) {
-      existing.push(tx);
+      existing.push(item);
     } else {
-      groups.set(key, [tx]);
+      groups.set(key, [item]);
     }
   }
   return Array.from(groups.entries()).map(([dateKey, data]) => ({
@@ -74,6 +80,31 @@ const MoneyActivityView = () => {
     moneyAddress,
     mockDataEnabled,
   } = useMoneyAccountTransactions();
+  const { cardTransactions, isLoading: isCardActivityLoading } =
+    useMoneyAccountCardTransactions();
+
+  // Mock mode shows curated demo data only — never merge real card spends (or
+  // their loading state) into it.
+  const showCardActivityLoading = isCardActivityLoading && !mockDataEnabled;
+
+  // Card spends are outgoing, so they belong with transfers (and in "All").
+  const allItems = useMemo(
+    () =>
+      mergeMoneyActivity(
+        allTransactions,
+        mockDataEnabled ? [] : cardTransactions,
+      ),
+    [allTransactions, cardTransactions, mockDataEnabled],
+  );
+  const depositItems = useMemo(
+    () => deposits.map(onchainItem).sort((a, b) => b.time - a.time),
+    [deposits],
+  );
+  const transferItems = useMemo(
+    () =>
+      mergeMoneyActivity(transfers, mockDataEnabled ? [] : cardTransactions),
+    [transfers, cardTransactions, mockDataEnabled],
+  );
 
   const handleBackPress = useCallback(() => {
     navigation.goBack();
@@ -91,13 +122,13 @@ const MoneyActivityView = () => {
 
   const filtered = useMemo(() => {
     if (filter === MoneyActivityFilter.All) {
-      return allTransactions;
+      return allItems;
     }
     if (filter === MoneyActivityFilter.Deposits) {
-      return deposits;
+      return depositItems;
     }
-    return transfers;
-  }, [filter, allTransactions, deposits, transfers]);
+    return transferItems;
+  }, [filter, allItems, depositItems, transferItems]);
 
   const sections = useMemo(
     () => groupByDate(filtered, I18n.locale),
@@ -117,9 +148,9 @@ const MoneyActivityView = () => {
     </Box>
   );
 
-  const renderItem = ({ item }: { item: TransactionMeta }) => (
-    <MoneyActivityItem
-      tx={item}
+  const renderItem = ({ item }: { item: MoneyActivityItem }) => (
+    <MoneyActivityRow
+      item={item}
       moneyAddress={moneyAddress}
       onPress={mockDataEnabled ? undefined : handleItemPress}
     />
@@ -208,7 +239,9 @@ const MoneyActivityView = () => {
         </Button>
       </Box>
 
-      {sections.length === 0 ? (
+      {showCardActivityLoading ? (
+        <MoneyActivityLoading />
+      ) : sections.length === 0 ? (
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}

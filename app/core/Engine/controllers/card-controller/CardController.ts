@@ -50,6 +50,10 @@ import {
   type AwaitTransactionConfirmedMessenger,
 } from './utils/awaitTransactionConfirmed';
 import { resolveMoneyAccountCardToken } from './utils/moneyAccountCardToken';
+import {
+  MONEY_ACCOUNT_DELEGATION_NETWORK,
+  MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
+} from '../../../../components/UI/Card/util/vedaToken';
 import { safeToChecksumAddress } from '../../../../util/address';
 import { toTokenMinimalUnit } from '../../../../util/number/bigint';
 import TransactionTypes from '../../../../core/TransactionTypes';
@@ -104,6 +108,12 @@ const metadata: StateMetadata<CardControllerState> = {
     includeInStateLogs: false,
     usedInUi: true,
   },
+  moneyAccountCardLinkInProgress: {
+    persist: false,
+    includeInDebugSnapshot: false,
+    includeInStateLogs: false,
+    usedInUi: true,
+  },
 };
 
 export const defaultCardControllerState: CardControllerState = {
@@ -114,6 +124,7 @@ export const defaultCardControllerState: CardControllerState = {
   providerData: {},
   cardHomeData: null,
   cardHomeDataStatus: 'idle',
+  moneyAccountCardLinkInProgress: false,
 };
 
 /**
@@ -136,7 +147,6 @@ export class CardController extends BaseController<
   private fetchCardHomeDataPromise: Promise<void> | null = null;
   private fetchGeneration = 0;
   private previousEvmAddress: string | null = null;
-  private linkMoneyAccountCardInFlight = false;
 
   constructor({
     messenger,
@@ -946,19 +956,23 @@ export class CardController extends BaseController<
     moneyAccountAddress: string;
     delegationAmountHuman: string;
   }): Promise<void> {
-    if (this.linkMoneyAccountCardInFlight) {
+    if (this.state.moneyAccountCardLinkInProgress) {
       throw new CardLinkageInProgressError();
     }
-    this.linkMoneyAccountCardInFlight = true;
+    this.update((state) => {
+      state.moneyAccountCardLinkInProgress = true;
+    });
     try {
       await this.#linkMoneyAccountCardUnsafe(params);
     } finally {
-      this.linkMoneyAccountCardInFlight = false;
+      this.update((state) => {
+        state.moneyAccountCardLinkInProgress = false;
+      });
     }
   }
 
   isLinkageInProgress(): boolean {
-    return this.linkMoneyAccountCardInFlight;
+    return this.state.moneyAccountCardLinkInProgress;
   }
 
   async #linkMoneyAccountCardUnsafe(params: {
@@ -1115,8 +1129,8 @@ export class CardController extends BaseController<
     await provider.approveFunding(
       {
         address: fromAddress,
-        network: 'monad',
-        currency: 'usdc',
+        network: MONEY_ACCOUNT_DELEGATION_NETWORK,
+        currency: MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
         amount: delegationAmountHuman,
         txHash,
         sigHash,

@@ -25,6 +25,9 @@ import styleSheet from './MoneyHomeView.styles';
 import { useMoneyDepositTokens } from '../../hooks/useMoneyDepositTokens';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
+import { useMoneyAccountCardTransactions } from '../../hooks/useMoneyAccountCardTransactions';
+import { mergeMoneyActivity } from '../../hooks/useMoneyActivityItems';
+import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyActivityLoading';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import { useOnboardingStep, STEPPER_IDS } from '../../hooks/useOnboardingStep';
@@ -35,10 +38,13 @@ import { MUSD_MAINNET_ASSET_FOR_DETAILS } from '../../../../Views/Homepage/Secti
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import AppConstants from '../../../../../core/AppConstants';
 import NavigationService from '../../../../../core/NavigationService';
-import { selectIsCardholder } from '../../../../../selectors/cardController';
+import {
+  selectHasMetalCard,
+  selectIsCardholder,
+} from '../../../../../selectors/cardController';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
+import { useCardHomeData } from '../../../Card/hooks/useCardHomeData';
 import { MONEY_HOME_CARD_ORIGIN } from '../../../Card/hooks/useCardPostAuthRedirect';
-import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
 import Logger from '../../../../../util/Logger';
 import { useTheme } from '../../../../../util/theme';
 import { MoneyBalanceDisplayState } from '../../types';
@@ -102,20 +108,32 @@ const MoneyHomeView = () => {
   const { initiateDeposit } = useMoneyAccountDeposit();
   const { allTransactions, moneyAddress, mockDataEnabled } =
     useMoneyAccountTransactions();
+  const { cardTransactions, isLoading: isCardActivityLoading } =
+    useMoneyAccountCardTransactions();
+  // Mock mode shows curated demo data only — never merge real card spends (or
+  // their loading state) into it.
+  const showCardActivityLoading = isCardActivityLoading && !mockDataEnabled;
+  const activityItems = useMemo(
+    () =>
+      mergeMoneyActivity(
+        allTransactions,
+        mockDataEnabled ? [] : cardTransactions,
+      ),
+    [allTransactions, cardTransactions, mockDataEnabled],
+  );
 
   const isCardholder = useSelector(selectIsCardholder);
-  const { startLinkFlow } = useMoneyAccountCardLinkage();
-  const geolocation = useSelector(getDetectedGeolocation);
-  const isUS = geolocation?.toUpperCase().split('-')[0] === 'US';
+  const hasMetalCard = useSelector(selectHasMetalCard);
+  const { startLinkFlow, isCardLinkedToMoneyAccount, isLinking } =
+    useMoneyAccountCardLinkage();
 
   const { isVisible: isOnboardingCardVisible } = useOnboardingStep({
     stepperId: STEPPER_IDS.MONEY,
     totalSteps: MONEY_ONBOARDING_TOTAL_STEPS,
   });
 
-  const homeState = getMoneyHomeState(allTransactions.length);
+  const homeState = getMoneyHomeState(activityItems.length);
   const isMilestone = homeState === 'milestone' || homeState === 'filled';
-  const isCardholderWithMilestone = isMilestone && isCardholder;
 
   let displayState: MoneyBalanceDisplayState;
   if (!hasMoneyAccount) {
@@ -298,18 +316,16 @@ const MoneyHomeView = () => {
   );
 
   let metamaskCardMode: 'upsell' | 'link' | 'manage';
-  if (isCardholderWithMilestone && isUS) {
+  if (isCardLinkedToMoneyAccount) {
     metamaskCardMode = 'manage';
-  } else if (isCardholderWithMilestone) {
+  } else if (isCardholder) {
     metamaskCardMode = 'link';
   } else {
     metamaskCardMode = 'upsell';
   }
 
-  // No selector yet for the user's card balance — fall back to a locale-
-  // formatted zero so the manage row always shows a value rather than a
-  // blank slot under "Avail. balance".
-  const cardBalance: string = formattedZero;
+  const { primaryToken: cardPrimaryToken } = useCardHomeData();
+  const cardBalance = cardPrimaryToken?.balanceFiat ?? formattedZero;
 
   return (
     <Box
@@ -374,17 +390,21 @@ const MoneyHomeView = () => {
             <Divider />
           </>
         )}
-        {allTransactions.length >= 1 && (
+        {(showCardActivityLoading || activityItems.length >= 1) && (
           <>
-            <MoneyActivityList
-              transactions={allTransactions}
-              moneyAddress={moneyAddress}
-              onViewAllPress={handleViewAllActivityPress}
-              onHeaderPress={handleActivityHeaderPress}
-              onItemPress={
-                mockDataEnabled ? undefined : handleActivityItemPress
-              }
-            />
+            {showCardActivityLoading ? (
+              <MoneyActivityLoading />
+            ) : (
+              <MoneyActivityList
+                items={activityItems}
+                moneyAddress={moneyAddress}
+                onViewAllPress={handleViewAllActivityPress}
+                onHeaderPress={handleActivityHeaderPress}
+                onItemPress={
+                  mockDataEnabled ? undefined : handleActivityItemPress
+                }
+              />
+            )}
             <Divider />
           </>
         )}
@@ -408,7 +428,8 @@ const MoneyHomeView = () => {
           onHeaderPress={handleCardPress}
           onLinkPress={handleLinkCardPress}
           onManagePress={handleCardPress}
-          showMetalCard={isUS}
+          showMetalCard={hasMetalCard}
+          isLinkDisabled={isLinking}
           cardBalance={cardBalance}
           apy={apyPercent}
         />

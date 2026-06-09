@@ -16,7 +16,10 @@ import {
   setExistingUser,
   setIsConnectionRemoved,
 } from '../../actions/user';
-import { clearOnboarding } from '../../actions/onboarding';
+import {
+  clearOnboarding,
+  setCompletedOnboarding,
+} from '../../actions/onboarding';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import AuthenticationError from './AuthenticationError';
 import { UNLOCK_WALLET_ERROR_MESSAGES } from './constants';
@@ -87,6 +90,7 @@ import { getAuthIcon, getAuthLabel, getAuthType } from './utils';
 import { IconName } from '@metamask/design-system-react-native';
 import { containsErrorMessage } from '../../util/errorHandling';
 import { ensureError } from '../../util/errorUtils';
+import { navigateToPostUnlockHome } from '../DeeplinkManager/utils/startupDeeplinkNavigation';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -123,6 +127,7 @@ class AuthenticationService {
     await MultichainAccountService.init();
 
     ReduxService.store.dispatch(logIn());
+    ReduxService.store.dispatch(setCompletedOnboarding(true));
   }
 
   /**
@@ -829,9 +834,7 @@ class AuthenticationService {
               ],
             });
           } else {
-            NavigationService.navigation?.reset({
-              routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-            });
+            await navigateToPostUnlockHome();
           }
         } else {
           // No password provided or derived. Navigate to login.
