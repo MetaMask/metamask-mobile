@@ -1,5 +1,9 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { AccessibilityActionEvent, LayoutChangeEvent } from 'react-native';
+import {
+  AccessibilityActionEvent,
+  LayoutChangeEvent,
+  View,
+} from 'react-native';
 import {
   Gesture,
   GestureDetector,
@@ -10,17 +14,40 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useStyles } from '../../../../../component-library/hooks';
+import styleSheet from './BatchSellPercentageSlider.styles';
 
-const HANDLE_SIZE = 24;
-const MARKER_SIZE = 4;
-const ACCESSIBILITY_STEP = 1;
+const HANDLE_SIZE = 32;
+const PERCENTAGE_STEPS = [0, 25, 50, 75, 100] as const;
 export const MARKER_POINTS = [25, 50, 75, 100];
 const MIN_PERCENTAGE = 0;
 const MAX_PERCENTAGE = 100;
 
 export function clampToPercentage(value: number): number {
   return Math.max(MIN_PERCENTAGE, Math.min(MAX_PERCENTAGE, Math.round(value)));
+}
+
+/**
+ * Snaps a raw percentage value to the nearest entry in PERCENTAGE_STEPS.
+ * Ties (exact midpoint) snap to the higher step.
+ * Marked as a worklet so it can be called directly from gesture callbacks
+ * on the UI thread without bridge overhead.
+ */
+export function snapToStep(rawPercentage: number): number {
+  'worklet';
+  // Inline the step values so the worklet does not need to capture the
+  // module-level `as const` tuple across the JS/UI thread boundary.
+  const steps = [0, 25, 50, 75, 100];
+  let closest = steps[0];
+  let minDiff = Math.abs(rawPercentage - closest);
+  for (let i = 1; i < steps.length; i++) {
+    const diff = Math.abs(rawPercentage - steps[i]);
+    if (diff <= minDiff) {
+      minDiff = diff;
+      closest = steps[i];
+    }
+  }
+  return closest;
 }
 
 interface BatchSellPercentageSliderProps {
@@ -34,7 +61,7 @@ export function BatchSellPercentageSlider({
   onValueChange,
   testID,
 }: BatchSellPercentageSliderProps) {
-  const tw = useTailwind();
+  const { styles } = useStyles(styleSheet, {});
   const clampedValue = clampToPercentage(value);
   const sliderWidth = useSharedValue(0);
   const translateX = useSharedValue(0);
@@ -55,9 +82,7 @@ export function BatchSellPercentageSlider({
       }
 
       const clampedPosition = Math.max(0, Math.min(position, width));
-      const nextValue = clampToPercentage(
-        (clampedPosition / width) * MAX_PERCENTAGE,
-      );
+      const nextValue = snapToStep((clampedPosition / width) * MAX_PERCENTAGE);
 
       updatePosition(nextValue, width);
       onValueChange(nextValue);
@@ -109,7 +134,11 @@ export function BatchSellPercentageSlider({
           return;
         }
 
-        translateX.value = Math.max(0, Math.min(event.x, width));
+        // Track finger position at 1 % granularity while dragging.
+        // Snapping to a step only happens when the finger lifts (onEnd).
+        const rawPos = Math.max(0, Math.min(event.x, width));
+        const pct = Math.round((rawPos / width) * MAX_PERCENTAGE);
+        translateX.value = (pct / MAX_PERCENTAGE) * width;
       })
       .onEnd((event) => {
         runOnJS(commitValueFromPosition)(event.x, sliderWidth.value);
@@ -118,12 +147,14 @@ export function BatchSellPercentageSlider({
 
   const handleAccessibilityAction = useCallback(
     (event: AccessibilityActionEvent) => {
-      const nextValue =
+      const steps = [...PERCENTAGE_STEPS] as number[];
+      const currentIndex = steps.indexOf(snapToStep(clampedValue));
+      const nextIndex =
         event.nativeEvent.actionName === 'increment'
-          ? clampToPercentage(clampedValue + ACCESSIBILITY_STEP)
-          : clampToPercentage(clampedValue - ACCESSIBILITY_STEP);
+          ? Math.min(currentIndex + 1, steps.length - 1)
+          : Math.max(currentIndex - 1, 0);
 
-      onValueChange(nextValue);
+      onValueChange(PERCENTAGE_STEPS[nextIndex]);
     },
     [onValueChange, clampedValue],
   );
@@ -140,48 +171,30 @@ export function BatchSellPercentageSlider({
       }}
       accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
       onAccessibilityAction={handleAccessibilityAction}
-      style={tw.style('h-6 w-full')}
+      style={styles.container}
     >
-      <GestureDetector gesture={gesture}>
-        <Animated.View
-          onLayout={handleLayout}
-          style={tw.style('h-6 w-full justify-center')}
-        >
-          <Animated.View
-            style={tw.style(
-              'absolute left-0 right-0 h-1 rounded-full bg-icon-muted',
-            )}
+      <View style={styles.trackContainer}>
+        <GestureDetector gesture={gesture}>
+          <Animated.View onLayout={handleLayout} style={styles.gestureArea}>
+            <Animated.View style={styles.track} />
+            <Animated.View style={[styles.progress, progressStyle]} />
+            <Animated.View style={[styles.thumb, handleStyle]} />
+          </Animated.View>
+        </GestureDetector>
+
+        {PERCENTAGE_STEPS.map((percent) => (
+          <View
+            key={`dot-${percent}`}
+            pointerEvents="none"
+            testID={
+              testID && MARKER_POINTS.includes(percent)
+                ? `${testID}-marker-point-${percent}`
+                : undefined
+            }
+            style={[styles.dot, styles[`dot${percent}` as keyof typeof styles]]}
           />
-          <Animated.View
-            style={[
-              tw.style('absolute left-0 h-1 rounded-full bg-icon-default'),
-              progressStyle,
-            ]}
-          />
-          {MARKER_POINTS.map((markerPoint) => (
-            <Animated.View
-              key={markerPoint}
-              pointerEvents="none"
-              testID={
-                testID ? `${testID}-marker-point-${markerPoint}` : undefined
-              }
-              style={[
-                tw.style('absolute h-1 w-1 rounded-full bg-icon-muted'),
-                {
-                  left: `${markerPoint}%`,
-                  transform: [{ translateX: -MARKER_SIZE / 2 }],
-                },
-              ]}
-            />
-          ))}
-          <Animated.View
-            style={[
-              tw.style('absolute h-6 w-6 rounded-full bg-icon-default'),
-              handleStyle,
-            ]}
-          />
-        </Animated.View>
-      </GestureDetector>
+        ))}
+      </View>
     </GestureHandlerRootView>
   );
 }
