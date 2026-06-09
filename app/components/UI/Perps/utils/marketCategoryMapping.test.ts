@@ -9,11 +9,11 @@ import {
 describe('marketCategoryMapping', () => {
   describe('getMarketTypeForFilter', () => {
     it.each([
-      ['stocks', MarketCategory.Stock],
+      ['stock', MarketCategory.Stock],
       ['pre-ipo', MarketCategory.PreIpo],
-      ['indices', MarketCategory.Index],
-      ['etfs', MarketCategory.Etf],
-      ['commodities', MarketCategory.Commodity],
+      ['index', MarketCategory.Index],
+      ['etf', MarketCategory.Etf],
+      ['commodity', MarketCategory.Commodity],
       ['forex', MarketCategory.Forex],
     ] as const)('maps filter "%s" → MarketCategory %s', (filter, expected) => {
       expect(getMarketTypeForFilter(filter)).toBe(expected);
@@ -29,11 +29,11 @@ describe('marketCategoryMapping', () => {
 
   describe('getFilterForMarketType', () => {
     it.each([
-      [MarketCategory.Stock, 'stocks'],
+      [MarketCategory.Stock, 'stock'],
       [MarketCategory.PreIpo, 'pre-ipo'],
-      [MarketCategory.Index, 'indices'],
-      [MarketCategory.Etf, 'etfs'],
-      [MarketCategory.Commodity, 'commodities'],
+      [MarketCategory.Index, 'index'],
+      [MarketCategory.Etf, 'etf'],
+      [MarketCategory.Commodity, 'commodity'],
       [MarketCategory.Forex, 'forex'],
     ] as const)('maps MarketCategory %s → filter "%s"', (type, expected) => {
       expect(getFilterForMarketType(type)).toBe(expected);
@@ -53,7 +53,7 @@ describe('marketCategoryMapping', () => {
   describe('normalizeFilterKey', () => {
     it.each([
       ['pre-ipo', 'pre_ipo'],
-      ['stocks', 'stocks'],
+      ['stock', 'stock'],
       ['crypto', 'crypto'],
       ['a-b-c', 'a_b_c'],
     ])('normalizes "%s" → "%s"', (input, expected) => {
@@ -69,12 +69,12 @@ describe('marketCategoryMapping', () => {
     it('has the expected order', () => {
       expect(CATEGORY_DISPLAY_ORDER).toEqual([
         'crypto',
-        'stocks',
+        'stock',
         'pre-ipo',
         'forex',
-        'commodities',
-        'indices',
-        'etfs',
+        'commodity',
+        'index',
+        'etf',
       ]);
     });
 
@@ -87,11 +87,11 @@ describe('marketCategoryMapping', () => {
 
   describe('round-trip consistency', () => {
     it.each([
-      ['stocks', MarketCategory.Stock],
+      ['stock', MarketCategory.Stock],
       ['pre-ipo', MarketCategory.PreIpo],
-      ['indices', MarketCategory.Index],
-      ['etfs', MarketCategory.Etf],
-      ['commodities', MarketCategory.Commodity],
+      ['index', MarketCategory.Index],
+      ['etf', MarketCategory.Etf],
+      ['commodity', MarketCategory.Commodity],
       ['forex', MarketCategory.Forex],
     ] as const)('filter "%s" round-trips through both maps', (filter, type) => {
       expect(getMarketTypeForFilter(filter)).toBe(type);

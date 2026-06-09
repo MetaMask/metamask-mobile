@@ -771,7 +771,7 @@ const PerpsHomeView = ({
         <PerpsMarketTypeSection
           title={strings('perps.home.commodities')}
           markets={commoditiesMarkets}
-          marketType="commodities"
+          marketType="commodity"
           sortBy={sortBy}
           isLoading={isLoading.markets}
           source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
@@ -783,7 +783,7 @@ const PerpsHomeView = ({
           <PerpsMarketTypeSection
             title={strings('perps.home.stocks')}
             markets={stocksMarkets}
-            marketType="stocks"
+            marketType="stock"
             sortBy={sortBy}
             isLoading={isLoading.markets}
             source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}

@@ -11,11 +11,11 @@ import {
  * not by a MarketCategory value. 'all' and 'new' are UI-only sentinels.
  */
 const FILTER_TO_MARKET_TYPE = new Map<MarketTypeFilter, MarketType>([
-  ['stocks', MarketCategory.Stock],
+  ['stock', MarketCategory.Stock],
   ['pre-ipo', MarketCategory.PreIpo],
-  ['indices', MarketCategory.Index],
-  ['etfs', MarketCategory.Etf],
-  ['commodities', MarketCategory.Commodity],
+  ['index', MarketCategory.Index],
+  ['etf', MarketCategory.Etf],
+  ['commodity', MarketCategory.Commodity],
   ['forex', MarketCategory.Forex],
 ]);
 
@@ -53,12 +53,12 @@ export function getFilterForMarketType(
  */
 export const CATEGORY_DISPLAY_ORDER: Exclude<MarketTypeFilter, 'all'>[] = [
   'crypto',
-  'stocks',
+  'stock',
   'pre-ipo',
   'forex',
-  'commodities',
-  'indices',
-  'etfs',
+  'commodity',
+  'index',
+  'etf',
 ];
 
 /**
