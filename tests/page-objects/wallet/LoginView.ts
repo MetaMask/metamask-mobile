@@ -87,6 +87,7 @@ class LoginView {
       detox: async () => {
         await UnifiedGestures.typeText(this.passwordInput, password, {
           description: 'Password Input',
+          hideKeyboard: true,
         });
       },
       appium: async () => {
