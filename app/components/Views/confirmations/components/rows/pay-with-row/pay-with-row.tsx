@@ -32,7 +32,6 @@ import {
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './pay-with-row.styles';
 import { BigNumber } from 'bignumber.js';
-import { TransactionType } from '@metamask/transaction-controller';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
@@ -46,9 +45,10 @@ import {
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 import { type PaymentMethod } from '@metamask/ramps-controller';
 import { useParams } from '../../../../../../util/navigation/navUtils';
-import { PayWithOption } from '../../confirm/confirm-component';
-import { useInitialPayWithOption } from '../../../hooks/pay/useInitialPayWithOption';
-import { hasTransactionType } from '../../../utils/transaction';
+import {
+  ConfirmationParams,
+  PayWithOption,
+} from '../../confirm/confirm-component';
 import { SetPayTokenRequest } from '../../../hooks/pay/useAutomaticTransactionPayToken';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useTheme } from '../../../../../../util/theme';
@@ -65,20 +65,14 @@ export function PayWithRow({
   const paymentOverride = useSelector((state: RootState) =>
     selectPaymentOverrideByTransactionId(state, transactionId),
   );
-  const initialPayWithOption = useInitialPayWithOption();
+  const { payWithOption } = useParams<ConfirmationParams>({});
 
-  const isMoneyAccount =
-    paymentOverride === PaymentOverride.MoneyAccount ||
-    (!isResultReady && initialPayWithOption === PayWithOption.MoneyAccount);
-
-  if (
-    isMoneyAccount &&
-    hasTransactionType(transactionMeta, [TransactionType.perpsDeposit])
-  ) {
+  // Nav-param means money home pre-set the method; bottom-sheet selection doesn't set this.
+  if (payWithOption === PayWithOption.MoneyAccount) {
     return null;
   }
 
-  if (isMoneyAccount) {
+  if (paymentOverride === PaymentOverride.MoneyAccount) {
     return <PayWithRowMoneyAccount />;
   }
 
