@@ -2982,16 +2982,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  earnChompApiConfig: {
-    name: 'earnChompApiConfig',
-    type: FeatureFlagType.Remote,
-    inProd: false,
-    productionDefault: {
-      baseUrl: 'https://chomp.dev-api.cx.metamask.io',
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   earnFeatureFlagTemplate: {
     name: 'earnFeatureFlagTemplate',
     type: FeatureFlagType.Remote,
@@ -3578,6 +3568,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     inProd: true,
     productionDefault:
       '0x1.0x0000000000000000000000000000000000000000,0x1.0xdac17f958d2ee523a2206206994597c13d831ec7,0x1.0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48,0x1.0xaca92e438df0b2401ff60da7e4337b687a2435da,0x1.0x2260fac5e5542a773aa44fbcfedf7c193bc2c599,0xa4b1.0x0000000000000000000000000000000000000000,0xa4b1.0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9,0xa4b1.0xaf88d065e77c8cc2239327c5edb3a432268e5831,0xa4b1.0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f,0x2105.0x0000000000000000000000000000000000000000,0x2105.0x833589fcd6edb6e08f4c7c32d4f71b54bda02913,0x2105.0x0555e30da8f98308edb960aa94c0db47230d2b9c,0xe708.0x0000000000000000000000000000000000000000,0xe708.0xa219439258ca9da29e9cc4ce5596924745e12b93,0xe708.0x176211869ca2b568f2a7d4ee941e073a821ee1ff,0xe708.0xaca92e438df0b2401ff60da7e4337b687a2435da,0x38.0x0000000000000000000000000000000000000000,0x38.0x55d398326f99059ff775485246999027b3197955,0x38.0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d,0x38.0xaca92e438df0b2401ff60da7e4337b687a2435da,0x38.0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c,0x89.0x0000000000000000000000000000000000000000,0x89.0xc2132d05d31c914a87c6611c10748aeb04b58e8f,0x89.0x3c499c542cef5e3811e1192ce70d8cc03d5c3359,0x89.0x2791bca1f2de4661ed88a30c99a7a9449aa84174,0x89.0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6',
+    status: FeatureFlagStatus.Active,
+  },
+
+  perpsProductsEnabled: {
+    name: 'perpsProductsEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      minimumVersion: '0.0.0',
+      enabled: false,
+    },
     status: FeatureFlagStatus.Active,
   },
 
@@ -4573,7 +4574,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      baseUrl: 'https://chomp.dev-api.cx.metamask.io',
+      baseUrl: 'https://chomp.api.cx.metamask.io',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -4648,31 +4649,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       enabled: false,
     },
-    status: FeatureFlagStatus.Active,
-  },
-
-  stickyButtonsAbTest: {
-    name: 'stickyButtonsAbTest',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: [
-      {
-        name: 'control',
-        scope: {
-          value: 1,
-          type: 'threshold',
-        },
-        value: 'control',
-      },
-      {
-        name: 'treatment',
-        scope: {
-          type: 'threshold',
-          value: 0,
-        },
-        value: 'treatment',
-      },
-    ],
     status: FeatureFlagStatus.Active,
   },
 
