@@ -212,7 +212,9 @@ const MoneyHowItWorksView = () => {
               question={strings(`money.how_it_works_page.${key}`, {
                 percentage,
               })}
-              answer={strings('money.how_it_works_page.faq_placeholder_answer')}
+              answer={strings(`money.how_it_works_page.faq_a${index + 1}`, {
+                percentage,
+              })}
               testID={MoneyHowItWorksViewTestIds.FAQ_ITEM(index + 1)}
             />
           </React.Fragment>

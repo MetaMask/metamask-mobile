@@ -368,7 +368,11 @@ const CardHome = () => {
                 '0'
               }
               remainingAllowance={data.primaryFundingAsset.spendingCap ?? '0'}
-              symbol={data.primaryFundingAsset.symbol ?? ''}
+              symbol={
+                primaryToken?.displaySymbol ??
+                data.primaryFundingAsset.symbol ??
+                ''
+              }
               privacyMode={privacyMode}
               hasOriginalAllowance={
                 !!data.primaryFundingAsset.originalSpendingCap
