@@ -113,12 +113,10 @@ describe('useSubmitBridgeTx', () => {
   const mockABTests = ({
     numpad = inactiveABTestResult,
     tokenSelector = inactiveABTestResult,
-    stickyFooter = inactiveABTestResult,
     ambientColor = inactiveABTestResult,
   }: {
     numpad?: MockABTestResult;
     tokenSelector?: MockABTestResult;
-    stickyFooter?: MockABTestResult;
     ambientColor?: MockABTestResult;
   } = {}) => {
     jest
@@ -127,7 +125,6 @@ describe('useSubmitBridgeTx', () => {
       .mockReturnValue(inactiveABTestResult)
       .mockReturnValueOnce(numpad)
       .mockReturnValueOnce(tokenSelector)
-      .mockReturnValueOnce(stickyFooter)
       .mockReturnValueOnce(ambientColor);
   };
 

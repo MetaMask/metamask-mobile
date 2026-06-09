@@ -351,6 +351,40 @@ describe('CustomAmountInfo', () => {
     });
   });
 
+  it('rejects money account deposit confirmations on beforeRemove', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.batch,
+      nestedTransactions: [{ type: TransactionType.moneyAccountDeposit }],
+      txParams: { from: '0x123' },
+    } as never);
+
+    render();
+
+    expect(useClearConfirmationOnBackSwipeMock).toHaveBeenCalledWith({
+      rejectOnBeforeRemove: true,
+      rejectOnBeforeRemoveWithoutGesture: true,
+      skipNavigationOnGestureEnd: true,
+      onBeforeReject: undefined,
+    });
+  });
+
+  it('rejects money account withdraw confirmations on beforeRemove', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.batch,
+      nestedTransactions: [{ type: TransactionType.moneyAccountWithdraw }],
+      txParams: { from: '0x123' },
+    } as never);
+
+    render();
+
+    expect(useClearConfirmationOnBackSwipeMock).toHaveBeenCalledWith({
+      rejectOnBeforeRemove: true,
+      rejectOnBeforeRemoveWithoutGesture: true,
+      skipNavigationOnGestureEnd: true,
+      onBeforeReject: undefined,
+    });
+  });
+
   it('clears pending predict deposit before rejecting the confirmation', () => {
     useTransactionMetadataRequestMock.mockReturnValue({
       type: TransactionType.batch,
