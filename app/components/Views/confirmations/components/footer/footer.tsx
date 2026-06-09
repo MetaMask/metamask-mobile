@@ -86,14 +86,14 @@ export const Footer = () => {
     useState(false);
   const [scamQuestionnaireVisible, setScamQuestionnaireVisible] =
     useState(false);
-  // Tracks whether the user has already gone through the questionnaire and
-  // tapped "I understand the risks, continue anyway." Once true, subsequent
-  // Confirm taps skip both the questionnaire and the existing checkbox modal
-  // — the user has done enough friction.
-  const scamBypassedRef = useRef(false);
+  // Tracks whether the user has already completed the questionnaire — either by
+  // passing it cleanly or by tapping "continue anyway" on the warning. Once
+  // true, subsequent Confirm taps skip both the questionnaire and the existing
+  // checkbox modal: the user has done enough friction.
+  const scamQuestionnaireCompletedRef = useRef(false);
 
   const shouldShowScamQuestionnaire =
-    !scamBypassedRef.current &&
+    !scamQuestionnaireCompletedRef.current &&
     isMMSendReq &&
     securityAlertResponse?.result_type === ResultType.Malicious;
 
@@ -109,11 +109,13 @@ export const Footer = () => {
     setScamQuestionnaireVisible(false);
   }, []);
 
-  const onScamBypass = useCallback(() => {
-    scamBypassedRef.current = true;
-    // Treat the questionnaire bypass as acknowledgement of the underlying
-    // blockaid alert — flipping the button label from "Review alerts" to
-    // "Confirm" and skipping the existing checkbox modal on the next tap.
+  // Completing the questionnaire — whether the user passed it cleanly or tapped
+  // "continue anyway" on the warning — returns them to the confirm screen
+  // rather than submitting. We mark it complete (so it won't re-show) and treat
+  // it as acknowledgement of the underlying blockaid alert, flipping the button
+  // label to "Confirm" and skipping the checkbox modal on the next tap.
+  const onScamComplete = useCallback(() => {
+    scamQuestionnaireCompletedRef.current = true;
     setAlertConfirmed(AlertKeys.Blockaid, true);
     setScamQuestionnaireVisible(false);
   }, [setAlertConfirmed]);
@@ -128,7 +130,7 @@ export const Footer = () => {
   // to the wallet home rather than dropping them back on the confirm screen.
   const onScamReject = useCallback(async () => {
     hideScamQuestionnaire();
-    await onReject(undefined, false, true);
+    await onReject(providerErrors.userRejectedRequest(), false, true);
   }, [hideScamQuestionnaire, onReject]);
 
   const onHandleConfirm = useCallback(async () => {
@@ -146,7 +148,9 @@ export const Footer = () => {
       setScamQuestionnaireVisible(true);
       return;
     }
-    if (hasDangerAlerts) {
+    // A completed questionnaire stands in for the danger-alert checkbox modal,
+    // so don't surface it again after the user has been through that friction.
+    if (hasDangerAlerts && !scamQuestionnaireCompletedRef.current) {
       showConfirmAlertModal();
       return;
     }
@@ -256,8 +260,8 @@ export const Footer = () => {
       {scamQuestionnaireVisible && (
         <ScamQuestionnaire
           onReject={onScamReject}
-          onConfirm={onHandleConfirm}
-          onBypass={onScamBypass}
+          onCleanPass={onScamComplete}
+          onBypass={onScamComplete}
           onDismiss={hideScamQuestionnaire}
         />
       )}

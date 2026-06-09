@@ -401,13 +401,6 @@ const Routes = {
   CONFIRMATION_PAY_WITH_MODAL: 'ConfirmationPayWithModal',
   CONFIRMATION_PAY_WITH_BOTTOM_SHEET: 'ConfirmationPayWithBottomSheet',
   CONFIRMATION_PAY_WITH_NETWORK_MODAL: 'ConfirmationPayWithNetworkModal',
-  SCAM_QUESTIONNAIRE: {
-    ROOT: 'ScamQuestionnaire',
-    Q1: 'ScamQuestionnaireQ1',
-    Q2: 'ScamQuestionnaireQ2',
-    Q3: 'ScamQuestionnaireQ3',
-    WARNING: 'ScamWarning',
-  },
   NOTIFICATIONS: {
     VIEW: 'NotificationsView',
     DETAILS: 'NotificationsDetails',

@@ -30,19 +30,19 @@ jest.mock('./useScamQuestionnaireMetrics', () => ({
 jest.spyOn(Linking, 'openURL').mockResolvedValue(true);
 
 const setup = () => {
-  const onConfirm = jest.fn();
+  const onCleanPass = jest.fn();
   const onReject = jest.fn();
   const onBypass = jest.fn();
   const onDismiss = jest.fn();
   const utils = render(
     <ScamQuestionnaire
-      onConfirm={onConfirm}
+      onCleanPass={onCleanPass}
       onReject={onReject}
       onBypass={onBypass}
       onDismiss={onDismiss}
     />,
   );
-  return { ...utils, onConfirm, onReject, onBypass, onDismiss };
+  return { ...utils, onCleanPass, onReject, onBypass, onDismiss };
 };
 
 const answerAllClean = (
@@ -121,22 +121,22 @@ describe('ScamQuestionnaire', () => {
     );
   });
 
-  it('calls onConfirm and fires the clean-completion event when all 3 answers are clean', () => {
-    const { getByTestId, onConfirm } = setup();
+  it('calls onCleanPass and fires the clean-completion event when all 3 answers are clean', () => {
+    const { getByTestId, onCleanPass } = setup();
     answerAllClean(getByTestId);
 
-    expect(onConfirm).toHaveBeenCalledTimes(1);
+    expect(onCleanPass).toHaveBeenCalledTimes(1);
     expect(mockTrackCompletedClean).toHaveBeenCalledTimes(1);
     expect(mockTrackWarningShown).not.toHaveBeenCalled();
   });
 
   it('navigates to the scam warning when any answer is a red flag', () => {
-    const { getByTestId, onConfirm } = setup();
+    const { getByTestId, onCleanPass } = setup();
     answerOneRedFlag(getByTestId);
 
     expect(getByTestId('scam-warning-stop')).toBeDefined();
     expect(mockTrackWarningShown).toHaveBeenCalledTimes(1);
-    expect(onConfirm).not.toHaveBeenCalled();
+    expect(onCleanPass).not.toHaveBeenCalled();
   });
 
   it('calls onReject and tracks the stopped event when "Stop this payment" is tapped', () => {
@@ -195,7 +195,7 @@ describe('ScamQuestionnaire', () => {
     answerOneRedFlag(getByTestId);
     rerender(
       <ScamQuestionnaire
-        onConfirm={jest.fn()}
+        onCleanPass={jest.fn()}
         onReject={jest.fn()}
         onBypass={jest.fn()}
         onDismiss={jest.fn()}

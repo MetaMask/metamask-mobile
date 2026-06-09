@@ -23,6 +23,7 @@ import { Severity } from '../../types/alerts';
 import { useConfirmationAlertMetrics } from '../../hooks/metrics/useConfirmationAlertMetrics';
 import { useSecurityAlertResponse } from '../../hooks/alerts/useSecurityAlertResponse';
 import { ResultType } from '../../constants/signatures';
+import { AlertKeys } from '../../constants/alerts';
 import { merge } from 'lodash';
 import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
@@ -597,6 +598,88 @@ describe('Footer', () => {
       });
 
       expect(queryByTestId('scam-questionnaire-modal')).toBeNull();
+    });
+
+    it('returns the user to the confirm screen without submitting when the questionnaire is passed cleanly', async () => {
+      const setAlertConfirmed = jest.fn();
+      (useAlerts as jest.Mock).mockReturnValue({
+        fieldAlerts: [],
+        hasDangerAlerts: true,
+        hasUnconfirmedDangerAlerts: true,
+        setAlertConfirmed,
+      });
+      useSecurityAlertResponseMock.mockReturnValue({
+        securityAlertResponse: { result_type: ResultType.Malicious } as never,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(<Footer />, {
+        state: sendTxState(),
+      });
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+        );
+      });
+
+      // Answer all three questions with non-red-flag options → clean pass.
+      fireEvent.press(getByTestId('scam-questionnaire-option-q1_no'));
+      fireEvent.press(getByTestId('scam-questionnaire-continue'));
+      fireEvent.press(getByTestId('scam-questionnaire-option-q2_goods'));
+      fireEvent.press(getByTestId('scam-questionnaire-continue'));
+      fireEvent.press(getByTestId('scam-questionnaire-option-q3_no'));
+      await act(async () => {
+        fireEvent.press(getByTestId('scam-questionnaire-continue'));
+      });
+
+      // Questionnaire closes, the blockaid alert is acknowledged, and the tx is
+      // NOT submitted — the user is back on the confirm screen.
+      expect(queryByTestId('scam-questionnaire-modal')).toBeNull();
+      expect(setAlertConfirmed).toHaveBeenCalledWith(AlertKeys.Blockaid, true);
+      expect(mockConfirmSpy).not.toHaveBeenCalled();
+    });
+
+    it('skips the danger-alert checkbox modal and submits on the next confirm after the questionnaire is completed', async () => {
+      (useAlerts as jest.Mock).mockReturnValue({
+        fieldAlerts: [],
+        hasDangerAlerts: true,
+        hasUnconfirmedDangerAlerts: true,
+        setAlertConfirmed: jest.fn(),
+      });
+      useSecurityAlertResponseMock.mockReturnValue({
+        securityAlertResponse: { result_type: ResultType.Malicious } as never,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(<Footer />, {
+        state: sendTxState(),
+      });
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+        );
+      });
+
+      fireEvent.press(getByTestId('scam-questionnaire-option-q1_no'));
+      fireEvent.press(getByTestId('scam-questionnaire-continue'));
+      fireEvent.press(getByTestId('scam-questionnaire-option-q2_goods'));
+      fireEvent.press(getByTestId('scam-questionnaire-continue'));
+      fireEvent.press(getByTestId('scam-questionnaire-option-q3_no'));
+      await act(async () => {
+        fireEvent.press(getByTestId('scam-questionnaire-continue'));
+      });
+
+      // Second confirm tap: questionnaire already done, so neither it nor the
+      // checkbox modal should reappear — the tx submits directly.
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+        );
+      });
+
+      expect(queryByTestId('scam-questionnaire-modal')).toBeNull();
+      expect(queryByTestId('confirm-alert-modal')).toBeNull();
+      expect(mockConfirmSpy).toHaveBeenCalledTimes(1);
     });
   });
 });

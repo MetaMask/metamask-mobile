@@ -24,8 +24,8 @@ import { useScamQuestionnaireMetrics } from './useScamQuestionnaireMetrics';
 import styleSheet from './scam-questionnaire.styles';
 
 export interface ScamQuestionnaireProps {
-  /** Called when the user passes the funnel cleanly (no red-flag answers). The pending transaction should be confirmed immediately. */
-  onConfirm: () => void;
+  /** Called when the user passes the funnel cleanly (no red-flag answers). The caller should close the questionnaire and return the user to the confirm screen so they can review and submit themselves — the tx is NOT submitted here. */
+  onCleanPass: () => void;
   /** Called when the user taps "Stop this payment" on the warning screen. The pending transaction should be rejected. */
   onReject: () => void;
   /** Called when the user taps "I understand the risks, continue anyway" on the warning screen. The caller should return the user to the confirm screen, remember that they bypassed (so future Confirm taps skip the questionnaire), and mark the underlying alert as acknowledged. The tx is NOT submitted here — the user still has to tap Confirm on the send screen. */
@@ -70,7 +70,7 @@ const QUESTION_DEFS: Record<
 };
 
 export const ScamQuestionnaire: React.FC<ScamQuestionnaireProps> = ({
-  onConfirm,
+  onCleanPass,
   onReject,
   onBypass,
   onDismiss,
@@ -149,9 +149,9 @@ export const ScamQuestionnaire: React.FC<ScamQuestionnaireProps> = ({
       setStep('warning');
     } else {
       metrics.trackCompletedClean();
-      onConfirm();
+      onCleanPass();
     }
-  }, [step, pendingSelection, answers, metrics, onConfirm]);
+  }, [step, pendingSelection, answers, metrics, onCleanPass]);
 
   const handleStop = useCallback(() => {
     metrics.trackWarningStopped(answers);
