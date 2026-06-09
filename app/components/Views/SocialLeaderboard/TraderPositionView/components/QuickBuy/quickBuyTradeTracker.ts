@@ -10,6 +10,20 @@ export interface TrackedQuickBuyTrade {
   fiatAmountLabel: string;
   /** Formatted exchange rate quote (e.g. "1 ETH = 4,381.22 USDC"). */
   rate?: string;
+  /**
+   * True only for same-chain non-EVM (Solana) swaps. `BridgeStatusController`
+   * never marks these terminal (no polling, no `TransactionController`
+   * confirmation), so their complete/failed toast must be resolved from
+   * `MultichainTransactionsController` instead. EVM swaps and cross-chain
+   * bridges (incl. Solana → EVM) leave this falsy and stay on the bridge path.
+   */
+  isNonEvmSwap?: boolean;
+  /**
+   * Solana transaction signature (`submitTx` result `hash`) used to find the
+   * tx in `MultichainTransactionsController`. Only set for `isNonEvmSwap`
+   * trades; lookups fall back to the tracker key when absent.
+   */
+  txSignature?: string;
 }
 
 /**
