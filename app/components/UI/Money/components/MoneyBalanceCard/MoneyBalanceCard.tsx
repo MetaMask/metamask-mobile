@@ -32,12 +32,8 @@ import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import styleSheet from './MoneyBalanceCard.styles';
 import { MoneyBalanceCardTestIds } from './MoneyBalanceCard.testIds';
 import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
-import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
-import {
-  useMoneyAccountDeposit,
-  type InitiateDepositOptions,
-} from '../../hooks/useMoneyAccount';
-import { getHighestMusdPaymentToken } from '../../utils/getHighestMusdPaymentToken';
+import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
+import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
 import Logger from '../../../../../util/Logger';
 
 const MoneyBalanceCard = () => {
@@ -56,8 +52,8 @@ const MoneyBalanceCard = () => {
   } = useMoneyAccountBalance();
   const { hasMoneyAccount } = useMoneyAccountInfo();
   const { navigateToMoneyHome } = useMoneyNavigation();
-  const { tokenBalanceByChain } = useMusdBalance();
   const { initiateDeposit } = useMoneyAccountDeposit();
+  const hasAnyCryptoBalance = useSelector(selectHasAnyNonZeroTokenBalance);
   const hasSeenMoneyOnboarding = useSelector(selectMoneyOnboardingSeen);
   const hasOtherPrimaryCtaOnHome = useSelector(
     selectWalletHomeOnboardingFlowVisible,
@@ -129,19 +125,16 @@ const MoneyBalanceCard = () => {
   }, [navigateToMoneyHome]);
 
   const handleAddPress = useCallback(async () => {
-    const musdPaymentToken = getHighestMusdPaymentToken(tokenBalanceByChain);
-    const options: InitiateDepositOptions = musdPaymentToken
-      ? { intent: 'addMusd', preferredPaymentToken: musdPaymentToken }
-      : { intent: 'addMusd', autoSelectFiatPayment: true };
-
     try {
-      await initiateDeposit(options);
+      await initiateDeposit(
+        hasAnyCryptoBalance ? undefined : { autoSelectFiatPayment: true },
+      );
     } catch (error) {
       Logger.error(error as Error, {
         message: '[MoneyBalanceCard] Failed to initiate mUSD deposit',
       });
     }
-  }, [tokenBalanceByChain, initiateDeposit]);
+  }, [hasAnyCryptoBalance, initiateDeposit]);
 
   const handleInfoPress = useCallback(() => {
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
