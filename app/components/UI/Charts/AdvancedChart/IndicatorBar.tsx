@@ -18,11 +18,17 @@ interface IndicatorBarProps {
   intervalLabel: string;
   /** Called when the interval dropdown is pressed. */
   onIntervalPress?: () => void;
+  /** Label for the MA button (e.g. "MA", "MA5", "MA x2"). */
+  maLabel?: string;
+  /** Called when the MA dropdown is pressed. */
+  onMAPress?: () => void;
 }
 
 const IndicatorBar: React.FC<IndicatorBarProps> = ({
   intervalLabel,
   onIntervalPress,
+  maLabel = 'MA',
+  onMAPress,
 }) => {
   const tw = useTailwind();
 
@@ -69,6 +75,7 @@ const IndicatorBar: React.FC<IndicatorBarProps> = ({
             pressed && 'opacity-70',
           )
         }
+        onPress={onMAPress}
         accessibilityRole="button"
         accessibilityLabel="MA"
       >
@@ -77,7 +84,7 @@ const IndicatorBar: React.FC<IndicatorBarProps> = ({
           fontWeight={FontWeight.Medium}
           twClassName="text-text-alternative"
         >
-          MA
+          {maLabel}
         </Text>
         <Icon
           name={IconName.ArrowDown}

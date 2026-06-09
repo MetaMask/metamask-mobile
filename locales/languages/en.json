@@ -4114,6 +4114,8 @@
       "all": "All"
     },
     "interval_picker_title": "Interval",
+    "ma_picker_title": "Moving average",
+    "done": "Done",
     "no_chart_data": {
       "title": "No chart data",
       "description": "We could not fetch any data for this token",

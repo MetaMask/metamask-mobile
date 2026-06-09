@@ -42,6 +42,7 @@ import { useOHLCVRealtime } from '../../Charts/AdvancedChart/useOHLCVRealtime';
 import { OHLCVBar } from '../../Charts/AdvancedChart/OHLCVBar/OHLCVBar';
 import IndicatorBar from '../../Charts/AdvancedChart/IndicatorBar';
 import { createIntervalPickerNavDetails } from '../../Charts/AdvancedChart/IntervalPickerSheet';
+import { createMAPickerNavDetails } from '../../Charts/AdvancedChart/MAPickerSheet';
 import { useNavigation } from '@react-navigation/native';
 import {
   Box,
@@ -335,6 +336,25 @@ const PriceAdvanced = ({
       }),
     );
   }, [navigation, displayInterval]);
+
+  const [selectedMAs, setSelectedMAs] = useState<string[]>([]);
+
+  const maLabel = useMemo(() => {
+    if (selectedMAs.length === 0) return 'MA';
+    if (selectedMAs.length === 1) return selectedMAs[0];
+    return `MA x${selectedMAs.length}`;
+  }, [selectedMAs]);
+
+  const handleMAPress = useCallback(() => {
+    navigation.navigate(
+      ...createMAPickerNavDetails({
+        selectedMAs,
+        onDone: (selected: string[]) => {
+          setSelectedMAs(selected);
+        },
+      }),
+    );
+  }, [navigation, selectedMAs]);
 
   const wsEnabled =
     isOhlcvWsEnabled &&
@@ -729,6 +749,8 @@ const PriceAdvanced = ({
           <IndicatorBar
             intervalLabel={displayInterval}
             onIntervalPress={handleIntervalPress}
+            maLabel={maLabel}
+            onMAPress={handleMAPress}
           />
         </Box>
       ) : (
