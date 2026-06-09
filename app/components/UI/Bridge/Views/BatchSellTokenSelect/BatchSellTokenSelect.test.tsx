@@ -15,6 +15,7 @@ import {
 } from './BatchSellTokenSelect.utils';
 import Routes from '../../../../../constants/navigation/Routes';
 import { BridgeTokenMetadata } from '../../constants/tokens';
+import { POLYGON_NATIVE_TOKEN } from '../../constants/assets';
 import { DEFAULT_BATCH_SELL_SLIPPAGE } from '../../components/SlippageModal/utils';
 import {
   TextColor as ComponentLibraryTextColor,
@@ -899,6 +900,46 @@ describe('BatchSellTokenSelect', () => {
 
     // Simulate the review page removing a token, which only updates Redux.
     mockCommittedSourceTokens = [firstToken, secondToken];
+    rerender(<BatchSellTokenSelect />);
+
+    expect(getByText('Continue with (2) tokens')).toBeOnTheScreen();
+  });
+
+  it('keeps committed tokens selected when their address is normalized on commit', () => {
+    // Polygon native carries a non-zero address (0x…1010) in wallet rows, but is
+    // normalized to the zero address when committed via setBatchSellSourceTokens.
+    // The reconciliation must treat both as the same token so it stays selected.
+    const polygonNativeToken = createToken({
+      symbol: 'POL',
+      address: POLYGON_NATIVE_TOKEN,
+      chainId: '0x89' as Hex,
+    });
+    const polygonToken = createToken({
+      symbol: 'TWO',
+      address: '0x2222222222222222222222222222222222222222',
+      chainId: '0x89' as Hex,
+    });
+    mockNativeCurrencyByChainId = {
+      ...mockNativeCurrencyByChainId,
+      ['0x89' as Hex]: 'POL',
+    };
+    mockWalletTokens = [polygonNativeToken, polygonToken];
+
+    const { getByText, rerender } = render(<BatchSellTokenSelect />);
+
+    fireEvent.press(getByText('POL'));
+    fireEvent.press(getByText('TWO'));
+    expect(getByText('Continue with (2) tokens')).toBeOnTheScreen();
+
+    // Redux stores the committed tokens with normalized addresses.
+    mockCommittedSourceTokens = [
+      createToken({
+        symbol: 'POL',
+        address: '0x0000000000000000000000000000000000000000',
+        chainId: '0x89' as Hex,
+      }),
+      polygonToken,
+    ];
     rerender(<BatchSellTokenSelect />);
 
     expect(getByText('Continue with (2) tokens')).toBeOnTheScreen();

@@ -59,10 +59,14 @@ import { BatchSellTokenSelectSelectorsIDs } from './BatchSellTokenSelect.testIds
 import { BatchSellTokenRow } from './BatchSellTokenRow';
 import { BatchSellEmptyState } from './BatchSellEmptyState';
 import { DEFAULT_BATCH_SELL_SLIPPAGE } from '../../components/SlippageModal/utils';
+import { normalizeTokenAddress } from '../../utils/tokenUtils';
 import { useBatchSellTokens } from './useBatchSellTokens';
 
 const getTokenKey = (token: BridgeToken) =>
-  `${formatChainIdToCaip(token.chainId)}:${token.address}`;
+  `${formatChainIdToCaip(token.chainId)}:${normalizeTokenAddress(
+    token.address,
+    token.chainId,
+  )}`;
 
 function getBatchSellSourceTokenAmount(token: BridgeToken, percent: number) {
   if (percent <= 0) return '0';
