@@ -114,7 +114,6 @@ export function BatchSellPercentageSlider({
         }
 
         // Track finger position at 1 % granularity while dragging.
-        // Snapping to a step only happens when the finger lifts (onEnd).
         const rawPos = Math.max(0, Math.min(event.x, width));
         const pct = Math.round((rawPos / width) * MAX_PERCENTAGE);
         translateX.value = (pct / MAX_PERCENTAGE) * width;
