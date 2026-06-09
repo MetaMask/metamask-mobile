@@ -220,6 +220,8 @@ jest.mock('../../../reducers/rewards/selectors', () => ({
 
 // Mock react-navigation/native hooks
 const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
+const mockCanGoBack = jest.fn(() => true);
 const mockSetOptions = jest.fn();
 const mockSetParams = jest.fn();
 const mockIsFocused = jest.fn();
@@ -235,6 +237,8 @@ jest.mock('@react-navigation/native', () => {
     ...actual,
     useNavigation: () => ({
       navigate: mockNavigate,
+      goBack: mockGoBack,
+      canGoBack: mockCanGoBack,
       setOptions: mockSetOptions,
       setParams: mockSetParams,
     }),
@@ -374,6 +378,7 @@ describe('RewardsNavigator', () => {
     // subscribed users now (dashboard/onboarding routing moved up to
     // MainNavigator), so default to a subscription to keep the stack populated.
     mockSelectRewardsSubscriptionId.mockReturnValue('test-subscription-id');
+    mockCanGoBack.mockReturnValue(true);
     mockSelectPendingDeeplink.mockReturnValue(null);
     mockUseGeoRewardsMetadata.mockReturnValue({
       fetchGeoRewardsMetadata: jest.fn(),
@@ -483,6 +488,60 @@ describe('RewardsNavigator', () => {
       await waitFor(() => {
         expect(queryByTestId('rewards-dashboard-view')).toBeNull();
       });
+    });
+  });
+
+  describe('Lost subscription recovery', () => {
+    // REWARDS_FLOW can stay mounted after an account switch or opt-out. When the
+    // subscription disappears, the navigator must neither render an empty native
+    // stack (which throws) nor leave stale sub-page routes registered; instead it
+    // dismisses the flow.
+    it('does not render any sub-page screen when subscription is absent', async () => {
+      mockSelectRewardsSubscriptionId.mockReturnValue(null);
+
+      const { queryByTestId } = renderWithNavigation(<RewardsNavigator />);
+
+      await waitFor(() => {
+        expect(queryByTestId('rewards-referral-view')).toBeNull();
+        expect(queryByTestId('rewards-dashboard-view')).toBeNull();
+      });
+    });
+
+    it('dismisses the flow when subscription is absent', async () => {
+      mockSelectRewardsSubscriptionId.mockReturnValue(null);
+      mockGoBack.mockClear();
+      mockCanGoBack.mockReturnValue(true);
+
+      renderWithNavigation(<RewardsNavigator />);
+
+      await waitFor(() => {
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('does not call goBack when the flow cannot be dismissed', async () => {
+      mockSelectRewardsSubscriptionId.mockReturnValue(null);
+      mockGoBack.mockClear();
+      mockCanGoBack.mockReturnValue(false);
+
+      renderWithNavigation(<RewardsNavigator />);
+
+      await waitFor(() => {
+        expect(mockCanGoBack).toHaveBeenCalled();
+      });
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('does not dismiss the flow while a subscription exists', async () => {
+      mockSelectRewardsSubscriptionId.mockReturnValue('test-subscription-id');
+      mockGoBack.mockClear();
+
+      const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
+
+      await waitFor(() => {
+        expect(getByTestId('rewards-referral-view')).toBeOnTheScreen();
+      });
+      expect(mockGoBack).not.toHaveBeenCalled();
     });
   });
 

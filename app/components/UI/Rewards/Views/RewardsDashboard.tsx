@@ -93,6 +93,7 @@ const RewardsDashboard: React.FC = () => {
       return;
     }
 
+    let handled = true;
     if (pendingDeeplink.page === 'campaigns') {
       navigateToRewardsRoute(navigation, Routes.REWARDS_CAMPAIGNS_VIEW);
     } else if (pendingDeeplink.campaign === 'ondo') {
@@ -120,9 +121,15 @@ const RewardsDashboard: React.FC = () => {
     } else if (pendingDeeplink.page === 'benefits') {
       // Benefits full view is registered at the root MainNavigator level.
       navigation.navigate(Routes.REWARD_BENEFITS_FULL_VIEW);
+    } else {
+      // Unrecognized page/campaign: do not clear the pending deeplink so the
+      // intent is preserved and can be retried, rather than silently dropped.
+      handled = false;
     }
 
-    dispatch(setPendingDeeplink(null));
+    if (handled) {
+      dispatch(setPendingDeeplink(null));
+    }
   }, [navigation, dispatch, pendingDeeplink]);
 
   const hideUnlinkedAccountsBanner = useSelector(
