@@ -2308,7 +2308,7 @@
     "title": "MetaMask Predictions",
     "home": {
       "portfolio_module_placeholder": "Portfolio module",
-      "live_now_placeholder": "Live now",
+      "live_now_title": "Live now",
       "categories_placeholder": "Categories",
       "popular_today_placeholder": "Popular today",
       "trending_placeholder": "Trending"
@@ -7685,6 +7685,7 @@
     "error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
     "stock_token_error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.\n\nPlease note if you are attempting to trade Ondo Tokenised Stocks you may be geo-restricted e.g. via US, EU, UK and BR.",
     "insufficient_funds": "Insufficient funds",
+    "insufficient_balance": "Insufficient balance",
     "insufficient_gas": "Insufficient gas",
     "select_amount": "Select amount",
     "bridge_to": "Bridge to",
@@ -9069,7 +9070,17 @@
         "entries_closed_description": "You missed the opt-in window. Check back for more campaigns in the future."
       }
     },
-    "ondo_campaign_prize_pool": {
+    "campaign_ended_stats": {
+      "title": "Stats",
+      "error_title": "Unable to load all stats",
+      "error_description": "We had a problem loading your stats. Please try again later.",
+      "retry": "Retry",
+      "total_participants": "Total participants",
+      "total_volume": "Total volume",
+      "top_return": "Top return",
+      "total_winners": "Total winners"
+    },
+    "campaign_prize_pool": {
       "title": "Prize pool",
       "current_label": "Current",
       "next_label": "Next",
@@ -9078,7 +9089,7 @@
       "max_badge": "Max",
       "error_title": "Failed to load prize pool",
       "error_description": "There was an error loading the prize pool. Please try again.",
-      "retry_button": "Retry"
+      "retry": "Retry"
     },
     "ondo_campaign_portfolio": {
       "position_current_value": "Value",
@@ -9143,11 +9154,7 @@
       "qualified_title": "You're qualified",
       "qualified_description": "Increase your net inflows to reach a higher tier and have a chance at a larger payout.",
       "not_eligible_title": "Not eligible",
-      "not_eligible_description": "Trades opened too late to meet the {{days}}-day hold requirement won't count toward your rank or tier.",
-      "completed_label_total_participants": "Total participants",
-      "completed_label_total_tvl": "Total TVL",
-      "completed_label_top_return": "Top return",
-      "completed_label_winners": "Winners"
+      "not_eligible_description": "Trades opened too late to meet the {{days}}-day hold requirement won't count toward your rank or tier."
     },
     "ondo_campaign_activity": {
       "title": "All activity",
@@ -9193,15 +9200,6 @@
       "leaderboard_not_yet_computed": "Leaderboard hasn't been computed yet. Check back soon.",
       "leaderboard_powered_by_prefix": "Powered by ",
       "leaderboard_hypertracker_brand": "HyperTracker",
-      "prize_pool_title": "Prize pool",
-      "prize_pool_current_label": "Current",
-      "prize_pool_next_label": "Next",
-      "prize_pool_volume_subtext": "{{current}} of {{target}} volume",
-      "prize_pool_max_tier_subtext": "{{maxThreshold}}+ volume — all milestones reached",
-      "prize_pool_max_badge": "Max",
-      "prize_pool_error_title": "Failed to load prize pool",
-      "prize_pool_error_description": "There was an error loading the prize pool. Please try again.",
-      "prize_pool_retry_button": "Retry",
       "stats_notional_volume_threshold": "${{amount}} required",
       "stats_qualified_title": "You're qualified",
       "stats_qualified_description": "Keep trading to improve your PnL and climb the leaderboard before the competition ends.",
@@ -9214,6 +9212,32 @@
       "completed_label_total_volume": "Total volume",
       "completed_label_top_pnl": "Top PnL",
       "completed_label_winners": "Winners"
+    },
+    "predict_the_pitch_campaign": {
+      "title": "Predict The Pitch",
+      "stats_title": "Stats",
+      "label_rank": "Rank",
+      "label_your_rank": "Your rank",
+      "label_roi": "ROI",
+      "label_total_volume": "Total volume",
+      "label_pnl": "PnL",
+      "predict_now_cta": "Predict now",
+      "positions_title": "Your predictions",
+      "positions_error": "Failed to load predictions",
+      "positions_error_description": "Something went wrong while loading your predictions. Please try again.",
+      "positions_retry": "Retry",
+      "positions_last_updated": "Last updated: {{time}}",
+      "positions_empty": "No predictions yet",
+      "positions_empty_description": "Your campaign predictions will appear here once you make them.",
+      "leaderboard_title": "Leaderboard",
+      "leaderboard_total_participants": "{{count}} participants",
+      "last_updated": "Last updated: {{time}}",
+      "leaderboard_error_loading": "Failed to load leaderboard",
+      "leaderboard_error_loading_description": "Something went wrong while loading the leaderboard. Please try again.",
+      "leaderboard_not_yet_computed": "Leaderboard hasn't been computed yet. Check back soon.",
+      "stats_error_title": "Unable to load stats",
+      "stats_error_description": "We had a problem loading your stats. Please try again.",
+      "stats_retry": "Retry"
     },
     "campaigns_preview": {
       "title": "Campaigns",
@@ -9278,7 +9302,7 @@
       "non_winner": {
         "title": "The results are in 🏅",
         "description": "See your ranking in the {{campaignName}}.",
-        "cta": "View"
+        "cta": "View details"
       }
     }
   },

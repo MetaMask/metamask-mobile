@@ -484,6 +484,8 @@ const routeExtractors: Record<
   [DeepLinkRoute.NFT]: extractNftProperties,
   [DeepLinkRoute.MMC_MWP]: extractMmcMwpProperties,
   [DeepLinkRoute.AGENTIC_CLI]: extractInvalidProperties,
+  [DeepLinkRoute.SDK_CONNECT]: extractInvalidProperties,
+  [DeepLinkRoute.SDK_MMSDK]: extractInvalidProperties,
   [DeepLinkRoute.INVALID]: extractInvalidProperties,
 };
 
@@ -627,6 +629,17 @@ export const mapSupportedActionToRoute = (
       return DeepLinkRoute.NFT;
     case ACTIONS.AGENTIC_CLI:
       return DeepLinkRoute.AGENTIC_CLI;
+    // MetaMask SDK connection deeplinks (`@metamask/sdk` / sdk-communication-
+    // layer, a.k.a. "SDKv1"). `connect` (iOS/universal) and `bind`
+    // (ACTIONS.ANDROID_SDK) are the same connect surface, so both map to
+    // SDK_CONNECT; `mmsdk` is the separate RPC message channel. This is NOT
+    // MetaMask Connect (a.k.a. "SDKv2" / SDKConnectV2): MMC arrives over MWP and
+    // is tracked as MMC_MWP in handleDeeplink.ts, intercepted before this path.
+    case ACTIONS.CONNECT:
+    case ACTIONS.ANDROID_SDK:
+      return DeepLinkRoute.SDK_CONNECT;
+    case ACTIONS.MMSDK:
+      return DeepLinkRoute.SDK_MMSDK;
     default:
       return DeepLinkRoute.INVALID;
   }

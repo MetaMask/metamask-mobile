@@ -9,7 +9,6 @@ import {
   NativeScrollEvent,
   NativeSyntheticEvent,
   useWindowDimensions,
-  View,
 } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box } from '@metamask/design-system-react-native';
@@ -18,6 +17,7 @@ import { Skeleton } from '../../../../../component-library/components-temp/Skele
 import { PredictMarket } from '../../types';
 import { PredictEventValues } from '../../constants/eventNames';
 import { useFeaturedCarouselData } from '../../hooks/useFeaturedCarouselData';
+import { PaginationDots } from '../PaginationDots/PaginationDots';
 import FeaturedCarouselCard from './FeaturedCarouselCard';
 import { FEATURED_CAROUSEL_TEST_IDS } from './FeaturedCarousel.testIds';
 
@@ -44,40 +44,6 @@ const FeaturedCarouselSkeleton: React.FC = () => {
         height={CARD_HEIGHT}
         style={tw.style('rounded-2xl')}
       />
-    </Box>
-  );
-};
-
-interface PaginationDotsProps {
-  count: number;
-  activeIndex: number;
-}
-
-export const PaginationDots: React.FC<PaginationDotsProps> = ({
-  count,
-  activeIndex,
-}) => {
-  const tw = useTailwind();
-
-  if (count <= 1) return null;
-
-  return (
-    <Box
-      testID={FEATURED_CAROUSEL_TEST_IDS.PAGINATION_DOTS}
-      twClassName="flex-row justify-center items-center gap-2 mt-3"
-    >
-      {Array.from({ length: count }).map((_, dotPosition) => (
-        <View
-          key={`pagination-dot-${dotPosition}`}
-          style={tw.style(
-            'h-2 rounded-full',
-            dotPosition === activeIndex
-              ? 'bg-icon-alternative'
-              : 'bg-icon-muted w-2',
-            dotPosition === activeIndex && { width: 35 },
-          )}
-        />
-      ))}
     </Box>
   );
 };
