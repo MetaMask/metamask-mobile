@@ -22,6 +22,7 @@ jest.mock('react-native-reanimated', () => {
 });
 
 import PredictFeed from './PredictFeed';
+import { PredictBalance } from '../../components/PredictBalance';
 
 jest.mock('../../hooks/useFeaturedCarouselData', () => ({
   useFeaturedCarouselData: () => ({
@@ -1303,6 +1304,15 @@ describe('PredictFeed', () => {
       expect(
         getByTestId(PredictFeedMockSelectorsIDs.PAGER_VIEW),
       ).toBeOnTheScreen();
+    });
+
+    it('passes hideTitle to PredictBalance when hideHeader is true', () => {
+      render(<PredictFeed hideHeader />);
+
+      expect(PredictBalance).toHaveBeenCalledWith(
+        expect.objectContaining({ hideTitle: true }),
+        undefined,
+      );
     });
   });
 

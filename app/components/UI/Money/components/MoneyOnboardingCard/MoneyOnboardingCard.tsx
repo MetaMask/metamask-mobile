@@ -3,8 +3,8 @@ import { Box } from '@metamask/design-system-react-native';
 import moneyOnboardingStepperStep1 from '../../../../../images/money-onboarding-stepper-step-1.png';
 import moneyOnboardingStepperStep2 from '../../../../../images/money-onboarding-stepper-step-2.png';
 import { strings } from '../../../../../../locales/i18n';
-import Routes from '../../../../../constants/navigation/Routes';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
+import { MONEY_HOME_CARD_ORIGIN } from '../../../Card/hooks/useCardPostAuthRedirect';
 import { useOnboardingStep, STEPPER_IDS } from '../../hooks/useOnboardingStep';
 import StepperCard, {
   type StepperCardStep,
@@ -40,10 +40,7 @@ const MoneyOnboardingCard = () => {
   }, [initiateDeposit]);
 
   const handleCardCtaPress = useCallback(() => {
-    startLinkFlow({
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
-    });
+    startLinkFlow(MONEY_HOME_CARD_ORIGIN);
   }, [startLinkFlow]);
 
   const handleSkipPress = useCallback(() => {
