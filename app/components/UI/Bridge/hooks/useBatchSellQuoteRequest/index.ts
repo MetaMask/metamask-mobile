@@ -20,6 +20,8 @@ import { getDecimalChainId } from '../../../../../util/networks';
 import type { BridgeToken } from '../../types';
 import { getBatchSellSlippage } from '../../components/SlippageModal/utils';
 import { getSecurityWarnings } from '../../utils/tokenSecurityUtils';
+import { RootState } from '../../../../../reducers';
+import { getMaybeHexChainId } from '../../../../../util/bridge';
 
 export const BATCH_SELL_QUOTE_DEBOUNCE_MS = 300;
 
@@ -197,7 +199,10 @@ export function useBatchSellQuoteRequest() {
   const destToken = useSelector(selectBatchSellDestToken);
   const batchSellSlippages = useSelector(selectBatchSellSlippages);
   const walletAddress = useSelector(selectBatchSellSourceWalletAddress);
-  const smartTransactionsEnabled = useSelector(selectShouldUseSmartTransaction);
+  const batchSellChainId = getMaybeHexChainId(sourceTokens[0]?.chainId);
+  const smartTransactionsEnabled = useSelector((state: RootState) =>
+    selectShouldUseSmartTransaction(state, batchSellChainId),
+  );
 
   const quoteRequestData = useMemo(
     () =>
