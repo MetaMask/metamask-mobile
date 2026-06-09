@@ -25,7 +25,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { useMultichainBlockExplorerTxUrl } from '../../hooks/useMultichainBlockExplorerTxUrl';
 import { Transaction } from '@metamask/keyring-api';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { trackExternalLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
+import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
 
 const styleSheet = (params: { theme: Theme }) =>
   StyleSheet.create({
@@ -96,13 +96,13 @@ const BlockExplorersModal = () => {
               if (!url) {
                 return;
               }
-              trackExternalLinkClicked(trackEvent, createEventBuilder, {
+              trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
                 location: 'bridge_transaction_details',
                 text:
                   srcExplorerData.explorerName ??
                   srcExplorerData.chainName ??
                   '',
-                url_domain: url,
+                url,
               });
               navigation.navigate(Routes.WEBVIEW.MAIN, {
                 screen: Routes.WEBVIEW.SIMPLE,
@@ -138,13 +138,13 @@ const BlockExplorersModal = () => {
               if (!url) {
                 return;
               }
-              trackExternalLinkClicked(trackEvent, createEventBuilder, {
+              trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
                 location: 'bridge_transaction_details',
                 text:
                   bridgeDestExplorerData.explorerName ??
                   bridgeDestExplorerData.chainName ??
                   '',
-                url_domain: url,
+                url,
               });
               navigation.navigate(Routes.WEBVIEW.MAIN, {
                 screen: Routes.WEBVIEW.SIMPLE,

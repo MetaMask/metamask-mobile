@@ -44,7 +44,7 @@ import AppConstants from '../../../core/AppConstants';
 import { useTheme } from '../../../util/theme';
 import { analytics } from '../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
-import { trackExternalLinkClicked } from '../../../util/analytics/externalLinkTracking';
+import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
 import { selectChainId } from '../../../selectors/networkController';
 import {
   selectDisplayNftMedia,
@@ -261,13 +261,13 @@ const CollectibleOverview = ({
             collectible?.address,
             chainId,
           );
-          trackExternalLinkClicked(
+          trackBlockExplorerLinkClicked(
             analytics.trackEvent,
             AnalyticsEventBuilder.createEventBuilder,
             {
               location: 'collectible_overview',
               text: strings('collectible.collectible_asset_contract'),
-              url_domain: url,
+              url,
             },
           );
           openLink(url);

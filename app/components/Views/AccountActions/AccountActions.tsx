@@ -20,7 +20,7 @@ import AccountAction from '../AccountAction/AccountAction';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { trackExternalLinkClicked } from '../../../util/analytics/externalLinkTracking';
+import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
 import { selectProviderConfig } from '../../../selectors/networkController';
 import { strings } from '../../../../locales/i18n';
 // Internal dependencies
@@ -113,10 +113,10 @@ const AccountActions = () => {
   const viewOnBlockExplorer = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
       if (blockExplorer) {
-        trackExternalLinkClicked(trackEvent, createEventBuilder, {
+        trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
           location: 'account_actions',
           text: `${strings('drawer.view_in')} ${blockExplorer.blockExplorerName}`,
-          url_domain: blockExplorer.url,
+          url: blockExplorer.url,
         });
         goToBrowserUrl(blockExplorer.url, blockExplorer.title);
       }

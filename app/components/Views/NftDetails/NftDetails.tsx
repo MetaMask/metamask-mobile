@@ -47,7 +47,7 @@ import BigNumber from 'bignumber.js';
 import { getDecimalChainId } from '../../../util/networks';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
-import { trackExternalLinkClicked } from '../../../util/analytics/externalLinkTracking';
+import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
 import { renderShortText } from '../../../util/general';
 import { prefixUrlWithProtocol } from '../../../util/browser';
 import { formatTimestampToYYYYMMDD } from '../../../util/date';
@@ -162,10 +162,10 @@ const NftDetails = () => {
       if (!url) {
         return;
       }
-      trackExternalLinkClicked(trackEvent, createEventBuilder, {
+      trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
         location: 'nft_details',
         text,
-        url_domain: url,
+        url,
       });
       navigation.navigate('Webview', {
         screen: 'SimpleWebview',

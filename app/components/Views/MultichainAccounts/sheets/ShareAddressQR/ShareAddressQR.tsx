@@ -35,7 +35,7 @@ import {
   trackQrCodeViewed,
 } from '../../../../../util/analytics/qrCodeViewedTracking';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { trackExternalLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
+import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { ShareAddressQRIds } from './ShareAddressQR.testIds';
 import { selectAccountGroupById } from '../../../../../selectors/multichainAccounts/accountTreeController';
@@ -99,10 +99,10 @@ export const ShareAddressQR = () => {
     if (!url) {
       return;
     }
-    trackExternalLinkClicked(trackEvent, createEventBuilder, {
+    trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
       location: 'share_address_qr',
       text: explorerButtonText,
-      url_domain: url,
+      url,
     });
     toBlockExplorer(address);
   }, [

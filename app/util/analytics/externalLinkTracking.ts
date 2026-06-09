@@ -6,13 +6,42 @@ import { IMetaMetricsEvent, JsonMap } from './analytics.types';
  *
  * @property location - Screen or context in snake_case
  * @property text - Visible link or button label
- * @property url_domain - Full external URL
+ * @property url_domain - Full external URL (non–block-explorer links)
  */
 export interface ExternalLinkClickedProperties extends JsonMap {
   location: string;
   text: string;
   url_domain: string;
 }
+
+/**
+ * Input for block explorer External Link Clicked tracking.
+ * `url_domain` is sent as the URL hostname only.
+ *
+ * @property location - Screen or context in snake_case
+ * @property text - Visible link or button label
+ * @property url - Full block explorer URL used to derive hostname
+ */
+export interface BlockExplorerLinkClickedProperties extends JsonMap {
+  location: string;
+  text: string;
+  url: string;
+}
+
+/**
+ * Extract hostname from an external URL for block explorer analytics.
+ *
+ * @param url - Full URL string
+ * @returns URL hostname, or the original string if parsing fails
+ */
+export const getExternalLinkHostname = (url: string): string => {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    const match = url.match(/^https?:\/\/([^/?#]+)/i);
+    return match?.[1] ?? url;
+  }
+};
 
 /**
  * Track External Link Clicked with the mobile analytics schema.
@@ -38,4 +67,29 @@ export const trackExternalLinkClicked = <TEvent>(
       .addProperties(properties)
       .build(),
   );
+};
+
+/**
+ * Track External Link Clicked for block explorer taps.
+ * Sends `url_domain` as the URL hostname (not the full path).
+ *
+ * @param trackEvent - trackEvent function (MetaMetrics or useAnalytics)
+ * @param createEventBuilder - createEventBuilder function (MetricsEventBuilder or AnalyticsEventBuilder)
+ * @param properties - Block explorer link properties
+ */
+export const trackBlockExplorerLinkClicked = <TEvent>(
+  trackEvent: (event: TEvent) => void,
+  createEventBuilder: (event: IMetaMetricsEvent) => {
+    addProperties: (properties: ExternalLinkClickedProperties) => {
+      build: () => TEvent;
+    };
+  },
+  properties: BlockExplorerLinkClickedProperties,
+): void => {
+  const { location, text, url } = properties;
+  trackExternalLinkClicked(trackEvent, createEventBuilder, {
+    location,
+    text,
+    url_domain: getExternalLinkHostname(url),
+  });
 };

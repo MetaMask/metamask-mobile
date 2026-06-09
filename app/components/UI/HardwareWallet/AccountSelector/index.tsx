@@ -8,7 +8,7 @@ import { strings } from '../../../../../locales/i18n';
 import { IAccount } from './types';
 import useBlockExplorer from '../../../hooks/useBlockExplorer';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import { trackExternalLinkClicked } from '../../../../util/analytics/externalLinkTracking';
+import { trackBlockExplorerLinkClicked } from '../../../../util/analytics/externalLinkTracking';
 import { useAccountsBalance } from './hooks';
 import { useTheme } from '../../../../util/theme';
 import { createStyle } from './styles';
@@ -52,10 +52,10 @@ const AccountSelector = (props: ISelectQRAccountsProps) => {
     (address: string) => {
       const url = getBlockExplorerUrl(address);
       if (url) {
-        trackExternalLinkClicked(trackEvent, createEventBuilder, {
+        trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
           location: 'hardware_wallet_account',
           text: strings('asset_details.options.view_on_block'),
-          url_domain: url,
+          url,
         });
       }
       toBlockExplorer(address);

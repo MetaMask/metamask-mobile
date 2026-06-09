@@ -40,7 +40,7 @@ import {
 import Routes from '../../../constants/navigation/Routes';
 import { useTheme } from '../../../util/theme';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
-import { trackExternalLinkClicked } from '../../../util/analytics/externalLinkTracking';
+import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
 
 export interface MultichainTransactionDetailsSheetParams {
   displayData: MultichainTransactionDisplayData;
@@ -104,10 +104,10 @@ const MultichainTransactionDetailsSheet: React.FC = () => {
 
       if (!url) return;
 
-      trackExternalLinkClicked(trackEvent, createEventBuilder, {
+      trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
         location: 'transaction_details_modal',
         text: label,
-        url_domain: url,
+        url,
       });
 
       // Close the bottom sheet and navigate to webview

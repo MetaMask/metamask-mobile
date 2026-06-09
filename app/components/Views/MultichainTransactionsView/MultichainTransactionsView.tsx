@@ -16,7 +16,7 @@ import { baseStyles } from '../../../styles/common';
 import { getAddressUrl } from '../../../core/Multichain/utils';
 import { getBlockExplorerName } from '../../../util/networks';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
-import { trackExternalLinkClicked } from '../../../util/analytics/externalLinkTracking';
+import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
 import { selectNonEvmTransactions } from '../../../selectors/multichain/multichain';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import MultichainTransactionListItem from '../../UI/MultichainTransactionListItem';
@@ -160,10 +160,10 @@ const MultichainTransactionsView = ({
         if (!url) {
           return;
         }
-        trackExternalLinkClicked(trackEvent, createEventBuilder, {
+        trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
           location: 'multichain_activity_tab',
           text: `${strings('transactions.view_full_history_on')} ${getBlockExplorerName(url)}`,
-          url_domain: url,
+          url,
         });
         nav.navigate('Webview', {
           screen: 'SimpleWebview',

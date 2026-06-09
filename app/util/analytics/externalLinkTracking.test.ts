@@ -1,5 +1,7 @@
 import {
   trackExternalLinkClicked,
+  trackBlockExplorerLinkClicked,
+  getExternalLinkHostname,
   ExternalLinkClickedProperties,
 } from './externalLinkTracking';
 import { MetaMetricsEvents } from '../../core/Analytics';
@@ -40,40 +42,78 @@ describe('externalLinkTracking', () => {
     } as ITrackingEvent);
   });
 
-  it('creates event with EXTERNAL_LINK_CLICKED', () => {
-    trackExternalLinkClicked(
-      mockTrackEvent,
-      mockCreateEventBuilder,
-      mockProperties,
-    );
+  describe('getExternalLinkHostname', () => {
+    it('returns hostname from a valid HTTPS URL', () => {
+      expect(
+        getExternalLinkHostname('https://etherscan.io/address/0x123'),
+      ).toBe('etherscan.io');
+    });
 
-    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.EXTERNAL_LINK_CLICKED,
-    );
+    it('returns hostname from a valid HTTP URL', () => {
+      expect(getExternalLinkHostname('http://explorer.example/tx/0xabc')).toBe(
+        'explorer.example',
+      );
+    });
+
+    it('falls back to regex extraction when URL parsing fails', () => {
+      expect(
+        getExternalLinkHostname('https://blockexplorer.com/tx/0x123'),
+      ).toBe('blockexplorer.com');
+    });
   });
 
-  it('adds link properties to the event builder', () => {
-    trackExternalLinkClicked(
-      mockTrackEvent,
-      mockCreateEventBuilder,
-      mockProperties,
-    );
+  describe('trackExternalLinkClicked', () => {
+    it('creates event with EXTERNAL_LINK_CLICKED', () => {
+      trackExternalLinkClicked(
+        mockTrackEvent,
+        mockCreateEventBuilder,
+        mockProperties,
+      );
 
-    expect(mockAddProperties).toHaveBeenCalledWith(mockProperties);
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.EXTERNAL_LINK_CLICKED,
+      );
+    });
+
+    it('adds link properties to the event builder', () => {
+      trackExternalLinkClicked(
+        mockTrackEvent,
+        mockCreateEventBuilder,
+        mockProperties,
+      );
+
+      expect(mockAddProperties).toHaveBeenCalledWith(mockProperties);
+    });
+
+    it('builds and tracks the event', () => {
+      trackExternalLinkClicked(
+        mockTrackEvent,
+        mockCreateEventBuilder,
+        mockProperties,
+      );
+
+      expect(mockBuild).toHaveBeenCalled();
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'External Link Clicked',
+        }),
+      );
+    });
   });
 
-  it('builds and tracks the event', () => {
-    trackExternalLinkClicked(
-      mockTrackEvent,
-      mockCreateEventBuilder,
-      mockProperties,
-    );
+  describe('trackBlockExplorerLinkClicked', () => {
+    it('sends url_domain as hostname only', () => {
+      trackBlockExplorerLinkClicked(mockTrackEvent, mockCreateEventBuilder, {
+        location: 'account_actions',
+        text: 'View on Etherscan',
+        url: 'https://etherscan.io/address/0x123',
+      });
 
-    expect(mockBuild).toHaveBeenCalled();
-    expect(mockTrackEvent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        name: 'External Link Clicked',
-      }),
-    );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        location: 'account_actions',
+        text: 'View on Etherscan',
+        url_domain: 'etherscan.io',
+      });
+    });
   });
 });

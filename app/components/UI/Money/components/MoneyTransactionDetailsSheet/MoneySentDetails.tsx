@@ -34,7 +34,7 @@ import BadgeWrapper, {
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { trackExternalLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
+import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
 import { Box } from '../../../Box/Box';
 import { AlignItems, FlexDirection } from '../../../Box/box.types';
 import Name from '../../../Name/Name';
@@ -121,10 +121,10 @@ export function MoneySentDetails() {
     if (!url) {
       return;
     }
-    trackExternalLinkClicked(trackEvent, createEventBuilder, {
+    trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
       location: 'money_transaction_details',
       text: strings('transaction_details.view_on_block_explorer'),
-      url_domain: url,
+      url,
     });
     navigation.navigate(Routes.WEBVIEW.MAIN, {
       screen: Routes.WEBVIEW.SIMPLE,

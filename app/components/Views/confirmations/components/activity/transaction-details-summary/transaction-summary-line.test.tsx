@@ -115,7 +115,7 @@ describe('TransactionSummaryLine', () => {
         .addProperties({
           location: 'transaction_details_summary',
           text: 'Explorer',
-          url_domain: 'https://explorer.example',
+          url_domain: 'explorer.example',
         })
         .build(),
     );

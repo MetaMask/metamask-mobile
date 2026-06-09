@@ -39,7 +39,7 @@ import {
   getBlockExplorerName,
 } from '../../../util/networks';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
-import { trackExternalLinkClicked } from '../../../util/analytics/externalLinkTracking';
+import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
 import { useTheme } from '../../../util/theme';
 import { updateIncomingTransactions } from '../../../util/transaction-controller';
 import { useStyles } from '../../hooks/useStyles';
@@ -407,12 +407,12 @@ const UnifiedTransactionsView = ({
       return;
     }
 
-    trackExternalLinkClicked(trackEvent, createEventBuilder, {
+    trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
       location: 'activity_tab',
       text: title
         ? `${strings('transactions.view_full_history_on')} ${title}`
         : strings('asset_details.options.view_on_block'),
-      url_domain: url,
+      url,
     });
 
     navigation.navigate('Webview', {
@@ -470,10 +470,10 @@ const UnifiedTransactionsView = ({
       return;
     }
 
-    trackExternalLinkClicked(trackEvent, createEventBuilder, {
+    trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
       location: 'activity_tab',
       text: `${strings('transactions.view_full_history_on')} ${getBlockExplorerName(nonEvmExplorerUrl)}`,
-      url_domain: nonEvmExplorerUrl,
+      url: nonEvmExplorerUrl,
     });
 
     navigation.navigate('Webview', {

@@ -14,7 +14,7 @@ import Engine from '../../../../core/Engine';
 import NotificationManager from '../../../../core/NotificationManager';
 import { getDecimalChainId } from '../../../../util/networks';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { trackExternalLinkClicked } from '../../../../util/analytics/externalLinkTracking';
+import { trackBlockExplorerLinkClicked } from '../../../../util/analytics/externalLinkTracking';
 import { WalletActionsBottomSheetSelectorsIDs } from '../../../Views/WalletActions/WalletActionsBottomSheet.testIds';
 import Logger from '../../../../util/Logger';
 import { Hex, isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
@@ -129,10 +129,10 @@ const MoreTokenActionsMenu = () => {
     }
 
     if (url) {
-      trackExternalLinkClicked(trackEvent, createEventBuilder, {
+      trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
         location: 'token_details_menu',
         text: strings('asset_details.options.view_on_block'),
-        url_domain: url,
+        url,
       });
       onActionTapped?.(TokenDetailsAction.ViewOnExplorer);
       goToBrowserUrl(url, explorer.getBlockExplorerName(asset.chainId));

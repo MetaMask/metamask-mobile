@@ -42,7 +42,7 @@ import Device from '../../../util/device';
 import Logger from '../../../util/Logger';
 import { analytics } from '../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
-import { trackExternalLinkClicked } from '../../../util/analytics/externalLinkTracking';
+import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
 import {
   findBlockExplorerForNonEvmChainId,
   findBlockExplorerForRpc,
@@ -478,7 +478,7 @@ class Transactions extends PureComponent {
         title = result.title;
       }
 
-      trackExternalLinkClicked(
+      trackBlockExplorerLinkClicked(
         analytics.trackEvent,
         AnalyticsEventBuilder.createEventBuilder,
         {
@@ -486,7 +486,7 @@ class Transactions extends PureComponent {
           text: title
             ? `${strings('transactions.view_full_history_on')} ${title}`
             : strings('asset_details.options.view_on_block'),
-          url_domain: url,
+          url,
         },
       );
 
