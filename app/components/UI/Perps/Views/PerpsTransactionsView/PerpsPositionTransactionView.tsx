@@ -37,7 +37,7 @@ import {
 } from '../../utils/formatUtils';
 import { styleSheet } from './PerpsPositionTransactionView.styles';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { trackExternalLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
+import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
 
 const PerpsPositionTransactionView: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -88,10 +88,10 @@ const PerpsPositionTransactionView: React.FC = () => {
     if (!explorerUrl) {
       return;
     }
-    trackExternalLinkClicked(trackEvent, createEventBuilder, {
+    trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
       location: 'perps_transaction_details',
       text: strings('perps.transactions.view_on_explorer'),
-      url_domain: explorerUrl,
+      url: explorerUrl,
     });
     navigation.navigate('Webview', {
       screen: 'SimpleWebview',

@@ -373,7 +373,7 @@ describe('ShareAddressQR', () => {
         name: 'External Link Clicked',
         properties: expect.objectContaining({
           location: 'share_address_qr',
-          url_domain: 'https://etherscan.io/address/0x123',
+          url_domain: 'etherscan.io',
         }),
       }),
     );

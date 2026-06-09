@@ -28,7 +28,7 @@ import { getMultichainBlockExplorer } from '../../../../../core/Multichain/netwo
 import { ShareAddressIds } from './ShareAddress.testIds';
 import PNG_MM_LOGO_PATH from '../../../../../images/branding/fox.png';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { trackExternalLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
+import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
 
 interface RootNavigationParamList extends ParamListBase {
   ShareAddress: {
@@ -66,10 +66,10 @@ export const ShareAddress = () => {
 
   const handleExplorerLinkPress = useCallback(() => {
     if (blockExplorer) {
-      trackExternalLinkClicked(trackEvent, createEventBuilder, {
+      trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
         location: 'share_address',
         text: explorerButtonText,
-        url_domain: blockExplorer.url,
+        url: blockExplorer.url,
       });
       navigation.navigate('Webview', {
         screen: 'SimpleWebview',

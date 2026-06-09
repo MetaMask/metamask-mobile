@@ -100,7 +100,7 @@ describe('BlockExplorerFooter', () => {
         .addProperties({
           location: 'notification_detail',
           text: strings('asset_details.options.view_on_block'),
-          url_domain: 'https://blockexplorer.com/tx/0x123',
+          url_domain: 'blockexplorer.com',
         })
         .build(),
     );
