@@ -70,16 +70,18 @@ jest.mock('../../../util/analytics/AnalyticsEventBuilder', () => ({
 const getMockEventBuilder = () => {
   const mockBuild = jest.fn();
   const mockAddProperties = jest.fn().mockReturnThis();
-  const mockCreateEventBuilder = jest.fn(() => ({
-    addProperties: mockAddProperties,
-    addSensitiveProperties: jest.fn().mockReturnThis(),
-    removeProperties: jest.fn().mockReturnThis(),
-    removeSensitiveProperties: jest.fn().mockReturnThis(),
-    build: mockBuild,
-  }));
   jest
     .mocked(AnalyticsEventBuilder.createEventBuilder)
-    .mockImplementation(mockCreateEventBuilder);
+    .mockImplementation(() => ({
+      addProperties: mockAddProperties,
+      addSensitiveProperties: jest.fn().mockReturnThis(),
+      removeProperties: jest.fn().mockReturnThis(),
+      removeSensitiveProperties: jest.fn().mockReturnThis(),
+      build: mockBuild,
+    }));
+  const mockCreateEventBuilder = jest.mocked(
+    AnalyticsEventBuilder.createEventBuilder,
+  );
   return { mockBuild, mockAddProperties, mockCreateEventBuilder };
 };
 
