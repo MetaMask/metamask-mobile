@@ -340,6 +340,7 @@ import {
   selectPendingDeeplink,
 } from '../../../reducers/rewards/selectors';
 import { useGeoRewardsMetadata } from './hooks/useGeoRewardsMetadata';
+import { useCandidateSubscriptionId } from './hooks/useCandidateSubscriptionId';
 import { useRewardsNotificationsNudge } from './hooks/useRewardsNotificationsNudge';
 import useRewardsVersionGuard from './hooks/useRewardsVersionGuard';
 
@@ -360,6 +361,10 @@ const mockSelectPendingDeeplink = selectPendingDeeplink as jest.MockedFunction<
 const mockUseGeoRewardsMetadata = useGeoRewardsMetadata as jest.MockedFunction<
   typeof useGeoRewardsMetadata
 >;
+const mockUseCandidateSubscriptionId =
+  useCandidateSubscriptionId as jest.MockedFunction<
+    typeof useCandidateSubscriptionId
+  >;
 const mockUseRewardsNotificationsNudge =
   useRewardsNotificationsNudge as jest.MockedFunction<
     typeof useRewardsNotificationsNudge
@@ -546,13 +551,17 @@ describe('RewardsNavigator', () => {
   });
 
   describe('Hooks integration', () => {
-    it('calls useCandidateSubscriptionId hook', () => {
+    it('does not call useCandidateSubscriptionId hook (owned by the dashboard)', () => {
+      // The tab-level data hooks now live on RewardsDashboard (the Rewards tab
+      // entry), which stays mounted while this pushed flow is open. Re-running
+      // them here would duplicate the focus-driven fetches.
+      mockUseCandidateSubscriptionId.mockClear();
+
       // Act
       renderWithNavigation(<RewardsNavigator />);
 
-      // Assert - The hook should be called during component render
-      // This is implicitly tested since the component renders successfully
-      expect(true).toBe(true);
+      // Assert
+      expect(mockUseCandidateSubscriptionId).not.toHaveBeenCalled();
     });
 
     it('uses selectors for subscription state management', () => {
@@ -574,12 +583,14 @@ describe('RewardsNavigator', () => {
       expect(getByTestId('rewards-referral-view')).toBeDefined();
     });
 
-    it('calls useGeoRewardsMetadata hook', () => {
+    it('does not call useGeoRewardsMetadata hook (owned by the dashboard)', () => {
+      mockUseGeoRewardsMetadata.mockClear();
+
       // Act
       renderWithNavigation(<RewardsNavigator />);
 
       // Assert
-      expect(mockUseGeoRewardsMetadata).toHaveBeenCalledWith({});
+      expect(mockUseGeoRewardsMetadata).not.toHaveBeenCalled();
     });
   });
 

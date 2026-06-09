@@ -34,6 +34,14 @@ jest.mock('@react-navigation/bottom-tabs', () => ({
   }),
 }));
 
+// RewardsHome resolves the candidate subscription id for both the dashboard and
+// onboarding branches. Mock it so the regression test can assert the call
+// without exercising the real async fetch.
+const mockUseCandidateSubscriptionId = jest.fn();
+jest.mock('../../UI/Rewards/hooks/useCandidateSubscriptionId', () => ({
+  useCandidateSubscriptionId: () => mockUseCandidateSubscriptionId(),
+}));
+
 const mockSelectPerpsEnabledFlag = jest.fn();
 const mockSelectPredictEnabledFlag = jest.fn();
 const mockSelectMarketInsightsEnabled = jest.fn();
@@ -1366,6 +1374,44 @@ describe('MainNavigator', () => {
         const Component = getScreenComponent(root, 'Asset');
         expect(renderInner(Component).toJSON()).toBeTruthy();
       });
+
+      it('registers the RewardsNavigator under the root REWARDS_FLOW route', () => {
+        // REWARDS_FLOW is a root-level stack screen distinct from the Rewards
+        // tab (REWARDS_VIEW). RewardsNavigator is pushed onto the JS root stack
+        // so its native-stack sub-pages animate independently of the tabs.
+        const { root } = renderWithProvider(<MainNavigator />, {
+          state: initialRootState,
+        });
+
+        const rewardsFlowScreen = root.findAll(
+          (node: ReactTestInstance) =>
+            node.type?.toString?.() === 'Screen' &&
+            node.props?.name === Routes.REWARDS_FLOW,
+        )[0];
+
+        expect(rewardsFlowScreen).toBeTruthy();
+        expect(rewardsFlowScreen?.props?.component?.name).toBe(
+          'RewardsNavigator',
+        );
+      });
+
+      it('hides the header for the root REWARDS_FLOW route', () => {
+        // The flow renders its own headers, so the outer root-stack screen must
+        // not draw one on top.
+        const { root } = renderWithProvider(<MainNavigator />, {
+          state: initialRootState,
+        });
+
+        const rewardsFlowScreen = root.findAll(
+          (node: ReactTestInstance) =>
+            node.type?.toString?.() === 'Screen' &&
+            node.props?.name === Routes.REWARDS_FLOW,
+        )[0];
+
+        expect(rewardsFlowScreen?.props?.options).toEqual(
+          expect.objectContaining({ headerShown: false }),
+        );
+      });
     });
 
     describe('HomeTabs child tab screens', () => {
@@ -1449,6 +1495,91 @@ describe('MainNavigator', () => {
         );
 
         expect(getByTestId('rewards-update-required-container')).toBeTruthy();
+      });
+
+      it('fetches the candidate subscription id at the Rewards tab entry point', () => {
+        // Regression: non-opted-in users only ever mount RewardsHome ->
+        // RewardsOnboardingNavigator (never RewardsDashboard / RewardsNavigator),
+        // so the candidate-subscription fetch must run here. Otherwise
+        // candidateSubscriptionId stays 'pending' and OnboardingMainStep shows a
+        // full-screen skeleton indefinitely.
+        mockUseCandidateSubscriptionId.mockClear();
+        const RewardsHome = getScreenComponent(
+          homeTabsRoot,
+          Routes.REWARDS_VIEW,
+          'TabScreen',
+        );
+        renderWithProvider(<RewardsHome route={{ params: {} }} />, {
+          state: initialRootState,
+        });
+
+        expect(mockUseCandidateSubscriptionId).toHaveBeenCalled();
+      });
+
+      const findRewardsHomeScreenNames = (
+        subscriptionId: string | null,
+      ): string[] => {
+        const RewardsHome = getScreenComponent(
+          homeTabsRoot,
+          Routes.REWARDS_VIEW,
+          'TabScreen',
+        );
+        const { root } = renderWithProvider(
+          <RewardsHome route={{ params: {} }} />,
+          {
+            state: {
+              ...initialRootState,
+              rewards: {
+                ...initialRootState.rewards,
+                // A concrete (non-pending/error/retry) candidate id makes
+                // selectRewardsSubscriptionId resolve to a subscription.
+                candidateSubscriptionId: subscriptionId,
+              },
+            },
+          },
+        );
+
+        return root
+          .findAll(
+            (node: ReactTestInstance) =>
+              node.type?.toString?.() === 'Screen' &&
+              typeof node.props?.name === 'string',
+          )
+          .map((node) => node.props.name as string);
+      };
+
+      it('renders the dashboard route when the user has a subscription', () => {
+        // Opted-in users land on the dashboard inside the Rewards tab; the
+        // onboarding flow is not registered for them.
+        const screenNames = findRewardsHomeScreenNames('test-subscription-id');
+
+        expect(screenNames).toContain(Routes.REWARDS_DASHBOARD);
+        expect(screenNames).not.toContain(Routes.REWARDS_ONBOARDING_FLOW);
+      });
+
+      it('renders the onboarding flow route when the user has no subscription', () => {
+        // Non-subscribed users see RewardsOnboardingNavigator directly in the
+        // tab (the dashboard route is not registered for them).
+        const screenNames = findRewardsHomeScreenNames(null);
+
+        expect(screenNames).toContain(Routes.REWARDS_ONBOARDING_FLOW);
+        expect(screenNames).not.toContain(Routes.REWARDS_DASHBOARD);
+      });
+
+      it('registers the rewards modal screens regardless of subscription state', () => {
+        // The modal screens are siblings of the dashboard/onboarding branch and
+        // must always be available so deeplinks/bottom sheets can open.
+        const screenNames = findRewardsHomeScreenNames('test-subscription-id');
+
+        expect(screenNames).toEqual(
+          expect.arrayContaining([
+            Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+            Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL,
+            Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL,
+            Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET,
+            Routes.MODAL.REWARDS_SELECT_SHEET,
+          ]),
+        );
       });
     });
 

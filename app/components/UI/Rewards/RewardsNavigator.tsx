@@ -31,12 +31,9 @@ import PredictThePitchCampaignPortfolioView from './Views/PredictThePitchCampaig
 import { useSelector } from 'react-redux';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import { selectIsRewardsVersionBlocked } from '../../../reducers/rewards/selectors';
-import { useCandidateSubscriptionId } from './hooks/useCandidateSubscriptionId';
 import { useNavigation, useNavigationState } from '@react-navigation/native';
 import useRewardsVersionGuard from './hooks/useRewardsVersionGuard';
 import RewardsUpdateRequired from './components/RewardsUpdateRequired/RewardsUpdateRequired';
-import { useGeoRewardsMetadata } from './hooks/useGeoRewardsMetadata';
-import { useReferralDetails } from './hooks/useReferralDetails';
 import { useRewardsNotificationsNudge } from './hooks/useRewardsNotificationsNudge';
 import useRewardsToast from './hooks/useRewardsToast';
 import { strings } from '../../../../locales/i18n';
@@ -57,14 +54,12 @@ const RewardsNavigator: React.FC = () => {
 
   useRewardsVersionGuard({ refreshKey: activeRewardsRoute });
 
-  // Set candidate subscription ID in Redux state when component mounts and account changes
-  useCandidateSubscriptionId();
-
-  // Fetch geo rewards metadata so optinAllowedForGeo is available across all rewards screens
-  useGeoRewardsMetadata({});
-
-  // Fetch referral details so referral code is available across all rewards screens
-  useReferralDetails();
+  // The tab-level data hooks (useCandidateSubscriptionId, useGeoRewardsMetadata,
+  // useReferralDetails) intentionally live on RewardsDashboard, not here.
+  // RewardsDashboard is the Rewards tab entry and stays mounted while this pushed
+  // REWARDS_FLOW stack is open, so it already populates Redux for these sub-pages
+  // and keeps event-driven refetches running. Re-declaring those hooks here would
+  // duplicate the focus-driven fetches on every entry into the flow.
 
   const { showToast, RewardsToastOptions } = useRewardsToast();
 

@@ -56,6 +56,7 @@ import ActivityView from '../../Views/ActivityView';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import { selectIsRewardsVersionBlocked } from '../../../reducers/rewards/selectors';
 import useRewardsVersionGuard from '../../UI/Rewards/hooks/useRewardsVersionGuard';
+import { useCandidateSubscriptionId } from '../../UI/Rewards/hooks/useCandidateSubscriptionId';
 import RewardsUpdateRequired from '../../UI/Rewards/components/RewardsUpdateRequired/RewardsUpdateRequired';
 import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
 import RewardsDashboard from '../../UI/Rewards/Views/RewardsDashboard';
@@ -342,6 +343,12 @@ const RewardsHome = () => {
   // update-required screen (and the requirements are always fetched), regardless
   // of subscription status.
   useRewardsVersionGuard();
+  // Resolve the candidate subscription ID here for the same reason: both the
+  // dashboard and onboarding branches depend on it (onboarding's OnboardingMainStep
+  // renders a full-screen skeleton until candidateSubscriptionId leaves its initial
+  // 'pending' state). Only RewardsHome mounts for non-opted-in users, so fetching at
+  // this shared entry point prevents the onboarding tab from loading indefinitely.
+  useCandidateSubscriptionId();
   const rewardsModalScreenOptions = {
     ...transparentModalScreenOptions,
     contentStyle: { backgroundColor: 'transparent' },

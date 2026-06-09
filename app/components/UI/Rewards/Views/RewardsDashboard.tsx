@@ -38,7 +38,6 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
-import { useCandidateSubscriptionId } from '../hooks/useCandidateSubscriptionId';
 import { useGeoRewardsMetadata } from '../hooks/useGeoRewardsMetadata';
 import { useReferralDetails } from '../hooks/useReferralDetails';
 import { navigateToRewardsRoute } from '../utils';
@@ -75,9 +74,9 @@ const RewardsDashboard: React.FC = () => {
   useGetPredictThePitchOutcomeToast();
 
   // Data hooks that populate Redux for the dashboard and its pushed sub-pages.
-  // The version guard itself lives one level up in RewardsHome (MainNavigator),
-  // so it also gates the onboarding entry path for non-enrolled users.
-  useCandidateSubscriptionId();
+  // The version guard and candidate-subscription fetch live one level up in
+  // RewardsHome (MainNavigator) so they also cover the onboarding entry path for
+  // non-enrolled users; only dashboard-specific hooks remain here.
   useGeoRewardsMetadata({});
   useReferralDetails();
 
