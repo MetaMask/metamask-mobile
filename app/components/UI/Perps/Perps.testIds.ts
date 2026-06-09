@@ -264,6 +264,13 @@ export const PerpsHomeViewSelectorsIDs = {
   TAB_BAR_ACTIVITY: 'tab-bar-item-activity',
 };
 
+export const PerpsTabViewSelectorsIDs = {
+  START_NEW_TRADE_CTA: 'perps-tab-view-start-new-trade-cta',
+  GEO_BLOCK_BOTTOM_SHEET_TOOLTIP:
+    'perps-tab-view-geo-block-bottom-sheet-tooltip',
+  SCROLL_VIEW: 'perps-tab-scroll-view',
+} as const;
+
 export const PerpsPositionsViewSelectorsIDs = {
   REFRESH_CONTROL: 'refresh-control',
   BACK_BUTTON: 'back-button',

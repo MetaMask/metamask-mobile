@@ -23,7 +23,6 @@ import { TraceName } from '../../../../../util/trace';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import PerpsCard from '../../components/PerpsCard';
-import { PerpsTabControlBar } from '../../components/PerpsTabControlBar';
 import { useSelector } from 'react-redux';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
 import {
@@ -35,7 +34,6 @@ import {
   usePerpsEventTracking,
   usePerpsFirstTimeUser,
   usePerpsLivePositions,
-  usePerpsTabExploreData,
 } from '../../hooks';
 import { usePerpsLiveAccount, usePerpsLiveOrders } from '../../hooks/stream';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
@@ -43,9 +41,11 @@ import { getPositionDirection } from '../../utils/positionCalculations';
 import styleSheet from './PerpsTabView.styles';
 import PerpsWatchlistMarkets from '../../components/PerpsWatchlistMarkets/PerpsWatchlistMarkets';
 import PerpsMarketRowItem from '../../components/PerpsMarketRowItem';
+import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
 
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import ConditionalScrollView from '../../../../../component-library/components-temp/ConditionalScrollView';
+import { usePerpsTabExploreData } from '../../hooks/usePerpsTabExploreData';
 
 const PerpsTabView = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -299,7 +299,6 @@ const PerpsTabView = () => {
     });
   }, [navigation]);
 
-
   const renderExploreSection = useCallback(() => {
     if (isExploreLoading) {
       return (
@@ -356,11 +355,11 @@ const PerpsTabView = () => {
       style={[styles.wrapper, { flex: undefined }]}
       edges={['left', 'right']}
     >
-      <PerpsTabControlBar
+      {/* <PerpsTabControlBar
         onManageBalancePress={handleManageBalancePress}
         hasPositions={hasPositions}
         hasOrders={hasOrders}
-      />
+      /> */}
       <ConditionalScrollView
         isScrollEnabled={false}
         scrollViewProps={{

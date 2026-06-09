@@ -1,7 +1,10 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { usePerpsWatchlistActions } from './usePerpsWatchlistActions';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { PERPS_EVENT_PROPERTY, PERPS_EVENT_VALUE } from '@metamask/perps-controller';
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
 
 // ---------------------------------------------------------------------------
 // Mocks
