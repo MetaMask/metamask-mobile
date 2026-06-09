@@ -878,6 +878,64 @@ describe('useMoneyAccountCardLinkage', () => {
         expect.objectContaining({ delegationAmountHuman: '0' }),
       );
     });
+
+    it('shows the unlink pending + success toasts when delegationAmountHuman is 0', async () => {
+      applySelectorMocks(buildSelectors({ isAlreadyDelegated: true }));
+      let resolveLink: (() => void) | undefined;
+      mockLinkMoneyAccountCard.mockImplementationOnce(
+        () =>
+          new Promise<void>((resolve) => {
+            resolveLink = resolve;
+          }),
+      );
+
+      const { result } = renderLinkageHook();
+
+      let linkPromise: Promise<boolean> | undefined;
+      await act(async () => {
+        linkPromise = result.current.confirmLinkInBackground({
+          delegationAmountHuman: '0',
+        });
+      });
+
+      expect(mockShowToast).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          labelOptions: [{ label: 'Unlinking your card' }],
+        }),
+      );
+
+      await act(async () => {
+        resolveLink?.();
+        await linkPromise;
+      });
+
+      expect(mockShowToast).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          labelOptions: [{ label: 'Your card was unlinked' }],
+        }),
+      );
+    });
+
+    it('shows the unlink error toast when the revoke submission fails', async () => {
+      applySelectorMocks(buildSelectors({ isAlreadyDelegated: true }));
+      mockLinkMoneyAccountCard.mockRejectedValueOnce(new Error('revoke boom'));
+
+      const { result } = renderLinkageHook();
+
+      let returned: boolean | undefined;
+      await act(async () => {
+        returned = await result.current.confirmLinkInBackground({
+          delegationAmountHuman: '0',
+        });
+      });
+
+      expect(returned).toBe(false);
+      expect(mockShowToast).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          labelOptions: [{ label: 'Something went wrong unlinking your card' }],
+        }),
+      );
+    });
   });
 
   describe('reset', () => {

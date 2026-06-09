@@ -247,4 +247,58 @@ describe('buildTokenList', () => {
       expect(LINEA_CAIP_CHAIN_ID).toBe('eip155:59144');
     });
   });
+
+  describe('veda token handling', () => {
+    const createDelegationSettings = (
+      networks: DelegationSettingsResponse['networks'],
+    ): DelegationSettingsResponse => ({
+      networks,
+      count: networks.length,
+      _links: { self: 'https://api.example.com' },
+    });
+
+    it('uses the delegation-settings address (no SDK remap) for veda even in non-production', () => {
+      const VEDA_ADDRESS = '0xb4563bcD3B7764CCBf497f515585f70B6C3EA5Ae';
+      const result = buildDelegationTokenList({
+        delegationSettings: createDelegationSettings([
+          {
+            network: 'monad',
+            chainId: '143',
+            environment: 'staging',
+            delegationContract: '0xDelegation',
+            tokens: {
+              veda: { symbol: 'veda', decimals: 6, address: VEDA_ADDRESS },
+            },
+          },
+        ]),
+        getSupportedTokensByChainId: () => [
+          { symbol: 'veda', address: '0xSdkAddress', name: 'Veda' },
+        ],
+      });
+
+      expect(result[0].address).toBe(VEDA_ADDRESS);
+      expect(result[0].stagingTokenAddress).toBeUndefined();
+      expect(result[0].displaySymbol).toBe('mUSD');
+      expect(result[0].symbol).toBe('veda');
+    });
+
+    it('does not set displaySymbol on non-veda tokens', () => {
+      const result = buildDelegationTokenList({
+        delegationSettings: createDelegationSettings([
+          {
+            network: 'monad',
+            chainId: '143',
+            environment: 'staging',
+            delegationContract: '0xDelegation',
+            tokens: {
+              usdc: { symbol: 'usdc', decimals: 6, address: '0xUsdc' },
+            },
+          },
+        ]),
+        getSupportedTokensByChainId: () => [],
+      });
+
+      expect(result[0].displaySymbol).toBeUndefined();
+    });
+  });
 });
