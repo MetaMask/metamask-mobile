@@ -221,17 +221,21 @@ const PredictFeedView: React.FC = () => {
     }
 
     return (
-      <FlashList
-        testID={PredictFeedViewSelectorsIDs.MARKET_LIST}
-        data={markets}
-        renderItem={renderItem}
-        keyExtractor={keyExtractor}
-        onEndReached={handleEndReached}
-        onEndReachedThreshold={0.7}
-        ListFooterComponent={renderFooter}
-        contentContainerStyle={tw.style('px-4 pb-4')}
-        showsVerticalScrollIndicator={false}
-      />
+      // flex-1 wrapper so FlashList gets a bounded height in this column layout;
+      // without it the list can collapse to zero height and break scroll/pagination.
+      <Box twClassName="flex-1">
+        <FlashList
+          testID={PredictFeedViewSelectorsIDs.MARKET_LIST}
+          data={markets}
+          renderItem={renderItem}
+          keyExtractor={keyExtractor}
+          onEndReached={handleEndReached}
+          onEndReachedThreshold={0.7}
+          ListFooterComponent={renderFooter}
+          contentContainerStyle={tw.style('px-4 pb-4')}
+          showsVerticalScrollIndicator={false}
+        />
+      </Box>
     );
   };
 
