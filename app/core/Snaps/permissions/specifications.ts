@@ -18,8 +18,6 @@ import {
 } from '@metamask/snaps-controllers';
 import { CurrencyRateController } from '@metamask/assets-controllers';
 import {
-  KeyringControllerAddNewKeyringAction,
-  KeyringControllerGetKeyringsByTypeAction,
   KeyringControllerGetStateAction,
   KeyringControllerUnlockEvent,
   KeyringControllerWithKeyringAction,
@@ -50,10 +48,8 @@ export type SnapPermissionSpecificationsActions =
   | SnapControllerGetSnapAction
   | SnapControllerGetSnapStateAction
   | SnapControllerHandleRequestAction
-  | KeyringControllerGetKeyringsByTypeAction
   | KeyringControllerWithKeyringAction
   | KeyringControllerWithKeyringV2UnsafeAction
-  | KeyringControllerAddNewKeyringAction
   | MaybeUpdateState
   | PreferencesControllerGetStateAction
   | TestOrigin
