@@ -217,13 +217,13 @@
     "select_an_answer": "Select an answer",
     "q1": {
       "title": "Did someone you only know online tell you to send this?",
-      "subtitle": "This includes people you met on social media, dating apps, messaging apps, or in a group chat — even if you have spoken on video.",
+      "subtitle": "This includes dating apps, social media, and group chats—even if you've spoken on video.",
       "yes": "Yes, someone I met online told me to send this",
-      "no": "No, I am sending this on my own initiative"
+      "no": "No, I know this person in real life"
     },
     "q2": {
-      "title": "What is this payment for?",
-      "subtitle": "Choose the option that best describes why you are sending this crypto.",
+      "title": "What's this payment for?",
+      "subtitle": "Choose the option that best describes this payment.",
       "investment_title": "Investment",
       "investment_subtitle": "Buying crypto, tokens, or a financial opportunity",
       "helping_title": "Helping someone I care about",
@@ -238,17 +238,20 @@
       "self_transfer_subtitle": "Self-transfer or moving to cold storage"
     },
     "q3": {
-      "title": "Is someone guiding you through this transaction right now?",
-      "subtitle": "For example, on a phone call, video chat, or sharing your screen with someone.",
+      "title": "Is someone guiding you through this transaction?",
+      "subtitle": "This could be over a phone call, video chat, or sharing your screen.",
       "yes": "Yes, someone is walking me through the steps right now",
       "no": "No, I am doing this entirely on my own"
     },
     "warning": {
       "title": "You might be getting scammed right now",
-      "body": "Based on your answers and this recipient's history, this transaction matches the pattern of a known scam. Cryptocurrency transactions are irreversible — once you send, your funds cannot be recovered.",
+      "reason_known_scam": "Based on your answers and this recipient's history, this transaction might be a scam.",
+      "reason_irreversible_emphasis": "Crypto transactions are irreversible.",
+      "reason_irreversible_detail": "Once you send, your funds can't be recovered.",
       "stop_payment": "Stop this payment",
       "contact_support": "Contact support",
-      "proceed_anyway": "I understand the risks, continue anyway"
+      "proceed_anyway": "Ignore risks and continue anyway",
+      "proceed_anyway_countdown": "Continue anyway in {{seconds}}s"
     }
   },
   "date": {

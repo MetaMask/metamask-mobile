@@ -1,5 +1,10 @@
 export const TOTAL_QUESTIONS = 3;
 
+// Seconds the bypass ("continue anyway") link stays disabled on the scam
+// warning screen, forcing the user to pause and read the warning before they
+// can dismiss it.
+export const PROCEED_DELAY_SECONDS = 10;
+
 export type QuestionId = 'q1' | 'q2' | 'q3';
 
 export interface QuestionOption {

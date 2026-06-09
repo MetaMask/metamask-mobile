@@ -124,6 +124,13 @@ export const Footer = () => {
     await onReject();
   }, [hideConfirmAlertModal, hideScamQuestionnaire, onReject]);
 
+  // "Stop this payment" on the scam warning rejects the tx and returns the user
+  // to the wallet home rather than dropping them back on the confirm screen.
+  const onScamReject = useCallback(async () => {
+    hideScamQuestionnaire();
+    await onReject(undefined, false, true);
+  }, [hideScamQuestionnaire, onReject]);
+
   const onHandleConfirm = useCallback(async () => {
     hideConfirmAlertModal();
     hideScamQuestionnaire();
@@ -248,7 +255,7 @@ export const Footer = () => {
       )}
       {scamQuestionnaireVisible && (
         <ScamQuestionnaire
-          onReject={onHandleReject}
+          onReject={onScamReject}
           onConfirm={onHandleConfirm}
           onBypass={onScamBypass}
           onDismiss={hideScamQuestionnaire}

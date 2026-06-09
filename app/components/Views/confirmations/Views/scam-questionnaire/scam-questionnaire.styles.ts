@@ -162,41 +162,55 @@ const styleSheet = (params: { theme: Theme }) => {
     // Scam warning screen
     warningIconBadge: {
       alignSelf: 'center',
-      width: 104,
-      height: 104,
+      width: 56,
+      height: 56,
       borderRadius: 28,
       backgroundColor: theme.colors.error.muted,
-      borderWidth: 1,
-      borderColor: theme.colors.error.default,
       alignItems: 'center',
       justifyContent: 'center',
-      marginTop: 32,
-      marginBottom: 28,
+      marginTop: 24,
+      marginBottom: 24,
     },
     warningTitle: {
-      textAlign: 'center',
+      textAlign: 'left',
       color: theme.colors.error.default,
-      marginBottom: 16,
-      paddingHorizontal: 8,
+      marginBottom: 28,
     },
-    warningBody: {
-      textAlign: 'center',
+    // Bulleted reasons — small red icon paired with left-aligned supporting copy
+    warningReason: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      marginBottom: 20,
+    },
+    warningReasonIcon: {
+      marginRight: 12,
+      marginTop: 2,
+    },
+    warningReasonText: {
+      flex: 1,
       color: theme.colors.text.alternative,
-      marginBottom: 32,
-      paddingHorizontal: 8,
       lineHeight: 22,
     },
     warningPrimaryButton: {
       marginBottom: 12,
     },
     warningSecondaryButton: {
-      marginBottom: 16,
+      marginBottom: 0,
     },
     bypassText: {
       textAlign: 'center',
-      color: theme.colors.text.muted,
+      color: theme.colors.error.default,
       textDecorationLine: 'underline',
       paddingVertical: 12,
+      marginBottom: 12,
+    },
+    // Dimmed, non-underlined treatment while the bypass link is still gated by
+    // the countdown — signals it isn't tappable yet.
+    bypassTextDisabled: {
+      textAlign: 'center',
+      color: theme.colors.text.muted,
+      paddingVertical: 12,
+      marginBottom: 12,
     },
   });
 };
