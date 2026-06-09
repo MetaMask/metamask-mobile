@@ -1,12 +1,14 @@
 import type { ControllerMessenger } from '../types';
-import type { AnalyticsTrackingEvent } from '@metamask/analytics-controller';
 import type {
   AnalyticsUnfilteredProperties,
   IMetaMetricsEvent,
   ITrackingEvent,
 } from '../../../util/analytics/analytics.types';
 import Logger from '../../../util/Logger';
-import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import {
+  AnalyticsEventBuilder,
+  type AnalyticsTrackingEvent,
+} from '../../../util/analytics/AnalyticsEventBuilder';
 import { store } from '../../../store';
 import {
   enrichWithABTests,
@@ -40,7 +42,7 @@ export const trackEvent = (
 
   try {
     (
-      initMessenger as ControllerMessenger & {
+      initMessenger as unknown as {
         call: (
           action: 'AnalyticsController:trackEvent',
           event: AnalyticsTrackingEvent,

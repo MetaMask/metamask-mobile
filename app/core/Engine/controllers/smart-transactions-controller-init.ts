@@ -9,7 +9,10 @@ import {
   type SmartTransactionsControllerMessenger,
 } from '@metamask/smart-transactions-controller';
 import type { SmartTransactionsControllerInitMessenger } from '../messengers/smart-transactions-controller-messenger';
-import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import {
+  AnalyticsEventBuilder,
+  type AnalyticsTrackingEvent,
+} from '../../../util/analytics/AnalyticsEventBuilder';
 import { trace } from '../../../util/trace';
 import { getAllowedSmartTransactionsChainIds } from '../../../constants/smartTransactions';
 import { setSentinelApiAuth } from '../../../util/transactions/sentinel-api';
@@ -40,7 +43,15 @@ export const smartTransactionsControllerInit: MessengerClientInitFunction<
         .addSensitiveProperties(params.sensitiveProperties)
         .build();
 
-      initMessenger.call('AnalyticsController:trackEvent', event);
+      // Cast needed until @metamask/analytics-controller removes saveDataRecording from its AnalyticsTrackingEvent
+      (
+        initMessenger as unknown as {
+          call: (
+            action: 'AnalyticsController:trackEvent',
+            event: AnalyticsTrackingEvent,
+          ) => void;
+        }
+      ).call('AnalyticsController:trackEvent', event);
     } catch (error) {
       // Analytics tracking failures should not break smart transactions
       // Error is logged but not thrown

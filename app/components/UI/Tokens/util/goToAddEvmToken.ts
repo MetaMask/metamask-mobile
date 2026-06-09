@@ -7,10 +7,7 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 
 interface GoToAddEvmTokenProps {
   navigation: AppNavigationProp;
-  trackEvent: (
-    event: AnalyticsTrackingEvent,
-    saveDataRecording?: boolean,
-  ) => void;
+  trackEvent: (event: AnalyticsTrackingEvent) => void;
   createEventBuilder: typeof AnalyticsEventBuilder.createEventBuilder;
   getDecimalChainId: (chainId: string) => number;
   currentChainId: string;

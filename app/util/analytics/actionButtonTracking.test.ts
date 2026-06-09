@@ -6,9 +6,18 @@ import {
   ActionButtonProperties,
 } from './actionButtonTracking';
 import { MetaMetricsEvents } from '../../core/Analytics';
+import {
+  AnalyticsEventBuilder,
+  type AnalyticsTrackingEvent,
+} from './AnalyticsEventBuilder';
 
 // Mock dependencies
 jest.mock('../../core/Analytics');
+jest.mock('./AnalyticsEventBuilder');
+
+const mockedAnalyticsEventBuilder = AnalyticsEventBuilder as jest.Mocked<
+  typeof AnalyticsEventBuilder
+>;
 
 describe('actionButtonTracking', () => {
   // Mock functions
@@ -20,6 +29,12 @@ describe('actionButtonTracking', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    // Setup AnalyticsEventBuilder mock
+    mockedAnalyticsEventBuilder.createEventBuilder.mockReturnValue(
+      mockCreateEventBuilder as unknown as ReturnType<
+        typeof AnalyticsEventBuilder.createEventBuilder
+      >,
+    );
     mockCreateEventBuilder.mockReturnValue({
       addProperties: mockAddProperties,
       build: mockBuild,
@@ -36,7 +51,7 @@ describe('actionButtonTracking', () => {
       isEnabled: true,
       isAnonymous: false,
       hasProperties: true,
-    });
+    } as unknown as AnalyticsTrackingEvent);
   });
 
   describe('ActionButtonType enum', () => {
@@ -170,7 +185,6 @@ describe('actionButtonTracking', () => {
         name: 'test',
         properties: {},
         sensitiveProperties: {},
-        saveDataRecording: false,
         isOptIn: false,
         isEnabled: true,
         isAnonymous: false,
