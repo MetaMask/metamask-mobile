@@ -68,7 +68,11 @@ const MainRoutes = () => {
       screenOptions={mainScreenOptions}
     >
       <Stack.Screen name={Routes.CARD.HOME} component={CardHome} />
-      <Stack.Screen name={Routes.CARD.WELCOME} component={CardWelcome} />
+      <Stack.Screen
+        name={Routes.CARD.WELCOME}
+        component={CardWelcome}
+        options={{ presentation: 'fullScreenModal' }}
+      />
       <Stack.Screen
         name={Routes.CARD.CHOOSE_YOUR_CARD}
         component={ChooseYourCard}

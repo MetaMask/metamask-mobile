@@ -30,7 +30,6 @@ import { mergeMoneyActivity } from '../../hooks/useMoneyActivityItems';
 import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyActivityLoading';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
-import { useOnboardingStep, STEPPER_IDS } from '../../hooks/useOnboardingStep';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
 import { calculateProjectedEarnings } from '../../utils/projections';
@@ -50,7 +49,6 @@ import { useTheme } from '../../../../../util/theme';
 import { MoneyBalanceDisplayState } from '../../types';
 import { Hex } from '@metamask/utils';
 import { AssetType } from '../../../../Views/confirmations/types/token';
-import { MONEY_ONBOARDING_TOTAL_STEPS } from '../../components/MoneyOnboardingCard/MoneyOnboardingCard';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 const Divider = () => <Box twClassName="h-px bg-border-muted my-5" />;
 
@@ -120,11 +118,6 @@ const MoneyHomeView = () => {
   const hasMetalCard = useSelector(selectHasMetalCard);
   const { startLinkFlow, isCardLinkedToMoneyAccount, isLinking } =
     useMoneyAccountCardLinkage();
-
-  const { isVisible: isOnboardingCardVisible } = useOnboardingStep({
-    stepperId: STEPPER_IDS.MONEY,
-    totalSteps: MONEY_ONBOARDING_TOTAL_STEPS,
-  });
 
   const homeState = getMoneyHomeState(activityItems.length);
   const isMilestone = homeState === 'milestone' || homeState === 'filled';
@@ -324,7 +317,6 @@ const MoneyHomeView = () => {
           onCardPress={handleCardPress}
         />
         <MoneyOnboardingCard />
-        {isOnboardingCardVisible && <Divider />}
         {/* Only show earnings if balance is available and non-zero */}
         {displayState.kind === 'balance' &&
           totalFiatRaw &&
