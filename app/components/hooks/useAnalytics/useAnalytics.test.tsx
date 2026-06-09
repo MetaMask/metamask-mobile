@@ -105,6 +105,7 @@ describe('useAnalytics', () => {
       name: 'test-event',
       properties: {},
       sensitiveProperties: {},
+      saveDataRecording: false,
       get isAnonymous() {
         return false;
       },
