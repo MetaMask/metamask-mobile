@@ -135,10 +135,10 @@ describe('PerpsMarketCategoryBadges', () => {
         <PerpsMarketCategoryBadges {...defaultProps} testID="badges" />,
       );
 
-      expect(getByTestId('badges-crypto')).toBeTruthy();
-      expect(getByTestId('badges-stock')).toBeTruthy();
-      expect(getByTestId('badges-commodity')).toBeTruthy();
-      expect(getByTestId('badges-forex')).toBeTruthy();
+      expect(getByTestId('badges-crypto')).toBeOnTheScreen();
+      expect(getByTestId('badges-stock')).toBeOnTheScreen();
+      expect(getByTestId('badges-commodity')).toBeOnTheScreen();
+      expect(getByTestId('badges-forex')).toBeOnTheScreen();
     });
   });
 });
