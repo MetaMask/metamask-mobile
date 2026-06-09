@@ -32,6 +32,7 @@ import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
+import { isAccountFunded } from '../../utils/isAccountFunded';
 import { calculateProjectedEarnings } from '../../utils/projections';
 import { MUSD_MAINNET_ASSET_FOR_DETAILS } from '../../../../Views/Homepage/Sections/Cash/CashGetMusdEmptyState.constants';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
@@ -52,14 +53,6 @@ import { AssetType } from '../../../../Views/confirmations/types/token';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 const Divider = () => <Box twClassName="h-px bg-border-muted my-5" />;
 
-type MoneyHomeState = 'empty' | 'milestone' | 'filled';
-
-const getMoneyHomeState = (transactionCount: number): MoneyHomeState => {
-  if (transactionCount === 0) return 'empty';
-  if (transactionCount < 10) return 'milestone';
-  return 'filled';
-};
-
 const MoneyHomeView = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
@@ -70,6 +63,7 @@ const MoneyHomeView = () => {
   const {
     totalFiatFormatted,
     totalFiatRaw,
+    tokenTotal,
     vaultApyQuery,
     isAggregatedBalanceLoading,
     isBalanceFetchError,
@@ -119,8 +113,8 @@ const MoneyHomeView = () => {
   const { startLinkFlow, isCardLinkedToMoneyAccount, isLinking } =
     useMoneyAccountCardLinkage();
 
-  const homeState = getMoneyHomeState(activityItems.length);
-  const isMilestone = homeState === 'milestone' || homeState === 'filled';
+  const balanceReady = tokenTotal !== undefined;
+  const isFunded = isAccountFunded(tokenTotal) || activityItems.length > 0;
 
   let displayState: MoneyBalanceDisplayState;
   if (!hasMoneyAccount) {
@@ -333,7 +327,7 @@ const MoneyHomeView = () => {
               <Divider />
             </>
           )}
-        {!isMilestone && (
+        {balanceReady && !isFunded && (
           <>
             <MoneyHowItWorks
               apy={apyPercent}
@@ -392,7 +386,7 @@ const MoneyHomeView = () => {
           apy={apyPercent}
         />
         <Divider />
-        {isMilestone && (
+        {isFunded && (
           <>
             <MoneyCondensedInfoCards
               onHowItWorksPress={handleHowItWorksHeaderPress}
@@ -402,7 +396,7 @@ const MoneyHomeView = () => {
             <Divider />
           </>
         )}
-        {!isMilestone && (
+        {balanceReady && !isFunded && (
           <MoneyWhatYouGet
             apy={apyPercent}
             onLearnMorePress={handleLearnMorePress}

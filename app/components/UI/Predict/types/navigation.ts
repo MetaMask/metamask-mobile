@@ -87,6 +87,7 @@ export type PredictPositionsTabKey = 'positions' | 'history';
 
 /** Predict Positions screen parameters */
 export interface PredictPositionsParams {
+  entryPoint?: PredictEntryPoint;
   initialTab?: PredictPositionsTabKey;
 }
 
