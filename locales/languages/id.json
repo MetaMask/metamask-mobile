@@ -8971,7 +8971,7 @@
       "non_winner": {
         "title": "Hasilnya sudah keluar 🏅",
         "description": "Lihat peringkat Anda di {{campaignName}}.",
-        "cta": "Lihat"
+        "cta": "Lihat detail"
       }
     }
   },

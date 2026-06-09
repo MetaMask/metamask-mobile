@@ -99,6 +99,7 @@ import PerpsNavigationCard, {
 } from '../../components/PerpsNavigationCard/PerpsNavigationCard';
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
 import PerpsCompetitionBanner from '../../components/PerpsCompetitionBanner';
+import PerpsProducts from '../../components/PerpsProducts';
 import PerpsTopMoversSection from '../../components/PerpsTopMoversSection';
 
 interface PerpsHomeViewProps {
@@ -741,6 +742,11 @@ const PerpsHomeView = ({
           source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
           transactionActiveAbTests={transactionActiveAbTests}
         />
+
+        {/* Products Section - Category pills grid */}
+        <View onLayout={handleSectionLayout('products')}>
+          <PerpsProducts transactionActiveAbTests={transactionActiveAbTests} />
+        </View>
 
         {/* Top Movers Section */}
         <PerpsTopMoversSection

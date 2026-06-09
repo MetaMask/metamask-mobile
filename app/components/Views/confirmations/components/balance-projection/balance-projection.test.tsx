@@ -64,7 +64,7 @@ describe('BalanceProjection', () => {
     expect(getByText('$1216.65')).toBeOnTheScreen();
   });
 
-  it('returns null while APY is loading', () => {
+  it('reserves space with a skeleton while APY is loading', () => {
     mockBalance({ apyDecimal: undefined, isLoading: true });
 
     const { queryByTestId } = render(
@@ -72,6 +72,7 @@ describe('BalanceProjection', () => {
     );
 
     expect(queryByTestId('balance-projection')).toBeNull();
+    expect(queryByTestId('balance-projection-skeleton')).toBeOnTheScreen();
   });
 
   it('returns null when apyDecimal is unavailable or negative', () => {
