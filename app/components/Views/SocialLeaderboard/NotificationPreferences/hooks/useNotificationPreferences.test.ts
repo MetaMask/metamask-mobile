@@ -161,6 +161,31 @@ describe('useNotificationPreferences', () => {
     );
   });
 
+  it('chains rapid trader toggles without losing prior muted ids', async () => {
+    const { result } = renderHook(() => useNotificationPreferences());
+
+    await act(async () => {
+      const firstToggle = result.current.toggleTraderNotification('trader-1');
+      const secondToggle = result.current.toggleTraderNotification('trader-2');
+      await Promise.all([firstToggle, secondToggle]);
+    });
+
+    expect(mockUpdatePreferencesSection).toHaveBeenNthCalledWith(
+      1,
+      'socialAI',
+      expect.objectContaining({
+        mutedTraderProfileIds: ['trader-1'],
+      }),
+    );
+    expect(mockUpdatePreferencesSection).toHaveBeenNthCalledWith(
+      2,
+      'socialAI',
+      expect.objectContaining({
+        mutedTraderProfileIds: ['trader-1', 'trader-2'],
+      }),
+    );
+  });
+
   it('returns user-facing error when preferences are missing and mutator is called', async () => {
     mockUseNotificationStoragePreferences.mockReturnValue({
       preferences: undefined,
