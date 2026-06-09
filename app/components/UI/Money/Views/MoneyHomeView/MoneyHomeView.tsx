@@ -112,8 +112,12 @@ const MoneyHomeView = () => {
 
   const isCardholder = useSelector(selectIsCardholder);
   const hasMetalCard = useSelector(selectHasMetalCard);
-  const { startLinkFlow, isCardLinkedToMoneyAccount, isLinking } =
-    useMoneyAccountCardLinkage();
+  const {
+    startLinkFlow,
+    isCardAuthenticated,
+    isCardLinkedToMoneyAccount,
+    isLinking,
+  } = useMoneyAccountCardLinkage();
 
   const { isVisible: isOnboardingCardVisible } = useOnboardingStep({
     stepperId: STEPPER_IDS.MONEY,
@@ -197,10 +201,7 @@ const MoneyHomeView = () => {
   }, [navigation]);
 
   const handleLinkCardPress = useCallback(() => {
-    startLinkFlow({
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
-    });
+    startLinkFlow(MONEY_HOME_CARD_ORIGIN);
   }, [startLinkFlow]);
 
   const handleApyInfoPress = useCallback(() => {
@@ -278,7 +279,7 @@ const MoneyHomeView = () => {
   let metamaskCardMode: 'upsell' | 'link' | 'manage';
   if (isCardLinkedToMoneyAccount) {
     metamaskCardMode = 'manage';
-  } else if (isCardholder) {
+  } else if (isCardAuthenticated || isCardholder) {
     metamaskCardMode = 'link';
   } else {
     metamaskCardMode = 'upsell';
