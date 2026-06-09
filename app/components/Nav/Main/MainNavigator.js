@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Image, StyleSheet, Keyboard, Platform } from 'react-native';
-import { createStackNavigator } from '@react-navigation/stack';
+import {
+  createStackNavigator,
+  TransitionPresets,
+} from '@react-navigation/stack';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useSelector, useDispatch } from 'react-redux';
 import { mainNavigatorReady } from '../../../actions/navigation';
@@ -155,7 +158,6 @@ import { TokenDetails } from '../../UI/TokenDetails/Views/TokenDetails';
 import BenefitFullView from '../../UI/Rewards/Views/BenefitFullView';
 import BenefitsFullView from '../../UI/Rewards/Views/BenefitsFullView';
 import { getDeFiProtocolPositionDetailsNavbarOptions } from '../../UI/Navbar';
-import NavigationDevPanel from '../../Views/NavigationDevPanel/NavigationDevPanel';
 
 const Stack = createStackNavigator();
 const NativeStack = createNativeStackNavigator();
@@ -1406,13 +1408,6 @@ const MainNavigator = () => {
           options={{ headerShown: false }}
         />
       )}
-      {process.env.METAMASK_ENVIRONMENT !== 'production' && (
-        <Stack.Screen
-          name={Routes.NAVIGATION_DEV_PANEL}
-          component={NavigationDevPanel}
-          options={{ headerShown: true, ...slideFromRightAnimation }}
-        />
-      )}
       <Stack.Screen
         name="DeFiProtocolPositionDetails"
         component={DeFiProtocolPositionDetails}
@@ -1439,7 +1434,7 @@ const MainNavigator = () => {
       <Stack.Screen
         name={Routes.CARD.ROOT}
         component={CardRoutes}
-        options={{ presentation: 'modal' }}
+        options={TransitionPresets.ModalSlideFromBottomIOS}
       />
       <Stack.Screen
         name={Routes.RAMP.MODALS.PROCESSING_INFO}

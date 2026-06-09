@@ -15,6 +15,9 @@ jest.mock('@react-navigation/stack', () => ({
     Navigator: 'Navigator',
     Screen: 'Screen',
   }),
+  TransitionPresets: {
+    ModalSlideFromBottomIOS: {},
+  },
 }));
 
 jest.mock('@react-navigation/native-stack', () => ({
