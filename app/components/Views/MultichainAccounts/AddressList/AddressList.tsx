@@ -92,6 +92,7 @@ export const AddressList = () => {
                       networkName: item.networkName,
                       chainId: item.scope,
                       groupId,
+                      location: 'address-list',
                     },
                   },
                 );

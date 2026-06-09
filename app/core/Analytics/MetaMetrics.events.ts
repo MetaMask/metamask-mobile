@@ -81,6 +81,7 @@ enum EVENT_NAME {
   // Wallet
   WALLET_OPENED = 'Wallet Opened',
   ADDRESS_COPIED = 'Address Copied',
+  QR_CODE_VIEWED = 'QR Code Viewed',
   TOKEN_ADDED = 'Token Added',
   COLLECTIBLE_ADDED = 'Collectible Added',
   NFT_DETAILS_OPENED = 'NFT Details Opened',
@@ -892,6 +893,7 @@ const events = {
 
   WALLET_OPENED: generateOpt(EVENT_NAME.WALLET_OPENED),
   ADDRESS_COPIED: generateOpt(EVENT_NAME.ADDRESS_COPIED),
+  QR_CODE_VIEWED: generateOpt(EVENT_NAME.QR_CODE_VIEWED),
   TOKEN_ADDED: generateOpt(EVENT_NAME.TOKEN_ADDED),
   COLLECTIBLE_ADDED: generateOpt(EVENT_NAME.COLLECTIBLE_ADDED),
   NFT_DETAILS_OPENED: generateOpt(EVENT_NAME.NFT_DETAILS_OPENED),

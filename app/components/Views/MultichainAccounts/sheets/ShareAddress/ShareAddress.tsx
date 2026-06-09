@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -27,6 +27,9 @@ import { getFormattedAddressFromInternalAccount } from '../../../../../core/Mult
 import { getMultichainBlockExplorer } from '../../../../../core/Multichain/networks';
 import { ShareAddressIds } from './ShareAddress.testIds';
 import PNG_MM_LOGO_PATH from '../../../../../images/branding/fox.png';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { trackQrCodeViewed } from '../../../../../util/analytics/qrCodeViewedTracking';
+import { getAddressAccountType } from '../../../../../util/address';
 
 interface RootNavigationParamList extends ParamListBase {
   ShareAddress: {
@@ -42,6 +45,7 @@ export const ShareAddress = () => {
   const route = useRoute<ShareAddressRouteProp>();
   const { account } = route.params;
   const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const formattedAddress = getFormattedAddressFromInternalAccount(account);
 
   const blockExplorer:
@@ -51,6 +55,13 @@ export const ShareAddress = () => {
         blockExplorerName: string;
       }
     | undefined = useMemo(() => getMultichainBlockExplorer(account), [account]);
+
+  useEffect(() => {
+    trackQrCodeViewed(trackEvent, createEventBuilder, {
+      location: 'account-details',
+      account_type: getAddressAccountType(account.address),
+    });
+  }, [account.address, createEventBuilder, trackEvent]);
 
   const handleExplorerLinkPress = useCallback(() => {
     if (blockExplorer) {

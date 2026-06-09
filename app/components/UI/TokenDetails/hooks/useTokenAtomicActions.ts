@@ -477,6 +477,7 @@ export const useHandleOnReceive = ({
           networkName: networkName || 'Unknown Network',
           chainId,
           groupId: selectedAccountGroup.id,
+          location: 'asset-details',
         },
       });
     } else {

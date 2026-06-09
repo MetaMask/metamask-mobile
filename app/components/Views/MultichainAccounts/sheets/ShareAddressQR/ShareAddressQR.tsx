@@ -1,6 +1,7 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { AccountGroupId } from '@metamask/account-api';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { strings } from '../../../../../../locales/i18n';
 import {
   ParamListBase,
@@ -28,6 +29,9 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import QRAccountDisplay from '../../../QRAccountDisplay';
 import QRCode from 'react-native-qrcode-svg';
 import useBlockExplorer from '../../../../hooks/useBlockExplorer';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { trackQrCodeViewed } from '../../../../../util/analytics/qrCodeViewedTracking';
+import { getAddressAccountType } from '../../../../../util/address';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { ShareAddressQRIds } from './ShareAddressQR.testIds';
 import { selectAccountGroupById } from '../../../../../selectors/multichainAccounts/accountTreeController';
@@ -38,6 +42,7 @@ export interface ShareAddressQRParams {
   networkName: string;
   chainId: string;
   groupId: AccountGroupId;
+  location: string;
 }
 
 interface RootNavigationParamList extends ParamListBase {
@@ -53,15 +58,24 @@ export const ShareAddressQR = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const tw = useTailwind();
   const route = useRoute<ShareAddressQRRouteProp>();
-  const { address, networkName, chainId, groupId } = route.params;
+  const { address, networkName, chainId, groupId, location } = route.params;
   const accountGroup = useSelector((state: RootState) =>
     selectAccountGroupById(state, groupId),
   );
   const accountGroupName = accountGroup?.metadata.name;
 
   const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { toBlockExplorer, getBlockExplorerName } = useBlockExplorer(chainId);
   const networkImageSource = getNetworkImageSource({ chainId });
+
+  useEffect(() => {
+    trackQrCodeViewed(trackEvent, createEventBuilder, {
+      location,
+      account_type: getAddressAccountType(address),
+      chain_id_caip: formatChainIdToCaip(chainId),
+    });
+  }, [address, chainId, createEventBuilder, location, trackEvent]);
 
   const handleOnBack = useCallback(() => {
     navigation.goBack();
