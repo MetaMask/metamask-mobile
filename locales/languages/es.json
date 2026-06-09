@@ -8971,7 +8971,7 @@
       "non_winner": {
         "title": "Ya tenemos los resultados 🏅",
         "description": "Consulta tu clasificación en {{campaignName}}.",
-        "cta": "Ver"
+        "cta": "Ver detalles"
       }
     }
   },

@@ -9,7 +9,8 @@ import React, {
 } from 'react';
 import { useSelector } from 'react-redux';
 import { ImageSourcePropType, View } from 'react-native';
-import { Box } from '@metamask/design-system-react-native';
+import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import { TextVariant as LegacyTextVariant } from '../../../component-library/components/Texts/Text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import {
@@ -27,9 +28,6 @@ import { IconName } from '../../../component-library/components/Icons/Icon/index
 import Cell, {
   CellVariant,
 } from '../../../component-library/components/Cells/Cell/index.ts';
-import Text, {
-  TextVariant,
-} from '../../../component-library/components/Texts/Text/index.ts';
 import { isTestNet } from '../../../util/networks/index.js';
 import hideProtocolFromUrl from '../../../util/hideProtocolFromUrl';
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
@@ -287,13 +285,19 @@ const NetworkMultiSelectList = ({
             isSelected={isSelected}
             title={
               isGasSponsored ? (
-                <Box twClassName="flex-row gap-2">
-                  <Text variant={TextVariant.BodyMD}>{name}</Text>
+                <Box twClassName="flex-row gap-2 items-center">
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    numberOfLines={1}
+                    style={styles.networkNameText}
+                  >
+                    {name}
+                  </Text>
                   <TagColored
                     color={TagColor.Success}
                     style={styles.noNetworkFeeContainer}
                     labelProps={{
-                      variant: TextVariant.BodySM,
+                      variant: LegacyTextVariant.BodySM,
                       style: {
                         textTransform: 'none',
                         textAlign: 'center',
@@ -354,6 +358,7 @@ const NetworkMultiSelectList = ({
       isHardwareWallet,
       styles.centeredNetworkCell,
       styles.noNetworkFeeContainer,
+      styles.networkNameText,
     ],
   );
 

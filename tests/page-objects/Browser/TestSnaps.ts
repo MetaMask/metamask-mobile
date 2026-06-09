@@ -374,7 +374,6 @@ class TestSnaps {
     });
 
     await Gestures.waitAndTap(this.dateTimePickerOkButton, {
-      checkStability: true,
       elemDescription: 'date-time picker OK',
     });
 
@@ -391,7 +390,6 @@ class TestSnaps {
     });
 
     await Gestures.waitAndTap(this.dateTimePickerOkButton, {
-      checkStability: true,
       elemDescription: 'date picker OK',
     });
   }
@@ -403,7 +401,6 @@ class TestSnaps {
     });
 
     await Gestures.waitAndTap(this.dateTimePickerOkButton, {
-      checkStability: true,
       elemDescription: 'time picker OK',
     });
   }
