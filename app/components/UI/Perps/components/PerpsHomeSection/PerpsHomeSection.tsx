@@ -121,8 +121,9 @@ const PerpsHomeSection: React.FC<PerpsHomeSectionProps> = ({
       <SectionDivider />
       <SectionHeader
         title={title}
-        isInteractive
-        onPress={onActionPress}
+        isInteractive={Boolean(showAction)}
+        onPress={showAction ? onActionPress : undefined}
+        testID={showAction ? PerpsHomeSectionTestIds.ACTION_BUTTON : undefined}
         twClassName={'pb-1'}
       />
       {headerAccessory}
