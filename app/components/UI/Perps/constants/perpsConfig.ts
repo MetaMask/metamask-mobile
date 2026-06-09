@@ -171,6 +171,10 @@ export const HOME_SCREEN_CONFIG = {
   TrendingMarketsLimit: 5,
   RecentActivityLimit: 3,
 
+  // Watchlist collapse/expand
+  WatchlistCollapsedLimit: 3,
+  RecommendedMarketsLimit: 5,
+
   // Carousel display behavior
   CarouselSnapAlignment: 'start' as const,
   CarouselVisibleItems: 1.2, // Show 1 full item + 20% of next

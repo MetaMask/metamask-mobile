@@ -233,6 +233,20 @@ export const PerpsHomeViewSelectorsIDs = {
   TAB_BAR_ACTIVITY: 'tab-bar-item-activity',
 };
 
+// ========================================
+// PERPS WATCHLIST SECTION SELECTORS
+// ========================================
+
+export const PerpsWatchlistSelectorsIDs = {
+  SECTION: 'perps-watchlist-section',
+  HEADER: 'perps-watchlist-header',
+  VIEW_MORE_BUTTON: 'perps-watchlist-view-more',
+  SHOW_LESS_BUTTON: 'perps-watchlist-show-less',
+  RECOMMENDED_SECTION: 'perps-watchlist-recommended',
+  RECOMMENDED_ADD_BUTTON: 'perps-watchlist-recommended-add',
+  SWIPEABLE_ROW: 'perps-watchlist-swipeable-row',
+};
+
 export const PerpsPositionsViewSelectorsIDs = {
   REFRESH_CONTROL: 'refresh-control',
   BACK_BUTTON: 'back-button',

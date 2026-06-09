@@ -4,6 +4,7 @@ import PerpsWatchlistMarkets from './PerpsWatchlistMarkets';
 import { type PerpsMarketData } from '@metamask/perps-controller';
 import Routes from '../../../../../constants/navigation/Routes';
 import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
+import { PerpsWatchlistSelectorsIDs } from '../../Perps.testIds';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -17,8 +18,12 @@ jest.mock('../../../../../component-library/hooks', () => ({
     styles: {
       container: {},
       header: {},
+      titleRow: {},
       listContent: {},
       emptyText: {},
+      expandButton: {},
+      recommendedSubheader: {},
+      section: {},
     },
   }),
 }));
@@ -44,6 +49,27 @@ jest.mock('../PerpsMarketRowItem', () => {
   };
 });
 
+jest.mock('./PerpsSwipeableMarketRow', () => {
+  const { TouchableOpacity, Text } = jest.requireActual('react-native');
+  return function MockPerpsSwipeableMarketRow({
+    market,
+    onAdd,
+  }: {
+    market: PerpsMarketData;
+    onAdd: (symbol: string) => void;
+  }) {
+    return (
+      <TouchableOpacity
+        onPress={() => onAdd(market.symbol)}
+        testID={`perps-swipeable-row-${market.symbol}`}
+      >
+        <Text>{market.symbol}</Text>
+        <Text>{market.name}</Text>
+      </TouchableOpacity>
+    );
+  };
+});
+
 jest.mock('../PerpsRowSkeleton', () => {
   const { View } = jest.requireActual('react-native');
   return function MockPerpsRowSkeleton({ count }: { count: number }) {
@@ -52,10 +78,14 @@ jest.mock('../PerpsRowSkeleton', () => {
 });
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string) => {
+  strings: (key: string, params?: Record<string, string>) => {
     const translations: Record<string, string> = {
       'perps.home.watchlist': 'Watchlist',
       'perps.home.see_all': 'See all',
+      'perps.home.watchlist_view_more': `View ${params?.count ?? ''} more`,
+      'perps.home.watchlist_show_less': 'Show less',
+      'perps.home.watchlist_recommended': 'Recommended for you',
+      'perps.home.watchlist_add': 'Add',
     };
     return translations[key] || key;
   },
@@ -130,10 +160,21 @@ describe('PerpsWatchlistMarkets', () => {
       expect(screen.getByText('Ethereum')).toBeOnTheScreen();
     });
 
-    it('returns null when markets array is empty', () => {
+    it('returns null when markets array is empty and no recommendations', () => {
       const { toJSON } = render(<PerpsWatchlistMarkets markets={[]} />);
 
-      // Component returns null for empty markets
+      expect(toJSON()).toBeNull();
+    });
+
+    it('returns null when markets array is empty and user has dismissed recommendations', () => {
+      const { toJSON } = render(
+        <PerpsWatchlistMarkets
+          markets={[]}
+          recommendedMarkets={mockMarkets}
+          hasUserDismissed
+        />,
+      );
+
       expect(toJSON()).toBeNull();
     });
 
@@ -445,21 +486,182 @@ describe('PerpsWatchlistMarkets', () => {
         <PerpsWatchlistMarkets markets={mockMarkets} />,
       );
 
-      // Component renders with markets
       expect(toJSON()).not.toBeNull();
       expect(screen.getByText('BTC')).toBeOnTheScreen();
 
-      // Hides when empty
       rerender(<PerpsWatchlistMarkets markets={[]} />);
       expect(toJSON()).toBeNull();
 
-      // Shows skeleton when loading
       rerender(<PerpsWatchlistMarkets markets={mockMarkets} isLoading />);
       expect(screen.getByTestId('perps-row-skeleton-3')).toBeOnTheScreen();
 
-      // Shows markets again when ready
       rerender(<PerpsWatchlistMarkets markets={mockMarkets} />);
       expect(screen.getByText('BTC')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Empty State with Recommendations', () => {
+    const recommendedMarkets: PerpsMarketData[] = [
+      {
+        symbol: 'SOL',
+        name: 'Solana',
+        maxLeverage: '20x',
+        price: '$150',
+        change24h: '+$5',
+        change24hPercent: '+3.45%',
+        volume: '$800M',
+      },
+      {
+        symbol: 'DOGE',
+        name: 'Dogecoin',
+        maxLeverage: '15x',
+        price: '$0.15',
+        change24h: '+$0.01',
+        change24hPercent: '+7.14%',
+        volume: '$500M',
+      },
+    ];
+
+    it('shows recommended markets when watchlist is empty', () => {
+      render(
+        <PerpsWatchlistMarkets
+          markets={[]}
+          recommendedMarkets={recommendedMarkets}
+        />,
+      );
+
+      expect(screen.getByText('Watchlist')).toBeOnTheScreen();
+      expect(screen.getByText('Recommended for you')).toBeOnTheScreen();
+      expect(screen.getByText('SOL')).toBeOnTheScreen();
+      expect(screen.getByText('DOGE')).toBeOnTheScreen();
+    });
+
+    it('calls onAddToWatchlist when add button is pressed on recommendation', () => {
+      const mockOnAdd = jest.fn();
+      render(
+        <PerpsWatchlistMarkets
+          markets={[]}
+          recommendedMarkets={recommendedMarkets}
+          onAddToWatchlist={mockOnAdd}
+        />,
+      );
+
+      const solRow = screen.getByTestId('perps-swipeable-row-SOL');
+      fireEvent.press(solRow);
+
+      expect(mockOnAdd).toHaveBeenCalledWith('SOL');
+    });
+
+    it('hides recommendations section when hasUserDismissed is true', () => {
+      const { toJSON } = render(
+        <PerpsWatchlistMarkets
+          markets={[]}
+          recommendedMarkets={recommendedMarkets}
+          hasUserDismissed
+        />,
+      );
+
+      expect(toJSON()).toBeNull();
+    });
+  });
+
+  describe('Collapse/Expand Behavior', () => {
+    const manyMarkets: PerpsMarketData[] = Array.from(
+      { length: 5 },
+      (_, i) => ({
+        symbol: `TOKEN${i}`,
+        name: `Token ${i}`,
+        maxLeverage: '20x',
+        price: `$${100 * (i + 1)}`,
+        change24h: `+$${10 * (i + 1)}`,
+        change24hPercent: '+5.00%',
+        volume: '$1M',
+      }),
+    );
+
+    it('shows only 3 markets and "View X more" button when >3 markets', () => {
+      render(<PerpsWatchlistMarkets markets={manyMarkets} />);
+
+      expect(screen.getByText('TOKEN0')).toBeOnTheScreen();
+      expect(screen.getByText('TOKEN1')).toBeOnTheScreen();
+      expect(screen.getByText('TOKEN2')).toBeOnTheScreen();
+      expect(screen.queryByText('TOKEN3')).not.toBeOnTheScreen();
+      expect(screen.queryByText('TOKEN4')).not.toBeOnTheScreen();
+
+      expect(
+        screen.getByTestId(PerpsWatchlistSelectorsIDs.VIEW_MORE_BUTTON),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('View 2 more')).toBeOnTheScreen();
+    });
+
+    it('shows all markets and "Show less" after expanding', () => {
+      render(<PerpsWatchlistMarkets markets={manyMarkets} />);
+
+      fireEvent.press(
+        screen.getByTestId(PerpsWatchlistSelectorsIDs.VIEW_MORE_BUTTON),
+      );
+
+      expect(screen.getByText('TOKEN0')).toBeOnTheScreen();
+      expect(screen.getByText('TOKEN3')).toBeOnTheScreen();
+      expect(screen.getByText('TOKEN4')).toBeOnTheScreen();
+      expect(screen.getByText('Show less')).toBeOnTheScreen();
+    });
+
+    it('collapses back to 3 after tapping "Show less"', () => {
+      render(<PerpsWatchlistMarkets markets={manyMarkets} />);
+
+      // Expand
+      fireEvent.press(
+        screen.getByTestId(PerpsWatchlistSelectorsIDs.VIEW_MORE_BUTTON),
+      );
+      // Collapse
+      fireEvent.press(
+        screen.getByTestId(PerpsWatchlistSelectorsIDs.SHOW_LESS_BUTTON),
+      );
+
+      expect(screen.getByText('TOKEN0')).toBeOnTheScreen();
+      expect(screen.queryByText('TOKEN3')).not.toBeOnTheScreen();
+      expect(screen.getByText('View 2 more')).toBeOnTheScreen();
+    });
+
+    it('does not show expand/collapse for 3 or fewer markets', () => {
+      render(<PerpsWatchlistMarkets markets={mockMarkets} />);
+
+      expect(
+        screen.queryByTestId(PerpsWatchlistSelectorsIDs.VIEW_MORE_BUTTON),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PerpsWatchlistSelectorsIDs.SHOW_LESS_BUTTON),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('Header Navigation', () => {
+    it('calls onHeaderPress when header is tapped', () => {
+      const mockHeaderPress = jest.fn();
+      render(
+        <PerpsWatchlistMarkets
+          markets={mockMarkets}
+          onHeaderPress={mockHeaderPress}
+        />,
+      );
+
+      const header = screen.getByTestId(PerpsWatchlistSelectorsIDs.HEADER);
+      fireEvent.press(header);
+
+      expect(mockHeaderPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('shows arrow icon when onHeaderPress is provided', () => {
+      render(
+        <PerpsWatchlistMarkets
+          markets={mockMarkets}
+          onHeaderPress={() => undefined}
+        />,
+      );
+
+      const header = screen.getByTestId(PerpsWatchlistSelectorsIDs.HEADER);
+      expect(header).toBeOnTheScreen();
     });
   });
 });

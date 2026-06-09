@@ -91,6 +91,9 @@ export { useWithdrawalRequests } from './useWithdrawalRequests';
 export { useDepositRequests } from './useDepositRequests';
 export { usePerpsTransactionHistory } from './usePerpsTransactionHistory';
 
+// Watchlist recommendations hook
+export { usePerpsRecommendedMarkets } from './usePerpsRecommendedMarkets';
+
 // Event tracking hook
 export { usePerpsEventTracking } from './usePerpsEventTracking';
 export { usePerpsHomeSectionTracking } from './usePerpsHomeSectionTracking';

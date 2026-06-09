@@ -101,6 +101,8 @@ import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterru
 import PerpsCompetitionBanner from '../../components/PerpsCompetitionBanner';
 import PerpsProducts from '../../components/PerpsProducts';
 import PerpsTopMoversSection from '../../components/PerpsTopMoversSection';
+import { usePerpsRecommendedMarkets } from '../../hooks/usePerpsRecommendedMarkets';
+import Engine from '../../../../../core/Engine';
 
 interface PerpsHomeViewProps {
   hideHeader?: boolean;
@@ -243,6 +245,7 @@ const PerpsHomeView = ({
     positions,
     orders,
     watchlistMarkets,
+    allMarkets,
     perpsMarkets, // Crypto markets (renamed from trendingMarkets)
     commoditiesMarkets, // Commodity markets
     stocksMarkets, // Equity markets only
@@ -251,6 +254,59 @@ const PerpsHomeView = ({
     sortBy,
     isLoading,
   } = usePerpsHomeData({});
+
+  // Watchlist recommendations and actions
+  const handleToggleWatchlist = useCallback(
+    (symbol: string) => {
+      Engine.context.PerpsController.toggleWatchlistMarket(symbol);
+
+      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.FAVORITE_TOGGLED,
+        [PERPS_EVENT_PROPERTY.ACTION_TYPE]:
+          PERPS_EVENT_VALUE.ACTION_TYPE.FAVORITE_MARKET,
+        [PERPS_EVENT_PROPERTY.ASSET]: symbol,
+        [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+      });
+    },
+    [track],
+  );
+
+  const {
+    recommendedMarkets,
+    hasUserDismissed,
+    dismissMarket,
+    addToWatchlist,
+  } = usePerpsRecommendedMarkets(allMarkets, handleToggleWatchlist);
+
+  const handleDismissRecommendation = useCallback(
+    (symbol: string) => {
+      dismissMarket(symbol);
+      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+        [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]: 'recommendation_dismissed',
+        [PERPS_EVENT_PROPERTY.ASSET]: symbol,
+        [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+      });
+    },
+    [dismissMarket, track],
+  );
+
+  const handleWatchlistHeaderPress = useCallback(() => {
+    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+      [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]: 'watchlist_header',
+      [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+    });
+
+    perpsNavigation.navigateToMarketList({
+      showWatchlistOnly: true,
+      source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+      ...(transactionActiveAbTests?.length ? { transactionActiveAbTests } : {}),
+    });
+  }, [track, perpsNavigation, transactionActiveAbTests]);
 
   // Calculate positions subtitle with P&L
   const hasPositions = positions.length > 0;
@@ -741,6 +797,11 @@ const PerpsHomeView = ({
           orders={orders}
           source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
           transactionActiveAbTests={transactionActiveAbTests}
+          recommendedMarkets={recommendedMarkets}
+          onAddToWatchlist={addToWatchlist}
+          onDismissRecommendation={handleDismissRecommendation}
+          hasUserDismissed={hasUserDismissed}
+          onHeaderPress={handleWatchlistHeaderPress}
         />
 
         {/* Products Section - Category pills grid */}

@@ -39,6 +39,7 @@ interface UsePerpsHomeDataReturn {
   positions: Position[];
   orders: Order[];
   watchlistMarkets: PerpsMarketData[];
+  allMarkets: PerpsMarketData[];
   perpsMarkets: PerpsMarketData[]; // Crypto markets (renamed from trending)
   stocksMarkets: PerpsMarketData[]; // Equity markets
   commoditiesMarkets: PerpsMarketData[]; // Commodity markets
@@ -365,6 +366,7 @@ export const usePerpsHomeData = ({
     positions: limitedPositions,
     orders: limitedOrders,
     watchlistMarkets: limitedWatchlistMarkets,
+    allMarkets,
     perpsMarkets: searchedPerpsMarkets, // Crypto markets (renamed from trendingMarkets)
     stocksMarkets: searchedStocksMarkets,
     commoditiesMarkets: searchedCommoditiesMarkets,

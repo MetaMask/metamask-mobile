@@ -24,6 +24,15 @@ const styleSheet = (params: { theme: Theme }) => {
     listContent: {
       paddingHorizontal: 16,
     },
+    expandButton: {
+      alignItems: 'center',
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+    },
+    recommendedSubheader: {
+      paddingHorizontal: 16,
+      marginBottom: 4,
+    },
   });
 };
 
