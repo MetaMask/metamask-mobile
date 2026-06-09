@@ -1,11 +1,9 @@
-import { renderHook, waitFor } from '@testing-library/react-native';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { renderHook } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import React from 'react';
 import { useRampsBuyLimits } from './useRampsBuyLimits';
 import type { Provider as RampProvider } from '@metamask/ramps-controller';
-import Engine from '../../../../core/Engine';
 import { useFormatters } from '../../../hooks/useFormatters';
 
 jest.mock('../../../../../locales/i18n', () => ({
@@ -21,21 +19,11 @@ jest.mock('../../../../../locales/i18n', () => ({
   locale: 'en',
 }));
 
-jest.mock('../../../../core/Engine', () => ({
-  context: {
-    RampsController: {
-      getBestProviderForAsset: jest.fn(),
-    },
-  },
-}));
-
 jest.mock('../../../hooks/useFormatters', () => ({
   useFormatters: jest.fn(),
 }));
 
 const mockUseFormatters = jest.mocked(useFormatters);
-const mockGetBestProviderForAsset = Engine.context.RampsController
-  .getBestProviderForAsset as jest.Mock;
 
 const mockProvider: RampProvider = {
   id: 'test-provider',
@@ -74,19 +62,29 @@ const mockProvider: RampProvider = {
 
 const PAYMENT_METHOD_ID = '/payments/debit-credit-card';
 
-const createMockStore = (
+const createMockStore = ({
   userRegion = {
     country: { currency: 'USD' },
     state: null,
     regionCode: 'us',
   },
-) =>
+  selectedProvider = mockProvider as RampProvider | null,
+}: {
+  userRegion?: unknown;
+  selectedProvider?: RampProvider | null;
+} = {}) =>
   configureStore({
     reducer: {
       engine: () => ({
         backgroundState: {
           RampsController: {
             userRegion,
+            providers: {
+              data: selectedProvider ? [selectedProvider] : [],
+              selected: selectedProvider,
+              isLoading: false,
+              error: null,
+            },
           },
         },
       }),
@@ -94,26 +92,10 @@ const createMockStore = (
   });
 
 const createWrapper = (store: ReturnType<typeof createMockStore>) => {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: {
-        retry: false,
-      },
-    },
-  });
-
   const Wrapper = ({ children }: { children: React.ReactNode }) =>
-    React.createElement(
-      Provider,
-      { store } as never,
-      React.createElement(
-        QueryClientProvider,
-        { client: queryClient },
-        children,
-      ),
-    );
+    React.createElement(Provider, { store } as never, children);
 
-  return { Wrapper, queryClient };
+  return { Wrapper };
 };
 
 describe('useRampsBuyLimits', () => {
@@ -126,24 +108,17 @@ describe('useRampsBuyLimits', () => {
   });
 
   describe('return value structure', () => {
-    it('returns currency, amountLimitError, minAmount, maxAmount', async () => {
+    it('returns currency, amountLimitError, minAmount, maxAmount', () => {
       const store = createMockStore();
       const { Wrapper } = createWrapper(store);
-
-      mockGetBestProviderForAsset.mockResolvedValue(mockProvider);
 
       const { result } = renderHook(
         () =>
           useRampsBuyLimits({
-            assetId: 'eip155:1/slip44:60',
             amount: 50,
             paymentMethodId: PAYMENT_METHOD_ID,
           }),
         { wrapper: Wrapper },
-      );
-
-      await waitFor(() =>
-        expect(mockGetBestProviderForAsset).toHaveBeenCalled(),
       );
 
       expect(result.current).toMatchObject({
@@ -162,20 +137,19 @@ describe('useRampsBuyLimits', () => {
   });
 
   describe('currency from userRegion', () => {
-    it('uses userRegion.country.currency as the currency', async () => {
+    it('uses userRegion.country.currency as the currency', () => {
       const store = createMockStore({
-        country: { currency: 'EUR' },
-        state: null,
-        regionCode: 'de',
+        userRegion: {
+          country: { currency: 'EUR' },
+          state: null,
+          regionCode: 'de',
+        },
       });
       const { Wrapper } = createWrapper(store);
-
-      mockGetBestProviderForAsset.mockResolvedValue(mockProvider);
 
       const { result } = renderHook(
         () =>
           useRampsBuyLimits({
-            assetId: 'eip155:1/slip44:60',
             amount: 50,
             paymentMethodId: PAYMENT_METHOD_ID,
           }),
@@ -185,16 +159,16 @@ describe('useRampsBuyLimits', () => {
       expect(result.current.currency).toBe('EUR');
     });
 
-    it('defaults currency to USD when userRegion is null', async () => {
-      const store = createMockStore(null as never);
+    it('defaults currency to USD when userRegion is null', () => {
+      const store = createMockStore({
+        userRegion: null,
+        selectedProvider: null,
+      });
       const { Wrapper } = createWrapper(store);
-
-      mockGetBestProviderForAsset.mockResolvedValue(null);
 
       const { result } = renderHook(
         () =>
           useRampsBuyLimits({
-            assetId: 'eip155:1/slip44:60',
             amount: 50,
             paymentMethodId: PAYMENT_METHOD_ID,
           }),
@@ -205,235 +179,171 @@ describe('useRampsBuyLimits', () => {
     });
   });
 
-  describe('provider resolution via getBestProviderForAsset', () => {
-    it('passes assetId to getBestProviderForAsset', async () => {
+  describe('provider resolution from selected provider', () => {
+    it('resolves limits from the selected provider in Redux', () => {
       const store = createMockStore();
       const { Wrapper } = createWrapper(store);
-
-      mockGetBestProviderForAsset.mockResolvedValue(null);
-
-      const assetId = 'eip155:1/slip44:60';
-
-      renderHook(
-        () =>
-          useRampsBuyLimits({
-            assetId,
-            amount: 50,
-            paymentMethodId: PAYMENT_METHOD_ID,
-          }),
-        { wrapper: Wrapper },
-      );
-
-      await waitFor(() =>
-        expect(mockGetBestProviderForAsset).toHaveBeenCalledWith({ assetId }),
-      );
-    });
-
-    it('does not call getBestProviderForAsset when assetId is undefined', () => {
-      const store = createMockStore();
-      const { Wrapper } = createWrapper(store);
-
-      renderHook(
-        () =>
-          useRampsBuyLimits({
-            assetId: undefined,
-            amount: 50,
-            paymentMethodId: PAYMENT_METHOD_ID,
-          }),
-        { wrapper: Wrapper },
-      );
-
-      expect(mockGetBestProviderForAsset).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('amount validation - in range', () => {
-    it('returns amountLimitError null when amount is within range', async () => {
-      const store = createMockStore();
-      const { Wrapper } = createWrapper(store);
-
-      mockGetBestProviderForAsset.mockResolvedValue(mockProvider);
 
       const { result } = renderHook(
         () =>
           useRampsBuyLimits({
-            assetId: 'eip155:1/slip44:60',
-            amount: 50,
-            paymentMethodId: PAYMENT_METHOD_ID,
-          }),
-        { wrapper: Wrapper },
-      );
-
-      await waitFor(() =>
-        expect(mockGetBestProviderForAsset).toHaveBeenCalled(),
-      );
-
-      await waitFor(() => expect(result.current.amountLimitError).toBeNull());
-    });
-
-    it('returns amountLimitError null at exact minAmount boundary', async () => {
-      const store = createMockStore();
-      const { Wrapper } = createWrapper(store);
-
-      mockGetBestProviderForAsset.mockResolvedValue(mockProvider);
-
-      const { result } = renderHook(
-        () =>
-          useRampsBuyLimits({
-            assetId: 'eip155:1/slip44:60',
-            amount: 10, // exactly minAmount
-            paymentMethodId: PAYMENT_METHOD_ID,
-          }),
-        { wrapper: Wrapper },
-      );
-
-      await waitFor(() => expect(result.current.amountLimitError).toBeNull());
-    });
-
-    it('returns amountLimitError null at exact maxAmount boundary', async () => {
-      const store = createMockStore();
-      const { Wrapper } = createWrapper(store);
-
-      mockGetBestProviderForAsset.mockResolvedValue(mockProvider);
-
-      const { result } = renderHook(
-        () =>
-          useRampsBuyLimits({
-            assetId: 'eip155:1/slip44:60',
-            amount: 1000, // exactly maxAmount
-            paymentMethodId: PAYMENT_METHOD_ID,
-          }),
-        { wrapper: Wrapper },
-      );
-
-      await waitFor(() => expect(result.current.amountLimitError).toBeNull());
-    });
-  });
-
-  describe('amount validation - below minimum', () => {
-    it('returns min purchase error when amount is below minAmount', async () => {
-      const store = createMockStore();
-      const { Wrapper } = createWrapper(store);
-
-      mockGetBestProviderForAsset.mockResolvedValue(mockProvider);
-
-      const { result } = renderHook(
-        () =>
-          useRampsBuyLimits({
-            assetId: 'eip155:1/slip44:60',
-            amount: 5, // below minAmount of 10
-            paymentMethodId: PAYMENT_METHOD_ID,
-          }),
-        { wrapper: Wrapper },
-      );
-
-      await waitFor(() =>
-        expect(result.current.amountLimitError).toBe(
-          'Minimum purchase is $10.00',
-        ),
-      );
-    });
-
-    it('exposes minAmount from provider limits', async () => {
-      const store = createMockStore();
-      const { Wrapper } = createWrapper(store);
-
-      mockGetBestProviderForAsset.mockResolvedValue(mockProvider);
-
-      const { result } = renderHook(
-        () =>
-          useRampsBuyLimits({
-            assetId: 'eip155:1/slip44:60',
             amount: 5,
             paymentMethodId: PAYMENT_METHOD_ID,
           }),
         { wrapper: Wrapper },
       );
 
-      await waitFor(() => expect(result.current.minAmount).toBe(10));
+      expect(result.current.minAmount).toBe(10);
+      expect(result.current.maxAmount).toBe(1000);
     });
-  });
 
-  describe('amount validation - above maximum', () => {
-    it('returns max purchase error when amount exceeds maxAmount', async () => {
-      const store = createMockStore();
+    it('returns graceful defaults when no provider is selected', () => {
+      const store = createMockStore({ selectedProvider: null });
       const { Wrapper } = createWrapper(store);
-
-      mockGetBestProviderForAsset.mockResolvedValue(mockProvider);
 
       const { result } = renderHook(
         () =>
           useRampsBuyLimits({
-            assetId: 'eip155:1/slip44:60',
-            amount: 2000, // above maxAmount of 1000
-            paymentMethodId: PAYMENT_METHOD_ID,
-          }),
-        { wrapper: Wrapper },
-      );
-
-      await waitFor(() =>
-        expect(result.current.amountLimitError).toBe(
-          'Maximum purchase is $1000.00',
-        ),
-      );
-    });
-
-    it('exposes maxAmount from provider limits', async () => {
-      const store = createMockStore();
-      const { Wrapper } = createWrapper(store);
-
-      mockGetBestProviderForAsset.mockResolvedValue(mockProvider);
-
-      const { result } = renderHook(
-        () =>
-          useRampsBuyLimits({
-            assetId: 'eip155:1/slip44:60',
-            amount: 2000,
-            paymentMethodId: PAYMENT_METHOD_ID,
-          }),
-        { wrapper: Wrapper },
-      );
-
-      await waitFor(() => expect(result.current.maxAmount).toBe(1000));
-    });
-  });
-
-  describe('null provider (getBestProviderForAsset returns null)', () => {
-    it('returns amountLimitError null and minAmount/maxAmount undefined when provider is null', async () => {
-      const store = createMockStore();
-      const { Wrapper } = createWrapper(store);
-
-      mockGetBestProviderForAsset.mockResolvedValue(null);
-
-      const { result } = renderHook(
-        () =>
-          useRampsBuyLimits({
-            assetId: 'eip155:1/slip44:60',
             amount: 50,
             paymentMethodId: PAYMENT_METHOD_ID,
           }),
         { wrapper: Wrapper },
       );
 
-      await waitFor(() =>
-        expect(mockGetBestProviderForAsset).toHaveBeenCalled(),
-      );
-
-      await waitFor(() => {
-        expect(result.current.amountLimitError).toBeNull();
-        expect(result.current.minAmount).toBeUndefined();
-        expect(result.current.maxAmount).toBeUndefined();
-      });
+      expect(result.current.amountLimitError).toBeNull();
+      expect(result.current.minAmount).toBeUndefined();
+      expect(result.current.maxAmount).toBeUndefined();
     });
+  });
 
-    it('returns amountLimitError null when assetId is undefined (query disabled)', () => {
+  describe('amount validation - in range', () => {
+    it('returns amountLimitError null when amount is within range', () => {
       const store = createMockStore();
       const { Wrapper } = createWrapper(store);
 
       const { result } = renderHook(
         () =>
           useRampsBuyLimits({
-            assetId: undefined,
+            amount: 50,
+            paymentMethodId: PAYMENT_METHOD_ID,
+          }),
+        { wrapper: Wrapper },
+      );
+
+      expect(result.current.amountLimitError).toBeNull();
+    });
+
+    it('returns amountLimitError null at exact minAmount boundary', () => {
+      const store = createMockStore();
+      const { Wrapper } = createWrapper(store);
+
+      const { result } = renderHook(
+        () =>
+          useRampsBuyLimits({
+            amount: 10, // exactly minAmount
+            paymentMethodId: PAYMENT_METHOD_ID,
+          }),
+        { wrapper: Wrapper },
+      );
+
+      expect(result.current.amountLimitError).toBeNull();
+    });
+
+    it('returns amountLimitError null at exact maxAmount boundary', () => {
+      const store = createMockStore();
+      const { Wrapper } = createWrapper(store);
+
+      const { result } = renderHook(
+        () =>
+          useRampsBuyLimits({
+            amount: 1000, // exactly maxAmount
+            paymentMethodId: PAYMENT_METHOD_ID,
+          }),
+        { wrapper: Wrapper },
+      );
+
+      expect(result.current.amountLimitError).toBeNull();
+    });
+  });
+
+  describe('amount validation - below minimum', () => {
+    it('returns min purchase error when amount is below minAmount', () => {
+      const store = createMockStore();
+      const { Wrapper } = createWrapper(store);
+
+      const { result } = renderHook(
+        () =>
+          useRampsBuyLimits({
+            amount: 5, // below minAmount of 10
+            paymentMethodId: PAYMENT_METHOD_ID,
+          }),
+        { wrapper: Wrapper },
+      );
+
+      expect(result.current.amountLimitError).toBe('Minimum purchase is $10.00');
+    });
+
+    it('exposes minAmount from provider limits', () => {
+      const store = createMockStore();
+      const { Wrapper } = createWrapper(store);
+
+      const { result } = renderHook(
+        () =>
+          useRampsBuyLimits({
+            amount: 5,
+            paymentMethodId: PAYMENT_METHOD_ID,
+          }),
+        { wrapper: Wrapper },
+      );
+
+      expect(result.current.minAmount).toBe(10);
+    });
+  });
+
+  describe('amount validation - above maximum', () => {
+    it('returns max purchase error when amount exceeds maxAmount', () => {
+      const store = createMockStore();
+      const { Wrapper } = createWrapper(store);
+
+      const { result } = renderHook(
+        () =>
+          useRampsBuyLimits({
+            amount: 2000, // above maxAmount of 1000
+            paymentMethodId: PAYMENT_METHOD_ID,
+          }),
+        { wrapper: Wrapper },
+      );
+
+      expect(result.current.amountLimitError).toBe(
+        'Maximum purchase is $1000.00',
+      );
+    });
+
+    it('exposes maxAmount from provider limits', () => {
+      const store = createMockStore();
+      const { Wrapper } = createWrapper(store);
+
+      const { result } = renderHook(
+        () =>
+          useRampsBuyLimits({
+            amount: 2000,
+            paymentMethodId: PAYMENT_METHOD_ID,
+          }),
+        { wrapper: Wrapper },
+      );
+
+      expect(result.current.maxAmount).toBe(1000);
+    });
+  });
+
+  describe('null provider', () => {
+    it('returns amountLimitError null and minAmount/maxAmount undefined when provider is null', () => {
+      const store = createMockStore({ selectedProvider: null });
+      const { Wrapper } = createWrapper(store);
+
+      const { result } = renderHook(
+        () =>
+          useRampsBuyLimits({
             amount: 50,
             paymentMethodId: PAYMENT_METHOD_ID,
           }),
@@ -447,23 +357,21 @@ describe('useRampsBuyLimits', () => {
   });
 
   describe('backendError fallback', () => {
-    it('passes backendError through when provider has no structured limits', async () => {
-      const store = createMockStore();
-      const { Wrapper } = createWrapper(store);
-
-      // Provider with no limits for the given payment method
+    it('passes backendError through when provider has no structured limits', () => {
       const providerWithoutLimits: RampProvider = {
         ...mockProvider,
         limits: {},
       };
-      mockGetBestProviderForAsset.mockResolvedValue(providerWithoutLimits);
+      const store = createMockStore({
+        selectedProvider: providerWithoutLimits,
+      });
+      const { Wrapper } = createWrapper(store);
 
       const backendError = 'Minimum purchase is 12 EUR';
 
       const { result } = renderHook(
         () =>
           useRampsBuyLimits({
-            assetId: 'eip155:1/slip44:60',
             amount: 5,
             paymentMethodId: PAYMENT_METHOD_ID,
             backendError,
@@ -471,25 +379,22 @@ describe('useRampsBuyLimits', () => {
         { wrapper: Wrapper },
       );
 
-      await waitFor(() =>
-        expect(result.current.amountLimitError).toBe(backendError),
-      );
+      expect(result.current.amountLimitError).toBe(backendError);
     });
 
-    it('returns null for backendError that is not a limit error', async () => {
-      const store = createMockStore();
-      const { Wrapper } = createWrapper(store);
-
+    it('returns null for backendError that is not a limit error', () => {
       const providerWithoutLimits: RampProvider = {
         ...mockProvider,
         limits: {},
       };
-      mockGetBestProviderForAsset.mockResolvedValue(providerWithoutLimits);
+      const store = createMockStore({
+        selectedProvider: providerWithoutLimits,
+      });
+      const { Wrapper } = createWrapper(store);
 
       const { result } = renderHook(
         () =>
           useRampsBuyLimits({
-            assetId: 'eip155:1/slip44:60',
             amount: 50,
             paymentMethodId: PAYMENT_METHOD_ID,
             backendError: 'Some unrelated error',
@@ -497,23 +402,16 @@ describe('useRampsBuyLimits', () => {
         { wrapper: Wrapper },
       );
 
-      await waitFor(() =>
-        expect(mockGetBestProviderForAsset).toHaveBeenCalled(),
-      );
-
-      await waitFor(() => expect(result.current.amountLimitError).toBeNull());
+      expect(result.current.amountLimitError).toBeNull();
     });
 
-    it('returns null when backendError is null and amount is 0', async () => {
-      const store = createMockStore();
+    it('returns null when backendError is null and amount is 0', () => {
+      const store = createMockStore({ selectedProvider: null });
       const { Wrapper } = createWrapper(store);
-
-      mockGetBestProviderForAsset.mockResolvedValue(null);
 
       const { result } = renderHook(
         () =>
           useRampsBuyLimits({
-            assetId: 'eip155:1/slip44:60',
             amount: 0,
             paymentMethodId: PAYMENT_METHOD_ID,
             backendError: null,
@@ -521,25 +419,24 @@ describe('useRampsBuyLimits', () => {
         { wrapper: Wrapper },
       );
 
-      await waitFor(() => expect(result.current.amountLimitError).toBeNull());
+      expect(result.current.amountLimitError).toBeNull();
     });
   });
 
   describe('limit bucket uses currency from userRegion', () => {
-    it('looks up limits in the EUR bucket when userRegion.country.currency is EUR', async () => {
+    it('looks up limits in the EUR bucket when userRegion.country.currency is EUR', () => {
       const store = createMockStore({
-        country: { currency: 'EUR' },
-        state: null,
-        regionCode: 'de',
+        userRegion: {
+          country: { currency: 'EUR' },
+          state: null,
+          regionCode: 'de',
+        },
       });
       const { Wrapper } = createWrapper(store);
-
-      mockGetBestProviderForAsset.mockResolvedValue(mockProvider);
 
       const { result } = renderHook(
         () =>
           useRampsBuyLimits({
-            assetId: 'eip155:1/slip44:60',
             amount: 5, // below EUR minAmount of 12
             paymentMethodId: PAYMENT_METHOD_ID,
           }),
@@ -547,12 +444,7 @@ describe('useRampsBuyLimits', () => {
       );
 
       // EUR minAmount is 12, so amount=5 should trigger a min error
-      await waitFor(() =>
-        expect(result.current.amountLimitError).toBe(
-          'Minimum purchase is $12.00',
-        ),
-      );
-
+      expect(result.current.amountLimitError).toBe('Minimum purchase is $12.00');
       expect(result.current.minAmount).toBe(12);
       expect(result.current.maxAmount).toBe(900);
     });
