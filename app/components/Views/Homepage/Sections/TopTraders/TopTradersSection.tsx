@@ -6,6 +6,7 @@ import React, {
   forwardRef,
   useCallback,
   useImperativeHandle,
+  useMemo,
   useRef,
 } from 'react';
 import { View } from 'react-native';
@@ -25,13 +26,15 @@ import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import { SectionRefreshHandle } from '../../types';
 import { TopTraderCard, TopTraderCardSkeleton } from './components';
 import { TOP_TRADER_CARD_WIDTH } from './components/TopTraderCard';
+import { SPOT_CHAINS } from './constants';
 import { useTopTraders } from './hooks';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 
-const HOME_TRADER_LIMIT = 10;
+const HOME_TRADER_DISPLAY_COUNT = 10;
+const HOME_TRADER_FETCH_LIMIT = 50;
 const SKELETON_KEYS = Array.from(
-  { length: HOME_TRADER_LIMIT },
+  { length: HOME_TRADER_DISPLAY_COUNT },
   (_, i) => `home-trader-skeleton-${i}`,
 );
 
@@ -57,11 +60,24 @@ const TopTradersSection = forwardRef<
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
   const title = strings('homepage.sections.top_traders');
 
-  const { traders, isLoading, isFetching, error, refresh, toggleFollow } =
-    useTopTraders({
-      limit: HOME_TRADER_LIMIT,
-      enabled: isEnabled,
-    });
+  const {
+    traders: allTraders,
+    isLoading,
+    isFetching,
+    error,
+    refresh,
+    toggleFollow,
+  } = useTopTraders({
+    limit: HOME_TRADER_FETCH_LIMIT,
+    chains: SPOT_CHAINS,
+    enabled: isEnabled,
+  });
+
+  // Trimming the shared fetch to the display count here; preserves the broader "All" fetch.
+  const traders = useMemo(
+    () => allTraders.slice(0, HOME_TRADER_DISPLAY_COUNT),
+    [allTraders],
+  );
 
   useImperativeHandle(
     ref,
