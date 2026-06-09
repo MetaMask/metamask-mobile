@@ -190,18 +190,13 @@ export const PostTradeBottomSheet = () => {
   };
 
   const handleSuggestionPress = (token: TrendingAsset) => {
-    const selectedDestToken = (() => {
-      try {
-        return convertApiTokenToBridgeToken(
-          token,
-          getTrendingTokenImageUrl(token.assetId),
-        );
-      } catch {
-        return undefined;
-      }
-    })();
-
-    if (!selectedDestToken) {
+    let selectedDestToken;
+    try {
+      selectedDestToken = convertApiTokenToBridgeToken(
+        token,
+        getTrendingTokenImageUrl(token.assetId),
+      );
+    } catch {
       return;
     }
 
