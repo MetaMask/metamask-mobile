@@ -37,6 +37,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import {
   resetBridgeState,
   selectBatchSellDestStablecoins,
+  selectBatchSellSourceTokens,
   setBatchSellDestToken,
   setBatchSellSourceTokenAmounts,
   setBatchSellSourceTokens,
@@ -122,10 +123,31 @@ export function BatchSellTokenSelect() {
     CaipChainId | undefined
   >(() => sortedEligibleChains[0]?.chainId);
   const [selectedTokens, setSelectedTokens] = useState<BridgeToken[]>([]);
+  const committedSourceTokens = useSelector(selectBatchSellSourceTokens);
 
   useEffect(() => {
     dispatch(resetBridgeState());
   }, [dispatch]);
+
+  useEffect(() => {
+    // Tokens can be removed on the review page, which only updates Redux. Keep the
+    // local selection in sync so removed tokens appear deselected when returning here.
+    if (committedSourceTokens.length === 0) {
+      return;
+    }
+
+    const committedTokenKeys = new Set(committedSourceTokens.map(getTokenKey));
+
+    setSelectedTokens((tokens) => {
+      const reconciledTokens = tokens.filter((token) =>
+        committedTokenKeys.has(getTokenKey(token)),
+      );
+
+      return reconciledTokens.length === tokens.length
+        ? tokens
+        : reconciledTokens;
+    });
+  }, [committedSourceTokens]);
 
   useEffect(() => {
     // Default to the highest-value chain once balances load, but preserve a
