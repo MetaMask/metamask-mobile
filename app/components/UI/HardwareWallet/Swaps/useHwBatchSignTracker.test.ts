@@ -3,6 +3,7 @@ import {
   TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
+import { ApprovalType } from '@metamask/controller-utils';
 import { useHwBatchSignTracker } from './useHwBatchSignTracker';
 import { updateHardwareWalletsSwaps } from '../../../../core/redux/slices/bridge';
 import {
@@ -250,7 +251,7 @@ function renderEnabledHook(
 /** Set up a `transaction_batch` pending approval, render the hook, and pump the approval handler. */
 async function processBatchApproval(batchId: string) {
   setMockPendingApprovals({
-    [batchId]: { id: batchId, type: 'transaction_batch' },
+    [batchId]: { id: batchId, type: ApprovalType.TransactionBatch },
   });
   renderEnabledHook();
   await act(async () => {
@@ -803,9 +804,18 @@ describe('useHwBatchSignTracker', () => {
 
       setMockTransactions([activeTx, otherBatchTx]);
       setMockPendingApprovals({
-        [activeBatchId]: { id: activeBatchId, type: 'transaction_batch' },
-        [otherBatchId]: { id: otherBatchId, type: 'transaction_batch' },
-        [otherBatchTx.id]: { id: otherBatchTx.id, type: 'transaction' },
+        [activeBatchId]: {
+          id: activeBatchId,
+          type: ApprovalType.TransactionBatch,
+        },
+        [otherBatchId]: {
+          id: otherBatchId,
+          type: ApprovalType.TransactionBatch,
+        },
+        [otherBatchTx.id]: {
+          id: otherBatchTx.id,
+          type: ApprovalType.Transaction,
+        },
       });
       fireTxEvent(activeTx);
 
@@ -982,10 +992,16 @@ describe('useHwBatchSignTracker', () => {
 
       setMockTransactions([bridgeTx, unrelatedTx]);
       setMockPendingApprovals({
-        [bridgeTxId]: { id: bridgeTxId, type: 'transaction' },
-        [unrelatedTxId]: { id: unrelatedTxId, type: 'transaction' },
-        [bridgeBatchId]: { id: bridgeBatchId, type: 'transaction_batch' },
-        [unrelatedBatchId]: { id: unrelatedBatchId, type: 'transaction_batch' },
+        [bridgeTxId]: { id: bridgeTxId, type: ApprovalType.Transaction },
+        [unrelatedTxId]: { id: unrelatedTxId, type: ApprovalType.Transaction },
+        [bridgeBatchId]: {
+          id: bridgeBatchId,
+          type: ApprovalType.TransactionBatch,
+        },
+        [unrelatedBatchId]: {
+          id: unrelatedBatchId,
+          type: ApprovalType.TransactionBatch,
+        },
       });
 
       fireTxEvent(bridgeTx);
@@ -1136,7 +1152,10 @@ describe('useHwBatchSignTracker', () => {
 
         setMockTransactions([oldTx, retryTx]);
         setMockPendingApprovals({
-          [retryBatchId]: { id: retryBatchId, type: 'transaction_batch' },
+          [retryBatchId]: {
+            id: retryBatchId,
+            type: ApprovalType.TransactionBatch,
+          },
         });
 
         act(() => {
@@ -1400,7 +1419,7 @@ describe('useHwBatchSignTracker', () => {
       const batchId = 'batch-existing-on-enable-001';
       setMockTransactions([matchingBatchTx(batchId)]);
       setMockPendingApprovals({
-        [batchId]: { id: batchId, type: 'transaction_batch' },
+        [batchId]: { id: batchId, type: ApprovalType.TransactionBatch },
       });
 
       renderEnabledHook();
@@ -1428,7 +1447,9 @@ describe('useHwBatchSignTracker', () => {
           status: TransactionStatus.approved,
         }),
       ]);
-      setMockPendingApprovals({ [txId]: { id: txId, type: 'transaction' } });
+      setMockPendingApprovals({
+        [txId]: { id: txId, type: ApprovalType.Transaction },
+      });
 
       renderEnabledHook();
 
@@ -1464,7 +1485,9 @@ describe('useHwBatchSignTracker', () => {
           status: TransactionStatus.approved,
         }),
       ]);
-      setMockPendingApprovals({ [txId]: { id: txId, type: 'transaction' } });
+      setMockPendingApprovals({
+        [txId]: { id: txId, type: ApprovalType.Transaction },
+      });
 
       renderEnabledHook();
       const handler = getApprovalHandler();
@@ -1487,7 +1510,7 @@ describe('useHwBatchSignTracker', () => {
       const batchId = 'batch-device-not-ready-001';
       setMockTransactions([matchingBatchTx(batchId)]);
       setMockPendingApprovals({
-        [batchId]: { id: batchId, type: 'transaction_batch' },
+        [batchId]: { id: batchId, type: ApprovalType.TransactionBatch },
       });
 
       renderEnabledHook();
@@ -1515,7 +1538,7 @@ describe('useHwBatchSignTracker', () => {
         const batchId = 'batch-device-not-ready-retry-001';
         setMockTransactions([matchingBatchTx(batchId)]);
         setMockPendingApprovals({
-          [batchId]: { id: batchId, type: 'transaction_batch' },
+          [batchId]: { id: batchId, type: ApprovalType.TransactionBatch },
         });
 
         renderEnabledHook();
@@ -1577,7 +1600,7 @@ describe('useHwBatchSignTracker', () => {
         }),
       ]);
       setMockPendingApprovals({
-        [batchId]: { id: batchId, type: 'transaction_batch' },
+        [batchId]: { id: batchId, type: ApprovalType.TransactionBatch },
       });
 
       renderEnabledHook();
@@ -1602,7 +1625,10 @@ describe('useHwBatchSignTracker', () => {
 
       setMockTransactions([activeTx, otherTx]);
       setMockPendingApprovals({
-        [otherBatchId]: { id: otherBatchId, type: 'transaction_batch' },
+        [otherBatchId]: {
+          id: otherBatchId,
+          type: ApprovalType.TransactionBatch,
+        },
       });
 
       await act(async () => {
@@ -1630,7 +1656,10 @@ describe('useHwBatchSignTracker', () => {
 
       retryGenerationRef.current = 1;
       setMockPendingApprovals({
-        [staleBatchId]: { id: staleBatchId, type: 'transaction_batch' },
+        [staleBatchId]: {
+          id: staleBatchId,
+          type: ApprovalType.TransactionBatch,
+        },
       });
 
       await act(async () => {
@@ -1645,7 +1674,7 @@ describe('useHwBatchSignTracker', () => {
       const batchId = 'batch-delayed-transaction-001';
       const matchingTx = matchingBatchTx(batchId);
       setMockPendingApprovals({
-        [batchId]: { id: batchId, type: 'transaction_batch' },
+        [batchId]: { id: batchId, type: ApprovalType.TransactionBatch },
       });
 
       renderEnabledHook();
@@ -1680,7 +1709,7 @@ describe('useHwBatchSignTracker', () => {
 
       setMockTransactions([tx]);
       setMockPendingApprovals({
-        [batchId]: { id: batchId, type: 'transaction_batch' },
+        [batchId]: { id: batchId, type: ApprovalType.TransactionBatch },
       });
       renderEnabledHook();
 
@@ -1718,7 +1747,7 @@ describe('useHwBatchSignTracker', () => {
 
       setMockTransactions([tx]);
       setMockPendingApprovals({
-        [batchId]: { id: batchId, type: 'transaction_batch' },
+        [batchId]: { id: batchId, type: ApprovalType.TransactionBatch },
       });
       renderEnabledHook();
 
@@ -1749,7 +1778,7 @@ describe('useHwBatchSignTracker', () => {
       mockAcceptRequest.mockRejectedValueOnce(new Error(STX_NO_HASH_ERROR));
       setMockTransactions([tx]);
       setMockPendingApprovals({
-        [batchId]: { id: batchId, type: 'transaction_batch' },
+        [batchId]: { id: batchId, type: ApprovalType.TransactionBatch },
       });
       renderEnabledHook();
 
@@ -1787,7 +1816,7 @@ describe('useHwBatchSignTracker', () => {
 
       setMockTransactions([matchingBatchTx(batchId)]);
       setMockPendingApprovals({
-        [batchId]: { id: batchId, type: 'transaction_batch' },
+        [batchId]: { id: batchId, type: ApprovalType.TransactionBatch },
       });
       renderEnabledHook();
 
@@ -1812,7 +1841,7 @@ describe('useHwBatchSignTracker', () => {
       });
       setMockTransactions([tx]);
       setMockPendingApprovals({
-        [batchId]: { id: batchId, type: 'transaction_batch' },
+        [batchId]: { id: batchId, type: ApprovalType.TransactionBatch },
       });
       mockHwOpOnce(async ({ execute, onRejected }) => {
         await execute();
@@ -1854,7 +1883,7 @@ describe('useHwBatchSignTracker', () => {
       });
       setMockTransactions([tx]);
       setMockPendingApprovals({
-        [batchId]: { id: batchId, type: 'transaction_batch' },
+        [batchId]: { id: batchId, type: ApprovalType.TransactionBatch },
       });
       mockHwOpOnce(async ({ execute, onRejected }) => {
         await execute();
@@ -1898,7 +1927,7 @@ describe('useHwBatchSignTracker', () => {
         return execute().then(() => false);
       });
       setMockPendingApprovals({
-        [batchId]: { id: batchId, type: 'transaction_batch' },
+        [batchId]: { id: batchId, type: ApprovalType.TransactionBatch },
       });
 
       renderEnabledHook();
@@ -1958,7 +1987,7 @@ describe('useHwBatchSignTracker', () => {
       });
 
       setMockPendingApprovals({
-        [batchId]: { id: batchId, type: 'transaction_batch' },
+        [batchId]: { id: batchId, type: ApprovalType.TransactionBatch },
       });
 
       const { result } = renderEnabledHook();
@@ -2030,7 +2059,7 @@ describe('useHwBatchSignTracker', () => {
         return execute().then(() => false);
       });
       setMockPendingApprovals({
-        [batchId]: { id: batchId, type: 'transaction_batch' },
+        [batchId]: { id: batchId, type: ApprovalType.TransactionBatch },
       });
 
       renderEnabledHook();
@@ -2079,7 +2108,7 @@ describe('useHwBatchSignTracker', () => {
       });
       setMockTransactions([approvedMeta]);
       setMockPendingApprovals({
-        [batchId]: { id: batchId, type: 'transaction_batch' },
+        [batchId]: { id: batchId, type: ApprovalType.TransactionBatch },
       });
 
       renderEnabledHook();
@@ -2102,7 +2131,7 @@ describe('useHwBatchSignTracker', () => {
       const batchId = 'batch-concurrent-001';
       setMockTransactions([matchingBatchTx(batchId)]);
       setMockPendingApprovals({
-        [batchId]: { id: batchId, type: 'transaction_batch' },
+        [batchId]: { id: batchId, type: ApprovalType.TransactionBatch },
       });
 
       renderEnabledHook();
@@ -2142,8 +2171,8 @@ describe('useHwBatchSignTracker', () => {
         matchingBatchTx(batchId2),
       ]);
       setMockPendingApprovals({
-        [batchId1]: { id: batchId1, type: 'transaction_batch' },
-        [batchId2]: { id: batchId2, type: 'transaction_batch' },
+        [batchId1]: { id: batchId1, type: ApprovalType.TransactionBatch },
+        [batchId2]: { id: batchId2, type: ApprovalType.TransactionBatch },
       });
 
       renderEnabledHook();
@@ -2214,7 +2243,7 @@ describe('useHwBatchSignTracker', () => {
         matchingBatchTx(batchId, { id: 'tx-current-approved-after-retry' }),
       ]);
       setMockPendingApprovals({
-        [batchId]: { id: batchId, type: 'transaction_batch' },
+        [batchId]: { id: batchId, type: ApprovalType.TransactionBatch },
       });
 
       fireTxEvent(
@@ -2289,7 +2318,7 @@ describe('useHwBatchSignTracker', () => {
       retryGenerationRef.current = 1;
       setMockTransactions([staleSignedTx, retryTx]);
       setMockPendingApprovals({
-        [batchId]: { id: batchId, type: 'transaction_batch' },
+        [batchId]: { id: batchId, type: ApprovalType.TransactionBatch },
       });
       mockExecuteHardwareWalletOperation.mockImplementationOnce(
         async ({ execute, onRejected }) => {
@@ -2434,7 +2463,10 @@ describe('useHwBatchSignTracker', () => {
 
       setMockTransactions([matchingBatchTx(staleBatchId1)]);
       setMockPendingApprovals({
-        [staleBatchId1]: { id: staleBatchId1, type: 'transaction_batch' },
+        [staleBatchId1]: {
+          id: staleBatchId1,
+          type: ApprovalType.TransactionBatch,
+        },
       });
 
       renderWithRetry(retryGenerationRef);
@@ -2455,8 +2487,14 @@ describe('useHwBatchSignTracker', () => {
           matchingBatchTx(staleBatchId2),
         ]);
         setMockPendingApprovals({
-          [staleBatchId1]: { id: staleBatchId1, type: 'transaction_batch' },
-          [staleBatchId2]: { id: staleBatchId2, type: 'transaction_batch' },
+          [staleBatchId1]: {
+            id: staleBatchId1,
+            type: ApprovalType.TransactionBatch,
+          },
+          [staleBatchId2]: {
+            id: staleBatchId2,
+            type: ApprovalType.TransactionBatch,
+          },
         });
         await approvalHandler();
       });
@@ -2490,7 +2528,7 @@ describe('useHwBatchSignTracker', () => {
 
       setMockTransactions([matchingBatchTx(batchId)]);
       setMockPendingApprovals({
-        [batchId]: { id: batchId, type: 'transaction_batch' },
+        [batchId]: { id: batchId, type: ApprovalType.TransactionBatch },
       });
 
       renderWithRetry(retryGenerationRef);
@@ -2514,7 +2552,7 @@ describe('useHwBatchSignTracker', () => {
       );
 
       setMockPendingApprovals({
-        [batchId]: { id: batchId, type: 'transaction_batch' },
+        [batchId]: { id: batchId, type: ApprovalType.TransactionBatch },
       });
 
       await act(async () => {

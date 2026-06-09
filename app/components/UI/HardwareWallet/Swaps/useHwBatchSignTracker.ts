@@ -4,6 +4,7 @@ import {
   TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
+import { ApprovalType } from '@metamask/controller-utils';
 import { useDispatch } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import {
@@ -155,13 +156,13 @@ function isFailedOrRejectedBatchTransaction(tx: TransactionMeta): boolean {
 function hasSignedTrackedBatchFromAddress(
   batchId: string,
   address: string,
-  trackedTxIds: ReadonlySet<string>,
+  pendingSignTxIds: ReadonlySet<string>,
 ): boolean {
   const normalizedAddress = normalizeAddress(address);
   if (!normalizedAddress) return false;
   return getTransactions().some(
     (tx) =>
-      trackedTxIds.has(tx.id) &&
+      pendingSignTxIds.has(tx.id) &&
       tx.batchId === batchId &&
       matchesTx(tx, normalizedAddress) &&
       isPostSignBatchTransaction(tx),
@@ -170,10 +171,10 @@ function hasSignedTrackedBatchFromAddress(
 
 function getCancellableBatchTxIds(
   address: string | undefined,
-  trackedTxIds: Iterable<string>,
+  pendingSignTxIds: Iterable<string>,
   relatedBatchIds: ReadonlySet<string>,
 ): string[] {
-  const trackedTxIdList = [...trackedTxIds];
+  const pendingSignTxIdList = [...pendingSignTxIds];
   const normalizedAddress = normalizeAddress(address);
   const nonTerminalTxIds =
     normalizedAddress && relatedBatchIds.size > 0
@@ -187,7 +188,7 @@ function getCancellableBatchTxIds(
           .map((tx: TransactionMeta) => tx.id)
       : [];
 
-  return [...new Set([...trackedTxIdList, ...nonTerminalTxIds])];
+  return [...new Set([...pendingSignTxIdList, ...nonTerminalTxIds])];
 }
 
 function getRelatedBatchIds(
@@ -409,7 +410,7 @@ function waitForTerminalTransactions(txIds: string[]): Promise<void> {
 
 function shouldRejectPendingApprovalOnCancel(
   requestId: string,
-  request: { type: string },
+  request: { type: ApprovalType },
   targetFrom: string | undefined,
   relatedBatchIds: ReadonlySet<string>,
   relatedApprovalIds: ReadonlySet<string>,
@@ -418,11 +419,11 @@ function shouldRejectPendingApprovalOnCancel(
     return false;
   }
 
-  if (request.type === 'transaction_batch') {
+  if (request.type === ApprovalType.TransactionBatch) {
     return relatedBatchIds.has(requestId) || relatedApprovalIds.has(requestId);
   }
 
-  if (request.type === 'transaction') {
+  if (request.type === ApprovalType.Transaction) {
     if (!relatedApprovalIds.has(requestId)) {
       return false;
     }
@@ -474,7 +475,7 @@ interface HwBatchSignTrackerState {
   seenBatchIds: Set<string>;
   staleBatchIds: Set<string>;
   signedBatchIds: Set<string>;
-  trackedTxIds: Set<string>;
+  pendingSignTxIds: Set<string>;
   pendingAbortTxIds: Set<string>;
   acceptedApprovalIds: Set<string>;
   approvalQueue: string[];
@@ -512,7 +513,7 @@ function createInitialBatchSignTrackerState(
     seenBatchIds: new Set(),
     staleBatchIds: new Set(),
     signedBatchIds: new Set(),
-    trackedTxIds: new Set(),
+    pendingSignTxIds: new Set(),
     pendingAbortTxIds: new Set(),
     acceptedApprovalIds: new Set(),
     approvalQueue: [],
@@ -579,7 +580,7 @@ export function useHwBatchSignTracker({
     trackerState.acceptedApprovalIds = new Set();
     trackerState.approvalQueue = [];
     trackerState.signedBatchIds = new Set();
-    trackerState.trackedTxIds = new Set();
+    trackerState.pendingSignTxIds = new Set();
     trackerState.batchGeneration += 1;
 
     for (const id of trackerState.seenBatchIds) {
@@ -616,15 +617,15 @@ export function useHwBatchSignTracker({
 
   const syncConfirmationTxId = useCallback(() => {
     setConfirmationTxId((current) => {
-      const { trackedTxIds } = trackerStateRef.current;
-      if (trackedTxIds.size === 0) {
+      const { pendingSignTxIds } = trackerStateRef.current;
+      if (pendingSignTxIds.size === 0) {
         return undefined;
       }
-      if (current && trackedTxIds.has(current)) {
+      if (current && pendingSignTxIds.has(current)) {
         return current;
       }
-      // Fall back to the next tracked tx (insertion order = oldest pending) so the UI doesn't go blank mid-batch.
-      return trackedTxIds.values().next().value;
+      // Fall back to the next pending-sign tx (insertion order = oldest pending) so the UI doesn't go blank mid-batch.
+      return pendingSignTxIds.values().next().value;
     });
   }, []);
 
@@ -676,11 +677,11 @@ export function useHwBatchSignTracker({
       const relatedBatchIds = getRelatedBatchIds(
         trackerState.currentBatchId,
         trackerState.seenBatchIds,
-        trackerState.trackedTxIds,
+        trackerState.pendingSignTxIds,
       );
       const allTxIds = getCancellableBatchTxIds(
         address,
-        trackerState.trackedTxIds,
+        trackerState.pendingSignTxIds,
         relatedBatchIds,
       );
 
@@ -689,7 +690,7 @@ export function useHwBatchSignTracker({
         ...trackerState.approvalQueue,
       ]);
 
-      trackerState.trackedTxIds = new Set();
+      trackerState.pendingSignTxIds = new Set();
       invalidateBatchStateForRetry();
 
       if (
@@ -845,7 +846,7 @@ export function useHwBatchSignTracker({
                   hasSignedTrackedBatchFromAddress(
                     batchId,
                     targetFrom,
-                    trackerState.trackedTxIds,
+                    trackerState.pendingSignTxIds,
                   )),
             );
             if (isLateSignedBatchRejection) {
@@ -981,7 +982,7 @@ export function useHwBatchSignTracker({
           continue;
         }
 
-        if (request.type === 'transaction') {
+        if (request.type === ApprovalType.Transaction) {
           const txMeta = getTransactions().find(
             (tx: TransactionMeta) => tx.id === requestId,
           );
@@ -992,18 +993,18 @@ export function useHwBatchSignTracker({
           ) {
             trackerState.acceptedApprovalIds.add(requestId);
             if (txMeta.status === TransactionStatus.approved) {
-              trackerState.trackedTxIds.add(txMeta.id);
+              trackerState.pendingSignTxIds.add(txMeta.id);
             }
             trackerState.approvalQueue.push(requestId);
           }
         } else if (
-          request.type === 'transaction_batch' &&
+          request.type === ApprovalType.TransactionBatch &&
           isBatchIdFromCurrentBatch(requestId) &&
           hasMatchingBatchTransaction(requestId, targetFrom)
         ) {
           trackerState.acceptedApprovalIds.add(requestId);
           getApprovedBatchTransactionIds(requestId, targetFrom).forEach(
-            (txId) => trackerState.trackedTxIds.add(txId),
+            (txId) => trackerState.pendingSignTxIds.add(txId),
           );
           trackerState.approvalQueue.push(requestId);
         }
@@ -1022,7 +1023,7 @@ export function useHwBatchSignTracker({
     ): boolean => {
       const pendingApprovals = getPendingApprovals();
       const transactionApproval = pendingApprovals[transactionMeta.id];
-      if (transactionApproval?.type === 'transaction') {
+      if (transactionApproval?.type === ApprovalType.Transaction) {
         return true;
       }
 
@@ -1031,7 +1032,7 @@ export function useHwBatchSignTracker({
         return false;
       }
 
-      return pendingApprovals[batchId]?.type === 'transaction_batch';
+      return pendingApprovals[batchId]?.type === ApprovalType.TransactionBatch;
     };
 
     const shouldAcceptRetryApprovalForStaleBatch = (
@@ -1046,7 +1047,7 @@ export function useHwBatchSignTracker({
 
     const completeTrackedTx = (txId: string) => {
       handledTxIds.add(txId);
-      trackerStateRef.current.trackedTxIds.delete(txId);
+      trackerStateRef.current.pendingSignTxIds.delete(txId);
       syncConfirmationTxId();
     };
 
@@ -1120,7 +1121,7 @@ export function useHwBatchSignTracker({
           }
         }
         signingDispatchedTxIds.add(transactionMeta.id);
-        trackerStateRef.current.trackedTxIds.add(transactionMeta.id);
+        trackerStateRef.current.pendingSignTxIds.add(transactionMeta.id);
         setConfirmationTxId(transactionMeta.id);
         dispatchSwapEvent({
           type: HardwareWalletsSwapsEventType.Signing,
