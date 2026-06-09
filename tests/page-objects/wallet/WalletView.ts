@@ -1081,12 +1081,9 @@ class WalletView {
 
   get PredictionsTabContainer(): EncapsulatedElementType {
     return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(PredictHomeSelectorsIDs.SCROLL_VIEW),
+      detox: () => Matchers.getElementByID(PredictHomeSelectorsIDs.SCROLL_VIEW),
       appium: () =>
-        PlaywrightMatchers.getElementById(
-          PredictHomeSelectorsIDs.SCROLL_VIEW,
-        ),
+        PlaywrightMatchers.getElementById(PredictHomeSelectorsIDs.SCROLL_VIEW),
     });
   }
 
@@ -1267,7 +1264,6 @@ class WalletView {
       { direction },
     );
   }
-
 
   async scrollAndTapDefiSection(): Promise<void> {
     await this.scrollAndTapSection(this.defiPositionsNew, 'DeFi section');

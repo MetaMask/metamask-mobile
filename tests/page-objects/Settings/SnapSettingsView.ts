@@ -35,14 +35,14 @@ class SnapSettingsView {
   get backButton(): EncapsulatedElementType {
     return encapsulated({
       detox: () => Matchers.getElementByID(SNAP_SETTINGS_BACK_BUTTON),
-      appium: () => PlaywrightMatchers.getElementById(SNAP_SETTINGS_BACK_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(SNAP_SETTINGS_BACK_BUTTON),
     });
   }
 
   get listBackButton(): EncapsulatedElementType {
     return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(SNAPS_SETTINGS_LIST_BACK_BUTTON),
+      detox: () => Matchers.getElementByID(SNAPS_SETTINGS_LIST_BACK_BUTTON),
       appium: () =>
         PlaywrightMatchers.getElementById(SNAPS_SETTINGS_LIST_BACK_BUTTON),
     });
