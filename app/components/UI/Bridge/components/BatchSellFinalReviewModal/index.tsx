@@ -303,7 +303,7 @@ export function BatchSellFinalReviewModal() {
     networkFee: batchSellQuoteData.networkFee,
   });
   const surfaceClass = useElevatedSurface();
-  const [isTokenDetailsExpanded, setIsTokenDetailsExpanded] = useState(true);
+  const [isTokenDetailsExpanded, setIsTokenDetailsExpanded] = useState(false);
   const finalReviewQuoteData = useMemo(
     () =>
       getFinalReviewQuoteData({
