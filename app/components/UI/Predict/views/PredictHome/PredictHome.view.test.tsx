@@ -87,11 +87,13 @@ describe('PredictHome', () => {
 
   describe('shell composition', () => {
     it('renders the large "Predictions" title', async () => {
-      const { findByTestId } = renderPredictHomeView();
+      const { getByTestId } = renderPredictHomeView();
 
-      expect(
-        await findByTestId(PredictHomeSelectorsIDs.TITLE),
-      ).toHaveTextContent(PREDICTIONS_TITLE);
+      await waitFor(() => {
+        expect(getByTestId(PredictHomeSelectorsIDs.TITLE)).toHaveTextContent(
+          PREDICTIONS_TITLE,
+        );
+      });
     });
 
     it('composes the section placeholders in Figma order', async () => {
@@ -100,7 +102,9 @@ describe('PredictHome', () => {
       // Wait for the shell to mount.
       await findByTestId(PredictHomeSelectorsIDs.CONTAINER);
 
-      expect(getByTestId(PREDICT_PORTFOLIO_TEST_IDS.MODULE)).toBeOnTheScreen();
+      expect(
+        getByTestId(PredictHomeSelectorsIDs.PORTFOLIO_MODULE),
+      ).toBeOnTheScreen();
       expect(
         getByTestId(PredictHomeSelectorsIDs.LIVE_NOW_SECTION),
       ).toBeOnTheScreen();

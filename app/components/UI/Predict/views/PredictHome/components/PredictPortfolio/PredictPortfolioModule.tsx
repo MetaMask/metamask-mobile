@@ -14,6 +14,7 @@ import PredictClaimButton from '../../../../components/PredictActionButtons/Pred
 import PredictPortfolioActions from './PredictPortfolioActions';
 import PredictPortfolioSummary from './PredictPortfolioSummary';
 import { PREDICT_PORTFOLIO_TEST_IDS } from './PredictPortfolio.testIds';
+import { PredictHomeSelectorsIDs } from '../../../../Predict.testIds';
 
 export interface PredictPortfolioModuleProps {
   onDepositWalletWithdrawPress?: () => void;
@@ -153,7 +154,7 @@ const PredictPortfolioModule: React.FC<PredictPortfolioModuleProps> = ({
   const isWithdrawDisabled = availableBalance > 0 && !walletType;
 
   return (
-    <Box testID={PREDICT_PORTFOLIO_TEST_IDS.MODULE} twClassName="gap-4">
+    <Box testID={PredictHomeSelectorsIDs.PORTFOLIO_MODULE} twClassName="gap-4">
       <PredictPortfolioSummary
         availableBalance={availableBalance}
         isHidden={Boolean(privacyMode)}
