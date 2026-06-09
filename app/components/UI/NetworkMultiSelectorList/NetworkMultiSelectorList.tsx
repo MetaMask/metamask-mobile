@@ -287,7 +287,7 @@ const NetworkMultiSelectList = ({
               isGasSponsored ? (
                 <Box twClassName="flex-row gap-2 items-center">
                   <Text
-                    variant={TextVariant.BodyMD}
+                    variant={TextVariant.BodyMd}
                     numberOfLines={1}
                     style={styles.networkNameText}
                   >
