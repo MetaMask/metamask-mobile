@@ -23,8 +23,6 @@ import {
 import {
   AMBIENT_PRICE_COLOR_AB_KEY,
   AMBIENT_PRICE_COLOR_VARIANTS,
-  STICKY_FOOTER_SWAP_LABEL_AB_KEY,
-  STICKY_FOOTER_SWAP_LABEL_VARIANTS,
 } from '../../../components/UI/TokenDetails/components/abTestConfig';
 import { useMemo } from 'react';
 
@@ -65,13 +63,6 @@ export default function useSubmitBridgeTx() {
     TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
   );
   const {
-    variantName: stickyFooterVariantName,
-    isActive: isStickyFooterAbActive,
-  } = useABTest(
-    STICKY_FOOTER_SWAP_LABEL_AB_KEY,
-    STICKY_FOOTER_SWAP_LABEL_VARIANTS,
-  );
-  const {
     variantName: ambientColorVariantName,
     isActive: isAmbientColorAbActive,
   } = useABTest(AMBIENT_PRICE_COLOR_AB_KEY, AMBIENT_PRICE_COLOR_VARIANTS);
@@ -103,15 +94,6 @@ export default function useSubmitBridgeTx() {
       );
     }
 
-    if (isStickyFooterAbActive) {
-      tests.push(
-        createActiveABTestAssignment(
-          STICKY_FOOTER_SWAP_LABEL_AB_KEY,
-          stickyFooterVariantName,
-        ),
-      );
-    }
-
     if (isAmbientColorAbActive) {
       tests.push(
         createActiveABTestAssignment(
@@ -127,8 +109,6 @@ export default function useSubmitBridgeTx() {
     numpadVariantName,
     isTokenSelectorAbActive,
     tokenSelectorVariantName,
-    isStickyFooterAbActive,
-    stickyFooterVariantName,
     isAmbientColorAbActive,
     ambientColorVariantName,
   ]);
