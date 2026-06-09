@@ -77,7 +77,6 @@ import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBui
 import Routes from '../../../constants/navigation/Routes';
 import { RESET_PASSWORD_GUIDE_URL } from '../../../constants/urls';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
-import { trackExternalLinkClicked } from '../../../util/analytics/externalLinkTracking';
 import FoxRiveLoaderAnimation, {
   type FoxRiveLoaderAnimationRef,
 } from './FoxRiveLoaderAnimation/FoxRiveLoaderAnimation';
@@ -545,18 +544,11 @@ const ChoosePassword = () => {
   );
 
   const learnMore = useCallback(() => {
-    trackExternalLinkClicked(
-      (event) =>
-        trackOnboarding(event, (arg: ITrackingEvent) =>
-          dispatch(saveEvent([arg])),
-        ),
-      MetricsEventBuilder.createEventBuilder,
-      {
-        text: 'Learn More',
-        location: 'choose_password',
-        url_domain: RESET_PASSWORD_GUIDE_URL,
-      },
-    );
+    track(MetaMetricsEvents.EXTERNAL_LINK_CLICKED, {
+      text: 'Learn More',
+      location: 'choose_password',
+      url_domain: RESET_PASSWORD_GUIDE_URL,
+    });
 
     navigation.navigate('Webview', {
       screen: 'SimpleWebview',
@@ -565,7 +557,7 @@ const ChoosePassword = () => {
         title: 'support.metamask.io',
       },
     });
-  }, [dispatch, navigation]);
+  }, [navigation, track]);
 
   const toggleShowPassword = useCallback((index: number) => {
     setShowPasswordIndex((prev) => {
