@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet , Text } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import { render, fireEvent, act } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { parseCaipChainId, CaipChainId } from '@metamask/utils';
