@@ -70,6 +70,7 @@ import FeaturedCarousel from '../../components/FeaturedCarousel';
 import PredictWorldCupMainFeedBanner from '../../components/PredictWorldCupMainFeedBanner';
 import {
   selectPredictFeaturedCarouselEnabledFlag,
+  selectPredictPortfolioEnabledFlag,
   selectPredictUpDownEnabledFlag,
 } from '../../selectors/featureFlags';
 import PredictFeedSessionManager from '../../services/PredictFeedSessionManager';
@@ -539,6 +540,9 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
   const feedEntryPoint = propEntryPoint ?? route.params?.entryPoint;
   const listEntryPoint =
     feedEntryPoint ?? PredictEventValues.ENTRY_POINT.PREDICT_FEED;
+  const predictPortfolioEnabled = useSelector(
+    selectPredictPortfolioEnabledFlag,
+  );
 
   const headerRef = useRef<View>(null);
   const tabBarRef = useRef<View>(null);
@@ -571,6 +575,10 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
       isSearchVisible,
     },
   });
+
+  useEffect(() => {
+    sessionManager.setPortfolioModuleEnabled(predictPortfolioEnabled);
+  }, [predictPortfolioEnabled, sessionManager]);
 
   useEffect(() => {
     sessionManager.enableAppStateListener();
