@@ -317,6 +317,7 @@ export function useBatchSellQuoteData({
   const hasAnyQuote = availableRecommendedQuotes.length > 0;
   const totalNetworkFee = batchSellTrades.totalNetworkFee;
   const isBatchSellTradesLoading = Boolean(batchSellTrades.isLoading);
+  const isNetworkFeeUnavailable = !isBatchSellTradesLoading && !totalNetworkFee;
 
   // Quote-level gasless params are not reliable for Batch Sell because gasless
   // behavior is only simulated when the controller calls obtainGaslessBatch.
@@ -519,6 +520,7 @@ export function useBatchSellQuoteData({
     isGasless,
     isBatchSellTradeAvailable: batchSellTrades.isBatchSellTradeAvailable,
     isBatchSellTradesLoading,
+    isNetworkFeeUnavailable,
     hasAnyQuote,
     hasPendingQuoteRows,
     needsNewQuote,
