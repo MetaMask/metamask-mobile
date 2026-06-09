@@ -314,6 +314,7 @@ describe('AddCustomToken', () => {
       expect(mockAddCustomAsset).toHaveBeenCalledWith(
         'evm-account-id',
         MOCK_CAIP_ASSET,
+        expect.objectContaining({ address: VALID_ADDRESS }),
       );
     });
 

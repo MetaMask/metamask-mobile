@@ -1,0 +1,171 @@
+import React from 'react';
+import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { useNavigation } from '@react-navigation/native';
+import { strings } from '../../../../../../../locales/i18n';
+import {
+  KeyValueRowStubs,
+  TooltipSizes,
+  KeyValueRowSectionAlignments,
+} from '../../../../../../component-library/components-temp/KeyValueRow';
+import { IconName as IconNameLegacy } from '../../../../../../component-library/components/Icons/Icon';
+import Routes from '../../../../../../constants/navigation/Routes';
+import { useQuickBuyContext } from './useQuickBuyContext';
+import QuickBuySubScreenHeader from './components/QuickBuySubScreenHeader';
+import QuickBuyQuoteCountdown from './components/QuickBuyQuoteCountdown';
+import {
+  QuickBuyQuoteDetailPressableValue,
+  QuickBuyQuoteDetailRow,
+  QuickBuyQuoteDetailTextValue,
+} from './components/QuickBuyQuoteDetailRow';
+
+const QuickBuyQuoteDetailsScreen: React.FC = () => {
+  const navigation = useNavigation();
+  const {
+    sourceToken,
+    destToken,
+    formattedNetworkFee,
+    formattedSlippage,
+    formattedMinimumReceived,
+    formattedMinimumReceivedFiat,
+    formattedRate,
+    formattedPriceImpact,
+    isPriceImpactError,
+    quotesLastFetchedAt,
+    quoteRefreshRateMs,
+    onClose,
+    setActiveScreen,
+  } = useQuickBuyContext();
+
+  const handleEditSlippage = () => {
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.SWAP_DEFAULT_SLIPPAGE_MODAL,
+      params: {
+        sourceChainId: sourceToken?.chainId,
+        destChainId: destToken?.chainId,
+      },
+    });
+  };
+
+  const minReceivedLabel = formattedMinimumReceivedFiat
+    ? `${formattedMinimumReceived} ~${formattedMinimumReceivedFiat}`
+    : formattedMinimumReceived;
+
+  return (
+    <>
+      <QuickBuySubScreenHeader
+        title={strings('social_leaderboard.quick_buy.quote_details_title')}
+        onBack={() => setActiveScreen('amount')}
+        onClose={onClose}
+      />
+
+      <Box twClassName="px-4 pt-3 pb-4" gap={3}>
+        <KeyValueRowStubs.Root>
+          <KeyValueRowStubs.Section>
+            <KeyValueRowStubs.Label
+              label={
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  gap={1}
+                >
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextAlternative}
+                  >
+                    {strings('social_leaderboard.quick_buy.rate')}
+                  </Text>
+                  <QuickBuyQuoteCountdown
+                    quotesLastFetchedAt={quotesLastFetchedAt}
+                    quoteRefreshRateMs={quoteRefreshRateMs}
+                  />
+                </Box>
+              }
+              tooltip={{
+                title: strings('bridge.quote_info_title'),
+                content: strings('bridge.quote_info_content'),
+                size: TooltipSizes.Sm,
+                iconName: IconNameLegacy.Info,
+              }}
+            />
+          </KeyValueRowStubs.Section>
+          <KeyValueRowStubs.Section align={KeyValueRowSectionAlignments.RIGHT}>
+            <QuickBuyQuoteDetailPressableValue
+              onPress={() => setActiveScreen('selectQuote')}
+              testID="quick-buy-rate-row"
+              text={formattedRate ?? '-'}
+              iconName={IconName.ArrowRight}
+            />
+          </KeyValueRowStubs.Section>
+        </KeyValueRowStubs.Root>
+
+        <QuickBuyQuoteDetailRow
+          label={strings('social_leaderboard.quick_buy.network_fee')}
+          tooltipTitle={strings('bridge.network_fee_info_title')}
+          tooltipContent={strings('bridge.network_fee_info_content')}
+          value={<QuickBuyQuoteDetailTextValue text={formattedNetworkFee} />}
+        />
+
+        <QuickBuyQuoteDetailRow
+          label={strings('social_leaderboard.quick_buy.slippage')}
+          tooltipTitle={strings('bridge.slippage_info_title')}
+          tooltipContent={strings('bridge.slippage_info_description')}
+          value={
+            <QuickBuyQuoteDetailPressableValue
+              onPress={handleEditSlippage}
+              testID="quick-buy-edit-slippage"
+              text={formattedSlippage}
+              iconName={IconName.Edit}
+            />
+          }
+        />
+
+        {isPriceImpactError && (
+          <QuickBuyQuoteDetailRow
+            label={strings('bridge.price_impact_info_title')}
+            tooltipTitle={strings('bridge.price_impact_info_title')}
+            tooltipContent={strings('bridge.price_impact_info_description')}
+            value={
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                gap={1}
+              >
+                <Icon
+                  name={IconName.Warning}
+                  size={IconSize.Sm}
+                  color={IconColor.ErrorDefault}
+                />
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.ErrorDefault}
+                >
+                  {formattedPriceImpact}
+                </Text>
+              </Box>
+            }
+          />
+        )}
+
+        <QuickBuyQuoteDetailRow
+          label={strings('social_leaderboard.quick_buy.minimum_received')}
+          tooltipTitle={strings('bridge.minimum_received_tooltip_title')}
+          tooltipContent={strings('bridge.minimum_received_tooltip_content')}
+          value={<QuickBuyQuoteDetailTextValue text={minReceivedLabel} />}
+        />
+      </Box>
+    </>
+  );
+};
+
+export default QuickBuyQuoteDetailsScreen;

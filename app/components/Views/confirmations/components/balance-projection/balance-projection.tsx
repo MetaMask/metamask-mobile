@@ -9,6 +9,7 @@ import {
 import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBalance';
 import useFiatFormatter from '../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { strings } from '../../../../../../locales/i18n';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 
 export interface BalanceProjectionProps {
   amountFiat: string;
@@ -19,8 +20,10 @@ export function BalanceProjection({
   amountFiat,
   projectedYears,
 }: BalanceProjectionProps) {
-  const { vaultApyQuery, apyDecimal } = useMoneyAccountBalance();
+  const { vaultApyQuery, apyDecimal, apyPercent } = useMoneyAccountBalance();
   const formatFiat = useFiatFormatter();
+
+  const amount = useMemo(() => new BigNumber(amountFiat || '0'), [amountFiat]);
 
   const projected = useMemo(() => {
     if (
@@ -31,7 +34,6 @@ export function BalanceProjection({
       return null;
     }
 
-    const amount = new BigNumber(amountFiat || '0');
     if (!amount.isFinite()) {
       return null;
     }
@@ -39,10 +41,34 @@ export function BalanceProjection({
     return amount.multipliedBy(
       new BigNumber(1).plus(apyDecimal).pow(projectedYears),
     );
-  }, [amountFiat, apyDecimal, projectedYears]);
+  }, [amount, apyDecimal, projectedYears]);
 
-  if (vaultApyQuery.isLoading || projected === null) {
+  if (vaultApyQuery.isLoading) {
+    return (
+      <View testID="balance-projection-skeleton">
+        <Skeleton height={20} width={160} />
+      </View>
+    );
+  }
+
+  if (projected === null) {
     return null;
+  }
+
+  if (amount.isZero()) {
+    if (apyPercent === undefined) {
+      return null;
+    }
+
+    return (
+      <View testID="balance-projection">
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+          {strings('confirm.custom_amount.earn_up_to_apy', {
+            percentage: apyPercent,
+          })}
+        </Text>
+      </View>
+    );
   }
 
   return (

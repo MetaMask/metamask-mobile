@@ -1,12 +1,12 @@
 import {
-  Box,
+  BottomSheet,
   BottomSheetHeader,
+  BottomSheetRef,
+  Box,
   Button,
   ButtonVariant,
   Text,
   TextVariant,
-  BottomSheet,
-  BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import React, { useCallback, useRef } from 'react';
 import { Alert, Modal, View } from 'react-native';
@@ -14,6 +14,7 @@ import { strings } from '../../../../locales/i18n';
 import { Nft } from '@metamask/assets-controllers';
 import Engine from '../../../core/Engine';
 import { toHex } from '@metamask/controller-utils';
+import { useElevatedSurface } from '../../../util/theme/themeUtils';
 
 interface NftGridItemBottomSheetProps {
   isVisible: boolean;
@@ -27,6 +28,7 @@ const NftGridItemBottomSheet: React.FC<NftGridItemBottomSheetProps> = ({
   nft,
 }) => {
   const sheetRef = useRef<BottomSheetRef>(null);
+  const surfaceClass = useElevatedSurface();
 
   const handleSheetClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -75,7 +77,11 @@ const NftGridItemBottomSheet: React.FC<NftGridItemBottomSheetProps> = ({
   return (
     <View testID="nft-grid-item-bottom-sheet">
       <Modal visible transparent animationType="none" statusBarTranslucent>
-        <BottomSheet ref={sheetRef} onClose={onClose}>
+        <BottomSheet
+          ref={sheetRef}
+          onClose={onClose}
+          twClassName={surfaceClass}
+        >
           <BottomSheetHeader onClose={handleSheetClose}>
             <Text variant={TextVariant.HeadingMd}>
               {strings('wallet.collectible_action_title')}

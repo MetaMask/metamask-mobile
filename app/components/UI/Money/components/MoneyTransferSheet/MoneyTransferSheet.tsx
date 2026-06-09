@@ -4,23 +4,25 @@ import { useNavigation } from '@react-navigation/native';
 import {
   BottomSheet,
   BottomSheetHeader,
-  type BottomSheetRef,
   FontWeight,
   Icon,
+  IconColor,
   IconName,
   IconSize,
-  IconColor,
   Text,
   TextColor,
   TextVariant,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import Tag from '../../../../../component-library/components/Tags/Tag';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import { useMoneyAccountWithdrawal } from '../../hooks/useMoneyAccount';
+import { useMoneyPerpsDeposit } from '../../../../Views/confirmations/hooks/pay/useMoneyPerpsDeposit';
 import Logger from '../../../../../util/Logger';
 import styleSheet from './MoneyTransferSheet.styles';
 import { MoneyTransferSheetTestIds } from './MoneyTransferSheet.testIds';
+import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 interface ActiveOption {
   label: string;
@@ -40,6 +42,9 @@ const MoneyTransferSheet = () => {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
   const { initiateWithdrawal } = useMoneyAccountWithdrawal();
+  const surfaceClass = useElevatedSurface();
+  const { isEnabled: isPerpsEnabled, initiatePerpsDeposit } =
+    useMoneyPerpsDeposit();
 
   const handleGoBack = useCallback(() => {
     navigation.goBack();
@@ -57,9 +62,14 @@ const MoneyTransferSheet = () => {
   }, [initiateWithdrawal]);
 
   const handlePerpsAccount = useCallback(() => {
-    // eslint-disable-next-line no-alert
-    alert('Under construction 🚧');
-  }, []);
+    if (!isPerpsEnabled) {
+      return;
+    }
+
+    sheetRef.current?.onCloseBottomSheet(() => {
+      initiatePerpsDeposit();
+    });
+  }, [isPerpsEnabled, initiatePerpsDeposit]);
 
   const handlePredictionsAccount = useCallback(() => {
     // eslint-disable-next-line no-alert
@@ -106,6 +116,7 @@ const MoneyTransferSheet = () => {
       goBack={handleGoBack}
       testID={MoneyTransferSheetTestIds.CONTAINER}
       keyboardAvoidingViewEnabled={false}
+      twClassName={surfaceClass}
     >
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
         <Text variant={TextVariant.HeadingSm}>

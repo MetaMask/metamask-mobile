@@ -1,7 +1,7 @@
 import Braze, { Banner } from '@braze/react-native-sdk';
 import I18n, { I18nEvents } from '../../../locales/i18n';
 import Logger from '../../util/Logger';
-import { isE2E } from '../../util/test/utils';
+import { hasTestOverrides } from '../../util/test/utils';
 import Engine from '../Engine/Engine';
 import { BrazePlugin } from '../Engine/controllers/analytics-controller/BrazePlugin';
 import { ALL_BRAZE_BANNER_PLACEMENT_IDS } from './constants';
@@ -40,7 +40,7 @@ export function getBrazePlugin(): BrazePlugin {
  * identity sessions.
  */
 export async function setBrazeUser(): Promise<void> {
-  if (isE2E) {
+  if (hasTestOverrides) {
     return;
   }
 
@@ -60,7 +60,7 @@ export async function setBrazeUser(): Promise<void> {
  * Call on sign-out to stop attributing events to the previous user.
  */
 export function clearBrazeUser(): void {
-  if (isE2E) {
+  if (hasTestOverrides) {
     return;
   }
 

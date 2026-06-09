@@ -4,7 +4,10 @@ import { TextColor } from '@metamask/design-system-react-native';
 import PerpsCampaignStatsSummary, {
   PERPS_CAMPAIGN_STATS_SUMMARY_TEST_IDS,
 } from './PerpsCampaignStatsSummary';
-import type { PerpsTradingCampaignLeaderboardPositionDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
+import type {
+  PerpsTradingCampaignLeaderboardDto,
+  PerpsTradingCampaignLeaderboardPositionDto,
+} from '../../../../../core/Engine/controllers/rewards-controller/types';
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -53,18 +56,21 @@ jest.mock('./CampaignOutcomeBanners', () => {
 
 const TEST_IDS = PERPS_CAMPAIGN_STATS_SUMMARY_TEST_IDS;
 
-const mockLeaderboard = {
+const mockLeaderboard: PerpsTradingCampaignLeaderboardDto = {
   campaignId: 'c1',
   computedAt: '2025-01-01T00:00:00.000Z',
   entries: [],
   totalParticipants: 0,
+  minVolumeForEligibility: 25_000,
 };
 
 const basePosition: PerpsTradingCampaignLeaderboardPositionDto = {
   rank: 7,
+  totalParticipants: 100,
   pnl: 1500.25,
-  notionalVolume: 30_000,
-  qualified: true,
+  volume: 30_000,
+  eligible: true,
+  minVolumeForEligibility: 25_000,
   neighbors: [],
   computedAt: '2025-01-01T00:00:00.000Z',
 };
@@ -126,7 +132,7 @@ describe('PerpsCampaignStatsSummary', () => {
     const { getByTestId, queryByTestId } = render(
       <PerpsCampaignStatsSummary
         isCampaignComplete={false}
-        leaderboardPosition={{ ...basePosition, qualified: false }}
+        leaderboardPosition={{ ...basePosition, eligible: false }}
         leaderboard={mockLeaderboard}
       />,
     );
@@ -150,7 +156,7 @@ describe('PerpsCampaignStatsSummary', () => {
     const { queryByTestId } = render(
       <PerpsCampaignStatsSummary
         isCampaignComplete
-        leaderboardPosition={{ ...basePosition, qualified: false }}
+        leaderboardPosition={{ ...basePosition, eligible: false }}
         leaderboard={mockLeaderboard}
       />,
     );
@@ -212,8 +218,8 @@ describe('PerpsCampaignStatsSummary', () => {
         isCampaignComplete={false}
         leaderboardPosition={{
           ...basePosition,
-          qualified: false,
-          notionalVolume: 5_000,
+          eligible: false,
+          volume: 5_000,
         }}
         leaderboard={mockLeaderboard}
       />,
@@ -228,8 +234,8 @@ describe('PerpsCampaignStatsSummary', () => {
         isCampaignComplete={false}
         leaderboardPosition={{
           ...basePosition,
-          qualified: false,
-          notionalVolume: 30_000,
+          eligible: false,
+          volume: 30_000,
         }}
         leaderboard={mockLeaderboard}
       />,
@@ -271,5 +277,72 @@ describe('PerpsCampaignStatsSummary', () => {
     expect(
       queryByTestId('campaign-outcome-banner-pending-PERPS-WINNER-123'),
     ).toBeNull();
+  });
+
+  it('renders em dash for rank when rank is not finite', () => {
+    const { getByTestId } = render(
+      <PerpsCampaignStatsSummary
+        leaderboardPosition={
+          {
+            ...basePosition,
+            rank: Number.NaN,
+          } as PerpsTradingCampaignLeaderboardPositionDto
+        }
+        leaderboard={mockLeaderboard}
+      />,
+    );
+
+    expect(getByTestId(TEST_IDS.RANK).props.children).toBe('—');
+  });
+
+  it('renders em dash for pnl when pnl is not finite', () => {
+    const { getByTestId } = render(
+      <PerpsCampaignStatsSummary
+        leaderboardPosition={
+          {
+            ...basePosition,
+            pnl: Number.POSITIVE_INFINITY,
+          } as PerpsTradingCampaignLeaderboardPositionDto
+        }
+        leaderboard={mockLeaderboard}
+      />,
+    );
+
+    expect(getByTestId(TEST_IDS.PNL).props.children).toBe('—');
+    expect(getByTestId(TEST_IDS.PNL).props.color).toBe(TextColor.TextDefault);
+  });
+
+  it('renders em dash for volume when volume is not finite', () => {
+    const { getByTestId } = render(
+      <PerpsCampaignStatsSummary
+        leaderboardPosition={
+          {
+            ...basePosition,
+            volume: Number.NaN,
+          } as PerpsTradingCampaignLeaderboardPositionDto
+        }
+        leaderboard={mockLeaderboard}
+      />,
+    );
+
+    expect(getByTestId(TEST_IDS.NOTIONAL_VOLUME).props.children).toBe('—');
+  });
+
+  it('hides Qualify for rank card when volume is not finite', () => {
+    const { queryByTestId } = render(
+      <PerpsCampaignStatsSummary
+        isCampaignComplete={false}
+        leaderboardPosition={
+          {
+            ...basePosition,
+            eligible: false,
+            volume: Number.NaN,
+          } as PerpsTradingCampaignLeaderboardPositionDto
+        }
+        leaderboard={mockLeaderboard}
+      />,
+    );
+
+    expect(queryByTestId(TEST_IDS.QUALIFY_FOR_RANK_CARD)).toBeNull();
   });
 });

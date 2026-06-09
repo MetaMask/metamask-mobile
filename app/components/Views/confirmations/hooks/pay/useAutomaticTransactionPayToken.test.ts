@@ -24,15 +24,21 @@ import {
   TransactionPayRequiredToken,
 } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
-import { useTransactionPayRequiredTokens } from './useTransactionPayData';
+import {
+  useTransactionPayFiatPayment,
+  useTransactionPayRequiredTokens,
+} from './useTransactionPayData';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { AssetType } from '../../types/token';
 import { useWithdrawTokenFilter } from './useWithdrawTokenFilter';
+import { useRampsPaymentMethods } from '../../../../UI/Ramp/hooks/useRampsPaymentMethods';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 import { MUSD_TOKEN_ADDRESS } from '../../../../UI/Earn/constants/musd';
 import { selectLastWithdrawTokenByType } from '../../../../../selectors/transactionController';
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
+import { useIsFiatPaymentAvailable } from './useIsFiatPaymentAvailable';
+import { useMMPayFiatConfig } from './useMMPayFiatConfig';
 
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../transactions/useTransactionAccountOverride');
@@ -42,6 +48,9 @@ jest.mock('../../../../../selectors/transactionPayController');
 jest.mock('./useTransactionPayData');
 jest.mock('./useTransactionPayAvailableTokens');
 jest.mock('./useWithdrawTokenFilter');
+jest.mock('../../../../UI/Ramp/hooks/useRampsPaymentMethods');
+jest.mock('./useIsFiatPaymentAvailable');
+jest.mock('./useMMPayFiatConfig');
 jest.mock('../../../../../selectors/transactionController', () => ({
   ...jest.requireActual('../../../../../selectors/transactionController'),
   selectLastWithdrawTokenByType: jest.fn(),
@@ -101,6 +110,9 @@ function runHook({
 
 describe('useAutomaticTransactionPayToken', () => {
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
+  const useTransactionPayFiatPaymentMock = jest.mocked(
+    useTransactionPayFiatPayment,
+  );
   const useTransactionPayAvailableTokensMock = jest.mocked(
     useTransactionPayAvailableTokens,
   );
@@ -160,6 +172,25 @@ describe('useAutomaticTransactionPayToken', () => {
     } as never);
 
     useTransactionAccountOverrideMock.mockReturnValue(undefined);
+
+    useTransactionPayFiatPaymentMock.mockReturnValue(undefined);
+
+    jest.mocked(useRampsPaymentMethods).mockReturnValue({
+      paymentMethods: [],
+      selectedPaymentMethod: null,
+      setSelectedPaymentMethod: jest.fn(),
+      isLoading: false,
+      isFetching: false,
+      status: 'success',
+      isSuccess: true,
+      error: null,
+    });
+
+    jest.mocked(useIsFiatPaymentAvailable).mockReturnValue(false);
+    jest.mocked(useMMPayFiatConfig).mockReturnValue({
+      enabledTransactionTypes: [],
+      maxDelayMinutesForPaymentMethods: 10,
+    });
   });
 
   it('selects first token', () => {
@@ -189,7 +220,7 @@ describe('useAutomaticTransactionPayToken', () => {
     });
   });
 
-  it('selects target token if no tokens with balance', () => {
+  it('does not select token when no tokens with balance and fiat unavailable', () => {
     useTransactionPayAvailableTokensMock.mockReturnValue({
       availableTokens: [] as AssetType[],
       hasTokens: false,
@@ -197,10 +228,7 @@ describe('useAutomaticTransactionPayToken', () => {
 
     runHook();
 
-    expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: TOKEN_ADDRESS_1_MOCK,
-      chainId: CHAIN_ID_1_MOCK,
-    });
+    expect(setPayTokenMock).not.toHaveBeenCalled();
   });
 
   it('does nothing if no required tokens', () => {
@@ -387,7 +415,7 @@ describe('useAutomaticTransactionPayToken', () => {
     });
   });
 
-  it('selects target token when preferred payment token provided but no tokens available', () => {
+  it('does not select token when preferred payment token provided but no tokens available and fiat unavailable', () => {
     useTransactionPayAvailableTokensMock.mockReturnValue({
       availableTokens: [] as AssetType[],
       hasTokens: false,
@@ -400,10 +428,7 @@ describe('useAutomaticTransactionPayToken', () => {
       },
     });
 
-    expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: TOKEN_ADDRESS_1_MOCK,
-      chainId: CHAIN_ID_1_MOCK,
-    });
+    expect(setPayTokenMock).not.toHaveBeenCalled();
   });
 
   it('selects first available token when preferred token not in available tokens', () => {
@@ -1083,6 +1108,138 @@ describe('useAutomaticTransactionPayToken', () => {
     expect(setPayTokenMock).not.toHaveBeenCalled();
   });
 
+  it('re-selects pay token when payment override changes to MoneyAccount', () => {
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [
+        {
+          address: TOKEN_ADDRESS_2_MOCK,
+          chainId: CHAIN_ID_2_MOCK,
+        },
+        {
+          address: TOKEN_ADDRESS_1_MOCK,
+          chainId: CHAIN_ID_1_MOCK,
+        },
+      ] as AssetType[],
+      hasTokens: true,
+    });
+
+    const { rerender } = runHook();
+
+    // Initial selection fires
+    expect(setPayTokenMock).toHaveBeenCalledTimes(1);
+    setPayTokenMock.mockClear();
+
+    // Simulate switching to money account
+    jest
+      .mocked(selectPaymentOverrideByTransactionId)
+      .mockReturnValue(PaymentOverride.MoneyAccount);
+
+    rerender(undefined);
+
+    expect(setPayTokenMock).toHaveBeenCalledWith({
+      address: MUSD_TOKEN_ADDRESS,
+      chainId: CHAIN_IDS.MONAD,
+    });
+  });
+
+  it('does not re-select on money override change when disabled', () => {
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [
+        {
+          address: TOKEN_ADDRESS_2_MOCK,
+          chainId: CHAIN_ID_2_MOCK,
+        },
+      ] as AssetType[],
+      hasTokens: true,
+    });
+
+    const { rerender } = runHook({ disable: true });
+
+    expect(setPayTokenMock).not.toHaveBeenCalled();
+
+    jest
+      .mocked(selectPaymentOverrideByTransactionId)
+      .mockReturnValue(PaymentOverride.MoneyAccount);
+
+    rerender(undefined);
+
+    expect(setPayTokenMock).not.toHaveBeenCalled();
+  });
+
+  it('re-selects MUSD on money override change for post-quote transactions', () => {
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [
+        {
+          address: TOKEN_ADDRESS_2_MOCK,
+          chainId: CHAIN_ID_2_MOCK,
+        },
+      ] as AssetType[],
+      hasTokens: true,
+    });
+
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: transactionIdMock,
+      type: TransactionType.batch,
+      nestedTransactions: [{ type: TransactionType.moneyAccountWithdraw }],
+      txParams: { from: '0xdc47789de4ceff0e8fe9d15d728af7f17550c164' },
+    } as never);
+
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: {
+        address: TOKEN_ADDRESS_2_MOCK,
+        chainId: CHAIN_ID_2_MOCK,
+      } as unknown as ReturnType<typeof useTransactionPayToken>['payToken'],
+      setPayToken: setPayTokenMock,
+    });
+
+    const { rerender } = runHook();
+
+    expect(setPayTokenMock).not.toHaveBeenCalled();
+    setPayTokenMock.mockClear();
+
+    jest
+      .mocked(selectPaymentOverrideByTransactionId)
+      .mockReturnValue(PaymentOverride.MoneyAccount);
+
+    rerender(undefined);
+
+    expect(setPayTokenMock).toHaveBeenCalledWith({
+      address: MUSD_TOKEN_ADDRESS,
+      chainId: CHAIN_IDS.MONAD,
+    });
+  });
+
+  it('does not re-select when money override has not changed', () => {
+    jest
+      .mocked(selectPaymentOverrideByTransactionId)
+      .mockReturnValue(PaymentOverride.MoneyAccount);
+
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [
+        {
+          address: TOKEN_ADDRESS_2_MOCK,
+          chainId: CHAIN_ID_2_MOCK,
+        },
+      ] as AssetType[],
+      hasTokens: true,
+    });
+
+    const { rerender } = runHook();
+
+    // Initial selection + money-override detection both fire on first render
+    expect(setPayTokenMock).toHaveBeenCalledTimes(2);
+    expect(setPayTokenMock).toHaveBeenCalledWith({
+      address: MUSD_TOKEN_ADDRESS,
+      chainId: CHAIN_IDS.MONAD,
+    });
+    setPayTokenMock.mockClear();
+
+    // Rerender with same override — money override useEffect should not fire again
+    rerender(undefined);
+
+    expect(setPayTokenMock).not.toHaveBeenCalled();
+  });
+
   it('selects MUSD on MONAD when payment override is MoneyAccount', () => {
     jest
       .mocked(selectPaymentOverrideByTransactionId)
@@ -1110,7 +1267,7 @@ describe('useAutomaticTransactionPayToken', () => {
     });
   });
 
-  it('does not select MUSD on MONAD when payment override is MoneyAccount in post-quote flow', () => {
+  it('selects MUSD on MONAD when payment override is MoneyAccount even in post-quote flow', () => {
     jest
       .mocked(selectPaymentOverrideByTransactionId)
       .mockReturnValue(PaymentOverride.MoneyAccount);
@@ -1138,9 +1295,9 @@ describe('useAutomaticTransactionPayToken', () => {
       },
     });
 
-    // For moneyAccountWithdraw (post-quote), the preferredToken takes priority,
-    // not the MUSD/MONAD override, because postQuoteTransactionType is set
-    expect(setPayTokenMock).not.toHaveBeenCalledWith({
+    // MoneyAccount override takes priority over preferredToken —
+    // getBestToken returns MUSD unconditionally when isMoneyPaymentOverride is true
+    expect(setPayTokenMock).toHaveBeenCalledWith({
       address: MUSD_TOKEN_ADDRESS,
       chainId: CHAIN_IDS.MONAD,
     });

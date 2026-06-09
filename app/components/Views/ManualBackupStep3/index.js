@@ -10,14 +10,12 @@ import { strings } from '../../../../locales/i18n';
 import AndroidBackHandler from '../AndroidBackHandler';
 import Device from '../../../util/device';
 import HintModal from '../../UI/HintModal';
-import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
 import { SEED_PHRASE_HINTS } from '../../../constants/storage';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { ThemeContext, mockTheme } from '../../../util/theme';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { OnboardingSuccessComponent } from '../OnboardingSuccess';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 
 const hardwareBackPress = () => ({});
@@ -50,19 +48,12 @@ class ManualBackupStep3 extends PureComponent {
     saveOnboardingEvent: PropTypes.func,
   };
 
-  updateNavBar = () => {
-    const { navigation } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
-    navigation.setOptions(getTransparentOnboardingNavbarOptions(colors));
-  };
-
   componentWillUnmount = () => {
     this.backHandlerSubscription?.remove?.();
     this.backHandlerSubscription = null;
   };
 
   componentDidMount = async () => {
-    this.updateNavBar();
     const currentSeedphraseHints =
       await StorageWrapper.getItem(SEED_PHRASE_HINTS);
     const parsedHints =
@@ -75,10 +66,6 @@ class ManualBackupStep3 extends PureComponent {
       HARDWARE_BACK_PRESS,
       hardwareBackPress,
     );
-  };
-
-  componentDidUpdate = () => {
-    this.updateNavBar();
   };
 
   toggleHint = () => {
@@ -110,7 +97,7 @@ class ManualBackupStep3 extends PureComponent {
       JSON.stringify({ ...parsedHints, manualBackup: hintText }),
     );
     trackOnboarding(
-      MetricsEventBuilder.createEventBuilder(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.WALLET_SECURITY_RECOVERY_HINT_SAVED,
       ).build(),
       this.props.saveOnboardingEvent,
@@ -152,8 +139,6 @@ class ManualBackupStep3 extends PureComponent {
     );
   }
 }
-
-ManualBackupStep3.contextType = ThemeContext;
 
 const mapDispatchToProps = (dispatch) => ({
   saveOnboardingEvent: (...eventArgs) => dispatch(saveEvent(eventArgs)),

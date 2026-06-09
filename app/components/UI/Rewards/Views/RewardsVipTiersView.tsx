@@ -19,6 +19,7 @@ import ErrorBoundary from '../../../Views/ErrorBoundary';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { useVipDashboard } from '../hooks/useVipDashboard';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
+import ForcedDarkThemeProvider from '../components/ForcedDarkThemeProvider/ForcedDarkThemeProvider';
 import VipTierRow from '../components/Vip/VipTierRow';
 
 export const REWARDS_VIP_TIERS_VIEW_TEST_IDS = {
@@ -28,7 +29,7 @@ export const REWARDS_VIP_TIERS_VIEW_TEST_IDS = {
   ERROR: 'rewards-vip-tiers-error',
 } as const;
 
-const RewardsVipTiersView: React.FC = () => {
+const RewardsVipTiersViewContent: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
@@ -95,7 +96,7 @@ const RewardsVipTiersView: React.FC = () => {
                 testID={REWARDS_VIP_TIERS_VIEW_TEST_IDS.ERROR}
               />
             </Box>
-          ) : (
+          ) : dashboard ? (
             <Box
               twClassName="mx-4 rounded-2xl overflow-hidden bg-section"
               testID={REWARDS_VIP_TIERS_VIEW_TEST_IDS.LIST}
@@ -104,16 +105,23 @@ const RewardsVipTiersView: React.FC = () => {
                 <VipTierRow
                   key={tier.id}
                   tier={tier}
+                  localizedText={dashboard.localizedText}
                   isNext={tier.id === nextTierId}
                   isLast={tier.id === tiers[tiers.length - 1]?.id}
                 />
               ))}
             </Box>
-          )}
+          ) : null}
         </ScrollView>
       </SafeAreaView>
     </ErrorBoundary>
   );
 };
+
+const RewardsVipTiersView: React.FC = () => (
+  <ForcedDarkThemeProvider>
+    <RewardsVipTiersViewContent />
+  </ForcedDarkThemeProvider>
+);
 
 export default RewardsVipTiersView;

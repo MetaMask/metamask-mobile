@@ -6,7 +6,6 @@ export const MAX_ITEMS_PER_SECTION = 3;
 /** Feeds whose result set is fully loaded client-side; count-based "View X more" is exact. */
 export const LOCAL_SEARCH_FEEDS: ReadonlySet<SearchFeedId> = new Set([
   'perps',
-  'stocks',
   'sites',
 ]);
 
