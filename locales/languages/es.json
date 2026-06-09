@@ -2268,8 +2268,7 @@
         "group_i": "Grupo I",
         "group_j": "Grupo J",
         "group_k": "Grupo K",
-        "group_l": "Grupo L",
-        "third_place_match": "Partido por el tercer puesto"
+        "group_l": "Grupo L"
       }
     },
     "prediction_markets": "Mercados de predicción",
@@ -8348,8 +8347,6 @@
     "report_submitted": "Se ha enviado un informe de error."
   },
   "pay_with_modal": {
-    "title": "Seleccionar método de pago",
-    "title_receive": "Seleccionar el token a recibir",
     "no_gas": "No hay saldo nativo para gas",
     "not_supported": "No compatible",
     "crypto": "Cripto"
@@ -8457,6 +8454,7 @@
     "main_title": "Recompensas",
     "vip": {
       "bps_unit": "bps",
+      "badge_label": "VIP Fox {{tier}}",
       "swaps_label": "Canjes",
       "perps_label": "Perps",
       "error_title": "We couldn’t load your VIP dashboard",
@@ -8900,7 +8898,7 @@
       "stats_notional_volume_threshold": "Se requiere ${{amount}}",
       "stats_qualified_title": "Estás calificado",
       "stats_qualified_description": "Sigue operando para mejorar tu P&L (ganancias y pérdidas) y subir en la clasificación antes de que termine la competencia.",
-      "stats_qualify_for_rank_title": "Califica para este rango",
+      "stats_qualify_for_rank_title": "Califica para la clasificación",
       "stats_qualify_for_rank_description": "Opera {{notionalRemaining}} más en volumen nocional para poder participar.",
       "stats_error_title": "No se pueden cargar las estadísticas",
       "stats_error_description": "Hubo un problema al cargar tus estadísticas. Inténtalo de nuevo.",
@@ -8973,7 +8971,7 @@
       "non_winner": {
         "title": "Ya tenemos los resultados 🏅",
         "description": "Consulta tu clasificación en {{campaignName}}.",
-        "cta": "Ver"
+        "cta": "Ver detalles"
       }
     }
   },

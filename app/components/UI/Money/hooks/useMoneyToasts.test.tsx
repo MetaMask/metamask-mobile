@@ -121,6 +121,24 @@ describe('useMoneyToasts', () => {
       expect(toast.labelOptions).toHaveLength(3);
     });
 
+    it('inProgress title is "Converting crypto" when intent is convert (default)', () => {
+      const { result } = renderHook(() => useMoneyToasts(), { wrapper });
+
+      const toast = result.current.MoneyToastOptions.deposit.inProgress();
+
+      expect(toast.labelOptions?.[0].label).toBe('Converting crypto');
+    });
+
+    it('inProgress title is "Adding funds" when intent is addMusd', () => {
+      const { result } = renderHook(() => useMoneyToasts(), { wrapper });
+
+      const toast = result.current.MoneyToastOptions.deposit.inProgress({
+        intent: 'addMusd',
+      });
+
+      expect(toast.labelOptions?.[0].label).toBe('Adding funds');
+    });
+
     it('success has Confirmation icon, Success haptics and includes amount in body', () => {
       const { result } = renderHook(() => useMoneyToasts(), { wrapper });
 
@@ -136,6 +154,27 @@ describe('useMoneyToasts', () => {
       expect(toast.labelOptions?.[0].label).toEqual(expect.any(String));
     });
 
+    it('success title is "Conversion complete" when intent is convert (default)', () => {
+      const { result } = renderHook(() => useMoneyToasts(), { wrapper });
+
+      const toast = result.current.MoneyToastOptions.deposit.success({
+        amountFiat: '$25.00',
+      });
+
+      expect(toast.labelOptions?.[0].label).toBe('Conversion complete');
+    });
+
+    it('success title is "Funds added" when intent is addMusd', () => {
+      const { result } = renderHook(() => useMoneyToasts(), { wrapper });
+
+      const toast = result.current.MoneyToastOptions.deposit.success({
+        amountFiat: '$25.00',
+        intent: 'addMusd',
+      });
+
+      expect(toast.labelOptions?.[0].label).toBe('Funds added');
+    });
+
     it('failed has CircleX icon, Error haptics and a descriptive body', () => {
       const { result } = renderHook(() => useMoneyToasts(), { wrapper });
 
@@ -147,6 +186,32 @@ describe('useMoneyToasts', () => {
       expect(toast.hapticsType).toBe(NotificationMoment.Error);
       expect(toast.labelOptions).toHaveLength(3);
       expect(toast.labelOptions?.[0].label).toEqual(expect.any(String));
+    });
+
+    it('failed title/body is "Conversion failed" / "Unable to convert. Try again." for convert (default)', () => {
+      const { result } = renderHook(() => useMoneyToasts(), { wrapper });
+
+      const toast = result.current.MoneyToastOptions.deposit.failed();
+
+      expect(toast.labelOptions?.[0].label).toBe('Conversion failed');
+      const secondary = toast.labelOptions?.[2].label as React.ReactElement<{
+        children?: React.ReactNode;
+      }>;
+      expect(secondary.props.children).toBe('Unable to convert. Try again.');
+    });
+
+    it('failed title/body is "Failed to add funds" / "Unable to add funds. Try again." for addMusd', () => {
+      const { result } = renderHook(() => useMoneyToasts(), { wrapper });
+
+      const toast = result.current.MoneyToastOptions.deposit.failed({
+        intent: 'addMusd',
+      });
+
+      expect(toast.labelOptions?.[0].label).toBe('Failed to add funds');
+      const secondary = toast.labelOptions?.[2].label as React.ReactElement<{
+        children?: React.ReactNode;
+      }>;
+      expect(secondary.props.children).toBe('Unable to add funds. Try again.');
     });
   });
 
@@ -162,28 +227,62 @@ describe('useMoneyToasts', () => {
       expect(toast.hasNoTimeout).toBe(true);
     });
 
-    it('success includes both amount and destination in body', () => {
+    it('inProgress title/body is "Transfer in progress" / "This may take a few minutes."', () => {
+      const { result } = renderHook(() => useMoneyToasts(), { wrapper });
+
+      const toast = result.current.MoneyToastOptions.withdraw.inProgress();
+
+      expect(toast.labelOptions?.[0].label).toBe('Transfer in progress');
+      const secondary = toast.labelOptions?.[2].label as React.ReactElement<{
+        children?: React.ReactNode;
+      }>;
+      expect(secondary.props.children).toBe('This may take a few minutes.');
+    });
+
+    it('success title/body interpolates the destination account name', () => {
       const { result } = renderHook(() => useMoneyToasts(), { wrapper });
 
       const toast = result.current.MoneyToastOptions.withdraw.success({
         amountFiat: '$50.00',
-        destination: 'Between accounts',
+        destination: 'Account 1',
       });
 
       expect(toast.iconName).toBe(IconName.Confirmation);
       expect(toast.hapticsType).toBe(NotificationMoment.Success);
-      expect(toast.labelOptions).toHaveLength(3);
+      expect(toast.labelOptions?.[0].label).toBe('Transfer complete');
+      const secondary = toast.labelOptions?.[2].label as React.ReactElement<{
+        children?: React.ReactNode;
+      }>;
+      expect(secondary.props.children).toBe('$50.00 added to Account 1.');
     });
 
-    it('failed surfaces an error toast with the withdraw-specific body', () => {
+    it('success body falls back to "Added to {{destination}}." when amount is missing', () => {
+      const { result } = renderHook(() => useMoneyToasts(), { wrapper });
+
+      const toast = result.current.MoneyToastOptions.withdraw.success({
+        destination: 'My main wallet',
+      });
+
+      const secondary = toast.labelOptions?.[2].label as React.ReactElement<{
+        children?: React.ReactNode;
+      }>;
+      expect(secondary.props.children).toBe('Added to My main wallet.');
+    });
+
+    it('failed title/body is "Transfer failed" / "Unable to transfer funds. Try again."', () => {
       const { result } = renderHook(() => useMoneyToasts(), { wrapper });
 
       const toast = result.current.MoneyToastOptions.withdraw.failed();
 
       expect(toast.iconName).toBe(IconName.CircleX);
       expect(toast.hapticsType).toBe(NotificationMoment.Error);
-      expect(toast.labelOptions).toHaveLength(3);
-      expect(toast.labelOptions?.[0].label).toEqual(expect.any(String));
+      expect(toast.labelOptions?.[0].label).toBe('Transfer failed');
+      const secondary = toast.labelOptions?.[2].label as React.ReactElement<{
+        children?: React.ReactNode;
+      }>;
+      expect(secondary.props.children).toBe(
+        'Unable to transfer funds. Try again.',
+      );
     });
   });
 
@@ -195,7 +294,7 @@ describe('useMoneyToasts', () => {
       ['withdraw.inProgress', () => ({}), 'inProgress'],
       [
         'withdraw.success',
-        () => ({ amountFiat: '$1.00', destination: 'Between accounts' }),
+        () => ({ amountFiat: '$1.00', destination: 'Account 1' }),
         'success',
       ],
       ['withdraw.failed', () => ({}), 'failed'],

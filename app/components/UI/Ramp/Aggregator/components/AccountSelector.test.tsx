@@ -19,6 +19,7 @@ jest.mock('../../../../../reducers/fiatOrders', () => ({
     { chainId: '1', name: 'Ethereum' },
     { chainId: '137', name: 'Polygon' },
   ]),
+  getDetectedGeolocation: jest.fn(() => null),
 }));
 
 const mockNavigate = jest.fn();

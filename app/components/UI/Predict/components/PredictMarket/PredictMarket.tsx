@@ -1,4 +1,5 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 import { PredictMarket as PredictMarketType } from '../../types';
 import { PredictEntryPoint } from '../../types/navigation';
 import { useResolvedPredictEntryPoint } from '../../hooks/useResolvedPredictEntryPoint';
@@ -8,6 +9,7 @@ import PredictMarketMultiple from '../PredictMarketMultiple';
 import PredictMarketSportCard from '../PredictMarketSportCard';
 import PredictCryptoUpDownMarketCard from '../PredictCryptoUpDownMarketCard';
 import { isCryptoUpDown } from '../../utils/cryptoUpDown';
+import { selectPredictUpDownEnabledFlag } from '../../selectors/featureFlags';
 
 interface PredictMarketProps {
   market: PredictMarketType;
@@ -18,6 +20,10 @@ interface PredictMarketProps {
   onCardPress?: () => void;
   /** Called when the user taps a buy button (before betslip opens). */
   onBuyButtonPress?: (marketId: string) => void;
+  /** Active feed tab key forwarded to trade analytics (e.g. "trending", "world-cup"). */
+  predictFeedTab?: string;
+  /** Screen context forwarded to trade analytics (e.g. "world_cup"). */
+  predictScreen?: string;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
@@ -28,9 +34,13 @@ const PredictMarket: React.FC<PredictMarketProps> = ({
   isCarousel = false,
   onCardPress,
   onBuyButtonPress,
+  predictFeedTab,
+  predictScreen,
   transactionActiveAbTests,
 }) => {
   const entryPoint = useResolvedPredictEntryPoint(propEntryPoint);
+  const upDownEnabled = useSelector(selectPredictUpDownEnabledFlag);
+
   if (market.game) {
     return (
       <PredictMarketSportCard
@@ -40,12 +50,14 @@ const PredictMarket: React.FC<PredictMarketProps> = ({
         isCarousel={isCarousel}
         onCardPress={onCardPress}
         onBuyButtonPress={onBuyButtonPress}
+        predictFeedTab={predictFeedTab}
+        predictScreen={predictScreen}
         transactionActiveAbTests={transactionActiveAbTests}
       />
     );
   }
 
-  if (isCryptoUpDown(market)) {
+  if (upDownEnabled && isCryptoUpDown(market)) {
     return (
       <PredictCryptoUpDownMarketCard
         market={market}
@@ -54,6 +66,8 @@ const PredictMarket: React.FC<PredictMarketProps> = ({
         isCarousel={isCarousel}
         onCardPress={onCardPress}
         onBuyButtonPress={onBuyButtonPress}
+        predictFeedTab={predictFeedTab}
+        predictScreen={predictScreen}
         transactionActiveAbTests={transactionActiveAbTests}
       />
     );
@@ -68,6 +82,8 @@ const PredictMarket: React.FC<PredictMarketProps> = ({
         isCarousel={isCarousel}
         onCardPress={onCardPress}
         onBuyButtonPress={onBuyButtonPress}
+        predictFeedTab={predictFeedTab}
+        predictScreen={predictScreen}
         transactionActiveAbTests={transactionActiveAbTests}
       />
     );
@@ -81,6 +97,8 @@ const PredictMarket: React.FC<PredictMarketProps> = ({
       isCarousel={isCarousel}
       onCardPress={onCardPress}
       onBuyButtonPress={onBuyButtonPress}
+      predictFeedTab={predictFeedTab}
+      predictScreen={predictScreen}
       transactionActiveAbTests={transactionActiveAbTests}
     />
   );

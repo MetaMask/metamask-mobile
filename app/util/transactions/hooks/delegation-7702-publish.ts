@@ -43,6 +43,7 @@ import { NetworkClientId } from '@metamask/network-controller';
 import { isE2ETest } from '../util';
 import {
   getClientForTransactionMetadata,
+  getClientVersionForTransactionMetadata,
   sanitizeOrigin,
 } from '../../../constants/smartTransactions';
 
@@ -206,6 +207,7 @@ export class Delegation7702PublishHook {
       metadata: {
         txType: transactionMeta.type,
         client: getClientForTransactionMetadata(),
+        clientVersion: getClientVersionForTransactionMetadata(),
         origin: sanitizeOrigin(transactionMeta.origin),
       },
     };

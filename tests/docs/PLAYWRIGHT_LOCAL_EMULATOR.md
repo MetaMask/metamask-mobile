@@ -35,6 +35,27 @@ We keep Appium’s reset flags **mild** in [`EmulatorConfigBuilder`](../framewor
 
 For Android, the adb serial is resolved from `use.device.name` (AVD name) or `use.device.udid` — see [`resolveAndroidAdbUdid`](../framework/services/providers/emulator/android/resolveAndroidAdbUdid.ts) and the `EmulatorConfig` JSDoc in [`types.ts`](../framework/types.ts).
 
+## iOS device targeting
+
+For iOS, using the DeviceName as `iPhone 16 Pro` can become problematic if different XCode versions are installed locally so the device UDID can be used along with the device name.
+
+Example:
+
+```
+use: {
+    platform: Platform.IOS,
+    device: {
+        provider: ProviderName.SIMULATOR,
+        osVersion: '26.2',
+        name: 'iPhone 16 Pro',
+        udid: '<DEVICE_UDID>'
+    }
+}
+```
+
+Get available Simulators:
+`$ xcrun simctl list devices available`
+
 ## Related code
 
 - [`reinstallLocalBuildFromPath`](../framework/services/providers/emulator/reinstallLocalBuildFromPath.ts) — `adb` / `simctl` install helpers.

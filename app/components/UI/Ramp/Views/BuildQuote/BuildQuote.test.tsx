@@ -306,7 +306,7 @@ describe('createBuildQuoteNavDetails', () => {
   it('returns token selection route with amount input screen', () => {
     const result = createBuildQuoteNavDetails();
     expect(result[0]).toBe(Routes.RAMP.TOKEN_SELECTION);
-    expect(result[1].screen).toBe(Routes.RAMP.TOKEN_SELECTION);
+    expect(result[1].screen).toBe(Routes.RAMP.TOKEN_SELECTION_ROOT);
     expect(result[1].params.screen).toBe(Routes.RAMP.AMOUNT_INPUT);
     expect(result[1].params.params).toBeUndefined();
   });

@@ -123,7 +123,6 @@ export class BackgroundBridge extends EventEmitter {
     isWalletConnect,
     wcRequestActions,
     getApprovedHosts,
-    remoteConnHost,
     isMMSDK,
     sdkVersion = 'v1',
     channelId,
@@ -132,7 +131,6 @@ export class BackgroundBridge extends EventEmitter {
     this.url = url;
     this.origin = new URL(url).origin;
     // TODO - When WalletConnect and MMSDK uses the Permission System, URL does not apply in all conditions anymore since hosts may not originate from web. This will need to change!
-    this.remoteConnHost = remoteConnHost;
     this.isMainFrame = isMainFrame;
     this.isWalletConnect = isWalletConnect;
     this.isMMSDK = isMMSDK;
@@ -435,8 +433,8 @@ export class BackgroundBridge extends EventEmitter {
       this.networkVersionSent = publicState.networkVersion;
       await this.notifyChainChanged(publicState);
     }
-    // ONLY NEEDED FOR WC FOR NOW, THE BROWSER HANDLES THIS NOTIFICATION BY ITSELF
-    if (this.isWalletConnect || this.isRemoteConn) {
+    // WalletConnect now relies exclusively on AccountTreeController:selectedAccountGroupChange.
+    if (this.isRemoteConn) {
       const accountControllerSelectedAddress = toFormattedAddress(
         Engine.context.AccountsController.getSelectedAccount().address,
       );

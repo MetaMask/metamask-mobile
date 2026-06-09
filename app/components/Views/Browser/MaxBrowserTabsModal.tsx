@@ -10,13 +10,13 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../locales/i18n';
-import Text from '../../../component-library/components/Texts/Text';
 import styleSheet from './MaxBrowserTabsModal.styles';
 import { useStyles } from '../../../component-library/hooks';
 import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
+import { Text } from '@metamask/design-system-react-native';
 
 const MaxBrowserTabsModal = () => {
   const {

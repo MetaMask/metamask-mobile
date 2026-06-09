@@ -2,6 +2,7 @@ import { createApiPlatformClient } from '@metamask/core-backend';
 import { getVersion } from 'react-native-device-info';
 import {
   AssetsController,
+  AssetsControllerMessenger,
   type AssetsControllerOptions,
 } from '@metamask/assets-controller';
 import {
@@ -10,14 +11,11 @@ import {
   ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
 } from '../../../../selectors/featureFlagController/assetsUnifyState';
 import type { MessengerClientInitFunction } from '../../types';
-import {
-  type AssetsControllerMessenger,
-  type AssetsControllerInitMessenger,
-} from '../../messengers/assets-controller';
+import { type AssetsControllerInitMessenger } from '../../messengers/assets-controller';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import { selectCompletedOnboarding } from '../../../../selectors/onboarding';
 import { store } from '../../../../store';
-import { trace } from '../../../../util/trace';
+import { selectIsUnlocked } from '../../../../selectors/keyringController';
 
 type QueryApiClient = AssetsControllerOptions['queryApiClient'];
 
@@ -108,6 +106,9 @@ export const assetsControllerInit: MessengerClientInitFunction<
    */
   const isEnabled = (): boolean => {
     try {
+      if (!selectIsUnlocked(store.getState())) {
+        return false;
+      }
       const remoteFeatureFlagState = initMessenger.call(
         'RemoteFeatureFlagController:getState',
       );
@@ -148,8 +149,6 @@ export const assetsControllerInit: MessengerClientInitFunction<
       pollInterval: 30_000,
       enabled: true,
     },
-    // @ts-expect-error: Type of `TraceRequest` is different.
-    trace,
     isOnboarded: () => selectCompletedOnboarding(store.getState()),
   });
 

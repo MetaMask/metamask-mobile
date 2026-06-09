@@ -58,7 +58,6 @@ import {
   PredictNavigationParamList,
 } from '../../types/navigation';
 import Routes from '../../../../../constants/navigation/Routes';
-import { isPayWithBottomSheetEnabled } from '../../../../Views/confirmations/utils/transaction-pay';
 import { parseAnalyticsProperties } from '../../utils/analytics';
 import { formatPrice } from '../../utils/format';
 import { usePredictBuyError } from './hooks/usePredictBuyError';
@@ -130,6 +129,8 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     outcome,
     outcomeToken,
     entryPoint,
+    predictFeedTab,
+    predictScreen,
     transactionActiveAbTests,
   } = isSheetMode ? props : route.params;
   const onClose = isSheetMode ? props.onClose : undefined;
@@ -145,8 +146,15 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
   const fakOrdersEnabled = useSelector(selectPredictFakOrdersEnabledFlag);
 
   const analyticsProperties = useMemo(
-    () => parseAnalyticsProperties(market, outcomeToken, entryPoint),
-    [market, outcomeToken, entryPoint],
+    () =>
+      parseAnalyticsProperties(
+        market,
+        outcomeToken,
+        entryPoint,
+        predictFeedTab,
+        predictScreen,
+      ),
+    [market, outcomeToken, entryPoint, predictFeedTab, predictScreen],
   );
 
   const { availableBalance, isBalanceLoading } =
@@ -275,10 +283,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
 
   const handleChangePaymentMethod = useCallback(() => {
     lockPaymentSelectorNavigation();
-    const navigateTo = isPayWithBottomSheetEnabled()
-      ? Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET
-      : Routes.CONFIRMATION_PAY_WITH_MODAL;
-    navigation.navigate(navigateTo);
+    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET);
   }, [lockPaymentSelectorNavigation, navigation]);
 
   const handleAddFunds = useCallback(() => {

@@ -64,9 +64,7 @@ jest.mock('../../token-icon/', () => ({
   TokenIcon: (props: TokenIconProps) => (
     <>
       <MockText>{`${props.address} ${props.chainId}`}</MockText>
-      <MockText testID="token-icon-symbol">
-        {`icon-symbol:${props.symbol ?? ''}`}
-      </MockText>
+      <MockText testID="token-icon-symbol">{`icon-symbol:${props.symbol ?? ''}`}</MockText>
     </>
   ),
   TokenIconVariant: { Default: 'default', Row: 'row', Hero: 'hero' },
@@ -157,7 +155,8 @@ describe('PayWithRow', () => {
     });
 
     expect(navigateMock).toHaveBeenCalledWith(
-      Routes.CONFIRMATION_PAY_WITH_MODAL,
+      Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET,
+      expect.any(Object),
     );
   });
 
@@ -279,7 +278,7 @@ describe('PayWithRow', () => {
       expect(getByText('Credit Card')).toBeDefined();
     });
 
-    it('navigates to modal when fiat payment method row is pressed', async () => {
+    it('navigates to bottom sheet when fiat payment method row is pressed', async () => {
       jest
         .mocked(useTransactionPaySelectedFiatPaymentMethod)
         .mockReturnValue(FIAT_PAYMENT_METHOD_MOCK);
@@ -291,7 +290,8 @@ describe('PayWithRow', () => {
       });
 
       expect(navigateMock).toHaveBeenCalledWith(
-        Routes.CONFIRMATION_PAY_WITH_MODAL,
+        Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET,
+        expect.any(Object),
       );
     });
   });
@@ -313,8 +313,8 @@ describe('PayWithRow', () => {
       },
     });
 
-    function renderMoneyAccount() {
-      return renderWithProvider(<PayWithRow />, {
+    function renderMoneyAccount(props?: { isResultReady?: boolean }) {
+      return renderWithProvider(<PayWithRow {...props} />, {
         state: MONEY_ACCOUNT_STATE,
       });
     }
@@ -325,29 +325,10 @@ describe('PayWithRow', () => {
       } as never);
     });
 
-    it('renders money account label with balance', () => {
-      jest.mocked(useMoneyAccountBalance).mockReturnValue({
-        totalFiatFormatted: '$500.00',
-      } as ReturnType<typeof useMoneyAccountBalance>);
-
-      const { getByTestId } = renderMoneyAccount();
-
-      expect(getByTestId('pay-with-symbol').props.children).toContain(
-        'Money account',
-      );
-      expect(getByTestId('pay-with-balance')).toBeDefined();
-    });
-
-    it('renders money account label without balance when totalFiatFormatted is undefined', () => {
-      jest.mocked(useMoneyAccountBalance).mockReturnValue({
-        totalFiatFormatted: undefined,
-      } as ReturnType<typeof useMoneyAccountBalance>);
-
+    it('renders money balance label without inline balance', () => {
       const { getByTestId, queryByTestId } = renderMoneyAccount();
 
-      expect(getByTestId('pay-with-symbol').props.children).toContain(
-        'Money account',
-      );
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money balance');
       expect(queryByTestId('pay-with-balance')).toBeNull();
     });
 
@@ -363,10 +344,6 @@ describe('PayWithRow', () => {
     });
 
     it('navigates to pay-with modal on press', async () => {
-      jest.mocked(useMoneyAccountBalance).mockReturnValue({
-        totalFiatFormatted: '$500.00',
-      } as ReturnType<typeof useMoneyAccountBalance>);
-
       const { getByTestId } = renderMoneyAccount();
 
       await act(() => {
@@ -374,6 +351,46 @@ describe('PayWithRow', () => {
       });
 
       expect(navigateMock).toHaveBeenCalled();
+    });
+
+    it('renders money account row regardless of isResultReady when paymentOverride is MoneyAccount', () => {
+      const { getByTestId } = renderMoneyAccount({ isResultReady: true });
+
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money balance');
+    });
+  });
+
+  describe('isResultReady prop', () => {
+    beforeEach(() => {
+      useParamsMock.mockReturnValue({
+        payWithOption: 'money_account',
+      });
+    });
+
+    it('renders money account row when isResultReady is not set and initialPayWithOption is MoneyAccount', () => {
+      const { getByTestId } = renderWithProvider(<PayWithRow />, {
+        state: STATE_MOCK,
+      });
+
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money balance');
+    });
+
+    it('renders interactive row when isResultReady is true and initialPayWithOption is MoneyAccount', () => {
+      const { getByTestId } = renderWithProvider(<PayWithRow isResultReady />, {
+        state: STATE_MOCK,
+      });
+
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent(/^test/);
+    });
+
+    it('renders interactive row when isResultReady is true and no paymentOverride', () => {
+      useParamsMock.mockReturnValue({});
+
+      const { getByTestId } = renderWithProvider(<PayWithRow isResultReady />, {
+        state: STATE_MOCK,
+      });
+
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent(/^test/);
     });
   });
 });

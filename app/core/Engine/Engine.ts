@@ -36,11 +36,15 @@ import {
   SubjectMetadataController,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/permission-controller';
-import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
+import {
+  QrKeyring,
+  QrKeyringDeferredPromiseBridge,
+} from '@metamask/eth-qr-keyring';
 import { isTestNet } from '../../util/networks';
 import { deprecatedGetNetworkId } from '../../util/networks/engineNetworkUtils';
 import AppConstants from '../AppConstants';
 import { store } from '../../store';
+import { selectIsAssetsUnifyStateEnabled } from '../../selectors/featureFlagController/assetsUnifyState';
 import {
   renderFromTokenMinimalUnit,
   balanceToFiatNumber,
@@ -49,6 +53,10 @@ import {
   hexToBN,
   renderFromWei,
 } from '../../util/number';
+import {
+  buildAssetsBalanceUpdateFromPush,
+  type BalanceUpdatedPushPayload,
+} from './utils/buildAssetsBalanceUpdateFromPush';
 import NotificationManager from '../NotificationManager';
 import Logger from '../../util/Logger';
 import { isZero } from '../../util/lodash';
@@ -94,7 +102,6 @@ import { multichainAssetsControllerInit } from './controllers/multichain-assets-
 import { multichainAssetsRatesControllerInit } from './controllers/multichain-assets-rates-controller/multichain-assets-rates-controller-init';
 import { multichainTransactionsControllerInit } from './controllers/multichain-transactions-controller/multichain-transactions-controller-init';
 import { multichainAccountServiceInit } from './controllers/multichain-account-service/multichain-account-service-init';
-import { snapKeyringBuilderInit } from './controllers/snap-keyring/snap-keyring-builder-init';
 import { SnapKeyring } from '@metamask/eth-snap-keyring';
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -156,7 +163,6 @@ import { subjectMetadataControllerInit } from './controllers/subject-metadata-co
 ///: END:ONLY_INCLUDE_IF
 import { PreferencesController } from '@metamask/preferences-controller';
 import { preferencesControllerInit } from './controllers/preferences-controller-init';
-import { keyringControllerInit } from './controllers/keyring-controller/keyring-controller-init';
 import { networkControllerInit } from './controllers/network-controller-init';
 import { TransactionPayControllerInit } from './controllers/transaction-pay-controller';
 import { tokenSearchDiscoveryDataControllerInit } from './controllers/token-search-discovery-data-controller-init';
@@ -178,7 +184,6 @@ import { geolocationApiServiceInit } from './controllers/geolocation-api-service
 import { geolocationControllerInit } from './controllers/geolocation-controller';
 import { rewardsDataServiceInit } from './controllers/rewards-data-service-init';
 import { remoteFeatureFlagControllerInit } from './controllers/remote-feature-flag-controller-init';
-import { storageServiceInit } from './controllers/storage-service/storage-service-init';
 import { loggingControllerInit } from './controllers/logging-controller-init';
 import { phishingControllerInit } from './controllers/phishing-controller-init';
 import { addressBookControllerInit } from './controllers/address-book-controller-init';
@@ -200,6 +205,9 @@ import { complianceServiceInit } from './controllers/compliance/compliance-servi
 import { complianceControllerInit } from './controllers/compliance/compliance-controller-init';
 import { chompApiServiceInit } from './controllers/chomp-api-service-init';
 import { moneyAccountUpgradeControllerInit } from './controllers/money-account-upgrade-controller-init';
+import { initializeWallet } from './wallet-init/initialization';
+import { qrKeyringBridge } from './wallet-init/keyrings';
+import { Wallet } from '@metamask/wallet';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -259,18 +267,6 @@ export class Engine {
   transactionController: TransactionController;
   preferencesController: PreferencesController;
 
-  readonly qrKeyringScanner = new QrKeyringDeferredPromiseBridge({
-    onScanRequested: (request) => {
-      store.dispatch(scanRequested(request));
-    },
-    onScanResolved: () => {
-      store.dispatch(scanCompleted());
-    },
-    onScanRejected: () => {
-      store.dispatch(scanCompleted());
-    },
-  });
-
   permissionController: PermissionController<
     PermissionSpecificationConstraint,
     CaveatSpecificationConstraint
@@ -282,18 +278,29 @@ export class Engine {
    */
   private tokenListService: TokenListService;
 
+  #wallet: Wallet;
+
   /**
    * Creates a CoreController instance
    */
   constructor(
     analyticsId: string,
     initialState: Partial<EngineState> = {},
-    initialKeyringState?: KeyringControllerState | null,
+    initialKeyringState?: KeyringControllerState,
   ) {
-    const keyringState = initialKeyringState ?? null;
-    logEngineCreation(initialState, keyringState);
+    logEngineCreation(initialState, initialKeyringState);
 
     this.controllerMessenger = getRootExtendedMessenger();
+
+    const mergedInitialState = {
+      ...initialState,
+      KeyringController: initialKeyringState ?? initialState.KeyringController,
+    };
+
+    this.#wallet = initializeWallet({
+      messenger: this.controllerMessenger,
+      state: mergedInitialState,
+    });
 
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
     const tokenListService = new TokenListService();
@@ -306,23 +313,17 @@ export class Engine {
       removeAccount: this.removeAccount.bind(this),
       ///: END:ONLY_INCLUDE_IF
       analyticsId,
-      initialKeyringState: keyringState,
-      qrKeyringScanner: this.qrKeyringScanner,
       codefiTokenApiV2,
       tokenListService,
     };
     const { messengerClientsByName } = initMessengerClients({
+      wallet: this.#wallet,
       initFunctions: {
-        StorageService: storageServiceInit,
         LoggingController: loggingControllerInit,
         PreferencesController: preferencesControllerInit,
         RemoteFeatureFlagController: remoteFeatureFlagControllerInit,
         NetworkController: networkControllerInit,
         AccountsController: accountsControllerInit,
-        ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-        SnapKeyringBuilder: snapKeyringBuilderInit,
-        ///: END:ONLY_INCLUDE_IF
-        KeyringController: keyringControllerInit,
         PermissionController: permissionControllerInit,
         ///: BEGIN:ONLY_INCLUDE_IF(snaps)
         SubjectMetadataController: subjectMetadataControllerInit,
@@ -479,7 +480,7 @@ export class Engine {
     this.smartTransactionsController = smartTransactionsController;
     this.permissionController = messengerClientsByName.PermissionController;
     this.preferencesController = preferencesController;
-    this.keyringController = messengerClientsByName.KeyringController;
+    this.keyringController = this.#wallet.getInstance('KeyringController');
 
     const multichainNetworkController =
       messengerClientsByName.MultichainNetworkController;
@@ -763,6 +764,57 @@ export class Engine {
         } catch (error) {
           console.error(
             'Error handling BridgeStatusController:destinationTransactionCompleted event:',
+            error,
+          );
+        }
+      },
+    );
+
+    // Forward real-time websocket balance pushes into the AssetsController.
+    // When `assetsUnifyState` is enabled the UI reads balances from
+    // `AssetsController.assetsBalance`. Both `AccountActivityService` and the
+    // controller's internal `BackendWebsocketDataSource` open a separate
+    // websocket subscription to the same account-activity channel, but the
+    // backend routes each notification to a single subscriptionId, so the data
+    // source's subscription is starved and `assetsBalance` is not refreshed
+    // until the 30s poll. `AccountActivityService` reliably receives the push,
+    // so we bridge it into the controller's own public merge entrypoint.
+    this.controllerMessenger.subscribe(
+      'AccountActivityService:balanceUpdated',
+      (payload: BalanceUpdatedPushPayload) => {
+        try {
+          if (!selectIsAssetsUnifyStateEnabled(store.getState())) {
+            return;
+          }
+          const account = this.context.AccountsController.getAccountByAddress(
+            payload.address,
+          );
+          const accountId = account?.id;
+          if (!accountId) {
+            return;
+          }
+
+          const response = buildAssetsBalanceUpdateFromPush(payload, accountId);
+          if (!response) {
+            return;
+          }
+
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
+          Promise.resolve(
+            (
+              this.context.AssetsController as unknown as {
+                handleAssetsUpdate: (
+                  response: unknown,
+                  sourceId: string,
+                ) => Promise<void>;
+              }
+            ).handleAssetsUpdate(response, 'BackendWebsocketDataSource'),
+          ).catch(() => {
+            // Best-effort real-time refresh; the periodic poll remains a fallback.
+          });
+        } catch (error) {
+          console.error(
+            'Error forwarding AccountActivityService:balanceUpdated to AssetsController:',
             error,
           );
         }
@@ -1545,7 +1597,7 @@ export default {
   init(
     analyticsId: string,
     state: Partial<EngineState> | undefined = {},
-    keyringState?: KeyringControllerState | null,
+    keyringState?: KeyringControllerState,
   ) {
     instance = Engine.instance || new Engine(analyticsId, state, keyringState);
     Object.freeze(instance);
@@ -1577,10 +1629,8 @@ export default {
     instance.setAccountLabel(address, label);
   },
 
-  getQrKeyringScanner: () => {
-    assertEngineExists(instance);
-    return instance.qrKeyringScanner;
-  },
+  // TODO: Use the KeyringController to find the appropriate QR keyring bridge instead of using a global.
+  getQrKeyringScanner: () => qrKeyringBridge,
 
   lookupEnabledNetworks: () => {
     assertEngineExists(instance);
