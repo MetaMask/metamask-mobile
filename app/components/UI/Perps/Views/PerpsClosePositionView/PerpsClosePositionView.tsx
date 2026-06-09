@@ -18,6 +18,9 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  Text,
+  TextVariant,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import Icon, {
   IconColor,
@@ -28,10 +31,6 @@ import ListItem from '../../../../../component-library/components/List/ListItem'
 import ListItemColumn, {
   WidthType,
 } from '../../../../../component-library/components/List/ListItemColumn';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
 import Keypad from '../../../../Base/Keypad';
 import {
@@ -610,7 +609,7 @@ const PerpsClosePositionView: React.FC = () => {
 
         {/* Toggle Button for USD/Token Display */}
         <View style={styles.toggleContainer}>
-          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
             {`${formatPositionSize(closeAmount, marketData?.szDecimals)} ${getPerpsDisplaySymbol(position.symbol)}`}
           </Text>
         </View>
@@ -639,8 +638,9 @@ const PerpsClosePositionView: React.FC = () => {
                   <ListItemColumn widthType={WidthType.Fill}>
                     <View style={styles.detailLeft}>
                       <Text
-                        variant={TextVariant.BodyLGMedium}
-                        color={TextColor.Alternative}
+                        variant={TextVariant.BodyLg}
+                        fontWeight="medium"
+                        color={TextColor.TextAlternative}
                       >
                         {strings('perps.order.limit_price')}
                       </Text>
@@ -648,8 +648,9 @@ const PerpsClosePositionView: React.FC = () => {
                   </ListItemColumn>
                   <ListItemColumn widthType={WidthType.Auto}>
                     <Text
-                      variant={TextVariant.BodyLGMedium}
-                      color={TextColor.Default}
+                      variant={TextVariant.BodyLg}
+                      fontWeight="medium"
+                      color={TextColor.TextDefault}
                     >
                       {limitPrice
                         ? `${formatPerpsFiat(limitPrice, {
@@ -677,7 +678,10 @@ const PerpsClosePositionView: React.FC = () => {
                   size={IconSize.Sm}
                   color={IconColor.Error}
                 />
-                <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.ErrorDefault}
+                >
                   {error}
                 </Text>
               </View>

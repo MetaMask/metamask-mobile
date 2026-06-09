@@ -1,14 +1,15 @@
 import React, { useMemo, useCallback, useRef, useEffect } from 'react';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 import { View, TouchableOpacity } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
 import Icon, {
   IconName,
   IconSize,
@@ -86,7 +87,7 @@ const PerpsAdjustMarginActionSheet: React.FC<
       testID={testID}
     >
       <BottomSheetHeader onClose={onClose}>
-        <Text variant={TextVariant.HeadingMD}>
+        <Text variant={TextVariant.HeadingSm}>
           {strings('perps.adjust_margin.title')}
         </Text>
       </BottomSheetHeader>
@@ -105,10 +106,12 @@ const PerpsAdjustMarginActionSheet: React.FC<
                 color={IconColor.Default}
               />
               <View style={styles.actionContent}>
-                <Text variant={TextVariant.BodyMDBold}>{option.label}</Text>
+                <Text variant={TextVariant.BodyMd} fontWeight="bold">
+                  {option.label}
+                </Text>
                 <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
                 >
                   {option.description}
                 </Text>

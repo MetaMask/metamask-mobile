@@ -3,14 +3,13 @@ import { View, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useStyles } from '../../../../../component-library/hooks';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
 import {
   Button,
   ButtonVariant,
   ButtonSize,
+  Text,
+  TextVariant,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import ButtonIcon, {
   ButtonIconSizes,
@@ -239,7 +238,7 @@ const PerpsOrderDetailsView: React.FC = () => {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Error}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.ErrorDefault}>
             {strings('perps.errors.order_not_found')}
           </Text>
         </View>
@@ -334,7 +333,7 @@ const PerpsOrderDetailsView: React.FC = () => {
           />
         </View>
         <View style={styles.headerTitleContainer}>
-          <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
+          <Text variant={TextVariant.HeadingSm} color={TextColor.TextDefault}>
             {orderDetails.orderTypeLabel}
           </Text>
         </View>
@@ -349,7 +348,7 @@ const PerpsOrderDetailsView: React.FC = () => {
           <View style={styles.assetLogoContainer}>
             <PerpsTokenLogo symbol={order.symbol} size={48} />
           </View>
-          <Text variant={TextVariant.HeadingLG} style={styles.assetName}>
+          <Text variant={TextVariant.HeadingLg} style={styles.assetName}>
             {order.symbol}
           </Text>
         </View>
@@ -360,14 +359,14 @@ const PerpsOrderDetailsView: React.FC = () => {
             {detailRows.map((detailRow) => (
               <View key={detailRow.key} style={styles.detailRow}>
                 <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
                   style={styles.detailLabel}
                 >
                   {detailRow.label}
                 </Text>
                 <View style={styles.detailValue}>
-                  <Text variant={TextVariant.BodyMD}>{detailRow.value}</Text>
+                  <Text variant={TextVariant.BodyMd}>{detailRow.value}</Text>
                 </View>
               </View>
             ))}
@@ -375,8 +374,8 @@ const PerpsOrderDetailsView: React.FC = () => {
             {/* Status */}
             <View style={styles.detailRow}>
               <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
                 style={styles.detailLabel}
               >
                 {strings('perps.order_details.status')}
@@ -386,15 +385,15 @@ const PerpsOrderDetailsView: React.FC = () => {
                   {orderDetails.fillPercentage > 0 && (
                     <View style={styles.statusFilled}>
                       <Text
-                        variant={TextVariant.BodySM}
-                        color={TextColor.Success}
+                        variant={TextVariant.BodySm}
+                        color={TextColor.SuccessDefault}
                       >
                         {Math.round(orderDetails.fillPercentage)}% filled
                       </Text>
                     </View>
                   )}
                   {orderDetails.fillPercentage === 0 && (
-                    <Text variant={TextVariant.BodyMD}>
+                    <Text variant={TextVariant.BodyMd}>
                       {strings('perps.order_details.open')}
                     </Text>
                   )}

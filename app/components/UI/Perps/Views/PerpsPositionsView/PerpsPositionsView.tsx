@@ -1,5 +1,10 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useMemo } from 'react';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 import { ScrollView, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -10,10 +15,6 @@ import {
   IconColor,
   IconName,
 } from '../../../../../component-library/components/Icons/Icon';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../../component-library/components/Texts/SensitiveText';
@@ -72,7 +73,7 @@ const PerpsPositionsView: React.FC = () => {
     if (isInitialLoading) {
       return (
         <View style={styles.loadingContainer}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Muted}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextMuted}>
             {strings('perps.position.list.loading')}
           </Text>
         </View>
@@ -82,10 +83,10 @@ const PerpsPositionsView: React.FC = () => {
     if (error) {
       return (
         <View style={styles.errorContainer}>
-          <Text variant={TextVariant.HeadingSM} color={TextColor.Error}>
+          <Text variant={TextVariant.HeadingSm} color={TextColor.ErrorDefault}>
             {strings('perps.position.list.error_title')}
           </Text>
-          <Text variant={TextVariant.BodySM} color={TextColor.Muted}>
+          <Text variant={TextVariant.BodySm} color={TextColor.TextMuted}>
             {error}
           </Text>
         </View>
@@ -95,10 +96,10 @@ const PerpsPositionsView: React.FC = () => {
     if (positions.length === 0) {
       return (
         <View style={styles.emptyContainer}>
-          <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
+          <Text variant={TextVariant.HeadingSm} color={TextColor.TextDefault}>
             {strings('perps.position.list.empty_title')}
           </Text>
-          <Text variant={TextVariant.BodySM} color={TextColor.Muted}>
+          <Text variant={TextVariant.BodySm} color={TextColor.TextMuted}>
             {strings('perps.position.list.empty_description')}
           </Text>
         </View>
@@ -111,10 +112,10 @@ const PerpsPositionsView: React.FC = () => {
         testID={PerpsPositionsViewSelectorsIDs.POSITIONS_SECTION}
       >
         <View style={styles.sectionHeader}>
-          <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
+          <Text variant={TextVariant.HeadingSm} color={TextColor.TextDefault}>
             {strings('perps.position.list.open_positions')}
           </Text>
-          <Text variant={TextVariant.BodySM} color={TextColor.Muted}>
+          <Text variant={TextVariant.BodySm} color={TextColor.TextMuted}>
             {positionCountText}
           </Text>
         </View>
@@ -143,7 +144,7 @@ const PerpsPositionsView: React.FC = () => {
           onPress={handleBackPress}
           testID={PerpsPositionsViewSelectorsIDs.BACK_BUTTON}
         />
-        <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
+        <Text variant={TextVariant.HeadingSm} color={TextColor.TextDefault}>
           {strings('perps.position.title')}
         </Text>
         <View style={styles.headerPlaceholder} />
@@ -152,17 +153,22 @@ const PerpsPositionsView: React.FC = () => {
       <ScrollView style={styles.container}>
         {/* Account Summary */}
         <View style={styles.accountSummary}>
-          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight="medium"
+            color={TextColor.TextDefault}
+          >
             {strings('perps.position.account.summary_title')}
           </Text>
 
           <View style={styles.summaryRow}>
-            <Text variant={TextVariant.BodySM} color={TextColor.Muted}>
+            <Text variant={TextVariant.BodySm} color={TextColor.TextMuted}>
               {strings('perps.position.account.total_balance')}
             </Text>
             <SensitiveText
-              variant={TextVariant.BodySMMedium}
-              color={TextColor.Default}
+              variant={TextVariant.BodySm}
+              fontWeight="medium"
+              color={TextColor.TextDefault}
               isHidden={privacyMode}
               length={SensitiveTextLength.Short}
             >
@@ -176,12 +182,13 @@ const PerpsPositionsView: React.FC = () => {
           </View>
 
           <View style={styles.summaryRow}>
-            <Text variant={TextVariant.BodySM} color={TextColor.Muted}>
+            <Text variant={TextVariant.BodySm} color={TextColor.TextMuted}>
               {strings('perps.position.account.available_balance')}
             </Text>
             <SensitiveText
-              variant={TextVariant.BodySMMedium}
-              color={TextColor.Default}
+              variant={TextVariant.BodySm}
+              fontWeight="medium"
+              color={TextColor.TextDefault}
               isHidden={privacyMode}
               length={SensitiveTextLength.Short}
             >
@@ -195,12 +202,13 @@ const PerpsPositionsView: React.FC = () => {
           </View>
 
           <View style={styles.summaryRow}>
-            <Text variant={TextVariant.BodySM} color={TextColor.Muted}>
+            <Text variant={TextVariant.BodySm} color={TextColor.TextMuted}>
               {strings('perps.position.account.margin_used')}
             </Text>
             <SensitiveText
-              variant={TextVariant.BodySMMedium}
-              color={TextColor.Default}
+              variant={TextVariant.BodySm}
+              fontWeight="medium"
+              color={TextColor.TextDefault}
               isHidden={privacyMode}
               length={SensitiveTextLength.Short}
             >
@@ -213,17 +221,18 @@ const PerpsPositionsView: React.FC = () => {
           </View>
 
           <View style={styles.summaryRow}>
-            <Text variant={TextVariant.BodySM} color={TextColor.Muted}>
+            <Text variant={TextVariant.BodySm} color={TextColor.TextMuted}>
               {strings('perps.position.account.total_unrealized_pnl')}
             </Text>
             <SensitiveText
-              variant={TextVariant.BodySMMedium}
+              variant={TextVariant.BodySm}
+              fontWeight="medium"
               color={
                 privacyMode
-                  ? TextColor.Default
+                  ? TextColor.TextDefault
                   : totalUnrealizedPnl >= 0
-                    ? TextColor.Success
-                    : TextColor.Error
+                    ? TextColor.SuccessDefault
+                    : TextColor.ErrorDefault
               }
               isHidden={privacyMode}
               length={SensitiveTextLength.Short}
