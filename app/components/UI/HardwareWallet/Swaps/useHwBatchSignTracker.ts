@@ -410,7 +410,7 @@ function waitForTerminalTransactions(txIds: string[]): Promise<void> {
 
 function shouldRejectPendingApprovalOnCancel(
   requestId: string,
-  request: { type: ApprovalType },
+  request: { type: string },
   targetFrom: string | undefined,
   relatedBatchIds: ReadonlySet<string>,
   relatedApprovalIds: ReadonlySet<string>,
@@ -679,7 +679,7 @@ export function useHwBatchSignTracker({
         trackerState.seenBatchIds,
         trackerState.pendingSignTxIds,
       );
-      const allTxIds = getCancellableBatchTxIds(
+      const outstandingTxIds = getCancellableBatchTxIds(
         address,
         trackerState.pendingSignTxIds,
         relatedBatchIds,
@@ -716,20 +716,23 @@ export function useHwBatchSignTracker({
       // rather than widening to every chain for the address.
       wipeFailedBatchTransactions(address, relatedBatchIds);
 
-      if (allTxIds.length === 0) {
+      if (outstandingTxIds.length === 0) {
         return;
       }
 
-      trackerState.pendingAbortTxIds = new Set(allTxIds);
+      trackerState.pendingAbortTxIds = new Set(outstandingTxIds);
       trackerState.isCancellingBatch = true;
 
-      abortTransactionSignings(allTxIds, trackerState.pendingAbortTxIds);
+      abortTransactionSignings(
+        outstandingTxIds,
+        trackerState.pendingAbortTxIds,
+      );
 
       // Only pre-broadcast txs are safe to local-drop; submitted txs may still
       // be pending on-chain and must remain visible in activity.
-      dropAbortableTransactions(allTxIds);
+      dropAbortableTransactions(outstandingTxIds);
       try {
-        await waitForTerminalTransactions(allTxIds);
+        await waitForTerminalTransactions(outstandingTxIds);
       } finally {
         trackerState.pendingAbortTxIds = new Set();
         trackerState.isCancellingBatch = false;
