@@ -1424,6 +1424,32 @@ describe('MainNavigator', () => {
         );
         expect(renderInner(Component).toJSON()).toBeTruthy();
       });
+
+      it('gates the Rewards tab behind RewardsUpdateRequired when the client version is blocked', () => {
+        // The version guard now lives in RewardsHome (above the
+        // onboarding/dashboard branch), so version-blocked clients see the
+        // update-required screen regardless of subscription status.
+        const RewardsHome = getScreenComponent(
+          homeTabsRoot,
+          Routes.REWARDS_VIEW,
+          'TabScreen',
+        );
+        const { getByTestId } = renderWithProvider(
+          <RewardsHome route={{ params: {} }} />,
+          {
+            state: {
+              ...initialRootState,
+              rewards: {
+                ...initialRootState.rewards,
+                // Higher than the mocked device version (7.72.0) → blocked.
+                versionGuardMinimumMobileVersion: '999.0.0',
+              },
+            },
+          },
+        );
+
+        expect(getByTestId('rewards-update-required-container')).toBeTruthy();
+      });
     });
 
     describe('Nested navigator components', () => {

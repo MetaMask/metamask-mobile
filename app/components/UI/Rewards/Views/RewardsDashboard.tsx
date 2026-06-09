@@ -22,7 +22,6 @@ import {
   selectHideUnlinkedAccountsBanner,
   selectHideCurrentAccountNotOptedInBannerArray,
   selectPendingDeeplink,
-  selectIsRewardsVersionBlocked,
 } from '../../../../reducers/rewards/selectors';
 import { setPendingDeeplink } from '../../../../reducers/rewards';
 import {
@@ -40,8 +39,6 @@ import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { useCandidateSubscriptionId } from '../hooks/useCandidateSubscriptionId';
-import useRewardsVersionGuard from '../hooks/useRewardsVersionGuard';
-import RewardsUpdateRequired from '../components/RewardsUpdateRequired/RewardsUpdateRequired';
 import { useGeoRewardsMetadata } from '../hooks/useGeoRewardsMetadata';
 import { useReferralDetails } from '../hooks/useReferralDetails';
 import { navigateToRewardsRoute } from '../utils';
@@ -69,7 +66,6 @@ const RewardsDashboard: React.FC = () => {
     selectHasAcceptedVipInvite(subscriptionId),
   );
   const activeTab = useSelector(selectActiveTab);
-  const isVersionBlocked = useSelector(selectIsRewardsVersionBlocked);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const hasTrackedDashboardViewed = useRef(false);
 
@@ -78,11 +74,9 @@ const RewardsDashboard: React.FC = () => {
   usePerpsTradingCampaignEndedOutcomeToast();
   useGetPredictThePitchOutcomeToast();
 
-  // Rewards-wide concerns previously owned by RewardsNavigator. The dashboard is
-  // the entry point for the Rewards tab and stays mounted beneath pushed
-  // sub-pages, so it's the natural home for these. The data hooks populate Redux,
-  // which the sub-pages read from.
-  useRewardsVersionGuard();
+  // Data hooks that populate Redux for the dashboard and its pushed sub-pages.
+  // The version guard itself lives one level up in RewardsHome (MainNavigator),
+  // so it also gates the onboarding entry path for non-enrolled users.
   useCandidateSubscriptionId();
   useGeoRewardsMetadata({});
   useReferralDetails();
@@ -343,10 +337,6 @@ const RewardsDashboard: React.FC = () => {
         .build(),
     );
   }, [activeTab, trackEvent, createEventBuilder]);
-
-  if (isVersionBlocked) {
-    return <RewardsUpdateRequired />;
-  }
 
   return (
     <ErrorBoundary navigation={navigation} view="RewardsView">

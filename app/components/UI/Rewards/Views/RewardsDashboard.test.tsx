@@ -129,12 +129,9 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
-// Rewards-wide hooks relocated from RewardsNavigator into the dashboard. They
-// perform data fetching/side effects that are out of scope for these tests.
-jest.mock('../hooks/useRewardsVersionGuard', () => ({
-  __esModule: true,
-  default: jest.fn(),
-}));
+// Data hooks owned by the dashboard. They perform data fetching/side effects
+// that are out of scope for these tests. The version guard now lives in
+// RewardsHome (MainNavigator), so it is no longer mocked here.
 jest.mock('../hooks/useCandidateSubscriptionId', () => ({
   useCandidateSubscriptionId: jest.fn(),
 }));
@@ -143,12 +140,6 @@ jest.mock('../hooks/useGeoRewardsMetadata', () => ({
 }));
 jest.mock('../hooks/useReferralDetails', () => ({
   useReferralDetails: jest.fn(),
-}));
-jest.mock('../components/RewardsUpdateRequired/RewardsUpdateRequired', () => ({
-  __esModule: true,
-  default: function MockRewardsUpdateRequired() {
-    return null;
-  },
 }));
 
 // Mock i18n

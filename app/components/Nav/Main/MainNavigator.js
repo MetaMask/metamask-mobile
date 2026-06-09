@@ -54,6 +54,9 @@ import ManualBackupStep3 from '../../Views/ManualBackupStep3';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
+import { selectIsRewardsVersionBlocked } from '../../../reducers/rewards/selectors';
+import useRewardsVersionGuard from '../../UI/Rewards/hooks/useRewardsVersionGuard';
+import RewardsUpdateRequired from '../../UI/Rewards/components/RewardsUpdateRequired/RewardsUpdateRequired';
 import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
 import RewardsDashboard from '../../UI/Rewards/Views/RewardsDashboard';
 import RewardsOnboardingNavigator from '../../UI/Rewards/OnboardingNavigator';
@@ -332,10 +335,22 @@ const TransactionsHome = () => {
 const RewardsHome = () => {
   const { colors } = useTheme();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const isVersionBlocked = useSelector(selectIsRewardsVersionBlocked);
+  // Fetch client version requirements at the Rewards tab entry point, before the
+  // onboarding/dashboard branch below. Both opted-in and onboarding users mount
+  // RewardsHome, so gating here ensures version-blocked clients always see the
+  // update-required screen (and the requirements are always fetched), regardless
+  // of subscription status.
+  useRewardsVersionGuard();
   const rewardsModalScreenOptions = {
     ...transparentModalScreenOptions,
     contentStyle: { backgroundColor: 'transparent' },
   };
+
+  if (isVersionBlocked) {
+    return <RewardsUpdateRequired />;
+  }
+
   return (
     <NativeStack.Navigator
       screenOptions={{
