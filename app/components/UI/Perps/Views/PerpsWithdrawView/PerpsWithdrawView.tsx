@@ -21,6 +21,7 @@ import {
   Text,
   TextVariant,
   TextColor,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { PerpsWithdrawViewSelectorsIDs } from '../../Perps.testIds';
@@ -614,7 +615,7 @@ const PerpsWithdrawView: React.FC = () => {
                 >
                   <Text
                     variant={TextVariant.BodyMd}
-                    fontWeight="medium"
+                    fontWeight={FontWeight.Medium}
                     style={tw.style(!hasPositiveBalance && 'text-disabled')}
                   >
                     10%
@@ -632,7 +633,7 @@ const PerpsWithdrawView: React.FC = () => {
                 >
                   <Text
                     variant={TextVariant.BodyMd}
-                    fontWeight="medium"
+                    fontWeight={FontWeight.Medium}
                     style={tw.style(!hasPositiveBalance && 'text-disabled')}
                   >
                     25%
@@ -650,7 +651,7 @@ const PerpsWithdrawView: React.FC = () => {
                 >
                   <Text
                     variant={TextVariant.BodyMd}
-                    fontWeight="medium"
+                    fontWeight={FontWeight.Medium}
                     style={tw.style(!hasPositiveBalance && 'text-disabled')}
                   >
                     50%
@@ -668,7 +669,7 @@ const PerpsWithdrawView: React.FC = () => {
                 >
                   <Text
                     variant={TextVariant.BodyMd}
-                    fontWeight="medium"
+                    fontWeight={FontWeight.Medium}
                     style={tw.style(!hasPositiveBalance && 'text-disabled')}
                   >
                     Max

@@ -3,6 +3,7 @@ import {
   Text,
   TextVariant,
   TextColor,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 import { View } from 'react-native';
 import { useStyles } from '../../../../../hooks/useStyles';
@@ -82,14 +83,14 @@ const WithdrawalFeesTooltipContent: React.FC<TooltipContentProps> = ({
       <View style={styles.totalRow}>
         <Text
           variant={TextVariant.BodyMd}
-          fontWeight="medium"
+          fontWeight={FontWeight.Medium}
           color={TextColor.TextDefault}
         >
           {strings('perps.tooltips.fees.total')}
         </Text>
         <Text
           variant={TextVariant.BodyMd}
-          fontWeight="medium"
+          fontWeight={FontWeight.Medium}
           color={TextColor.TextDefault}
         >
           {totalFees}

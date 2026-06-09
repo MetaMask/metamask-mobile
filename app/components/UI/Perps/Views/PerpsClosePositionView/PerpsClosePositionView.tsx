@@ -21,6 +21,7 @@ import {
   Text,
   TextVariant,
   TextColor,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 import Icon, {
   IconColor,
@@ -639,7 +640,7 @@ const PerpsClosePositionView: React.FC = () => {
                     <View style={styles.detailLeft}>
                       <Text
                         variant={TextVariant.BodyLg}
-                        fontWeight="medium"
+                        fontWeight={FontWeight.Medium}
                         color={TextColor.TextAlternative}
                       >
                         {strings('perps.order.limit_price')}
@@ -649,7 +650,7 @@ const PerpsClosePositionView: React.FC = () => {
                   <ListItemColumn widthType={WidthType.Auto}>
                     <Text
                       variant={TextVariant.BodyLg}
-                      fontWeight="medium"
+                      fontWeight={FontWeight.Medium}
                       color={TextColor.TextDefault}
                     >
                       {limitPrice

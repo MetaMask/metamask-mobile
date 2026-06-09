@@ -4,6 +4,7 @@ import {
   Text,
   TextVariant,
   TextColor,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 import { ScrollView, View } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -155,7 +156,7 @@ const PerpsPositionsView: React.FC = () => {
         <View style={styles.accountSummary}>
           <Text
             variant={TextVariant.BodyMd}
-            fontWeight="medium"
+            fontWeight={FontWeight.Medium}
             color={TextColor.TextDefault}
           >
             {strings('perps.position.account.summary_title')}
@@ -167,7 +168,7 @@ const PerpsPositionsView: React.FC = () => {
             </Text>
             <SensitiveText
               variant={TextVariant.BodySm}
-              fontWeight="medium"
+              fontWeight={FontWeight.Medium}
               color={TextColor.TextDefault}
               isHidden={privacyMode}
               length={SensitiveTextLength.Short}
@@ -187,7 +188,7 @@ const PerpsPositionsView: React.FC = () => {
             </Text>
             <SensitiveText
               variant={TextVariant.BodySm}
-              fontWeight="medium"
+              fontWeight={FontWeight.Medium}
               color={TextColor.TextDefault}
               isHidden={privacyMode}
               length={SensitiveTextLength.Short}
@@ -207,7 +208,7 @@ const PerpsPositionsView: React.FC = () => {
             </Text>
             <SensitiveText
               variant={TextVariant.BodySm}
-              fontWeight="medium"
+              fontWeight={FontWeight.Medium}
               color={TextColor.TextDefault}
               isHidden={privacyMode}
               length={SensitiveTextLength.Short}
@@ -226,7 +227,7 @@ const PerpsPositionsView: React.FC = () => {
             </Text>
             <SensitiveText
               variant={TextVariant.BodySm}
-              fontWeight="medium"
+              fontWeight={FontWeight.Medium}
               color={
                 privacyMode
                   ? TextColor.TextDefault

@@ -20,6 +20,7 @@ import {
   Text,
   TextVariant,
   TextColor,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 import {
   IconName,
@@ -232,7 +233,7 @@ const PerpsHeroCardView: React.FC = () => {
             </View>
             <Text
               variant={TextVariant.BodySm}
-              fontWeight="medium"
+              fontWeight={FontWeight.Medium}
               style={styles.assetName}
               testID={getPerpsHeroCardViewSelector.assetSymbol(index)}
             >
@@ -244,7 +245,7 @@ const PerpsHeroCardView: React.FC = () => {
             >
               <Text
                 variant={TextVariant.BodyXs}
-                fontWeight="medium"
+                fontWeight={FontWeight.Medium}
                 style={styles.directionBadgeText}
                 testID={getPerpsHeroCardViewSelector.directionBadgeText(index)}
               >
@@ -277,7 +278,7 @@ const PerpsHeroCardView: React.FC = () => {
                   <Text
                     style={styles.priceLabel}
                     variant={TextVariant.BodySm}
-                    fontWeight="medium"
+                    fontWeight={FontWeight.Medium}
                   >
                     {/* Intentionally not using i18n string */}
                     Entry
@@ -286,7 +287,7 @@ const PerpsHeroCardView: React.FC = () => {
                 <Text
                   style={styles.priceValue}
                   variant={TextVariant.BodySm}
-                  fontWeight="medium"
+                  fontWeight={FontWeight.Medium}
                 >
                   {formatPerpsFiat(data.entryPrice, {
                     ranges: PRICE_RANGES_UNIVERSAL,
@@ -300,7 +301,7 @@ const PerpsHeroCardView: React.FC = () => {
                   <Text
                     style={styles.priceLabel}
                     variant={TextVariant.BodySm}
-                    fontWeight="medium"
+                    fontWeight={FontWeight.Medium}
                   >
                     {/* Intentionally not using i18n  */}
                     Mark
@@ -310,7 +311,7 @@ const PerpsHeroCardView: React.FC = () => {
                 <Text
                   style={styles.priceValue}
                   variant={TextVariant.BodySm}
-                  fontWeight="medium"
+                  fontWeight={FontWeight.Medium}
                 >
                   {data.markPrice}
                 </Text>

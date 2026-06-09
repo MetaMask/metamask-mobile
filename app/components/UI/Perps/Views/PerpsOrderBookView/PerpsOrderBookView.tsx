@@ -5,6 +5,7 @@ import {
   Text,
   TextVariant,
   TextColor,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import React, {
@@ -787,7 +788,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
               >
                 <Text
                   variant={TextVariant.BodyLg}
-                  fontWeight="medium"
+                  fontWeight={FontWeight.Medium}
                   color={
                     currentGrouping === value
                       ? TextColor.PrimaryDefault

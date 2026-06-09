@@ -3,6 +3,7 @@ import {
   Text,
   TextVariant,
   TextColor,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 import { Animated, Platform, TouchableOpacity, View } from 'react-native';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
@@ -112,7 +113,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
             testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}
             color={hasError ? TextColor.ErrorDefault : TextColor.TextDefault}
             variant={TextVariant.BodyMd}
-            fontWeight="bold"
+            fontWeight={FontWeight.Bold}
             style={
               Platform.OS === 'android'
                 ? styles.amountValueTokenAndroid

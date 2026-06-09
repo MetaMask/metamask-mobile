@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Text,
+  TextVariant,
+  FontWeight,
+} from '@metamask/design-system-react-native';
 import {
   View,
   TouchableOpacity,
@@ -613,7 +617,7 @@ const HIP3DebugView: React.FC = () => {
             <View style={styles.successBox}>
               <Text
                 variant={TextVariant.BodySm}
-                fontWeight="medium"
+                fontWeight={FontWeight.Medium}
                 style={styles.successText}
               >
                 Account Summary
@@ -638,7 +642,7 @@ const HIP3DebugView: React.FC = () => {
                   <View style={styles.subAccountSection}>
                     <Text
                       variant={TextVariant.BodySm}
-                      fontWeight="medium"
+                      fontWeight={FontWeight.Medium}
                       style={styles.successText}
                     >
                       Per Sub-Account Balances:
