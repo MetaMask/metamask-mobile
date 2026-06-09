@@ -470,7 +470,9 @@ describe('PerpsWatchlistMarkets', () => {
     });
 
     it('transitions correctly between empty → populated states', () => {
-      const { toJSON, rerender } = render(<PerpsWatchlistMarkets markets={[]} />);
+      const { toJSON, rerender } = render(
+        <PerpsWatchlistMarkets markets={[]} />,
+      );
 
       expect(toJSON()).toBeNull();
 
@@ -486,7 +488,9 @@ describe('PerpsWatchlistMarkets', () => {
 
       rerender(<PerpsWatchlistMarkets markets={mockMarkets} />);
       expect(screen.getByText('BTC')).toBeOnTheScreen();
-      expect(screen.queryByText('Start with the most-traded markets')).not.toBeOnTheScreen();
+      expect(
+        screen.queryByText('Start with the most-traded markets'),
+      ).not.toBeOnTheScreen();
     });
   });
 });
