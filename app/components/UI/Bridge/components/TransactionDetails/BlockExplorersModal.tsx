@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { StyleSheet } from 'react-native';
 import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
@@ -70,6 +70,26 @@ const BlockExplorersModal = () => {
     txHash: bridgeTxHistoryItem?.status.destChain?.txHash,
   });
 
+  const handleBlockExplorerPress = useCallback(
+    (url: string | undefined, text: string) => {
+      if (!url) {
+        return;
+      }
+      trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
+        location: 'bridge_transaction_details',
+        text,
+        url,
+      });
+      navigation.navigate(Routes.WEBVIEW.MAIN, {
+        screen: Routes.WEBVIEW.SIMPLE,
+        params: {
+          url,
+        },
+      });
+    },
+    [trackEvent, createEventBuilder, navigation],
+  );
+
   return (
     <BottomSheet>
       <BottomSheetHeader>
@@ -91,26 +111,12 @@ const BlockExplorersModal = () => {
           <Button
             variant={ButtonVariant.Secondary}
             isFullWidth
-            onPress={() => {
-              const url = srcExplorerData.explorerTxUrl;
-              if (!url) {
-                return;
-              }
-              trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
-                location: 'bridge_transaction_details',
-                text:
-                  srcExplorerData.explorerName ??
-                  srcExplorerData.chainName ??
-                  '',
-                url,
-              });
-              navigation.navigate(Routes.WEBVIEW.MAIN, {
-                screen: Routes.WEBVIEW.SIMPLE,
-                params: {
-                  url,
-                },
-              });
-            }}
+            onPress={() =>
+              handleBlockExplorerPress(
+                srcExplorerData.explorerTxUrl,
+                srcExplorerData.explorerName ?? srcExplorerData.chainName ?? '',
+              )
+            }
           >
             <Box
               flexDirection={FlexDirection.Row}
@@ -133,26 +139,14 @@ const BlockExplorersModal = () => {
           <Button
             variant={ButtonVariant.Secondary}
             isFullWidth
-            onPress={() => {
-              const url = bridgeDestExplorerData.explorerTxUrl;
-              if (!url) {
-                return;
-              }
-              trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
-                location: 'bridge_transaction_details',
-                text:
-                  bridgeDestExplorerData.explorerName ??
+            onPress={() =>
+              handleBlockExplorerPress(
+                bridgeDestExplorerData.explorerTxUrl,
+                bridgeDestExplorerData.explorerName ??
                   bridgeDestExplorerData.chainName ??
                   '',
-                url,
-              });
-              navigation.navigate(Routes.WEBVIEW.MAIN, {
-                screen: Routes.WEBVIEW.SIMPLE,
-                params: {
-                  url,
-                },
-              });
-            }}
+              )
+            }
           >
             <Box
               flexDirection={FlexDirection.Row}

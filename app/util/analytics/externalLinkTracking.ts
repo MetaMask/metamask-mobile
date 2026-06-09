@@ -28,6 +28,12 @@ export interface BlockExplorerLinkClickedProperties extends JsonMap {
   url: string;
 }
 
+type ExternalLinkEventFactory<TEvent> = (event: IMetaMetricsEvent) => {
+  addProperties: (properties: ExternalLinkClickedProperties) => {
+    build: () => TEvent;
+  };
+};
+
 /**
  * Extract hostname from an external URL for block explorer analytics.
  *
@@ -43,6 +49,18 @@ export const getExternalLinkHostname = (url: string): string => {
   }
 };
 
+const emitExternalLinkClicked = <TEvent>(
+  trackEvent: (event: TEvent) => void,
+  createEventBuilder: ExternalLinkEventFactory<TEvent>,
+  properties: ExternalLinkClickedProperties,
+): void => {
+  trackEvent(
+    createEventBuilder(MetaMetricsEvents.EXTERNAL_LINK_CLICKED)
+      .addProperties(properties)
+      .build(),
+  );
+};
+
 /**
  * Track External Link Clicked with the mobile analytics schema.
  * Generic over the event type so callers using either MetricsEventBuilder
@@ -55,18 +73,10 @@ export const getExternalLinkHostname = (url: string): string => {
  */
 export const trackExternalLinkClicked = <TEvent>(
   trackEvent: (event: TEvent) => void,
-  createEventBuilder: (event: IMetaMetricsEvent) => {
-    addProperties: (properties: ExternalLinkClickedProperties) => {
-      build: () => TEvent;
-    };
-  },
+  createEventBuilder: ExternalLinkEventFactory<TEvent>,
   properties: ExternalLinkClickedProperties,
 ): void => {
-  trackEvent(
-    createEventBuilder(MetaMetricsEvents.EXTERNAL_LINK_CLICKED)
-      .addProperties(properties)
-      .build(),
-  );
+  emitExternalLinkClicked(trackEvent, createEventBuilder, properties);
 };
 
 /**
@@ -79,15 +89,11 @@ export const trackExternalLinkClicked = <TEvent>(
  */
 export const trackBlockExplorerLinkClicked = <TEvent>(
   trackEvent: (event: TEvent) => void,
-  createEventBuilder: (event: IMetaMetricsEvent) => {
-    addProperties: (properties: ExternalLinkClickedProperties) => {
-      build: () => TEvent;
-    };
-  },
+  createEventBuilder: ExternalLinkEventFactory<TEvent>,
   properties: BlockExplorerLinkClickedProperties,
 ): void => {
   const { location, text, url } = properties;
-  trackExternalLinkClicked(trackEvent, createEventBuilder, {
+  emitExternalLinkClicked(trackEvent, createEventBuilder, {
     location,
     text,
     url_domain: getExternalLinkHostname(url),

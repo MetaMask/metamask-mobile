@@ -5,7 +5,11 @@
  */
 
 import type { UseAnalyticsHook } from '../../components/hooks/useAnalytics/useAnalytics.types';
-import type { AnalyticsTrackingEvent } from '../analytics/AnalyticsEventBuilder';
+import { useAnalytics } from '../../components/hooks/useAnalytics/useAnalytics';
+import {
+  AnalyticsEventBuilder,
+  type AnalyticsTrackingEvent,
+} from '../analytics/AnalyticsEventBuilder';
 
 export interface MockAnalytics {
   isEnabled: jest.Mock<boolean, []>;
@@ -124,6 +128,22 @@ export const createMockUseAnalyticsHook = (
  *   createMockUseAnalyticsHook({ createEventBuilder: mockCreateEventBuilder }),
  * );
  */
+/**
+ * Configures a mocked `useAnalytics` hook for external link tracking tests.
+ * Call from `beforeEach` after `jest.mock('.../useAnalytics')`.
+ */
+export const configureUseAnalyticsExternalLinkMock = (
+  trackEventMock: jest.Mock = jest.fn(),
+): jest.Mock => {
+  jest.mocked(useAnalytics).mockReturnValue(
+    createMockUseAnalyticsHook({
+      trackEvent: trackEventMock,
+      createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+    }),
+  );
+  return trackEventMock;
+};
+
 export const createMockEventBuilder = (
   buildReturnValue?: AnalyticsTrackingEvent,
 ) => ({

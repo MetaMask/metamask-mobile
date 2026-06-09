@@ -17,8 +17,7 @@ import { useTokenAmount } from '../../../hooks/useTokenAmount';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { SourceHashSummaryLine } from './source-hash-summary-line';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
-import { createMockUseAnalyticsHook } from '../../../../../../util/test/analyticsMock';
-import { AnalyticsEventBuilder } from '../../../../../../util/analytics/AnalyticsEventBuilder';
+import { configureUseAnalyticsExternalLinkMock } from '../../../../../../util/test/analyticsMock';
 
 const mockNavigate = jest.fn();
 
@@ -78,11 +77,7 @@ describe('SourceHashSummaryLine', () => {
   beforeEach(() => {
     jest.resetAllMocks();
 
-    jest.mocked(useAnalytics).mockReturnValue(
-      createMockUseAnalyticsHook({
-        createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
-      }),
-    );
+    configureUseAnalyticsExternalLinkMock();
 
     useMultichainBlockExplorerTxUrlMock.mockReturnValue({
       explorerTxUrl: 'https://explorer.example',
