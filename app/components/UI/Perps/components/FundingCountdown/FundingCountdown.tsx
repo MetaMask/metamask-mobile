@@ -1,10 +1,9 @@
 import React, { useState, useEffect, memo } from 'react';
-import {
-  Text,
+import type { TextStyle } from 'react-native';
+import Text, {
   TextVariant,
   TextColor,
-} from '@metamask/design-system-react-native';
-import type { TextStyle } from 'react-native';
+} from '../../../../../component-library/components/Texts/Text';
 import { calculateFundingCountdown } from '@metamask/perps-controller';
 
 interface FundingCountdownProps {
@@ -28,8 +27,8 @@ interface FundingCountdownProps {
  * Supports market-specific funding times when provided.
  */
 const FundingCountdown: React.FC<FundingCountdownProps> = ({
-  variant = TextVariant.BodySm,
-  color = TextColor.TextDefault,
+  variant = TextVariant.BodySM,
+  color = TextColor.Default,
   style,
   testID,
   nextFundingTime,
