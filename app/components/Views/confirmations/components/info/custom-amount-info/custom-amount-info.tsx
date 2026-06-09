@@ -207,6 +207,13 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               fp.amountFiat = amountFiat;
             },
           });
+
+          // Fiat deposits need nested calldata (approve + deposit) populated
+          // with approximate amounts now so the transaction is valid at submit
+          // time. Core will re-encode with exact amounts after settlement.
+          if (isMoneyAccountDeposit) {
+            await updateTokenAmount();
+          }
         } else {
           await updateTokenAmount();
         }
@@ -222,6 +229,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       }
     }, [
       amountFiat,
+      isMoneyAccountDeposit,
       onAmountSubmit,
       selectedFiatPaymentMethodId,
       transactionId,
@@ -280,7 +288,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               {supportAccountSelection &&
                 !selectedFiatPaymentMethodId &&
                 !shouldHideAccountSelector && <PayAccountSelector />}
-              {disablePay !== true && hasPaymentOption && <PayWithRow />}
+              {disablePay !== true && hasPaymentOption && (
+                <PayWithRow isResultReady />
+              )}
               {showPaymentDetails && (
                 <>
                   <BridgeFeeRow />

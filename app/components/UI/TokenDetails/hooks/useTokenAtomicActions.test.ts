@@ -895,6 +895,25 @@ describe('useTokenAtomicActions - useHandleOnSwap explore swap location', () => 
     );
   });
 
+  it('uses TrendingExplore location when token.source is ExploreSearch', () => {
+    renderHook(() =>
+      useHandleOnSwap({
+        token: {
+          ...defaultToken,
+          balance: '1',
+          source: TokenDetailsSource.ExploreSearch,
+        },
+      }),
+    );
+
+    expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith(
+      expect.objectContaining({
+        location: 'TrendingExplore',
+        skipLocationUpdate: false,
+      }),
+    );
+  });
+
   it('uses TokenView location when token.source is not from Explore', () => {
     renderHook(() =>
       useHandleOnSwap({
