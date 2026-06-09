@@ -264,6 +264,7 @@ describe('MultichainTransactionDetailsSheet', () => {
       expect.any(Function),
       expect.objectContaining({
         location: 'transaction_details_modal',
+        text: 'View details',
       }),
     );
   });

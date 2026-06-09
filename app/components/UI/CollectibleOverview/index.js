@@ -261,6 +261,9 @@ const CollectibleOverview = ({
             collectible?.address,
             chainId,
           );
+          if (!url) {
+            return;
+          }
           trackBlockExplorerLinkClicked(
             analytics.trackEvent,
             AnalyticsEventBuilder.createEventBuilder,

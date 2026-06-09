@@ -41,10 +41,18 @@ type ExternalLinkEventFactory<TEvent> = (event: IMetaMetricsEvent) => {
  * @returns URL hostname, or the original string if parsing fails
  */
 export const getExternalLinkHostname = (url: string): string => {
+  if (!url) {
+    return url;
+  }
+
+  const normalizedUrl = /^[a-z][a-z0-9+.-]*:\/\//i.test(url)
+    ? url
+    : `https://${url}`;
+
   try {
-    return new URL(url).hostname;
+    return new URL(normalizedUrl).hostname;
   } catch {
-    const match = url.match(/^https?:\/\/([^/?#]+)/i);
+    const match = url.match(/^(?:https?:\/\/)?([^/?#:]+)/i);
     return match?.[1] ?? url;
   }
 };
