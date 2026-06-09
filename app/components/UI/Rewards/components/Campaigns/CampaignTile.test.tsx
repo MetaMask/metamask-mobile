@@ -469,7 +469,20 @@ describe('CampaignTile', () => {
       );
     });
 
-    it('calls hook with undefined when campaign is active but not ONDO_HOLDING type', () => {
+    it('calls hook with campaign.id when campaign is active and PREDICT_THE_PITCH type', () => {
+      const campaign = createTestCampaign({
+        id: 'predict-active',
+        type: CampaignType.PREDICT_THE_PITCH,
+      });
+
+      render(<CampaignTile campaign={campaign} />);
+
+      expect(mockUseGetCampaignParticipantStatus).toHaveBeenCalledWith(
+        'predict-active',
+      );
+    });
+
+    it('calls hook with undefined when campaign is active but not an opt-in campaign type', () => {
       const campaign = createTestCampaign({
         id: 'season-active',
         type: CampaignType.SEASON_1,
@@ -613,6 +626,48 @@ describe('CampaignTile', () => {
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW,
         { campaignId: 'camp-ondo-active' },
+      );
+    });
+
+    it('navigates to campaign tour for PREDICT_THE_PITCH when not opted in and tour exists', () => {
+      setupParticipantStatus(false);
+      const campaign = createTestCampaign({
+        id: 'camp-predict-tour',
+        type: CampaignType.PREDICT_THE_PITCH,
+        details: {
+          howItWorks: {
+            tour: [{ title: 'Step 1', description: 'Description 1' }],
+          },
+        },
+      });
+
+      const { getByTestId } = render(<CampaignTile campaign={campaign} />);
+      fireEvent.press(getByTestId('campaign-tile-camp-predict-tour'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.REWARDS_CAMPAIGN_TOUR_STEP,
+        { campaignId: 'camp-predict-tour' },
+      );
+    });
+
+    it('navigates to Predict The Pitch details when opted in even if tour exists', () => {
+      setupParticipantStatus(true);
+      const campaign = createTestCampaign({
+        id: 'camp-predict-opted-in',
+        type: CampaignType.PREDICT_THE_PITCH,
+        details: {
+          howItWorks: {
+            tour: [{ title: 'Step 1', description: 'Description 1' }],
+          },
+        },
+      });
+
+      const { getByTestId } = render(<CampaignTile campaign={campaign} />);
+      fireEvent.press(getByTestId('campaign-tile-camp-predict-opted-in'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_DETAILS_VIEW,
+        { campaignId: 'camp-predict-opted-in' },
       );
     });
   });
