@@ -134,14 +134,17 @@ export const selectMetaMaskPayFlags = createSelector(
       PAY_ENABLE_DEPOSIT_WALLET_WITHDRAW_DEFAULT;
 
     const enablePerpsMoneyAccountTransactions =
-      process.env.MONEY_ACCOUNT_PERPS_PREDICT_ENABLED === 'true' &&
-      ((metaMaskPayExtendedFlags?.enablePerpsMoneyAccountTransactions as boolean) ??
-        PAY_ENABLE_PERPS_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT);
+      (metaMaskPayExtendedFlags?.enablePerpsMoneyAccountTransactions as boolean) ??
+      PAY_ENABLE_PERPS_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT;
 
     const enablePredictMoneyAccountTransactions =
-      process.env.MONEY_ACCOUNT_PERPS_PREDICT_ENABLED === 'true' &&
-      ((metaMaskPayExtendedFlags?.enablePredictMoneyAccountTransactions as boolean) ??
-        PAY_ENABLE_PREDICT_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT);
+      (metaMaskPayExtendedFlags?.enablePredictMoneyAccountTransactions as boolean) ??
+      PAY_ENABLE_PREDICT_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT;
+
+    const enableMoneyHomePagePerpsTransaction =
+      process.env.MONEY_HOME_PAGE_PERPS_PREDICT_ENABLED === 'true' &&
+      ((metaMaskPayExtendedFlags?.enablePerpsMoneyAccountTransactions as boolean) ??
+        PAY_ENABLE_MONEY_HOME_PAGE_PERPS_TRANSACTION_DEFAULT);
 
     const enableMoneyHomePagePerpsTransaction =
       process.env.MONEY_HOME_PAGE_PERPS_PREDICT_ENABLED === 'true' &&
