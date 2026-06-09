@@ -6,14 +6,14 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader/SheetHeader';
-import Text from '../../../component-library/components/Texts/Text/Text';
 import { strings } from '../../../../locales/i18n';
-
 // Internal dependencies
 import createStyles from './ShowTokenIdSheet.styles';
+
 import { useParams } from '../../../util/navigation/navUtils';
 import { ShowTokenIdSheetParams } from './ShowTokenIdSheet.types';
 import { View } from 'react-native';
+import { Text } from '@metamask/design-system-react-native';
 
 const ShowTokenIdSheet = () => {
   const styles = createStyles();

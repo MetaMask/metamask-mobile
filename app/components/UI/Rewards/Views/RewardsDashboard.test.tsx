@@ -6,6 +6,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
 import { useOndoOutcomeToast } from '../hooks/useOndoOutcomeToast';
 import { usePerpsTradingCampaignEndedOutcomeToast } from '../hooks/usePerpsTradingCampaignEndedOutcomeToast';
+import { useGetPredictThePitchOutcomeToast } from '../hooks/useGetPredictThePitchOutcomeToast';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
@@ -209,6 +210,10 @@ jest.mock('../hooks/usePerpsTradingCampaignEndedOutcomeToast', () => ({
   usePerpsTradingCampaignEndedOutcomeToast: jest.fn(),
 }));
 
+jest.mock('../hooks/useGetPredictThePitchOutcomeToast', () => ({
+  useGetPredictThePitchOutcomeToast: jest.fn(),
+}));
+
 // Import mocked hooks
 import { useRewardOptinSummary } from '../hooks/useRewardOptinSummary';
 import { useRewardDashboardModals } from '../hooks/useRewardDashboardModals';
@@ -231,6 +236,10 @@ const mockUseOndoOutcomeToast = useOndoOutcomeToast as jest.MockedFunction<
 const mockUsePerpsTradingCampaignEndedOutcomeToast =
   usePerpsTradingCampaignEndedOutcomeToast as jest.MockedFunction<
     typeof usePerpsTradingCampaignEndedOutcomeToast
+  >;
+const mockUseGetPredictThePitchOutcomeToast =
+  useGetPredictThePitchOutcomeToast as jest.MockedFunction<
+    typeof useGetPredictThePitchOutcomeToast
   >;
 
 describe('RewardsDashboard', () => {
@@ -384,6 +393,7 @@ describe('RewardsDashboard', () => {
       expect(
         mockUsePerpsTradingCampaignEndedOutcomeToast,
       ).toHaveBeenCalledTimes(1);
+      expect(mockUseGetPredictThePitchOutcomeToast).toHaveBeenCalledTimes(1);
     });
 
     it('renders all child components', () => {

@@ -3,10 +3,6 @@ import { View, Linking } from 'react-native';
 import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { strings } from '../../../../locales/i18n';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../component-library/components/Texts/Text';
 import createStyles from './styles';
 import { useTheme } from '../../../util/theme';
 import Accordion from '../../../component-library/components/Accordions/Accordion/Accordion';
@@ -21,6 +17,12 @@ import { AccordionHeaderHorizontalAlignment } from '../../../component-library/c
 import { analytics } from '../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import { trackExternalLinkClicked } from '../../../util/analytics/externalLinkTracking';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+  FontWeight,
+} from '@metamask/design-system-react-native';
 
 const descriptionArray = [
   strings('accounts.fake_metamask'),
@@ -50,9 +52,9 @@ const ShowWarningBanner = () => {
       severity={BannerAlertSeverity.Error}
       title={strings('accounts.deceptive_site_ahead')}
       description={
-        <Text variant={TextVariant.BodyMD} style={styles.descriptionText}>
+        <Text variant={TextVariant.BodyMd} style={styles.descriptionText}>
           {strings('accounts.deceptive_site_desc')}{' '}
-          <Text color={TextColor.Info} onPress={goToLearnMore}>
+          <Text color={TextColor.InfoDefault} onPress={goToLearnMore}>
             {strings('accounts.learn_more')}
           </Text>
         </Text>
@@ -65,14 +67,18 @@ const ShowWarningBanner = () => {
         style={styles.seeDetails}
         horizontalAlignment={AccordionHeaderHorizontalAlignment.Start}
       >
-        <Text variant={TextVariant.BodySMBold} style={styles.headerText}>
+        <Text
+          variant={TextVariant.BodySm}
+          style={styles.headerText}
+          fontWeight={FontWeight.Bold}
+        >
           {strings('accounts.potential_threat')}
         </Text>
         <View style={styles.details}>
           {descriptionArray?.map((value, i) => (
             <Text
               key={`value-${i}`}
-              variant={TextVariant.BodySM}
+              variant={TextVariant.BodySm}
               style={styles.detailsItem}
             >
               • {value}
@@ -90,7 +96,7 @@ const ShowWarningBanner = () => {
           />
         </View>
         <View style={styles.attributionItem}>
-          <Text variant={TextVariant.BodySM} style={styles.advisoryText}>
+          <Text variant={TextVariant.BodySm} style={styles.advisoryText}>
             {strings('accounts.advisory_by')}
           </Text>
         </View>
