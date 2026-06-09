@@ -17,20 +17,19 @@ export const multichainRoutingServiceInit: MessengerClientInitFunction<
   MultichainRoutingService,
   MultichainRoutingServiceMessenger,
   MultichainRoutingServiceInitMessenger
-> = ({ controllerMessenger, getMessengerClient }) => {
-  const snapAccountService = getMessengerClient('SnapAccountService');
-
-  const withSnapKeyring = async (
-    operation: ({ keyring }: { keyring: unknown }) => void,
+> = ({ controllerMessenger, initMessenger }) => {
+  const withSnapKeyring = async <ReturnType>(
+    operation: ({ keyring }: { keyring: SnapKeyring }) => Promise<ReturnType>,
   ) => {
-    const keyring = await snapAccountService.getLegacySnapKeyring();
+    const keyring = await initMessenger.call(
+      'SnapAccountService:getLegacySnapKeyring',
+    );
     return operation({ keyring });
   };
 
   const controller = new MultichainRoutingService({
     messenger: controllerMessenger,
 
-    // @ts-expect-error: Type for `withSnapKeyring` is different.
     withSnapKeyring,
   });
 
