@@ -12,6 +12,10 @@ const {
   GITHUB_REF_NAME = '',
   GITHUB_EVENT_NAME = '',
   METAMASK_VERSION = '',
+  JOB_STATUS_ANDROID_LOGIN = '',
+  JOB_STATUS_ANDROID_ONBOARDING = '',
+  JOB_STATUS_IOS_LOGIN = '',
+  JOB_STATUS_IOS_ONBOARDING = '',
 } = process.env;
 
 const reportsPath = process.argv[2] || 'all-reports';
@@ -25,10 +29,18 @@ const results = JSON.parse(
   ),
 );
 
+const jobStatuses = [
+  JOB_STATUS_ANDROID_LOGIN,
+  JOB_STATUS_ANDROID_ONBOARDING,
+  JOB_STATUS_IOS_LOGIN,
+  JOB_STATUS_IOS_ONBOARDING,
+].filter(Boolean);
+const anyJobFailed = jobStatuses.some((s) => s === 'failure');
 const noResults = results.total === 0;
-const allPassed = !noResults && results.failed === 0;
-const emoji = noResults ? ':warning:' : allPassed ? ':white_check_mark:' : ':x:';
-const status = noResults ? 'Not Run' : allPassed ? 'Passed' : 'Failed';
+const allPassed = !noResults && results.failed === 0 && !anyJobFailed;
+const hasFailed = results.failed > 0 || anyJobFailed;
+const emoji = hasFailed ? ':x:' : noResults ? ':warning:' : ':white_check_mark:';
+const status = hasFailed ? 'Failed' : noResults ? 'Not Run' : 'Passed';
 const runUrl = `${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}`;
 
 const blocks = [

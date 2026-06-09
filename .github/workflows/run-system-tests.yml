@@ -530,10 +530,8 @@ jobs:
       - name: Format test results
         id: results
         run: |
-          RESULTS=$(node .github/scripts/format-system-test-results.mjs all-reports all-visual-reports)
-          echo "json<<EOF" >> "$GITHUB_OUTPUT"
-          echo "$RESULTS" >> "$GITHUB_OUTPUT"
-          echo "EOF" >> "$GITHUB_OUTPUT"
+          node .github/scripts/format-system-test-results.mjs all-reports all-visual-reports > "$RUNNER_TEMP/system-test-results.json"
+          echo "file=$RUNNER_TEMP/system-test-results.json" >> "$GITHUB_OUTPUT"
 
       - name: Generate summary
         run: |
@@ -552,12 +550,14 @@ jobs:
             esac
           }
 
-          RESULTS='${{ steps.results.outputs.json }}'
-          PASSED=$(echo "$RESULTS" | node -p 'JSON.parse(require("fs").readFileSync("/dev/stdin","utf8")).passed')
-          FAILED=$(echo "$RESULTS" | node -p 'JSON.parse(require("fs").readFileSync("/dev/stdin","utf8")).failed')
-          SKIPPED=$(echo "$RESULTS" | node -p 'JSON.parse(require("fs").readFileSync("/dev/stdin","utf8")).skipped')
-          TABLE=$(echo "$RESULTS" | node -p 'JSON.parse(require("fs").readFileSync("/dev/stdin","utf8")).table')
-          VISUAL=$(echo "$RESULTS" | node -p 'JSON.parse(require("fs").readFileSync("/dev/stdin","utf8")).hasVisualFailures')
+          RESULTS_FILE="${{ steps.results.outputs.file }}"
+          read_field() { node -p "JSON.parse(require('fs').readFileSync('$RESULTS_FILE','utf8')).$1"; }
+
+          PASSED=$(read_field passed)
+          FAILED=$(read_field failed)
+          SKIPPED=$(read_field skipped)
+          TABLE=$(read_field table)
+          VISUAL=$(read_field hasVisualFailures)
 
           {
             echo "## Nightly System Test Results"
@@ -594,6 +594,10 @@ jobs:
           GITHUB_RUN_ID: ${{ github.run_id }}
           GITHUB_REF_NAME: ${{ github.ref_name }}
           GITHUB_EVENT_NAME: ${{ github.event_name }}
+          JOB_STATUS_ANDROID_LOGIN: ${{ needs.run-android-login-tests.result }}
+          JOB_STATUS_ANDROID_ONBOARDING: ${{ needs.run-android-onboarding-tests.result }}
+          JOB_STATUS_IOS_LOGIN: ${{ needs.run-ios-login-tests.result }}
+          JOB_STATUS_IOS_ONBOARDING: ${{ needs.run-ios-onboarding-tests.result }}
         run: |
           PAYLOAD_PATH=$(node .github/scripts/post-system-test-results.mjs all-reports all-visual-reports)
           echo "payload-path=$PAYLOAD_PATH" >> "$GITHUB_OUTPUT"
