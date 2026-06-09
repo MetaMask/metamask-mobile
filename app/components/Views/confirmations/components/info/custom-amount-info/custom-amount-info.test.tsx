@@ -133,6 +133,10 @@ jest.mock('../../../../../UI/Ramp/hooks/useRampNavigation', () => ({
   }),
 }));
 
+jest.mock('../../../../../UI/Ramp/hooks/useHasNativeFiatProvider', () => ({
+  useHasNativeFiatProvider: () => true,
+}));
+
 jest.mock('../../../../../UI/Ramp/hooks/useRampsPaymentMethods', () => ({
   useRampsPaymentMethods: () => ({
     paymentMethods: [],
@@ -344,6 +348,40 @@ describe('CustomAmountInfo', () => {
       rejectOnBeforeRemoveWithoutGesture: true,
       skipNavigationOnGestureEnd: true,
       onBeforeReject: expect.any(Function),
+    });
+  });
+
+  it('rejects money account deposit confirmations on beforeRemove', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.batch,
+      nestedTransactions: [{ type: TransactionType.moneyAccountDeposit }],
+      txParams: { from: '0x123' },
+    } as never);
+
+    render();
+
+    expect(useClearConfirmationOnBackSwipeMock).toHaveBeenCalledWith({
+      rejectOnBeforeRemove: true,
+      rejectOnBeforeRemoveWithoutGesture: true,
+      skipNavigationOnGestureEnd: true,
+      onBeforeReject: undefined,
+    });
+  });
+
+  it('rejects money account withdraw confirmations on beforeRemove', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.batch,
+      nestedTransactions: [{ type: TransactionType.moneyAccountWithdraw }],
+      txParams: { from: '0x123' },
+    } as never);
+
+    render();
+
+    expect(useClearConfirmationOnBackSwipeMock).toHaveBeenCalledWith({
+      rejectOnBeforeRemove: true,
+      rejectOnBeforeRemoveWithoutGesture: true,
+      skipNavigationOnGestureEnd: true,
+      onBeforeReject: undefined,
     });
   });
 

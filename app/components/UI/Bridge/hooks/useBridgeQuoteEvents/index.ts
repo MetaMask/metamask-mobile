@@ -12,6 +12,7 @@ import {
   UnifiedSwapBridgeEventName,
 } from '@metamask/bridge-controller';
 import { useTokenBalanceInUsd } from '../useTokenBalanceInUsd';
+import { useHasSufficientGasEvenIfGasIncludedOrSponsored } from '../useHasSufficientGasEvenIfGasIncludedOrSponsored';
 
 /**
  * Hook for publishing the QuotesReceived event.
@@ -44,6 +45,9 @@ export const useBridgeQuoteEvents = ({
 
   const sourceToken = useSelector(selectSourceToken);
   const fromTokenBalanceInUsd = useTokenBalanceInUsd(sourceToken ?? undefined);
+  // NB: this is for gasless counter metrics purposes. It intentionally calculates balance insufficiency irrespective of gasless or sponsored quotes.
+  const hasSufficientGasForQuote =
+    useHasSufficientGasEvenIfGasIncludedOrSponsored({ quote: activeQuote });
 
   const warnings = useMemo(() => {
     const latestWarnings: QuoteWarning[] = [];
@@ -83,6 +87,7 @@ export const useBridgeQuoteEvents = ({
           !isSubmitDisabled,
           recommendedQuote,
           fromTokenBalanceInUsd,
+          hasSufficientGasForQuote,
         ),
       );
     }

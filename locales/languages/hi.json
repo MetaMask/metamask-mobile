@@ -2268,8 +2268,7 @@
         "group_i": "ग्रुप आई",
         "group_j": "ग्रुप जे",
         "group_k": "ग्रुप के",
-        "group_l": "ग्रुप एल",
-        "third_place_match": "थर्ड प्लेस मैच"
+        "group_l": "ग्रुप एल"
       }
     },
     "prediction_markets": "प्रेडिक्शन मार्केट",
@@ -8972,7 +8971,7 @@
       "non_winner": {
         "title": "रिज़ल्ट आ गए हैं 🏅",
         "description": "{{campaignName}} में अपनी रैंकिंग देखें।",
-        "cta": "देखें"
+        "cta": "विवरण देखें"
       }
     }
   },

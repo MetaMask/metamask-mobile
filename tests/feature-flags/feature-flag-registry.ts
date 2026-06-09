@@ -246,6 +246,20 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  batchSell: {
+    name: 'batchSell',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      versions: {
+        '7.81.0': {
+          enabled: false,
+        },
+      },
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   bridgeConfig: {
     name: 'bridgeConfig',
     type: FeatureFlagType.Remote,
@@ -2968,16 +2982,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  earnChompApiConfig: {
-    name: 'earnChompApiConfig',
-    type: FeatureFlagType.Remote,
-    inProd: false,
-    productionDefault: {
-      baseUrl: 'https://chomp.dev-api.cx.metamask.io',
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   earnFeatureFlagTemplate: {
     name: 'earnFeatureFlagTemplate',
     type: FeatureFlagType.Remote,
@@ -3298,17 +3302,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  homepageSectionsV1: {
-    name: 'homepageSectionsV1',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      minimumVersion: '7.70.0',
-      enabled: true,
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   homeTMCU610AbtestWalletHomePostOnboardingSteps: {
     name: 'homeTMCU610AbtestWalletHomePostOnboardingSteps',
     type: FeatureFlagType.Remote,
@@ -3396,6 +3389,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
 
   moneyEnableMoneyAccount: {
     name: 'moneyEnableMoneyAccount',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      minimumVersion: '0.0.0',
+      enabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  moneyEnableOnboardingStepperAnimation: {
+    name: 'moneyEnableOnboardingStepperAnimation',
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
@@ -3567,6 +3571,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  perpsProductsEnabled: {
+    name: 'perpsProductsEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      minimumVersion: '0.0.0',
+      enabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   perpsPerpGtmOnboardingModalEnabled: {
     name: 'perpsPerpGtmOnboardingModalEnabled',
     type: FeatureFlagType.Remote,
@@ -3616,6 +3631,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       enabled: false,
       minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  perpsTopMoversEnabled: {
+    name: 'perpsTopMoversEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      minimumVersion: '0.0.0',
+      enabled: false,
     },
     status: FeatureFlagStatus.Active,
   },
@@ -4548,7 +4574,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      baseUrl: 'https://chomp.dev-api.cx.metamask.io',
+      baseUrl: 'https://chomp.api.cx.metamask.io',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -4623,31 +4649,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       enabled: false,
     },
-    status: FeatureFlagStatus.Active,
-  },
-
-  stickyButtonsAbTest: {
-    name: 'stickyButtonsAbTest',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: [
-      {
-        name: 'control',
-        scope: {
-          value: 1,
-          type: 'threshold',
-        },
-        value: 'control',
-      },
-      {
-        name: 'treatment',
-        scope: {
-          type: 'threshold',
-          value: 0,
-        },
-        value: 'treatment',
-      },
-    ],
     status: FeatureFlagStatus.Active,
   },
 
@@ -4810,6 +4811,25 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       enabled: false,
       minimumVersion: '7.81.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  smartTransactionsAllowedRpcHosts: {
+    name: 'smartTransactionsAllowedRpcHosts',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: ['.infura.io', '.binance.org'],
+    status: FeatureFlagStatus.Active,
+  },
+
+  prePushPromptEnabled: {
+    name: 'prePushPromptEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '7.99.0',
     },
     status: FeatureFlagStatus.Active,
   },

@@ -14,7 +14,7 @@ import {
 import { asPlaywrightElement } from '../../framework/EncapsulatedElement';
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
 import { PLAYGROUND_PACKAGE_ID } from '../../framework/Constants';
-import type { CurrentDeviceDetails } from '../../framework/fixture';
+import type { CurrentDeviceDetails } from '../../framework/fixtures/playwright';
 
 const logger = createLogger({
   name: 'MMConnectUtils',

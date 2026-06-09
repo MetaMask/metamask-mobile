@@ -2268,8 +2268,7 @@
         "group_i": "Bảng I",
         "group_j": "Bảng J",
         "group_k": "Bảng K",
-        "group_l": "Bảng L",
-        "third_place_match": "Trận tranh hạng ba"
+        "group_l": "Bảng L"
       }
     },
     "prediction_markets": "Thị trường dự đoán",
@@ -8972,7 +8971,7 @@
       "non_winner": {
         "title": "Kết quả đã có 🏅",
         "description": "Xem thứ hạng của bạn trong {{campaignName}}.",
-        "cta": "Xem"
+        "cta": "Xem chi tiết"
       }
     }
   },

@@ -2268,8 +2268,7 @@
         "group_i": "Grupo I",
         "group_j": "Grupo J",
         "group_k": "Grupo K",
-        "group_l": "Grupo L",
-        "third_place_match": "Laban sa Ikatlong Pwesto"
+        "group_l": "Grupo L"
       }
     },
     "prediction_markets": "Mga market ng prediksyon",
@@ -8972,7 +8971,7 @@
       "non_winner": {
         "title": "Lumabas na ang resulta 🏅",
         "description": "Tingnan ang ranking mo sa {{campaignName}}.",
-        "cta": "Tingnan"
+        "cta": "Tingnan ang mga detalye"
       }
     }
   },

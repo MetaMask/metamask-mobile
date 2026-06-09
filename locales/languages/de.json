@@ -2268,8 +2268,7 @@
         "group_i": "Gruppe I",
         "group_j": "Gruppe J",
         "group_k": "Gruppe K",
-        "group_l": "Gruppe L",
-        "third_place_match": "Spiel um Platz Drei"
+        "group_l": "Gruppe L"
       }
     },
     "prediction_markets": "Prognosemärkte",
@@ -8972,7 +8971,7 @@
       "non_winner": {
         "title": "Die Ergebnisse sind verfügbar 🏅",
         "description": "Sehen Sie Ihre Platzierung in der {{campaignName}} ein.",
-        "cta": "Ansehen"
+        "cta": "Details anzeigen"
       }
     }
   },

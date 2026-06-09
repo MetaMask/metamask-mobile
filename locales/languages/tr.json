@@ -2268,8 +2268,7 @@
         "group_i": "Grup I",
         "group_j": "Grup J",
         "group_k": "Grup K",
-        "group_l": "Grup L",
-        "third_place_match": "Üçüncülük Maçı"
+        "group_l": "Grup L"
       }
     },
     "prediction_markets": "Tahmin piyasaları",
@@ -8972,7 +8971,7 @@
       "non_winner": {
         "title": "Sonuçlar belli oldu 🏅",
         "description": "{{campaignName}} adlı kampanyadaki sıralamanızı görün.",
-        "cta": "Görüntüle"
+        "cta": "Ayrıntıları görüntüle"
       }
     }
   },

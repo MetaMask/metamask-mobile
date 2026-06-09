@@ -10,7 +10,7 @@ import { useStyles } from '../../../component-library/hooks';
 // Internal dependencies.
 import styleSheet from './Skeleton.styles';
 import { SkeletonProps } from './Skeleton.types';
-import { isE2E } from '../../../util/test/utils';
+import { hasTestOverrides } from '../../../util/test/utils';
 
 /**
  * @deprecated Please update your code to use `Skeleton` from `app/component-library/components-temp/Skeleton`.
@@ -58,7 +58,11 @@ const Skeleton: React.FC<SkeletonProps> = ({
 
   useEffect(() => {
     // Only start animation if no children are present or if children should be hidden
-    if (!isE2E && !process.env.JEST_WORKER_ID && (!children || hideChildren)) {
+    if (
+      !hasTestOverrides &&
+      !process.env.JEST_WORKER_ID &&
+      (!children || hideChildren)
+    ) {
       startAnimation();
     }
 

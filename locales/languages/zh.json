@@ -2268,8 +2268,7 @@
         "group_i": "I 组",
         "group_j": "J 组",
         "group_k": "K 组",
-        "group_l": "L 组",
-        "third_place_match": "季军赛"
+        "group_l": "L 组"
       }
     },
     "prediction_markets": "预测市场",
@@ -8972,7 +8971,7 @@
       "non_winner": {
         "title": "结果已公布 🏅",
         "description": "查看您在 {{campaignName}} 中的排名.",
-        "cta": "查看"
+        "cta": "查看详情"
       }
     }
   },

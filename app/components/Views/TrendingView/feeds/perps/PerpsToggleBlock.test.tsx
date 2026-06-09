@@ -50,7 +50,7 @@ const makeMarket = (symbol: string): PerpsMarketData =>
     volume: '$100M',
     maxLeverage: '10x',
     isHip3: true,
-    marketType: 'equity',
+    marketType: 'stock',
   }) as PerpsMarketData;
 
 // Minimal PerpsRowItem mock — renders the symbol so assertions are simple.

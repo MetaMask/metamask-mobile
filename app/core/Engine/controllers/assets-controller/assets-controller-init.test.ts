@@ -146,6 +146,11 @@ describe('assetsControllerInit', () => {
     jest.mocked(store.getState).mockReturnValue({
       settings: { basicFunctionalityEnabled: true },
       onboarding: { completedOnboarding: false },
+      engine: {
+        backgroundState: {
+          KeyringController: { isUnlocked: true },
+        },
+      },
     } as ReturnType<typeof store.getState>);
   });
 
@@ -176,7 +181,6 @@ describe('assetsControllerInit', () => {
           pollInterval: 30_000,
           enabled: true,
         },
-        trace: expect.any(Function),
       }),
     );
   });
@@ -279,6 +283,48 @@ describe('assetsControllerInit', () => {
       const isEnabled = constructorCall.isEnabled as () => boolean;
 
       expect(isEnabled()).toBe(false);
+    });
+
+    it('returns false when the keyring is locked, regardless of feature flag', () => {
+      jest.mocked(store.getState).mockReturnValue({
+        settings: { basicFunctionalityEnabled: true },
+        onboarding: { completedOnboarding: false },
+        engine: {
+          backgroundState: {
+            KeyringController: { isUnlocked: false },
+          },
+        },
+      } as ReturnType<typeof store.getState>);
+
+      const requestMock = getInitRequestMock();
+      assetsControllerInit(requestMock);
+
+      const controllerMock = jest.mocked(AssetsController);
+      const constructorCall = controllerMock.mock.calls[0][0];
+      const isEnabled = constructorCall.isEnabled as () => boolean;
+
+      expect(isEnabled()).toBe(false);
+    });
+
+    it('returns true when keyring is unlocked and feature flag is enabled', () => {
+      jest.mocked(store.getState).mockReturnValue({
+        settings: { basicFunctionalityEnabled: true },
+        onboarding: { completedOnboarding: false },
+        engine: {
+          backgroundState: {
+            KeyringController: { isUnlocked: true },
+          },
+        },
+      } as ReturnType<typeof store.getState>);
+
+      const requestMock = getInitRequestMock();
+      assetsControllerInit(requestMock);
+
+      const controllerMock = jest.mocked(AssetsController);
+      const constructorCall = controllerMock.mock.calls[0][0];
+      const isEnabled = constructorCall.isEnabled as () => boolean;
+
+      expect(isEnabled()).toBe(true);
     });
 
     it('returns true when RemoteFeatureFlagController:getState throws while hardcoded on for development', () => {

@@ -2268,8 +2268,7 @@
         "group_i": "Grup I",
         "group_j": "Grup J",
         "group_k": "Grup K",
-        "group_l": "Grup L",
-        "third_place_match": "Pertandingan Perebutan Posisi Ketiga"
+        "group_l": "Grup L"
       }
     },
     "prediction_markets": "Pasar prediksi",
@@ -8972,7 +8971,7 @@
       "non_winner": {
         "title": "Hasilnya sudah keluar 🏅",
         "description": "Lihat peringkat Anda di {{campaignName}}.",
-        "cta": "Lihat"
+        "cta": "Lihat detail"
       }
     }
   },

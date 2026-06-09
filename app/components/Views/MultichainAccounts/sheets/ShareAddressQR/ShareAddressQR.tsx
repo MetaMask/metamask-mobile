@@ -1,9 +1,6 @@
 import React, { useCallback, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { AccountGroupId } from '@metamask/account-api';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { strings } from '../../../../../../locales/i18n';
 import {
   ParamListBase,
@@ -12,13 +9,15 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import {
+  BottomSheet,
+  BottomSheetHeader,
+  type BottomSheetRef,
   Box,
   BoxFlexDirection,
   BoxAlignItems,
   Button,
   ButtonVariant,
   ButtonSize,
-  HeaderStandard,
   TextVariant,
   TextColor,
   FontWeight,
@@ -73,12 +72,13 @@ export const ShareAddressQR = () => {
   }, [address, toBlockExplorer]);
 
   return (
-    <BottomSheet ref={sheetRef}>
-      <HeaderStandard
-        title={`${accountGroupName} / ${networkName}`}
+    <BottomSheet ref={sheetRef} goBack={handleOnBack}>
+      <BottomSheetHeader
         onClose={handleOnBack}
         closeButtonProps={{ testID: ShareAddressQRIds.GO_BACK }}
-      />
+      >
+        {`${accountGroupName} / ${networkName}`}
+      </BottomSheetHeader>
       <Box
         flexDirection={BoxFlexDirection.Column}
         alignItems={BoxAlignItems.Center}
