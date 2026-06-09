@@ -787,10 +787,8 @@ describe('useHwBatchSignTracker', () => {
         cancelPromise = result.current.cancelCurrentBatch();
       });
 
-      await act(async () => {
-        await Promise.resolve();
-        await Promise.resolve();
-      });
+      broadcastTxEvent({ ...activeTx, status: TransactionStatus.dropped });
+      await cancelPromise;
 
       expect(mockAbortTransactionSigning).toHaveBeenCalledWith(activeTx.id);
       expect(mockAbortTransactionSigning).not.toHaveBeenCalledWith(
@@ -812,9 +810,6 @@ describe('useHwBatchSignTracker', () => {
         }),
         expect.any(String),
       );
-
-      broadcastTxEvent({ ...activeTx, status: TransactionStatus.dropped });
-      await cancelPromise;
     });
 
     it('does not reject pending approvals for a different in-flight batch on cancelCurrentBatch', async () => {
@@ -856,6 +851,9 @@ describe('useHwBatchSignTracker', () => {
         cancelPromise = result.current.cancelCurrentBatch();
       });
 
+      broadcastTxEvent({ ...activeTx, status: TransactionStatus.dropped });
+      await cancelPromise;
+
       const expectRejected = (id: string) =>
         expect(Engine.rejectPendingApproval).toHaveBeenCalledWith(
           id,
@@ -869,12 +867,9 @@ describe('useHwBatchSignTracker', () => {
           expect.anything(),
         );
 
-      await waitFor(() => expectRejected(activeBatchId));
+      expectRejected(activeBatchId);
       expectNotRejected(otherBatchId);
       expectNotRejected(otherBatchTx.id);
-
-      broadcastTxEvent({ ...activeTx, status: TransactionStatus.dropped });
-      await cancelPromise;
     });
 
     it('aborts untracked non-terminal txs from the same batch on cancelCurrentBatch', async () => {
@@ -901,10 +896,9 @@ describe('useHwBatchSignTracker', () => {
         cancelPromise = result.current.cancelCurrentBatch();
       });
 
-      await act(async () => {
-        await Promise.resolve();
-        await Promise.resolve();
-      });
+      broadcastTxEvent({ ...approvalTx, status: TransactionStatus.dropped });
+      broadcastTxEvent({ ...tradeTx, status: TransactionStatus.dropped });
+      await cancelPromise;
 
       expect(mockAbortTransactionSigning).toHaveBeenCalledWith(approvalTx.id);
       expect(mockAbortTransactionSigning).toHaveBeenCalledWith(tradeTx.id);
@@ -916,10 +910,6 @@ describe('useHwBatchSignTracker', () => {
         }),
         expect.any(String),
       );
-
-      broadcastTxEvent({ ...approvalTx, status: TransactionStatus.dropped });
-      broadcastTxEvent({ ...tradeTx, status: TransactionStatus.dropped });
-      await cancelPromise;
     });
 
     it('does not locally abort or drop submitted batch transactions on cancelCurrentBatch', async () => {
@@ -945,10 +935,8 @@ describe('useHwBatchSignTracker', () => {
         cancelPromise = result.current.cancelCurrentBatch();
       });
 
-      await act(async () => {
-        await Promise.resolve();
-        await Promise.resolve();
-      });
+      broadcastTxEvent({ ...approvedTx, status: TransactionStatus.dropped });
+      await cancelPromise;
 
       expect(mockAbortTransactionSigning).toHaveBeenCalledWith(approvedTx.id);
       expect(mockAbortTransactionSigning).not.toHaveBeenCalledWith(
@@ -970,9 +958,6 @@ describe('useHwBatchSignTracker', () => {
         }),
         expect.any(String),
       );
-
-      broadcastTxEvent({ ...approvedTx, status: TransactionStatus.dropped });
-      await cancelPromise;
     });
 
     it('resolves cancelCurrentBatch without events for submitted-only batches', async () => {
@@ -1043,6 +1028,9 @@ describe('useHwBatchSignTracker', () => {
         cancelPromise = result.current.cancelCurrentBatch();
       });
 
+      broadcastTxEvent({ ...bridgeTx, status: TransactionStatus.dropped });
+      await cancelPromise;
+
       const expectRejected = (id: string) =>
         expect(Engine.rejectPendingApproval).toHaveBeenCalledWith(
           id,
@@ -1056,13 +1044,10 @@ describe('useHwBatchSignTracker', () => {
           expect.anything(),
         );
 
-      await waitFor(() => expectRejected(bridgeBatchId));
+      expectRejected(bridgeBatchId);
       expectRejected(bridgeTxId);
       expectNotRejected(unrelatedTxId);
       expectNotRejected(unrelatedBatchId);
-
-      broadcastTxEvent({ ...bridgeTx, status: TransactionStatus.dropped });
-      await cancelPromise;
     });
 
     it('rejects tracked Transaction approvals without batchId on cancel', async () => {
@@ -1089,15 +1074,14 @@ describe('useHwBatchSignTracker', () => {
         cancelPromise = result.current.cancelCurrentBatch();
       });
 
-      await waitFor(() =>
-        expect(Engine.rejectPendingApproval).toHaveBeenCalledWith(
-          bridgeTxId,
-          expect.any(Error),
-          { ignoreMissing: true, logErrors: false },
-        ),
-      );
-
+      broadcastTxEvent({ ...bridgeTx, status: TransactionStatus.dropped });
       await cancelPromise;
+
+      expect(Engine.rejectPendingApproval).toHaveBeenCalledWith(
+        bridgeTxId,
+        expect.any(Error),
+        { ignoreMissing: true, logErrors: false },
+      );
     });
 
     it('unsubscribes the cancel waiter when tracked txs become terminal', async () => {
@@ -1290,16 +1274,13 @@ describe('useHwBatchSignTracker', () => {
         cancelPromise = result.current.cancelCurrentBatch();
       });
 
-      await waitFor(() => {
-        expect(mockControllerMessengerCall).toHaveBeenCalledWith(
-          'TransactionController:wipeTransactions',
-          { address: FROM_ADDRESS.toLowerCase(), chainId },
-        );
-      });
-
-      // After wipe, the cancel-waiter receives a dropped status for the tracked tx.
       broadcastTxEvent({ ...trackedTx, status: TransactionStatus.dropped });
       await cancelPromise;
+
+      expect(mockControllerMessengerCall).toHaveBeenCalledWith(
+        'TransactionController:wipeTransactions',
+        { address: FROM_ADDRESS.toLowerCase(), chainId },
+      );
     });
 
     it('does not wipe failed bridge transactions without related batch ids', async () => {
@@ -1475,9 +1456,10 @@ describe('useHwBatchSignTracker', () => {
         cancelPromise = result.current.cancelCurrentBatch();
       });
 
-      expect(result.current.confirmationTxId).toBeUndefined();
       broadcastTxEvent({ ...meta, status: TransactionStatus.dropped });
       await cancelPromise;
+
+      expect(result.current.confirmationTxId).toBeUndefined();
     });
   });
 

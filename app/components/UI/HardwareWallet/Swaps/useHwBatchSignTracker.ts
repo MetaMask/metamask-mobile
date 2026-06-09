@@ -424,10 +424,6 @@ function shouldRejectPendingApprovalOnCancel(
   }
 
   if (request.type === ApprovalType.Transaction) {
-    if (!relatedApprovalIds.has(requestId)) {
-      return false;
-    }
-
     const txMeta = getTransactionById(requestId);
     if (!txMeta || !matchesTx(txMeta, targetFrom)) {
       return false;
@@ -437,6 +433,10 @@ function shouldRejectPendingApprovalOnCancel(
     // reject any tracked approval that matches the active address.
     if (!txMeta.batchId) {
       return true;
+    }
+
+    if (!relatedApprovalIds.has(requestId)) {
+      return false;
     }
 
     return relatedBatchIds.has(txMeta.batchId);
@@ -699,6 +699,7 @@ export function useHwBatchSignTracker({
       const relatedApprovalIds = new Set([
         ...trackerState.acceptedApprovalIds,
         ...trackerState.approvalQueue,
+        ...trackerState.pendingSignTxIds,
       ]);
 
       trackerState.pendingSignTxIds = new Set();
