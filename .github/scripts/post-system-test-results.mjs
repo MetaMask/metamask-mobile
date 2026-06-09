@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import fs from 'fs';
+import os from 'os';
+import path from 'path';
 
 const {
   GITHUB_SERVER_URL = 'https://github.com',
@@ -16,8 +18,9 @@ const reportsPath = process.argv[2] || 'all-reports';
 const visualPath = process.argv[3] || 'all-visual-reports';
 
 const results = JSON.parse(
-  execSync(
-    `node .github/scripts/format-system-test-results.mjs "${reportsPath}" "${visualPath}"`,
+  execFileSync(
+    'node',
+    ['.github/scripts/format-system-test-results.mjs', reportsPath, visualPath],
     { encoding: 'utf-8' },
   ),
 );
@@ -94,5 +97,7 @@ const payload = {
   blocks,
 };
 
-fs.writeFileSync('/tmp/slack-payload.json', JSON.stringify(payload, null, 2));
-console.log(JSON.stringify(payload, null, 2));
+const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'slack-payload-'));
+const payloadPath = path.join(tempDir, 'slack-payload.json');
+fs.writeFileSync(payloadPath, JSON.stringify(payload, null, 2));
+console.log(payloadPath);

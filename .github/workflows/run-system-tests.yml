@@ -587,13 +587,16 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Prepare Slack payload
+        id: slack
         if: always()
         env:
           METAMASK_VERSION: ${{ steps.version.outputs.value }}
           GITHUB_RUN_ID: ${{ github.run_id }}
           GITHUB_REF_NAME: ${{ github.ref_name }}
           GITHUB_EVENT_NAME: ${{ github.event_name }}
-        run: node .github/scripts/post-system-test-results.mjs all-reports all-visual-reports
+        run: |
+          PAYLOAD_PATH=$(node .github/scripts/post-system-test-results.mjs all-reports all-visual-reports)
+          echo "payload-path=$PAYLOAD_PATH" >> "$GITHUB_OUTPUT"
 
       - name: Send Slack notification
         if: always()
@@ -601,5 +604,5 @@ jobs:
         with:
           webhook: ${{ secrets.SLACK_WEBHOOK_FEATURE_FLAG_DRIFT }}
           webhook-type: incoming-webhook
-          payload-file-path: /tmp/slack-payload.json
+          payload-file-path: ${{ steps.slack.outputs.payload-path }}
 

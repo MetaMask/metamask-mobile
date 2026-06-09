@@ -59,16 +59,20 @@ function parsePlaywrightReport(filePath) {
 
 function findResultFiles(dir) {
   const files = [];
+  let entries;
 
-  if (!fs.existsSync(dir)) return files;
+  try {
+    entries = fs.readdirSync(dir, { withFileTypes: true });
+  } catch {
+    return files;
+  }
 
-  for (const entry of fs.readdirSync(dir)) {
-    const full = path.join(dir, entry);
-    const stat = fs.statSync(full);
+  for (const entry of entries) {
+    const full = path.join(dir, entry.name);
 
-    if (stat.isDirectory()) {
+    if (entry.isDirectory()) {
       files.push(...findResultFiles(full));
-    } else if (entry === 'results.json') {
+    } else if (entry.name === 'results.json') {
       files.push(full);
     }
   }
@@ -77,18 +81,22 @@ function findResultFiles(dir) {
 }
 
 function detectVisualFailures(dir) {
-  if (!fs.existsSync(dir)) return false;
+  let entries;
+  try {
+    entries = fs.readdirSync(dir, { withFileTypes: true });
+  } catch {
+    return false;
+  }
 
-  for (const entry of fs.readdirSync(dir)) {
-    const full = path.join(dir, entry);
-    const stat = fs.statSync(full);
+  for (const entry of entries) {
+    const full = path.join(dir, entry.name);
 
-    if (stat.isDirectory()) {
+    if (entry.isDirectory()) {
       if (detectVisualFailures(full)) return true;
       continue;
     }
 
-    if (entry === 'visual-regression-summary.json') {
+    if (entry.name === 'visual-regression-summary.json') {
       try {
         const data = JSON.parse(fs.readFileSync(full, 'utf-8'));
         const checks = Array.isArray(data) ? data : data.results || [];
