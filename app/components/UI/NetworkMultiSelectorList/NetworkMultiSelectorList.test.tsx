@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet , Text } from 'react-native';
 import { render, fireEvent, act } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { parseCaipChainId, CaipChainId } from '@metamask/utils';
@@ -17,7 +18,6 @@ import {
   NetworkMultiSelectorListProps,
   Network,
 } from './NetworkMultiSelectorList.types.ts';
-import { Text } from 'react-native';
 
 jest.mock('@metamask/transaction-controller', () => ({
   CHAIN_IDS: {
@@ -81,7 +81,7 @@ jest.mock('../../../component-library/hooks/index.ts', () => ({
       networkList: {},
       centeredNetworkCell: { alignItems: 'center' },
       noNetworkFeeContainer: { alignSelf: 'center' },
-      networkNameText: { flex: 1 },
+      networkNameText: { flex: 1, minWidth: 0 },
     },
   })),
 }));
@@ -713,7 +713,10 @@ describe('NetworkMultiSelectorList', () => {
         'Monad Mainnet YOYOMI JOK.OK.OK.OK.OK.OK.OK.OK',
       );
       expect(nameText.props.numberOfLines).toBe(1);
-      expect(nameText.props.style).toMatchObject({ flex: 1 });
+      expect(StyleSheet.flatten(nameText.props.style)).toMatchObject({
+        flex: 1,
+        minWidth: 0,
+      });
     });
 
     it('renders plain name for non-sponsored chains', () => {
