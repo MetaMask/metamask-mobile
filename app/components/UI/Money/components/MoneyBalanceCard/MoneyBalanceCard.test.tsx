@@ -12,7 +12,7 @@ import { selectMoneyOnboardingSeen } from '../../../../../reducers/user/selector
 import { selectWalletHomeOnboardingFlowVisible } from '../../../../../selectors/onboarding';
 import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
-import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
+import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 
 const mockNavigate = jest.fn();
 const mockNavigateToMoneyHome = jest.fn();
@@ -48,9 +48,9 @@ jest.mock('../../hooks/useMoneyAccount', () => ({
   useMoneyAccountDeposit: jest.fn(),
 }));
 
-jest.mock('../../../../../selectors/tokenBalancesController', () => ({
-  ...jest.requireActual('../../../../../selectors/tokenBalancesController'),
-  selectHasAnyNonZeroTokenBalance: jest.fn(),
+jest.mock('../../../Earn/hooks/useMusdBalance', () => ({
+  __esModule: true,
+  useMusdBalance: jest.fn(),
 }));
 
 jest.mock('../../../../../reducers/user/selectors', () => ({
@@ -71,9 +71,7 @@ const mockSelectWalletHomeOnboardingFlowVisible = jest.mocked(
 );
 const mockUseMoneyNavigation = jest.mocked(useMoneyNavigation);
 const mockUseMoneyAccountDeposit = jest.mocked(useMoneyAccountDeposit);
-const mockSelectHasAnyNonZeroTokenBalance = jest.mocked(
-  selectHasAnyNonZeroTokenBalance,
-);
+const mockUseMusdBalance = jest.mocked(useMusdBalance);
 
 const createBalanceMock = (
   overrides: Partial<ReturnType<typeof useMoneyAccountBalance>> = {},
@@ -132,7 +130,9 @@ describe('MoneyBalanceCard', () => {
       navigateToMoneyHome: mockNavigateToMoneyHome,
     });
     mockInitiateDeposit.mockResolvedValue(undefined);
-    mockSelectHasAnyNonZeroTokenBalance.mockReturnValue(true);
+    mockUseMusdBalance.mockReturnValue({
+      hasMusdBalanceOnAnyChain: true,
+    } as ReturnType<typeof useMusdBalance>);
     mockUseMoneyAccountDeposit.mockReturnValue({
       initiateDeposit: mockInitiateDeposit,
     });
@@ -275,8 +275,10 @@ describe('MoneyBalanceCard', () => {
       });
     });
 
-    it('initiates a fiat deposit when Earn is pressed and there is no crypto balance', () => {
-      mockSelectHasAnyNonZeroTokenBalance.mockReturnValue(false);
+    it('initiates a fiat deposit when Earn is pressed and there is no mUSD balance', () => {
+      mockUseMusdBalance.mockReturnValue({
+        hasMusdBalanceOnAnyChain: false,
+      } as ReturnType<typeof useMusdBalance>);
       const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
       fireEvent.press(getByTestId(MoneyBalanceCardTestIds.EARN_BUTTON));

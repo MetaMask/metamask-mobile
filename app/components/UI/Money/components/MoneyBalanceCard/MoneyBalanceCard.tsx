@@ -33,7 +33,7 @@ import styleSheet from './MoneyBalanceCard.styles';
 import { MoneyBalanceCardTestIds } from './MoneyBalanceCard.testIds';
 import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
-import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
+import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import Logger from '../../../../../util/Logger';
 
 const MoneyBalanceCard = () => {
@@ -53,7 +53,7 @@ const MoneyBalanceCard = () => {
   const { hasMoneyAccount } = useMoneyAccountInfo();
   const { navigateToMoneyHome } = useMoneyNavigation();
   const { initiateDeposit } = useMoneyAccountDeposit();
-  const hasAnyCryptoBalance = useSelector(selectHasAnyNonZeroTokenBalance);
+  const { hasMusdBalanceOnAnyChain } = useMusdBalance();
   const hasSeenMoneyOnboarding = useSelector(selectMoneyOnboardingSeen);
   const hasOtherPrimaryCtaOnHome = useSelector(
     selectWalletHomeOnboardingFlowVisible,
@@ -127,14 +127,14 @@ const MoneyBalanceCard = () => {
   const handleAddPress = useCallback(async () => {
     try {
       await initiateDeposit(
-        hasAnyCryptoBalance ? undefined : { autoSelectFiatPayment: true },
+        hasMusdBalanceOnAnyChain ? undefined : { autoSelectFiatPayment: true },
       );
     } catch (error) {
       Logger.error(error as Error, {
         message: '[MoneyBalanceCard] Failed to initiate mUSD deposit',
       });
     }
-  }, [hasAnyCryptoBalance, initiateDeposit]);
+  }, [hasMusdBalanceOnAnyChain, initiateDeposit]);
 
   const handleInfoPress = useCallback(() => {
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
