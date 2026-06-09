@@ -313,8 +313,8 @@ describe('PayWithRow', () => {
       },
     });
 
-    function renderMoneyAccount() {
-      return renderWithProvider(<PayWithRow />, {
+    function renderMoneyAccount(props?: { isResultReady?: boolean }) {
+      return renderWithProvider(<PayWithRow {...props} />, {
         state: MONEY_ACCOUNT_STATE,
       });
     }
@@ -351,6 +351,46 @@ describe('PayWithRow', () => {
       });
 
       expect(navigateMock).toHaveBeenCalled();
+    });
+
+    it('renders money account row regardless of isResultReady when paymentOverride is MoneyAccount', () => {
+      const { getByTestId } = renderMoneyAccount({ isResultReady: true });
+
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money balance');
+    });
+  });
+
+  describe('isResultReady prop', () => {
+    beforeEach(() => {
+      useParamsMock.mockReturnValue({
+        payWithOption: 'money_account',
+      });
+    });
+
+    it('renders money account row when isResultReady is not set and initialPayWithOption is MoneyAccount', () => {
+      const { getByTestId } = renderWithProvider(<PayWithRow />, {
+        state: STATE_MOCK,
+      });
+
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money balance');
+    });
+
+    it('renders interactive row when isResultReady is true and initialPayWithOption is MoneyAccount', () => {
+      const { getByTestId } = renderWithProvider(<PayWithRow isResultReady />, {
+        state: STATE_MOCK,
+      });
+
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent(/^test/);
+    });
+
+    it('renders interactive row when isResultReady is true and no paymentOverride', () => {
+      useParamsMock.mockReturnValue({});
+
+      const { getByTestId } = renderWithProvider(<PayWithRow isResultReady />, {
+        state: STATE_MOCK,
+      });
+
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent(/^test/);
     });
   });
 });

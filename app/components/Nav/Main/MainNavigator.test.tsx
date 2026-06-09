@@ -15,6 +15,9 @@ jest.mock('@react-navigation/stack', () => ({
     Navigator: 'Navigator',
     Screen: 'Screen',
   }),
+  TransitionPresets: {
+    ModalSlideFromBottomIOS: {},
+  },
 }));
 
 jest.mock('@react-navigation/native-stack', () => ({
@@ -1478,6 +1481,20 @@ describe('MainNavigator', () => {
           'AssetStackFlow',
         );
         expect(renderInner(AssetStackFlow).toJSON()).toBeTruthy();
+      });
+
+      it('renders SnapsSettingsStack inside SettingsFlow', () => {
+        const { root: mainRoot } = renderWithProvider(<MainNavigator />, {
+          state: initialRootState,
+        });
+        const SettingsFlow = getScreenComponent(mainRoot, Routes.SETTINGS_VIEW);
+        const { root: settingsRoot } = renderInner(SettingsFlow);
+
+        const SnapsSettingsStack = getScreenComponent(
+          settingsRoot,
+          Routes.SNAPS.SNAPS_SETTINGS_LIST,
+        );
+        expect(renderInner(SnapsSettingsStack).toJSON()).toBeTruthy();
       });
     });
 

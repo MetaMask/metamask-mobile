@@ -220,6 +220,7 @@ export const PerpsHomeViewSelectorsIDs = {
   POSITIONS_PNL_VALUE: 'perps-home-positions-pnl-value',
   SERVICE_INTERRUPTION_BANNER: 'perps-service-interruption-banner',
   COMPETITION_BANNER: 'perps-home-competition-banner',
+  PRODUCTS_SECTION: 'perps-products',
   TOP_MOVERS_SECTION: 'perps-home-top-movers-section',
   TOP_MOVERS_HEADER: 'perps-home-top-movers-header',
   TOP_MOVERS_GAINERS_PILL: 'perps-home-top-movers-gainers',

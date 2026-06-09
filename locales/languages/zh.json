@@ -8971,7 +8971,7 @@
       "non_winner": {
         "title": "结果已公布 🏅",
         "description": "查看您在 {{campaignName}} 中的排名.",
-        "cta": "查看"
+        "cta": "查看详情"
       }
     }
   },

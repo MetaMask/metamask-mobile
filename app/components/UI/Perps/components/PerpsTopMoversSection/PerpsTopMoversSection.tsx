@@ -52,7 +52,7 @@ const TogglePill: React.FC<TogglePillProps> = ({
       accessibilityRole="button"
       accessibilityState={{ selected: isSelected }}
       style={tw.style(
-        'flex-1 rounded-xl items-center',
+        'flex-1 rounded-lg items-center justify-center py-1',
         isSelected ? 'bg-icon-default' : 'bg-muted',
       )}
     >

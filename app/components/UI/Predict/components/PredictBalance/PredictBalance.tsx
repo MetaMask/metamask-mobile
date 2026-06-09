@@ -1,15 +1,14 @@
 import {
   Box,
-  BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  Text,
-  TextColor,
   Spinner,
+  Text,
+  TitleHub,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import images from 'images/image-icons';
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useQueryClient } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
@@ -47,7 +46,6 @@ import { PREDICT_BALANCE_TEST_IDS } from './PredictBalance.testIds';
 import { selectPredictPortfolioEnabledFlag } from '../../selectors/featureFlags';
 import Routes from '../../../../../constants/navigation/Routes';
 
-// This is a temporary component that will be removed when the deposit flow is fully implemented
 interface PredictBalanceProps {
   onLayout?: (height: number) => void;
   onDepositWalletWithdrawPress?: () => void;
@@ -91,6 +89,30 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({
     ? ComponentTextVariant.BodySMMedium
     : undefined;
 
+  const amountEndAccessory = useMemo(
+    () => (
+      <BadgeWrapper
+        badgePosition={BadgePosition.BottomRight}
+        badgeElement={
+          <Badge
+            variant={BadgeVariant.Network}
+            imageSource={images.POL}
+            style={tw.style('border-background-muted')}
+            name="Polygon"
+          />
+        }
+        style={tw.style('self-end')}
+      >
+        <AvatarToken
+          name={USDC_SYMBOL}
+          imageSource={{ uri: USDC_TOKEN_ICON_URL }}
+          size={AvatarSize.Md}
+        />
+      </BadgeWrapper>
+    ),
+    [tw],
+  );
+
   useEffect(() => {
     if (!isDepositPending) {
       queryClient.invalidateQueries({
@@ -117,8 +139,6 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({
   }, [navigation]);
 
   const handleWithdraw = useCallback(() => {
-    // Do not proceed until account state is loaded; otherwise Deposit Wallet
-    // users can bypass the temporary guard during the query window.
     if (!walletType) {
       return;
     }
@@ -138,22 +158,13 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({
 
   if (isLoading) {
     return (
-      <Box
-        twClassName="bg-muted rounded-xl p-4 mx-4 gap-3"
-        testID={PREDICT_BALANCE_TEST_IDS.SKELETON}
-      >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          justifyContent={BoxJustifyContent.Between}
-          alignItems={BoxAlignItems.Center}
-        >
-          <Box twClassName="gap-2">
-            <Skeleton width={120} height={24} style={tw.style('rounded')} />
-            <Skeleton width={100} height={16} style={tw.style('rounded')} />
-          </Box>
-          <Skeleton width={48} height={48} style={tw.style('rounded-full')} />
+      <Box twClassName="px-4 gap-3" testID={PREDICT_BALANCE_TEST_IDS.SKELETON}>
+        <Box twClassName="gap-2">
+          <Skeleton width={120} height={24} style={tw.style('rounded')} />
+          <Skeleton width={160} height={48} style={tw.style('rounded')} />
+          <Skeleton width={100} height={16} style={tw.style('rounded')} />
         </Box>
-        <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
+        <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3 mt-4">
           <Skeleton
             width="50%"
             height={40}
@@ -170,12 +181,18 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({
   }
 
   return (
-    <>
+    <Box
+      testID={PREDICT_BALANCE_TEST_IDS.CARD}
+      onLayout={(layoutEvent) => {
+        const { height } = layoutEvent.nativeEvent.layout;
+        onLayout?.(height);
+      }}
+    >
       {isAddingFunds && (
         <Box
           flexDirection={BoxFlexDirection.Row}
           justifyContent={BoxJustifyContent.Between}
-          twClassName="bg-muted rounded-t-xl p-4 mx-4 border-b border-muted"
+          twClassName="px-4 py-3 border-b border-muted"
         >
           <Text style={tw.style('text-body-sm')}>
             {strings('predict.deposit.adding_your_funds')}
@@ -183,57 +200,26 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({
           <Spinner />
         </Box>
       )}
-      <Box
-        style={tw.style(
-          'bg-muted p-4 mx-4 gap-3 rounded-xl',
-          isAddingFunds ? 'rounded-t-none' : 'rounded-t-xl',
-        )}
-        testID={PREDICT_BALANCE_TEST_IDS.CARD}
-        onLayout={(event) => {
-          const { height } = event.nativeEvent.layout;
-          onLayout?.(height);
-        }}
-      >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          justifyContent={BoxJustifyContent.Between}
-          alignItems={BoxAlignItems.Center}
-        >
-          <Box>
+      <Box twClassName="px-4">
+        <TitleHub
+          twClassName="w-full"
+          title={strings('wallet.predict')}
+          amount={
             <SensitiveText
-              variant={ComponentTextVariant.BodyMDBold}
+              variant={ComponentTextVariant.DisplayLG}
               isHidden={privacyMode}
               length={SensitiveTextLength.Medium}
             >
               {formatPrice(balance, { maximumDecimals: 2 })}
             </SensitiveText>
-            <Text
-              style={tw.style('color-alternative text-body-sm')}
-              color={TextColor.TextAlternative}
-            >
-              {strings('predict.available_balance')}
-            </Text>
-          </Box>
-          <BadgeWrapper
-            style={tw.style('self-center')}
-            badgePosition={BadgePosition.BottomRight}
-            badgeElement={
-              <Badge
-                variant={BadgeVariant.Network}
-                imageSource={images.POL}
-                style={tw.style('border-background-muted')}
-                name="Polygon"
-              />
-            }
-          >
-            <AvatarToken
-              name={USDC_SYMBOL}
-              imageSource={{ uri: USDC_TOKEN_ICON_URL }}
-              size={AvatarSize.Md}
-            />
-          </BadgeWrapper>
-        </Box>
-        <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
+          }
+          bottomLabel={strings('predict.available_balance')}
+          amountEndAccessory={amountEndAccessory}
+          amountWrapperProps={{
+            twClassName: 'w-full justify-between items-end',
+          }}
+        />
+        <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3 mt-4">
           {predictPortfolioEnabled && (
             <Button
               variant={ButtonVariants.Secondary}
@@ -269,7 +255,7 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({
           )}
         </Box>
       </Box>
-    </>
+    </Box>
   );
 };
 
