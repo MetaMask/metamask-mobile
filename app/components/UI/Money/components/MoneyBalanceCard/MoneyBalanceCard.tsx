@@ -32,6 +32,13 @@ import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import styleSheet from './MoneyBalanceCard.styles';
 import { MoneyBalanceCardTestIds } from './MoneyBalanceCard.testIds';
 import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
+import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
+import {
+  useMoneyAccountDeposit,
+  type InitiateDepositOptions,
+} from '../../hooks/useMoneyAccount';
+import { getHighestMusdPaymentToken } from '../../utils/getHighestMusdPaymentToken';
+import Logger from '../../../../../util/Logger';
 
 const MoneyBalanceCard = () => {
   const tw = useTailwind();
@@ -49,6 +56,8 @@ const MoneyBalanceCard = () => {
   } = useMoneyAccountBalance();
   const { hasMoneyAccount } = useMoneyAccountInfo();
   const { navigateToMoneyHome } = useMoneyNavigation();
+  const { tokenBalanceByChain } = useMusdBalance();
+  const { initiateDeposit } = useMoneyAccountDeposit();
   const hasSeenMoneyOnboarding = useSelector(selectMoneyOnboardingSeen);
   const hasOtherPrimaryCtaOnHome = useSelector(
     selectWalletHomeOnboardingFlowVisible,
@@ -96,14 +105,8 @@ const MoneyBalanceCard = () => {
     buttonVariant = hasOtherPrimaryCtaOnHome
       ? ButtonVariant.Secondary
       : ButtonVariant.Primary;
-    buttonLabel = strings(
-      hasOtherPrimaryCtaOnHome
-        ? 'homepage.sections.money_empty_state.get_started'
-        : 'homepage.sections.money_empty_state.earn',
-    );
-    buttonTestId = hasOtherPrimaryCtaOnHome
-      ? MoneyBalanceCardTestIds.GET_STARTED_BUTTON
-      : MoneyBalanceCardTestIds.EARN_BUTTON;
+    buttonLabel = strings('homepage.sections.money_empty_state.earn');
+    buttonTestId = MoneyBalanceCardTestIds.EARN_BUTTON;
     containerTestId = MoneyBalanceCardTestIds.NEW_USER_CONTAINER;
   } else if (isEmpty) {
     buttonVariant = hasOtherPrimaryCtaOnHome
@@ -125,17 +128,20 @@ const MoneyBalanceCard = () => {
     navigateToMoneyHome();
   }, [navigateToMoneyHome]);
 
-  const handleAddPress = useCallback(() => {
-    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-      screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
-    });
-  }, [navigation]);
+  const handleAddPress = useCallback(async () => {
+    const musdPaymentToken = getHighestMusdPaymentToken(tokenBalanceByChain);
+    const options: InitiateDepositOptions = musdPaymentToken
+      ? { intent: 'addMusd', preferredPaymentToken: musdPaymentToken }
+      : { intent: 'addMusd', autoSelectFiatPayment: true };
 
-  const handleGetStartedPress = useCallback(() => {
-    navigateToMoneyHome();
-  }, [navigateToMoneyHome]);
-
-  const handleButtonPress = isNewUser ? handleGetStartedPress : handleAddPress;
+    try {
+      await initiateDeposit(options);
+    } catch (error) {
+      Logger.error(error as Error, {
+        message: '[MoneyBalanceCard] Failed to initiate mUSD deposit',
+      });
+    }
+  }, [tokenBalanceByChain, initiateDeposit]);
 
   const handleInfoPress = useCallback(() => {
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
@@ -289,7 +295,7 @@ const MoneyBalanceCard = () => {
           testID={buttonTestId}
           variant={buttonVariant}
           size={ButtonSize.Md}
-          onPress={handleButtonPress}
+          onPress={handleAddPress}
         >
           {buttonLabel}
         </Button>
