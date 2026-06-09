@@ -145,6 +145,7 @@ function getAllTestRuns() {
           typeof test.totalTime === 'number' ? `${test.totalTime.toFixed(2)}s` : '—';
 
         return {
+          passed: !failed,
           status: failed ? '❌ Failed' : '✅ Passed',
           testName: test.testName,
           platform,
@@ -198,28 +199,7 @@ if (totalDevices > 0) {
 }
 
 const allTestRuns = getAllTestRuns();
-
-if (allTestRuns.length > 0) {
-  md += `### Tests Run (${allTestRuns.length})\n\n`;
-  md += `| Status | Test | Platform | Device | Duration | Reason | Team | Recording |\n`;
-  md += `|--------|------|----------|--------|----------|--------|------|-----------|\n`;
-
-  for (const test of allTestRuns) {
-    const recording = test.recordingLink
-      ? `[📹 Watch](${test.recordingLink})`
-      : '—';
-
-    md += `| ${test.status} | ${escapeMarkdownTable(test.testName)} | ${
-      test.platform
-    } | ${escapeMarkdownTable(test.device)} | ${test.duration} | ${escapeMarkdownTable(
-      test.reason,
-    )} | ${escapeMarkdownTable(
-      test.team,
-    )} | ${recording} |\n`;
-  }
-
-  md += '\n';
-}
+const passedTestRuns = allTestRuns.filter((test) => test.passed);
 
 // Failed tests table (one section per team)
 if (uniqueFailedTests > 0) {
@@ -246,6 +226,26 @@ if (uniqueFailedTests > 0) {
     }
     md += '\n';
   }
+}
+
+if (passedTestRuns.length > 0) {
+  md += `<details>\n<summary>✅ Passed Tests (${passedTestRuns.length})</summary>\n\n`;
+  md += `| Test | Platform | Device | Duration | Team | Recording |\n`;
+  md += `|------|----------|--------|----------|------|-----------|\n`;
+
+  for (const test of passedTestRuns) {
+    const recording = test.recordingLink
+      ? `[📹 Watch](${test.recordingLink})`
+      : '—';
+
+    md += `| ${escapeMarkdownTable(test.testName)} | ${
+      test.platform
+    } | ${escapeMarkdownTable(test.device)} | ${test.duration} | ${escapeMarkdownTable(
+      test.team,
+    )} | ${recording} |\n`;
+  }
+
+  md += `\n</details>\n\n`;
 }
 
 // Footer
