@@ -38,6 +38,9 @@ export interface TrackedQuickBuyTrade {
  */
 const trackedTrades = new Map<string, TrackedQuickBuyTrade>();
 
+/** Shared empty result so the common "nothing tracked" path allocates nothing. */
+const EMPTY_TRADE_IDS: string[] = [];
+
 export function trackQuickBuyTrade(
   txMetaId: string,
   info: TrackedQuickBuyTrade,
@@ -52,6 +55,12 @@ export function getTrackedQuickBuyTrade(
 }
 
 export function getTrackedQuickBuyTradeIds(): string[] {
+  // Hot path: both controller `stateChange` handlers call this on every
+  // emission. Skip the array allocation entirely when nothing is tracked
+  // (the common case — no QuickBuy swap in flight).
+  if (trackedTrades.size === 0) {
+    return EMPTY_TRADE_IDS;
+  }
   return Array.from(trackedTrades.keys());
 }
 
