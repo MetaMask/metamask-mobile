@@ -116,11 +116,11 @@ const PotentialEarningsTokenRow = ({
                 {token.symbol}
               </Text>
               {hasSubsidizedFee && (
-                <Box twClassName="rounded bg-muted px-1.5">
+                <Box twClassName="rounded bg-primary-muted px-1.5">
                   <Text
                     variant={TextVariant.BodyXs}
                     fontWeight={FontWeight.Medium}
-                    color={TextColor.TextAlternative}
+                    color={TextColor.PrimaryDefault}
                   >
                     {strings('money.potential_earnings.no_fee')}
                   </Text>

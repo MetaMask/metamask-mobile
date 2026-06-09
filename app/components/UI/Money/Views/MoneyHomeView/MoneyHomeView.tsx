@@ -30,7 +30,6 @@ import { mergeMoneyActivity } from '../../hooks/useMoneyActivityItems';
 import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyActivityLoading';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
-import { useOnboardingStep, STEPPER_IDS } from '../../hooks/useOnboardingStep';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
 import { isAccountFunded } from '../../utils/isAccountFunded';
@@ -51,7 +50,6 @@ import { useTheme } from '../../../../../util/theme';
 import { MoneyBalanceDisplayState } from '../../types';
 import { Hex } from '@metamask/utils';
 import { AssetType } from '../../../../Views/confirmations/types/token';
-import { MONEY_ONBOARDING_TOTAL_STEPS } from '../../components/MoneyOnboardingCard/MoneyOnboardingCard';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import useMountEffect from '../../hooks/useMountEffect';
@@ -149,11 +147,6 @@ const MoneyHomeView = () => {
     isCardLinkedToMoneyAccount,
     isLinking,
   } = useMoneyAccountCardLinkage();
-
-  const { isVisible: isOnboardingCardVisible } = useOnboardingStep({
-    stepperId: STEPPER_IDS.MONEY,
-    totalSteps: MONEY_ONBOARDING_TOTAL_STEPS,
-  });
 
   const balanceReady = tokenTotal !== undefined;
   const isFunded = isAccountFunded(tokenTotal) || activityItems.length > 0;
@@ -559,7 +552,6 @@ const MoneyHomeView = () => {
           onCardPress={handleActionButtonCardPress}
         />
         <MoneyOnboardingCard />
-        {isOnboardingCardVisible && <Divider />}
         {/* Only show earnings if balance is available and non-zero */}
         {displayState.kind === 'balance' &&
           totalFiatRaw &&
