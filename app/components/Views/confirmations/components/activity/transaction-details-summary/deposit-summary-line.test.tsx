@@ -14,9 +14,7 @@ import { useTokenAmount } from '../../../hooks/useTokenAmount';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { DepositSummaryLine } from './deposit-summary-line';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
-import { createMockUseAnalyticsHook } from '../../../../../../util/test/analyticsMock';
-import { AnalyticsEventBuilder } from '../../../../../../util/analytics/AnalyticsEventBuilder';
-
+import { configureUseAnalyticsExternalLinkMock } from '../../../../../../util/test/analyticsMock';
 jest.mock('../../../../../UI/Bridge/hooks/useMultichainBlockExplorerTxUrl');
 jest.mock('../../../hooks/useNetworkName');
 jest.mock('../../../hooks/tokens/useTokenWithBalance');
@@ -81,11 +79,7 @@ describe('DepositSummaryLine', () => {
   beforeEach(() => {
     jest.resetAllMocks();
 
-    jest.mocked(useAnalytics).mockReturnValue(
-      createMockUseAnalyticsHook({
-        createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
-      }),
-    );
+    configureUseAnalyticsExternalLinkMock();
 
     useMultichainBlockExplorerTxUrlMock.mockReturnValue({
       explorerTxUrl: 'https://explorer.example',

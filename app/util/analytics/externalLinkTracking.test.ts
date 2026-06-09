@@ -60,6 +60,12 @@ describe('externalLinkTracking', () => {
         getExternalLinkHostname('https://blockexplorer.com/tx/0x123'),
       ).toBe('blockexplorer.com');
     });
+
+    it('returns the original string when hostname cannot be extracted', () => {
+      expect(getExternalLinkHostname('not-a-valid-url')).toBe(
+        'not-a-valid-url',
+      );
+    });
   });
 
   describe('trackExternalLinkClicked', () => {

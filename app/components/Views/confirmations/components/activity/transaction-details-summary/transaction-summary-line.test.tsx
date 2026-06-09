@@ -10,7 +10,7 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { useMultichainBlockExplorerTxUrl } from '../../../../../UI/Bridge/hooks/useMultichainBlockExplorerTxUrl';
 import { TransactionSummaryLine } from './transaction-summary-line';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
-import { createMockUseAnalyticsHook } from '../../../../../../util/test/analyticsMock';
+import { configureUseAnalyticsExternalLinkMock } from '../../../../../../util/test/analyticsMock';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { AnalyticsEventBuilder } from '../../../../../../util/analytics/AnalyticsEventBuilder';
 
@@ -69,12 +69,7 @@ describe('TransactionSummaryLine', () => {
   beforeEach(() => {
     jest.resetAllMocks();
 
-    jest.mocked(useAnalytics).mockReturnValue(
-      createMockUseAnalyticsHook({
-        trackEvent: trackEventMock,
-        createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
-      }),
-    );
+    configureUseAnalyticsExternalLinkMock(trackEventMock);
 
     useMultichainBlockExplorerTxUrlMock.mockReturnValue({
       explorerTxUrl: 'https://explorer.example',
