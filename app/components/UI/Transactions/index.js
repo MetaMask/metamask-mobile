@@ -478,6 +478,10 @@ class Transactions extends PureComponent {
         title = result.title;
       }
 
+      if (!url) {
+        throw new Error('Missing block explorer URL');
+      }
+
       trackBlockExplorerLinkClicked(
         analytics.trackEvent,
         AnalyticsEventBuilder.createEventBuilder,
