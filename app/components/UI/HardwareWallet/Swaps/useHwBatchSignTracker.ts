@@ -479,6 +479,8 @@ interface HwBatchSignTrackerState {
   pendingAbortTxIds: Set<string>;
   acceptedApprovalIds: Set<string>;
   approvalQueue: string[];
+  handledTxIds: Set<string>;
+  signingDispatchedTxIds: Set<string>;
   isProcessingQueue: boolean;
   isCancellingBatch: boolean;
   batchGeneration: number;
@@ -517,6 +519,8 @@ function createInitialBatchSignTrackerState(
     pendingAbortTxIds: new Set(),
     acceptedApprovalIds: new Set(),
     approvalQueue: [],
+    handledTxIds: new Set(),
+    signingDispatchedTxIds: new Set(),
     isProcessingQueue: false,
     isCancellingBatch: false,
     batchGeneration: 0,
@@ -581,6 +585,8 @@ export function useHwBatchSignTracker({
     trackerState.approvalQueue = [];
     trackerState.signedBatchIds = new Set();
     trackerState.pendingSignTxIds = new Set();
+    trackerState.handledTxIds = new Set();
+    trackerState.signingDispatchedTxIds = new Set();
     trackerState.batchGeneration += 1;
 
     for (const id of trackerState.seenBatchIds) {
@@ -781,8 +787,6 @@ export function useHwBatchSignTracker({
     }
 
     const targetFrom = trackerLifecycleKey;
-    const handledTxIds = new Set<string>();
-    const signingDispatchedTxIds = new Set<string>();
     const scheduleDeferredApprovalQueueRetry = () => {
       clearDeferredApprovalQueueRetry();
       const lifecycleKey = trackerLifecycleKeyRef.current;
@@ -1049,7 +1053,7 @@ export function useHwBatchSignTracker({
       );
 
     const completeTrackedTx = (txId: string) => {
-      handledTxIds.add(txId);
+      trackerStateRef.current.handledTxIds.add(txId);
       trackerStateRef.current.pendingSignTxIds.delete(txId);
       syncConfirmationTxId();
     };
@@ -1069,7 +1073,9 @@ export function useHwBatchSignTracker({
         return true;
       }
 
-      if (handledTxIds.has(transactionMeta.id)) return true;
+      if (trackerStateRef.current.handledTxIds.has(transactionMeta.id)) {
+        return true;
+      }
       if (!isTransactionFromCurrentBatch(transactionMeta)) return true;
       if (trackerStateRef.current.pendingAbortTxIds.has(transactionMeta.id)) {
         trackerStateRef.current.pendingAbortTxIds.delete(transactionMeta.id);
@@ -1110,7 +1116,9 @@ export function useHwBatchSignTracker({
         if (!isTransactionFromCurrentBatch(transactionMeta)) {
           return;
         }
-        if (signingDispatchedTxIds.has(transactionMeta.id)) {
+        if (
+          trackerStateRef.current.signingDispatchedTxIds.has(transactionMeta.id)
+        ) {
           return;
         }
         if (transactionMeta.batchId) {
@@ -1123,7 +1131,7 @@ export function useHwBatchSignTracker({
             trackerState.currentBatchId = transactionMeta.batchId;
           }
         }
-        signingDispatchedTxIds.add(transactionMeta.id);
+        trackerStateRef.current.signingDispatchedTxIds.add(transactionMeta.id);
         trackerStateRef.current.pendingSignTxIds.add(transactionMeta.id);
         setConfirmationTxId(transactionMeta.id);
         dispatchSwapEvent({

@@ -580,6 +580,38 @@ describe('useHwBatchSignTracker', () => {
       expect(mockUpdateSwaps).not.toHaveBeenCalled();
     });
 
+    it('dispatches SIGNING again for the same tx id after cancelCurrentBatch', async () => {
+      const txId = 'tx-reused-signing-after-cancel';
+      const staleBatchId = 'batch-before-cancel';
+      const nextBatchId = 'batch-after-cancel';
+      const { result } = renderEnabledHook();
+      const meta = txMeta({
+        id: txId,
+        type: TransactionType.bridgeApproval,
+        status: TransactionStatus.approved,
+        batchId: staleBatchId,
+      });
+
+      fireTxEvent(meta);
+      mockUpdateSwaps.mockClear();
+
+      let cancelPromise = Promise.resolve();
+      act(() => {
+        cancelPromise = result.current.cancelCurrentBatch();
+      });
+
+      broadcastTxEvent({ ...meta, status: TransactionStatus.dropped });
+      await cancelPromise;
+
+      fireTxEvent({
+        ...meta,
+        status: TransactionStatus.approved,
+        batchId: nextBatchId,
+      });
+
+      expect(mockUpdateSwaps).toHaveBeenCalledWith(EXPECT_SIGNING_APPROVAL);
+    });
+
     it('blocks late approved events from a stale batch after cancelCurrentBatch', async () => {
       const { result } = renderEnabledHook();
 
@@ -2221,6 +2253,74 @@ describe('useHwBatchSignTracker', () => {
       );
 
       expect(mockUpdateSwaps).toHaveBeenCalledWith(EXPECT_SIGNING_APPROVAL);
+    });
+
+    it('dispatches SIGNING again for the same tx id after retryGenerationRef advances', () => {
+      const retryGenerationRef = { current: 0 };
+      const txId = 'tx-reused-signing-after-retry';
+      const staleBatchId = 'batch-stale-before-retry';
+      const nextBatchId = 'batch-new-after-retry';
+
+      renderWithRetry(retryGenerationRef);
+      fireTxEvent(
+        txMeta({
+          id: txId,
+          type: TransactionType.bridgeApproval,
+          status: TransactionStatus.approved,
+          batchId: staleBatchId,
+        }),
+      );
+      mockUpdateSwaps.mockClear();
+
+      retryGenerationRef.current = 1;
+      fireTxEvent(
+        txMeta({
+          id: txId,
+          type: TransactionType.bridgeApproval,
+          status: TransactionStatus.approved,
+          batchId: nextBatchId,
+        }),
+      );
+
+      expect(mockUpdateSwaps).toHaveBeenCalledWith(EXPECT_SIGNING_APPROVAL);
+    });
+
+    it('dispatches SIGNED again for the same tx id after retryGenerationRef advances', () => {
+      const retryGenerationRef = { current: 0 };
+      const txId = 'tx-reused-signed-after-retry';
+      const staleBatchId = 'batch-stale-signed-before-retry';
+      const nextBatchId = 'batch-new-signed-after-retry';
+
+      renderWithRetry(retryGenerationRef);
+      fireTxEvent(
+        txMeta({
+          id: txId,
+          type: TransactionType.bridgeApproval,
+          status: TransactionStatus.approved,
+          batchId: staleBatchId,
+        }),
+      );
+      fireTxEvent(
+        txMeta({
+          id: txId,
+          type: TransactionType.bridgeApproval,
+          status: TransactionStatus.signed,
+          batchId: staleBatchId,
+        }),
+      );
+      mockUpdateSwaps.mockClear();
+
+      retryGenerationRef.current = 1;
+      fireTxEvent(
+        txMeta({
+          id: txId,
+          type: TransactionType.bridgeApproval,
+          status: TransactionStatus.signed,
+          batchId: nextBatchId,
+        }),
+      );
+
+      expect(mockUpdateSwaps).toHaveBeenCalledWith(EXPECT_SIGNED_APPROVAL);
     });
 
     it('accepts a retry approved event for the same stale batch when a matching approval is pending', () => {
