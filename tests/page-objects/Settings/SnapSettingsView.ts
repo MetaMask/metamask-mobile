@@ -73,13 +73,13 @@ class SnapSettingsView {
   }
 
   async tapBackButton(): Promise<void> {
-    await UnifiedGestures.tapAtIndex(this.backButton, 0, {
+    await UnifiedGestures.waitAndTap(this.backButton, {
       elemDescription: 'Snap Settings - Back Button',
     });
   }
 
   async tapListBackButton(): Promise<void> {
-    await UnifiedGestures.tapAtIndex(this.listBackButton, 0, {
+    await UnifiedGestures.waitAndTap(this.listBackButton, {
       elemDescription: 'Snaps List - Back Button',
     });
   }
