@@ -77,8 +77,11 @@ const getMockEventBuilder = () => {
         addSensitiveProperties: jest.fn().mockReturnThis(),
         removeProperties: jest.fn().mockReturnThis(),
         removeSensitiveProperties: jest.fn().mockReturnThis(),
+        setSaveDataRecording: jest.fn().mockReturnThis(),
         build: mockBuild,
-      }) as ReturnType<typeof AnalyticsEventBuilder.createEventBuilder>,
+      }) as unknown as ReturnType<
+        typeof AnalyticsEventBuilder.createEventBuilder
+      >,
   );
   const mockCreateEventBuilder = jest.mocked(
     AnalyticsEventBuilder.createEventBuilder,
