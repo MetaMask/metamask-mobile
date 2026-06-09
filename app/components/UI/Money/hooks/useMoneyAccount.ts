@@ -12,7 +12,6 @@ import {
   buildMoneyAccountWithdrawBatch,
   getMoneyAccountDepositAssetAddress,
 } from '../utils/moneyAccountTransactions';
-import { cancelInternalTransactionApprovals } from '../utils/cancelInternalTransactionApprovals';
 import { getProviderByChainId } from '../../../../util/notifications/methods/common';
 import Logger from '../../../../util/Logger';
 import Engine from '../../../../core/Engine';
@@ -104,8 +103,6 @@ export function useMoneyAccountDeposit() {
         lensAddress,
         provider,
       });
-
-      cancelInternalTransactionApprovals();
 
       // Navigate early for better UX; recover on failure below.
       navigateToConfirmation({
