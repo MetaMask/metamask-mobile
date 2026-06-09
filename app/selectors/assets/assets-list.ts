@@ -161,26 +161,18 @@ export const selectAssetsBySelectedAccountGroup = createDeepEqualSelector(
 
 /**
  * Cheap boolean check: does the selected account group hold any
- * non-excluded positive-fiat-balance asset
+ * positive-fiat-balance asset.
+ *
+ * A held asset is itself a valid swap source (it can be swapped away), so the
+ * currently-viewed token is intentionally counted. This drives the Token
+ * Details footer's Swap / QuickBuy visibility and the Buy on-ramp fallback.
  */
 export const selectHasEligibleSwapSource = createSelector(
-  [
-    selectAssetsBySelectedAccountGroup,
-    (_state: RootState, excludedChainId?: string) => excludedChainId,
-    (_state: RootState, _excludedChainId?: string, excludedAddress?: string) =>
-      excludedAddress,
-  ],
-  (assetsByChain, excludedChainId, excludedAddress): boolean => {
+  [selectAssetsBySelectedAccountGroup],
+  (assetsByChain): boolean => {
     for (const chainAssets of Object.values(assetsByChain)) {
       for (const asset of chainAssets) {
-        if ((asset.fiat?.balance ?? 0) <= 0) continue;
-
-        const isExcludedToken =
-          asset.chainId === excludedChainId &&
-          excludedAddress !== undefined &&
-          asset.assetId.toLowerCase() === excludedAddress.toLowerCase();
-
-        if (!isExcludedToken) {
+        if ((asset.fiat?.balance ?? 0) > 0) {
           return true;
         }
       }
