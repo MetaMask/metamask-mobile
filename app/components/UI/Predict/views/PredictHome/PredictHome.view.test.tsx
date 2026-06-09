@@ -21,6 +21,7 @@ import {
   PredictSearchSelectorsIDs,
 } from '../../Predict.testIds';
 import { PREDICT_HEADER_STACKED_TEST_IDS } from '../../components/PredictHeaderStacked';
+import { MOCK_PREDICT_MARKET } from '../../../../../../tests/component-view/fixtures/predict';
 
 const SEARCH_PLACEHOLDER = 'Search prediction markets';
 const PREDICTIONS_TITLE = 'Predictions';
@@ -46,6 +47,11 @@ describe('PredictHome', () => {
     (
       Engine.context.PredictController.getMarkets as jest.Mock
     ).mockResolvedValue({ markets: [], nextCursor: null });
+    // The Live Now section hides itself when there is no data, so it needs at
+    // least one live market to render for the composition/order assertion.
+    (
+      Engine.context.PredictController.listMarkets as jest.Mock
+    ).mockResolvedValue({ markets: [MOCK_PREDICT_MARKET], nextCursor: null });
     (
       Engine.context.PredictController.searchMarkets as jest.Mock
     ).mockResolvedValue({ markets: [], totalResults: 0 });

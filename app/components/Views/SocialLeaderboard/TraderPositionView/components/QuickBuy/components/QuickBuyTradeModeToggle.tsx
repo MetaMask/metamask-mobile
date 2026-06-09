@@ -1,5 +1,10 @@
-import React from 'react';
-import { TouchableOpacity } from 'react-native';
+import React, { useRef, useEffect, useState } from 'react';
+import {
+  TouchableOpacity,
+  Animated,
+  StyleSheet,
+  type LayoutRectangle,
+} from 'react-native';
 import {
   Box,
   BoxFlexDirection,
@@ -11,6 +16,18 @@ import {
 import { strings } from '../../../../../../../../locales/i18n';
 import { useQuickBuyContext } from '../useQuickBuyContext';
 import type { QuickBuyTradeMode } from '../types';
+import { useTheme } from '../../../../../../../util/theme';
+import { playSelection } from '../../../../../../../util/haptics';
+
+const styles = StyleSheet.create({
+  container: {
+    position: 'relative',
+  },
+  slider: {
+    position: 'absolute',
+    borderRadius: 10,
+  },
+});
 
 interface QuickBuyTradeModeToggleProps {
   testID?: string;
@@ -20,28 +37,61 @@ const QuickBuyTradeModeToggle: React.FC<QuickBuyTradeModeToggleProps> = ({
   testID = 'quick-buy-trade-mode-toggle',
 }) => {
   const { tradeMode, setTradeMode, hasSellableBalance } = useQuickBuyContext();
+  const { colors } = useTheme();
+  const slideAnim = useRef(new Animated.Value(0)).current;
+  const [buyLayout, setBuyLayout] = useState<LayoutRectangle | null>(null);
+  const [sellWidth, setSellWidth] = useState(0);
 
   const handlePress = (mode: QuickBuyTradeMode) => {
     if (tradeMode !== mode) {
+      playSelection();
       setTradeMode(mode);
     }
   };
+
+  useEffect(() => {
+    if (!buyLayout) return;
+    Animated.spring(slideAnim, {
+      toValue: tradeMode === 'buy' ? 0 : buyLayout.width,
+      useNativeDriver: true,
+      tension: 180,
+      friction: 20,
+    }).start();
+  }, [tradeMode, buyLayout, slideAnim]);
+
+  const sliderWidth = tradeMode === 'buy' ? (buyLayout?.width ?? 0) : sellWidth;
 
   return (
     <Box
       flexDirection={BoxFlexDirection.Row}
       twClassName="border border-muted rounded-xl p-1"
       testID={testID}
+      style={styles.container}
     >
+      {buyLayout && sliderWidth > 0 && (
+        <Animated.View
+          style={[
+            styles.slider,
+            {
+              left: buyLayout.x,
+              top: buyLayout.y,
+              height: buyLayout.height,
+              width: sliderWidth,
+              backgroundColor: colors.background.muted,
+              transform: [{ translateX: slideAnim }],
+            },
+          ]}
+        />
+      )}
+
       <TouchableOpacity
         onPress={() => handlePress('buy')}
+        onLayout={(e) => setBuyLayout(e.nativeEvent.layout)}
         accessibilityRole="button"
         accessibilityState={{ selected: tradeMode === 'buy' }}
         testID="quick-buy-trade-mode-buy"
       >
-        <Box
-          twClassName={`rounded-[10px] px-3 py-1 ${tradeMode === 'buy' ? 'bg-muted' : ''}`}
-        >
+        <Box twClassName="rounded-[10px] px-3 py-1">
           <Text
             variant={TextVariant.BodySm}
             fontWeight={
@@ -57,6 +107,7 @@ const QuickBuyTradeModeToggle: React.FC<QuickBuyTradeModeToggleProps> = ({
       <TouchableOpacity
         onPress={() => handlePress('sell')}
         disabled={!hasSellableBalance}
+        onLayout={(e) => setSellWidth(e.nativeEvent.layout.width)}
         accessibilityRole="button"
         accessibilityState={{
           selected: tradeMode === 'sell',
@@ -65,7 +116,7 @@ const QuickBuyTradeModeToggle: React.FC<QuickBuyTradeModeToggleProps> = ({
         testID="quick-buy-trade-mode-sell"
       >
         <Box
-          twClassName={`rounded-[10px] px-3 py-1 ${tradeMode === 'sell' ? 'bg-muted' : ''} ${!hasSellableBalance ? 'opacity-40' : ''}`}
+          twClassName={`rounded-[10px] px-3 py-1 ${!hasSellableBalance ? 'opacity-40' : ''}`}
         >
           <Text
             variant={TextVariant.BodySm}

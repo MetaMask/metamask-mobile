@@ -17,12 +17,7 @@ import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import { AppThemeKey } from '../../../../util/theme/models';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
-import { useABTest } from '../../../../hooks/useABTest';
-import {
-  AMBIENT_NEGATIVE_COLOR,
-  STICKY_FOOTER_SWAP_LABEL_AB_KEY,
-  STICKY_FOOTER_SWAP_LABEL_VARIANTS,
-} from './abTestConfig';
+import { AMBIENT_NEGATIVE_COLOR } from './abTestConfig';
 import { useStickyFooterTracking } from '../hooks/useStickyFooterTracking';
 import Routes from '../../../../constants/navigation/Routes';
 import type { BridgeToken } from '../../Bridge/types';
@@ -172,11 +167,6 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
 
   const rwaUnavailableSheetRef = useRef<RwaUnavailableBottomSheetRef>(null);
 
-  const { variant: buttonLabels } = useABTest(
-    STICKY_FOOTER_SWAP_LABEL_AB_KEY,
-    STICKY_FOOTER_SWAP_LABEL_VARIANTS,
-  );
-
   const trackStickyFooterTapped = useStickyFooterTracking();
 
   const showSwapButton = hasEligibleSwapTokens;
@@ -306,12 +296,12 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
               });
               handleFooterAction(
                 onSwap,
-                strings(buttonLabels.swapLabelKey),
+                strings('asset_overview.swap'),
                 onSwapPress,
               );
             }}
           >
-            {strings(buttonLabels.swapLabelKey)}
+            {strings('asset_overview.swap')}
           </Button>
         )}
         {showBuyButton && (
