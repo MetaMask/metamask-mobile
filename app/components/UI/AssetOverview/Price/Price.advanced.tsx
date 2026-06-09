@@ -17,7 +17,8 @@ import { formatPriceWithSubscriptNotation } from '../../Predict/utils/format';
 import styleSheet from './Price.styles';
 import {
   CHART_DATA_THRESHOLD,
-  TOKEN_OVERVIEW_CHART_HEIGHT as CHART_HEIGHT,
+  TOKEN_OVERVIEW_CHART_HEIGHT as BASE_CHART_HEIGHT,
+  INDICATOR_PANE_HEIGHT,
 } from './tokenOverviewChart.constants';
 import { TokenOverviewSelectorsIDs } from '../TokenOverview.testIds';
 import { TokenI } from '../../Tokens/types';
@@ -70,6 +71,8 @@ import {
   TraceOperation,
 } from '../../../../util/trace';
 import { selectTokenDetailsOhlcvWsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsOhlcvWsIntegration';
+
+const SEPARATE_PANE_INDICATORS = new Set(['MACD', 'RSI']);
 
 /**
  * Maps UI time-range selections to the WebSocket candle interval used by
@@ -365,6 +368,14 @@ const PriceAdvanced = ({
       ),
     [activeIndicators, selectedMAs],
   );
+
+  const subPaneCount = useMemo(
+    () =>
+      [...activeIndicators].filter((i) => SEPARATE_PANE_INDICATORS.has(i))
+        .length,
+    [activeIndicators],
+  );
+  const chartHeight = BASE_CHART_HEIGHT + subPaneCount * INDICATOR_PANE_HEIGHT;
 
   const handleIndicatorToggle = useCallback((name: string) => {
     setActiveIndicators((prev) => {
@@ -728,19 +739,19 @@ const PriceAdvanced = ({
         )}
         <View
           testID="advanced-chart-touch-container"
-          style={[styles.chartContainer, { height: CHART_HEIGHT }]}
+          style={[styles.chartContainer, { height: chartHeight }]}
         >
           {Platform.OS === 'ios' && (
             <View style={styles.edgeOverlay} pointerEvents="box-only" />
           )}
           {useAmbientColor && initialAmbientColor === undefined ? (
-            <Skeleton height={CHART_HEIGHT} width="100%" />
+            <Skeleton height={chartHeight} width="100%" />
           ) : (
             <AdvancedChart
               ohlcvData={ohlcvData}
               ohlcvSeriesKey={ohlcvSeriesKey}
               realtimeBar={realtimeBar}
-              height={CHART_HEIGHT}
+              height={chartHeight}
               showVolume={
                 chartType === ChartType.Candles &&
                 activeIndicators.has('Volume')

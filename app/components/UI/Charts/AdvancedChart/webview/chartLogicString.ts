@@ -810,7 +810,7 @@ function applyChartScaleLayout(type) {
       'mainSeriesProperties.showPriceLine': !useCustomDashed,
       'timeScale.borderColor': axisLineColor,
       'scalesProperties.lineColor': axisLineColor,
-      'paneProperties.separatorColor': theme.backgroundColor,
+      'paneProperties.separatorColor': theme.borderColor,
       'paneProperties.topMargin': 12,
       'paneProperties.bottomMargin': 8,
     });
