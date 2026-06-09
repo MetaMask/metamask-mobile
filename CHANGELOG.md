@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.81.0]
 
+### Uncategorized
+
+- chore(release): sync stable to main for version 7.79.0 (#30828)
+- Bump assets controller v8.3.1 (#31063)
+- chore: in development, show deposit and withdraw errors in money account (#30670)
+- Add migration 139 for asset state consolidation (#30681)
+- Move to using the new RWAs endpoint in Explore (#30785)
+- chore: nightly build external distributed (#30887)
+- Bump assets controller v8.1.0 (#30836)
+- chore(release): sync stable to main for version 7.78.0 (#30807)
+- Remove explore search V1 (#30787)
+
 ### Added
 
 - Add Arc as Default Network (network/native logo + native price + multicall) (#30879)
@@ -84,8 +96,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a new Positions screen for Predict users to view active positions and history (#30718)
 - Track explore conversions in swaps (#30720)
 
-
 ### Changed
+
 - Updated the Sei native token icon to Sei's maroon token mark. (#31038)
 - Updated the Sei network and token logo to Sei's new brand mark. (#30892)
 - Improve crypto movers section in explore (#30809)
@@ -368,10 +380,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.78.1]
 
-### Fixed
-
-- Fixed a crash caused by CloseEvent dispatch on WebSocket failing instanceof validation (#30612)
-
 ### Added
 
 - Updated the onboarding interest questionnaire layout to a two-column grid with refreshed option labels. (#30753)
@@ -469,6 +477,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed a crash caused by CloseEvent dispatch on WebSocket failing instanceof validation (#30612)
 - Fixed the "Add mUSD" option in the Money account "Add money" sheet so it opens the deposit flow with mUSD pre-selected, and (#30741)
   corrected the in-progress / success / failed toast copy for both the
   Convert and Add flows.
@@ -12079,7 +12088,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
 [Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.81.0...HEAD
-[7.81.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.79.1...v7.81.0
+[7.81.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.80.0...v7.81.0
+[7.80.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.79.1...v7.80.0
 [7.79.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.79.0...v7.79.1
 [7.79.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.78.1...v7.79.0
 [7.78.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.78.0...v7.78.1
