@@ -18,10 +18,26 @@ import { isCaipChainId } from '@metamask/utils';
 import { createLogger } from '../../framework/logger';
 import { navigateToBrowserView } from '../../flows/browser.flow';
 import UnifiedGestures from '../../framework/UnifiedGestures';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 
 const logger = createLogger({
   name: 'MultichainTestDApp',
 });
+
+function getByWebId(id: string): EncapsulatedElementType {
+  return encapsulated({
+    detox: () =>
+      Matchers.getElementByWebID(
+        BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+        id,
+      ),
+    appium: () => PlaywrightMatchers.getElementByXPath(`//*[@id="${id}"]`),
+  });
+}
 
 export const DEFAULT_MULTICHAIN_TEST_DAPP_URL =
   'https://metamask.github.io/test-dapp-multichain/';
@@ -76,44 +92,28 @@ class MultichainTestDApp {
   /**
    * WebView element getters
    */
-  get extensionIdInput() {
-    return Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      MultichainTestDappViewSelectorsIDs.EXTENSION_ID_INPUT,
-    );
+  get extensionIdInput(): EncapsulatedElementType {
+    return getByWebId(MultichainTestDappViewSelectorsIDs.EXTENSION_ID_INPUT);
   }
 
-  get connectButton() {
-    return Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      MultichainTestDappViewSelectorsIDs.CONNECT_BUTTON,
-    );
+  get connectButton(): EncapsulatedElementType {
+    return getByWebId(MultichainTestDappViewSelectorsIDs.CONNECT_BUTTON);
   }
 
-  get createSessionButton() {
-    return Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      MultichainTestDappViewSelectorsIDs.CREATE_SESSION_BUTTON,
-    );
+  get createSessionButton(): EncapsulatedElementType {
+    return getByWebId(MultichainTestDappViewSelectorsIDs.CREATE_SESSION_BUTTON);
   }
 
-  get getSessionButton() {
-    return Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      MultichainTestDappViewSelectorsIDs.GET_SESSION_BUTTON,
-    );
+  get getSessionButton(): EncapsulatedElementType {
+    return getByWebId(MultichainTestDappViewSelectorsIDs.GET_SESSION_BUTTON);
   }
 
-  get revokeSessionButton() {
-    return Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      MultichainTestDappViewSelectorsIDs.REVOKE_SESSION_BUTTON,
-    );
+  get revokeSessionButton(): EncapsulatedElementType {
+    return getByWebId(MultichainTestDappViewSelectorsIDs.REVOKE_SESSION_BUTTON);
   }
 
-  get clearExtensionButton() {
-    return Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+  get clearExtensionButton(): EncapsulatedElementType {
+    return getByWebId(
       MultichainTestDappViewSelectorsIDs.CLEAR_EXTENSION_BUTTON,
     );
   }
@@ -165,8 +165,7 @@ class MultichainTestDApp {
    */
   // Detox ts scripts unclear here.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async tapButton(elementId: any): Promise<void> {
-    await Gestures.scrollToWebViewPort(elementId);
+  async tapButton(elementId: EncapsulatedElementType): Promise<void> {
     await UnifiedGestures.tap(elementId);
   }
 

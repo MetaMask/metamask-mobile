@@ -44,7 +44,7 @@ export interface PlatformLocator {
  * }
  */
 export interface LocatorConfig {
-  detox?: () => DetoxElement;
+  detox?: () => DetoxElement | WebElement;
   appium?:
     | (() => Promise<PlaywrightElement>)
     | {
@@ -57,7 +57,10 @@ export interface LocatorConfig {
  * Unified element type that can be either DetoxElement or PlaywrightElement
  * Note: Both types are Promise-based
  */
-export type EncapsulatedElementType = DetoxElement | Promise<PlaywrightElement>;
+export type EncapsulatedElementType =
+  | DetoxElement
+  | WebElement
+  | Promise<PlaywrightElement>;
 
 /**
  * Encapsulated element factory - creates appropriate element based on framework context
@@ -112,7 +115,9 @@ export class EncapsulatedElement {
   /**
    * Create Detox element from configuration
    */
-  private static createDetoxElement(config: LocatorConfig): DetoxElement {
+  private static createDetoxElement(
+    config: LocatorConfig,
+  ): DetoxElement | WebElement {
     if (!config.detox) {
       throw new Error(
         'Detox configuration is required when running in Detox context',

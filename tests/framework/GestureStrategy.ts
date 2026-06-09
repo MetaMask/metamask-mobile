@@ -6,6 +6,7 @@ import {
   asDetoxElement,
   asPlaywrightElement,
 } from './EncapsulatedElement.ts';
+import Utilities from './Utilities.ts';
 
 /**
  * Unified options for gesture methods.
@@ -147,6 +148,19 @@ export interface GestureStrategy {
  * mapped to Detox-specific option shapes internally.
  */
 export class DetoxGestureStrategy implements GestureStrategy {
+  private async prepareDetoxTapElement(
+    elem: EncapsulatedElementType,
+  ): Promise<DetoxElement | WebElement> {
+    const detoxElement = asDetoxElement(elem) as DetoxElement | WebElement;
+    const resolvedElement = await detoxElement;
+
+    if (Utilities.isWebElement(resolvedElement)) {
+      await Gestures.scrollToWebViewPort(detoxElement as WebElement);
+    }
+
+    return detoxElement;
+  }
+
   /**
    * Tap an element
    * @param elem - The element to tap
@@ -157,7 +171,7 @@ export class DetoxGestureStrategy implements GestureStrategy {
     elem: EncapsulatedElementType,
     opts?: UnifiedGestureOptions,
   ): Promise<void> {
-    await Gestures.tap(asDetoxElement(elem), {
+    await Gestures.tap(await this.prepareDetoxTapElement(elem), {
       timeout: opts?.timeout,
       elemDescription: opts?.description ?? opts?.elemDescription,
       checkStability: opts?.checkStability,
@@ -178,7 +192,7 @@ export class DetoxGestureStrategy implements GestureStrategy {
     elem: EncapsulatedElementType,
     opts?: UnifiedGestureOptions,
   ): Promise<void> {
-    await Gestures.waitAndTap(asDetoxElement(elem), {
+    await Gestures.waitAndTap(await this.prepareDetoxTapElement(elem), {
       timeout: opts?.timeout,
       elemDescription: opts?.description ?? opts?.elemDescription,
       checkStability: opts?.checkStability,

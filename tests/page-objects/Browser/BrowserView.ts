@@ -172,23 +172,44 @@ class Browser {
     });
   }
 
-  get homePageFavouritesTab(): WebElement {
-    return Matchers.getElementByXPath(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      BrowserViewSelectorsXPaths.FAVORITE_TAB,
-    );
+  get homePageFavouritesTab(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByXPath(
+          BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+          BrowserViewSelectorsXPaths.FAVORITE_TAB,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByXPath(
+          BrowserViewSelectorsXPaths.FAVORITE_TAB,
+        ),
+    });
   }
 
-  get testDappURLInFavouritesTab(): WebElement {
-    return device.getPlatform() === 'ios'
-      ? Matchers.getElementByXPath(
-          BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-          BrowserViewSelectorsXPaths.TEST_DAPP_LINK,
-        )
-      : Matchers.getElementByXPath(
-          BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-          BrowserViewSelectorsXPaths.TEST_DAPP_TEXT,
-        );
+  get testDappURLInFavouritesTab(): EncapsulatedElementType {
+    return PlatformDetector.getPlatform() === 'ios'
+      ? encapsulated({
+          detox: () =>
+            Matchers.getElementByXPath(
+              BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+              BrowserViewSelectorsXPaths.TEST_DAPP_LINK,
+            ),
+          appium: () =>
+            PlaywrightMatchers.getElementByXPath(
+              BrowserViewSelectorsXPaths.TEST_DAPP_LINK,
+            ),
+        })
+      : encapsulated({
+          detox: () =>
+            Matchers.getElementByXPath(
+              BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+              BrowserViewSelectorsXPaths.TEST_DAPP_TEXT,
+            ),
+          appium: () =>
+            PlaywrightMatchers.getElementByXPath(
+              BrowserViewSelectorsXPaths.TEST_DAPP_TEXT,
+            ),
+        });
   }
 
   get multiTabButton(): EncapsulatedElementType {

@@ -1,6 +1,5 @@
 import enContent from '../../../locales/languages/en.json';
 
-import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import { getTestDappLocalUrl } from '../../framework/fixtures/FixtureUtils';
 import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
@@ -18,6 +17,39 @@ const CONFIRM_BUTTON_TEXT = enContent.confirmation_modal.confirm_cta;
 const APPROVE_BUTTON_TEXT = enContent.transactions.tx_review_approve;
 const CONNECT_BUTTON_TEXT = 'Connect';
 const DAPP_ACCOUNTS_TEXT = 'Accounts:';
+
+function getByWebId(id: string): EncapsulatedElementType {
+  return encapsulated({
+    detox: () =>
+      Matchers.getElementByWebID(
+        BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+        id,
+      ),
+    appium: () => PlaywrightMatchers.getElementByXPath(`//*[@id="${id}"]`),
+  });
+}
+
+function getByWebXPath(xpath: string): EncapsulatedElementType {
+  return encapsulated({
+    detox: () =>
+      Matchers.getElementByXPath(
+        BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+        xpath,
+      ),
+    appium: () => PlaywrightMatchers.getElementByXPath(xpath),
+  });
+}
+
+function getByWebCSS(selector: string): EncapsulatedElementType {
+  return encapsulated({
+    detox: () =>
+      Matchers.getElementByCSS(
+        BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+        selector,
+      ),
+    appium: () => PlaywrightMatchers.getElementByCSS(selector),
+  });
+}
 
 interface ContractNavigationParams {
   contractAddress: string;
@@ -38,255 +70,167 @@ class TestDApp {
     });
   }
 
-  get DappConnectButton(): WebElement {
-    return Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestDappSelectorsWebIDs.CONNECT_BUTTON,
-    );
+  get DappConnectButton(): EncapsulatedElementType {
+    return getByWebId(TestDappSelectorsWebIDs.CONNECT_BUTTON);
   }
 
-  get connectedAccounts(): WebElement {
-    return Matchers.getElementByXPath(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      `//*[contains(text(),"${DAPP_ACCOUNTS_TEXT}")]`,
-    );
+  get connectedAccounts(): EncapsulatedElementType {
+    return getByWebXPath(`//*[contains(text(),"${DAPP_ACCOUNTS_TEXT}")]`);
   }
 
-  get ApproveERC20TokensButton(): WebElement {
-    return Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestDappSelectorsWebIDs.APPROVE_ERC_20_TOKENS_BUTTON_ID,
-    );
+  get ApproveERC20TokensButton(): EncapsulatedElementType {
+    return getByWebId(TestDappSelectorsWebIDs.APPROVE_ERC_20_TOKENS_BUTTON_ID);
   }
 
-  get ApproveERC721TokenButton(): WebElement {
-    return Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestDappSelectorsWebIDs.APPROVE_ERC_721_TOKEN_BUTTON_ID,
-    );
+  get ApproveERC721TokenButton(): EncapsulatedElementType {
+    return getByWebId(TestDappSelectorsWebIDs.APPROVE_ERC_721_TOKEN_BUTTON_ID);
   }
 
-  get invalidSignature(): WebElement {
-    return Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      'signInvalidType',
-    );
+  get invalidSignature(): EncapsulatedElementType {
+    return getByWebId('signInvalidType');
   }
 
   // This taps on the transfer tokens button under the "SEND TOKENS section"
-  get erc20TransferTokensButton(): WebElement {
-    return Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+  get erc20TransferTokensButton(): EncapsulatedElementType {
+    return getByWebId(
       TestDappSelectorsWebIDs.ERC_20_SEND_TOKENS_TRANSFER_TOKENS_BUTTON_ID,
     );
   }
 
-  get increaseAllowanceButton(): WebElement {
-    return Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestDappSelectorsWebIDs.INCREASE_ALLOWANCE_BUTTON_ID,
-    );
+  get increaseAllowanceButton(): EncapsulatedElementType {
+    return getByWebId(TestDappSelectorsWebIDs.INCREASE_ALLOWANCE_BUTTON_ID);
   }
 
-  get personalSignButton(): WebElement {
-    return Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestDappSelectorsWebIDs.PERSONAL_SIGN,
-    );
+  get personalSignButton(): EncapsulatedElementType {
+    return getByWebId(TestDappSelectorsWebIDs.PERSONAL_SIGN);
   }
 
-  get signTypedDataButton(): WebElement {
-    return Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestDappSelectorsWebIDs.SIGN_TYPE_DATA,
-    );
+  get signTypedDataButton(): EncapsulatedElementType {
+    return getByWebId(TestDappSelectorsWebIDs.SIGN_TYPE_DATA);
   }
 
-  get signTypedDataV3Button(): WebElement {
-    return Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestDappSelectorsWebIDs.SIGN_TYPE_DATA_V3,
-    );
+  get signTypedDataV3Button(): EncapsulatedElementType {
+    return getByWebId(TestDappSelectorsWebIDs.SIGN_TYPE_DATA_V3);
   }
 
-  get signTypedDataV4Button(): WebElement {
-    return Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestDappSelectorsWebIDs.SIGN_TYPE_DATA_V4,
-    );
+  get signTypedDataV4Button(): EncapsulatedElementType {
+    return getByWebId(TestDappSelectorsWebIDs.SIGN_TYPE_DATA_V4);
   }
 
-  get ethereumSignButton(): WebElement {
-    return Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestDappSelectorsWebIDs.ETHEREUM_SIGN,
-    );
+  get ethereumSignButton(): EncapsulatedElementType {
+    return getByWebId(TestDappSelectorsWebIDs.ETHEREUM_SIGN);
   }
 
-  get permitSignButton(): WebElement {
-    return Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestDappSelectorsWebIDs.PERMIT_SIGN,
-    );
+  get permitSignButton(): EncapsulatedElementType {
+    return getByWebId(TestDappSelectorsWebIDs.PERMIT_SIGN);
   }
 
-  get siweBadDomainButton(): WebElement {
-    return Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestDappSelectorsWebIDs.ETHEREUM_SIGN_BAD_DOMAIN,
-    );
+  get siweBadDomainButton(): EncapsulatedElementType {
+    return getByWebId(TestDappSelectorsWebIDs.ETHEREUM_SIGN_BAD_DOMAIN);
   }
 
   // This taps on the transfer tokens button under the "SEND TOKENS section"
-  get nftTransferFromTokensButton(): WebElement {
-    return Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestDappSelectorsWebIDs.NFT_TRANSFER_FROM_BUTTON_ID,
-    );
+  get nftTransferFromTokensButton(): EncapsulatedElementType {
+    return getByWebId(TestDappSelectorsWebIDs.NFT_TRANSFER_FROM_BUTTON_ID);
   }
 
-  get nftSetApprovalForAllButton(): WebElement {
-    return Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+  get nftSetApprovalForAllButton(): EncapsulatedElementType {
+    return getByWebId(
       TestDappSelectorsWebIDs.SET_APPROVAL_FOR_ALL_NFT_BUTTON_ID,
     );
   }
 
-  get addTokensToWalletButton(): WebElement {
-    return Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestDappSelectorsWebIDs.ADD_TOKENS_TO_WALLET_BUTTON,
-    );
+  get addTokensToWalletButton(): EncapsulatedElementType {
+    return getByWebId(TestDappSelectorsWebIDs.ADD_TOKENS_TO_WALLET_BUTTON);
   }
 
-  get erc1155SetApprovalForAllButton(): WebElement {
-    return Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+  get erc1155SetApprovalForAllButton(): EncapsulatedElementType {
+    return getByWebId(
       TestDappSelectorsWebIDs.SET_APPROVAL_FOR_ALL_ERC1155_BUTTON_ID,
     );
   }
 
-  get sendFailingTransactionButton(): WebElement {
-    return Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+  get sendFailingTransactionButton(): EncapsulatedElementType {
+    return getByWebId(
       TestDappSelectorsWebIDs.SEND_FAILING_TRANSACTION_BUTTON_ID,
     );
   }
 
-  get erc1155BatchTransferButton(): WebElement {
-    return Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestDappSelectorsWebIDs.BATCH_TRANSFER_ERC1155_BUTTON_ID,
-    );
+  get erc1155BatchTransferButton(): EncapsulatedElementType {
+    return getByWebId(TestDappSelectorsWebIDs.BATCH_TRANSFER_ERC1155_BUTTON_ID);
   }
 
-  get switchChainFromTestDappButton(): WebElement {
-    return Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestDappSelectorsWebIDs.SWITCH_ETHEREUM_CHAIN,
-    );
+  get switchChainFromTestDappButton(): EncapsulatedElementType {
+    return getByWebId(TestDappSelectorsWebIDs.SWITCH_ETHEREUM_CHAIN);
   }
 
-  get testDappFoxLogo(): WebElement {
-    return Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestDappSelectorsWebIDs.TEST_DAPP_FOX_LOGO,
-    );
+  get testDappFoxLogo(): EncapsulatedElementType {
+    return getByWebId(TestDappSelectorsWebIDs.TEST_DAPP_FOX_LOGO);
   }
 
-  get testDappPageTitle(): WebElement {
-    return Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestDappSelectorsWebIDs.TEST_DAPP_HEADING_TITLE,
-    );
+  get testDappPageTitle(): EncapsulatedElementType {
+    return getByWebId(TestDappSelectorsWebIDs.TEST_DAPP_HEADING_TITLE);
   }
 
-  get erc721MintButton(): WebElement {
-    return Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestDappSelectorsWebIDs.ERC_721_MINT_BUTTON_ID,
-    );
+  get erc721MintButton(): EncapsulatedElementType {
+    return getByWebId(TestDappSelectorsWebIDs.ERC_721_MINT_BUTTON_ID);
   }
 
-  get sendEIP1559Button(): WebElement {
-    return Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestDappSelectorsWebIDs.SEND_EIP_1559_BUTTON_ID,
-    );
+  get sendEIP1559Button(): EncapsulatedElementType {
+    return getByWebId(TestDappSelectorsWebIDs.SEND_EIP_1559_BUTTON_ID);
   }
 
-  get deployContractButton(): WebElement {
-    return Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestDappSelectorsWebIDs.DEPLOY_CONTRACT_BUTTON_ID,
-    );
+  get deployContractButton(): EncapsulatedElementType {
+    return getByWebId(TestDappSelectorsWebIDs.DEPLOY_CONTRACT_BUTTON_ID);
   }
 
-  get sendCallsButton(): WebElement {
-    return Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestDappSelectorsWebIDs.SEND_CALLS_BUTTON,
-    );
+  get sendCallsButton(): EncapsulatedElementType {
+    return getByWebId(TestDappSelectorsWebIDs.SEND_CALLS_BUTTON);
   }
 
-  get revokeAccountPermission(): WebElement {
-    return Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestDappSelectorsWebIDs.REVOKE_ACCOUNTS_PERMISSIONS,
-    );
+  get revokeAccountPermission(): EncapsulatedElementType {
+    return getByWebId(TestDappSelectorsWebIDs.REVOKE_ACCOUNTS_PERMISSIONS);
   }
 
-  get requestPermissions(): WebElement {
-    return Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestDappSelectorsWebIDs.REQUEST_PERMISSIONS,
-    );
+  get requestPermissions(): EncapsulatedElementType {
+    return getByWebId(TestDappSelectorsWebIDs.REQUEST_PERMISSIONS);
   }
 
-  get connectButtonText(): WebElement {
-    return Matchers.getElementByText(CONNECT_BUTTON_TEXT);
+  get connectButtonText(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText(CONNECT_BUTTON_TEXT),
+      appium: () => PlaywrightMatchers.getElementByText(CONNECT_BUTTON_TEXT),
+    });
   }
 
-  get erc721RevokeApprovalButton(): WebElement {
-    return Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+  get erc721RevokeApprovalButton(): EncapsulatedElementType {
+    return getByWebId(
       TestDappSelectorsWebIDs.ERC_721_REVOKE_APPROVAL_BUTTON_ID,
     );
   }
 
-  get erc1155RevokeApprovalButton(): WebElement {
-    return Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+  get erc1155RevokeApprovalButton(): EncapsulatedElementType {
+    return getByWebId(
       TestDappSelectorsWebIDs.ERC_1155_REVOKE_APPROVAL_BUTTON_ID,
     );
   }
 
-  get openNetworkPicker(): WebElement {
-    return Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestDappSelectorsWebIDs.OPEN_NETWORK_PICKER,
-    );
+  get openNetworkPicker(): EncapsulatedElementType {
+    return getByWebId(TestDappSelectorsWebIDs.OPEN_NETWORK_PICKER);
   }
 
-  get networkModalContent(): WebElement {
-    return Matchers.getElementByCSS(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      '.network-modal-content',
-    );
+  get networkModalContent(): EncapsulatedElementType {
+    return getByWebCSS('.network-modal-content');
   }
 
-  getNetworkItemByName(networkName: string): WebElement {
-    return Matchers.getElementByXPath(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+  getNetworkItemByName(networkName: string): EncapsulatedElementType {
+    return getByWebXPath(
       `//div[contains(@class, "network-modal-item-name") and contains(text(), "${networkName}")]`,
     );
   }
 
-  get networkModalBody(): WebElement {
-    return Matchers.getElementByCSS(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      '.network-modal-body',
-    );
+  get networkModalBody(): EncapsulatedElementType {
+    return getByWebCSS('.network-modal-body');
   }
 
   async verifyCurrentNetworkText(expectedNetworkName: string): Promise<void> {
@@ -328,9 +272,11 @@ class TestDApp {
   async isConnectedToTestDapp(): Promise<boolean> {
     return Utilities.executeWithRetry(
       async () => {
-        const connectedAccounts = (await this
-          .connectedAccounts) as IndexableWebElement;
-        const text = await connectedAccounts.getText();
+        const connectedAccounts = await this.connectedAccounts;
+        const text =
+          'textContent' in connectedAccounts
+            ? ((await connectedAccounts.textContent()) ?? '')
+            : await (connectedAccounts as IndexableWebElement).getText();
         const accountsText = text.replace(DAPP_ACCOUNTS_TEXT, '').trim();
         if (accountsText.length > 0) {
           return true;
@@ -516,11 +462,10 @@ class TestDApp {
   }
 
   async tapButton(
-    elementId: WebElement,
+    elementId: EncapsulatedElementType,
     options: TapOptions = {},
   ): Promise<void> {
-    await Gestures.scrollToWebViewPort(elementId);
-    await Gestures.tap(elementId, options);
+    await UnifiedGestures.tap(elementId, options);
   }
 
   async navigateToTestDappWithContract({
@@ -590,11 +535,11 @@ class TestDApp {
     // Try to find the network without scrolling first
     try {
       const networkItem = await this.getNetworkItemByName(networkName);
-      await Assertions.expectElementToBeVisible(
-        networkItem as unknown as WebElement,
-        { timeout: 2000, description: 'network item by label' },
-      );
-      await UnifiedGestures.waitAndTap(networkItem as unknown as WebElement, {
+      await Assertions.expectElementToBeVisible(networkItem, {
+        timeout: 2000,
+        description: 'network item by label',
+      });
+      await UnifiedGestures.waitAndTap(networkItem, {
         elemDescription: `tap ${networkName} network`,
       });
       return;

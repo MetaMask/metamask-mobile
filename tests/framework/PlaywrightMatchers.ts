@@ -176,6 +176,20 @@ export default class PlaywrightMatchers {
   }
 
   /**
+   * Get element by CSS selector.
+   * Intended for Appium WebView contexts.
+   *
+   * @param selector - CSS selector to search for
+   * @returns The wrapped element
+   */
+  static async getElementByCSS(selector: string): Promise<PlaywrightElement> {
+    const drv = getDriver();
+    if (!drv) throw new Error('Driver is not available');
+    const element = await drv.$(selector);
+    return wrapElement(element);
+  }
+
+  /**
    * Get multiple elements by class name
    * @param className - The class name to search for
    * @returns The wrapped elements

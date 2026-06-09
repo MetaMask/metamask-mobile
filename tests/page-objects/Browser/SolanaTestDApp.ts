@@ -2,12 +2,16 @@ import { dataTestIds } from '@metamask/test-dapp-solana';
 import Matchers from '../../framework/Matchers';
 import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
 import Browser from './BrowserView';
-import Gestures from '../../framework/Gestures';
 import { waitFor } from 'detox';
 import { SolanaTestDappSelectorsWebIDs } from '../../selectors/Browser/SolanaTestDapp.selectors';
 import { getDappUrl } from '../../framework/fixtures/FixtureUtils';
 import { Utilities } from '../../framework';
 import UnifiedGestures from '../../framework/UnifiedGestures';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 
 /**
  * Get a test element by data-testid
@@ -19,59 +23,88 @@ import UnifiedGestures from '../../framework/UnifiedGestures';
 function getTestElement(
   dataTestId: string,
   options: { extraXPath?: string; tag?: string } = {},
-): Promise<DetoxElement | WebElement> {
+): EncapsulatedElementType {
   const { tag = 'div', extraXPath = '' } = options;
   const xpath = `//${tag}[@data-testid="${dataTestId}"]${extraXPath}`;
 
-  return Matchers.getElementByXPath(
-    BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-    xpath,
-  );
+  return encapsulated({
+    detox: () =>
+      Matchers.getElementByXPath(
+        BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+        xpath,
+      ),
+    appium: () => PlaywrightMatchers.getElementByXPath(xpath),
+  });
+}
+
+function getByCss(selector: string): EncapsulatedElementType {
+  return encapsulated({
+    detox: () =>
+      Matchers.getElementByCSS(
+        BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+        selector,
+      ),
+    appium: () => PlaywrightMatchers.getElementByCSS(selector),
+  });
 }
 
 /**
  * Class to interact with the Multichain Test DApp via the WebView
  */
 class SolanaTestDApp {
-  get connectButtonSelector(): WebElement {
+  get connectButtonSelector(): EncapsulatedElementType {
     return getTestElement(dataTestIds.testPage.header.connect, {
       extraXPath: '/div/button',
     });
   }
 
-  get disconnectButtonSelector(): WebElement {
+  get disconnectButtonSelector(): EncapsulatedElementType {
     return getTestElement(dataTestIds.testPage.header.disconnect, {
       extraXPath: '/button',
     });
   }
 
-  get endpointSelector(): WebElement {
+  get endpointSelector(): EncapsulatedElementType {
     return getTestElement(dataTestIds.testPage.header.endpoint, {
       tag: 'input',
     });
   }
 
-  get walletButtonSelector(): WebElement {
-    return Matchers.getElementByCSS(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      SolanaTestDappSelectorsWebIDs.WALLET_BUTTON,
-    );
+  get walletButtonSelector(): EncapsulatedElementType {
+    return getByCss(SolanaTestDappSelectorsWebIDs.WALLET_BUTTON);
   }
 
-  get confirmTransactionButtonSelector(): WebElement {
-    return Matchers.getElementByID(
-      SolanaTestDappSelectorsWebIDs.CONFIRM_TRANSACTION_BUTTON,
-    );
+  get confirmTransactionButtonSelector(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          SolanaTestDappSelectorsWebIDs.CONFIRM_TRANSACTION_BUTTON,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          SolanaTestDappSelectorsWebIDs.CONFIRM_TRANSACTION_BUTTON,
+        ),
+    });
   }
 
-  get confirmSignMessageButtonSelector(): WebElement {
-    return Matchers.getElementByID(
-      SolanaTestDappSelectorsWebIDs.CONFIRM_SIGN_MESSAGE_BUTTON,
-    );
+  get confirmSignMessageButtonSelector(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          SolanaTestDappSelectorsWebIDs.CONFIRM_SIGN_MESSAGE_BUTTON,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          SolanaTestDappSelectorsWebIDs.CONFIRM_SIGN_MESSAGE_BUTTON,
+        ),
+    });
   }
 
-  get cancelButtonSelector() {
-    return Matchers.getElementByText('Cancel');
+  get cancelButtonSelector(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText('Cancel'),
+      appium: () => PlaywrightMatchers.getElementByText('Cancel'),
+    });
   }
 
   async navigateToSolanaTestDApp(): Promise<void> {
@@ -91,8 +124,7 @@ class SolanaTestDApp {
   /**
    * Tap a button in the WebView
    */
-  async tapButton(webElement: WebElement): Promise<void> {
-    await Gestures.scrollToWebViewPort(webElement);
+  async tapButton(webElement: EncapsulatedElementType): Promise<void> {
     await UnifiedGestures.waitAndTap(webElement);
   }
 
