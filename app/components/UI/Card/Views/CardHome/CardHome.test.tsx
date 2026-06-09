@@ -68,7 +68,6 @@ import { Alert, Linking } from 'react-native';
 import { useSelector } from 'react-redux';
 import React from 'react';
 import CardHome from './CardHome';
-import { cardDefaultNavigationOptions } from '../../routes';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { withCardSDK } from '../../sdk';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -611,21 +610,17 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Failed to load PIN. Please try again.',
       'card.password_bottomsheet.description_view_pin':
         'Enter your wallet password to view your card PIN.',
-      'card.card_home.manage_card_options.cashback': 'Cashback',
       'card.card_home.manage_card_options.cashback_description':
-        'Earn 1% back on all spending',
-      'card.card_home.manage_card_options.cashback_description_metal':
-        'Earn 3% back on all spending',
+        'Earn on all spending',
       'money.metamask_card.link_title': 'Link MetaMask Card',
       'money.metamask_card.link_card': 'Link card',
       'money.metamask_card.link_subtitle_no_apy':
-        'Spend your Money balance and earn on purchases.',
+        'Spend your balance and earn on purchases.',
     };
     const value = strings[key];
     if (value) return value;
     if (key === 'money.metamask_card.link_subtitle') {
-      const apy = (params as { apy?: number | string } | undefined)?.apy;
-      return `Spend your Money balance and earn on purchases. Plus, up to ${apy}% APY on your balance.`;
+      return 'Spend your balance and earn on purchases.';
     }
     if (key === 'money.metamask_card.link_bullet_cashback') {
       const percentage = (
@@ -635,7 +630,13 @@ jest.mock('../../../../../../locales/i18n', () => ({
     }
     if (key === 'money.metamask_card.link_bullet_apy') {
       const apy = (params as { apy?: number | string } | undefined)?.apy;
-      return `Earn up to ${apy}% APY`;
+      return `Earn up to ~${apy}% APY`;
+    }
+    if (key === 'card.card_home.manage_card_options.cashback') {
+      const cashbackPercentage = (
+        params as { cashbackPercentage?: number | string } | undefined
+      )?.cashbackPercentage;
+      return `${cashbackPercentage}% mUSD Back`;
     }
     return key;
   },
@@ -1546,26 +1547,6 @@ describe('CardHome Component', () => {
         'card.card_home.manage_card_options.manage_spending_limit_description_restricted',
       ),
     ).toBeTruthy();
-  });
-
-  it('sets navigation options correctly', () => {
-    // Given: navigation object
-    const mockNavigation = {
-      navigate: mockNavigate,
-      goBack: mockGoBack,
-      setOptions: mockSetNavigationOptions,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
-
-    // When: getting navigation options
-    const navigationOptions = cardDefaultNavigationOptions({
-      navigation: mockNavigation,
-    });
-
-    // Then: should include all required header components
-    expect(navigationOptions).toHaveProperty('headerLeft');
-    expect(navigationOptions).toHaveProperty('headerTitle');
-    expect(navigationOptions).toHaveProperty('headerRight');
   });
 
   it('dispatches bridge tokens when opening swaps with non-supported token', async () => {
@@ -5702,7 +5683,7 @@ describe('CardHome Component', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('shows standard cashback description for virtual card', () => {
+    it('shows standard cashback title for virtual card', () => {
       // Given: authenticated international user with virtual card
       setupMockSelectors({
         isAuthenticated: true,
@@ -5719,13 +5700,11 @@ describe('CardHome Component', () => {
       // When: component renders
       render();
 
-      // Then: standard description is shown
-      expect(
-        screen.getByText('Earn 1% back on all spending'),
-      ).toBeOnTheScreen();
+      // Then: standard 1% title is shown
+      expect(screen.getByText('1% mUSD Back')).toBeOnTheScreen();
     });
 
-    it('shows metal cashback description for metal card', () => {
+    it('shows metal cashback title for metal card', () => {
       // Given: authenticated international user with metal card
       setupMockSelectors({
         isAuthenticated: true,
@@ -5742,10 +5721,8 @@ describe('CardHome Component', () => {
       // When: component renders
       render();
 
-      // Then: metal description is shown
-      expect(
-        screen.getByText('Earn 3% back on all spending'),
-      ).toBeOnTheScreen();
+      // Then: metal 3% title is shown
+      expect(screen.getByText('3% mUSD Back')).toBeOnTheScreen();
     });
 
     it('navigates to cashback screen on press', () => {
@@ -6486,7 +6463,7 @@ describe('CardHome Component', () => {
           strings('money.metamask_card.link_subtitle', { apy: 4 }),
         ),
       ).toBeOnTheScreen();
-      expect(screen.getByText('Earn up to 4% APY')).toBeOnTheScreen();
+      expect(screen.getByText('Earn up to ~4% APY')).toBeOnTheScreen();
     });
   });
 });

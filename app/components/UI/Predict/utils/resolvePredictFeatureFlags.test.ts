@@ -33,6 +33,7 @@ describe('resolvePredictFeatureFlags', () => {
       predictWithAnyTokenEnabled: false,
       predictUpDownEnabled: false,
       predictPortfolioEnabled: false,
+      predictHomeRedesignEnabled: false,
       predictHomepageDiscoveryNbaChampionEnabled: true,
       predictWorldCup: DEFAULT_PREDICT_WORLD_CUP_FLAG,
     });
@@ -93,6 +94,31 @@ describe('resolvePredictFeatureFlags', () => {
       enabled: true,
       minimumVersion: '1.0.0',
       highlights: [{ category: 'sports', markets: ['1', '2'] }],
+    };
+
+    const result = resolvePredictFeatureFlags({
+      remoteFeatureFlags: {
+        predictMarketHighlights: marketHighlights,
+      },
+    });
+
+    expect(result.marketHighlightsFlag).toEqual(marketHighlights);
+  });
+
+  it('passes through series ids on market highlights entries unchanged', () => {
+    mockValidatedVersionGatedFeatureFlag.mockImplementationOnce(() => true);
+
+    const marketHighlights = {
+      enabled: true,
+      minimumVersion: '1.0.0',
+      highlights: [
+        {
+          category: 'crypto',
+          markets: ['direct-1'],
+          series: ['series-1', 'series-2'],
+        },
+        { category: 'sports', series: ['series-3'] },
+      ],
     };
 
     const result = resolvePredictFeatureFlags({
@@ -233,7 +259,7 @@ describe('resolvePredictFeatureFlags', () => {
 
     it('falls back to default disabled config when version gate fails', () => {
       mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
-        if (flag && typeof flag === 'object' && 'seriesId' in flag) {
+        if (flag && typeof flag === 'object' && 'tagSlug' in flag) {
           return false;
         }
         return undefined;
@@ -257,7 +283,7 @@ describe('resolvePredictFeatureFlags', () => {
 
     it('parses config with defaults when version gate passes', () => {
       mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
-        if (flag && typeof flag === 'object' && 'seriesId' in flag) {
+        if (flag && typeof flag === 'object' && 'tagSlug' in flag) {
           return true;
         }
         return undefined;
@@ -338,7 +364,7 @@ describe('resolvePredictFeatureFlags', () => {
           typeof flag === 'object' &&
           'minimumVersion' in flag &&
           !('leagues' in flag) &&
-          !('seriesId' in flag)
+          !('tagSlug' in flag)
         ) {
           return true;
         }
@@ -364,7 +390,7 @@ describe('resolvePredictFeatureFlags', () => {
           typeof flag === 'object' &&
           'minimumVersion' in flag &&
           !('leagues' in flag) &&
-          !('seriesId' in flag)
+          !('tagSlug' in flag)
         ) {
           return false;
         }
@@ -403,7 +429,7 @@ describe('resolvePredictFeatureFlags', () => {
           typeof flag === 'object' &&
           'minimumVersion' in flag &&
           !('leagues' in flag) &&
-          !('seriesId' in flag)
+          !('tagSlug' in flag)
         ) {
           return false;
         }
@@ -429,7 +455,7 @@ describe('resolvePredictFeatureFlags', () => {
           typeof flag === 'object' &&
           'minimumVersion' in flag &&
           !('leagues' in flag) &&
-          !('seriesId' in flag)
+          !('tagSlug' in flag)
         ) {
           return true;
         }
@@ -449,6 +475,134 @@ describe('resolvePredictFeatureFlags', () => {
       });
 
       expect(result.predictPortfolioEnabled).toBe(true);
+    });
+  });
+
+  describe('predictHomeRedesignEnabled', () => {
+    it('returns false when flag is missing', () => {
+      const result = resolvePredictFeatureFlags({});
+
+      expect(result.predictHomeRedesignEnabled).toBe(false);
+    });
+
+    it('returns true when enabled and version gate passes', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (
+          flag &&
+          typeof flag === 'object' &&
+          'minimumVersion' in flag &&
+          !('leagues' in flag) &&
+          !('tagSlug' in flag)
+        ) {
+          return true;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictHomeRedesign: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+          },
+        },
+      });
+
+      expect(result.predictHomeRedesignEnabled).toBe(true);
+    });
+
+    it('returns false when flag is disabled', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (
+          flag &&
+          typeof flag === 'object' &&
+          'minimumVersion' in flag &&
+          !('leagues' in flag) &&
+          !('tagSlug' in flag)
+        ) {
+          return false;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictHomeRedesign: {
+            enabled: false,
+            minimumVersion: '1.0.0',
+          },
+        },
+      });
+
+      expect(result.predictHomeRedesignEnabled).toBe(false);
+    });
+
+    it('returns false when flag is malformed', () => {
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictHomeRedesign: {
+            enabled: 'true',
+            minimumVersion: '1.0.0',
+          },
+        },
+      });
+
+      expect(result.predictHomeRedesignEnabled).toBe(false);
+    });
+
+    it('returns false when version gate fails', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (
+          flag &&
+          typeof flag === 'object' &&
+          'minimumVersion' in flag &&
+          !('leagues' in flag) &&
+          !('tagSlug' in flag)
+        ) {
+          return false;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictHomeRedesign: {
+            enabled: true,
+            minimumVersion: '99.0.0',
+          },
+        },
+      });
+
+      expect(result.predictHomeRedesignEnabled).toBe(false);
+    });
+
+    it('unwraps progressive rollout shape', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (
+          flag &&
+          typeof flag === 'object' &&
+          'minimumVersion' in flag &&
+          !('leagues' in flag) &&
+          !('tagSlug' in flag)
+        ) {
+          return true;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictHomeRedesign: {
+            name: 'group-a',
+            value: {
+              enabled: true,
+              minimumVersion: '1.0.0',
+            },
+          },
+        },
+      });
+
+      expect(result.predictHomeRedesignEnabled).toBe(true);
     });
   });
 

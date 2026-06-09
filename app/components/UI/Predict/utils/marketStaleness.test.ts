@@ -263,6 +263,75 @@ describe('marketStaleness', () => {
 
       expect(getVisiblePredictMarket(market, { now: NOW })).toEqual(market);
     });
+
+    it('keeps game markets without filtering stale-priced outcomes', () => {
+      const market = createMarket({
+        id: 'game-market',
+        game: createGame('scheduled'),
+        outcomes: [
+          createOutcome({ id: 'favorite', price: 0.97 }),
+          createOutcome({ id: 'draw', price: 0.04 }),
+          createOutcome({ id: 'underdog', price: 0.03 }),
+        ],
+      });
+
+      expect(getVisiblePredictMarket(market, { now: NOW })).toEqual(market);
+    });
+
+    it('keeps an ongoing game market whose scheduled end date has passed', () => {
+      const market = createMarket({
+        id: 'ongoing-game-past-end-date',
+        recurrence: Recurrence.DAILY,
+        endDate: '2026-03-18T11:30:00.000Z',
+        game: createGame('ongoing'),
+      });
+
+      expect(getVisiblePredictMarket(market, { now: NOW })).toEqual(market);
+    });
+  });
+
+  describe('isPredictMarketExpiredByTime game markets', () => {
+    it('does not expire an ongoing game even when the scheduled end date has passed', () => {
+      const market = createMarket({
+        id: 'ongoing-game',
+        recurrence: Recurrence.DAILY,
+        endDate: '2026-03-18T11:30:00.000Z',
+        game: createGame('ongoing'),
+      });
+
+      expect(isPredictMarketExpiredByTime(market, { now: NOW })).toBe(false);
+    });
+
+    it('expires a game once it has ended regardless of the end date', () => {
+      const market = createMarket({
+        id: 'ended-game',
+        recurrence: Recurrence.DAILY,
+        endDate: '2027-01-01T00:00:00.000Z',
+        game: createGame('ended'),
+      });
+
+      expect(isPredictMarketExpiredByTime(market, { now: NOW })).toBe(true);
+    });
+
+    it('expires a game that has an end time stamped even if status is not ended', () => {
+      const market = createMarket({
+        id: 'game-with-end-time',
+        recurrence: Recurrence.DAILY,
+        game: { ...createGame('ongoing'), endTime: '2026-03-18T11:45:00.000Z' },
+      });
+
+      expect(isPredictMarketExpiredByTime(market, { now: NOW })).toBe(true);
+    });
+
+    it('expires a game at a full-time period even if status is not ended', () => {
+      const market = createMarket({
+        id: 'game-at-full-time',
+        recurrence: Recurrence.DAILY,
+        game: { ...createGame('ongoing'), period: 'FT' },
+      });
+
+      expect(isPredictMarketExpiredByTime(market, { now: NOW })).toBe(true);
+    });
   });
 
   describe('penalties and ranking', () => {
@@ -333,6 +402,22 @@ describe('marketStaleness', () => {
           (market) => market.id,
         ),
       ).toEqual(['highlighted', 'live', 'stale']);
+    });
+
+    it('does not apply staleness ranking penalties to game markets', () => {
+      const stalePricedGame = createMarket({
+        id: 'stale-priced-game',
+        game: createGame('scheduled'),
+        outcomes: [createOutcome({ id: 'heavy-favorite', price: 0.99 })],
+      });
+      const liveOne = createMarket({ id: 'live-one' });
+      const liveTwo = createMarket({ id: 'live-two' });
+
+      expect(
+        getVisiblePredictMarkets([stalePricedGame, liveOne, liveTwo], {
+          now: NOW,
+        }).map((market) => market.id),
+      ).toEqual(['stale-priced-game', 'live-one', 'live-two']);
     });
 
     it('preserves original order when ranking scores tie', () => {

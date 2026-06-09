@@ -35,6 +35,7 @@ export interface PredictPortfolioModel {
   isClaimPending: boolean;
   isDepositPending: boolean;
   isLoading: boolean;
+  isOpenPositionsLoading: boolean;
   isPositionsLoading: boolean;
   isRefreshing: boolean;
   openPositionCount: number;
@@ -109,17 +110,6 @@ export function usePredictPortfolio(): PredictPortfolioModel {
       ),
     [claimablePositions],
   );
-
-  const hasOpenPositions = openPositions.length > 0;
-  const { claim, isClaimPending } = usePredictClaim();
-  const { deposit, isDepositPending } = usePredictDeposit();
-  const { withdraw, withdrawTransaction } = usePredictWithdraw();
-
-  const accountStateQuery = usePredictAccountState({
-    enabled: availableBalance > 0,
-  });
-  const refetchAccountState = accountStateQuery.refetch;
-
   const openPositionsValue = useMemo(
     () => sumCurrentValue(openPositions),
     [openPositions],
@@ -128,6 +118,18 @@ export function usePredictPortfolio(): PredictPortfolioModel {
     () => sumCurrentValue(actionableClaimablePositions),
     [actionableClaimablePositions],
   );
+  const portfolioValue =
+    availableBalance + openPositionsValue + claimableAmount;
+
+  const hasOpenPositions = openPositions.length > 0;
+  const { claim, isClaimPending } = usePredictClaim();
+  const { deposit, isDepositPending } = usePredictDeposit();
+  const { withdraw, withdrawTransaction } = usePredictWithdraw();
+
+  const accountStateQuery = usePredictAccountState({
+    enabled: portfolioValue > 0,
+  });
+  const refetchAccountState = accountStateQuery.refetch;
   const totalUnrealizedPnl = useMemo(
     () => getPositionsPnl(openPositions),
     [openPositions],
@@ -139,13 +141,12 @@ export function usePredictPortfolio(): PredictPortfolioModel {
   const totalUnrealizedPnlPercent = hasOpenPositions
     ? totalUnrealizedPnl.percent
     : undefined;
-  const portfolioValue =
-    availableBalance + openPositionsValue + claimableAmount;
   const openPositionCount = openPositions.length;
   const claimablePositionCount = actionableClaimablePositions.length;
   const positionsBadgeCount = openPositionCount + claimablePositionCount;
+  const isOpenPositionsLoading = activePositionsQuery.isLoading;
   const isPositionsLoading =
-    activePositionsQuery.isLoading || claimablePositionsQuery.isLoading;
+    isOpenPositionsLoading || claimablePositionsQuery.isLoading;
   const showUnrealizedPnl =
     Math.abs(totalUnrealizedPnlAmount) >= PNL_DISPLAY_THRESHOLD;
 
@@ -179,13 +180,13 @@ export function usePredictPortfolio(): PredictPortfolioModel {
       balanceError ??
       activePositionsQuery.error ??
       claimablePositionsQuery.error ??
-      accountStateQuery.error ??
       null,
     hasClaimableWinnings: claimableAmount > 0,
     isBalanceLoading,
     isClaimPending,
     isDepositPending,
     isLoading: isBalanceLoading || isPositionsLoading,
+    isOpenPositionsLoading,
     isPositionsLoading,
     isRefreshing:
       isBalanceRefetching ||

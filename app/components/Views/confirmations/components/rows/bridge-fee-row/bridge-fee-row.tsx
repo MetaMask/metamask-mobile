@@ -15,7 +15,6 @@ import {
   FlexDirection,
   JustifyContent,
 } from '../../../../../UI/Box/box.types';
-import { hasTransactionType } from '../../../utils/transaction';
 import {
   TransactionPayQuote,
   TransactionPayTotals,
@@ -177,6 +176,23 @@ function getNetworkFeeUsdBN({
   return new BigNumber(sourceNetworkUsd).plus(targetNetworkUsd);
 }
 
+const TOOLTIP_MESSAGE_KEY: Partial<Record<TransactionType, string>> = {
+  [TransactionType.perpsWithdraw]:
+    'confirm.tooltip.perps_withdraw.transaction_fee',
+  [TransactionType.predictWithdraw]:
+    'confirm.tooltip.predict_withdraw.transaction_fee',
+  [TransactionType.predictDeposit]:
+    'confirm.tooltip.predict_deposit.transaction_fee',
+  [TransactionType.musdConversion]:
+    'confirm.tooltip.musd_conversion.transaction_fee',
+  [TransactionType.moneyAccountWithdraw]:
+    'confirm.tooltip.money_account_withdraw.transaction_fee',
+  [TransactionType.moneyAccountDeposit]:
+    'confirm.tooltip.money_account_deposit.transaction_fee',
+  [TransactionType.perpsDeposit]:
+    'confirm.tooltip.perps_deposit.transaction_fee',
+};
+
 function Tooltip({
   transactionMeta,
   totals,
@@ -184,51 +200,11 @@ function Tooltip({
   transactionMeta: TransactionMeta;
   totals: TransactionPayTotals;
 }): ReactNode {
-  let message: string | undefined;
+  const key = TOOLTIP_MESSAGE_KEY[transactionMeta.type as TransactionType];
 
-  if (
-    hasTransactionType(transactionMeta, [
-      TransactionType.predictDeposit,
-      TransactionType.predictWithdraw,
-      TransactionType.perpsWithdraw,
-    ])
-  ) {
-    if (hasTransactionType(transactionMeta, [TransactionType.perpsWithdraw])) {
-      message = strings('confirm.tooltip.perps_withdraw.transaction_fee');
-    } else if (
-      hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])
-    ) {
-      message = strings('confirm.tooltip.predict_withdraw.transaction_fee');
-    } else {
-      message = strings('confirm.tooltip.predict_deposit.transaction_fee');
-    }
-  }
+  if (!key) return null;
 
-  if (hasTransactionType(transactionMeta, [TransactionType.musdConversion])) {
-    message = strings('confirm.tooltip.musd_conversion.transaction_fee');
-  }
-
-  if (
-    hasTransactionType(transactionMeta, [TransactionType.moneyAccountDeposit])
-  ) {
-    message = strings('confirm.tooltip.money_account_deposit.transaction_fee');
-  }
-
-  if (
-    hasTransactionType(transactionMeta, [TransactionType.moneyAccountWithdraw])
-  ) {
-    message = strings('confirm.tooltip.money_account_withdraw.transaction_fee');
-  }
-
-  switch (transactionMeta.type) {
-    case TransactionType.perpsDeposit:
-      message = strings('confirm.tooltip.perps_deposit.transaction_fee');
-      break;
-  }
-
-  if (!message) return null;
-
-  return <FeesTooltip message={message} totals={totals} />;
+  return <FeesTooltip message={strings(key)} totals={totals} />;
 }
 
 function FeesTooltip({

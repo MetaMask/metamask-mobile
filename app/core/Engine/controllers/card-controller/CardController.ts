@@ -2,9 +2,12 @@ import { BaseController, type StateMetadata } from '@metamask/base-controller';
 import { numberToHex, type Hex, type Json } from '@metamask/utils';
 import {
   TransactionType,
-  WalletDevice,
+  type TransactionMeta,
 } from '@metamask/transaction-controller';
 import Logger from '../../../../util/Logger';
+import ReduxService from '../../../redux';
+import type { RootState } from '../../../../reducers';
+import { getGasFeesSponsoredNetworkEnabled } from '../../../../selectors/featureFlagController/gasFeesSponsored';
 import {
   CARD_CONTROLLER_NAME,
   DEFAULT_CARD_PROVIDER_ID,
@@ -47,6 +50,10 @@ import {
   type AwaitTransactionConfirmedMessenger,
 } from './utils/awaitTransactionConfirmed';
 import { resolveMoneyAccountCardToken } from './utils/moneyAccountCardToken';
+import {
+  MONEY_ACCOUNT_DELEGATION_NETWORK,
+  MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
+} from '../../../../components/UI/Card/util/vedaToken';
 import { safeToChecksumAddress } from '../../../../util/address';
 import { toTokenMinimalUnit } from '../../../../util/number/bigint';
 import TransactionTypes from '../../../../core/TransactionTypes';
@@ -101,6 +108,12 @@ const metadata: StateMetadata<CardControllerState> = {
     includeInStateLogs: false,
     usedInUi: true,
   },
+  moneyAccountCardLinkInProgress: {
+    persist: false,
+    includeInDebugSnapshot: false,
+    includeInStateLogs: false,
+    usedInUi: true,
+  },
 };
 
 export const defaultCardControllerState: CardControllerState = {
@@ -111,6 +124,7 @@ export const defaultCardControllerState: CardControllerState = {
   providerData: {},
   cardHomeData: null,
   cardHomeDataStatus: 'idle',
+  moneyAccountCardLinkInProgress: false,
 };
 
 /**
@@ -133,7 +147,6 @@ export class CardController extends BaseController<
   private fetchCardHomeDataPromise: Promise<void> | null = null;
   private fetchGeneration = 0;
   private previousEvmAddress: string | null = null;
-  private linkMoneyAccountCardInFlight = false;
 
   constructor({
     messenger,
@@ -914,9 +927,20 @@ export class CardController extends BaseController<
   /**
    * Links a primary Money Account to Card by approving a Monad USDC allowance
    * to the active provider's delegation contract and completing the provider's
-   * funding flow. The approval transaction is submitted with
-   * `requireApproval: false` so it never opens the Confirmations modal — this
-   * is the background linkage path UI hooks consume.
+   * funding flow. The approval transaction is submitted via
+   * `TransactionController:addTransactionBatch` with `requireApproval: false`
+   * and `isGasFeeSponsored: true`, so it never opens the Confirmations modal
+   * and the money account doesn't pay MON gas — Sentinel sponsors the relayer
+   * fee. This is the background linkage path UI hooks consume.
+   *
+   * Pre-flight enforces one invariant before submission: the Monad gas
+   * sponsorship feature flag must be enabled (the relay must accept
+   * sponsorship for this chain).
+   *
+   * EIP-7702 upgrade is handled atomically by `Delegation7702PublishHook`:
+   * when the Money Account has no existing delegation, the hook auto-signs a
+   * 7702 authorization and bundles it in the same Sentinel relay request as
+   * the approve. No separate upgrade step is required here.
    *
    * Race-safe by construction: subscribes to
    * `TransactionController:transactionConfirmed` BEFORE submitting the
@@ -932,19 +956,23 @@ export class CardController extends BaseController<
     moneyAccountAddress: string;
     delegationAmountHuman: string;
   }): Promise<void> {
-    if (this.linkMoneyAccountCardInFlight) {
+    if (this.state.moneyAccountCardLinkInProgress) {
       throw new CardLinkageInProgressError();
     }
-    this.linkMoneyAccountCardInFlight = true;
+    this.update((state) => {
+      state.moneyAccountCardLinkInProgress = true;
+    });
     try {
       await this.#linkMoneyAccountCardUnsafe(params);
     } finally {
-      this.linkMoneyAccountCardInFlight = false;
+      this.update((state) => {
+        state.moneyAccountCardLinkInProgress = false;
+      });
     }
   }
 
   isLinkageInProgress(): boolean {
-    return this.linkMoneyAccountCardInFlight;
+    return this.state.moneyAccountCardLinkInProgress;
   }
 
   async #linkMoneyAccountCardUnsafe(params: {
@@ -993,26 +1021,6 @@ export class CardController extends BaseController<
       );
     }
 
-    const { delegationToken, nonce } = await provider.fetchDelegationChallenge(
-      { network: 'monad', address: fromAddress },
-      tokens,
-    );
-
-    const signatureMessage = this.generateCardDelegationSignatureMessage({
-      network: 'monad',
-      address: fromAddress,
-      nonce,
-      caipChainId: cardToken.caipChainId ?? 'eip155:143',
-    });
-
-    const sigHash = await this.messenger.call(
-      'KeyringController:signPersonalMessage',
-      {
-        data: `0x${Buffer.from(signatureMessage, 'utf8').toString('hex')}`,
-        from: fromAddress,
-      },
-    );
-
     const tokenAddress = cardToken.stagingTokenAddress ?? cardToken.address;
     if (!tokenAddress) {
       throw new CardProviderError(
@@ -1046,28 +1054,83 @@ export class CardController extends BaseController<
       hexChainId,
     );
 
-    const { txHash } = await awaitTransactionConfirmed({
+    // Pre-flight 1: Monad gas sponsorship feature flag must be on. The card
+    // link approve is submitted with `isGasFeeSponsored: true`, so if the
+    // server-side sponsorship is disabled we must refuse before the relay
+    // call — otherwise the publish hook would reject and the user would see
+    // a generic link-failed toast with no actionable reason.
+    const isMonadSponsorshipEnabled = getGasFeesSponsoredNetworkEnabled(
+      ReduxService.store.getState() as RootState,
+    )(hexChainId);
+    if (!isMonadSponsorshipEnabled) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Monad gas sponsorship unavailable',
+      );
+    }
+
+    const { delegationToken, nonce } = await provider.fetchDelegationChallenge(
+      { network: 'monad', address: fromAddress },
+      tokens,
+    );
+
+    const signatureMessage = this.generateCardDelegationSignatureMessage({
+      network: 'monad',
+      address: fromAddress,
+      nonce,
+      caipChainId: cardToken.caipChainId ?? 'eip155:143',
+    });
+
+    const sigHash = await this.messenger.call(
+      'KeyringController:signPersonalMessage',
+      {
+        data: `0x${Buffer.from(signatureMessage, 'utf8').toString('hex')}`,
+        from: fromAddress,
+      },
+    );
+
+    const { transactionMeta: confirmedMeta } = await awaitTransactionConfirmed({
       messenger: this
         .messenger as unknown as AwaitTransactionConfirmedMessenger,
-      submit: () =>
-        this.messenger.call(
-          'TransactionController:addTransaction',
-          { from: fromAddress, to: tokenAddress, data },
+      submit: async () => {
+        const { batchId } = await this.messenger.call(
+          'TransactionController:addTransactionBatch',
           {
+            from: fromAddress as Hex,
             networkClientId,
             origin: TransactionTypes.MMM_CARD,
-            type: TransactionType.tokenMethodApprove,
-            deviceConfirmedOn: WalletDevice.MM_MOBILE,
             requireApproval: false,
+            disableHook: true,
+            disableSequential: true,
+            isGasFeeSponsored: true,
+            transactions: [
+              {
+                params: {
+                  to: tokenAddress as Hex,
+                  data: data as Hex,
+                  value: '0x0' as Hex,
+                },
+                type: TransactionType.tokenMethodApprove,
+              },
+            ],
           },
-        ),
+        );
+
+        const innerTx = await this.#findInnerTxForBatch(batchId);
+        return {
+          result: Promise.resolve(''),
+          transactionMeta: innerTx,
+        };
+      },
     });
+
+    const txHash = confirmedMeta.hash ?? '';
 
     await provider.approveFunding(
       {
         address: fromAddress,
-        network: 'monad',
-        currency: 'usdc',
+        network: MONEY_ACCOUNT_DELEGATION_NETWORK,
+        currency: MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
         amount: delegationAmountHuman,
         txHash,
         sigHash,
@@ -1097,6 +1160,37 @@ export class CardController extends BaseController<
 
     await this.fetchCardHomeData();
     return fromState();
+  }
+
+  /**
+   * Resolves the inner `TransactionMeta` created by `addTransactionBatch` for
+   * a given `batchId`. `addTransactionBatch` returns only the batch id, but
+   * `awaitTransactionConfirmed` needs the inner transaction id to match the
+   * `transactionConfirmed` event. Polls the TransactionController state with
+   * a small bounded retry — the inner tx is emitted into state synchronously
+   * during the batch add path, so this almost always resolves on the first
+   * read; the retry exists purely to absorb micro-task ordering with the
+   * batch-id resolution.
+   */
+  async #findInnerTxForBatch(batchId: string): Promise<TransactionMeta> {
+    const MAX_RETRIES = 5;
+    const RETRY_DELAY_MS = 50;
+    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+      const { transactions } = this.messenger.call(
+        'TransactionController:getState',
+      );
+      const match = transactions.find((tx) => tx.batchId === batchId);
+      if (match) return match;
+      if (attempt < MAX_RETRIES - 1) {
+        await new Promise<void>((resolve) =>
+          setTimeout(resolve, RETRY_DELAY_MS),
+        );
+      }
+    }
+    throw new CardProviderError(
+      CardProviderErrorCode.Unknown,
+      `Could not find inner transaction for batch ${batchId}`,
+    );
   }
 
   // -- Push Provisioning --

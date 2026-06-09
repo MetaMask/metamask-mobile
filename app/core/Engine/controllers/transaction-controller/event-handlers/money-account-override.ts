@@ -6,6 +6,10 @@ import { isEvmAccountType } from '@metamask/keyring-api';
 import { Hex } from '@metamask/utils';
 
 import Engine from '../../../../Engine';
+import ReduxService from '../../../../redux';
+import type { RootState } from '../../../../../reducers';
+import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
+import TransactionTypes from '../../../../TransactionTypes';
 import { replaceAccountInNestedTransactions } from '../../../../../components/Views/confirmations/utils/transaction-pay';
 import { hasTransactionType } from '../../../../../components/Views/confirmations/utils/transaction';
 
@@ -25,6 +29,23 @@ function isMoneyAccountWithdraw(transaction: TransactionMeta): boolean {
 }
 
 /**
+ * Matches the Money Account → Card delegation approve. The transaction is
+ * submitted by CardController and tagged with `origin = MMM_CARD`, but it is
+ * NOT a money-account-typed transaction (it's a plain `tokenMethodApprove`),
+ * so we need a separate non-type discriminator to route MM Pay sponsorship to
+ * the user's selected EVM account.
+ */
+function isMoneyAccountCardLinkApprove(transaction: TransactionMeta): boolean {
+  if (transaction.origin !== TransactionTypes.MMM_CARD) return false;
+  const primary = selectPrimaryMoneyAccount(
+    ReduxService.store.getState() as RootState,
+  );
+  const from = transaction.txParams?.from;
+  if (!primary?.address || !from) return false;
+  return from.toLowerCase() === primary.address.toLowerCase();
+}
+
+/**
  * Seeds `accountOverride` on TransactionPayController with the globally
  * selected account when a new money-account (deposit/withdraw) transaction
  * is added and no override is already set. Skips non-EVM selected accounts.
@@ -34,7 +55,10 @@ function isMoneyAccountWithdraw(transaction: TransactionMeta): boolean {
 export function handleUnapprovedTransactionAddedForMoneyAccount(
   transaction: TransactionMeta,
 ): void {
-  if (!isMoneyAccountTransaction(transaction)) {
+  if (
+    !isMoneyAccountTransaction(transaction) &&
+    !isMoneyAccountCardLinkApprove(transaction)
+  ) {
     return;
   }
 

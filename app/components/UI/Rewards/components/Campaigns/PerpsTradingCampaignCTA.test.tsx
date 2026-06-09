@@ -27,6 +27,18 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
+jest.mock('../../hooks/useCampaignGeoRestriction', () => ({
+  __esModule: true,
+  default: (
+    _campaign: unknown,
+    _customRestrictedCountries: unknown,
+    isFeatureGeoRestricted?: boolean,
+  ) => ({
+    isGeoRestricted: isFeatureGeoRestricted === true,
+    isGeoLoading: false,
+  }),
+}));
+
 const mockShowToast = jest.fn();
 const mockEntriesClosed = jest.fn(() => ({ variant: 'icon' }));
 
@@ -55,7 +67,7 @@ jest.mock('./CampaignOptInSheet', () => {
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const map: Record<string, string> = {
-      'rewards.perps_trading_campaign.open_position_cta': 'Open Position',
+      'rewards.perps_trading_campaign.open_position_cta': 'Trade now',
       'rewards.campaign_details.join_campaign': 'Join Campaign',
       'rewards.campaign.geo_locked_cta': 'Geo locked',
       'rewards.campaign.geo_locked_toast_title': 'Not available',
@@ -150,7 +162,7 @@ describe('PerpsTradingCampaignCTA', () => {
     expect(queryByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeNull();
   });
 
-  it('when opted in, shows Open Position and calls handleDeeplink with perps market-list URL', () => {
+  it('when opted in, shows Trade now and calls handleDeeplink with perps market-list URL', () => {
     const { getByTestId, getByText } = render(
       <PerpsTradingCampaignCTA
         campaign={buildCampaign()}
@@ -158,7 +170,7 @@ describe('PerpsTradingCampaignCTA', () => {
       />,
     );
 
-    expect(getByText('Open Position')).toBeOnTheScreen();
+    expect(getByText('Trade now')).toBeOnTheScreen();
     fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
 
     expect(mockHandleDeeplink).toHaveBeenCalledWith({

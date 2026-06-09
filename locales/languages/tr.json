@@ -2268,8 +2268,7 @@
         "group_i": "Grup I",
         "group_j": "Grup J",
         "group_k": "Grup K",
-        "group_l": "Grup L",
-        "third_place_match": "Üçüncülük Maçı"
+        "group_l": "Grup L"
       }
     },
     "prediction_markets": "Tahmin piyasaları",
@@ -8348,8 +8347,6 @@
     "report_submitted": "Hata raporu gönderildi."
   },
   "pay_with_modal": {
-    "title": "Ödeme yöntemi seç",
-    "title_receive": "Token al seçeneğini seç",
     "no_gas": "Gaz için yerel bakiye yok",
     "not_supported": "Desteklenmiyor",
     "crypto": "Kripto"
@@ -8457,6 +8454,7 @@
     "main_title": "Ödüller",
     "vip": {
       "bps_unit": "bps",
+      "badge_label": "VIP Fox {{tier}}",
       "swaps_label": "Swaps",
       "perps_label": "Perps",
       "error_title": "We couldn’t load your VIP dashboard",
@@ -8900,7 +8898,7 @@
       "stats_notional_volume_threshold": "{{amount}}$ gereklidir",
       "stats_qualified_title": "Uygunsunuz",
       "stats_qualified_description": "Yarışma sona ermeden Kazanç/Zarar durumunuzu iyileştirmek ve liderlik tablosunda yükselmek için işlem yapmaya devam edin.",
-      "stats_qualify_for_rank_title": "Bu sıralama için uygunluk kazanın",
+      "stats_qualify_for_rank_title": "Liderlik tablosu için uygunluk kazanın",
       "stats_qualify_for_rank_description": "Uygunluk kazanmak için {{notionalRemaining}} daha nominal hacimli işlem yapın.",
       "stats_error_title": "İstatistikler yüklenemiyor",
       "stats_error_description": "İstatistikleriniz yüklenirken bir problem yaşadık. Lütfen tekrar deneyin.",
@@ -8973,7 +8971,7 @@
       "non_winner": {
         "title": "Sonuçlar belli oldu 🏅",
         "description": "{{campaignName}} adlı kampanyadaki sıralamanızı görün.",
-        "cta": "Görüntüle"
+        "cta": "Ayrıntıları görüntüle"
       }
     }
   },
