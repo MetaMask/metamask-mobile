@@ -19,6 +19,7 @@ import WalletView from '../../page-objects/wallet/WalletView';
 import {
   dismissOnboardingInterestQuestionnaire,
   dismisspredictionsModalPlaywright,
+  dismissOnboardingCryptoExperienceQuestionnaire,
   dismissPushNotificationExistingUserSheet,
   resolvePredictGtmOnboardingModalEnabled,
 } from '../../flows/wallet.flow';
@@ -146,6 +147,7 @@ test.describe(PerformanceOnboarding, () => {
       }
 
       await dismisspredictionsModalPlaywright();
+      await dismissOnboardingCryptoExperienceQuestionnaire();
       await timer7.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
           await asPlaywrightElement(WalletView.tokensSection),
