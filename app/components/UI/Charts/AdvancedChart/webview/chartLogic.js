@@ -41,6 +41,14 @@ window.ohlcvPagination = {
   assetId: null,
   vsCurrency: null,
 };
+/**
+ * RN-backed pagination: when enabled, getBars sends FETCH_OLDER_BARS_REQUEST to RN
+ * instead of fetching the Price API directly. Used when the data source is only
+ * accessible from RN (e.g. Perps candle channel via PerpsController).
+ */
+window.rnBackedPagination = { enabled: false };
+/** Pending getBars callbacks waiting for a FETCH_OLDER_BARS_RESPONSE from RN. */
+window.pendingOlderBarsCallbacks = new Map();
 /** Bumped on each `SET_OHLCV_DATA` so in-flight fetches from a previous series are discarded. */
 window.ohlcvGeneration = 0;
 /** Visible-range start (ms) from RN; used to clip bars on first load so the chart auto-fits correctly. */
@@ -336,6 +344,9 @@ function handleMessage(event) {
       case 'SET_THEME_COLORS':
         handleSetThemeColors(message.payload);
         break;
+      case 'FETCH_OLDER_BARS_RESPONSE':
+        handleFetchOlderBarsResponse(message.payload);
+        break;
     }
   } catch (error) {
     sendToReactNative('ERROR', { message: error.message });
@@ -476,6 +487,14 @@ function handleSetOHLCVData(payload) {
     };
   }
 
+  window.rnBackedPagination = payload.rnBackedPagination
+    ? { enabled: !!payload.rnBackedPagination.enabled }
+    : { enabled: false };
+
+  // Resolve pending older-bar callbacks from the previous series before clearing.
+  resolveAllPendingOlderBarsNoData();
+  window.pendingOlderBarsCallbacks = new Map();
+
   let visibleFromMs =
     payload.visibleFromMs != null ? payload.visibleFromMs : null;
   window.visibleFromMs = visibleFromMs;
@@ -523,17 +542,43 @@ function handleSetOHLCVData(payload) {
     try {
       let chart = window.chartWidget.activeChart();
       if (previousResolution !== newResolution) {
-        chart.setResolution(newResolution, function () {
+        // resetCache before setResolution so TradingView's single getBars call after
+        // setResolution loads from window.ohlcvData without a second resetData cycle.
+        try {
+          if (
+            window.chartWidget &&
+            typeof window.chartWidget.resetCache === 'function'
+          ) {
+            window.chartWidget.resetCache();
+          }
+        } catch (resetCacheError) {}
+        beginDeferredLayoutSettleAfterOhlcvReload();
+        var resolutionPromise = chart.setResolution(newResolution, function () {
           try {
-            chart.resetData();
-            beginDeferredLayoutSettleAfterOhlcvReload();
+            // Range settle only — resetData already triggered by setResolution internals.
             scheduleVisibleRangeAfterDataLoad(chart);
           } catch (eR) {
             abortDeferredLayoutSettleAndNotify();
             return;
           }
         });
+        if (
+          resolutionPromise &&
+          typeof resolutionPromise.catch === 'function'
+        ) {
+          resolutionPromise.catch(function () {
+            abortDeferredLayoutSettleAndNotify();
+          });
+        }
       } else {
+        try {
+          if (
+            window.chartWidget &&
+            typeof window.chartWidget.resetCache === 'function'
+          ) {
+            window.chartWidget.resetCache();
+          }
+        } catch (resetCacheError) {}
         try {
           chart.resetData();
           beginDeferredLayoutSettleAfterOhlcvReload();
@@ -4263,6 +4308,90 @@ function filterBarsForRange(fromMs, toMs, countBack) {
   return barsInRange;
 }
 
+function resolvePendingOlderBarsNoData(pending) {
+  if (!pending || typeof pending.onResult !== 'function') {
+    return;
+  }
+  pending.onResult([], { noData: true });
+  if (window.__mmLayoutSettlePending) {
+    queueTryCompleteLayoutSettleAfterData();
+  }
+}
+
+function resolveAllPendingOlderBarsNoData() {
+  if (
+    !window.pendingOlderBarsCallbacks ||
+    typeof window.pendingOlderBarsCallbacks.forEach !== 'function'
+  ) {
+    window.pendingOlderBarsCallbacks = new Map();
+    return;
+  }
+  window.pendingOlderBarsCallbacks.forEach(function (pending) {
+    resolvePendingOlderBarsNoData(pending);
+  });
+  window.pendingOlderBarsCallbacks.clear();
+}
+
+/**
+ * Handles FETCH_OLDER_BARS_RESPONSE from RN.
+ * Merges returned bars into window.ohlcvData and resolves the pending getBars callback.
+ */
+function handleFetchOlderBarsResponse(payload) {
+  if (!payload || typeof payload.requestId !== 'string') {
+    return;
+  }
+  var pending = window.pendingOlderBarsCallbacks.get(payload.requestId);
+  if (!pending) {
+    return; // already resolved or timed out
+  }
+  window.pendingOlderBarsCallbacks.delete(payload.requestId);
+
+  // Discard stale response if series changed since request was sent.
+  if (
+    payload.seriesGeneration !== pending.gen ||
+    payload.seriesGeneration !== window.ohlcvGeneration
+  ) {
+    resolvePendingOlderBarsNoData(pending);
+    return;
+  }
+
+  if (
+    payload.error ||
+    payload.noData ||
+    !Array.isArray(payload.bars) ||
+    payload.bars.length === 0
+  ) {
+    pending.onResult([], { noData: true });
+    if (window.__mmLayoutSettlePending) {
+      queueTryCompleteLayoutSettleAfterData();
+    }
+    return;
+  }
+
+  var existingTimes = new Set();
+  for (var j = 0; j < window.ohlcvData.length; j++) {
+    existingTimes.add(window.ohlcvData[j].time);
+  }
+
+  var olderBars = [];
+  for (var i = 0; i < payload.bars.length; i++) {
+    var bar = payload.bars[i];
+    if (bar.time < pending.oldestAtDefer && !existingTimes.has(bar.time)) {
+      existingTimes.add(bar.time);
+      olderBars.push(bar);
+    }
+  }
+
+  if (olderBars.length > 0) {
+    window.ohlcvData = olderBars.concat(window.ohlcvData);
+  }
+
+  pending.onResult(olderBars, { noData: olderBars.length === 0 });
+  if (window.__mmLayoutSettlePending) {
+    queueTryCompleteLayoutSettleAfterData();
+  }
+}
+
 let OHLCV_BASE_URL = 'https://price.api.cx.metamask.io/v3/ohlcv-chart';
 
 /**
@@ -4451,10 +4580,38 @@ let customDatafeed = {
 
       let oldestTs = window.ohlcvData[0].time;
 
-      fetchOlderBars({
-        onResult: onResult,
-        oldestAtDefer: oldestTs,
-      });
+      if (window.ohlcvPagination.assetId) {
+        // Token details path: WebView fetches older pages from Price API directly.
+        fetchOlderBars({
+          onResult: onResult,
+          oldestAtDefer: oldestTs,
+        });
+      } else if (window.rnBackedPagination.enabled) {
+        // RN-backed path: send a request to RN and store the pending callback.
+        var requestId =
+          'obr-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+        var gen = window.ohlcvGeneration;
+        window.pendingOlderBarsCallbacks.set(requestId, {
+          onResult: onResult,
+          oldestAtDefer: oldestTs,
+          gen: gen,
+        });
+        sendToReactNative('FETCH_OLDER_BARS_REQUEST', {
+          requestId: requestId,
+          seriesGeneration: gen,
+          symbol: window.currentSymbol || symbolInfo.name,
+          resolution: resolution,
+          fromSec: periodParams.from,
+          toSec: periodParams.to,
+          countBack: periodParams.countBack,
+          oldestLoadedTimeMs: oldestTs,
+        });
+      } else {
+        onResult([], { noData: true });
+        if (window.__mmLayoutSettlePending) {
+          queueTryCompleteLayoutSettleAfterData();
+        }
+      }
     } catch (error) {
       abortDeferredLayoutSettleAndNotify();
       onError(error && error.message ? error.message : String(error));
