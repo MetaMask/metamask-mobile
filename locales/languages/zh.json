@@ -1979,10 +1979,10 @@
       "stocks_and_commodities": "探索股票与大宗商品",
       "tabs": {
         "crypto": "加密货币",
-        "stocks": "股票",
-        "commodities": "大宗商品",
         "forex": "外汇",
-        "new": "新增"
+        "new": "新增",
+        "stock": "股票",
+        "commodity": "大宗商品"
       },
       "filter_by": "筛选方式",
       "forex": "外汇",

@@ -1978,10 +1978,10 @@
       "stocks_and_commodities": "Découvrez les actions et les matières premières",
       "tabs": {
         "crypto": "Crypto",
-        "stocks": "Actions",
-        "commodities": "Matières premières",
         "forex": "Forex",
-        "new": "Nouveau"
+        "new": "Nouveau",
+        "stock": "Actions",
+        "commodity": "Matières premières"
       },
       "filter_by": "Filtrer par",
       "forex": "Forex",

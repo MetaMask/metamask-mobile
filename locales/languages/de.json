@@ -1979,10 +1979,10 @@
       "stocks_and_commodities": "Aktien und Rohstoffe entdecken",
       "tabs": {
         "crypto": "Krypto",
-        "stocks": "Aktien",
-        "commodities": "Rohstoffe",
         "forex": "Devisen",
-        "new": "Neu"
+        "new": "Neu",
+        "stock": "Aktien",
+        "commodity": "Rohstoffe"
       },
       "filter_by": "Filtern nach",
       "forex": "Devisen",
