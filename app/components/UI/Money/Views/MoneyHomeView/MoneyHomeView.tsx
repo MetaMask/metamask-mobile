@@ -179,9 +179,22 @@ const MoneyHomeView = () => {
 
   const handleMusdAddPress = useCallback(async () => {
     const musdPaymentToken = getHighestMusdPaymentToken(tokenBalanceByChain);
-    const options: InitiateDepositOptions = musdPaymentToken
-      ? { intent: 'addMusd', preferredPaymentToken: musdPaymentToken }
-      : { intent: 'addMusd', autoSelectFiatPayment: true };
+    const highestCryptoToken = depositTokens[0];
+
+    let options: InitiateDepositOptions;
+    if (musdPaymentToken) {
+      options = { intent: 'addMusd', preferredPaymentToken: musdPaymentToken };
+    } else if (highestCryptoToken) {
+      options = {
+        intent: 'addMusd',
+        preferredPaymentToken: {
+          address: highestCryptoToken.address as Hex,
+          chainId: highestCryptoToken.chainId as Hex,
+        },
+      };
+    } else {
+      options = { intent: 'addMusd', autoSelectFiatPayment: true };
+    }
 
     try {
       await initiateDeposit(options);
@@ -190,7 +203,7 @@ const MoneyHomeView = () => {
         message: '[MoneyHomeView] Failed to initiate mUSD deposit',
       });
     }
-  }, [tokenBalanceByChain, initiateDeposit]);
+  }, [tokenBalanceByChain, depositTokens, initiateDeposit]);
 
   const handleTransferPress = useCallback(() => {
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {

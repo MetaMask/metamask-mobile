@@ -1049,7 +1049,7 @@ describe('MoneyHomeView', () => {
       });
     });
 
-    it('initiates a fiat mUSD deposit from the mUSD row Add button when there is no mUSD balance', async () => {
+    it('initiates a mUSD deposit with the highest-volume crypto token preselected when there is no mUSD balance but eligible crypto exists', async () => {
       mockUseMusdBalance.mockReturnValue({
         hasMusdBalanceOnAnyChain: false,
         hasMusdBalanceOnChain: () => false,
@@ -1060,6 +1060,36 @@ describe('MoneyHomeView', () => {
         fiatBalanceAggregated: '0',
         fiatBalanceAggregatedFormatted: '$0.00',
       } as ReturnType<typeof useMusdBalance>);
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(getByTestId(MoneyMusdTokenRowTestIds.ADD_BUTTON));
+
+      expect(mockInitiateDeposit).toHaveBeenCalledWith({
+        intent: 'addMusd',
+        preferredPaymentToken: {
+          address: mockDepositTokens[0].address,
+          chainId: mockDepositTokens[0].chainId,
+        },
+      });
+    });
+
+    it('initiates a fiat mUSD deposit from the mUSD row Add button when there is no mUSD balance and no eligible crypto', async () => {
+      mockUseMusdBalance.mockReturnValue({
+        hasMusdBalanceOnAnyChain: false,
+        hasMusdBalanceOnChain: () => false,
+        tokenBalanceByChain: {},
+        fiatBalanceByChain: {},
+        fiatBalanceFormattedByChain: {},
+        tokenBalanceAggregated: '0',
+        fiatBalanceAggregated: '0',
+        fiatBalanceAggregatedFormatted: '$0.00',
+      } as ReturnType<typeof useMusdBalance>);
+      mockUseMoneyDepositTokens.mockReturnValueOnce({
+        tokens: [] as ReturnType<typeof Array.from>,
+        isNoFeeToken: jest.fn(() => false),
+        isEligibleToken: jest.fn(() => false),
+        filterAllowedTokens: jest.fn((t) => t),
+      });
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       fireEvent.press(getByTestId(MoneyMusdTokenRowTestIds.ADD_BUTTON));
