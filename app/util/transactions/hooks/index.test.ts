@@ -126,6 +126,7 @@ describe('getTransactionControllerHooks', () => {
       bufferSubsequent: 0.05,
       enableDepositWalletWithdraw: false,
       enableMoneyHomePagePerpsTransaction: false,
+      enableMoneyHomePagePredictTransaction: false,
       enablePredictMoneyAccountTransactions: false,
       enablePerpsMoneyAccountTransactions: false,
       slippage: 0.005,
