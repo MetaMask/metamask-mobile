@@ -1,6 +1,11 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Badge, {
@@ -14,10 +19,6 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import Routes from '../../../../../constants/navigation/Routes';
 import { isHardwareAccount } from '../../../../../util/address';
 import { getNetworkImageSource } from '../../../../../util/networks';
@@ -166,7 +167,7 @@ export const PerpsPayRow = ({
         alignItems={AlignItems.center}
         style={styles.payRowLeft}
       >
-        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('confirm.label.pay_with')}
         </Text>
         <TouchableOpacity
@@ -196,8 +197,8 @@ export const PerpsPayRow = ({
               style={tokenIconStyles.iconSmall}
             />
             <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Default}
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextDefault}
               testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
             >
               {strings('perps.adjust_margin.perps_balance')}
@@ -224,8 +225,8 @@ export const PerpsPayRow = ({
               </BadgeWrapper>
             ) : null}
             <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Default}
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextDefault}
               testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
             >
               {displayToken.symbol}

@@ -1,9 +1,7 @@
 import React from 'react';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 import { View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import { styleSheet } from './PerpsBadge.styles';
 import type { PerpsBadgeProps } from './PerpsBadge.types';
@@ -30,7 +28,7 @@ const PerpsBadge: React.FC<PerpsBadgeProps> = ({
 
   return (
     <View style={styles.badge} testID={testID}>
-      <Text variant={TextVariant.BodyXS} style={styles.badgeText}>
+      <Text variant={TextVariant.BodyXs} style={styles.badgeText}>
         {label}
       </Text>
     </View>

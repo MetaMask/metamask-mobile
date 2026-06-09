@@ -1,9 +1,10 @@
 import React from 'react';
-import { View } from 'react-native';
-import Text, {
-  TextColor,
+import {
+  Text,
   TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
+  TextColor,
+} from '@metamask/design-system-react-native';
+import { View } from 'react-native';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { strings } from '../../../../../../../locales/i18n';
 import { TooltipContentProps } from './types';
@@ -24,7 +25,7 @@ const TPSLCountWarningTooltipContent = ({
   return (
     <View testID={testID}>
       <View style={styles.feeRow}>
-        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('perps.tooltips.tpsl_count_warning.content')}
         </Text>
       </View>

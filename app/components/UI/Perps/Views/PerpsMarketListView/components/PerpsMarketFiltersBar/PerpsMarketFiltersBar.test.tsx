@@ -70,23 +70,10 @@ jest.mock(
   },
 );
 
-jest.mock(
-  '../../../../../../../component-library/components/Texts/Text',
-  () => {
-    const { Text: RNText } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: ({
-        children,
-        testID,
-      }: {
-        children: React.ReactNode;
-        testID?: string;
-      }) => <RNText testID={testID}>{children}</RNText>,
-      TextVariant: { BodyMD: 'BodyMD' },
-    };
-  },
-);
+jest.mock('@metamask/design-system-react-native', () => ({
+  ...jest.requireActual('@metamask/design-system-react-native'),
+  Text: jest.requireActual('react-native').Text,
+}));
 
 describe('PerpsMarketFiltersBar', () => {
   const mockOnSortPress = jest.fn();

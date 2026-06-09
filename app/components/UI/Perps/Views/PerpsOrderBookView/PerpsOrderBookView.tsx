@@ -2,6 +2,9 @@ import {
   Button as DSButton,
   ButtonVariant,
   ButtonSize as ButtonSizeRNDesignSystem,
+  Text,
+  TextVariant,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import React, {
@@ -40,10 +43,6 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import { TraceName } from '../../../../../util/trace';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -532,14 +531,17 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
               testID={PerpsOrderBookViewSelectorsIDs.BACK_BUTTON}
             />
             <View style={styles.headerTitleContainer}>
-              <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
+              <Text
+                variant={TextVariant.HeadingSm}
+                color={TextColor.TextDefault}
+              >
                 {strings('perps.order_book.title')}
               </Text>
             </View>
           </View>
         )}
         <View style={styles.errorContainer}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Error}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.ErrorDefault}>
             {strings('perps.order_book.error')}
           </Text>
         </View>
@@ -571,9 +573,11 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
             testID={PerpsOrderBookViewSelectorsIDs.UNIT_TOGGLE_BASE}
           >
             <Text
-              variant={TextVariant.BodySM}
+              variant={TextVariant.BodySm}
               color={
-                unitDisplay === 'base' ? TextColor.Inverse : TextColor.Default
+                unitDisplay === 'base'
+                  ? TextColor.TextInverse
+                  : TextColor.TextDefault
               }
             >
               {displaySymbol}
@@ -588,9 +592,11 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
             testID={PerpsOrderBookViewSelectorsIDs.UNIT_TOGGLE_USD}
           >
             <Text
-              variant={TextVariant.BodySM}
+              variant={TextVariant.BodySm}
               color={
-                unitDisplay === 'usd' ? TextColor.Inverse : TextColor.Default
+                unitDisplay === 'usd'
+                  ? TextColor.TextInverse
+                  : TextColor.TextDefault
               }
             >
               USD
@@ -607,7 +613,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
           onPress={handleDepthBandPress}
           testID={PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_BUTTON}
         >
-          <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+          <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
             {currentGroupingLabel}
           </Text>
           <Icon
@@ -651,15 +657,21 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
         {/* Spread Row */}
         {spreadMetrics && (
           <View style={styles.spreadContainer}>
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
               {strings('perps.order_book.spread')}:
             </Text>
-            <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+            <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
               {formatPerpsFiat(spreadMetrics.spread, {
                 ranges: PRICE_RANGES_UNIVERSAL,
               })}
             </Text>
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
               ({spreadMetrics.spreadPercentage}%)
             </Text>
             <TouchableOpacity
@@ -758,7 +770,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
           onClose={handleDepthBandSheetClose}
         >
           <BottomSheetHeader onClose={handleDepthBandSheetClose}>
-            <Text variant={TextVariant.HeadingMD}>
+            <Text variant={TextVariant.HeadingSm}>
               {strings('perps.order_book.depth_band.title')}
             </Text>
           </BottomSheetHeader>
@@ -774,11 +786,12 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
                 testID={`${PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_OPTION}-${value}`}
               >
                 <Text
-                  variant={TextVariant.BodyLGMedium}
+                  variant={TextVariant.BodyLg}
+                  fontWeight="medium"
                   color={
                     currentGrouping === value
-                      ? TextColor.Primary
-                      : TextColor.Default
+                      ? TextColor.PrimaryDefault
+                      : TextColor.TextDefault
                   }
                 >
                   {formatGroupingLabel(value)}

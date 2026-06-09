@@ -20,23 +20,10 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 // Mock Text component
-jest.mock('../../../../../component-library/components/Texts/Text', () => {
-  const { Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({
-      children,
-      variant,
-    }: {
-      children: React.ReactNode;
-      variant?: string;
-    }) => <Text testID={`text-${variant || 'default'}`}>{children}</Text>,
-    TextVariant: {
-      HeadingMD: 'HeadingMD',
-      BodyMD: 'BodyMD',
-    },
-  };
-});
+jest.mock('@metamask/design-system-react-native', () => ({
+  ...jest.requireActual('@metamask/design-system-react-native'),
+  Text: jest.requireActual('react-native').Text,
+}));
 
 // Mock strings
 jest.mock('../../../../../../locales/i18n', () => ({

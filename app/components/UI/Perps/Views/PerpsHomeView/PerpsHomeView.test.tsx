@@ -430,21 +430,6 @@ jest.mock(
     selectWhatsHappeningEnabled: jest.fn(),
   }),
 );
-jest.mock('../../../../../component-library/components/Texts/Text', () => ({
-  __esModule: true,
-  default: 'Text',
-  TextVariant: {
-    HeadingLG: 'HeadingLG',
-    HeadingSM: 'HeadingSM',
-    BodyMD: 'BodyMD',
-    BodyMDMedium: 'BodyMDMedium',
-    BodySM: 'BodySM',
-  },
-  TextColor: {
-    Default: 'Default',
-    Alternative: 'Alternative',
-  },
-}));
 jest.mock('../../../../../component-library/components/Icons/Icon', () => ({
   __esModule: true,
   default: 'Icon',
