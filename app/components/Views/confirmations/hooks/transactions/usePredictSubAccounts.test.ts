@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import Engine from '../../../../../core/Engine';
 import { selectInternalAccounts } from '../../../../../selectors/accountsController';
 import { selectAccountToGroupMap } from '../../../../../selectors/multichainAccounts/accountTreeController';
+import { computeProxyAddress } from '../../../../UI/Predict/providers/polymarket/safe/utils';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 import { usePredictSubAccounts } from './usePredictSubAccounts';
 
@@ -19,9 +20,12 @@ jest.mock('../../../../../core/Engine', () => ({
   context: {
     PredictController: {
       getBalance: jest.fn(),
-      getAccountState: jest.fn(),
     },
   },
+}));
+
+jest.mock('../../../../UI/Predict/providers/polymarket/safe/utils', () => ({
+  computeProxyAddress: jest.fn(),
 }));
 
 jest.mock('../../../../../selectors/accountsController', () => ({
@@ -61,12 +65,7 @@ const GROUP_MAP: Record<string, { metadata?: { name?: string } }> = {
 };
 
 const BALANCE_DEFAULT = 150;
-
-const ACCOUNT_STATE_DEFAULT = {
-  address: '0xproxy123',
-  isDeployed: true,
-  walletType: 'safe' as const,
-};
+const PROXY_ADDRESS_DEFAULT = '0xproxy123';
 
 function setupSelectorMock(
   accounts = [EVM_ACCOUNT_1, EVM_ACCOUNT_2, NON_EVM_ACCOUNT],
@@ -86,9 +85,7 @@ describe('usePredictSubAccounts', () => {
     (
       Engine.context.PredictController.getBalance as jest.Mock
     ).mockResolvedValue(BALANCE_DEFAULT);
-    (
-      Engine.context.PredictController.getAccountState as jest.Mock
-    ).mockResolvedValue(ACCOUNT_STATE_DEFAULT);
+    (computeProxyAddress as jest.Mock).mockReturnValue(PROXY_ADDRESS_DEFAULT);
   });
 
   it('filters to EVM accounts only', async () => {
@@ -124,7 +121,7 @@ describe('usePredictSubAccounts', () => {
     });
   });
 
-  it('fetches balances and account state from PredictController', async () => {
+  it('fetches balances and derives wallet addresses', async () => {
     const { result } = renderHook(() => usePredictSubAccounts());
 
     await waitFor(() => {
@@ -137,19 +134,17 @@ describe('usePredictSubAccounts', () => {
     expect(Engine.context.PredictController.getBalance).toHaveBeenCalledWith({
       address: '0xdef',
     });
-    expect(
-      Engine.context.PredictController.getAccountState,
-    ).toHaveBeenCalledWith({ ownerAddress: '0xabc' });
-    expect(
-      Engine.context.PredictController.getAccountState,
-    ).toHaveBeenCalledWith({ ownerAddress: '0xdef' });
+    expect(computeProxyAddress).toHaveBeenCalledWith('0xabc');
+    expect(computeProxyAddress).toHaveBeenCalledWith('0xdef');
   });
 
-  it('stores walletAddress from account state', async () => {
+  it('stores walletAddress from computeProxyAddress', async () => {
     const { result } = renderHook(() => usePredictSubAccounts());
 
     await waitFor(() => {
-      expect(result.current.subAccounts[0].walletAddress).toBe('0xproxy123');
+      expect(result.current.subAccounts[0].walletAddress).toBe(
+        PROXY_ADDRESS_DEFAULT,
+      );
     });
   });
 
@@ -178,9 +173,6 @@ describe('usePredictSubAccounts', () => {
   it('handles fetch errors gracefully', async () => {
     (
       Engine.context.PredictController.getBalance as jest.Mock
-    ).mockRejectedValue(new Error('network error'));
-    (
-      Engine.context.PredictController.getAccountState as jest.Mock
     ).mockRejectedValue(new Error('network error'));
 
     const { result } = renderHook(() => usePredictSubAccounts());

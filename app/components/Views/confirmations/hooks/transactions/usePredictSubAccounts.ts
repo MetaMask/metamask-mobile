@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import Engine from '../../../../../core/Engine';
 import { selectInternalAccounts } from '../../../../../selectors/accountsController';
 import { selectAccountToGroupMap } from '../../../../../selectors/multichainAccounts/accountTreeController';
+import { computeProxyAddress } from '../../../../UI/Predict/providers/polymarket/safe/utils';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 
 const EVM_TYPE_PREFIX = 'eip155:';
@@ -43,14 +44,10 @@ export function usePredictSubAccounts(): UsePredictSubAccountsReturn {
           let balance = '0';
           let walletAddress: string | undefined;
           try {
-            const [bal, state] = await Promise.all([
-              controller.getBalance({ address: account.address }),
-              controller.getAccountState({
-                ownerAddress: account.address,
-              }),
-            ]);
-            balance = String(bal);
-            walletAddress = state?.address;
+            balance = String(
+              await controller.getBalance({ address: account.address }),
+            );
+            walletAddress = computeProxyAddress(account.address);
           } catch {
             // noop
           }
