@@ -56,10 +56,6 @@ permissions:
   contents: read
   checks: write
 
-concurrency:
-  group: appium-smoke-android-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   appium-accounts-android-smoke:
     if: >-

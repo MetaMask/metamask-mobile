@@ -68,10 +68,6 @@ permissions:
   actions: read
   statuses: read
 
-concurrency:
-  group: appium-smoke-ios-${{ github.event_name }}-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   # ── Build jobs (schedule / workflow_dispatch only) ──────────────────────────
 
