@@ -5,10 +5,8 @@ import { useQuickBuyController } from './hooks/useQuickBuyController';
 import { positionToQuickBuyTarget } from './types';
 import { selectDefaultSourceToken } from '../../../utils/tokenSelection';
 import { useQuickBuySetup } from './hooks/useQuickBuySetup';
-import {
-  useSourceTokenOptions,
-  useSellDestTokenOptions,
-} from './hooks/useSourceTokenOptions';
+import { usePayWithTokens } from './hooks/usePayWithTokens';
+import { useReceiveTokens } from './hooks/useReceiveTokens';
 import { usePositionTokenBalance } from './hooks/usePositionTokenBalance';
 import {
   useQuickBuyQuotes,
@@ -87,9 +85,12 @@ jest.mock('./hooks/useQuickBuySetup', () => ({
   useQuickBuySetup: jest.fn(),
 }));
 
-jest.mock('./hooks/useSourceTokenOptions', () => ({
-  useSourceTokenOptions: jest.fn(),
-  useSellDestTokenOptions: jest.fn().mockReturnValue([]),
+jest.mock('./hooks/usePayWithTokens', () => ({
+  usePayWithTokens: jest.fn(),
+}));
+
+jest.mock('./hooks/useReceiveTokens', () => ({
+  useReceiveTokens: jest.fn().mockReturnValue([]),
 }));
 
 jest.mock('./hooks/usePositionTokenBalance', () => ({
@@ -367,9 +368,9 @@ const setupDefaultMocks = () => {
     isUnsupportedChain: false,
   });
 
-  (useSellDestTokenOptions as jest.Mock).mockReturnValue([]);
+  (useReceiveTokens as jest.Mock).mockReturnValue([]);
   (usePositionTokenBalance as jest.Mock).mockReturnValue(undefined);
-  (useSourceTokenOptions as jest.Mock).mockReturnValue({
+  (usePayWithTokens as jest.Mock).mockReturnValue({
     options: [createSourceToken()],
     isLoading: false,
   });
@@ -464,7 +465,7 @@ describe('useQuickBuyController', () => {
         atomicBalance: '100000000',
       });
       const sourceWithRate = createSourceToken({ currencyExchangeRate: 1 });
-      (useSourceTokenOptions as jest.Mock).mockReturnValue({
+      (usePayWithTokens as jest.Mock).mockReturnValue({
         options: [sourceWithRate],
       });
 
@@ -494,7 +495,7 @@ describe('useQuickBuyController', () => {
         atomicBalance: '100000000',
       });
       const sourceWithRate = createSourceToken({ currencyExchangeRate: 1 });
-      (useSourceTokenOptions as jest.Mock).mockReturnValue({
+      (usePayWithTokens as jest.Mock).mockReturnValue({
         options: [sourceWithRate],
       });
 
@@ -516,7 +517,7 @@ describe('useQuickBuyController', () => {
         atomicBalance: '100000000',
       });
       const sourceWithRate = createSourceToken({ currencyExchangeRate: 1 });
-      (useSourceTokenOptions as jest.Mock).mockReturnValue({
+      (usePayWithTokens as jest.Mock).mockReturnValue({
         options: [sourceWithRate],
       });
 
@@ -542,7 +543,7 @@ describe('useQuickBuyController', () => {
         atomicBalance: '100000000',
       });
       const sourceWithRate = createSourceToken({ currencyExchangeRate: 1 });
-      (useSourceTokenOptions as jest.Mock).mockReturnValue({
+      (usePayWithTokens as jest.Mock).mockReturnValue({
         options: [sourceWithRate],
       });
 
@@ -569,7 +570,7 @@ describe('useQuickBuyController', () => {
         atomicBalance: '100000000',
       });
       const sourceWithRate = createSourceToken({ currencyExchangeRate: 1 });
-      (useSourceTokenOptions as jest.Mock).mockReturnValue({
+      (usePayWithTokens as jest.Mock).mockReturnValue({
         options: [sourceWithRate],
       });
 
@@ -601,7 +602,7 @@ describe('useQuickBuyController', () => {
         address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
         currencyExchangeRate: 1,
       });
-      (useSourceTokenOptions as jest.Mock).mockReturnValue({
+      (usePayWithTokens as jest.Mock).mockReturnValue({
         options: [usdc, usdt],
       });
 
@@ -775,7 +776,7 @@ describe('useQuickBuyController', () => {
     });
 
     it('is disabled when the source token is missing even if a quote exists', () => {
-      (useSourceTokenOptions as jest.Mock).mockReturnValue({
+      (usePayWithTokens as jest.Mock).mockReturnValue({
         options: [],
         isLoading: false,
       });
@@ -1290,7 +1291,7 @@ describe('useQuickBuyController', () => {
     it('auto-selects the first option when options load (legacy — native on dest chain matches priority 1)', () => {
       const firstToken = createSourceToken({ symbol: 'ETH' });
 
-      (useSourceTokenOptions as jest.Mock).mockReturnValue({
+      (usePayWithTokens as jest.Mock).mockReturnValue({
         options: [firstToken, createSourceToken({ symbol: 'USDC' })],
         isLoading: false,
       });
@@ -1333,7 +1334,7 @@ describe('useQuickBuyController', () => {
         isUnsupportedChain: false,
       });
 
-      (useSourceTokenOptions as jest.Mock).mockReturnValue({
+      (usePayWithTokens as jest.Mock).mockReturnValue({
         options: [ethOnMainnet, usdcOnMainnet],
         isLoading: false,
       });
@@ -1403,7 +1404,7 @@ describe('useQuickBuyController', () => {
         isUnsupportedChain: false,
       });
 
-      (useSourceTokenOptions as jest.Mock).mockReturnValue({
+      (usePayWithTokens as jest.Mock).mockReturnValue({
         options: [usdcOnSolana, solNative],
         isLoading: false,
       });

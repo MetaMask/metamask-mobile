@@ -26,10 +26,8 @@ import type { Hex } from '@metamask/utils';
 import type { BridgeToken } from '../../../../../../UI/Bridge/types';
 import { selectDefaultSourceToken } from '../../../../utils/tokenSelection';
 import { useQuickBuySetup } from './useQuickBuySetup';
-import {
-  useSourceTokenOptions,
-  useSellDestTokenOptions,
-} from './useSourceTokenOptions';
+import { usePayWithTokens } from './usePayWithTokens';
+import { useReceiveTokens } from './useReceiveTokens';
 import { usePositionTokenBalance } from './usePositionTokenBalance';
 import {
   useQuickBuyQuotes,
@@ -279,8 +277,8 @@ export function useQuickBuyController(
     isUnsupportedChain,
   } = useQuickBuySetup(target);
 
-  // ─── Buy source token options ───────────────────────────────────────────
-  const { options: sourceTokenOptions } = useSourceTokenOptions(destChainId);
+  // ─── Buy "Pay with" options (tokens the user holds) ─────────────────────
+  const { options: sourceTokenOptions } = usePayWithTokens();
   const [selectedSourceToken, setSelectedSourceToken] = useState<
     BridgeToken | undefined
   >(undefined);
@@ -348,8 +346,8 @@ export function useQuickBuyController(
   // ─── Sell mode: position token (what the user is selling) ──────────────
   const positionToken = usePositionTokenBalance(target, positionTokenFromSetup);
 
-  // ─── Sell dest stable options (Receive with) ───────────────────────────
-  const sellDestTokenOptions = useSellDestTokenOptions(
+  // ─── Sell "Receive" options (stablecoins) ──────────────────────────────
+  const sellDestTokenOptions = useReceiveTokens(
     destChainId as string | undefined,
   );
   const [selectedDestStable, setSelectedDestStable] = useState<
