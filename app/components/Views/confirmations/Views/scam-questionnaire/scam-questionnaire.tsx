@@ -25,17 +25,19 @@ import { useScamQuestionnaireMetrics } from './useScamQuestionnaireMetrics';
 import styleSheet from './scam-questionnaire.styles';
 
 export interface ScamQuestionnaireProps {
-  /** Called when the user passes the funnel cleanly (no red-flag answers). The caller should close the questionnaire and return the user to the confirm screen so they can review and submit themselves — the tx is NOT submitted here. */
+  /** User answered with no red flags. */
   onCleanPass: () => void;
-  /** Called when the user taps "Stop this payment" on the warning screen. The pending transaction should be rejected. */
+  /** User chose "Stop this payment" on the warning. */
   onReject: () => void;
-  /** Called when the user taps "I understand the risks, continue anyway" on the warning screen. The caller should return the user to the confirm screen, remember that they bypassed (so future Confirm taps skip the questionnaire), and mark the underlying alert as acknowledged. The tx is NOT submitted here — the user still has to tap Confirm on the send screen. */
+  /** User chose to continue past the warning. */
   onBypass: () => void;
-  /** Called when the user dismisses the questionnaire without finishing (back-button, swipe-down, system back). Caller stays on the confirm screen with the tx still pending. */
+  /** User dismissed without finishing (back / swipe / system back). */
   onDismiss: () => void;
 }
 
-type Step = 0 | 1 | 2 | 'warning';
+// Steps 0-2 are the questions; the final index is the warning screen.
+type Step = 0 | 1 | 2 | 3;
+const WARNING_STEP = TOTAL_QUESTIONS;
 
 const QUESTION_DEFS: Record<
   0 | 1 | 2,
@@ -97,16 +99,15 @@ export const ScamQuestionnaire: React.FC<ScamQuestionnaireProps> = ({
 
   const warningShownRef = useRef(false);
   useEffect(() => {
-    if (step === 'warning' && !warningShownRef.current) {
+    if (step === WARNING_STEP && !warningShownRef.current) {
       warningShownRef.current = true;
       metrics.trackWarningShown(answers);
     }
   }, [step, answers, metrics]);
 
   const handleBack = useCallback(() => {
-    if (step === 'warning') {
-      // Back from warning returns to the last question so the user can change an answer
-      setStep(2);
+    if (step === WARNING_STEP) {
+      setStep((WARNING_STEP - 1) as Step);
       return;
     }
     if (step === 0) {
@@ -114,8 +115,9 @@ export const ScamQuestionnaire: React.FC<ScamQuestionnaireProps> = ({
       onDismiss();
       return;
     }
-    setPendingSelection(answers[QUESTION_DEFS[(step - 1) as 0 | 1].id]);
-    setStep(((step as number) - 1) as Step);
+    const prevStep = (step - 1) as 0 | 1;
+    setPendingSelection(answers[QUESTION_DEFS[prevStep].id]);
+    setStep(prevStep);
   }, [step, answers, metrics, onDismiss]);
 
   const handleSelect = useCallback((option: QuestionOption) => {
@@ -123,7 +125,7 @@ export const ScamQuestionnaire: React.FC<ScamQuestionnaireProps> = ({
   }, []);
 
   const handleContinue = useCallback(() => {
-    if (step === 'warning' || !pendingSelection) {
+    if (step === WARNING_STEP || !pendingSelection) {
       return;
     }
     const def = QUESTION_DEFS[step];
@@ -145,9 +147,9 @@ export const ScamQuestionnaire: React.FC<ScamQuestionnaireProps> = ({
       return;
     }
 
-    // Q3 answered — branch
+    // Final question answered — branch to the warning or pass cleanly.
     if (getRedFlagCount(nextAnswers) > 0) {
-      setStep('warning');
+      setStep(WARNING_STEP);
     } else {
       metrics.trackCompletedClean();
       onCleanPass();
@@ -169,9 +171,11 @@ export const ScamQuestionnaire: React.FC<ScamQuestionnaireProps> = ({
   }, [answers, metrics, onBypass]);
 
   const handleRequestClose = useCallback(() => {
-    metrics.trackDismissed(typeof step === 'number' ? step : 3, answers);
+    metrics.trackDismissed(step, answers);
     onDismiss();
   }, [step, answers, metrics, onDismiss]);
+
+  const questionDef = step === WARNING_STEP ? null : QUESTION_DEFS[step];
 
   return (
     <Modal
@@ -193,25 +197,20 @@ export const ScamQuestionnaire: React.FC<ScamQuestionnaireProps> = ({
           />
           <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
             <SecurityCheckHeader
-              currentStep={typeof step === 'number' ? step : null}
+              currentStep={step === WARNING_STEP ? null : step}
               totalSteps={TOTAL_QUESTIONS}
               onBack={handleBack}
             />
-            {typeof step === 'number' ? (
-              (() => {
-                const def = QUESTION_DEFS[step];
-                return (
-                  <QuestionScreen
-                    iconName={def.icon}
-                    title={strings(def.titleKey)}
-                    subtitle={strings(def.subtitleKey)}
-                    options={def.options}
-                    selectedKey={pendingSelection?.key}
-                    onSelect={handleSelect}
-                    onContinue={handleContinue}
-                  />
-                );
-              })()
+            {questionDef ? (
+              <QuestionScreen
+                iconName={questionDef.icon}
+                title={strings(questionDef.titleKey)}
+                subtitle={strings(questionDef.subtitleKey)}
+                options={questionDef.options}
+                selectedKey={pendingSelection?.key}
+                onSelect={handleSelect}
+                onContinue={handleContinue}
+              />
             ) : (
               <ScamWarning
                 onStop={handleStop}

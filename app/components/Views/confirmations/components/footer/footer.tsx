@@ -86,10 +86,8 @@ export const Footer = () => {
     useState(false);
   const [scamQuestionnaireVisible, setScamQuestionnaireVisible] =
     useState(false);
-  // Tracks whether the user has already completed the questionnaire — either by
-  // passing it cleanly or by tapping "continue anyway" on the warning. Once
-  // true, subsequent Confirm taps skip both the questionnaire and the existing
-  // checkbox modal: the user has done enough friction.
+  // Once the questionnaire is completed (clean pass or bypass), later Confirm
+  // taps skip both it and the danger-alert checkbox modal.
   const scamQuestionnaireCompletedRef = useRef(false);
 
   const shouldShowScamQuestionnaire =
@@ -109,11 +107,9 @@ export const Footer = () => {
     setScamQuestionnaireVisible(false);
   }, []);
 
-  // Completing the questionnaire — whether the user passed it cleanly or tapped
-  // "continue anyway" on the warning — returns them to the confirm screen
-  // rather than submitting. We mark it complete (so it won't re-show) and treat
-  // it as acknowledgement of the underlying blockaid alert, flipping the button
-  // label to "Confirm" and skipping the checkbox modal on the next tap.
+  // Returns the user to the confirm screen (does not submit). Acknowledging the
+  // blockaid alert flips the button label to "Confirm" and skips the checkbox
+  // modal on the next tap.
   const onScamComplete = useCallback(() => {
     scamQuestionnaireCompletedRef.current = true;
     setAlertConfirmed(AlertKeys.Blockaid, true);

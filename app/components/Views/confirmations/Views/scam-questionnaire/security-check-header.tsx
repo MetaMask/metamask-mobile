@@ -28,8 +28,8 @@ export const SecurityCheckHeader: React.FC<SecurityCheckHeaderProps> = ({
   const { styles } = useStyles(styleSheet, {});
   const { colors } = useTheme();
 
-  // Animated progress bar — smooths between steps so the flow feels considered
-  // rather than jumpy. Fills 1/N at start so step 1 doesn't read as 0% complete.
+  // Animate the fill so step changes aren't abrupt. Starts at 1/N so the first
+  // step doesn't read as 0%.
   const progress = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     const target = currentStep === null ? 1 : (currentStep + 1) / totalSteps;

@@ -34,8 +34,8 @@ export const ScamWarning: React.FC<ScamWarningProps> = ({
   const { styles } = useStyles(styleSheet, {});
   const { colors } = useTheme();
 
-  // Gate the bypass link for a few seconds so the user is forced to pause and
-  // read the warning before they can dismiss it.
+  // Gate the bypass link for a few seconds so the warning can't be dismissed
+  // instantly.
   const [secondsRemaining, setSecondsRemaining] = useState(
     PROCEED_DELAY_SECONDS,
   );

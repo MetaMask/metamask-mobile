@@ -7,8 +7,7 @@ const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
 
   return StyleSheet.create({
-    // Full-bleed wrapper that paints status-bar area in the page color so it
-    // never peeks through from the screen underneath.
+    // Paints the status-bar area in the page color.
     fullBleed: {
       flex: 1,
       backgroundColor: theme.colors.background.default,
@@ -204,8 +203,7 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingVertical: 12,
       marginBottom: 12,
     },
-    // Dimmed, non-underlined treatment while the bypass link is still gated by
-    // the countdown — signals it isn't tappable yet.
+    // Dimmed bypass link while the countdown is still active.
     bypassTextDisabled: {
       textAlign: 'center',
       color: theme.colors.text.muted,
