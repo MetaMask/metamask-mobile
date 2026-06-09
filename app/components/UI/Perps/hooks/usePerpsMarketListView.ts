@@ -167,22 +167,44 @@ export const usePerpsMarketListView = ({
   // Favorites filter state
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(showWatchlistOnly);
 
-  // Sync favorites filter when route params change (useState ignores new initials
-  // if the screen is already mounted, e.g. navigating from home watchlist header).
-  useEffect(() => {
-    setShowFavoritesOnly(showWatchlistOnly);
-  }, [showWatchlistOnly]);
-
   // Market type filter state (can be changed in UI, not persisted)
   const [marketTypeFilter, setMarketTypeFilter] = useState<MarketTypeFilter>(
     defaultMarketTypeFilter,
   );
+
+  // Sync favorites filter when route params change (useState ignores new initials
+  // if the screen is already mounted, e.g. navigating from home watchlist header).
+  // Watchlist and category filters are mutually exclusive: activating the watchlist
+  // filter clears any active category so all watchlisted markets are visible.
+  useEffect(() => {
+    setShowFavoritesOnly(showWatchlistOnly);
+    if (showWatchlistOnly) {
+      setMarketTypeFilter('all');
+    }
+  }, [showWatchlistOnly]);
 
   // Sync filter when route params change (e.g. navigating from PerpsProducts
   // to an already-mounted market list screen — useState ignores new initials).
   useEffect(() => {
     setMarketTypeFilter(defaultMarketTypeFilter);
   }, [defaultMarketTypeFilter]);
+
+  // Wrapped setters that enforce mutual exclusivity between watchlist and category
+  // filters: turning on the watchlist clears the category, and selecting a category
+  // turns off the watchlist.
+  const handleSetShowFavoritesOnly = useCallback((show: boolean) => {
+    setShowFavoritesOnly(show);
+    if (show) {
+      setMarketTypeFilter('all');
+    }
+  }, []);
+
+  const handleSetMarketTypeFilter = useCallback((filter: MarketTypeFilter) => {
+    setMarketTypeFilter(filter);
+    if (filter !== 'all') {
+      setShowFavoritesOnly(false);
+    }
+  }, []);
 
   // Use search hook for search state and filtering (search bar always visible in UI)
   const searchHook = usePerpsSearch({ markets: allMarkets });
@@ -308,12 +330,12 @@ export const usePerpsMarketListView = ({
     },
     favoritesState: {
       showFavoritesOnly,
-      setShowFavoritesOnly,
+      setShowFavoritesOnly: handleSetShowFavoritesOnly,
       hasWatchlistMarkets: watchlistMarkets.length > 0,
     },
     marketTypeFilterState: {
       marketTypeFilter,
-      setMarketTypeFilter,
+      setMarketTypeFilter: handleSetMarketTypeFilter,
     },
     marketCounts,
     isLoading: isLoadingMarkets,
