@@ -14,6 +14,7 @@ import {
 import {
   TransactionControllerAddTransactionAction,
   TransactionControllerAddTransactionBatchAction,
+  TransactionControllerEstimateGasBatchAction,
   TransactionControllerGetStateAction,
   TransactionControllerMessenger,
   TransactionControllerStateChangeEvent,
@@ -111,6 +112,7 @@ type InitMessengerActions =
   | RemoteFeatureFlagControllerGetStateAction
   | TransactionControllerAddTransactionAction
   | TransactionControllerAddTransactionBatchAction
+  | TransactionControllerEstimateGasBatchAction
   | TransactionControllerGetStateAction
   | TransactionControllerUpdateTransactionAction
   | TransactionPayControllerActions
@@ -170,8 +172,10 @@ export function getTransactionControllerInitMessenger(
       'RemoteFeatureFlagController:getState',
       'TransactionController:addTransaction',
       'TransactionController:addTransactionBatch',
+      'TransactionController:estimateGasBatch',
       'TransactionController:getState',
       'TransactionController:updateTransaction',
+      'TransactionPayController:getAmountData',
       'TransactionPayController:getDelegationTransaction',
       'TransactionPayController:getPaymentOverrideData',
       'TransactionPayController:getState',

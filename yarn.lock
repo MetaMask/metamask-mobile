@@ -10433,9 +10433,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-pay-controller@npm:^23.2.0":
-  version: 23.2.0
-  resolution: "@metamask/transaction-pay-controller@npm:23.2.0"
+"@metamask/transaction-pay-controller@npm:^23.3.0":
+  version: 23.3.0
+  resolution: "@metamask/transaction-pay-controller@npm:23.3.0"
   dependencies:
     "@ethersproject/abi": "npm:^5.7.0"
     "@ethersproject/contracts": "npm:^5.7.0"
@@ -10459,7 +10459,7 @@ __metadata:
     bn.js: "npm:^5.2.1"
     immer: "npm:^9.0.6"
     lodash: "npm:^4.17.21"
-  checksum: 10/4d4e9f060eebc0c131ee7cd287f467138ea39164d40d301c7c71abef31f61c3294e0f6f9608e43c9b6ea277cb1ba7edc5551d179402a4ca8b5af69af62fc2867
+  checksum: 10/2e3a89c5788c2c335740a0c2bf312c7ad28ceb8109acf07c6fdd9ce80c99f88c137dc5f0917d0434855fe58c8ccb5cd83184c1d6b0976ce4faeeedc351a5f1e0
   languageName: node
   linkType: hard
 
@@ -35459,7 +35459,7 @@ __metadata:
     "@metamask/test-dapp-multichain": "npm:^0.17.1"
     "@metamask/test-dapp-solana": "npm:^0.3.0"
     "@metamask/transaction-controller": "npm:^66.0.0"
-    "@metamask/transaction-pay-controller": "npm:^23.2.0"
+    "@metamask/transaction-pay-controller": "npm:^23.3.0"
     "@metamask/tron-wallet-snap": "npm:^1.25.6"
     "@metamask/utils": "npm:^11.11.0"
     "@metamask/wallet": "npm:^2.0.0"
