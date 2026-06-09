@@ -59,7 +59,7 @@ import {
 } from '../../../../component-library/components/Toast';
 import { IconName as ToastIconName } from '../../../../component-library/components/Icons/Icon';
 import { selectSourceWalletAddress } from '../../../../selectors/bridge';
-import { useHwBatchSignTracker } from '../../Bridge/hooks/useHwBatchSignTracker';
+import { useHwBatchSignTracker } from './useHwBatchSignTracker';
 import { useHardwareWallet } from '../../../../core/HardwareWallet';
 
 import { useHwConnectionMonitoring } from './useHwConnectionMonitoring';
@@ -169,8 +169,8 @@ export function HardwareWalletsSwaps() {
   const { submitBridgeTx } = useSubmitBridgeTx();
   const { params: routeParams } = useRoute();
   const cachedSubmissionParams = useRef<SubmissionParams | null>(
-    (routeParams as { submissionParams?: SubmissionParams })?.submissionParams ??
-      null,
+    (routeParams as { submissionParams?: SubmissionParams })
+      ?.submissionParams ?? null,
   );
   const toastRef = useContext(ToastContext)?.toastRef;
   const hasAutoNavigatedRef = useRef(false);
