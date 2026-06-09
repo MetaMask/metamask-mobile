@@ -146,11 +146,6 @@ export const selectMetaMaskPayFlags = createSelector(
       ((metaMaskPayExtendedFlags?.enablePerpsMoneyAccountTransactions as boolean) ??
         PAY_ENABLE_MONEY_HOME_PAGE_PERPS_TRANSACTION_DEFAULT);
 
-    const enableMoneyHomePagePerpsTransaction =
-      process.env.MONEY_HOME_PAGE_PERPS_PREDICT_ENABLED === 'true' &&
-      ((metaMaskPayExtendedFlags?.enablePerpsMoneyAccountTransactions as boolean) ??
-        PAY_ENABLE_MONEY_HOME_PAGE_PERPS_TRANSACTION_DEFAULT);
-
     const enableMoneyHomePagePredictTransaction =
       process.env.MONEY_HOME_PAGE_PERPS_PREDICT_ENABLED === 'true' &&
       ((metaMaskPayExtendedFlags?.enablePredictMoneyAccountTransactions as boolean) ??
