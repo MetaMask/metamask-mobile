@@ -506,12 +506,12 @@ describe('CampaignTile', () => {
       const { getByTestId } = render(<CampaignTile campaign={campaign} />);
       fireEvent.press(getByTestId('campaign-tile-camp-ondo'));
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW,
-        {
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
+        screen: Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW,
+        params: {
           campaignId: 'camp-ondo',
         },
-      );
+      });
     });
 
     it('navigates to season one campaign details for SEASON_1 type', () => {
@@ -523,12 +523,12 @@ describe('CampaignTile', () => {
       const { getByTestId } = render(<CampaignTile campaign={campaign} />);
       fireEvent.press(getByTestId('campaign-tile-camp-season'));
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW,
-        {
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
+        screen: Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW,
+        params: {
           campaignId: 'camp-season',
         },
-      );
+      });
     });
 
     it('calls custom onPress handler instead of navigating when provided', () => {
@@ -623,10 +623,10 @@ describe('CampaignTile', () => {
       const { getByTestId } = render(<CampaignTile campaign={campaign} />);
       fireEvent.press(getByTestId('campaign-tile-camp-ondo-active'));
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW,
-        { campaignId: 'camp-ondo-active' },
-      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
+        screen: Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW,
+        params: { campaignId: 'camp-ondo-active' },
+      });
     });
 
     it('navigates to campaign tour for PREDICT_THE_PITCH when not opted in and tour exists', () => {
@@ -644,10 +644,10 @@ describe('CampaignTile', () => {
       const { getByTestId } = render(<CampaignTile campaign={campaign} />);
       fireEvent.press(getByTestId('campaign-tile-camp-predict-tour'));
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.REWARDS_CAMPAIGN_TOUR_STEP,
-        { campaignId: 'camp-predict-tour' },
-      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
+        screen: Routes.REWARDS_CAMPAIGN_TOUR_STEP,
+        params: { campaignId: 'camp-predict-tour' },
+      });
     });
 
     it('navigates to Predict The Pitch details when opted in even if tour exists', () => {
@@ -665,10 +665,10 @@ describe('CampaignTile', () => {
       const { getByTestId } = render(<CampaignTile campaign={campaign} />);
       fireEvent.press(getByTestId('campaign-tile-camp-predict-opted-in'));
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_DETAILS_VIEW,
-        { campaignId: 'camp-predict-opted-in' },
-      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
+        screen: Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_DETAILS_VIEW,
+        params: { campaignId: 'camp-predict-opted-in' },
+      });
     });
   });
 

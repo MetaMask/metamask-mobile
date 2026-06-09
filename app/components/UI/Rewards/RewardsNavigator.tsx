@@ -28,15 +28,11 @@ import PredictThePitchCampaignDetailsView from './Views/PredictThePitchCampaignD
 import PredictThePitchCampaignWinningView from './Views/PredictThePitchCampaignWinningView';
 import PredictThePitchCampaignLeaderboardView from './Views/PredictThePitchCampaignLeaderboardView';
 import PredictThePitchCampaignPortfolioView from './Views/PredictThePitchCampaignPortfolioView';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
-import {
-  selectIsRewardsVersionBlocked,
-  selectPendingDeeplink,
-} from '../../../reducers/rewards/selectors';
-import { setPendingDeeplink } from '../../../reducers/rewards';
+import { selectIsRewardsVersionBlocked } from '../../../reducers/rewards/selectors';
 import { useCandidateSubscriptionId } from './hooks/useCandidateSubscriptionId';
-import { useNavigation, useNavigationState } from '@react-navigation/native';
+import { useNavigationState } from '@react-navigation/native';
 import { useTheme } from '../../../util/theme';
 import useRewardsVersionGuard from './hooks/useRewardsVersionGuard';
 import RewardsUpdateRequired from './components/RewardsUpdateRequired/RewardsUpdateRequired';
@@ -54,20 +50,7 @@ const Stack = createNativeStackNavigator();
 const RewardsNavigator: React.FC = () => {
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const isVersionBlocked = useSelector(selectIsRewardsVersionBlocked);
-  const pendingDeeplink = useSelector(selectPendingDeeplink);
-  const dispatch = useDispatch();
-  const navigation = useNavigation();
   const { colors } = useTheme();
-  // Guards against the spurious re-fire that dispatch(setPendingDeeplink(null))
-  // triggers. After a deeplink is handled, clearing the Redux state changes
-  // pendingDeeplink from a value to null; that dep change causes this effect to
-  // re-run and would otherwise fall through to navigate(REWARDS_DASHBOARD),
-  // overriding the deeplink destination. The ref skips exactly that one follow-up fire.
-  // Clearing via Redux (instead of route.params / setParams) is necessary because
-  // RewardsHome is UnmountOnBlur — the navigator is not mounted when the user is
-  // on another tab, so navigation params would be lost; Redux state is always
-  // available regardless of mount status.
-  const skipNextEffectRef = useRef(false);
 
   const activeRewardsRoute = useNavigationState(
     getActiveRouteNameFromNavigationState,
@@ -156,54 +139,6 @@ const RewardsNavigator: React.FC = () => {
     showEnableNotificationsNudge,
   ]);
 
-  // Determine initial route - always start with onboarding intro step initially
-  const getInitialRoute = () => {
-    // If user has already opted in and has a valid subscription candidate ID, go to dashboard
-    if (subscriptionId) {
-      return Routes.REWARDS_DASHBOARD;
-    }
-
-    // For all other cases, start with onboarding flow (intro step)
-    return Routes.REWARDS_ONBOARDING_FLOW;
-  };
-
-  useEffect(() => {
-    if (isVersionBlocked) {
-      return;
-    }
-    if (subscriptionId) {
-      if (skipNextEffectRef.current) {
-        skipNextEffectRef.current = false;
-        return;
-      }
-      if (pendingDeeplink?.page === 'campaigns') {
-        navigation.navigate(Routes.REWARDS_CAMPAIGNS_VIEW);
-      } else if (pendingDeeplink?.campaign === 'ondo') {
-        navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW);
-      } else if (pendingDeeplink?.campaign === 'season1') {
-        navigation.navigate(Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW);
-      } else if (pendingDeeplink?.campaign === 'perps-comp') {
-        navigation.navigate(Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW);
-      } else if (pendingDeeplink?.campaign === 'predict-the-pitch') {
-        navigation.navigate(
-          Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_DETAILS_VIEW,
-        );
-      } else if (pendingDeeplink?.page === 'musd') {
-        navigation.navigate(Routes.REWARDS_MUSD_CALCULATOR_VIEW);
-      } else if (pendingDeeplink?.page === 'benefits') {
-        navigation.navigate(Routes.REWARD_BENEFITS_FULL_VIEW);
-      } else {
-        navigation.navigate(Routes.REWARDS_DASHBOARD);
-      }
-      if (pendingDeeplink?.page || pendingDeeplink?.campaign) {
-        skipNextEffectRef.current = true;
-        dispatch(setPendingDeeplink(null));
-      }
-    } else {
-      navigation.navigate(Routes.REWARDS_ONBOARDING_FLOW);
-    }
-  }, [navigation, dispatch, subscriptionId, isVersionBlocked, pendingDeeplink]);
-
   if (isVersionBlocked) {
     return <RewardsUpdateRequired />;
   }
@@ -217,23 +152,9 @@ const RewardsNavigator: React.FC = () => {
   };
 
   return (
-    <Stack.Navigator
-      initialRouteName={getInitialRoute()}
-      screenOptions={{ headerShown: false }}
-    >
-      <Stack.Screen
-        name={Routes.REWARDS_ONBOARDING_FLOW}
-        component={OnboardingNavigator}
-        options={{
-          contentStyle: { backgroundColor: colors.background.default },
-        }}
-      />
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
       {subscriptionId ? (
         <>
-          <Stack.Screen
-            name={Routes.REWARDS_DASHBOARD}
-            component={RewardsDashboard}
-          />
           <Stack.Screen
             name={Routes.REFERRAL_REWARDS_VIEW}
             component={ReferralRewardsView}

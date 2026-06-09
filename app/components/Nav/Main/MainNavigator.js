@@ -53,7 +53,10 @@ import ManualBackupStep2 from '../../Views/ManualBackupStep2';
 import ManualBackupStep3 from '../../Views/ManualBackupStep3';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
+import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
+import RewardsDashboard from '../../UI/Rewards/Views/RewardsDashboard';
+import RewardsOnboardingNavigator from '../../UI/Rewards/OnboardingNavigator';
 import { ExploreFeed } from '../../Views/TrendingView/TrendingView';
 import WhatsHappeningDetailView from '../../Views/WhatsHappeningDetailView';
 import ExploreSearchScreen from '../../Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen';
@@ -326,6 +329,7 @@ const TransactionsHome = () => {
 
 const RewardsHome = () => {
   const { colors } = useTheme();
+  const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const rewardsModalScreenOptions = {
     ...transparentModalScreenOptions,
     contentStyle: { backgroundColor: 'transparent' },
@@ -338,10 +342,17 @@ const RewardsHome = () => {
         contentStyle: { backgroundColor: colors.background.default },
       }}
     >
-      <NativeStack.Screen
-        name={Routes.REWARDS_VIEW}
-        component={RewardsNavigator}
-      />
+      {subscriptionId ? (
+        <NativeStack.Screen
+          name={Routes.REWARDS_DASHBOARD}
+          component={RewardsDashboard}
+        />
+      ) : (
+        <NativeStack.Screen
+          name={Routes.REWARDS_ONBOARDING_FLOW}
+          component={RewardsOnboardingNavigator}
+        />
+      )}
       <NativeStack.Screen
         name={Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL}
         component={RewardsBottomSheetModal}
@@ -1034,6 +1045,18 @@ const MainNavigator = () => {
       initialRouteName={'Home'}
     >
       <Stack.Screen name="Home" component={HomeTabs} />
+      {/*
+       * Separate from the Rewards tab (REWARDS_VIEW → RewardsHome). RewardsNavigator
+       * is its own native stack pushed onto this JS root stack; nesting a native
+       * stack inside the JS stack is supported — the outer push uses the JS-stack
+       * transition, while screens inside RewardsNavigator animate natively.
+       * Reach it with navigation.navigate(REWARDS_FLOW, { screen, params }).
+       */}
+      <Stack.Screen
+        name={Routes.REWARDS_FLOW}
+        component={RewardsNavigator}
+        options={{ headerShown: false }}
+      />
       <Stack.Screen
         name="CollectiblesDetails"
         component={CollectiblesDetails}

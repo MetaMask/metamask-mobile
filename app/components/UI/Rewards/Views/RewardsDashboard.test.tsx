@@ -9,8 +9,10 @@ import { usePerpsTradingCampaignEndedOutcomeToast } from '../hooks/usePerpsTradi
 import { useGetPredictThePitchOutcomeToast } from '../hooks/useGetPredictThePitchOutcomeToast';
 
 // Mock dependencies
+const mockDispatch = jest.fn();
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
+  useDispatch: () => mockDispatch,
 }));
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
@@ -124,6 +126,28 @@ jest.mock('../../../../core/Engine', () => ({
     controllerMessenger: {
       call: (...args: unknown[]) => mockControllerMessengerCall(...args),
     },
+  },
+}));
+
+// Rewards-wide hooks relocated from RewardsNavigator into the dashboard. They
+// perform data fetching/side effects that are out of scope for these tests.
+jest.mock('../hooks/useRewardsVersionGuard', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+jest.mock('../hooks/useCandidateSubscriptionId', () => ({
+  useCandidateSubscriptionId: jest.fn(),
+}));
+jest.mock('../hooks/useGeoRewardsMetadata', () => ({
+  useGeoRewardsMetadata: jest.fn(),
+}));
+jest.mock('../hooks/useReferralDetails', () => ({
+  useReferralDetails: jest.fn(),
+}));
+jest.mock('../components/RewardsUpdateRequired/RewardsUpdateRequired', () => ({
+  __esModule: true,
+  default: function MockRewardsUpdateRequired() {
+    return null;
   },
 }));
 
@@ -457,7 +481,10 @@ describe('RewardsDashboard', () => {
       fireEvent.press(settingsButton);
 
       // Assert
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_SETTINGS_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
+        screen: Routes.REWARDS_SETTINGS_VIEW,
+        params: undefined,
+      });
     });
 
     it('navigates to referral view when referral button is pressed', () => {
@@ -466,7 +493,10 @@ describe('RewardsDashboard', () => {
       fireEvent.press(getByTestId(REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON));
 
       // Assert
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.REFERRAL_REWARDS_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
+        screen: Routes.REFERRAL_REWARDS_VIEW,
+        params: undefined,
+      });
     });
 
     it('does not render the VIP button when VIP is disabled', () => {
@@ -519,7 +549,10 @@ describe('RewardsDashboard', () => {
       const { getByTestId } = render(<RewardsDashboard />);
       fireEvent.press(getByTestId(REWARDS_VIEW_SELECTORS.VIP_BUTTON));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIP_SPLASH_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
+        screen: Routes.REWARDS_VIP_SPLASH_VIEW,
+        params: undefined,
+      });
     });
 
     it('navigates to VIP view without splash when the invite was accepted', () => {
@@ -544,7 +577,10 @@ describe('RewardsDashboard', () => {
       const { getByTestId } = render(<RewardsDashboard />);
       fireEvent.press(getByTestId(REWARDS_VIEW_SELECTORS.VIP_BUTTON));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIP_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
+        screen: Routes.REWARDS_VIP_VIEW,
+        params: undefined,
+      });
     });
   });
 
