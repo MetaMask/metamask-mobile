@@ -2914,10 +2914,10 @@ export class PredictController extends BaseController<
         updateErrorState: false,
       },
       async () => {
-        const ownerAddress = params.ownerAddress ?? this.getSigner().address;
+        const selectedAddress = this.getSigner().address;
         return this.provider.getAccountState({
           ...params,
-          ownerAddress,
+          ownerAddress: selectedAddress,
         });
       },
     );
