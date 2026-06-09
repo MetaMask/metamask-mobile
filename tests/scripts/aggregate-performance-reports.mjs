@@ -370,6 +370,7 @@ function createSummary(groupedResults) {
               testName: test.testName,
               testFilePath: test.testFilePath,
               tags: test.tags || [],
+              totalTime: test.totalTime,
               platform,
               device,
               team: test.team,
@@ -407,12 +408,38 @@ function createSummary(groupedResults) {
   // Second pass: determine final test status
   // A test is only considered failed if ALL executions failed (no successful retry)
   const failedTestsByTeam = {};
+  const testResults = [];
   let totalFailedTests = 0;
   const failedTestsByPlatform = { android: 0, ios: 0 };
 
   const uniqueFailedTestNames = new Set();
 
   Object.values(testExecutions).forEach(execution => {
+    const { testInfo } = execution;
+    const hasQualityGateFailure =
+      testInfo.qualityGates &&
+      testInfo.qualityGates.hasThresholds &&
+      !testInfo.qualityGates.passed;
+    const failureReason = hasQualityGateFailure
+      ? 'quality_gates_exceeded'
+      : (testInfo.failureReason ?? null);
+
+    testResults.push({
+      testName: testInfo.testName,
+      testFilePath: testInfo.testFilePath,
+      tags: testInfo.tags,
+      platform: testInfo.platform,
+      device: testInfo.device,
+      duration: testInfo.totalTime ?? null,
+      team: testInfo.team ?? null,
+      sessionId: testInfo.sessionId ?? null,
+      recordingLink: testInfo.videoURL ?? null,
+      status: execution.hasPassed ? 'passed' : 'failed',
+      failureReason: execution.hasPassed ? null : failureReason,
+      qualityGates: testInfo.qualityGates,
+      qualityGatesViolations: testInfo.qualityGatesViolations,
+    });
+
     // If test passed at least once, it's considered passed (successful retry)
     if (execution.hasPassed) {
       return; // Skip - test ultimately passed
@@ -421,9 +448,8 @@ function createSummary(groupedResults) {
     // Test failed all executions - count as 1 failure
     if (execution.hasFailed) {
       totalFailedTests++;
-      uniqueFailedTestNames.add(execution.testInfo.testName);
-      
-      const { testInfo } = execution;
+      uniqueFailedTestNames.add(testInfo.testName);
+
       const platformKey = testInfo.platform.toLowerCase();
       
       // Track per-platform failures
@@ -441,14 +467,6 @@ function createSummary(groupedResults) {
           };
         }
         
-        // Use quality_gates_exceeded when quality gates failed (for Slack "Quality gates FAILED")
-        const failureReason =
-          testInfo.qualityGates &&
-          testInfo.qualityGates.hasThresholds &&
-          !testInfo.qualityGates.passed
-            ? 'quality_gates_exceeded'
-            : (testInfo.failureReason ?? null);
-
         failedTestsByTeam[teamId].tests.push({
           testName: testInfo.testName,
           testFilePath: testInfo.testFilePath,
@@ -514,6 +532,7 @@ function createSummary(groupedResults) {
       teamsAffected: Object.keys(failedTestsByTeam).length,
       failedTestsByTeam
     },
+    testResults,
     metadata: {
       generatedAt: new Date().toISOString(),
       totalReports: summaryDevices.length,
