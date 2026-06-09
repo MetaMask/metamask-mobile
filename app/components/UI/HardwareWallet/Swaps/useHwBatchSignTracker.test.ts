@@ -1065,6 +1065,41 @@ describe('useHwBatchSignTracker', () => {
       await cancelPromise;
     });
 
+    it('rejects tracked Transaction approvals without batchId on cancel', async () => {
+      const { result } = renderEnabledHook();
+      const bridgeTxId = 'tx-bridge-no-batch-cancel-001';
+
+      const bridgeTx = txMeta({
+        id: bridgeTxId,
+        type: TransactionType.bridgeApproval,
+        status: TransactionStatus.approved,
+      });
+
+      setMockTransactions([bridgeTx]);
+      setMockPendingApprovals({
+        [bridgeTxId]: { id: bridgeTxId, type: ApprovalType.Transaction },
+      });
+
+      await act(async () => {
+        await getApprovalHandler()();
+      });
+
+      let cancelPromise = Promise.resolve();
+      act(() => {
+        cancelPromise = result.current.cancelCurrentBatch();
+      });
+
+      await waitFor(() =>
+        expect(Engine.rejectPendingApproval).toHaveBeenCalledWith(
+          bridgeTxId,
+          expect.any(Error),
+          { ignoreMissing: true, logErrors: false },
+        ),
+      );
+
+      await cancelPromise;
+    });
+
     it('unsubscribes the cancel waiter when tracked txs become terminal', async () => {
       const { result } = renderEnabledHook();
       const meta = txMeta({

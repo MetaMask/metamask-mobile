@@ -429,12 +429,17 @@ function shouldRejectPendingApprovalOnCancel(
     }
 
     const txMeta = getTransactionById(requestId);
-    return Boolean(
-      txMeta &&
-        matchesTx(txMeta, targetFrom) &&
-        txMeta.batchId &&
-        relatedBatchIds.has(txMeta.batchId),
-    );
+    if (!txMeta || !matchesTx(txMeta, targetFrom)) {
+      return false;
+    }
+
+    // Bridge/swap Transaction approvals are enqueued without requiring batchId;
+    // reject any tracked approval that matches the active address.
+    if (!txMeta.batchId) {
+      return true;
+    }
+
+    return relatedBatchIds.has(txMeta.batchId);
   }
 
   return false;
