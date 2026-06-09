@@ -3,6 +3,7 @@ import { Modal, StatusBar, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 import { useTheme } from '../../../../../util/theme';
+import { AppThemeKey } from '../../../../../util/theme/models';
 
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -184,7 +185,9 @@ export const ScamQuestionnaire: React.FC<ScamQuestionnaireProps> = ({
         <View style={styles.fullBleed}>
           <StatusBar
             barStyle={
-              themeAppearance === 'light' ? 'dark-content' : 'light-content'
+              themeAppearance === AppThemeKey.light
+                ? 'dark-content'
+                : 'light-content'
             }
             backgroundColor={colors.background.default}
           />
