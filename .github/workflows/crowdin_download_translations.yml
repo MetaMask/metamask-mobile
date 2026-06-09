@@ -55,6 +55,10 @@ jobs:
             git show "${GITHUB_SHA}:${FIX_SCRIPT_PATH}" > "$FIX_SCRIPT"
           fi
 
+          # Crowdin's action can leave downloaded files owned by a different user.
+          sudo chown "$(id -u):$(id -g)" locales/languages/tr.json
+          chmod u+w locales/languages/tr.json
+
           node "$FIX_SCRIPT"
           node "$FIX_SCRIPT" --check
 
