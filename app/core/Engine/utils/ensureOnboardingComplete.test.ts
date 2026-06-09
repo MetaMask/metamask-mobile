@@ -1,6 +1,6 @@
 import { store, runSaga } from '../../../store';
 import { selectCompletedOnboarding } from '../../../selectors/onboarding';
-import { createEnsureOnboardingCompleteCallback } from './ensureOnboardingComplete';
+import { ensureOnboardingComplete } from './ensureOnboardingComplete';
 import { Task } from 'redux-saga';
 
 jest.mock('../../../store', () => ({
@@ -19,7 +19,7 @@ function makeSagaTask(promise: Promise<void>): Task {
   return { toPromise: () => promise } as Task;
 }
 
-describe('createEnsureOnboardingCompleteCallback', () => {
+describe('ensureOnboardingComplete', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -28,7 +28,6 @@ describe('createEnsureOnboardingCompleteCallback', () => {
     it('resolves immediately without starting a saga', async () => {
       mockSelectCompletedOnboarding.mockReturnValue(true);
 
-      const ensureOnboardingComplete = createEnsureOnboardingCompleteCallback();
       await ensureOnboardingComplete();
 
       expect(mockRunSaga).not.toHaveBeenCalled();
@@ -40,7 +39,6 @@ describe('createEnsureOnboardingCompleteCallback', () => {
       mockSelectCompletedOnboarding.mockReturnValue(false);
       mockRunSaga.mockReturnValue(makeSagaTask(Promise.resolve()));
 
-      const ensureOnboardingComplete = createEnsureOnboardingCompleteCallback();
       await ensureOnboardingComplete();
 
       expect(mockRunSaga).toHaveBeenCalledTimes(1);
@@ -54,8 +52,6 @@ describe('createEnsureOnboardingCompleteCallback', () => {
         resolveSaga = resolve;
       });
       mockRunSaga.mockReturnValue(makeSagaTask(sagaPromise));
-
-      const ensureOnboardingComplete = createEnsureOnboardingCompleteCallback();
 
       let resolved = false;
       const pending = ensureOnboardingComplete().then(() => {
@@ -79,8 +75,6 @@ describe('createEnsureOnboardingCompleteCallback', () => {
       });
       mockRunSaga.mockReturnValue(makeSagaTask(sagaPromise));
 
-      const ensureOnboardingComplete = createEnsureOnboardingCompleteCallback();
-
       const p1 = ensureOnboardingComplete();
       const p2 = ensureOnboardingComplete();
 
@@ -94,8 +88,6 @@ describe('createEnsureOnboardingCompleteCallback', () => {
       mockSelectCompletedOnboarding.mockReturnValue(false);
       mockRunSaga.mockReturnValue(makeSagaTask(Promise.resolve()));
 
-      const ensureOnboardingComplete = createEnsureOnboardingCompleteCallback();
-
       await ensureOnboardingComplete();
       await ensureOnboardingComplete();
 
@@ -107,8 +99,6 @@ describe('createEnsureOnboardingCompleteCallback', () => {
       mockRunSaga.mockReturnValue(
         makeSagaTask(Promise.reject(new Error('saga failed'))),
       );
-
-      const ensureOnboardingComplete = createEnsureOnboardingCompleteCallback();
 
       await expect(ensureOnboardingComplete()).rejects.toThrow('saga failed');
       await expect(ensureOnboardingComplete()).rejects.toThrow('saga failed');
@@ -122,7 +112,6 @@ describe('createEnsureOnboardingCompleteCallback', () => {
       mockSelectCompletedOnboarding.mockReturnValue(false);
       mockRunSaga.mockReturnValue(makeSagaTask(Promise.resolve()));
 
-      const ensureOnboardingComplete = createEnsureOnboardingCompleteCallback();
       await ensureOnboardingComplete();
 
       expect(mockSelectCompletedOnboarding).toHaveBeenCalledWith(fakeState);
