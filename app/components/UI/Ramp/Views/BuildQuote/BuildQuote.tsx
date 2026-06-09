@@ -112,7 +112,9 @@ export interface BuildQuoteParams {
 /**
  * Creates navigation details for the BuildQuote screen (RampAmountInput).
  * This screen is nested inside TokenListRoutes, so navigation must go through
- * the parent route Routes.RAMP.TOKEN_SELECTION.
+ * the parent route Routes.RAMP.TOKEN_SELECTION, then the intermediate
+ * RootStack wrapper Routes.RAMP.TOKEN_SELECTION_ROOT, before reaching the
+ * AMOUNT_INPUT leaf screen.
  */
 export const createBuildQuoteNavDetails = (
   params?: BuildQuoteParams,
@@ -129,7 +131,7 @@ export const createBuildQuoteNavDetails = (
   [
     Routes.RAMP.TOKEN_SELECTION,
     {
-      screen: Routes.RAMP.TOKEN_SELECTION,
+      screen: Routes.RAMP.TOKEN_SELECTION_ROOT,
       params: {
         screen: Routes.RAMP.AMOUNT_INPUT,
         params,
