@@ -33,6 +33,7 @@ import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import { useOnboardingStep, STEPPER_IDS } from '../../hooks/useOnboardingStep';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
+import { isAccountFunded } from '../../utils/isAccountFunded';
 import { calculateProjectedEarnings } from '../../utils/projections';
 import { MUSD_MAINNET_ASSET_FOR_DETAILS } from '../../../../Views/Homepage/Sections/Cash/CashGetMusdEmptyState.constants';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
@@ -54,14 +55,6 @@ import { MONEY_ONBOARDING_TOTAL_STEPS } from '../../components/MoneyOnboardingCa
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 const Divider = () => <Box twClassName="h-px bg-border-muted my-5" />;
 
-type MoneyHomeState = 'empty' | 'milestone' | 'filled';
-
-const getMoneyHomeState = (transactionCount: number): MoneyHomeState => {
-  if (transactionCount === 0) return 'empty';
-  if (transactionCount < 10) return 'milestone';
-  return 'filled';
-};
-
 const MoneyHomeView = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
@@ -72,6 +65,7 @@ const MoneyHomeView = () => {
   const {
     totalFiatFormatted,
     totalFiatRaw,
+    tokenTotal,
     vaultApyQuery,
     isAggregatedBalanceLoading,
     isBalanceFetchError,
@@ -118,16 +112,20 @@ const MoneyHomeView = () => {
 
   const isCardholder = useSelector(selectIsCardholder);
   const hasMetalCard = useSelector(selectHasMetalCard);
-  const { startLinkFlow, isCardLinkedToMoneyAccount, isLinking } =
-    useMoneyAccountCardLinkage();
+  const {
+    startLinkFlow,
+    isCardAuthenticated,
+    isCardLinkedToMoneyAccount,
+    isLinking,
+  } = useMoneyAccountCardLinkage();
 
   const { isVisible: isOnboardingCardVisible } = useOnboardingStep({
     stepperId: STEPPER_IDS.MONEY,
     totalSteps: MONEY_ONBOARDING_TOTAL_STEPS,
   });
 
-  const homeState = getMoneyHomeState(activityItems.length);
-  const isMilestone = homeState === 'milestone' || homeState === 'filled';
+  const balanceReady = tokenTotal !== undefined;
+  const isFunded = isAccountFunded(tokenTotal) || activityItems.length > 0;
 
   let displayState: MoneyBalanceDisplayState;
   if (!hasMoneyAccount) {
@@ -203,10 +201,7 @@ const MoneyHomeView = () => {
   }, [navigation]);
 
   const handleLinkCardPress = useCallback(() => {
-    startLinkFlow({
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
-    });
+    startLinkFlow(MONEY_HOME_CARD_ORIGIN);
   }, [startLinkFlow]);
 
   const handleApyInfoPress = useCallback(() => {
@@ -284,7 +279,7 @@ const MoneyHomeView = () => {
   let metamaskCardMode: 'upsell' | 'link' | 'manage';
   if (isCardLinkedToMoneyAccount) {
     metamaskCardMode = 'manage';
-  } else if (isCardholder) {
+  } else if (isCardAuthenticated || isCardholder) {
     metamaskCardMode = 'link';
   } else {
     metamaskCardMode = 'upsell';
@@ -341,7 +336,7 @@ const MoneyHomeView = () => {
               <Divider />
             </>
           )}
-        {!isMilestone && (
+        {balanceReady && !isFunded && (
           <>
             <MoneyHowItWorks
               apy={apyPercent}
@@ -400,7 +395,7 @@ const MoneyHomeView = () => {
           apy={apyPercent}
         />
         <Divider />
-        {isMilestone && (
+        {isFunded && (
           <>
             <MoneyCondensedInfoCards
               onHowItWorksPress={handleHowItWorksHeaderPress}
@@ -410,7 +405,7 @@ const MoneyHomeView = () => {
             <Divider />
           </>
         )}
-        {!isMilestone && (
+        {balanceReady && !isFunded && (
           <MoneyWhatYouGet
             apy={apyPercent}
             onLearnMorePress={handleLearnMorePress}
