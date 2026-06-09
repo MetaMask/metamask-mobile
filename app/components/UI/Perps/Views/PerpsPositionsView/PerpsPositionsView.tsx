@@ -5,6 +5,10 @@ import {
   TextVariant,
   TextColor,
 } from '@metamask/design-system-react-native';
+import {
+  TextVariant as ComponentTextVariant,
+  TextColor as ComponentTextColor,
+} from '../../../../../component-library/components/Texts/Text';
 import { ScrollView, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -166,9 +170,8 @@ const PerpsPositionsView: React.FC = () => {
               {strings('perps.position.account.total_balance')}
             </Text>
             <SensitiveText
-              variant={TextVariant.BodySm}
-              fontWeight="medium"
-              color={TextColor.TextDefault}
+                variant={ComponentTextVariant.BodySMMedium}
+                color={ComponentTextColor.Default}
               isHidden={privacyMode}
               length={SensitiveTextLength.Short}
             >
@@ -186,9 +189,8 @@ const PerpsPositionsView: React.FC = () => {
               {strings('perps.position.account.available_balance')}
             </Text>
             <SensitiveText
-              variant={TextVariant.BodySm}
-              fontWeight="medium"
-              color={TextColor.TextDefault}
+                variant={ComponentTextVariant.BodySMMedium}
+                color={ComponentTextColor.Default}
               isHidden={privacyMode}
               length={SensitiveTextLength.Short}
             >
@@ -206,9 +208,8 @@ const PerpsPositionsView: React.FC = () => {
               {strings('perps.position.account.margin_used')}
             </Text>
             <SensitiveText
-              variant={TextVariant.BodySm}
-              fontWeight="medium"
-              color={TextColor.TextDefault}
+                variant={ComponentTextVariant.BodySMMedium}
+                color={ComponentTextColor.Default}
               isHidden={privacyMode}
               length={SensitiveTextLength.Short}
             >
@@ -225,15 +226,14 @@ const PerpsPositionsView: React.FC = () => {
               {strings('perps.position.account.total_unrealized_pnl')}
             </Text>
             <SensitiveText
-              variant={TextVariant.BodySm}
-              fontWeight="medium"
-              color={
-                privacyMode
-                  ? TextColor.TextDefault
-                  : totalUnrealizedPnl >= 0
-                    ? TextColor.SuccessDefault
-                    : TextColor.ErrorDefault
-              }
+                variant={ComponentTextVariant.BodySMMedium}
+                color={
+                  privacyMode
+                    ? ComponentTextColor.Default
+                    : totalUnrealizedPnl >= 0
+                      ? ComponentTextColor.Success
+                      : ComponentTextColor.Error
+                }
               isHidden={privacyMode}
               length={SensitiveTextLength.Short}
             >

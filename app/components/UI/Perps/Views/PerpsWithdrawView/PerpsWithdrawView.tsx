@@ -22,6 +22,9 @@ import {
   TextVariant,
   TextColor,
 } from '@metamask/design-system-react-native';
+import {
+  TextVariant as ComponentTextVariant,
+} from '../../../../../component-library/components/Texts/Text';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { PerpsWithdrawViewSelectorsIDs } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
@@ -555,7 +558,7 @@ const PerpsWithdrawView: React.FC = () => {
             field={{
               label: {
                 text: strings('perps.withdrawal.you_will_receive'),
-                variant: TextVariant.BodyMd,
+                variant: ComponentTextVariant.BodyMD,
               },
             }}
             value={{
