@@ -47,7 +47,7 @@ export interface UnifiedGestureOptions {
   // ── Detox-passthrough options ────────────────────────────────────────────
   /** Dismiss the keyboard after typing — Detox only */
   hideKeyboard?: boolean;
-  /** Clear the field before typing — Detox only */
+  /** Clear the field before typing */
   clearFirst?: boolean;
   /** Wait for element stability before interacting — Detox only */
   checkStability?: boolean;
@@ -433,7 +433,7 @@ export class AppiumGestureStrategy implements GestureStrategy {
     opts?: UnifiedGestureOptions,
   ): Promise<void> {
     const el = await asPlaywrightElement(elem);
-    if (opts?.clearFirst) {
+    if (opts?.clearFirst ?? true) {
       await el.clear();
     }
     const textToType = opts?.hideKeyboard ? text + '\n' : text;
