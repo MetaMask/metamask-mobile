@@ -25,9 +25,10 @@ const results = JSON.parse(
   ),
 );
 
-const allPassed = results.failed === 0;
-const emoji = allPassed ? ':white_check_mark:' : ':x:';
-const status = allPassed ? 'Passed' : 'Failed';
+const noResults = results.total === 0;
+const allPassed = !noResults && results.failed === 0;
+const emoji = noResults ? ':warning:' : allPassed ? ':white_check_mark:' : ':x:';
+const status = noResults ? 'Not Run' : allPassed ? 'Passed' : 'Failed';
 const runUrl = `${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}`;
 
 const blocks = [
@@ -99,5 +100,7 @@ const payload = {
 
 const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'slack-payload-'));
 const payloadPath = path.join(tempDir, 'slack-payload.json');
-fs.writeFileSync(payloadPath, JSON.stringify(payload, null, 2));
+const payloadJson = JSON.stringify(payload, null, 2);
+fs.writeFileSync(payloadPath, payloadJson);
+console.error(payloadJson);
 console.log(payloadPath);
