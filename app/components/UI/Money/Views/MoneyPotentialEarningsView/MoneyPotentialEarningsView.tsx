@@ -98,10 +98,7 @@ const MoneyPotentialEarningsView = () => {
     trackTokenButtonClicked({
       button_type: MONEY_BUTTON_TYPES.TEXT,
       button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
-      label_localized: strings('money.potential_earnings.convert_cta'),
-      label_en: strings('money.potential_earnings.convert_cta', {
-        locale: 'en',
-      }),
+      label_key: 'money.potential_earnings.convert_cta',
       redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
       component_name: COMPONENT_NAMES.MONEY_CONVERT_CRYPTO_BUTTON,
       token_symbol: defaultToken.symbol,
@@ -132,10 +129,7 @@ const MoneyPotentialEarningsView = () => {
           button_type: MONEY_BUTTON_TYPES.TEXT,
           button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
           component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_TOKEN_ROW,
-          label_localized: strings('money.potential_earnings.add'),
-          label_en: strings('money.potential_earnings.add', {
-            locale: 'en',
-          }),
+          label_key: 'money.potential_earnings.add',
           redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
           token_symbol: token.symbol,
           token_position_in_list: tokenIndex + 1,

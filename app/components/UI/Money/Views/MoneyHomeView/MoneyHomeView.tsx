@@ -365,10 +365,7 @@ const MoneyHomeView = () => {
           button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
           component_name:
             COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_SECTION_TOKEN_ROW,
-          label_localized: strings('money.potential_earnings.add'),
-          label_en: strings('money.potential_earnings.add', {
-            locale: 'en',
-          }),
+          label_key: 'money.potential_earnings.add',
           redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
           token_symbol: token.symbol,
           token_position_in_list: tokenIndex + 1,

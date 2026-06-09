@@ -66,6 +66,9 @@ type MoneyTokenRowEventProperties = {
 export type MoneyTokenRowButtonClickedEventProperties =
   MoneyButtonClickedEventProperties & MoneyTokenRowEventProperties;
 
+export type MoneyTokenRowButtonClickedInputProperties =
+  MoneyButtonClickedInputProperties & MoneyTokenRowEventProperties;
+
 export type MoneyButtonClickedEventProperties =
   | ({
       button_type: MONEY_BUTTON_TYPES.TEXT;

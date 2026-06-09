@@ -95,6 +95,10 @@ describe('MoneyTransferSheet', () => {
       isEnabled: false,
       initiatePerpsDeposit: mockInitiatePerpsDeposit,
     });
+    (useMoneyPredictDeposit as jest.Mock).mockReturnValue({
+      isEnabled: false,
+      initiatePredictDeposit: mockInitiatePredictDeposit,
+    });
     (useMoneyAnalytics as jest.Mock).mockReturnValue({
       trackBottomSheetViewed: mockTrackBottomSheetViewed,
       trackSurfaceClicked: mockTrackSurfaceClicked,
@@ -257,6 +261,11 @@ describe('MoneyTransferSheet', () => {
     });
 
     it('calls trackSurfaceClicked with PREDICTIONS_ACCOUNT component when "Predictions account" is pressed', () => {
+      (useMoneyPredictDeposit as jest.Mock).mockReturnValue({
+        isEnabled: true,
+        initiatePredictDeposit: mockInitiatePredictDeposit,
+      });
+
       const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
 
       fireEvent.press(

@@ -16,7 +16,7 @@ import {
   MoneySurfaceClickedEventProperties,
   MoneyButtonClickedEventProperties,
   MoneyButtonClickedInputProperties,
-  MoneyTokenRowButtonClickedEventProperties,
+  MoneyTokenRowButtonClickedInputProperties,
   MoneyTokenSurfaceClickedEventProperties,
   MoneyActivitySurfaceClickedEventProperties,
 } from '../types/moneyEvents.types';
@@ -138,12 +138,12 @@ export const useMoneyAnalytics = ({
   );
 
   const trackTokenButtonClicked = useCallback(
-    (properties: MoneyTokenRowButtonClickedEventProperties) => {
+    (properties: MoneyTokenRowButtonClickedInputProperties) => {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.MONEY_BUTTON_CLICKED)
           .addProperties({
             ...getBaseProperties(),
-            ...withRedirectType(properties),
+            ...withRedirectType(withLabel(properties)),
           })
           .build(),
       );
