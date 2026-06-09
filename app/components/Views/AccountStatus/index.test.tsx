@@ -4,6 +4,7 @@ import { StackActions } from '@react-navigation/native';
 import AccountStatus from '.';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { createMockEventBuilder } from '../../../util/test/analyticsMock';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { strings } from '../../../../locales/i18n';
 import renderWithProvider from '../../../util/test/renderWithProvider';
@@ -68,21 +69,17 @@ jest.mock('../../../util/analytics/AnalyticsEventBuilder', () => ({
 }));
 
 const getMockEventBuilder = () => {
-  const mockBuild = jest.fn();
-  const mockAddProperties = jest.fn().mockReturnThis();
-  jest.mocked(AnalyticsEventBuilder.createEventBuilder).mockImplementation(
-    () =>
-      ({
-        addProperties: mockAddProperties,
-        addSensitiveProperties: jest.fn().mockReturnThis(),
-        removeProperties: jest.fn().mockReturnThis(),
-        removeSensitiveProperties: jest.fn().mockReturnThis(),
-        setSaveDataRecording: jest.fn().mockReturnThis(),
-        build: mockBuild,
-      }) as unknown as ReturnType<
-        typeof AnalyticsEventBuilder.createEventBuilder
-      >,
-  );
+  const eventBuilder = createMockEventBuilder();
+  jest
+    .mocked(AnalyticsEventBuilder.createEventBuilder)
+    .mockImplementation(
+      () =>
+        eventBuilder as unknown as ReturnType<
+          typeof AnalyticsEventBuilder.createEventBuilder
+        >,
+    );
+  const mockBuild = eventBuilder.build;
+  const mockAddProperties = eventBuilder.addProperties;
   const mockCreateEventBuilder = jest.mocked(
     AnalyticsEventBuilder.createEventBuilder,
   );
