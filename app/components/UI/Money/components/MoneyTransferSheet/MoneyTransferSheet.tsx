@@ -19,6 +19,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import { useMoneyAccountWithdrawal } from '../../hooks/useMoneyAccount';
 import { useMoneyPerpsDeposit } from '../../../../Views/confirmations/hooks/pay/useMoneyPerpsDeposit';
+import { useMoneyPredictDeposit } from '../../../../Views/confirmations/hooks/pay/useMoneyPredictDeposit';
 import Logger from '../../../../../util/Logger';
 import styleSheet from './MoneyTransferSheet.styles';
 import { MoneyTransferSheetTestIds } from './MoneyTransferSheet.testIds';
@@ -45,6 +46,8 @@ const MoneyTransferSheet = () => {
   const surfaceClass = useElevatedSurface();
   const { isEnabled: isPerpsEnabled, initiatePerpsDeposit } =
     useMoneyPerpsDeposit();
+  const { isEnabled: isPredictEnabled, initiatePredictDeposit } =
+    useMoneyPredictDeposit();
 
   const handleGoBack = useCallback(() => {
     navigation.goBack();
@@ -72,9 +75,14 @@ const MoneyTransferSheet = () => {
   }, [isPerpsEnabled, initiatePerpsDeposit]);
 
   const handlePredictionsAccount = useCallback(() => {
-    // eslint-disable-next-line no-alert
-    alert('Under construction 🚧');
-  }, []);
+    if (!isPredictEnabled) {
+      return;
+    }
+
+    sheetRef.current?.onCloseBottomSheet(() => {
+      initiatePredictDeposit();
+    });
+  }, [isPredictEnabled, initiatePredictDeposit]);
 
   const activeOptions: ActiveOption[] = [
     {

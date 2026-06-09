@@ -1,48 +1,48 @@
-import { renderHook, act } from '@testing-library/react-native';
-import { useSelector, useDispatch } from 'react-redux';
+import { ChainId } from '@metamask/bridge-controller';
+import { TextColor } from '@metamask/design-system-react-native';
 import type { Position } from '@metamask/social-controllers';
-import { useQuickBuyController } from './hooks/useQuickBuyController';
-import { positionToQuickBuyTarget } from './types';
+import { act, renderHook } from '@testing-library/react-native';
+import { useDispatch, useSelector } from 'react-redux';
+import Engine from '../../../../../../core/Engine';
+import {
+  selectBridgeFeatureFlags,
+  selectDestAddress,
+  selectIsEvmNonEvmBridge,
+  selectIsNonEvmNonEvmBridge,
+  selectIsSolanaSourced,
+  selectIsSubmittingTx,
+  selectSlippage,
+} from '../../../../../../core/redux/slices/bridge';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
+import { selectSourceWalletAddress } from '../../../../../../selectors/bridge';
+import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
+import { selectShouldUseSmartTransaction } from '../../../../../../selectors/smartTransactionsController';
+import {
+  ImpactMoment,
+  playErrorNotification,
+  playImpact,
+} from '../../../../../../util/haptics';
+import Logger from '../../../../../../util/Logger';
+import { useHasSufficientGas } from '../../../../../UI/Bridge/hooks/useHasSufficientGas';
+import useIsInsufficientBalance from '../../../../../UI/Bridge/hooks/useInsufficientBalance';
+import { useLatestBalance } from '../../../../../UI/Bridge/hooks/useLatestBalance';
+import { usePriceImpactViewData } from '../../../../../UI/Bridge/hooks/usePriceImpactViewData';
+import type { BridgeToken } from '../../../../../UI/Bridge/types';
 import { selectDefaultSourceToken } from '../../../utils/tokenSelection';
-import { useQuickBuySetup } from './hooks/useQuickBuySetup';
 import { usePayWithTokens } from './hooks/usePayWithTokens';
-import { useReceiveTokens } from './hooks/useReceiveTokens';
 import { usePositionTokenBalance } from './hooks/usePositionTokenBalance';
+import { useQuickBuyController } from './hooks/useQuickBuyController';
 import {
   useQuickBuyQuotes,
   type EnrichedQuickBuyQuote,
   type UseQuickBuyQuotesResult,
 } from './hooks/useQuickBuyQuotes';
-import { useLatestBalance } from '../../../../../UI/Bridge/hooks/useLatestBalance';
-import useIsInsufficientBalance from '../../../../../UI/Bridge/hooks/useInsufficientBalance';
-import { useHasSufficientGas } from '../../../../../UI/Bridge/hooks/useHasSufficientGas';
-import { selectShouldUseSmartTransaction } from '../../../../../../selectors/smartTransactionsController';
-import Engine from '../../../../../../core/Engine';
-import {
-  selectIsSubmittingTx,
-  selectDestAddress,
-  selectSlippage,
-  selectIsEvmNonEvmBridge,
-  selectIsNonEvmNonEvmBridge,
-  selectIsSolanaSourced,
-  selectBridgeFeatureFlags,
-} from '../../../../../../core/redux/slices/bridge';
-import { selectSourceWalletAddress } from '../../../../../../selectors/bridge';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
-import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
-import { usePriceImpactViewData } from '../../../../../UI/Bridge/hooks/usePriceImpactViewData';
-import { TextColor } from '@metamask/design-system-react-native';
-import type { BridgeToken } from '../../../../../UI/Bridge/types';
-import { ChainId } from '@metamask/bridge-controller';
-import Logger from '../../../../../../util/Logger';
-import { trackQuickBuyTrade } from './quickBuyTradeTracker';
+import { useQuickBuySetup } from './hooks/useQuickBuySetup';
+import { useReceiveTokens } from './hooks/useReceiveTokens';
 import { buildQuickBuyToastOptions } from './quickBuyToastOptions';
+import { trackQuickBuyTrade } from './quickBuyTradeTracker';
 import { resolveQuickBuyTerminalToast } from './resolveQuickBuyTerminalToast';
-import {
-  playImpact,
-  playErrorNotification,
-  ImpactMoment,
-} from '../../../../../../util/haptics';
+import { positionToQuickBuyTarget } from './types';
 
 jest.mock('../../../../../../util/Logger', () => ({
   __esModule: true,
@@ -2110,6 +2110,74 @@ describe('useQuickBuyController', () => {
           theme: expect.any(Object),
         });
         expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
+      });
+
+      it('tracks an EVM swap with isNonEvmSwap false and the tx hash as the signature', async () => {
+        mockUsableQuote();
+        (
+          Engine.context.BridgeStatusController.submitTx as jest.Mock
+        ).mockResolvedValue({ id: 'tx-1', hash: '0xabc' });
+
+        const { result } = renderHook(() =>
+          useQuickBuyController(createTarget(), jest.fn()),
+        );
+
+        await act(async () => {
+          await result.current.handleConfirm();
+        });
+
+        expect(trackQuickBuyTrade).toHaveBeenCalledWith(
+          'tx-1',
+          expect.objectContaining({
+            isNonEvmSwap: false,
+            txSignature: '0xabc',
+          }),
+        );
+      });
+
+      it('tracks a same-chain Solana swap with isNonEvmSwap true and the signature', async () => {
+        mockUsableQuote();
+        (selectIsSolanaSourced as unknown as jest.Mock).mockReturnValue(true);
+        (
+          Engine.context.BridgeStatusController.submitTx as jest.Mock
+        ).mockResolvedValue({ id: 'sig-1', hash: 'sig-1' });
+
+        const { result } = renderHook(() =>
+          useQuickBuyController(createTarget(), jest.fn()),
+        );
+
+        await act(async () => {
+          await result.current.handleConfirm();
+        });
+
+        expect(trackQuickBuyTrade).toHaveBeenCalledWith(
+          'sig-1',
+          expect.objectContaining({ isNonEvmSwap: true, txSignature: 'sig-1' }),
+        );
+      });
+
+      it('tracks a cross-chain Solana bridge with isNonEvmSwap false', async () => {
+        mockUsableQuote();
+        (selectIsSolanaSourced as unknown as jest.Mock).mockReturnValue(true);
+        (selectIsNonEvmNonEvmBridge as unknown as jest.Mock).mockReturnValue(
+          true,
+        );
+        (
+          Engine.context.BridgeStatusController.submitTx as jest.Mock
+        ).mockResolvedValue({ id: 'sig-1', hash: 'sig-1' });
+
+        const { result } = renderHook(() =>
+          useQuickBuyController(createTarget(), jest.fn()),
+        );
+
+        await act(async () => {
+          await result.current.handleConfirm();
+        });
+
+        expect(trackQuickBuyTrade).toHaveBeenCalledWith(
+          'sig-1',
+          expect.objectContaining({ isNonEvmSwap: false }),
+        );
       });
 
       it('reconciles against the current bridge status right after tracking', async () => {
