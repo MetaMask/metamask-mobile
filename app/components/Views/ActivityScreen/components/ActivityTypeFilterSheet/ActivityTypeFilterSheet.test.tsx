@@ -121,14 +121,16 @@ describe('ActivityTypeFilterSheet', () => {
     expect(unselectedRow).toHaveProp('accessibilityState', { selected: false });
   });
 
-  it('calls onSelect with the chosen filter and closes the sheet', () => {
+  it('calls onSelect, closes the sheet, and forwards onClose so the parent can re-open it', () => {
     const onSelect = jest.fn();
-    renderSheet({ onSelect });
+    const onClose = jest.fn();
+    renderSheet({ onSelect, onClose });
 
     fireEvent.press(screen.getByTestId(optionTestId(ActivityTypeFilter.Money)));
 
     expect(onSelect).toHaveBeenCalledWith(ActivityTypeFilter.Money);
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledWith(onClose);
   });
 
   it('invokes onClose when the sheet dispatches its close event', () => {

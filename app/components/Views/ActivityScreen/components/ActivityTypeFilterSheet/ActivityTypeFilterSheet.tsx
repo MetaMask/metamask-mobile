@@ -47,9 +47,9 @@ const ActivityTypeFilterSheet: React.FC<ActivityTypeFilterSheetProps> = ({
   const handleSelect = useCallback(
     (filter: ActivityTypeFilter) => {
       onSelect(filter);
-      sheetRef.current?.onCloseBottomSheet();
+      sheetRef.current?.onCloseBottomSheet(onClose);
     },
-    [onSelect],
+    [onSelect, onClose],
   );
 
   return (
