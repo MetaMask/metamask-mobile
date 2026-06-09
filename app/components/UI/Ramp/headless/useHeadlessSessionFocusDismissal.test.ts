@@ -229,4 +229,70 @@ describe('useHeadlessSessionFocusDismissal', () => {
     expect(mockDismissHeadlessFlow).not.toHaveBeenCalled();
     expect(getSession(session.id)).toBeDefined();
   });
+
+  it('does not close on a suppressed (disabled) refocus even when the session blurred first', () => {
+    // Mirrors the OtpCode success/empty-params path: the host blurs while a
+    // native-flow screen is on top, then a programmatic navigate re-reveals it
+    // with suppressFocusDismissal → disabled true. The regained focus must NOT
+    // be read as a user dismissal.
+    const callbacks = buildCallbacks();
+    const session = createSession(baseParams, callbacks);
+
+    const { rerender } = renderHook(
+      ({ isFocused, disabled }: { isFocused: boolean; disabled: boolean }) =>
+        useHeadlessSessionFocusDismissal(session.id, isFocused, { disabled }),
+      {
+        initialProps: {
+          isFocused: true,
+          disabled: false,
+        },
+      },
+    );
+
+    // Blur while a native-flow screen is pushed (dismissal not yet suppressed).
+    rerender({ isFocused: false, disabled: false });
+    // Programmatic refocus arrives with suppression armed.
+    rerender({ isFocused: true, disabled: true });
+    flushDismissalTimer();
+
+    expect(callbacks.onClose).not.toHaveBeenCalled();
+    expect(mockDismissHeadlessFlow).not.toHaveBeenCalled();
+    expect(getSession(session.id)).toBeDefined();
+  });
+
+  it('still detects a genuine back-out after a disabled refocus clears the blur marker', () => {
+    // Hardening: the disabled branch resets the blur marker, so a disabled
+    // refocus does not "arm" a later dismissal. A subsequent genuine
+    // blur→refocus while enabled must produce its own user_dismissed close.
+    const callbacks = buildCallbacks();
+    const session = createSession(baseParams, callbacks);
+
+    const { rerender } = renderHook(
+      ({ isFocused, disabled }: { isFocused: boolean; disabled: boolean }) =>
+        useHeadlessSessionFocusDismissal(session.id, isFocused, { disabled }),
+      {
+        initialProps: {
+          isFocused: false,
+          disabled: false,
+        },
+      },
+    );
+
+    // Disabled refocus: must clear the blur marker and not close.
+    rerender({ isFocused: true, disabled: true });
+    flushDismissalTimer();
+    expect(callbacks.onClose).not.toHaveBeenCalled();
+
+    // Now a genuine blur→refocus while enabled: should close this time.
+    rerender({ isFocused: false, disabled: false });
+    rerender({ isFocused: true, disabled: false });
+    flushDismissalTimer();
+
+    expect(callbacks.onClose).toHaveBeenCalledTimes(1);
+    expect(callbacks.onClose).toHaveBeenCalledWith({
+      reason: 'user_dismissed',
+    });
+    expect(mockDismissHeadlessFlow).toHaveBeenCalledTimes(1);
+    expect(getSession(session.id)).toBeUndefined();
+  });
 });

@@ -37,6 +37,10 @@ import { useConfirmationMetricEvents } from '../metrics/useConfirmationMetricEve
 export const MAX_LENGTH = 28;
 const DEBOUNCE_DELAY = 500;
 
+function formatFiatAmount(value: BigNumber): string {
+  return value.isInteger() ? value.toString(10) : value.toFixed(2);
+}
+
 export function useTransactionCustomAmount({
   currency,
 }: { currency?: string } = {}) {
@@ -102,9 +106,12 @@ export function useTransactionCustomAmount({
       targetAmountUsd &&
       targetAmountUsd !== '0'
     ) {
-      return new BigNumber(targetAmountUsd)
-        .decimalPlaces(2, BigNumber.ROUND_HALF_UP)
-        .toString(10);
+      return formatFiatAmount(
+        new BigNumber(targetAmountUsd).decimalPlaces(
+          2,
+          BigNumber.ROUND_HALF_UP,
+        ),
+      );
     }
 
     return amountFiatState;
@@ -174,11 +181,12 @@ export function useTransactionCustomAmount({
         return;
       }
 
-      const newAmount = new BigNumber(percentage)
-        .dividedBy(100)
-        .multipliedBy(balanceUsd)
-        .decimalPlaces(2, BigNumber.ROUND_DOWN)
-        .toString(10);
+      const newAmount = formatFiatAmount(
+        new BigNumber(percentage)
+          .dividedBy(100)
+          .multipliedBy(balanceUsd)
+          .decimalPlaces(2, BigNumber.ROUND_DOWN),
+      );
 
       setConfirmationMetric({
         properties: {
