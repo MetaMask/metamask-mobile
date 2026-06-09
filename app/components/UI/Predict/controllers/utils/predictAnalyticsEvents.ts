@@ -19,6 +19,50 @@ export type PredictAnalyticsEventKey =
   | 'marketDetailsOpened'
   | 'bannerAction';
 
+const mapPortfolioProperties = ({
+  actionType,
+  entryPoint,
+  openPositionsCount,
+  claimablePositionsCount,
+  hasClaimableWinnings,
+  portfolioModuleEnabled,
+  predictScreen,
+  predictComponent,
+  predictFeedTab,
+}: Record<string, unknown>) => ({
+  ...(actionType ? { [PredictEventProperties.ACTION_TYPE]: actionType } : {}),
+  ...(entryPoint ? { [PredictEventProperties.ENTRY_POINT]: entryPoint } : {}),
+  ...(openPositionsCount !== undefined
+    ? { [PredictEventProperties.OPEN_POSITIONS_COUNT]: openPositionsCount }
+    : {}),
+  ...(claimablePositionsCount !== undefined
+    ? {
+        [PredictEventProperties.CLAIMABLE_POSITIONS_COUNT]:
+          claimablePositionsCount,
+      }
+    : {}),
+  ...(hasClaimableWinnings !== undefined
+    ? {
+        [PredictEventProperties.HAS_CLAIMABLE_WINNINGS]: hasClaimableWinnings,
+      }
+    : {}),
+  ...(portfolioModuleEnabled !== undefined
+    ? {
+        [PredictEventProperties.PORTFOLIO_MODULE_ENABLED]:
+          portfolioModuleEnabled,
+      }
+    : {}),
+  ...(predictScreen
+    ? { [PredictEventProperties.PREDICT_SCREEN]: predictScreen }
+    : {}),
+  ...(predictComponent
+    ? { [PredictEventProperties.PREDICT_COMPONENT]: predictComponent }
+    : {}),
+  ...(predictFeedTab
+    ? { [PredictEventProperties.PREDICT_FEED_TAB]: predictFeedTab }
+    : {}),
+});
+
 export const PREDICT_ANALYTICS_EVENTS: Record<
   PredictAnalyticsEventKey,
   PredictAnalyticsEventConfig
@@ -26,15 +70,19 @@ export const PREDICT_ANALYTICS_EVENTS: Record<
   activityViewed: {
     event: MetaMetricsEvents.PREDICT_ACTIVITY_VIEWED,
     logLabel: '📊 [Analytics] PREDICT_ACTIVITY_VIEWED',
-    mapProperties: ({ activityType }) => ({
+    mapProperties: ({ activityType, ...args }) => ({
       [PredictEventProperties.ACTIVITY_TYPE]: activityType,
+      ...mapPortfolioProperties(args),
     }),
   },
   positionViewed: {
     event: MetaMetricsEvents.PREDICT_POSITION_VIEWED,
     logLabel: '📊 [Analytics] PREDICT_POSITION_VIEWED',
-    mapProperties: ({ openPositionsCount }) => ({
-      [PredictEventProperties.OPEN_POSITIONS_COUNT]: openPositionsCount,
+    mapProperties: ({ openPositionsCount, ...args }) => ({
+      ...(openPositionsCount !== undefined
+        ? { [PredictEventProperties.OPEN_POSITIONS_COUNT]: openPositionsCount }
+        : {}),
+      ...mapPortfolioProperties(args),
     }),
   },
   feedViewed: {
@@ -48,11 +96,16 @@ export const PREDICT_ANALYTICS_EVENTS: Record<
       isSessionEnd,
       entryPoint,
       predictScreen,
+      predictComponent,
+      ...args
     }) => ({
       [PredictEventProperties.SESSION_ID]: sessionId,
       [PredictEventProperties.PREDICT_FEED_TAB]: feedTab,
       ...(predictScreen
         ? { [PredictEventProperties.PREDICT_SCREEN]: predictScreen }
+        : {}),
+      ...(predictComponent
+        ? { [PredictEventProperties.PREDICT_COMPONENT]: predictComponent }
         : {}),
       [PredictEventProperties.NUM_FEED_PAGES_VIEWED_IN_SESSION]: numPagesViewed,
       [PredictEventProperties.SESSION_TIME_IN_FEED]: sessionTime,
@@ -60,6 +113,7 @@ export const PREDICT_ANALYTICS_EVENTS: Record<
       ...(entryPoint
         ? { [PredictEventProperties.ENTRY_POINT]: entryPoint }
         : {}),
+      ...mapPortfolioProperties(args),
     }),
   },
   bannerAction: {
