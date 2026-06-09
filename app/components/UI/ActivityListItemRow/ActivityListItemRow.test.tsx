@@ -1,5 +1,5 @@
 /**
- * Tests for ActivityListItemRow — exhaustive status and type mapping.
+ * Tests for ActivityListItemRow content mapping.
  */
 import React from 'react';
 import { render } from '@testing-library/react-native';
@@ -22,8 +22,10 @@ jest.mock('../../../util/theme', () => ({
     },
     typography: {
       sBodyLGMedium: { fontSize: 16 },
+      sBodyMDMedium: { fontSize: 14 },
       sBodyMDBold: { fontSize: 14, fontWeight: 'bold' },
       sBodyMD: { fontSize: 14 },
+      sBodySM: { fontSize: 12 },
     },
   })),
 }));
@@ -49,12 +51,12 @@ jest.mock('../../../util/transaction-icons', () => ({
   getTransactionIcon: jest.fn(() => 1),
 }));
 
-jest.mock('../../../util/date', () => ({
-  toDateFormat: jest.fn(() => 'Jan 1'),
-}));
-
 jest.mock('../../../util/networks', () => ({
   getNetworkImageSource: jest.fn(() => ({ uri: 'mock-network-image' })),
+}));
+
+jest.mock('../../../util/address', () => ({
+  renderShortAddress: jest.fn((address: string) => `${address.slice(0, 6)}...`),
 }));
 
 jest.mock('../../../component-library/components/Badges/BadgeWrapper', () => {
@@ -77,15 +79,30 @@ jest.mock('../../../component-library/components/Badges/Badge', () => {
 });
 
 jest.mock('../../../component-library/components/Avatars/Avatar', () => ({
-  AvatarSize: { Xs: 'xs' },
+  AvatarSize: { Xs: 'xs', Md: 'md', Sm: 'sm' },
 }));
+
+jest.mock(
+  '../../../component-library/components/Avatars/Avatar/variants/AvatarToken',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return ({ name, imageSource }: { name?: string; imageSource?: unknown }) =>
+      ReactActual.createElement(View, {
+        testID: `avatar-token-${name ?? 'unknown'}`,
+        imageSource,
+      });
+  },
+);
 
 jest.mock('../../../component-library/components/Texts/Text', () => ({
   getFontFamily: jest.fn(() => 'Inter'),
   TextVariant: {
     BodyLGMedium: 'bodyLGMedium',
+    BodyMDMedium: 'bodyMDMedium',
     BodyMDBold: 'bodyMDBold',
     BodyMD: 'bodyMD',
+    BodySM: 'bodySM',
   },
 }));
 
@@ -112,8 +129,24 @@ jest.mock('../../Base/ListItem', () => {
     numberOfLines?: number;
     style?: object;
   }) => ReactActual.createElement(TextActual, rest, children);
-  ListItem.Amount = ({ children }: { children: React.ReactNode }) =>
-    ReactActual.createElement(TextActual, null, children);
+  ListItem.Amounts = ({ children }: { children: React.ReactNode }) =>
+    ReactActual.createElement(View, null, children);
+  ListItem.Amount = ({
+    children,
+    ...rest
+  }: {
+    children: React.ReactNode;
+    style?: object;
+    testID?: string;
+  }) => ReactActual.createElement(TextActual, rest, children);
+  ListItem.FiatAmount = ({
+    children,
+    ...rest
+  }: {
+    children: React.ReactNode;
+    style?: object;
+    testID?: string;
+  }) => ReactActual.createElement(TextActual, rest, children);
 
   return ListItem;
 });
@@ -131,6 +164,9 @@ const makeItem = (
     from: string;
     to: string;
     token?: object;
+    sourceToken?: object;
+    destinationToken?: object;
+    transactionProtocol?: string;
   }>,
 ): ActivityListItem => {
   const type = overrides.type ?? 'send';
@@ -156,70 +192,285 @@ const makeItem = (
     } as unknown as ActivityListItem;
   }
 
+  if (
+    type === 'swap' ||
+    type === 'bridge' ||
+    type === 'convert' ||
+    type === 'wrap' ||
+    type === 'unwrap' ||
+    type === 'lendingDeposit' ||
+    type === 'lendingWithdrawal'
+  ) {
+    return {
+      ...base,
+      type,
+      raw: overrides.transactionProtocol
+        ? {
+            type: 'apiEvmTransaction',
+            data: {
+              transactionProtocol: overrides.transactionProtocol,
+            },
+          }
+        : undefined,
+      data: {
+        hash: overrides.hash ?? '0xabc',
+        sourceToken: overrides.sourceToken as never,
+        destinationToken: overrides.destinationToken as never,
+      },
+    } as unknown as ActivityListItem;
+  }
+
   return {
     ...base,
     type,
+    raw: overrides.transactionProtocol
+      ? {
+          type: 'apiEvmTransaction',
+          data: {
+            transactionProtocol: overrides.transactionProtocol,
+          },
+        }
+      : undefined,
     data: {
       hash: overrides.hash ?? '0xabc',
       from: overrides.from ?? '0xfrom',
       to: overrides.to ?? '0xto',
+      token: overrides.token as never,
     },
   } as unknown as ActivityListItem;
 };
 
 // ---------------------------------------------------------------------------
-// Status mapping tests — prove all Status values map to explicit display labels
+// Row content tests — mirrors extension ActivityRow title/subtitle/amount split
 // ---------------------------------------------------------------------------
 
-describe('ActivityListItemRow — status display', () => {
-  const allStatuses: Status[] = ['pending', 'success', 'failed', 'cancelled'];
-
-  it.each(allStatuses)(
-    'renders an explicit non-empty status label for status=%s',
-    (status) => {
-      const item = makeItem({ status });
-      const { getByTestId } = render(
-        <ActivityListItemRow item={item} index={0} />,
-      );
-      const el = getByTestId(`activity-status-0xabc`);
-      expect(el.props.children).toBeTruthy();
-    },
-  );
-
-  it('shows "Confirmed" for success status', () => {
-    const item = makeItem({ status: 'success' });
+describe('ActivityListItemRow — row content', () => {
+  it('renders send title, recipient subtitle, and signed primary amount', () => {
+    const item = makeItem({
+      type: 'send',
+      status: 'success',
+      to: '0x1234567890',
+      token: {
+        amount: '10',
+        symbol: 'USDC',
+        direction: 'out',
+      },
+    });
     const { getByTestId } = render(
       <ActivityListItemRow item={item} index={0} />,
     );
-    const el = getByTestId('activity-status-0xabc');
-    expect(el.props.children).toBe(strings('transaction.confirmed'));
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Sent USDC',
+    );
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
+      'To: 0x1234...',
+    );
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '-10 USDC',
+    );
+    expect(getByTestId('avatar-token-USDC')).toBeOnTheScreen();
   });
 
-  it('shows "Failed" for failed status', () => {
-    const item = makeItem({ status: 'failed' });
+  it('renders receive title, sender subtitle, and positive primary amount', () => {
+    const item = makeItem({
+      type: 'receive',
+      status: 'success',
+      from: '0xabcdef1234',
+      token: {
+        amount: '200.34',
+        symbol: 'mUSD',
+        direction: 'in',
+      },
+    });
     const { getByTestId } = render(
       <ActivityListItemRow item={item} index={0} />,
     );
-    const el = getByTestId('activity-status-0xabc');
-    expect(el.props.children).toBe(strings('transaction.failed'));
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Received mUSD',
+    );
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
+      'From: 0xabcd...',
+    );
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '+200.34 mUSD',
+    );
   });
 
-  it('shows "Cancelled" for cancelled status', () => {
-    const item = makeItem({ status: 'cancelled' });
+  it('renders swap title, protocol subtitle, primary and secondary amounts', () => {
+    const item = makeItem({
+      type: 'swap',
+      status: 'success',
+      transactionProtocol: 'Curve',
+      sourceToken: {
+        amount: '0.123',
+        symbol: 'ETH',
+        direction: 'out',
+      },
+      destinationToken: {
+        amount: '300',
+        symbol: 'USDT',
+        direction: 'in',
+      },
+    });
     const { getByTestId } = render(
       <ActivityListItemRow item={item} index={0} />,
     );
-    const el = getByTestId('activity-status-0xabc');
-    expect(el.props.children).toBe(strings('transaction.cancelled'));
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Swapped ETH to USDT',
+    );
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe('Curve');
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '+300 USDT',
+    );
+    expect(getByTestId('activity-secondary-amount-0xabc').props.children).toBe(
+      '-0.123 ETH',
+    );
   });
 
-  it('shows "Submitted" for pending status (earliest nonce)', () => {
-    const item = makeItem({ status: 'pending', isEarliestNonce: true });
+  it('renders spending cap rows with token subtitle and no empty amount', () => {
+    const item = makeItem({
+      type: 'approveSpendingCap',
+      status: 'success',
+      token: {
+        symbol: 'USDC',
+        direction: 'out',
+      },
+    });
+    const { getByTestId, queryByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Approved spending cap',
+    );
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe('USDC');
+    expect(queryByTestId('activity-primary-amount-0xabc')).toBeNull();
+  });
+
+  it('renders cross-token bridge as swapped with token pair subtitle', () => {
+    const item = makeItem({
+      type: 'bridge',
+      status: 'success',
+      sourceToken: {
+        amount: '0.123',
+        symbol: 'ETH',
+        direction: 'out',
+      },
+      destinationToken: {
+        amount: '300',
+        symbol: 'USDT',
+        direction: 'in',
+      },
+    });
     const { getByTestId } = render(
       <ActivityListItemRow item={item} index={0} />,
     );
-    const el = getByTestId('activity-status-0xabc');
-    expect(el.props.children).toBe(strings('transaction.submitted'));
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe('Swapped');
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
+      'ETH → USDT',
+    );
+  });
+
+  it('does not render technical protocol values as subtitles', () => {
+    const item = makeItem({
+      type: 'swap',
+      status: 'success',
+      transactionProtocol: 'GNOSIS_SAFE',
+      sourceToken: {
+        amount: '1',
+        symbol: 'USDC',
+        direction: 'out',
+      },
+      destinationToken: {
+        amount: '1',
+        symbol: 'mUSD',
+        direction: 'in',
+      },
+    });
+    const { queryByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(queryByTestId('activity-subtitle-0xabc')).toBeNull();
+  });
+
+  it('renders unavailable instead of a fake contract fallback', () => {
+    const item = makeItem({
+      type: 'contractInteraction',
+      status: 'success',
+      to: '',
+    });
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
+      strings('transactions.unavailable'),
+    );
+  });
+
+  it('renders lending withdrawal amount from the destination token', () => {
+    const item = makeItem({
+      type: 'lendingWithdrawal',
+      status: 'success',
+      destinationToken: {
+        amount: '200',
+        symbol: 'USDC',
+        direction: 'in',
+      },
+    });
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '+200 USDC',
+    );
+  });
+
+  it('shortens long crypto decimals in token amounts', () => {
+    const item = makeItem({
+      type: 'send',
+      status: 'success',
+      token: {
+        amount: '0.123456789',
+        symbol: 'ETH',
+        direction: 'out',
+      },
+    });
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    const primaryAmount = getByTestId('activity-primary-amount-0xabc');
+    expect(primaryAmount.props.children).toBe('-0.1235 ETH');
+    expect(primaryAmount.props.numberOfLines).toBe(1);
+    expect(primaryAmount.props.ellipsizeMode).toBe('tail');
+  });
+
+  it('compacts large token amounts before rendering', () => {
+    const item = makeItem({
+      type: 'receive',
+      status: 'success',
+      token: {
+        symbol: 'USDC',
+        amount: '2500000000000000',
+        decimals: 6,
+        direction: 'in',
+      },
+    });
+
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '+2.5B USDC',
+    );
   });
 });
 
@@ -278,25 +529,25 @@ const EXPECTED_TITLES = {
   send: strings('transactions.sent'),
   receive: strings('transactions.received'),
   swap: strings('transactions.swaps_transaction'),
-  swapIncomplete: strings('transactions.swaps_transaction'),
-  bridge: strings('transactions.bridge_transaction'),
-  buy: strings('transactions.activity_buy'),
-  sell: strings('transactions.activity_sell'),
-  claim: strings('transactions.claim'),
+  swapIncomplete: 'Swapped',
+  bridge: 'Bridged',
+  buy: 'Bought',
+  sell: 'Sold',
+  claim: 'Claimed',
   claimMusdBonus: strings('transactions.activity_claim_musd_bonus'),
-  deposit: strings('transactions.tx_review_staking_deposit'),
-  convert: strings('transactions.tx_review_musd_conversion'),
+  deposit: 'Deposited',
+  convert: 'Converted',
   wrap: strings('transactions.activity_wrap'),
   unwrap: strings('transactions.activity_unwrap'),
-  approveSpendingCap: strings('transactions.tx_review_approve'),
+  approveSpendingCap: 'Approved spending cap',
   revokeSpendingCap: strings('transactions.activity_revoke_spending_cap'),
-  increaseSpendingCap: strings('transactions.tx_review_increase_allowance'),
+  increaseSpendingCap: 'Increased spending cap',
   lendingDeposit: strings('transactions.tx_review_lending_deposit'),
   lendingWithdrawal: strings('transactions.tx_review_lending_withdraw'),
   nftMint: strings('transactions.activity_nft_mint'),
   contractInteraction: strings('transactions.smart_contract_interaction'),
   contractDeployment: strings('transactions.tx_review_contract_deployment'),
-  smartAccountUpgrade: strings('transactions.activity_smart_account_upgrade'),
+  smartAccountUpgrade: 'Smart account upgraded',
   predictionsAddFunds: strings('transactions.tx_review_predict_deposit'),
   predictionsWithdrawFunds: strings('transactions.tx_review_predict_withdraw'),
   predictionClaimWinnings: strings('transactions.tx_review_predict_claim'),

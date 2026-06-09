@@ -8,7 +8,7 @@ import {
   type ViewToken,
 } from '@shopify/flash-list';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, RefreshControl, View } from 'react-native';
+import { ActivityIndicator, RefreshControl, Text, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../locales/i18n';
@@ -21,6 +21,7 @@ import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../select
 import { selectSelectedAccountGroupInternalAccounts } from '../../../selectors/multichainAccounts/accountTreeController';
 import {
   selectEvmNetworkConfigurationsByChainId,
+  selectPopularNetworkConfigurationsByCaipChainId,
   selectProviderType,
 } from '../../../selectors/networkController';
 import {
@@ -58,7 +59,11 @@ import { UnifiedTransactionsViewSelectorsIDs } from './UnifiedTransactionsView.t
 import { useMultichainActivityMaliciousTokenKeys } from '../../hooks/useMultichainActivityMaliciousTokenKeys/useMultichainActivityMaliciousTokenKeys';
 import { filterMultichainTransactionsExcludingMaliciousTokenActivity } from '../../../util/multichain/multichainTransactionTokenScan';
 import { useTransactionsQuery } from './useTransactionsQuery';
-import { type ActivityListItem } from './types';
+import {
+  groupActivityListItems,
+  type ActivityListItem,
+  type GroupedActivityListItem,
+} from '../../../util/activity-adapters';
 import {
   isBridgeHistoryForEvmTransaction,
   mergeTransactionsByTime,
@@ -78,6 +83,25 @@ const generateKey = (item: ActivityListItem): string => {
   }
   return `${item.chainId}:${item.timestamp}:${item.type}`;
 };
+
+const generateGroupedKey = (item: GroupedActivityListItem): string => {
+  if (item.type === 'pending-header') {
+    return 'pending-header';
+  }
+
+  if (item.type === 'date-header') {
+    return `date-header-${item.date}`;
+  }
+
+  return generateKey(item.item);
+};
+
+const formatDateHeader = (timestamp: number): string =>
+  new Intl.DateTimeFormat(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(new Date(timestamp));
 
 const noop = () => undefined;
 
@@ -178,6 +202,24 @@ const UnifiedTransactionsView = ({
     () => enabledEVMNetworks ?? [],
     [enabledEVMNetworks],
   );
+  const popularNetworkConfigurations = useSelector(
+    selectPopularNetworkConfigurationsByCaipChainId,
+  );
+  const activeEVMChainIds = useMemo(() => {
+    const popularEVMChainIds = popularNetworkConfigurations
+      .map((network) => network.chainId)
+      .filter((networkChainId) => networkChainId.startsWith('0x'));
+    const enabledEVMChainIdSet = new Set(enabledEVMChainIds);
+    const areAllPopularEvmNetworksEnabled =
+      popularEVMChainIds.length > 0 &&
+      popularEVMChainIds.every((networkChainId) =>
+        enabledEVMChainIdSet.has(networkChainId),
+      );
+
+    return areAllPopularEvmNetworksEnabled
+      ? popularEVMChainIds
+      : enabledEVMChainIds;
+  }, [enabledEVMChainIds, popularNetworkConfigurations]);
   const enabledNonEVMNetworks = useSelector(selectNonEVMEnabledNetworks);
   const enabledNonEVMChainIds = useMemo(
     () => enabledNonEVMNetworks ?? [],
@@ -192,7 +234,7 @@ const UnifiedTransactionsView = ({
 
   /** Drop confirmed EVM rows not on currently enabled chains (guards stale query pages). */
   const allConfirmedForEnabledChains = useMemo<ActivityListItem[]>(() => {
-    const chains = enabledEVMChainIds ?? [];
+    const chains = activeEVMChainIds ?? [];
     if (chains.length === 0) return [];
     const allowed = new Set(chains.map((c) => c.toLowerCase()));
     return allConfirmedFiltered.filter((item) => {
@@ -202,7 +244,7 @@ const UnifiedTransactionsView = ({
       const hexFormatted = `0x${parseInt(hexChainId, 10).toString(16)}`;
       return allowed.has(hexFormatted.toLowerCase());
     });
-  }, [allConfirmedFiltered, enabledEVMChainIds]);
+  }, [allConfirmedFiltered, activeEVMChainIds]);
 
   const { maliciousTokenKeys } =
     useMultichainActivityMaliciousTokenKeys(nonEvmTransactions);
@@ -219,7 +261,7 @@ const UnifiedTransactionsView = ({
   }>(() => {
     const bridgeHistoryValues = Object.values(bridgeHistory ?? {});
     const enabledEvmSet = new Set(
-      (enabledEVMChainIds ?? []).map((id) => id.toLowerCase()),
+      (activeEVMChainIds ?? []).map((id) => id.toLowerCase()),
     );
 
     // Filter local items to enabled EVM chains only, also deduplicate against confirmed
@@ -292,7 +334,7 @@ const UnifiedTransactionsView = ({
         );
         return (
           bridge?.quote?.destChainId !== undefined &&
-          enabledEVMChainIds.includes(numberToHex(bridge.quote.destChainId))
+          activeEVMChainIds.includes(numberToHex(bridge.quote.destChainId))
         );
       })
       .filter(
@@ -316,7 +358,7 @@ const UnifiedTransactionsView = ({
     allConfirmedForEnabledChains,
     localActivityItems,
     nonEvmTransactions,
-    enabledEVMChainIds,
+    activeEVMChainIds,
     enabledNonEVMChainIds,
     bridgeHistory,
     relatedChainIdsByTransactionId,
@@ -623,7 +665,11 @@ const UnifiedTransactionsView = ({
       : undefined;
 
   const onViewableItemsChanged = useCallback(
-    ({ viewableItems }: { viewableItems: ViewToken<ActivityListItem>[] }) => {
+    ({
+      viewableItems,
+    }: {
+      viewableItems: ViewToken<GroupedActivityListItem>[];
+    }) => {
       if (
         !hasNextPage ||
         isFetchingNextPage ||
@@ -653,10 +699,16 @@ const UnifiedTransactionsView = ({
     ],
   );
 
-  const listRef = useRef<FlashListRef<ActivityListItem>>(null);
+  const shouldShowTransactionList = !isInitialLoading && data.length > 0;
+  const items = useMemo(
+    () => (shouldShowTransactionList ? groupActivityListItems(data) : []),
+    [data, shouldShowTransactionList],
+  );
 
-  const { handleScroll } = useTransactionAutoScroll(data, listRef, {
-    keyExtractor: (item: ActivityListItem) => generateKey(item),
+  const listRef = useRef<FlashListRef<GroupedActivityListItem>>(null);
+
+  const { handleScroll } = useTransactionAutoScroll(items, listRef, {
+    keyExtractor: generateGroupedKey,
   });
 
   const renderEmptyList = () => (
@@ -671,20 +723,38 @@ const UnifiedTransactionsView = ({
     </View>
   );
 
-  const shouldShowTransactionList = !isInitialLoading && data.length > 0;
-  const items = shouldShowTransactionList ? data : [];
-
   const renderItem = ({
     item,
     index,
   }: {
-    item: ActivityListItem;
+    item: GroupedActivityListItem;
     index: number;
   }) => {
-    const raw = item.raw;
+    if (item.type === 'pending-header') {
+      return (
+        <View style={styles.dateHeader}>
+          <Text style={styles.dateHeaderText}>
+            {strings('transaction.pending')}
+          </Text>
+        </View>
+      );
+    }
+
+    if (item.type === 'date-header') {
+      return (
+        <View style={styles.dateHeader}>
+          <Text style={styles.dateHeaderText}>
+            {formatDateHeader(item.date)}
+          </Text>
+        </View>
+      );
+    }
+
+    const activityItem = item.item;
+    const raw = activityItem.raw;
 
     // Pending local EVM transactions: route to TransactionElement for speed-up/cancel UI.
-    if (raw?.type === 'localTransaction' && item.status === 'pending') {
+    if (raw?.type === 'localTransaction' && activityItem.status === 'pending') {
       const tx = raw.data.primaryTransaction;
       return (
         <TransactionElement
@@ -739,7 +809,7 @@ const UnifiedTransactionsView = ({
     // render from the shared ActivityListItem shape.
     return (
       <ActivityListItemRow
-        item={item}
+        item={activityItem}
         index={index}
         chainId={chainId}
         onPress={handleActivityItemPress}
@@ -757,7 +827,7 @@ const UnifiedTransactionsView = ({
               data={items}
               testID={UnifiedTransactionsViewSelectorsIDs.CONTAINER}
               renderItem={renderItem}
-              keyExtractor={generateKey}
+              keyExtractor={generateGroupedKey}
               ListHeaderComponent={header}
               ListEmptyComponent={
                 isInitialLoading ? renderInitialLoading : renderEmptyList
