@@ -210,7 +210,7 @@ export const PostTradeBottomSheet = () => {
     }
     dispatch(setDestToken(selectedDestToken));
     dispatch(setIsDestTokenManuallySet(true));
-    dispatch(setSourceAmount(params.sourceAmount));
+    dispatch(setSourceAmount(undefined));
     dispatch(setDestAmount(undefined));
     dispatch(setSelectedQuoteRequestId(undefined));
 

@@ -131,7 +131,7 @@ describe('PostTradeBottomSheet', () => {
     expect(getAllByTestId('section-pills-skeleton').length).toBeGreaterThan(0);
   });
 
-  it('prefills the swap form when a suggestion is pressed', () => {
+  it('sets up the swap form with an empty source amount when a suggestion is pressed', () => {
     mockPostTradeStatus = PostTradeStatus.Success;
     const suggestedToken = {
       assetId: 'eip155:1/erc20:0x1111111111111111111111111111111111111111',
@@ -180,7 +180,7 @@ describe('PostTradeBottomSheet', () => {
     expect(mockDispatch).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'bridge/setSourceAmount',
-        payload: '1.23456',
+        payload: undefined,
       }),
     );
   });
