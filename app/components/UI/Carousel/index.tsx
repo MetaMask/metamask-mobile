@@ -34,8 +34,6 @@ import { SolAccountType, SolScope } from '@metamask/keyring-api';
 import Engine from '../../../core/Engine';
 ///: END:ONLY_INCLUDE_IF
 import { selectAddressHasTokenBalances } from '../../../selectors/tokenBalancesController';
-import { useMusdConversionTokens } from '../Earn/hooks/useMusdConversionTokens';
-import { MUSD_CONVERSION_ATOKEN_SYMBOLS } from '../Earn/constants/musd';
 import {
   fetchCarouselSlidesFromContentful,
   isActive,
@@ -189,14 +187,6 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
   const { navigate } = useNavigation();
   const tw = useTailwind();
   const dismissedBanners = useSelector(selectDismissedBanners);
-  const { tokens: musdConversionTokens } = useMusdConversionTokens();
-  const userHoldsAtoken = useMemo(
-    () =>
-      musdConversionTokens.some((t) =>
-        MUSD_CONVERSION_ATOKEN_SYMBOLS.has(t.symbol),
-      ),
-    [musdConversionTokens],
-  );
   ///: BEGIN:ONLY_INCLUDE_IF(solana)
   const selectedAccount = useSelector(selectSelectedInternalAccount);
   const lastSelectedSolanaAccount = useSelector(
@@ -309,13 +299,6 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
       }
       ///: END:ONLY_INCLUDE_IF
 
-      if (
-        getSlideVariableName(slide) === 'musdConvertAtokens' &&
-        !userHoldsAtoken
-      ) {
-        return false;
-      }
-
       return !dismissedBanners.includes(slide.id);
     });
 
@@ -333,7 +316,6 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
   }, [
     slidesConfig,
     dismissedBanners,
-    userHoldsAtoken,
     ///: BEGIN:ONLY_INCLUDE_IF(solana)
     selectedAccount,
     ///: END:ONLY_INCLUDE_IF

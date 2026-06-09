@@ -1,6 +1,5 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import { Linking } from 'react-native';
 import Logger from '../../../../../util/Logger';
 import { useSelector } from 'react-redux';
 import MoneyConvertStablecoins from './MoneyConvertStablecoins';
@@ -16,8 +15,6 @@ import {
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { MUSD_EVENTS_CONSTANTS } from '../../../Earn/constants/events/musdEvents';
 import { MONEY_EVENTS_CONSTANTS } from '../../constants/moneyEvents';
-import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
-import AppConstants from '../../../../../core/AppConstants';
 
 const { EVENT_LOCATIONS: MUSD_EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
 const { EVENT_LOCATIONS: MONEY_EVENT_LOCATIONS } = MONEY_EVENTS_CONSTANTS;
@@ -29,25 +26,7 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-jest.mock('react-native', () => {
-  const actual = jest.requireActual('react-native');
-  return {
-    ...actual,
-    Linking: {
-      ...actual.Linking,
-      openURL: jest.fn(),
-    },
-  };
-});
-
 const mockUseSelector = useSelector as jest.Mock;
-
-const mockOpenTooltipModal = jest.fn();
-
-jest.mock('../../../../hooks/useTooltipModal', () => ({
-  __esModule: true,
-  default: () => ({ openTooltipModal: mockOpenTooltipModal }),
-}));
 
 const mockUseMusdConversionTokens = jest.fn();
 const mockInitiateMaxConversion = jest.fn();
@@ -65,8 +44,7 @@ mockAddProperties.mockReturnValue({
 });
 
 jest.mock('../../../Earn/hooks/useMusdConversionTokens', () => ({
-  useMusdConversionTokens: (...args: unknown[]) =>
-    mockUseMusdConversionTokens(...args),
+  useMusdConversionTokens: () => mockUseMusdConversionTokens(),
 }));
 
 jest.mock('../../../Earn/hooks/useMusdConversion', () => ({
@@ -540,95 +518,6 @@ describe('MoneyConvertStablecoins', () => {
       );
 
       expect(queryByTestId(MusdConversionAssetRowTestIds.CONTAINER)).toBeNull();
-    });
-  });
-
-  describe('preferredToken prop', () => {
-    it('forwards preferredToken to useMusdConversionTokens when provided', () => {
-      const preferredToken = {
-        address: MOCK_USDT.address,
-        chainId: MOCK_USDT.chainId as string,
-      };
-
-      render(
-        <MoneyConvertStablecoins
-          location={TEST_LOCATION}
-          preferredToken={preferredToken}
-        />,
-      );
-
-      expect(mockUseMusdConversionTokens).toHaveBeenCalledWith(preferredToken);
-    });
-
-    it('calls useMusdConversionTokens with undefined when preferredToken is not passed', () => {
-      render(<MoneyConvertStablecoins location={TEST_LOCATION} />);
-
-      expect(mockUseMusdConversionTokens).toHaveBeenCalledWith(undefined);
-    });
-  });
-
-  describe('info button + tooltip', () => {
-    it('renders the info button next to the title', () => {
-      const { getByTestId } = render(
-        <MoneyConvertStablecoins location={TEST_LOCATION} />,
-      );
-
-      expect(
-        getByTestId(MoneyConvertStablecoinsTestIds.INFO_BUTTON),
-      ).toBeOnTheScreen();
-    });
-
-    it('opens the tooltip modal with the localized title and body when pressed', () => {
-      const { getByTestId } = render(
-        <MoneyConvertStablecoins location={TEST_LOCATION} />,
-      );
-
-      fireEvent.press(getByTestId(MoneyConvertStablecoinsTestIds.INFO_BUTTON));
-
-      expect(mockOpenTooltipModal).toHaveBeenCalledTimes(1);
-      const [title, body] = mockOpenTooltipModal.mock.calls[0];
-      expect(title).toBe(
-        strings('earn.musd_conversion.convert_and_get_percentage_bonus', {
-          percentage: MUSD_CONVERSION_APY,
-        }),
-      );
-      const { getByText, getByTestId: getInBody } = render(body);
-      expect(
-        getByText(
-          strings('earn.musd_conversion.convert_tooltip_description', {
-            percentage: MUSD_CONVERSION_APY,
-          }),
-          { exact: false },
-        ),
-      ).toBeOnTheScreen();
-      expect(
-        getInBody(MoneyConvertStablecoinsTestIds.TOOLTIP_TERMS_LINK),
-      ).toBeOnTheScreen();
-    });
-
-    it('tracks the terms-of-use event and opens the URL when the terms link is pressed', () => {
-      const { getByTestId } = render(
-        <MoneyConvertStablecoins location={TEST_LOCATION} />,
-      );
-
-      fireEvent.press(getByTestId(MoneyConvertStablecoinsTestIds.INFO_BUTTON));
-      const [, body] = mockOpenTooltipModal.mock.calls[0];
-      const { getByTestId: getInBody } = render(body);
-      fireEvent.press(
-        getInBody(MoneyConvertStablecoinsTestIds.TOOLTIP_TERMS_LINK),
-      );
-
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.MUSD_BONUS_TERMS_OF_USE_PRESSED,
-      );
-      expect(mockAddProperties).toHaveBeenCalledWith({
-        location: TEST_LOCATION,
-        url: AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
-      });
-      expect(mockTrackEvent).toHaveBeenCalledWith({ event: 'built' });
-      expect(Linking.openURL).toHaveBeenCalledWith(
-        AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
-      );
     });
   });
 });

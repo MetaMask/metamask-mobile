@@ -5,9 +5,6 @@ import TokenListItem from './TokenListItem';
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
 import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk';
 import initialRootState from '../../../../../util/test/initial-root-state';
-import { TOKEN_LIST_ITEM_TEST_IDS } from './TokenListItem.testIds';
-import { MUSD_TOKEN_ASSET_ID_BY_CHAIN } from '../../../Earn/constants/musd';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 const mockGetTokenNetworkInfo = jest.fn();
 jest.mock('../../hooks/useTokenNetworkInfo', () => ({
@@ -83,41 +80,6 @@ describe('TokenListItem', () => {
       );
 
       expect(getByTestId('token-unsupported-info-button')).toBeOnTheScreen();
-    });
-  });
-
-  describe('mUSD bonus indicator', () => {
-    it('renders the bonus indicator on the mUSD row', () => {
-      const token = createMockToken({
-        assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[CHAIN_IDS.MAINNET],
-        name: 'MetaMask USD',
-        symbol: 'mUSD',
-      });
-
-      const { getByTestId, getByText } = render(
-        <TokenListItem token={token} onPress={mockOnPress} />,
-      );
-
-      expect(
-        getByTestId(TOKEN_LIST_ITEM_TEST_IDS.MUSD_BONUS_TAG),
-      ).toBeOnTheScreen();
-      expect(getByText('3% bonus')).toBeOnTheScreen();
-    });
-
-    it('does not render the bonus indicator on a non-mUSD row', () => {
-      const token = createMockToken({
-        assetId: 'eip155:1/erc20:0x0000000000000000000000000000000000000001',
-        name: 'USD Coin',
-        symbol: 'USDC',
-      });
-
-      const { queryByTestId } = render(
-        <TokenListItem token={token} onPress={mockOnPress} />,
-      );
-
-      expect(
-        queryByTestId(TOKEN_LIST_ITEM_TEST_IDS.MUSD_BONUS_TAG),
-      ).not.toBeOnTheScreen();
     });
   });
 

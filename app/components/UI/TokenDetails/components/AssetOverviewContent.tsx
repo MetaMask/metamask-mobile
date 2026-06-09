@@ -6,7 +6,6 @@ import React, {
   useState,
 } from 'react';
 import {
-  Pressable,
   TouchableOpacity,
   View,
   Modal,
@@ -45,32 +44,10 @@ import Balance from '../../AssetOverview/Balance';
 import TokenDetails from '../../AssetOverview/TokenDetails';
 import { TokenDetailsActions } from './TokenDetailsActions';
 import AssetOverviewClaimBonus from '../../Earn/components/AssetOverviewClaimBonus';
-import MusdConversionAssetOverviewCta from '../../Earn/components/Musd/MusdConversionAssetOverviewCta';
-import { useMusdConversionTokens } from '../../Earn/hooks/useMusdConversionTokens';
 import MoneyConvertStablecoins from '../../Money/components/MoneyConvertStablecoins/MoneyConvertStablecoins';
 import { MONEY_EVENTS_CONSTANTS } from '../../Money/constants/moneyEvents';
 import { isTokenEligibleForMerklRewards } from '../../Earn/components/MerklRewards/hooks/useMerklRewards';
-import {
-  isMusdToken,
-  isMusdConvertEligibleToken,
-  MUSD_CONVERSION_APY,
-  MUSD_CONVERSION_ATOKEN_SYMBOLS,
-} from '../../Earn/constants/musd';
-import { useMusdConversion } from '../../Earn/hooks/useMusdConversion';
-import {
-  Tag,
-  TagSeverity,
-  Box,
-  BoxFlexDirection,
-  BoxAlignItems,
-  Icon,
-  IconSize,
-  FontWeight,
-  Text,
-  TextColor,
-  TextVariant,
-} from '@metamask/design-system-react-native';
-import { useCashNavigation } from '../../../Views/Homepage/Sections/Cash/useCashNavigation';
+import { isMusdToken } from '../../Earn/constants/musd';
 import {
   selectIsMusdConversionFlowEnabledFlag,
   selectMerklCampaignClaimingEnabledFlag,
@@ -87,7 +64,6 @@ import {
   selectMarketInsightsEnabled,
 } from '../../MarketInsights';
 import { isCaipAssetType, type Hex } from '@metamask/utils';
-import { toHex } from '@metamask/controller-utils';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import SecurityTrustEntryCard from '../../SecurityTrust/components/SecurityTrustEntryCard/SecurityTrustEntryCard';
@@ -97,6 +73,17 @@ import {
 } from '../constants/constants';
 import { useTokenDetailsActionTracking } from '../hooks/useTokenDetailsActionTracking';
 import { getResultTypeConfig } from '../../SecurityTrust/utils/securityUtils';
+import {
+  Box,
+  BoxFlexDirection,
+  BoxAlignItems,
+  Icon,
+  IconSize,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { SecurityBanner } from './SecurityBanner';
 import Badge, {
   BadgeVariant,
@@ -158,9 +145,6 @@ const styleSheet = (params: { theme: Theme }) => {
       marginTop: 20,
       marginBottom: 20,
       paddingHorizontal: 16,
-    } as ViewStyle,
-    musdHeroBonusTagWrapper: {
-      marginLeft: 4,
     } as ViewStyle,
   });
 };
@@ -394,57 +378,10 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     selectIsMusdConversionFlowEnabledFlag,
   );
   const { isEligible: isMusdGeoEligible } = useMusdConversionEligibility();
-  const isMusd = isMusdToken(token.address);
   const showMusdConvertSection =
-    isMusdConvertEligibleToken({
-      symbol: token.symbol,
-      address: token.address,
-    }) &&
+    isMusdToken(token.address) &&
     isMusdConversionFlowEnabled &&
     isMusdGeoEligible;
-
-  let bonusTagLabel: string;
-  if (isMusd) {
-    bonusTagLabel = strings('earn.percentage_bonus', {
-      percentage: String(MUSD_CONVERSION_APY),
-    });
-  } else {
-    bonusTagLabel = strings('earn.get_percentage_bonus', {
-      percentage: String(MUSD_CONVERSION_APY),
-    });
-  }
-
-  const { tokens: musdConvertibleTokens } = useMusdConversionTokens();
-  const preferredAtoken = useMemo(
-    () =>
-      musdConvertibleTokens.find((candidate) =>
-        MUSD_CONVERSION_ATOKEN_SYMBOLS.has(candidate.symbol),
-      ),
-    [musdConvertibleTokens],
-  );
-  const { navigateToCash } = useCashNavigation();
-  const { initiateCustomConversion } = useMusdConversion();
-
-  const musdConvertPreferredToken = useMemo(
-    () =>
-      token.address && token.chainId
-        ? { address: token.address, chainId: token.chainId }
-        : undefined,
-    [token.address, token.chainId],
-  );
-
-  const handleBonusTagPress = useCallback(() => {
-    if (preferredAtoken?.address && preferredAtoken.chainId) {
-      initiateCustomConversion({
-        preferredPaymentToken: {
-          address: toHex(preferredAtoken.address),
-          chainId: toHex(preferredAtoken.chainId),
-        },
-      });
-      return;
-    }
-    navigateToCash();
-  }, [preferredAtoken, initiateCustomConversion, navigateToCash]);
 
   const securityConfig = useMemo(
     () => getResultTypeConfig(securityData?.resultType),
@@ -799,16 +736,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                   {isStockToken(token as BridgeToken) && (
                     <StockBadge token={token as BridgeToken} />
                   )}
-                  {showMusdConvertSection && (
-                    <Pressable
-                      onPress={handleBonusTagPress}
-                      hitSlop={8}
-                      testID={TokenOverviewSelectorsIDs.MUSD_HERO_BONUS_TAG}
-                      style={styles.musdHeroBonusTagWrapper}
-                    >
-                      <Tag severity={TagSeverity.Success}>{bonusTagLabel}</Tag>
-                    </Pressable>
-                  )}
                 </Box>
               ) : null}
             </Box>
@@ -885,12 +812,8 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             <AssetOverviewClaimBonus asset={token} />
           )}
           {showMusdConvertSection && (
-            <MusdConversionAssetOverviewCta asset={token} />
-          )}
-          {showMusdConvertSection && (
             <MoneyConvertStablecoins
               location={MONEY_EVENTS_CONSTANTS.EVENT_LOCATIONS.ASSET_DETAIL}
-              preferredToken={musdConvertPreferredToken}
             />
           )}
           {
@@ -934,23 +857,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               }
             />
           </View>
-          {showMusdConvertSection && (
-            <Box twClassName="px-4 py-3">
-              <Text
-                variant={TextVariant.HeadingMd}
-                fontWeight={FontWeight.Bold}
-              >
-                {strings('money.convert_stablecoins.how_it_works_title')}
-              </Text>
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-                twClassName="mt-3"
-              >
-                {strings('money.convert_stablecoins.how_it_works_description')}
-              </Text>
-            </Box>
-          )}
           {!hasSecurityDataError &&
             (isSecurityDataLoading || securityData?.resultType) && (
               <View style={styles.securityTrustWrapper}>

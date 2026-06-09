@@ -37,15 +37,11 @@ import {
 } from '@metamask/bridge-controller';
 import {
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
   ButtonIcon,
   ButtonIconSize,
   HeaderStandard,
   IconColor,
   IconName,
-  Tag,
-  TagSeverity,
   Text,
   TextVariant,
   TextColor,
@@ -66,7 +62,6 @@ import { createStyles } from './BridgeTokenSelector.styles';
 import Engine from '../../../../../core/Engine';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import { useInitialBridgeTokens } from '../../hooks/useInitialBridgeTokens';
-import { MUSD_CONVERSION_APY, isMusdToken } from '../../../Earn/constants/musd';
 
 export interface BridgeTokenSelectorRouteParams {
   type: TokenSelectorType;
@@ -384,32 +379,6 @@ export const BridgeTokenSelector: React.FC = () => {
         route.params?.type === TokenSelectorType.Source
           ? item.noFee?.isSource
           : item.noFee?.isDestination;
-
-      let secondaryRowContent: React.ReactNode;
-      if (isMusdToken(item.address)) {
-        secondaryRowContent = (
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="gap-2"
-          >
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              {item.name}
-            </Text>
-            <Tag
-              severity={TagSeverity.Success}
-              testID={`musd-bonus-tag-${item.symbol}`}
-            >
-              {strings('earn.percentage_bonus', {
-                percentage: String(MUSD_CONVERSION_APY),
-              })}
-            </Tag>
-          </Box>
-        );
-      }
       return (
         <TokenSelectorItem
           token={item}
@@ -423,7 +392,6 @@ export const BridgeTokenSelector: React.FC = () => {
             chainId: item.chainId,
           })}
           isNoFeeAsset={isNoFeeAsset}
-          secondaryRowContent={secondaryRowContent}
         >
           <ButtonIcon
             iconName={IconName.Info}

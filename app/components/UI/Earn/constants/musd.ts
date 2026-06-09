@@ -108,50 +108,6 @@ export const MUSD_TOKEN_ASSET_ID_BY_CHAIN: Record<Hex, string> = {
 export const MUSD_CURRENCY = 'MUSD';
 export const MUSD_CONVERSION_APY = 3;
 
-/**
- * Symbols treated as stablecoins for ordering and eligibility purposes in
- * Money-related surfaces. Source of truth so the list can be reused without
- * redefining it per component.
- */
-export const STABLECOIN_SYMBOLS: ReadonlySet<string> = new Set([
-  'USDC',
-  'USDT',
-  'DAI',
-]);
-
-/**
- * Aave receipt-token symbols treated as mUSD-convertible aTokens.
- * Centralized so Money/Earn/Carousel surfaces stay in lockstep.
- */
-export const MUSD_CONVERSION_ATOKEN_SYMBOLS: ReadonlySet<string> = new Set([
-  'aUSDC',
-  'aUSDT',
-  'aDAI',
-]);
-
-/**
- * Whether a token is eligible for the mUSD conversion flow: mUSD itself, an
- * Aave aToken (aUSDC/aUSDT/aDAI), or a supported stablecoin (USDC/USDT/DAI).
- */
-export const isMusdConvertEligibleToken = (token?: {
-  symbol?: string;
-  address?: string;
-}): boolean => {
-  if (!token) {
-    return false;
-  }
-
-  if (isMusdToken(token.address)) {
-    return true;
-  }
-
-  if (token.symbol && MUSD_CONVERSION_ATOKEN_SYMBOLS.has(token.symbol)) {
-    return true;
-  }
-
-  return Boolean(token.symbol && STABLECOIN_SYMBOLS.has(token.symbol));
-};
-
 // Delay before cleaning up toast tracking entries after final transaction status
 export const TOAST_TRACKING_CLEANUP_DELAY_MS = 5000;
 

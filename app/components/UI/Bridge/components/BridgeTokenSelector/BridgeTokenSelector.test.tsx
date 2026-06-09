@@ -303,15 +303,6 @@ jest.mock('@metamask/design-system-react-native', () => {
   return {
     Box: ({ children, style }: { children: React.ReactNode; style?: object }) =>
       createElement(View, { style }, children),
-    Tag: ({
-      children,
-      testID,
-    }: {
-      children: React.ReactNode;
-      testID?: string;
-    }) =>
-      createElement(View, { testID }, createElement('Text', null, children)),
-    TagSeverity: { Success: 'Success' },
     Text: 'Text',
     ButtonIcon: ({
       onPress,
@@ -375,8 +366,6 @@ jest.mock('@metamask/design-system-react-native', () => {
     FontWeight: { Medium: '500' },
   };
 });
-
-const MUSD_FIXTURE_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
 
 jest.mock('@metamask/design-system-twrnc-preset', () => {
   const tw = (..._args: unknown[]) => ({});
@@ -479,7 +468,6 @@ jest.mock('../TokenSelectorItem', () => ({
     token,
     onPress,
     children,
-    secondaryRowContent,
   }: {
     token: {
       symbol: string;
@@ -493,7 +481,6 @@ jest.mock('../TokenSelectorItem', () => ({
       chainId: string;
     }) => void;
     children?: React.ReactNode;
-    secondaryRowContent?: React.ReactNode;
   }) => {
     const { createElement } = jest.requireActual('react');
     const { TouchableOpacity, Text, View } = jest.requireActual('react-native');
@@ -508,7 +495,6 @@ jest.mock('../TokenSelectorItem', () => ({
             'verified',
           )
         : null,
-      createElement(View, null, secondaryRowContent),
       createElement(View, null, children),
     );
   },
@@ -717,47 +703,6 @@ describe('BridgeTokenSelector', () => {
       const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
 
       await waitFor(() => expect(getByTestId('verified-ETH')).toBeTruthy());
-    });
-  });
-
-  describe('mUSD bonus indicator', () => {
-    it('renders the bonus indicator on the mUSD row', async () => {
-      mockPopularTokensState = {
-        popularTokens: [
-          createMockPopularToken({
-            symbol: 'mUSD',
-            name: 'MetaMask USD',
-            address: MUSD_FIXTURE_ADDRESS,
-          } as never),
-        ],
-        isLoading: false,
-      };
-
-      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
-
-      await waitFor(() =>
-        expect(getByTestId('musd-bonus-tag-mUSD')).toBeTruthy(),
-      );
-    });
-
-    it('does not render the bonus indicator on a non-mUSD row', async () => {
-      mockPopularTokensState = {
-        popularTokens: [
-          createMockPopularToken({
-            symbol: 'USDC',
-            name: 'USD Coin',
-            address: '0x0000000000000000000000000000000000000001',
-          } as never),
-        ],
-        isLoading: false,
-      };
-
-      const { getByTestId, queryByTestId } = renderWithReduxProvider(
-        <BridgeTokenSelector />,
-      );
-
-      await waitFor(() => expect(getByTestId('token-USDC')).toBeTruthy());
-      expect(queryByTestId('musd-bonus-tag-USDC')).toBeNull();
     });
   });
 

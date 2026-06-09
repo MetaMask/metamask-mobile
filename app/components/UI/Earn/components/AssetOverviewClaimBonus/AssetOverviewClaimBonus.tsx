@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { Linking, Pressable } from 'react-native';
+import { Linking, StyleSheet } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import {
@@ -18,8 +18,6 @@ import {
   Text,
   TextColor,
   TextVariant,
-  Tag,
-  TagSeverity,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { TokenI } from '../../../Tokens/types';
@@ -41,9 +39,15 @@ import {
 import useTokenBalance from '../../../TokenDetails/hooks/useTokenBalance';
 import { selectAsset } from '../../../../../selectors/assets/assets-list';
 import { toFormattedAddress } from '../../../../../util/address';
-import { useCashNavigation } from '../../../../Views/Homepage/Sections/Cash/useCashNavigation';
+import TagBase, {
+  TagSeverity,
+} from '../../../../../component-library/base-components/TagBase';
 
 const { EVENT_LOCATIONS: MUSD_EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
+
+const styles = StyleSheet.create({
+  bonusTag: { borderRadius: 8, paddingHorizontal: 6 },
+});
 
 interface AssetOverviewClaimBonusProps {
   asset: TokenI;
@@ -73,7 +77,6 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
 
   const { openTooltipModal } = useTooltipModal();
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const { navigateToCash } = useCashNavigation();
 
   const isClaimPressedRef = useRef(false);
   const isLoading = isClaiming || hasPendingClaim;
@@ -294,20 +297,15 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
               testID={ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.INFO_BUTTON}
             />
           </Box>
-          <Pressable
-            onPress={navigateToCash}
-            testID={ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.BONUS_TAG_PRESSABLE}
-            hitSlop={8}
+          <TagBase
+            severity={TagSeverity.Success}
+            style={styles.bonusTag}
+            testID={ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.BONUS_TAG}
           >
-            <Tag
-              severity={TagSeverity.Success}
-              testID={ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.BONUS_TAG}
-            >
-              {strings('earn.percentage_bonus', {
-                percentage: String(MUSD_CONVERSION_APY),
-              })}
-            </Tag>
-          </Pressable>
+            {strings('earn.percentage_bonus', {
+              percentage: String(MUSD_CONVERSION_APY),
+            })}
+          </TagBase>
         </Box>
 
         {/* Row 1: Estimated annual bonus */}
