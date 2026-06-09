@@ -10,6 +10,7 @@ import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBa
 import useFiatFormatter from '../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { strings } from '../../../../../../locales/i18n';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
+import { isPositiveNumberOrZero } from '../../../../UI/Money/utils/number';
 
 export interface BalanceProjectionProps {
   amountFiat: string;
@@ -29,12 +30,7 @@ export function BalanceProjection({
   }, [amountFiat]);
 
   const projected = useMemo(() => {
-    if (
-      amount === null ||
-      typeof apyDecimal !== 'number' ||
-      !isFinite(apyDecimal) ||
-      apyDecimal < 0
-    ) {
+    if (amount === null || !isPositiveNumberOrZero(apyDecimal)) {
       return null;
     }
 
@@ -53,10 +49,8 @@ export function BalanceProjection({
 
   if (
     amount === null ||
-    apyPercent === undefined ||
-    apyPercent < 0 ||
-    typeof apyDecimal !== 'number' ||
-    apyDecimal < 0
+    !isPositiveNumberOrZero(apyDecimal) ||
+    !isPositiveNumberOrZero(apyPercent)
   ) {
     return null;
   }

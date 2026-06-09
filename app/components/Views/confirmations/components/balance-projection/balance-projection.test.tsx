@@ -146,6 +146,28 @@ describe('BalanceProjection', () => {
     expect(queryByTestId('balance-projection-apy-pitch')).toBeNull();
   });
 
+  it('returns null when apyDecimal is non-finite for a positive amount', () => {
+    mockBalance({ apyDecimal: NaN, apyPercent: NaN });
+
+    const { queryByTestId } = render(
+      <BalanceProjection amountFiat="1000" projectedYears={1} />,
+    );
+
+    expect(queryByTestId('balance-projection')).toBeNull();
+    expect(queryByTestId('balance-projection-apy-pitch')).toBeNull();
+  });
+
+  it('returns null when apyPercent is non-finite for an empty amount', () => {
+    mockBalance({ apyDecimal: NaN, apyPercent: NaN });
+
+    const { queryByTestId } = render(
+      <BalanceProjection amountFiat="0" projectedYears={1} />,
+    );
+
+    expect(queryByTestId('balance-projection')).toBeNull();
+    expect(queryByTestId('balance-projection-apy-pitch')).toBeNull();
+  });
+
   it('returns null when amountFiat is non-numeric', () => {
     mockBalance({ apyDecimal: 0.04, apyPercent: 4 });
 
