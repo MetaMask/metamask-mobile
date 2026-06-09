@@ -49,6 +49,7 @@ import {
   useMoneyAccountDeposit,
   type InitiateDepositOptions,
 } from '../../hooks/useMoneyAccount';
+import { getHighestMusdPaymentToken } from '../../utils/getHighestMusdPaymentToken';
 const Divider = () => <Box twClassName="h-px bg-border-muted my-5" />;
 
 type MoneyHomeState = 'empty' | 'milestone' | 'filled';
@@ -92,8 +93,10 @@ const MoneyHomeView = () => {
   }, [refetchBalance]);
 
   const { hasMoneyAccount } = useMoneyAccountInfo();
-  const { fiatBalanceAggregatedFormatted: musdFiatFormatted } =
-    useMusdBalance();
+  const {
+    fiatBalanceAggregatedFormatted: musdFiatFormatted,
+    tokenBalanceByChain,
+  } = useMusdBalance();
 
   const { tokens: depositTokens, isNoFeeToken } = useMoneyDepositTokens();
   const { initiateDeposit } = useMoneyAccountDeposit();
@@ -175,15 +178,9 @@ const MoneyHomeView = () => {
   }, [navigation]);
 
   const handleMusdAddPress = useCallback(async () => {
-    const [topDepositToken] = depositTokens;
-    const options: InitiateDepositOptions = topDepositToken
-      ? {
-          intent: 'addMusd',
-          preferredPaymentToken: {
-            address: topDepositToken.address as Hex,
-            chainId: topDepositToken.chainId as Hex,
-          },
-        }
+    const musdPaymentToken = getHighestMusdPaymentToken(tokenBalanceByChain);
+    const options: InitiateDepositOptions = musdPaymentToken
+      ? { intent: 'addMusd', preferredPaymentToken: musdPaymentToken }
       : { intent: 'addMusd', autoSelectFiatPayment: true };
 
     try {
@@ -193,7 +190,7 @@ const MoneyHomeView = () => {
         message: '[MoneyHomeView] Failed to initiate mUSD deposit',
       });
     }
-  }, [depositTokens, initiateDeposit]);
+  }, [tokenBalanceByChain, initiateDeposit]);
 
   const handleTransferPress = useCallback(() => {
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
