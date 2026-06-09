@@ -2,15 +2,15 @@ import React, { useCallback, useMemo } from 'react';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { Box } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
-import Routes from '../../../../../constants/navigation/Routes';
-import Engine from '../../../../../core/Engine';
-import { selectMetaMaskPayFlags } from '../../../../../selectors/featureFlagController/confirmations';
-import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
-import { PredictEventValues } from '../../constants/eventNames';
-import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
-import { usePredictPortfolio } from '../../hooks/usePredictPortfolio';
-import type { PredictNavigationParamList } from '../../types/navigation';
-import PredictClaimButton from '../PredictActionButtons/PredictClaimButton';
+import Routes from '../../../../../../../constants/navigation/Routes';
+import Engine from '../../../../../../../core/Engine';
+import { selectMetaMaskPayFlags } from '../../../../../../../selectors/featureFlagController/confirmations';
+import { selectPrivacyMode } from '../../../../../../../selectors/preferencesController';
+import { PredictEventValues } from '../../../../constants/eventNames';
+import { usePredictActionGuard } from '../../../../hooks/usePredictActionGuard';
+import { usePredictPortfolio } from '../../../../hooks/usePredictPortfolio';
+import type { PredictNavigationParamList } from '../../../../types/navigation';
+import PredictClaimButton from '../../../../components/PredictActionButtons/PredictClaimButton';
 import PredictPortfolioActions from './PredictPortfolioActions';
 import PredictPortfolioSummary from './PredictPortfolioSummary';
 import { PREDICT_PORTFOLIO_TEST_IDS } from './PredictPortfolio.testIds';
@@ -82,7 +82,7 @@ const PredictPortfolioModule: React.FC<PredictPortfolioModuleProps> = ({
     }
 
     navigation.navigate(Routes.PREDICT.POSITIONS);
-  }, [navigation, onPositionsPress]);
+  }, [navigation, onPositionsPress, portfolioAnalyticsProperties]);
 
   const handleAddFundsPress = useCallback(() => {
     executeGuardedAction(

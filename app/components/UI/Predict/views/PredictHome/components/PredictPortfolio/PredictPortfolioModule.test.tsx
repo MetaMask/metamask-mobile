@@ -1,10 +1,10 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
-import Routes from '../../../../../constants/navigation/Routes';
-import Engine from '../../../../../core/Engine';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { PredictEventValues } from '../../constants/eventNames';
-import { usePredictPortfolio } from '../../hooks/usePredictPortfolio';
+import Routes from '../../../../../../../constants/navigation/Routes';
+import Engine from '../../../../../../../core/Engine';
+import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
+import { PredictEventValues } from '../../../../constants/eventNames';
+import { usePredictPortfolio } from '../../../../hooks/usePredictPortfolio';
 import PredictPortfolioModule from './PredictPortfolioModule';
 import { PREDICT_PORTFOLIO_TEST_IDS } from './PredictPortfolio.testIds';
 
