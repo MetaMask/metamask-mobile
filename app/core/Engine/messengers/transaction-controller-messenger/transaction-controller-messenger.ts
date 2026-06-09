@@ -8,9 +8,7 @@ import {
   NetworkControllerFindNetworkClientIdByChainIdAction,
   NetworkControllerGetEIP1559CompatibilityAction,
   NetworkControllerGetNetworkClientByIdAction,
-  NetworkControllerGetNetworkClientRegistryAction,
   NetworkControllerGetNetworkConfigurationByChainIdAction,
-  NetworkControllerGetStateAction,
   NetworkControllerStateChangeEvent,
 } from '@metamask/network-controller';
 import {
@@ -41,7 +39,6 @@ import {
   KeyringControllerGetKeyringForAccountAction,
   KeyringControllerGetStateAction,
   KeyringControllerSignEip7702AuthorizationAction,
-  KeyringControllerSignTransactionAction,
   KeyringControllerSignTypedMessageAction,
 } from '@metamask/keyring-controller';
 import type { PreferencesControllerGetStateAction } from '@metamask/preferences-controller';
@@ -50,7 +47,6 @@ import {
   BridgeStatusControllerEvents,
 } from '@metamask/bridge-status-controller';
 import { DelegationControllerSignDelegationAction } from '@metamask/delegation-controller';
-import { GasFeeControllerFetchGasFeeEstimatesAction } from '@metamask/gas-fee-controller';
 import {
   AccountTrackerControllerGetStateAction,
   CurrencyRateControllerActions,
@@ -117,19 +113,15 @@ type InitMessengerActions =
   | BridgeStatusControllerActions
   | CurrencyRateControllerActions
   | DelegationControllerSignDelegationAction
-  | GasFeeControllerFetchGasFeeEstimatesAction
+  | NetworkControllerFindNetworkClientIdByChainIdAction
+  | NetworkControllerGetNetworkClientByIdAction
   | KeyringControllerGetKeyringForAccountAction
   | KeyringControllerGetStateAction
   | KeyringControllerSignEip7702AuthorizationAction
-  | KeyringControllerSignTransactionAction
   | KeyringControllerSignTypedMessageAction
-  | NetworkControllerFindNetworkClientIdByChainIdAction
-  | NetworkControllerGetNetworkClientByIdAction
   | NetworkControllerGetEIP1559CompatibilityAction
   | NetworkControllerGetNetworkClientByIdAction
-  | NetworkControllerGetNetworkClientRegistryAction
   | NetworkControllerGetNetworkConfigurationByChainIdAction
-  | NetworkControllerGetStateAction
   | PreferencesControllerGetStateAction
   | RemoteFeatureFlagControllerGetStateAction
   | SmartTransactionsControllerGetFeesAction
@@ -189,18 +181,14 @@ export function getTransactionControllerInitMessenger(
       'BridgeStatusController:submitTx',
       'CurrencyRateController:getState',
       'DelegationController:signDelegation',
-      'GasFeeController:fetchGasFeeEstimates',
-      'KeyringController:getKeyringForAccount',
-      'KeyringController:getState',
-      'KeyringController:signEip7702Authorization',
-      'KeyringController:signTransaction',
-      'KeyringController:signTypedMessage',
       'NetworkController:findNetworkClientIdByChainId',
       'NetworkController:getEIP1559Compatibility',
       'NetworkController:getNetworkClientById',
-      'NetworkController:getNetworkClientRegistry',
       'NetworkController:getNetworkConfigurationByChainId',
-      'NetworkController:getState',
+      'KeyringController:getKeyringForAccount',
+      'KeyringController:getState',
+      'KeyringController:signEip7702Authorization',
+      'KeyringController:signTypedMessage',
       'PreferencesController:getState',
       'RemoteFeatureFlagController:getState',
       'SmartTransactionsController:getFees',
