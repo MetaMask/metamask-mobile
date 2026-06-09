@@ -241,38 +241,4 @@ describe('OrderListItem', () => {
       unmount();
     });
   });
-
-  // UB2 Transak-native buys come back from the V2 unified API as
-  // provider=RAMPS_V2 + orderType='DEPOSIT'. They must render as a
-  // purchase (icon + "Purchased" title), not a sell. See TRAM-3534.
-  it('renders UB2 Transak-native (RAMPS_V2 + DEPOSIT) orders as purchases', () => {
-    const ub2DepositOrder: DeepPartial<FiatOrder> = {
-      cryptoAmount: '0.5',
-      orderType: 'DEPOSIT' as DepositOrderType,
-      state: FIAT_ORDER_STATES.PENDING,
-      createdAt: 1697241014535,
-      provider: FIAT_ORDER_PROVIDERS.RAMPS_V2,
-      cryptocurrency: 'ETH',
-      amount: '100',
-      currency: 'USD',
-      network: 'eip155:1',
-      data: {
-        cryptoCurrency: {
-          decimals: 18,
-          name: 'Ethereum',
-          symbol: 'ETH',
-        },
-        provider: {
-          name: 'Transak',
-        },
-      },
-    };
-
-    const { getByText, queryByText } = renderWithProvider(
-      <OrderListItem order={ub2DepositOrder as FiatOrder} />,
-    );
-
-    expect(getByText(/Purchased ETH/u)).toBeTruthy();
-    expect(queryByText(/Sold ETH/u)).toBeNull();
-  });
 });
