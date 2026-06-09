@@ -26,6 +26,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
+import Logger from '../../../util/Logger';
 import { useSelector } from 'react-redux';
 import { selectAddressHasTokenBalances } from '../../../selectors/tokenBalancesController';
 import ActivityEmptyDarkIcon from '../../../images/activity-empty-dark.svg';
@@ -155,7 +156,12 @@ const ActivityScreen = () => {
         });
         return;
       case ActivityEmptyStateAction.TransferToMoney:
-        initiateDeposit().catch(() => undefined);
+        initiateDeposit().catch((error) => {
+          Logger.error(error as Error, {
+            message:
+              '[ActivityScreen] Money deposit failed to initiate from empty state',
+          });
+        });
         return;
       case ActivityEmptyStateAction.OpenMetamaskCard:
         navigation.navigate(Routes.CARD.ROOT);
