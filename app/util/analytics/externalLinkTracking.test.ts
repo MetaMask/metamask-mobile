@@ -55,10 +55,20 @@ describe('externalLinkTracking', () => {
       );
     });
 
+    it('extracts hostname from protocol-less explorer URLs', () => {
+      expect(getExternalLinkHostname('etherscan.io/tx/0x123')).toBe(
+        'etherscan.io',
+      );
+    });
+
     it('falls back to regex extraction when URL parsing fails', () => {
       expect(
         getExternalLinkHostname('https://blockexplorer.com/tx/0x123'),
       ).toBe('blockexplorer.com');
+    });
+
+    it('returns empty string for empty input', () => {
+      expect(getExternalLinkHostname('')).toBe('');
     });
 
     it('returns the original string when hostname cannot be extracted', () => {

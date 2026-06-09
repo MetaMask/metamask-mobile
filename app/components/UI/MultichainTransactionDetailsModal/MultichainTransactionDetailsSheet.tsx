@@ -86,9 +86,9 @@ const MultichainTransactionDetailsSheet: React.FC = () => {
   }, []);
 
   const viewOnBlockExplorer = useCallback(
-    (label: string) => {
+    (rowKey: string, analyticsText?: string) => {
       let url = '';
-      switch (label) {
+      switch (rowKey) {
         case TransactionDetailRow.TransactionID:
           url = getTransactionUrl(id, chain);
           break;
@@ -106,7 +106,7 @@ const MultichainTransactionDetailsSheet: React.FC = () => {
 
       trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
         location: 'transaction_details_modal',
-        text: label,
+        text: analyticsText ?? rowKey,
         url,
       });
 
@@ -150,7 +150,9 @@ const MultichainTransactionDetailsSheet: React.FC = () => {
       >
         {isLink ? (
           <TouchableOpacity
-            onPress={() => viewOnBlockExplorer(label)}
+            onPress={() =>
+              viewOnBlockExplorer(label, formatAddress(value, 'short'))
+            }
             style={styles.blockExplorerLink}
           >
             <Text variant={TextVariant.BodyMd} color={TextColor.PrimaryDefault}>
@@ -216,7 +218,10 @@ const MultichainTransactionDetailsSheet: React.FC = () => {
           size={ButtonSize.Lg}
           label={strings('networks.view_details')}
           onPress={() =>
-            viewOnBlockExplorer(TransactionDetailRow.TransactionID)
+            viewOnBlockExplorer(
+              TransactionDetailRow.TransactionID,
+              strings('networks.view_details'),
+            )
           }
           endIconName={IconName.Export}
         />
