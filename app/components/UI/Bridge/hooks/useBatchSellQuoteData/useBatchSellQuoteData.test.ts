@@ -559,6 +559,7 @@ describe('useBatchSellQuoteData', () => {
     expect(result.current.networkFee.formatted).toBe('--');
     expect(result.current.isBatchSellTradeAvailable).toBe(false);
     expect(result.current.isBatchSellTradesLoading).toBe(false);
+    expect(result.current.isNetworkFeeUnavailable).toBe(true);
     expect(result.current.networkFee.formattedFiat).toBe('-');
   });
 
