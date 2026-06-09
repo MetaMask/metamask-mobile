@@ -10,6 +10,19 @@ import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountC
 import { MONEY_HOME_CARD_ORIGIN } from '../../../Card/hooks/useCardPostAuthRedirect';
 import { strings } from '../../../../../../locales/i18n';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import {
+  BOTTOM_SHEET_NAMES,
+  COMPONENT_NAMES,
+  MONEY_ONBOARDING_STEP_ACTIONS,
+  SCREEN_NAMES,
+} from '../../constants/moneyEvents';
+
+const mockTrackOnboardingEvent = jest.fn();
+
+jest.mock('../../hooks/useMoneyAnalytics', () => ({
+  useMoneyAnalytics: jest.fn(),
+}));
 
 jest.mock('@metamask/design-system-twrnc-preset', () => {
   const tw = (..._args: unknown[]) => ({});
@@ -88,6 +101,9 @@ const setupDefaultMocks = ({
 describe('MoneyOnboardingCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (useMoneyAnalytics as jest.Mock).mockReturnValue({
+      trackOnboardingEvent: mockTrackOnboardingEvent,
+    });
   });
 
   describe('visibility guard', () => {
@@ -383,6 +399,90 @@ describe('MoneyOnboardingCard', () => {
       expect(
         queryByText(strings('money.onboarding.step_2.no_card_account.title')),
       ).toBeNull();
+    });
+  });
+
+  describe('analytics', () => {
+    it('initialises useMoneyAnalytics with MONEY_HOME screen_name and MONEY_ONBOARDING_CARD component_name', () => {
+      setupDefaultMocks();
+
+      render(<MoneyOnboardingCard />);
+
+      expect(useMoneyAnalytics).toHaveBeenCalledWith({
+        screen_name: SCREEN_NAMES.MONEY_HOME,
+        component_name: COMPONENT_NAMES.MONEY_ONBOARDING_CARD,
+      });
+    });
+
+    it('calls trackOnboardingEvent with DEPOSIT_INITIATED when Add funds CTA is pressed at step 1', () => {
+      setupDefaultMocks({ currentStep: 0 });
+
+      const { getByTestId } = render(<MoneyOnboardingCard />);
+      fireEvent.press(getByTestId('money-onboarding-card-cta-button'));
+
+      expect(mockTrackOnboardingEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          step: 1,
+          step_action: MONEY_ONBOARDING_STEP_ACTIONS.DEPOSIT_INITIATED,
+          redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+          total_steps: MONEY_ONBOARDING_TOTAL_STEPS,
+        }),
+      );
+    });
+
+    it('calls trackOnboardingEvent with GET_CARD when Get card CTA is pressed for unauthenticated user at step 2', () => {
+      setupDefaultMocks({ currentStep: 1, isCardAuthenticated: false });
+
+      const { getByTestId } = render(<MoneyOnboardingCard />);
+      fireEvent.press(getByTestId('money-onboarding-card-cta-button'));
+
+      expect(mockTrackOnboardingEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          step: 2,
+          step_action: MONEY_ONBOARDING_STEP_ACTIONS.GET_CARD,
+          redirect_target: BOTTOM_SHEET_NAMES.CARD_AUTH_SHEET,
+          total_steps: MONEY_ONBOARDING_TOTAL_STEPS,
+        }),
+      );
+    });
+
+    it('calls trackOnboardingEvent with LINK_CARD when CTA is pressed for authenticated but unlinked cardholder at step 2', () => {
+      setupDefaultMocks({
+        currentStep: 1,
+        isCardAuthenticated: true,
+        isCardLinkedToMoneyAccount: false,
+      });
+
+      const { getByTestId } = render(<MoneyOnboardingCard />);
+      fireEvent.press(getByTestId('money-onboarding-card-cta-button'));
+
+      expect(mockTrackOnboardingEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          step: 2,
+          step_action: MONEY_ONBOARDING_STEP_ACTIONS.LINK_CARD,
+          redirect_target: BOTTOM_SHEET_NAMES.CARD_LINK_SHEET,
+          total_steps: MONEY_ONBOARDING_TOTAL_STEPS,
+        }),
+      );
+    });
+
+    it('calls trackOnboardingEvent with SKIPPED when Skip CTA is pressed at step 2', () => {
+      setupDefaultMocks({ currentStep: 1, isCardAuthenticated: false });
+
+      const { getByText } = render(<MoneyOnboardingCard />);
+      fireEvent.press(
+        getByText(
+          strings('money.onboarding.step_2.no_card_account.cta_secondary'),
+        ),
+      );
+
+      expect(mockTrackOnboardingEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          step: 2,
+          step_action: MONEY_ONBOARDING_STEP_ACTIONS.SKIPPED,
+          total_steps: MONEY_ONBOARDING_TOTAL_STEPS,
+        }),
+      );
     });
   });
 });
