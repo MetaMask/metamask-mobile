@@ -360,16 +360,16 @@ describe('PayWithRow', () => {
       expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money balance');
     });
 
-    it('renders nothing for perps deposit from money account', () => {
+    it('renders money account row for perps deposit', () => {
       jest.mocked(useTransactionMetadataRequest).mockReturnValue({
         id: TRANSACTION_ID_MOCK,
         type: TransactionType.perpsDeposit,
       } as never);
 
-      const { queryByTestId } = renderMoneyAccount();
+      const { getByTestId } = renderMoneyAccount();
 
-      expect(queryByTestId('pay-with')).toBeNull();
-      expect(queryByTestId('pay-with-row-skeleton')).toBeNull();
+      expect(getByTestId('pay-with')).toBeDefined();
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money balance');
     });
   });
 
