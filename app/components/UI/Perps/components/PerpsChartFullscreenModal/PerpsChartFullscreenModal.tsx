@@ -16,6 +16,7 @@ import TradingViewChart, {
   type OhlcData,
 } from '../TradingViewChart';
 import { CandlePeriod, type CandleData } from '@metamask/perps-controller';
+import PerpsAdvancedChart from '../PerpsAdvancedChart/PerpsAdvancedChart';
 import { PERPS_CHART_CONFIG } from '../../constants/chartConfig';
 import PerpsCandlestickChartIntervalSelector from '../PerpsCandlestickChartIntervalSelector/PerpsCandlestickChartIntervalSelector';
 import { styleSheet } from './PerpsChartFullscreenModal.styles';
@@ -31,6 +32,12 @@ export interface PerpsChartFullscreenModalProps {
   visibleCandleCount?: number;
   onClose: () => void;
   onIntervalChange: (interval: CandlePeriod) => void;
+  /** When true, renders PerpsAdvancedChart instead of TradingViewChart. */
+  isAdvancedChartEnabled?: boolean;
+  /** Market symbol — required when isAdvancedChartEnabled is true. */
+  symbol?: string;
+  /** Signed position size string for long/short side derivation. */
+  positionSize?: string;
 }
 
 const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
@@ -41,6 +48,9 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
   visibleCandleCount,
   onClose,
   onIntervalChange,
+  isAdvancedChartEnabled,
+  symbol,
+  positionSize,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const insets = useSafeAreaInsets();
@@ -188,20 +198,37 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
             componentLabel="PerpsChartFullscreenModal"
             onError={handleChartError}
           >
-            <TradingViewChart
-              ref={chartRef}
-              candleData={candleData}
-              height={Math.max(chartHeight - ohlcvHeight, 100)}
-              tpslLines={tpslLines}
-              visibleCandleCount={
-                visibleCandleCount ?? PERPS_CHART_CONFIG.CANDLE_COUNT.FULLSCREEN
-              }
-              showVolume // Always show volume in fullscreen
-              showOverlay={false}
-              coloredVolume
-              onOhlcDataChange={setOhlcData}
-              testID="fullscreen-chart"
-            />
+            {isAdvancedChartEnabled && symbol ? (
+              <PerpsAdvancedChart
+                symbol={symbol}
+                interval={selectedInterval}
+                visibleCandleCount={
+                  visibleCandleCount ??
+                  PERPS_CHART_CONFIG.CANDLE_COUNT.FULLSCREEN
+                }
+                height={Math.max(chartHeight - ohlcvHeight, 100)}
+                tpslLines={tpslLines}
+                positionSize={positionSize}
+                onCrosshairDataChange={setOhlcData}
+                fallbackCandleData={candleData ?? null}
+              />
+            ) : (
+              <TradingViewChart
+                ref={chartRef}
+                candleData={candleData}
+                height={Math.max(chartHeight - ohlcvHeight, 100)}
+                tpslLines={tpslLines}
+                visibleCandleCount={
+                  visibleCandleCount ??
+                  PERPS_CHART_CONFIG.CANDLE_COUNT.FULLSCREEN
+                }
+                showVolume
+                showOverlay={false}
+                coloredVolume
+                onOhlcDataChange={setOhlcData}
+                testID="fullscreen-chart"
+              />
+            )}
           </ComponentErrorBoundary>
         </View>
       </View>

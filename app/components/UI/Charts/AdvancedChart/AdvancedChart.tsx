@@ -26,6 +26,8 @@ import {
   resolveLineChromeOptions,
   type AdvancedChartProps,
   type AdvancedChartRef,
+  type ChartRangeSettlePayload,
+  type FetchOlderBarsResponse,
   type IndicatorType,
   type OHLCVBar,
   type OHLCVPaginationConfig,
@@ -77,6 +79,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       height = DEFAULT_CHART_HEIGHT,
       realtimeBar,
       ohlcvPagination,
+      rnBackedPagination,
+      onFetchOlderBarsRequest,
       indicators = [],
       positionLines,
       chartType,
@@ -226,6 +230,16 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     );
     paginationRef.current = ohlcvPagination;
 
+    const rnBackedPaginationRef = useRef<{ enabled: boolean } | undefined>(
+      rnBackedPagination,
+    );
+    rnBackedPaginationRef.current = rnBackedPagination;
+
+    const onFetchOlderBarsRequestRef = useRef<
+      AdvancedChartProps['onFetchOlderBarsRequest']
+    >(onFetchOlderBarsRequest);
+    onFetchOlderBarsRequestRef.current = onFetchOlderBarsRequest;
+
     const visibleFromMsRef = useRef<number | undefined>(visibleFromMs);
     visibleFromMsRef.current = visibleFromMs;
 
@@ -239,6 +253,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           payload: {
             data,
             pagination: paginationRef.current,
+            rnBackedPagination: rnBackedPaginationRef.current,
             visibleFromMs: visibleFromMsRef.current,
             visibleToMs: visibleToMsRef.current,
           },
@@ -377,6 +392,30 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             }
             break;
 
+          case 'FETCH_OLDER_BARS_REQUEST': {
+            const handler = onFetchOlderBarsRequestRef.current;
+            if (handler) {
+              const req = message.payload;
+              const respond = (response: FetchOlderBarsResponse) => {
+                postMessage({
+                  type: 'FETCH_OLDER_BARS_RESPONSE',
+                  payload: response,
+                });
+              };
+              handler(req)
+                .then(respond)
+                .catch(() =>
+                  respond({
+                    requestId: req.requestId,
+                    seriesGeneration: req.seriesGeneration,
+                    bars: [],
+                    noData: true,
+                  }),
+                );
+            }
+            break;
+          }
+
           default:
             break;
         }
@@ -389,6 +428,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         onCrosshairMove,
         onChartInteracted,
         handleTradingViewOpen,
+        postMessage,
       ],
     );
 
