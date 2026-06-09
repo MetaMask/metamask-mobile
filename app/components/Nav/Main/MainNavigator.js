@@ -112,6 +112,7 @@ import {
   MoneyTabScreenStack,
 } from '../../UI/Money/routes';
 import MoneyOnboardingView from '../../UI/Money/Views/MoneyOnboardingView';
+import MoneyTransactionDetailsView from '../../UI/Money/Views/MoneyTransactionDetailsView';
 import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/featureFlags';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
@@ -1189,6 +1190,11 @@ const MainNavigator = () => {
               ...clearStackNavigatorOptionsWithTransitionAnimation,
               presentation: 'transparentModal',
             }}
+          />
+          <Stack.Screen
+            name={Routes.MONEY.TRANSACTION_DETAILS}
+            component={MoneyTransactionDetailsView}
+            options={{ headerShown: false, ...slideFromRightAnimation }}
           />
           <Stack.Screen
             name={Routes.TRANSACTIONS_VIEW}
