@@ -65,6 +65,12 @@ class MetaMetricsOptIn {
     );
   }
 
+  get marketingCheckbox(): DetoxElement {
+    return Matchers.getElementByID(
+      MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_MARKETING_CHECKBOX,
+    );
+  }
+
   async swipeContentUp(): Promise<void> {
     await encapsulatedAction({
       detox: async () => {
@@ -113,6 +119,12 @@ class MetaMetricsOptIn {
   async tapMetricsCheckbox(): Promise<void> {
     await Gestures.waitAndTap(this.metricsCheckbox, {
       elemDescription: 'Opt-in Metrics Metrics Checkbox',
+    });
+  }
+
+  async tapMarketingCheckbox(): Promise<void> {
+    await Gestures.waitAndTap(this.marketingCheckbox, {
+      elemDescription: 'Opt-in Metrics Marketing Checkbox',
     });
   }
 }

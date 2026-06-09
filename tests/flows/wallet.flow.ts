@@ -314,10 +314,15 @@ export const dismissProtectYourWalletModal = async (): Promise<void> => {
  * @async
  * @param {Object} [options={}] - Configuration options for wallet creation.
  * @param {boolean} [options.optInToMetrics=true] - Whether to opt in to MetaMetrics analytics.
+ * @param {boolean} [options.optInToMarketing=false] - Whether to opt in to marketing consent at Opt-in Metrics.
  * @returns {Promise<void>} Resolves when the wallet creation flow is complete.
  */
 export const CreateNewWallet = async ({
   optInToMetrics = true,
+  optInToMarketing = false,
+}: {
+  optInToMetrics?: boolean;
+  optInToMarketing?: boolean;
 } = {}): Promise<void> => {
   //'should create new wallet'
   await OnboardingView.tapCreateWallet();
@@ -349,6 +354,10 @@ export const CreateNewWallet = async ({
   });
   if (!optInToMetrics) {
     await MetaMetricsOptInView.tapMetricsCheckbox();
+  }
+
+  if (optInToMarketing && optInToMetrics) {
+    await MetaMetricsOptInView.tapMarketingCheckbox();
   }
 
   await MetaMetricsOptInView.tapAgreeButton();
