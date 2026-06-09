@@ -9,33 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.81.0]
 
-### Uncategorized
-
-- chore(release): sync stable to main for version 7.79.0 (#30828)
-- Bump assets controller v8.3.1 (#31063)
-- Updated the Sei native token icon to Sei's maroon token mark. (#31038)
-- chore: in development, show deposit and withdraw errors in money account (#30670)
-- Add migration 139 for asset state consolidation (#30681)
-- Updated the Sei network and token logo to Sei's new brand mark. (#30892)
-- Move to using the new RWAs endpoint in Explore (#30785)
-- Added token details closed event (#30792)
-- chore: nightly build external distributed (#30887)
-- Add gainers and losers section in Explore/Now (#30837)
-- Added a new Positions screen for Predict users to view active positions and history (#30718)
-- Bump assets controller v8.1.0 (#30836)
-- Improve crypto movers section in explore (#30809)
-- chore(release): sync stable to main for version 7.78.0 (#30807)
-- Remove explore search V1 (#30787)
-- Remove inconsistencies on token import flow (#30791)
-- Bump the `@metamask/tron-wallet-snap` to `^1.25.6` (#30200)
-- Bumped bitcoin snap v1.11.0 (#30705)
-- Track explore conversions in swaps (#30720)
-- chore(pure black): fix elevated surface token use background.alternative for first-level sheets (#30696)
-- Simplify explore v2 implementation (#30643)
-- Show even zero APY values on money home (#30630)
-- chore(release): sync stable to main for version 7.78.0 (#30568)
-- chore(pure-black): use background.section for bottom sheets that disappear against pure black (#30411)
-
 ### Added
 
 - Add Arc as Default Network (network/native logo + native price + multicall) (#30879)
@@ -106,6 +79,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   transaction fails.
 - Fixed order type bottom sheet dismissal incorrectly closing the order screen (#30561)
 - Refactored the Money onboarding stepper; created generic StepperCard and SegmentedProgressBar component (#30226)
+- Added token details closed event (#30792)
+- Add gainers and losers section in Explore/Now (#30837)
+- Added a new Positions screen for Predict users to view active positions and history (#30718)
+- Track explore conversions in swaps (#30720)
+
+
+### Changed
+- Updated the Sei native token icon to Sei's maroon token mark. (#31038)
+- Updated the Sei network and token logo to Sei's new brand mark. (#30892)
+- Improve crypto movers section in explore (#30809)
+- Show even zero APY values on money home (#30630)
+- chore(pure-black): use background.section for bottom sheets that disappear against pure black (#30411)
 
 ### Fixed
 
@@ -185,6 +170,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed screen transition from market detail to order entry to use horizontal push animation instead of vertical modal (#30572)
   animation
 - Dismiss AddWallet sheet before entering HW flow to fix post-connect navigation (#30623)
+- Remove inconsistencies on token import flow (#30791)
+- chore(pure black): fix elevated surface token use background.alternative for first-level sheets (#30696)
+
 ## [7.80.0]
 
 ### Added
