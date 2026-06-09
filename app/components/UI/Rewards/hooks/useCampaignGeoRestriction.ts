@@ -32,7 +32,6 @@ const useCampaignGeoRestriction = (
     geolocationStatus === 'idle';
 
   const isGeoRestricted = useMemo(() => {
-    if (__DEV__) return false;
     if (isFeatureGeoRestricted) return true;
     if (isGeoLoading) return true;
     const country = geolocation?.toUpperCase().split('-')[0];
