@@ -455,6 +455,12 @@ function hasMatchingBatchTransaction(
   );
 }
 
+function hasAnyBatchTransaction(batchId: string): boolean {
+  return getTransactions().some(
+    (tx: TransactionMeta) => tx.batchId === batchId,
+  );
+}
+
 function getApprovedBatchTransactionIds(
   batchId: string,
   targetFrom: string,
@@ -1013,7 +1019,8 @@ export function useHwBatchSignTracker({
         } else if (
           request.type === ApprovalType.TransactionBatch &&
           isBatchIdFromCurrentBatch(requestId) &&
-          hasMatchingBatchTransaction(requestId, targetFrom)
+          (hasMatchingBatchTransaction(requestId, targetFrom) ||
+            !hasAnyBatchTransaction(requestId))
         ) {
           trackerState.acceptedApprovalIds.add(requestId);
           getApprovedBatchTransactionIds(requestId, targetFrom).forEach(

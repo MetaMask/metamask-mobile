@@ -1719,19 +1719,63 @@ describe('useHwBatchSignTracker', () => {
       expect(mockAcceptRequest).not.toHaveBeenCalled();
     });
 
-    it('accepts pending transaction_batch approvals when matching transactions arrive later', async () => {
-      const batchId = 'batch-delayed-transaction-001';
-      const matchingTx = matchingBatchTx(batchId);
+    it('accepts transaction_batch approval when no transactions exist yet (batch hook path)', async () => {
+      const batchId = 'batch-hook-path-001';
+      setMockPendingApprovals({
+        [batchId]: { id: batchId, type: ApprovalType.TransactionBatch },
+      });
+      setMockTransactions([]);
+
+      renderEnabledHook();
+
+      await waitFor(() => {
+        expect(mockExecuteHardwareWalletOperation).toHaveBeenCalledWith(
+          expect.objectContaining({
+            address: FROM_ADDRESS,
+            operationType: 'transaction',
+            execute: expect.any(Function),
+          }),
+        );
+      });
+      expect(mockAcceptRequest).toHaveBeenCalledWith(batchId, undefined, {
+        waitForResult: true,
+      });
+    });
+
+    it('does not accept transaction_batch approval when transactions exist from a different address', async () => {
+      const batchId = 'batch-hook-different-addr-001';
+      setMockTransactions([
+        txMeta({
+          id: 'tx-diff-addr-001',
+          type: TransactionType.bridgeApproval,
+          status: TransactionStatus.approved,
+          batchId,
+          txParams: {
+            from: '0xdifferentAddress0000000000000000000000000',
+          },
+        }),
+      ]);
       setMockPendingApprovals({
         [batchId]: { id: batchId, type: ApprovalType.TransactionBatch },
       });
 
       renderEnabledHook();
 
-      expect(mockExecuteHardwareWalletOperation).not.toHaveBeenCalled();
+      await act(async () => {
+        await getApprovalHandler()();
+      });
 
-      setMockTransactions([matchingTx]);
-      fireTxEvent(matchingTx);
+      expect(mockExecuteHardwareWalletOperation).not.toHaveBeenCalled();
+      expect(mockAcceptRequest).not.toHaveBeenCalled();
+    });
+
+    it('accepts pending transaction_batch approvals immediately when no transactions exist yet', async () => {
+      const batchId = 'batch-delayed-transaction-001';
+      setMockPendingApprovals({
+        [batchId]: { id: batchId, type: ApprovalType.TransactionBatch },
+      });
+
+      renderEnabledHook();
 
       await waitFor(() => {
         expect(mockExecuteHardwareWalletOperation).toHaveBeenCalledWith(

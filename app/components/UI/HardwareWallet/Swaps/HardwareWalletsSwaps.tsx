@@ -172,6 +172,14 @@ export function HardwareWalletsSwaps() {
     (routeParams as { submissionParams?: SubmissionParams })
       ?.submissionParams ?? null,
   );
+  useEffect(() => {
+    const routeSubmissionParams = (
+      routeParams as { submissionParams?: SubmissionParams }
+    )?.submissionParams;
+    if (routeSubmissionParams && !cachedSubmissionParams.current) {
+      cachedSubmissionParams.current = routeSubmissionParams;
+    }
+  }, [routeParams]);
   const toastRef = useContext(ToastContext)?.toastRef;
   const hasAutoNavigatedRef = useRef(false);
   const hasInitialSubmissionRef = useRef(false);
@@ -250,6 +258,9 @@ export function HardwareWalletsSwaps() {
     navigateToTransactions();
   }, [allStepsSigned, navigateToTransactions]);
 
+  const submitBridgeTxRef = useRef(submitBridgeTx);
+  submitBridgeTxRef.current = submitBridgeTx;
+
   const submitWithDeviceReady = useCallback(async () => {
     if (!cachedSubmissionParams.current) {
       dispatch(
@@ -269,7 +280,7 @@ export function HardwareWalletsSwaps() {
     }
     const myGeneration = submissionGenerationRef.current;
     try {
-      await submitBridgeTx(cachedSubmissionParams.current);
+      await submitBridgeTxRef.current(cachedSubmissionParams.current);
     } catch (error) {
       if (submissionGenerationRef.current !== myGeneration) {
         return;
@@ -290,13 +301,13 @@ export function HardwareWalletsSwaps() {
         );
       }
     }
-  }, [dispatch, submitBridgeTx, walletAddress]);
+  }, [dispatch, walletAddress]);
 
   useEffect(() => {
     if (progress.status !== HardwareWalletsSwapsStatus.Waiting) return;
     if (hasInitialSubmissionRef.current) return;
     if (hasAutoNavigatedRef.current) return;
-    if (!cachedSubmissionParams) {
+    if (!cachedSubmissionParams.current) {
       dispatch(
         updateHardwareWalletsSwaps({
           type: HardwareWalletsSwapsEventType.TransactionFailed,

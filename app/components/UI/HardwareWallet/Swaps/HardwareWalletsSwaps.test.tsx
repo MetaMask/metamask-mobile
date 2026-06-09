@@ -42,7 +42,7 @@ jest.mock(
 );
 
 const mockCancelCurrentBatch = jest.fn();
-jest.mock('../../Bridge/hooks/useHwBatchSignTracker', () => ({
+jest.mock('./useHwBatchSignTracker', () => ({
   useHwBatchSignTracker: () => ({
     cancelCurrentBatch: mockCancelCurrentBatch,
     confirmationTxId: undefined,
@@ -184,9 +184,7 @@ function makeQuote(minDestTokenAmount: string) {
   } as any;
 }
 
-function getCachedParams(
-  minDestTokenAmount: string = '1000',
-): {
+function getCachedParams(minDestTokenAmount: string = '1000'): {
   quoteResponse: any;
   location: undefined;
   transactionActiveAbTests: undefined;
