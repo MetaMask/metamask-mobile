@@ -80,15 +80,12 @@ const createTransactionEventHandler =
         .addSensitiveProperties(event.sensitiveProperties)
         .build();
 
-      // Cast needed until @metamask/analytics-controller removes saveDataRecording from its AnalyticsTrackingEvent
-      (
-        transactionEventHandlerRequest.initMessenger as {
-          call: (
-            action: 'AnalyticsController:trackEvent',
-            event: typeof analyticsEvent,
-          ) => void;
-        }
-      ).call('AnalyticsController:trackEvent', analyticsEvent);
+      transactionEventHandlerRequest.initMessenger.call(
+        'AnalyticsController:trackEvent',
+        // The @metamask/analytics-controller package type still carries
+        // saveDataRecording until the package drops it; cast until then.
+        analyticsEvent as never,
+      );
     } catch (error) {
       log('Error in transaction event handler', error);
     }
@@ -155,15 +152,12 @@ export async function handleTransactionFinalizedEventForMetrics(
       .addSensitiveProperties(event.sensitiveProperties)
       .build();
 
-    // Cast needed until @metamask/analytics-controller removes saveDataRecording from its AnalyticsTrackingEvent
-    (
-      transactionEventHandlerRequest.initMessenger as {
-        call: (
-          action: 'AnalyticsController:trackEvent',
-          event: typeof analyticsEvent,
-        ) => void;
-      }
-    ).call('AnalyticsController:trackEvent', analyticsEvent);
+    transactionEventHandlerRequest.initMessenger.call(
+      'AnalyticsController:trackEvent',
+      // The @metamask/analytics-controller package type still carries
+      // saveDataRecording until the package drops it; cast until then.
+      analyticsEvent as never,
+    );
   } catch (error) {
     log('Error in finalized transaction event handler', error);
   }

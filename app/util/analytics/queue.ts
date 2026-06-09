@@ -125,7 +125,12 @@ const executeQueuedOperation = (
   switch (action) {
     case 'trackEvent': {
       const [event] = args as [AnalyticsTrackingEvent];
-      messengerInstance.call('AnalyticsController:trackEvent', event);
+      messengerInstance.call(
+        'AnalyticsController:trackEvent',
+        // The @metamask/analytics-controller package type still carries
+        // saveDataRecording until the package drops it; cast until then.
+        event as never,
+      );
       break;
     }
     case 'trackView': {

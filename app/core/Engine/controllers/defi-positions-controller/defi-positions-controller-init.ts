@@ -6,7 +6,10 @@ import type { MessengerClientInitFunction } from '../../types';
 import { DeFiPositionsControllerInitMessenger } from '../../messengers/defi-positions-controller-messenger/defi-positions-controller-messenger';
 import { store } from '../../../../store';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
-import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
+import {
+  AnalyticsEventBuilder,
+  type AnalyticsTrackingEvent,
+} from '../../../../util/analytics/AnalyticsEventBuilder';
 import {
   DEFAULT_FEATURE_FLAG_VALUES,
   FeatureFlagNames,
@@ -51,7 +54,15 @@ export const defiPositionsControllerInit: MessengerClientInitFunction<
           .addProperties(params.properties)
           .build();
 
-        initMessenger.call('AnalyticsController:trackEvent', event);
+        // Cast needed until @metamask/analytics-controller removes saveDataRecording from its AnalyticsTrackingEvent
+        (
+          initMessenger as unknown as {
+            call: (
+              action: 'AnalyticsController:trackEvent',
+              event: AnalyticsTrackingEvent,
+            ) => void;
+          }
+        ).call('AnalyticsController:trackEvent', event);
       } catch (error) {
         // Analytics tracking failures should not break DeFi positions functionality
         // Error is logged but not thrown

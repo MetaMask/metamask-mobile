@@ -54,7 +54,6 @@ describe('useABTest', () => {
                   : event.name,
             properties,
             sensitiveProperties: {},
-            saveDataRecording: true,
           }),
         }),
       }),

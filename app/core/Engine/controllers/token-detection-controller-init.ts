@@ -6,7 +6,10 @@ import {
 } from '@metamask/assets-controllers';
 import { TokenDetectionControllerInitMessenger } from '../messengers/token-detection-controller-messenger';
 import { MetaMetricsEvents } from '../../Analytics';
-import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import {
+  AnalyticsEventBuilder,
+  type AnalyticsTrackingEvent,
+} from '../../../util/analytics/AnalyticsEventBuilder';
 import { getDecimalChainId } from '../../../util/networks';
 import { getGlobalChainId } from '../../../util/networks/global-network';
 import { selectUseTokenDetection } from '../../../selectors/preferencesController';
@@ -65,7 +68,15 @@ export const tokenDetectionControllerInit: MessengerClientInitFunction<
           })
           .build();
 
-        initMessenger.call('AnalyticsController:trackEvent', event);
+        // Cast needed until @metamask/analytics-controller removes saveDataRecording from its AnalyticsTrackingEvent
+        (
+          initMessenger as unknown as {
+            call: (
+              action: 'AnalyticsController:trackEvent',
+              event: AnalyticsTrackingEvent,
+            ) => void;
+          }
+        ).call('AnalyticsController:trackEvent', event);
       } catch (error) {
         // Analytics tracking failures should not break token detection
         // Error is logged but not thrown

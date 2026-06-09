@@ -56,7 +56,6 @@ describe('createAnalyticsQueueManager', () => {
         name: 'test_event',
         properties: {},
         sensitiveProperties: {},
-        saveDataRecording: false,
         get isAnonymous(): boolean {
           return false;
         },
@@ -92,7 +91,6 @@ describe('createAnalyticsQueueManager', () => {
         name: 'test_event',
         properties: { prop1: 'value1' },
         sensitiveProperties: {},
-        saveDataRecording: false,
         get isAnonymous(): boolean {
           return false;
         },
@@ -117,7 +115,6 @@ describe('createAnalyticsQueueManager', () => {
         name: 'event1',
         properties: {},
         sensitiveProperties: {},
-        saveDataRecording: false,
         get isAnonymous(): boolean {
           return false;
         },
@@ -130,7 +127,6 @@ describe('createAnalyticsQueueManager', () => {
         name: 'event2',
         properties: {},
         sensitiveProperties: {},
-        saveDataRecording: false,
         get isAnonymous(): boolean {
           return false;
         },
@@ -244,7 +240,6 @@ describe('createAnalyticsQueueManager', () => {
         name: 'event1',
         properties: {},
         sensitiveProperties: {},
-        saveDataRecording: false,
         get isAnonymous(): boolean {
           return false;
         },
@@ -257,7 +252,6 @@ describe('createAnalyticsQueueManager', () => {
         name: 'event2',
         properties: {},
         sensitiveProperties: {},
-        saveDataRecording: false,
         get isAnonymous(): boolean {
           return false;
         },
@@ -289,7 +283,6 @@ describe('createAnalyticsQueueManager', () => {
         name: 'test_event',
         properties: {},
         sensitiveProperties: {},
-        saveDataRecording: false,
         get isAnonymous(): boolean {
           return false;
         },
@@ -314,7 +307,6 @@ describe('createAnalyticsQueueManager', () => {
         name: 'test_event',
         properties: {},
         sensitiveProperties: {},
-        saveDataRecording: false,
         get isAnonymous(): boolean {
           return false;
         },
@@ -349,7 +341,6 @@ describe('createAnalyticsQueueManager', () => {
         name: 'test_event',
         properties: {},
         sensitiveProperties: {},
-        saveDataRecording: false,
         get isAnonymous(): boolean {
           return false;
         },
@@ -383,7 +374,6 @@ describe('createAnalyticsQueueManager', () => {
         name: 'test_event',
         properties: {},
         sensitiveProperties: {},
-        saveDataRecording: false,
         get isAnonymous(): boolean {
           return false;
         },
@@ -415,7 +405,6 @@ describe('createAnalyticsQueueManager', () => {
         name: 'test_event',
         properties: {},
         sensitiveProperties: {},
-        saveDataRecording: false,
         get isAnonymous(): boolean {
           return false;
         },
@@ -444,7 +433,6 @@ describe('createAnalyticsQueueManager', () => {
         name: 'test_event',
         properties: {},
         sensitiveProperties: {},
-        saveDataRecording: false,
         get isAnonymous(): boolean {
           return false;
         },
@@ -487,7 +475,6 @@ describe('createAnalyticsQueueManager', () => {
         name: 'test_event',
         properties: {},
         sensitiveProperties: {},
-        saveDataRecording: false,
         get isAnonymous(): boolean {
           return false;
         },
@@ -518,7 +505,6 @@ describe('createAnalyticsQueueManager', () => {
           name: `event${i}`,
           properties: {},
           sensitiveProperties: {},
-          saveDataRecording: false,
           get isAnonymous(): boolean {
             return false;
           },
@@ -541,7 +527,6 @@ describe('createAnalyticsQueueManager', () => {
         name: 'event1',
         properties: {},
         sensitiveProperties: {},
-        saveDataRecording: false,
         get isAnonymous(): boolean {
           return false;
         },
@@ -554,7 +539,6 @@ describe('createAnalyticsQueueManager', () => {
         name: 'event2',
         properties: {},
         sensitiveProperties: {},
-        saveDataRecording: false,
         get isAnonymous(): boolean {
           return false;
         },
@@ -567,7 +551,6 @@ describe('createAnalyticsQueueManager', () => {
         name: 'event3',
         properties: {},
         sensitiveProperties: {},
-        saveDataRecording: false,
         get isAnonymous(): boolean {
           return false;
         },
@@ -622,7 +605,6 @@ describe('createAnalyticsQueueManager', () => {
         name: 'test_event',
         properties: {},
         sensitiveProperties: {},
-        saveDataRecording: false,
         get isAnonymous(): boolean {
           return false;
         },

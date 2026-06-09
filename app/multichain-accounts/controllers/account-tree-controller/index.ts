@@ -40,10 +40,15 @@ export const accountTreeControllerInit: MessengerClientInitFunction<
               .addProperties(event)
               .build();
 
-            initMessenger.call(
-              'AnalyticsController:trackEvent',
-              analyticsEvent,
-            );
+            // Cast needed until @metamask/analytics-controller removes saveDataRecording from its AnalyticsTrackingEvent
+            (
+              initMessenger as unknown as {
+                call: (
+                  action: 'AnalyticsController:trackEvent',
+                  event: typeof analyticsEvent,
+                ) => void;
+              }
+            ).call('AnalyticsController:trackEvent', analyticsEvent);
           } catch (error) {
             // Analytics tracking failures should not break account tree functionality
             // Error is logged but not thrown
