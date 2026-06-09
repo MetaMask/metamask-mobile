@@ -11,18 +11,15 @@ import {
   IconName,
   IconSize,
   IconColor,
+  AvatarToken,
+  AvatarTokenSize,
+  AvatarNetwork,
+  AvatarNetworkSize,
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import AvatarToken from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import AvatarNetwork from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
-import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../../component-library/components/Badges/BadgeWrapper';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../../component-library/components/Badges/Badge';
-import { NetworkBadgeSource } from '../../../../AssetOverview/Balance/Balance';
 import { buildTokenIconUrl } from '../../../util/buildTokenIconUrl';
 import { LINEA_CAIP_CHAIN_ID } from '../../../util/buildTokenList';
 import { safeFormatChainIdToHex } from '../../../util/safeFormatChainIdToHex';
@@ -73,6 +70,10 @@ const AssetCard: React.FC<AssetCardProps> = ({
       ? buildTokenIconUrl(resolvedChainId, resolvedTokenAddress)
       : null;
 
+  const networkImage = getNetworkImageSource({
+    chainId: safeFormatChainIdToHex(resolvedChainId) as `0x${string}`,
+  });
+
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -91,21 +92,16 @@ const AssetCard: React.FC<AssetCardProps> = ({
       >
         {!isOther && iconUrl && (
           <BadgeWrapper
-            badgePosition={BadgePosition.BottomRight}
+            position={BadgeWrapperPosition.BottomRight}
             style={tw.style('self-center')}
-            badgeElement={
-              <Badge
-                variant={BadgeVariant.Network}
-                imageSource={NetworkBadgeSource(
-                  safeFormatChainIdToHex(resolvedChainId) as `0x${string}`,
-                )}
-              />
-            }
+            badgeContainerProps={{ testID: 'badge-wrapper-badge' }}
+            badge={networkImage ? <BadgeNetwork src={networkImage} /> : null}
           >
             <AvatarToken
               name={symbol}
-              imageSource={{ uri: iconUrl }}
-              size={AvatarSize.Sm}
+              src={{ uri: iconUrl }}
+              size={AvatarTokenSize.Sm}
+              testID="token-avatar-image"
             />
           </BadgeWrapper>
         )}
@@ -115,17 +111,17 @@ const AssetCard: React.FC<AssetCardProps> = ({
             alignItems={BoxAlignItems.Center}
           >
             <AvatarNetwork
-              size={AvatarSize.Sm}
+              size={AvatarNetworkSize.Sm}
               name="Base"
-              imageSource={getNetworkImageSource({
+              src={getNetworkImageSource({
                 chainId: cardNetworkInfos.base.caipChainId,
               })}
               style={tw.style('rounded-full overflow-hidden')}
             />
             <AvatarNetwork
-              size={AvatarSize.Sm}
+              size={AvatarNetworkSize.Sm}
               name="Solana"
-              imageSource={getNetworkImageSource({
+              src={getNetworkImageSource({
                 chainId: cardNetworkInfos.solana.caipChainId,
               })}
               style={tw.style('-ml-2 rounded-full overflow-hidden')}

@@ -5,10 +5,8 @@ import { useQuickBuyController } from './hooks/useQuickBuyController';
 import { positionToQuickBuyTarget } from './types';
 import { selectDefaultSourceToken } from '../../../utils/tokenSelection';
 import { useQuickBuySetup } from './hooks/useQuickBuySetup';
-import {
-  useSourceTokenOptions,
-  useSellDestTokenOptions,
-} from './hooks/useSourceTokenOptions';
+import { usePayWithTokens } from './hooks/usePayWithTokens';
+import { useReceiveTokens } from './hooks/useReceiveTokens';
 import { usePositionTokenBalance } from './hooks/usePositionTokenBalance';
 import {
   useQuickBuyQuotes,
@@ -87,9 +85,12 @@ jest.mock('./hooks/useQuickBuySetup', () => ({
   useQuickBuySetup: jest.fn(),
 }));
 
-jest.mock('./hooks/useSourceTokenOptions', () => ({
-  useSourceTokenOptions: jest.fn(),
-  useSellDestTokenOptions: jest.fn().mockReturnValue([]),
+jest.mock('./hooks/usePayWithTokens', () => ({
+  usePayWithTokens: jest.fn(),
+}));
+
+jest.mock('./hooks/useReceiveTokens', () => ({
+  useReceiveTokens: jest.fn().mockReturnValue([]),
 }));
 
 jest.mock('./hooks/usePositionTokenBalance', () => ({
@@ -307,6 +308,15 @@ const createActiveQuote = (
       srcTokenAmount: '10000000000000000',
       ...((overrides.quote as Record<string, unknown> | undefined) ?? {}),
     },
+    // The full wallet deduction (routing amount + src-token fees), in decimal
+    // token units. 0.01 ETH matches the $20 / $2000 amount the disabled-state
+    // tests enter, and is what `isActiveQuoteForCurrentAmount` compares against
+    // (not the post-fee `quote.srcTokenAmount`, which lags for gas-included
+    // quotes).
+    sentAmount: {
+      amount: '0.01',
+      ...((overrides.sentAmount as Record<string, unknown> | undefined) ?? {}),
+    },
     totalNetworkFee: {
       amount: '0.0001',
       ...((overrides.totalNetworkFee as Record<string, unknown> | undefined) ??
@@ -358,9 +368,9 @@ const setupDefaultMocks = () => {
     isUnsupportedChain: false,
   });
 
-  (useSellDestTokenOptions as jest.Mock).mockReturnValue([]);
+  (useReceiveTokens as jest.Mock).mockReturnValue([]);
   (usePositionTokenBalance as jest.Mock).mockReturnValue(undefined);
-  (useSourceTokenOptions as jest.Mock).mockReturnValue({
+  (usePayWithTokens as jest.Mock).mockReturnValue({
     options: [createSourceToken()],
     isLoading: false,
   });
@@ -455,7 +465,7 @@ describe('useQuickBuyController', () => {
         atomicBalance: '100000000',
       });
       const sourceWithRate = createSourceToken({ currencyExchangeRate: 1 });
-      (useSourceTokenOptions as jest.Mock).mockReturnValue({
+      (usePayWithTokens as jest.Mock).mockReturnValue({
         options: [sourceWithRate],
       });
 
@@ -485,7 +495,7 @@ describe('useQuickBuyController', () => {
         atomicBalance: '100000000',
       });
       const sourceWithRate = createSourceToken({ currencyExchangeRate: 1 });
-      (useSourceTokenOptions as jest.Mock).mockReturnValue({
+      (usePayWithTokens as jest.Mock).mockReturnValue({
         options: [sourceWithRate],
       });
 
@@ -507,7 +517,7 @@ describe('useQuickBuyController', () => {
         atomicBalance: '100000000',
       });
       const sourceWithRate = createSourceToken({ currencyExchangeRate: 1 });
-      (useSourceTokenOptions as jest.Mock).mockReturnValue({
+      (usePayWithTokens as jest.Mock).mockReturnValue({
         options: [sourceWithRate],
       });
 
@@ -533,7 +543,7 @@ describe('useQuickBuyController', () => {
         atomicBalance: '100000000',
       });
       const sourceWithRate = createSourceToken({ currencyExchangeRate: 1 });
-      (useSourceTokenOptions as jest.Mock).mockReturnValue({
+      (usePayWithTokens as jest.Mock).mockReturnValue({
         options: [sourceWithRate],
       });
 
@@ -560,7 +570,7 @@ describe('useQuickBuyController', () => {
         atomicBalance: '100000000',
       });
       const sourceWithRate = createSourceToken({ currencyExchangeRate: 1 });
-      (useSourceTokenOptions as jest.Mock).mockReturnValue({
+      (usePayWithTokens as jest.Mock).mockReturnValue({
         options: [sourceWithRate],
       });
 
@@ -592,7 +602,7 @@ describe('useQuickBuyController', () => {
         address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
         currencyExchangeRate: 1,
       });
-      (useSourceTokenOptions as jest.Mock).mockReturnValue({
+      (usePayWithTokens as jest.Mock).mockReturnValue({
         options: [usdc, usdt],
       });
 
@@ -766,7 +776,7 @@ describe('useQuickBuyController', () => {
     });
 
     it('is disabled when the source token is missing even if a quote exists', () => {
-      (useSourceTokenOptions as jest.Mock).mockReturnValue({
+      (usePayWithTokens as jest.Mock).mockReturnValue({
         options: [],
         isLoading: false,
       });
@@ -870,6 +880,104 @@ describe('useQuickBuyController', () => {
 
       quoteState.isQuoteLoading = false;
       quoteState.activeQuote = createActiveQuote();
+      rerender(props);
+      rerender(props);
+
+      expect(result.current.isConfirmDisabled).toBe(false);
+    });
+
+    it('enables the CTA on the same render the loader clears when the quote arrives', () => {
+      const quoteState: UseQuickBuyQuotesResult = {
+        activeQuote: undefined,
+        destTokenAmount: undefined,
+        isQuoteLoading: false,
+        isNoQuotesAvailable: false,
+        quoteFetchError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
+        sortedQuotes: [],
+        quoteCount: 0,
+        quotesLastFetchedAt: null,
+        refreshCount: 0,
+        quoteRefreshRateMs: 30000,
+        maxRefreshCount: 5,
+        refetchQuotes: jest.fn(),
+      };
+
+      (useQuickBuyQuotes as jest.Mock).mockImplementation(() => quoteState);
+
+      const props = {
+        target: createTarget(),
+        onClose: jest.fn(),
+      };
+      const { result, rerender } = renderHook(
+        ({ target, onClose }) => useQuickBuyController(target, onClose),
+        { initialProps: props },
+      );
+
+      act(() => {
+        result.current.handleAmountChange('20');
+      });
+
+      quoteState.isQuoteLoading = true;
+      rerender(props);
+
+      expect(result.current.isBlockingQuoteLoad).toBe(true);
+      expect(result.current.isConfirmDisabled).toBe(true);
+
+      // A single render with the matching quote both clears the loader and
+      // enables the CTA — no extra render needed (regression: the button used to
+      // lag the loader by a render because settling lived in a post-commit ref).
+      quoteState.isQuoteLoading = false;
+      quoteState.activeQuote = createActiveQuote();
+      rerender(props);
+
+      expect(result.current.isBlockingQuoteLoad).toBe(false);
+      expect(result.current.isConfirmDisabled).toBe(false);
+    });
+
+    it('enables the CTA for a gas-included quote whose srcTokenAmount is the post-fee amount', () => {
+      const quoteState: UseQuickBuyQuotesResult = {
+        activeQuote: undefined,
+        destTokenAmount: undefined,
+        isQuoteLoading: false,
+        isNoQuotesAvailable: false,
+        quoteFetchError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
+        sortedQuotes: [],
+        quoteCount: 0,
+        quotesLastFetchedAt: null,
+        refreshCount: 0,
+        quoteRefreshRateMs: 30000,
+        maxRefreshCount: 5,
+        refetchQuotes: jest.fn(),
+      };
+      (useQuickBuyQuotes as jest.Mock).mockImplementation(() => quoteState);
+
+      const props = {
+        target: createTarget(),
+        onClose: jest.fn(),
+      };
+      const { result, rerender } = renderHook(
+        ({ target, onClose }) => useQuickBuyController(target, onClose),
+        { initialProps: props },
+      );
+
+      act(() => {
+        result.current.handleAmountChange('20');
+      });
+      quoteState.isQuoteLoading = true;
+      rerender(props);
+      quoteState.isQuoteLoading = false;
+      // Requested amount is 0.01 ETH ($20 / $2000). For a gas-included quote the
+      // bridge deducts the fee from the routing amount, so quote.srcTokenAmount
+      // comes back smaller than requested (0.009 here). sentAmount adds the fee
+      // back, reconstructing the requested 0.01 — that is what must be matched.
+      quoteState.activeQuote = createActiveQuote({
+        quote: { srcTokenAmount: '9000000000000000' },
+        sentAmount: { amount: '0.01' },
+      });
       rerender(props);
       rerender(props);
 
@@ -1021,10 +1129,15 @@ describe('useQuickBuyController', () => {
       quoteState.isQuoteLoading = true;
       rerender(props);
       quoteState.isQuoteLoading = false;
-      // Inject a high-price-impact active quote.
+      // Inject a high-price-impact active quote. The spread keeps the default
+      // sentAmount (0.01) so the quote still matches the requested amount
+      // (isPendingQuoteRefresh = false).
       quoteState.activeQuote = {
         ...createActiveQuote(),
-        quote: { priceData: { priceImpact: '0.30' } },
+        quote: {
+          srcTokenAmount: '10000000000000000',
+          priceData: { priceImpact: '0.30' },
+        },
       } as never;
       rerender(props);
       rerender(props);
@@ -1178,7 +1291,7 @@ describe('useQuickBuyController', () => {
     it('auto-selects the first option when options load (legacy — native on dest chain matches priority 1)', () => {
       const firstToken = createSourceToken({ symbol: 'ETH' });
 
-      (useSourceTokenOptions as jest.Mock).mockReturnValue({
+      (usePayWithTokens as jest.Mock).mockReturnValue({
         options: [firstToken, createSourceToken({ symbol: 'USDC' })],
         isLoading: false,
       });
@@ -1221,7 +1334,7 @@ describe('useQuickBuyController', () => {
         isUnsupportedChain: false,
       });
 
-      (useSourceTokenOptions as jest.Mock).mockReturnValue({
+      (usePayWithTokens as jest.Mock).mockReturnValue({
         options: [ethOnMainnet, usdcOnMainnet],
         isLoading: false,
       });
@@ -1291,7 +1404,7 @@ describe('useQuickBuyController', () => {
         isUnsupportedChain: false,
       });
 
-      (useSourceTokenOptions as jest.Mock).mockReturnValue({
+      (usePayWithTokens as jest.Mock).mockReturnValue({
         options: [usdcOnSolana, solNative],
         isLoading: false,
       });
