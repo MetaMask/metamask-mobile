@@ -126,6 +126,8 @@ export interface CrosshairData {
   volume?: number;
 }
 
+export type ChartRangeSettlePayload = undefined;
+
 /**
  * Chart type constants matching TradingView SeriesType.
  * Uses as-const object instead of enum to avoid numeric enum pitfalls
@@ -228,7 +230,8 @@ export type RNToWebViewMessageType =
   | 'SET_MA_VISIBILITY'
   | 'SET_THEME_COLORS'
   | 'FOCUS_TIME'
-  | 'PULSE_TRADE_MARKER';
+  | 'PULSE_TRADE_MARKER'
+  | 'FETCH_OLDER_BARS_RESPONSE';
 
 export type WebViewToRNMessageType =
   | 'CHART_READY'
@@ -239,7 +242,8 @@ export type WebViewToRNMessageType =
   | 'CROSSHAIR_MOVE'
   | 'TRADE_MARKER_PRESSED'
   | 'ERROR'
-  | 'DEBUG';
+  | 'DEBUG'
+  | 'FETCH_OLDER_BARS_REQUEST';
 
 export interface OHLCVPaginationConfig {
   nextCursor: string | null;
@@ -253,6 +257,11 @@ export interface SetOHLCVDataPayload {
   /** When provided, the WebView fetches older pages directly instead of round-tripping via RN. */
   pagination?: OHLCVPaginationConfig;
   /**
+   * When enabled, the WebView sends FETCH_OLDER_BARS_REQUEST to RN for older history instead
+   * of fetching the Price API directly. Used by Perps whose candle data comes from PerpsController.
+   */
+  rnBackedPagination?: { enabled: boolean };
+  /**
    * Expected visible-range start as a Unix timestamp in **milliseconds**.
    * When set, the WebView calls `chart.setVisibleRange()` after `resetData()`
    * so only the requested period (1H, 1D, 1W, 1M, 1Y) is shown initially —
@@ -265,6 +274,34 @@ export interface SetOHLCVDataPayload {
    * the intended window instead of defaulting to `Date.now()`.
    */
   visibleToMs?: number;
+}
+
+/**
+ * Payload sent from the WebView to RN when TradingView's getBars needs bars
+ * older than the current window. RN fetches from the appropriate data source
+ * (e.g. Perps candle channel) and responds with FETCH_OLDER_BARS_RESPONSE.
+ */
+export interface FetchOlderBarsRequest {
+  requestId: string;
+  seriesGeneration: number;
+  symbol: string;
+  resolution: string;
+  fromSec: number;
+  toSec: number;
+  countBack?: number;
+  oldestLoadedTimeMs: number;
+}
+
+/**
+ * RN response to a FETCH_OLDER_BARS_REQUEST. The WebView merges returned bars
+ * into window.ohlcvData and resolves the pending getBars callback.
+ */
+export interface FetchOlderBarsResponse {
+  requestId: string;
+  seriesGeneration: number;
+  bars: OHLCVBar[];
+  noData?: boolean;
+  error?: string;
 }
 
 export interface AddIndicatorPayload {
@@ -371,7 +408,8 @@ export type RNToWebViewMessage =
   | { type: 'SET_MA_VISIBILITY'; payload: SetMAVisibilityPayload }
   | { type: 'SET_THEME_COLORS'; payload: SetThemeColorsPayload }
   | { type: 'FOCUS_TIME'; payload: FocusTimePayload }
-  | { type: 'PULSE_TRADE_MARKER'; payload: PulseTradeMarkerPayload };
+  | { type: 'PULSE_TRADE_MARKER'; payload: PulseTradeMarkerPayload }
+  | { type: 'FETCH_OLDER_BARS_RESPONSE'; payload: FetchOlderBarsResponse };
 
 export interface IndicatorAddedPayload {
   name: IndicatorType;
@@ -413,7 +451,8 @@ export type WebViewToRNMessage =
   | { type: 'CHART_INTERACTED'; payload: ChartInteractedPayload }
   | { type: 'CHART_TRADINGVIEW_CLICKED'; payload?: { url?: string } }
   | { type: 'ERROR'; payload: ErrorPayload }
-  | { type: 'DEBUG'; payload: { message: string } };
+  | { type: 'DEBUG'; payload: { message: string } }
+  | { type: 'FETCH_OLDER_BARS_REQUEST'; payload: FetchOlderBarsRequest };
 
 // ============================================
 // Message parsing / runtime narrowing
@@ -421,6 +460,16 @@ export type WebViewToRNMessage =
 
 function isIndicatorType(value: unknown): value is IndicatorType {
   return typeof value === 'string' && value.length > 0;
+}
+
+function getOptionalNumber(
+  obj: Record<string, unknown>,
+  key: string,
+): number | undefined {
+  const value = obj[key];
+  return typeof value === 'number' && Number.isFinite(value)
+    ? value
+    : undefined;
 }
 
 /**
@@ -519,6 +568,42 @@ export function parseWebViewMessage(raw: unknown): WebViewToRNMessage | null {
       }
       return null;
 
+    case 'FETCH_OLDER_BARS_REQUEST': {
+      const requestId =
+        typeof obj.requestId === 'string' ? obj.requestId : null;
+      const seriesGeneration = getOptionalNumber(obj, 'seriesGeneration');
+      const symbol = typeof obj.symbol === 'string' ? obj.symbol : '';
+      const resolution =
+        typeof obj.resolution === 'string' ? obj.resolution : '';
+      const fromSec = getOptionalNumber(obj, 'fromSec');
+      const toSec = getOptionalNumber(obj, 'toSec');
+      const oldestLoadedTimeMs = getOptionalNumber(obj, 'oldestLoadedTimeMs');
+      if (
+        requestId === null ||
+        seriesGeneration === undefined ||
+        fromSec === undefined ||
+        toSec === undefined ||
+        oldestLoadedTimeMs === undefined
+      ) {
+        return null;
+      }
+      return {
+        type,
+        payload: {
+          requestId,
+          seriesGeneration,
+          symbol,
+          resolution,
+          fromSec,
+          toSec,
+          ...(getOptionalNumber(obj, 'countBack') !== undefined
+            ? { countBack: getOptionalNumber(obj, 'countBack') }
+            : {}),
+          oldestLoadedTimeMs,
+        },
+      };
+    }
+
     default:
       return null;
   }
@@ -560,6 +645,20 @@ export interface AdvancedChartProps {
    * without round-tripping through RN.
    */
   ohlcvPagination?: OHLCVPaginationConfig;
+  /**
+   * When enabled, the WebView sends FETCH_OLDER_BARS_REQUEST to RN for older bars
+   * instead of fetching the Price API directly. Use for data sources (e.g. Perps)
+   * that are only accessible from RN, not from the WebView.
+   */
+  rnBackedPagination?: { enabled: boolean };
+  /**
+   * Handler for FETCH_OLDER_BARS_REQUEST messages from the WebView.
+   * RN should fetch older bars from the appropriate source and resolve with OHLCVBars.
+   * Only called when rnBackedPagination.enabled is true.
+   */
+  onFetchOlderBarsRequest?: (
+    req: FetchOlderBarsRequest,
+  ) => Promise<FetchOlderBarsResponse>;
 
   /** Active indicators to display (Token Details). Synced declaratively via useEffect. */
   indicators?: IndicatorType[];
