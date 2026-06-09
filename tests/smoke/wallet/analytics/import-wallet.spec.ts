@@ -116,6 +116,7 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
           seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
           password: IDENTITY_TEAM_PASSWORD,
           optInToMetrics: true,
+          optInToMarketing: true,
         });
       },
     );

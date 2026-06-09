@@ -71,6 +71,12 @@ class MetaMetricsOptIn {
     );
   }
 
+  get scrollViewIdentifier(): Promise<DetoxMatcher> {
+    return Matchers.getIdentifier(
+      MetaMetricsOptInSelectorsIDs.METAMETRICS_OPT_IN_CONTAINER_ID,
+    );
+  }
+
   async swipeContentUp(): Promise<void> {
     await encapsulatedAction({
       detox: async () => {
@@ -123,6 +129,13 @@ class MetaMetricsOptIn {
   }
 
   async tapMarketingCheckbox(): Promise<void> {
+    await Gestures.scrollToElement(
+      this.marketingCheckbox,
+      this.scrollViewIdentifier,
+      {
+        elemDescription: 'Opt-in Metrics Marketing Checkbox',
+      },
+    );
     await Gestures.waitAndTap(this.marketingCheckbox, {
       elemDescription: 'Opt-in Metrics Marketing Checkbox',
     });
