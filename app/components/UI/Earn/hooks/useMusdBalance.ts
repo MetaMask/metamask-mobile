@@ -20,7 +20,7 @@ import { formatWithThreshold } from '../../../../util/assets';
 import { selectMusdBalanceChainIds } from '../selectors/featureFlags';
 
 /**
- * Hook to get MUSD token balance across supported chains (Mainnet, Linea).
+ * Hook to get MUSD token balance across supported chains.
  * @returns Object containing:
  * - hasMusdBalanceOnAnyChain: true if the user has MUSD on any supported chain
  * - hasMusdBalanceOnChain: (chainId) => true if the user has MUSD on that chain

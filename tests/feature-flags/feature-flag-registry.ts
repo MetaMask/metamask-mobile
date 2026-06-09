@@ -3056,7 +3056,9 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     name: 'earnMusdBalanceChainIds',
     type: FeatureFlagType.Remote,
     inProd: true,
-    productionDefault: '0x1,0xe708,0x8f',
+    productionDefault: {
+      chainIds: ['0x1', '0xe708', '0x8f'],
+    },
     status: FeatureFlagStatus.Active,
   },
 

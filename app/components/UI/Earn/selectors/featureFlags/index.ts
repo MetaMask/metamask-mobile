@@ -10,7 +10,6 @@ import {
 } from '../../utils/wildcardTokenList';
 import { DEFAULT_MUSD_BLOCKED_COUNTRIES } from '../../constants/musd';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { parseCommaSeparatedString } from '../../utils';
 
 export const selectPooledStakingEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
@@ -333,8 +332,9 @@ export const selectMusdConversionMinAssetBalanceRequired = createSelector(
  * Used as the fallback when the remote flag is unavailable.
  */
 export const MUSD_TOKEN_REGISTRATION_CHAIN_IDS_FALLBACK = [
-  CHAIN_IDS.MAINNET, // Ethereum mainnet
-  CHAIN_IDS.LINEA_MAINNET, // Linea mainnet
+  CHAIN_IDS.MAINNET,
+  CHAIN_IDS.LINEA_MAINNET,
+  CHAIN_IDS.MONAD,
 ];
 
 /**
@@ -373,16 +373,12 @@ export const MUSD_BALANCE_CHAIN_IDS_FALLBACK = [
 export const selectMusdBalanceChainIds = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): string[] => {
-    const remoteFlag = remoteFeatureFlags?.earnMusdBalanceChainIds;
-    if (typeof remoteFlag === 'string' && remoteFlag.trim() !== '') {
-      const parsed = parseCommaSeparatedString(remoteFlag);
-      if (parsed.length > 0) return [...new Set(parsed)];
-    }
+    const remoteFlag = remoteFeatureFlags?.earnMusdBalanceChainIds as
+      | { chainIds?: string[] }
+      | undefined;
 
-    const envValue = process.env.MM_MONEY_MUSD_BALANCE_CHAIN_IDS;
-    if (envValue && envValue.trim() !== '') {
-      const parsed = parseCommaSeparatedString(envValue);
-      if (parsed.length > 0) return [...new Set(parsed)];
+    if (Array.isArray(remoteFlag?.chainIds)) {
+      return remoteFlag.chainIds;
     }
 
     return MUSD_BALANCE_CHAIN_IDS_FALLBACK;
