@@ -26,6 +26,8 @@ const mockClearSearchAndClose = jest.fn();
 const mockUsePredictFeedConfig = jest.fn();
 const mockUsePredictMarketList = jest.fn();
 const mockUsePredictSearch = jest.fn();
+const mockPredictMarketProps = jest.fn();
+const mockSearchOverlayProps = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -92,13 +94,12 @@ jest.mock('../../components/PredictMarket', () => {
   const { Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: ({
-      market,
-      testID,
-    }: {
-      market: { title?: string };
-      testID: string;
-    }) => <Text testID={testID}>{market.title ?? 'market'}</Text>,
+    default: (props: { market: { title?: string }; testID: string }) => {
+      mockPredictMarketProps(props);
+      return (
+        <Text testID={props.testID}>{props.market.title ?? 'market'}</Text>
+      );
+    },
   };
 });
 
@@ -118,8 +119,12 @@ jest.mock('../../components/PredictSearchOverlay', () => {
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: ({ isVisible }: { isVisible: boolean }) =>
-      isVisible ? <View testID="predict-feed-view-search-overlay" /> : null,
+    default: (props: { isVisible: boolean }) => {
+      mockSearchOverlayProps(props);
+      return props.isVisible ? (
+        <View testID="predict-feed-view-search-overlay" />
+      ) : null;
+    },
   };
 });
 
@@ -227,6 +232,28 @@ describe('PredictFeedView', () => {
     expect(mockUsePredictMarketList).toHaveBeenCalledWith(
       {},
       { enabled: true },
+    );
+  });
+
+  it('forwards transactionActiveAbTests from the route to market cards and the search overlay', () => {
+    const transactionActiveAbTests = [
+      { name: 'predict_test', variant: 'treatment' },
+    ];
+    mockRouteParams = { feedId: 'sports', transactionActiveAbTests };
+    mockUsePredictMarketList.mockReturnValue(
+      marketListResult({ markets: [createMarket('1', 'Lakers win')] }),
+    );
+    mockUsePredictSearch.mockReturnValue(
+      searchResult({ isSearchVisible: true }),
+    );
+
+    render(<PredictFeedView />);
+
+    expect(mockPredictMarketProps).toHaveBeenCalledWith(
+      expect.objectContaining({ transactionActiveAbTests }),
+    );
+    expect(mockSearchOverlayProps).toHaveBeenCalledWith(
+      expect.objectContaining({ transactionActiveAbTests }),
     );
   });
 

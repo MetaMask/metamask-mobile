@@ -52,6 +52,7 @@ const PredictFeedView: React.FC = () => {
     useRoute<RouteProp<PredictNavigationParamList, 'PredictFeed'>>();
   const { feedId, initialTabId, initialFilterId, entryPoint } =
     route.params ?? {};
+  const transactionActiveAbTests = route.params?.transactionActiveAbTests;
 
   const {
     status,
@@ -151,9 +152,10 @@ const PredictFeedView: React.FC = () => {
         entryPoint={entryPoint}
         testID={getPredictFeedViewSelector.marketCard(index + 1)}
         predictFeedTab={activeTabId}
+        transactionActiveAbTests={transactionActiveAbTests}
       />
     ),
-    [entryPoint, activeTabId],
+    [entryPoint, activeTabId, transactionActiveAbTests],
   );
 
   const keyExtractor = useCallback((item: PredictMarketType) => item.id, []);
@@ -288,6 +290,7 @@ const PredictFeedView: React.FC = () => {
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         onClose={clearSearchAndClose}
+        transactionActiveAbTests={transactionActiveAbTests}
       />
     </SafeAreaView>
   );
