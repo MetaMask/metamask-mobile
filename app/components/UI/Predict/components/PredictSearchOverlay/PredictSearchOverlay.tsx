@@ -73,14 +73,13 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
   const upDownEnabled = useSelector(selectPredictUpDownEnabledFlag);
   const refine = upDownEnabled ? deduplicateSeriesMarkets : undefined;
 
-  const { marketData, isFetching, error, refetch } = usePredictSearchMarketData(
-    {
+  const { marketData, totalResults, isFetching, error, refetch } =
+    usePredictSearchMarketData({
       q: debouncedSearchQuery,
       pageSize: 20,
       refine,
       enabled: isVisible,
-    },
-  );
+    });
 
   const isSearchLoading = isDebouncing || isFetching;
   const hasSearchQuery = debouncedSearchQuery.trim().length > 0;
@@ -112,14 +111,17 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
       predictFeedTab,
       entryPoint,
       searchQuery: q,
-      resultsCount: marketData?.length ?? 0,
+      // Report the server's total match count, not the visible page length.
+      // `marketData` is capped at `pageSize` and post-dedup, so it undercounts
+      // any query matching more results than the first page holds.
+      resultsCount: totalResults,
     });
   }, [
     isVisible,
     debouncedSearchQuery,
     isSearchLoading,
     error,
-    marketData,
+    totalResults,
     predictFeedTab,
     entryPoint,
   ]);

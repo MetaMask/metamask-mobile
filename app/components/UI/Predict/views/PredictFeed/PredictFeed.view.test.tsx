@@ -379,6 +379,40 @@ describe('PredictFeed', () => {
       searchMarketsSpy.mockRestore();
     });
 
+    it('reports the server total match count in the queried event, not the visible page length', async () => {
+      // Arrange — one market on the first page, but 42 matches server-side.
+      // `marketData.length` (1) must not be used as the result count.
+      const searchMarketsSpy = jest.spyOn(
+        Engine.context.PredictController,
+        'searchMarkets',
+      );
+      searchMarketsSpy.mockResolvedValue({
+        markets: [MOCK_PREDICT_MARKET],
+        totalResults: 42,
+      });
+      const { getByTestId, findByPlaceholderText } = renderPredictFeedView();
+
+      // Act — user opens search and types a query
+      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
+      const searchInput = await findByPlaceholderText(SEARCH_PLACEHOLDER);
+      fireEvent.changeText(searchInput, 'bitcoin');
+
+      // Assert — resultsCount is the server total (42), not the page length (1)
+      await waitFor(() => {
+        expect(
+          Engine.context.PredictController.trackSearchInteracted,
+        ).toHaveBeenCalledWith(
+          expect.objectContaining({
+            interactionType: 'queried',
+            searchQuery: 'bitcoin',
+            resultsCount: 42,
+          }),
+        );
+      });
+
+      searchMarketsSpy.mockRestore();
+    });
+
     it('tracks the same query again after the user clears and retypes it', async () => {
       const searchMarketsSpy = jest.spyOn(
         Engine.context.PredictController,

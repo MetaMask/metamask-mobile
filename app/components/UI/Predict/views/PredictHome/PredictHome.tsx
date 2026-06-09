@@ -41,8 +41,11 @@ const PredictHome: React.FC = () => {
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictMarketList'>>();
   const transactionActiveAbTests = route.params?.transactionActiveAbTests;
-  const entryPoint =
-    route.params?.entryPoint ?? PredictEventValues.ENTRY_POINT.PREDICT_FEED;
+  // Use the entry point the navigator passed; do NOT default. Falling back to a
+  // concrete value (e.g. `predict_feed`) would attribute home search engagement
+  // to the wrong surface. When unknown, the analytics mapper omits `entry_point`
+  // rather than bucketing it incorrectly.
+  const entryPoint = route.params?.entryPoint;
 
   const { scrollY, titleSectionHeight, onScroll, setTitleSectionHeight } =
     usePredictStackedHeader();
