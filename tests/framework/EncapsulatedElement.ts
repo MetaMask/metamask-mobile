@@ -44,7 +44,7 @@ export interface PlatformLocator {
  * }
  */
 export interface LocatorConfig {
-  detox?: () => DetoxElement | EncapsulatedElementType;
+  detox?: () => DetoxElement;
   appium?:
     | (() => Promise<PlaywrightElement>)
     | {
@@ -120,7 +120,7 @@ export class EncapsulatedElement {
     }
 
     // Execute the function to get the DetoxElement
-    return config.detox() as DetoxElement;
+    return config.detox();
   }
 
   /**
