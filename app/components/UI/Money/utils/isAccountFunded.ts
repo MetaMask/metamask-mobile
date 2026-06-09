@@ -1,4 +1,4 @@
-import type BigNumber from 'bignumber.js';
+import BigNumber from 'bignumber.js';
 
-export const isAccountFunded = (fiatTotal): boolean =>
+export const isAccountFunded = (fiatTotal: BigNumber | undefined): boolean =>
   fiatTotal !== undefined && new BigNumber(fiatTotal).gt(0);
