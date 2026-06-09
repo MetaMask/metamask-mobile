@@ -11,12 +11,11 @@ import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import { selectMoneyOnboardingSeen } from '../../../../../reducers/user/selectors';
 import { selectWalletHomeOnboardingFlowVisible } from '../../../../../selectors/onboarding';
 import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
-import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
-import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
+import { useMoneyAccountAddRouting } from '../../hooks/useMoneyAccountAddRouting';
 
 const mockNavigate = jest.fn();
 const mockNavigateToMoneyHome = jest.fn();
-const mockInitiateDeposit = jest.fn();
+const mockRouteAddMoney = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -43,14 +42,9 @@ jest.mock('../../hooks/useMoneyNavigation', () => ({
   useMoneyNavigation: jest.fn(),
 }));
 
-jest.mock('../../hooks/useMoneyAccount', () => ({
+jest.mock('../../hooks/useMoneyAccountAddRouting', () => ({
   __esModule: true,
-  useMoneyAccountDeposit: jest.fn(),
-}));
-
-jest.mock('../../../Earn/hooks/useMusdBalance', () => ({
-  __esModule: true,
-  useMusdBalance: jest.fn(),
+  useMoneyAccountAddRouting: jest.fn(),
 }));
 
 jest.mock('../../../../../reducers/user/selectors', () => ({
@@ -70,8 +64,7 @@ const mockSelectWalletHomeOnboardingFlowVisible = jest.mocked(
   selectWalletHomeOnboardingFlowVisible,
 );
 const mockUseMoneyNavigation = jest.mocked(useMoneyNavigation);
-const mockUseMoneyAccountDeposit = jest.mocked(useMoneyAccountDeposit);
-const mockUseMusdBalance = jest.mocked(useMusdBalance);
+const mockUseMoneyAccountAddRouting = jest.mocked(useMoneyAccountAddRouting);
 
 const createBalanceMock = (
   overrides: Partial<ReturnType<typeof useMoneyAccountBalance>> = {},
@@ -129,13 +122,10 @@ describe('MoneyBalanceCard', () => {
     mockUseMoneyNavigation.mockReturnValue({
       navigateToMoneyHome: mockNavigateToMoneyHome,
     });
-    mockInitiateDeposit.mockResolvedValue(undefined);
-    mockUseMusdBalance.mockReturnValue({
-      hasMusdBalanceOnAnyChain: true,
-    } as ReturnType<typeof useMusdBalance>);
-    mockUseMoneyAccountDeposit.mockReturnValue({
-      initiateDeposit: mockInitiateDeposit,
-    });
+    mockRouteAddMoney.mockResolvedValue(undefined);
+    mockUseMoneyAccountAddRouting.mockReturnValue({
+      routeAddMoney: mockRouteAddMoney,
+    } as unknown as ReturnType<typeof useMoneyAccountAddRouting>);
   });
 
   describe('when balance is unavailable (totalFiatRaw undefined, no fetch error)', () => {
@@ -213,7 +203,7 @@ describe('MoneyBalanceCard', () => {
 
       fireEvent.press(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON));
 
-      expect(mockInitiateDeposit).toHaveBeenCalledWith(undefined);
+      expect(mockRouteAddMoney).toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
         screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
       });
@@ -264,27 +254,14 @@ describe('MoneyBalanceCard', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('initiates a deposit when Earn is pressed', () => {
+    it('routes add money when Earn is pressed', () => {
       const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
       fireEvent.press(getByTestId(MoneyBalanceCardTestIds.EARN_BUTTON));
 
-      expect(mockInitiateDeposit).toHaveBeenCalledWith(undefined);
+      expect(mockRouteAddMoney).toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
         screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
-      });
-    });
-
-    it('initiates a fiat deposit when Earn is pressed and there is no mUSD balance', () => {
-      mockUseMusdBalance.mockReturnValue({
-        hasMusdBalanceOnAnyChain: false,
-      } as ReturnType<typeof useMusdBalance>);
-      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
-
-      fireEvent.press(getByTestId(MoneyBalanceCardTestIds.EARN_BUTTON));
-
-      expect(mockInitiateDeposit).toHaveBeenCalledWith({
-        autoSelectFiatPayment: true,
       });
     });
   });
@@ -344,12 +321,12 @@ describe('MoneyBalanceCard', () => {
         ).toBeOnTheScreen();
       });
 
-      it('initiates an mUSD deposit when Earn is pressed', () => {
+      it('routes add money when Earn is pressed', () => {
         const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
         fireEvent.press(getByTestId(MoneyBalanceCardTestIds.EARN_BUTTON));
 
-        expect(mockInitiateDeposit).toHaveBeenCalledWith(undefined);
+        expect(mockRouteAddMoney).toHaveBeenCalled();
         expect(mockNavigateToMoneyHome).not.toHaveBeenCalled();
       });
     });
@@ -382,12 +359,12 @@ describe('MoneyBalanceCard', () => {
         ).toBeOnTheScreen();
       });
 
-      it('initiates an mUSD deposit when Earn is pressed', () => {
+      it('routes add money when Earn is pressed', () => {
         const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
         fireEvent.press(getByTestId(MoneyBalanceCardTestIds.EARN_BUTTON));
 
-        expect(mockInitiateDeposit).toHaveBeenCalledWith(undefined);
+        expect(mockRouteAddMoney).toHaveBeenCalled();
       });
     });
   });
@@ -448,12 +425,12 @@ describe('MoneyBalanceCard', () => {
       expect(mockNavigateToMoneyHome).toHaveBeenCalledTimes(1);
     });
 
-    it('initiates an mUSD deposit when Add is pressed', () => {
+    it('routes add money when Add is pressed', () => {
       const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
       fireEvent.press(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON));
 
-      expect(mockInitiateDeposit).toHaveBeenCalledWith(undefined);
+      expect(mockRouteAddMoney).toHaveBeenCalled();
     });
 
     it('opens the Money balance info sheet when the info icon is pressed', () => {
@@ -466,7 +443,7 @@ describe('MoneyBalanceCard', () => {
       });
     });
 
-    it('initiates an mUSD deposit (and not the Money home) when Earn is pressed in empty state', () => {
+    it('routes add money (and not the Money home) when Earn is pressed in empty state', () => {
       mockUseMoneyAccountBalance.mockReturnValue(
         createBalanceMock({
           totalFiatRaw: '0',
@@ -478,7 +455,7 @@ describe('MoneyBalanceCard', () => {
 
       fireEvent.press(getByTestId(MoneyBalanceCardTestIds.EARN_BUTTON));
 
-      expect(mockInitiateDeposit).toHaveBeenCalledWith(undefined);
+      expect(mockRouteAddMoney).toHaveBeenCalled();
       expect(mockNavigateToMoneyHome).not.toHaveBeenCalled();
     });
   });
