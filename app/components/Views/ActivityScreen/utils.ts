@@ -11,6 +11,7 @@ export enum ActivityEmptyStateAction {
   MakePrediction = 'makePrediction',
   BrowsePerpsMarkets = 'browsePerpsMarkets',
   TransferToMoney = 'transferToMoney',
+  OpenMetamaskCard = 'openMetamaskCard',
 }
 
 export interface ActivityEmptyStateConfig {
@@ -95,9 +96,9 @@ export function getActivityEmptyState({
     case ActivityTypeFilter.MetamaskCard:
       // TODO: confirm card empty state copy with product
       return {
-        descriptionKey: 'activity_view.empty_state.default_funded.description',
-        actionLabelKey: 'activity_view.empty_state.default_funded.action',
-        action: ActivityEmptyStateAction.Swap,
+        descriptionKey: 'activity_view.empty_state.metamask_card.description',
+        actionLabelKey: 'activity_view.empty_state.metamask_card.action',
+        action: ActivityEmptyStateAction.OpenMetamaskCard,
       };
 
     case ActivityTypeFilter.All:

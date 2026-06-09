@@ -3050,6 +3050,10 @@
       "money_unfunded": {
         "description": "Transfer to MetaMask Money and unlock all it has to offer.",
         "action": "Transfer funds"
+      },
+      "metamask_card": {
+        "description": "Manage your MetaMask Card and spend crypto anywhere.",
+        "action": "Open MetaMask Card"
       }
     }
   },
