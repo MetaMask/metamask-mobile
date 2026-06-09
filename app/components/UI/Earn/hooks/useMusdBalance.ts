@@ -24,6 +24,17 @@ const SUPPORTED_MUSD_CHAIN_IDS = [
   CHAIN_IDS.LINEA_MAINNET,
 ] as const;
 
+interface UseMusdBalanceResult {
+  hasMusdBalanceOnAnyChain: boolean;
+  hasMusdBalanceOnChain: (chainId: Hex) => boolean;
+  tokenBalanceByChain: Record<Hex, string>;
+  fiatBalanceByChain: Record<Hex, string>;
+  fiatBalanceFormattedByChain: Record<Hex, string>;
+  tokenBalanceAggregated: string;
+  fiatBalanceAggregated: string | undefined;
+  fiatBalanceAggregatedFormatted: string;
+}
+
 /**
  * Hook to get MUSD token balance across supported chains (Mainnet, Linea).
  * @returns Object containing:
@@ -36,7 +47,7 @@ const SUPPORTED_MUSD_CHAIN_IDS = [
  * - fiatBalanceAggregated: sum of fiat value across chains (string, or undefined if no rates)
  * - fiatBalanceAggregatedFormatted: aggregated fiat value as locale-formatted currency string
  */
-export const useMusdBalance = () => {
+export const useMusdBalance = (): UseMusdBalanceResult => {
   const selectedEvmAddress = useSelector(
     (state: RootState) =>
       selectSelectedInternalAccountByScope(state)(EVM_SCOPE)?.address,

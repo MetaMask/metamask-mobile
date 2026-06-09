@@ -4,6 +4,14 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyHowItWorksView from './MoneyHowItWorksView';
 import { MoneyHowItWorksViewTestIds } from './MoneyHowItWorksView.testIds';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import { SCREEN_NAMES } from '../../constants/moneyEvents';
+
+const mockTrackScreenViewed = jest.fn();
+
+jest.mock('../../hooks/useMoneyAnalytics', () => ({
+  useMoneyAnalytics: jest.fn(),
+}));
 
 const mockGoBack = jest.fn();
 
@@ -75,6 +83,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
 describe('MoneyHowItWorksView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (useMoneyAnalytics as jest.Mock).mockReturnValue({
+      trackScreenViewed: mockTrackScreenViewed,
+    });
     (useMoneyAccountBalance as jest.Mock).mockReturnValue({
       apyPercent: 4,
     });
@@ -197,5 +208,21 @@ describe('MoneyHowItWorksView', () => {
     fireEvent.press(firstFaq);
 
     expect(firstFaq).toBeOnTheScreen();
+  });
+
+  describe('analytics', () => {
+    it('initialises useMoneyAnalytics with MONEY_HOW_IT_WORKS screen_name', () => {
+      renderWithProvider(<MoneyHowItWorksView />);
+
+      expect(useMoneyAnalytics).toHaveBeenCalledWith({
+        screen_name: SCREEN_NAMES.MONEY_HOW_IT_WORKS,
+      });
+    });
+
+    it('calls trackScreenViewed on mount', () => {
+      renderWithProvider(<MoneyHowItWorksView />);
+
+      expect(mockTrackScreenViewed).toHaveBeenCalledTimes(1);
+    });
   });
 });
