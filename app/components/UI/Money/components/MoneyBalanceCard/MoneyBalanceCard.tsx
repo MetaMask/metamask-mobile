@@ -94,20 +94,15 @@ const MoneyBalanceCard = () => {
     buttonLabel = strings('money.balance_card.add');
     buttonTestId = MoneyBalanceCardTestIds.ADD_BUTTON;
     containerTestId = MoneyBalanceCardTestIds.UNAVAILABLE_CONTAINER;
-  } else if (isNewUser) {
-    buttonVariant = hasOtherPrimaryCtaOnHome
-      ? ButtonVariant.Secondary
-      : ButtonVariant.Primary;
-    buttonLabel = strings('homepage.sections.money_empty_state.earn');
-    buttonTestId = MoneyBalanceCardTestIds.EARN_BUTTON;
-    containerTestId = MoneyBalanceCardTestIds.NEW_USER_CONTAINER;
   } else if (isEmpty) {
     buttonVariant = hasOtherPrimaryCtaOnHome
       ? ButtonVariant.Secondary
       : ButtonVariant.Primary;
     buttonLabel = strings('homepage.sections.money_empty_state.earn');
     buttonTestId = MoneyBalanceCardTestIds.EARN_BUTTON;
-    containerTestId = MoneyBalanceCardTestIds.EMPTY_CONTAINER;
+    containerTestId = isNewUser
+      ? MoneyBalanceCardTestIds.NEW_USER_CONTAINER
+      : MoneyBalanceCardTestIds.EMPTY_CONTAINER;
   } else {
     buttonVariant = hasOtherPrimaryCtaOnHome
       ? ButtonVariant.Secondary
