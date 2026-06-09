@@ -47,6 +47,9 @@ import { useStyles } from '../../hooks/useStyles';
 import ErrorBoundary from '../ErrorBoundary';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import UnifiedTransactionsView from '../UnifiedTransactionsView/UnifiedTransactionsView';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import ActivityScreen from '../ActivityScreen/ActivityScreen';
+import { selectIsActivityRedesignEnabled } from '../../../selectors/featureFlagController/activityRedesign';
 
 const createStyles = (params) => {
   const { theme } = params;
@@ -84,7 +87,7 @@ const createStyles = (params) => {
   });
 };
 
-const ActivityView = () => {
+const LegacyActivityView = () => {
   const { colors } = useTheme();
   const tw = useTailwind();
 
@@ -322,6 +325,18 @@ const ActivityView = () => {
         </Box>
       </SafeAreaView>
     </ErrorBoundary>
+  );
+};
+
+const ActivityView = () => {
+  const isActivityRedesignEnabled = useSelector(
+    selectIsActivityRedesignEnabled,
+  );
+
+  return isActivityRedesignEnabled ? (
+    <ActivityScreen />
+  ) : (
+    <LegacyActivityView />
   );
 };
 

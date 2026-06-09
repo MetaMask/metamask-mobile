@@ -2998,7 +2998,60 @@
     "disclaimer": "Disclaimer: MetaMask pulls the media file from the source URL. This URL is sometimes changed by the marketplace the NFT was minted on."
   },
   "activity_view": {
-    "title": "Activity"
+    "title": "Activity",
+    "search_placeholder": "Search tokens, transaction types...",
+    "filter_all_networks": "All networks",
+    "filter_all_types": "All types",
+    "filter_types_selected": "Types: {{label}}",
+    "filter_network_selected": "Network: {{label}}",
+    "type_filter": {
+      "title": "Types",
+      "all": "All types",
+      "transactions": "Transactions",
+      "buy_sell": "Buy/Sell",
+      "perps": "Perps",
+      "predictions": "Predictions",
+      "metamask_card": "MetaMask Card",
+      "money": "Money"
+    },
+    "empty_state": {
+      "default_funded": {
+        "description": "Nothing to see yet. Swap your first token today.",
+        "action": "Swap tokens"
+      },
+      "default_unfunded": {
+        "description": "Nothing to see yet. Add funds to your wallet to get started.",
+        "action": "Add funds"
+      },
+      "predictions": {
+        "description": "Your first prediction could be your best.",
+        "action": "Make a prediction"
+      },
+      "perps": {
+        "description": "Your first perps trade could be your best.",
+        "action": "Browse markets"
+      },
+      "transactions_funded": {
+        "description": "Swap your first token today.",
+        "action": "Swap tokens"
+      },
+      "transactions_unfunded": {
+        "description": "Add funds to your wallet to get started.",
+        "action": "Add funds"
+      },
+      "buy_sell": {
+        "description": "Add funds to your wallet to get started.",
+        "action": "Add funds"
+      },
+      "money_funded": {
+        "description": "You've got funds—put them to work in MetaMask Money.",
+        "action": "Transfer funds"
+      },
+      "money_unfunded": {
+        "description": "Transfer to MetaMask Money and unlock all it has to offer.",
+        "action": "Transfer funds"
+      }
+    }
   },
   "transactions_view": {
     "title": "Transactions"
