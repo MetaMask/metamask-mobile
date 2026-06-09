@@ -321,13 +321,9 @@ export function useQuickBuyQuotes({
     };
 
     try {
-      if (!analyticsContext?.source) {
-        throw new Error('QuickBuy source is required to fetch quotes');
-      }
-
       const result = await Engine.context.BridgeController.fetchQuotes(
         params,
-        getQuickBuyFeatureId(analyticsContext.source),
+        getQuickBuyFeatureId(analyticsContext?.source),
         controller.signal,
       );
 

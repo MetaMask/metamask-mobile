@@ -2,7 +2,7 @@ import { FeatureId } from '@metamask/bridge-controller';
 
 import type { QuickBuySheetSource } from '../../../../analytics';
 
-export function getQuickBuyFeatureId(source: QuickBuySheetSource): FeatureId {
+export function getQuickBuyFeatureId(source?: QuickBuySheetSource): FeatureId {
   switch (source) {
     case 'asset_details':
     case 'market_insights':
@@ -11,8 +11,7 @@ export function getQuickBuyFeatureId(source: QuickBuySheetSource): FeatureId {
     case 'profile_position':
     case 'notification':
       return FeatureId.QUICK_BUY_FOLLOW_TRADING;
-    default: {
-      throw new Error(`Unsupported QuickBuy source: ${source satisfies never}`);
-    }
+    default:
+      return FeatureId.QUICK_BUY_FOLLOW_TRADING;
   }
 }
