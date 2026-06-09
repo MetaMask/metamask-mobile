@@ -5,7 +5,6 @@
  */
 
 import type { UseAnalyticsHook } from '../../components/hooks/useAnalytics/useAnalytics.types';
-import { useAnalytics } from '../../components/hooks/useAnalytics/useAnalytics';
 import {
   AnalyticsEventBuilder,
   type AnalyticsTrackingEvent,
@@ -135,7 +134,13 @@ export const createMockUseAnalyticsHook = (
 export const configureUseAnalyticsExternalLinkMock = (
   trackEventMock: jest.Mock = jest.fn(),
 ): jest.Mock => {
-  jest.mocked(useAnalytics).mockReturnValue(
+  const { useAnalytics } = jest.requireMock(
+    '../../components/hooks/useAnalytics/useAnalytics',
+  ) as {
+    useAnalytics: jest.Mock<UseAnalyticsHook, []>;
+  };
+
+  useAnalytics.mockReturnValue(
     createMockUseAnalyticsHook({
       trackEvent: trackEventMock,
       createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
