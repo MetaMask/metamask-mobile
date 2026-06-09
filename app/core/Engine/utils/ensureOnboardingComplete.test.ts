@@ -1,5 +1,5 @@
+import { RootState } from '../../../reducers';
 import { store, runSaga } from '../../../store';
-import { selectCompletedOnboarding } from '../../../selectors/onboarding';
 import { ensureOnboardingComplete } from './ensureOnboardingComplete';
 import { Task } from 'redux-saga';
 
@@ -8,15 +8,17 @@ jest.mock('../../../store', () => ({
   runSaga: jest.fn(),
 }));
 
-jest.mock('../../../selectors/onboarding', () => ({
-  selectCompletedOnboarding: jest.fn(),
-}));
-
 const mockRunSaga = jest.mocked(runSaga);
-const mockSelectCompletedOnboarding = jest.mocked(selectCompletedOnboarding);
+const mockGetState = jest.mocked(store.getState);
 
 function makeSagaTask(promise: Promise<void>): Task {
   return { toPromise: () => promise } as Task;
+}
+
+function setOnboardingComplete(complete: boolean) {
+  mockGetState.mockReturnValue({
+    onboarding: { completedOnboarding: complete },
+  } as unknown as RootState);
 }
 
 describe('ensureOnboardingComplete', () => {
@@ -26,7 +28,7 @@ describe('ensureOnboardingComplete', () => {
 
   describe('when onboarding is already complete', () => {
     it('resolves immediately without starting a saga', async () => {
-      mockSelectCompletedOnboarding.mockReturnValue(true);
+      setOnboardingComplete(true);
 
       await ensureOnboardingComplete();
 
@@ -36,7 +38,7 @@ describe('ensureOnboardingComplete', () => {
 
   describe('when onboarding is not yet complete', () => {
     it('starts a saga and waits for it to complete', async () => {
-      mockSelectCompletedOnboarding.mockReturnValue(false);
+      setOnboardingComplete(false);
       mockRunSaga.mockReturnValue(makeSagaTask(Promise.resolve()));
 
       await ensureOnboardingComplete();
@@ -45,7 +47,7 @@ describe('ensureOnboardingComplete', () => {
     });
 
     it('does not resolve until the saga completes', async () => {
-      mockSelectCompletedOnboarding.mockReturnValue(false);
+      setOnboardingComplete(false);
 
       let resolveSaga!: () => void;
       const sagaPromise = new Promise<void>((resolve) => {
@@ -67,7 +69,7 @@ describe('ensureOnboardingComplete', () => {
     });
 
     it('shares a single saga task across concurrent calls', async () => {
-      mockSelectCompletedOnboarding.mockReturnValue(false);
+      setOnboardingComplete(false);
 
       let resolveSaga!: () => void;
       const sagaPromise = new Promise<void>((resolve) => {
@@ -85,7 +87,7 @@ describe('ensureOnboardingComplete', () => {
     });
 
     it('resets the shared promise after resolution so the next call starts a new saga', async () => {
-      mockSelectCompletedOnboarding.mockReturnValue(false);
+      setOnboardingComplete(false);
       mockRunSaga.mockReturnValue(makeSagaTask(Promise.resolve()));
 
       await ensureOnboardingComplete();
@@ -95,7 +97,7 @@ describe('ensureOnboardingComplete', () => {
     });
 
     it('resets the shared promise after saga rejection so the next call starts a new saga', async () => {
-      mockSelectCompletedOnboarding.mockReturnValue(false);
+      setOnboardingComplete(false);
       mockRunSaga.mockReturnValue(
         makeSagaTask(Promise.reject(new Error('saga failed'))),
       );
@@ -104,17 +106,6 @@ describe('ensureOnboardingComplete', () => {
       await expect(ensureOnboardingComplete()).rejects.toThrow('saga failed');
 
       expect(mockRunSaga).toHaveBeenCalledTimes(2);
-    });
-
-    it('passes the current store state to the selector', async () => {
-      const fakeState = { onboarding: { completedOnboarding: false } };
-      jest.mocked(store.getState).mockReturnValue(fakeState as never);
-      mockSelectCompletedOnboarding.mockReturnValue(false);
-      mockRunSaga.mockReturnValue(makeSagaTask(Promise.resolve()));
-
-      await ensureOnboardingComplete();
-
-      expect(mockSelectCompletedOnboarding).toHaveBeenCalledWith(fakeState);
     });
   });
 });
