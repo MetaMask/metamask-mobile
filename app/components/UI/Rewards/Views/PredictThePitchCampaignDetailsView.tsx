@@ -120,7 +120,7 @@ const PredictThePitchCampaignDetailsView: React.FC = () => {
     isOptedIn ? effectiveCampaignId || undefined : undefined,
   );
 
-  const hasPosition = Boolean(positions?.positions.length);
+  const hasPortfolioPosition = Boolean(positions?.positions.length);
 
   const {
     position: leaderboardPosition,
@@ -130,6 +130,11 @@ const PredictThePitchCampaignDetailsView: React.FC = () => {
   } = useGetPredictThePitchLeaderboardPosition(
     isOptedIn ? effectiveCampaignId || undefined : undefined,
   );
+
+  const hasLeaderboardPosition =
+    leaderboardPosition != null &&
+    Number.isFinite(leaderboardPosition.volume) &&
+    leaderboardPosition.volume > 0;
 
   const {
     leaderboard,
@@ -186,20 +191,25 @@ const PredictThePitchCampaignDetailsView: React.FC = () => {
     }
 
     const showEndedStats =
-      isComplete && !isParticipantStatusLoading && (!isOptedIn || !hasPosition);
+      isComplete &&
+      !isParticipantStatusLoading &&
+      (!isOptedIn || !hasLeaderboardPosition);
 
     return {
       showHowItWorksSection:
-        Boolean(campaign.details?.howItWorks) && !hasPosition && isActive,
-      showStatsSummarySection: hasPosition,
+        Boolean(campaign.details?.howItWorks) &&
+        !hasLeaderboardPosition &&
+        isActive,
+      showStatsSummarySection: hasLeaderboardPosition,
       showPrizePoolSection: isActive || isComplete,
       showLeaderboardSection: true,
-      showPortfolioSection: isOptedIn && hasPosition && !isComplete,
+      showPortfolioSection: isOptedIn && hasPortfolioPosition && !isComplete,
       showCampaignEndedStats: showEndedStats,
     };
   }, [
     campaign,
-    hasPosition,
+    hasLeaderboardPosition,
+    hasPortfolioPosition,
     isActive,
     isComplete,
     isOptedIn,
@@ -221,6 +231,13 @@ const PredictThePitchCampaignDetailsView: React.FC = () => {
         campaignId: effectiveCampaignId,
       },
     );
+  }, [effectiveCampaignId, navigation]);
+
+  const navigateToStats = useCallback(() => {
+    if (!effectiveCampaignId) return;
+    navigation.navigate(Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_STATS, {
+      campaignId: effectiveCampaignId,
+    });
   }, [effectiveCampaignId, navigation]);
 
   const navigateToLeaderboard = useCallback(() => {
@@ -354,13 +371,27 @@ const PredictThePitchCampaignDetailsView: React.FC = () => {
 
               {showStatsSummarySection && (
                 <Box twClassName="p-4">
-                  <Text
-                    variant={TextVariant.HeadingMd}
-                    fontWeight={FontWeight.Bold}
-                    twClassName="mb-3"
-                  >
-                    {strings('rewards.predict_the_pitch_campaign.stats_title')}
-                  </Text>
+                  <Pressable onPress={navigateToStats}>
+                    <Box
+                      flexDirection={BoxFlexDirection.Row}
+                      alignItems={BoxAlignItems.Center}
+                      twClassName="gap-2 mb-3"
+                    >
+                      <Text
+                        variant={TextVariant.HeadingMd}
+                        fontWeight={FontWeight.Bold}
+                      >
+                        {strings(
+                          'rewards.predict_the_pitch_campaign.stats_title',
+                        )}
+                      </Text>
+                      <Icon
+                        name={IconName.ArrowRight}
+                        size={IconSize.Md}
+                        color={IconColor.IconAlternative}
+                      />
+                    </Box>
+                  </Pressable>
                   <PredictThePitchStatsSummary
                     leaderboardPosition={leaderboardPosition}
                     isLoading={isLeaderboardPositionLoading}
