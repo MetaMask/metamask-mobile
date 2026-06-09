@@ -67,10 +67,23 @@ jest.mock('../../../Ramp/hooks/useRampNavigation', () => ({
   useRampNavigation: () => ({ goToBuy: jest.fn() }),
 }));
 
+jest.mock('../../../../Views/Wallet/hooks/useBalanceRefresh', () => ({
+  useBalanceRefresh: jest.fn(() => ({ refreshBalance: jest.fn() })),
+}));
+
+jest.mock('./useAccountGroupBalanceFetchState', () => ({
+  useAccountGroupBalanceFetchState: jest.fn(() => true),
+}));
+
+jest.mock('./useWalletHomeOnboardingBalanceRefreshEffect', () => ({
+  useWalletHomeOnboardingBalanceRefreshEffect: jest.fn(),
+}));
+
 const onboardingEligibleEmptyBalance = {
   ...initialOnboardingState,
   completedOnboarding: true,
   walletHomeOnboardingStepsEligible: true,
+  walletHomeOnboardingSkipInitialBalanceWait: true,
   walletHomeOnboardingSteps: {
     suppressedReason: null,
     stepIndex: 0,

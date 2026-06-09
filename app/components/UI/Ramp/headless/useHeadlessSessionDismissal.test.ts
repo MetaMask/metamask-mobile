@@ -259,7 +259,7 @@ describe('useHeadlessSessionDismissal', () => {
       mockGetState.mockReturnValue({
         routes: [
           {
-            name: 'RampTokenSelection',
+            name: 'RampTokenSelectionRoot',
             state: {
               routes: [{ name: 'RampHeadlessHost' }, { name: 'Checkout' }],
             },

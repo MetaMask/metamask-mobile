@@ -273,8 +273,19 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
       if (isAssetsUnifyStateEnabled) {
         try {
           await Promise.all(
-            (addresses as CaipAssetType[]).map((assetId) =>
-              handleAddCustomAsset(assetId, selectedNonEvmAccount.id),
+            // Non-EVM asset addresses are themselves CAIP-19 asset IDs.
+            selectedAssets.map((asset) =>
+              handleAddCustomAsset(
+                asset.address as CaipAssetType,
+                {
+                  address: asset.address,
+                  symbol: asset.symbol,
+                  name: asset.name ?? '',
+                  decimals: asset.decimals ?? 0,
+                  chainId: asset.chainId,
+                },
+                selectedNonEvmAccount.id,
+              ),
             ),
           );
         } catch (error) {
@@ -309,9 +320,15 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
       await TokensController.addTokens(selectedAssets, networkClient);
 
       if (isAssetsUnifyStateEnabled) {
-        const caipAssetTypes = addresses
-          .map((address) => toAssetId(address, caipChainId))
-          .filter((assetId): assetId is CaipAssetType => Boolean(assetId));
+        const assetsWithIds = selectedAssets
+          .map((asset) => ({
+            asset,
+            assetId: toAssetId(asset.address, caipChainId),
+          }))
+          .filter(
+            (entry): entry is { asset: ImportAsset; assetId: CaipAssetType } =>
+              Boolean(entry.assetId),
+          );
 
         // Resolve the account scoped to this EVM chain. The hook was
         // initialised without an asset so its internal accountId falls back to
@@ -323,8 +340,18 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
         if (evmAccount?.id) {
           try {
             await Promise.all(
-              caipAssetTypes.map((assetId) =>
-                handleAddCustomAsset(assetId, evmAccount.id),
+              assetsWithIds.map(({ asset, assetId }) =>
+                handleAddCustomAsset(
+                  assetId,
+                  {
+                    address: asset.address,
+                    symbol: asset.symbol,
+                    name: asset.name ?? '',
+                    decimals: asset.decimals ?? 0,
+                    chainId: caipChainId,
+                  },
+                  evmAccount.id,
+                ),
               ),
             );
           } catch (error) {

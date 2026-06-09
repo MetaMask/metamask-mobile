@@ -96,7 +96,7 @@ const AnimatedFlashList = Animated.createAnimatedComponent(
 const PredictFeedHeader: React.FC<{
   onDepositWalletWithdrawPress?: () => void;
 }> = ({ onDepositWalletWithdrawPress }) => (
-  <Box twClassName="py-4">
+  <Box twClassName="pb-4">
     <PredictBalance
       onDepositWalletWithdrawPress={onDepositWalletWithdrawPress}
     />
@@ -649,7 +649,6 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
           >
             <HeaderStandard
               includesTopInset
-              title={strings('wallet.predict')}
               onBack={handleBackPress}
               backButtonProps={{
                 testID: PredictMarketListSelectorsIDs.BACK_BUTTON,

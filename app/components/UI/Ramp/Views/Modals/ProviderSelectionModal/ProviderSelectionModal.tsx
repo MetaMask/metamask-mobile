@@ -142,7 +142,7 @@ function ProviderSelectionModal() {
     (hasPendingAction?: boolean) => {
       if (!hasPendingAction && skipQuotes) {
         navigation.navigate(Routes.RAMP.TOKEN_SELECTION, {
-          screen: Routes.RAMP.TOKEN_SELECTION,
+          screen: Routes.RAMP.TOKEN_SELECTION_ROOT,
         });
       }
     },
