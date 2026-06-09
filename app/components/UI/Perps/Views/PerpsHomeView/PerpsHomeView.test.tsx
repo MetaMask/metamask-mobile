@@ -336,6 +336,7 @@ jest.mock(
   '../../components/PerpsMarketBalanceActions',
   () => 'PerpsMarketBalanceActions',
 );
+jest.mock('../../components/PerpsProducts', () => 'PerpsProducts');
 jest.mock('../PerpsCloseAllPositionsView/PerpsCloseAllPositionsView', () => {
   const { View } = jest.requireActual('react-native');
   return function PerpsCloseAllPositionsView() {
@@ -499,6 +500,7 @@ describe('PerpsHomeView', () => {
     forexMarkets: [],
     recentActivity: [],
     sortBy: 'name',
+    categoryMarketCounts: {},
     isLoading: {
       positions: false,
       markets: false,

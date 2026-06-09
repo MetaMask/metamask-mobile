@@ -8970,7 +8970,7 @@
       "non_winner": {
         "title": "Les résultats sont disponibles 🏅",
         "description": "Découvrez votre classement dans la campagne {{campaignName}}.",
-        "cta": "Afficher"
+        "cta": "Voir les détails"
       }
     }
   },
