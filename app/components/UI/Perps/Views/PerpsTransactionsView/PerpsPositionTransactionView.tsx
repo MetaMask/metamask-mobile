@@ -2,10 +2,6 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useLayoutEffect, useMemo } from 'react';
 import { ScrollView, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 
 import { BigNumber } from 'bignumber.js';
 import { useSelector } from 'react-redux';
@@ -14,6 +10,9 @@ import {
   ButtonVariant,
   ButtonSize,
   HeaderStandard,
+  Text,
+  TextVariant,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
@@ -140,7 +139,7 @@ const PerpsPositionTransactionView: React.FC = () => {
       transaction.fill?.fee !== null && {
         label: strings('perps.transactions.position.fees'),
         value: formatPositiveFiat(transaction.fill.fee),
-        textColor: TextColor.Default,
+        textColor: TextColor.TextDefault,
       },
   ].filter(Boolean);
 
@@ -155,7 +154,7 @@ const PerpsPositionTransactionView: React.FC = () => {
     secondaryDetailRows.push({
       label: strings('perps.transactions.position.pnl'),
       value: transaction.fill?.amount || '0',
-      textColor: isPositive ? TextColor.Success : TextColor.Error,
+      textColor: isPositive ? TextColor.SuccessDefault : TextColor.ErrorDefault,
     });
   }
 
@@ -165,7 +164,7 @@ const PerpsPositionTransactionView: React.FC = () => {
   //   secondaryDetailRows.push({
   //     label: strings('perps.transactions.position.points'),
   //     value: `+${transaction.fill?.points}`,
-  //     textColor: TextColor.Success,
+  //     textColor: TextColor.SuccessDefault,
   //   });
   // }
 
@@ -197,14 +196,14 @@ const PerpsPositionTransactionView: React.FC = () => {
                     ]}
                   >
                     <Text
-                      variant={TextVariant.BodySM}
-                      color={TextColor.Alternative}
+                      variant={TextVariant.BodySm}
+                      color={TextColor.TextAlternative}
                     >
                       {detail.label}
                     </Text>
                     <Text
-                      variant={TextVariant.BodySM}
-                      color={TextColor.Default}
+                      variant={TextVariant.BodySm}
+                      color={TextColor.TextDefault}
                     >
                       {detail.value}
                     </Text>
@@ -231,7 +230,7 @@ const PerpsPositionTransactionView: React.FC = () => {
                   >
                     <Text style={styles.detailLabel}>{detail.label}</Text>
                     <Text
-                      variant={TextVariant.BodySM}
+                      variant={TextVariant.BodySm}
                       color={detail.textColor}
                       style={styles.detailValue}
                     >

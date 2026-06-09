@@ -1,9 +1,10 @@
 import React from 'react';
-import { View } from 'react-native';
-import Text, {
-  TextColor,
+import {
+  Text,
   TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
+  TextColor,
+} from '@metamask/design-system-react-native';
+import { View } from 'react-native';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { strings } from '../../../../../../../locales/i18n';
 import { TooltipContentProps } from './types';
@@ -37,7 +38,7 @@ const FeesTooltipContent = ({ testID, data }: FeesTooltipContentProps) => {
       {hasDiscount && (
         <View style={styles.discountBanner}>
           <VipIcon name="VipIcon" width={14} height={14} />
-          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
             {strings('perps.tooltips.fees.discount_message', {
               percentage: discountPercentage.toString(),
             })}
@@ -46,41 +47,41 @@ const FeesTooltipContent = ({ testID, data }: FeesTooltipContentProps) => {
       )}
 
       <View style={styles.feeRow}>
-        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('perps.tooltips.fees.metamask_fee')}
         </Text>
         <View style={styles.feeValueContainer}>
           {hasDiscount && <RewardsVipBadge />}
           {hasDiscount && (
             <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Muted}
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextMuted}
               style={styles.strikethroughText}
             >
               {originalFee}
             </Text>
           )}
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {metamaskFee}
           </Text>
         </View>
       </View>
 
       <View style={styles.feeRow}>
-        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('perps.tooltips.fees.provider_fee')}
         </Text>
-        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {providerFee}
         </Text>
       </View>
 
       {data?.bridgeFeeFormatted ? (
         <View style={styles.feeRow}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {strings('perps.tooltips.fees.bridge_fee')}
           </Text>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {data.bridgeFeeFormatted}
           </Text>
         </View>

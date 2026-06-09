@@ -12,15 +12,14 @@ import Share from 'react-native-share';
 import { useSelector } from 'react-redux';
 import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import { strings } from '../../../../../../locales/i18n';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import {
   Button,
   ButtonVariant,
   ButtonSize,
   IconName as DSIconName,
+  Text,
+  TextVariant,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import {
   IconName,
@@ -232,7 +231,8 @@ const PerpsHeroCardView: React.FC = () => {
               <PerpsTokenLogo symbol={data.asset} size={14.5} />
             </View>
             <Text
-              variant={TextVariant.BodySMMedium}
+              variant={TextVariant.BodySm}
+              fontWeight="medium"
               style={styles.assetName}
               testID={getPerpsHeroCardViewSelector.assetSymbol(index)}
             >
@@ -243,7 +243,8 @@ const PerpsHeroCardView: React.FC = () => {
               testID={getPerpsHeroCardViewSelector.directionBadge(index)}
             >
               <Text
-                variant={TextVariant.BodyXSMedium}
+                variant={TextVariant.BodyXs}
+                fontWeight="medium"
                 style={styles.directionBadgeText}
                 testID={getPerpsHeroCardViewSelector.directionBadgeText(index)}
               >
@@ -261,7 +262,7 @@ const PerpsHeroCardView: React.FC = () => {
           >
             {/* P&L Percentage */}
             <Text
-              variant={TextVariant.DisplayLG}
+              variant={TextVariant.DisplayLg}
               style={data.roe >= 0 ? styles.pnlPositive : styles.pnlNegative}
               testID={getPerpsHeroCardViewSelector.pnlText(index)}
             >
@@ -275,7 +276,8 @@ const PerpsHeroCardView: React.FC = () => {
                 <View style={styles.priceLabelContainer}>
                   <Text
                     style={styles.priceLabel}
-                    variant={TextVariant.BodySMMedium}
+                    variant={TextVariant.BodySm}
+                    fontWeight="medium"
                   >
                     {/* Intentionally not using i18n string */}
                     Entry
@@ -283,7 +285,8 @@ const PerpsHeroCardView: React.FC = () => {
                 </View>
                 <Text
                   style={styles.priceValue}
-                  variant={TextVariant.BodySMMedium}
+                  variant={TextVariant.BodySm}
+                  fontWeight="medium"
                 >
                   {formatPerpsFiat(data.entryPrice, {
                     ranges: PRICE_RANGES_UNIVERSAL,
@@ -296,7 +299,8 @@ const PerpsHeroCardView: React.FC = () => {
                 <View style={styles.priceLabelContainer}>
                   <Text
                     style={styles.priceLabel}
-                    variant={TextVariant.BodySMMedium}
+                    variant={TextVariant.BodySm}
+                    fontWeight="medium"
                   >
                     {/* Intentionally not using i18n  */}
                     Mark
@@ -305,7 +309,8 @@ const PerpsHeroCardView: React.FC = () => {
 
                 <Text
                   style={styles.priceValue}
-                  variant={TextVariant.BodySMMedium}
+                  variant={TextVariant.BodySm}
+                  fontWeight="medium"
                 >
                   {data.markPrice}
                 </Text>
@@ -326,7 +331,7 @@ const PerpsHeroCardView: React.FC = () => {
                 />
               </View>
               <Text
-                variant={TextVariant.BodyXS}
+                variant={TextVariant.BodyXs}
                 style={styles.referralCodeText}
               >
                 {strings('perps.pnl_hero_card.referral_code_text')}
@@ -454,8 +459,8 @@ const PerpsHeroCardView: React.FC = () => {
       <View style={styles.header} testID={PerpsHeroCardViewSelectorsIDs.HEADER}>
         <View style={styles.closeButton} />
         <Text
-          variant={TextVariant.HeadingMD}
-          color={TextColor.Default}
+          variant={TextVariant.HeadingSm}
+          color={TextColor.TextDefault}
           style={styles.headerTitle}
           testID={PerpsHeroCardViewSelectorsIDs.HEADER_TITLE}
         >

@@ -1,5 +1,10 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { HeaderStandard } from '@metamask/design-system-react-native';
+import {
+  HeaderStandard,
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 import { View, Animated } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import Icon, {
@@ -8,10 +13,6 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch/TextFieldSearch';
 import { strings } from '../../../../../../locales/i18n';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import PerpsMarketSortFieldBottomSheet from '../../components/PerpsMarketSortFieldBottomSheet';
 import PerpsMarketFiltersBar from './components/PerpsMarketFiltersBar';
@@ -208,13 +209,13 @@ const PerpsMarketListView = ({
       return (
         <View style={styles.errorContainer}>
           <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Error}
+            variant={TextVariant.BodyMd}
+            color={TextColor.ErrorDefault}
             style={styles.errorText}
           >
             {strings('perps.failed_to_load_market_data')}
           </Text>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {strings('perps.data_updates_automatically')}
           </Text>
         </View>
@@ -232,15 +233,15 @@ const PerpsMarketListView = ({
             style={styles.emptyStateIcon}
           />
           <Text
-            variant={TextVariant.HeadingSM}
-            color={TextColor.Default}
+            variant={TextVariant.HeadingSm}
+            color={TextColor.TextDefault}
             style={styles.emptyStateTitle}
           >
             {strings('perps.no_favorites_found')}
           </Text>
           <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Alternative}
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
             style={styles.emptyStateDescription}
           >
             {strings('perps.no_favorites_description')}
@@ -260,15 +261,15 @@ const PerpsMarketListView = ({
             style={styles.emptyStateIcon}
           />
           <Text
-            variant={TextVariant.HeadingSM}
-            color={TextColor.Default}
+            variant={TextVariant.HeadingSm}
+            color={TextColor.TextDefault}
             style={styles.emptyStateTitle}
           >
             {strings('perps.no_tokens_found')}
           </Text>
           <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Alternative}
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
             style={styles.emptyStateDescription}
           >
             {searchQuery.trim()
