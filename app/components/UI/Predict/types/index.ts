@@ -759,6 +759,7 @@ export type OrderbookCallback = (snapshot: OrderbookSnapshot) => void;
 export interface PrepareDepositParams {}
 
 export interface GetAccountStateParams {
+  ownerAddress?: string;
   forceRefresh?: boolean;
 }
 

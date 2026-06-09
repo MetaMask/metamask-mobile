@@ -2308,6 +2308,8 @@
   },
   "predict": {
     "title": "MetaMask Predictions",
+    "select_predict_account": "Select predict account",
+    "search_account": "Search an account",
     "home": {
       "portfolio_module_placeholder": "Portfolio module",
       "live_now_title": "Live now",
