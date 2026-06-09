@@ -281,25 +281,38 @@ export function BatchSellTokenSelect() {
       return;
     }
 
-    dispatch(setBatchSellSourceTokens(selectedTokens));
+    const orderedSelectedTokens = sortBatchSellTokens(
+      selectedTokens,
+      tokenSortDirection,
+    );
+
+    dispatch(setBatchSellSourceTokens(orderedSelectedTokens));
     dispatch(
       setBatchSellSourceTokenAmounts(
-        getDefaultBatchSellSourceTokenAmounts(selectedTokens),
+        getDefaultBatchSellSourceTokenAmounts(orderedSelectedTokens),
       ),
     );
     dispatch(
       setBatchSellDestToken(
         getBatchSellDestinationToken(
-          selectedTokens[0].chainId,
+          orderedSelectedTokens[0].chainId,
           destinationStablecoins,
         ),
       ),
     );
     dispatch(
-      setBatchSellTokenSlippages(getDefaultBatchSellSlippages(selectedTokens)),
+      setBatchSellTokenSlippages(
+        getDefaultBatchSellSlippages(orderedSelectedTokens),
+      ),
     );
     navigation.navigate(Routes.BRIDGE.BATCH_SELL_REVIEW);
-  }, [destinationStablecoins, dispatch, navigation, selectedTokens]);
+  }, [
+    destinationStablecoins,
+    dispatch,
+    navigation,
+    selectedTokens,
+    tokenSortDirection,
+  ]);
 
   const handleExploreTokensPress = useCallback(() => {
     navigation.navigate(Routes.TRENDING_VIEW, {
@@ -412,7 +425,7 @@ export function BatchSellTokenSelect() {
                 {strings('bridge.batch_sell_select_subtitle')}
               </Text>
             </Box>
-            <Box twClassName="pt-4 pl-4">
+            <Box twClassName="py-4 pl-4">
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
@@ -432,7 +445,7 @@ export function BatchSellTokenSelect() {
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              twClassName="px-4 py-4"
+              twClassName="px-4 py-2"
             >
               <Pressable
                 accessibilityRole="button"

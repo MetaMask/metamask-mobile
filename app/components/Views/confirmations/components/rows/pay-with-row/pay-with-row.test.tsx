@@ -360,30 +360,34 @@ describe('PayWithRow', () => {
     });
   });
 
-  describe('isResultReady prop', () => {
-    beforeEach(() => {
+  describe('money home navigation', () => {
+    it('hides row when payWithOption is MoneyAccount in nav params', () => {
       useParamsMock.mockReturnValue({
         payWithOption: 'money_account',
       });
-    });
 
-    it('renders money account row when isResultReady is not set and initialPayWithOption is MoneyAccount', () => {
-      const { getByTestId } = renderWithProvider(<PayWithRow />, {
+      const { queryByTestId } = renderWithProvider(<PayWithRow />, {
         state: STATE_MOCK,
       });
 
-      expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money balance');
+      expect(queryByTestId('pay-with')).toBeNull();
+      expect(queryByTestId('pay-with-symbol')).toBeNull();
     });
 
-    it('renders interactive row when isResultReady is true and initialPayWithOption is MoneyAccount', () => {
-      const { getByTestId } = renderWithProvider(<PayWithRow isResultReady />, {
-        state: STATE_MOCK,
+    it('hides row when payWithOption is MoneyAccount regardless of isResultReady', () => {
+      useParamsMock.mockReturnValue({
+        payWithOption: 'money_account',
       });
 
-      expect(getByTestId('pay-with-symbol')).toHaveTextContent(/^test/);
+      const { queryByTestId } = renderWithProvider(
+        <PayWithRow isResultReady />,
+        { state: STATE_MOCK },
+      );
+
+      expect(queryByTestId('pay-with')).toBeNull();
     });
 
-    it('renders interactive row when isResultReady is true and no paymentOverride', () => {
+    it('renders interactive row when no payWithOption in nav params', () => {
       useParamsMock.mockReturnValue({});
 
       const { getByTestId } = renderWithProvider(<PayWithRow isResultReady />, {

@@ -963,4 +963,68 @@ describe('BatchSellTokenSelect', () => {
 
     expect(getByText('Continue with (2) tokens')).toBeOnTheScreen();
   });
+
+  it('persists the descending sort order regardless of selection order', () => {
+    const stablecoinAssetId =
+      'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as CaipAssetType;
+    const highToken = createToken({
+      symbol: 'HIGH',
+      address: '0x1111111111111111111111111111111111111111',
+      tokenFiatAmount: 10,
+    });
+    const lowToken = createToken({
+      symbol: 'LOW',
+      address: '0x2222222222222222222222222222222222222222',
+      tokenFiatAmount: 1,
+    });
+    mockDestinationStablecoins = [BridgeTokenMetadata[stablecoinAssetId]];
+    mockWalletTokens = [highToken, lowToken];
+
+    const { getByTestId, getByText } = render(<BatchSellTokenSelect />);
+
+    // Select in ascending-value order to prove handoff uses sort order, not tap order.
+    fireEvent.press(getByText('LOW'));
+    fireEvent.press(getByText('HIGH'));
+
+    mockDispatch.mockClear();
+    fireEvent.press(getByTestId(BatchSellTokenSelectSelectorsIDs.NEXT_BUTTON));
+
+    expect(mockDispatch).toHaveBeenNthCalledWith(1, {
+      type: 'bridge/setBatchSellSourceTokens',
+      payload: [highToken, lowToken],
+    });
+  });
+
+  it('persists the ascending sort order when the user toggles sorting', () => {
+    const stablecoinAssetId =
+      'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as CaipAssetType;
+    const highToken = createToken({
+      symbol: 'HIGH',
+      address: '0x1111111111111111111111111111111111111111',
+      tokenFiatAmount: 10,
+    });
+    const lowToken = createToken({
+      symbol: 'LOW',
+      address: '0x2222222222222222222222222222222222222222',
+      tokenFiatAmount: 1,
+    });
+    mockDestinationStablecoins = [BridgeTokenMetadata[stablecoinAssetId]];
+    mockWalletTokens = [highToken, lowToken];
+
+    const { getByTestId, getByText } = render(<BatchSellTokenSelect />);
+
+    fireEvent.press(
+      getByTestId(BatchSellTokenSelectSelectorsIDs.BALANCE_SORT_BUTTON),
+    );
+    fireEvent.press(getByText('HIGH'));
+    fireEvent.press(getByText('LOW'));
+
+    mockDispatch.mockClear();
+    fireEvent.press(getByTestId(BatchSellTokenSelectSelectorsIDs.NEXT_BUTTON));
+
+    expect(mockDispatch).toHaveBeenNthCalledWith(1, {
+      type: 'bridge/setBatchSellSourceTokens',
+      payload: [lowToken, highToken],
+    });
+  });
 });

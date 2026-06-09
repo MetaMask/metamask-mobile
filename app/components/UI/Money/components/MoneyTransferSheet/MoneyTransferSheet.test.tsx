@@ -6,9 +6,11 @@ import { MoneyTransferSheetTestIds } from './MoneyTransferSheet.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import { useMoneyAccountWithdrawal } from '../../hooks/useMoneyAccount';
 import { useMoneyPerpsDeposit } from '../../../../Views/confirmations/hooks/pay/useMoneyPerpsDeposit';
+import { useMoneyPredictDeposit } from '../../../../Views/confirmations/hooks/pay/useMoneyPredictDeposit';
 
 const mockInitiateWithdrawal = jest.fn().mockResolvedValue(undefined);
 const mockInitiatePerpsDeposit = jest.fn().mockResolvedValue(undefined);
+const mockInitiatePredictDeposit = jest.fn().mockResolvedValue(undefined);
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockGoBack = jest.fn();
 
@@ -21,6 +23,13 @@ jest.mock(
   '../../../../Views/confirmations/hooks/pay/useMoneyPerpsDeposit',
   () => ({
     useMoneyPerpsDeposit: jest.fn(),
+  }),
+);
+
+jest.mock(
+  '../../../../Views/confirmations/hooks/pay/useMoneyPredictDeposit',
+  () => ({
+    useMoneyPredictDeposit: jest.fn(),
   }),
 );
 
@@ -72,6 +81,10 @@ describe('MoneyTransferSheet', () => {
     (useMoneyPerpsDeposit as jest.Mock).mockReturnValue({
       isEnabled: false,
       initiatePerpsDeposit: mockInitiatePerpsDeposit,
+    });
+    (useMoneyPredictDeposit as jest.Mock).mockReturnValue({
+      isEnabled: false,
+      initiatePredictDeposit: mockInitiatePredictDeposit,
     });
   });
 
@@ -149,13 +162,30 @@ describe('MoneyTransferSheet', () => {
     expect(mockInitiatePerpsDeposit).toHaveBeenCalledTimes(1);
   });
 
-  it('fires an alert when "Predictions account" is pressed', () => {
+  it('does nothing when "Predictions account" is pressed and flag is disabled', () => {
     const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
 
     fireEvent.press(
       getByTestId(MoneyTransferSheetTestIds.PREDICTIONS_ACCOUNT_OPTION),
     );
 
-    expect(global.alert).toHaveBeenCalledWith('Under construction 🚧');
+    expect(mockOnCloseBottomSheet).not.toHaveBeenCalled();
+    expect(mockInitiatePredictDeposit).not.toHaveBeenCalled();
+  });
+
+  it('closes the sheet and calls initiatePredictDeposit when flag is enabled', () => {
+    (useMoneyPredictDeposit as jest.Mock).mockReturnValue({
+      isEnabled: true,
+      initiatePredictDeposit: mockInitiatePredictDeposit,
+    });
+
+    const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
+
+    fireEvent.press(
+      getByTestId(MoneyTransferSheetTestIds.PREDICTIONS_ACCOUNT_OPTION),
+    );
+
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    expect(mockInitiatePredictDeposit).toHaveBeenCalledTimes(1);
   });
 });

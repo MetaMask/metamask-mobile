@@ -285,8 +285,14 @@ const NetworkMultiSelectList = ({
             isSelected={isSelected}
             title={
               isGasSponsored ? (
-                <Box twClassName="flex-row gap-2">
-                  <Text variant={TextVariant.BodyMd}>{name}</Text>
+                <Box twClassName="flex-row gap-2 items-center">
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    numberOfLines={1}
+                    style={styles.networkNameText}
+                  >
+                    {name}
+                  </Text>
                   <TagColored
                     color={TagColor.Success}
                     style={styles.noNetworkFeeContainer}
@@ -352,6 +358,7 @@ const NetworkMultiSelectList = ({
       isHardwareWallet,
       styles.centeredNetworkCell,
       styles.noNetworkFeeContainer,
+      styles.networkNameText,
     ],
   );
 
