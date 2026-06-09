@@ -1020,13 +1020,52 @@ jobs:
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
+  prepare-e2e-timings:
+    name: 'Prepare E2E Timings'
+    # Run in parallel with the build jobs — it is a lightweight API call (~30s).
+    # Fetches qa-stats timings once (merge-base preferred, latest-main fallback)
+    # and uploads them as a run-scoped artifact so every shard and every re-run
+    # uses the exact same frozen snapshot, keeping the bin-pack stable.
+    runs-on: ubuntu-latest
+    if: ${{ !cancelled() }}
+    needs: [get_requirements, smart-e2e-selection]
+    outputs:
+      available: ${{ steps.fetch.outputs.available }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Fetch and freeze E2E timings
+        id: fetch
+        continue-on-error: true
+        run: node .github/scripts/e2e-freeze-timings.mjs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number || '' }}
+          OUTPUT_PATH: ./e2e-timings.json
+
+      - name: Upload frozen timings artifact
+        if: ${{ steps.fetch.outputs.available == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-timings-${{ github.run_id }}
+          path: ./e2e-timings.json
+          retention-days: 7
+          overwrite: true
+
   e2e-smoke-tests-android:
     name: 'Android E2E Smoke Tests'
     if: ${{ !cancelled() && needs.build-android-apks.result == 'success' }}
     permissions:
       contents: read
       id-token: write
-    needs: [get_requirements, build-android-apks, smart-e2e-selection]
+    needs: [get_requirements, build-android-apks, smart-e2e-selection, prepare-e2e-timings]
     uses: ./.github/workflows/run-e2e-smoke-tests-android.yml
     with:
       changed_files: ${{ needs.get_requirements.outputs.changed_files }}
@@ -1074,7 +1113,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    needs: [get_requirements, ios-tests-ready, smart-e2e-selection]
+    needs: [get_requirements, ios-tests-ready, smart-e2e-selection, prepare-e2e-timings]
     uses: ./.github/workflows/run-e2e-smoke-tests-ios.yml
     with:
       changed_files: ${{ needs.get_requirements.outputs.changed_files }}
