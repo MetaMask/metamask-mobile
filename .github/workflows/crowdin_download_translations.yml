@@ -47,7 +47,7 @@ jobs:
           git fetch origin "$BRANCH_NAME"
           git checkout -B "$BRANCH_NAME" "origin/$BRANCH_NAME"
 
-          chmod u+w locales/languages/tr.json 2>/dev/null || true
+          sudo chown "$USER" locales/languages/tr.json 2>/dev/null || true
 
           FIX_SCRIPT="$FIX_SCRIPT_PATH"
           if [ ! -f "$FIX_SCRIPT" ]; then
