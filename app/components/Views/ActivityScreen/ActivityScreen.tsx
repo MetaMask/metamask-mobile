@@ -36,6 +36,7 @@ import ActivityTypeFilterSheet, {
 } from './components/ActivityTypeFilterSheet';
 import { TrendingTokenNetworkBottomSheet } from '../../UI/Trending/components/TrendingTokensBottomSheet/TrendingTokenNetworkBottomSheet';
 import { TRENDING_NETWORKS_LIST } from '../../UI/Trending/utils/trendingNetworksList';
+import { useRampNavigation } from '../../UI/Ramp/hooks/useRampNavigation';
 import type { CaipChainId } from '@metamask/utils';
 import { ActivityEmptyStateAction, getActivityEmptyState } from './utils';
 import { ActivityTypeFilter } from './types';
@@ -46,6 +47,7 @@ const ActivityScreen = () => {
   const tw = useTailwind();
   const designSystemTheme = useDesignSystemTheme();
   const navigation = useNavigation();
+  const { goToBuy } = useRampNavigation();
   const ActivityEmptyIcon =
     designSystemTheme === Theme.Dark
       ? ActivityEmptyDarkIcon
@@ -138,7 +140,7 @@ const ActivityScreen = () => {
         });
         return;
       case ActivityEmptyStateAction.AddFunds:
-        navigation.navigate(Routes.DEPOSIT.ID);
+        goToBuy();
         return;
       case ActivityEmptyStateAction.MakePrediction:
         navigation.navigate(Routes.PREDICT.ROOT, {
@@ -158,7 +160,7 @@ const ActivityScreen = () => {
       default:
         return;
     }
-  }, [emptyState.action, navigation]);
+  }, [emptyState.action, navigation, goToBuy]);
 
   const handleBackPress = useCallback(() => {
     if (navigation.canGoBack()) {
