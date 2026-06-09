@@ -1979,10 +1979,10 @@
       "stocks_and_commodities": "Обзор акций и товаров",
       "tabs": {
         "crypto": "Крипто",
+        "stocks": "Акции",
+        "commodities": "Товары",
         "forex": "Валюты",
-        "new": "Новые",
-        "stock": "Акции",
-        "commodity": "Товары"
+        "new": "Новые"
       },
       "filter_by": "Фильтровать по",
       "forex": "Валюты",

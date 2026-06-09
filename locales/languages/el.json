@@ -1979,10 +1979,10 @@
       "stocks_and_commodities": "Εξερευνήστε μετοχές και εμπορεύματα",
       "tabs": {
         "crypto": "Κρύπτο",
+        "stocks": "Μετοχές",
+        "commodities": "Εμπορεύματα",
         "forex": "Forex",
-        "new": "Νέα",
-        "stock": "Μετοχές",
-        "commodity": "Εμπορεύματα"
+        "new": "Νέα"
       },
       "filter_by": "Φιλτράρισμα κατά",
       "forex": "Forex",

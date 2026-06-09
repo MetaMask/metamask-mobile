@@ -1979,10 +1979,10 @@
       "stocks_and_commodities": "주식 및 원자재 살펴보기",
       "tabs": {
         "crypto": "암호화폐",
+        "stocks": "주식",
+        "commodities": "상품",
         "forex": "외환",
-        "new": "신규",
-        "stock": "주식",
-        "commodity": "상품"
+        "new": "신규"
       },
       "filter_by": "필터링 기준:",
       "forex": "외환",
