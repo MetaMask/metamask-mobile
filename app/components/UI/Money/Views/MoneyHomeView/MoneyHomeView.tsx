@@ -121,7 +121,7 @@ const MoneyHomeView = () => {
   });
 
   const balanceReady = tokenTotal !== undefined;
-  const isFunded = isAccountFunded(tokenTotal);
+  const isFunded = isAccountFunded(tokenTotal) || activityItems.length > 0;
 
   let displayState: MoneyBalanceDisplayState;
   if (!hasMoneyAccount) {
@@ -394,7 +394,7 @@ const MoneyHomeView = () => {
           apy={apyPercent}
         />
         <Divider />
-        {balanceReady && isFunded && (
+        {isFunded && (
           <>
             <MoneyCondensedInfoCards
               onHowItWorksPress={handleHowItWorksHeaderPress}
