@@ -113,6 +113,28 @@ describe('BalanceProjection', () => {
     expect(queryByTestId('balance-projection-apy-pitch')).toBeNull();
   });
 
+  it('returns null when apyDecimal is negative', () => {
+    mockBalance({ apyDecimal: -1, apyPercent: -100 });
+
+    const { queryByTestId } = render(
+      <BalanceProjection amountFiat="1000" projectedYears={1} />,
+    );
+
+    expect(queryByTestId('balance-projection')).toBeNull();
+    expect(queryByTestId('balance-projection-apy-pitch')).toBeNull();
+  });
+
+  it('returns null and shows no APY pitch when apyPercent is negative for an empty amount', () => {
+    mockBalance({ apyDecimal: -1, apyPercent: -100 });
+
+    const { queryByTestId } = render(
+      <BalanceProjection amountFiat="0" projectedYears={1} />,
+    );
+
+    expect(queryByTestId('balance-projection')).toBeNull();
+    expect(queryByTestId('balance-projection-apy-pitch')).toBeNull();
+  });
+
   it('returns null for a zero amount when apyPercent is unavailable', () => {
     mockBalance({ apyDecimal: 0.04, apyPercent: undefined });
 

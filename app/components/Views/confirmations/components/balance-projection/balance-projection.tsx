@@ -51,7 +51,13 @@ export function BalanceProjection({
     );
   }
 
-  if (amount === null || apyPercent === undefined) {
+  if (
+    amount === null ||
+    apyPercent === undefined ||
+    apyPercent < 0 ||
+    typeof apyDecimal !== 'number' ||
+    apyDecimal < 0
+  ) {
     return null;
   }
 
