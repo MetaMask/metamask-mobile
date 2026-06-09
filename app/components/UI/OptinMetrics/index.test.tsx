@@ -88,6 +88,24 @@ jest.mock('../../../util/device', () => ({
   isIphoneX: jest.fn(),
 }));
 
+jest.mock(
+  '../../../util/analytics/persistAttributionFromPendingDeeplink',
+  () => ({
+    persistAttributionFromPendingDeeplink: jest.fn(),
+  }),
+);
+
+jest.mock('../../../util/analytics/walletSetupCompletedAttribution', () => ({
+  getWalletSetupAttributionPropsFromStore: jest.fn().mockReturnValue({}),
+}));
+
+jest.mock(
+  '../../../util/analytics/walletSetupCompletedAttributionReplay',
+  () => ({
+    scheduleBufferedOnboardingEventReplay: jest.fn(),
+  }),
+);
+
 jest.doMock('react-native', () => {
   const originalRN = jest.requireActual('react-native');
   return {
