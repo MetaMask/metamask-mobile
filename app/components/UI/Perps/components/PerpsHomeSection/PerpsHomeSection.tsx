@@ -10,6 +10,7 @@ import {
   ButtonIcon,
   ButtonIconSize,
   IconName,
+  IconColor,
 } from '@metamask/design-system-react-native';
 import HomepageSectionUnrealizedPnlRow from '../../../../Views/Homepage/components/HomepageSectionUnrealizedPnlRow';
 import { PerpsHomeSectionTestIds } from './PerpsHomeSection.testIds';
@@ -106,6 +107,7 @@ const PerpsHomeSection: React.FC<PerpsHomeSectionProps> = ({
           showAction ? (
             <ButtonIcon
               iconName={IconName.MoreHorizontal}
+              iconProps={{ color: IconColor.IconAlternative }}
               size={ButtonIconSize.Md}
               onPress={onActionPress}
               testID={PerpsHomeSectionTestIds.ACTION_BUTTON}
