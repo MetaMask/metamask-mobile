@@ -30,6 +30,7 @@ import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
 import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
+import { useHasNativeFiatProvider } from '../../../Ramp/hooks/useHasNativeFiatProvider';
 import {
   getRampRoutingDecision,
   UnifiedRampRoutingType,
@@ -45,6 +46,7 @@ interface Option {
   onPress: () => void;
   testID: string;
   disabled?: boolean;
+  comingSoon?: boolean;
 }
 
 const MoneyAddMoneySheet: React.FC = () => {
@@ -64,6 +66,7 @@ const MoneyAddMoneySheet: React.FC = () => {
   const { enabledTransactionTypes } = useMMPayFiatConfig();
   const hasAnyCryptoBalance = useSelector(selectHasAnyNonZeroTokenBalance);
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
+  const hasNativeFiatProvider = useHasNativeFiatProvider();
   const isFiatDepositEnabled = useMemo(
     () => enabledTransactionTypes.includes(TransactionType.moneyAccountDeposit),
     [enabledTransactionTypes],
@@ -148,6 +151,8 @@ const MoneyAddMoneySheet: React.FC = () => {
             icon: IconName.AttachMoney,
             onPress: handleDepositFunds,
             testID: MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
+            disabled: !hasNativeFiatProvider,
+            comingSoon: !hasNativeFiatProvider,
           },
         ]
       : []),
@@ -166,6 +171,11 @@ const MoneyAddMoneySheet: React.FC = () => {
     },
   ];
 
+  const orderedOptions: Option[] = [
+    ...options.filter((option) => !option.disabled),
+    ...options.filter((option) => option.disabled),
+  ];
+
   return (
     <BottomSheet
       ref={sheetRef}
@@ -180,7 +190,7 @@ const MoneyAddMoneySheet: React.FC = () => {
         </Text>
       </BottomSheetHeader>
       <View style={styles.list}>
-        {options.map((item) => (
+        {orderedOptions.map((item) => (
           <TouchableOpacity
             key={item.testID}
             disabled={item.disabled}
@@ -195,24 +205,40 @@ const MoneyAddMoneySheet: React.FC = () => {
                 item.disabled ? IconColor.IconMuted : IconColor.IconDefault
               }
             />
-            <View style={styles.rowLabelContainer}>
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={item.disabled ? TextColor.TextAlternative : undefined}
-              >
-                {item.label}
-              </Text>
-              {item.description ? (
+            {item.comingSoon ? (
+              <View style={styles.disabledRowContent}>
                 <Text
-                  variant={TextVariant.BodySm}
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
                   color={TextColor.TextAlternative}
-                  testID={item.descriptionTestID}
                 >
-                  {item.description}
+                  {item.label}
                 </Text>
-              ) : null}
-            </View>
+                <Tag
+                  label={strings('money.add_money_sheet.coming_soon')}
+                  style={styles.comingSoonTag}
+                />
+              </View>
+            ) : (
+              <View style={styles.rowLabelContainer}>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  color={item.disabled ? TextColor.TextAlternative : undefined}
+                >
+                  {item.label}
+                </Text>
+                {item.description ? (
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextAlternative}
+                    testID={item.descriptionTestID}
+                  >
+                    {item.description}
+                  </Text>
+                ) : null}
+              </View>
+            )}
           </TouchableOpacity>
         ))}
         <View

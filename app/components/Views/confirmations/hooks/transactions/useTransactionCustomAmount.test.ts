@@ -350,6 +350,17 @@ describe('useTransactionCustomAmount', () => {
     expect(result.current.amountFiat).toBe('567.89');
   });
 
+  it('pads targetAmount.usd to two decimals when isMaxAmount is true', async () => {
+    useTransactionPayIsMaxAmountMock.mockReturnValue(true);
+    useTransactionPayTotalsMock.mockReturnValue({
+      targetAmount: { usd: '3.4' },
+    } as TransactionPayTotals);
+
+    const { result } = runHook();
+
+    expect(result.current.amountFiat).toBe('3.40');
+  });
+
   it.each([
     TransactionType.perpsWithdraw,
     TransactionType.predictWithdraw,
@@ -833,7 +844,7 @@ describe('useTransactionCustomAmount', () => {
         result.current.updatePendingAmountPercentage(100);
       });
 
-      expect(result.current.amountFiat).toBe('750.5');
+      expect(result.current.amountFiat).toBe('750.50');
     });
 
     it('returns 0 when payment override is MoneyAccount but totalFiatRaw is undefined', async () => {

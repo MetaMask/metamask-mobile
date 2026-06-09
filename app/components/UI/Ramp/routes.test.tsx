@@ -333,6 +333,17 @@ describe('Ramp Route Constants', () => {
     expect(Routes.RAMP.TOKEN_SELECTION).toBeDefined();
   });
 
+  it('has token selection root wrapper route defined', () => {
+    // The intermediate RootStack slot that wraps MainRoutes must use a
+    // distinct name from the leaf TOKEN_SELECTION screen — otherwise React
+    // Navigation logs "Found screens with the same name nested inside one
+    // another" when the headless flow mounts under RampHeadlessEntry.
+    expect(Routes.RAMP.TOKEN_SELECTION_ROOT).toBeDefined();
+    expect(Routes.RAMP.TOKEN_SELECTION_ROOT).not.toBe(
+      Routes.RAMP.TOKEN_SELECTION,
+    );
+  });
+
   it('has amount input route defined', () => {
     expect(Routes.RAMP.AMOUNT_INPUT).toBeDefined();
   });
