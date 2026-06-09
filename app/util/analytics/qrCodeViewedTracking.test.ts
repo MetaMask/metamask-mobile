@@ -1,11 +1,25 @@
+import { KeyringTypes } from '@metamask/keyring-controller';
 import {
+  getQrCodeViewedAccountType,
   trackQrCodeViewed,
   QrCodeViewedProperties,
 } from './qrCodeViewedTracking';
+import {
+  createMockSnapInternalAccount,
+  internalAccount1,
+  internalSolanaAccount1,
+} from '../../util/test/accountsControllerTestUtils';
+import { getAddressAccountType } from '../address';
 import { MetaMetricsEvents } from '../../core/Analytics';
 import { ITrackingEvent } from './analytics.types';
 
 jest.mock('../../core/Analytics');
+jest.mock('../address', () => ({
+  ...jest.requireActual('../address'),
+  getAddressAccountType: jest.fn(),
+}));
+
+const mockGetAddressAccountType = jest.mocked(getAddressAccountType);
 
 describe('qrCodeViewedTracking', () => {
   const mockTrackEvent = jest.fn();
@@ -38,6 +52,37 @@ describe('qrCodeViewedTracking', () => {
       isAnonymous: false,
       hasProperties: true,
     } as ITrackingEvent);
+  });
+
+  describe('getQrCodeViewedAccountType', () => {
+    it('returns keyring metadata for non-EVM addresses', () => {
+      expect(getQrCodeViewedAccountType(internalSolanaAccount1)).toBe(
+        KeyringTypes.snap,
+      );
+      expect(mockGetAddressAccountType).not.toHaveBeenCalled();
+    });
+
+    it('returns getAddressAccountType for EVM addresses when available', () => {
+      mockGetAddressAccountType.mockReturnValue('MetaMask');
+
+      expect(getQrCodeViewedAccountType(internalAccount1)).toBe('MetaMask');
+      expect(mockGetAddressAccountType).toHaveBeenCalledWith(
+        internalAccount1.address,
+      );
+    });
+
+    it('falls back to keyring metadata when getAddressAccountType throws', () => {
+      mockGetAddressAccountType.mockImplementation(() => {
+        throw new Error('The address is not imported');
+      });
+
+      const snapAccount = createMockSnapInternalAccount(
+        internalAccount1.address,
+        'Snap Account',
+      );
+
+      expect(getQrCodeViewedAccountType(snapAccount)).toBe(KeyringTypes.snap);
+    });
   });
 
   describe('trackQrCodeViewed', () => {

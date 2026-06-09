@@ -30,8 +30,11 @@ import QRAccountDisplay from '../../../QRAccountDisplay';
 import QRCode from 'react-native-qrcode-svg';
 import useBlockExplorer from '../../../../hooks/useBlockExplorer';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { trackQrCodeViewed } from '../../../../../util/analytics/qrCodeViewedTracking';
-import { getAddressAccountType } from '../../../../../util/address';
+import {
+  getQrCodeViewedAccountType,
+  trackQrCodeViewed,
+} from '../../../../../util/analytics/qrCodeViewedTracking';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { ShareAddressQRIds } from './ShareAddressQR.testIds';
 import { selectAccountGroupById } from '../../../../../selectors/multichainAccounts/accountTreeController';
@@ -43,6 +46,7 @@ export interface ShareAddressQRParams {
   chainId: string;
   groupId: AccountGroupId;
   location: string;
+  account: InternalAccount;
 }
 
 interface RootNavigationParamList extends ParamListBase {
@@ -58,7 +62,8 @@ export const ShareAddressQR = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const tw = useTailwind();
   const route = useRoute<ShareAddressQRRouteProp>();
-  const { address, networkName, chainId, groupId, location } = route.params;
+  const { address, networkName, chainId, groupId, location, account } =
+    route.params;
   const accountGroup = useSelector((state: RootState) =>
     selectAccountGroupById(state, groupId),
   );
@@ -72,10 +77,10 @@ export const ShareAddressQR = () => {
   useEffect(() => {
     trackQrCodeViewed(trackEvent, createEventBuilder, {
       location,
-      account_type: getAddressAccountType(address),
+      account_type: getQrCodeViewedAccountType(account),
       chain_id_caip: formatChainIdToCaip(chainId),
     });
-  }, [address, chainId, createEventBuilder, location, trackEvent]);
+  }, [account, chainId, createEventBuilder, location, trackEvent]);
 
   const handleOnBack = useCallback(() => {
     navigation.goBack();

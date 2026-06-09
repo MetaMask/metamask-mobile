@@ -667,6 +667,7 @@ describe('useTokenAtomicActions - useHandleOnReceive', () => {
           chainId: '0x1',
           groupId: 'group-1',
           location: 'asset-details',
+          account: mockAccount,
         },
       },
     );

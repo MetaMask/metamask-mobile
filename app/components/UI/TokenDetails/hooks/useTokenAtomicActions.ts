@@ -478,6 +478,7 @@ export const useHandleOnReceive = ({
           chainId,
           groupId: selectedAccountGroup.id,
           location: 'asset-details',
+          account: accountForChain,
         },
       });
     } else {

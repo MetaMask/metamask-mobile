@@ -28,8 +28,10 @@ import { getMultichainBlockExplorer } from '../../../../../core/Multichain/netwo
 import { ShareAddressIds } from './ShareAddress.testIds';
 import PNG_MM_LOGO_PATH from '../../../../../images/branding/fox.png';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { trackQrCodeViewed } from '../../../../../util/analytics/qrCodeViewedTracking';
-import { getAddressAccountType } from '../../../../../util/address';
+import {
+  getQrCodeViewedAccountType,
+  trackQrCodeViewed,
+} from '../../../../../util/analytics/qrCodeViewedTracking';
 
 interface RootNavigationParamList extends ParamListBase {
   ShareAddress: {
@@ -59,9 +61,9 @@ export const ShareAddress = () => {
   useEffect(() => {
     trackQrCodeViewed(trackEvent, createEventBuilder, {
       location: 'account-details',
-      account_type: getAddressAccountType(account.address),
+      account_type: getQrCodeViewedAccountType(account),
     });
-  }, [account.address, createEventBuilder, trackEvent]);
+  }, [account, createEventBuilder, trackEvent]);
 
   const handleExplorerLinkPress = useCallback(() => {
     if (blockExplorer) {

@@ -93,6 +93,7 @@ export const AddressList = () => {
                       chainId: item.scope,
                       groupId,
                       location: 'address-list',
+                      account: item.account,
                     },
                   },
                 );

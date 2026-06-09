@@ -76,10 +76,14 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+jest.mock('../../../../../util/analytics/qrCodeViewedTracking', () => ({
+  ...jest.requireActual('../../../../../util/analytics/qrCodeViewedTracking'),
+  getQrCodeViewedAccountType: jest.fn().mockReturnValue('MetaMask'),
+}));
+
 jest.mock('../../../../../util/address', () => ({
   ...jest.requireActual('../../../../../util/address'),
   renderAccountName: jest.fn().mockReturnValue('Test Account'),
-  getAddressAccountType: jest.fn().mockReturnValue('MetaMask'),
 }));
 
 jest.mock('../../../../../core/Multichain/networks', () => ({
