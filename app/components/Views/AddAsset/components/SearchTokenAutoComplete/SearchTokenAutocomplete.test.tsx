@@ -559,6 +559,9 @@ describe('SearchTokenAutocomplete', () => {
       expect(mockAddCustomAsset).toHaveBeenCalledWith(
         'evm-account-id',
         expectedCaipAssetType,
+        expect.objectContaining({
+          address: '0x1234567890abcdef1234567890abcdef12345678',
+        }),
       );
     });
 
@@ -612,10 +615,16 @@ describe('SearchTokenAutocomplete', () => {
       expect(mockAddCustomAsset).toHaveBeenCalledWith(
         'evm-account-id',
         caipAsset1,
+        expect.objectContaining({
+          address: '0x1234567890abcdef1234567890abcdef12345678',
+        }),
       );
       expect(mockAddCustomAsset).toHaveBeenCalledWith(
         'evm-account-id',
         caipAsset2,
+        expect.objectContaining({
+          address: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
+        }),
       );
     });
 
@@ -691,8 +700,10 @@ describe('SearchTokenAutocomplete', () => {
     const solanaChainId =
       'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as SupportedCaipChainId;
 
+    const solanaAddress =
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:3iQL8BFS2vE7mww4ehAqQHAsbmRNCrPxizWAT2Zfyr9y';
     const mockNonEvmToken = {
-      address: 'solana-address-123',
+      address: solanaAddress,
       symbol: 'SOL',
       name: 'Solana',
       decimals: 9,
@@ -769,7 +780,8 @@ describe('SearchTokenAutocomplete', () => {
 
       expect(mockAddCustomAsset).toHaveBeenCalledWith(
         'non-evm-account-id',
-        'solana-address-123',
+        solanaAddress,
+        expect.objectContaining({ address: solanaAddress }),
       );
     });
   });

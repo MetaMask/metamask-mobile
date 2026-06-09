@@ -69,11 +69,10 @@ const renderTrendingView = () => {
   );
 };
 
-jest.mock('../../../components/hooks/useMetrics', () => ({
-  useMetrics: () => ({
+jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
     isEnabled: mockIsEnabled,
   }),
-  withMetricsAwareness: (Component: unknown) => Component,
 }));
 
 jest.mock('../../../util/browser', () => ({
