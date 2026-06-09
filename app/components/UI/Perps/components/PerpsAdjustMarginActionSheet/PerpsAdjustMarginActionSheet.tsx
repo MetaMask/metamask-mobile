@@ -3,6 +3,7 @@ import {
   Text,
   TextVariant,
   TextColor,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 import { View, TouchableOpacity } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -106,7 +107,7 @@ const PerpsAdjustMarginActionSheet: React.FC<
                 color={IconColor.Default}
               />
               <View style={styles.actionContent}>
-                <Text variant={TextVariant.BodyMd} fontWeight="bold">
+                <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
                   {option.label}
                 </Text>
                 <Text

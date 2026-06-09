@@ -1,10 +1,9 @@
 import React, { memo } from 'react';
-import {
-  Text,
+import { View } from 'react-native';
+import Text, {
   TextVariant,
   TextColor,
-} from '@metamask/design-system-react-native';
-import { View } from 'react-native';
+} from '../../../../../component-library/components/Texts/Text';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import {
   formatPerpsFiat,
@@ -27,8 +26,8 @@ interface LivePriceDisplayProps {
  */
 const LivePriceDisplay: React.FC<LivePriceDisplayProps> = ({
   symbol,
-  variant = TextVariant.BodyMd,
-  color = TextColor.TextDefault,
+  variant = TextVariant.BodyMD,
+  color = TextColor.Default,
   showChange = false,
   testID,
   throttleMs = 1000, // Default to 1 second updates for price displays
@@ -52,14 +51,13 @@ const LivePriceDisplay: React.FC<LivePriceDisplayProps> = ({
   const change = parseFloat(priceData.percentChange24h || '0');
 
   if (showChange) {
-    const changeColor =
-      change >= 0 ? TextColor.SuccessDefault : TextColor.ErrorDefault;
+    const changeColor = change >= 0 ? TextColor.Success : TextColor.Error;
     return (
       <View>
         <Text variant={variant} color={color} testID={testID}>
           {formatPerpsFiat(price, { ranges: PRICE_RANGES_UNIVERSAL })}
         </Text>
-        <Text variant={TextVariant.BodySm} color={changeColor}>
+        <Text variant={TextVariant.BodySM} color={changeColor}>
           {formatPercentage(change)}
         </Text>
       </View>
