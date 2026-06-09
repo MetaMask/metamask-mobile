@@ -43,4 +43,32 @@ describe(SmokeNetworkExpansion('Bitcoin Wallet Standard E2E - Connect'), () => {
       },
     );
   });
+
+  it('Stays connected after page refresh', async () => {
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder().build(),
+        restartDevice: true,
+        dapps: [
+          {
+            dappVariant: DappVariants.BITCOIN_TEST_DAPP,
+          },
+        ],
+      },
+      async () => {
+        await loginToApp();
+        await navigateToBitcoinTestDApp();
+
+        await connectBitcoinTestDapp();
+
+        await BitcoinTestDapp.verifyConnectedAccount(account1Short);
+        await BitcoinTestDapp.verifyConnectionStatus('Connected');
+
+        await BitcoinTestDapp.reloadBitcoinTestDApp();
+
+        await BitcoinTestDapp.verifyConnectedAccount(account1Short);
+        await BitcoinTestDapp.verifyConnectionStatus('Connected');
+      },
+    );
+  });
 });
