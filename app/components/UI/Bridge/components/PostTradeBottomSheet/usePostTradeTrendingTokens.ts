@@ -1,12 +1,10 @@
 import { useMemo } from 'react';
-import { useSelector } from 'react-redux';
 import { useQuery } from '@tanstack/react-query';
 import {
   getTrendingTokens,
   type TrendingAsset,
 } from '@metamask/assets-controllers';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
-import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import type { BridgeToken } from '../../types';
 import {
   getMinLiquidityForChains,
@@ -33,7 +31,6 @@ export const usePostTradeTrendingTokens = ({
   destToken?: BridgeToken;
   enabled?: boolean;
 }) => {
-  const currentCurrency = useSelector(selectCurrentCurrency) || 'usd';
   const destinationCaipChainId = destToken?.chainId
     ? formatChainIdToCaip(destToken.chainId)
     : undefined;
@@ -41,11 +38,7 @@ export const usePostTradeTrendingTokens = ({
   const isQueryEnabled = enabled && Boolean(destinationCaipChainId);
 
   const query = useQuery<TrendingAsset[], Error>({
-    queryKey: [
-      POST_TRADE_TRENDING_TOKENS_QUERY_KEY,
-      destinationCaipChainId,
-      currentCurrency.toLowerCase(),
-    ],
+    queryKey: [POST_TRADE_TRENDING_TOKENS_QUERY_KEY, destinationCaipChainId],
     queryFn: () => {
       if (!destinationCaipChainId) {
         return Promise.resolve([]);
@@ -58,8 +51,6 @@ export const usePostTradeTrendingTokens = ({
         minVolume24hUsd: getMinVolume24hForChains(chainIds),
         minMarketCap: 0,
         excludeLabels: ['stable_coin', 'blue_chip'],
-        includeTokenSecurityData: true,
-        vsCurrency: currentCurrency.toLowerCase(),
       });
     },
     enabled: isQueryEnabled,

@@ -105,8 +105,16 @@ describe('usePostTradeTrendingTokens', () => {
       expect.objectContaining({
         chainIds: ['eip155:1'],
         sort: 'h24_trending',
+      }),
+    );
+    expect(mockGetTrendingTokens).not.toHaveBeenCalledWith(
+      expect.objectContaining({
         includeTokenSecurityData: true,
-        vsCurrency: 'usd',
+      }),
+    );
+    expect(mockGetTrendingTokens).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        vsCurrency: expect.any(String),
       }),
     );
     expect(result.current.tokens).toHaveLength(
