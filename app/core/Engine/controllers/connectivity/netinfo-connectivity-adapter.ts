@@ -17,7 +17,7 @@ import {
  * - Uses NetInfo to detect network connectivity
  * - Uses `isInternetReachable` for actual internet connectivity (preferred)
  * - Falls back to `isConnected` if `isInternetReachable` is null (still determining)
- * - Fetches initial state asynchronously on subscription
+ * - Fetches initial state on demand via {@link getStatus} (used by the controller's `init()`)
  * - Subscribes to NetInfo state changes
  * - Handles cleanup of NetInfo subscriptions
  *
@@ -58,17 +58,13 @@ export class NetInfoConnectivityAdapter implements ConnectivityAdapter {
   /**
    * Registers a callback to be called when connectivity status changes.
    *
-   * Fetches the initial state asynchronously and then subscribes to changes.
+   * Initial status is fetched by the controller's `init()` via
+   * {@link getStatus}; this method only subscribes to subsequent changes.
    *
    * @param callback - Function called with the new connectivity status.
    */
   onConnectivityChange(callback: (status: ConnectivityStatus) => void): void {
     this.#onConnectivityChangeCallbacks.push(callback);
-
-    // Fetch initial state first
-    netInfoFetch().then((state: NetInfoState) => {
-      this.#update(state);
-    });
   }
 
   /**

@@ -10,9 +10,14 @@ import {
 } from '@metamask/connectivity-controller';
 import { NetInfoConnectivityAdapter } from './netinfo-connectivity-adapter';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
+import Logger from '../../../../util/Logger';
 
 // Mock NetInfoConnectivityAdapter since it uses NetInfo which requires native modules
 jest.mock('./netinfo-connectivity-adapter');
+jest.mock('../../../../util/Logger', () => ({
+  __esModule: true,
+  default: { error: jest.fn() },
+}));
 
 function getInitRequestMock(): jest.Mocked<
   MessengerClientInitRequest<ConnectivityControllerMessenger>
@@ -81,6 +86,41 @@ describe('ConnectivityControllerInit', () => {
 
     expect(mockNetInfoAdapter.onConnectivityChange).toHaveBeenCalledWith(
       expect.any(Function),
+    );
+  });
+
+  it('seeds initial connectivity status via controller.init()', async () => {
+    mockNetInfoAdapter.getStatus.mockResolvedValue(
+      CONNECTIVITY_STATUSES.Offline,
+    );
+
+    const { controller } = connectivityControllerInit(getInitRequestMock());
+
+    // init() runs asynchronously; flush pending microtasks before asserting.
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(mockNetInfoAdapter.getStatus).toHaveBeenCalled();
+    expect(controller.state.connectivityStatus).toBe(
+      CONNECTIVITY_STATUSES.Offline,
+    );
+  });
+
+  it('logs and keeps default state when controller.init() rejects', async () => {
+    const initError = new Error('netinfo unavailable');
+    mockNetInfoAdapter.getStatus.mockRejectedValue(initError);
+
+    const { controller } = connectivityControllerInit(getInitRequestMock());
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(Logger.error).toHaveBeenCalledWith(
+      initError,
+      'ConnectivityController: failed to initialize',
+    );
+    expect(controller.state.connectivityStatus).toBe(
+      CONNECTIVITY_STATUSES.Online,
     );
   });
 });
