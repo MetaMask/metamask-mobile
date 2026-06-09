@@ -1010,7 +1010,7 @@ describe('AssetOverviewContent', () => {
       mockUsePerpsPositionForAsset.mockReturnValue(defaultPerpsPositionResult);
     });
 
-    it('renders the aToken banner on the mUSD page when the user holds an aToken', () => {
+    it('renders the conversion banner for the viewed mUSD token on the mUSD page', () => {
       const aUSDC = createMockAtoken('aUSDC');
       mockUseMusdConversionTokens.mockReturnValue({
         tokens: [aUSDC],
@@ -1024,47 +1024,56 @@ describe('AssetOverviewContent', () => {
       expect(mockMusdConversionAssetOverviewCta).toHaveBeenCalledWith(
         expect.objectContaining({
           asset: expect.objectContaining({
-            symbol: 'aUSDC',
-            address: aUSDC.address,
-            chainId: aUSDC.chainId,
+            symbol: 'mUSD',
+            address: musdToken.address,
+            chainId: musdToken.chainId,
           }),
         }),
         undefined,
       );
     });
 
-    it('renders the aToken banner when the user holds any of aUSDC, aUSDT, or aDAI', () => {
-      const aDAI = createMockAtoken('aDAI');
+    it('renders the conversion banner for the viewed USDC token without promoting a held aToken', () => {
+      const usdcToken: TokenI = {
+        ...defaultToken,
+        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        chainId: '0x1',
+        symbol: 'USDC',
+        name: 'USD Coin',
+      };
+      const aUSDC = createMockAtoken('aUSDC');
       mockUseMusdConversionTokens.mockReturnValue({
-        tokens: [aDAI],
+        tokens: [aUSDC],
       });
 
       renderWithProvider(
-        <AssetOverviewContent {...defaultProps} token={musdToken} />,
+        <AssetOverviewContent {...defaultProps} token={usdcToken} />,
         { state: createState(true) },
       );
 
       expect(mockMusdConversionAssetOverviewCta).toHaveBeenCalledWith(
         expect.objectContaining({
-          asset: expect.objectContaining({ symbol: 'aDAI' }),
+          asset: expect.objectContaining({
+            symbol: 'USDC',
+            address: usdcToken.address,
+            chainId: usdcToken.chainId,
+          }),
+        }),
+        undefined,
+      );
+      expect(mockMusdConversionAssetOverviewCta).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          asset: expect.objectContaining({ symbol: 'aUSDC' }),
         }),
         undefined,
       );
     });
 
-    it('does NOT render the aToken banner when the user holds no aTokens', () => {
-      const usdc: TokenI = {
-        ...defaultToken,
-        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-        chainId: '0x1',
-        symbol: 'USDC',
-      };
-      mockUseMusdConversionTokens.mockReturnValue({
-        tokens: [usdc],
-      });
+    it('does NOT render the conversion banner on a non-eligible asset page', () => {
+      mockUseMusdConversionTokens.mockReturnValue({ tokens: [] });
 
       renderWithProvider(
-        <AssetOverviewContent {...defaultProps} token={musdToken} />,
+        <AssetOverviewContent {...defaultProps} token={defaultToken} />,
         { state: createState(true) },
       );
 

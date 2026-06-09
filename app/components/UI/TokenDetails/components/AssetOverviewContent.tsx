@@ -884,8 +884,8 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           {isTokenEligibleForMerklClaim && (
             <AssetOverviewClaimBonus asset={token} />
           )}
-          {showMusdConvertSection && preferredAtoken && (
-            <MusdConversionAssetOverviewCta asset={preferredAtoken} />
+          {showMusdConvertSection && (
+            <MusdConversionAssetOverviewCta asset={token} />
           )}
           {showMusdConvertSection && (
             <MoneyConvertStablecoins
