@@ -93,20 +93,25 @@ jest.mock('../../Charts/AdvancedChart/useOHLCVRealtime', () => ({
 }));
 
 jest.mock('../../Charts/AdvancedChart/TimeRangeSelector', () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-  const { View, Pressable, Text } = require('react-native');
+  const { View, Pressable, Text } = jest.requireActual('react-native');
+  const { ChartType: MockChartType } = jest.requireActual(
+    '../../Charts/AdvancedChart/AdvancedChart.types',
+  );
   const MockSelector = ({
     onSelect,
-    onChartTypeToggle,
+    onChartTypeSelect,
   }: {
     onSelect: (r: string) => void;
-    onChartTypeToggle?: () => void;
+    onChartTypeSelect?: (type: number) => void;
   }) => (
     <View testID="mock-time-range-selector">
       <Pressable testID="select-1W" onPress={() => onSelect('1W')} />
       <Pressable testID="select-1D" onPress={() => onSelect('1D')} />
-      {onChartTypeToggle && (
-        <Pressable testID="toggle-chart-type" onPress={onChartTypeToggle}>
+      {onChartTypeSelect && (
+        <Pressable
+          testID="toggle-chart-type"
+          onPress={() => onChartTypeSelect(MockChartType.Candles)}
+        >
           <Text>Toggle</Text>
         </Pressable>
       )}

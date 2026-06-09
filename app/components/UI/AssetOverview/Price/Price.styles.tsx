@@ -7,7 +7,8 @@ const styleSheet = (params: { theme: Theme }) =>
     wrapper: {
       width: '100%',
       paddingHorizontal: 16,
-      paddingVertical: 12,
+      paddingTop: 12,
+      paddingBottom: 16,
       flexDirection: 'column',
       alignItems: 'flex-start',
     } as ViewStyle,
@@ -36,15 +37,12 @@ const styleSheet = (params: { theme: Theme }) =>
       width: 15,
       zIndex: 10,
     } as ViewStyle,
-    /** Figma: column, py 12, align start, gap 10; child row is full width */
     timeRangeContainer: {
       width: '100%',
       alignSelf: 'stretch',
-      paddingTop: 12,
-      paddingBottom: 24,
+      paddingBottom: 12,
       flexDirection: 'column',
       alignItems: 'flex-start',
-      gap: 10,
     } as ViewStyle,
     /** Under flex-start parent, stretch so inner space-between uses full screen width */
     timeRangeSelectorWrap: {

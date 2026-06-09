@@ -190,22 +190,24 @@ const PriceAdvanced = ({
     );
   }, [createEventBuilder, trackEvent, chartType]);
 
-  const toggleChartType = useCallback(() => {
-    const next =
-      chartType === ChartType.Candles ? ChartType.Line : ChartType.Candles;
-    if (next !== ChartType.Candles) {
-      setCrosshairData(null);
-    }
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
-        .addProperties({
-          interaction_type: 'chart_type_changed',
-          chart_type: next === ChartType.Candles ? 'candlestick' : 'line',
-        })
-        .build(),
-    );
-    dispatch(setTokenOverviewChartType(next));
-  }, [chartType, createEventBuilder, trackEvent, dispatch]);
+  const handleChartTypeSelect = useCallback(
+    (next: ChartType) => {
+      if (next === chartType) return;
+      if (next !== ChartType.Candles) {
+        setCrosshairData(null);
+      }
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
+          .addProperties({
+            interaction_type: 'chart_type_changed',
+            chart_type: next === ChartType.Candles ? 'candlestick' : 'line',
+          })
+          .build(),
+      );
+      dispatch(setTokenOverviewChartType(next));
+    },
+    [chartType, createEventBuilder, trackEvent, dispatch],
+  );
 
   const handleTimeRangeSelect = useCallback(
     (range: TimeRange) => {
@@ -643,7 +645,19 @@ const PriceAdvanced = ({
           ) : null}
         </Text>
       </View>
-      <Box twClassName="mt-3 w-full">
+      <View style={styles.timeRangeContainer}>
+        <View style={styles.timeRangeSelectorWrap}>
+          <TimeRangeSelector
+            isChartLoading={chartLoading}
+            selected={timeRange}
+            onSelect={handleTimeRangeSelect}
+            chartType={chartType}
+            onChartTypeSelect={handleChartTypeSelect}
+            selectedColor={initialAmbientColor}
+          />
+        </View>
+      </View>
+      <Box twClassName="w-full pb-4">
         {crosshairData && chartType === ChartType.Candles && (
           <OHLCVBar data={crosshairData} currency={currentCurrency} />
         )}
@@ -687,19 +701,6 @@ const PriceAdvanced = ({
           )}
         </View>
       </Box>
-
-      <View style={styles.timeRangeContainer}>
-        <View style={styles.timeRangeSelectorWrap}>
-          <TimeRangeSelector
-            isChartLoading={chartLoading}
-            selected={timeRange}
-            onSelect={handleTimeRangeSelect}
-            chartType={chartType}
-            onChartTypeToggle={toggleChartType}
-            selectedColor={initialAmbientColor}
-          />
-        </View>
-      </View>
     </>
   );
 };
