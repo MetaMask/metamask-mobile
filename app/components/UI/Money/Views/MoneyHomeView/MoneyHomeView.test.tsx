@@ -118,6 +118,7 @@ jest.mock('../../../../../core/NavigationService', () => ({
 }));
 
 jest.mock('../../utils/moneyFormatFiat', () => ({
+  ...jest.requireActual('../../utils/moneyFormatFiat'),
   moneyFormatFiat: jest.fn(() => '$0.12'),
 }));
 
@@ -584,7 +585,126 @@ describe('MoneyHomeView', () => {
       });
     });
 
-    it('MoneyHowItWorks stays mounted in noAccount state when balance is unfunded', () => {
+    describe('dust threshold gating', () => {
+      const dustMock = {
+        totalFiatFormatted: '$0.00',
+        musdFiatFormatted: '$0.00',
+        musdSHFvdFiatFormatted: '$0.00',
+        // 0.0001 < DUST_THRESHOLD (0.01) — displays as $0.00 but is above zero
+        totalFiatRaw: '0.0001',
+        withdrawableMusd: undefined,
+        isAggregatedBalanceLoading: false,
+        isBalanceFetchError: false,
+        isBalanceFetching: false,
+        refetchBalance: jest.fn(),
+        apyDecimal: 0.05,
+        apyPercent: 5,
+        apyPercentFormatted: '5%',
+        vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
+        musdBalanceQuery: { data: undefined, isLoading: false },
+        musdEquivalentBalanceQuery: { data: undefined, isLoading: false },
+      } as unknown as ReturnType<typeof useMoneyAccountBalance>;
+
+      beforeEach(() => {
+        mockUseMoneyAccountBalance.mockReturnValue(dustMock);
+        mockUseMoneyAccountTransactions.mockReturnValue({
+          allTransactions: [],
+          deposits: [],
+          transfers: [],
+          submittedTransactions: [],
+          moneyAddress: '0x0000000000000000000000000000000000000001',
+          mockDataEnabled: false,
+        });
+      });
+
+      it('disables Transfer button for sub-cent (dust) balance', () => {
+        const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+        const transferButton = getByTestId(
+          MoneyActionButtonRowTestIds.TRANSFER_BUTTON,
+        );
+        expect(transferButton.props.accessibilityState?.disabled).toBe(true);
+      });
+
+      it('hides MoneyEarnings for dust balance', () => {
+        const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+        expect(
+          queryByTestId(MoneyEarningsTestIds.CONTAINER),
+        ).not.toBeOnTheScreen();
+      });
+
+      it('shows unfunded onboarding sections for dust balance', () => {
+        const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+        expect(getByTestId(MoneyHowItWorksTestIds.CONTAINER)).toBeOnTheScreen();
+        expect(getByTestId(MoneyWhatYouGetTestIds.CONTAINER)).toBeOnTheScreen();
+      });
+    });
+
+    describe('missing-rate (unavailable) state', () => {
+      beforeEach(() => {
+        mockUseMoneyAccountBalance.mockReturnValue({
+          totalFiatFormatted: undefined,
+          totalFiatRaw: undefined,
+          isAggregatedBalanceLoading: false,
+          isBalanceFetchError: false,
+          isBalanceFetching: false,
+          refetchBalance: jest.fn(),
+          apyPercent: 5,
+          vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
+          musdBalanceQuery: { data: undefined, isLoading: false },
+          musdEquivalentBalanceQuery: { data: undefined, isLoading: false },
+        } as unknown as ReturnType<typeof useMoneyAccountBalance>);
+        mockUseMoneyAccountTransactions.mockReturnValue({
+          allTransactions: [],
+          deposits: [],
+          transfers: [],
+          submittedTransactions: [],
+          moneyAddress: '0x0000000000000000000000000000000000000001',
+          mockDataEnabled: false,
+        });
+      });
+
+      it('disables Transfer button', () => {
+        const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+        const transferButton = getByTestId(
+          MoneyActionButtonRowTestIds.TRANSFER_BUTTON,
+        );
+        expect(transferButton.props.accessibilityState?.disabled).toBe(true);
+      });
+
+      it('hides MoneyEarnings', () => {
+        const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+        expect(
+          queryByTestId(MoneyEarningsTestIds.CONTAINER),
+        ).not.toBeOnTheScreen();
+      });
+
+      it('hides unfunded onboarding sections — does not fake an empty account', () => {
+        const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+        expect(
+          queryByTestId(MoneyHowItWorksTestIds.CONTAINER),
+        ).not.toBeOnTheScreen();
+        expect(
+          queryByTestId(MoneyWhatYouGetTestIds.CONTAINER),
+        ).not.toBeOnTheScreen();
+      });
+    });
+
+    describe('spendable balance regression guard', () => {
+      it('enables Transfer button for a balance above the dust threshold', () => {
+        const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+        const transferButton = getByTestId(
+          MoneyActionButtonRowTestIds.TRANSFER_BUTTON,
+        );
+        expect(transferButton.props.accessibilityState?.disabled).toBeFalsy();
+      });
+
+      it('shows MoneyEarnings for a balance above the dust threshold', () => {
+        const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+        expect(getByTestId(MoneyEarningsTestIds.CONTAINER)).toBeOnTheScreen();
+      });
+    });
+
+    it('hides MoneyHowItWorks in noAccount state (displayState is noAccount, not balance)', () => {
       mockUseMoneyAccountInfo.mockReturnValue({
         hasMoneyAccount: false,
         primaryMoneyAccount: undefined,
@@ -593,7 +713,6 @@ describe('MoneyHomeView', () => {
       mockUseMoneyAccountBalance.mockReturnValue({
         totalFiatFormatted: '$0.00',
         totalFiatRaw: '0',
-        tokenTotal: new BigNumber(0),
         isAggregatedBalanceLoading: false,
         isBalanceFetchError: false,
         isBalanceFetching: false,
@@ -612,9 +731,12 @@ describe('MoneyHomeView', () => {
         mockDataEnabled: false,
       });
 
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
 
-      expect(getByTestId(MoneyHowItWorksTestIds.CONTAINER)).toBeOnTheScreen();
+      // hasBalanceValue is false in noAccount state, so unfunded sections are hidden.
+      expect(
+        queryByTestId(MoneyHowItWorksTestIds.CONTAINER),
+      ).not.toBeOnTheScreen();
     });
   });
 
@@ -714,7 +836,8 @@ describe('MoneyHomeView', () => {
     it('disables Transfer button when account has zero balance', () => {
       mockUseMoneyAccountBalance.mockReturnValue({
         ...mockUseMoneyAccountBalance.mock.results[0]?.value,
-        tokenTotal: new BigNumber(0),
+        totalFiatFormatted: '$0.00',
+        totalFiatRaw: '0',
         isAggregatedBalanceLoading: false,
         isBalanceFetchError: false,
         isBalanceFetching: false,
@@ -731,7 +854,8 @@ describe('MoneyHomeView', () => {
     it('does not navigate to Transfer sheet when Transfer button is pressed while disabled', () => {
       mockUseMoneyAccountBalance.mockReturnValue({
         ...mockUseMoneyAccountBalance.mock.results[0]?.value,
-        tokenTotal: new BigNumber(0),
+        totalFiatFormatted: '$0.00',
+        totalFiatRaw: '0',
         isAggregatedBalanceLoading: false,
         isBalanceFetchError: false,
         isBalanceFetching: false,
@@ -881,12 +1005,14 @@ describe('MoneyHomeView', () => {
 
     it('drops the + prefix when projected earnings round to formatted zero', () => {
       mockMoneyFormatFiat.mockReturnValue('$0.00');
+      // totalFiatRaw must be >= DUST_THRESHOLD so hasSpendableBalance is true
+      // and MoneyEarnings renders. moneyFormatFiat is mocked to return '$0.00'
+      // for all values, exercising the no-plus-prefix path.
       mockUseMoneyAccountBalance.mockReturnValue({
-        totalFiatFormatted: '$0.00',
-        musdFiatFormatted: '$0.00',
-        musdSHFvdFiatFormatted: '$0.00',
-        totalFiatRaw: '0.001',
-        tokenTotal: undefined,
+        totalFiatFormatted: '$3.00',
+        musdFiatFormatted: '$1.00',
+        musdSHFvdFiatFormatted: '$2.00',
+        totalFiatRaw: '3',
         isAggregatedBalanceLoading: false,
         apyDecimal: 0.05,
         apyPercent: 5,
@@ -1266,13 +1392,12 @@ describe('MoneyHomeView', () => {
     });
   });
 
-  describe('balance not ready (tokenTotal undefined)', () => {
+  describe('balance not ready (loading state)', () => {
     beforeEach(() => {
       mockUseMoneyAccountBalance.mockReturnValue({
-        totalFiatFormatted: '$3.00',
-        totalFiatRaw: '3',
-        tokenTotal: undefined,
-        isAggregatedBalanceLoading: false,
+        totalFiatFormatted: undefined,
+        totalFiatRaw: undefined,
+        isAggregatedBalanceLoading: true,
         isBalanceFetchError: false,
         isBalanceFetching: false,
         refetchBalance: mockRefetchBalance,

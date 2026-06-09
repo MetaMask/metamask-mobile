@@ -31,8 +31,7 @@ import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyAct
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
-import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
-import { isAccountFunded } from '../../utils/isAccountFunded';
+import { moneyFormatFiat, DUST_THRESHOLD } from '../../utils/moneyFormatFiat';
 import { calculateProjectedEarnings } from '../../utils/projections';
 import { MUSD_MAINNET_ASSET_FOR_DETAILS } from '../../../../Views/Homepage/Sections/Cash/CashGetMusdEmptyState.constants';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
@@ -63,7 +62,6 @@ import {
   MONEY_URLS,
   MONEY_BUTTON_TYPES,
 } from '../../constants/moneyEvents';
-import { strings } from '../../../../../../locales/i18n';
 import { TransactionMeta } from '@metamask/transaction-controller';
 
 const Divider = () => <Box twClassName="h-px bg-border-muted my-5" />;
@@ -92,7 +90,6 @@ const MoneyHomeView = () => {
   const {
     totalFiatFormatted,
     totalFiatRaw,
-    tokenTotal,
     vaultApyQuery,
     isAggregatedBalanceLoading,
     isBalanceFetchError,
@@ -148,9 +145,6 @@ const MoneyHomeView = () => {
     isLinking,
   } = useMoneyAccountCardLinkage();
 
-  const balanceReady = tokenTotal !== undefined;
-  const isFunded = isAccountFunded(tokenTotal) || activityItems.length > 0;
-
   let displayState: MoneyBalanceDisplayState;
   if (!hasMoneyAccount) {
     displayState = { kind: 'noAccount' };
@@ -165,6 +159,13 @@ const MoneyHomeView = () => {
   } else {
     displayState = { kind: 'balance', value: totalFiatFormatted };
   }
+
+  const hasBalanceValue = displayState.kind === 'balance';
+  const hasSpendableBalance =
+    hasBalanceValue &&
+    !!totalFiatRaw &&
+    new BigNumber(totalFiatRaw).abs().gte(DUST_THRESHOLD);
+  const isFunded = hasSpendableBalance || activityItems.length > 0;
 
   const formattedZero = useMemo(
     () => moneyFormatFiat(new BigNumber(0), currentCurrency),
@@ -551,29 +552,23 @@ const MoneyHomeView = () => {
           }}
           transfer={{
             onPress: handleTransferPress,
-            disabled:
-              isAggregatedBalanceLoading || !isAccountFunded(tokenTotal),
+            disabled: !hasSpendableBalance,
           }}
           card={{ onPress: handleActionButtonCardPress }}
         />
         <MoneyOnboardingCard />
-        {/* Only show earnings if balance is available and non-zero */}
-        {displayState.kind === 'balance' &&
-          totalFiatRaw &&
-          !new BigNumber(totalFiatRaw).isZero() && (
-            <>
-              <MoneyEarnings
-                monthlyEarnings={monthlyEarnings}
-                yearlyEarnings={yearlyEarnings}
-                isLoading={
-                  vaultApyQuery.isLoading || isAggregatedBalanceLoading
-                }
-                onInfoPress={handleEarningsInfoPress}
-              />
-              <Divider />
-            </>
-          )}
-        {balanceReady && !isFunded && (
+        {hasSpendableBalance && (
+          <>
+            <MoneyEarnings
+              monthlyEarnings={monthlyEarnings}
+              yearlyEarnings={yearlyEarnings}
+              isLoading={vaultApyQuery.isLoading || isAggregatedBalanceLoading}
+              onInfoPress={handleEarningsInfoPress}
+            />
+            <Divider />
+          </>
+        )}
+        {hasBalanceValue && !isFunded && (
           <>
             <MoneyHowItWorks
               apy={apyPercent}
@@ -667,7 +662,7 @@ const MoneyHomeView = () => {
             <Divider />
           </>
         )}
-        {balanceReady && !isFunded && (
+        {hasBalanceValue && !isFunded && (
           <MoneyWhatYouGet
             apy={apyPercent}
             onLearnMorePress={handleLearnMorePress}
