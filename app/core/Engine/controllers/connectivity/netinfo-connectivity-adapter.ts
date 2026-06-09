@@ -50,7 +50,13 @@ export class NetInfoConnectivityAdapter implements ConnectivityAdapter {
    */
   async getStatus(): Promise<ConnectivityStatus> {
     if (!this.#currentState) {
-      this.#currentState = await netInfoFetch();
+      const fetched = await netInfoFetch();
+      // A NetInfo event may have populated `#currentState` while the fetch
+      // was in flight; that listener-supplied state is at least as fresh as
+      // the fetched snapshot, so only seed when we still have nothing.
+      if (!this.#currentState) {
+        this.#currentState = fetched;
+      }
     }
     return this.#statusFromState(this.#currentState);
   }

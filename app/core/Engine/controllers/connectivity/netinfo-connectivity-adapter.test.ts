@@ -43,6 +43,35 @@ describe('NetInfoConnectivityAdapter', () => {
       expect(netInfoFetch).toHaveBeenCalled();
     });
 
+    it('prefers listener-supplied state over a stale in-flight fetch', async () => {
+      // Fetch resolves with stale data (online) only after we deliberately release it.
+      let resolveFetch!: (state: {
+        isConnected: boolean;
+        isInternetReachable: boolean;
+      }) => void;
+      (netInfoFetch as jest.Mock).mockReturnValue(
+        new Promise((resolve) => {
+          resolveFetch = resolve;
+        }),
+      );
+
+      adapter = new NetInfoConnectivityAdapter();
+      const pending = adapter.getStatus();
+
+      // Listener delivers fresher state (offline) while the fetch is in flight.
+      const addEventListenerCallback = (netInfoAddEventListener as jest.Mock)
+        .mock.calls[0]?.[0];
+      addEventListenerCallback({
+        isConnected: false,
+        isInternetReachable: false,
+      });
+
+      // Now let the stale fetch resolve — it must not clobber the listener state.
+      resolveFetch({ isConnected: true, isInternetReachable: true });
+
+      await expect(pending).resolves.toBe(CONNECTIVITY_STATUSES.Offline);
+    });
+
     it('returns Online when isInternetReachable is true', async () => {
       adapter = new NetInfoConnectivityAdapter();
       const callback = jest.fn();
