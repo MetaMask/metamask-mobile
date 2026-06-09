@@ -307,5 +307,92 @@ describe('usePredictFeedConfig', () => {
       expect(result.current.activeFilterId).toBe('live');
       expect(result.current.activeFilter?.id).toBe('live');
     });
+
+    it('ignores an unknown tab id so selection stays in sync with content', () => {
+      const { result } = renderHook(() => usePredictFeedConfig('sports'));
+
+      act(() => {
+        result.current.setActiveTabId('curling');
+      });
+
+      // The invalid id is rejected: the active tab is unchanged, so the tab
+      // bar selection and the rendered filters/content stay consistent.
+      expect(result.current.activeTabId).toBe('basketball');
+      expect(ids(result.current.filters)).toEqual(['all', 'live']);
+
+      act(() => {
+        result.current.setActiveTabId('tennis');
+      });
+      expect(result.current.activeTabId).toBe('tennis');
+    });
+
+    it('ignores an unknown filter id so the chip matches the active filter', () => {
+      const { result } = renderHook(() => usePredictFeedConfig('sports'));
+
+      act(() => {
+        result.current.setActiveFilterId('nope');
+      });
+
+      expect(result.current.activeFilterId).toBe('all');
+      expect(result.current.activeFilter?.id).toBe('all');
+    });
+  });
+
+  describe('route param changes after mount', () => {
+    it('re-seeds the active tab when initialTabId changes on the same feed', () => {
+      const { result, rerender } = renderHook(
+        ({ initialTabId }: { initialTabId?: string }) =>
+          usePredictFeedConfig('sports', { initialTabId }),
+        { initialProps: { initialTabId: 'basketball' } },
+      );
+
+      expect(result.current.activeTabId).toBe('basketball');
+
+      rerender({ initialTabId: 'tennis' });
+
+      expect(result.current.activeTabId).toBe('tennis');
+    });
+
+    it('re-seeds the active filter when a static initialFilterId changes on the same feed', () => {
+      const { result, rerender } = renderHook(
+        ({ initialFilterId }: { initialFilterId?: string }) =>
+          usePredictFeedConfig('sports', { initialFilterId }),
+        { initialProps: { initialFilterId: undefined } },
+      );
+
+      expect(result.current.activeFilterId).toBe('all');
+
+      rerender({ initialFilterId: 'live' });
+
+      expect(result.current.activeFilterId).toBe('live');
+    });
+
+    it('re-seeds a pending dynamic filter when initialFilterId changes and selects it once it appears', async () => {
+      let optionsResult = filterOptionsResult();
+      mockUsePredictFilterOptions.mockImplementation(() => optionsResult);
+
+      const { result, rerender } = renderHook(
+        ({ initialFilterId }: { initialFilterId?: string }) =>
+          usePredictFeedConfig('politics', { initialFilterId }),
+        { initialProps: { initialFilterId: undefined } },
+      );
+
+      expect(result.current.activeFilterId).toBe('all');
+
+      // Route updates to target a dynamic filter that has not loaded yet.
+      optionsResult = filterOptionsResult({ isLoading: true });
+      rerender({ initialFilterId: 'elections' });
+      expect(result.current.activeFilterId).toBe('all');
+
+      // Dynamic filters resolve and the pending route filter is selected.
+      optionsResult = filterOptionsResult({
+        filterOptions: [createOption('elections')],
+      });
+      rerender({ initialFilterId: 'elections' });
+
+      await waitFor(() => {
+        expect(result.current.activeFilterId).toBe('elections');
+      });
+    });
   });
 });

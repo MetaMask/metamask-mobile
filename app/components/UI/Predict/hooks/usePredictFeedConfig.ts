@@ -154,15 +154,23 @@ export const usePredictFeedConfig = (
 
   // The route's `initialFilterId` when it targets a (not-yet-loaded) dynamic
   // filter; consumed once dynamic filters resolve, then cleared. Manual
-  // tab/filter changes cancel it.
-  const pendingDynamicFilterIdRef = useRef<string | undefined>(
-    isPendingDynamicFilter(
-      findTab(config, resolveInitialTabId(config, initialTabId)),
+  // tab/filter changes cancel it. Seeded once at mount (the re-init effect
+  // below re-seeds it on route-param changes).
+  const pendingDynamicFilterIdRef = useRef<string | undefined>(undefined);
+  const didSeedPendingRef = useRef(false);
+  if (!didSeedPendingRef.current) {
+    didSeedPendingRef.current = true;
+    const initialTab = findTab(
+      config,
+      resolveInitialTabId(config, initialTabId),
+    );
+    pendingDynamicFilterIdRef.current = isPendingDynamicFilter(
+      initialTab,
       initialFilterId,
     )
       ? initialFilterId
-      : undefined,
-  );
+      : undefined;
+  }
 
   const activeTab = useMemo(
     () => findTab(config, activeTabId),
@@ -234,21 +242,26 @@ export const usePredictFeedConfig = (
     if (isDynamicLoading) {
       return 'loading';
     }
+    // A fetch error and a successful-but-empty related-tags list are
+    // intentionally collapsed: both simply hide the dynamic chips.
     if (dynamicError || dynamicOptions.length === 0) {
       return 'unavailable';
     }
     return 'ready';
   }, [dynamicParams, isDynamicLoading, dynamicError, dynamicOptions.length]);
 
-  // Re-initialize selection when the feed itself changes (e.g. the hook is
-  // reused with a different route `feedId`). Skipped on mount (state is already
-  // seeded by the lazy initializers above).
-  const previousFeedIdRef = useRef(feedId);
+  // Re-initialize selection when any route input changes (the feed itself, or
+  // the initial tab/filter on the same feed) so a reused screen instance honors
+  // updated deeplink/navigation params. Skipped on mount (state is already
+  // seeded by the lazy initializers above). These are primitive route inputs,
+  // not user gestures, so re-seeding on a value change is intentional.
+  const seedKey = [feedId, initialTabId, initialFilterId].join('\u0000');
+  const previousSeedKeyRef = useRef(seedKey);
   useEffect(() => {
-    if (previousFeedIdRef.current === feedId) {
+    if (previousSeedKeyRef.current === seedKey) {
       return;
     }
-    previousFeedIdRef.current = feedId;
+    previousSeedKeyRef.current = seedKey;
 
     const nextConfig = resolvePredictFeedConfig(feedId);
     const nextTabId = resolveInitialTabId(nextConfig, initialTabId);
@@ -262,7 +275,7 @@ export const usePredictFeedConfig = (
     )
       ? initialFilterId
       : undefined;
-  }, [feedId, initialTabId, initialFilterId]);
+  }, [seedKey, feedId, initialTabId, initialFilterId]);
 
   // Honor a dynamic `initialFilterId` once dynamic filters settle. If the
   // target never appears (or the load fails), keep the current default.
@@ -279,17 +292,31 @@ export const usePredictFeedConfig = (
 
   const setActiveTabId = useCallback(
     (id: string) => {
+      // Resolve before storing so `activeTabId` always matches `activeTab`
+      // (which falls back to the first tab); ignore unknown ids.
+      const nextTab = findTab(config, id);
+      if (!nextTab) {
+        return;
+      }
       pendingDynamicFilterIdRef.current = undefined;
-      setActiveTabIdState(id);
-      setActiveFilterIdState(findTab(config, id)?.defaultFilterId);
+      setActiveTabIdState(nextTab.id);
+      setActiveFilterIdState(nextTab.defaultFilterId);
     },
     [config],
   );
 
-  const setActiveFilterId = useCallback((id: string) => {
-    pendingDynamicFilterIdRef.current = undefined;
-    setActiveFilterIdState(id);
-  }, []);
+  const setActiveFilterId = useCallback(
+    (id: string) => {
+      // Ignore ids absent from the active tab's filters so the highlighted chip
+      // can't diverge from the rendered `activeFilter`/list.
+      if (!filters.some((filter) => filter.id === id)) {
+        return;
+      }
+      pendingDynamicFilterIdRef.current = undefined;
+      setActiveFilterIdState(id);
+    },
+    [filters],
+  );
 
   const activeFilter = useMemo<PredictFeedRenderFilter | undefined>(
     () =>
