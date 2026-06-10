@@ -1823,7 +1823,7 @@ describe('useQuickBuyController', () => {
       );
 
       expect(result.current.selectedDestStable).toBeUndefined();
-      });
+    });
   });
 
   describe('selectDefaultSourceToken', () => {
