@@ -185,10 +185,7 @@ export const selectPredictPortfolioEnabledFlag = createSelector(
 
 export const selectPredictHomeRedesignEnabledFlag = createSelector(
   selectPredictFeatureFlags,
-  // TODO: TEMP QA OVERRIDE — hardcoded to true for manual testing of the
-  // home redesign + generic feed route/deeplinks. REVERT before merge:
-  // return `flags.predictHomeRedesignEnabled`.
-  (_flags) => true,
+  (flags) => flags.predictHomeRedesignEnabled,
 );
 
 export const selectPredictFeaturedCarouselEnabledFlag = createSelector(
