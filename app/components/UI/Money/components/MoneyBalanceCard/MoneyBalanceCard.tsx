@@ -32,12 +32,10 @@ import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import styleSheet from './MoneyBalanceCard.styles';
 import { MoneyBalanceCardTestIds } from './MoneyBalanceCard.testIds';
 import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
+import { useMoneyAccountAddRouting } from '../../hooks/useMoneyAccountAddRouting';
 import {
   SCREEN_NAMES,
   COMPONENT_NAMES,
-  BOTTOM_SHEET_NAMES,
-  MONEY_BUTTON_INTENTS,
-  MONEY_BUTTON_TYPES,
   MONEY_TOOLTIP_NAMES,
   MONEY_TOOLTIP_TYPES,
 } from '../../constants/moneyEvents';
@@ -60,20 +58,19 @@ const MoneyBalanceCard = () => {
   } = useMoneyAccountBalance();
   const { hasMoneyAccount } = useMoneyAccountInfo();
   const { navigateToMoneyHome } = useMoneyNavigation();
+  const { routeAddMoney } = useMoneyAccountAddRouting({
+    componentName: COMPONENT_NAMES.MONEY_BALANCE_CARD,
+  });
   const hasSeenMoneyOnboarding = useSelector(selectMoneyOnboardingSeen);
   const hasOtherPrimaryCtaOnHome = useSelector(
     selectWalletHomeOnboardingFlowVisible,
   );
 
-  const {
-    trackButtonClicked,
-    trackSurfaceClicked,
-    trackComponentViewed,
-    trackTooltipClicked,
-  } = useMoneyAnalytics({
-    screen_name: SCREEN_NAMES.WALLET_HOME,
-    component_name: COMPONENT_NAMES.MONEY_BALANCE_CARD,
-  });
+  const { trackSurfaceClicked, trackComponentViewed, trackTooltipClicked } =
+    useMoneyAnalytics({
+      screen_name: SCREEN_NAMES.WALLET_HOME,
+      component_name: COMPONENT_NAMES.MONEY_BALANCE_CARD,
+    });
 
   const isRetrying =
     hasMoneyAccount && isBalanceFetchError && isBalanceFetching;
@@ -113,24 +110,15 @@ const MoneyBalanceCard = () => {
     buttonLabelKey = 'money.balance_card.add';
     buttonTestId = MoneyBalanceCardTestIds.ADD_BUTTON;
     containerTestId = MoneyBalanceCardTestIds.UNAVAILABLE_CONTAINER;
-  } else if (isNewUser) {
-    buttonVariant = hasOtherPrimaryCtaOnHome
-      ? ButtonVariant.Secondary
-      : ButtonVariant.Primary;
-    buttonLabelKey = hasOtherPrimaryCtaOnHome
-      ? 'homepage.sections.money_empty_state.get_started'
-      : 'homepage.sections.money_empty_state.earn';
-    buttonTestId = hasOtherPrimaryCtaOnHome
-      ? MoneyBalanceCardTestIds.GET_STARTED_BUTTON
-      : MoneyBalanceCardTestIds.EARN_BUTTON;
-    containerTestId = MoneyBalanceCardTestIds.NEW_USER_CONTAINER;
   } else if (isEmpty) {
     buttonVariant = hasOtherPrimaryCtaOnHome
       ? ButtonVariant.Secondary
       : ButtonVariant.Primary;
     buttonLabelKey = 'homepage.sections.money_empty_state.earn';
     buttonTestId = MoneyBalanceCardTestIds.EARN_BUTTON;
-    containerTestId = MoneyBalanceCardTestIds.EMPTY_CONTAINER;
+    containerTestId = isNewUser
+      ? MoneyBalanceCardTestIds.NEW_USER_CONTAINER
+      : MoneyBalanceCardTestIds.EMPTY_CONTAINER;
   } else {
     buttonVariant = hasOtherPrimaryCtaOnHome
       ? ButtonVariant.Secondary
@@ -158,30 +146,8 @@ const MoneyBalanceCard = () => {
   }, [hasSeenMoneyOnboarding, navigateToMoneyHome, trackSurfaceClicked]);
 
   const handleAddPress = useCallback(() => {
-    trackButtonClicked({
-      button_type: MONEY_BUTTON_TYPES.TEXT,
-      button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
-      label_key: buttonLabelKey,
-      redirect_target: BOTTOM_SHEET_NAMES.MONEY_ADD_MONEY_SHEET,
-    });
-
-    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-      screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
-    });
-  }, [buttonLabelKey, navigation, trackButtonClicked]);
-
-  const handleGetStartedPress = useCallback(() => {
-    trackButtonClicked({
-      button_type: MONEY_BUTTON_TYPES.TEXT,
-      button_intent: MONEY_BUTTON_INTENTS.GET_STARTED,
-      label_key: buttonLabelKey,
-      redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
-    });
-
-    navigateToMoneyHome();
-  }, [buttonLabelKey, navigateToMoneyHome, trackButtonClicked]);
-
-  const handleButtonPress = isNewUser ? handleGetStartedPress : handleAddPress;
+    routeAddMoney();
+  }, [routeAddMoney]);
 
   const handleInfoPress = useCallback(() => {
     trackTooltipClicked({
@@ -339,7 +305,7 @@ const MoneyBalanceCard = () => {
           testID={buttonTestId}
           variant={buttonVariant}
           size={ButtonSize.Md}
-          onPress={handleButtonPress}
+          onPress={handleAddPress}
         >
           {strings(buttonLabelKey)}
         </Button>
