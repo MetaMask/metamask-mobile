@@ -9296,9 +9296,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/network-connection-banner-controller@npm:@metamask-previews/network-connection-banner-controller@0.1.0-preview-7507a11":
-  version: 0.1.0-preview-7507a11
-  resolution: "@metamask-previews/network-connection-banner-controller@npm:0.1.0-preview-7507a11"
+"@metamask/network-connection-banner-controller@npm:@metamask-previews/network-connection-banner-controller@0.1.0-preview-69c25f142":
+  version: 0.1.0-preview-69c25f142
+  resolution: "@metamask-previews/network-connection-banner-controller@npm:0.1.0-preview-69c25f142"
   dependencies:
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/connectivity-controller": "npm:^0.2.0"
@@ -9308,7 +9308,7 @@ __metadata:
     "@metamask/utils": "npm:^11.9.0"
     ip-regex: "npm:^4.3.0"
     psl: "npm:^1.15.0"
-  checksum: 10/a3a8bb5f0e14aa503c72ed4d0b16ebd1763817bbdf3fb04f5dc4c6156ca8c0f02284fe73989676043b48fc198c366b6171f369fbafd1ceb906b397ccc22dcd11
+  checksum: 10/261ed4f78094d6ee631b189fbb2d2449eb9ede52bf90af4129a275fde3e7b8a24e4e5dac5eac3d664c264ff97643029ab714ba41844fd5e6f1d6ccba62f72737
   languageName: node
   linkType: hard
 

@@ -166,7 +166,7 @@
     ]
   },
   "resolutions": {
-    "@metamask/network-connection-banner-controller": "npm:@metamask-previews/network-connection-banner-controller@0.1.0-preview-7507a11",
+    "@metamask/network-connection-banner-controller": "npm:@metamask-previews/network-connection-banner-controller@0.1.0-preview-69c25f142",
     "@metamask/network-controller": "32.0.0",
     "@react-native-community/viewpager": "patch:@react-native-community/viewpager@npm%3A3.3.0#~/.yarn/patches/@react-native-community-viewpager-npm-3.3.0.patch",
     "@solana-mobile/mobile-wallet-adapter-protocol": "^2.2.5",

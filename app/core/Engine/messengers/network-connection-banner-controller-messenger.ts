@@ -1,4 +1,8 @@
-import { Messenger } from '@metamask/messenger';
+import {
+  Messenger,
+  type MessengerActions,
+  type MessengerEvents,
+} from '@metamask/messenger';
 import type { NetworkConnectionBannerControllerMessenger } from '@metamask/network-connection-banner-controller';
 import { RootMessenger } from '../types';
 
@@ -12,15 +16,31 @@ import { RootMessenger } from '../types';
 export function getNetworkConnectionBannerControllerMessenger(
   rootMessenger: RootMessenger,
 ): NetworkConnectionBannerControllerMessenger {
-  // The preview package's messenger type is built against the new
-  // `:stateChanged` event-name flavor (`ControllerStateChangedEvent`), while
-  // mobile's `GlobalEvents` union still aggregates each peer controller's
-  // legacy `:stateChange` flavor. `BaseController` publishes both names at
-  // runtime, so the wiring works — only the type union is skewed. The cast
-  // can be dropped once `GlobalEvents` is updated to include the
-  // `:stateChanged` aliases for the relevant peer controllers.
-  return new Messenger({
+  const messenger = new Messenger<
+    'NetworkConnectionBannerController',
+    MessengerActions<NetworkConnectionBannerControllerMessenger>,
+    MessengerEvents<NetworkConnectionBannerControllerMessenger>,
+    RootMessenger
+  >({
     namespace: 'NetworkConnectionBannerController',
-    parent: rootMessenger as unknown as undefined,
-  }) as unknown as NetworkConnectionBannerControllerMessenger;
+    parent: rootMessenger,
+  });
+
+  rootMessenger.delegate({
+    actions: [
+      'NetworkController:getState',
+      'NetworkController:getNetworkConfigurationByChainId',
+      'NetworkController:updateNetwork',
+      'NetworkEnablementController:getState',
+      'ConnectivityController:getState',
+    ],
+    events: [
+      'NetworkController:stateChange',
+      'NetworkEnablementController:stateChange',
+      'ConnectivityController:stateChange',
+    ],
+    messenger,
+  });
+
+  return messenger;
 }

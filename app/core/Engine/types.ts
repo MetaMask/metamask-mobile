@@ -90,6 +90,8 @@ import {
 import type {
   NetworkConnectionBannerController,
   NetworkConnectionBannerControllerState,
+  NetworkConnectionBannerControllerActions,
+  NetworkConnectionBannerControllerEvents,
 } from '@metamask/network-connection-banner-controller';
 import {
   ConnectivityController,
@@ -542,6 +544,7 @@ export type GlobalActions =
   | KeyringControllerActions
   | NetworkControllerActions
   | NetworkEnablementControllerActions
+  | NetworkConnectionBannerControllerActions
   | PermissionControllerActions
   | SignatureControllerActions
   | LoggingControllerActions
@@ -633,6 +636,7 @@ export type GlobalEvents =
   | KeyringControllerEvents
   | NetworkControllerEvents
   | NetworkEnablementControllerEvents
+  | NetworkConnectionBannerControllerEvents
   | PermissionControllerEvents
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   | SnapsGlobalEvents
