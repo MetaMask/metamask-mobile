@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import {
-  selectUserRegion,
   selectProviders,
+  selectUserRegion,
 } from '../../../../selectors/rampsController';
 import { getProviderBuyLimit } from '../utils/providerLimits';
 import { getProviderLimitMessage } from '../utils/getProviderLimitMessage';
@@ -10,31 +10,28 @@ import { useFormatters } from '../../../hooks/useFormatters';
 
 /**
  * Hook to validate a fiat amount against the selected provider's static buy
- * limits.
+ * limits (`providers.selected` in `RampsController` state).
  *
- * Buy limits are provider+fiat+paymentMethod scoped (not asset-specific), and
- * the consuming flows operate on the globally-selected provider (the fiat
- * deposit screen is native-gated, so the selected provider is always native).
- * The limits are therefore read from the selected provider in Redux rather than
- * resolved per-asset.
+ * Assumes the native-gated fiat flow, where `providers.selected` is the
+ * provider quotes are requested with: the flow only renders when the selected
+ * provider is native (see `useHasNativeFiatProvider`), and
+ * `RampsController.getQuotes` resolves the selected provider first. If fiat
+ * deposit opens up to non-native providers, limit lookup must use the same
+ * provider resolution as `getQuotes` (needs a public accessor in core).
  *
  * @param options.amount - The fiat amount entered by the user.
  * @param options.paymentMethodId - The selected payment method ID.
- * @param options.backendError - Optional raw provider error from the quotes
- * response, used as a fallback when structured limits are not available.
- * @param options.currency - Override fiat currency for limit lookup; defaults to `userRegion.country.currency`.
+ * @param options.currency - Fiat currency for limit lookup; defaults to `userRegion.country.currency`.
  *
  * @returns `{ minAmount, maxAmount, amountLimitError, currency }`.
  */
 export function useRampsBuyLimits({
   amount,
   paymentMethodId,
-  backendError,
   currency: currencyOverride,
 }: {
   amount: number;
   paymentMethodId?: string | null;
-  backendError?: string | null;
   currency?: string;
 }): {
   minAmount?: number;
@@ -42,9 +39,8 @@ export function useRampsBuyLimits({
   amountLimitError: string | null;
   currency: string;
 } {
+  const provider = useSelector(selectProviders).selected;
   const userRegion = useSelector(selectUserRegion);
-  const providers = useSelector(selectProviders);
-  const provider = providers.selected ?? null;
   const currency = currencyOverride ?? userRegion?.country?.currency ?? 'USD';
   const { formatCurrency } = useFormatters();
 
@@ -62,9 +58,8 @@ export function useRampsBuyLimits({
         amount,
         currency,
         formatCurrency,
-        backendError,
       }),
-    [provider, currency, paymentMethodId, amount, formatCurrency, backendError],
+    [provider, currency, paymentMethodId, amount, formatCurrency],
   );
 
   return {

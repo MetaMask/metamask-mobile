@@ -5,6 +5,7 @@ import { useFiatBuyLimitAlert } from './useFiatBuyLimitAlert';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionPayFiatPayment } from '../pay/useTransactionPayData';
 import { useRampsBuyLimits } from '../../../../UI/Ramp/hooks/useRampsBuyLimits';
+import { useMMPayFiatConfig } from '../pay/useMMPayFiatConfig';
 import {
   TransactionMeta,
   TransactionType,
@@ -14,9 +15,12 @@ import { renderHookWithProvider } from '../../../../../util/test/renderWithProvi
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../pay/useTransactionPayData');
 jest.mock('../../../../UI/Ramp/hooks/useRampsBuyLimits');
+jest.mock('../pay/useMMPayFiatConfig');
 
 function runHook({ pendingAmount }: { pendingAmount?: string } = {}) {
-  return renderHookWithProvider(() => useFiatBuyLimitAlert({ pendingAmount }));
+  return renderHookWithProvider(() => useFiatBuyLimitAlert({ pendingAmount }), {
+    state: {},
+  });
 }
 
 describe('useFiatBuyLimitAlert', () => {
@@ -27,9 +31,14 @@ describe('useFiatBuyLimitAlert', () => {
     useTransactionPayFiatPayment,
   );
   const useRampsBuyLimitsMock = jest.mocked(useRampsBuyLimits);
+  const useMMPayFiatConfigMock = jest.mocked(useMMPayFiatConfig);
 
   beforeEach(() => {
     jest.resetAllMocks();
+
+    useMMPayFiatConfigMock.mockReturnValue({
+      enabledTransactionTypes: [TransactionType.moneyAccountDeposit],
+    } as unknown as ReturnType<typeof useMMPayFiatConfig>);
 
     useTransactionMetadataRequestMock.mockReturnValue({
       txParams: { from: '0x0' },
@@ -47,7 +56,7 @@ describe('useFiatBuyLimitAlert', () => {
     });
   });
 
-  it('returns blocking alert when fiat moneyAccountDeposit and amountLimitError is present', () => {
+  it('returns blocking alert when the amount is outside the provider limits', () => {
     useRampsBuyLimitsMock.mockReturnValue({
       amountLimitError: 'Amount exceeds maximum limit of $500',
       currency: 'USD',
@@ -78,7 +87,7 @@ describe('useFiatBuyLimitAlert', () => {
     expect(result.current).toStrictEqual([]);
   });
 
-  it('returns empty array when transaction type is not moneyAccountDeposit', () => {
+  it('returns empty array when transaction type is not in enabledTransactionTypes', () => {
     useTransactionMetadataRequestMock.mockReturnValue({
       txParams: { from: '0x0' },
       type: TransactionType.simpleSend,
@@ -156,7 +165,7 @@ describe('useFiatBuyLimitAlert', () => {
     );
   });
 
-  it('does not affect non-moneyAccountDeposit flows (e.g. perps)', () => {
+  it('does not affect flows not in enabledTransactionTypes (e.g. withdraw)', () => {
     useTransactionMetadataRequestMock.mockReturnValue({
       txParams: { from: '0x0' },
       type: TransactionType.moneyAccountWithdraw,
