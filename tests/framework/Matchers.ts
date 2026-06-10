@@ -1,33 +1,38 @@
 import { web, system } from 'detox';
+import { type EncapsulatedElementType } from './EncapsulatedElement.ts';
+import { resolve } from './Selector.ts';
 
 /**
  * Utility class for matching (locating) UI elements
  */
 export default class Matchers {
   /**
-   * Get element by ID with optional index
+   * Get element by ID with optional index.
    */
-  static async getElementByID(
+  static getElementByID(
     elementId: string | RegExp,
     index?: number,
-  ): Promise<Detox.IndexableNativeElement> {
-    const el = element(by.id(elementId));
-    if (index !== undefined) {
-      return el.atIndex(index) as Detox.IndexableNativeElement;
+  ): EncapsulatedElementType {
+    if (typeof elementId === 'string') {
+      return resolve({ testID: elementId, index });
     }
-    return el as Detox.IndexableNativeElement;
+    const el = element(by.id(elementId));
+    return (index !== undefined
+      ? el.atIndex(index)
+      : el) as unknown as DetoxElement;
   }
 
   /**
-   * Get element by text with optional index
+   * Get element by text with optional index.
    */
-  static async getElementByText(
+  static getElementByText(
     text: string | RegExp,
     index = 0,
-  ): Promise<Detox.IndexableNativeElement> {
-    return element(by.text(text)).atIndex(
-      index,
-    ) as Detox.IndexableNativeElement;
+  ): EncapsulatedElementType {
+    if (typeof text === 'string') {
+      return resolve({ text, index });
+    }
+    return element(by.text(text)).atIndex(index) as unknown as DetoxElement;
   }
 
   /**
@@ -39,7 +44,9 @@ export default class Matchers {
   ): Promise<Detox.IndexableNativeElement> {
     const escaped = containsText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const pattern = new RegExp(escaped, 'i');
-    return this.getElementByText(pattern, index);
+    return element(by.text(pattern)).atIndex(
+      index,
+    ) as Detox.IndexableNativeElement;
   }
 
   /**
@@ -60,13 +67,11 @@ export default class Matchers {
   /**
    * Get element by label (accessibility label on iOS, content description on Android)
    */
-  static async getElementByLabel(
+  static getElementByLabel(
     label: string,
-    index = 0,
-  ): Promise<Detox.IndexableNativeElement> {
-    return element(by.label(label)).atIndex(
-      index,
-    ) as Detox.IndexableNativeElement;
+    index?: number,
+  ): EncapsulatedElementType {
+    return resolve({ label, index });
   }
 
   /**
