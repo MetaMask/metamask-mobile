@@ -3,6 +3,7 @@ import { BigNumber } from 'bignumber.js';
 import { hasTransactionType } from '../../utils/transaction';
 import { useTransactionMetadataOrThrow } from '../transactions/useTransactionMetadataRequest';
 import {
+  useTransactionPayFiatPayment,
   useTransactionPayQuotes,
   useTransactionPayTotals,
 } from './useTransactionPayData';
@@ -13,6 +14,7 @@ const SUPPORTED_TYPES = [
 ];
 
 export function useIsPaidByMetaMask(): boolean {
+  const { selectedPaymentMethodId } = useTransactionPayFiatPayment() || {};
   const totals = useTransactionPayTotals();
   const quotes = useTransactionPayQuotes();
   const transactionMetadata = useTransactionMetadataOrThrow();
@@ -20,7 +22,8 @@ export function useIsPaidByMetaMask(): boolean {
   if (
     !quotes?.length ||
     !totals?.fees ||
-    !hasTransactionType(transactionMetadata, SUPPORTED_TYPES)
+    !hasTransactionType(transactionMetadata, SUPPORTED_TYPES) ||
+    selectedPaymentMethodId
   ) {
     return false;
   }
