@@ -43,6 +43,7 @@ jest.mock('../../../../reducers/rewards/selectors', () => ({
   selectHasAcceptedVipInvite: jest.fn(),
   selectHideCurrentAccountNotOptedInBannerArray: jest.fn(),
   selectHideUnlinkedAccountsBanner: jest.fn(),
+  selectPendingDeeplink: jest.fn(),
 }));
 
 jest.mock('../../../../selectors/rewards', () => ({
@@ -62,7 +63,11 @@ import {
   selectHasAcceptedVipInvite,
   selectHideUnlinkedAccountsBanner,
   selectHideCurrentAccountNotOptedInBannerArray,
+  selectPendingDeeplink,
 } from '../../../../reducers/rewards/selectors';
+// Real action creator (the rewards reducer module is intentionally not mocked),
+// so the deeplink tests can assert the exact clear action dispatched.
+import { setPendingDeeplink } from '../../../../reducers/rewards';
 import {
   selectIsCurrentSubscriptionVipEnabled,
   selectRewardsSubscriptionId,
@@ -97,6 +102,9 @@ const mockSelectSelectedAccountGroup =
   selectSelectedAccountGroup as jest.MockedFunction<
     typeof selectSelectedAccountGroup
   >;
+const mockSelectPendingDeeplink = selectPendingDeeplink as jest.MockedFunction<
+  typeof selectPendingDeeplink
+>;
 
 // Mock react-native-safe-area-context
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
@@ -572,6 +580,90 @@ describe('RewardsDashboard', () => {
         screen: Routes.REWARDS_VIP_VIEW,
         params: undefined,
       });
+    });
+  });
+
+  describe('deeplink navigation', () => {
+    // The dashboard reads the pending deeplink from Redux on mount and routes
+    // into the corresponding rewards sub-page, then clears it so it does not
+    // re-fire. navigateToRewardsRoute (not mocked) forwards through the
+    // REWARDS_FLOW host, so mockNavigate receives that wrapper shape.
+    const renderWithPendingDeeplink = (
+      pendingDeeplink: Record<string, unknown> | null,
+    ) => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectPendingDeeplink) return pendingDeeplink;
+        if (selector === selectActiveTab)
+          return defaultSelectorValues.activeTab;
+        if (selector === selectRewardsSubscriptionId)
+          return defaultSelectorValues.subscriptionId;
+        if (selector === selectIsCurrentSubscriptionVipEnabled)
+          return defaultSelectorValues.isVipEnabled;
+        if (selector === selectHideUnlinkedAccountsBanner)
+          return defaultSelectorValues.hideUnlinkedAccountsBanner;
+        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
+          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
+        if (selector === selectSelectedAccountGroup)
+          return defaultSelectorValues.selectedAccountGroup;
+        if (selector === mockHasAcceptedVipInviteSelector) return false;
+        return undefined;
+      });
+      return render(<RewardsDashboard />);
+    };
+
+    it.each([
+      ['page', 'campaigns', Routes.REWARDS_CAMPAIGNS_VIEW],
+      ['campaign', 'ondo', Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW],
+      ['campaign', 'season1', Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW],
+      [
+        'campaign',
+        'perps-comp',
+        Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW,
+      ],
+      [
+        'campaign',
+        'predict-the-pitch',
+        Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_DETAILS_VIEW,
+      ],
+      ['page', 'musd', Routes.REWARDS_MUSD_CALCULATOR_VIEW],
+    ])(
+      'routes %s=%s into the rewards flow and clears the pending deeplink',
+      (key, value, expectedScreen) => {
+        renderWithPendingDeeplink({ [key]: value });
+
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
+          screen: expectedScreen,
+          params: undefined,
+        });
+        expect(mockDispatch).toHaveBeenCalledWith(setPendingDeeplink(null));
+      },
+    );
+
+    it('navigates directly to the benefits full view (registered at root) for page=benefits', () => {
+      // Benefits is registered at the root MainNavigator level, so the dashboard
+      // navigates directly rather than through the REWARDS_FLOW host.
+      renderWithPendingDeeplink({ page: 'benefits' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.REWARD_BENEFITS_FULL_VIEW,
+      );
+      expect(mockDispatch).toHaveBeenCalledWith(setPendingDeeplink(null));
+    });
+
+    it('does nothing when there is no pending deeplink', () => {
+      renderWithPendingDeeplink(null);
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalledWith(setPendingDeeplink(null));
+    });
+
+    it('does not clear the pending deeplink for an unrecognized page/campaign', () => {
+      // Unrecognized intents are preserved (not cleared) so they can be retried
+      // rather than silently dropped.
+      renderWithPendingDeeplink({ page: 'totally-unknown' });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalledWith(setPendingDeeplink(null));
     });
   });
 
