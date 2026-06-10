@@ -1142,6 +1142,7 @@
   "perps": {
     "basic_functionality_disabled_title": "Perps is not available",
     "title": "Perps",
+    "transfer_to_perps": "Transfer to Perps",
     "perps_trading": "Perps trading",
     "perp_account_balance": "Perp account balance",
     "manage_balance": "Manage balance",
@@ -2308,6 +2309,7 @@
   },
   "predict": {
     "title": "MetaMask Predictions",
+    "transfer_to_predictions": "Transfer to Predictions",
     "home": {
       "portfolio_module_placeholder": "Portfolio module",
       "live_now_title": "Live now",
