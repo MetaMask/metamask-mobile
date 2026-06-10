@@ -190,6 +190,7 @@ function PaymentSelectionModal() {
             amount,
             currency,
             formatCurrency,
+            backendError: providerErrorMessage,
           }) ?? strings('fiat_on_ramp.quote_unavailable'))
         : undefined;
 
