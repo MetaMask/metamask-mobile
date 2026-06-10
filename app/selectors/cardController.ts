@@ -15,6 +15,7 @@ import {
   FundingStatus,
   type CardLocation,
   type CardFundingToken,
+  type CardVerificationState,
   type DelegationSettingsResponse,
 } from '../components/UI/Card/types';
 import { toCardFundingToken } from '../components/UI/Card/util/toCardTokenAllowance';
@@ -135,6 +136,46 @@ export const selectCardHomeData = createSelector(
   selectCardControllerState,
   (cardState: CardControllerState | undefined): CardHomeData | null =>
     (cardState?.cardHomeData as unknown as CardHomeData | null) ?? null,
+);
+
+/**
+ * Raw Baanx KYC verification state for the active card user, read from
+ * `cardHomeData.account.verificationStatus`. Returns `null` when card home
+ * data has not been fetched yet (consumers should treat null as not-verified).
+ */
+export const selectCardVerificationState = createSelector(
+  selectCardHomeData,
+  (data): CardVerificationState | null =>
+    (data?.account?.verificationStatus as CardVerificationState | null) ?? null,
+);
+
+/**
+ * `true` only when Baanx KYC `verificationState === 'VERIFIED'`. Used to gate
+ * MA <> Card linkage CTAs (see CARD-428) — non-verified users cannot approve
+ * tokens for spending, so the linkage flow must be hidden for them.
+ */
+export const selectIsCardVerified = createSelector(
+  selectCardVerificationState,
+  (state) => state === 'VERIFIED',
+);
+
+/**
+ * Composite Card-side readiness for MA <> Card linkage. Groups every
+ * Card-domain precondition the linkage hook needs into one place, so future
+ * gates (e.g. blocking `countryOfResidence === 'UK'`, region-level feature
+ * flags) are 1-line additions here — no edits to the hook or its consumers
+ * required.
+ *
+ * Currently: authenticated + verified.
+ * Future:    authenticated + verified + allowed country + ...
+ */
+export const selectIsCardReadyForLinkage = createSelector(
+  selectIsCardAuthenticated,
+  selectIsCardVerified,
+  // Future: , selectCardCountryOfResidence
+  (isAuthenticated, isVerified /* , countryOfResidence */) =>
+    isAuthenticated &&
+    isVerified /* && !BLOCKED_COUNTRIES.has(countryOfResidence ?? '') */,
 );
 
 export const selectCardHomeDataStatus = createSelector(

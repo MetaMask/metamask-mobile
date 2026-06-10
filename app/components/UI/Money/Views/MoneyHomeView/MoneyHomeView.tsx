@@ -115,6 +115,7 @@ const MoneyHomeView = () => {
   const {
     startLinkFlow,
     isCardAuthenticated,
+    isCardVerified,
     isCardLinkedToMoneyAccount,
     isLinking,
   } = useMoneyAccountCardLinkage();
@@ -279,7 +280,10 @@ const MoneyHomeView = () => {
   let metamaskCardMode: 'upsell' | 'link' | 'manage';
   if (isCardLinkedToMoneyAccount) {
     metamaskCardMode = 'manage';
-  } else if (isCardAuthenticated || isCardholder) {
+  } else if ((isCardAuthenticated || isCardholder) && isCardVerified) {
+    // CARD-428: only KYC-verified card users may see the link CTA. Unverified
+    // cardholders fall through to `upsell`, which routes them back through the
+    // card onboarding stack — that flow already branches on `verificationState`.
     metamaskCardMode = 'link';
   } else {
     metamaskCardMode = 'upsell';

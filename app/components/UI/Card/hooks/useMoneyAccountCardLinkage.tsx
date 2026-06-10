@@ -33,6 +33,8 @@ import {
   selectCardHomeDataStatus,
   selectIsCardAuthenticated,
   selectIsCardholder,
+  selectIsCardReadyForLinkage,
+  selectIsCardVerified,
   selectIsMoneyAccountCardLinkInProgress,
   selectIsMoneyAccountDelegatedForCard,
 } from '../../../../selectors/cardController';
@@ -65,6 +67,7 @@ export interface LinkFlowOrigin {
 export interface UseMoneyAccountCardLinkageReturn {
   hasMoneyAccountRequirements: boolean;
   isCardAuthenticated: boolean;
+  isCardVerified: boolean;
   isCardLinkedToMoneyAccount: boolean;
   primaryMoneyAccount: MoneyAccount | undefined;
   moneyAccountCardToken: CardFundingToken | null;
@@ -103,6 +106,8 @@ export const useMoneyAccountCardLinkage =
       selectMoneyEnableMoneyAccountFlag,
     );
     const isCardAuthenticated = useSelector(selectIsCardAuthenticated);
+    const isCardVerified = useSelector(selectIsCardVerified);
+    const isCardReadyForLinkage = useSelector(selectIsCardReadyForLinkage);
     const isCardholder = useSelector(selectIsCardholder);
     const delegationSettings = useSelector(selectCardDelegationSettings);
     const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
@@ -133,7 +138,7 @@ export const useMoneyAccountCardLinkage =
 
     const canSubmitDelegation = Boolean(
       hasRequirements &&
-        isCardAuthenticated &&
+        isCardReadyForLinkage &&
         moneyAccountCardToken &&
         isMonadSponsorshipEnabled,
     );
@@ -412,6 +417,7 @@ export const useMoneyAccountCardLinkage =
     return {
       hasMoneyAccountRequirements: hasRequirements,
       isCardAuthenticated,
+      isCardVerified,
       isCardLinkedToMoneyAccount: isAlreadyDelegated,
       primaryMoneyAccount,
       moneyAccountCardToken,
