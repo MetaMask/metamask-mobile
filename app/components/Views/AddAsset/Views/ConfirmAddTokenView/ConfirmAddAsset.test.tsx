@@ -20,8 +20,8 @@ import {
 } from '../../../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.constants';
 import Routes from '../../../../../constants/navigation/Routes';
 import Logger from '../../../../../util/Logger';
+import { strings } from '../../../../../../locales/i18n';
 
-const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockAddTokenList = jest.fn().mockResolvedValue(undefined);
@@ -32,7 +32,6 @@ jest.mock('@react-navigation/native', () => {
     ...actualReactNavigation,
     useNavigation: () => ({
       navigate: mockNavigate,
-      setOptions: mockSetOptions,
       goBack: mockGoBack,
     }),
   };
@@ -252,11 +251,11 @@ describe('ConfirmAddAsset', () => {
     expect(getByText('USDT')).toBeOnTheScreen();
   });
 
-  it('sets navigation bar options on mount', () => {
-    renderWithProvider(<ConfirmAddAsset />, {
+  it('renders HeaderStandard with the add asset title', () => {
+    const { getByText } = renderWithProvider(<ConfirmAddAsset />, {
       state: mockInitialState,
     });
 
-    expect(mockSetOptions).toHaveBeenCalledTimes(1);
+    expect(getByText(strings('add_asset.title'))).toBeOnTheScreen();
   });
 });

@@ -1,9 +1,23 @@
 import React from 'react';
+import { userEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import DeFiProtocolPositionDetails, {
   DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID,
 } from './DeFiProtocolPositionDetails';
+import { CommonSelectorsIDs } from '../../../util/Common.testIds';
+
+const mockPop = jest.fn();
+
+jest.mock('@react-navigation/native', () => {
+  const actual = jest.requireActual('@react-navigation/native');
+  return {
+    ...actual,
+    useNavigation: () => ({
+      pop: mockPop,
+    }),
+  };
+});
 
 jest.mock('../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../util/navigation/navUtils'),
@@ -55,6 +69,10 @@ const mockInitialState = {
 };
 
 describe('DeFiProtocolPositionDetails', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('renders the protocol name header and aggregated balance', async () => {
     const { findByText, findByTestId } = renderWithProvider(
       <DeFiProtocolPositionDetails />,
@@ -92,5 +110,18 @@ describe('DeFiProtocolPositionDetails', () => {
     expect(
       await findByTestId(DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID),
     ).toHaveTextContent('•••••••••');
+  });
+
+  it('calls navigation.pop when the header back button is pressed', async () => {
+    const { getByTestId } = renderWithProvider(
+      <DeFiProtocolPositionDetails />,
+      {
+        state: mockInitialState,
+      },
+    );
+
+    await userEvent.press(getByTestId(CommonSelectorsIDs.BACK_ARROW_BUTTON));
+
+    expect(mockPop).toHaveBeenCalledTimes(1);
   });
 });

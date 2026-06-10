@@ -159,7 +159,6 @@ import SitesFullView from '../../Views/SitesFullView/SitesFullView';
 import { TokenDetails } from '../../UI/TokenDetails/Views/TokenDetails';
 import BenefitFullView from '../../UI/Rewards/Views/BenefitFullView';
 import BenefitsFullView from '../../UI/Rewards/Views/BenefitsFullView';
-import { getDeFiProtocolPositionDetailsNavbarOptions } from '../../UI/Navbar';
 
 const Stack = createStackNavigator();
 const NativeStack = createNativeStackNavigator();
@@ -1081,7 +1080,7 @@ const MainNavigator = () => {
       <Stack.Screen
         name="ConfirmAddAsset"
         component={ConfirmAddAsset}
-        options={{ headerShown: true, ...slideFromRightAnimation }}
+        options={{ headerShown: false, ...slideFromRightAnimation }}
       />
       <Stack.Screen
         name={Routes.SETTINGS_VIEW}
@@ -1397,15 +1396,7 @@ const MainNavigator = () => {
       <Stack.Screen
         name="DeFiProtocolPositionDetails"
         component={DeFiProtocolPositionDetails}
-        options={({ navigation }) => ({
-          ...slideFromRightAnimation,
-          ...getDeFiProtocolPositionDetailsNavbarOptions(navigation),
-          headerStyle: {
-            backgroundColor: colors.background.default,
-            shadowColor: importedColors.transparent,
-            elevation: 0,
-          },
-        })}
+        options={{ headerShown: false, ...slideFromRightAnimation }}
       />
       {
         ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
