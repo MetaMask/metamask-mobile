@@ -1979,10 +1979,10 @@
       "stocks_and_commodities": "Khám phá cổ phiếu và hàng hóa",
       "tabs": {
         "crypto": "Crypto",
-        "stocks": "Cổ phiếu",
-        "commodities": "Hàng hóa",
         "forex": "Ngoại hối",
-        "new": "Mới"
+        "new": "Mới",
+        "stock": "Cổ phiếu",
+        "commodity": "Hàng hóa"
       },
       "filter_by": "Lọc theo",
       "forex": "Ngoại hối",
@@ -8454,7 +8454,7 @@
     "main_title": "Phần thưởng",
     "vip": {
       "bps_unit": "bps",
-      "badge_label": "VIP Fox {{tier}}",
+      "badge_label": "VIP {{tier}}",
       "swaps_label": "Swaps",
       "perps_label": "Perps",
       "error_title": "We couldn’t load your VIP dashboard",
@@ -8971,7 +8971,7 @@
       "non_winner": {
         "title": "Kết quả đã có 🏅",
         "description": "Xem thứ hạng của bạn trong {{campaignName}}.",
-        "cta": "Xem"
+        "cta": "Xem chi tiết"
       }
     }
   },

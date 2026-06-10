@@ -1,24 +1,25 @@
 import { ApproveComponentIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import { EncapsulatedElementType } from '../../framework';
 
 // This components are used to check the approve confirmation specific components in the confirmation modal
 class TokenApproveConfirmation {
-  get SpendingCapValue(): DetoxElement {
+  get SpendingCapValue(): EncapsulatedElementType {
     return Matchers.getElementByID(ApproveComponentIDs.SPENDING_CAP_VALUE);
   }
 
-  get EditSpendingCapButton(): DetoxElement {
+  get EditSpendingCapButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ApproveComponentIDs.EDIT_SPENDING_CAP_BUTTON,
     );
   }
 
-  get EditSpendingCapInput(): DetoxElement {
+  get EditSpendingCapInput(): EncapsulatedElementType {
     return Matchers.getElementByID(ApproveComponentIDs.EDIT_SPENDING_CAP_INPUT);
   }
 
-  get EditSpendingCapSaveButton(): DetoxElement {
+  get EditSpendingCapSaveButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ApproveComponentIDs.EDIT_SPENDING_CAP_SAVE_BUTTON,
     );

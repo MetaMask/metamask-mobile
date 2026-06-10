@@ -1,26 +1,27 @@
 import { NetworkApprovalBottomSheetSelectorsIDs } from '../../../app/components/UI/NetworkModal/NetworkApprovalBottomSheet.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import { EncapsulatedElementType } from '../../framework';
 
 class NetworkApprovalBottomSheet {
-  get container(): DetoxElement {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(
       NetworkApprovalBottomSheetSelectorsIDs.CONTAINER,
     );
   }
 
-  get approvedButton(): DetoxElement {
+  get approvedButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       NetworkApprovalBottomSheetSelectorsIDs.APPROVE_BUTTON,
     );
   }
-  get cancelButton(): DetoxElement {
+  get cancelButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       NetworkApprovalBottomSheetSelectorsIDs.CANCEL_BUTTON,
     );
   }
 
-  get displayName(): DetoxElement {
+  get displayName(): EncapsulatedElementType {
     return Matchers.getElementByID(
       NetworkApprovalBottomSheetSelectorsIDs.DISPLAY_NAME,
     );

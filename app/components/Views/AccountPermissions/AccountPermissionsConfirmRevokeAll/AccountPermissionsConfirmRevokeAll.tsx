@@ -8,9 +8,6 @@ import Button, {
   ButtonVariants,
   ButtonSize,
 } from '../../../../component-library/components/Buttons/Button';
-import Text, {
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
@@ -21,6 +18,7 @@ import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './AccountPermissionsConfirmRevokeAll.styles';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ConnectedAccountsSelectorsIDs } from '../../MultichainAccounts/shared/ConnectedAccountModal.testIds';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 
 interface AccountPermissionsConfirmRevokeAllProps {
   route: {
@@ -76,7 +74,7 @@ const AccountPermissionsConfirmRevokeAll = (
           {strings('accounts.disconnect_all')}
         </BottomSheetHeader>
         <View style={styles.descriptionContainer}>
-          <Text variant={TextVariant.BodyMD}>
+          <Text variant={TextVariant.BodyMd}>
             {strings('accounts.reconnect_notice', {
               dappUrl: hostname,
             })}

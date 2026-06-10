@@ -13,10 +13,6 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
-import Text, {
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
-import { TextColor } from '../../../component-library/components/Texts/Text/Text.types';
 import Icon, {
   IconName,
   IconSize,
@@ -27,6 +23,9 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   BoxAlignItems,
+  Text,
+  TextVariant,
+  TextColor,
 } from '@metamask/design-system-react-native';
 
 import { MultichainTransactionDisplayData } from '../../hooks/useMultichainTransactionDisplay';
@@ -125,7 +124,7 @@ const MultichainTransactionDetailsSheet: React.FC = () => {
       alignItems={BoxAlignItems.Center}
       twClassName="py-3 border-b border-muted"
     >
-      <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+      <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
         {label}
       </Text>
       <Box
@@ -137,7 +136,7 @@ const MultichainTransactionDetailsSheet: React.FC = () => {
             onPress={() => viewOnBlockExplorer(label)}
             style={styles.blockExplorerLink}
           >
-            <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
+            <Text variant={TextVariant.BodyMd} color={TextColor.PrimaryDefault}>
               {formatAddress(value, 'short')}
             </Text>
             <Icon
@@ -154,7 +153,7 @@ const MultichainTransactionDetailsSheet: React.FC = () => {
             context="transaction"
           />
         ) : (
-          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
             {value}
           </Text>
         )}
@@ -165,12 +164,11 @@ const MultichainTransactionDetailsSheet: React.FC = () => {
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
       <BottomSheetHeader onClose={handleClose}>
-        <Text variant={TextVariant.HeadingMD}>{title}</Text>
-        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+        <Text variant={TextVariant.HeadingMd}>{title}</Text>
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           {timestamp && toDateFormat(new Date(timestamp * 1000))}
         </Text>
       </BottomSheetHeader>
-
       <Box twClassName="px-4 pb-4">
         {renderDetailRow(TransactionDetailRow.Status, capitalize(status))}
         {renderDetailRow(TransactionDetailRow.TransactionID, id, true)}
@@ -194,7 +192,6 @@ const MultichainTransactionDetailsSheet: React.FC = () => {
             `${priorityFee.amount} ${priorityFee.unit}`,
           )}
       </Box>
-
       <Box twClassName="px-4">
         <Button
           variant={ButtonVariants.Link}

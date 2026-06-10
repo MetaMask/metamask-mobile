@@ -118,11 +118,7 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
     isMoneyAccountLocked,
     canShowMoneyAccountCta,
     selectMoneyAccountAsSource,
-    moneyAccountTotalFiatFormatted,
-    isMoneyAccountBalanceLoading,
-    canLinkMoneyAccount,
     moneyAccountApyPercent,
-    hasMetalCard,
   } = useSpendingLimit({
     flow,
     initialToken: selectedTokenFromRoute,
@@ -167,22 +163,7 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
     return customLimit || '0';
   }, [limitType, customLimit]);
 
-  const moneyAccountTokenDisplayLabel = useMemo(() => {
-    const symbol = strings(
-      'card.card_spending_limit.money_account_token_symbol',
-    );
-    if (moneyAccountTotalFiatFormatted) {
-      return `${symbol} (${moneyAccountTotalFiatFormatted})`;
-    }
-    return symbol;
-  }, [moneyAccountTotalFiatFormatted]);
-
-  const shouldWaitForMoneyAccountBalance =
-    (flow === 'onboarding' || flow === 'enable_card') && canLinkMoneyAccount;
-  if (
-    (isOnboardingFlow && isLoadingHookData) ||
-    (shouldWaitForMoneyAccountBalance && isMoneyAccountBalanceLoading)
-  ) {
+  if (isOnboardingFlow && isLoadingHookData) {
     return (
       <SafeAreaView
         style={tw.style('flex-1 bg-background-default')}
@@ -307,7 +288,6 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
             selectedToken={selectedToken}
             tokenIconUrl={tokenIconUrl}
             tokenLabel={tokenLabel}
-            moneyAccountTokenDisplayLabel={moneyAccountTokenDisplayLabel}
             onPress={handleOtherSelect}
           />
 
@@ -374,7 +354,7 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
                 onPress={submit}
                 isFullWidth
                 isDisabled={!isValid || isLoading}
-                isLoading={isLoading}
+                isLoading={isLoading && !isMoneyAccountSource}
               >
                 {strings('card.card_spending_limit.confirm_new_limit')}
               </Button>
