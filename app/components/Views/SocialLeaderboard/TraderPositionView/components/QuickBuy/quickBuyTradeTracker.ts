@@ -1,3 +1,7 @@
+import {
+  TransactionType,
+  type TransactionMeta,
+} from '@metamask/transaction-controller';
 import type { QuickBuyTradeMode } from './types';
 
 export interface TrackedQuickBuyTrade {
@@ -66,4 +70,68 @@ export function getTrackedQuickBuyTradeIds(): string[] {
 
 export function untrackQuickBuyTrade(txMetaId: string): void {
   trackedTrades.delete(txMetaId);
+}
+
+/**
+ * Count of QuickBuy submissions currently in flight.
+ *
+ * The source transaction meta id is only known once `submitTx` resolves, but
+ * the generic transaction notification fires earlier (on `transactionApproved`,
+ * mid-submit). This marker lets us suppress that early notification before the
+ * id is registered. A counter (rather than a boolean) tolerates overlapping
+ * submissions without prematurely clearing the marker.
+ */
+let pendingSubmissions = 0;
+
+export function beginQuickBuySubmission(): void {
+  pendingSubmissions += 1;
+}
+
+export function endQuickBuySubmission(): void {
+  pendingSubmissions = Math.max(0, pendingSubmissions - 1);
+}
+
+export function hasPendingQuickBuySubmission(): boolean {
+  return pendingSubmissions > 0;
+}
+
+// Transaction types a QuickBuy submission can produce. Used to narrow the
+// marker window so an unrelated transaction approving mid-submit is not
+// suppressed. `batch` is the 7702 wrapper that triggers the duplicate
+// notification; swap/bridge cover the non-batched paths.
+const QUICK_BUY_SUPPRESSED_TYPES: TransactionType[] = [
+  TransactionType.batch,
+  TransactionType.swap,
+  TransactionType.bridge,
+];
+
+/**
+ * Predicate consumed by `NotificationManager` to skip the generic transaction
+ * notification for QuickBuy-initiated trades. Matches either a transaction
+ * already tracked by id (covers the later complete/confirmed notification) or,
+ * while a submission is in flight, a swap/bridge/batch transaction (covers the
+ * pending notification that fires before the id is known).
+ */
+export function isQuickBuyTransaction(
+  transactionMeta: TransactionMeta | undefined,
+): boolean {
+  if (transactionMeta?.id && getTrackedQuickBuyTrade(transactionMeta.id)) {
+    return true;
+  }
+
+  if (!hasPendingQuickBuySubmission()) {
+    return false;
+  }
+
+  const { type, nestedTransactions } = transactionMeta ?? {};
+
+  if (type && QUICK_BUY_SUPPRESSED_TYPES.includes(type)) {
+    return true;
+  }
+
+  return Boolean(
+    nestedTransactions?.some(
+      (tx) => tx.type && QUICK_BUY_SUPPRESSED_TYPES.includes(tx.type),
+    ),
+  );
 }

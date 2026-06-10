@@ -9,11 +9,18 @@ import {
 import { buildQuickBuyToastOptions } from '../quickBuyToastOptions';
 import {
   getTrackedQuickBuyTradeIds,
+  isQuickBuyTransaction,
   trackQuickBuyTrade,
   untrackQuickBuyTrade,
   type TrackedQuickBuyTrade,
 } from '../quickBuyTradeTracker';
+import { registerNotificationSkipPredicate } from '../../../../../../../core/notificationSkipPredicates';
 import { useQuickBuyToastRegistrations } from './useQuickBuyToastRegistrations';
+
+jest.mock('../../../../../../../core/notificationSkipPredicates', () => ({
+  __esModule: true,
+  registerNotificationSkipPredicate: jest.fn(() => jest.fn()),
+}));
 
 jest.mock('../quickBuyToastOptions', () => ({
   buildQuickBuyToastOptions: jest.fn((kind: string) => ({ kind })),
@@ -103,6 +110,24 @@ describe('useQuickBuyToastRegistrations', () => {
     getTrackedQuickBuyTradeIds().forEach(untrackQuickBuyTrade);
     Engine.context.MultichainTransactionsController.state.nonEvmTransactions =
       {};
+  });
+
+  it('registers the QuickBuy notification skip predicate on mount and unregisters on unmount', () => {
+    const unregister = jest.fn();
+    (registerNotificationSkipPredicate as jest.Mock).mockReturnValue(
+      unregister,
+    );
+
+    const { unmount } = renderHook(() => useQuickBuyToastRegistrations());
+
+    expect(registerNotificationSkipPredicate).toHaveBeenCalledWith(
+      isQuickBuyTransaction,
+    );
+    expect(unregister).not.toHaveBeenCalled();
+
+    unmount();
+
+    expect(unregister).toHaveBeenCalledTimes(1);
   });
 
   it('subscribes to both the bridge and multichain state change events', () => {

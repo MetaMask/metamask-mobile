@@ -1,10 +1,21 @@
 import {
+  TransactionType,
+  type TransactionMeta,
+} from '@metamask/transaction-controller';
+import {
+  beginQuickBuySubmission,
+  endQuickBuySubmission,
   getTrackedQuickBuyTrade,
   getTrackedQuickBuyTradeIds,
+  hasPendingQuickBuySubmission,
+  isQuickBuyTransaction,
   trackQuickBuyTrade,
   untrackQuickBuyTrade,
   type TrackedQuickBuyTrade,
 } from './quickBuyTradeTracker';
+
+const txMeta = (overrides: Partial<TransactionMeta>): TransactionMeta =>
+  overrides as TransactionMeta;
 
 const buyTrade: TrackedQuickBuyTrade = {
   tradeMode: 'buy',
@@ -24,6 +35,9 @@ const sellTrade: TrackedQuickBuyTrade = {
 describe('quickBuyTradeTracker', () => {
   afterEach(() => {
     getTrackedQuickBuyTradeIds().forEach(untrackQuickBuyTrade);
+    while (hasPendingQuickBuySubmission()) {
+      endQuickBuySubmission();
+    }
   });
 
   it('stores and returns a tracked trade by tx meta id', () => {
@@ -83,5 +97,98 @@ describe('quickBuyTradeTracker', () => {
 
     expect(() => untrackQuickBuyTrade('missing')).not.toThrow();
     expect(getTrackedQuickBuyTradeIds()).toEqual(['tx-1']);
+  });
+
+  describe('submission marker', () => {
+    it('reflects in-flight submissions via the counter', () => {
+      expect(hasPendingQuickBuySubmission()).toBe(false);
+
+      beginQuickBuySubmission();
+      expect(hasPendingQuickBuySubmission()).toBe(true);
+
+      endQuickBuySubmission();
+      expect(hasPendingQuickBuySubmission()).toBe(false);
+    });
+
+    it('stays active until all overlapping submissions end', () => {
+      beginQuickBuySubmission();
+      beginQuickBuySubmission();
+
+      endQuickBuySubmission();
+      expect(hasPendingQuickBuySubmission()).toBe(true);
+
+      endQuickBuySubmission();
+      expect(hasPendingQuickBuySubmission()).toBe(false);
+    });
+
+    it('never drops below zero on unbalanced ends', () => {
+      endQuickBuySubmission();
+
+      expect(hasPendingQuickBuySubmission()).toBe(false);
+
+      beginQuickBuySubmission();
+      expect(hasPendingQuickBuySubmission()).toBe(true);
+    });
+  });
+
+  describe('isQuickBuyTransaction', () => {
+    it('matches a transaction already tracked by id', () => {
+      trackQuickBuyTrade('tx-1', buyTrade);
+
+      expect(isQuickBuyTransaction(txMeta({ id: 'tx-1' }))).toBe(true);
+    });
+
+    it('matches an in-flight swap/bridge/batch transaction during submission', () => {
+      beginQuickBuySubmission();
+
+      expect(
+        isQuickBuyTransaction(
+          txMeta({ id: 'tx-9', type: TransactionType.batch }),
+        ),
+      ).toBe(true);
+      expect(
+        isQuickBuyTransaction(
+          txMeta({ id: 'tx-9', type: TransactionType.swap }),
+        ),
+      ).toBe(true);
+      expect(
+        isQuickBuyTransaction(
+          txMeta({ id: 'tx-9', type: TransactionType.bridge }),
+        ),
+      ).toBe(true);
+    });
+
+    it('matches a batch whose nested transaction is a swap during submission', () => {
+      beginQuickBuySubmission();
+
+      expect(
+        isQuickBuyTransaction(
+          txMeta({
+            id: 'tx-9',
+            type: TransactionType.batch,
+            nestedTransactions: [{ type: TransactionType.swap }],
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          } as any),
+        ),
+      ).toBe(true);
+    });
+
+    it('does not match an unrelated in-flight transaction type', () => {
+      beginQuickBuySubmission();
+
+      expect(
+        isQuickBuyTransaction(
+          txMeta({ id: 'tx-9', type: TransactionType.simpleSend }),
+        ),
+      ).toBe(false);
+    });
+
+    it('does not match when there is no marker and no tracked id', () => {
+      expect(
+        isQuickBuyTransaction(
+          txMeta({ id: 'tx-9', type: TransactionType.swap }),
+        ),
+      ).toBe(false);
+    });
   });
 });

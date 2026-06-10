@@ -40,7 +40,11 @@ import {
 import { useQuickBuySetup } from './hooks/useQuickBuySetup';
 import { useReceiveTokens } from './hooks/useReceiveTokens';
 import { buildQuickBuyToastOptions } from './quickBuyToastOptions';
-import { trackQuickBuyTrade } from './quickBuyTradeTracker';
+import {
+  trackQuickBuyTrade,
+  beginQuickBuySubmission,
+  endQuickBuySubmission,
+} from './quickBuyTradeTracker';
 import { resolveQuickBuyTerminalToast } from './resolveQuickBuyTerminalToast';
 import { positionToQuickBuyTarget } from './types';
 
@@ -233,6 +237,8 @@ jest.mock('./quickBuyTradeTracker', () => ({
   getTrackedQuickBuyTrade: jest.fn(),
   getTrackedQuickBuyTradeIds: jest.fn(() => []),
   untrackQuickBuyTrade: jest.fn(),
+  beginQuickBuySubmission: jest.fn(),
+  endQuickBuySubmission: jest.fn(),
 }));
 
 jest.mock('./quickBuyToastOptions', () => ({
@@ -2227,6 +2233,50 @@ describe('useQuickBuyController', () => {
         expect(mockShowToast).toHaveBeenCalledWith({ kind: 'failed' });
         expect(playErrorNotification).toHaveBeenCalledTimes(1);
         expect(trackQuickBuyTrade).not.toHaveBeenCalled();
+      });
+
+      it('marks the submission in flight before submit and clears it after success', async () => {
+        mockUsableQuote();
+        (
+          Engine.context.BridgeStatusController.submitTx as jest.Mock
+        ).mockResolvedValue({ id: 'tx-1', hash: '0xabc' });
+
+        const { result } = renderHook(() =>
+          useQuickBuyController(createTarget(), jest.fn()),
+        );
+
+        await act(async () => {
+          await result.current.handleConfirm();
+        });
+
+        expect(beginQuickBuySubmission).toHaveBeenCalledTimes(1);
+        expect(endQuickBuySubmission).toHaveBeenCalledTimes(1);
+        const beginOrder = (beginQuickBuySubmission as jest.Mock).mock
+          .invocationCallOrder[0];
+        const trackOrder = (trackQuickBuyTrade as jest.Mock).mock
+          .invocationCallOrder[0];
+        const endOrder = (endQuickBuySubmission as jest.Mock).mock
+          .invocationCallOrder[0];
+        expect(beginOrder).toBeLessThan(trackOrder);
+        expect(trackOrder).toBeLessThan(endOrder);
+      });
+
+      it('clears the in-flight submission marker when submit throws', async () => {
+        mockUsableQuote();
+        (
+          Engine.context.BridgeStatusController.submitTx as jest.Mock
+        ).mockRejectedValue(new Error('user rejected'));
+
+        const { result } = renderHook(() =>
+          useQuickBuyController(createTarget(), jest.fn()),
+        );
+
+        await act(async () => {
+          await result.current.handleConfirm();
+        });
+
+        expect(beginQuickBuySubmission).toHaveBeenCalledTimes(1);
+        expect(endQuickBuySubmission).toHaveBeenCalledTimes(1);
       });
     });
   });
