@@ -21,7 +21,7 @@ import { MoneyTransactionDetailsFromRow } from './MoneyTransactionDetailsFromRow
 import { MoneyTransactionDetailsToRow } from './MoneyTransactionDetailsToRow';
 import { MoneyTransactionDetailsOrderIdRow } from './MoneyTransactionDetailsOrderIdRow';
 import { MoneyTransactionDetailsSummary } from './MoneyTransactionDetailsSummary';
-import { MoneyTransactionDetailsDateRow } from './MoneyTransactionDetailsDateRow';
+import { TransactionDetailsDateRow } from '../../../../Views/confirmations/components/activity/transaction-details-date-row';
 import { MoneyTransactionDetailsRetryButton } from './MoneyTransactionDetailsRetryButton';
 import styleSheet from './MoneyTransactionDetailsView.styles';
 
@@ -93,7 +93,7 @@ export default function MoneyTransactionDetailsView() {
           <Box style={styles.container} twClassName="gap-3">
             <MoneyTransactionDetailsHero />
             <MoneyTransactionDetailsStatusRow />
-            <MoneyTransactionDetailsDateRow />
+            <TransactionDetailsDateRow />
             <TransactionDetailDivider />
             <MoneyTransactionDetailsFromRow />
             <MoneyTransactionDetailsToRow />

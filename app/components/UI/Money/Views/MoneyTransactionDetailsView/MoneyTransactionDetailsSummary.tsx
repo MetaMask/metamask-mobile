@@ -1,6 +1,5 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import {
   TransactionMeta,
@@ -19,18 +18,13 @@ import {
   FontWeight,
 } from '@metamask/design-system-react-native';
 import Routes from '../../../../../constants/navigation/Routes';
-import { RootState } from '../../../../../reducers';
-import {
-  selectTransactionsByBatchId,
-  selectTransactionsByIds,
-} from '../../../../../selectors/transactionController';
-import { useTransactionDetails } from '../../../../Views/confirmations/hooks/activity/useTransactionDetails';
 import { hasTransactionType } from '../../../../Views/confirmations/utils/transaction';
 import { RELAY_DEPOSIT_TYPES } from '../../../../Views/confirmations/constants/confirmations';
 import { useMultichainBlockExplorerTxUrl } from '../../../../UI/Bridge/hooks/useMultichainBlockExplorerTxUrl';
 import { useNetworkName } from '../../../../Views/confirmations/hooks/useNetworkName';
 import { useTokenWithBalance } from '../../../../Views/confirmations/hooks/tokens/useTokenWithBalance';
 import { useFiatOrderStatus } from '../../../../Views/confirmations/hooks/activity/useFiatOrderStatus';
+import { useSummaryTransactions } from '../../../../Views/confirmations/hooks/activity/useSummaryTransactions';
 import { useTheme } from '../../../../../util/theme';
 import I18n, { strings } from '../../../../../../locales/i18n';
 import { getIntlDateTimeFormatter } from '../../../../../util/intl';
@@ -427,61 +421,14 @@ function TransactionStepItem({
   return <DefaultStepItem transactionMeta={transactionMeta} />;
 }
 
-function isSkippedTransaction(
-  transaction: TransactionMeta,
-  parentTransaction: TransactionMeta,
-): boolean {
-  return (
-    hasTransactionType(parentTransaction, [TransactionType.musdConversion]) &&
-    !hasTransactionType(transaction, [TransactionType.relayDeposit])
-  );
-}
-
 export function MoneyTransactionDetailsSummary() {
-  const { transactionMeta } = useTransactionDetails();
   const {
-    batchId,
-    id: transactionId,
-    metamaskPay,
-    requiredTransactionIds,
-  } = transactionMeta;
-
-  const batchTransactions = useSelector((state: RootState) =>
-    selectTransactionsByBatchId(state, batchId ?? ''),
-  );
-
-  const batchTransactionIds = useMemo(
-    () =>
-      batchTransactions
-        .filter((transaction) => transaction.id !== transactionId)
-        .map((transaction) => transaction.id),
-    [batchTransactions, transactionId],
-  );
-
-  const transactionIds = useMemo(
-    () => [
-      ...(requiredTransactionIds ?? []),
-      ...(batchTransactionIds ?? []),
-      transactionId,
-    ],
-    [requiredTransactionIds, batchTransactionIds, transactionId],
-  );
-
-  const allTransactions = useSelector((state: RootState) =>
-    selectTransactionsByIds(state, transactionIds),
-  );
-
-  const transactions = allTransactions.filter(
-    (transaction) =>
-      !isSkippedTransaction(transaction, transactionMeta) ||
-      transaction.id === transactionId,
-  );
-
-  const hasDepositTransactions =
-    (requiredTransactionIds?.length ?? 0) > 0 || batchTransactionIds.length > 0;
-
-  const { sourceHash, fiat } = metamaskPay ?? {};
-  const { orderId: fiatOrderId } = fiat ?? {};
+    transactionMeta,
+    transactions,
+    hasDepositTransactions,
+    sourceHash,
+    fiatOrderId,
+  } = useSummaryTransactions();
 
   const hasFiatOrder = Boolean(fiatOrderId);
   const hasSourceHash = !hasDepositTransactions && Boolean(sourceHash);

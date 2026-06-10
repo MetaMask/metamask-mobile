@@ -17,14 +17,17 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ goBack: jest.fn(), setOptions: jest.fn() }),
 }));
 
-jest.mock('./MoneyTransactionDetailsDateRow', () => {
-  const ReactActual = jest.requireActual('react');
-  const { Text } = jest.requireActual('react-native');
-  return {
-    MoneyTransactionDetailsDateRow: () =>
-      ReactActual.createElement(Text, { testID: 'date-row' }, 'date'),
-  };
-});
+jest.mock(
+  '../../../../Views/confirmations/components/activity/transaction-details-date-row',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    const { Text } = jest.requireActual('react-native');
+    return {
+      TransactionDetailsDateRow: () =>
+        ReactActual.createElement(Text, { testID: 'date-row' }, 'date'),
+    };
+  },
+);
 jest.mock(
   '../../../../Views/confirmations/components/activity/transaction-details-network-fee-row',
   () => {
