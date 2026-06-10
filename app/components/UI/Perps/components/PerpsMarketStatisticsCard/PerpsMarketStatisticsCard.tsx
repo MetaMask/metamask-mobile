@@ -1,4 +1,9 @@
 import React, { useMemo } from 'react';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 import { TouchableOpacity, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Icon, {
@@ -6,11 +11,8 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow';
+import { TextVariant as LegacyTextVariant } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './PerpsMarketStatisticsCard.styles';
 import type { PerpsMarketStatisticsCardProps } from './PerpsMarketStatisticsCard.types';
@@ -76,7 +78,8 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
     }
 
     // Determine color based on value
-    const color = fundingValue >= 0 ? TextColor.Success : TextColor.Error;
+    const color =
+      fundingValue >= 0 ? TextColor.SuccessDefault : TextColor.ErrorDefault;
 
     return {
       value: fundingValue,
@@ -89,12 +92,12 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
   const fundingValueContent = useMemo(
     () => (
       <View style={styles.fundingRateContainer}>
-        <Text variant={TextVariant.BodyMD} color={fundingRateData.color}>
+        <Text variant={TextVariant.BodyMd} color={fundingRateData.color}>
           {fundingRateData.displayText}
         </Text>
         <FundingCountdown
-          variant={TextVariant.BodySM}
-          color={TextColor.Alternative}
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
           style={styles.fundingCountdown}
           nextFundingTime={nextFundingTime}
           fundingIntervalHours={fundingIntervalHours}
@@ -117,7 +120,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
     <View style={styles.container}>
       {/* Header with title with DEX badge */}
       <View style={styles.header}>
-        <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
+        <Text variant={TextVariant.HeadingSm} color={TextColor.TextDefault}>
           {strings('perps.market.stats')}
         </Text>
         {dexName && <Tag label={dexName.toUpperCase()} style={styles.dexTag} />}
@@ -133,7 +136,10 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
             testID={PerpsOrderBookViewSelectorsIDs.CONTAINER}
           >
             <View style={styles.orderBookRowContent}>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
                 {strings('perps.market.order_book')}
               </Text>
             </View>
@@ -150,15 +156,15 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
           field={{
             label: {
               text: strings('perps.market.24h_volume'),
-              variant: TextVariant.BodyMD,
-              color: TextColor.Alternative,
+              variant: LegacyTextVariant.BodyMD,
+              color: TextColor.TextAlternative,
             },
           }}
           value={{
             label: {
               text: marketStats.volume24h,
-              variant: TextVariant.BodyMD,
-              color: TextColor.Default,
+              variant: LegacyTextVariant.BodyMD,
+              color: TextColor.TextDefault,
             },
           }}
           style={[styles.statsRow, !onOrderBookPress && styles.statsRowFirst]}
@@ -170,8 +176,8 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
             label: (
               <View style={styles.labelWithIcon}>
                 <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
                 >
                   {strings('perps.market.open_interest')}
                 </Text>
@@ -191,8 +197,8 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
           value={{
             label: {
               text: marketStats.openInterest,
-              variant: TextVariant.BodyMD,
-              color: TextColor.Default,
+              variant: LegacyTextVariant.BodyMD,
+              color: TextColor.TextDefault,
             },
           }}
           style={styles.statsRow}
@@ -204,8 +210,8 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
             label: (
               <View style={styles.labelWithIcon}>
                 <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
                 >
                   {strings('perps.market.funding_rate')}
                 </Text>
@@ -234,8 +240,8 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
             label: (
               <View style={styles.labelWithIcon}>
                 <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
                 >
                   {strings('perps.market.oracle_price')}
                 </Text>
@@ -255,8 +261,8 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
           value={{
             label: (
               <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Default}
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextDefault}
                 testID={
                   PerpsMarketDetailsViewSelectorsIDs.STATISTICS_ORACLE_PRICE
                 }
