@@ -231,6 +231,12 @@ export function useQuickBuyController(
   const [tradeMode, setTradeMode] = useState<QuickBuyTradeMode>('buy');
   const [usdAmount, setUsdAmount] = useState('');
   const [sourceAmountTokens, setSourceAmountTokens] = useState('');
+  // True when the user has committed the slider to 100% ("sell all"). In this
+  // mode `sourceTokenAmount` spends the exact on-chain balance rather than a
+  // value reconstructed from the fiat round-trip / float math, either of which
+  // can land just above the real balance and falsely trip the insufficient-
+  // funds gate. Reset on any other amount input.
+  const [isMaxSourceAmount, setIsMaxSourceAmount] = useState(false);
   // Drives quote re-fetching. Updated only when the user commits a value
   // (slider drag end, tap, or text input) — NOT on every drag tick. This
   // prevents spamming quote requests while the thumb is moving.
@@ -403,7 +409,22 @@ export function useQuickBuyController(
     sourceToken?.currencyExchangeRate && sourceToken.currencyExchangeRate > 0,
   );
 
+  const latestSourceBalance = useLatestBalance({
+    address: sourceToken?.address,
+    decimals: sourceToken?.decimals,
+    chainId: sourceToken?.chainId,
+    balance: sourceToken?.balance,
+  });
+
   const sourceTokenAmount = useMemo(() => {
+    // Max ("sell all"): spend the exact on-chain balance. `displayBalance` is
+    // `formatUnits(atomicBalance)`, so it round-trips back to the precise
+    // atomic balance — unlike the fiat (priced) or float (unpriced) paths
+    // below, which can reconstruct a value fractionally above the real balance
+    // and falsely block the trade with "Insufficient funds".
+    if (isMaxSourceAmount && latestSourceBalance?.displayBalance) {
+      return latestSourceBalance.displayBalance;
+    }
     if (hasSourcePrice) {
       if (!quotedUsdAmount || !sourceToken?.currencyExchangeRate) {
         return undefined;
@@ -419,6 +440,8 @@ export function useQuickBuyController(
     return sourceAmountTokens;
   }, [
     hasSourcePrice,
+    isMaxSourceAmount,
+    latestSourceBalance?.displayBalance,
     quotedUsdAmount,
     sourceAmountTokens,
     sourceToken?.currencyExchangeRate,
@@ -431,13 +454,6 @@ export function useQuickBuyController(
       dispatch(setSourceAmount(undefined));
     }
   }, [sourceTokenAmount, dispatch]);
-
-  const latestSourceBalance = useLatestBalance({
-    address: sourceToken?.address,
-    decimals: sourceToken?.decimals,
-    chainId: sourceToken?.chainId,
-    balance: sourceToken?.balance,
-  });
 
   // Used for analytics passed to useQuickBuyQuotes. Must derive from
   // quotedUsdAmount (not usdAmount) so that mid-drag display updates don't
@@ -697,11 +713,15 @@ export function useQuickBuyController(
       setSliderPercent(rounded);
 
       // ── Unpriced path: drive token-amount state directly. ───────────────
+      // This branch commits on every tick (no separate drag-end commit), so the
+      // max sentinel is set here rather than in handleSliderDragEnd.
       if (!hasSourcePrice) {
         if (maxSpendTokens <= 0) {
           setSourceAmountTokens('');
+          setIsMaxSourceAmount(false);
           return;
         }
+        setIsMaxSourceAmount(rounded >= 100);
         const nextTokens =
           rounded === 0 ? '' : ((maxSpendTokens * rounded) / 100).toString();
         setSourceAmountTokens(nextTokens);
@@ -747,6 +767,9 @@ export function useQuickBuyController(
       setSliderPercent(rounded);
       lastSliderPercentRef.current = rounded;
       setUsdAmount(nextUsd);
+      // Priced path commits here: flag max so sourceTokenAmount spends the
+      // exact balance instead of the cent-rounded fiat reconstruction.
+      setIsMaxSourceAmount(rounded >= 100);
 
       setQuotedUsdAmount(nextUsd);
       const numericUsd = Number(nextUsd);
@@ -792,6 +815,7 @@ export function useQuickBuyController(
     setUsdAmount('');
     setQuotedUsdAmount('');
     setSourceAmountTokens('');
+    setIsMaxSourceAmount(false);
     setSliderPercent(0);
     lastSliderPercentRef.current = 0;
     lastCommittedUsdRef.current = '';
@@ -882,6 +906,7 @@ export function useQuickBuyController(
       }
       lastSliderPercentRef.current = 0;
       setSliderPercent(0);
+      setIsMaxSourceAmount(false);
     },
     [hasSourcePrice, sourceToken?.decimals, lastInputMethodRef],
   );
