@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import { IconName } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import Routes from '../../../../constants/navigation/Routes';
 import {
@@ -494,6 +495,16 @@ describe('HardwareWalletsSwaps', () => {
 
       expect(getBridgeStatus(store)).toBe(HardwareWalletsSwapsStatus.Idle);
     });
+
+    it('treats header close as done after submission', () => {
+      const { UNSAFE_getByProps, store } = renderScreen(SUBMITTED_STATE);
+
+      fireEvent.press(UNSAFE_getByProps({ iconName: IconName.Close }));
+
+      expect(mockCancelCurrentBatch).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+      expect(getBridgeStatus(store)).toBe(HardwareWalletsSwapsStatus.Idle);
+    });
   });
 
   describe('retry', () => {
@@ -690,7 +701,7 @@ describe('HardwareWalletsSwaps', () => {
         expect(mockSetForceHideBottomSheet).toHaveBeenCalledWith(false);
       });
 
-      it('clears force-hide on unmount after all steps are signed', () => {
+      it('keeps force-hide latched on unmount after all steps are signed', () => {
         const { unmount } = renderScreen(SUBMITTED_STATE);
 
         expect(mockSetForceHideBottomSheet).toHaveBeenCalledWith(true);
@@ -698,7 +709,7 @@ describe('HardwareWalletsSwaps', () => {
 
         unmount();
 
-        expect(mockSetForceHideBottomSheet).toHaveBeenCalledWith(false);
+        expect(mockSetForceHideBottomSheet).not.toHaveBeenCalledWith(false);
       });
     });
 

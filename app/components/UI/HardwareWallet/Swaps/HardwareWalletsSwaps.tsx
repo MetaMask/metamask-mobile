@@ -227,13 +227,15 @@ export function HardwareWalletsSwaps() {
   // block this signing operation; latch once allStepsSigned so the
   // subsequent navigateToTransactions → resetHardwareWalletsSwaps
   // (which clears steps and flips allStepsSigned back to false)
-  // doesn't un-hide the sheet right before unmount.
+  // doesn't un-hide the sheet right before unmount. Only clear on unmount
+  // if signing never reached the latched force-hide state.
   const forceHideLatchedRef = useRef(false);
   useEffect(() => {
     if (isQrHardwareWallet) return;
     forceHideLatchedRef.current = false;
     setForceHideBottomSheet?.(false);
     return () => {
+      if (forceHideLatchedRef.current) return;
       setForceHideBottomSheet?.(false);
     };
   }, [isQrHardwareWallet, setForceHideBottomSheet]);
@@ -414,6 +416,11 @@ export function HardwareWalletsSwaps() {
     navigation.navigate(Routes.TRANSACTIONS_VIEW);
   }, [dispatch, navigation]);
 
+  const handleHeaderClose =
+    progress.status === HardwareWalletsSwapsStatus.Submitted
+      ? handleDone
+      : handleCancel;
+
   const showRejectedActions =
     progress.status === HardwareWalletsSwapsStatus.Rejected ||
     progress.status === HardwareWalletsSwapsStatus.Failed;
@@ -436,7 +443,7 @@ export function HardwareWalletsSwaps() {
         <ButtonIcon
           iconName={IconName.Close}
           size={ButtonIconSize.Md}
-          onPress={handleCancel}
+          onPress={handleHeaderClose}
         />
         <Box twClassName="h-10 w-10" />
       </Box>
