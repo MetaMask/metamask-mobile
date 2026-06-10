@@ -346,6 +346,7 @@ const Routes = {
       BATCH_SELL_PRICE_IMPACT_INFO_MODAL: 'BatchSellPriceImpactInfoModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
+    HW_QR_SCANNER: 'HardwareWalletQRScanner',
   },
   PERPS: {
     ROOT: 'Perps',

@@ -36,6 +36,7 @@ type MockRiveProps = ViewProps & {
   autoplay?: boolean;
   stateMachineName?: string;
   onPlay?: () => void;
+  onError?: (error: unknown) => void;
 };
 
 const DEFAULT_TEST_ID = 'mock-rive-animation';
