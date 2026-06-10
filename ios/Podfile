@@ -143,7 +143,6 @@ post_install do |installer|
     :ccache_enabled => podfile_properties['apple.ccacheEnabled'] == 'true',
   )
 
-
   # Modify RCT-Folly Portability.h to disable coroutines
   Dir.glob(installer.sandbox.root + "RCT-Folly/folly/Portability.h") do |file|
     begin

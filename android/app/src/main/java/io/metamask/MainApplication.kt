@@ -93,7 +93,13 @@ class MainApplication : Application(), ShareApplication, ReactApplication {
 
         // Fire prefetchOnAppStart queue before JS loads (Android requires explicit call;
         // iOS is auto-bootstrapped via NitroBootstrap.mm +load).
-        AutoPrefetcher.prefetchOnStart(this)
+        try {
+            AutoPrefetcher.prefetchOnStart(this)
+        } catch (e: Exception) {
+            // Non-fatal: prefetch is a cold-start optimisation. If it fails (e.g. fresh
+            // install, missing native queue, or early init race) the app continues normally
+            // and requests are served by the standard fetch path.
+        }
 
         loadReactNative(this)
 
