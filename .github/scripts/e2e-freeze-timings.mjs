@@ -90,6 +90,13 @@ async function extractTimingsFromRun(runId) {
     throw new Error(`download zip → ${zipRes.status} ${zipRes.statusText}`);
   }
 
+  // Reject unexpectedly large responses before writing to disk.
+  const MAX_ZIP_BYTES = 50 * 1024 * 1024; // 50 MB
+  const contentLength = Number(zipRes.headers.get('content-length') ?? 0);
+  if (contentLength > MAX_ZIP_BYTES) {
+    throw new Error(`artifact zip too large (${contentLength} bytes) — aborting`);
+  }
+
   const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), `qa-stats-${runId}-`));
   const zipPath = path.join(tmpRoot, 'qa-stats.zip');
   fs.writeFileSync(zipPath, Buffer.from(await zipRes.arrayBuffer()));

@@ -1051,13 +1051,16 @@ jobs:
           OUTPUT_PATH: ./e2e-timings.json
 
       - name: Upload frozen timings artifact
+        # continue-on-error so the job does not fail if the artifact already
+        # exists for this run (i.e. on re-runs). First-write wins — the artifact
+        # uploaded by the earliest attempt is always the one shards will use.
         if: ${{ steps.fetch.outputs.available == 'true' }}
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: e2e-timings-${{ github.run_id }}
           path: ./e2e-timings.json
           retention-days: 7
-          overwrite: true
 
   e2e-smoke-tests-android:
     name: 'Android E2E Smoke Tests'
