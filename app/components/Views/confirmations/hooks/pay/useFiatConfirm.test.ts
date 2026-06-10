@@ -15,10 +15,18 @@ jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('./useTransactionPayData');
 jest.mock('../../../../UI/Ramp/headless');
 jest.mock('../../context/confirmation-context');
+
+const mockGoBack = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({ goBack: mockGoBack }),
+}));
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     TransactionPayController: {
       updateFiatPayment: jest.fn(),
+    },
+    ApprovalController: {
+      rejectRequest: jest.fn(),
     },
   },
 }));
@@ -32,6 +40,7 @@ describe('useFiatConfirm', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+    mockGoBack.mockClear();
 
     jest.mocked(useHeadlessBuy).mockReturnValue({
       startHeadlessBuy: startHeadlessBuyMock,
@@ -285,6 +294,14 @@ describe('useFiatConfirm', () => {
       expect(setHeadlessBuyErrorMock).toHaveBeenCalledWith(
         'Authentication failed',
       );
+      // Must reject the underlying confirmation transaction so the next
+      // deposit attempt is not blocked by an orphaned unapproved tx.
+      expect(
+        Engine.context.ApprovalController.rejectRequest,
+      ).toHaveBeenCalledWith(
+        TRANSACTION_ID_MOCK,
+        expect.objectContaining({ code: expect.any(Number) }),
+      );
     });
 
     it('sets headless buy error with fallback message when error.message is absent', () => {
@@ -311,7 +328,7 @@ describe('useFiatConfirm', () => {
       expect(setHeadlessBuyErrorMock).toHaveBeenCalledWith(expect.any(String));
     });
 
-    it('uses zero amount when totals are unavailable', () => {
+    it('aborts when totals are unavailable (zero amount guard)', () => {
       jest.mocked(useTransactionPayTotals).mockReturnValue(undefined);
 
       jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
@@ -327,10 +344,7 @@ describe('useFiatConfirm', () => {
         result.current.onFiatConfirm();
       });
 
-      expect(startHeadlessBuyMock).toHaveBeenCalledWith(
-        expect.objectContaining({ amount: 0 }),
-        expect.any(Object),
-      );
+      expect(startHeadlessBuyMock).not.toHaveBeenCalled();
     });
 
     it('subtracts providerFiat fee from total for buy amount', () => {
@@ -384,11 +398,115 @@ describe('useFiatConfirm', () => {
       const callbacks = startHeadlessBuyMock.mock.calls[0][1];
 
       act(() => {
-        callbacks.onClose({ reason: 'user-closed' });
+        callbacks.onClose({ reason: 'user_dismissed' });
       });
 
       expect(setIsHeadlessBuyInProgressMock).toHaveBeenCalledWith(false);
       expect(setHeadlessBuyErrorMock).toHaveBeenCalledWith(undefined);
+    });
+
+    it('rejects the confirmation transaction on close when no order was created', () => {
+      // No orderId on fiatPayment — order was NOT completed.
+      jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
+        selectedPaymentMethodId: 'pm-123',
+        amountFiat: '50.00',
+        rampsQuote: { id: 'quote-1' },
+        caipAssetId: 'eip155:1/erc20:0xabc',
+        orderId: undefined,
+      } as never);
+
+      const { result } = renderHook(() => useFiatConfirm());
+
+      act(() => {
+        result.current.onFiatConfirm();
+      });
+
+      act(() => {
+        startHeadlessBuyMock.mock.calls[0][1].onClose({
+          reason: 'user_dismissed',
+        });
+      });
+
+      expect(
+        Engine.context.ApprovalController.rejectRequest,
+      ).toHaveBeenCalledWith(
+        TRANSACTION_ID_MOCK,
+        expect.objectContaining({ code: expect.any(Number) }),
+      );
+    });
+
+    it('does NOT reject the confirmation transaction on close when an order was already created', () => {
+      // orderId present → order went through; relay will handle the tx.
+      jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
+        selectedPaymentMethodId: 'pm-123',
+        amountFiat: '50.00',
+        rampsQuote: { id: 'quote-1' },
+        caipAssetId: 'eip155:1/erc20:0xabc',
+        orderId: 'order-abc',
+      } as never);
+
+      const { result } = renderHook(() => useFiatConfirm());
+
+      act(() => {
+        result.current.onFiatConfirm();
+      });
+
+      act(() => {
+        startHeadlessBuyMock.mock.calls[0][1].onClose({ reason: 'completed' });
+      });
+
+      expect(
+        Engine.context.ApprovalController.rejectRequest,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('calls navigation.goBack() on close when no order was created', () => {
+      // Closing without completing an order → confirmation screen must navigate
+      // back so it doesn't stay stuck in the <Loader>/<CustomAmountInfoSkeleton>
+      // state after the approval request is rejected.
+      jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
+        selectedPaymentMethodId: 'pm-123',
+        amountFiat: '50.00',
+        rampsQuote: { id: 'quote-1' },
+        caipAssetId: 'eip155:1/erc20:0xabc',
+        orderId: undefined,
+      } as never);
+
+      const { result } = renderHook(() => useFiatConfirm());
+
+      act(() => {
+        result.current.onFiatConfirm();
+      });
+
+      act(() => {
+        startHeadlessBuyMock.mock.calls[0][1].onClose({
+          reason: 'user_dismissed',
+        });
+      });
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('does NOT call navigation.goBack() when an order was already created on close', () => {
+      jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
+        selectedPaymentMethodId: 'pm-123',
+        amountFiat: '50.00',
+        rampsQuote: { id: 'quote-1' },
+        caipAssetId: 'eip155:1/erc20:0xabc',
+        orderId: 'order-abc',
+      } as never);
+
+      const { result } = renderHook(() => useFiatConfirm());
+
+      act(() => {
+        result.current.onFiatConfirm();
+      });
+
+      act(() => {
+        startHeadlessBuyMock.mock.calls[0][1].onClose({ reason: 'completed' });
+      });
+
+      expect(mockGoBack).not.toHaveBeenCalled();
     });
   });
 });

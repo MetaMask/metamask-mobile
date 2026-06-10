@@ -3,6 +3,7 @@ import {
   TransactionMeta,
   TransactionStatus,
 } from '@metamask/transaction-controller';
+import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../../../locales/i18n';
 import { selectBridgeHistoryForAccount } from '../../../../../../selectors/bridgeStatusController';
@@ -10,8 +11,15 @@ import { useBridgeTxHistoryData } from '../../../../../../util/bridge/hooks/useB
 import { useTokenAmount } from '../../../hooks/useTokenAmount';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { useFiatOrderStatus } from '../../../hooks/activity/useFiatOrderStatus';
+import Routes from '../../../../../../constants/navigation/Routes';
 import { FiatOrderSummaryLine } from './fiat-order-summary-line';
 
+const mockNavigate = jest.fn();
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({ navigate: mockNavigate }),
+}));
 jest.mock('../../../../../../selectors/bridgeStatusController');
 jest.mock('../../../../../../util/bridge/hooks/useBridgeTxHistoryData');
 jest.mock('../../../hooks/useTokenAmount');
@@ -52,6 +60,7 @@ describe('FiatOrderSummaryLine', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+    mockNavigate.mockClear();
 
     useFiatOrderStatusMock.mockReturnValue({
       severity: 'success',
@@ -146,5 +155,20 @@ describe('FiatOrderSummaryLine', () => {
     const { queryByTestId } = render(txWithoutFiatOrder);
 
     expect(queryByTestId('block-explorer-button')).toBeNull();
+  });
+
+  it('navigates to RampsOrderDetails inside TransactionsView when order details button is pressed', () => {
+    const { getByTestId } = render();
+
+    fireEvent.press(getByTestId('block-explorer-button'));
+
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW, {
+      screen: Routes.RAMP.RAMPS_ORDER_DETAILS,
+      params: {
+        orderId: '/providers/transak/orders/order-123',
+        showCloseButton: true,
+      },
+    });
   });
 });

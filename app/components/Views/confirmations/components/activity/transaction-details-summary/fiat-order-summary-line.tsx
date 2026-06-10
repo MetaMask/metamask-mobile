@@ -42,9 +42,12 @@ export function FiatOrderSummaryLine({
   const subtitle = formatSubtitle(parentTransaction.time, statusText);
 
   const handleOrderDetailsPress = useCallback(() => {
-    navigation.navigate(Routes.RAMP.RAMPS_ORDER_DETAILS, {
-      orderId: fiatOrderId,
-      showCloseButton: true,
+    // RampsOrderDetails is nested inside TransactionsHome ('TransactionsView')
+    // in the main Stack, so we must use the nested navigation format to reach it
+    // from the MoneyModalStack transparent-modal context.
+    navigation.navigate(Routes.TRANSACTIONS_VIEW, {
+      screen: Routes.RAMP.RAMPS_ORDER_DETAILS,
+      params: { orderId: fiatOrderId, showCloseButton: true },
     });
   }, [navigation, fiatOrderId]);
 

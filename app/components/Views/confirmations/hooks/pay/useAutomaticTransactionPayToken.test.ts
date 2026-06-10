@@ -39,6 +39,7 @@ import { selectLastWithdrawTokenByType } from '../../../../../selectors/transact
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import { useIsFiatPaymentAvailable } from './useIsFiatPaymentAvailable';
 import { useMMPayFiatConfig } from './useMMPayFiatConfig';
+import Engine from '../../../../../core/Engine';
 
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../transactions/useTransactionAccountOverride');
@@ -51,6 +52,13 @@ jest.mock('./useWithdrawTokenFilter');
 jest.mock('../../../../UI/Ramp/hooks/useRampsPaymentMethods');
 jest.mock('./useIsFiatPaymentAvailable');
 jest.mock('./useMMPayFiatConfig');
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    TransactionPayController: {
+      updateFiatPayment: jest.fn(),
+    },
+  },
+}));
 jest.mock('../../../../../selectors/transactionController', () => ({
   ...jest.requireActual('../../../../../selectors/transactionController'),
   selectLastWithdrawTokenByType: jest.fn(),
@@ -129,6 +137,9 @@ describe('useAutomaticTransactionPayToken', () => {
   );
   const useTransactionAccountOverrideMock = jest.mocked(
     useTransactionAccountOverride,
+  );
+  const updateFiatPaymentMock = jest.mocked(
+    Engine.context.TransactionPayController.updateFiatPayment,
   );
 
   const setPayTokenMock: jest.MockedFn<
@@ -1300,6 +1311,214 @@ describe('useAutomaticTransactionPayToken', () => {
     expect(setPayTokenMock).toHaveBeenCalledWith({
       address: MUSD_TOKEN_ADDRESS,
       chainId: CHAIN_IDS.MONAD,
+    });
+  });
+
+  describe('moneyAccountDeposit fiat auto-select path', () => {
+    const MONEY_ACCOUNT_DEPOSIT_STATE_MOCK = merge(
+      {},
+      simpleSendTransactionControllerMock,
+      transactionApprovalControllerMock,
+      {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [
+                {
+                  type: TransactionType.moneyAccountDeposit,
+                },
+              ],
+            },
+          },
+        },
+      },
+    );
+
+    function runMoneyAccountDepositHook() {
+      return renderHookWithProvider(
+        () => useAutomaticTransactionPayToken({ autoSelectFiatPayment: true }),
+        { state: MONEY_ACCOUNT_DEPOSIT_STATE_MOCK },
+      );
+    }
+
+    beforeEach(() => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        type: TransactionType.moneyAccountDeposit,
+        txParams: { from: '0xdc47789de4ceff0e8fe9d15d728af7f17550c164' },
+      } as never);
+
+      useTransactionPayAvailableTokensMock.mockReturnValue({
+        availableTokens: [] as AssetType[],
+        hasTokens: false,
+      });
+
+      jest.mocked(useIsFiatPaymentAvailable).mockReturnValue(true);
+      jest.mocked(useMMPayFiatConfig).mockReturnValue({
+        enabledTransactionTypes: [],
+        maxDelayMinutesForPaymentMethods: 10,
+      });
+    });
+
+    it('writes the best eligible payment method from the selected provider (standard fiat path)', () => {
+      const ELIGIBLE_METHOD_ID = 'pm-debit-card';
+
+      jest.mocked(useRampsPaymentMethods).mockReturnValue({
+        paymentMethods: [
+          { id: ELIGIBLE_METHOD_ID, name: 'Debit Card', delay: [0, 5] },
+          { id: 'pm-bank', name: 'Bank Transfer', delay: [60, 1440] },
+        ] as never,
+        selectedPaymentMethod: null,
+        setSelectedPaymentMethod: jest.fn(),
+        isLoading: false,
+        isFetching: false,
+        status: 'success',
+        isSuccess: true,
+        error: null,
+      });
+
+      runMoneyAccountDepositHook();
+
+      expect(updateFiatPaymentMock).toHaveBeenCalledWith(
+        expect.objectContaining({ transactionId: transactionIdMock }),
+      );
+
+      // Verify callback sets the correct payment method
+      const callback = updateFiatPaymentMock.mock.calls[0][0].callback;
+      const fiatPaymentState = { selectedPaymentMethodId: undefined };
+      callback(fiatPaymentState);
+      expect(fiatPaymentState.selectedPaymentMethodId).toBe(ELIGIBLE_METHOD_ID);
+    });
+
+    it('skips payment methods with delay exceeding maxDelayMinutes', () => {
+      const ELIGIBLE_METHOD_ID = 'pm-bank';
+
+      jest.mocked(useRampsPaymentMethods).mockReturnValue({
+        paymentMethods: [
+          { id: 'pm-slow', name: 'Slow Method', delay: [600, 1440] },
+          {
+            id: ELIGIBLE_METHOD_ID,
+            name: 'Bank Transfer',
+            delay: [0, 9],
+          },
+        ] as never,
+        selectedPaymentMethod: null,
+        setSelectedPaymentMethod: jest.fn(),
+        isLoading: false,
+        isFetching: false,
+        status: 'success',
+        isSuccess: true,
+        error: null,
+      });
+
+      jest.mocked(useMMPayFiatConfig).mockReturnValue({
+        enabledTransactionTypes: [],
+        maxDelayMinutesForPaymentMethods: 10,
+      });
+
+      runMoneyAccountDepositHook();
+
+      const callback = updateFiatPaymentMock.mock.calls[0][0].callback;
+      const fiatPaymentState = { selectedPaymentMethodId: undefined };
+      callback(fiatPaymentState);
+      expect(fiatPaymentState.selectedPaymentMethodId).toBe(ELIGIBLE_METHOD_ID);
+    });
+
+    it('does not write payment method when fiat payment is not available', () => {
+      // useIsFiatPaymentAvailable is the native-gate; when false the standard
+      // path returns early before auto-selecting.
+      jest.mocked(useIsFiatPaymentAvailable).mockReturnValue(false);
+
+      jest.mocked(useRampsPaymentMethods).mockReturnValue({
+        paymentMethods: [
+          { id: 'pm-card', name: 'Card', delay: [0, 5] },
+        ] as never,
+        selectedPaymentMethod: null,
+        setSelectedPaymentMethod: jest.fn(),
+        isLoading: false,
+        isFetching: false,
+        status: 'success',
+        isSuccess: true,
+        error: null,
+      });
+
+      runMoneyAccountDepositHook();
+
+      expect(updateFiatPaymentMock).not.toHaveBeenCalled();
+    });
+
+    it('does not select any method when all methods exceed the delay limit', () => {
+      jest.mocked(useRampsPaymentMethods).mockReturnValue({
+        paymentMethods: [
+          { id: 'pm-slow', name: 'Slow Method', delay: [600, 2880] },
+          { id: 'pm-even-slower', name: 'Even Slower', delay: [1440, 4320] },
+        ] as never,
+        selectedPaymentMethod: null,
+        setSelectedPaymentMethod: jest.fn(),
+        isLoading: false,
+        isFetching: false,
+        status: 'success',
+        isSuccess: true,
+        error: null,
+      });
+
+      jest.mocked(useMMPayFiatConfig).mockReturnValue({
+        enabledTransactionTypes: [],
+        maxDelayMinutesForPaymentMethods: 10,
+      });
+
+      runMoneyAccountDepositHook();
+
+      // No eligible method: pickEligiblePaymentMethod returns undefined so
+      // updateFiatPayment is not called with a method id.
+      const callback = updateFiatPaymentMock.mock.calls[0]?.[0]?.callback;
+      if (callback) {
+        const fiatPaymentState = { selectedPaymentMethodId: undefined };
+        callback(fiatPaymentState);
+        expect(fiatPaymentState.selectedPaymentMethodId).toBeUndefined();
+      }
+    });
+
+    it('does not write fiatPayment when the selected provider returns no methods', () => {
+      jest.mocked(useRampsPaymentMethods).mockReturnValue({
+        paymentMethods: [],
+        selectedPaymentMethod: null,
+        setSelectedPaymentMethod: jest.fn(),
+        isLoading: false,
+        isFetching: false,
+        status: 'success',
+        isSuccess: true,
+        error: null,
+      });
+
+      runMoneyAccountDepositHook();
+
+      expect(updateFiatPaymentMock).not.toHaveBeenCalled();
+    });
+
+    it('does not write fiatPayment when already selected (one-shot guard)', () => {
+      jest.mocked(useRampsPaymentMethods).mockReturnValue({
+        paymentMethods: [
+          { id: 'pm-card', name: 'Card', delay: [0, 5] },
+        ] as never,
+        selectedPaymentMethod: null,
+        setSelectedPaymentMethod: jest.fn(),
+        isLoading: false,
+        isFetching: false,
+        status: 'success',
+        isSuccess: true,
+        error: null,
+      });
+
+      // fiatPayment already has a selected method
+      useTransactionPayFiatPaymentMock.mockReturnValue({
+        selectedPaymentMethodId: 'pm-existing',
+        caipAssetId: undefined,
+      } as never);
+
+      runMoneyAccountDepositHook();
+
+      expect(updateFiatPaymentMock).not.toHaveBeenCalled();
     });
   });
 });
