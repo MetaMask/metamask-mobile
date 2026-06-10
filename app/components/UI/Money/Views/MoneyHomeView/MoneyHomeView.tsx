@@ -30,6 +30,7 @@ import { mergeMoneyActivity } from '../../hooks/useMoneyActivityItems';
 import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyActivityLoading';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
+import { useMoneyAccountAddRouting } from '../../hooks/useMoneyAccountAddRouting';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { moneyFormatFiat, DUST_THRESHOLD } from '../../utils/moneyFormatFiat';
 import { calculateProjectedEarnings } from '../../utils/projections';
@@ -120,6 +121,9 @@ const MoneyHomeView = () => {
 
   const { tokens: depositTokens, isNoFeeToken } = useMoneyDepositTokens();
   const { initiateDeposit } = useMoneyAccountDeposit();
+  const { routeAddMoney } = useMoneyAccountAddRouting({
+    componentName: COMPONENT_NAMES.MONEY_MUSD_TOKEN_SECTION,
+  });
   const { allTransactions, moneyAddress, mockDataEnabled } =
     useMoneyAccountTransactions();
   const { cardTransactions, isLoading: isCardActivityLoading } =
@@ -243,6 +247,10 @@ const MoneyHomeView = () => {
     },
     [navigation, trackButtonClicked],
   );
+
+  const handleMusdRowAddPress = useCallback(() => {
+    routeAddMoney();
+  }, [routeAddMoney]);
 
   const handleTransferPress = useCallback(() => {
     trackButtonClicked({
@@ -586,12 +594,7 @@ const MoneyHomeView = () => {
                   componentName: COMPONENT_NAMES.MONEY_MUSD_TOKEN_SECTION,
                 })
               }
-              onAddPress={() =>
-                handleAddPress({
-                  labelKey: 'money.musd_row.add',
-                  componentName: COMPONENT_NAMES.MONEY_MUSD_TOKEN_SECTION,
-                })
-              }
+              onAddPress={handleMusdRowAddPress}
               balance={musdFiatFormatted}
             />
             <Divider />
