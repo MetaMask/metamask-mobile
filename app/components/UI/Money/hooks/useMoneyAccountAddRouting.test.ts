@@ -4,17 +4,11 @@ import { useMusdBalance } from '../../Earn/hooks/useMusdBalance';
 import { useMusdConversionFlowData } from '../../Earn/hooks/useMusdConversionFlowData';
 import { useRampNavigation } from '../../Ramp/hooks/useRampNavigation';
 import { useMoneyAccountDeposit } from './useMoneyAccount';
-import { useMoneyAnalytics } from './useMoneyAnalytics';
 import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../Earn/constants/musd';
-import {
-  MONEY_BUTTON_INTENTS,
-  MONEY_BUTTON_TYPES,
-  SCREEN_NAMES,
-} from '../constants/moneyEvents';
 import { useMoneyAccountAddRouting } from './useMoneyAccountAddRouting';
 
 jest.mock('../../Earn/hooks/useMusdBalance', () => ({
@@ -33,20 +27,14 @@ jest.mock('./useMoneyAccount', () => ({
   useMoneyAccountDeposit: jest.fn(),
 }));
 
-jest.mock('./useMoneyAnalytics', () => ({
-  useMoneyAnalytics: jest.fn(),
-}));
-
 const mockedUseMusdBalance = useMusdBalance as jest.Mock;
 const mockedUseMusdConversionFlowData = useMusdConversionFlowData as jest.Mock;
 const mockedUseRampNavigation = useRampNavigation as jest.Mock;
 const mockedUseMoneyAccountDeposit = useMoneyAccountDeposit as jest.Mock;
-const mockedUseMoneyAnalytics = useMoneyAnalytics as jest.Mock;
 
 const mockInitiateDeposit = jest.fn(() => Promise.resolve());
 const mockGoToBuy = jest.fn();
 const mockGetChainIdForBuyFlow = jest.fn();
-const mockTrackButtonClicked = jest.fn();
 
 const setupMocks = (overrides?: {
   hasMusdBalanceOnAnyChain?: boolean;
@@ -70,9 +58,6 @@ const setupMocks = (overrides?: {
   });
   mockedUseMoneyAccountDeposit.mockReturnValue({
     initiateDeposit: mockInitiateDeposit,
-  });
-  mockedUseMoneyAnalytics.mockReturnValue({
-    trackButtonClicked: mockTrackButtonClicked,
   });
 };
 
@@ -327,27 +312,6 @@ describe('useMoneyAccountAddRouting', () => {
         assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[CHAIN_IDS.MAINNET],
       });
       expect(mockInitiateDeposit).not.toHaveBeenCalled();
-    });
-
-    it('tracks the add-money button click before routing', () => {
-      setupMocks({
-        hasMusdBalanceOnAnyChain: false,
-        fiatBalanceAggregated: '0',
-        tokenBalanceByChain: {},
-      });
-
-      const { result } = renderHook(() => useMoneyAccountAddRouting());
-
-      act(() => {
-        result.current.routeAddMoney();
-      });
-
-      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
-        button_type: MONEY_BUTTON_TYPES.TEXT,
-        button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
-        label_key: 'money.musd_row.add',
-        redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
-      });
     });
   });
 });

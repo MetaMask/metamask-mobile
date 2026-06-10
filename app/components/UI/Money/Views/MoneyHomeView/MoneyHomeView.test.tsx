@@ -35,6 +35,12 @@ import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountC
 import { MONEY_HOME_CARD_ORIGIN } from '../../../Card/hooks/useCardPostAuthRedirect';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
+import {
+  COMPONENT_NAMES,
+  MONEY_BUTTON_INTENTS,
+  MONEY_BUTTON_TYPES,
+  SCREEN_NAMES,
+} from '../../constants/moneyEvents';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -166,9 +172,10 @@ jest.mock('../../../Earn/hooks/useMusdBalance', () => ({
   useMusdBalance: jest.fn(() => ({ tokenBalanceAggregated: '0' })),
 }));
 
+const mockTrackButtonClicked = jest.fn();
 jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(() => ({
-    trackButtonClicked: jest.fn(),
+    trackButtonClicked: mockTrackButtonClicked,
     trackTooltipClicked: jest.fn(),
     trackSurfaceClicked: jest.fn(),
     trackTokenButtonClicked: jest.fn(),
@@ -188,9 +195,10 @@ jest.mock('../../hooks/useMoneyAccount', () => ({
 }));
 
 const mockRouteAddMoney = jest.fn();
+let mockHasMusdBalance = false;
 jest.mock('../../hooks/useMoneyAccountAddRouting', () => ({
   useMoneyAccountAddRouting: jest.fn(() => ({
-    hasMusdBalance: false,
+    hasMusdBalance: mockHasMusdBalance,
     convertCrypto: jest.fn(),
     depositFunds: jest.fn(),
     moveMusd: jest.fn(),
@@ -290,6 +298,7 @@ describe('MoneyHomeView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     global.alert = jest.fn();
+    mockHasMusdBalance = false;
 
     mockUseMoneyAccountCardTransactions.mockReturnValue({
       cardTransactions: [],
@@ -1183,6 +1192,35 @@ describe('MoneyHomeView', () => {
       expect(mockRouteAddMoney).toHaveBeenCalledTimes(1);
       expect(mockNavigate).not.toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
         screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+      });
+    });
+
+    it('tracks the mUSD row Add click with the Buy flow redirect target when there is no mUSD balance', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(getByTestId(MoneyMusdTokenRowTestIds.ADD_BUTTON));
+
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+        label_key: 'money.musd_row.add',
+        component_name: COMPONENT_NAMES.MONEY_MUSD_TOKEN_SECTION,
+        redirect_target: SCREEN_NAMES.RAMP_BUY,
+      });
+    });
+
+    it('tracks the mUSD row Add click with the deposit redirect target when there is an mUSD balance', () => {
+      mockHasMusdBalance = true;
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(getByTestId(MoneyMusdTokenRowTestIds.ADD_BUTTON));
+
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+        label_key: 'money.musd_row.add',
+        component_name: COMPONENT_NAMES.MONEY_MUSD_TOKEN_SECTION,
+        redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
       });
     });
 

@@ -124,9 +124,7 @@ const MoneyHomeView = () => {
 
   const { tokens: depositTokens, isNoFeeToken } = useMoneyDepositTokens();
   const { initiateDeposit } = useMoneyAccountDeposit();
-  const { routeAddMoney } = useMoneyAccountAddRouting({
-    componentName: COMPONENT_NAMES.MONEY_MUSD_TOKEN_SECTION,
-  });
+  const { hasMusdBalance, routeAddMoney } = useMoneyAccountAddRouting();
   const { allTransactions, moneyAddress, mockDataEnabled } =
     useMoneyAccountTransactions();
   const { cardTransactions, isLoading: isCardActivityLoading } =
@@ -248,8 +246,18 @@ const MoneyHomeView = () => {
   );
 
   const handleMusdRowAddPress = useCallback(() => {
+    trackButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+      button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+      label_key: 'money.musd_row.add',
+      component_name: COMPONENT_NAMES.MONEY_MUSD_TOKEN_SECTION,
+      redirect_target: hasMusdBalance
+        ? SCREEN_NAMES.MONEY_DEPOSIT
+        : SCREEN_NAMES.RAMP_BUY,
+    });
+
     routeAddMoney();
-  }, [routeAddMoney]);
+  }, [hasMusdBalance, routeAddMoney, trackButtonClicked]);
 
   const handleTransferPress = useCallback(() => {
     trackButtonClicked({
