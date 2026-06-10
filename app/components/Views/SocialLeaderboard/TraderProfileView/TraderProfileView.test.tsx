@@ -795,4 +795,84 @@ describe('TraderProfileView', () => {
       ).not.toBeOnTheScreen();
     });
   });
+
+  describe('headline PnL (spot-chains only, hyperliquid excluded)', () => {
+    it('sums perChainPnl across SPOT_CHAINS and excludes hyperliquid', () => {
+      mockProfileResult.profile = {
+        ...fixtureProfile,
+        stats: { ...fixtureProfile.stats, pnl30d: 999999 },
+        perChainBreakdown: {
+          perChainPnl: {
+            base: 50_000,
+            solana: 30_000,
+            ethereum: 20_000,
+            hyperliquid: 900_000,
+          },
+          perChainRoi: {},
+          perChainVolume: {},
+        },
+      };
+
+      renderWithProvider(<TraderProfileView />);
+
+      // Sum is 100,000 — hyperliquid contribution ignored
+      expect(screen.getByText('+$100,000.00')).toBeOnTheScreen();
+      // And the trader's global pnl30d (999,999) is NOT what we display
+      expect(screen.queryByText('+$999,999.00')).not.toBeOnTheScreen();
+    });
+
+    it('handles negative spot PnL by summing into a negative total', () => {
+      mockProfileResult.profile = {
+        ...fixtureProfile,
+        stats: { ...fixtureProfile.stats, pnl30d: 12_345 },
+        perChainBreakdown: {
+          perChainPnl: {
+            base: -1_000,
+            solana: -2_500,
+            ethereum: 500,
+            hyperliquid: 50_000,
+          },
+          perChainRoi: {},
+          perChainVolume: {},
+        },
+      };
+
+      renderWithProvider(<TraderProfileView />);
+
+      // -1000 + -2500 + 500 = -3000
+      expect(screen.getByText('-$3,000.00')).toBeOnTheScreen();
+    });
+
+    it('treats a missing chain entry as 0', () => {
+      mockProfileResult.profile = {
+        ...fixtureProfile,
+        stats: { ...fixtureProfile.stats, pnl30d: 999 },
+        perChainBreakdown: {
+          perChainPnl: { base: 7_500 }, // solana, ethereum, hyperliquid absent
+          perChainRoi: {},
+          perChainVolume: {},
+        },
+      };
+
+      renderWithProvider(<TraderProfileView />);
+
+      expect(screen.getByText('+$7,500.00')).toBeOnTheScreen();
+    });
+
+    it('falls back to the global stats.pnl30d when perChainPnl is empty', () => {
+      mockProfileResult.profile = {
+        ...fixtureProfile,
+        stats: { ...fixtureProfile.stats, pnl30d: 20_610 },
+        perChainBreakdown: {
+          perChainPnl: {},
+          perChainRoi: {},
+          perChainVolume: {},
+        },
+      };
+
+      renderWithProvider(<TraderProfileView />);
+
+      expect(screen.getByText('+$20,610.00')).toBeOnTheScreen();
+    });
+  });
 });

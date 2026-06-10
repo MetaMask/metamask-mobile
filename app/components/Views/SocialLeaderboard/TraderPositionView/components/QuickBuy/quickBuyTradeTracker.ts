@@ -10,6 +10,20 @@ export interface TrackedQuickBuyTrade {
   fiatAmountLabel: string;
   /** Formatted exchange rate quote (e.g. "1 ETH = 4,381.22 USDC"). */
   rate?: string;
+  /**
+   * True only for same-chain non-EVM (Solana) swaps. `BridgeStatusController`
+   * never marks these terminal (no polling, no `TransactionController`
+   * confirmation), so their complete/failed toast must be resolved from
+   * `MultichainTransactionsController` instead. EVM swaps and cross-chain
+   * bridges (incl. Solana → EVM) leave this falsy and stay on the bridge path.
+   */
+  isNonEvmSwap?: boolean;
+  /**
+   * Solana transaction signature (`submitTx` result `hash`) used to find the
+   * tx in `MultichainTransactionsController`. Only set for `isNonEvmSwap`
+   * trades; lookups fall back to the tracker key when absent.
+   */
+  txSignature?: string;
 }
 
 /**
@@ -23,6 +37,9 @@ export interface TrackedQuickBuyTrade {
  * restart drops tracking (the swap still appears in Activity).
  */
 const trackedTrades = new Map<string, TrackedQuickBuyTrade>();
+
+/** Shared empty result so the common "nothing tracked" path allocates nothing. */
+const EMPTY_TRADE_IDS: string[] = [];
 
 export function trackQuickBuyTrade(
   txMetaId: string,
@@ -38,6 +55,12 @@ export function getTrackedQuickBuyTrade(
 }
 
 export function getTrackedQuickBuyTradeIds(): string[] {
+  // Hot path: both controller `stateChange` handlers call this on every
+  // emission. Skip the array allocation entirely when nothing is tracked
+  // (the common case — no QuickBuy swap in flight).
+  if (trackedTrades.size === 0) {
+    return EMPTY_TRADE_IDS;
+  }
   return Array.from(trackedTrades.keys());
 }
 
