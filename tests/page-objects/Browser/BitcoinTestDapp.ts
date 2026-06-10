@@ -103,11 +103,7 @@ class BitcoinTestDapp {
   async waitForDappLoaded(): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
-        const connectionStatusDiv = await getTestElement(
-          dataTestIds.testPage.header.connectionStatus,
-        );
-        // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
-        await (expect(connectionStatusDiv) as any).toExist();
+        await this.getHeader().getConnectionStatus();
       },
       {
         timeout: 30_000,
