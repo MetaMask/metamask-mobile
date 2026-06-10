@@ -173,6 +173,11 @@ const PerpsCandlePeriodBottomSheet: React.FC<
                           ? TextVariant.BodyMd
                           : TextVariant.BodySm
                       }
+                      fontWeight={
+                        selectedPeriod === period.value
+                          ? FontWeight.Bold
+                          : FontWeight.Medium
+                      }
                       color={
                         selectedPeriod === period.value
                           ? TextColor.PrimaryInverse
@@ -210,6 +215,11 @@ const PerpsCandlePeriodBottomSheet: React.FC<
                     selectedPeriod === period.value
                       ? TextVariant.BodyMd
                       : TextVariant.BodySm
+                  }
+                  fontWeight={
+                    selectedPeriod === period.value
+                      ? FontWeight.Bold
+                      : FontWeight.Medium
                   }
                   color={
                     selectedPeriod === period.value

@@ -160,14 +160,14 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
             label: {
               text: strings('perps.market.24h_volume'),
               variant: LegacyTextVariant.BodyMD,
-              color: TextColor.TextAlternative,
+              color: LegacyTextColor.Alternative,
             },
           }}
           value={{
             label: {
               text: marketStats.volume24h,
               variant: LegacyTextVariant.BodyMD,
-              color: TextColor.TextDefault,
+              color: LegacyTextColor.Default,
             },
           }}
           style={[styles.statsRow, !onOrderBookPress && styles.statsRowFirst]}
@@ -201,7 +201,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
             label: {
               text: marketStats.openInterest,
               variant: LegacyTextVariant.BodyMD,
-              color: TextColor.TextDefault,
+              color: LegacyTextColor.Default,
             },
           }}
           style={styles.statsRow}

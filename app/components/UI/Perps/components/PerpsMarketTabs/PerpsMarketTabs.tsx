@@ -12,6 +12,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon, {
+  IconColor,
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
@@ -127,7 +128,7 @@ const OrdersTabContent = React.memo<OrdersTabContentProps>(
             <Icon
               name={IconName.Book}
               size={IconSize.Xl}
-              color={TextColor.TextMuted}
+              color={IconColor.Muted}
               style={styles.emptyStateIcon}
               testID={PerpsMarketTabsSelectorsIDs.ORDERS_EMPTY_ICON}
             />
