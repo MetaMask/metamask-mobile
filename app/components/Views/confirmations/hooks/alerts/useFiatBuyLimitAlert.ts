@@ -1,5 +1,4 @@
 import { useMemo } from 'react';
-import { useSelector } from 'react-redux';
 import { Alert, Severity } from '../../types/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
@@ -10,7 +9,6 @@ import { hasTransactionType } from '../../utils/transaction';
 import { useTransactionPayFiatPayment } from '../pay/useTransactionPayData';
 import { useRampsBuyLimits } from '../../../../UI/Ramp/hooks/useRampsBuyLimits';
 import { MONEY_ACCOUNT_CURRENCY } from '../../components/info/money-account-withdraw-info/money-account-withdraw-info';
-import { selectProviders } from '../../../../../selectors/rampsController';
 import { useMMPayFiatConfig } from '../pay/useMMPayFiatConfig';
 
 export function useFiatBuyLimitAlert({
@@ -22,8 +20,6 @@ export function useFiatBuyLimitAlert({
   const { enabledTransactionTypes } = useMMPayFiatConfig();
   const fiatPayment = useTransactionPayFiatPayment();
   const paymentMethodId = fiatPayment?.selectedPaymentMethodId;
-  const selectedProviderId = useSelector(selectProviders).selected?.id ?? null;
-  const providerId = fiatPayment?.rampsQuote?.provider ?? selectedProviderId;
 
   const isFiatEnabledTransactionType = hasTransactionType(
     transactionMeta,
@@ -36,7 +32,6 @@ export function useFiatBuyLimitAlert({
 
   // MM Pay fiat input is USD-denominated; use USD limits, not local currency (e.g. BRL).
   const { amountLimitError } = useRampsBuyLimits({
-    providerId,
     amount,
     paymentMethodId,
     currency: MONEY_ACCOUNT_CURRENCY,

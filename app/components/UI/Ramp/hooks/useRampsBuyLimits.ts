@@ -1,15 +1,24 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { selectProviders, selectUserRegion } from '../../../../selectors/rampsController';
+import {
+  selectProviders,
+  selectUserRegion,
+} from '../../../../selectors/rampsController';
 import { getProviderBuyLimit } from '../utils/providerLimits';
 import { getProviderLimitMessage } from '../utils/getProviderLimitMessage';
 import { useFormatters } from '../../../hooks/useFormatters';
 
 /**
- * Hook to validate a fiat amount against a provider's static buy limits.
+ * Hook to validate a fiat amount against the selected provider's static buy
+ * limits (`providers.selected` in `RampsController` state).
  *
- * @param options.providerId - The provider ID to validate against (e.g. from a ramps quote).
- * Resolved to a full Provider object from the providers data list.
+ * Assumes the native-gated fiat flow, where `providers.selected` is the
+ * provider quotes are requested with: the flow only renders when the selected
+ * provider is native (see `useHasNativeFiatProvider`), and
+ * `RampsController.getQuotes` resolves the selected provider first. If fiat
+ * deposit opens up to non-native providers, limit lookup must use the same
+ * provider resolution as `getQuotes` (needs a public accessor in core).
+ *
  * @param options.amount - The fiat amount entered by the user.
  * @param options.paymentMethodId - The selected payment method ID.
  * @param options.currency - Fiat currency for limit lookup; defaults to `userRegion.country.currency`.
@@ -17,12 +26,10 @@ import { useFormatters } from '../../../hooks/useFormatters';
  * @returns `{ minAmount, maxAmount, amountLimitError, currency }`.
  */
 export function useRampsBuyLimits({
-  providerId,
   amount,
   paymentMethodId,
   currency: currencyOverride,
 }: {
-  providerId: string | null | undefined;
   amount: number;
   paymentMethodId?: string | null;
   currency?: string;
@@ -32,12 +39,8 @@ export function useRampsBuyLimits({
   amountLimitError: string | null;
   currency: string;
 } {
-  const { data: providers } = useSelector(selectProviders);
+  const provider = useSelector(selectProviders).selected;
   const userRegion = useSelector(selectUserRegion);
-  const provider = useMemo(
-    () => (providerId ? (providers.find((p) => p.id === providerId) ?? null) : null),
-    [providers, providerId],
-  );
   const currency = currencyOverride ?? userRegion?.country?.currency ?? 'USD';
   const { formatCurrency } = useFormatters();
 

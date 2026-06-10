@@ -17,35 +17,10 @@ jest.mock('../pay/useTransactionPayData');
 jest.mock('../../../../UI/Ramp/hooks/useRampsBuyLimits');
 jest.mock('../pay/useMMPayFiatConfig');
 
-const NATIVE_PROVIDER_ID = '/providers/transak-native';
-
-function makeStoreState(selectedProviderId: string | null = null) {
-  return {
-    engine: {
-      backgroundState: {
-        RampsController: {
-          providers: {
-            data: [],
-            selected: selectedProviderId
-              ? { id: selectedProviderId, type: 'native' }
-              : null,
-            isLoading: false,
-            error: null,
-          },
-        },
-      },
-    },
-  };
-}
-
-function runHook({
-  pendingAmount,
-  selectedProviderId = null,
-}: { pendingAmount?: string; selectedProviderId?: string | null } = {}) {
-  return renderHookWithProvider(
-    () => useFiatBuyLimitAlert({ pendingAmount }),
-    { state: makeStoreState(selectedProviderId) },
-  );
+function runHook({ pendingAmount }: { pendingAmount?: string } = {}) {
+  return renderHookWithProvider(() => useFiatBuyLimitAlert({ pendingAmount }), {
+    state: {},
+  });
 }
 
 describe('useFiatBuyLimitAlert', () => {
@@ -204,44 +179,5 @@ describe('useFiatBuyLimitAlert', () => {
     const { result } = runHook({ pendingAmount: '600' });
 
     expect(result.current).toStrictEqual([]);
-  });
-
-  describe('provider resolution', () => {
-    it('uses selectedProvider from Redux when no quote exists yet (pre-quote)', () => {
-      useTransactionPayFiatPaymentMock.mockReturnValue({
-        selectedPaymentMethodId: 'pm-card',
-        amountFiat: '100',
-        rampsQuote: null,
-      });
-      useRampsBuyLimitsMock.mockReturnValue({
-        amountLimitError: null,
-        currency: 'USD',
-      });
-
-      runHook({ pendingAmount: '100', selectedProviderId: NATIVE_PROVIDER_ID });
-
-      expect(useRampsBuyLimitsMock).toHaveBeenCalledWith(
-        expect.objectContaining({ providerId: NATIVE_PROVIDER_ID }),
-      );
-    });
-
-    it('prefers rampsQuote.provider over selectedProvider when a quote exists', () => {
-      const QUOTE_PROVIDER_ID = '/providers/other-native';
-      useTransactionPayFiatPaymentMock.mockReturnValue({
-        selectedPaymentMethodId: 'pm-card',
-        amountFiat: '100',
-        rampsQuote: { provider: QUOTE_PROVIDER_ID },
-      });
-      useRampsBuyLimitsMock.mockReturnValue({
-        amountLimitError: null,
-        currency: 'USD',
-      });
-
-      runHook({ pendingAmount: '100', selectedProviderId: NATIVE_PROVIDER_ID });
-
-      expect(useRampsBuyLimitsMock).toHaveBeenCalledWith(
-        expect.objectContaining({ providerId: QUOTE_PROVIDER_ID }),
-      );
-    });
   });
 });
