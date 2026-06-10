@@ -2313,7 +2313,6 @@
     "select_predict_account": "Select predict account",
     "search_account": "Search an account",
     "home": {
-      "portfolio_module_placeholder": "Portfolio module",
       "live_now_title": "Live now",
       "categories_placeholder": "Categories",
       "popular_today_placeholder": "Popular today",
