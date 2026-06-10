@@ -1,53 +1,28 @@
-import { MarketCategory } from '@metamask/perps-controller';
 import {
   CATEGORY_DISPLAY_ORDER,
-  getMarketTypeForFilter,
-  getFilterForMarketType,
+  HIP3_FILTER_KEYS,
   normalizeFilterKey,
 } from './marketCategoryMapping';
 
 describe('marketCategoryMapping', () => {
-  describe('getMarketTypeForFilter', () => {
-    it.each([
-      ['stock', MarketCategory.Stock],
-      ['pre-ipo', MarketCategory.PreIpo],
-      ['index', MarketCategory.Index],
-      ['etf', MarketCategory.Etf],
-      ['commodity', MarketCategory.Commodity],
-      ['forex', MarketCategory.Forex],
-    ] as const)('maps filter "%s" → MarketCategory %s', (filter, expected) => {
-      expect(getMarketTypeForFilter(filter)).toBe(expected);
+  describe('HIP3_FILTER_KEYS', () => {
+    it('contains exactly the 6 HIP-3 filter keys', () => {
+      expect([...HIP3_FILTER_KEYS].sort()).toEqual([
+        'commodity',
+        'etf',
+        'forex',
+        'index',
+        'pre-ipo',
+        'stock',
+      ]);
     });
 
     it.each(['all', 'crypto', 'new'] as const)(
-      'returns undefined for UI-only filter "%s"',
-      (filter) => {
-        expect(getMarketTypeForFilter(filter)).toBeUndefined();
+      'does not contain UI-only key "%s"',
+      (key) => {
+        expect(HIP3_FILTER_KEYS.has(key)).toBe(false);
       },
     );
-  });
-
-  describe('getFilterForMarketType', () => {
-    it.each([
-      [MarketCategory.Stock, 'stock'],
-      [MarketCategory.PreIpo, 'pre-ipo'],
-      [MarketCategory.Index, 'index'],
-      [MarketCategory.Etf, 'etf'],
-      [MarketCategory.Commodity, 'commodity'],
-      [MarketCategory.Forex, 'forex'],
-    ] as const)('maps MarketCategory %s → filter "%s"', (type, expected) => {
-      expect(getFilterForMarketType(type)).toBe(expected);
-    });
-
-    it('returns undefined for MarketCategory.CryptoCurrency', () => {
-      expect(
-        getFilterForMarketType(MarketCategory.CryptoCurrency),
-      ).toBeUndefined();
-    });
-
-    it('returns undefined for unknown market types', () => {
-      expect(getFilterForMarketType('unknown-type')).toBeUndefined();
-    });
   });
 
   describe('normalizeFilterKey', () => {
@@ -82,20 +57,6 @@ describe('marketCategoryMapping', () => {
       expect(new Set(CATEGORY_DISPLAY_ORDER).size).toBe(
         CATEGORY_DISPLAY_ORDER.length,
       );
-    });
-  });
-
-  describe('round-trip consistency', () => {
-    it.each([
-      ['stock', MarketCategory.Stock],
-      ['pre-ipo', MarketCategory.PreIpo],
-      ['index', MarketCategory.Index],
-      ['etf', MarketCategory.Etf],
-      ['commodity', MarketCategory.Commodity],
-      ['forex', MarketCategory.Forex],
-    ] as const)('filter "%s" round-trips through both maps', (filter, type) => {
-      expect(getMarketTypeForFilter(filter)).toBe(type);
-      expect(getFilterForMarketType(type)).toBe(filter);
     });
   });
 });

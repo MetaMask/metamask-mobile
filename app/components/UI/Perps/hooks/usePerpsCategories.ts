@@ -4,7 +4,7 @@ import { strings } from '../../../../../locales/i18n';
 import { usePerpsMarkets } from './usePerpsMarkets';
 import {
   CATEGORY_DISPLAY_ORDER,
-  getFilterForMarketType,
+  HIP3_FILTER_KEYS,
   normalizeFilterKey,
 } from '../utils/marketCategoryMapping';
 
@@ -17,7 +17,7 @@ export interface PerpsCategory {
  * Derives unique market categories with localised labels from the current
  * markets list.  Non-HIP-3 markets are bucketed under `'crypto'`.
  *
- * IDs use the `MarketTypeFilter` form (e.g. `"stocks"` not `"stock"`) so
+ * IDs use the `MarketTypeFilter` form (e.g. `"stock"`, `"commodity"`) so
  * they can be passed directly to navigation params, filter state, and
  * translation keys under `perps.home.tabs.*`.
  */
@@ -29,11 +29,12 @@ export const usePerpsCategories = (): PerpsCategory[] => {
     const result: PerpsCategory[] = [];
 
     for (const market of markets) {
-      const id: Exclude<MarketTypeFilter, 'all'> | undefined = market.isHip3
-        ? (getFilterForMarketType(market.marketType ?? '') as
-            | Exclude<MarketTypeFilter, 'all'>
-            | undefined)
-        : 'crypto';
+      const raw = market.isHip3 ? market.marketType : 'crypto';
+      const id =
+        raw &&
+        (raw === 'crypto' || HIP3_FILTER_KEYS.has(raw as MarketTypeFilter))
+          ? (raw as Exclude<MarketTypeFilter, 'all'>)
+          : undefined;
 
       if (!id || seen.has(id)) continue;
       seen.add(id);
