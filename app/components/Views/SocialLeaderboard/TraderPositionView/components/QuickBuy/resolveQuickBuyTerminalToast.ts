@@ -2,6 +2,8 @@ import { StatusTypes } from '@metamask/bridge-controller';
 import { TransactionStatus as KeyringTransactionStatus } from '@metamask/keyring-api';
 import type { ToastRef } from '../../../../../../component-library/components/Toast/Toast.types';
 import Engine from '../../../../../../core/Engine';
+import ReduxService from '../../../../../../core/redux';
+import { incrementBridgeBalanceRefreshKey } from '../../../../../../core/redux/slices/bridge';
 import {
   playErrorNotification,
   playSuccessNotification,
@@ -79,6 +81,14 @@ function emitTerminalToast(
   theme: Theme,
 ): boolean {
   untrackQuickBuyTrade(txMetaId);
+
+  // The settled trade just changed the user's on-chain balances, but the
+  // balance controllers only catch up on their next poll. Bump the shared
+  // bridge balance refresh key so any mounted `useLatestBalance` (QuickBuy
+  // "Pay with" row, Bridge view) re-fetches now — the same moment the
+  // complete/failed toast fires (TSA-632). Failed trades bump too: gas and
+  // approvals may have been spent.
+  ReduxService.store.dispatch(incrementBridgeBalanceRefreshKey());
 
   const isComplete = outcome === 'complete';
   showToast(

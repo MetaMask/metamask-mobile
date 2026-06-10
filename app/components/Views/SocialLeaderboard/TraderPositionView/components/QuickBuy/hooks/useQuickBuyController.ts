@@ -52,6 +52,7 @@ import I18n, { strings } from '../../../../../../../../locales/i18n';
 import { ToastContext } from '../../../../../../../component-library/components/Toast';
 import Engine from '../../../../../../../core/Engine';
 import {
+  selectBridgeBalanceRefreshKey,
   selectBridgeFeatureFlags,
   selectDestAddress,
   selectIsEvmNonEvmBridge,
@@ -95,6 +96,7 @@ import {
 import { buildQuickBuyToastOptions } from '../quickBuyToastOptions';
 import { trackQuickBuyTrade } from '../quickBuyTradeTracker';
 import { resolveQuickBuyTerminalToast } from '../resolveQuickBuyTerminalToast';
+import { getTokenKey } from '../tokenKey';
 
 export type QuickBuyButtonError =
   | 'insufficient_balance'
@@ -432,11 +434,42 @@ export function useQuickBuyController(
     }
   }, [sourceTokenAmount, dispatch]);
 
+  // ─── Live source balance (TSA-632) ─────────────────────────────────────
+  // In buy mode `sourceToken` is a `useState` snapshot of one Pay-with option,
+  // so its cached `balance` freezes at selection time. Re-read the balance from
+  // the Redux-driven options list (TokenBalancesController /
+  // AccountTrackerController state) so the "Pay with" row tracks balance
+  // changes — e.g. a swap settling while the sheet is open. Only the balance is
+  // taken from the live option: the `sourceToken` reference itself must stay
+  // stable or market-data ticks would churn quote requests (see
+  // `destTokenForRate` below).
+  //
+  // Sell mode's `positionToken` is already selector-driven, so its balance is
+  // live as-is.
+  const liveSourceBalance = useMemo(() => {
+    if (!sourceToken) return undefined;
+    if (tradeMode !== 'buy') return sourceToken.balance;
+    const sourceTokenKey = getTokenKey(sourceToken);
+    const liveOption = sourceTokenOptions.find(
+      (option) => getTokenKey(option) === sourceTokenKey,
+    );
+    return liveOption?.balance ?? sourceToken.balance;
+  }, [sourceToken, tradeMode, sourceTokenOptions]);
+
+  // Bumped when a QuickBuy trade reaches a terminal state (see
+  // `resolveQuickBuyTerminalToast`), forcing an on-chain re-fetch the moment
+  // the complete/failed toast fires instead of waiting for controller polling.
+  const balanceRefreshKey = useSelector(selectBridgeBalanceRefreshKey);
+
   const latestSourceBalance = useLatestBalance({
     address: sourceToken?.address,
     decimals: sourceToken?.decimals,
     chainId: sourceToken?.chainId,
-    balance: sourceToken?.balance,
+    balance: liveSourceBalance,
+    // `useLatestBalance` holds its first fetched value until the token identity
+    // or this key changes, so re-key it on both settlement bumps and cached
+    // balance ticks to keep the displayed balance live.
+    refreshKey: `${balanceRefreshKey}:${liveSourceBalance ?? ''}`,
   });
 
   // Used for analytics passed to useQuickBuyQuotes. Must derive from

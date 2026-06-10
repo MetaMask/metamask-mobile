@@ -1,6 +1,7 @@
 import { StatusTypes } from '@metamask/bridge-controller';
 import { TransactionStatus as KeyringTransactionStatus } from '@metamask/keyring-api';
 import Engine from '../../../../../../core/Engine';
+import { incrementBridgeBalanceRefreshKey } from '../../../../../../core/redux/slices/bridge';
 import {
   playErrorNotification,
   playSuccessNotification,
@@ -21,6 +22,24 @@ jest.mock('./quickBuyToastOptions', () => ({
 jest.mock('../../../../../../util/haptics', () => ({
   playSuccessNotification: jest.fn(),
   playErrorNotification: jest.fn(),
+}));
+
+const mockReduxDispatch = jest.fn();
+jest.mock('../../../../../../core/redux', () => ({
+  __esModule: true,
+  default: {
+    store: {
+      // Defer to mockReduxDispatch lazily: this object is built at mock-factory
+      // eval time, before the `mockReduxDispatch` const is initialised.
+      dispatch: (...args: unknown[]) => mockReduxDispatch(...args),
+    },
+  },
+}));
+
+jest.mock('../../../../../../core/redux/slices/bridge', () => ({
+  incrementBridgeBalanceRefreshKey: jest.fn(() => ({
+    type: 'bridge/incrementBridgeBalanceRefreshKey',
+  })),
 }));
 
 jest.mock('../../../../../../core/Engine', () => ({
@@ -158,6 +177,61 @@ describe('resolveQuickBuyTerminalToast', () => {
     expect(first).toBe(true);
     expect(second).toBe(false);
     expect(showToast).toHaveBeenCalledTimes(1);
+  });
+
+  describe('balance refresh on settlement (TSA-632)', () => {
+    it('bumps the bridge balance refresh key exactly once when the swap completes', () => {
+      // Arrange
+      trackQuickBuyTrade('tx-1', buyTrade);
+      mockGetHistoryItem.mockReturnValue(
+        historyItemWithStatus(StatusTypes.COMPLETE),
+      );
+      const showToast = jest.fn();
+
+      // Act — concurrent stateChange emissions race to resolve the same trade.
+      resolveQuickBuyTerminalToast('tx-1', showToast, theme);
+      resolveQuickBuyTerminalToast('tx-1', showToast, theme);
+
+      // Assert — the live "Pay with" balance re-fetch fires with the complete
+      // toast, and the untrack dedupe keeps it to a single bump.
+      expect(incrementBridgeBalanceRefreshKey).toHaveBeenCalledTimes(1);
+      expect(mockReduxDispatch).toHaveBeenCalledTimes(1);
+      expect(mockReduxDispatch).toHaveBeenCalledWith({
+        type: 'bridge/incrementBridgeBalanceRefreshKey',
+      });
+    });
+
+    it('bumps the bridge balance refresh key when the swap fails', () => {
+      // Arrange — failed swaps may still have spent gas or approvals.
+      trackQuickBuyTrade('tx-1', buyTrade);
+      mockGetHistoryItem.mockReturnValue(
+        historyItemWithStatus(StatusTypes.FAILED),
+      );
+      const showToast = jest.fn();
+
+      // Act
+      resolveQuickBuyTerminalToast('tx-1', showToast, theme);
+
+      // Assert
+      expect(mockReduxDispatch).toHaveBeenCalledWith({
+        type: 'bridge/incrementBridgeBalanceRefreshKey',
+      });
+    });
+
+    it('does not bump the refresh key while the swap is still pending', () => {
+      // Arrange
+      trackQuickBuyTrade('tx-1', buyTrade);
+      mockGetHistoryItem.mockReturnValue(
+        historyItemWithStatus(StatusTypes.PENDING),
+      );
+      const showToast = jest.fn();
+
+      // Act
+      resolveQuickBuyTerminalToast('tx-1', showToast, theme);
+
+      // Assert
+      expect(mockReduxDispatch).not.toHaveBeenCalled();
+    });
   });
 
   it('resolves a Solana swap to complete from the multichain controller when bridge status is absent', () => {

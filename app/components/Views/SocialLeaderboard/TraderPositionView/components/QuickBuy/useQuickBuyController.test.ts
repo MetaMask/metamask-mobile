@@ -5,6 +5,7 @@ import { act, renderHook } from '@testing-library/react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../../../core/Engine';
 import {
+  selectBridgeBalanceRefreshKey,
   selectBridgeFeatureFlags,
   selectDestAddress,
   selectIsEvmNonEvmBridge,
@@ -184,6 +185,7 @@ jest.mock('../../../../../../core/redux/slices/bridge', () => ({
   selectIsNonEvmNonEvmBridge: jest.fn(),
   selectIsSolanaSourced: jest.fn(),
   selectBridgeFeatureFlags: jest.fn(),
+  selectBridgeBalanceRefreshKey: jest.fn(),
 }));
 
 jest.mock('../../../../../../selectors/bridge', () => ({
@@ -344,6 +346,7 @@ const setupDefaultMocks = () => {
   (selectBridgeFeatureFlags as unknown as jest.Mock).mockReturnValue({
     priceImpactThreshold: { warning: 0.05, error: 0.25 },
   });
+  (selectBridgeBalanceRefreshKey as unknown as jest.Mock).mockReturnValue(0);
   (
     selectSelectedInternalAccountFormattedAddress as unknown as jest.Mock
   ).mockReturnValue('0xWALLET');
@@ -1421,6 +1424,109 @@ describe('useQuickBuyController', () => {
       );
 
       expect(result.current.sourceToken?.symbol).toBe('USDC');
+    });
+  });
+
+  describe('live Pay-with balance (TSA-632)', () => {
+    interface LatestBalanceArgs {
+      address?: string;
+      decimals?: number;
+      chainId?: string;
+      balance?: string;
+      refreshKey?: string | number;
+    }
+
+    const lastLatestBalanceArgs = (): LatestBalanceArgs =>
+      (useLatestBalance as jest.Mock).mock.calls.at(
+        -1,
+      )?.[0] as LatestBalanceArgs;
+
+    it('feeds useLatestBalance the live option balance instead of the selection-time snapshot', () => {
+      // Arrange — the sheet opens and auto-selects ETH with a cached 1.0 balance.
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [createSourceToken({ balance: '1.0' })],
+        isLoading: false,
+      });
+      const { rerender } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+      expect(lastLatestBalanceArgs().balance).toBe('1.0');
+
+      // Act — a swap settles: TokenBalancesController updates Redux and
+      // usePayWithTokens recomputes the same token (same address:chainId key)
+      // with a fresh balance, while the selected snapshot still holds 1.0.
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [createSourceToken({ balance: '0.75' })],
+        isLoading: false,
+      });
+      rerender(undefined);
+
+      // Assert — the balance driving the Pay-with row tracks live state.
+      expect(lastLatestBalanceArgs().balance).toBe('0.75');
+    });
+
+    it('re-keys the on-chain fetch when the live cached balance changes', () => {
+      // Arrange
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [createSourceToken({ balance: '1.0' })],
+        isLoading: false,
+      });
+      const { rerender } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+      const initialRefreshKey = lastLatestBalanceArgs().refreshKey;
+
+      // Act
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [createSourceToken({ balance: '0.75' })],
+        isLoading: false,
+      });
+      rerender(undefined);
+
+      // Assert — useLatestBalance holds its first fetched value until the
+      // refresh key changes, so a balance tick must produce a new key.
+      expect(lastLatestBalanceArgs().refreshKey).not.toBe(initialRefreshKey);
+    });
+
+    it('re-keys the on-chain fetch when the bridge balance refresh key bumps on settlement', () => {
+      // Arrange
+      const { rerender } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+      const initialRefreshKey = lastLatestBalanceArgs().refreshKey;
+
+      // Act — resolveQuickBuyTerminalToast bumps the shared key the moment the
+      // complete toast fires.
+      (selectBridgeBalanceRefreshKey as unknown as jest.Mock).mockReturnValue(
+        1,
+      );
+      rerender(undefined);
+
+      // Assert
+      expect(lastLatestBalanceArgs().refreshKey).not.toBe(initialRefreshKey);
+    });
+
+    it('falls back to the snapshot balance when the selected token leaves the options list', () => {
+      // Arrange
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [createSourceToken({ balance: '1.0' })],
+        isLoading: false,
+      });
+      const { rerender } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      // Act — the user spent the whole balance, so the held-token list no
+      // longer contains the selected token.
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [],
+        isLoading: false,
+      });
+      rerender(undefined);
+
+      // Assert — no live match: keep the snapshot value (the refresh-key bump
+      // still forces an authoritative on-chain re-fetch).
+      expect(lastLatestBalanceArgs().balance).toBe('1.0');
     });
   });
 
