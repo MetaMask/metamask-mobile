@@ -37,21 +37,8 @@ jest.mock(
         name: 'Wrapped Ether',
       },
     },
-    Bip44TokensForDefaultPairs: {
-      'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': {
-        symbol: 'USDC',
-        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-        chainId: '0x1',
-        decimals: 6,
-        name: 'USD Coin',
-      },
-    },
   }),
 );
-
-jest.mock('../../../../../../../constants/bridge', () => ({
-  ETH_USDT_ADDRESS: '0xdac17f958d2ee523a2206206994597c13d831ec7',
-}));
 
 jest.mock('./enrichTokenBalance', () => ({
   enrichTokenBalance: jest.fn(),
@@ -141,6 +128,25 @@ describe('useReceiveTokens', () => {
       expect.any(Object),
       { includeZeroBalance: true },
     );
+  });
+
+  it('offers both USDC and USDT on every chain with a canonical deployment (e.g. Optimism)', () => {
+    const { result } = renderHook(() => useReceiveTokens(undefined));
+
+    const optimismSymbols = result.current
+      .filter((t) => t.chainId === '0xa')
+      .map((t) => t.symbol);
+    expect(optimismSymbols).toContain('USDC');
+    expect(optimismSymbols).toContain('USDT');
+  });
+
+  it('does not list the same token identity twice when merging the curated set', () => {
+    const { result } = renderHook(() => useReceiveTokens(undefined));
+
+    const keys = result.current.map(
+      (t) => `${t.address.toLowerCase()}:${t.chainId}`,
+    );
+    expect(new Set(keys).size).toBe(keys.length);
   });
 
   it('drops candidates on networks the user has not enabled', () => {

@@ -68,6 +68,8 @@ import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import PayAccountSelector from '../../PayAccountSelector';
+import { PerpsAccountPickerRow } from '../../rows/perps-account-picker-row';
+import { PredictAccountPickerRow } from '../../rows/predict-account-picker-row';
 import { useTransactionAccountOverride } from '../../../hooks/transactions/useTransactionAccountOverride';
 import { CustomAmountInfoTestIds } from './custom-amount-info.testIds';
 import { useConfirmationContext } from '../../../context/confirmation-context';
@@ -121,6 +123,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     footerText,
     supportAccountSelection,
   }) => {
+    useClearConfirmationOnBackSwipe();
+
     const { canSelectWithdrawToken } = useTransactionPayWithdraw();
 
     useAutomaticTransactionPayToken({
@@ -152,34 +156,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
       TransactionType.moneyAccountDeposit,
     ]);
-    const isPredictDeposit = hasTransactionType(transactionMeta, [
-      TransactionType.predictDeposit,
-    ]);
-    const isMoneyAccountTransfer =
-      isMoneyAccountDeposit ||
-      hasTransactionType(transactionMeta, [
-        TransactionType.moneyAccountWithdraw,
-      ]);
     const hasFiatOption = isFiatAvailable;
     const hasPaymentOption = hasAvailableTokens || hasFiatOption;
 
-    const clearPendingPredictDeposit = useCallback(() => {
-      Engine.context.PredictController.clearPendingDeposit();
-    }, []);
-
-    // Reject the underlying transaction on any back navigation so the next
-    // deposit attempt is not blocked by an orphaned unapproved transaction.
-    // Covers predictDeposit and money-account transfers (deposit + withdraw):
-    // the header back button triggers beforeRemove but not gestureEnd, so the
-    // tx would otherwise stay unapproved and the next tap is dropped by
-    // useConfirmNavigation's deferred-renavigate path.
-    const shouldRejectOnBackSwipe = isPredictDeposit || isMoneyAccountTransfer;
-    useClearConfirmationOnBackSwipe({
-      rejectOnBeforeRemove: shouldRejectOnBackSwipe,
-      rejectOnBeforeRemoveWithoutGesture: shouldRejectOnBackSwipe,
-      skipNavigationOnGestureEnd: shouldRejectOnBackSwipe,
-      onBeforeReject: isPredictDeposit ? clearPendingPredictDeposit : undefined,
-    });
     const isResultReady = useIsResultReady({ isKeyboardVisible });
     const quotes = useTransactionPayQuotes();
     const isQuotesLoading = useIsTransactionPayLoading();
@@ -294,6 +273,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 !shouldHideAccountSelector && (
                   <PayAccountSelector style={styles.separator} />
                 )}
+              <PerpsAccountPickerRow />
+              <PredictAccountPickerRow />
               {disablePay !== true && hasPaymentOption && <PayWithRow />}
             </>
           )}
@@ -302,6 +283,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               {supportAccountSelection &&
                 !selectedFiatPaymentMethodId &&
                 !shouldHideAccountSelector && <PayAccountSelector />}
+              <PerpsAccountPickerRow />
+              <PredictAccountPickerRow />
               {disablePay !== true && hasPaymentOption && (
                 <PayWithRow isResultReady />
               )}

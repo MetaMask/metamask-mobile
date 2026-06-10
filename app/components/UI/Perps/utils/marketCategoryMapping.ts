@@ -1,50 +1,17 @@
 import {
   MarketCategory,
-  type MarketType,
+  MARKET_CATEGORIES,
   type MarketTypeFilter,
 } from '@metamask/perps-controller';
 
 /**
- * Explicit mapping from MarketTypeFilter → MarketCategory enum value.
- *
- * 'crypto' is excluded because crypto markets are identified by `!isHip3`,
- * not by a MarketCategory value. 'all' and 'new' are UI-only sentinels.
+ * HIP-3 filter keys (everything except the UI-only 'all', 'crypto', 'new').
+ * Derived from the controller's MARKET_CATEGORIES constant so it stays in
+ * sync when new categories are added upstream.
  */
-const FILTER_TO_MARKET_TYPE = new Map<MarketTypeFilter, MarketType>([
-  ['stocks', MarketCategory.Stock],
-  ['pre-ipo', MarketCategory.PreIpo],
-  ['indices', MarketCategory.Index],
-  ['etfs', MarketCategory.Etf],
-  ['commodities', MarketCategory.Commodity],
-  ['forex', MarketCategory.Forex],
-]);
-
-/** Reverse lookup: MarketCategory enum value → MarketTypeFilter. */
-const MARKET_TYPE_TO_FILTER = new Map<string, MarketTypeFilter>(
-  [...FILTER_TO_MARKET_TYPE.entries()].map(([filter, type]) => [type, filter]),
+export const HIP3_FILTER_KEYS: ReadonlySet<MarketTypeFilter> = new Set(
+  MARKET_CATEGORIES.filter((c) => c !== MarketCategory.CryptoCurrency),
 );
-
-/**
- * Get the MarketType (data-model value on PerpsMarketData.marketType) for a
- * given MarketTypeFilter.  Returns `undefined` for 'all', 'new', and 'crypto'
- * which don't map to a single MarketType value.
- */
-export function getMarketTypeForFilter(
-  filter: MarketTypeFilter,
-): MarketType | undefined {
-  return FILTER_TO_MARKET_TYPE.get(filter);
-}
-
-/**
- * Get the MarketTypeFilter for a given MarketType value (from
- * PerpsMarketData.marketType). Useful for building category counts
- * from raw market data without a switch statement.
- */
-export function getFilterForMarketType(
-  marketType: string,
-): MarketTypeFilter | undefined {
-  return MARKET_TYPE_TO_FILTER.get(marketType);
-}
 
 /**
  * Preferred display order for product categories.
@@ -53,13 +20,22 @@ export function getFilterForMarketType(
  */
 export const CATEGORY_DISPLAY_ORDER: Exclude<MarketTypeFilter, 'all'>[] = [
   'crypto',
-  'stocks',
+  'stock',
   'pre-ipo',
   'forex',
-  'commodities',
-  'indices',
-  'etfs',
+  'commodity',
+  'index',
+  'etf',
 ];
+
+/**
+ * Type guard: returns true when the value is a known HIP-3 MarketTypeFilter.
+ */
+export function isHip3Filter(
+  value: string | undefined,
+): value is MarketTypeFilter {
+  return !!value && HIP3_FILTER_KEYS.has(value as MarketTypeFilter);
+}
 
 /**
  * Normalise a MarketTypeFilter value for use in translation keys and

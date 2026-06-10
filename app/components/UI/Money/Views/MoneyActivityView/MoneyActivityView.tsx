@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { SectionList, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { type TransactionMeta } from '@metamask/transaction-controller';
 import {
   Box,
   BoxAlignItems,
@@ -29,10 +30,24 @@ import { onchainItem, type MoneyActivityItem } from '../../types/moneyActivity';
 import { MoneyActivityFilter } from '../../constants/mockActivityData';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MoneyActivityViewTestIds } from './MoneyActivityView.testIds';
+import useMountEffect from '../../hooks/useMountEffect';
+import {
+  COMPONENT_NAMES,
+  MONEY_BUTTON_INTENTS,
+  MONEY_BUTTON_TYPES,
+  SCREEN_NAMES,
+} from '../../constants/moneyEvents';
+import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
 });
+
+const FILTER_LABEL_KEYS = {
+  all: 'money.activity.filter_all',
+  deposits: 'money.activity.filter_deposits',
+  transfers: 'money.activity.filter_transfers',
+} as const;
 
 interface DateSection {
   title: string;
@@ -73,6 +88,13 @@ const MoneyActivityView = () => {
   const { colors } = useTheme();
   const [filter, setFilter] = useState(MoneyActivityFilter.All);
 
+  const { trackScreenViewed, trackActivitySurfaceClicked, trackButtonClicked } =
+    useMoneyAnalytics({
+      screen_name: SCREEN_NAMES.MONEY_ACTIVITY,
+    });
+
+  useMountEffect(trackScreenViewed);
+
   const {
     allTransactions,
     deposits,
@@ -106,18 +128,42 @@ const MoneyActivityView = () => {
     [transfers, cardTransactions, mockDataEnabled],
   );
 
+  const handleFilterPress = useCallback(
+    (
+      filterClicked: MoneyActivityFilter,
+      labelKey: string,
+      componentName: COMPONENT_NAMES,
+    ) => {
+      trackButtonClicked({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.FILTER,
+        label_key: labelKey,
+        component_name: componentName,
+      });
+
+      setFilter(filterClicked);
+    },
+    [trackButtonClicked],
+  );
+
   const handleBackPress = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
   const handleItemPress = useCallback(
-    (transactionId: string) => {
+    (transaction: TransactionMeta) => {
+      trackActivitySurfaceClicked({
+        transaction,
+        redirect_target: SCREEN_NAMES.MONEY_ACTIVITY_DETAILS,
+        component_name: COMPONENT_NAMES.MONEY_ACTIVITY_LIST_ITEM,
+      });
+
       navigation.navigate(Routes.MONEY.MODALS.ROOT, {
         screen: Routes.MONEY.MODALS.TRANSACTION_DETAILS_SHEET,
-        params: { transactionId },
+        params: { transactionId: transaction.id },
       });
     },
-    [navigation],
+    [navigation, trackActivitySurfaceClicked],
   );
 
   const filtered = useMemo(() => {
@@ -206,10 +252,16 @@ const MoneyActivityView = () => {
           }
           size={ButtonSize.Md}
           twClassName="min-w-0 shrink px-3"
-          onPress={() => setFilter(MoneyActivityFilter.All)}
+          onPress={() =>
+            handleFilterPress(
+              MoneyActivityFilter.All,
+              FILTER_LABEL_KEYS.all,
+              COMPONENT_NAMES.MONEY_ACTIVITY_FILTER_ALL,
+            )
+          }
           testID={MoneyActivityViewTestIds.FILTER_ALL}
         >
-          {strings('money.activity.filter_all')}
+          {strings(FILTER_LABEL_KEYS.all)}
         </Button>
         <Button
           variant={
@@ -219,10 +271,16 @@ const MoneyActivityView = () => {
           }
           size={ButtonSize.Md}
           twClassName="min-w-0 shrink px-3"
-          onPress={() => setFilter(MoneyActivityFilter.Deposits)}
+          onPress={() =>
+            handleFilterPress(
+              MoneyActivityFilter.Deposits,
+              FILTER_LABEL_KEYS.deposits,
+              COMPONENT_NAMES.MONEY_ACTIVITY_FILTER_DEPOSITS,
+            )
+          }
           testID={MoneyActivityViewTestIds.FILTER_DEPOSITS}
         >
-          {strings('money.activity.filter_deposits')}
+          {strings(FILTER_LABEL_KEYS.deposits)}
         </Button>
         <Button
           variant={
@@ -232,10 +290,16 @@ const MoneyActivityView = () => {
           }
           size={ButtonSize.Md}
           twClassName="min-w-0 shrink px-3"
-          onPress={() => setFilter(MoneyActivityFilter.Transfers)}
+          onPress={() =>
+            handleFilterPress(
+              MoneyActivityFilter.Transfers,
+              FILTER_LABEL_KEYS.transfers,
+              COMPONENT_NAMES.MONEY_ACTIVITY_FILTER_TRANSFERS,
+            )
+          }
           testID={MoneyActivityViewTestIds.FILTER_TRANSFERS}
         >
-          {strings('money.activity.filter_transfers')}
+          {strings(FILTER_LABEL_KEYS.transfers)}
         </Button>
       </Box>
 
