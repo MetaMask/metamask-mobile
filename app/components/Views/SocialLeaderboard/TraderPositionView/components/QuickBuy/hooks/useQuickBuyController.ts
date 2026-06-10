@@ -479,7 +479,7 @@ export function useQuickBuyController(
   const liveSourceCurrencyExchangeRate =
     tradeMode === 'buy'
       ? (liveSelectedSourceBalance?.currencyExchangeRate ??
-         sourceToken?.currencyExchangeRate)
+        sourceToken?.currencyExchangeRate)
       : sourceToken?.currencyExchangeRate;
 
   const hasSourcePrice = Boolean(
