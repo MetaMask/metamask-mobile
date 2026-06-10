@@ -16,6 +16,7 @@ const arrangeToggleHook = () => {
     .mockReturnValue({
       onToggle: mockOnToggle,
       value: true,
+      isUpdating: false,
     });
 
   return {
@@ -54,5 +55,18 @@ describe('MainNotificationToggle', () => {
     await waitFor(() => {
       expect(mocks.mockOnToggle).toHaveBeenCalledWith(false);
     });
+  });
+
+  it('disables the switch while updating', () => {
+    arrangeMocks().mockUseMainNotificationToggle.mockReturnValue({
+      onToggle: jest.fn(),
+      value: true,
+      isUpdating: true,
+    });
+    const { getByTestId } = render(<MainNotificationToggle />);
+
+    expect(
+      getByTestId(NotificationSettingsViewSelectorsIDs.NOTIFICATIONS_TOGGLE),
+    ).toHaveProp('disabled', true);
   });
 });
