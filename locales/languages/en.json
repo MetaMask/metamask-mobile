@@ -1142,6 +1142,7 @@
   "perps": {
     "basic_functionality_disabled_title": "Perps is not available",
     "title": "Perps",
+    "transfer_to_perps": "Transfer to Perps",
     "perps_trading": "Perps trading",
     "perp_account_balance": "Perp account balance",
     "manage_balance": "Manage balance",
@@ -1176,6 +1177,8 @@
     "trade_perps": "Trade perps",
     "trade_perps_description": "Use perps to trade on an asset's future price. Add funds to your perps account to get started",
     "available": "available",
+    "select_perps_account": "Select perps account",
+    "search_account": "Search an account",
     "deposit_in_progress": "Deposit in progress",
     "withdraw_in_progress": "Withdraw in progress",
     "multiple_transactions_in_progress": "Transactions in progress",
@@ -2038,13 +2041,13 @@
       "stocks_and_commodities": "Explore stocks and commodities",
       "tabs": {
         "crypto": "Crypto",
-        "stocks": "Stocks",
         "pre_ipo": "Pre-IPO",
-        "indices": "Indices",
-        "etfs": "ETFs",
-        "commodities": "Commodities",
         "forex": "Forex",
-        "new": "New"
+        "new": "New",
+        "stock": "Stocks",
+        "index": "Indices",
+        "etf": "ETFs",
+        "commodity": "Commodities"
       },
       "filter_by": "Filter by",
       "forex": "Forex",
@@ -2306,6 +2309,9 @@
   },
   "predict": {
     "title": "MetaMask Predictions",
+    "transfer_to_predictions": "Transfer to Predictions",
+    "select_predict_account": "Select predict account",
+    "search_account": "Search an account",
     "home": {
       "portfolio_module_placeholder": "Portfolio module",
       "live_now_title": "Live now",
@@ -8752,7 +8758,7 @@
     "vip": {
       "progress_to_next_tier": "{{pointsRemaining}} points to next tier",
       "bps_unit": "bps",
-      "badge_label": "VIP Fox {{tier}}",
+      "badge_label": "VIP {{tier}}",
       "swaps_label": "Swaps",
       "perps_label": "Perps",
       "points_label": "Points",
@@ -9226,6 +9232,11 @@
       "label_pnl": "PnL",
       "predict_now_cta": "Predict now",
       "positions_title": "Your predictions",
+      "positions_open_section": "Open",
+      "positions_closed_section": "Closed",
+      "position_sold_at": "Sold {{time}}",
+      "positions_open_badge": "{{count}} open",
+      "positions_closed_badge": "{{count}} closed",
       "positions_error": "Failed to load predictions",
       "positions_error_description": "Something went wrong while loading your predictions. Please try again.",
       "positions_retry": "Retry",
@@ -9240,7 +9251,13 @@
       "leaderboard_not_yet_computed": "Leaderboard hasn't been computed yet. Check back soon.",
       "stats_error_title": "Unable to load stats",
       "stats_error_description": "We had a problem loading your stats. Please try again.",
-      "stats_retry": "Retry"
+      "label_markets_traded": "Markets traded",
+      "stats_retry": "Retry",
+      "performance_title": "Performance",
+      "stats_qualified_title": "You're qualified",
+      "stats_qualified_description": "Keep trading to improve your ROI and climb the leaderboard before the competition ends.",
+      "stats_qualify_for_rank_title": "Qualify for the leaderboard",
+      "stats_qualify_for_rank_description": "Trade at least $10 in at least 3 eligible markets before the competition ends."
     },
     "campaigns_preview": {
       "title": "Campaigns",
