@@ -221,16 +221,27 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       [clearLayoutSettleTimeout],
     );
 
+    // These refs mirror the latest pagination / visible-window props so that
+    // `sendOHLCVData` can read them without re-subscribing the data-sync effect.
+    // Writes live in trailing effects (not render) so the React Compiler can
+    // optimize this component — `ref.current` may not be written during render.
+    // Declared before the data-sync effect below so they update first on commit.
     const paginationRef = useRef<OHLCVPaginationConfig | undefined>(
       ohlcvPagination,
     );
-    paginationRef.current = ohlcvPagination;
+    useEffect(() => {
+      paginationRef.current = ohlcvPagination;
+    });
 
     const visibleFromMsRef = useRef<number | undefined>(visibleFromMs);
-    visibleFromMsRef.current = visibleFromMs;
+    useEffect(() => {
+      visibleFromMsRef.current = visibleFromMs;
+    });
 
     const visibleToMsRef = useRef<number | undefined>(visibleToMs);
-    visibleToMsRef.current = visibleToMs;
+    useEffect(() => {
+      visibleToMsRef.current = visibleToMs;
+    });
 
     const sendOHLCVData = useCallback(
       (data: OHLCVBar[]) => {
