@@ -84,7 +84,7 @@ const StatusIcon = ({ status }: { status: PostTradeStatus }) => {
       <AvatarIcon
         iconName={isSuccess ? DSIconName.CheckBold : DSIconName.Error}
         severity={
-          isSuccess ? AvatarIconSeverity.Success : AvatarIconSeverity.Error
+          isSuccess ? AvatarIconSeverity.Success : AvatarIconSeverity.Danger
         }
         size={AvatarIconSize.Xl}
       />
