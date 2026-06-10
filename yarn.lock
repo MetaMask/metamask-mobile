@@ -8465,17 +8465,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/eip-5792-middleware@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "@metamask/eip-5792-middleware@npm:2.0.0"
+"@metamask/eip-5792-middleware@npm:^3.0.4":
+  version: 3.0.4
+  resolution: "@metamask/eip-5792-middleware@npm:3.0.4"
   dependencies:
-    "@metamask/messenger": "npm:^0.3.0"
+    "@metamask/messenger": "npm:^1.2.0"
     "@metamask/superstruct": "npm:^3.1.0"
-    "@metamask/transaction-controller": "npm:^61.0.0"
-    "@metamask/utils": "npm:^11.8.1"
+    "@metamask/transaction-controller": "npm:^65.4.0"
+    "@metamask/utils": "npm:^11.9.0"
     lodash: "npm:^4.17.21"
     uuid: "npm:^8.3.2"
-  checksum: 10/7ccf426cbf9921b9c079da6877238fafa16353ff0b57027a3615ae9e07a39c1364c96c139673c7ed00dd00efe53e7467dfa9b3cc6c491ae89f68be0dfd047560
+  checksum: 10/cac71793d2379399d964c02c1a8b5907aea177af938e8a18cbcf51a689a2d90736784bef751529a90c67e348382fc8b88116db1a601c41e5797f5b5166640562
   languageName: node
   linkType: hard
 
@@ -35261,7 +35261,7 @@ __metadata:
     "@metamask/design-system-twrnc-preset": "npm:^0.5.0"
     "@metamask/design-tokens": "npm:^8.5.0"
     "@metamask/earn-controller": "npm:^12.1.0"
-    "@metamask/eip-5792-middleware": "npm:^2.0.0"
+    "@metamask/eip-5792-middleware": "npm:^3.0.4"
     "@metamask/eip1193-permission-middleware": "npm:^1.0.2"
     "@metamask/ens-resolver-snap": "npm:^1.2.0"
     "@metamask/eslint-config-typescript": "npm:^13.0.0"
