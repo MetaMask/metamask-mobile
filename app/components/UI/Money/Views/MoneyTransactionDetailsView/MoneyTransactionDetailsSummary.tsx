@@ -43,18 +43,7 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    marginTop: 10,
-  },
-  connectorContainer: {
-    flex: 1,
-    alignItems: 'center',
-    paddingTop: 4,
-    justifyContent: 'space-evenly',
-  },
-  connectorDot: {
-    width: 3,
-    height: 3,
-    borderRadius: 1.5,
+    marginTop: 8,
   },
 });
 
@@ -114,14 +103,12 @@ function StepRow({
   severity,
   explorerUrl,
   explorerName,
-  isLast = false,
 }: {
   title: string;
   subtitle: string;
   severity: Severity;
   explorerUrl?: string;
   explorerName?: string;
-  isLast?: boolean;
 }) {
   const navigation = useNavigation();
   const { colors } = useTheme();
@@ -145,19 +132,6 @@ function StepRow({
           testID="step-dot"
           style={[styles.stepDot, { backgroundColor: dot }]}
         />
-        {!isLast && (
-          <View style={styles.connectorContainer}>
-            {[0, 1, 2, 3, 4, 5].map((i) => (
-              <View
-                key={i}
-                style={[
-                  styles.connectorDot,
-                  { backgroundColor: colors.icon.muted },
-                ]}
-              />
-            ))}
-          </View>
-        )}
       </Box>
       {/* Right content column: title, explorer button, subtitle */}
       <Box twClassName="flex-1 ml-3 gap-1">
@@ -189,10 +163,8 @@ function StepRow({
 
 function FiatOrderStepItem({
   parentTransaction,
-  isLast = false,
 }: {
   parentTransaction: TransactionMeta;
-  isLast?: boolean;
 }) {
   const { fiat } = parentTransaction.metamaskPay ?? {};
   const fiatOrderId = fiat?.orderId;
@@ -220,17 +192,15 @@ function FiatOrderStepItem({
 
   const subtitle = `${statusText} • ${formatDateString(parentTransaction.time)}`;
 
-  return <StepRow title={title} subtitle={subtitle} severity={severity} isLast={isLast} />;
+  return <StepRow title={title} subtitle={subtitle} severity={severity} />;
 }
 
 function SourceHashStepItem({
   parentTransaction,
   sourceHash,
-  isLast = false,
 }: {
   parentTransaction: TransactionMeta;
   sourceHash: Hex;
-  isLast?: boolean;
 }) {
   const sourceTokenAddress = parentTransaction.metamaskPay?.tokenAddress;
   const sourceTokenChainId = parentTransaction.metamaskPay?.chainId;
@@ -263,7 +233,6 @@ function SourceHashStepItem({
       severity={severity}
       explorerUrl={blockExplorer?.explorerTxUrl}
       explorerName={blockExplorer?.explorerName}
-      isLast={isLast}
     />
   );
 }
@@ -271,11 +240,9 @@ function SourceHashStepItem({
 function DepositStepItem({
   transactionMeta,
   parentTransaction,
-  isLast = false,
 }: {
   transactionMeta: TransactionMeta;
   parentTransaction: TransactionMeta;
-  isLast?: boolean;
 }) {
   const tokenAddress = parentTransaction.metamaskPay?.tokenAddress;
   const tokenChainId = parentTransaction.metamaskPay?.chainId;
@@ -321,17 +288,14 @@ function DepositStepItem({
       severity={severity}
       explorerUrl={blockExplorer?.explorerTxUrl}
       explorerName={blockExplorer?.explorerName}
-      isLast={isLast}
     />
   );
 }
 
 function ReceiveStepItem({
   transactionMeta,
-  isLast = false,
 }: {
   transactionMeta: TransactionMeta;
-  isLast?: boolean;
 }) {
   const { chainId: targetChainId, metamaskPay } = transactionMeta;
   const sourceChainId = metamaskPay?.chainId;
@@ -342,10 +306,7 @@ function ReceiveStepItem({
 
   const targetNetworkName = useNetworkName(targetChainId);
   const blockExplorer = useMultichainBlockExplorerTxUrl({
-    chainId: parseInt(
-      isPerpsDeposit ? '0xa4b1' : targetChainId,
-      16,
-    ),
+    chainId: parseInt(isPerpsDeposit ? '0xa4b1' : targetChainId, 16),
     txHash:
       transactionMeta.hash && transactionMeta.hash !== '0x0'
         ? transactionMeta.hash
@@ -389,17 +350,14 @@ function ReceiveStepItem({
       severity={severity}
       explorerUrl={explorerUrl}
       explorerName={explorerName}
-      isLast={isLast}
     />
   );
 }
 
 function DefaultStepItem({
   transactionMeta,
-  isLast = false,
 }: {
   transactionMeta: TransactionMeta;
-  isLast?: boolean;
 }) {
   const { type } = transactionMeta;
   const blockExplorer = useMultichainBlockExplorerTxUrl({
@@ -435,7 +393,6 @@ function DefaultStepItem({
       severity={severity}
       explorerUrl={blockExplorer?.explorerTxUrl}
       explorerName={blockExplorer?.explorerName}
-      isLast={isLast}
     />
   );
 }
@@ -443,18 +400,15 @@ function DefaultStepItem({
 function TransactionStepItem({
   transactionMeta,
   parentTransaction,
-  isLast = false,
 }: {
   transactionMeta: TransactionMeta;
   parentTransaction: TransactionMeta;
-  isLast?: boolean;
 }) {
   if (hasTransactionType(transactionMeta, RELAY_DEPOSIT_TYPES)) {
     return (
       <DepositStepItem
         transactionMeta={transactionMeta}
         parentTransaction={parentTransaction}
-        isLast={isLast}
       />
     );
   }
@@ -467,10 +421,10 @@ function TransactionStepItem({
       TransactionType.musdConversion,
     ])
   ) {
-    return <ReceiveStepItem transactionMeta={transactionMeta} isLast={isLast} />;
+    return <ReceiveStepItem transactionMeta={transactionMeta} />;
   }
 
-  return <DefaultStepItem transactionMeta={transactionMeta} isLast={isLast} />;
+  return <DefaultStepItem transactionMeta={transactionMeta} />;
 }
 
 function isSkippedTransaction(
@@ -544,11 +498,6 @@ export function MoneyTransactionDetailsSummary() {
     (hasFiatOrder && isParentConfirmed ? 1 : 0) +
     (hasSourceHash && isParentConfirmed ? 1 : 0);
 
-  const noTransactions = transactions.length === 0;
-  const fiatOrderIsLast =
-    hasFiatOrder && !hasSourceHash && noTransactions;
-  const sourceHashIsLast = hasSourceHash && noTransactions;
-
   return (
     <Box twClassName="gap-3">
       <Text color={TextColor.TextAlternative} variant={TextVariant.BodyMd}>
@@ -558,24 +507,19 @@ export function MoneyTransactionDetailsSummary() {
       </Text>
       <Box>
         {hasFiatOrder ? (
-          <FiatOrderStepItem
-            parentTransaction={transactionMeta}
-            isLast={fiatOrderIsLast}
-          />
+          <FiatOrderStepItem parentTransaction={transactionMeta} />
         ) : null}
         {hasSourceHash ? (
           <SourceHashStepItem
             parentTransaction={transactionMeta}
             sourceHash={sourceHash as Hex}
-            isLast={sourceHashIsLast}
           />
         ) : null}
-        {transactions.map((tx, index) => (
+        {transactions.map((tx) => (
           <TransactionStepItem
             key={tx.id}
             transactionMeta={tx}
             parentTransaction={transactionMeta}
-            isLast={index === transactions.length - 1}
           />
         ))}
       </Box>
