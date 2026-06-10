@@ -19,8 +19,14 @@ jest.mock('../../../../../../../locales/i18n', () => ({
 }));
 
 jest.mock('@metamask/bridge-controller', () => ({
-  formatChainIdToHex: () => '0x1',
-  isNonEvmChainId: () => false,
+  formatChainIdToHex: (caipChainId: string) => {
+    const [namespace, reference] = caipChainId.split(':');
+    if (namespace !== 'eip155') {
+      throw new Error(`unsupported chain ${caipChainId}`);
+    }
+    return `0x${parseInt(reference, 10).toString(16)}`;
+  },
+  isNonEvmChainId: (chainId: string) => chainId.startsWith('solana:'),
   isNativeAddress: () => false,
   getNativeAssetForChainId: () => undefined,
 }));
@@ -39,11 +45,18 @@ const createToken = (overrides: Partial<BridgeToken> = {}): BridgeToken => ({
   ...overrides,
 });
 
+const SOLANA_CHAIN_ID = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+
 const usdcToken = createToken({ symbol: 'USDC', chainId: '0x1' });
 const usdtToken = createToken({
   symbol: 'USDT',
   chainId: '0x1',
   address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+});
+const solanaUsdcToken = createToken({
+  symbol: 'USDC',
+  chainId: SOLANA_CHAIN_ID,
+  address: `${SOLANA_CHAIN_ID}/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`,
 });
 
 const buildContext = (overrides: Record<string, unknown> = {}) => ({
@@ -120,5 +133,43 @@ describe('QuickBuyReceiveScreen', () => {
     expect(
       screen.getByText('social_leaderboard.quick_buy.receive_with_no_tokens'),
     ).toBeOnTheScreen();
+  });
+
+  it('renders a Solana network chip when Solana receive options exist', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue(
+      buildContext({
+        sellDestTokenOptions: [usdcToken, solanaUsdcToken],
+        handleSelectDestStable,
+        setActiveScreen,
+      }),
+    );
+
+    render(<QuickBuyReceiveScreen />);
+
+    expect(
+      screen.getByTestId(`quick-buy-chain-filter-${SOLANA_CHAIN_ID}`),
+    ).toBeOnTheScreen();
+  });
+
+  it('defaults the chain filter to Solana when the position is on Solana', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue(
+      buildContext({
+        target: {
+          chain: SOLANA_CHAIN_ID,
+          tokenAddress: `${SOLANA_CHAIN_ID}/slip44:501`,
+          tokenSymbol: 'SOL',
+          tokenName: 'Solana',
+        },
+        sellDestTokenOptions: [usdcToken, solanaUsdcToken],
+        selectedDestStable: solanaUsdcToken,
+        handleSelectDestStable,
+        setActiveScreen,
+      }),
+    );
+
+    render(<QuickBuyReceiveScreen />);
+
+    expect(screen.getByTestId(getRowTestId(solanaUsdcToken))).toBeOnTheScreen();
+    expect(screen.queryByTestId(getRowTestId(usdcToken))).toBeNull();
   });
 });

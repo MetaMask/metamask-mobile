@@ -1,14 +1,43 @@
 import { renderHook } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
+import { SolScope } from '@metamask/keyring-api';
+import type { RootState } from '../../../../../../../reducers';
+import { selectSelectedInternalAccountByScope } from '../../../../../../../selectors/multichainAccounts/accounts';
 import { useReceiveTokens } from './useReceiveTokens';
 import { enrichTokenBalance } from './enrichTokenBalance';
 import { useNetworkEnabledPredicate } from './useNetworkEnabledPredicate';
 
 jest.mock('react-redux', () => ({
-  useSelector: jest.fn(() => undefined),
+  useSelector: jest.fn(),
 }));
 
 jest.mock('./useNetworkEnabledPredicate', () => ({
   useNetworkEnabledPredicate: jest.fn(),
+}));
+
+jest.mock('../../../../../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: jest.fn(),
+}));
+
+jest.mock('../../../../../../../selectors/accountTrackerController', () => ({
+  selectAccountsByChainId: jest.fn(() => ({})),
+}));
+
+jest.mock('../../../../../../../selectors/tokenBalancesController', () => ({
+  selectTokensBalances: jest.fn(() => ({})),
+}));
+
+jest.mock('../../../../../../../selectors/tokenRatesController', () => ({
+  selectTokenMarketData: jest.fn(() => ({})),
+}));
+
+jest.mock('../../../../../../../selectors/currencyRateController', () => ({
+  selectCurrencyRates: jest.fn(() => ({})),
+}));
+
+jest.mock('../../../../../../../selectors/multichain/multichain', () => ({
+  selectMultichainBalances: jest.fn(() => ({})),
+  selectMultichainAssetsRates: jest.fn(() => ({})),
 }));
 
 jest.mock(
@@ -35,6 +64,21 @@ jest.mock(
         chainId: '0x1',
         decimals: 18,
         name: 'Wrapped Ether',
+      },
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+        symbol: 'USDC',
+        address:
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        decimals: 6,
+        name: 'USD Coin',
+      },
+      'tron:728126428': {
+        symbol: 'USDT',
+        address: 'tron:728126428/trc20:TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
+        chainId: 'tron:728126428',
+        decimals: 6,
+        name: 'Tether USD',
       },
     },
   }),
@@ -64,17 +108,56 @@ jest.mock('../../../../../../UI/Bridge/utils/tokenUtils', () => ({
         chainId: '0x89',
       };
     }
+    if (chainId === 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp') {
+      return {
+        symbol: 'SOL',
+        name: 'Solana',
+        address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+        decimals: 9,
+        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      };
+    }
     throw new Error(`unsupported chain ${chainId}`);
   }),
 }));
 
 const mockEnrich = enrichTokenBalance as jest.Mock;
 const mockUseNetworkEnabledPredicate = useNetworkEnabledPredicate as jest.Mock;
+const mockUseSelector = useSelector as unknown as jest.Mock;
+const mockSelectSelectedInternalAccountByScope =
+  selectSelectedInternalAccountByScope as unknown as jest.Mock;
+
+const SOLANA_CHAIN_ID = SolScope.Mainnet;
+
+const MOCK_STATE = {
+  engine: {
+    backgroundState: {
+      NetworkController: { networkConfigurationsByChainId: {} },
+    },
+  },
+} as unknown as RootState;
+
+const SOLANA_ACCOUNT = {
+  id: 'solana-account-id',
+  address: 'So1anaAddre55111111111111111111111111111111',
+};
+
+/** Makes the selected account group expose a Solana address. */
+const givenSolanaAccount = () => {
+  mockSelectSelectedInternalAccountByScope.mockReturnValue((scope: string) =>
+    scope === SOLANA_CHAIN_ID ? SOLANA_ACCOUNT : undefined,
+  );
+};
 
 describe('useReceiveTokens', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseNetworkEnabledPredicate.mockReturnValue(() => true);
+    // No account in the selected group resolves for any scope by default.
+    mockSelectSelectedInternalAccountByScope.mockReturnValue(() => undefined);
+    mockUseSelector.mockImplementation(
+      (selector: (state: RootState) => unknown) => selector(MOCK_STATE),
+    );
     mockEnrich.mockReturnValue({
       balance: '0',
       balanceFiat: '$0.00',
@@ -159,5 +242,72 @@ describe('useReceiveTokens', () => {
     const chainIds = result.current.map((t) => t.chainId);
     expect(chainIds).toContain('0x1');
     expect(chainIds).not.toContain('0x89');
+  });
+
+  describe('Solana candidates', () => {
+    it('includes Solana stablecoin and native candidates when the account has a Solana address', () => {
+      givenSolanaAccount();
+
+      const { result } = renderHook(() => useReceiveTokens(undefined));
+
+      const solanaTokens = result.current.filter(
+        (t) => t.chainId === SOLANA_CHAIN_ID,
+      );
+      expect(solanaTokens.map((t) => t.symbol)).toEqual(
+        expect.arrayContaining(['USDC', 'SOL']),
+      );
+    });
+
+    it('omits Solana candidates when the account has no Solana address', () => {
+      const { result } = renderHook(() => useReceiveTokens(undefined));
+
+      const chainIds = result.current.map((t) => t.chainId);
+      expect(chainIds).not.toContain(SOLANA_CHAIN_ID);
+    });
+
+    it('drops Solana candidates when the Solana network is not enabled', () => {
+      givenSolanaAccount();
+      mockUseNetworkEnabledPredicate.mockReturnValue(
+        (chainId: string | undefined) => chainId !== SOLANA_CHAIN_ID,
+      );
+
+      const { result } = renderHook(() => useReceiveTokens(undefined));
+
+      const chainIds = result.current.map((t) => t.chainId);
+      expect(chainIds).not.toContain(SOLANA_CHAIN_ID);
+      expect(chainIds).toContain('0x1');
+    });
+
+    it('never offers unsupported non-EVM chains (e.g. Tron) even with a Solana account', () => {
+      givenSolanaAccount();
+
+      const { result } = renderHook(() => useReceiveTokens(undefined));
+
+      const chainIds = result.current.map((t) => t.chainId);
+      expect(chainIds).not.toContain('tron:728126428');
+    });
+
+    it('sorts Solana candidates to the front when the preferred chain is Solana', () => {
+      givenSolanaAccount();
+
+      const { result } = renderHook(() => useReceiveTokens(SOLANA_CHAIN_ID));
+
+      expect(result.current[0].chainId).toBe(SOLANA_CHAIN_ID);
+      expect(result.current[0].symbol).toBe('USDC');
+    });
+
+    it('passes the Solana account to balance enrichment so Solana holdings are priced', () => {
+      givenSolanaAccount();
+
+      renderHook(() => useReceiveTokens(undefined));
+
+      expect(mockEnrich).toHaveBeenCalledWith(
+        expect.objectContaining({ chainId: SOLANA_CHAIN_ID }),
+        expect.objectContaining({
+          solanaAccount: expect.objectContaining({ id: SOLANA_ACCOUNT.id }),
+        }),
+        { includeZeroBalance: true },
+      );
+    });
   });
 });
