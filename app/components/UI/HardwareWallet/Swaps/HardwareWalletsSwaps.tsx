@@ -230,10 +230,9 @@ export function HardwareWalletsSwaps() {
   // doesn't un-hide the sheet right before unmount.
   const forceHideLatchedRef = useRef(false);
   useEffect(() => {
+    if (isQrHardwareWallet) return;
     forceHideLatchedRef.current = false;
-    if (!isQrHardwareWallet) {
-      setForceHideBottomSheet?.(false);
-    }
+    setForceHideBottomSheet?.(false);
     return () => {
       setForceHideBottomSheet?.(false);
     };
