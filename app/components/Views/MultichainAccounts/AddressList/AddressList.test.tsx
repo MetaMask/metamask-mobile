@@ -264,6 +264,8 @@ describe('AddressList', () => {
           networkName: 'Ethereum',
           chainId: 'eip155:1',
           groupId: ACCOUNT_GROUP_ID,
+          location: 'address-list',
+          account: expect.objectContaining({ id: mockEthEoaAccount.id }),
         },
       },
     );

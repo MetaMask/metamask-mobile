@@ -7,48 +7,39 @@ import { selectSelectedInternalAccountByScope } from '../../../../../../../selec
 import { selectTokensBalances } from '../../../../../../../selectors/tokenBalancesController';
 import { selectTokenMarketData } from '../../../../../../../selectors/tokenRatesController';
 import { selectCurrencyRates } from '../../../../../../../selectors/currencyRateController';
-import {
-  DefaultSwapDestTokens,
-  Bip44TokensForDefaultPairs,
-} from '../../../../../../UI/Bridge/constants/default-swap-dest-tokens';
-import { ETH_USDT_ADDRESS } from '../../../../../../../constants/bridge';
-import { NETWORK_CHAIN_ID } from '../../../../../../../util/networks/customNetworks';
+import { DefaultSwapDestTokens } from '../../../../../../UI/Bridge/constants/default-swap-dest-tokens';
 import { EVM_SCOPE } from '../../../../../../UI/Earn/constants/networks';
 import { getNativeSourceToken } from '../../../../../../UI/Bridge/utils/tokenUtils';
+import { getTokenKey } from '../tokenKey';
 import { enrichTokenBalance } from './enrichTokenBalance';
 import { isStablecoinSymbol } from './stablecoins';
+import { RECEIVE_STABLECOIN_CANDIDATES } from './receiveStablecoinCandidates';
 import { useNetworkEnabledPredicate } from './useNetworkEnabledPredicate';
 
 /**
- * Static EVM stablecoin candidates for the Sell "Receive" picker, extracted
- * from `DefaultSwapDestTokens` and filtered to mUSD, USDC, and USDT on EVM
- * chains.
+ * Static EVM stablecoin candidates for the Sell "Receive" picker.
+ *
+ * `DefaultSwapDestTokens` carries a single stablecoin per chain (which sets the
+ * per-chain default selection — e.g. mUSD on mainnet/Linea), so we keep those
+ * as the leading entries and then append the canonical USDC/USDT set from
+ * `RECEIVE_STABLECOIN_CANDIDATES`. The append guarantees both major stablecoins
+ * show on every supported chain (previously USDT was missing on Optimism,
+ * USDC on Polygon, etc.) without disturbing the existing default ordering.
+ * Duplicates are removed by stable token identity (`address:chainId`).
  */
-const STABLECOIN_CANDIDATES: BridgeToken[] = Object.values(
-  DefaultSwapDestTokens,
-)
-  .filter(
+const STABLECOIN_CANDIDATES: BridgeToken[] = (() => {
+  const primaries = Object.values(DefaultSwapDestTokens).filter(
     (token) =>
       isStablecoinSymbol(token.symbol) &&
       typeof token.chainId === 'string' &&
       token.chainId.startsWith('0x'),
-  )
-  // Add mainnet USDC from Bip44TokensForDefaultPairs (DefaultSwapDestTokens has mUSD for mainnet)
-  .concat(
-    Bip44TokensForDefaultPairs[
-      'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'
-    ],
-  )
-  // Add mainnet USDT (not in DefaultSwapDestTokens)
-  .concat({
-    symbol: 'USDT',
-    name: 'Tether USD',
-    address: ETH_USDT_ADDRESS,
-    decimals: 6,
-    image:
-      'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xdac17f958d2ee523a2206206994597c13d831ec7.png',
-    chainId: NETWORK_CHAIN_ID.MAINNET,
-  });
+  );
+  const seen = new Set(primaries.map(getTokenKey));
+  const extras = RECEIVE_STABLECOIN_CANDIDATES.filter(
+    (token) => !seen.has(getTokenKey(token)),
+  );
+  return [...primaries, ...extras];
+})();
 
 /**
  * Native token candidates for the Sell "Receive" picker, one per chain already
