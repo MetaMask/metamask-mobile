@@ -25,13 +25,12 @@ import {
   type Order,
 } from '@metamask/perps-controller';
 import PerpsMarketRowItem from '../PerpsMarketRowItem';
-import PerpsSuggestedMarketRow from '../PerpsSuggestedMarketRow/PerpsSuggestedMarketRow';
-import { useStyles } from '../../../../../component-library/hooks';
-import styleSheet from './PerpsWatchlistMarkets.styles';
 import PerpsRowSkeleton from '../PerpsRowSkeleton';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import { usePerpsWatchlistActions } from '../../hooks/usePerpsWatchlistActions';
 import { PerpsWatchlistSelectorsIDs } from '../../Perps.testIds';
+import { useStyles } from '../../../../../component-library/hooks';
+import styleSheet from './PerpsWatchlistMarkets.styles';
 
 /** Markets with ≤ this count are shown without a "Show more" toggle. */
 const INITIAL_DISPLAY_COUNT = 3;
@@ -181,9 +180,10 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
           </Text>
 
           {suggestedMarkets.map((market) => (
-            <PerpsSuggestedMarketRow
+            <PerpsMarketRowItem
               key={market.symbol}
               market={market}
+              showBadge={false}
               onPress={() => handleMarketPress(market)}
               onAddPress={() => addToWatchlist(market.symbol)}
             />

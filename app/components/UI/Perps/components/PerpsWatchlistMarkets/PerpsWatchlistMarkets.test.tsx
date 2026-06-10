@@ -44,9 +44,11 @@ jest.mock('../PerpsMarketRowItem', () => {
   return function MockPerpsMarketRowItem({
     market,
     onPress,
+    onAddPress,
   }: {
     market: PerpsMarketData;
     onPress?: () => void;
+    onAddPress?: (market: PerpsMarketData) => void;
   }) {
     return (
       <TouchableOpacity
@@ -55,34 +57,14 @@ jest.mock('../PerpsMarketRowItem', () => {
       >
         <Text>{market.symbol}</Text>
         <Text>{market.name}</Text>
-      </TouchableOpacity>
-    );
-  };
-});
-
-jest.mock('../PerpsSuggestedMarketRow/PerpsSuggestedMarketRow', () => {
-  const { TouchableOpacity, Text } = jest.requireActual('react-native');
-  return function MockPerpsSuggestedMarketRow({
-    market,
-    onPress,
-    onAddPress,
-  }: {
-    market: PerpsMarketData;
-    onPress?: () => void;
-    onAddPress: () => void;
-  }) {
-    return (
-      <TouchableOpacity
-        onPress={onPress}
-        testID={`perps-suggested-market-row-${market.symbol}`}
-      >
-        <Text>{market.symbol}</Text>
-        <TouchableOpacity
-          onPress={onAddPress}
-          testID={`perps-suggested-market-row-${market.symbol}-add-button`}
-        >
-          <Text>+</Text>
-        </TouchableOpacity>
+        {onAddPress && (
+          <TouchableOpacity
+            onPress={() => onAddPress(market)}
+            testID={`perps-market-row-${market.symbol}-add-button`}
+          >
+            <Text>+</Text>
+          </TouchableOpacity>
+        )}
       </TouchableOpacity>
     );
   };
@@ -203,12 +185,10 @@ describe('PerpsWatchlistMarkets', () => {
 
       for (const market of mockSuggestedMarkets) {
         expect(
-          screen.getByTestId(`perps-suggested-market-row-${market.symbol}`),
+          screen.getByTestId(`perps-market-row-${market.symbol}`),
         ).toBeOnTheScreen();
         expect(
-          screen.getByTestId(
-            `perps-suggested-market-row-${market.symbol}-add-button`,
-          ),
+          screen.getByTestId(`perps-market-row-${market.symbol}-add-button`),
         ).toBeOnTheScreen();
       }
     });
@@ -221,9 +201,7 @@ describe('PerpsWatchlistMarkets', () => {
         />,
       );
 
-      fireEvent.press(
-        screen.getByTestId('perps-suggested-market-row-BTC-add-button'),
-      );
+      fireEvent.press(screen.getByTestId('perps-market-row-BTC-add-button'));
 
       expect(mockAddToWatchlist).toHaveBeenCalledTimes(1);
       expect(mockAddToWatchlist).toHaveBeenCalledWith('BTC');
@@ -263,7 +241,7 @@ describe('PerpsWatchlistMarkets', () => {
     it('does not render suggested market rows when watchlist is populated', () => {
       render(<PerpsWatchlistMarkets markets={mockMarkets} />);
       expect(
-        screen.queryByTestId('perps-suggested-market-row-BTC'),
+        screen.queryByTestId('perps-market-row-BTC-add-button'),
       ).not.toBeOnTheScreen();
     });
   });
@@ -387,7 +365,7 @@ describe('PerpsWatchlistMarkets', () => {
         />,
       );
 
-      fireEvent.press(screen.getByTestId('perps-suggested-market-row-BTC'));
+      fireEvent.press(screen.getByTestId('perps-market-row-BTC'));
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_DETAILS,

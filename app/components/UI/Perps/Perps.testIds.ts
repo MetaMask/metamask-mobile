@@ -181,21 +181,8 @@ export const getPerpsMarketRowItemSelector = {
     `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${symbol}-token-logo`,
   badge: (symbol: string) =>
     `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${symbol}-badge`,
-};
-
-// ========================================
-// PERPS SUGGESTED MARKET ROW SELECTORS
-// ========================================
-
-const SUGGESTED_MARKET_ROW_PREFIX = 'perps-suggested-market-row';
-
-// Helper functions for dynamic suggested market row selectors
-export const getPerpsSuggestedMarketRowSelector = {
-  row: (symbol: string) => `${SUGGESTED_MARKET_ROW_PREFIX}-${symbol}`,
-  tokenLogo: (symbol: string) =>
-    `${SUGGESTED_MARKET_ROW_PREFIX}-${symbol}-token-logo`,
   addButton: (symbol: string) =>
-    `${SUGGESTED_MARKET_ROW_PREFIX}-${symbol}-add-button`,
+    `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${symbol}-add-button`,
 };
 
 // ========================================
