@@ -27,7 +27,7 @@ import { useTheme } from '../../../util/theme';
 import { ManualBackUpStepsSelectorsIDs } from '../ManualBackupStep1/ManualBackUpSteps.testIds';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import Routes from '../../../constants/navigation/Routes';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import SRPDesignLight from '../../../images/secure_wallet_light.png';
 import SRPDesignDark from '../../../images/secure_wallet_dark.png';
 import { CommonActions, useNavigation } from '@react-navigation/native';
@@ -46,7 +46,7 @@ const AccountBackupStep1 = (props) => {
   const tw = useTailwind();
 
   const track = (event, properties) => {
-    const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
+    const eventBuilder = AnalyticsEventBuilder.createEventBuilder(event);
     eventBuilder.addProperties(properties);
     trackOnboarding(eventBuilder.build(), props.saveOnboardingEvent);
   };

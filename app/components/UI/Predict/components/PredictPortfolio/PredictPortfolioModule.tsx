@@ -1,8 +1,9 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { Box } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
+import Engine from '../../../../../core/Engine';
 import { selectMetaMaskPayFlags } from '../../../../../selectors/featureFlagController/confirmations';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { PredictEventValues } from '../../constants/eventNames';
@@ -32,10 +33,12 @@ const PredictPortfolioModule: React.FC<PredictPortfolioModuleProps> = ({
     availableBalance,
     claim,
     claimableAmount,
+    claimablePositionCount,
     deposit,
     hasClaimableWinnings,
     isClaimPending,
     isLoading,
+    openPositionCount,
     portfolioValue,
     positionsBadgeCount,
     showPnlLine,
@@ -45,7 +48,34 @@ const PredictPortfolioModule: React.FC<PredictPortfolioModuleProps> = ({
     withdraw,
   } = usePredictPortfolio();
 
+  const portfolioAnalyticsProperties = useMemo(
+    () => ({
+      openPositionsCount: openPositionCount,
+      claimablePositionsCount: claimablePositionCount,
+      hasClaimableWinnings,
+      predictComponent:
+        PredictEventValues.PREDICT_COMPONENT.PREDICT_PORTFOLIO_MODULE,
+    }),
+    [claimablePositionCount, hasClaimableWinnings, openPositionCount],
+  );
+
+  const trackPortfolioTransactionInitiated = useCallback(
+    (transactionType: string, entryPoint: string) => {
+      Engine.context.PredictController.trackPortfolioTransactionInitiated({
+        ...portfolioAnalyticsProperties,
+        entryPoint,
+        transactionType,
+      });
+    },
+    [portfolioAnalyticsProperties],
+  );
+
   const handlePositionsPress = useCallback(() => {
+    Engine.context.PredictController.trackPortfolioPositionsButtonTapped({
+      ...portfolioAnalyticsProperties,
+      entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+    });
+
     if (onPositionsPress) {
       onPositionsPress();
       return;
@@ -55,19 +85,27 @@ const PredictPortfolioModule: React.FC<PredictPortfolioModuleProps> = ({
     navigation.navigate(Routes.PREDICT.MARKET_LIST, {
       entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
     });
-  }, [navigation, onPositionsPress]);
+  }, [navigation, onPositionsPress, portfolioAnalyticsProperties]);
 
   const handleAddFundsPress = useCallback(() => {
     executeGuardedAction(
-      () =>
-        deposit({
+      () => {
+        trackPortfolioTransactionInitiated(
+          PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_DEPOSIT,
+          PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE,
+        );
+
+        return deposit({
           analyticsProperties: {
             entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE,
+            predictComponent:
+              PredictEventValues.PREDICT_COMPONENT.PREDICT_PORTFOLIO_MODULE,
           },
-        }),
+        });
+      },
       { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.DEPOSIT },
     );
-  }, [deposit, executeGuardedAction]);
+  }, [deposit, executeGuardedAction, trackPortfolioTransactionInitiated]);
 
   const handleWithdrawPress = useCallback(() => {
     executeGuardedAction(
@@ -75,6 +113,11 @@ const PredictPortfolioModule: React.FC<PredictPortfolioModuleProps> = ({
         if (!walletType) {
           return;
         }
+
+        trackPortfolioTransactionInitiated(
+          PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_WITHDRAW,
+          PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE,
+        );
 
         if (walletType === 'deposit-wallet' && !enableDepositWalletWithdraw) {
           onDepositWalletWithdrawPress?.();
@@ -89,15 +132,26 @@ const PredictPortfolioModule: React.FC<PredictPortfolioModuleProps> = ({
     enableDepositWalletWithdraw,
     executeGuardedAction,
     onDepositWalletWithdrawPress,
+    trackPortfolioTransactionInitiated,
     walletType,
     withdraw,
   ]);
 
   const handleClaimPress = useCallback(() => {
-    executeGuardedAction(() => claim(), {
-      attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CLAIM,
-    });
-  }, [claim, executeGuardedAction]);
+    executeGuardedAction(
+      () => {
+        trackPortfolioTransactionInitiated(
+          PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_CLAIM,
+          PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+        );
+
+        return claim();
+      },
+      {
+        attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CLAIM,
+      },
+    );
+  }, [claim, executeGuardedAction, trackPortfolioTransactionInitiated]);
 
   const isWithdrawDisabled = availableBalance > 0 && !walletType;
 
