@@ -86,7 +86,10 @@ import SendTransaction from '../../UI/Ramp/Aggregator/Views/SendTransaction';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
-import { SnapSettings } from '../../Views/Snaps/SnapSettings';
+import {
+  SnapSettings,
+  ALLOWED_CAPABILITIES as SNAPS_SETTINGS_ROUTE_ALLOWED_CAPABILITIES,
+} from '../../Views/Snaps/SnapSettings';
 import { CAN_INSTALL_THIRD_PARTY_SNAPS } from '../../../constants/snaps';
 ///: END:ONLY_INCLUDE_IF
 import Routes from '../../../constants/navigation/Routes';
@@ -168,6 +171,7 @@ import BenefitFullView from '../../UI/Rewards/Views/BenefitFullView';
 import BenefitsFullView from '../../UI/Rewards/Views/BenefitsFullView';
 import { getDeFiProtocolPositionDetailsNavbarOptions } from '../../UI/Navbar';
 import MoneyTabPressTracker from '../../UI/Money/components/MoneyTabPressTracker';
+import { withMessenger } from '../../../messengers/helpers/route-messenger-helpers';
 
 const Stack = createStackNavigator();
 const NativeStack = createNativeStackNavigator();
@@ -430,6 +434,10 @@ const ExploreHome = () => {
 };
 
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+const SnapSettingsWithMessenger = withMessenger(SnapSettings, {
+  capabilities: SNAPS_SETTINGS_ROUTE_ALLOWED_CAPABILITIES,
+});
+
 const SnapsSettingsStack = () => {
   const { colors } = useTheme();
   return (
@@ -445,7 +453,7 @@ const SnapsSettingsStack = () => {
       />
       <NativeStack.Screen
         name={Routes.SNAPS.SNAP_SETTINGS}
-        component={SnapSettings}
+        component={SnapSettingsWithMessenger}
       />
     </NativeStack.Navigator>
   );
