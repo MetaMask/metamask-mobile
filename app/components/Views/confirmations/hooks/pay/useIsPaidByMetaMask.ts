@@ -7,7 +7,10 @@ import {
   useTransactionPayTotals,
 } from './useTransactionPayData';
 
-const SUPPORTED_TYPES = [TransactionType.musdConversion];
+const SUPPORTED_TYPES = [
+  TransactionType.musdConversion,
+  TransactionType.moneyAccountDeposit,
+];
 
 export function useIsPaidByMetaMask(): boolean {
   const totals = useTransactionPayTotals();
