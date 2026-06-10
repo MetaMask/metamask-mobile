@@ -1,6 +1,7 @@
 import {
   CATEGORY_DISPLAY_ORDER,
   HIP3_FILTER_KEYS,
+  isHip3Filter,
   normalizeFilterKey,
 } from './marketCategoryMapping';
 
@@ -21,6 +22,22 @@ describe('marketCategoryMapping', () => {
       'does not contain UI-only key "%s"',
       (key) => {
         expect(HIP3_FILTER_KEYS.has(key)).toBe(false);
+      },
+    );
+  });
+
+  describe('isHip3Filter', () => {
+    it.each(['stock', 'pre-ipo', 'index', 'etf', 'commodity', 'forex'])(
+      'returns true for "%s"',
+      (key) => {
+        expect(isHip3Filter(key)).toBe(true);
+      },
+    );
+
+    it.each([undefined, '', 'crypto', 'all', 'new', 'unknown'])(
+      'returns false for %s',
+      (key) => {
+        expect(isHip3Filter(key)).toBe(false);
       },
     );
   });

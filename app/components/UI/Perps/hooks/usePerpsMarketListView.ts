@@ -13,7 +13,7 @@ import {
   type SortDirection,
   type SortOptionId,
 } from '@metamask/perps-controller';
-import { HIP3_FILTER_KEYS } from '../utils/marketCategoryMapping';
+import { isHip3Filter } from '../utils/marketCategoryMapping';
 import {
   selectPerpsWatchlistMarkets,
   selectPerpsMarketFilterPreferences,
@@ -268,13 +268,8 @@ export const usePerpsMarketListView = ({
       if (!market.isHip3) {
         counts.crypto++;
       } else if (market.marketType) {
-        const filterKey = market.marketType as Exclude<MarketTypeFilter, 'all'>;
-        if (
-          filterKey &&
-          HIP3_FILTER_KEYS.has(filterKey) &&
-          filterKey in counts
-        ) {
-          counts[filterKey]++;
+        if (isHip3Filter(market.marketType) && market.marketType in counts) {
+          counts[market.marketType]++;
         }
       }
     });

@@ -4,7 +4,7 @@ import { strings } from '../../../../../locales/i18n';
 import { usePerpsMarkets } from './usePerpsMarkets';
 import {
   CATEGORY_DISPLAY_ORDER,
-  HIP3_FILTER_KEYS,
+  isHip3Filter,
   normalizeFilterKey,
 } from '../utils/marketCategoryMapping';
 
@@ -29,11 +29,10 @@ export const usePerpsCategories = (): PerpsCategory[] => {
     const result: PerpsCategory[] = [];
 
     for (const market of markets) {
-      const raw = market.isHip3 ? market.marketType : 'crypto';
-      const id =
-        raw &&
-        (raw === 'crypto' || HIP3_FILTER_KEYS.has(raw as MarketTypeFilter))
-          ? (raw as Exclude<MarketTypeFilter, 'all'>)
+      const id: Exclude<MarketTypeFilter, 'all'> | undefined = !market.isHip3
+        ? 'crypto'
+        : isHip3Filter(market.marketType)
+          ? market.marketType
           : undefined;
 
       if (!id || seen.has(id)) continue;
