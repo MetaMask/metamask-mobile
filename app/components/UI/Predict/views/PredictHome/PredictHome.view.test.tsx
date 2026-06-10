@@ -125,6 +125,37 @@ describe('PredictHome', () => {
 
       expect(await findByPlaceholderText(SEARCH_PLACEHOLDER)).toBeOnTheScreen();
     });
+
+    it('tracks the search opened event when the user presses the search icon', async () => {
+      const { getByTestId } = renderPredictHomeView();
+
+      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
+
+      expect(
+        Engine.context.PredictController.trackSearchInteracted,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({ interactionType: 'opened' }),
+      );
+    });
+
+    it('does not attribute the opened event to predict_feed when no entry point was provided', async () => {
+      // The redesigned home is rendered without an `entryPoint` route param, so
+      // the event must not fall back to the legacy `predict_feed` surface.
+      const { getByTestId } = renderPredictHomeView();
+
+      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
+
+      const trackSearchInteracted = Engine.context.PredictController
+        .trackSearchInteracted as jest.Mock;
+      const openedCall = trackSearchInteracted.mock.calls
+        .map(
+          ([args]) => args as { interactionType?: string; entryPoint?: string },
+        )
+        .find((args) => args.interactionType === 'opened');
+
+      expect(openedCall).toBeDefined();
+      expect(openedCall?.entryPoint).toBeUndefined();
+    });
   });
 
   describe('stacked header scroll wiring', () => {
