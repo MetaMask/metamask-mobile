@@ -21,7 +21,6 @@ export function MoneyAccountDepositInfo() {
       hideAccountSelector={autoFiat}
       supportAccountSelection
       preferredToken={preferredPaymentToken}
-      compactSpacing
     />
   );
 }

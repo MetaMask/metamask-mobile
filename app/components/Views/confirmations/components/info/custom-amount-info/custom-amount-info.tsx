@@ -97,30 +97,16 @@ export interface CustomAmountInfoProps {
    * When true, the account selector is shown.
    */
   supportAccountSelection?: boolean;
-  /**
-   * Adds bottom space to the bottom block (rows + keyboard/confirm button).
-   * Used by Perps Withdraw on Android, where this screen has one extra
-   * balance line and otherwise clips behind the system gesture bar.
-   */
-  hasExtraBottomPadding?: boolean;
-  /**
-   * When true, adds a compact bottom padding to the bottom block so the
-   * Total row clears the footer button without the wide gap that the
-   * default centered layout produces on tall devices.
-   */
-  compactSpacing?: boolean;
 }
 
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
   ({
     autoSelectFiatPayment,
     children,
-    compactSpacing,
     currency,
     disableConfirm,
     disablePay,
     hasMax,
-    hasExtraBottomPadding,
     hideAccountSelector,
     onAmountSubmit,
     hidePayTokenAmount,
@@ -283,10 +269,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         <Box
           gap={16}
           testID={CustomAmountInfoTestIds.BOTTOM_BLOCK}
-          style={[
-            hasExtraBottomPadding && styles.extraBottomPadding,
-            compactSpacing && styles.compactBottomBlock,
-          ]}
+          style={styles.bottomBlock}
         >
           <AlertMessage alertMessage={alertMessage ?? headlessBuyError} />
           {!isResultReady && (
