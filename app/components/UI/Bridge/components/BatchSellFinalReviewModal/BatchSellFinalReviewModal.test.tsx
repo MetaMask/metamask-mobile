@@ -220,6 +220,11 @@ describe('BatchSellFinalReviewModal', () => {
     expect(getByText('Review')).toBeOnTheScreen();
     expect(getByText('You sell')).toBeOnTheScreen();
     expect(getByText('2 tokens')).toBeOnTheScreen();
+
+    fireEvent.press(
+      getByTestId(BatchSellFinalReviewModalSelectorsIDs.YOU_SELL_TOGGLE_BUTTON),
+    );
+
     expect(getByText('ETH • 0.5% slippage')).toBeOnTheScreen();
     expect(getByText('3,456.78 USDC')).toBeOnTheScreen();
     expect(getByText('Total received')).toBeOnTheScreen();
@@ -295,12 +300,8 @@ describe('BatchSellFinalReviewModal', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('collapses token rows while keeping received summary rows visible', () => {
-    const { getByTestId, getByText, queryByText } = renderModal();
-
-    fireEvent.press(
-      getByTestId(BatchSellFinalReviewModalSelectorsIDs.YOU_SELL_TOGGLE_BUTTON),
-    );
+  it('starts collapsed and hides token rows while keeping received summary rows visible', () => {
+    const { queryByText, getByText } = renderModal();
 
     expect(queryByText('ETH • 0.5% slippage')).toBeNull();
     expect(queryByText('UNI • 0.5% slippage')).toBeNull();
@@ -310,8 +311,20 @@ describe('BatchSellFinalReviewModal', () => {
     expect(getByText('7,485.47 USDC')).toBeOnTheScreen();
   });
 
-  it('expands token rows after they are collapsed', () => {
+  it('expands token rows when toggle is pressed', () => {
     const { getByTestId, getByText } = renderModal();
+    const toggleButton = getByTestId(
+      BatchSellFinalReviewModalSelectorsIDs.YOU_SELL_TOGGLE_BUTTON,
+    );
+
+    fireEvent.press(toggleButton);
+
+    expect(getByText('ETH • 0.5% slippage')).toBeOnTheScreen();
+    expect(getByText('UNI • 0.5% slippage')).toBeOnTheScreen();
+  });
+
+  it('collapses token rows after they are expanded', () => {
+    const { getByTestId, queryByText, getByText } = renderModal();
     const toggleButton = getByTestId(
       BatchSellFinalReviewModalSelectorsIDs.YOU_SELL_TOGGLE_BUTTON,
     );
@@ -319,13 +332,15 @@ describe('BatchSellFinalReviewModal', () => {
     fireEvent.press(toggleButton);
     fireEvent.press(toggleButton);
 
-    expect(getByText('ETH • 0.5% slippage')).toBeOnTheScreen();
-    expect(getByText('UNI • 0.5% slippage')).toBeOnTheScreen();
+    expect(queryByText('ETH • 0.5% slippage')).toBeNull();
+    expect(queryByText('UNI • 0.5% slippage')).toBeNull();
+    expect(getByText('Total received')).toBeOnTheScreen();
+    expect(getByText('7,638.23 USDC')).toBeOnTheScreen();
   });
 
   it('shows only quoted rows and source tokens', () => {
     mockSelectedTokens = [...defaultSelectedTokens, linkToken];
-    const { getByText, queryByText } = renderModal({
+    const { getByTestId, getByText, queryByText } = renderModal({
       tokenData: {
         ...defaultQuoteData.tokenData,
         [linkAssetId]: {
@@ -342,6 +357,11 @@ describe('BatchSellFinalReviewModal', () => {
     });
 
     expect(getByText('2 tokens')).toBeOnTheScreen();
+
+    fireEvent.press(
+      getByTestId(BatchSellFinalReviewModalSelectorsIDs.YOU_SELL_TOGGLE_BUTTON),
+    );
+
     expect(getByText('ETH • 0.5% slippage')).toBeOnTheScreen();
     expect(getByText('UNI • 0.5% slippage')).toBeOnTheScreen();
     expect(queryByText('LINK • 0.5% slippage')).toBeNull();
@@ -404,6 +424,11 @@ describe('BatchSellFinalReviewModal', () => {
     });
 
     expect(getByText('2 tokens')).toBeOnTheScreen();
+
+    fireEvent.press(
+      getByTestId(BatchSellFinalReviewModalSelectorsIDs.YOU_SELL_TOGGLE_BUTTON),
+    );
+
     expect(getByText('ETH • 0.5% slippage')).toBeOnTheScreen();
     expect(getByText('UNI • 0.5% slippage')).toBeOnTheScreen();
     expect(
@@ -598,9 +623,13 @@ describe('BatchSellFinalReviewModal', () => {
   });
 
   it('updates quote values from live data while mounted', () => {
-    const { getByText, rerender } = renderModal();
+    const { getByTestId, getByText, rerender } = renderModal();
 
     expect(getByText('7,638.23 USDC')).toBeOnTheScreen();
+
+    fireEvent.press(
+      getByTestId(BatchSellFinalReviewModalSelectorsIDs.YOU_SELL_TOGGLE_BUTTON),
+    );
 
     mockBatchSellQuoteData = {
       ...defaultQuoteData,

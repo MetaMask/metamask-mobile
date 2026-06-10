@@ -69,6 +69,7 @@ const newOverrides = [
       'app/components/UI/Predict/providers/polymarket/protocol/definitions.test.ts',
       'app/store/migrations/**',
       'app/util/networks/customNetworks.tsx',
+      'tests/framework/playwrightLogger.ts',
       'tests/framework/services/providers/emulator/reinstallLocalBuildFromPath.ts',
       '.yarn/plugins/plugin-usage-tracking.cjs',
       '.yarn/plugins/plugin-usage-tracking.test.ts',

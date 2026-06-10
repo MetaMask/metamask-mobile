@@ -37,24 +37,35 @@ jest.mock(
         name: 'Wrapped Ether',
       },
     },
-    Bip44TokensForDefaultPairs: {
-      'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': {
-        symbol: 'USDC',
-        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-        chainId: '0x1',
-        decimals: 6,
-        name: 'USD Coin',
-      },
-    },
   }),
 );
 
-jest.mock('../../../../../../../constants/bridge', () => ({
-  ETH_USDT_ADDRESS: '0xdac17f958d2ee523a2206206994597c13d831ec7',
-}));
-
 jest.mock('./enrichTokenBalance', () => ({
   enrichTokenBalance: jest.fn(),
+}));
+
+jest.mock('../../../../../../UI/Bridge/utils/tokenUtils', () => ({
+  getNativeSourceToken: jest.fn((chainId: string) => {
+    if (chainId === '0x1') {
+      return {
+        symbol: 'ETH',
+        name: 'Ethereum',
+        address: '0x0000000000000000000000000000000000000000',
+        decimals: 18,
+        chainId: '0x1',
+      };
+    }
+    if (chainId === '0x89') {
+      return {
+        symbol: 'POL',
+        name: 'Polygon',
+        address: '0x0000000000000000000000000000000000000000',
+        decimals: 18,
+        chainId: '0x89',
+      };
+    }
+    throw new Error(`unsupported chain ${chainId}`);
+  }),
 }));
 
 const mockEnrich = enrichTokenBalance as jest.Mock;
@@ -72,20 +83,41 @@ describe('useReceiveTokens', () => {
     });
   });
 
-  it('returns only stablecoin candidates (filters out non-stables like WETH)', () => {
+  it('returns stablecoin and native candidates (filters out non-stable non-native tokens like WETH)', () => {
     const { result } = renderHook(() => useReceiveTokens(undefined));
 
     const symbols = result.current.map((t) => t.symbol);
     expect(symbols).toContain('mUSD');
     expect(symbols).toContain('USDC');
     expect(symbols).toContain('USDT');
+    expect(symbols).toContain('ETH');
+    expect(symbols).toContain('POL');
     expect(symbols).not.toContain('WETH');
+  });
+
+  it('includes one native token per supported chain using the zero address', () => {
+    const { result } = renderHook(() => useReceiveTokens(undefined));
+
+    const natives = result.current.filter(
+      (t) => t.symbol === 'ETH' || t.symbol === 'POL',
+    );
+    expect(natives).toHaveLength(2);
+    natives.forEach((token) => {
+      expect(token.address).toBe('0x0000000000000000000000000000000000000000');
+    });
   });
 
   it('sorts candidates on the preferred chain to the front', () => {
     const { result } = renderHook(() => useReceiveTokens('0x89'));
 
     expect(result.current[0].chainId).toBe('0x89');
+  });
+
+  it('keeps a stablecoin first within the preferred chain group', () => {
+    const { result } = renderHook(() => useReceiveTokens('0x89'));
+
+    expect(result.current[0].symbol).toBe('USDC');
+    expect(result.current.map((t) => t.symbol)).toContain('POL');
   });
 
   it('enriches every candidate leniently (include zero balances)', () => {
@@ -96,6 +128,25 @@ describe('useReceiveTokens', () => {
       expect.any(Object),
       { includeZeroBalance: true },
     );
+  });
+
+  it('offers both USDC and USDT on every chain with a canonical deployment (e.g. Optimism)', () => {
+    const { result } = renderHook(() => useReceiveTokens(undefined));
+
+    const optimismSymbols = result.current
+      .filter((t) => t.chainId === '0xa')
+      .map((t) => t.symbol);
+    expect(optimismSymbols).toContain('USDC');
+    expect(optimismSymbols).toContain('USDT');
+  });
+
+  it('does not list the same token identity twice when merging the curated set', () => {
+    const { result } = renderHook(() => useReceiveTokens(undefined));
+
+    const keys = result.current.map(
+      (t) => `${t.address.toLowerCase()}:${t.chainId}`,
+    );
+    expect(new Set(keys).size).toBe(keys.length);
   });
 
   it('drops candidates on networks the user has not enabled', () => {

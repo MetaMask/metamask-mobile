@@ -36,6 +36,24 @@ describe('quickBuyTradeTracker', () => {
     expect(getTrackedQuickBuyTrade('missing')).toBeUndefined();
   });
 
+  it('returns the same empty array reference when nothing is tracked', () => {
+    const first = getTrackedQuickBuyTradeIds();
+    const second = getTrackedQuickBuyTradeIds();
+
+    expect(first).toEqual([]);
+    expect(second).toBe(first);
+  });
+
+  it('returns a freshly allocated array once a trade is tracked', () => {
+    const empty = getTrackedQuickBuyTradeIds();
+    trackQuickBuyTrade('tx-1', buyTrade);
+
+    const populated = getTrackedQuickBuyTradeIds();
+
+    expect(populated).toEqual(['tx-1']);
+    expect(populated).not.toBe(empty);
+  });
+
   it('lists all tracked tx meta ids', () => {
     trackQuickBuyTrade('tx-1', buyTrade);
     trackQuickBuyTrade('tx-2', sellTrade);

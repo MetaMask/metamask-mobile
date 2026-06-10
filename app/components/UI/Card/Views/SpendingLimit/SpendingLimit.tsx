@@ -119,9 +119,6 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
     isMoneyAccountLocked,
     canShowMoneyAccountCta,
     selectMoneyAccountAsSource,
-    moneyAccountTotalFiatFormatted,
-    isMoneyAccountBalanceLoading,
-    canLinkMoneyAccount,
     moneyAccountApyPercent,
   } = useSpendingLimit({
     flow,
@@ -167,12 +164,7 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
     return customLimit || '0';
   }, [limitType, customLimit]);
 
-  const shouldWaitForMoneyAccountBalance =
-    (flow === 'onboarding' || flow === 'enable_card') && canLinkMoneyAccount;
-  if (
-    (isOnboardingFlow && isLoadingHookData) ||
-    (shouldWaitForMoneyAccountBalance && isMoneyAccountBalanceLoading)
-  ) {
+  if (isOnboardingFlow && isLoadingHookData) {
     return (
       <SafeAreaView
         style={tw.style('flex-1 bg-background-default')}

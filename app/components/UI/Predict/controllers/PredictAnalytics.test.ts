@@ -2,6 +2,7 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { analytics } from '../../../../util/analytics/analytics';
 import {
+  PredictEventValues,
   PredictShareStatus,
   PredictTradeStatus,
 } from '../constants/eventNames';
@@ -545,6 +546,136 @@ describe('PredictAnalytics', () => {
       });
     });
 
+    it('tracks portfolio positions button tap with position viewed event', () => {
+      predictAnalytics.trackPortfolioPositionsButtonTapped({
+        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+        openPositionsCount: 2,
+        claimablePositionsCount: 1,
+        hasClaimableWinnings: true,
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.name).toBe(
+        MetaMetricsEvents.PREDICT_POSITION_VIEWED.category,
+      );
+      expect(event.properties).toMatchObject({
+        action_type: PredictEventValues.ACTION_TYPE.CLICKED,
+        entry_point: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+        open_positions_count: 2,
+        claimable_positions_count: 1,
+        has_claimable_winnings: true,
+        predict_component:
+          PredictEventValues.PREDICT_COMPONENT.PREDICT_PORTFOLIO_MODULE,
+      });
+      expect(event.properties).not.toHaveProperty('amount_usd');
+      expect(event.properties).not.toHaveProperty('pnl');
+      expect(event.sensitiveProperties).toEqual({});
+    });
+
+    it('tracks portfolio transaction initiation with trade transaction event', () => {
+      predictAnalytics.trackPortfolioTransactionInitiated({
+        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE,
+        transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_DEPOSIT,
+        openPositionsCount: 2,
+        claimablePositionsCount: 1,
+        hasClaimableWinnings: true,
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.name).toBe(
+        MetaMetricsEvents.PREDICT_TRADE_TRANSACTION.category,
+      );
+      expect(event.properties).toMatchObject({
+        status: PredictTradeStatus.INITIATED,
+        transaction_type:
+          PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_DEPOSIT,
+        entry_point: PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE,
+        open_positions_count: 2,
+        claimable_positions_count: 1,
+        has_claimable_winnings: true,
+        predict_component:
+          PredictEventValues.PREDICT_COMPONENT.PREDICT_PORTFOLIO_MODULE,
+      });
+      expect(event.properties).not.toHaveProperty('amount_usd');
+      expect(event.properties).not.toHaveProperty('pnl');
+      expect(event.sensitiveProperties).toEqual({});
+    });
+
+    it('tracks positions screen viewed with position viewed event', () => {
+      predictAnalytics.trackPositionsScreenViewed({
+        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+        openPositionsCount: 3,
+        claimablePositionsCount: 1,
+        hasClaimableWinnings: true,
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.name).toBe(
+        MetaMetricsEvents.PREDICT_POSITION_VIEWED.category,
+      );
+      expect(event.properties).toMatchObject({
+        action_type: PredictEventValues.ACTION_TYPE.VIEWED,
+        entry_point: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+        open_positions_count: 3,
+        claimable_positions_count: 1,
+        has_claimable_winnings: true,
+        predict_screen:
+          PredictEventValues.PREDICT_SCREEN.PREDICT_POSITIONS_SCREEN,
+      });
+    });
+
+    it('tracks positions tab viewed with position viewed event', () => {
+      predictAnalytics.trackPositionsTabViewed({
+        predictFeedTab: PredictEventValues.PREDICT_FEED_TAB.POSITIONS,
+        openPositionsCount: 3,
+        claimablePositionsCount: 1,
+        hasClaimableWinnings: true,
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.name).toBe(
+        MetaMetricsEvents.PREDICT_POSITION_VIEWED.category,
+      );
+      expect(event.properties).toMatchObject({
+        action_type: PredictEventValues.ACTION_TYPE.VIEWED,
+        open_positions_count: 3,
+        claimable_positions_count: 1,
+        has_claimable_winnings: true,
+        predict_screen:
+          PredictEventValues.PREDICT_SCREEN.PREDICT_POSITIONS_SCREEN,
+        predict_feed_tab: PredictEventValues.PREDICT_FEED_TAB.POSITIONS,
+      });
+    });
+
+    it('tracks history tab viewed with activity viewed event', () => {
+      predictAnalytics.trackPositionsTabViewed({
+        predictFeedTab: PredictEventValues.PREDICT_FEED_TAB.HISTORY,
+        openPositionsCount: 3,
+        claimablePositionsCount: 1,
+        hasClaimableWinnings: true,
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.name).toBe(
+        MetaMetricsEvents.PREDICT_ACTIVITY_VIEWED.category,
+      );
+      expect(event.properties).toMatchObject({
+        action_type: PredictEventValues.ACTION_TYPE.VIEWED,
+        activity_type: PredictEventValues.ACTIVITY_TYPE.ACTIVITY_LIST,
+        open_positions_count: 3,
+        claimable_positions_count: 1,
+        has_claimable_winnings: true,
+        predict_screen:
+          PredictEventValues.PREDICT_SCREEN.PREDICT_POSITIONS_SCREEN,
+        predict_feed_tab: PredictEventValues.PREDICT_FEED_TAB.HISTORY,
+      });
+    });
+
     it('tracks geo block with country from context', () => {
       predictAnalytics.trackGeoBlockTriggered({
         attemptedAction: 'deposit',
@@ -566,10 +697,12 @@ describe('PredictAnalytics', () => {
       predictAnalytics.trackFeedViewed({
         sessionId: 's1',
         feedTab: 'trending',
-        predictScreen: 'world_cup',
+        predictComponent:
+          PredictEventValues.PREDICT_COMPONENT.PREDICT_PORTFOLIO_MODULE,
         numPagesViewed: 3,
         sessionTime: 98,
         entryPoint: 'carousel',
+        portfolioModuleEnabled: true,
       });
 
       expect(getTrackEventMock()).toHaveBeenCalledTimes(2);
@@ -584,11 +717,13 @@ describe('PredictAnalytics', () => {
       expect(feedEvent.properties).toMatchObject({
         session_id: 's1',
         predict_feed_tab: 'trending',
-        predict_screen: 'world_cup',
+        predict_component:
+          PredictEventValues.PREDICT_COMPONENT.PREDICT_PORTFOLIO_MODULE,
         num_feed_pages_viewed_in_session: 3,
         session_time_in_feed: 98,
         is_session_end: false,
         entry_point: 'carousel',
+        portfolio_module_enabled: true,
       });
 
       expect(assetViewedEvent.name).toBe(
