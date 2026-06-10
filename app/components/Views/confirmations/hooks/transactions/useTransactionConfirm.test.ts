@@ -358,6 +358,44 @@ describe('useTransactionConfirm', () => {
       });
     });
 
+    it('money home if predict deposit with MoneyAccount payWithOption', async () => {
+      useParamsMock.mockReturnValue({
+        payWithOption: PayWithOption.MoneyAccount,
+      });
+
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        type: TransactionType.predictDeposit,
+      } as TransactionMeta);
+
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+        screen: Routes.MONEY.ROOT,
+        params: { screen: Routes.MONEY.HOME },
+      });
+    });
+
+    it('goes back if predict deposit without MoneyAccount payWithOption', async () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        type: TransactionType.predictDeposit,
+      } as TransactionMeta);
+
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
     it('skips navigation if perps deposit and order (caller handles navigation)', async () => {
       useTransactionMetadataRequestMock.mockReturnValue({
         id: transactionIdMock,

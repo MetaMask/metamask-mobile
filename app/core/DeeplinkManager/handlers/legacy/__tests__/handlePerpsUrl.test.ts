@@ -385,7 +385,7 @@ describe('handlePerpsUrl', () => {
         screen: Routes.PERPS.MARKET_LIST,
         params: {
           source: 'deeplink',
-          defaultMarketTypeFilter: 'stocks',
+          defaultMarketTypeFilter: 'stock',
         },
       });
     });

@@ -1979,10 +1979,10 @@
       "stocks_and_commodities": "Jelajahi saham dan komoditas",
       "tabs": {
         "crypto": "Kripto",
-        "stocks": "Saham",
-        "commodities": "Komoditas",
         "forex": "Forex",
-        "new": "Baru"
+        "new": "Baru",
+        "stock": "Saham",
+        "commodity": "Komoditas"
       },
       "filter_by": "Filter berdasarkan",
       "forex": "Forex",

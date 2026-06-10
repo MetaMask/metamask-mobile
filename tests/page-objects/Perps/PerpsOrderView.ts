@@ -262,6 +262,10 @@ class PerpsOrderView {
           checkForDisplayed: true,
           checkForEnabled: true,
         });
+        await UnifiedGestures.waitAndTap(this.keypadDeleteButton, {
+          checkForDisplayed: true,
+          checkForEnabled: true,
+        });
         for (const ch of amount) {
           const keyEl = await asPlaywrightElement(this.getKeypadKey(ch));
           await PlaywrightGestures.waitAndTap(keyEl, {
