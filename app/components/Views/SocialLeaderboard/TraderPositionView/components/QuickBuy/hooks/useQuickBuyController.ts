@@ -90,6 +90,7 @@ import { useHasSufficientGas } from '../../../../../../UI/Bridge/hooks/useHasSuf
 import { useInitialSlippage } from '../../../../../../UI/Bridge/hooks/useInitialSlippage';
 import useIsInsufficientBalance from '../../../../../../UI/Bridge/hooks/useInsufficientBalance';
 import { useIsGasIncludedSTXSendBundleSupported } from '../../../../../../UI/Bridge/hooks/useIsGasIncludedSTXSendBundleSupported';
+import { useIsNetworkGasSponsored } from '../../../../../../UI/Bridge/hooks/useIsNetworkGasSponsored';
 import { useIsNetworkFeeUnavailable } from '../../../../../../UI/Bridge/hooks/useIsNetworkFeeUnavailable';
 import { useLatestBalance } from '../../../../../../UI/Bridge/hooks/useLatestBalance';
 import { usePriceImpactViewData } from '../../../../../../UI/Bridge/hooks/usePriceImpactViewData';
@@ -100,6 +101,9 @@ import {
 } from '../../../../../../UI/Bridge/utils/getPriceImpactViewData';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useGasFeeEstimates } from '../../../../../confirmations/hooks/gas/useGasFeeEstimates';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import type { GasFeeEstimatesType } from '../../../../../confirmations/utils/estimated-total-gas';
+import { getSpendableSourceBalance } from '../utils/getSpendableSourceBalance';
 import {
   SocialLeaderboardEventProperties,
   SocialLeaderboardEventValues,
@@ -503,7 +507,9 @@ export function useQuickBuyController(
       return undefined;
     }
   }, [sourceChainId]);
-  useGasFeeEstimates(sourceNetworkClientId);
+  // Polled estimates double as the native-source gas reserve for the slider
+  // max (see `maxSpendTokens` below).
+  const { gasFeeEstimates } = useGasFeeEstimates(sourceNetworkClientId);
 
   useRefreshSmartTransactionsLiveness(sourceChainId);
   useIsGasIncludedSTXSendBundleSupported(sourceChainId);
@@ -846,17 +852,46 @@ export function useQuickBuyController(
   // pass it straight through rather than re-deriving it from a token amount.
   const destBalanceFiat = liveSelectedDestBalance?.balanceFiat;
 
-  const maxSpendFiat = sourceBalanceFiatValue;
+  const isSourceNetworkGasSponsored = useIsNetworkGasSponsored(sourceChainId);
 
-  // Token-amount-based gate: used for sources we can't price. Mirrors how the
-  // Bridge / asset list keep unpriceable tokens usable as long as the user
-  // actually holds a positive balance.
-  const maxSpendTokens = useMemo(() => {
-    const raw = latestSourceBalance?.displayBalance;
-    if (!raw) return 0;
-    const parsed = parseFloat(raw);
-    return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
-  }, [latestSourceBalance?.displayBalance]);
+  // Token-amount spend ceiling (display units). For EVM-native pay tokens the
+  // swap's gas comes out of the same balance being spent, so the slider's 100%
+  // must leave room for it — otherwise quoting/execution fails on the full
+  // balance (TSA-605). `getSpendableSourceBalance` reuses the Send flow's
+  // `getEstimatedTotalGas` reserve and clamps at zero; ERC-20 and non-EVM
+  // sources keep the full balance. Also gates the slider for sources we can't
+  // price, mirroring how the Bridge / asset list keep unpriceable tokens
+  // usable as long as the user actually holds a positive balance.
+  const maxSpendTokens = useMemo(
+    () =>
+      getSpendableSourceBalance({
+        displayBalance: latestSourceBalance?.displayBalance,
+        token: sourceToken,
+        gasFeeEstimates: gasFeeEstimates as unknown as
+          | GasFeeEstimatesType
+          | undefined,
+        isGasSponsored: isSourceNetworkGasSponsored && !isHardwareAddress,
+      }),
+    [
+      latestSourceBalance?.displayBalance,
+      sourceToken,
+      gasFeeEstimates,
+      isSourceNetworkGasSponsored,
+      isHardwareAddress,
+    ],
+  );
+
+  // Fiat spend ceiling for the slider, derived from the same gas-reserved
+  // token max so both input paths agree on what "100%" means. Note the
+  // headline balance figures above intentionally keep showing the full
+  // balance — only the spendable max is reduced.
+  const maxSpendFiat = useMemo(() => {
+    if (!sourceToken?.currencyExchangeRate) {
+      return 0;
+    }
+    const fiat = maxSpendTokens * sourceToken.currencyExchangeRate;
+    return Number.isFinite(fiat) && fiat > 0 ? fiat : 0;
+  }, [maxSpendTokens, sourceToken?.currencyExchangeRate]);
 
   const isSliderDisabled = hasSourcePrice
     ? maxSpendFiat <= 0

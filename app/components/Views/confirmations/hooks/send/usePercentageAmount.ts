@@ -3,9 +3,12 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { useCallback } from 'react';
 
-import { hexToBN } from '../../../../../util/number';
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import { AssetType } from '../../types/token';
+import {
+  getEstimatedTotalGas,
+  type GasFeeEstimatesType,
+} from '../../utils/estimated-total-gas';
 import { fromBNWithDecimals, getLayer1GasFeeForSend } from '../../utils/send';
 import { useSendContext } from '../../context/send-context';
 import { useBalance } from './useBalance';
@@ -14,28 +17,10 @@ import { useSendType } from './useSendType';
 import { useIsNetworkGasSponsored } from '../../../../UI/Bridge/hooks/useIsNetworkGasSponsored';
 import { isHardwareAccount } from '../../../../../util/address';
 
-export interface GasFeeEstimatesType {
-  medium: {
-    suggestedMaxFeePerGas: number;
-  };
-}
-
-const NATIVE_TRANSFER_GAS_LIMIT = 21000;
-const GWEI_TO_WEI_CONVERSION_RATE = 1e9;
-
-export const getEstimatedTotalGas = (
-  gasFeeEstimates: GasFeeEstimatesType,
-  layer1GasFee: Hex,
-) => {
-  if (!gasFeeEstimates) {
-    return new BN(0);
-  }
-  const suggestedMaxFeePerGas =
-    gasFeeEstimates?.medium?.suggestedMaxFeePerGas ?? '0';
-  const totalGas = new BN(suggestedMaxFeePerGas * NATIVE_TRANSFER_GAS_LIMIT);
-  const conversionrate = new BN(GWEI_TO_WEI_CONVERSION_RATE);
-  return totalGas.mul(conversionrate).add(hexToBN(layer1GasFee));
-};
+// Re-exported from their extracted leaf module (`utils/estimated-total-gas`)
+// so existing consumers of this hook module keep working.
+export { getEstimatedTotalGas };
+export type { GasFeeEstimatesType };
 
 export const getPercentageValueFn = ({
   asset,
