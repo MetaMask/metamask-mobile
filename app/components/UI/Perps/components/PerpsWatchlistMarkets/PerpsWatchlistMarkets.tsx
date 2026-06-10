@@ -27,6 +27,7 @@ import { usePerpsWatchlistActions } from '../../hooks/usePerpsWatchlistActions';
 import { PerpsWatchlistSelectorsIDs } from '../../Perps.testIds';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './PerpsWatchlistMarkets.styles';
+import { WATCHLIST_LIMIT } from '../../utils/marketUtils';
 import {
   Text,
   TextVariant,
@@ -161,6 +162,7 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
 
   const hasWatchlist = markets.length > 0;
   const hasSuggested = (suggestedMarkets?.length ?? 0) > 0;
+  const isWatchlistFull = markets.length >= WATCHLIST_LIMIT;
 
   if (!hasWatchlist && !hasSuggested) {
     return null;
@@ -265,7 +267,11 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
                   market={market}
                   showBadge={false}
                   onPress={() => handleMarketPress(market)}
-                  onAddPress={() => addToWatchlist(market.symbol)}
+                  onAddPress={
+                    isWatchlistFull
+                      ? undefined
+                      : () => addToWatchlist(market.symbol)
+                  }
                 />
               </Animated.View>
             ))}

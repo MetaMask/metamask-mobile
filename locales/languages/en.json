@@ -2145,6 +2145,7 @@
       "show_more": "Show {{count}} more",
       "show_less": "Show less",
       "add_error": "Failed to add market to watchlist",
+      "limit_reached": "Watchlist limit reached ({{limit}} markets max)",
       "filter_badge_label": "Watchlist",
       "suggested": "Suggested"
     },

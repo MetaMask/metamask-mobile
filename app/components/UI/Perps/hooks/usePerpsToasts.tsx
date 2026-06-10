@@ -191,6 +191,7 @@ export interface PerpsToastOptionsConfig {
   };
   watchlist: {
     addError: PerpsToastOptions;
+    limitReached: PerpsToastOptions;
   };
 }
 
@@ -1011,6 +1012,12 @@ const usePerpsToasts = (): {
           ...perpsBaseToastOptions.error,
           labelOptions: getPerpsToastLabels(
             strings('perps.watchlist.add_error'),
+          ),
+        },
+        limitReached: {
+          ...perpsBaseToastOptions.info,
+          labelOptions: getPerpsToastLabels(
+            strings('perps.watchlist.limit_reached', { limit: 10 }),
           ),
         },
       },

@@ -10,6 +10,7 @@ import { ensureError } from '../../../../util/errorUtils';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
 import usePerpsToasts from './usePerpsToasts';
+import { WATCHLIST_LIMIT } from '../utils/marketUtils';
 
 interface UsePerpsWatchlistActionsResult {
   /**
@@ -49,10 +50,16 @@ export const usePerpsWatchlistActions = (
   const addToWatchlist = useCallback(
     async (symbol: string): Promise<void> => {
       try {
+        const controller = Engine.context.PerpsController;
+
+        if (controller.getWatchlistMarkets().length >= WATCHLIST_LIMIT) {
+          showToast(PerpsToastOptions.watchlist.limitReached);
+          return;
+        }
+
         // TODO(TAT-2663 — optimistic UI): Call onOptimisticUpdate?.() here
         // to instantly reflect the add in the UI before the async call resolves.
 
-        const controller = Engine.context.PerpsController;
         controller.toggleWatchlistMarket(symbol);
 
         // TODO(TAT-2663 — User Storage API): await userStorageApi.addWatchlistMarket(symbol)
