@@ -54,14 +54,15 @@ const QuickBuyTokenIcon: React.FC<QuickBuyTokenIconProps> = ({
   // own image first, then the static-CDN fallbacks (lowercased + checksummed
   // address variants). `getBridgeTokenImageSource` keeps native assets working
   // by resolving their canonical SLIP-44 asset-id icon.
+  const bridgeImageUri = getBridgeTokenImageSource(token)?.uri;
   const images = useMemo(() => {
     const urls = [
       token.image,
-      getBridgeTokenImageSource(token)?.uri,
+      bridgeImageUri,
       ...(getFallbackAssetImageUrls(token.chainId, token.address) ?? []),
     ].filter((image): image is string => Boolean(image));
     return [...new Set(urls)].map((uri) => ({ uri }));
-  }, [token.image, token.chainId, token.address]);
+  }, [token.image, token.chainId, token.address, bridgeImageUri]);
 
   const { source, onError, uniqueSourceImageKey } =
     useSmartImageFallback(images);
