@@ -37,9 +37,6 @@ import Icon, {
 } from '../../../component-library/components/Icons/Icon';
 import { AddContactViewSelectorsIDs } from '../../Views/Settings/Contacts/AddContactView.testIds';
 import { SettingsViewSelectorsIDs } from '../../Views/Settings/SettingsView.testIds';
-import HeaderBase, {
-  HeaderBaseVariant,
-} from '../../../component-library/components/HeaderBase';
 import getHeaderCompactStandardNavbarOptions from '../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
@@ -52,6 +49,7 @@ import {
   BadgeWrapper,
   ButtonIcon,
   ButtonIconSize,
+  HeaderBase,
   IconColor as MMDSIconColor,
 } from '@metamask/design-system-react-native';
 
