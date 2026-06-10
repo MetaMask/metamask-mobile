@@ -1581,20 +1581,37 @@ class AuthenticationService {
     } catch (error) {
       const isError = error instanceof Error;
       const errorMessage = isError ? error.message : 'Unknown error';
+      const migrationError = isError ? error : new Error(errorMessage);
 
-      analytics.trackEvent(
-        AnalyticsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.SEEDLESS_ONBOARDING_MIGRATION_FAILED,
-        )
-          .addProperties({
-            migration_version:
-              SeedlessOnboardingController.state?.migrationVersion,
-            error: errorMessage,
-          })
-          .build(),
-      );
-      captureException(isError ? error : new Error(errorMessage));
-      throw error;
+      try {
+        analytics.trackEvent(
+          AnalyticsEventBuilder.createEventBuilder(
+            MetaMetricsEvents.SEEDLESS_ONBOARDING_MIGRATION_FAILED,
+          )
+            .addProperties({
+              migration_version:
+                SeedlessOnboardingController.state?.migrationVersion,
+              error: errorMessage,
+            })
+            .build(),
+        );
+      } catch (metaMetricsError) {
+        Logger.log(
+          'Failed to track seedless onboarding migration failure',
+          metaMetricsError,
+        );
+      }
+
+      try {
+        captureException(migrationError);
+      } catch (sentryError) {
+        Logger.log(
+          'Failed to capture seedless onboarding migration failure',
+          sentryError,
+        );
+      }
+
+      throw migrationError;
     }
   };
 

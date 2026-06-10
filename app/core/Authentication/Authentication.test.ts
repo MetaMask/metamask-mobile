@@ -4104,6 +4104,58 @@ describe('Authentication', () => {
         Authentication.runSeedlessOnboardingMigrations(),
       ).rejects.toThrow('Network error');
     });
+
+    it('wraps non-Error thrown values in a new Error before re-throwing', async () => {
+      Engine.context.SeedlessOnboardingController = {
+        runMigrations: jest.fn().mockRejectedValue('string error'),
+        state: { migrationVersion: 0 },
+      };
+
+      await expect(
+        Authentication.runSeedlessOnboardingMigrations(),
+      ).rejects.toThrow('Unknown error');
+
+      expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.SEEDLESS_ONBOARDING_MIGRATION_FAILED,
+      );
+    });
+
+    it('logs warnings and still re-throws when analytics tracking or Sentry reporting fail', async () => {
+      const logWarnSpy = jest
+        .spyOn(Logger, 'log')
+        .mockImplementation(jest.fn());
+      analytics.trackEvent.mockImplementation(() => {
+        throw new Error('trackEvent failed');
+      });
+      mockCaptureException.mockImplementation(() => {
+        throw new Error('sentry capture failed');
+      });
+      Engine.context.SeedlessOnboardingController = {
+        runMigrations: jest
+          .fn()
+          .mockRejectedValue(new Error('migration failed')),
+        state: { migrationVersion: 0 },
+      };
+
+      try {
+        await expect(
+          Authentication.runSeedlessOnboardingMigrations(),
+        ).rejects.toThrow('migration failed');
+
+        expect(logWarnSpy).toHaveBeenCalledWith(
+          'Failed to track seedless onboarding migration failure',
+          expect.any(Error),
+        );
+        expect(logWarnSpy).toHaveBeenCalledWith(
+          'Failed to capture seedless onboarding migration failure',
+          expect.any(Error),
+        );
+      } finally {
+        analytics.trackEvent.mockReset();
+        mockCaptureException.mockReset();
+        logWarnSpy.mockRestore();
+      }
+    });
   });
 
   describe('deleteWallet', () => {
