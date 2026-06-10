@@ -32,7 +32,7 @@ const PerpsQuoteDetailsCard: React.FC<PerpsQuoteDetailsCardProps> = ({
         field={{
           label: {
             text: strings('perps.quote.network_fee'),
-            variant: LegacyTextVariant.BodyMD,
+            variant: LegacyTextVariant.BodyMDMedium,
           },
         }}
         value={{
@@ -48,7 +48,7 @@ const PerpsQuoteDetailsCard: React.FC<PerpsQuoteDetailsCardProps> = ({
         field={{
           label: {
             text: strings('perps.quote.metamask_fee'),
-            variant: LegacyTextVariant.BodyMD,
+            variant: LegacyTextVariant.BodyMDMedium,
           },
           tooltip: {
             title: strings('perps.quote.metamask_fee'),
@@ -70,7 +70,7 @@ const PerpsQuoteDetailsCard: React.FC<PerpsQuoteDetailsCardProps> = ({
           field={{
             label: {
               text: strings('perps.quote.estimated_time'),
-              variant: LegacyTextVariant.BodyMD,
+              variant: LegacyTextVariant.BodyMDMedium,
             },
           }}
           value={{
@@ -87,7 +87,7 @@ const PerpsQuoteDetailsCard: React.FC<PerpsQuoteDetailsCardProps> = ({
         field={{
           label: {
             text: strings('perps.quote.rate'),
-            variant: LegacyTextVariant.BodyMD,
+            variant: LegacyTextVariant.BodyMDMedium,
           },
         }}
         value={{

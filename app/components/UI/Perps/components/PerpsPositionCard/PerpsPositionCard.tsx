@@ -336,7 +336,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
     <View style={styles.container} testID={PerpsPositionCardSelectorsIDs.CARD}>
       {/* Header Section */}
       <View style={styles.header} testID={PerpsPositionCardSelectorsIDs.HEADER}>
-        <Text variant={TextVariant.HeadingSm} color={TextColor.TextDefault}>
+        <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
           {strings('perps.position.card.position_title')}
         </Text>
         {onSharePress && (
@@ -580,7 +580,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
         testID={PerpsPositionCardSelectorsIDs.DETAILS_SECTION}
       >
         <Text
-          variant={TextVariant.HeadingSm}
+          variant={TextVariant.HeadingMd}
           color={TextColor.TextDefault}
           style={styles.detailsTitle}
         >

@@ -90,7 +90,7 @@ const PerpsErrorState: React.FC<PerpsErrorStateProps> = ({
           style={styles.icon}
         />
         <Text
-          variant={TextVariant.HeadingSm}
+          variant={TextVariant.HeadingMd}
           color={TextColor.TextDefault}
           style={styles.title}
         >
