@@ -43,9 +43,9 @@ const baseProps: React.ComponentProps<typeof VipPointsSection> = {
   equityUnlockedTitle: 'Unlocked allocation',
   equityUnlockedDescription: 'Your equity allocation is unlocked.',
   pointsAllocation: {
-    earned: 24_400_000,
-    threshold: 100_000_000,
-    percent: 24.4,
+    earned: 5_555_555,
+    threshold: 7_777_777,
+    percent: 71.4,
   },
 };
 
@@ -65,8 +65,8 @@ describe('VipPointsSection', () => {
     expect(getByText('Locked allocation')).toBeOnTheScreen();
     expect(getByText('Keep earning to unlock equity.')).toBeOnTheScreen();
     const radialLabel = getByTestId(VIP_POINTS_SECTION_TEST_IDS.RADIAL_LABEL);
-    expect(radialLabel).toHaveTextContent(/24\.4M/);
-    expect(radialLabel).toHaveTextContent(/\/100M/);
+    expect(radialLabel).toHaveTextContent(/5.56M/);
+    expect(radialLabel).toHaveTextContent(/\/7.78M/);
   });
 
   it('renders unlocked equity copy when earned points meet the threshold', () => {
@@ -74,8 +74,8 @@ describe('VipPointsSection', () => {
       <VipPointsSection
         {...baseProps}
         pointsAllocation={{
-          earned: 100_000_000,
-          threshold: 100_000_000,
+          earned: 7_777_777,
+          threshold: 7_777_777,
           percent: 100,
         }}
       />,
@@ -84,8 +84,8 @@ describe('VipPointsSection', () => {
     expect(getByText('Unlocked allocation')).toBeOnTheScreen();
     expect(getByText('Your equity allocation is unlocked.')).toBeOnTheScreen();
     const radialLabel = getByTestId(VIP_POINTS_SECTION_TEST_IDS.RADIAL_LABEL);
-    expect(radialLabel).toHaveTextContent(/100M/);
-    expect(radialLabel).toHaveTextContent(/\/100M/);
+    expect(radialLabel).toHaveTextContent(/7.78M/);
+    expect(radialLabel).toHaveTextContent(/\/7.78M/);
   });
 
   it('keeps the radial label unclamped when earned points exceed the threshold', () => {
@@ -93,16 +93,16 @@ describe('VipPointsSection', () => {
       <VipPointsSection
         {...baseProps}
         pointsAllocation={{
-          earned: 125_000_000,
-          threshold: 100_000_000,
-          percent: 125,
+          earned: 9_999_999,
+          threshold: 7_777_777,
+          percent: 128.6,
         }}
       />,
     );
 
     const radialLabel = getByTestId(VIP_POINTS_SECTION_TEST_IDS.RADIAL_LABEL);
-    expect(radialLabel).toHaveTextContent(/125M/);
-    expect(radialLabel).toHaveTextContent(/\/100M/);
+    expect(radialLabel).toHaveTextContent(/10M/);
+    expect(radialLabel).toHaveTextContent(/\/7.78M/);
   });
 
   it('clamps the radial progress to a full circle when percent exceeds 100', () => {
@@ -110,9 +110,9 @@ describe('VipPointsSection', () => {
       <VipPointsSection
         {...baseProps}
         pointsAllocation={{
-          earned: 125_000_000,
-          threshold: 100_000_000,
-          percent: 125,
+          earned: 9_999_999,
+          threshold: 7_777_777,
+          percent: 128.6,
         }}
       />,
     );

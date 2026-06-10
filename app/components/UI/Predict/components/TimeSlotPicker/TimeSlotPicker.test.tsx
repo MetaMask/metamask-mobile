@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, fireEvent, screen } from '@testing-library/react-native';
+import { ScrollView } from 'react-native';
+import { render, fireEvent, screen, act } from '@testing-library/react-native';
 import TimeSlotPicker from './TimeSlotPicker';
 import { PredictMarket, Recurrence } from '../../types';
 
@@ -65,8 +66,8 @@ jest.mock('@metamask/design-system-react-native', () => {
 });
 
 jest.mock('react-native-gesture-handler', () => {
-  const { ScrollView } = jest.requireActual('react-native');
-  return { ScrollView };
+  const { ScrollView: ActualScrollView } = jest.requireActual('react-native');
+  return { ScrollView: ActualScrollView };
 });
 
 jest.mock('react-native-reanimated', () => {
@@ -251,6 +252,116 @@ describe('TimeSlotPicker', () => {
       render(<TimeSlotPicker markets={markets} onMarketSelected={jest.fn()} />);
 
       expect(screen.getByTestId('time-slot-picker')).toBeOnTheScreen();
+    });
+  });
+
+  describe('scroll anchoring', () => {
+    const PILL_WIDTH = 100;
+    const CONTENT_PADDING = 16;
+    // Mirrors SCROLL_SETTLE_DELAY_MS (module-private) in TimeSlotPicker.tsx.
+    const SCROLL_SETTLE_DELAY_MS = 50;
+
+    const layoutPills = (markets: PredictMarket[]) => {
+      markets.forEach((market, index) => {
+        const pill = screen.getByTestId(`time-slot-pill-${market.id}`);
+        // The pill wrapper Box (which carries onLayout) is the Pressable's parent.
+        const wrapper = pill.parent;
+        if (!wrapper) throw new Error(`Missing wrapper for ${market.id}`);
+        act(() => {
+          fireEvent(wrapper, 'layout', {
+            nativeEvent: {
+              layout: {
+                x: index * PILL_WIDTH,
+                y: 0,
+                width: PILL_WIDTH,
+                height: 44,
+              },
+            },
+          });
+        });
+      });
+    };
+
+    it('anchors the selected pill near the left edge once it has laid out', () => {
+      const scrollToSpy = jest.spyOn(ScrollView.prototype, 'scrollTo');
+      const markets = createMarkets();
+
+      render(<TimeSlotPicker markets={markets} onMarketSelected={jest.fn()} />);
+      layoutPills(markets);
+
+      act(() => {
+        jest.advanceTimersByTime(SCROLL_SETTLE_DELAY_MS);
+      });
+
+      // live-1 is the second pill (index 1) -> x = 100, anchored at 100 - padding.
+      expect(scrollToSpy).toHaveBeenLastCalledWith({
+        x: PILL_WIDTH - CONTENT_PADDING,
+        animated: true,
+      });
+
+      scrollToSpy.mockRestore();
+    });
+
+    it('re-anchors to the left when the live slot expires and the list shifts', () => {
+      const scrollToSpy = jest.spyOn(ScrollView.prototype, 'scrollTo');
+      const now = Date.now();
+      // Mirrors the visible list the parent passes down: only live + future
+      // slots (ended markets are already filtered out upstream).
+      const live = createMarket({
+        id: 'live-1',
+        endDate: new Date(now + 120_000).toISOString(),
+      });
+      const future1 = createMarket({
+        id: 'future-1',
+        endDate: new Date(now + 600_000).toISOString(),
+      });
+      const future2 = createMarket({
+        id: 'future-2',
+        endDate: new Date(now + 1_200_000).toISOString(),
+      });
+      const markets = [live, future1, future2];
+
+      const { rerender } = render(
+        <TimeSlotPicker markets={markets} onMarketSelected={jest.fn()} />,
+      );
+      layoutPills(markets);
+      act(() => {
+        jest.advanceTimersByTime(SCROLL_SETTLE_DELAY_MS);
+      });
+      // Initially live-1 is the first pill, anchored at the left.
+      expect(scrollToSpy).toHaveBeenLastCalledWith({ x: 0, animated: true });
+      scrollToSpy.mockClear();
+
+      // live-1 expires and is filtered out upstream: future-1 becomes the new
+      // live/selected slot and the remaining pills shift left to x=0.
+      const shiftedMarkets = [future1, future2];
+      rerender(
+        <TimeSlotPicker
+          markets={shiftedMarkets}
+          onMarketSelected={jest.fn()}
+        />,
+      );
+
+      // Reproduce the race: the settle-delay timer fires against the still-stale
+      // cached positions (future-1 was at x=100) BEFORE the native re-layout
+      // reports the new left-anchored x. The fixed-delay path therefore scrolls
+      // to the stale 84 here.
+      act(() => {
+        jest.advanceTimersByTime(SCROLL_SETTLE_DELAY_MS);
+      });
+
+      // The native re-layout now lands: future-1's pill reports its new x=0.
+      // The layout-driven re-anchor must correct the scroll to the left edge.
+      layoutPills(shiftedMarkets);
+      act(() => {
+        jest.advanceTimersByTime(SCROLL_SETTLE_DELAY_MS);
+      });
+
+      // Final anchor is the fresh left position, regardless of the stale
+      // intermediate scroll the race may have produced.
+      expect(scrollToSpy).toHaveBeenLastCalledWith({ x: 0, animated: true });
+
+      scrollToSpy.mockRestore();
     });
   });
 });
