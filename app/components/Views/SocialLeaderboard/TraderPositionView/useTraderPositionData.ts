@@ -294,14 +294,14 @@ export function useTraderPositionData(
 
   const chartTrades = useMemo(() => {
     const now = Date.now();
-    return (positionParam?.trades ?? []).filter((t) => {
+    return allTrades.filter((t) => {
       const tsMs =
         t.timestamp > 0 && t.timestamp < 1e12
           ? t.timestamp * 1000
           : t.timestamp;
       return tsMs >= now - PERIOD_DURATION_MS[activeTimePeriod];
     });
-  }, [positionParam?.trades, activeTimePeriod]);
+  }, [allTrades, activeTimePeriod]);
 
   // ── Return ─────────────────────────────────────────────────────────────
 
