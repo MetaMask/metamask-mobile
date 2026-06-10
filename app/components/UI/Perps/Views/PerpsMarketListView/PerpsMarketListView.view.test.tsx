@@ -22,7 +22,7 @@ const cryptoMarket: PerpsMarketData = {
   volume: '$1M',
 };
 
-/** Commodity market (HIP-3): counted in marketCounts.commodity so "Commodities" badge appears */
+/** Commodity market (HIP-3): counted in marketCounts.commodities so "Commodities" badge appears */
 const commodityMarket: PerpsMarketData = {
   symbol: 'XAU',
   name: 'Gold',
@@ -57,7 +57,7 @@ describe('PerpsMarketListView', () => {
         `${sortFiltersId}-categories-crypto`,
       );
       const commoditiesBadge = screen.getByTestId(
-        `${sortFiltersId}-categories-commodities`,
+        `${sortFiltersId}-categories-commodity`,
       );
       expect(cryptoBadge).toBeOnTheScreen();
       expect(commoditiesBadge).toBeOnTheScreen();

@@ -68,7 +68,6 @@ import { Alert, Linking } from 'react-native';
 import { useSelector } from 'react-redux';
 import React from 'react';
 import CardHome from './CardHome';
-import { cardDefaultNavigationOptions } from '../../routes';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { withCardSDK } from '../../sdk';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -611,21 +610,17 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Failed to load PIN. Please try again.',
       'card.password_bottomsheet.description_view_pin':
         'Enter your wallet password to view your card PIN.',
-      'card.card_home.manage_card_options.cashback': 'Cashback',
       'card.card_home.manage_card_options.cashback_description':
-        'Earn 1% back on all spending',
-      'card.card_home.manage_card_options.cashback_description_metal':
-        'Earn 3% back on all spending',
+        'Earn on all spending',
       'money.metamask_card.link_title': 'Link MetaMask Card',
       'money.metamask_card.link_card': 'Link card',
       'money.metamask_card.link_subtitle_no_apy':
-        'Spend your Money balance and earn on purchases.',
+        'Spend your balance and earn on purchases.',
     };
     const value = strings[key];
     if (value) return value;
     if (key === 'money.metamask_card.link_subtitle') {
-      const apy = (params as { apy?: number | string } | undefined)?.apy;
-      return `Spend your Money balance and earn on purchases. Plus, up to ${apy}% APY on your balance.`;
+      return 'Spend your balance and earn on purchases.';
     }
     if (key === 'money.metamask_card.link_bullet_cashback') {
       const percentage = (
@@ -635,7 +630,13 @@ jest.mock('../../../../../../locales/i18n', () => ({
     }
     if (key === 'money.metamask_card.link_bullet_apy') {
       const apy = (params as { apy?: number | string } | undefined)?.apy;
-      return `Earn up to ${apy}% APY`;
+      return `Earn up to ~${apy}% APY`;
+    }
+    if (key === 'card.card_home.manage_card_options.cashback') {
+      const cashbackPercentage = (
+        params as { cashbackPercentage?: number | string } | undefined
+      )?.cashbackPercentage;
+      return `${cashbackPercentage}% mUSD Back`;
     }
     return key;
   },
@@ -1306,6 +1307,84 @@ describe('CardHome Component', () => {
     });
   });
 
+  describe('Money Account spending source', () => {
+    const moneyAccountPriorityToken = {
+      ...mockPriorityToken,
+      isMoneyAccountEntry: true,
+    } as typeof mockPriorityToken;
+
+    it('passes the Money Account i18n label as the address to the card image when authenticated', () => {
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({
+        priorityToken: moneyAccountPriorityToken,
+        allTokens: [moneyAccountPriorityToken],
+        isAuthenticated: true,
+      });
+
+      render();
+
+      const cardImage = screen.getByTestId(
+        CardHomeSelectors.CARD_WALLET_ADDRESS,
+      );
+      // The SVG `Svg` element receives `address` via `{...props}`; this is
+      // the same prop that drives the rendered SVG `<Text>` content. In
+      // the test environment `strings()` returns the i18n key.
+      expect(cardImage.props.address).toBe(
+        'card.card_spending_limit.money_account_label',
+      );
+    });
+
+    it('passes the truncated wallet hex (not the Money Account label) when the primary token is not a money account entry', () => {
+      setupMockSelectors({ isAuthenticated: true });
+      const walletPriorityToken = {
+        ...mockPriorityToken,
+        isMoneyAccountEntry: false,
+      } as typeof mockPriorityToken;
+      setupLoadCardDataMock({
+        priorityToken: walletPriorityToken,
+        allTokens: [mockPriorityToken],
+        isAuthenticated: true,
+      });
+
+      render();
+
+      const cardImage = screen.getByTestId(
+        CardHomeSelectors.CARD_WALLET_ADDRESS,
+      );
+      // CardImage truncates the hex; what matters here is that the Money
+      // Account label is NOT used when the flag is false.
+      expect(cardImage.props.address).not.toBe(
+        'card.card_spending_limit.money_account_label',
+      );
+    });
+
+    it('navigates to MoneyAddMoneySheet and skips switchToFundingAccountIfNeeded when add funds is pressed', async () => {
+      setupLoadCardDataMock({
+        priorityToken: moneyAccountPriorityToken,
+        allTokens: [moneyAccountPriorityToken],
+      });
+      mockSetSelectedAddress.mockClear();
+      mockOpenSwaps.mockClear();
+      mockNavigate.mockClear();
+
+      render();
+
+      fireEvent.press(screen.getByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON));
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('MoneyModals', {
+          screen: 'MoneyAddMoneySheet',
+        });
+      });
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        'CardModals',
+        expect.anything(),
+      );
+      expect(mockOpenSwaps).not.toHaveBeenCalled();
+      expect(mockSetSelectedAddress).not.toHaveBeenCalled();
+    });
+  });
+
   it('calls navigateToTravelPage when travel item is pressed', async () => {
     // TRAVEL_ITEM requires isFullySetUp (isAuthenticated + card + no setup actions)
     setupMockSelectors({ isAuthenticated: true });
@@ -1468,26 +1547,6 @@ describe('CardHome Component', () => {
         'card.card_home.manage_card_options.manage_spending_limit_description_restricted',
       ),
     ).toBeTruthy();
-  });
-
-  it('sets navigation options correctly', () => {
-    // Given: navigation object
-    const mockNavigation = {
-      navigate: mockNavigate,
-      goBack: mockGoBack,
-      setOptions: mockSetNavigationOptions,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
-
-    // When: getting navigation options
-    const navigationOptions = cardDefaultNavigationOptions({
-      navigation: mockNavigation,
-    });
-
-    // Then: should include all required header components
-    expect(navigationOptions).toHaveProperty('headerLeft');
-    expect(navigationOptions).toHaveProperty('headerTitle');
-    expect(navigationOptions).toHaveProperty('headerRight');
   });
 
   it('dispatches bridge tokens when opening swaps with non-supported token', async () => {
@@ -3501,7 +3560,7 @@ describe('CardHome Component', () => {
           expect(mockNavigate).toHaveBeenCalledWith(
             Routes.CARD.SPENDING_LIMIT,
             expect.objectContaining({
-              flow: 'manage',
+              flow: 'enable_card',
             }),
           );
         });
@@ -5624,7 +5683,7 @@ describe('CardHome Component', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('shows standard cashback description for virtual card', () => {
+    it('shows standard cashback title for virtual card', () => {
       // Given: authenticated international user with virtual card
       setupMockSelectors({
         isAuthenticated: true,
@@ -5641,13 +5700,11 @@ describe('CardHome Component', () => {
       // When: component renders
       render();
 
-      // Then: standard description is shown
-      expect(
-        screen.getByText('Earn 1% back on all spending'),
-      ).toBeOnTheScreen();
+      // Then: standard 1% title is shown
+      expect(screen.getByText('1% mUSD Back')).toBeOnTheScreen();
     });
 
-    it('shows metal cashback description for metal card', () => {
+    it('shows metal cashback title for metal card', () => {
       // Given: authenticated international user with metal card
       setupMockSelectors({
         isAuthenticated: true,
@@ -5664,10 +5721,8 @@ describe('CardHome Component', () => {
       // When: component renders
       render();
 
-      // Then: metal description is shown
-      expect(
-        screen.getByText('Earn 3% back on all spending'),
-      ).toBeOnTheScreen();
+      // Then: metal 3% title is shown
+      expect(screen.getByText('3% mUSD Back')).toBeOnTheScreen();
     });
 
     it('navigates to cashback screen on press', () => {
@@ -5804,7 +5859,7 @@ describe('CardHome Component', () => {
         expect(mockNavigate).toHaveBeenCalledWith(
           Routes.CARD.SPENDING_LIMIT,
           expect.objectContaining({
-            flow: 'manage',
+            flow: 'enable_card',
           }),
         );
       });
@@ -5860,7 +5915,7 @@ describe('CardHome Component', () => {
         expect(mockNavigate).toHaveBeenCalledWith(
           Routes.CARD.SPENDING_LIMIT,
           expect.objectContaining({
-            flow: 'manage',
+            flow: 'enable_card',
           }),
         );
       });
@@ -5916,7 +5971,7 @@ describe('CardHome Component', () => {
         expect(mockNavigate).toHaveBeenCalledWith(
           Routes.CARD.SPENDING_LIMIT,
           expect.objectContaining({
-            flow: 'manage',
+            flow: 'enable_card',
           }),
         );
       });
@@ -5972,7 +6027,7 @@ describe('CardHome Component', () => {
         expect(mockNavigate).toHaveBeenCalledWith(
           Routes.CARD.SPENDING_LIMIT,
           expect.objectContaining({
-            flow: 'manage',
+            flow: 'enable_card',
           }),
         );
       });
@@ -6017,7 +6072,7 @@ describe('CardHome Component', () => {
         expect(mockNavigate).toHaveBeenCalledWith(
           Routes.CARD.SPENDING_LIMIT,
           expect.objectContaining({
-            flow: 'manage',
+            flow: 'enable_card',
           }),
         );
       });
@@ -6408,7 +6463,7 @@ describe('CardHome Component', () => {
           strings('money.metamask_card.link_subtitle', { apy: 4 }),
         ),
       ).toBeOnTheScreen();
-      expect(screen.getByText('Earn up to 4% APY')).toBeOnTheScreen();
+      expect(screen.getByText('Earn up to ~4% APY')).toBeOnTheScreen();
     });
   });
 });

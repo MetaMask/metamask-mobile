@@ -60,7 +60,7 @@ import { CardActions, CardScreens } from '../util/metrics';
 export type LimitType = 'full' | 'restricted';
 
 export interface UseSpendingLimitParams {
-  flow: 'manage' | 'enable' | 'onboarding';
+  flow: 'manage' | 'enable' | 'onboarding' | 'enable_card';
   initialToken?: CardFundingToken | null;
   priorityToken?: CardFundingToken | null;
   allTokens: CardFundingToken[];
@@ -96,10 +96,10 @@ export interface UseSpendingLimitReturn {
   isFaucetCheckLoading: boolean;
 
   isMoneyAccountSource: boolean;
+  isMoneyAccountLocked: boolean;
   canShowMoneyAccountCta: boolean;
   selectMoneyAccountAsSource: () => void;
   moneyAccountTotalFiatFormatted: string | undefined;
-  isMoneyAccountBalanceLoading: boolean;
   canLinkMoneyAccount: boolean;
   moneyAccountApyPercent: number | undefined;
   hasMetalCard: boolean;
@@ -165,7 +165,13 @@ const useSpendingLimit = ({
   const [isMoneyAccountSource, setIsMoneyAccountSource] = useState(false);
 
   const isOnboardingFlow = flow === 'onboarding';
-  const isMoneyAccountPreselectAllowed = flow !== 'enable';
+  const isEnableCardFlow = flow === 'enable_card';
+  const isEnableFlow = flow === 'enable';
+  const isManageFlow = flow === 'manage';
+  const isOnboardingLikeFlow = isOnboardingFlow || isEnableCardFlow;
+  const isMoneyAccountPreselectAllowed = isOnboardingLikeFlow;
+  const isEnablingNotEnabledToken =
+    isEnableFlow && initialToken?.fundingStatus === FundingStatus.NotEnabled;
 
   const {
     moneyAccountCardToken,
@@ -173,12 +179,9 @@ const useSpendingLimit = ({
     canLink: canLinkMoneyAccount,
   } = useMoneyAccountCardLinkage();
   const {
-    tokenTotal: moneyAccountTokenTotal,
     totalFiatFormatted: moneyAccountTotalFiatFormatted,
-    isAggregatedBalanceLoading: isMoneyAccountBalanceLoading,
     apyPercent: moneyAccountApyPercent,
   } = useMoneyAccountBalance();
-  const isMoneyAccountFunded = Boolean(moneyAccountTokenTotal?.gt(0));
 
   const { data: cardHomeData } = useCardHomeData();
   const hasMetalCard = cardHomeData?.card?.type === CardType.METAL;
@@ -342,19 +345,26 @@ const useSpendingLimit = ({
     }
 
     if (
-      isMoneyAccountPreselectAllowed &&
-      canLinkMoneyAccount &&
+      isManageFlow &&
+      priorityToken?.isMoneyAccountEntry &&
       !hasUserExitedMoneyAccountSourceRef.current
     ) {
-      if (isMoneyAccountBalanceLoading) {
-        return;
-      }
-      if (isMoneyAccountFunded && moneyAccountCardToken) {
-        setIsMoneyAccountSource(true);
-        applySelectedToken(moneyAccountCardToken);
-        setHasInitialized(true);
-        return;
-      }
+      setIsMoneyAccountSource(true);
+      applySelectedToken(priorityToken);
+      setHasInitialized(true);
+      return;
+    }
+
+    if (
+      isMoneyAccountPreselectAllowed &&
+      canLinkMoneyAccount &&
+      !hasUserExitedMoneyAccountSourceRef.current &&
+      moneyAccountCardToken
+    ) {
+      setIsMoneyAccountSource(true);
+      applySelectedToken(moneyAccountCardToken);
+      setHasInitialized(true);
+      return;
     }
 
     if (!selectedToken && priorityToken) {
@@ -398,15 +408,7 @@ const useSpendingLimit = ({
           return { token, fiat: walletToken?.tokenFiatAmount ?? 0 };
         })
         .sort((a, b) => b.fiat - a.fiat);
-      const topEntry = sorted[0];
-      const defaultToken =
-        topEntry.fiat > 0
-          ? topEntry.token
-          : (tokensToSearch.find(
-              (t) =>
-                t.symbol?.toUpperCase() === 'MUSD' &&
-                t.caipChainId === LINEA_CAIP_CHAIN_ID,
-            ) ?? topEntry.token);
+      const defaultToken = sorted[0]?.token;
       if (defaultToken) {
         applySelectedToken(defaultToken);
         setHasInitialized(true);
@@ -422,10 +424,9 @@ const useSpendingLimit = ({
     delegationSettings,
     sdk,
     applySelectedToken,
+    isManageFlow,
     isMoneyAccountPreselectAllowed,
     canLinkMoneyAccount,
-    isMoneyAccountBalanceLoading,
-    isMoneyAccountFunded,
     moneyAccountCardToken,
   ]);
 
@@ -533,10 +534,13 @@ const useSpendingLimit = ({
   }, [moneyAccountCardToken, applySelectedToken]);
 
   const canShowMoneyAccountCta =
-    isMoneyAccountPreselectAllowed &&
+    (isOnboardingLikeFlow || isEnablingNotEnabledToken) &&
     !isMoneyAccountSource &&
-    isMoneyAccountFunded &&
     canLinkMoneyAccount;
+
+  const isMoneyAccountLocked = Boolean(
+    isManageFlow && priorityToken?.isMoneyAccountEntry,
+  );
 
   const handleLimitSelect = useCallback(() => {
     navigation.navigate(
@@ -760,10 +764,10 @@ const useSpendingLimit = ({
     isFaucetCheckLoading,
 
     isMoneyAccountSource,
+    isMoneyAccountLocked,
     canShowMoneyAccountCta,
     selectMoneyAccountAsSource,
     moneyAccountTotalFiatFormatted,
-    isMoneyAccountBalanceLoading,
     canLinkMoneyAccount,
     moneyAccountApyPercent,
     hasMetalCard,

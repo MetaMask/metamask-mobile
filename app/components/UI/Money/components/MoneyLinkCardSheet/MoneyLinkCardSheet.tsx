@@ -10,7 +10,9 @@ import {
   BoxAlignItems,
   BoxJustifyContent,
   ButtonSize,
+  FontWeight,
   Text,
+  TextColor,
   TextVariant,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
@@ -24,6 +26,7 @@ import mmCardRegular from '../../../../../images/mm_card_regular.png';
 import mmCardMetal from '../../../../../images/mm_card_metal.png';
 import styleSheet from './MoneyLinkCardSheet.styles';
 import { MoneyLinkCardSheetTestIds } from './MoneyLinkCardSheet.testIds';
+import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 /**
  * "Spend and earn" confirmation bottom sheet shown before the Money Account ↔
@@ -41,6 +44,7 @@ const MoneyLinkCardSheet = () => {
   const { confirmLinkInBackground } = useMoneyAccountCardLinkage();
   const { apyPercent } = useMoneyAccountBalance();
   const cardHomeData = useSelector(selectCardHomeData);
+  const surfaceClass = useElevatedSurface();
   const isMetalCard = cardHomeData?.card?.type === CardType.METAL;
 
   const handleGoBack = useCallback(() => {
@@ -57,12 +61,23 @@ const MoneyLinkCardSheet = () => {
     });
   }, [confirmLinkInBackground]);
 
-  const description =
-    apyPercent === undefined
-      ? strings('money.metamask_card.link_card_sheet_description_no_apy')
-      : strings('money.metamask_card.link_card_sheet_description', {
-          apy: apyPercent,
-        });
+  const description: React.ReactNode =
+    apyPercent === undefined ? (
+      strings('money.metamask_card.link_card_sheet_description_no_apy')
+    ) : (
+      <>
+        {strings('money.metamask_card.link_card_sheet_description_prefix')}
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.SuccessDefault}
+        >
+          {' '}
+          {strings('money.apy_label', { percentage: apyPercent })}
+        </Text>
+        {strings('money.metamask_card.link_card_sheet_description_suffix')}
+      </>
+    );
 
   return (
     <BottomSheet
@@ -70,6 +85,7 @@ const MoneyLinkCardSheet = () => {
       goBack={handleGoBack}
       testID={MoneyLinkCardSheetTestIds.CONTAINER}
       keyboardAvoidingViewEnabled={false}
+      twClassName={surfaceClass}
     >
       <BottomSheetHeader
         onClose={handleClose}
@@ -97,6 +113,7 @@ const MoneyLinkCardSheet = () => {
           </Text>
           <Text
             variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
             twClassName="text-center"
             testID={MoneyLinkCardSheetTestIds.DESCRIPTION}
           >

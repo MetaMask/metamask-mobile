@@ -297,16 +297,16 @@ export async function updateMoneyAccountWithdrawTokenAmount(
 }
 
 /**
- * Returns encoded calldata for the approve + deposit batch of a Money Account deposit.
+ * Returns the approve + deposit transaction params for a Money Account deposit.
  *
  * @param chainId - Chain ID in hex
  * @param amountHuman - Human-readable deposit amount (e.g. "10.5")
- * @returns `[approveData, depositData]`, or `[]` if vault config or provider is unavailable
+ * @returns `[approveTx.params, depositTx.params]`, or `[]` if vault config or provider is unavailable
  */
 export async function getMoneyAccountDepositTransactionsData(
   chainId: Hex,
   amountHuman: string,
-): Promise<Hex[]> {
+): Promise<MoneyAccountTxParams['params'][]> {
   const vaultConfig = selectMoneyAccountVaultConfig(
     ReduxService.store.getState() as RootState,
   );
@@ -315,30 +315,23 @@ export async function getMoneyAccountDepositTransactionsData(
   const provider = getProviderByChainId(chainId);
   if (!provider) return [];
 
-  const musdAddress = getMoneyAccountDepositAssetAddress(chainId);
   const amount = BigInt(
     calcTokenValue(amountHuman, MUSD_DECIMALS)
       .decimalPlaces(0, BigNumber.ROUND_UP)
       .toFixed(0),
   );
-  const minimumMint =
-    amount === 0n
-      ? 0n
-      : applySlippage(
-          await getExpectedDepositShares({
-            lensAddress: vaultConfig.lensAddress,
-            boringVault: vaultConfig.boringVault,
-            accountantAddress: vaultConfig.accountantAddress,
-            musdAddress,
-            amount,
-            provider,
-          }),
-        );
 
-  const approveData = buildApproveData(vaultConfig.boringVault, amount);
-  const depositData = buildDepositData(musdAddress, amount, minimumMint);
+  const { approveTx, depositTx } = await buildMoneyAccountDepositBatch({
+    amount,
+    chainId,
+    boringVault: vaultConfig.boringVault,
+    tellerAddress: vaultConfig.tellerAddress,
+    accountantAddress: vaultConfig.accountantAddress,
+    lensAddress: vaultConfig.lensAddress,
+    provider,
+  });
 
-  return [approveData, depositData];
+  return [approveTx.params, depositTx.params];
 }
 
 /**
@@ -346,48 +339,41 @@ export async function getMoneyAccountDepositTransactionsData(
  *
  * @param chainId - Chain ID in hex
  * @param amountHuman - Human-readable withdrawal amount (e.g. "10.5")
- * @param recipient - EVM address to receive the withdrawn USDC
- * @returns `[withdrawData, transferData]`, or `[]` if vault config or provider is unavailable
+ * @param recipientOverride - Optional EVM address to receive the withdrawn USDC.
+ * When omitted, defaults to the currently selected EVM account.
+ * @returns `[withdrawTx.params, transferTx.params]`, or `[]` if vault config or provider is unavailable
  */
 export async function getMoneyAccountWithdrawTransactionsData(
   chainId: Hex,
   amountHuman: string,
-  recipient: Hex,
-): Promise<Hex[]> {
+  recipientOverride?: Hex,
+): Promise<MoneyAccountTxParams['params'][]> {
   const state = ReduxService.store.getState() as RootState;
   const vaultConfig = selectMoneyAccountVaultConfig(state);
   const primaryMoneyAccount = selectPrimaryMoneyAccount(state);
+  const recipient = recipientOverride ?? selectEvmAddress(state);
   if (!vaultConfig || !primaryMoneyAccount?.address) return [];
 
   const provider = getProviderByChainId(chainId);
   if (!provider) return [];
 
-  const musdAddress = getMoneyAccountDepositAssetAddress(chainId);
   const amount = BigInt(
     calcTokenValue(amountHuman, MUSD_DECIMALS)
       .decimalPlaces(0, BigNumber.ROUND_UP)
       .toFixed(0),
   );
-  const shareAmount =
-    amount === 0n
-      ? 0n
-      : getSharesForWithdrawal(
-          amount,
-          await getVaultRate({
-            accountantAddress: vaultConfig.accountantAddress,
-            provider,
-          }),
-        );
 
-  const withdrawData = buildWithdrawData(
-    musdAddress,
-    shareAmount,
+  const { withdrawTx, transferTx } = await buildMoneyAccountWithdrawBatch({
     amount,
-    primaryMoneyAccount.address,
-  );
-  const transferData = buildErc20TransferData(recipient, amount);
+    chainId,
+    tellerAddress: vaultConfig.tellerAddress as Hex,
+    accountantAddress: vaultConfig.accountantAddress as Hex,
+    moneyAccountAddress: primaryMoneyAccount.address as Hex,
+    recipient: recipient as Hex,
+    provider,
+  });
 
-  return [withdrawData, transferData];
+  return [withdrawTx.params, transferTx.params];
 }
 
 // -- Withdrawal helpers ----------------------------------------------------

@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
+import { TextColor } from '@metamask/design-system-react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import VipTierProgressCard, {
   VIP_TIER_PROGRESS_CARD_TEST_IDS,
@@ -8,11 +9,31 @@ import {
   VIP_GOLD_BACKGROUND_GRADIENT_COLORS,
   VIP_GOLD_BORDER_DEFAULT,
   VIP_GOLD_PROGRESS_GRADIENT_COLORS,
+  VIP_GOLD_TEXT_MUTED,
 } from './Vip.constants';
+import { AppThemeKey } from '../../../../../util/theme/models';
+import { mockTheme, ThemeContext } from '../../../../../util/theme';
+
+interface MockTextProps {
+  children?: React.ReactNode;
+  color?: TextColor;
+  style?: unknown;
+}
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
-  return { ...actual };
+  const ReactActual = jest.requireActual('react');
+  const { Text: RNText } = jest.requireActual('react-native');
+
+  return {
+    ...actual,
+    Text: ({ children, color, style, ...props }: MockTextProps) =>
+      ReactActual.createElement(
+        RNText,
+        { ...props, style: [{ color }, style] },
+        children,
+      ),
+  };
 });
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
@@ -23,34 +44,60 @@ jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 
 jest.mock('../../../../../images/rewards/vip.svg', () => 'VipIcon');
 
+const renderWithTheme = (
+  ui: React.ReactElement,
+  themeAppearance: AppThemeKey = AppThemeKey.light,
+) => {
+  const renderWithProvider = (
+    element: React.ReactElement,
+    appearance: AppThemeKey,
+  ) => (
+    <ThemeContext.Provider
+      value={{ ...mockTheme, themeAppearance: appearance }}
+    >
+      {element}
+    </ThemeContext.Provider>
+  );
+
+  const result = render(renderWithProvider(ui, themeAppearance));
+
+  return {
+    ...result,
+    rerender: (
+      nextUi: React.ReactElement,
+      nextThemeAppearance: AppThemeKey = themeAppearance,
+    ) => result.rerender(renderWithProvider(nextUi, nextThemeAppearance)),
+  };
+};
+
 describe('VipTierProgressCard', () => {
   const baseProps = {
-    currentTier: { id: 't3', name: 'Gold Fox VIP 3', tier: 3 },
+    currentTier: { id: 't3', name: 'Mock Tier Alpha 3', tier: 3 },
     progress: {
-      percent: 72,
-      remainingPointsToNextTier: 800_000,
+      percent: 42,
+      remainingPointsToNextTier: 123_456,
       status: 'on_track',
     },
-    subline: '$800K Swaps • $3.6M Perps to Gold Fox VIP 4',
+    subline: '$123K Swaps • $456K Perps to Mock Tier Alpha 4',
     memberIdTitle: 'Member ID',
-    memberId: 'VIP-123',
+    memberId: 'MOCK-123',
   };
 
   it('renders the current tier name, member id, and the subline passed in by the parent', () => {
-    const { getByText, getByTestId } = render(
+    const { getByText, getByTestId } = renderWithTheme(
       <VipTierProgressCard {...baseProps} />,
     );
 
-    expect(getByText('Gold Fox VIP 3')).toBeOnTheScreen();
+    expect(getByText('Mock Tier Alpha 3')).toBeOnTheScreen();
     expect(getByText('Member ID')).toBeOnTheScreen();
-    expect(getByText('VIP-123')).toBeOnTheScreen();
+    expect(getByText('MOCK-123')).toBeOnTheScreen();
     expect(
       getByTestId(VIP_TIER_PROGRESS_CARD_TEST_IDS.SUBLINE),
-    ).toHaveTextContent('$800K Swaps • $3.6M Perps to Gold Fox VIP 4');
+    ).toHaveTextContent('$123K Swaps • $456K Perps to Mock Tier Alpha 4');
   });
 
   it('renders a gold gradient and border from bottom left to top right', () => {
-    const { UNSAFE_getAllByType, getByTestId } = render(
+    const { UNSAFE_getAllByType, getByTestId } = renderWithTheme(
       <VipTierProgressCard {...baseProps} />,
     );
 
@@ -104,7 +151,7 @@ describe('VipTierProgressCard', () => {
       return undefined;
     };
 
-    const { getByTestId, rerender } = render(
+    const { getByTestId, rerender } = renderWithTheme(
       <VipTierProgressCard
         {...baseProps}
         progress={{ ...baseProps.progress, percent: 150 }}
@@ -131,10 +178,37 @@ describe('VipTierProgressCard', () => {
 
   it('invokes onPress when the card is tapped', () => {
     const onPress = jest.fn();
-    const { getByTestId } = render(
+    const { getByTestId } = renderWithTheme(
       <VipTierProgressCard {...baseProps} onPress={onPress} />,
     );
     fireEvent.press(getByTestId(VIP_TIER_PROGRESS_CARD_TEST_IDS.CONTAINER));
     expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('uses standard alternative text color for member id text in light mode', () => {
+    const { getByText } = renderWithTheme(
+      <VipTierProgressCard {...baseProps} />,
+    );
+
+    expect(getByText('Member ID')).toHaveStyle({
+      color: TextColor.TextAlternative,
+    });
+    expect(getByText('MOCK-123')).toHaveStyle({
+      color: TextColor.TextAlternative,
+    });
+  });
+
+  it('uses VIP muted gold for member id text in dark mode', () => {
+    const { getByText } = renderWithTheme(
+      <VipTierProgressCard {...baseProps} />,
+      AppThemeKey.dark,
+    );
+
+    expect(getByText('Member ID')).toHaveStyle({
+      color: VIP_GOLD_TEXT_MUTED,
+    });
+    expect(getByText('MOCK-123')).toHaveStyle({
+      color: VIP_GOLD_TEXT_MUTED,
+    });
   });
 });

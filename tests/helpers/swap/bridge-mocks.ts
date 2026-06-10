@@ -50,6 +50,11 @@ export const testSpecificMock: TestSpecificMock = async (
         { chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp', name: 'Solana' },
       ],
     },
+    stxMigrationBatchStatus: false,
+    stxMigrationCancel: false,
+    stxMigrationGetFees: false,
+    stxMigrationSubmitTransactions: false,
+    swapsSWAPS4543AbtestPostTradeModal: 'control',
   });
   // Mock Ethereum token list
   await setupMockRequest(mockServer, {
@@ -124,6 +129,13 @@ export const testSpecificMock: TestSpecificMock = async (
     requestMethod: 'GET',
     url: /getTxStatus/i,
     response: BRIDGE_TX_STATUS_COMPLETE,
+    responseCode: 200,
+  });
+
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: /tx-sentinel-[a-z0-9-]+\.api\.cx\.metamask\.io\/v1\/networks\/\d+\/batchStatus/,
+    response: {},
     responseCode: 200,
   });
 };

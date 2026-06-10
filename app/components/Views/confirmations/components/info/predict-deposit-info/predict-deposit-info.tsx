@@ -5,9 +5,11 @@ import { strings } from '../../../../../../../locales/i18n';
 import { POLYGON_PUSD, PREDICT_CURRENCY } from '../../../constants/predict';
 import { useAddToken } from '../../../hooks/tokens/useAddToken';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { useMoneyAccountPaymentOverride } from '../../../hooks/pay/useMoneyAccountPaymentOverride';
 
 export function PredictDepositInfo() {
   useNavbar(strings('confirm.title.predict_deposit'));
+  useMoneyAccountPaymentOverride();
 
   useAddToken({
     chainId: CHAIN_IDS.POLYGON,

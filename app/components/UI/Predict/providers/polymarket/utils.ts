@@ -38,6 +38,9 @@ import type {
   GetMarketsParams,
   OrderPreview,
   PredictFees,
+  PredictFilterOption,
+  PredictFilterOptionsParams,
+  PredictMarketListParams,
   PreviewOrderParams,
   SearchMarketsParams,
 } from '../types';
@@ -751,16 +754,18 @@ const sortByLiquidityAndVolume = (
   });
 
 const formatMarketGroupItemTitle = (market: PolymarketApiMarket): string => {
+  const groupItemTitle = market.groupItemTitle ?? market.question ?? '';
+
   if (isSpreadMarket(market)) {
     // Remove the dash before the spread number (e.g., "FC-Dallas -3.5" → "FC-Dallas 3.5")
     // Uses negative lookahead to target dash followed by digit, not dashes in team names
-    return market.groupItemTitle.replace(/-(?=\d)/, '');
+    return groupItemTitle.replace(/-(?=\d)/, '');
   }
 
   if (isMoneylineLikeMarket(market)) {
-    return market.groupItemTitle || market.question;
+    return groupItemTitle || market.question;
   }
-  return market.groupItemTitle;
+  return groupItemTitle;
 };
 
 const YES_NO_TO_OVER_UNDER: Record<string, string> = {
@@ -1058,6 +1063,15 @@ const getPredictMarketStatus = (
   return PredictMarketStatus.OPEN;
 };
 
+const parseEventPriceToBeat = (
+  event: PolymarketApiEvent,
+): number | undefined => {
+  const priceToBeat = Number(event.eventMetadata?.priceToBeat);
+  return Number.isFinite(priceToBeat) && priceToBeat > 0
+    ? priceToBeat
+    : undefined;
+};
+
 export const parsePolymarketMarket = (
   market: PolymarketApiMarket,
   event: PolymarketApiEvent,
@@ -1168,6 +1182,8 @@ export const parsePolymarketEvents = (
         ? buildOutcomeGroups(outcomes)
         : undefined;
 
+      const priceToBeat = parseEventPriceToBeat(event);
+
       return [
         {
           id: event.id,
@@ -1189,6 +1205,7 @@ export const parsePolymarketEvents = (
           liquidity: event.liquidity,
           volume: event.volume,
           game,
+          ...(priceToBeat !== undefined && { priceToBeat }),
           ...(seriesData && { series: seriesData }),
           ...(event.parentEventId !== undefined && {
             parentMarketId: event.parentEventId,
@@ -1211,6 +1228,22 @@ export const parsePolymarketEvents = (
  * Keeps essential metadata used by UI (title/outcome/icon)
  * Note: Lost redeems (activities with no payout) are excluded by the API via excludeLostRedeems parameter
  */
+const getPolymarketActivityId = (activity: PolymarketApiActivity): string =>
+  [
+    activity.transactionHash || 'no-transaction',
+    activity.type || 'unknown-type',
+    activity.side || 'unknown-side',
+    activity.conditionId || 'unknown-condition',
+    activity.outcomeIndex ?? 'unknown-outcome-index',
+    activity.timestamp ?? 'unknown-timestamp',
+    activity.usdcSize ?? 'unknown-size',
+    activity.price ?? 'unknown-price',
+    activity.title || 'unknown-title',
+    activity.outcome || 'unknown-outcome',
+  ]
+    .map(String)
+    .join(':');
+
 export const parsePolymarketActivity = (
   activities: PolymarketApiActivity[],
 ): PredictActivity[] => {
@@ -1229,8 +1262,7 @@ export const parsePolymarketActivity = (
             : 'claimWinnings'
         : 'claimWinnings';
 
-    const id =
-      activity.transactionHash ?? String(activity.timestamp ?? Math.random());
+    const id = getPolymarketActivityId(activity);
     const timestamp = Number(activity.timestamp ?? Date.now());
 
     const price = Number(activity.price ?? 0);
@@ -1387,6 +1419,232 @@ export const fetchEventsFromPolymarketApi = async (
     category,
     nextCursor: responseData.next_cursor ?? null,
   };
+};
+
+/**
+ * The single, centralized place where {@link PredictMarketListParams} are turned
+ * into Polymarket `/events/keyset` query params for the generic `listMarkets`
+ * path. Keeping this construction in one function (per the API ticket) makes the
+ * param mapping easy to audit and test.
+ *
+ * Mapping rules:
+ * - `order`: `volume24hr`/`liquidity` -> descending; `ending_soon` -> `order=endDate&ascending=true`; `newest` -> `order=startDate&ascending=false`. Defaults to `volume24hr` (descending).
+ * - `status`: `open` -> `active=true&archived=false&closed=false`; `closed`/`resolved` -> `closed=true`. `resolved` intentionally maps to the same `closed=true` params (no separate server-side filter).
+ * - `tags` -> repeated `tag_id`; `tagSlugs` -> repeated `tag_slug`; `series` -> repeated `series_id`.
+ * - `live` -> `live=true`. `limit` defaults to 20. `afterCursor` -> `after_cursor`.
+ * - `search` -> `title_search` (case-insensitive title filter). Composes with cursor pagination, so it stays on this endpoint (kept in the provider layer). Blank/whitespace is ignored (browse mode).
+ */
+export const buildMarketListQueryParams = (
+  params: PredictMarketListParams = {},
+): URLSearchParams => {
+  const {
+    tags,
+    tagSlugs,
+    series,
+    order = 'volume24hr',
+    status = 'open',
+    live,
+    limit = 20,
+    afterCursor,
+    search,
+  } = params;
+
+  const queryParams = new URLSearchParams({
+    limit: String(limit),
+  });
+
+  switch (status) {
+    case 'closed':
+    case 'resolved':
+      // 'resolved' intentionally maps to the same closed=true params (no separate server-side filter).
+      queryParams.set('closed', 'true');
+      break;
+    case 'open':
+    default:
+      queryParams.set('active', 'true');
+      queryParams.set('archived', 'false');
+      queryParams.set('closed', 'false');
+      break;
+  }
+
+  switch (order) {
+    case 'liquidity':
+      queryParams.set('order', 'liquidity');
+      queryParams.set('ascending', 'false');
+      break;
+    case 'ending_soon':
+      queryParams.set('order', 'endDate');
+      queryParams.set('ascending', 'true');
+      break;
+    case 'newest':
+      queryParams.set('order', 'startDate');
+      queryParams.set('ascending', 'false');
+      break;
+    case 'volume24hr':
+    default:
+      queryParams.set('order', 'volume24hr');
+      queryParams.set('ascending', 'false');
+      break;
+  }
+
+  tags?.forEach((tagId) => queryParams.append('tag_id', tagId));
+  tagSlugs?.forEach((tagSlug) => queryParams.append('tag_slug', tagSlug));
+  series?.forEach((seriesId) => queryParams.append('series_id', seriesId));
+
+  if (live) {
+    queryParams.set('live', 'true');
+  }
+
+  if (afterCursor) {
+    queryParams.set('after_cursor', afterCursor);
+  }
+
+  const trimmedSearch = search?.trim();
+  if (trimmedSearch) {
+    queryParams.set('title_search', trimmedSearch);
+  }
+
+  return queryParams;
+};
+
+export interface FetchMarketsResult {
+  events: PolymarketApiEvent[];
+  nextCursor: string | null;
+}
+
+/**
+ * Generic, category-free market fetch for the `listMarkets` path. Mirrors
+ * {@link fetchEventsFromPolymarketApi} but builds its query exclusively via
+ * {@link buildMarketListQueryParams} and returns only `{ events, nextCursor }`.
+ */
+export const fetchMarketsFromPolymarketApi = async (
+  params?: PredictMarketListParams,
+): Promise<FetchMarketsResult> => {
+  const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
+
+  const queryParams = buildMarketListQueryParams(params);
+
+  DevLogger.log('Listing markets via Polymarket API:', queryParams.toString());
+
+  const endpoint = `${GAMMA_API_ENDPOINT}/events/keyset?${queryParams.toString()}`;
+
+  const response = await fetch(endpoint);
+
+  if (!response.ok) {
+    throw new Error('Failed to list markets');
+  }
+
+  const data = await response.json();
+  const responseData = data as PolymarketApiEventsKeysetResponse;
+
+  if (!Array.isArray(responseData.events)) {
+    throw new Error('Malformed keyset events response');
+  }
+
+  return {
+    events: responseData.events,
+    nextCursor: responseData.next_cursor ?? null,
+  };
+};
+
+/**
+ * Minimal shape of a tag returned by Polymarket's Gamma related-tags endpoint.
+ * Only the fields we normalize from are typed.
+ */
+export interface PolymarketRelatedTag {
+  id: string | number;
+  label?: string;
+  slug: string;
+}
+
+/**
+ * Fetches related/popular tags for a given root slug from the Gamma related-tags
+ * endpoint. Use `'all'` for the general Popular Today/Trending list, or a feed's
+ * base tag slug (e.g. `'politics'`) for feed-specific related tags.
+ *
+ * Throws on non-ok / malformed responses so the caller can decide on a
+ * best-effort fallback (the provider catches and returns an empty list).
+ */
+export const fetchRelatedTagsFromPolymarketApi = async (
+  slug: string,
+): Promise<PolymarketRelatedTag[]> => {
+  const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
+
+  const endpoint = `${GAMMA_API_ENDPOINT}/tags/slug/${encodeURIComponent(
+    slug,
+  )}/related-tags/tags?omit_empty=true&status=active`;
+
+  DevLogger.log('Fetching related tags via Polymarket API:', endpoint);
+
+  const response = await fetch(endpoint);
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch related tags');
+  }
+
+  const data = await response.json();
+
+  if (!Array.isArray(data)) {
+    throw new Error('Malformed related-tags response');
+  }
+
+  return data as PolymarketRelatedTag[];
+};
+
+export interface NormalizeRelatedTagsOptions {
+  source: PredictFilterOptionsParams['source'];
+  baseParams?: PredictMarketListParams;
+  limit?: number;
+  /** Stable ids (slugs) already used by static filters; matching options are dropped. */
+  existingIds?: Iterable<string>;
+}
+
+/**
+ * Normalizes raw related tags into {@link PredictFilterOption}s. Each option's
+ * `params` are ready to feed straight into `listMarkets` (slug-based, since the
+ * related-tags endpoint is slug-only). Dedupes by stable slug/id (not label),
+ * drops any in `existingIds`, and applies `limit`.
+ */
+export const normalizeRelatedTagsToFilterOptions = (
+  tags: PolymarketRelatedTag[],
+  { source, baseParams, limit, existingIds }: NormalizeRelatedTagsOptions,
+): PredictFilterOption[] => {
+  const seen = new Set<string>(existingIds ?? []);
+  const options: PredictFilterOption[] = [];
+
+  // A filter option is a reusable filter definition, not a paginated request, so
+  // never carry a page cursor over from a (possibly reused) feed `baseParams`.
+  const filterBaseParams: PredictMarketListParams = { ...baseParams };
+  delete filterBaseParams.afterCursor;
+
+  for (const tag of tags) {
+    // Check the cap before adding so `limit: 0` yields an empty list.
+    if (limit !== undefined && options.length >= limit) {
+      break;
+    }
+
+    const slug = tag?.slug?.trim();
+    if (!slug || seen.has(slug)) {
+      continue;
+    }
+    seen.add(slug);
+
+    options.push({
+      id: slug,
+      label: tag.label?.trim() || slug,
+      source,
+      // Defaults first so a feed's `baseParams` can override sort/status, but the
+      // option's own tag always wins (it defines this filter).
+      params: {
+        order: 'volume24hr',
+        status: 'open',
+        ...filterBaseParams,
+        tagSlugs: [slug],
+      },
+    });
+  }
+
+  return options;
 };
 
 export interface SearchEventsResult {

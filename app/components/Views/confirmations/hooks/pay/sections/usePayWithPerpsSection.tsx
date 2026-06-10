@@ -1,5 +1,4 @@
 import React, { useCallback, useMemo } from 'react';
-import { Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { TransactionType } from '@metamask/transaction-controller';
@@ -8,12 +7,15 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
 } from '@metamask/design-system-react-native';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { selectPerpsAccountState } from '../../../../../UI/Perps/selectors/perpsController';
-import { PERPS_BALANCE_ICON_URI } from '../../../../../UI/Perps/hooks/usePerpsBalanceTokenFilter';
 import { useIsPerpsBalanceSelected } from '../../../../../UI/Perps/hooks/useIsPerpsBalanceSelected';
 import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
 import { usePerpsTrading } from '../../../../../UI/Perps/hooks/usePerpsTrading';
@@ -24,6 +26,7 @@ import {
   PayWithSectionConfig,
 } from '../../../components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet.types';
 import { hasTransactionType } from '../../../utils/transaction';
+import { useClearPaymentOverride } from './useClearPaymentOverride';
 
 export const PAY_WITH_PERPS_SECTION_TEST_ID = 'pay-with-section-perps';
 export const PAY_WITH_PERPS_BALANCE_ROW_TEST_ID =
@@ -48,10 +51,13 @@ export function usePayWithPerpsSection(): PayWithSectionConfig | null {
     [formatFiat, perpsAccount?.spendableBalance],
   );
 
+  const clearPaymentOverride = useClearPaymentOverride();
+
   const handleSelect = useCallback(() => {
     onPaymentTokenChange(null);
+    clearPaymentOverride();
     navigation.goBack();
-  }, [navigation, onPaymentTokenChange]);
+  }, [clearPaymentOverride, navigation, onPaymentTokenChange]);
 
   const handleAdd = useCallback(async () => {
     onReject();
@@ -73,11 +79,12 @@ export function usePayWithPerpsSection(): PayWithSectionConfig | null {
 
     const row: PayWithRowConfig = {
       id: 'perps-balance',
-      icon: React.createElement(Image, {
-        source: { uri: PERPS_BALANCE_ICON_URI },
-        style: { width: 24, height: 24 },
+      icon: React.createElement(Icon, {
+        name: IconName.Candlestick,
+        size: IconSize.Md,
+        color: IconColor.IconAlternative,
       }),
-      title: strings('confirm.pay_with_bottom_sheet.perps_account'),
+      title: strings('confirm.pay_with_bottom_sheet.perps_balance'),
       subtitle: strings('confirm.pay_with_bottom_sheet.available_balance', {
         balance,
       }),

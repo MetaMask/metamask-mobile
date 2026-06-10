@@ -23,11 +23,13 @@ import {
 import { TokenWarningModal } from './components/TokenWarningModal';
 import { MissingPriceModal } from './components/MissingPriceModal';
 import { HighRateAlertModal } from './components/HighRateAlertModal';
+import { PostTradeBottomSheet } from './components/PostTradeBottomSheet';
 import { BatchSellDestinationTokenSelectorModal } from './components/BatchSellDestinationTokenSelectorModal';
 import { BatchSellQuoteDetailsModal } from './components/BatchSellQuoteDetailsModal';
 import { BatchSellFinalReviewModal } from './components/BatchSellFinalReviewModal';
 import { BatchSellNetworkFeeInfoModal } from './components/BatchSellNetworkFeeInfoModal';
 import { BatchSellMinimumReceivedInfoModal } from './components/BatchSellMinimumReceivedInfoModal';
+import { BatchSellPriceImpactInfoModal } from './components/BatchSellPriceImpactInfoModal';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ScreenComponent = React.ComponentType<any>;
@@ -118,6 +120,10 @@ export const BridgeModalStack = () => (
       component={HighRateAlertModal}
     />
     <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.POST_TRADE_MODAL}
+      component={PostTradeBottomSheet}
+    />
+    <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.BATCH_SELL_DESTINATION_TOKEN_SELECTOR_MODAL}
       component={BatchSellDestinationTokenSelectorModal}
     />
@@ -136,6 +142,10 @@ export const BridgeModalStack = () => (
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.BATCH_SELL_MINIMUM_RECEIVED_INFO_MODAL}
       component={BatchSellMinimumReceivedInfoModal}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.BATCH_SELL_PRICE_IMPACT_INFO_MODAL}
+      component={BatchSellPriceImpactInfoModal}
     />
   </ModalStack.Navigator>
 );

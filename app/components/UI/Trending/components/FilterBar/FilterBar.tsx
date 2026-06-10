@@ -1,12 +1,11 @@
 import React from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import Icon, {
+import {
   IconName,
-  IconColor,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
-import Text from '../../../../../component-library/components/Texts/Text';
+  SelectButton,
+  SelectButtonVariant,
+} from '@metamask/design-system-react-native';
 
 export interface FilterButtonProps {
   testID: string;
@@ -30,40 +29,22 @@ export const FilterButton: React.FC<FilterButtonProps> = ({
   ellipsizeMode,
   twClassName,
   iconName,
-}) => {
-  const tw = useTailwind();
-
-  return (
-    <TouchableOpacity
-      testID={testID}
-      onPress={onPress}
-      style={tw.style(
-        'min-w-0 shrink flex-row items-center justify-center gap-1 rounded-xl bg-muted',
-        'py-2 px-3',
-        disabled && 'opacity-50',
-        twClassName,
-      )}
-      activeOpacity={0.2}
-      disabled={disabled}
-    >
-      {iconName && (
-        <Icon name={iconName} color={IconColor.Default} size={IconSize.Sm} />
-      )}
-      <Text
-        style={tw`min-w-0 shrink text-[14px] font-semibold text-default`}
-        numberOfLines={numberOfLines}
-        ellipsizeMode={ellipsizeMode}
-      >
-        {label}
-      </Text>
-      <Icon
-        name={IconName.ArrowDown}
-        color={IconColor.Alternative}
-        size={IconSize.Xs}
-      />
-    </TouchableOpacity>
-  );
-};
+}) => (
+  <SelectButton
+    testID={testID}
+    placeholder={label}
+    value={label}
+    onPress={onPress}
+    isDisabled={disabled}
+    variant={SelectButtonVariant.Primary}
+    startIconName={iconName}
+    textProps={{
+      numberOfLines,
+      ellipsizeMode,
+    }}
+    twClassName={twClassName}
+  />
+);
 
 export interface FilterBarProps {
   priceChangeButtonText: string;
@@ -97,7 +78,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
 
   return (
     <View style={tw`flex-grow-0 px-4 pb-4`}>
-      <View style={tw`flex-row items-center justify-between`}>
+      <View style={tw`flex-row items-center gap-2`}>
         <FilterButton
           testID="price-change-button"
           label={priceChangeButtonText}
@@ -107,16 +88,14 @@ const FilterBar: React.FC<FilterBarProps> = ({
           numberOfLines={1}
           ellipsizeMode="tail"
         />
-        <View style={tw`ml-2 min-w-0 shrink flex-row items-center gap-2`}>
-          <FilterButton
-            testID="all-networks-button"
-            label={networkName}
-            onPress={onNetworkPress}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          />
-          {extraFilters}
-        </View>
+        <FilterButton
+          testID="all-networks-button"
+          label={networkName}
+          onPress={onNetworkPress}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        />
+        {extraFilters}
       </View>
     </View>
   );

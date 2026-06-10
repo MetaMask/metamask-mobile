@@ -8,18 +8,15 @@ import {
   appLockStateMachine,
   startAppServices,
   initializeSDKServices,
+  initializeSDKServicesSaga,
   handleDeeplinkSaga,
   handleSnapsRegistry,
-  parseDeeplinkAfterNavReady,
-  __setMainNavigatorReadyForTesting,
+  parseDeeplink,
   __resetSDKServicesInitializationForTesting,
   requestAuthOnAppStart,
   appStateListenerTask,
 } from './';
-import {
-  NavigationActionType,
-  mainNavigatorReady,
-} from '../../actions/navigation';
+import { NavigationActionType } from '../../actions/navigation';
 import EngineService from '../../core/EngineService';
 import { AppStateEventProcessor } from '../../core/AppStateEventListener';
 import Engine from '../../core/Engine';
@@ -32,6 +29,7 @@ import Authentication from '../../core/Authentication';
 import AppConstants from '../../core/AppConstants';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { providerErrors } from '@metamask/rpc-errors';
+import { getDevAutoUnlockPassword } from '../../util/environment';
 
 const mockNavigate = jest.fn();
 const mockReset = jest.fn();
@@ -97,6 +95,11 @@ jest.mock('../../core/Engine', () => ({
     },
     KeyringController: {
       isUnlocked: jest.fn().mockReturnValue(false),
+      state: {
+        vault: undefined,
+        keyrings: [],
+        isUnlocked: false,
+      },
     },
     SnapController: {
       updateRegistry: jest.fn(),
@@ -153,6 +156,10 @@ jest.mock('../../core/Authentication', () => ({
   },
 }));
 
+jest.mock('../../util/environment', () => ({
+  getDevAutoUnlockPassword: jest.fn(),
+}));
+
 jest.mock('../../core/LockManagerService', () => ({
   __esModule: true,
   default: {
@@ -184,6 +191,18 @@ const defaultMockState = {
   bridge: {},
   banners: {},
 };
+
+beforeEach(() => {
+  (getDevAutoUnlockPassword as jest.Mock).mockReturnValue(undefined);
+  (Engine.context.KeyringController.isUnlocked as jest.Mock).mockReturnValue(
+    false,
+  );
+  Engine.context.KeyringController.state = {
+    vault: undefined,
+    keyrings: [],
+    isUnlocked: false,
+  };
+});
 
 describe('requestAuthOnAppStart', () => {
   beforeEach(() => {
@@ -224,6 +243,50 @@ describe('requestAuthOnAppStart', () => {
     await expectSaga(requestAuthOnAppStart).run();
     expect(mockReset).toHaveBeenCalledWith({
       routes: [{ name: Routes.ONBOARDING.LOGIN }],
+    });
+  });
+
+  it('uses dev auto-unlock password in dev when the wallet has a vault and is locked', async () => {
+    (getDevAutoUnlockPassword as jest.Mock).mockReturnValue('test-password');
+    Engine.context.KeyringController.state = {
+      vault: 'mock-vault',
+      keyrings: [],
+      isUnlocked: false,
+    };
+
+    await expectSaga(requestAuthOnAppStart).run();
+
+    expect(Authentication.unlockWallet).toHaveBeenCalledWith({
+      password: 'test-password',
+    });
+    expect(
+      Authentication.checkIsSeedlessPasswordOutdated,
+    ).not.toHaveBeenCalled();
+  });
+
+  it('falls back to normal app-start authentication when dev auto-unlock is not configured', async () => {
+    Engine.context.KeyringController.state = {
+      vault: 'mock-vault',
+      keyrings: [],
+      isUnlocked: false,
+    };
+
+    await expectSaga(requestAuthOnAppStart).run();
+
+    expect(Authentication.unlockWallet).toHaveBeenCalledWith();
+    expect(Authentication.unlockWallet).not.toHaveBeenCalledWith({
+      password: 'test-password',
+    });
+  });
+
+  it('falls back to normal app-start authentication when no vault exists', async () => {
+    (getDevAutoUnlockPassword as jest.Mock).mockReturnValue('test-password');
+
+    await expectSaga(requestAuthOnAppStart).run();
+
+    expect(Authentication.unlockWallet).toHaveBeenCalledWith();
+    expect(Authentication.unlockWallet).not.toHaveBeenCalledWith({
+      password: 'test-password',
     });
   });
 });
@@ -526,10 +589,81 @@ describe('initializeSDKServices', () => {
   });
 });
 
+describe('initializeSDKServicesSaga', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    __resetSDKServicesInitializationForTesting();
+    AppStateEventProcessor.pendingDeeplink = null;
+    AppStateEventProcessor.pendingDeeplinkSource = null;
+  });
+
+  it('starts SDK services on login for an unlocked onboarded user without a pending deeplink', async () => {
+    Engine.context.KeyringController.isUnlocked = jest
+      .fn()
+      .mockReturnValue(true);
+
+    await expectSaga(initializeSDKServicesSaga)
+      .withState({
+        ...defaultMockState,
+        onboarding: { completedOnboarding: true },
+      })
+      .dispatch({ type: UserActionType.LOGIN })
+      .silentRun();
+
+    expect(WC2Manager.init).toHaveBeenCalledWith({});
+    expect(SDKConnect.init).toHaveBeenCalledWith({ context: 'Nav/App' });
+    expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
+    expect(AppStateEventProcessor.clearPendingDeeplink).not.toHaveBeenCalled();
+  });
+
+  it('does not start SDK services on login before onboarding is complete', async () => {
+    Engine.context.KeyringController.isUnlocked = jest
+      .fn()
+      .mockReturnValue(true);
+
+    await expectSaga(initializeSDKServicesSaga)
+      .withState({
+        ...defaultMockState,
+        onboarding: { completedOnboarding: false },
+      })
+      .dispatch({ type: UserActionType.LOGIN })
+      .silentRun();
+
+    expect(WC2Manager.init).not.toHaveBeenCalled();
+    expect(SDKConnect.init).not.toHaveBeenCalled();
+  });
+
+  it('starts SDK services when onboarding is completed after unlock', async () => {
+    Engine.context.KeyringController.isUnlocked = jest
+      .fn()
+      .mockReturnValue(true);
+
+    await expectSaga(initializeSDKServicesSaga)
+      .withState(defaultMockState)
+      .dispatch(setCompletedOnboarding(true))
+      .silentRun();
+
+    expect(WC2Manager.init).toHaveBeenCalledWith({});
+    expect(SDKConnect.init).toHaveBeenCalledWith({ context: 'Nav/App' });
+  });
+
+  it('does not start SDK services when the wallet is still locked', async () => {
+    await expectSaga(initializeSDKServicesSaga)
+      .withState({
+        ...defaultMockState,
+        onboarding: { completedOnboarding: true },
+      })
+      .dispatch({ type: UserActionType.LOGIN })
+      .silentRun();
+
+    expect(WC2Manager.init).not.toHaveBeenCalled();
+    expect(SDKConnect.init).not.toHaveBeenCalled();
+  });
+});
+
 describe('handleDeeplinkSaga', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    __setMainNavigatorReadyForTesting(true);
     __resetSDKServicesInitializationForTesting();
     AppStateEventProcessor.pendingDeeplink = null;
     AppStateEventProcessor.pendingDeeplinkSource = null;
@@ -565,7 +699,7 @@ describe('handleDeeplinkSaga', () => {
       expect(SDKConnect.init).not.toHaveBeenCalled();
     });
 
-    it('starts SDK services when the wallet is unlocked and onboarded', async () => {
+    it('does not warm SDK services without a pending deeplink', async () => {
       Engine.context.KeyringController.isUnlocked = jest
         .fn()
         .mockReturnValue(true);
@@ -575,12 +709,12 @@ describe('handleDeeplinkSaga', () => {
           ...defaultMockState,
           onboarding: { completedOnboarding: true },
         })
-        .dispatch({ type: UserActionType.LOGIN })
+        .dispatch(checkForDeeplink())
         .silentRun();
 
       expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
-      expect(WC2Manager.init).toHaveBeenCalledWith({});
-      expect(SDKConnect.init).toHaveBeenCalledWith({ context: 'Nav/App' });
+      expect(WC2Manager.init).not.toHaveBeenCalled();
+      expect(SDKConnect.init).not.toHaveBeenCalled();
     });
   });
 
@@ -665,10 +799,8 @@ describe('handleDeeplinkSaga', () => {
           expect(
             AppStateEventProcessor.clearPendingDeeplink,
           ).toHaveBeenCalled();
-          expect(WC2Manager.init).toHaveBeenCalledWith({});
-          expect(SDKConnect.init).toHaveBeenCalledWith({
-            context: 'Nav/App',
-          });
+          expect(WC2Manager.init).not.toHaveBeenCalled();
+          expect(SDKConnect.init).not.toHaveBeenCalled();
         });
       });
       describe('when completed onboarding is true in Redux state', () => {
@@ -705,10 +837,33 @@ describe('handleDeeplinkSaga', () => {
           expect(
             AppStateEventProcessor.clearPendingDeeplink,
           ).toHaveBeenCalled();
-          expect(WC2Manager.init).toHaveBeenCalledWith({});
-          expect(SDKConnect.init).toHaveBeenCalledWith({
-            context: 'Nav/App',
-          });
+          expect(WC2Manager.init).not.toHaveBeenCalled();
+          expect(SDKConnect.init).not.toHaveBeenCalled();
+        });
+
+        it('parses non-SDK deeplinks without starting SDK services', async () => {
+          const rewardsLink = 'https://link.metamask.io/rewards';
+          AppStateEventProcessor.pendingDeeplink = rewardsLink;
+          Engine.context.KeyringController.isUnlocked = jest
+            .fn()
+            .mockReturnValue(true);
+
+          await expectSaga(handleDeeplinkSaga)
+            .withState({
+              ...defaultMockState,
+              onboarding: { completedOnboarding: true },
+            })
+            .dispatch(checkForDeeplink())
+            .silentRun();
+
+          expect(WC2Manager.init).not.toHaveBeenCalled();
+          expect(SDKConnect.init).not.toHaveBeenCalled();
+          expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(
+            rewardsLink,
+            expect.objectContaining({
+              origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+            }),
+          );
         });
 
         it('waits for SDK services before parsing SDK/WalletConnect deeplinks', async () => {
@@ -890,78 +1045,20 @@ describe('handleDeeplinkSaga', () => {
   });
 });
 
-describe('parseDeeplinkAfterNavReady', () => {
+describe('parseDeeplink', () => {
   const TEST_URL = 'https://link.metamask.io/buy';
   const TEST_ORIGIN = AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    __setMainNavigatorReadyForTesting(false);
   });
 
-  it('parses immediately when MainNavigator is already mounted', async () => {
-    __setMainNavigatorReadyForTesting(true);
-
-    await expectSaga(parseDeeplinkAfterNavReady, TEST_URL, TEST_ORIGIN).run();
+  it('parses immediately', async () => {
+    await expectSaga(parseDeeplink, TEST_URL, TEST_ORIGIN).run();
 
     expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(TEST_URL, {
       origin: TEST_ORIGIN,
     });
-  });
-
-  it('waits for MAIN_NAVIGATOR_READY when MainNavigator has not mounted (cold start)', async () => {
-    await expectSaga(parseDeeplinkAfterNavReady, TEST_URL, TEST_ORIGIN)
-      .dispatch(mainNavigatorReady())
-      .run();
-
-    expect(SharedDeeplinkManager.parse).toHaveBeenCalledTimes(1);
-    expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(TEST_URL, {
-      origin: TEST_ORIGIN,
-    });
-  });
-
-  it('does not parse before MAIN_NAVIGATOR_READY is dispatched', async () => {
-    jest.useFakeTimers();
-    try {
-      // Kick off the saga with MainNavigator not ready; do NOT dispatch
-      // the ready action. Advance past the timeout-safety-net so the
-      // saga either parses (timeout branch) or times out the test itself.
-      const racePromise = expectSaga(
-        parseDeeplinkAfterNavReady,
-        TEST_URL,
-        TEST_ORIGIN,
-      ).run({ timeout: 5000, silenceTimeout: true });
-
-      // Before advancing timers, the saga must be blocked on `race` and
-      // the deeplink must not have been parsed yet.
-      expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
-
-      jest.advanceTimersByTime(3100);
-      await racePromise;
-    } finally {
-      jest.useRealTimers();
-    }
-  });
-
-  it('parses anyway after the safety timeout when MainNavigator never mounts', async () => {
-    jest.useFakeTimers();
-    try {
-      const racePromise = expectSaga(
-        parseDeeplinkAfterNavReady,
-        TEST_URL,
-        TEST_ORIGIN,
-      ).run({ timeout: 5000, silenceTimeout: true });
-
-      // Advance past the 3s safety cap inside the saga's `race`.
-      jest.advanceTimersByTime(3100);
-      await racePromise;
-
-      expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(TEST_URL, {
-        origin: TEST_ORIGIN,
-      });
-    } finally {
-      jest.useRealTimers();
-    }
   });
 });
 

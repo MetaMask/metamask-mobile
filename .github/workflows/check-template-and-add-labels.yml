@@ -4,7 +4,10 @@ on:
   issues:
     types: [opened, edited, labeled, unlabeled, reopened]
   pull_request_target:
-    types: [opened, edited, labeled, unlabeled, reopened]
+    # `ready_for_review` / `converted_to_draft` flip the check between
+    # "informational" (draft) and "blocking" (non-draft) the moment the author
+    # changes state. `synchronize` keeps the status fresh as new commits land.
+    types: [opened, edited, labeled, unlabeled, reopened, ready_for_review, converted_to_draft, synchronize]
   merge_group:
 
 jobs:
@@ -27,8 +30,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: [is-fork-pull-request]
     if: ${{ always() && github.event_name != 'merge_group' && (github.event_name == 'issues' || (github.event_name == 'pull_request_target' && needs.is-fork-pull-request.outputs.IS_FORK == 'false')) }}
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - name: Checkout repository
+        # WARNING: do NOT add `ref:` here — pull_request_target must stay on the base branch.
         uses: actions/checkout@v4
         with:
           fetch-depth: 1 # This retrieves only the latest commit.
@@ -46,9 +53,19 @@ jobs:
           retry_wait_seconds: 30
           command: cd .github/scripts && yarn --immutable
 
+      - name: Get access token
+        id: get-token
+        uses: MetaMask/github-tools/.github/actions/get-token@v1
+        with:
+          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
+          permissions: |
+            issues: write
+            members: read
+            pull_requests: write
+
       - name: Check template and add labels
         id: check-template-and-add-labels
         env:
-          LABEL_TOKEN: ${{ secrets.LABEL_TOKEN }}
+          LABEL_TOKEN: ${{ steps.get-token.outputs.token }}
         run: npm run check-template-and-add-labels
         working-directory: '.github/scripts'
