@@ -159,10 +159,10 @@ export const PerpsWatchlistSelectorsIDs = {
   SECTION: 'perps-watchlist-section',
   HEADER: 'perps-watchlist-header',
   EMPTY_STATE: 'perps-watchlist-empty-state',
-  EMPTY_STATE_TITLE: 'perps-watchlist-empty-state-title',
-  EMPTY_STATE_SUBTITLE: 'perps-watchlist-empty-state-subtitle',
   SHOW_MORE_BUTTON: 'perps-watchlist-show-more-button',
   SHOW_LESS_BUTTON: 'perps-watchlist-show-less-button',
+  SUGGESTED_SECTION: 'perps-watchlist-suggested-section',
+  SUGGESTED_HEADER: 'perps-watchlist-suggested-header',
 } as const;
 
 // ========================================

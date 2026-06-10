@@ -36,11 +36,15 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingTop: 4,
       paddingBottom: 8,
     },
-    emptyStateTitle: {
-      marginBottom: 4,
+    // Suggested sub-section
+    suggestedSection: {
+      paddingHorizontal: 16,
+      paddingTop: 4,
+      paddingBottom: 8,
     },
-    emptyStateSubtitle: {
-      marginBottom: 12,
+    suggestedHeader: {
+      marginTop: 16,
+      marginBottom: 4,
     },
     // Show more / show less toggle
     showMoreRow: {

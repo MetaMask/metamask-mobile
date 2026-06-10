@@ -24,8 +24,8 @@ jest.mock('../../../../../component-library/hooks', () => ({
       titleRow: {},
       listContent: {},
       emptyStateContainer: {},
-      emptyStateTitle: {},
-      emptyStateSubtitle: {},
+      suggestedSection: {},
+      suggestedHeader: {},
       showMoreRow: {},
     },
   }),
@@ -82,9 +82,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
     const translations: Record<string, string> = {
       'perps.home.watchlist': 'Watchlist',
       'perps.home.see_all': 'See all',
-      'perps.watchlist.empty_title': 'Start with the most-traded markets',
-      'perps.watchlist.empty_subtitle':
-        'Tap + to add a market to your watchlist.',
+      'perps.watchlist.suggested': 'Suggested',
       'perps.watchlist.show_more': `Show ${params?.count} more`,
       'perps.watchlist.show_less': 'Show less',
     };
@@ -131,12 +129,11 @@ describe('PerpsWatchlistMarkets', () => {
     makeMarket('ETH', 'Ethereum'),
   ];
 
+  // Suggested list symbols deliberately differ from watchlist to avoid testID collision
   const mockSuggestedMarkets: PerpsMarketData[] = [
-    makeMarket('BTC', 'Bitcoin'),
-    makeMarket('ETH', 'Ethereum'),
     makeMarket('SOL', 'Solana'),
-    makeMarket('AAPL', 'Apple'),
-    makeMarket('OIL', 'Crude Oil'),
+    makeMarket('BNB', 'Binance Coin'),
+    makeMarket('AVAX', 'Avalanche'),
   ];
 
   beforeEach(() => {
@@ -150,39 +147,60 @@ describe('PerpsWatchlistMarkets', () => {
   });
 
   // -------------------------------------------------------------------------
-  // Empty state
+  // Empty / null states
   // -------------------------------------------------------------------------
 
-  describe('Empty state (no watchlist markets)', () => {
+  describe('Null state', () => {
     it('returns null when markets is empty and no suggestedMarkets provided', () => {
       const { toJSON } = render(<PerpsWatchlistMarkets markets={[]} />);
       expect(toJSON()).toBeNull();
     });
 
-    it('renders empty state title and subtitle when suggestedMarkets are provided', () => {
+    it('returns null when markets is empty and suggestedMarkets is empty array', () => {
+      const { toJSON } = render(
+        <PerpsWatchlistMarkets markets={[]} suggestedMarkets={[]} />,
+      );
+      expect(toJSON()).toBeNull();
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Empty watchlist + suggested sub-section
+  // -------------------------------------------------------------------------
+
+  describe('Empty watchlist with suggested markets', () => {
+    it('renders the "Suggested" sub-header when watchlist is empty', () => {
       render(
         <PerpsWatchlistMarkets
           markets={[]}
           suggestedMarkets={mockSuggestedMarkets}
         />,
       );
-
       expect(
-        screen.getByText('Start with the most-traded markets'),
+        screen.getByTestId('perps-watchlist-suggested-header'),
       ).toBeOnTheScreen();
+      expect(screen.getByText('Suggested')).toBeOnTheScreen();
+    });
+
+    it('renders the suggested section wrapper testID', () => {
+      render(
+        <PerpsWatchlistMarkets
+          markets={[]}
+          suggestedMarkets={mockSuggestedMarkets}
+        />,
+      );
       expect(
-        screen.getByText('Tap + to add a market to your watchlist.'),
+        screen.getByTestId('perps-watchlist-suggested-section'),
       ).toBeOnTheScreen();
     });
 
-    it('renders suggested market rows with add buttons in empty state', () => {
+    it('renders suggested market rows with add buttons', () => {
       render(
         <PerpsWatchlistMarkets
           markets={[]}
           suggestedMarkets={mockSuggestedMarkets}
         />,
       );
-
       for (const market of mockSuggestedMarkets) {
         expect(
           screen.getByTestId(`perps-market-row-${market.symbol}`),
@@ -193,40 +211,51 @@ describe('PerpsWatchlistMarkets', () => {
       }
     });
 
-    it('calls addToWatchlist when an add button is pressed in empty state', () => {
+    it('calls addToWatchlist with the correct symbol when an add button is pressed', () => {
       render(
         <PerpsWatchlistMarkets
           markets={[]}
           suggestedMarkets={mockSuggestedMarkets}
         />,
       );
-
-      fireEvent.press(screen.getByTestId('perps-market-row-BTC-add-button'));
-
+      fireEvent.press(screen.getByTestId('perps-market-row-SOL-add-button'));
       expect(mockAddToWatchlist).toHaveBeenCalledTimes(1);
-      expect(mockAddToWatchlist).toHaveBeenCalledWith('BTC');
+      expect(mockAddToWatchlist).toHaveBeenCalledWith('SOL');
     });
 
-    it('renders empty-state section header with Watchlist title', () => {
+    it('renders the Watchlist section header', () => {
       render(
         <PerpsWatchlistMarkets
           markets={[]}
           suggestedMarkets={mockSuggestedMarkets}
         />,
       );
-
       expect(screen.getByText('Watchlist')).toBeOnTheScreen();
+    });
+
+    it('does not render old empty-state title or subtitle copy', () => {
+      render(
+        <PerpsWatchlistMarkets
+          markets={[]}
+          suggestedMarkets={mockSuggestedMarkets}
+        />,
+      );
+      expect(
+        screen.queryByText('Start with the most-traded markets'),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByText('Tap + to add a market to your watchlist.'),
+      ).not.toBeOnTheScreen();
     });
   });
 
   // -------------------------------------------------------------------------
-  // Populated watchlist — ≤ 3 markets
+  // Populated watchlist — ≤ 3 markets, no suggested
   // -------------------------------------------------------------------------
 
   describe('Populated watchlist (≤ 3 markets)', () => {
-    it('renders all markets and no show-more toggle when ≤ 3 markets', () => {
+    it('renders all markets and no show-more toggle', () => {
       render(<PerpsWatchlistMarkets markets={mockMarkets} />);
-
       expect(screen.getByText('BTC')).toBeOnTheScreen();
       expect(screen.getByText('ETH')).toBeOnTheScreen();
       expect(screen.queryByText(/Show \d+ more/)).not.toBeOnTheScreen();
@@ -238,11 +267,52 @@ describe('PerpsWatchlistMarkets', () => {
       expect(screen.getByText('Watchlist')).toBeOnTheScreen();
     });
 
-    it('does not render suggested market rows when watchlist is populated', () => {
+    it('watchlist rows do not have add buttons', () => {
       render(<PerpsWatchlistMarkets markets={mockMarkets} />);
       expect(
         screen.queryByTestId('perps-market-row-BTC-add-button'),
       ).not.toBeOnTheScreen();
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Populated watchlist + suggested rendered together
+  // -------------------------------------------------------------------------
+
+  describe('Populated watchlist + suggested sub-section together', () => {
+    it('renders both watchlist rows and suggested rows simultaneously', () => {
+      render(
+        <PerpsWatchlistMarkets
+          markets={mockMarkets}
+          suggestedMarkets={mockSuggestedMarkets}
+        />,
+      );
+      // Watchlist rows (no add button)
+      expect(screen.getByTestId('perps-market-row-BTC')).toBeOnTheScreen();
+      expect(screen.getByTestId('perps-market-row-ETH')).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('perps-market-row-BTC-add-button'),
+      ).not.toBeOnTheScreen();
+
+      // Suggested rows (with add button)
+      for (const market of mockSuggestedMarkets) {
+        expect(
+          screen.getByTestId(`perps-market-row-${market.symbol}`),
+        ).toBeOnTheScreen();
+        expect(
+          screen.getByTestId(`perps-market-row-${market.symbol}-add-button`),
+        ).toBeOnTheScreen();
+      }
+    });
+
+    it('renders the "Suggested" sub-header when both lists are present', () => {
+      render(
+        <PerpsWatchlistMarkets
+          markets={mockMarkets}
+          suggestedMarkets={mockSuggestedMarkets}
+        />,
+      );
+      expect(screen.getByText('Suggested')).toBeOnTheScreen();
     });
   });
 
@@ -261,11 +331,9 @@ describe('PerpsWatchlistMarkets', () => {
 
     it('shows first 3 markets and a "Show 2 more" button', () => {
       render(<PerpsWatchlistMarkets markets={fiveMarkets} />);
-
       expect(screen.getByText('BTC')).toBeOnTheScreen();
       expect(screen.getByText('ETH')).toBeOnTheScreen();
       expect(screen.getByText('SOL')).toBeOnTheScreen();
-      // 4th and 5th should be hidden
       expect(screen.queryByText('AVAX')).not.toBeOnTheScreen();
       expect(screen.queryByText('DOT')).not.toBeOnTheScreen();
       expect(screen.getByText('Show 2 more')).toBeOnTheScreen();
@@ -273,28 +341,22 @@ describe('PerpsWatchlistMarkets', () => {
 
     it('expands to show all markets when "Show more" is pressed', () => {
       render(<PerpsWatchlistMarkets markets={fiveMarkets} />);
-
       fireEvent.press(screen.getByText('Show 2 more'));
-
       expect(screen.getByText('AVAX')).toBeOnTheScreen();
       expect(screen.getByText('DOT')).toBeOnTheScreen();
     });
 
     it('shows "Show less" button after expanding', () => {
       render(<PerpsWatchlistMarkets markets={fiveMarkets} />);
-
       fireEvent.press(screen.getByText('Show 2 more'));
-
       expect(screen.getByText('Show less')).toBeOnTheScreen();
       expect(screen.queryByText('Show 2 more')).not.toBeOnTheScreen();
     });
 
     it('collapses back to 3 markets when "Show less" is pressed', () => {
       render(<PerpsWatchlistMarkets markets={fiveMarkets} />);
-
       fireEvent.press(screen.getByText('Show 2 more'));
       fireEvent.press(screen.getByText('Show less'));
-
       expect(screen.queryByText('AVAX')).not.toBeOnTheScreen();
       expect(screen.queryByText('DOT')).not.toBeOnTheScreen();
       expect(screen.getByText('Show 2 more')).toBeOnTheScreen();
@@ -303,7 +365,6 @@ describe('PerpsWatchlistMarkets', () => {
     it('does not show toggle when exactly 3 markets are present', () => {
       const threeMarkets = fiveMarkets.slice(0, 3);
       render(<PerpsWatchlistMarkets markets={threeMarkets} />);
-
       expect(screen.queryByText(/Show \d+ more/)).not.toBeOnTheScreen();
       expect(screen.queryByText('Show less')).not.toBeOnTheScreen();
     });
@@ -316,7 +377,6 @@ describe('PerpsWatchlistMarkets', () => {
   describe('Loading state', () => {
     it('shows skeleton when isLoading is true', () => {
       render(<PerpsWatchlistMarkets markets={mockMarkets} isLoading />);
-
       expect(screen.getByTestId('perps-row-skeleton-3')).toBeOnTheScreen();
       expect(screen.getByText('Watchlist')).toBeOnTheScreen();
     });
@@ -325,11 +385,9 @@ describe('PerpsWatchlistMarkets', () => {
       const { rerender } = render(
         <PerpsWatchlistMarkets markets={mockMarkets} isLoading />,
       );
-
       rerender(
         <PerpsWatchlistMarkets markets={mockMarkets} isLoading={false} />,
       );
-
       expect(screen.getByText('BTC')).toBeOnTheScreen();
     });
   });
@@ -339,13 +397,11 @@ describe('PerpsWatchlistMarkets', () => {
   // -------------------------------------------------------------------------
 
   describe('Navigation', () => {
-    it('navigates to market details when a populated watchlist row is pressed', () => {
+    it('navigates to market details when a watchlist row is pressed', () => {
       render(
         <PerpsWatchlistMarkets markets={mockMarkets} source="perps_home" />,
       );
-
       fireEvent.press(screen.getByTestId('perps-market-row-BTC'));
-
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_DETAILS,
         params: {
@@ -356,7 +412,7 @@ describe('PerpsWatchlistMarkets', () => {
       });
     });
 
-    it('navigates to market details when a suggested market row is pressed in empty state', () => {
+    it('navigates to market details when a suggested market row is pressed', () => {
       render(
         <PerpsWatchlistMarkets
           markets={[]}
@@ -364,9 +420,7 @@ describe('PerpsWatchlistMarkets', () => {
           source="perps_home"
         />,
       );
-
-      fireEvent.press(screen.getByTestId('perps-market-row-BTC'));
-
+      fireEvent.press(screen.getByTestId('perps-market-row-SOL'));
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_DETAILS,
         params: {
@@ -377,7 +431,7 @@ describe('PerpsWatchlistMarkets', () => {
       });
     });
 
-    it('carries transactionActiveAbTests when a watchlist market opens market details', () => {
+    it('carries transactionActiveAbTests when opening market details', () => {
       const transactionActiveAbTests = [
         createActiveABTestAssignment(
           'homeTMCU725AbtestHomepagePerpsPillsEmptyState',
@@ -391,9 +445,7 @@ describe('PerpsWatchlistMarkets', () => {
           transactionActiveAbTests={transactionActiveAbTests}
         />,
       );
-
       fireEvent.press(screen.getByTestId('perps-market-row-BTC'));
-
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_DETAILS,
         params: {
@@ -419,15 +471,12 @@ describe('PerpsWatchlistMarkets', () => {
           onSeeAllPress={onSeeAllPress}
         />,
       );
-
       fireEvent.press(screen.getByTestId('perps-watchlist-header'));
-
       expect(onSeeAllPress).toHaveBeenCalledTimes(1);
     });
 
-    it('does not throw when header is pressed and onSeeAllPress is not provided', () => {
+    it('does not throw when header is pressed without onSeeAllPress', () => {
       render(<PerpsWatchlistMarkets markets={mockMarkets} />);
-
       expect(() =>
         fireEvent.press(screen.getByTestId('perps-watchlist-header')),
       ).not.toThrow();
@@ -443,15 +492,13 @@ describe('PerpsWatchlistMarkets', () => {
       const { unmount } = render(
         <PerpsWatchlistMarkets markets={mockMarkets} />,
       );
-
       expect(() => unmount()).not.toThrow();
     });
 
-    it('transitions correctly between empty → populated states', () => {
+    it('transitions correctly from empty → has-suggested → has-watchlist', () => {
       const { toJSON, rerender } = render(
         <PerpsWatchlistMarkets markets={[]} />,
       );
-
       expect(toJSON()).toBeNull();
 
       rerender(
@@ -460,15 +507,14 @@ describe('PerpsWatchlistMarkets', () => {
           suggestedMarkets={mockSuggestedMarkets}
         />,
       );
-      expect(
-        screen.getByText('Start with the most-traded markets'),
-      ).toBeOnTheScreen();
-
-      rerender(<PerpsWatchlistMarkets markets={mockMarkets} />);
-      expect(screen.getByText('BTC')).toBeOnTheScreen();
+      expect(screen.getByText('Suggested')).toBeOnTheScreen();
       expect(
         screen.queryByText('Start with the most-traded markets'),
       ).not.toBeOnTheScreen();
+
+      rerender(<PerpsWatchlistMarkets markets={mockMarkets} />);
+      expect(screen.getByText('BTC')).toBeOnTheScreen();
+      expect(screen.queryByText('Suggested')).not.toBeOnTheScreen();
     });
   });
 });

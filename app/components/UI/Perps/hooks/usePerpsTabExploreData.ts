@@ -3,9 +3,9 @@ import { useSelector } from 'react-redux';
 import { usePerpsMarkets } from './usePerpsMarkets';
 import { selectPerpsWatchlistMarkets } from '../selectors/perpsController';
 import { type PerpsMarketData } from '@metamask/perps-controller';
+import { getSuggestedWatchlistMarkets } from '../utils/marketUtils';
 
 const EXPLORE_MARKETS_LIMIT = 8;
-const SUGGESTED_WATCHLIST_LIMIT = 5;
 
 interface UsePerpsTabExploreDataOptions {
   /** Skip fetching when user has positions/orders */
@@ -58,12 +58,13 @@ export const usePerpsTabExploreData = ({
     return markets.filter((m) => watchlistSymbols.includes(m.symbol));
   }, [markets, watchlistSymbols, enabled]);
 
-  // Top 5 markets by 24h volume — shown when watchlist is empty.
-  // markets is pre-sorted by volume desc by usePerpsMarkets/filterAndSortMarkets.
+  // Top markets by 24h volume — shown as suggestions below the watchlist.
+  // Excludes already-watchlisted markets so the list shrinks as items are added,
+  // with a floor of one via volume-ranked refill.
   const suggestedWatchlistMarkets = useMemo(() => {
     if (!enabled) return [];
-    return markets.slice(0, SUGGESTED_WATCHLIST_LIMIT);
-  }, [markets, enabled]);
+    return getSuggestedWatchlistMarkets(markets, watchlistSymbols);
+  }, [markets, watchlistSymbols, enabled]);
 
   return {
     exploreMarkets,

@@ -26,6 +26,7 @@ import Engine from '../../../../core/Engine';
 import { HOME_SCREEN_CONFIG } from '../constants/perpsConfig';
 import { selectPerpsWatchlistMarkets } from '../selectors/perpsController';
 import { usePerpsConnection } from './usePerpsConnection';
+import { getSuggestedWatchlistMarkets } from '../utils/marketUtils';
 
 interface UsePerpsHomeDataParams {
   positionsLimit?: number;
@@ -167,11 +168,11 @@ export const usePerpsHomeData = ({
     [allMarkets, watchlistSymbols],
   );
 
-  // Top 5 markets by 24h volume across all types — shown when watchlist is empty.
-  // allMarkets is pre-sorted by volume desc by usePerpsMarkets/filterAndSortMarkets.
+  // Top markets by volume — shown as suggestions below the watchlist.
+  // Excludes already-watchlisted markets so the list shrinks as items are added.
   const suggestedWatchlistMarkets = useMemo(
-    () => allMarkets.slice(0, 5),
-    [allMarkets],
+    () => getSuggestedWatchlistMarkets(allMarkets, watchlistSymbols),
+    [allMarkets, watchlistSymbols],
   );
 
   const sortBy = MARKET_SORTING_CONFIG.SortFields.Volume;

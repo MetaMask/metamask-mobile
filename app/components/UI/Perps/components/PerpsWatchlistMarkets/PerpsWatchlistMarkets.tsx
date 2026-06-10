@@ -37,7 +37,7 @@ const INITIAL_DISPLAY_COUNT = 3;
 
 interface PerpsWatchlistMarketsProps {
   markets: PerpsMarketData[];
-  /** Top markets by volume shown in the empty state; omit to hide empty state */
+  /** Markets to offer as suggestions below the watchlist; omit to hide the section */
   suggestedMarkets?: PerpsMarketData[];
   isLoading?: boolean;
   /** Positions from parent - avoids duplicate WebSocket subscriptions */
@@ -146,55 +146,15 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
     );
   }
 
-  // Empty state — show suggested markets if provided, otherwise hide section
-  if (markets.length === 0) {
-    if (!suggestedMarkets?.length) {
-      return null;
-    }
+  const hasWatchlist = markets.length > 0;
+  const hasSuggested = (suggestedMarkets?.length ?? 0) > 0;
 
-    return (
-      <View
-        style={[styles.section, sectionStyle]}
-        testID={PerpsWatchlistSelectorsIDs.SECTION}
-      >
-        <SectionHeader />
-        <View
-          style={[styles.emptyStateContainer, contentContainerStyle]}
-          testID={PerpsWatchlistSelectorsIDs.EMPTY_STATE}
-        >
-          <Text
-            variant={TextVariant.BodyMDMedium}
-            color={TextColor.Default}
-            style={styles.emptyStateTitle}
-            testID={PerpsWatchlistSelectorsIDs.EMPTY_STATE_TITLE}
-          >
-            {strings('perps.watchlist.empty_title')}
-          </Text>
-          <Text
-            variant={TextVariant.BodySM}
-            color={TextColor.Alternative}
-            style={styles.emptyStateSubtitle}
-            testID={PerpsWatchlistSelectorsIDs.EMPTY_STATE_SUBTITLE}
-          >
-            {strings('perps.watchlist.empty_subtitle')}
-          </Text>
-
-          {suggestedMarkets.map((market) => (
-            <PerpsMarketRowItem
-              key={market.symbol}
-              market={market}
-              showBadge={false}
-              onPress={() => handleMarketPress(market)}
-              onAddPress={() => addToWatchlist(market.symbol)}
-            />
-          ))}
-        </View>
-      </View>
-    );
+  if (!hasWatchlist && !hasSuggested) {
+    return null;
   }
 
-  // Populated watchlist — apply expand/collapse when > INITIAL_DISPLAY_COUNT items
-  const hasMore = markets.length > INITIAL_DISPLAY_COUNT;
+  // Expand/collapse applies only to the watchlist rows
+  const hasMore = hasWatchlist && markets.length > INITIAL_DISPLAY_COUNT;
   const displayedMarkets =
     hasMore && !expanded ? markets.slice(0, INITIAL_DISPLAY_COUNT) : markets;
   const hiddenCount = markets.length - INITIAL_DISPLAY_COUNT;
@@ -214,39 +174,71 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
     >
       <SectionHeader />
       <View style={contentContainerStyle}>
-        <FlatList
-          data={displayedMarkets}
-          renderItem={renderMarket}
-          keyExtractor={(item) => item.symbol}
-          showsVerticalScrollIndicator={false}
-          scrollEnabled={false}
-          contentContainerStyle={styles.listContent}
-        />
-
-        {hasMore && (
-          <TouchableOpacity
-            style={styles.showMoreRow}
-            onPress={() => setExpanded((prev) => !prev)}
-            testID={
-              expanded
-                ? PerpsWatchlistSelectorsIDs.SHOW_LESS_BUTTON
-                : PerpsWatchlistSelectorsIDs.SHOW_MORE_BUTTON
-            }
-            activeOpacity={0.7}
-          >
-            <Text variant={TextVariant.BodySMBold} color={TextColor.Primary}>
-              {expanded
-                ? strings('perps.watchlist.show_less')
-                : strings('perps.watchlist.show_more', {
-                    count: hiddenCount,
-                  })}
-            </Text>
-            <Icon
-              name={expanded ? IconName.ArrowUp : IconName.ArrowDown}
-              size={IconSize.Xs}
-              color={IconColor.Primary}
+        {hasWatchlist && (
+          <>
+            <FlatList
+              data={displayedMarkets}
+              renderItem={renderMarket}
+              keyExtractor={(item) => item.symbol}
+              showsVerticalScrollIndicator={false}
+              scrollEnabled={false}
+              contentContainerStyle={styles.listContent}
             />
-          </TouchableOpacity>
+
+            {hasMore && (
+              <TouchableOpacity
+                style={styles.showMoreRow}
+                onPress={() => setExpanded((prev) => !prev)}
+                testID={
+                  expanded
+                    ? PerpsWatchlistSelectorsIDs.SHOW_LESS_BUTTON
+                    : PerpsWatchlistSelectorsIDs.SHOW_MORE_BUTTON
+                }
+                activeOpacity={0.7}
+              >
+                <Text
+                  variant={TextVariant.BodySMBold}
+                  color={TextColor.Primary}
+                >
+                  {expanded
+                    ? strings('perps.watchlist.show_less')
+                    : strings('perps.watchlist.show_more', {
+                        count: hiddenCount,
+                      })}
+                </Text>
+                <Icon
+                  name={expanded ? IconName.ArrowUp : IconName.ArrowDown}
+                  size={IconSize.Xs}
+                  color={IconColor.Primary}
+                />
+              </TouchableOpacity>
+            )}
+          </>
+        )}
+
+        {hasSuggested && (
+          <View
+            style={styles.suggestedSection}
+            testID={PerpsWatchlistSelectorsIDs.SUGGESTED_SECTION}
+          >
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              color={TextColor.Alternative}
+              style={styles.suggestedHeader}
+              testID={PerpsWatchlistSelectorsIDs.SUGGESTED_HEADER}
+            >
+              {strings('perps.watchlist.suggested')}
+            </Text>
+            {suggestedMarkets?.map((market) => (
+              <PerpsMarketRowItem
+                key={market.symbol}
+                market={market}
+                showBadge={false}
+                onPress={() => handleMarketPress(market)}
+                onAddPress={() => addToWatchlist(market.symbol)}
+              />
+            ))}
+          </View>
         )}
       </View>
     </View>
