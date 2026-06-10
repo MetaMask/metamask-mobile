@@ -439,10 +439,6 @@ export function useQuickBuyController(
   const hasInitializedRecipient = useRef(false);
   useRecipientInitialization(hasInitializedRecipient);
 
-  const hasSourcePrice = Boolean(
-    sourceToken?.currencyExchangeRate && sourceToken.currencyExchangeRate > 0,
-  );
-
   // ─── Live selected-token balances (TSA-632) ────────────────────────────
   // The selected pay-with token (`selectedSourceToken`, buy mode) and receive
   // token (`selectedDestStable`, sell mode) are `useState` snapshots, so their
@@ -470,6 +466,24 @@ export function useQuickBuyController(
   const liveSelectedDestBalance = resolveLiveTokenBalance(
     selectedDestStable,
     sellDestTokenOptions,
+  );
+
+  // In buy mode, read the live exchange rate from the reactive option list so
+  // the displayed fiat balance and slider cap stay in sync with the option list
+  // when `usePayWithTokens` refreshes rates without a balance string change
+  // (Bugbot: "Stale rate with live balance"). In sell mode `sourceToken` is
+  // `positionToken` (already selector-driven), so the frozen value is live.
+  //
+  // Intentionally NOT used in `sourceTokenAmount` (the quote pipeline): a rate
+  // tick must not churn quote requests — only balance changes do.
+  const liveSourceCurrencyExchangeRate =
+    tradeMode === 'buy'
+      ? (liveSelectedSourceBalance?.currencyExchangeRate ??
+         sourceToken?.currencyExchangeRate)
+      : sourceToken?.currencyExchangeRate;
+
+  const hasSourcePrice = Boolean(
+    liveSourceCurrencyExchangeRate && liveSourceCurrencyExchangeRate > 0,
   );
 
   // The live balance for whichever token is the *source* this mode: the
@@ -701,15 +715,15 @@ export function useQuickBuyController(
   const sourceBalanceFiatUsd = useMemo(() => {
     if (
       !latestSourceBalance?.displayBalance ||
-      !sourceToken?.currencyExchangeRate
+      !liveSourceCurrencyExchangeRate
     ) {
       return 0;
     }
     const balance = parseFloat(latestSourceBalance.displayBalance);
     if (!Number.isFinite(balance)) return 0;
-    const fiat = balance * sourceToken.currencyExchangeRate;
+    const fiat = balance * liveSourceCurrencyExchangeRate;
     return Number.isFinite(fiat) && fiat > 0 ? fiat : 0;
-  }, [latestSourceBalance?.displayBalance, sourceToken?.currencyExchangeRate]);
+  }, [latestSourceBalance?.displayBalance, liveSourceCurrencyExchangeRate]);
 
   const sourceBalanceFiat = useMemo(
     () => formatCurrency(sourceBalanceFiatUsd, currentCurrency),
@@ -945,15 +959,15 @@ export function useQuickBuyController(
       if (
         Number.isFinite(tokens) &&
         tokens > 0 &&
-        sourceToken?.currencyExchangeRate
+        liveSourceCurrencyExchangeRate
       ) {
-        const usd = (tokens * sourceToken.currencyExchangeRate).toFixed(2);
+        const usd = (tokens * liveSourceCurrencyExchangeRate).toFixed(2);
         setUsdAmount(usd);
         setQuotedUsdAmount(usd);
         lastCommittedUsdRef.current = usd;
       }
     }
-  }, [hasSourcePrice, sourceAmountTokens, sourceToken?.currencyExchangeRate]);
+  }, [hasSourcePrice, sourceAmountTokens, liveSourceCurrencyExchangeRate]);
 
   const handleSelectSourceToken = useCallback(
     (token: BridgeToken) => {
