@@ -22,7 +22,7 @@ export interface UnifiedGestureOptions {
   speed?: 'fast' | 'slow';
   /** Swipe percentage (0–1) — Detox only; Appium ignores this */
   percentage?: number;
-  /** Scroll direction — Detox only; used by scrollToElement */
+  /** Scroll direction — used by scrollToElement (Detox default and Appium scrollIntoView) */
   direction?: 'up' | 'down' | 'left' | 'right';
   /** Scroll amount in px — Detox only; used by scrollToElement */
   scrollAmount?: number;
@@ -46,6 +46,9 @@ export interface UnifiedGestureOptions {
  */
 export type TapAtIndexElement = EncapsulatedElementType | PlaywrightElement[];
 export type ScrollViewMatcher = Promise<Detox.NativeMatcher>;
+
+/** Detox scroll container: matcher promise, or testID resolved inside UnifiedGestures. */
+export type ScrollContainer = ScrollViewMatcher | string;
 
 /**
  * Strategy interface for framework-agnostic gesture execution.
@@ -85,7 +88,7 @@ export interface GestureStrategy {
 
   scrollToElement(
     target: EncapsulatedElementType,
-    scrollView: ScrollViewMatcher,
+    scrollView?: ScrollContainer,
     opts?: UnifiedGestureOptions,
   ): Promise<void>;
 
@@ -218,9 +221,21 @@ export class DetoxGestureStrategy implements GestureStrategy {
    */
   async scrollToElement(
     target: EncapsulatedElementType,
-    scrollView: ScrollViewMatcher,
+    scrollView?: ScrollContainer,
     opts?: UnifiedGestureOptions,
   ): Promise<void> {
+    if (!scrollView) {
+      throw new Error(
+        'DetoxGestureStrategy.scrollToElement requires a scroll container testID or matcher.',
+      );
+    }
+
+    if (typeof scrollView === 'string') {
+      throw new Error(
+        'DetoxGestureStrategy.scrollToElement received a testID string — resolve it in UnifiedGestures first.',
+      );
+    }
+
     const resolvedScrollView = await scrollView;
 
     if (this.isLikelyDetoxElement(resolvedScrollView)) {
@@ -408,10 +423,13 @@ export class AppiumGestureStrategy implements GestureStrategy {
    */
   async scrollToElement(
     target: EncapsulatedElementType,
-    _scrollView: ScrollViewMatcher,
+    _scrollView?: ScrollContainer,
+    opts?: UnifiedGestureOptions,
   ): Promise<void> {
     const el = await asPlaywrightElement(target);
-    await PlaywrightGestures.scrollIntoView(el);
+    await PlaywrightGestures.scrollIntoView(el, {
+      scrollParams: { direction: opts?.direction ?? 'down' },
+    });
   }
 
   /**
