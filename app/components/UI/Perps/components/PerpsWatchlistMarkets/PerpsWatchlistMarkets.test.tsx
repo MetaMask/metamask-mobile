@@ -83,6 +83,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'perps.home.watchlist': 'Watchlist',
       'perps.home.see_all': 'See all',
       'perps.watchlist.suggested': 'Suggested',
+      'perps.watchlist.empty_subtitle':
+        'Tap + to add a market to your watchlist.',
       'perps.watchlist.show_more': `Show ${params?.count} more`,
       'perps.watchlist.show_less': 'Show less',
     };
@@ -169,6 +171,19 @@ describe('PerpsWatchlistMarkets', () => {
   // -------------------------------------------------------------------------
 
   describe('Empty watchlist with suggested markets', () => {
+    it('renders the placeholder text when watchlist is empty', () => {
+      render(
+        <PerpsWatchlistMarkets
+          markets={[]}
+          suggestedMarkets={mockSuggestedMarkets}
+        />,
+      );
+      expect(
+        screen.getByText('Tap + to add a market to your watchlist.'),
+      ).toBeOnTheScreen();
+      expect(screen.queryByText('Suggested')).not.toBeOnTheScreen();
+    });
+
     it('renders the "Suggested" sub-header when watchlist is empty', () => {
       render(
         <PerpsWatchlistMarkets
@@ -179,7 +194,9 @@ describe('PerpsWatchlistMarkets', () => {
       expect(
         screen.getByTestId('perps-watchlist-suggested-header'),
       ).toBeOnTheScreen();
-      expect(screen.getByText('Suggested')).toBeOnTheScreen();
+      expect(
+        screen.getByText('Tap + to add a market to your watchlist.'),
+      ).toBeOnTheScreen();
     });
 
     it('renders the suggested section wrapper testID', () => {
@@ -233,7 +250,7 @@ describe('PerpsWatchlistMarkets', () => {
       expect(screen.getByText('Watchlist')).toBeOnTheScreen();
     });
 
-    it('does not render old empty-state title or subtitle copy', () => {
+    it('does not render old empty-state title copy', () => {
       render(
         <PerpsWatchlistMarkets
           markets={[]}
@@ -242,9 +259,6 @@ describe('PerpsWatchlistMarkets', () => {
       );
       expect(
         screen.queryByText('Start with the most-traded markets'),
-      ).not.toBeOnTheScreen();
-      expect(
-        screen.queryByText('Tap + to add a market to your watchlist.'),
       ).not.toBeOnTheScreen();
     });
   });
@@ -305,7 +319,7 @@ describe('PerpsWatchlistMarkets', () => {
       }
     });
 
-    it('renders the "Suggested" sub-header when both lists are present', () => {
+    it('renders the "Suggested" sub-header (not placeholder) when both lists are present', () => {
       render(
         <PerpsWatchlistMarkets
           markets={mockMarkets}
@@ -313,6 +327,9 @@ describe('PerpsWatchlistMarkets', () => {
         />,
       );
       expect(screen.getByText('Suggested')).toBeOnTheScreen();
+      expect(
+        screen.queryByText('Tap + to add a market to your watchlist.'),
+      ).not.toBeOnTheScreen();
     });
   });
 
@@ -507,14 +524,18 @@ describe('PerpsWatchlistMarkets', () => {
           suggestedMarkets={mockSuggestedMarkets}
         />,
       );
-      expect(screen.getByText('Suggested')).toBeOnTheScreen();
+      expect(
+        screen.getByText('Tap + to add a market to your watchlist.'),
+      ).toBeOnTheScreen();
       expect(
         screen.queryByText('Start with the most-traded markets'),
       ).not.toBeOnTheScreen();
 
       rerender(<PerpsWatchlistMarkets markets={mockMarkets} />);
       expect(screen.getByText('BTC')).toBeOnTheScreen();
-      expect(screen.queryByText('Suggested')).not.toBeOnTheScreen();
+      expect(
+        screen.queryByText('Tap + to add a market to your watchlist.'),
+      ).not.toBeOnTheScreen();
     });
   });
 });

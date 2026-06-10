@@ -43,7 +43,6 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingBottom: 8,
     },
     suggestedHeader: {
-      marginTop: 16,
       marginBottom: 4,
     },
     // Show more / show less toggle

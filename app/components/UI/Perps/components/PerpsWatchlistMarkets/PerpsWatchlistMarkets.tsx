@@ -227,7 +227,9 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
               style={styles.suggestedHeader}
               testID={PerpsWatchlistSelectorsIDs.SUGGESTED_HEADER}
             >
-              {strings('perps.watchlist.suggested')}
+              {hasWatchlist
+                ? strings('perps.watchlist.suggested')
+                : strings('perps.watchlist.empty_subtitle')}
             </Text>
             {suggestedMarkets?.map((market) => (
               <PerpsMarketRowItem
