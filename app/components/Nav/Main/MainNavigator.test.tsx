@@ -17,7 +17,6 @@ jest.mock('@react-navigation/stack', () => ({
   }),
   TransitionPresets: {
     ModalSlideFromBottomIOS: {},
-    ModalPresentationIOS: {},
   },
 }));
 
@@ -856,19 +855,6 @@ describe('MainNavigator', () => {
           options: child.props.options,
         })) as ScreenChild[];
     };
-
-    it('includes CollectiblesDetails screen', () => {
-      const container = renderWithProvider(<MainNavigator />, {
-        state: initialRootState,
-      });
-
-      const screenProps = getScreenProps(container);
-      const screen = screenProps?.find(
-        (s) => s?.name === 'CollectiblesDetails',
-      );
-
-      expect(screen).toBeDefined();
-    });
 
     it('includes DeprecatedNetworkDetails screen', () => {
       const container = renderWithProvider(<MainNavigator />, {
