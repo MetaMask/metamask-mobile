@@ -26,7 +26,10 @@ const mockUseAssetMetadata = useAssetMetadata as jest.MockedFunction<
 
 const BASE_CAIP: CaipChainId = 'eip155:8453';
 const SOLANA_CAIP: CaipChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+const TRON_CAIP: CaipChainId = 'tron:728126428';
 const UNMAPPED_CAIP = 'eip155:9999' as CaipChainId;
+/** HTX (TRC-20) contract address on Tron — base58, not resolvable by useAssetMetadata. */
+const TRON_TOKEN_ADDRESS = 'TUPM7K8REVzD2UdV4R5fe5M8XbnR2DdoJ6';
 
 const createTarget = (
   overrides: Partial<QuickBuyTarget> = {},
@@ -66,6 +69,7 @@ describe('useQuickBuySetup', () => {
       destToken: undefined,
       isLoading: false,
       isUnsupportedChain: false,
+      isDestTokenUnavailable: false,
     });
     expect(mockUseAssetMetadata).toHaveBeenCalledWith('', false, undefined);
   });
@@ -86,6 +90,7 @@ describe('useQuickBuySetup', () => {
       destToken: undefined,
       isLoading: false,
       isUnsupportedChain: true,
+      isDestTokenUnavailable: false,
     });
   });
 
@@ -105,6 +110,7 @@ describe('useQuickBuySetup', () => {
       destToken: undefined,
       isLoading: false,
       isUnsupportedChain: true,
+      isDestTokenUnavailable: false,
     });
     expect(mockUseAssetMetadata).toHaveBeenCalledWith(
       target.tokenAddress,
@@ -182,5 +188,111 @@ describe('useQuickBuySetup', () => {
     });
     expect(result.current.isLoading).toBe(true);
     expect(result.current.isUnsupportedChain).toBe(false);
+  });
+
+  it('marks Tron token assets as unsupported when given a CAIP-19 trc20 address', () => {
+    // Arrange — TRC-20 asset (e.g. HTX) on Tron; the metadata pipeline can
+    // only resolve token assets on Solana/EVM chains.
+    const target = createTarget({
+      chain: TRON_CAIP,
+      tokenAddress: `${TRON_CAIP}/trc20:${TRON_TOKEN_ADDRESS}`,
+      tokenSymbol: 'HTX',
+      tokenName: 'HTX',
+    });
+
+    // Act
+    const { result } = renderHook(() => useQuickBuySetup(target));
+
+    // Assert — gated as unsupported, metadata fetch disabled.
+    expect(result.current).toEqual({
+      chainId: undefined,
+      destToken: undefined,
+      isLoading: false,
+      isUnsupportedChain: true,
+      isDestTokenUnavailable: false,
+    });
+    expect(mockUseAssetMetadata).toHaveBeenCalledWith(
+      TRON_TOKEN_ADDRESS,
+      false,
+      undefined,
+    );
+  });
+
+  it('marks Tron token assets as unsupported when given a bare base58 address', () => {
+    // Arrange
+    const target = createTarget({
+      chain: TRON_CAIP,
+      tokenAddress: TRON_TOKEN_ADDRESS,
+      tokenSymbol: 'HTX',
+      tokenName: 'HTX',
+    });
+
+    // Act
+    const { result } = renderHook(() => useQuickBuySetup(target));
+
+    // Assert
+    expect(result.current.chainId).toBeUndefined();
+    expect(result.current.destToken).toBeUndefined();
+    expect(result.current.isUnsupportedChain).toBe(true);
+    expect(result.current.isDestTokenUnavailable).toBe(false);
+    expect(mockUseAssetMetadata).toHaveBeenCalledWith(
+      TRON_TOKEN_ADDRESS,
+      false,
+      undefined,
+    );
+  });
+
+  it('keeps native Tron assets supported via the native asset registry', () => {
+    // Arrange — native TRX is resolved synchronously from the registry, so
+    // the Tron token gate must not apply to slip44 references.
+    const target = createTarget({
+      chain: TRON_CAIP,
+      tokenAddress: `${TRON_CAIP}/slip44:195`,
+      tokenSymbol: 'TRX',
+      tokenName: 'TRON',
+    });
+
+    // Act
+    const { result } = renderHook(() => useQuickBuySetup(target));
+
+    // Assert
+    expect(result.current.chainId).toBe(TRON_CAIP);
+    expect(result.current.isUnsupportedChain).toBe(false);
+    expect(result.current.destToken).toEqual(
+      expect.objectContaining({ symbol: 'TRX', chainId: TRON_CAIP }),
+    );
+    expect(result.current.isDestTokenUnavailable).toBe(false);
+  });
+
+  it('flags the dest token as unavailable when metadata settles without a result', () => {
+    // Arrange — supported EVM chain, metadata lookup finished empty (the
+    // beforeEach default: assetMetadata undefined, pending false).
+    const target = createTarget({ chain: BASE_CAIP });
+
+    // Act
+    const { result } = renderHook(() => useQuickBuySetup(target));
+
+    // Assert — the consumer must surface this instead of dead-ending.
+    expect(result.current.chainId).toBe('0x2105');
+    expect(result.current.isUnsupportedChain).toBe(false);
+    expect(result.current.destToken).toBeUndefined();
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.isDestTokenUnavailable).toBe(true);
+  });
+
+  it('does not flag the dest token as unavailable while metadata is loading', () => {
+    // Arrange
+    mockUseAssetMetadata.mockReturnValue({
+      assetMetadata: undefined,
+      pending: true,
+    });
+    const target = createTarget({ chain: BASE_CAIP });
+
+    // Act
+    const { result } = renderHook(() => useQuickBuySetup(target));
+
+    // Assert
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.isDestTokenUnavailable).toBe(false);
   });
 });

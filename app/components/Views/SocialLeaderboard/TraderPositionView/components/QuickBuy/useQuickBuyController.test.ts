@@ -366,6 +366,7 @@ const setupDefaultMocks = () => {
     },
     isLoading: false,
     isUnsupportedChain: false,
+    isDestTokenUnavailable: false,
   });
 
   (useReceiveTokens as jest.Mock).mockReturnValue([]);
@@ -418,6 +419,29 @@ describe('useQuickBuyController', () => {
 
   afterEach(() => {
     jest.resetAllMocks();
+  });
+
+  describe('setup passthrough', () => {
+    it('exposes isDestTokenUnavailable from useQuickBuySetup so the sheet can surface feedback', () => {
+      // Arrange — setup settled without a destination token (e.g. a TRC-20
+      // asset on Tron the metadata pipeline cannot resolve).
+      (useQuickBuySetup as jest.Mock).mockReturnValue({
+        chainId: 'tron:728126428',
+        destToken: undefined,
+        isLoading: false,
+        isUnsupportedChain: false,
+        isDestTokenUnavailable: true,
+      });
+
+      // Act
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      // Assert — feedback flag is surfaced and the CTA stays disabled.
+      expect(result.current.isDestTokenUnavailable).toBe(true);
+      expect(result.current.isConfirmDisabled).toBe(true);
+    });
   });
 
   describe('handleAmountChange', () => {

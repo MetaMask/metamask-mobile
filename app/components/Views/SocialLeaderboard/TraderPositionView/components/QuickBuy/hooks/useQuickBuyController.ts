@@ -121,6 +121,8 @@ export interface UseQuickBuyControllerResult {
   destToken: BridgeToken | undefined;
   isSetupLoading: boolean;
   isUnsupportedChain: boolean;
+  /** True when setup settled without resolving a destination token (see useQuickBuySetup). */
+  isDestTokenUnavailable: boolean;
   // source token
   sourceToken: BridgeToken | undefined;
   sourceChainId: Hex | undefined;
@@ -276,6 +278,7 @@ export function useQuickBuyController(
     destToken: positionTokenFromSetup,
     isLoading: isSetupLoading,
     isUnsupportedChain,
+    isDestTokenUnavailable,
   } = useQuickBuySetup(target);
 
   // ─── Buy "Pay with" options (tokens the user holds) ─────────────────────
@@ -1256,6 +1259,7 @@ export function useQuickBuyController(
     destToken,
     isSetupLoading,
     isUnsupportedChain,
+    isDestTokenUnavailable,
     sourceToken,
     sourceChainId,
     sourceTokenOptions,

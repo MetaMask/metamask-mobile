@@ -2,6 +2,7 @@ import {
   formatAddressToAssetId,
   formatChainIdToHex,
   isNonEvmChainId,
+  isSolanaChainId,
 } from '@metamask/bridge-controller';
 import {
   CaipChainId,
@@ -40,6 +41,14 @@ export interface QuickBuySetupResult {
   isLoading: boolean;
   /** Whether the chain is unsupported */
   isUnsupportedChain: boolean;
+  /**
+   * True when setup settled (chain supported, metadata no longer loading) but
+   * no destination token could be resolved — e.g. the Token Metadata API had
+   * no entry for the asset or the native-asset registry threw. Without
+   * surfacing this, the sheet dead-ends with a permanently disabled Buy
+   * button and no feedback.
+   */
+  isDestTokenUnavailable: boolean;
 }
 
 /**
@@ -53,17 +62,6 @@ export const useQuickBuySetup = (
 ): QuickBuySetupResult => {
   const position = target;
   const isBridgeEnabledSource = useSelector(selectIsBridgeEnabledSourceFactory);
-
-  // Destination chain from the target — hex for EVM, CAIP for non-EVM.
-  const destChainId = useMemo(() => {
-    if (!position) return undefined;
-    const caipId = position.chain;
-    if (isNonEvmChainId(caipId)) return caipId;
-    if (!isBridgeEnabledSource(caipId)) return undefined;
-    return formatChainIdToHex(caipId);
-  }, [position, isBridgeEnabledSource]);
-
-  const isUnsupportedChain = Boolean(position && !destChainId);
 
   // Decode the CAIP-19 wrapper if present (Social feed always encodes this way
   // for non-EVM and may also do so for EVM). Native references (`slip44:NNN`)
@@ -97,6 +95,25 @@ export const useQuickBuySetup = (
       parsedTokenAddress: parsed.reference,
     };
   }, [position?.tokenAddress]);
+
+  // Destination chain from the target — hex for EVM, CAIP for non-EVM.
+  const destChainId = useMemo(() => {
+    if (!position) return undefined;
+    const caipId = position.chain;
+    if (isNonEvmChainId(caipId)) {
+      // Among non-EVM chains, non-native (token) assets can only be resolved
+      // on Solana — `useAssetMetadata` validates Solana/EVM addresses only, so
+      // e.g. a TRC-20 asset on Tron would never resolve a destination token
+      // and the sheet would dead-end with a permanently disabled Buy button.
+      // Gate those targets as unsupported so the user gets explicit feedback.
+      if (!isNativeAsset && !isSolanaChainId(caipId)) return undefined;
+      return caipId;
+    }
+    if (!isBridgeEnabledSource(caipId)) return undefined;
+    return formatChainIdToHex(caipId);
+  }, [position, isBridgeEnabledSource, isNativeAsset]);
+
+  const isUnsupportedChain = Boolean(position && !destChainId);
 
   // Fetch token metadata (decimals, image) from Token Metadata API for the
   // dest token. Skipped for natives (handled via getNativeSourceToken).
@@ -163,10 +180,18 @@ export const useQuickBuySetup = (
     return undefined;
   }, [position, destChainId, assetMetadata, isNativeAsset, parsedTokenAddress]);
 
+  // Setup has settled (supported chain, metadata resolved) but produced no
+  // destination token — quote fetching can never start, so the consumer must
+  // surface this instead of leaving the sheet inert.
+  const isDestTokenUnavailable = Boolean(
+    position && destChainId && !isMetadataLoading && !destToken,
+  );
+
   return {
     chainId: destChainId,
     destToken,
     isLoading: isMetadataLoading,
     isUnsupportedChain,
+    isDestTokenUnavailable,
   };
 };
