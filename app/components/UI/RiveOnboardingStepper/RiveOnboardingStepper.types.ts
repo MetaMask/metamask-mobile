@@ -73,7 +73,7 @@ export interface RiveOnboardingStepperProps {
    * When provided, a close ("X") button is shown next to the title on steps
    * where `showCloseButton` is not `false`.
    */
-  onClose?: () => void;
+  onClose?: (stepIndex: number) => void;
   /**
    * Icon color for the close button. Defaults to the design system default
    * (dark). Pass `IconColor.PrimaryInverse` for light/white on dark backgrounds.
@@ -81,8 +81,13 @@ export interface RiveOnboardingStepperProps {
   closeButtonIconColor?: IconColor;
   /** Fires each time the step index changes, including on the initial render. */
   onStepChange?: (stepIndex: number) => void;
-  /** Fires when the user taps the footer button on the last step. */
-  onComplete: () => void;
+  /**
+   * When autoCompleteOnLastStep is false, fires when the user taps the footer button on the last step.
+   * When autoCompleteOnLastStep is true, fires when the last step's `durationMs` elapses.
+   */
+  onComplete: (stepIndex: number) => void;
+  /** Fires when a step is viewed. */
+  onStepViewed?: (stepIndex: number) => void;
   /**
    * When true, `onComplete` is called automatically once the last step's
    * `durationMs` elapses, without requiring a button tap.
