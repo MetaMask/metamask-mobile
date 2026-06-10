@@ -116,38 +116,50 @@ jest.mock('../../../../util/Logger', () => ({
 const SOURCE_AMOUNT = '100';
 const SOURCE_TOKEN_SYMBOL = 'USDC';
 
-const rejectedApprovalStep = {
-  kind: HardwareWalletsSwapsStepKind.Approval,
-  status: HardwareWalletsSwapsStepStatus.Rejected,
-};
+function step(
+  kind: HardwareWalletsSwapsStepKind,
+  status: HardwareWalletsSwapsStepStatus,
+  address?: string,
+) {
+  return { kind, status, ...(address ? { address } : {}) };
+}
+
+const { Approval, Transaction } = HardwareWalletsSwapsStepKind;
+const {
+  Waiting: StepWaiting,
+  Signing,
+  Signed,
+  Rejected: StepRejected,
+} = HardwareWalletsSwapsStepStatus;
+
+const rejectedApprovalStep = step(Approval, StepRejected);
 
 const defaultSteps = [
-  {
-    kind: HardwareWalletsSwapsStepKind.Approval,
-    status: HardwareWalletsSwapsStepStatus.Waiting,
-  },
-  {
-    kind: HardwareWalletsSwapsStepKind.Transaction,
-    status: HardwareWalletsSwapsStepStatus.Waiting,
-  },
+  step(Approval, StepWaiting),
+  step(Transaction, StepWaiting),
 ];
 
-const signedSteps = [
-  {
-    kind: HardwareWalletsSwapsStepKind.Approval,
-    status: HardwareWalletsSwapsStepStatus.Signed,
-  },
-  {
-    kind: HardwareWalletsSwapsStepKind.Transaction,
-    status: HardwareWalletsSwapsStepStatus.Signed,
-  },
-];
+const signedSteps = [step(Approval, Signed), step(Transaction, Signed)];
+
+const signingStep = step(Approval, Signing);
 
 const defaultBridgeState: HardwareWalletsSwapsState = {
   status: HardwareWalletsSwapsStatus.Waiting,
   currentStep: 1,
   totalSteps: 2,
   disconnectedStep: null,
+  steps: defaultSteps,
+};
+
+const SUBMITTED_STATE: Partial<HardwareWalletsSwapsState> = {
+  status: HardwareWalletsSwapsStatus.Submitted,
+  currentStep: 2,
+  steps: signedSteps,
+};
+
+const DISCONNECTED_STATE: Partial<HardwareWalletsSwapsState> = {
+  status: HardwareWalletsSwapsStatus.Disconnected,
+  disconnectedStep: 1,
   steps: defaultSteps,
 };
 
@@ -172,35 +184,109 @@ const renderScreen = (
     },
   });
 
-function makeQuote(minDestTokenAmount: string) {
-  return {
-    quote: {
-      srcChainId: 1,
-      destChainId: 1,
-      srcAsset: { address: '0xSrc' },
-      destAsset: { address: '0xDest' },
-      minDestTokenAmount,
-    },
-  } as any;
-}
-
-function getCachedParams(minDestTokenAmount: string = '1000'): {
-  quoteResponse: any;
-  location: undefined;
-  transactionActiveAbTests: undefined;
-} {
-  return {
-    quoteResponse: makeQuote(minDestTokenAmount),
-    location: undefined,
-    transactionActiveAbTests: undefined,
-  };
-}
+const MOCK_SUBMISSION_PARAMS = {
+  quoteResponse: { quote: { srcChainId: 1 } } as any,
+  location: undefined,
+  transactionActiveAbTests: undefined,
+};
 
 function mockRouteSubmissionParams(
-  value: ReturnType<typeof getCachedParams> | null = getCachedParams(),
+  value: typeof MOCK_SUBMISSION_PARAMS | null = MOCK_SUBMISSION_PARAMS,
 ) {
   mockRouteParams.submissionParams = value;
 }
+
+function signAllSteps(store: any) {
+  [
+    HardwareWalletsSwapsStepKind.Approval,
+    HardwareWalletsSwapsStepKind.Transaction,
+  ].forEach((stepKind) =>
+    store.dispatch(
+      updateHardwareWalletsSwaps({
+        type: HardwareWalletsSwapsEventType.Signed,
+        payload: { stepKind },
+      }),
+    ),
+  );
+}
+
+function dispatchRejection(store: any) {
+  store.dispatch(
+    updateHardwareWalletsSwaps({
+      type: HardwareWalletsSwapsEventType.Rejected,
+      payload: { stepKind: HardwareWalletsSwapsStepKind.Approval },
+    }),
+  );
+}
+
+function getBridgeStatus(store: any) {
+  return store.getState().bridge.hardwareWalletsSwaps.status;
+}
+
+async function flushPromises() {
+  await act(async () => {
+    await Promise.resolve();
+  });
+}
+
+const STATUS_RENDERING_CASES = [
+  {
+    name: 'submitted',
+    state: SUBMITTED_STATE,
+    expectedTitle: 'Transaction submitted',
+    visibleButton: HardwareWalletsSwapsSelectorsIDs.DONE_BUTTON,
+    hiddenButton: HardwareWalletsSwapsSelectorsIDs.CANCEL_BUTTON,
+  },
+  {
+    name: 'rejected',
+    state: {
+      status: HardwareWalletsSwapsStatus.Rejected,
+      steps: [rejectedApprovalStep, defaultSteps[1]],
+    },
+    expectedTitle: 'You rejected this transaction on your device',
+    visibleButton: HardwareWalletsSwapsSelectorsIDs.TRY_AGAIN_BUTTON,
+    hiddenButton: HardwareWalletsSwapsSelectorsIDs.RECONNECT_BUTTON,
+  },
+  {
+    name: 'failed',
+    state: {
+      status: HardwareWalletsSwapsStatus.Failed,
+      steps: defaultSteps,
+    },
+    expectedTitle: 'Transaction failed',
+    visibleButton: HardwareWalletsSwapsSelectorsIDs.TRY_AGAIN_BUTTON,
+    hiddenButton: HardwareWalletsSwapsSelectorsIDs.RECONNECT_BUTTON,
+  },
+  {
+    name: 'disconnected',
+    state: DISCONNECTED_STATE,
+    expectedTitle: 'Device disconnected',
+    visibleButton: HardwareWalletsSwapsSelectorsIDs.RECONNECT_BUTTON,
+    hiddenButton: HardwareWalletsSwapsSelectorsIDs.TRY_AGAIN_BUTTON,
+  },
+  {
+    name: 'cancelled',
+    state: {
+      status: HardwareWalletsSwapsStatus.Cancelled,
+      steps: defaultSteps,
+    },
+    expectedTitle: null,
+    visibleButton: HardwareWalletsSwapsSelectorsIDs.CANCEL_BUTTON,
+    hiddenButton: HardwareWalletsSwapsSelectorsIDs.DONE_BUTTON,
+  },
+  {
+    name: 'idle',
+    state: {
+      status: HardwareWalletsSwapsStatus.Idle,
+      currentStep: 0,
+      totalSteps: 0,
+      steps: [],
+    },
+    expectedTitle: null,
+    visibleButton: HardwareWalletsSwapsSelectorsIDs.CANCEL_BUTTON,
+    hiddenButton: HardwareWalletsSwapsSelectorsIDs.DONE_BUTTON,
+  },
+];
 
 describe('HardwareWalletsSwaps', () => {
   beforeEach(() => {
@@ -211,6 +297,7 @@ describe('HardwareWalletsSwaps', () => {
     mockEnsureDeviceReady.mockResolvedValue(true);
     mockGetDeviceId.mockResolvedValue('ledger-device-id');
     mockSubmitBridgeTx.mockResolvedValue({ success: true });
+    mockConnectionState.status = 'disconnected';
   });
 
   describe('rendering', () => {
@@ -225,85 +312,9 @@ describe('HardwareWalletsSwaps', () => {
       ).toContain('(1/2)');
     });
 
-    it('renders the submitted state with correct title and done button', () => {
-      const { getByTestId, queryByTestId } = renderScreen({
-        status: HardwareWalletsSwapsStatus.Submitted,
-        currentStep: 2,
-        steps: signedSteps,
-      });
-
-      expect(
-        getByTestId(HardwareWalletsSwapsSelectorsIDs.TITLE).props.children,
-      ).toBe('Transaction submitted');
-      expect(
-        getByTestId(HardwareWalletsSwapsSelectorsIDs.DONE_BUTTON),
-      ).toBeDefined();
-      expect(
-        queryByTestId(HardwareWalletsSwapsSelectorsIDs.CANCEL_BUTTON),
-      ).toBeNull();
-    });
-
-    it('renders the rejected state with try again button', () => {
-      const { getByTestId, queryByTestId } = renderScreen({
-        status: HardwareWalletsSwapsStatus.Rejected,
-        steps: [rejectedApprovalStep, defaultSteps[1]],
-      });
-
-      expect(
-        getByTestId(HardwareWalletsSwapsSelectorsIDs.TITLE).props.children,
-      ).toBe('You rejected this transaction on your device');
-      expect(
-        getByTestId(HardwareWalletsSwapsSelectorsIDs.TRY_AGAIN_BUTTON),
-      ).toBeDefined();
-      expect(
-        queryByTestId(HardwareWalletsSwapsSelectorsIDs.RECONNECT_BUTTON),
-      ).toBeNull();
-    });
-
-    it('renders the failed state with try again button', () => {
-      const { getByTestId, queryByTestId } = renderScreen({
-        status: HardwareWalletsSwapsStatus.Failed,
-        steps: defaultSteps,
-      });
-
-      expect(
-        getByTestId(HardwareWalletsSwapsSelectorsIDs.TITLE).props.children,
-      ).toBe('Transaction failed');
-      expect(
-        getByTestId(HardwareWalletsSwapsSelectorsIDs.TRY_AGAIN_BUTTON),
-      ).toBeDefined();
-      expect(
-        queryByTestId(HardwareWalletsSwapsSelectorsIDs.RECONNECT_BUTTON),
-      ).toBeNull();
-    });
-
-    it('renders the disconnected state with reconnect button', () => {
-      const { getByTestId, queryByTestId } = renderScreen({
-        status: HardwareWalletsSwapsStatus.Disconnected,
-        disconnectedStep: 1,
-        steps: defaultSteps,
-      });
-
-      expect(
-        getByTestId(HardwareWalletsSwapsSelectorsIDs.TITLE).props.children,
-      ).toBe('Device disconnected');
-      expect(
-        getByTestId(HardwareWalletsSwapsSelectorsIDs.RECONNECT_BUTTON),
-      ).toBeDefined();
-      expect(
-        queryByTestId(HardwareWalletsSwapsSelectorsIDs.TRY_AGAIN_BUTTON),
-      ).toBeNull();
-    });
-
     it('renders signing title when step is actively signing', () => {
       const { getByTestId } = renderScreen({
-        steps: [
-          {
-            kind: HardwareWalletsSwapsStepKind.Approval,
-            status: HardwareWalletsSwapsStepStatus.Signing,
-          },
-          defaultSteps[1],
-        ],
+        steps: [signingStep, defaultSteps[1]],
       });
 
       expect(
@@ -313,41 +324,38 @@ describe('HardwareWalletsSwaps', () => {
         getByTestId(`${HardwareWalletsSwapsSelectorsIDs.SIGNING_SPINNER}-0`),
       ).toBeDefined();
     });
+
+    it.each(STATUS_RENDERING_CASES)(
+      'renders the $name state with correct title and buttons',
+      ({ state, expectedTitle, visibleButton, hiddenButton }) => {
+        const { getByTestId, queryByTestId } = renderScreen(state as any);
+
+        if (expectedTitle) {
+          expect(
+            getByTestId(HardwareWalletsSwapsSelectorsIDs.TITLE).props.children,
+          ).toBe(expectedTitle);
+        }
+        expect(getByTestId(visibleButton)).toBeDefined();
+        expect(queryByTestId(hiddenButton)).toBeNull();
+      },
+    );
   });
 
   describe('animation triggers', () => {
     it.each([
       {
         status: HardwareWalletsSwapsStatus.Waiting,
-        steps: [
-          {
-            kind: HardwareWalletsSwapsStepKind.Approval,
-            status: HardwareWalletsSwapsStepStatus.Waiting as const,
-          },
-          defaultSteps[1],
-        ],
+        steps: defaultSteps,
         expectedTrigger: 'reset',
       },
       {
         status: HardwareWalletsSwapsStatus.Waiting,
-        steps: [
-          {
-            kind: HardwareWalletsSwapsStepKind.Approval,
-            status: HardwareWalletsSwapsStepStatus.Signing as const,
-          },
-          defaultSteps[1],
-        ],
+        steps: [signingStep, defaultSteps[1]],
         expectedTrigger: 'wallet_locked',
       },
       {
         status: HardwareWalletsSwapsStatus.Rejected,
-        steps: [
-          {
-            kind: HardwareWalletsSwapsStepKind.Approval,
-            status: HardwareWalletsSwapsStepStatus.Rejected as const,
-          },
-          defaultSteps[1],
-        ],
+        steps: [rejectedApprovalStep, defaultSteps[1]],
         expectedTrigger: 'error',
       },
       {
@@ -395,16 +403,7 @@ describe('HardwareWalletsSwaps', () => {
   describe('step rows', () => {
     it('renders step titles for all step statuses', () => {
       const { getByText } = renderScreen({
-        steps: [
-          {
-            kind: HardwareWalletsSwapsStepKind.Approval,
-            status: HardwareWalletsSwapsStepStatus.Signing,
-          },
-          {
-            kind: HardwareWalletsSwapsStepKind.Transaction,
-            status: HardwareWalletsSwapsStepStatus.Signed,
-          },
-        ],
+        steps: [signingStep, step(Transaction, Signed)],
       });
 
       expect(
@@ -418,16 +417,7 @@ describe('HardwareWalletsSwaps', () => {
     it('renders approved and send titles for signed approval + waiting transaction', () => {
       const { getByText } = renderScreen({
         currentStep: 2,
-        steps: [
-          {
-            kind: HardwareWalletsSwapsStepKind.Approval,
-            status: HardwareWalletsSwapsStepStatus.Signed,
-          },
-          {
-            kind: HardwareWalletsSwapsStepKind.Transaction,
-            status: HardwareWalletsSwapsStepStatus.Waiting,
-          },
-        ],
+        steps: [step(Approval, Signed), step(Transaction, StepWaiting)],
       });
 
       expect(
@@ -450,16 +440,8 @@ describe('HardwareWalletsSwaps', () => {
     it('renders step addresses when provided', () => {
       const { getByText } = renderScreen({
         steps: [
-          {
-            kind: HardwareWalletsSwapsStepKind.Approval,
-            status: HardwareWalletsSwapsStepStatus.Waiting,
-            address: '0x1234567890abcdef',
-          },
-          {
-            kind: HardwareWalletsSwapsStepKind.Transaction,
-            status: HardwareWalletsSwapsStepStatus.Waiting,
-            address: '0xabcdef1234567890',
-          },
+          step(Approval, StepWaiting, '0x1234567890abcdef'),
+          step(Transaction, StepWaiting, '0xabcdef1234567890'),
         ],
       });
 
@@ -489,11 +471,7 @@ describe('HardwareWalletsSwaps', () => {
 
   describe('done', () => {
     it('navigates to transactions', () => {
-      const { getByTestId } = renderScreen({
-        status: HardwareWalletsSwapsStatus.Submitted,
-        currentStep: 2,
-        steps: signedSteps,
-      });
+      const { getByTestId } = renderScreen(SUBMITTED_STATE);
 
       fireEvent.press(
         getByTestId(HardwareWalletsSwapsSelectorsIDs.DONE_BUTTON),
@@ -501,16 +479,52 @@ describe('HardwareWalletsSwaps', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
     });
+
+    it('resets hardware wallet swaps state', () => {
+      const { getByTestId, store } = renderScreen(SUBMITTED_STATE);
+
+      fireEvent.press(
+        getByTestId(HardwareWalletsSwapsSelectorsIDs.DONE_BUTTON),
+      );
+
+      expect(getBridgeStatus(store)).toBe(HardwareWalletsSwapsStatus.Idle);
+    });
   });
 
-  describe('try again', () => {
-    it('retries submission in place without navigating away on try again', async () => {
-      mockRouteSubmissionParams();
-
-      const { getByTestId, store } = renderScreen({
+  describe('retry', () => {
+    it.each([
+      {
+        name: 'rejected',
         status: HardwareWalletsSwapsStatus.Rejected,
         steps: [rejectedApprovalStep, defaultSteps[1]],
-      });
+      },
+      {
+        name: 'failed',
+        status: HardwareWalletsSwapsStatus.Failed,
+        steps: defaultSteps,
+      },
+    ])(
+      'retries submission in place from $name state',
+      async ({ status, steps }) => {
+        const { getByTestId, store } = renderScreen({ status, steps });
+
+        await act(async () => {
+          fireEvent.press(
+            getByTestId(HardwareWalletsSwapsSelectorsIDs.TRY_AGAIN_BUTTON),
+          );
+        });
+
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(getBridgeStatus(store)).toBe(HardwareWalletsSwapsStatus.Waiting);
+      },
+    );
+
+    it('retries in place on try again after rejection dispatch', async () => {
+      const { getByTestId, store } = renderScreen({});
+
+      await flushPromises();
+      dispatchRejection(store);
+      await flushPromises();
 
       await act(async () => {
         fireEvent.press(
@@ -518,23 +532,16 @@ describe('HardwareWalletsSwaps', () => {
         );
       });
 
-      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.BRIDGE.BRIDGE_VIEW);
-      expect(store.getState().bridge.hardwareWalletsSwaps.status).toBe(
-        HardwareWalletsSwapsStatus.Waiting,
-      );
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(getBridgeStatus(store)).toBe(HardwareWalletsSwapsStatus.Waiting);
     });
   });
 
   describe('reconnect', () => {
     it('dispatches RETRY when reconnect is pressed with valid connection', async () => {
-      const originalStatus = mockConnectionState.status;
       mockConnectionState.status = 'connected';
 
-      const { getByTestId, store } = renderScreen({
-        status: HardwareWalletsSwapsStatus.Disconnected,
-        disconnectedStep: 1,
-        steps: defaultSteps,
-      });
+      const { getByTestId, store } = renderScreen(DISCONNECTED_STATE);
 
       await act(async () => {
         fireEvent.press(
@@ -542,18 +549,11 @@ describe('HardwareWalletsSwaps', () => {
         );
       });
 
-      expect(store.getState().bridge.hardwareWalletsSwaps.status).toBe(
-        HardwareWalletsSwapsStatus.Waiting,
-      );
-      mockConnectionState.status = originalStatus;
+      expect(getBridgeStatus(store)).toBe(HardwareWalletsSwapsStatus.Waiting);
     });
 
     it('does not retry when connection is not retryable', async () => {
-      const { getByTestId, store } = renderScreen({
-        status: HardwareWalletsSwapsStatus.Disconnected,
-        disconnectedStep: 1,
-        steps: defaultSteps,
-      });
+      const { getByTestId, store } = renderScreen(DISCONNECTED_STATE);
 
       await act(async () => {
         fireEvent.press(
@@ -561,7 +561,7 @@ describe('HardwareWalletsSwaps', () => {
         );
       });
 
-      expect(store.getState().bridge.hardwareWalletsSwaps.status).toBe(
+      expect(getBridgeStatus(store)).toBe(
         HardwareWalletsSwapsStatus.Disconnected,
       );
       expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
@@ -570,20 +570,17 @@ describe('HardwareWalletsSwaps', () => {
 
   describe('submission', () => {
     it('submits bridge transaction on mount', async () => {
-      const cachedParams = getCachedParams();
-      mockRouteSubmissionParams(cachedParams);
+      mockRouteSubmissionParams();
 
       renderScreen({});
 
       await waitFor(() => {
-        expect(mockSubmitBridgeTx).toHaveBeenCalledWith(cachedParams);
+        expect(mockSubmitBridgeTx).toHaveBeenCalledWith(MOCK_SUBMISSION_PARAMS);
       });
       expect(mockEnsureDeviceReady).not.toHaveBeenCalled();
     });
 
     it('does not resubmit after initial submission', async () => {
-      mockRouteSubmissionParams();
-
       renderScreen({});
 
       await waitFor(() => {
@@ -591,53 +588,36 @@ describe('HardwareWalletsSwaps', () => {
       });
 
       mockSubmitBridgeTx.mockClear();
-      await act(async () => {
-        await Promise.resolve();
-      });
+      await flushPromises();
 
       expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
     });
 
-    it('dispatches TRANSACTION_FAILED when no cached params', async () => {
-      mockRouteSubmissionParams(null);
-
+    it.each([
+      {
+        name: 'no cached params',
+        setup: () => mockRouteSubmissionParams(null),
+      },
+      {
+        name: 'no wallet address',
+        setup: () =>
+          jest.mocked(selectSourceWalletAddress).mockReturnValue(undefined),
+      },
+      {
+        name: 'submitBridgeTx throws',
+        setup: () =>
+          mockSubmitBridgeTx.mockRejectedValue(new Error('submission error')),
+      },
+    ])('dispatches TRANSACTION_FAILED when $name', async ({ setup }) => {
+      setup();
       const { store } = renderScreen({});
 
       await waitFor(() => {
-        expect(store.getState().bridge.hardwareWalletsSwaps.status).toBe(
-          HardwareWalletsSwapsStatus.Failed,
-        );
-      });
-    });
-
-    it('dispatches TRANSACTION_FAILED when no wallet address', async () => {
-      mockRouteSubmissionParams();
-      jest.mocked(selectSourceWalletAddress).mockReturnValue(undefined);
-
-      const { store } = renderScreen({});
-
-      await waitFor(() => {
-        expect(store.getState().bridge.hardwareWalletsSwaps.status).toBe(
-          HardwareWalletsSwapsStatus.Failed,
-        );
-      });
-    });
-
-    it('dispatches TRANSACTION_FAILED when submitBridgeTx throws', async () => {
-      mockRouteSubmissionParams();
-      mockSubmitBridgeTx.mockRejectedValue(new Error('submission error'));
-
-      const { store } = renderScreen({});
-
-      await waitFor(() => {
-        expect(store.getState().bridge.hardwareWalletsSwaps.status).toBe(
-          HardwareWalletsSwapsStatus.Failed,
-        );
+        expect(getBridgeStatus(store)).toBe(HardwareWalletsSwapsStatus.Failed);
       });
     });
 
     it('does not dispatch TRANSACTION_FAILED when state is already terminal', async () => {
-      mockRouteSubmissionParams();
       mockSubmitBridgeTx.mockRejectedValue(new Error('submission error'));
 
       const { store } = renderScreen({
@@ -645,155 +625,38 @@ describe('HardwareWalletsSwaps', () => {
         steps: [rejectedApprovalStep, defaultSteps[1]],
       });
 
-      await act(async () => {
-        await Promise.resolve();
-      });
+      await flushPromises();
 
-      expect(store.getState().bridge.hardwareWalletsSwaps.status).toBe(
-        HardwareWalletsSwapsStatus.Rejected,
-      );
-    });
-
-    it('retries submission in place after generation bump from Failed state', async () => {
-      mockRouteSubmissionParams();
-
-      const { getByTestId, store } = renderScreen({
-        status: HardwareWalletsSwapsStatus.Failed,
-        steps: defaultSteps,
-      });
-
-      await act(async () => {
-        fireEvent.press(
-          getByTestId(HardwareWalletsSwapsSelectorsIDs.TRY_AGAIN_BUTTON),
-        );
-      });
-
-      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.BRIDGE.BRIDGE_VIEW);
-      expect(store.getState().bridge.hardwareWalletsSwaps.status).toBe(
-        HardwareWalletsSwapsStatus.Waiting,
-      );
-    });
-
-    it('retries in place on try again after rejection dispatch', async () => {
-      mockRouteSubmissionParams();
-
-      const { getByTestId, store } = renderScreen({});
-
-      await act(async () => {
-        await Promise.resolve();
-      });
-
-      store.dispatch(
-        updateHardwareWalletsSwaps({
-          type: HardwareWalletsSwapsEventType.Rejected,
-          payload: { stepKind: HardwareWalletsSwapsStepKind.Approval },
-        }),
-      );
-
-      await act(async () => {
-        await Promise.resolve();
-      });
-
-      await act(async () => {
-        fireEvent.press(
-          getByTestId(HardwareWalletsSwapsSelectorsIDs.TRY_AGAIN_BUTTON),
-        );
-      });
-
-      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.BRIDGE.BRIDGE_VIEW);
-      expect(store.getState().bridge.hardwareWalletsSwaps.status).toBe(
-        HardwareWalletsSwapsStatus.Waiting,
-      );
-    });
-
-    it('navigates to transactions after retry flow signs all txs', async () => {
-      mockRouteSubmissionParams();
-
-      const { getByTestId, store } = renderScreen({});
-
-      await act(async () => {
-        await Promise.resolve();
-      });
-
-      store.dispatch(
-        updateHardwareWalletsSwaps({
-          type: HardwareWalletsSwapsEventType.Rejected,
-          payload: { stepKind: HardwareWalletsSwapsStepKind.Approval },
-        }),
-      );
-
-      await act(async () => {
-        await Promise.resolve();
-      });
-
-      await act(async () => {
-        fireEvent.press(
-          getByTestId(HardwareWalletsSwapsSelectorsIDs.TRY_AGAIN_BUTTON),
-        );
-      });
-
-      await act(async () => {
-        store.dispatch(
-          updateHardwareWalletsSwaps({
-            type: HardwareWalletsSwapsEventType.Signed,
-            payload: { stepKind: HardwareWalletsSwapsStepKind.Approval },
-          }),
-        );
-        store.dispatch(
-          updateHardwareWalletsSwaps({
-            type: HardwareWalletsSwapsEventType.Signed,
-            payload: { stepKind: HardwareWalletsSwapsStepKind.Transaction },
-          }),
-        );
-        await Promise.resolve();
-      });
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
-    });
-
-    it('dispatches TRANSACTION_FAILED when waiting but no cache', async () => {
-      mockRouteSubmissionParams(null);
-
-      const { store } = renderScreen({
-        status: HardwareWalletsSwapsStatus.Waiting,
-        currentStep: 1,
-        totalSteps: 2,
-        steps: defaultSteps,
-      });
-
-      await waitFor(() => {
-        expect(store.getState().bridge.hardwareWalletsSwaps.status).toBe(
-          HardwareWalletsSwapsStatus.Failed,
-        );
-      });
+      expect(getBridgeStatus(store)).toBe(HardwareWalletsSwapsStatus.Rejected);
     });
   });
 
   describe('auto-navigation', () => {
     it('auto-navigates to transactions when Submitted and submission completes', async () => {
-      mockRouteSubmissionParams();
-      mockSubmitBridgeTx.mockImplementation(async () => ({ success: true }));
-
       const { store } = renderScreen({});
 
+      await flushPromises();
+      signAllSteps(store);
+      await flushPromises();
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+    });
+
+    it('navigates to transactions after retry flow signs all txs', async () => {
+      const { getByTestId, store } = renderScreen({});
+
+      await flushPromises();
+      dispatchRejection(store);
+      await flushPromises();
+
       await act(async () => {
-        await Promise.resolve();
+        fireEvent.press(
+          getByTestId(HardwareWalletsSwapsSelectorsIDs.TRY_AGAIN_BUTTON),
+        );
       });
 
-      store.dispatch(
-        updateHardwareWalletsSwaps({
-          type: HardwareWalletsSwapsEventType.Signed,
-          payload: { stepKind: HardwareWalletsSwapsStepKind.Approval },
-        }),
-      );
-      store.dispatch(
-        updateHardwareWalletsSwaps({
-          type: HardwareWalletsSwapsEventType.Signed,
-          payload: { stepKind: HardwareWalletsSwapsStepKind.Transaction },
-        }),
-      );
-
       await act(async () => {
+        signAllSteps(store);
         await Promise.resolve();
       });
 
@@ -801,27 +664,15 @@ describe('HardwareWalletsSwaps', () => {
     });
 
     it('does not auto-navigate for non-Submitted states', () => {
-      renderScreen({
-        steps: [
-          {
-            kind: HardwareWalletsSwapsStepKind.Approval,
-            status: HardwareWalletsSwapsStepStatus.Signing,
-          },
-          defaultSteps[1],
-        ],
-      });
+      renderScreen({ steps: [signingStep, defaultSteps[1]] });
 
-      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 
   describe('force-hide bottom sheet for non-QR wallets', () => {
     it('force-hides the shared bottom sheet once all steps are signed', () => {
-      renderScreen({
-        status: HardwareWalletsSwapsStatus.Submitted,
-        currentStep: 2,
-        steps: signedSteps,
-      });
+      renderScreen(SUBMITTED_STATE);
 
       expect(mockSetForceHideBottomSheet).toHaveBeenCalledWith(true);
     });

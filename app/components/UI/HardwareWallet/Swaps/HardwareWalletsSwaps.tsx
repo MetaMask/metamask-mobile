@@ -91,30 +91,20 @@ const HardwareWalletRiveTrigger = {
   NotFound: 'not_found',
 } as const;
 
+const STATUS_TO_RIVE_TRIGGER: Record<string, string> = {
+  [HardwareWalletsSwapsStatus.Submitted]: HardwareWalletRiveTrigger.Found,
+  [HardwareWalletsSwapsStatus.Rejected]: HardwareWalletRiveTrigger.Error,
+  [HardwareWalletsSwapsStatus.Failed]: HardwareWalletRiveTrigger.Error,
+  [HardwareWalletsSwapsStatus.Disconnected]:
+    HardwareWalletRiveTrigger.WalletDisconnected,
+  [HardwareWalletsSwapsStatus.Cancelled]:
+    HardwareWalletRiveTrigger.WalletDisconnected,
+  [HardwareWalletsSwapsStatus.Idle]: HardwareWalletRiveTrigger.NotFound,
+};
+
 function getHardwareWalletRiveTrigger(progress: HardwareWalletsSwapsState) {
-  if (progress.status === HardwareWalletsSwapsStatus.Submitted) {
-    return HardwareWalletRiveTrigger.Found;
-  }
-
-  if (progress.status === HardwareWalletsSwapsStatus.Rejected) {
-    return HardwareWalletRiveTrigger.Error;
-  }
-
-  if (progress.status === HardwareWalletsSwapsStatus.Failed) {
-    return HardwareWalletRiveTrigger.Error;
-  }
-
-  if (progress.status === HardwareWalletsSwapsStatus.Disconnected) {
-    return HardwareWalletRiveTrigger.WalletDisconnected;
-  }
-
-  if (progress.status === HardwareWalletsSwapsStatus.Cancelled) {
-    return HardwareWalletRiveTrigger.WalletDisconnected;
-  }
-
-  if (progress.status === HardwareWalletsSwapsStatus.Idle) {
-    return HardwareWalletRiveTrigger.NotFound;
-  }
+  const mapped = STATUS_TO_RIVE_TRIGGER[progress.status];
+  if (mapped) return mapped;
 
   const activeStep = progress.steps[progress.currentStep - 1];
   return activeStep?.status === HardwareWalletsSwapsStepStatus.Signing
@@ -262,15 +252,7 @@ export function HardwareWalletsSwaps() {
   submitBridgeTxRef.current = submitBridgeTx;
 
   const submitWithDeviceReady = useCallback(async () => {
-    if (!cachedSubmissionParams.current) {
-      dispatch(
-        updateHardwareWalletsSwaps({
-          type: HardwareWalletsSwapsEventType.TransactionFailed,
-        }),
-      );
-      return;
-    }
-    if (!walletAddress) {
+    if (!cachedSubmissionParams.current || !walletAddress) {
       dispatch(
         updateHardwareWalletsSwaps({
           type: HardwareWalletsSwapsEventType.TransactionFailed,
@@ -340,7 +322,6 @@ export function HardwareWalletsSwaps() {
   }, [progress.currentStep, progress.totalSteps]);
 
   const title = useMemo(() => {
-    if (isSigning) return null;
     switch (progress.status) {
       case HardwareWalletsSwapsStatus.Submitted:
         return strings('bridge.hardware_wallet_progress.submitted_title');
@@ -355,7 +336,7 @@ export function HardwareWalletsSwaps() {
       default:
         return null;
     }
-  }, [isSigning, progress.status, signingTitle]);
+  }, [progress.status, signingTitle]);
 
   const handleCancel = useCallback(() => {
     cancelCurrentBatch();
@@ -364,17 +345,12 @@ export function HardwareWalletsSwaps() {
     navigation.navigate(Routes.BRIDGE.BRIDGE_VIEW);
   }, [dispatch, navigation, cancelCurrentBatch]);
 
-  const bounceToBridgeView = useCallback(() => {
-    cachedSubmissionParams.current = null;
-    dispatch(resetHardwareWalletsSwaps());
-    navigation.navigate(Routes.BRIDGE.BRIDGE_VIEW);
-  }, [dispatch, navigation]);
-
   const retrySubmission = useCallback(
     async (checkConnection: boolean) => {
       if (retryingMutexRef.current) return;
       if (!cachedSubmissionParams.current) {
-        bounceToBridgeView();
+        dispatch(resetHardwareWalletsSwaps());
+        navigation.navigate(Routes.BRIDGE.BRIDGE_VIEW);
         return;
       }
       retryingMutexRef.current = true;
@@ -410,11 +386,11 @@ export function HardwareWalletsSwaps() {
     },
     [
       dispatch,
+      navigation,
       cancelCurrentBatch,
       submitWithDeviceReady,
       connectionState.status,
       resetHandledError,
-      bounceToBridgeView,
     ],
   );
 
@@ -491,23 +467,13 @@ export function HardwareWalletsSwaps() {
           />
         </Box>
 
-        {isSigning ? (
-          <Text
-            testID={HardwareWalletsSwapsSelectorsIDs.TITLE}
-            variant={TextVariant.HeadingLg}
-            twClassName="mb-8"
-          >
-            {signingTitle}
-          </Text>
-        ) : (
-          <Text
-            testID={HardwareWalletsSwapsSelectorsIDs.TITLE}
-            variant={TextVariant.HeadingLg}
-            twClassName="mb-8"
-          >
-            {title}
-          </Text>
-        )}
+        <Text
+          testID={HardwareWalletsSwapsSelectorsIDs.TITLE}
+          variant={TextVariant.HeadingLg}
+          twClassName="mb-8"
+        >
+          {title}
+        </Text>
 
         <Box>
           {progress.steps.map((step, index) => (
