@@ -46,7 +46,7 @@ export function useComplianceGate(address?: AddressInput) {
   // Derive addresses from the scalar key so the memo depends only on what it
   // uses — no eslint-disable needed.
   const addresses = useMemo(
-    addressKey?.split(',').filter(Boolean) ?? []
+    () => (addressKey ? addressKey.split(',').filter(Boolean) : []),
     [addressKey],
   );
 
