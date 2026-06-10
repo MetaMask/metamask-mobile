@@ -6063,10 +6063,12 @@ const mockPredictPosition: PredictThePitchLeaderboardPositionDto = {
   eligible: true,
   neighbors: [],
   computedAt: '2026-06-30T12:00:00.000Z',
+  marketsTraded: 3,
+  minimumMarketsTraded: 3,
 };
 
 const mockPredictPositions: PredictThePitchPositionsDto = {
-  positions: [
+  openPositions: [
     {
       outcomeAssetId: 'token-1',
       outcomeAsset: 'Yes',
@@ -6087,6 +6089,7 @@ const mockPredictPositions: PredictThePitchPositionsDto = {
       fillDate: '2026-06-30T12:00:00.000Z',
     },
   ],
+  resolvedPositions: [],
   computedAt: '2026-06-30T12:00:00.000Z',
 };
 

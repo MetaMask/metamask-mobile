@@ -9228,6 +9228,11 @@
       "label_pnl": "PnL",
       "predict_now_cta": "Predict now",
       "positions_title": "Your predictions",
+      "positions_open_section": "Open",
+      "positions_closed_section": "Closed",
+      "position_sold_at": "Sold {{time}}",
+      "positions_open_badge": "{{count}} open",
+      "positions_closed_badge": "{{count}} closed",
       "positions_error": "Failed to load predictions",
       "positions_error_description": "Something went wrong while loading your predictions. Please try again.",
       "positions_retry": "Retry",
@@ -9242,7 +9247,13 @@
       "leaderboard_not_yet_computed": "Leaderboard hasn't been computed yet. Check back soon.",
       "stats_error_title": "Unable to load stats",
       "stats_error_description": "We had a problem loading your stats. Please try again.",
-      "stats_retry": "Retry"
+      "label_markets_traded": "Markets traded",
+      "stats_retry": "Retry",
+      "performance_title": "Performance",
+      "stats_qualified_title": "You're qualified",
+      "stats_qualified_description": "Keep trading to improve your ROI and climb the leaderboard before the competition ends.",
+      "stats_qualify_for_rank_title": "Qualify for the leaderboard",
+      "stats_qualify_for_rank_description": "Trade at least $10 in at least 3 eligible markets before the competition ends."
     },
     "campaigns_preview": {
       "title": "Campaigns",
