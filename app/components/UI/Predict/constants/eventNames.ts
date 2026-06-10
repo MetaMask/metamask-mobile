@@ -47,6 +47,9 @@ export const PredictEventProperties = {
 
   // Position specific
   OPEN_POSITIONS_COUNT: 'open_positions_count',
+  CLAIMABLE_POSITIONS_COUNT: 'claimable_positions_count',
+  HAS_CLAIMABLE_WINNINGS: 'has_claimable_winnings',
+  PORTFOLIO_MODULE_ENABLED: 'portfolio_module_enabled',
 
   // Activity specific
   ACTIVITY_TYPE: 'activity_type',
@@ -58,6 +61,7 @@ export const PredictEventProperties = {
   // Feed session specific
   PREDICT_FEED_TAB: 'predict_feed_tab',
   PREDICT_SCREEN: 'predict_screen',
+  PREDICT_COMPONENT: 'predict_component',
   NUM_FEED_PAGES_VIEWED_IN_SESSION: 'num_feed_pages_viewed_in_session',
   SESSION_TIME_IN_FEED: 'session_time_in_feed',
   SESSION_ID: 'session_id',
@@ -143,6 +147,14 @@ export const PredictEventValues = {
   },
   PREDICT_SCREEN: {
     WORLD_CUP: 'world_cup',
+    PREDICT_POSITIONS_SCREEN: 'predict_positions_screen',
+  },
+  PREDICT_COMPONENT: {
+    PREDICT_PORTFOLIO_MODULE: 'predict_portfolio_module',
+  },
+  PREDICT_FEED_TAB: {
+    POSITIONS: 'positions',
+    HISTORY: 'history',
   },
   ACTION_TYPE: {
     VIEWED: 'viewed',

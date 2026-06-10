@@ -111,9 +111,9 @@ interface PerpsHomeViewProps {
   /** Forwarded to useDiscoveryScrollManager to sync icon animations with header hide/show. */
   onHeaderHiddenChange?: (hidden: boolean) => void;
   /**
-   * Top padding applied inside the scroll content container — used by HomepageDiscoveryTabs
-   * (Hub Page Discovery Tabs feature flag treatment) so the perps gradient extends up
-   * directly under the discovery tab bar instead of leaving a transparent gap.
+   * Top padding applied inside the scroll content container when embedded in
+   * HomepageDiscoveryTabs — keeps the perps background flush under the discovery
+   * tab bar and adds spacing before the screen title (32px in discovery tabs).
    */
   topInset?: number;
 }
@@ -535,7 +535,7 @@ const PerpsHomeView = ({
   const scrollContentContainerStyle = useMemo(
     () => [
       styles.scrollViewContent,
-      topInset > 0 ? { paddingTop: topInset } : null,
+      hideHeader && topInset > 0 ? { paddingTop: topInset } : null,
       showsFixedFooter
         ? { paddingBottom: 0 }
         : !hideHeader
@@ -620,11 +620,15 @@ const PerpsHomeView = ({
         >
           <TitleHub
             testID={PerpsHomeViewSelectorsIDs.HOME_HEADING}
-            title={perpsScreenTitle}
-            titleEndAccessory={titleEndAccessory}
-            titleProps={{
-              testID: `${PerpsHomeViewSelectorsIDs.HOME_HEADING}-title`,
-            }}
+            title={hideHeader ? undefined : perpsScreenTitle}
+            titleEndAccessory={hideHeader ? undefined : titleEndAccessory}
+            titleProps={
+              hideHeader
+                ? undefined
+                : {
+                    testID: `${PerpsHomeViewSelectorsIDs.HOME_HEADING}-title`,
+                  }
+            }
             amount={
               !isBalanceEmpty ? (
                 <SensitiveText
