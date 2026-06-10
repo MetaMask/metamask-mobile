@@ -7004,7 +7004,7 @@
       "contact_support": "Contact support"
     },
     "transfer_sheet": {
-      "title": "Send funds",
+      "title": "Send funds to",
       "between_accounts": "Another account",
       "perps_account": "Perps account",
       "predictions_account": "Predictions account",
