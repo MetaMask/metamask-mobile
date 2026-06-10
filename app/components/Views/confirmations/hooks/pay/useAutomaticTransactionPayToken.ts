@@ -40,7 +40,6 @@ import { MUSD_TOKEN_ADDRESS } from '../../../../UI/Earn/constants/musd';
 import { useWithdrawTokenFilter } from './useWithdrawTokenFilter';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 import { useRampsPaymentMethods } from '../../../../UI/Ramp/hooks/useRampsPaymentMethods';
-import { pickEligiblePaymentMethod } from '../../../../UI/Ramp/utils/pickEligiblePaymentMethod';
 
 export interface SetPayTokenRequest {
   address: Hex;
@@ -184,9 +183,8 @@ export function useAutomaticTransactionPayToken({
         return;
       }
 
-      const eligibleMethod = pickEligiblePaymentMethod(
-        paymentMethods,
-        maxDelayMinutesForPaymentMethods,
+      const eligibleMethod = paymentMethods.find(
+        (pm) => !pm.delay || pm.delay[1] <= maxDelayMinutesForPaymentMethods,
       );
 
       if (eligibleMethod) {
