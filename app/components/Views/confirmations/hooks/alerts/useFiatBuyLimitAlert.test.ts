@@ -56,7 +56,7 @@ describe('useFiatBuyLimitAlert', () => {
     });
   });
 
-  it('returns blocking alert when transaction type is fiat-enabled and amountLimitError is present', () => {
+  it('returns blocking alert when the amount is outside the provider limits', () => {
     useRampsBuyLimitsMock.mockReturnValue({
       amountLimitError: 'Amount exceeds maximum limit of $500',
       currency: 'USD',
