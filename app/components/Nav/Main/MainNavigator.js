@@ -1406,7 +1406,7 @@ const MainNavigator = () => {
       <Stack.Screen
         name={Routes.CARD.ROOT}
         component={CardRoutes}
-        options={TransitionPresets.ModalPresentationIOS}
+        options={TransitionPresets.ModalSlideFromBottomIOS}
       />
       <Stack.Screen
         name={Routes.RAMP.MODALS.PROCESSING_INFO}
