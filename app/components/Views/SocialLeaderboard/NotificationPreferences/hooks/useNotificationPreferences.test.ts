@@ -83,7 +83,9 @@ describe('useNotificationPreferences', () => {
 
     expect(result.current.preferences.pushNotificationsEnabled).toBe(true);
     expect(result.current.preferences.inAppNotificationsEnabled).toBe(true);
-    expect(result.current.preferences.txAmountLimit).toBe(DEFAULT_TX_AMOUNT_LIMIT);
+    expect(result.current.preferences.txAmountLimit).toBe(
+      DEFAULT_TX_AMOUNT_LIMIT,
+    );
     expect(result.current.preferences.mutedTraderProfileIds).toEqual([]);
     expect(result.current.hasNotificationPreferences).toBe(false);
   });
@@ -113,7 +115,9 @@ describe('useNotificationPreferences', () => {
       txAmountLimit: 100,
       mutedTraderProfileIds: ['trader-muted'],
     });
-    expect(result.current.isTraderNotificationEnabled('trader-muted')).toBe(false);
+    expect(result.current.isTraderNotificationEnabled('trader-muted')).toBe(
+      false,
+    );
   });
 
   it('setPushNotificationsEnabled delegates to updateSectionChannel', async () => {

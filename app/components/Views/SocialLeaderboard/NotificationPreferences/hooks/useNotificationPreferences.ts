@@ -93,7 +93,11 @@ export const useNotificationPreferences =
           setPersistError(toErrorMessage(err));
         }
       },
-      [hasNotificationPreferences, storagePreferences, updatePreferencesSection],
+      [
+        hasNotificationPreferences,
+        storagePreferences,
+        updatePreferencesSection,
+      ],
     );
 
     const setPushNotificationsEnabled = useCallback(

@@ -1,9 +1,4 @@
-import React, {
-  useCallback,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { SectionList, View } from 'react-native';
 import type {
   useAccountProps,
@@ -49,7 +44,9 @@ export const AccountsList = ({
   } | null>(null);
   const isUpdatingAccountRef = useRef(false);
   const areSwitchesDisabled =
-    shouldDisableSwitches || isAnyAccountUpdating || pendingAccountToggle !== null;
+    shouldDisableSwitches ||
+    isAnyAccountUpdating ||
+    pendingAccountToggle !== null;
 
   const handleToggleAccountNotifications = useCallback(
     async (evmAddress: string, nextValue: boolean) => {

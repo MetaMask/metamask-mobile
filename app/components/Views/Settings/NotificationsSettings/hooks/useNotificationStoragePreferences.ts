@@ -66,9 +66,7 @@ export const useNotificationStoragePreferences =
     const isUpdatingPreferencesRef = useRef(false);
     const getCachedPreferences = useCallback(
       () =>
-        queryClient.getQueryData(
-          QUERY_KEY,
-        ) as NotificationPreferencesQueryData,
+        queryClient.getQueryData(QUERY_KEY) as NotificationPreferencesQueryData,
       [queryClient],
     );
 
@@ -94,8 +92,7 @@ export const useNotificationStoragePreferences =
 
         const currentPreferences =
           latestCachedPreferences as NotificationPreferences;
-        const previousSnapshot =
-          getCachedPreferences() ?? currentPreferences;
+        const previousSnapshot = getCachedPreferences() ?? currentPreferences;
         const nextPreferences: NotificationPreferences = {
           ...currentPreferences,
           [type]: nextSectionPreferences,

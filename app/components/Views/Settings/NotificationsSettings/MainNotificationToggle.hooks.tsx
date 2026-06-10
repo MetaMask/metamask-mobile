@@ -28,13 +28,16 @@ export function useMainNotificationToggle() {
     }
   }, [basicFunctionalityEnabled, navigation]);
 
-  const { value, onValueChange: onToggle, pendingWrites } =
-    useOptimisticToggleValue({
-      remoteValue,
-      onPersist: switchNotifications,
-      isToggleEnabled: () => basicFunctionalityEnabled,
-      onToggleBlocked,
-    });
+  const {
+    value,
+    onValueChange: onToggle,
+    pendingWrites,
+  } = useOptimisticToggleValue({
+    remoteValue,
+    onPersist: switchNotifications,
+    isToggleEnabled: () => basicFunctionalityEnabled,
+    onToggleBlocked,
+  });
 
   return { onToggle, value, isUpdating: pendingWrites > 0 };
 }
