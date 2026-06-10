@@ -64,7 +64,6 @@ import { ExploreFeed } from '../../Views/TrendingView/TrendingView';
 import WhatsHappeningDetailView from '../../Views/WhatsHappeningDetailView';
 import ExploreSearchScreen from '../../Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen';
 import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
-import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
 
 import RampRoutes from '../../UI/Ramp/Aggregator/routes';
@@ -1020,20 +1019,6 @@ const MainNavigator = () => {
       initialRouteName={'Home'}
     >
       <Stack.Screen name="Home" component={HomeTabs} />
-      <Stack.Screen
-        name="CollectiblesDetails"
-        component={CollectiblesDetails}
-        options={{
-          presentation: 'modal',
-          //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
-          cardStyle: { backgroundColor: importedColors.transparent },
-          cardStyleInterpolator: () => ({
-            overlayStyle: {
-              opacity: 0,
-            },
-          }),
-        }}
-      />
       <Stack.Screen
         name={Routes.DEPRECATED_NETWORK_DETAILS}
         component={DeprecatedNetworkDetails}
