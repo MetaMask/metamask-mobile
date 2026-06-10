@@ -181,23 +181,13 @@ class RevealSecretRecoveryPhrase {
   }
 
   async scrollToDone(): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await UnifiedGestures.scrollToElement(
-          this.doneButton,
-          this.scrollViewIdentifier,
-          {
-            description: 'Done button',
-          },
-        );
+    await UnifiedGestures.scrollToElement(
+      this.doneButton,
+      RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_SCROLL_ID,
+      {
+        description: 'Done button',
       },
-      appium: async () => {
-        await PlaywrightGestures.scrollIntoView(
-          await asPlaywrightElement(this.doneButton),
-          { scrollParams: { direction: 'down' } },
-        );
-      },
-    });
+    );
   }
 
   async tapDoneButton(): Promise<void> {
@@ -207,43 +197,23 @@ class RevealSecretRecoveryPhrase {
   }
 
   async scrollToCopyToClipboardButton(): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await UnifiedGestures.scrollToElement(
-          this.revealCredentialCopyToClipboardButton,
-          this.tabScrollViewTextIdentifier,
-          {
-            description: 'Copy to clipboard button',
-          },
-        );
+    await UnifiedGestures.scrollToElement(
+      this.revealCredentialCopyToClipboardButton,
+      RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW_TEXT,
+      {
+        description: 'Copy to clipboard button',
       },
-      appium: async () => {
-        await PlaywrightGestures.scrollIntoView(
-          await asPlaywrightElement(this.revealCredentialCopyToClipboardButton),
-          { scrollParams: { direction: 'down' } },
-        );
-      },
-    });
+    );
   }
 
   async scrollToQR(): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await UnifiedGestures.scrollToElement(
-          this.revealCredentialQRCodeImage,
-          this.tabScrollViewQRCodeIdentifier,
-          {
-            description: 'QR code',
-          },
-        );
+    await UnifiedGestures.scrollToElement(
+      this.revealCredentialQRCodeImage,
+      RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW_QR_CODE,
+      {
+        description: 'QR code',
       },
-      appium: async () => {
-        await PlaywrightGestures.scrollIntoView(
-          await asPlaywrightElement(this.revealCredentialQRCodeImage),
-          { scrollParams: { direction: 'down' } },
-        );
-      },
-    });
+    );
   }
 }
 

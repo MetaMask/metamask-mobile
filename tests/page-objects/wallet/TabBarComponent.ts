@@ -1,13 +1,14 @@
 import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
 import UnifiedGestures from '../../framework/UnifiedGestures';
 import { TabBarSelectorIDs } from '../../../app/components/Nav/Main/TabBar.testIds';
-import { Assertions, PlaywrightAssertions, Utilities } from '../../framework';
 import {
-  encapsulated,
+  Assertions,
+  PlaywrightAssertions,
+  Utilities,
+  resolve,
   EncapsulatedElementType,
   asPlaywrightElement,
-} from '../../framework/EncapsulatedElement';
+} from '../../framework';
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import PlaywrightGestures from '../../framework/PlaywrightGestures';
@@ -19,140 +20,50 @@ import TrendingView from '../Trending/TrendingView';
 
 class TabBarComponent {
   get tabBarExploreButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByID(TabBarSelectorIDs.EXPLORE),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(TabBarSelectorIDs.EXPLORE, {
-            exact: true,
-          }),
-        ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            TabBarSelectorIDs.EXPLORE,
-          ),
-      },
-    });
+    return Matchers.getElementByID(TabBarSelectorIDs.EXPLORE);
   }
 
   get tabBarBrowserButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByID(TabBarSelectorIDs.BROWSER),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(TabBarSelectorIDs.BROWSER, {
-            exact: true,
-          }),
-        ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            TabBarSelectorIDs.BROWSER,
-          ),
-      },
-    });
+    return Matchers.getElementByID(TabBarSelectorIDs.BROWSER);
   }
 
   get tabBarWalletButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByID(TabBarSelectorIDs.WALLET),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(TabBarSelectorIDs.WALLET, {
-            exact: true,
-          }),
-        ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            TabBarSelectorIDs.WALLET,
-          ),
-      },
-    });
+    return Matchers.getElementByID(TabBarSelectorIDs.WALLET);
   }
 
   get tabBarActionButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByID(TabBarSelectorIDs.TRADE),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(TabBarSelectorIDs.ACTIONS, {
-            exact: true,
-          }),
-        ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            TabBarSelectorIDs.ACTIONS,
-          ),
-      },
+    return resolve({
+      detoxTestID: TabBarSelectorIDs.TRADE,
+      androidAppiumTestID: TabBarSelectorIDs.ACTIONS,
+      iosAppiumTestID: TabBarSelectorIDs.ACTIONS,
     });
   }
 
   get tabBarTradeButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByID(TabBarSelectorIDs.TRADE),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(TabBarSelectorIDs.TRADE, {
-            exact: true,
-          }),
-        ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            TabBarSelectorIDs.TRADE,
-          ),
-      },
-    });
+    return Matchers.getElementByID(TabBarSelectorIDs.TRADE);
   }
 
   get tabBarSettingButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByID(TabBarSelectorIDs.SETTING),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(TabBarSelectorIDs.SETTING, {
-            exact: true,
-          }),
-        ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            TabBarSelectorIDs.SETTING,
-          ),
-      },
-    });
+    return Matchers.getElementByID(TabBarSelectorIDs.SETTING);
   }
 
   get tabBarActivityButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByID(TabBarSelectorIDs.ACTIVITY),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(TabBarSelectorIDs.ACTIVITY, {
-            exact: true,
-          }),
-        ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            TabBarSelectorIDs.ACTIVITY,
-          ),
-      },
-    });
+    return Matchers.getElementByID(TabBarSelectorIDs.ACTIVITY);
   }
 
   get tabBarRewardsButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByID(TabBarSelectorIDs.REWARDS),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(TabBarSelectorIDs.REWARDS, {
-            exact: true,
-          }),
-        ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            TabBarSelectorIDs.REWARDS,
-          ),
-      },
-    });
+    return Matchers.getElementByID(TabBarSelectorIDs.REWARDS);
   }
 
   get homeButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByText('Home'),
-      appium: () =>
-        PlaywrightMatchers.getElementById(TabBarSelectorIDs.WALLET, {
-          exact: true,
-        }),
+    return resolve({
+      custom: {
+        detox: () => Matchers.getElementByText('Home'),
+        appium: () =>
+          PlaywrightMatchers.getElementById(TabBarSelectorIDs.WALLET, {
+            exact: true,
+          }),
+      },
     });
   }
 

@@ -1164,8 +1164,8 @@ jobs:
     with:
       build_type: 'main'
       metamask_environment: 'e2e'
-      # Appium Android uses Namespace (metamask-android-build) — same profile as Detox E2E.
-      runner_provider: namespace
+      # Appium Android on Cirrus/GitHub-hosted runners until Namespace parity is ready.
+      runner_provider: current
       selected_tags: >-
         ${{
           (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 &&

@@ -23,7 +23,7 @@ on:
         description: 'Runner provider (namespace or current)'
         required: false
         type: string
-        default: 'namespace'
+        default: 'current'
       selected_tags:
         description: 'JSON array of tags from smart E2E selector (e.g. ["SmokeAccounts"] or ["ALL"])'
         required: false
@@ -45,7 +45,7 @@ on:
         description: 'Runner provider (namespace or current)'
         required: false
         type: string
-        default: 'namespace'
+        default: 'current'
       selected_tags:
         description: 'JSON array of tags from smart E2E selector'
         required: false
