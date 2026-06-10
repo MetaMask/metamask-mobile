@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import BigNumber from 'bignumber.js';
+import { useSelector } from 'react-redux';
 import MoneyOnboardingCard, {
   MONEY_ONBOARDING_TOTAL_STEPS,
 } from './MoneyOnboardingCard';
@@ -17,6 +18,7 @@ import {
   MONEY_ONBOARDING_STEP_ACTIONS,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
+import { selectIsCardholder } from '../../../../../selectors/cardController';
 
 const mockTrackOnboardingEvent = jest.fn();
 
@@ -49,6 +51,13 @@ jest.mock('../../../Card/hooks/useMoneyAccountCardLinkage', () => ({
   useMoneyAccountCardLinkage: jest.fn(),
 }));
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
+
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+
 const mockUseOnboardingStep = useOnboardingStep as jest.MockedFunction<
   typeof useOnboardingStep
 >;
@@ -66,6 +75,7 @@ const mockStartLinkFlow = jest.fn();
 
 interface SetupOptions {
   currentStep?: number;
+  isCardholder?: boolean;
   isCardAuthenticated?: boolean;
   isCardLinkedToMoneyAccount?: boolean;
   isAggregatedBalanceLoading?: boolean;
@@ -74,6 +84,7 @@ interface SetupOptions {
 
 const setupDefaultMocks = ({
   currentStep = 0,
+  isCardholder = false,
   isCardAuthenticated = false,
   isCardLinkedToMoneyAccount = false,
   isAggregatedBalanceLoading = false,
@@ -95,6 +106,11 @@ const setupDefaultMocks = ({
     startLinkFlow: mockStartLinkFlow,
     isCardAuthenticated,
     isCardLinkedToMoneyAccount,
+    isLinking: false,
+  });
+  mockUseSelector.mockImplementation((selector) => {
+    if (selector === selectIsCardholder) return isCardholder;
+    return undefined;
   });
 };
 
@@ -335,6 +351,59 @@ describe('MoneyOnboardingCard', () => {
       );
 
       expect(mockIncrementStep).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('step 2 — cardholder not authenticated', () => {
+    it('renders the unlinked-card title when user is a cardholder but not authenticated', () => {
+      setupDefaultMocks({
+        currentStep: 1,
+        isCardholder: true,
+        isCardAuthenticated: false,
+        isCardLinkedToMoneyAccount: false,
+      });
+
+      const { getByTestId } = render(<MoneyOnboardingCard />);
+
+      expect(getByTestId('money-onboarding-card-title')).toHaveTextContent(
+        strings('money.onboarding.step_2.unlinked_card_account.title'),
+      );
+    });
+
+    it('renders the Link card primary CTA when user is a cardholder but not authenticated', () => {
+      setupDefaultMocks({
+        currentStep: 1,
+        isCardholder: true,
+        isCardAuthenticated: false,
+        isCardLinkedToMoneyAccount: false,
+      });
+
+      const { getByTestId } = render(<MoneyOnboardingCard />);
+
+      expect(getByTestId('money-onboarding-card-cta-button')).toHaveTextContent(
+        strings('money.onboarding.step_2.unlinked_card_account.cta_primary'),
+      );
+    });
+
+    it('calls trackOnboardingEvent with LINK_CARD when cardholder (not authenticated) presses the CTA', () => {
+      setupDefaultMocks({
+        currentStep: 1,
+        isCardholder: true,
+        isCardAuthenticated: false,
+        isCardLinkedToMoneyAccount: false,
+      });
+
+      const { getByTestId } = render(<MoneyOnboardingCard />);
+      fireEvent.press(getByTestId('money-onboarding-card-cta-button'));
+
+      expect(mockTrackOnboardingEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          step: 2,
+          step_action: MONEY_ONBOARDING_STEP_ACTIONS.LINK_CARD,
+          redirect_target: BOTTOM_SHEET_NAMES.CARD_LINK_SHEET,
+          total_steps: MONEY_ONBOARDING_TOTAL_STEPS,
+        }),
+      );
     });
   });
 
