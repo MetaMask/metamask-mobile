@@ -1,5 +1,6 @@
 import { web, system } from 'detox';
 import { type EncapsulatedElementType } from './EncapsulatedElement.ts';
+import { FrameworkDetector } from './FrameworkDetector.ts';
 import { resolve } from './Selector.ts';
 
 /**
@@ -183,6 +184,11 @@ export default class Matchers {
   static async getIdentifier(
     selectorString: string,
   ): Promise<Detox.NativeMatcher> {
+    if (FrameworkDetector.isAppium()) {
+      throw new Error(
+        'Matchers.getIdentifier is Detox-only. Use scrollContainer(testId) for cross-framework scroll.',
+      );
+    }
     return by.id(selectorString);
   }
 

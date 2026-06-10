@@ -6,6 +6,7 @@ import {
 } from '../../../app/components/Views/Settings/SettingsView.testIds';
 import { CommonSelectorsText } from '../../../app/util/Common.testIds';
 import { EncapsulatedElementType } from '../../framework';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class SettingsView {
   get title(): EncapsulatedElementType {
@@ -118,8 +119,8 @@ class SettingsView {
   }
 
   async tapSecurityAndPrivacy(): Promise<void> {
-    await Gestures.waitAndTap(this.securityAndPrivacyButton, {
-      elemDescription: 'Settings - Security and Privacy Button',
+    await UnifiedGestures.waitAndTap(this.securityAndPrivacyButton, {
+      description: 'Settings - Security and Privacy Button',
     });
   }
 
