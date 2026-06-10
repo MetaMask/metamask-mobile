@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react';
+import { Text } from '@metamask/design-system-react-native';
 import { TouchableOpacity, View } from 'react-native';
 import {
   Gesture,
@@ -18,7 +19,6 @@ import {
   type HapticImpactMoment,
 } from '../../../../../util/haptics';
 import LinearGradient from 'react-native-linear-gradient';
-import Text from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './PerpsSlider.styles';
 

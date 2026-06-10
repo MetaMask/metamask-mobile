@@ -11,12 +11,11 @@ import {
   IconColor as ReactNativeDsIconColor,
   IconSize as ReactNativeDsIconSize,
   Spinner,
-} from '@metamask/design-system-react-native';
-import { useStyles } from '../../../../../component-library/hooks';
-import Text, {
+  Text,
   TextVariant,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
+import { useStyles } from '../../../../../component-library/hooks';
 import Icon, {
   IconName,
   IconSize,
@@ -264,10 +263,13 @@ const PerpsWebSocketHealthToast: React.FC = memo(() => {
 
             {/* Text Content */}
             <View style={styles.textContainer}>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+              <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
                 {toastConfig.title}
               </Text>
-              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
                 {toastConfig.description}
               </Text>
             </View>
@@ -280,7 +282,10 @@ const PerpsWebSocketHealthToast: React.FC = memo(() => {
                   onPress={onRetry}
                   testID={PerpsWebSocketHealthToastSelectorsIDs.RETRY_BUTTON}
                 >
-                  <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextDefault}
+                  >
                     {strings('perps.connection.websocket_retry')}
                   </Text>
                 </TouchableOpacity>

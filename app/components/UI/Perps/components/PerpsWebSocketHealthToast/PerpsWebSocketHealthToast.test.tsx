@@ -21,18 +21,6 @@ jest.mock('../../../../../component-library/hooks', () => ({
   }),
 }));
 
-jest.mock('../../../../../component-library/components/Texts/Text', () => {
-  const { Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({ children, ...props }: { children: React.ReactNode }) => (
-      <Text {...props}>{children}</Text>
-    ),
-    TextVariant: { BodyMD: 'BodyMD', BodySM: 'BodySM' },
-    TextColor: { Default: 'Default', Alternative: 'Alternative' },
-  };
-});
-
 jest.mock('../../../../../component-library/components/Icons/Icon', () => ({
   __esModule: true,
   default: () => null,
@@ -42,6 +30,8 @@ jest.mock('../../../../../component-library/components/Icons/Icon', () => ({
 }));
 
 jest.mock('@metamask/design-system-react-native', () => ({
+  ...jest.requireActual('@metamask/design-system-react-native'),
+  Text: jest.requireActual('react-native').Text,
   IconColor: { PrimaryDefault: 'PrimaryDefault' },
   IconSize: { Md: 'Md' },
   Spinner: () => null,

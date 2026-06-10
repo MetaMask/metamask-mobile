@@ -1,6 +1,6 @@
 import React from 'react';
 import { strings } from '../../../../../../locales/i18n';
-import { TextVariant } from '../../../../../component-library/components/Texts/Text';
+import { TextVariant as LegacyTextVariant } from '../../../../../component-library/components/Texts/Text';
 import { Box } from '../../../Box/Box';
 import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow';
 import { TooltipSizes } from '../../../../../component-library/components-temp/KeyValueRow/KeyValueRow.types';
@@ -32,13 +32,13 @@ const PerpsQuoteDetailsCard: React.FC<PerpsQuoteDetailsCardProps> = ({
         field={{
           label: {
             text: strings('perps.quote.network_fee'),
-            variant: TextVariant.BodyMDMedium,
+            variant: LegacyTextVariant.BodyMD,
           },
         }}
         value={{
           label: {
             text: networkFee,
-            variant: TextVariant.BodyMD,
+            variant: LegacyTextVariant.BodyMD,
           },
         }}
         style={styles.quoteRow}
@@ -48,7 +48,7 @@ const PerpsQuoteDetailsCard: React.FC<PerpsQuoteDetailsCardProps> = ({
         field={{
           label: {
             text: strings('perps.quote.metamask_fee'),
-            variant: TextVariant.BodyMDMedium,
+            variant: LegacyTextVariant.BodyMD,
           },
           tooltip: {
             title: strings('perps.quote.metamask_fee'),
@@ -59,7 +59,7 @@ const PerpsQuoteDetailsCard: React.FC<PerpsQuoteDetailsCardProps> = ({
         value={{
           label: {
             text: metamaskFee,
-            variant: TextVariant.BodyMD,
+            variant: LegacyTextVariant.BodyMD,
           },
         }}
         style={styles.quoteRow}
@@ -70,13 +70,13 @@ const PerpsQuoteDetailsCard: React.FC<PerpsQuoteDetailsCardProps> = ({
           field={{
             label: {
               text: strings('perps.quote.estimated_time'),
-              variant: TextVariant.BodyMDMedium,
+              variant: LegacyTextVariant.BodyMD,
             },
           }}
           value={{
             label: {
               text: estimatedTime,
-              variant: TextVariant.BodyMD,
+              variant: LegacyTextVariant.BodyMD,
             },
           }}
           style={styles.quoteRow}
@@ -87,13 +87,13 @@ const PerpsQuoteDetailsCard: React.FC<PerpsQuoteDetailsCardProps> = ({
         field={{
           label: {
             text: strings('perps.quote.rate'),
-            variant: TextVariant.BodyMDMedium,
+            variant: LegacyTextVariant.BodyMD,
           },
         }}
         value={{
           label: {
             text: rate,
-            variant: TextVariant.BodyMD,
+            variant: LegacyTextVariant.BodyMD,
           },
         }}
         style={styles.quoteRow}

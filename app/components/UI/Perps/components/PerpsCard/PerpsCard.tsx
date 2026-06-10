@@ -7,14 +7,18 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   Card,
-} from '@metamask/design-system-react-native';
-import Text, {
-  TextColor,
+  FontWeight,
+  Text,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+  TextColor,
+} from '@metamask/design-system-react-native';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../../component-library/components/Texts/SensitiveText';
+import {
+  TextVariant as LegacyTextVariant,
+  TextColor as LegacyTextColor,
+} from '../../../../../component-library/components/Texts/Text';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
@@ -49,7 +53,7 @@ interface CardDisplayData {
   secondaryText: string;
   valueText: string;
   labelText: string;
-  valueColor: TextColor;
+  valueColor: LegacyTextColor;
 }
 
 const getPositionDisplayData = (position: Position): CardDisplayData => {
@@ -65,7 +69,8 @@ const getPositionDisplayData = (position: Position): CardDisplayData => {
   });
   const roeValue = parseFloat(position.returnOnEquity) * 100;
   const labelText = `${formatPnl(pnlValue)} (${formatPercentage(roeValue, 1)})`;
-  const valueColor = pnlValue >= 0 ? TextColor.Success : TextColor.Error;
+  const valueColor =
+    pnlValue >= 0 ? LegacyTextColor.Success : LegacyTextColor.Error;
 
   return { primaryText, secondaryText, valueText, labelText, valueColor };
 };
@@ -88,7 +93,7 @@ const getOrderDisplayData = (order: Order): CardDisplayData => {
     secondaryText,
     valueText,
     labelText,
-    valueColor: TextColor.Alternative,
+    valueColor: LegacyTextColor.Alternative,
   };
 };
 
@@ -189,10 +194,17 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
             </Box>
           )}
           <Box twClassName="flex-1">
-            <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextDefault}
+            >
               {displayData?.primaryText ?? ''}
             </Text>
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
               {displayData?.secondaryText ?? ''}
             </Text>
           </Box>
@@ -201,19 +213,19 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
         {/* Right side: Value and label */}
         <Box alignItems={BoxAlignItems.End}>
           <SensitiveText
-            variant={TextVariant.BodyMDMedium}
-            color={TextColor.Default}
+            variant={LegacyTextVariant.BodyMD}
+            color={LegacyTextColor.Default}
             isHidden={privacyMode}
             length={SensitiveTextLength.Short}
           >
             {displayData?.valueText ?? ''}
           </SensitiveText>
           <SensitiveText
-            variant={TextVariant.BodySM}
+            variant={LegacyTextVariant.BodySM}
             color={
               privacyMode && !!position
-                ? TextColor.Default
-                : (displayData?.valueColor ?? TextColor.Default)
+                ? LegacyTextColor.Default
+                : (displayData?.valueColor ?? LegacyTextColor.Default)
             }
             isHidden={privacyMode && !!position}
             length={SensitiveTextLength.Short}

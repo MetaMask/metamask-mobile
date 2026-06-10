@@ -28,19 +28,10 @@ jest.mock('../../../../../component-library/hooks', () => ({
   }),
 }));
 
-jest.mock('../../../../../component-library/components/Texts/Text', () => {
-  const { Text: RNText } = jest.requireActual('react-native');
-  const MockText = ({ children, ...props }: Record<string, unknown>) => (
-    <RNText {...props}>{children}</RNText>
-  );
-  MockText.displayName = 'Text';
-  return {
-    __esModule: true,
-    default: MockText,
-    TextVariant: { BodySM: 'BodySM' },
-    TextColor: { Alternative: 'Alternative', Warning: 'Warning' },
-  };
-});
+jest.mock('@metamask/design-system-react-native', () => ({
+  ...jest.requireActual('@metamask/design-system-react-native'),
+  Text: jest.requireActual('react-native').Text,
+}));
 
 jest.mock('../../../../../component-library/components/Icons/Icon', () => {
   const { View } = jest.requireActual('react-native');

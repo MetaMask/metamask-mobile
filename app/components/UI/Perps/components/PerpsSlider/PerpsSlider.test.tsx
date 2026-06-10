@@ -36,13 +36,10 @@ jest.mock('../../../../../component-library/hooks', () => ({
 }));
 
 // Mock component library Text component
-jest.mock('../../../../../component-library/components/Texts/Text', () => {
-  const { Text } = jest.requireActual('react-native');
-  return (props: {
-    children: React.ReactNode;
-    style?: React.ComponentProps<typeof Text>['style'];
-  }) => <Text {...props}>{props.children}</Text>;
-});
+jest.mock('@metamask/design-system-react-native', () => ({
+  ...jest.requireActual('@metamask/design-system-react-native'),
+  Text: jest.requireActual('react-native').Text,
+}));
 
 describe('PerpsSlider', () => {
   const defaultProps = {

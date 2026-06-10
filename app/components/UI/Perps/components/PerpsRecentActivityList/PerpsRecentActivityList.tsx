@@ -1,10 +1,12 @@
 import React, { useCallback } from 'react';
-import { View, TouchableOpacity, FlatList } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import Text, {
+import {
+  FontWeight,
+  Text,
   TextVariant,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
+import { View, TouchableOpacity, FlatList } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import Icon, {
   IconName,
   IconSize,
@@ -85,10 +87,14 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
     if (!transaction.fill) return null;
 
     const pnlColor = transaction.fill.isPositive
-      ? TextColor.Success
-      : TextColor.Error;
+      ? TextColor.SuccessDefault
+      : TextColor.ErrorDefault;
     return (
-      <Text variant={TextVariant.BodyMDMedium} color={pnlColor}>
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        color={pnlColor}
+      >
         {transaction.fill.amount}
       </Text>
     );
@@ -115,8 +121,9 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
             <View style={styles.activityInfo}>
               <View style={styles.activityTitleRow}>
                 <Text
-                  variant={TextVariant.BodyMDMedium}
-                  color={TextColor.Default}
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextDefault}
                   style={styles.activityType}
                 >
                   {item.title}
@@ -128,7 +135,7 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
               </View>
               {!!item.subtitle && (
                 <Text
-                  variant={TextVariant.BodySM}
+                  variant={TextVariant.BodySm}
                   style={styles.activityAmount}
                 >
                   {getPerpsDisplaySymbol(item.subtitle)}
@@ -147,7 +154,7 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
+          <Text variant={TextVariant.HeadingSm} color={TextColor.TextDefault}>
             {strings('perps.home.recent_activity')}
           </Text>
         </View>
@@ -164,7 +171,7 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
     <View style={styles.container}>
       <TouchableOpacity style={styles.header} onPress={handleSeeAll}>
         <View style={styles.titleRow}>
-          <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
+          <Text variant={TextVariant.HeadingSm} color={TextColor.TextDefault}>
             {strings('perps.home.recent_activity')}
           </Text>
           <Icon

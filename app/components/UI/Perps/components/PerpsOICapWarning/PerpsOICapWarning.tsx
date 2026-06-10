@@ -1,10 +1,11 @@
 import React, { memo } from 'react';
-import { View } from 'react-native';
-import { useStyles } from '../../../../../component-library/hooks';
-import Text, {
+import {
+  Text,
   TextVariant,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
+import { View } from 'react-native';
+import { useStyles } from '../../../../../component-library/hooks';
 import Icon, {
   IconName,
   IconSize,
@@ -61,8 +62,8 @@ const PerpsOICapWarning: React.FC<PerpsOICapWarningProps> = memo(
         />
         <View style={styles.textContainer}>
           <Text
-            variant={isBanner ? TextVariant.BodyMD : TextVariant.BodySM}
-            color={TextColor.Default}
+            variant={isBanner ? TextVariant.BodyMd : TextVariant.BodySm}
+            color={TextColor.TextDefault}
           >
             {strings('perps.order.validation.oi_cap_reached')}
           </Text>

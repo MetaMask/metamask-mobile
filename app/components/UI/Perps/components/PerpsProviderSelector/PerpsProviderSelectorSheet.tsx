@@ -1,10 +1,12 @@
 import React, { useRef, useEffect, useCallback, useMemo } from 'react';
-import { TouchableOpacity, View } from 'react-native';
-import { useStyles } from '../../../../../component-library/hooks';
-import Text, {
+import {
+  FontWeight,
+  Text,
   TextVariant,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
+import { TouchableOpacity, View } from 'react-native';
+import { useStyles } from '../../../../../component-library/hooks';
 import Icon, {
   IconName,
   IconSize,
@@ -79,7 +81,7 @@ const PerpsProviderSelectorSheet: React.FC<PerpsProviderSelectorSheetProps> = ({
       testID={testID}
     >
       <BottomSheetHeader onClose={onClose}>
-        <Text variant={TextVariant.HeadingMD}>
+        <Text variant={TextVariant.HeadingSm}>
           {strings('perps.provider_selector.title')}
         </Text>
       </BottomSheetHeader>
@@ -100,7 +102,8 @@ const PerpsProviderSelectorSheet: React.FC<PerpsProviderSelectorSheetProps> = ({
               <View style={styles.optionContent}>
                 <View style={styles.optionNameRow}>
                   <Text
-                    variant={TextVariant.BodyMDMedium}
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Medium}
                     style={styles.optionName}
                   >
                     {option.name}
@@ -109,24 +112,24 @@ const PerpsProviderSelectorSheet: React.FC<PerpsProviderSelectorSheetProps> = ({
                     <View style={styles.testnetTag}>
                       <View style={styles.testnetDot} />
                       <Text
-                        variant={TextVariant.BodyXS}
-                        color={TextColor.Warning}
+                        variant={TextVariant.BodyXs}
+                        color={TextColor.WarningDefault}
                       >
                         {option.network}
                       </Text>
                     </View>
                   ) : (
                     <Text
-                      variant={TextVariant.BodyXS}
-                      color={TextColor.Alternative}
+                      variant={TextVariant.BodyXs}
+                      color={TextColor.TextAlternative}
                     >
                       {option.network}
                     </Text>
                   )}
                 </View>
                 <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
                 >
                   {option.description}
                 </Text>

@@ -1,6 +1,6 @@
 import React from 'react';
+import { Text } from '@metamask/design-system-react-native';
 import { View, TouchableOpacity, ViewStyle, TextStyle } from 'react-native';
-import Text from '../../../../../component-library/components/Texts/Text';
 import { PerpsTransactionSelectorsIDs } from '../../Perps.testIds';
 import { PERPS_TRANSACTIONS_HISTORY_CONSTANTS } from '@metamask/perps-controller';
 import { PerpsTransaction } from '../../types/transactionHistory';

@@ -5,16 +5,15 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  Text,
+  TextVariant,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './PerpsErrorState.styles';
 
@@ -91,16 +90,16 @@ const PerpsErrorState: React.FC<PerpsErrorStateProps> = ({
           style={styles.icon}
         />
         <Text
-          variant={TextVariant.HeadingMD}
-          color={TextColor.Default}
+          variant={TextVariant.HeadingSm}
+          color={TextColor.TextDefault}
           style={styles.title}
         >
           {errorContent.title}
         </Text>
         {errorContent.description && (
           <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Muted}
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextMuted}
             style={styles.description}
           >
             {errorContent.description}

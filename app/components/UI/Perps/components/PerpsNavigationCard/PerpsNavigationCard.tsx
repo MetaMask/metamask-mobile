@@ -1,4 +1,9 @@
 import React from 'react';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 import { TouchableOpacity, View } from 'react-native';
 import ListItem from '../../../../../component-library/components/List/ListItem';
 import ListItemColumn, {
@@ -9,10 +14,6 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './PerpsNavigationCard.styles';
 
@@ -92,7 +93,10 @@ const PerpsNavigationCard: React.FC<PerpsNavigationCardProps> = ({ items }) => {
                 />
               )}
               <ListItemColumn widthType={WidthType.Fill}>
-                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextDefault}
+                >
                   {item.label}
                 </Text>
               </ListItemColumn>
