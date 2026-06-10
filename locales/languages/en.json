@@ -9087,6 +9087,7 @@
       "total_participants": "Total participants",
       "total_volume": "Total volume",
       "top_return": "Top return",
+      "top_pnl": "Top PnL",
       "total_winners": "Total winners"
     },
     "campaign_prize_pool": {
@@ -9216,11 +9217,7 @@
       "stats_qualify_for_rank_description": "Trade {{notionalRemaining}} more in notional volume to become eligible.",
       "stats_error_title": "Unable to load stats",
       "stats_error_description": "We had a problem loading your stats. Please try again.",
-      "stats_retry": "Retry",
-      "completed_label_total_participants": "Total participants",
-      "completed_label_total_volume": "Total volume",
-      "completed_label_top_pnl": "Top PnL",
-      "completed_label_winners": "Winners"
+      "stats_retry": "Retry"
     },
     "predict_the_pitch_campaign": {
       "title": "Predict The Pitch",
