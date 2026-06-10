@@ -1,14 +1,16 @@
 import React, { useRef, useEffect, memo } from 'react';
+import {
+  FontWeight,
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 import { View, TouchableOpacity } from 'react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { useTheme } from '../../../../../util/theme';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
 import { createStyles } from './PerpsOrderTypeBottomSheet.styles';
 import { strings } from '../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -93,7 +95,7 @@ const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack={false} onClose={onClose}>
       <BottomSheetHeader onClose={onClose}>
-        <Text variant={TextVariant.HeadingMD}>
+        <Text variant={TextVariant.HeadingSm}>
           {strings('perps.order.type.title')}
         </Text>
       </BottomSheetHeader>
@@ -112,15 +114,16 @@ const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
             <View style={styles.optionHeader}>
               <View style={styles.optionContent}>
                 <Text
-                  variant={TextVariant.BodyLGMedium}
-                  color={TextColor.Default}
+                  variant={TextVariant.BodyLg}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextDefault}
                   style={styles.optionTitle}
                 >
                   {title}
                 </Text>
                 <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
                 >
                   {description}
                 </Text>

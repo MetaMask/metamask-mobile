@@ -5,11 +5,12 @@ import React, {
   useRef,
   useMemo,
 } from 'react';
-import { useNavigation } from '@react-navigation/native';
-import Text, {
+import {
+  Text,
   TextVariant,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
+import { useNavigation } from '@react-navigation/native';
 import Icon, {
   IconName,
   IconSize,
@@ -126,13 +127,13 @@ const OrdersTabContent = React.memo<OrdersTabContentProps>(
             <Icon
               name={IconName.Book}
               size={IconSize.Xl}
-              color={TextColor.Muted}
+              color={TextColor.TextMuted}
               style={styles.emptyStateIcon}
               testID={PerpsMarketTabsSelectorsIDs.ORDERS_EMPTY_ICON}
             />
             <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Muted}
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextMuted}
               style={styles.emptyStateText}
               testID={PerpsMarketTabsSelectorsIDs.ORDERS_EMPTY_TEXT}
             >
@@ -760,8 +761,8 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     return (
       <View style={styles.singleTabContainer}>
         <Text
-          variant={TextVariant.HeadingSM}
-          color={TextColor.Default}
+          variant={TextVariant.HeadingSm}
+          color={TextColor.TextDefault}
           style={styles.statisticsTitle}
           testID={PerpsMarketTabsSelectorsIDs.STATISTICS_ONLY_TITLE}
         >

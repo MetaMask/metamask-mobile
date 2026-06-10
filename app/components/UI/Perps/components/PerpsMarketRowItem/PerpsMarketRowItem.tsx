@@ -1,16 +1,16 @@
 import React, { useMemo } from 'react';
 import { getPerpsMarketRowItemSelector } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
   Card,
+  Text,
+  TextVariant,
+  FontWeight,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import {
   PERPS_CONSTANTS,
@@ -182,7 +182,11 @@ const PerpsMarketRowItem = ({
             alignItems={BoxAlignItems.Center}
             gap={2}
           >
-            <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextDefault}
+            >
               {getPerpsDisplaySymbol(displayMarket.symbol)}
             </Text>
             <PerpsLeverage maxLeverage={displayMarket.maxLeverage} />
@@ -196,8 +200,8 @@ const PerpsMarketRowItem = ({
             twClassName="mt-0.5"
           >
             <Text
-              variant={TextVariant.BodySM}
-              color={TextColor.Alternative}
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
               numberOfLines={1}
             >
               {displayText}
@@ -221,12 +225,18 @@ const PerpsMarketRowItem = ({
         gap={1}
         twClassName="flex-1"
       >
-        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextDefault}
+        >
           {displayMarket.price}
         </Text>
         <Text
-          variant={TextVariant.BodySM}
-          color={isPositiveChange ? TextColor.Success : TextColor.Error}
+          variant={TextVariant.BodySm}
+          color={
+            isPositiveChange ? TextColor.SuccessDefault : TextColor.ErrorDefault
+          }
         >
           {displayMarket.change24hPercent}
         </Text>

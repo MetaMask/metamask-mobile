@@ -1,10 +1,11 @@
 import React, { useCallback } from 'react';
-import { View } from 'react-native';
-import { FlashList } from '@shopify/flash-list';
-import Text, {
+import {
+  Text,
   TextVariant,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
+import { View } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
 import PerpsMarketRowItem from '../PerpsMarketRowItem';
@@ -66,7 +67,7 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
   const renderEmpty = useCallback(
     () => (
       <View style={styles.emptyContainer} testID={`${testID}-empty`}>
-        <Text variant={TextVariant.BodyMD} color={TextColor.Muted}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextMuted}>
           {emptyMessage}
         </Text>
       </View>

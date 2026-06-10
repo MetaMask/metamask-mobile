@@ -247,27 +247,10 @@ jest.mock(
 );
 
 // Mock component library Text component
-jest.mock('../../../../../component-library/components/Texts/Text', () => {
-  const { Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: (props: { children: React.ReactNode }) => (
-      <Text {...props}>{props.children}</Text>
-    ),
-    TextVariant: {
-      HeadingMD: 'HeadingMD',
-      BodyMD: 'BodyMD',
-      BodyLGMedium: 'BodyLGMedium',
-      BodySM: 'BodySM',
-    },
-    TextColor: {
-      Default: 'Default',
-      Alternative: 'Alternative',
-      Error: 'Error',
-      Inverse: 'Inverse',
-    },
-  };
-});
+jest.mock('@metamask/design-system-react-native', () => ({
+  ...jest.requireActual('@metamask/design-system-react-native'),
+  Text: jest.requireActual('react-native').Text,
+}));
 
 // Mock Button enums
 jest.mock('../../../../../component-library/components/Buttons/Button', () => ({

@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState, memo } from 'react';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 import { TouchableOpacity, View, Animated } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -11,9 +12,6 @@ import {
   ButtonSize,
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
 import Keypad from '../../../../Base/Keypad';
 import {
@@ -336,7 +334,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
       onClose={onClose}
     >
       <BottomSheetHeader onClose={onClose}>
-        <Text variant={TextVariant.HeadingMD}>
+        <Text variant={TextVariant.HeadingSm}>
           {strings('perps.order.limit_price_modal.title')}
         </Text>
       </BottomSheetHeader>
@@ -390,7 +388,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
               }
             }}
           >
-            <Text variant={TextVariant.BodyMD}>
+            <Text variant={TextVariant.BodyMd}>
               {strings('perps.order.limit_price_modal.mid_price')}
             </Text>
           </TouchableOpacity>
@@ -415,7 +413,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
                   }
                 }}
               >
-                <Text variant={TextVariant.BodyMD}>
+                <Text variant={TextVariant.BodyMd}>
                   {strings('perps.order.limit_price_modal.bid_price')}
                 </Text>
               </TouchableOpacity>
@@ -442,7 +440,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
                     }
                   }}
                 >
-                  <Text variant={TextVariant.BodyMD}>
+                  <Text variant={TextVariant.BodyMd}>
                     {percentage > 0 ? '+' : ''}
                     {percentage}%
                   </Text>
@@ -469,7 +467,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
                   }
                 }}
               >
-                <Text variant={TextVariant.BodyMD}>
+                <Text variant={TextVariant.BodyMd}>
                   {strings('perps.order.limit_price_modal.ask_price')}
                 </Text>
               </TouchableOpacity>
@@ -496,7 +494,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
                     }
                   }}
                 >
-                  <Text variant={TextVariant.BodyMD}>
+                  <Text variant={TextVariant.BodyMd}>
                     {percentage > 0 ? '+' : ''}
                     {percentage}%
                   </Text>

@@ -1,10 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { TouchableOpacity } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -18,7 +14,13 @@ import {
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
 import { getPerpsCandlePeriodBottomSheetSelector } from '../../Perps.testIds';
-import { Box } from '@metamask/design-system-react-native';
+import {
+  Box,
+  FontWeight,
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import styleSheet from './PerpsCandlePeriodBottomSheet.styles';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
@@ -127,7 +129,7 @@ const PerpsCandlePeriodBottomSheet: React.FC<
       testID={testID}
     >
       <BottomSheetHeader onClose={onClose}>
-        <Text variant={TextVariant.HeadingMD}>
+        <Text variant={TextVariant.HeadingSm}>
           {strings('perps.chart.candle_intervals')}
         </Text>
       </BottomSheetHeader>
@@ -139,8 +141,9 @@ const PerpsCandlePeriodBottomSheet: React.FC<
               style={sectionIndex > 0 ? styles.sectionSpacing : undefined}
             >
               <Text
-                variant={TextVariant.BodyMDBold}
-                color={TextColor.Alternative}
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Bold}
+                color={TextColor.TextAlternative}
                 style={styles.sectionTitle}
               >
                 {section.title}
@@ -167,13 +170,13 @@ const PerpsCandlePeriodBottomSheet: React.FC<
                     <Text
                       variant={
                         selectedPeriod === period.value
-                          ? TextVariant.BodyMDBold
-                          : TextVariant.BodySMMedium
+                          ? TextVariant.BodyMd
+                          : TextVariant.BodySm
                       }
                       color={
                         selectedPeriod === period.value
-                          ? TextColor.Inverse
-                          : TextColor.Default
+                          ? TextColor.PrimaryInverse
+                          : TextColor.TextDefault
                       }
                     >
                       {period.label}
@@ -205,13 +208,13 @@ const PerpsCandlePeriodBottomSheet: React.FC<
                 <Text
                   variant={
                     selectedPeriod === period.value
-                      ? TextVariant.BodyMDBold
-                      : TextVariant.BodySMMedium
+                      ? TextVariant.BodyMd
+                      : TextVariant.BodySm
                   }
                   color={
                     selectedPeriod === period.value
-                      ? TextColor.Inverse
-                      : TextColor.Default
+                      ? TextColor.PrimaryInverse
+                      : TextColor.TextDefault
                   }
                 >
                   {period.label}

@@ -8,14 +8,18 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-} from '@metamask/design-system-react-native';
-import Text, {
+  Text,
   TextVariant,
+  FontWeight,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../../component-library/components/Texts/SensitiveText';
+import {
+  TextVariant as LegacyTextVariant,
+  TextColor as LegacyTextColor,
+} from '../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../locales/i18n';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { useColorPulseAnimation, useBalanceComparison } from '../../hooks';
@@ -217,16 +221,17 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
           <Box twClassName="p-4">
             <Box twClassName="w-full flex-row justify-between">
               <Text
-                variant={TextVariant.BodySMMedium}
-                color={TextColor.Default}
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextDefault}
               >
                 {statusText}
               </Text>
               {/* Only show dollar value when there's a single transaction in progress */}
               {shouldShowDollarAmount && (
                 <SensitiveText
-                  variant={TextVariant.BodySMMedium}
-                  color={TextColor.Default}
+                  variant={LegacyTextVariant.BodySM}
+                  color={LegacyTextColor.Default}
                   isHidden={privacyMode}
                   length={SensitiveTextLength.Short}
                 >
@@ -285,8 +290,8 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
             <Box twClassName="px-4 pt-2 pb-4">
               <Animated.View style={[getBalanceAnimatedStyle]}>
                 <SensitiveText
-                  variant={TextVariant.DisplayLG}
-                  color={TextColor.Default}
+                  variant={LegacyTextVariant.DisplayLG}
+                  color={LegacyTextColor.Default}
                   testID={PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE}
                   isHidden={privacyMode}
                   length={SensitiveTextLength.Medium}
@@ -302,16 +307,16 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
                 }
               >
                 <SensitiveText
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
+                  variant={LegacyTextVariant.BodyMD}
+                  color={LegacyTextColor.Alternative}
                   isHidden={privacyMode}
                   length={SensitiveTextLength.Short}
                 >
                   {formatPerpsBalance(spendableBalance)}
                 </SensitiveText>
                 <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
                 >
                   {' '}
                   {strings('perps.available')}

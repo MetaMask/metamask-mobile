@@ -89,32 +89,16 @@ jest.mock('../../../../../component-library/components/Icons/Icon', () => ({
 }));
 
 // Mock Text component
-jest.mock('../../../../../component-library/components/Texts/Text', () => {
-  const ReactModule = jest.requireActual('react');
-  const { Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: function MockText({ children }: { children: React.ReactNode }) {
-      return ReactModule.createElement(Text, null, children);
-    },
-    TextVariant: {
-      HeadingMD: 'HeadingMD',
-      BodyMDBold: 'BodyMDBold',
-      BodySM: 'BodySM',
-    },
-    TextColor: {
-      Alternative: 'Alternative',
-    },
-  };
-});
 
 // Mock Box component
 jest.mock('@metamask/design-system-react-native', () => ({
+  ...jest.requireActual('@metamask/design-system-react-native'),
   Box: function MockBox({ children }: { children: React.ReactNode }) {
     const ReactModule = jest.requireActual('react');
     const { View } = jest.requireActual('react-native');
     return ReactModule.createElement(View, null, children);
   },
+  Text: jest.requireActual('react-native').Text,
 }));
 
 describe('PerpsModifyActionSheet', () => {

@@ -118,37 +118,24 @@ jest.mock(
   },
 );
 
-jest.mock('../../../../../component-library/components/Texts/Text', () => {
-  const { Text } = jest.requireActual('react-native');
-
+jest.mock('@metamask/design-system-react-native', () => {
+  const { Text: RNText } = jest.requireActual('react-native');
   const MockText = ({
     children,
     variant,
-    color: _color,
     style,
   }: {
     children: React.ReactNode;
     variant?: string;
-    color?: string;
-    style?: React.ComponentProps<typeof Text>['style'];
+    style?: object;
   }) => (
-    <Text style={style} testID={`text-${variant || 'default'}`}>
+    <RNText style={style} testID={`text-${variant ?? 'default'}`}>
       {children}
-    </Text>
+    </RNText>
   );
-
   return {
-    __esModule: true,
-    default: MockText,
-    TextVariant: {
-      HeadingMD: 'HeadingMD',
-      BodyLGMedium: 'BodyLGMedium',
-      BodyMD: 'BodyMD',
-    },
-    TextColor: {
-      Default: 'Default',
-      Alternative: 'Alternative',
-    },
+    ...jest.requireActual('@metamask/design-system-react-native'),
+    Text: MockText,
   };
 });
 

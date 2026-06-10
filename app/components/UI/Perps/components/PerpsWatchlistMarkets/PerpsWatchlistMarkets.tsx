@@ -1,10 +1,12 @@
 import React, { useCallback } from 'react';
-import { FlatList, View, type StyleProp, type ViewStyle } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import Text, {
+import {
+  FontWeight,
+  Text,
   TextVariant,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
+import { FlatList, View, type StyleProp, type ViewStyle } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
@@ -95,7 +97,11 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
   const SectionHeader = useCallback(
     () => (
       <View style={[styles.header, headerStyle]}>
-        <Text variant={TextVariant.BodyLGMedium} color={TextColor.Default}>
+        <Text
+          variant={TextVariant.BodyLg}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextDefault}
+        >
           {strings('perps.home.watchlist')}
         </Text>
       </View>
