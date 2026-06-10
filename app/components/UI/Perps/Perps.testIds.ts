@@ -219,6 +219,10 @@ export const PerpsHomeViewSelectorsIDs = {
   WITHDRAW_BUTTON: 'perps-home-withdraw-button',
   ADD_FUNDS_BUTTON: 'perps-home-add-funds-button',
   POSITIONS_PNL_VALUE: 'perps-home-positions-pnl-value',
+  /** Per-position card; suffixed with the list index, e.g. `perps-home-position-card-0` */
+  POSITION_CARD: 'perps-home-position-card',
+  /** Per-order card; suffixed with the list index, e.g. `perps-home-order-card-0` */
+  ORDER_CARD: 'perps-home-order-card',
   SERVICE_INTERRUPTION_BANNER: 'perps-service-interruption-banner',
   COMPETITION_BANNER: 'perps-home-competition-banner',
   PRODUCTS_SECTION: 'perps-products',
