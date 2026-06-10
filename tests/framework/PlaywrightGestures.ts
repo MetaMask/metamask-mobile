@@ -11,7 +11,7 @@ import {
 const logger = createPlaywrightLogger('PlaywrightGestures');
 
 export interface ScrollOptions {
-  scrollParams?: { direction?: 'up' | 'down' };
+  scrollParams?: { direction?: 'up' | 'down' | 'left' | 'right' };
   from?: { x: number; y: number };
   to?: { x: number; y: number };
   percent?: number;

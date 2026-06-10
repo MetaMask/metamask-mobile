@@ -22,7 +22,7 @@ export interface UnifiedGestureOptions {
   speed?: 'fast' | 'slow';
   /** Swipe percentage (0–1) — Detox only; Appium ignores this */
   percentage?: number;
-  /** Scroll direction — Detox only; used by scrollToElement */
+  /** Scroll direction — used by scrollToElement (Detox default and Appium scrollIntoView) */
   direction?: 'up' | 'down' | 'left' | 'right';
   /** Scroll amount in px — Detox only; used by scrollToElement */
   scrollAmount?: number;
@@ -424,9 +424,12 @@ export class AppiumGestureStrategy implements GestureStrategy {
   async scrollToElement(
     target: EncapsulatedElementType,
     _scrollView?: ScrollContainer,
+    opts?: UnifiedGestureOptions,
   ): Promise<void> {
     const el = await asPlaywrightElement(target);
-    await PlaywrightGestures.scrollIntoView(el);
+    await PlaywrightGestures.scrollIntoView(el, {
+      scrollParams: { direction: opts?.direction ?? 'down' },
+    });
   }
 
   /**
