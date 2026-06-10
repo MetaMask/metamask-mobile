@@ -39,17 +39,15 @@ class GasFeeTokenModal {
   }
 
   async checkAmountFiat(symbol: string, amountFiat: string): Promise<void> {
-    const amountFiatElement = Matchers.getElementByID(
+    const amountFiatElement = (await Matchers.getElementByID(
       `${GasFeeTokenModalSelectorsText.GAS_FEE_TOKEN_AMOUNT_FIAT}-${symbol}`,
-    );
+    )) as Detox.IndexableNativeElement;
 
     await Assertions.expectElementToBeVisible(amountFiatElement, {
       description: `Amount fiat for ${symbol} is visible`,
     });
 
-    const amountFiatElementAttributes = await (
-      amountFiatElement as unknown as Detox.IndexableNativeElement
-    ).getAttributes();
+    const amountFiatElementAttributes = await amountFiatElement.getAttributes();
     const amountFiatElementLabel = this.elementSafe(
       amountFiatElementAttributes,
     );
