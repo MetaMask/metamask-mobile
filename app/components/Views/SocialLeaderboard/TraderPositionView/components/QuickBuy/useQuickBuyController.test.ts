@@ -1483,6 +1483,28 @@ describe('useQuickBuyController', () => {
       expect(result.current.selectedDestStable?.symbol).toBe('USDC');
     });
 
+    it('excludes the token being sold from the receive options entirely', () => {
+      const usdcDest = createSourceToken({
+        address: USDC_DEST,
+        chainId: '0x1',
+        symbol: 'USDC',
+      });
+      const nativeDest = createSourceToken({
+        address: NATIVE_ADDRESS,
+        chainId: '0x1',
+        symbol: 'ETH',
+      });
+      (useReceiveTokens as jest.Mock).mockReturnValue([usdcDest, nativeDest]);
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      const symbols = result.current.sellDestTokenOptions.map((t) => t.symbol);
+      expect(symbols).not.toContain('USDC');
+      expect(symbols).toEqual(['ETH']);
+    });
+
     it('does not auto-select while setup is still loading', () => {
       (useQuickBuySetup as jest.Mock).mockReturnValue({
         chainId: '0x1',

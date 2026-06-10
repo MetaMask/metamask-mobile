@@ -36,6 +36,7 @@ import type {
   QuickBuyTarget,
   QuickBuyTradeMode,
 } from '../types';
+import { getTokenKey } from '../tokenKey';
 import { formatExchangeRate } from '../utils/formatExchangeRate';
 import { getMetamaskFeePercent } from '../utils/getMetamaskFeePercent';
 import { selectDefaultReceiveToken } from '../utils/selectDefaultReceiveToken';
@@ -349,9 +350,19 @@ export function useQuickBuyController(
   const positionToken = usePositionTokenBalance(target, positionTokenFromSetup);
 
   // ─── Sell "Receive" options (stablecoins) ──────────────────────────────
-  const sellDestTokenOptions = useReceiveTokens(
+  const receiveTokenOptions = useReceiveTokens(
     destChainId as string | undefined,
   );
+  // Exclude the token being sold from the "Receive" list entirely — receiving
+  // the same token you're selling is a no-op, so it must not be selectable.
+  // Identity comes from `positionTokenFromSetup` (normalised address/chainId).
+  const sellDestTokenOptions = useMemo(() => {
+    if (!positionTokenFromSetup) return receiveTokenOptions;
+    const soldKey = getTokenKey(positionTokenFromSetup);
+    return receiveTokenOptions.filter(
+      (token) => getTokenKey(token) !== soldKey,
+    );
+  }, [receiveTokenOptions, positionTokenFromSetup]);
   const [selectedDestStable, setSelectedDestStable] = useState<
     BridgeToken | undefined
   >(undefined);
