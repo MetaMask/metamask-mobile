@@ -23,7 +23,6 @@ import QuickBuyConfirmButton from '../QuickBuyConfirmButton';
 import QuickBuyBanners from '../QuickBuyBanners';
 import { useQuickBuyContext } from '../useQuickBuyContext';
 import { QuickBuyPercentageSlider } from './QuickBuyPercentageSlider';
-import QuickBuyTradeModeLabel from './QuickBuyTradeModeLabel';
 import { getNetworkImageSource } from '../../../../../../../util/networks';
 import { getBridgeTokenImageSource } from '../getBridgeTokenImageSource';
 
@@ -85,14 +84,11 @@ const QuickBuyActionFooter: React.FC = () => {
         justifyContent={BoxJustifyContent.Between}
         twClassName="pb-5"
       >
-        <QuickBuyTradeModeLabel
-          testID="quick-buy-pay-with-label"
-          label={
-            tradeMode === 'sell'
-              ? strings('social_leaderboard.quick_buy.receive')
-              : strings('social_leaderboard.quick_buy.pay_with')
-          }
-        />
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          {tradeMode === 'sell'
+            ? strings('social_leaderboard.quick_buy.receive')
+            : strings('social_leaderboard.quick_buy.pay_with')}
+        </Text>
 
         <TouchableOpacity
           disabled={!features.payWithSheet}
