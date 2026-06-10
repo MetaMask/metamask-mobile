@@ -73,17 +73,14 @@ jest.mock(
     };
   },
 );
-jest.mock(
-  '../../../../Views/confirmations/components/activity/transaction-details-retry',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const { Text } = jest.requireActual('react-native');
-    return {
-      TransactionDetailsRetry: () =>
-        ReactActual.createElement(Text, { testID: 'retry' }, 'retry'),
-    };
-  },
-);
+jest.mock('./MoneyTransactionDetailsRetryButton', () => {
+  const ReactActual = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
+  return {
+    MoneyTransactionDetailsRetryButton: () =>
+      ReactActual.createElement(Text, { testID: 'retry' }, 'retry'),
+  };
+});
 jest.mock('./MoneyTransactionDetailsFromRow', () => {
   const ReactActual = jest.requireActual('react');
   const { Text } = jest.requireActual('react-native');

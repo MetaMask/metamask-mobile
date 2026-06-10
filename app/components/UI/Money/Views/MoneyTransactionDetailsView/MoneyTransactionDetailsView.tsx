@@ -15,7 +15,6 @@ import { TransactionDetailsPaidWithRow } from '../../../../Views/confirmations/c
 import { TransactionDetailsNetworkFeeRow } from '../../../../Views/confirmations/components/activity/transaction-details-network-fee-row';
 import { TransactionDetailsBridgeFeeRow } from '../../../../Views/confirmations/components/activity/transaction-details-bridge-fee-row';
 import { TransactionDetailsTotalRow } from '../../../../Views/confirmations/components/activity/transaction-details-total-row';
-import { TransactionDetailsRetry } from '../../../../Views/confirmations/components/activity/transaction-details-retry';
 import { MoneyTransactionDetailsHero } from './MoneyTransactionDetailsHero';
 import { MoneyTransactionDetailsStatusRow } from './MoneyTransactionDetailsStatusRow';
 import { MoneyTransactionDetailsFromRow } from './MoneyTransactionDetailsFromRow';
@@ -23,6 +22,7 @@ import { MoneyTransactionDetailsToRow } from './MoneyTransactionDetailsToRow';
 import { MoneyTransactionDetailsOrderIdRow } from './MoneyTransactionDetailsOrderIdRow';
 import { MoneyTransactionDetailsSummary } from './MoneyTransactionDetailsSummary';
 import { MoneyTransactionDetailsDateRow } from './MoneyTransactionDetailsDateRow';
+import { MoneyTransactionDetailsRetryButton } from './MoneyTransactionDetailsRetryButton';
 import styleSheet from './MoneyTransactionDetailsView.styles';
 
 const SEND_TYPES: TransactionType[] = [
@@ -106,9 +106,9 @@ export default function MoneyTransactionDetailsView() {
               <>
                 <TransactionDetailDivider />
                 <MoneyTransactionDetailsSummary />
-                <TransactionDetailsRetry />
               </>
             )}
+            <MoneyTransactionDetailsRetryButton />
           </Box>
         </ScrollView>
       ) : null}
