@@ -8,10 +8,8 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  TextButton,
 } from '@metamask/design-system-react-native';
-import OldButton, {
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
 import Text, {
   TextColor,
   TextVariant,
@@ -149,11 +147,9 @@ const EarnEmptyStateCta = ({ token }: EarnEmptyStateCta) => {
           {apr}%
         </Text>{' '}
         {strings('earn.empty_state_cta.annually')}{' '}
-        <OldButton
-          label={strings('earn.empty_state_cta.learn_more')}
-          variant={ButtonVariants.Link}
-          onPress={navigateToLendingHistoricApyChart}
-        />
+        <TextButton onPress={navigateToLendingHistoricApyChart}>
+          {strings('earn.empty_state_cta.learn_more')}
+        </TextButton>
       </Text>
       <Button
         variant={ButtonVariant.Secondary}
