@@ -1267,6 +1267,7 @@ describe('useCryptoUpDownChartData', () => {
         loading: false,
         isLive: false,
         window: 300,
+        paused: false,
       });
     });
 
@@ -1354,6 +1355,7 @@ describe('useCryptoUpDownChartData', () => {
         loading: false,
         isLive: false,
         window: 300,
+        paused: false,
       });
       expect(mockUseLiveCryptoPrices).toHaveBeenLastCalledWith(
         '',
@@ -1382,6 +1384,7 @@ describe('useCryptoUpDownChartData', () => {
         loading: false,
         isLive: false,
         window: 300,
+        paused: true,
       });
     });
 
@@ -1415,6 +1418,123 @@ describe('useCryptoUpDownChartData', () => {
       expect(result.current.isLive).toBe(true);
       expect(result.current.loading).toBe(true);
       expect(result.current.value).toBe(0);
+    });
+  });
+
+  describe('stream robustness', () => {
+    it('shows loading again when the live stream goes stale, then recovers on the next tick', () => {
+      const { Wrapper } = createWrapper();
+      // End date well beyond the stale timeout so the market stays live for the
+      // duration of the advance and we exercise the stale-stream path rather
+      // than market expiry.
+      const market = createMarket({ endDate: '2026-01-01T01:00:00.000Z' });
+      historicalData = [];
+
+      const { result } = renderHook(() => useCryptoUpDownChartData(market), {
+        wrapper: Wrapper,
+      });
+
+      act(() => {
+        liveUpdateHandler?.({
+          symbol: 'btc/usd',
+          price: 51000,
+          timestamp: 100,
+        });
+        liveUpdateHandler?.({
+          symbol: 'btc/usd',
+          price: 51500,
+          timestamp: 110,
+        });
+      });
+
+      expect(result.current.loading).toBe(false);
+
+      act(() => {
+        jest.advanceTimersByTime(30_001);
+      });
+
+      expect(result.current.loading).toBe(true);
+
+      act(() => {
+        liveUpdateHandler?.({
+          symbol: 'btc/usd',
+          price: 52000,
+          timestamp: 120,
+        });
+      });
+
+      expect(result.current.loading).toBe(false);
+    });
+
+    it('ignores live updates carrying a non-finite price', () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket();
+      historicalData = [];
+
+      const { result } = renderHook(() => useCryptoUpDownChartData(market), {
+        wrapper: Wrapper,
+      });
+
+      act(() => {
+        liveUpdateHandler?.({
+          symbol: 'btc/usd',
+          price: Number.NaN,
+          timestamp: 100,
+        });
+        liveUpdateHandler?.({
+          symbol: 'btc/usd',
+          price: Number.POSITIVE_INFINITY,
+          timestamp: 110,
+        });
+      });
+
+      expect(result.current.data).toEqual([]);
+      expect(result.current.loading).toBe(true);
+    });
+
+    it('keeps the spinner up when an enabled history query resolves empty', async () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket({ endDate: '2025-12-31T23:59:00.000Z' });
+      historicalData = [];
+
+      const { result } = renderHook(() => useCryptoUpDownChartData(market), {
+        wrapper: Wrapper,
+      });
+
+      await waitFor(() => {
+        expect(historicalData).toEqual([]);
+      });
+
+      expect(result.current.isLive).toBe(false);
+      expect(result.current.loading).toBe(true);
+    });
+
+    it('does not pause the viewport while the market is live', () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket();
+
+      const { result } = renderHook(() => useCryptoUpDownChartData(market), {
+        wrapper: Wrapper,
+      });
+
+      expect(result.current.isLive).toBe(true);
+      expect(result.current.paused).toBe(false);
+    });
+
+    it('pauses the viewport for completed historical markets', async () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket({ endDate: '2025-12-31T23:59:00.000Z' });
+
+      const { result } = renderHook(() => useCryptoUpDownChartData(market), {
+        wrapper: Wrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.isLive).toBe(false);
+      expect(result.current.paused).toBe(true);
     });
   });
 });

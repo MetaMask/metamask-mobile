@@ -73,6 +73,7 @@ describe('PredictCryptoUpDownChart', () => {
       loading: false,
       isLive: true,
       window: 300,
+      paused: false,
     });
   });
 
@@ -101,6 +102,7 @@ describe('PredictCryptoUpDownChart', () => {
     expect(chart.props.data).toEqual([{ time: 1, value: 100 }]);
     expect(chart.props.value).toBe(100);
     expect(chart.props.loading).toBe(false);
+    expect(chart.props.paused).toBe(false);
     expect(chart.props.window).toBe(300);
     expect(chart.props.height).toBe(300);
     expect(chart.props.color).toBe('rgb(245, 158, 11)');
@@ -116,6 +118,32 @@ describe('PredictCryptoUpDownChart', () => {
     });
     expect(chart.props.formatValue).toBe(CRYPTO_UP_DOWN_FORMAT_VALUE);
     expect(chart.props.formatTime).toBe(CRYPTO_UP_DOWN_FORMAT_TIME);
+  });
+
+  it('forwards paused to LivelineChart for frozen/historical markets', () => {
+    mockUseCryptoUpDownChartData.mockReturnValue({
+      data: [
+        { time: 1, value: 100 },
+        { time: 2, value: 101 },
+      ],
+      value: 101,
+      loading: false,
+      isLive: false,
+      window: 300,
+      paused: true,
+    });
+    const market = createMockMarket();
+
+    render(<PredictCryptoUpDownChart market={market} />);
+
+    const container = screen.getByTestId(
+      'predict-crypto-up-down-chart-container',
+    );
+    fireEvent(container, 'layout', {
+      nativeEvent: { layout: { height: 300 } },
+    });
+
+    expect(screen.getByTestId('mock-liveline-chart').props.paused).toBe(true);
   });
 
   it('passes a custom chart color to LivelineChart', () => {

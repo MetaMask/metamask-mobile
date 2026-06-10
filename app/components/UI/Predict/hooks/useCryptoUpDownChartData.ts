@@ -18,22 +18,40 @@ const LIVE_CHART_RETENTION_SECS = LIVE_CHART_WINDOW_SECS * 2;
 const LIVE_CHART_MAX_POINTS = LIVE_CHART_RETENTION_SECS * 60;
 const CURRENT_TIMESTAMP_TOLERANCE_SECS = 5;
 const MIN_LIVE_POINT_DELTA_SECS = 0.001;
+// How long (wall clock) the live stream may go without delivering a tick before
+// the chart is treated as stale. Liveline anchors its visible window to "now"
+// and scrolls left, so once no fresh tick has arrived for roughly a full
+// window the last point scrolls off-screen and the canvas would otherwise go
+// blank (the reported "black chart" when the websocket is slow/cold). At that
+// point we surface the loading state instead.
+const LIVE_STREAM_STALE_TIMEOUT_MS = LIVE_CHART_WINDOW_SECS * 1000;
+
+const isFiniteLivelinePoint = (point: LivelinePoint): boolean =>
+  Number.isFinite(point.time) && Number.isFinite(point.value);
 
 const mergeLivelinePoints = (
   historicalData: LivelinePoint[],
   liveData: LivelinePoint[],
 ): LivelinePoint[] => {
   if (historicalData.length === 0) {
-    return liveData;
+    return liveData.filter(isFiniteLivelinePoint);
   }
 
   if (liveData.length === 0) {
-    return historicalData;
+    return historicalData.filter(isFiniteLivelinePoint);
   }
 
   const byTime = new Map<number, LivelinePoint>();
-  historicalData.forEach((point) => byTime.set(point.time, point));
-  liveData.forEach((point) => byTime.set(point.time, point));
+  historicalData.forEach((point) => {
+    if (isFiniteLivelinePoint(point)) {
+      byTime.set(point.time, point);
+    }
+  });
+  liveData.forEach((point) => {
+    if (isFiniteLivelinePoint(point)) {
+      byTime.set(point.time, point);
+    }
+  });
 
   return Array.from(byTime.values()).sort((a, b) => a.time - b.time);
 };
@@ -83,6 +101,13 @@ export interface UseCryptoUpDownChartDataResult {
   loading: boolean;
   isLive: boolean;
   window: number;
+  /**
+   * True when the chart should freeze its viewport on the last data point
+   * instead of scrolling with wall-clock "now". Used for frozen/expired and
+   * historical markets so their final line stays visible rather than
+   * scrolling off-screen into a blank canvas.
+   */
+  paused: boolean;
 }
 
 interface UseCryptoUpDownChartDataOptions {
@@ -124,6 +149,14 @@ export const useCryptoUpDownChartData = (
   const hasFrozenLiveData = frozenMarketId === market.id;
   const [liveLoading, setLiveLoading] = useState(true);
   const liveLoadingRef = useRef(true);
+  // Tracks whether the live stream is currently delivering ticks. Defaults to
+  // stale (no tick received yet) so a cold/slow websocket shows the loading
+  // state rather than a blank canvas. Refreshed on every accepted tick and
+  // flipped back to stale by a timer once the stream stops.
+  const [liveStreamStale, setLiveStreamStale] = useState(true);
+  const staleTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
   const [liveValue, setLiveValue] = useState(0);
   const [livePoints, setLivePoints] = useState<LivelinePoint[]>(EMPTY_DATA);
   const stableHistoricalDataRef = useRef<LivelinePoint[]>(EMPTY_DATA);
@@ -181,46 +214,73 @@ export const useCryptoUpDownChartData = (
     setFrozenMarketId(market.id);
   }, [enabled, frozenMarketId, hasExpiredLiveData, market.id]);
 
-  const handleLiveUpdate = useCallback((update: CryptoPriceUpdate) => {
-    if (!enabledRef.current) return;
-    const { id: liveMarketId, liveEndDateMs: currentLiveEndDateMs } =
-      liveMarketRef.current;
-    const currentMarketId = marketIdRef.current;
-    if (
-      liveMarketId !== currentMarketId ||
-      prevMarketIdRef.current !== currentMarketId
-    ) {
-      return;
+  const markLiveStreamFresh = useCallback(() => {
+    setLiveStreamStale(false);
+    if (staleTimerRef.current) {
+      clearTimeout(staleTimerRef.current);
     }
-
-    const shouldFreezeAfterUpdate =
-      typeof currentLiveEndDateMs === 'number' &&
-      Date.now() >= currentLiveEndDateMs;
-
-    if (frozenRef.current && frozenMarketIdRef.current === currentMarketId) {
-      return;
-    }
-
-    setLiveValue(update.price);
-    setLivePoints((points) => {
-      const timeSecs = getLivePointTime(update.timestamp, points.at(-1)?.time);
-      const point: LivelinePoint = {
-        time: timeSecs,
-        value: update.price,
-      };
-      const nextPoints = mergeLivelinePoints(points, [point]);
-      return trimLivePoints(nextPoints, timeSecs);
-    });
-    if (liveLoadingRef.current) {
-      liveLoadingRef.current = false;
-      setLiveLoading(false);
-    }
-    if (shouldFreezeAfterUpdate) {
-      frozenRef.current = true;
-      frozenMarketIdRef.current = currentMarketId;
-      setFrozenMarketId(currentMarketId);
-    }
+    staleTimerRef.current = setTimeout(() => {
+      setLiveStreamStale(true);
+    }, LIVE_STREAM_STALE_TIMEOUT_MS);
   }, []);
+
+  const handleLiveUpdate = useCallback(
+    (update: CryptoPriceUpdate) => {
+      if (!enabledRef.current) return;
+      if (!Number.isFinite(update.price)) return;
+      const { id: liveMarketId, liveEndDateMs: currentLiveEndDateMs } =
+        liveMarketRef.current;
+      const currentMarketId = marketIdRef.current;
+      if (
+        liveMarketId !== currentMarketId ||
+        prevMarketIdRef.current !== currentMarketId
+      ) {
+        return;
+      }
+
+      const shouldFreezeAfterUpdate =
+        typeof currentLiveEndDateMs === 'number' &&
+        Date.now() >= currentLiveEndDateMs;
+
+      if (frozenRef.current && frozenMarketIdRef.current === currentMarketId) {
+        return;
+      }
+
+      markLiveStreamFresh();
+      setLiveValue(update.price);
+      setLivePoints((points) => {
+        const timeSecs = getLivePointTime(
+          update.timestamp,
+          points.at(-1)?.time,
+        );
+        const point: LivelinePoint = {
+          time: timeSecs,
+          value: update.price,
+        };
+        const nextPoints = mergeLivelinePoints(points, [point]);
+        return trimLivePoints(nextPoints, timeSecs);
+      });
+      if (liveLoadingRef.current) {
+        liveLoadingRef.current = false;
+        setLiveLoading(false);
+      }
+      if (shouldFreezeAfterUpdate) {
+        frozenRef.current = true;
+        frozenMarketIdRef.current = currentMarketId;
+        setFrozenMarketId(currentMarketId);
+      }
+    },
+    [markLiveStreamFresh],
+  );
+
+  useEffect(
+    () => () => {
+      if (staleTimerRef.current) {
+        clearTimeout(staleTimerRef.current);
+      }
+    },
+    [],
+  );
 
   const isLive = isLiveByEndDate && !hasFrozenLiveData;
   const shouldStreamLive = isLive && liveUpdatesEnabled;
@@ -329,6 +389,8 @@ export const useCryptoUpDownChartData = (
     }
   }, [enabled, historicalValue, isCurrentMarket, isLive]);
 
+  const historicalQueryEnabled = enabled && !!symbol && !!historyStartDate;
+
   if (!enabled) {
     return {
       data: EMPTY_DATA,
@@ -336,6 +398,7 @@ export const useCryptoUpDownChartData = (
       loading: false,
       isLive: false,
       window: durationSecs,
+      paused: false,
     };
   }
 
@@ -346,6 +409,9 @@ export const useCryptoUpDownChartData = (
       loading: historicalQuery.isFetching && stableHistoricalData.length === 0,
       isLive: false,
       window: durationSecs,
+      // Historical-only view: anchor the viewport to the data instead of
+      // scrolling with "now" so the line stays on screen.
+      paused: true,
     };
   }
 
@@ -353,17 +419,32 @@ export const useCryptoUpDownChartData = (
     return {
       data: chartData,
       value: displayedLiveValue,
-      loading: isLive && (!symbol || !hasRenderableChartData),
+      // While live, treat a stalled stream (no recent tick) as loading so the
+      // chart shows the spinner instead of a blank canvas once the last point
+      // scrolls out of the live window. Frozen/expired data only "loads" when
+      // there is genuinely nothing renderable.
+      loading: isLive
+        ? !symbol || !hasRenderableChartData || liveStreamStale
+        : !hasRenderableChartData,
       isLive,
       window: LIVE_CHART_WINDOW_SECS,
+      // Freeze the viewport on the final frame once the market is no longer
+      // live so the resolved line stays visible.
+      paused: !isLive,
     };
   }
 
   return {
     data: historicalData,
     value: historicalQuery.data?.at(-1)?.value ?? 0,
-    loading: historicalQuery.isFetching,
+    // Keep the spinner up while the (enabled) history request is in flight or
+    // has not yet produced a renderable line, rather than handing Liveline an
+    // empty dataset that would draw nothing.
+    loading:
+      historicalQuery.isFetching ||
+      (historicalQueryEnabled && historicalData.length < 2),
     isLive: false,
     window: durationSecs,
+    paused: true,
   };
 };

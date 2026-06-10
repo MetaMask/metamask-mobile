@@ -60,6 +60,7 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
     data,
     value,
     loading,
+    paused,
     window: chartWindow,
   } = useCryptoUpDownChartData(market, targetPrice);
 
@@ -90,6 +91,7 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
           data={data}
           value={value}
           loading={loading}
+          paused={paused}
           window={chartWindow}
           height={chartHeight}
           color={color}
