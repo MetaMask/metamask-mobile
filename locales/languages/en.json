@@ -1037,7 +1037,7 @@
   },
   "social_leaderboard": {
     "top_traders_view": {
-      "title": "Top Traders",
+      "title": "Top traders",
       "chain_filter": {
         "all": "All"
       }
@@ -1062,7 +1062,7 @@
       "allow_push_notifications": "Allow push notifications",
       "trades_over_label": "Get notified of trades over:",
       "save": "Save",
-      "title": "Top Traders"
+      "title": "Top traders"
     },
     "follow": "Follow",
     "following": "Following",
