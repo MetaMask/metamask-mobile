@@ -53,14 +53,6 @@ export function useFiatConfirm() {
       .minus(new BigNumber(totals?.fees.providerFiat?.usd ?? 0))
       .toNumber();
 
-    // Guard after computing totalAmountToBuy: totals may not be loaded yet
-    // (zero/undefined) or fees may exceed the total (stale quote, rounding).
-    // Either case would send amount: 0 or a negative value to the provider.
-    if (!(totalAmountToBuy > 0)) {
-      log('Fiat payment total amount invalid, aborting', { totalAmountToBuy });
-      return;
-    }
-
     setIsHeadlessBuyInProgress(true);
     setHeadlessBuyError(undefined);
 
@@ -100,24 +92,8 @@ export function useFiatConfirm() {
           setHeadlessBuyError(
             error.message ?? strings('alert_system.headless_buy_error.message'),
           );
-          // Reject the underlying confirmation transaction so the user can
-          // start a fresh deposit without hitting the orphaned-transaction
-          // guard in useConfirmNavigation.
-          if (transactionId) {
-            try {
-              Engine.context.ApprovalController.rejectRequest(
-                transactionId,
-                providerErrors.userRejectedRequest(),
-              );
-            } catch {
-              log(
-                'Failed to reject transaction after headless buy error',
-                transactionId,
-              );
-            }
-          }
         },
-        onClose: (info) => {
+        onClose: () => {
           setIsHeadlessBuyInProgress(false);
           setHeadlessBuyError(undefined);
           // Reject the underlying confirmation transaction on any non-completed

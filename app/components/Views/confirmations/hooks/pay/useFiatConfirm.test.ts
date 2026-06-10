@@ -294,14 +294,6 @@ describe('useFiatConfirm', () => {
       expect(setHeadlessBuyErrorMock).toHaveBeenCalledWith(
         'Authentication failed',
       );
-      // Must reject the underlying confirmation transaction so the next
-      // deposit attempt is not blocked by an orphaned unapproved tx.
-      expect(
-        Engine.context.ApprovalController.rejectRequest,
-      ).toHaveBeenCalledWith(
-        TRANSACTION_ID_MOCK,
-        expect.objectContaining({ code: expect.any(Number) }),
-      );
     });
 
     it('sets headless buy error with fallback message when error.message is absent', () => {
@@ -328,7 +320,7 @@ describe('useFiatConfirm', () => {
       expect(setHeadlessBuyErrorMock).toHaveBeenCalledWith(expect.any(String));
     });
 
-    it('aborts when totals are unavailable (zero amount guard)', () => {
+    it('uses zero amount when totals are unavailable', () => {
       jest.mocked(useTransactionPayTotals).mockReturnValue(undefined);
 
       jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
@@ -344,7 +336,10 @@ describe('useFiatConfirm', () => {
         result.current.onFiatConfirm();
       });
 
-      expect(startHeadlessBuyMock).not.toHaveBeenCalled();
+      expect(startHeadlessBuyMock).toHaveBeenCalledWith(
+        expect.objectContaining({ amount: 0 }),
+        expect.any(Object),
+      );
     });
 
     it('subtracts providerFiat fee from total for buy amount', () => {
