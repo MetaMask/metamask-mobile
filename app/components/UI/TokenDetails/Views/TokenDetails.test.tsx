@@ -12,6 +12,8 @@ import {
   selectDepositMinimumVersionFlag,
 } from '../../../../selectors/featureFlagController/deposit';
 import { selectSocialAiAssetDetailsQuickBuyEnabled } from '../../../../selectors/featureFlagController/socialAiAssetDetailsQuickBuy';
+import { selectPriceAlertsEnabled } from '../../../../selectors/featureFlagController/priceAlerts';
+import Routes from '../../../../constants/navigation/Routes';
 import {
   AMBIENT_NEGATIVE_COLOR,
   AMBIENT_PRICE_COLOR_AB_KEY,
@@ -233,6 +235,10 @@ jest.mock('../../../../selectors/featureFlagController/deposit', () => ({
   selectDepositMinimumVersionFlag: jest.fn(() => null),
 }));
 
+jest.mock('../../../../selectors/featureFlagController/priceAlerts', () => ({
+  selectPriceAlertsEnabled: jest.fn(() => false),
+}));
+
 jest.mock('../../Ramp/Aggregator/utils', () => ({
   isNetworkRampNativeTokenSupported: jest.fn(() => true),
   isNetworkRampSupported: jest.fn(() => true),
@@ -344,6 +350,7 @@ describe('TokenDetails', () => {
       if (selector === selectDepositActiveFlag) return false;
       if (selector === selectDepositMinimumVersionFlag) return null;
       if (selector === selectSocialAiAssetDetailsQuickBuyEnabled) return true;
+      if (selector === selectPriceAlertsEnabled) return false;
       return undefined;
     });
   });
@@ -693,6 +700,96 @@ describe('TokenDetails', () => {
       const { queryByTestId } = render(<TokenDetails />);
 
       expect(queryByTestId('bottomsheetfooter')).toBeNull();
+    });
+  });
+
+  describe('price alert button gating', () => {
+    const enablePriceAlerts = () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectNetworkConfigurationByChainId)
+          return { name: 'Ethereum' };
+        if (selector === selectPerpsEnabledFlag) return false;
+        if (selector === selectMerklCampaignClaimingEnabledFlag) return false;
+        if (selector === getRampNetworks) return [];
+        if (selector === selectDepositActiveFlag) return false;
+        if (selector === selectDepositMinimumVersionFlag) return null;
+        if (selector === selectSocialAiAssetDetailsQuickBuyEnabled) return true;
+        if (selector === selectPriceAlertsEnabled) return true;
+        return undefined;
+      });
+    };
+
+    it('passes onPriceAlertPress to the header when the flag is enabled and currentPrice > 0', () => {
+      enablePriceAlerts();
+      mockUseTokenPrice.mockReturnValue({
+        ...defaultUseTokenPriceReturn,
+        currentPrice: 100,
+      });
+
+      render(<TokenDetails />);
+
+      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          onPriceAlertPress: expect.any(Function),
+        }),
+      );
+    });
+
+    it('passes undefined onPriceAlertPress when the flag is disabled', () => {
+      // Flag disabled — default mockUseSelector returns false for selectPriceAlertsEnabled
+      render(<TokenDetails />);
+
+      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({ onPriceAlertPress: undefined }),
+      );
+    });
+
+    it('passes undefined onPriceAlertPress when currentPrice is 0, even if flag is enabled', () => {
+      enablePriceAlerts();
+      mockUseTokenPrice.mockReturnValue({
+        ...defaultUseTokenPriceReturn,
+        currentPrice: 0,
+      });
+
+      render(<TokenDetails />);
+
+      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({ onPriceAlertPress: undefined }),
+      );
+    });
+
+    it('navigates to MANAGE_PRICE_ALERTS with the correct params when the price alert button is pressed', () => {
+      enablePriceAlerts();
+      mockUseTokenPrice.mockReturnValue({
+        ...defaultUseTokenPriceReturn,
+        currentPrice: 2500,
+        currentCurrency: 'USD',
+      });
+      mockRouteParams.mockReturnValue({
+        ...defaultRouteParams,
+        address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+        chainId: '0x1',
+        symbol: 'DAI',
+      });
+
+      render(<TokenDetails />);
+
+      // Retrieve the handler passed to the mocked header component and invoke it
+      const lastCall = mockTokenDetailsInlineHeader.mock.calls.at(-1)?.[0] as {
+        onPriceAlertPress?: () => void;
+      };
+      act(() => {
+        lastCall.onPriceAlertPress?.();
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MANAGE_PRICE_ALERTS,
+        expect.objectContaining({
+          symbol: 'DAI',
+          currentPrice: 2500,
+          currentCurrency: 'USD',
+        }),
+      );
     });
   });
 

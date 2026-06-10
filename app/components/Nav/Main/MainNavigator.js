@@ -164,6 +164,8 @@ import RewardsSelectSheet from '../../UI/Rewards/components/RewardsSelectSheet';
 
 import SitesFullView from '../../Views/SitesFullView/SitesFullView';
 import { TokenDetails } from '../../UI/TokenDetails/Views/TokenDetails';
+import CreatePriceAlertView from '../../UI/PriceAlerts/Views/CreatePriceAlertView/CreatePriceAlertView';
+import ManagePriceAlertsView from '../../UI/PriceAlerts/Views/ManagePriceAlertsView/ManagePriceAlertsView';
 import BenefitFullView from '../../UI/Rewards/Views/BenefitFullView';
 import BenefitsFullView from '../../UI/Rewards/Views/BenefitsFullView';
 import { getDeFiProtocolPositionDetailsNavbarOptions } from '../../UI/Navbar';
@@ -243,6 +245,14 @@ const AssetStackFlow = (props) => (
     <NativeStack.Screen
       name={Routes.TRANSACTION_DETAILS}
       component={TransactionDetails}
+    />
+    <NativeStack.Screen
+      name={Routes.CREATE_PRICE_ALERT}
+      component={CreatePriceAlertView}
+    />
+    <NativeStack.Screen
+      name={Routes.MANAGE_PRICE_ALERTS}
+      component={ManagePriceAlertsView}
     />
   </NativeStack.Navigator>
 );

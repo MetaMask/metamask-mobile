@@ -54,6 +54,8 @@ import { useTokenBalance } from '../hooks/useTokenBalance';
 import { useTokenPrice } from '../hooks/useTokenPrice';
 import { useTokenSecurityData } from '../hooks/useTokenSecurityData';
 import { useTokenTransactions } from '../hooks/useTokenTransactions';
+import Routes from '../../../../constants/navigation/Routes';
+import { selectPriceAlertsEnabled } from '../../../../selectors/featureFlagController/priceAlerts';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -190,6 +192,8 @@ const TokenDetails: React.FC<{
     }
   }, [token.address, token.chainId]);
 
+  const isPriceAlertsFeatureEnabled = useSelector(selectPriceAlertsEnabled);
+
   const {
     securityData,
     isLoading: isSecurityDataLoading,
@@ -274,6 +278,23 @@ const TokenDetails: React.FC<{
     await onSend();
   }, [onSend, onCtaClicked]);
 
+  const handlePriceAlertPress = useCallback(() => {
+    navigation.navigate(Routes.MANAGE_PRICE_ALERTS, {
+      symbol: token.symbol,
+      ticker: token.ticker,
+      currentPrice,
+      currentCurrency,
+      assetId: caip19AssetId ?? '',
+    });
+  }, [
+    navigation,
+    token.symbol,
+    token.ticker,
+    currentPrice,
+    currentCurrency,
+    caip19AssetId,
+  ]);
+
   const {
     transactions,
     submittedTxs,
@@ -348,6 +369,11 @@ const TokenDetails: React.FC<{
     <View style={styles.wrapper}>
       <TokenDetailsInlineHeader
         onBackPress={() => navigation.goBack()}
+        onPriceAlertPress={
+          isPriceAlertsFeatureEnabled && currentPrice > 0
+            ? handlePriceAlertPress
+            : undefined
+        }
         iconColor={ambientIconColor}
         useAmbientColor={useAmbientColor}
       />
