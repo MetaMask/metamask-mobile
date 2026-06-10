@@ -278,9 +278,14 @@ describe('SnapSettings with non keyring snap', () => {
   });
 
   it('calls navigation.goBack when header back button is pressed', () => {
+    const routeMessenger = createMockRouteMessenger({
+      'SnapController:removeSnap': jest.fn(),
+    });
+
     const { getByTestId } = renderWithProvider(<SnapSettings />, {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       state: initialState as any,
+      routeMessenger,
     });
 
     fireEvent(getByTestId(SNAP_SETTINGS_BACK_BUTTON), 'onPress');
