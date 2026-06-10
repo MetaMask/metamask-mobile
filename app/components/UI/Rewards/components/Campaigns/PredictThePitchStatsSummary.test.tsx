@@ -61,6 +61,8 @@ const basePosition: PredictThePitchLeaderboardPositionDto = {
   eligible: true,
   neighbors: [],
   computedAt: '2025-01-01T00:00:00.000Z',
+  marketsTraded: 3,
+  minimumMarketsTraded: 3,
 };
 
 describe('PredictThePitchStatsSummary', () => {
@@ -104,6 +106,57 @@ describe('PredictThePitchStatsSummary', () => {
     );
 
     expect(getByTestId(TEST_IDS.ROI).props.color).toBe(TextColor.ErrorDefault);
+  });
+
+  it('shows x/y markets when below minimum', () => {
+    const { getByTestId } = render(
+      <PredictThePitchStatsSummary
+        leaderboardPosition={{
+          ...basePosition,
+          marketsTraded: 2,
+          minimumMarketsTraded: 3,
+        }}
+        isLoading={false}
+        hasError={false}
+        refetch={jest.fn()}
+      />,
+    );
+
+    expect(getByTestId(TEST_IDS.MARKETS_TRADED).props.children).toBe('2/3');
+  });
+
+  it('shows count only when markets traded meets minimum', () => {
+    const { getByTestId } = render(
+      <PredictThePitchStatsSummary
+        leaderboardPosition={{
+          ...basePosition,
+          marketsTraded: 5,
+          minimumMarketsTraded: 3,
+        }}
+        isLoading={false}
+        hasError={false}
+        refetch={jest.fn()}
+      />,
+    );
+
+    expect(getByTestId(TEST_IDS.MARKETS_TRADED).props.children).toBe('5');
+  });
+
+  it('shows 0/minimum when marketsTraded is null', () => {
+    const { getByTestId } = render(
+      <PredictThePitchStatsSummary
+        leaderboardPosition={{
+          ...basePosition,
+          marketsTraded: null,
+          minimumMarketsTraded: 3,
+        }}
+        isLoading={false}
+        hasError={false}
+        refetch={jest.fn()}
+      />,
+    );
+
+    expect(getByTestId(TEST_IDS.MARKETS_TRADED).props.children).toBe('0/3');
   });
 
   it('renders an error banner when no stats are available', () => {

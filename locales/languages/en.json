@@ -9237,6 +9237,7 @@
       "leaderboard_not_yet_computed": "Leaderboard hasn't been computed yet. Check back soon.",
       "stats_error_title": "Unable to load stats",
       "stats_error_description": "We had a problem loading your stats. Please try again.",
+      "label_markets_traded": "Markets traded",
       "stats_retry": "Retry"
     },
     "campaigns_preview": {
