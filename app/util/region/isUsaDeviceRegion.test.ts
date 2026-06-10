@@ -31,6 +31,24 @@ describe('isUsaDeviceRegion', () => {
     expect(isUsaDeviceRegion()).toBe(true);
   });
 
+  it('returns true for en-US locale with unicode extensions', () => {
+    mockDeviceLocale('en-US-u-nu-latn');
+
+    expect(isUsaDeviceRegion()).toBe(true);
+  });
+
+  it('returns false for en-GB locale with unicode extensions', () => {
+    mockDeviceLocale('en-GB-u-nu-latn');
+
+    expect(isUsaDeviceRegion()).toBe(false);
+  });
+
+  it('returns true for locale with script subtag before region', () => {
+    mockDeviceLocale('zh-Hans-US');
+
+    expect(isUsaDeviceRegion()).toBe(true);
+  });
+
   it('returns false for en-GB locale', () => {
     mockDeviceLocale('en-GB');
 

@@ -8,10 +8,24 @@ const getRegionCodeFromLocale = (locale: string): string | undefined => {
     return undefined;
   }
 
-  const regionSubtag = subtags[subtags.length - 1];
+  // BCP 47: region follows language and optional script, before variants/extensions.
+  // e.g. en-US-u-nu-latn → US (not latn from the trailing unicode extension).
+  for (const subtag of subtags.slice(1)) {
+    if (subtag.length === 1) {
+      break;
+    }
 
-  if (/^[A-Za-z]{2}$/.test(regionSubtag)) {
-    return regionSubtag.toUpperCase();
+    if (/^[A-Za-z]{4}$/.test(subtag)) {
+      continue;
+    }
+
+    if (/^[A-Za-z]{2}$/.test(subtag)) {
+      return subtag.toUpperCase();
+    }
+
+    if (/^[0-9]{3}$/.test(subtag)) {
+      return subtag;
+    }
   }
 
   return undefined;
