@@ -24,20 +24,6 @@ jest.mock('../../../../../../../util/haptics', () => ({
   playErrorNotification: jest.fn(),
 }));
 
-// `resolveQuickBuyTerminalToast` bumps the bridge balance refresh key through
-// the global store on terminal outcomes (TSA-632); no real store exists here.
-const mockReduxDispatch = jest.fn();
-jest.mock('../../../../../../../core/redux', () => ({
-  __esModule: true,
-  default: {
-    store: {
-      // Defer to mockReduxDispatch lazily: this object is built at mock-factory
-      // eval time, before the `mockReduxDispatch` const is initialised.
-      dispatch: (...args: unknown[]) => mockReduxDispatch(...args),
-    },
-  },
-}));
-
 jest.mock('../../../../../../../util/theme', () => ({
   useAppThemeFromContext: () => ({
     colors: {
