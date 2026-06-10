@@ -91,7 +91,6 @@ const PredictThePitchCampaignLeaderboardView: React.FC = () => {
 
   const isCampaignComplete =
     campaign != null && getCampaignStatus(campaign) === 'complete';
-  const totalParticipants = leaderboard?.totalParticipants ?? 0;
 
   return (
     <ErrorBoundary

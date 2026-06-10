@@ -91,6 +91,8 @@ describe('PerpsTradingCampaignEndedStats', () => {
         totalNotionalVolume="27500000"
         isLeaderboardLoading={false}
         isVolumeLoading={false}
+        hasLeaderboardError={false}
+        hasVolumeError={false}
       />,
     );
 
@@ -115,7 +117,7 @@ describe('PerpsTradingCampaignEndedStats', () => {
         value: '20',
         isLoading: false,
       },
-      hasError: undefined,
+      hasError: false,
     });
   });
 
@@ -260,9 +262,11 @@ describe('PerpsTradingCampaignEndedStats', () => {
         totalNotionalVolume="1000000"
         isLeaderboardLoading={false}
         isVolumeLoading={false}
+        hasLeaderboardError={false}
+        hasVolumeError={false}
       />,
     );
 
-    expect(latestProps?.hasError).toBeUndefined();
+    expect(latestProps?.hasError).toBe(false);
   });
 });
