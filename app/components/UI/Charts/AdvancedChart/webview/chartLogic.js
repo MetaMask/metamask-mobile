@@ -20,6 +20,8 @@ window.chartWidget = null;
 window.ohlcvData = [];
 window.currentSymbol = 'ASSET';
 window.activeStudies = new Map();
+window.maStudies = new Map();
+window.visibleMAs = [];
 window.positionShapeIds = [];
 window.isChartReady = false;
 window.pendingMessages = [];
@@ -244,6 +246,9 @@ function handleMessage(event) {
         break;
       case 'TOGGLE_VOLUME':
         handleToggleVolume(message.payload);
+        break;
+      case 'SET_MA_VISIBILITY':
+        handleSetMAVisibility(message.payload);
         break;
     }
   } catch (error) {
@@ -496,6 +501,8 @@ function handleSetOHLCVData(payload) {
       window.chartWidget = null;
       window.isChartReady = false;
       window.activeStudies = new Map();
+      window.maStudies = new Map();
+      window.visibleMAs = [];
       window.volumeStudyId = null;
       window.volumeIsOverlay = null;
       window.lastPriceShapeId = null;
@@ -595,42 +602,62 @@ function handleAddIndicator(payload) {
 
   try {
     var chart = window.chartWidget.activeChart();
-    var studyName, inputs;
+    var studyName, inputs, overrides;
 
     switch (indicatorName) {
       case 'MACD':
         studyName = 'MACD';
         inputs = { in_0: 12, in_1: 26, in_2: 9 };
+        overrides = {
+          showLegendValues: false,
+          'MACD.color': '#2962FF',
+          'Signal.color': '#FF6D00',
+          'Histogram.color.0': '#26A69A',
+          'Histogram.color.1': '#EF5350',
+        };
         break;
       case 'RSI':
         studyName = 'Relative Strength Index';
         inputs = { in_0: 14 };
+        overrides = {
+          showLegendValues: false,
+          'RSI.color': '#4CAF50',
+        };
         break;
       case 'BOL':
         studyName = 'Bollinger Bands';
         inputs = { in_0: 20, in_1: 2 };
+        overrides = {
+          showLegendValues: false,
+          'Upper.color': '#E040FB',
+          'Basis.color': '#E040FB',
+          'Lower.color': '#E040FB',
+        };
         break;
       case 'MA200':
         studyName = 'Moving Average';
         inputs = { length: 200 };
+        overrides = { showLegendValues: false };
         break;
       default:
-        var maMatch = indicatorName.match(/^MA(\d+)$/);
-        if (maMatch) {
-          studyName = 'Moving Average';
-          inputs = { length: parseInt(maMatch[1], 10) };
-        } else {
-          studyName = indicatorName;
-          inputs = payload.inputs || {};
-        }
+        studyName = indicatorName;
+        inputs = payload.inputs || {};
+        overrides = { showLegendValues: false };
         break;
     }
 
-    var promise = chart.createStudy(studyName, false, false, inputs);
+    var promise = chart.createStudy(
+      studyName,
+      false,
+      false,
+      inputs,
+      overrides || {},
+    );
 
     promise
       .then(function (studyId) {
         window.activeStudies.set(indicatorName, studyId);
+        subscribeStudyDataLoaded(studyId);
         sendToReactNative('INDICATOR_ADDED', {
           name: indicatorName,
           id: String(studyId),
@@ -661,10 +688,70 @@ function handleRemoveIndicator(payload) {
     var chart = window.chartWidget.activeChart();
     chart.removeEntity(studyId);
     window.activeStudies.delete(indicatorName);
+    scheduleStudyLegendRefresh();
     sendToReactNative('INDICATOR_REMOVED', { name: indicatorName });
   } catch (error) {
     sendToReactNative('ERROR', { message: error.message });
   }
+}
+
+// ============================================
+// MA Study Visibility (built-in Moving Average studies)
+// ============================================
+var MA_LENGTHS = { MA5: 5, MA25: 25, MA50: 50, MA75: 75, MA99: 99 };
+var MA_COLORS = {
+  MA5: '#8B8BF5',
+  MA25: '#FF6B9D',
+  MA50: '#F5A623',
+  MA75: '#B8E62E',
+  MA99: '#5CC9F5',
+};
+
+function handleSetMAVisibility(payload) {
+  if (!window.chartWidget || !window.isChartReady) return;
+  if (!payload) return;
+
+  var visible = payload.visible || [];
+  window.visibleMAs = visible;
+  var chart = window.chartWidget.activeChart();
+
+  var visibleSet = {};
+  for (var i = 0; i < visible.length; i++) {
+    visibleSet[visible[i]] = true;
+  }
+
+  window.maStudies.forEach(function (studyId, name) {
+    if (!visibleSet[name]) {
+      try {
+        chart.removeEntity(studyId);
+      } catch (e) {}
+      window.maStudies.delete(name);
+    }
+  });
+
+  for (var j = 0; j < visible.length; j++) {
+    var name = visible[j];
+    if (window.maStudies.has(name)) continue;
+    if (!MA_LENGTHS[name]) continue;
+    (function (maName) {
+      chart
+        .createStudy(
+          'Moving Average',
+          false,
+          false,
+          { length: MA_LENGTHS[maName] },
+          { showLegendValues: false, 'Plot.color': MA_COLORS[maName] },
+        )
+        .then(function (studyId) {
+          window.maStudies.set(maName, studyId);
+          subscribeStudyDataLoaded(studyId);
+          scheduleStudyLegendRefresh();
+        })
+        .catch(function () {});
+    })(name);
+  }
+
+  scheduleStudyLegendRefresh();
 }
 
 // ============================================
@@ -3128,6 +3215,324 @@ function refreshLineEndDot() {
 }
 
 // ============================================
+// Custom Study Legend (DOM overlay)
+// ============================================
+
+var INDICATOR_LEGEND_CONFIG = {
+  MACD: {
+    plots: [
+      { tvTitle: 'MACD', label: 'MACD(12,26)', color: '#2962FF' },
+      { tvTitle: 'Signal', label: 'Signal', color: '#FF6D00' },
+      { tvTitle: 'Histogram', label: 'Hist', color: '#26A69A' },
+    ],
+    useIndex: true,
+  },
+  RSI: {
+    plots: [{ tvTitle: 'Plot', label: 'RSI(14)', color: '#4CAF50' }],
+    useIndex: true,
+  },
+  BOL: {
+    plots: [
+      { tvTitle: 'Upper', label: 'BB(20,2)', color: '#E040FB' },
+      { tvTitle: 'Median', label: 'M', color: '#E040FB' },
+      { tvTitle: 'Lower', label: 'L', color: '#E040FB' },
+    ],
+    useIndex: true,
+  },
+  Volume: {
+    plots: [{ tvTitle: 'Vol', label: 'Vol', color: null }],
+    useIndex: true,
+  },
+  MA5: {
+    isMA: true,
+    useIndex: true,
+    plots: [{ tvTitle: 'Plot', label: 'MA(5)', color: '#8B8BF5' }],
+  },
+  MA25: {
+    isMA: true,
+    useIndex: true,
+    plots: [{ tvTitle: 'Plot', label: 'MA(25)', color: '#FF6B9D' }],
+  },
+  MA50: {
+    isMA: true,
+    useIndex: true,
+    plots: [{ tvTitle: 'Plot', label: 'MA(50)', color: '#F5A623' }],
+  },
+  MA75: {
+    isMA: true,
+    useIndex: true,
+    plots: [{ tvTitle: 'Plot', label: 'MA(75)', color: '#B8E62E' }],
+  },
+  MA99: {
+    isMA: true,
+    useIndex: true,
+    plots: [{ tvTitle: 'Plot', label: 'MA(99)', color: '#5CC9F5' }],
+  },
+};
+
+function createStudyLegendOverlay() {
+  var existing = document.getElementById('study-legend-overlay');
+  if (existing) existing.parentNode.removeChild(existing);
+
+  var container = document.getElementById('tv_chart_container');
+  if (!container) return;
+
+  var div = document.createElement('div');
+  div.id = 'study-legend-overlay';
+  div.style.cssText =
+    'position:absolute;top:4px;left:8px;z-index:5;pointer-events:none;' +
+    'font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:11px;line-height:16px;';
+  container.style.position = 'relative';
+  container.appendChild(div);
+}
+
+function collectStudyIdMap() {
+  var map = {};
+  window.activeStudies.forEach(function (studyId, name) {
+    map[String(studyId)] = name;
+  });
+  window.maStudies.forEach(function (studyId, name) {
+    map[String(studyId)] = name;
+  });
+  if (window.volumeStudyId) {
+    map[String(window.volumeStudyId)] = 'Volume';
+  }
+  return map;
+}
+
+function buildLegendHTML(studyDataList) {
+  var html = '';
+  var maSpans = '';
+
+  for (var i = 0; i < studyDataList.length; i++) {
+    var entry = studyDataList[i];
+    var indicatorName = entry.name;
+    var values = entry.values;
+
+    var cfg = INDICATOR_LEGEND_CONFIG[indicatorName];
+    if (!cfg) continue;
+
+    if (cfg.isMA) {
+      var maPlot = cfg.plots[0];
+      var maVal = cfg.useIndex && values.length > 0 ? values[0].value : '';
+      if (!maVal) {
+        for (var v = 0; v < values.length; v++) {
+          if (values[v].title === maPlot.tvTitle) {
+            maVal = values[v].value;
+            break;
+          }
+        }
+      }
+      if (maVal && maVal !== 'n/a' && maVal !== '∅') {
+        if (maSpans) maSpans += '<span style="margin-left:8px"></span>';
+        maSpans +=
+          '<span style="color:' +
+          maPlot.color +
+          '">' +
+          maPlot.label +
+          ' ' +
+          maVal +
+          '</span>';
+      }
+      continue;
+    }
+
+    var spans = '';
+    for (var p = 0; p < cfg.plots.length; p++) {
+      var plotCfg = cfg.plots[p];
+      var plotVal = '';
+      if (cfg.useIndex && p < values.length) {
+        plotVal = values[p].value;
+      } else {
+        for (var j = 0; j < values.length; j++) {
+          if (values[j].title === plotCfg.tvTitle) {
+            plotVal = values[j].value;
+            break;
+          }
+        }
+      }
+      if (!plotVal || plotVal === 'n/a' || plotVal === '∅') continue;
+      var color =
+        plotCfg.color || window.CONFIG.theme.successColor || '#26A69A';
+      if (spans) spans += '<span style="margin-left:8px"></span>';
+      spans +=
+        '<span style="color:' +
+        color +
+        '">' +
+        plotCfg.label +
+        ' ' +
+        plotVal +
+        '</span>';
+    }
+    if (spans) html += '<div>' + spans + '</div>';
+  }
+
+  if (maSpans) html = '<div>' + maSpans + '</div>' + html;
+  return html;
+}
+
+function updateStudyLegendFromEntityValues(entityValues) {
+  var overlay = document.getElementById('study-legend-overlay');
+  if (!overlay) return;
+  if (!entityValues) {
+    overlay.innerHTML = '';
+    return;
+  }
+
+  var studyIdMap = collectStudyIdMap();
+  var studyDataList = [];
+  var keys = Object.keys(entityValues);
+
+  for (var i = 0; i < keys.length; i++) {
+    var sid = keys[i];
+    if (sid === '_seriesId') continue;
+    var name = studyIdMap[sid];
+    if (!name) continue;
+    var ev = entityValues[sid];
+    if (!ev || !ev.values) continue;
+    studyDataList.push({ name: name, values: ev.values });
+  }
+
+  overlay.innerHTML = buildLegendHTML(studyDataList);
+}
+
+function subscribeStudyDataLoaded(studyId) {
+  try {
+    var chart = window.chartWidget.activeChart();
+    var study = chart.getStudyById(studyId);
+    if (study && study.onDataLoaded) {
+      study.onDataLoaded().subscribe(
+        null,
+        function () {
+          refreshStudyLegendFromExport();
+        },
+        true,
+      );
+    }
+  } catch (e) {}
+}
+
+var _studyLegendRefreshTimer = null;
+
+function scheduleStudyLegendRefresh() {
+  if (_studyLegendRefreshTimer) clearTimeout(_studyLegendRefreshTimer);
+  _studyLegendRefreshTimer = setTimeout(function () {
+    _studyLegendRefreshTimer = null;
+    refreshStudyLegendFromExport();
+  }, 150);
+}
+
+function formatLegendValue(num) {
+  if (num === undefined || num === null || isNaN(num)) return '';
+  var abs = Math.abs(num);
+  if (abs >= 1e9) return (num / 1e9).toFixed(2) + 'B';
+  if (abs >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+  if (abs >= 1e4) return (num / 1e3).toFixed(1) + 'K';
+  if (abs >= 1000) return num.toFixed(2);
+  if (abs >= 1) return num.toFixed(2);
+  if (abs >= 0.01) return num.toFixed(4);
+  return num.toPrecision(4);
+}
+
+function refreshStudyLegendFromExport() {
+  if (!window.chartWidget || !window.isChartReady) return;
+  var overlay = document.getElementById('study-legend-overlay');
+  if (!overlay) return;
+
+  var chart = window.chartWidget.activeChart();
+  var studyIds = [];
+  var studyIdMap = collectStudyIdMap();
+  var mapKeys = Object.keys(studyIdMap);
+  for (var i = 0; i < mapKeys.length; i++) {
+    studyIds.push(mapKeys[i]);
+  }
+
+  if (studyIds.length === 0) {
+    overlay.innerHTML = '';
+    return;
+  }
+
+  try {
+    chart
+      .exportData({
+        includeSeries: false,
+        includedStudies: studyIds,
+      })
+      .then(function (data) {
+        if (!data || !data.schema || !data.data) return;
+        var lastRow =
+          data.data.length > 0 ? data.data[data.data.length - 1] : null;
+        if (!lastRow) return;
+
+        var byStudy = {};
+        for (var s = 0; s < data.schema.length; s++) {
+          var field = data.schema[s];
+          if (field.type === 'time' || field.type === 'userTime') continue;
+          var sourceId = field.sourceId;
+          if (!sourceId) continue;
+          var sid = String(sourceId);
+          if (!byStudy[sid]) byStudy[sid] = [];
+          var rawVal = lastRow[s];
+          var displayVal =
+            rawVal !== undefined && !isNaN(rawVal)
+              ? formatLegendValue(rawVal)
+              : '';
+          if (data.displayedData && data.displayedData.length > 0) {
+            var dispRow = data.displayedData[data.displayedData.length - 1];
+            if (dispRow && dispRow[s]) displayVal = dispRow[s];
+          }
+          byStudy[sid].push({
+            title: field.plotTitle || '',
+            value: displayVal,
+          });
+        }
+
+        var studyDataList = [];
+        var bKeys = Object.keys(byStudy);
+        for (var k = 0; k < bKeys.length; k++) {
+          var studyKey = bKeys[k];
+          var name = studyIdMap[studyKey];
+          if (!name) continue;
+          studyDataList.push({ name: name, values: byStudy[studyKey] });
+        }
+
+        overlay.innerHTML = buildLegendHTML(studyDataList);
+      })
+      .catch(function () {});
+  } catch (e) {}
+}
+
+function injectHideLegendButtonsCSS() {
+  var styleId = 'mm-hide-legend-buttons';
+  if (document.getElementById(styleId)) return;
+
+  var targetDoc = document;
+  try {
+    var iframes = document.querySelectorAll('iframe');
+    for (var i = 0; i < iframes.length; i++) {
+      if (iframes[i].contentDocument) {
+        targetDoc = iframes[i].contentDocument;
+        break;
+      }
+    }
+  } catch (e) {}
+
+  var style = targetDoc.createElement('style');
+  style.id = styleId;
+  style.textContent =
+    '.chart-controls-bar .apply-common-tooltip,' +
+    '.legendElement .showHide,' +
+    '.legendElement button[data-name="legend-show-hide-action"],' +
+    '.legendElement button[data-name="legend-settings-action"],' +
+    '.legendElement button[data-name="legend-delete-action"],' +
+    '.legendElement .buttons-wrapper,' +
+    '.legendElement .buttonsWrapper {' +
+    '  display: none !important;' +
+    '}';
+  targetDoc.head.appendChild(style);
+}
+
+// ============================================
 // Volume Helpers
 // ============================================
 window.volumeStudyId = null;
@@ -3140,22 +3545,23 @@ function createVolumeStudy(useOverlay) {
 
   try {
     var chart = window.chartWidget.activeChart();
-    var theme = window.CONFIG.theme;
-    var inputs = {
-      'volume ma.display': 0,
-      'volume.color.0': theme.errorColor,
-      'volume.color.1': theme.successColor,
+    var t = window.CONFIG.theme;
+    var overrides = {
+      showLegendValues: false,
       'volume.transparency': useOverlay ? 70 : 0,
+      'volume.color.0': t.errorColor,
+      'volume.color.1': t.successColor,
     };
     var promise = useOverlay
-      ? chart.createStudy('Volume', true, false, {}, inputs, {
+      ? chart.createStudy('Volume', true, false, {}, overrides, {
           priceScale: 'no-scale',
         })
-      : chart.createStudy('Volume', false, false, {}, inputs);
+      : chart.createStudy('Volume', false, false, {}, overrides);
 
     promise
       .then(function (studyId) {
         window.volumeStudyId = studyId;
+        subscribeStudyDataLoaded(studyId);
         try {
           var heights = chart.getAllPanesHeight();
           if (heights.length === 2) {
@@ -3175,6 +3581,7 @@ function createVolumeStudy(useOverlay) {
           }
         } catch (e) {}
         updateCandleVolumeScaleColumnVisibility();
+        scheduleStudyLegendRefresh();
         try {
           requestAnimationFrame(function () {
             requestAnimationFrame(updateCandleVolumeScaleColumnVisibility);
@@ -3201,6 +3608,7 @@ function handleToggleVolume(payload) {
     }
     window.volumeIsOverlay = null;
     updateCandleVolumeScaleColumnVisibility();
+    scheduleStudyLegendRefresh();
     return;
   }
 
@@ -3770,6 +4178,9 @@ function initChart() {
           'paneProperties.legendProperties.showBarChange': false,
           'paneProperties.legendProperties.showVolume': false,
           'paneProperties.legendProperties.showBackground': false,
+          'paneProperties.legendProperties.showStudyTitles': false,
+          'paneProperties.legendProperties.showStudyArguments': false,
+          'paneProperties.legendProperties.showStudyValues': false,
           'mainSeriesProperties.showPriceLine': !initCustomDashed,
 
           'mainSeriesProperties.candleStyle.upColor': theme.successColor,
@@ -3854,6 +4265,9 @@ function initChart() {
       } catch (e) {}
 
       subscribeLastCloseLabelUpdates();
+
+      createStudyLegendOverlay();
+      injectHideLegendButtonsCSS();
 
       sendToReactNative('CHART_READY', {});
 
@@ -3998,6 +4412,10 @@ function initChart() {
                 },
               });
             }
+
+            if (params.entityValues) {
+              updateStudyLegendFromEntityValues(params.entityValues);
+            }
           });
 
         var mouseDownTime = 0;
@@ -4018,6 +4436,7 @@ function initChart() {
             window.ohlcvBarShownAt = 0;
             window.ohlcvDismissUntil = Date.now() + 800;
             hideCustomCrosshairLabels();
+            scheduleStudyLegendRefresh();
             setTimeout(function () {
               window.__mmTooltipChartInteractSent = false;
               sendToReactNative('CROSSHAIR_MOVE', { data: null });

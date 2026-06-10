@@ -363,10 +363,8 @@ const PriceAdvanced = ({
 
   const indicatorsArray = useMemo(
     () =>
-      ([...activeIndicators, ...selectedMAs] as IndicatorType[]).filter(
-        (i) => i !== 'Volume',
-      ),
-    [activeIndicators, selectedMAs],
+      ([...activeIndicators] as IndicatorType[]).filter((i) => i !== 'Volume'),
+    [activeIndicators],
   );
 
   const subPaneCount = useMemo(
@@ -759,6 +757,7 @@ const PriceAdvanced = ({
               volumeOverlay
               chartType={chartType}
               indicators={indicatorsArray}
+              selectedMAs={selectedMAs}
               lineChrome={advancedChartLineChromePresets.tokenOverview}
               isLoading={chartLoading}
               ohlcvPagination={ohlcvPagination}
