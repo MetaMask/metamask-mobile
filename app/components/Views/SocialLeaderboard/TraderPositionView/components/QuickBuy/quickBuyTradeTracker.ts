@@ -45,6 +45,30 @@ const trackedTrades = new Map<string, TrackedQuickBuyTrade>();
 /** Shared empty result so the common "nothing tracked" path allocates nothing. */
 const EMPTY_TRADE_IDS: string[] = [];
 
+/**
+ * Ids of QuickBuy trades that have reached a terminal state and been untracked.
+ *
+ * The terminal handler untracks a trade the instant the swap settles, but
+ * `NotificationManager` re-checks the skip predicates ~2s *after*
+ * `transactionConfirmed`/`transactionFailed` (a delayed `setTimeout`). For a
+ * fast-settling QuickBuy the trade would already be gone from `trackedTrades`
+ * by then, so the generic success/error toast would leak on top of QuickBuy's
+ * own terminal toast. Remembering recently-settled ids keeps suppression alive
+ * across that window.
+ *
+ * Bounded (insertion-ordered FIFO eviction) so it can never grow unbounded;
+ * QuickBuy ids are globally-unique tx meta ids, so retaining a small recent
+ * history is harmless.
+ */
+const settledTradeIds = new Set<string>();
+
+/**
+ * Upper bound on remembered settled ids. Comfortably larger than any realistic
+ * number of QuickBuy trades settling within the ~2s notification re-check
+ * window, while keeping memory trivially small.
+ */
+const SETTLED_TRADE_ID_LIMIT = 50;
+
 export function trackQuickBuyTrade(
   txMetaId: string,
   info: TrackedQuickBuyTrade,
@@ -70,6 +94,32 @@ export function getTrackedQuickBuyTradeIds(): string[] {
 
 export function untrackQuickBuyTrade(txMetaId: string): void {
   trackedTrades.delete(txMetaId);
+  settledTradeIds.delete(txMetaId);
+}
+
+/**
+ * Marks a trade as terminally settled: removes it from the active registry (so
+ * the terminal toast is not emitted twice) while remembering its id so the
+ * delayed generic-notification re-check still suppresses the leftover
+ * success/error toast.
+ */
+export function markQuickBuyTradeSettled(txMetaId: string): void {
+  trackedTrades.delete(txMetaId);
+
+  // Re-insert to refresh FIFO position, then evict the oldest if over the cap.
+  settledTradeIds.delete(txMetaId);
+  settledTradeIds.add(txMetaId);
+  if (settledTradeIds.size > SETTLED_TRADE_ID_LIMIT) {
+    const oldest = settledTradeIds.values().next().value;
+    if (oldest !== undefined) {
+      settledTradeIds.delete(oldest);
+    }
+  }
+}
+
+/** Clears all remembered settled ids. Intended for test isolation. */
+export function clearSettledQuickBuyTrades(): void {
+  settledTradeIds.clear();
 }
 
 /**
@@ -107,16 +157,22 @@ const QUICK_BUY_SUPPRESSED_TYPES: TransactionType[] = [
 
 /**
  * Predicate consumed by `NotificationManager` to skip the generic transaction
- * notification for QuickBuy-initiated trades. Matches either a transaction
- * already tracked by id (covers the later complete/confirmed notification) or,
- * while a submission is in flight, a swap/bridge/batch transaction (covers the
- * pending notification that fires before the id is known).
+ * notification for QuickBuy-initiated trades. Matches a transaction that is
+ * either currently tracked by id, recently settled by id (covers the delayed
+ * generic-toast re-check that fires after the trade is untracked), or — while a
+ * submission is in flight — a swap/bridge/batch transaction (covers the pending
+ * notification that fires before the id is known).
  */
 export function isQuickBuyTransaction(
   transactionMeta: TransactionMeta | undefined,
 ): boolean {
-  if (transactionMeta?.id && getTrackedQuickBuyTrade(transactionMeta.id)) {
-    return true;
+  if (transactionMeta?.id) {
+    if (getTrackedQuickBuyTrade(transactionMeta.id)) {
+      return true;
+    }
+    if (settledTradeIds.has(transactionMeta.id)) {
+      return true;
+    }
   }
 
   if (!hasPendingQuickBuySubmission()) {

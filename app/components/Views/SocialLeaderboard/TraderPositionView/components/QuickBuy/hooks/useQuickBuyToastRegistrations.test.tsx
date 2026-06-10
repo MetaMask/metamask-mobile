@@ -8,6 +8,7 @@ import {
 } from '../../../../../../../util/haptics';
 import { buildQuickBuyToastOptions } from '../quickBuyToastOptions';
 import {
+  clearSettledQuickBuyTrades,
   getTrackedQuickBuyTradeIds,
   isQuickBuyTransaction,
   trackQuickBuyTrade,
@@ -108,6 +109,7 @@ describe('useQuickBuyToastRegistrations', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     getTrackedQuickBuyTradeIds().forEach(untrackQuickBuyTrade);
+    clearSettledQuickBuyTrades();
     Engine.context.MultichainTransactionsController.state.nonEvmTransactions =
       {};
   });

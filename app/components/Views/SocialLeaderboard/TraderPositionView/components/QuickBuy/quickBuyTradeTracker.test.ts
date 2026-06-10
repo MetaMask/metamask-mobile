@@ -4,11 +4,13 @@ import {
 } from '@metamask/transaction-controller';
 import {
   beginQuickBuySubmission,
+  clearSettledQuickBuyTrades,
   endQuickBuySubmission,
   getTrackedQuickBuyTrade,
   getTrackedQuickBuyTradeIds,
   hasPendingQuickBuySubmission,
   isQuickBuyTransaction,
+  markQuickBuyTradeSettled,
   trackQuickBuyTrade,
   untrackQuickBuyTrade,
   type TrackedQuickBuyTrade,
@@ -35,6 +37,7 @@ const sellTrade: TrackedQuickBuyTrade = {
 describe('quickBuyTradeTracker', () => {
   afterEach(() => {
     getTrackedQuickBuyTradeIds().forEach(untrackQuickBuyTrade);
+    clearSettledQuickBuyTrades();
     while (hasPendingQuickBuySubmission()) {
       endQuickBuySubmission();
     }
@@ -189,6 +192,55 @@ describe('quickBuyTradeTracker', () => {
           txMeta({ id: 'tx-9', type: TransactionType.swap }),
         ),
       ).toBe(false);
+    });
+
+    it('still matches a trade after it has settled (covers the delayed re-check)', () => {
+      trackQuickBuyTrade('tx-1', buyTrade);
+      markQuickBuyTradeSettled('tx-1');
+
+      expect(getTrackedQuickBuyTradeIds()).toEqual([]);
+      expect(isQuickBuyTransaction(txMeta({ id: 'tx-1' }))).toBe(true);
+    });
+
+    it('stops matching a settled trade once it is explicitly untracked', () => {
+      trackQuickBuyTrade('tx-1', buyTrade);
+      markQuickBuyTradeSettled('tx-1');
+      untrackQuickBuyTrade('tx-1');
+
+      expect(isQuickBuyTransaction(txMeta({ id: 'tx-1' }))).toBe(false);
+    });
+  });
+
+  describe('markQuickBuyTradeSettled', () => {
+    it('removes the trade from the active registry so the terminal toast does not repeat', () => {
+      trackQuickBuyTrade('tx-1', buyTrade);
+
+      markQuickBuyTradeSettled('tx-1');
+
+      expect(getTrackedQuickBuyTrade('tx-1')).toBeUndefined();
+      expect(getTrackedQuickBuyTradeIds()).toEqual([]);
+    });
+
+    it('evicts the oldest settled id once the retention cap is exceeded', () => {
+      for (let i = 0; i < 51; i += 1) {
+        markQuickBuyTradeSettled(`tx-${i}`);
+      }
+
+      expect(isQuickBuyTransaction(txMeta({ id: 'tx-0' }))).toBe(false);
+      expect(isQuickBuyTransaction(txMeta({ id: 'tx-1' }))).toBe(true);
+      expect(isQuickBuyTransaction(txMeta({ id: 'tx-50' }))).toBe(true);
+    });
+
+    it('refreshes a re-settled id so it survives further eviction', () => {
+      markQuickBuyTradeSettled('keep-me');
+      for (let i = 0; i < 49; i += 1) {
+        markQuickBuyTradeSettled(`tx-${i}`);
+      }
+      // Re-settle to move it to the newest position before overflowing.
+      markQuickBuyTradeSettled('keep-me');
+      markQuickBuyTradeSettled('overflow');
+
+      expect(isQuickBuyTransaction(txMeta({ id: 'keep-me' }))).toBe(true);
     });
   });
 });
