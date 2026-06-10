@@ -310,6 +310,7 @@ describe('BridgeFeeRow', () => {
       [TransactionType.predictDeposit],
       [TransactionType.predictWithdraw],
       [TransactionType.musdConversion],
+      [TransactionType.moneyAccountDeposit],
       [TransactionType.moneyAccountWithdraw],
     ])('renders tooltip with $ value for %s', async (type) => {
       const { getByTestId } = render({ type });
@@ -319,6 +320,22 @@ describe('BridgeFeeRow', () => {
       });
 
       expect(getByTestId('info-row-tooltip-close-btn')).toBeOnTheScreen();
+    });
+
+    it('renders moneyAccountDeposit tooltip copy', async () => {
+      const { getByTestId, getByText } = render({
+        type: TransactionType.moneyAccountDeposit,
+      });
+
+      await act(async () => {
+        fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
+      });
+
+      expect(
+        getByText(
+          'Conversion fees include network costs and may include provider fees.',
+        ),
+      ).toBeOnTheScreen();
     });
   });
 });

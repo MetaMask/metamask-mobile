@@ -31,6 +31,7 @@ import {
   PERPS_EVENT_VALUE,
   PERPS_CONSTANTS,
   getPerpsDisplaySymbol,
+  getMarketTypeFilter,
   type Position,
   type PerpsMarketData,
   type TPSLTrackingData,
@@ -138,7 +139,6 @@ import { selectSelectedInternalAccountAddress } from '../../../../../selectors/a
 import { BUTTON_COLOR_TEST } from '../../utils/abTesting/tests';
 import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
 import { getMarketHoursStatus } from '../../utils/marketHours';
-import { getMarketTypeFilter } from '../../utils/marketUtils';
 import { normalizeMarketDetailsOrders } from '../../normalization/normalizeMarketDetailsOrders';
 import { ensureError } from '../../../../../util/errorUtils';
 import {

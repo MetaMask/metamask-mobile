@@ -9,51 +9,9 @@
 import {
   HYPERLIQUID_ASSET_ICONS_BASE_URL,
   METAMASK_PERPS_ICONS_BASE_URL,
-  MarketCategory,
   type PerpsMarketData,
-  type MarketTypeFilter,
 } from '@metamask/perps-controller';
 import type { BadgeType } from '../components/PerpsBadge/PerpsBadge.types';
-import { isEquityAsset } from './marketHours';
-
-/**
- * Resolve the category filter to pre-select in the market list for a given market.
- *
- * Maps the controller's `MarketCategory` data model onto the UI `MarketTypeFilter`
- * pills. Stock-like categories (stock, pre-ipo, index, etf) collapse to the single
- * 'stocks' pill, mirroring the filtering in `usePerpsMarketListView` so the
- * magnifying glass always lands on a pill that actually contains the market.
- *
- * @param market - Market data (needs marketType, isNewMarket, isHip3 and marketSource)
- * @returns The market type filter to apply
- */
-export const getMarketTypeFilter = (
-  market: Pick<
-    PerpsMarketData,
-    'marketType' | 'isNewMarket' | 'isHip3' | 'marketSource'
-  >,
-): MarketTypeFilter => {
-  if (isEquityAsset(market.marketType)) {
-    return 'stocks';
-  }
-  if (market.marketType === MarketCategory.Commodity) {
-    return 'commodities';
-  }
-  if (market.marketType === MarketCategory.Forex) {
-    return 'forex';
-  }
-  // The crypto pill only contains main-DEX markets (`!isHip3`). Any
-  // uncategorized HIP-3 market (incl. the "new" bucket) is absent from the
-  // crypto list, so fall back to 'all' to guarantee the opened tab contains
-  // this market. Only true main-DEX markets resolve to 'crypto'.
-  // Also check marketSource as a fallback — when enrichment is skipped
-  // (e.g. route params already carry formatted maxLeverage), isHip3 may be
-  // absent even though marketSource marks a HIP-3 asset.
-  if (market.isNewMarket || market.isHip3 || market.marketSource) {
-    return 'all';
-  }
-  return 'crypto';
-};
 
 /**
  * Determine badge type for a market based on its metadata

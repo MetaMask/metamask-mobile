@@ -12,11 +12,7 @@ import {
   type CandleData,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
-import {
-  getAssetIconUrl,
-  getAssetIconUrls,
-  getMarketTypeFilter,
-} from './marketUtils';
+import { getAssetIconUrl, getAssetIconUrls } from './marketUtils';
 
 jest.mock('@metamask/perps-controller', () => {
   const actual = jest.requireActual('@metamask/perps-controller');
@@ -29,82 +25,6 @@ jest.mock('@metamask/perps-controller', () => {
 });
 
 describe('marketUtils', () => {
-  describe('getMarketTypeFilter', () => {
-    it('returns stocks for stock marketType', () => {
-      expect(
-        getMarketTypeFilter({ marketType: 'stock', isNewMarket: false }),
-      ).toBe('stocks');
-    });
-
-    it.each(['pre-ipo', 'index', 'etf'] as const)(
-      'returns stocks for stock-like %s marketType',
-      (marketType) => {
-        expect(getMarketTypeFilter({ marketType, isNewMarket: false })).toBe(
-          'stocks',
-        );
-      },
-    );
-
-    it('returns commodities for commodity marketType', () => {
-      expect(
-        getMarketTypeFilter({ marketType: 'commodity', isNewMarket: false }),
-      ).toBe('commodities');
-    });
-
-    it('returns forex for forex marketType', () => {
-      expect(
-        getMarketTypeFilter({ marketType: 'forex', isNewMarket: false }),
-      ).toBe('forex');
-    });
-
-    it('returns all for new markets without marketType', () => {
-      expect(
-        getMarketTypeFilter({ marketType: undefined, isNewMarket: true }),
-      ).toBe('all');
-    });
-
-    it('returns crypto for markets without marketType and not new', () => {
-      expect(
-        getMarketTypeFilter({ marketType: undefined, isNewMarket: false }),
-      ).toBe('crypto');
-    });
-
-    it('returns all for uncategorized HIP-3 markets (not in the crypto pill)', () => {
-      expect(
-        getMarketTypeFilter({
-          marketType: undefined,
-          isNewMarket: false,
-          isHip3: true,
-        }),
-      ).toBe('all');
-    });
-
-    it('returns all for HIP-3 market detected via marketSource when isHip3 is absent', () => {
-      expect(
-        getMarketTypeFilter({
-          marketType: undefined,
-          isNewMarket: false,
-          marketSource: 'xyz',
-        }),
-      ).toBe('all');
-    });
-
-    it('prioritizes marketType over isNewMarket', () => {
-      expect(
-        getMarketTypeFilter({ marketType: 'stock', isNewMarket: true }),
-      ).toBe('stocks');
-    });
-
-    it('returns crypto when marketType is crypto (not in mapping table)', () => {
-      expect(
-        getMarketTypeFilter({
-          marketType: 'crypto',
-          isNewMarket: false,
-        }),
-      ).toBe('crypto');
-    });
-  });
-
   describe('calculateFundingCountdown', () => {
     beforeEach(() => {
       jest.useFakeTimers();

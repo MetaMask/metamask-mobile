@@ -20,7 +20,9 @@ import DeleteWalletModal from '../../../components/UI/DeleteWalletModal';
 import Main from '../Main';
 import OptinMetrics from '../../UI/OptinMetrics';
 import OnboardingInterestQuestionnaire from '../../Views/OnboardingInterestQuestionnaire';
+import OnboardingCryptoExperienceQuestionnaire from '../../Views/OnboardingCryptoExperienceQuestionnaire/OnboardingCryptoExperienceQuestionnaire';
 import SimpleWebview from '../../Views/SimpleWebview';
+import AgenticCliDashboardWebview from '../../Views/AgenticCliDashboardWebview';
 import Logger from '../../../util/Logger';
 import { useSelector } from 'react-redux';
 import {
@@ -36,13 +38,13 @@ import ModalConfirmation from '../../../component-library/components/Modals/Moda
 import Toast, {
   ToastContext,
 } from '../../../component-library/components/Toast';
-import AgentStepHud from '../../../core/AgenticService/AgentStepHud';
 import PerpsWebSocketHealthToast, {
   WebSocketHealthToastProvider,
 } from '../../UI/Perps/components/PerpsWebSocketHealthToast';
 import { ControllerEventToastBridge } from './ControllerEventToastBridge';
 import { usePredictToastRegistrations } from '../../UI/Predict/hooks/usePredictToastRegistrations';
 import { usePerpsWithdrawToastRegistrations } from '../../UI/Perps/hooks/usePerpsWithdrawToastRegistrations';
+import { useQuickBuyToastRegistrations } from '../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/hooks/useQuickBuyToastRegistrations';
 import AccountSelector from '../../../components/Views/AccountSelector';
 import AddressSelector from '../../../components/Views/AddressSelector';
 import AddWallet from '../../../components/Views/AddWallet';
@@ -68,6 +70,7 @@ import WalletRestored from '../../Views/RestoreWallet/WalletRestored';
 import WalletResetNeeded from '../../Views/RestoreWallet/WalletResetNeeded';
 import SDKLoadingModal from '../../Views/SDK/SDKLoadingModal/SDKLoadingModal';
 import SDKFeedbackModal from '../../Views/SDK/SDKFeedbackModal/SDKFeedbackModal';
+import SDKConnectV2OtpModal from '../../Views/SDK/SDKConnectV2OtpModal';
 import LedgerMessageSignModal from '../../UI/LedgerModals/LedgerMessageSignModal';
 import LedgerTransactionModal from '../../UI/LedgerModals/LedgerTransactionModal';
 import QRSigningTransactionModal from '../../UI/QRHardware/QRSigningTransactionModal';
@@ -160,6 +163,7 @@ import { SmartAccountModal } from '../../Views/MultichainAccounts/AccountDetails
 import TradeWalletActions from '../../Views/TradeWalletActions';
 import { MultichainAccountPermissions } from '../../Views/MultichainAccounts/MultichainAccountPermissions/MultichainAccountPermissions';
 import SocialLoginIosUser from '../../Views/SocialLoginIosUser';
+import AgenticCliApproval from '../../Views/AgenticCliApproval';
 import { useOTAUpdates } from '../../hooks/useOTAUpdates';
 import MultichainTransactionDetailsSheet from '../../UI/MultichainTransactionDetailsModal/MultichainTransactionDetailsSheet';
 import TransactionDetailsSheet from '../../UI/TransactionElement/TransactionDetailsSheet';
@@ -323,6 +327,11 @@ const OnboardingNav = () => {
       <Stack.Screen
         name={Routes.ONBOARDING.INTEREST_QUESTIONNAIRE}
         component={OnboardingInterestQuestionnaire}
+        options={{ headerShown: false, gestureEnabled: false }}
+      />
+      <Stack.Screen
+        name={Routes.ONBOARDING.CRYPTO_EXPERIENCE_QUESTIONNAIRE}
+        component={OnboardingCryptoExperienceQuestionnaire}
         options={{ headerShown: false, gestureEnabled: false }}
       />
       <Stack.Screen
@@ -526,6 +535,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.SHEET.SDK_FEEDBACK}
       component={SDKFeedbackModal}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.SDK_CONNECT_V2_OTP}
+      component={SDKConnectV2OtpModal}
     />
     <Stack.Screen
       name={Routes.SHEET.SDK_MANAGE_CONNECTIONS}
@@ -1221,8 +1234,31 @@ const AppFlow = () => {
         component={PayWithModal}
       />
       <Stack.Screen
+        name={Routes.AGENTIC_CLI_APPROVAL.CONFIRM}
+        component={AgenticCliApproval}
+        options={{
+          // Header is wired from inside AgenticCliApproval via navigation.setOptions
+          // (mirrors SimpleWebview's pattern for title + back button).
+          // Overrides clearStackNavigatorOptions defaults from the parent stack.
+          headerShown: false,
+          gestureEnabled: true,
+          presentation: 'modal',
+          cardStyle: { backgroundColor: importedColors.white },
+        }}
+      />
+      <Stack.Screen
         name={Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET}
         component={PayWithBottomSheet}
+      />
+      <Stack.Screen
+        name={Routes.AGENTIC_CLI_DASHBOARD_WEBVIEW.CONFIRM}
+        component={AgenticCliDashboardWebview}
+        options={{
+          headerShown: true,
+          gestureEnabled: true,
+          presentation: 'modal',
+          cardStyle: { backgroundColor: importedColors.white },
+        }}
       />
     </Stack.Navigator>
   );
@@ -1238,9 +1274,14 @@ const App: React.FC = () => {
   useOTAUpdates();
   const predictRegistrations = usePredictToastRegistrations();
   const perpsWithdrawRegistrations = usePerpsWithdrawToastRegistrations();
+  const quickBuyRegistrations = useQuickBuyToastRegistrations();
   const toastRegistrations = useMemo(
-    () => [...predictRegistrations, ...perpsWithdrawRegistrations],
-    [predictRegistrations, perpsWithdrawRegistrations],
+    () => [
+      ...predictRegistrations,
+      ...perpsWithdrawRegistrations,
+      ...quickBuyRegistrations,
+    ],
+    [predictRegistrations, perpsWithdrawRegistrations, quickBuyRegistrations],
   );
 
   if (isFirstRender.current) {
@@ -1320,7 +1361,6 @@ const App: React.FC = () => {
         <AppFlow />
         <Toast ref={toastRef} />
         <PerpsWebSocketHealthToast />
-        {__DEV__ && <AgentStepHud />}
         <ControllerEventToastBridge registrations={toastRegistrations} />
         <ProfilerManager />
       </WebSocketHealthToastProvider>

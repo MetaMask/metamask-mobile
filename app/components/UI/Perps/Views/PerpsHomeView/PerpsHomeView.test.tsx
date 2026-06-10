@@ -7,6 +7,8 @@ import { selectWhatsHappeningEnabled } from '../../../../../selectors/featureFla
 import { mockTheme } from '../../../../../util/theme';
 import { useDiscoveryScrollManager } from '../../../Predict/hooks/useDiscoveryScrollManager';
 import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
+import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
+import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
 
 // Mock useDiscoveryScrollManager
 const mockPerpsOnTabEnter = jest.fn();
@@ -68,6 +70,10 @@ jest.mock(
 jest.mock(
   '../../components/PerpsRecentActivityList/PerpsRecentActivityList',
   () => 'PerpsRecentActivityList',
+);
+jest.mock(
+  '../../components/PerpsTopMoversSection',
+  () => 'PerpsTopMoversSection',
 );
 
 // Mock hooks (consolidated to avoid conflicts)
@@ -145,6 +151,12 @@ jest.mock('../../hooks/stream', () => ({
   })),
   usePerpsLivePositions: jest.fn(() => ({
     positions: [],
+  })),
+}));
+
+jest.mock('../../hooks/usePerpsProvider', () => ({
+  usePerpsProvider: jest.fn(() => ({
+    isMultiProviderEnabled: false,
   })),
 }));
 
@@ -284,83 +296,6 @@ jest.mock('@metamask/perps-controller', () => ({
   },
 }));
 
-// Mock child components
-jest.mock('../../components/PerpsHomeHeader', () => {
-  const { View, TouchableOpacity, Text, TextInput } =
-    jest.requireActual('react-native');
-
-  interface MockPerpsHomeHeaderProps {
-    segment?: 'nav' | 'title';
-    screenTitle?: string;
-    onSearchToggle?: () => void;
-    onBack?: () => void;
-    isSearchVisible?: boolean;
-    searchQuery?: string;
-    onSearchQueryChange?: (text: string) => void;
-    onSearchClear?: () => void;
-    testID?: string;
-  }
-
-  function MockPerpsHomeHeader({
-    segment = 'nav',
-    screenTitle = 'Perps',
-    onSearchToggle,
-    onBack,
-    isSearchVisible = false,
-    searchQuery = '',
-    onSearchQueryChange,
-    testID,
-  }: MockPerpsHomeHeaderProps) {
-    if (segment === 'title') {
-      return (
-        <View testID={testID}>
-          <Text testID={testID ? `${testID}-title` : undefined}>
-            {screenTitle}
-          </Text>
-        </View>
-      );
-    }
-
-    if (isSearchVisible) {
-      return (
-        <View>
-          <TextInput
-            value={searchQuery}
-            onChangeText={onSearchQueryChange}
-            testID={`${testID}-search-bar`}
-          />
-          <TouchableOpacity
-            testID={`${testID}-search-close`}
-            onPress={onSearchToggle}
-          >
-            <Text>Cancel</Text>
-          </TouchableOpacity>
-        </View>
-      );
-    }
-
-    return (
-      <View>
-        <TouchableOpacity testID={`${testID}-back-button`} onPress={onBack}>
-          {/* Also provide back-button for backward compatibility with tests */}
-          <View testID="back-button" />
-          <Text>Back</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          testID={`${testID}-search-toggle`}
-          onPress={onSearchToggle}
-        >
-          <Text>Search</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
-  return {
-    __esModule: true,
-    default: MockPerpsHomeHeader,
-  };
-});
 jest.mock('../../components/PerpsHomeSection', () => {
   const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
 
@@ -401,6 +336,7 @@ jest.mock(
   '../../components/PerpsMarketBalanceActions',
   () => 'PerpsMarketBalanceActions',
 );
+jest.mock('../../components/PerpsProducts', () => 'PerpsProducts');
 jest.mock('../PerpsCloseAllPositionsView/PerpsCloseAllPositionsView', () => {
   const { View } = jest.requireActual('react-native');
   return function PerpsCloseAllPositionsView() {
@@ -550,6 +486,9 @@ jest.mock(
 const mockUsePerpsHomeData = jest.requireMock('../../hooks')
   .usePerpsHomeData as jest.Mock;
 
+const mockUsePerpsLiveAccount = jest.requireMock('../../hooks/stream')
+  .usePerpsLiveAccount as jest.Mock;
+
 describe('PerpsHomeView', () => {
   const mockDefaultData = {
     positions: [],
@@ -561,6 +500,7 @@ describe('PerpsHomeView', () => {
     forexMarkets: [],
     recentActivity: [],
     sortBy: 'name',
+    categoryMarketCounts: {},
     isLoading: {
       positions: false,
       markets: false,
@@ -575,6 +515,16 @@ describe('PerpsHomeView', () => {
     mockNavigateToMarketList.mockClear();
     mockRouteParams = { source: 'main_action_button' };
     mockUsePerpsHomeData.mockReturnValue(mockDefaultData);
+    mockUsePerpsLiveAccount.mockReturnValue({
+      account: {
+        totalBalance: '0',
+        spendableBalance: '0',
+        withdrawableBalance: '0',
+        unrealizedPnl: '0',
+        returnOnEquity: '0',
+      },
+      isInitialLoading: false,
+    });
   });
 
   it('renders without crashing', () => {
@@ -582,8 +532,10 @@ describe('PerpsHomeView', () => {
     const { getByTestId } = render(<PerpsHomeView />);
 
     // Assert - Component renders with essential elements
-    expect(getByTestId('back-button')).toBeTruthy();
-    expect(getByTestId('perps-home-search-toggle')).toBeTruthy();
+    expect(
+      getByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON),
+    ).toBeTruthy();
+    expect(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeTruthy();
   });
 
   it('shows header with navigation controls', () => {
@@ -591,8 +543,10 @@ describe('PerpsHomeView', () => {
     const { getByTestId } = render(<PerpsHomeView />);
 
     // Assert
-    expect(getByTestId('back-button')).toBeTruthy();
-    expect(getByTestId('perps-home-search-toggle')).toBeTruthy();
+    expect(
+      getByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON),
+    ).toBeTruthy();
+    expect(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeTruthy();
   });
 
   it('shows search toggle button', () => {
@@ -600,7 +554,7 @@ describe('PerpsHomeView', () => {
     const { getByTestId } = render(<PerpsHomeView />);
 
     // Assert
-    expect(getByTestId('perps-home-search-toggle')).toBeTruthy();
+    expect(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeTruthy();
   });
 
   it('navigates to market list view with search enabled when search button is pressed', () => {
@@ -611,7 +565,7 @@ describe('PerpsHomeView', () => {
     expect(queryByTestId('perps-home-search-bar')).toBeNull();
 
     // Act - Press search toggle
-    fireEvent.press(getByTestId('perps-home-search-toggle'));
+    fireEvent.press(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE));
 
     expect(mockNavigateToMarketList).toHaveBeenCalledWith({
       defaultMarketTypeFilter: 'all',
@@ -638,7 +592,7 @@ describe('PerpsHomeView', () => {
 
     const { getByTestId } = render(<PerpsHomeView />);
 
-    fireEvent.press(getByTestId('perps-home-search-toggle'));
+    fireEvent.press(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE));
 
     expect(mockNavigateToMarketList).toHaveBeenCalledWith({
       defaultMarketTypeFilter: 'all',
@@ -750,7 +704,7 @@ describe('PerpsHomeView', () => {
     const { getByTestId } = render(<PerpsHomeView />);
 
     // Act
-    fireEvent.press(getByTestId('back-button'));
+    fireEvent.press(getByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON));
 
     // Assert - Always navigates to wallet home to avoid loops (e.g., from tutorial)
     expect(mockNavigateToWallet).toHaveBeenCalled();
@@ -836,7 +790,9 @@ describe('PerpsHomeView', () => {
     // Assert - Verify navigation card is rendered (if it has a testID)
     // Or just verify component renders without error
     // The navigation card is tested separately
-    expect(getByTestId('back-button')).toBeTruthy();
+    expect(
+      getByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON),
+    ).toBeTruthy();
   });
 
   it('renders main sections', () => {
@@ -940,17 +896,81 @@ describe('PerpsHomeView', () => {
     });
   });
 
+  describe('fixed footer', () => {
+    let originalShowHeaderActionButtons: boolean;
+
+    beforeEach(() => {
+      originalShowHeaderActionButtons =
+        HOME_SCREEN_CONFIG.ShowHeaderActionButtons;
+      Object.assign(HOME_SCREEN_CONFIG, { ShowHeaderActionButtons: false });
+    });
+
+    afterEach(() => {
+      Object.assign(HOME_SCREEN_CONFIG, {
+        ShowHeaderActionButtons: originalShowHeaderActionButtons,
+      });
+    });
+
+    it('hides fixed footer when balance is a loading sentinel', () => {
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          totalBalance: '--',
+          spendableBalance: '--',
+          withdrawableBalance: '--',
+          unrealizedPnl: '0',
+          returnOnEquity: '0',
+        },
+        isInitialLoading: false,
+      });
+
+      const { queryByTestId } = render(<PerpsHomeView />);
+
+      expect(
+        queryByTestId(PerpsHomeViewSelectorsIDs.WITHDRAW_BUTTON),
+      ).toBeNull();
+      expect(
+        queryByTestId(PerpsHomeViewSelectorsIDs.ADD_FUNDS_BUTTON),
+      ).toBeNull();
+    });
+
+    it('shows fixed footer when balance is funded', () => {
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          totalBalance: '100',
+          spendableBalance: '100',
+          withdrawableBalance: '100',
+          unrealizedPnl: '0',
+          returnOnEquity: '0',
+        },
+        isInitialLoading: false,
+      });
+
+      const { getByTestId } = render(<PerpsHomeView />);
+
+      expect(
+        getByTestId(PerpsHomeViewSelectorsIDs.WITHDRAW_BUTTON),
+      ).toBeTruthy();
+      expect(
+        getByTestId(PerpsHomeViewSelectorsIDs.ADD_FUNDS_BUTTON),
+      ).toBeTruthy();
+    });
+  });
+
   describe('hideHeader prop', () => {
     it('renders the header by default', () => {
       const { getByTestId } = render(<PerpsHomeView />);
-      expect(getByTestId('back-button')).toBeTruthy();
-      expect(getByTestId('perps-home-search-toggle')).toBeTruthy();
+      expect(
+        getByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON),
+      ).toBeTruthy();
+      expect(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeTruthy();
     });
 
     it('hides the header when hideHeader is true', () => {
       const { queryByTestId } = render(<PerpsHomeView hideHeader />);
-      expect(queryByTestId('back-button')).toBeNull();
-      expect(queryByTestId('perps-home-search-toggle')).toBeNull();
+      expect(
+        queryByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON),
+      ).toBeNull();
+      expect(queryByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeNull();
     });
 
     it('still renders content when hideHeader is true', () => {
@@ -958,6 +978,14 @@ describe('PerpsHomeView', () => {
       expect(
         UNSAFE_getByType('PerpsMarketBalanceActions' as never),
       ).toBeTruthy();
+    });
+
+    it('hides the screen title and testnet badge when hideHeader is true', () => {
+      const { queryByTestId } = render(<PerpsHomeView hideHeader />);
+
+      expect(
+        queryByTestId(`${PerpsHomeViewSelectorsIDs.HOME_HEADING}-title`),
+      ).toBeNull();
     });
   });
 

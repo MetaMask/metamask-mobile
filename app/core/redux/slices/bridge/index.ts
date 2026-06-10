@@ -101,6 +101,7 @@ export interface BridgeState {
    * When undefined, the recommended quote (best quote) is used.
    */
   selectedQuoteRequestId: string | undefined;
+  balanceRefreshKey: number;
   hardwareWalletsSwaps: HardwareWalletsSwapsState;
   batchSellSourceTokens: BridgeToken[];
   batchSellSourceTokenAmounts: Partial<
@@ -131,6 +132,7 @@ export const initialState: BridgeState = {
   tokenSelectorNetworkFilter: undefined,
   visiblePillChainIds: undefined,
   selectedQuoteRequestId: undefined,
+  balanceRefreshKey: 0,
   hardwareWalletsSwaps: initialHardwareWalletsSwapsState,
 
   // Batch Sell
@@ -202,6 +204,15 @@ const slice = createSlice({
     resetBridgeState: () => ({
       ...initialState,
     }),
+    resetBridgeTokenInputs: (state) => {
+      state.sourceAmount = undefined;
+      state.destAmount = undefined;
+      state.isMaxSourceAmount = false;
+      state.selectedQuoteRequestId = undefined;
+    },
+    incrementBridgeBalanceRefreshKey: (state) => {
+      state.balanceRefreshKey += 1;
+    },
     setSourceToken: (state, action: PayloadAction<BridgeToken | undefined>) => {
       state.sourceToken = normalizeBridgeToken(action.payload);
     },
@@ -644,6 +655,11 @@ export const selectSelectedQuoteRequestId = createSelector(
   (bridgeState) => bridgeState.selectedQuoteRequestId,
 );
 
+export const selectBridgeBalanceRefreshKey = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.balanceRefreshKey,
+);
+
 export const selectBatchSellSourceTokens = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.batchSellSourceTokens,
@@ -955,6 +971,8 @@ export const {
   setSourceAmountAsMax,
   setDestAmount,
   resetBridgeState,
+  resetBridgeTokenInputs,
+  incrementBridgeBalanceRefreshKey,
   setSourceToken,
   setDestToken,
   setIsDestTokenManuallySet,

@@ -84,11 +84,11 @@ describe(SmokeSwap('Bridge functionality'), () => {
         // Open keypad by tapping source amount input (keypad is in BottomSheet, closed after token selection)
         await QuoteView.tapSourceAmountInput();
         await QuoteView.enterAmount(quantity);
-        await QuoteView.dismissKeypad();
         await Assertions.expectElementToBeVisible(QuoteView.networkFeeLabel, {
           timeout: 60000,
           description: 'Network fee label visible',
         });
+        await QuoteView.dismissKeypad();
         await Assertions.expectElementToBeVisible(QuoteView.confirmBridge, {
           description: 'Confirm bridge button visible',
         });

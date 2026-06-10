@@ -1,14 +1,19 @@
-import React, { useMemo, useEffect, useState } from 'react';
+import React, { useCallback, useMemo, useEffect, useState } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../../../util/theme';
-import Text, {
+import { strings } from '../../../../locales/i18n';
+import { useNavigation } from '@react-navigation/native';
+import {
+  HeaderStandard,
+  Icon,
+  IconName,
+  IconSize,
+  Text,
   TextVariant,
   TextColor,
-} from '../../../component-library/components/Texts/Text';
-import { strings } from '../../../../locales/i18n';
-import { getNavigationOptionsTitle } from '../../UI/Navbar';
-import { useNavigation } from '@react-navigation/native';
+  FontWeight,
+} from '@metamask/design-system-react-native';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import SelectSRP from '../SelectSRP';
 import { useSelector } from 'react-redux';
@@ -17,16 +22,11 @@ import {
   selectSeedlessOnboardingUserEmail,
   selectSeedlessOnboardingUserId,
 } from '../../../selectors/seedlessOnboardingController';
-import Icon, {
-  IconName,
-  IconSize,
-  IconColor,
+import LegacyIcon, {
+  IconName as LegacyIconName,
+  IconSize as LegacyIconSize,
+  IconColor as LegacyIconColor,
 } from '../../../component-library/components/Icons/Icon';
-import {
-  Icon as DSIcon,
-  IconName as DSIconName,
-  IconSize as DSIconSize,
-} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import GoogleIcon from 'images/google.svg';
 import AppleIcon from 'images/apple.svg';
@@ -56,17 +56,25 @@ const SocialNotLinked = () => {
 
   return (
     <View style={styles.box}>
-      <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+      <Text
+        variant={TextVariant.BodyMd}
+        color={TextColor.TextDefault}
+        fontWeight={FontWeight.Medium}
+      >
         {strings('protect_your_wallet.login_with_social')}
       </Text>
       <View style={styles.boxRight}>
-        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Error}>
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.ErrorDefault}
+          fontWeight={FontWeight.Medium}
+        >
           {strings('protect_your_wallet.setup')}
         </Text>
-        <Icon
-          name={IconName.ArrowRight}
-          size={IconSize.Lg}
-          color={IconColor.Alternative}
+        <LegacyIcon
+          name={LegacyIconName.ArrowRight}
+          size={LegacyIconSize.Lg}
+          color={LegacyIconColor.Alternative}
         />
       </View>
     </View>
@@ -151,9 +159,9 @@ const SocialLinked = ({
 
     if (authConnection === AuthConnection.Telegram) {
       return (
-        <DSIcon
-          name={DSIconName.Telegram}
-          size={DSIconSize.Lg}
+        <Icon
+          name={IconName.Telegram}
+          size={IconSize.Lg}
           style={tw.style({ color: commonColors.telegramBlue })}
         />
       );
@@ -169,13 +177,17 @@ const SocialLinked = ({
       <View style={styles.socialBoxContainer}>
         <View style={styles.iconContainer}>{getSocialIcon()}</View>
         <View style={styles.socialDetailsBoxContent}>
-          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextDefault}
+            fontWeight={FontWeight.Medium}
+          >
             {strings('protect_your_wallet.social_recovery_enable')}
           </Text>
           {!!email && (
             <Text
-              variant={TextVariant.BodySM}
-              color={TextColor.Alternative}
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
               style={styles.emailText}
             >
               {maskedEmail}
@@ -276,16 +288,9 @@ const WalletRecovery = () => {
     },
   });
 
-  useEffect(() => {
-    navigation.setOptions(
-      getNavigationOptionsTitle(
-        strings('app_settings.manage_recovery_method'),
-        navigation,
-        false,
-        colors,
-      ),
-    );
-  }, [navigation, colors]);
+  const handleBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
   const [finalUserEmail, setFinalUserEmail] = useState(userEmail);
   useEffect(() => {
@@ -300,13 +305,24 @@ const WalletRecovery = () => {
 
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.safeArea}>
+      <HeaderStandard
+        title={strings('app_settings.manage_recovery_method')}
+        titleProps={{ color: TextColor.PrimaryDefault }}
+        onBack={handleBack}
+        includesTopInset
+        testID="wallet-recovery-header"
+        backButtonProps={{
+          testID: 'wallet-recovery-back-button',
+        }}
+      />
       <ScrollView>
         <View style={styles.root}>
           {authConnection && (
             <View style={styles.socialContainer}>
               <Text
-                variant={TextVariant.BodySMMedium}
-                color={TextColor.Alternative}
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+                fontWeight={FontWeight.Medium}
               >
                 {strings('protect_your_wallet.social_recovery_title', {
                   authConnection: authConnection
@@ -322,7 +338,10 @@ const WalletRecovery = () => {
               ) : (
                 <SocialNotLinked />
               )}
-              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
                 {strings('protect_your_wallet.social_login_description', {
                   authConnection: capitalize(authConnection) || 'Google',
                 })}
@@ -338,9 +357,10 @@ const WalletRecovery = () => {
 
           <View style={styles.srpContainer}>
             <Text
-              variant={TextVariant.BodySMMedium}
-              color={TextColor.Alternative}
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
               style={styles.srpTitle}
+              fontWeight={FontWeight.Medium}
             >
               {strings('protect_your_wallet.srps_title')}
             </Text>

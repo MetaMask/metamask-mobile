@@ -1979,10 +1979,10 @@
       "stocks_and_commodities": "Εξερευνήστε μετοχές και εμπορεύματα",
       "tabs": {
         "crypto": "Κρύπτο",
-        "stocks": "Μετοχές",
-        "commodities": "Εμπορεύματα",
         "forex": "Forex",
-        "new": "Νέα"
+        "new": "Νέα",
+        "stock": "Μετοχές",
+        "commodity": "Εμπορεύματα"
       },
       "filter_by": "Φιλτράρισμα κατά",
       "forex": "Forex",
@@ -8454,7 +8454,7 @@
     "main_title": "Ανταμοιβές",
     "vip": {
       "bps_unit": "bps",
-      "badge_label": "VIP Fox {{tier}}",
+      "badge_label": "VIP {{tier}}",
       "swaps_label": "Swaps",
       "perps_label": "Perps",
       "error_title": "We couldn’t load your VIP dashboard",
@@ -8971,7 +8971,7 @@
       "non_winner": {
         "title": "Τα αποτελέσματα είναι έτοιμα 🏅",
         "description": "Δείτε την κατάταξή σας στην {{campaignName}}.",
-        "cta": "Προβολή"
+        "cta": "Δείτε λεπτομέρειες"
       }
     }
   },

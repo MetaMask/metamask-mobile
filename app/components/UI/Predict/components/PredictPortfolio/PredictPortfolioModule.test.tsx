@@ -1,6 +1,7 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import Routes from '../../../../../constants/navigation/Routes';
+import Engine from '../../../../../core/Engine';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictPortfolio } from '../../hooks/usePredictPortfolio';
@@ -11,6 +12,8 @@ const mockNavigate = jest.fn();
 const mockExecuteGuardedAction = jest.fn((action: () => void | Promise<void>) =>
   action(),
 );
+const mockTrackPortfolioPositionsButtonTapped = jest.fn();
+const mockTrackPortfolioTransactionInitiated = jest.fn();
 let mockPrivacyMode = false;
 let mockEnableDepositWalletWithdraw = false;
 
@@ -84,10 +87,12 @@ const createPortfolio = (overrides = {}) => ({
   availableBalance: 0,
   claim: mockClaim,
   claimableAmount: 0,
+  claimablePositionCount: 0,
   deposit: mockDeposit,
   hasClaimableWinnings: false,
   isClaimPending: false,
   isLoading: false,
+  openPositionCount: 0,
   portfolioValue: 0,
   positionsBadgeCount: 0,
   showPnlLine: false,
@@ -99,12 +104,46 @@ const createPortfolio = (overrides = {}) => ({
   ...overrides,
 });
 
+const expectedPortfolioContext = (overrides: Record<string, unknown> = {}) => ({
+  openPositionsCount: 0,
+  claimablePositionsCount: 0,
+  hasClaimableWinnings: false,
+  predictComponent:
+    PredictEventValues.PREDICT_COMPONENT.PREDICT_PORTFOLIO_MODULE,
+  ...overrides,
+});
+
+const expectPortfolioTransactionInitiated = (
+  transactionType: string,
+  entryPoint: string,
+  overrides: Record<string, unknown> = {},
+) => {
+  expect(mockTrackPortfolioTransactionInitiated).toHaveBeenCalledWith(
+    expectedPortfolioContext({
+      ...overrides,
+      entryPoint,
+      transactionType,
+    }),
+  );
+};
+
 describe('PredictPortfolioModule', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockPrivacyMode = false;
     mockEnableDepositWalletWithdraw = false;
     mockUsePredictPortfolio.mockReturnValue(createPortfolio());
+    const predictController = {
+      trackPortfolioPositionsButtonTapped:
+        mockTrackPortfolioPositionsButtonTapped,
+      trackPortfolioTransactionInitiated:
+        mockTrackPortfolioTransactionInitiated,
+    };
+    (
+      Engine.context as unknown as {
+        PredictController: typeof predictController;
+      }
+    ).PredictController = predictController;
   });
 
   it('renders the first-time state with visible actions', () => {
@@ -199,8 +238,31 @@ describe('PredictPortfolioModule', () => {
     expect(mockDeposit).toHaveBeenCalledWith({
       analyticsProperties: {
         entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE,
+        predictComponent:
+          PredictEventValues.PREDICT_COMPONENT.PREDICT_PORTFOLIO_MODULE,
       },
     });
+    expectPortfolioTransactionInitiated(
+      PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_DEPOSIT,
+      PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE,
+    );
+  });
+
+  it('does not track add funds initiated when the action guard short-circuits', () => {
+    mockExecuteGuardedAction.mockImplementationOnce(() => undefined);
+
+    renderWithProvider(<PredictPortfolioModule />);
+
+    fireEvent.press(
+      screen.getByTestId(PREDICT_PORTFOLIO_TEST_IDS.ACTION_ADD_FUNDS),
+    );
+
+    expect(mockExecuteGuardedAction).toHaveBeenCalledWith(
+      expect.any(Function),
+      { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.DEPOSIT },
+    );
+    expect(mockDeposit).not.toHaveBeenCalled();
+    expect(mockTrackPortfolioTransactionInitiated).not.toHaveBeenCalled();
   });
 
   it('opens the withdraw fallback for deposit wallets without withdraw support', () => {
@@ -221,6 +283,32 @@ describe('PredictPortfolioModule', () => {
       screen.getByTestId(PREDICT_PORTFOLIO_TEST_IDS.ACTION_WITHDRAW),
     );
     expect(onDepositWalletWithdrawPress).toHaveBeenCalled();
+    expectPortfolioTransactionInitiated(
+      PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_WITHDRAW,
+      PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE,
+    );
+  });
+
+  it('does not track withdraw initiated when the action guard short-circuits', () => {
+    mockUsePredictPortfolio.mockReturnValue(
+      createPortfolio({
+        walletType: 'safe',
+      }),
+    );
+    mockExecuteGuardedAction.mockImplementationOnce(() => undefined);
+
+    renderWithProvider(<PredictPortfolioModule />);
+
+    fireEvent.press(
+      screen.getByTestId(PREDICT_PORTFOLIO_TEST_IDS.ACTION_WITHDRAW),
+    );
+
+    expect(mockExecuteGuardedAction).toHaveBeenCalledWith(
+      expect.any(Function),
+      { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.WITHDRAW },
+    );
+    expect(mockWithdraw).not.toHaveBeenCalled();
+    expect(mockTrackPortfolioTransactionInitiated).not.toHaveBeenCalled();
   });
 
   it('does not open withdraw fallback while wallet type is loading', () => {
@@ -249,6 +337,7 @@ describe('PredictPortfolioModule', () => {
 
     expect(onDepositWalletWithdrawPress).not.toHaveBeenCalled();
     expect(mockWithdraw).not.toHaveBeenCalled();
+    expect(mockTrackPortfolioTransactionInitiated).not.toHaveBeenCalled();
   });
 
   it('uses the real withdraw path when the wallet type supports it', () => {
@@ -265,6 +354,10 @@ describe('PredictPortfolioModule', () => {
     );
 
     expect(mockWithdraw).toHaveBeenCalled();
+    expectPortfolioTransactionInitiated(
+      PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_WITHDRAW,
+      PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE,
+    );
   });
 
   it('uses the claim flow from the shared portfolio model', () => {
@@ -282,6 +375,34 @@ describe('PredictPortfolioModule', () => {
     );
 
     expect(mockClaim).toHaveBeenCalled();
+    expectPortfolioTransactionInitiated(
+      PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_CLAIM,
+      PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+      { hasClaimableWinnings: true },
+    );
+  });
+
+  it('does not track claim initiated when the action guard short-circuits', () => {
+    mockUsePredictPortfolio.mockReturnValue(
+      createPortfolio({
+        claimableAmount: 46.35,
+        hasClaimableWinnings: true,
+      }),
+    );
+    mockExecuteGuardedAction.mockImplementationOnce(() => undefined);
+
+    renderWithProvider(<PredictPortfolioModule />);
+
+    fireEvent.press(
+      screen.getByTestId(PREDICT_PORTFOLIO_TEST_IDS.CLAIM_BUTTON),
+    );
+
+    expect(mockExecuteGuardedAction).toHaveBeenCalledWith(
+      expect.any(Function),
+      { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CLAIM },
+    );
+    expect(mockClaim).not.toHaveBeenCalled();
+    expect(mockTrackPortfolioTransactionInitiated).not.toHaveBeenCalled();
   });
 
   it('uses the temporary Positions fallback until the route lands', () => {
@@ -294,5 +415,10 @@ describe('PredictPortfolioModule', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MARKET_LIST, {
       entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
     });
+    expect(mockTrackPortfolioPositionsButtonTapped).toHaveBeenCalledWith(
+      expectedPortfolioContext({
+        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+      }),
+    );
   });
 });
