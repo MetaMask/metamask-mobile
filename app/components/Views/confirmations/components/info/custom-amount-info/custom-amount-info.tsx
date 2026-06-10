@@ -123,29 +123,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     supportAccountSelection,
   }) => {
     const transactionMeta = useTransactionMetadataRequest();
-    const isPredictDeposit = hasTransactionType(transactionMeta, [
-      TransactionType.predictDeposit,
-    ]);
     const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
       TransactionType.moneyAccountDeposit,
     ]);
-    const isMoneyAccountTransfer =
-      isMoneyAccountDeposit ||
-      hasTransactionType(transactionMeta, [
-        TransactionType.moneyAccountWithdraw,
-      ]);
-    const shouldRejectOnBackSwipe = isPredictDeposit || isMoneyAccountTransfer;
 
-    const clearPendingPredictDeposit = useCallback(() => {
-      Engine.context.PredictController.clearPendingDeposit();
-    }, []);
-
-    useClearConfirmationOnBackSwipe({
-      rejectOnBeforeRemove: shouldRejectOnBackSwipe,
-      rejectOnBeforeRemoveWithoutGesture: shouldRejectOnBackSwipe,
-      skipNavigationOnGestureEnd: shouldRejectOnBackSwipe,
-      onBeforeReject: isPredictDeposit ? clearPendingPredictDeposit : undefined,
-    });
+    useClearConfirmationOnBackSwipe();
 
     const { canSelectWithdrawToken } = useTransactionPayWithdraw();
 
