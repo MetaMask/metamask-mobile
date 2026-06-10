@@ -80,11 +80,14 @@ const AccountGroupBalance = ({
   const { popularNetworks } = useNetworkEnablement();
 
   // Stabilize chain IDs by content so selector identity doesn't change every render (avoids max depth / infinite loop).
+  // Derive the array from popularChainIdsKey (not popularNetworks) so the memo's only dependency is the
+  // content-stable key — this satisfies react-hooks/exhaustive-deps without suppressing it.
   const popularChainIdsKey = (popularNetworks ?? []).join(',');
   const chainIdsForBalance = useMemo<CaipChainId[]>(
-    () => [...(popularNetworks ?? [])],
-    // popularChainIdsKey stabilizes by content; popularNetworks is a new array ref every render from the hook
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    () =>
+      popularChainIdsKey
+        ? (popularChainIdsKey.split(',') as CaipChainId[])
+        : [],
     [popularChainIdsKey],
   );
 
