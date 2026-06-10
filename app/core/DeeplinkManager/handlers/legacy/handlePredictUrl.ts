@@ -34,7 +34,10 @@ interface PredictNavigationParams {
   market?: string; // Market ID
   utmSource?: string; // UTM source for analytics tracking
   tab?: PredictTabKey; // Feed tab (when no market param)
-  rawTab?: string; // Raw (unvalidated) tab value, consumed by World Cup + generic feeds
+  // TODO: `worldCupTab` holds the raw (unvalidated) tab value and is also reused
+  // by the generic feed. Remove/rename to a neutral field once the World Cup
+  // feature is sunset.
+  worldCupTab?: PredictWorldCupTabKey; // World Cup feed initial tab (raw tab value)
   feed?: string; // Dedicated feed key
   filter?: string; // Generic feed filter chip id (parsed separately from tab)
   query?: string; // Search query (when no market param)
@@ -64,7 +67,7 @@ const parsePredictNavigationParams = (
     market: marketId || undefined,
     utmSource: utmSource || undefined,
     tab,
-    rawTab: tabParam,
+    worldCupTab: tabParam,
     feed: feed || undefined,
     filter: filter || undefined,
     query,
@@ -283,7 +286,7 @@ export const handlePredictUrl = async ({
       handleMarketNavigation(navParams.market, entryPoint);
     } else if (navParams.feed === PREDICT_WORLD_CUP_FEED_PARAM) {
       handleWorldCupNavigation({
-        requestedTab: navParams.rawTab,
+        requestedTab: navParams.worldCupTab,
         entryPoint,
       });
     } else if (
@@ -292,9 +295,9 @@ export const handlePredictUrl = async ({
     ) {
       handleGenericFeedNavigation({
         feedId: navParams.feed,
-        // rawTab holds the raw (unvalidated) tab value; the generic feed's
+        // worldCupTab holds the raw (unvalidated) tab value; the generic feed's
         // sub-tab ids (e.g. basketball/all/live) are resolved by the view.
-        initialTabId: navParams.rawTab,
+        initialTabId: navParams.worldCupTab,
         initialFilterId: navParams.filter,
         query: navParams.query,
         entryPoint,
