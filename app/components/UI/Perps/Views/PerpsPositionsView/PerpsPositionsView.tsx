@@ -171,7 +171,7 @@ const PerpsPositionsView: React.FC = () => {
               {strings('perps.position.account.total_balance')}
             </Text>
             <SensitiveText
-              variant={LegacyTextVariant.BodySM}
+              variant={LegacyTextVariant.BodySMMedium}
               color={LegacyTextColor.Default}
               isHidden={privacyMode}
               length={SensitiveTextLength.Short}
@@ -190,7 +190,7 @@ const PerpsPositionsView: React.FC = () => {
               {strings('perps.position.account.available_balance')}
             </Text>
             <SensitiveText
-              variant={LegacyTextVariant.BodySM}
+              variant={LegacyTextVariant.BodySMMedium}
               color={LegacyTextColor.Default}
               isHidden={privacyMode}
               length={SensitiveTextLength.Short}
@@ -209,7 +209,7 @@ const PerpsPositionsView: React.FC = () => {
               {strings('perps.position.account.margin_used')}
             </Text>
             <SensitiveText
-              variant={LegacyTextVariant.BodySM}
+              variant={LegacyTextVariant.BodySMMedium}
               color={LegacyTextColor.Default}
               isHidden={privacyMode}
               length={SensitiveTextLength.Short}
@@ -227,7 +227,7 @@ const PerpsPositionsView: React.FC = () => {
               {strings('perps.position.account.total_unrealized_pnl')}
             </Text>
             <SensitiveText
-              variant={LegacyTextVariant.BodySM}
+              variant={LegacyTextVariant.BodySMMedium}
               color={
                 privacyMode
                   ? LegacyTextColor.Default

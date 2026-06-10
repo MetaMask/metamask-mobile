@@ -12,7 +12,10 @@ import Icon, {
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow';
-import { TextVariant as LegacyTextVariant } from '../../../../../component-library/components/Texts/Text';
+import {
+  TextVariant as LegacyTextVariant,
+  TextColor as LegacyTextColor,
+} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './PerpsMarketStatisticsCard.styles';
 import type { PerpsMarketStatisticsCardProps } from './PerpsMarketStatisticsCard.types';
@@ -120,7 +123,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
     <View style={styles.container}>
       {/* Header with title with DEX badge */}
       <View style={styles.header}>
-        <Text variant={TextVariant.HeadingSm} color={TextColor.TextDefault}>
+        <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
           {strings('perps.market.stats')}
         </Text>
         {dexName && <Tag label={dexName.toUpperCase()} style={styles.dexTag} />}
@@ -157,14 +160,14 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
             label: {
               text: strings('perps.market.24h_volume'),
               variant: LegacyTextVariant.BodyMD,
-              color: TextColor.TextAlternative,
+              color: LegacyTextColor.Alternative,
             },
           }}
           value={{
             label: {
               text: marketStats.volume24h,
               variant: LegacyTextVariant.BodyMD,
-              color: TextColor.TextDefault,
+              color: LegacyTextColor.Default,
             },
           }}
           style={[styles.statsRow, !onOrderBookPress && styles.statsRowFirst]}
@@ -198,7 +201,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
             label: {
               text: marketStats.openInterest,
               variant: LegacyTextVariant.BodyMD,
-              color: TextColor.TextDefault,
+              color: LegacyTextColor.Default,
             },
           }}
           style={styles.statsRow}
