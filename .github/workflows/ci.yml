@@ -1027,7 +1027,12 @@ jobs:
     # and uploads them as a run-scoped artifact so every shard and every re-run
     # uses the exact same frozen snapshot, keeping the bin-pack stable.
     runs-on: ubuntu-latest
-    if: ${{ !cancelled() }}
+    if: >-
+      ${{
+        !cancelled() &&
+        (needs.get_requirements.outputs.android_e2e_needed == 'true' || needs.get_requirements.outputs.ios_e2e_needed == 'true') &&
+        !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
+      }}
     needs: [get_requirements, smart-e2e-selection]
     outputs:
       available: ${{ steps.fetch.outputs.available }}
@@ -1060,7 +1065,11 @@ jobs:
         with:
           name: e2e-timings-${{ github.run_id }}
           path: ./e2e-timings.json
-          retention-days: 7
+          # Needed so re-runs of old PRs can still download the frozen snapshot
+          # and keep the same bin-pack, avoiding failed tests landing on a different
+          # shard that was not re-run, which would make them appear as passed.
+          # See: https://github.com/MetaMask/metamask-mobile/pull/31217
+          retention-days: 30
 
   e2e-smoke-tests-android:
     name: 'Android E2E Smoke Tests'
