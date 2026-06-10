@@ -379,8 +379,9 @@ describe('AddressList', () => {
 
       await new Promise(process.nextTick);
 
-      // Access the first call from this test (now properly cleared between tests)
-      const addPropertiesCall = mockAddProperties.mock.calls[0][0];
+      const addPropertiesCall = mockAddProperties.mock.calls.find(
+        ([properties]) => properties.location === 'address-list',
+      )?.[0];
 
       expect(addPropertiesCall).toHaveProperty('location', 'address-list');
     });
