@@ -1217,6 +1217,8 @@ export type PredictThePitchLeaderboardPositionFoundState = {
   eligible: boolean;
   neighbors: PredictThePitchLeaderboardEntryState[];
   computedAt: string;
+  marketsTraded: number | null;
+  minimumMarketsTraded: number;
   lastFetched: number;
 };
 

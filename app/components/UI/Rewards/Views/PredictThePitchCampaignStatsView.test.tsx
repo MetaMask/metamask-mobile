@@ -167,6 +167,8 @@ const basePosition: PredictThePitchLeaderboardPositionDto = {
   eligible: true,
   neighbors: [],
   computedAt: '2025-01-01T00:00:00.000Z',
+  marketsTraded: 3,
+  minimumMarketsTraded: 3,
 };
 
 const mockCampaign = {

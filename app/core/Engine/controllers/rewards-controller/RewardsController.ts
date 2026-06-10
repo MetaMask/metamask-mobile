@@ -4895,6 +4895,8 @@ export class RewardsController extends BaseController<
             eligible: cached.eligible,
             neighbors: cached.neighbors,
             computedAt: cached.computedAt,
+            marketsTraded: cached.marketsTraded,
+            minimumMarketsTraded: cached.minimumMarketsTraded,
           },
           lastFetched: cached.lastFetched,
         };
