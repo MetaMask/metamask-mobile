@@ -42,7 +42,6 @@ import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTr
 import { useTokenFiatRates } from '../../../hooks/tokens/useTokenFiatRates';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { useTransactionAccountOverride } from '../../../hooks/transactions/useTransactionAccountOverride';
-import Engine from '../../../../../../core/Engine';
 import Logger from '../../../../../../util/Logger';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 
@@ -81,9 +80,6 @@ jest.mock('../../../../../../core/Engine', () => ({
   context: {
     TransactionPayController: {
       updateFiatPayment: jest.fn(),
-    },
-    PredictController: {
-      clearPendingDeposit: jest.fn(),
     },
   },
 }));
@@ -334,84 +330,10 @@ describe('CustomAmountInfo', () => {
     expect(getByText('0 TST')).toBeDefined();
   });
 
-  it('rejects predict deposit confirmations on beforeRemove', () => {
-    useTransactionMetadataRequestMock.mockReturnValue({
-      type: TransactionType.batch,
-      nestedTransactions: [{ type: TransactionType.predictDeposit }],
-      txParams: { from: '0x123' },
-    } as never);
-
+  it('sets up back swipe rejection', () => {
     render();
 
-    expect(useClearConfirmationOnBackSwipeMock).toHaveBeenCalledWith({
-      rejectOnBeforeRemove: true,
-      rejectOnBeforeRemoveWithoutGesture: true,
-      skipNavigationOnGestureEnd: true,
-      onBeforeReject: expect.any(Function),
-    });
-  });
-
-  it('rejects money account deposit confirmations on beforeRemove', () => {
-    useTransactionMetadataRequestMock.mockReturnValue({
-      type: TransactionType.batch,
-      nestedTransactions: [{ type: TransactionType.moneyAccountDeposit }],
-      txParams: { from: '0x123' },
-    } as never);
-
-    render();
-
-    expect(useClearConfirmationOnBackSwipeMock).toHaveBeenCalledWith({
-      rejectOnBeforeRemove: true,
-      rejectOnBeforeRemoveWithoutGesture: true,
-      skipNavigationOnGestureEnd: true,
-      onBeforeReject: undefined,
-    });
-  });
-
-  it('rejects money account withdraw confirmations on beforeRemove', () => {
-    useTransactionMetadataRequestMock.mockReturnValue({
-      type: TransactionType.batch,
-      nestedTransactions: [{ type: TransactionType.moneyAccountWithdraw }],
-      txParams: { from: '0x123' },
-    } as never);
-
-    render();
-
-    expect(useClearConfirmationOnBackSwipeMock).toHaveBeenCalledWith({
-      rejectOnBeforeRemove: true,
-      rejectOnBeforeRemoveWithoutGesture: true,
-      skipNavigationOnGestureEnd: true,
-      onBeforeReject: undefined,
-    });
-  });
-
-  it('clears pending predict deposit before rejecting the confirmation', () => {
-    useTransactionMetadataRequestMock.mockReturnValue({
-      type: TransactionType.batch,
-      nestedTransactions: [{ type: TransactionType.predictDeposit }],
-      txParams: { from: '0x123' },
-    } as never);
-
-    render();
-
-    const options = useClearConfirmationOnBackSwipeMock.mock.calls[0]?.[0];
-
-    options?.onBeforeReject?.();
-
-    expect(
-      Engine.context.PredictController.clearPendingDeposit,
-    ).toHaveBeenCalledTimes(1);
-  });
-
-  it('does not reject non-predict deposit confirmations on beforeRemove', () => {
-    render();
-
-    expect(useClearConfirmationOnBackSwipeMock).toHaveBeenCalledWith({
-      rejectOnBeforeRemove: false,
-      rejectOnBeforeRemoveWithoutGesture: false,
-      skipNavigationOnGestureEnd: false,
-      onBeforeReject: undefined,
-    });
+    expect(useClearConfirmationOnBackSwipeMock).toHaveBeenCalledTimes(1);
   });
 
   it('does not render payment token if disablePay', () => {

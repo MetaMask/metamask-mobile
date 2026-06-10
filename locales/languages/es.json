@@ -1979,10 +1979,10 @@
       "stocks_and_commodities": "Explora acciones y materias primas",
       "tabs": {
         "crypto": "Cripto",
-        "stocks": "Acciones",
-        "commodities": "Materias primas",
         "forex": "Forex",
-        "new": "Nuevo"
+        "new": "Nuevo",
+        "stock": "Acciones",
+        "commodity": "Materias primas"
       },
       "filter_by": "Filtrar por",
       "forex": "Forex",

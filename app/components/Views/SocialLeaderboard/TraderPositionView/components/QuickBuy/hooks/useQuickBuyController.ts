@@ -36,8 +36,10 @@ import type {
   QuickBuyTarget,
   QuickBuyTradeMode,
 } from '../types';
+import { getTokenKey } from '../tokenKey';
 import { formatExchangeRate } from '../utils/formatExchangeRate';
 import { getMetamaskFeePercent } from '../utils/getMetamaskFeePercent';
+import { selectDefaultReceiveToken } from '../utils/selectDefaultReceiveToken';
 import { usePayWithTokens } from './usePayWithTokens';
 import { usePositionTokenBalance } from './usePositionTokenBalance';
 import { useQuickBuyAnalytics } from './useQuickBuyAnalytics';
@@ -231,6 +233,12 @@ export function useQuickBuyController(
   const [tradeMode, setTradeMode] = useState<QuickBuyTradeMode>('buy');
   const [usdAmount, setUsdAmount] = useState('');
   const [sourceAmountTokens, setSourceAmountTokens] = useState('');
+  // True when the user has committed the slider to 100% ("sell all"). In this
+  // mode `sourceTokenAmount` spends the exact on-chain balance rather than a
+  // value reconstructed from the fiat round-trip / float math, either of which
+  // can land just above the real balance and falsely trip the insufficient-
+  // funds gate. Reset on any other amount input.
+  const [isMaxSourceAmount, setIsMaxSourceAmount] = useState(false);
   // Drives quote re-fetching. Updated only when the user commits a value
   // (slider drag end, tap, or text input) — NOT on every drag tick. This
   // prevents spamming quote requests while the thumb is moving.
@@ -348,20 +356,45 @@ export function useQuickBuyController(
   const positionToken = usePositionTokenBalance(target, positionTokenFromSetup);
 
   // ─── Sell "Receive" options (stablecoins) ──────────────────────────────
-  const sellDestTokenOptions = useReceiveTokens(
+  const receiveTokenOptions = useReceiveTokens(
     destChainId as string | undefined,
   );
+  // Exclude the token being sold from the "Receive" list entirely — receiving
+  // the same token you're selling is a no-op, so it must not be selectable.
+  // Identity comes from `positionTokenFromSetup` (normalised address/chainId).
+  const sellDestTokenOptions = useMemo(() => {
+    if (!positionTokenFromSetup) return receiveTokenOptions;
+    const soldKey = getTokenKey(positionTokenFromSetup);
+    return receiveTokenOptions.filter(
+      (token) => getTokenKey(token) !== soldKey,
+    );
+  }, [receiveTokenOptions, positionTokenFromSetup]);
   const [selectedDestStable, setSelectedDestStable] = useState<
     BridgeToken | undefined
   >(undefined);
 
-  // Auto-select default dest stable: prefer a token the user already holds on
-  // the position chain; fall back to the first candidate (USDC on position chain).
+  // Auto-select the default receive token. Prefer the native token of the
+  // position's chain (e.g. selling USDC on Base defaults to ETH on Base) and
+  // never the same token being sold — see `selectDefaultReceiveToken`.
+  //
+  // Wait for `!isSetupLoading` so the sold token's address is normalised before
+  // the (one-shot) selection runs. The sold token's identity is read from
+  // `positionTokenFromSetup` (which carries the normalised address/chainId)
+  // rather than the balance-enriched `positionToken`, so the exclusion still
+  // works even when the balance is still resolving.
   useEffect(() => {
+    if (isSetupLoading) return;
     if (sellDestTokenOptions.length > 0 && !selectedDestStable) {
-      setSelectedDestStable(sellDestTokenOptions[0]);
+      setSelectedDestStable(
+        selectDefaultReceiveToken(sellDestTokenOptions, positionTokenFromSetup),
+      );
     }
-  }, [sellDestTokenOptions, selectedDestStable]);
+  }, [
+    isSetupLoading,
+    sellDestTokenOptions,
+    selectedDestStable,
+    positionTokenFromSetup,
+  ]);
 
   // ─── Source / dest resolution (mode-dependent) ─────────────────────────
   const sourceToken = tradeMode === 'buy' ? selectedSourceToken : positionToken;
@@ -403,7 +436,22 @@ export function useQuickBuyController(
     sourceToken?.currencyExchangeRate && sourceToken.currencyExchangeRate > 0,
   );
 
+  const latestSourceBalance = useLatestBalance({
+    address: sourceToken?.address,
+    decimals: sourceToken?.decimals,
+    chainId: sourceToken?.chainId,
+    balance: sourceToken?.balance,
+  });
+
   const sourceTokenAmount = useMemo(() => {
+    // Max ("sell all"): spend the exact on-chain balance. `displayBalance` is
+    // `formatUnits(atomicBalance)`, so it round-trips back to the precise
+    // atomic balance — unlike the fiat (priced) or float (unpriced) paths
+    // below, which can reconstruct a value fractionally above the real balance
+    // and falsely block the trade with "Insufficient funds".
+    if (isMaxSourceAmount && latestSourceBalance?.displayBalance) {
+      return latestSourceBalance.displayBalance;
+    }
     if (hasSourcePrice) {
       if (!quotedUsdAmount || !sourceToken?.currencyExchangeRate) {
         return undefined;
@@ -419,6 +467,8 @@ export function useQuickBuyController(
     return sourceAmountTokens;
   }, [
     hasSourcePrice,
+    isMaxSourceAmount,
+    latestSourceBalance?.displayBalance,
     quotedUsdAmount,
     sourceAmountTokens,
     sourceToken?.currencyExchangeRate,
@@ -431,13 +481,6 @@ export function useQuickBuyController(
       dispatch(setSourceAmount(undefined));
     }
   }, [sourceTokenAmount, dispatch]);
-
-  const latestSourceBalance = useLatestBalance({
-    address: sourceToken?.address,
-    decimals: sourceToken?.decimals,
-    chainId: sourceToken?.chainId,
-    balance: sourceToken?.balance,
-  });
 
   // Used for analytics passed to useQuickBuyQuotes. Must derive from
   // quotedUsdAmount (not usdAmount) so that mid-drag display updates don't
@@ -697,11 +740,15 @@ export function useQuickBuyController(
       setSliderPercent(rounded);
 
       // ── Unpriced path: drive token-amount state directly. ───────────────
+      // This branch commits on every tick (no separate drag-end commit), so the
+      // max sentinel is set here rather than in handleSliderDragEnd.
       if (!hasSourcePrice) {
         if (maxSpendTokens <= 0) {
           setSourceAmountTokens('');
+          setIsMaxSourceAmount(false);
           return;
         }
+        setIsMaxSourceAmount(rounded >= 100);
         const nextTokens =
           rounded === 0 ? '' : ((maxSpendTokens * rounded) / 100).toString();
         setSourceAmountTokens(nextTokens);
@@ -732,6 +779,15 @@ export function useQuickBuyController(
         rounded === 0 || maxSpendUsd <= 0
           ? ''
           : ((maxSpendUsd * rounded) / 100).toFixed(2);
+
+      // Flag max BEFORE the dedup guard. lastCommittedUsdRef is also written by
+      // typed input and the price-migration effect, so releasing the slider at
+      // 100% can match the ref and return early (e.g. user typed the exact max,
+      // then slid to 100% to "sell all"). If setIsMaxSourceAmount ran after the
+      // guard, sourceTokenAmount would fall back to the cent-rounded fiat
+      // reconstruction and falsely trip insufficient-funds on sell-all. Setting
+      // it here is idempotent, so the dedup path is unaffected.
+      setIsMaxSourceAmount(rounded >= 100);
 
       // Deduplicate: Tap + Pan can both fire onEnd for a pure tap gesture.
       if (nextUsd === lastCommittedUsdRef.current) {
@@ -792,6 +848,7 @@ export function useQuickBuyController(
     setUsdAmount('');
     setQuotedUsdAmount('');
     setSourceAmountTokens('');
+    setIsMaxSourceAmount(false);
     setSliderPercent(0);
     lastSliderPercentRef.current = 0;
     lastCommittedUsdRef.current = '';
@@ -882,6 +939,7 @@ export function useQuickBuyController(
       }
       lastSliderPercentRef.current = 0;
       setSliderPercent(0);
+      setIsMaxSourceAmount(false);
     },
     [hasSourcePrice, sourceToken?.decimals, lastInputMethodRef],
   );

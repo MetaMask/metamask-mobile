@@ -2041,13 +2041,13 @@
       "stocks_and_commodities": "Explore stocks and commodities",
       "tabs": {
         "crypto": "Crypto",
-        "stocks": "Stocks",
         "pre_ipo": "Pre-IPO",
-        "indices": "Indices",
-        "etfs": "ETFs",
-        "commodities": "Commodities",
         "forex": "Forex",
-        "new": "New"
+        "new": "New",
+        "stock": "Stocks",
+        "index": "Indices",
+        "etf": "ETFs",
+        "commodity": "Commodities"
       },
       "filter_by": "Filter by",
       "forex": "Forex",
@@ -2310,6 +2310,8 @@
   "predict": {
     "title": "MetaMask Predictions",
     "transfer_to_predictions": "Transfer to Predictions",
+    "select_predict_account": "Select predict account",
+    "search_account": "Search an account",
     "home": {
       "portfolio_module_placeholder": "Portfolio module",
       "live_now_title": "Live now",
