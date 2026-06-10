@@ -1,17 +1,17 @@
 import { useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import { Alert, Severity } from '../../types/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
 import { strings } from '../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import {
-  TransactionMeta,
-  TransactionType,
-} from '@metamask/transaction-controller';
+import { TransactionMeta } from '@metamask/transaction-controller';
 import { hasTransactionType } from '../../utils/transaction';
 import { useTransactionPayFiatPayment } from '../pay/useTransactionPayData';
 import { useRampsBuyLimits } from '../../../../UI/Ramp/hooks/useRampsBuyLimits';
 import { MONEY_ACCOUNT_CURRENCY } from '../../components/info/money-account-withdraw-info/money-account-withdraw-info';
+import { selectProviders } from '../../../../../selectors/rampsController';
+import { useMMPayFiatConfig } from '../pay/useMMPayFiatConfig';
 
 export function useFiatBuyLimitAlert({
   pendingAmount,
@@ -19,24 +19,27 @@ export function useFiatBuyLimitAlert({
   pendingAmount?: string;
 } = {}): Alert[] {
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
+  const { enabledTransactionTypes } = useMMPayFiatConfig();
   const fiatPayment = useTransactionPayFiatPayment();
   const paymentMethodId = fiatPayment?.selectedPaymentMethodId;
-  const providerId = fiatPayment?.rampsQuote?.provider ?? null;
+  const selectedProviderId = useSelector(selectProviders).selected?.id ?? null;
+  const providerId = fiatPayment?.rampsQuote?.provider ?? selectedProviderId;
 
-  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
-    TransactionType.moneyAccountDeposit,
-  ]);
+  const isFiatEnabledTransactionType = hasTransactionType(
+    transactionMeta,
+    enabledTransactionTypes,
+  );
 
-  const isGated = isMoneyAccountDeposit && Boolean(paymentMethodId);
+  const isGated = isFiatEnabledTransactionType && Boolean(paymentMethodId);
 
   const amount = Number(pendingAmount ?? fiatPayment?.amountFiat ?? '0');
 
-  // moneyAccountDeposit input is always USD-denominated; use USD limits, not local currency (e.g. BRL).
+  // MM Pay fiat input is USD-denominated; use USD limits, not local currency (e.g. BRL).
   const { amountLimitError } = useRampsBuyLimits({
     providerId,
     amount,
     paymentMethodId,
-    currency: isMoneyAccountDeposit ? MONEY_ACCOUNT_CURRENCY : undefined,
+    currency: MONEY_ACCOUNT_CURRENCY,
   });
 
   return useMemo(() => {

@@ -302,7 +302,6 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
             amount,
             currency,
             formatCurrency,
-            backendError: providerError,
           }) ?? strings('fiat_on_ramp.quote_unavailable'))
         : tag;
 
