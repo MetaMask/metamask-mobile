@@ -12,7 +12,6 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
-import { HeaderBase } from '@metamask/design-system-react-native';
 import {
   IconColor,
   IconName,
@@ -23,7 +22,11 @@ import { ScrollView } from 'react-native-gesture-handler';
 
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
-import { Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  HeaderBase,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 
 /* eslint-disable import-x/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const foxLogo = require('../../../images/branding/fox.png');
