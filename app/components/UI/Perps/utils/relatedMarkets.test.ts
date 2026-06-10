@@ -16,7 +16,7 @@ const createMarket = (
 });
 
 describe('relatedMarkets utilities', () => {
-  it('resolves a HIP-3 category collection from the market marketType', () => {
+  it('resolves a HIP-3 category collection from the controller classification', () => {
     // Arrange
     const current = createMarket('xyz:AAPL', {
       marketType: 'stock',
@@ -98,17 +98,21 @@ describe('relatedMarkets utilities', () => {
     ]);
   });
 
-  it('returns null when a HIP-3 market has no category assignment', () => {
+  it('buckets uncategorised HIP-3 markets under the controller "new" category', () => {
     // Arrange
     const current = createMarket('builder:XYZ', { isHip3: true });
 
-    // Act + Assert
-    expect(
-      getRelatedMarketsForMarket(current, [
-        current,
-        createMarket('builder:ABC', { isHip3: true }),
-      ]),
-    ).toBeNull();
+    // Act
+    const result = getRelatedMarketsForMarket(current, [
+      current,
+      createMarket('builder:ABC', { isHip3: true }),
+    ]);
+
+    // Assert
+    expect(result?.collection).toMatchObject({ id: 'new', label: 'New' });
+    expect(result?.markets.map((market) => market.symbol)).toStrictEqual([
+      'builder:ABC',
+    ]);
   });
 
   it('returns null when there are no other markets in the category', () => {

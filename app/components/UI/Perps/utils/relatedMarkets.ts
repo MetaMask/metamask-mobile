@@ -1,9 +1,11 @@
 import {
+  applyMarketFilters,
+  getMarketTypeFilter,
   type MarketTypeFilter,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../locales/i18n';
-import { isHip3Filter, normalizeFilterKey } from './marketCategoryMapping';
+import { normalizeFilterKey } from './marketCategoryMapping';
 
 export const RELATED_MARKETS_SOURCE = 'related_markets';
 export const RELATED_MARKET_CLICKED = 'related_market_clicked';
@@ -25,27 +27,16 @@ export interface RelatedMarketsResult {
   markets: PerpsMarketData[];
 }
 
-const normalizeSymbol = (symbol: string) => symbol.trim().toUpperCase();
-
 /**
- * Resolve a market's category id using the controller-backed model shared
- * with the markets list and category pills (see `usePerpsCategories` and
- * `marketCategoryMapping`).
+ * Resolve the Related markets rail for a given market.
  *
- * Non-HIP-3 (main DEX) markets are `'crypto'`. HIP-3 markets use their
- * `marketType` (stock, pre-ipo, index, etf, commodity, forex) when it is a
- * known category from the controller's `MARKET_CATEGORIES`. Uncategorised
- * HIP-3 markets have no related-markets collection.
+ * Market classification (`getMarketTypeFilter`) and category filtering
+ * (`applyMarketFilters`) are owned by `@metamask/perps-controller` — the same
+ * functions `getMarketDataWithPrices` runs server-side — so every client
+ * (related markets, category shortcuts, market list) shares one category model
+ * and stays in sync as categories evolve. They are applied here to the
+ * already-streamed markets list to avoid a redundant fetch.
  */
-const getMarketCategoryId = (
-  market: PerpsMarketData,
-): Exclude<MarketTypeFilter, 'all'> | undefined =>
-  !market.isHip3
-    ? 'crypto'
-    : isHip3Filter(market.marketType)
-      ? market.marketType
-      : undefined;
-
 export const getRelatedMarketsForMarket = (
   currentMarket: PerpsMarketData | null | undefined,
   markets: PerpsMarketData[],
@@ -54,17 +45,15 @@ export const getRelatedMarketsForMarket = (
     return null;
   }
 
-  const categoryId = getMarketCategoryId(currentMarket);
-  if (!categoryId) {
+  const category = getMarketTypeFilter(currentMarket);
+  if (category === 'all') {
     return null;
   }
 
-  const currentSymbol = normalizeSymbol(currentMarket.symbol);
-  const relatedMarkets = markets.filter(
-    (market) =>
-      normalizeSymbol(market.symbol) !== currentSymbol &&
-      getMarketCategoryId(market) === categoryId,
-  );
+  const relatedMarkets = applyMarketFilters(markets, {
+    categories: [category],
+    excludeSymbols: [currentMarket.symbol],
+  });
 
   if (relatedMarkets.length === 0) {
     return null;
@@ -72,8 +61,8 @@ export const getRelatedMarketsForMarket = (
 
   return {
     collection: {
-      id: categoryId,
-      label: strings(`perps.home.tabs.${normalizeFilterKey(categoryId)}`),
+      id: category,
+      label: strings(`perps.home.tabs.${normalizeFilterKey(category)}`),
     },
     markets: relatedMarkets,
   };
