@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import PerpsWatchlistMarkets from './PerpsWatchlistMarkets';
 import { type PerpsMarketData } from '@metamask/perps-controller';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -105,6 +106,10 @@ jest.mock('../../../../../component-library/components/Icons/Icon', () => ({
   IconColor: { Default: 'Default', Primary: 'Primary' },
 }));
 
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(() => []),
+}));
+
 // ---------------------------------------------------------------------------
 // Test data helpers
 // ---------------------------------------------------------------------------
@@ -140,6 +145,7 @@ describe('PerpsWatchlistMarkets', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    (useSelector as jest.Mock).mockReturnValue([]);
     const { useNavigation } = jest.requireMock('@react-navigation/native');
     useNavigation.mockReturnValue({ navigate: mockNavigate });
   });

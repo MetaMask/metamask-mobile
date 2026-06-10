@@ -6,6 +6,7 @@ import {
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
+import { useSelector } from 'react-redux';
 import Animated, {
   FadeIn,
   FadeOut,
@@ -28,6 +29,7 @@ import { PerpsWatchlistSelectorsIDs } from '../../Perps.testIds';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './PerpsWatchlistMarkets.styles';
 import { WATCHLIST_LIMIT } from '../../utils/marketUtils';
+import { selectPerpsWatchlistMarkets } from '../../selectors/perpsController';
 import {
   Text,
   TextVariant,
@@ -88,6 +90,7 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const [expanded, setExpanded] = useState(false);
+  const watchlistSymbols = useSelector(selectPerpsWatchlistMarkets);
 
   const { addToWatchlist } = usePerpsWatchlistActions(
     PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_WATCHLIST,
@@ -162,7 +165,9 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
 
   const hasWatchlist = markets.length > 0;
   const hasSuggested = (suggestedMarkets?.length ?? 0) > 0;
-  const isWatchlistFull = markets.length >= WATCHLIST_LIMIT;
+  // Use the Redux symbol count — not markets.length — so symbols that haven't
+  // loaded yet still count toward the cap.
+  const isWatchlistFull = watchlistSymbols.length >= WATCHLIST_LIMIT;
 
   if (!hasWatchlist && !hasSuggested) {
     return null;
