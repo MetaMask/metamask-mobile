@@ -11,6 +11,7 @@ import {
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../Earn/constants/musd';
 import {
+  COMPONENT_NAMES,
   MONEY_BUTTON_INTENTS,
   MONEY_BUTTON_TYPES,
   SCREEN_NAMES,
@@ -89,7 +90,11 @@ describe('useMoneyAccountAddRouting', () => {
         fiatBalanceAggregated: undefined,
       });
 
-      const { result } = renderHook(() => useMoneyAccountAddRouting());
+      const { result } = renderHook(() =>
+        useMoneyAccountAddRouting({
+          componentName: COMPONENT_NAMES.MONEY_BALANCE_CARD,
+        }),
+      );
 
       expect(result.current.hasMusdBalance).toBe(true);
     });
@@ -100,7 +105,11 @@ describe('useMoneyAccountAddRouting', () => {
         fiatBalanceAggregated: '12.34',
       });
 
-      const { result } = renderHook(() => useMoneyAccountAddRouting());
+      const { result } = renderHook(() =>
+        useMoneyAccountAddRouting({
+          componentName: COMPONENT_NAMES.MONEY_BALANCE_CARD,
+        }),
+      );
 
       expect(result.current.hasMusdBalance).toBe(true);
     });
@@ -111,7 +120,11 @@ describe('useMoneyAccountAddRouting', () => {
         fiatBalanceAggregated: '0',
       });
 
-      const { result } = renderHook(() => useMoneyAccountAddRouting());
+      const { result } = renderHook(() =>
+        useMoneyAccountAddRouting({
+          componentName: COMPONENT_NAMES.MONEY_BALANCE_CARD,
+        }),
+      );
 
       expect(result.current.hasMusdBalance).toBe(false);
     });
@@ -122,7 +135,11 @@ describe('useMoneyAccountAddRouting', () => {
         fiatBalanceAggregated: undefined,
       });
 
-      const { result } = renderHook(() => useMoneyAccountAddRouting());
+      const { result } = renderHook(() =>
+        useMoneyAccountAddRouting({
+          componentName: COMPONENT_NAMES.MONEY_BALANCE_CARD,
+        }),
+      );
 
       expect(result.current.hasMusdBalance).toBe(false);
     });
@@ -132,7 +149,11 @@ describe('useMoneyAccountAddRouting', () => {
     it('calls initiateDeposit with no options', async () => {
       setupMocks();
 
-      const { result } = renderHook(() => useMoneyAccountAddRouting());
+      const { result } = renderHook(() =>
+        useMoneyAccountAddRouting({
+          componentName: COMPONENT_NAMES.MONEY_BALANCE_CARD,
+        }),
+      );
 
       await act(async () => {
         await result.current.convertCrypto();
@@ -146,7 +167,11 @@ describe('useMoneyAccountAddRouting', () => {
       setupMocks();
       mockInitiateDeposit.mockRejectedValueOnce(new Error('boom'));
 
-      const { result } = renderHook(() => useMoneyAccountAddRouting());
+      const { result } = renderHook(() =>
+        useMoneyAccountAddRouting({
+          componentName: COMPONENT_NAMES.MONEY_BALANCE_CARD,
+        }),
+      );
 
       await expect(result.current.convertCrypto()).resolves.toBeUndefined();
     });
@@ -157,7 +182,11 @@ describe('useMoneyAccountAddRouting', () => {
       mockGetChainIdForBuyFlow.mockReturnValue(CHAIN_IDS.LINEA_MAINNET);
       setupMocks();
 
-      const { result } = renderHook(() => useMoneyAccountAddRouting());
+      const { result } = renderHook(() =>
+        useMoneyAccountAddRouting({
+          componentName: COMPONENT_NAMES.MONEY_BALANCE_CARD,
+        }),
+      );
 
       act(() => {
         result.current.depositFunds();
@@ -171,7 +200,11 @@ describe('useMoneyAccountAddRouting', () => {
     it('falls back to MUSD_CONVERSION_DEFAULT_CHAIN_ID when getChainIdForBuyFlow is not provided', () => {
       setupMocks({ getChainIdForBuyFlow: undefined });
 
-      const { result } = renderHook(() => useMoneyAccountAddRouting());
+      const { result } = renderHook(() =>
+        useMoneyAccountAddRouting({
+          componentName: COMPONENT_NAMES.MONEY_BALANCE_CARD,
+        }),
+      );
 
       act(() => {
         result.current.depositFunds();
@@ -186,7 +219,11 @@ describe('useMoneyAccountAddRouting', () => {
       mockGetChainIdForBuyFlow.mockReturnValue(CHAIN_IDS.ARBITRUM);
       setupMocks();
 
-      const { result } = renderHook(() => useMoneyAccountAddRouting());
+      const { result } = renderHook(() =>
+        useMoneyAccountAddRouting({
+          componentName: COMPONENT_NAMES.MONEY_BALANCE_CARD,
+        }),
+      );
 
       act(() => {
         result.current.depositFunds();
@@ -208,7 +245,11 @@ describe('useMoneyAccountAddRouting', () => {
         },
       });
 
-      const { result } = renderHook(() => useMoneyAccountAddRouting());
+      const { result } = renderHook(() =>
+        useMoneyAccountAddRouting({
+          componentName: COMPONENT_NAMES.MONEY_BALANCE_CARD,
+        }),
+      );
 
       await act(async () => {
         await result.current.moveMusd();
@@ -229,7 +270,11 @@ describe('useMoneyAccountAddRouting', () => {
         tokenBalanceByChain: undefined,
       });
 
-      const { result } = renderHook(() => useMoneyAccountAddRouting());
+      const { result } = renderHook(() =>
+        useMoneyAccountAddRouting({
+          componentName: COMPONENT_NAMES.MONEY_BALANCE_CARD,
+        }),
+      );
 
       await act(async () => {
         await result.current.moveMusd();
@@ -254,7 +299,11 @@ describe('useMoneyAccountAddRouting', () => {
       });
       mockInitiateDeposit.mockRejectedValueOnce(new Error('boom'));
 
-      const { result } = renderHook(() => useMoneyAccountAddRouting());
+      const { result } = renderHook(() =>
+        useMoneyAccountAddRouting({
+          componentName: COMPONENT_NAMES.MONEY_BALANCE_CARD,
+        }),
+      );
 
       await expect(result.current.moveMusd()).resolves.toBeUndefined();
     });
@@ -269,7 +318,11 @@ describe('useMoneyAccountAddRouting', () => {
         },
       });
 
-      const { result } = renderHook(() => useMoneyAccountAddRouting());
+      const { result } = renderHook(() =>
+        useMoneyAccountAddRouting({
+          componentName: COMPONENT_NAMES.MONEY_BALANCE_CARD,
+        }),
+      );
 
       await act(async () => {
         await result.current.routeAddMoney();
@@ -292,7 +345,11 @@ describe('useMoneyAccountAddRouting', () => {
         tokenBalanceByChain: undefined,
       });
 
-      const { result } = renderHook(() => useMoneyAccountAddRouting());
+      const { result } = renderHook(() =>
+        useMoneyAccountAddRouting({
+          componentName: COMPONENT_NAMES.MONEY_BALANCE_CARD,
+        }),
+      );
 
       await act(async () => {
         await result.current.routeAddMoney();
@@ -317,7 +374,11 @@ describe('useMoneyAccountAddRouting', () => {
         tokenBalanceByChain: {},
       });
 
-      const { result } = renderHook(() => useMoneyAccountAddRouting());
+      const { result } = renderHook(() =>
+        useMoneyAccountAddRouting({
+          componentName: COMPONENT_NAMES.MONEY_BALANCE_CARD,
+        }),
+      );
 
       act(() => {
         result.current.routeAddMoney();
@@ -336,7 +397,11 @@ describe('useMoneyAccountAddRouting', () => {
         tokenBalanceByChain: {},
       });
 
-      const { result } = renderHook(() => useMoneyAccountAddRouting());
+      const { result } = renderHook(() =>
+        useMoneyAccountAddRouting({
+          componentName: COMPONENT_NAMES.MONEY_BALANCE_CARD,
+        }),
+      );
 
       act(() => {
         result.current.routeAddMoney();
@@ -347,6 +412,20 @@ describe('useMoneyAccountAddRouting', () => {
         button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
         label_key: 'money.musd_row.add',
         redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+      });
+    });
+
+    it('forwards the component name to analytics', () => {
+      setupMocks();
+
+      renderHook(() =>
+        useMoneyAccountAddRouting({
+          componentName: COMPONENT_NAMES.MONEY_BALANCE_CARD,
+        }),
+      );
+
+      expect(mockedUseMoneyAnalytics).toHaveBeenCalledWith({
+        component_name: COMPONENT_NAMES.MONEY_BALANCE_CARD,
       });
     });
   });

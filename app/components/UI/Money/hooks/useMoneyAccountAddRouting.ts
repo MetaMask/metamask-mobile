@@ -19,7 +19,7 @@ import {
 } from '../constants/moneyEvents';
 
 export interface UseMoneyAccountAddRoutingOptions {
-  componentName?: COMPONENT_NAMES;
+  componentName: COMPONENT_NAMES;
 }
 
 export interface UseMoneyAccountAddRoutingResult {
@@ -32,7 +32,7 @@ export interface UseMoneyAccountAddRoutingResult {
 
 export const useMoneyAccountAddRouting = ({
   componentName,
-}: UseMoneyAccountAddRoutingOptions = {}): UseMoneyAccountAddRoutingResult => {
+}: UseMoneyAccountAddRoutingOptions): UseMoneyAccountAddRoutingResult => {
   const {
     fiatBalanceAggregated,
     hasMusdBalanceOnAnyChain,
