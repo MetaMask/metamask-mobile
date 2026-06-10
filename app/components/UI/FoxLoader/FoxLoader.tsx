@@ -31,19 +31,19 @@ let animationStarted = false;
 let animationComplete = false;
 
 // Use Canvas renderer on Android — the default Rive SurfaceView causes geometry distortion
-if (Platform.OS === 'android') {
-  try {
-    RiveRenderer.defaultRenderer(
-      RiveRendererIOS.Rive,
-      RiveRendererAndroid.Canvas,
-    );
-  } catch (error) {
-    Logger.error(
-      error as Error,
-      'Failed to set Rive Canvas renderer on Android',
-    );
-  }
-}
+// if (Platform.OS === 'android') {
+//   try {
+//     RiveRenderer.defaultRenderer(
+//       RiveRendererIOS.Rive,
+//       RiveRendererAndroid.Canvas,
+//     );
+//   } catch (error) {
+//     Logger.error(
+//       error as Error,
+//       'Failed to set Rive Canvas renderer on Android',
+//     );
+//   }
+// }
 
 interface FoxLoaderProps {
   appServicesReady?: boolean;
