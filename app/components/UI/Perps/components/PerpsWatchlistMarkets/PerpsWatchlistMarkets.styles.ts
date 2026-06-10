@@ -10,6 +10,10 @@ const styleSheet = (params: { theme: Theme }) => {
       borderTopColor: theme.colors.border.muted,
       paddingTop: 16,
     },
+    sectionNoHeader: {
+      borderTopWidth: 0,
+      paddingTop: 0,
+    },
     header: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -41,6 +45,12 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingHorizontal: 16,
       paddingTop: 4,
       paddingBottom: 8,
+    },
+    emptyTitle: {
+      marginBottom: 4,
+    },
+    suggestedSubtitle: {
+      marginBottom: 4,
     },
     suggestedHeader: {
       marginBottom: 4,

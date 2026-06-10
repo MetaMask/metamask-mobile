@@ -29,7 +29,6 @@ export interface PerpsMarketFiltersBarProps {
 
   /**
    * Whether to show the watchlist (star) filter badge.
-   * Should be true only when the user has at least one market on their watchlist.
    */
   showWatchlistBadge?: boolean;
 

@@ -16,6 +16,7 @@ import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceAction
 import PerpsMarketSortFieldBottomSheet from '../../components/PerpsMarketSortFieldBottomSheet';
 import PerpsMarketFiltersBar from './components/PerpsMarketFiltersBar';
 import PerpsMarketList from '../../components/PerpsMarketList';
+import PerpsWatchlistMarkets from '../../components/PerpsWatchlistMarkets/PerpsWatchlistMarkets';
 import {
   usePerpsMarketListView,
   usePerpsMeasurement,
@@ -92,8 +93,13 @@ const PerpsMarketListView = ({
   const { selectedOptionId, sortBy, direction, handleOptionChange } = sortState;
 
   // Destructure favorites state for easier access
-  const { showFavoritesOnly, setShowFavoritesOnly, hasWatchlistMarkets } =
-    favoritesState;
+  const {
+    showFavoritesOnly,
+    setShowFavoritesOnly,
+    hasWatchlistMarkets,
+    watchlistMarketObjects,
+    suggestedMarkets,
+  } = favoritesState;
 
   // Destructure market type filter state
   const { marketTypeFilter, setMarketTypeFilter } = marketTypeFilterState;
@@ -235,31 +241,14 @@ const PerpsMarketListView = ({
       );
     }
 
-    // Empty favorites results - show when favorites filter is active but no favorites found
-    if (showFavoritesOnly && filteredMarkets.length === 0) {
+    // Empty watchlist — show suggested markets with the same default state as PerpsHome
+    if (showFavoritesOnly && !hasWatchlistMarkets) {
       return (
-        <View style={styles.emptyStateContainer}>
-          <Icon
-            name={IconName.Star}
-            size={IconSize.Xl}
-            color={theme.colors.icon.muted}
-            style={styles.emptyStateIcon}
-          />
-          <Text
-            variant={TextVariant.HeadingSM}
-            color={TextColor.Default}
-            style={styles.emptyStateTitle}
-          >
-            {strings('perps.no_favorites_found')}
-          </Text>
-          <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Alternative}
-            style={styles.emptyStateDescription}
-          >
-            {strings('perps.no_favorites_description')}
-          </Text>
-        </View>
+        <PerpsWatchlistMarkets
+          markets={watchlistMarketObjects}
+          suggestedMarkets={suggestedMarkets}
+          showHeader={false}
+        />
       );
     }
 
@@ -346,7 +335,7 @@ const PerpsMarketListView = ({
           onSortPress={() => setIsSortFieldSheetVisible(true)}
           marketTypeFilter={marketTypeFilter}
           onCategorySelect={handleCategorySelect}
-          showWatchlistBadge={hasWatchlistMarkets}
+          showWatchlistBadge
           isWatchlistSelected={showFavoritesOnly}
           onWatchlistToggle={handleWatchlistToggle}
           testID={PerpsMarketListViewSelectorsIDs.SORT_FILTERS}

@@ -66,7 +66,7 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
       style={styles.scrollContainer}
       testID={testID}
     >
-      {/* Watchlist star badge — shown first, only when user has watchlist items */}
+      {/* Watchlist star badge — shown first */}
       {showWatchlistBadge && (
         <Animated.View
           entering={FadeIn.duration(ANIMATION_DURATION)}

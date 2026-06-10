@@ -59,6 +59,8 @@ interface PerpsWatchlistMarketsProps {
   contentContainerStyle?: StyleProp<ViewStyle>;
   /** Called when the "Watchlist >" header is pressed */
   onSeeAllPress?: () => void;
+  /** Whether to render the "Watchlist" section header. Defaults to true. */
+  showHeader?: boolean;
 }
 
 const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
@@ -73,6 +75,7 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
   headerStyle,
   contentContainerStyle,
   onSeeAllPress,
+  showHeader = true,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
@@ -141,7 +144,7 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
         style={[styles.section, sectionStyle]}
         testID={PerpsWatchlistSelectorsIDs.SECTION}
       >
-        <SectionHeader />
+        {showHeader && <SectionHeader />}
         <View style={contentContainerStyle}>
           <PerpsRowSkeleton count={3} />
         </View>
@@ -172,10 +175,14 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
 
   return (
     <View
-      style={[styles.section, sectionStyle]}
+      style={[
+        styles.section,
+        !showHeader && styles.sectionNoHeader,
+        sectionStyle,
+      ]}
       testID={PerpsWatchlistSelectorsIDs.SECTION}
     >
-      <SectionHeader />
+      {showHeader && <SectionHeader />}
       <View style={contentContainerStyle}>
         {hasWatchlist && (
           <>
@@ -218,13 +225,27 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
             style={styles.suggestedSection}
             testID={PerpsWatchlistSelectorsIDs.SUGGESTED_SECTION}
           >
+            {!hasWatchlist && (
+              <Text
+                variant={TextVariant.HeadingSm}
+                color={TextColor.TextDefault}
+                style={styles.emptyTitle}
+                testID={PerpsWatchlistSelectorsIDs.SUGGESTED_HEADER}
+              >
+                {strings('perps.watchlist.empty_title')}
+              </Text>
+            )}
             <Text
               variant={TextVariant.BodySm}
               color={
                 hasWatchlist ? TextColor.TextAlternative : TextColor.TextDefault
               }
-              style={styles.suggestedHeader}
-              testID={PerpsWatchlistSelectorsIDs.SUGGESTED_HEADER}
+              style={styles.suggestedSubtitle}
+              testID={
+                hasWatchlist
+                  ? PerpsWatchlistSelectorsIDs.SUGGESTED_HEADER
+                  : undefined
+              }
             >
               {hasWatchlist
                 ? strings('perps.watchlist.suggested')

@@ -47,14 +47,16 @@ const PerpsMarketFiltersBar: React.FC<PerpsMarketFiltersBarProps> = ({
         testID={testID ? `${testID}-categories` : undefined}
       />
 
-      {/* Row 2: Sort Dropdown */}
-      <View style={styles.sortRow}>
-        <PerpsMarketSortDropdowns
-          selectedOptionId={selectedOptionId}
-          onSortPress={onSortPress}
-          testID={testID ? `${testID}-sort` : undefined}
-        />
-      </View>
+      {/* Row 2: Sort Dropdown — hidden when watchlist filter is active */}
+      {!isWatchlistSelected && (
+        <View style={styles.sortRow}>
+          <PerpsMarketSortDropdowns
+            selectedOptionId={selectedOptionId}
+            onSortPress={onSortPress}
+            testID={testID ? `${testID}-sort` : undefined}
+          />
+        </View>
+      )}
     </View>
   );
 };

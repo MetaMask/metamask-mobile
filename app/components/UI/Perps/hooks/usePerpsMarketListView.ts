@@ -22,6 +22,7 @@ import {
   selectPerpsMarketFilterPreferences,
 } from '../selectors/perpsController';
 import Engine from '../../../../core/Engine';
+import { getSuggestedWatchlistMarkets } from '../utils/marketUtils';
 
 interface UsePerpsMarketListViewParams {
   /**
@@ -90,6 +91,10 @@ interface UsePerpsMarketListViewReturn {
     setShowFavoritesOnly: (show: boolean) => void;
     /** True when the user has at least one market on their watchlist */
     hasWatchlistMarkets: boolean;
+    /** Full market data objects for each watchlisted market */
+    watchlistMarketObjects: PerpsMarketData[];
+    /** Top suggested markets to show when the watchlist is empty */
+    suggestedMarkets: PerpsMarketData[];
   };
   /**
    * Market type filter state (not persisted, UI-only)
@@ -281,6 +286,18 @@ export const usePerpsMarketListView = ({
     );
   }, [marketTypeFilteredMarkets, showFavoritesOnly, watchlistMarkets]);
 
+  // Full market objects for watchlisted symbols (unaffected by search/category filters)
+  const watchlistMarketObjects = useMemo(
+    () => allMarkets.filter((m) => watchlistMarkets.includes(m.symbol)),
+    [allMarkets, watchlistMarkets],
+  );
+
+  // Top suggested markets (excludes already-watchlisted) for the empty watchlist state
+  const suggestedMarkets = useMemo(
+    () => getSuggestedWatchlistMarkets(allMarkets, watchlistMarkets),
+    [allMarkets, watchlistMarkets],
+  );
+
   // Apply sorting to searched and favorites-filtered markets
   // Use useMemo to ensure sorting is applied with current sortBy/direction when markets change
   const finalMarkets = useMemo(
@@ -332,6 +349,8 @@ export const usePerpsMarketListView = ({
       showFavoritesOnly,
       setShowFavoritesOnly: handleSetShowFavoritesOnly,
       hasWatchlistMarkets: watchlistMarkets.length > 0,
+      watchlistMarketObjects,
+      suggestedMarkets,
     },
     marketTypeFilterState: {
       marketTypeFilter,
