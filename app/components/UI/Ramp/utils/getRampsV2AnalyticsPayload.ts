@@ -4,9 +4,9 @@ import { AnalyticsEvents } from '../Aggregator/types';
 import { FIAT_ORDER_STATES } from '../../../../constants/on-ramp';
 
 type EventName =
-  | 'ONRAMP_PURCHASE_FAILED'
+  | 'RAMPS_TRANSACTION_COMPLETED'
+  | 'RAMPS_TRANSACTION_FAILED'
   | 'ONRAMP_PURCHASE_CANCELLED'
-  | 'ONRAMP_PURCHASE_COMPLETED'
   | 'OFFRAMP_PURCHASE_FAILED'
   | 'OFFRAMP_PURCHASE_CANCELLED'
   | 'OFFRAMP_PURCHASE_COMPLETED'
@@ -84,7 +84,7 @@ const getRampsV2AnalyticsPayload = (
   switch (fiatOrder.state) {
     case FIAT_ORDER_STATES.FAILED: {
       return [
-        isBuy ? 'ONRAMP_PURCHASE_FAILED' : 'OFFRAMP_PURCHASE_FAILED',
+        isBuy ? 'RAMPS_TRANSACTION_FAILED' : 'OFFRAMP_PURCHASE_FAILED',
         failedOrCancelledParams,
       ];
     }
@@ -96,7 +96,7 @@ const getRampsV2AnalyticsPayload = (
     }
     case FIAT_ORDER_STATES.COMPLETED: {
       return isBuy
-        ? ['ONRAMP_PURCHASE_COMPLETED', buyCompletePayload]
+        ? ['RAMPS_TRANSACTION_COMPLETED', buyCompletePayload]
         : ['OFFRAMP_PURCHASE_COMPLETED', sellCompletePayload];
     }
     case FIAT_ORDER_STATES.PENDING:
