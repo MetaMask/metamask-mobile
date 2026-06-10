@@ -345,7 +345,7 @@ export default class Assertions {
         throw new Error('Both actual and expected text must be provided');
       }
 
-      return expect(actualText).toBe(expectedText);
+      expect(actualText).toBe(expectedText);
     } catch (error) {
       if (actualText !== expectedText) {
         throw new Error(

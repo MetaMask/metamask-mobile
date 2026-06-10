@@ -8,24 +8,25 @@ import {
 } from '../../../../app/components/Views/Quiz/SRPQuiz/SrpQuizModal.testIds';
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
+import { EncapsulatedElementType } from '../../../framework';
 
 class SrpQuizModal {
   // Getters for common elements
-  get getStartedContainer(): DetoxElement {
+  get getStartedContainer(): EncapsulatedElementType {
     return Matchers.getElementByID(SrpQuizGetStartedSelectorsIDs.CONTAINER);
   }
 
-  get getStartedScreenDismiss(): DetoxElement {
+  get getStartedScreenDismiss(): EncapsulatedElementType {
     return Matchers.getElementByID(SrpQuizGetStartedSelectorsIDs.DISMISS);
   }
 
-  get modalIntroduction(): DetoxElement {
+  get modalIntroduction(): EncapsulatedElementType {
     return Matchers.getElementByText(
       SrpQuizGetStartedSelectorsText.INTRODUCTION,
     );
   }
 
-  get getStartedButton(): DetoxElement {
+  get getStartedButton(): EncapsulatedElementType {
     return Matchers.getElementByID(SrpQuizGetStartedSelectorsIDs.BUTTON);
   }
 
