@@ -81,16 +81,6 @@ describe('MoneyAccountDepositInfo', () => {
     expect(lastCall.hasMax).toBe(true);
   });
 
-  it('passes compactSpacing=true to CustomAmountInfo', () => {
-    render(<MoneyAccountDepositInfo />);
-
-    const lastCall =
-      mockCustomAmountInfo.mock.calls[
-        mockCustomAmountInfo.mock.calls.length - 1
-      ][0];
-    expect(lastCall.compactSpacing).toBe(true);
-  });
-
   it('passes autoSelectFiatPayment and hideAccountSelector from route params', () => {
     mockUseParams.mockReturnValue({ autoSelectFiatPayment: true });
 

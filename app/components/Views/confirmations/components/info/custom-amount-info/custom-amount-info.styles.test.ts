@@ -13,8 +13,8 @@ describe('custom-amount-info.styles', () => {
     });
   });
 
-  describe('extraBottomPadding', () => {
-    it('applies 56dp paddingBottom on Android', () => {
+  describe('bottomBlock', () => {
+    it('applies 16dp paddingBottom on Android', () => {
       Object.defineProperty(Platform, 'OS', {
         value: 'android',
         writable: true,
@@ -22,7 +22,7 @@ describe('custom-amount-info.styles', () => {
 
       const styles = styleSheet({ theme: mockTheme as Theme });
 
-      expect(styles.extraBottomPadding.paddingBottom).toBe(56);
+      expect(styles.bottomBlock.paddingBottom).toBe(16);
     });
 
     it('applies 0 paddingBottom on iOS so the iOS layout is unchanged', () => {
@@ -33,29 +33,7 @@ describe('custom-amount-info.styles', () => {
 
       const styles = styleSheet({ theme: mockTheme as Theme });
 
-      expect(styles.extraBottomPadding.paddingBottom).toBe(0);
-    });
-  });
-
-  describe('compactBottomBlock', () => {
-    it('applies 24dp paddingBottom on both platforms', () => {
-      Object.defineProperty(Platform, 'OS', {
-        value: 'android',
-        writable: true,
-      });
-      expect(
-        styleSheet({ theme: mockTheme as Theme }).compactBottomBlock
-          .paddingBottom,
-      ).toBe(24);
-
-      Object.defineProperty(Platform, 'OS', {
-        value: 'ios',
-        writable: true,
-      });
-      expect(
-        styleSheet({ theme: mockTheme as Theme }).compactBottomBlock
-          .paddingBottom,
-      ).toBe(24);
+      expect(styles.bottomBlock.paddingBottom).toBe(0);
     });
   });
 });
