@@ -124,7 +124,9 @@ const MoneyHomeView = () => {
 
   const { tokens: depositTokens, isNoFeeToken } = useMoneyDepositTokens();
   const { initiateDeposit } = useMoneyAccountDeposit();
-  const { routeAddMoney } = useMoneyAccountAddRouting();
+  const { routeAddMoney } = useMoneyAccountAddRouting({
+    componentName: COMPONENT_NAMES.MONEY_MUSD_TOKEN_SECTION,
+  });
   const { allTransactions, moneyAddress, mockDataEnabled } =
     useMoneyAccountTransactions();
   const { cardTransactions, isLoading: isCardActivityLoading } =
