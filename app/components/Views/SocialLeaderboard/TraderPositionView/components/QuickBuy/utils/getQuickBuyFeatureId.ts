@@ -12,6 +12,6 @@ export function getQuickBuyFeatureId(source?: QuickBuySheetSource): FeatureId {
     case 'notification':
       return FeatureId.QUICK_BUY_FOLLOW_TRADING;
     default:
-      return FeatureId.QUICK_BUY_FOLLOW_TRADING;
+      return FeatureId.UNKNOWN;
   }
 }

@@ -24,7 +24,7 @@ describe('getQuickBuyFeatureId', () => {
     );
   });
 
-  it('defaults to QUICK_BUY_FOLLOW_TRADING when source is missing', () => {
-    expect(getQuickBuyFeatureId()).toBe(FeatureId.QUICK_BUY_FOLLOW_TRADING);
+  it('defaults to UNKNOWN when source is missing', () => {
+    expect(getQuickBuyFeatureId()).toBe(FeatureId.UNKNOWN);
   });
 });
