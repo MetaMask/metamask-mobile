@@ -4078,7 +4078,7 @@ describe('Authentication', () => {
 
     it('does not throw when tracking a successful migration fails', async () => {
       const logSpy = jest.spyOn(Logger, 'log').mockImplementation(jest.fn());
-      analytics.trackEvent.mockImplementation(() => {
+      jest.mocked(analytics.trackEvent).mockImplementation(() => {
         throw new Error('trackEvent failed');
       });
       Engine.context.SeedlessOnboardingController = {
@@ -4096,7 +4096,7 @@ describe('Authentication', () => {
           expect.any(Error),
         );
       } finally {
-        analytics.trackEvent.mockReset();
+        jest.mocked(analytics.trackEvent).mockReset();
         logSpy.mockRestore();
       }
     });
@@ -4149,7 +4149,7 @@ describe('Authentication', () => {
       const logWarnSpy = jest
         .spyOn(Logger, 'log')
         .mockImplementation(jest.fn());
-      analytics.trackEvent.mockImplementation(() => {
+      jest.mocked(analytics.trackEvent).mockImplementation(() => {
         throw new Error('trackEvent failed');
       });
       mockCaptureException.mockImplementation(() => {
@@ -4176,7 +4176,7 @@ describe('Authentication', () => {
           expect.any(Error),
         );
       } finally {
-        analytics.trackEvent.mockReset();
+        jest.mocked(analytics.trackEvent).mockReset();
         mockCaptureException.mockReset();
         logWarnSpy.mockRestore();
       }
