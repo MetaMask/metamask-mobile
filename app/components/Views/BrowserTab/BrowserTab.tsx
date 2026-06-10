@@ -670,7 +670,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             isMainFrame,
           });
         } catch (error) {
-          Logger.log('BackgroundBridge initialization blocked', error);
+          Logger.log('BackgroundBridge initialization failed', error);
         }
       },
       [navigation, tabId],
