@@ -1139,6 +1139,8 @@ export interface PredictThePitchLeaderboardPositionDto {
   eligible: boolean;
   neighbors: PredictThePitchLeaderboardEntryDto[];
   computedAt: string;
+  marketsTraded: number | null;
+  minimumMarketsTraded: number;
 }
 
 export type PredictThePitchPositionStatus = 'open' | 'sold' | 'resolved';
