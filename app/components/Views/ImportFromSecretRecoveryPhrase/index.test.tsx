@@ -16,7 +16,7 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import { MIN_PASSWORD_LENGTH } from '../../../util/password';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
-import { Alert, InteractionManager } from 'react-native';
+import { Alert, InteractionManager, TextInput } from 'react-native';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -1298,7 +1298,9 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       const confirmPasswordInput = getByTestId(
         ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
       );
-      expect(confirmPasswordInput).toHaveProp('editable', false);
+      expect(confirmPasswordInput.findByType(TextInput).props.editable).toBe(
+        false,
+      );
 
       const passwordInput = getByTestId(
         ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
@@ -1306,7 +1308,9 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       fireEvent.changeText(passwordInput, 'StrongPass123!');
 
       await waitFor(() => {
-        expect(confirmPasswordInput).toHaveProp('editable', true);
+        expect(confirmPasswordInput.findByType(TextInput).props.editable).toBe(
+          true,
+        );
       });
     });
 
@@ -1494,7 +1498,9 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       fireEvent(passwordInput, 'submitEditing');
 
       // Verify that confirm password field is enabled and ready for input
-      expect(confirmPasswordInput).toHaveProp('editable', true);
+      expect(confirmPasswordInput.findByType(TextInput).props.editable).toBe(
+        true,
+      );
       expect(confirmPasswordInput.props.value).toBe('');
     });
 
