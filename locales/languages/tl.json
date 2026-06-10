@@ -1979,10 +1979,10 @@
       "stocks_and_commodities": "Tuklasin ang mga stock at commodity",
       "tabs": {
         "crypto": "Crypto",
-        "stocks": "Stocks",
-        "commodities": "Mga Commodity",
         "forex": "Forex",
-        "new": "Bago"
+        "new": "Bago",
+        "stock": "Stocks",
+        "commodity": "Mga Commodity"
       },
       "filter_by": "I-filter ayon sa",
       "forex": "Forex",
@@ -8454,7 +8454,7 @@
     "main_title": "Mga Reward",
     "vip": {
       "bps_unit": "bps",
-      "badge_label": "VIP Fox {{tier}}",
+      "badge_label": "VIP {{tier}}",
       "swaps_label": "Mga Swap",
       "perps_label": "Perps",
       "error_title": "We couldn’t load your VIP dashboard",

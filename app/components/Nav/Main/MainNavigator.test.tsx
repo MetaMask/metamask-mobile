@@ -17,6 +17,7 @@ jest.mock('@react-navigation/stack', () => ({
   }),
   TransitionPresets: {
     ModalSlideFromBottomIOS: {},
+    ModalPresentationIOS: {},
   },
 }));
 
@@ -81,6 +82,11 @@ jest.mock('../../../selectors/featureFlagController/marketInsights', () => ({
 }));
 
 jest.mock('../../hooks/useAnalytics/useAnalytics');
+
+jest.mock('../../UI/Money/components/MoneyTabPressTracker', () => ({
+  __esModule: true,
+  default: () => null,
+}));
 
 const mockSelectMoneyEnableMoneyAccountFlag = jest.fn().mockReturnValue(false);
 jest.mock('../../UI/Money/selectors/featureFlags', () => ({

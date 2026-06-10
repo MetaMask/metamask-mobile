@@ -19,10 +19,18 @@ import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import { useMoneyAccountWithdrawal } from '../../hooks/useMoneyAccount';
 import { useMoneyPerpsDeposit } from '../../../../Views/confirmations/hooks/pay/useMoneyPerpsDeposit';
+import { useMoneyPredictDeposit } from '../../../../Views/confirmations/hooks/pay/useMoneyPredictDeposit';
 import Logger from '../../../../../util/Logger';
 import styleSheet from './MoneyTransferSheet.styles';
 import { MoneyTransferSheetTestIds } from './MoneyTransferSheet.testIds';
 import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
+import {
+  BOTTOM_SHEET_NAMES,
+  COMPONENT_NAMES,
+  SCREEN_NAMES,
+} from '../../constants/moneyEvents';
+import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import useMountEffect from '../../hooks/useMountEffect';
 
 interface ActiveOption {
   label: string;
@@ -45,12 +53,26 @@ const MoneyTransferSheet = () => {
   const surfaceClass = useElevatedSurface();
   const { isEnabled: isPerpsEnabled, initiatePerpsDeposit } =
     useMoneyPerpsDeposit();
+  const { isEnabled: isPredictEnabled, initiatePredictDeposit } =
+    useMoneyPredictDeposit();
+
+  const { trackBottomSheetViewed, trackSurfaceClicked } = useMoneyAnalytics({
+    bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_TRANSFER_MONEY_SHEET,
+  });
+
+  useMountEffect(trackBottomSheetViewed);
 
   const handleGoBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
   const handleBetweenAccounts = useCallback(() => {
+    trackSurfaceClicked({
+      component_name:
+        COMPONENT_NAMES.MONEY_TRANSFER_MONEY_SHEET_BETWEEN_ACCOUNTS,
+      redirect_target: SCREEN_NAMES.MONEY_TRANSFER,
+    });
+
     sheetRef.current?.onCloseBottomSheet(() => {
       initiateWithdrawal().catch((error: Error) => {
         Logger.error(
@@ -59,22 +81,38 @@ const MoneyTransferSheet = () => {
         );
       });
     });
-  }, [initiateWithdrawal]);
+  }, [initiateWithdrawal, trackSurfaceClicked]);
 
   const handlePerpsAccount = useCallback(() => {
     if (!isPerpsEnabled) {
       return;
     }
 
+    trackSurfaceClicked({
+      component_name: COMPONENT_NAMES.MONEY_TRANSFER_MONEY_SHEET_PERPS_ACCOUNT,
+      redirect_target: SCREEN_NAMES.MONEY_TRANSFER,
+    });
+
     sheetRef.current?.onCloseBottomSheet(() => {
       initiatePerpsDeposit();
     });
-  }, [isPerpsEnabled, initiatePerpsDeposit]);
+  }, [isPerpsEnabled, initiatePerpsDeposit, trackSurfaceClicked]);
 
   const handlePredictionsAccount = useCallback(() => {
-    // eslint-disable-next-line no-alert
-    alert('Under construction 🚧');
-  }, []);
+    if (!isPredictEnabled) {
+      return;
+    }
+
+    trackSurfaceClicked({
+      component_name:
+        COMPONENT_NAMES.MONEY_TRANSFER_MONEY_SHEET_PREDICTIONS_ACCOUNT,
+      redirect_target: SCREEN_NAMES.MONEY_TRANSFER,
+    });
+
+    sheetRef.current?.onCloseBottomSheet(() => {
+      initiatePredictDeposit();
+    });
+  }, [isPredictEnabled, initiatePredictDeposit, trackSurfaceClicked]);
 
   const activeOptions: ActiveOption[] = [
     {

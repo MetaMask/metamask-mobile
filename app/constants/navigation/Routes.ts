@@ -135,6 +135,8 @@ const Routes = {
     'RewardsPredictThePitchCampaignLeaderboard',
   REWARDS_PREDICT_THE_PITCH_CAMPAIGN_PORTFOLIO_VIEW:
     'RewardsPredictThePitchCampaignPortfolioView',
+  REWARDS_PREDICT_THE_PITCH_CAMPAIGN_STATS:
+    'RewardsPredictThePitchCampaignStats',
   REWARDS_PERPS_TRADING_CAMPAIGN_LEADERBOARD:
     'RewardsPerpsTradingCampaignLeaderboard',
   REWARDS_PERPS_TRADING_CAMPAIGN_STATS: 'RewardsPerpsTradingCampaignStats',

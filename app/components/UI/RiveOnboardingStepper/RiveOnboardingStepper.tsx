@@ -52,6 +52,7 @@ const RiveOnboardingStepper = ({
   onClose,
   closeButtonIconColor,
   onStepChange,
+  onStepViewed,
   onComplete,
   autoCompleteOnLastStep = false,
   enableRiveAnimation = true,
@@ -74,15 +75,17 @@ const RiveOnboardingStepper = ({
   const currentStep = steps[currentStepIndex];
 
   const showClose =
-    onClose && currentStep?.showCloseButton !== false ? onClose : undefined;
+    onClose && currentStep?.showCloseButton !== false
+      ? () => onClose(currentStepIndex)
+      : undefined;
 
   const handleRivePlay = useCallback(() => setIsRiveReady(true), []);
 
   const safeAutoComplete = useCallback(() => {
     if (hasCompletedRef.current) return;
     hasCompletedRef.current = true;
-    onComplete();
-  }, [onComplete]);
+    onComplete(currentStepIndex);
+  }, [onComplete, currentStepIndex]);
 
   useEffect(() => {
     if (!autoCompleteOnLastStep || !isLastStep) return;
@@ -95,9 +98,13 @@ const RiveOnboardingStepper = ({
     safeAutoComplete,
   ]);
 
+  useEffect(() => {
+    onStepViewed?.(currentStepIndex);
+  }, [currentStepIndex, onStepViewed]);
+
   const handleContinue = useCallback(() => {
     if (isLastStep) {
-      onComplete();
+      onComplete(currentStepIndex);
       hasCompletedRef.current = true;
       return;
     }
@@ -112,7 +119,14 @@ const RiveOnboardingStepper = ({
     }
 
     advanceStep();
-  }, [isLastStep, onComplete, riveConfig, advanceStep]);
+  }, [
+    currentStepIndex,
+    isLastStep,
+    advanceStep,
+    onComplete,
+    riveConfig.stateMachineName,
+    riveConfig.triggerName,
+  ]);
 
   return (
     <SafeAreaView
