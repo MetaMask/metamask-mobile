@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-- Bump `@metamask/assets-controllers` from 108.4.0 to 109.0.0 (#)
+- Bump `@metamask/assets-controllers` from 108.4.0 to 109.0.0 (#31508)
 
 ## [7.80.0]
 
