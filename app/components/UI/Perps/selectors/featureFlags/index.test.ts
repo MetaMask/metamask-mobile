@@ -723,58 +723,164 @@ describe('Perps Feature Flag Selectors', () => {
   });
 
   describe('selectPerpsRelatedMarketsEnabledFlag', () => {
-    it('returns false when remote flag is not set', () => {
-      const result = selectPerpsRelatedMarketsEnabledFlag({
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {},
-              cacheTimestamp: 0,
-            },
+    // Helper to create fresh state objects to avoid reselect caching issues
+    const createEmptyFlagsState = () => ({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {},
+            cacheTimestamp: 0,
           },
         },
-      });
-
-      expect(result).toBe(false);
+      },
     });
 
-    it('returns boolean remote flag values directly', () => {
-      const result = selectPerpsRelatedMarketsEnabledFlag({
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                perpsRelatedMarkets: true,
-              },
-              cacheTimestamp: 0,
-            },
-          },
-        },
+    describe('default behavior (disabled by default)', () => {
+      it('returns false when remote flag is not set and local env var is not set', () => {
+        delete process.env.MM_PERPS_RELATED_MARKETS_ENABLED;
+        const result = selectPerpsRelatedMarketsEnabledFlag(
+          createEmptyFlagsState(),
+        );
+        expect(result).toBe(false);
       });
 
-      expect(result).toBe(true);
+      it('returns true when local env var is explicitly true', () => {
+        process.env.MM_PERPS_RELATED_MARKETS_ENABLED = 'true';
+        const result = selectPerpsRelatedMarketsEnabledFlag(
+          createEmptyFlagsState(),
+        );
+        expect(result).toBe(true);
+      });
+
+      it('returns false when local env var is explicitly false', () => {
+        process.env.MM_PERPS_RELATED_MARKETS_ENABLED = 'false';
+        const result = selectPerpsRelatedMarketsEnabledFlag(
+          createEmptyFlagsState(),
+        );
+        expect(result).toBe(false);
+      });
     });
 
-    it('returns version-gated remote flag when valid', () => {
-      mockHasMinimumRequiredVersion.mockReturnValue(true);
+    describe('hybrid flag behavior', () => {
+      it('uses remote flag when valid and enabled', () => {
+        mockHasMinimumRequiredVersion.mockReturnValue(true);
+        process.env.MM_PERPS_RELATED_MARKETS_ENABLED = 'false';
 
-      const result = selectPerpsRelatedMarketsEnabledFlag({
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                perpsRelatedMarkets: {
-                  enabled: true,
-                  minimumVersion: '1.0.0',
+        const stateWithEnabledRemoteFlag = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  perpsRelatedMarkets: {
+                    enabled: true,
+                    minimumVersion: '1.0.0',
+                  },
                 },
+                cacheTimestamp: 0,
               },
-              cacheTimestamp: 0,
             },
           },
-        },
+        };
+
+        const result = selectPerpsRelatedMarketsEnabledFlag(
+          stateWithEnabledRemoteFlag,
+        );
+        expect(result).toBe(true);
       });
 
-      expect(result).toBe(true);
+      it('uses remote flag when valid but disabled', () => {
+        mockHasMinimumRequiredVersion.mockReturnValue(true);
+        process.env.MM_PERPS_RELATED_MARKETS_ENABLED = 'true';
+
+        const stateWithDisabledRemoteFlag = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  perpsRelatedMarkets: {
+                    enabled: false,
+                    minimumVersion: '1.0.0',
+                  },
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectPerpsRelatedMarketsEnabledFlag(
+          stateWithDisabledRemoteFlag,
+        );
+        expect(result).toBe(false);
+      });
+
+      it('uses remote flag (false) when enabled but version check fails', () => {
+        mockHasMinimumRequiredVersion.mockReturnValue(false);
+        process.env.MM_PERPS_RELATED_MARKETS_ENABLED = 'true';
+
+        const stateWithVersionCheckFailure = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  perpsRelatedMarkets: {
+                    enabled: true,
+                    minimumVersion: '99.0.0',
+                  },
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectPerpsRelatedMarketsEnabledFlag(
+          stateWithVersionCheckFailure,
+        );
+        expect(result).toBe(false);
+      });
+
+      it('falls back to local flag (false by default) when remote flag is invalid', () => {
+        delete process.env.MM_PERPS_RELATED_MARKETS_ENABLED;
+
+        const stateWithInvalidRemoteFlag = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  perpsRelatedMarkets: {
+                    enabled: 'invalid',
+                    minimumVersion: 123,
+                  },
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectPerpsRelatedMarketsEnabledFlag(
+          stateWithInvalidRemoteFlag,
+        );
+        expect(result).toBe(false);
+      });
+
+      it('falls back to local flag when RemoteFeatureFlagController is undefined', () => {
+        delete process.env.MM_PERPS_RELATED_MARKETS_ENABLED;
+
+        const stateWithUndefinedController = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: undefined,
+            },
+          },
+        };
+
+        const result = selectPerpsRelatedMarketsEnabledFlag(
+          stateWithUndefinedController,
+        );
+        expect(result).toBe(false);
+      });
     });
   });
 

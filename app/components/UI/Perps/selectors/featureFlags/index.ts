@@ -83,16 +83,12 @@ export const selectPerpsOrderBookEnabledFlag = createSelector(
 export const selectPerpsRelatedMarketsEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
-    const remoteFlag = remoteFeatureFlags?.perpsRelatedMarkets as unknown as
-      | VersionGatedFeatureFlag
-      | boolean
-      | undefined;
+    // Default to false if no flag is set (disabled by default)
+    const localFlag = process.env.MM_PERPS_RELATED_MARKETS_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.perpsRelatedMarkets as unknown as VersionGatedFeatureFlag;
 
-    if (typeof remoteFlag === 'boolean') {
-      return remoteFlag;
-    }
-
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },
 );
 
