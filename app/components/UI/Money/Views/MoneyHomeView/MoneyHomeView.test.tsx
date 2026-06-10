@@ -166,6 +166,18 @@ jest.mock('../../../Earn/hooks/useMusdBalance', () => ({
   useMusdBalance: jest.fn(() => ({ tokenBalanceAggregated: '0' })),
 }));
 
+jest.mock('../../hooks/useMoneyAnalytics', () => ({
+  useMoneyAnalytics: jest.fn(() => ({
+    trackButtonClicked: jest.fn(),
+    trackTooltipClicked: jest.fn(),
+    trackSurfaceClicked: jest.fn(),
+    trackTokenButtonClicked: jest.fn(),
+    trackTokenSurfaceClicked: jest.fn(),
+    trackActivitySurfaceClicked: jest.fn(),
+    trackScreenViewed: jest.fn(),
+  })),
+}));
+
 jest.mock('../../hooks/useMoneyAccount', () => ({
   useMoneyAccountDeposit: jest.fn(() => ({
     initiateDeposit: mockInitiateDeposit,
