@@ -69,6 +69,7 @@ import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToke
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import PayAccountSelector from '../../PayAccountSelector';
 import { PerpsAccountPickerRow } from '../../rows/perps-account-picker-row';
+import { PredictAccountPickerRow } from '../../rows/predict-account-picker-row';
 import { useTransactionAccountOverride } from '../../../hooks/transactions/useTransactionAccountOverride';
 import { CustomAmountInfoTestIds } from './custom-amount-info.testIds';
 import { useConfirmationContext } from '../../../context/confirmation-context';
@@ -270,6 +271,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                   <PayAccountSelector style={styles.separator} />
                 )}
               <PerpsAccountPickerRow />
+              <PredictAccountPickerRow />
               {disablePay !== true && hasPaymentOption && <PayWithRow />}
             </>
           )}
@@ -279,6 +281,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 !selectedFiatPaymentMethodId &&
                 !shouldHideAccountSelector && <PayAccountSelector />}
               <PerpsAccountPickerRow />
+              <PredictAccountPickerRow />
               {disablePay !== true && hasPaymentOption && (
                 <PayWithRow isResultReady />
               )}
