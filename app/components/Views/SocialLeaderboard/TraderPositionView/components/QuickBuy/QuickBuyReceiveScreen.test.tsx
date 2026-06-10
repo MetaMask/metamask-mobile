@@ -26,7 +26,8 @@ jest.mock('@metamask/bridge-controller', () => ({
     }
     return `0x${parseInt(reference, 10).toString(16)}`;
   },
-  isNonEvmChainId: (chainId: string) => chainId.startsWith('solana:'),
+  isNonEvmChainId: (chainId: string) =>
+    !chainId.startsWith('0x') && !chainId.startsWith('eip155:'),
   isNativeAddress: () => false,
   getNativeAssetForChainId: () => undefined,
 }));
@@ -46,6 +47,8 @@ const createToken = (overrides: Partial<BridgeToken> = {}): BridgeToken => ({
 });
 
 const SOLANA_CHAIN_ID = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+const TRON_CHAIN_ID = 'tron:728126428';
+const BITCOIN_CHAIN_ID = 'bip122:000000000019d6689c085ae165831e93';
 
 const usdcToken = createToken({ symbol: 'USDC', chainId: '0x1' });
 const usdtToken = createToken({
@@ -57,6 +60,18 @@ const solanaUsdcToken = createToken({
   symbol: 'USDC',
   chainId: SOLANA_CHAIN_ID,
   address: `${SOLANA_CHAIN_ID}/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`,
+});
+const tronNativeToken = createToken({
+  symbol: 'TRX',
+  name: 'Tron',
+  chainId: TRON_CHAIN_ID,
+  address: `${TRON_CHAIN_ID}/slip44:195`,
+});
+const bitcoinNativeToken = createToken({
+  symbol: 'BTC',
+  name: 'Bitcoin',
+  chainId: BITCOIN_CHAIN_ID,
+  address: `${BITCOIN_CHAIN_ID}/slip44:0`,
 });
 
 const buildContext = (overrides: Record<string, unknown> = {}) => ({
@@ -135,10 +150,15 @@ describe('QuickBuyReceiveScreen', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders a Solana network chip when Solana receive options exist', () => {
+  it('renders Solana, Tron and Bitcoin network chips when receive options exist on those chains', () => {
     (useQuickBuyContext as jest.Mock).mockReturnValue(
       buildContext({
-        sellDestTokenOptions: [usdcToken, solanaUsdcToken],
+        sellDestTokenOptions: [
+          usdcToken,
+          solanaUsdcToken,
+          tronNativeToken,
+          bitcoinNativeToken,
+        ],
         handleSelectDestStable,
         setActiveScreen,
       }),
@@ -148,6 +168,12 @@ describe('QuickBuyReceiveScreen', () => {
 
     expect(
       screen.getByTestId(`quick-buy-chain-filter-${SOLANA_CHAIN_ID}`),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(`quick-buy-chain-filter-${TRON_CHAIN_ID}`),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(`quick-buy-chain-filter-${BITCOIN_CHAIN_ID}`),
     ).toBeOnTheScreen();
   });
 

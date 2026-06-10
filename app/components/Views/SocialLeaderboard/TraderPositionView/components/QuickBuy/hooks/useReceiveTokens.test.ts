@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
-import { SolScope } from '@metamask/keyring-api';
+import { BtcScope, SolScope, TrxScope } from '@metamask/keyring-api';
 import type { RootState } from '../../../../../../../reducers';
 import { selectSelectedInternalAccountByScope } from '../../../../../../../selectors/multichainAccounts/accounts';
 import { useReceiveTokens } from './useReceiveTokens';
@@ -117,6 +117,24 @@ jest.mock('../../../../../../UI/Bridge/utils/tokenUtils', () => ({
         chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
       };
     }
+    if (chainId === 'tron:728126428') {
+      return {
+        symbol: 'TRX',
+        name: 'Tron',
+        address: 'tron:728126428/slip44:195',
+        decimals: 6,
+        chainId: 'tron:728126428',
+      };
+    }
+    if (chainId === 'bip122:000000000019d6689c085ae165831e93') {
+      return {
+        symbol: 'BTC',
+        name: 'Bitcoin',
+        address: 'bip122:000000000019d6689c085ae165831e93/slip44:0',
+        decimals: 8,
+        chainId: 'bip122:000000000019d6689c085ae165831e93',
+      };
+    }
     throw new Error(`unsupported chain ${chainId}`);
   }),
 }));
@@ -128,6 +146,8 @@ const mockSelectSelectedInternalAccountByScope =
   selectSelectedInternalAccountByScope as unknown as jest.Mock;
 
 const SOLANA_CHAIN_ID = SolScope.Mainnet;
+const TRON_CHAIN_ID = TrxScope.Mainnet;
+const BITCOIN_CHAIN_ID = BtcScope.Mainnet;
 
 const MOCK_STATE = {
   engine: {
@@ -137,17 +157,30 @@ const MOCK_STATE = {
   },
 } as unknown as RootState;
 
-const SOLANA_ACCOUNT = {
-  id: 'solana-account-id',
-  address: 'So1anaAddre55111111111111111111111111111111',
+const NON_EVM_ACCOUNTS: Record<string, { id: string; address: string }> = {
+  [SOLANA_CHAIN_ID]: {
+    id: 'solana-account-id',
+    address: 'So1anaAddre55111111111111111111111111111111',
+  },
+  [TRON_CHAIN_ID]: {
+    id: 'tron-account-id',
+    address: 'TTronAddre55xxxxxxxxxxxxxxxxxxxxxx',
+  },
+  [BITCOIN_CHAIN_ID]: {
+    id: 'bitcoin-account-id',
+    address: 'bc1qbitcoinaddre55xxxxxxxxxxxxxxxxxxxxx',
+  },
+};
+
+/** Makes the selected account group expose addresses for the given scopes. */
+const givenAccountsForScopes = (scopes: string[]) => {
+  mockSelectSelectedInternalAccountByScope.mockReturnValue((scope: string) =>
+    scopes.includes(scope) ? NON_EVM_ACCOUNTS[scope] : undefined,
+  );
 };
 
 /** Makes the selected account group expose a Solana address. */
-const givenSolanaAccount = () => {
-  mockSelectSelectedInternalAccountByScope.mockReturnValue((scope: string) =>
-    scope === SOLANA_CHAIN_ID ? SOLANA_ACCOUNT : undefined,
-  );
-};
+const givenSolanaAccount = () => givenAccountsForScopes([SOLANA_CHAIN_ID]);
 
 describe('useReceiveTokens', () => {
   beforeEach(() => {
@@ -278,15 +311,6 @@ describe('useReceiveTokens', () => {
       expect(chainIds).toContain('0x1');
     });
 
-    it('never offers unsupported non-EVM chains (e.g. Tron) even with a Solana account', () => {
-      givenSolanaAccount();
-
-      const { result } = renderHook(() => useReceiveTokens(undefined));
-
-      const chainIds = result.current.map((t) => t.chainId);
-      expect(chainIds).not.toContain('tron:728126428');
-    });
-
     it('sorts Solana candidates to the front when the preferred chain is Solana', () => {
       givenSolanaAccount();
 
@@ -304,7 +328,80 @@ describe('useReceiveTokens', () => {
       expect(mockEnrich).toHaveBeenCalledWith(
         expect.objectContaining({ chainId: SOLANA_CHAIN_ID }),
         expect.objectContaining({
-          solanaAccount: expect.objectContaining({ id: SOLANA_ACCOUNT.id }),
+          solanaAccount: expect.objectContaining({
+            id: NON_EVM_ACCOUNTS[SOLANA_CHAIN_ID].id,
+          }),
+        }),
+        { includeZeroBalance: true },
+      );
+    });
+  });
+
+  describe('Tron and Bitcoin candidates', () => {
+    it('offers native TRX when the account has a Tron address, but never TRC-20 stablecoins', () => {
+      givenAccountsForScopes([TRON_CHAIN_ID]);
+
+      const { result } = renderHook(() => useReceiveTokens(undefined));
+
+      const tronTokens = result.current.filter(
+        (t) => t.chainId === TRON_CHAIN_ID,
+      );
+      // Native-only: useAssetMetadata cannot resolve Tron token addresses
+      // (e.g. TRC-20 USDT), so only the native asset is offered.
+      expect(tronTokens.map((t) => t.symbol)).toEqual(['TRX']);
+    });
+
+    it('offers native BTC when the account has a Bitcoin address', () => {
+      givenAccountsForScopes([BITCOIN_CHAIN_ID]);
+
+      const { result } = renderHook(() => useReceiveTokens(undefined));
+
+      const bitcoinTokens = result.current.filter(
+        (t) => t.chainId === BITCOIN_CHAIN_ID,
+      );
+      expect(bitcoinTokens.map((t) => t.symbol)).toEqual(['BTC']);
+    });
+
+    it('omits Tron and Bitcoin candidates when the account lacks those addresses', () => {
+      givenSolanaAccount();
+
+      const { result } = renderHook(() => useReceiveTokens(undefined));
+
+      const chainIds = result.current.map((t) => t.chainId);
+      expect(chainIds).toContain(SOLANA_CHAIN_ID);
+      expect(chainIds).not.toContain(TRON_CHAIN_ID);
+      expect(chainIds).not.toContain(BITCOIN_CHAIN_ID);
+    });
+
+    it('drops Tron and Bitcoin candidates when those networks are not enabled', () => {
+      givenAccountsForScopes([TRON_CHAIN_ID, BITCOIN_CHAIN_ID]);
+      mockUseNetworkEnabledPredicate.mockReturnValue(
+        (chainId: string | undefined) =>
+          chainId !== TRON_CHAIN_ID && chainId !== BITCOIN_CHAIN_ID,
+      );
+
+      const { result } = renderHook(() => useReceiveTokens(undefined));
+
+      const chainIds = result.current.map((t) => t.chainId);
+      expect(chainIds).not.toContain(TRON_CHAIN_ID);
+      expect(chainIds).not.toContain(BITCOIN_CHAIN_ID);
+      expect(chainIds).toContain('0x1');
+    });
+
+    it('passes the Tron and Bitcoin accounts to balance enrichment so their holdings are priced', () => {
+      givenAccountsForScopes([TRON_CHAIN_ID, BITCOIN_CHAIN_ID]);
+
+      renderHook(() => useReceiveTokens(undefined));
+
+      expect(mockEnrich).toHaveBeenCalledWith(
+        expect.objectContaining({ chainId: TRON_CHAIN_ID }),
+        expect.objectContaining({
+          tronAccount: expect.objectContaining({
+            id: NON_EVM_ACCOUNTS[TRON_CHAIN_ID].id,
+          }),
+          bitcoinAccount: expect.objectContaining({
+            id: NON_EVM_ACCOUNTS[BITCOIN_CHAIN_ID].id,
+          }),
         }),
         { includeZeroBalance: true },
       );
