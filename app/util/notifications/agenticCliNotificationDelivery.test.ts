@@ -68,7 +68,7 @@ describe('agenticCliNotificationDelivery', () => {
         title: 'Agentic CLI',
         body: 'Your session completed',
       },
-    } as INotification;
+    } as unknown as INotification;
 
     expect(notificationIndicatesAgenticCli(notification)).toBe(true);
   });
@@ -81,7 +81,7 @@ describe('agenticCliNotificationDelivery', () => {
         title: 'Agentic test notification',
         body: 'Hello, dashboard',
       },
-    } as INotification;
+    } as unknown as INotification;
 
     const byCta = {
       id: '2',
@@ -91,7 +91,7 @@ describe('agenticCliNotificationDelivery', () => {
         body: 'Review required',
         cta: { label: 'Review Agentic Transaction' },
       },
-    } as INotification;
+    } as unknown as INotification;
 
     expect(notificationIndicatesAgenticCli(byTitle)).toBe(true);
     expect(notificationIndicatesAgenticCli(byCta)).toBe(true);
@@ -102,7 +102,7 @@ describe('agenticCliNotificationDelivery', () => {
       data: {
         metadata: JSON.stringify({ kind: 'agentic_cli_update' }),
       },
-    } as FirebaseMessagingTypes.RemoteMessage;
+    } as unknown as FirebaseMessagingTypes.RemoteMessage;
 
     expect(remoteMessageIndicatesAgenticCli(payload)).toBe(true);
   });
@@ -117,7 +117,7 @@ describe('agenticCliNotificationDelivery', () => {
       id: '1',
       type: TRIGGER_TYPES.PLATFORM,
       template: { title: 'Agentic CLI', body: 'Update' },
-    } as INotification;
+    } as unknown as INotification;
 
     await expect(
       shouldSuppressAgenticCliPushDelivery(notification),
@@ -134,7 +134,7 @@ describe('agenticCliNotificationDelivery', () => {
       id: '1',
       type: TRIGGER_TYPES.PLATFORM,
       template: { title: 'Agentic CLI', body: 'Update' },
-    } as INotification;
+    } as unknown as INotification;
 
     await expect(
       shouldSuppressAgenticCliPushDelivery(notification),
@@ -154,7 +154,7 @@ describe('agenticCliNotificationDelivery', () => {
       id: '1',
       type: TRIGGER_TYPES.PLATFORM,
       template: { title: 'Agentic CLI', body: 'Update' },
-    } as INotification;
+    } as unknown as INotification;
 
     await expect(
       shouldSuppressAgenticCliPushDelivery(notification),
@@ -171,7 +171,7 @@ describe('agenticCliNotificationDelivery', () => {
     const notification = {
       id: '1',
       type: TRIGGER_TYPES.ETH_RECEIVED,
-    } as INotification;
+    } as unknown as INotification;
 
     await expect(
       shouldSuppressAgenticCliPushDelivery(notification),
@@ -185,7 +185,7 @@ describe('agenticCliNotificationDelivery', () => {
       type: TRIGGER_TYPES.PLATFORM,
       createdAt: String(disabledAt - 60_000),
       template: { title: 'Agentic test notification', body: 'Hello' },
-    } as INotification;
+    } as unknown as INotification;
 
     expect(
       shouldHideNewAgenticCliInAppNotification(
@@ -206,7 +206,7 @@ describe('agenticCliNotificationDelivery', () => {
       type: TRIGGER_TYPES.PLATFORM,
       createdAt: String(disabledAt + 1_000),
       template: { title: 'Agentic test notification', body: 'Hello' },
-    } as INotification;
+    } as unknown as INotification;
 
     expect(
       shouldHideNewAgenticCliInAppNotification(
@@ -227,7 +227,7 @@ describe('agenticCliNotificationDelivery', () => {
       type: TRIGGER_TYPES.PLATFORM,
       createdAt: '2026-06-10T03:36:00.000Z',
       template: { title: 'Agentic test notification', body: 'Hello' },
-    } as INotification;
+    } as unknown as INotification;
 
     expect(
       shouldHideNewAgenticCliInAppNotification(
@@ -247,7 +247,7 @@ describe('agenticCliNotificationDelivery', () => {
       type: TRIGGER_TYPES.PLATFORM,
       createdAt: '2026-06-10T03:36:00.000Z',
       template: { title: 'Agentic test notification', body: 'Hello' },
-    } as INotification;
+    } as unknown as INotification;
 
     expect(
       shouldHideNewAgenticCliInAppNotification(
@@ -278,7 +278,7 @@ describe('agenticCliNotificationDelivery', () => {
       id: '1',
       type: TRIGGER_TYPES.PLATFORM,
       template: { title: 'Agentic test notification', body: 'Hello' },
-    } as INotification;
+    } as unknown as INotification;
 
     await expect(
       shouldSuppressAgenticCliPushDelivery(notification),
@@ -299,7 +299,7 @@ describe('agenticCliNotificationDelivery', () => {
       id: '1',
       type: TRIGGER_TYPES.PLATFORM,
       template: { title: 'Agentic test notification', body: 'Hello' },
-    } as INotification;
+    } as unknown as INotification;
 
     await expect(
       shouldSuppressAgenticCliPushDelivery(notification),
