@@ -995,6 +995,9 @@ describe('MainNavigator', () => {
       const screen = screenProps?.find((s) => s?.name === 'ConfirmAddAsset');
 
       expect(screen).toBeDefined();
+      expect(screen?.options?.headerShown).toBe(false);
+      expect(screen?.options?.animationEnabled).toBe(true);
+      expect(typeof screen?.options?.cardStyleInterpolator).toBe('function');
     });
 
     it('includes StakeScreens route', () => {
@@ -1078,6 +1081,9 @@ describe('MainNavigator', () => {
       );
 
       expect(screen).toBeDefined();
+      expect(screen?.options?.headerShown).toBe(false);
+      expect(screen?.options?.animationEnabled).toBe(true);
+      expect(typeof screen?.options?.cardStyleInterpolator).toBe('function');
     });
 
     it('includes Asset screen', () => {

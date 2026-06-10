@@ -6,6 +6,8 @@ import DeFiProtocolPositionDetails, {
   DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID,
 } from './DeFiProtocolPositionDetails';
 import { CommonSelectorsIDs } from '../../../util/Common.testIds';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 
 const mockPop = jest.fn();
 
@@ -123,5 +125,19 @@ describe('DeFiProtocolPositionDetails', () => {
     await userEvent.press(getByTestId(CommonSelectorsIDs.BACK_ARROW_BUTTON));
 
     expect(mockPop).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders SafeAreaView with left, right, and bottom edges only', () => {
+    const { getByTestId } = renderWithProvider(
+      <DeFiProtocolPositionDetails />,
+      {
+        state: mockInitialState,
+      },
+    );
+
+    expect(
+      getByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_DETAILS_CONTAINER).props
+        .edges,
+    ).toEqual(['left', 'right', 'bottom']);
   });
 });

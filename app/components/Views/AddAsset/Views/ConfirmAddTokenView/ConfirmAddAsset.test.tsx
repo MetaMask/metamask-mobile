@@ -21,6 +21,7 @@ import {
 import Routes from '../../../../../constants/navigation/Routes';
 import Logger from '../../../../../util/Logger';
 import { strings } from '../../../../../../locales/i18n';
+import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -128,6 +129,16 @@ describe('ConfirmAddAsset', () => {
     expect(getByText('USDT')).toBeOnTheScreen();
     expect(getByText('USD Coin')).toBeOnTheScreen();
     expect(getByText('USDC')).toBeOnTheScreen();
+  });
+
+  it('calls goBack when HeaderStandard back button is pressed', async () => {
+    const { getByTestId } = renderWithProvider(<ConfirmAddAsset />, {
+      state: mockInitialState,
+    });
+
+    await userEvent.press(getByTestId('button-icon'));
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
   it('calls goBack when back button is pressed', async () => {
@@ -257,5 +268,16 @@ describe('ConfirmAddAsset', () => {
     });
 
     expect(getByText(strings('add_asset.title'))).toBeOnTheScreen();
+  });
+
+  it('renders SafeAreaView with left, right, and bottom edges only', () => {
+    const { getByTestId } = renderWithProvider(<ConfirmAddAsset />, {
+      state: mockInitialState,
+    });
+
+    expect(
+      getByTestId(ImportTokenViewSelectorsIDs.ADD_CONFIRM_CUSTOM_ASSET).props
+        .edges,
+    ).toEqual(['left', 'right', 'bottom']);
   });
 });
