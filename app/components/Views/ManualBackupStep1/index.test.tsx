@@ -73,7 +73,7 @@ jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
     isEnabled: mockIsMetricsEnabled,
     enable: jest.fn(),
-    addTraitsToUser: jest.fn(),
+    identify: jest.fn(),
     createEventBuilder: jest.fn(() => ({
       addProperties: jest.fn(() => ({ build: jest.fn() })),
       build: jest.fn(),

@@ -485,25 +485,27 @@ const PredictionsSectionDefault = forwardRef<
             />
           </>
         ) : (
-          <HomepagePredictTrendingMarkets
-            title={title}
-            onViewAll={handleViewAllPredictions}
-            headerTestIdKey="predictions"
-            discoveryLayout={discoveryLayout}
-            isLoadingMarkets={isLoadingMarkets}
-            markets={markets}
-            transactionActiveAbTests={discoveryTransactionActiveAbTests}
-            worldCupHomepage={worldCupHomepageMarkets}
-            nbaChampionHomepage={nbaChampionHomepageMarkets}
-            emptyStateTransactionActiveAbTests={
-              discoveryTransactionActiveAbTests
-            }
-            onEmptyStateTreatmentCtaClick={
-              shouldTrackEmptyState
-                ? trackEmptyStateTreatmentCtaClick
-                : undefined
-            }
-          />
+          <Box paddingBottom={3}>
+            <HomepagePredictTrendingMarkets
+              title={title}
+              onViewAll={handleViewAllPredictions}
+              headerTestIdKey="predictions"
+              discoveryLayout={discoveryLayout}
+              isLoadingMarkets={isLoadingMarkets}
+              markets={markets}
+              transactionActiveAbTests={discoveryTransactionActiveAbTests}
+              worldCupHomepage={worldCupHomepageMarkets}
+              nbaChampionHomepage={nbaChampionHomepageMarkets}
+              emptyStateTransactionActiveAbTests={
+                discoveryTransactionActiveAbTests
+              }
+              onEmptyStateTreatmentCtaClick={
+                shouldTrackEmptyState
+                  ? trackEmptyStateTreatmentCtaClick
+                  : undefined
+              }
+            />
+          </Box>
         )}
       </PredictionsSectionShell>
     );
@@ -670,18 +672,22 @@ const PredictionsSectionTrendingOnly = forwardRef<
         sectionIndex={sectionIndex}
         totalSectionsLoaded={totalSectionsLoaded}
       >
-        <HomepagePredictTrendingMarkets
-          title={title}
-          onViewAll={handleViewAllPredictions}
-          headerTestIdKey="trending-predictions"
-          discoveryLayout={discoveryLayout}
-          isLoadingMarkets={isLoadingMarkets}
-          markets={markets}
-          transactionActiveAbTests={trendingTransactionActiveAbTests}
-          emptyStateTransactionActiveAbTests={trendingTransactionActiveAbTests}
-          worldCupHomepage={worldCupHomepageMarkets}
-          nbaChampionHomepage={nbaChampionHomepageMarkets}
-        />
+        <Box paddingBottom={3}>
+          <HomepagePredictTrendingMarkets
+            title={title}
+            onViewAll={handleViewAllPredictions}
+            headerTestIdKey="trending-predictions"
+            discoveryLayout={discoveryLayout}
+            isLoadingMarkets={isLoadingMarkets}
+            markets={markets}
+            transactionActiveAbTests={trendingTransactionActiveAbTests}
+            emptyStateTransactionActiveAbTests={
+              trendingTransactionActiveAbTests
+            }
+            worldCupHomepage={worldCupHomepageMarkets}
+            nbaChampionHomepage={nbaChampionHomepageMarkets}
+          />
+        </Box>
       </PredictionsSectionShell>
     );
   },
@@ -740,13 +746,15 @@ const PredictionsSectionSportsOnly = forwardRef<
         sectionIndex={sectionIndex}
         totalSectionsLoaded={totalSectionsLoaded}
       >
-        <HomepagePredictWorldCupDiscovery
-          title={title}
-          onViewAll={handleViewAllPredictions}
-          headerTestIdKey="trending-predictions"
-          worldCup={worldCupHomepageMarkets}
-          nbaChampion={nbaChampionHomepageMarkets}
-        />
+        <Box paddingBottom={3}>
+          <HomepagePredictWorldCupDiscovery
+            title={title}
+            onViewAll={handleViewAllPredictions}
+            headerTestIdKey="trending-predictions"
+            worldCup={worldCupHomepageMarkets}
+            nbaChampion={nbaChampionHomepageMarkets}
+          />
+        </Box>
       </PredictionsSectionShell>
     );
   },

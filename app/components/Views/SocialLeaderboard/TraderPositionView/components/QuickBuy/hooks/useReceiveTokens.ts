@@ -7,57 +7,68 @@ import { selectSelectedInternalAccountByScope } from '../../../../../../../selec
 import { selectTokensBalances } from '../../../../../../../selectors/tokenBalancesController';
 import { selectTokenMarketData } from '../../../../../../../selectors/tokenRatesController';
 import { selectCurrencyRates } from '../../../../../../../selectors/currencyRateController';
-import {
-  DefaultSwapDestTokens,
-  Bip44TokensForDefaultPairs,
-} from '../../../../../../UI/Bridge/constants/default-swap-dest-tokens';
-import { ETH_USDT_ADDRESS } from '../../../../../../../constants/bridge';
-import { NETWORK_CHAIN_ID } from '../../../../../../../util/networks/customNetworks';
+import { DefaultSwapDestTokens } from '../../../../../../UI/Bridge/constants/default-swap-dest-tokens';
 import { EVM_SCOPE } from '../../../../../../UI/Earn/constants/networks';
+import { getNativeSourceToken } from '../../../../../../UI/Bridge/utils/tokenUtils';
+import { getTokenKey } from '../tokenKey';
 import { enrichTokenBalance } from './enrichTokenBalance';
 import { isStablecoinSymbol } from './stablecoins';
+import { RECEIVE_STABLECOIN_CANDIDATES } from './receiveStablecoinCandidates';
 import { useNetworkEnabledPredicate } from './useNetworkEnabledPredicate';
 
 /**
- * Static EVM stablecoin candidates for the Sell "Receive" picker, extracted
- * from `DefaultSwapDestTokens` and filtered to mUSD, USDC, and USDT on EVM
- * chains. These are the only tokens a user can receive when selling a position.
+ * Static EVM stablecoin candidates for the Sell "Receive" picker.
+ *
+ * `DefaultSwapDestTokens` carries a single stablecoin per chain (which sets the
+ * per-chain default selection — e.g. mUSD on mainnet/Linea), so we keep those
+ * as the leading entries and then append the canonical USDC/USDT set from
+ * `RECEIVE_STABLECOIN_CANDIDATES`. The append guarantees both major stablecoins
+ * show on every supported chain (previously USDT was missing on Optimism,
+ * USDC on Polygon, etc.) without disturbing the existing default ordering.
+ * Duplicates are removed by stable token identity (`address:chainId`).
  */
-const STABLECOIN_CANDIDATES: BridgeToken[] = Object.values(
-  DefaultSwapDestTokens,
-)
-  .filter(
+const STABLECOIN_CANDIDATES: BridgeToken[] = (() => {
+  const primaries = Object.values(DefaultSwapDestTokens).filter(
     (token) =>
       isStablecoinSymbol(token.symbol) &&
       typeof token.chainId === 'string' &&
       token.chainId.startsWith('0x'),
-  )
-  // Add mainnet USDC from Bip44TokensForDefaultPairs (DefaultSwapDestTokens has mUSD for mainnet)
-  .concat(
-    Bip44TokensForDefaultPairs[
-      'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'
-    ],
-  )
-  // Add mainnet USDT (not in DefaultSwapDestTokens)
-  .concat({
-    symbol: 'USDT',
-    name: 'Tether USD',
-    address: ETH_USDT_ADDRESS,
-    decimals: 6,
-    image:
-      'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xdac17f958d2ee523a2206206994597c13d831ec7.png',
-    chainId: NETWORK_CHAIN_ID.MAINNET,
-  });
+  );
+  const seen = new Set(primaries.map(getTokenKey));
+  const extras = RECEIVE_STABLECOIN_CANDIDATES.filter(
+    (token) => !seen.has(getTokenKey(token)),
+  );
+  return [...primaries, ...extras];
+})();
 
 /**
- * Returns the stablecoin candidates for the "Receive" picker, sorting any
- * candidate on `preferredChainId` to the front so the position's chain is
- * offered first.
+ * Native token candidates for the Sell "Receive" picker, one per chain already
+ * covered by `STABLECOIN_CANDIDATES`. Built via `getNativeSourceToken` so each
+ * native uses the bridge-expected address (zero address on EVM). Chains the
+ * helper can't resolve are skipped. Together with the stablecoins, these are
+ * the tokens a user can receive when selling a position.
+ */
+const NATIVE_CANDIDATES: BridgeToken[] = Array.from(
+  new Set(STABLECOIN_CANDIDATES.map((token) => token.chainId)),
+).reduce<BridgeToken[]>((acc, chainId) => {
+  try {
+    acc.push(getNativeSourceToken(chainId));
+  } catch {
+    // Skip chains whose native asset can't be resolved.
+  }
+  return acc;
+}, []);
+
+/**
+ * Returns the "Receive" picker candidates (stablecoins + native tokens),
+ * sorting any candidate on `preferredChainId` to the front so the position's
+ * chain is offered first. Stablecoins precede natives within each chain group,
+ * keeping a stablecoin as the default selection (index 0).
  */
 const getReceiveTokenCandidates = (
   preferredChainId: string | undefined,
 ): BridgeToken[] => {
-  const all = [...STABLECOIN_CANDIDATES];
+  const all = [...STABLECOIN_CANDIDATES, ...NATIVE_CANDIDATES];
   if (!preferredChainId) return all;
   return [
     ...all.filter((t) => t.chainId === preferredChainId),
@@ -67,12 +78,13 @@ const getReceiveTokenCandidates = (
 
 /**
  * Returns the "Receive" token options for QuickBuy Sell mode: the curated
- * stablecoin set the user can receive when selling a position.
+ * stablecoin set plus each chain's native token, which the user can receive
+ * when selling a position.
  *
- * All stable candidates are returned regardless of balance (the user can
- * receive into a stable they don't yet hold). Held stables are enriched with
- * balance + fiat; unheld ones show "$0.00". Stables on `preferredChainId` are
- * sorted to the top.
+ * All candidates are returned regardless of balance (the user can receive into
+ * a token they don't yet hold). Held tokens are enriched with balance + fiat;
+ * unheld ones show "$0.00". Candidates on `preferredChainId` are sorted to the
+ * top, stablecoins before natives.
  */
 export const useReceiveTokens = (
   preferredChainId: string | undefined,

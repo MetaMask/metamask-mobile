@@ -208,7 +208,9 @@ const PredictCryptoUpDownPosition: React.FC<
             {outcomeLabel}
           </Text>
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-            {' · '}
+            ·
+          </Text>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {entryLabel}
           </Text>
         </Box>

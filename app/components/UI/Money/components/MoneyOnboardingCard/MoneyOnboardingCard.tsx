@@ -3,14 +3,21 @@ import { Box } from '@metamask/design-system-react-native';
 import moneyOnboardingStepperStep1 from '../../../../../images/money-onboarding-stepper-step-1.png';
 import moneyOnboardingStepperStep2 from '../../../../../images/money-onboarding-stepper-step-2.png';
 import { strings } from '../../../../../../locales/i18n';
-import Routes from '../../../../../constants/navigation/Routes';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
+import { MONEY_HOME_CARD_ORIGIN } from '../../../Card/hooks/useCardPostAuthRedirect';
 import { useOnboardingStep, STEPPER_IDS } from '../../hooks/useOnboardingStep';
 import StepperCard, {
   type StepperCardStep,
 } from '../../../../../component-library/components-temp/StepperCard';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import {
+  COMPONENT_NAMES,
+  MONEY_ONBOARDING_STEP_ACTIONS,
+  SCREEN_NAMES,
+  BOTTOM_SHEET_NAMES,
+} from '../../constants/moneyEvents';
 
 // REMINDER: Must be updated when the number of steps is changed.
 export const MONEY_ONBOARDING_TOTAL_STEPS = 2;
@@ -27,6 +34,10 @@ const MoneyOnboardingCard = () => {
 
   const { initiateDeposit } = useMoneyAccountDeposit();
   const { tokenTotal, isAggregatedBalanceLoading } = useMoneyAccountBalance();
+  const { trackOnboardingEvent } = useMoneyAnalytics({
+    screen_name: SCREEN_NAMES.MONEY_HOME,
+    component_name: COMPONENT_NAMES.MONEY_ONBOARDING_CARD,
+  });
 
   const {
     startLinkFlow,
@@ -39,16 +50,53 @@ const MoneyOnboardingCard = () => {
     await initiateDeposit().catch(() => undefined);
   }, [initiateDeposit]);
 
-  const handleCardCtaPress = useCallback(() => {
-    startLinkFlow({
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
-    });
-  }, [startLinkFlow]);
+  const handleCardCtaPress = useCallback(
+    (stepTitleEn: string) => {
+      const baseProperties = {
+        step: currentStep + 1, // Use 1-based index for event tracking to match total_steps count.
+        step_title: stepTitleEn,
+        total_steps: MONEY_ONBOARDING_TOTAL_STEPS,
+      } as const;
 
-  const handleSkipPress = useCallback(() => {
-    incrementStep();
-  }, [incrementStep]);
+      if (isCardAuthenticated && !isCardLinkedToMoneyAccount) {
+        trackOnboardingEvent({
+          ...baseProperties,
+          step_action: MONEY_ONBOARDING_STEP_ACTIONS.LINK_CARD,
+          redirect_target: BOTTOM_SHEET_NAMES.CARD_LINK_SHEET,
+        });
+      } else {
+        trackOnboardingEvent({
+          ...baseProperties,
+          step_action: MONEY_ONBOARDING_STEP_ACTIONS.GET_CARD,
+          redirect_target: BOTTOM_SHEET_NAMES.CARD_AUTH_SHEET,
+        });
+      }
+
+      startLinkFlow(MONEY_HOME_CARD_ORIGIN);
+    },
+    [
+      currentStep,
+      isCardAuthenticated,
+      isCardLinkedToMoneyAccount,
+      startLinkFlow,
+      trackOnboardingEvent,
+    ],
+  );
+
+  const handleSkipPress = useCallback(
+    /** English (non-localized) step title. */
+    (stepTitleEn: string) => {
+      trackOnboardingEvent({
+        step: currentStep + 1, // Use 1-based index for event tracking to match total_steps count.
+        step_title: stepTitleEn,
+        total_steps: MONEY_ONBOARDING_TOTAL_STEPS,
+        step_action: MONEY_ONBOARDING_STEP_ACTIONS.SKIPPED,
+      });
+
+      incrementStep();
+    },
+    [currentStep, incrementStep, trackOnboardingEvent],
+  );
 
   const targetStepFromCompletion = useMemo(() => {
     // Step 1 completion is based on having a non-zero balance (after loading).
@@ -87,6 +135,17 @@ const MoneyOnboardingCard = () => {
     }
   }, [currentStep, targetStepFromCompletion, incrementStep]);
 
+  const handleStep1CtaPressed = useCallback(() => {
+    trackOnboardingEvent({
+      step: currentStep + 1, // Use 1-based index for event tracking to match total_steps count.
+      step_title: strings('money.onboarding.step_1.title', { locale: 'en' }),
+      total_steps: MONEY_ONBOARDING_TOTAL_STEPS,
+      step_action: MONEY_ONBOARDING_STEP_ACTIONS.DEPOSIT_INITIATED,
+      redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+    });
+    handleRedirectToCryptoDeposit();
+  }, [currentStep, handleRedirectToCryptoDeposit, trackOnboardingEvent]);
+
   // REMINDER: Update MONEY_ONBOARDING_TOTAL_STEPS when steps are added or removed.
   const steps = useMemo((): StepperCardStep[] => {
     if (!isOnboardingCardVisible || !isVisibleAfterAutoSkip) return [];
@@ -96,7 +155,7 @@ const MoneyOnboardingCard = () => {
       description: strings('money.onboarding.step_1.description'),
       primaryCta: {
         text: strings('money.onboarding.step_1.cta'),
-        onPress: handleRedirectToCryptoDeposit,
+        onPress: handleStep1CtaPressed,
       },
       image: moneyOnboardingStepperStep1,
     };
@@ -115,14 +174,28 @@ const MoneyOnboardingCard = () => {
               text: strings(
                 'money.onboarding.step_2.unlinked_card_account.cta_primary',
               ),
-              onPress: handleCardCtaPress,
+              onPress: () =>
+                handleCardCtaPress(
+                  strings(
+                    'money.onboarding.step_2.unlinked_card_account.title',
+                    {
+                      locale: 'en',
+                    },
+                  ),
+                ),
               disabled: isLinking,
             },
             secondaryCta: {
               text: strings(
                 'money.onboarding.step_2.unlinked_card_account.cta_secondary',
               ),
-              onPress: handleSkipPress,
+              onPress: () =>
+                handleSkipPress(
+                  strings(
+                    'money.onboarding.step_2.unlinked_card_account.title',
+                    { locale: 'en' },
+                  ),
+                ),
             },
             image: moneyOnboardingStepperStep2,
           }
@@ -136,14 +209,24 @@ const MoneyOnboardingCard = () => {
               text: strings(
                 'money.onboarding.step_2.no_card_account.cta_primary',
               ),
-              onPress: handleCardCtaPress,
+              onPress: () =>
+                handleCardCtaPress(
+                  strings('money.onboarding.step_2.no_card_account.title', {
+                    locale: 'en',
+                  }),
+                ),
               disabled: isLinking,
             },
             secondaryCta: {
               text: strings(
                 'money.onboarding.step_2.no_card_account.cta_secondary',
               ),
-              onPress: handleSkipPress,
+              onPress: () =>
+                handleSkipPress(
+                  strings('money.onboarding.step_2.no_card_account.title', {
+                    locale: 'en',
+                  }),
+                ),
             },
             image: moneyOnboardingStepperStep2,
           };
@@ -152,10 +235,10 @@ const MoneyOnboardingCard = () => {
   }, [
     isOnboardingCardVisible,
     isVisibleAfterAutoSkip,
+    handleStep1CtaPressed,
     isCardAuthenticated,
     isCardLinkedToMoneyAccount,
     isLinking,
-    handleRedirectToCryptoDeposit,
     handleCardCtaPress,
     handleSkipPress,
   ]);
@@ -169,7 +252,7 @@ const MoneyOnboardingCard = () => {
   }
 
   return (
-    <Box twClassName="pb-4 mx-4 mt-3">
+    <Box twClassName="pb-7 mx-4 mt-3">
       <StepperCard
         steps={steps}
         currentStep={effectiveCurrentStep}
