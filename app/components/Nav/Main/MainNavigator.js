@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useRef,
+  useCallback,
+} from 'react';
 import { Image, StyleSheet, Keyboard, Platform } from 'react-native';
 import {
   createStackNavigator,
@@ -80,12 +86,16 @@ import SendTransaction from '../../UI/Ramp/Aggregator/Views/SendTransaction';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
-import { SnapSettings } from '../../Views/Snaps/SnapSettings';
+import {
+  SnapSettings,
+  ALLOWED_CAPABILITIES as SNAPS_SETTINGS_ROUTE_ALLOWED_CAPABILITIES,
+} from '../../Views/Snaps/SnapSettings';
 import { CAN_INSTALL_THIRD_PARTY_SNAPS } from '../../../constants/snaps';
 ///: END:ONLY_INCLUDE_IF
 import Routes from '../../../constants/navigation/Routes';
 import {
   clearStackNavigatorOptionsWithTransitionAnimation,
+  clearNativeStackNavigatorOptions,
   transparentModalScreenOptions,
 } from '../../../constants/navigation/clearStackNavigatorOptions';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -160,7 +170,8 @@ import { TokenDetails } from '../../UI/TokenDetails/Views/TokenDetails';
 import BenefitFullView from '../../UI/Rewards/Views/BenefitFullView';
 import BenefitsFullView from '../../UI/Rewards/Views/BenefitsFullView';
 import { getDeFiProtocolPositionDetailsNavbarOptions } from '../../UI/Navbar';
-import NavigationDevPanel from '../../Views/NavigationDevPanel/NavigationDevPanel';
+import MoneyTabPressTracker from '../../UI/Money/components/MoneyTabPressTracker';
+import { withMessenger } from '../../../messengers/helpers/route-messenger-helpers';
 
 const Stack = createStackNavigator();
 const NativeStack = createNativeStackNavigator();
@@ -214,43 +225,43 @@ const fadeAnimation = {
 
 /* eslint-disable react/prop-types */
 const AssetStackFlow = (props) => (
-  <Stack.Navigator
+  <NativeStack.Navigator
     screenOptions={{
       headerShown: false,
     }}
   >
-    <Stack.Screen
+    <NativeStack.Screen
       name={'Asset'}
       component={TokenDetails}
       initialParams={props.route.params}
     />
-    <Stack.Screen
+    <NativeStack.Screen
       name={'AssetDetails'}
       component={AssetDetails}
       initialParams={{ address: props.route.params?.address }}
     />
-    <Stack.Screen
+    <NativeStack.Screen
       name={Routes.SECURITY_TRUST}
       component={SecurityTrustScreen}
     />
-    <Stack.Screen
+    <NativeStack.Screen
       name={Routes.TRANSACTION_DETAILS}
       component={TransactionDetails}
     />
-  </Stack.Navigator>
+  </NativeStack.Navigator>
 );
 
 const AssetNavigator = (props) => (
-  <Stack.Navigator
+  <NativeStack.Navigator
     initialRouteName={'AssetStackFlow'}
-    screenOptions={clearStackNavigatorOptionsWithTransitionAnimation}
+    screenOptions={clearNativeStackNavigatorOptions}
   >
-    <Stack.Screen
+    <NativeStack.Screen
       name={'AssetStackFlow'}
       component={AssetStackFlow}
       initialParams={props.route.params}
     />
-  </Stack.Navigator>
+  </NativeStack.Navigator>
 );
 /* eslint-enable react/prop-types */
 
@@ -296,6 +307,7 @@ const TransactionsHome = () => {
       <NativeStack.Screen
         name={Routes.TRANSACTION_DETAILS}
         component={TransactionDetails}
+        options={{ headerShown: false }}
       />
       <NativeStack.Screen
         name={Routes.RAMP.ORDER_DETAILS}
@@ -422,82 +434,79 @@ const ExploreHome = () => {
 };
 
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-const SnapsSettingsStack = () => (
-  <Stack.Navigator>
-    <Stack.Screen
-      name={Routes.SNAPS.SNAPS_SETTINGS_LIST}
-      component={SnapsSettingsList}
-      options={SnapsSettingsList.navigationOptions}
-    />
-    <Stack.Screen
-      name={Routes.SNAPS.SNAP_SETTINGS}
-      component={SnapSettings}
-      options={SnapSettings.navigationOptions}
-    />
-  </Stack.Navigator>
-);
+const SnapSettingsWithMessenger = withMessenger(SnapSettings, {
+  capabilities: SNAPS_SETTINGS_ROUTE_ALLOWED_CAPABILITIES,
+});
+
+const SnapsSettingsStack = () => {
+  const { colors } = useTheme();
+  return (
+    <NativeStack.Navigator
+      screenOptions={{
+        headerShown: false,
+        contentStyle: { backgroundColor: colors.background.default },
+      }}
+    >
+      <NativeStack.Screen
+        name={Routes.SNAPS.SNAPS_SETTINGS_LIST}
+        component={SnapsSettingsList}
+      />
+      <NativeStack.Screen
+        name={Routes.SNAPS.SNAP_SETTINGS}
+        component={SnapSettingsWithMessenger}
+      />
+    </NativeStack.Navigator>
+  );
+};
 ///: END:ONLY_INCLUDE_IF
 
 const SettingsFlow = () => {
   const { colors } = useTheme();
   return (
-    <Stack.Navigator
+    <NativeStack.Navigator
       initialRouteName={Routes.ACCOUNTS_MENU_VIEW}
       screenOptions={{
-        cardStyle: { backgroundColor: colors.background.default },
+        headerShown: false,
+        contentStyle: { backgroundColor: colors.background.default },
       }}
     >
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.ACCOUNTS_MENU_VIEW}
         component={AccountsMenu}
-        options={{ headerShown: false }}
       />
-      <Stack.Screen
-        name="Settings"
-        component={Settings}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="GeneralSettings"
-        component={GeneralSettings}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
+      <NativeStack.Screen name="Settings" component={Settings} />
+      <NativeStack.Screen name="GeneralSettings" component={GeneralSettings} />
+      <NativeStack.Screen
         name="AdvancedSettings"
         component={AdvancedSettings}
-        options={{ headerShown: false }}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name="NetworksManagement"
         component={NetworksManagementView}
-        options={{ headerShown: false }}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.SETTINGS.NETWORK_DETAILS}
         component={NetworkDetailsView}
-        options={{ headerShown: false }}
       />
-      <Stack.Screen name="SDKSessionsManager" component={SDKSessionsManager} />
-      <Stack.Screen
+      <NativeStack.Screen
+        name="SDKSessionsManager"
+        component={SDKSessionsManager}
+      />
+      <NativeStack.Screen
         name="SecuritySettings"
         component={SecuritySettings}
-        options={{ headerShown: false }}
       />
-
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.RAMP.SETTINGS}
         component={RampSettings}
-        options={{ headerShown: false }}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.RAMP.ACTIVATION_KEY_FORM}
         component={RampActivationKeyForm}
-        options={{ headerShown: false }}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.RAMP.HEADLESS_PLAYGROUND}
         component={RampHeadlessPlayground}
-        options={{ headerShown: false }}
       />
       {
         /**
@@ -507,120 +516,84 @@ const SettingsFlow = () => {
          * If this is in production, it is a bug.
          */
         isTestEnvironment && (
-          <Stack.Screen
+          <NativeStack.Screen
             name="AesCryptoTestForm"
             component={AesCryptoTestForm}
-            options={{ headerShown: false }}
           />
         )
       }
-      <Stack.Screen
+      <NativeStack.Screen
         name="ExperimentalSettings"
         component={ExperimentalSettings}
-        options={{ headerShown: false }}
       />
-      <Stack.Screen
-        name="CompanySettings"
-        component={AppInformation}
-        options={{ headerShown: false }}
-      />
+      <NativeStack.Screen name="CompanySettings" component={AppInformation} />
       {process.env.MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS === 'true' && (
-        <Stack.Screen
+        <NativeStack.Screen
           name={Routes.SETTINGS.DEVELOPER_OPTIONS}
           component={DeveloperOptions}
-          options={DeveloperOptions.navigationOptions}
         />
       )}
-
-      <Stack.Screen
-        name="ContactsSettings"
-        component={Contacts}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="ContactForm"
-        component={ContactForm}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
+      <NativeStack.Screen name="ContactsSettings" component={Contacts} />
+      <NativeStack.Screen name="ContactForm" component={ContactForm} />
+      <NativeStack.Screen
         name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
         component={RevealPrivateCredential}
-        options={{ headerShown: false }}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.WALLET.WALLET_CONNECT_SESSIONS_VIEW}
         component={WalletConnectSessions}
-        options={{ headerShown: false }}
       />
-      <Stack.Screen
-        name="ResetPassword"
-        component={ResetPassword}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="WalletRecovery"
-        component={WalletRecovery}
-        options={WalletRecovery.navigationOptions}
-      />
-      <Stack.Screen
+      <NativeStack.Screen name="ResetPassword" component={ResetPassword} />
+      <NativeStack.Screen name="WalletRecovery" component={WalletRecovery} />
+      <NativeStack.Screen
         name="AccountBackupStep1B"
         component={AccountBackupStep1B}
-        options={{ headerShown: false }}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name="ManualBackupStep1"
         component={ManualBackupStep1}
-        options={{ headerShown: false }}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name="ManualBackupStep2"
         component={ManualBackupStep2}
-        options={{ headerShown: false }}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name="ManualBackupStep3"
         component={ManualBackupStep3}
-        options={{ headerShown: false }}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name="EnterPasswordSimple"
         component={EnterPasswordSimple}
-        options={EnterPasswordSimple.navigationOptions}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.SETTINGS.NOTIFICATIONS}
         component={NotificationsSettings}
-        options={{ headerShown: false }}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION}
         component={NotificationSettingsSection}
-        options={{ headerShown: false }}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.SETTINGS.BACKUP_AND_SYNC}
         component={BackupAndSyncSettings}
-        options={{ headerShown: false }}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.SETTINGS.REGION_SELECTOR}
         component={RegionSelector}
-        options={{ headerShown: false }}
       />
       {
         ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       }
       {CAN_INSTALL_THIRD_PARTY_SNAPS && (
-        <Stack.Screen
+        <NativeStack.Screen
           name={Routes.SNAPS.SNAPS_SETTINGS_LIST}
           component={SnapsSettingsStack}
-          options={{ headerShown: false }}
         />
       )}
       {
         ///: END:ONLY_INCLUDE_IF
       }
-    </Stack.Navigator>
+    </NativeStack.Navigator>
   );
 };
 
@@ -633,6 +606,12 @@ const HomeTabs = () => {
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
 
   const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
+
+  const trackMoneyTabPressRef = useRef(null);
+
+  const registerMoneyTabPressTracker = useCallback((fn) => {
+    trackMoneyTabPressRef.current = fn;
+  }, []);
 
   const accountsLength = useSelector(selectAccountsLength);
 
@@ -695,6 +674,9 @@ const HomeTabs = () => {
     },
     money: {
       tabBarIconKey: TabBarIconKey.Money,
+      callback: () => {
+        trackMoneyTabPressRef.current?.();
+      },
       rootScreenName: Routes.MONEY.HOME,
     },
     rewards: {
@@ -821,6 +803,9 @@ const HomeTabs = () => {
      * Retry toasts so we don't double-fire when both are mounted.
      */
     <PredictPreviewSheetProvider>
+      {isMoneyAccountEnabled ? (
+        <MoneyTabPressTracker onRegister={registerMoneyTabPressTracker} />
+      ) : null}
       <Tab.Navigator
         initialRouteName={Routes.WALLET.HOME}
         tabBar={renderTabBar}
@@ -1395,13 +1380,6 @@ const MainNavigator = () => {
           options={{ headerShown: false }}
         />
       )}
-      {process.env.METAMASK_ENVIRONMENT !== 'production' && (
-        <Stack.Screen
-          name={Routes.NAVIGATION_DEV_PANEL}
-          component={NavigationDevPanel}
-          options={{ headerShown: true, ...slideFromRightAnimation }}
-        />
-      )}
       <Stack.Screen
         name="DeFiProtocolPositionDetails"
         component={DeFiProtocolPositionDetails}
@@ -1428,7 +1406,7 @@ const MainNavigator = () => {
       <Stack.Screen
         name={Routes.CARD.ROOT}
         component={CardRoutes}
-        options={TransitionPresets.ModalSlideFromBottomIOS}
+        options={TransitionPresets.ModalPresentationIOS}
       />
       <Stack.Screen
         name={Routes.RAMP.MODALS.PROCESSING_INFO}

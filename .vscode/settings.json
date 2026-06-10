@@ -29,5 +29,13 @@
   "editor.quickSuggestions": {
     "strings": true
   },
-  "editor.inlayHints.enabled": "on"
+  "editor.inlayHints.enabled": "on",
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  }
 }

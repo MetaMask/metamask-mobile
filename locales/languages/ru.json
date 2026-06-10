@@ -1979,10 +1979,10 @@
       "stocks_and_commodities": "Обзор акций и товаров",
       "tabs": {
         "crypto": "Крипто",
-        "stocks": "Акции",
-        "commodities": "Товары",
         "forex": "Валюты",
-        "new": "Новые"
+        "new": "Новые",
+        "stock": "Акции",
+        "commodity": "Товары"
       },
       "filter_by": "Фильтровать по",
       "forex": "Валюты",
@@ -8454,7 +8454,7 @@
     "main_title": "Награды",
     "vip": {
       "bps_unit": "bps",
-      "badge_label": "VIP Fox {{tier}}",
+      "badge_label": "VIP {{tier}}",
       "swaps_label": "Swaps",
       "perps_label": "Perps",
       "error_title": "We couldn’t load your VIP dashboard",
@@ -8971,7 +8971,7 @@
       "non_winner": {
         "title": "Результаты готовы 🏅",
         "description": "Посмотрите свой рейтинг в кампании {{campaignName}}.",
-        "cta": "Просмотр"
+        "cta": "Просмотр подробностей"
       }
     }
   },

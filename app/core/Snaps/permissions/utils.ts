@@ -1,7 +1,7 @@
-import { KeyringControllerWithKeyringV2Action } from '@metamask/keyring-controller';
-import { KeyringType } from '@metamask/keyring-api/v2';
-import type { HdKeyring } from '@metamask/eth-hd-keyring/v2';
-import { Messenger } from '@metamask/messenger';
+import { KeyringControllerWithKeyringV2UnsafeAction } from "@metamask/keyring-controller";
+import type { HdKeyring } from "@metamask/eth-hd-keyring/v2";
+import { KeyringType } from "@metamask/keyring-api/v2";
+import { Messenger } from "@metamask/messenger";
 
 /**
  * Get the mnemonic seed for a given entropy source. If no source is
@@ -12,12 +12,12 @@ import { Messenger } from '@metamask/messenger';
  * @returns The mnemonic seed.
  */
 export async function getMnemonicSeed(
-  messenger: Messenger<string, KeyringControllerWithKeyringV2Action, never>,
+  messenger: Messenger<string, KeyringControllerWithKeyringV2UnsafeAction, never>,
   source?: string | undefined,
 ): Promise<Uint8Array> {
   if (!source) {
     const seed = (await messenger.call(
-      'KeyringController:withKeyringV2',
+      "KeyringController:withKeyringV2Unsafe",
       {
         type: KeyringType.Hd,
         index: 0,
@@ -26,7 +26,7 @@ export async function getMnemonicSeed(
     )) as Uint8Array | null;
 
     if (!seed) {
-      throw new Error('Primary keyring mnemonic unavailable.');
+      throw new Error("Primary keyring mnemonic unavailable.");
     }
 
     return seed;
@@ -34,7 +34,7 @@ export async function getMnemonicSeed(
 
   try {
     const keyringData = await messenger.call(
-      'KeyringController:withKeyringV2',
+      "KeyringController:withKeyringV2Unsafe",
       {
         id: source,
       },

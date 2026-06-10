@@ -1979,10 +1979,10 @@
       "stocks_and_commodities": "Aktien und Rohstoffe entdecken",
       "tabs": {
         "crypto": "Krypto",
-        "stocks": "Aktien",
-        "commodities": "Rohstoffe",
         "forex": "Devisen",
-        "new": "Neu"
+        "new": "Neu",
+        "stock": "Aktien",
+        "commodity": "Rohstoffe"
       },
       "filter_by": "Filtern nach",
       "forex": "Devisen",
@@ -8454,7 +8454,7 @@
     "main_title": "Belohnungen",
     "vip": {
       "bps_unit": "Basispunkte",
-      "badge_label": "VIP Fox {{tier}}",
+      "badge_label": "VIP {{tier}}",
       "swaps_label": "Swaps",
       "perps_label": "Perps",
       "error_title": "We couldn’t load your VIP dashboard",
@@ -8971,7 +8971,7 @@
       "non_winner": {
         "title": "Die Ergebnisse sind verfügbar 🏅",
         "description": "Sehen Sie Ihre Platzierung in der {{campaignName}} ein.",
-        "cta": "Ansehen"
+        "cta": "Details anzeigen"
       }
     }
   },

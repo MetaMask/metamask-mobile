@@ -167,6 +167,23 @@ async function main(): Promise<void> {
       process.exit(1);
     }
   } else if (labelable.type === LabelableType.PullRequest) {
+    // PRs targeting non-main branches (e.g. release sync / cherry-pick branches) do not require
+    // a fully filled PR template — those workflows bypass manual testing and app-impact review.
+    // We exit 0 here (rather than adding a workflow-level `if:` condition) because GitHub branch
+    // protection treats a *skipped* required check as a failure; an early process.exit(0) produces
+    // a genuine green "passed" status, which is what non-main PRs need.
+    const baseBranch = context.payload.pull_request?.base?.ref;
+    if (baseBranch !== 'main') {
+      console.log(
+        `PR #${labelable.number} targets branch '${baseBranch}', not 'main'. ` +
+        `PR template checks are only enforced on PRs targeting 'main'.`,
+      );
+      // Clean up any stale failure state left from before this rule existed.
+      await removeLabelFromLabelableIfPresent(octokit, labelable, invalidPullRequestTemplateLabel);
+      await upsertStickyComment(octokit, labelable, null);
+      process.exit(0);
+    }
+
     // Draft PRs see the same checks but with informational status only, so
     // authors can preview what to fix before flipping to "Ready for review".
     // The check name stays identical in both states; branch protection can
