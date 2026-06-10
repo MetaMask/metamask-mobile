@@ -487,7 +487,7 @@ const PredictThePitchCampaignDetailsView: React.FC = () => {
                     isLoading={isPositionsLoading}
                     hasError={hasPositionsError}
                     refetch={refetchPositions}
-                    maxEntries={3}
+                    maxEntries={positions?.numberOfPositionsToShow ?? 3}
                   />
                 </Box>
               )}

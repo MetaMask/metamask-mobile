@@ -1167,6 +1167,7 @@ export interface PredictThePitchPositionsDto {
   openPositions: PredictThePitchPositionDto[];
   resolvedPositions: PredictThePitchPositionDto[];
   computedAt: string | null;
+  numberOfPositionsToShow?: number | null;
 }
 
 export interface PredictThePitchCampaignParticipantOutcomeDto
