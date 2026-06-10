@@ -238,7 +238,7 @@ describe('PredictThePitchCampaignStatsView', () => {
         isLoading: false,
         showRoi: false,
         showComputedAt: false,
-        emptyRankValue: '-',
+        isCampaignComplete: false,
       }),
     );
   });
