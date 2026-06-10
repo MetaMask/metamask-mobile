@@ -27,7 +27,7 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
 import { useSignOut } from '../../../util/identity/hooks/useAuthentication';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import ButtonIcon, {
@@ -101,7 +101,7 @@ const DeleteWalletModal: React.FC = () => {
     properties: Record<string, string | boolean | number>,
   ) => {
     trackOnboarding(
-      MetricsEventBuilder.createEventBuilder(event)
+      AnalyticsEventBuilder.createEventBuilder(event)
         .addProperties(properties)
         .build(),
     );

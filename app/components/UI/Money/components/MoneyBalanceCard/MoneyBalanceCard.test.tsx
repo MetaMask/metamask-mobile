@@ -12,6 +12,21 @@ import { selectMoneyOnboardingSeen } from '../../../../../reducers/user/selector
 import { selectWalletHomeOnboardingFlowVisible } from '../../../../../selectors/onboarding';
 import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
 import { useMoneyAccountAddRouting } from '../../hooks/useMoneyAccountAddRouting';
+import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import {
+  COMPONENT_NAMES,
+  MONEY_TOOLTIP_NAMES,
+  MONEY_TOOLTIP_TYPES,
+  SCREEN_NAMES,
+} from '../../constants/moneyEvents';
+
+const mockTrackComponentViewed = jest.fn();
+const mockTrackSurfaceClicked = jest.fn();
+const mockTrackTooltipClicked = jest.fn();
+
+jest.mock('../../hooks/useMoneyAnalytics', () => ({
+  useMoneyAnalytics: jest.fn(),
+}));
 
 const mockNavigate = jest.fn();
 const mockNavigateToMoneyHome = jest.fn();
@@ -126,6 +141,11 @@ describe('MoneyBalanceCard', () => {
     mockUseMoneyAccountAddRouting.mockReturnValue({
       routeAddMoney: mockRouteAddMoney,
     } as unknown as ReturnType<typeof useMoneyAccountAddRouting>);
+    (useMoneyAnalytics as jest.Mock).mockReturnValue({
+      trackComponentViewed: mockTrackComponentViewed,
+      trackSurfaceClicked: mockTrackSurfaceClicked,
+      trackTooltipClicked: mockTrackTooltipClicked,
+    });
   });
 
   describe('when balance is unavailable (totalFiatRaw undefined, no fetch error)', () => {
@@ -768,6 +788,63 @@ describe('MoneyBalanceCard', () => {
       expect(
         queryByTestId(MoneyBalanceCardTestIds.BALANCE_ERROR),
       ).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('analytics', () => {
+    it('initialises useMoneyAnalytics with WALLET_HOME screen_name and MONEY_BALANCE_CARD component_name', () => {
+      renderWithProvider(<MoneyBalanceCard />);
+
+      expect(useMoneyAnalytics).toHaveBeenCalledWith({
+        screen_name: SCREEN_NAMES.WALLET_HOME,
+        component_name: COMPONENT_NAMES.MONEY_BALANCE_CARD,
+      });
+    });
+
+    it('calls trackComponentViewed on mount', () => {
+      renderWithProvider(<MoneyBalanceCard />);
+
+      expect(mockTrackComponentViewed).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not call trackComponentViewed again on re-render', () => {
+      const { rerender } = renderWithProvider(<MoneyBalanceCard />);
+
+      rerender(<MoneyBalanceCard />);
+
+      expect(mockTrackComponentViewed).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls trackSurfaceClicked with MONEY_HOME redirect when the funded card body is pressed and onboarding has been seen', () => {
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      fireEvent.press(getByTestId(MoneyBalanceCardTestIds.FUNDED_CONTAINER));
+
+      expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
+        redirect_target: SCREEN_NAMES.MONEY_HOME,
+      });
+    });
+
+    it('calls trackSurfaceClicked with MONEY_ONBOARDING redirect when card is pressed and onboarding has not been seen', () => {
+      mockSelectMoneyOnboardingSeen.mockReturnValue(false);
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      fireEvent.press(getByTestId(MoneyBalanceCardTestIds.FUNDED_CONTAINER));
+
+      expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
+        redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
+      });
+    });
+
+    it('calls trackTooltipClicked with MONEY_BALANCE name and INFO type when the info button is pressed', () => {
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      fireEvent.press(getByTestId(MoneyBalanceCardTestIds.INFO_BUTTON));
+
+      expect(mockTrackTooltipClicked).toHaveBeenCalledWith({
+        tooltip_name: MONEY_TOOLTIP_NAMES.MONEY_BALANCE,
+        tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
+      });
     });
   });
 });

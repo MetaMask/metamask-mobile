@@ -68,6 +68,7 @@ import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import PayAccountSelector from '../../PayAccountSelector';
+import { PerpsAccountPickerRow } from '../../rows/perps-account-picker-row';
 import { useTransactionAccountOverride } from '../../../hooks/transactions/useTransactionAccountOverride';
 import { CustomAmountInfoTestIds } from './custom-amount-info.testIds';
 import { useConfirmationContext } from '../../../context/confirmation-context';
@@ -122,20 +123,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     supportAccountSelection,
   }) => {
     const transactionMeta = useTransactionMetadataRequest();
-    const isPredictDeposit = hasTransactionType(transactionMeta, [
-      TransactionType.predictDeposit,
+    const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
+      TransactionType.moneyAccountDeposit,
     ]);
 
-    const clearPendingPredictDeposit = useCallback(() => {
-      Engine.context.PredictController.clearPendingDeposit();
-    }, []);
-
-    useClearConfirmationOnBackSwipe({
-      rejectOnBeforeRemove: isPredictDeposit,
-      rejectOnBeforeRemoveWithoutGesture: isPredictDeposit,
-      skipNavigationOnGestureEnd: isPredictDeposit,
-      onBeforeReject: isPredictDeposit ? clearPendingPredictDeposit : undefined,
-    });
+    useClearConfirmationOnBackSwipe();
 
     const { canSelectWithdrawToken } = useTransactionPayWithdraw();
 
@@ -165,9 +157,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const transactionId = transactionMeta?.id;
     const accountOverride = useTransactionAccountOverride();
     const isWithdraw = isTransactionPayWithdraw(transactionMeta);
-    const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
-      TransactionType.moneyAccountDeposit,
-    ]);
     const isResultReady = useIsResultReady({ isKeyboardVisible });
     const quotes = useTransactionPayQuotes();
     const isQuotesLoading = useIsTransactionPayLoading();
@@ -280,6 +269,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 !shouldHideAccountSelector && (
                   <PayAccountSelector style={styles.separator} />
                 )}
+              <PerpsAccountPickerRow />
               {disablePay !== true && hasPaymentOption && <PayWithRow />}
             </>
           )}
@@ -288,6 +278,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               {supportAccountSelection &&
                 !selectedFiatPaymentMethodId &&
                 !shouldHideAccountSelector && <PayAccountSelector />}
+              <PerpsAccountPickerRow />
               {disablePay !== true && hasPaymentOption && (
                 <PayWithRow isResultReady />
               )}

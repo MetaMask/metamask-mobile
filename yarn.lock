@@ -8258,16 +8258,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/connectivity-controller@npm:^0.1.0":
-  version: 0.1.0
-  resolution: "@metamask/connectivity-controller@npm:0.1.0"
-  dependencies:
-    "@metamask/base-controller": "npm:^9.0.0"
-    "@metamask/messenger": "npm:^0.3.0"
-  checksum: 10/b73982779bc1a7e86b21e63303b313c498ab34bd64eeb80b0fc9046d2041a567bc212a08d3987f05b083951e8bd4f3fb0540c3042d70d685bd4c200cba44b724
-  languageName: node
-  linkType: hard
-
 "@metamask/connectivity-controller@npm:^0.2.0":
   version: 0.2.0
   resolution: "@metamask/connectivity-controller@npm:0.2.0"
@@ -9566,9 +9556,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/perps-controller@npm:^7.0.0":
-  version: 7.0.0
-  resolution: "@metamask/perps-controller@npm:7.0.0"
+"@metamask/perps-controller@npm:^8.0.0":
+  version: 8.0.0
+  resolution: "@metamask/perps-controller@npm:8.0.0"
   dependencies:
     "@metamask/abi-utils": "npm:^2.0.3"
     "@metamask/base-controller": "npm:^9.1.0"
@@ -9583,7 +9573,7 @@ __metadata:
   dependenciesMeta:
     "@myx-trade/sdk":
       optional: true
-  checksum: 10/82250b44ce46940704f4f16cdfae36076f19218c9f47b7f23393f5253615eb9f039fd5ba7fec63b5191a6fc3a65a6b756589ac18d960da3194dbae8ad00a9c91
+  checksum: 10/7b06134fbb3a945a44a5349a29a120094069d66f011af9989ae560099e1bd12a4932aa1c5cb66a5a5c40b41f96738d7e633d3332e482b3e01d9b7f52be6363aa
   languageName: node
   linkType: hard
 
@@ -10009,6 +9999,15 @@ __metadata:
     lodash: "npm:^4.17.21"
     uuid: "npm:^8.3.2"
   checksum: 10/8fb15cea880279e21d0e703639283e6d47167bce362c79988b4483f68c2dfcd0cbde6273c7b141d4c1e06bce76dae010da0088fa263338644c0b1af7406b35ae
+  languageName: node
+  linkType: hard
+
+"@metamask/skills@npm:^0.1.0":
+  version: 0.1.0
+  resolution: "@metamask/skills@npm:0.1.0"
+  bin:
+    metamask-skills: bin/metamask-skills.mjs
+  checksum: 10/e8c0fc1387c3d3706d0f2a49ef61ecba2a320e68c0bc00eb40077defc9fbf407c8830b20f10e31acc1481c6a2d7541c7f1c5294b62b0d3e6d0df3d6cfd533ce9
   languageName: node
   linkType: hard
 
@@ -35350,7 +35349,7 @@ __metadata:
     "@metamask/chomp-api-service": "npm:^3.1.0"
     "@metamask/client-controller": "npm:^1.0.1"
     "@metamask/compliance-controller": "npm:2.1.0"
-    "@metamask/connectivity-controller": "npm:^0.1.0"
+    "@metamask/connectivity-controller": "npm:^0.2.0"
     "@metamask/controller-utils": "npm:^12.1.0"
     "@metamask/core-backend": "npm:^6.3.0"
     "@metamask/delegation-controller": "npm:^2.0.2"
@@ -35412,7 +35411,7 @@ __metadata:
     "@metamask/notification-services-controller": "npm:24.1.1"
     "@metamask/object-multiplex": "npm:^1.1.0"
     "@metamask/permission-controller": "npm:^13.1.1"
-    "@metamask/perps-controller": "npm:^7.0.0"
+    "@metamask/perps-controller": "npm:^8.0.0"
     "@metamask/phishing-controller": "npm:^17.2.0"
     "@metamask/post-message-stream": "npm:^10.0.0"
     "@metamask/preferences-controller": "npm:^23.0.0"
@@ -35436,6 +35435,7 @@ __metadata:
     "@metamask/seedless-onboarding-controller": "npm:^9.0.0"
     "@metamask/selected-network-controller": "npm:^25.0.0"
     "@metamask/signature-controller": "npm:^39.2.0"
+    "@metamask/skills": "npm:^0.1.0"
     "@metamask/slip44": "npm:^4.2.0"
     "@metamask/smart-transactions-controller": "npm:^24.2.0"
     "@metamask/snaps-controllers": "npm:^20.0.5"

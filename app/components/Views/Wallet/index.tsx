@@ -202,8 +202,15 @@ const createStyles = ({ colors }: Theme) =>
     wrapper: {
       flex: 1,
       backgroundColor: colors.background.default,
-      gap: 16,
       flexDirection: 'column',
+    },
+    portfolioHeaderCluster: {
+      flexDirection: 'column',
+      gap: 16,
+      paddingBottom: 12,
+    },
+    tabContainer: {
+      flex: 1,
     },
     loader: {
       backgroundColor: colors.background.default,
@@ -1025,17 +1032,17 @@ const Wallet = ({
   ) : null;
 
   const portfolioHeaderBase = (
-    <>
+    <View style={styles.portfolioHeaderCluster}>
       {bannerContent}
       <AccountGroupBalance {...walletHomeAccountGroupBalanceProps} />
       {walletHomeMainAssetDetailsActions}
       {homeGrowthBannerContent}
       {isMoneyAccountEnabled && <MoneyBalanceCard />}
-    </>
+    </View>
   );
 
   const portfolioHeader = (
-    <>
+    <View style={styles.portfolioHeaderCluster}>
       {bannerContent}
       <View style={styles.accountGroupBalanceContainer}>
         <AccountGroupBalance {...walletHomeAccountGroupBalanceProps} />
@@ -1043,7 +1050,7 @@ const Wallet = ({
       {walletHomeMainAssetDetailsActions}
       {homeGrowthBannerContent}
       {isMoneyAccountEnabled && <MoneyBalanceCard />}
-    </>
+    </View>
   );
 
   const renderLoader = useCallback(

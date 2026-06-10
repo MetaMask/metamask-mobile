@@ -1979,10 +1979,10 @@
       "stocks_and_commodities": "Hisse senetlerini ve emtiaları keşfet",
       "tabs": {
         "crypto": "Kripto",
-        "stocks": "Hisse Senetleri",
-        "commodities": "Emtialar",
         "forex": "Forex",
-        "new": "Yeni"
+        "new": "Yeni",
+        "stock": "Hisse Senetleri",
+        "commodity": "Emtialar"
       },
       "filter_by": "Farklı filtrele",
       "forex": "Forex",
@@ -8454,7 +8454,7 @@
     "main_title": "Ödüller",
     "vip": {
       "bps_unit": "bps",
-      "badge_label": "VIP Fox {{tier}}",
+      "badge_label": "VIP {{tier}}",
       "swaps_label": "Swaps",
       "perps_label": "Perps",
       "error_title": "We couldn’t load your VIP dashboard",
