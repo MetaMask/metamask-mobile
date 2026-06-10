@@ -1139,6 +1139,8 @@ export interface PredictThePitchLeaderboardPositionDto {
   eligible: boolean;
   neighbors: PredictThePitchLeaderboardEntryDto[];
   computedAt: string;
+  marketsTraded: number | null;
+  minimumMarketsTraded: number;
 }
 
 export type PredictThePitchPositionStatus = 'open' | 'sold' | 'resolved';
@@ -1164,8 +1166,10 @@ export interface PredictThePitchPositionDto {
 }
 
 export interface PredictThePitchPositionsDto {
-  positions: PredictThePitchPositionDto[];
+  openPositions: PredictThePitchPositionDto[];
+  resolvedPositions: PredictThePitchPositionDto[];
   computedAt: string | null;
+  numberOfPositionsToShow?: number | null;
 }
 
 export interface PredictThePitchCampaignParticipantOutcomeDto
@@ -1213,6 +1217,8 @@ export type PredictThePitchLeaderboardPositionFoundState = {
   eligible: boolean;
   neighbors: PredictThePitchLeaderboardEntryState[];
   computedAt: string;
+  marketsTraded: number | null;
+  minimumMarketsTraded: number;
   lastFetched: number;
 };
 
@@ -1255,7 +1261,8 @@ export type PredictThePitchPositionState = {
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PredictThePitchPositionsState = {
-  positions: PredictThePitchPositionState[];
+  openPositions: PredictThePitchPositionState[];
+  resolvedPositions: PredictThePitchPositionState[];
   computedAt: string | null;
   lastFetched: number;
 };

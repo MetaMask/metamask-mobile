@@ -5,21 +5,22 @@ import {
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
 import Utilities from '../../../framework/Utilities';
+import { EncapsulatedElementType } from '../../../framework';
 
 class RevealSecretRecoveryPhrase {
-  get container(): DetoxElement {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(
       RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID,
     );
   }
 
-  get passwordWarning(): DetoxElement {
+  get passwordWarning(): EncapsulatedElementType {
     return Matchers.getElementByID(
       RevealSeedViewSelectorsIDs.PASSWORD_WARNING_ID,
     );
   }
 
-  get passwordInputToRevealCredential(): DetoxElement {
+  get passwordInputToRevealCredential(): EncapsulatedElementType {
     return Matchers.getElementByLabel(
       RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
     );
@@ -42,37 +43,37 @@ class RevealSecretRecoveryPhrase {
     );
   }
 
-  get revealSecretRecoveryPhraseButton(): DetoxElement {
+  get revealSecretRecoveryPhraseButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BUTTON_ID,
     );
   }
 
-  get revealCredentialCopyToClipboardButton(): DetoxElement {
+  get revealCredentialCopyToClipboardButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_COPY_TO_CLIPBOARD_BUTTON,
     );
   }
 
-  get revealCredentialQRCodeTab(): DetoxElement {
+  get revealCredentialQRCodeTab(): EncapsulatedElementType {
     return Matchers.getElementByText(
       RevealSeedViewSelectorsText.REVEAL_CREDENTIAL_QR_CODE_TAB_ID,
     );
   }
 
-  get revealCredentialQRCodeImage(): DetoxElement {
+  get revealCredentialQRCodeImage(): EncapsulatedElementType {
     return Matchers.getElementByID(
       RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_QR_CODE_IMAGE_ID,
     );
   }
 
-  get doneButton(): DetoxElement {
+  get doneButton(): EncapsulatedElementType {
     return Matchers.getElementByText(
       RevealSeedViewSelectorsText.REVEAL_CREDENTIAL_DONE,
     );
   }
 
-  get confirmButton(): DetoxElement {
+  get confirmButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID,
     );
