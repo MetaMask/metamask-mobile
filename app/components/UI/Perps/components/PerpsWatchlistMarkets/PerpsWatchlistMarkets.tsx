@@ -238,7 +238,7 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
           </>
         )}
 
-        {hasSuggested && (
+        {hasSuggested && !isWatchlistFull && (
           <Animated.View
             style={styles.suggestedSection}
             layout={LinearTransition.duration(ANIMATION_DURATION)}
@@ -267,11 +267,7 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
                   market={market}
                   showBadge={false}
                   onPress={() => handleMarketPress(market)}
-                  onAddPress={
-                    isWatchlistFull
-                      ? undefined
-                      : () => addToWatchlist(market.symbol)
-                  }
+                  onAddPress={() => addToWatchlist(market.symbol)}
                 />
               </Animated.View>
             ))}

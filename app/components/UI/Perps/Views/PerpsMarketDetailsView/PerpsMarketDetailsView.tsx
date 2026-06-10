@@ -115,6 +115,8 @@ import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
 import { usePerpsTPSLUpdate } from '../../hooks/usePerpsTPSLUpdate';
 import { useStopLossPrompt } from '../../hooks/useStopLossPrompt';
+import usePerpsToasts from '../../hooks/usePerpsToasts';
+import { WATCHLIST_LIMIT } from '../../utils/marketUtils';
 import { selectPerpsChartPreferredCandlePeriod } from '../../selectors/chartPreferences';
 import {
   selectPerpsButtonColorTestVariant,
@@ -198,6 +200,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     transactionActiveAbTests,
   } = route.params || {};
   const { track } = usePerpsEventTracking();
+  const { showToast, PerpsToastOptions } = usePerpsToasts();
 
   // Get full market data from stream to ensure all fields (including maxLeverage) are available
   // This handles cases where navigation passes minimal market data (e.g., from Recent Activity)
@@ -672,12 +675,23 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const handleWatchlistPress = useCallback(() => {
     if (!market?.symbol) return;
 
+    const controller = Engine.context.PerpsController;
+    const isAdding = !isWatchlist;
+
+    // Guard: block adding when the watchlist is already full
+    if (
+      isAdding &&
+      controller.getWatchlistMarkets().length >= WATCHLIST_LIMIT
+    ) {
+      showToast(PerpsToastOptions.watchlist.limitReached);
+      return;
+    }
+
     // Optimistic update - instant UI feedback
-    const newWatchlistState = !isWatchlist;
+    const newWatchlistState = isAdding;
     setOptimisticWatchlist(newWatchlistState);
 
     // Actual state update
-    const controller = Engine.context.PerpsController;
     controller.toggleWatchlistMarket(market.symbol);
 
     // Track watchlist toggle event
@@ -693,7 +707,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
       [PERPS_EVENT_PROPERTY.FAVORITES_COUNT]: watchlistCount,
     });
-  }, [market, isWatchlist, track]);
+  }, [market, isWatchlist, track, showToast, PerpsToastOptions]);
 
   const handleTradeAction = useCallback(
     (direction: 'long' | 'short') =>
