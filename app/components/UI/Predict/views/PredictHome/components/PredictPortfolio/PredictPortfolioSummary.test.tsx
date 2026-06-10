@@ -2,11 +2,11 @@ import React from 'react';
 import { screen } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
 import { typography } from '@metamask/design-tokens';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import PredictPortfolioSummary from './PredictPortfolioSummary';
 import { PREDICT_PORTFOLIO_TEST_IDS } from './PredictPortfolio.testIds';
 
-jest.mock('../../../../../../locales/i18n', () => ({
+jest.mock('../../../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, params?: Record<string, string>) => {
     const mockStrings: Record<string, string> = {
       'predict.portfolio.available_amount': `${params?.amount} available`,
