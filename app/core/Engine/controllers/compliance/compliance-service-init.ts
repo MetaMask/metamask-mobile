@@ -17,10 +17,10 @@ export const complianceServiceInit: MessengerClientInitFunction<
   ComplianceServiceMessenger
 > = ({ controllerMessenger }) => {
   const controller = new ComplianceService({
-    messenger: controllerMessenger,
+    apiUrl: process.env.COMPLIANCE_API_URL || undefined,
     fetch,
     env: isProduction() ? 'production' : 'development',
-    apiUrl: process.env.COMPLIANCE_API_URL || undefined,
+    messenger: controllerMessenger,
   });
 
   return { controller };

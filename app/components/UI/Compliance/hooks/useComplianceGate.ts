@@ -88,9 +88,8 @@ export function useComplianceGate(address?: AddressInput) {
   const currentAddressKeyRef = useRef(addressKey);
   currentAddressKeyRef.current = addressKey;
 
-  // Latest-value ref so gate()'s fallback path always calls the checkCompliance
-  // bound to the current addresses, even though gate's useCallback has minimal
-  // deps.
+  // Keep gate stable for consumers while allowing its fallback path to call the
+  // latest address-bound compliance check after a render-before-effect wallet switch.
   const checkComplianceRef = useRef(checkCompliance);
   checkComplianceRef.current = checkCompliance;
 
