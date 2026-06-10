@@ -10,6 +10,10 @@ import {
   getMinLiquidityForChains,
   getMinVolume24hForChains,
 } from '../../../Trending/hooks/useTrendingRequest/useTrendingRequest';
+import {
+  PriceChangeOption,
+  SortDirection,
+} from '../../../Trending/components/TrendingTokensBottomSheet';
 import { sortTrendingTokens } from '../../../Trending/utils/sortTrendingTokens';
 
 export const POST_TRADE_TRENDING_TOKENS_LIMIT = 20;
@@ -17,12 +21,6 @@ export const POST_TRADE_TRENDING_TOKENS_LIMIT = 20;
 const STALE_TIME_MS = 5 * 60 * 1000;
 const POST_TRADE_TRENDING_TOKENS_QUERY_KEY =
   'bridge-post-trade-trending-tokens';
-const MARKET_CAP_SORT_OPTION = 'market_cap' as Parameters<
-  typeof sortTrendingTokens
->[1];
-const DESCENDING_SORT_DIRECTION = 'descending' as Parameters<
-  typeof sortTrendingTokens
->[2];
 
 export const usePostTradeTrendingTokens = ({
   destToken,
@@ -65,8 +63,8 @@ export const usePostTradeTrendingTokens = ({
 
     return sortTrendingTokens(
       query.data,
-      MARKET_CAP_SORT_OPTION,
-      DESCENDING_SORT_DIRECTION,
+      PriceChangeOption.MarketCap,
+      SortDirection.Descending,
     ).slice(0, POST_TRADE_TRENDING_TOKENS_LIMIT);
   }, [query.data]);
 
