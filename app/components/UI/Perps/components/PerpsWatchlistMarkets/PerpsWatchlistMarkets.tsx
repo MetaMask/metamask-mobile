@@ -6,6 +6,11 @@ import {
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
+import Animated, {
+  FadeIn,
+  FadeOut,
+  LinearTransition,
+} from 'react-native-reanimated';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -34,6 +39,8 @@ import {
   ButtonVariant,
   ButtonSize,
 } from '@metamask/design-system-react-native';
+
+const ANIMATION_DURATION = 250;
 
 /** Markets with ≤ this count are shown without a "Show more" toggle. */
 const INITIAL_DISPLAY_COUNT = 3;
@@ -166,11 +173,17 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
   const hiddenCount = markets.length - INITIAL_DISPLAY_COUNT;
 
   const renderMarket = ({ item }: { item: PerpsMarketData }) => (
-    <PerpsMarketRowItem
-      market={item}
-      showBadge={false}
-      onPress={() => handleMarketPress(item)}
-    />
+    <Animated.View
+      key={item.symbol}
+      entering={FadeIn.duration(ANIMATION_DURATION)}
+      layout={LinearTransition.duration(ANIMATION_DURATION)}
+    >
+      <PerpsMarketRowItem
+        market={item}
+        showBadge={false}
+        onPress={() => handleMarketPress(item)}
+      />
+    </Animated.View>
   );
 
   return (
@@ -183,7 +196,10 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
       testID={PerpsWatchlistSelectorsIDs.SECTION}
     >
       {showHeader && <SectionHeader />}
-      <View style={contentContainerStyle}>
+      <Animated.View
+        style={contentContainerStyle}
+        layout={LinearTransition.duration(ANIMATION_DURATION)}
+      >
         {hasWatchlist && (
           <>
             <FlatList
@@ -221,8 +237,9 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
         )}
 
         {hasSuggested && (
-          <View
+          <Animated.View
             style={styles.suggestedSection}
+            layout={LinearTransition.duration(ANIMATION_DURATION)}
             testID={PerpsWatchlistSelectorsIDs.SUGGESTED_SECTION}
           >
             <Text
@@ -231,28 +248,30 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
                 hasWatchlist ? TextColor.TextAlternative : TextColor.TextDefault
               }
               style={styles.suggestedSubtitle}
-              testID={
-                hasWatchlist
-                  ? PerpsWatchlistSelectorsIDs.SUGGESTED_HEADER
-                  : undefined
-              }
+              testID={PerpsWatchlistSelectorsIDs.SUGGESTED_HEADER}
             >
               {hasWatchlist
                 ? strings('perps.watchlist.suggested')
                 : strings('perps.watchlist.empty_subtitle')}
             </Text>
             {suggestedMarkets?.map((market) => (
-              <PerpsMarketRowItem
+              <Animated.View
                 key={market.symbol}
-                market={market}
-                showBadge={false}
-                onPress={() => handleMarketPress(market)}
-                onAddPress={() => addToWatchlist(market.symbol)}
-              />
+                entering={FadeIn.duration(ANIMATION_DURATION)}
+                exiting={FadeOut.duration(ANIMATION_DURATION)}
+                layout={LinearTransition.duration(ANIMATION_DURATION)}
+              >
+                <PerpsMarketRowItem
+                  market={market}
+                  showBadge={false}
+                  onPress={() => handleMarketPress(market)}
+                  onAddPress={() => addToWatchlist(market.symbol)}
+                />
+              </Animated.View>
             ))}
-          </View>
+          </Animated.View>
         )}
-      </View>
+      </Animated.View>
     </View>
   );
 };
