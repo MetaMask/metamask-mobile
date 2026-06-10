@@ -173,7 +173,7 @@ export function HardwareWalletsSwaps() {
   const toastRef = useContext(ToastContext)?.toastRef;
   const hasAutoNavigatedRef = useRef(false);
   const hasInitialSubmissionRef = useRef(false);
-  const retryingMutexRef = useRef(false);
+  const retryInProgressRef = useRef(false);
   const [isRetrying, setIsRetrying] = useState(false);
 
   const navigateToTransactions = useCallback(() => {
@@ -347,13 +347,13 @@ export function HardwareWalletsSwaps() {
 
   const retrySubmission = useCallback(
     async (checkConnection: boolean) => {
-      if (retryingMutexRef.current) return;
+      if (retryInProgressRef.current) return;
       if (!cachedSubmissionParams.current) {
         dispatch(resetHardwareWalletsSwaps());
         navigation.navigate(Routes.BRIDGE.BRIDGE_VIEW);
         return;
       }
-      retryingMutexRef.current = true;
+      retryInProgressRef.current = true;
       setIsRetrying(true);
       hasAutoNavigatedRef.current = false;
 
@@ -380,7 +380,7 @@ export function HardwareWalletsSwaps() {
         );
         await submitWithDeviceReady();
       } finally {
-        retryingMutexRef.current = false;
+        retryInProgressRef.current = false;
         setIsRetrying(false);
       }
     },
