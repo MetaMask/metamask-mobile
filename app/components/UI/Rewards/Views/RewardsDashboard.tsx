@@ -42,6 +42,7 @@ import BenefitsPreview from '../components/Benefits/BenefitsPreview.tsx';
 import { Pressable, ScrollView } from 'react-native';
 import { useOndoOutcomeToast } from '../hooks/useOndoOutcomeToast';
 import { usePerpsTradingCampaignEndedOutcomeToast } from '../hooks/usePerpsTradingCampaignEndedOutcomeToast';
+import { useGetPredictThePitchOutcomeToast } from '../hooks/useGetPredictThePitchOutcomeToast';
 import VipIcon from '../../../../images/rewards/vip.svg';
 import Engine from '../../../../core/Engine';
 
@@ -63,6 +64,7 @@ const RewardsDashboard: React.FC = () => {
   useTrackRewardsPageView({ page_type: 'home' });
   useOndoOutcomeToast();
   usePerpsTradingCampaignEndedOutcomeToast();
+  useGetPredictThePitchOutcomeToast();
 
   const hideUnlinkedAccountsBanner = useSelector(
     selectHideUnlinkedAccountsBanner,

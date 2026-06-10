@@ -10,7 +10,7 @@ import {
   TextColor,
   FontWeight,
 } from '@metamask/design-system-react-native';
-import type { OndoCampaignHowItWorks } from '../../../../../core/Engine/controllers/rewards-controller/types';
+import type { CampaignHowItWorks as CampaignHowItWorksData } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { strings } from '../../../../../../locales/i18n';
 import ContentfulRichText, {
   isDocument,
@@ -27,7 +27,7 @@ export const CAMPAIGN_HOW_IT_WORKS_TEST_IDS = {
 } as const;
 
 interface CampaignHowItWorksProps {
-  howItWorks: OndoCampaignHowItWorks;
+  howItWorks: CampaignHowItWorksData;
 }
 
 const CampaignHowItWorks: React.FC<CampaignHowItWorksProps> = ({

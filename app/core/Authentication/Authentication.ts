@@ -16,7 +16,10 @@ import {
   setExistingUser,
   setIsConnectionRemoved,
 } from '../../actions/user';
-import { clearOnboarding } from '../../actions/onboarding';
+import {
+  clearOnboarding,
+  setCompletedOnboarding,
+} from '../../actions/onboarding';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import AuthenticationError from './AuthenticationError';
 import { UNLOCK_WALLET_ERROR_MESSAGES } from './constants';
@@ -124,6 +127,7 @@ class AuthenticationService {
     await MultichainAccountService.init();
 
     ReduxService.store.dispatch(logIn());
+    ReduxService.store.dispatch(setCompletedOnboarding(true));
   }
 
   /**

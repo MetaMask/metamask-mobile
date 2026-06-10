@@ -45,6 +45,10 @@ import {
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 import { type PaymentMethod } from '@metamask/ramps-controller';
 import { useParams } from '../../../../../../util/navigation/navUtils';
+import {
+  ConfirmationParams,
+  PayWithOption,
+} from '../../confirm/confirm-component';
 import { SetPayTokenRequest } from '../../../hooks/pay/useAutomaticTransactionPayToken';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useTheme } from '../../../../../../util/theme';
@@ -53,11 +57,20 @@ interface PayWithRouteParams {
   preferredPaymentToken?: SetPayTokenRequest;
 }
 
-export function PayWithRow() {
-  const transactionId = useTransactionMetadataRequest()?.id ?? '';
+export function PayWithRow({
+  isResultReady,
+}: { isResultReady?: boolean } = {}) {
+  const transactionMeta = useTransactionMetadataRequest();
+  const transactionId = transactionMeta?.id ?? '';
   const paymentOverride = useSelector((state: RootState) =>
     selectPaymentOverrideByTransactionId(state, transactionId),
   );
+  const { payWithOption } = useParams<ConfirmationParams>({});
+
+  // Nav-param means money home pre-set the method; bottom-sheet selection doesn't set this.
+  if (payWithOption === PayWithOption.MoneyAccount) {
+    return null;
+  }
 
   if (paymentOverride === PaymentOverride.MoneyAccount) {
     return <PayWithRowMoneyAccount />;

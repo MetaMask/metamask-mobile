@@ -10,6 +10,11 @@ import {
 } from '@metamask/transaction-controller';
 import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { isHardwareAccount } from '../../../../../util/address';
+import { useParams } from '../../../../../util/navigation/navUtils';
+import {
+  ConfirmationParams,
+  PayWithOption,
+} from '../../components/confirm/confirm-component';
 import { createProjectLogger } from '@metamask/utils';
 import { useSelectedGasFeeToken } from '../gas/useGasFeeToken';
 import {
@@ -48,6 +53,7 @@ export function useTransactionConfirm() {
     useMusdConfirmNavigation();
 
   const { tryEnableEvmNetwork } = useNetworkEnablement();
+  const { payWithOption } = useParams<ConfirmationParams>({});
 
   const { isSupported: isGaslessSupportedSTX, isSmartTransaction } =
     useGaslessSupportedSmartTransactions();
@@ -144,9 +150,16 @@ export function useTransactionConfirm() {
       if (type === TransactionType.perpsDepositAndOrder) {
         return;
       } else if (type === TransactionType.perpsDeposit) {
-        navigation.navigate(Routes.PERPS.ROOT, {
-          screen: Routes.PERPS.PERPS_HOME,
-        });
+        if (payWithOption === PayWithOption.MoneyAccount) {
+          navigation.navigate(Routes.HOME_TABS, {
+            screen: Routes.MONEY.ROOT,
+            params: { screen: Routes.MONEY.HOME },
+          });
+        } else {
+          navigation.navigate(Routes.PERPS.ROOT, {
+            screen: Routes.PERPS.PERPS_HOME,
+          });
+        }
       } else if (type === TransactionType.musdConversion) {
         musdConversionNavigateOnConfirm();
       } else if (
@@ -173,6 +186,7 @@ export function useTransactionConfirm() {
       onFiatConfirm,
       onRequestConfirm,
       orderId,
+      payWithOption,
       selectedGasFeeToken,
       transactionMetadata,
       tryEnableEvmNetwork,
