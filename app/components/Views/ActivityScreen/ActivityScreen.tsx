@@ -1,60 +1,37 @@
 import React, { useCallback, useState } from 'react';
-import { LayoutChangeEvent, ScrollView } from 'react-native';
+import { LayoutChangeEvent } from 'react-native';
 import Animated, {
   useAnimatedScrollHandler,
   useSharedValue,
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import {
-  Theme,
-  useTailwind,
-  useTheme as useDesignSystemTheme,
-} from '@metamask/design-system-twrnc-preset';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  ButtonBaseSize,
-  ButtonBase,
   HeaderStandardAnimated,
-  IconColor,
-  IconName,
-  TabEmptyState,
   Text,
-  TextColor,
   TextFieldSearch,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
-import Logger from '../../../util/Logger';
-import { useSelector } from 'react-redux';
-import { selectAddressHasTokenBalances } from '../../../selectors/tokenBalancesController';
-import ActivityEmptyDarkIcon from '../../../images/activity-empty-dark.svg';
-import ActivityEmptyLightIcon from '../../../images/activity-empty-light.svg';
 import { ActivityScreenSelectorsIDs } from './ActivityScreen.testIds';
 import ActivityTypeFilterSheet, {
   ACTIVITY_TYPE_FILTER_LABEL_KEY,
 } from './components/ActivityTypeFilterSheet';
+import ActivityEmptyState from './components/ActivityEmptyState';
+import AssetListControlBar from './components/AssetListControlBar';
 import { TrendingTokenNetworkBottomSheet } from '../../UI/Trending/components/TrendingTokensBottomSheet/TrendingTokenNetworkBottomSheet';
 import { TRENDING_NETWORKS_LIST } from '../../UI/Trending/utils/trendingNetworksList';
-import { useRampNavigation } from '../../UI/Ramp/hooks/useRampNavigation';
-import { useMoneyAccountDeposit } from '../../UI/Money/hooks/useMoneyAccount';
 import type { CaipChainId } from '@metamask/utils';
-import { ActivityEmptyStateAction, getActivityEmptyState } from './utils';
 import { ActivityTypeFilter } from './types';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorBoundary from '../ErrorBoundary';
 
 const ActivityScreen = () => {
   const tw = useTailwind();
-  const designSystemTheme = useDesignSystemTheme();
   const navigation = useNavigation();
-  const { goToBuy } = useRampNavigation();
-  const { initiateDeposit } = useMoneyAccountDeposit();
-  const ActivityEmptyIcon =
-    designSystemTheme === Theme.Dark
-      ? ActivityEmptyDarkIcon
-      : ActivityEmptyLightIcon;
 
   const scrollY = useSharedValue(0);
   const titleSectionHeight = useSharedValue(0);
@@ -131,46 +108,6 @@ const ActivityScreen = () => {
     setNetworkFilter(chainIds);
   }, []);
 
-  const hasFunds = useSelector(selectAddressHasTokenBalances);
-
-  const emptyState = getActivityEmptyState({ filter: typeFilter, hasFunds });
-
-  const handleEmptyStateAction = useCallback(() => {
-    switch (emptyState.action) {
-      case ActivityEmptyStateAction.Swap:
-        navigation.navigate(Routes.BRIDGE.ROOT, {
-          screen: Routes.BRIDGE.BRIDGE_VIEW,
-        });
-        return;
-      case ActivityEmptyStateAction.AddFunds:
-        goToBuy();
-        return;
-      case ActivityEmptyStateAction.MakePrediction:
-        navigation.navigate(Routes.PREDICT.ROOT, {
-          screen: Routes.PREDICT.MARKET_LIST,
-        });
-        return;
-      case ActivityEmptyStateAction.BrowsePerpsMarkets:
-        navigation.navigate(Routes.PERPS.ROOT, {
-          screen: Routes.PERPS.MARKET_LIST,
-        });
-        return;
-      case ActivityEmptyStateAction.TransferToMoney:
-        initiateDeposit().catch((error) => {
-          Logger.error(error as Error, {
-            message:
-              '[ActivityScreen] Money deposit failed to initiate from empty state',
-          });
-        });
-        return;
-      case ActivityEmptyStateAction.OpenMetamaskCard:
-        navigation.navigate(Routes.CARD.ROOT);
-        return;
-      default:
-        return;
-    }
-  }, [emptyState.action, navigation, goToBuy, initiateDeposit]);
-
   const handleBackPress = useCallback(() => {
     if (navigation.canGoBack()) {
       navigation.goBack();
@@ -221,68 +158,17 @@ const ActivityScreen = () => {
               />
             </Box>
 
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={tw.style('flex-row gap-2 pb-4')}
-            >
-              <ButtonBase
-                size={ButtonBaseSize.Md}
-                startIconName={IconName.Filter}
-                startIconProps={
-                  isNetworkFilterActive
-                    ? { color: IconColor.PrimaryDefault }
-                    : undefined
-                }
-                textProps={
-                  isNetworkFilterActive
-                    ? { color: TextColor.PrimaryDefault }
-                    : undefined
-                }
-                onPress={handleOpenNetworkSheet}
-                testID={ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP}
-              >
-                {networkFilterLabel}
-              </ButtonBase>
-              <ButtonBase
-                size={ButtonBaseSize.Md}
-                startIconName={IconName.Customize}
-                startIconProps={
-                  isTypeFilterActive
-                    ? { color: IconColor.PrimaryDefault }
-                    : undefined
-                }
-                textProps={
-                  isTypeFilterActive
-                    ? { color: TextColor.PrimaryDefault }
-                    : undefined
-                }
-                onPress={handleOpenTypeSheet}
-                testID={ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP}
-              >
-                {typeFilterLabel}
-              </ButtonBase>
-            </ScrollView>
+            <AssetListControlBar
+              networkLabel={networkFilterLabel}
+              isNetworkFilterActive={isNetworkFilterActive}
+              onNetworkPress={handleOpenNetworkSheet}
+              typeLabel={typeFilterLabel}
+              isTypeFilterActive={isTypeFilterActive}
+              onTypePress={handleOpenTypeSheet}
+            />
 
             {/* TODO: unified activity list (perps, predict, sends, swaps, bridges, non-EVM) */}
-            <Box
-              testID={ActivityScreenSelectorsIDs.LIST}
-              twClassName="flex-1 items-center justify-center pb-32"
-            >
-              <TabEmptyState
-                testID={ActivityScreenSelectorsIDs.EMPTY_STATE}
-                icon={
-                  <ActivityEmptyIcon
-                    name="activity-empty"
-                    width={72}
-                    height={78}
-                  />
-                }
-                description={strings(emptyState.descriptionKey)}
-                actionButtonText={strings(emptyState.actionLabelKey)}
-                onAction={handleEmptyStateAction}
-              />
-            </Box>
+            <ActivityEmptyState typeFilter={typeFilter} />
           </Animated.ScrollView>
         </Box>
 

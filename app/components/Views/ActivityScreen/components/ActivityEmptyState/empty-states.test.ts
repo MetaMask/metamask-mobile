@@ -1,5 +1,8 @@
-import { ActivityEmptyStateAction, getActivityEmptyState } from './utils';
-import { ActivityTypeFilter } from './types';
+import {
+  ActivityEmptyStateAction,
+  getActivityEmptyState,
+} from './empty-states';
+import { ActivityTypeFilter } from '../../types';
 
 describe('getActivityEmptyState', () => {
   describe('All filter', () => {

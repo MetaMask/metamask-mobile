@@ -1,9 +1,9 @@
-import { ActivityTypeFilter } from './types';
+import { ActivityTypeFilter } from '../../types';
 
 /**
  * Discrete CTA actions used by the Activity screen's empty states. The
- * ActivityScreen resolves each action to its real navigation handler — this
- * enum keeps the config table free of navigation imports.
+ * `ActivityEmptyState` component resolves each action to its real navigation
+ * handler — this enum keeps the config table free of navigation imports.
  */
 export enum ActivityEmptyStateAction {
   Swap = 'swap',
