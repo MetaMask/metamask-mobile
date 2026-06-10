@@ -163,17 +163,6 @@ jest.mock(
   }),
 );
 
-const mockTrackEvent = jest.fn();
-
-jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: jest.fn(() => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: jest.requireActual(
-      '../../../../../util/analytics/AnalyticsEventBuilder',
-    ).AnalyticsEventBuilder.createEventBuilder,
-  })),
-}));
-
 // Mock useBlockExplorer hook
 jest.mock('../../../../hooks/useBlockExplorer', () => ({
   __esModule: true,
