@@ -13,28 +13,47 @@ import BadgeWrapper, {
 import { Box } from '../../../Box/Box';
 import { AlignItems, FlexDirection } from '../../../Box/box.types';
 import { strings } from '../../../../../../locales/i18n';
+import { NameType } from '../../../Name/Name.types';
+import { useAccountNames } from '../../../../hooks/DisplayName/useAccountNames';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
 import { useTransactionDetails } from '../../../../Views/confirmations/hooks/activity/useTransactionDetails';
 import { TransactionDetailsRow } from '../../../../Views/confirmations/components/activity/transaction-details-row/transaction-details-row';
 import useNetworkInfo from '../../../../Views/confirmations/hooks/useNetworkInfo';
+import type { MetamaskPayWithOrigin } from '../../../../../core/Engine/controllers/transaction-controller/event-handlers/persist-originating-address';
 
 export function MoneyTransactionDetailsFromRow() {
   const { transactionMeta } = useTransactionDetails();
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
   const moneyAddress = primaryMoneyAccount?.address;
 
-  // TODO: EIP-7702 delegated transactions store the batch executor as
-  // txParams.from, not the user's originating account. The real originating
-  // account (the rootDelegator) is only available on-chain (in internal
-  // transactions and event logs), not in TransactionController state.
-  // Until the controller persists the originating account, we show
-  // "Money Account" as the from label for all money transactions.
+  // `originatingAddress` is a mobile-side extension of `MetamaskPayMetadata`
+  // (see MetamaskPayWithOrigin). It records the user's EOA that initiated the
+  // deposit, since EIP-7702 delegated transactions set `txParams.from` to the
+  // batch executor, not the user's account. Transactions created before this
+  // field was introduced will not have it — we fall back to "Money Account".
+  const originatingAddress = (
+    transactionMeta.metamaskPay as MetamaskPayWithOrigin | undefined
+  )?.originatingAddress;
+
   const chainId = (transactionMeta.metamaskPay?.chainId ??
     transactionMeta.chainId) as Hex;
 
   const { networkName, networkImage } = useNetworkInfo(chainId);
 
-  if (!moneyAddress) {
+  const [accountGroupName] = useAccountNames([
+    {
+      value: originatingAddress ?? '',
+      variation: chainId,
+      type: NameType.EthereumAddress,
+    },
+  ]);
+
+  const displayAddress = originatingAddress ?? moneyAddress;
+  const displayName =
+    (originatingAddress && accountGroupName) ||
+    strings('transaction_details.label.money_account');
+
+  if (!displayAddress) {
     return null;
   }
 
@@ -55,11 +74,9 @@ export function MoneyTransactionDetailsFromRow() {
             />
           }
         >
-          <AvatarAccount accountAddress={moneyAddress} size={AvatarSize.Sm} />
+          <AvatarAccount accountAddress={displayAddress} size={AvatarSize.Sm} />
         </BadgeWrapper>
-        <Text>
-          {strings('transaction_details.label.money_account')}
-        </Text>
+        <Text>{displayName}</Text>
       </Box>
     </TransactionDetailsRow>
   );
