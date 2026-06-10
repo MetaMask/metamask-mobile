@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import type { TrendingAsset } from '@metamask/assets-controllers';
-import { isCaipChainId } from '@metamask/utils';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import type { ImageSourcePropType } from 'react-native';
 import {
   Box,
   FontWeight,
@@ -19,10 +20,7 @@ import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
-import {
-  getCaipChainIdFromAssetId,
-  getNetworkBadgeSource,
-} from '../../../Trending/components/TrendingTokenRowItem/utils';
+import { getNetworkBadgeSource } from '../../../Trending/components/TrendingTokenRowItem/utils';
 import { formatPercentChange } from '../../../Trending/utils/formatPercentChange';
 import { strings } from '../../../../../../locales/i18n';
 import { PostTradeStatus } from './PostTradeBottomSheet.types';
@@ -34,19 +32,16 @@ import {
 
 interface PostTradeSuggestionPillProps {
   token: TrendingAsset;
+  networkBadgeImageSource?: ImageSourcePropType;
   onPress: (token: TrendingAsset) => void;
 }
 
 const PostTradeSuggestionPill = React.memo(
-  ({ token, onPress }: PostTradeSuggestionPillProps) => {
-    const networkBadgeImageSource = useMemo(() => {
-      const caipChainId = getCaipChainIdFromAssetId(token.assetId);
-      if (!isCaipChainId(caipChainId)) {
-        return undefined;
-      }
-      return getNetworkBadgeSource(caipChainId);
-    }, [token.assetId]);
-
+  ({
+    token,
+    networkBadgeImageSource,
+    onPress,
+  }: PostTradeSuggestionPillProps) => {
     const { changeLabel, changeTextColor } = useMemo(
       () => formatPercentChange(token.priceChangePct?.h24),
       [token.priceChangePct],
@@ -109,12 +104,23 @@ export const PostTradeTokenSuggestions = ({
     destToken,
     enabled: shouldShowSuggestions,
   });
+  const networkBadgeImageSource = useMemo(
+    () =>
+      destToken?.chainId
+        ? getNetworkBadgeSource(formatChainIdToCaip(destToken.chainId))
+        : undefined,
+    [destToken?.chainId],
+  );
 
   const renderItem = useCallback(
     (token: TrendingAsset) => (
-      <PostTradeSuggestionPill token={token} onPress={onTokenPress} />
+      <PostTradeSuggestionPill
+        token={token}
+        networkBadgeImageSource={networkBadgeImageSource}
+        onPress={onTokenPress}
+      />
     ),
-    [onTokenPress],
+    [networkBadgeImageSource, onTokenPress],
   );
 
   if (!shouldShowSuggestions || (!isLoading && tokens.length === 0)) {
