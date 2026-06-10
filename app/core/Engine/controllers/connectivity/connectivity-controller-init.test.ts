@@ -11,6 +11,7 @@ import {
 import { NetInfoConnectivityAdapter } from './netinfo-connectivity-adapter';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import Logger from '../../../../util/Logger';
+import { flushPromises } from '../../../../util/test/utils';
 
 // Mock NetInfoConnectivityAdapter since it uses NetInfo which requires native modules
 jest.mock('./netinfo-connectivity-adapter');
@@ -97,8 +98,7 @@ describe('ConnectivityControllerInit', () => {
     const { controller } = connectivityControllerInit(getInitRequestMock());
 
     // init() runs asynchronously; flush pending microtasks before asserting.
-    await Promise.resolve();
-    await Promise.resolve();
+    await flushPromises();
 
     expect(mockNetInfoAdapter.getStatus).toHaveBeenCalled();
     expect(controller.state.connectivityStatus).toBe(
@@ -112,8 +112,7 @@ describe('ConnectivityControllerInit', () => {
 
     const { controller } = connectivityControllerInit(getInitRequestMock());
 
-    await Promise.resolve();
-    await Promise.resolve();
+    await flushPromises();
 
     expect(Logger.error).toHaveBeenCalledWith(
       initError,
