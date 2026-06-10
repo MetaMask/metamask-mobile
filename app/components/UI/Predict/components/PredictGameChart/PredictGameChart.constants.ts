@@ -14,6 +14,19 @@ export const LABEL_OFFSET_X = 20;
 export const RIGHT_LABEL_OFFSET = 20;
 export const LABEL_TEXT_OFFSET_Y = 8;
 export const VALUE_TEXT_OFFSET_Y = 16;
+/**
+ * Smallest vertical center a label may occupy. A label renders its small text
+ * label above the value at `labelY - LABEL_TEXT_OFFSET_Y`, and that text ascends
+ * by up to the label font size. Keeping `labelY` at or above this value ensures
+ * the label text never clips against the top edge of the chart.
+ */
+export const MIN_LABEL_Y = LABEL_TEXT_OFFSET_Y + FONT_SIZE_LABEL;
+/**
+ * Largest vertical center a label may occupy. A label renders its value text
+ * below the center, so keeping `labelY` at or below this value ensures the
+ * value text never clips against the bottom edge of the chart.
+ */
+export const MAX_LABEL_Y = CHART_HEIGHT - LABEL_HEIGHT;
 export const TIMESTAMP_Y = 12;
 export const CROSSHAIR_START_Y = 20;
 export const CROSSHAIR_STROKE_WIDTH = 1;
@@ -25,6 +38,23 @@ export interface DotPosition {
   color: string;
   label: string;
 }
+
+/**
+ * Translates a pair of label centers vertically so both stay fully visible:
+ * pulled up when the bottom value text would overflow the bottom edge, but
+ * never so far that the top label text clips against the top edge.
+ */
+const fitLabelStackWithinChart = (positions: number[]): number[] => {
+  const top = Math.min(...positions);
+  const bottom = Math.max(...positions);
+
+  let shift = bottom > MAX_LABEL_Y ? MAX_LABEL_Y - bottom : 0;
+  if (top + shift < MIN_LABEL_Y) {
+    shift = MIN_LABEL_Y - top;
+  }
+
+  return shift === 0 ? positions : positions.map((y) => y + shift);
+};
 
 export const getSeparatedLabelYPositions = (
   dotPositions: { dotY: number }[],
@@ -41,46 +71,62 @@ export const getSeparatedLabelYPositions = (
     const gap = Math.abs(first.dotY - second.dotY);
 
     if (gap >= minSpacing) {
-      return [first.dotY, second.dotY];
+      return fitLabelStackWithinChart([first.dotY, second.dotY]);
     }
 
     const midPoint = (first.dotY + second.dotY) / 2;
     const offset = minSpacing / 2;
 
-    if (first.dotY < second.dotY) {
-      return [midPoint - offset, midPoint + offset];
-    }
-    return [midPoint + offset, midPoint - offset];
+    const centered =
+      first.dotY < second.dotY
+        ? [midPoint - offset, midPoint + offset]
+        : [midPoint + offset, midPoint - offset];
+
+    return fitLabelStackWithinChart(centered);
   }
 
-  // For 3+ labels, sort and push overlapping labels downward
-  const positions = dotPositions.map((pos, index) => ({
-    index,
-    y: pos.dotY,
-  }));
+  // For 3+ labels, sort by dot position and resolve overlaps from both edges so
+  // neither the top label text nor the bottom value text clips.
+  const order = dotPositions
+    .map((pos, index) => ({ index, y: pos.dotY }))
+    .sort((a, b) => a.y - b.y);
 
-  positions.sort((a, b) => a.y - b.y);
+  const ys = order.map((entry) => entry.y);
+  const lastIndex = ys.length - 1;
 
-  for (let i = 1; i < positions.length; i++) {
-    const gap = positions[i].y - positions[i - 1].y;
-    if (gap < minSpacing) {
-      positions[i].y = positions[i - 1].y + minSpacing;
+  // Push overlapping labels downward to enforce the minimum gap.
+  for (let i = 1; i < ys.length; i++) {
+    if (ys[i] - ys[i - 1] < minSpacing) {
+      ys[i] = ys[i - 1] + minSpacing;
     }
   }
 
-  // Shift group upward if bottom label overflows chart bounds
-  const maxY = CHART_HEIGHT - LABEL_HEIGHT;
-  const overflow = positions[positions.length - 1].y - maxY;
-  if (overflow > 0) {
-    const shift = Math.min(overflow, positions[0].y);
-    for (const pos of positions) {
-      pos.y -= shift;
+  // If the bottom value text would overflow, anchor the bottom label and push
+  // the rest back up so the bottom stays visible (e.g. two outcomes clustered
+  // near the chart floor).
+  if (ys[lastIndex] > MAX_LABEL_Y) {
+    ys[lastIndex] = MAX_LABEL_Y;
+    for (let i = lastIndex - 1; i >= 0; i--) {
+      if (ys[i + 1] - ys[i] < minSpacing) {
+        ys[i] = ys[i + 1] - minSpacing;
+      }
+    }
+  }
+
+  // If there are too many labels to fit, guard the top edge and re-resolve
+  // downward; the bottom may then sit just past MAX_LABEL_Y but within the chart.
+  if (ys[0] < MIN_LABEL_Y) {
+    ys[0] = MIN_LABEL_Y;
+    for (let i = 1; i < ys.length; i++) {
+      if (ys[i] - ys[i - 1] < minSpacing) {
+        ys[i] = ys[i - 1] + minSpacing;
+      }
     }
   }
 
   const result = new Array<number>(dotPositions.length);
-  for (const pos of positions) {
-    result[pos.index] = pos.y;
-  }
+  order.forEach((entry, i) => {
+    result[entry.index] = ys[i];
+  });
   return result;
 };
