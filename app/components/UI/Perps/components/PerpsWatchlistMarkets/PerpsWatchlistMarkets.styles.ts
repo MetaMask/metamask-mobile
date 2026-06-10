@@ -46,13 +46,12 @@ const styleSheet = (params: { theme: Theme }) => {
       marginBottom: 4,
     },
     // Show more / show less toggle
-    showMoreRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
+    showMoreButton: {
+      marginTop: 4,
+      marginBottom: 8,
+    },
+    showMoreButtonContainer: {
       paddingHorizontal: 16,
-      paddingVertical: 8,
-      gap: 4,
     },
   });
 };

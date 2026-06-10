@@ -7,15 +7,6 @@ import {
   type ViewStyle,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
-import Icon, {
-  IconName,
-  IconSize,
-  IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
@@ -31,6 +22,18 @@ import { usePerpsWatchlistActions } from '../../hooks/usePerpsWatchlistActions';
 import { PerpsWatchlistSelectorsIDs } from '../../Perps.testIds';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './PerpsWatchlistMarkets.styles';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+  Icon,
+  IconName,
+  IconSize,
+  IconColor,
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
 
 /** Markets with ≤ this count are shown without a "Show more" toggle. */
 const INITIAL_DISPLAY_COUNT = 3;
@@ -116,14 +119,14 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
         activeOpacity={onSeeAllPress ? 0.7 : 1}
       >
         <View style={styles.headerLeft}>
-          <Text variant={TextVariant.BodyLGMedium} color={TextColor.Default}>
+          <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
             {strings('perps.home.watchlist')}
           </Text>
           {onSeeAllPress && (
             <Icon
               name={IconName.ArrowRight}
               size={IconSize.Md}
-              color={IconColor.Alternative}
+              color={IconColor.IconAlternative}
             />
           )}
         </View>
@@ -186,32 +189,26 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
             />
 
             {hasMore && (
-              <TouchableOpacity
-                style={styles.showMoreRow}
-                onPress={() => setExpanded((prev) => !prev)}
-                testID={
-                  expanded
-                    ? PerpsWatchlistSelectorsIDs.SHOW_LESS_BUTTON
-                    : PerpsWatchlistSelectorsIDs.SHOW_MORE_BUTTON
-                }
-                activeOpacity={0.7}
-              >
-                <Text
-                  variant={TextVariant.BodySMBold}
-                  color={TextColor.Primary}
+              <View style={styles.showMoreButtonContainer}>
+                <Button
+                  variant={ButtonVariant.Secondary}
+                  size={ButtonSize.Md}
+                  isFullWidth
+                  onPress={() => setExpanded((prev) => !prev)}
+                  testID={
+                    expanded
+                      ? PerpsWatchlistSelectorsIDs.SHOW_LESS_BUTTON
+                      : PerpsWatchlistSelectorsIDs.SHOW_MORE_BUTTON
+                  }
+                  style={styles.showMoreButton}
                 >
                   {expanded
                     ? strings('perps.watchlist.show_less')
                     : strings('perps.watchlist.show_more', {
                         count: hiddenCount,
                       })}
-                </Text>
-                <Icon
-                  name={expanded ? IconName.ArrowUp : IconName.ArrowDown}
-                  size={IconSize.Xs}
-                  color={IconColor.Primary}
-                />
-              </TouchableOpacity>
+                </Button>
+              </View>
             )}
           </>
         )}
@@ -222,8 +219,10 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
             testID={PerpsWatchlistSelectorsIDs.SUGGESTED_SECTION}
           >
             <Text
-              variant={TextVariant.BodyMDMedium}
-              color={TextColor.Alternative}
+              variant={TextVariant.BodySm}
+              color={
+                hasWatchlist ? TextColor.TextAlternative : TextColor.TextDefault
+              }
               style={styles.suggestedHeader}
               testID={PerpsWatchlistSelectorsIDs.SUGGESTED_HEADER}
             >
