@@ -18,6 +18,7 @@ import BatchRPCManager from '../BatchRPCManager';
 import RPCQueueManager from '../RPCQueueManager';
 import SDKConnect from '../SDKConnect';
 import {
+  ANALYTICS_TRACKED_RPC_METHODS,
   DEFAULT_SESSION_TIMEOUT_MS,
   METHODS_TO_DELAY,
   RPC_METHODS,
@@ -25,6 +26,9 @@ import {
 import handleBatchRpcResponse from '../handlers/handleBatchRpcResponse';
 import handleCustomRpcCalls from '../handlers/handleCustomRpcCalls';
 import DevLogger from '../utils/DevLogger';
+import { MetaMetricsEvents } from '../../Analytics';
+import { analytics } from '../../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import { wait, waitForKeychainUnlocked } from '../utils/wait.util';
 import { AccountsController } from '@metamask/accounts-controller';
 import {
@@ -438,6 +442,77 @@ export default class DeeplinkProtocolService {
     }
   }
 
+  /**
+   * Fires the wallet-side `Remote Connection Request Received` event for the
+   * deeplink-protocol transport, completing the wallet half of the v1 paired
+   * dapp↔wallet schema (the socket-relay path already emits this from
+   * `connectToChannel`). Only non-PII properties are sent and the call is a
+   * no-op when the dapp didn't supply an `anonId`.
+   *
+   * @param originatorInfo - Self-reported, unverified dapp metadata decoded
+   * from the deeplink. Only `anonId` and `apiVersion` are read here.
+   */
+  private trackConnectionRequestReceived(originatorInfo?: OriginatorInfo) {
+    const anonId = originatorInfo?.anonId;
+
+    if (!anonId) {
+      return;
+    }
+
+    DevLogger.log(
+      `[MM SDK Analytics] event=${MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_RECEIVED.category} anonId=${anonId}`,
+    );
+
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_RECEIVED,
+      )
+        .addProperties({
+          transport_type: 'deeplink_protocol',
+          sdk_version: originatorInfo?.apiVersion,
+          remote_session_id: anonId,
+        })
+        .build(),
+    );
+  }
+
+  /**
+   * Fires the wallet-side `SDK Legacy RPC Request Received` event for the
+   * deeplink-protocol transport, mirroring the socket-relay path in
+   * `handleConnectionMessage`. No-op unless the channel has a stored `anonId`
+   * and the method is in `ANALYTICS_TRACKED_RPC_METHODS`. Only non-PII
+   * properties are sent (no params, addresses, or `originatorInfo` content).
+   *
+   * @param channelId - The deeplink channel id used to look up the stored
+   * connection's `originatorInfo`.
+   * @param method - The RPC method name received from the dapp.
+   */
+  private trackRpcRequestReceived(channelId: string, method?: string) {
+    const originatorInfo = this.connections[channelId]?.originatorInfo;
+    const anonId = originatorInfo?.anonId;
+
+    if (!anonId || !method || !ANALYTICS_TRACKED_RPC_METHODS.includes(method)) {
+      return;
+    }
+
+    DevLogger.log(
+      `[MM SDK Analytics] event=${MetaMetricsEvents.SDK_LEGACY_RPC_REQUEST_RECEIVED.category} anonId=${anonId}`,
+    );
+
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.SDK_LEGACY_RPC_REQUEST_RECEIVED,
+      )
+        .addProperties({
+          transport_type: 'deeplink_protocol',
+          sdk_version: originatorInfo?.apiVersion,
+          rpc_method: method,
+          remote_session_id: anonId,
+        })
+        .build(),
+    );
+  }
+
   public async handleConnection(params: {
     dappPublicKey: string;
     url: string;
@@ -465,6 +540,11 @@ export default class DeeplinkProtocolService {
     const originatorInfoJson = JSON.parse(decodedOriginatorInfo);
 
     const originatorInfo = originatorInfoJson.originatorInfo;
+
+    // Wallet-side analytics: fires for every connect deeplink received over the
+    // deeplink-protocol transport (new session or reconnect), mirroring the
+    // socket-relay path. See WAPI-1347 Part B.
+    this.trackConnectionRequestReceived(originatorInfo);
 
     const clientInfo: DappClient = {
       clientId: params.channelId,
@@ -554,6 +634,9 @@ export default class DeeplinkProtocolService {
         message: 'Invalid origin',
       });
     }
+
+    // Wallet-side analytics: RPC bundled with a connect deeplink. See WAPI-1347 Part B.
+    this.trackRpcRequestReceived(params.channelId, requestObject.method);
 
     // Handle custom rpc method
     const processedRpc = await handleCustomRpcCalls({
@@ -883,6 +966,11 @@ export default class DeeplinkProtocolService {
       }
 
       this.currentClientId = sessionId;
+
+      // Wallet-side analytics: standalone RPC request over the deeplink
+      // protocol (mmsdk deeplink). See WAPI-1347 Part B.
+      this.trackRpcRequestReceived(sessionId, data.method);
+
       // Handle custom rpc method
       const processedRpc = await handleCustomRpcCalls({
         batchRPCManager: this.batchRPCManager,
