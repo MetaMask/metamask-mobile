@@ -165,6 +165,7 @@ const PredictThePitchCampaignLeaderboardView: React.FC = () => {
               currentUserReferralCode={referralCode}
               userPosition={leaderboardUserPosition}
               isCampaignComplete={isCampaignComplete}
+              isCurrentUserEligible={position?.eligible}
             />
           </Box>
         </ScrollView>

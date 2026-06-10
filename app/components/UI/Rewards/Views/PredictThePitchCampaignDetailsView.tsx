@@ -566,6 +566,7 @@ const PredictThePitchCampaignDetailsView: React.FC = () => {
                       userPosition={leaderboardUserPosition}
                       maxEntries={5}
                       isCampaignComplete={isComplete}
+                      isCurrentUserEligible={leaderboardPosition?.eligible}
                     />
                   </Box>
                 </>
