@@ -603,6 +603,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       !isLoadingHistory,
       !isLoadingPosition,
       !isPerpsInsightsLoading,
+      // Guard against stale insights from a prior symbol (the loading flag
+      // may not flip to true until the next render after a symbol change).
+      !isPerpsInsightsEnabled ||
+        !perpsInsightsReport ||
+        perpsInsightsReport.asset === market?.symbol,
     ],
     properties: {
       [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
