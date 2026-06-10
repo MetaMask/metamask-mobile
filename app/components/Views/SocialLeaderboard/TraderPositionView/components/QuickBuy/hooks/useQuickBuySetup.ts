@@ -2,7 +2,6 @@ import {
   formatAddressToAssetId,
   formatChainIdToHex,
   isNonEvmChainId,
-  isSolanaChainId,
 } from '@metamask/bridge-controller';
 import {
   CaipChainId,
@@ -100,26 +99,25 @@ export const useQuickBuySetup = (
   const destChainId = useMemo(() => {
     if (!position) return undefined;
     const caipId = position.chain;
-    if (isNonEvmChainId(caipId)) {
-      // Among non-EVM chains, non-native (token) assets can only be resolved
-      // on Solana — `useAssetMetadata` validates Solana/EVM addresses only, so
-      // e.g. a TRC-20 asset on Tron would never resolve a destination token
-      // and the sheet would dead-end with a permanently disabled Buy button.
-      // Gate those targets as unsupported so the user gets explicit feedback.
-      if (!isNativeAsset && !isSolanaChainId(caipId)) return undefined;
-      return caipId;
-    }
+    if (isNonEvmChainId(caipId)) return caipId;
     if (!isBridgeEnabledSource(caipId)) return undefined;
     return formatChainIdToHex(caipId);
-  }, [position, isBridgeEnabledSource, isNativeAsset]);
+  }, [position, isBridgeEnabledSource]);
 
   const isUnsupportedChain = Boolean(position && !destChainId);
 
+  // Hosts that already hold the fully-resolved token (e.g. the asset-details
+  // page) pass its decimals on the target, in which case there is nothing to
+  // fetch — mirroring how the Swap UI seeds its destination token directly
+  // from the asset the user is looking at (`toCurrentTokenAsBridgeToken`).
+  const hasHostTokenMetadata = position?.tokenDecimals !== undefined;
+
   // Fetch token metadata (decimals, image) from Token Metadata API for the
-  // dest token. Skipped for natives (handled via getNativeSourceToken).
+  // dest token. Skipped for natives (handled via getNativeSourceToken) and
+  // when the host already provided the token's metadata.
   const { assetMetadata, pending: isMetadataLoading } = useAssetMetadata(
     metadataQuery,
-    Boolean(position && destChainId && !isNativeAsset),
+    Boolean(position && destChainId && !isNativeAsset && !hasHostTokenMetadata),
     destChainId,
   );
 
@@ -158,12 +156,32 @@ export const useQuickBuySetup = (
       }
     }
 
+    // For EVM tokens the on-chain `address` field must be the bare hex (the
+    // bridge-controller's quote endpoint expects this). When the position
+    // came in as a CAIP-19 wrapper we use the unwrapped reference, otherwise
+    // the original bare address is preserved.
+    const evmAddress = parsedTokenAddress ?? position.tokenAddress;
+
+    // Host-provided metadata: build the token directly — no fetch round-trip
+    // and no dependency on per-chain address validation, which is what makes
+    // e.g. TRC-20 assets on Tron quotable from the asset-details page.
+    // `formatAddressToAssetId` passes CAIP-19 inputs through and wraps bare
+    // Solana/Tron addresses into their `token:`/`trc20:` asset ids.
+    if (position.tokenDecimals !== undefined) {
+      return {
+        address: isNonEvmChainId(destChainId)
+          ? (formatAddressToAssetId(position.tokenAddress, destChainId) ??
+            position.tokenAddress)
+          : evmAddress,
+        symbol: position.tokenSymbol,
+        name: position.tokenName,
+        decimals: position.tokenDecimals,
+        image: position.tokenImage ?? '',
+        chainId: destChainId,
+      };
+    }
+
     if (assetMetadata) {
-      // For EVM tokens the on-chain `address` field must be the bare hex (the
-      // bridge-controller's quote endpoint expects this). When the position
-      // came in as a CAIP-19 wrapper we use the unwrapped reference, otherwise
-      // the original bare address is preserved.
-      const evmAddress = parsedTokenAddress ?? position.tokenAddress;
       return {
         address: isNonEvmChainId(destChainId)
           ? (formatAddressToAssetId(assetMetadata.address, destChainId) ??

@@ -21,6 +21,7 @@ jest.mock('../../../../../../../locales/i18n', () => ({
 jest.mock('@metamask/bridge-controller', () => ({
   formatChainIdToHex: () => '0x1',
   isNonEvmChainId: () => false,
+  isTronChainId: () => false,
   isNativeAddress: () => false,
   getNativeAssetForChainId: () => undefined,
 }));

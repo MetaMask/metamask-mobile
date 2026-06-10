@@ -5,6 +5,7 @@ import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
 import { isAddress as isEvmAddress } from 'ethers/lib/utils';
+import { isTronAddress } from '../../../../../core/Multichain/utils';
 
 export enum AssetType {
   /** The native asset for the current network, such as ETH */
@@ -58,7 +59,9 @@ export const useAssetMetadata = (
 
     const trimmedSearchQuery = searchQuery.trim();
     const isAddress =
-      isSolanaAddress(trimmedSearchQuery) || isEvmAddress(trimmedSearchQuery);
+      isSolanaAddress(trimmedSearchQuery) ||
+      isEvmAddress(trimmedSearchQuery) ||
+      isTronAddress(trimmedSearchQuery);
 
     if (isBasicFunctionalityEnabled && shouldFetchMetadata && isAddress) {
       const metadata = await fetchAssetMetadata(trimmedSearchQuery, chainId);

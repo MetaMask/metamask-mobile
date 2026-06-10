@@ -155,6 +155,43 @@ describe('useAssetMetadata', () => {
     });
   });
 
+  describe('Tron', () => {
+    it('should fetch and return asset metadata for a base58 Tron address', async () => {
+      const mockChainIdTrx = 'tron:728126428';
+      const mockSearchQueryTrx = 'TUPM7K8REVzD2UdV4R5fe5M8XbnR2DdoJ6';
+      const mockMetadata = {
+        address: mockSearchQueryTrx,
+        symbol: 'HTX',
+        decimals: 18,
+        assetId: `${mockChainIdTrx}/trc20:${mockSearchQueryTrx}`,
+        chainId: mockChainIdTrx,
+      };
+
+      mockFetchAssetMetadata.mockResolvedValueOnce(mockMetadata);
+
+      const { result } = renderHook(() =>
+        useAssetMetadata(mockSearchQueryTrx, true, mockChainIdTrx),
+      );
+
+      await waitFor(() => {
+        expect(result.current.assetMetadata).toEqual({
+          ...mockMetadata,
+          chainId: mockChainIdTrx,
+          isNative: false,
+          type: AssetType.token,
+          image: 'mock-image-url',
+          balance: '',
+          string: '',
+        });
+      });
+
+      expect(mockFetchAssetMetadata).toHaveBeenCalledWith(
+        mockSearchQueryTrx,
+        mockChainIdTrx,
+      );
+    });
+  });
+
   it('should return undefined when fetchAssetMetadata returns undefined', async () => {
     mockFetchAssetMetadata.mockResolvedValueOnce(undefined);
 

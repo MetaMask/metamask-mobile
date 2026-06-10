@@ -423,8 +423,8 @@ describe('useQuickBuyController', () => {
 
   describe('setup passthrough', () => {
     it('exposes isDestTokenUnavailable from useQuickBuySetup so the sheet can surface feedback', () => {
-      // Arrange — setup settled without a destination token (e.g. a TRC-20
-      // asset on Tron the metadata pipeline cannot resolve).
+      // Arrange — setup settled without a destination token (e.g. the Token
+      // Metadata API had no entry for the asset).
       (useQuickBuySetup as jest.Mock).mockReturnValue({
         chainId: 'tron:728126428',
         destToken: undefined,

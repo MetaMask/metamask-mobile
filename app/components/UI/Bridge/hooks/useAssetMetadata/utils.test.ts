@@ -35,6 +35,14 @@ describe('asset-utils', () => {
       expect(result).toBe(`${MultichainNetwork.Solana}/token:${address}`);
     });
 
+    it('should create Tron trc20 asset ID correctly', () => {
+      const address = 'TUPM7K8REVzD2UdV4R5fe5M8XbnR2DdoJ6';
+      const chainId = 'tron:728126428' as CaipChainId;
+
+      const result = toAssetId(address, chainId);
+      expect(result).toBe(`tron:728126428/trc20:${address}`);
+    });
+
     it('should create EVM token asset ID correctly', () => {
       const address = '0x1f9840a85d5af5bf1d1762f925bdaddc4201f984';
       const chainId = 'eip155:1' as CaipChainId;
@@ -165,6 +173,39 @@ describe('asset-utils', () => {
         assetId: solanaAssetId,
         address: solanaAddress,
         chainId: solanaChainId,
+        rwaData: undefined,
+      });
+    });
+
+    it('should fetch Tron token metadata successfully', async () => {
+      const tronChainId = 'tron:728126428' as CaipChainId;
+      const tronAddress = 'TUPM7K8REVzD2UdV4R5fe5M8XbnR2DdoJ6';
+      const tronAssetId = `${tronChainId}/trc20:${tronAddress}`;
+
+      const mockMetadata = {
+        assetId: tronAssetId,
+        symbol: 'HTX',
+        name: 'HTX DAO',
+        decimals: 18,
+      };
+
+      (handleFetch as jest.Mock).mockResolvedValueOnce([mockMetadata]);
+
+      const result = await fetchAssetMetadata(tronAddress, tronChainId);
+
+      expect(handleFetch).toHaveBeenCalledWith(
+        `${TOKEN_API_V3_BASE_URL}/assets?assetIds=${tronAssetId}&includeIconUrl=true&includeRwaData=true`,
+      );
+
+      expect(result).toStrictEqual({
+        symbol: 'HTX',
+        decimals: 18,
+        name: 'HTX DAO',
+        image:
+          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/tron/728126428/trc20/TUPM7K8REVzD2UdV4R5fe5M8XbnR2DdoJ6.png',
+        assetId: tronAssetId,
+        address: tronAddress,
+        chainId: tronChainId,
         rwaData: undefined,
       });
     });

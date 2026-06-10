@@ -29,7 +29,7 @@ const QuickBuyAmountScreen: React.FC = () => {
   // Both states are terminal for this sheet: without a supported chain and a
   // resolved destination token, quotes can never be fetched. Replace the buy
   // flow with an explicit message instead of leaving the Buy button silently
-  // disabled (see TSA-659: TRC-20 assets on Tron).
+  // disabled with no feedback (TSA-659).
   if (isUnsupportedChain || isDestTokenUnavailable) {
     return (
       <Box twClassName="px-4 py-8" alignItems={BoxAlignItems.Center}>
