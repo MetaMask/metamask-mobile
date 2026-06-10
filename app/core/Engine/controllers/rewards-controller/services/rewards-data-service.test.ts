@@ -5474,7 +5474,8 @@ describe('RewardsDataService', () => {
 
     it('gets authenticated positions and throws on failures', async () => {
       const positions = {
-        positions: [],
+        openPositions: [],
+        resolvedPositions: [],
         computedAt: null,
       };
       mockFetch.mockResolvedValueOnce({

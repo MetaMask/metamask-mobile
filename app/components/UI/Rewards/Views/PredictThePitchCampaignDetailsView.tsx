@@ -11,6 +11,7 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  BoxJustifyContent,
   FontWeight,
   HeaderStandard,
   Icon,
@@ -62,6 +63,8 @@ type PredictThePitchCampaignDetailsRouteParams = {
 export const PREDICT_THE_PITCH_CAMPAIGN_DETAILS_VIEW_TEST_IDS = {
   CONTAINER: 'predict-the-pitch-campaign-details-view-container',
   HOW_IT_WORKS: 'predict-the-pitch-campaign-details-how-it-works',
+  POSITIONS_COUNT_BADGE:
+    'predict-the-pitch-campaign-details-positions-count-badge',
 } as const;
 
 const sessionWinningViewAutoNavCampaignIds = new Set<string>();
@@ -120,7 +123,35 @@ const PredictThePitchCampaignDetailsView: React.FC = () => {
     isOptedIn ? effectiveCampaignId || undefined : undefined,
   );
 
-  const hasPortfolioPosition = Boolean(positions?.positions.length);
+  const hasPortfolioPositions = Boolean(
+    positions &&
+      ((positions.openPositions?.length ?? 0) > 0 ||
+        (positions.resolvedPositions?.length ?? 0) > 0),
+  );
+
+  const positionsCountBadgeLabel = useMemo(() => {
+    if (!positions) {
+      return null;
+    }
+
+    const openCount = positions.openPositions?.length ?? 0;
+    if (openCount > 0) {
+      return strings(
+        'rewards.predict_the_pitch_campaign.positions_open_badge',
+        { count: openCount },
+      );
+    }
+
+    const closedCount = positions.resolvedPositions?.length ?? 0;
+    if (closedCount > 0) {
+      return strings(
+        'rewards.predict_the_pitch_campaign.positions_closed_badge',
+        { count: closedCount },
+      );
+    }
+
+    return null;
+  }, [positions]);
 
   const {
     position: leaderboardPosition,
@@ -203,13 +234,13 @@ const PredictThePitchCampaignDetailsView: React.FC = () => {
       showStatsSummarySection: hasLeaderboardPosition,
       showPrizePoolSection: isActive || isComplete,
       showLeaderboardSection: true,
-      showPortfolioSection: isOptedIn && hasPortfolioPosition && !isComplete,
+      showPortfolioSection: isOptedIn && hasPortfolioPositions && !isComplete,
       showCampaignEndedStats: showEndedStats,
     };
   }, [
     campaign,
     hasLeaderboardPosition,
-    hasPortfolioPosition,
+    hasPortfolioPositions,
     isActive,
     isComplete,
     isOptedIn,
@@ -413,21 +444,42 @@ const PredictThePitchCampaignDetailsView: React.FC = () => {
                     <Box
                       flexDirection={BoxFlexDirection.Row}
                       alignItems={BoxAlignItems.Center}
-                      twClassName="gap-2 mb-3"
+                      justifyContent={BoxJustifyContent.Between}
+                      twClassName="mb-3"
                     >
-                      <Text
-                        variant={TextVariant.HeadingMd}
-                        fontWeight={FontWeight.Bold}
+                      <Box
+                        flexDirection={BoxFlexDirection.Row}
+                        alignItems={BoxAlignItems.Center}
+                        twClassName="gap-2"
                       >
-                        {strings(
-                          'rewards.predict_the_pitch_campaign.positions_title',
-                        )}
-                      </Text>
-                      <Icon
-                        name={IconName.ArrowRight}
-                        size={IconSize.Md}
-                        color={IconColor.IconAlternative}
-                      />
+                        <Text
+                          variant={TextVariant.HeadingMd}
+                          fontWeight={FontWeight.Bold}
+                        >
+                          {strings(
+                            'rewards.predict_the_pitch_campaign.positions_title',
+                          )}
+                        </Text>
+                        <Icon
+                          name={IconName.ArrowRight}
+                          size={IconSize.Md}
+                          color={IconColor.IconAlternative}
+                        />
+                      </Box>
+                      {positionsCountBadgeLabel != null && (
+                        <Box twClassName="bg-muted rounded px-1.5 py-0">
+                          <Text
+                            variant={TextVariant.BodySm}
+                            fontWeight={FontWeight.Medium}
+                            color={TextColor.TextAlternative}
+                            testID={
+                              PREDICT_THE_PITCH_CAMPAIGN_DETAILS_VIEW_TEST_IDS.POSITIONS_COUNT_BADGE
+                            }
+                          >
+                            {positionsCountBadgeLabel}
+                          </Text>
+                        </Box>
+                      )}
                     </Box>
                   </Pressable>
                   <PredictThePitchPortfolio

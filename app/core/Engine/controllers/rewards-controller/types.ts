@@ -1164,7 +1164,8 @@ export interface PredictThePitchPositionDto {
 }
 
 export interface PredictThePitchPositionsDto {
-  positions: PredictThePitchPositionDto[];
+  openPositions: PredictThePitchPositionDto[];
+  resolvedPositions: PredictThePitchPositionDto[];
   computedAt: string | null;
 }
 
@@ -1255,7 +1256,8 @@ export type PredictThePitchPositionState = {
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PredictThePitchPositionsState = {
-  positions: PredictThePitchPositionState[];
+  openPositions: PredictThePitchPositionState[];
+  resolvedPositions: PredictThePitchPositionState[];
   computedAt: string | null;
   lastFetched: number;
 };

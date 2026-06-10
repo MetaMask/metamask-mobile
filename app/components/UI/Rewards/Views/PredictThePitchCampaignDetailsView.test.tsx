@@ -220,9 +220,25 @@ jest.mock('../../../../../locales/i18n', () => ({
       'rewards.predict_the_pitch_campaign.title': 'Predict The Pitch',
       'rewards.predict_the_pitch_campaign.stats_title': 'Stats',
       'rewards.predict_the_pitch_campaign.positions_title': 'Your predictions',
+      'rewards.predict_the_pitch_campaign.positions_open_badge':
+        '{{count}} open',
+      'rewards.predict_the_pitch_campaign.positions_closed_badge':
+        '{{count}} closed',
       'rewards.predict_the_pitch_campaign.leaderboard_title': 'Leaderboard',
       'rewards.campaign_prize_pool.title': 'Prize pool',
     };
+    if (
+      key === 'rewards.predict_the_pitch_campaign.positions_open_badge' &&
+      params?.count !== undefined
+    ) {
+      return `${params.count} open`;
+    }
+    if (
+      key === 'rewards.predict_the_pitch_campaign.positions_closed_badge' &&
+      params?.count !== undefined
+    ) {
+      return `${params.count} closed`;
+    }
     return map[key] ?? key;
   },
 }));
@@ -311,6 +327,7 @@ interface SetupHooksOptions {
   campaigns?: CampaignDto[];
   optedIn?: boolean;
   portfolioPositionCount?: number;
+  resolvedPositionCount?: number;
   leaderboardPosition?: PredictThePitchLeaderboardPositionDto | null;
 }
 
@@ -318,6 +335,7 @@ function setupHooks({
   campaigns = [completeCampaign],
   optedIn = false,
   portfolioPositionCount = 0,
+  resolvedPositionCount = 0,
   leaderboardPosition = null,
 }: SetupHooksOptions = {}) {
   mockUseRewardCampaigns.mockReturnValue({
@@ -343,25 +361,50 @@ function setupHooks({
   mockUseGetPredictThePitchPositions.mockReturnValue({
     positions: {
       computedAt: null,
-      positions: Array.from({ length: portfolioPositionCount }, (_, index) => ({
-        outcomeAssetId: `token-${index}`,
-        outcomeAsset: 'Yes',
-        conditionId: `condition-${index}`,
-        conditionName: `Position ${index}`,
-        conditionSlug: null,
-        eventId: null,
-        eventSlug: null,
-        iconUrl: null,
-        capitalDeployed: 10,
-        pnl: 1,
-        roi: 0.1,
-        status: 'open' as const,
-        fillShares: 5,
-        fillSharesBought: 5,
-        fillSharesSold: 0,
-        fillPrice: 2,
-        fillDate: '2025-01-01T00:00:00.000Z',
-      })),
+      openPositions: Array.from(
+        { length: portfolioPositionCount },
+        (_, index) => ({
+          outcomeAssetId: `token-${index}`,
+          outcomeAsset: 'Yes',
+          conditionId: `condition-${index}`,
+          conditionName: `Position ${index}`,
+          conditionSlug: null,
+          eventId: null,
+          eventSlug: null,
+          iconUrl: null,
+          capitalDeployed: 10,
+          pnl: 1,
+          roi: 0.1,
+          status: 'open' as const,
+          fillShares: 5,
+          fillSharesBought: 5,
+          fillSharesSold: 0,
+          fillPrice: 2,
+          fillDate: '2025-01-01T00:00:00.000Z',
+        }),
+      ),
+      resolvedPositions: Array.from(
+        { length: resolvedPositionCount },
+        (_, index) => ({
+          outcomeAssetId: `resolved-token-${index}`,
+          outcomeAsset: 'Yes',
+          conditionId: `resolved-condition-${index}`,
+          conditionName: `Resolved ${index}`,
+          conditionSlug: null,
+          eventId: null,
+          eventSlug: null,
+          iconUrl: null,
+          capitalDeployed: 10,
+          pnl: 1,
+          roi: 0.1,
+          status: 'resolved' as const,
+          fillShares: 0,
+          fillSharesBought: 5,
+          fillSharesSold: 5,
+          fillPrice: 2,
+          fillDate: '2025-01-01T00:00:00.000Z',
+        }),
+      ),
     },
     isLoading: false,
     hasError: false,
@@ -497,6 +540,40 @@ describe('PredictThePitchCampaignDetailsView', () => {
 
     const { getByTestId } = render(<PredictThePitchCampaignDetailsView />);
     expect(getByTestId('predict-the-pitch-portfolio')).toBeDefined();
+  });
+
+  it('shows open positions count badge when user has open positions', () => {
+    setupHooks({
+      campaigns: [activeCampaign],
+      optedIn: true,
+      portfolioPositionCount: 2,
+      resolvedPositionCount: 1,
+      leaderboardPosition: baseLeaderboardPosition,
+    });
+
+    const { getByTestId } = render(<PredictThePitchCampaignDetailsView />);
+
+    expect(
+      getByTestId('predict-the-pitch-campaign-details-positions-count-badge')
+        .props.children,
+    ).toBe('2 open');
+  });
+
+  it('shows closed positions count badge when user has no open positions', () => {
+    setupHooks({
+      campaigns: [activeCampaign],
+      optedIn: true,
+      portfolioPositionCount: 0,
+      resolvedPositionCount: 3,
+      leaderboardPosition: baseLeaderboardPosition,
+    });
+
+    const { getByTestId } = render(<PredictThePitchCampaignDetailsView />);
+
+    expect(
+      getByTestId('predict-the-pitch-campaign-details-positions-count-badge')
+        .props.children,
+    ).toBe('3 closed');
   });
 
   it('navigates to portfolio, leaderboard, and mechanics', () => {
