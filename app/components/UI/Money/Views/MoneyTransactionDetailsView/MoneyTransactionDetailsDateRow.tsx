@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTransactionDetails } from '../../../../Views/confirmations/hooks/activity/useTransactionDetails';
 import { TransactionDetailsRow } from '../../../../Views/confirmations/components/activity/transaction-details-row/transaction-details-row';
-import Text from '../../../../../component-library/components/Texts/Text';
+import { Text } from '@metamask/design-system-react-native';
 import { getIntlDateTimeFormatter } from '../../../../../util/intl';
 import I18n, { strings } from '../../../../../../locales/i18n';
 

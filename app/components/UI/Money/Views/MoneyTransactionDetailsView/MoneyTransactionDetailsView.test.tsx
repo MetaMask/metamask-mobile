@@ -17,17 +17,14 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ goBack: jest.fn(), setOptions: jest.fn() }),
 }));
 
-jest.mock(
-  './MoneyTransactionDetailsDateRow',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const { Text } = jest.requireActual('react-native');
-    return {
-      MoneyTransactionDetailsDateRow: () =>
-        ReactActual.createElement(Text, { testID: 'date-row' }, 'date'),
-    };
-  },
-);
+jest.mock('./MoneyTransactionDetailsDateRow', () => {
+  const ReactActual = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
+  return {
+    MoneyTransactionDetailsDateRow: () =>
+      ReactActual.createElement(Text, { testID: 'date-row' }, 'date'),
+  };
+});
 jest.mock(
   '../../../../Views/confirmations/components/activity/transaction-details-network-fee-row',
   () => {
@@ -50,11 +47,7 @@ jest.mock(
     const { Text } = jest.requireActual('react-native');
     return {
       TransactionDetailsBridgeFeeRow: () =>
-        ReactActual.createElement(
-          Text,
-          { testID: 'bridge-fee' },
-          'bridge-fee',
-        ),
+        ReactActual.createElement(Text, { testID: 'bridge-fee' }, 'bridge-fee'),
     };
   },
 );

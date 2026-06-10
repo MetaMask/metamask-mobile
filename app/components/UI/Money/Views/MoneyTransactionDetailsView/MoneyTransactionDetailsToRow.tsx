@@ -1,16 +1,17 @@
 import React, { useMemo } from 'react';
 import { type Hex } from '@metamask/utils';
 import { TransactionType } from '@metamask/transaction-controller';
-import Text from '../../../../../component-library/components/Texts/Text';
+import { Box, Text } from '@metamask/design-system-react-native';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import AvatarAccount from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
-import { Box } from '../../../Box/Box';
-import { AlignItems, FlexDirection } from '../../../Box/box.types';
 import Name from '../../../Name/Name';
 import { NameType } from '../../../Name/Name.types';
 import { strings } from '../../../../../../locales/i18n';
 import { useTransactionDetails } from '../../../../Views/confirmations/hooks/activity/useTransactionDetails';
-import { hasTransactionType, parseStandardTokenTransactionData } from '../../../../Views/confirmations/utils/transaction';
+import {
+  hasTransactionType,
+  parseStandardTokenTransactionData,
+} from '../../../../Views/confirmations/utils/transaction';
 import { TransactionDetailsRow } from '../../../../Views/confirmations/components/activity/transaction-details-row/transaction-details-row';
 import { getTokenTransferData } from '../../../../Views/confirmations/utils/transaction-pay';
 
@@ -71,11 +72,7 @@ export function MoneyTransactionDetailsToRow() {
   return (
     <TransactionDetailsRow label={strings('transaction_details.label.to')}>
       {staticLabel ? (
-        <Box
-          flexDirection={FlexDirection.Row}
-          alignItems={AlignItems.center}
-          gap={6}
-        >
+        <Box twClassName="flex-row items-center gap-1.5">
           <AvatarAccount
             accountAddress={recipient ?? '0x0'}
             size={AvatarSize.Sm}

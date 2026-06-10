@@ -1,7 +1,7 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
 import { type Hex } from '@metamask/utils';
-import Text from '../../../../../component-library/components/Texts/Text';
+import { Box, Text } from '@metamask/design-system-react-native';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import AvatarAccount from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import Badge, {
@@ -10,8 +10,6 @@ import Badge, {
 import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
-import { Box } from '../../../Box/Box';
-import { AlignItems, FlexDirection } from '../../../Box/box.types';
 import { strings } from '../../../../../../locales/i18n';
 import { NameType } from '../../../Name/Name.types';
 import { useAccountNames } from '../../../../hooks/DisplayName/useAccountNames';
@@ -59,11 +57,7 @@ export function MoneyTransactionDetailsFromRow() {
 
   return (
     <TransactionDetailsRow label={strings('transaction_details.label.from')}>
-      <Box
-        flexDirection={FlexDirection.Row}
-        alignItems={AlignItems.center}
-        gap={6}
-      >
+      <Box twClassName="flex-row items-center gap-1.5">
         <BadgeWrapper
           badgePosition={BadgePosition.BottomRight}
           badgeElement={

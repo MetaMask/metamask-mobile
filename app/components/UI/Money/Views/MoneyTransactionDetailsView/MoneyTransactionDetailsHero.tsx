@@ -1,25 +1,33 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { type Hex } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import { Box } from '../../../Box/Box';
-import { AlignItems, FlexDirection } from '../../../Box/box.types';
-import { useTransactionDetails } from '../../../../Views/confirmations/hooks/activity/useTransactionDetails';
 import {
-  TokenIcon,
-} from '../../../../Views/confirmations/components/token-icon';
+  Box,
+  Text,
+  TextVariant,
+  FontWeight,
+} from '@metamask/design-system-react-native';
+import { useTransactionDetails } from '../../../../Views/confirmations/hooks/activity/useTransactionDetails';
+import { TokenIcon } from '../../../../Views/confirmations/components/token-icon';
 import { resolveMusdTransferMeta } from '../../constants/activityStyles';
 import { fromTokenMinimalUnit } from '../../../../../util/number/bigint';
 import { MUSD_TOKEN, MUSD_TOKEN_ADDRESS } from '../../../Earn/constants/musd';
+
+const styles = StyleSheet.create({
+  container: {
+    marginVertical: 12,
+  },
+});
 
 /**
  * Resolves the mUSD numeric amount for the hero display.
  * - Withdrawals: decodes from ERC-20 transfer calldata via resolveMusdTransferMeta
  * - Deposits: uses metamaskPay.targetFiat (since mUSD is pegged 1:1 to USD)
  */
-function useMusdHeroData(transactionMeta: Parameters<typeof resolveMusdTransferMeta>[0]): {
+function useMusdHeroData(
+  transactionMeta: Parameters<typeof resolveMusdTransferMeta>[0],
+): {
   amount: string;
   symbol: string;
   contractAddress: string;
@@ -71,10 +79,8 @@ export function MoneyTransactionDetailsHero() {
   return (
     <Box
       testID="money-transaction-details-hero"
-      flexDirection={FlexDirection.Row}
-      alignItems={AlignItems.center}
-      gap={12}
-      style={{ marginVertical: 12 }}
+      twClassName="flex-row items-center gap-3"
+      style={styles.container}
     >
       <TokenIcon
         chainId={heroData.chainId}
@@ -82,7 +88,7 @@ export function MoneyTransactionDetailsHero() {
         symbol={heroData.symbol}
         showNetwork={false}
       />
-      <Text variant={TextVariant.DisplayMD} style={{ fontWeight: '700' }}>
+      <Text variant={TextVariant.DisplayMD} fontWeight={FontWeight.Bold}>
         {heroData.amount} {heroData.symbol}
       </Text>
     </Box>

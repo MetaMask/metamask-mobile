@@ -5,8 +5,7 @@ import {
   type TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { HeaderStandard } from '@metamask/design-system-react-native';
-import { Box } from '../../../Box/Box';
+import { Box, HeaderStandard } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../hooks/useStyles';
 import { strings } from '../../../../../../locales/i18n';
 import { useTransactionDetails } from '../../../../Views/confirmations/hooks/activity/useTransactionDetails';
@@ -91,7 +90,7 @@ export default function MoneyTransactionDetailsView() {
       />
       {transactionMeta ? (
         <ScrollView>
-          <Box style={styles.container} gap={12}>
+          <Box style={styles.container} twClassName="gap-3">
             <MoneyTransactionDetailsHero />
             <MoneyTransactionDetailsStatusRow />
             <MoneyTransactionDetailsDateRow />

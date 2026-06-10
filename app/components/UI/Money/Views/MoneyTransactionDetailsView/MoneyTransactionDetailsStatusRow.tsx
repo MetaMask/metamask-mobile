@@ -1,9 +1,11 @@
 import React from 'react';
 import { TransactionStatus } from '@metamask/transaction-controller';
-import Text, {
+import {
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+  FontWeight,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useTransactionDetails } from '../../../../Views/confirmations/hooks/activity/useTransactionDetails';
 import { TransactionDetailsRow } from '../../../../Views/confirmations/components/activity/transaction-details-row/transaction-details-row';
@@ -23,12 +25,12 @@ function getStatusText(status: TransactionStatus): string {
 function getStatusColor(status: TransactionStatus): TextColor {
   switch (status) {
     case TransactionStatus.confirmed:
-      return TextColor.Success;
+      return TextColor.SuccessDefault;
     case TransactionStatus.failed:
     case TransactionStatus.dropped:
-      return TextColor.Error;
+      return TextColor.ErrorDefault;
     default:
-      return TextColor.Warning;
+      return TextColor.WarningDefault;
   }
 }
 
@@ -40,7 +42,8 @@ export function MoneyTransactionDetailsStatusRow() {
     <TransactionDetailsRow label={strings('transactions.status')}>
       <Text
         testID="money-transaction-status"
-        variant={TextVariant.BodyMDMedium}
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
         color={getStatusColor(status)}
       >
         {getStatusText(status)}

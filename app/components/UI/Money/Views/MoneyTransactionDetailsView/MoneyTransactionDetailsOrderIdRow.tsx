@@ -1,6 +1,6 @@
 import React from 'react';
 import { TransactionType } from '@metamask/transaction-controller';
-import Text from '../../../../../component-library/components/Texts/Text';
+import { Text } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useTransactionDetails } from '../../../../Views/confirmations/hooks/activity/useTransactionDetails';
 import { hasTransactionType } from '../../../../Views/confirmations/utils/transaction';
@@ -18,12 +18,12 @@ export function MoneyTransactionDetailsOrderIdRow() {
     return null;
   }
 
-  const displayId = orderId.includes('/')
-    ? orderId.split('/').pop()
-    : orderId;
+  const displayId = orderId.includes('/') ? orderId.split('/').pop() : orderId;
 
   return (
-    <TransactionDetailsRow label={strings('transaction_details.label.order_id')}>
+    <TransactionDetailsRow
+      label={strings('transaction_details.label.order_id')}
+    >
       <Text>{displayId}</Text>
     </TransactionDetailsRow>
   );
