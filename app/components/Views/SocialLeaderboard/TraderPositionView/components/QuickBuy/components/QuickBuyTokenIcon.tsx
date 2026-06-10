@@ -61,7 +61,7 @@ const QuickBuyTokenIcon: React.FC<QuickBuyTokenIconProps> = ({
       ...(getFallbackAssetImageUrls(token.chainId, token.address) ?? []),
     ].filter((image): image is string => Boolean(image));
     return [...new Set(urls)].map((uri) => ({ uri }));
-  }, [token]);
+  }, [token.image, token.chainId, token.address]);
 
   const { source, onError, uniqueSourceImageKey } =
     useSmartImageFallback(images);
