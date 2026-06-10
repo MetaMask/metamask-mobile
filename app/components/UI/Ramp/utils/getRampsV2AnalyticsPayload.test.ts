@@ -36,7 +36,7 @@ describe('getRampsV2AnalyticsPayload', () => {
       mockBuyOrder as FiatOrder,
     );
 
-    expect(eventName).toBe('ONRAMP_PURCHASE_FAILED');
+    expect(eventName).toBe('RAMPS_TRANSACTION_FAILED');
     expect(params).toEqual({
       amount: 100,
       currency_source: 'USD',
@@ -78,7 +78,7 @@ describe('getRampsV2AnalyticsPayload', () => {
       },
     } as FiatOrder);
 
-    expect(eventName).toBe('ONRAMP_PURCHASE_COMPLETED');
+    expect(eventName).toBe('RAMPS_TRANSACTION_COMPLETED');
     expect(params).toEqual({
       amount: 100,
       amount_in_usd: 99,
@@ -186,12 +186,12 @@ describe('getRampsV2AnalyticsPayload', () => {
       orderType: 'DEPOSIT',
     };
 
-    it('returns ONRAMP_PURCHASE_FAILED for DEPOSIT orders', () => {
+    it('returns RAMPS_TRANSACTION_FAILED for DEPOSIT orders', () => {
       const [eventName, params] = getRampsV2AnalyticsPayload(
         mockDepositOrder as FiatOrder,
       );
 
-      expect(eventName).toBe('ONRAMP_PURCHASE_FAILED');
+      expect(eventName).toBe('RAMPS_TRANSACTION_FAILED');
       expect(params).toEqual({
         amount: 100,
         currency_source: 'USD',
@@ -221,7 +221,7 @@ describe('getRampsV2AnalyticsPayload', () => {
       });
     });
 
-    it('returns ONRAMP_PURCHASE_COMPLETED for DEPOSIT orders', () => {
+    it('returns RAMPS_TRANSACTION_COMPLETED for DEPOSIT orders', () => {
       const [eventName, params] = getRampsV2AnalyticsPayload({
         ...mockDepositOrder,
         state: FIAT_ORDER_STATES.COMPLETED,
@@ -233,7 +233,7 @@ describe('getRampsV2AnalyticsPayload', () => {
         },
       } as FiatOrder);
 
-      expect(eventName).toBe('ONRAMP_PURCHASE_COMPLETED');
+      expect(eventName).toBe('RAMPS_TRANSACTION_COMPLETED');
       expect(params).toEqual({
         amount: 100,
         amount_in_usd: 99,
@@ -260,7 +260,7 @@ describe('getRampsV2AnalyticsPayload', () => {
       orderWithNoData as FiatOrder,
     );
 
-    expect(eventName).toBe('ONRAMP_PURCHASE_FAILED');
+    expect(eventName).toBe('RAMPS_TRANSACTION_FAILED');
     expect(params).toEqual({
       amount: 100,
       currency_source: 'USD',

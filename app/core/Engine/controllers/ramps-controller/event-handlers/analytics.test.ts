@@ -21,12 +21,11 @@ jest.mock('../../../../../util/analytics/analytics', () => ({
 
 jest.mock('../../../../Analytics', () => ({
   MetaMetricsEvents: {
-    ONRAMP_PURCHASE_COMPLETED: { category: 'On-ramp Purchase Completed' },
-    ONRAMP_PURCHASE_FAILED: { category: 'On-ramp Purchase Failed' },
     ONRAMP_PURCHASE_CANCELLED: { category: 'On-ramp Purchase Cancelled' },
     OFFRAMP_PURCHASE_COMPLETED: { category: 'Off-ramp Purchase Completed' },
     OFFRAMP_PURCHASE_FAILED: { category: 'Off-ramp Purchase Failed' },
     OFFRAMP_PURCHASE_CANCELLED: { category: 'Off-ramp Purchase Cancelled' },
+    RAMPS_TRANSACTION_COMPLETED: { category: 'Ramps Transaction Completed' },
     RAMPS_TRANSACTION_FAILED: { category: 'Ramps Transaction Failed' },
   },
 }));
@@ -81,7 +80,7 @@ describe('handleOrderStatusChangedForMetrics', () => {
   });
 
   describe('BUY orders', () => {
-    it('tracks ONRAMP_PURCHASE_COMPLETED with calculated exchange rate', () => {
+    it('tracks RAMPS_TRANSACTION_COMPLETED with calculated exchange rate', () => {
       const order = createMockOrder({ status: Status.Completed });
 
       handleOrderStatusChangedForMetrics({
@@ -91,7 +90,7 @@ describe('handleOrderStatusChangedForMetrics', () => {
 
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
       const trackedEvent = mockTrackEvent.mock.calls[0][0];
-      expect(trackedEvent.name).toBe('On-ramp Purchase Completed');
+      expect(trackedEvent.name).toBe('Ramps Transaction Completed');
       expect(trackedEvent.properties).toEqual({
         amount: 100,
         amount_in_usd: 100,
@@ -107,7 +106,7 @@ describe('handleOrderStatusChangedForMetrics', () => {
       });
     });
 
-    it('tracks ONRAMP_PURCHASE_FAILED for Failed status', () => {
+    it('tracks RAMPS_TRANSACTION_FAILED for Failed status', () => {
       const order = createMockOrder({ status: Status.Failed });
 
       handleOrderStatusChangedForMetrics({
@@ -117,13 +116,13 @@ describe('handleOrderStatusChangedForMetrics', () => {
 
       expect(mockTrackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: 'On-ramp Purchase Failed',
+          name: 'Ramps Transaction Failed',
           properties: expect.objectContaining({ order_type: 'BUY' }),
         }),
       );
     });
 
-    it('tracks ONRAMP_PURCHASE_FAILED for IdExpired status', () => {
+    it('tracks RAMPS_TRANSACTION_FAILED for IdExpired status', () => {
       const order = createMockOrder({ status: Status.IdExpired });
 
       handleOrderStatusChangedForMetrics({
@@ -133,7 +132,7 @@ describe('handleOrderStatusChangedForMetrics', () => {
 
       expect(mockTrackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: 'On-ramp Purchase Failed',
+          name: 'Ramps Transaction Failed',
           properties: expect.objectContaining({ order_type: 'BUY' }),
         }),
       );
@@ -160,7 +159,7 @@ describe('handleOrderStatusChangedForMetrics', () => {
     // The V2 unified API returns orderType: 'DEPOSIT' for native flows
     // (e.g. Transak + Apple Pay). DEPOSIT must map to the on-ramp events,
     // not the off-ramp events. See TRAM-3534.
-    it('tracks ONRAMP_PURCHASE_COMPLETED for DEPOSIT orders', () => {
+    it('tracks RAMPS_TRANSACTION_COMPLETED for DEPOSIT orders', () => {
       const order = createMockOrder({
         orderType: 'DEPOSIT',
         status: Status.Completed,
@@ -173,7 +172,7 @@ describe('handleOrderStatusChangedForMetrics', () => {
 
       expect(mockTrackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: 'On-ramp Purchase Completed',
+          name: 'Ramps Transaction Completed',
           properties: expect.objectContaining({
             order_type: 'DEPOSIT',
             chain_id_destination: 'eip155:1',
@@ -183,7 +182,7 @@ describe('handleOrderStatusChangedForMetrics', () => {
       );
     });
 
-    it('tracks ONRAMP_PURCHASE_FAILED for DEPOSIT orders', () => {
+    it('tracks RAMPS_TRANSACTION_FAILED for DEPOSIT orders', () => {
       const order = createMockOrder({
         orderType: 'DEPOSIT',
         status: Status.Failed,
@@ -196,7 +195,7 @@ describe('handleOrderStatusChangedForMetrics', () => {
 
       expect(mockTrackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: 'On-ramp Purchase Failed',
+          name: 'Ramps Transaction Failed',
           properties: expect.objectContaining({ order_type: 'DEPOSIT' }),
         }),
       );
