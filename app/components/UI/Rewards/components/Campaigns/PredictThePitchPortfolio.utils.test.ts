@@ -11,7 +11,6 @@ const makePosition = (
     fillDate: string;
   },
 ): PredictThePitchPositionDto => ({
-  outcomeAssetId: overrides.outcomeAssetId,
   outcomeAsset: 'Yes',
   conditionId: 'condition-1',
   conditionName: 'Match winner',
@@ -27,7 +26,6 @@ const makePosition = (
   fillSharesBought: 5,
   fillSharesSold: 0,
   fillPrice: 0.5,
-  fillDate: overrides.fillDate,
   ...overrides,
 });
 

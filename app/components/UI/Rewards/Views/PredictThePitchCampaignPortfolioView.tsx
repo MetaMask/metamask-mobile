@@ -111,35 +111,47 @@ const PredictThePitchCampaignPortfolioView: React.FC = () => {
 
   const renderPositionsContent = () => {
     if (isLoading && !positions) {
-      return <PredictThePitchCampaignPortfolioSkeleton />;
+      return (
+        <Box twClassName="px-4">
+          <PredictThePitchCampaignPortfolioSkeleton />
+        </Box>
+      );
     }
 
     if (hasError && !positions) {
       return (
-        <RewardsErrorBanner
-          title={strings('rewards.predict_the_pitch_campaign.positions_error')}
-          description={strings(
-            'rewards.predict_the_pitch_campaign.positions_error_description',
-          )}
-          onConfirm={refetch}
-          confirmButtonLabel={strings(
-            'rewards.predict_the_pitch_campaign.positions_retry',
-          )}
-          testID={PREDICT_THE_PITCH_PORTFOLIO_TEST_IDS.ERROR}
-        />
+        <Box twClassName="px-4">
+          <RewardsErrorBanner
+            title={strings(
+              'rewards.predict_the_pitch_campaign.positions_error',
+            )}
+            description={strings(
+              'rewards.predict_the_pitch_campaign.positions_error_description',
+            )}
+            onConfirm={refetch}
+            confirmButtonLabel={strings(
+              'rewards.predict_the_pitch_campaign.positions_retry',
+            )}
+            testID={PREDICT_THE_PITCH_PORTFOLIO_TEST_IDS.ERROR}
+          />
+        </Box>
       );
     }
 
     if (isEmpty) {
       return (
-        <RewardsInfoBanner
-          title={strings('rewards.predict_the_pitch_campaign.positions_empty')}
-          description={strings(
-            'rewards.predict_the_pitch_campaign.positions_empty_description',
-          )}
-          showInfoIcon={false}
-          testID={PREDICT_THE_PITCH_PORTFOLIO_TEST_IDS.EMPTY}
-        />
+        <Box twClassName="px-4">
+          <RewardsInfoBanner
+            title={strings(
+              'rewards.predict_the_pitch_campaign.positions_empty',
+            )}
+            description={strings(
+              'rewards.predict_the_pitch_campaign.positions_empty_description',
+            )}
+            showInfoIcon={false}
+            testID={PREDICT_THE_PITCH_PORTFOLIO_TEST_IDS.EMPTY}
+          />
+        </Box>
       );
     }
 
@@ -149,7 +161,7 @@ const PredictThePitchCampaignPortfolioView: React.FC = () => {
     return (
       <Box testID={testIds.POSITIONS}>
         {openPositions.length > 0 && (
-          <Box testID={testIds.OPEN_SECTION}>
+          <Box testID={testIds.OPEN_SECTION} twClassName="px-4">
             <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
               {strings(
                 'rewards.predict_the_pitch_campaign.positions_open_section',
@@ -165,7 +177,7 @@ const PredictThePitchCampaignPortfolioView: React.FC = () => {
                     <Text
                       variant={TextVariant.BodySm}
                       color={TextColor.TextAlternative}
-                      testID={`${testIds.DATE_HEADER}-${item.dateKey}`}
+                      testID={`${testIds.DATE_HEADER}-open-${item.dateKey}`}
                     >
                       {item.label}
                     </Text>
@@ -195,7 +207,7 @@ const PredictThePitchCampaignPortfolioView: React.FC = () => {
         )}
 
         {resolvedPositions.length > 0 && (
-          <Box testID={testIds.CLOSED_SECTION}>
+          <Box testID={testIds.CLOSED_SECTION} twClassName="px-4">
             <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
               {strings(
                 'rewards.predict_the_pitch_campaign.positions_closed_section',
@@ -211,7 +223,7 @@ const PredictThePitchCampaignPortfolioView: React.FC = () => {
                     <Text
                       variant={TextVariant.BodySm}
                       color={TextColor.TextAlternative}
-                      testID={`${testIds.DATE_HEADER}-${item.dateKey}`}
+                      testID={`${testIds.DATE_HEADER}-closed-${item.dateKey}`}
                     >
                       {item.label}
                     </Text>
@@ -275,20 +287,24 @@ const PredictThePitchCampaignPortfolioView: React.FC = () => {
         />
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={tw.style('px-4 pb-4 gap-4')}
+          contentContainerStyle={tw.style('pb-4')}
         >
           {renderPositionsContent()}
           {positions?.computedAt && (
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-              twClassName="mb-3"
-            >
-              {strings(
-                'rewards.predict_the_pitch_campaign.positions_last_updated',
-                { time: formatRewardsTimeOnly(new Date(positions.computedAt)) },
-              )}
-            </Text>
+            <Box twClassName="px-4">
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+                twClassName="mb-3 mt-4"
+              >
+                {strings(
+                  'rewards.predict_the_pitch_campaign.positions_last_updated',
+                  {
+                    time: formatRewardsTimeOnly(new Date(positions.computedAt)),
+                  },
+                )}
+              </Text>
+            </Box>
           )}
         </ScrollView>
       </SafeAreaView>

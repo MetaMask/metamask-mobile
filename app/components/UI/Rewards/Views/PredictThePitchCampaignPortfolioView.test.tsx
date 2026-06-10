@@ -308,10 +308,34 @@ describe('PredictThePitchCampaignPortfolioView', () => {
     const { getByTestId } = render(<PredictThePitchCampaignPortfolioView />);
 
     expect(
-      getByTestId(`${VIEW_TEST_IDS.DATE_HEADER}-2025-06-03`),
+      getByTestId(`${VIEW_TEST_IDS.DATE_HEADER}-open-2025-06-03`),
     ).toBeDefined();
     expect(
-      getByTestId(`${VIEW_TEST_IDS.DATE_HEADER}-2025-06-01`),
+      getByTestId(`${VIEW_TEST_IDS.DATE_HEADER}-closed-2025-06-01`),
+    ).toBeDefined();
+  });
+
+  it('uses distinct date header testIDs when open and closed share a fill date', () => {
+    const sharedFillDate = '2025-06-03T10:00:00.000Z';
+    mockUseGetPositions.mockReturnValue({
+      positions: {
+        computedAt: '2025-01-01T00:00:00.000Z',
+        openPositions: [openPosition],
+        resolvedPositions: [{ ...closedPosition, fillDate: sharedFillDate }],
+      },
+      isLoading: false,
+      hasError: false,
+      hasFetched: true,
+      refetch: mockRefetch,
+    });
+
+    const { getByTestId } = render(<PredictThePitchCampaignPortfolioView />);
+
+    expect(
+      getByTestId(`${VIEW_TEST_IDS.DATE_HEADER}-open-2025-06-03`),
+    ).toBeDefined();
+    expect(
+      getByTestId(`${VIEW_TEST_IDS.DATE_HEADER}-closed-2025-06-03`),
     ).toBeDefined();
   });
 });
