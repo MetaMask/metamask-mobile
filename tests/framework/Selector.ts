@@ -93,11 +93,11 @@ export function resolve(selector: Selector): EncapsulatedElementType {
         android: () =>
           PlaywrightMatchers.getElementByAndroidUIAutomator(
             `.description("${selector.label}")`,
-            { index: selector.index },
+            { index: selector.index ?? 0 },
           ),
         ios: () =>
           PlaywrightMatchers.getElementByCatchAll(selector.label, {
-            index: selector.index,
+            index: selector.index ?? 0,
           }),
       },
     });
@@ -111,7 +111,7 @@ export function resolve(selector: Selector): EncapsulatedElementType {
         ) as unknown as DetoxElement,
       appium: () =>
         PlaywrightMatchers.getElementByText(selector.text, false, {
-          index: selector.index,
+          index: selector.index ?? 0,
         }),
     });
   }
