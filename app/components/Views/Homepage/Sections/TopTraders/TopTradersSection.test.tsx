@@ -85,6 +85,16 @@ describe('TopTradersSection', () => {
     });
   });
 
+  it('queries with the spot chains so the cache key aligns with TopTradersView "All" and the prewarm saga', () => {
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+    expect(mockUseTopTraders).toHaveBeenCalledWith(
+      expect.objectContaining({
+        chains: ['base', 'solana', 'ethereum'],
+        limit: 50,
+      }),
+    );
+  });
+
   it('returns null when the API returns no traders', () => {
     mockUseTopTraders.mockReturnValue({
       traders: [],
