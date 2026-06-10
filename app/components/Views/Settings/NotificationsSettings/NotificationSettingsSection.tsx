@@ -4,7 +4,7 @@ import {
   RouteProp,
   StackActions,
 } from '@react-navigation/native';
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ScrollView, Switch, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -160,6 +160,11 @@ const NotificationSettingsSection = ({
   );
   const { preferences, isUpdatingPreferences, updateSectionChannel } =
     useNotificationStoragePreferences();
+  const [pendingChannelToggle, setPendingChannelToggle] = useState<{
+    channel: NotificationPreferenceChannelKey;
+    value: boolean;
+  } | null>(null);
+  const isUpdatingChannelRef = useRef(false);
 
   useEffect(() => {
     if (!isMetamaskNotificationsEnabled) {
@@ -169,17 +174,28 @@ const NotificationSettingsSection = ({
 
   const handleChannelToggle = useCallback(
     (channel: NotificationPreferenceChannelKey, nextValue: boolean) => {
-      updateSectionChannel(type, channel, nextValue).catch(() => {
-        Logger.error(
-          new Error('Failed to update notification section channel'),
-          {
-            message: 'NotificationSettingsSection: update channel failed',
-            type,
-            channel,
-            nextValue,
-          },
-        );
-      });
+      if (isUpdatingChannelRef.current) {
+        return;
+      }
+
+      isUpdatingChannelRef.current = true;
+      setPendingChannelToggle({ channel, value: nextValue });
+      updateSectionChannel(type, channel, nextValue)
+        .catch(() => {
+          Logger.error(
+            new Error('Failed to update notification section channel'),
+            {
+              message: 'NotificationSettingsSection: update channel failed',
+              type,
+              channel,
+              nextValue,
+            },
+          );
+        })
+        .finally(() => {
+          isUpdatingChannelRef.current = false;
+          setPendingChannelToggle(null);
+        });
     },
     [type, updateSectionChannel],
   );
@@ -194,6 +210,8 @@ const NotificationSettingsSection = ({
   }
 
   const SectionContent = SECTION_CONTENT_BY_TYPE[type];
+  const areChannelSwitchesDisabled =
+    isUpdatingPreferences || pendingChannelToggle !== null;
 
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
@@ -223,8 +241,12 @@ const NotificationSettingsSection = ({
             {strings('app_settings.notifications_opts.push_recommended')}
           </Text>
           <Switch
-            value={sectionPrefs.pushNotificationsEnabled}
-            disabled={isUpdatingPreferences}
+            value={
+              pendingChannelToggle?.channel === 'pushNotificationsEnabled'
+                ? pendingChannelToggle.value
+                : sectionPrefs.pushNotificationsEnabled
+            }
+            disabled={areChannelSwitchesDisabled}
             onValueChange={(nextValue) =>
               handleChannelToggle('pushNotificationsEnabled', nextValue)
             }
@@ -250,8 +272,12 @@ const NotificationSettingsSection = ({
             {strings('app_settings.notifications_opts.in_app')}
           </Text>
           <Switch
-            value={sectionPrefs.inAppNotificationsEnabled}
-            disabled={isUpdatingPreferences}
+            value={
+              pendingChannelToggle?.channel === 'inAppNotificationsEnabled'
+                ? pendingChannelToggle.value
+                : sectionPrefs.inAppNotificationsEnabled
+            }
+            disabled={areChannelSwitchesDisabled}
             onValueChange={(nextValue) =>
               handleChannelToggle('inAppNotificationsEnabled', nextValue)
             }

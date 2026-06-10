@@ -219,4 +219,43 @@ describe('NotificationSettingsSection', () => {
     expect(pushToggle.props.disabled).toBe(true);
     expect(inAppToggle.props.disabled).toBe(true);
   });
+
+  it('keeps channel toggle value optimistic while preference save is in flight', async () => {
+    let resolveUpdate: () => void = () => undefined;
+    mockUpdateSectionChannel.mockReturnValueOnce(
+      new Promise<void>((resolve) => {
+        resolveUpdate = resolve;
+      }),
+    );
+    renderSection({
+      type: 'walletActivity',
+      title: 'Wallet Activity',
+      description: 'Buy, sells, transfers, swaps and rewards',
+    });
+
+    const pushToggle = screen.getByTestId(
+      NotificationSettingsViewSelectorsIDs.PUSH_NOTIFICATIONS_TOGGLE,
+    );
+    const inAppToggle = screen.getByTestId(
+      NotificationSettingsViewSelectorsIDs.FEATURE_ANNOUNCEMENTS_TOGGLE,
+    );
+
+    fireEvent(pushToggle, 'onValueChange', false);
+
+    await waitFor(() => {
+      expect(pushToggle.props.value).toBe(false);
+      expect(pushToggle.props.disabled).toBe(true);
+      expect(inAppToggle.props.disabled).toBe(true);
+    });
+    expect(mockUpdateSectionChannel).toHaveBeenCalledWith(
+      'walletActivity',
+      'pushNotificationsEnabled',
+      false,
+    );
+
+    await act(async () => {
+      resolveUpdate();
+      await Promise.resolve();
+    });
+  });
 });
