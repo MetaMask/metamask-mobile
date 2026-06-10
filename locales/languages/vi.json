@@ -1979,10 +1979,10 @@
       "stocks_and_commodities": "Khám phá cổ phiếu và hàng hóa",
       "tabs": {
         "crypto": "Crypto",
-        "stocks": "Cổ phiếu",
-        "commodities": "Hàng hóa",
         "forex": "Ngoại hối",
-        "new": "Mới"
+        "new": "Mới",
+        "stock": "Cổ phiếu",
+        "commodity": "Hàng hóa"
       },
       "filter_by": "Lọc theo",
       "forex": "Ngoại hối",
