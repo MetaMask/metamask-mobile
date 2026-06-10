@@ -1,6 +1,5 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
 
 class SnapSettingsView {
   get enabledToggle(): DetoxElement {
@@ -16,7 +15,11 @@ class SnapSettingsView {
   }
 
   get backButton(): DetoxElement {
-    return Matchers.getElementByID(CommonSelectorsIDs.BACK_ARROW_BUTTON);
+    return Matchers.getElementByID('snap-settings-back-button');
+  }
+
+  get listBackButton(): DetoxElement {
+    return Matchers.getElementByID('snaps-settings-list-back-button');
   }
 
   async toggleEnable(): Promise<void> {
@@ -43,8 +46,14 @@ class SnapSettingsView {
   }
 
   async tapBackButton(): Promise<void> {
-    await Gestures.tapAtIndex(this.backButton, 0, {
+    await Gestures.tap(this.backButton, {
       elemDescription: 'Snap Settings - Back Button',
+    });
+  }
+
+  async tapListBackButton(): Promise<void> {
+    await Gestures.tap(this.listBackButton, {
+      elemDescription: 'Snaps List - Back Button',
     });
   }
 }

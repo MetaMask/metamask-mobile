@@ -118,8 +118,26 @@ jest.mock('@react-navigation/native', () => ({
       accountName: mockAccount?.metadata?.name || 'Test Account',
       chainId: '0x1',
       groupId: 'test-group-id',
+      location: 'address-list',
+      account: mockAccount,
     },
   }),
+}));
+
+const mockTrackEvent = jest.fn();
+
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(() => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: jest.requireActual(
+      '../../../../../util/analytics/AnalyticsEventBuilder',
+    ).AnalyticsEventBuilder.createEventBuilder,
+  })),
+}));
+
+jest.mock('../../../../../util/analytics/qrCodeViewedTracking', () => ({
+  ...jest.requireActual('../../../../../util/analytics/qrCodeViewedTracking'),
+  getQrCodeViewedAccountType: jest.fn().mockReturnValue('MetaMask'),
 }));
 
 jest.mock('../../../../../util/address', () => ({
@@ -172,6 +190,16 @@ jest.mock('../../../../../core/Engine', () => {
     context: {
       NetworkController: {
         getNetworkConfigurationsByCaipChainId: jest.fn(),
+      },
+      KeyringController: {
+        state: {
+          keyrings: [
+            {
+              type: 'HD Key Tree',
+              accounts: [mockAccountEngine.address],
+            },
+          ],
+        },
       },
       AccountsController: {
         internalAccounts: {
@@ -237,8 +265,24 @@ describe('ShareAddressQR', () => {
     jest.clearAllMocks();
     mockGoBack.mockClear();
     mockNavigate.mockClear();
+    mockTrackEvent.mockClear();
     mockAccount = internalAccount1;
     mockNetworkName = 'Ethereum Mainnet';
+  });
+
+  it('tracks QR Code Viewed on render', () => {
+    render();
+
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'QR Code Viewed',
+        properties: expect.objectContaining({
+          location: 'address-list',
+          chain_id_caip: 'eip155:1',
+          account_type: 'MetaMask',
+        }),
+      }),
+    );
   });
 
   it('displays title and QR code with account information', () => {

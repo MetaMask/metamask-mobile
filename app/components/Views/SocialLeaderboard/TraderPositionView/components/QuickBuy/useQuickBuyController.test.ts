@@ -1,48 +1,48 @@
-import { renderHook, act } from '@testing-library/react-native';
-import { useSelector, useDispatch } from 'react-redux';
+import { ChainId } from '@metamask/bridge-controller';
+import { TextColor } from '@metamask/design-system-react-native';
 import type { Position } from '@metamask/social-controllers';
-import { useQuickBuyController } from './hooks/useQuickBuyController';
-import { positionToQuickBuyTarget } from './types';
+import { act, renderHook } from '@testing-library/react-native';
+import { useDispatch, useSelector } from 'react-redux';
+import Engine from '../../../../../../core/Engine';
+import {
+  selectBridgeFeatureFlags,
+  selectDestAddress,
+  selectIsEvmNonEvmBridge,
+  selectIsNonEvmNonEvmBridge,
+  selectIsSolanaSourced,
+  selectIsSubmittingTx,
+  selectSlippage,
+} from '../../../../../../core/redux/slices/bridge';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
+import { selectSourceWalletAddress } from '../../../../../../selectors/bridge';
+import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
+import { selectShouldUseSmartTransaction } from '../../../../../../selectors/smartTransactionsController';
+import {
+  ImpactMoment,
+  playErrorNotification,
+  playImpact,
+} from '../../../../../../util/haptics';
+import Logger from '../../../../../../util/Logger';
+import { useHasSufficientGas } from '../../../../../UI/Bridge/hooks/useHasSufficientGas';
+import useIsInsufficientBalance from '../../../../../UI/Bridge/hooks/useInsufficientBalance';
+import { useLatestBalance } from '../../../../../UI/Bridge/hooks/useLatestBalance';
+import { usePriceImpactViewData } from '../../../../../UI/Bridge/hooks/usePriceImpactViewData';
+import type { BridgeToken } from '../../../../../UI/Bridge/types';
 import { selectDefaultSourceToken } from '../../../utils/tokenSelection';
-import { useQuickBuySetup } from './hooks/useQuickBuySetup';
 import { usePayWithTokens } from './hooks/usePayWithTokens';
-import { useReceiveTokens } from './hooks/useReceiveTokens';
 import { usePositionTokenBalance } from './hooks/usePositionTokenBalance';
+import { useQuickBuyController } from './hooks/useQuickBuyController';
 import {
   useQuickBuyQuotes,
   type EnrichedQuickBuyQuote,
   type UseQuickBuyQuotesResult,
 } from './hooks/useQuickBuyQuotes';
-import { useLatestBalance } from '../../../../../UI/Bridge/hooks/useLatestBalance';
-import useIsInsufficientBalance from '../../../../../UI/Bridge/hooks/useInsufficientBalance';
-import { useHasSufficientGas } from '../../../../../UI/Bridge/hooks/useHasSufficientGas';
-import { selectShouldUseSmartTransaction } from '../../../../../../selectors/smartTransactionsController';
-import Engine from '../../../../../../core/Engine';
-import {
-  selectIsSubmittingTx,
-  selectDestAddress,
-  selectSlippage,
-  selectIsEvmNonEvmBridge,
-  selectIsNonEvmNonEvmBridge,
-  selectIsSolanaSourced,
-  selectBridgeFeatureFlags,
-} from '../../../../../../core/redux/slices/bridge';
-import { selectSourceWalletAddress } from '../../../../../../selectors/bridge';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
-import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
-import { usePriceImpactViewData } from '../../../../../UI/Bridge/hooks/usePriceImpactViewData';
-import { TextColor } from '@metamask/design-system-react-native';
-import type { BridgeToken } from '../../../../../UI/Bridge/types';
-import { ChainId } from '@metamask/bridge-controller';
-import Logger from '../../../../../../util/Logger';
-import { trackQuickBuyTrade } from './quickBuyTradeTracker';
+import { useQuickBuySetup } from './hooks/useQuickBuySetup';
+import { useReceiveTokens } from './hooks/useReceiveTokens';
 import { buildQuickBuyToastOptions } from './quickBuyToastOptions';
+import { trackQuickBuyTrade } from './quickBuyTradeTracker';
 import { resolveQuickBuyTerminalToast } from './resolveQuickBuyTerminalToast';
-import {
-  playImpact,
-  playErrorNotification,
-  ImpactMoment,
-} from '../../../../../../util/haptics';
+import { positionToQuickBuyTarget } from './types';
 
 jest.mock('../../../../../../util/Logger', () => ({
   __esModule: true,
@@ -307,6 +307,15 @@ const createActiveQuote = (
     quote: {
       srcTokenAmount: '10000000000000000',
       ...((overrides.quote as Record<string, unknown> | undefined) ?? {}),
+    },
+    // The full wallet deduction (routing amount + src-token fees), in decimal
+    // token units. 0.01 ETH matches the $20 / $2000 amount the disabled-state
+    // tests enter, and is what `isActiveQuoteForCurrentAmount` compares against
+    // (not the post-fee `quote.srcTokenAmount`, which lags for gas-included
+    // quotes).
+    sentAmount: {
+      amount: '0.01',
+      ...((overrides.sentAmount as Record<string, unknown> | undefined) ?? {}),
     },
     totalNetworkFee: {
       amount: '0.0001',
@@ -877,6 +886,104 @@ describe('useQuickBuyController', () => {
       expect(result.current.isConfirmDisabled).toBe(false);
     });
 
+    it('enables the CTA on the same render the loader clears when the quote arrives', () => {
+      const quoteState: UseQuickBuyQuotesResult = {
+        activeQuote: undefined,
+        destTokenAmount: undefined,
+        isQuoteLoading: false,
+        isNoQuotesAvailable: false,
+        quoteFetchError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
+        sortedQuotes: [],
+        quoteCount: 0,
+        quotesLastFetchedAt: null,
+        refreshCount: 0,
+        quoteRefreshRateMs: 30000,
+        maxRefreshCount: 5,
+        refetchQuotes: jest.fn(),
+      };
+
+      (useQuickBuyQuotes as jest.Mock).mockImplementation(() => quoteState);
+
+      const props = {
+        target: createTarget(),
+        onClose: jest.fn(),
+      };
+      const { result, rerender } = renderHook(
+        ({ target, onClose }) => useQuickBuyController(target, onClose),
+        { initialProps: props },
+      );
+
+      act(() => {
+        result.current.handleAmountChange('20');
+      });
+
+      quoteState.isQuoteLoading = true;
+      rerender(props);
+
+      expect(result.current.isBlockingQuoteLoad).toBe(true);
+      expect(result.current.isConfirmDisabled).toBe(true);
+
+      // A single render with the matching quote both clears the loader and
+      // enables the CTA — no extra render needed (regression: the button used to
+      // lag the loader by a render because settling lived in a post-commit ref).
+      quoteState.isQuoteLoading = false;
+      quoteState.activeQuote = createActiveQuote();
+      rerender(props);
+
+      expect(result.current.isBlockingQuoteLoad).toBe(false);
+      expect(result.current.isConfirmDisabled).toBe(false);
+    });
+
+    it('enables the CTA for a gas-included quote whose srcTokenAmount is the post-fee amount', () => {
+      const quoteState: UseQuickBuyQuotesResult = {
+        activeQuote: undefined,
+        destTokenAmount: undefined,
+        isQuoteLoading: false,
+        isNoQuotesAvailable: false,
+        quoteFetchError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
+        sortedQuotes: [],
+        quoteCount: 0,
+        quotesLastFetchedAt: null,
+        refreshCount: 0,
+        quoteRefreshRateMs: 30000,
+        maxRefreshCount: 5,
+        refetchQuotes: jest.fn(),
+      };
+      (useQuickBuyQuotes as jest.Mock).mockImplementation(() => quoteState);
+
+      const props = {
+        target: createTarget(),
+        onClose: jest.fn(),
+      };
+      const { result, rerender } = renderHook(
+        ({ target, onClose }) => useQuickBuyController(target, onClose),
+        { initialProps: props },
+      );
+
+      act(() => {
+        result.current.handleAmountChange('20');
+      });
+      quoteState.isQuoteLoading = true;
+      rerender(props);
+      quoteState.isQuoteLoading = false;
+      // Requested amount is 0.01 ETH ($20 / $2000). For a gas-included quote the
+      // bridge deducts the fee from the routing amount, so quote.srcTokenAmount
+      // comes back smaller than requested (0.009 here). sentAmount adds the fee
+      // back, reconstructing the requested 0.01 — that is what must be matched.
+      quoteState.activeQuote = createActiveQuote({
+        quote: { srcTokenAmount: '9000000000000000' },
+        sentAmount: { amount: '0.01' },
+      });
+      rerender(props);
+      rerender(props);
+
+      expect(result.current.isConfirmDisabled).toBe(false);
+    });
+
     it('is disabled when amount changes after quote loading settles', () => {
       const quoteState: UseQuickBuyQuotesResult = {
         activeQuote: undefined,
@@ -1022,10 +1129,15 @@ describe('useQuickBuyController', () => {
       quoteState.isQuoteLoading = true;
       rerender(props);
       quoteState.isQuoteLoading = false;
-      // Inject a high-price-impact active quote.
+      // Inject a high-price-impact active quote. The spread keeps the default
+      // sentAmount (0.01) so the quote still matches the requested amount
+      // (isPendingQuoteRefresh = false).
       quoteState.activeQuote = {
         ...createActiveQuote(),
-        quote: { priceData: { priceImpact: '0.30' } },
+        quote: {
+          srcTokenAmount: '10000000000000000',
+          priceData: { priceImpact: '0.30' },
+        },
       } as never;
       rerender(props);
       rerender(props);
@@ -1998,6 +2110,74 @@ describe('useQuickBuyController', () => {
           theme: expect.any(Object),
         });
         expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
+      });
+
+      it('tracks an EVM swap with isNonEvmSwap false and the tx hash as the signature', async () => {
+        mockUsableQuote();
+        (
+          Engine.context.BridgeStatusController.submitTx as jest.Mock
+        ).mockResolvedValue({ id: 'tx-1', hash: '0xabc' });
+
+        const { result } = renderHook(() =>
+          useQuickBuyController(createTarget(), jest.fn()),
+        );
+
+        await act(async () => {
+          await result.current.handleConfirm();
+        });
+
+        expect(trackQuickBuyTrade).toHaveBeenCalledWith(
+          'tx-1',
+          expect.objectContaining({
+            isNonEvmSwap: false,
+            txSignature: '0xabc',
+          }),
+        );
+      });
+
+      it('tracks a same-chain Solana swap with isNonEvmSwap true and the signature', async () => {
+        mockUsableQuote();
+        (selectIsSolanaSourced as unknown as jest.Mock).mockReturnValue(true);
+        (
+          Engine.context.BridgeStatusController.submitTx as jest.Mock
+        ).mockResolvedValue({ id: 'sig-1', hash: 'sig-1' });
+
+        const { result } = renderHook(() =>
+          useQuickBuyController(createTarget(), jest.fn()),
+        );
+
+        await act(async () => {
+          await result.current.handleConfirm();
+        });
+
+        expect(trackQuickBuyTrade).toHaveBeenCalledWith(
+          'sig-1',
+          expect.objectContaining({ isNonEvmSwap: true, txSignature: 'sig-1' }),
+        );
+      });
+
+      it('tracks a cross-chain Solana bridge with isNonEvmSwap false', async () => {
+        mockUsableQuote();
+        (selectIsSolanaSourced as unknown as jest.Mock).mockReturnValue(true);
+        (selectIsNonEvmNonEvmBridge as unknown as jest.Mock).mockReturnValue(
+          true,
+        );
+        (
+          Engine.context.BridgeStatusController.submitTx as jest.Mock
+        ).mockResolvedValue({ id: 'sig-1', hash: 'sig-1' });
+
+        const { result } = renderHook(() =>
+          useQuickBuyController(createTarget(), jest.fn()),
+        );
+
+        await act(async () => {
+          await result.current.handleConfirm();
+        });
+
+        expect(trackQuickBuyTrade).toHaveBeenCalledWith(
+          'sig-1',
+          expect.objectContaining({ isNonEvmSwap: false }),
+        );
       });
 
       it('reconciles against the current bridge status right after tracking', async () => {
