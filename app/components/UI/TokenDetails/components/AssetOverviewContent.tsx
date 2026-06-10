@@ -45,7 +45,7 @@ import TokenDetails from '../../AssetOverview/TokenDetails';
 import { TokenDetailsActions } from './TokenDetailsActions';
 import AssetOverviewClaimBonus from '../../Earn/components/AssetOverviewClaimBonus';
 import MoneyConvertStablecoins from '../../Money/components/MoneyConvertStablecoins/MoneyConvertStablecoins';
-import { MONEY_EVENTS_CONSTANTS } from '../../Money/constants/moneyEvents';
+import { MONEY_HUB_EVENTS_CONSTANTS } from '../../Money/constants/moneyHubEvents';
 import { isTokenEligibleForMerklRewards } from '../../Earn/components/MerklRewards/hooks/useMerklRewards';
 import { isMusdToken } from '../../Earn/constants/musd';
 import {
@@ -67,7 +67,11 @@ import { isCaipAssetType, type Hex } from '@metamask/utils';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import SecurityTrustEntryCard from '../../SecurityTrust/components/SecurityTrustEntryCard/SecurityTrustEntryCard';
-import type { TokenDetailsRouteParams } from '../constants/constants';
+import {
+  TokenDetailsAction,
+  type TokenDetailsRouteParams,
+} from '../constants/constants';
+import { useTokenDetailsActionTracking } from '../hooks/useTokenDetailsActionTracking';
 import { getResultTypeConfig } from '../../SecurityTrust/utils/securityUtils';
 import {
   Box,
@@ -202,6 +206,11 @@ export interface AssetOverviewContentProps {
   // Ambient price color A/B test
   onPriceDirectionChange?: (isPositive: boolean) => void;
   useAmbientColor?: boolean;
+
+  // Exit action tracking
+  onExitAction?: () => void;
+  /** Resolved price direction from the chart; true = positive, false = negative, null = not yet resolved. */
+  isPricePositive?: boolean | null;
 }
 
 /**
@@ -243,6 +252,8 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   hasSecurityDataError = false,
   onPriceDirectionChange,
   useAmbientColor,
+  onExitAction,
+  isPricePositive,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
@@ -250,6 +261,12 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   const { isTokenTradingOpen, isStockToken } = useRWAToken();
 
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const hasBalanceValue = Boolean(balance) && balance !== '0';
+  const trackActionTapped = useTokenDetailsActionTracking({
+    token,
+    hasBalance: hasBalanceValue,
+    severity: securityData?.resultType,
+  });
   const tronNativeToken = isTronNativeToken(token) ? token : null;
 
   const {
@@ -290,6 +307,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           setIsEligibilityModalVisible(true);
           return;
         }
+        onExitAction?.();
         handlePerpsAction?.('long');
       }).finally(() => {
         // Release the TokenDetailsActions nav lock whenever gate() settles
@@ -298,7 +316,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
         // listeners also clear the lock.
         resetNavigationLockRef.current?.();
       }),
-    [gate, isEligible, track, handlePerpsAction],
+    [gate, isEligible, track, handlePerpsAction, onExitAction],
   );
 
   const handleShortPress = useCallback(
@@ -314,11 +332,12 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           setIsEligibilityModalVisible(true);
           return;
         }
+        onExitAction?.();
         handlePerpsAction?.('short');
       }).finally(() => {
         resetNavigationLockRef.current?.();
       }),
-    [gate, isEligible, track, handlePerpsAction],
+    [gate, isEligible, track, handlePerpsAction, onExitAction],
   );
 
   const { isBuyable, isLoading: isBuyableLoading } = useTokenBuyability(token);
@@ -531,6 +550,8 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
       pricePercentChange: percentChange,
       token,
       source: 'token_details',
+      isPricePositive: isPricePositive ?? undefined,
+      useAmbientColor,
     });
   }, [
     navigation,
@@ -541,6 +562,8 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     marketInsightsReport,
     priceDiff,
     comparePrice,
+    useAmbientColor,
+    isPricePositive,
   ]);
 
   const handlePerpsDiscoveryPress = useCallback(() => {
@@ -743,7 +766,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           )}
           <TokenDetailsActions
             hasPerpsMarket={hasPerpsMarket}
-            hasBalance={Boolean(balance) && balance !== '0'}
+            hasBalance={hasBalanceValue}
             isBuyable={isBuyable}
             isNativeCurrency={token.isETH || token.isNative || false}
             token={token}
@@ -754,6 +777,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             onReceive={onReceive}
             isLoading={isButtonsLoading}
             resetNavigationLockRef={resetNavigationLockRef}
+            onActionTapped={trackActionTapped}
           />
           {shouldShowMarketInsights ? (
             <View style={styles.marketInsightsWrapper}>
@@ -789,7 +813,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           )}
           {showMusdConvertSection && (
             <MoneyConvertStablecoins
-              location={MONEY_EVENTS_CONSTANTS.EVENT_LOCATIONS.ASSET_DETAIL}
+              location={MONEY_HUB_EVENTS_CONSTANTS.EVENT_LOCATIONS.ASSET_DETAIL}
             />
           )}
           {
@@ -826,7 +850,12 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             />
           )}
           <View style={styles.tokenDetailsWrapper}>
-            <TokenDetails asset={token} />
+            <TokenDetails
+              asset={token}
+              onCopyAddress={() =>
+                trackActionTapped(TokenDetailsAction.CopyTokenAddress)
+              }
+            />
           </View>
           {!hasSecurityDataError &&
             (isSecurityDataLoading || securityData?.resultType) && (
@@ -835,6 +864,8 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                   securityData={securityData ?? null}
                   isLoading={isSecurityDataLoading}
                   token={token as TokenDetailsRouteParams}
+                  isPricePositive={isPricePositive ?? undefined}
+                  useAmbientColor={useAmbientColor}
                 />
               </View>
             )}

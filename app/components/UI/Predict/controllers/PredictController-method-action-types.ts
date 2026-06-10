@@ -10,6 +10,16 @@ export type PredictControllerGetMarketsAction = {
   handler: PredictController['getMarkets'];
 };
 
+export type PredictControllerListMarketsAction = {
+  type: `PredictController:listMarkets`;
+  handler: PredictController['listMarkets'];
+};
+
+export type PredictControllerListFilterOptionsAction = {
+  type: `PredictController:listFilterOptions`;
+  handler: PredictController['listFilterOptions'];
+};
+
 export type PredictControllerSearchMarketsAction = {
   type: `PredictController:searchMarkets`;
   handler: PredictController['searchMarkets'];
@@ -87,6 +97,26 @@ export type PredictControllerTrackPositionViewedAction = {
 export type PredictControllerTrackActivityViewedAction = {
   type: `PredictController:trackActivityViewed`;
   handler: PredictController['trackActivityViewed'];
+};
+
+export type PredictControllerTrackPortfolioPositionsButtonTappedAction = {
+  type: `PredictController:trackPortfolioPositionsButtonTapped`;
+  handler: PredictController['trackPortfolioPositionsButtonTapped'];
+};
+
+export type PredictControllerTrackPortfolioTransactionInitiatedAction = {
+  type: `PredictController:trackPortfolioTransactionInitiated`;
+  handler: PredictController['trackPortfolioTransactionInitiated'];
+};
+
+export type PredictControllerTrackPositionsScreenViewedAction = {
+  type: `PredictController:trackPositionsScreenViewed`;
+  handler: PredictController['trackPositionsScreenViewed'];
+};
+
+export type PredictControllerTrackPositionsTabViewedAction = {
+  type: `PredictController:trackPositionsTabViewed`;
+  handler: PredictController['trackPositionsTabViewed'];
 };
 
 export type PredictControllerTrackGeoBlockTriggeredAction = {
@@ -302,6 +332,8 @@ export type PredictControllerClearWithdrawTransactionAction = {
  */
 export type PredictControllerMethodActions =
   | PredictControllerGetMarketsAction
+  | PredictControllerListMarketsAction
+  | PredictControllerListFilterOptionsAction
   | PredictControllerSearchMarketsAction
   | PredictControllerGetMarketAction
   | PredictControllerGetMarketSeriesAction
@@ -316,6 +348,10 @@ export type PredictControllerMethodActions =
   | PredictControllerTrackMarketDetailsOpenedAction
   | PredictControllerTrackPositionViewedAction
   | PredictControllerTrackActivityViewedAction
+  | PredictControllerTrackPortfolioPositionsButtonTappedAction
+  | PredictControllerTrackPortfolioTransactionInitiatedAction
+  | PredictControllerTrackPositionsScreenViewedAction
+  | PredictControllerTrackPositionsTabViewedAction
   | PredictControllerTrackGeoBlockTriggeredAction
   | PredictControllerTrackFeedViewedAction
   | PredictControllerTrackBannerActionAction

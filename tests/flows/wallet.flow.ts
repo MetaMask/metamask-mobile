@@ -2,8 +2,11 @@ import WalletView from '../page-objects/wallet/WalletView';
 import NetworkView from '../page-objects/Settings/NetworksView';
 import {
   createLogger,
+  encapsulated,
+  Matchers,
   PlaywrightAssertions,
   PlaywrightGestures,
+  PlaywrightMatchers,
   PortManager,
   ResourceType,
   sleep,
@@ -40,8 +43,11 @@ import PlaywrightUtilities from '../framework/PlaywrightUtilities';
 import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomSheet';
 import MetaMetricsOptInView from '../page-objects/Onboarding/MetaMetricsOptInView';
 import PredictModalView from '../page-objects/Predict/PredictModalView';
+import OnboardingCryptoExperienceQuestionnaireView from '../page-objects/Onboarding/OnboardingCryptoExperienceQuestionnaireView';
 import OnboardingInterestQuestionnaireView from '../page-objects/Onboarding/OnboardingInterestQuestionnaireView';
+import ExperienceEnhancerBottomSheet from '../page-objects/Onboarding/ExperienceEnhancerBottomSheet';
 import { fetchProductionFeatureFlags } from '../performance/feature-flag-helper';
+import { ExistingUserSheetSelectorsIDs } from '../../app/components/Views/Notifications/PushNotificationOnboarding/ExistingUserSheet/ExistingUserSheet.testIds';
 const logger = createLogger({
   name: 'WalletFlow',
 });
@@ -235,6 +241,7 @@ export const importWalletWithRecoveryPhrase = async ({
   }
   if (optInToMetrics) {
     await OnboardingInterestQuestionnaireView.tapContinueButton();
+    await OnboardingCryptoExperienceQuestionnaireView.tapContinueButton();
   }
   //'Should dismiss Enable device Notifications checks alert'
   await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
@@ -349,6 +356,7 @@ export const CreateNewWallet = async ({
 
   if (optInToMetrics) {
     await OnboardingInterestQuestionnaireView.tapContinueButton();
+    await OnboardingCryptoExperienceQuestionnaireView.tapContinueButton();
   }
 
   await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
@@ -445,6 +453,45 @@ export const loginToApp = async (password?: string): Promise<void> => {
 // Playwright (appium specific functions)
 // -----------------------------------------
 /**
+ * Dismisses the push notification opt-in sheet for existing users, if it appears.
+ * This sheet may appear after login and block navigation. It is safe to call
+ * even when the sheet is not present — the function will silently no-op.
+ */
+export const dismissPushNotificationExistingUserSheet =
+  async (): Promise<void> => {
+    try {
+      const btn = await asPlaywrightElement(
+        encapsulated({
+          detox: () =>
+            Matchers.getElementByID(
+              ExistingUserSheetSelectorsIDs.BUTTON_CONFIRM,
+            ),
+          appium: () =>
+            PlaywrightMatchers.getElementById(
+              ExistingUserSheetSelectorsIDs.BUTTON_CONFIRM,
+              { exact: true },
+            ),
+        }),
+      );
+      const isDisplayed = await btn.unwrap().isDisplayed();
+      if (isDisplayed) {
+        await PlaywrightGestures.waitAndTap(btn, { timeout: 5_000 });
+        logger.debug('Dismissed push notification existing user sheet');
+      }
+    } catch {
+      // Sheet not present — no-op
+    }
+  };
+
+/**
+ * Dismisses the marketing consent (Experience Enhancer) modal if it appears
+ * after login. Safe to call when the modal is not shown.
+ */
+export const dismissExperienceEnhancerModal = async (): Promise<void> => {
+  await ExperienceEnhancerBottomSheet.dismissIfPresent();
+};
+
+/**
  * Logs into the application using the provided password or a default password.
  *
  * @async
@@ -461,6 +508,8 @@ export const loginToAppPlaywright = async (
   await LoginView.tapLoginButton();
 
   await PlaywrightUtilities.wait(5000);
+  await dismissPushNotificationExistingUserSheet();
+  await dismissExperienceEnhancerModal();
 };
 
 /**
@@ -503,6 +552,44 @@ const ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_MS = 3_000;
 const ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_INTERVAL_MS = 250;
 
 /**
+ * Advances past the optional crypto experience questionnaire (Playwright / Appium only).
+ * No-op when the screen is not shown.
+ */
+export const dismissOnboardingCryptoExperienceQuestionnaire =
+  async (): Promise<void> => {
+    const deadline = Date.now() + ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_MS;
+
+    while (Date.now() < deadline) {
+      try {
+        const successDoneButton = await asPlaywrightElement(
+          OnboardingSuccessView.doneButton,
+        );
+        if (await successDoneButton.unwrap().isExisting()) {
+          return;
+        }
+
+        const continueButton = await asPlaywrightElement(
+          OnboardingCryptoExperienceQuestionnaireView.continueButton,
+        );
+        if (await continueButton.unwrap().isExisting()) {
+          await PlaywrightGestures.waitAndTap(continueButton, {
+            timeout: 10_000,
+            checkForDisplayed: true,
+            checkForEnabled: true,
+          });
+          await continueButton
+            .unwrap()
+            .waitForDisplayed({ reverse: true, timeout: 10_000 });
+          return;
+        }
+      } catch {
+        // Stale element / screen transition while the next route loads.
+      }
+      await sleep(ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_INTERVAL_MS);
+    }
+  };
+
+/**
  * Advances past the optional onboarding interest questionnaire (Playwright / Appium only).
  * No-op when the app navigates straight to onboarding success (common on some builds/flags).
  */
@@ -527,13 +614,13 @@ export const dismissOnboardingInterestQuestionnaire =
         );
         if (await continueButton.unwrap().isExisting()) {
           await PlaywrightGestures.waitAndTap(continueButton, {
-            timeout: 10_000,
+            timeout: 5000,
             checkForDisplayed: true,
             checkForEnabled: true,
           });
           await continueButton
             .unwrap()
-            .waitForDisplayed({ reverse: true, timeout: 10_000 });
+            .waitForDisplayed({ reverse: true, timeout: 5000 });
           return;
         }
       } catch {
@@ -583,30 +670,19 @@ export const resolvePredictGtmOnboardingModalEnabled = async (
  * @returns {Promise<void>} Resolves when the predictions modal is dismissed.
  */
 export const dismisspredictionsModalPlaywright = async (
-  maxRetries = 3,
+  maxRetries = 2,
 ): Promise<void> => {
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      const btn = await asPlaywrightElement(PredictModalView.notNowButton);
-      await PlaywrightGestures.waitAndTap(btn, {
-        timeout: 10_000,
-        checkForDisplayed: true,
-        checkForEnabled: true,
-      });
-      const dismissedCheck = await asPlaywrightElement(
-        PredictModalView.notNowButton,
-      );
-      await dismissedCheck
-        .unwrap()
-        .waitForDisplayed({ reverse: true, timeout: 10_000 });
-      return;
-    } catch {
-      if (attempt === maxRetries) {
-        logger.error(
-          `Predict modal not dismissed after ${maxRetries} attempts`,
-        );
-      }
-    }
+  try {
+    const btn = await asPlaywrightElement(PredictModalView.notNowButton);
+    await PlaywrightGestures.waitAndTap(btn, {
+      timeout: 3000,
+      checkForDisplayed: true,
+      checkForEnabled: true,
+    });
+    await btn.unwrap().waitForDisplayed({ reverse: true, timeout: 3000 });
+    return;
+  } catch {
+    logger.error(`Predict modal not dismissed after ${maxRetries} attempts`);
   }
 };
 
@@ -649,6 +725,7 @@ export const onboardingFlowImportSRPPlaywright = async (
   );
   await MetaMetricsOptInView.tapIAgreeButton();
   await dismissOnboardingInterestQuestionnaire();
+  await dismissOnboardingCryptoExperienceQuestionnaire();
   await PlaywrightAssertions.expectElementToBeVisible(
     await asPlaywrightElement(OnboardingSuccessView.doneButton),
     { timeout: 30_000 },
@@ -659,11 +736,15 @@ export const onboardingFlowImportSRPPlaywright = async (
     testEnvironment,
   );
 
+  await dismissPushNotificationExistingUserSheet();
+
   const predictGtmOnboardingModalEnabled =
     await resolvePredictGtmOnboardingModalEnabled(productionFeatureFlags);
-  if (predictGtmOnboardingModalEnabled) {
-    await dismisspredictionsModalPlaywright();
-  }
+  console.log(
+    'predictGtmOnboardingModalEnabled',
+    predictGtmOnboardingModalEnabled,
+  );
+  await dismisspredictionsModalPlaywright();
 
   await PlaywrightAssertions.expectElementToBeVisible(
     await asPlaywrightElement(WalletView.container),

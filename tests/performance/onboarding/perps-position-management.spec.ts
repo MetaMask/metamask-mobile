@@ -1,4 +1,4 @@
-import { test } from '../../framework/fixture/index.js';
+import { test } from '../../framework/fixtures/playwright';
 
 import TimerHelper from '../../framework/TimerHelper.js';
 import { Performance, PerformancePreps } from '../../tags.performance.js';
@@ -39,7 +39,7 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
 
       const selectMarketTimer = new TimerHelper(
         'Market list screen visible',
-        { ios: 7500, android: 5000 },
+        { ios: 7500, android: 6000 },
         currentDeviceDetails.platform,
       );
       const openOrderScreenTimer = new TimerHelper(

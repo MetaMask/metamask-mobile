@@ -10,11 +10,13 @@ import {
   buildBatchSellQuoteRequestData,
   getBatchSellAtomicSourceAmount,
   getBatchSellSourceTokenAmount,
+  hasValidBatchSellSourceAmounts,
   useBatchSellQuoteRequest,
 } from '.';
 
 let mockWalletAddress: string | undefined =
   '0x1234567890123456789012345678901234567890';
+let mockShouldUseSmartTransaction = false;
 
 jest.mock('../../../../../core/Engine', () => ({
   __esModule: true,
@@ -33,8 +35,11 @@ jest.mock('../../../../../selectors/bridge', () => ({
 }));
 
 jest.mock('../../../../../selectors/smartTransactionsController', () => ({
-  selectShouldUseSmartTransaction: jest.fn(() => false),
+  selectShouldUseSmartTransaction: jest.fn(() => mockShouldUseSmartTransaction),
 }));
+
+const { selectShouldUseSmartTransaction: mockSelectShouldUseSmartTransaction } =
+  jest.requireMock('../../../../../selectors/smartTransactionsController');
 
 const ethToken: BridgeToken = {
   address: '0x1111111111111111111111111111111111111111',
@@ -83,6 +88,7 @@ describe('useBatchSellQuoteRequest', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     mockWalletAddress = '0x1234567890123456789012345678901234567890';
+    mockShouldUseSmartTransaction = false;
   });
 
   afterEach(() => {
@@ -116,6 +122,62 @@ describe('useBatchSellQuoteRequest', () => {
     const amount = getBatchSellAtomicSourceAmount(ethToken, '0.749');
 
     expect(amount).toBe('749000000000000000');
+  });
+
+  it('returns false from hasValidBatchSellSourceAmounts when all source amounts are zero', () => {
+    expect(
+      hasValidBatchSellSourceAmounts(
+        [ethToken, uniToken],
+        {
+          [ethAssetId]: '0',
+          'eip155:1/erc20:0x2222222222222222222222222222222222222222': '0',
+        },
+        usdcToken,
+      ),
+    ).toBe(false);
+  });
+
+  it('returns true from hasValidBatchSellSourceAmounts when at least one source amount is sellable', () => {
+    expect(
+      hasValidBatchSellSourceAmounts(
+        [ethToken, uniToken],
+        {
+          [ethAssetId]: '0',
+          'eip155:1/erc20:0x2222222222222222222222222222222222222222': '1',
+        },
+        usdcToken,
+      ),
+    ).toBe(true);
+  });
+
+  it('returns false from hasValidBatchSellSourceAmounts when destination token is missing', () => {
+    expect(
+      hasValidBatchSellSourceAmounts(
+        [ethToken],
+        { [ethAssetId]: ethToken.balance },
+        undefined,
+      ),
+    ).toBe(false);
+  });
+
+  it('returns false from hasValidBatchSellSourceAmounts when decimal amount is below one atomic unit', () => {
+    expect(
+      hasValidBatchSellSourceAmounts(
+        [ethToken],
+        { [ethAssetId]: '1e-19' },
+        usdcToken,
+      ),
+    ).toBe(false);
+    expect(
+      buildBatchSellQuoteRequestData({
+        batchSellSlippages: {},
+        batchSellSourceTokenAmounts: { [ethAssetId]: '1e-19' },
+        destToken: usdcToken,
+        smartTransactionsEnabled: false,
+        sourceTokens: [ethToken],
+        walletAddress: mockWalletAddress,
+      }),
+    ).toEqual([]);
   });
 
   it('builds quote request data for non-zero Batch Sell source token amounts', () => {
@@ -377,6 +439,113 @@ describe('useBatchSellQuoteRequest', () => {
     ).toBeLessThan(
       getBridgeControllerMock().updateBridgeQuoteRequestParams.mock
         .invocationCallOrder[0],
+    );
+  });
+
+  it('passes stx_enabled: true in context when smart transactions are enabled', async () => {
+    mockShouldUseSmartTransaction = true;
+
+    const testState = createBridgeTestState({
+      bridgeReducerOverrides: {
+        batchSellSourceTokens: [ethToken],
+        batchSellSourceTokenAmounts: {
+          [ethAssetId]: '0.749',
+        },
+        batchSellDestToken: usdcToken,
+        batchSellSlippages: {},
+      },
+    });
+
+    const { result } = renderHookWithProvider(
+      () => useBatchSellQuoteRequest(),
+      {
+        state: testState,
+      },
+    );
+
+    result.current.updateBatchSellQuoteParams();
+    await flushQuoteRequestDebounce();
+
+    expect(
+      getBridgeControllerMock().updateBridgeQuoteRequestParams.mock.calls[0][1],
+    ).toEqual(
+      expect.objectContaining({
+        stx_enabled: true,
+      }),
+    );
+  });
+
+  it('passes stx_enabled: false in context when smart transactions are disabled', async () => {
+    mockShouldUseSmartTransaction = false;
+
+    const testState = createBridgeTestState({
+      bridgeReducerOverrides: {
+        batchSellSourceTokens: [ethToken],
+        batchSellSourceTokenAmounts: {
+          [ethAssetId]: '0.749',
+        },
+        batchSellDestToken: usdcToken,
+        batchSellSlippages: {},
+      },
+    });
+
+    const { result } = renderHookWithProvider(
+      () => useBatchSellQuoteRequest(),
+      {
+        state: testState,
+      },
+    );
+
+    result.current.updateBatchSellQuoteParams();
+    await flushQuoteRequestDebounce();
+
+    expect(
+      getBridgeControllerMock().updateBridgeQuoteRequestParams.mock.calls[0][1],
+    ).toEqual(
+      expect.objectContaining({
+        stx_enabled: false,
+      }),
+    );
+  });
+
+  it('passes the normalized source chain ID to selectShouldUseSmartTransaction', () => {
+    const caipSourceToken: BridgeToken = {
+      ...ethToken,
+      chainId: 'eip155:1' as unknown as Hex,
+    };
+
+    const testState = createBridgeTestState({
+      bridgeReducerOverrides: {
+        batchSellSourceTokens: [caipSourceToken],
+        batchSellDestToken: usdcToken,
+      },
+    });
+
+    renderHookWithProvider(() => useBatchSellQuoteRequest(), {
+      state: testState,
+    });
+
+    expect(mockSelectShouldUseSmartTransaction).toHaveBeenCalledWith(
+      expect.anything(),
+      '0x1',
+    );
+  });
+
+  it('passes undefined chain ID to selectShouldUseSmartTransaction when there are no source tokens', () => {
+    const testState = createBridgeTestState({
+      bridgeReducerOverrides: {
+        batchSellSourceTokens: [],
+        batchSellDestToken: usdcToken,
+      },
+    });
+
+    renderHookWithProvider(() => useBatchSellQuoteRequest(), {
+      state: testState,
+    });
+
+    expect(mockSelectShouldUseSmartTransaction).toHaveBeenCalledWith(
+      expect.anything(),
+      undefined,
     );
   });
 });

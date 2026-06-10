@@ -1978,10 +1978,10 @@
       "stocks_and_commodities": "Découvrez les actions et les matières premières",
       "tabs": {
         "crypto": "Crypto",
-        "stocks": "Actions",
-        "commodities": "Matières premières",
         "forex": "Forex",
-        "new": "Nouveau"
+        "new": "Nouveau",
+        "stock": "Actions",
+        "commodity": "Matières premières"
       },
       "filter_by": "Filtrer par",
       "forex": "Forex",
@@ -2267,8 +2267,7 @@
         "group_i": "Groupe I",
         "group_j": "Groupe J",
         "group_k": "Groupe K",
-        "group_l": "Groupe L",
-        "third_place_match": "Match pour la troisième place"
+        "group_l": "Groupe L"
       }
     },
     "prediction_markets": "Marchés prédictifs",
@@ -8347,8 +8346,6 @@
     "report_submitted": "Le rapport d’erreur a été envoyé."
   },
   "pay_with_modal": {
-    "title": "Sélectionnez le mode de paiement",
-    "title_receive": "Sélectionner le jeton à recevoir",
     "no_gas": "Pas de solde natif pour le gaz",
     "not_supported": "Non pris en charge",
     "crypto": "Crypto"
@@ -8456,7 +8453,7 @@
     "main_title": "Récompenses",
     "vip": {
       "bps_unit": "points de base",
-      "badge_label": "VIP Fox {{tier}}",
+      "badge_label": "VIP {{tier}}",
       "swaps_label": "Échanges",
       "perps_label": "Perps",
       "error_title": "We couldn’t load your VIP dashboard",
@@ -8900,7 +8897,7 @@
       "stats_notional_volume_threshold": "{{amount}} $ requis",
       "stats_qualified_title": "Vous êtes qualifié",
       "stats_qualified_description": "Continuez à trader pour améliorer votre résultat net et grimper dans le classement avant la fin de la compétition.",
-      "stats_qualify_for_rank_title": "Se qualifier pour ce classement",
+      "stats_qualify_for_rank_title": "Se qualifier pour le classement",
       "stats_qualify_for_rank_description": "Tradez {{notionalRemaining}} de plus en volume notionnel pour devenir admissible.",
       "stats_error_title": "Impossible de charger les statistiques",
       "stats_error_description": "Nous avons rencontré un problème lors du chargement de vos statistiques. Veuillez réessayer.",
@@ -8973,7 +8970,7 @@
       "non_winner": {
         "title": "Les résultats sont disponibles 🏅",
         "description": "Découvrez votre classement dans la campagne {{campaignName}}.",
-        "cta": "Afficher"
+        "cta": "Voir les détails"
       }
     }
   },

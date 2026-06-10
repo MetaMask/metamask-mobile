@@ -26,6 +26,6 @@ When you're done with your project / bugfix / feature and ready to submit a PR, 
 
 ### Shadow CI jobs
 
-CI jobs prefixed with `[shadow]` (e.g., from `ci-namespace-shadow.yml`) are **advisory only** and never gate merge. They run the same test suite on Namespace runners for performance benchmarking. If a shadow job fails, it does not indicate a problem with your PR -- it reflects the state of the Namespace runner migration trial.
+The Namespace shadow CI (`ci-namespace-shadow.yml`) no longer runs automatically: its automatic triggers (PRs, pushes to `main`, hourly schedule) are disabled now that the Phase 5d benchmark is complete. It is retained for on-demand runs via manual `workflow_dispatch`, or you can dispatch `ci.yml` directly with `runner_provider=namespace`. Any `[shadow]`-prefixed jobs were always **advisory only** and never gated merge.
 
 And that's it! Thanks for helping out.

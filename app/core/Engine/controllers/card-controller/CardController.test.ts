@@ -239,6 +239,7 @@ describe('CardController', () => {
       providerData: {},
       cardHomeData: null,
       cardHomeDataStatus: 'idle',
+      moneyAccountCardLinkInProgress: false,
     });
   });
 
@@ -1702,8 +1703,8 @@ describe('CardController — data pass-throughs', () => {
             chainId: '143',
             delegationContract: DELEGATION_CONTRACT,
             tokens: {
-              usdc: {
-                symbol: 'USDC',
+              veda: {
+                symbol: 'veda',
                 decimals: 6,
                 address: TOKEN_ADDRESS,
               },
@@ -1720,19 +1721,14 @@ describe('CardController — data pass-throughs', () => {
       subscribedHandlers: ((meta: unknown) => void)[];
       addTransactionBatchCalls: unknown[][];
       signPersonalMessageCalls: unknown[][];
-      isAtomicBatchSupportedCalls: unknown[][];
       transactionsState: { id: string; batchId?: string; hash?: string }[];
     }
 
     function buildLinkMessenger({
       addTransactionBatchResult,
-      isAtomicBatchSupportedResult,
       transactionsStateOverride,
     }: {
       addTransactionBatchResult?: () => Promise<{ batchId: string }>;
-      isAtomicBatchSupportedResult?: () => Promise<
-        { chainId: string; isSupported: boolean }[]
-      >;
       transactionsStateOverride?: {
         id: string;
         batchId?: string;
@@ -1743,7 +1739,6 @@ describe('CardController — data pass-throughs', () => {
       const failedHandlers: ((payload: unknown) => void)[] = [];
       const addTransactionBatchCalls: unknown[][] = [];
       const signPersonalMessageCalls: unknown[][] = [];
-      const isAtomicBatchSupportedCalls: unknown[][] = [];
       const transactionsState = transactionsStateOverride ?? [
         { id: 'tx-1', batchId: 'batch-1', hash: TX_HASH },
       ];
@@ -1798,13 +1793,6 @@ describe('CardController — data pass-throughs', () => {
           if (action === 'NetworkController:findNetworkClientIdByChainId') {
             return 'monad-mainnet';
           }
-          if (action === 'TransactionController:isAtomicBatchSupported') {
-            isAtomicBatchSupportedCalls.push(args);
-            return (
-              isAtomicBatchSupportedResult?.() ??
-              Promise.resolve([{ chainId: '0x8f', isSupported: true }])
-            );
-          }
           if (action === 'TransactionController:addTransactionBatch') {
             addTransactionBatchCalls.push(args);
             return (
@@ -1839,7 +1827,6 @@ describe('CardController — data pass-throughs', () => {
         subscribedHandlers: confirmedHandlers,
         addTransactionBatchCalls,
         signPersonalMessageCalls,
-        isAtomicBatchSupportedCalls,
         transactionsState,
       };
     }
@@ -1941,11 +1928,6 @@ describe('CardController — data pass-throughs', () => {
       expect(batchTransactions[0]).toMatchObject({
         params: { to: TOKEN_ADDRESS, value: '0x0' },
       });
-      expect(handle.isAtomicBatchSupportedCalls).toHaveLength(1);
-      expect(handle.isAtomicBatchSupportedCalls[0][0]).toMatchObject({
-        address: MONEY_ACCOUNT_ADDRESS,
-        chainIds: ['0x8f'],
-      });
       expect(mockGenerateSiwe).toHaveBeenCalledWith(
         expect.objectContaining({
           network: 'monad',
@@ -1957,7 +1939,7 @@ describe('CardController — data pass-throughs', () => {
         expect.objectContaining({
           address: MONEY_ACCOUNT_ADDRESS,
           network: 'monad',
-          currency: 'usdc',
+          currency: 'veda',
           amount: '2199023255551',
           txHash: TX_HASH,
           sigHash: '0xsig',
@@ -2169,7 +2151,7 @@ describe('CardController — data pass-throughs', () => {
       ).rejects.toThrow('Delegation amount is required');
     });
 
-    describe('sponsorship + 7702 pre-flight', () => {
+    describe('sponsorship pre-flight', () => {
       it('throws CardProviderError without submitting when Monad sponsorship is disabled', async () => {
         const mockApproveFunding = jest.fn().mockResolvedValue(undefined);
         const mockChallenge = jest.fn().mockResolvedValue({
@@ -2203,13 +2185,14 @@ describe('CardController — data pass-throughs', () => {
         }
 
         expect(handle.addTransactionBatchCalls).toHaveLength(0);
+        expect(mockChallenge).not.toHaveBeenCalled();
         expect(mockApproveFunding).not.toHaveBeenCalled();
       });
 
-      it('throws CardProviderError without submitting when the money account is not 7702-upgraded on Monad', async () => {
+      it('submits the approve via addTransactionBatch and lets Delegation7702PublishHook attach the upgrade authorization', async () => {
         const mockApproveFunding = jest.fn().mockResolvedValue(undefined);
         const mockChallenge = jest.fn().mockResolvedValue({
-          delegationToken: 'jwt-not-upgraded',
+          delegationToken: 'jwt-publish-hook',
           nonce: 'nonce-1',
           expiresAt: '2099-01-01',
         });
@@ -2219,55 +2202,32 @@ describe('CardController — data pass-throughs', () => {
           generateCardDelegationSignatureMessage: mockGenerateSiwe,
         });
 
-        const handle = buildLinkMessenger({
-          isAtomicBatchSupportedResult: () =>
-            Promise.resolve([{ chainId: '0x8f', isSupported: false }]),
-        });
+        const handle = buildLinkMessenger();
         const controller = buildLinkController({
           provider,
           messenger: handle.messenger,
         });
 
-        await expect(
-          controller.linkMoneyAccountCard({
-            moneyAccountAddress: MONEY_ACCOUNT_ADDRESS,
-            delegationAmountHuman: '2199023255551',
-          }),
-        ).rejects.toThrow('Money account is not 7702-upgraded on Monad');
-
-        expect(handle.addTransactionBatchCalls).toHaveLength(0);
-        expect(mockApproveFunding).not.toHaveBeenCalled();
-      });
-
-      it('throws when the isAtomicBatchSupported result contains no Monad entry at all', async () => {
-        const mockApproveFunding = jest.fn().mockResolvedValue(undefined);
-        const provider = buildMockProvider({
-          fetchDelegationChallenge: jest.fn().mockResolvedValue({
-            delegationToken: 'jwt-missing-chain',
-            nonce: 'nonce-1',
-            expiresAt: '2099-01-01',
-          }),
-          approveFunding: mockApproveFunding,
-          generateCardDelegationSignatureMessage: mockGenerateSiwe,
+        const linkPromise = controller.linkMoneyAccountCard({
+          moneyAccountAddress: MONEY_ACCOUNT_ADDRESS,
+          delegationAmountHuman: '2199023255551',
         });
+        await waitFor(() => handle.addTransactionBatchCalls.length > 0);
+        handle.emitConfirmed();
 
-        const handle = buildLinkMessenger({
-          // The controller asks for a specific chain, but the returned array
-          // is empty — guard against treating "no answer" as "supported".
-          isAtomicBatchSupportedResult: () => Promise.resolve([]),
-        });
-        const controller = buildLinkController({
-          provider,
-          messenger: handle.messenger,
-        });
+        await linkPromise;
 
-        await expect(
-          controller.linkMoneyAccountCard({
-            moneyAccountAddress: MONEY_ACCOUNT_ADDRESS,
-            delegationAmountHuman: '2199023255551',
-          }),
-        ).rejects.toThrow('Money account is not 7702-upgraded on Monad');
-        expect(handle.addTransactionBatchCalls).toHaveLength(0);
+        expect(handle.addTransactionBatchCalls).toHaveLength(1);
+        const [batchOptions] = handle.addTransactionBatchCalls[0] as [
+          Record<string, unknown>,
+        ];
+        expect(batchOptions).toMatchObject({
+          isGasFeeSponsored: true,
+          requireApproval: false,
+          disableHook: true,
+          disableSequential: true,
+        });
+        expect(mockApproveFunding).toHaveBeenCalledTimes(1);
       });
     });
 
@@ -2401,6 +2361,7 @@ describe('CardController — data pass-throughs', () => {
         await waitFor(() => controller.isLinkageInProgress() === true, 100);
 
         expect(controller.isLinkageInProgress()).toBe(true);
+        expect(controller.state.moneyAccountCardLinkInProgress).toBe(true);
 
         resolveApproveFunding();
         await linkPromise;

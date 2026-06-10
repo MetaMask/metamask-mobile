@@ -3,7 +3,10 @@ import performance, { PerformanceObserver } from 'react-native-performance';
 import StorageWrapper from '../../store/storage-wrapper';
 import { TraceName, TraceOperation, endTrace, trace } from '../../util/trace';
 import getUIStartupSpan from './UIStartup';
-import { isQa, isTest } from '../../util/test/utils';
+import {
+  isE2EOrExpEnvironment,
+  isTestEnvironment,
+} from '../../util/test/utils';
 
 /**
  * Service for measuring app performance
@@ -47,7 +50,7 @@ class Performance {
         // the total app start time is then the maximum of the two durations
         const appStartTime = Math.max(nativeLaunchDuration, jsBundleDuration);
 
-        if (isTest || isQa) {
+        if (isTestEnvironment || isE2EOrExpEnvironment) {
           // eslint-disable-next-line no-console
           console.info(
             `-------------------------------------------------------`,

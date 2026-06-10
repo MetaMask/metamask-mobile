@@ -1,11 +1,6 @@
-import { test } from '../../framework/fixture';
+import { test } from '../../framework/fixtures/playwright';
 import TimerHelper from '../../framework/TimerHelper';
-import {
-  Performance,
-  System,
-  PerformanceLogin,
-  PerformanceSwaps,
-} from '../../tags.performance.js';
+import { System, PerformanceSwaps } from '../../tags.performance.js';
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
 import WalletView from '../../page-objects/wallet/WalletView';
 import QuoteView from '../../page-objects/swaps/QuoteView';
@@ -13,7 +8,7 @@ import { checkSwapActivity } from '../../helpers/swap/swap-unified-ui';
 import { aiVisualTest, createTestConfig } from '../../framework/ai-visual';
 
 /* Scenario 6: Swap flow - ETH to LINK, SRP 1 + SRP 2 + SRP 3 */
-test.describe(`${Performance} ${System} ${PerformanceLogin} ${PerformanceSwaps}`, () => {
+test.describe(`${System} ${PerformanceSwaps}`, () => {
   test(
     'Swap flow - ETH to LINK, SRP 1 + SRP 2 + SRP 3',
     { tag: '@swap-bridge-dev-team' },
@@ -32,7 +27,6 @@ test.describe(`${Performance} ${System} ${PerformanceLogin} ${PerformanceSwaps}`
       );
 
       await WalletView.tapWalletSwapButton();
-
       await swapLoadTimer.measure(() => QuoteView.isVisible());
 
       const swapTimer = new TimerHelper(
@@ -41,7 +35,7 @@ test.describe(`${Performance} ${System} ${PerformanceLogin} ${PerformanceSwaps}`
         currentDeviceDetails.platform,
       );
       await QuoteView.selectNetworkAndTokenTo('Ethereum', 'USDC');
-      await QuoteView.enterSourceTokenAmount('0.0001');
+      await QuoteView.enterSourceTokenAmount('0.01');
 
       await QuoteView.dismissKeypad();
       await swapTimer.measure(() => QuoteView.isQuoteDisplayed());

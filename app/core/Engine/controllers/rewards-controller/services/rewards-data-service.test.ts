@@ -4388,63 +4388,67 @@ describe('RewardsDataService', () => {
     const mockSubscriptionId = 'sub-vip';
     const mockToken = 'test-bearer-token';
     const mockVIPDashboard: VipDashboardDto = {
-      program: { id: 'vip', name: 'VIP Pilot' },
+      program: { id: 'mock-vip-program', name: 'Acme Rewards Beta' },
       period: {
-        start: '2026-03-31T00:00:00.000Z',
-        end: '2026-04-30T23:59:59.999Z',
+        start: '2099-06-01T00:00:00.000Z',
+        end: '2099-06-30T23:59:59.999Z',
       },
-      currentTier: { id: 'gold-fox-vip-3', name: 'Gold Fox VIP 3', tier: 3 },
-      nextTier: { id: 'gold-fox-vip-4', name: 'Gold Fox VIP 4', tier: 4 },
+      currentTier: {
+        id: 'mock-tier-alpha-3',
+        name: 'Mock Tier Alpha 3',
+        tier: 3,
+      },
+      nextTier: { id: 'mock-tier-alpha-4', name: 'Mock Tier Alpha 4', tier: 4 },
       progress: {
-        percent: 72,
-        remainingPointsToNextTier: 800000,
+        percent: 42,
+        remainingPointsToNextTier: 123456,
         status: 'on_track',
       },
       fees: {
-        revenueShareBps: 150,
-        swapsBps: 15,
-        perpsBps: 4,
-        nextTierRevenueShareBps: 200,
-        nextTierSwapsBps: 12,
-        nextTierPerpsBps: 3,
+        revenueShareBps: 99,
+        swapsBps: 11,
+        perpsBps: 7,
+        nextTierRevenueShareBps: 88,
+        nextTierSwapsBps: 9,
+        nextTierPerpsBps: 6,
       },
       volume: {
-        swapsUsd: 4100000,
-        perpsUsd: 2300000,
-        points: 24400000,
-        pointsFromReferrals: 500000,
-        referrals: 2,
-        referralsCap: 10,
+        swapsUsd: 1234567,
+        perpsUsd: 9876543,
+        points: 5555555,
+        pointsFromReferrals: 111111,
+        referrals: 3,
+        referralsCap: 7,
       },
       pointsAllocation: {
-        earned: 24400000,
-        threshold: 100000000,
-        percent: 24.4,
+        earned: 5555555,
+        threshold: 7777777,
+        percent: 71.4,
       },
       tiers: [
         {
-          id: 'gold-fox-vip-3',
-          name: 'Gold Fox 3',
+          id: 'mock-tier-alpha-3',
+          name: 'Mock Tier Alpha 3',
           tier: 3,
-          pointsRequirement: 750000,
-          revenueShareBps: 150,
-          swapsBps: 15,
-          perpsBps: 4,
-          referralCarryoverBps: 2000,
+          pointsRequirement: 321000,
+          revenueShareBps: 99,
+          swapsBps: 11,
+          perpsBps: 7,
+          referralCarryoverBps: 4242,
           status: 'current',
         },
       ],
       localizedText: {
-        periodTitle: 'Mar 31 - Apr 30',
+        periodTitle: 'Jun 1 - Jun 30',
         memberIdTitle: 'Member ID',
         swapsFeeTitle: 'Swaps fee',
         perpsFeeTitle: 'Perps fee',
-        nextTierSwapsFeeDelta: '↓ 12 bps next tier',
-        nextTierPerpsFeeDelta: '↓ 3 bps next tier',
+        nextTierSwapsFeeDelta: '↓ 9 bps next tier',
+        nextTierPerpsFeeDelta: '↓ 6 bps next tier',
         revenueShareTitle: 'Revenue share',
         referralPointsTitle: 'Referral points',
-        nextTierRevenueShareDelta: '↑ 2% next tier',
-        nextTierReferralPointsDelta: '↑ 20% next tier',
+        nextTierRevenueShareDelta: '↑ 1% next tier',
+        nextTierReferralPointsDelta: '↑ 42% next tier',
         topTierDescription: 'Top tier reached',
         statsTitle: 'Volume',
         pointsTitle: 'Points',
@@ -5264,6 +5268,7 @@ describe('RewardsDataService', () => {
       computedAt: '2025-08-15T12:00:00.000Z',
       entries: [],
       totalParticipants: 0,
+      minVolumeForEligibility: 25_000,
     };
 
     beforeEach(() => {
@@ -5299,9 +5304,11 @@ describe('RewardsDataService', () => {
     const mockToken = 'test-bearer-token';
     const mockPosition = {
       rank: 4,
+      totalParticipants: 50,
       pnl: 12.5,
-      notionalVolume: 8000,
-      qualified: true,
+      volume: 8000,
+      eligible: true,
+      minVolumeForEligibility: 25000,
       neighbors: [],
       computedAt: '2025-08-15T12:00:00.000Z',
     };
@@ -5390,6 +5397,186 @@ describe('RewardsDataService', () => {
       await expect(
         service.getPerpsTradingCampaignVolume(mockCampaignId),
       ).rejects.toThrow('Get perps trading campaign volume failed: 500');
+    });
+  });
+
+  describe('Predict The Pitch endpoints', () => {
+    const mockCampaignId = 'predict-campaign-1';
+    const mockSubscriptionId = 'sub-predict-1';
+    const mockToken = 'predict-token';
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+    });
+
+    it('gets the public leaderboard endpoint', async () => {
+      const leaderboard = {
+        campaignId: mockCampaignId,
+        computedAt: '2026-06-30T12:00:00.000Z',
+        entries: [],
+        totalParticipants: 0,
+      };
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(leaderboard),
+      } as unknown as Response);
+
+      const result =
+        await service.getPredictThePitchLeaderboard(mockCampaignId);
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/predict-the-pitch/${mockCampaignId}/leaderboard`,
+        expect.objectContaining({ method: 'GET' }),
+      );
+      expect(result).toEqual(leaderboard);
+    });
+
+    it('gets authenticated leaderboard position and returns null on 404', async () => {
+      const position = {
+        rank: 1,
+        totalParticipants: 10,
+        roi: 0.5,
+        pnl: 100,
+        volume: 200,
+        eligible: true,
+        neighbors: [],
+        computedAt: '2026-06-30T12:00:00.000Z',
+      };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(position),
+      } as unknown as Response);
+
+      const result = await service.getPredictThePitchLeaderboardPosition(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/predict-the-pitch/${mockCampaignId}/leaderboard/me`,
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            'rewards-access-token': mockToken,
+          }),
+        }),
+      );
+      expect(result).toEqual(position);
+
+      mockFetch.mockResolvedValueOnce({ ok: false, status: 404 } as Response);
+
+      await expect(
+        service.getPredictThePitchLeaderboardPosition(
+          mockCampaignId,
+          mockSubscriptionId,
+        ),
+      ).resolves.toBeNull();
+    });
+
+    it('gets authenticated positions and throws on failures', async () => {
+      const positions = {
+        openPositions: [],
+        resolvedPositions: [],
+        computedAt: null,
+      };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(positions),
+      } as unknown as Response);
+
+      const result = await service.getPredictThePitchPositions(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/predict-the-pitch/${mockCampaignId}/positions/me`,
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            'rewards-access-token': mockToken,
+          }),
+        }),
+      );
+      expect(result).toEqual(positions);
+
+      mockFetch.mockResolvedValueOnce({ ok: false, status: 404 } as Response);
+
+      await expect(
+        service.getPredictThePitchPositions(mockCampaignId, mockSubscriptionId),
+      ).rejects.toThrow('Get Predict The Pitch positions failed: 404');
+    });
+
+    it('gets authenticated participant outcome and throws on failures', async () => {
+      const outcome = {
+        subscriptionId: mockSubscriptionId,
+        outcomeStatus: 'pending' as const,
+        winnerVerificationCode: 'ABC123',
+        rank: 2,
+      };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(outcome),
+      } as unknown as Response);
+
+      const result = await service.getPredictThePitchParticipantOutcome(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/predict-the-pitch/${mockCampaignId}/outcome/me`,
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            'rewards-access-token': mockToken,
+          }),
+        }),
+      );
+      expect(result).toEqual(outcome);
+
+      mockFetch.mockResolvedValueOnce({ ok: false, status: 500 } as Response);
+
+      await expect(
+        service.getPredictThePitchParticipantOutcome(
+          mockCampaignId,
+          mockSubscriptionId,
+        ),
+      ).rejects.toThrow(
+        'Get Predict The Pitch participant outcome failed: 500',
+      );
+    });
+
+    it('gets public prize-pool stats and throws on failures', async () => {
+      const prizePool = {
+        totalVolumeUsd: 1000,
+        unlockedPoolUsd: 500,
+        thresholdsUsd: [0, 1000],
+        poolScheduleUsd: [250, 500],
+        breakdown: [{ rank: 1, amountUsd: 500 }],
+        computedAt: null,
+      };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(prizePool),
+      } as unknown as Response);
+
+      const result = await service.getPredictThePitchPrizePool(mockCampaignId);
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/predict-the-pitch/${mockCampaignId}/prize-pool`,
+        expect.objectContaining({ method: 'GET' }),
+      );
+      expect(result).toEqual(prizePool);
+
+      mockFetch.mockResolvedValueOnce({ ok: false, status: 503 } as Response);
+
+      await expect(
+        service.getPredictThePitchPrizePool(mockCampaignId),
+      ).rejects.toThrow('Get Predict The Pitch prize pool failed: 503');
     });
   });
 });

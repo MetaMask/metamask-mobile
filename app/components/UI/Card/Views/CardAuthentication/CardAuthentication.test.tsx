@@ -314,7 +314,7 @@ describe('CardAuthentication Component', () => {
       expect(mockNavigationServiceGoBack).not.toHaveBeenCalled();
     });
 
-    it('goes back via NavigationService when postAuthRedirect is in route params', async () => {
+    it('navigates root to HOME_TABS when postAuthRedirect is in route params', async () => {
       mockRouteParams = { postAuthRedirect: MONEY_HOME_CARD_ORIGIN };
 
       render();
@@ -324,12 +324,18 @@ describe('CardAuthentication Component', () => {
       );
 
       await waitFor(() => {
-        expect(mockNavigationServiceGoBack).toHaveBeenCalled();
+        expect(mockNavigationServiceNavigate).toHaveBeenCalledWith(
+          Routes.HOME_TABS,
+          MONEY_HOME_CARD_ORIGIN.params,
+        );
       });
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(mockNavigationServiceGoBack).not.toHaveBeenCalled();
       expect(mockReset).not.toHaveBeenCalled();
     });
 
-    it('goes back via NavigationService when postAuthRedirect comes from parent navigator', async () => {
+    it('navigates root to HOME_TABS when postAuthRedirect comes from parent navigator', async () => {
       mockUseCardPostAuthRedirect.mockReturnValue(MONEY_HOME_CARD_ORIGIN);
 
       render();
@@ -339,8 +345,43 @@ describe('CardAuthentication Component', () => {
       );
 
       await waitFor(() => {
-        expect(mockNavigationServiceGoBack).toHaveBeenCalled();
+        expect(mockNavigationServiceNavigate).toHaveBeenCalledWith(
+          Routes.HOME_TABS,
+          MONEY_HOME_CARD_ORIGIN.params,
+        );
       });
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(mockNavigationServiceGoBack).not.toHaveBeenCalled();
+      expect(mockReset).not.toHaveBeenCalled();
+    });
+
+    it('dispatches CommonActions.navigate locally for in-flow postAuthRedirect target (e.g. CardHome)', async () => {
+      mockRouteParams = {
+        postAuthRedirect: {
+          screen: Routes.CARD.HOME,
+        },
+      };
+
+      render();
+
+      fireEvent.press(
+        screen.getByTestId(CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(mockDispatch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'NAVIGATE',
+            payload: expect.objectContaining({
+              name: Routes.CARD.HOME,
+              params: undefined,
+            }),
+          }),
+        );
+      });
+      expect(mockNavigationServiceNavigate).not.toHaveBeenCalled();
+      expect(mockNavigationServiceGoBack).not.toHaveBeenCalled();
       expect(mockReset).not.toHaveBeenCalled();
     });
 
@@ -368,6 +409,7 @@ describe('CardAuthentication Component', () => {
         });
       });
       expect(mockNavigationServiceGoBack).not.toHaveBeenCalled();
+      expect(mockNavigationServiceNavigate).not.toHaveBeenCalled();
     });
   });
 });

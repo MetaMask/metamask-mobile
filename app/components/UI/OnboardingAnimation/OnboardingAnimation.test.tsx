@@ -5,19 +5,18 @@ import OnboardingAnimation from './OnboardingAnimation';
 import Logger from '../../../util/Logger';
 import Device from '../../../util/device';
 
-// Mock the entire utils module to ensure isE2E can be controlled
-let mockIsE2E = false;
+// Mock the entire utils module to ensure hasTestOverrides can be controlled
+let mockHasTestOverrides = false;
 
 jest.mock('../../../util/test/utils', () => ({
   flushPromises: () => new Promise(setImmediate),
   FIXTURE_SERVER_PORT: 12345,
   testConfig: {},
   E2E_METAMETRICS_TRACK_URL: 'https://metametrics.test/track',
-  get isE2E() {
-    return mockIsE2E;
+  get hasTestOverrides() {
+    return mockHasTestOverrides;
   },
-  isQa: false,
-  isTest: true,
+  isTestEnvironment: true,
   enableApiCallLogs: false,
   getFixturesServerPortInApp: () => 12345,
   isRc: false,
@@ -70,7 +69,7 @@ describe('OnboardingAnimation', () => {
     mockSetStartFoxAnimation.mockClear();
 
     // Reset E2E mode to default (false)
-    mockIsE2E = false;
+    mockHasTestOverrides = false;
 
     // Clear Rive mock methods using the mock helper
     __clearLastMockedMethods();
@@ -176,12 +175,12 @@ describe('OnboardingAnimation', () => {
   describe('E2E Mode Behavior', () => {
     beforeEach(() => {
       // Enable E2E mode for these tests
-      mockIsE2E = true;
+      mockHasTestOverrides = true;
     });
 
     afterEach(() => {
       // Reset E2E mode after each test
-      mockIsE2E = false;
+      mockHasTestOverrides = false;
     });
 
     it('sets initial opacity to 1 in E2E mode', () => {

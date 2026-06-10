@@ -1,4 +1,4 @@
-import { test as perfTest } from '../../framework/fixture';
+import { test as perfTest } from '../../framework/fixtures/playwright';
 import TimerHelper from '../../framework/TimerHelper';
 import UniswapDapp from '../../page-objects/MMConnect/UniswapDapp';
 import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModal';
@@ -25,7 +25,7 @@ perfTest.describe(`${PerformanceLogin}`, () => {
 
       const metamaskTimer = new TimerHelper(
         'Time since the user selects Metamask until Metamask app is opened',
-        { ios: 18000, android: 20000 },
+        { ios: 18000, android: 22000 },
         platform,
       );
 

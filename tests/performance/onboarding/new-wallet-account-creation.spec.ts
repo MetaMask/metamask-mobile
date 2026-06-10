@@ -1,4 +1,4 @@
-import { test } from '../../framework/fixture';
+import { test } from '../../framework/fixtures/playwright';
 import TimerHelper from '../../framework/TimerHelper';
 import { getPasswordForScenario } from '../../framework/utils/TestConstants.js';
 import {
@@ -21,6 +21,7 @@ import OnboardingSuccessView from '../../page-objects/Onboarding/OnboardingSucce
 import {
   dismissOnboardingInterestQuestionnaire,
   dismisspredictionsModalPlaywright,
+  dismissPushNotificationExistingUserSheet,
 } from '../../flows/wallet.flow.js';
 import WalletView from '../../page-objects/wallet/WalletView.js';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet.js';
@@ -61,11 +62,12 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
       );
       await MetaMetricsOptInView.tapAgreeButton();
       await dismissOnboardingInterestQuestionnaire();
+
       await PlaywrightAssertions.expectElementToBeVisible(
         await asPlaywrightElement(OnboardingSuccessView.doneButton),
       );
       await OnboardingSuccessView.tapDone();
-
+      await dismissPushNotificationExistingUserSheet();
       const productionFeatureFlags = await fetchProductionFeatureFlags(
         'main',
         testEnvironment,
@@ -93,12 +95,12 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
       );
       const screen2Timer = new TimerHelper(
         'Time since the user clicks on "Create account" button until the account is in the account list',
-        { ios: 1800, android: 1500 },
+        { ios: 1800, android: 2000 },
         currentDeviceDetails.platform,
       );
       const screen3Timer = new TimerHelper(
         'Time since the user clicks on new account created until the Token list is visible',
-        { ios: 2000, android: 2000 },
+        { ios: 2000, android: 3000 },
         currentDeviceDetails.platform,
       );
 

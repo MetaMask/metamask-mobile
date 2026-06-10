@@ -68,6 +68,8 @@ import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import PayAccountSelector from '../../PayAccountSelector';
+import { PerpsAccountPickerRow } from '../../rows/perps-account-picker-row';
+import { PredictAccountPickerRow } from '../../rows/predict-account-picker-row';
 import { useTransactionAccountOverride } from '../../../hooks/transactions/useTransactionAccountOverride';
 import { CustomAmountInfoTestIds } from './custom-amount-info.testIds';
 import { useConfirmationContext } from '../../../context/confirmation-context';
@@ -121,6 +123,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     footerText,
     supportAccountSelection,
   }) => {
+    const transactionMeta = useTransactionMetadataRequest();
+    const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
+      TransactionType.moneyAccountDeposit,
+    ]);
+
     useClearConfirmationOnBackSwipe();
 
     const { canSelectWithdrawToken } = useTransactionPayWithdraw();
@@ -148,13 +155,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     }
     const shouldHideAccountSelector =
       hideAccountSelector && !fiatEverSelectedRef.current;
-    const transactionMeta = useTransactionMetadataRequest();
     const transactionId = transactionMeta?.id;
     const accountOverride = useTransactionAccountOverride();
     const isWithdraw = isTransactionPayWithdraw(transactionMeta);
-    const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
-      TransactionType.moneyAccountDeposit,
-    ]);
     const isResultReady = useIsResultReady({ isKeyboardVisible });
     const quotes = useTransactionPayQuotes();
     const isQuotesLoading = useIsTransactionPayLoading();
@@ -194,6 +197,13 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               fp.amountFiat = amountFiat;
             },
           });
+
+          // Fiat deposits need nested calldata (approve + deposit) populated
+          // with approximate amounts now so the transaction is valid at submit
+          // time. Core will re-encode with exact amounts after settlement.
+          if (isMoneyAccountDeposit) {
+            await updateTokenAmount();
+          }
         } else {
           await updateTokenAmount();
         }
@@ -209,6 +219,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       }
     }, [
       amountFiat,
+      isMoneyAccountDeposit,
       onAmountSubmit,
       selectedFiatPaymentMethodId,
       transactionId,
@@ -259,6 +270,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 !shouldHideAccountSelector && (
                   <PayAccountSelector style={styles.separator} />
                 )}
+              <PerpsAccountPickerRow />
+              <PredictAccountPickerRow />
               {disablePay !== true && hasPaymentOption && <PayWithRow />}
             </>
           )}
@@ -267,7 +280,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               {supportAccountSelection &&
                 !selectedFiatPaymentMethodId &&
                 !shouldHideAccountSelector && <PayAccountSelector />}
-              {disablePay !== true && hasPaymentOption && <PayWithRow />}
+              <PerpsAccountPickerRow />
+              <PredictAccountPickerRow />
+              {disablePay !== true && hasPaymentOption && (
+                <PayWithRow isResultReady />
+              )}
               {showPaymentDetails && (
                 <>
                   <BridgeFeeRow />
@@ -400,7 +417,8 @@ function ConfirmButton({
 }: Readonly<{ alertTitle: string | undefined; disableConfirm?: boolean }>) {
   const { styles } = useStyles(styleSheet, {});
   const { hasBlockingAlerts } = useAlerts();
-  const { isHeadlessBuyInProgress } = useConfirmationContext();
+  const { isHeadlessBuyInProgress, setIsConfirmationSubmitting } =
+    useConfirmationContext();
   const isLoading = useIsTransactionPayLoading();
   const { onConfirm } = useConfirmActions();
   const disabled =
@@ -409,6 +427,16 @@ function ConfirmButton({
     Boolean(disableConfirm) ||
     isHeadlessBuyInProgress;
   const buttonLabel = useButtonLabel();
+
+  const handleConfirm = useCallback(async () => {
+    setIsConfirmationSubmitting(true);
+    try {
+      await onConfirm();
+    } catch (error) {
+      setIsConfirmationSubmitting(false);
+      throw error;
+    }
+  }, [onConfirm, setIsConfirmationSubmitting]);
 
   return (
     <Button
@@ -419,7 +447,7 @@ function ConfirmButton({
       isDisabled={disabled}
       isLoading={isHeadlessBuyInProgress}
       loadingText={strings('confirm.preparing_order')}
-      onPress={() => onConfirm()}
+      onPress={handleConfirm}
       testID={ConfirmationFooterSelectorIDs.CONFIRM_BUTTON}
     >
       {alertTitle ?? buttonLabel}

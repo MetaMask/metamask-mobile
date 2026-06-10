@@ -1,9 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import {
+  HeaderStandard,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import {
   Encryptor,
   ENCRYPTION_LIBRARY,
@@ -26,9 +30,6 @@ import {
   accountAddress,
   responseText,
 } from './AesCrypto.testIds';
-import Text, {
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { useSelector } from 'react-redux';
 
@@ -142,7 +143,7 @@ const AesCryptoTestForm = () => {
       style={styles.container}
       testID={aesCryptoFormSafeArea}
     >
-      <HeaderCompactStandard
+      <HeaderStandard
         title={strings('app_settings.aes_crypto_test_form_title')}
         onBack={() => navigation.goBack()}
         includesTopInset
@@ -153,10 +154,10 @@ const AesCryptoTestForm = () => {
         contentContainerStyle={styles.scrollContainer}
         testID={aesCryptoFormScrollIdentifier}
       >
-        <Text variant={TextVariant.HeadingSM} style={styles.formTitle}>
+        <Text variant={TextVariant.HeadingSm} style={styles.formTitle}>
           Current selected address
         </Text>
-        <Text variant={TextVariant.HeadingSM} testID={accountAddress}>
+        <Text variant={TextVariant.HeadingSm} testID={accountAddress}>
           {selectedFormattedAddress}
         </Text>
         <TestForm
