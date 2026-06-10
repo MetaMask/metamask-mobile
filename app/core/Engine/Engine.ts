@@ -423,8 +423,6 @@ export class Engine {
       messengerClientsByName.RemoteFeatureFlagController;
     const accountsController = messengerClientsByName.AccountsController;
     const accountTreeController = messengerClientsByName.AccountTreeController;
-    // `ApprovalController` is constructed by `@metamask/wallet`, so it is
-    // resolved from the wallet rather than the local messenger-client map.
     const approvalController = this.#wallet.getInstance('ApprovalController');
     const assetsContractController =
       messengerClientsByName.AssetsContractController;
