@@ -1978,10 +1978,10 @@
       "stocks_and_commodities": "Découvrez les actions et les matières premières",
       "tabs": {
         "crypto": "Crypto",
-        "stocks": "Actions",
-        "commodities": "Matières premières",
         "forex": "Forex",
-        "new": "Nouveau"
+        "new": "Nouveau",
+        "stock": "Actions",
+        "commodity": "Matières premières"
       },
       "filter_by": "Filtrer par",
       "forex": "Forex",
@@ -8453,7 +8453,7 @@
     "main_title": "Récompenses",
     "vip": {
       "bps_unit": "points de base",
-      "badge_label": "VIP Fox {{tier}}",
+      "badge_label": "VIP {{tier}}",
       "swaps_label": "Échanges",
       "perps_label": "Perps",
       "error_title": "We couldn’t load your VIP dashboard",

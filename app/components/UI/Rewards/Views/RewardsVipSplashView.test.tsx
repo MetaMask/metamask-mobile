@@ -102,9 +102,9 @@ jest.mock('../../../../images/rewards/vip_splash.png', () => 1);
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const translations: Record<string, string> = {
-      'rewards.vip.splash_title': 'WELCOME\nTO GOLD\nFOX VIP',
+      'rewards.vip.splash_title': 'WELCOME\nTO MOCK\nVIP PROGRAM',
       'rewards.vip.splash_description':
-        'Unlock exclusive perks, early features, and curated rewards. By invitation only.',
+        'Placeholder splash copy for tests only. Not representative of the live program.',
       'rewards.vip.splash_accept_invite': 'Accept invite',
       'rewards.vip.splash_not_now': 'Not now',
     };
@@ -170,10 +170,10 @@ describe('RewardsVipSplashView', () => {
     );
 
     expect(getByTestId(VIP_SPLASH_SCREEN_TEST_IDS.CONTAINER)).toBeOnTheScreen();
-    expect(getAllByText('WELCOME\nTO GOLD\nFOX VIP')[0]).toBeOnTheScreen();
+    expect(getAllByText('WELCOME\nTO MOCK\nVIP PROGRAM')[0]).toBeOnTheScreen();
     expect(
       getByText(
-        'Unlock exclusive perks, early features, and curated rewards. By invitation only.',
+        'Placeholder splash copy for tests only. Not representative of the live program.',
       ),
     ).toBeOnTheScreen();
     expect(mockUseVipDashboard).toHaveBeenCalled();

@@ -5,6 +5,14 @@ import MoneyApyInfoSheet from './MoneyApyInfoSheet';
 import { MoneyApyInfoSheetTestIds } from './MoneyApyInfoSheet.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import { useParams } from '../../../../../util/navigation/navUtils';
+import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import { BOTTOM_SHEET_NAMES } from '../../constants/moneyEvents';
+
+const mockTrackBottomSheetViewed = jest.fn();
+
+jest.mock('../../hooks/useMoneyAnalytics', () => ({
+  useMoneyAnalytics: jest.fn(),
+}));
 
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockGoBack = jest.fn();
@@ -74,6 +82,9 @@ describe('MoneyApyInfoSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseParams.mockReturnValue({ apy: DEFAULT_APY });
+    (useMoneyAnalytics as jest.Mock).mockReturnValue({
+      trackBottomSheetViewed: mockTrackBottomSheetViewed,
+    });
   });
 
   it('renders the container', () => {
@@ -126,5 +137,21 @@ describe('MoneyApyInfoSheet', () => {
     fireEvent.press(getByTestId('bottom-sheet-close-button'));
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+  });
+
+  describe('analytics', () => {
+    it('initialises useMoneyAnalytics with MONEY_APY_INFO_SHEET bottom_sheet_name', () => {
+      renderWithProvider(<MoneyApyInfoSheet />);
+
+      expect(useMoneyAnalytics).toHaveBeenCalledWith({
+        bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_APY_INFO_SHEET,
+      });
+    });
+
+    it('calls trackBottomSheetViewed on mount', () => {
+      renderWithProvider(<MoneyApyInfoSheet />);
+
+      expect(mockTrackBottomSheetViewed).toHaveBeenCalledTimes(1);
+    });
   });
 });

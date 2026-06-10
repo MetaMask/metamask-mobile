@@ -10,9 +10,15 @@ import {
 } from '@metamask/connectivity-controller';
 import { NetInfoConnectivityAdapter } from './netinfo-connectivity-adapter';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
+import Logger from '../../../../util/Logger';
+import { flushPromises } from '../../../../util/test/utils';
 
 // Mock NetInfoConnectivityAdapter since it uses NetInfo which requires native modules
 jest.mock('./netinfo-connectivity-adapter');
+jest.mock('../../../../util/Logger', () => ({
+  __esModule: true,
+  default: { error: jest.fn() },
+}));
 
 function getInitRequestMock(): jest.Mocked<
   MessengerClientInitRequest<ConnectivityControllerMessenger>
@@ -37,7 +43,7 @@ describe('ConnectivityControllerInit', () => {
 
     // Mock NetInfoConnectivityAdapter
     mockNetInfoAdapter = {
-      getStatus: jest.fn().mockReturnValue(CONNECTIVITY_STATUSES.Online),
+      getStatus: jest.fn().mockResolvedValue(CONNECTIVITY_STATUSES.Online),
       onConnectivityChange: jest.fn(),
       destroy: jest.fn(),
     } as unknown as jest.Mocked<NetInfoConnectivityAdapter>;
@@ -81,6 +87,39 @@ describe('ConnectivityControllerInit', () => {
 
     expect(mockNetInfoAdapter.onConnectivityChange).toHaveBeenCalledWith(
       expect.any(Function),
+    );
+  });
+
+  it('seeds initial connectivity status via controller.init()', async () => {
+    mockNetInfoAdapter.getStatus.mockResolvedValue(
+      CONNECTIVITY_STATUSES.Offline,
+    );
+
+    const { controller } = connectivityControllerInit(getInitRequestMock());
+
+    // init() runs asynchronously; flush pending microtasks before asserting.
+    await flushPromises();
+
+    expect(mockNetInfoAdapter.getStatus).toHaveBeenCalled();
+    expect(controller.state.connectivityStatus).toBe(
+      CONNECTIVITY_STATUSES.Offline,
+    );
+  });
+
+  it('logs and keeps default state when controller.init() rejects', async () => {
+    const initError = new Error('netinfo unavailable');
+    mockNetInfoAdapter.getStatus.mockRejectedValue(initError);
+
+    const { controller } = connectivityControllerInit(getInitRequestMock());
+
+    await flushPromises();
+
+    expect(Logger.error).toHaveBeenCalledWith(
+      initError,
+      'ConnectivityController: failed to initialize',
+    );
+    expect(controller.state.connectivityStatus).toBe(
+      CONNECTIVITY_STATUSES.Online,
     );
   });
 });

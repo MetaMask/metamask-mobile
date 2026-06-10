@@ -1,4 +1,9 @@
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  RouteProp,
+  CommonActions,
+} from '@react-navigation/native';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Platform, TouchableOpacity, TextInputProps } from 'react-native';
 import {
@@ -215,7 +220,19 @@ const CardAuthentication = () => {
         }
 
         if (postAuthRedirect) {
-          NavigationService.navigation?.goBack();
+          if (postAuthRedirect.screen === Routes.HOME_TABS) {
+            NavigationService.navigation?.navigate(
+              postAuthRedirect.screen,
+              postAuthRedirect.params,
+            );
+          } else {
+            navigation.dispatch(
+              CommonActions.navigate(
+                postAuthRedirect.screen,
+                postAuthRedirect.params,
+              ),
+            );
+          }
           return;
         }
 
