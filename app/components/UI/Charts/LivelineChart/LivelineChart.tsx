@@ -52,6 +52,12 @@ const LivelineChart = forwardRef<LivelineChartRef, LivelineChartProps>(
     const isChartReadyRef = useRef(false);
     const pendingRef = useRef<RNToWebViewMessage[]>([]);
     const hasFlushedRef = useRef(false);
+    // Tracks the newest data-point timestamp already pushed to the WebView and
+    // the last serialized config, so high-frequency tick updates can be sent as
+    // cheap APPEND_POINT deltas instead of re-serializing the whole dataset in a
+    // SET_PROPS payload on every render (~60Hz live stream).
+    const lastSentTimeRef = useRef<number | null>(null);
+    const prevConfigJsonRef = useRef<string | null>(null);
     const callbacksRef = useRef({
       onChartReady,
       onError,
@@ -129,22 +135,66 @@ const LivelineChart = forwardRef<LivelineChartRef, LivelineChartProps>(
       isChartReadyRef.current = false;
       hasFlushedRef.current = false;
       pendingRef.current = [];
+      // A WebView reload throws away the chart's in-memory series, so the next
+      // sync must be a full SET_PROPS rather than an append delta.
+      lastSentTimeRef.current = null;
+      prevConfigJsonRef.current = null;
       setWebViewError(null);
     }, [htmlContent]);
 
-    const chartPropsJson = JSON.stringify({
-      ...chartProps,
-      theme: theme.themeAppearance,
-    });
     const shouldShowNativeLoading = !isChartReady || chartProps.loading;
 
     useEffect(() => {
       if (!isChartReady) return;
-      postMessage({
-        type: 'SET_PROPS',
-        payload: JSON.parse(chartPropsJson),
+
+      const { value } = chartProps;
+      const points = chartProps.data ?? [];
+      // Config = everything except the high-frequency series + scalar value, so
+      // we only treat genuine config edits (color, window, loading, …) as a
+      // reason to resend a full SET_PROPS payload.
+      const configJson = JSON.stringify({
+        ...chartProps,
+        data: undefined,
+        value: undefined,
+        theme: theme.themeAppearance,
       });
-    }, [isChartReady, postMessage, chartPropsJson]);
+      const configChanged = prevConfigJsonRef.current !== configJson;
+      const newestTime = points.length ? points[points.length - 1].time : null;
+
+      // Locate the previously-sent newest point in the current series. If it is
+      // still present, the series is a continuation (points were appended at the
+      // tail, possibly trimmed at the front) and we can stream just the new
+      // points. If it is absent, the series was replaced/reset and we must send
+      // a full SET_PROPS so the WebView doesn't append onto a stale series.
+      let continuationIndex = -1;
+      if (lastSentTimeRef.current !== null) {
+        for (let i = points.length - 1; i >= 0; i--) {
+          if (points[i].time === lastSentTimeRef.current) {
+            continuationIndex = i;
+            break;
+          }
+        }
+      }
+
+      const canAppend = !configChanged && continuationIndex !== -1;
+
+      if (canAppend) {
+        for (let i = continuationIndex + 1; i < points.length; i++) {
+          postMessage({
+            type: 'APPEND_POINT',
+            payload: { point: points[i], value },
+          });
+        }
+      } else {
+        postMessage({
+          type: 'SET_PROPS',
+          payload: { ...chartProps, theme: theme.themeAppearance },
+        });
+      }
+
+      prevConfigJsonRef.current = configJson;
+      lastSentTimeRef.current = newestTime;
+    }, [isChartReady, postMessage, chartProps, theme.themeAppearance]);
 
     useEffect(() => {
       if (!isChartReady || hasFlushedRef.current) return;

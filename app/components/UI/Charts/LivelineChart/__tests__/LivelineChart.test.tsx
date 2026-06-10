@@ -425,6 +425,124 @@ describe('LivelineChart', () => {
     });
   });
 
+  describe('live append deltas', () => {
+    const getMessages = (type: string) =>
+      mockPostMessage.mock.calls
+        .map(([message]) => JSON.parse(message as string))
+        .filter((message) => message.type === type);
+
+    it('streams new tail points as APPEND_POINT instead of resending the dataset', () => {
+      const { getByTestId, rerender } = render(
+        <LivelineChart data={MOCK_DATA} value={43.1} />,
+      );
+      makeReady(getByTestId('liveline-chart-webview'));
+      mockPostMessage.mockClear();
+
+      const grownData: LivelinePoint[] = [
+        ...MOCK_DATA,
+        { time: 1700000060, value: 50 },
+      ];
+      rerender(<LivelineChart data={grownData} value={50} />);
+
+      expect(getMessages('SET_PROPS')).toHaveLength(0);
+      const appends = getMessages('APPEND_POINT');
+      expect(appends).toHaveLength(1);
+      expect(appends[0].payload).toEqual({
+        point: { time: 1700000060, value: 50 },
+        value: 50,
+      });
+    });
+
+    it('appends every new point when several arrive between renders', () => {
+      const { getByTestId, rerender } = render(
+        <LivelineChart data={MOCK_DATA} value={43.1} />,
+      );
+      makeReady(getByTestId('liveline-chart-webview'));
+      mockPostMessage.mockClear();
+
+      const grownData: LivelinePoint[] = [
+        ...MOCK_DATA,
+        { time: 1700000060, value: 50 },
+        { time: 1700000090, value: 51 },
+      ];
+      rerender(<LivelineChart data={grownData} value={51} />);
+
+      expect(getMessages('SET_PROPS')).toHaveLength(0);
+      expect(getMessages('APPEND_POINT').map((m) => m.payload.point)).toEqual([
+        { time: 1700000060, value: 50 },
+        { time: 1700000090, value: 51 },
+      ]);
+    });
+
+    it('keeps appending after old points are trimmed from the front', () => {
+      const { getByTestId, rerender } = render(
+        <LivelineChart data={MOCK_DATA} value={43.1} />,
+      );
+      makeReady(getByTestId('liveline-chart-webview'));
+
+      // Grow once so the newest sent point is 1700000060.
+      const grown: LivelinePoint[] = [
+        ...MOCK_DATA,
+        { time: 1700000060, value: 50 },
+      ];
+      rerender(<LivelineChart data={grown} value={50} />);
+      mockPostMessage.mockClear();
+
+      // Front point dropped (retention trim) and a new tail point added. The
+      // previously-sent newest point (1700000060) is still present, so this is
+      // still a continuation and must append, not full-resend.
+      const trimmed: LivelinePoint[] = [
+        { time: 1700000030, value: 43.1 },
+        { time: 1700000060, value: 50 },
+        { time: 1700000090, value: 52 },
+      ];
+      rerender(<LivelineChart data={trimmed} value={52} />);
+
+      expect(getMessages('SET_PROPS')).toHaveLength(0);
+      expect(getMessages('APPEND_POINT').map((m) => m.payload.point)).toEqual([
+        { time: 1700000090, value: 52 },
+      ]);
+    });
+
+    it('sends a full SET_PROPS when a config prop changes', () => {
+      const { getByTestId, rerender } = render(
+        <LivelineChart data={MOCK_DATA} value={43.1} color="red" />,
+      );
+      makeReady(getByTestId('liveline-chart-webview'));
+      mockPostMessage.mockClear();
+
+      // Same series, but a config prop (color) changed -> full resend.
+      const grownData: LivelinePoint[] = [
+        ...MOCK_DATA,
+        { time: 1700000060, value: 50 },
+      ];
+      rerender(<LivelineChart data={grownData} value={50} color="blue" />);
+
+      const setProps = getMessages('SET_PROPS');
+      expect(setProps).toHaveLength(1);
+      expect(setProps[0].payload.color).toBe('blue');
+      expect(setProps[0].payload.data).toEqual(grownData);
+      expect(getMessages('APPEND_POINT')).toHaveLength(0);
+    });
+
+    it('sends a full SET_PROPS when the series is replaced (no continuity)', () => {
+      const { getByTestId, rerender } = render(
+        <LivelineChart data={MOCK_DATA} value={43.1} />,
+      );
+      makeReady(getByTestId('liveline-chart-webview'));
+      mockPostMessage.mockClear();
+
+      // Entirely new series that does not contain the previously-sent point.
+      const replaced: LivelinePoint[] = [{ time: 1800000000, value: 99 }];
+      rerender(<LivelineChart data={replaced} value={99} />);
+
+      const setProps = getMessages('SET_PROPS');
+      expect(setProps).toHaveLength(1);
+      expect(setProps[0].payload.data).toEqual(replaced);
+      expect(getMessages('APPEND_POINT')).toHaveLength(0);
+    });
+  });
+
   describe('ignores unknown or malformed WebView messages', () => {
     it('ignores messages with an unknown type', () => {
       const onChartReady = jest.fn();

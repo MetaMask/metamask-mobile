@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { PixelRatio } from 'react-native';
+import { throttle } from 'lodash';
 import { Box } from '@metamask/design-system-react-native';
 import { LivelineChart } from '../../../Charts/LivelineChart';
 import { useCryptoUpDownChartData } from '../../hooks/useCryptoUpDownChartData';
@@ -8,6 +9,15 @@ import type { PredictCryptoUpDownChartProps } from './PredictCryptoUpDownChart.t
 const MIN_BOTTOM_PADDING_PX = 64;
 const BOTTOM_PADDING_HEIGHT_RATIO = 0.15;
 const BOTTOM_PADDING_FONT_SCALE_BOOST_PX = 24;
+
+/**
+ * The live crypto price stream pushes updates at ~60Hz. Reporting every tick to
+ * the parent re-renders the whole market-details screen (and its countdown
+ * timer) at that rate, starving the JS thread. Throttling to ~4Hz keeps the
+ * displayed price responsive without flooding React with renders. The chart
+ * itself still receives every tick via the `data` prop / append bridge.
+ */
+const CURRENT_PRICE_THROTTLE_MS = 250;
 
 export const computeBottomPadding = (
   chartHeight: number,
@@ -70,11 +80,26 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
     PixelRatio.getFontScale(),
   );
 
+  const onCurrentPriceChangeRef = useRef(onCurrentPriceChange);
+  onCurrentPriceChangeRef.current = onCurrentPriceChange;
+
+  const emitCurrentPrice = useMemo(
+    () =>
+      throttle(
+        (nextValue: number) => onCurrentPriceChangeRef.current?.(nextValue),
+        CURRENT_PRICE_THROTTLE_MS,
+        { leading: true, trailing: true },
+      ),
+    [],
+  );
+
+  useEffect(() => () => emitCurrentPrice.cancel(), [emitCurrentPrice]);
+
   useEffect(() => {
     if (data.length > 0 && Number.isFinite(value)) {
-      onCurrentPriceChange?.(value);
+      emitCurrentPrice(value);
     }
-  }, [data.length, onCurrentPriceChange, value]);
+  }, [data.length, emitCurrentPrice, value]);
 
   return (
     <Box

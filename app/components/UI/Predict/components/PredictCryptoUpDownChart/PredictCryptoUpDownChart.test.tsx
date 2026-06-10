@@ -1,6 +1,6 @@
 import React from 'react';
 import { PixelRatio } from 'react-native';
-import { render, screen, fireEvent } from '@testing-library/react-native';
+import { render, screen, fireEvent, act } from '@testing-library/react-native';
 import PredictCryptoUpDownChart, {
   CRYPTO_UP_DOWN_FORMAT_TIME,
   CRYPTO_UP_DOWN_FORMAT_VALUE,
@@ -248,42 +248,112 @@ describe('PredictCryptoUpDownChart', () => {
   });
 
   it('reports zero and negative current prices after loading completes', () => {
-    const market = createMockMarket();
-    const onCurrentPriceChange = jest.fn();
+    jest.useFakeTimers();
+    try {
+      const market = createMockMarket();
+      const onCurrentPriceChange = jest.fn();
 
-    mockUseCryptoUpDownChartData.mockReturnValueOnce({
-      data: [{ time: 1, value: 0 }],
-      value: 0,
-      loading: false,
-      isLive: true,
-      window: 300,
-    });
+      mockUseCryptoUpDownChartData.mockReturnValueOnce({
+        data: [{ time: 1, value: 0 }],
+        value: 0,
+        loading: false,
+        isLive: true,
+        window: 300,
+      });
 
-    const { rerender } = render(
-      <PredictCryptoUpDownChart
-        market={market}
-        onCurrentPriceChange={onCurrentPriceChange}
-      />,
-    );
+      const { rerender } = render(
+        <PredictCryptoUpDownChart
+          market={market}
+          onCurrentPriceChange={onCurrentPriceChange}
+        />,
+      );
 
-    expect(onCurrentPriceChange).toHaveBeenCalledWith(0);
+      // Leading edge fires synchronously.
+      expect(onCurrentPriceChange).toHaveBeenCalledWith(0);
 
-    mockUseCryptoUpDownChartData.mockReturnValueOnce({
-      data: [{ time: 2, value: -1 }],
-      value: -1,
-      loading: false,
-      isLive: true,
-      window: 300,
-    });
+      mockUseCryptoUpDownChartData.mockReturnValueOnce({
+        data: [{ time: 2, value: -1 }],
+        value: -1,
+        loading: false,
+        isLive: true,
+        window: 300,
+      });
 
-    rerender(
-      <PredictCryptoUpDownChart
-        market={market}
-        onCurrentPriceChange={onCurrentPriceChange}
-      />,
-    );
+      rerender(
+        <PredictCryptoUpDownChart
+          market={market}
+          onCurrentPriceChange={onCurrentPriceChange}
+        />,
+      );
 
-    expect(onCurrentPriceChange).toHaveBeenCalledWith(-1);
+      // Throttled trailing edge delivers the latest value after the window.
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+
+      expect(onCurrentPriceChange).toHaveBeenCalledWith(-1);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('throttles high-frequency current price updates to the parent', () => {
+    jest.useFakeTimers();
+    try {
+      const market = createMockMarket();
+      const onCurrentPriceChange = jest.fn();
+
+      mockUseCryptoUpDownChartData.mockReturnValue({
+        data: [{ time: 1, value: 100 }],
+        value: 100,
+        loading: false,
+        isLive: true,
+        window: 300,
+        paused: false,
+      });
+
+      const { rerender } = render(
+        <PredictCryptoUpDownChart
+          market={market}
+          onCurrentPriceChange={onCurrentPriceChange}
+        />,
+      );
+
+      // First (leading) tick is reported immediately.
+      expect(onCurrentPriceChange).toHaveBeenCalledTimes(1);
+      expect(onCurrentPriceChange).toHaveBeenLastCalledWith(100);
+
+      // A burst of ticks inside the throttle window must not re-render the
+      // parent on every tick.
+      for (let i = 1; i <= 5; i++) {
+        mockUseCryptoUpDownChartData.mockReturnValue({
+          data: [{ time: 1 + i, value: 100 + i }],
+          value: 100 + i,
+          loading: false,
+          isLive: true,
+          window: 300,
+          paused: false,
+        });
+        rerender(
+          <PredictCryptoUpDownChart
+            market={market}
+            onCurrentPriceChange={onCurrentPriceChange}
+          />,
+        );
+      }
+
+      // Still only the single leading call during the window.
+      expect(onCurrentPriceChange).toHaveBeenCalledTimes(1);
+
+      // After the window the latest value lands via the trailing edge.
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+      expect(onCurrentPriceChange).toHaveBeenCalledTimes(2);
+      expect(onCurrentPriceChange).toHaveBeenLastCalledWith(105);
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   it('does not report placeholder current price while loading', () => {
