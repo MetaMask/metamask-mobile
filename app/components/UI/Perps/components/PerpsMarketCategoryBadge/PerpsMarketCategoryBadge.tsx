@@ -62,7 +62,7 @@ const PerpsMarketCategoryBadge: React.FC<PerpsMarketCategoryBadgeProps> = ({
         <Icon
           name={icon as IconName}
           size={IconSize.Md}
-          color={isSelected ? IconColor.IconAlternative : IconColor.IconDefault}
+          color={isSelected ? IconColor.PrimaryInverse : IconColor.IconDefault}
         />
       ) : (
         <Text
