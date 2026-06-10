@@ -4,7 +4,13 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Pressable } from 'react-native';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -18,7 +24,9 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
+import Engine from '../../../../../core/Engine';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import { PredictEventValues } from '../../constants/eventNames';
 import PredictPositionsHistoryList from '../../components/PredictPositionsHistoryList';
 import PredictPositionsList from '../../components/PredictPositionsList';
 import PredictPositionsViewHeader from '../../components/PredictPositionsViewHeader';
@@ -95,8 +103,29 @@ const PredictPositionsView = () => {
   const predictPortfolioEnabled = useSelector(
     selectPredictPortfolioEnabledFlag,
   );
+  const hasTrackedScreenViewedRef = useRef(false);
+  const hasTrackedHistoryTabViewedRef = useRef(false);
   const [activeTab, setActiveTab] = useState<PredictPositionsTabKey>(
     route.params?.initialTab ?? 'positions',
+  );
+  const entryPoint =
+    route.params?.entryPoint ??
+    PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS;
+
+  const analyticsProperties = useMemo(
+    () => ({
+      entryPoint,
+      openPositionsCount: portfolio.openPositionCount,
+      claimablePositionsCount: portfolio.claimablePositionCount,
+      hasClaimableWinnings: portfolio.hasClaimableWinnings,
+      predictScreen: PredictEventValues.PREDICT_SCREEN.PREDICT_POSITIONS_SCREEN,
+    }),
+    [
+      entryPoint,
+      portfolio.claimablePositionCount,
+      portfolio.hasClaimableWinnings,
+      portfolio.openPositionCount,
+    ],
   );
 
   const tabs = useMemo<PredictPositionsTabItem[]>(
@@ -119,6 +148,40 @@ const PredictPositionsView = () => {
     setActiveTab(route.params?.initialTab ?? 'positions');
   }, [route.params?.initialTab]);
 
+  useEffect(() => {
+    if (portfolio.isLoading || hasTrackedScreenViewedRef.current) {
+      return;
+    }
+
+    Engine.context.PredictController.trackPositionsScreenViewed(
+      analyticsProperties,
+    );
+
+    if (activeTab === 'history' && !hasTrackedHistoryTabViewedRef.current) {
+      Engine.context.PredictController.trackPositionsTabViewed({
+        ...analyticsProperties,
+        predictFeedTab: PredictEventValues.PREDICT_FEED_TAB.HISTORY,
+      });
+      hasTrackedHistoryTabViewedRef.current = true;
+    }
+
+    hasTrackedScreenViewedRef.current = true;
+  }, [activeTab, analyticsProperties, portfolio.isLoading]);
+
+  const trackTabViewed = useCallback(
+    (tab: PredictPositionsTabKey) => {
+      Engine.context.PredictController.trackPositionsTabViewed({
+        ...analyticsProperties,
+        predictFeedTab: tab,
+      });
+
+      if (tab === 'history') {
+        hasTrackedHistoryTabViewedRef.current = true;
+      }
+    },
+    [analyticsProperties],
+  );
+
   const handleBackPress = useCallback(() => {
     if (navigation.canGoBack()) {
       navigation.goBack();
@@ -128,9 +191,18 @@ const PredictPositionsView = () => {
     navigation.navigate(Routes.PREDICT.MARKET_LIST);
   }, [navigation]);
 
-  const handleTabPress = useCallback((tab: PredictPositionsTabKey) => {
-    setActiveTab(tab);
-  }, []);
+  const handleTabPress = useCallback(
+    (tab: PredictPositionsTabKey) => {
+      trackTabViewed(tab);
+
+      if (tab === activeTab) {
+        return;
+      }
+
+      setActiveTab(tab);
+    },
+    [activeTab, trackTabViewed],
+  );
 
   const isPositionsTabActive = activeTab === 'positions';
   const isHistoryTabActive = activeTab === 'history';
@@ -155,6 +227,7 @@ const PredictPositionsView = () => {
 
         <Box twClassName="px-4">
           <PredictPositionsViewHeader
+            entryPoint={entryPoint}
             isPrivacyMode={Boolean(privacyMode)}
             portfolio={portfolio}
           />
