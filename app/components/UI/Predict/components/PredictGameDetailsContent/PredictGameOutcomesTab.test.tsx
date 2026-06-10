@@ -21,6 +21,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'predict.sports_market_types.spreads': 'Spreads',
       'predict.sports_market_types.totals': 'Totals',
       'predict.sports_market_types.points': 'Points',
+      'predict.sports_market_types.total_corners': 'Corners',
       'predict.sports_market_types.basketball_total_points': 'Totals',
       'predict.sports_market_types.basketball_odd_even': 'Odd/Even Score',
       'predict.sports_market_types.basketball_team_to_score_first':
@@ -357,6 +358,82 @@ describe('PredictGameOutcomesTab', () => {
 
       expect(getByTestId('points-outcome-0')).toBeOnTheScreen();
       expect(getByTestId('points-outcome-1')).toBeOnTheScreen();
+    });
+
+    it('collapses a corners-style line ladder into a single LineOutcomeCard', () => {
+      const outcomes = [
+        createOutcome({
+          id: 'corners-85',
+          sportsMarketType: 'total_corners',
+          groupItemTitle: 'Total Corners: O/U 8.5',
+          line: 8.5,
+          volume: 502,
+        }),
+        createOutcome({
+          id: 'corners-95',
+          sportsMarketType: 'total_corners',
+          groupItemTitle: 'Total Corners: O/U 9.5',
+          line: 9.5,
+          volume: 290,
+        }),
+        createOutcome({
+          id: 'corners-105',
+          sportsMarketType: 'total_corners',
+          groupItemTitle: 'Total Corners: O/U 10.5',
+          line: 10.5,
+          volume: 36,
+        }),
+      ];
+      const groups = [createGroup({ key: 'corners', outcomes })];
+
+      const { getByTestId } = render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={mockGame}
+          activeChipKey="corners"
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      expect(mockCapturedCards).toHaveLength(1);
+      expect(getByTestId('corners-line')).toBeOnTheScreen();
+      expect(mockCapturedCards[0].title).toBe('Corners');
+      expect(mockCapturedCards[0].lines).toEqual([8.5, 9.5, 10.5]);
+      expect(mockCapturedCards[0].selectedLine).toBe(8.5);
+    });
+
+    it('keeps player-prop outcomes as separate cards even when they have lines', () => {
+      const outcomes = [
+        createOutcome({
+          id: 'pts-wemby',
+          sportsMarketType: 'points',
+          groupItemTitle: 'Victor Wembanyama: Points O/U 27.5',
+          line: 27.5,
+        }),
+        createOutcome({
+          id: 'pts-brunson',
+          sportsMarketType: 'points',
+          groupItemTitle: 'Jalen Brunson: Points O/U 26.5',
+          line: 26.5,
+        }),
+      ];
+      const groups = [createGroup({ key: 'points', outcomes })];
+
+      const { getByTestId } = render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={mockGame}
+          activeChipKey="points"
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      expect(mockCapturedCards).toHaveLength(2);
+      expect(getByTestId('points-outcome-0')).toBeOnTheScreen();
+      expect(getByTestId('points-outcome-1')).toBeOnTheScreen();
+      expect(mockCapturedCards[0].lines).toBeUndefined();
+      expect(mockCapturedCards[0].title).toBe('Victor Wembanyama');
+      expect(mockCapturedCards[1].title).toBe('Jalen Brunson');
     });
 
     it('uses formatOutcomeCardTitle to strip O/U suffix from card title', () => {

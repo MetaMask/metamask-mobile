@@ -418,6 +418,24 @@ const SubgroupCards = memo(
 
 SubgroupCards.displayName = 'SubgroupCards';
 
+/**
+ * A "line ladder" is a flat group whose outcomes are the same market offered at
+ * different Over/Under lines (e.g. Total Corners O/U 8.5 / 9.5 / 10.5 / 11.5).
+ * These collapse into a single card with a line selector, matching Polymarket.
+ *
+ * It is distinct from player-prop style groups (e.g. Points), where every
+ * outcome is a different entity (player) that also carries a line — those stay
+ * as separate cards. The two are told apart by their card title: line-ladder
+ * outcomes all share one title, player props do not.
+ */
+const isLineLadderGroup = (outcomes: PredictOutcome[]): boolean => {
+  if (outcomes.length < 2 || !outcomes.every((o) => o.line != null)) {
+    return false;
+  }
+  const firstTitle = formatOutcomeCardTitle(outcomes[0]);
+  return outcomes.every((o) => formatOutcomeCardTitle(o) === firstTitle);
+};
+
 const OutcomesContent = memo(
   ({
     group,
@@ -461,6 +479,22 @@ const OutcomesContent = memo(
             formatOutcomeCardTitle(group.outcomes[0]),
           )}
           testID={`${group.key}-moneyline`}
+        />
+      );
+    }
+
+    if (isLineLadderGroup(group.outcomes)) {
+      return (
+        <LineOutcomeCard
+          outcomes={group.outcomes}
+          title={getSportsMarketTypeLabel(
+            firstType ?? group.key,
+            formatOutcomeCardTitle(group.outcomes[0]),
+          )}
+          onBuyPress={onBuyPress}
+          game={game}
+          sportsMarketType={firstType}
+          testID={`${group.key}-line`}
         />
       );
     }
