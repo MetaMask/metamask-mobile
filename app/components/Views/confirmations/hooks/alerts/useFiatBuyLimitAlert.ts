@@ -1,5 +1,4 @@
 import { useMemo } from 'react';
-import { useSelector } from 'react-redux';
 import { Alert, Severity } from '../../types/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
@@ -13,7 +12,6 @@ import { hasTransactionType } from '../../utils/transaction';
 import { useTransactionPayFiatPayment } from '../pay/useTransactionPayData';
 import { useRampsBuyLimits } from '../../../../UI/Ramp/hooks/useRampsBuyLimits';
 import { MONEY_ACCOUNT_CURRENCY } from '../../components/info/money-account-withdraw-info/money-account-withdraw-info';
-import { selectProviders } from '../../../../../../selectors/rampsController';
 
 export function useFiatBuyLimitAlert({
   pendingAmount,
@@ -23,7 +21,7 @@ export function useFiatBuyLimitAlert({
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
   const fiatPayment = useTransactionPayFiatPayment();
   const paymentMethodId = fiatPayment?.selectedPaymentMethodId;
-  const { selected: provider } = useSelector(selectProviders);
+  const providerId = fiatPayment?.rampsQuote?.provider ?? null;
 
   const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountDeposit,
@@ -35,7 +33,7 @@ export function useFiatBuyLimitAlert({
 
   // moneyAccountDeposit input is always USD-denominated; use USD limits, not local currency (e.g. BRL).
   const { amountLimitError } = useRampsBuyLimits({
-    provider,
+    providerId,
     amount,
     paymentMethodId,
     currency: isMoneyAccountDeposit ? MONEY_ACCOUNT_CURRENCY : undefined,

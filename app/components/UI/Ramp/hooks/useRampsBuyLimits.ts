@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import type { Provider } from '@metamask/ramps-controller';
-import { selectUserRegion } from '../../../../selectors/rampsController';
+import { selectProviders, selectUserRegion } from '../../../../selectors/rampsController';
 import { getProviderBuyLimit } from '../utils/providerLimits';
 import { getProviderLimitMessage } from '../utils/getProviderLimitMessage';
 import { useFormatters } from '../../../hooks/useFormatters';
@@ -9,7 +8,8 @@ import { useFormatters } from '../../../hooks/useFormatters';
 /**
  * Hook to validate a fiat amount against a provider's static buy limits.
  *
- * @param options.provider - The provider whose limits to validate against.
+ * @param options.providerId - The provider ID to validate against (e.g. from a ramps quote).
+ * Resolved to a full Provider object from the providers data list.
  * @param options.amount - The fiat amount entered by the user.
  * @param options.paymentMethodId - The selected payment method ID.
  * @param options.backendError - Optional raw provider error from the quotes
@@ -19,13 +19,13 @@ import { useFormatters } from '../../../hooks/useFormatters';
  * @returns `{ minAmount, maxAmount, amountLimitError, currency }`.
  */
 export function useRampsBuyLimits({
-  provider,
+  providerId,
   amount,
   paymentMethodId,
   backendError,
   currency: currencyOverride,
 }: {
-  provider: Provider | null | undefined;
+  providerId: string | null | undefined;
   amount: number;
   paymentMethodId?: string | null;
   backendError?: string | null;
@@ -36,7 +36,12 @@ export function useRampsBuyLimits({
   amountLimitError: string | null;
   currency: string;
 } {
+  const { data: providers } = useSelector(selectProviders);
   const userRegion = useSelector(selectUserRegion);
+  const provider = useMemo(
+    () => (providerId ? (providers.find((p) => p.id === providerId) ?? null) : null),
+    [providers, providerId],
+  );
   const currency = currencyOverride ?? userRegion?.country?.currency ?? 'USD';
   const { formatCurrency } = useFormatters();
 
