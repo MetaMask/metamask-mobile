@@ -4,6 +4,7 @@ import { getKeyringBuilders } from './keyrings';
 import { RootMessenger } from '../types';
 import { Encryptor, LEGACY_DERIVATION_OPTIONS } from '../../Encryptor';
 import { mobileStorageAdapter } from '../utils/storage-service-utils';
+import { NetInfoConnectivityAdapter } from '../controllers/connectivity';
 
 export function initializeWallet({
   messenger,
@@ -26,6 +27,9 @@ export function initializeWallet({
       },
       storageService: {
         storage: mobileStorageAdapter,
+      },
+      connectivityController: {
+        connectivityAdapter: new NetInfoConnectivityAdapter(),
       },
     },
   });

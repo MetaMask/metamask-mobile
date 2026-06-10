@@ -132,7 +132,6 @@ import {
 import { getGlobalChainId } from '../../util/networks/global-network';
 import { logEngineCreation } from './utils/logger';
 import { initMessengerClients } from './utils';
-import { accountsControllerInit } from './controllers/accounts-controller';
 import { accountTreeControllerInit } from '../../multichain-accounts/controllers/account-tree-controller';
 import { ApprovalControllerInit } from './controllers/approval-controller';
 import { bridgeControllerInit } from './controllers/bridge-controller/bridge-controller-init';
@@ -188,7 +187,6 @@ import { loggingControllerInit } from './controllers/logging-controller-init';
 import { phishingControllerInit } from './controllers/phishing-controller-init';
 import { addressBookControllerInit } from './controllers/address-book-controller-init';
 import { analyticsControllerInit } from './controllers/analytics-controller/analytics-controller-init';
-import { connectivityControllerInit } from './controllers/connectivity/connectivity-controller-init';
 import { multichainRoutingServiceInit } from './controllers/multichain-routing-service-init.ts';
 import { profileMetricsControllerInit } from './controllers/profile-metrics-controller-init';
 import { profileMetricsServiceInit } from './controllers/profile-metrics-service-init';
@@ -323,7 +321,6 @@ export class Engine {
         PreferencesController: preferencesControllerInit,
         RemoteFeatureFlagController: remoteFeatureFlagControllerInit,
         NetworkController: networkControllerInit,
-        AccountsController: accountsControllerInit,
         PermissionController: permissionControllerInit,
         ///: BEGIN:ONLY_INCLUDE_IF(snaps)
         SubjectMetadataController: subjectMetadataControllerInit,
@@ -402,7 +399,6 @@ export class Engine {
         RewardsController: rewardsControllerInit,
         RewardsDataService: rewardsDataServiceInit,
         DelegationController: DelegationControllerInit,
-        ConnectivityController: connectivityControllerInit,
         ProfileMetricsController: profileMetricsControllerInit,
         ProfileMetricsService: profileMetricsServiceInit,
         AnalyticsController: analyticsControllerInit,
@@ -428,7 +424,7 @@ export class Engine {
     const loggingController = messengerClientsByName.LoggingController;
     const remoteFeatureFlagController =
       messengerClientsByName.RemoteFeatureFlagController;
-    const accountsController = messengerClientsByName.AccountsController;
+    const accountsController = this.#wallet.getInstance('AccountsController');
     const accountTreeController = messengerClientsByName.AccountTreeController;
     const approvalController = messengerClientsByName.ApprovalController;
     const assetsContractController =
@@ -454,8 +450,9 @@ export class Engine {
     const preferencesController = messengerClientsByName.PreferencesController;
     const delegationController = messengerClientsByName.DelegationController;
     const addressBookController = messengerClientsByName.AddressBookController;
-    const connectivityController =
-      messengerClientsByName.ConnectivityController;
+    const connectivityController = this.#wallet.getInstance(
+      'ConnectivityController',
+    );
     const profileMetricsController =
       messengerClientsByName.ProfileMetricsController;
     const profileMetricsService = messengerClientsByName.ProfileMetricsService;

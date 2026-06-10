@@ -1,5 +1,4 @@
 import { noop } from 'lodash';
-import { getAccountsControllerMessenger } from './accounts-controller-messenger';
 import {
   getAccountTreeControllerInitMessenger,
   getAccountTreeControllerMessenger,
@@ -126,7 +125,6 @@ import { getRampsServiceMessenger } from './ramps-service-messenger';
 import { getTransakServiceMessenger } from './transak-service-messenger/transak-service-messenger';
 import { getPhishingControllerMessenger } from './phishing-controller-messenger';
 import { getAddressBookControllerMessenger } from './address-book-controller-messenger';
-import { getConnectivityControllerMessenger } from './connectivity-controller-messenger';
 import {
   getMultichainRoutingServiceInitMessenger,
   getMultichainRoutingServiceMessenger,
@@ -165,10 +163,6 @@ import {
  * The messenger factories for the messenger clients that have been modularized.
  */
 export const MESSENGER_FACTORIES = {
-  AccountsController: {
-    getMessenger: getAccountsControllerMessenger,
-    getInitMessenger: noop,
-  },
   AccountTrackerController: {
     getMessenger: getAccountTrackerControllerMessenger,
     getInitMessenger: noop,
@@ -179,10 +173,6 @@ export const MESSENGER_FACTORIES = {
   },
   AddressBookController: {
     getMessenger: getAddressBookControllerMessenger,
-    getInitMessenger: noop,
-  },
-  ConnectivityController: {
-    getMessenger: getConnectivityControllerMessenger,
     getInitMessenger: noop,
   },
   ApprovalController: {

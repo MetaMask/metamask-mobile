@@ -942,7 +942,6 @@ export type MessengerClientsToInitialize =
   | 'AddressBookController'
   | 'AssetsContractController'
   | 'AssetsController'
-  | 'ConnectivityController'
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   | 'AuthenticationController'
   | 'CronjobController'
@@ -974,7 +973,6 @@ export type MessengerClientsToInitialize =
   | 'LoggingController'
   | 'NetworkController'
   | 'AccountTreeController'
-  | 'AccountsController'
   | 'ApprovalController'
   | 'CurrencyRateController'
   | 'DeFiPositionsController'
