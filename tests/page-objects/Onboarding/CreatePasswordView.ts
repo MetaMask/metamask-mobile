@@ -281,7 +281,7 @@ class CreatePasswordView {
         }
       },
       appium: async () => {
-        const checkbox = asPlaywrightElement(this.iUnderstandCheckbox);
+        const checkbox = await asPlaywrightElement(this.iUnderstandCheckbox);
         const ariaChecked = await checkbox.getAttribute('aria-checked');
         const checked = ariaChecked === 'true';
 
