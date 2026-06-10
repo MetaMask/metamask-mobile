@@ -36,8 +36,10 @@ import type {
   QuickBuyTarget,
   QuickBuyTradeMode,
 } from '../types';
+import { getTokenKey } from '../tokenKey';
 import { formatExchangeRate } from '../utils/formatExchangeRate';
 import { getMetamaskFeePercent } from '../utils/getMetamaskFeePercent';
+import { selectDefaultReceiveToken } from '../utils/selectDefaultReceiveToken';
 import { usePayWithTokens } from './usePayWithTokens';
 import { usePositionTokenBalance } from './usePositionTokenBalance';
 import { useQuickBuyAnalytics } from './useQuickBuyAnalytics';
@@ -354,20 +356,45 @@ export function useQuickBuyController(
   const positionToken = usePositionTokenBalance(target, positionTokenFromSetup);
 
   // ─── Sell "Receive" options (stablecoins) ──────────────────────────────
-  const sellDestTokenOptions = useReceiveTokens(
+  const receiveTokenOptions = useReceiveTokens(
     destChainId as string | undefined,
   );
+  // Exclude the token being sold from the "Receive" list entirely — receiving
+  // the same token you're selling is a no-op, so it must not be selectable.
+  // Identity comes from `positionTokenFromSetup` (normalised address/chainId).
+  const sellDestTokenOptions = useMemo(() => {
+    if (!positionTokenFromSetup) return receiveTokenOptions;
+    const soldKey = getTokenKey(positionTokenFromSetup);
+    return receiveTokenOptions.filter(
+      (token) => getTokenKey(token) !== soldKey,
+    );
+  }, [receiveTokenOptions, positionTokenFromSetup]);
   const [selectedDestStable, setSelectedDestStable] = useState<
     BridgeToken | undefined
   >(undefined);
 
-  // Auto-select default dest stable: prefer a token the user already holds on
-  // the position chain; fall back to the first candidate (USDC on position chain).
+  // Auto-select the default receive token. Prefer the native token of the
+  // position's chain (e.g. selling USDC on Base defaults to ETH on Base) and
+  // never the same token being sold — see `selectDefaultReceiveToken`.
+  //
+  // Wait for `!isSetupLoading` so the sold token's address is normalised before
+  // the (one-shot) selection runs. The sold token's identity is read from
+  // `positionTokenFromSetup` (which carries the normalised address/chainId)
+  // rather than the balance-enriched `positionToken`, so the exclusion still
+  // works even when the balance is still resolving.
   useEffect(() => {
+    if (isSetupLoading) return;
     if (sellDestTokenOptions.length > 0 && !selectedDestStable) {
-      setSelectedDestStable(sellDestTokenOptions[0]);
+      setSelectedDestStable(
+        selectDefaultReceiveToken(sellDestTokenOptions, positionTokenFromSetup),
+      );
     }
-  }, [sellDestTokenOptions, selectedDestStable]);
+  }, [
+    isSetupLoading,
+    sellDestTokenOptions,
+    selectedDestStable,
+    positionTokenFromSetup,
+  ]);
 
   // ─── Source / dest resolution (mode-dependent) ─────────────────────────
   const sourceToken = tradeMode === 'buy' ? selectedSourceToken : positionToken;

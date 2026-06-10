@@ -1511,6 +1511,109 @@ describe('useQuickBuyController', () => {
     });
   });
 
+  describe('receive token auto-selection', () => {
+    const NATIVE_ADDRESS = '0x0000000000000000000000000000000000000000';
+    const USDC_DEST = '0xDEST'; // matches the default-mock position token
+
+    it('defaults the receive token to the chain native instead of the token being sold', () => {
+      // Selling 0xDEST on chain 0x1. The receive options are stablecoins-first,
+      // so options[0] is the very token being sold — the default must skip it
+      // and pick the chain's native token instead.
+      const usdcDest = createSourceToken({
+        address: USDC_DEST,
+        chainId: '0x1',
+        symbol: 'USDC',
+      });
+      const nativeDest = createSourceToken({
+        address: NATIVE_ADDRESS,
+        chainId: '0x1',
+        symbol: 'ETH',
+      });
+      (useReceiveTokens as jest.Mock).mockReturnValue([usdcDest, nativeDest]);
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      expect(result.current.selectedDestStable?.symbol).toBe('ETH');
+    });
+
+    it('falls back to the first non-sold candidate when selling the native token', () => {
+      (useQuickBuySetup as jest.Mock).mockReturnValue({
+        chainId: '0x1',
+        destToken: {
+          address: NATIVE_ADDRESS,
+          chainId: '0x1',
+          decimals: 18,
+          symbol: 'ETH',
+          name: 'Ether',
+        },
+        isLoading: false,
+        isUnsupportedChain: false,
+      });
+      const nativeDest = createSourceToken({
+        address: NATIVE_ADDRESS,
+        chainId: '0x1',
+        symbol: 'ETH',
+      });
+      const usdcDest = createSourceToken({
+        address: USDC_DEST,
+        chainId: '0x1',
+        symbol: 'USDC',
+      });
+      (useReceiveTokens as jest.Mock).mockReturnValue([nativeDest, usdcDest]);
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      expect(result.current.selectedDestStable?.symbol).toBe('USDC');
+    });
+
+    it('excludes the token being sold from the receive options entirely', () => {
+      const usdcDest = createSourceToken({
+        address: USDC_DEST,
+        chainId: '0x1',
+        symbol: 'USDC',
+      });
+      const nativeDest = createSourceToken({
+        address: NATIVE_ADDRESS,
+        chainId: '0x1',
+        symbol: 'ETH',
+      });
+      (useReceiveTokens as jest.Mock).mockReturnValue([usdcDest, nativeDest]);
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      const symbols = result.current.sellDestTokenOptions.map((t) => t.symbol);
+      expect(symbols).not.toContain('USDC');
+      expect(symbols).toEqual(['ETH']);
+    });
+
+    it('does not auto-select while setup is still loading', () => {
+      (useQuickBuySetup as jest.Mock).mockReturnValue({
+        chainId: '0x1',
+        destToken: undefined,
+        isLoading: true,
+        isUnsupportedChain: false,
+      });
+      const usdcDest = createSourceToken({
+        address: USDC_DEST,
+        chainId: '0x1',
+        symbol: 'USDC',
+      });
+      (useReceiveTokens as jest.Mock).mockReturnValue([usdcDest]);
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      expect(result.current.selectedDestStable).toBeUndefined();
+    });
+  });
+
   describe('selectDefaultSourceToken', () => {
     const native = (chainId: string, fiat = 1000): BridgeToken =>
       createSourceToken({
