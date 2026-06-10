@@ -8,8 +8,10 @@ import {
 } from './commandRunner';
 import type {
   ClearAppDataOptions,
+  ConfigureHttpProxyOptions,
   DeviceCommandHandlerOptions,
   InstallAppOptions,
+  InstallRootCertificateOptions,
   IsAppInstalledOptions,
   PlatformDeviceCommandHandler,
   ReinstallAppOptions,
@@ -26,12 +28,14 @@ const LARGE_OUTPUT_BUFFER = 2 * 1024 * 1024;
  */
 export class IOSDeviceCommandHandler implements PlatformDeviceCommandHandler {
   private readonly options: DeviceCommandHandlerOptions;
+  private readonly deviceId?: string;
 
   /**
    * Creates an iOS command handler for a local simulator.
    */
   constructor(options: DeviceCommandHandlerOptions) {
     this.options = options;
+    this.deviceId = options.deviceId?.trim() || undefined;
   }
 
   /**
@@ -152,6 +156,70 @@ export class IOSDeviceCommandHandler implements PlatformDeviceCommandHandler {
   }
 
   /**
+   * Boots the simulator if needed and installs a root certificate into its keychain.
+   */
+  async installRootCertificate({
+    certPath,
+  }: InstallRootCertificateOptions): Promise<void> {
+    const resolvedCertPath = this.resolveCertificatePath(certPath);
+    const simDevice = this.resolveSimDevice();
+
+    await this.bootSimulator(simDevice);
+    const output = await this.runSimctl([
+      'keychain',
+      simDevice,
+      'add-root-cert',
+      resolvedCertPath,
+    ]);
+    const formattedOutput = formatCommandOutput(output);
+    if (formattedOutput) {
+      this.options.logger?.debug(formattedOutput);
+    }
+  }
+
+  /**
+   * iOS proxying is currently configured through app launch arguments.
+   */
+  async configureHttpProxy({
+    host,
+    port,
+  }: ConfigureHttpProxyOptions): Promise<void> {
+    throw new Error(
+      `iOS configureHttpProxy is not implemented for ${host}:${port}; use app launch arguments instead.`,
+    );
+  }
+
+  /**
+   * iOS proxying is currently configured through app launch arguments.
+   */
+  async clearHttpProxy(): Promise<void> {
+    throw new Error(
+      'iOS clearHttpProxy is not implemented; proxying is controlled by app launch arguments.',
+    );
+  }
+
+  /**
+   * Boots the simulator and waits for it to finish booting.
+   */
+  private async bootSimulator(simDevice: string): Promise<void> {
+    try {
+      await this.runSimctl(['boot', simDevice]);
+    } catch (error) {
+      if (!this.isAlreadyBootedError(error)) {
+        throw error;
+      }
+    }
+
+    try {
+      await this.runSimctl(['bootstatus', simDevice, '-b']);
+    } catch (error) {
+      this.options.logger?.warn(
+        `simctl bootstatus failed for ${simDevice}: ${this.formatError(error)}`,
+      );
+    }
+  }
+
+  /**
    * Terminates the iOS app if it is running; missing/race failures are non-fatal.
    */
   private async terminateAppIfRunning(
@@ -192,10 +260,11 @@ export class IOSDeviceCommandHandler implements PlatformDeviceCommandHandler {
    * Resolves the simulator name or UDID from current device details.
    */
   private resolveSimDevice(): string {
-    const deviceName = this.options.currentDeviceDetails.deviceName?.trim();
+    const deviceName =
+      this.deviceId ?? this.options.currentDeviceDetails.deviceName?.trim();
     if (!deviceName) {
       throw new Error(
-        'iOS device commands require currentDeviceDetails.deviceName (simctl device name or UDID).',
+        'iOS device commands require deviceId or currentDeviceDetails.deviceName (simctl device name or UDID).',
       );
     }
     return deviceName;
@@ -227,6 +296,19 @@ export class IOSDeviceCommandHandler implements PlatformDeviceCommandHandler {
   }
 
   /**
+   * Validates and resolves the certificate path.
+   */
+  private resolveCertificatePath(certPath: string): string {
+    const trimmedCertPath = certPath.trim();
+    if (!trimmedCertPath) {
+      throw new Error(
+        'iOS installRootCertificate requires a non-empty certPath.',
+      );
+    }
+    return path.resolve(trimmedCertPath);
+  }
+
+  /**
    * Rejects empty or unsafe paths before removing simulator data-container contents.
    */
   private validateAppDataPath(appDataPath: string, appId: string): void {
@@ -255,5 +337,16 @@ export class IOSDeviceCommandHandler implements PlatformDeviceCommandHandler {
    */
   private formatError(error: unknown): string {
     return error instanceof Error ? error.message : String(error);
+  }
+
+  /**
+   * Returns whether simctl reported that the simulator is already booted.
+   */
+  private isAlreadyBootedError(error: unknown): boolean {
+    const message = this.formatError(error);
+    return (
+      message.includes('Unable to boot device in current state') ||
+      message.includes('current state: Booted')
+    );
   }
 }

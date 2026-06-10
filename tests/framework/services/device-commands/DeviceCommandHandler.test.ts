@@ -131,6 +131,25 @@ describe('DeviceCommandHandler', () => {
     );
   });
 
+  it('uses the explicit device id for Android adb commands when provided', async () => {
+    mockExecFileSuccess('Success\n');
+
+    await new DeviceCommandHandler({
+      currentDeviceDetails: androidDevice({ udid: undefined }),
+      deviceId: 'emulator-9999',
+    }).clearAppData();
+
+    expect(execFileMock).toHaveBeenCalledWith(
+      'adb',
+      ['-s', 'emulator-9999', 'shell', 'pm', 'clear', 'io.metamask'],
+      expect.objectContaining({
+        timeout: 120_000,
+        maxBuffer: 2 * 1024 * 1024,
+      }),
+      expect.any(Function),
+    );
+  });
+
   it('delegates Android install to adb with an absolute build path', async () => {
     mockExecFileSuccess('Success\n');
 
@@ -206,6 +225,314 @@ describe('DeviceCommandHandler', () => {
     );
   });
 
+  it('configures Android global HTTP proxy with adb settings and local exclusions', async () => {
+    mockExecFileSuccess('');
+
+    await new DeviceCommandHandler({
+      currentDeviceDetails: androidDevice(),
+    }).configureHttpProxy({
+      host: '10.0.2.2',
+      port: 42665,
+    });
+
+    expect(execFileMock).toHaveBeenNthCalledWith(
+      1,
+      'adb',
+      [
+        '-s',
+        'emulator-5554',
+        'shell',
+        'settings',
+        'put',
+        'global',
+        'global_http_proxy_host',
+        '10.0.2.2',
+      ],
+      expect.objectContaining({ timeout: 20_000 }),
+      expect.any(Function),
+    );
+    expect(execFileMock).toHaveBeenNthCalledWith(
+      2,
+      'adb',
+      [
+        '-s',
+        'emulator-5554',
+        'shell',
+        'settings',
+        'put',
+        'global',
+        'global_http_proxy_port',
+        '42665',
+      ],
+      expect.objectContaining({ timeout: 20_000 }),
+      expect.any(Function),
+    );
+    expect(execFileMock).toHaveBeenNthCalledWith(
+      3,
+      'adb',
+      [
+        '-s',
+        'emulator-5554',
+        'shell',
+        'settings',
+        'put',
+        'global',
+        'global_http_proxy_exclusion_list',
+        'localhost,127.0.0.1,10.0.2.2,10.0.3.2,bs-local.com,*.local',
+      ],
+      expect.objectContaining({ timeout: 20_000 }),
+      expect.any(Function),
+    );
+    expect(execFileMock).toHaveBeenNthCalledWith(
+      4,
+      'adb',
+      [
+        '-s',
+        'emulator-5554',
+        'shell',
+        'settings',
+        'delete',
+        'global',
+        'global_proxy_pac_url',
+      ],
+      expect.objectContaining({ timeout: 20_000 }),
+      expect.any(Function),
+    );
+    expect(execFileMock).toHaveBeenNthCalledWith(
+      5,
+      'adb',
+      [
+        '-s',
+        'emulator-5554',
+        'shell',
+        'settings',
+        'put',
+        'global',
+        'http_proxy',
+        '10.0.2.2:42665',
+      ],
+      expect.objectContaining({ timeout: 20_000 }),
+      expect.any(Function),
+    );
+  });
+
+  it('clears Android global HTTP proxy with adb settings and local exclusions', async () => {
+    mockExecFileSuccess('');
+
+    await new DeviceCommandHandler({
+      currentDeviceDetails: androidDevice(),
+    }).clearHttpProxy();
+
+    expect(execFileMock).toHaveBeenNthCalledWith(
+      1,
+      'adb',
+      [
+        '-s',
+        'emulator-5554',
+        'shell',
+        'settings',
+        'put',
+        'global',
+        'http_proxy',
+        ':0',
+      ],
+      expect.objectContaining({ timeout: 20_000 }),
+      expect.any(Function),
+    );
+    expect(execFileMock).toHaveBeenNthCalledWith(
+      2,
+      'adb',
+      [
+        '-s',
+        'emulator-5554',
+        'shell',
+        'settings',
+        'delete',
+        'global',
+        'global_http_proxy_host',
+      ],
+      expect.objectContaining({ timeout: 20_000 }),
+      expect.any(Function),
+    );
+    expect(execFileMock).toHaveBeenNthCalledWith(
+      3,
+      'adb',
+      [
+        '-s',
+        'emulator-5554',
+        'shell',
+        'settings',
+        'put',
+        'global',
+        'global_http_proxy_port',
+        '0',
+      ],
+      expect.objectContaining({ timeout: 20_000 }),
+      expect.any(Function),
+    );
+    expect(execFileMock).toHaveBeenNthCalledWith(
+      4,
+      'adb',
+      [
+        '-s',
+        'emulator-5554',
+        'shell',
+        'settings',
+        'delete',
+        'global',
+        'global_http_proxy_exclusion_list',
+      ],
+      expect.objectContaining({ timeout: 20_000 }),
+      expect.any(Function),
+    );
+    expect(execFileMock).toHaveBeenNthCalledWith(
+      5,
+      'adb',
+      [
+        '-s',
+        'emulator-5554',
+        'shell',
+        'settings',
+        'delete',
+        'global',
+        'global_proxy_pac_url',
+      ],
+      expect.objectContaining({ timeout: 20_000 }),
+      expect.any(Function),
+    );
+  });
+
+  it('rejects invalid Android global HTTP proxy ports', async () => {
+    await expect(
+      new DeviceCommandHandler({
+        currentDeviceDetails: androidDevice(),
+      }).configureHttpProxy({
+        host: '10.0.2.2',
+        port: 0,
+      }),
+    ).rejects.toThrow('Invalid Android HTTP proxy port');
+  });
+
+  it('installs an Android root certificate into the user CA store', async () => {
+    mockExecFileResponses([
+      { stdout: 'b6f0e7ad\n' },
+      { stdout: 'restarting adbd as root\n' },
+      { stdout: '' },
+      { stdout: '' },
+      { stdout: '/tmp/proxy-ca.pem: 1 file pushed\n' },
+      { stdout: '' },
+      { stdout: '' },
+      { stdout: '' },
+    ]);
+
+    await new DeviceCommandHandler({
+      currentDeviceDetails: androidDevice(),
+    }).installRootCertificate({ certPath: '/tmp/proxy-ca.pem' });
+
+    expect(execFileMock).toHaveBeenNthCalledWith(
+      1,
+      'openssl',
+      ['x509', '-subject_hash_old', '-in', '/tmp/proxy-ca.pem', '-noout'],
+      expect.objectContaining({ timeout: 20_000 }),
+      expect.any(Function),
+    );
+    expect(execFileMock).toHaveBeenNthCalledWith(
+      2,
+      'adb',
+      ['-s', 'emulator-5554', 'root'],
+      expect.objectContaining({ timeout: 120_000 }),
+      expect.any(Function),
+    );
+    expect(execFileMock).toHaveBeenNthCalledWith(
+      3,
+      'adb',
+      ['-s', 'emulator-5554', 'wait-for-device'],
+      expect.objectContaining({ timeout: 120_000 }),
+      expect.any(Function),
+    );
+    expect(execFileMock).toHaveBeenNthCalledWith(
+      4,
+      'adb',
+      [
+        '-s',
+        'emulator-5554',
+        'shell',
+        'mkdir',
+        '-p',
+        '/data/misc/user/0/cacerts-added',
+      ],
+      expect.objectContaining({ timeout: 20_000 }),
+      expect.any(Function),
+    );
+    expect(execFileMock).toHaveBeenNthCalledWith(
+      5,
+      'adb',
+      [
+        '-s',
+        'emulator-5554',
+        'push',
+        '/tmp/proxy-ca.pem',
+        '/data/misc/user/0/cacerts-added/b6f0e7ad.0',
+      ],
+      expect.objectContaining({ timeout: 120_000 }),
+      expect.any(Function),
+    );
+    expect(execFileMock).toHaveBeenNthCalledWith(
+      6,
+      'adb',
+      [
+        '-s',
+        'emulator-5554',
+        'shell',
+        'chmod',
+        '644',
+        '/data/misc/user/0/cacerts-added/b6f0e7ad.0',
+      ],
+      expect.objectContaining({ timeout: 20_000 }),
+      expect.any(Function),
+    );
+    expect(execFileMock).toHaveBeenNthCalledWith(
+      7,
+      'adb',
+      [
+        '-s',
+        'emulator-5554',
+        'shell',
+        'chown',
+        'system:system',
+        '/data/misc/user/0/cacerts-added/b6f0e7ad.0',
+      ],
+      expect.objectContaining({ timeout: 20_000 }),
+      expect.any(Function),
+    );
+    expect(execFileMock).toHaveBeenNthCalledWith(
+      8,
+      'adb',
+      [
+        '-s',
+        'emulator-5554',
+        'shell',
+        'restorecon',
+        '/data/misc/user/0/cacerts-added/b6f0e7ad.0',
+      ],
+      expect.objectContaining({ timeout: 20_000 }),
+      expect.any(Function),
+    );
+  });
+
+  it('rejects Android root certificate installation when adb root is unavailable', async () => {
+    mockExecFileResponses([
+      { stdout: 'b6f0e7ad\n' },
+      { stdout: 'adbd cannot run as root in production builds\n' },
+    ]);
+
+    await expect(
+      new DeviceCommandHandler({
+        currentDeviceDetails: androidDevice(),
+      }).installRootCertificate({ certPath: '/tmp/proxy-ca.pem' }),
+    ).rejects.toThrow('requires adb root');
+  });
+
   it('uses a default logger when one is not provided', async () => {
     mockExecFileSuccess('Success\n');
 
@@ -232,6 +559,67 @@ describe('DeviceCommandHandler', () => {
         timeout: 120_000,
         maxBuffer: 2 * 1024 * 1024,
       }),
+      expect.any(Function),
+    );
+  });
+
+  it('uses the explicit device id for iOS simctl commands when provided', async () => {
+    mockExecFileSuccess('');
+
+    await new DeviceCommandHandler({
+      currentDeviceDetails: iosDevice({ deviceName: '' }),
+      deviceId: 'B7278F13-7AA9-4CEE-8CE8-F774777F8FD7',
+    }).uninstallApp();
+
+    expect(execFileMock).toHaveBeenCalledWith(
+      'xcrun',
+      [
+        'simctl',
+        'uninstall',
+        'B7278F13-7AA9-4CEE-8CE8-F774777F8FD7',
+        'io.metamask',
+      ],
+      expect.objectContaining({
+        timeout: 120_000,
+        maxBuffer: 2 * 1024 * 1024,
+      }),
+      expect.any(Function),
+    );
+  });
+
+  it('installs an iOS root certificate on the explicit device id', async () => {
+    mockExecFileSuccess('');
+
+    await new DeviceCommandHandler({
+      currentDeviceDetails: iosDevice({ deviceName: '' }),
+      deviceId: 'B7278F13-7AA9-4CEE-8CE8-F774777F8FD7',
+    }).installRootCertificate({ certPath: '/tmp/proxy-ca.cer' });
+
+    expect(execFileMock).toHaveBeenNthCalledWith(
+      1,
+      'xcrun',
+      ['simctl', 'boot', 'B7278F13-7AA9-4CEE-8CE8-F774777F8FD7'],
+      expect.objectContaining({ timeout: 20_000 }),
+      expect.any(Function),
+    );
+    expect(execFileMock).toHaveBeenNthCalledWith(
+      2,
+      'xcrun',
+      ['simctl', 'bootstatus', 'B7278F13-7AA9-4CEE-8CE8-F774777F8FD7', '-b'],
+      expect.objectContaining({ timeout: 20_000 }),
+      expect.any(Function),
+    );
+    expect(execFileMock).toHaveBeenNthCalledWith(
+      3,
+      'xcrun',
+      [
+        'simctl',
+        'keychain',
+        'B7278F13-7AA9-4CEE-8CE8-F774777F8FD7',
+        'add-root-cert',
+        '/tmp/proxy-ca.cer',
+      ],
+      expect.objectContaining({ timeout: 20_000 }),
       expect.any(Function),
     );
   });

@@ -3,8 +3,10 @@ import { IOSDeviceCommandHandler } from './IOSDeviceCommandHandler';
 import { createLogger } from '../../logger';
 import type {
   ClearAppDataOptions,
+  ConfigureHttpProxyOptions,
   DeviceCommandHandlerOptions,
   InstallAppOptions,
+  InstallRootCertificateOptions,
   IsAppInstalledOptions,
   PlatformDeviceCommandHandler,
   ReinstallAppOptions,
@@ -60,6 +62,29 @@ export class DeviceCommandHandler implements PlatformDeviceCommandHandler {
    */
   clearAppData(options?: ClearAppDataOptions): Promise<void> {
     return this.platformHandler.clearAppData(options);
+  }
+
+  /**
+   * Installs a root certificate on the current local device.
+   */
+  installRootCertificate(
+    options: InstallRootCertificateOptions,
+  ): Promise<void> {
+    return this.platformHandler.installRootCertificate(options);
+  }
+
+  /**
+   * Configures a device-level HTTP proxy.
+   */
+  configureHttpProxy(options: ConfigureHttpProxyOptions): Promise<void> {
+    return this.platformHandler.configureHttpProxy(options);
+  }
+
+  /**
+   * Clears the device-level HTTP proxy.
+   */
+  clearHttpProxy(): Promise<void> {
+    return this.platformHandler.clearHttpProxy();
   }
 
   /**

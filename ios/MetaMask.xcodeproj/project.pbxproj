@@ -63,6 +63,8 @@
 		E4B580742E32F462008165E1 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = E4B580712E32F462008165E1 /* Expo.plist */; };
 		E4B580762E33A001008165E1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4B580752E33A001008165E1 /* AppDelegate.swift */; };
 		E4B580772E33A001008165E1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4B580752E33A001008165E1 /* AppDelegate.swift */; };
+		E4B580792E33A001008165E1 /* E2ENativeAppProxy.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4B580782E33A001008165E1 /* E2ENativeAppProxy.swift */; };
+		E4B5807A2E33A001008165E1 /* E2ENativeAppProxy.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4B580782E33A001008165E1 /* E2ENativeAppProxy.swift */; };
 		E83DB5522BBDF2AA00536063 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = E83DB5392BBDB14700536063 /* PrivacyInfo.xcprivacy */; };
 		E83DB5542BBDF2AF00536063 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = E83DB5392BBDB14700536063 /* PrivacyInfo.xcprivacy */; };
 		ED2E8FE6D71BE9319F3B27D3 /* libPods-MetaMask.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2632307C64595BE1B8ABEAF /* libPods-MetaMask.a */; };
@@ -192,6 +194,7 @@
 		D3350113F0764105B1E60002 /* MMSans-Bold.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "MMSans-Bold.otf"; path = "../app/fonts/MMSans-Bold.otf"; sourceTree = "<group>"; };
 		E4B580712E32F462008165E1 /* Expo.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
 		E4B580752E33A001008165E1 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetaMask/AppDelegate.swift; sourceTree = "<group>"; };
+		E4B580782E33A001008165E1 /* E2ENativeAppProxy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = E2ENativeAppProxy.swift; path = MetaMask/E2E/E2ENativeAppProxy.swift; sourceTree = "<group>"; };
 		E83DB5392BBDB14700536063 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = MetaMask/PrivacyInfo.xcprivacy; sourceTree = SOURCE_ROOT; };
 		E9629905BA1940ADA4189921 /* Feather.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Feather.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Feather.ttf"; sourceTree = "<group>"; };
 		EBC2B6371CD846D28B9FAADF /* FontAwesome5_Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = FontAwesome5_Regular.ttf; path = "../node_modules/react-native-vector-icons/Fonts/FontAwesome5_Regular.ttf"; sourceTree = "<group>"; };
@@ -269,6 +272,7 @@
 				158B0639211A72F500DF3C74 /* InpageBridgeWeb3.js */,
 				008F07F21AC5B25A0029DE68 /* main.jsbundle */,
 				E4B580752E33A001008165E1 /* AppDelegate.swift */,
+				E4B580782E33A001008165E1 /* E2ENativeAppProxy.swift */,
 				F0B2A3E101000001000000A0 /* BrazeHelper.mm */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
@@ -936,6 +940,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				E4B580762E33A001008165E1 /* AppDelegate.swift in Sources */,
+				E4B580792E33A001008165E1 /* E2ENativeAppProxy.swift in Sources */,
 				F0B2A3E101000001000000A1 /* BrazeHelper.mm in Sources */,
 				2EF283322B17EC1A00D7B4B1 /* RNTar.m in Sources */,
 				654378B0243E2ADC00571B9C /* File.swift in Sources */,
@@ -952,6 +957,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				E4B580772E33A001008165E1 /* AppDelegate.swift in Sources */,
+				E4B5807A2E33A001008165E1 /* E2ENativeAppProxy.swift in Sources */,
 				F0B2A3E101000001000000A2 /* BrazeHelper.mm in Sources */,
 				2EF283342B17EC1A00D7B4B1 /* RNTar.m in Sources */,
 				2EF2825B2B0FF86900D7B4B1 /* File.swift in Sources */,
