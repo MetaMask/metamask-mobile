@@ -17,10 +17,10 @@ import {
   Box,
   HeaderStandard,
   TextButton,
-
   Button,
   ButtonVariant,
-  ButtonSize} from '@metamask/design-system-react-native';
+  ButtonSize,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { RootState } from '../../../../../reducers';
