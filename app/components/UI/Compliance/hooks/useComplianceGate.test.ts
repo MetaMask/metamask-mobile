@@ -85,6 +85,41 @@ describe('useComplianceGate', () => {
     expect(result.current.isBlocked).toBe(true);
   });
 
+  describe('no address provided', () => {
+    it('returns isBlocked=false when no address is provided', () => {
+      mockUseSelector
+        .mockReturnValueOnce(true) // selectComplianceEnabled
+        .mockReturnValueOnce(false); // selectAreAnyWalletsBlocked
+
+      const { result } = renderHook(() => useComplianceGate());
+
+      expect(result.current.isBlocked).toBe(false);
+      expect(mockCheckWalletsCompliance).not.toHaveBeenCalled();
+    });
+
+    it('gate() proceeds with action when no address is provided', async () => {
+      mockUseSelector
+        .mockReturnValueOnce(true) // selectComplianceEnabled
+        .mockReturnValueOnce(false); // selectAreAnyWalletsBlocked
+
+      const action = jest.fn().mockResolvedValue('result');
+      const { result } = renderHook(() => useComplianceGate());
+
+      // Let the prefetch settle — checkCompliance returns undefined for empty addressKey
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      const value = await result.current.gate(action);
+
+      expect(action).toHaveBeenCalledTimes(1);
+      expect(value).toBe('result');
+      expect(mockShowAccessRestrictedModal).not.toHaveBeenCalled();
+      // checkWalletsCompliance is never called when there is no address to check
+      expect(mockCheckWalletsCompliance).not.toHaveBeenCalled();
+    });
+  });
+
   describe('prefetch effect', () => {
     it('calls checkCompliance on mount when compliance is enabled', async () => {
       mockUseSelector.mockReturnValue(true);
