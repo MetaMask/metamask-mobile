@@ -105,6 +105,13 @@ export const PerpsAccountPickerSelectorsIDs = {
   ACCOUNT_ITEM: 'perps-account-picker-item',
 } as const;
 
+export const PredictAccountPickerSelectorsIDs = {
+  ROW: 'predict-account-picker-row',
+  SHEET: 'predict-account-picker-sheet',
+  SEARCH_INPUT: 'predict-account-picker-search',
+  ACCOUNT_ITEM: 'predict-account-picker-item',
+} as const;
+
 export const TransactionPayComponentIDs = {
   CLOSE_MODAL_BUTTON: 'bridge-token-selector-close-button',
   KEYBOARD_CONTINUE_BUTTON: 'deposit-keyboard-done-button',

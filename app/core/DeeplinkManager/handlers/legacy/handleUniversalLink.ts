@@ -21,6 +21,7 @@ import handleRampUrl from './handleRampUrl';
 import handleRampReturnUrl from './handleRampReturnUrl';
 import { navigateToHomeUrl } from './handleHomeUrl';
 import { handleSwapUrl, createSwapDeeplinkIntent } from './handleSwapUrl';
+import { handleBatchSellUrl } from './handleBatchSellUrl';
 import handleBrowserUrl from './handleBrowserUrl';
 import {
   createDappDeeplinkIntent,
@@ -88,6 +89,7 @@ const SUPPORTED_ACTIONS = {
   HOME: ACTIONS.HOME,
   ASSET: ACTIONS.ASSET,
   SWAP: ACTIONS.SWAP,
+  BATCH_SELL: ACTIONS.BATCH_SELL,
   SEND: ACTIONS.SEND,
   CREATE_ACCOUNT: ACTIONS.CREATE_ACCOUNT,
   PERPS: ACTIONS.PERPS,
@@ -124,6 +126,7 @@ type SUPPORTED_ACTIONS =
 const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.DAPP,
   SUPPORTED_ACTIONS.SWAP,
+  SUPPORTED_ACTIONS.BATCH_SELL,
   SUPPORTED_ACTIONS.WC,
   SUPPORTED_ACTIONS.CARD_ONBOARDING,
   SUPPORTED_ACTIONS.CARD_HOME,
@@ -701,6 +704,10 @@ async function handleUniversalLink({
       handleAssetUrl({
         assetPath: actionBasedRampPath,
       });
+      break;
+    }
+    case SUPPORTED_ACTIONS.BATCH_SELL: {
+      handleBatchSellUrl();
       break;
     }
     case SUPPORTED_ACTIONS.SEND: {
