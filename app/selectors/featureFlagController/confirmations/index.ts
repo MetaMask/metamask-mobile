@@ -149,11 +149,6 @@ export const selectMetaMaskPayFlags = createSelector(
       (metaMaskPayExtendedFlags?.enablePredictMoneyAccountTransactions as boolean) ??
       PAY_ENABLE_MONEY_HOME_PAGE_PREDICT_TRANSACTION_DEFAULT;
 
-    const enableMoneyHomePagePredictTransaction =
-      process.env.MONEY_HOME_PAGE_PERPS_PREDICT_ENABLED === 'true' &&
-      ((metaMaskPayExtendedFlags?.enablePredictMoneyAccountTransactions as boolean) ??
-        PAY_ENABLE_MONEY_HOME_PAGE_PREDICT_TRANSACTION_DEFAULT);
-
     return {
       attemptsMax,
       bufferInitial,
