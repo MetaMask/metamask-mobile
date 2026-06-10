@@ -753,6 +753,15 @@ export function useQuickBuyController(
           ? ''
           : ((maxSpendUsd * rounded) / 100).toFixed(2);
 
+      // Flag max BEFORE the dedup guard. lastCommittedUsdRef is also written by
+      // typed input and the price-migration effect, so releasing the slider at
+      // 100% can match the ref and return early (e.g. user typed the exact max,
+      // then slid to 100% to "sell all"). If setIsMaxSourceAmount ran after the
+      // guard, sourceTokenAmount would fall back to the cent-rounded fiat
+      // reconstruction and falsely trip insufficient-funds on sell-all. Setting
+      // it here is idempotent, so the dedup path is unaffected.
+      setIsMaxSourceAmount(rounded >= 100);
+
       // Deduplicate: Tap + Pan can both fire onEnd for a pure tap gesture.
       if (nextUsd === lastCommittedUsdRef.current) {
         return;
@@ -767,9 +776,6 @@ export function useQuickBuyController(
       setSliderPercent(rounded);
       lastSliderPercentRef.current = rounded;
       setUsdAmount(nextUsd);
-      // Priced path commits here: flag max so sourceTokenAmount spends the
-      // exact balance instead of the cent-rounded fiat reconstruction.
-      setIsMaxSourceAmount(rounded >= 100);
 
       setQuotedUsdAmount(nextUsd);
       const numericUsd = Number(nextUsd);
