@@ -156,7 +156,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
       TransactionType.moneyAccountDeposit,
     ]);
-    const hasPaymentOption = hasAvailableTokens || isFiatAvailable;
+    const hasFiatOption = isFiatAvailable;
+    const hasPaymentOption = hasAvailableTokens || hasFiatOption;
 
     const isResultReady = useIsResultReady({ isKeyboardVisible });
     const quotes = useTransactionPayQuotes();
