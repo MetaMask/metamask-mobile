@@ -1,31 +1,40 @@
 import React, { useCallback, useRef } from 'react';
-import { Pressable } from 'react-native';
+import { TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
+  BottomSheet,
+  BottomSheetHeader,
   Box,
-  BoxFlexDirection,
-  BoxAlignItems,
-  BoxJustifyContent,
   Text,
   TextVariant,
+  TextColor,
   FontWeight,
-  Icon,
-  IconName,
-  IconSize,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import {
   createNavigationDetails,
   useParams,
 } from '../../../../util/navigation/navUtils';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
+import { useTheme } from '../../../../util/theme';
 
 export const INTERVALS = ['1M', '5M', '15M', '1H', '4H', '1D'] as const;
+
+const INTERVAL_SECTIONS = [
+  {
+    titleKey: 'asset_overview.interval_section_minutes',
+    intervals: ['1M', '5M', '15M'] as string[],
+  },
+  {
+    titleKey: 'asset_overview.interval_section_hours',
+    intervals: ['1H', '4H'] as string[],
+  },
+  {
+    titleKey: 'asset_overview.interval_section_days',
+    intervals: ['1D'] as string[],
+  },
+];
 
 export interface IntervalPickerSheetParams {
   selectedInterval: string;
@@ -41,8 +50,46 @@ export const createIntervalPickerNavDetails =
 const IntervalPickerSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
-  const tw = useTailwind();
   const { selectedInterval, onSelect } = useParams<IntervalPickerSheetParams>();
+  const { colors } = useTheme();
+
+  const handleGoBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
+  const styles = StyleSheet.create({
+    grid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'flex-start',
+      paddingHorizontal: 8,
+    },
+    pill: {
+      width: '18%',
+      height: 48,
+      paddingVertical: 4,
+      paddingHorizontal: 4,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 8,
+      marginRight: '2%',
+      borderRadius: 12,
+      backgroundColor: colors.background.muted,
+    },
+    pillActive: {
+      backgroundColor: colors.text.default,
+      borderWidth: 1,
+      borderColor: colors.text.default,
+    },
+    sectionTitle: {
+      paddingVertical: 8,
+      paddingHorizontal: 16,
+      marginBottom: 4,
+    },
+    sectionSpacing: {
+      marginTop: 16,
+    },
+  });
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -57,49 +104,58 @@ const IntervalPickerSheet = () => {
   );
 
   return (
-    <BottomSheet ref={sheetRef}>
+    <BottomSheet ref={sheetRef} goBack={handleGoBack}>
       <BottomSheetHeader onClose={handleClose}>
         {strings('asset_overview.interval_picker_title')}
       </BottomSheetHeader>
       <Box>
-        {INTERVALS.map((interval) => {
-          const isSelected = interval === selectedInterval;
-          return (
-            <Pressable
-              key={interval}
-              style={({ pressed }) =>
-                tw.style('px-4 py-4', pressed && 'opacity-70')
-              }
-              onPress={() => handleSelect(interval)}
-              accessibilityRole="button"
-              accessibilityLabel={interval}
-              accessibilityState={{ selected: isSelected }}
+        {INTERVAL_SECTIONS.map((section, idx) => (
+          <Box
+            key={section.titleKey}
+            style={idx > 0 ? styles.sectionSpacing : undefined}
+          >
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Bold}
+              color={TextColor.TextAlternative}
+              style={styles.sectionTitle}
             >
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                justifyContent={BoxJustifyContent.Between}
-              >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={isSelected ? FontWeight.Bold : FontWeight.Regular}
-                  twClassName={
-                    isSelected ? 'text-text-default' : 'text-text-alternative'
-                  }
-                >
-                  {interval}
-                </Text>
-                {isSelected && (
-                  <Icon
-                    name={IconName.Check}
-                    size={IconSize.Md}
-                    twClassName="text-text-default"
-                  />
-                )}
-              </Box>
-            </Pressable>
-          );
-        })}
+              {strings(section.titleKey)}
+            </Text>
+            <Box style={styles.grid}>
+              {section.intervals.map((interval) => {
+                const isSelected = interval === selectedInterval;
+                return (
+                  <TouchableOpacity
+                    key={interval}
+                    style={[styles.pill, isSelected && styles.pillActive]}
+                    onPress={() => handleSelect(interval)}
+                    accessibilityRole="button"
+                    accessibilityLabel={interval}
+                    accessibilityState={{ selected: isSelected }}
+                  >
+                    <Text
+                      variant={
+                        isSelected ? TextVariant.BodyMd : TextVariant.BodySm
+                      }
+                      fontWeight={
+                        isSelected ? FontWeight.Bold : FontWeight.Medium
+                      }
+                      color={TextColor.TextDefault}
+                      style={
+                        isSelected
+                          ? { color: colors.background.default }
+                          : undefined
+                      }
+                    >
+                      {interval.toLowerCase()}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </Box>
+          </Box>
+        ))}
       </Box>
     </BottomSheet>
   );
