@@ -21,6 +21,9 @@ export const ACTIVITY_TYPE_FILTER_LABEL_KEY: Record<
   ActivityTypeFilter,
   string
 > = {
+  // `All` is not currently selectable from the sheet — see the TODO above
+  // `ACTIVITY_TYPE_FILTER_ORDER` in ../../types.ts. Kept for type completeness
+  // and so chip labels keep resolving if the flag is re-enabled.
   [ActivityTypeFilter.All]: 'activity_view.type_filter.all',
   [ActivityTypeFilter.Transactions]: 'activity_view.type_filter.transactions',
   [ActivityTypeFilter.BuySell]: 'activity_view.type_filter.buy_sell',

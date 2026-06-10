@@ -139,8 +139,11 @@ export const ACTIVITY_TYPE_FILTER_KINDS: Record<
   ]),
 };
 
+// TODO: re-enable `ActivityTypeFilter.All` once the data sources are unified
+// (deduped, time-sorted across EVM tx controller, non-EVM keyrings, perps,
+// predict, etc.). Until then we ship type-only filtering — see TMCU thread.
 export const ACTIVITY_TYPE_FILTER_ORDER: ActivityTypeFilter[] = [
-  ActivityTypeFilter.All,
+  // ActivityTypeFilter.All,
   ActivityTypeFilter.Transactions,
   ActivityTypeFilter.BuySell,
   ActivityTypeFilter.Perps,
