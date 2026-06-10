@@ -21,6 +21,7 @@ import {
   PredictSearchSelectorsIDs,
 } from '../../Predict.testIds';
 import { PREDICT_HEADER_STACKED_TEST_IDS } from '../../components/PredictHeaderStacked';
+import { PREDICT_PORTFOLIO_TEST_IDS } from './components/PredictPortfolio';
 import { MOCK_PREDICT_MARKET } from '../../../../../../tests/component-view/fixtures/predict';
 
 const SEARCH_PLACEHOLDER = 'Search prediction markets';
@@ -86,11 +87,13 @@ describe('PredictHome', () => {
 
   describe('shell composition', () => {
     it('renders the large "Predictions" title', async () => {
-      const { findByTestId } = renderPredictHomeView();
+      const { getByTestId } = renderPredictHomeView();
 
-      expect(
-        await findByTestId(PredictHomeSelectorsIDs.TITLE),
-      ).toHaveTextContent(PREDICTIONS_TITLE);
+      await waitFor(() => {
+        expect(getByTestId(PredictHomeSelectorsIDs.TITLE)).toHaveTextContent(
+          PREDICTIONS_TITLE,
+        );
+      });
     });
 
     it('composes the section placeholders in Figma order', async () => {

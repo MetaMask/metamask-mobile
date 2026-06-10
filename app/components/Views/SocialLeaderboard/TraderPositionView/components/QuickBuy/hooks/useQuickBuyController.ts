@@ -95,7 +95,11 @@ import {
   SocialLeaderboardEventValues,
 } from '../../../../analytics';
 import { buildQuickBuyToastOptions } from '../quickBuyToastOptions';
-import { trackQuickBuyTrade } from '../quickBuyTradeTracker';
+import {
+  trackQuickBuyTrade,
+  beginQuickBuySubmission,
+  endQuickBuySubmission,
+} from '../quickBuyTradeTracker';
 import { resolveQuickBuyTerminalToast } from '../resolveQuickBuyTerminalToast';
 
 export type QuickBuyButtonError =
@@ -1061,6 +1065,11 @@ export function useQuickBuyController(
       submitStartedAtRef.current ? Date.now() - submitStartedAtRef.current : 0;
 
     try {
+      // Mark a QuickBuy submission as in flight BEFORE submitTx so the generic
+      // transaction notification (which fires mid-submit, before the tx id is
+      // known) is suppressed. The id-based tracker takes over for the terminal
+      // notification once submitTx resolves.
+      beginQuickBuySubmission();
       dispatch(setIsSubmittingTx(true));
       const submitResult = await Engine.context.BridgeStatusController.submitTx(
         walletAddress,
@@ -1132,6 +1141,10 @@ export function useQuickBuyController(
         });
       }
     } finally {
+      // Cleared after `trackQuickBuyTrade` (in the try block) has registered the
+      // tx id, so the predicate transitions from marker-based to id-based
+      // suppression with no coverage gap.
+      endQuickBuySubmission();
       dispatch(setIsSubmittingTx(false));
     }
   }, [

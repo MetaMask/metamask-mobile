@@ -15,7 +15,7 @@ import {
 } from '../../framework';
 
 class OnboardingView {
-  get container(): DetoxElement {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(OnboardingSelectorIDs.CONTAINER_ID);
   }
 
