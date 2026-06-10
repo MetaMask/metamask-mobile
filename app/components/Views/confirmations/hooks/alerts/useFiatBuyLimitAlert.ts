@@ -30,19 +30,10 @@ export function useFiatBuyLimitAlert({
 
   const amount = Number(pendingAmount ?? fiatPayment?.amountFiat ?? '0');
 
-  // Only treat the backend message as a limit error when the provider
-  // explicitly classified it as LIMIT_EXCEEDED. Generic QUOTE_FAILED messages
-  // are left to useNoPayTokenQuotesAlert so they are not mislabelled as limits.
-  const backendError =
-    fiatPayment?.quoteError?.code === 'LIMIT_EXCEEDED'
-      ? fiatPayment.quoteError.message
-      : undefined;
-
   // moneyAccountDeposit input is always USD-denominated; use USD limits, not local currency (e.g. BRL).
   const { amountLimitError } = useRampsBuyLimits({
     amount,
     paymentMethodId,
-    backendError,
     currency: isMoneyAccountDeposit ? MONEY_ACCOUNT_CURRENCY : undefined,
   });
 
