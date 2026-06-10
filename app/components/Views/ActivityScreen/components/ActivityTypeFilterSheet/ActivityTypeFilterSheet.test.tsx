@@ -116,7 +116,7 @@ describe('ActivityTypeFilterSheet', () => {
     expect(selectedRow).toHaveProp('accessibilityState', { selected: true });
 
     const unselectedRow = screen.getByTestId(
-      optionTestId(ActivityTypeFilter.All),
+      optionTestId(ActivityTypeFilter.Transactions),
     );
     expect(unselectedRow).toHaveProp('accessibilityState', { selected: false });
   });

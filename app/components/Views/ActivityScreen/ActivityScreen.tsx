@@ -51,8 +51,10 @@ const ActivityScreen = () => {
   );
 
   const [searchQuery, setSearchQuery] = useState('');
+  // TODO: restore `ActivityTypeFilter.All` as the default once data-source
+  // unification lands. See `ACTIVITY_TYPE_FILTER_ORDER` in ./types.ts.
   const [typeFilter, setTypeFilter] = useState<ActivityTypeFilter>(
-    ActivityTypeFilter.All,
+    ActivityTypeFilter.Transactions,
   );
   const [isTypeSheetOpen, setIsTypeSheetOpen] = useState(false);
   const [networkFilter, setNetworkFilter] = useState<CaipChainId[] | null>(
