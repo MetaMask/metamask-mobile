@@ -1,61 +1,6 @@
-/**
- * Normalized activity kinds — mirrors the extension's `ActivityKind` union in
- * `shared/lib/activity/types.ts` from the activity-v3 work. Adapters in
- * mobile will normalize EVM/non-EVM/perps/predict/etc. transactions to this
- * shape so the Activity screen can render and filter them uniformly.
- *
- * Source of truth: MetaMask/metamask-extension PR #42837
- *
- * TODO: replace this mirror once the activity adapters + types land in the
- * core controller lib (planned). At that point, import `ActivityKind` from
- * the shared package and delete this local copy. The `ACTIVITY_TYPE_FILTER_KINDS`
- * bucket map below is the only screen-local consumer.
- */
-export type ActivityKind =
-  | 'send'
-  | 'receive'
-  | 'buy'
-  | 'sell'
-  | 'deposit'
-  | 'swap'
-  | 'swapIncomplete'
-  | 'wrap'
-  | 'unwrap'
-  | 'convert'
-  | 'bridge'
-  | 'claim'
-  | 'claimMusdBonus'
-  | 'approveSpendingCap'
-  | 'increaseSpendingCap'
-  | 'revokeSpendingCap'
-  | 'contractInteraction'
-  | 'contractDeployment'
-  | 'smartAccountUpgrade'
-  | 'nftMint'
-  | 'lendingDeposit'
-  | 'lendingWithdrawal'
-  | 'predictionsAddFunds'
-  | 'predictionsWithdrawFunds'
-  | 'predictionClaimWinnings'
-  | 'predictionCashedOut'
-  | 'predictionPlaced'
-  | 'perpsAddFunds'
-  | 'perpsWithdraw'
-  | 'perpsOpenLong'
-  | 'perpsCloseLong'
-  | 'perpsCloseLongLiquidated'
-  | 'perpsCloseLongStopLoss'
-  | 'perpsCloseLongTakeProfit'
-  | 'perpsOpenShort'
-  | 'perpsCloseShort'
-  | 'perpsCloseShortLiquidated'
-  | 'perpsCloseShortStopLoss'
-  | 'perpsCloseShortTakeProfit'
-  | 'perpsPaidFundingFees'
-  | 'perpsReceivedFundingFees'
-  | 'marketShort'
-  | 'stopMarketCloseShort'
-  | 'marketCloseShort';
+import type { ActivityKind } from '../../../util/activity-adapters';
+
+export type { ActivityKind };
 
 /**
  * Top-level "Types" filter buckets shown in the Activity screen filter sheet.
@@ -106,7 +51,7 @@ export const ACTIVITY_TYPE_FILTER_KINDS: Record<
   ]),
   [ActivityTypeFilter.Perps]: new Set<ActivityKind>([
     'perpsAddFunds',
-    'perpsWithdraw',
+    'perpsWithdrawFunds',
     'perpsOpenLong',
     'perpsCloseLong',
     'perpsCloseLongLiquidated',
