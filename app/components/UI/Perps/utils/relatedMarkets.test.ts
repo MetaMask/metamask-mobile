@@ -98,6 +98,23 @@ describe('relatedMarkets utilities', () => {
     ]);
   });
 
+  it('excludes the current market case-insensitively', () => {
+    // Arrange — route symbol casing differs from the streamed list entry
+    const current = createMarket('eth');
+
+    // Act
+    const result = getRelatedMarketsForMarket(current, [
+      createMarket('ETH'),
+      createMarket('BTC'),
+    ]);
+
+    // Assert — the current market is dropped despite the casing mismatch
+    expect(result?.collection.id).toBe('crypto');
+    expect(result?.markets.map((market) => market.symbol)).toStrictEqual([
+      'BTC',
+    ]);
+  });
+
   it('buckets uncategorised HIP-3 markets under the controller "new" category', () => {
     // Arrange
     const current = createMarket('builder:XYZ', { isHip3: true });

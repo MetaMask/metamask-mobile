@@ -50,10 +50,13 @@ export const getRelatedMarketsForMarket = (
     return null;
   }
 
+  // Categorisation is delegated to the controller; the current market is
+  // excluded case-insensitively here so a route symbol whose casing differs
+  // from the streamed list never appears as its own related tile.
+  const currentSymbol = currentMarket.symbol.trim().toUpperCase();
   const relatedMarkets = applyMarketFilters(markets, {
     categories: [category],
-    excludeSymbols: [currentMarket.symbol],
-  });
+  }).filter((market) => market.symbol.trim().toUpperCase() !== currentSymbol);
 
   if (relatedMarkets.length === 0) {
     return null;
