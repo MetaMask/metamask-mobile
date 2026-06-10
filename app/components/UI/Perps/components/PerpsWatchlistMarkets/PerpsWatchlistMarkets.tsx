@@ -225,16 +225,6 @@ const PerpsWatchlistMarkets: React.FC<PerpsWatchlistMarketsProps> = ({
             style={styles.suggestedSection}
             testID={PerpsWatchlistSelectorsIDs.SUGGESTED_SECTION}
           >
-            {!hasWatchlist && (
-              <Text
-                variant={TextVariant.HeadingSm}
-                color={TextColor.TextDefault}
-                style={styles.emptyTitle}
-                testID={PerpsWatchlistSelectorsIDs.SUGGESTED_HEADER}
-              >
-                {strings('perps.watchlist.empty_title')}
-              </Text>
-            )}
             <Text
               variant={TextVariant.BodySm}
               color={

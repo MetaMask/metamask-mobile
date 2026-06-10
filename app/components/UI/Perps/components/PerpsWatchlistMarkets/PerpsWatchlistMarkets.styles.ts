@@ -46,9 +46,6 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingTop: 4,
       paddingBottom: 8,
     },
-    emptyTitle: {
-      marginBottom: 4,
-    },
     suggestedSubtitle: {
       marginBottom: 4,
     },
