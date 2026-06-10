@@ -1466,5 +1466,4 @@ describe('MoneyHomeView', () => {
       });
     });
   });
-
 });

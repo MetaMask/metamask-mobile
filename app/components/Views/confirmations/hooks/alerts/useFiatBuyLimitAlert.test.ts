@@ -10,19 +10,10 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import { MONEY_ACCOUNT_FIAT_DEPOSIT_ASSET_ID } from '../../../../UI/Ramp/utils/getMoneyAccountFiatDepositAssetId';
 
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../pay/useTransactionPayData');
 jest.mock('../../../../UI/Ramp/hooks/useRampsBuyLimits');
-// Default mock returns the ETH mainnet fallback (eip155:1/slip44:60),
-// matching MONEY_ACCOUNT_FIAT_DEPOSIT_ASSET_ID. Individual tests may override.
-jest.mock(
-  '../../../../UI/Ramp/hooks/useMoneyAccountFiatDepositAssetId',
-  () => ({
-    useMoneyAccountFiatDepositAssetId: () => 'eip155:1/slip44:60',
-  }),
-);
 
 function runHook({ pendingAmount }: { pendingAmount?: string } = {}) {
   return renderHookWithProvider(() => useFiatBuyLimitAlert({ pendingAmount }));
@@ -161,45 +152,6 @@ describe('useFiatBuyLimitAlert', () => {
     expect(useRampsBuyLimitsMock).toHaveBeenCalledWith(
       expect.objectContaining({
         amount: 150,
-      }),
-    );
-  });
-
-  it('uses caipAssetId from fiatPayment when present', () => {
-    useTransactionPayFiatPaymentMock.mockReturnValue({
-      selectedPaymentMethodId: 'pm-card',
-      amountFiat: '100',
-      caipAssetId: 'eip155:1/slip44:60',
-    });
-    useRampsBuyLimitsMock.mockReturnValue({
-      amountLimitError: null,
-      currency: 'USD',
-    });
-
-    runHook();
-
-    expect(useRampsBuyLimitsMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        assetId: 'eip155:1/slip44:60',
-      }),
-    );
-  });
-
-  it('falls back to MONEY_ACCOUNT_FIAT_DEPOSIT_ASSET_ID when caipAssetId is not present', () => {
-    useTransactionPayFiatPaymentMock.mockReturnValue({
-      selectedPaymentMethodId: 'pm-card',
-      amountFiat: '100',
-    });
-    useRampsBuyLimitsMock.mockReturnValue({
-      amountLimitError: null,
-      currency: 'USD',
-    });
-
-    runHook();
-
-    expect(useRampsBuyLimitsMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        assetId: MONEY_ACCOUNT_FIAT_DEPOSIT_ASSET_ID,
       }),
     );
   });

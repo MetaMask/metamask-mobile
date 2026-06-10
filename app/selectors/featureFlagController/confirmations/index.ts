@@ -88,15 +88,9 @@ export interface GasFeeTokenFlags {
   };
 }
 
-export interface FiatDepositAsset {
-  address: string;
-  chainId: string;
-}
-
 export interface MetaMaskPayFiatFlags {
   enabledTransactionTypes: TransactionType[];
   maxDelayMinutesForPaymentMethods: number;
-  assetPerTransactionType?: Partial<Record<TransactionType, FiatDepositAsset>>;
 }
 
 export interface MetaMaskPayHardwareFlags {
@@ -303,10 +297,6 @@ export const selectMetaMaskPayFiatFlags = createSelector(
       maxDelayMinutesForPaymentMethods:
         (raw?.maxDelayMinutesForPaymentMethods as number) ??
         PAY_FIAT_MAX_DELAY_MINUTES_FOR_PAYMENT_METHODS,
-      assetPerTransactionType:
-        (raw?.assetPerTransactionType as
-          | Partial<Record<TransactionType, FiatDepositAsset>>
-          | undefined) ?? undefined,
     };
   },
 );

@@ -102,7 +102,6 @@ export function useHeadlessBuy(): HeadlessBuyResult {
           `useHeadlessBuy: could not resolve wallet address for assetId="${params.assetId}". Pass walletAddress explicitly or ensure an account is selected for chain ${chainId ?? 'unknown'}.`,
         );
       }
-
       return getQuotesRaw({
         assetId: params.assetId,
         amount: params.amount,

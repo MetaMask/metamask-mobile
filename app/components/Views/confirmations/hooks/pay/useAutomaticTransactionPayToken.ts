@@ -40,7 +40,6 @@ import { MUSD_TOKEN_ADDRESS } from '../../../../UI/Earn/constants/musd';
 import { useWithdrawTokenFilter } from './useWithdrawTokenFilter';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 import { useRampsPaymentMethods } from '../../../../UI/Ramp/hooks/useRampsPaymentMethods';
-import { useMoneyAccountDepositPaymentMethods } from '../../../../UI/Ramp/hooks/useMoneyAccountDepositPaymentMethods';
 import { pickEligiblePaymentMethod } from '../../../../UI/Ramp/utils/pickEligiblePaymentMethod';
 
 export interface SetPayTokenRequest {
@@ -108,9 +107,6 @@ export function useAutomaticTransactionPayToken({
   const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountWithdraw,
   ]);
-  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
-    TransactionType.moneyAccountDeposit,
-  ]);
   const paymentOverride = useSelector((state: RootState) =>
     selectPaymentOverrideByTransactionId(state, transactionId ?? ''),
   );
@@ -168,15 +164,6 @@ export function useAutomaticTransactionPayToken({
   const { maxDelayMinutesForPaymentMethods } = useMMPayFiatConfig();
   const isFiatEnabled = useIsFiatPaymentAvailable();
 
-  // Resolve payment methods from the ASSET's best provider for the
-  // moneyAccountDeposit path. Always called (hooks rules); only consumed below
-  // when `autoSelectFiatPayment && isMoneyAccountDeposit`.
-  const {
-    paymentMethods: assetProviderPaymentMethods,
-    isReady: assetProviderPaymentMethodsReady,
-    isLoading: assetProviderPaymentMethodsLoading,
-  } = useMoneyAccountDepositPaymentMethods(fiatPayment?.caipAssetId);
-
   useEffect(() => {
     if (
       disable ||
@@ -189,64 +176,6 @@ export function useAutomaticTransactionPayToken({
     }
 
     if (autoSelectFiatPayment || tokens.length === 0) {
-      // moneyAccountDeposit uses React Query payment methods fetched directly
-      // from the asset's best provider — NOT the global Redux paymentMethods.
-      // The global Redux state may be empty for regions where the legacy Ramps
-      // flow never ran (e.g. India with Onramp.money), which would cause
-      // `isFiatEnabled` to be false and exit before reaching this branch.
-      // Keep this branch FIRST so it bypasses the isFiatEnabled guard below.
-      if (autoSelectFiatPayment && isMoneyAccountDeposit) {
-        // Wait while a query is actively in-flight. Using isLoading (rather
-        // than !isSettled) means we don't exit early when the region hasn't
-        // loaded yet — the effect will re-run once regionCode arrives and
-        // the queries actually start and finish.
-        if (assetProviderPaymentMethodsLoading) {
-          return;
-        }
-
-        if (!assetProviderPaymentMethodsReady) {
-          // Query settled without success (fetch error, no provider for asset).
-          // Do NOT fall back to the global paymentMethods — those may belong to
-          // a different provider than the one priced for this deposit asset and
-          // would break quotes and the headless buy path.
-          // Stamp isUpdated to prevent an indefinite retry loop; the UI will
-          // surface the no-provider / error state.
-          isUpdated.current = transactionId;
-          log(
-            'Asset-provider payment methods query did not settle successfully; skipping auto-select',
-          );
-          return;
-        }
-
-        const eligibleMethod = pickEligiblePaymentMethod(
-          assetProviderPaymentMethods,
-          maxDelayMinutesForPaymentMethods,
-        );
-
-        if (eligibleMethod) {
-          Engine.context.TransactionPayController.updateFiatPayment({
-            transactionId,
-            callback: (fp) => {
-              fp.selectedPaymentMethodId = eligibleMethod.id;
-            },
-          });
-          isUpdated.current = transactionId;
-          log(
-            'Auto-selected fiat payment method (asset provider)',
-            eligibleMethod.name,
-          );
-        } else {
-          // Provider returned zero eligible methods — stamp isUpdated to
-          // prevent an indefinite no-op loop. UI will surface the
-          // no-eligible-methods state (e.g. "not available in your region").
-          isUpdated.current = transactionId;
-          log(
-            'No eligible fiat payment methods for asset provider in this region',
-          );
-        }
-        return;
-      }
-
       if (!isFiatEnabled) {
         return;
       }
@@ -288,15 +217,11 @@ export function useAutomaticTransactionPayToken({
 
     log('Automatically selected pay token', automaticToken);
   }, [
-    assetProviderPaymentMethods,
-    assetProviderPaymentMethodsLoading,
-    assetProviderPaymentMethodsReady,
     autoSelectFiatPayment,
     automaticToken,
     disable,
     hasFiatPaymentSelected,
     isFiatEnabled,
-    isMoneyAccountDeposit,
     maxDelayMinutesForPaymentMethods,
     payToken,
     paymentMethods,
