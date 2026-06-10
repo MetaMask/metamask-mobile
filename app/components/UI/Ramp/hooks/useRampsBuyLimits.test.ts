@@ -56,9 +56,7 @@ describe('useRampsBuyLimits', () => {
   const getProviderBuyLimitMock = jest.mocked(getProviderBuyLimit);
   const getProviderLimitMessageMock = jest.mocked(getProviderLimitMessage);
   const useFormattersMock = jest.mocked(useFormatters);
-  const mockFormatCurrency = jest.fn(
-    (value: number) => `$${value.toFixed(2)}`,
-  );
+  const mockFormatCurrency = jest.fn((value: number) => `$${value.toFixed(2)}`);
 
   beforeEach(() => {
     jest.resetAllMocks();
