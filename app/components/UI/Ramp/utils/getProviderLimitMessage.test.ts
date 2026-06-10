@@ -66,18 +66,6 @@ describe('getProviderLimitMessage', () => {
       });
     });
 
-    it('prefers structured limits over the backend error string', () => {
-      withLimit({ minAmount: 10, maxAmount: 1000 });
-
-      const result = getProviderLimitMessage({
-        ...baseArgs,
-        amount: 5,
-        backendError: 'Minimum purchase is 99 EUR',
-      });
-
-      expect(result).toBe('Minimum purchase is USD 10');
-    });
-
     it('returns null at the exact min boundary', () => {
       withLimit({ minAmount: 10, maxAmount: 1000 });
 
@@ -90,68 +78,21 @@ describe('getProviderLimitMessage', () => {
       expect(getProviderLimitMessage({ ...baseArgs, amount: 1000 })).toBeNull();
     });
 
-    it('returns null when the amount is within range and there is no backend error', () => {
+    it('returns null when the amount is within range', () => {
       withLimit({ minAmount: 10, maxAmount: 1000 });
 
       expect(getProviderLimitMessage({ ...baseArgs, amount: 500 })).toBeNull();
     });
-
-    it('returns null when in-range even if a stale backendError is present', () => {
-      withLimit({ minAmount: 10, maxAmount: 1000 });
-
-      const result = getProviderLimitMessage({
-        ...baseArgs,
-        amount: 500,
-        backendError: 'Minimum purchase is 12 EUR',
-      });
-
-      expect(result).toBeNull();
-    });
   });
 
-  describe('amount is not positive', () => {
-    it('skips structured limits but still surfaces a backend limit error', () => {
-      withLimit({ minAmount: 10, maxAmount: 1000 });
-
-      const result = getProviderLimitMessage({
-        ...baseArgs,
-        amount: 0,
-        backendError: 'Minimum purchase is 12 EUR',
-      });
-
-      expect(result).toBe('Minimum purchase is 12 EUR');
-      expect(formatCurrency).not.toHaveBeenCalled();
-    });
-
-    it('returns null when amount is 0 and there is no backend error', () => {
+  describe('no structured limits', () => {
+    it('returns null when amount is 0', () => {
       withLimit({ minAmount: 10, maxAmount: 1000 });
 
       expect(getProviderLimitMessage({ ...baseArgs, amount: 0 })).toBeNull();
     });
-  });
 
-  describe('backend error fallback (no structured limits)', () => {
-    it('returns the backend string when it is a limit message', () => {
-      const result = getProviderLimitMessage({
-        ...baseArgs,
-        amount: 5,
-        backendError: 'Minimum purchase is 12 EUR',
-      });
-
-      expect(result).toBe('Minimum purchase is 12 EUR');
-    });
-
-    it('returns null for a non-limit backend error', () => {
-      const result = getProviderLimitMessage({
-        ...baseArgs,
-        amount: 5,
-        backendError: '[object Object]',
-      });
-
-      expect(result).toBeNull();
-    });
-
-    it('returns null when there is no backend error', () => {
+    it('returns null when no limits are available', () => {
       expect(getProviderLimitMessage({ ...baseArgs, amount: 5 })).toBeNull();
     });
   });

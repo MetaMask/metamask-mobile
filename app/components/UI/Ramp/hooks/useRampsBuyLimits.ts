@@ -12,8 +12,6 @@ import { useFormatters } from '../../../hooks/useFormatters';
  * Resolved to a full Provider object from the providers data list.
  * @param options.amount - The fiat amount entered by the user.
  * @param options.paymentMethodId - The selected payment method ID.
- * @param options.backendError - Optional raw provider error from the quotes
- * response, used as a fallback when structured limits are not available.
  * @param options.currency - Fiat currency for limit lookup; defaults to `userRegion.country.currency`.
  *
  * @returns `{ minAmount, maxAmount, amountLimitError, currency }`.
@@ -22,13 +20,11 @@ export function useRampsBuyLimits({
   providerId,
   amount,
   paymentMethodId,
-  backendError,
   currency: currencyOverride,
 }: {
   providerId: string | null | undefined;
   amount: number;
   paymentMethodId?: string | null;
-  backendError?: string | null;
   currency?: string;
 }): {
   minAmount?: number;
@@ -59,9 +55,8 @@ export function useRampsBuyLimits({
         amount,
         currency,
         formatCurrency,
-        backendError,
       }),
-    [provider, currency, paymentMethodId, amount, formatCurrency, backendError],
+    [provider, currency, paymentMethodId, amount, formatCurrency],
   );
 
   return {

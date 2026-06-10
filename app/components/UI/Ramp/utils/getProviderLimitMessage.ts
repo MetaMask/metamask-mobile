@@ -2,7 +2,6 @@ import type { Provider } from '@metamask/ramps-controller';
 import { strings } from '../../../../../locales/i18n';
 import type { useFormatters } from '../../../hooks/useFormatters';
 import { getProviderBuyLimit } from './providerLimits';
-import { isProviderLimitError } from './isProviderLimitError';
 
 type FormatCurrency = ReturnType<typeof useFormatters>['formatCurrency'];
 
@@ -13,13 +12,6 @@ interface GetProviderLimitMessageArgs {
   amount: number;
   currency: string;
   formatCurrency: FormatCurrency;
-  /**
-   * Raw per-provider error string from the quotes response. Used as a fallback
-   * when structured limits aren't published for the provider (e.g.
-   * browser-redirect providers like Revolut, which the regions/providers
-   * endpoint omits in some environments).
-   */
-  backendError?: string | null;
 }
 
 /**
@@ -41,7 +33,6 @@ export function getProviderLimitMessage({
   amount,
   currency,
   formatCurrency,
-  backendError,
 }: GetProviderLimitMessageArgs): string | null {
   if (amount > 0) {
     const buyLimit = getProviderBuyLimit(
@@ -67,14 +58,8 @@ export function getProviderLimitMessage({
         });
       }
 
-      // Structured limits confirm the amount is in range — don't surface a
-      // stale backendError from a previous failed quote.
       return null;
     }
-  }
-
-  if (isProviderLimitError(backendError)) {
-    return backendError;
   }
 
   return null;
