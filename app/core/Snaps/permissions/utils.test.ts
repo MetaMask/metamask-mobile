@@ -28,7 +28,6 @@ async function getMessenger(deserialize = true) {
     });
   }
 
-
   // @ts-expect-error Intentionally not passing in the bridge.
   const ledgerKeyring = new LedgerKeyring({ bridge: {} });
 
