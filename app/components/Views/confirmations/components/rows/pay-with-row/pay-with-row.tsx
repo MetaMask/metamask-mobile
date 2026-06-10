@@ -60,7 +60,8 @@ interface PayWithRouteParams {
 export function PayWithRow({
   isResultReady,
 }: { isResultReady?: boolean } = {}) {
-  const transactionId = useTransactionMetadataRequest()?.id ?? '';
+  const transactionMeta = useTransactionMetadataRequest();
+  const transactionId = transactionMeta?.id ?? '';
   const paymentOverride = useSelector((state: RootState) =>
     selectPaymentOverrideByTransactionId(state, transactionId),
   );
