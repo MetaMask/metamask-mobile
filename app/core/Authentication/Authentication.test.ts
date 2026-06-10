@@ -4076,6 +4076,31 @@ describe('Authentication', () => {
       expect(analytics.trackEvent).not.toHaveBeenCalled();
     });
 
+    it('does not throw when tracking a successful migration fails', async () => {
+      const logSpy = jest.spyOn(Logger, 'log').mockImplementation(jest.fn());
+      analytics.trackEvent.mockImplementation(() => {
+        throw new Error('trackEvent failed');
+      });
+      Engine.context.SeedlessOnboardingController = {
+        runMigrations: jest.fn().mockResolvedValue(true),
+        state: { migrationVersion: 1 },
+      };
+
+      try {
+        await expect(
+          Authentication.runSeedlessOnboardingMigrations(),
+        ).resolves.toBeUndefined();
+
+        expect(logSpy).toHaveBeenCalledWith(
+          'Failed to track seedless onboarding migration completion',
+          expect.any(Error),
+        );
+      } finally {
+        analytics.trackEvent.mockReset();
+        logSpy.mockRestore();
+      }
+    });
+
     it('tracks failure event on migration error', async () => {
       const error = new Error('Network error');
       Engine.context.SeedlessOnboardingController = {

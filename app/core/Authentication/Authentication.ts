@@ -1567,16 +1567,24 @@ class AuthenticationService {
         await SeedlessOnboardingController.runMigrations();
 
       if (migrationPerformed) {
-        analytics.trackEvent(
-          AnalyticsEventBuilder.createEventBuilder(
-            MetaMetricsEvents.SEEDLESS_ONBOARDING_MIGRATION_COMPLETED,
-          )
-            .addProperties({
-              migration_version:
-                SeedlessOnboardingController.state?.migrationVersion,
-            })
-            .build(),
-        );
+        try {
+          analytics.trackEvent(
+            AnalyticsEventBuilder.createEventBuilder(
+              MetaMetricsEvents.SEEDLESS_ONBOARDING_MIGRATION_COMPLETED,
+            )
+              .addProperties({
+                migration_version:
+                  SeedlessOnboardingController.state?.migrationVersion,
+              })
+              .build(),
+          );
+        } catch (metaMetricsError) {
+          // A tracking failure must not roll back a successful migration.
+          Logger.log(
+            'Failed to track seedless onboarding migration completion',
+            metaMetricsError,
+          );
+        }
       }
     } catch (error) {
       const isError = error instanceof Error;
