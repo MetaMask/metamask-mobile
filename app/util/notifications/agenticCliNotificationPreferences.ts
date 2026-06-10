@@ -86,8 +86,22 @@ export const readLocalAgenticCliPreference =
     return null;
   };
 
+export const persistAgenticCliInAppDisabledAt = (disabledAt: number): void => {
+  mmStorage.saveLocal(STORAGE_IDS.AGENTIC_CLI_IN_APP_DISABLED_AT, disabledAt);
+};
+
+export const readAgenticCliInAppDisabledAt = (): number | null => {
+  const stored = mmStorage.getLocal(STORAGE_IDS.AGENTIC_CLI_IN_APP_DISABLED_AT);
+  return typeof stored === 'number' ? stored : null;
+};
+
+export const clearAgenticCliInAppDisabledAt = (): void => {
+  mmStorage.saveLocal(STORAGE_IDS.AGENTIC_CLI_IN_APP_DISABLED_AT, null);
+};
+
 export const clearLocalAgenticCliPreference = (): void => {
   mmStorage.saveLocal(STORAGE_IDS.AGENTIC_CLI_NOTIFICATION_PREFERENCES, null);
+  clearAgenticCliInAppDisabledAt();
 };
 
 export const mergeAgenticCliIntoPreferences = (

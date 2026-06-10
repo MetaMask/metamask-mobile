@@ -14,6 +14,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { analytics } from '../../analytics/analytics';
 import { AnalyticsEventBuilder } from '../../analytics/AnalyticsEventBuilder';
 import type { JsonValue } from '../../../core/Analytics/MetaMetrics.types';
+import { shouldSuppressAgenticCliPushDelivery } from '../agenticCliNotificationDelivery';
 
 async function getInitialNotification() {
   // Tried many different approaches, but @react-native-firebase setup is unable to hold and track the initial open intent from a push notification
@@ -138,6 +139,11 @@ async function processAndHandleNotification(
   handler: (notification: INotification) => void | Promise<void>,
 ) {
   try {
+    if (await shouldSuppressAgenticCliPushDelivery(undefined, payload)) {
+      delete payload.notification;
+      return;
+    }
+
     const payloadData = payload?.data?.data
       ? String(payload?.data?.data)
       : undefined;
@@ -156,6 +162,11 @@ async function processAndHandleNotification(
 
     const notificationData = toRawAPINotification(data);
     const notification = processNotification(notificationData);
+
+    if (await shouldSuppressAgenticCliPushDelivery(notification, payload)) {
+      return;
+    }
+
     await handler(notification);
   } catch (error) {
     // Do Nothing, cannot parse a bad notification

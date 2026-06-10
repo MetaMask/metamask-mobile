@@ -19,6 +19,7 @@ describe('constants', () => {
       NOTIFICATIONS_SETTINGS: 'notifications-settings',
       PN_USER_STORAGE: 'pnUserStorage',
       AGENTIC_CLI_NOTIFICATION_PREFERENCES: 'agenticCliNotificationPreferences',
+      AGENTIC_CLI_IN_APP_DISABLED_AT: 'agenticCliInAppDisabledAt',
     });
   });
 
@@ -43,6 +44,9 @@ describe('constants', () => {
     );
     expect(
       mapStorageTypeToIds(STORAGE_IDS.PUSH_NOTIFICATIONS_PROMPT_COUNT),
+    ).toEqual(STORAGE_TYPES.NUMBER);
+    expect(
+      mapStorageTypeToIds(STORAGE_IDS.AGENTIC_CLI_IN_APP_DISABLED_AT),
     ).toEqual(STORAGE_TYPES.NUMBER);
     expect(mapStorageTypeToIds(STORAGE_IDS.REQUEST_PERMISSION_ASKED)).toEqual(
       STORAGE_TYPES.BOOLEAN,
