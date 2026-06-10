@@ -1979,10 +1979,10 @@
       "stocks_and_commodities": "स्टॉक्स और कमोडिटीज़ एक्सप्लोर करें",
       "tabs": {
         "crypto": "क्रिप्टो",
-        "stocks": "स्टॉक्स",
-        "commodities": "कमोडिटीज़",
         "forex": "फॉरेक्स",
-        "new": "नया"
+        "new": "नया",
+        "stock": "स्टॉक्स",
+        "commodity": "कमोडिटीज़"
       },
       "filter_by": "इसके द्वारा फिल्टर",
       "forex": "फॉरेक्स",
@@ -8454,7 +8454,7 @@
     "main_title": "पुरस्कार",
     "vip": {
       "bps_unit": "bps",
-      "badge_label": "VIP Fox {{tier}}",
+      "badge_label": "VIP {{tier}}",
       "swaps_label": "Swaps",
       "perps_label": "Perps",
       "error_title": "We couldn’t load your VIP dashboard",
@@ -8971,7 +8971,7 @@
       "non_winner": {
         "title": "रिज़ल्ट आ गए हैं 🏅",
         "description": "{{campaignName}} में अपनी रैंकिंग देखें।",
-        "cta": "देखें"
+        "cta": "विवरण देखें"
       }
     }
   },

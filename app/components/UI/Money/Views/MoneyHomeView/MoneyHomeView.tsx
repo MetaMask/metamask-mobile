@@ -25,36 +25,50 @@ import styleSheet from './MoneyHomeView.styles';
 import { useMoneyDepositTokens } from '../../hooks/useMoneyDepositTokens';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
+import { useMoneyAccountCardTransactions } from '../../hooks/useMoneyAccountCardTransactions';
+import { mergeMoneyActivity } from '../../hooks/useMoneyActivityItems';
+import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyActivityLoading';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
-import { useOnboardingStep, STEPPER_IDS } from '../../hooks/useOnboardingStep';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
+import { isAccountFunded } from '../../utils/isAccountFunded';
 import { calculateProjectedEarnings } from '../../utils/projections';
 import { MUSD_MAINNET_ASSET_FOR_DETAILS } from '../../../../Views/Homepage/Sections/Cash/CashGetMusdEmptyState.constants';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import AppConstants from '../../../../../core/AppConstants';
 import NavigationService from '../../../../../core/NavigationService';
-import { selectIsCardholder } from '../../../../../selectors/cardController';
+import {
+  selectHasMetalCard,
+  selectIsCardholder,
+} from '../../../../../selectors/cardController';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
+import { useCardHomeData } from '../../../Card/hooks/useCardHomeData';
 import { MONEY_HOME_CARD_ORIGIN } from '../../../Card/hooks/useCardPostAuthRedirect';
-import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
 import Logger from '../../../../../util/Logger';
 import { useTheme } from '../../../../../util/theme';
 import { MoneyBalanceDisplayState } from '../../types';
 import { Hex } from '@metamask/utils';
 import { AssetType } from '../../../../Views/confirmations/types/token';
-import { MONEY_ONBOARDING_TOTAL_STEPS } from '../../components/MoneyOnboardingCard/MoneyOnboardingCard';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
+import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import useMountEffect from '../../hooks/useMountEffect';
+import {
+  COMPONENT_NAMES,
+  MONEY_TOOLTIP_NAMES,
+  MONEY_TOOLTIP_TYPES,
+  SCREEN_NAMES,
+  BOTTOM_SHEET_NAMES,
+  MONEY_BUTTON_INTENTS,
+  MONEY_URLS,
+  MONEY_BUTTON_TYPES,
+} from '../../constants/moneyEvents';
+import { strings } from '../../../../../../locales/i18n';
+import { TransactionMeta } from '@metamask/transaction-controller';
+
 const Divider = () => <Box twClassName="h-px bg-border-muted my-5" />;
 
-type MoneyHomeState = 'empty' | 'milestone' | 'filled';
-
-const getMoneyHomeState = (transactionCount: number): MoneyHomeState => {
-  if (transactionCount === 0) return 'empty';
-  if (transactionCount < 10) return 'milestone';
-  return 'filled';
-};
+const ACTION_BUTTON_ROW_BUTTON_COUNT = 3;
 
 const MoneyHomeView = () => {
   const navigation = useNavigation();
@@ -64,8 +78,21 @@ const MoneyHomeView = () => {
   const { colors } = useTheme();
 
   const {
+    trackButtonClicked,
+    trackTooltipClicked,
+    trackSurfaceClicked,
+    trackTokenButtonClicked,
+    trackTokenSurfaceClicked,
+    trackActivitySurfaceClicked,
+    trackScreenViewed,
+  } = useMoneyAnalytics({
+    screen_name: SCREEN_NAMES.MONEY_HOME,
+  });
+
+  const {
     totalFiatFormatted,
     totalFiatRaw,
+    tokenTotal,
     vaultApyQuery,
     isAggregatedBalanceLoading,
     isBalanceFetchError,
@@ -76,6 +103,8 @@ const MoneyHomeView = () => {
 
   // Pull-to-refresh state
   const [refreshing, setRefreshing] = useState(false);
+
+  useMountEffect(trackScreenViewed);
 
   const handlePullRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -96,20 +125,31 @@ const MoneyHomeView = () => {
   const { initiateDeposit } = useMoneyAccountDeposit();
   const { allTransactions, moneyAddress, mockDataEnabled } =
     useMoneyAccountTransactions();
+  const { cardTransactions, isLoading: isCardActivityLoading } =
+    useMoneyAccountCardTransactions();
+  // Mock mode shows curated demo data only — never merge real card spends (or
+  // their loading state) into it.
+  const showCardActivityLoading = isCardActivityLoading && !mockDataEnabled;
+  const activityItems = useMemo(
+    () =>
+      mergeMoneyActivity(
+        allTransactions,
+        mockDataEnabled ? [] : cardTransactions,
+      ),
+    [allTransactions, cardTransactions, mockDataEnabled],
+  );
 
   const isCardholder = useSelector(selectIsCardholder);
-  const { startLinkFlow } = useMoneyAccountCardLinkage();
-  const geolocation = useSelector(getDetectedGeolocation);
-  const isUS = geolocation?.toUpperCase().split('-')[0] === 'US';
+  const hasMetalCard = useSelector(selectHasMetalCard);
+  const {
+    startLinkFlow,
+    isCardAuthenticated,
+    isCardLinkedToMoneyAccount,
+    isLinking,
+  } = useMoneyAccountCardLinkage();
 
-  const { isVisible: isOnboardingCardVisible } = useOnboardingStep({
-    stepperId: STEPPER_IDS.MONEY,
-    totalSteps: MONEY_ONBOARDING_TOTAL_STEPS,
-  });
-
-  const homeState = getMoneyHomeState(allTransactions.length);
-  const isMilestone = homeState === 'milestone' || homeState === 'filled';
-  const isCardholderWithMilestone = isMilestone && isCardholder;
+  const balanceReady = tokenTotal !== undefined;
+  const isFunded = isAccountFunded(tokenTotal) || activityItems.length > 0;
 
   let displayState: MoneyBalanceDisplayState;
   if (!hasMoneyAccount) {
@@ -160,22 +200,93 @@ const MoneyHomeView = () => {
   }, [totalFiatRaw, apyPercent, currentCurrency, formattedZero]);
 
   const handleMenuPress = useCallback(() => {
+    trackButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.ICON,
+      button_intent: MONEY_BUTTON_INTENTS.OPEN_MORE_MENU,
+      component_name: COMPONENT_NAMES.MONEY_MORE,
+      redirect_target: BOTTOM_SHEET_NAMES.MONEY_MORE_SHEET,
+    });
+
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.MORE_SHEET,
     });
-  }, [navigation]);
+  }, [navigation, trackButtonClicked]);
 
-  const handleAddPress = useCallback(() => {
-    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-      screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
-    });
-  }, [navigation]);
+  const handleAddPress = useCallback(
+    ({
+      labelKey,
+      componentName,
+      buttonPosition,
+      buttonRowButtonCount,
+    }: {
+      labelKey: string;
+      componentName: COMPONENT_NAMES;
+      buttonPosition?: number;
+      buttonRowButtonCount?: number;
+    }) => {
+      trackButtonClicked({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+        label_key: labelKey,
+        component_name: componentName,
+        redirect_target: BOTTOM_SHEET_NAMES.MONEY_ADD_MONEY_SHEET,
+        ...(buttonPosition && { button_position: buttonPosition }),
+        ...(buttonRowButtonCount && {
+          button_row_button_count: buttonRowButtonCount,
+        }),
+      });
+
+      navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+      });
+    },
+    [navigation, trackButtonClicked],
+  );
 
   const handleTransferPress = useCallback(() => {
+    trackButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+      button_intent: MONEY_BUTTON_INTENTS.TRANSFER_MONEY,
+      label_key: 'money.action.transfer',
+      redirect_target: BOTTOM_SHEET_NAMES.MONEY_TRANSFER_MONEY_SHEET,
+      component_name: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
+      button_position: 2,
+      button_row_button_count: ACTION_BUTTON_ROW_BUTTON_COUNT,
+    });
+
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.TRANSFER_MONEY_SHEET,
     });
-  }, [navigation]);
+  }, [navigation, trackButtonClicked]);
+
+  const handleCardHeaderPress = useCallback(() => {
+    trackSurfaceClicked({
+      component_name: COMPONENT_NAMES.MONEY_CARD_SECTION_HEADER,
+      redirect_target: SCREEN_NAMES.CARD_HOME,
+    });
+
+    navigation.navigate(Routes.CARD.ROOT, {
+      screen: Routes.CARD.HOME,
+      params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
+    });
+  }, [navigation, trackSurfaceClicked]);
+
+  const handleActionButtonCardPress = useCallback(() => {
+    trackButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+      button_intent: MONEY_BUTTON_INTENTS.CARD_HOME,
+      label_key: 'money.action.card',
+      component_name: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
+      redirect_target: SCREEN_NAMES.CARD_HOME,
+      button_position: 3,
+      button_row_button_count: ACTION_BUTTON_ROW_BUTTON_COUNT,
+    });
+
+    navigation.navigate(Routes.CARD.ROOT, {
+      screen: Routes.CARD.HOME,
+      params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
+    });
+  }, [navigation, trackButtonClicked]);
 
   const handleCardPress = useCallback(() => {
     navigation.navigate(Routes.CARD.ROOT, {
@@ -185,41 +296,76 @@ const MoneyHomeView = () => {
   }, [navigation]);
 
   const handleLinkCardPress = useCallback(() => {
-    startLinkFlow({
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
-    });
+    startLinkFlow(MONEY_HOME_CARD_ORIGIN);
   }, [startLinkFlow]);
 
   const handleApyInfoPress = useCallback(() => {
+    trackTooltipClicked({
+      tooltip_name: MONEY_TOOLTIP_NAMES.APY,
+      tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
+      component_name: COMPONENT_NAMES.MONEY_BALANCE_SUMMARY,
+    });
+
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.APY_INFO_SHEET,
       params: { apy: apyPercent },
     });
-  }, [navigation, apyPercent]);
+  }, [trackTooltipClicked, navigation, apyPercent]);
 
   const handleEarningsInfoPress = useCallback(() => {
+    trackTooltipClicked({
+      tooltip_name: MONEY_TOOLTIP_NAMES.ESTIMATED_EARNINGS,
+      tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
+      component_name: COMPONENT_NAMES.MONEY_ESTIMATED_EARNINGS_SECTION,
+    });
+
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.EARNINGS_INFO_SHEET,
     });
-  }, [navigation]);
+  }, [navigation, trackTooltipClicked]);
 
   const handleEarnCryptoInfoPress = useCallback(() => {
+    trackTooltipClicked({
+      tooltip_name: MONEY_TOOLTIP_NAMES.EARN_ON_YOUR_CRYPTO,
+      tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
+    });
+
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.EARN_CRYPTO_INFO_SHEET,
     });
-  }, [navigation]);
+  }, [navigation, trackTooltipClicked]);
 
-  const handleMusdRowPress = useCallback(() => {
-    NavigationService.navigation.navigate('Asset', {
-      ...MUSD_MAINNET_ASSET_FOR_DETAILS,
-      source: TokenDetailsSource.MobileTokenListPage,
-    });
-  }, []);
+  const handleMusdRowPress = useCallback(
+    ({ componentName }: { componentName: COMPONENT_NAMES }) => {
+      trackSurfaceClicked({
+        component_name: componentName,
+        redirect_target: SCREEN_NAMES.ASSET_OVERVIEW,
+      });
 
-  const handleTokenDepositPress = useCallback(
-    async (token: AssetType) => {
+      NavigationService.navigation.navigate('Asset', {
+        ...MUSD_MAINNET_ASSET_FOR_DETAILS,
+        source: TokenDetailsSource.MobileTokenListPage,
+      });
+    },
+    [trackSurfaceClicked],
+  );
+
+  const handleTokenButtonPress = useCallback(
+    async (token: AssetType, tokenIndex: number, tokenCount: number) => {
       try {
+        trackTokenButtonClicked({
+          button_type: MONEY_BUTTON_TYPES.TEXT,
+          button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+          component_name:
+            COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_SECTION_TOKEN_ROW,
+          label_key: 'money.potential_earnings.add',
+          redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+          token_symbol: token.symbol,
+          token_position_in_list: tokenIndex + 1,
+          token_chain_id: token.chainId ?? '',
+          tokens_in_list: tokenCount,
+        });
+
         await initiateDeposit({
           preferredPaymentToken: {
             address: token.address as Hex,
@@ -229,53 +375,144 @@ const MoneyHomeView = () => {
       } catch (error) {
         Logger.error(error as Error, {
           message:
-            '[MoneyHomeView] Failed to initiate conversion from potential earnings',
+            '[MoneyHomeView] Failed to initiate deposit from potential earnings',
         });
       }
     },
-    [initiateDeposit],
+    [initiateDeposit, trackTokenButtonClicked],
   );
 
-  const handleEarnCryptoPress = useCallback(() => {
+  const handleTokenCardPress = useCallback(
+    async (token: AssetType, tokenIndex: number, tokenCount: number) => {
+      try {
+        trackTokenSurfaceClicked({
+          component_name:
+            COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_SECTION_TOKEN_ROW,
+          redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+          token_symbol: token.symbol,
+          token_position_in_list: tokenIndex + 1,
+          token_chain_id: token.chainId ?? '',
+          tokens_in_list: tokenCount,
+        });
+
+        await initiateDeposit({
+          preferredPaymentToken: {
+            address: token.address as Hex,
+            chainId: token.chainId as Hex,
+          },
+        });
+      } catch (error) {
+        Logger.error(error as Error, {
+          message:
+            '[MoneyHomeView] Failed to initiate deposit from potential earnings',
+        });
+      }
+    },
+    [initiateDeposit, trackTokenSurfaceClicked],
+  );
+
+  const handlePotentialEarningsHeaderPress = useCallback(() => {
+    trackSurfaceClicked({
+      component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_SECTION_HEADER,
+      redirect_target: SCREEN_NAMES.MONEY_POTENTIAL_EARNINGS,
+    });
+
     navigation.navigate(Routes.MONEY.POTENTIAL_EARNINGS as never);
-  }, [navigation]);
+  }, [navigation, trackSurfaceClicked]);
+
+  const handleMoneyPotentialEarningsViewAllPressed = useCallback(() => {
+    trackButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+      button_intent: MONEY_BUTTON_INTENTS.VIEW_ALL,
+      component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_SECTION,
+      label_key: 'money.potential_earnings.view_all',
+      redirect_target: SCREEN_NAMES.MONEY_POTENTIAL_EARNINGS,
+    });
+
+    navigation.navigate(Routes.MONEY.POTENTIAL_EARNINGS as never);
+  }, [navigation, trackButtonClicked]);
+
+  const handleWhatYouGetPress = useCallback(() => {
+    trackSurfaceClicked({
+      component_name: COMPONENT_NAMES.MONEY_CONDENSED_INFO_CARDS_WHAT_YOU_GET,
+      redirect_target: MONEY_URLS.MUSD_LEARN_MORE,
+    });
+
+    Linking.openURL(AppConstants.URLS.MUSD_LEARN_MORE);
+  }, [trackSurfaceClicked]);
 
   const handleLearnMorePress = useCallback(() => {
-    Linking.openURL(AppConstants.URLS.MUSD_LEARN_MORE);
-  }, []);
+    trackButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+      button_intent: MONEY_BUTTON_INTENTS.LEARN_MORE,
+      component_name: COMPONENT_NAMES.MONEY_WHAT_YOU_GET_SECTION,
+      label_key: 'money.what_you_get.learn_more',
+      redirect_target: MONEY_URLS.MUSD_LEARN_MORE,
+    });
 
-  const handleHowItWorksHeaderPress = useCallback(() => {
-    navigation.navigate(Routes.MONEY.HOW_IT_WORKS as never);
-  }, [navigation]);
+    Linking.openURL(AppConstants.URLS.MUSD_LEARN_MORE);
+  }, [trackButtonClicked]);
+
+  const handleHowItWorksPress = useCallback(
+    ({ componentName }: { componentName: COMPONENT_NAMES }) => {
+      trackSurfaceClicked({
+        component_name: componentName,
+        redirect_target: SCREEN_NAMES.MONEY_HOW_IT_WORKS,
+      });
+
+      navigation.navigate(Routes.MONEY.HOW_IT_WORKS as never);
+    },
+    [navigation, trackSurfaceClicked],
+  );
+
+  const handleActivityHeaderPress = useCallback(() => {
+    trackSurfaceClicked({
+      component_name: COMPONENT_NAMES.MONEY_ACTIVITY_SECTION_HEADER,
+      redirect_target: SCREEN_NAMES.MONEY_ACTIVITY,
+    });
+
+    navigation.navigate(Routes.MONEY.ACTIVITY as never);
+  }, [navigation, trackSurfaceClicked]);
 
   const handleViewAllActivityPress = useCallback(() => {
+    trackButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+      button_intent: MONEY_BUTTON_INTENTS.VIEW_ALL,
+      component_name: COMPONENT_NAMES.MONEY_ACTIVITY_SECTION,
+      label_key: 'money.activity.view_all',
+      redirect_target: SCREEN_NAMES.MONEY_ACTIVITY,
+    });
+
     navigation.navigate(Routes.MONEY.ACTIVITY as never);
-  }, [navigation]);
-  const handleActivityHeaderPress = handleViewAllActivityPress;
+  }, [navigation, trackButtonClicked]);
 
   const handleActivityItemPress = useCallback(
-    (transactionId: string) => {
+    (transaction: TransactionMeta) => {
+      trackActivitySurfaceClicked({
+        transaction,
+        redirect_target: SCREEN_NAMES.MONEY_ACTIVITY_DETAILS,
+        component_name: COMPONENT_NAMES.MONEY_ACTIVITY_LIST_ITEM,
+      });
+
       navigation.navigate(Routes.MONEY.MODALS.ROOT, {
         screen: Routes.MONEY.MODALS.TRANSACTION_DETAILS_SHEET,
-        params: { transactionId },
+        params: { transactionId: transaction.id },
       });
     },
-    [navigation],
+    [navigation, trackActivitySurfaceClicked],
   );
 
   let metamaskCardMode: 'upsell' | 'link' | 'manage';
-  if (isCardholderWithMilestone && isUS) {
+  if (isCardLinkedToMoneyAccount) {
     metamaskCardMode = 'manage';
-  } else if (isCardholderWithMilestone) {
+  } else if (isCardAuthenticated || isCardholder) {
     metamaskCardMode = 'link';
   } else {
     metamaskCardMode = 'upsell';
   }
 
-  // No selector yet for the user's card balance — fall back to a locale-
-  // formatted zero so the manage row always shows a value rather than a
-  // blank slot under "Avail. balance".
-  const cardBalance: string = formattedZero;
+  const { primaryToken: cardPrimaryToken } = useCardHomeData();
+  const cardBalance = cardPrimaryToken?.balanceFiat ?? formattedZero;
 
   return (
     <Box
@@ -303,12 +540,18 @@ const MoneyHomeView = () => {
           onApyInfoPress={handleApyInfoPress}
         />
         <MoneyActionButtonRow
-          onAddPress={handleAddPress}
+          onAddPress={() =>
+            handleAddPress({
+              labelKey: 'money.action.add',
+              componentName: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
+              buttonPosition: 1,
+              buttonRowButtonCount: ACTION_BUTTON_ROW_BUTTON_COUNT,
+            })
+          }
           onTransferPress={handleTransferPress}
-          onCardPress={handleCardPress}
+          onCardPress={handleActionButtonCardPress}
         />
         <MoneyOnboardingCard />
-        {isOnboardingCardVisible && <Divider />}
         {/* Only show earnings if balance is available and non-zero */}
         {displayState.kind === 'balance' &&
           totalFiatRaw &&
@@ -325,32 +568,50 @@ const MoneyHomeView = () => {
               <Divider />
             </>
           )}
-        {!isMilestone && (
+        {balanceReady && !isFunded && (
           <>
             <MoneyHowItWorks
               apy={apyPercent}
-              onHeaderPress={handleHowItWorksHeaderPress}
+              onHeaderPress={() =>
+                handleHowItWorksPress({
+                  componentName:
+                    COMPONENT_NAMES.MONEY_HOW_IT_WORKS_SECTION_HEADER,
+                })
+              }
               isLoading={vaultApyQuery.isLoading}
             />
             <MoneyMusdTokenRow
-              onPress={handleMusdRowPress}
-              onAddPress={handleAddPress}
+              onPress={() =>
+                handleMusdRowPress({
+                  componentName: COMPONENT_NAMES.MONEY_MUSD_TOKEN_SECTION,
+                })
+              }
+              onAddPress={() =>
+                handleAddPress({
+                  labelKey: 'money.musd_row.add',
+                  componentName: COMPONENT_NAMES.MONEY_MUSD_TOKEN_SECTION,
+                })
+              }
               balance={musdFiatFormatted}
             />
             <Divider />
           </>
         )}
-        {allTransactions.length >= 1 && (
+        {(showCardActivityLoading || activityItems.length >= 1) && (
           <>
-            <MoneyActivityList
-              transactions={allTransactions}
-              moneyAddress={moneyAddress}
-              onViewAllPress={handleViewAllActivityPress}
-              onHeaderPress={handleActivityHeaderPress}
-              onItemPress={
-                mockDataEnabled ? undefined : handleActivityItemPress
-              }
-            />
+            {showCardActivityLoading ? (
+              <MoneyActivityLoading />
+            ) : (
+              <MoneyActivityList
+                items={activityItems}
+                moneyAddress={moneyAddress}
+                onViewAllPress={handleViewAllActivityPress}
+                onHeaderPress={handleActivityHeaderPress}
+                onItemPress={
+                  mockDataEnabled ? undefined : handleActivityItemPress
+                }
+              />
+            )}
             <Divider />
           </>
         )}
@@ -360,9 +621,10 @@ const MoneyHomeView = () => {
               tokens={depositTokens}
               apy={apyPercent}
               isNoFeeToken={isNoFeeToken}
-              onTokenPress={handleTokenDepositPress}
-              onViewAllPress={handleEarnCryptoPress}
-              onHeaderPress={handleEarnCryptoPress}
+              onTokenCardPress={handleTokenCardPress}
+              onTokenButtonPress={handleTokenButtonPress}
+              onViewAllPress={handleMoneyPotentialEarningsViewAllPressed}
+              onHeaderPress={handlePotentialEarningsHeaderPress}
               onInfoPress={handleEarnCryptoInfoPress}
             />
             <Divider />
@@ -371,31 +633,49 @@ const MoneyHomeView = () => {
         <MoneyMetaMaskCard
           mode={metamaskCardMode}
           onGetNowPress={handleCardPress}
-          onHeaderPress={handleCardPress}
+          onHeaderPress={handleCardHeaderPress}
           onLinkPress={handleLinkCardPress}
           onManagePress={handleCardPress}
-          showMetalCard={isUS}
+          showMetalCard={hasMetalCard}
+          isLinkDisabled={isLinking}
           cardBalance={cardBalance}
           apy={apyPercent}
         />
         <Divider />
-        {isMilestone && (
+        {isFunded && (
           <>
             <MoneyCondensedInfoCards
-              onHowItWorksPress={handleHowItWorksHeaderPress}
-              onMusdPress={handleMusdRowPress}
-              onWhatYouGetPress={handleLearnMorePress}
+              onHowItWorksPress={() =>
+                handleHowItWorksPress({
+                  componentName:
+                    COMPONENT_NAMES.MONEY_CONDENSED_INFO_CARDS_HOW_IT_WORKS,
+                })
+              }
+              onMusdPress={() =>
+                handleMusdRowPress({
+                  componentName:
+                    COMPONENT_NAMES.MONEY_CONDENSED_INFO_CARDS_MUSD,
+                })
+              }
+              onWhatYouGetPress={handleWhatYouGetPress}
             />
             <Divider />
           </>
         )}
-        {!isMilestone && (
+        {balanceReady && !isFunded && (
           <MoneyWhatYouGet
             apy={apyPercent}
             onLearnMorePress={handleLearnMorePress}
           />
         )}
-        <MoneyFooter onAddMoneyPress={handleAddPress} />
+        <MoneyFooter
+          onAddMoneyPress={() =>
+            handleAddPress({
+              labelKey: 'money.footer.add_money',
+              componentName: COMPONENT_NAMES.MONEY_FOOTER,
+            })
+          }
+        />
       </ScrollView>
     </Box>
   );

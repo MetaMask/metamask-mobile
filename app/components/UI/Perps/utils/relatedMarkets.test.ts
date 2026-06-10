@@ -1,8 +1,5 @@
 import type { PerpsMarketData } from '@metamask/perps-controller';
-import {
-  getRelatedMarketCollection,
-  getRelatedMarketsForMarket,
-} from './relatedMarkets';
+import { getRelatedMarketsForMarket } from './relatedMarkets';
 
 const createMarket = (
   symbol: string,
@@ -19,60 +16,82 @@ const createMarket = (
 });
 
 describe('relatedMarkets utilities', () => {
-  it('resolves the collection from the market category', () => {
-    expect(
-      getRelatedMarketCollection(
-        createMarket('xyz:AAPL', { marketType: 'stock', isHip3: true }),
-      ),
-    ).toMatchObject({
-      id: 'stocks',
-      label: 'Stocks',
+  it('resolves a HIP-3 category collection from the market marketType', () => {
+    // Arrange
+    const current = createMarket('xyz:AAPL', {
+      marketType: 'stock',
+      isHip3: true,
     });
-  });
 
-  it('returns same-category markets and excludes the current market', () => {
-    const result = getRelatedMarketsForMarket(
-      createMarket('xyz:AAPL', { marketType: 'stock', isHip3: true }),
-      [
-        createMarket('xyz:AAPL', { marketType: 'stock', isHip3: true }),
-        createMarket('xyz:MSFT', { marketType: 'stock', isHip3: true }),
-        createMarket('xyz:GOLD', { marketType: 'commodity', isHip3: true }),
-      ],
-    );
+    // Act
+    const result = getRelatedMarketsForMarket(current, [
+      current,
+      createMarket('xyz:MSFT', { marketType: 'stock', isHip3: true }),
+    ]);
 
-    expect(result?.collection.id).toBe('stocks');
+    // Assert
+    expect(result?.collection).toMatchObject({ id: 'stock', label: 'Stocks' });
     expect(result?.markets.map((market) => market.symbol)).toStrictEqual([
       'xyz:MSFT',
     ]);
   });
 
-  it('groups all stock-like types into the single stocks collection', () => {
-    const result = getRelatedMarketsForMarket(
-      createMarket('xyz:AAPL', { marketType: 'stock', isHip3: true }),
-      [
-        createMarket('xyz:SPY', { marketType: 'etf', isHip3: true }),
-        createMarket('xyz:SPX', { marketType: 'index', isHip3: true }),
-        createMarket('xyz:ARM', { marketType: 'pre-ipo', isHip3: true }),
-        createMarket('xyz:GOLD', { marketType: 'commodity', isHip3: true }),
-      ],
-    );
+  it('returns same-category markets and excludes the current market and other categories', () => {
+    // Arrange
+    const current = createMarket('xyz:AAPL', {
+      marketType: 'stock',
+      isHip3: true,
+    });
 
-    expect(result?.collection.id).toBe('stocks');
+    // Act
+    const result = getRelatedMarketsForMarket(current, [
+      current,
+      createMarket('xyz:MSFT', { marketType: 'stock', isHip3: true }),
+      createMarket('xyz:GOLD', { marketType: 'commodity', isHip3: true }),
+      createMarket('xyz:SPY', { marketType: 'etf', isHip3: true }),
+    ]);
+
+    // Assert
+    expect(result?.collection.id).toBe('stock');
     expect(result?.markets.map((market) => market.symbol)).toStrictEqual([
-      'xyz:SPY',
-      'xyz:SPX',
-      'xyz:ARM',
+      'xyz:MSFT',
     ]);
   });
 
-  it('uses crypto as the category for main DEX markets', () => {
-    const result = getRelatedMarketsForMarket(createMarket('FET'), [
-      createMarket('FET'),
+  it('keeps each HIP-3 category separate (no equity bucketing)', () => {
+    // Arrange
+    const current = createMarket('xyz:SPY', {
+      marketType: 'etf',
+      isHip3: true,
+    });
+
+    // Act
+    const result = getRelatedMarketsForMarket(current, [
+      createMarket('xyz:QQQ', { marketType: 'etf', isHip3: true }),
+      createMarket('xyz:AAPL', { marketType: 'stock', isHip3: true }),
+      createMarket('xyz:SPX', { marketType: 'index', isHip3: true }),
+    ]);
+
+    // Assert
+    expect(result?.collection).toMatchObject({ id: 'etf', label: 'ETFs' });
+    expect(result?.markets.map((market) => market.symbol)).toStrictEqual([
+      'xyz:QQQ',
+    ]);
+  });
+
+  it('uses crypto for main DEX (non-HIP-3) markets', () => {
+    // Arrange
+    const current = createMarket('FET');
+
+    // Act
+    const result = getRelatedMarketsForMarket(current, [
+      current,
       createMarket('TAO'),
       createMarket('BTC'),
     ]);
 
-    expect(result?.collection.id).toBe('crypto');
+    // Assert
+    expect(result?.collection).toMatchObject({ id: 'crypto', label: 'Crypto' });
     expect(result?.markets.map((market) => market.symbol)).toStrictEqual([
       'TAO',
       'BTC',
@@ -80,11 +99,26 @@ describe('relatedMarkets utilities', () => {
   });
 
   it('returns null when a HIP-3 market has no category assignment', () => {
+    // Arrange
+    const current = createMarket('builder:XYZ', { isHip3: true });
+
+    // Act + Assert
     expect(
-      getRelatedMarketsForMarket(
-        createMarket('builder:XYZ', { isHip3: true }),
-        [createMarket('builder:XYZ', { isHip3: true })],
-      ),
+      getRelatedMarketsForMarket(current, [
+        current,
+        createMarket('builder:ABC', { isHip3: true }),
+      ]),
     ).toBeNull();
+  });
+
+  it('returns null when there are no other markets in the category', () => {
+    // Arrange
+    const current = createMarket('xyz:AAPL', {
+      marketType: 'stock',
+      isHip3: true,
+    });
+
+    // Act + Assert
+    expect(getRelatedMarketsForMarket(current, [current])).toBeNull();
   });
 });

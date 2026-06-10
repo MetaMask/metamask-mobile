@@ -14,6 +14,8 @@ export const PAY_HARDWARE_ENABLED_DEFAULT = false;
 export const PAY_ENABLE_DEPOSIT_WALLET_WITHDRAW_DEFAULT = false;
 export const PAY_ENABLE_PERPS_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT = false;
 export const PAY_ENABLE_PREDICT_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT = false;
+export const PAY_ENABLE_MONEY_HOME_PAGE_PERPS_TRANSACTION_DEFAULT = false;
+export const PAY_ENABLE_MONEY_HOME_PAGE_PREDICT_TRANSACTION_DEFAULT = false;
 export const SLIPPAGE_DEFAULT = 0.005;
 export const STX_DISABLED_DEFAULT = false;
 
@@ -56,6 +58,8 @@ export interface MetaMaskPayExtendedFlags {
   enableDepositWalletWithdraw: boolean;
   enablePerpsMoneyAccountTransactions: boolean;
   enablePredictMoneyAccountTransactions: boolean;
+  enableMoneyHomePagePerpsTransaction: boolean;
+  enableMoneyHomePagePredictTransaction: boolean;
 }
 
 export interface MetaMaskPayTokensFlags {
@@ -130,14 +134,22 @@ export const selectMetaMaskPayFlags = createSelector(
       PAY_ENABLE_DEPOSIT_WALLET_WITHDRAW_DEFAULT;
 
     const enablePerpsMoneyAccountTransactions =
-      process.env.MONEY_ACCOUNT_PERPS_PREDICT_ENABLED === 'true' &&
-      ((metaMaskPayExtendedFlags?.enablePerpsMoneyAccountTransactions as boolean) ??
-        PAY_ENABLE_PERPS_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT);
+      (metaMaskPayExtendedFlags?.enablePerpsMoneyAccountTransactions as boolean) ??
+      PAY_ENABLE_PERPS_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT;
 
     const enablePredictMoneyAccountTransactions =
-      process.env.MONEY_ACCOUNT_PERPS_PREDICT_ENABLED === 'true' &&
+      (metaMaskPayExtendedFlags?.enablePredictMoneyAccountTransactions as boolean) ??
+      PAY_ENABLE_PREDICT_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT;
+
+    const enableMoneyHomePagePerpsTransaction =
+      process.env.MONEY_HOME_PAGE_PERPS_PREDICT_ENABLED === 'true' &&
+      ((metaMaskPayExtendedFlags?.enablePerpsMoneyAccountTransactions as boolean) ??
+        PAY_ENABLE_MONEY_HOME_PAGE_PERPS_TRANSACTION_DEFAULT);
+
+    const enableMoneyHomePagePredictTransaction =
+      process.env.MONEY_HOME_PAGE_PERPS_PREDICT_ENABLED === 'true' &&
       ((metaMaskPayExtendedFlags?.enablePredictMoneyAccountTransactions as boolean) ??
-        PAY_ENABLE_PREDICT_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT);
+        PAY_ENABLE_MONEY_HOME_PAGE_PREDICT_TRANSACTION_DEFAULT);
 
     return {
       attemptsMax,
@@ -149,6 +161,8 @@ export const selectMetaMaskPayFlags = createSelector(
       enableDepositWalletWithdraw,
       enablePerpsMoneyAccountTransactions,
       enablePredictMoneyAccountTransactions,
+      enableMoneyHomePagePerpsTransaction,
+      enableMoneyHomePagePredictTransaction,
     };
   },
 );

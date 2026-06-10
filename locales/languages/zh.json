@@ -1979,10 +1979,10 @@
       "stocks_and_commodities": "探索股票与大宗商品",
       "tabs": {
         "crypto": "加密货币",
-        "stocks": "股票",
-        "commodities": "大宗商品",
         "forex": "外汇",
-        "new": "新增"
+        "new": "新增",
+        "stock": "股票",
+        "commodity": "大宗商品"
       },
       "filter_by": "筛选方式",
       "forex": "外汇",
@@ -8454,7 +8454,7 @@
     "main_title": "奖励",
     "vip": {
       "bps_unit": "bps",
-      "badge_label": "VIP Fox {{tier}}",
+      "badge_label": "VIP {{tier}}",
       "swaps_label": "Swaps",
       "perps_label": "Perps",
       "error_title": "We couldn’t load your VIP dashboard",
@@ -8971,7 +8971,7 @@
       "non_winner": {
         "title": "结果已公布 🏅",
         "description": "查看您在 {{campaignName}} 中的排名.",
-        "cta": "查看"
+        "cta": "查看详情"
       }
     }
   },

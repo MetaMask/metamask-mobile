@@ -105,19 +105,14 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
     }
     return strings('onboarding_success.wallet_ready');
   };
-  const shouldSkipSuccessAnimation =
-    Platform.OS === 'android' &&
-    successFlow === ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING;
 
   const renderContent = () => (
     <>
-      {!shouldSkipSuccessAnimation && (
-        <OnboardingSuccessEndAnimation
-          onAnimationComplete={() => {
-            // No-op: Animation completion not needed in success mode
-          }}
-        />
-      )}
+      <OnboardingSuccessEndAnimation
+        onAnimationComplete={() => {
+          // No-op: Animation completion not needed in success mode
+        }}
+      />
       <Text
         variant={TextVariant.DisplayMd}
         fontFamily={FontFamily.Accent}

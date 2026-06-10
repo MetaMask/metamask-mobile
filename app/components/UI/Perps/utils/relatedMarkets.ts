@@ -2,7 +2,8 @@ import {
   type MarketTypeFilter,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
-import { isEquityAsset } from './marketHours';
+import { strings } from '../../../../../locales/i18n';
+import { isHip3Filter, normalizeFilterKey } from './marketCategoryMapping';
 
 export const RELATED_MARKETS_SOURCE = 'related_markets';
 export const RELATED_MARKET_CLICKED = 'related_market_clicked';
@@ -24,41 +25,26 @@ export interface RelatedMarketsResult {
   markets: PerpsMarketData[];
 }
 
-const RELATED_MARKET_CATEGORIES = {
-  crypto: { id: 'crypto', label: 'Crypto' },
-  stocks: { id: 'stocks', label: 'Stocks' },
-  commodities: { id: 'commodities', label: 'Commodities' },
-  forex: { id: 'forex', label: 'Forex' },
-  new: { id: 'new', label: 'New' },
-} as const satisfies Record<string, RelatedMarketCollection>;
-
 const normalizeSymbol = (symbol: string) => symbol.trim().toUpperCase();
 
-export const getRelatedMarketCollection = (
+/**
+ * Resolve a market's category id using the controller-backed model shared
+ * with the markets list and category pills (see `usePerpsCategories` and
+ * `marketCategoryMapping`).
+ *
+ * Non-HIP-3 (main DEX) markets are `'crypto'`. HIP-3 markets use their
+ * `marketType` (stock, pre-ipo, index, etf, commodity, forex) when it is a
+ * known category from the controller's `MARKET_CATEGORIES`. Uncategorised
+ * HIP-3 markets have no related-markets collection.
+ */
+const getMarketCategoryId = (
   market: PerpsMarketData,
-): RelatedMarketCollection | null => {
-  if (market.isNewMarket) {
-    return RELATED_MARKET_CATEGORIES.new;
-  }
-
-  // Stock-like assets (stock, pre-ipo, index, etf) share one collection to
-  // match the Stocks tab and Perps home, which bucket equities via isEquityAsset.
-  if (isEquityAsset(market.marketType)) {
-    return RELATED_MARKET_CATEGORIES.stocks;
-  }
-
-  switch (market.marketType) {
-    case 'commodity':
-      return RELATED_MARKET_CATEGORIES.commodities;
-    case 'forex':
-      return RELATED_MARKET_CATEGORIES.forex;
-    case 'crypto':
-    default:
-      // Crypto (or untyped) markets group together, but skip HIP-3 builder
-      // markets with no explicit category to avoid mixing synthetic pairs.
-      return market.isHip3 ? null : RELATED_MARKET_CATEGORIES.crypto;
-  }
-};
+): Exclude<MarketTypeFilter, 'all'> | undefined =>
+  !market.isHip3
+    ? 'crypto'
+    : isHip3Filter(market.marketType)
+      ? market.marketType
+      : undefined;
 
 export const getRelatedMarketsForMarket = (
   currentMarket: PerpsMarketData | null | undefined,
@@ -68,8 +54,8 @@ export const getRelatedMarketsForMarket = (
     return null;
   }
 
-  const collection = getRelatedMarketCollection(currentMarket);
-  if (!collection) {
+  const categoryId = getMarketCategoryId(currentMarket);
+  if (!categoryId) {
     return null;
   }
 
@@ -77,7 +63,7 @@ export const getRelatedMarketsForMarket = (
   const relatedMarkets = markets.filter(
     (market) =>
       normalizeSymbol(market.symbol) !== currentSymbol &&
-      getRelatedMarketCollection(market)?.id === collection.id,
+      getMarketCategoryId(market) === categoryId,
   );
 
   if (relatedMarkets.length === 0) {
@@ -85,7 +71,10 @@ export const getRelatedMarketsForMarket = (
   }
 
   return {
-    collection,
+    collection: {
+      id: categoryId,
+      label: strings(`perps.home.tabs.${normalizeFilterKey(categoryId)}`),
+    },
     markets: relatedMarkets,
   };
 };
