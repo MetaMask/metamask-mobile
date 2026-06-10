@@ -16,6 +16,7 @@ let mockIsMetamaskNotificationsEnabled = true;
 let mockHasEnabledAccount = true;
 let mockHasNotificationAccounts = true;
 let mockIsUpdatingAllAccounts = false;
+let mockIsUpdatingPreferences = false;
 
 const mockPreferences = {
   walletActivity: {
@@ -47,6 +48,7 @@ jest.mock('../../../../selectors/notifications', () => ({
 jest.mock('./hooks/useNotificationStoragePreferences', () => ({
   useNotificationStoragePreferences: () => ({
     preferences: mockPreferences,
+    isUpdatingPreferences: mockIsUpdatingPreferences,
     updateSectionChannel: mockUpdateSectionChannel,
   }),
 }));
@@ -100,6 +102,7 @@ describe('NotificationSettingsSection', () => {
     mockHasEnabledAccount = true;
     mockHasNotificationAccounts = true;
     mockIsUpdatingAllAccounts = false;
+    mockIsUpdatingPreferences = false;
   });
 
   it('renders section preferences when global notifications are enabled', () => {
@@ -202,32 +205,18 @@ describe('NotificationSettingsSection', () => {
     });
   });
 
-  it('forwards rapid toggle events in order', async () => {
+  it('disables channel toggles while preference save is in flight', () => {
+    mockIsUpdatingPreferences = true;
     renderSection();
 
     const pushToggle = screen.getByTestId(
       NotificationSettingsViewSelectorsIDs.PUSH_NOTIFICATIONS_TOGGLE,
     );
-    await act(async () => {
-      fireEvent(pushToggle, 'onValueChange', false);
-      fireEvent(pushToggle, 'onValueChange', true);
-      await Promise.resolve();
-    });
+    const inAppToggle = screen.getByTestId(
+      NotificationSettingsViewSelectorsIDs.FEATURE_ANNOUNCEMENTS_TOGGLE,
+    );
 
-    expect(mockUpdateSectionChannel).toHaveBeenNthCalledWith(
-      1,
-      'socialAI',
-      'pushNotificationsEnabled',
-      false,
-    );
-    await waitFor(() => {
-      expect(mockUpdateSectionChannel).toHaveBeenCalledTimes(2);
-    });
-    expect(mockUpdateSectionChannel).toHaveBeenNthCalledWith(
-      2,
-      'socialAI',
-      'pushNotificationsEnabled',
-      true,
-    );
+    expect(pushToggle.props.disabled).toBe(true);
+    expect(inAppToggle.props.disabled).toBe(true);
   });
 });

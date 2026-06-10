@@ -4,10 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import type { NotificationPreferences } from '@metamask/authenticated-user-storage';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
-import {
-  __resetNotificationStoragePreferencesModuleState,
-  useNotificationStoragePreferences,
-} from './useNotificationStoragePreferences';
+import { useNotificationStoragePreferences } from './useNotificationStoragePreferences';
 
 jest.mock('@metamask/react-data-query');
 
@@ -32,7 +29,6 @@ jest.mock('../../../../../util/Logger', () => ({
 const GET_ACTION = 'AuthenticatedUserStorageService:getNotificationPreferences';
 const PUT_ACTION = 'AuthenticatedUserStorageService:putNotificationPreferences';
 const CLIENT_TYPE = 'mobile';
-const RECONCILIATION_DELAY_MS = 60_000;
 
 const mockUseQuery = useQuery as jest.MockedFunction<typeof useQuery>;
 const mockUseQueryClient = useQueryClient as jest.MockedFunction<
@@ -41,7 +37,6 @@ const mockUseQueryClient = useQueryClient as jest.MockedFunction<
 const mockSetQueryData = jest.fn();
 const mockGetQueryData = jest.fn();
 const mockCancelQueries = jest.fn();
-const mockInvalidateQueries = jest.fn();
 const mockRefetch = jest.fn();
 const mockCall = Engine.controllerMessenger.call as jest.Mock;
 
@@ -93,7 +88,6 @@ const makeQueryResult = (
 
 describe('useNotificationStoragePreferences', () => {
   beforeEach(() => {
-    __resetNotificationStoragePreferencesModuleState();
     jest.clearAllMocks();
     queryCache = undefined;
     mockUseQuery.mockReturnValue(makeQueryResult());
@@ -101,7 +95,6 @@ describe('useNotificationStoragePreferences', () => {
       setQueryData: mockSetQueryData,
       getQueryData: mockGetQueryData,
       cancelQueries: mockCancelQueries,
-      invalidateQueries: mockInvalidateQueries,
     } as unknown as ReturnType<typeof useQueryClient>);
     mockSetQueryData.mockImplementation(
       (
@@ -123,7 +116,6 @@ describe('useNotificationStoragePreferences', () => {
     );
     mockGetQueryData.mockImplementation(() => queryCache);
     mockCancelQueries.mockResolvedValue(undefined);
-    mockInvalidateQueries.mockResolvedValue(undefined);
     mockRefetch.mockResolvedValue(undefined);
     mockCall.mockResolvedValue(undefined);
   });
@@ -140,13 +132,13 @@ describe('useNotificationStoragePreferences', () => {
     expect(mockUseQuery).toHaveBeenCalledWith(
       expect.objectContaining({
         queryKey: [GET_ACTION],
-        refetchOnMount: expect.any(Function),
-        refetchOnWindowFocus: expect.any(Function),
+        refetchOnWindowFocus: false,
       }),
     );
     expect(result.current.preferences).toBe(preferences);
     expect(result.current.hasNotificationPreferences).toBe(true);
     expect(result.current.isLoading).toBe(true);
+    expect(result.current.isUpdatingPreferences).toBe(false);
     expect(result.current.error).toBe(error);
   });
 
@@ -214,7 +206,7 @@ describe('useNotificationStoragePreferences', () => {
     );
   });
 
-  it('serializes rapid writes and preserves latest payload intent', async () => {
+  it('ignores overlapping writes while a preference save is in flight', async () => {
     queryCache = buildPreferences();
     mockUseQuery.mockReturnValue(makeQueryResult({ data: queryCache }));
 
@@ -256,33 +248,7 @@ describe('useNotificationStoragePreferences', () => {
       await Promise.all([firstWrite, secondWrite]);
     });
 
-    expect(putPayloads).toHaveLength(2);
-    expect(putPayloads[1].walletActivity.pushNotificationsEnabled).toBe(true);
-  });
-
-  it('invalidates once writes are idle and refetch suppression window passes', async () => {
-    jest.useFakeTimers();
-    queryCache = buildPreferences();
-    mockUseQuery.mockReturnValue(makeQueryResult({ data: queryCache }));
-
-    const { result } = renderHook(() => useNotificationStoragePreferences());
-
-    await act(async () => {
-      await result.current.updateSectionChannel(
-        'perps',
-        'inAppNotificationsEnabled',
-        false,
-      );
-    });
-
-    expect(mockInvalidateQueries).not.toHaveBeenCalled();
-    await act(async () => {
-      jest.advanceTimersByTime(RECONCILIATION_DELAY_MS);
-    });
-    expect(mockInvalidateQueries).toHaveBeenCalledWith({
-      queryKey: [GET_ACTION],
-    });
-
-    jest.useRealTimers();
+    expect(putPayloads).toHaveLength(1);
+    expect(putPayloads[0].walletActivity.pushNotificationsEnabled).toBe(false);
   });
 });

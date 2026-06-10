@@ -20,8 +20,8 @@ import {
 } from '@metamask/design-system-react-native';
 import {
   useNotificationStoragePreferences,
-  type NotificationStoragePreferenceChannelKey,
-  type NotificationStoragePreferenceSection,
+  type NotificationPreferenceChannelKey,
+  type NotificationPreferenceSection,
 } from './hooks/useNotificationStoragePreferences';
 import { AccountsList } from './AccountsList';
 import { strings } from '../../../../../locales/i18n';
@@ -124,7 +124,7 @@ const MarketingSectionContent = ({ styles }: SectionContentProps) => (
 
 const SECTION_CONTENT_BY_TYPE: Partial<
   Record<
-    NotificationStoragePreferenceSection,
+    NotificationPreferenceSection,
     React.ComponentType<SectionContentProps>
   >
 > = {
@@ -138,7 +138,7 @@ export interface NotificationSettingsSectionProps {
   route: RouteProp<
     {
       params: {
-        type: NotificationStoragePreferenceSection;
+        type: NotificationPreferenceSection;
         title: string;
         description: string;
       };
@@ -158,7 +158,7 @@ const NotificationSettingsSection = ({
   const isMetamaskNotificationsEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
-  const { preferences, updateSectionChannel } =
+  const { preferences, isUpdatingPreferences, updateSectionChannel } =
     useNotificationStoragePreferences();
 
   useEffect(() => {
@@ -168,19 +168,18 @@ const NotificationSettingsSection = ({
   }, [isMetamaskNotificationsEnabled, navigation]);
 
   const handleChannelToggle = useCallback(
-    (channel: NotificationStoragePreferenceChannelKey, nextValue: boolean) => {
-      updateSectionChannel(type, channel, nextValue)
-        .catch(() => {
-          Logger.error(
-            new Error('Failed to update notification section channel'),
-            {
-              message: 'NotificationSettingsSection: update channel failed',
-              type,
-              channel,
-              nextValue,
-            },
-          );
-        });
+    (channel: NotificationPreferenceChannelKey, nextValue: boolean) => {
+      updateSectionChannel(type, channel, nextValue).catch(() => {
+        Logger.error(
+          new Error('Failed to update notification section channel'),
+          {
+            message: 'NotificationSettingsSection: update channel failed',
+            type,
+            channel,
+            nextValue,
+          },
+        );
+      });
     },
     [type, updateSectionChannel],
   );
@@ -225,6 +224,7 @@ const NotificationSettingsSection = ({
           </Text>
           <Switch
             value={sectionPrefs.pushNotificationsEnabled}
+            disabled={isUpdatingPreferences}
             onValueChange={(nextValue) =>
               handleChannelToggle('pushNotificationsEnabled', nextValue)
             }
@@ -251,6 +251,7 @@ const NotificationSettingsSection = ({
           </Text>
           <Switch
             value={sectionPrefs.inAppNotificationsEnabled}
+            disabled={isUpdatingPreferences}
             onValueChange={(nextValue) =>
               handleChannelToggle('inAppNotificationsEnabled', nextValue)
             }

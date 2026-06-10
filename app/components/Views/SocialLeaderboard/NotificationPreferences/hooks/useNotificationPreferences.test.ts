@@ -5,6 +5,7 @@ import {
   useNotificationPreferences,
   TX_AMOUNT_THRESHOLDS,
 } from './useNotificationPreferences';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useNotificationStoragePreferences } from '../../../Settings/NotificationsSettings/hooks/useNotificationStoragePreferences';
 
 jest.mock('../../../../../util/Logger', () => ({
@@ -45,10 +46,6 @@ const buildStoragePreferences = (socialAIOverrides = {}) => ({
     mutedTraderProfileIds: [],
     ...socialAIOverrides,
   },
-  marketing: {
-    inAppNotificationsEnabled: false,
-    pushNotificationsEnabled: false,
-  },
 });
 
 describe('useNotificationPreferences', () => {
@@ -64,6 +61,7 @@ describe('useNotificationPreferences', () => {
       updatePreferencesSection: mockUpdatePreferencesSection,
       updateSectionChannel: mockUpdateSectionChannel,
       updatePreference: jest.fn(),
+      isUpdatingPreferences: false,
       refetch: jest.fn(),
     });
   });
@@ -77,6 +75,7 @@ describe('useNotificationPreferences', () => {
       updatePreferencesSection: mockUpdatePreferencesSection,
       updateSectionChannel: mockUpdateSectionChannel,
       updatePreference: jest.fn(),
+      isUpdatingPreferences: false,
       refetch: jest.fn(),
     });
 
@@ -103,6 +102,7 @@ describe('useNotificationPreferences', () => {
       updatePreferencesSection: mockUpdatePreferencesSection,
       updateSectionChannel: mockUpdateSectionChannel,
       updatePreference: jest.fn(),
+      isUpdatingPreferences: false,
       refetch: jest.fn(),
     });
 
@@ -195,6 +195,7 @@ describe('useNotificationPreferences', () => {
       updatePreferencesSection: mockUpdatePreferencesSection,
       updateSectionChannel: mockUpdateSectionChannel,
       updatePreference: jest.fn(),
+      isUpdatingPreferences: false,
       refetch: jest.fn(),
     });
 
@@ -221,6 +222,7 @@ describe('useNotificationPreferences', () => {
       updatePreferencesSection: mockUpdatePreferencesSection,
       updateSectionChannel: mockUpdateSectionChannel,
       updatePreference: jest.fn(),
+      isUpdatingPreferences: false,
       refetch: jest.fn(),
     });
 

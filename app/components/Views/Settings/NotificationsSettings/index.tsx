@@ -21,8 +21,7 @@ import { MainNotificationToggle } from './MainNotificationToggle';
 import styleSheet from './NotificationsSettings.styles';
 import {
   useNotificationStoragePreferences,
-  type NotificationStoragePreferences,
-  type NotificationStoragePreferenceSection,
+  type NotificationPreferenceSection,
 } from './hooks/useNotificationStoragePreferences';
 
 import {
@@ -36,6 +35,7 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
 } from '@metamask/design-system-react-native';
+import { NotificationPreferences } from '@metamask/authenticated-user-storage';
 
 interface NotificationRowProps {
   title: string;
@@ -75,7 +75,7 @@ const NotificationRow = ({
 };
 
 type NotificationPreferenceStatus =
-  NotificationStoragePreferences[NotificationStoragePreferenceSection];
+  NotificationPreferences[NotificationPreferenceSection];
 
 const getStatusText = (prefs?: NotificationPreferenceStatus | null) => {
   const active = [];
@@ -105,7 +105,7 @@ const NotificationsSettings = ({ navigation }: Props) => {
   const { preferences } = useNotificationStoragePreferences();
 
   const navigateToSection = (
-    type: NotificationStoragePreferenceSection,
+    type: NotificationPreferenceSection,
     title: string,
     description: string,
   ) => {
