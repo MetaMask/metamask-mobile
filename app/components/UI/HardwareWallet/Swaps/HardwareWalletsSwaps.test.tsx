@@ -712,6 +712,7 @@ describe('HardwareWalletsSwaps', () => {
 
         expect(mockSetForceHideBottomSheet).toHaveBeenCalledWith(true);
         expect(mockSetForceHideBottomSheet).not.toHaveBeenCalledWith(false);
+        expect(mockSetForceHideBottomSheet.mock.calls.at(-1)?.[0]).toBe(true);
       });
     });
   });
