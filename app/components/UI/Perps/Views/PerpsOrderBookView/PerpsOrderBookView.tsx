@@ -533,7 +533,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
             />
             <View style={styles.headerTitleContainer}>
               <Text
-                variant={TextVariant.HeadingSm}
+                variant={TextVariant.HeadingMd}
                 color={TextColor.TextDefault}
               >
                 {strings('perps.order_book.title')}
@@ -771,7 +771,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
           onClose={handleDepthBandSheetClose}
         >
           <BottomSheetHeader onClose={handleDepthBandSheetClose}>
-            <Text variant={TextVariant.HeadingSm}>
+            <Text variant={TextVariant.HeadingMd}>
               {strings('perps.order_book.depth_band.title')}
             </Text>
           </BottomSheetHeader>

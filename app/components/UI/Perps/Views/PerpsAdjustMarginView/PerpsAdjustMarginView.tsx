@@ -258,7 +258,7 @@ const PerpsAdjustMarginView: React.FC = () => {
           iconColor={IconColor.Default}
           size={ButtonIconSizes.Md}
         />
-        <Text variant={TextVariant.HeadingSm} style={styles.headerTitle}>
+        <Text variant={TextVariant.HeadingMd} style={styles.headerTitle}>
           {title}
         </Text>
         <View style={styles.headerSpacer} />

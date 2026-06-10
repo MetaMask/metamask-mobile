@@ -501,7 +501,7 @@ const HIP3DebugView: React.FC = () => {
       <ScrollView style={styles.scrollView}>
         {/* DEX Selector Section */}
         <View style={styles.section}>
-          <Text variant={TextVariant.HeadingSm} style={styles.sectionTitle}>
+          <Text variant={TextVariant.HeadingMd} style={styles.sectionTitle}>
             Step 1: Select HIP-3 DEX
           </Text>
           <Text variant={TextVariant.BodySm} style={styles.subtitle}>
@@ -550,7 +550,7 @@ const HIP3DebugView: React.FC = () => {
         {/* Market Selector Section */}
         {selectedDex && (
           <View style={styles.section}>
-            <Text variant={TextVariant.HeadingSm} style={styles.sectionTitle}>
+            <Text variant={TextVariant.HeadingMd} style={styles.sectionTitle}>
               Step 2: Select Market
             </Text>
             <Text variant={TextVariant.BodySm} style={styles.subtitle}>
@@ -598,7 +598,7 @@ const HIP3DebugView: React.FC = () => {
 
         {/* Balance Check Section */}
         <View style={styles.section}>
-          <Text variant={TextVariant.HeadingSm} style={styles.sectionTitle}>
+          <Text variant={TextVariant.HeadingMd} style={styles.sectionTitle}>
             Balance Check
           </Text>
           <Text variant={TextVariant.BodySm} style={styles.subtitle}>
@@ -679,7 +679,7 @@ const HIP3DebugView: React.FC = () => {
 
         {/* Manual Transfer Testing */}
         <View style={styles.section}>
-          <Text variant={TextVariant.HeadingSm} style={styles.sectionTitle}>
+          <Text variant={TextVariant.HeadingMd} style={styles.sectionTitle}>
             Manual Transfer Testing
           </Text>
 
@@ -729,7 +729,7 @@ const HIP3DebugView: React.FC = () => {
 
         {/* Auto-Transfer Testing */}
         <View style={styles.section}>
-          <Text variant={TextVariant.HeadingSm} style={styles.sectionTitle}>
+          <Text variant={TextVariant.HeadingMd} style={styles.sectionTitle}>
             Auto-Transfer Testing
           </Text>
 

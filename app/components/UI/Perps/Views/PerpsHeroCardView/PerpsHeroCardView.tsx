@@ -460,7 +460,7 @@ const PerpsHeroCardView: React.FC = () => {
       <View style={styles.header} testID={PerpsHeroCardViewSelectorsIDs.HEADER}>
         <View style={styles.closeButton} />
         <Text
-          variant={TextVariant.HeadingSm}
+          variant={TextVariant.HeadingMd}
           color={TextColor.TextDefault}
           style={styles.headerTitle}
           testID={PerpsHeroCardViewSelectorsIDs.HEADER_TITLE}

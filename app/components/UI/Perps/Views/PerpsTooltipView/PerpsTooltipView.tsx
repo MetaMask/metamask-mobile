@@ -72,7 +72,7 @@ const PerpsTooltipView: React.FC = () => {
     >
       {!hasCustomHeader && (
         <BottomSheetHeader testID="perps-tooltip-bottom-sheet-header">
-          <Text variant={TextVariant.HeadingSm}>{title}</Text>
+          <Text variant={TextVariant.HeadingMd}>{title}</Text>
         </BottomSheetHeader>
       )}
       <Box paddingHorizontal={4}>{renderContent()}</Box>
