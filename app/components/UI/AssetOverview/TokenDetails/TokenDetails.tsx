@@ -137,10 +137,15 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({
       try {
         const isNonEvm = isNonEvmChainId(asset.chainId as string);
 
-        // Convert chainId to CAIP format for both EVM and non-EVM chains
-        const caipChainId = isNonEvm
-          ? (asset.chainId as `${string}:${string}`)
-          : formatChainIdToCaip(asset.chainId as Hex);
+        // Convert chainId to CAIP format for both EVM and non-EVM chains.
+        // Use if/else (not a ternary) so the React Compiler can lower this
+        // block inside the try/catch (value blocks bail compilation there).
+        let caipChainId: `${string}:${string}`;
+        if (isNonEvm) {
+          caipChainId = asset.chainId as `${string}:${string}`;
+        } else {
+          caipChainId = formatChainIdToCaip(asset.chainId as Hex);
+        }
 
         const assetId = toAssetId(plainTokenAddress, caipChainId);
         if (!assetId) return;
@@ -157,7 +162,13 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({
           string,
           Record<string, unknown>
         >;
-        setFetchedMarketData(response?.[assetId]);
+        // Avoid optional chaining (a value block) inside the try so the
+        // React Compiler can lower this statement.
+        if (response) {
+          setFetchedMarketData(response[assetId]);
+        } else {
+          setFetchedMarketData(undefined);
+        }
       } catch (error) {
         console.error('Failed to fetch market data:', error);
       }
