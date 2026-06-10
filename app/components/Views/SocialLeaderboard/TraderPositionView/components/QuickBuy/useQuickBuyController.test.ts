@@ -1,48 +1,48 @@
-import { renderHook, act } from '@testing-library/react-native';
-import { useSelector, useDispatch } from 'react-redux';
+import { ChainId } from '@metamask/bridge-controller';
+import { TextColor } from '@metamask/design-system-react-native';
 import type { Position } from '@metamask/social-controllers';
-import { useQuickBuyController } from './hooks/useQuickBuyController';
-import { positionToQuickBuyTarget } from './types';
+import { act, renderHook } from '@testing-library/react-native';
+import { useDispatch, useSelector } from 'react-redux';
+import Engine from '../../../../../../core/Engine';
+import {
+  selectBridgeFeatureFlags,
+  selectDestAddress,
+  selectIsEvmNonEvmBridge,
+  selectIsNonEvmNonEvmBridge,
+  selectIsSolanaSourced,
+  selectIsSubmittingTx,
+  selectSlippage,
+} from '../../../../../../core/redux/slices/bridge';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
+import { selectSourceWalletAddress } from '../../../../../../selectors/bridge';
+import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
+import { selectShouldUseSmartTransaction } from '../../../../../../selectors/smartTransactionsController';
+import {
+  ImpactMoment,
+  playErrorNotification,
+  playImpact,
+} from '../../../../../../util/haptics';
+import Logger from '../../../../../../util/Logger';
+import { useHasSufficientGas } from '../../../../../UI/Bridge/hooks/useHasSufficientGas';
+import useIsInsufficientBalance from '../../../../../UI/Bridge/hooks/useInsufficientBalance';
+import { useLatestBalance } from '../../../../../UI/Bridge/hooks/useLatestBalance';
+import { usePriceImpactViewData } from '../../../../../UI/Bridge/hooks/usePriceImpactViewData';
+import type { BridgeToken } from '../../../../../UI/Bridge/types';
 import { selectDefaultSourceToken } from '../../../utils/tokenSelection';
-import { useQuickBuySetup } from './hooks/useQuickBuySetup';
 import { usePayWithTokens } from './hooks/usePayWithTokens';
-import { useReceiveTokens } from './hooks/useReceiveTokens';
 import { usePositionTokenBalance } from './hooks/usePositionTokenBalance';
+import { useQuickBuyController } from './hooks/useQuickBuyController';
 import {
   useQuickBuyQuotes,
   type EnrichedQuickBuyQuote,
   type UseQuickBuyQuotesResult,
 } from './hooks/useQuickBuyQuotes';
-import { useLatestBalance } from '../../../../../UI/Bridge/hooks/useLatestBalance';
-import useIsInsufficientBalance from '../../../../../UI/Bridge/hooks/useInsufficientBalance';
-import { useHasSufficientGas } from '../../../../../UI/Bridge/hooks/useHasSufficientGas';
-import { selectShouldUseSmartTransaction } from '../../../../../../selectors/smartTransactionsController';
-import Engine from '../../../../../../core/Engine';
-import {
-  selectIsSubmittingTx,
-  selectDestAddress,
-  selectSlippage,
-  selectIsEvmNonEvmBridge,
-  selectIsNonEvmNonEvmBridge,
-  selectIsSolanaSourced,
-  selectBridgeFeatureFlags,
-} from '../../../../../../core/redux/slices/bridge';
-import { selectSourceWalletAddress } from '../../../../../../selectors/bridge';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
-import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
-import { usePriceImpactViewData } from '../../../../../UI/Bridge/hooks/usePriceImpactViewData';
-import { TextColor } from '@metamask/design-system-react-native';
-import type { BridgeToken } from '../../../../../UI/Bridge/types';
-import { ChainId } from '@metamask/bridge-controller';
-import Logger from '../../../../../../util/Logger';
-import { trackQuickBuyTrade } from './quickBuyTradeTracker';
+import { useQuickBuySetup } from './hooks/useQuickBuySetup';
+import { useReceiveTokens } from './hooks/useReceiveTokens';
 import { buildQuickBuyToastOptions } from './quickBuyToastOptions';
+import { trackQuickBuyTrade } from './quickBuyTradeTracker';
 import { resolveQuickBuyTerminalToast } from './resolveQuickBuyTerminalToast';
-import {
-  playImpact,
-  playErrorNotification,
-  ImpactMoment,
-} from '../../../../../../util/haptics';
+import { positionToQuickBuyTarget } from './types';
 
 jest.mock('../../../../../../util/Logger', () => ({
   __esModule: true,
@@ -584,6 +584,93 @@ describe('useQuickBuyController', () => {
       });
 
       expect(mockTrackAmountSelected).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('max ("sell all") source amount', () => {
+    // A near-$1 stablecoin whose rate is fractionally below 1. The fiat
+    // round-trip (balance → cent-rounded USD → tokens) reconstructs an amount
+    // slightly ABOVE the real balance, which previously tripped the
+    // insufficient-funds gate when selling the entire balance.
+    const NEAR_DOLLAR_RATE = 0.9997;
+    const FULL_BALANCE = '0.10003';
+
+    const renderWithStablecoin = () => {
+      (useLatestBalance as jest.Mock).mockReturnValue({
+        displayBalance: FULL_BALANCE,
+        atomicBalance: '100030000000000000',
+      });
+      const stablecoin = createSourceToken({
+        symbol: 'MUSD',
+        currencyExchangeRate: NEAR_DOLLAR_RATE,
+        balance: FULL_BALANCE,
+      });
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [stablecoin],
+      });
+      return renderHook(() => useQuickBuyController(createTarget(), jest.fn()));
+    };
+
+    it('spends the exact on-chain balance instead of the fiat round-trip at 100%', () => {
+      const { result } = renderWithStablecoin();
+
+      act(() => {
+        result.current.handleSliderChange(100);
+      });
+      act(() => {
+        result.current.handleSliderDragEnd(100);
+      });
+
+      // Exact balance — not `usd / rate`, which would exceed FULL_BALANCE.
+      expect(result.current.sourceTokenAmount).toBe(FULL_BALANCE);
+    });
+
+    it('passes the exact balance to the insufficient-balance check at 100%', () => {
+      const { result } = renderWithStablecoin();
+
+      act(() => {
+        result.current.handleSliderChange(100);
+      });
+      act(() => {
+        result.current.handleSliderDragEnd(100);
+      });
+
+      expect(useIsInsufficientBalance).toHaveBeenLastCalledWith(
+        expect.objectContaining({ amount: FULL_BALANCE }),
+      );
+    });
+
+    it('still derives the amount from fiat below 100%', () => {
+      const { result } = renderWithStablecoin();
+
+      act(() => {
+        result.current.handleSliderChange(50);
+      });
+      act(() => {
+        result.current.handleSliderDragEnd(50);
+      });
+
+      expect(result.current.sourceTokenAmount).not.toBe(FULL_BALANCE);
+      expect(Number(result.current.sourceTokenAmount)).toBeCloseTo(0.05, 2);
+    });
+
+    it('clears the max flag once the user types a custom amount', () => {
+      const { result } = renderWithStablecoin();
+
+      act(() => {
+        result.current.handleSliderChange(100);
+      });
+      act(() => {
+        result.current.handleSliderDragEnd(100);
+      });
+      expect(result.current.sourceTokenAmount).toBe(FULL_BALANCE);
+
+      act(() => {
+        result.current.handleAmountChange('0.05');
+      });
+
+      expect(result.current.sourceTokenAmount).not.toBe(FULL_BALANCE);
+      expect(Number(result.current.sourceTokenAmount)).toBeCloseTo(0.05, 2);
     });
   });
 
@@ -2110,6 +2197,74 @@ describe('useQuickBuyController', () => {
           theme: expect.any(Object),
         });
         expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
+      });
+
+      it('tracks an EVM swap with isNonEvmSwap false and the tx hash as the signature', async () => {
+        mockUsableQuote();
+        (
+          Engine.context.BridgeStatusController.submitTx as jest.Mock
+        ).mockResolvedValue({ id: 'tx-1', hash: '0xabc' });
+
+        const { result } = renderHook(() =>
+          useQuickBuyController(createTarget(), jest.fn()),
+        );
+
+        await act(async () => {
+          await result.current.handleConfirm();
+        });
+
+        expect(trackQuickBuyTrade).toHaveBeenCalledWith(
+          'tx-1',
+          expect.objectContaining({
+            isNonEvmSwap: false,
+            txSignature: '0xabc',
+          }),
+        );
+      });
+
+      it('tracks a same-chain Solana swap with isNonEvmSwap true and the signature', async () => {
+        mockUsableQuote();
+        (selectIsSolanaSourced as unknown as jest.Mock).mockReturnValue(true);
+        (
+          Engine.context.BridgeStatusController.submitTx as jest.Mock
+        ).mockResolvedValue({ id: 'sig-1', hash: 'sig-1' });
+
+        const { result } = renderHook(() =>
+          useQuickBuyController(createTarget(), jest.fn()),
+        );
+
+        await act(async () => {
+          await result.current.handleConfirm();
+        });
+
+        expect(trackQuickBuyTrade).toHaveBeenCalledWith(
+          'sig-1',
+          expect.objectContaining({ isNonEvmSwap: true, txSignature: 'sig-1' }),
+        );
+      });
+
+      it('tracks a cross-chain Solana bridge with isNonEvmSwap false', async () => {
+        mockUsableQuote();
+        (selectIsSolanaSourced as unknown as jest.Mock).mockReturnValue(true);
+        (selectIsNonEvmNonEvmBridge as unknown as jest.Mock).mockReturnValue(
+          true,
+        );
+        (
+          Engine.context.BridgeStatusController.submitTx as jest.Mock
+        ).mockResolvedValue({ id: 'sig-1', hash: 'sig-1' });
+
+        const { result } = renderHook(() =>
+          useQuickBuyController(createTarget(), jest.fn()),
+        );
+
+        await act(async () => {
+          await result.current.handleConfirm();
+        });
+
+        expect(trackQuickBuyTrade).toHaveBeenCalledWith(
+          'sig-1',
+          expect.objectContaining({ isNonEvmSwap: false }),
+        );
       });
 
       it('reconciles against the current bridge status right after tracking', async () => {
