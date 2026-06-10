@@ -145,6 +145,16 @@ export interface ShareActionArgs {
   marketSlug?: string;
 }
 
+export interface SearchInteractedArgs {
+  interactionType: string;
+  predictFeedTab?: string;
+  entryPoint?: string;
+  searchQuery?: string;
+  resultsCount?: number;
+  marketId?: string;
+  marketTitle?: string;
+}
+
 const PREDICT_PORTFOLIO_MODULE_COMPONENT =
   PredictEventValues.PREDICT_COMPONENT.PREDICT_PORTFOLIO_MODULE;
 
@@ -451,6 +461,10 @@ export class PredictAnalytics {
 
   public trackShareAction(params: ShareActionArgs): void {
     this.trackConfiguredEvent('shareAction', params);
+  }
+
+  public trackSearchInteracted(params: SearchInteractedArgs): void {
+    this.trackConfiguredEvent('searchInteracted', params);
   }
 
   private trackConfiguredEvent(

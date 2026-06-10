@@ -7,7 +7,9 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
+import Engine from '../../../../../core/Engine';
 import { useTheme } from '../../../../../util/theme';
+import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictSearch } from '../../hooks/usePredictSearch';
 import { usePredictStackedHeader } from '../../hooks/usePredictStackedHeader';
 import { PredictNavigationParamList } from '../../types/navigation';
@@ -39,6 +41,11 @@ const PredictHome: React.FC = () => {
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictMarketList'>>();
   const transactionActiveAbTests = route.params?.transactionActiveAbTests;
+  // Use the entry point the navigator passed; do NOT default. Falling back to a
+  // concrete value (e.g. `predict_feed`) would attribute home search engagement
+  // to the wrong surface. When unknown, the analytics mapper omits `entry_point`
+  // rather than bucketing it incorrectly.
+  const entryPoint = route.params?.entryPoint;
 
   const { scrollY, titleSectionHeight, onScroll, setTitleSectionHeight } =
     usePredictStackedHeader();
@@ -50,6 +57,14 @@ const PredictHome: React.FC = () => {
     showSearch,
     clearSearchAndClose,
   } = usePredictSearch();
+
+  const handleShowSearch = useCallback(() => {
+    Engine.context.PredictController.trackSearchInteracted({
+      interactionType: PredictEventValues.SEARCH_INTERACTION.OPENED,
+      entryPoint,
+    });
+    showSearch();
+  }, [entryPoint, showSearch]);
 
   const handleBackPress = useCallback(() => {
     if (navigation.canGoBack()) {
@@ -82,7 +97,7 @@ const PredictHome: React.FC = () => {
           scrollY={scrollY}
           titleSectionHeight={titleSectionHeight}
           onBack={handleBackPress}
-          onSearchPress={showSearch}
+          onSearchPress={handleShowSearch}
         />
 
         <Animated.ScrollView
@@ -119,6 +134,7 @@ const PredictHome: React.FC = () => {
           onSearchChange={setSearchQuery}
           onClose={clearSearchAndClose}
           transactionActiveAbTests={transactionActiveAbTests}
+          entryPoint={entryPoint}
         />
       </Box>
     </SafeAreaView>
