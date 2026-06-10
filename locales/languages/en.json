@@ -7576,7 +7576,6 @@
       "buy_button": "Buy crypto",
       "buy_predict": "Add funds to your wallet to use Predictions.",
       "buy_perps": "Add funds to your wallet to use Perps.",
-      "not_available_in_region": "Coming soon in your region",
       "projected_balance": "Projected {{projectedYears}}-year balance:",
       "earn_up_to_apy": "Earn up to {{percentage}}% APY"
     },

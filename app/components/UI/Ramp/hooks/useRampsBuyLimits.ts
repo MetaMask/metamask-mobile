@@ -74,5 +74,3 @@ export function useRampsBuyLimits({
     currency,
   };
 }
-
-export default useRampsBuyLimits;
