@@ -1,9 +1,17 @@
-import { getDefaultMarketingOptInChecked } from './getDefaultMarketingOptInChecked';
-import { isUsaDeviceRegion } from '../region/isUsaDeviceRegion';
+let mockHasTestOverrides = false;
 
 jest.mock('../region/isUsaDeviceRegion', () => ({
   isUsaDeviceRegion: jest.fn(),
 }));
+
+jest.mock('../test/utils', () => ({
+  get hasTestOverrides() {
+    return mockHasTestOverrides;
+  },
+}));
+
+import { getDefaultMarketingOptInChecked } from './getDefaultMarketingOptInChecked';
+import { isUsaDeviceRegion } from '../region/isUsaDeviceRegion';
 
 const mockIsUsaDeviceRegion = isUsaDeviceRegion as jest.MockedFunction<
   typeof isUsaDeviceRegion
@@ -12,6 +20,14 @@ const mockIsUsaDeviceRegion = isUsaDeviceRegion as jest.MockedFunction<
 describe('getDefaultMarketingOptInChecked', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockHasTestOverrides = false;
+  });
+
+  it('returns false in E2E test builds regardless of region', () => {
+    mockHasTestOverrides = true;
+    mockIsUsaDeviceRegion.mockReturnValue(true);
+
+    expect(getDefaultMarketingOptInChecked(true)).toBe(false);
   });
 
   it('returns true for social login users in the USA', () => {

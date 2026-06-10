@@ -255,6 +255,41 @@ class CreatePasswordView {
   }
 
   /**
+   * Reads marketing checkbox selection from Detox element attributes.
+   * Returns undefined when state cannot be determined (do not tap in that case).
+   */
+  private async readMarketingCheckboxChecked(
+    el: Detox.IndexableNativeElement,
+  ): Promise<boolean | undefined> {
+    try {
+      const attributes = (await el.getAttributes()) as Record<string, unknown>;
+      const accessibilityState = attributes.accessibilityState as
+        | { checked?: boolean }
+        | undefined;
+
+      if (typeof accessibilityState?.checked === 'boolean') {
+        return accessibilityState.checked;
+      }
+
+      if (typeof attributes.checked === 'boolean') {
+        return attributes.checked;
+      }
+
+      if (attributes.value === 1 || attributes.value === '1') {
+        return true;
+      }
+
+      if (attributes.value === 0 || attributes.value === '0') {
+        return false;
+      }
+    } catch {
+      return undefined;
+    }
+
+    return undefined;
+  }
+
+  /**
    * Ensures the marketing opt-in checkbox is checked for OAuth flows without
    * toggling it off when already selected (e.g. USA locale default, TO-776).
    */
@@ -263,17 +298,11 @@ class CreatePasswordView {
       detox: async () => {
         const checkbox = asDetoxElement(this.iUnderstandCheckbox);
         const el = (await checkbox) as Detox.IndexableNativeElement;
-        let isChecked = false;
+        const isChecked = await this.readMarketingCheckboxChecked(el);
 
-        try {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any, jest/valid-expect
-          await (expect(el) as any).toHaveToggleValue(true);
-          isChecked = true;
-        } catch {
-          isChecked = false;
-        }
-
-        if (!isChecked) {
+        // Only tap when explicitly unchecked. Ambiguous state keeps the default
+        // (USA devices start checked per TO-776).
+        if (isChecked === false) {
           await Gestures.tap(checkbox, {
             elemDescription: 'Create Password - Marketing opt-in checkbox',
             checkVisibility: false,
@@ -283,9 +312,8 @@ class CreatePasswordView {
       appium: async () => {
         const checkbox = await asPlaywrightElement(this.iUnderstandCheckbox);
         const ariaChecked = await checkbox.getAttribute('aria-checked');
-        const checked = ariaChecked === 'true';
 
-        if (!checked) {
+        if (ariaChecked === 'false') {
           await UnifiedGestures.waitAndTap(this.iUnderstandCheckbox, {
             description: 'Create Password - Marketing opt-in checkbox',
           });

@@ -60,7 +60,7 @@ export const completeSocialLoginOnboarding = async (
   await CreatePasswordView.enterPassword(TEST_PASSWORD);
   await CreatePasswordView.reEnterPassword(TEST_PASSWORD);
 
-  await CreatePasswordView.ensureMarketingOptInChecked();
+  await CreatePasswordView.tapIUnderstandCheckBox();
 
   try {
     await TermsOfUseModal.tapAgreeCheckBox();
