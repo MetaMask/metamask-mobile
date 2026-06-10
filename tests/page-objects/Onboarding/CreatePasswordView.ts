@@ -254,6 +254,46 @@ class CreatePasswordView {
     });
   }
 
+  /**
+   * Ensures the marketing opt-in checkbox is checked for OAuth flows without
+   * toggling it off when already selected (e.g. USA locale default, TO-776).
+   */
+  async ensureMarketingOptInChecked(): Promise<void> {
+    await encapsulatedAction({
+      detox: async () => {
+        const checkbox = asDetoxElement(this.iUnderstandCheckbox);
+        const el = (await checkbox) as Detox.IndexableNativeElement;
+        let isChecked = false;
+
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any, jest/valid-expect
+          await (expect(el) as any).toHaveToggleValue(true);
+          isChecked = true;
+        } catch {
+          isChecked = false;
+        }
+
+        if (!isChecked) {
+          await Gestures.tap(checkbox, {
+            elemDescription: 'Create Password - Marketing opt-in checkbox',
+            checkVisibility: false,
+          });
+        }
+      },
+      appium: async () => {
+        const checkbox = asPlaywrightElement(this.iUnderstandCheckbox);
+        const ariaChecked = await checkbox.getAttribute('aria-checked');
+        const checked = ariaChecked === 'true';
+
+        if (!checked) {
+          await UnifiedGestures.waitAndTap(this.iUnderstandCheckbox, {
+            description: 'Create Password - Marketing opt-in checkbox',
+          });
+        }
+      },
+    });
+  }
+
   async tapCreatePasswordButton(): Promise<void> {
     await encapsulatedAction({
       detox: async () => {
