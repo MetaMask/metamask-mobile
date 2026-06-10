@@ -28,7 +28,7 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('../../api', () => ({
-  useSavePriceAlert: (...args: unknown[]) => mockUseSavePriceAlert(...args),
+  useSavePriceAlert: () => mockUseSavePriceAlert(),
 }));
 
 import { ToastContext } from '../../../../../component-library/components/Toast';
