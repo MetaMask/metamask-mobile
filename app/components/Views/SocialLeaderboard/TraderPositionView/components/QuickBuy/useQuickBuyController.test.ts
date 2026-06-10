@@ -587,6 +587,93 @@ describe('useQuickBuyController', () => {
     });
   });
 
+  describe('max ("sell all") source amount', () => {
+    // A near-$1 stablecoin whose rate is fractionally below 1. The fiat
+    // round-trip (balance → cent-rounded USD → tokens) reconstructs an amount
+    // slightly ABOVE the real balance, which previously tripped the
+    // insufficient-funds gate when selling the entire balance.
+    const NEAR_DOLLAR_RATE = 0.9997;
+    const FULL_BALANCE = '0.10003';
+
+    const renderWithStablecoin = () => {
+      (useLatestBalance as jest.Mock).mockReturnValue({
+        displayBalance: FULL_BALANCE,
+        atomicBalance: '100030000000000000',
+      });
+      const stablecoin = createSourceToken({
+        symbol: 'MUSD',
+        currencyExchangeRate: NEAR_DOLLAR_RATE,
+        balance: FULL_BALANCE,
+      });
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [stablecoin],
+      });
+      return renderHook(() => useQuickBuyController(createTarget(), jest.fn()));
+    };
+
+    it('spends the exact on-chain balance instead of the fiat round-trip at 100%', () => {
+      const { result } = renderWithStablecoin();
+
+      act(() => {
+        result.current.handleSliderChange(100);
+      });
+      act(() => {
+        result.current.handleSliderDragEnd(100);
+      });
+
+      // Exact balance — not `usd / rate`, which would exceed FULL_BALANCE.
+      expect(result.current.sourceTokenAmount).toBe(FULL_BALANCE);
+    });
+
+    it('passes the exact balance to the insufficient-balance check at 100%', () => {
+      const { result } = renderWithStablecoin();
+
+      act(() => {
+        result.current.handleSliderChange(100);
+      });
+      act(() => {
+        result.current.handleSliderDragEnd(100);
+      });
+
+      expect(useIsInsufficientBalance).toHaveBeenLastCalledWith(
+        expect.objectContaining({ amount: FULL_BALANCE }),
+      );
+    });
+
+    it('still derives the amount from fiat below 100%', () => {
+      const { result } = renderWithStablecoin();
+
+      act(() => {
+        result.current.handleSliderChange(50);
+      });
+      act(() => {
+        result.current.handleSliderDragEnd(50);
+      });
+
+      expect(result.current.sourceTokenAmount).not.toBe(FULL_BALANCE);
+      expect(Number(result.current.sourceTokenAmount)).toBeCloseTo(0.05, 2);
+    });
+
+    it('clears the max flag once the user types a custom amount', () => {
+      const { result } = renderWithStablecoin();
+
+      act(() => {
+        result.current.handleSliderChange(100);
+      });
+      act(() => {
+        result.current.handleSliderDragEnd(100);
+      });
+      expect(result.current.sourceTokenAmount).toBe(FULL_BALANCE);
+
+      act(() => {
+        result.current.handleAmountChange('0.05');
+      });
+
+      expect(result.current.sourceTokenAmount).not.toBe(FULL_BALANCE);
+      expect(Number(result.current.sourceTokenAmount)).toBeCloseTo(0.05, 2);
+    });
+  });
+
   describe('handleSelectSourceToken', () => {
     it('updates the selected token and resets amount + slider state', () => {
       (useLatestBalance as jest.Mock).mockReturnValue({
