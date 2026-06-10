@@ -32,6 +32,59 @@ export const CROSSHAIR_START_Y = 20;
 export const CROSSHAIR_STROKE_WIDTH = 1;
 export const TIMESTAMP_TEXT_HALF_WIDTH = 75;
 
+// Fixed chart content insets (the right inset is sized dynamically below).
+export const CHART_INSET_TOP = 30;
+export const CHART_INSET_BOTTOM = 20;
+export const CHART_INSET_LEFT = 0;
+
+// --- Right inset sizing -----------------------------------------------------
+// Endpoint labels (team name above, value below) are drawn to the right of the
+// line, in the space reserved by the chart's right content inset. Reserve only
+// as much as the widest rendered label needs so short content does not leave a
+// large gap, while long names ("UDVARDY") and "100%" are never clipped.
+export const CHART_INSET_RIGHT_MIN = 80;
+export const CHART_INSET_RIGHT_MAX = 150;
+export const LABEL_RIGHT_MARGIN = 8;
+
+// SVG text cannot be measured synchronously, so widths are approximated from
+// average glyph-advance ratios. They lean slightly wide to avoid clipping.
+const LABEL_CHAR_WIDTH_RATIO = 0.75; // uppercase team label at FONT_SIZE_LABEL
+const VALUE_DIGIT_WIDTH_RATIO = 0.58; // digit at FONT_SIZE_VALUE (bold)
+const PERCENT_SIGN_WIDTH_RATIO = 0.95; // "%" at FONT_SIZE_VALUE (bold)
+
+const estimateLabelWidth = (label: string): number =>
+  label.length * FONT_SIZE_LABEL * LABEL_CHAR_WIDTH_RATIO;
+
+const estimateValueWidth = (value: number): number => {
+  const digitCount = `${Math.round(value)}`.length;
+  return (
+    digitCount * FONT_SIZE_VALUE * VALUE_DIGIT_WIDTH_RATIO +
+    FONT_SIZE_VALUE * PERCENT_SIGN_WIDTH_RATIO
+  );
+};
+
+/**
+ * Right content inset needed so the endpoint labels are fully visible. Sized to
+ * the widest label or value across the series, clamped so a very long name
+ * cannot squeeze the chart away entirely.
+ */
+export const getChartRightInset = (
+  labels: string[],
+  maxValue: number,
+): number => {
+  const widestLabel = labels.reduce(
+    (widest, label) => Math.max(widest, estimateLabelWidth(label)),
+    0,
+  );
+  const widest = Math.max(widestLabel, estimateValueWidth(maxValue));
+  const needed = LABEL_OFFSET_X + widest + LABEL_RIGHT_MARGIN;
+
+  return Math.min(
+    CHART_INSET_RIGHT_MAX,
+    Math.max(CHART_INSET_RIGHT_MIN, Math.ceil(needed)),
+  );
+};
+
 export interface DotPosition {
   dotY: number;
   value: number;

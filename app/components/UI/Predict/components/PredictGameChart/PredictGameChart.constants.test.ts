@@ -1,10 +1,13 @@
 import {
   getSeparatedLabelYPositions,
+  getChartRightInset,
   CHART_HEIGHT,
   LABEL_HEIGHT,
   MIN_LABEL_GAP,
   MIN_LABEL_Y,
   MAX_LABEL_Y,
+  CHART_INSET_RIGHT_MIN,
+  CHART_INSET_RIGHT_MAX,
 } from './PredictGameChart.constants';
 
 describe('getSeparatedLabelYPositions', () => {
@@ -282,5 +285,41 @@ describe('getSeparatedLabelYPositions', () => {
       expect(Math.max(...result)).toBeLessThanOrEqual(MAX_LABEL_Y);
       expect(Math.min(...result)).toBeGreaterThanOrEqual(MIN_LABEL_Y);
     });
+  });
+});
+
+describe('getChartRightInset', () => {
+  it('returns the minimum inset for short labels and 2-digit values', () => {
+    expect(getChartRightInset(['MEX', 'RSA'], 70)).toBe(CHART_INSET_RIGHT_MIN);
+  });
+
+  it('returns the minimum inset when there are no labels', () => {
+    expect(getChartRightInset([], 0)).toBe(CHART_INSET_RIGHT_MIN);
+  });
+
+  it('reserves more room for long team labels so the name is not clipped', () => {
+    const longLabelInset = getChartRightInset(['UDVARDY'], 33);
+
+    expect(longLabelInset).toBeGreaterThan(getChartRightInset(['MEX'], 33));
+    expect(longLabelInset).toBeGreaterThan(CHART_INSET_RIGHT_MIN);
+  });
+
+  it('reserves more room when a value reaches 100% (three digits)', () => {
+    expect(getChartRightInset(['A', 'B'], 100)).toBeGreaterThan(
+      getChartRightInset(['A', 'B'], 70),
+    );
+  });
+
+  it('treats values that round up to 100 as three digits', () => {
+    expect(getChartRightInset(['A'], 99.6)).toBe(
+      getChartRightInset(['A'], 100),
+    );
+    expect(getChartRightInset(['A'], 99.4)).toBe(getChartRightInset(['A'], 99));
+  });
+
+  it('clamps a very long label to the maximum inset', () => {
+    expect(getChartRightInset(['SUPERLONGTEAMNAME'], 50)).toBe(
+      CHART_INSET_RIGHT_MAX,
+    );
   });
 });
