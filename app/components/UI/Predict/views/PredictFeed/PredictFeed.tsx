@@ -79,6 +79,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import { TraceName } from '../../../../../util/trace';
 import Routes from '../../../../../constants/navigation/Routes';
+import Engine from '../../../../../core/Engine';
 import {
   TabItem,
   TabsBar,
@@ -658,6 +659,15 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
     withdrawUnavailableSheetRef.current?.onOpenBottomSheet();
   }, []);
 
+  const handleShowSearch = useCallback(() => {
+    Engine.context.PredictController.trackSearchInteracted({
+      interactionType: PredictEventValues.SEARCH_INTERACTION.OPENED,
+      predictFeedTab: tabs[activeIndex]?.key,
+      entryPoint: listEntryPoint,
+    });
+    showSearch();
+  }, [tabs, activeIndex, listEntryPoint, showSearch]);
+
   const headerTopInset = hideHeader ? topInset : 0;
 
   return (
@@ -685,7 +695,7 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
               endButtonIconProps={[
                 {
                   iconName: IconName.Search,
-                  onPress: showSearch,
+                  onPress: handleShowSearch,
                   testID: PredictSearchSelectorsIDs.SEARCH_BUTTON,
                 },
               ]}
@@ -731,6 +741,8 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
           onSearchChange={setSearchQuery}
           onClose={clearSearchAndClose}
           transactionActiveAbTests={transactionActiveAbTests}
+          predictFeedTab={tabs[activeIndex]?.key}
+          entryPoint={listEntryPoint}
         />
       </Box>
       <Box pointerEvents="box-none" twClassName="absolute inset-0 z-50">

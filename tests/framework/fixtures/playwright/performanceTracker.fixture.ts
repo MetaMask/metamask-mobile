@@ -41,9 +41,6 @@ export const performanceTrackerFixture = {
       testInfo.retry > 0 &&
       hasQualityGateFailure(testId)
     ) {
-      logger.info(
-        `Aborting retry for "${testInfo.title}" - previous attempt failed due to quality gates`,
-      );
       throw new QualityGateError(
         `Quality Gates failed on a previous attempt for "${testInfo.title}". Retries are not allowed for quality gate failures.`,
       );

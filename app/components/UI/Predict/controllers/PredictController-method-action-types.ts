@@ -140,6 +140,16 @@ export type PredictControllerTrackShareActionAction = {
 };
 
 /**
+ * Track Predict Search Interacted analytics event
+ *
+ * @public
+ */
+export type PredictControllerTrackSearchInteractedAction = {
+  type: `PredictController:trackSearchInteracted`;
+  handler: PredictController['trackSearchInteracted'];
+};
+
+/**
  * Track Predict Betslip Dismissed analytics event
  *
  * @public
@@ -356,6 +366,7 @@ export type PredictControllerMethodActions =
   | PredictControllerTrackFeedViewedAction
   | PredictControllerTrackBannerActionAction
   | PredictControllerTrackShareActionAction
+  | PredictControllerTrackSearchInteractedAction
   | PredictControllerTrackBetslipDismissedAction
   | PredictControllerPreviewOrderAction
   | PredictControllerPlaceOrderAction
