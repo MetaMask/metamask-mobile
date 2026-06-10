@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { ImageURISource } from 'react-native';
 import { createRotatingSet } from './AssetLogo.utils';
 
@@ -11,6 +11,11 @@ export function useSmartImageFallback(sources: ImageURISource[]) {
   const LAST_ITEM_INDEX = validSources.length - 1;
 
   const [index, setIndex] = useState(0);
+  const prevSourcesRef = useRef(sources);
+  if (prevSourcesRef.current !== sources) {
+    prevSourcesRef.current = sources;
+    setIndex(0);
+  }
   const currentSource: ImageURISource | undefined =
     validSources[index] || sources[sources.length - 1];
 

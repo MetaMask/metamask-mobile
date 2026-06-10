@@ -135,6 +135,31 @@ describe('useSmartImageFallback', () => {
     expect(result.current.source).toStrictEqual(updatedSources[0]);
   });
 
+  it('resets fallback index when sources change after onError cycles', () => {
+    const initialSources = createSourcesFromUris([
+      'https://example.com/reset-token-a-primary.png',
+      'https://example.com/reset-token-a-fallback.png',
+    ]);
+    const newSources = createSourcesFromUris([
+      'https://example.com/reset-token-b-primary.png',
+      'https://example.com/reset-token-b-fallback.png',
+    ]);
+
+    const { result, rerender } = renderHook(
+      ({ hookSources }) => useSmartImageFallback(hookSources),
+      { initialProps: { hookSources: initialSources } },
+    );
+
+    act(() => {
+      result.current.onError();
+    });
+    expect(result.current.source).toStrictEqual(initialSources[1]);
+
+    rerender({ hookSources: newSources });
+
+    expect(result.current.source).toStrictEqual(newSources[0]);
+  });
+
   it('persists dead images across hook instances', () => {
     const sources = createSourcesFromUris([
       'https://example.com/persist-primary.png',
