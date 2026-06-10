@@ -21336,9 +21336,11 @@ describe('RewardsController', () => {
       eligible: true,
       neighbors: [],
       computedAt: '2026-06-30T12:00:00.000Z',
+      marketsTraded: 3,
+      minimumMarketsTraded: 3,
     };
     const mockPositions: PredictThePitchPositionsDto = {
-      positions: [
+      openPositions: [
         {
           outcomeAssetId: 'token-1',
           outcomeAsset: 'Yes',
@@ -21359,6 +21361,7 @@ describe('RewardsController', () => {
           fillDate: '2026-06-30T12:00:00.000Z',
         },
       ],
+      resolvedPositions: [],
       computedAt: '2026-06-30T12:00:00.000Z',
     };
     const mockOutcome = {
