@@ -16,6 +16,7 @@ import {
 } from './HardwareWalletsSwaps.state';
 import { HardwareWalletsSwaps } from './HardwareWalletsSwaps';
 import { HardwareWalletsSwapsSelectorsIDs } from './HardwareWalletsSwaps.testIds';
+import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { selectSourceWalletAddress } from '../../../../selectors/bridge';
 import { updateHardwareWalletsSwaps } from '../../../../core/redux/slices/bridge';
 
@@ -65,10 +66,13 @@ const mockEnsureDeviceReady = jest.fn();
 const mockSetPendingOperationAddress = jest.fn();
 const mockSetForceHideBottomSheet = jest.fn();
 const mockConnectionState = { status: 'disconnected' };
+const mockHardwareWalletState = {
+  walletType: null as string | null,
+};
 jest.mock('../../../../core/HardwareWallet', () => ({
   useHardwareWallet: () => ({
     connectionState: mockConnectionState,
-    walletType: null,
+    walletType: mockHardwareWalletState.walletType,
     ensureDeviceReady: mockEnsureDeviceReady,
     setPendingOperationAddress: mockSetPendingOperationAddress,
     setForceHideBottomSheet: mockSetForceHideBottomSheet,
@@ -292,6 +296,7 @@ describe('HardwareWalletsSwaps', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     __clearLastMockedMethods();
+    mockHardwareWalletState.walletType = null;
     jest.mocked(selectSourceWalletAddress).mockReturnValue(WALLET_ADDRESS);
     mockRouteSubmissionParams();
     mockEnsureDeviceReady.mockResolvedValue(true);
@@ -670,18 +675,44 @@ describe('HardwareWalletsSwaps', () => {
     });
   });
 
-  describe('force-hide bottom sheet for non-QR wallets', () => {
-    it('force-hides the shared bottom sheet once all steps are signed', () => {
-      renderScreen(SUBMITTED_STATE);
+  describe('force-hide bottom sheet', () => {
+    describe('non-QR wallets', () => {
+      it('force-hides the shared bottom sheet once all steps are signed', () => {
+        renderScreen(SUBMITTED_STATE);
 
-      expect(mockSetForceHideBottomSheet).toHaveBeenCalledWith(true);
+        expect(mockSetForceHideBottomSheet).toHaveBeenCalledWith(true);
+      });
+
+      it('does not force-hide while signing is still in progress', () => {
+        renderScreen({});
+
+        expect(mockSetForceHideBottomSheet).not.toHaveBeenCalledWith(true);
+        expect(mockSetForceHideBottomSheet).toHaveBeenCalledWith(false);
+      });
+
+      it('clears force-hide on unmount after all steps are signed', () => {
+        const { unmount } = renderScreen(SUBMITTED_STATE);
+
+        expect(mockSetForceHideBottomSheet).toHaveBeenCalledWith(true);
+        mockSetForceHideBottomSheet.mockClear();
+
+        unmount();
+
+        expect(mockSetForceHideBottomSheet).toHaveBeenCalledWith(false);
+      });
     });
 
-    it('does not force-hide while signing is still in progress', () => {
-      renderScreen({});
+    describe('QR wallets', () => {
+      beforeEach(() => {
+        mockHardwareWalletState.walletType = HardwareWalletType.Qr;
+      });
 
-      expect(mockSetForceHideBottomSheet).not.toHaveBeenCalledWith(true);
-      expect(mockSetForceHideBottomSheet).toHaveBeenCalledWith(false);
+      it('force-hides the shared bottom sheet on mount', () => {
+        renderScreen({});
+
+        expect(mockSetForceHideBottomSheet).toHaveBeenCalledWith(true);
+        expect(mockSetForceHideBottomSheet).not.toHaveBeenCalledWith(false);
+      });
     });
   });
 

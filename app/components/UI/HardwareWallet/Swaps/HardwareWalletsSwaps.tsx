@@ -231,8 +231,13 @@ export function HardwareWalletsSwaps() {
   const forceHideLatchedRef = useRef(false);
   useEffect(() => {
     forceHideLatchedRef.current = false;
-    setForceHideBottomSheet?.(false);
-  }, [setForceHideBottomSheet]);
+    if (!isQrHardwareWallet) {
+      setForceHideBottomSheet?.(false);
+    }
+    return () => {
+      setForceHideBottomSheet?.(false);
+    };
+  }, [isQrHardwareWallet, setForceHideBottomSheet]);
   useEffect(() => {
     if (isQrHardwareWallet) return;
     if (!allStepsSigned) return;
