@@ -6,7 +6,7 @@ import * as useAnalyticsModule from '../../../../hooks/useAnalytics/useAnalytics
 import * as useCopyClipboardModule from '../hooks/useCopyClipboard';
 import { ModalFieldType } from '../../../../../util/notifications';
 import MOCK_NOTIFICATIONS from '../../../../UI/Notification/__mocks__/mock_notifications';
-import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
 
 // Mock the required modules
 jest.mock('../../../../hooks/useAnalytics/useAnalytics');
@@ -31,7 +31,7 @@ describe('TransactionField', () => {
   beforeEach(() => {
     jest.spyOn(useAnalyticsModule, 'useAnalytics').mockReturnValue({
       trackEvent: mockTrackEvent,
-      createEventBuilder: MetricsEventBuilder.createEventBuilder,
+      createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
     } as unknown as ReturnType<typeof useAnalyticsModule.useAnalytics>);
     jest
       .spyOn(useCopyClipboardModule, 'default')
@@ -53,7 +53,7 @@ describe('TransactionField', () => {
     const copyButton = getByText('transaction.transaction_id');
 
     fireEvent.press(copyButton);
-    const expectedEvent = MetricsEventBuilder.createEventBuilder({
+    const expectedEvent = AnalyticsEventBuilder.createEventBuilder({
       category: 'Notification Detail Clicked',
     })
       .addProperties({

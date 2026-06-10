@@ -8,40 +8,26 @@ import {
 } from '../../../../app/components/Views/Quiz/SRPQuiz/SrpQuizModal.testIds';
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
-import {
-  encapsulated,
-  EncapsulatedElementType,
-} from '../../../framework/EncapsulatedElement';
-import PlaywrightMatchers from '../../../framework/PlaywrightMatchers';
+import { EncapsulatedElementType } from '../../../framework';
 import UnifiedGestures from '../../../framework/UnifiedGestures';
 
 class SrpQuizModal {
-  get getStartedContainer(): DetoxElement {
+  get getStartedContainer(): EncapsulatedElementType {
     return Matchers.getElementByID(SrpQuizGetStartedSelectorsIDs.CONTAINER);
   }
 
-  get getStartedScreenDismiss(): DetoxElement {
+  get getStartedScreenDismiss(): EncapsulatedElementType {
     return Matchers.getElementByID(SrpQuizGetStartedSelectorsIDs.DISMISS);
   }
 
-  get modalIntroduction(): DetoxElement {
+  get modalIntroduction(): EncapsulatedElementType {
     return Matchers.getElementByText(
       SrpQuizGetStartedSelectorsText.INTRODUCTION,
     );
   }
 
   get getStartedButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(SrpQuizGetStartedSelectorsIDs.BUTTON),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          SrpQuizGetStartedSelectorsIDs.BUTTON,
-          {
-            exact: true,
-          },
-        ),
-    });
+    return Matchers.getElementByID(SrpQuizGetStartedSelectorsIDs.BUTTON);
   }
 
   getQuestionSelectors(questionNumber: number) {
@@ -100,11 +86,7 @@ class SrpQuizModal {
     questionNumber: number,
   ): EncapsulatedElementType {
     const { ids } = this.getQuestionSelectors(questionNumber);
-    return encapsulated({
-      detox: () => Matchers.getElementByID(ids.RIGHT_ANSWER),
-      appium: () =>
-        PlaywrightMatchers.getElementById(ids.RIGHT_ANSWER, { exact: true }),
-    });
+    return Matchers.getElementByID(ids.RIGHT_ANSWER);
   }
 
   getQuestionRightAnswerResponseTitle(questionNumber: number) {
@@ -121,11 +103,7 @@ class SrpQuizModal {
     questionNumber: number,
   ): EncapsulatedElementType {
     const { ids } = this.getQuestionSelectors(questionNumber);
-    return encapsulated({
-      detox: () => Matchers.getElementByID(ids.RIGHT_CONTINUE),
-      appium: () =>
-        PlaywrightMatchers.getElementById(ids.RIGHT_CONTINUE, { exact: true }),
-    });
+    return Matchers.getElementByID(ids.RIGHT_CONTINUE);
   }
 
   async tapQuizGetStartedScreenDismiss(): Promise<void> {

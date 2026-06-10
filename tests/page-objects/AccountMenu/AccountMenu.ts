@@ -1,67 +1,49 @@
 import { AccountsMenuSelectorsIDs } from '../../../app/components/Views/AccountsMenu/AccountsMenu.testIds';
 import Matchers from '../../../tests/framework/Matchers';
 import Gestures from '../../../tests/framework/Gestures';
-import {
-  encapsulated,
-  EncapsulatedElementType,
-} from '../../framework/EncapsulatedElement';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import { EncapsulatedElementType } from '../../framework';
 import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class AccountMenu {
   get container(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(
-          AccountsMenuSelectorsIDs.ACCOUNTS_MENU_SCROLL_ID,
-        ),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          AccountsMenuSelectorsIDs.ACCOUNTS_MENU_SCROLL_ID,
-          { exact: true },
-        ),
-    });
+    return Matchers.getElementByID(
+      AccountsMenuSelectorsIDs.ACCOUNTS_MENU_SCROLL_ID,
+    );
   }
 
-  get backButton(): DetoxElement {
+  get backButton(): EncapsulatedElementType {
     return Matchers.getElementByID(AccountsMenuSelectorsIDs.BACK_BUTTON);
   }
 
   get settingsButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByID(AccountsMenuSelectorsIDs.SETTINGS),
-      appium: () =>
-        PlaywrightMatchers.getElementById(AccountsMenuSelectorsIDs.SETTINGS, {
-          exact: true,
-        }),
-    });
+    return Matchers.getElementByID(AccountsMenuSelectorsIDs.SETTINGS);
   }
 
-  get contactsButton(): DetoxElement {
+  get contactsButton(): EncapsulatedElementType {
     return Matchers.getElementByID(AccountsMenuSelectorsIDs.CONTACTS);
   }
 
-  get manageCardButton(): DetoxElement {
+  get manageCardButton(): EncapsulatedElementType {
     return Matchers.getElementByID(AccountsMenuSelectorsIDs.MANAGE_CARD);
   }
 
-  get permissionsButton(): DetoxElement {
+  get permissionsButton(): EncapsulatedElementType {
     return Matchers.getElementByID(AccountsMenuSelectorsIDs.PERMISSIONS);
   }
 
-  get aboutMetaMaskButton(): DetoxElement {
+  get aboutMetaMaskButton(): EncapsulatedElementType {
     return Matchers.getElementByID(AccountsMenuSelectorsIDs.ABOUT_METAMASK);
   }
 
-  get requestFeatureButton(): DetoxElement {
+  get requestFeatureButton(): EncapsulatedElementType {
     return Matchers.getElementByID(AccountsMenuSelectorsIDs.REQUEST_FEATURE);
   }
 
-  get supportButton(): DetoxElement {
+  get supportButton(): EncapsulatedElementType {
     return Matchers.getElementByID(AccountsMenuSelectorsIDs.SUPPORT);
   }
 
-  get lockButton(): DetoxElement {
+  get lockButton(): EncapsulatedElementType {
     return Matchers.getElementByID(AccountsMenuSelectorsIDs.LOCK);
   }
 
@@ -113,7 +95,7 @@ class AccountMenu {
     });
   }
 
-  get notificationsButton(): DetoxElement {
+  get notificationsButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       AccountsMenuSelectorsIDs.NOTIFICATIONS_BUTTON,
     );

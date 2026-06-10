@@ -45,6 +45,7 @@ interface PredictThePitchLeaderboardProps {
   maxEntries?: number;
   userPosition?: UserPosition | null;
   isCampaignComplete?: boolean;
+  isCurrentUserEligible?: boolean;
 }
 
 const PredictThePitchLeaderboard: React.FC<PredictThePitchLeaderboardProps> = ({
@@ -57,6 +58,7 @@ const PredictThePitchLeaderboard: React.FC<PredictThePitchLeaderboardProps> = ({
   maxEntries,
   userPosition,
   isCampaignComplete = false,
+  isCurrentUserEligible,
 }) => {
   const { isPreview, showSplitView, visibleEntries } =
     useCampaignLeaderboardEntries({
@@ -133,29 +135,43 @@ const PredictThePitchLeaderboard: React.FC<PredictThePitchLeaderboardProps> = ({
   return (
     <Box testID={PREDICT_THE_PITCH_LEADERBOARD_TEST_IDS.CONTAINER}>
       <Box testID={PREDICT_THE_PITCH_LEADERBOARD_TEST_IDS.LIST}>
-        {visibleEntries.map((entry) => (
-          <CampaignLeaderboardEntryRow
-            key={`${entry.rank}-${entry.referralCode}`}
-            entry={{ ...entry, qualified: true }}
-            isCurrentUser={isCurrentUser(entry)}
-            isCampaignComplete={isCampaignComplete}
-            formatPrimaryMetric={(e) => formatPercentChange(e.roi)}
-            isPositivePrimaryMetric={(e) => e.roi >= 0}
-          />
-        ))}
+        {visibleEntries.map((entry) => {
+          const currentUser = isCurrentUser(entry);
+          return (
+            <CampaignLeaderboardEntryRow
+              key={`${entry.rank}-${entry.referralCode}`}
+              entry={{
+                ...entry,
+                qualified: currentUser ? (isCurrentUserEligible ?? true) : true,
+              }}
+              isCurrentUser={currentUser}
+              isCampaignComplete={isCampaignComplete}
+              formatPrimaryMetric={(e) => formatPercentChange(e.roi)}
+              isPositivePrimaryMetric={(e) => e.roi >= 0}
+            />
+          );
+        })}
         {showSplitView && userPosition && (
           <>
             <CampaignLeaderboardNeighborSeparator />
-            {userPosition.neighbors.map((entry) => (
-              <CampaignLeaderboardEntryRow
-                key={`neighbor-${entry.rank}-${entry.referralCode}`}
-                entry={{ ...entry, qualified: true }}
-                isCurrentUser={isCurrentUser(entry)}
-                isCampaignComplete={isCampaignComplete}
-                formatPrimaryMetric={(e) => formatPercentChange(e.roi)}
-                isPositivePrimaryMetric={(e) => e.roi >= 0}
-              />
-            ))}
+            {userPosition.neighbors.map((entry) => {
+              const currentUser = isCurrentUser(entry);
+              return (
+                <CampaignLeaderboardEntryRow
+                  key={`neighbor-${entry.rank}-${entry.referralCode}`}
+                  entry={{
+                    ...entry,
+                    qualified: currentUser
+                      ? (isCurrentUserEligible ?? true)
+                      : true,
+                  }}
+                  isCurrentUser={currentUser}
+                  isCampaignComplete={isCampaignComplete}
+                  formatPrimaryMetric={(e) => formatPercentChange(e.roi)}
+                  isPositivePrimaryMetric={(e) => e.roi >= 0}
+                />
+              );
+            })}
           </>
         )}
       </Box>

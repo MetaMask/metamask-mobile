@@ -37,6 +37,13 @@ import {
 } from '../../../../../reducers/fiatOrders';
 import styleSheet from './MoneyAddMoneySheet.styles';
 import { MoneyAddMoneySheetTestIds } from './MoneyAddMoneySheet.testIds';
+import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import useMountEffect from '../../hooks/useMountEffect';
+import {
+  BOTTOM_SHEET_NAMES,
+  COMPONENT_NAMES,
+  SCREEN_NAMES,
+} from '../../constants/moneyEvents';
 
 interface Option {
   label: string;
@@ -72,6 +79,12 @@ const MoneyAddMoneySheet: React.FC = () => {
     [enabledTransactionTypes],
   );
 
+  const { trackBottomSheetViewed, trackSurfaceClicked } = useMoneyAnalytics({
+    bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_ADD_MONEY_SHEET,
+  });
+
+  useMountEffect(trackBottomSheetViewed);
+
   const closeAndNavigate = useCallback((navigateFn: () => void) => {
     sheetRef.current?.onCloseBottomSheet(navigateFn);
   }, []);
@@ -81,16 +94,26 @@ const MoneyAddMoneySheet: React.FC = () => {
   }, [navigation]);
 
   const handleConvertCrypto = useCallback(() => {
+    trackSurfaceClicked({
+      component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_CONVERT_CRYPTO,
+      redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+    });
+
     closeAndNavigate(() => {
       initiateDeposit().catch(() => undefined);
     });
-  }, [closeAndNavigate, initiateDeposit]);
+  }, [closeAndNavigate, initiateDeposit, trackSurfaceClicked]);
 
   const handleDepositFunds = useCallback(() => {
+    trackSurfaceClicked({
+      component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_DEPOSIT_FUNDS,
+      redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+    });
+
     closeAndNavigate(() => {
       initiateDeposit({ autoSelectFiatPayment: true }).catch(() => undefined);
     });
-  }, [closeAndNavigate, initiateDeposit]);
+  }, [closeAndNavigate, initiateDeposit, trackSurfaceClicked]);
 
   const handleMoveMusd = useCallback(() => {
     let sourceChainId: Hex = MUSD_CONVERSION_DEFAULT_CHAIN_ID;
@@ -105,6 +128,11 @@ const MoneyAddMoneySheet: React.FC = () => {
       }
     }
 
+    trackSurfaceClicked({
+      component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_MOVE_MUSD,
+      redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+    });
+
     closeAndNavigate(() => {
       initiateDeposit({
         intent: 'addMusd',
@@ -114,7 +142,12 @@ const MoneyAddMoneySheet: React.FC = () => {
         },
       }).catch(() => undefined);
     });
-  }, [closeAndNavigate, initiateDeposit, tokenBalanceByChain]);
+  }, [
+    closeAndNavigate,
+    initiateDeposit,
+    tokenBalanceByChain,
+    trackSurfaceClicked,
+  ]);
 
   const parsedMusdFiat = Number(fiatBalanceAggregated);
   const hasParsedFiatBalance =

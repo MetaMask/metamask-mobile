@@ -666,6 +666,8 @@ describe('useTokenAtomicActions - useHandleOnReceive', () => {
           networkName: 'Ethereum Mainnet',
           chainId: '0x1',
           groupId: 'group-1',
+          location: 'asset-details',
+          account: mockAccount,
         },
       },
     );

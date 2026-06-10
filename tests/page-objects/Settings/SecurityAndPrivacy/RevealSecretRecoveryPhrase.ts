@@ -6,13 +6,11 @@ import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
 import Utilities from '../../../framework/Utilities';
 import {
-  encapsulated,
   EncapsulatedElementType,
   asPlaywrightElement,
   asDetoxElement,
-} from '../../../framework/EncapsulatedElement';
+} from '../../../framework';
 import { encapsulatedAction } from '../../../framework/encapsulatedAction';
-import PlaywrightMatchers from '../../../framework/PlaywrightMatchers';
 import PlaywrightAssertions from '../../../framework/PlaywrightAssertions';
 import PlaywrightGestures from '../../../framework/PlaywrightGestures';
 import UnifiedGestures from '../../../framework/UnifiedGestures';
@@ -20,43 +18,21 @@ import { PlatformDetector } from '../../../framework/PlatformLocator';
 
 class RevealSecretRecoveryPhrase {
   get container(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(
-          RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID,
-        ),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID,
-          { exact: true },
-        ),
-    });
+    return Matchers.getElementByID(
+      RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID,
+    );
   }
 
-  get passwordWarning(): DetoxElement {
+  get passwordWarning(): EncapsulatedElementType {
     return Matchers.getElementByID(
       RevealSeedViewSelectorsIDs.PASSWORD_WARNING_ID,
     );
   }
 
   get passwordInputToRevealCredential(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByLabel(
-          RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
-        ),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementByAndroidUIAutomator(
-            `.description("${RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID}")`,
-          ),
-        ios: () =>
-          PlaywrightMatchers.getElementById(
-            RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
-            { exact: true },
-          ),
-      },
-    });
+    return Matchers.getElementByLabel(
+      RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
+    );
   }
 
   get scrollViewIdentifier(): Promise<DetoxMatcher> {
@@ -78,87 +54,39 @@ class RevealSecretRecoveryPhrase {
   }
 
   get revealSecretRecoveryPhraseButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(
-          RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BUTTON_ID,
-        ),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BUTTON_ID,
-          { exact: true },
-        ),
-    });
+    return Matchers.getElementByID(
+      RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BUTTON_ID,
+    );
   }
 
   get revealCredentialCopyToClipboardButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(
-          RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_COPY_TO_CLIPBOARD_BUTTON,
-        ),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_COPY_TO_CLIPBOARD_BUTTON,
-          { exact: true },
-        ),
-    });
+    return Matchers.getElementByID(
+      RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_COPY_TO_CLIPBOARD_BUTTON,
+    );
   }
 
   get revealCredentialQRCodeTab(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByText(
-          RevealSeedViewSelectorsText.REVEAL_CREDENTIAL_QR_CODE_TAB_ID,
-        ),
-      appium: () =>
-        PlaywrightMatchers.getElementByText(
-          RevealSeedViewSelectorsText.REVEAL_CREDENTIAL_QR_CODE_TAB_ID,
-          true,
-        ),
-    });
+    return Matchers.getElementByText(
+      RevealSeedViewSelectorsText.REVEAL_CREDENTIAL_QR_CODE_TAB_ID,
+    );
   }
 
   get revealCredentialQRCodeImage(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(
-          RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_QR_CODE_IMAGE_ID,
-        ),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_QR_CODE_IMAGE_ID,
-          { exact: true },
-        ),
-    });
+    return Matchers.getElementByID(
+      RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_QR_CODE_IMAGE_ID,
+    );
   }
 
   get doneButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByText(
-          RevealSeedViewSelectorsText.REVEAL_CREDENTIAL_DONE,
-        ),
-      appium: () =>
-        PlaywrightMatchers.getElementByText(
-          RevealSeedViewSelectorsText.REVEAL_CREDENTIAL_DONE,
-          true,
-        ),
-    });
+    return Matchers.getElementByText(
+      RevealSeedViewSelectorsText.REVEAL_CREDENTIAL_DONE,
+    );
   }
 
   get confirmButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(
-          RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID,
-        ),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID,
-          { exact: true },
-        ),
-    });
+    return Matchers.getElementByID(
+      RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID,
+    );
   }
 
   async enterPasswordToRevealSecretCredential(password: string): Promise<void> {

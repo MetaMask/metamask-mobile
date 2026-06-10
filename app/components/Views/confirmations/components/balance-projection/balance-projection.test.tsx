@@ -18,11 +18,11 @@ const ONE_YEAR_LABEL = strings('confirm.custom_amount.projected_balance', {
 
 function mockBalance({
   apyDecimal,
-  apyPercent = apyDecimal === undefined ? undefined : apyDecimal * 100,
+  apyPercent,
   isLoading = false,
 }: {
   apyDecimal: number | undefined;
-  apyPercent?: number;
+  apyPercent: number | undefined;
   isLoading?: boolean;
 }) {
   useMoneyAccountBalanceMock.mockReturnValue({
@@ -43,7 +43,7 @@ describe('BalanceProjection', () => {
   });
 
   it('renders label and projected balance for $1,000 at apyDecimal 0.04 over 1 year (~$1,040.00)', () => {
-    mockBalance({ apyDecimal: 0.04 });
+    mockBalance({ apyDecimal: 0.04, apyPercent: 4 });
 
     const { getByTestId, getByText } = render(
       <BalanceProjection amountFiat="1000" projectedYears={1} />,
@@ -55,7 +55,7 @@ describe('BalanceProjection', () => {
   });
 
   it('compounds the projection over multiple years', () => {
-    mockBalance({ apyDecimal: 0.04 });
+    mockBalance({ apyDecimal: 0.04, apyPercent: 4 });
 
     const { getByText } = render(
       <BalanceProjection amountFiat="1000" projectedYears={5} />,
@@ -64,66 +64,129 @@ describe('BalanceProjection', () => {
     expect(getByText('$1216.65')).toBeOnTheScreen();
   });
 
-  it('returns null while APY is loading', () => {
-    mockBalance({ apyDecimal: undefined, isLoading: true });
+  it('renders the APY pitch when amountFiat is "0"', () => {
+    mockBalance({ apyDecimal: 0.04, apyPercent: 4 });
+
+    const { getByTestId, getByText } = render(
+      <BalanceProjection amountFiat="0" projectedYears={1} />,
+    );
+
+    expect(getByTestId('balance-projection-apy-pitch')).toBeOnTheScreen();
+    expect(getByText('Earn up to 4% APY')).toBeOnTheScreen();
+  });
+
+  it('renders the APY pitch when amountFiat is empty', () => {
+    mockBalance({ apyDecimal: 0.04, apyPercent: 4 });
+
+    const { getByTestId, getByText } = render(
+      <BalanceProjection amountFiat="" projectedYears={1} />,
+    );
+
+    expect(getByTestId('balance-projection-apy-pitch')).toBeOnTheScreen();
+    expect(getByText('Earn up to 4% APY')).toBeOnTheScreen();
+  });
+
+  it('reserves space with a skeleton while APY is loading', () => {
+    mockBalance({
+      apyDecimal: undefined,
+      apyPercent: undefined,
+      isLoading: true,
+    });
 
     const { queryByTestId } = render(
       <BalanceProjection amountFiat="1000" projectedYears={1} />,
     );
 
     expect(queryByTestId('balance-projection')).toBeNull();
+    expect(queryByTestId('balance-projection-apy-pitch')).toBeNull();
+    expect(queryByTestId('balance-projection-skeleton')).toBeOnTheScreen();
   });
 
-  it('returns null when apyDecimal is unavailable or negative', () => {
-    mockBalance({ apyDecimal: undefined });
-    const { queryByTestId: queryUndefined } = render(
-      <BalanceProjection amountFiat="1000" projectedYears={1} />,
-    );
-    expect(queryUndefined('balance-projection')).toBeNull();
+  it('returns null when apyPercent / apyDecimal is unavailable', () => {
+    mockBalance({ apyDecimal: undefined, apyPercent: undefined });
 
-    mockBalance({ apyDecimal: -1 });
-    const { queryByTestId: queryNegative } = render(
+    const { queryByTestId } = render(
       <BalanceProjection amountFiat="1000" projectedYears={1} />,
     );
-    expect(queryNegative('balance-projection')).toBeNull();
+
+    expect(queryByTestId('balance-projection')).toBeNull();
+    expect(queryByTestId('balance-projection-apy-pitch')).toBeNull();
   });
 
-  it('shows the "earn up to APY" prompt for empty or zero amounts', () => {
-    mockBalance({ apyDecimal: 0.04, apyPercent: 4 });
-    const earnLabel = strings('confirm.custom_amount.earn_up_to_apy', {
-      percentage: 4,
-    });
+  it('returns null when apyDecimal is negative', () => {
+    mockBalance({ apyDecimal: -1, apyPercent: -100 });
 
-    const { getByText: getByTextEmpty } = render(
-      <BalanceProjection amountFiat="" projectedYears={1} />,
+    const { queryByTestId } = render(
+      <BalanceProjection amountFiat="1000" projectedYears={1} />,
     );
-    expect(getByTextEmpty(earnLabel)).toBeOnTheScreen();
 
-    const { getByText: getByTextZero } = render(
+    expect(queryByTestId('balance-projection')).toBeNull();
+    expect(queryByTestId('balance-projection-apy-pitch')).toBeNull();
+  });
+
+  it('returns null and shows no APY pitch when apyPercent is negative for an empty amount', () => {
+    mockBalance({ apyDecimal: -1, apyPercent: -100 });
+
+    const { queryByTestId } = render(
       <BalanceProjection amountFiat="0" projectedYears={1} />,
     );
-    expect(getByTextZero(earnLabel)).toBeOnTheScreen();
+
+    expect(queryByTestId('balance-projection')).toBeNull();
+    expect(queryByTestId('balance-projection-apy-pitch')).toBeNull();
   });
 
   it('returns null for a zero amount when apyPercent is unavailable', () => {
-    useMoneyAccountBalanceMock.mockReturnValue({
-      apyDecimal: 0.04,
-      apyPercent: undefined,
-      vaultApyQuery: { isLoading: false },
-    } as unknown as ReturnType<typeof useMoneyAccountBalance>);
+    mockBalance({ apyDecimal: 0.04, apyPercent: undefined });
 
     const { queryByTestId } = render(
       <BalanceProjection amountFiat="0" projectedYears={1} />,
     );
+
     expect(queryByTestId('balance-projection')).toBeNull();
+    expect(queryByTestId('balance-projection-apy-pitch')).toBeNull();
   });
 
-  it('returns null for non-numeric amountFiat', () => {
-    mockBalance({ apyDecimal: 0.04 });
+  it('returns null when apyDecimal is non-finite for a positive amount', () => {
+    mockBalance({ apyDecimal: NaN, apyPercent: NaN });
+
+    const { queryByTestId } = render(
+      <BalanceProjection amountFiat="1000" projectedYears={1} />,
+    );
+
+    expect(queryByTestId('balance-projection')).toBeNull();
+    expect(queryByTestId('balance-projection-apy-pitch')).toBeNull();
+  });
+
+  it('returns null when apyPercent is non-finite for an empty amount', () => {
+    mockBalance({ apyDecimal: NaN, apyPercent: NaN });
+
+    const { queryByTestId } = render(
+      <BalanceProjection amountFiat="0" projectedYears={1} />,
+    );
+
+    expect(queryByTestId('balance-projection')).toBeNull();
+    expect(queryByTestId('balance-projection-apy-pitch')).toBeNull();
+  });
+
+  it('returns null when amountFiat is non-numeric', () => {
+    mockBalance({ apyDecimal: 0.04, apyPercent: 4 });
 
     const { queryByTestId } = render(
       <BalanceProjection amountFiat="abc" projectedYears={1} />,
     );
+
     expect(queryByTestId('balance-projection')).toBeNull();
+    expect(queryByTestId('balance-projection-apy-pitch')).toBeNull();
+  });
+
+  it('passes a BigNumber to the fiat formatter when projecting', () => {
+    mockBalance({ apyDecimal: 0.04, apyPercent: 4 });
+
+    render(<BalanceProjection amountFiat="1000" projectedYears={1} />);
+
+    expect(formatFiat).toHaveBeenCalledTimes(1);
+    const passed = formatFiat.mock.calls[0][0];
+    expect(BigNumber.isBigNumber(passed)).toBe(true);
+    expect(passed.toFixed(2)).toBe('1040.00');
   });
 });

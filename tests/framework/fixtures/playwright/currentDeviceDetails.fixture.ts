@@ -1,14 +1,17 @@
 import type { FullProject, TestInfo } from '@playwright/test';
 import {
-  WebDriverConfig,
   Platform,
   ProviderName,
   type DeviceConfig,
   type EmulatorConfig,
+  type WebDriverConfig,
 } from '../../types.ts';
 import { applyResolvedAndroidAdbToDevice } from '../../services/providers/emulator/android/resolveAndroidAdbUdid.ts';
 import { getIosSimulatorUdid } from '../../services/appium/EmulatorHelpers.ts';
+import { createPlaywrightLogger } from '../../playwrightLogger.ts';
 import type { CurrentDeviceDetails } from './types.ts';
+
+const logger = createPlaywrightLogger('currentDeviceDetails');
 
 export const currentDeviceDetailsFixture = {
   currentDeviceDetails: async (
@@ -17,6 +20,11 @@ export const currentDeviceDetailsFixture = {
     testInfo: TestInfo,
   ) => {
     const project = testInfo.project as FullProject<WebDriverConfig>;
+
+    logger.info(
+      `Resolving device details for project "${project.name}" (${testInfo.title})`,
+    );
+
     const platform = project.use.platform;
     const emulatorDevice = project.use.device as EmulatorConfig | undefined;
     const deviceNameField = emulatorDevice?.name;
@@ -49,9 +57,15 @@ export const currentDeviceDetailsFixture = {
       emulatorDevice?.provider === ProviderName.SIMULATOR;
 
     if (platform === Platform.ANDROID && isLocalEmulator && emulatorDevice) {
+      logger.debug(
+        `Resolving Android ADB serial for "${deviceNameField ?? deviceUdid}"`,
+      );
       await applyResolvedAndroidAdbToDevice(emulatorDevice, {
         setAndroidSerialEnv: true,
       });
+      logger.debug(
+        `Android ADB serial resolved: ${emulatorDevice.udid ?? 'unknown'}`,
+      );
     }
 
     // For iOS local simulators, resolve the UDID of the currently-booted device.
@@ -66,6 +80,9 @@ export const currentDeviceDetailsFixture = {
     }
 
     const displayName = deviceNameField ?? deviceUdid ?? 'unknown';
+    const providerLabel = isBrowserstack
+      ? 'browserstack'
+      : (deviceConfig?.provider ?? 'unknown');
     const deviceDetails: CurrentDeviceDetails = {
       platform: platform as 'android' | 'ios',
       deviceName: displayName,
@@ -75,6 +92,14 @@ export const currentDeviceDetailsFixture = {
       launchableActivity,
       isBrowserstack,
     };
+
+    logger.info(
+      `Device details ready: platform=${platform}, device=${displayName}` +
+        (deviceDetails.udid ? `, udid=${deviceDetails.udid}` : '') +
+        `, provider=${providerLabel}` +
+        (packageName ? `, package=${packageName}` : '') +
+        (appId ? `, appId=${appId}` : ''),
+    );
 
     await use(deviceDetails);
   },

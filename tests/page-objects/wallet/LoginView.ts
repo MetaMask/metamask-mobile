@@ -43,11 +43,11 @@ class LoginView {
     });
   }
 
-  get forgotPasswordButton(): DetoxElement {
+  get forgotPasswordButton(): EncapsulatedElementType {
     return Matchers.getElementByID(LoginViewSelectors.RESET_WALLET);
   }
 
-  get rememberMeSwitch(): DetoxElement {
+  get rememberMeSwitch(): EncapsulatedElementType {
     return Matchers.getElementByID(LoginViewSelectors.REMEMBER_ME_SWITCH);
   }
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, act, waitFor } from '@testing-library/react-native';
+import { render, screen, act } from '@testing-library/react-native';
 import {
   NavigationContainer,
   NavigationContainerRef,
@@ -207,7 +207,7 @@ describe('PredictScreenStack', () => {
     expect(screen.getByTestId('predict-positions-view')).toBeOnTheScreen();
   });
 
-  it('returns to market list when POSITIONS screen is disabled', async () => {
+  it('navigates to POSITIONS screen when portfolio flag is disabled', async () => {
     mockPredictPortfolioEnabled = false;
     renderWithNavigation(<PredictScreenStack />);
 
@@ -215,12 +215,7 @@ describe('PredictScreenStack', () => {
       navigationRef.current?.navigate(Routes.PREDICT.POSITIONS);
     });
 
-    await waitFor(() => {
-      expect(navigationRef.current?.getCurrentRoute()?.name).toBe(
-        Routes.PREDICT.MARKET_LIST,
-      );
-    });
-    expect(screen.queryByTestId('predict-positions-view')).toBeNull();
+    expect(screen.getByTestId('predict-positions-view')).toBeOnTheScreen();
   });
 
   it('navigates to BUY_PREVIEW with PredictBuyPreview when payWithAnyToken is off', async () => {

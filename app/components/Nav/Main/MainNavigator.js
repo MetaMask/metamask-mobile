@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useRef,
+  useCallback,
+} from 'react';
 import { Image, StyleSheet, Keyboard, Platform } from 'react-native';
 import {
   createStackNavigator,
@@ -80,7 +86,10 @@ import SendTransaction from '../../UI/Ramp/Aggregator/Views/SendTransaction';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
-import { SnapSettings } from '../../Views/Snaps/SnapSettings';
+import {
+  SnapSettings,
+  ALLOWED_CAPABILITIES as SNAPS_SETTINGS_ROUTE_ALLOWED_CAPABILITIES,
+} from '../../Views/Snaps/SnapSettings';
 import { CAN_INSTALL_THIRD_PARTY_SNAPS } from '../../../constants/snaps';
 ///: END:ONLY_INCLUDE_IF
 import Routes from '../../../constants/navigation/Routes';
@@ -161,6 +170,8 @@ import { TokenDetails } from '../../UI/TokenDetails/Views/TokenDetails';
 import BenefitFullView from '../../UI/Rewards/Views/BenefitFullView';
 import BenefitsFullView from '../../UI/Rewards/Views/BenefitsFullView';
 import { getDeFiProtocolPositionDetailsNavbarOptions } from '../../UI/Navbar';
+import MoneyTabPressTracker from '../../UI/Money/components/MoneyTabPressTracker';
+import { withMessenger } from '../../../messengers/helpers/route-messenger-helpers';
 
 const Stack = createStackNavigator();
 const NativeStack = createNativeStackNavigator();
@@ -423,6 +434,10 @@ const ExploreHome = () => {
 };
 
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+const SnapSettingsWithMessenger = withMessenger(SnapSettings, {
+  capabilities: SNAPS_SETTINGS_ROUTE_ALLOWED_CAPABILITIES,
+});
+
 const SnapsSettingsStack = () => {
   const { colors } = useTheme();
   return (
@@ -438,7 +453,7 @@ const SnapsSettingsStack = () => {
       />
       <NativeStack.Screen
         name={Routes.SNAPS.SNAP_SETTINGS}
-        component={SnapSettings}
+        component={SnapSettingsWithMessenger}
       />
     </NativeStack.Navigator>
   );
@@ -592,6 +607,12 @@ const HomeTabs = () => {
 
   const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
 
+  const trackMoneyTabPressRef = useRef(null);
+
+  const registerMoneyTabPressTracker = useCallback((fn) => {
+    trackMoneyTabPressRef.current = fn;
+  }, []);
+
   const accountsLength = useSelector(selectAccountsLength);
 
   const chainId = useSelector((state) => {
@@ -653,6 +674,9 @@ const HomeTabs = () => {
     },
     money: {
       tabBarIconKey: TabBarIconKey.Money,
+      callback: () => {
+        trackMoneyTabPressRef.current?.();
+      },
       rootScreenName: Routes.MONEY.HOME,
     },
     rewards: {
@@ -779,6 +803,9 @@ const HomeTabs = () => {
      * Retry toasts so we don't double-fire when both are mounted.
      */
     <PredictPreviewSheetProvider>
+      {isMoneyAccountEnabled ? (
+        <MoneyTabPressTracker onRegister={registerMoneyTabPressTracker} />
+      ) : null}
       <Tab.Navigator
         initialRouteName={Routes.WALLET.HOME}
         tabBar={renderTabBar}
@@ -1379,7 +1406,7 @@ const MainNavigator = () => {
       <Stack.Screen
         name={Routes.CARD.ROOT}
         component={CardRoutes}
-        options={TransitionPresets.ModalSlideFromBottomIOS}
+        options={TransitionPresets.ModalPresentationIOS}
       />
       <Stack.Screen
         name={Routes.RAMP.MODALS.PROCESSING_INFO}

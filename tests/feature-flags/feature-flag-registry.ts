@@ -3052,6 +3052,16 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  earnMusdBalanceChainIds: {
+    name: 'earnMusdBalanceChainIds',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      chainIds: ['0x1', '0xe708', '0x8f'],
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   earnMusdConversionAssetOverviewCtaEnabled: {
     name: 'earnMusdConversionAssetOverviewCtaEnabled',
     type: FeatureFlagType.Remote,
@@ -3160,7 +3170,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      chainIds: ['0x1', '0xe708'],
+      chainIds: ['0x1', '0xe708', '0x8f'],
     },
     status: FeatureFlagStatus.Active,
   },
@@ -4649,31 +4659,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       enabled: false,
     },
-    status: FeatureFlagStatus.Active,
-  },
-
-  stickyButtonsAbTest: {
-    name: 'stickyButtonsAbTest',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: [
-      {
-        name: 'control',
-        scope: {
-          value: 1,
-          type: 'threshold',
-        },
-        value: 'control',
-      },
-      {
-        name: 'treatment',
-        scope: {
-          type: 'threshold',
-          value: 0,
-        },
-        value: 'treatment',
-      },
-    ],
     status: FeatureFlagStatus.Active,
   },
 
