@@ -60,6 +60,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useAlerts } from '../../../context/alert-system-context';
 import { AlertKeys } from '../../../constants/alerts';
+import { useAccountNoTokensAlert } from '../../../hooks/alerts/useAccountNoTokensAlert';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import EngineService from '../../../../../../core/EngineService';
 import Engine from '../../../../../../core/Engine';
@@ -163,6 +164,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const isQuotesLoading = useIsTransactionPayLoading();
     const hasSourceAmount = useTransactionPayHasSourceAmount();
     const { alerts } = useAlerts();
+    const accountNoTokensAlert = useAccountNoTokensAlert();
+    const hasAccountNoTokens = accountNoTokensAlert.length > 0;
     const hasNoQuotesAlert = alerts.some(
       (a) => a.key === AlertKeys.NoPayTokenQuotes,
     );
@@ -272,7 +275,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 )}
               <PerpsAccountPickerRow />
               <PredictAccountPickerRow />
-              {disablePay !== true && hasPaymentOption && <PayWithRow />}
+              {disablePay !== true &&
+                (hasPaymentOption || hasAccountNoTokens) && <PayWithRow />}
             </>
           )}
           {isResultReady && (
@@ -308,7 +312,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               {footerText}
             </Text>
           )}
-          {isKeyboardVisible && hasPaymentOption && (
+          {isKeyboardVisible && (hasPaymentOption || hasAccountNoTokens) && (
             <DepositKeyboard
               hidePercentageButtons={
                 Boolean(selectedFiatPaymentMethodId) ||
@@ -323,7 +327,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               hasMax={hasMax && (isWithdraw || !isNativePayToken)}
             />
           )}
-          {!hasPaymentOption && <BuySection />}
+          {!hasPaymentOption && !hasAccountNoTokens && <BuySection />}
           {!isKeyboardVisible && (
             <ConfirmButton
               alertTitle={alertTitle}

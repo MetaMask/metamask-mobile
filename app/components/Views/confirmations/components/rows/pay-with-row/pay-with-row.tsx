@@ -9,6 +9,7 @@ import { TokenIcon, TokenIconVariant } from '../../token-icon';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
+import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
 import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod';
 import { Image, TouchableOpacity } from 'react-native';
 import MoneyIcon from '../../../../../../images/money.png';
@@ -85,6 +86,7 @@ function PayWithRowInteractive() {
   const { payToken } = useTransactionPayToken();
   const { isWithdraw } = useTransactionPayWithdraw();
   const requiredTokens = useTransactionPayRequiredTokens();
+  const { hasTokens } = useTransactionPayAvailableTokens();
   const selectedFiatPaymentMethod =
     useTransactionPaySelectedFiatPaymentMethod();
   const formatFiat = useFiatFormatter({ currency: 'usd' });
@@ -126,11 +128,14 @@ function PayWithRowInteractive() {
     (token) => !token.skipIfBalance && !token.allowUnderMinimum,
   );
   const displayToken = useMemo(() => {
+    if (!hasTokens) {
+      return null;
+    }
     if (isWithdraw) {
       return payToken ?? defaultWithdrawToken ?? null;
     }
     return payToken ?? null;
-  }, [isWithdraw, payToken, defaultWithdrawToken]);
+  }, [hasTokens, isWithdraw, payToken, defaultWithdrawToken]);
 
   const balanceUsdFormatted = useMemo(
     () => formatFiat(new BigNumber(accountBalanceUsd)),
@@ -150,7 +155,18 @@ function PayWithRowInteractive() {
   }
 
   if (!displayToken) {
-    return <PayWithRowSkeleton />;
+    if (hasTokens) {
+      return <PayWithRowSkeleton />;
+    }
+
+    return (
+      <PayWithRowEmpty
+        label={label}
+        disabled={isDisabled}
+        hasFrom={Boolean(from)}
+        onPress={handleClick}
+      />
+    );
   }
 
   return (
@@ -270,6 +286,63 @@ function PayWithFiatPaymentMethodRow({
               name={IconName.ArrowDown}
               size={IconSize.Sm}
               color={disabled ? IconColor.IconMuted : IconColor.IconAlternative}
+            />
+          )}
+        </Box>
+      </Box>
+    </TouchableOpacity>
+  );
+}
+
+function PayWithRowEmpty({
+  label,
+  disabled,
+  hasFrom,
+  onPress,
+}: {
+  label: string;
+  disabled: boolean;
+  hasFrom: boolean;
+  onPress: () => void;
+}) {
+  const { styles } = useStyles(styleSheet, {});
+
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      disabled={disabled}
+      testID={ConfirmationRowComponentIDs.PAY_WITH}
+    >
+      <Box
+        flexDirection={FlexDirection.Row}
+        alignItems={AlignItems.center}
+        justifyContent={JustifyContent.spaceBetween}
+        style={styles.container}
+      >
+        <Text
+          variant={TextVariant.BodyMd}
+          color={disabled ? TextColor.TextMuted : TextColor.TextAlternative}
+        >
+          {label}
+        </Text>
+        <Box
+          flexDirection={FlexDirection.Row}
+          alignItems={AlignItems.center}
+          gap={8}
+        >
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+            testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
+          >
+            {strings('confirm.label.select_token')}
+          </Text>
+          {hasFrom && (
+            <Icon
+              name={IconName.ArrowDown}
+              size={IconSize.Sm}
+              color={IconColor.IconAlternative}
             />
           )}
         </Box>

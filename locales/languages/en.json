@@ -7423,6 +7423,7 @@
       "pay_with": "Pay with",
       "payment_method": "Payment method",
       "receive_as": "Receive",
+      "select_token": "Select token",
       "from": "From",
       "to": "To",
       "total": "Total",
@@ -7574,6 +7575,7 @@
       "buy_button": "Buy crypto",
       "buy_predict": "Add funds to your wallet to use Predictions.",
       "buy_perps": "Add funds to your wallet to use Perps.",
+      "insufficient_funds": "Insufficient funds",
       "projected_balance": "Projected {{projectedYears}}-year balance:",
       "earn_up_to_apy": "Earn up to {{percentage}}% APY"
     },
