@@ -681,6 +681,20 @@ export async function withFixtures(
       solanaInfuraWsServer,
     );
     await setupSolanaInfuraMocks(solanaInfuraWsServer);
+    // Bridge device-proxied WS traffic aimed at the fallback ports to the
+    // actual host-side server ports. On Android the emulator global proxy
+    // does not reliably honor the exclusion list for WebSocket upgrades, so
+    // shim-rerouted WS connections (ws://localhost:<fallbackPort>) can arrive
+    // at mockttp instead of the adb-reverse path; without this bridge they
+    // ECONNREFUSED against a port nothing on the host listens on.
+    await mockServerInstance.bridgeLocalWebSocketPort(
+      ACCOUNT_ACTIVITY_WS.fallbackPort,
+      accountActivityWsServer.getServerPort(),
+    );
+    await mockServerInstance.bridgeLocalWebSocketPort(
+      SOLANA_INFURA_WS.fallbackPort,
+      solanaInfuraWsServer.getServerPort(),
+    );
     // Resolve fixture after local nodes are started so dynamic ports are known
     let resolvedFixture: FixtureBuilder | Fixture;
     if (typeof fixtureOption === 'function') {
