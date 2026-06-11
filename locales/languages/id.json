@@ -1979,10 +1979,10 @@
       "stocks_and_commodities": "Jelajahi saham dan komoditas",
       "tabs": {
         "crypto": "Kripto",
-        "stocks": "Saham",
-        "commodities": "Komoditas",
         "forex": "Forex",
-        "new": "Baru"
+        "new": "Baru",
+        "stock": "Saham",
+        "commodity": "Komoditas"
       },
       "filter_by": "Filter berdasarkan",
       "forex": "Forex",
@@ -8454,7 +8454,7 @@
     "main_title": "Reward",
     "vip": {
       "bps_unit": "bps",
-      "badge_label": "VIP Fox {{tier}}",
+      "badge_label": "VIP {{tier}}",
       "swaps_label": "Swaps",
       "perps_label": "Perps",
       "error_title": "We couldn’t load your VIP dashboard",
@@ -8902,11 +8902,7 @@
       "stats_qualify_for_rank_description": "Lakukan perdagangan {{notionalRemaining}} lagi dalam volume notional untuk memenuhi syarat.",
       "stats_error_title": "Tidak dapat memuat statistik",
       "stats_error_description": "Terjadi masalah saat memuat statistik. Coba lagi.",
-      "stats_retry": "Coba lagi",
-      "completed_label_total_participants": "Total peserta",
-      "completed_label_total_volume": "Volume total",
-      "completed_label_top_pnl": "PnL Tertinggi",
-      "completed_label_winners": "Pemenang"
+      "stats_retry": "Coba lagi"
     },
     "campaigns_preview": {
       "title": "Kampanye",

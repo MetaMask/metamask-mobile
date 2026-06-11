@@ -57,7 +57,7 @@ describe('PerpsMarketListView', () => {
         `${sortFiltersId}-categories-crypto`,
       );
       const commoditiesBadge = screen.getByTestId(
-        `${sortFiltersId}-categories-commodities`,
+        `${sortFiltersId}-categories-commodity`,
       );
       expect(cryptoBadge).toBeOnTheScreen();
       expect(commoditiesBadge).toBeOnTheScreen();

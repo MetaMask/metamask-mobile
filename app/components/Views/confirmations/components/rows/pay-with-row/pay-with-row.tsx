@@ -52,6 +52,7 @@ import {
 import { SetPayTokenRequest } from '../../../hooks/pay/useAutomaticTransactionPayToken';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useTheme } from '../../../../../../util/theme';
+import { usePayTokenAccountBalance } from '../../../hooks/pay/usePayTokenAccountBalance';
 
 interface PayWithRouteParams {
   preferredPaymentToken?: SetPayTokenRequest;
@@ -95,6 +96,7 @@ function PayWithRowInteractive() {
     txParams: { from },
   } = useTransactionMetadataRequest() ?? { txParams: {} };
 
+  const { balanceUsd: accountBalanceUsd } = usePayTokenAccountBalance();
   const { isHeadlessBuyInProgress } = useConfirmationContext();
   const canEdit = !isHardwareAccount(from ?? '');
 
@@ -130,10 +132,9 @@ function PayWithRowInteractive() {
     return payToken ?? null;
   }, [isWithdraw, payToken, defaultWithdrawToken]);
 
-  // For deposits, show the user's balance of the selected pay token
   const balanceUsdFormatted = useMemo(
-    () => formatFiat(new BigNumber(payToken?.balanceUsd ?? '0')),
-    [formatFiat, payToken?.balanceUsd],
+    () => formatFiat(new BigNumber(accountBalanceUsd)),
+    [formatFiat, accountBalanceUsd],
   );
 
   if (selectedFiatPaymentMethod) {
@@ -326,7 +327,7 @@ function PayWithRowMoneyAccount() {
             color={TextColor.TextDefault}
             testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
           >
-            {strings('confirm.pay_with_bottom_sheet.money_balance')}
+            {strings('confirm.pay_with_bottom_sheet.money_account')}
           </Text>
           <Icon
             name={IconName.ArrowDown}

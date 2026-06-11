@@ -1979,10 +1979,10 @@
       "stocks_and_commodities": "株式や商品先物を探す",
       "tabs": {
         "crypto": "仮想通貨",
-        "stocks": "株式",
-        "commodities": "商品",
         "forex": "FX",
-        "new": "新登場"
+        "new": "新登場",
+        "stock": "株式",
+        "commodity": "商品"
       },
       "filter_by": "絞り込み条件：",
       "forex": "FX",
@@ -8454,7 +8454,7 @@
     "main_title": "報酬",
     "vip": {
       "bps_unit": "bps",
-      "badge_label": "VIP Fox {{tier}}",
+      "badge_label": "VIP {{tier}}",
       "swaps_label": "Swaps",
       "perps_label": "Perps",
       "error_title": "We couldn’t load your VIP dashboard",
@@ -8902,11 +8902,7 @@
       "stats_qualify_for_rank_description": "名目取引量があと{{notionalRemaining}}で条件が満たされます。",
       "stats_error_title": "統計を読み込めません",
       "stats_error_description": "統計の読み込み中に問題が発生しました。もう一度お試しください。",
-      "stats_retry": "再試行",
-      "completed_label_total_participants": "参加総数",
-      "completed_label_total_volume": "総取引量",
-      "completed_label_top_pnl": "最高損益",
-      "completed_label_winners": "入賞者"
+      "stats_retry": "再試行"
     },
     "campaigns_preview": {
       "title": "キャンペーン",
