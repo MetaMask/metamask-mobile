@@ -158,6 +158,7 @@ const mockNavigateToHome = jest.fn();
 const mockNavigateToActivity = jest.fn();
 const mockNavigateToOrder = jest.fn();
 const mockNavigateToTutorial = jest.fn();
+const mockNavigateToMarketList = jest.fn();
 const mockNavigateBack = jest.fn();
 
 // Mock notification feature flag
@@ -525,6 +526,7 @@ jest.mock('../../hooks', () => ({
     navigateToActivity: mockNavigateToActivity,
     navigateToOrder: mockNavigateToOrder,
     navigateToTutorial: mockNavigateToTutorial,
+    navigateToMarketList: mockNavigateToMarketList,
     navigateBack: mockNavigateBack,
     canGoBack: mockCanGoBack(),
   })),
@@ -2666,6 +2668,29 @@ describe('PerpsMarketDetailsView', () => {
           getByTestId('perps-chart-fullscreen-close-button'),
         ).toBeOnTheScreen();
         expect(getByTestId('fullscreen-chart')).toBeOnTheScreen();
+      });
+    });
+  });
+
+  describe('Category search shortcut', () => {
+    it('navigates to market list with crypto category when search button is pressed', () => {
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      const searchButton = getByTestId(
+        'perps-market-header-category-search-button',
+      );
+      fireEvent.press(searchButton);
+
+      expect(mockNavigateToMarketList).toHaveBeenCalledWith({
+        source: 'magnifying_glass',
+        defaultMarketTypeFilter: 'crypto',
       });
     });
   });
