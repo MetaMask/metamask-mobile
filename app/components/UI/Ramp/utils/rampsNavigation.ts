@@ -6,6 +6,8 @@ export interface RampsOrderDetailsParams {
   callbackUrl?: string;
   providerCode?: string;
   walletAddress?: string;
+  /** Fallback for toast copy when the order has no crypto symbol yet. */
+  cryptocurrency?: string;
 }
 
 export function createRampsOrderDetailsRoute(params: RampsOrderDetailsParams): {

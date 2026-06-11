@@ -416,82 +416,113 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
       }
       processingOrderIdRef.current = orderId;
 
-      try {
-        const depositOrder = await getOrder(orderId, walletAddress || '');
+      const session = getSession(headlessSessionId);
+      if (headlessSessionId && session) {
+        // Headless mode: fetch the order, hand the orderId to the
+        // consumer, close the session, and unwind out of the ramp stack
+        // so the caller regains foreground. Skip RAMPS_ORDER_DETAILS —
+        // the consumer drives its own UI.
+        try {
+          const depositOrder = await getOrder(orderId, walletAddress || '');
 
-        if (!depositOrder) {
-          throw new Error('Missing order');
-        }
+          if (!depositOrder) {
+            throw new Error('Missing order');
+          }
 
-        const providerCode = normalizeProviderCode(
-          String(depositOrder.provider ?? 'transak-native'),
-        );
-        const rampsOrder = await refreshOrder(
-          providerCode,
-          depositOrder.providerOrderId,
-          walletAddress || depositOrder.walletAddress,
-        );
+          const providerCode = normalizeProviderCode(
+            String(depositOrder.provider ?? 'transak-native'),
+          );
+          const rampsOrder = await refreshOrder(
+            providerCode,
+            depositOrder.providerOrderId,
+            walletAddress || depositOrder.walletAddress,
+          );
 
-        addOrder({
-          ...rampsOrder,
-          paymentDetails: depositOrder.paymentDetails,
-        });
-
-        // Suppress the toast when a headless session is driving this
-        // flow — the consumer handles its own notification UI. Keep
-        // `addOrder` and the analytics event in both modes so Redux
-        // state + telemetry parity is preserved.
-        if (!getSession(headlessSessionId)) {
-          showV2OrderToast({
-            orderId: rampsOrder.providerOrderId,
-            cryptocurrency: rampsOrder.cryptoCurrency?.symbol ?? '',
-            cryptoAmount: rampsOrder.cryptoAmount,
-            status: rampsOrder.status,
+          addOrder({
+            ...rampsOrder,
+            paymentDetails: depositOrder.paymentDetails,
           });
-        }
 
-        navigateToOrderProcessingCallback({
-          orderId: rampsOrder.providerOrderId,
-        });
+          try {
+            session.callbacks.onOrderCreated(rampsOrder.providerOrderId);
+          } catch (callbackError) {
+            Logger.error(
+              callbackError as Error,
+              'useTransakRouting: onOrderCreated callback threw',
+            );
+          }
+          closeSession(headlessSessionId, { reason: 'completed' });
+          // @ts-expect-error `pop` exists on the parent stack navigator at
+          // runtime but is not surfaced on the generic `NavigationProp`
+          // type returned by `getParent()`.
+          navigation.getParent()?.pop();
 
-        trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
-          ramp_type: 'DEPOSIT',
-          amount_source: Number(rampsOrder.fiatAmount),
-          amount_destination: Number(rampsOrder.cryptoAmount),
-          exchange_rate: Number(rampsOrder.exchangeRate),
-          gas_fee: rampsOrder.networkFees ? Number(rampsOrder.networkFees) : 0,
-          processing_fee: rampsOrder.partnerFees
-            ? Number(rampsOrder.partnerFees)
-            : 0,
-          total_fee: Number(rampsOrder.totalFeesFiat),
-          payment_method_id: rampsOrder.paymentMethod?.id || '',
-          country: regionIsoCode,
-          chain_id: rampsOrder.network?.chainId || '',
-          currency_destination: rampsOrder.cryptoCurrency?.assetId || '',
-          currency_destination_symbol: rampsOrder.cryptoCurrency?.symbol || '',
-          currency_destination_network: rampsOrder.network?.name || '',
-          currency_source: rampsOrder.fiatCurrency?.symbol || '',
-        });
-      } catch (error) {
-        processingOrderIdRef.current = null;
-        Logger.error(error as Error, {
-          message: 'useTransakRouting: Failed to process order after checkout',
-        });
-        if (failSession(headlessSessionId, error)) {
-          dismissActiveHeadlessFlow();
+          trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
+            ramp_type: 'DEPOSIT',
+            amount_source: Number(rampsOrder.fiatAmount),
+            amount_destination: Number(rampsOrder.cryptoAmount),
+            exchange_rate: Number(rampsOrder.exchangeRate),
+            gas_fee: rampsOrder.networkFees
+              ? Number(rampsOrder.networkFees)
+              : 0,
+            processing_fee: rampsOrder.partnerFees
+              ? Number(rampsOrder.partnerFees)
+              : 0,
+            total_fee: Number(rampsOrder.totalFeesFiat),
+            payment_method_id: rampsOrder.paymentMethod?.id || '',
+            country: regionIsoCode,
+            chain_id: rampsOrder.network?.chainId || '',
+            currency_destination: rampsOrder.cryptoCurrency?.assetId || '',
+            currency_destination_symbol:
+              rampsOrder.cryptoCurrency?.symbol || '',
+            currency_destination_network: rampsOrder.network?.name || '',
+            currency_source: rampsOrder.fiatCurrency?.symbol || '',
+          });
+        } catch (error) {
+          processingOrderIdRef.current = null;
+          Logger.error(error as Error, {
+            message:
+              'useTransakRouting: Failed to process order after checkout',
+          });
+          if (failSession(headlessSessionId, error)) {
+            // @ts-expect-error `pop` exists on the parent stack navigator at
+            // runtime but is not surfaced on the generic `NavigationProp`
+            // type returned by `getParent()`.
+            navigation.getParent()?.pop();
+          }
         }
+        return;
       }
+
+      // Same pattern as unified Buy WebView Checkout: leave the webview
+      // immediately; OrderDetails resolves the order via callback params.
+      const cryptoSymbol = selectedToken?.symbol;
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: Routes.RAMP.RAMPS_ORDER_DETAILS,
+            params: {
+              callbackUrl: url,
+              providerCode: normalizeProviderCode('transak-native'),
+              walletAddress: walletAddress || '',
+              showCloseButton: true,
+              ...(cryptoSymbol ? { cryptocurrency: cryptoSymbol } : {}),
+            },
+          },
+        ],
+      });
     },
     [
-      getOrder,
+      navigation,
       walletAddress,
+      headlessSessionId,
+      getOrder,
       addOrder,
       refreshOrder,
-      navigateToOrderProcessingCallback,
       regionIsoCode,
       trackEvent,
-      headlessSessionId,
-      dismissActiveHeadlessFlow,
+      selectedToken,
     ],
   );
 
@@ -785,10 +816,10 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
       addOrder,
       refreshOrder,
       navigateToBankDetailsCallback,
-      navigateToOrderProcessingCallback,
-      headlessSessionId,
       navigateToWebviewModalCallback,
       navigateToKycProcessingCallback,
+      navigateToOrderProcessingCallback,
+      headlessSessionId,
       submitPurposeOfUsageForm,
       logoutFromProvider,
       navigateToBasicInfoCallback,
