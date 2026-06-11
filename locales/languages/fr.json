@@ -1978,10 +1978,10 @@
       "stocks_and_commodities": "Découvrez les actions et les matières premières",
       "tabs": {
         "crypto": "Crypto",
-        "stocks": "Actions",
-        "commodities": "Matières premières",
         "forex": "Forex",
-        "new": "Nouveau"
+        "new": "Nouveau",
+        "stock": "Actions",
+        "commodity": "Matières premières"
       },
       "filter_by": "Filtrer par",
       "forex": "Forex",
@@ -8453,7 +8453,7 @@
     "main_title": "Récompenses",
     "vip": {
       "bps_unit": "points de base",
-      "badge_label": "VIP Fox {{tier}}",
+      "badge_label": "VIP {{tier}}",
       "swaps_label": "Échanges",
       "perps_label": "Perps",
       "error_title": "We couldn’t load your VIP dashboard",
@@ -8901,11 +8901,7 @@
       "stats_qualify_for_rank_description": "Tradez {{notionalRemaining}} de plus en volume notionnel pour devenir admissible.",
       "stats_error_title": "Impossible de charger les statistiques",
       "stats_error_description": "Nous avons rencontré un problème lors du chargement de vos statistiques. Veuillez réessayer.",
-      "stats_retry": "Réessayer",
-      "completed_label_total_participants": "Nombre total de participants",
-      "completed_label_total_volume": "Volume total",
-      "completed_label_top_pnl": "Meilleur résultat net",
-      "completed_label_winners": "Gagnants"
+      "stats_retry": "Réessayer"
     },
     "campaigns_preview": {
       "title": "Campagnes",

@@ -45,11 +45,14 @@ import {
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 import { type PaymentMethod } from '@metamask/ramps-controller';
 import { useParams } from '../../../../../../util/navigation/navUtils';
-import { PayWithOption } from '../../confirm/confirm-component';
-import { useInitialPayWithOption } from '../../../hooks/pay/useInitialPayWithOption';
+import {
+  ConfirmationParams,
+  PayWithOption,
+} from '../../confirm/confirm-component';
 import { SetPayTokenRequest } from '../../../hooks/pay/useAutomaticTransactionPayToken';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useTheme } from '../../../../../../util/theme';
+import { usePayTokenAccountBalance } from '../../../hooks/pay/usePayTokenAccountBalance';
 
 interface PayWithRouteParams {
   preferredPaymentToken?: SetPayTokenRequest;
@@ -58,16 +61,19 @@ interface PayWithRouteParams {
 export function PayWithRow({
   isResultReady,
 }: { isResultReady?: boolean } = {}) {
-  const transactionId = useTransactionMetadataRequest()?.id ?? '';
+  const transactionMeta = useTransactionMetadataRequest();
+  const transactionId = transactionMeta?.id ?? '';
   const paymentOverride = useSelector((state: RootState) =>
     selectPaymentOverrideByTransactionId(state, transactionId),
   );
-  const initialPayWithOption = useInitialPayWithOption();
+  const { payWithOption } = useParams<ConfirmationParams>({});
 
-  if (
-    paymentOverride === PaymentOverride.MoneyAccount ||
-    (!isResultReady && initialPayWithOption === PayWithOption.MoneyAccount)
-  ) {
+  // Nav-param means money home pre-set the method; bottom-sheet selection doesn't set this.
+  if (payWithOption === PayWithOption.MoneyAccount) {
+    return null;
+  }
+
+  if (paymentOverride === PaymentOverride.MoneyAccount) {
     return <PayWithRowMoneyAccount />;
   }
 
@@ -90,6 +96,7 @@ function PayWithRowInteractive() {
     txParams: { from },
   } = useTransactionMetadataRequest() ?? { txParams: {} };
 
+  const { balanceUsd: accountBalanceUsd } = usePayTokenAccountBalance();
   const { isHeadlessBuyInProgress } = useConfirmationContext();
   const canEdit = !isHardwareAccount(from ?? '');
 
@@ -125,10 +132,9 @@ function PayWithRowInteractive() {
     return payToken ?? null;
   }, [isWithdraw, payToken, defaultWithdrawToken]);
 
-  // For deposits, show the user's balance of the selected pay token
   const balanceUsdFormatted = useMemo(
-    () => formatFiat(new BigNumber(payToken?.balanceUsd ?? '0')),
-    [formatFiat, payToken?.balanceUsd],
+    () => formatFiat(new BigNumber(accountBalanceUsd)),
+    [formatFiat, accountBalanceUsd],
   );
 
   if (selectedFiatPaymentMethod) {
@@ -321,7 +327,7 @@ function PayWithRowMoneyAccount() {
             color={TextColor.TextDefault}
             testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
           >
-            {strings('confirm.pay_with_bottom_sheet.money_balance')}
+            {strings('confirm.pay_with_bottom_sheet.money_account')}
           </Text>
           <Icon
             name={IconName.ArrowDown}

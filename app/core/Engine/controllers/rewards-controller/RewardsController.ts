@@ -38,7 +38,6 @@ import {
   type PredictThePitchPositionsDto,
   type PredictThePitchCampaignParticipantOutcomeDto,
   type PredictThePitchPrizePoolDto,
-  type PredictThePitchPositionsState,
   type OndoGmActivityState,
   type PointsEstimateHistoryEntry,
   ClaimRewardDto,
@@ -4896,6 +4895,8 @@ export class RewardsController extends BaseController<
             eligible: cached.eligible,
             neighbors: cached.neighbors,
             computedAt: cached.computedAt,
+            marketsTraded: cached.marketsTraded,
+            minimumMarketsTraded: cached.minimumMarketsTraded,
           },
           lastFetched: cached.lastFetched,
         };
@@ -4949,9 +4950,11 @@ export class RewardsController extends BaseController<
       readCache: (k) => {
         const cached = this.state.predictThePitchPositions[k];
         if (!cached) return undefined;
+
         return {
           payload: {
-            positions: cached.positions,
+            openPositions: cached.openPositions,
+            resolvedPositions: cached.resolvedPositions,
             computedAt: cached.computedAt,
           },
           lastFetched: cached.lastFetched,
@@ -4971,7 +4974,8 @@ export class RewardsController extends BaseController<
       writeCache: (k, payload) => {
         this.update((state) => {
           state.predictThePitchPositions[k] = {
-            positions: payload.positions,
+            openPositions: payload.openPositions,
+            resolvedPositions: payload.resolvedPositions,
             computedAt: payload.computedAt,
             lastFetched: Date.now(),
           };

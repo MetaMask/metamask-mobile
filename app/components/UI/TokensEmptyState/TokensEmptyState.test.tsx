@@ -40,7 +40,8 @@ jest.mock('../../../../locales/i18n', () => ({
 }));
 
 // Mock TabEmptyState component to simplify testing
-jest.mock('../../../component-library/components-temp/TabEmptyState', () => ({
+jest.mock('@metamask/design-system-react-native', () => ({
+  ...jest.requireActual('@metamask/design-system-react-native'),
   TabEmptyState: ({
     icon,
     description,

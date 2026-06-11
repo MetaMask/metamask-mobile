@@ -14,7 +14,7 @@ import { tokenize, sectionTokens, Token } from './markdown-tokenizer';
 
 export type PrTemplateCheckResult =
   | { ok: true }
-  | { ok: false; reason: string };
+  | { ok: false; reason: string; blocking: boolean };
 
 // ─── Validation-plan types ───────────────────────────────────────────────────
 
@@ -24,6 +24,8 @@ interface ValidationPlanEntry {
   // Validator type key, must exist in VALIDATORS or module load throws.
   type: string;
   required: boolean;
+  // Whether a failure of this check fails the workflow. Default: false.
+  blocking: boolean;
 }
 
 type ValidatorContext = { hasNoChangelogLabel: boolean };
@@ -87,13 +89,15 @@ export function buildValidationPlan(tokens: Token[]): ValidationPlanEntry[] {
       !directiveFoundForCurrent
     ) {
       const directive = parseDirective(token.content);
-      if (directive?.type) {
-        plan.push({
-          title: currentHeading,
-          type: directive.type,
-          // Any value other than the explicit string "false" means required.
-          required: directive.required !== 'false',
-        });
+        if (directive?.type) {
+          plan.push({
+            title: currentHeading,
+            type: directive.type,
+            // Any value other than the explicit string "false" means required.
+            required: directive.required !== 'false',
+            // Only the explicit string "true" makes a check blocking; default is false.
+            blocking: directive.blocking === 'true',
+          });
         directiveFoundForCurrent = true;
       }
     }
@@ -442,14 +446,14 @@ export function hasChangelogEntry(
 export function runAllChecks(
   body: string,
   hasNoChangelogLabel: boolean,
-): { ok: false; reason: string }[] {
+): { ok: false; reason: string; blocking: boolean }[] {
   const ctx = { hasNoChangelogLabel };
-  const failures: { ok: false; reason: string }[] = [];
+  const failures: { ok: false; reason: string; blocking: boolean }[] = [];
   for (const entry of VALIDATION_PLAN) {
     if (!entry.required) continue;
     const section = extractSection(body, entry.title) ?? '';
     const result = VALIDATORS[entry.type](section, ctx);
-    if (!result.ok) failures.push(result);
+    if (!result.ok) failures.push({ ...result, blocking: entry.blocking });
   }
   return failures;
 }

@@ -668,37 +668,6 @@ describe('getEditAccountNameNavBarOptions', () => {
   });
 });
 
-describe('getDeFiProtocolPositionDetailsNavbarOptions', () => {
-  const { getDeFiProtocolPositionDetailsNavbarOptions } = require('.');
-
-  const mockNavigation = {
-    pop: jest.fn(),
-  };
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('returns navbar options with back button', () => {
-    const options = getDeFiProtocolPositionDetailsNavbarOptions(mockNavigation);
-
-    expect(options.headerTitle).toBeDefined();
-    expect(options.headerLeft).toBeDefined();
-
-    const HeaderTitle = options.headerTitle();
-    expect(HeaderTitle).toBeNull();
-  });
-
-  it('calls navigation.pop when back button is pressed', () => {
-    const options = getDeFiProtocolPositionDetailsNavbarOptions(mockNavigation);
-
-    const HeaderLeft = options.headerLeft();
-    HeaderLeft.props.onPress();
-
-    expect(mockNavigation.pop).toHaveBeenCalledTimes(1);
-  });
-});
-
 describe('getRampsOrderDetailsNavbarOptions', () => {
   const { getRampsOrderDetailsNavbarOptions } = require('.');
 

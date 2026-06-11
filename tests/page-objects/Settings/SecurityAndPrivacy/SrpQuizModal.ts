@@ -8,28 +8,28 @@ import {
 } from '../../../../app/components/Views/Quiz/SRPQuiz/SrpQuizModal.testIds';
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
+import { EncapsulatedElementType } from '../../../framework';
+import UnifiedGestures from '../../../framework/UnifiedGestures';
 
 class SrpQuizModal {
-  // Getters for common elements
-  get getStartedContainer(): DetoxElement {
+  get getStartedContainer(): EncapsulatedElementType {
     return Matchers.getElementByID(SrpQuizGetStartedSelectorsIDs.CONTAINER);
   }
 
-  get getStartedScreenDismiss(): DetoxElement {
+  get getStartedScreenDismiss(): EncapsulatedElementType {
     return Matchers.getElementByID(SrpQuizGetStartedSelectorsIDs.DISMISS);
   }
 
-  get modalIntroduction(): DetoxElement {
+  get modalIntroduction(): EncapsulatedElementType {
     return Matchers.getElementByText(
       SrpQuizGetStartedSelectorsText.INTRODUCTION,
     );
   }
 
-  get getStartedButton(): DetoxElement {
+  get getStartedButton(): EncapsulatedElementType {
     return Matchers.getElementByID(SrpQuizGetStartedSelectorsIDs.BUTTON);
   }
 
-  // Mapping question number to selectors
   getQuestionSelectors(questionNumber: number) {
     switch (questionNumber) {
       case 1:
@@ -47,7 +47,6 @@ class SrpQuizModal {
     }
   }
 
-  // Getters for question elements
   getQuestionContainer(questionNumber: number) {
     const { ids } = this.getQuestionSelectors(questionNumber);
     return Matchers.getElementByID(ids.CONTAINER);
@@ -83,7 +82,9 @@ class SrpQuizModal {
     return Matchers.getElementByID(ids.WRONG_ANSWER_TRY_AGAIN_BUTTON);
   }
 
-  getQuestionRightAnswerButton(questionNumber: number) {
+  getQuestionRightAnswerButton(
+    questionNumber: number,
+  ): EncapsulatedElementType {
     const { ids } = this.getQuestionSelectors(questionNumber);
     return Matchers.getElementByID(ids.RIGHT_ANSWER);
   }
@@ -98,12 +99,13 @@ class SrpQuizModal {
     return Matchers.getElementByText(text.RIGHT_ANSWER_RESPONSE_DESCRIPTION);
   }
 
-  getQuestionRightContinueButton(questionNumber: number) {
+  getQuestionRightContinueButton(
+    questionNumber: number,
+  ): EncapsulatedElementType {
     const { ids } = this.getQuestionSelectors(questionNumber);
     return Matchers.getElementByID(ids.RIGHT_CONTINUE);
   }
 
-  // Methods for common actions
   async tapQuizGetStartedScreenDismiss(): Promise<void> {
     await Gestures.waitAndTap(this.getStartedScreenDismiss, {
       elemDescription: 'Srp Quiz - Get Started Screen Dismiss',
@@ -111,12 +113,11 @@ class SrpQuizModal {
   }
 
   async tapGetStartedButton(): Promise<void> {
-    await Gestures.waitAndTap(this.getStartedButton, {
-      elemDescription: 'Srp Quiz - Get Started Button',
+    await UnifiedGestures.waitAndTap(this.getStartedButton, {
+      description: 'Srp Quiz - Get Started Button',
     });
   }
 
-  // Methods for question actions
   async tapQuestionDismiss(questionNumber: number): Promise<void> {
     await Gestures.waitAndTap(this.getQuestionDismiss(questionNumber), {
       elemDescription: `Srp Quiz - Question ${questionNumber} Dismiss`,
@@ -141,19 +142,19 @@ class SrpQuizModal {
   }
 
   async tapQuestionRightAnswerButton(questionNumber: number): Promise<void> {
-    await Gestures.waitAndTap(
+    await UnifiedGestures.waitAndTap(
       this.getQuestionRightAnswerButton(questionNumber),
       {
-        elemDescription: `Srp Quiz - Question ${questionNumber} Right Answer`,
+        description: `Srp Quiz - Question ${questionNumber} Right Answer`,
       },
     );
   }
 
   async tapQuestionContinueButton(questionNumber: number): Promise<void> {
-    await Gestures.waitAndTap(
+    await UnifiedGestures.waitAndTap(
       this.getQuestionRightContinueButton(questionNumber),
       {
-        elemDescription: `Srp Quiz - Question ${questionNumber} Right Continue`,
+        description: `Srp Quiz - Question ${questionNumber} Right Continue`,
       },
     );
   }
