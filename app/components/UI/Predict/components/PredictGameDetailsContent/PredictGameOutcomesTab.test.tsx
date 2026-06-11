@@ -24,8 +24,24 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'predict.sports_market_types.points': 'Points',
       'predict.sports_market_types.first_half_moneyline': '1H Moneyline',
       'predict.sports_market_types.soccer_halftime_result': 'Halftime Result',
+      'predict.sports_market_types.soccer_first_half_team_totals':
+        '1st Half Team Totals',
+      'predict.sports_market_types.both_teams_to_score_first_half':
+        '1st Half Both Teams to Score',
       'predict.sports_market_types.soccer_second_half_result':
         '2nd Half Result',
+      'predict.sports_market_types.soccer_second_half_team_totals':
+        '2nd Half Team Totals',
+      'predict.sports_market_types.both_teams_to_score_second_half':
+        '2nd Half Both Teams to Score',
+      'predict.sports_market_types.soccer_team_totals': 'Team Totals',
+      'predict.sports_market_types.soccer_team_total_corners': 'Team Corners',
+      'predict.sports_market_types.soccer_first_corner': 'First Corner',
+      'predict.sports_market_types.soccer_game_corners_odd_even':
+        'Odd/Even Corners',
+      'predict.sports_market_types.soccer_player_goals': 'Goals',
+      'predict.sports_market_types.soccer_player_assists': 'Assists',
+      'predict.sports_market_types.soccer_player_shots': 'Shots',
       'predict.sports_market_types.basketball_total_points': 'Totals',
       'predict.sports_market_types.basketball_odd_even': 'Odd/Even Score',
       'predict.sports_market_types.basketball_team_to_score_first':
@@ -255,6 +271,22 @@ describe('PredictGameOutcomesTab', () => {
       expect(getSportsMarketTypeLabel('basketball_team_to_score_first')).toBe(
         'Team to Score First',
       );
+    });
+
+    it.each([
+      ['soccer_first_half_team_totals', '1st Half Team Totals'],
+      ['both_teams_to_score_first_half', '1st Half Both Teams to Score'],
+      ['soccer_second_half_team_totals', '2nd Half Team Totals'],
+      ['both_teams_to_score_second_half', '2nd Half Both Teams to Score'],
+      ['soccer_team_totals', 'Team Totals'],
+      ['soccer_team_total_corners', 'Team Corners'],
+      ['soccer_first_corner', 'First Corner'],
+      ['soccer_game_corners_odd_even', 'Odd/Even Corners'],
+      ['soccer_player_goals', 'Goals'],
+      ['soccer_player_assists', 'Assists'],
+      ['soccer_player_shots', 'Shots'],
+    ])('returns translated label for %s', (marketType, expected) => {
+      expect(getSportsMarketTypeLabel(marketType)).toBe(expected);
     });
 
     it('returns title-cased fallback for unknown type', () => {
