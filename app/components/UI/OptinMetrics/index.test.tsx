@@ -59,6 +59,12 @@ jest.mock('../../../core/Analytics/MetaMetrics', () => ({
 
 // Import analytics to access mocks
 import { analytics } from '../../../util/analytics/analytics';
+import { persistAttributionFromPendingDeeplink } from '../../../util/analytics/persistAttributionFromPendingDeeplink';
+
+const mockPersistAttributionFromPendingDeeplink =
+  persistAttributionFromPendingDeeplink as jest.MockedFunction<
+    typeof persistAttributionFromPendingDeeplink
+  >;
 
 const mockAnalytics = analytics as jest.Mocked<typeof analytics>;
 
@@ -119,6 +125,7 @@ jest.doMock('react-native', () => {
 describe('OptinMetrics', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPersistAttributionFromPendingDeeplink.mockReturnValue(false);
     jest.mocked(useAnalytics).mockReturnValue(
       createMockUseAnalyticsHook({
         trackEvent: (event) => mockAnalytics.trackEvent(event),
@@ -195,6 +202,9 @@ describe('OptinMetrics', () => {
         }),
       );
       await waitFor(() => {
+        expect(
+          mockPersistAttributionFromPendingDeeplink,
+        ).not.toHaveBeenCalled();
         expect(mockAnalytics.trackEvent).toHaveBeenNthCalledWith(
           1,
           expect.objectContaining({
@@ -236,6 +246,9 @@ describe('OptinMetrics', () => {
         }),
       );
       await waitFor(() => {
+        expect(mockPersistAttributionFromPendingDeeplink).toHaveBeenCalledTimes(
+          1,
+        );
         expect(mockAnalytics.trackEvent).toHaveBeenNthCalledWith(
           1,
           expect.objectContaining({

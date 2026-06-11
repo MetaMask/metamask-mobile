@@ -27,9 +27,5 @@ export function persistAttributionFromPendingDeeplink(
 
   dispatch(saveAttribution(payload));
 
-  if (AppStateEventProcessor.pendingDeeplink) {
-    AppStateEventProcessor.clearPendingDeeplink();
-  }
-
   return true;
 }
