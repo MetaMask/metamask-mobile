@@ -41,30 +41,12 @@ export function FiatOrderSummaryLine({
 
   const subtitle = formatSubtitle(parentTransaction.time, statusText);
 
-  console.log('[FiatOrderSummaryLine] Rendering', {
-    hasFiatOrderId: !!fiatOrderId,
-    fiatOrderId,
-    hasMetamaskPay: !!parentTransaction.metamaskPay,
-  });
-
   const handleOrderDetailsPress = useCallback(() => {
-    console.log('[FiatOrderSummaryLine] Order details pressed', {
-      fiatOrderId,
-      route: Routes.TRANSACTIONS_VIEW,
-      screen: Routes.RAMP.RAMPS_ORDER_DETAILS,
+    // RampsOrderDetails is in the top-level NativeStack, navigate directly.
+    navigation.navigate(Routes.RAMP.RAMPS_ORDER_DETAILS, {
+      orderId: fiatOrderId,
+      showCloseButton: true,
     });
-    // RampsOrderDetails is nested inside TransactionsHome ('TransactionsView')
-    // in the main Stack, so we must use the nested navigation format to reach it
-    // from the MoneyModalStack transparent-modal context.
-    try {
-      navigation.navigate(Routes.TRANSACTIONS_VIEW, {
-        screen: Routes.RAMP.RAMPS_ORDER_DETAILS,
-        params: { orderId: fiatOrderId, showCloseButton: true },
-      });
-      console.log('[FiatOrderSummaryLine] Navigation called successfully');
-    } catch (error) {
-      console.error('[FiatOrderSummaryLine] Navigation error:', error);
-    }
   }, [navigation, fiatOrderId]);
 
   return (
