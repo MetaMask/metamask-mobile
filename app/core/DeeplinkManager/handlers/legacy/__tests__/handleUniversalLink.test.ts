@@ -13,6 +13,7 @@ import extractURLParams from '../../../utils/extractURLParams';
 import handleUniversalLink from '../handleUniversalLink';
 import handleDeepLinkModalDisplay from '../handleDeepLinkModalDisplay';
 import handleBrowserUrl from '../handleBrowserUrl';
+import { createDappDeeplinkIntent } from '../handleDappUrl';
 import { DeepLinkModalLinkType } from '../../../../../components/UI/DeepLinkModal';
 import handleMetaMaskDeeplink from '../handleMetaMaskDeeplink';
 import Logger from '../../../../../util/Logger';
@@ -56,6 +57,14 @@ jest.mock('../handleHomeUrl');
 jest.mock('../handleSwapUrl');
 jest.mock('../handleBatchSellUrl');
 jest.mock('../handleBrowserUrl');
+jest.mock('../handleDappUrl', () => {
+  const actual = jest.requireActual('../handleDappUrl');
+  return {
+    __esModule: true,
+    ...actual,
+    createDappDeeplinkIntent: jest.fn(),
+  };
+});
 jest.mock('../handleCreateAccountUrl');
 jest.mock('../handlePerpsUrl');
 jest.mock('../handleRewardsUrl');
@@ -134,6 +143,10 @@ describe('handleUniversalLink', () => {
   const mockHandleBrowserUrl = handleBrowserUrl as jest.MockedFunction<
     typeof handleBrowserUrl
   >;
+  const mockCreateDappDeeplinkIntent =
+    createDappDeeplinkIntent as jest.MockedFunction<
+      typeof createDappDeeplinkIntent
+    >;
   let url = '';
 
   const mockHandleDeepLinkModalDisplay =
@@ -832,6 +845,41 @@ describe('handleUniversalLink', () => {
 
       expect(mockHandleBrowserUrl).not.toHaveBeenCalled();
     });
+
+    it('returns a startup intent in resolve mode without executing browser navigation', async () => {
+      const fullUrl = `${PROTOCOLS.HTTPS}://${representativeDomain}/${ACTIONS.DAPP}/example.com/path?param=value`;
+      const dappUrlObj = {
+        ...urlObj,
+        hostname: representativeDomain,
+        href: fullUrl,
+        pathname: `/${ACTIONS.DAPP}/example.com/path`,
+      };
+      const intent: DeeplinkIntent = {
+        target: {
+          type: 'home-tab',
+          routeName: 'BrowserTabHome',
+        },
+      };
+      mockCreateDappDeeplinkIntent.mockReturnValueOnce(intent);
+
+      const result = await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: dappUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: fullUrl,
+        source: 'test-source',
+        mode: 'resolve',
+      });
+
+      expect(result).toBe(intent);
+      expect(mockCreateDappDeeplinkIntent).toHaveBeenCalledWith({
+        url: 'https://example.com/path?param=value',
+      });
+      expect(handled).toHaveBeenCalled();
+      expect(mockHandleBrowserUrl).not.toHaveBeenCalled();
+      expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
+    });
   });
 
   describe('ACTIONS.CREATE_ACCOUNT', () => {
@@ -955,7 +1003,6 @@ describe('handleUniversalLink', () => {
         search: '?referral=code123',
       };
       const intent: DeeplinkIntent = {
-        type: 'navigation',
         target: {
           type: 'home-tab',
           routeName: 'RewardsView',
