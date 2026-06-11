@@ -3523,9 +3523,9 @@ describe('PredictMarketDetails', () => {
   });
 
   describe('Real-time Price Updates', () => {
-    it('calls usePredictPrices hook for open markets', () => {
-      const { usePredictPrices } = jest.requireMock(
-        '../../hooks/usePredictPrices',
+    it('calls useLiveMarketPrices hook for open outcome tokens', () => {
+      const { useLiveMarketPrices } = jest.requireMock(
+        '../../hooks/useLiveMarketPrices',
       );
 
       const marketWithTokens = createMockMarket({
@@ -3534,6 +3534,7 @@ describe('PredictMarketDetails', () => {
           {
             id: 'outcome-1',
             title: 'Yes',
+            status: 'open',
             tokens: [{ id: 'token-1', price: 0.65 }],
             volume: 1000000,
           },
@@ -3542,37 +3543,34 @@ describe('PredictMarketDetails', () => {
 
       setupPredictMarketDetailsTest(marketWithTokens);
 
-      expect(usePredictPrices).toHaveBeenCalled();
+      expect(useLiveMarketPrices).toHaveBeenCalledWith(['token-1'], {
+        enabled: true,
+      });
     });
 
-    it('handles usePredictPrices hook being called', () => {
-      const { usePredictPrices } = jest.requireMock(
-        '../../hooks/usePredictPrices',
+    it('handles useLiveMarketPrices hook being called', () => {
+      const { useLiveMarketPrices } = jest.requireMock(
+        '../../hooks/useLiveMarketPrices',
       );
 
       setupPredictMarketDetailsTest();
 
-      expect(usePredictPrices).toHaveBeenCalled();
+      expect(useLiveMarketPrices).toHaveBeenCalled();
     });
 
-    it('uses usePredictPrices hook for live pricing', () => {
-      const { usePredictPrices } = jest.requireMock(
-        '../../hooks/usePredictPrices',
+    it('uses useLiveMarketPrices hook for live pricing', () => {
+      const { useLiveMarketPrices } = jest.requireMock(
+        '../../hooks/useLiveMarketPrices',
       );
 
       setupPredictMarketDetailsTest();
 
-      expect(usePredictPrices).toHaveBeenCalledWith(
-        expect.objectContaining({
-          queries: expect.any(Array),
-        }),
-      );
+      expect(useLiveMarketPrices).toHaveBeenCalledWith(['token-1', 'token-2'], {
+        enabled: true,
+      });
     });
 
     it('pauses and resumes broad outcome price updates as buy sheet visibility changes', () => {
-      const { usePredictPrices } = jest.requireMock(
-        '../../hooks/usePredictPrices',
-      );
       const { useLiveMarketPrices } = jest.requireMock(
         '../../hooks/useLiveMarketPrices',
       );
@@ -3594,12 +3592,6 @@ describe('PredictMarketDetails', () => {
       mockIsBuySheetOpen = false;
       const { rerender } = setupPredictMarketDetailsTest(worldCupWinnerMarket);
 
-      expect(usePredictPrices).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          enabled: true,
-          pollingInterval: 2000,
-        }),
-      );
       expect(useLiveMarketPrices).toHaveBeenLastCalledWith(expect.any(Array), {
         enabled: true,
       });
@@ -3607,13 +3599,6 @@ describe('PredictMarketDetails', () => {
       mockIsBuySheetOpen = true;
       rerender(<PredictMarketDetails />);
 
-      expect(usePredictPrices).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          enabled: false,
-          queries: [],
-          pollingInterval: undefined,
-        }),
-      );
       expect(useLiveMarketPrices).toHaveBeenLastCalledWith([], {
         enabled: false,
       });
@@ -3621,27 +3606,21 @@ describe('PredictMarketDetails', () => {
       mockIsBuySheetOpen = false;
       rerender(<PredictMarketDetails />);
 
-      expect(usePredictPrices).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          enabled: true,
-          pollingInterval: 2000,
-        }),
-      );
       expect(useLiveMarketPrices).toHaveBeenLastCalledWith(expect.any(Array), {
         enabled: true,
       });
     });
 
     it('handles price fetching errors gracefully', () => {
-      const { usePredictPrices } = jest.requireMock(
-        '../../hooks/usePredictPrices',
+      const { useLiveMarketPrices } = jest.requireMock(
+        '../../hooks/useLiveMarketPrices',
       );
 
-      usePredictPrices.mockReturnValue({
-        prices: { providerId: '', results: [] },
-        isFetching: false,
-        error: new Error('Failed to fetch prices'),
-        refetch: jest.fn(),
+      useLiveMarketPrices.mockReturnValue({
+        prices: new Map(),
+        getPrice: jest.fn(() => undefined),
+        isConnected: false,
+        lastUpdateTime: null,
       });
 
       setupPredictMarketDetailsTest();
