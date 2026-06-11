@@ -19,6 +19,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
+import { KeyringAccount } from '@metamask/keyring-api';
 
 jest.mock('../../../core/Permissions', () => ({
   removeAccountsFromPermissions: jest.fn(),
@@ -295,16 +296,23 @@ describe('ConnectQRHardware', () => {
     jest.spyOn(mockQrKeyring, 'forgetDevice').mockImplementation();
     jest.spyOn(mockQrKeyring, 'getName').mockReturnValue('KeystoneDevice');
     jest.spyOn(mockQrKeyring, 'getMode').mockReturnValue('hd' as never);
-    jest.spyOn(mockQrKeyring, 'getAccounts').mockResolvedValue([
-      // @ts-expect-error - partial KeyringAccount fixtures for test
-      { address: '0x4678901234567890123456789012345678901210' },
-      // @ts-expect-error - partial KeyringAccount fixtures for test
-      { address: '0x49A10E12ceaacC302548d3c1C72836C9298d180e' },
-    ]);
-    jest.spyOn(mockQrKeyring, 'createAccounts').mockResolvedValue([
-      // @ts-expect-error - partial KeyringAccount fixture for test
-      { address: '0x4678901234567890123456789012345678901210' },
-    ]);
+    jest
+      .spyOn(mockQrKeyring, 'getAccounts')
+      .mockResolvedValue([
+        {
+          address: '0x4678901234567890123456789012345678901210',
+        } as unknown as KeyringAccount,
+        {
+          address: '0x49A10E12ceaacC302548d3c1C72836C9298d180e',
+        } as unknown as KeyringAccount,
+      ]);
+    jest
+      .spyOn(mockQrKeyring, 'createAccounts')
+      .mockResolvedValue([
+        {
+          address: '0x4678901234567890123456789012345678901210',
+        } as unknown as KeyringAccount,
+      ]);
 
     mockAccountTrackerController.syncBalanceWithAddresses.mockImplementation(
       (addresses) =>
