@@ -143,7 +143,6 @@ class BitcoinTestDapp {
         await this.openWalletSelectionModal();
       },
       disconnect: async () => {
-        console.log('trying to disconnect');
         await this.tapButton(this.disconnectButtonSelector);
       },
       selectMetaMask: async () => {
