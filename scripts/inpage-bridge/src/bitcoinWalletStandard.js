@@ -2,7 +2,6 @@ const { getMultichainClient, getWindowPostMessageTransport } = require('@metamas
 const { registerBitcoinWalletStandard } = require('@metamask/bitcoin-wallet-standard');
 
 const injectBitcoinWalletStandard = () => {
-  console.log('injectBitcoinWalletStandard');
   const multichainClient = getMultichainClient({
     transport: getWindowPostMessageTransport(),
   });
