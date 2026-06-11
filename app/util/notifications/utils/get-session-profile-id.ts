@@ -1,14 +1,6 @@
 import Engine from '../../../core/Engine';
 
-/**
- * Resolves the current session's profile ID from the `AuthenticationController`
- * — the same identity source the Braze plugin uses (see `app/core/Braze`).
- *
- * Returns `undefined` when signed out or on any error, so analytics callers can
- * safely omit the field.
- *
- * @returns the session profile ID, or `undefined` when unavailable.
- */
+/** Session profile ID from `AuthenticationController` (same source as Braze, see `app/core/Braze`); `undefined` when signed out or on error. */
 export async function getSessionProfileId(): Promise<string | undefined> {
   try {
     const { AuthenticationController } = Engine.context;

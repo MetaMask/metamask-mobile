@@ -2,11 +2,7 @@ import { type FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 
 export type FcmRemoteMessageData = FirebaseMessagingTypes.RemoteMessage['data'];
 
-/**
- * FCM `data` values are typed as `string | object` by React Native Firebase.
- * push-services analytics helpers expect a flat `Record<string, string>`, so
- * object values are JSON-stringified and empty entries dropped.
- */
+/** Flattens FCM `data` (`string | object`) to a flat `Record<string, string>` for push analytics: objects JSON-stringified, empties dropped. */
 export function toFcmDataStringRecord(
   data: FcmRemoteMessageData,
 ): Record<string, string> | undefined {

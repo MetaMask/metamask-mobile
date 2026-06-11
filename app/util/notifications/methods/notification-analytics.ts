@@ -15,19 +15,7 @@ const onChainAnalyticProperties = (item: INotification) => {
   return undefined;
 };
 
-/**
- * Builds the analytics properties shared by every notification event so each
- * call site emits the same shape.
- *
- * `profileId` is passed in (resolved via {@link useSessionProfileId} /
- * {@link getSessionProfileId}) rather than fetched here, keeping this builder
- * synchronous and pure. It is omitted when unavailable so callers can spread
- * the result unconditionally.
- *
- * @param item - the notification the event relates to.
- * @param profileId - the current session profile ID, when available.
- * @returns the shared notification analytics properties.
- */
+/** Shared analytics properties for every notification event, so each call site emits the same shape. `profileId` is passed in (via {@link useSessionProfileId} / {@link getSessionProfileId}) to keep this pure, and omitted when unavailable. */
 export function notificationAnalyticsProperties(
   item: INotification,
   profileId?: string,

@@ -65,12 +65,8 @@ const WalletActivitySectionContent = ({ styles }: SectionContentProps) => {
     toggleAllAccounts,
   } = useWalletActivityAccountSelection();
 
-  // TODO: validate behaviour with chris, also propose not emitting an event here at all as this change is a second-order effect
-  // TODO: validate if we should emit an event if updating preferences fail - user still tried to set them
-  // Selecting/deselecting all accounts also flips both notification channels
-  // for wallet activity and reports it as a single ALL-channel update. Both
-  // channels are written in one section update so they don't race and clobber
-  // each other through the shared (stale) preferences snapshot.
+  // Toggling all accounts flips both wallet-activity channels in one section
+  // update so they don't race on the shared (stale) preferences snapshot.
   const handleToggleAllAccounts = useCallback(async () => {
     const nextEnabled = !hasEnabledAccount;
 
