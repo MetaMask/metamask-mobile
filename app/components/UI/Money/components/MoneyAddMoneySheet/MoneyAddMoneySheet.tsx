@@ -65,8 +65,6 @@ const log = createProjectLogger('money-add-money-sheet');
 
 interface Option {
   label: string;
-  description?: string;
-  descriptionTestID?: string;
   icon: IconName;
   onPress: () => void;
   testID: string;
@@ -224,8 +222,6 @@ const MoneyAddMoneySheet: React.FC = () => {
   const baseOptions: Option[] = [
     {
       label: strings('money.add_money_sheet.convert_crypto'),
-      description: strings('money.add_money_sheet.convert_crypto_description'),
-      descriptionTestID: MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_DESCRIPTION,
       icon: IconName.Refresh,
       onPress: handleConvertCrypto,
       testID: MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
@@ -236,12 +232,7 @@ const MoneyAddMoneySheet: React.FC = () => {
       ? [
           {
             label: strings('money.add_money_sheet.deposit_funds'),
-            description: strings(
-              'money.add_money_sheet.deposit_funds_description',
-            ),
-            descriptionTestID:
-              MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_DESCRIPTION,
-            icon: IconName.AttachMoney,
+            icon: IconName.Bank,
             onPress: handleDepositFunds,
             testID: MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
             disabled: !hasNativeFiatProvider,
@@ -255,8 +246,6 @@ const MoneyAddMoneySheet: React.FC = () => {
     ...baseOptions,
     {
       label: moveMusdLabel,
-      description: strings('money.add_money_sheet.move_musd_description'),
-      descriptionTestID: MoneyAddMoneySheetTestIds.MOVE_MUSD_DESCRIPTION,
       icon: IconName.Add,
       onPress: handleMoveMusd,
       testID: MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
@@ -321,15 +310,6 @@ const MoneyAddMoneySheet: React.FC = () => {
                 >
                   {item.label}
                 </Text>
-                {item.description ? (
-                  <Text
-                    variant={TextVariant.BodySm}
-                    color={TextColor.TextAlternative}
-                    testID={item.descriptionTestID}
-                  >
-                    {item.description}
-                  </Text>
-                ) : null}
               </View>
             )}
           </TouchableOpacity>

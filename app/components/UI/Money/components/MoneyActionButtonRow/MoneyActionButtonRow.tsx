@@ -91,7 +91,7 @@ const MoneyActionButtonRow = ({
       testID={MoneyActionButtonRowTestIds.ADD_BUTTON}
     />
     <ActionButton
-      iconName={IconName.SwapHorizontal}
+      iconName={IconName.Arrow2UpRight}
       label={strings('money.action.transfer')}
       onPress={transfer.onPress}
       disabled={transfer.disabled}
