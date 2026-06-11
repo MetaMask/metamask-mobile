@@ -277,6 +277,16 @@ export type RewardsControllerIsRewardsFeatureEnabledAction = {
 };
 
 /**
+ * Check if the VIP feature is enabled
+ *
+ * @returns boolean - True if VIP feature is enabled, false otherwise
+ */
+export type RewardsControllerIsVipFeatureEnabledAction = {
+  type: `RewardsController:isVipFeatureEnabled`;
+  handler: RewardsController['isVipFeatureEnabled'];
+};
+
+/**
  * Check if there is an active season.
  * Temporarily hardcoded to false while no season is configured. Callers
  * gate season-scoped flows (points estimates, rewards rows, dashboard
@@ -864,6 +874,7 @@ export type RewardsControllerMethodActions =
   | RewardsControllerEstimatePointsAction
   | RewardsControllerAddPointsEstimateToHistoryAction
   | RewardsControllerIsRewardsFeatureEnabledAction
+  | RewardsControllerIsVipFeatureEnabledAction
   | RewardsControllerHasActiveSeasonAction
   | RewardsControllerGetSeasonMetadataAction
   | RewardsControllerGetSeasonStatusAction
