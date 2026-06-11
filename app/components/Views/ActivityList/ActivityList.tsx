@@ -8,7 +8,13 @@ import {
   type ViewToken,
 } from '@shopify/flash-list';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, RefreshControl, View } from 'react-native';
+import {
+  ActivityIndicator,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+  RefreshControl,
+  View,
+} from 'react-native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../locales/i18n';
@@ -120,9 +126,15 @@ interface ActivityListProps {
   tabLabel?: string;
   chainId?: string; // used by non-EVM list items for explorer links
   location?: TransactionDetailLocation;
+  onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 }
 
-const ActivityList = ({ header, chainId, location }: ActivityListProps) => {
+const ActivityList = ({
+  header,
+  chainId,
+  location,
+  onScroll,
+}: ActivityListProps) => {
   const navigation = useNavigation();
   const { colors } = useTheme();
   const tw = useTailwind();
@@ -687,6 +699,14 @@ const ActivityList = ({ header, chainId, location }: ActivityListProps) => {
     keyExtractor: (item: ActivityListItem) => generateKey(item),
   });
 
+  const handleListScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      handleScroll();
+      onScroll?.(event);
+    },
+    [handleScroll, onScroll],
+  );
+
   const renderEmptyList = () => (
     <View style={styles.emptyList}>
       <TabEmptyState description={strings('wallet.no_transactions')} />
@@ -801,6 +821,7 @@ const ActivityList = ({ header, chainId, location }: ActivityListProps) => {
               }
               ListFooterComponent={footerComponent}
               style={baseStyles.flexGrow}
+              contentContainerStyle={tw.style('px-4 pb-8')}
               refreshControl={
                 <RefreshControl
                   refreshing={refreshing}
@@ -809,7 +830,7 @@ const ActivityList = ({ header, chainId, location }: ActivityListProps) => {
                   tintColor={colors.icon.default}
                 />
               }
-              onScroll={handleScroll}
+              onScroll={handleListScroll}
               onViewableItemsChanged={onViewableItemsChanged}
               viewabilityConfig={visibilityConfig}
               scrollEventThrottle={16}

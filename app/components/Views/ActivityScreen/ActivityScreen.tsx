@@ -1,9 +1,10 @@
-import React, { useCallback, useState } from 'react';
-import { LayoutChangeEvent } from 'react-native';
-import Animated, {
-  useAnimatedScrollHandler,
-  useSharedValue,
-} from 'react-native-reanimated';
+import React, { useCallback, useMemo, useState } from 'react';
+import {
+  LayoutChangeEvent,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+} from 'react-native';
+import { type SharedValue, useSharedValue } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -30,19 +31,19 @@ import { ActivityTypeFilter } from './types';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorBoundary from '../ErrorBoundary';
 
+const updateScrollY = (
+  scrollY: SharedValue<number>,
+  event: NativeSyntheticEvent<NativeScrollEvent>,
+) => {
+  scrollY.value = event.nativeEvent.contentOffset.y;
+};
+
 const ActivityScreen = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
 
   const scrollY = useSharedValue(0);
   const titleSectionHeight = useSharedValue(0);
-
-  const onScroll = useAnimatedScrollHandler({
-    onScroll: (event) => {
-      'worklet';
-      scrollY.value = event.contentOffset.y;
-    },
-  });
 
   const handleTitleLayout = useCallback(
     (event: LayoutChangeEvent) => {
@@ -119,6 +120,58 @@ const ActivityScreen = () => {
     navigation.navigate(Routes.HOME_TABS);
   }, [navigation]);
 
+  const handleActivityListScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      updateScrollY(scrollY, event);
+    },
+    [scrollY],
+  );
+
+  const activityListHeader = useMemo(
+    () => (
+      <>
+        <Box onLayout={handleTitleLayout} twClassName="pb-4">
+          <Text variant={TextVariant.HeadingLg}>
+            {strings('activity_view.title')}
+          </Text>
+        </Box>
+
+        <Box twClassName="pb-4">
+          {/* No functionality yet, just a placeholder for the search input */}
+          <TextFieldSearch
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholder={strings('activity_view.search_placeholder')}
+            onPressClearButton={handleClearSearch}
+            testID={ActivityScreenSelectorsIDs.SEARCH_INPUT}
+          />
+        </Box>
+
+        <Box>
+          <AssetListControlBar
+            networkLabel={networkFilterLabel}
+            isNetworkFilterActive={isNetworkFilterActive}
+            onNetworkPress={handleOpenNetworkSheet}
+            typeLabel={typeFilterLabel}
+            isTypeFilterActive={isTypeFilterActive}
+            onTypePress={handleOpenTypeSheet}
+          />
+        </Box>
+      </>
+    ),
+    [
+      handleClearSearch,
+      handleOpenNetworkSheet,
+      handleOpenTypeSheet,
+      handleTitleLayout,
+      isNetworkFilterActive,
+      isTypeFilterActive,
+      networkFilterLabel,
+      searchQuery,
+      typeFilterLabel,
+    ],
+  );
+
   return (
     <ErrorBoundary view="ActivityScreen">
       <SafeAreaView
@@ -137,41 +190,10 @@ const ActivityScreen = () => {
             backButtonProps={{ testID: ActivityScreenSelectorsIDs.BACK_BUTTON }}
           />
 
-          <Animated.ScrollView
-            onScroll={onScroll}
-            scrollEventThrottle={16}
-            showsVerticalScrollIndicator={false}
-            style={tw.style('flex-1')}
-            contentContainerStyle={tw.style('flex-grow px-4 pb-8')}
-          >
-            <Box onLayout={handleTitleLayout} twClassName="pb-4">
-              <Text variant={TextVariant.HeadingLg}>
-                {strings('activity_view.title')}
-              </Text>
-            </Box>
-
-            <Box twClassName="pb-4">
-              {/* No functionality yet, just a placeholder for the search input */}
-              <TextFieldSearch
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-                placeholder={strings('activity_view.search_placeholder')}
-                onPressClearButton={handleClearSearch}
-                testID={ActivityScreenSelectorsIDs.SEARCH_INPUT}
-              />
-            </Box>
-
-            <AssetListControlBar
-              networkLabel={networkFilterLabel}
-              isNetworkFilterActive={isNetworkFilterActive}
-              onNetworkPress={handleOpenNetworkSheet}
-              typeLabel={typeFilterLabel}
-              isTypeFilterActive={isTypeFilterActive}
-              onTypePress={handleOpenTypeSheet}
-            />
-
-            <ActivityList />
-          </Animated.ScrollView>
+          <ActivityList
+            header={activityListHeader}
+            onScroll={handleActivityListScroll}
+          />
         </Box>
 
         {isTypeSheetOpen ? (
