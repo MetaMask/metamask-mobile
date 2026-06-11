@@ -12,6 +12,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { strings } from '../../../../../../locales/i18n';
 import { LivelineChart } from '../../../Charts/LivelineChart';
 import { useCryptoUpDownChartData } from '../../hooks/useCryptoUpDownChartData';
 import type { PredictCryptoUpDownChartProps } from './PredictCryptoUpDownChart.types';
@@ -124,7 +125,7 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
               color={TextColor.TextAlternative}
               twClassName="text-center"
             >
-              There is an issue connecting. Please try again later.
+              {strings('predict.error.chart_connection_error')}
             </Text>
           </Box>
         ) : (

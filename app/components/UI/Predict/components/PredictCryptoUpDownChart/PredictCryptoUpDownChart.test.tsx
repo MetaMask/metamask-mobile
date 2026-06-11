@@ -12,6 +12,7 @@ import {
   type PredictMarket,
   type PredictSeries,
 } from '../../types';
+import { strings } from '../../../../../../locales/i18n';
 
 jest.mock('../../hooks/useCryptoUpDownChartData', () => ({
   useCryptoUpDownChartData: jest.fn(),
@@ -143,7 +144,7 @@ describe('PredictCryptoUpDownChart', () => {
       screen.getByTestId('predict-crypto-up-down-chart-connection-error'),
     ).toBeOnTheScreen();
     expect(
-      screen.getByText('There is an issue connecting. Please try again later.'),
+      screen.getByText(strings('predict.error.chart_connection_error')),
     ).toBeOnTheScreen();
     expect(screen.queryByTestId('mock-liveline-chart')).not.toBeOnTheScreen();
   });
