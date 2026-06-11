@@ -400,6 +400,11 @@ describe('deepLinkAnalytics', () => {
       expect(result).toBe(DeepLinkRoute.SWAP);
     });
 
+    it('maps batch sell action to BATCH_SELL route', () => {
+      const result = mapSupportedActionToRoute(ACTIONS.BATCH_SELL);
+      expect(result).toBe(DeepLinkRoute.BATCH_SELL);
+    });
+
     it.each([
       [ACTIONS.PERPS, DeepLinkRoute.PERPS],
       [ACTIONS.PERPS_MARKETS, DeepLinkRoute.PERPS],
@@ -468,6 +473,21 @@ describe('deepLinkAnalytics', () => {
         expect(result).toBe(expectedRoute);
       },
     );
+
+    it('maps CONNECT action to SDK_CONNECT route', () => {
+      const result = mapSupportedActionToRoute(ACTIONS.CONNECT);
+      expect(result).toBe(DeepLinkRoute.SDK_CONNECT);
+    });
+
+    it('maps MMSDK action to SDK_MMSDK route', () => {
+      const result = mapSupportedActionToRoute(ACTIONS.MMSDK);
+      expect(result).toBe(DeepLinkRoute.SDK_MMSDK);
+    });
+
+    it('maps ANDROID_SDK action to SDK_CONNECT route', () => {
+      const result = mapSupportedActionToRoute(ACTIONS.ANDROID_SDK);
+      expect(result).toBe(DeepLinkRoute.SDK_CONNECT);
+    });
   });
 
   describe('extractRouteFromUrl', () => {
@@ -475,6 +495,11 @@ describe('deepLinkAnalytics', () => {
       const swapUrl = 'https://link.metamask.io/swap?from=ETH';
       const result = extractRouteFromUrl(swapUrl);
       expect(result).toBe(DeepLinkRoute.SWAP);
+    });
+
+    it('extracts batch sell route from URL', () => {
+      const result = extractRouteFromUrl('https://link.metamask.io/batch-sell');
+      expect(result).toBe(DeepLinkRoute.BATCH_SELL);
     });
 
     it('extract perps route', () => {

@@ -401,8 +401,8 @@ function createSummary(groupedResults) {
     });
   });
   
-    // Unique test count: each test counts once per device regardless of retries
-    const uniqueTestCount = Object.keys(testExecutions).length;
+  // Unique test count: each test counts once per device regardless of retries
+  const uniqueTestCount = Object.keys(testExecutions).length;
 
   // Second pass: determine final test status
   // A test is only considered failed if ALL executions failed (no successful retry)
@@ -411,7 +411,7 @@ function createSummary(groupedResults) {
   const failedTestsByPlatform = { android: 0, ios: 0 };
 
   const uniqueFailedTestNames = new Set();
-  
+
   Object.values(testExecutions).forEach(execution => {
     // If test passed at least once, it's considered passed (successful retry)
     if (execution.hasPassed) {
@@ -1484,7 +1484,7 @@ function aggregateReports() {
     // Search only in directories where CI artifacts are downloaded
     const searchDirs = [
       './test-results',
-      './performance-results', 
+      './performance-results',
       './onboarding-results',
       './tests/reporters/reports',
     ];

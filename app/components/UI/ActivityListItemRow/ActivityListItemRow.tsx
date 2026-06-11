@@ -144,6 +144,24 @@ function resolveTitle(type: ActivityKind, token?: TokenAmount): string {
   return ACTIVITY_TITLE_RESOLVERS[type](token);
 }
 
+export function resolveActivityListItemTitle(
+  item: ActivityListItem,
+  titleOverride?: string,
+): string {
+  if (titleOverride) {
+    return titleOverride;
+  }
+
+  const primaryToken =
+    'token' in item.data
+      ? (item.data as { token?: TokenAmount }).token
+      : 'sourceToken' in item.data
+        ? (item.data as { sourceToken?: TokenAmount }).sourceToken
+        : undefined;
+
+  return resolveTitle(item.type, primaryToken);
+}
+
 // ---------------------------------------------------------------------------
 // ActivityKind → icon type string (matches getTransactionIcon switch cases)
 // ---------------------------------------------------------------------------
@@ -287,15 +305,20 @@ const createStyles = (
 interface ActivityListItemRowProps {
   item: ActivityListItem;
   index?: number;
-  chainId?: string;
   onPress?: (item: ActivityListItem) => void;
+  /**
+   * Optional pre-resolved title. Used to preserve the legacy Activity contract
+   * for swap/bridge rows (e.g. "Swap ETH to USDC", "Bridge to Optimism"), which
+   * the parent derives from bridge history. Falls back to the kind-based title.
+   */
+  title?: string;
 }
 
 export function ActivityListItemRow({
   item,
   index,
-  chainId,
   onPress,
+  title: titleOverride,
 }: ActivityListItemRowProps) {
   const { colors, typography } = useTheme();
   const osColorScheme = useColorScheme();
@@ -318,20 +341,11 @@ export function ActivityListItemRow({
           ? colors.warning.default
           : colors.text.muted;
 
-  // Primary token for title enrichment
-  const primaryToken =
-    'token' in item.data
-      ? (item.data as { token?: TokenAmount }).token
-      : 'sourceToken' in item.data
-        ? (item.data as { sourceToken?: TokenAmount }).sourceToken
-        : undefined;
-
-  const title = resolveTitle(item.type, primaryToken);
+  const title = resolveActivityListItemTitle(item, titleOverride);
   const amount = resolveAmount(item);
 
-  const networkChainId = chainId ?? item.chainId;
   const networkImageSource = getNetworkImageSource({
-    chainId: networkChainId,
+    chainId: item.chainId,
   });
 
   const handlePress = useCallback(() => {
@@ -344,7 +358,7 @@ export function ActivityListItemRow({
       onPress={handlePress}
       underlayColor={colors.background.alternative}
       activeOpacity={1}
-      testID={`activity-item-${index ?? 0}`}
+      testID={`transaction-item-${index ?? 0}`}
     >
       <ListItem>
         <ListItem.Date style={styles.listItemDate}>
@@ -372,7 +386,7 @@ export function ActivityListItemRow({
             </ListItem.Title>
             <Text
               style={[styles.statusText, { color: statusColor }]}
-              testID={`activity-status-${item.data.hash ?? index}`}
+              testID={`transaction-status-${index ?? 0}`}
             >
               {statusDisplay.label}
             </Text>

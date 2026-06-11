@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import { Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -23,6 +23,8 @@ import {
   PERPS_TRADING_MAX_WINNERS,
 } from '../../utils/perpsCampaignConstants';
 import HyperTrackerLogo from '../../../../../images/rewards/hypertracker.svg';
+import { useTheme } from '../../../../../util/theme';
+import { useCampaignLeaderboardEntries } from '../../hooks/useCampaignLeaderboardEntries';
 
 export const PERPS_CAMPAIGN_LEADERBOARD_TEST_IDS = {
   CONTAINER: 'perps-campaign-leaderboard-container',
@@ -38,11 +40,6 @@ export const PERPS_CAMPAIGN_LEADERBOARD_TEST_IDS = {
   POWERED_BY: 'perps-campaign-leaderboard-powered-by',
   HYPERTRACKER_LOGO: 'perps-campaign-leaderboard-hypertracker-logo',
 } as const;
-
-const MAX_ENTRIES_LIMIT = 20;
-const SPLIT_VIEW_TOP_COUNT_PREVIEW = 3;
-/** Ranks just below the first page: show one fewer top rows to keep split view from crowding the neighbor block. */
-const FULL_SPLIT_TOP_REDUCED_AT_RANKS: readonly number[] = [21, 22];
 
 interface UserPosition {
   rank: number;
@@ -76,6 +73,7 @@ const PerpsTradingCampaignLeaderboard: React.FC<
   isCampaignComplete = false,
 }) => {
   const navigation = useNavigation();
+  const { colors } = useTheme();
 
   const handleHyperTrackerPress = useCallback(() => {
     navigation.navigate(Routes.BROWSER.HOME, {
@@ -87,41 +85,12 @@ const PerpsTradingCampaignLeaderboard: React.FC<
     });
   }, [navigation]);
 
-  const isPreview = maxEntries != null;
-
-  const effectiveMaxEntries =
-    maxEntries != null && maxEntries <= MAX_ENTRIES_LIMIT
-      ? maxEntries
-      : MAX_ENTRIES_LIMIT;
-
-  /** Top rows above the neighbor separator in split view (preview: 3; full: 18 for rank 21–22, else 20). */
-  const splitViewTopCount = useMemo(() => {
-    if (isPreview) {
-      return SPLIT_VIEW_TOP_COUNT_PREVIEW;
-    }
-    const rank = userPosition?.rank;
-    if (rank == null) {
-      return MAX_ENTRIES_LIMIT;
-    }
-    return FULL_SPLIT_TOP_REDUCED_AT_RANKS.includes(rank)
-      ? MAX_ENTRIES_LIMIT - 2
-      : MAX_ENTRIES_LIMIT;
-  }, [isPreview, userPosition?.rank]);
-
-  const showSplitView = useMemo(() => {
-    if (!userPosition) return false;
-    return (
-      userPosition.rank > effectiveMaxEntries &&
-      userPosition.neighbors.length > 0
-    );
-  }, [userPosition, effectiveMaxEntries]);
-
-  const visibleEntries = useMemo(() => {
-    if (showSplitView) {
-      return entries.slice(0, splitViewTopCount);
-    }
-    return entries.slice(0, effectiveMaxEntries);
-  }, [entries, effectiveMaxEntries, showSplitView, splitViewTopCount]);
+  const { isPreview, showSplitView, visibleEntries } =
+    useCampaignLeaderboardEntries({
+      entries,
+      maxEntries,
+      userPosition,
+    });
 
   const isCurrentUser = useCallback(
     (entry: PerpsTradingCampaignLeaderboardEntry) =>
@@ -131,7 +100,7 @@ const PerpsTradingCampaignLeaderboard: React.FC<
   );
 
   if (isLoading && entries.length === 0) {
-    return <CampaignLeaderboardSkeleton skeletonRowCount={5} />;
+    return <CampaignLeaderboardSkeleton skeletonRowCount={maxEntries ?? 20} />;
   }
 
   if (hasError && entries.length === 0) {
@@ -146,7 +115,7 @@ const PerpsTradingCampaignLeaderboard: React.FC<
           )}
           onConfirm={onRetry}
           confirmButtonLabel={strings(
-            'rewards.perps_trading_campaign.prize_pool_retry_button',
+            'rewards.perps_trading_campaign.stats_retry',
           )}
           testID={PERPS_CAMPAIGN_LEADERBOARD_TEST_IDS.ERROR}
         />
@@ -195,7 +164,7 @@ const PerpsTradingCampaignLeaderboard: React.FC<
         {visibleEntries.map((entry) => (
           <CampaignLeaderboardEntryRow
             key={`${entry.rank}-${entry.referralCode}`}
-            entry={entry}
+            entry={{ ...entry, qualified: true }}
             isCurrentUser={isCurrentUser(entry)}
             showCrown={!isPreview && entry.rank <= PERPS_TRADING_MAX_WINNERS}
             isCampaignComplete={isCampaignComplete}
@@ -209,7 +178,7 @@ const PerpsTradingCampaignLeaderboard: React.FC<
             {userPosition.neighbors.map((entry) => (
               <CampaignLeaderboardEntryRow
                 key={`neighbor-${entry.rank}-${entry.referralCode}`}
-                entry={entry}
+                entry={{ ...entry, qualified: true }}
                 isCurrentUser={isCurrentUser(entry)}
                 showCrown={
                   !isPreview && entry.rank <= PERPS_TRADING_MAX_WINNERS
@@ -239,7 +208,12 @@ const PerpsTradingCampaignLeaderboard: React.FC<
           onPress={handleHyperTrackerPress}
           testID={PERPS_CAMPAIGN_LEADERBOARD_TEST_IDS.HYPERTRACKER_LOGO}
         >
-          <HyperTrackerLogo width={117} height={24} name="HyperTrackerLogo" />
+          <HyperTrackerLogo
+            width={117}
+            height={24}
+            name="HyperTrackerLogo"
+            color={colors.text.default}
+          />
         </Pressable>
       </Box>
     </Box>

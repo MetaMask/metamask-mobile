@@ -7,10 +7,14 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
+import {
+  SectionDivider,
+  Box,
+  SectionHeader,
+} from '@metamask/design-system-react-native';
 import ErrorState from '../../components/ErrorState';
 import Routes from '../../../../../constants/navigation/Routes';
 import SectionRow from '../../components/SectionRow';
@@ -49,6 +53,7 @@ import TrendingTokensSkeleton from '../../../../UI/Trending/components/TrendingT
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
 import { useHomepageTrendingTransactionActiveAbTests } from '../../hooks/useHomepageTrendingTransactionActiveAbTests';
+import { selectMoneyHubEnabledFlag } from '../../../../UI/Money/selectors/featureFlags';
 
 interface TokensSectionProps {
   sectionIndex: number;
@@ -62,10 +67,6 @@ interface TokensSectionProps {
 }
 
 const MAX_TOKENS_DISPLAYED = 5;
-
-const styles = StyleSheet.create({
-  sectionGap: { gap: 12 },
-});
 
 /**
  * TokensSection - Displays user's token balances on the homepage
@@ -145,8 +146,10 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     const isMusdConversionFlowEnabled = useSelector(
       selectIsMusdConversionFlowEnabledFlag,
     );
+    const isMoneyHubEnabled = useSelector(selectMoneyHubEnabledFlag);
     const { isEligible: isGeoEligible } = useMusdConversionEligibility();
-    const isCashSectionEnabled = isMusdConversionFlowEnabled && isGeoEligible;
+    const isCashSectionEnabled =
+      isMoneyHubEnabled && isMusdConversionFlowEnabled && isGeoEligible;
 
     const title = titleOverride ?? strings('homepage.sections.tokens');
     const analyticsName = sectionNameOverride ?? HomeSectionNames.TOKENS;
@@ -240,12 +243,14 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
 
     return (
       <View ref={sectionViewRef} onLayout={onLayout}>
-        <View style={styles.sectionGap}>
-          <SectionHeader
-            title={title}
-            onPress={handleViewAllTokens}
-            testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('tokens')}
-          />
+        <SectionDivider />
+        <SectionHeader
+          title={title}
+          isInteractive
+          onPress={handleViewAllTokens}
+          testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('tokens')}
+        />
+        <Box gap={3}>
           {showTokensError ? (
             <ErrorState
               title={strings('homepage.error.unable_to_load', {
@@ -279,7 +284,7 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
               )}
             </SectionRow>
           )}
-        </View>
+        </Box>
         <ScamWarningModal
           showScamWarningModal={showScamWarningModal}
           setShowScamWarningModal={setShowScamWarningModal}
@@ -356,27 +361,31 @@ const TokensSectionTrendingOnly = forwardRef<
     }
 
     return (
-      <View ref={sectionViewRef} onLayout={onLayout} style={styles.sectionGap}>
-        <SectionHeader
-          title={title}
-          onPress={handleViewAllTokens}
-          testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('tokens')}
-        />
-        <SectionRow>
-          {isTrendingLoading
-            ? Array.from({ length: 3 }, (_, i) => (
-                <TrendingTokensSkeleton key={`skeleton-${i}`} />
-              ))
-            : trendingTokensToDisplay.map((token, index) => (
-                <TrendingTokenRowItem
-                  key={token.assetId}
-                  token={token}
-                  position={index}
-                  tokenDetailsSource={TokenDetailsSource.HomepageTrending}
-                  transactionActiveAbTests={trendingTransactionActiveAbTests}
-                />
-              ))}
-        </SectionRow>
+      <View ref={sectionViewRef} onLayout={onLayout}>
+        <Box paddingBottom={3}>
+          <SectionDivider />
+          <SectionHeader
+            title={title}
+            isInteractive
+            onPress={handleViewAllTokens}
+            testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('tokens')}
+          />
+          <SectionRow>
+            {isTrendingLoading
+              ? Array.from({ length: 3 }, (_, i) => (
+                  <TrendingTokensSkeleton key={`skeleton-${i}`} />
+                ))
+              : trendingTokensToDisplay.map((token, index) => (
+                  <TrendingTokenRowItem
+                    key={token.assetId}
+                    token={token}
+                    position={index}
+                    tokenDetailsSource={TokenDetailsSource.HomepageTrending}
+                    transactionActiveAbTests={trendingTransactionActiveAbTests}
+                  />
+                ))}
+          </SectionRow>
+        </Box>
       </View>
     );
   },

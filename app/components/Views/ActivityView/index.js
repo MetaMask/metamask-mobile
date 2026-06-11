@@ -11,9 +11,8 @@ import Avatar, {
   AvatarSize,
   AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar';
-import { Box } from '@metamask/design-system-react-native';
+import { Box, HeaderStandard } from '@metamask/design-system-react-native';
 import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import HeaderRoot from '../../../component-library/components-temp/HeaderRoot';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import TextComponent, {
@@ -48,6 +47,16 @@ import { useStyles } from '../../hooks/useStyles';
 import ErrorBoundary from '../ErrorBoundary';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import UnifiedTransactionsView from '../UnifiedTransactionsView/UnifiedTransactionsView';
+import { selectIsActivityRedesignEnabled } from '../../../selectors/featureFlagController/activityRedesign';
+
+// Lazily loaded so the redesigned Activity screen and its dependencies are not
+// evaluated when `tmcuActivityRedesignEnabled` is off, keeping the legacy path
+// fully isolated.
+const ActivityScreen = React.lazy(
+  () =>
+    // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+    import('../ActivityScreen/ActivityScreen'),
+);
 
 const createStyles = (params) => {
   const { theme } = params;
@@ -85,7 +94,7 @@ const createStyles = (params) => {
   });
 };
 
-const ActivityView = () => {
+const LegacyActivityView = () => {
   const { colors } = useTheme();
   const tw = useTailwind();
 
@@ -218,7 +227,7 @@ const ActivityView = () => {
   return (
     <ErrorBoundary navigation={navigation} view="ActivityView">
       <SafeAreaView
-        edges={{ top: 'additive' }}
+        edges={['left', 'right', 'bottom']}
         style={[
           tw.style('flex-1'),
           { backgroundColor: colors.background.default },
@@ -226,15 +235,17 @@ const ActivityView = () => {
         testID={ActivitiesViewSelectorsIDs.SAFE_AREA_VIEW}
       >
         {showBackButton ? (
-          <HeaderCompactStandard
+          <HeaderStandard
             title={strings('activity_view.title')}
             onBack={handleBackPress}
+            includesTopInset
             backButtonProps={{ testID: 'activity-view-back-button' }}
             testID={ActivitiesViewSelectorsIDs.HEADER_COMPACT_STANDARD}
           />
         ) : (
           <HeaderRoot
             title={strings('activity_view.title')}
+            includesTopInset
             testID={ActivitiesViewSelectorsIDs.HEADER_ROOT}
           />
         )}
@@ -321,6 +332,20 @@ const ActivityView = () => {
         </Box>
       </SafeAreaView>
     </ErrorBoundary>
+  );
+};
+
+const ActivityView = () => {
+  const isActivityRedesignEnabled = useSelector(
+    selectIsActivityRedesignEnabled,
+  );
+
+  return isActivityRedesignEnabled ? (
+    <React.Suspense fallback={null}>
+      <ActivityScreen />
+    </React.Suspense>
+  ) : (
+    <LegacyActivityView />
   );
 };
 

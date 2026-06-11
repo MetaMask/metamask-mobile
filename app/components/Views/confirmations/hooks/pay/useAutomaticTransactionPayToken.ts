@@ -28,10 +28,11 @@ import {
 import { useSelector } from 'react-redux';
 import {
   selectMetaMaskPayTokensFlags,
-  selectMetaMaskPayFiatFlags,
   PreferredToken,
   getPreferredTokensForTransactionType,
 } from '../../../../../selectors/featureFlagController/confirmations';
+import { useIsFiatPaymentAvailable } from './useIsFiatPaymentAvailable';
+import { useMMPayFiatConfig } from './useMMPayFiatConfig';
 import { RootState } from '../../../../../reducers';
 import { selectLastWithdrawTokenByType } from '../../../../../selectors/transactionController';
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
@@ -109,8 +110,7 @@ export function useAutomaticTransactionPayToken({
     selectPaymentOverrideByTransactionId(state, transactionId ?? ''),
   );
   const isMoneyPaymentOverride =
-    paymentOverride === PaymentOverride.MoneyAccount &&
-    !postQuoteTransactionType;
+    paymentOverride === PaymentOverride.MoneyAccount;
   const accountOverride = useTransactionAccountOverride();
   const lastWithdrawToken = useSelector((state: RootState) =>
     selectLastWithdrawTokenByType(state, postQuoteTransactionType),
@@ -160,11 +160,8 @@ export function useAutomaticTransactionPayToken({
   const automaticToken = useMemo(() => selectBestToken(), [selectBestToken]);
 
   const { paymentMethods } = useRampsPaymentMethods();
-  const fiatFlags = useSelector(selectMetaMaskPayFiatFlags);
-  const isFiatEnabled = hasTransactionType(
-    transactionMeta,
-    fiatFlags.enabledTransactionTypes,
-  );
+  const { maxDelayMinutesForPaymentMethods } = useMMPayFiatConfig();
+  const isFiatEnabled = useIsFiatPaymentAvailable();
 
   useEffect(() => {
     if (
@@ -177,20 +174,13 @@ export function useAutomaticTransactionPayToken({
       return;
     }
 
-    if (!automaticToken) {
-      log('No automatic pay token found');
-      return;
-    }
-
-    if (autoSelectFiatPayment) {
+    if (autoSelectFiatPayment || tokens.length === 0) {
       if (!isFiatEnabled || paymentMethods.length === 0) {
         return;
       }
 
       const eligibleMethod = paymentMethods.find(
-        (pm) =>
-          !pm.delay ||
-          pm.delay[1] <= fiatFlags.maxDelayMinutesForPaymentMethods,
+        (pm) => !pm.delay || pm.delay[1] <= maxDelayMinutesForPaymentMethods,
       );
 
       if (eligibleMethod) {
@@ -207,6 +197,11 @@ export function useAutomaticTransactionPayToken({
       return;
     }
 
+    if (!automaticToken) {
+      log('No automatic pay token found');
+      return;
+    }
+
     setPayToken({
       address: automaticToken.address,
       chainId: automaticToken.chainId,
@@ -219,9 +214,9 @@ export function useAutomaticTransactionPayToken({
     autoSelectFiatPayment,
     automaticToken,
     disable,
-    fiatFlags,
     hasFiatPaymentSelected,
     isFiatEnabled,
+    maxDelayMinutesForPaymentMethods,
     payToken,
     paymentMethods,
     requiredTokens,
@@ -269,16 +264,18 @@ export function useAutomaticTransactionPayToken({
   // money account. Money account deposits are locked to MUSD on MONAD.
   const previsMoneyPaymentOverrideRef = useRef(false);
   useEffect(() => {
+    const prev = previsMoneyPaymentOverrideRef.current;
+    previsMoneyPaymentOverrideRef.current = !!isMoneyPaymentOverride;
+
     if (
       disable ||
       hasFiatPaymentSelected ||
       !from ||
-      isMoneyPaymentOverride === previsMoneyPaymentOverrideRef.current ||
-      postQuoteTransactionType
+      isMoneyPaymentOverride !== true ||
+      isMoneyPaymentOverride === prev
     ) {
       return;
     }
-    previsMoneyPaymentOverrideRef.current = isMoneyPaymentOverride;
 
     if (automaticToken) {
       setPayToken({
@@ -292,7 +289,6 @@ export function useAutomaticTransactionPayToken({
     disable,
     from,
     hasFiatPaymentSelected,
-    postQuoteTransactionType,
     setPayToken,
     isMoneyPaymentOverride,
   ]);

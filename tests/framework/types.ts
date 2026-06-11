@@ -30,7 +30,7 @@ import type { EventPayload } from '../helpers/analytics/helpers.ts';
 import FixtureBuilder from './fixtures/FixtureBuilder.ts';
 import type { Fixture } from './fixtures/types.ts';
 import CommandQueueServer from './fixtures/CommandQueueServer.ts';
-import { CurrentDeviceDetails } from './fixture/index';
+import { CurrentDeviceDetails } from './fixtures/playwright';
 import type { PlatformDeviceCommandHandler } from './services/device-commands/types';
 
 /*
@@ -142,6 +142,7 @@ export interface LongPressOptions extends GestureOptions {
 export interface MatcherOptions {
   exact?: boolean;
   lastElement?: boolean;
+  index?: number;
 }
 
 /**

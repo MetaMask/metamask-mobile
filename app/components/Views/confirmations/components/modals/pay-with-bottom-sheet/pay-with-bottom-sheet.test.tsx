@@ -99,7 +99,7 @@ describe('PayWithBottomSheet', () => {
     const { getByText } = render(<PayWithBottomSheet />);
 
     expect(
-      getByText('confirm.pay_with_bottom_sheet.withdraw_title'),
+      getByText('confirm.pay_with_bottom_sheet.receive_title'),
     ).toBeOnTheScreen();
   });
 

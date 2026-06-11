@@ -14,6 +14,13 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock(
+  '../../../../../core/redux/slices/bridge/utils/hasMinimumRequiredVersion',
+  () => ({
+    hasMinimumRequiredVersion: jest.fn().mockReturnValue(true),
+  }),
+);
+
 describe('useBridgeQuoteEvents', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -108,8 +115,10 @@ describe('useBridgeQuoteEvents', () => {
       ).toHaveBeenCalledWith('Unified SwapBridge Quotes Received', {
         best_quote_provider: 'lifi_jupiter',
         can_submit: true,
+        feature_id: 'unified_swap_bridge',
         gas_included: false,
         gas_included_7702: false,
+        has_sufficient_gas_for_quote: null,
         price_impact: -0.001991570073761955,
         provider: 'lifi_jupiter',
         quoted_time_minutes: 0.08333333333333333,

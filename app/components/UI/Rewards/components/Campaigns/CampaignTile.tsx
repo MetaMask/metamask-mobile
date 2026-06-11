@@ -43,6 +43,7 @@ interface CampaignTileProps {
  * - ONDO_HOLDING: navigates to Ondo campaign details
  * - SEASON_1: navigates to season one campaign details
  * - PERPS_TRADING: navigates to Perps Trading campaign details
+ * - PREDICT_THE_PITCH: navigates to Predict The Pitch campaign details
  * - Unsupported types: non-interactive unless onPress is provided
  * - With onPress: executes custom handler regardless of type
  */
@@ -62,7 +63,8 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
     useGetCampaignParticipantStatus(
       campaignStatus === 'active' &&
         (campaign.type === CampaignType.ONDO_HOLDING ||
-          campaign.type === CampaignType.PERPS_TRADING)
+          campaign.type === CampaignType.PERPS_TRADING ||
+          campaign.type === CampaignType.PREDICT_THE_PITCH)
         ? campaign.id
         : undefined,
     );
@@ -121,6 +123,19 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
       } else {
         navigation.navigate(
           Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW,
+          {
+            campaignId: campaign.id,
+          },
+        );
+      }
+    } else if (campaign.type === CampaignType.PREDICT_THE_PITCH) {
+      if (shouldShowTour) {
+        navigation.navigate(Routes.REWARDS_CAMPAIGN_TOUR_STEP, {
+          campaignId: campaign.id,
+        });
+      } else {
+        navigation.navigate(
+          Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_DETAILS_VIEW,
           {
             campaignId: campaign.id,
           },

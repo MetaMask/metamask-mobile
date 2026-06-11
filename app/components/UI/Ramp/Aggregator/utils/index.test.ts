@@ -27,6 +27,7 @@ import {
   sortQuotes,
   getCaipChainIdFromCryptoCurrency,
   getHexChainIdFromCryptoCurrency,
+  getEvmHexChainId,
 } from '.';
 import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
 import { FiatOrder, RampType } from '../../../../../reducers/fiatOrders/types';
@@ -605,6 +606,38 @@ describe('getCaipChainIdFromCryptoCurrency', () => {
       network: { chainId: 'invalid' },
     } as CryptoCurrency;
     expect(getCaipChainIdFromCryptoCurrency(cryptoCurrency)).toBe(null);
+  });
+});
+
+describe('getEvmHexChainId', () => {
+  it('returns undefined when chainId is undefined', () => {
+    expect(getEvmHexChainId(undefined)).toBeUndefined();
+  });
+
+  it('returns undefined when chainId is an empty string', () => {
+    expect(getEvmHexChainId('')).toBeUndefined();
+  });
+
+  it('converts a decimal chainId to hex', () => {
+    expect(getEvmHexChainId('137')).toBe('0x89');
+  });
+
+  it('returns a hex chainId unchanged', () => {
+    expect(getEvmHexChainId('0x89')).toBe('0x89');
+  });
+
+  it('extracts the reference from an EVM CAIP chainId and converts to hex', () => {
+    expect(getEvmHexChainId('eip155:137')).toBe('0x89');
+  });
+
+  it('returns undefined for a non-EVM CAIP chainId', () => {
+    expect(
+      getEvmHexChainId('solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'),
+    ).toBeUndefined();
+  });
+
+  it('returns undefined for an unparseable chainId', () => {
+    expect(getEvmHexChainId('invalid')).toBeUndefined();
   });
 });
 

@@ -1,38 +1,52 @@
-import { renderHook, act } from '@testing-library/react-native';
-import { useSelector, useDispatch } from 'react-redux';
+import { ChainId } from '@metamask/bridge-controller';
+import { TextColor } from '@metamask/design-system-react-native';
 import type { Position } from '@metamask/social-controllers';
-import { useQuickBuyController } from './hooks/useQuickBuyController';
-import { positionToQuickBuyTarget } from './types';
+import { act, renderHook } from '@testing-library/react-native';
+import { useDispatch, useSelector } from 'react-redux';
+import Engine from '../../../../../../core/Engine';
+import {
+  selectBridgeFeatureFlags,
+  selectDestAddress,
+  selectIsEvmNonEvmBridge,
+  selectIsNonEvmNonEvmBridge,
+  selectIsSolanaSourced,
+  selectIsSubmittingTx,
+  selectSlippage,
+} from '../../../../../../core/redux/slices/bridge';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
+import { selectSourceWalletAddress } from '../../../../../../selectors/bridge';
+import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
+import { selectShouldUseSmartTransaction } from '../../../../../../selectors/smartTransactionsController';
+import {
+  ImpactMoment,
+  playErrorNotification,
+  playImpact,
+} from '../../../../../../util/haptics';
+import Logger from '../../../../../../util/Logger';
+import { useHasSufficientGas } from '../../../../../UI/Bridge/hooks/useHasSufficientGas';
+import useIsInsufficientBalance from '../../../../../UI/Bridge/hooks/useInsufficientBalance';
+import { useLatestBalance } from '../../../../../UI/Bridge/hooks/useLatestBalance';
+import { usePriceImpactViewData } from '../../../../../UI/Bridge/hooks/usePriceImpactViewData';
+import type { BridgeToken } from '../../../../../UI/Bridge/types';
 import { selectDefaultSourceToken } from '../../../utils/tokenSelection';
-import { useQuickBuySetup } from './hooks/useQuickBuySetup';
-import { useSourceTokenOptions } from './hooks/useSourceTokenOptions';
+import { usePayWithTokens } from './hooks/usePayWithTokens';
+import { usePositionTokenBalance } from './hooks/usePositionTokenBalance';
+import { useQuickBuyController } from './hooks/useQuickBuyController';
 import {
   useQuickBuyQuotes,
   type EnrichedQuickBuyQuote,
   type UseQuickBuyQuotesResult,
 } from './hooks/useQuickBuyQuotes';
-import { useLatestBalance } from '../../../../../UI/Bridge/hooks/useLatestBalance';
-import useIsInsufficientBalance from '../../../../../UI/Bridge/hooks/useInsufficientBalance';
-import { useHasSufficientGas } from '../../../../../UI/Bridge/hooks/useHasSufficientGas';
-import { selectShouldUseSmartTransaction } from '../../../../../../selectors/smartTransactionsController';
-import Engine from '../../../../../../core/Engine';
+import { useQuickBuySetup } from './hooks/useQuickBuySetup';
+import { useReceiveTokens } from './hooks/useReceiveTokens';
+import { buildQuickBuyToastOptions } from './quickBuyToastOptions';
 import {
-  selectIsSubmittingTx,
-  selectDestAddress,
-  selectSlippage,
-  selectIsEvmNonEvmBridge,
-  selectIsNonEvmNonEvmBridge,
-  selectIsSolanaSourced,
-  selectBridgeFeatureFlags,
-} from '../../../../../../core/redux/slices/bridge';
-import { selectSourceWalletAddress } from '../../../../../../selectors/bridge';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
-import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
-import { usePriceImpactViewData } from '../../../../../UI/Bridge/hooks/usePriceImpactViewData';
-import { TextColor } from '@metamask/design-system-react-native';
-import type { BridgeToken } from '../../../../../UI/Bridge/types';
-import { ChainId } from '@metamask/bridge-controller';
-import Logger from '../../../../../../util/Logger';
+  trackQuickBuyTrade,
+  beginQuickBuySubmission,
+  endQuickBuySubmission,
+} from './quickBuyTradeTracker';
+import { resolveQuickBuyTerminalToast } from './resolveQuickBuyTerminalToast';
+import { positionToQuickBuyTarget } from './types';
 
 jest.mock('../../../../../../util/Logger', () => ({
   __esModule: true,
@@ -51,6 +65,8 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 const mockTrackAmountSelected = jest.fn();
+const mockTrackTradeSubmitted = jest.fn();
+const mockTrackTradeCompleted = jest.fn();
 
 jest.mock('./hooks/useQuickBuyAnalytics', () => ({
   useQuickBuyAnalytics: () => ({
@@ -62,8 +78,9 @@ jest.mock('./hooks/useQuickBuyAnalytics', () => ({
       submitStartedAtRef: { current: null },
     },
     trackAmountSelected: mockTrackAmountSelected,
-    trackTradeSubmitted: jest.fn(),
-    trackTradeCompleted: jest.fn(),
+    trackTradeModeToggled: jest.fn(),
+    trackTradeSubmitted: mockTrackTradeSubmitted,
+    trackTradeCompleted: mockTrackTradeCompleted,
     markTradeSubmitted: jest.fn(),
   }),
 }));
@@ -72,8 +89,16 @@ jest.mock('./hooks/useQuickBuySetup', () => ({
   useQuickBuySetup: jest.fn(),
 }));
 
-jest.mock('./hooks/useSourceTokenOptions', () => ({
-  useSourceTokenOptions: jest.fn(),
+jest.mock('./hooks/usePayWithTokens', () => ({
+  usePayWithTokens: jest.fn(),
+}));
+
+jest.mock('./hooks/useReceiveTokens', () => ({
+  useReceiveTokens: jest.fn().mockReturnValue([]),
+}));
+
+jest.mock('./hooks/usePositionTokenBalance', () => ({
+  usePositionTokenBalance: jest.fn().mockReturnValue(undefined),
 }));
 
 jest.mock('./hooks/useQuickBuyQuotes', () => ({
@@ -189,6 +214,47 @@ jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
+const mockShowToast = jest.fn();
+jest.mock('../../../../../../component-library/components/Toast', () => {
+  const actualReact = jest.requireActual('react');
+  return {
+    __esModule: true,
+    ToastContext: actualReact.createContext({
+      // Defer to mockShowToast lazily: this object is built at mock-factory
+      // eval time, before the `mockShowToast` const is initialised.
+      toastRef: {
+        current: {
+          showToast: (...args: unknown[]) => mockShowToast(...args),
+        },
+      },
+    }),
+    ToastVariants: { Plain: 'Plain', Icon: 'Icon' },
+  };
+});
+
+jest.mock('./quickBuyTradeTracker', () => ({
+  trackQuickBuyTrade: jest.fn(),
+  getTrackedQuickBuyTrade: jest.fn(),
+  getTrackedQuickBuyTradeIds: jest.fn(() => []),
+  untrackQuickBuyTrade: jest.fn(),
+  beginQuickBuySubmission: jest.fn(),
+  endQuickBuySubmission: jest.fn(),
+}));
+
+jest.mock('./quickBuyToastOptions', () => ({
+  buildQuickBuyToastOptions: jest.fn((kind: string) => ({ kind })),
+}));
+
+jest.mock('./resolveQuickBuyTerminalToast', () => ({
+  resolveQuickBuyTerminalToast: jest.fn(),
+}));
+
+jest.mock('../../../../../../util/haptics', () => ({
+  playImpact: jest.fn(),
+  playErrorNotification: jest.fn(),
+  ImpactMoment: { PrimaryCTA: 'primaryCta' },
+}));
+
 const mockTrack = jest.fn();
 jest.mock('../../../analytics', () => {
   const actual = jest.requireActual('../../../analytics');
@@ -219,6 +285,12 @@ const createPosition = (overrides: Partial<Position> = {}): Position =>
     ...overrides,
   }) as Position;
 
+const createTarget = (overrides: Partial<Position> = {}) => {
+  const target = positionToQuickBuyTarget(createPosition(overrides));
+  if (!target) throw new Error('createTarget: position chain is not mapped');
+  return target;
+};
+
 const createSourceToken = (overrides: Partial<BridgeToken> = {}): BridgeToken =>
   ({
     address: '0x0000000000000000000000000000000000000000',
@@ -241,6 +313,15 @@ const createActiveQuote = (
     quote: {
       srcTokenAmount: '10000000000000000',
       ...((overrides.quote as Record<string, unknown> | undefined) ?? {}),
+    },
+    // The full wallet deduction (routing amount + src-token fees), in decimal
+    // token units. 0.01 ETH matches the $20 / $2000 amount the disabled-state
+    // tests enter, and is what `isActiveQuoteForCurrentAmount` compares against
+    // (not the post-fee `quote.srcTokenAmount`, which lags for gas-included
+    // quotes).
+    sentAmount: {
+      amount: '0.01',
+      ...((overrides.sentAmount as Record<string, unknown> | undefined) ?? {}),
     },
     totalNetworkFee: {
       amount: '0.0001',
@@ -293,7 +374,9 @@ const setupDefaultMocks = () => {
     isUnsupportedChain: false,
   });
 
-  (useSourceTokenOptions as jest.Mock).mockReturnValue({
+  (useReceiveTokens as jest.Mock).mockReturnValue([]);
+  (usePositionTokenBalance as jest.Mock).mockReturnValue(undefined);
+  (usePayWithTokens as jest.Mock).mockReturnValue({
     options: [createSourceToken()],
     isLoading: false,
   });
@@ -306,6 +389,7 @@ const setupDefaultMocks = () => {
     isNoQuotesAvailable: false,
     quoteFetchError: null,
     isActiveQuoteForCurrentTokenPair: true,
+    isQuoteRequestStale: false,
     quoteCount: 0,
     quotesLastFetchedAt: null,
     refreshCount: 0,
@@ -327,6 +411,9 @@ const setupDefaultMocks = () => {
   (
     Engine.context.BridgeStatusController.submitTx as jest.Mock
   ).mockResolvedValue(undefined);
+  (buildQuickBuyToastOptions as jest.Mock).mockImplementation(
+    (kind: string) => ({ kind }),
+  );
 };
 
 describe('useQuickBuyController', () => {
@@ -342,10 +429,7 @@ describe('useQuickBuyController', () => {
   describe('handleAmountChange', () => {
     it('accepts valid numeric input', () => {
       const { result } = renderHook(() =>
-        useQuickBuyController(
-          positionToQuickBuyTarget(createPosition()),
-          jest.fn(),
-        ),
+        useQuickBuyController(createTarget(), jest.fn()),
       );
 
       act(() => {
@@ -357,10 +441,7 @@ describe('useQuickBuyController', () => {
 
     it('normalizes a leading decimal without digits', () => {
       const { result } = renderHook(() =>
-        useQuickBuyController(
-          positionToQuickBuyTarget(createPosition()),
-          jest.fn(),
-        ),
+        useQuickBuyController(createTarget(), jest.fn()),
       );
 
       act(() => {
@@ -373,10 +454,7 @@ describe('useQuickBuyController', () => {
 
     it('normalizes a leading decimal with digits', () => {
       const { result } = renderHook(() =>
-        useQuickBuyController(
-          positionToQuickBuyTarget(createPosition()),
-          jest.fn(),
-        ),
+        useQuickBuyController(createTarget(), jest.fn()),
       );
 
       act(() => {
@@ -393,15 +471,12 @@ describe('useQuickBuyController', () => {
         atomicBalance: '100000000',
       });
       const sourceWithRate = createSourceToken({ currencyExchangeRate: 1 });
-      (useSourceTokenOptions as jest.Mock).mockReturnValue({
+      (usePayWithTokens as jest.Mock).mockReturnValue({
         options: [sourceWithRate],
       });
 
       const { result } = renderHook(() =>
-        useQuickBuyController(
-          positionToQuickBuyTarget(createPosition()),
-          jest.fn(),
-        ),
+        useQuickBuyController(createTarget(), jest.fn()),
       );
 
       act(() => {
@@ -420,21 +495,18 @@ describe('useQuickBuyController', () => {
   });
 
   describe('handleSliderChange', () => {
-    it('sets usdAmount from slider percent of available balance', () => {
+    it('updates display state (sliderPercent, usdAmount) on every 1% tick', () => {
       (useLatestBalance as jest.Mock).mockReturnValue({
         displayBalance: '100',
         atomicBalance: '100000000',
       });
       const sourceWithRate = createSourceToken({ currencyExchangeRate: 1 });
-      (useSourceTokenOptions as jest.Mock).mockReturnValue({
+      (usePayWithTokens as jest.Mock).mockReturnValue({
         options: [sourceWithRate],
       });
 
       const { result } = renderHook(() =>
-        useQuickBuyController(
-          positionToQuickBuyTarget(createPosition()),
-          jest.fn(),
-        ),
+        useQuickBuyController(createTarget(), jest.fn()),
       );
 
       act(() => {
@@ -445,21 +517,18 @@ describe('useQuickBuyController', () => {
       expect(Number(result.current.usdAmount)).toBeGreaterThan(0);
     });
 
-    it('tracks amount selected once when the snapped percent is unchanged', () => {
+    it('does not fire analytics during drag — only updates display', () => {
       (useLatestBalance as jest.Mock).mockReturnValue({
         displayBalance: '100',
         atomicBalance: '100000000',
       });
       const sourceWithRate = createSourceToken({ currencyExchangeRate: 1 });
-      (useSourceTokenOptions as jest.Mock).mockReturnValue({
+      (usePayWithTokens as jest.Mock).mockReturnValue({
         options: [sourceWithRate],
       });
 
       const { result } = renderHook(() =>
-        useQuickBuyController(
-          positionToQuickBuyTarget(createPosition()),
-          jest.fn(),
-        ),
+        useQuickBuyController(createTarget(), jest.fn()),
       );
 
       act(() => {
@@ -468,8 +537,146 @@ describe('useQuickBuyController', () => {
         result.current.handleSliderChange(51);
       });
 
-      expect(result.current.sliderPercent).toBe(50);
+      expect(result.current.sliderPercent).toBe(51);
+      expect(mockTrackAmountSelected).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('handleSliderDragEnd', () => {
+    it('commits the amount and fires analytics once when the user lifts their finger', () => {
+      (useLatestBalance as jest.Mock).mockReturnValue({
+        displayBalance: '100',
+        atomicBalance: '100000000',
+      });
+      const sourceWithRate = createSourceToken({ currencyExchangeRate: 1 });
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [sourceWithRate],
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      act(() => {
+        result.current.handleSliderChange(48);
+        result.current.handleSliderChange(49);
+        result.current.handleSliderChange(51);
+      });
+      act(() => {
+        result.current.handleSliderDragEnd(51);
+      });
+
+      expect(result.current.sliderPercent).toBe(51);
       expect(mockTrackAmountSelected).toHaveBeenCalledTimes(1);
+    });
+
+    it('deduplicates identical commit values (Tap + Pan double-fire guard)', () => {
+      (useLatestBalance as jest.Mock).mockReturnValue({
+        displayBalance: '100',
+        atomicBalance: '100000000',
+      });
+      const sourceWithRate = createSourceToken({ currencyExchangeRate: 1 });
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [sourceWithRate],
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      act(() => {
+        result.current.handleSliderDragEnd(50);
+        result.current.handleSliderDragEnd(50);
+      });
+
+      expect(mockTrackAmountSelected).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('max ("sell all") source amount', () => {
+    // A near-$1 stablecoin whose rate is fractionally below 1. The fiat
+    // round-trip (balance → cent-rounded USD → tokens) reconstructs an amount
+    // slightly ABOVE the real balance, which previously tripped the
+    // insufficient-funds gate when selling the entire balance.
+    const NEAR_DOLLAR_RATE = 0.9997;
+    const FULL_BALANCE = '0.10003';
+
+    const renderWithStablecoin = () => {
+      (useLatestBalance as jest.Mock).mockReturnValue({
+        displayBalance: FULL_BALANCE,
+        atomicBalance: '100030000000000000',
+      });
+      const stablecoin = createSourceToken({
+        symbol: 'MUSD',
+        currencyExchangeRate: NEAR_DOLLAR_RATE,
+        balance: FULL_BALANCE,
+      });
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [stablecoin],
+      });
+      return renderHook(() => useQuickBuyController(createTarget(), jest.fn()));
+    };
+
+    it('spends the exact on-chain balance instead of the fiat round-trip at 100%', () => {
+      const { result } = renderWithStablecoin();
+
+      act(() => {
+        result.current.handleSliderChange(100);
+      });
+      act(() => {
+        result.current.handleSliderDragEnd(100);
+      });
+
+      // Exact balance — not `usd / rate`, which would exceed FULL_BALANCE.
+      expect(result.current.sourceTokenAmount).toBe(FULL_BALANCE);
+    });
+
+    it('passes the exact balance to the insufficient-balance check at 100%', () => {
+      const { result } = renderWithStablecoin();
+
+      act(() => {
+        result.current.handleSliderChange(100);
+      });
+      act(() => {
+        result.current.handleSliderDragEnd(100);
+      });
+
+      expect(useIsInsufficientBalance).toHaveBeenLastCalledWith(
+        expect.objectContaining({ amount: FULL_BALANCE }),
+      );
+    });
+
+    it('still derives the amount from fiat below 100%', () => {
+      const { result } = renderWithStablecoin();
+
+      act(() => {
+        result.current.handleSliderChange(50);
+      });
+      act(() => {
+        result.current.handleSliderDragEnd(50);
+      });
+
+      expect(result.current.sourceTokenAmount).not.toBe(FULL_BALANCE);
+      expect(Number(result.current.sourceTokenAmount)).toBeCloseTo(0.05, 2);
+    });
+
+    it('clears the max flag once the user types a custom amount', () => {
+      const { result } = renderWithStablecoin();
+
+      act(() => {
+        result.current.handleSliderChange(100);
+      });
+      act(() => {
+        result.current.handleSliderDragEnd(100);
+      });
+      expect(result.current.sourceTokenAmount).toBe(FULL_BALANCE);
+
+      act(() => {
+        result.current.handleAmountChange('0.05');
+      });
+
+      expect(result.current.sourceTokenAmount).not.toBe(FULL_BALANCE);
+      expect(Number(result.current.sourceTokenAmount)).toBeCloseTo(0.05, 2);
     });
   });
 
@@ -488,15 +695,12 @@ describe('useQuickBuyController', () => {
         address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
         currencyExchangeRate: 1,
       });
-      (useSourceTokenOptions as jest.Mock).mockReturnValue({
+      (usePayWithTokens as jest.Mock).mockReturnValue({
         options: [usdc, usdt],
       });
 
       const { result } = renderHook(() =>
-        useQuickBuyController(
-          positionToQuickBuyTarget(createPosition()),
-          jest.fn(),
-        ),
+        useQuickBuyController(createTarget(), jest.fn()),
       );
 
       act(() => {
@@ -520,10 +724,7 @@ describe('useQuickBuyController', () => {
   describe('getButtonLabel', () => {
     it('returns the buy label when all conditions are normal', () => {
       const { result } = renderHook(() =>
-        useQuickBuyController(
-          positionToQuickBuyTarget(createPosition()),
-          jest.fn(),
-        ),
+        useQuickBuyController(createTarget(), jest.fn()),
       );
 
       expect(result.current.getButtonLabel()).toBe(
@@ -535,10 +736,7 @@ describe('useQuickBuyController', () => {
       (useIsInsufficientBalance as jest.Mock).mockReturnValue(true);
 
       const { result } = renderHook(() =>
-        useQuickBuyController(
-          positionToQuickBuyTarget(createPosition()),
-          jest.fn(),
-        ),
+        useQuickBuyController(createTarget(), jest.fn()),
       );
 
       act(() => {
@@ -553,10 +751,7 @@ describe('useQuickBuyController', () => {
       (useHasSufficientGas as jest.Mock).mockReturnValue(false);
 
       const { result } = renderHook(() =>
-        useQuickBuyController(
-          positionToQuickBuyTarget(createPosition()),
-          jest.fn(),
-        ),
+        useQuickBuyController(createTarget(), jest.fn()),
       );
 
       act(() => {
@@ -586,6 +781,7 @@ describe('useQuickBuyController', () => {
         isNoQuotesAvailable: false,
         quoteFetchError: null,
         isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
         sortedQuotes: [],
         quoteCount: 0,
         quotesLastFetchedAt: null,
@@ -596,10 +792,7 @@ describe('useQuickBuyController', () => {
       });
 
       const { result } = renderHook(() =>
-        useQuickBuyController(
-          positionToQuickBuyTarget(createPosition()),
-          jest.fn(),
-        ),
+        useQuickBuyController(createTarget(), jest.fn()),
       );
 
       act(() => {
@@ -616,12 +809,7 @@ describe('useQuickBuyController', () => {
 
   describe('quoteOverride wiring', () => {
     it('passes null to useIsInsufficientBalance when there is no active quote', () => {
-      renderHook(() =>
-        useQuickBuyController(
-          positionToQuickBuyTarget(createPosition()),
-          jest.fn(),
-        ),
-      );
+      renderHook(() => useQuickBuyController(createTarget(), jest.fn()));
 
       expect(useIsInsufficientBalance).toHaveBeenLastCalledWith(
         expect.objectContaining({
@@ -639,6 +827,7 @@ describe('useQuickBuyController', () => {
         isNoQuotesAvailable: false,
         quoteFetchError: null,
         isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
         sortedQuotes: [],
         quoteCount: 0,
         quotesLastFetchedAt: null,
@@ -648,12 +837,7 @@ describe('useQuickBuyController', () => {
         refetchQuotes: jest.fn(),
       });
 
-      renderHook(() =>
-        useQuickBuyController(
-          positionToQuickBuyTarget(createPosition()),
-          jest.fn(),
-        ),
-      );
+      renderHook(() => useQuickBuyController(createTarget(), jest.fn()));
 
       expect(useIsInsufficientBalance).toHaveBeenLastCalledWith(
         expect.objectContaining({
@@ -666,10 +850,7 @@ describe('useQuickBuyController', () => {
   describe('isConfirmDisabled', () => {
     it('is disabled when usdAmount is empty', () => {
       const { result } = renderHook(() =>
-        useQuickBuyController(
-          positionToQuickBuyTarget(createPosition()),
-          jest.fn(),
-        ),
+        useQuickBuyController(createTarget(), jest.fn()),
       );
 
       expect(result.current.isConfirmDisabled).toBe(true);
@@ -677,10 +858,7 @@ describe('useQuickBuyController', () => {
 
     it('is disabled when amount is valid and there is no active quote', () => {
       const { result } = renderHook(() =>
-        useQuickBuyController(
-          positionToQuickBuyTarget(createPosition()),
-          jest.fn(),
-        ),
+        useQuickBuyController(createTarget(), jest.fn()),
       );
 
       act(() => {
@@ -691,7 +869,7 @@ describe('useQuickBuyController', () => {
     });
 
     it('is disabled when the source token is missing even if a quote exists', () => {
-      (useSourceTokenOptions as jest.Mock).mockReturnValue({
+      (usePayWithTokens as jest.Mock).mockReturnValue({
         options: [],
         isLoading: false,
       });
@@ -702,6 +880,7 @@ describe('useQuickBuyController', () => {
         isNoQuotesAvailable: false,
         quoteFetchError: null,
         isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
         sortedQuotes: [],
         quoteCount: 0,
         quotesLastFetchedAt: null,
@@ -712,10 +891,7 @@ describe('useQuickBuyController', () => {
       });
 
       const { result } = renderHook(() =>
-        useQuickBuyController(
-          positionToQuickBuyTarget(createPosition()),
-          jest.fn(),
-        ),
+        useQuickBuyController(createTarget(), jest.fn()),
       );
 
       act(() => {
@@ -735,6 +911,7 @@ describe('useQuickBuyController', () => {
         isNoQuotesAvailable: false,
         quoteFetchError: null,
         isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
         sortedQuotes: [],
         quoteCount: 0,
         quotesLastFetchedAt: null,
@@ -745,10 +922,7 @@ describe('useQuickBuyController', () => {
       });
 
       const { result } = renderHook(() =>
-        useQuickBuyController(
-          positionToQuickBuyTarget(createPosition()),
-          jest.fn(),
-        ),
+        useQuickBuyController(createTarget(), jest.fn()),
       );
 
       act(() => {
@@ -767,6 +941,7 @@ describe('useQuickBuyController', () => {
         isNoQuotesAvailable: false,
         quoteFetchError: null,
         isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
         sortedQuotes: [],
         quoteCount: 0,
         quotesLastFetchedAt: null,
@@ -779,7 +954,7 @@ describe('useQuickBuyController', () => {
       (useQuickBuyQuotes as jest.Mock).mockImplementation(() => quoteState);
 
       const props = {
-        target: positionToQuickBuyTarget(createPosition()),
+        target: createTarget(),
         onClose: jest.fn(),
       };
       const { result, rerender } = renderHook(
@@ -804,7 +979,7 @@ describe('useQuickBuyController', () => {
       expect(result.current.isConfirmDisabled).toBe(false);
     });
 
-    it('is disabled when amount changes after quote loading settles', () => {
+    it('enables the CTA on the same render the loader clears when the quote arrives', () => {
       const quoteState: UseQuickBuyQuotesResult = {
         activeQuote: undefined,
         destTokenAmount: undefined,
@@ -812,6 +987,7 @@ describe('useQuickBuyController', () => {
         isNoQuotesAvailable: false,
         quoteFetchError: null,
         isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
         sortedQuotes: [],
         quoteCount: 0,
         quotesLastFetchedAt: null,
@@ -824,7 +1000,105 @@ describe('useQuickBuyController', () => {
       (useQuickBuyQuotes as jest.Mock).mockImplementation(() => quoteState);
 
       const props = {
-        target: positionToQuickBuyTarget(createPosition()),
+        target: createTarget(),
+        onClose: jest.fn(),
+      };
+      const { result, rerender } = renderHook(
+        ({ target, onClose }) => useQuickBuyController(target, onClose),
+        { initialProps: props },
+      );
+
+      act(() => {
+        result.current.handleAmountChange('20');
+      });
+
+      quoteState.isQuoteLoading = true;
+      rerender(props);
+
+      expect(result.current.isBlockingQuoteLoad).toBe(true);
+      expect(result.current.isConfirmDisabled).toBe(true);
+
+      // A single render with the matching quote both clears the loader and
+      // enables the CTA — no extra render needed (regression: the button used to
+      // lag the loader by a render because settling lived in a post-commit ref).
+      quoteState.isQuoteLoading = false;
+      quoteState.activeQuote = createActiveQuote();
+      rerender(props);
+
+      expect(result.current.isBlockingQuoteLoad).toBe(false);
+      expect(result.current.isConfirmDisabled).toBe(false);
+    });
+
+    it('enables the CTA for a gas-included quote whose srcTokenAmount is the post-fee amount', () => {
+      const quoteState: UseQuickBuyQuotesResult = {
+        activeQuote: undefined,
+        destTokenAmount: undefined,
+        isQuoteLoading: false,
+        isNoQuotesAvailable: false,
+        quoteFetchError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
+        sortedQuotes: [],
+        quoteCount: 0,
+        quotesLastFetchedAt: null,
+        refreshCount: 0,
+        quoteRefreshRateMs: 30000,
+        maxRefreshCount: 5,
+        refetchQuotes: jest.fn(),
+      };
+      (useQuickBuyQuotes as jest.Mock).mockImplementation(() => quoteState);
+
+      const props = {
+        target: createTarget(),
+        onClose: jest.fn(),
+      };
+      const { result, rerender } = renderHook(
+        ({ target, onClose }) => useQuickBuyController(target, onClose),
+        { initialProps: props },
+      );
+
+      act(() => {
+        result.current.handleAmountChange('20');
+      });
+      quoteState.isQuoteLoading = true;
+      rerender(props);
+      quoteState.isQuoteLoading = false;
+      // Requested amount is 0.01 ETH ($20 / $2000). For a gas-included quote the
+      // bridge deducts the fee from the routing amount, so quote.srcTokenAmount
+      // comes back smaller than requested (0.009 here). sentAmount adds the fee
+      // back, reconstructing the requested 0.01 — that is what must be matched.
+      quoteState.activeQuote = createActiveQuote({
+        quote: { srcTokenAmount: '9000000000000000' },
+        sentAmount: { amount: '0.01' },
+      });
+      rerender(props);
+      rerender(props);
+
+      expect(result.current.isConfirmDisabled).toBe(false);
+    });
+
+    it('is disabled when amount changes after quote loading settles', () => {
+      const quoteState: UseQuickBuyQuotesResult = {
+        activeQuote: undefined,
+        destTokenAmount: undefined,
+        isQuoteLoading: false,
+        isNoQuotesAvailable: false,
+        quoteFetchError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
+        sortedQuotes: [],
+        quoteCount: 0,
+        quotesLastFetchedAt: null,
+        refreshCount: 0,
+        quoteRefreshRateMs: 30000,
+        maxRefreshCount: 5,
+        refetchQuotes: jest.fn(),
+      };
+
+      (useQuickBuyQuotes as jest.Mock).mockImplementation(() => quoteState);
+
+      const props = {
+        target: createTarget(),
         onClose: jest.fn(),
       };
       const { result, rerender } = renderHook(
@@ -862,6 +1136,7 @@ describe('useQuickBuyController', () => {
         isNoQuotesAvailable: false,
         quoteFetchError: null,
         isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
         sortedQuotes: [],
         quoteCount: 0,
         quotesLastFetchedAt: null,
@@ -873,7 +1148,7 @@ describe('useQuickBuyController', () => {
       (useQuickBuyQuotes as jest.Mock).mockImplementation(() => quoteState);
 
       const props = {
-        target: positionToQuickBuyTarget(createPosition()),
+        target: createTarget(),
         onClose: jest.fn(),
       };
       const { result, rerender } = renderHook(
@@ -909,16 +1184,17 @@ describe('useQuickBuyController', () => {
       isHardwareAccount.mockReturnValue(false);
     });
 
-    it('is disabled when the price impact exceeds the error threshold', () => {
-      (useQuickBuyQuotes as jest.Mock).mockImplementation(() => ({
-        activeQuote: {
-          quote: { priceData: { priceImpact: '0.30' } },
-        },
-        destTokenAmount: '1',
+    it('sets isPriceImpactError when price impact exceeds error threshold, but does NOT disable the button (intercept handled by context)', () => {
+      // Use the same settle cycle as the hardware-Solana test so that
+      // settledSourceTokenAmountRef is properly updated and isPendingQuoteRefresh = false.
+      const quoteState: UseQuickBuyQuotesResult = {
+        activeQuote: undefined,
+        destTokenAmount: undefined,
         isQuoteLoading: false,
         isNoQuotesAvailable: false,
         quoteFetchError: null,
         isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
         sortedQuotes: [],
         quoteCount: 0,
         quotesLastFetchedAt: null,
@@ -926,13 +1202,14 @@ describe('useQuickBuyController', () => {
         quoteRefreshRateMs: 30000,
         maxRefreshCount: 5,
         refetchQuotes: jest.fn(),
-      }));
+      };
+      (useQuickBuyQuotes as jest.Mock).mockImplementation(() => quoteState);
 
       const props = {
-        target: positionToQuickBuyTarget(createPosition()),
+        target: createTarget(),
         onClose: jest.fn(),
       };
-      const { result } = renderHook(
+      const { result, rerender } = renderHook(
         ({ target, onClose }) => useQuickBuyController(target, onClose),
         { initialProps: props },
       );
@@ -941,8 +1218,165 @@ describe('useQuickBuyController', () => {
         result.current.handleAmountChange('20');
       });
 
+      // Simulate quote loading cycle so settledSourceTokenAmountRef is settled.
+      quoteState.isQuoteLoading = true;
+      rerender(props);
+      quoteState.isQuoteLoading = false;
+      // Inject a high-price-impact active quote. The spread keeps the default
+      // sentAmount (0.01) so the quote still matches the requested amount
+      // (isPendingQuoteRefresh = false).
+      quoteState.activeQuote = {
+        ...createActiveQuote(),
+        quote: {
+          srcTokenAmount: '10000000000000000',
+          priceData: { priceImpact: '0.30' },
+        },
+      } as never;
+      rerender(props);
+      rerender(props);
+
       expect(result.current.isPriceImpactError).toBe(true);
+      // The Buy button is ENABLED at error tier — the intercept lives in
+      // QuickBuyContext.handleBuy which routes to priceImpactConfirm instead.
+      expect(result.current.isConfirmDisabled).toBe(false);
+    });
+
+    it('keeps the CTA enabled during a background refresh of a usable quote', () => {
+      const quoteState: UseQuickBuyQuotesResult = {
+        activeQuote: undefined,
+        destTokenAmount: undefined,
+        isQuoteLoading: false,
+        isNoQuotesAvailable: false,
+        quoteFetchError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
+        sortedQuotes: [],
+        quoteCount: 0,
+        quotesLastFetchedAt: null,
+        refreshCount: 0,
+        quoteRefreshRateMs: 30000,
+        maxRefreshCount: 5,
+        refetchQuotes: jest.fn(),
+      };
+      (useQuickBuyQuotes as jest.Mock).mockImplementation(() => quoteState);
+
+      const props = {
+        target: createTarget(),
+        onClose: jest.fn(),
+      };
+      const { result, rerender } = renderHook(
+        ({ target, onClose }) => useQuickBuyController(target, onClose),
+        { initialProps: props },
+      );
+
+      act(() => {
+        result.current.handleAmountChange('20');
+      });
+      quoteState.isQuoteLoading = true;
+      rerender(props);
+      quoteState.isQuoteLoading = false;
+      quoteState.activeQuote = createActiveQuote();
+      rerender(props);
+      rerender(props);
+
+      expect(result.current.isConfirmDisabled).toBe(false);
+
+      quoteState.isQuoteLoading = true;
+      rerender(props);
+
+      expect(result.current.isBlockingQuoteLoad).toBe(false);
+      expect(result.current.isConfirmDisabled).toBe(false);
+      expect(result.current.isTotalLoading).toBe(false);
+    });
+
+    it('blocks the CTA on the initial load when no usable quote exists yet', () => {
+      const quoteState: UseQuickBuyQuotesResult = {
+        activeQuote: undefined,
+        destTokenAmount: undefined,
+        isQuoteLoading: false,
+        isNoQuotesAvailable: false,
+        quoteFetchError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
+        sortedQuotes: [],
+        quoteCount: 0,
+        quotesLastFetchedAt: null,
+        refreshCount: 0,
+        quoteRefreshRateMs: 30000,
+        maxRefreshCount: 5,
+        refetchQuotes: jest.fn(),
+      };
+      (useQuickBuyQuotes as jest.Mock).mockImplementation(() => quoteState);
+
+      const props = {
+        target: createTarget(),
+        onClose: jest.fn(),
+      };
+      const { result, rerender } = renderHook(
+        ({ target, onClose }) => useQuickBuyController(target, onClose),
+        { initialProps: props },
+      );
+
+      act(() => {
+        result.current.handleAmountChange('20');
+      });
+      quoteState.isQuoteLoading = true;
+      rerender(props);
+
+      expect(result.current.isBlockingQuoteLoad).toBe(true);
       expect(result.current.isConfirmDisabled).toBe(true);
+      expect(result.current.isTotalLoading).toBe(true);
+    });
+
+    it('blocks the CTA when a request input change makes the displayed quote stale', () => {
+      const quoteState: UseQuickBuyQuotesResult = {
+        activeQuote: undefined,
+        destTokenAmount: undefined,
+        isQuoteLoading: false,
+        isNoQuotesAvailable: false,
+        quoteFetchError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
+        sortedQuotes: [],
+        quoteCount: 0,
+        quotesLastFetchedAt: null,
+        refreshCount: 0,
+        quoteRefreshRateMs: 30000,
+        maxRefreshCount: 5,
+        refetchQuotes: jest.fn(),
+      };
+      (useQuickBuyQuotes as jest.Mock).mockImplementation(() => quoteState);
+
+      const props = {
+        target: createTarget(),
+        onClose: jest.fn(),
+      };
+      const { result, rerender } = renderHook(
+        ({ target, onClose }) => useQuickBuyController(target, onClose),
+        { initialProps: props },
+      );
+
+      act(() => {
+        result.current.handleAmountChange('20');
+      });
+      quoteState.isQuoteLoading = true;
+      rerender(props);
+      quoteState.isQuoteLoading = false;
+      quoteState.activeQuote = createActiveQuote();
+      rerender(props);
+      rerender(props);
+
+      expect(result.current.isConfirmDisabled).toBe(false);
+
+      // Slippage/destination address/gas settings changed: the quotes hook keeps
+      // the prior activeQuote but flags the request as stale. The CTA must
+      // disable even before a new fetch starts (no blocking load reported yet).
+      quoteState.isQuoteRequestStale = true;
+      rerender(props);
+
+      expect(result.current.isBlockingQuoteLoad).toBe(false);
+      expect(result.current.isConfirmDisabled).toBe(true);
+      expect(result.current.isTotalLoading).toBe(true);
     });
   });
 
@@ -950,21 +1384,476 @@ describe('useQuickBuyController', () => {
     it('auto-selects the first option when options load (legacy — native on dest chain matches priority 1)', () => {
       const firstToken = createSourceToken({ symbol: 'ETH' });
 
-      (useSourceTokenOptions as jest.Mock).mockReturnValue({
+      (usePayWithTokens as jest.Mock).mockReturnValue({
         options: [firstToken, createSourceToken({ symbol: 'USDC' })],
         isLoading: false,
       });
 
       const { result } = renderHook(() =>
-        useQuickBuyController(
-          positionToQuickBuyTarget(createPosition()),
-          jest.fn(),
-        ),
+        useQuickBuyController(createTarget(), jest.fn()),
       );
 
       // createPosition uses chain 'base' → destChainId '0x1' in default mock,
       // and ETH (zero address, chainId '0x1') is native on that chain → priority 1.
       expect(result.current.sourceToken?.symbol).toBe('ETH');
+    });
+
+    it('defers source preselection until setup resolves so the normalised dest address is used', () => {
+      const destAddress = '0x0000000000000000000000000000000000000000';
+      const destChainId = '0x1';
+
+      const ethOnMainnet = createSourceToken({
+        address: destAddress,
+        chainId: destChainId,
+        symbol: 'ETH',
+        tokenFiatAmount: 2000,
+      });
+      const usdcOnMainnet = createSourceToken({
+        address: '0xTokenUSDC',
+        chainId: destChainId,
+        symbol: 'USDC',
+        tokenFiatAmount: 1000,
+      });
+
+      // While setup is loading, the auto-select effect must NOT run — picking
+      // against the raw `target.tokenAddress` could let a CAIP-19-wrapped EVM
+      // dest (e.g. `eip155:137/slip44:966`) leak through the address filter,
+      // and the `selectedSourceToken` guard would prevent self-correction
+      // once setup lands.
+      (useQuickBuySetup as jest.Mock).mockReturnValue({
+        chainId: destChainId,
+        destToken: undefined,
+        isLoading: true,
+        isUnsupportedChain: false,
+      });
+
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [ethOnMainnet, usdcOnMainnet],
+        isLoading: false,
+      });
+
+      const { result, rerender } = renderHook(() =>
+        useQuickBuyController(
+          createTarget({ tokenAddress: destAddress }),
+          jest.fn(),
+        ),
+      );
+
+      // No selection while setup is loading.
+      expect(result.current.sourceToken).toBeUndefined();
+
+      // Setup resolves with the normalised dest token; selection now picks
+      // USDC, never ETH (which matches the dest).
+      (useQuickBuySetup as jest.Mock).mockReturnValue({
+        chainId: destChainId,
+        destToken: {
+          address: destAddress,
+          chainId: destChainId,
+          symbol: 'ETH',
+          name: 'Ether',
+          decimals: 18,
+          image: '',
+        },
+        isLoading: false,
+        isUnsupportedChain: false,
+      });
+      rerender(undefined);
+
+      expect(result.current.sourceToken?.symbol).toBe('USDC');
+    });
+
+    it('does not preselect the destination token (non-EVM) once setup resolves with the normalised dest address', () => {
+      // For non-EVM natives, `useQuickBuySetup` resolves synchronously via
+      // `getNativeSourceToken`, so the lookup key matches source candidates
+      // exactly (both share the canonical `…/slip44:NNN` form). The selector
+      // filters SOL by address and the next-best option (USDC) is preselected.
+      const solChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+      const canonicalSolAddress = `${solChainId}/slip44:501`;
+
+      const solNative = createSourceToken({
+        address: canonicalSolAddress,
+        chainId: solChainId as BridgeToken['chainId'],
+        symbol: 'SOL',
+        tokenFiatAmount: 2,
+      });
+      const usdcOnSolana = createSourceToken({
+        address: `${solChainId}/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`,
+        chainId: solChainId as BridgeToken['chainId'],
+        symbol: 'USDC',
+        tokenFiatAmount: 50,
+      });
+
+      (useQuickBuySetup as jest.Mock).mockReturnValue({
+        chainId: solChainId,
+        destToken: {
+          address: canonicalSolAddress,
+          chainId: solChainId as BridgeToken['chainId'],
+          symbol: 'SOL',
+          name: 'Solana',
+          decimals: 9,
+          image: '',
+        },
+        isLoading: false,
+        isUnsupportedChain: false,
+      });
+
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [usdcOnSolana, solNative],
+        isLoading: false,
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(
+          createTarget({
+            chain: 'solana',
+            tokenAddress: 'So11111111111111111111111111111111111111112',
+            tokenSymbol: 'SOL',
+          }),
+          jest.fn(),
+        ),
+      );
+
+      expect(result.current.sourceToken?.symbol).toBe('USDC');
+    });
+  });
+
+  describe('live available balances (TSA-632)', () => {
+    interface LatestBalanceArgs {
+      address?: string;
+      decimals?: number;
+      chainId?: string;
+      balance?: string;
+      refreshKey?: string | number;
+    }
+
+    const lastLatestBalanceArgs = (): LatestBalanceArgs =>
+      (useLatestBalance as jest.Mock).mock.calls.at(
+        -1,
+      )?.[0] as LatestBalanceArgs;
+
+    // `useLatestBalance` is mocked to echo the `balance` it is fed, so the
+    // displayed source fiat tracks whatever balance the controller resolves.
+    const echoLatestBalance = () => {
+      (useLatestBalance as jest.Mock).mockImplementation(
+        (args: LatestBalanceArgs) => ({
+          displayBalance: args.balance,
+          atomicBalance: undefined,
+        }),
+      );
+    };
+
+    const createReceiveToken = (
+      overrides: Partial<BridgeToken> = {},
+    ): BridgeToken =>
+      ({
+        address: '0xUSDC',
+        chainId: '0x1',
+        decimals: 6,
+        symbol: 'USDC',
+        name: 'USD Coin',
+        currencyExchangeRate: 1,
+        balance: '100',
+        balanceFiat: '$100.00',
+        tokenFiatAmount: 100,
+        ...overrides,
+      }) as BridgeToken;
+
+    describe('source (Pay with) balance', () => {
+      it('updates the displayed source balance when the underlying balance changes (external transfer)', () => {
+        // Arrange — sheet opens; ETH auto-selected with a live 1.0 balance.
+        echoLatestBalance();
+        (usePayWithTokens as jest.Mock).mockReturnValue({
+          options: [createSourceToken({ balance: '1.0' })],
+          isLoading: false,
+        });
+        const { result, rerender } = renderHook(() =>
+          useQuickBuyController(createTarget(), jest.fn()),
+        );
+        // 1.0 ETH * $2000 rate.
+        expect(result.current.sourceBalanceFiat).toBe('$2,000.00');
+
+        // Act — an external transfer (NOT via QuickBuy) lands: the reactive
+        // usePayWithTokens list recomputes with a higher balance while the
+        // selected token snapshot is unchanged.
+        (usePayWithTokens as jest.Mock).mockReturnValue({
+          options: [createSourceToken({ balance: '1.5' })],
+          isLoading: false,
+        });
+        rerender(undefined);
+
+        // Assert — the displayed available balance reflects the new state.
+        expect(lastLatestBalanceArgs().balance).toBe('1.5');
+        expect(result.current.sourceBalanceFiat).toBe('$3,000.00');
+      });
+
+      it('re-keys the on-chain fetch off the live balance so any change re-fetches', () => {
+        // Arrange
+        echoLatestBalance();
+        (usePayWithTokens as jest.Mock).mockReturnValue({
+          options: [createSourceToken({ balance: '1.0' })],
+          isLoading: false,
+        });
+        const { rerender } = renderHook(() =>
+          useQuickBuyController(createTarget(), jest.fn()),
+        );
+        // The key is derived from the live balance itself, NOT from any
+        // QuickBuy-specific state.
+        const initialRefreshKey = lastLatestBalanceArgs().refreshKey;
+        expect(initialRefreshKey).toBe('1.0');
+
+        // Act — any balance change (external or QuickBuy) updates the live value.
+        (usePayWithTokens as jest.Mock).mockReturnValue({
+          options: [createSourceToken({ balance: '0.75' })],
+          isLoading: false,
+        });
+        rerender(undefined);
+
+        // Assert — the key changes, forcing a fresh on-chain read.
+        expect(lastLatestBalanceArgs().refreshKey).toBe('0.75');
+        expect(lastLatestBalanceArgs().balance).toBe('0.75');
+      });
+
+      it('falls back to the snapshot balance when the selected token leaves the options list', () => {
+        // Arrange
+        echoLatestBalance();
+        (usePayWithTokens as jest.Mock).mockReturnValue({
+          options: [createSourceToken({ balance: '1.0' })],
+          isLoading: false,
+        });
+        const { result, rerender } = renderHook(() =>
+          useQuickBuyController(createTarget(), jest.fn()),
+        );
+
+        // Act — the user spent the whole balance, so the held-token list no
+        // longer contains the selected token.
+        (usePayWithTokens as jest.Mock).mockReturnValue({
+          options: [],
+          isLoading: false,
+        });
+        rerender(undefined);
+
+        // Assert — no live match: degrade to the snapshot value rather than
+        // blanking out.
+        expect(lastLatestBalanceArgs().balance).toBe('1.0');
+        expect(result.current.sourceBalanceFiat).toBe('$2,000.00');
+      });
+
+      it('updates the displayed fiat balance when the exchange rate refreshes without a balance change', () => {
+        echoLatestBalance();
+        (usePayWithTokens as jest.Mock).mockReturnValue({
+          options: [
+            createSourceToken({ balance: '1.0', currencyExchangeRate: 2000 }),
+          ],
+          isLoading: false,
+        });
+        const { result, rerender } = renderHook(() =>
+          useQuickBuyController(createTarget(), jest.fn()),
+        );
+
+        expect(result.current.sourceBalanceFiat).toBe('$2,000.00');
+
+        (usePayWithTokens as jest.Mock).mockReturnValue({
+          options: [
+            createSourceToken({ balance: '1.0', currencyExchangeRate: 2500 }),
+          ],
+          isLoading: false,
+        });
+        rerender(undefined);
+
+        expect(result.current.sourceBalanceFiat).toBe('$2,500.00');
+      });
+
+      it('updates the source balance when a QuickBuy swap settles (existing behaviour preserved)', () => {
+        // Arrange
+        echoLatestBalance();
+        (usePayWithTokens as jest.Mock).mockReturnValue({
+          options: [createSourceToken({ balance: '1.0' })],
+          isLoading: false,
+        });
+        const { result, rerender } = renderHook(() =>
+          useQuickBuyController(createTarget(), jest.fn()),
+        );
+        expect(result.current.sourceBalanceFiat).toBe('$2,000.00');
+
+        // Act — a QuickBuy swap settles: TokenBalancesController updates Redux
+        // and usePayWithTokens recomputes the same token with a lower balance.
+        (usePayWithTokens as jest.Mock).mockReturnValue({
+          options: [createSourceToken({ balance: '0.75' })],
+          isLoading: false,
+        });
+        rerender(undefined);
+
+        // Assert
+        expect(result.current.sourceBalanceFiat).toBe('$1,500.00');
+      });
+    });
+
+    describe('dest (Receive) balance', () => {
+      const renderSellMode = () => {
+        const utils = renderHook(() =>
+          useQuickBuyController(createTarget(), jest.fn()),
+        );
+        act(() => {
+          utils.result.current.setTradeMode('sell');
+        });
+        return utils;
+      };
+
+      it('updates the displayed dest balance when the underlying balance changes (external transfer)', () => {
+        // Arrange — sell mode; USDC receive token auto-selected at $100.
+        (useReceiveTokens as jest.Mock).mockReturnValue([
+          createReceiveToken({ balanceFiat: '$100.00' }),
+        ]);
+        const { result, rerender } = renderSellMode();
+        expect(result.current.destBalanceFiat).toBe('$100.00');
+
+        // Act — an external transfer lands: the reactive useReceiveTokens list
+        // recomputes with a higher balance while the selection is unchanged.
+        (useReceiveTokens as jest.Mock).mockReturnValue([
+          createReceiveToken({ balance: '150', balanceFiat: '$150.00' }),
+        ]);
+        rerender(undefined);
+
+        // Assert — the displayed receive balance reflects the new state.
+        expect(result.current.destBalanceFiat).toBe('$150.00');
+      });
+
+      it('updates the dest balance when a QuickBuy swap settles (existing behaviour preserved)', () => {
+        // Arrange
+        (useReceiveTokens as jest.Mock).mockReturnValue([
+          createReceiveToken({ balanceFiat: '$100.00' }),
+        ]);
+        const { result, rerender } = renderSellMode();
+        expect(result.current.destBalanceFiat).toBe('$100.00');
+
+        // Act — a QuickBuy sell settles into the receive token, raising its
+        // balance; the reactive list recomputes.
+        (useReceiveTokens as jest.Mock).mockReturnValue([
+          createReceiveToken({ balance: '125', balanceFiat: '$125.00' }),
+        ]);
+        rerender(undefined);
+
+        // Assert
+        expect(result.current.destBalanceFiat).toBe('$125.00');
+      });
+
+      it('falls back to the snapshot balance when the selected receive token leaves the list', () => {
+        // Arrange
+        (useReceiveTokens as jest.Mock).mockReturnValue([
+          createReceiveToken({ balanceFiat: '$100.00' }),
+        ]);
+        const { result, rerender } = renderSellMode();
+
+        // Act — the list no longer contains the selected token.
+        (useReceiveTokens as jest.Mock).mockReturnValue([]);
+        rerender(undefined);
+
+        // Assert — degrade to the snapshot's fiat rather than blanking out.
+        expect(result.current.destBalanceFiat).toBe('$100.00');
+      });
+    });
+  });
+
+  describe('receive token auto-selection', () => {
+    const NATIVE_ADDRESS = '0x0000000000000000000000000000000000000000';
+    const USDC_DEST = '0xDEST'; // matches the default-mock position token
+
+    it('defaults the receive token to the chain native instead of the token being sold', () => {
+      // Selling 0xDEST on chain 0x1. The receive options are stablecoins-first,
+      // so options[0] is the very token being sold — the default must skip it
+      // and pick the chain's native token instead.
+      const usdcDest = createSourceToken({
+        address: USDC_DEST,
+        chainId: '0x1',
+        symbol: 'USDC',
+      });
+      const nativeDest = createSourceToken({
+        address: NATIVE_ADDRESS,
+        chainId: '0x1',
+        symbol: 'ETH',
+      });
+      (useReceiveTokens as jest.Mock).mockReturnValue([usdcDest, nativeDest]);
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      expect(result.current.selectedDestStable?.symbol).toBe('ETH');
+    });
+
+    it('falls back to the first non-sold candidate when selling the native token', () => {
+      (useQuickBuySetup as jest.Mock).mockReturnValue({
+        chainId: '0x1',
+        destToken: {
+          address: NATIVE_ADDRESS,
+          chainId: '0x1',
+          decimals: 18,
+          symbol: 'ETH',
+          name: 'Ether',
+        },
+        isLoading: false,
+        isUnsupportedChain: false,
+      });
+      const nativeDest = createSourceToken({
+        address: NATIVE_ADDRESS,
+        chainId: '0x1',
+        symbol: 'ETH',
+      });
+      const usdcDest = createSourceToken({
+        address: USDC_DEST,
+        chainId: '0x1',
+        symbol: 'USDC',
+      });
+      (useReceiveTokens as jest.Mock).mockReturnValue([nativeDest, usdcDest]);
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      expect(result.current.selectedDestStable?.symbol).toBe('USDC');
+    });
+
+    it('excludes the token being sold from the receive options entirely', () => {
+      const usdcDest = createSourceToken({
+        address: USDC_DEST,
+        chainId: '0x1',
+        symbol: 'USDC',
+      });
+      const nativeDest = createSourceToken({
+        address: NATIVE_ADDRESS,
+        chainId: '0x1',
+        symbol: 'ETH',
+      });
+      (useReceiveTokens as jest.Mock).mockReturnValue([usdcDest, nativeDest]);
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      const symbols = result.current.sellDestTokenOptions.map((t) => t.symbol);
+      expect(symbols).not.toContain('USDC');
+      expect(symbols).toEqual(['ETH']);
+    });
+
+    it('does not auto-select while setup is still loading', () => {
+      (useQuickBuySetup as jest.Mock).mockReturnValue({
+        chainId: '0x1',
+        destToken: undefined,
+        isLoading: true,
+        isUnsupportedChain: false,
+      });
+      const usdcDest = createSourceToken({
+        address: USDC_DEST,
+        chainId: '0x1',
+        symbol: 'USDC',
+      });
+      (useReceiveTokens as jest.Mock).mockReturnValue([usdcDest]);
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      expect(result.current.selectedDestStable).toBeUndefined();
     });
   });
 
@@ -1077,6 +1966,216 @@ describe('useQuickBuyController', () => {
 
       expect(result?.symbol).toBe('ETH');
     });
+
+    // ── destToken deprioritization ────────────────────────────────────────────
+
+    it('deprioritizes the destination token: skips SOL when buying SOL and picks USDC instead', () => {
+      const solChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+      const solAddress = `${solChainId}/slip44:501`;
+
+      const solNative: BridgeToken = createSourceToken({
+        address: solAddress,
+        chainId: solChainId,
+        symbol: 'SOL',
+        tokenFiatAmount: 5000,
+      });
+      const usdcOnSolana: BridgeToken = createSourceToken({
+        address: `${solChainId}/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`,
+        chainId: solChainId,
+        symbol: 'USDC',
+        tokenFiatAmount: 1000,
+      });
+
+      const destToken: Pick<BridgeToken, 'address' | 'chainId'> = {
+        address: solAddress,
+        chainId: solChainId as BridgeToken['chainId'],
+      };
+      const result = selectDefaultSourceToken(
+        [solNative, usdcOnSolana],
+        solChainId,
+        destToken,
+      );
+
+      expect(result?.symbol).toBe('USDC');
+      expect(result?.chainId).toBe(solChainId);
+    });
+
+    it('deprioritizes destination token on EVM: skips ETH on mainnet when buying ETH on mainnet', () => {
+      const ethOnMainnet = native('0x1', 2000);
+      const ethOnBase = native('0x2105', 1500);
+      const destToken: Pick<BridgeToken, 'address' | 'chainId'> = {
+        address: '0x0000000000000000000000000000000000000000',
+        chainId: '0x1' as BridgeToken['chainId'],
+      };
+
+      const result = selectDefaultSourceToken(
+        [ethOnMainnet, ethOnBase],
+        '0x1',
+        destToken,
+      );
+
+      // ETH on mainnet is the dest token; ETH on Base (native on non-dest chain) is tier 3
+      expect(result?.symbol).toBe('ETH');
+      expect(result?.chainId).toBe('0x2105');
+    });
+
+    it('treats cross-chain same-symbol as a different token: USDC on Base is NOT filtered when buying USDC on Ethereum', () => {
+      const usdcOnBase = createSourceToken({
+        address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'.toLowerCase(),
+        chainId: '0x2105',
+        symbol: 'USDC',
+        tokenFiatAmount: 3000,
+      });
+      const destToken: Pick<BridgeToken, 'address' | 'chainId'> = {
+        address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+        chainId: '0x1' as BridgeToken['chainId'],
+      };
+
+      const result = selectDefaultSourceToken([usdcOnBase], '0x1', destToken);
+
+      // usdcOnBase is on a different chain → not the dest token → should be selected
+      expect(result?.symbol).toBe('USDC');
+      expect(result?.chainId).toBe('0x2105');
+    });
+
+    it('last-resort fallback: returns destination token when it is the only holding', () => {
+      const solChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+      const solAddress = `${solChainId}/slip44:501`;
+
+      const solNative: BridgeToken = createSourceToken({
+        address: solAddress,
+        chainId: solChainId,
+        symbol: 'SOL',
+        tokenFiatAmount: 5000,
+      });
+
+      const destToken: Pick<BridgeToken, 'address' | 'chainId'> = {
+        address: solAddress,
+        chainId: solChainId as BridgeToken['chainId'],
+      };
+      const result = selectDefaultSourceToken(
+        [solNative],
+        solChainId,
+        destToken,
+      );
+
+      // Only holding is the dest token — fall back rather than returning undefined
+      expect(result?.symbol).toBe('SOL');
+    });
+
+    it('address comparison is case-insensitive: filters dest token when source address is lowercase and dest address is checksum', () => {
+      const checksumAddress = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+      const lowercaseAddress = checksumAddress.toLowerCase();
+
+      const usdcOnMainnet = createSourceToken({
+        address: lowercaseAddress,
+        chainId: '0x1',
+        symbol: 'USDC',
+        tokenFiatAmount: 3000,
+      });
+      const usdtOnMainnet = createSourceToken({
+        address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+        chainId: '0x1',
+        symbol: 'USDT',
+        tokenFiatAmount: 1000,
+      });
+
+      // destToken uses checksum address; source candidate uses lowercase
+      const destToken: Pick<BridgeToken, 'address' | 'chainId'> = {
+        address: checksumAddress,
+        chainId: '0x1' as BridgeToken['chainId'],
+      };
+      const result = selectDefaultSourceToken(
+        [usdcOnMainnet, usdtOnMainnet],
+        '0x1',
+        destToken,
+      );
+
+      // USDC (matching dest) is filtered; USDT is selected
+      expect(result?.symbol).toBe('USDT');
+    });
+
+    it('non-EVM symbol fallback: filters dest token when source/dest CAIP forms differ but symbol matches on the same non-EVM chain', () => {
+      const solChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+
+      // Source uses canonical native CAIP form
+      const solNative: BridgeToken = createSourceToken({
+        address: `${solChainId}/slip44:501`,
+        chainId: solChainId as BridgeToken['chainId'],
+        symbol: 'SOL',
+        tokenFiatAmount: 5000,
+      });
+      const usdcOnSolana: BridgeToken = createSourceToken({
+        address: `${solChainId}/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`,
+        chainId: solChainId as BridgeToken['chainId'],
+        symbol: 'USDC',
+        tokenFiatAmount: 1000,
+      });
+
+      // Dest uses a different form (e.g. wrapped SOL mint from the position payload)
+      const destToken: Pick<BridgeToken, 'address' | 'chainId' | 'symbol'> = {
+        address: 'So11111111111111111111111111111111111111112',
+        chainId: solChainId as BridgeToken['chainId'],
+        symbol: 'SOL',
+      };
+
+      const result = selectDefaultSourceToken(
+        [solNative, usdcOnSolana],
+        solChainId,
+        destToken,
+      );
+
+      // Address comparison fails, but non-EVM symbol fallback filters SOL → USDC picked.
+      expect(result?.symbol).toBe('USDC');
+    });
+
+    it('does NOT use symbol fallback on EVM chains (protects against fake-token symbol collisions)', () => {
+      const realUsdc = createSourceToken({
+        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        chainId: '0x1' as BridgeToken['chainId'],
+        symbol: 'USDC',
+        tokenFiatAmount: 5000,
+      });
+      const fakeUsdc = createSourceToken({
+        address: '0xfakefakefakefakefakefakefakefakefakefake',
+        chainId: '0x1' as BridgeToken['chainId'],
+        symbol: 'USDC', // hijacked symbol
+        tokenFiatAmount: 1000,
+      });
+
+      const destToken: Pick<BridgeToken, 'address' | 'chainId' | 'symbol'> = {
+        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        chainId: '0x1' as BridgeToken['chainId'],
+        symbol: 'USDC',
+      };
+
+      const result = selectDefaultSourceToken(
+        [realUsdc, fakeUsdc],
+        '0x1',
+        destToken,
+      );
+
+      // Real USDC matches by address (filtered). Fake USDC matches only by symbol —
+      // on EVM that is NOT considered the dest, so it gets selected.
+      expect(result?.address).toBe(
+        '0xfakefakefakefakefakefakefakefakefakefake',
+      );
+    });
+
+    it('ignores destToken parameter when it is undefined (backward-compatible)', () => {
+      const ethOnBase = native('0x2105', 500);
+      const usdcOnBase = erc20('0x2105', 'USDC', 3000);
+
+      const result = selectDefaultSourceToken(
+        [usdcOnBase, ethOnBase],
+        '0x2105',
+        undefined,
+      );
+
+      // No filtering — priority 1 native on dest chain is selected
+      expect(result?.symbol).toBe('ETH');
+      expect(result?.chainId).toBe('0x2105');
+    });
   });
 
   describe('selectedQuoteRequestId', () => {
@@ -1095,6 +2194,7 @@ describe('useQuickBuyController', () => {
         isNoQuotesAvailable: false,
         quoteFetchError: null,
         isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
         quoteCount: sortedQuotes.length,
         quotesLastFetchedAt: Date.now(),
         refreshCount: 1,
@@ -1104,7 +2204,7 @@ describe('useQuickBuyController', () => {
       }));
 
       const props = {
-        target: positionToQuickBuyTarget(createPosition()),
+        target: createTarget(),
         onClose: jest.fn(),
       };
       const { result, rerender } = renderHook(
@@ -1128,10 +2228,7 @@ describe('useQuickBuyController', () => {
     it('calls the onClose prop', () => {
       const onClose = jest.fn();
       const { result } = renderHook(() =>
-        useQuickBuyController(
-          positionToQuickBuyTarget(createPosition()),
-          onClose,
-        ),
+        useQuickBuyController(createTarget(), onClose),
       );
 
       act(() => {
@@ -1156,6 +2253,7 @@ describe('useQuickBuyController', () => {
         isNoQuotesAvailable: false,
         quoteFetchError: null,
         isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
         sortedQuotes: [],
         quoteCount: 0,
         quotesLastFetchedAt: null,
@@ -1170,10 +2268,7 @@ describe('useQuickBuyController', () => {
 
       const onClose = jest.fn();
       const { result } = renderHook(() =>
-        useQuickBuyController(
-          positionToQuickBuyTarget(createPosition()),
-          onClose,
-        ),
+        useQuickBuyController(createTarget(), onClose),
       );
 
       await act(async () => {
@@ -1197,6 +2292,7 @@ describe('useQuickBuyController', () => {
         isNoQuotesAvailable: false,
         quoteFetchError: null,
         isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
         sortedQuotes: [],
         quoteCount: 0,
         quotesLastFetchedAt: null,
@@ -1207,10 +2303,7 @@ describe('useQuickBuyController', () => {
       });
 
       const { result } = renderHook(() =>
-        useQuickBuyController(
-          positionToQuickBuyTarget(createPosition()),
-          jest.fn(),
-        ),
+        useQuickBuyController(createTarget(), jest.fn()),
       );
 
       await act(async () => {
@@ -1235,6 +2328,7 @@ describe('useQuickBuyController', () => {
         isNoQuotesAvailable: false,
         quoteFetchError: null,
         isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
         sortedQuotes: [],
         quoteCount: 0,
         quotesLastFetchedAt: null,
@@ -1245,10 +2339,7 @@ describe('useQuickBuyController', () => {
       });
 
       const { result } = renderHook(() =>
-        useQuickBuyController(
-          positionToQuickBuyTarget(createPosition()),
-          jest.fn(),
-        ),
+        useQuickBuyController(createTarget(), jest.fn()),
       );
 
       await act(async () => {
@@ -1269,6 +2360,351 @@ describe('useQuickBuyController', () => {
           }),
         }),
       );
+    });
+
+    describe('trade-level analytics', () => {
+      const mockSuccessfulSubmit = () => {
+        (useQuickBuyQuotes as jest.Mock).mockReturnValue({
+          activeQuote: createActiveQuote(),
+          destTokenAmount: '1',
+          isQuoteLoading: false,
+          isNoQuotesAvailable: false,
+          quoteFetchError: null,
+          isActiveQuoteForCurrentTokenPair: true,
+          isQuoteRequestStale: false,
+          sortedQuotes: [],
+          quoteCount: 0,
+          quotesLastFetchedAt: null,
+          refreshCount: 0,
+          quoteRefreshRateMs: 30000,
+          maxRefreshCount: 5,
+          refetchQuotes: jest.fn(),
+        });
+      };
+
+      it('tracks trade submitted and completed when no trader is in context (asset details entry)', async () => {
+        mockSuccessfulSubmit();
+
+        const { result } = renderHook(() =>
+          useQuickBuyController(createTarget(), jest.fn(), {
+            source: 'asset_details',
+          }),
+        );
+
+        await act(async () => {
+          await result.current.handleConfirm();
+        });
+
+        expect(mockTrackTradeSubmitted).toHaveBeenCalledWith(
+          expect.objectContaining({ caip19: expect.any(String) }),
+        );
+        expect(mockTrackTradeCompleted).toHaveBeenCalledWith(
+          expect.objectContaining({ caip19: expect.any(String) }),
+        );
+      });
+
+      it('omits trader_address from trade props when no trader is in context', async () => {
+        mockSuccessfulSubmit();
+
+        const { result } = renderHook(() =>
+          useQuickBuyController(createTarget(), jest.fn(), {
+            source: 'asset_details',
+          }),
+        );
+
+        await act(async () => {
+          await result.current.handleConfirm();
+        });
+
+        expect(mockTrackTradeSubmitted).toHaveBeenCalledWith(
+          expect.not.objectContaining({ trader_address: expect.anything() }),
+        );
+      });
+
+      it('includes trader_address in trade props when a trader is in context', async () => {
+        mockSuccessfulSubmit();
+
+        const { result } = renderHook(() =>
+          useQuickBuyController(createTarget(), jest.fn(), {
+            traderAddress: '0xTRADER',
+            source: 'leaderboard',
+          }),
+        );
+
+        await act(async () => {
+          await result.current.handleConfirm();
+        });
+
+        expect(mockTrackTradeSubmitted).toHaveBeenCalledWith(
+          expect.objectContaining({ trader_address: '0xTRADER' }),
+        );
+      });
+    });
+
+    describe('stay-on-screen swap toasts', () => {
+      const mockUsableQuote = () => {
+        (useQuickBuyQuotes as jest.Mock).mockReturnValue({
+          activeQuote: createActiveQuote(),
+          destTokenAmount: '1',
+          isQuoteLoading: false,
+          isNoQuotesAvailable: false,
+          quoteFetchError: null,
+          isActiveQuoteForCurrentTokenPair: true,
+          isQuoteRequestStale: false,
+          sortedQuotes: [],
+          quoteCount: 0,
+          quotesLastFetchedAt: null,
+          refreshCount: 0,
+          quoteRefreshRateMs: 30000,
+          maxRefreshCount: 5,
+          refetchQuotes: jest.fn(),
+        });
+      };
+
+      it('closes the sheet immediately on confirm', async () => {
+        mockUsableQuote();
+        (
+          Engine.context.BridgeStatusController.submitTx as jest.Mock
+        ).mockResolvedValue({ id: 'tx-1', hash: '0xabc' });
+        const onClose = jest.fn();
+
+        const { result } = renderHook(() =>
+          useQuickBuyController(createTarget(), onClose),
+        );
+
+        await act(async () => {
+          await result.current.handleConfirm();
+        });
+
+        expect(onClose).toHaveBeenCalledTimes(1);
+      });
+
+      it('shows the pending toast immediately on close, before submit resolves', async () => {
+        mockUsableQuote();
+        let resolveSubmit: (value: unknown) => void = () => undefined;
+        (
+          Engine.context.BridgeStatusController.submitTx as jest.Mock
+        ).mockReturnValue(
+          new Promise((resolve) => {
+            resolveSubmit = resolve;
+          }),
+        );
+        const onClose = jest.fn();
+
+        const { result } = renderHook(() =>
+          useQuickBuyController(createTarget(), onClose),
+        );
+
+        let confirmPromise: Promise<void> | undefined;
+        act(() => {
+          confirmPromise = result.current.handleConfirm();
+        });
+
+        expect(onClose).toHaveBeenCalledTimes(1);
+        expect(buildQuickBuyToastOptions).toHaveBeenCalledWith('pending', {
+          trade: expect.objectContaining({
+            tokenSymbol: 'TEST',
+            tradeMode: 'buy',
+          }),
+          theme: expect.any(Object),
+        });
+        expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
+        expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
+
+        await act(async () => {
+          resolveSubmit({ id: 'tx-1', hash: '0xabc' });
+          await confirmPromise;
+        });
+      });
+
+      it('tracks the trade and shows a pending toast on successful submit', async () => {
+        mockUsableQuote();
+        (
+          Engine.context.BridgeStatusController.submitTx as jest.Mock
+        ).mockResolvedValue({ id: 'tx-1', hash: '0xabc' });
+
+        const { result } = renderHook(() =>
+          useQuickBuyController(createTarget(), jest.fn()),
+        );
+
+        await act(async () => {
+          await result.current.handleConfirm();
+        });
+
+        expect(trackQuickBuyTrade).toHaveBeenCalledWith(
+          'tx-1',
+          expect.objectContaining({ tokenSymbol: 'TEST', tradeMode: 'buy' }),
+        );
+        expect(buildQuickBuyToastOptions).toHaveBeenCalledWith('pending', {
+          trade: expect.objectContaining({
+            tokenSymbol: 'TEST',
+            tradeMode: 'buy',
+          }),
+          theme: expect.any(Object),
+        });
+        expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
+      });
+
+      it('tracks an EVM swap with isNonEvmSwap false and the tx hash as the signature', async () => {
+        mockUsableQuote();
+        (
+          Engine.context.BridgeStatusController.submitTx as jest.Mock
+        ).mockResolvedValue({ id: 'tx-1', hash: '0xabc' });
+
+        const { result } = renderHook(() =>
+          useQuickBuyController(createTarget(), jest.fn()),
+        );
+
+        await act(async () => {
+          await result.current.handleConfirm();
+        });
+
+        expect(trackQuickBuyTrade).toHaveBeenCalledWith(
+          'tx-1',
+          expect.objectContaining({
+            isNonEvmSwap: false,
+            txSignature: '0xabc',
+          }),
+        );
+      });
+
+      it('tracks a same-chain Solana swap with isNonEvmSwap true and the signature', async () => {
+        mockUsableQuote();
+        (selectIsSolanaSourced as unknown as jest.Mock).mockReturnValue(true);
+        (
+          Engine.context.BridgeStatusController.submitTx as jest.Mock
+        ).mockResolvedValue({ id: 'sig-1', hash: 'sig-1' });
+
+        const { result } = renderHook(() =>
+          useQuickBuyController(createTarget(), jest.fn()),
+        );
+
+        await act(async () => {
+          await result.current.handleConfirm();
+        });
+
+        expect(trackQuickBuyTrade).toHaveBeenCalledWith(
+          'sig-1',
+          expect.objectContaining({ isNonEvmSwap: true, txSignature: 'sig-1' }),
+        );
+      });
+
+      it('tracks a cross-chain Solana bridge with isNonEvmSwap false', async () => {
+        mockUsableQuote();
+        (selectIsSolanaSourced as unknown as jest.Mock).mockReturnValue(true);
+        (selectIsNonEvmNonEvmBridge as unknown as jest.Mock).mockReturnValue(
+          true,
+        );
+        (
+          Engine.context.BridgeStatusController.submitTx as jest.Mock
+        ).mockResolvedValue({ id: 'sig-1', hash: 'sig-1' });
+
+        const { result } = renderHook(() =>
+          useQuickBuyController(createTarget(), jest.fn()),
+        );
+
+        await act(async () => {
+          await result.current.handleConfirm();
+        });
+
+        expect(trackQuickBuyTrade).toHaveBeenCalledWith(
+          'sig-1',
+          expect.objectContaining({ isNonEvmSwap: false }),
+        );
+      });
+
+      it('reconciles against the current bridge status right after tracking', async () => {
+        mockUsableQuote();
+        (
+          Engine.context.BridgeStatusController.submitTx as jest.Mock
+        ).mockResolvedValue({ id: 'tx-1', hash: '0xabc' });
+
+        const { result } = renderHook(() =>
+          useQuickBuyController(createTarget(), jest.fn()),
+        );
+
+        await act(async () => {
+          await result.current.handleConfirm();
+        });
+
+        expect(resolveQuickBuyTerminalToast).toHaveBeenCalledWith(
+          'tx-1',
+          expect.any(Function),
+          expect.any(Object),
+        );
+      });
+
+      it('shows a failed toast and does not track the trade when submit throws', async () => {
+        mockUsableQuote();
+        (
+          Engine.context.BridgeStatusController.submitTx as jest.Mock
+        ).mockRejectedValue(new Error('user rejected'));
+        const onClose = jest.fn();
+
+        const { result } = renderHook(() =>
+          useQuickBuyController(createTarget(), onClose),
+        );
+
+        await act(async () => {
+          await result.current.handleConfirm();
+        });
+
+        expect(onClose).toHaveBeenCalledTimes(1);
+        expect(buildQuickBuyToastOptions).toHaveBeenCalledWith('failed', {
+          trade: expect.objectContaining({
+            tokenSymbol: 'TEST',
+            tradeMode: 'buy',
+          }),
+          theme: expect.any(Object),
+        });
+        expect(mockShowToast).toHaveBeenCalledWith({ kind: 'failed' });
+        expect(playErrorNotification).toHaveBeenCalledTimes(1);
+        expect(trackQuickBuyTrade).not.toHaveBeenCalled();
+      });
+
+      it('marks the submission in flight before submit and clears it after success', async () => {
+        mockUsableQuote();
+        (
+          Engine.context.BridgeStatusController.submitTx as jest.Mock
+        ).mockResolvedValue({ id: 'tx-1', hash: '0xabc' });
+
+        const { result } = renderHook(() =>
+          useQuickBuyController(createTarget(), jest.fn()),
+        );
+
+        await act(async () => {
+          await result.current.handleConfirm();
+        });
+
+        expect(beginQuickBuySubmission).toHaveBeenCalledTimes(1);
+        expect(endQuickBuySubmission).toHaveBeenCalledTimes(1);
+        const beginOrder = (beginQuickBuySubmission as jest.Mock).mock
+          .invocationCallOrder[0];
+        const trackOrder = (trackQuickBuyTrade as jest.Mock).mock
+          .invocationCallOrder[0];
+        const endOrder = (endQuickBuySubmission as jest.Mock).mock
+          .invocationCallOrder[0];
+        expect(beginOrder).toBeLessThan(trackOrder);
+        expect(trackOrder).toBeLessThan(endOrder);
+      });
+
+      it('clears the in-flight submission marker when submit throws', async () => {
+        mockUsableQuote();
+        (
+          Engine.context.BridgeStatusController.submitTx as jest.Mock
+        ).mockRejectedValue(new Error('user rejected'));
+
+        const { result } = renderHook(() =>
+          useQuickBuyController(createTarget(), jest.fn()),
+        );
+
+        await act(async () => {
+          await result.current.handleConfirm();
+        });
+
+        expect(beginQuickBuySubmission).toHaveBeenCalledTimes(1);
+        expect(endQuickBuySubmission).toHaveBeenCalledTimes(1);
+      });
     });
   });
 });

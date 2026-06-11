@@ -22,7 +22,7 @@ import { trackSnapAccountEvent } from '../../util/analytics/helpers/snapKeyring/
 import { endPerformanceTrace } from '../../core/redux/slices/performance';
 import { PerformanceEventNames } from '../redux/slices/performance/constants';
 import { areAddressesEqual } from '../../util/address';
-import { isE2E } from '../../util/test/utils';
+import { hasTestOverrides } from '../../util/test/utils';
 
 /**
  * Builder type for the Snap keyring.
@@ -221,7 +221,7 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
     // Since the introduction of BIP-44, multichain wallet Snaps will skip them automatically too!
     let skipAll = isPreinstalled && isMultichainWalletSnap(snapId);
     // FIXME: We still rely on the old behavior in some e2e, so we do not skip them in this case.
-    if (isE2E) {
+    if (hasTestOverrides) {
       skipAll = false;
     }
 

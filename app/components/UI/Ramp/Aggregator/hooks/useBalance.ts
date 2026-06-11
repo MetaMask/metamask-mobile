@@ -1,13 +1,14 @@
 import { useSelector } from 'react-redux';
 import { NATIVE_ADDRESS } from '../../../../../constants/on-ramp';
+import { RootState } from '../../../../../reducers';
 import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
 import {
-  selectConversionRate,
+  selectConversionRateByChainId,
   selectCurrentCurrency,
 } from '../../../../../selectors/currencyRateController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { selectContractBalancesPerChainId } from '../../../../../selectors/tokenBalancesController';
-import { selectContractExchangeRates } from '../../../../../selectors/tokenRatesController';
+import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
 import { safeToChecksumAddress } from '../../../../../util/address';
 import {
   balanceToFiat,
@@ -18,6 +19,7 @@ import {
 } from '../../../../../util/number';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
+import { getEvmHexChainId } from '../utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectMultichainBalances } from '../../../../../selectors/multichain';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
@@ -49,9 +51,21 @@ export default function useBalance(asset?: Asset) {
     selectSelectedInternalAccountByScope,
   );
 
-  const conversionRate = useSelector(selectConversionRate);
+  // Conversion and exchange rates must be read for the asset's own chain, not
+  // the globally selected network, otherwise the fiat balance is computed with
+  // the wrong native-currency rate (e.g. an ETH rate applied to a BNB balance).
+  const assetEvmChainId = getEvmHexChainId(asset?.chainId);
+  const conversionRate = useSelector((state: RootState) =>
+    assetEvmChainId
+      ? selectConversionRateByChainId(state, assetEvmChainId)
+      : undefined,
+  );
   const currentCurrency = useSelector(selectCurrentCurrency);
-  const tokenExchangeRates = useSelector(selectContractExchangeRates);
+  const tokenExchangeRates = useSelector((state: RootState) =>
+    assetEvmChainId
+      ? selectContractExchangeRatesByChainId(state, assetEvmChainId)
+      : undefined,
+  );
   const balancesPerChainId = useSelector(selectContractBalancesPerChainId);
 
   if (!asset || (!asset.address && !asset.assetId) || !selectedAddress) {
