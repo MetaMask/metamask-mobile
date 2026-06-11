@@ -346,9 +346,17 @@ export class AppiumGestureStrategy implements GestureStrategy {
    * @param elem - The element to tap
    * @returns A promise that resolves when the tap is complete
    */
-  async tap(elem: EncapsulatedElementType): Promise<void> {
+  async tap(
+    elem: EncapsulatedElementType,
+    opts?: UnifiedGestureOptions,
+  ): Promise<void> {
     const el = await asPlaywrightElement(elem);
-    await PlaywrightGestures.waitAndTap(el);
+    await PlaywrightGestures.waitAndTap(el, {
+      timeout: opts?.timeout,
+      delay: opts?.delay,
+      checkForDisplayed: opts?.checkForDisplayed ?? true,
+      checkForEnabled: opts?.checkForEnabled,
+    });
   }
 
   /**
@@ -365,7 +373,7 @@ export class AppiumGestureStrategy implements GestureStrategy {
     await PlaywrightGestures.waitAndTap(el, {
       timeout: opts?.timeout,
       delay: opts?.delay,
-      checkForDisplayed: opts?.checkForDisplayed,
+      checkForDisplayed: opts?.checkForDisplayed ?? true,
       checkForEnabled: opts?.checkForEnabled,
       waitForInteractive: opts?.waitForInteractive,
       enabledStableReads: opts?.enabledStableReads,
