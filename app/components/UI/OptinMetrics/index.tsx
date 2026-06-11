@@ -31,7 +31,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { clearOnboardingEvents } from '../../../actions/onboarding';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
 import { setDataCollectionForMarketing } from '../../../actions/security';
-import { clearAttribution } from '../../../core/redux/slices/attribution';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { markMetricsOptInUISeen } from '../../../util/metrics/metricsOptInUIUtils';
@@ -62,9 +61,8 @@ import {
 import type { RootState } from '../../../reducers';
 import { useOnboardingInterestQuestionnaireEligibility } from '../../Views/OnboardingInterestQuestionnaire/useOnboardingInterestQuestionnaireEligibility';
 import Logger from '../../../util/Logger';
-import { isAttributionOnlyDeeplink } from '../../../util/analytics/isAttributionOnlyDeeplink';
+import { clearAcquisitionStateAfterOptIn } from '../../../util/analytics/clearAcquisitionStateAfterOptIn';
 import { persistAttributionFromPendingDeeplink } from '../../../util/analytics/persistAttributionFromPendingDeeplink';
-import { AppStateEventProcessor } from '../../../core/AppStateEventListener';
 import { getWalletSetupAttributionPropsFromStore } from '../../../util/analytics/walletSetupCompletedAttribution';
 import { scheduleBufferedOnboardingEventReplay } from '../../../util/analytics/walletSetupCompletedAttributionReplay';
 
@@ -183,17 +181,7 @@ const OptinMetrics = () => {
     dispatch(setDataCollectionForMarketing(isMarketingChecked));
 
     if (isMarketingChecked) {
-      const persisted = persistAttributionFromPendingDeeplink(dispatch);
-      const pendingDeeplink = AppStateEventProcessor.pendingDeeplink;
-      if (
-        persisted &&
-        pendingDeeplink &&
-        isAttributionOnlyDeeplink(pendingDeeplink)
-      ) {
-        AppStateEventProcessor.clearPendingDeeplink();
-      }
-    } else {
-      dispatch(clearAttribution());
+      persistAttributionFromPendingDeeplink(dispatch);
     }
 
     // Track opt-in / opt-out for metrics
@@ -243,6 +231,9 @@ const OptinMetrics = () => {
         trackEvent: (event) => metrics.trackEvent(event),
       });
     }
+
+    clearAcquisitionStateAfterOptIn(dispatch);
+
     dispatch(clearOnboardingEvents());
 
     let shouldShowInterestQuestionnaire = false;

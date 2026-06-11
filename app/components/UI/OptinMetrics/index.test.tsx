@@ -241,6 +241,9 @@ describe('OptinMetrics', () => {
         expect(
           mockPersistAttributionFromPendingDeeplink,
         ).not.toHaveBeenCalled();
+        expect(
+          mockAppStateEventProcessor.clearPendingDeeplink,
+        ).not.toHaveBeenCalled();
         expect(mockAnalytics.trackEvent).toHaveBeenNthCalledWith(
           1,
           expect.objectContaining({
@@ -312,6 +315,32 @@ describe('OptinMetrics', () => {
           deviceProp: 'Device value',
           userProp: 'User value',
         });
+      });
+    });
+
+    it('clears attribution-only pending deeplink without marketing consent', async () => {
+      const pendingDeeplink =
+        'https://link.metamask.io/home?utm_source=campaign&utm_campaign=summer';
+      mockIsAttributionOnlyDeeplink.mockReturnValue(true);
+      mockAppStateEventProcessor.pendingDeeplink = pendingDeeplink;
+
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+      fireEvent.press(
+        screen.getByRole('button', {
+          name: strings('privacy_policy.continue'),
+        }),
+      );
+
+      await waitFor(() => {
+        expect(
+          mockPersistAttributionFromPendingDeeplink,
+        ).not.toHaveBeenCalled();
+        expect(mockIsAttributionOnlyDeeplink).toHaveBeenCalledWith(
+          pendingDeeplink,
+        );
+        expect(
+          mockAppStateEventProcessor.clearPendingDeeplink,
+        ).toHaveBeenCalledTimes(1);
       });
     });
 
