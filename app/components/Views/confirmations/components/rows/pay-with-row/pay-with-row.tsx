@@ -3,6 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { PaymentType } from '@consensys/on-ramp-sdk';
 import Routes from '../../../../../../constants/navigation/Routes';
+import { NETWORKS_CHAIN_ID } from '../../../../../../constants/network';
 import { RootState } from '../../../../../../reducers';
 import { selectPaymentOverrideByTransactionId } from '../../../../../../selectors/transactionPayController';
 import { TokenIcon, TokenIconVariant } from '../../token-icon';
@@ -67,6 +68,13 @@ export function PayWithRow({
     selectPaymentOverrideByTransactionId(state, transactionId),
   );
   const { payWithOption } = useParams<ConfirmationParams>({});
+
+  // On Arc, the transaction always pays with the native token (USDC) — there is
+  // no alternative pay-with route, so skip rendering the row entirely. This
+  // prevents the "no payment route" error.
+  if (transactionMeta?.chainId?.toLowerCase() === NETWORKS_CHAIN_ID.ARC) {
+    return null;
+  }
 
   // Nav-param means money home pre-set the method; bottom-sheet selection doesn't set this.
   if (payWithOption === PayWithOption.MoneyAccount) {

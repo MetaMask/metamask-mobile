@@ -29,6 +29,53 @@ import {
 } from '@metamask/assets-controller';
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import { NetworkState } from '@metamask/network-controller';
+import { NETWORKS_CHAIN_ID } from '../../constants/network';
+
+// Arc treats USDC as its display currency. Its native token lives at the zero
+// address and is effectively a duplicate of the USDC ERC20, so we strip it from
+// balances and token lists at this layer — covering the wallet token list, the
+// aggregated balance, and the send/pay-with asset pickers in a single place.
+const ARC_CHAIN_ID = NETWORKS_CHAIN_ID.ARC as Hex;
+const ARC_NATIVE_TOKEN_ADDRESS =
+  '0x0000000000000000000000000000000000000000' as Hex;
+
+// ChainId (hex) -> AccountAddress -> Balance. Drops the Arc native chain entry
+// so the native token is never injected into the per-account-group token list.
+function omitArcNativeAccountBalances(
+  accountsByChainId: AccountTrackerControllerState['accountsByChainId'],
+): AccountTrackerControllerState['accountsByChainId'] {
+  if (!accountsByChainId[ARC_CHAIN_ID]) {
+    return accountsByChainId;
+  }
+
+  const result = { ...accountsByChainId };
+  delete result[ARC_CHAIN_ID];
+  return result;
+}
+
+// AccountAddress -> ChainId (hex) -> TokenAddress -> Balance. Drops the Arc
+// native (zero address) balance so it is excluded from the aggregated balance.
+function omitArcNativeTokenBalances(
+  tokenBalances: TokenBalancesControllerState['tokenBalances'],
+): TokenBalancesControllerState['tokenBalances'] {
+  let mutated = false;
+  const result: TokenBalancesControllerState['tokenBalances'] = {};
+
+  for (const [account, chainMap] of Object.entries(tokenBalances)) {
+    const arcChain = chainMap[ARC_CHAIN_ID];
+
+    if (arcChain && ARC_NATIVE_TOKEN_ADDRESS in arcChain) {
+      const filteredArcChain = { ...arcChain };
+      delete filteredArcChain[ARC_NATIVE_TOKEN_ADDRESS];
+      result[account] = { ...chainMap, [ARC_CHAIN_ID]: filteredArcChain };
+      mutated = true;
+    } else {
+      result[account] = chainMap;
+    }
+  }
+
+  return mutated ? result : tokenBalances;
+}
 
 // ChainId (hex) -> AccountAddress (hex checksummed) -> Balance (hex)
 export const getAccountTrackerControllerAccountsByChainId =
@@ -54,7 +101,7 @@ export const getAccountTrackerControllerAccountsByChainId =
       internalAccountsById: AccountsControllerState['internalAccounts']['accounts'],
     ): AccountTrackerControllerState['accountsByChainId'] => {
       if (!isAssetsUnifyStateEnabled) {
-        return accountsByChainId;
+        return omitArcNativeAccountBalances(accountsByChainId);
       }
 
       const result: AccountTrackerControllerState['accountsByChainId'] = {};
@@ -97,7 +144,7 @@ export const getAccountTrackerControllerAccountsByChainId =
         }
       }
 
-      return result;
+      return omitArcNativeAccountBalances(result);
     },
   );
 
@@ -268,7 +315,7 @@ export const getTokenBalancesControllerTokenBalances = createDeepEqualSelector(
     internalAccountsById: AccountsControllerState['internalAccounts']['accounts'],
   ): TokenBalancesControllerState['tokenBalances'] => {
     if (!isAssetsUnifyStateEnabled) {
-      return tokenBalances;
+      return omitArcNativeTokenBalances(tokenBalances);
     }
 
     const result: TokenBalancesControllerState['tokenBalances'] = {};
@@ -357,7 +404,7 @@ export const getTokenBalancesControllerTokenBalances = createDeepEqualSelector(
       }
     }
 
-    return result;
+    return omitArcNativeTokenBalances(result);
   },
 );
 

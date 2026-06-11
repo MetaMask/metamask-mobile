@@ -2353,3 +2353,166 @@ describe('getMultichainAssetsRatesControllerConversionRates', () => {
     });
   });
 });
+
+describe('Arc native token filtering', () => {
+  const arcChainId: Hex = '0x13b2';
+  const arcNativeAssetId = 'eip155:5042/slip44:60';
+  const arcUsdcAddressLowercase: Hex =
+    '0x3600000000000000000000000000000000000000';
+  const arcUsdcAddressChecksummed = toChecksumHexAddress(
+    arcUsdcAddressLowercase,
+  ) as Hex;
+  const arcUsdcAssetId = `eip155:5042/erc20:${arcUsdcAddressLowercase}`;
+  const arcNativeAddressChecksummed = toChecksumHexAddress(
+    '0x0000000000000000000000000000000000000000',
+  ) as Hex;
+
+  describe('getAccountTrackerControllerAccountsByChainId', () => {
+    it('strips the Arc native chain entry when unify state is enabled', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            AccountTrackerController: { accountsByChainId: {} },
+            AssetsController: {
+              assetsInfo: {
+                [nativeEthAssetId]: { type: 'native', decimals: 18 },
+                [arcNativeAssetId]: { type: 'native', decimals: 6 },
+              },
+              assetsBalance: {
+                [mockAccountId]: {
+                  [nativeEthAssetId]: { amount: '1' },
+                  [arcNativeAssetId]: { amount: '5' },
+                },
+              },
+            },
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [mockAccountId]: {
+                    id: mockAccountId,
+                    address: mockAccountAddressLowercase,
+                    type: 'eip155:eoa',
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+
+      const result = getAccountTrackerControllerAccountsByChainId(state);
+
+      expect(result['0x1']).toBeDefined();
+      expect(result[arcChainId]).toBeUndefined();
+    });
+
+    it('strips the Arc native chain entry from legacy state when unify state is disabled', () => {
+      const legacyAccountsByChainId = {
+        '0x1': {
+          [mockAccountAddressChecksummed]: {
+            balance: '0xde0b6b3a7640000' as const,
+          },
+        },
+        [arcChainId]: {
+          [mockAccountAddressChecksummed]: {
+            balance: '0x5' as const,
+          },
+        },
+      };
+      const state = {
+        engine: {
+          backgroundState: {
+            AccountTrackerController: {
+              accountsByChainId: legacyAccountsByChainId,
+            },
+          },
+        },
+      };
+
+      const result = getAccountTrackerControllerAccountsByChainId(state);
+
+      expect(result['0x1']).toBeDefined();
+      expect(result[arcChainId]).toBeUndefined();
+    });
+  });
+
+  describe('getTokenBalancesControllerTokenBalances', () => {
+    it('strips the Arc native (zero address) balance but keeps USDC when unify state is enabled', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            TokenBalancesController: { tokenBalances: {} },
+            AssetsController: {
+              assetsInfo: {
+                [arcNativeAssetId]: {
+                  type: 'native',
+                  decimals: 6,
+                  symbol: 'USDC',
+                  name: 'USDC',
+                },
+                [arcUsdcAssetId]: {
+                  type: 'erc20',
+                  decimals: 6,
+                  symbol: 'USDC',
+                  name: 'USDC',
+                },
+              },
+              assetsBalance: {
+                [mockAccountId]: {
+                  [arcNativeAssetId]: { amount: '5' },
+                  [arcUsdcAssetId]: { amount: '10' },
+                },
+              },
+              customAssets: {},
+            },
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [mockAccountId]: {
+                    id: mockAccountId,
+                    address: mockAccountAddressLowercase,
+                    type: 'eip155:eoa',
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+
+      const result = getTokenBalancesControllerTokenBalances(state);
+      const arcBalances =
+        result[mockAccountAddressLowercase as Hex]?.[arcChainId];
+
+      expect(arcBalances?.[arcNativeAddressChecksummed]).toBeUndefined();
+      expect(arcBalances?.[arcUsdcAddressChecksummed]).toBeDefined();
+    });
+
+    it('strips the Arc native (zero address) balance from legacy state when unify state is disabled', () => {
+      const legacyTokenBalances = {
+        [mockAccountAddressLowercase]: {
+          [arcChainId]: {
+            [arcNativeAddressChecksummed]: '0x5' as const,
+            [arcUsdcAddressChecksummed]: '0xa' as const,
+          },
+        },
+      };
+      const state = {
+        engine: {
+          backgroundState: {
+            TokenBalancesController: { tokenBalances: legacyTokenBalances },
+          },
+        },
+      };
+
+      const result = getTokenBalancesControllerTokenBalances(state);
+      const arcBalances =
+        result[mockAccountAddressLowercase as Hex]?.[arcChainId];
+
+      expect(arcBalances?.[arcNativeAddressChecksummed]).toBeUndefined();
+      expect(arcBalances?.[arcUsdcAddressChecksummed]).toBe('0xa');
+    });
+  });
+});
