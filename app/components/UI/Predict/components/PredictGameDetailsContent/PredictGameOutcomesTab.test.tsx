@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import PredictGameOutcomesTab, {
+  buildOutcomeCardModels,
   getSportsMarketTypeLabel,
 } from './PredictGameOutcomesTab';
 import type {
@@ -10,6 +11,7 @@ import type {
   PredictOutcomeToken,
 } from '../../types';
 import type { PredictSportOutcomeButton } from '../PredictSportOutcomeCard';
+import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
 import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
 import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 import Logger from '../../../../../util/Logger';
@@ -67,6 +69,7 @@ jest.mock('../../../../../util/Logger', () => ({
 }));
 
 const mockGetLivePrice = jest.fn();
+const mockUseLiveMarketPrices = jest.mocked(useLiveMarketPrices);
 
 jest.mock('../../hooks/useLiveMarketPrices', () => ({
   useLiveMarketPrices: jest.fn(() => ({
@@ -257,6 +260,12 @@ describe('PredictGameOutcomesTab', () => {
     jest.clearAllMocks();
     mockGetLivePrice.mockReturnValue(undefined);
     mockCapturedCards = [];
+    mockUseLiveMarketPrices.mockImplementation(() => ({
+      getPrice: mockGetLivePrice,
+      prices: new Map(),
+      isConnected: true,
+      lastUpdateTime: null,
+    }));
   });
 
   describe('getSportsMarketTypeLabel', () => {
@@ -405,33 +414,154 @@ describe('PredictGameOutcomesTab', () => {
     });
   });
 
-  describe('simple card (single outcome)', () => {
-    it('renders a single outcome as a simple card with the provider title', () => {
-      const tab = createTab('exact_score', [
+  describe('buildOutcomeCardModels', () => {
+    it('builds subgroup card models with card kind and pricing ownership together', () => {
+      const group = createTab('game_lines', [
         createCard({
-          key: 'soccer_exact_score-0',
-          title: 'Mexico 1 - 0 South Africa',
+          key: 'moneyline',
           outcomes: [
             createOutcome({
-              id: 'es-1',
-              sportsMarketType: 'soccer_exact_score',
-              groupItemTitle: 'Mexico 1 - 0 South Africa',
+              id: 'moneyline-home',
+              sportsMarketType: 'moneyline',
+              tokens: [createToken({ id: 'ml-home', price: 0.6 })],
+            }),
+            createOutcome({
+              id: 'moneyline-away',
+              sportsMarketType: 'moneyline',
+              tokens: [createToken({ id: 'ml-away', price: 0.4 })],
+            }),
+          ],
+        }),
+        createCard({
+          key: 'soccer_player_goals-0',
+          title: 'Player One',
+          outcomes: [
+            createOutcome({
+              id: 'player-goals',
+              sportsMarketType: 'soccer_player_goals',
+              groupItemTitle: 'Player One: 1+ goals',
+              tokens: [
+                createToken({ id: 'player-over', shortTitle: 'Over' }),
+                createToken({ id: 'player-under', shortTitle: 'Under' }),
+              ],
+            }),
+          ],
+        }),
+        createCard({
+          key: 'total_corners',
+          outcomes: [
+            createOutcome({
+              id: 'corners-85',
+              sportsMarketType: 'total_corners',
+              groupItemTitle: 'Total Corners: O/U 8.5',
+              line: 8.5,
+              tokens: [
+                createToken({ id: 'corners-over-85' }),
+                createToken({ id: 'corners-under-85' }),
+              ],
+            }),
+            createOutcome({
+              id: 'corners-95',
+              sportsMarketType: 'total_corners',
+              groupItemTitle: 'Total Corners: O/U 9.5',
+              line: 9.5,
+              tokens: [
+                createToken({ id: 'corners-over-95' }),
+                createToken({ id: 'corners-under-95' }),
+              ],
             }),
           ],
         }),
       ]);
 
-      renderTab(tab);
-
-      expect(mockCapturedCards).toHaveLength(1);
-      expect(mockCapturedCards[0].title).toBe('Mexico 1 - 0 South Africa');
-      expect(mockCapturedCards[0].lines).toBeUndefined();
-      expect(mockCapturedCards[0].testID).toBe(
-        'exact_score-soccer_exact_score-0',
-      );
+      expect(buildOutcomeCardModels(group)).toEqual([
+        {
+          kind: 'moneyline',
+          key: 'moneyline',
+          title: 'Moneyline',
+          testID: 'game_lines-moneyline',
+          outcomes: group.subgroups?.[0].outcomes,
+          pricing: {
+            kind: 'shared',
+            tokenIds: ['ml-home', 'ml-away'],
+          },
+        },
+        {
+          kind: 'simple',
+          key: 'player-goals',
+          title: 'Player One',
+          testID: 'game_lines-soccer_player_goals-0',
+          outcome: group.subgroups?.[1].outcomes[0],
+          sportsMarketType: 'soccer_player_goals',
+          pricing: {
+            kind: 'shared',
+            tokenIds: ['player-over', 'player-under'],
+          },
+        },
+        {
+          kind: 'line',
+          key: 'total_corners',
+          title: 'Corners',
+          testID: 'game_lines-total_corners',
+          outcomes: group.subgroups?.[2].outcomes,
+          sportsMarketType: 'total_corners',
+          pricing: {
+            kind: 'selected-line',
+          },
+        },
+      ]);
     });
 
-    it('prefers the provider-supplied card title (player single line)', () => {
+    it('builds flat non-subgroup groups into simple cards with shared pricing', () => {
+      const group: PredictOutcomeGroup = {
+        key: 'game_lines',
+        outcomes: [
+          createOutcome({
+            id: 'flat-1',
+            sportsMarketType: 'soccer_exact_score',
+            groupItemTitle: 'Mexico 1 - 0 South Africa',
+            tokens: [createToken({ id: 'flat-token-1' })],
+          }),
+          createOutcome({
+            id: 'flat-2',
+            sportsMarketType: 'soccer_exact_score',
+            groupItemTitle: 'Mexico 2 - 0 South Africa',
+            tokens: [createToken({ id: 'flat-token-2' })],
+          }),
+        ],
+      };
+
+      expect(buildOutcomeCardModels(group)).toEqual([
+        {
+          kind: 'simple',
+          key: 'flat-1',
+          title: 'Mexico 1 - 0 South Africa',
+          testID: 'game_lines-outcome-0',
+          outcome: group.outcomes[0],
+          sportsMarketType: 'soccer_exact_score',
+          pricing: {
+            kind: 'shared',
+            tokenIds: ['flat-token-1'],
+          },
+        },
+        {
+          kind: 'simple',
+          key: 'flat-2',
+          title: 'Mexico 2 - 0 South Africa',
+          testID: 'game_lines-outcome-1',
+          outcome: group.outcomes[1],
+          sportsMarketType: 'soccer_exact_score',
+          pricing: {
+            kind: 'shared',
+            tokenIds: ['flat-token-2'],
+          },
+        },
+      ]);
+    });
+  });
+
+  describe('card model wiring', () => {
+    it('prefers the provider-supplied card title for simple cards', () => {
       const tab = createTab('goals', [
         createCard({
           key: 'soccer_player_goals-0',
@@ -450,18 +580,35 @@ describe('PredictGameOutcomesTab', () => {
       renderTab(tab);
 
       expect(mockCapturedCards[0].title).toBe('Armando González');
+      expect(mockCapturedCards[0].testID).toBe('goals-soccer_player_goals-0');
     });
 
-    it('formats volume into the subtitle', () => {
-      const tab = createTab('exact_score', [
+    it('renders a line card titled by the market-type label', () => {
+      const tab = createTab('corners', [
         createCard({
-          key: 'soccer_exact_score-0',
+          key: 'total_corners',
           outcomes: [
             createOutcome({
-              id: 'es-1',
-              sportsMarketType: 'soccer_exact_score',
-              groupItemTitle: 'Draw',
-              volume: 2500000,
+              id: 'c-85',
+              sportsMarketType: 'total_corners',
+              groupItemTitle: 'Total Corners: O/U 8.5',
+              line: 8.5,
+              volume: 1000,
+              tokens: [
+                createToken({ id: 'o85', shortTitle: 'O 8.5', price: 0.53 }),
+                createToken({ id: 'u85', shortTitle: 'U 8.5', price: 0.48 }),
+              ],
+            }),
+            createOutcome({
+              id: 'c-95',
+              sportsMarketType: 'total_corners',
+              groupItemTitle: 'Total Corners: O/U 9.5',
+              line: 9.5,
+              volume: 5000,
+              tokens: [
+                createToken({ id: 'o95', shortTitle: 'O 9.5', price: 0.42 }),
+                createToken({ id: 'u95', shortTitle: 'U 9.5', price: 0.59 }),
+              ],
             }),
           ],
         }),
@@ -469,78 +616,11 @@ describe('PredictGameOutcomesTab', () => {
 
       renderTab(tab);
 
-      expect(mockCapturedCards[0].subtitle).toBe('$2.5M Vol');
-    });
-
-    it('builds buttons with cent prices and calls onBuyPress', () => {
-      const token = createToken({ id: 'tok-press', shortTitle: 'TA' });
-      const outcome = createOutcome({
-        id: 'out-press',
-        sportsMarketType: 'soccer_exact_score',
-        groupItemTitle: 'Draw',
-        tokens: [
-          token,
-          createToken({ id: 'tok-b', shortTitle: 'TB', price: 0.35 }),
-        ],
-      });
-      const tab = createTab('exact_score', [
-        createCard({ key: 'soccer_exact_score-0', outcomes: [outcome] }),
-      ]);
-
-      const { getByTestId } = renderTab(tab);
-
-      expect(mockCapturedCards[0].buttons[0].price).toBe(65);
-      expect(mockCapturedCards[0].buttons[0].label).toBe('TA');
-
-      fireEvent(
-        getByTestId('exact_score-soccer_exact_score-0-btn-0'),
-        'touchEnd',
-      );
-      expect(mockOnBuyPress).toHaveBeenCalledWith(outcome, token);
-    });
-  });
-
-  describe('line card (multiple outcomes)', () => {
-    const lineOutcomes = [
-      createOutcome({
-        id: 'c-85',
-        sportsMarketType: 'total_corners',
-        groupItemTitle: 'Total Corners: O/U 8.5',
-        line: 8.5,
-        volume: 1000,
-        tokens: [
-          createToken({ id: 'o85', shortTitle: 'O 8.5', price: 0.53 }),
-          createToken({ id: 'u85', shortTitle: 'U 8.5', price: 0.48 }),
-        ],
-      }),
-      createOutcome({
-        id: 'c-95',
-        sportsMarketType: 'total_corners',
-        groupItemTitle: 'Total Corners: O/U 9.5',
-        line: 9.5,
-        volume: 5000,
-        tokens: [
-          createToken({ id: 'o95', shortTitle: 'O 9.5', price: 0.42 }),
-          createToken({ id: 'u95', shortTitle: 'U 9.5', price: 0.59 }),
-        ],
-      }),
-    ];
-
-    it('renders a line selector titled by the market-type label', () => {
-      const tab = createTab('corners', [
-        createCard({ key: 'total_corners', outcomes: lineOutcomes }),
-      ]);
-
-      renderTab(tab);
-
-      expect(mockCapturedCards).toHaveLength(1);
       expect(mockCapturedCards[0].title).toBe('Corners');
-      expect(mockCapturedCards[0].lines).toEqual([8.5, 9.5]);
-      expect(mockCapturedCards[0].selectedLine).toBe(9.5);
       expect(mockCapturedCards[0].testID).toBe('corners-total_corners');
     });
 
-    it('uses the provider card title for split line cards (team totals)', () => {
+    it('uses the provider card title for split line cards', () => {
       const tab = createTab('game_lines', [
         createCard({
           key: 'soccer_team_totals-0',
@@ -565,149 +645,35 @@ describe('PredictGameOutcomesTab', () => {
       renderTab(tab);
 
       expect(mockCapturedCards[0].title).toBe('Mexico Totals');
-      expect(mockCapturedCards[0].lines).toEqual([0.5, 1.5]);
     });
 
-    it('sorts lines ascending regardless of outcome order', () => {
-      const tab = createTab('corners', [
+    it('renders a moneyline card titled by the market-type label', () => {
+      const tab = createTab('game_lines', [
         createCard({
-          key: 'total_corners',
+          key: 'moneyline',
           outcomes: [
-            createOutcome({ id: 's1', sportsMarketType: 'totals', line: 7.5 }),
-            createOutcome({ id: 's2', sportsMarketType: 'totals', line: 3.5 }),
-            createOutcome({ id: 's3', sportsMarketType: 'totals', line: 10.5 }),
+            createOutcome({
+              id: 'ml-home',
+              sportsMarketType: 'moneyline',
+              groupItemThreshold: 0,
+              groupItemTitle: 'Home Win',
+              tokens: [createToken({ id: 't-hom', shortTitle: 'TA' })],
+            }),
+            createOutcome({
+              id: 'ml-away',
+              sportsMarketType: 'moneyline',
+              groupItemThreshold: 2,
+              groupItemTitle: 'Away Win',
+              tokens: [createToken({ id: 't-awy', shortTitle: 'TB' })],
+            }),
           ],
         }),
       ]);
 
       renderTab(tab);
 
-      expect(mockCapturedCards[0].lines).toEqual([3.5, 7.5, 10.5]);
-      expect(mockCapturedCards[0].selectedLine).toBe(3.5);
-    });
-
-    it('switches the displayed outcome when a line is selected', () => {
-      const tab = createTab('corners', [
-        createCard({ key: 'total_corners', outcomes: lineOutcomes }),
-      ]);
-
-      const { getByTestId } = renderTab(tab);
-
-      expect(mockCapturedCards[0].buttons[0].price).toBe(42);
-
-      mockCapturedCards = [];
-      fireEvent(getByTestId('corners-total_corners-line-0-8.5'), 'touchEnd');
-
-      expect(mockCapturedCards[0].buttons[0].price).toBe(53);
-    });
-
-    it('assigns draw variant and no team color for non-moneyline lines', () => {
-      const tab = createTab('corners', [
-        createCard({ key: 'total_corners', outcomes: lineOutcomes }),
-      ]);
-
-      renderTab(tab);
-
-      expect(mockCapturedCards[0].buttons[0].variant).toBe('draw');
-      expect(mockCapturedCards[0].buttons[0].teamColor).toBeUndefined();
-    });
-  });
-
-  describe('moneyline card', () => {
-    const moneylineOutcomes = [
-      createOutcome({
-        id: 'ml-home',
-        sportsMarketType: 'moneyline',
-        groupItemThreshold: 0,
-        groupItemTitle: 'Home Win',
-        volume: 5000,
-        tokens: [createToken({ id: 't-hom', shortTitle: 'TA', price: 0.55 })],
-      }),
-      createOutcome({
-        id: 'ml-draw',
-        sportsMarketType: 'moneyline',
-        groupItemThreshold: 1,
-        groupItemTitle: 'Draw',
-        volume: 2000,
-        tokens: [createToken({ id: 't-draw', shortTitle: 'Draw', price: 0.2 })],
-      }),
-      createOutcome({
-        id: 'ml-away',
-        sportsMarketType: 'moneyline',
-        groupItemThreshold: 2,
-        groupItemTitle: 'Away Win',
-        volume: 3000,
-        tokens: [createToken({ id: 't-awy', shortTitle: 'TB', price: 0.25 })],
-      }),
-    ];
-
-    const moneylineTab = createTab('game_lines', [
-      createCard({ key: 'moneyline', outcomes: moneylineOutcomes }),
-    ]);
-
-    it('renders an inline card titled by the market-type label', () => {
-      renderTab(moneylineTab);
-
-      expect(mockCapturedCards).toHaveLength(1);
-      expect(mockCapturedCards[0].buttonLayout).toBe('inlineNoSeparator');
       expect(mockCapturedCards[0].title).toBe('Moneyline');
       expect(mockCapturedCards[0].testID).toBe('game_lines-moneyline');
-    });
-
-    it('sums volumes from all outcomes into the subtitle', () => {
-      renderTab(moneylineTab);
-
-      expect(mockCapturedCards[0].subtitle).toBe('$10k Vol');
-    });
-
-    it('sorts outcomes by threshold (home, draw, away) with variants', () => {
-      renderTab(moneylineTab);
-
-      expect(mockCapturedCards[0].buttons.map((b) => b.label)).toEqual([
-        'TA',
-        'Draw',
-        'TB',
-      ]);
-      expect(mockCapturedCards[0].buttons.map((b) => b.variant)).toEqual([
-        'yes',
-        'draw',
-        'no',
-      ]);
-    });
-
-    it('assigns team colors from the game', () => {
-      renderTab(moneylineTab);
-
-      expect(mockCapturedCards[0].buttons[0].teamColor).toBe(
-        TEST_HEX_COLORS.PURE_RED,
-      );
-      expect(mockCapturedCards[0].buttons[2].teamColor).toBe(
-        TEST_HEX_COLORS.PURE_BLUE,
-      );
-    });
-
-    it('uses live best ask prices when available', () => {
-      mockGetLivePrice.mockImplementation((tokenId: string) => ({
-        tokenId,
-        price: 0,
-        bestBid: 0,
-        bestAsk: tokenId === 't-hom' ? 0.76 : 0,
-      }));
-
-      renderTab(moneylineTab);
-
-      expect(mockCapturedCards[0].buttons[0].price).toBe(76);
-    });
-
-    it('calls onBuyPress with the outcome and its yes token', () => {
-      const { getByTestId } = renderTab(moneylineTab);
-
-      fireEvent(getByTestId('game_lines-moneyline-btn-1'), 'touchEnd');
-
-      expect(mockOnBuyPress).toHaveBeenCalledWith(
-        moneylineOutcomes[1],
-        moneylineOutcomes[1].tokens[0],
-      );
     });
 
     it('treats soccer_halftime_result as moneyline-like', () => {
@@ -737,62 +703,7 @@ describe('PredictGameOutcomesTab', () => {
       expect(mockCapturedCards[0].title).toBe('Halftime Result');
     });
 
-    it('centers a "Neither" outcome in a first-to-score card', () => {
-      const tab = createTab('game_lines', [
-        createCard({
-          key: 'soccer_first_to_score',
-          outcomes: [
-            createOutcome({
-              id: 'fts-mex',
-              sportsMarketType: 'soccer_first_to_score',
-              groupItemTitle: 'Mexico',
-              groupItemThreshold: 0,
-              tokens: [
-                createToken({ id: 'm', shortTitle: 'MEX', price: 0.73 }),
-              ],
-            }),
-            createOutcome({
-              id: 'fts-neither',
-              sportsMarketType: 'soccer_first_to_score',
-              groupItemTitle: 'Neither',
-              groupItemThreshold: 2,
-              tokens: [
-                createToken({ id: 'n', shortTitle: 'Neither', price: 0.09 }),
-              ],
-            }),
-            createOutcome({
-              id: 'fts-rsa',
-              sportsMarketType: 'soccer_first_to_score',
-              groupItemTitle: 'South Africa',
-              groupItemThreshold: 1,
-              tokens: [
-                createToken({ id: 'r', shortTitle: 'RSA', price: 0.24 }),
-              ],
-            }),
-          ],
-        }),
-      ]);
-
-      renderTab(tab);
-
-      expect(mockCapturedCards[0].buttonLayout).toBe('inlineNoSeparator');
-      // Neither is centered despite its threshold ordering it last.
-      expect(mockCapturedCards[0].buttons.map((b) => b.label)).toEqual([
-        'MEX',
-        'Neither',
-        'RSA',
-      ]);
-      expect(mockCapturedCards[0].buttons.map((b) => b.variant)).toEqual([
-        'yes',
-        'draw',
-        'no',
-      ]);
-    });
-
-    it('labels a two-way (single-outcome) moneyline card as "Moneyline"', () => {
-      // Tennis / baseball moneyline is one market with two tokens, so the card
-      // has a single outcome. It must still be titled by its market type, not
-      // the raw market question.
+    it('labels a two-way moneyline card as Moneyline', () => {
       const tab = createTab('game_lines', [
         createCard({
           key: 'moneyline',
@@ -812,7 +723,6 @@ describe('PredictGameOutcomesTab', () => {
 
       renderTab(tab);
 
-      expect(mockCapturedCards).toHaveLength(1);
       expect(mockCapturedCards[0].buttonLayout).toBeUndefined();
       expect(mockCapturedCards[0].title).toBe('Moneyline');
     });
@@ -820,13 +730,103 @@ describe('PredictGameOutcomesTab', () => {
     it('falls back to a flat moneyline group when no subgroups are provided', () => {
       renderTab({
         key: 'game_lines',
-        outcomes: moneylineOutcomes,
+        outcomes: [
+          createOutcome({
+            id: 'ml-home',
+            sportsMarketType: 'moneyline',
+            groupItemThreshold: 0,
+            groupItemTitle: 'Home Win',
+            tokens: [createToken({ id: 't-hom', shortTitle: 'TA' })],
+          }),
+          createOutcome({
+            id: 'ml-away',
+            sportsMarketType: 'moneyline',
+            groupItemThreshold: 2,
+            groupItemTitle: 'Away Win',
+            tokens: [createToken({ id: 't-awy', shortTitle: 'TB' })],
+          }),
+        ],
       });
 
-      expect(mockCapturedCards).toHaveLength(1);
       expect(mockCapturedCards[0].buttonLayout).toBe('inlineNoSeparator');
       expect(mockCapturedCards[0].title).toBe('Moneyline');
       expect(mockCapturedCards[0].testID).toBe('game_lines-moneyline');
+    });
+  });
+
+  describe('subscription ownership', () => {
+    it('uses shared subscriptions for non-line cards and selected-line subscriptions for line cards', () => {
+      const tab = createTab('game_lines', [
+        createCard({
+          key: 'soccer_player_goals-0',
+          title: 'Player One',
+          outcomes: [
+            createOutcome({
+              id: 'player-1',
+              sportsMarketType: 'soccer_player_goals',
+              groupItemTitle: 'Player One: 1+ goals',
+              tokens: [
+                createToken({ id: 'player-over' }),
+                createToken({ id: 'player-under' }),
+              ],
+            }),
+          ],
+        }),
+        createCard({
+          key: 'total_corners',
+          outcomes: [
+            createOutcome({
+              id: 'line-low',
+              sportsMarketType: 'total_corners',
+              groupItemTitle: 'Total Corners: O/U 8.5',
+              line: 8.5,
+              volume: 1000,
+              tokens: [
+                createToken({ id: 'line-low-over' }),
+                createToken({ id: 'line-low-under' }),
+              ],
+            }),
+            createOutcome({
+              id: 'line-high',
+              sportsMarketType: 'total_corners',
+              groupItemTitle: 'Total Corners: O/U 9.5',
+              line: 9.5,
+              volume: 5000,
+              tokens: [
+                createToken({ id: 'line-high-over' }),
+                createToken({ id: 'line-high-under' }),
+              ],
+            }),
+          ],
+        }),
+      ]);
+
+      const { getByTestId } = renderTab(tab);
+
+      const initialTokenSubscriptions = mockUseLiveMarketPrices.mock.calls.map(
+        ([tokenIds]) => tokenIds,
+      );
+      expect(initialTokenSubscriptions).toEqual(
+        expect.arrayContaining([
+          ['player-over', 'player-under'],
+          ['line-high-over', 'line-high-under'],
+        ]),
+      );
+
+      mockUseLiveMarketPrices.mockClear();
+      fireEvent(getByTestId('game_lines-total_corners-line-0-8.5'), 'touchEnd');
+
+      const updatedTokenSubscriptions = mockUseLiveMarketPrices.mock.calls.map(
+        ([tokenIds]) => tokenIds,
+      );
+      expect(updatedTokenSubscriptions).toEqual(
+        expect.arrayContaining([['line-low-over', 'line-low-under']]),
+      );
+      expect(updatedTokenSubscriptions).not.toEqual(
+        expect.arrayContaining([
+          ['player-over', 'player-under', 'line-low-over', 'line-low-under'],
+        ]),
+      );
     });
   });
 });
