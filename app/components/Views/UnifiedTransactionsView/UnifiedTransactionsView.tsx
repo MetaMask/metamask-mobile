@@ -69,7 +69,10 @@ import {
 } from './helpers/transformations';
 import { normalizeTransaction } from './helpers/adapters';
 import { useLocalActivityItems } from './hooks/useLocalActivityItems';
-import { ActivityListItemRow } from '../../UI/ActivityListItemRow/ActivityListItemRow';
+import {
+  ActivityListItemRow,
+  resolveActivityListItemTitle,
+} from '../../UI/ActivityListItemRow/ActivityListItemRow';
 
 const confirmedEvmOverscan = 5;
 const visibilityConfig = { itemVisiblePercentThreshold: 1 };
@@ -129,6 +132,23 @@ const UnifiedTransactionsView = ({
   const tw = useTailwind();
   const { styles } = useStyles(styleSheet, {});
   const { bridgeHistoryItemsBySrcTxHash } = useBridgeHistoryItemBySrcTxHash();
+
+  const getBridgeHistoryItemByHash = useCallback(
+    (hash?: string) => {
+      if (!hash) {
+        return undefined;
+      }
+
+      const normalizedHash = hash.toLowerCase();
+      return (
+        bridgeHistoryItemsBySrcTxHash[hash] ??
+        Object.entries(bridgeHistoryItemsBySrcTxHash).find(
+          ([key]) => key.toLowerCase() === normalizedHash,
+        )?.[1]
+      );
+    },
+    [bridgeHistoryItemsBySrcTxHash],
+  );
 
   const {
     data: evmTransactions,
@@ -520,6 +540,14 @@ const UnifiedTransactionsView = ({
       const { raw } = item;
       if (!raw) return;
 
+      const itemBridgeHistoryItem = getBridgeHistoryItemByHash(item.data.hash);
+      const actionKey = resolveActivityListItemTitle(
+        item,
+        itemBridgeHistoryItem
+          ? getSwapBridgeTxActivityTitle(itemBridgeHistoryItem)
+          : undefined,
+      );
+
       const selectedEvmAddress =
         selectedAccountGroupEvmAddress ||
         selectedInternalAccount?.address ||
@@ -533,7 +561,7 @@ const UnifiedTransactionsView = ({
           params: {
             transaction: raw.data,
             displayData: {
-              title: item.type,
+              title: actionKey,
               from: from
                 ? { address: from, amount: value ?? '', unit: '' }
                 : undefined,
@@ -585,7 +613,7 @@ const UnifiedTransactionsView = ({
         params: {
           tx,
           transactionElement: {
-            actionKey: item.type,
+            actionKey,
             value,
           },
           transactionDetails: {
@@ -603,6 +631,7 @@ const UnifiedTransactionsView = ({
     },
     [
       bridgeHistory,
+      getBridgeHistoryItemByHash,
       navigation,
       selectedAccountGroupEvmAddress,
       selectedInternalAccount?.address,
@@ -721,7 +750,7 @@ const UnifiedTransactionsView = ({
     // Non-EVM bridge transactions: route to MultichainBridgeTransactionListItem.
     if (raw?.type === 'keyringTransaction') {
       const srcTxHash = raw.data.id;
-      const bridgeHistoryItem = bridgeHistoryItemsBySrcTxHash[srcTxHash];
+      const bridgeHistoryItem = getBridgeHistoryItemByHash(srcTxHash);
       if (bridgeHistoryItem) {
         return (
           <MultichainBridgeTransactionListItem
@@ -744,10 +773,7 @@ const UnifiedTransactionsView = ({
     // Preserve the legacy Activity title for swap/bridge rows (e.g.
     // "Swap ETH to USDC", "Bridge to Optimism") by deriving it from bridge
     // history, mirroring TransactionElement. Falls back to the kind-based title.
-    const itemHash = item.data.hash;
-    const bridgeHistoryItem = itemHash
-      ? bridgeHistoryItemsBySrcTxHash[itemHash]
-      : undefined;
+    const bridgeHistoryItem = getBridgeHistoryItemByHash(item.data.hash);
     const title = bridgeHistoryItem
       ? getSwapBridgeTxActivityTitle(bridgeHistoryItem)
       : undefined;
@@ -756,7 +782,6 @@ const UnifiedTransactionsView = ({
       <ActivityListItemRow
         item={item}
         index={index}
-        chainId={chainId}
         onPress={handleActivityItemPress}
         title={title}
       />

@@ -144,6 +144,24 @@ function resolveTitle(type: ActivityKind, token?: TokenAmount): string {
   return ACTIVITY_TITLE_RESOLVERS[type](token);
 }
 
+export function resolveActivityListItemTitle(
+  item: ActivityListItem,
+  titleOverride?: string,
+): string {
+  if (titleOverride) {
+    return titleOverride;
+  }
+
+  const primaryToken =
+    'token' in item.data
+      ? (item.data as { token?: TokenAmount }).token
+      : 'sourceToken' in item.data
+        ? (item.data as { sourceToken?: TokenAmount }).sourceToken
+        : undefined;
+
+  return resolveTitle(item.type, primaryToken);
+}
+
 // ---------------------------------------------------------------------------
 // ActivityKind → icon type string (matches getTransactionIcon switch cases)
 // ---------------------------------------------------------------------------
@@ -287,7 +305,6 @@ const createStyles = (
 interface ActivityListItemRowProps {
   item: ActivityListItem;
   index?: number;
-  chainId?: string;
   onPress?: (item: ActivityListItem) => void;
   /**
    * Optional pre-resolved title. Used to preserve the legacy Activity contract
@@ -300,7 +317,6 @@ interface ActivityListItemRowProps {
 export function ActivityListItemRow({
   item,
   index,
-  chainId,
   onPress,
   title: titleOverride,
 }: ActivityListItemRowProps) {
@@ -325,20 +341,11 @@ export function ActivityListItemRow({
           ? colors.warning.default
           : colors.text.muted;
 
-  // Primary token for title enrichment
-  const primaryToken =
-    'token' in item.data
-      ? (item.data as { token?: TokenAmount }).token
-      : 'sourceToken' in item.data
-        ? (item.data as { sourceToken?: TokenAmount }).sourceToken
-        : undefined;
-
-  const title = titleOverride ?? resolveTitle(item.type, primaryToken);
+  const title = resolveActivityListItemTitle(item, titleOverride);
   const amount = resolveAmount(item);
 
-  const networkChainId = chainId ?? item.chainId;
   const networkImageSource = getNetworkImageSource({
-    chainId: networkChainId,
+    chainId: item.chainId,
   });
 
   const handlePress = useCallback(() => {

@@ -6,6 +6,7 @@ import { render } from '@testing-library/react-native';
 import type { ActivityListItem, Status } from '../../../util/activity-adapters';
 import { ActivityListItemRow } from './ActivityListItemRow';
 import { strings } from '../../../../locales/i18n';
+import { getNetworkImageSource } from '../../../util/networks';
 
 // Minimal required mocks
 jest.mock('../../../util/theme', () => ({
@@ -220,6 +221,17 @@ describe('ActivityListItemRow — status display', () => {
     );
     const el = getByTestId('transaction-status-0');
     expect(el.props.children).toBe(strings('transaction.submitted'));
+  });
+});
+
+describe('ActivityListItemRow — network badge', () => {
+  it('uses the row item chainId for the network badge', () => {
+    const item = makeItem({ status: 'success' });
+    render(<ActivityListItemRow item={item} index={0} />);
+
+    expect(getNetworkImageSource).toHaveBeenCalledWith({
+      chainId: item.chainId,
+    });
   });
 });
 

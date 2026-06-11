@@ -17,6 +17,8 @@ import { useUnifiedTxActions } from './useUnifiedTxActions';
 import { useTransactionsQuery } from './useTransactionsQuery';
 import { selectApiEvmTransactions } from './helpers/transformations';
 import type { ActivityListItem } from './types';
+import { getSwapBridgeTxActivityTitle } from '../../UI/Bridge/utils/transaction-history';
+import { resolveActivityListItemTitle } from '../../UI/ActivityListItemRow/ActivityListItemRow';
 
 // Type helper for UNSAFE_queryByType with mocked string components
 const asComponentType = (name: string) => name as unknown as ComponentType;
@@ -166,6 +168,7 @@ jest.mock(
   () => 'MultichainBridgeTransactionListItem',
 );
 jest.mock('../../UI/ActivityListItemRow/ActivityListItemRow', () => ({
+  ...jest.requireActual('../../UI/ActivityListItemRow/ActivityListItemRow'),
   ActivityListItemRow: 'ActivityListItemRow',
 }));
 jest.mock('../../UI/TransactionActionModal', () => 'TransactionActionModal');
@@ -265,6 +268,9 @@ describe('UnifiedTransactionsView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    Object.keys(mockBridgeHistoryItemsBySrcTxHash).forEach((key) => {
+      delete mockBridgeHistoryItemsBySrcTxHash[key];
+    });
     mockUseTransactionsQuery();
     (useUnifiedTxActions as jest.Mock).mockImplementation(
       () => mockDefaultUnifiedTxActionsReturn,
@@ -605,6 +611,30 @@ describe('UnifiedTransactionsView with transactions', () => {
     ).toBe(true);
   });
 
+  it('resolves swap/bridge row title using bridge history with mismatched hash casing', () => {
+    mockUseTransactionsQuery(createConfirmedBridgeTransaction());
+    mockBridgeHistoryItemsBySrcTxHash[BRIDGE_TX_HASH.toUpperCase()] =
+      bridgeHistory[BRIDGE_TX_ID];
+
+    const { UNSAFE_queryAllByType } = renderWithProvider(
+      <UnifiedTransactionsView />,
+      {
+        state: stateWithConfirmedBridgeTransaction,
+      },
+    );
+
+    const activityItems = UNSAFE_queryAllByType(
+      asComponentType('ActivityListItemRow'),
+    );
+    const bridgeActivityItem = activityItems.find(
+      ({ props }) => props.item?.data?.hash === BRIDGE_TX_HASH.toLowerCase(),
+    );
+
+    expect(bridgeActivityItem?.props.title).toBe(
+      getSwapBridgeTxActivityTitle(bridgeHistory[BRIDGE_TX_ID]),
+    );
+  });
+
   it('keeps the local bridge transaction when Accounts API only has a nonce collision', () => {
     mockUseTransactionsQuery(createConfirmedBridgeTransaction(OTHER_TX_HASH));
     mockSelectBridgeHistoryForAccount.mockReturnValue(bridgeHistory);
@@ -797,6 +827,9 @@ describe('UnifiedTransactionsView - EVM network filter for unified list', () => 
     const [activityItem] = UNSAFE_queryAllByType(
       asComponentType('ActivityListItemRow'),
     );
+    const expectedActionKey = resolveActivityListItemTitle(
+      activityItem.props.item,
+    );
 
     activityItem.props.onPress(activityItem.props.item);
 
@@ -808,12 +841,16 @@ describe('UnifiedTransactionsView - EVM network filter for unified list', () => 
           tx: expect.objectContaining({
             hash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
           }),
+          transactionElement: expect.objectContaining({
+            actionKey: expectedActionKey,
+          }),
           transactionDetails: expect.objectContaining({
             hash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
           }),
         }),
       }),
     );
+    expect(expectedActionKey).not.toBe(activityItem.props.item.type);
   });
 
   it('hides pending EVM transactions when their chain is not in the enabled filter', () => {
