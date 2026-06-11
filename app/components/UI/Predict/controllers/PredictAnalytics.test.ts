@@ -787,5 +787,101 @@ describe('PredictAnalytics', () => {
         market_slug: 'slug-10',
       });
     });
+
+    it('tracks search opened with only the base properties', () => {
+      predictAnalytics.trackSearchInteracted({
+        interactionType: PredictEventValues.SEARCH_INTERACTION.OPENED,
+        predictFeedTab: 'trending',
+        entryPoint: 'predict_feed',
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.name).toBe(
+        MetaMetricsEvents.PREDICT_SEARCH_INTERACTED.category,
+      );
+      expect(event.properties).toEqual({
+        interaction_type: 'opened',
+        predict_feed_tab: 'trending',
+        entry_point: 'predict_feed',
+      });
+    });
+
+    it('tracks search queried with search query and results count', () => {
+      predictAnalytics.trackSearchInteracted({
+        interactionType: PredictEventValues.SEARCH_INTERACTION.QUERIED,
+        predictFeedTab: 'crypto',
+        entryPoint: 'predict_feed',
+        searchQuery: 'eth',
+        resultsCount: 5,
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.name).toBe(
+        MetaMetricsEvents.PREDICT_SEARCH_INTERACTED.category,
+      );
+      expect(event.properties).toMatchObject({
+        interaction_type: 'queried',
+        predict_feed_tab: 'crypto',
+        entry_point: 'predict_feed',
+        search_query: 'eth',
+        results_count: 5,
+      });
+    });
+
+    it('emits results_count of zero (does not drop the property)', () => {
+      predictAnalytics.trackSearchInteracted({
+        interactionType: PredictEventValues.SEARCH_INTERACTION.QUERIED,
+        searchQuery: 'nomatch',
+        resultsCount: 0,
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.properties).toMatchObject({
+        search_query: 'nomatch',
+        results_count: 0,
+      });
+    });
+
+    it('tracks search result_clicked with market id and title', () => {
+      predictAnalytics.trackSearchInteracted({
+        interactionType: PredictEventValues.SEARCH_INTERACTION.RESULT_CLICKED,
+        predictFeedTab: 'sports',
+        entryPoint: 'predict_feed',
+        searchQuery: 'cup',
+        marketId: 'm42',
+        marketTitle: 'World Cup Winner',
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.name).toBe(
+        MetaMetricsEvents.PREDICT_SEARCH_INTERACTED.category,
+      );
+      expect(event.properties).toMatchObject({
+        interaction_type: 'result_clicked',
+        predict_feed_tab: 'sports',
+        entry_point: 'predict_feed',
+        search_query: 'cup',
+        market_id: 'm42',
+        market_title: 'World Cup Winner',
+      });
+    });
+
+    it('omits optional properties (incl. predict_feed_tab) when not provided', () => {
+      predictAnalytics.trackSearchInteracted({
+        interactionType: PredictEventValues.SEARCH_INTERACTION.OPENED,
+        entryPoint: 'home_section',
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.properties).toEqual({
+        interaction_type: 'opened',
+        entry_point: 'home_section',
+      });
+    });
   });
 });

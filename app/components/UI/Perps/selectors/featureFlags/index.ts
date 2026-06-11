@@ -339,9 +339,8 @@ export const selectPerpsTopMoversEnabledFlag = createSelector(
 export const selectPerpsWatchlistEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
-    const remoteFlag = remoteFeatureFlags?.[
-      'perps-watchlist-v2-enabled'
-    ] as unknown as VersionGatedFeatureFlag;
+    const remoteFlag =
+      remoteFeatureFlags?.perpsWatchlistV2Enabled as unknown as VersionGatedFeatureFlag;
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },
 );

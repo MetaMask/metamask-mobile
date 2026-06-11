@@ -13,10 +13,7 @@ import {
   type SortDirection,
   type SortOptionId,
 } from '@metamask/perps-controller';
-import {
-  getMarketTypeForFilter,
-  getFilterForMarketType,
-} from '../utils/marketCategoryMapping';
+import { isHip3Filter } from '../utils/marketCategoryMapping';
 import {
   selectPerpsWatchlistMarkets,
   selectPerpsMarketFilterPreferences,
@@ -232,15 +229,10 @@ export const usePerpsMarketListView = ({
       return searchedMarkets.filter((market) => market.isNewMarket);
     }
 
-    const targetType = getMarketTypeForFilter(marketTypeFilter);
-    if (targetType) {
-      return searchedMarkets.filter(
-        (market) => market.marketType === targetType,
-      );
-    }
-
-    // Fallback: return all markets for unknown filter values
-    return searchedMarkets;
+    // HIP-3 category filter: marketTypeFilter === marketType in v8+
+    return searchedMarkets.filter(
+      (market) => market.marketType === marketTypeFilter,
+    );
   }, [searchedMarkets, marketTypeFilter]);
 
   // Use sorting hook for sort state and sorting logic.
@@ -323,9 +315,8 @@ export const usePerpsMarketListView = ({
       if (!market.isHip3) {
         counts.crypto++;
       } else if (market.marketType) {
-        const filterKey = getFilterForMarketType(market.marketType);
-        if (filterKey && filterKey !== 'all' && filterKey in counts) {
-          counts[filterKey]++;
+        if (isHip3Filter(market.marketType) && market.marketType in counts) {
+          counts[market.marketType]++;
         }
       }
     });

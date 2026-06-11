@@ -82,6 +82,7 @@ interface PerpsWatchlistMarketsProps {
  */
 const PerpsWatchlistMarketsV1: React.FC<PerpsWatchlistMarketsProps> = ({
   markets,
+  suggestedMarkets,
   isLoading,
   positions = [],
   orders = [],
@@ -90,6 +91,8 @@ const PerpsWatchlistMarketsV1: React.FC<PerpsWatchlistMarketsProps> = ({
   sectionStyle,
   headerStyle,
   contentContainerStyle,
+  onSeeAllPress,
+  showHeader = true,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();

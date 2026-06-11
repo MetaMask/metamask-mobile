@@ -11,7 +11,7 @@ import {
 const logger = createPlaywrightLogger('PlaywrightGestures');
 
 export interface ScrollOptions {
-  scrollParams?: { direction?: 'up' | 'down' };
+  scrollParams?: { direction?: 'up' | 'down' | 'left' | 'right' };
   from?: { x: number; y: number };
   to?: { x: number; y: number };
   percent?: number;
@@ -482,7 +482,7 @@ export default class PlaywrightGestures {
    * Hide keyboard for both Android and iOS
    * @param keyName - The key to press on iOS keyboard (default: 'Done'). Common values: 'Done', 'Return', 'Search', 'Go', 'Next'
    */
-  static async hideKeyboard(keyName: string = 'Done'): Promise<void> {
+  static async hideKeyboard(): Promise<void> {
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
 
@@ -490,11 +490,13 @@ export default class PlaywrightGestures {
     if (PlatformDetector.isAndroid()) {
       await drv.hideKeyboard();
     } else {
-      // iOS - tapOutside dismisses the keyboard by tapping outside the focused
-      // element, which works regardless of keyboard type (password, numeric, etc.)
+      // iOS — use 'tapOutside' to dismiss the keyboard without pressing a
+      // return key. 'pressKey: Done' would trigger onSubmitEditing on inputs
+      // that have returnKeyType='done', causing unintended form submissions
+      // before the test has a chance to interact with other elements.
       try {
         await drv.executeScript('mobile: hideKeyboard', [
-          { strategy: 'pressKey', key: keyName },
+          { strategy: 'tapOutside' },
         ]);
       } catch {
         // Keyboard may already be hidden

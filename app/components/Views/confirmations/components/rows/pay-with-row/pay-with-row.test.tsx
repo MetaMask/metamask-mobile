@@ -1,6 +1,7 @@
 import React from 'react';
 import { type PaymentMethod } from '@metamask/ramps-controller';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
+import { TransactionType } from '@metamask/transaction-controller';
 import { useNavigation } from '@react-navigation/native';
 import { act, fireEvent } from '@testing-library/react-native';
 import { merge } from 'lodash';
@@ -328,7 +329,7 @@ describe('PayWithRow', () => {
     it('renders money balance label without inline balance', () => {
       const { getByTestId, queryByTestId } = renderMoneyAccount();
 
-      expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money balance');
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money account');
       expect(queryByTestId('pay-with-balance')).toBeNull();
     });
 
@@ -356,7 +357,19 @@ describe('PayWithRow', () => {
     it('renders money account row regardless of isResultReady when paymentOverride is MoneyAccount', () => {
       const { getByTestId } = renderMoneyAccount({ isResultReady: true });
 
-      expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money balance');
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money account');
+    });
+
+    it('renders money account row for perps deposit', () => {
+      jest.mocked(useTransactionMetadataRequest).mockReturnValue({
+        id: TRANSACTION_ID_MOCK,
+        type: TransactionType.perpsDeposit,
+      } as never);
+
+      const { getByTestId } = renderMoneyAccount();
+
+      expect(getByTestId('pay-with')).toBeDefined();
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money account');
     });
   });
 

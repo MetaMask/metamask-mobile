@@ -64,8 +64,8 @@ interface UsePerpsHomeDataReturn {
  * Uses object parameters pattern for maintainability
  */
 export const usePerpsHomeData = ({
-  positionsLimit = HOME_SCREEN_CONFIG.PositionsCarouselLimit,
-  ordersLimit = HOME_SCREEN_CONFIG.OrdersCarouselLimit,
+  positionsLimit,
+  ordersLimit,
   trendingLimit = HOME_SCREEN_CONFIG.TrendingMarketsLimit,
   activityLimit = HOME_SCREEN_CONFIG.RecentActivityLimit,
   searchQuery = '',
@@ -308,12 +308,21 @@ export const usePerpsHomeData = ({
     [filterBySearchQuery, searchQuery],
   );
 
+  // The Perps home screen renders positions/orders in a vertical ScrollView with
+  // no "see all" page, so it must show every open position/order. Only apply a
+  // cap when a caller explicitly passes a finite limit (default: no cap).
   const limitedPositions = useMemo(
-    () => filteredData.positions.slice(0, positionsLimit),
+    () =>
+      positionsLimit === undefined
+        ? filteredData.positions
+        : filteredData.positions.slice(0, positionsLimit),
     [filteredData.positions, positionsLimit],
   );
   const limitedOrders = useMemo(
-    () => filteredData.orders.slice(0, ordersLimit),
+    () =>
+      ordersLimit === undefined
+        ? filteredData.orders
+        : filteredData.orders.slice(0, ordersLimit),
     [filteredData.orders, ordersLimit],
   );
   const limitedWatchlistMarkets = useMemo(

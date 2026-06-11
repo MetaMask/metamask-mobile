@@ -3,6 +3,7 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import {
+  TransactionFiatPayment,
   TransactionPayQuote,
   TransactionPayTotals,
 } from '@metamask/transaction-pay-controller';
@@ -12,6 +13,7 @@ import { Json } from '@metamask/utils';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useIsPaidByMetaMask } from './useIsPaidByMetaMask';
 import {
+  useTransactionPayFiatPayment,
   useTransactionPayQuotes,
   useTransactionPayTotals,
 } from './useTransactionPayData';
@@ -54,12 +56,16 @@ function runHook({ type }: { type?: TransactionType } = {}) {
 }
 
 describe('useIsPaidByMetaMask', () => {
+  const useTransactionPayFiatPaymentMock = jest.mocked(
+    useTransactionPayFiatPayment,
+  );
   const useTransactionPayQuotesMock = jest.mocked(useTransactionPayQuotes);
   const useTransactionPayTotalsMock = jest.mocked(useTransactionPayTotals);
 
   beforeEach(() => {
     jest.resetAllMocks();
 
+    useTransactionPayFiatPaymentMock.mockReturnValue(undefined);
     useTransactionPayQuotesMock.mockReturnValue([
       {} as TransactionPayQuote<Json>,
     ]);
@@ -84,6 +90,16 @@ describe('useIsPaidByMetaMask', () => {
 
   it('returns false when the transaction type is not musdConversion', () => {
     const { result } = runHook({ type: TransactionType.perpsDeposit });
+
+    expect(result.current).toBe(false);
+  });
+
+  it('returns false when a fiat payment method is selected', () => {
+    useTransactionPayFiatPaymentMock.mockReturnValue({
+      selectedPaymentMethodId: 'apple-pay',
+    } as TransactionFiatPayment);
+
+    const { result } = runHook({ type: TransactionType.moneyAccountDeposit });
 
     expect(result.current).toBe(false);
   });

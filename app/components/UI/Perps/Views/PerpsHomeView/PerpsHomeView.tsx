@@ -613,6 +613,7 @@ const PerpsHomeView = ({
         showsVerticalScrollIndicator={false}
         onScroll={perpsScrollHandler}
         scrollEventThrottle={16}
+        testID={PerpsHomeViewSelectorsIDs.SCROLL_CONTENT}
       >
         <Box
           onLayout={(event) =>
@@ -706,6 +707,7 @@ const PerpsHomeView = ({
                 key={`${position.symbol}-${index}`}
                 position={position}
                 source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+                testID={`${PerpsHomeViewSelectorsIDs.POSITION_CARD}-${index}`}
               />
             ))}
           </View>
@@ -721,11 +723,12 @@ const PerpsHomeView = ({
           renderSkeleton={() => <PerpsRowSkeleton count={2} />}
         >
           <View style={styles.positionsOrdersContainer}>
-            {orders.map((order) => (
+            {orders.map((order, index) => (
               <PerpsCard
                 key={order.orderId}
                 order={order}
                 source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+                testID={`${PerpsHomeViewSelectorsIDs.ORDER_CARD}-${index}`}
               />
             ))}
           </View>
@@ -786,7 +789,7 @@ const PerpsHomeView = ({
         <PerpsMarketTypeSection
           title={strings('perps.home.commodities')}
           markets={commoditiesMarkets}
-          marketType="commodities"
+          marketType="commodity"
           sortBy={sortBy}
           isLoading={isLoading.markets}
           source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
@@ -798,7 +801,7 @@ const PerpsHomeView = ({
           <PerpsMarketTypeSection
             title={strings('perps.home.stocks')}
             markets={stocksMarkets}
-            marketType="stocks"
+            marketType="stock"
             sortBy={sortBy}
             isLoading={isLoading.markets}
             source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}

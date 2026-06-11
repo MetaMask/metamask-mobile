@@ -15,6 +15,7 @@ import {
 } from './BatchSellTokenSelect.utils';
 import Routes from '../../../../../constants/navigation/Routes';
 import { BridgeTokenMetadata } from '../../constants/tokens';
+import { POLYGON_NATIVE_TOKEN } from '../../constants/assets';
 import { DEFAULT_BATCH_SELL_SLIPPAGE } from '../../components/SlippageModal/utils';
 import {
   TextColor as ComponentLibraryTextColor,
@@ -29,6 +30,7 @@ let mockDestinationStablecoinsByChain: Partial<
   Record<CaipChainId, BridgeToken[]>
 > = {};
 let mockWalletTokens: BridgeToken[] = [];
+let mockCommittedSourceTokens: BridgeToken[] = [];
 let mockPricePercentChangesByAddress: Record<string, number | undefined> = {};
 let mockTokenMarketData: Record<
   Hex,
@@ -115,6 +117,7 @@ jest.mock('../../../../../core/redux/slices/bridge', () => ({
   selectBatchSellDestStablecoinsByChain: jest.fn(
     () => mockDestinationStablecoinsByChain,
   ),
+  selectBatchSellSourceTokens: jest.fn(() => mockCommittedSourceTokens),
   setBatchSellSourceTokens: jest.fn((tokens: BridgeToken[]) => ({
     type: 'bridge/setBatchSellSourceTokens',
     payload: tokens,
@@ -341,6 +344,7 @@ describe('BatchSellTokenSelect', () => {
       ETH: { conversionRate: 1 },
     };
     mockCurrentCurrency = 'usd';
+    mockCommittedSourceTokens = [];
     mockNativeCurrencyByChainId = {
       ['0x1' as Hex]: 'ETH',
       ['0x38' as Hex]: 'BNB',
@@ -873,6 +877,91 @@ describe('BatchSellTokenSelect', () => {
       },
     });
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.BATCH_SELL_REVIEW);
+  });
+
+  it('deselects tokens removed from the committed source tokens on the review page', () => {
+    const firstToken = createToken({ symbol: 'ONE' });
+    const secondToken = createToken({
+      symbol: 'TWO',
+      address: '0x2222222222222222222222222222222222222222',
+    });
+    const thirdToken = createToken({
+      symbol: 'THREE',
+      address: '0x3333333333333333333333333333333333333333',
+    });
+    mockWalletTokens = [firstToken, secondToken, thirdToken];
+
+    const { getByText, rerender } = render(<BatchSellTokenSelect />);
+
+    fireEvent.press(getByText('ONE'));
+    fireEvent.press(getByText('TWO'));
+    fireEvent.press(getByText('THREE'));
+    expect(getByText('Continue with (3) tokens')).toBeOnTheScreen();
+
+    // Simulate the review page removing a token, which only updates Redux.
+    mockCommittedSourceTokens = [firstToken, secondToken];
+    rerender(<BatchSellTokenSelect />);
+
+    expect(getByText('Continue with (2) tokens')).toBeOnTheScreen();
+  });
+
+  it('keeps committed tokens selected when their address is normalized on commit', () => {
+    // Polygon native carries a non-zero address (0x…1010) in wallet rows, but is
+    // normalized to the zero address when committed via setBatchSellSourceTokens.
+    // The reconciliation must treat both as the same token so it stays selected.
+    const polygonNativeToken = createToken({
+      symbol: 'POL',
+      address: POLYGON_NATIVE_TOKEN,
+      chainId: '0x89' as Hex,
+    });
+    const polygonToken = createToken({
+      symbol: 'TWO',
+      address: '0x2222222222222222222222222222222222222222',
+      chainId: '0x89' as Hex,
+    });
+    mockNativeCurrencyByChainId = {
+      ...mockNativeCurrencyByChainId,
+      ['0x89' as Hex]: 'POL',
+    };
+    mockWalletTokens = [polygonNativeToken, polygonToken];
+
+    const { getByText, rerender } = render(<BatchSellTokenSelect />);
+
+    fireEvent.press(getByText('POL'));
+    fireEvent.press(getByText('TWO'));
+    expect(getByText('Continue with (2) tokens')).toBeOnTheScreen();
+
+    // Redux stores the committed tokens with normalized addresses.
+    mockCommittedSourceTokens = [
+      createToken({
+        symbol: 'POL',
+        address: '0x0000000000000000000000000000000000000000',
+        chainId: '0x89' as Hex,
+      }),
+      polygonToken,
+    ];
+    rerender(<BatchSellTokenSelect />);
+
+    expect(getByText('Continue with (2) tokens')).toBeOnTheScreen();
+  });
+
+  it('keeps the local selection when no tokens have been committed yet', () => {
+    const firstToken = createToken({ symbol: 'ONE' });
+    const secondToken = createToken({
+      symbol: 'TWO',
+      address: '0x2222222222222222222222222222222222222222',
+    });
+    mockWalletTokens = [firstToken, secondToken];
+
+    const { getByText, rerender } = render(<BatchSellTokenSelect />);
+
+    fireEvent.press(getByText('ONE'));
+    fireEvent.press(getByText('TWO'));
+    expect(getByText('Continue with (2) tokens')).toBeOnTheScreen();
+
+    rerender(<BatchSellTokenSelect />);
+
+    expect(getByText('Continue with (2) tokens')).toBeOnTheScreen();
   });
 
   it('persists the descending sort order regardless of selection order', () => {

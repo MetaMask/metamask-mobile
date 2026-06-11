@@ -616,16 +616,14 @@ describe('PerpsWatchlistMarkets', () => {
     });
 
     it('navigates to market details on row press', () => {
-      render(
-        <PerpsWatchlistMarkets markets={mockMarkets} source="perps_home" />,
-      );
+      render(<PerpsWatchlistMarkets markets={mockMarkets} />);
       fireEvent.press(screen.getByTestId('perps-market-row-BTC'));
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_DETAILS,
         params: {
           market: mockMarkets[0],
           initialTab: undefined,
-          source: 'perps_home',
+          source: undefined,
         },
       });
     });
