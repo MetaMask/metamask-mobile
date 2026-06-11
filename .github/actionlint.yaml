@@ -23,8 +23,6 @@ self-hosted-runner:
     # Bitrise Build Hub runner labels (INFRA-3679). Pool names are bitrise-<chip>-*; see RUNNER_LABELS.md
     - "bitrise-metamask-ios-build"                          # iOS build (pool e.g. bitrise-m4pro-14c-54g)
     - "bitrise-metamask-ios-e2e"                            # shared E2E: M4 + M2 Pro pools (200 VMs)
-    - "bitrise-metamask-ios-e2e-m4-10c-28g"                 # chip-specific; benchmark override only
-    - "bitrise-metamask-ios-e2e-m2pro-12c-28g"              # chip-specific; benchmark override only
 
 # Configuration variables in array of strings defined in your repository or
 # organization. `null` means disabling configuration variables check.
