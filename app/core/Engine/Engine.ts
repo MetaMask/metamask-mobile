@@ -744,7 +744,6 @@ export class Engine {
               // Chain may not be configured locally — skip balance refresh
             }
 
-            this.context.TransactionController.updateIncomingTransactions();
           }
         } catch (error) {
           console.error(
@@ -830,7 +829,6 @@ export class Engine {
     ///: END:ONLY_INCLUDE_IF
 
     this.configureControllersOnNetworkChange();
-    this.startPolling();
     this.handleVaultBackup();
 
     Engine.instance = this;
@@ -859,15 +857,6 @@ export class Engine {
           });
       },
     );
-  }
-
-  startPolling() {
-    const { TransactionController } = this.context;
-
-    TransactionController.stopIncomingTransactionPolling();
-
-    // leaving the reference of TransactionController here, rather than importing it from utils to avoid circular dependency
-    TransactionController.startIncomingTransactionPolling();
   }
 
   configureControllersOnNetworkChange() {
