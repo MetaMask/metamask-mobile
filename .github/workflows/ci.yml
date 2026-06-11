@@ -61,7 +61,7 @@ jobs:
 
   check-diff:
     name: Check diff
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ios-build' || inputs.runner_provider == 'bitrise' && 'bitrise-m4-pro' || 'macos-latest' }}
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ios-build' || inputs.runner_provider == 'bitrise' && 'temp-bitrise-runners' || 'macos-latest' }}
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements

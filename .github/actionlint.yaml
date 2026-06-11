@@ -21,7 +21,7 @@ self-hosted-runner:
     - "namespace-profile-metamask-ios-build"
     - "namespace-profile-metamask-ios-e2e"
     # Bitrise Build Hub runner labels (INFRA-3679).
-    - "bitrise-m4-pro"
+    - "temp-bitrise-runners"
 
 # Configuration variables in array of strings defined in your repository or
 # organization. `null` means disabling configuration variables check.
