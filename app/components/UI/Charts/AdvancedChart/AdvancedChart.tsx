@@ -89,6 +89,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       selectedMAs = [],
       positionLines,
       tradeMarkers,
+      positionLineColors,
       chartType,
       showVolume = false,
       volumeOverlay = false,
@@ -149,6 +150,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     const webViewLoadedRef = useRef(false);
     const prevPositionLinesRef = useRef(positionLines);
     const prevTradeMarkersRef = useRef(tradeMarkers);
+    const positionLineColorsRef = useRef(positionLineColors);
+    positionLineColorsRef.current = positionLineColors;
     const prevChartTypeRef = useRef(chartType);
     const prevOhlcvDataRef = useRef<OHLCVBar[]>([]);
     const prevOhlcvSeriesKeyRef = useRef<string | undefined>(undefined);
@@ -817,7 +820,10 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
 
       postMessage({
         type: 'SET_POSITION_LINES',
-        payload: { position: positionLines ?? null },
+        payload: {
+          position: positionLines ?? null,
+          positionLineColors: positionLineColorsRef.current,
+        },
       });
     }, [positionLines, chartReadyCount, postMessage]);
 

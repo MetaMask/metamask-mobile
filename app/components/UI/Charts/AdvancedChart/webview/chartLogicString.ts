@@ -622,7 +622,7 @@ function handleSetOHLCVData(payload) {
             resetDatafeedCacheBeforeHotReload();
             beginDeferredLayoutSettleAfterOhlcvReload();
             chart.resetData();
-            // resetData() drops the trade-marker shapes; clear our tracking and
+            // resetData()/setResolution drop Drawing API shapes; clear our tracking and
             // re-schedule a draw, otherwise placeTradeMarkers skips the redraw
             // (its id set still matches) and the circles stay gone.
             clearTradeMarkers();
@@ -2576,6 +2576,13 @@ function handleSetPositionLines(payload) {
 
   let position = payload.position;
   let theme = window.CONFIG.theme;
+  // Position lines are consumer-specific (currently Perps only); the consumer
+  // supplies colors via the payload. Fall back to theme-derived defaults.
+  let colors = payload.positionLineColors || {};
+  let entryColor = colors.entry || '#858585';
+  let takeProfitColor = colors.takeProfit || theme.successColor;
+  let stopLossColor = colors.stopLoss || '#858585';
+  let liquidationColor = colors.liquidation || theme.errorColor;
 
   try {
     let chart = window.chartWidget.activeChart();
@@ -2585,7 +2592,7 @@ function handleSetPositionLines(payload) {
       lines.push({
         price: position.entryPrice,
         text: 'Entry',
-        color: '#858585',
+        color: entryColor,
         lineStyle: 2,
       });
     }
@@ -2593,7 +2600,7 @@ function handleSetPositionLines(payload) {
       lines.push({
         price: position.takeProfitPrice,
         text: 'TP',
-        color: theme.successColor,
+        color: takeProfitColor,
         lineStyle: 2,
       });
     }
@@ -2601,7 +2608,7 @@ function handleSetPositionLines(payload) {
       lines.push({
         price: position.stopLossPrice,
         text: 'SL',
-        color: '#858585',
+        color: stopLossColor,
         lineStyle: 2,
       });
     }
@@ -2609,13 +2616,10 @@ function handleSetPositionLines(payload) {
       lines.push({
         price: position.liquidationPrice,
         text: 'Liq',
-        color: theme.errorColor,
+        color: liquidationColor,
         lineStyle: 2,
       });
     }
-    // TODO: currentPrice is defined in PositionLines but not yet rendered here.
-    // Add a line for position.currentPrice (e.g. a solid line showing live mark
-    // price) when the Perps integration is ready.
 
     for (let i = 0; i < lines.length; i++) {
       (function (line) {
