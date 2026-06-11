@@ -111,7 +111,7 @@ const MoneyHomeView = () => {
     totalFiatFormatted,
     totalFiatRaw,
     vaultApyQuery,
-    isAggregatedBalanceLoading,
+    isBalanceLoading,
     isBalanceFetchError,
     isBalanceFetching,
     refetchBalance,
@@ -174,7 +174,7 @@ const MoneyHomeView = () => {
     displayState = { kind: 'retrying' };
   } else if (isBalanceFetchError) {
     displayState = { kind: 'error', onRetry: refetchBalance };
-  } else if (isAggregatedBalanceLoading) {
+  } else if (isBalanceLoading) {
     displayState = { kind: 'loading' };
   } else if (totalFiatFormatted === undefined) {
     displayState = { kind: 'unavailable' };
@@ -627,7 +627,7 @@ const MoneyHomeView = () => {
             <MoneyEarnings
               monthlyEarnings={monthlyEarnings}
               yearlyEarnings={yearlyEarnings}
-              isLoading={vaultApyQuery.isLoading || isAggregatedBalanceLoading}
+              isLoading={vaultApyQuery.isLoading || isBalanceLoading}
               onInfoPress={handleEarningsInfoPress}
             />
             <Divider />
