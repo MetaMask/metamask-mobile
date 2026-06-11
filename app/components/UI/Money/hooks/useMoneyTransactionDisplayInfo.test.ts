@@ -831,7 +831,7 @@ describe('useMoneyTransactionDisplayInfo — per-kind subtitles', () => {
     expect(result.current.description).toBe('money.transaction.received_from');
   });
 
-  it('sent → "mUSD → <destination token>"', () => {
+  it('sent → "mUSD → <destination token>" when the dest token resolves', () => {
     const tx = makeTx(TransactionType.moneyAccountWithdraw, {
       metamaskPay: { tokenAddress: ETH_ADDRESS, chainId: CHAIN_ID },
     });
@@ -840,6 +840,16 @@ describe('useMoneyTransactionDisplayInfo — per-kind subtitles', () => {
       { state: makeState() },
     );
     expect(result.current.description).toBe('mUSD → ETH');
+  });
+
+  it('sent → "mUSD → USDC" for a withdrawal whose dest token cannot be resolved', () => {
+    // No metamaskPay token → falls back to the known money withdraw token.
+    const tx = makeTx(TransactionType.moneyAccountWithdraw, {});
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.description).toBe('mUSD → USDC');
   });
 
   it('deposited (fiat on-ramp) → provider name', () => {

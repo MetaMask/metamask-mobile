@@ -26,6 +26,8 @@ import {
 import { buildMoneyActivityFiatLine } from '../utils/moneyActivityFiat';
 import { moneyFormatFiat } from '../utils/moneyFormatFiat';
 import { isMusdToken, MUSD_TOKEN } from '../../Earn/constants/musd';
+import { MONEY_WITHDRAW_TOKEN_SYMBOL } from '../constants/moneyTokens';
+import { isMoneyWithdrawTx } from '../utils/moneyTransactionGuards';
 import type { MoneyActivityTransactionMeta } from '../constants/mockActivityData';
 import {
   classifyMoneyActivity,
@@ -106,10 +108,15 @@ function deriveSubtitle(
       return sourceTokenSymbol
         ? `${sourceTokenSymbol} → ${MUSD_TOKEN.symbol}`
         : undefined;
-    case 'sent':
-      return sourceTokenSymbol
-        ? `${MUSD_TOKEN.symbol} → ${sourceTokenSymbol}`
-        : undefined;
+    case 'sent': {
+      // Prefer the resolved destination token; for a withdrawal (always paid
+      // out in USDC) fall back to that known symbol, since the dest token
+      // usually isn't in the registry.
+      const destSymbol =
+        sourceTokenSymbol ??
+        (isMoneyWithdrawTx(tx) ? MONEY_WITHDRAW_TOKEN_SYMBOL : undefined);
+      return destSymbol ? `${MUSD_TOKEN.symbol} → ${destSymbol}` : undefined;
+    }
     case 'received': {
       const sender = tx.txParams?.from;
       return sender

@@ -165,7 +165,7 @@ describe('MoneyActivityView', () => {
     expect(
       getByTestId(MoneyActivityLoadingTestIds.CONTAINER),
     ).toBeOnTheScreen();
-    expect(queryByTestId('activity-mock-tx-money-tx-1')).toBeNull();
+    expect(queryByTestId('activity-mock-tx-money-tx-converted')).toBeNull();
   });
 
   it('renders the main container', () => {
@@ -203,7 +203,9 @@ describe('MoneyActivityView', () => {
   it('renders transaction rows from activity data', () => {
     const { getByTestId } = renderWithProvider(<MoneyActivityView />);
 
-    expect(getByTestId('activity-mock-tx-money-tx-1')).toBeOnTheScreen();
+    expect(
+      getByTestId('activity-mock-tx-money-tx-converted'),
+    ).toBeOnTheScreen();
   });
 
   it('shows only deposit rows when the Deposits filter is selected', () => {
@@ -213,8 +215,10 @@ describe('MoneyActivityView', () => {
 
     fireEvent.press(getByTestId(MoneyActivityViewTestIds.FILTER_DEPOSITS));
 
-    expect(getByTestId('activity-mock-tx-money-tx-1')).toBeOnTheScreen();
-    expect(queryByTestId('activity-mock-tx-money-tx-4')).toBeNull();
+    expect(
+      getByTestId('activity-mock-tx-money-tx-converted'),
+    ).toBeOnTheScreen();
+    expect(queryByTestId('activity-mock-tx-money-tx-sent')).toBeNull();
   });
 
   it('shows only transfer rows when the Transfers filter is selected', () => {
@@ -224,8 +228,8 @@ describe('MoneyActivityView', () => {
 
     fireEvent.press(getByTestId(MoneyActivityViewTestIds.FILTER_TRANSFERS));
 
-    expect(getByTestId('activity-mock-tx-money-tx-4')).toBeOnTheScreen();
-    expect(queryByTestId('activity-mock-tx-money-tx-1')).toBeNull();
+    expect(getByTestId('activity-mock-tx-money-tx-sent')).toBeOnTheScreen();
+    expect(queryByTestId('activity-mock-tx-money-tx-converted')).toBeNull();
   });
 
   it('renders empty state when there are no transactions', () => {
@@ -249,7 +253,7 @@ describe('MoneyActivityView', () => {
   it('pressing a row navigates to the transaction details sheet when mockDataEnabled is false', () => {
     const { getByTestId } = renderWithProvider(<MoneyActivityView />);
 
-    fireEvent.press(getByTestId('activity-mock-tx-money-tx-1'));
+    fireEvent.press(getByTestId('activity-mock-tx-money-tx-converted'));
 
     expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
@@ -356,13 +360,13 @@ describe('MoneyActivityView', () => {
     it('calls trackActivitySurfaceClicked with transaction and MONEY_ACTIVITY_DETAILS redirect when a row is pressed', () => {
       const { getByTestId } = renderWithProvider(<MoneyActivityView />);
 
-      fireEvent.press(getByTestId('activity-mock-tx-money-tx-1'));
+      fireEvent.press(getByTestId('activity-mock-tx-money-tx-converted'));
 
       expect(mockTrackActivitySurfaceClicked).toHaveBeenCalledWith(
         expect.objectContaining({
           redirect_target: SCREEN_NAMES.MONEY_ACTIVITY_DETAILS,
           component_name: COMPONENT_NAMES.MONEY_ACTIVITY_LIST_ITEM,
-          transaction: expect.objectContaining({ id: 'money-tx-1' }),
+          transaction: expect.objectContaining({ id: 'money-tx-converted' }),
         }),
       );
     });

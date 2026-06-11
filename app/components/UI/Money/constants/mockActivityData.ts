@@ -1,6 +1,7 @@
 import {
   type TransactionMeta,
   type TransactionParams,
+  CHAIN_IDS,
   TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
@@ -35,9 +36,12 @@ export type MoneyActivityTransactionMeta = TransactionMeta & {
   moneyActivityTitleKey?: MoneyActivityTitleKey;
 };
 
-export const MOCK_CHAIN_ID = '0x1' as Hex;
+// mUSD activity is gated to the Money Account chain (Monad). Using Monad here
+// lets the mUSD amount resolve through the normal `transferInformation` path so
+// mock rows render real "+/-X.XX mUSD" amounts.
+export const MOCK_CHAIN_ID = CHAIN_IDS.MONAD as Hex;
 
-export const MOCK_NETWORK_CLIENT_ID = 'mainnet';
+export const MOCK_NETWORK_CLIENT_ID = 'monad';
 
 const defaultTxParams = {
   from: '0x0000000000000000000000000000000000000001',
@@ -51,6 +55,7 @@ function makeMoneyTx(config: {
   timestampSec: number;
   type: TransactionType;
   amount: string;
+  status?: TransactionStatus;
   symbol?: string;
   moneySubtitle?: string;
   moneyActivityTitleKey?: MoneyActivityTitleKey;
@@ -60,6 +65,7 @@ function makeMoneyTx(config: {
     timestampSec,
     type,
     amount,
+    status = TransactionStatus.confirmed,
     symbol = MUSD_TOKEN.symbol,
     moneySubtitle,
     moneyActivityTitleKey,
@@ -69,7 +75,7 @@ function makeMoneyTx(config: {
     id,
     chainId: MOCK_CHAIN_ID,
     networkClientId: MOCK_NETWORK_CLIENT_ID,
-    status: TransactionStatus.confirmed,
+    status,
     time: timestampSec * 1000,
     txParams: defaultTxParams,
     type,
@@ -84,52 +90,110 @@ function makeMoneyTx(config: {
   };
 }
 
+// A QA fixture covering the full kind × status matrix from the MUSD-956 design.
+// `type` drives the +/- sign and incoming colour; `moneyActivityTitleKey` pins
+// the kind; `status` drives the label form (Depositing / Deposit failed / …)
+// and the spinner; `moneySubtitle` supplies the subtitle text (the token
+// registry isn't populated in mock mode, so we set it explicitly).
 const MOCK_MONEY_TRANSACTIONS: MoneyActivityTransactionMeta[] = [
+  // --- Pending (in-flight): present-tense label + spinner ---
   makeMoneyTx({
-    id: 'money-tx-1',
+    id: 'money-tx-depositing',
     timestampSec: 1747094400,
     type: TransactionType.moneyAccountDeposit,
-    amount: '100000000',
-    moneyActivityTitleKey: 'added',
+    amount: '1000000000',
+    status: TransactionStatus.submitted,
+    moneySubtitle: 'Transak',
+    moneyActivityTitleKey: 'deposited',
   }),
   makeMoneyTx({
-    id: 'money-tx-2',
+    id: 'money-tx-converting',
+    timestampSec: 1747094100,
+    type: TransactionType.moneyAccountDeposit,
+    amount: '1000000000',
+    status: TransactionStatus.submitted,
+    moneySubtitle: 'ETH → mUSD',
+    moneyActivityTitleKey: 'converted',
+  }),
+  makeMoneyTx({
+    id: 'money-tx-sending',
+    timestampSec: 1747093800,
+    type: TransactionType.moneyAccountWithdraw,
+    amount: '250000000',
+    status: TransactionStatus.submitted,
+    moneySubtitle: 'mUSD → USDC',
+    moneyActivityTitleKey: 'sent',
+  }),
+
+  // --- Failed: red "<action> failed" label, subtitle preserved, zero amount ---
+  makeMoneyTx({
+    id: 'money-tx-deposit-failed',
     timestampSec: 1747090800,
+    type: TransactionType.moneyAccountDeposit,
+    amount: '1000000000',
+    status: TransactionStatus.failed,
+    moneySubtitle: 'Transak',
+    moneyActivityTitleKey: 'deposited',
+  }),
+  makeMoneyTx({
+    id: 'money-tx-conversion-failed',
+    timestampSec: 1747090500,
+    type: TransactionType.moneyAccountDeposit,
+    amount: '1000000000',
+    status: TransactionStatus.failed,
+    moneySubtitle: 'USDC → mUSD',
+    moneyActivityTitleKey: 'converted',
+  }),
+  makeMoneyTx({
+    id: 'money-tx-send-failed',
+    timestampSec: 1747090200,
+    type: TransactionType.moneyAccountWithdraw,
+    amount: '250000000',
+    status: TransactionStatus.failed,
+    moneySubtitle: 'mUSD → USDC',
+    moneyActivityTitleKey: 'sent',
+  }),
+
+  // --- Confirmed ---
+  makeMoneyTx({
+    id: 'money-tx-converted',
+    timestampSec: 1747008000,
+    type: TransactionType.moneyAccountDeposit,
+    amount: '1000000000',
+    moneySubtitle: 'USDC → mUSD',
+    moneyActivityTitleKey: 'converted',
+  }),
+  makeMoneyTx({
+    id: 'money-tx-deposited-fiat',
+    timestampSec: 1747004400,
     type: TransactionType.moneyAccountDeposit,
     amount: '1000000000',
     moneySubtitle: 'Transak',
     moneyActivityTitleKey: 'deposited',
   }),
   makeMoneyTx({
-    id: 'money-tx-3',
-    timestampSec: 1747087200,
-    type: TransactionType.incoming,
+    id: 'money-tx-deposited-musd',
+    timestampSec: 1747000800,
+    type: TransactionType.moneyAccountDeposit,
     amount: '500000000',
+    moneySubtitle: 'mUSD',
+    moneyActivityTitleKey: 'deposited',
+  }),
+  makeMoneyTx({
+    id: 'money-tx-received',
+    timestampSec: 1746997200,
+    type: TransactionType.incoming,
+    amount: '1000000000',
     moneySubtitle: 'From: 0x23231...12345',
     moneyActivityTitleKey: 'received',
   }),
   makeMoneyTx({
-    id: 'money-tx-4',
-    timestampSec: 1747083600,
-    type: TransactionType.moneyAccountWithdraw,
-    amount: '10000000',
-    moneyActivityTitleKey: 'card_transaction',
-  }),
-  makeMoneyTx({
-    id: 'money-tx-5',
-    timestampSec: 1746921600,
-    type: TransactionType.musdConversion,
-    amount: '300000000',
-    moneySubtitle: 'USDC → mUSD',
-    moneyActivityTitleKey: 'converted',
-  }),
-  makeMoneyTx({
-    id: 'money-tx-6',
-    timestampSec: 1746918000,
+    id: 'money-tx-sent',
+    timestampSec: 1746993600,
     type: TransactionType.moneyAccountWithdraw,
     amount: '250000000',
-    moneySubtitle: 'mUSD → ETH',
-    moneyActivityTitleKey: 'transferred',
+    moneySubtitle: 'mUSD → USDC',
+    moneyActivityTitleKey: 'sent',
   }),
 ];
 

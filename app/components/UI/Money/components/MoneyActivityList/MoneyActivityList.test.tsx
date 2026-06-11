@@ -59,10 +59,10 @@ describe('MoneyActivityList', () => {
 
     expect(getByTestId(MoneyActivityListTestIds.CONTAINER)).toBeOnTheScreen();
     expect(
-      getByTestId(`${MoneyActivityItemTestIds.ROW}-money-tx-1`),
+      getByTestId(`${MoneyActivityItemTestIds.ROW}-${MOCK_ITEMS[0].id}`),
     ).toBeOnTheScreen();
     expect(
-      getByTestId(`${MoneyActivityItemTestIds.ROW}-money-tx-5`),
+      getByTestId(`${MoneyActivityItemTestIds.ROW}-${MOCK_ITEMS[4].id}`),
     ).toBeOnTheScreen();
   });
 
@@ -72,7 +72,7 @@ describe('MoneyActivityList', () => {
     );
 
     expect(
-      queryByTestId(`${MoneyActivityItemTestIds.ROW}-money-tx-6`),
+      queryByTestId(`${MoneyActivityItemTestIds.ROW}-${MOCK_ITEMS[5].id}`),
     ).toBeNull();
   });
 
