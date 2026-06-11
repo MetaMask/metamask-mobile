@@ -18,46 +18,24 @@ const LIVE_CHART_RETENTION_SECS = LIVE_CHART_WINDOW_SECS * 2;
 const LIVE_CHART_MAX_POINTS = LIVE_CHART_RETENTION_SECS * 60;
 const CURRENT_TIMESTAMP_TOLERANCE_SECS = 5;
 const MIN_LIVE_POINT_DELTA_SECS = 0.001;
-// How long (wall clock) the live stream may go without delivering a tick before
-// the chart is treated as stale. Liveline anchors its visible window to "now"
-// and scrolls left, so once no fresh tick has arrived for roughly a full
-// window the last point scrolls off-screen and the canvas would otherwise go
-// blank (the reported "black chart" when the websocket is slow/cold). At that
-// point we surface the loading state instead.
 const LIVE_STREAM_STALE_TIMEOUT_MS = LIVE_CHART_WINDOW_SECS * 1000;
-// How long a live market may produce nothing renderable (no history, no live
-// ticks) before we treat it as an upstream data outage and surface a
-// connection-error state rather than an indefinite spinner. Long enough not to
-// flash during a normal cold start (history fetch + first tick), short enough
-// to inform the user promptly.
 const CONNECTION_ERROR_TIMEOUT_MS = 12000;
-
-const isFiniteLivelinePoint = (point: LivelinePoint): boolean =>
-  Number.isFinite(point.time) && Number.isFinite(point.value);
 
 const mergeLivelinePoints = (
   historicalData: LivelinePoint[],
   liveData: LivelinePoint[],
 ): LivelinePoint[] => {
   if (historicalData.length === 0) {
-    return liveData.filter(isFiniteLivelinePoint);
+    return liveData;
   }
 
   if (liveData.length === 0) {
-    return historicalData.filter(isFiniteLivelinePoint);
+    return historicalData;
   }
 
   const byTime = new Map<number, LivelinePoint>();
-  historicalData.forEach((point) => {
-    if (isFiniteLivelinePoint(point)) {
-      byTime.set(point.time, point);
-    }
-  });
-  liveData.forEach((point) => {
-    if (isFiniteLivelinePoint(point)) {
-      byTime.set(point.time, point);
-    }
-  });
+  historicalData.forEach((point) => byTime.set(point.time, point));
+  liveData.forEach((point) => byTime.set(point.time, point));
 
   return Array.from(byTime.values()).sort((a, b) => a.time - b.time);
 };
@@ -108,13 +86,6 @@ export interface UseCryptoUpDownChartDataResult {
   isLive: boolean;
   window: number;
   /**
-   * True when the chart should freeze its viewport on the last data point
-   * instead of scrolling with wall-clock "now". Used for frozen/expired and
-   * historical markets so their final line stays visible rather than
-   * scrolling off-screen into a blank canvas.
-   */
-  paused: boolean;
-  /**
    * True when a live market has produced no renderable data for a sustained
    * grace period (upstream data outage). The UI should show a connection-error
    * state instead of an indefinite loading spinner.
@@ -125,19 +96,6 @@ export interface UseCryptoUpDownChartDataResult {
 interface UseCryptoUpDownChartDataOptions {
   enabled?: boolean;
   liveUpdatesEnabled?: boolean;
-  /**
-   * When false, the historical price series is neither fetched nor merged into
-   * the chart data — only the live websocket stream is rendered. Defaults to
-   * true.
-   *
-   * The details-page chart uses a short, "now"-anchored live window. Historical
-   * points (from event start, often minutes old) sit outside that window so
-   * Liveline can't draw them, yet their presence inflates the renderable-point
-   * count and suppresses the loading spinner — producing a blank canvas with no
-   * spinner whenever the live stream is sparse or cold. Disabling history makes
-   * the spinner/empty state track the live data the chart can actually draw.
-   */
-  historicalEnabled?: boolean;
   historicalWindow?: {
     startDate: string;
     endDate?: string;
@@ -151,7 +109,6 @@ export const useCryptoUpDownChartData = (
 ): UseCryptoUpDownChartDataResult => {
   const enabled = options.enabled ?? true;
   const liveUpdatesEnabled = options.liveUpdatesEnabled ?? true;
-  const historicalEnabled = options.historicalEnabled ?? true;
   const preserveHistoricalDataAcrossMarket =
     !liveUpdatesEnabled && Boolean(options.historicalWindow);
   const symbol = getCryptoSymbol(market);
@@ -175,18 +132,10 @@ export const useCryptoUpDownChartData = (
   const hasFrozenLiveData = frozenMarketId === market.id;
   const [liveLoading, setLiveLoading] = useState(true);
   const liveLoadingRef = useRef(true);
-  // Tracks whether the live stream is currently delivering ticks. Defaults to
-  // stale (no tick received yet) so a cold/slow websocket shows the loading
-  // state rather than a blank canvas. Refreshed on every accepted tick and
-  // flipped back to stale by a timer once the stream stops.
   const [liveStreamStale, setLiveStreamStale] = useState(true);
   const staleTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
   );
-  // True once a live market has gone a grace period with nothing renderable
-  // (no historical data and no live ticks) — i.e. an upstream data outage.
-  // Surfaced to the UI so it can show a connection-error state instead of an
-  // indefinite spinner.
   const [connectionError, setConnectionError] = useState(false);
   const connectionErrorTimerRef = useRef<
     ReturnType<typeof setTimeout> | undefined
@@ -261,7 +210,6 @@ export const useCryptoUpDownChartData = (
   const handleLiveUpdate = useCallback(
     (update: CryptoPriceUpdate) => {
       if (!enabledRef.current) return;
-      if (!Number.isFinite(update.price)) return;
       const { id: liveMarketId, liveEndDateMs: currentLiveEndDateMs } =
         liveMarketRef.current;
       const currentMarketId = marketIdRef.current;
@@ -338,7 +286,7 @@ export const useCryptoUpDownChartData = (
       variant,
       endDate: historyEndDate,
     }),
-    enabled: enabled && historicalEnabled && !!symbol && !!historyStartDate,
+    enabled: enabled && !!symbol && !!historyStartDate,
     keepPreviousData: true,
     staleTime: shouldStreamLive ? 1000 : Infinity,
     refetchOnMount: shouldStreamLive || !liveUpdatesEnabled ? 'always' : false,
@@ -404,25 +352,12 @@ export const useCryptoUpDownChartData = (
     shouldUseFallbackStartPoint ? stableFallbackStartPoint : EMPTY_DATA,
     stableHistoricalData,
   );
-  // Live-only consumers (e.g. the details-page chart) intentionally drop the
-  // historical/seed series so the renderable-point count tracks the live data
-  // the "now"-anchored window can actually draw, rather than off-window
-  // history that would suppress the spinner while drawing nothing.
-  const chartData = historicalEnabled
-    ? mergeLivelinePoints(baseHistoricalData, livePoints)
-    : mergeLivelinePoints(EMPTY_DATA, livePoints);
+  const chartData = mergeLivelinePoints(baseHistoricalData, livePoints);
   const hasRenderableChartData = chartData.length >= 2;
-  // Liveline anchors its visible window to "now" and needs at least two points
-  // inside that window to draw a line; with fewer it falls back to a
-  // transparent empty state that reads as a blank/black canvas. The total point
-  // count isn't sufficient: right after a reconnect the newest tick can be the
-  // only point near the live edge while older (still-retained) points inflate
-  // the total. So gate the live spinner on how many points sit within one
-  // window span of the newest point, not on the raw count.
-  const newestChartPointTime = chartData.at(-1)?.time;
+  const newestLivePointTime = livePoints.at(-1)?.time;
   const liveWindowStartSecs =
-    typeof newestChartPointTime === 'number'
-      ? newestChartPointTime - LIVE_CHART_WINDOW_SECS
+    typeof newestLivePointTime === 'number'
+      ? newestLivePointTime - LIVE_CHART_WINDOW_SECS
       : undefined;
   const liveWindowPointCount =
     typeof liveWindowStartSecs === 'number'
@@ -450,13 +385,16 @@ export const useCryptoUpDownChartData = (
     }
   }, [enabled, historicalValue, isCurrentMarket, isLive]);
 
-  const historicalQueryEnabled =
-    enabled && historicalEnabled && !!symbol && !!historyStartDate;
+  useEffect(() => {
+    if (connectionErrorTimerRef.current) {
+      clearTimeout(connectionErrorTimerRef.current);
+      connectionErrorTimerRef.current = undefined;
+    }
+    setConnectionError(false);
+  }, [market.id]);
 
-  // Detect a sustained "live but no data" outage: a market that is live (so we
-  // expect a flowing stream) yet has produced nothing renderable after a grace
-  // period. Recovers automatically as soon as any renderable data arrives.
-  const isAwaitingLiveData = enabled && isLive && !hasRenderableChartData;
+  const isAwaitingLiveData =
+    enabled && isLive && (!hasRenderableLiveWindow || liveStreamStale);
   useEffect(() => {
     if (!isAwaitingLiveData) {
       if (connectionErrorTimerRef.current) {
@@ -490,7 +428,6 @@ export const useCryptoUpDownChartData = (
       loading: false,
       isLive: false,
       window: durationSecs,
-      paused: false,
       connectionError: false,
     };
   }
@@ -502,9 +439,6 @@ export const useCryptoUpDownChartData = (
       loading: historicalQuery.isFetching && stableHistoricalData.length === 0,
       isLive: false,
       window: durationSecs,
-      // Historical-only view: anchor the viewport to the data instead of
-      // scrolling with "now" so the line stays on screen.
-      paused: true,
       connectionError: false,
     };
   }
@@ -522,11 +456,6 @@ export const useCryptoUpDownChartData = (
         : !hasRenderableChartData,
       isLive,
       window: LIVE_CHART_WINDOW_SECS,
-      // Freeze the viewport on the final frame once the market is no longer
-      // live so the resolved line stays visible.
-      paused: !isLive,
-      // Only a live market with no data is an outage; frozen/expired markets
-      // legitimately have a final frame to show.
       connectionError: isLive ? connectionError : false,
     };
   }
@@ -534,15 +463,9 @@ export const useCryptoUpDownChartData = (
   return {
     data: historicalData,
     value: historicalQuery.data?.at(-1)?.value ?? 0,
-    // Keep the spinner up while the (enabled) history request is in flight or
-    // has not yet produced a renderable line, rather than handing Liveline an
-    // empty dataset that would draw nothing.
-    loading:
-      historicalQuery.isFetching ||
-      (historicalQueryEnabled && historicalData.length < 2),
+    loading: historicalQuery.isFetching,
     isLive: false,
     window: durationSecs,
-    paused: true,
     connectionError: false,
   };
 };

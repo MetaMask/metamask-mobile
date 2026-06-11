@@ -1157,86 +1157,6 @@ describe('useCryptoUpDownChartData', () => {
     });
   });
 
-  describe('live-only path (historicalEnabled: false)', () => {
-    it('does not let historical data populate the chart even after it resolves', async () => {
-      const { Wrapper } = createWrapper();
-      const market = createMarket();
-      historicalData = [
-        { time: 100, value: 50000 },
-        { time: 200, value: 51000 },
-      ];
-
-      const { result } = renderHook(
-        () =>
-          useCryptoUpDownChartData(market, undefined, {
-            historicalEnabled: false,
-          }),
-        { wrapper: Wrapper },
-      );
-
-      // Flush any microtasks the query layer might schedule; with the query
-      // disabled it must never run, so the chart stays empty (no history).
-      await act(async () => {
-        await Promise.resolve();
-      });
-
-      expect(result.current.data).toEqual([]);
-    });
-
-    it('renders only live points, ignoring resolved historical data', async () => {
-      const { Wrapper } = createWrapper();
-      const market = createMarket();
-      historicalData = [
-        { time: 100, value: 50000 },
-        { time: 200, value: 51000 },
-      ];
-
-      const { result } = renderHook(
-        () =>
-          useCryptoUpDownChartData(market, undefined, {
-            historicalEnabled: false,
-          }),
-        { wrapper: Wrapper },
-      );
-
-      await act(async () => {
-        await Promise.resolve();
-      });
-
-      act(() => {
-        liveUpdateHandler?.({ symbol: 'btc/usd', price: 60000, timestamp: 10 });
-        liveUpdateHandler?.({ symbol: 'btc/usd', price: 60500, timestamp: 20 });
-      });
-
-      expect(result.current.data).toEqual([
-        { time: 10, value: 60000 },
-        { time: 20, value: 60500 },
-      ]);
-      expect(result.current.value).toBe(60500);
-      expect(result.current.loading).toBe(false);
-    });
-
-    it('stays loading (not blanked by history) until live points arrive', () => {
-      const { Wrapper } = createWrapper();
-      const market = createMarket();
-      historicalData = [
-        { time: 100, value: 50000 },
-        { time: 200, value: 51000 },
-      ];
-
-      const { result } = renderHook(
-        () =>
-          useCryptoUpDownChartData(market, undefined, {
-            historicalEnabled: false,
-          }),
-        { wrapper: Wrapper },
-      );
-
-      expect(result.current.data).toEqual([]);
-      expect(result.current.loading).toBe(true);
-    });
-  });
-
   describe('historical path', () => {
     it('fetches historical data through react query when endDate is in the past', async () => {
       const { Wrapper } = createWrapper();
@@ -1391,7 +1311,6 @@ describe('useCryptoUpDownChartData', () => {
         loading: false,
         isLive: false,
         window: 300,
-        paused: false,
         connectionError: false,
       });
     });
@@ -1480,7 +1399,6 @@ describe('useCryptoUpDownChartData', () => {
         loading: false,
         isLive: false,
         window: 300,
-        paused: false,
         connectionError: false,
       });
       expect(mockUseLiveCryptoPrices).toHaveBeenLastCalledWith(
@@ -1510,7 +1428,6 @@ describe('useCryptoUpDownChartData', () => {
         loading: false,
         isLive: false,
         window: 300,
-        paused: true,
         connectionError: false,
       });
     });
@@ -1592,90 +1509,21 @@ describe('useCryptoUpDownChartData', () => {
 
       expect(result.current.loading).toBe(false);
     });
-
-    it('ignores live updates carrying a non-finite price', () => {
-      const { Wrapper } = createWrapper();
-      const market = createMarket();
-      historicalData = [];
-
-      const { result } = renderHook(() => useCryptoUpDownChartData(market), {
-        wrapper: Wrapper,
-      });
-
-      act(() => {
-        liveUpdateHandler?.({
-          symbol: 'btc/usd',
-          price: Number.NaN,
-          timestamp: 100,
-        });
-        liveUpdateHandler?.({
-          symbol: 'btc/usd',
-          price: Number.POSITIVE_INFINITY,
-          timestamp: 110,
-        });
-      });
-
-      expect(result.current.data).toEqual([]);
-      expect(result.current.loading).toBe(true);
-    });
-
-    it('keeps the spinner up when an enabled history query resolves empty', async () => {
-      const { Wrapper } = createWrapper();
-      const market = createMarket({ endDate: '2025-12-31T23:59:00.000Z' });
-      historicalData = [];
-
-      const { result } = renderHook(() => useCryptoUpDownChartData(market), {
-        wrapper: Wrapper,
-      });
-
-      await waitFor(() => {
-        expect(historicalData).toEqual([]);
-      });
-
-      expect(result.current.isLive).toBe(false);
-      expect(result.current.loading).toBe(true);
-    });
-
-    it('does not pause the viewport while the market is live', () => {
-      const { Wrapper } = createWrapper();
-      const market = createMarket();
-
-      const { result } = renderHook(() => useCryptoUpDownChartData(market), {
-        wrapper: Wrapper,
-      });
-
-      expect(result.current.isLive).toBe(true);
-      expect(result.current.paused).toBe(false);
-    });
-
-    it('pauses the viewport for completed historical markets', async () => {
-      const { Wrapper } = createWrapper();
-      const market = createMarket({ endDate: '2025-12-31T23:59:00.000Z' });
-
-      const { result } = renderHook(() => useCryptoUpDownChartData(market), {
-        wrapper: Wrapper,
-      });
-
-      await waitFor(() => {
-        expect(result.current.loading).toBe(false);
-      });
-
-      expect(result.current.isLive).toBe(false);
-      expect(result.current.paused).toBe(true);
-    });
   });
 
   describe('connection error', () => {
-    it('surfaces a connection error when a live market produces no data for the grace period', () => {
+    it('surfaces a connection error when a live market produces no live data for the grace period', async () => {
       const { Wrapper } = createWrapper();
       // Keep the market live well past the grace timeout.
       const market = createMarket({ endDate: '2026-01-01T01:00:00.000Z' });
-      historicalData = [];
 
       const { result } = renderHook(() => useCryptoUpDownChartData(market), {
         wrapper: Wrapper,
       });
 
+      await waitFor(() => {
+        expect(result.current.data).toEqual(historicalData);
+      });
       expect(result.current.connectionError).toBe(false);
 
       act(() => {

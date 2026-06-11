@@ -1,6 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { PixelRatio } from 'react-native';
-import { throttle } from 'lodash';
 import {
   Box,
   BoxAlignItems,
@@ -20,15 +19,6 @@ import type { PredictCryptoUpDownChartProps } from './PredictCryptoUpDownChart.t
 const MIN_BOTTOM_PADDING_PX = 64;
 const BOTTOM_PADDING_HEIGHT_RATIO = 0.15;
 const BOTTOM_PADDING_FONT_SCALE_BOOST_PX = 24;
-
-/**
- * The live crypto price stream pushes updates at ~60Hz. Reporting every tick to
- * the parent re-renders the whole market-details screen (and its countdown
- * timer) at that rate, starving the JS thread. Throttling to ~4Hz keeps the
- * displayed price responsive without flooding React with renders. The chart
- * itself still receives every tick via the `data` prop / append bridge.
- */
-const CURRENT_PRICE_THROTTLE_MS = 250;
 
 export const computeBottomPadding = (
   chartHeight: number,
@@ -81,16 +71,9 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
     data,
     value,
     loading,
-    paused,
     connectionError,
     window: chartWindow,
-  } = useCryptoUpDownChartData(market, targetPrice, {
-    // Details-page chart renders the live stream only. Historical points sit
-    // outside the live "now"-anchored window so Liveline can't draw them; if
-    // merged in they suppress the loading spinner while leaving the canvas
-    // blank whenever the live stream is sparse or cold.
-    historicalEnabled: false,
-  });
+  } = useCryptoUpDownChartData(market, targetPrice);
 
   const chartHeight = explicitHeight ?? measuredHeight;
   const bottomPadding = computeBottomPadding(
@@ -98,26 +81,11 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
     PixelRatio.getFontScale(),
   );
 
-  const onCurrentPriceChangeRef = useRef(onCurrentPriceChange);
-  onCurrentPriceChangeRef.current = onCurrentPriceChange;
-
-  const emitCurrentPrice = useMemo(
-    () =>
-      throttle(
-        (nextValue: number) => onCurrentPriceChangeRef.current?.(nextValue),
-        CURRENT_PRICE_THROTTLE_MS,
-        { leading: true, trailing: true },
-      ),
-    [],
-  );
-
-  useEffect(() => () => emitCurrentPrice.cancel(), [emitCurrentPrice]);
-
   useEffect(() => {
     if (data.length > 0 && Number.isFinite(value)) {
-      emitCurrentPrice(value);
+      onCurrentPriceChange?.(value);
     }
-  }, [data.length, emitCurrentPrice, value]);
+  }, [data.length, onCurrentPriceChange, value]);
 
   return (
     <Box
@@ -164,7 +132,6 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
             data={data}
             value={value}
             loading={loading}
-            paused={paused}
             window={chartWindow}
             height={chartHeight}
             color={color}

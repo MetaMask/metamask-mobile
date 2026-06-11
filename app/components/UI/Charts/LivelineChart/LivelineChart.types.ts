@@ -202,9 +202,7 @@ type ChartPropsPayload = Omit<
 >;
 
 export type RNToWebViewMessage =
-  // `theme` carries the current appearance mode (e.g. 'light' | 'dark') to the
-  // WebView alongside the chart props; it is not part of LivelineChartProps.
-  | { type: 'SET_PROPS'; payload: ChartPropsPayload & { theme?: string } }
+  | { type: 'SET_PROPS'; payload: ChartPropsPayload }
   | { type: 'APPEND_POINT'; payload: { point: LivelinePoint; value: number } }
   | { type: 'CLEAR_DATA' };
 

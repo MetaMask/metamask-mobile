@@ -22,16 +22,10 @@ export const predictCryptoPriceHistoryKeys = {
 };
 
 const toLivelinePoints = (points: CryptoPriceHistoryPoint[]): LivelinePoint[] =>
-  points
-    .map((point) => ({
-      time: toTimestampSeconds(point.timestamp),
-      value: point.value,
-    }))
-    // Guard against malformed points (null/string/NaN) that would otherwise
-    // produce a degenerate y-scale and a blank chart.
-    .filter(
-      (point) => Number.isFinite(point.time) && Number.isFinite(point.value),
-    );
+  points.map((point) => ({
+    time: toTimestampSeconds(point.timestamp),
+    value: point.value,
+  }));
 
 export const predictCryptoPriceHistoryOptions = ({
   symbol,
