@@ -1979,10 +1979,10 @@
       "stocks_and_commodities": "Hisse senetlerini ve emtiaları keşfet",
       "tabs": {
         "crypto": "Kripto",
-        "stocks": "Hisse Senetleri",
-        "commodities": "Emtialar",
         "forex": "Forex",
-        "new": "Yeni"
+        "new": "Yeni",
+        "stock": "Hisse Senetleri",
+        "commodity": "Emtialar"
       },
       "filter_by": "Farklı filtrele",
       "forex": "Forex",
@@ -8454,7 +8454,7 @@
     "main_title": "Ödüller",
     "vip": {
       "bps_unit": "bps",
-      "badge_label": "VIP Fox {{tier}}",
+      "badge_label": "VIP {{tier}}",
       "swaps_label": "Swaps",
       "perps_label": "Perps",
       "error_title": "We couldn’t load your VIP dashboard",
@@ -8902,11 +8902,7 @@
       "stats_qualify_for_rank_description": "Uygunluk kazanmak için {{notionalRemaining}} daha nominal hacimli işlem yapın.",
       "stats_error_title": "İstatistikler yüklenemiyor",
       "stats_error_description": "İstatistikleriniz yüklenirken bir problem yaşadık. Lütfen tekrar deneyin.",
-      "stats_retry": "Tekrar Dene",
-      "completed_label_total_participants": "Toplam katılımcı",
-      "completed_label_total_volume": "Toplam hacim",
-      "completed_label_top_pnl": "Toplam Kazanç/Zarar",
-      "completed_label_winners": "Kazananlar"
+      "stats_retry": "Tekrar Dene"
     },
     "campaigns_preview": {
       "title": "Kampanyalar",
@@ -8971,7 +8967,7 @@
       "non_winner": {
         "title": "Sonuçlar belli oldu 🏅",
         "description": "{{campaignName}} adlı kampanyadaki sıralamanızı görün.",
-        "cta": "Görüntüle"
+        "cta": "Ayrıntıları görüntüle"
       }
     }
   },

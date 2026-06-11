@@ -1,0 +1,75 @@
+# Appium Smoke Tests — Android
+#
+# Fans out one reusable job per Appium smoke tag.
+# Register tags in scripts/e2e/appium-smoke-tags.mjs and add a matching job below.
+# Invoked from ci.yml when appium-smoke-gate and build-android-apks succeed.
+
+name: Appium Smoke Tests (Android)
+
+on:
+  workflow_call:
+    inputs:
+      build_type:
+        description: 'Build type (main or flask)'
+        required: false
+        type: string
+        default: 'main'
+      metamask_environment:
+        description: 'MetaMask environment'
+        required: false
+        type: string
+        default: 'e2e'
+      runner_provider:
+        description: 'Runner provider (namespace or current)'
+        required: false
+        type: string
+        default: 'current'
+      selected_tags:
+        description: 'JSON array of tags from smart E2E selector (e.g. ["SmokeAccounts"] or ["ALL"])'
+        required: false
+        type: string
+        default: '["ALL"]'
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build type (main or flask)'
+        required: false
+        type: string
+        default: 'main'
+      metamask_environment:
+        description: 'MetaMask environment'
+        required: false
+        type: string
+        default: 'e2e'
+      runner_provider:
+        description: 'Runner provider (namespace or current)'
+        required: false
+        type: string
+        default: 'current'
+      selected_tags:
+        description: 'JSON array of tags from smart E2E selector'
+        required: false
+        type: string
+        default: '["ALL"]'
+
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  appium-accounts-android-smoke:
+    if: >-
+      ${{
+        !cancelled() &&
+        (contains(fromJson(inputs.selected_tags), 'ALL') ||
+         contains(fromJson(inputs.selected_tags), 'SmokeAccounts'))
+      }}
+    uses: ./.github/workflows/run-appium-e2e-workflow.yml
+    with:
+      test-suite-name: appium-accounts-android-smoke
+      platform: android
+      test_suite_tag: SmokeAccounts
+      build_type: ${{ inputs.build_type }}
+      metamask_environment: ${{ inputs.metamask_environment }}
+      runner_provider: ${{ inputs.runner_provider }}
+    secrets: inherit

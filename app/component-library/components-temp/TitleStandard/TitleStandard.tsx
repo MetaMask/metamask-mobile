@@ -19,6 +19,8 @@ import { TitleStandardProps } from './TitleStandard.types';
  * TitleStandard is a component that displays a title with optional accessories
  * in a left-aligned layout.
  *
+ * @deprecated Please update your code to use `TitleStandard` from `@metamask/design-system-react-native`.
+ *
  * @example
  * ```tsx
  * <TitleStandard
