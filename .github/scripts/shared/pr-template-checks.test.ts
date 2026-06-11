@@ -559,8 +559,8 @@ describe('buildValidationPlan', () => {
     ].join('\n');
     const plan = buildValidationPlan(tokenize(md));
     expect(plan).toHaveLength(2);
-    expect(plan[0]).toEqual({ title: '## **Section A**', type: 'text', required: true });
-    expect(plan[1]).toEqual({ title: '## **Section B**', type: 'changelog', required: false });
+    expect(plan[0]).toEqual({ title: '## **Section A**', type: 'text', required: true, blocking: false });
+    expect(plan[1]).toEqual({ title: '## **Section B**', type: 'changelog', required: false, blocking: false });
   });
 
   it('skips sections that have no directive', () => {
@@ -614,6 +614,24 @@ describe('buildValidationPlan', () => {
     const plan = buildValidationPlan(tokenize(md));
     expect(plan[0].required).toBe(true);
   });
+
+  it('reads blocking=true from the directive', () => {
+    const md = '## **Section**\n<!-- mms-check: type=changelog required=true blocking=true -->';
+    const plan = buildValidationPlan(tokenize(md));
+    expect(plan[0].blocking).toBe(true);
+  });
+
+  it('reads blocking=false from the directive', () => {
+    const md = '## **Section**\n<!-- mms-check: type=text required=true blocking=false -->';
+    const plan = buildValidationPlan(tokenize(md));
+    expect(plan[0].blocking).toBe(false);
+  });
+
+  it('defaults blocking to false when the key is absent', () => {
+    const md = '## **Section**\n<!-- mms-check: type=text required=true -->';
+    const plan = buildValidationPlan(tokenize(md));
+    expect(plan[0].blocking).toBe(false);
+  });
 });
 
 // ─── validatePlanTypes ────────────────────────────────────────────────────────
@@ -622,12 +640,12 @@ describe('validatePlanTypes', () => {
   const registry = { text: () => ({ ok: true as const }) };
 
   it('does not throw when all types are present in the registry', () => {
-    const plan = [{ title: '## Foo', type: 'text', required: true }];
+    const plan = [{ title: '## Foo', type: 'text', required: true, blocking: false }];
     expect(() => validatePlanTypes(plan, registry)).not.toThrow();
   });
 
   it('throws for an unknown type', () => {
-    const plan = [{ title: '## Bar', type: 'unknown-type', required: true }];
+    const plan = [{ title: '## Bar', type: 'unknown-type', required: true, blocking: false }];
     expect(() => validatePlanTypes(plan, registry)).toThrow(
       /Unknown mms-check type "unknown-type" in section "## Bar"/,
     );
@@ -635,9 +653,157 @@ describe('validatePlanTypes', () => {
 
   it('throws for the first unknown type in a mixed plan', () => {
     const plan = [
-      { title: '## Good', type: 'text', required: true },
-      { title: '## Bad', type: 'typo-type', required: true },
+      { title: '## Good', type: 'text', required: true, blocking: false },
+      { title: '## Bad', type: 'typo-type', required: true, blocking: false },
     ];
     expect(() => validatePlanTypes(plan, registry)).toThrow(/typo-type/);
+  });
+});
+
+// ─── parseDirective — blocking key ────────────────────────────────────────────
+
+describe('parseDirective — blocking key', () => {
+  it('parses blocking=true', () => {
+    expect(parseDirective('mms-check: type=changelog required=true blocking=true')).toEqual({
+      type: 'changelog',
+      required: 'true',
+      blocking: 'true',
+    });
+  });
+
+  it('parses blocking=false', () => {
+    expect(parseDirective('mms-check: type=text required=true blocking=false')).toEqual({
+      type: 'text',
+      required: 'true',
+      blocking: 'false',
+    });
+  });
+
+  it('does not include a blocking key when the field is absent', () => {
+    const result = parseDirective('mms-check: type=text required=true');
+    expect(result).not.toHaveProperty('blocking');
+  });
+});
+
+// ─── runAllChecks — blocking flag stamping ────────────────────────────────────
+
+describe('runAllChecks — blocking flag on failures', () => {
+  it('stamps blocking:true on the changelog failure when template has blocking=true', () => {
+    // The real pull-request-template.md tags changelog with blocking=true.
+    const body = `
+## **Description**
+
+Real description.
+
+## **Changelog**
+
+CHANGELOG entry:
+
+## **Related issues**
+
+Fixes: #1
+
+## **Manual testing steps**
+
+\`\`\`gherkin
+Feature: ready for review
+
+  Scenario: user opens the PR
+    Given the author fills the PR
+    When user submits
+    Then the validator passes
+\`\`\`
+
+## **Screenshots/Recordings**
+
+### **Before**
+
+N/A
+
+### **After**
+
+N/A
+
+## **Pre-merge author checklist**
+
+- [x] Followed contributor docs
+- [x] Completed PR template
+- [x] Included tests if applicable
+- [x] Documented code with JSDoc if applicable
+- [x] Applied right labels
+
+#### Performance checks (if applicable)
+
+- [x] Tested on Android
+- [x] Tested with power user scenario
+- [x] Instrumented with Sentry traces if applicable
+
+## **Pre-merge reviewer checklist**
+
+- [ ] Reviewer item
+`.trim();
+
+    const failures = runAllChecks(body, false);
+    const changelogFailure = failures.find((f) => f.reason.includes('Changelog'));
+    expect(changelogFailure).toBeDefined();
+    expect(changelogFailure?.blocking).toBe(true);
+  });
+
+  it('stamps blocking:false on non-blocking failures', () => {
+    const body = `
+## **Description**
+
+## **Changelog**
+
+CHANGELOG entry: Real entry.
+
+## **Related issues**
+
+Fixes: #1
+
+## **Manual testing steps**
+
+\`\`\`gherkin
+Feature: ready for review
+
+  Scenario: user opens the PR
+    Given the author fills the PR
+    When user submits
+    Then the validator passes
+\`\`\`
+
+## **Screenshots/Recordings**
+
+### **Before**
+
+N/A
+
+### **After**
+
+N/A
+
+## **Pre-merge author checklist**
+
+- [x] Followed contributor docs
+- [x] Completed PR template
+- [x] Included tests if applicable
+- [x] Documented code with JSDoc if applicable
+- [x] Applied right labels
+
+#### Performance checks (if applicable)
+
+- [x] Tested on Android
+- [x] Tested with power user scenario
+- [x] Instrumented with Sentry traces if applicable
+
+## **Pre-merge reviewer checklist**
+
+- [ ] Reviewer item
+`.trim();
+
+    const failures = runAllChecks(body, false);
+    const descriptionFailure = failures.find((f) => f.reason.includes('Description'));
+    expect(descriptionFailure).toBeDefined();
+    expect(descriptionFailure?.blocking).toBe(false);
   });
 });

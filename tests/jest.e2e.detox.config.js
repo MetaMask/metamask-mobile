@@ -12,6 +12,10 @@ require('dotenv').config({ path: '.js.env' });
 module.exports = {
   rootDir: '..',
   testMatch: ['<rootDir>/tests/**/*.spec.{js,ts}'],
+  testPathIgnorePatterns: [
+    // Playwright + Appium smoke specs — run via tests/playwright.smoke-appium.config.ts
+    '<rootDir>/tests/smoke-appium/',
+  ],
   testTimeout: 300000,
   maxWorkers: 1,
   clearMocks: true,
