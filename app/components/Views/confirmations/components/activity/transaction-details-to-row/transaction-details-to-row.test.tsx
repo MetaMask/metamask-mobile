@@ -67,7 +67,7 @@ describe('TransactionDetailsToRow', () => {
 
     parseStandardTokenTransactionDataMock.mockReturnValue({
       args: { _to: RECIPIENT_MOCK },
-    } as ReturnType<typeof parseStandardTokenTransactionData>);
+    } as unknown as ReturnType<typeof parseStandardTokenTransactionData>);
   });
 
   it('renders nothing for unsupported transaction types', () => {

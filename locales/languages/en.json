@@ -9366,7 +9366,8 @@
       "money_account": "Money account",
       "perps_account": "Perps Account 1",
       "predictions_account": "Predictions Account 1",
-      "steps_completed": "Steps ({{count}} completed)"
+      "steps_completed": "Steps ({{count}} completed)",
+      "summary": "Summary"
     },
     "view_on_block_explorer": "View on block explorer",
     "summary_title": {

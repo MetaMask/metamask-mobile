@@ -73,26 +73,26 @@ export function TransactionDetailsSummary() {
   const { sourceHash, fiat } = metamaskPay ?? {};
   const { orderId: fiatOrderId } = fiat ?? {};
 
-  const hasFiatOrder = Boolean(fiatOrderId);
   const hasSourceHash = !hasDepositTransactions && Boolean(sourceHash);
-  const totalSteps =
-    transactions.length + (hasFiatOrder ? 1 : 0) + (hasSourceHash ? 1 : 0);
-  const confirmedTxCount = transactions.filter(
-    (tx) => tx.status === TransactionStatus.confirmed,
-  ).length;
-  const isParentConfirmed =
-    transactionMeta.status === TransactionStatus.confirmed;
-  const completedCount =
-    confirmedTxCount +
-    (hasFiatOrder && isParentConfirmed ? 1 : 0) +
-    (hasSourceHash && isParentConfirmed ? 1 : 0);
+
+  const isMoneyAccountFlow = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountDeposit,
+    TransactionType.moneyAccountWithdraw,
+  ]);
 
   return (
     <Box gap={12}>
       <Text color={TextColor.Alternative}>
-        {strings('transaction_details.label.steps_completed', {
-          count: Math.min(completedCount, totalSteps).toString(),
-        })}
+        {isMoneyAccountFlow
+          ? strings('transaction_details.label.steps_completed', {
+              count: getCompletedCount({
+                transactions,
+                transactionMeta,
+                hasFiatOrder: Boolean(fiatOrderId),
+                hasSourceHash,
+              }).toString(),
+            })
+          : strings('transaction_details.label.summary')}
       </Text>
       <ProgressList showConnectors={false}>
         {fiatOrderId ? (
@@ -159,4 +159,29 @@ function isSkippedTransaction(
     hasTransactionType(parentTransaction, [TransactionType.musdConversion]) &&
     !hasTransactionType(transaction, [TransactionType.relayDeposit])
   );
+}
+
+function getCompletedCount({
+  transactions,
+  transactionMeta,
+  hasFiatOrder,
+  hasSourceHash,
+}: {
+  transactions: TransactionMeta[];
+  transactionMeta: TransactionMeta;
+  hasFiatOrder: boolean;
+  hasSourceHash: boolean;
+}): number {
+  const totalSteps =
+    transactions.length + (hasFiatOrder ? 1 : 0) + (hasSourceHash ? 1 : 0);
+  const confirmedTxCount = transactions.filter(
+    (tx) => tx.status === TransactionStatus.confirmed,
+  ).length;
+  const isParentConfirmed =
+    transactionMeta.status === TransactionStatus.confirmed;
+  const completedCount =
+    confirmedTxCount +
+    (hasFiatOrder && isParentConfirmed ? 1 : 0) +
+    (hasSourceHash && isParentConfirmed ? 1 : 0);
+  return Math.min(completedCount, totalSteps);
 }
