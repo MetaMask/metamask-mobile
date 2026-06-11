@@ -37,7 +37,13 @@ export const useRampsButtonClickedEvent = () => {
           .build(),
       );
     },
-    [trackEvent, createEventBuilder, isV2UnifiedEnabled, region, buttonClickData],
+    [
+      trackEvent,
+      createEventBuilder,
+      isV2UnifiedEnabled,
+      region,
+      buttonClickData,
+    ],
   );
 
   return { trackBuyButtonClicked };
