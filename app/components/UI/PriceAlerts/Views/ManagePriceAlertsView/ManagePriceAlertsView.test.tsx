@@ -124,7 +124,20 @@ describe('ManagePriceAlertsView', () => {
       const { getByText } = render(<ManagePriceAlertsView />);
       await flush();
 
-      expect(getByText('Reaches $3000')).toBeOnTheScreen();
+      expect(getByText('Reaches $3,000.00')).toBeOnTheScreen();
+    });
+
+    it('formats tiny thresholds with subscript notation instead of scientific notation', async () => {
+      mockFetchAlerts.mockResolvedValue(
+        makeFetchResponse([
+          makeAlert({ id: 'alert-tiny', threshold: 0.0000000000000105 }),
+        ]),
+      );
+
+      const { getByText } = render(<ManagePriceAlertsView />);
+      await flush();
+
+      expect(getByText('Reaches $0.0₁₃105')).toBeOnTheScreen();
     });
 
     it('shows "Recurring" for recurring alerts and "Once" for one-shot alerts', async () => {

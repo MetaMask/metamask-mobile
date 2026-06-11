@@ -26,8 +26,8 @@ import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../../constants/navigation/Routes';
+import { formatPriceWithSubscriptNotation } from '../../../Predict/utils/format';
 import {
-  CURRENCY_SYMBOLS,
   ManagePriceAlertsTestIds,
   PriceAlert,
   PriceAlertRouteParams,
@@ -107,8 +107,6 @@ const ManagePriceAlertsView: React.FC = () => {
     });
   }, [navigation, symbol, ticker, currentPrice, currentCurrency, assetId]);
 
-  const currencySymbol = CURRENCY_SYMBOLS[currentCurrency.toLowerCase()] ?? '';
-
   const renderItem = ({ item }: { item: PriceAlert }) => (
     <Box
       flexDirection={BoxFlexDirection.Row}
@@ -120,7 +118,10 @@ const ManagePriceAlertsView: React.FC = () => {
       <Box twClassName="flex-1 mr-3">
         <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
           {strings('price_alerts.reaches_threshold', {
-            threshold: `${currencySymbol}${item.threshold}`,
+            threshold: formatPriceWithSubscriptNotation(
+              item.threshold,
+              currentCurrency,
+            ),
           })}
         </Text>
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
