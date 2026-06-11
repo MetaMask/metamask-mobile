@@ -99,7 +99,7 @@ describe('Price Alerts Feature Flag Selector (version-gated)', () => {
       engine: {
         backgroundState: {
           RemoteFeatureFlagController: {
-            remoteFeatureFlags: { someOtherFlag: true },
+            remoteFeatureFlags: {},
             cacheTimestamp: 0,
           },
         },
