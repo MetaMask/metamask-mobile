@@ -508,6 +508,63 @@ describe('polymarket utils', () => {
       );
       expect(card?.outcomes).toHaveLength(3);
     });
+
+    it('keeps game-line soccer cards in semantic order regardless of volume', () => {
+      const [gameLines] = buildOutcomeGroups([
+        mkOutcome('soccer_team_totals', 'Mexico O/U 0.5', {
+          line: 0.5,
+          volume: 500000,
+        }),
+        mkOutcome('soccer_team_totals', 'South Africa O/U 0.5', {
+          line: 0.5,
+          volume: 400000,
+        }),
+        mkOutcome('soccer_first_to_score', 'Mexico', {
+          id: 'fts-mex',
+          groupItemThreshold: 0,
+          volume: 300000,
+        }),
+        mkOutcome('soccer_first_to_score', 'Neither', {
+          id: 'fts-neither',
+          groupItemThreshold: 1,
+          volume: 300000,
+        }),
+        mkOutcome('soccer_first_to_score', 'South Africa', {
+          id: 'fts-rsa',
+          groupItemThreshold: 2,
+          volume: 300000,
+        }),
+        mkOutcome('both_teams_to_score', 'Both Teams to Score', {
+          volume: 600000,
+        }),
+        mkOutcome('totals', 'O/U 2.5', {
+          line: 2.5,
+          volume: 200000,
+        }),
+        mkOutcome('totals', 'O/U 3.5', {
+          line: 3.5,
+          volume: 200000,
+        }),
+        mkOutcome('spreads', 'Mexico (-1.5)', {
+          line: -1.5,
+          volume: 100000,
+        }),
+        mkOutcome('spreads', 'South Africa (+1.5)', {
+          line: 1.5,
+          volume: 100000,
+        }),
+      ]);
+
+      expect(gameLines.key).toBe('game_lines');
+      expect(gameLines.subgroups?.map((s) => s.key)).toEqual([
+        'spreads',
+        'totals',
+        'both_teams_to_score',
+        'soccer_first_to_score',
+        'soccer_team_totals-0',
+        'soccer_team_totals-1',
+      ]);
+    });
   });
 
   describe('getOutcomeSubject', () => {

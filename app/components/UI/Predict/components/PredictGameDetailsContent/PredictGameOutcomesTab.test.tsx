@@ -377,16 +377,31 @@ describe('PredictGameOutcomesTab', () => {
       expect(getByTestId('goals-soccer_player_goals-1')).toBeOnTheScreen();
     });
 
-    it('renders nothing for a group without subgroups', () => {
+    it('falls back to rendering flat outcomes when a group has no subgroups', () => {
       const { getByTestId } = renderTab({
         key: 'game_lines',
-        outcomes: [],
+        outcomes: [
+          createOutcome({
+            id: 'flat-1',
+            sportsMarketType: 'soccer_exact_score',
+            groupItemTitle: 'Mexico 1 - 0 South Africa',
+          }),
+          createOutcome({
+            id: 'flat-2',
+            sportsMarketType: 'soccer_exact_score',
+            groupItemTitle: 'Mexico 2 - 0 South Africa',
+          }),
+        ],
       });
 
       expect(
         getByTestId(PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.OUTCOMES_CONTENT),
       ).toBeOnTheScreen();
-      expect(mockCapturedCards).toHaveLength(0);
+      expect(mockCapturedCards).toHaveLength(2);
+      expect(mockCapturedCards[0].title).toBe('Mexico 1 - 0 South Africa');
+      expect(mockCapturedCards[0].testID).toBe('game_lines-outcome-0');
+      expect(mockCapturedCards[1].title).toBe('Mexico 2 - 0 South Africa');
+      expect(mockCapturedCards[1].testID).toBe('game_lines-outcome-1');
     });
   });
 
@@ -800,6 +815,18 @@ describe('PredictGameOutcomesTab', () => {
       expect(mockCapturedCards).toHaveLength(1);
       expect(mockCapturedCards[0].buttonLayout).toBeUndefined();
       expect(mockCapturedCards[0].title).toBe('Moneyline');
+    });
+
+    it('falls back to a flat moneyline group when no subgroups are provided', () => {
+      renderTab({
+        key: 'game_lines',
+        outcomes: moneylineOutcomes,
+      });
+
+      expect(mockCapturedCards).toHaveLength(1);
+      expect(mockCapturedCards[0].buttonLayout).toBe('inlineNoSeparator');
+      expect(mockCapturedCards[0].title).toBe('Moneyline');
+      expect(mockCapturedCards[0].testID).toBe('game_lines-moneyline');
     });
   });
 });

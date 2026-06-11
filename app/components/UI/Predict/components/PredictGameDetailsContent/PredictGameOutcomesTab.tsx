@@ -471,19 +471,55 @@ const OutcomesContent = memo(
     group: PredictOutcomeGroup;
     onBuyPress: BuyHandler;
     game?: PredictMarketGame;
-  }) => (
-    <>
-      {(group.subgroups ?? []).map((card) => (
+  }) => {
+    if (group.subgroups && group.subgroups.length > 0) {
+      return (
+        <>
+          {group.subgroups.map((card) => (
+            <OutcomeCard
+              key={card.key}
+              card={card}
+              onBuyPress={onBuyPress}
+              game={game}
+              groupKey={group.key}
+            />
+          ))}
+        </>
+      );
+    }
+
+    const firstType = group.outcomes[0]?.sportsMarketType;
+    if (
+      firstType &&
+      isMoneylineLikeMarketType(firstType) &&
+      group.outcomes.length > 1
+    ) {
+      return (
         <OutcomeCard
-          key={card.key}
-          card={card}
+          card={{ key: firstType, outcomes: group.outcomes }}
           onBuyPress={onBuyPress}
           game={game}
           groupKey={group.key}
         />
-      ))}
-    </>
-  ),
+      );
+    }
+
+    return (
+      <>
+        {group.outcomes.map((outcome, index) => (
+          <SimpleOutcomeCard
+            key={outcome.id}
+            outcome={outcome}
+            title={formatOutcomeCardTitle(outcome)}
+            onBuyPress={onBuyPress}
+            game={game}
+            sportsMarketType={outcome.sportsMarketType}
+            testID={`${group.key}-outcome-${index}`}
+          />
+        ))}
+      </>
+    );
+  },
 );
 
 OutcomesContent.displayName = 'OutcomesContent';
