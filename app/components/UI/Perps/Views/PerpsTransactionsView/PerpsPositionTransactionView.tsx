@@ -236,7 +236,13 @@ const PerpsPositionTransactionView: React.FC = () => {
                         styles.detailRowLast,
                     ]}
                   >
-                    <Text style={styles.detailLabel}>{detail.label}</Text>
+                    <Text
+                      variant={TextVariant.BodySm}
+                      color={TextColor.TextAlternative}
+                      style={styles.detailLabel}
+                    >
+                      {detail.label}
+                    </Text>
                     <Text
                       variant={TextVariant.BodySm}
                       color={detail.textColor}

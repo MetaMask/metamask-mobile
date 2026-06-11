@@ -176,10 +176,12 @@ class PerpsMarketListView {
         await Gestures.waitAndTap(marketElement);
       },
       appium: async () => {
+        const screenId = PerpsMarketListViewSelectorsIDs.SCREEN;
         const marketSelector = `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${marketName}`;
-        const marketElement = await PlaywrightMatchers.getElementById(
-          marketSelector,
-          { exact: true },
+        // Scope the market row to the PerpsMarketListView screen container
+        const scopedXpath = `//*[@resource-id='${screenId}' or @name='${screenId}' or @label='${screenId}']//*[@resource-id='${marketSelector}' or @name='${marketSelector}' or @label='${marketSelector}']`;
+        const marketElement = await PlaywrightMatchers.getElementByXPath(
+          scopedXpath,
         );
         await PlaywrightGestures.scrollIntoView(marketElement);
         await PlaywrightGestures.waitAndTap(marketElement);
