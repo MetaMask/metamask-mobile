@@ -346,7 +346,8 @@ const RewardsDashboard: React.FC = () => {
   }, [hasAcceptedVipInvite, navigation]);
 
   const handleVipRefereePress = useCallback(() => {
-    navigation.navigate(
+    navigateToRewardsRoute(
+      navigation,
       hasAcceptedVipRefereeInvite
         ? Routes.REWARDS_VIP_REFEREE_VIEW
         : Routes.REWARDS_VIP_REFEREE_SPLASH_VIEW,
