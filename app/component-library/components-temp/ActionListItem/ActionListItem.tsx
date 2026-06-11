@@ -49,6 +49,7 @@ const ActionListItem: React.FC<ActionListItemProps> = ({
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
           {...labelTextProps}
+          accessible={false}
         >
           {label}
         </Text>
@@ -68,6 +69,7 @@ const ActionListItem: React.FC<ActionListItemProps> = ({
           fontWeight={FontWeight.Medium}
           color={TextColor.TextAlternative}
           {...descriptionTextProps}
+          accessible={false}
         >
           {description}
         </Text>
@@ -89,7 +91,12 @@ const ActionListItem: React.FC<ActionListItemProps> = ({
           justifyContent={BoxJustifyContent.Center}
           twClassName="h-6"
         >
-          <Icon name={iconName} size={IconSize.Md} {...iconProps} />
+          <Icon
+            name={iconName}
+            size={IconSize.Md}
+            {...iconProps}
+            accessible={false}
+          />
         </Box>
       );
     }
@@ -111,6 +118,7 @@ const ActionListItem: React.FC<ActionListItemProps> = ({
     <Pressable
       style={getStyle}
       disabled={isDisabled}
+      accessible
       accessibilityRole="button"
       accessibilityLabel={typeof label === 'string' ? label : undefined}
       accessibilityState={{ disabled: isDisabled }}
@@ -121,6 +129,7 @@ const ActionListItem: React.FC<ActionListItemProps> = ({
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
         gap={4}
+        importantForAccessibility="no-hide-descendants"
       >
         {/* Left side content (start accessory/icon + label/description) */}
         <Box

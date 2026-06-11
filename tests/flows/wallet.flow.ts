@@ -533,7 +533,18 @@ export const loginToAppPlaywright = async (
   const password = getPasswordForScenario(scenarioType);
   // Type password and unlock
   await LoginView.enterPassword(password ?? '');
-  await LoginView.tapLoginButton();
+
+  try {
+    await PlaywrightAssertions.expectElementToBeVisible(
+      asPlaywrightElement(WalletView.container),
+      {
+        description: 'Wallet container should be visible after password entry',
+        timeout: 3000,
+      },
+    );
+  } catch {
+    await LoginView.tapLoginButton();
+  }
 
   await PlaywrightUtilities.wait(5000);
   await dismissPushNotificationExistingUserSheet();
