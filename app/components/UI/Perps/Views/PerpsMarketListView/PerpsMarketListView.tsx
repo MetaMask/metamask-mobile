@@ -250,36 +250,11 @@ const PerpsMarketListView = ({
     // Only reachable when the watchlist flag is enabled (pill is hidden otherwise)
     if (isWatchlistEnabled && showFavoritesOnly && !hasWatchlistMarkets) {
       return (
-<<<<<<< HEAD
         <PerpsWatchlistMarkets
           markets={watchlistMarketObjects}
           suggestedMarkets={suggestedMarkets}
           showHeader={false}
         />
-=======
-        <View style={styles.emptyStateContainer}>
-          <Icon
-            name={IconName.Star}
-            size={IconSize.Xl}
-            color={theme.colors.icon.muted}
-            style={styles.emptyStateIcon}
-          />
-          <Text
-            variant={TextVariant.HeadingSm}
-            color={TextColor.TextDefault}
-            style={styles.emptyStateTitle}
-          >
-            {strings('perps.no_favorites_found')}
-          </Text>
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            style={styles.emptyStateDescription}
-          >
-            {strings('perps.no_favorites_description')}
-          </Text>
-        </View>
->>>>>>> ed1c05909f (chore: migrate Perps Views and initial components Text to MMDS (pt 1))
       );
     }
 
