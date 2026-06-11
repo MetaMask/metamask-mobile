@@ -1979,10 +1979,10 @@
       "stocks_and_commodities": "주식 및 원자재 살펴보기",
       "tabs": {
         "crypto": "암호화폐",
-        "stocks": "주식",
-        "commodities": "상품",
         "forex": "외환",
-        "new": "신규"
+        "new": "신규",
+        "stock": "주식",
+        "commodity": "상품"
       },
       "filter_by": "필터링 기준:",
       "forex": "외환",
@@ -8454,7 +8454,7 @@
     "main_title": "보상",
     "vip": {
       "bps_unit": "bps",
-      "badge_label": "VIP Fox {{tier}}",
+      "badge_label": "VIP {{tier}}",
       "swaps_label": "Swaps",
       "perps_label": "Perps",
       "error_title": "We couldn’t load your VIP dashboard",
@@ -8902,11 +8902,7 @@
       "stats_qualify_for_rank_description": "참가 자격을 획득하려면 명목 거래량 기준으로 {{notionalRemaining}}만큼 더 거래해야 합니다.",
       "stats_error_title": "통계를 불러올 수 없음",
       "stats_error_description": "통계를 불러오는 중에 문제가 발생했습니다. 다시 시도하세요.",
-      "stats_retry": "다시 시도",
-      "completed_label_total_participants": "총 참가자 수",
-      "completed_label_total_volume": "총 거래량",
-      "completed_label_top_pnl": "손익 상위",
-      "completed_label_winners": "수상자"
+      "stats_retry": "다시 시도"
     },
     "campaigns_preview": {
       "title": "캠페인",

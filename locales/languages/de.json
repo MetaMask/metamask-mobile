@@ -1979,10 +1979,10 @@
       "stocks_and_commodities": "Aktien und Rohstoffe entdecken",
       "tabs": {
         "crypto": "Krypto",
-        "stocks": "Aktien",
-        "commodities": "Rohstoffe",
         "forex": "Devisen",
-        "new": "Neu"
+        "new": "Neu",
+        "stock": "Aktien",
+        "commodity": "Rohstoffe"
       },
       "filter_by": "Filtern nach",
       "forex": "Devisen",
@@ -8454,7 +8454,7 @@
     "main_title": "Belohnungen",
     "vip": {
       "bps_unit": "Basispunkte",
-      "badge_label": "VIP Fox {{tier}}",
+      "badge_label": "VIP {{tier}}",
       "swaps_label": "Swaps",
       "perps_label": "Perps",
       "error_title": "We couldn’t load your VIP dashboard",
@@ -8902,11 +8902,7 @@
       "stats_qualify_for_rank_description": "Handeln Sie {{notionalRemaining}} mehr an Nominalvolumen, um berechtigt zu sein.",
       "stats_error_title": "Statistiken konnten nicht geladen werden",
       "stats_error_description": "Wir hatten ein Problem beim Laden Ihrer Statistik. Bitte versuchen Sie es erneut.",
-      "stats_retry": "Erneut versuchen",
-      "completed_label_total_participants": "Gesamteilnehmer",
-      "completed_label_total_volume": "Gesamtvolumen",
-      "completed_label_top_pnl": "Top-GuV",
-      "completed_label_winners": "Gewinner"
+      "stats_retry": "Erneut versuchen"
     },
     "campaigns_preview": {
       "title": "Kampagnen",
