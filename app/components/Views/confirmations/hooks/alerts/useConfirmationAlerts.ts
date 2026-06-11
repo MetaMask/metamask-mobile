@@ -22,7 +22,7 @@ import { useHeadlessBuyErrorAlert } from './useHeadlessBuyErrorAlert';
 import { useFirstTimeInteractionAlert } from './useFirstTimeInteractionAlert';
 import { useAddressPoisoningAlert } from './useAddressPoisoningAlert';
 import { useTokenContractAlert } from './useTokenContractAlert';
-import { useAccountNoTokensAlert } from './useAccountNoTokensAlert';
+import { useAccountNoFundsAlert } from './useAccountNoFundsAlert';
 
 function useSignatureAlerts(): Alert[] {
   const domainMismatchAlerts = useDomainMismatchAlerts();
@@ -50,7 +50,7 @@ function useTransactionAlerts(): Alert[] {
   const firstTimeInteractionAlert = useFirstTimeInteractionAlert();
   const addressPoisoningAlert = useAddressPoisoningAlert();
   const tokenContractAlert = useTokenContractAlert();
-  const accountNoTokensAlert = useAccountNoTokensAlert();
+  const accountNoFundsAlert = useAccountNoFundsAlert();
 
   return useMemo(
     () => [
@@ -71,7 +71,7 @@ function useTransactionAlerts(): Alert[] {
       ...firstTimeInteractionAlert,
       ...addressPoisoningAlert,
       ...tokenContractAlert,
-      ...accountNoTokensAlert,
+      ...accountNoFundsAlert,
     ],
     [
       gasEstimateFailedAlert,
@@ -91,7 +91,7 @@ function useTransactionAlerts(): Alert[] {
       firstTimeInteractionAlert,
       addressPoisoningAlert,
       tokenContractAlert,
-      accountNoTokensAlert,
+      accountNoFundsAlert,
     ],
   );
 }
