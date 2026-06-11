@@ -1,6 +1,9 @@
 import { renderHook } from '@testing-library/react-native';
 import { StatusTypes as BridgeStatus } from '@metamask/bridge-controller';
-import { TransactionStatus as KeyringTransactionStatus } from '@metamask/keyring-api';
+import {
+  SolScope,
+  TransactionStatus as KeyringTransactionStatus,
+} from '@metamask/keyring-api';
 import { TransactionStatus as TxStatus } from '@metamask/transaction-controller';
 import { PostTradeStatus as Status } from './PostTradeBottomSheet.types';
 import { usePostTradeTxStatus } from './usePostTradeTxStatus';
@@ -67,7 +70,7 @@ const statusOf = (
 
 const solanaTx = (status: KeyringTransactionStatus) => ({
   'account-1': {
-    'solana:mainnet': {
+    [SolScope.Mainnet]: {
       transactions: [{ id: 'sol-sig', status }],
     },
   },
