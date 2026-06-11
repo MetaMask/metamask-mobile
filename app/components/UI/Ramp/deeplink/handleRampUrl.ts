@@ -27,6 +27,17 @@ interface RampUrlOptions {
   rampType: RampType;
 }
 
+function parseBuildQuoteAmount(amount?: string): number | undefined {
+  const normalizedAmount = amount?.trim();
+
+  if (!normalizedAmount) {
+    return undefined;
+  }
+
+  const parsedAmount = Number(normalizedAmount);
+  return Number.isFinite(parsedAmount) ? parsedAmount : undefined;
+}
+
 export default function handleRampUrl({ rampPath, rampType }: RampUrlOptions) {
   try {
     const [redirectPaths, pathParams] = getRedirectPathsAndParams(rampPath);
@@ -71,10 +82,17 @@ export default function handleRampUrl({ rampPath, rampType }: RampUrlOptions) {
               } catch {
                 // Token may not be in controller's list yet; navigate anyway
               }
+              const buildQuoteParams: Parameters<
+                typeof createBuildQuoteNavDetails
+              >[0] = {
+                assetId: controllerAssetId,
+              };
+              const amount = parseBuildQuoteAmount(rampIntent.amount);
+              if (amount !== undefined) {
+                buildQuoteParams.amount = amount;
+              }
               NavigationService.navigation.navigate(
-                ...createBuildQuoteNavDetails({
-                  assetId: controllerAssetId,
-                }),
+                ...createBuildQuoteNavDetails(buildQuoteParams),
               );
               return;
             }
