@@ -8,7 +8,6 @@ import { useQuery } from '@metamask/react-data-query';
 import type { UseQueryResult } from '@tanstack/react-query';
 import BigNumber from 'bignumber.js';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { fromTokenMinimalUnitString } from '../../../../util/number';
 import { moneyFormatFiat } from '../utils/moneyFormatFiat';
 import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
 import {
@@ -118,23 +117,17 @@ const useMoneyAccountBalance = (
   );
 
   const { tokenTotal, totalFiat, withdrawableMusd } = useMemo(() => {
-    // Total balance (mUSD + vmUSD in mUSD terms) from the service's Multicall3 response.
+    // Total balance (mUSD + vmUSD) from the service's Multicall3 response.
     const totalDecimal = moneyBalanceQuery.data?.totalBalance
-      ? new BigNumber(
-          fromTokenMinimalUnitString(
-            moneyBalanceQuery.data.totalBalance,
-            MUSD_DECIMALS,
-          ),
+      ? new BigNumber(moneyBalanceQuery.data.totalBalance).shiftedBy(
+          -MUSD_DECIMALS,
         )
       : new BigNumber(0);
 
-    // vmUSD balance expressed in mUSD — the withdrawable amount.
+    // the withdrawable amount.
     const vmusdDecimal = moneyBalanceQuery.data?.vmusdValueInMusd
-      ? new BigNumber(
-          fromTokenMinimalUnitString(
-            moneyBalanceQuery.data.vmusdValueInMusd,
-            MUSD_DECIMALS,
-          ),
+      ? new BigNumber(moneyBalanceQuery.data.vmusdValueInMusd).shiftedBy(
+          -MUSD_DECIMALS,
         )
       : new BigNumber(0);
 
