@@ -329,7 +329,7 @@ describe('PayWithRow', () => {
     it('renders money balance label without inline balance', () => {
       const { getByTestId, queryByTestId } = renderMoneyAccount();
 
-      expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money balance');
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money account');
       expect(queryByTestId('pay-with-balance')).toBeNull();
     });
 
@@ -357,7 +357,7 @@ describe('PayWithRow', () => {
     it('renders money account row regardless of isResultReady when paymentOverride is MoneyAccount', () => {
       const { getByTestId } = renderMoneyAccount({ isResultReady: true });
 
-      expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money balance');
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money account');
     });
 
     it('renders money account row for perps deposit', () => {
@@ -369,7 +369,7 @@ describe('PayWithRow', () => {
       const { getByTestId } = renderMoneyAccount();
 
       expect(getByTestId('pay-with')).toBeDefined();
-      expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money balance');
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money account');
     });
   });
 
