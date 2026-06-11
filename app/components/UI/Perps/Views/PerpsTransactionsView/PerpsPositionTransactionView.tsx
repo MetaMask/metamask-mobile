@@ -147,7 +147,7 @@ const PerpsPositionTransactionView: React.FC = () => {
       transaction.fill?.fee !== null && {
         label: strings('perps.transactions.position.fees'),
         value: formatPositiveFiat(transaction.fill.fee),
-        textColor: TextColor.TextDefault as TextColor,
+        textColor: TextColor.TextDefault,
       },
   ].filter(Boolean);
 

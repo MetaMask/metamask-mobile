@@ -169,8 +169,9 @@ class PerpsMarketListView {
   async selectMarket(marketName: string) {
     await encapsulatedAction({
       detox: async () => {
-        const marketElement = Matchers.getElementByID(
+        const marketElement = await Matchers.getElementIDWithAncestor(
           `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${marketName}`,
+          PerpsMarketListViewSelectorsIDs.SCREEN,
         );
         await Gestures.waitAndTap(marketElement);
       },

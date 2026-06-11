@@ -309,7 +309,10 @@ const PerpsMarketListView = ({
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={styles.container}
+      testID={PerpsMarketListViewSelectorsIDs.SCREEN}
+    >
       <HeaderStandard
         title={title || strings('perps.home.markets')}
         onBack={handleBackPressed}
