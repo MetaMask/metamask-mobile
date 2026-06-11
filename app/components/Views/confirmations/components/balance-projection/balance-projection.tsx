@@ -67,7 +67,7 @@ export function BalanceProjection({
 
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.APY_INFO_SHEET,
-      params: { apy: apyPercent },
+      params: { apy: apyPercent, variant: 'deposit' },
     });
   }, [trackTooltipClicked, navigation, apyPercent]);
 

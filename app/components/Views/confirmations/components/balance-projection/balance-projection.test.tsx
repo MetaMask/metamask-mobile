@@ -149,7 +149,7 @@ describe('BalanceProjection', () => {
     expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.APY_INFO_SHEET,
-      params: { apy: 4 },
+      params: { apy: 4, variant: 'deposit' },
     });
   });
 
