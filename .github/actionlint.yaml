@@ -20,12 +20,11 @@ self-hosted-runner:
     - "namespace-profile-metamask-android-build"
     - "namespace-profile-metamask-ios-build"
     - "namespace-profile-metamask-ios-e2e"
-    # Bitrise Build Hub runner labels (INFRA-3679). Specs: docs/bitrise-shadow-run/RUNNER_LABELS.md
-    - "bitrise-profile-metamask-ios-build-m4pro-14c-54g"   # 12× M4 Pro 14c/54g — iOS build
-    - "bitrise-profile-metamask-ios-build-m4pro-7c-27g"     # optional right-size build A/B
-    - "bitrise-profile-metamask-ios-e2e"                    # shared E2E alias: M4 10c/28g + M2 Pro 12c/28g (200 VMs)
-    - "bitrise-profile-metamask-ios-e2e-m4-10c-28g"         # chip-specific; Build Hub secondary label or benchmark override
-    - "bitrise-profile-metamask-ios-e2e-m2pro-12c-28g"      # chip-specific; Build Hub secondary label or benchmark override
+    # Bitrise Build Hub runner labels (INFRA-3679). Pool names are bitrise-<chip>-*; see RUNNER_LABELS.md
+    - "bitrise-metamask-ios-build"                          # iOS build (pool e.g. bitrise-m4pro-14c-54g)
+    - "bitrise-metamask-ios-e2e"                            # shared E2E: M4 + M2 Pro pools (200 VMs)
+    - "bitrise-metamask-ios-e2e-m4-10c-28g"                 # chip-specific; benchmark override only
+    - "bitrise-metamask-ios-e2e-m2pro-12c-28g"              # chip-specific; benchmark override only
 
 # Configuration variables in array of strings defined in your repository or
 # organization. `null` means disabling configuration variables check.
