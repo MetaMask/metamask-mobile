@@ -893,7 +893,7 @@ describe('PredictionsSection', () => {
         <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
       );
 
-      expect(screen.getByText('48+ events in total')).toBeOnTheScreen();
+      expect(screen.getByText('48+ markets in total')).toBeOnTheScreen();
     });
 
     it('still renders treatment discovery when trending markets fail', async () => {

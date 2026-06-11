@@ -243,6 +243,7 @@ const PerpsHomeView = ({
     positions,
     orders,
     watchlistMarkets,
+    suggestedWatchlistMarkets,
     perpsMarkets, // Crypto markets (renamed from trendingMarkets)
     commoditiesMarkets, // Commodity markets
     stocksMarkets, // Equity markets only
@@ -743,11 +744,21 @@ const PerpsHomeView = ({
         {/* Watchlist Section */}
         <PerpsWatchlistMarkets
           markets={watchlistMarkets}
+          suggestedMarkets={suggestedWatchlistMarkets}
           isLoading={isLoading.markets}
           positions={positions}
           orders={orders}
           source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
           transactionActiveAbTests={transactionActiveAbTests}
+          onSeeAllPress={
+            watchlistMarkets.length > 0
+              ? () =>
+                  perpsNavigation.navigateToMarketList({
+                    showWatchlistOnly: true,
+                    source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+                  })
+              : undefined
+          }
         />
 
         {/* Products Section - Category pills grid */}

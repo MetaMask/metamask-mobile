@@ -43,6 +43,8 @@ import {
   isCardAuthTokenError,
 } from './provider-types';
 import { CardTokenStore } from './CardTokenStore';
+import { CardOnboardingStore } from './CardOnboardingStore';
+import { resetCardState } from '../../../redux/slices/card';
 import { isEthAccount } from '../../../Multichain/utils';
 import { pickPrimaryFromReordered, reorderAssets } from './utils/assetPriority';
 import { encodeErc20ApproveCalldata } from './utils/encodeErc20ApproveCalldata';
@@ -148,6 +150,7 @@ export class CardController extends BaseController<
   private fetchCardHomeDataPromise: Promise<void> | null = null;
   private fetchGeneration = 0;
   private previousEvmAddress: string | null = null;
+  private resetInProgress = false;
 
   constructor({
     messenger,
@@ -172,8 +175,8 @@ export class CardController extends BaseController<
   }
 
   #subscribeToEvents(): void {
-    // On app unlock: run both cardholder check AND session verification
     this.messenger.subscribe('KeyringController:unlock', () => {
+      if (this.resetInProgress) return;
       this.#triggerCardholderCheck();
       this.validateAndRefreshSession().catch((error) =>
         Logger.error(error as Error, {
@@ -189,6 +192,7 @@ export class CardController extends BaseController<
     this.messenger.subscribe(
       'AccountTreeController:stateChange',
       (_key: string) => {
+        if (this.resetInProgress) return;
         this.#triggerCardholderCheck();
         this.#handleAccountSwitch();
       },
@@ -206,6 +210,7 @@ export class CardController extends BaseController<
     this.messenger.subscribe(
       'RemoteFeatureFlagController:stateChange',
       (_cardFeatureKey: string) => {
+        if (this.resetInProgress) return;
         this.#handleCardFeatureFlagChange();
       },
       (state) => JSON.stringify(state.remoteFeatureFlags?.cardFeature ?? {}),
@@ -609,6 +614,69 @@ export class CardController extends BaseController<
   async #handleSessionExpired(): Promise<void> {
     await this.#clearLocalSession();
     this.#fetchCardHomeDataWithLogging('#handleSessionExpired');
+  }
+
+  /**
+   * Toggles reset mode. While enabled, the controller ignores its reactive
+   * triggers.
+   * @param value - Whether to set reset in progress
+   */
+  setResetInProgress(value: boolean): void {
+    this.resetInProgress = value;
+  }
+
+  /**
+   * Wipes all Card data, returning it to a fresh-install state. Used by the
+   * app reset / delete-wallet flow (see Authentication.resetWalletState).
+   * @returns {Promise<void>}
+   */
+  async resetAll(): Promise<void> {
+    try {
+      for (const pid of Object.keys(this.providers)) {
+        try {
+          const tokens = await CardTokenStore.get(pid);
+          if (tokens) {
+            try {
+              await this.providers[pid].logout(tokens);
+            } catch (error) {
+              Logger.error(error as Error, {
+                tags: { feature: 'card', provider: pid },
+                context: {
+                  name: 'CardController',
+                  data: { method: 'resetAll/providerLogout' },
+                },
+              });
+            }
+          }
+          await CardTokenStore.remove(pid);
+          await CardOnboardingStore.remove(pid);
+        } catch (error) {
+          Logger.error(error as Error, {
+            tags: { feature: 'card', provider: pid },
+            context: {
+              name: 'CardController',
+              data: { method: 'resetAll/providerCleanup' },
+            },
+          });
+        }
+      }
+
+      this.currentSession = null;
+      this.refreshPromise = null;
+      this.invalidateFetch();
+      if (this.#cardholderCheckTimer !== undefined) {
+        clearTimeout(this.#cardholderCheckTimer);
+        this.#cardholderCheckTimer = undefined;
+      }
+      this.update(() => ({ ...defaultCardControllerState }));
+
+      ReduxService.store.dispatch(resetCardState());
+    } catch (error) {
+      Logger.error(error as Error, {
+        tags: { feature: 'card' },
+        context: { name: 'CardController', data: { method: 'resetAll' } },
+      });
+    }
   }
 
   async validateAndRefreshSession(): Promise<{

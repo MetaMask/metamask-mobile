@@ -2,6 +2,7 @@ import React, { useCallback, useMemo } from 'react';
 import Animated, { FadeIn, LinearTransition } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import PerpsMarketCategoryBadge from '../PerpsMarketCategoryBadge';
 import { styleSheet } from './PerpsMarketCategoryBadges.styles';
 import type { PerpsMarketCategoryBadgesProps } from './PerpsMarketCategoryBadges.types';
@@ -32,6 +33,9 @@ const NEW_CATEGORY: PerpsCategory = {
 const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
   selectedCategory,
   onCategorySelect,
+  showWatchlistBadge = false,
+  isWatchlistSelected = false,
+  onWatchlistToggle,
   testID,
 }) => {
   const { styles } = useStyles(styleSheet, {});
@@ -62,6 +66,21 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
       style={styles.scrollContainer}
       testID={testID}
     >
+      {/* Watchlist star badge — shown first */}
+      {showWatchlistBadge && (
+        <Animated.View
+          entering={FadeIn.duration(ANIMATION_DURATION)}
+          layout={LinearTransition.duration(ANIMATION_DURATION)}
+        >
+          <PerpsMarketCategoryBadge
+            icon={IconName.StarFilled}
+            accessibilityLabel={strings('perps.watchlist.filter_badge_label')}
+            isSelected={isWatchlistSelected}
+            onPress={onWatchlistToggle ?? (() => undefined)}
+            testID={testID ? `${testID}-watchlist` : undefined}
+          />
+        </Animated.View>
+      )}
       {displayCategories.map((category, index) => {
         const isCategorySelected = selectedCategory === category.id;
         return (
@@ -72,6 +91,7 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
           >
             <PerpsMarketCategoryBadge
               label={category.label}
+              accessibilityLabel={category.label}
               isSelected={isCategorySelected}
               onPress={() => handleCategoryPress(category.id)}
               testID={testID ? `${testID}-${category.id}` : undefined}
