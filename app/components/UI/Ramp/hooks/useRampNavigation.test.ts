@@ -29,8 +29,12 @@ let mockProvidersLoading = false;
 let mockProvidersError: string | null = null;
 let mockLastProviders = mockProviders;
 let mockLastProvidersLoading = mockProvidersLoading;
-let mockLastProvidersError = mockProvidersError;
-let mockProvidersSelectorResult = {
+let mockLastProvidersError: string | null = mockProvidersError;
+let mockProvidersSelectorResult: {
+  data: unknown[];
+  isLoading: boolean;
+  error: string | null;
+} = {
   data: mockProviders,
   isLoading: mockProvidersLoading,
   error: mockProvidersError,
