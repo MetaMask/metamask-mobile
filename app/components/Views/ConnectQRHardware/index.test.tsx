@@ -227,7 +227,7 @@ jest.mock('../../../core/Engine', () => ({
   context: {
     KeyringController: {
       state: {
-        keyrings: [{ type: 'QR Hardware Wallet Device', accounts: [] }],
+        keyrings: [{ type: mockQrKeyring.type, accounts: [] }],
       },
       getAccounts: jest.fn(),
       getKeyringsByType: jest.fn().mockResolvedValue([]),
@@ -236,7 +236,7 @@ jest.mock('../../../core/Engine', () => ({
         operation({
           keyrings: [
             {
-              keyring: { type: 'QR Hardware Wallet Device' },
+              keyring: { type: mockQrKeyring.type },
               metadata: { id: '1234', name: 'QR Hardware Wallet Device' },
             },
           ],
