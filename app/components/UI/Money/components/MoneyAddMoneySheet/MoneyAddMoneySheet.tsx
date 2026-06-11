@@ -15,7 +15,7 @@ import {
   type TransactionMeta,
 } from '@metamask/transaction-controller';
 import { providerErrors } from '@metamask/rpc-errors';
-import { createProjectLogger , Hex } from '@metamask/utils';
+import { createProjectLogger, Hex } from '@metamask/utils';
 import {
   BottomSheet,
   BottomSheetHeader,
