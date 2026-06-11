@@ -47,6 +47,11 @@ import { useRampsUserRegion } from '../../hooks/useRampsUserRegion';
 import type { TransakBuyQuote } from '@metamask/ramps-controller';
 import type { AddressFormData } from '../../Deposit/Views/EnterAddress/EnterAddress';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
+import {
+  extractRegisteredEmailFromTransakError,
+  isTransakPhoneRegisteredError,
+  parseTransakApiError,
+} from '../../utils/parseTransakApiError';
 import { BASIC_INFO_TEST_IDS } from './BasicInfo.testIds';
 import { createV2EnterEmailNavDetails } from './EnterEmail';
 
@@ -202,26 +207,23 @@ const V2BasicInfo = (): JSX.Element => {
         ...(headlessSessionId ? { headlessSessionId } : {}),
       });
     } catch (submissionError) {
-      const apiError = (
-        submissionError as {
-          response?: {
-            data?: { error?: { errorCode?: number; message?: string } };
-          };
-        }
-      )?.response?.data?.error;
-
-      const isPhoneError = apiError?.errorCode === 2020;
+      const transakApiError = parseTransakApiError(submissionError);
+      const isPhoneError = isTransakPhoneRegisteredError(submissionError);
       setIsPhoneRegisteredError(isPhoneError);
 
-      const errorMessageText = parseUserFacingError(
-        submissionError,
-        strings('deposit.basic_info.unexpected_error'),
-      );
+      const errorMessageText =
+        transakApiError?.message ??
+        parseUserFacingError(
+          submissionError,
+          strings('deposit.basic_info.unexpected_error'),
+        );
 
       let errorMessage = errorMessageText;
       if (isPhoneError && errorMessageText) {
-        const emailMatch = errorMessageText.match(/[\w*]+@[\w*]+(?:\.[\w*]+)*/);
-        const email = emailMatch ? emailMatch[0] : '';
+        const email = extractRegisteredEmailFromTransakError(
+          submissionError,
+          errorMessageText,
+        );
         if (email) {
           errorMessage = strings(
             'deposit.basic_info.phone_already_registered',
@@ -252,33 +254,25 @@ const V2BasicInfo = (): JSX.Element => {
   ]);
 
   const enterEmailParamsForLogout = useMemo(
-    () =>
-      headlessSessionId
-        ? {
-            headlessSessionId,
-            amount:
-              quote?.fiatAmount != null ? String(quote.fiatAmount) : undefined,
-            // TransakBuyQuote uses plain strings for fiatCurrency / cryptoCurrency
-            // (not `{ symbol }` / `{ assetId }` objects).
-            currency: quote?.fiatCurrency,
-            // CAIP asset id for post-logout OTP quote fetch — prefer controller
-            // (seeded in headless buy) over quote.cryptoCurrency (a display ticker).
-            assetId: selectedToken?.assetId,
-          }
-        : undefined,
+    () => ({
+      ...(headlessSessionId ? { headlessSessionId } : {}),
+      amount: quote?.fiatAmount != null ? String(quote.fiatAmount) : undefined,
+      // TransakBuyQuote uses plain strings for fiatCurrency / cryptoCurrency
+      // (not `{ symbol }` / `{ assetId }` objects).
+      currency: quote?.fiatCurrency,
+      // CAIP asset id for post-logout OTP quote fetch — prefer controller
+      // (seeded in headless buy) over quote.cryptoCurrency (a display ticker).
+      assetId: selectedToken?.assetId,
+    }),
     [headlessSessionId, quote, selectedToken?.assetId],
   );
 
   const handleLogout = useCallback(async () => {
     try {
       await logoutFromProvider(false);
-      if (enterEmailParamsForLogout) {
-        navigation.navigate(
-          ...createV2EnterEmailNavDetails(enterEmailParamsForLogout),
-        );
-      } else {
-        navigation.navigate(Routes.RAMP.ENTER_EMAIL as never);
-      }
+      navigation.navigate(
+        ...createV2EnterEmailNavDetails(enterEmailParamsForLogout),
+      );
     } catch (logoutError) {
       Logger.error(
         logoutError as Error,

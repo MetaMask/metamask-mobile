@@ -77,6 +77,13 @@ jest.mock('../../hooks/useAnalytics', () => ({
   default: () => mockTrackEvent,
 }));
 
+const transakPhoneRegisteredError = {
+  errorCode: '2020',
+  apiMessage: 'Phone registered with t***@test.com',
+  message:
+    'Fetching \'https://api.transak.com/user\' failed with status \'400\': {"error":{"errorCode":2020,"message":"Phone registered with t***@test.com"}}',
+};
+
 jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
@@ -332,17 +339,7 @@ describe('V2BasicInfo', () => {
 
   it('handles phone registered error (errorCode 2020)', async () => {
     mockUseParamsReturn.previousFormData = validPreviousFormData;
-    mockPatchUser.mockRejectedValue({
-      response: {
-        data: {
-          error: {
-            errorCode: 2020,
-            message: 'Phone registered with t***@test.com',
-          },
-        },
-      },
-      message: 'Phone registered with t***@test.com',
-    });
+    mockPatchUser.mockRejectedValue(transakPhoneRegisteredError);
 
     const { getByTestId } = renderWithTheme(<V2BasicInfo />);
 
@@ -353,7 +350,7 @@ describe('V2BasicInfo', () => {
     });
 
     await waitFor(() => {
-      expect(mockPatchUser).toHaveBeenCalled();
+      expect(getByTestId('basic-info-logout-button')).toBeOnTheScreen();
     });
   });
 
@@ -367,17 +364,7 @@ describe('V2BasicInfo', () => {
 
   it('calls logoutFromProvider when logout button is pressed', async () => {
     mockUseParamsReturn.previousFormData = validPreviousFormData;
-    mockPatchUser.mockRejectedValue({
-      response: {
-        data: {
-          error: {
-            errorCode: 2020,
-            message: 'Phone registered with t***@test.com',
-          },
-        },
-      },
-      message: 'Phone registered with t***@test.com',
-    });
+    mockPatchUser.mockRejectedValue(transakPhoneRegisteredError);
     mockLogoutFromProvider.mockResolvedValue(undefined);
 
     const { getByTestId } = renderWithTheme(<V2BasicInfo />);
@@ -389,7 +376,7 @@ describe('V2BasicInfo', () => {
     });
 
     await waitFor(() => {
-      expect(mockPatchUser).toHaveBeenCalled();
+      expect(getByTestId('basic-info-logout-button')).toBeOnTheScreen();
     });
 
     await act(async () => {
@@ -398,6 +385,10 @@ describe('V2BasicInfo', () => {
 
     await waitFor(() => {
       expect(mockLogoutFromProvider).toHaveBeenCalledWith(false);
+      expect(mockNavigate).toHaveBeenCalledWith('MockRoute', {
+        amount: '100',
+        assetId: 'eip155:1/erc20:0xmock',
+      });
     });
   });
 
@@ -544,15 +535,8 @@ describe('V2BasicInfo', () => {
   it('handles phone registered error with extractable email', async () => {
     mockUseParamsReturn.previousFormData = validPreviousFormData;
     mockPatchUser.mockRejectedValue({
-      response: {
-        data: {
-          error: {
-            errorCode: 2020,
-            message: 'Phone already registered with user@example.com',
-          },
-        },
-      },
-      message: 'Phone already registered with user@example.com',
+      errorCode: '2020',
+      apiMessage: 'Phone already registered with user@example.com',
     });
 
     const { getByTestId } = renderWithTheme(<V2BasicInfo />);
