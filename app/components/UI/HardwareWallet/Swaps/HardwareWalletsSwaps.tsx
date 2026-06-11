@@ -64,7 +64,7 @@ import { useHardwareWallet } from '../../../../core/HardwareWallet';
 
 import { useHwConnectionMonitoring } from './useHwConnectionMonitoring';
 import { useHwQrState } from './hooks/useHwQrState';
-import { ConnectionStatus } from '@metamask/hw-wallet-sdk';
+import { ConnectionStatus, HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { StepRow } from './StepRow';
 
 interface SubmissionParams {
@@ -102,11 +102,23 @@ const STATUS_TO_RIVE_TRIGGER: Record<string, string> = {
   [HardwareWalletsSwapsStatus.Idle]: HardwareWalletRiveTrigger.NotFound,
 };
 
+/**
+ * Determines the appropriate Rive animation trigger based on the current
+ * swap flow state. Terminal statuses map to dedicated triggers; otherwise
+ * the active step's status is inspected to choose between wallet-locked
+ * (signing in progress) and reset (idle/awaiting input).
+ *
+ * @param progress - The current hardware wallet swap flow state.
+ * @returns The Rive state-machine trigger string to fire.
+ */
 function getHardwareWalletRiveTrigger(progress: HardwareWalletsSwapsState) {
+  // Terminal/known statuses have a direct 1:1 mapping to a Rive trigger.
   const mapped = STATUS_TO_RIVE_TRIGGER[progress.status];
   if (mapped) return mapped;
 
-  const activeStep = progress.steps[progress.currentStep - 1];
+  // For non-terminal statuses, choose the animation based on the current step.
+  // Signing → wallet-locked; anything else (e.g. between steps) → reset.
+  const activeStep = progress.steps[progress.currentStep];
   return activeStep?.status === HardwareWalletsSwapsStepStatus.Signing
     ? HardwareWalletRiveTrigger.WalletLocked
     : HardwareWalletRiveTrigger.Reset;
@@ -146,30 +158,38 @@ export function HardwareWalletsSwaps() {
       currentStatus: progress.status,
     });
 
-  const { connectionState, setForceHideBottomSheet } = useHardwareWallet();
+  const { connectionState, setForceHideBottomSheet, walletType } =
+    useHardwareWallet();
+
+  const isLedgerHardwareWallet = useMemo(
+    () => walletType === HardwareWalletType.Ledger,
+    [walletType],
+  );
 
   useEffect(() => {
-    if (!isQrHardwareWallet) return;
+    if (isLedgerHardwareWallet) return;
     setForceHideBottomSheet?.(true);
     return () => {
       setForceHideBottomSheet?.(false);
     };
-  }, [isQrHardwareWallet, setForceHideBottomSheet]);
+  }, [isLedgerHardwareWallet, isQrHardwareWallet, setForceHideBottomSheet]);
 
   const { submitBridgeTx } = useSubmitBridgeTx();
   const { params: routeParams } = useRoute();
+  const routeSubmissionParams = useMemo(
+    () =>
+      (routeParams as { submissionParams?: SubmissionParams })
+        ?.submissionParams ?? null,
+    [routeParams],
+  );
   const cachedSubmissionParams = useRef<SubmissionParams | null>(
-    (routeParams as { submissionParams?: SubmissionParams })
-      ?.submissionParams ?? null,
+    routeSubmissionParams,
   );
   useEffect(() => {
-    const routeSubmissionParams = (
-      routeParams as { submissionParams?: SubmissionParams }
-    )?.submissionParams;
     if (routeSubmissionParams && !cachedSubmissionParams.current) {
       cachedSubmissionParams.current = routeSubmissionParams;
     }
-  }, [routeParams]);
+  }, [routeSubmissionParams]);
   const toastRef = useContext(ToastContext)?.toastRef;
   const hasAutoNavigatedRef = useRef(false);
   const hasInitialSubmissionRef = useRef(false);
@@ -315,14 +335,14 @@ export function HardwareWalletsSwaps() {
     ) {
       return false;
     }
-    const activeStep = progress.steps[progress.currentStep - 1];
+    const activeStep = progress.steps[progress.currentStep];
     return activeStep?.status === HardwareWalletsSwapsStepStatus.Signing;
   }, [progress.currentStep, progress.status, progress.steps]);
 
   const signingTitle = useMemo(() => {
     const totalSteps = progress.totalSteps || 1;
     return strings('bridge.hardware_wallet_progress.confirm_title', {
-      current: progress.currentStep || 1,
+      current: (progress.currentStep || 0) + 1,
       total: totalSteps,
     });
   }, [progress.currentStep, progress.totalSteps]);
@@ -518,7 +538,7 @@ export function HardwareWalletsSwaps() {
             testID={HardwareWalletsSwapsSelectorsIDs.SCAN_NEXT_QR_BUTTON}
             onPress={() =>
               navigation.navigate(Routes.BRIDGE.HW_QR_SCANNER, {
-                currentStep: progress.currentStep,
+                currentStep: progress.currentStep + 1,
                 totalSteps: progress.totalSteps,
               })
             }
