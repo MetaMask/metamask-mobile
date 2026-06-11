@@ -40,20 +40,6 @@ jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: jest.fn(),
 }));
 
-jest.mock(
-  '../Settings/NotificationsSettings/hooks/useNotificationStoragePreferences',
-  () => ({
-    useNotificationStoragePreferences: () => ({
-      preferences: undefined,
-      hasNotificationPreferences: false,
-      isLoading: false,
-      error: null,
-      updatePreference: jest.fn(),
-      updatePreferencesSection: jest.fn(),
-    }),
-  }),
-);
-
 const mockMetrics = {
   trackEvent: jest.fn(),
   createEventBuilder: jest.fn().mockReturnValue({ build: jest.fn() }),

@@ -1,121 +1,46 @@
-import type { NotificationPreferences } from '@metamask/authenticated-user-storage';
-import { renderHook, act } from '@testing-library/react-native';
-import { useQuery } from '@metamask/react-data-query';
+import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { useQueryClient } from '@tanstack/react-query';
-import Engine from '../../../../../core/Engine';
-import Logger from '../../../../../util/Logger';
-import {
-  AGENTIC_CLI_CLIENT_PREFERENCE_QUERY_KEY,
-  type AgenticCliPreference,
-} from '../../../../../util/notifications/agenticCliNotificationPreferences';
-import {
-  useNotificationStoragePreferences,
-  type NotificationStoragePreferences,
-} from './useNotificationStoragePreferences';
+import type { NotificationPreferences } from '@metamask/authenticated-user-storage';
+import { DEFAULT_AGENTIC_CLI_PREFERENCES } from '@metamask/notification-services-controller';
+import { useNotificationStoragePreferences } from './useNotificationStoragePreferences';
 
-jest.mock('@metamask/react-data-query');
+const mockGetQueryData = jest.fn();
+const mockSetQueryData = jest.fn();
+const mockCacheUnsubscribe = jest.fn();
+const mockCacheSubscribe = jest.fn(() => mockCacheUnsubscribe);
 
 jest.mock('@tanstack/react-query', () => ({
   useQueryClient: jest.fn(),
 }));
 
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(),
-}));
+jest.mock(
+  '../../../../../util/notifications/ensureAgenticCliNotificationPreferencesMigrated',
+  () => ({
+    ensureNotificationPreferencesReady: jest.fn().mockResolvedValue(undefined),
+    mergeAndPersistNotificationPreferences: jest.fn(),
+    readNotificationPreferencesForUpdate: jest.fn(),
+  }),
+);
 
-jest.mock('../../../../../core/Engine', () => ({
-  controllerMessenger: {
-    call: jest.fn(),
-  },
-}));
+const {
+  mergeAndPersistNotificationPreferences,
+  readNotificationPreferencesForUpdate,
+} = jest.requireMock(
+  '../../../../../util/notifications/ensureAgenticCliNotificationPreferencesMigrated',
+) as {
+  mergeAndPersistNotificationPreferences: jest.Mock;
+  readNotificationPreferencesForUpdate: jest.Mock;
+};
 
-jest.mock('../../../../../util/Logger', () => ({
-  error: jest.fn(),
-}));
-
-const GET_ACTION = 'AuthenticatedUserStorageService:getNotificationPreferences';
-const PUT_ACTION = 'AuthenticatedUserStorageService:putNotificationPreferences';
-const CLIENT_TYPE = 'mobile';
-
-const mockUseQuery = useQuery as jest.MockedFunction<typeof useQuery>;
 const mockUseQueryClient = useQueryClient as jest.MockedFunction<
   typeof useQueryClient
 >;
-const queryCache: { data?: NotificationPreferences } = {};
-const clientAgenticCliCache: { data?: AgenticCliPreference } = {};
-let mainQueryData: NotificationPreferences | undefined;
 
-const mockGetQueryData = jest.fn((queryKey: unknown) => {
-  if (!Array.isArray(queryKey) || queryKey[0] !== GET_ACTION) {
-    return undefined;
-  }
-
-  if (queryKey[1] === 'agenticCliClientPreference') {
-    return clientAgenticCliCache.data;
-  }
-
-  return queryCache.data;
-});
-
-const queryCacheSubscribers = new Set<() => void>();
-
-const notifyQueryCacheSubscribers = () => {
-  queryCacheSubscribers.forEach((subscriber) => subscriber());
-};
-
-const mockSetQueryData = jest.fn(
-  (
-    queryKey: unknown,
-    updater:
-      | NotificationPreferences
-      | NotificationStoragePreferences
-      | AgenticCliPreference
-      | ((
-          previous:
-            | NotificationPreferences
-            | NotificationStoragePreferences
-            | AgenticCliPreference
-            | undefined,
-        ) =>
-          | NotificationPreferences
-          | NotificationStoragePreferences
-          | AgenticCliPreference),
-  ) => {
-    if (!Array.isArray(queryKey) || queryKey[0] !== GET_ACTION) {
-      return;
-    }
-
-    if (queryKey[1] === 'agenticCliClientPreference') {
-      clientAgenticCliCache.data =
-        typeof updater === 'function'
-          ? (
-              updater as (
-                previous?: AgenticCliPreference,
-              ) => AgenticCliPreference
-            )(clientAgenticCliCache.data)
-          : (updater as AgenticCliPreference);
-      notifyQueryCacheSubscribers();
-      return;
-    }
-
-    queryCache.data =
-      typeof updater === 'function'
-        ? (
-            updater as (
-              previous?: NotificationPreferences,
-            ) => NotificationPreferences
-          )(queryCache.data)
-        : (updater as NotificationPreferences);
-    notifyQueryCacheSubscribers();
-  },
-);
-
-const mockRefetch = jest.fn();
-const mockCall = Engine.controllerMessenger.call as jest.Mock;
+const GET_ACTION = 'AuthenticatedUserStorageService:getNotificationPreferences';
 
 const buildPreferences = (
-  overrides: Partial<NotificationStoragePreferences> = {},
-): NotificationStoragePreferences => ({
+  overrides: Partial<NotificationPreferences> = {},
+): NotificationPreferences => ({
   walletActivity: {
     inAppNotificationsEnabled: true,
     pushNotificationsEnabled: true,
@@ -135,113 +60,55 @@ const buildPreferences = (
     txAmountLimit: 500,
     mutedTraderProfileIds: [],
   },
-  agenticCli: {
-    pushNotificationsEnabled: false,
-    inAppNotificationsEnabled: false,
-  },
+  agenticCli: DEFAULT_AGENTIC_CLI_PREFERENCES,
   ...overrides,
 });
-
-const buildPreferencesWithoutAgenticCli = (
-  overrides: Partial<NotificationStoragePreferences> = {},
-): NotificationPreferences => {
-  const { agenticCli: _agenticCli, ...preferences } =
-    buildPreferences(overrides);
-
-  return preferences;
-};
-
-type QueryResult = ReturnType<typeof useQuery>;
-
-const makeQueryResult = (
-  overrides: Partial<
-    Omit<QueryResult, 'isLoading'> & { isLoading: boolean }
-  > = {},
-): QueryResult =>
-  ({
-    data: undefined,
-    isLoading: false,
-    error: null,
-    refetch: mockRefetch,
-    ...overrides,
-  }) as ReturnType<typeof useQuery>;
-
-const mockUseQueryForHook = (
-  preferencesData?: NotificationPreferences | NotificationStoragePreferences,
-) => {
-  mainQueryData = preferencesData;
-  mockUseQuery.mockReturnValue(makeQueryResult({ data: mainQueryData }));
-};
 
 describe('useNotificationStoragePreferences', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    queryCache.data = undefined;
-    clientAgenticCliCache.data = undefined;
-    mainQueryData = undefined;
-    mockUseQueryForHook();
-    queryCacheSubscribers.clear();
+    mockGetQueryData.mockReturnValue(undefined);
     mockUseQueryClient.mockReturnValue({
       getQueryData: mockGetQueryData,
       setQueryData: mockSetQueryData,
-      removeQueries: jest.fn(() => {
-        clientAgenticCliCache.data = undefined;
-        notifyQueryCacheSubscribers();
-      }),
       getQueryCache: () => ({
-        subscribe: (subscriber: () => void) => {
-          queryCacheSubscribers.add(subscriber);
-          return () => queryCacheSubscribers.delete(subscriber);
-        },
+        subscribe: mockCacheSubscribe,
       }),
     } as unknown as ReturnType<typeof useQueryClient>);
-    mockCall.mockResolvedValue(undefined);
-    mockRefetch.mockResolvedValue(undefined);
   });
 
-  it('scopes the query to the active account and exposes query state', () => {
+  it('loads cached preferences and exposes hook state', async () => {
     const preferences = buildPreferences();
-    const error = new Error('fetch failed');
-    mockUseQueryForHook(preferences);
-    mockUseQuery.mockReturnValue(
-      makeQueryResult({ data: preferences, isLoading: true, error }),
-    );
+    mockGetQueryData.mockReturnValue(preferences);
 
     const { result } = renderHook(() => useNotificationStoragePreferences());
 
-    expect(mockUseQuery).toHaveBeenCalledWith(
-      expect.objectContaining({
-        queryKey: [GET_ACTION],
-      }),
-    );
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
     expect(result.current.preferences).toEqual(preferences);
     expect(result.current.hasNotificationPreferences).toBe(true);
-    expect(result.current.isLoading).toBe(true);
-    expect(result.current.error).toBe(error);
+    expect(mergeAndPersistNotificationPreferences).not.toHaveBeenCalled();
   });
 
   it('persists an updated channel key with a read-merge-write payload', async () => {
     const cachedPreferences = buildPreferences();
-    const latestPreferences = buildPreferences({
-      walletActivity: {
-        inAppNotificationsEnabled: true,
-        pushNotificationsEnabled: true,
-        accounts: [{ address: '0xabc', enabled: true }],
-      },
-      marketing: {
-        inAppNotificationsEnabled: true,
-        pushNotificationsEnabled: true,
-      },
-    });
-    mockUseQueryForHook(cachedPreferences);
-    mockCall.mockImplementation(async (action: string) => {
-      if (action === GET_ACTION) {
-        return latestPreferences;
-      }
-      return undefined;
-    });
+    mockGetQueryData.mockReturnValue(cachedPreferences);
+    mergeAndPersistNotificationPreferences.mockResolvedValue(
+      buildPreferences({
+        perps: {
+          ...cachedPreferences.perps,
+          pushNotificationsEnabled: false,
+        },
+      }),
+    );
 
     const { result } = renderHook(() => useNotificationStoragePreferences());
+
+    await waitFor(() => {
+      expect(result.current.preferences).toEqual(cachedPreferences);
+    });
 
     await act(async () => {
       await result.current.updatePreference(
@@ -251,121 +118,43 @@ describe('useNotificationStoragePreferences', () => {
       );
     });
 
-    const mainCacheWrite = mockSetQueryData.mock.calls.find(
-      ([queryKey]) =>
-        Array.isArray(queryKey) &&
-        queryKey[0] === GET_ACTION &&
-        queryKey.length === 1,
-    )?.[1] as NotificationPreferences;
-
-    expect(mainCacheWrite).toEqual(
-      expect.objectContaining({
-        perps: {
-          ...cachedPreferences.perps,
-          pushNotificationsEnabled: false,
-        },
-      }),
-    );
-    expect(mainCacheWrite).not.toHaveProperty('agenticCli');
-    expect(mockCall).toHaveBeenCalledWith(GET_ACTION);
-    expect(mockCall).toHaveBeenCalledWith(
-      PUT_ACTION,
-      {
-        ...latestPreferences,
-        perps: {
-          ...cachedPreferences.perps,
-          pushNotificationsEnabled: false,
-        },
+    expect(mergeAndPersistNotificationPreferences).toHaveBeenCalledWith({
+      perps: {
+        ...cachedPreferences.perps,
+        pushNotificationsEnabled: false,
       },
-      CLIENT_TYPE,
-    );
-  });
-
-  it('persists agenticCli preferences when the section is missing from cache', async () => {
-    const cachedPreferences = buildPreferencesWithoutAgenticCli();
-    const latestPreferences = buildPreferencesWithoutAgenticCli();
-    mockUseQueryForHook(cachedPreferences);
-    mockCall.mockImplementation(async (action: string) => {
-      if (action === GET_ACTION) {
-        return latestPreferences;
-      }
-      return undefined;
     });
-
-    const { result } = renderHook(() => useNotificationStoragePreferences());
-
-    await act(async () => {
-      await result.current.updatePreference(
-        'agenticCli',
-        'pushNotificationsEnabled',
-        true,
-      );
-    });
-
     expect(mockSetQueryData).toHaveBeenCalledWith(
-      AGENTIC_CLI_CLIENT_PREFERENCE_QUERY_KEY,
-      {
-        pushNotificationsEnabled: true,
-        inAppNotificationsEnabled: false,
-      },
-    );
-    expect(mockCall).toHaveBeenCalledWith(
-      PUT_ACTION,
+      [GET_ACTION],
       expect.objectContaining({
-        agenticCli: {
-          pushNotificationsEnabled: true,
-          inAppNotificationsEnabled: false,
+        perps: {
+          ...cachedPreferences.perps,
+          pushNotificationsEnabled: false,
         },
       }),
-      CLIENT_TYPE,
     );
   });
 
-  it('keeps agenticCli preferences in hook state when API omits the section', async () => {
-    const cachedPreferences = buildPreferencesWithoutAgenticCli();
-    mockUseQueryForHook(cachedPreferences);
-    mockCall.mockImplementation(async (action: string) => {
-      if (action === GET_ACTION) {
-        return cachedPreferences;
-      }
-      return undefined;
+  it('restores preferences and rethrows when persistence fails', async () => {
+    const cachedPreferences = buildPreferences();
+    const restoredPreferences = buildPreferences({
+      marketing: {
+        inAppNotificationsEnabled: false,
+        pushNotificationsEnabled: false,
+      },
     });
-
-    const { result, rerender } = renderHook(() =>
-      useNotificationStoragePreferences(),
-    );
-
-    await act(async () => {
-      await result.current.updatePreference(
-        'agenticCli',
-        'pushNotificationsEnabled',
-        true,
-      );
-    });
-
-    queryCache.data = buildPreferencesWithoutAgenticCli();
-    mockUseQueryForHook(queryCache.data);
-    rerender({});
-
-    expect(result.current.preferences?.agenticCli).toEqual({
-      pushNotificationsEnabled: true,
-      inAppNotificationsEnabled: false,
-    });
-  });
-
-  it('refetches and rethrows when persistence fails', async () => {
     const persistError = new Error('network down');
-    mockUseQueryForHook(buildPreferences());
-    mockCall.mockImplementation(async (action: string) => {
-      if (action === GET_ACTION) {
-        return buildPreferences();
-      }
-      if (action === PUT_ACTION) {
-        throw persistError;
-      }
-      return undefined;
-    });
+
+    mockGetQueryData.mockReturnValue(cachedPreferences);
+    mergeAndPersistNotificationPreferences.mockRejectedValue(persistError);
+    readNotificationPreferencesForUpdate.mockResolvedValue(restoredPreferences);
+
     const { result } = renderHook(() => useNotificationStoragePreferences());
+
+    await waitFor(() => {
+      expect(result.current.preferences).toEqual(cachedPreferences);
+    });
+
     let thrownError: unknown;
 
     await act(async () => {
@@ -381,10 +170,7 @@ describe('useNotificationStoragePreferences', () => {
     });
 
     expect(thrownError).toBe(persistError);
-    expect(mockRefetch).toHaveBeenCalledTimes(1);
-    expect(Logger.error).toHaveBeenCalledWith(
-      persistError,
-      'Failed to persist notification preferences',
-    );
+    expect(readNotificationPreferencesForUpdate).toHaveBeenCalled();
+    expect(result.current.preferences).toEqual(restoredPreferences);
   });
 });

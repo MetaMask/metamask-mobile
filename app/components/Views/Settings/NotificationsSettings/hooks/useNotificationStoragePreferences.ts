@@ -1,109 +1,126 @@
-import { useCallback, useEffect, useMemo } from 'react';
-import { useQuery } from '@metamask/react-data-query';
+import { useCallback, useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import type { AuthenticatedUserStorageServiceGetNotificationPreferencesAction } from '@metamask/authenticated-user-storage';
 import {
-  AGENTIC_CLI_CLIENT_PREFERENCE_QUERY_KEY,
   AGENTIC_CLI_NOTIFICATION_PREFERENCE_SECTION,
-  clearAgenticCliInAppDisabledAt,
-  mergeAgenticCliIntoPreferences,
-  persistAgenticCliInAppDisabledAt,
-  persistLocalAgenticCliPreference,
-  readAgenticCliFromPreferences,
-  readLocalAgenticCliPreference,
   resolveAgenticCliPreference,
-  stripAgenticCliFromNotificationPreferences,
-  type AgenticCliPreference,
-  type NotificationStoragePreferencesWithAgenticCli,
+  withAgenticCliDefaults,
 } from '../../../../../util/notifications/agenticCliNotificationPreferences';
-import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
-import { useAgenticCliClientPreference } from './useAgenticCliClientPreference';
+import {
+  ensureNotificationPreferencesReady,
+  mergeAndPersistNotificationPreferences,
+  readNotificationPreferencesForUpdate,
+} from '../../../../../util/notifications/ensureAgenticCliNotificationPreferencesMigrated';
 
-const CLIENT_TYPE = 'mobile' as const;
 const GET_ACTION =
   'AuthenticatedUserStorageService:getNotificationPreferences' as const;
-const PUT_ACTION =
-  'AuthenticatedUserStorageService:putNotificationPreferences' as const;
 
-export { AGENTIC_CLI_CLIENT_PREFERENCE_QUERY_KEY };
-
+type NotificationStoragePreferencesResult = Awaited<
+  ReturnType<
+    AuthenticatedUserStorageServiceGetNotificationPreferencesAction['handler']
+  >
+>;
 export type NotificationStoragePreferences =
-  NotificationStoragePreferencesWithAgenticCli;
+  NonNullable<NotificationStoragePreferencesResult>;
 export type NotificationStoragePreferenceSection =
   keyof NotificationStoragePreferences;
 export type NotificationStoragePreferenceChannelKey =
   | 'pushNotificationsEnabled'
   | 'inAppNotificationsEnabled';
 
+const readCachedPreferences = (
+  queryClient: ReturnType<typeof useQueryClient>,
+): NotificationStoragePreferences | null => {
+  const cached = queryClient.getQueryData<NotificationStoragePreferences>([
+    GET_ACTION,
+  ]);
+  return cached ? withAgenticCliDefaults(cached) : null;
+};
+
 export const useNotificationStoragePreferences = () => {
-  const { data, isLoading, error, refetch } = useQuery<
-    NotificationStoragePreferences | undefined
-  >({
-    queryKey: [GET_ACTION],
-  });
   const queryClient = useQueryClient();
-  const clientAgenticCliPreference = useAgenticCliClientPreference(queryClient);
+  const [data, setData] = useState<NotificationStoragePreferences | null>(() =>
+    readCachedPreferences(queryClient),
+  );
+  const [isLoading, setIsLoading] = useState(data == null);
+  const [error, setError] = useState<unknown>(null);
+
+  const syncPreferencesFromCache = useCallback(() => {
+    const cachedPreferences = readCachedPreferences(queryClient);
+    if (cachedPreferences) {
+      setData(cachedPreferences);
+    }
+  }, [queryClient]);
 
   useEffect(() => {
-    if (!data) {
-      queryClient.removeQueries({
-        queryKey: AGENTIC_CLI_CLIENT_PREFERENCE_QUERY_KEY,
-      });
-      return;
-    }
+    const unsubscribe = queryClient.getQueryCache().subscribe((event) => {
+      if (event.type !== 'updated') {
+        return;
+      }
 
-    if (readAgenticCliFromPreferences(data)) {
-      queryClient.removeQueries({
-        queryKey: AGENTIC_CLI_CLIENT_PREFERENCE_QUERY_KEY,
-      });
-      return;
-    }
+      if (event.query.queryKey[0] !== GET_ACTION) {
+        return;
+      }
 
-    const localPreference = readLocalAgenticCliPreference();
-    if (localPreference) {
-      queryClient.setQueryData<AgenticCliPreference>(
-        AGENTIC_CLI_CLIENT_PREFERENCE_QUERY_KEY,
-        localPreference,
-      );
-    }
-  }, [data, queryClient]);
+      syncPreferencesFromCache();
+    });
 
-  const preferences = useMemo(() => {
-    if (!data) {
-      return data;
-    }
+    return unsubscribe;
+  }, [queryClient, syncPreferencesFromCache]);
 
-    const cached = queryClient.getQueryData<NotificationStoragePreferences>([
-      GET_ACTION,
-    ]);
+  useEffect(() => {
+    let isActive = true;
 
-    return mergeAgenticCliIntoPreferences(
-      data,
-      cached,
-      clientAgenticCliPreference,
-    );
-  }, [clientAgenticCliPreference, data, queryClient]);
+    const loadPreferences = async () => {
+      const cachedPreferences = readCachedPreferences(queryClient);
+      if (cachedPreferences) {
+        if (isActive) {
+          setData(cachedPreferences);
+          setIsLoading(false);
+        }
+        return;
+      }
 
-  const setAgenticCliClientPreference = useCallback(
-    (preference: AgenticCliPreference) => {
-      persistLocalAgenticCliPreference(preference);
-      queryClient.setQueryData<AgenticCliPreference>(
-        AGENTIC_CLI_CLIENT_PREFERENCE_QUERY_KEY,
-        preference,
-      );
-    },
-    [queryClient],
-  );
+      try {
+        if (isActive) {
+          setIsLoading(true);
+          setError(null);
+        }
 
-  const setApiPreferencesCache = useCallback(
-    (nextPreferences: NotificationStoragePreferences) => {
-      queryClient.setQueryData(
-        [GET_ACTION],
-        stripAgenticCliFromNotificationPreferences(nextPreferences),
-      );
-    },
-    [queryClient],
-  );
+        await ensureNotificationPreferencesReady();
+        const preferences = await readNotificationPreferencesForUpdate();
+
+        if (!isActive || preferences == null) {
+          return;
+        }
+
+        const normalizedPreferences = withAgenticCliDefaults(preferences);
+        queryClient.setQueryData([GET_ACTION], normalizedPreferences);
+        setData(normalizedPreferences);
+      } catch (loadError) {
+        if (isActive) {
+          setError(loadError);
+          Logger.error(
+            loadError as Error,
+            'Failed to load notification preferences',
+          );
+        }
+      } finally {
+        if (isActive) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    loadPreferences().catch(() => undefined);
+
+    return () => {
+      isActive = false;
+    };
+  }, [queryClient]);
+
+  const preferences = data;
 
   const enqueuePersist = useCallback(
     async <
@@ -112,50 +129,14 @@ export const useNotificationStoragePreferences = () => {
     >(
       nextPreferences: NotificationStoragePreferences,
       updatedType?: PreferenceType,
-    ) => {
-      try {
-        const latest = (await Engine.controllerMessenger.call(
-          GET_ACTION,
-        )) as NotificationStoragePreferences | null;
-        const preferencesToPersist: NotificationStoragePreferences = {
-          ...mergeAgenticCliIntoPreferences(
-            latest ?? nextPreferences,
-            nextPreferences,
-            clientAgenticCliPreference,
-          ),
-          ...(updatedType
-            ? { [updatedType]: nextPreferences[updatedType] }
-            : nextPreferences),
-        };
+    ): Promise<NotificationStoragePreferences> => {
+      const updates: Partial<NotificationStoragePreferences> = updatedType
+        ? { [updatedType]: nextPreferences[updatedType] }
+        : nextPreferences;
 
-        await Engine.controllerMessenger.call(
-          PUT_ACTION,
-          preferencesToPersist,
-          CLIENT_TYPE,
-        );
-
-        setApiPreferencesCache(preferencesToPersist);
-
-        if (preferencesToPersist[AGENTIC_CLI_NOTIFICATION_PREFERENCE_SECTION]) {
-          setAgenticCliClientPreference(
-            preferencesToPersist[AGENTIC_CLI_NOTIFICATION_PREFERENCE_SECTION],
-          );
-        }
-
-        return preferencesToPersist;
-      } catch (err) {
-        Logger.error(
-          err as Error,
-          'Failed to persist notification preferences',
-        );
-        throw err;
-      }
+      return mergeAndPersistNotificationPreferences(updates);
     },
-    [
-      clientAgenticCliPreference,
-      setAgenticCliClientPreference,
-      setApiPreferencesCache,
-    ],
+    [],
   );
 
   const updatePreferencesSection = useCallback(
@@ -163,7 +144,8 @@ export const useNotificationStoragePreferences = () => {
       type: PreferenceType,
       nextSectionPreferences: NotificationStoragePreferences[PreferenceType],
     ) => {
-      if (!data) {
+      const currentData = data ?? readCachedPreferences(queryClient);
+      if (!currentData) {
         Logger.error(
           new Error(
             `No notification preferences found when updating ${type} section, enable notifications first`,
@@ -172,46 +154,33 @@ export const useNotificationStoragePreferences = () => {
         return;
       }
 
-      const mergedCurrent = mergeAgenticCliIntoPreferences(
-        data,
-        queryClient.getQueryData<NotificationStoragePreferences>([GET_ACTION]),
-        clientAgenticCliPreference,
-      );
-
-      const nextPreferences: NotificationStoragePreferences = {
-        ...mergedCurrent,
+      const nextPreferences = withAgenticCliDefaults({
+        ...currentData,
         [type]: nextSectionPreferences,
-      };
+      });
 
-      if (type === AGENTIC_CLI_NOTIFICATION_PREFERENCE_SECTION) {
-        const nextAgenticCliPreference =
-          nextSectionPreferences as AgenticCliPreference;
-        setAgenticCliClientPreference(nextAgenticCliPreference);
-        if (nextAgenticCliPreference.inAppNotificationsEnabled) {
-          clearAgenticCliInAppDisabledAt();
-        } else {
-          persistAgenticCliInAppDisabledAt(Date.now());
-        }
-      }
-
-      setApiPreferencesCache(nextPreferences);
+      setData(nextPreferences);
+      queryClient.setQueryData([GET_ACTION], nextPreferences);
 
       try {
-        await enqueuePersist(nextPreferences, type);
+        const persistedPreferences = await enqueuePersist(
+          nextPreferences,
+          type,
+        );
+        setData(persistedPreferences);
+        queryClient.setQueryData([GET_ACTION], persistedPreferences);
       } catch (err) {
-        refetch();
+        const restoredPreferences =
+          await readNotificationPreferencesForUpdate();
+        if (restoredPreferences) {
+          const normalized = withAgenticCliDefaults(restoredPreferences);
+          setData(normalized);
+          queryClient.setQueryData([GET_ACTION], normalized);
+        }
         throw err;
       }
     },
-    [
-      clientAgenticCliPreference,
-      data,
-      enqueuePersist,
-      queryClient,
-      refetch,
-      setAgenticCliClientPreference,
-      setApiPreferencesCache,
-    ],
+    [data, enqueuePersist, queryClient],
   );
 
   const updatePreference = useCallback(
@@ -220,7 +189,8 @@ export const useNotificationStoragePreferences = () => {
       key: NotificationStoragePreferenceChannelKey,
       value: boolean,
     ) => {
-      if (!data) {
+      const currentData = data ?? readCachedPreferences(queryClient);
+      if (!currentData) {
         Logger.error(
           new Error(
             'No notification preferences found when updating preference, enable notifications first',
@@ -231,23 +201,15 @@ export const useNotificationStoragePreferences = () => {
 
       const currentSectionPreferences =
         type === AGENTIC_CLI_NOTIFICATION_PREFERENCE_SECTION
-          ? resolveAgenticCliPreference(
-              mergeAgenticCliIntoPreferences(
-                data,
-                queryClient.getQueryData<NotificationStoragePreferences>([
-                  GET_ACTION,
-                ]),
-                clientAgenticCliPreference,
-              ),
-            )
-          : data[type];
+          ? resolveAgenticCliPreference(currentData)
+          : currentData[type];
 
       await updatePreferencesSection(type, {
         ...currentSectionPreferences,
         [key]: value,
       });
     },
-    [clientAgenticCliPreference, data, queryClient, updatePreferencesSection],
+    [data, queryClient, updatePreferencesSection],
   );
 
   return {
@@ -258,5 +220,6 @@ export const useNotificationStoragePreferences = () => {
     error,
     updatePreference,
     updatePreferencesSection,
+    syncPreferencesFromCache,
   };
 };

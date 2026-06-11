@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -110,7 +111,14 @@ const NotificationsSettings = ({ navigation }: Props) => {
   );
 
   const loadingText = useSwitchNotificationLoadingText();
-  const { preferences } = useNotificationStoragePreferences();
+  const { preferences, syncPreferencesFromCache } =
+    useNotificationStoragePreferences();
+
+  useFocusEffect(
+    useCallback(() => {
+      syncPreferencesFromCache();
+    }, [syncPreferencesFromCache]),
+  );
 
   const navigateToSection = (
     type: NotificationStoragePreferenceSection,
@@ -190,7 +198,8 @@ const NotificationsSettings = ({ navigation }: Props) => {
                   'app_settings.notifications_opts.agentic_cli_title',
                 )}
                 status={getStatusText(
-                  resolveAgenticCliPreference(preferences ?? null),
+                  preferences?.agenticCli ??
+                    resolveAgenticCliPreference(preferences ?? null),
                 )}
                 iconName={IconName.Code}
                 onPress={() =>

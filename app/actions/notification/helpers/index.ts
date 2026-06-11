@@ -4,7 +4,16 @@ import type {
   NotificationServicesControllerEnableNotificationsOptions,
 } from '@metamask/notification-services-controller/notification-services';
 import Engine from '../../../core/Engine';
+import Logger from '../../../util/Logger';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
+import {
+  ensureNotificationPreferencesReady,
+  readWalletActivityAccountEnabledStates,
+  seedNotificationPreferencesQueryCache,
+  updateWalletActivityAccountEnabledStates,
+} from '../../../util/notifications/ensureAgenticCliNotificationPreferencesMigrated';
+import { applyAgenticCliInAppInboxFilterToController } from '../../../util/notifications/agenticCliNotificationFilter';
+import { supplementNotificationsFromRawPreferences } from '../../../util/notifications/fetchMetamaskNotificationsUsingRawPreferences';
 
 const CLIENT_TYPE = 'mobile' as const;
 const GET_NOTIFICATION_PREFERENCES_ACTION =
@@ -62,6 +71,7 @@ export const enableNotifications = async (
  */
 export const hasNotificationPreferences = async () => {
   assertIsFeatureEnabled();
+  await ensureNotificationPreferencesReady();
   const preferences = await Engine.controllerMessenger.call(
     GET_NOTIFICATION_PREFERENCES_ACTION,
   );
@@ -144,12 +154,7 @@ export const toggleFeatureAnnouncements = async (
  */
 export const fetchAccountNotificationSettings = async (accounts: string[]) => {
   assertIsFeatureEnabled();
-  const accountsStatus =
-    await Engine.context.NotificationServicesController.checkAccountsPresence(
-      accounts,
-    );
-
-  return accountsStatus;
+  return readWalletActivityAccountEnabledStates(accounts);
 };
 
 /**
@@ -159,7 +164,18 @@ export const fetchAccountNotificationSettings = async (accounts: string[]) => {
  */
 export const disableAccounts = async (accounts: string[]) => {
   assertIsFeatureEnabled();
-  await Engine.context.NotificationServicesController.disableAccounts(accounts);
+  await updateWalletActivityAccountEnabledStates(accounts, false);
+
+  try {
+    await Engine.context.NotificationServicesController.disableAccounts(
+      accounts,
+    );
+  } catch (error) {
+    Logger.error(
+      error as Error,
+      'NotificationServicesController.disableAccounts failed after direct preferences PUT',
+    );
+  }
 };
 
 /**
@@ -169,7 +185,18 @@ export const disableAccounts = async (accounts: string[]) => {
  */
 export const enableAccounts = async (accounts: string[]) => {
   assertIsFeatureEnabled();
-  await Engine.context.NotificationServicesController.enableAccounts(accounts);
+  await updateWalletActivityAccountEnabledStates(accounts, true);
+
+  try {
+    await Engine.context.NotificationServicesController.enableAccounts(
+      accounts,
+    );
+  } catch (error) {
+    Logger.error(
+      error as Error,
+      'NotificationServicesController.enableAccounts failed after direct preferences PUT',
+    );
+  }
 };
 
 /**
@@ -180,9 +207,16 @@ export const enableAccounts = async (accounts: string[]) => {
  */
 export const fetchNotifications = async () => {
   assertIsFeatureEnabled();
+  await ensureNotificationPreferencesReady();
+  await seedNotificationPreferencesQueryCache();
+
   await Engine.context.NotificationServicesController.fetchAndUpdateMetamaskNotifications(
     getContentPreviewToken(),
   );
+
+  await supplementNotificationsFromRawPreferences();
+
+  await applyAgenticCliInAppInboxFilterToController();
 };
 
 /**

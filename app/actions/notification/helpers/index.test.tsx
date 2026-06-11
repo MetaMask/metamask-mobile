@@ -17,9 +17,37 @@ import {
   type subscribeToContentPreviewToken as subscribeToContentPreviewTokenFn,
 } from '.';
 import Engine from '../../../core/Engine';
+import { readWalletActivityAccountEnabledStates } from '../../../util/notifications/ensureAgenticCliNotificationPreferencesMigrated';
 
 jest.mock('../../../util/notifications', () => ({
   isNotificationsFeatureEnabled: () => true,
+}));
+
+jest.mock(
+  '../../../util/notifications/ensureAgenticCliNotificationPreferencesMigrated',
+  () => ({
+    ensureNotificationPreferencesReady: jest.fn().mockResolvedValue(undefined),
+    seedNotificationPreferencesQueryCache: jest
+      .fn()
+      .mockResolvedValue(undefined),
+    readWalletActivityAccountEnabledStates: jest.fn(),
+    updateWalletActivityAccountEnabledStates: jest.fn(),
+  }),
+);
+
+jest.mock(
+  '../../../util/notifications/fetchMetamaskNotificationsUsingRawPreferences',
+  () => ({
+    supplementNotificationsFromRawPreferences: jest
+      .fn()
+      .mockResolvedValue(undefined),
+  }),
+);
+
+jest.mock('../../../util/notifications/agenticCliNotificationFilter', () => ({
+  applyAgenticCliInAppInboxFilterToController: jest
+    .fn()
+    .mockResolvedValue(undefined),
 }));
 
 jest.mock('../../../core/Engine', () => ({
@@ -161,13 +189,13 @@ describe('helpers - disableNotificationServices()', () => {
   });
 });
 
-describe('helpers - checkAccountsPresence()', () => {
-  it('invoke notification services method', async () => {
+describe('helpers - fetchAccountNotificationSettings()', () => {
+  it('reads wallet-activity account states from raw preferences', async () => {
     const accounts = ['0xAddr1', '0xAddr2', '0xAddr3'];
     await fetchAccountNotificationSettings(accounts);
-    expect(
-      Engine.context.NotificationServicesController.checkAccountsPresence,
-    ).toHaveBeenCalledWith(accounts);
+    expect(readWalletActivityAccountEnabledStates).toHaveBeenCalledWith(
+      accounts,
+    );
   });
 });
 

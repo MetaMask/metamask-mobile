@@ -22,6 +22,7 @@ import {
 } from './useNotifications';
 import { isNotificationsFeatureEnabled } from '../constants';
 import { strings } from '../../../../locales/i18n';
+import Logger from '../../Logger';
 
 export function useNotificationsToggle() {
   const {
@@ -121,6 +122,10 @@ export function useAccountNotificationsToggle() {
       } catch (e) {
         const errorMessage =
           e instanceof Error ? e.message : JSON.stringify(e ?? '');
+        Logger.error(
+          e instanceof Error ? e : new Error(errorMessage),
+          `Failed to ${state ? 'enable' : 'disable'} wallet-activity account notifications for ${addresses.join(', ')}`,
+        );
         setError(errorMessage);
       } finally {
         setLoading(false);

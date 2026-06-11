@@ -37,6 +37,10 @@ const mockPreferences = {
     pushNotificationsEnabled: false,
     inAppNotificationsEnabled: false,
   },
+  agenticCli: {
+    pushNotificationsEnabled: false,
+    inAppNotificationsEnabled: true,
+  },
 };
 
 jest.mock('../../../../selectors/notifications', () => ({
@@ -109,7 +113,7 @@ describe('NotificationSettingsSection', () => {
     expect(mockDispatch).not.toHaveBeenCalled();
   });
 
-  it('renders agentic CLI channel toggles when agenticCli is absent from storage', () => {
+  it('renders agentic CLI channel toggles from API preferences', () => {
     renderSection({
       type: 'agenticCli',
       title: 'Agentic CLI',

@@ -49,12 +49,6 @@ jest.mock('@react-native-firebase/messaging', () => {
 // Notification Services Mock
 jest.mock('@metamask/notification-services-controller/notification-services');
 
-const mockShouldSuppressAgenticCliPushDelivery = jest.fn();
-jest.mock('../agenticCliNotificationDelivery', () => ({
-  shouldSuppressAgenticCliPushDelivery: (...args: unknown[]) =>
-    mockShouldSuppressAgenticCliPushDelivery(...args),
-}));
-
 const arrangeFirebaseMocks = () => {
   const mockHasPermission = jest.mocked(messaging().hasPermission);
   mockHasPermission.mockResolvedValue(messaging.AuthorizationStatus.AUTHORIZED);
@@ -217,7 +211,6 @@ describe('FCMService - listenToPushNotificationsReceived()', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     FCMService.clearRegistration();
-    mockShouldSuppressAgenticCliPushDelivery.mockResolvedValue(false);
   });
 
   const arrangeNotificationServicesMocks = () => {
@@ -316,17 +309,6 @@ describe('FCMService - listenToPushNotificationsReceived()', () => {
 
       await act(mocks);
 
-      expect(mocks.mockHandler).not.toHaveBeenCalled();
-    });
-
-    it('does not invoke handler when agentic CLI push delivery is suppressed', async () => {
-      const mocks = arrangeMocks();
-      arrangeNotificationServicesMocks();
-      mockShouldSuppressAgenticCliPushDelivery.mockResolvedValue(true);
-
-      await act(mocks);
-
-      expect(mockShouldSuppressAgenticCliPushDelivery).toHaveBeenCalled();
       expect(mocks.mockHandler).not.toHaveBeenCalled();
     });
   });

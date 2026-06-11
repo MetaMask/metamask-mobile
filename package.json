@@ -813,6 +813,16 @@
       "@metamask/transaction-pay-controller>@metamask/bridge-status-controller>@metamask/keyring-controller>ethereumjs-wallet>ethereum-cryptography>keccak": false
     }
   },
+  "previewBuilds": {
+    "@metamask/authenticated-user-storage": {
+      "type": "breaking",
+      "previewVersion": "2.0.0-preview-ce4057bcb"
+    },
+    "@metamask/notification-services-controller": {
+      "type": "breaking",
+      "previewVersion": "24.1.2-preview-ce4057bcb"
+    }
+  },
   "packageManager": "yarn@4.14.1",
   "foundryup": {
     "binaries": [

@@ -12,17 +12,40 @@ import { selectInternalAccountsById } from '../../../../selectors/accountsContro
 import { isEvmAccountType } from '@metamask/keyring-api';
 
 export function useNotificationAccountListProps() {
+  const accountWalletGroups = useNotificationWalletAccountGroups();
   const accountAddresses = useSelector(getValidNotificationAccounts);
   const accountsMap = useSelector(selectInternalAccountsById);
+
+  const addressesToQuery = useMemo(() => {
+    const displayedAddresses = accountWalletGroups.flatMap((walletGroup) =>
+      walletGroup.data.flatMap((accountGroup) =>
+        accountGroup.accounts
+          .filter(
+            (id) =>
+              Boolean(accountsMap?.[id]?.address) &&
+              isEvmAccountType(accountsMap[id].type),
+          )
+          .map((id) => toFormattedAddress(accountsMap[id].address)),
+      ),
+    );
+
+    return [
+      ...new Set([
+        ...accountAddresses.map((address) => toFormattedAddress(address)),
+        ...displayedAddresses,
+      ]),
+    ];
+  }, [accountAddresses, accountWalletGroups, accountsMap]);
+
   const { update, initialLoading, accountsBeingUpdated, data } =
-    useFetchAccountNotifications(accountAddresses);
+    useFetchAccountNotifications(addressesToQuery);
 
   // Only disable switches during initial data loading, not when individual accounts are updating
   const shouldDisableSwitches = initialLoading;
 
   const refetchAccountSettings = useCallback(async () => {
-    await update(accountAddresses);
-  }, [accountAddresses, update]);
+    await update(addressesToQuery);
+  }, [addressesToQuery, update]);
 
   // Helper to get addresses from account IDs
   const getEvmAddressesFromAccountIds = useCallback(

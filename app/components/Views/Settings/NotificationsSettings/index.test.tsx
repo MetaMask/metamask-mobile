@@ -86,6 +86,7 @@ jest.mock('../../../UI/Notification/SwitchLoadingModal', () => () => null);
 
 jest.mock('./hooks/useNotificationStoragePreferences', () => ({
   useNotificationStoragePreferences: () => ({
+    syncPreferencesFromCache: jest.fn(),
     preferences: {
       walletActivity: {
         pushNotificationsEnabled: false,

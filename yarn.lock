@@ -8007,6 +8007,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/authenticated-user-storage@npm:@metamask-previews/authenticated-user-storage@2.0.0-preview-ce4057bcb":
+  version: 2.0.0-preview-ce4057bcb
+  resolution: "@metamask-previews/authenticated-user-storage@npm:2.0.0-preview-ce4057bcb"
+  dependencies:
+    "@metamask/base-data-service": "npm:^0.1.3"
+    "@metamask/controller-utils": "npm:^12.1.0"
+    "@metamask/messenger": "npm:^1.2.0"
+    "@metamask/superstruct": "npm:^3.1.0"
+    "@metamask/utils": "npm:^11.9.0"
+  checksum: 10/e9a931ce416df81a08847752f7f2ab3810b2a0b853452b5934b4d8bd597d14bb4425d89c1ae4f5034c9e20c47467fa10f0bb9189a61dc45d919c80d7fe99e0bf
+  languageName: node
+  linkType: hard
+
 "@metamask/authenticated-user-storage@npm:^1.0.1":
   version: 1.0.1
   resolution: "@metamask/authenticated-user-storage@npm:1.0.1"
@@ -9461,17 +9474,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/notification-services-controller@npm:24.1.1":
-  version: 24.1.1
-  resolution: "@metamask/notification-services-controller@npm:24.1.1"
+"@metamask/notification-services-controller@npm:@metamask-previews/notification-services-controller@24.1.2-preview-ce4057bcb":
+  version: 24.1.2-preview-ce4057bcb
+  resolution: "@metamask-previews/notification-services-controller@npm:24.1.2-preview-ce4057bcb"
   dependencies:
     "@contentful/rich-text-html-renderer": "npm:^16.5.2"
     "@metamask/authenticated-user-storage": "npm:^2.0.0"
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/controller-utils": "npm:^12.1.0"
-    "@metamask/keyring-controller": "npm:^25.5.0"
+    "@metamask/keyring-controller": "npm:^26.0.0"
     "@metamask/messenger": "npm:^1.2.0"
-    "@metamask/profile-sync-controller": "npm:^28.1.0"
+    "@metamask/profile-sync-controller": "npm:^28.1.1"
     "@metamask/utils": "npm:^11.9.0"
     bignumber.js: "npm:^9.1.2"
     firebase: "npm:^11.2.0"
@@ -9479,7 +9492,7 @@ __metadata:
     loglevel: "npm:^1.8.1"
     semver: "npm:^7.6.3"
     uuid: "npm:^8.3.2"
-  checksum: 10/8f5249dea67dc7168c9254fde1de81e24483f9b054ba1ac282c36849e2090515f0cff0ed7cd4beaf6aefed6382f966277e02d3259f69aea67dee1c84c2ec7400
+  checksum: 10/6c065af36288f99a9e7d3a98174bb2ae32340212ce9acf7343e512117a1bf07f1e704ff2dc2c4973c5751190fe0fa1a40bb82d17c5c2d9006751c082ac879b51
   languageName: node
   linkType: hard
 
