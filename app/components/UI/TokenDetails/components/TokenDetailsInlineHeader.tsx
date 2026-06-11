@@ -46,20 +46,35 @@ const inlineHeaderStyles = (params: {
 
 export const TokenDetailsInlineHeader = ({
   onBackPress,
+  iconColor,
+  useAmbientColor = false,
 }: {
   onBackPress: () => void;
+  /** Hex color string for the back button icon (A/B test). */
+  iconColor?: string;
+  useAmbientColor?: boolean;
 }) => {
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(inlineHeaderStyles, { insets });
+
+  // In control (useAmbientColor=false): always show button
+  // In treatment (useAmbientColor=true): only show when iconColor is defined
+  const shouldShowButton = !useAmbientColor || iconColor !== undefined;
+
   return (
     <View style={styles.container}>
       <View style={styles.backButtonHitArea}>
-        <ButtonIcon
-          onPress={onBackPress}
-          size={ButtonIconSize.Md}
-          iconName={IconName.ArrowLeft}
-          testID="back-arrow-button"
-        />
+        {shouldShowButton && (
+          <ButtonIcon
+            onPress={onBackPress}
+            size={ButtonIconSize.Md}
+            iconName={IconName.ArrowLeft}
+            iconProps={
+              iconColor ? { twClassName: `text-[${iconColor}]` } : undefined
+            }
+            testID="back-arrow-button"
+          />
+        )}
       </View>
       <View style={styles.rightPlaceholder} />
     </View>

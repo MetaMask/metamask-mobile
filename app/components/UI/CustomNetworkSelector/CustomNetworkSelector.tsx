@@ -22,9 +22,6 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
-import Text, {
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
 import { isTestNet } from '../../../util/networks';
 import Routes from '../../../constants/navigation/Routes';
 import { selectEvmChainId } from '../../../selectors/networkController';
@@ -42,15 +39,21 @@ import {
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
 import { useNetworksToUse } from '../../hooks/useNetworksToUse/useNetworksToUse';
 import AccountGroupBalancePerChain from '../Assets/components/Balance/AccountGroupBalancePerChain';
-
 // internal dependencies
 import createStyles from './CustomNetworkSelector.styles';
+
 import {
   CustomNetworkItem,
   CustomNetworkSelectorProps,
 } from './CustomNetworkSelector.types';
 import { NETWORK_MULTI_SELECTOR_TEST_IDS } from '../NetworkMultiSelector/NetworkMultiSelector.constants';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+  FontWeight,
+} from '@metamask/design-system-react-native';
 
 const CustomNetworkSelector = ({
   openModal,
@@ -196,7 +199,11 @@ const CustomNetworkSelector = ({
           />
         </View>
 
-        <Text variant={TextVariant.BodyMDMedium} color={colors.primary.default}>
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.PrimaryDefault}
+          fontWeight={FontWeight.Medium}
+        >
           {strings('app_settings.network_add_custom_network')}
         </Text>
       </TouchableOpacity>

@@ -19,10 +19,6 @@ on:
         description: 'Original branch the user asked to build (e.g. main); from caller'
         required: true
         type: string
-      build_branch:
-        description: 'Branch that was built'
-        required: true
-        type: string
       build_name:
         description: 'Must match build.yml build_name (artifact ios-ipa-{build_name})'
         required: true
@@ -67,7 +63,6 @@ jobs:
             echo "| Field | Value |"
             echo "| --- | --- |"
             echo "| **Source branch** | \`${{ inputs.source_branch }}\` |"
-            echo "| **Build branch** | \`${{ inputs.build_branch }}\` |"
             echo "| **Build name** | \`${{ inputs.build_name }}\` |"
             echo "| **Build commit SHA** | \`${{ inputs.build_commit_sha }}\` |"
             echo "| **Build version** | \`${{ inputs.build_version }}\` |"

@@ -666,6 +666,8 @@ describe('useTokenAtomicActions - useHandleOnReceive', () => {
           networkName: 'Ethereum Mainnet',
           chainId: '0x1',
           groupId: 'group-1',
+          location: 'asset-details',
+          account: mockAccount,
         },
       },
     );
@@ -872,6 +874,84 @@ describe('useTokenAtomicActions - useHandleOnSwap', () => {
 
     const [sourceToken, destToken] = mockGoToSwaps.mock.lastCall ?? [];
     assertSwapCall(sourceToken, destToken);
+  });
+});
+
+describe('useTokenAtomicActions - useHandleOnSwap explore swap location', () => {
+  it('uses TrendingExplore location when token.source is an Explore tab source', () => {
+    renderHook(() =>
+      useHandleOnSwap({
+        token: {
+          ...defaultToken,
+          balance: '1',
+          source: TokenDetailsSource.ExploreCryptoTrending,
+        },
+      }),
+    );
+
+    expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith(
+      expect.objectContaining({
+        location: 'TrendingExplore',
+        skipLocationUpdate: false,
+      }),
+    );
+  });
+
+  it('uses TrendingExplore location when token.source is ExploreSearch', () => {
+    renderHook(() =>
+      useHandleOnSwap({
+        token: {
+          ...defaultToken,
+          balance: '1',
+          source: TokenDetailsSource.ExploreSearch,
+        },
+      }),
+    );
+
+    expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith(
+      expect.objectContaining({
+        location: 'TrendingExplore',
+        skipLocationUpdate: false,
+      }),
+    );
+  });
+
+  it('uses TokenView location when token.source is not from Explore', () => {
+    renderHook(() =>
+      useHandleOnSwap({
+        token: {
+          ...defaultToken,
+          balance: '1',
+          source: TokenDetailsSource.MobileTokenList,
+        },
+      }),
+    );
+
+    expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith(
+      expect.objectContaining({
+        location: 'TokenView',
+        skipLocationUpdate: false,
+      }),
+    );
+  });
+
+  it('skips location update when opened from the bridge asset picker', () => {
+    renderHook(() =>
+      useHandleOnSwap({
+        token: {
+          ...defaultToken,
+          balance: '1',
+          source: TokenDetailsSource.Swap,
+        },
+      }),
+    );
+
+    expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith(
+      expect.objectContaining({
+        location: 'TokenView',
+        skipLocationUpdate: true,
+      }),
+    );
   });
 });
 

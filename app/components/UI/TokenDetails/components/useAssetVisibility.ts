@@ -1,7 +1,11 @@
 import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
+import { type PendingTokenMetadata } from '@metamask/assets-controller';
 import {
+  getChecksumAddress,
   isCaipChainId,
+  isStrictHexString,
+  parseCaipAssetType,
   type CaipAssetType,
   type CaipChainId,
   type Hex,
@@ -20,6 +24,15 @@ import { selectMultichainAssetsAllIgnoredAssets } from '../../../../selectors/mu
 import { toAssetId } from '../../Bridge/hooks/useAssetMetadata/utils';
 import type { TokenI } from '../../Tokens/types';
 
+export const createCaipAssetImageUrl = (assetId: CaipAssetType) => {
+  const {
+    chain: { namespace, reference },
+    assetNamespace,
+    assetReference,
+  } = parseCaipAssetType(assetId);
+  return `https://static.cx.metamask.io/api/v2/tokenIcons/assets/${namespace}/${reference}/${assetNamespace}/${assetReference.toLowerCase()}.png`;
+};
+
 export interface UseAssetVisibilityReturn {
   /** CAIP-19 asset ID derived from the token's address and chainId */
   assetId: CaipAssetType | undefined;
@@ -32,19 +45,21 @@ export interface UseAssetVisibilityReturn {
   /**
    * Calls the correct AssetsController method based on the token's current state:
    * - already hidden → unhideAsset   (checked first: hideAsset keeps the balance entry)
-   * - custom asset   → removeCustomAsset
-   * - has balance    → hideAsset
+   * - not hidden + custom → removeCustomAsset
+   * - not hidden + balance entry → hideAsset (runs in addition to removeCustomAsset when both apply)
    */
   handleHideToken: () => void;
   /**
    * Adds any CAIP-19 asset to the selected account's custom assets list.
    * Can be called with an explicit assetId, independent of the asset the hook
    * was initialised with.
+   * `assetMetadata` is forwarded to AssetsController.addCustomAsset so the token.
    * Pass `accountIdOverride` to use a specific account instead of the one
    * resolved from the hook's asset (needed when calling without an asset).
    */
   handleAddCustomAsset: (
     assetId: CaipAssetType,
+    assetMetadata: PendingTokenMetadata,
     accountIdOverride?: string,
   ) => Promise<void>;
 }
@@ -123,12 +138,16 @@ const useAssetVisibility = (asset?: TokenI): UseAssetVisibilityReturn => {
   const handleAddCustomAsset = useCallback(
     async (
       assetIdToAdd: CaipAssetType,
+      assetMetadata: PendingTokenMetadata,
       accountIdOverride?: string,
     ): Promise<void> => {
       const effectiveAccountId = accountIdOverride ?? accountId;
       if (!effectiveAccountId) return;
       const { AssetsController } = Engine.context;
-      await AssetsController.addCustomAsset(effectiveAccountId, assetIdToAdd);
+      await AssetsController.addCustomAsset(effectiveAccountId, assetIdToAdd, {
+        ...assetMetadata,
+        iconUrl: assetMetadata.iconUrl ?? createCaipAssetImageUrl(assetIdToAdd),
+      });
     },
     [accountId],
   );
@@ -150,10 +169,16 @@ const useAssetVisibility = (asset?: TokenI): UseAssetVisibilityReturn => {
         if (allIgnoredNonEvmAssets[accountId]?.includes(assetId)) {
           MultichainAssetsController.addAssets([assetId], accountId);
         }
-      } else if (isCustomAsset) {
-        AssetsController.removeCustomAsset(accountId, assetId);
-      } else if (isInAssetsBalance) {
-        AssetsController.hideAsset(assetId);
+      } else {
+        // Custom-added tokens typically also have an assetsBalance entry once
+        // unified assets state hydrated the balance; removing only from
+        // customAssets would leave a visible detected token unless we hide too.
+        if (isCustomAsset) {
+          AssetsController.removeCustomAsset(accountId, assetId);
+        }
+        if (isInAssetsBalance) {
+          AssetsController.hideAsset(assetId);
+        }
       }
     } catch (err) {
       Logger.log(err, 'useAssetVisibility: Failed to update token visibility');

@@ -32,6 +32,7 @@ import PaymentMethodIcon from '../../../Aggregator/components/PaymentMethodIcon'
 import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { useTheme } from '../../../../../../util/theme';
 import { providerSupportsAsset } from '../../../utils/providerSupportsAsset';
+import { getProviderLimitMessage } from '../../../utils/getProviderLimitMessage';
 
 const SKELETON_ROW_COUNT = 5;
 const SKELETON_NAME_WIDTH = 120;
@@ -44,6 +45,7 @@ const styles = StyleSheet.create({
 
 interface ProviderSelectionProps {
   providers?: Provider[];
+  amount?: number;
   quotes: QuotesResponse | null;
   quotesLoading: boolean;
   quotesError: string | null;
@@ -148,6 +150,7 @@ function getProviderTag(
 
 const ProviderSelection: React.FC<ProviderSelectionProps> = ({
   providers: providersOverride,
+  amount = 0,
   quotes,
   quotesLoading,
   quotesError,
@@ -270,6 +273,10 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
           (q) => q.provider === provider.id && !isCustomActionQuote(q),
         ) ??
         null;
+      const providerError = showQuotes
+        ? quotes?.error?.find((e) => e.provider === provider.id)?.error
+        : undefined;
+      const isUnavailable = Boolean(providerError && !matchedQuote);
       const amountOut = matchedQuote?.quote?.amountOut;
       const cryptoAmount =
         amountOut != null && symbol
@@ -283,14 +290,31 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
           ? formatCurrency(Number(matchedQuote.quote.amountOutInFiat), currency)
           : null;
       const isSelected = selectedProvider?.id === provider.id;
-      const tag = displayQuotes
-        ? getProviderTag(provider.id, matchedQuote, ordersProviders)
-        : null;
+      const tag =
+        !isUnavailable && displayQuotes
+          ? getProviderTag(provider.id, matchedQuote, ordersProviders)
+          : null;
+      const subtitle = isUnavailable
+        ? (getProviderLimitMessage({
+            provider,
+            fiatCurrency: currency,
+            paymentMethodId: selectedPaymentMethod?.id,
+            amount,
+            currency,
+            formatCurrency,
+            backendError: providerError,
+          }) ?? strings('fiat_on_ramp.quote_unavailable'))
+        : tag;
 
       return (
         <ListItemSelect
           isSelected={isSelected}
-          onPress={() => handleProviderSelect(provider, matchedQuote)}
+          isDisabled={isUnavailable}
+          onPress={
+            isUnavailable
+              ? undefined
+              : () => handleProviderSelect(provider, matchedQuote)
+          }
           accessibilityRole="button"
           accessible
         >
@@ -298,12 +322,12 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
             <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
               {provider.name}
             </Text>
-            {tag ? (
+            {subtitle ? (
               <Text
                 variant={TextVariant.BodySm}
                 color={TextColor.TextAlternative}
               >
-                {tag}
+                {subtitle}
               </Text>
             ) : null}
           </ListItemColumn>
@@ -320,11 +344,13 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
     },
     [
       quotes,
+      amount,
       symbol,
       currency,
       selectedProvider,
       selectedPaymentMethod,
       displayQuotes,
+      showQuotes,
       ordersProviders,
       handleProviderSelect,
       formatToken,

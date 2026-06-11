@@ -5,6 +5,7 @@ import { type PredictPosition, PredictPositionStatus } from '../types';
 import { usePredictPositions } from './usePredictPositions';
 
 const MOCK_ADDRESS = '0x1234567890123456789012345678901234567890';
+const SECOND_MOCK_ADDRESS = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
 
 const mockEnsurePolygonNetworkExists = jest.fn<Promise<void>, []>();
 jest.mock('./usePredictNetworkManagement', () => ({
@@ -13,7 +14,10 @@ jest.mock('./usePredictNetworkManagement', () => ({
   }),
 }));
 
-const mockGetEvmAccountFromSelectedAccountGroup = jest.fn(() => ({
+const mockGetEvmAccountFromSelectedAccountGroup = jest.fn<
+  { address: string; type: string } | null,
+  []
+>(() => ({
   address: MOCK_ADDRESS,
   type: 'eip155:eoa',
 }));
@@ -103,6 +107,10 @@ describe('usePredictPositions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockEnsurePolygonNetworkExists.mockResolvedValue(undefined);
+    mockGetEvmAccountFromSelectedAccountGroup.mockReturnValue({
+      address: MOCK_ADDRESS,
+      type: 'eip155:eoa',
+    });
     mockGetPositions.mockResolvedValue([]);
     mockUsePredictLivePositions.mockImplementation(() => undefined);
   });
@@ -120,6 +128,58 @@ describe('usePredictPositions', () => {
 
     expect(result.current.data).toEqual([]);
     expect(result.current.error).toBeNull();
+  });
+
+  it('does not fetch positions when no EVM account is selected', () => {
+    const { Wrapper } = createWrapper();
+    mockGetEvmAccountFromSelectedAccountGroup.mockReturnValue(null);
+
+    renderHook(() => usePredictPositions(), {
+      wrapper: Wrapper,
+    });
+
+    expect(mockGetPositions).not.toHaveBeenCalled();
+    expect(mockUsePredictLivePositions).toHaveBeenCalledWith([], {
+      enabled: false,
+      cacheAddress: '',
+    });
+  });
+
+  it('fetches against the new address after the selected account changes', async () => {
+    const { Wrapper } = createWrapper();
+    const firstAccountPosition = createPosition('first-account-position');
+    const secondAccountPosition = createPosition('second-account-position');
+    mockGetPositions.mockImplementation(({ address }) =>
+      Promise.resolve(
+        address === SECOND_MOCK_ADDRESS
+          ? [secondAccountPosition]
+          : [firstAccountPosition],
+      ),
+    );
+
+    const { result, rerender } = renderHook(() => usePredictPositions(), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() => {
+      expect(result.current.data).toEqual([firstAccountPosition]);
+    });
+
+    mockGetEvmAccountFromSelectedAccountGroup.mockReturnValue({
+      address: SECOND_MOCK_ADDRESS,
+      type: 'eip155:eoa',
+    });
+
+    rerender({});
+
+    await waitFor(() => {
+      expect(result.current.data).toEqual([secondAccountPosition]);
+    });
+
+    expect(mockGetPositions).toHaveBeenCalledWith({ address: MOCK_ADDRESS });
+    expect(mockGetPositions).toHaveBeenCalledWith({
+      address: SECOND_MOCK_ADDRESS,
+    });
   });
 
   it('returns active and claimable positions when claimable is undefined', async () => {
@@ -396,6 +456,129 @@ describe('usePredictPositions', () => {
       });
 
       expect(result.current.data).toEqual([parentPosition]);
+    });
+  });
+
+  describe('marketIds filtering', () => {
+    it('filters positions across the supplied marketIds set', async () => {
+      const { Wrapper } = createWrapper();
+      const seriesMarketA = createPosition('series-a', {
+        marketId: 'series-market-a',
+      });
+      const seriesMarketB = createPosition('series-b', {
+        marketId: 'series-market-b',
+      });
+      const otherMarket = createPosition('other', {
+        marketId: 'unrelated-market',
+      });
+      mockGetPositions.mockResolvedValue([
+        seriesMarketA,
+        seriesMarketB,
+        otherMarket,
+      ]);
+
+      const { result } = renderHook(
+        () =>
+          usePredictPositions({
+            marketIds: ['series-market-a', 'series-market-b'],
+          }),
+        { wrapper: Wrapper },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.data).toEqual([seriesMarketA, seriesMarketB]);
+    });
+
+    it('takes precedence over marketId and childMarketIds when non-empty', async () => {
+      const { Wrapper } = createWrapper();
+      const seriesMarket = createPosition('series-1', {
+        marketId: 'series-market-1',
+      });
+      const otherMarket = createPosition('other', {
+        marketId: 'other-market',
+      });
+      mockGetPositions.mockResolvedValue([seriesMarket, otherMarket]);
+
+      const { result } = renderHook(
+        () =>
+          usePredictPositions({
+            marketId: 'other-market',
+            childMarketIds: ['other-market'],
+            marketIds: ['series-market-1'],
+          }),
+        { wrapper: Wrapper },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.data).toEqual([seriesMarket]);
+    });
+
+    it('falls back to marketId filtering when marketIds is empty', async () => {
+      const { Wrapper } = createWrapper();
+      const targetPosition = createPosition('target', {
+        marketId: 'target-market',
+      });
+      const otherPosition = createPosition('other', {
+        marketId: 'other-market',
+      });
+      mockGetPositions.mockResolvedValue([targetPosition, otherPosition]);
+
+      const { result } = renderHook(
+        () =>
+          usePredictPositions({
+            marketId: 'target-market',
+            marketIds: [],
+          }),
+        { wrapper: Wrapper },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.data).toEqual([targetPosition]);
+    });
+
+    it('combines with the claimable filter', async () => {
+      const { Wrapper } = createWrapper();
+      const activeInSeries = createPosition('active-series', {
+        marketId: 'series-market-a',
+        claimable: false,
+      });
+      const claimableInSeries = createPosition('claimable-series', {
+        marketId: 'series-market-b',
+        claimable: true,
+      });
+      const activeOutsideSeries = createPosition('active-outside', {
+        marketId: 'unrelated-market',
+        claimable: false,
+      });
+      mockGetPositions.mockResolvedValue([
+        activeInSeries,
+        claimableInSeries,
+        activeOutsideSeries,
+      ]);
+
+      const { result } = renderHook(
+        () =>
+          usePredictPositions({
+            claimable: false,
+            marketIds: ['series-market-a', 'series-market-b'],
+          }),
+        { wrapper: Wrapper },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.data).toEqual([activeInSeries]);
     });
   });
 

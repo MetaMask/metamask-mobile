@@ -68,3 +68,9 @@ export const selectMoneyOnboardingSeen = (state: RootState) =>
  */
 export const selectTokenOverviewChartType = (state: RootState) =>
   state.user?.tokenOverviewChartType ?? ChartType.Line;
+
+/**
+ * Selects the onboarding stepper progress record (keyed by stepper ID)
+ */
+export const selectOnboardingStepperProgress = (state: RootState) =>
+  state.user?.onboardingStepperProgress ?? {};

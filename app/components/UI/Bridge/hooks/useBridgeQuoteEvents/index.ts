@@ -12,6 +12,7 @@ import {
   UnifiedSwapBridgeEventName,
 } from '@metamask/bridge-controller';
 import { useTokenBalanceInUsd } from '../useTokenBalanceInUsd';
+import { useHasSufficientGasEvenIfGasIncludedOrSponsored } from '../useHasSufficientGasEvenIfGasIncludedOrSponsored';
 
 /**
  * Hook for publishing the QuotesReceived event.
@@ -22,6 +23,7 @@ export const useBridgeQuoteEvents = ({
   hasInsufficientNativeReserveError,
   hasNoQuotesAvailable,
   hasInsufficientGas,
+  isNetworkFeeUnavailable,
   hasTxAlert,
   isSubmitDisabled,
   isPriceImpactWarningVisible,
@@ -30,6 +32,7 @@ export const useBridgeQuoteEvents = ({
   hasInsufficientNativeReserveError: boolean;
   hasNoQuotesAvailable: boolean;
   hasInsufficientGas: boolean;
+  isNetworkFeeUnavailable: boolean;
   hasTxAlert: boolean;
   isSubmitDisabled: boolean;
   isPriceImpactWarningVisible: boolean;
@@ -42,13 +45,19 @@ export const useBridgeQuoteEvents = ({
 
   const sourceToken = useSelector(selectSourceToken);
   const fromTokenBalanceInUsd = useTokenBalanceInUsd(sourceToken ?? undefined);
+  // NB: this is for gasless counter metrics purposes. It intentionally calculates balance insufficiency irrespective of gasless or sponsored quotes.
+  const hasSufficientGasForQuote =
+    useHasSufficientGasEvenIfGasIncludedOrSponsored({ quote: activeQuote });
 
   const warnings = useMemo(() => {
     const latestWarnings: QuoteWarning[] = [];
 
     hasNoQuotesAvailable && latestWarnings.push('no_quotes');
-    hasInsufficientGas &&
+    if (isNetworkFeeUnavailable) {
+      latestWarnings.push('network_fee_unavailable' as QuoteWarning);
+    } else if (hasInsufficientGas) {
       latestWarnings.push('insufficient_gas_for_selected_quote');
+    }
     hasInsufficientBalance && latestWarnings.push('insufficient_balance');
     hasInsufficientNativeReserveError &&
       // @ts-expect-error - 'insufficient_native_reserve' is a valid QuoteWarning
@@ -60,6 +69,7 @@ export const useBridgeQuoteEvents = ({
   }, [
     hasNoQuotesAvailable,
     hasInsufficientGas,
+    isNetworkFeeUnavailable,
     hasInsufficientBalance,
     hasInsufficientNativeReserveError,
     hasTxAlert,
@@ -77,6 +87,7 @@ export const useBridgeQuoteEvents = ({
           !isSubmitDisabled,
           recommendedQuote,
           fromTokenBalanceInUsd,
+          hasSufficientGasForQuote,
         ),
       );
     }

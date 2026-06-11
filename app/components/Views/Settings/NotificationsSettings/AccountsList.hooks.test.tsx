@@ -10,12 +10,14 @@ import {
   useAccountProps,
   useNotificationAccountListProps,
   useNotificationWalletAccountGroups,
+  useWalletActivityAccountSelection,
 } from './AccountsList.hooks';
 import { selectInternalAccountsById } from '../../../../selectors/accountsController';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { selectAccountGroupsByWallet } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { toFormattedAddress } from '../../../../util/address';
 
 jest.mock('../../../../selectors/notifications', () => ({
   getValidNotificationAccounts: jest.fn(),
@@ -35,6 +37,15 @@ jest.mock(
 );
 
 const MOCK_KEYRING_TYPE = 'HD Key Tree' as KeyringTypes;
+const EVM_ADDRESSES = [
+  '0xb2B92547A92C1aC55EAe3F6632Fa1aF87dc05a29',
+  '0x700CcD8172BC3807D893883a730A1E0E6630F8EC',
+  '0xb2B92547A92C1aC55EAe3F6632Fa1aF87dc05a20',
+  '0x700CcD8172BC3807D893883a730A1E0E6630F8E0',
+];
+const FORMATTED_EVM_ADDRESSES = EVM_ADDRESSES.map((address) =>
+  toFormattedAddress(address),
+);
 
 const createNotificationAccountsMap = () =>
   ({
@@ -428,6 +439,80 @@ describe('useAccountProps', () => {
           type: AccountWalletType.Keyring,
         }),
       }),
+    );
+  });
+});
+
+describe('useWalletActivityAccountSelection', () => {
+  const arrangeMocks = (notificationData: Record<string, boolean>) => {
+    arrangeMockUseAccounts();
+    jest
+      .mocked(selectInternalAccountsById)
+      .mockReturnValue(createNotificationAccountsMap());
+    jest.mocked(getValidNotificationAccounts).mockReturnValue(EVM_ADDRESSES);
+
+    const mockUpdate = jest.fn();
+    jest
+      .spyOn(UseSwitchNotificationsModule, 'useFetchAccountNotifications')
+      .mockReturnValue({
+        accountsBeingUpdated: [],
+        data: notificationData,
+        error: null,
+        initialLoading: false,
+        update: mockUpdate,
+      });
+
+    const mockOnToggle = jest.fn();
+    jest
+      .spyOn(UseSwitchNotificationsModule, 'useAccountNotificationsToggle')
+      .mockReturnValue({
+        onToggle: mockOnToggle,
+        error: null,
+        loading: false,
+      });
+
+    return {
+      mockOnToggle,
+      mockUpdate,
+    };
+  };
+
+  beforeEach(() => jest.clearAllMocks());
+
+  it('deselects all visible EVM accounts when any account is enabled', async () => {
+    const mocks = arrangeMocks({
+      [FORMATTED_EVM_ADDRESSES[0]]: true,
+    });
+
+    const { result } = renderHookWithProvider(() =>
+      useWalletActivityAccountSelection(),
+    );
+
+    expect(result.current.hasEnabledAccount).toBe(true);
+
+    await act(async () => result.current.toggleAllAccounts());
+
+    expect(mocks.mockOnToggle).toHaveBeenCalledWith(
+      FORMATTED_EVM_ADDRESSES,
+      false,
+    );
+    expect(mocks.mockUpdate).toHaveBeenCalledWith(EVM_ADDRESSES);
+  });
+
+  it('selects all visible EVM accounts when every account is disabled', async () => {
+    const mocks = arrangeMocks({});
+
+    const { result } = renderHookWithProvider(() =>
+      useWalletActivityAccountSelection(),
+    );
+
+    expect(result.current.hasEnabledAccount).toBe(false);
+
+    await act(async () => result.current.toggleAllAccounts());
+
+    expect(mocks.mockOnToggle).toHaveBeenCalledWith(
+      FORMATTED_EVM_ADDRESSES,
+      true,
     );
   });
 });

@@ -122,6 +122,9 @@ jest.mock(
       data: [],
       isLoading: false,
       refetch: jest.fn(),
+      loadMore: jest.fn(),
+      isLoadingMore: false,
+      hasNextPage: false,
     })),
   }),
 );
@@ -193,6 +196,10 @@ const setupWithTokenResults = () => {
     data: [mockTrendingResult],
     isLoading: false,
     refetch: jest.fn(),
+    loadMore: jest.fn(),
+    isLoadingMore: false,
+    hasNextPage: false,
+    totalCount: undefined,
   } as ReturnType<typeof useTrendingSearch>);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   mockConvertTokens.mockReturnValue([mockImportAset as any]);
@@ -242,6 +249,10 @@ describe('SearchTokenAutocomplete', () => {
       data: [],
       isLoading: false,
       refetch: jest.fn(),
+      loadMore: jest.fn(),
+      isLoadingMore: false,
+      hasNextPage: false,
+      totalCount: undefined,
     } as ReturnType<typeof useTrendingSearch>);
     mockConvertTokens.mockReturnValue([]);
     (Engine.context.TokensController.addTokens as jest.Mock).mockResolvedValue(
@@ -465,6 +476,10 @@ describe('SearchTokenAutocomplete', () => {
       ],
       isLoading: false,
       refetch: jest.fn(),
+      loadMore: jest.fn(),
+      isLoadingMore: false,
+      hasNextPage: false,
+      totalCount: undefined,
     } as ReturnType<typeof useTrendingSearch>);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockConvertTokens.mockReturnValue([mockNonEvmToken as any]);
@@ -544,6 +559,9 @@ describe('SearchTokenAutocomplete', () => {
       expect(mockAddCustomAsset).toHaveBeenCalledWith(
         'evm-account-id',
         expectedCaipAssetType,
+        expect.objectContaining({
+          address: '0x1234567890abcdef1234567890abcdef12345678',
+        }),
       );
     });
 
@@ -562,6 +580,10 @@ describe('SearchTokenAutocomplete', () => {
         data: [mockTrendingResult],
         isLoading: false,
         refetch: jest.fn(),
+        loadMore: jest.fn(),
+        isLoadingMore: false,
+        hasNextPage: false,
+        totalCount: undefined,
       } as ReturnType<typeof useTrendingSearch>);
 
       mockSelectIsAssetsUnifyStateEnabled.mockReturnValue(true);
@@ -593,10 +615,16 @@ describe('SearchTokenAutocomplete', () => {
       expect(mockAddCustomAsset).toHaveBeenCalledWith(
         'evm-account-id',
         caipAsset1,
+        expect.objectContaining({
+          address: '0x1234567890abcdef1234567890abcdef12345678',
+        }),
       );
       expect(mockAddCustomAsset).toHaveBeenCalledWith(
         'evm-account-id',
         caipAsset2,
+        expect.objectContaining({
+          address: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
+        }),
       );
     });
 
@@ -672,8 +700,10 @@ describe('SearchTokenAutocomplete', () => {
     const solanaChainId =
       'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as SupportedCaipChainId;
 
+    const solanaAddress =
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:3iQL8BFS2vE7mww4ehAqQHAsbmRNCrPxizWAT2Zfyr9y';
     const mockNonEvmToken = {
-      address: 'solana-address-123',
+      address: solanaAddress,
       symbol: 'SOL',
       name: 'Solana',
       decimals: 9,
@@ -688,6 +718,10 @@ describe('SearchTokenAutocomplete', () => {
         data: [mockTrendingResult],
         isLoading: false,
         refetch: jest.fn(),
+        loadMore: jest.fn(),
+        isLoadingMore: false,
+        hasNextPage: false,
+        totalCount: undefined,
       } as ReturnType<typeof useTrendingSearch>);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockConvertTokens.mockReturnValue([mockNonEvmToken as any]);
@@ -731,7 +765,7 @@ describe('SearchTokenAutocomplete', () => {
       );
     });
 
-    it('does not call AssetsController.addCustomAsset for non-EVM chains', async () => {
+    it('calls AssetsController.addCustomAsset for non-EVM chains', async () => {
       mockSelectInternalAccountByScope.mockReturnValue({
         id: 'non-evm-account-id',
         address: 'non-evm-address',
@@ -744,7 +778,11 @@ describe('SearchTokenAutocomplete', () => {
       const [, params] = mockNavigation.navigate.mock.calls[0];
       await params.addTokenList();
 
-      expect(mockAddCustomAsset).not.toHaveBeenCalled();
+      expect(mockAddCustomAsset).toHaveBeenCalledWith(
+        'non-evm-account-id',
+        solanaAddress,
+        expect.objectContaining({ address: solanaAddress }),
+      );
     });
   });
 });

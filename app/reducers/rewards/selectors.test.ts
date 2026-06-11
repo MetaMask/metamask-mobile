@@ -9,7 +9,6 @@ import {
   selectCurrentTier,
   selectNextTier,
   selectNextTierPointsNeeded,
-  selectBalanceRefereePortion,
   selectBalanceUpdatedAt,
   selectSeasonStatusLoading,
   selectSeasonStatusError,
@@ -50,6 +49,7 @@ import {
   selectVipDashboard,
   selectVipDashboardError,
   selectVipDashboardLoading,
+  selectHasAcceptedVipInvite,
   selectCampaigns,
   selectCampaignsLoading,
   selectCampaignsError,
@@ -75,6 +75,14 @@ import {
   selectOndoCampaignPortfolio,
   selectOndoCampaignPortfolioById,
   selectOndoCampaignActivityById,
+  selectPredictThePitchLeaderboard,
+  selectPredictThePitchLeaderboardLoading,
+  selectPredictThePitchLeaderboardError,
+  selectPredictThePitchLeaderboardPositionById,
+  selectPredictThePitchPositionsById,
+  selectPredictThePitchPrizePool,
+  selectPredictThePitchPrizePoolLoading,
+  selectPredictThePitchPrizePoolError,
   selectDismissedCampaignOutcomeToasts,
 } from './selectors';
 // eslint-disable-next-line import-x/no-namespace
@@ -325,38 +333,6 @@ describe('Rewards selectors', () => {
 
       const { result } = renderHook(() =>
         useSelector(selectNextTierPointsNeeded),
-      );
-      expect(result.current).toBe(0);
-    });
-  });
-
-  describe('selectBalanceRefereePortion', () => {
-    it('returns null when referee portion is null', () => {
-      const mockState = { rewards: { balanceRefereePortion: null } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
-
-      const { result } = renderHook(() =>
-        useSelector(selectBalanceRefereePortion),
-      );
-      expect(result.current).toBeNull();
-    });
-
-    it('returns referee portion when set', () => {
-      const mockState = { rewards: { balanceRefereePortion: 750.5 } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
-
-      const { result } = renderHook(() =>
-        useSelector(selectBalanceRefereePortion),
-      );
-      expect(result.current).toBe(750.5);
-    });
-
-    it('returns zero referee portion when set to zero', () => {
-      const mockState = { rewards: { balanceRefereePortion: 0 } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
-
-      const { result } = renderHook(() =>
-        useSelector(selectBalanceRefereePortion),
       );
       expect(result.current).toBe(0);
     });
@@ -1727,13 +1703,11 @@ describe('Rewards selectors', () => {
       it('handles zero values correctly', () => {
         const state = createMockRootState({
           balanceTotal: 0,
-          balanceRefereePortion: 0,
           refereeCount: 0,
           nextTierPointsNeeded: 0,
         });
 
         expect(selectBalanceTotal(state)).toBe(0);
-        expect(selectBalanceRefereePortion(state)).toBe(0);
         expect(selectReferralCount(state)).toBe(0);
         expect(selectNextTierPointsNeeded(state)).toBe(0);
       });
@@ -1741,13 +1715,11 @@ describe('Rewards selectors', () => {
       it('handles negative values correctly', () => {
         const state = createMockRootState({
           balanceTotal: -100,
-          balanceRefereePortion: -50,
           refereeCount: -1,
           nextTierPointsNeeded: -10,
         });
 
         expect(selectBalanceTotal(state)).toBe(-100);
-        expect(selectBalanceRefereePortion(state)).toBe(-50);
         expect(selectReferralCount(state)).toBe(-1);
         expect(selectNextTierPointsNeeded(state)).toBe(-10);
       });
@@ -1755,13 +1727,11 @@ describe('Rewards selectors', () => {
       it('handles very large numbers correctly', () => {
         const state = createMockRootState({
           balanceTotal: Number.MAX_SAFE_INTEGER,
-          balanceRefereePortion: 999999999,
           refereeCount: 1000000,
           nextTierPointsNeeded: Number.MAX_SAFE_INTEGER,
         });
 
         expect(selectBalanceTotal(state)).toBe(Number.MAX_SAFE_INTEGER);
-        expect(selectBalanceRefereePortion(state)).toBe(999999999);
         expect(selectReferralCount(state)).toBe(1000000);
         expect(selectNextTierPointsNeeded(state)).toBe(Number.MAX_SAFE_INTEGER);
       });
@@ -1769,11 +1739,9 @@ describe('Rewards selectors', () => {
       it('handles floating point numbers correctly', () => {
         const state = createMockRootState({
           balanceTotal: 123.456789,
-          balanceRefereePortion: 67.89,
         });
 
         expect(selectBalanceTotal(state)).toBe(123.456789);
-        expect(selectBalanceRefereePortion(state)).toBe(67.89);
       });
     });
 
@@ -1972,7 +1940,6 @@ describe('Rewards selectors', () => {
         },
         nextTierPointsNeeded: 1000,
         balanceTotal: 2750.5,
-        balanceRefereePortion: 1250.25,
         balanceUpdatedAt: new Date('2024-03-15T14:30:00Z'),
         onboardingActiveStep: OnboardingStep.STEP_3,
         candidateSubscriptionId: 'sub-candidate-12345',
@@ -2017,7 +1984,6 @@ describe('Rewards selectors', () => {
         expect(selectNextTier(comprehensiveState)?.name).toBe('Gold');
         expect(selectNextTierPointsNeeded(comprehensiveState)).toBe(1000);
         expect(selectBalanceTotal(comprehensiveState)).toBe(2750.5);
-        expect(selectBalanceRefereePortion(comprehensiveState)).toBe(1250.25);
         expect(selectBalanceUpdatedAt(comprehensiveState)).toEqual(
           new Date('2024-03-15T14:30:00Z'),
         );
@@ -3203,59 +3169,79 @@ describe('Rewards selectors', () => {
 
   describe('VIP dashboard selectors', () => {
     const mockVipDashboard: VipDashboardState = {
-      program: { id: 'vip', name: 'VIP Pilot' },
+      program: { id: 'mock-vip-program', name: 'Acme Rewards Beta' },
       period: {
-        start: '2026-03-31T00:00:00.000Z',
-        end: '2026-04-30T23:59:59.999Z',
+        start: '2099-06-01T00:00:00.000Z',
+        end: '2099-06-30T23:59:59.999Z',
       },
-      currentTier: { id: 'gold-fox-vip-3', name: 'Gold Fox VIP 3', tier: 3 },
-      nextTier: { id: 'gold-fox-vip-4', name: 'Gold Fox VIP 4', tier: 4 },
+      currentTier: {
+        id: 'mock-tier-alpha-3',
+        name: 'Mock Tier Alpha 3',
+        tier: 3,
+      },
+      nextTier: { id: 'mock-tier-alpha-4', name: 'Mock Tier Alpha 4', tier: 4 },
       progress: {
-        percent: 72,
-        remainingSwapsUsd: 800000,
-        remainingPerpsUsd: 3600000,
-        estimatedDaysToNextTier: 4,
+        percent: 42,
+        remainingPointsToNextTier: 123456,
         status: 'on_track',
       },
       fees: {
-        swapsBps: 15,
-        perpsBps: 4,
-        nextTierSwapsBps: 12,
-        nextTierPerpsBps: 3,
+        revenueShareBps: 99,
+        swapsBps: 11,
+        perpsBps: 7,
+        nextTierRevenueShareBps: 88,
+        nextTierSwapsBps: 9,
+        nextTierPerpsBps: 6,
       },
       volume: {
-        swapsUsd: 4100000,
-        perpsUsd: 2300000,
+        swapsUsd: 1234567,
+        perpsUsd: 9876543,
+        points: 5555555,
+        pointsFromReferrals: 111111,
+        referrals: 3,
+        referralsCap: 7,
       },
       pointsAllocation: {
-        earned: 24400000,
-        max: 100000000,
-        percent: 24.4,
+        earned: 5555555,
+        threshold: 7777777,
+        percent: 71.4,
       },
       tiers: [
         {
-          id: 'gold-fox-vip-3',
-          name: 'Gold Fox 3',
+          id: 'mock-tier-alpha-3',
+          name: 'Mock Tier Alpha 3',
           tier: 3,
-          swapsRequirementUsd: 7000000,
-          perpsRequirementUsd: 35000000,
-          swapsBps: 15,
-          perpsBps: 4,
+          pointsRequirement: 321000,
+          revenueShareBps: 99,
+          swapsBps: 11,
+          perpsBps: 7,
+          referralCarryoverBps: 4242,
           status: 'current',
         },
       ],
       localizedText: {
-        period: 'Mar 31 - Apr 30',
-        progressToNextTier: 'Subline',
+        periodTitle: 'Jun 1 - Jun 30',
+        memberIdTitle: 'Member ID',
         swapsFeeTitle: 'Swaps fee',
         perpsFeeTitle: 'Perps fee',
-        nextTierSwapsFeeDelta: '↓ 12 bps next tier',
-        nextTierPerpsFeeDelta: '↓ 3 bps next tier',
-        volumeTitle: 'Volume',
-        statusMessage: 'On track',
+        nextTierSwapsFeeDelta: '↓ 9 bps next tier',
+        nextTierPerpsFeeDelta: '↓ 6 bps next tier',
+        revenueShareTitle: 'Revenue share',
+        referralPointsTitle: 'Referral points',
+        nextTierRevenueShareDelta: '↑ 1% next tier',
+        nextTierReferralPointsDelta: '↑ 42% next tier',
+        topTierDescription: 'Top tier reached',
+        statsTitle: 'Volume',
         pointsTitle: 'Points',
-        pointsAllocationTitle: 'Earn VIP allocations',
-        pointsAllocationDescription: 'Body copy',
+        swapsVolumeTitle: 'Swaps Volume',
+        pointsFromReferralsTitle: 'Points from Referrals',
+        perpsVolumeTitle: 'Perps Volume',
+        vipReferralsTitle: 'VIP Referrals',
+        totalPointsTitle: 'Points',
+        equityLockedTitle: 'Earn VIP allocations',
+        equityLockedDescription: 'Body copy',
+        equityUnlockedTitle: 'VIP allocation unlocked',
+        equityUnlockedDescription: 'Unlocked body copy',
       },
       lastFetched: 123,
     };
@@ -3298,6 +3284,30 @@ describe('Rewards selectors', () => {
       });
 
       expect(selectVipDashboardError(state)).toBe(true);
+    });
+
+    it('returns false when VIP invite acceptance has no subscription id', () => {
+      const state = createMockRootState({
+        vipSplashAccepted: { 'sub-1': true },
+      });
+
+      expect(selectHasAcceptedVipInvite(null)(state)).toBe(false);
+    });
+
+    it('returns false when VIP invite has not been accepted for subscription', () => {
+      const state = createMockRootState({
+        vipSplashAccepted: { 'sub-2': true },
+      });
+
+      expect(selectHasAcceptedVipInvite('sub-1')(state)).toBe(false);
+    });
+
+    it('returns true when VIP invite has been accepted for subscription', () => {
+      const state = createMockRootState({
+        vipSplashAccepted: { 'sub-1': true },
+      });
+
+      expect(selectHasAcceptedVipInvite('sub-1')(state)).toBe(true);
     });
   });
 
@@ -4065,6 +4075,91 @@ describe('Rewards selectors', () => {
       expect(
         selectOndoCampaignActivityById('sub-1', 'campaign-1')(state),
       ).toEqual(mockEntries);
+    });
+  });
+
+  describe('Predict The Pitch selectors', () => {
+    const mockLeaderboard = {
+      campaignId: 'predict-c-1',
+      computedAt: '2026-06-30T12:00:00.000Z',
+      entries: [],
+      totalParticipants: 10,
+    };
+    const mockPosition = {
+      rank: 1,
+      totalParticipants: 10,
+      roi: 0.25,
+      pnl: 50,
+      volume: 200,
+      eligible: true,
+      neighbors: [],
+      computedAt: '2026-06-30T12:00:00.000Z',
+      marketsTraded: 3,
+      minimumMarketsTraded: 3,
+    };
+    const mockPositions = {
+      openPositions: [],
+      resolvedPositions: [],
+      computedAt: null,
+    };
+    const mockPrizePool = {
+      totalVolumeUsd: 1000,
+      unlockedPoolUsd: 500,
+      thresholdsUsd: [0, 1000],
+      poolScheduleUsd: [250, 500],
+      breakdown: [],
+      computedAt: null,
+    };
+
+    it('selects leaderboard and status flags', () => {
+      const state = createMockRootState({
+        predictThePitchLeaderboard: mockLeaderboard,
+        predictThePitchLeaderboardLoading: true,
+        predictThePitchLeaderboardError: true,
+      });
+
+      expect(selectPredictThePitchLeaderboard(state)).toEqual(mockLeaderboard);
+      expect(selectPredictThePitchLeaderboardLoading(state)).toBe(true);
+      expect(selectPredictThePitchLeaderboardError(state)).toBe(true);
+    });
+
+    it('selects leaderboard position and positions by composite ID', () => {
+      const state = createMockRootState({
+        predictThePitchLeaderboardPositions: {
+          'sub-1:predict-c-1': mockPosition,
+        },
+        predictThePitchPositions: {
+          'sub-1:predict-c-1': mockPositions,
+        },
+      });
+
+      expect(
+        selectPredictThePitchLeaderboardPositionById(
+          'sub-1',
+          'predict-c-1',
+        )(state),
+      ).toEqual(mockPosition);
+      expect(
+        selectPredictThePitchLeaderboardPositionById('sub-1', undefined)(state),
+      ).toBeNull();
+      expect(
+        selectPredictThePitchPositionsById('sub-1', 'predict-c-1')(state),
+      ).toEqual(mockPositions);
+      expect(
+        selectPredictThePitchPositionsById(undefined, 'predict-c-1')(state),
+      ).toBeNull();
+    });
+
+    it('selects prize pool and status flags', () => {
+      const state = createMockRootState({
+        predictThePitchPrizePool: mockPrizePool,
+        predictThePitchPrizePoolLoading: true,
+        predictThePitchPrizePoolError: true,
+      });
+
+      expect(selectPredictThePitchPrizePool(state)).toEqual(mockPrizePool);
+      expect(selectPredictThePitchPrizePoolLoading(state)).toBe(true);
+      expect(selectPredictThePitchPrizePoolError(state)).toBe(true);
     });
   });
 

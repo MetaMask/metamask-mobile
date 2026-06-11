@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/lib/integration/react';
 import { store, persistor } from '../../../store';
@@ -6,6 +6,7 @@ import App from '../../Nav/App';
 import SecureKeychain from '../../../core/SecureKeychain';
 import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
 import Logger from '../../../util/Logger';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorBoundary from '../ErrorBoundary';
 import ThemeProvider from '../../../component-library/providers/ThemeProvider/ThemeProvider';
 import { ToastContextWrapper } from '../../../component-library/components/Toast';
@@ -13,7 +14,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { RootProps } from './types';
 import NavigationProvider from '../../Nav/NavigationProvider';
 import ControllersGate from '../../Nav/ControllersGate';
-import { isTest } from '../../../util/test/utils';
+import { isTestEnvironment } from '../../../util/test/utils';
 import { FeatureFlagOverrideProvider } from '../../../contexts/FeatureFlagOverrideContext';
 import { ScreenOrientationService } from '../../../core/ScreenOrientation';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -23,6 +24,11 @@ import { ReducedMotionConfig, ReduceMotion } from 'react-native-reanimated';
 import { QueryClientProvider } from '@tanstack/react-query';
 import reactQueryService from '../../../core/ReactQueryService';
 import { HardwareWalletProvider } from '../../../core/HardwareWallet';
+import { UIMessengerProvider } from '../../../contexts/ui-messenger';
+import {
+  createUIMessenger,
+  UIMessenger,
+} from '../../../messengers/ui-messenger';
 
 /**
  * Top level of the component hierarchy
@@ -30,6 +36,14 @@ import { HardwareWalletProvider } from '../../../core/HardwareWallet';
  */
 const Root = ({ foxCode }: RootProps) => {
   const [isStoreLoading, setIsStoreLoading] = useState(true);
+
+  // We use a ref to make sure the UI messenger is only created once.
+  const uiMessengerRef = useRef<UIMessenger | null>(null);
+  if (!uiMessengerRef.current) {
+    uiMessengerRef.current = createUIMessenger();
+  }
+
+  const uiMessenger = uiMessengerRef.current;
 
   /**
    * Wait for store to be initialized in Detox tests
@@ -57,7 +71,7 @@ const Root = ({ foxCode }: RootProps) => {
     // Lock screen orientation to portrait on app start
     ScreenOrientationService.lockToPortrait();
     // Wait for store to be initialized in Detox tests
-    if (isTest) {
+    if (isTestEnvironment) {
       waitForStore();
     } else {
       setIsStoreLoading(false);
@@ -65,7 +79,7 @@ const Root = ({ foxCode }: RootProps) => {
   }, [foxCode]);
 
   // Only wait for store in test mode, fonts are handled inside theme context
-  if (isTest && isStoreLoading) {
+  if (isTestEnvironment && isStoreLoading) {
     return null;
   }
 
@@ -85,12 +99,14 @@ const Root = ({ foxCode }: RootProps) => {
                 <ThemeProvider>
                   <NavigationProvider>
                     <ControllersGate>
-                      <ToastContextWrapper>
-                        <HardwareWalletProvider>
-                          <ReducedMotionConfig mode={ReduceMotion.Never} />
-                          <App />
-                        </HardwareWalletProvider>
-                      </ToastContextWrapper>
+                      <UIMessengerProvider value={uiMessenger}>
+                        <ToastContextWrapper>
+                          <HardwareWalletProvider>
+                            <ReducedMotionConfig mode={ReduceMotion.Never} />
+                            <App />
+                          </HardwareWalletProvider>
+                        </ToastContextWrapper>
+                      </UIMessengerProvider>
                     </ControllersGate>
                   </NavigationProvider>
                 </ThemeProvider>

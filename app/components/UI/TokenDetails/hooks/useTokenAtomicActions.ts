@@ -46,7 +46,10 @@ import useRampsUnifiedV1Enabled from '../../Ramp/hooks/useRampsUnifiedV1Enabled'
 import { BridgeToken } from '../../Bridge/types';
 import { adaptTokenSecurityData } from '../../Bridge/utils/tokenSecurityUtils';
 import { selectAssetsBySelectedAccountGroup } from '../../../../selectors/assets/assets-list';
-import { TokenDetailsSource } from '../constants/constants';
+import {
+  isExploreTokenDetailsSource,
+  TokenDetailsSource,
+} from '../constants/constants';
 import type { RootState } from '../../../../reducers';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
@@ -313,8 +316,12 @@ export const useHandleOnSwap = ({
   // location from the session that opened the bridge (e.g. "Main View").
   const isFromBridgeAssetPicker = token.source === TokenDetailsSource.Swap;
 
+  const swapLocation = isExploreTokenDetailsSource(token.source)
+    ? SwapBridgeNavigationLocation.TrendingExplore
+    : SwapBridgeNavigationLocation.TokenView;
+
   const { goToSwaps } = useSwapBridgeNavigation({
-    location: SwapBridgeNavigationLocation.TokenView,
+    location: swapLocation,
     sourcePage,
     transactionActiveAbTests: token.transactionActiveAbTests,
     skipLocationUpdate: isFromBridgeAssetPicker,
@@ -470,6 +477,8 @@ export const useHandleOnReceive = ({
           networkName: networkName || 'Unknown Network',
           chainId,
           groupId: selectedAccountGroup.id,
+          location: 'asset-details',
+          account: accountForChain,
         },
       });
     } else {

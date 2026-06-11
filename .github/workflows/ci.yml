@@ -23,11 +23,11 @@ on:
         required: false
         default: current
       pr_number:
-        description: "PR number (shadow correlation, optional)"
+        description: 'PR number (shadow correlation, optional)'
         type: string
         required: false
       head_sha:
-        description: "PR head SHA (shadow correlation, optional)"
+        description: 'PR head SHA (shadow correlation, optional)'
         type: string
         required: false
   workflow_dispatch:
@@ -41,11 +41,11 @@ on:
           - namespace
         default: current
       pr_number:
-        description: "PR number (shadow correlation, optional)"
+        description: 'PR number (shadow correlation, optional)'
         required: false
         type: string
       head_sha:
-        description: "PR head SHA (shadow correlation, optional)"
+        description: 'PR head SHA (shadow correlation, optional)'
         required: false
         type: string
 
@@ -117,8 +117,8 @@ jobs:
             echo "No changes detected"
           fi
 
-  post-build-source-hash:
-    name: Post build-source-hash commit status
+  native-build-fingerprint:
+    name: Compute native build fingerprint
     runs-on: ubuntu-latest
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     permissions:
@@ -147,12 +147,12 @@ jobs:
           max_attempts: 3
           retry_wait_seconds: 30
           command: yarn install --immutable
-      - name: Post build-source-hash commit status
-        if: ${{ inputs.runner_provider != 'namespace' }}
+      - name: Compute native build fingerprint and post build-source-hash
         id: publish
         uses: ./.github/actions/post-build-source-hash
         with:
           github-token: ${{ github.token }}
+          post-status: ${{ inputs.runner_provider != 'namespace' }}
           # Commit statuses must be posted on a real commit SHA (not the merge ref).
           # `find-reusable-build` looks up the status via `run.head_sha` from
           # `listWorkflowRuns`, which GitHub reports as the PR head SHA for pull_request
@@ -651,13 +651,15 @@ jobs:
       # TEMP: artifact fallback for non-Namespace runners.
       # Remove these two steps once Namespace passes the trial and becomes the default.
       - name: Download CI JS deps artifact
+        id: download-ci-js-deps
         if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
+        continue-on-error: true
         uses: actions/download-artifact@v4
         with:
           name: ci-js-deps
           path: .
       - name: Extract CI JS deps
-        if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
+        if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' && steps.download-ci-js-deps.outcome == 'success' }}
         run: tar -xzf ci-js-deps.tar.gz && rm ci-js-deps.tar.gz
       - uses: ./.github/actions/setup-ci-js-deps
         with:
@@ -717,13 +719,15 @@ jobs:
       # TEMP: artifact fallback for non-Namespace runners.
       # Remove these two steps once Namespace passes the trial and becomes the default.
       - name: Download CI JS deps artifact
+        id: download-ci-js-deps
         if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
+        continue-on-error: true
         uses: actions/download-artifact@v4
         with:
           name: ci-js-deps
           path: .
       - name: Extract CI JS deps
-        if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
+        if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' && steps.download-ci-js-deps.outcome == 'success' }}
         run: tar -xzf ci-js-deps.tar.gz && rm ci-js-deps.tar.gz
       - uses: ./.github/actions/setup-ci-js-deps
         with:
@@ -902,13 +906,15 @@ jobs:
       # TEMP: artifact fallback for non-Namespace runners.
       # Remove these two steps once Namespace passes the trial and becomes the default.
       - name: Download CI JS deps artifact
+        id: download-ci-js-deps
         if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
+        continue-on-error: true
         uses: actions/download-artifact@v4
         with:
           name: ci-js-deps
           path: .
       - name: Extract CI JS deps
-        if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
+        if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' && steps.download-ci-js-deps.outcome == 'success' }}
         run: tar -xzf ci-js-deps.tar.gz && rm ci-js-deps.tar.gz
       - uses: ./.github/actions/setup-ci-js-deps
         with:
@@ -960,6 +966,8 @@ jobs:
     outputs:
       ai_e2e_test_tags: ${{ steps.e2e-selection.outputs.ai_e2e_test_tags }}
       ai_confidence: ${{ steps.e2e-selection.outputs.ai_confidence }}
+      ai_performance_test_tags: ${{ steps.e2e-selection.outputs.ai_performance_test_tags }}
+      ai_performance_test_reasoning: ${{ steps.e2e-selection.outputs.ai_performance_test_reasoning }}
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ inputs.runner_provider == 'namespace' }}
@@ -991,13 +999,41 @@ jobs:
           post-comment: ${{ inputs.runner_provider != 'namespace' }}
           base-ref: ${{ github.event.pull_request.base.ref }}
 
+  run-performance-tests-pr:
+    name: 'Run Performance Tests (PR)'
+    # Only run on pull_request events unless AI explicitly found no relevant changes.
+    # ai_performance_test_tags == '[]'  → AI ran and found no perf-relevant changes: skip.
+    # ai_performance_test_tags == ''    → conservative fallback (AI failed): run all tests.
+    # ai_performance_test_tags == '[…]' → specific tags selected: run those tests.
+    if: >-
+      ${{
+        github.event_name == 'pull_request' &&
+        !cancelled() &&
+        needs.smart-e2e-selection.result != 'skipped' &&
+        needs.smart-e2e-selection.outputs.ai_performance_test_tags != '[]'
+      }}
+    needs: [smart-e2e-selection]
+    uses: ./.github/workflows/run-performance-e2e.yml
+    with:
+      performance_tags: ${{ needs.smart-e2e-selection.outputs.ai_performance_test_tags }}
+      performance_tags_reasoning: ${{ needs.smart-e2e-selection.outputs.ai_performance_test_reasoning }}
+      build_variant: 'e2e'
+      branch_name: ${{ github.head_ref }}
+      pr_number: ${{ github.event.pull_request.number }}
+    secrets: inherit
+    permissions:
+      contents: write
+      id-token: write
+      actions: write
+      pull-requests: write
+
   build-android-apks:
     name: 'Build Android APKs'
     if: >-
       ${{
         !cancelled() &&
         needs.get_requirements.outputs.android_e2e_needed == 'true' &&
-        !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
+        !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
       }}
     permissions:
       contents: read
@@ -1005,12 +1041,12 @@ jobs:
       actions: read
       statuses: read
       pull-requests: read
-    needs: [get_requirements, smart-e2e-selection, post-build-source-hash]
+    needs: [get_requirements, smart-e2e-selection, native-build-fingerprint]
     uses: ./.github/workflows/build-android-e2e.yml
     with:
       build_type: 'main'
       metamask_environment: 'e2e'
-      source-fingerprint: ${{ needs.post-build-source-hash.outputs.fingerprint }}
+      source-fingerprint: ${{ needs.native-build-fingerprint.outputs.fingerprint }}
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
@@ -1026,7 +1062,7 @@ jobs:
       changed_files: ${{ needs.get_requirements.outputs.changed_files }}
       selected_tags: >-
         ${{
-          (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
+          (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
           '["ALL"]'
         }}
       runner_provider: ${{ inputs.runner_provider }}
@@ -1038,7 +1074,7 @@ jobs:
       ${{
         !cancelled() &&
         needs.get_requirements.outputs.ios_e2e_needed == 'true' &&
-        !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
+        !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
       }}
     permissions:
       contents: read
@@ -1046,10 +1082,10 @@ jobs:
       actions: read
       statuses: read
       pull-requests: read
-    needs: [get_requirements, smart-e2e-selection, post-build-source-hash]
+    needs: [get_requirements, smart-e2e-selection, native-build-fingerprint]
     uses: ./.github/workflows/build-ios-e2e.yml
     with:
-      source-fingerprint: ${{ needs.post-build-source-hash.outputs.fingerprint }}
+      source-fingerprint: ${{ needs.native-build-fingerprint.outputs.fingerprint }}
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
@@ -1074,10 +1110,68 @@ jobs:
       changed_files: ${{ needs.get_requirements.outputs.changed_files }}
       selected_tags: >-
         ${{
-          (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
+          (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
           '["ALL"]'
         }}
       runner_provider: ${{ inputs.runner_provider }}
+    secrets: inherit
+
+  appium-smoke-gate:
+    name: 'Appium Smoke Gate'
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
+    needs: [smart-e2e-selection]
+    outputs:
+      enabled: ${{ steps.gate.outputs.enabled }}
+    steps:
+      - name: Checkout (Namespace)
+        uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
+      - name: Checkout
+        uses: actions/checkout@v6
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        with:
+          sparse-checkout: |
+            scripts/e2e/appium-smoke-tags.mjs
+
+      - name: Evaluate whether Appium smoke should run
+        id: gate
+        env:
+          SELECTED_TAGS: >-
+            ${{
+              (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 &&
+               needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
+              '["ALL"]'
+            }}
+        run: |
+          enabled=$(node scripts/e2e/appium-smoke-tags.mjs "$SELECTED_TAGS")
+          echo "enabled=${enabled}" >> "$GITHUB_OUTPUT"
+
+  # Android Appium smoke (PR CI). iOS: run-appium-smoke-tests-ios-scheduled.yml.
+  appium-smoke-tests-android:
+    name: 'Appium Smoke Tests (Android)'
+    if: >-
+      ${{
+        !cancelled() &&
+        needs.appium-smoke-gate.outputs.enabled == 'true' &&
+        needs.build-android-apks.result == 'success'
+      }}
+    permissions:
+      contents: read
+      checks: write
+      id-token: write
+    needs: [build-android-apks, smart-e2e-selection, appium-smoke-gate]
+    uses: ./.github/workflows/run-appium-smoke-tests-android.yml
+    with:
+      build_type: 'main'
+      metamask_environment: 'e2e'
+      # Appium Android on Cirrus/GitHub-hosted runners until Namespace parity is ready.
+      runner_provider: current
+      selected_tags: >-
+        ${{
+          (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 &&
+           needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
+          '["ALL"]'
+        }}
     secrets: inherit
 
   # Fixture validation — ensures committed E2E fixtures match the live app state schema
@@ -1237,8 +1331,6 @@ jobs:
           if [[ "$LABEL" == "skip-sonar-cloud" ]]; then
             echo "skip-sonar-cloud label found. Skipping SonarCloud Quality Gate check."
           else
-            sleep 30
-
             PROJECT_KEY="metamask-mobile"
             PR_NUMBER="${{ github.event.pull_request.number }}"
             SONAR_TOKEN="${{ secrets.SONAR_TOKEN }}"
@@ -1248,22 +1340,72 @@ jobs:
               exit 1
             fi
 
-            RESPONSE=$(curl -s -u "$SONAR_TOKEN:" \
-              "https://sonarcloud.io/api/qualitygates/project_status?projectKey=$PROJECT_KEY&pullRequest=$PR_NUMBER")
-            echo "SonarCloud API Response: $RESPONSE"
+            # Poll until SonarCloud has finished ingesting the analysis (status OK or ERROR),
+            # retrying on NONE/empty which means ingestion is still in progress.
+            # Retries up to 12 times, 15s apart (~2m45s total), then fails the check on timeout.
+            MAX_ATTEMPTS=12
+            SLEEP_INTERVAL=15
+            for i in $(seq 1 $MAX_ATTEMPTS); do
+              RESPONSE=$(curl -s -u "$SONAR_TOKEN:" \
+                "https://sonarcloud.io/api/qualitygates/project_status?projectKey=$PROJECT_KEY&pullRequest=$PR_NUMBER")
+              echo "SonarCloud API Response (attempt $i/$MAX_ATTEMPTS): $RESPONSE"
+              STATUS=$(echo "$RESPONSE" | jq -r '.projectStatus.status')
 
-            STATUS=$(echo "$RESPONSE" | jq -r '.projectStatus.status')
+              if [[ "$STATUS" == "OK" ]]; then
+                echo "Quality Gate passed."
+                exit 0
+              elif [[ "$STATUS" == "ERROR" ]]; then
+                echo "Quality Gate failed."
+                exit 1
+              fi
 
-            if [[ "$STATUS" == "ERROR" ]]; then
-              echo "Quality Gate failed."
-              exit 1
-            elif [[ "$STATUS" == "OK" ]]; then
-              echo "Quality Gate passed."
-            else
-              echo "Could not determine Quality Gate status."
-              exit 1
-            fi
+              echo "Quality Gate status not yet settled (got: '$STATUS'). Retrying in ${SLEEP_INTERVAL}s..."
+              if [[ $i -lt $MAX_ATTEMPTS ]]; then
+                sleep "$SLEEP_INTERVAL"
+              fi
+            done
+
+            echo "Could not determine Quality Gate status after $MAX_ATTEMPTS attempts."
+            exit 1
           fi
+
+  # TEMP: delete the ci-js-deps artifact once all consumers have finished so it
+  # does not sit in GitHub artifact storage for the full retention-days: 1
+  # window. Every push re-creates this artifact from scratch, so there is never
+  # a reason to keep it after the run's consumers are done.
+  # Remove this job together with the upload/download steps once Namespace
+  # becomes the default runner.
+  cleanup-ci-js-deps:
+    name: Delete CI JS deps artifact
+    runs-on: ubuntu-latest
+    if: ${{ always() && inputs.runner_provider != 'namespace' }}
+    needs:
+      - unit-tests
+      - component-view-tests
+      - merge-unit-and-component-view-tests
+    permissions:
+      actions: write
+    steps:
+      - name: Delete CI JS deps artifact
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.runId,
+            });
+            const target = artifacts.data.artifacts.find(a => a.name === 'ci-js-deps');
+            if (target) {
+              await github.rest.actions.deleteArtifact({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                artifact_id: target.id,
+              });
+              core.info(`Deleted artifact ci-js-deps (id=${target.id})`);
+            } else {
+              core.info('Artifact ci-js-deps not found (already deleted or never created)');
+            }
 
   check-all-jobs-pass:
     name: Check all jobs pass

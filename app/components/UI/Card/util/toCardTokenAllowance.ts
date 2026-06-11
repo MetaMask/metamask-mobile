@@ -7,7 +7,11 @@ const STATUS_TO_FUNDING_STATUS: Record<string, FundingStatus> = {
   inactive: FundingStatus.NotEnabled,
 };
 
-export function toCardFundingToken(asset: CardFundingAsset): CardFundingToken {
+export function toCardFundingToken(
+  asset: CardFundingAsset,
+  isMoneyAccountEntry: boolean = false,
+  displaySymbol?: string,
+): CardFundingToken {
   return {
     address: asset.address,
     decimals: asset.decimals,
@@ -24,5 +28,7 @@ export function toCardFundingToken(asset: CardFundingAsset): CardFundingToken {
       asset.priority >= Number.MAX_SAFE_INTEGER ? undefined : asset.priority,
     stagingTokenAddress: asset.stagingTokenAddress ?? null,
     delegationContract: asset.delegationContract ?? null,
+    isMoneyAccountEntry,
+    displaySymbol,
   };
 }

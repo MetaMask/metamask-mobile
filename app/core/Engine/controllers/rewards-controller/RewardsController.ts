@@ -10,7 +10,7 @@ import {
   type SeasonStatusState,
   type SeasonTierState,
   type SeasonTierDto,
-  type SubscriptionSeasonReferralDetailState,
+  type SubscriptionReferralDetailState,
   type GeoRewardsMetadata,
   type SubscriptionDto,
   type PaginatedPointsEventsDto,
@@ -33,6 +33,11 @@ import {
   type PerpsTradingCampaignVolumeDto,
   type PaginatedOndoGmActivityDto,
   type PerpsTradingCampaignParticipantOutcomeDto,
+  type PredictThePitchLeaderboardDto,
+  type PredictThePitchLeaderboardPositionDto,
+  type PredictThePitchPositionsDto,
+  type PredictThePitchCampaignParticipantOutcomeDto,
+  type PredictThePitchPrizePoolDto,
   type OndoGmActivityState,
   type PointsEstimateHistoryEntry,
   ClaimRewardDto,
@@ -53,7 +58,6 @@ import {
   type VipDashboardState,
   type VipFeesResponseDto,
   type VipPerpsFeesState,
-  BASE32_REGEX,
   CampaignType,
 } from './types';
 import {
@@ -172,6 +176,13 @@ const PERPS_TRADING_CAMPAIGN_VOLUME_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 min
 
 // Perps Trading participant outcome cache threshold
 const PERPS_TRADING_PARTICIPANT_OUTCOME_CACHE_THRESHOLD_MS = 1000 * 60 * 10; // 10 minutes
+
+// Predict The Pitch cache thresholds
+const PREDICT_THE_PITCH_LEADERBOARD_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
+const PREDICT_THE_PITCH_LEADERBOARD_POSITION_CACHE_THRESHOLD_MS = 0;
+const PREDICT_THE_PITCH_POSITIONS_CACHE_THRESHOLD_MS = 0;
+const PREDICT_THE_PITCH_PARTICIPANT_OUTCOME_CACHE_THRESHOLD_MS = 1000 * 60 * 10; // 10 minutes
+const PREDICT_THE_PITCH_PRIZE_POOL_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
 
 // Client version requirements cache threshold
 const CLIENT_VERSION_REQUIREMENTS_CACHE_THRESHOLD_MS = 1000 * 60 * 30; // 30 minutes
@@ -301,6 +312,30 @@ const metadata: StateMetadata<RewardsControllerState> = {
     usedInUi: true,
   },
   perpsTradingCampaignVolume: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
+  predictThePitchLeaderboard: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
+  predictThePitchLeaderboardPositions: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
+  predictThePitchPositions: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
+  predictThePitchPrizePool: {
     includeInStateLogs: true,
     persist: true,
     includeInDebugSnapshot: false,
@@ -491,7 +526,13 @@ const MESSENGER_EXPOSED_METHODS = [
   'getPerpsTradingCampaignVolume',
   'getOptInStatus',
   'getPerpsTradingCampaignParticipantOutcome',
+  'getPredictThePitchLeaderboard',
+  'getPredictThePitchLeaderboardPosition',
+  'getPredictThePitchPositions',
+  'getPredictThePitchParticipantOutcome',
+  'getPredictThePitchPrizePool',
   'getPerpsDiscountForAccount',
+  'getVipTierForAccount',
   'getPointsEvents',
   'getPointsEventsIfChanged',
   'getPointsEventsLastUpdated',
@@ -554,6 +595,13 @@ export class RewardsController extends BaseController<
     string,
     {
       payload: PerpsTradingCampaignParticipantOutcomeDto | null;
+      lastFetched: number;
+    }
+  > = new Map();
+  #predictThePitchParticipantOutcomeCache: Map<
+    string,
+    {
+      payload: PredictThePitchCampaignParticipantOutcomeDto | null;
       lastFetched: number;
     }
   > = new Map();
@@ -749,6 +797,9 @@ export class RewardsController extends BaseController<
    */
   resetState(): void {
     const { rewardsEnvUrl } = this.state;
+    this.#participantOutcomeCache.clear();
+    this.#perpsTradingParticipantOutcomeCache.clear();
+    this.#predictThePitchParticipantOutcomeCache.clear();
     this.update(() => ({
       ...getRewardsControllerDefaultState(),
       rewardsEnvUrl,
@@ -1704,6 +1755,65 @@ export class RewardsController extends BaseController<
     }
   }
 
+  async #getVipFeesForSubscriptionId(
+    subscriptionId: string,
+  ): Promise<VipFeesResponseDto | 0 | null> {
+    // Deduplicate concurrent fetches: if there's already an in-flight
+    // request for this subscriptionId, await it instead of firing another.
+    let inFlight = this.#vipFeesFetchInFlight.get(subscriptionId);
+    if (!inFlight) {
+      inFlight = this.#withAuthRetry(
+        () =>
+          this.messenger.call('RewardsDataService:getVipFees', subscriptionId),
+        subscriptionId,
+      ).then((vipFeeResponse): VipFeesResponseDto | 0 => {
+        // Tier-0 response: backend says no VIP fees — return sentinel 0
+        // without caching so the next call re-checks.
+        if (!vipFeeResponse?.fees || vipFeeResponse.vipTier <= 0) {
+          return 0;
+        }
+        this.update((state) => {
+          // Promote the subscription's VIP flag so the rest of the app
+          // reflects the user's VIP status without waiting for a full refresh.
+          const subState = state.subscriptions[subscriptionId];
+          if (subState) {
+            subState.features = {
+              ...subState.features,
+              vip: { enabled: true },
+            };
+          }
+        });
+        return vipFeeResponse;
+      });
+      this.#vipFeesFetchInFlight.set(subscriptionId, inFlight);
+      const cleanup = () => this.#vipFeesFetchInFlight.delete(subscriptionId);
+      inFlight.then(cleanup, cleanup);
+    }
+
+    const result = await inFlight;
+    if (result === 0) return 0;
+    const feeResponse = result as VipFeesResponseDto;
+    if (!feeResponse.fees) return null;
+    return feeResponse;
+  }
+
+  async getVipTierForAccount(account: CaipAccountId): Promise<number | null> {
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
+    if (!rewardsEnabled) return null;
+
+    const subscriptionId = this.getActualSubscriptionId(account);
+    if (!subscriptionId) return null;
+
+    const subscription = this.state.subscriptions[subscriptionId];
+    if (!subscription) return null;
+
+    const vipFeesResponse =
+      await this.#getVipFeesForSubscriptionId(subscriptionId);
+
+    if (!vipFeesResponse) return null;
+    return vipFeesResponse.vipTier;
+  }
+
   /**
    * Get perps fee discount for an account.
    *
@@ -1754,8 +1864,7 @@ export class RewardsController extends BaseController<
   ): Promise<number | null> {
     if (!Number.isFinite(baseFeeBips) || baseFeeBips <= 0) return null;
 
-    const accountState = this.#getAccountState(account);
-    const subscriptionId = accountState?.subscriptionId;
+    const subscriptionId = this.getActualSubscriptionId(account);
     if (!subscriptionId) return null;
 
     const subscription = this.state.subscriptions[subscriptionId];
@@ -1769,57 +1878,26 @@ export class RewardsController extends BaseController<
     ) {
       builderFeeBipsRaw = cached.hyperliquidBuilderFeeBips;
     } else {
-      // Deduplicate concurrent fetches: if there's already an in-flight
-      // request for this subscriptionId, await it instead of firing another.
-      let inFlight = this.#vipFeesFetchInFlight.get(subscriptionId);
-      if (!inFlight) {
-        inFlight = this.#withAuthRetry(
-          () =>
-            this.messenger.call(
-              'RewardsDataService:getVipFees',
-              subscriptionId,
-            ),
-          subscriptionId,
-        ).then((vipFeeResponse): VipFeesResponseDto | 0 => {
-          // Tier-0 response: backend says no VIP fees — return sentinel 0
-          // without caching so the next call re-checks.
-          if (
-            !vipFeeResponse?.fees ||
-            vipFeeResponse.vipTier <= 0 ||
-            !vipFeeResponse.fees.hyperliquid?.builderFeeBips
-          ) {
-            return 0;
-          }
-          const rawBips = vipFeeResponse.fees.hyperliquid.builderFeeBips;
-          const next: VipPerpsFeesState = {
-            hyperliquidBuilderFeeBips: rawBips,
-            lastFetched: Date.now(),
-          };
-          this.update((state) => {
-            state.vipPerpsFees[subscriptionId] = next;
-            // Promote the subscription's VIP flag so the rest of the app
-            // reflects the user's VIP status without waiting for a full refresh.
-            const subState = state.subscriptions[subscriptionId];
-            if (subState) {
-              subState.features = {
-                ...subState.features,
-                vip: { enabled: true },
-              };
-            }
-          });
-          return vipFeeResponse;
-        });
-        this.#vipFeesFetchInFlight.set(subscriptionId, inFlight);
-        const cleanup = () => this.#vipFeesFetchInFlight.delete(subscriptionId);
-        inFlight.then(cleanup, cleanup);
-      }
-
       try {
-        const result = await inFlight;
-        if (result === 0) return 0;
-        const feeResponse = result as VipFeesResponseDto;
-        if (!feeResponse.fees) return null;
-        builderFeeBipsRaw = feeResponse.fees.hyperliquid.builderFeeBips;
+        const vipFeeResponse =
+          await this.#getVipFeesForSubscriptionId(subscriptionId);
+        if (vipFeeResponse === 0) {
+          return 0;
+        }
+        if (!vipFeeResponse?.fees) {
+          return null;
+        }
+        if (!vipFeeResponse.fees.hyperliquid?.builderFeeBips) {
+          return 0;
+        }
+        builderFeeBipsRaw = vipFeeResponse.fees.hyperliquid.builderFeeBips;
+        const next: VipPerpsFeesState = {
+          hyperliquidBuilderFeeBips: builderFeeBipsRaw,
+          lastFetched: Date.now(),
+        };
+        this.update((state) => {
+          state.vipPerpsFees[subscriptionId] = next;
+        });
       } catch (error) {
         Logger.log(
           'RewardsController: VIP fees fetch failed; returning no discount:',
@@ -2242,33 +2320,14 @@ export class RewardsController extends BaseController<
   }
 
   /**
-   * Check if there is an active season
-   * @returns Promise<boolean> - True if there is an active season, false otherwise
-   * An active season exists when getSeasonMetadata('current') returns a value
-   * and the current date is between the season's startDate and endDate
+   * Check if there is an active season.
+   * Temporarily hardcoded to false while no season is configured. Callers
+   * gate season-scoped flows (points estimates, rewards rows, dashboard
+   * fetches) off this; the perps VIP fee discount is independent and
+   * unaffected.
    */
   async hasActiveSeason(): Promise<boolean> {
-    const rewardsEnabled = this.isRewardsFeatureEnabled();
-    if (!rewardsEnabled) {
-      return false;
-    }
-
-    try {
-      const seasonDto = await this.getSeasonMetadata('current');
-      if (!seasonDto) {
-        return false;
-      }
-      return (
-        new Date(seasonDto.endDate) >= new Date() &&
-        new Date(seasonDto.startDate) <= new Date()
-      );
-    } catch (error) {
-      Logger.log(
-        'RewardsController: Failed to check active season:',
-        error instanceof Error ? error.message : String(error),
-      );
-      return false;
-    }
+    return false;
   }
 
   /**
@@ -2493,23 +2552,17 @@ export class RewardsController extends BaseController<
   /**
    * Get referral details with caching
    * @param subscriptionId - The subscription ID for authentication
-   * @param seasonId - The season ID to get referral details for
-   * @returns Promise<SubscriptionSeasonReferralDetailsDto> - The referral details data
+   * @returns Promise<SubscriptionReferralDetailState | null> - The referral details data
    */
   async getReferralDetails(
     subscriptionId: string,
-    seasonId: string,
-  ): Promise<SubscriptionSeasonReferralDetailState | null> {
+  ): Promise<SubscriptionReferralDetailState | null> {
     const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) {
       return null;
     }
-    const compositeKey = this.#createSeasonSubscriptionCompositeKey(
-      seasonId,
-      subscriptionId,
-    );
-    const result = await wrapWithCache<SubscriptionSeasonReferralDetailState>({
-      key: compositeKey,
+    const result = await wrapWithCache<SubscriptionReferralDetailState>({
+      key: subscriptionId,
       ttl: REFERRAL_DETAILS_CACHE_THRESHOLD_MS,
       readCache: (key) => {
         const cached = this.state.subscriptionReferralDetails[key] || undefined;
@@ -2520,17 +2573,15 @@ export class RewardsController extends BaseController<
         this.#withAuthRetry(async () => {
           Logger.log(
             'RewardsController: Fetching fresh referral details data via API call for',
-            { subscriptionId, seasonId },
+            { subscriptionId },
           );
           const referralDetails = await this.messenger.call(
             'RewardsDataService:getReferralDetails',
-            seasonId,
             subscriptionId,
           );
           return {
             referralCode: referralDetails.referralCode,
             totalReferees: referralDetails.totalReferees,
-            referralPoints: referralDetails.referralPoints,
             referredByCode: referralDetails.referredByCode,
             lastFetched: Date.now(),
           };
@@ -2927,14 +2978,6 @@ export class RewardsController extends BaseController<
     }
 
     if (!code.trim()) {
-      return false;
-    }
-
-    if (code.length !== 6) {
-      return false;
-    }
-
-    if (!BASE32_REGEX.test(code)) {
       return false;
     }
 
@@ -4674,11 +4717,7 @@ export class RewardsController extends BaseController<
    */
   invalidateReferralDetailsCache(subscriptionId: string): void {
     this.update((state) => {
-      Object.keys(state.subscriptionReferralDetails).forEach((key) => {
-        if (key.includes(subscriptionId)) {
-          delete state.subscriptionReferralDetails[key];
-        }
-      });
+      delete state.subscriptionReferralDetails[subscriptionId];
     });
 
     Logger.log(
@@ -4726,6 +4765,7 @@ export class RewardsController extends BaseController<
         delete state.vipDashboard?.[subscriptionId];
         delete state.vipPerpsFees?.[subscriptionId];
         delete state.offDeviceSubscriptionAccounts?.[subscriptionId];
+        delete state.subscriptionReferralDetails?.[subscriptionId];
       }
 
       if (shouldInvalidateSeasonCaches) {
@@ -4734,7 +4774,6 @@ export class RewardsController extends BaseController<
           state.unlockedRewards,
           state.activeBoosts,
           state.pointsEvents,
-          state.subscriptionReferralDetails,
         ].forEach((cache) =>
           deleteMatchingCacheEntries(cache, seasonCacheMatches),
         );
@@ -4747,6 +4786,8 @@ export class RewardsController extends BaseController<
           state.ondoCampaignPortfolio,
           state.ondoCampaignActivity,
           state.perpsTradingCampaignLeaderboardPositions,
+          state.predictThePitchLeaderboardPositions,
+          state.predictThePitchPositions,
         ].forEach((cache) =>
           deleteMatchingCacheEntries(cache, campaignCacheMatches),
         );
@@ -4762,12 +4803,285 @@ export class RewardsController extends BaseController<
         this.#perpsTradingParticipantOutcomeCache,
         campaignCacheMatches,
       );
+      deleteMatchingMapEntries(
+        this.#predictThePitchParticipantOutcomeCache,
+        campaignCacheMatches,
+      );
     }
 
     Logger.log('RewardsController: Invalidated cache for subscription', {
       subscriptionId,
       seasonId: seasonId ?? 'all seasons',
       campaignId: campaignId ?? 'all campaigns',
+    });
+  }
+
+  async getPredictThePitchLeaderboard(
+    campaignId: string,
+  ): Promise<PredictThePitchLeaderboardDto> {
+    if (!this.isRewardsFeatureEnabled()) {
+      return {
+        campaignId,
+        computedAt: '',
+        entries: [],
+        totalParticipants: 0,
+      };
+    }
+
+    return await wrapWithCache<PredictThePitchLeaderboardDto>({
+      key: campaignId,
+      ttl: PREDICT_THE_PITCH_LEADERBOARD_CACHE_THRESHOLD_MS,
+      readCache: (k) => {
+        const cached = this.state.predictThePitchLeaderboard[k];
+        if (!cached) return undefined;
+        return {
+          payload: {
+            campaignId: cached.campaignId,
+            computedAt: cached.computedAt,
+            entries: cached.entries,
+            totalParticipants: cached.totalParticipants,
+          },
+          lastFetched: cached.lastFetched,
+        };
+      },
+      fetchFresh: async () => {
+        Logger.log(
+          'RewardsController: Fetching fresh Predict The Pitch leaderboard via API call',
+        );
+        return (await this.messenger.call(
+          'RewardsDataService:getPredictThePitchLeaderboard',
+          campaignId,
+        )) as PredictThePitchLeaderboardDto;
+      },
+      writeCache: (k, payload) => {
+        this.update((state) => {
+          state.predictThePitchLeaderboard[k] = {
+            ...payload,
+            lastFetched: Date.now(),
+          };
+        });
+      },
+    });
+  }
+
+  async getPredictThePitchLeaderboardPosition(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<PredictThePitchLeaderboardPositionDto | null> {
+    if (!this.isRewardsFeatureEnabled()) {
+      return null;
+    }
+
+    const key = this.#createSubscriptionCampaignCompositeKey(
+      subscriptionId,
+      campaignId,
+    );
+    return await wrapWithCache<PredictThePitchLeaderboardPositionDto | null>({
+      key,
+      ttl: PREDICT_THE_PITCH_LEADERBOARD_POSITION_CACHE_THRESHOLD_MS,
+      readCache: (k) => {
+        const cached = this.state.predictThePitchLeaderboardPositions[k];
+        if (!cached) return undefined;
+        if ('notFound' in cached) {
+          return { payload: null, lastFetched: cached.lastFetched };
+        }
+        return {
+          payload: {
+            rank: cached.rank,
+            totalParticipants: cached.totalParticipants,
+            roi: cached.roi,
+            pnl: cached.pnl,
+            volume: cached.volume,
+            eligible: cached.eligible,
+            neighbors: cached.neighbors,
+            computedAt: cached.computedAt,
+            marketsTraded: cached.marketsTraded,
+            minimumMarketsTraded: cached.minimumMarketsTraded,
+          },
+          lastFetched: cached.lastFetched,
+        };
+      },
+      fetchFresh: async () =>
+        this.#withAuthRetry(async () => {
+          Logger.log(
+            'RewardsController: Fetching fresh Predict The Pitch leaderboard position via API call',
+          );
+          return (await this.messenger.call(
+            'RewardsDataService:getPredictThePitchLeaderboardPosition',
+            campaignId,
+            subscriptionId,
+          )) as PredictThePitchLeaderboardPositionDto | null;
+        }, subscriptionId),
+      writeCache: (k, payload) => {
+        if (payload === null) {
+          this.update((state) => {
+            state.predictThePitchLeaderboardPositions[k] = {
+              notFound: true,
+              lastFetched: Date.now(),
+            };
+          });
+          return;
+        }
+        this.update((state) => {
+          state.predictThePitchLeaderboardPositions[k] = {
+            ...payload,
+            lastFetched: Date.now(),
+          };
+        });
+      },
+    });
+  }
+
+  async getPredictThePitchPositions(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<PredictThePitchPositionsDto | null> {
+    if (!this.isRewardsFeatureEnabled()) {
+      return null;
+    }
+
+    const key = this.#createSubscriptionCampaignCompositeKey(
+      subscriptionId,
+      campaignId,
+    );
+    return await wrapWithCache<PredictThePitchPositionsDto>({
+      key,
+      ttl: PREDICT_THE_PITCH_POSITIONS_CACHE_THRESHOLD_MS,
+      readCache: (k) => {
+        const cached = this.state.predictThePitchPositions[k];
+        if (!cached) return undefined;
+
+        return {
+          payload: {
+            openPositions: cached.openPositions,
+            resolvedPositions: cached.resolvedPositions,
+            computedAt: cached.computedAt,
+          },
+          lastFetched: cached.lastFetched,
+        };
+      },
+      fetchFresh: async () =>
+        this.#withAuthRetry(async () => {
+          Logger.log(
+            'RewardsController: Fetching fresh Predict The Pitch positions via API call',
+          );
+          return (await this.messenger.call(
+            'RewardsDataService:getPredictThePitchPositions',
+            campaignId,
+            subscriptionId,
+          )) as PredictThePitchPositionsDto;
+        }, subscriptionId),
+      writeCache: (k, payload) => {
+        this.update((state) => {
+          state.predictThePitchPositions[k] = {
+            openPositions: payload.openPositions,
+            resolvedPositions: payload.resolvedPositions,
+            computedAt: payload.computedAt,
+            lastFetched: Date.now(),
+          };
+        });
+      },
+    });
+  }
+
+  async getPredictThePitchParticipantOutcome(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<PredictThePitchCampaignParticipantOutcomeDto | null> {
+    if (!this.isRewardsFeatureEnabled()) {
+      return null;
+    }
+
+    const key = this.#createSubscriptionCampaignCompositeKey(
+      subscriptionId,
+      campaignId,
+    );
+    try {
+      return await wrapWithCache<PredictThePitchCampaignParticipantOutcomeDto | null>(
+        {
+          key,
+          ttl: PREDICT_THE_PITCH_PARTICIPANT_OUTCOME_CACHE_THRESHOLD_MS,
+          readCache: (k) =>
+            this.#predictThePitchParticipantOutcomeCache.get(k) ?? undefined,
+          fetchFresh: async () =>
+            this.#withAuthRetry(async () => {
+              Logger.log(
+                'RewardsController: Fetching Predict The Pitch participant outcome',
+              );
+              return this.messenger.call(
+                'RewardsDataService:getPredictThePitchParticipantOutcome',
+                campaignId,
+                subscriptionId,
+              );
+            }, subscriptionId),
+          writeCache: (k, payload) => {
+            if (payload !== null) {
+              this.#predictThePitchParticipantOutcomeCache.set(k, {
+                payload,
+                lastFetched: Date.now(),
+              });
+            }
+          },
+        },
+      );
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        'RewardsController: Failed to fetch Predict The Pitch participant outcome',
+      );
+      return null;
+    }
+  }
+
+  async getPredictThePitchPrizePool(
+    campaignId: string,
+  ): Promise<PredictThePitchPrizePoolDto> {
+    if (!this.isRewardsFeatureEnabled()) {
+      return {
+        totalVolumeUsd: 0,
+        unlockedPoolUsd: 0,
+        thresholdsUsd: [],
+        poolScheduleUsd: [],
+        breakdown: [],
+        computedAt: null,
+      };
+    }
+
+    return await wrapWithCache<PredictThePitchPrizePoolDto>({
+      key: campaignId,
+      ttl: PREDICT_THE_PITCH_PRIZE_POOL_CACHE_THRESHOLD_MS,
+      readCache: (k) => {
+        const cached = this.state.predictThePitchPrizePool[k];
+        if (!cached) return undefined;
+        return {
+          payload: {
+            totalVolumeUsd: cached.totalVolumeUsd,
+            unlockedPoolUsd: cached.unlockedPoolUsd,
+            thresholdsUsd: cached.thresholdsUsd,
+            poolScheduleUsd: cached.poolScheduleUsd,
+            breakdown: cached.breakdown,
+            computedAt: cached.computedAt,
+          },
+          lastFetched: cached.lastFetched,
+        };
+      },
+      fetchFresh: async () => {
+        Logger.log(
+          'RewardsController: Fetching fresh Predict The Pitch prize pool via API call',
+        );
+        return (await this.messenger.call(
+          'RewardsDataService:getPredictThePitchPrizePool',
+          campaignId,
+        )) as PredictThePitchPrizePoolDto;
+      },
+      writeCache: (k, payload) => {
+        this.update((state) => {
+          state.predictThePitchPrizePool[k] = {
+            ...payload,
+            lastFetched: Date.now(),
+          };
+        });
+      },
     });
   }
 
@@ -4782,7 +5096,13 @@ export class RewardsController extends BaseController<
     campaignId: string,
   ): Promise<PerpsTradingCampaignLeaderboardDto> {
     if (!this.isRewardsFeatureEnabled()) {
-      return { campaignId, computedAt: '', entries: [], totalParticipants: 0 };
+      return {
+        campaignId,
+        computedAt: '',
+        entries: [],
+        totalParticipants: 0,
+        minVolumeForEligibility: 0,
+      };
     }
 
     const result = await wrapWithCache<PerpsTradingCampaignLeaderboardDto>({
@@ -4797,6 +5117,7 @@ export class RewardsController extends BaseController<
             computedAt: cached.computedAt,
             entries: cached.entries,
             totalParticipants: cached.totalParticipants,
+            minVolumeForEligibility: cached.minVolumeForEligibility,
           },
           lastFetched: cached.lastFetched,
         };
@@ -4817,6 +5138,7 @@ export class RewardsController extends BaseController<
             computedAt: payload.computedAt,
             entries: payload.entries,
             totalParticipants: payload.totalParticipants,
+            minVolumeForEligibility: payload.minVolumeForEligibility,
             lastFetched: Date.now(),
           };
         });
@@ -4861,9 +5183,11 @@ export class RewardsController extends BaseController<
           return {
             payload: {
               rank: cached.rank,
+              totalParticipants: cached.totalParticipants,
               pnl: cached.pnl,
-              notionalVolume: cached.notionalVolume,
-              qualified: cached.qualified,
+              volume: cached.volume,
+              eligible: cached.eligible,
+              minVolumeForEligibility: cached.minVolumeForEligibility,
               neighbors: cached.neighbors,
               computedAt: cached.computedAt,
             },
@@ -4893,9 +5217,11 @@ export class RewardsController extends BaseController<
             this.update((state) => {
               state.perpsTradingCampaignLeaderboardPositions[k] = {
                 rank: payload.rank,
+                totalParticipants: payload.totalParticipants,
                 pnl: payload.pnl,
-                notionalVolume: payload.notionalVolume,
-                qualified: payload.qualified,
+                volume: payload.volume,
+                eligible: payload.eligible,
+                minVolumeForEligibility: payload.minVolumeForEligibility,
                 neighbors: payload.neighbors,
                 computedAt: payload.computedAt,
                 lastFetched: Date.now(),

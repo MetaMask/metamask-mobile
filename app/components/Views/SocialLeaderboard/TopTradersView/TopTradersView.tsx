@@ -1,3 +1,10 @@
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   Box,
   BoxAlignItems,
@@ -11,8 +18,6 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   FlatList,
   Pressable,
@@ -22,8 +27,19 @@ import {
   StyleSheet,
   useWindowDimensions,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  useNavigation,
+  useRoute,
+  type RouteProp,
+} from '@react-navigation/native';
+import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
+import {
+  SocialLeaderboardEventProperties,
+  useSocialLeaderboardAnalytics,
+} from '../analytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import {
@@ -34,16 +50,26 @@ import {
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import { fontStyles } from '../../../../styles/common';
 import Logger from '../../../../util/Logger';
+import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
 import { useTheme } from '../../../../util/theme';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { useNotificationStoragePreferences } from '../../Settings/NotificationsSettings/hooks/useNotificationStoragePreferences';
 import {
   TraderRow,
   TraderRowSkeleton,
+  // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 } from '../../Homepage/Sections/TopTraders/components';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { TRADER_ROW_HEIGHT } from '../../Homepage/Sections/TopTraders/components/TraderRow';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useTopTraders } from '../../Homepage/Sections/TopTraders/hooks';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { SPOT_CHAINS } from '../../Homepage/Sections/TopTraders/constants';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
 
 type ChainFilter = 'all' | 'base' | 'solana' | 'ethereum';
+
+const LEADERBOARD_LIMIT = 50;
 
 const getChainFilters = (): { key: ChainFilter; label: string }[] => [
   {
@@ -124,13 +150,23 @@ const ChainPill: React.FC<ChainPillProps> = ({
 
 const TopTradersView = () => {
   const navigation = useNavigation();
+  const route = useRoute<RouteProp<RootStackParamList, 'TopTradersView'>>();
   const tw = useTailwind();
   const { colors } = useTheme();
   const { height: windowHeight } = useWindowDimensions();
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
+  const {
+    hasNotificationPreferences,
+    isLoading: isLoadingNotificationPreferences,
+  } = useNotificationStoragePreferences();
+  const { track } = useSocialLeaderboardAnalytics();
+  const source = route.params?.source ?? 'nav_tab';
 
   const [selectedChain, setSelectedChain] = useState<ChainFilter>('all');
   const [refreshing, setRefreshing] = useState(false);
+  // Tracks whether we've already emitted the screen-viewed event this mount.
+  // Avoids re-firing if the user changes filters or refreshes.
+  const hasFiredScreenViewedRef = useRef(false);
 
   // Render enough skeleton rows to cover the visible list area. Add a couple of
   // extras so users can see the shimmer continue past the fold while scrolling.
@@ -139,10 +175,39 @@ const TopTradersView = () => {
     return Array.from({ length: count }, (_, i) => `top-trader-skeleton-${i}`);
   }, [windowHeight]);
 
-  const { traders, isLoading, refresh, toggleFollow } = useTopTraders({
-    limit: 250,
+  const allResult = useTopTraders({
+    limit: LEADERBOARD_LIMIT,
+    chains: SPOT_CHAINS,
     enabled: isEnabled,
   });
+  const baseResult = useTopTraders({
+    limit: LEADERBOARD_LIMIT,
+    chains: ['base'],
+    enabled: isEnabled,
+  });
+  const solanaResult = useTopTraders({
+    limit: LEADERBOARD_LIMIT,
+    chains: ['solana'],
+    enabled: isEnabled,
+  });
+  const ethereumResult = useTopTraders({
+    limit: LEADERBOARD_LIMIT,
+    chains: ['ethereum'],
+    enabled: isEnabled,
+  });
+
+  const resultsByChain = useMemo(
+    () => ({
+      all: allResult,
+      base: baseResult,
+      solana: solanaResult,
+      ethereum: ethereumResult,
+    }),
+    [allResult, baseResult, solanaResult, ethereumResult],
+  );
+
+  const activeResult = resultsByChain[selectedChain];
+  const { traders, isLoading, toggleFollow } = activeResult;
 
   useEffect(() => {
     if (!isEnabled) {
@@ -150,27 +215,72 @@ const TopTradersView = () => {
     }
   }, [isEnabled, navigation]);
 
-  const filteredTraders = useMemo(() => {
-    const filtered =
-      selectedChain === 'all'
-        ? traders
-        : traders.filter((t) => (t.pnlPerChain[selectedChain] ?? 0) !== 0);
+  useEffect(() => {
+    if (!isEnabled || hasFiredScreenViewedRef.current) return;
+    hasFiredScreenViewedRef.current = true;
+    track(MetaMetricsEvents.SOCIAL_TRADER_LEADERBOARD_SCREEN_VIEWED, {
+      [SocialLeaderboardEventProperties.SOURCE]: source,
+      [SocialLeaderboardEventProperties.CHAIN_FILTER]: selectedChain,
+    });
+    // selectedChain is intentionally captured at mount-time so subsequent
+    // pill changes only fire the chain-filter-changed event.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEnabled, source, track]);
 
-    // Re-number the displayed rank to reflect the trader's position within the
-    // filtered slice, but keep `overallRank` pointing at the unfiltered rank
-    // so podium decorations only apply to true top-3 traders.
-    return filtered
-      .slice(0, 50)
-      .map((t, i) => ({ ...t, rank: i + 1, overallRank: t.overallRank }));
-  }, [traders, selectedChain]);
+  const handleChainFilterPress = useCallback(
+    (next: ChainFilter) => {
+      if (selectedChain === next) return;
+      track(MetaMetricsEvents.SOCIAL_TRADER_LEADERBOARD_CHAIN_FILTER_CHANGED, {
+        [SocialLeaderboardEventProperties.CHAIN_FILTER]: next,
+        [SocialLeaderboardEventProperties.PREVIOUS_CHAIN_FILTER]: selectedChain,
+      });
+      setSelectedChain(next);
+    },
+    [selectedChain, track],
+  );
+
+  const handleFollowPress = useCallback(
+    (traderId: string) => {
+      const trader = traders.find((t) => t.id === traderId);
+      toggleFollow(traderId, {
+        source: 'leaderboard',
+        traderAddress: trader?.address ?? '',
+        traderUsername: trader?.username,
+        traderRank: trader?.rank,
+      });
+    },
+    [traders, toggleFollow],
+  );
 
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
   const handleNotificationPreferencesPress = useCallback(() => {
-    navigation.navigate(Routes.SOCIAL_LEADERBOARD.NOTIFICATION_PREFERENCES);
-  }, [navigation]);
+    if (isLoadingNotificationPreferences) {
+      return;
+    }
+
+    if (!hasNotificationPreferences) {
+      navigation.navigate(Routes.SETTINGS_VIEW, {
+        screen: Routes.SETTINGS.NOTIFICATIONS,
+      });
+      return;
+    }
+
+    navigation.navigate(Routes.SETTINGS_VIEW, {
+      screen: Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION,
+      params: {
+        type: 'socialAI',
+        title: strings('app_settings.notifications_opts.social_ai_title'),
+        description: strings('app_settings.notifications_opts.social_ai_desc'),
+      },
+    });
+  }, [
+    hasNotificationPreferences,
+    isLoadingNotificationPreferences,
+    navigation,
+  ]);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -178,23 +288,49 @@ const TopTradersView = () => {
       const minDuration = new Promise<void>((resolve) =>
         setTimeout(resolve, 1000),
       );
-      await Promise.all([refresh(), minDuration]);
+      await Promise.all([
+        allResult.refresh(),
+        baseResult.refresh(),
+        solanaResult.refresh(),
+        ethereumResult.refresh(),
+        minDuration,
+      ]);
     } catch (err) {
-      Logger.error(err as Error, 'TopTradersView: pull-to-refresh failed');
+      Logger.error(
+        err as Error,
+        buildSocialLoggerErrorOptions({
+          surface: 'top_traders',
+          operation: 'pull_to_refresh',
+          extraMessage: 'Top traders pull-to-refresh failed',
+          source: 'TopTradersView',
+          error: err,
+        }),
+      );
     } finally {
       setRefreshing(false);
     }
-  }, [refresh]);
+  }, [allResult, baseResult, solanaResult, ethereumResult]);
 
   const handleTraderPress = useCallback(
-    (traderId: string, traderName: string, rank: number) => {
+    (traderId: string, traderName: string) => {
+      const trader = traders.find((t) => t.id === traderId);
+      if (trader) {
+        track(MetaMetricsEvents.SOCIAL_TRADER_LEADERBOARD_TRADER_CLICKED, {
+          [SocialLeaderboardEventProperties.TRADER_ADDRESS]: trader.address,
+          [SocialLeaderboardEventProperties.TRADER_USERNAME]: trader.username,
+          [SocialLeaderboardEventProperties.TRADER_RANK]: trader.rank,
+          [SocialLeaderboardEventProperties.CHAIN_FILTER]: selectedChain,
+        });
+      }
       navigation.navigate(Routes.SOCIAL_LEADERBOARD.PROFILE, {
         traderId,
         traderName,
-        rank,
+        traderAddress: trader?.address,
+        source: 'leaderboard',
+        traderRank: trader?.rank,
       });
     },
-    [navigation],
+    [navigation, traders, selectedChain, track],
   );
 
   return (
@@ -243,12 +379,12 @@ const TopTradersView = () => {
             filterKey={key}
             label={label}
             isSelected={selectedChain === key}
-            onPress={() => setSelectedChain(key)}
+            onPress={() => handleChainFilterPress(key)}
           />
         ))}
       </ScrollView>
 
-      {isLoading ? (
+      {isLoading && traders.length === 0 ? (
         <ScrollView
           // `flex-1` matches FlatList's default behavior so the list area sits
           // directly under the filters and skeletons render top-aligned.
@@ -270,12 +406,12 @@ const TopTradersView = () => {
         </ScrollView>
       ) : (
         <FlatList
-          data={filteredTraders}
+          data={traders}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <TraderRow
               trader={item}
-              onFollowPress={toggleFollow}
+              onFollowPress={handleFollowPress}
               onTraderPress={handleTraderPress}
             />
           )}

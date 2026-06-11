@@ -6,18 +6,31 @@ import MoneyOnboardingView, {
 import { RiveOnboardingStepperTestIds } from '../../../RiveOnboardingStepper/RiveOnboardingStepper.testIds';
 import { __clearLastMockedMethods } from '../../../../../__mocks__/rive-react-native';
 import Routes from '../../../../../constants/navigation/Routes';
+import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
+import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import {
+  COMPONENT_NAMES,
+  MONEY_ONBOARDING_STEP_ACTIONS,
+  SCREEN_NAMES,
+} from '../../constants/moneyEvents';
 
-const mockGoBack = jest.fn();
+const mockTrackOnboardingEvent = jest.fn();
+
+jest.mock('../../hooks/useMoneyAnalytics', () => ({
+  useMoneyAnalytics: jest.fn(),
+}));
+
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
+const mockUseSelector = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
+  useNavigation: () => ({ navigate: mockNavigate }),
 }));
 
 jest.mock('react-redux', () => ({
   useDispatch: () => mockDispatch,
-  useSelector: jest.fn().mockReturnValue(false),
+  useSelector: (selector: unknown) => mockUseSelector(selector),
 }));
 
 jest.mock('../../hooks/useMoneyAccountBalance', () => ({
@@ -44,6 +57,14 @@ describe('MoneyOnboardingView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     __clearLastMockedMethods();
+    // Stepper animation (Rive) enabled by default; every other selector is irrelevant here.
+    mockUseSelector.mockImplementation(
+      (selector: unknown) =>
+        selector === selectMoneyOnboardingStepperAnimationEnabled,
+    );
+    (useMoneyAnalytics as jest.Mock).mockReturnValue({
+      trackOnboardingEvent: mockTrackOnboardingEvent,
+    });
   });
 
   describe('Rendering', () => {
@@ -110,16 +131,48 @@ describe('MoneyOnboardingView', () => {
     it('renders the first step footer text', () => {
       const { getByText } = render(<MoneyOnboardingView />);
       expect(
-        getByText('APY is variable and may change at any time.'),
+        getByText('APY is variable and not guaranteed.'),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  describe('when the onboarding stepper flag is disabled', () => {
+    beforeEach(() => {
+      mockUseSelector.mockImplementation(() => false);
+    });
+
+    it('does not render the Rive animation', () => {
+      const { queryByTestId } = render(<MoneyOnboardingView />);
+      expect(
+        queryByTestId(RiveOnboardingStepperTestIds.RIVE_ANIMATION),
+      ).toBeNull();
+    });
+
+    it('still renders the onboarding content (container, title, footer button)', () => {
+      const { getByTestId, getByText } = render(<MoneyOnboardingView />);
+      expect(
+        getByTestId(RiveOnboardingStepperTestIds.CONTAINER),
+      ).toBeOnTheScreen();
+      expect(getByText('Money accounts are here')).toBeOnTheScreen();
+      expect(
+        getByTestId(RiveOnboardingStepperTestIds.FOOTER_BUTTON),
       ).toBeOnTheScreen();
     });
   });
 
   describe('Navigation', () => {
-    it('calls navigation.goBack when close button is pressed', () => {
+    it('dispatches setMoneyOnboardingSeen and navigates to Money home when close button is pressed', () => {
       const { getByTestId } = render(<MoneyOnboardingView />);
+
       fireEvent.press(getByTestId(RiveOnboardingStepperTestIds.CLOSE_BUTTON));
-      expect(mockGoBack).toHaveBeenCalledTimes(1);
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'SET_MONEY_ONBOARDING_SEEN' }),
+      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+        screen: Routes.MONEY.ROOT,
+        params: { screen: Routes.MONEY.HOME },
+      });
     });
 
     it('dispatches setMoneyOnboardingSeen and navigates to Money home on completion', () => {
@@ -162,6 +215,61 @@ describe('MoneyOnboardingView', () => {
       const { getByTestId } = render(<MoneyOnboardingView />);
       fireEvent.press(getByTestId(RiveOnboardingStepperTestIds.FOOTER_BUTTON));
       expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    describe('analytics', () => {
+      it('initialises useMoneyAnalytics with MONEY_ONBOARDING screen_name and RIVE_ONBOARDING_STEPPER component_name', () => {
+        render(<MoneyOnboardingView />);
+
+        expect(useMoneyAnalytics).toHaveBeenCalledWith({
+          screen_name: SCREEN_NAMES.MONEY_ONBOARDING,
+          component_name: COMPONENT_NAMES.RIVE_ONBOARDING_STEPPER,
+        });
+      });
+
+      it('calls trackOnboardingEvent with VIEWED action for step 1 on initial render', () => {
+        render(<MoneyOnboardingView />);
+
+        expect(mockTrackOnboardingEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            step: 1,
+            step_action: MONEY_ONBOARDING_STEP_ACTIONS.VIEWED,
+            total_steps: 5,
+          }),
+        );
+      });
+
+      it('calls trackOnboardingEvent with EXITED action for step 1 when close is pressed at step 0', () => {
+        const { getByTestId } = render(<MoneyOnboardingView />);
+
+        fireEvent.press(getByTestId(RiveOnboardingStepperTestIds.CLOSE_BUTTON));
+
+        expect(mockTrackOnboardingEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            step: 1,
+            step_action: MONEY_ONBOARDING_STEP_ACTIONS.EXITED,
+            redirect_target: SCREEN_NAMES.MONEY_HOME,
+            total_steps: 5,
+          }),
+        );
+      });
+
+      it('calls trackOnboardingEvent with VIEWED action for step 2 when footer advances to step 1', () => {
+        const { getByTestId } = render(<MoneyOnboardingView />);
+        jest.clearAllMocks();
+
+        fireEvent.press(
+          getByTestId(RiveOnboardingStepperTestIds.FOOTER_BUTTON),
+        );
+
+        expect(mockTrackOnboardingEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            step: 2,
+            step_action: MONEY_ONBOARDING_STEP_ACTIONS.VIEWED,
+            total_steps: 5,
+          }),
+        );
+      });
     });
   });
 });
