@@ -2,6 +2,7 @@
 import { randomUUID } from 'node:crypto';
 import { createLogger } from '../../../framework/logger';
 import type { MetricsOutput } from '../../PerformanceTracker';
+import type { ProfilingSummary } from '../../types';
 
 const logger = createLogger({ name: 'PerformanceSentryPublisher' });
 
@@ -22,6 +23,13 @@ const RESERVED_MEASUREMENT_KEYS = [
   'scenario_total_time_ms',
   'scenario_total_threshold_ms',
   'bs_session_creation_ms',
+  'profiling_slow_frames_pct',
+  'profiling_frozen_frames_pct',
+  'profiling_anrs',
+  'profiling_cpu_avg_pct',
+  'profiling_cpu_max_pct',
+  'profiling_memory_avg_mb',
+  'profiling_memory_max_mb',
 ] as const;
 
 interface PublishPerformanceScenarioOptions {
@@ -34,6 +42,7 @@ interface PublishPerformanceScenarioOptions {
   retry?: number;
   workerIndex?: number;
   videoRecordingUrl?: string | null;
+  profilingSummary?: ProfilingSummary | null;
 }
 
 interface ParsedSentryDsn {
@@ -56,7 +65,7 @@ interface TimerMeasurement {
 
 interface SentryMeasurement {
   value: number;
-  unit: 'millisecond';
+  unit: 'millisecond' | 'none' | 'percent' | 'megabyte';
 }
 
 interface MirroredScenarioAttributes {
@@ -297,6 +306,42 @@ export async function publishPerformanceScenarioToSentry(
     };
   }
 
+  if (options.profilingSummary?.uiRendering) {
+    const { slowFrames, frozenFrames, anrs } =
+      options.profilingSummary.uiRendering;
+    measurements.profiling_slow_frames_pct = {
+      value: slowFrames,
+      unit: 'percent',
+    };
+    measurements.profiling_frozen_frames_pct = {
+      value: frozenFrames,
+      unit: 'percent',
+    };
+    measurements.profiling_anrs = { value: anrs, unit: 'none' };
+  }
+
+  if (options.profilingSummary?.cpu) {
+    measurements.profiling_cpu_avg_pct = {
+      value: options.profilingSummary.cpu.avg,
+      unit: 'percent',
+    };
+    measurements.profiling_cpu_max_pct = {
+      value: options.profilingSummary.cpu.max,
+      unit: 'percent',
+    };
+  }
+
+  if (options.profilingSummary?.memory) {
+    measurements.profiling_memory_avg_mb = {
+      value: options.profilingSummary.memory.avg,
+      unit: 'megabyte',
+    };
+    measurements.profiling_memory_max_mb = {
+      value: options.profilingSummary.memory.max,
+      unit: 'megabyte',
+    };
+  }
+
   const provider = options.metrics.device.provider || 'unknown';
   const teamId = options.metrics.team?.teamId || 'unknown';
   const teamName = options.metrics.team?.teamName || 'unknown';
@@ -407,6 +452,7 @@ export async function publishPerformanceScenarioToSentry(
       total_validation: options.metrics.totalValidation,
       timer_steps: timerMeasurements,
       bs_session_creation_ms: options.metrics.sessionCreationDurationMs ?? null,
+      profiling_summary: options.profilingSummary ?? null,
       sentry_project_id: parsedDsn.projectId,
     },
   };
