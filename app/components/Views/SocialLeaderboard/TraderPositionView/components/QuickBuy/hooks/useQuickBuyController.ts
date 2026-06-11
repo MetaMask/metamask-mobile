@@ -312,7 +312,7 @@ export function useQuickBuyController(
 
   // Dest-token lookup key used to exclude the destination from the "Pay with"
   // options and from the default source-token selection — a source equal to
-  // the destination can never produce a quote (TSA-660).
+  // the destination can never produce a quote.
   // Reads from `positionTokenFromSetup` once available because
   // `useQuickBuySetup` normalises `address` to match what `sourceTokenOptions`
   // contains — bare hex for EVM (zero address for native, mint hex for
