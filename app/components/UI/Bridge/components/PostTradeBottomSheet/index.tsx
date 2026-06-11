@@ -44,6 +44,10 @@ import {
 import styleSheet from './PostTradeBottomSheet.styles';
 import { usePostTradeTxStatus } from './usePostTradeTxStatus';
 import { useBridgeQuoteRequest } from '../../hooks/useBridgeQuoteRequest';
+import {
+  hidePostTradeNotificationSurface,
+  showPostTradeNotificationSurface,
+} from '../../utils/postTradeNotifications';
 
 export const getTradeSubtitle = ({
   sourceAmount,
@@ -127,6 +131,14 @@ export const PostTradeBottomSheet = () => {
     transactionMetaId: params.transactionMetaId,
     transactionHash: params.transactionHash,
   });
+
+  useEffect(() => {
+    showPostTradeNotificationSurface();
+
+    return () => {
+      hidePostTradeNotificationSurface();
+    };
+  }, []);
 
   useEffect(() => {
     const isTerminalStatus =
