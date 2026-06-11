@@ -108,54 +108,66 @@ const WalletHeader = ({ onLayout }: WalletHeaderProps) => {
       testID={WalletViewSelectorsIDs.WALLET_HEADER_ROOT}
       onLayout={onLayout}
     >
-      <SelectButton
-        placeholder=""
-        value={displayName}
-        variant={SelectButtonVariant.Secondary}
-        onPress={() =>
-          navigation.navigate(...createAccountSelectorNavDetails({}))
-        }
-        testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
-        hitSlop={TOUCH_SLOP}
-        textProps={{
-          variant: TextVariant.BodyMd,
-          fontWeight: FontWeight.Medium,
-          ellipsizeMode: 'tail',
-        }}
-      />
+      <Box twClassName="min-w-0 flex-1 items-start">
+        <SelectButton
+          placeholder=""
+          value={displayName}
+          variant={SelectButtonVariant.Secondary}
+          onPress={() =>
+            navigation.navigate(...createAccountSelectorNavDetails({}))
+          }
+          testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
+          hitSlop={TOUCH_SLOP}
+          textProps={{
+            variant: TextVariant.BodyMd,
+            fontWeight: FontWeight.Medium,
+            ellipsizeMode: 'tail',
+            numberOfLines: 1,
+            testID: WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT,
+          }}
+        />
+      </Box>
 
-      {isMoneyAccountEnabled && (
-        <ButtonIcon
-          iconProps={{ color: IconColor.IconDefault }}
-          onPress={handleActivityPress}
-          iconName={IconName.Clock}
-          size={ButtonIconSize.Md}
-          testID={WalletViewSelectorsIDs.WALLET_ACTIVITY_BUTTON}
-          hitSlop={TOUCH_SLOP}
-          twClassName="ml-auto"
-        />
-      )}
-      <AddressCopy
-        testID={WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON}
-        hitSlop={TOUCH_SLOP}
-      />
-      <CardButton onPress={handleCardPress} touchAreaSlop={TOUCH_SLOP} />
-      <BadgeWrapper
-        position={BadgeWrapperPosition.TopRight}
-        positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}
-        badge={
-          hasBadge ? <BadgeStatus status={BadgeStatusStatus.Attention} /> : null
-        }
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        gap={2}
+        twClassName="ml-auto"
       >
-        <ButtonIcon
-          iconProps={{ color: IconColor.IconDefault }}
-          onPress={handleHamburgerPress}
-          iconName={IconName.Menu}
-          size={ButtonIconSize.Md}
-          testID={WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON}
+        {isMoneyAccountEnabled && (
+          <ButtonIcon
+            iconProps={{ color: IconColor.IconDefault }}
+            onPress={handleActivityPress}
+            iconName={IconName.Clock}
+            size={ButtonIconSize.Md}
+            testID={WalletViewSelectorsIDs.WALLET_ACTIVITY_BUTTON}
+            hitSlop={TOUCH_SLOP}
+          />
+        )}
+        <AddressCopy
+          testID={WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON}
           hitSlop={TOUCH_SLOP}
         />
-      </BadgeWrapper>
+        <CardButton onPress={handleCardPress} touchAreaSlop={TOUCH_SLOP} />
+        <BadgeWrapper
+          position={BadgeWrapperPosition.TopRight}
+          positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}
+          badge={
+            hasBadge ? (
+              <BadgeStatus status={BadgeStatusStatus.Attention} />
+            ) : null
+          }
+        >
+          <ButtonIcon
+            iconProps={{ color: IconColor.IconDefault }}
+            onPress={handleHamburgerPress}
+            iconName={IconName.Menu}
+            size={ButtonIconSize.Md}
+            testID={WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON}
+            hitSlop={TOUCH_SLOP}
+          />
+        </BadgeWrapper>
+      </Box>
     </Box>
   );
 };
