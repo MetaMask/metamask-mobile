@@ -451,6 +451,34 @@ describe('PerformanceSentryPublisher', () => {
     expect(payload.extra.profiling_summary).toBeNull();
   });
 
+  it('anchors transaction timestamps to testEndTimestamp when provided', async () => {
+    process.env.E2E_PERFORMANCE_SENTRY_DSN =
+      'https://publicKey@o123.ingest.sentry.io/4567';
+    fetchMock.mockResolvedValue({ ok: true, status: 200 } as Response);
+
+    const testEndTimestamp = 1700000000; // fixed Unix seconds
+    await publishPerformanceScenarioToSentry({
+      metrics: createMetrics({ total: 1.3 }),
+      testTitle: 'Import wallet flow',
+      projectName: 'browserstack-android',
+      testFilePath: 'tests/performance/onboarding/import-wallet.spec.js',
+      tags: [],
+      status: 'passed',
+      retry: 0,
+      workerIndex: 0,
+      testEndTimestamp,
+    });
+
+    const [, requestInit] = fetchMock.mock.calls[0] ?? [];
+    const body = requestInit?.body as string;
+    const [, , payloadLine] = body.split('\n');
+    const payload = JSON.parse(payloadLine);
+
+    expect(payload.timestamp).toBe(testEndTimestamp);
+    // startTimestamp = endTimestamp - totalDurationMs/1000 = 1700000000 - 1.3
+    expect(payload.start_timestamp).toBeCloseTo(testEndTimestamp - 1.3, 3);
+  });
+
   it('does not send when sample rate is invalid', async () => {
     process.env.E2E_PERFORMANCE_SENTRY_DSN =
       'https://publicKey@o123.ingest.sentry.io/4567';

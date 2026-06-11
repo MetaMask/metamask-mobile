@@ -559,10 +559,25 @@ class PerformanceReporter {
     metrics: MetricsEntry[],
   ): Promise<void> {
     for (const metric of metrics) {
-      if (!metric.profilingSummary) continue;
+      // Skip if no profiling data or if enrichment produced an error object
+      // (BrowserStackEnricher sets profilingSummary to { error: '...' } on failure)
+      if (!metric.profilingSummary || metric.profilingSummary.error) continue;
+
+      // Derive status that matches what the fixture sends: timedOut is a
+      // distinct Sentry status and must not be collapsed to 'failed'.
+      const testStatus = !metric.testFailed
+        ? 'passed'
+        : metric.failureReason === 'timedOut'
+          ? 'timedOut'
+          : 'failed';
+
+      // Anchor Sentry transaction to the actual test end time, not report time.
+      const testEndTimestamp = metric.timestamp
+        ? new Date(metric.timestamp).getTime() / 1000
+        : undefined;
 
       try {
-        await publishPerformanceScenarioToSentry({
+        const sent = await publishPerformanceScenarioToSentry({
           metrics: {
             steps: metric.steps || [],
             timestamp: metric.timestamp || new Date().toISOString(),
@@ -581,11 +596,15 @@ class PerformanceReporter {
           projectName: metric.projectName || 'unknown',
           testFilePath: metric.testFilePath,
           tags: metric.tags || [],
-          status: metric.testFailed ? 'failed' : 'passed',
+          status: testStatus,
           videoRecordingUrl: metric.videoURL ?? null,
           profilingSummary: metric.profilingSummary,
+          testEndTimestamp,
         });
-        logger.info(`Profiling data for "${metric.testName}" sent to Sentry`);
+
+        if (sent) {
+          logger.info(`Profiling data for "${metric.testName}" sent to Sentry`);
+        }
       } catch (error) {
         logger.error(
           `Failed to publish profiling data to Sentry for "${metric.testName}": ${error}`,

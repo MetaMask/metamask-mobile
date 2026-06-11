@@ -43,6 +43,8 @@ interface PublishPerformanceScenarioOptions {
   workerIndex?: number;
   videoRecordingUrl?: string | null;
   profilingSummary?: ProfilingSummary | null;
+  /** Unix epoch seconds. When provided, anchors the transaction to the actual test end time instead of the moment the publish call is made. */
+  testEndTimestamp?: number;
 }
 
 interface ParsedSentryDsn {
@@ -261,7 +263,7 @@ export async function publishPerformanceScenarioToSentry(
   const transactionSpanId = createHexId(16);
 
   const totalDurationMs = Math.round(options.metrics.total * 1000);
-  const endTimestamp = Date.now() / 1000;
+  const endTimestamp = options.testEndTimestamp ?? Date.now() / 1000;
   const startTimestamp = endTimestamp - totalDurationMs / 1000;
 
   const usedMeasurementKeys = new Set<string>(RESERVED_MEASUREMENT_KEYS);
