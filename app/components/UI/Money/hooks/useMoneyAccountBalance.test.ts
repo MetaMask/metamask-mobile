@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
-import { useQueries } from '@tanstack/react-query';
+import { useQuery } from '@metamask/react-data-query';
 import useMoneyAccountBalance, {
   getLiveVedaVaultExchangeRate,
 } from './useMoneyAccountBalance';
@@ -24,9 +24,8 @@ jest.mock('react-redux', () => ({
   useDispatch: () => mockDispatch,
 }));
 
-jest.mock('@tanstack/react-query', () => ({
-  ...jest.requireActual('@tanstack/react-query'),
-  useQueries: jest.fn(),
+jest.mock('@metamask/react-data-query', () => ({
+  useQuery: jest.fn(),
 }));
 
 jest.mock('../../../../core/Engine', () => ({
@@ -38,8 +37,16 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
-// Selector modules are only used as identity references in the useSelector mock;
-// they don't need to be individually mocked.
+const mockInvalidateQueries = jest.fn().mockResolvedValue(undefined);
+jest.mock('../../../../core/ReactQueryService', () => ({
+  __esModule: true,
+  default: {
+    queryClient: {
+      invalidateQueries: (...args: unknown[]) => mockInvalidateQueries(...args),
+    },
+  },
+}));
+
 jest.mock('../../../../selectors/moneyAccountController', () => ({
   selectPrimaryMoneyAccount: jest.fn(),
   selectMoneyAccounts: jest.fn(),
@@ -56,7 +63,7 @@ jest.mock('../../../../selectors/networkController', () => ({
 }));
 
 const mockUseSelector = jest.mocked(useSelector);
-const mockUseQueries = jest.mocked(useQueries);
+const mockUseQuery = jest.mocked(useQuery);
 const mockControllerMessengerCall = jest.mocked(
   Engine.controllerMessenger.call,
 );
@@ -124,13 +131,22 @@ interface QueryState<T> {
   refetch?: jest.Mock;
 }
 
-const DEFAULT_MUSD_BALANCE_QUERY: QueryState<{ balance: string }> = {
-  data: { balance: '1000000' },
+const DEFAULT_MONEY_BALANCE_QUERY: QueryState<{
+  musdBalance: string;
+  vmusdValueInMusd: string;
+  totalBalance: string;
+}> = {
+  data: {
+    musdBalance: '1000000',
+    vmusdValueInMusd: '2000000',
+    totalBalance: '3000000',
+  },
   isLoading: false,
   isError: false,
   isFetching: false,
   refetch: jest.fn(),
 };
+
 const DEFAULT_VAULT_APY_QUERY: QueryState<{ apy: number }> = {
   data: { apy: 0.05 },
   isLoading: false,
@@ -138,34 +154,24 @@ const DEFAULT_VAULT_APY_QUERY: QueryState<{ apy: number }> = {
   isFetching: false,
   refetch: jest.fn(),
 };
-const DEFAULT_MUSD_EQUIVALENT_BALANCE_QUERY: QueryState<{
-  balanceOfInAssets: string;
-}> = {
-  data: { balanceOfInAssets: '2000000' },
-  isLoading: false,
-  isError: false,
-  isFetching: false,
-  refetch: jest.fn(),
-};
 
-function makeQueryResults({
-  musdBalance = DEFAULT_MUSD_BALANCE_QUERY,
-  vaultApy = DEFAULT_VAULT_APY_QUERY,
-  musdEquivalentBalance = DEFAULT_MUSD_EQUIVALENT_BALANCE_QUERY,
-}: {
-  musdBalance?: QueryState<{ balance: string }>;
-  vaultApy?: QueryState<{ apy: number }>;
-  musdEquivalentBalance?: QueryState<{ balanceOfInAssets: string }>;
-} = {}) {
-  return [
-    musdBalance,
-    vaultApy,
-    musdEquivalentBalance,
-  ] as unknown as ReturnType<typeof useQueries>;
-}
-
-function setupDefaultQueries() {
-  mockUseQueries.mockReturnValue(makeQueryResults());
+function setupDefaultQueries(
+  moneyBalance: QueryState<{
+    musdBalance: string;
+    vmusdValueInMusd: string;
+    totalBalance: string;
+  }> = DEFAULT_MONEY_BALANCE_QUERY,
+  vaultApy: QueryState<{ apy: number }> = DEFAULT_VAULT_APY_QUERY,
+) {
+  mockUseQuery.mockImplementation(((options: { queryKey?: unknown[] }) => {
+    if (
+      options.queryKey?.[0] ===
+      'MoneyAccountBalanceService:getMoneyAccountBalance'
+    ) {
+      return moneyBalance;
+    }
+    return vaultApy;
+  }) as unknown as typeof useQuery);
 }
 
 describe('getLiveVedaVaultExchangeRate', () => {
@@ -200,45 +206,32 @@ describe('useMoneyAccountBalance', () => {
     setupDefaultQueries();
   });
 
-  it('isAggregatedBalanceLoading is true when musdBalanceQuery is loading', () => {
-    mockUseQueries.mockReturnValue(
-      makeQueryResults({
-        musdBalance: { data: undefined, isLoading: true },
-      }),
-    );
+  it('isBalanceLoading is true when moneyBalanceQuery is loading', () => {
+    setupDefaultQueries({
+      data: undefined,
+      isLoading: true,
+      isError: false,
+      isFetching: false,
+    });
 
     const { result } = renderHook(() => useMoneyAccountBalance());
 
-    expect(result.current.isAggregatedBalanceLoading).toBe(true);
+    expect(result.current.isBalanceLoading).toBe(true);
   });
 
-  it('isAggregatedBalanceLoading is true when musdEquivalentBalanceQuery is loading', () => {
-    mockUseQueries.mockReturnValue(
-      makeQueryResults({
-        musdBalance: { data: { balance: '0' }, isLoading: false },
-        musdEquivalentBalance: { data: undefined, isLoading: true },
-      }),
-    );
-
+  it('isBalanceLoading is false when query has completed', () => {
     const { result } = renderHook(() => useMoneyAccountBalance());
 
-    expect(result.current.isAggregatedBalanceLoading).toBe(true);
-  });
-
-  it('isAggregatedBalanceLoading is false when both queries have completed', () => {
-    const { result } = renderHook(() => useMoneyAccountBalance());
-
-    expect(result.current.isAggregatedBalanceLoading).toBe(false);
+    expect(result.current.isBalanceLoading).toBe(false);
   });
 
   it('returns undefined tokenTotal when still loading', () => {
-    mockUseQueries.mockReturnValue(
-      makeQueryResults({
-        musdBalance: { data: undefined, isLoading: true },
-        vaultApy: { data: undefined, isLoading: false },
-        musdEquivalentBalance: { data: undefined, isLoading: true },
-      }),
-    );
+    setupDefaultQueries({
+      data: undefined,
+      isLoading: true,
+      isError: false,
+      isFetching: false,
+    });
 
     const { result } = renderHook(() => useMoneyAccountBalance());
 
@@ -246,25 +239,26 @@ describe('useMoneyAccountBalance', () => {
   });
 
   it('returns sum of musd and vault token balances as tokenTotal when loaded', () => {
-    // balance '1000000' = 1 mUSD (6 decimals), musdEquivalentValue '2000000' = 2 mUSD
+    // musdBalance '1000000' = 1 mUSD (6 decimals), vmusdValueInMusd '2000000' = 2 mUSD
     const { result } = renderHook(() => useMoneyAccountBalance());
 
     expect(result.current.tokenTotal?.toFixed(0)).toBe('3');
   });
 
   it('returns withdrawableMusd as the vmUSD-shares-only mUSD equivalent when loaded', () => {
-    // musdEquivalentValue '2000000' = 2 mUSD (6 decimals) — vmUSD shares only, not including bare mUSD
+    // vmusdValueInMusd '2000000' = 2 mUSD (6 decimals) — vmUSD shares only, not including bare mUSD
     const { result } = renderHook(() => useMoneyAccountBalance());
 
     expect(result.current.withdrawableMusd?.toFixed(0)).toBe('2');
   });
 
   it('returns undefined withdrawableMusd while loading', () => {
-    mockUseQueries.mockReturnValue(
-      makeQueryResults({
-        musdEquivalentBalance: { data: undefined, isLoading: true },
-      }),
-    );
+    setupDefaultQueries({
+      data: undefined,
+      isLoading: true,
+      isError: false,
+      isFetching: false,
+    });
 
     const { result } = renderHook(() => useMoneyAccountBalance());
 
@@ -277,7 +271,6 @@ describe('useMoneyAccountBalance', () => {
         return { address: MOCK_ADDRESS };
       }
       if (selector === selectTokenMarketData) {
-        // No price data available
         return {};
       }
       if (selector === selectCurrencyRates) {
@@ -292,8 +285,6 @@ describe('useMoneyAccountBalance', () => {
     const { result } = renderHook(() => useMoneyAccountBalance());
 
     expect(result.current.totalFiatFormatted).toBeUndefined();
-    expect(result.current.musdFiatFormatted).toBeUndefined();
-    expect(result.current.musdSHFvdFiatFormatted).toBeUndefined();
     expect(result.current.totalFiatRaw).toBeUndefined();
   });
 
@@ -336,15 +327,13 @@ describe('useMoneyAccountBalance', () => {
 
   it('returns formatted total fiat when all data is available', () => {
     // musdFiatRate = price(0.0005) * conversionRate(2000) = 1.0
-    // musd balance 1 * 1.0 = $1.00, musdSHFvd balance 2 * 1.0 = $2.00, total = $3.00
+    // musd balance 1 * 1.0 = $1.00, vmUSD balance 2 * 1.0 = $2.00, total = $3.00
     const { result } = renderHook(() => useMoneyAccountBalance());
 
     expect(result.current.totalFiatFormatted).toBe('$3.00');
-    expect(result.current.musdFiatFormatted).toBe('$1.00');
-    expect(result.current.musdSHFvdFiatFormatted).toBe('$2.00');
   });
 
-  it('disables musdBalanceQuery and GET_MUSD_EQUIVALENT_VALUE query when no account address', () => {
+  it('disables moneyBalanceQuery when no account address', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectPrimaryMoneyAccount) {
         return undefined;
@@ -366,11 +355,12 @@ describe('useMoneyAccountBalance', () => {
 
     renderHook(() => useMoneyAccountBalance());
 
-    const queriesArg = mockUseQueries.mock.calls[0][0] as {
-      queries: { enabled?: boolean }[];
-    };
-    expect(queriesArg.queries[0].enabled).toBe(false);
-    expect(queriesArg.queries[2].enabled).toBe(false);
+    const balanceCallArgs = mockUseQuery.mock.calls.find(
+      ([opts]) =>
+        (opts as { queryKey: string[] }).queryKey[0] ===
+        'MoneyAccountBalanceService:getMoneyAccountBalance',
+    );
+    expect((balanceCallArgs?.[0] as { enabled?: boolean }).enabled).toBe(false);
   });
 
   it('totalFiatRaw is the string representation of totalFiat', () => {
@@ -398,11 +388,12 @@ describe('useMoneyAccountBalance', () => {
   });
 
   it('returns undefined for all APY fields when vault APY data is not available', () => {
-    mockUseQueries.mockReturnValue(
-      makeQueryResults({
-        vaultApy: { data: undefined, isLoading: true },
-      }),
-    );
+    setupDefaultQueries(DEFAULT_MONEY_BALANCE_QUERY, {
+      data: undefined,
+      isLoading: true,
+      isError: false,
+      isFetching: false,
+    });
 
     const { result } = renderHook(() => useMoneyAccountBalance());
 
@@ -412,15 +403,16 @@ describe('useMoneyAccountBalance', () => {
   });
 
   it('collapses sub-cent total fiat to $0.00 when both balances are 1 minimal unit', () => {
-    mockUseQueries.mockReturnValue(
-      makeQueryResults({
-        musdBalance: { data: { balance: '1' }, isLoading: false },
-        musdEquivalentBalance: {
-          data: { balanceOfInAssets: '1' },
-          isLoading: false,
-        },
-      }),
-    );
+    setupDefaultQueries({
+      data: {
+        musdBalance: '1',
+        vmusdValueInMusd: '1',
+        totalBalance: '2',
+      },
+      isLoading: false,
+      isError: false,
+      isFetching: false,
+    });
 
     const { result } = renderHook(() => useMoneyAccountBalance());
 
@@ -428,28 +420,13 @@ describe('useMoneyAccountBalance', () => {
   });
 
   describe('error surface', () => {
-    it('exposes isBalanceFetchError true when musdBalanceQuery has errored', () => {
-      mockUseQueries.mockReturnValue(
-        makeQueryResults({
-          musdBalance: { data: undefined, isLoading: false, isError: true },
-        }),
-      );
-
-      const { result } = renderHook(() => useMoneyAccountBalance());
-
-      expect(result.current.isBalanceFetchError).toBe(true);
-    });
-
-    it('exposes isBalanceFetchError true when musdEquivalentBalanceQuery has errored', () => {
-      mockUseQueries.mockReturnValue(
-        makeQueryResults({
-          musdEquivalentBalance: {
-            data: undefined,
-            isLoading: false,
-            isError: true,
-          },
-        }),
-      );
+    it('exposes isBalanceFetchError true when moneyBalanceQuery has errored', () => {
+      setupDefaultQueries({
+        data: undefined,
+        isLoading: false,
+        isError: true,
+        isFetching: false,
+      });
 
       const { result } = renderHook(() => useMoneyAccountBalance());
 
@@ -463,11 +440,12 @@ describe('useMoneyAccountBalance', () => {
     });
 
     it('returns undefined totalFiatFormatted on balance fetch error', () => {
-      mockUseQueries.mockReturnValue(
-        makeQueryResults({
-          musdBalance: { data: undefined, isLoading: false, isError: true },
-        }),
-      );
+      setupDefaultQueries({
+        data: undefined,
+        isLoading: false,
+        isError: true,
+        isFetching: false,
+      });
 
       const { result } = renderHook(() => useMoneyAccountBalance());
 
@@ -475,11 +453,12 @@ describe('useMoneyAccountBalance', () => {
     });
 
     it('returns undefined totalFiatRaw on balance fetch error', () => {
-      mockUseQueries.mockReturnValue(
-        makeQueryResults({
-          musdBalance: { data: undefined, isLoading: false, isError: true },
-        }),
-      );
+      setupDefaultQueries({
+        data: undefined,
+        isLoading: false,
+        isError: true,
+        isFetching: false,
+      });
 
       const { result } = renderHook(() => useMoneyAccountBalance());
 
@@ -487,59 +466,44 @@ describe('useMoneyAccountBalance', () => {
     });
 
     it('returns undefined tokenTotal on balance fetch error', () => {
-      mockUseQueries.mockReturnValue(
-        makeQueryResults({
-          musdBalance: { data: undefined, isLoading: false, isError: true },
-        }),
-      );
+      setupDefaultQueries({
+        data: undefined,
+        isLoading: false,
+        isError: true,
+        isFetching: false,
+      });
 
       const { result } = renderHook(() => useMoneyAccountBalance());
 
       expect(result.current.tokenTotal).toBeUndefined();
     });
 
-    it('exposes isBalanceFetching true when either balance query is fetching', () => {
-      mockUseQueries.mockReturnValue(
-        makeQueryResults({
-          musdBalance: {
-            data: undefined,
-            isLoading: false,
-            isError: true,
-            isFetching: true,
-          },
-        }),
-      );
+    it('exposes isBalanceFetching true when balance query is fetching', () => {
+      setupDefaultQueries({
+        data: undefined,
+        isLoading: false,
+        isError: true,
+        isFetching: true,
+      });
 
       const { result } = renderHook(() => useMoneyAccountBalance());
 
       expect(result.current.isBalanceFetching).toBe(true);
     });
 
-    it('refetchBalance calls refetch on both balance queries', async () => {
-      const mockMusdRefetch = jest.fn().mockResolvedValue({});
-      const mockEquivalentRefetch = jest.fn().mockResolvedValue({});
-
-      mockUseQueries.mockReturnValue(
-        makeQueryResults({
-          musdBalance: {
-            data: { balance: '1000000' },
-            isLoading: false,
-            refetch: mockMusdRefetch,
-          },
-          musdEquivalentBalance: {
-            data: { balanceOfInAssets: '2000000' },
-            isLoading: false,
-            refetch: mockEquivalentRefetch,
-          },
-        }),
-      );
-
+    it('refetchBalance invalidates the balance query via ReactQueryService', async () => {
       const { result } = renderHook(() => useMoneyAccountBalance());
 
       await result.current.refetchBalance();
 
-      expect(mockMusdRefetch).toHaveBeenCalledTimes(1);
-      expect(mockEquivalentRefetch).toHaveBeenCalledTimes(1);
+      expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
+      expect(mockInvalidateQueries).toHaveBeenCalledWith({
+        queryKey: [
+          'MoneyAccountBalanceService:getMoneyAccountBalance',
+          MOCK_ADDRESS,
+        ],
+        refetchType: 'all',
+      });
     });
   });
 
