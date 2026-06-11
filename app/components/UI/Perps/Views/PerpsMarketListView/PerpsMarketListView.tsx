@@ -22,6 +22,7 @@ import {
   usePerpsMeasurement,
   usePerpsNavigation,
 } from '../../hooks';
+import { selectPerpsWatchlistEnabledFlag } from '../../selectors/featureFlags';
 import { usePerpsLivePositions, usePerpsLiveAccount } from '../../hooks/stream';
 import PerpsMarketRowSkeleton from './components/PerpsMarketRowSkeleton';
 import styleSheet from './PerpsMarketListView.styles';
@@ -34,6 +35,7 @@ import {
 } from '@metamask/perps-controller';
 import { PerpsMarketListViewSelectorsIDs } from '../../Perps.testIds';
 import { useRoute, RouteProp } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TraceName } from '../../../../../util/trace';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -66,6 +68,8 @@ const PerpsMarketListView = ({
   const defaultSortOptionId = route.params?.defaultSortOptionId;
   const defaultSortDirection = route.params?.defaultSortDirection;
   const transactionActiveAbTests = route.params?.transactionActiveAbTests;
+
+  const isWatchlistEnabled = useSelector(selectPerpsWatchlistEnabledFlag);
 
   const fadeAnimation = useRef(new Animated.Value(0)).current;
   const [isSortFieldSheetVisible, setIsSortFieldSheetVisible] = useState(false);
@@ -242,7 +246,8 @@ const PerpsMarketListView = ({
     }
 
     // Empty watchlist — show suggested markets with the same default state as PerpsHome
-    if (showFavoritesOnly && !hasWatchlistMarkets) {
+    // Only reachable when the watchlist flag is enabled (pill is hidden otherwise)
+    if (isWatchlistEnabled && showFavoritesOnly && !hasWatchlistMarkets) {
       return (
         <PerpsWatchlistMarkets
           markets={watchlistMarketObjects}
@@ -338,7 +343,7 @@ const PerpsMarketListView = ({
           onSortPress={() => setIsSortFieldSheetVisible(true)}
           marketTypeFilter={marketTypeFilter}
           onCategorySelect={handleCategorySelect}
-          showWatchlistBadge
+          showWatchlistBadge={isWatchlistEnabled}
           isWatchlistSelected={showFavoritesOnly}
           onWatchlistToggle={handleWatchlistToggle}
           testID={PerpsMarketListViewSelectorsIDs.SORT_FILTERS}
