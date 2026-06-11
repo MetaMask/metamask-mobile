@@ -54,6 +54,7 @@ import {
   PriceAlertType,
 } from '../../constants';
 import { useSavePriceAlert } from '../../api';
+import { trimTrailingZeros } from '../../../Bridge/utils/trimTrailingZeros';
 
 const KEYPAD_EMPTY = '0';
 const MIN_KEYPAD_DECIMALS = 2;
@@ -85,12 +86,7 @@ const toKeypadString = (price: number): string => {
   if (!Number.isFinite(price) || price <= 0) return KEYPAD_EMPTY;
 
   const decimalPlaces = getKeypadDecimalPlaces(price);
-  let str = price.toFixed(decimalPlaces);
-
-  // Strip trailing zeros after the decimal point, and a trailing dot.
-  if (str.includes('.')) {
-    str = str.replace(/\.?0+$/, '');
-  }
+  const str = trimTrailingZeros(price.toFixed(decimalPlaces));
 
   return str || KEYPAD_EMPTY;
 };
