@@ -114,9 +114,13 @@ describe('processUnifiedOrder', () => {
   });
 
   describe('successful poll', () => {
-    it('calls Engine.getOrder with provider code and order code from data', async () => {
+    it('calls Engine.getOrder with provider id and order code from data', async () => {
       await processUnifiedOrder(mockOrder);
-      expect(mockGetOrder).toHaveBeenCalledWith('transak', 'abc-123', '0xabc');
+      expect(mockGetOrder).toHaveBeenCalledWith(
+        '/providers/transak',
+        'abc-123',
+        '0xabc',
+      );
     });
 
     it('returns order with updated state and reset errorCount on success', async () => {
