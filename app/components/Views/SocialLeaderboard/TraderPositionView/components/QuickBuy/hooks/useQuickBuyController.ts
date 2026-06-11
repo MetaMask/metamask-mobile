@@ -298,7 +298,17 @@ export function useQuickBuyController(
   } = useQuickBuySetup(target);
 
   // ─── Buy "Pay with" options (tokens the user holds) ─────────────────────
-  const { options: sourceTokenOptions } = usePayWithTokens();
+  const { options: rawSourceTokenOptions } = usePayWithTokens();
+  // Exclude the token being bought from the "Pay with" list — buying a token
+  // with itself produces no valid quote, so it must not be selectable.
+  const sourceTokenOptions = useMemo(() => {
+    if (!positionTokenFromSetup) return rawSourceTokenOptions;
+    const destKey = getTokenKey(positionTokenFromSetup);
+    return rawSourceTokenOptions.filter(
+      (token) => getTokenKey(token) !== destKey,
+    );
+  }, [rawSourceTokenOptions, positionTokenFromSetup]);
+
   const [selectedSourceToken, setSelectedSourceToken] = useState<
     BridgeToken | undefined
   >(undefined);
