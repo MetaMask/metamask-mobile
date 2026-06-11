@@ -38,9 +38,10 @@ export function useArcDefaultTokensEffect() {
   const evmAccounts = useSelector(selectInternalEvmAccounts);
   const customAssets = useSelector(getCustomAssets);
 
-  // Tracks account IDs we've already dispatched for, to avoid re-dispatching on
-  // every render while the controller state catches up.
-  const dispatchedRef = useRef<Set<string>>(new Set());
+  const tokenDispatchInFlightRef = useRef<Set<string>>(new Set());
+  const tokenDispatchCompletedRef = useRef<Set<string>>(new Set());
+  const customAssetInFlightRef = useRef<Set<string>>(new Set());
+  const customAssetDispatchCompletedRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     if (!networkConfigurations?.[NETWORKS_CHAIN_ID.ARC]) {
@@ -53,26 +54,33 @@ export function useArcDefaultTokensEffect() {
       );
 
     for (const account of evmAccounts) {
-      if (dispatchedRef.current.has(account.id)) {
-        continue;
+      if (
+        !tokenDispatchInFlightRef.current.has(account.id) &&
+        !tokenDispatchCompletedRef.current.has(account.id)
+      ) {
+        tokenDispatchInFlightRef.current.add(account.id);
+        // Legacy TokensController
+        Engine.context.TokensController.addToken({
+          address: ARC_USDC_TOKEN_ADDRESS,
+          symbol: ARC_USDC_METADATA.symbol,
+          decimals: ARC_USDC_METADATA.decimals,
+          name: ARC_USDC_METADATA.name,
+          networkClientId,
+          interactingAddress: account.address,
+        })
+          .then(() => {
+            tokenDispatchCompletedRef.current.add(account.id);
+          })
+          .catch((error) => {
+            Logger.error(error as Error, {
+              message: 'Failed to add default Arc USDC token for account',
+              accountId: account.id,
+            });
+          })
+          .finally(() => {
+            tokenDispatchInFlightRef.current.delete(account.id);
+          });
       }
-
-      dispatchedRef.current.add(account.id);
-
-      // Legacy TokensController
-      Engine.context.TokensController.addToken({
-        address: ARC_USDC_TOKEN_ADDRESS,
-        symbol: ARC_USDC_METADATA.symbol,
-        decimals: ARC_USDC_METADATA.decimals,
-        name: ARC_USDC_METADATA.name,
-        networkClientId,
-        interactingAddress: account.address,
-      }).catch((error) => {
-        Logger.error(error as Error, {
-          message: 'Failed to add default Arc USDC token for account',
-          accountId: account.id,
-        });
-      });
 
       // New AssetsController
       if (!isAssetsUnifyStateEnabled) {
@@ -81,19 +89,35 @@ export function useArcDefaultTokensEffect() {
 
       const accountAssets = customAssets[account.id] ?? [];
       if (accountAssets.includes(ARC_USDC_ASSET_ID)) {
+        customAssetDispatchCompletedRef.current.add(account.id);
         continue;
       }
 
+      if (
+        customAssetInFlightRef.current.has(account.id) ||
+        customAssetDispatchCompletedRef.current.has(account.id)
+      ) {
+        continue;
+      }
+
+      customAssetInFlightRef.current.add(account.id);
       Engine.context.AssetsController.addCustomAsset(
         account.id,
         ARC_USDC_ASSET_ID,
         ARC_USDC_METADATA,
-      ).catch((error) => {
-        Logger.error(error as Error, {
-          message: 'Failed to add default Arc USDC custom asset for account',
-          accountId: account.id,
+      )
+        .then(() => {
+          customAssetDispatchCompletedRef.current.add(account.id);
+        })
+        .catch((error) => {
+          Logger.error(error as Error, {
+            message: 'Failed to add default Arc USDC custom asset for account',
+            accountId: account.id,
+          });
+        })
+        .finally(() => {
+          customAssetInFlightRef.current.delete(account.id);
         });
-      });
     }
   }, [
     isAssetsUnifyStateEnabled,

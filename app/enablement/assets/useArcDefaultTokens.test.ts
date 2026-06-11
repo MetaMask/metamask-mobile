@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react-native';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { useArcDefaultTokensEffect } from './useArcDefaultTokens';
 import { NETWORKS_CHAIN_ID } from '../../constants/network';
@@ -149,5 +149,28 @@ describe('useArcDefaultTokens', () => {
 
     expect(addCustomAssetMock).toHaveBeenCalledTimes(1);
     expect(addTokenMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('retries adding Arc custom asset after a failure', async () => {
+    mockSelectors();
+    addCustomAssetMock
+      .mockRejectedValueOnce(new Error('temporary failure'))
+      .mockResolvedValueOnce(undefined);
+
+    const { rerender } = renderHook(() => useArcDefaultTokensEffect());
+
+    await waitFor(() => {
+      expect(addCustomAssetMock).toHaveBeenCalledTimes(1);
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    rerender({});
+
+    await waitFor(() => {
+      expect(addCustomAssetMock).toHaveBeenCalledTimes(2);
+    });
   });
 });

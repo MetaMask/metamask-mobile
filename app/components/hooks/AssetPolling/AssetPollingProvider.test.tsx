@@ -22,7 +22,7 @@ jest.mock('./useTokenBalancesPolling', () => jest.fn());
 jest.mock('./useAccountTrackerPolling', () => jest.fn());
 jest.mock('./useMultichainAssetsRatePolling', () => jest.fn());
 jest.mock('../../../enablement/assets/useArcDefaultTokens', () => ({
-  useArcDefaultTokens: jest.fn(),
+  useArcDefaultTokensEffect: jest.fn(),
 }));
 jest.mock('../../../selectors/accountsController', () => ({
   selectSelectedInternalAccount: jest.fn(),
