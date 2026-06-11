@@ -26,6 +26,16 @@ export type NotificationPreferenceSection = keyof NotificationPreferences;
 export type NotificationPreferenceChannelKey =
   | 'pushNotificationsEnabled'
   | 'inAppNotificationsEnabled';
+type NotificationPreferenceSectionUpdater<
+  PreferenceType extends NotificationPreferenceSection,
+> = (
+  currentSectionPreferences: NotificationPreferences[PreferenceType],
+) => NotificationPreferences[PreferenceType];
+type NotificationPreferenceSectionUpdate<
+  PreferenceType extends NotificationPreferenceSection,
+> =
+  | NotificationPreferences[PreferenceType]
+  | NotificationPreferenceSectionUpdater<PreferenceType>;
 
 export interface UseNotificationStoragePreferencesResult {
   preferences: NotificationPreferencesQueryData;
@@ -47,7 +57,7 @@ export interface UseNotificationStoragePreferencesResult {
     PreferenceType extends NotificationPreferenceSection,
   >(
     type: PreferenceType,
-    nextSectionPreferences: NotificationPreferences[PreferenceType],
+    sectionUpdate: NotificationPreferenceSectionUpdate<PreferenceType>,
   ) => Promise<void>;
   refetch: () => Promise<unknown>;
 }
@@ -93,7 +103,7 @@ export const useNotificationStoragePreferences =
     const updatePreferencesSection = useCallback(
       async <PreferenceType extends NotificationPreferenceSection>(
         type: PreferenceType,
-        nextSectionPreferences: NotificationPreferences[PreferenceType],
+        sectionUpdate: NotificationPreferenceSectionUpdate<PreferenceType>,
       ) => {
         const latestCachedPreferences = getCachedPreferences() ?? data;
 
@@ -108,6 +118,16 @@ export const useNotificationStoragePreferences =
 
         const currentPreferences =
           latestCachedPreferences as NotificationPreferences;
+        const currentSectionPreferences = currentPreferences[type];
+        const nextSectionPreferences =
+          typeof sectionUpdate === 'function'
+            ? sectionUpdate(currentSectionPreferences)
+            : sectionUpdate;
+
+        if (nextSectionPreferences === currentSectionPreferences) {
+          return;
+        }
+
         const previousSnapshot = getCachedPreferences() ?? currentPreferences;
         const nextPreferences: NotificationPreferences = {
           ...currentPreferences,
@@ -168,30 +188,18 @@ export const useNotificationStoragePreferences =
         key: NotificationPreferenceChannelKey,
         value: boolean,
       ) => {
-        const latestCachedPreferences = getCachedPreferences() ?? data;
+        await updatePreferencesSection(type, (currentSectionPreferences) => {
+          if (currentSectionPreferences[key] === value) {
+            return currentSectionPreferences;
+          }
 
-        if (!latestCachedPreferences) {
-          Logger.error(
-            new Error(
-              'No notification preferences found when updating preference, enable notifications first',
-            ),
-          );
-          return;
-        }
-
-        const currentPreferences =
-          latestCachedPreferences as NotificationPreferences;
-
-        if (currentPreferences[type][key] === value) {
-          return;
-        }
-
-        await updatePreferencesSection(type, {
-          ...currentPreferences[type],
-          [key]: value,
+          return {
+            ...currentSectionPreferences,
+            [key]: value,
+          };
         });
       },
-      [data, getCachedPreferences, updatePreferencesSection],
+      [updatePreferencesSection],
     );
 
     const updatePreference = useCallback(

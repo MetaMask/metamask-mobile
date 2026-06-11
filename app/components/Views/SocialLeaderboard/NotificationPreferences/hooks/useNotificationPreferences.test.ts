@@ -144,6 +144,10 @@ describe('useNotificationPreferences', () => {
 
       expect(mockUpdatePreferencesSection).toHaveBeenCalledWith(
         'socialAI',
+        expect.any(Function),
+      );
+      const updater = mockUpdatePreferencesSection.mock.calls[0][1];
+      expect(updater(buildStoragePreferences().socialAI)).toEqual(
         expect.objectContaining({
           txAmountLimit: threshold,
         }),
@@ -159,6 +163,10 @@ describe('useNotificationPreferences', () => {
 
     expect(mockUpdatePreferencesSection).toHaveBeenCalledWith(
       'socialAI',
+      expect.any(Function),
+    );
+    const updater = mockUpdatePreferencesSection.mock.calls[0][1];
+    expect(updater(buildStoragePreferences().socialAI)).toEqual(
       expect.objectContaining({
         mutedTraderProfileIds: ['trader-1'],
       }),
@@ -177,13 +185,23 @@ describe('useNotificationPreferences', () => {
     expect(mockUpdatePreferencesSection).toHaveBeenNthCalledWith(
       1,
       'socialAI',
-      expect.objectContaining({
-        mutedTraderProfileIds: ['trader-1'],
-      }),
+      expect.any(Function),
     );
     expect(mockUpdatePreferencesSection).toHaveBeenNthCalledWith(
       2,
       'socialAI',
+      expect.any(Function),
+    );
+
+    const firstUpdater = mockUpdatePreferencesSection.mock.calls[0][1];
+    const secondUpdater = mockUpdatePreferencesSection.mock.calls[1][1];
+    const firstPreferences = firstUpdater(buildStoragePreferences().socialAI);
+    expect(firstPreferences).toEqual(
+      expect.objectContaining({
+        mutedTraderProfileIds: ['trader-1'],
+      }),
+    );
+    expect(secondUpdater(firstPreferences)).toEqual(
       expect.objectContaining({
         mutedTraderProfileIds: ['trader-1', 'trader-2'],
       }),

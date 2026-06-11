@@ -172,6 +172,41 @@ describe('useNotificationStoragePreferences', () => {
     expect(mockCall).not.toHaveBeenCalledWith(GET_ACTION);
   });
 
+  it('accepts a section updater that receives the latest cached section', async () => {
+    queryCache = buildPreferences({
+      socialAI: {
+        inAppNotificationsEnabled: true,
+        pushNotificationsEnabled: true,
+        txAmountLimit: 500,
+        mutedTraderProfileIds: ['trader-1'],
+      },
+    });
+    mockUseQuery.mockReturnValue(makeQueryResult({ data: queryCache }));
+
+    const { result } = renderHook(() => useNotificationStoragePreferences());
+
+    await act(async () => {
+      await result.current.updatePreferencesSection('socialAI', (previous) => ({
+        ...previous,
+        mutedTraderProfileIds: [...previous.mutedTraderProfileIds, 'trader-2'],
+      }));
+    });
+
+    expect(queryCache?.socialAI.mutedTraderProfileIds).toEqual([
+      'trader-1',
+      'trader-2',
+    ]);
+    expect(mockCall).toHaveBeenCalledWith(
+      PUT_ACTION,
+      expect.objectContaining({
+        socialAI: expect.objectContaining({
+          mutedTraderProfileIds: ['trader-1', 'trader-2'],
+        }),
+      }),
+      CLIENT_TYPE,
+    );
+  });
+
   it('rolls back cache when latest write fails', async () => {
     const initialPreferences = buildPreferences();
     queryCache = initialPreferences;

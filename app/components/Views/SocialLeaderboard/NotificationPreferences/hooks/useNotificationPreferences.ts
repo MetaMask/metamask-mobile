@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { SocialAIPreference } from '@metamask/authenticated-user-storage';
 import Logger from '../../../../../util/Logger';
 import { DEFAULT_SOCIAL_AI_PREFERENCES } from '@metamask/notification-services-controller';
@@ -64,12 +64,10 @@ export const useNotificationPreferences =
 
     const socialAI: SocialAIPreference =
       storagePreferences?.socialAI ?? DEFAULT_SOCIAL_AI;
-    const currentSocialAIRef = useRef<SocialAIPreference>(socialAI);
-    currentSocialAIRef.current = socialAI;
 
     const applyChange = useCallback(
       async (updater: (prev: SocialAIPreference) => SocialAIPreference) => {
-        if (!hasNotificationPreferences || !storagePreferences) {
+        if (!hasNotificationPreferences) {
           const err = new Error(
             'No notification preferences found when updating social AI preferences, enable notifications first',
           );
@@ -78,14 +76,11 @@ export const useNotificationPreferences =
           return;
         }
 
-        const nextSocialAI = updater(currentSocialAIRef.current);
-        currentSocialAIRef.current = nextSocialAI;
         setPersistError(null);
 
         try {
-          await updatePreferencesSection('socialAI', nextSocialAI);
+          await updatePreferencesSection('socialAI', updater);
         } catch (err) {
-          currentSocialAIRef.current = storagePreferences.socialAI;
           Logger.error(
             err as Error,
             'useNotificationPreferences: persist failed',
@@ -93,11 +88,7 @@ export const useNotificationPreferences =
           setPersistError(toErrorMessage(err));
         }
       },
-      [
-        hasNotificationPreferences,
-        storagePreferences,
-        updatePreferencesSection,
-      ],
+      [hasNotificationPreferences, updatePreferencesSection],
     );
 
     const setPushNotificationsEnabled = useCallback(
