@@ -46,11 +46,3 @@ export const navigateToBitcoinTestDApp = async (): Promise<void> => {
   await Assertions.expectElementToBeVisible(BrowserView.browserScreenID);
   await BitcoinTestDApp.navigateToBitcoinTestDApp();
 };
-
-export const assertIsSignedTransaction = async (signedTransaction: string) => {
-  if (!/^.{88}$/.test(signedTransaction)) {
-    throw new Error(
-      `Signed transaction does not match regex: ${signedTransaction}`,
-    );
-  }
-};
