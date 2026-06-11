@@ -16,6 +16,8 @@ import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
 import { getRampRoutingDecision } from '../../../../../reducers/fiatOrders';
+import { useHasNativeFiatProvider } from '../../../Ramp/hooks/useHasNativeFiatProvider';
+import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 
 const PENDING_TX_ID = 'pending-tx-from-elsewhere';
 
@@ -157,6 +159,12 @@ jest.mock('../../../../../reducers/fiatOrders', () => ({
   ...jest.requireActual('../../../../../reducers/fiatOrders'),
   getRampRoutingDecision: jest.fn(),
 }));
+jest.mock('../../../Ramp/hooks/useHasNativeFiatProvider', () => ({
+  useHasNativeFiatProvider: jest.fn(),
+}));
+jest.mock('../../hooks/useMoneyAnalytics', () => ({
+  useMoneyAnalytics: jest.fn(),
+}));
 
 // Wrapper that unmounts the sheet when `goBack` runs — modelling the modal
 // being popped on close, which is what tears the hook down in production.
@@ -212,6 +220,11 @@ describe('MoneyAddMoneySheet — Add funds with a pending transaction', () => {
       true,
     );
     (getRampRoutingDecision as jest.Mock).mockReturnValue(null);
+    (useHasNativeFiatProvider as jest.Mock).mockReturnValue(true);
+    (useMoneyAnalytics as jest.Mock).mockReturnValue({
+      trackBottomSheetViewed: jest.fn(),
+      trackSurfaceClicked: jest.fn(),
+    });
   });
 
   it('navigates to the Add funds flow even when an unconfirmed transaction is already pending', async () => {
@@ -227,18 +240,16 @@ describe('MoneyAddMoneySheet — Add funds with a pending transaction', () => {
     );
     await flushAsync();
 
-    // The sheet closed (goBack ran, modal popped → hook unmounted).
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
-
-    // The pre-existing pending transaction is rejected before navigating, and
-    // the deposit batch is created (the "Deposited" activity on Money home).
+    // The pre-existing pending transaction is rejected straight away.
     expect(
       jest.mocked(Engine.context.ApprovalController.rejectRequest),
     ).toHaveBeenCalledWith(PENDING_TX_ID, expect.anything());
-    expect(addTransactionBatch).toHaveBeenCalledTimes(1);
 
-    // Navigation is deferred until the rejected transaction clears from state,
-    // so it has not happened yet — but the sheet has already unmounted by this point.
+    // Closing + navigating is deferred until the rejection clears from state,
+    // so the sheet stays mounted: it has not been closed and nothing has
+    // navigated yet. This is what keeps the navigation alive.
+    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(addTransactionBatch).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalled();
 
     // Simulate the TransactionController removing the rejected transaction.
@@ -246,10 +257,13 @@ describe('MoneyAddMoneySheet — Add funds with a pending transaction', () => {
     await act(async () => {
       store.dispatch(updateBgState({ key: 'TransactionController' }));
     });
+    await flushAsync();
 
-    // The navigation now fires even though the sheet that triggered it is
-    // gone — the user reaches the Add funds confirmation flow instead of being
-    // stranded on Money home.
+    // Now that nothing is pending, the sheet closes (modal popped) and the
+    // deposit flow runs in one step — the user reaches the Add funds
+    // confirmation instead of being stranded on Money home.
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(addTransactionBatch).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.MONEY.CONFIRMATIONS_ROOT,
       expect.objectContaining({
@@ -266,12 +280,11 @@ describe('MoneyAddMoneySheet — Add funds with a pending transaction', () => {
     );
     await flushAsync();
 
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
-    // Nothing to reject, so navigation happens synchronously and survives the
-    // unmount — the user reaches the Add funds confirmation flow.
+    // Nothing to reject, so the sheet closes and navigates immediately.
     expect(
       jest.mocked(Engine.context.ApprovalController.rejectRequest),
     ).not.toHaveBeenCalled();
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
     expect(addTransactionBatch).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.MONEY.CONFIRMATIONS_ROOT,

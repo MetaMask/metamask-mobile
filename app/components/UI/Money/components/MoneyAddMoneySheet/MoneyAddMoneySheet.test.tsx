@@ -71,6 +71,11 @@ jest.mock('../../../Ramp/hooks/useHasNativeFiatProvider', () => ({
   useHasNativeFiatProvider: jest.fn(),
 }));
 
+jest.mock('../../../../../selectors/transactionController', () => ({
+  ...jest.requireActual('../../../../../selectors/transactionController'),
+  selectTransactions: jest.fn(() => []),
+}));
+
 jest.mock('../../../../../reducers/fiatOrders', () => ({
   ...jest.requireActual('../../../../../reducers/fiatOrders'),
   getRampRoutingDecision: jest.fn(),
@@ -296,7 +301,7 @@ describe('MoneyAddMoneySheet', () => {
     );
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(mockInitiateDeposit).toHaveBeenCalledWith();
+    expect(mockInitiateDeposit).toHaveBeenCalledWith(undefined);
   });
 
   it('hides the Deposit funds option when moneyAccountDeposit is not in enabledTransactionTypes', () => {
@@ -343,7 +348,7 @@ describe('MoneyAddMoneySheet', () => {
     );
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(mockInitiateDeposit).toHaveBeenCalledWith();
+    expect(mockInitiateDeposit).toHaveBeenCalledWith(undefined);
   });
 
   it('hides the Deposit funds option when the ramp routing decision is UNSUPPORTED', () => {
