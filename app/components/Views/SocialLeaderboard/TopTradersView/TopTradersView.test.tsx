@@ -380,6 +380,47 @@ describe('TopTradersView', () => {
       refresh: jest.fn(),
     });
   });
+ 
+  it('renders the container', () => {
+    renderWithProvider(<TopTradersView />);
+    expect(
+      screen.getByTestId(TopTradersViewSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders the Top traders title', () => {
+    renderWithProvider(<TopTradersView />);
+    expect(screen.getByText('Top traders')).toBeOnTheScreen();
+  });
+
+  it('calls goBack when the back button is pressed', () => {
+    renderWithProvider(<TopTradersView />);
+    fireEvent.press(screen.getByTestId(TopTradersViewSelectorsIDs.BACK_BUTTON));
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders the notification button', () => {
+    renderWithProvider(<TopTradersView />);
+    expect(
+      screen.getByTestId(TopTradersViewSelectorsIDs.NOTIFICATION_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
+  it('navigates to the socialAI notification settings section when notification button is pressed and preferences exist', () => {
+    renderWithProvider(<TopTradersView />);
+    fireEvent.press(
+      screen.getByTestId(TopTradersViewSelectorsIDs.NOTIFICATION_BUTTON),
+    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
+      screen: Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION,
+      params: {
+        type: 'socialAI',
+        title: 'Trading Signals',
+        description:
+          'Updates from traders and assets you follow, plus currated market news',
+      },
+    });
+  });
 
   it('renders all traders', () => {
     renderWithProvider(<TopTradersView />);
