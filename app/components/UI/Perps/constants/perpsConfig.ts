@@ -165,9 +165,9 @@ export const HOME_SCREEN_CONFIG = {
   // Can be controlled via feature flag in the future
   ShowHeaderActionButtons: true,
 
-  // Maximum number of items to show in each carousel
-  PositionsCarouselLimit: 10,
-  OrdersCarouselLimit: 10,
+  // Maximum number of items to show in each carousel.
+  // Note: positions and orders are intentionally uncapped on the home screen —
+  // they render in a vertical ScrollView and must show every open entry.
   TrendingMarketsLimit: 5,
   RecentActivityLimit: 3,
 
