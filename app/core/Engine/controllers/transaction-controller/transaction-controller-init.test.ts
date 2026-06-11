@@ -697,7 +697,6 @@ describe('Transaction Controller Init', () => {
         expect(Delegation7702PublishHookMock).toHaveBeenCalledWith({
           isAtomicBatchSupported: expect.any(Function),
           messenger: expect.any(Object),
-          getNextNonce: expect.any(Function),
         });
         expect(mockDelegation7702Hook).toHaveBeenCalled();
         expect(result).toEqual({ transactionHash: '0xde702' });
@@ -1011,48 +1010,6 @@ describe('Transaction Controller Init', () => {
 
       expect(await optionFn?.(mockTransactionMeta)).toBe(true);
     });
-  });
-
-  it('calls getNonceLock and releaseLock via Delegation7702PublishHook getNextNonce', async () => {
-    accountSupports7702Mock.mockResolvedValue(true);
-    const releaseLockMock = jest.fn();
-    const getNonceLockMock = jest.fn().mockResolvedValue({
-      nextNonce: 99,
-      releaseLock: releaseLockMock,
-    });
-
-    isSendBundleSupportedMock.mockResolvedValue(false);
-    transactionControllerClassMock.mockImplementation(
-      () =>
-        ({
-          getNonceLock: getNonceLockMock,
-          isAtomicBatchSupported: jest.fn().mockResolvedValue([]),
-        }) as unknown as TransactionController,
-    );
-
-    let capturedGetNextNonce:
-      | ((address: string, networkClientId: string) => Promise<Hex>)
-      | undefined;
-    jest.mocked(Delegation7702PublishHook).mockImplementation((opts) => {
-      capturedGetNextNonce = opts.getNextNonce;
-      return {
-        getHook: () => async () => ({ transactionHash: '0xde702' }),
-      } as unknown as InstanceType<typeof Delegation7702PublishHook>;
-    });
-
-    const hooks = testConstructorOption('hooks', {
-      getNonceLock: getNonceLockMock,
-    });
-
-    await hooks?.publish?.({
-      ...MOCK_TRANSACTION_META,
-      chainId: '0x13',
-    });
-
-    const resultNonce = await capturedGetNextNonce?.('0xabc', 'testNetwork');
-    expect(getNonceLockMock).toHaveBeenCalledWith('0xabc', 'testNetwork');
-    expect(releaseLockMock).toHaveBeenCalled();
-    expect(resultNonce).toBe(toHex(99));
   });
 
   it('calls 7702 publish hook if isExternalSign', async () => {

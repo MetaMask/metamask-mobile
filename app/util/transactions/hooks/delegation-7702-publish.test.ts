@@ -12,14 +12,21 @@ import {
 } from '@metamask/keyring-controller';
 import {
   GasFeeToken,
+  IsAtomicBatchSupportedRequest,
   TransactionController,
+  TransactionControllerGetNonceLockAction,
+  TransactionControllerGetStateAction,
   TransactionControllerState,
+  TransactionControllerUpdateTransactionAction,
   TransactionMeta,
   TransactionType,
-  TransactionControllerGetStateAction,
-  TransactionControllerUpdateTransactionAction,
 } from '@metamask/transaction-controller';
 import { getDeleGatorEnvironment } from '../../../core/Delegation';
+import {
+  encodePermissionContexts,
+  encodeRedeemDelegations,
+} from '../../../core/Delegation/delegation';
+import { encodeExecutionCalldatas } from '../../../core/Delegation/execution';
 import { TransactionControllerInitMessenger } from '../../../core/Engine/messengers/transaction-controller-messenger';
 import {
   RelayStatus,
@@ -27,14 +34,20 @@ import {
   waitForRelayResult,
 } from '../transaction-relay';
 import { Delegation7702PublishHook } from './delegation-7702-publish';
-import { NetworkClientId } from '@metamask/network-controller';
 import { Hex } from '@metamask/utils';
+
+const mockGetNonceLock = jest.fn();
 
 jest.mock('../transaction-relay');
 jest.mock('../../../core/Delegation/delegation', () => ({
   ...jest.requireActual('../../../core/Delegation/delegation'),
-  encodeRedeemDelegations: jest.fn(() => '0xdeadbeef'),
-  signDelegation: jest.fn(async () => '0xsignature'),
+  encodeRedeemDelegations: jest.fn(),
+  encodePermissionContexts: jest.fn(),
+  signDelegation: jest.fn(),
+}));
+jest.mock('../../../core/Delegation/execution', () => ({
+  ...jest.requireActual('../../../core/Delegation/execution'),
+  encodeExecutionCalldatas: jest.fn(),
 }));
 
 const SIGNED_TX_MOCK = '0x1234';
@@ -45,6 +58,7 @@ const AUTHORIZATION_SIGNATURE_MOCK =
   '0xf85c827a6994663f3ad617193148711d28f5334ee4ed070166028080a040e292da533253143f134643a03405f1af1de1d305526f44ed27e62061368d4ea051cfb0af34e491aa4d6796dececf95569088322e116c4b2f312bb23f20699269';
 const UPGRADE_CONTRACT_ADDRESS_MOCK =
   '0x12345678901234567890123456789012345678a4';
+const NONCE_MOCK = 7;
 
 const TRANSACTION_META_MOCK = {
   chainId: '0x1',
@@ -105,9 +119,6 @@ describe('Delegation 7702 Publish Hook', () => {
   const signDelegationControllerMock: jest.MockedFn<
     DelegationControllerSignDelegationAction['handler']
   > = jest.fn();
-  const getNextNonceMock: jest.MockedFn<
-    (address: string, networkClientId: NetworkClientId) => Promise<Hex>
-  > = jest.fn();
   const getStateMock: jest.MockedFn<
     TransactionControllerGetStateAction['handler']
   > = jest.fn();
@@ -118,6 +129,10 @@ describe('Delegation 7702 Publish Hook', () => {
   beforeEach(() => {
     jest.resetAllMocks();
 
+    jest.mocked(encodeRedeemDelegations).mockReturnValue('0xdeadbeef' as Hex);
+    jest.mocked(encodePermissionContexts).mockReturnValue([]);
+    jest.mocked(encodeExecutionCalldatas).mockReturnValue([]);
+
     const rootMessenger = getRootMessenger();
 
     messenger = new Messenger<
@@ -126,6 +141,7 @@ describe('Delegation 7702 Publish Hook', () => {
       | DelegationControllerSignDelegationAction
       | KeyringControllerSignEip7702AuthorizationAction
       | KeyringControllerSignTypedMessageAction
+      | TransactionControllerGetNonceLockAction
       | TransactionControllerGetStateAction
       | TransactionControllerUpdateTransactionAction,
       never,
@@ -141,6 +157,7 @@ describe('Delegation 7702 Publish Hook', () => {
         'KeyringController:signTypedMessage',
         'BridgeStatusController:getState',
         'DelegationController:signDelegation',
+        'TransactionController:getNonceLock',
         'TransactionController:getState',
         'TransactionController:updateTransaction',
       ],
@@ -161,6 +178,10 @@ describe('Delegation 7702 Publish Hook', () => {
       signDelegationControllerMock,
     );
     rootMessenger.registerActionHandler(
+      'TransactionController:getNonceLock',
+      mockGetNonceLock,
+    );
+    rootMessenger.registerActionHandler(
       'TransactionController:getState',
       getStateMock,
     );
@@ -172,10 +193,13 @@ describe('Delegation 7702 Publish Hook', () => {
     hookClass = new Delegation7702PublishHook({
       isAtomicBatchSupported: isAtomicBatchSupportedMock,
       messenger,
-      getNextNonce: getNextNonceMock,
     });
 
     isAtomicBatchSupportedMock.mockResolvedValue([]);
+    mockGetNonceLock.mockResolvedValue({
+      nonceDetails: { params: { nextNetworkNonce: NONCE_MOCK } },
+      releaseLock: jest.fn(),
+    });
     signTypedMessageMock.mockResolvedValue(DELEGATION_SIGNATURE_MOCK);
     signDelegationControllerMock.mockResolvedValue(DELEGATION_SIGNATURE_MOCK);
     submitRelayTransactionMock.mockResolvedValue({
@@ -505,8 +529,7 @@ describe('Delegation 7702 Publish Hook', () => {
 
       expect(signDelegationControllerMock).toHaveBeenCalledTimes(1);
       const signArgs = signDelegationControllerMock.mock.calls[0][0];
-      // Should only have limitedCalls caveat, no execution caveats for deployment
-      expect(signArgs.delegation.caveats).toHaveLength(1);
+      expect(signArgs.delegation.caveats).toHaveLength(2);
     });
 
     it('handles contract deployment (no "to" address) for gasless flow', async () => {
@@ -532,8 +555,8 @@ describe('Delegation 7702 Publish Hook', () => {
 
       expect(signDelegationControllerMock).toHaveBeenCalledTimes(1);
       const signArgs = signDelegationControllerMock.mock.calls[0][0];
-      // Should only have limitedCalls caveat for deployment
       expect(signArgs.delegation.caveats).toHaveLength(1);
+      expect(submitRelayTransactionMock).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -645,7 +668,7 @@ describe('Delegation 7702 Publish Hook', () => {
           {
             address: UPGRADE_CONTRACT_ADDRESS_MOCK,
             chainId: TRANSACTION_META_MOCK.chainId,
-            nonce: TRANSACTION_META_MOCK.txParams.nonce,
+            nonce: toHex(NONCE_MOCK),
             r: expect.any(String),
             s: expect.any(String),
             yParity: expect.any(String),
