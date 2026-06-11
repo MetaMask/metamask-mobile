@@ -150,6 +150,18 @@ Android E2E builds also use `android/app/src/main/res/xml/react_native_config_e2
 
 Decision DA on MMQA-1923 is resolved as **A1 (bundled APK asset)**: the previous runtime `adb root` push into the user CA store is removed, and `AndroidDeviceCommandHandler.installRootCertificate` now throws to catch accidental wiring. A unit test in `E2EProxyCa.test.ts` guards that the bundled cert stays byte-identical to the checked-in CA cert.
 
+### Android native WSS coverage (N2)
+
+Unlike iOS (which needs the SocketRocket Podfile patch), Android requires **no native code hook** for WSS interception:
+
+- React Native's `WebSocketModule` (RN 0.81.5) builds its own `OkHttpClient`, and OkHttp's default `ProxySelector` honors the adb global proxy for `ws://`/`wss://` upgrade requests. TLS interception of `wss://` is trusted through the bundled proxy CA in the E2E network security config, same as HTTPS.
+- CI evidence: `E2E_NATIVE_PROXY_WS_REQUEST` / `_WS_ACCEPTED` / `_WS_MESSAGE_*` markers for native `wss://api.hyperliquid.xyz/ws` traffic appear on Android shards with no Android-side WS code at all.
+- Note for future work: `OkHttpClientProvider.setOkHttpClientFactory` does **not** cover WebSockets — `WebSocketModule` never consults the provider. If an explicit WS client override is ever needed, the hook is `com.facebook.react.modules.websocket.WebSocketModule.setCustomClientBuilder(...)` (applied to every WS client the module builds).
+- WS services rerouted by `shim.js` to local mock servers (e.g. account activity at `ws://localhost:8089`) are covered by the proxy **exclusion list** and travel the adb-reverse path instead — they intentionally never reach MockServer.
+- Third-party native module audit: `@react-native-firebase/messaging`, `@sentry/react-native`, and `react-native-branch` do not construct their own `OkHttpClient` — no known bypass gaps. Modules added later should be re-audited.
+
+The exit-gate evidence for N2 is `tests/smoke/account-activity/web-socket-connection.spec.ts`, re-enabled on Android (it was quarantined in #30951; it stays skipped on iOS until the Detox iOS proxy launch arg is activated).
+
 Useful Android log markers:
 
 ```text
