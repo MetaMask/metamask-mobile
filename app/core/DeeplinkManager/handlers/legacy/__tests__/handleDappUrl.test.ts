@@ -1,7 +1,13 @@
 import UrlParser from 'url-parse';
 import extractURLParams from '../../../utils/extractURLParams';
-import handleDappUrl from '../handleDappUrl';
+import {
+  handleDappUrl,
+  createDappDeeplinkIntent,
+  getDappUrlFromUniversalLink,
+} from '../handleDappUrl';
 import handleBrowserUrl from '../handleBrowserUrl';
+import Routes from '../../../../../constants/navigation/Routes';
+import { EXTERNAL_LINK_TYPE } from '../../../../../constants/browser';
 
 // Mock DeeplinkManager and extractURLParams
 jest.mock('../../../DeeplinkManager', () =>
@@ -9,7 +15,14 @@ jest.mock('../../../DeeplinkManager', () =>
 );
 
 jest.mock('../../../utils/extractURLParams');
-jest.mock('../handleBrowserUrl');
+jest.mock('../handleBrowserUrl', () => {
+  const actual = jest.requireActual('../handleBrowserUrl');
+  return {
+    __esModule: true,
+    ...actual,
+    default: jest.fn(),
+  };
+});
 
 describe('handleDappProtocol', () => {
   beforeEach(() => {
@@ -95,6 +108,69 @@ describe('handleDappProtocol', () => {
     expect(handleBrowserUrl).toHaveBeenCalledWith({
       url: 'https://example.com/',
       callback: browserCallBackMock,
+    });
+  });
+
+  it('creates a browser tab startup intent for the dapp URL', () => {
+    const intent = createDappDeeplinkIntent({
+      url: 'https://example.com/path',
+    });
+
+    expect(intent).toEqual({
+      target: {
+        type: 'home-tab',
+        routeName: Routes.BROWSER.HOME,
+        params: {
+          screen: Routes.BROWSER.VIEW,
+          params: {
+            newTabUrl: 'https://example.com/path',
+            linkType: EXTERNAL_LINK_TYPE,
+            timestamp: expect.any(Number),
+          },
+        },
+      },
+    });
+  });
+
+  describe('getDappUrlFromUniversalLink', () => {
+    const baseUrlAction = 'https://link.metamask.io/dapp';
+
+    it('prefixes bare domains with https', () => {
+      const urlObj = {
+        href: `${baseUrlAction}/example.com/path`,
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+
+      expect(getDappUrlFromUniversalLink({ baseUrlAction, urlObj })).toBe(
+        'https://example.com/path',
+      );
+    });
+
+    it('preserves embedded full URLs', () => {
+      const urlObj = {
+        href: `${baseUrlAction}/https://example.com/path`,
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+
+      expect(getDappUrlFromUniversalLink({ baseUrlAction, urlObj })).toBe(
+        'https://example.com/path',
+      );
+    });
+
+    it('repairs url-parse normalized embedded full URLs', () => {
+      const urlObj = {
+        href: `${baseUrlAction}/https:/example.com/path`,
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+
+      expect(getDappUrlFromUniversalLink({ baseUrlAction, urlObj })).toBe(
+        'https://example.com/path',
+      );
+    });
+
+    it('returns null when no dapp target is supplied', () => {
+      const urlObj = {
+        href: `${baseUrlAction}/`,
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+
+      expect(getDappUrlFromUniversalLink({ baseUrlAction, urlObj })).toBeNull();
     });
   });
 });
