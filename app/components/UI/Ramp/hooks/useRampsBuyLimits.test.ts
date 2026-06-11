@@ -1,5 +1,8 @@
 import { useRampsBuyLimits } from './useRampsBuyLimits';
-import type { Provider as RampProvider } from '@metamask/ramps-controller';
+import type {
+  Provider as RampProvider,
+  UserRegion,
+} from '@metamask/ramps-controller';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import { getProviderBuyLimit } from '../utils/providerLimits';
 import { getProviderLimitMessage } from '../utils/getProviderLimitMessage';
@@ -20,13 +23,13 @@ const PAYMENT_METHOD_ID = '/payments/debit-credit-card';
 function makeState({
   selectedProvider = mockProvider,
   userRegion = {
-    country: { currency: 'USD' },
+    country: { currency: 'USD' } as UserRegion['country'],
     state: null,
     regionCode: 'us',
   },
 }: {
   selectedProvider?: RampProvider | null;
-  userRegion?: unknown;
+  userRegion?: UserRegion | null;
 } = {}) {
   return {
     engine: {
@@ -128,7 +131,7 @@ describe('useRampsBuyLimits', () => {
   it('uses userRegion.country.currency as the currency', () => {
     const state = makeState({
       userRegion: {
-        country: { currency: 'EUR' },
+        country: { currency: 'EUR' } as UserRegion['country'],
         state: null,
         regionCode: 'de',
       },
@@ -161,7 +164,7 @@ describe('useRampsBuyLimits', () => {
   it('uses the currency override instead of the userRegion currency', () => {
     const state = makeState({
       userRegion: {
-        country: { currency: 'EUR' },
+        country: { currency: 'EUR' } as UserRegion['country'],
         state: null,
         regionCode: 'de',
       },
