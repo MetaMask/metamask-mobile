@@ -4,7 +4,6 @@ import { usePredictWorldCupMarkets } from '../../../../../UI/Predict/hooks/usePr
 import type { UsePredictMarketDataResult } from '../../../../../UI/Predict/hooks/usePredictMarketData';
 import { PREDICT_WORLD_CUP_TAB_KEYS } from '../../../../../UI/Predict/constants/worldCupTabs';
 import { selectPredictWorldCupConfig } from '../../../../../UI/Predict/selectors/featureFlags';
-import { PREDICT_WORLD_CUP_DEFAULT_TAG_SLUG } from '../../../../../UI/Predict/constants/flags';
 import { getPolymarketEndpoints } from '../../../../../UI/Predict/providers/polymarket/utils';
 
 interface UseHomepagePredictWorldCupMarketsArgs {
@@ -32,9 +31,11 @@ const homepagePredictWorldCupEventCountKeys = {
     ] as const,
 };
 
-const buildHomepagePredictWorldCupEventCountQuery = (): string => {
+const buildHomepagePredictWorldCupEventCountQuery = (
+  tagSlug: string,
+): string => {
   const queryParams = new URLSearchParams();
-  queryParams.set('tag_slug', PREDICT_WORLD_CUP_DEFAULT_TAG_SLUG);
+  queryParams.set('tag_slug', tagSlug);
   queryParams.set(
     'limit',
     String(HOMEPAGE_PREDICT_WORLD_CUP_EVENT_COUNT_LIMIT),
@@ -46,9 +47,10 @@ const buildHomepagePredictWorldCupEventCountQuery = (): string => {
   return queryParams.toString();
 };
 
-const fetchHomepagePredictWorldCupEventCount = async (): Promise<number> => {
+const fetchHomepagePredictWorldCupEventCount = async (
+  queryParams: string,
+): Promise<number | null> => {
   const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
-  const queryParams = buildHomepagePredictWorldCupEventCountQuery();
 
   const response = await fetch(
     `${GAMMA_API_ENDPOINT}/events/pagination?${queryParams}`,
@@ -61,7 +63,7 @@ const fetchHomepagePredictWorldCupEventCount = async (): Promise<number> => {
   const data = await response.json();
   const totalResults = data?.pagination?.totalResults;
 
-  return typeof totalResults === 'number' ? totalResults : 0;
+  return typeof totalResults === 'number' ? totalResults : null;
 };
 
 /**
@@ -72,10 +74,14 @@ const fetchHomepagePredictWorldCupEventCount = async (): Promise<number> => {
 export function useHomepagePredictWorldCupEventCount({
   enabled,
 }: UseHomepagePredictWorldCupMarketsArgs): UseHomepagePredictWorldCupEventCountResult {
-  const eventCountQueryParams = buildHomepagePredictWorldCupEventCountQuery();
+  const config = useSelector(selectPredictWorldCupConfig);
+  const eventCountQueryParams = buildHomepagePredictWorldCupEventCountQuery(
+    config.tagSlug,
+  );
   const eventCountQuery = useQuery({
     queryKey: homepagePredictWorldCupEventCountKeys.all(eventCountQueryParams),
-    queryFn: fetchHomepagePredictWorldCupEventCount,
+    queryFn: () =>
+      fetchHomepagePredictWorldCupEventCount(eventCountQueryParams),
     staleTime: HOMEPAGE_PREDICT_WORLD_CUP_EVENT_COUNT_STALE_TIME,
     enabled,
   });
@@ -84,7 +90,7 @@ export function useHomepagePredictWorldCupEventCount({
   };
 
   return {
-    eventCount: eventCountQuery.data,
+    eventCount: eventCountQuery.data ?? undefined,
     isFetching: eventCountQuery.isLoading,
     refetch,
   };

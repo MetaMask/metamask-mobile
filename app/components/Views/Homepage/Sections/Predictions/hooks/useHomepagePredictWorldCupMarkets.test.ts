@@ -46,7 +46,7 @@ describe('useHomepagePredictWorldCupMarkets', () => {
     });
   });
 
-  it('fetches the homepage World Cup event count directly from pagination metadata', async () => {
+  it('fetches the homepage World Cup event count using the configured World Cup tag', async () => {
     mockUseSelector.mockReturnValue({
       ...DEFAULT_PREDICT_WORLD_CUP_FLAG,
       tagSlug: 'remote-configured-world-cup-tag',
@@ -66,8 +66,44 @@ describe('useHomepagePredictWorldCupMarkets', () => {
     await waitFor(() => expect(result.current.eventCount).toBe(48));
 
     expect(mockFetch).toHaveBeenCalledWith(
-      'https://gamma-api.polymarket.com/events/pagination?tag_slug=fifa-world-cup&limit=1&active=true&closed=false&archived=false',
+      'https://gamma-api.polymarket.com/events/pagination?tag_slug=remote-configured-world-cup-tag&limit=1&active=true&closed=false&archived=false',
     );
+  });
+
+  it('omits the event count when pagination metadata is missing', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({
+        pagination: {},
+      }),
+    });
+
+    const { result } = renderHook(
+      () => useHomepagePredictWorldCupEventCount({ enabled: true }),
+      { wrapper: createWrapper() },
+    );
+
+    await waitFor(() => expect(result.current.isFetching).toBe(false));
+
+    expect(result.current.eventCount).toBeUndefined();
+  });
+
+  it('omits the event count when pagination totalResults is not a number', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({
+        pagination: { totalResults: '48' },
+      }),
+    });
+
+    const { result } = renderHook(
+      () => useHomepagePredictWorldCupEventCount({ enabled: true }),
+      { wrapper: createWrapper() },
+    );
+
+    await waitFor(() => expect(result.current.isFetching).toBe(false));
+
+    expect(result.current.eventCount).toBeUndefined();
   });
 
   it('does not fall back to the loaded market count while the event count is loading', () => {
