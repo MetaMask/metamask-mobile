@@ -70,8 +70,6 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
-
-
 const mockTrackEvent = jest.fn();
 const mockAddTraitsToUser = jest.fn();
 const mockCreateEventBuilder = jest.fn(() => ({
