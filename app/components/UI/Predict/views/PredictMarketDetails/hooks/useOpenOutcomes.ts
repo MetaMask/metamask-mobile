@@ -1,10 +1,8 @@
 import { useMemo } from 'react';
-import { usePredictPrices } from '../../../hooks/usePredictPrices';
 import { useLiveMarketPrices } from '../../../hooks/useLiveMarketPrices';
-import { getPredictBuyPrice } from '../../../utils/prices';
+import { isValidPrice } from '../../../utils/prices';
 import {
   OPEN_PREDICT_OUTCOME_STATUS,
-  type PriceQuery,
   type PredictMarket,
   type PredictOutcome,
 } from '../../../types';
@@ -20,7 +18,7 @@ interface UseOpenOutcomesResult {
   yesPercentage: number;
 }
 
-const EMPTY_PRICE_QUERIES: PriceQuery[] = [];
+const EMPTY_TOKEN_IDS: string[] = [];
 
 export const useOpenOutcomes = ({
   market,
@@ -39,50 +37,33 @@ export const useOpenOutcomes = ({
     [market?.outcomes],
   );
 
-  const priceQueries: PriceQuery[] = useMemo(
+  const tokenIds = useMemo(
     () =>
-      openOutcomesBase.flatMap((outcome) =>
-        outcome.tokens.map((token) => ({
-          marketId: outcome.marketId,
-          outcomeId: outcome.id,
-          outcomeTokenId: token.id,
-        })),
-      ),
+      openOutcomesBase.flatMap((outcome) => outcome.tokens.map((t) => t.id)),
     [openOutcomesBase],
   );
 
-  const shouldFetchPrices = enabled && priceQueries.length > 0;
-  const activePriceQueries = shouldFetchPrices
-    ? priceQueries
-    : EMPTY_PRICE_QUERIES;
+  const shouldSubscribe = enabled && tokenIds.length > 0;
+  const activeTokenIds = shouldSubscribe ? tokenIds : EMPTY_TOKEN_IDS;
 
-  const { prices } = usePredictPrices({
-    queries: activePriceQueries,
-    enabled: shouldFetchPrices,
-    pollingInterval: shouldFetchPrices ? 2000 : undefined,
+  const { getPrice: getLivePrice } = useLiveMarketPrices(activeTokenIds, {
+    enabled: shouldSubscribe,
   });
 
-  const tokenIds = useMemo(
-    () => activePriceQueries.map((q) => q.outcomeTokenId),
-    [activePriceQueries],
-  );
-  const { getPrice: getLivePrice } = useLiveMarketPrices(tokenIds, {
-    enabled: shouldFetchPrices,
-  });
-
-  // Price precedence: live WebSocket bestAsk > REST buy price > base market price.
+  // Price precedence: live WebSocket bestAsk > base market price.
   const openOutcomes = useMemo(
     () =>
       openOutcomesBase.map((outcome) => ({
         ...outcome,
         tokens: outcome.tokens.map((token) => ({
           ...token,
-          price:
-            getPredictBuyPrice(token, getLivePrice(token.id), prices) ??
-            token.price,
+          price: (() => {
+            const liveBestAsk = getLivePrice(token.id)?.bestAsk;
+            return isValidPrice(liveBestAsk) ? liveBestAsk : token.price;
+          })(),
         })),
       })),
-    [openOutcomesBase, prices, getLivePrice],
+    [openOutcomesBase, getLivePrice],
   );
 
   const yesPercentage = useMemo((): number => {
