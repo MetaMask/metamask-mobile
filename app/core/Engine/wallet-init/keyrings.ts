@@ -25,7 +25,8 @@ import { hmacSha512 } from '@metamask/native-utils';
 import { pbkdf2 } from '../../Encryptor';
 import { snapKeyringBuilder, snapKeyringBuilderV2 } from '../../SnapKeyring';
 import { SnapKeyringBuilderMessenger } from '../../SnapKeyring/types';
-import { Messenger } from '@metamask/messenger';
+import { getSnapKeyringBuilderMessenger } from '../messengers/accounts/snap-keyring-builder-messenger';
+import { getSnapKeyringV2BuilderMessenger } from '../messengers/accounts/snap-keyring-v2-builder-messenger';
 import { store } from '../../../store';
 import {
   scanCompleted,
@@ -44,42 +45,6 @@ export const qrKeyringBridge = new QrKeyringDeferredPromiseBridge({
     store.dispatch(scanCompleted());
   },
 });
-
-function getSnapKeyringMessenger(
-  messenger: RootMessenger,
-): SnapKeyringBuilderMessenger {
-  const snapKeyringMessenger: SnapKeyringBuilderMessenger = new Messenger({
-    namespace: 'SnapKeyring',
-    parent: messenger,
-  });
-
-  messenger.delegate({
-    messenger: snapKeyringMessenger,
-    actions: [
-      'ApprovalController:addRequest',
-      'ApprovalController:acceptRequest',
-      'ApprovalController:rejectRequest',
-      'ApprovalController:startFlow',
-      'ApprovalController:endFlow',
-      'ApprovalController:showSuccess',
-      'ApprovalController:showError',
-      'PhishingController:testOrigin',
-      'PhishingController:maybeUpdateState',
-      'KeyringController:getAccounts',
-      'KeyringController:persistAllKeyrings',
-      'KeyringController:removeAccount',
-      'AccountsController:setSelectedAccount',
-      'AccountsController:getAccountByAddress',
-      'AccountsController:setAccountName',
-      'AccountsController:listMultichainAccounts',
-      'SnapController:handleRequest',
-      'SnapController:getSnap',
-      'SnapController:isMinimumPlatformVersion',
-    ],
-  });
-
-  return snapKeyringMessenger;
-}
 
 export function getKeyringBuilders(
   messenger: RootMessenger,
@@ -146,7 +111,7 @@ export function getKeyringBuilders(
   keyrings.push(moneyKeyringBuilder);
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  const snapKeyringMessenger = getSnapKeyringMessenger(messenger);
+  const snapKeyringMessenger = getSnapKeyringBuilderMessenger(messenger);
   keyrings.push(snapKeyringBuilder(snapKeyringMessenger));
   ///: END:ONLY_INCLUDE_IF
 
@@ -223,7 +188,7 @@ export function getKeyringV2Builders(
     // KeyringController vault management. The same inner instance is retrieved
     // via `unwrap()` for the v2 builder, so both entries share the same
     // underlying object — enabling both `withKeyring` and `withKeyringV2`.
-    snapKeyringBuilderV2(getSnapKeyringMessenger(messenger)).v2Builder,
+    snapKeyringBuilderV2(getSnapKeyringV2BuilderMessenger(messenger)),
     ///: END:ONLY_INCLUDE_IF
   ];
 }
