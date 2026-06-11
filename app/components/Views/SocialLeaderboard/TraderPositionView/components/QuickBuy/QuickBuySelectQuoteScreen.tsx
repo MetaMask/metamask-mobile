@@ -8,6 +8,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { fromTokenMinimalUnit } from '../../../../../../util/number/bigint';
 import formatFiat from '../../../../../../util/formatFiat';
 import { isGaslessQuote } from '../../../../../UI/Bridge/utils/isGaslessQuote';
@@ -92,7 +93,10 @@ const QuickBuySelectQuoteScreen: React.FC = () => {
           </Text>
         </Box>
       ) : (
-        <>
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
           <Box twClassName="px-4 pb-2 mb-2">
             <Text
               variant={TextVariant.BodySm}
@@ -106,7 +110,7 @@ const QuickBuySelectQuoteScreen: React.FC = () => {
               <QuoteRow key={rowProps.quoteRequestId} {...rowProps} />
             ))}
           </Box>
-        </>
+        </ScrollView>
       )}
     </>
   );
