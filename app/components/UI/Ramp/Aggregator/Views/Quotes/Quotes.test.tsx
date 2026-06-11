@@ -19,6 +19,7 @@ import {
 
 import Quotes, { QuotesParams } from './Quotes';
 import { mockQuotesData } from './Quotes.constants';
+import { QuoteSelectors } from './Quotes.testIds';
 import Timer from './Timer';
 import LoadingQuotes from './LoadingQuotes';
 
@@ -242,25 +243,13 @@ describe('Quotes', () => {
     };
   });
 
-  it('calls setOptions when rendering', async () => {
-    mockUseQuotesAndCustomActionsValues = {
-      ...mockUseQuotesAndCustomActionsInitialValues,
-      isFetching: true,
-      quotes: undefined,
-      quotesWithoutError: [],
-      quotesWithError: [],
-      quotesByPriceWithoutError: [],
-      quotesByReliabilityWithoutError: [],
-      recommendedQuote: undefined,
-    };
+  it('tracks event on close button press', async () => {
     render(Quotes);
-    expect(mockSetOptions).toHaveBeenCalled();
-  });
-
-  it('navigates and tracks event on back button press', async () => {
-    render(Quotes);
-    fireEvent.press(screen.getByTestId('deposit-back-navbar-button'));
-    expect(mockPop).toHaveBeenCalled();
+    act(() => {
+      jest.advanceTimersByTime(3000);
+      jest.clearAllTimers();
+    });
+    fireEvent.press(screen.getByTestId(QuoteSelectors.CLOSE_BUTTON));
     expect(mockTrackEvent).toHaveBeenCalledWith('ONRAMP_CANCELED', {
       chain_id_destination: '1',
       location: 'Quotes Screen',
@@ -273,12 +262,16 @@ describe('Quotes', () => {
     });
   });
 
-  it('navigates and tracks event on SELL back button press', async () => {
+  it('tracks event on SELL close button press', async () => {
     mockUseRampSDKValues.rampType = RampType.SELL;
     mockUseRampSDKValues.isSell = true;
     mockUseRampSDKValues.isBuy = false;
     render(Quotes);
-    fireEvent.press(screen.getByTestId('deposit-back-navbar-button'));
+    act(() => {
+      jest.advanceTimersByTime(3000);
+      jest.clearAllTimers();
+    });
+    fireEvent.press(screen.getByTestId(QuoteSelectors.CLOSE_BUTTON));
     expect(mockTrackEvent).toHaveBeenCalledWith('OFFRAMP_CANCELED', {
       chain_id_source: '1',
       location: 'Quotes Screen',

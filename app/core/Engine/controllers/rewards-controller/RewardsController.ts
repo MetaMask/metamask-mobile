@@ -552,6 +552,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'invalidateSubscriptionCache',
   'isOptInSupported',
   'isRewardsFeatureEnabled',
+  'isVipFeatureEnabled',
   'linkAccountsToSubscriptionCandidate',
   'linkAccountToSubscriptionCandidate',
   'logout',
@@ -585,6 +586,7 @@ export class RewardsController extends BaseController<
     { payload: OndoGmCampaignParticipantOutcomeDto; lastFetched: number }
   > = new Map();
   #isDisabled: () => boolean;
+  #isVipDisabled: () => boolean;
   #reauthPromises: Map<string, Promise<void>> = new Map();
 
   // Deduplicates concurrent /vip/fees fetches for the same subscriptionId.
@@ -752,10 +754,12 @@ export class RewardsController extends BaseController<
     messenger,
     state,
     isDisabled,
+    isVipDisabled,
   }: {
     messenger: RewardsControllerMessenger;
     state?: Partial<RewardsControllerState>;
     isDisabled?: () => boolean;
+    isVipDisabled?: () => boolean;
   }) {
     super({
       name: controllerName,
@@ -768,6 +772,7 @@ export class RewardsController extends BaseController<
     });
 
     this.#isDisabled = isDisabled ?? (() => false);
+    this.#isVipDisabled = isVipDisabled ?? (() => false);
 
     this.messenger.registerMethodActionHandlers(
       this,
@@ -1798,8 +1803,7 @@ export class RewardsController extends BaseController<
   }
 
   async getVipTierForAccount(account: CaipAccountId): Promise<number | null> {
-    const rewardsEnabled = this.isRewardsFeatureEnabled();
-    if (!rewardsEnabled) return null;
+    if (!this.isVipFeatureEnabled()) return null;
 
     const subscriptionId = this.getActualSubscriptionId(account);
     if (!subscriptionId) return null;
@@ -1841,8 +1845,7 @@ export class RewardsController extends BaseController<
     account: CaipAccountId,
     baseFeeBips: number,
   ): Promise<number | null> {
-    const rewardsEnabled = this.isRewardsFeatureEnabled();
-    if (!rewardsEnabled) return null;
+    if (!this.isVipFeatureEnabled()) return null;
 
     const vipDiscountBips = await this.#getVipPerpsDiscountBips(
       account,
@@ -2316,6 +2319,18 @@ export class RewardsController extends BaseController<
   isRewardsFeatureEnabled(): boolean {
     const isDisabled = this.#isDisabled();
     if (isDisabled) return false;
+    return true;
+  }
+
+  /**
+   * Check if the VIP feature is enabled.
+   * VIP is a sub-feature of rewards, so it requires both the rewards feature
+   * and the dedicated VIP feature flag to be enabled.
+   * @returns boolean - True if the VIP feature is enabled, false otherwise
+   */
+  isVipFeatureEnabled(): boolean {
+    if (!this.isRewardsFeatureEnabled()) return false;
+    if (this.#isVipDisabled()) return false;
     return true;
   }
 
@@ -4490,6 +4505,8 @@ export class RewardsController extends BaseController<
   async getVIPDashboard(
     subscriptionId: string,
   ): Promise<VipDashboardState | null> {
+    if (!this.isVipFeatureEnabled()) return null;
+
     return await wrapWithCache<VipDashboardState | null>({
       key: subscriptionId,
       ttl: VIP_DASHBOARD_CACHE_THRESHOLD_MS,

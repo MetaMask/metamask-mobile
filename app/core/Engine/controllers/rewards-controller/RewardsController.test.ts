@@ -3318,6 +3318,23 @@ describe('RewardsController', () => {
       expect(result).toBeNull();
     });
 
+    it('returns null when VIP is disabled via isVipDisabled callback', async () => {
+      const vipDisabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+        isVipDisabled: () => true,
+      });
+
+      const result = await vipDisabledController.getPerpsDiscountForAccount(
+        CAIP_ACCOUNT_1,
+        10,
+      );
+
+      expect(result).toBeNull();
+      expect(mockMessenger.call).not.toHaveBeenCalled();
+    });
+
     it('returns null for accounts the controller has never seen (unhydrated)', async () => {
       const result = await controller.getPerpsDiscountForAccount(
         CAIP_ACCOUNT_2,
@@ -3871,6 +3888,21 @@ describe('RewardsController', () => {
       expect(result).toBeNull();
     });
 
+    it('returns null when VIP is disabled via isVipDisabled callback', async () => {
+      const vipDisabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+        isVipDisabled: () => true,
+      });
+
+      const result =
+        await vipDisabledController.getVipTierForAccount(CAIP_ACCOUNT_1);
+
+      expect(result).toBeNull();
+      expect(mockMessenger.call).not.toHaveBeenCalled();
+    });
+
     it('returns null for accounts the controller has never seen (unhydrated)', async () => {
       const result = await controller.getVipTierForAccount(CAIP_ACCOUNT_2);
       expect(result).toBeNull();
@@ -3920,6 +3952,51 @@ describe('RewardsController', () => {
       const result = disabledController.isRewardsFeatureEnabled();
 
       expect(result).toBe(false);
+    });
+  });
+
+  describe('isVipFeatureEnabled', () => {
+    it('returns true when neither rewards nor VIP is disabled', () => {
+      const enabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+        isVipDisabled: () => false,
+      });
+
+      expect(enabledController.isVipFeatureEnabled()).toBe(true);
+    });
+
+    it('returns false when VIP is disabled via isVipDisabled callback', () => {
+      const vipDisabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+        isVipDisabled: () => true,
+      });
+
+      expect(vipDisabledController.isVipFeatureEnabled()).toBe(false);
+    });
+
+    it('returns false when rewards is disabled even if VIP is enabled', () => {
+      const rewardsDisabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => true,
+        isVipDisabled: () => false,
+      });
+
+      expect(rewardsDisabledController.isVipFeatureEnabled()).toBe(false);
+    });
+
+    it('defaults to enabled when isVipDisabled is not provided', () => {
+      const defaultController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+      });
+
+      expect(defaultController.isVipFeatureEnabled()).toBe(true);
     });
   });
 
@@ -7038,6 +7115,24 @@ describe('RewardsController', () => {
         ...apiDashboard,
         lastFetched: 123,
       });
+    });
+
+    it('returns null without fetching when VIP is disabled via isVipDisabled callback', async () => {
+      const vipDisabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+        isVipDisabled: () => true,
+      });
+
+      const result =
+        await vipDisabledController.getVIPDashboard(mockSubscriptionId);
+
+      expect(result).toBeNull();
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:getVIPDashboard',
+        mockSubscriptionId,
+      );
     });
 
     it('persists fetched VIP dashboard to vipDashboard state', async () => {

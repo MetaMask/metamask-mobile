@@ -413,6 +413,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'trackPositionsScreenViewed',
   'trackPositionsTabViewed',
   'trackPredictOrderEvent',
+  'trackSearchInteracted',
   'trackShareAction',
 ] as const;
 
@@ -1271,6 +1272,17 @@ export class PredictController extends BaseController<
     args: Parameters<PredictAnalytics['trackShareAction']>[0],
   ): void {
     this.analytics.trackShareAction(args);
+  }
+
+  /**
+   * Track Predict Search Interacted analytics event
+   *
+   * @public
+   */
+  public trackSearchInteracted(
+    args: Parameters<PredictAnalytics['trackSearchInteracted']>[0],
+  ): void {
+    this.analytics.trackSearchInteracted(args);
   }
 
   /**
@@ -3376,5 +3388,6 @@ export type {
   PredictControllerTrackMarketDetailsOpenedAction,
   PredictControllerTrackPositionViewedAction,
   PredictControllerTrackPredictOrderEventAction,
+  PredictControllerTrackSearchInteractedAction,
   PredictControllerTrackShareActionAction,
 } from './PredictController-method-action-types';
