@@ -87,6 +87,34 @@ jobs:
           # BITRISE-SHADOW: preserve prewarmed node_modules / Pods (INFRA-3679)
           clean: ${{ inputs.runner_provider != 'bitrise' }}
 
+      # Bitrise Build Hub VMs use Vagrant (user=vagrant, HOME=/Users/vagrant).
+      # GitHub Actions tooling expects /Users/runner — symlink for compatibility (INFRA-3591 POC).
+      - name: Fix Vagrant environment paths (Bitrise runners)
+        if: ${{ inputs.runner_provider == 'bitrise' }}
+        run: |
+          if [ -L /Users/runner ]; then
+            current_target="$(readlink /Users/runner)"
+            if [ "$current_target" = "/Users/vagrant" ]; then
+              echo "Symlink already correct: /Users/runner -> /Users/vagrant"
+            else
+              echo "Replacing incorrect symlink /Users/runner -> $current_target"
+              sudo rm /Users/runner
+              sudo ln -s /Users/vagrant /Users/runner
+              echo "Recreated symlink: /Users/runner -> /Users/vagrant"
+            fi
+          elif [ -e /Users/runner ]; then
+            echo "Error: /Users/runner exists but is not a symlink"
+            ls -ld /Users/runner
+            exit 1
+          else
+            sudo ln -s /Users/vagrant /Users/runner
+            echo "Created symlink /Users/runner -> /Users/vagrant"
+          fi
+          mkdir -p "$HOME/hostedtoolcache" "$HOME/tmp"
+          echo "RUNNER_TOOL_CACHE=$HOME/hostedtoolcache" >> "$GITHUB_ENV"
+          echo "RUNNER_TEMP=$HOME/tmp" >> "$GITHUB_ENV"
+        shell: bash
+
       - name: Configure Namespace cache
         if: ${{ inputs.runner_provider == 'namespace' }}
         uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
