@@ -177,10 +177,9 @@ describe('useNotificationPreferences', () => {
     const { socialAI: _socialAI, ...preferencesWithoutSocialAI } =
       buildStoragePreferences();
     mockUseNotificationStoragePreferences.mockReturnValue({
-      preferences:
-        preferencesWithoutSocialAI as unknown as ReturnType<
-          typeof useNotificationStoragePreferences
-        >['preferences'],
+      preferences: preferencesWithoutSocialAI as unknown as ReturnType<
+        typeof useNotificationStoragePreferences
+      >['preferences'],
       hasNotificationPreferences: true,
       isLoading: false,
       error: null,
