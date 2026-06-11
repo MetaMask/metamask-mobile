@@ -187,9 +187,6 @@ const RootRPCMethodsUI = (props) => {
       function cleanup() {
         Engine.context.TokensController?.hub?.removeAllListeners();
       },
-    // Empty deps are intentional and complete: the cleanup only touches the
-    // module-level `Engine` singleton, so this registers a one-time unmount
-    // teardown. No reactive values are referenced.
     [],
   );
 
