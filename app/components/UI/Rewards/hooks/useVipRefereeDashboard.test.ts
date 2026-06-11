@@ -90,6 +90,7 @@ describe('useVipRefereeDashboard', () => {
     points: 1234,
     swapsVolume: 1000,
     perpsVolume: 2000,
+    computedAt: '2099-06-30T14:52:00.000Z',
     lastFetched: 123,
   };
 

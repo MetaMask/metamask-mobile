@@ -8797,7 +8797,8 @@
       "referee_perps_volume_label": "Perps volume",
       "referee_error_title": "We couldn’t load your VIP referee details",
       "referee_error_description": "Check your connection and try again.",
-      "referral_tag_label": "VIP"
+      "referral_tag_label": "VIP",
+      "last_updated": "Last updated: {{time}}"
     },
     "referral_title": "Referrals",
     "referral_stats_earned_from_referrals": "Earned from referrals",

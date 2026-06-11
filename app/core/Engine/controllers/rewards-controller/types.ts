@@ -136,6 +136,9 @@ export type VipLocalizedTextDto = {
 export type VipDashboardDto = {
   program: VipProgramDto;
   period: VipPeriodDto;
+  // ISO-8601 instant the subscription's tier snapshot was last computed
+  // (vip_subscription_tier.computed_at), or null if no snapshot exists yet.
+  computedAt: string | null;
   currentTier: VipTierRefDto;
   nextTier: VipTierRefDto;
   progress: VipProgressDto;

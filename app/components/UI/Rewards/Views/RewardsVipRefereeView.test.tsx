@@ -164,6 +164,7 @@ const defaultDashboard: VipRefereeMeState = {
   points: 1234,
   swapsVolume: 1000,
   perpsVolume: 2000,
+  computedAt: '2099-06-30T14:52:00.000Z',
   lastFetched: 0,
 };
 
@@ -241,6 +242,30 @@ describe('RewardsVipRefereeView', () => {
       page_type: 'vip_referee',
       enabled: true,
     });
+  });
+
+  it('renders the "Last updated" row when computedAt is present', () => {
+    const { getByTestId } = render(<RewardsVipRefereeView />);
+
+    expect(
+      getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.LAST_UPDATED),
+    ).toBeOnTheScreen();
+  });
+
+  it('does not render the "Last updated" row when computedAt is null', () => {
+    mockUseVipRefereeDashboard.mockReturnValue({
+      dashboard: { ...defaultDashboard, computedAt: null },
+      isLoading: false,
+      hasError: false,
+      hasAttemptedFetch: true,
+      fetchVipRefereeDashboard: mockFetch,
+    });
+
+    const { queryByTestId } = render(<RewardsVipRefereeView />);
+
+    expect(
+      queryByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.LAST_UPDATED),
+    ).toBeNull();
   });
 
   it('renders the error banner when the fetch errors with no data', () => {

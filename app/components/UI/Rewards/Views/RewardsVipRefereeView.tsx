@@ -34,7 +34,11 @@ import {
   VIP_GOLD_BORDER_DEFAULT,
   VIP_GOLD_TEXT_MUTED,
 } from '../components/Vip/Vip.constants';
-import { formatNumber, formatUsd } from '../utils/formatUtils';
+import {
+  formatNumber,
+  formatRewardsTimeOnly,
+  formatUsd,
+} from '../utils/formatUtils';
 
 export const REWARDS_VIP_REFEREE_VIEW_TEST_IDS = {
   VIEW: 'rewards-vip-referee-view',
@@ -45,6 +49,7 @@ export const REWARDS_VIP_REFEREE_VIEW_TEST_IDS = {
   POINTS: 'rewards-vip-referee-view-points',
   SWAPS_VOLUME: 'rewards-vip-referee-view-swaps-volume',
   PERPS_VOLUME: 'rewards-vip-referee-view-perps-volume',
+  LAST_UPDATED: 'rewards-vip-referee-view-last-updated',
 } as const;
 
 const referredByCardStyle = {
@@ -241,6 +246,19 @@ const RewardsVipRefereeViewContent: React.FC = () => {
                   {formatUsd(dashboard.perpsVolume)}
                 </Text>
               </Box>
+
+              {dashboard.computedAt ? (
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                  twClassName="text-right"
+                  testID={REWARDS_VIP_REFEREE_VIEW_TEST_IDS.LAST_UPDATED}
+                >
+                  {strings('rewards.vip.last_updated', {
+                    time: formatRewardsTimeOnly(new Date(dashboard.computedAt)),
+                  })}
+                </Text>
+              ) : null}
             </>
           ) : null}
         </ScrollView>
