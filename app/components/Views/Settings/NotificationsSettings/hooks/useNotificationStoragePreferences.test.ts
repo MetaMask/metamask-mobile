@@ -206,7 +206,7 @@ describe('useNotificationStoragePreferences', () => {
     );
   });
 
-  it('ignores overlapping writes while a preference save is in flight', async () => {
+  it('serializes overlapping writes and preserves the latest preference intent', async () => {
     queryCache = buildPreferences();
     mockUseQuery.mockReturnValue(makeQueryResult({ data: queryCache }));
 
@@ -248,7 +248,9 @@ describe('useNotificationStoragePreferences', () => {
       await Promise.all([firstWrite, secondWrite]);
     });
 
-    expect(putPayloads).toHaveLength(1);
+    expect(putPayloads).toHaveLength(2);
     expect(putPayloads[0].walletActivity.pushNotificationsEnabled).toBe(false);
+    expect(putPayloads[1].walletActivity.pushNotificationsEnabled).toBe(true);
+    expect(queryCache?.walletActivity.pushNotificationsEnabled).toBe(true);
   });
 });

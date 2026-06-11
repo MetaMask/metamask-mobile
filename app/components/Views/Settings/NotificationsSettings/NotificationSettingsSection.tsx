@@ -158,13 +158,19 @@ const NotificationSettingsSection = ({
   const isMetamaskNotificationsEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
-  const { preferences, isUpdatingPreferences, updateSectionChannel } =
+  const { preferences, updateSectionChannel } =
     useNotificationStoragePreferences();
-  const [pendingChannelToggle, setPendingChannelToggle] = useState<{
-    channel: NotificationPreferenceChannelKey;
-    value: boolean;
-  } | null>(null);
-  const isUpdatingChannelRef = useRef(false);
+  const [pendingChannelToggles, setPendingChannelToggles] = useState<
+    Partial<Record<NotificationPreferenceChannelKey, boolean>>
+  >({});
+  const channelGenerationsRef = useRef<
+    Record<NotificationPreferenceChannelKey, number>
+  >({
+    pushNotificationsEnabled: 0,
+    inAppNotificationsEnabled: 0,
+  });
+  const sectionPrefs = preferences?.[type];
+  const SectionContent = SECTION_CONTENT_BY_TYPE[type];
 
   useEffect(() => {
     if (!isMetamaskNotificationsEnabled) {
@@ -172,46 +178,70 @@ const NotificationSettingsSection = ({
     }
   }, [isMetamaskNotificationsEnabled, navigation]);
 
-  const handleChannelToggle = useCallback(
-    (channel: NotificationPreferenceChannelKey, nextValue: boolean) => {
-      if (isUpdatingChannelRef.current) {
-        return;
-      }
+  const clearPendingChannelToggle = useCallback(
+    (channel: NotificationPreferenceChannelKey) => {
+      setPendingChannelToggles((current) => {
+        if (current[channel] === undefined) {
+          return current;
+        }
 
-      isUpdatingChannelRef.current = true;
-      setPendingChannelToggle({ channel, value: nextValue });
-      updateSectionChannel(type, channel, nextValue)
-        .catch(() => {
-          Logger.error(
-            new Error('Failed to update notification section channel'),
-            {
-              message: 'NotificationSettingsSection: update channel failed',
-              type,
-              channel,
-              nextValue,
-            },
-          );
-        })
-        .finally(() => {
-          isUpdatingChannelRef.current = false;
-          setPendingChannelToggle(null);
-        });
+        const next = { ...current };
+        delete next[channel];
+        return next;
+      });
     },
-    [type, updateSectionChannel],
+    [],
   );
 
-  if (!isMetamaskNotificationsEnabled || !preferences) {
+  const handleChannelToggle = useCallback(
+    (channel: NotificationPreferenceChannelKey, nextValue: boolean) => {
+      channelGenerationsRef.current[channel] += 1;
+      const generation = channelGenerationsRef.current[channel];
+
+      setPendingChannelToggles((current) => ({
+        ...current,
+        [channel]: nextValue,
+      }));
+
+      updateSectionChannel(type, channel, nextValue).catch(() => {
+        Logger.error(
+          new Error('Failed to update notification section channel'),
+          {
+            message: 'NotificationSettingsSection: update channel failed',
+            type,
+            channel,
+            nextValue,
+          },
+        );
+
+        if (channelGenerationsRef.current[channel] === generation) {
+          clearPendingChannelToggle(channel);
+        }
+      });
+    },
+    [clearPendingChannelToggle, type, updateSectionChannel],
+  );
+
+  useEffect(() => {
+    if (!sectionPrefs) {
+      return;
+    }
+
+    (
+      [
+        'pushNotificationsEnabled',
+        'inAppNotificationsEnabled',
+      ] as NotificationPreferenceChannelKey[]
+    ).forEach((channel) => {
+      if (pendingChannelToggles[channel] === sectionPrefs[channel]) {
+        clearPendingChannelToggle(channel);
+      }
+    });
+  }, [clearPendingChannelToggle, pendingChannelToggles, sectionPrefs]);
+
+  if (!isMetamaskNotificationsEnabled || !sectionPrefs) {
     return null;
   }
-
-  const sectionPrefs = preferences[type];
-  if (!sectionPrefs) {
-    return null;
-  }
-
-  const SectionContent = SECTION_CONTENT_BY_TYPE[type];
-  const areChannelSwitchesDisabled =
-    isUpdatingPreferences || pendingChannelToggle !== null;
 
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
@@ -242,11 +272,9 @@ const NotificationSettingsSection = ({
           </Text>
           <Switch
             value={
-              pendingChannelToggle?.channel === 'pushNotificationsEnabled'
-                ? pendingChannelToggle.value
-                : sectionPrefs.pushNotificationsEnabled
+              pendingChannelToggles.pushNotificationsEnabled ??
+              sectionPrefs.pushNotificationsEnabled
             }
-            disabled={areChannelSwitchesDisabled}
             onValueChange={(nextValue) =>
               handleChannelToggle('pushNotificationsEnabled', nextValue)
             }
@@ -273,11 +301,9 @@ const NotificationSettingsSection = ({
           </Text>
           <Switch
             value={
-              pendingChannelToggle?.channel === 'inAppNotificationsEnabled'
-                ? pendingChannelToggle.value
-                : sectionPrefs.inAppNotificationsEnabled
+              pendingChannelToggles.inAppNotificationsEnabled ??
+              sectionPrefs.inAppNotificationsEnabled
             }
-            disabled={areChannelSwitchesDisabled}
             onValueChange={(nextValue) =>
               handleChannelToggle('inAppNotificationsEnabled', nextValue)
             }

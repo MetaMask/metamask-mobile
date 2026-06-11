@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useQuery } from '@metamask/react-data-query';
 import { useQueryClient } from '@tanstack/react-query';
 import type {
@@ -62,13 +62,33 @@ export const useNotificationStoragePreferences =
         refetchOnWindowFocus: false,
       });
     const queryClient = useQueryClient();
-    const [isUpdatingPreferences, setIsUpdatingPreferences] = useState(false);
-    const isUpdatingPreferencesRef = useRef(false);
+    const [pendingWrites, setPendingWrites] = useState(0);
+    const pendingWritesRef = useRef(0);
+    const writeChainRef = useRef<Promise<void>>(Promise.resolve());
+    const generationRef = useRef(0);
+    const lastConfirmedPreferencesRef =
+      useRef<NotificationPreferencesQueryData>(undefined);
     const getCachedPreferences = useCallback(
       () =>
         queryClient.getQueryData(QUERY_KEY) as NotificationPreferencesQueryData,
       [queryClient],
     );
+
+    useEffect(() => {
+      if (pendingWritesRef.current === 0 && data) {
+        lastConfirmedPreferencesRef.current = data;
+      }
+    }, [data]);
+
+    const beginWrite = useCallback(() => {
+      pendingWritesRef.current += 1;
+      setPendingWrites(pendingWritesRef.current);
+    }, []);
+
+    const finishWrite = useCallback(() => {
+      pendingWritesRef.current = Math.max(0, pendingWritesRef.current - 1);
+      setPendingWrites(pendingWritesRef.current);
+    }, []);
 
     const updatePreferencesSection = useCallback(
       async <PreferenceType extends NotificationPreferenceSection>(
@@ -86,10 +106,6 @@ export const useNotificationStoragePreferences =
           return;
         }
 
-        if (isUpdatingPreferencesRef.current) {
-          return;
-        }
-
         const currentPreferences =
           latestCachedPreferences as NotificationPreferences;
         const previousSnapshot = getCachedPreferences() ?? currentPreferences;
@@ -98,37 +114,52 @@ export const useNotificationStoragePreferences =
           [type]: nextSectionPreferences,
         };
 
-        isUpdatingPreferencesRef.current = true;
-        setIsUpdatingPreferences(true);
-        try {
-          await queryClient.cancelQueries({
-            queryKey: QUERY_KEY,
-          });
-          queryClient.setQueryData<NotificationPreferencesQueryData>(
-            QUERY_KEY,
-            nextPreferences,
-          );
+        if (pendingWritesRef.current === 0) {
+          lastConfirmedPreferencesRef.current = previousSnapshot;
+        }
+
+        generationRef.current += 1;
+        const writeGeneration = generationRef.current;
+        beginWrite();
+
+        const cancelQueriesPromise = queryClient.cancelQueries({
+          queryKey: QUERY_KEY,
+        });
+        queryClient.setQueryData<NotificationPreferencesQueryData>(
+          QUERY_KEY,
+          nextPreferences,
+        );
+
+        const persistWrite = writeChainRef.current.then(async () => {
+          await cancelQueriesPromise;
           await Engine.controllerMessenger.call(
             PUT_ACTION,
             nextPreferences,
             CLIENT_TYPE,
           );
+        });
+        writeChainRef.current = persistWrite.catch(() => undefined);
+
+        try {
+          await persistWrite;
+          lastConfirmedPreferencesRef.current = nextPreferences;
         } catch (err) {
           Logger.error(
             err as Error,
             'Failed to persist notification preferences',
           );
-          queryClient.setQueryData<NotificationPreferencesQueryData>(
-            QUERY_KEY,
-            previousSnapshot,
-          );
+          if (generationRef.current === writeGeneration) {
+            queryClient.setQueryData<NotificationPreferencesQueryData>(
+              QUERY_KEY,
+              lastConfirmedPreferencesRef.current ?? previousSnapshot,
+            );
+          }
           throw err;
         } finally {
-          isUpdatingPreferencesRef.current = false;
-          setIsUpdatingPreferences(false);
+          finishWrite();
         }
       },
-      [data, getCachedPreferences, queryClient],
+      [beginWrite, data, finishWrite, getCachedPreferences, queryClient],
     );
 
     const updateSectionChannel = useCallback(
@@ -178,7 +209,7 @@ export const useNotificationStoragePreferences =
       preferences: data as NotificationPreferencesResult,
       hasNotificationPreferences: data !== null && data !== undefined,
       isLoading,
-      isUpdatingPreferences,
+      isUpdatingPreferences: pendingWrites > 0,
       error,
       updatePreference,
       updateSectionChannel,

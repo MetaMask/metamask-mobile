@@ -205,7 +205,7 @@ describe('NotificationSettingsSection', () => {
     });
   });
 
-  it('disables channel toggles while preference save is in flight', () => {
+  it('keeps channel toggles enabled while preference save is in flight', () => {
     mockIsUpdatingPreferences = true;
     renderSection();
 
@@ -216,11 +216,11 @@ describe('NotificationSettingsSection', () => {
       NotificationSettingsViewSelectorsIDs.FEATURE_ANNOUNCEMENTS_TOGGLE,
     );
 
-    expect(pushToggle.props.disabled).toBe(true);
-    expect(inAppToggle.props.disabled).toBe(true);
+    expect(pushToggle.props.disabled).not.toBe(true);
+    expect(inAppToggle.props.disabled).not.toBe(true);
   });
 
-  it('keeps channel toggle value optimistic while preference save is in flight', async () => {
+  it('keeps channel toggle value optimistic while preference save is in flight without disabling toggles', async () => {
     let resolveUpdate: () => void = () => undefined;
     mockUpdateSectionChannel.mockReturnValueOnce(
       new Promise<void>((resolve) => {
@@ -244,8 +244,8 @@ describe('NotificationSettingsSection', () => {
 
     await waitFor(() => {
       expect(pushToggle.props.value).toBe(false);
-      expect(pushToggle.props.disabled).toBe(true);
-      expect(inAppToggle.props.disabled).toBe(true);
+      expect(pushToggle.props.disabled).not.toBe(true);
+      expect(inAppToggle.props.disabled).not.toBe(true);
     });
     expect(mockUpdateSectionChannel).toHaveBeenCalledWith(
       'walletActivity',
@@ -255,6 +255,72 @@ describe('NotificationSettingsSection', () => {
 
     await act(async () => {
       resolveUpdate();
+      await Promise.resolve();
+    });
+  });
+
+  it('keeps the latest rapid channel toggle intent visible while writes are pending', async () => {
+    let resolveFirstUpdate: () => void = () => undefined;
+    mockUpdateSectionChannel
+      .mockReturnValueOnce(
+        new Promise<void>((resolve) => {
+          resolveFirstUpdate = resolve;
+        }),
+      )
+      .mockResolvedValueOnce(undefined);
+    renderSection({
+      type: 'walletActivity',
+      title: 'Wallet Activity',
+      description: 'Buy, sells, transfers, swaps and rewards',
+    });
+
+    fireEvent(
+      screen.getByTestId(
+        NotificationSettingsViewSelectorsIDs.PUSH_NOTIFICATIONS_TOGGLE,
+      ),
+      'onValueChange',
+      false,
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId(
+          NotificationSettingsViewSelectorsIDs.PUSH_NOTIFICATIONS_TOGGLE,
+        ).props.value,
+      ).toBe(false);
+    });
+
+    fireEvent(
+      screen.getByTestId(
+        NotificationSettingsViewSelectorsIDs.PUSH_NOTIFICATIONS_TOGGLE,
+      ),
+      'onValueChange',
+      true,
+    );
+
+    await waitFor(() => {
+      expect(mockUpdateSectionChannel).toHaveBeenCalledTimes(2);
+      expect(
+        screen.getByTestId(
+          NotificationSettingsViewSelectorsIDs.PUSH_NOTIFICATIONS_TOGGLE,
+        ).props.value,
+      ).toBe(true);
+    });
+    expect(mockUpdateSectionChannel).toHaveBeenNthCalledWith(
+      1,
+      'walletActivity',
+      'pushNotificationsEnabled',
+      false,
+    );
+    expect(mockUpdateSectionChannel).toHaveBeenNthCalledWith(
+      2,
+      'walletActivity',
+      'pushNotificationsEnabled',
+      true,
+    );
+
+    await act(async () => {
+      resolveFirstUpdate();
       await Promise.resolve();
     });
   });
