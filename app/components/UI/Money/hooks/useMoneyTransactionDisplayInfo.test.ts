@@ -1,5 +1,6 @@
 import {
   type TransactionMeta,
+  TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
 import { IconName } from '@metamask/design-system-react-native';
@@ -737,5 +738,129 @@ describe('useMoneyTransactionDisplayInfo — mUSD fiat formatting', () => {
     expect(result.current.fiatAmount).toMatch(/920/);
     expect(result.current.primaryAmount).toMatch(/1,000\.00/);
     expect(result.current.primaryAmount).toContain('mUSD');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Status — derived state + status-aware label
+// ---------------------------------------------------------------------------
+
+describe('useMoneyTransactionDisplayInfo — status', () => {
+  it.each([
+    [TransactionStatus.confirmed, 'confirmed'],
+    [TransactionStatus.submitted, 'pending'],
+    [TransactionStatus.failed, 'failed'],
+  ])('exposes status %s as %s', (status, expected) => {
+    const tx = makeTx(TransactionType.moneyAccountDeposit, { status });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.status).toBe(expected);
+  });
+
+  it('uses the present-tense label while a conversion is pending', () => {
+    const tx = makeTx(TransactionType.moneyAccountDeposit, {
+      status: TransactionStatus.submitted,
+    });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.label).toBe('money.transaction.converting');
+  });
+
+  it('uses the failed label when a conversion fails', () => {
+    const tx = makeTx(TransactionType.moneyAccountDeposit, {
+      status: TransactionStatus.failed,
+    });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.label).toBe('money.transaction.conversion_failed');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Failed rows — zero amount, signed by direction (MUSD-956)
+// ---------------------------------------------------------------------------
+
+describe('useMoneyTransactionDisplayInfo — failed amount', () => {
+  it('shows +0.00 mUSD / +$0.00 for a failed (incoming) conversion', () => {
+    const tx = makeTx(TransactionType.moneyAccountDeposit, {
+      status: TransactionStatus.failed,
+      metamaskPay: { tokenAddress: USDC_ADDRESS, chainId: CHAIN_ID },
+      requiredAssets: [{ address: USDC_ADDRESS, amount: '1000000000' }],
+    });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.primaryAmount).toBe('+0.00 mUSD');
+    expect(result.current.fiatAmount).toBe('+$0.00');
+  });
+
+  it('shows -0.00 mUSD / -$0.00 for a failed (outgoing) send', () => {
+    const tx = makeTx(TransactionType.moneyAccountWithdraw, {
+      status: TransactionStatus.failed,
+    });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.primaryAmount).toBe('-0.00 mUSD');
+    expect(result.current.fiatAmount).toBe('-$0.00');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Per-kind subtitles
+// ---------------------------------------------------------------------------
+
+describe('useMoneyTransactionDisplayInfo — per-kind subtitles', () => {
+  it('received → "From: <sender>"', () => {
+    const tx = makeTx(TransactionType.incoming, {
+      txParams: { from: '0x2323100000000000000000000000000000012345' },
+    });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    // i18n mock returns the key; interpolation is exercised in integration.
+    expect(result.current.description).toBe('money.transaction.received_from');
+  });
+
+  it('sent → "mUSD → <destination token>"', () => {
+    const tx = makeTx(TransactionType.moneyAccountWithdraw, {
+      metamaskPay: { tokenAddress: ETH_ADDRESS, chainId: CHAIN_ID },
+    });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.description).toBe('mUSD → ETH');
+  });
+
+  it('deposited (fiat on-ramp) → provider name', () => {
+    const tx = makeTx(TransactionType.moneyAccountDeposit, {
+      metamaskPay: { fiat: { orderId: 'o-1', provider: 'transak-native' } },
+    });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.description).toBe('Transak');
+  });
+
+  it('deposited (mUSD top-up) → "mUSD"', () => {
+    const tx = makeTx(TransactionType.moneyAccountDeposit, {
+      metamaskPay: { tokenAddress: MUSD_TOKEN_ADDRESS, chainId: CHAIN_ID },
+    });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.description).toBe('mUSD');
   });
 });

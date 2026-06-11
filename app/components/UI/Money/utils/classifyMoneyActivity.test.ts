@@ -1,5 +1,6 @@
 import {
   type TransactionMeta,
+  TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
 import { IconName } from '@metamask/design-system-react-native';
@@ -7,8 +8,9 @@ import type { Hex } from '@metamask/utils';
 import { MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
 import {
   classifyMoneyActivity,
+  getMoneyActivityStatus,
   moneyActivityKindToIcon,
-  moneyActivityKindToLabel,
+  moneyActivityLabel,
   type MoneyActivityKind,
 } from './classifyMoneyActivity';
 
@@ -129,7 +131,18 @@ describe('classifyMoneyActivity', () => {
   });
 });
 
-describe('moneyActivityKindToLabel / moneyActivityKindToIcon', () => {
+describe('getMoneyActivityStatus', () => {
+  it.each([
+    [TransactionStatus.submitted, 'pending'],
+    [TransactionStatus.failed, 'failed'],
+    [TransactionStatus.confirmed, 'confirmed'],
+    [undefined, 'confirmed'],
+  ])('maps tx.status %s to %s', (status, expected) => {
+    expect(getMoneyActivityStatus(makeTx({ status }))).toBe(expected);
+  });
+});
+
+describe('moneyActivityLabel — confirmed labels + icons', () => {
   const cases: [MoneyActivityKind, string, IconName][] = [
     ['added', 'money.transaction.added', IconName.Add],
     ['deposited', 'money.transaction.deposited', IconName.Add],
@@ -141,7 +154,46 @@ describe('moneyActivityKindToLabel / moneyActivityKindToIcon', () => {
   ];
 
   it.each(cases)('kind "%s" → label %s, icon %s', (kind, label, icon) => {
-    expect(moneyActivityKindToLabel(kind)).toBe(label);
+    expect(moneyActivityLabel(kind, 'confirmed')).toBe(label);
     expect(moneyActivityKindToIcon(kind)).toBe(icon);
+  });
+});
+
+describe('moneyActivityLabel — pending (present-tense) labels', () => {
+  it.each([
+    ['deposited', 'money.transaction.depositing'],
+    ['converted', 'money.transaction.converting'],
+    ['sent', 'money.transaction.sending'],
+    ['received', 'money.transaction.receiving'],
+  ] as [MoneyActivityKind, string][])(
+    'kind "%s" pending → %s',
+    (kind, label) => {
+      expect(moneyActivityLabel(kind, 'pending')).toBe(label);
+    },
+  );
+
+  it('falls back to the confirmed label for kinds with no pending form', () => {
+    expect(moneyActivityLabel('card', 'pending')).toBe(
+      'money.transaction.card_transaction',
+    );
+  });
+});
+
+describe('moneyActivityLabel — failed labels', () => {
+  it.each([
+    ['deposited', 'money.transaction.deposit_failed'],
+    ['converted', 'money.transaction.conversion_failed'],
+    ['sent', 'money.transaction.send_failed'],
+  ] as [MoneyActivityKind, string][])(
+    'kind "%s" failed → %s',
+    (kind, label) => {
+      expect(moneyActivityLabel(kind, 'failed')).toBe(label);
+    },
+  );
+
+  it('falls back to the confirmed label for kinds with no failed form', () => {
+    expect(moneyActivityLabel('received', 'failed')).toBe(
+      'money.transaction.received',
+    );
   });
 });

@@ -8,8 +8,9 @@ import { type Hex } from '@metamask/utils';
 import BigNumber from 'bignumber.js';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { IconName } from '@metamask/design-system-react-native';
-import I18n from '../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../locales/i18n';
 import { getIntlNumberFormatter } from '../../../../util/intl';
+import { renderShortAddress } from '../../../../util/address';
 import {
   selectCurrencyRates,
   selectCurrentCurrency,
@@ -24,12 +25,15 @@ import {
 } from '../constants/activityStyles';
 import { buildMoneyActivityFiatLine } from '../utils/moneyActivityFiat';
 import { moneyFormatFiat } from '../utils/moneyFormatFiat';
-import { MUSD_TOKEN } from '../../Earn/constants/musd';
+import { isMusdToken, MUSD_TOKEN } from '../../Earn/constants/musd';
 import type { MoneyActivityTransactionMeta } from '../constants/mockActivityData';
 import {
   classifyMoneyActivity,
+  getMoneyActivityStatus,
   moneyActivityKindToIcon,
-  moneyActivityKindToLabel,
+  moneyActivityLabel,
+  type MoneyActivityKind,
+  type MoneyActivityStatus,
 } from '../utils/classifyMoneyActivity';
 
 export interface MoneyTransactionDisplayInfo {
@@ -39,6 +43,7 @@ export interface MoneyTransactionDisplayInfo {
   fiatAmount: string;
   isIncoming: boolean;
   icon: IconName;
+  status: MoneyActivityStatus;
 }
 
 function getMoneySubtitle(tx: TransactionMeta): string | undefined {
@@ -54,17 +59,73 @@ function getRequiredAsset(tx: TransactionMeta): RequiredAsset | undefined {
 }
 
 /**
- * Formats an incoming mUSD amount with 2 fixed decimals and grouping, e.g.
- * "+1,000.00 mUSD". Used for MetaMask Pay conversion deposits, whose amount is
- * the mUSD deposit target (always incoming, so a leading "+").
+ * Formats an mUSD amount as a signed, symbol-suffixed string, e.g.
+ * "+1,000.00 mUSD" / "-0.00 mUSD". The sign follows the row's direction.
  */
-function formatMusdDepositAmount(amount: BigNumber): string {
+function formatMusdAmount(amount: BigNumber, isIncoming: boolean): string {
   const formatted = getIntlNumberFormatter(I18n.locale, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
     useGrouping: true,
   }).format(amount.toNumber());
-  return `+${formatted} ${MUSD_TOKEN.symbol}`;
+  return `${isIncoming ? '+' : '-'}${formatted} ${MUSD_TOKEN.symbol}`;
+}
+
+/**
+ * Human-friendly fiat on-ramp provider name from a provider code, e.g.
+ * "transak-native" → "Transak". Returns undefined when there's no provider.
+ */
+function prettifyFiatProvider(
+  provider: string | undefined,
+): string | undefined {
+  if (!provider) return undefined;
+  const base = provider.split('-')[0];
+  return base.charAt(0).toUpperCase() + base.slice(1);
+}
+
+/**
+ * The subtitle for a Money activity row, by kind. An explicit `moneySubtitle`
+ * always wins (mock / enriched rows). Otherwise:
+ * - converted → "{token} → mUSD"
+ * - sent      → "mUSD → {token}" (the withdraw destination token)
+ * - received  → "From: 0x…" (the sender)
+ * - deposited → fiat provider ("Transak"), else the funding token ("mUSD")
+ * - card / added / transferred → the source token symbol, if any
+ */
+function deriveSubtitle(
+  kind: MoneyActivityKind,
+  tx: TransactionMeta,
+  sourceTokenSymbol: string | undefined,
+  explicitSubtitle: string | undefined,
+): string | undefined {
+  if (explicitSubtitle) {
+    return explicitSubtitle;
+  }
+  switch (kind) {
+    case 'converted':
+      return sourceTokenSymbol
+        ? `${sourceTokenSymbol} → ${MUSD_TOKEN.symbol}`
+        : undefined;
+    case 'sent':
+      return sourceTokenSymbol
+        ? `${MUSD_TOKEN.symbol} → ${sourceTokenSymbol}`
+        : undefined;
+    case 'received': {
+      const sender = tx.txParams?.from;
+      return sender
+        ? strings('money.transaction.received_from', {
+            address: renderShortAddress(sender),
+          })
+        : undefined;
+    }
+    case 'deposited':
+      return (
+        prettifyFiatProvider(tx.metamaskPay?.fiat?.provider) ??
+        sourceTokenSymbol
+      );
+    default:
+      return sourceTokenSymbol;
+  }
 }
 
 /**
@@ -118,7 +179,15 @@ export function useMoneyTransactionDisplayInfo(
   });
 
   return useMemo(() => {
-    const sourceTokenSymbol = payToken?.symbol ?? nativeTicker;
+    // mUSD is often not in the token registry, so fall back to its symbol
+    // directly — this is what surfaces "mUSD" on an mUSD-funded top-up deposit.
+    const sourceTokenSymbol =
+      payToken?.symbol ??
+      nativeTicker ??
+      (isMusdToken(payTokenAddress) ? MUSD_TOKEN.symbol : undefined);
+    const kind = classifyMoneyActivity(tx);
+    const status = getMoneyActivityStatus(tx);
+    const isIncoming = isIncomingMoneyTransactionMeta(tx);
 
     // --- Primary amount ---
     // Money-account rows are denominated in mUSD (the account's currency).
@@ -135,7 +204,7 @@ export function useMoneyTransactionDisplayInfo(
       if (requiredAsset) {
         const musdAmount = new BigNumber(requiredAsset.amount).dividedBy(1e6);
         if (musdAmount.isGreaterThan(0)) {
-          primaryAmount = formatMusdDepositAmount(musdAmount);
+          primaryAmount = formatMusdAmount(musdAmount, isIncoming);
         }
         // If there's no required asset / amount, primaryAmount stays empty —
         // the fiatAmount line below still shows the correct value.
@@ -157,26 +226,27 @@ export function useMoneyTransactionDisplayInfo(
       }
     }
 
-    const kind = classifyMoneyActivity(tx);
-
-    // Explicit moneySubtitle wins. Otherwise a conversion shows the token pair
-    // it routed through (e.g. "ETH → mUSD"); everything else shows just the
-    // source token symbol.
-    let description = subtitle;
-    if (!description) {
-      description =
-        kind === 'converted' && sourceTokenSymbol
-          ? `${sourceTokenSymbol} → ${MUSD_TOKEN.symbol}`
-          : sourceTokenSymbol;
+    // Failed rows show a zero amount, signed by the row's direction (MUSD-956).
+    // To surface the attempted amount instead, drop this block — the computed
+    // primaryAmount/fiatAmount above already hold it.
+    if (status === 'failed') {
+      primaryAmount = formatMusdAmount(new BigNumber(0), isIncoming);
+      if (currentCurrency) {
+        fiatAmount = `${isIncoming ? '+' : '-'}${moneyFormatFiat(
+          new BigNumber(0),
+          currentCurrency,
+        )}`;
+      }
     }
 
     return {
-      label: moneyActivityKindToLabel(kind),
-      description,
+      label: moneyActivityLabel(kind, status),
+      description: deriveSubtitle(kind, tx, sourceTokenSymbol, subtitle),
       primaryAmount,
       fiatAmount,
-      isIncoming: isIncomingMoneyTransactionMeta(tx),
+      isIncoming,
       icon: moneyActivityKindToIcon(kind),
+      status,
     };
   }, [
     tx,
@@ -185,6 +255,7 @@ export function useMoneyTransactionDisplayInfo(
     currencyRates,
     tokenMarketData,
     payToken,
+    payTokenAddress,
     nativeTicker,
   ]);
 }

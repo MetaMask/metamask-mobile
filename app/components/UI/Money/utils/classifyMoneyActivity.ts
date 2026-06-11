@@ -1,5 +1,6 @@
 import {
   type TransactionMeta,
+  TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
 import { IconName } from '@metamask/design-system-react-native';
@@ -9,6 +10,26 @@ import type {
   MoneyActivityTitleKey,
   MoneyActivityTransactionMeta,
 } from '../constants/mockActivityData';
+
+/**
+ * The lifecycle state of a Money activity row, as far as the display cares.
+ * `submitted` transactions are in-flight (`pending`), `failed` ones errored,
+ * and everything else surfaced in activity is treated as `confirmed`.
+ */
+export type MoneyActivityStatus = 'pending' | 'confirmed' | 'failed';
+
+export function getMoneyActivityStatus(
+  tx: TransactionMeta,
+): MoneyActivityStatus {
+  switch (tx.status) {
+    case TransactionStatus.submitted:
+      return 'pending';
+    case TransactionStatus.failed:
+      return 'failed';
+    default:
+      return 'confirmed';
+  }
+}
 
 /**
  * The semantic kind of a Money activity row, parsed once from a
@@ -112,25 +133,45 @@ export function classifyMoneyActivity(tx: TransactionMeta): MoneyActivityKind {
   }
 }
 
-export function moneyActivityKindToLabel(kind: MoneyActivityKind): string {
-  switch (kind) {
-    case 'added':
-      return strings('money.transaction.added');
-    case 'deposited':
-      return strings('money.transaction.deposited');
-    case 'received':
-      return strings('money.transaction.received');
-    case 'converted':
-      return strings('money.transaction.converted');
-    case 'sent':
-      return strings('money.transaction.sent');
-    case 'transferred':
-      return strings('money.transaction.transferred');
-    case 'card':
-      return strings('money.transaction.card_transaction');
-    default:
-      return strings('money.transaction.received');
-  }
+const KIND_LABEL_KEY: Record<MoneyActivityKind, string> = {
+  added: 'money.transaction.added',
+  deposited: 'money.transaction.deposited',
+  received: 'money.transaction.received',
+  converted: 'money.transaction.converted',
+  sent: 'money.transaction.sent',
+  transferred: 'money.transaction.transferred',
+  card: 'money.transaction.card_transaction',
+};
+
+// Present-tense labels for in-flight rows (e.g. "Depositing"). Kinds without an
+// entry fall back to their confirmed label.
+const KIND_PENDING_LABEL_KEY: Partial<Record<MoneyActivityKind, string>> = {
+  deposited: 'money.transaction.depositing',
+  converted: 'money.transaction.converting',
+  sent: 'money.transaction.sending',
+  received: 'money.transaction.receiving',
+};
+
+// Failed-state labels. Stems differ from the confirmed form ("Converted" →
+// "Conversion failed"), so they're enumerated rather than derived. Kinds
+// without an entry fall back to their confirmed label.
+const KIND_FAILED_LABEL_KEY: Partial<Record<MoneyActivityKind, string>> = {
+  deposited: 'money.transaction.deposit_failed',
+  converted: 'money.transaction.conversion_failed',
+  sent: 'money.transaction.send_failed',
+};
+
+export function moneyActivityLabel(
+  kind: MoneyActivityKind,
+  status: MoneyActivityStatus,
+): string {
+  const statusKey =
+    status === 'pending'
+      ? KIND_PENDING_LABEL_KEY[kind]
+      : status === 'failed'
+        ? KIND_FAILED_LABEL_KEY[kind]
+        : undefined;
+  return strings(statusKey ?? KIND_LABEL_KEY[kind]);
 }
 
 export function moneyActivityKindToIcon(kind: MoneyActivityKind): IconName {
