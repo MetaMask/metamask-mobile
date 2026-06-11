@@ -16,7 +16,7 @@ import {
   type OrderFill,
   type SortField,
 } from '@metamask/perps-controller';
-import { isEquityAsset } from '../utils/marketHours';
+
 import type { PerpsTransaction } from '../types/transactionHistory';
 import {
   transformFillsToTransactions,
@@ -61,8 +61,8 @@ interface UsePerpsHomeDataReturn {
  * Uses object parameters pattern for maintainability
  */
 export const usePerpsHomeData = ({
-  positionsLimit = HOME_SCREEN_CONFIG.PositionsCarouselLimit,
-  ordersLimit = HOME_SCREEN_CONFIG.OrdersCarouselLimit,
+  positionsLimit,
+  ordersLimit,
   trendingLimit = HOME_SCREEN_CONFIG.TrendingMarketsLimit,
   activityLimit = HOME_SCREEN_CONFIG.RecentActivityLimit,
   searchQuery = '',
@@ -180,11 +180,13 @@ export const usePerpsHomeData = ({
     [allMarkets, sortBy, direction, trendingLimit],
   );
 
-  // Stocks (stock, pre-ipo, index, etf) - top N by user preference
+  // Stocks - top N by user preference
   const stocksMarkets = useMemo(
     () =>
       sortMarkets({
-        markets: allMarkets.filter((m) => isEquityAsset(m.marketType)),
+        markets: allMarkets.filter(
+          (market) => market.marketType === MarketCategory.Stock,
+        ),
         sortBy,
         direction,
       }).slice(0, trendingLimit),
@@ -196,7 +198,7 @@ export const usePerpsHomeData = ({
     () =>
       sortMarkets({
         markets: allMarkets.filter(
-          (m) => m.marketType === MarketCategory.Commodity,
+          (market) => market.marketType === MarketCategory.Commodity,
         ),
         sortBy,
         direction,
@@ -209,9 +211,9 @@ export const usePerpsHomeData = ({
     () =>
       sortMarkets({
         markets: allMarkets.filter(
-          (m) =>
-            isEquityAsset(m.marketType) ||
-            m.marketType === MarketCategory.Commodity,
+          (market) =>
+            market.marketType === MarketCategory.Stock ||
+            market.marketType === MarketCategory.Commodity,
         ),
         sortBy,
         direction,
@@ -296,12 +298,21 @@ export const usePerpsHomeData = ({
     [filterBySearchQuery, searchQuery],
   );
 
+  // The Perps home screen renders positions/orders in a vertical ScrollView with
+  // no "see all" page, so it must show every open position/order. Only apply a
+  // cap when a caller explicitly passes a finite limit (default: no cap).
   const limitedPositions = useMemo(
-    () => filteredData.positions.slice(0, positionsLimit),
+    () =>
+      positionsLimit === undefined
+        ? filteredData.positions
+        : filteredData.positions.slice(0, positionsLimit),
     [filteredData.positions, positionsLimit],
   );
   const limitedOrders = useMemo(
-    () => filteredData.orders.slice(0, ordersLimit),
+    () =>
+      ordersLimit === undefined
+        ? filteredData.orders
+        : filteredData.orders.slice(0, ordersLimit),
     [filteredData.orders, ordersLimit],
   );
   const limitedWatchlistMarkets = useMemo(
@@ -325,7 +336,9 @@ export const usePerpsHomeData = ({
     if (!searchQuery.trim()) {
       return stocksMarkets;
     }
-    return filteredData.markets.filter((m) => isEquityAsset(m.marketType));
+    return filteredData.markets.filter(
+      (market) => market.marketType === MarketCategory.Stock,
+    );
   }, [searchQuery, stocksMarkets, filteredData.markets]);
 
   const searchedCommoditiesMarkets = useMemo(() => {
@@ -342,9 +355,9 @@ export const usePerpsHomeData = ({
       return stocksAndCommoditiesMarkets;
     }
     return filteredData.markets.filter(
-      (m) =>
-        isEquityAsset(m.marketType) ||
-        m.marketType === MarketCategory.Commodity,
+      (market) =>
+        market.marketType === MarketCategory.Stock ||
+        market.marketType === MarketCategory.Commodity,
     );
   }, [searchQuery, stocksAndCommoditiesMarkets, filteredData.markets]);
 

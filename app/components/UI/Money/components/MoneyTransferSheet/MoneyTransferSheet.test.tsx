@@ -5,8 +5,25 @@ import MoneyTransferSheet from './MoneyTransferSheet';
 import { MoneyTransferSheetTestIds } from './MoneyTransferSheet.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import { useMoneyAccountWithdrawal } from '../../hooks/useMoneyAccount';
+import { useMoneyPerpsDeposit } from '../../../../Views/confirmations/hooks/pay/useMoneyPerpsDeposit';
+import { useMoneyPredictDeposit } from '../../../../Views/confirmations/hooks/pay/useMoneyPredictDeposit';
+import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import {
+  BOTTOM_SHEET_NAMES,
+  COMPONENT_NAMES,
+  SCREEN_NAMES,
+} from '../../constants/moneyEvents';
+
+const mockTrackBottomSheetViewed = jest.fn();
+const mockTrackSurfaceClicked = jest.fn();
+
+jest.mock('../../hooks/useMoneyAnalytics', () => ({
+  useMoneyAnalytics: jest.fn(),
+}));
 
 const mockInitiateWithdrawal = jest.fn().mockResolvedValue(undefined);
+const mockInitiatePerpsDeposit = jest.fn().mockResolvedValue(undefined);
+const mockInitiatePredictDeposit = jest.fn().mockResolvedValue(undefined);
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockGoBack = jest.fn();
 
@@ -14,6 +31,20 @@ jest.mock('../../hooks/useMoneyAccount', () => ({
   useMoneyAccountWithdrawal: jest.fn(),
   useMoneyAccountDeposit: jest.fn(),
 }));
+
+jest.mock(
+  '../../../../Views/confirmations/hooks/pay/useMoneyPerpsDeposit',
+  () => ({
+    useMoneyPerpsDeposit: jest.fn(),
+  }),
+);
+
+jest.mock(
+  '../../../../Views/confirmations/hooks/pay/useMoneyPredictDeposit',
+  () => ({
+    useMoneyPredictDeposit: jest.fn(),
+  }),
+);
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -60,6 +91,22 @@ describe('MoneyTransferSheet', () => {
     (useMoneyAccountWithdrawal as jest.Mock).mockReturnValue({
       initiateWithdrawal: mockInitiateWithdrawal,
     });
+    (useMoneyPerpsDeposit as jest.Mock).mockReturnValue({
+      isEnabled: false,
+      initiatePerpsDeposit: mockInitiatePerpsDeposit,
+    });
+    (useMoneyPredictDeposit as jest.Mock).mockReturnValue({
+      isEnabled: false,
+      initiatePredictDeposit: mockInitiatePredictDeposit,
+    });
+    (useMoneyAnalytics as jest.Mock).mockReturnValue({
+      trackBottomSheetViewed: mockTrackBottomSheetViewed,
+      trackSurfaceClicked: mockTrackSurfaceClicked,
+    });
+    (useMoneyAnalytics as jest.Mock).mockReturnValue({
+      trackBottomSheetViewed: mockTrackBottomSheetViewed,
+      trackSurfaceClicked: mockTrackSurfaceClicked,
+    });
   });
 
   it('renders the sheet title', () => {
@@ -97,7 +144,7 @@ describe('MoneyTransferSheet', () => {
     expect(comingSoonTags).toHaveLength(2);
   });
 
-  it('closes the sheet and calls initiateWithdrawal when "Between accounts" is pressed', () => {
+  it('closes the sheet and calls initiateWithdrawal when "Another account" is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
 
     fireEvent.press(
@@ -109,23 +156,127 @@ describe('MoneyTransferSheet', () => {
     expect(global.alert).not.toHaveBeenCalled();
   });
 
-  it('fires an alert when "Perps account" is pressed', () => {
+  it('does nothing when "Perps account" is pressed and flag is disabled', () => {
     const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
 
     fireEvent.press(
       getByTestId(MoneyTransferSheetTestIds.PERPS_ACCOUNT_OPTION),
     );
 
-    expect(global.alert).toHaveBeenCalledWith('Under construction 🚧');
+    expect(mockOnCloseBottomSheet).not.toHaveBeenCalled();
+    expect(mockInitiatePerpsDeposit).not.toHaveBeenCalled();
   });
 
-  it('fires an alert when "Predictions account" is pressed', () => {
+  it('closes the sheet and calls initiatePerpsDeposit when flag is enabled', () => {
+    (useMoneyPerpsDeposit as jest.Mock).mockReturnValue({
+      isEnabled: true,
+      initiatePerpsDeposit: mockInitiatePerpsDeposit,
+    });
+
+    const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
+
+    fireEvent.press(
+      getByTestId(MoneyTransferSheetTestIds.PERPS_ACCOUNT_OPTION),
+    );
+
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    expect(mockInitiatePerpsDeposit).toHaveBeenCalledTimes(1);
+  });
+
+  it('does nothing when "Predictions account" is pressed and flag is disabled', () => {
     const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
 
     fireEvent.press(
       getByTestId(MoneyTransferSheetTestIds.PREDICTIONS_ACCOUNT_OPTION),
     );
 
-    expect(global.alert).toHaveBeenCalledWith('Under construction 🚧');
+    expect(mockOnCloseBottomSheet).not.toHaveBeenCalled();
+    expect(mockInitiatePredictDeposit).not.toHaveBeenCalled();
+  });
+
+  it('closes the sheet and calls initiatePredictDeposit when flag is enabled', () => {
+    (useMoneyPredictDeposit as jest.Mock).mockReturnValue({
+      isEnabled: true,
+      initiatePredictDeposit: mockInitiatePredictDeposit,
+    });
+
+    const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
+
+    fireEvent.press(
+      getByTestId(MoneyTransferSheetTestIds.PREDICTIONS_ACCOUNT_OPTION),
+    );
+
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    expect(mockInitiatePredictDeposit).toHaveBeenCalledTimes(1);
+  });
+
+  describe('analytics', () => {
+    it('initialises useMoneyAnalytics with MONEY_TRANSFER_MONEY_SHEET bottom_sheet_name', () => {
+      renderWithProvider(<MoneyTransferSheet />);
+
+      expect(useMoneyAnalytics).toHaveBeenCalledWith({
+        bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_TRANSFER_MONEY_SHEET,
+      });
+    });
+
+    it('calls trackBottomSheetViewed on mount', () => {
+      renderWithProvider(<MoneyTransferSheet />);
+
+      expect(mockTrackBottomSheetViewed).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls trackSurfaceClicked with BETWEEN_ACCOUNTS component when "Another account" is pressed', () => {
+      const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
+
+      fireEvent.press(
+        getByTestId(MoneyTransferSheetTestIds.BETWEEN_ACCOUNTS_OPTION),
+      );
+
+      expect(mockTrackSurfaceClicked).toHaveBeenCalledWith(
+        expect.objectContaining({
+          component_name:
+            COMPONENT_NAMES.MONEY_TRANSFER_MONEY_SHEET_BETWEEN_ACCOUNTS,
+          redirect_target: SCREEN_NAMES.MONEY_TRANSFER,
+        }),
+      );
+    });
+
+    it('calls trackSurfaceClicked with PERPS_ACCOUNT component when "Perps account" is pressed', () => {
+      (useMoneyPerpsDeposit as jest.Mock).mockReturnValue({
+        isEnabled: true,
+        initiatePerpsDeposit: mockInitiatePerpsDeposit,
+      });
+
+      const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
+
+      fireEvent.press(
+        getByTestId(MoneyTransferSheetTestIds.PERPS_ACCOUNT_OPTION),
+      );
+
+      expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
+        component_name:
+          COMPONENT_NAMES.MONEY_TRANSFER_MONEY_SHEET_PERPS_ACCOUNT,
+        redirect_target: SCREEN_NAMES.MONEY_TRANSFER,
+      });
+    });
+
+    it('calls trackSurfaceClicked with PREDICTIONS_ACCOUNT component when "Predictions account" is pressed', () => {
+      (useMoneyPredictDeposit as jest.Mock).mockReturnValue({
+        isEnabled: true,
+        initiatePredictDeposit: mockInitiatePredictDeposit,
+      });
+
+      const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
+
+      fireEvent.press(
+        getByTestId(MoneyTransferSheetTestIds.PREDICTIONS_ACCOUNT_OPTION),
+      );
+
+      expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
+        component_name:
+          COMPONENT_NAMES.MONEY_TRANSFER_MONEY_SHEET_PREDICTIONS_ACCOUNT,
+        redirect_target: SCREEN_NAMES.MONEY_TRANSFER,
+      });
+    });
   });
 });

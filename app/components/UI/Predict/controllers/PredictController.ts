@@ -89,6 +89,8 @@ import {
   PredictBalance,
   PredictClaim,
   PredictClaimStatus,
+  PredictFilterOption,
+  PredictFilterOptionsParams,
   PredictMarket,
   PredictMarketListParams,
   PredictMarketListResponse,
@@ -113,6 +115,11 @@ import { resolveCryptoTargetPrice } from '../utils/cryptoUpDown';
 import { validateMarketBettable } from '../utils/marketState';
 import { ensureError } from '../utils/predictErrorHandler';
 import { resolvePredictFeatureFlags } from '../utils/resolvePredictFeatureFlags';
+import {
+  findLiveMarket,
+  findNearestMarket,
+  SERIES_MAX_EVENTS,
+} from '../utils/series';
 import { validateDepositTransactions } from '../utils/validateTransactions';
 import { PredictAnalytics } from './PredictAnalytics';
 import type { PredictControllerMethodActions } from './PredictController-method-action-types';
@@ -379,6 +386,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'getPrices',
   'getUnrealizedPnL',
   'initPayWithAnyToken',
+  'listFilterOptions',
   'listMarkets',
   'onPlaceOrderSuccess',
   'placeOrder',
@@ -400,11 +408,29 @@ const MESSENGER_EXPOSED_METHODS = [
   'trackGeoBlockTriggered',
   'trackMarketDetailsOpened',
   'trackPositionViewed',
+  'trackPortfolioPositionsButtonTapped',
+  'trackPortfolioTransactionInitiated',
+  'trackPositionsScreenViewed',
+  'trackPositionsTabViewed',
   'trackPredictOrderEvent',
+  'trackSearchInteracted',
   'trackShareAction',
 ] as const;
 
 const ERC20_TRANSFER_FUNCTION_SELECTOR = '0xa9059cbb';
+
+/**
+ * Window applied when fetching series markets for highlight resolution.
+ * The future bound must be wide enough to contain the currently-live market
+ * for any supported recurrence (5m / 15m / 1h / 4h / daily). The past bound
+ * exists only so `findNearestMarket` can pin a recently-expired market when
+ * no future market is in range — `findLiveMarket` itself ignores past data.
+ * Limit reuses the canonical `SERIES_MAX_EVENTS` so the provider's default
+ * `endDate ASC` ordering can't truncate the live slot for fast recurrences
+ * (a 5m series produces ~12 past events inside the past buffer alone).
+ */
+const HIGHLIGHT_SERIES_PAST_WINDOW_MS = 60 * 60 * 1000;
+const HIGHLIGHT_SERIES_FUTURE_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 
 /**
  * PredictController - Protocol-agnostic prediction markets trading controller
@@ -522,7 +548,8 @@ export class PredictController extends BaseController<
    * @private
    */
   private getSigner(address?: string): Signer {
-    const selectedAddress = address ?? this.getEvmAccountAddress();
+    const selectedAddress = address ?? this.requireEvmAccountAddress();
+
     return {
       address: selectedAddress,
       signTypedMessage: (
@@ -546,14 +573,24 @@ export class PredictController extends BaseController<
     return resolvePredictFeatureFlags(remoteFeatureFlagState);
   }
 
-  private getEvmAccountAddress(): string {
+  private getEvmAccountAddress(): string | undefined {
     const accounts = this.messenger.call(
       'AccountTreeController:getAccountsFromSelectedAccountGroup',
     );
     const evmAccount = accounts.find(
       (account) => account && isEvmAccountType(account.type),
     );
-    return evmAccount?.address ?? '0x0';
+    return evmAccount?.address;
+  }
+
+  private requireEvmAccountAddress(): string {
+    const address = this.getEvmAccountAddress();
+
+    if (!address) {
+      throw new Error('EVM account address is required');
+    }
+
+    return address;
   }
 
   private async invalidateQueryCache(chainId: number) {
@@ -621,14 +658,25 @@ export class PredictController extends BaseController<
           highlights.length > 0 && isFirstPage && params.category;
 
         if (shouldFetchHighlights) {
-          const highlightedMarketIds =
-            highlights.find((h) => h.category === params.category)?.markets ??
-            [];
+          const entry = highlights.find((h) => h.category === params.category);
+          const highlightedMarketIds = entry?.markets ?? [];
+          const highlightedSeriesIds = entry?.series ?? [];
 
-          if (highlightedMarketIds.length > 0) {
-            const fetchedHighlightedMarkets =
-              (await this.provider.getMarketsByIds?.(highlightedMarketIds)) ??
-              [];
+          if (
+            highlightedMarketIds.length > 0 ||
+            highlightedSeriesIds.length > 0
+          ) {
+            const [fromMarketIds, fromSeriesIds] = await Promise.all([
+              highlightedMarketIds.length > 0 && this.provider.getMarketsByIds
+                ? this.provider.getMarketsByIds(highlightedMarketIds)
+                : Promise.resolve<PredictMarket[]>([]),
+              this.resolveSeriesHighlights(highlightedSeriesIds),
+            ]);
+
+            const fetchedHighlightedMarkets = [
+              ...fromMarketIds,
+              ...fromSeriesIds,
+            ];
 
             const highlightedMarkets = fetchedHighlightedMarkets
               .filter((market) => market.status === 'open')
@@ -637,19 +685,70 @@ export class PredictController extends BaseController<
                 isHighlighted: true,
               }));
 
-            const highlightedIdSet = new Set(
-              highlightedMarkets.map((m) => m.id),
-            );
+            const highlightedIdSet = new Set<string>();
+            const uniqueHighlighted = highlightedMarkets.filter((market) => {
+              if (highlightedIdSet.has(market.id)) {
+                return false;
+              }
+              highlightedIdSet.add(market.id);
+              return true;
+            });
             markets = markets.filter(
               (market) => !highlightedIdSet.has(market.id),
             );
 
-            markets = [...highlightedMarkets, ...markets];
+            markets = [...uniqueHighlighted, ...markets];
           }
         }
 
         return { markets, nextCursor };
       },
+    );
+  }
+
+  private async resolveSeriesHighlights(
+    seriesIds: string[],
+  ): Promise<PredictMarket[]> {
+    if (seriesIds.length === 0 || !this.provider.getMarketSeries) {
+      return [];
+    }
+
+    const nowMs = Date.now();
+    const endDateMin = new Date(
+      nowMs - HIGHLIGHT_SERIES_PAST_WINDOW_MS,
+    ).toISOString();
+    const endDateMax = new Date(
+      nowMs + HIGHLIGHT_SERIES_FUTURE_WINDOW_MS,
+    ).toISOString();
+
+    const resolved = await Promise.all(
+      seriesIds.map(async (seriesId) => {
+        try {
+          const seriesMarkets =
+            (await this.provider.getMarketSeries?.({
+              seriesId,
+              endDateMin,
+              endDateMax,
+              limit: SERIES_MAX_EVENTS,
+            })) ?? [];
+          return (
+            findLiveMarket(seriesMarkets) ?? findNearestMarket(seriesMarkets)
+          );
+        } catch (error) {
+          DevLogger.log(
+            'PredictController: failed to resolve series highlight',
+            {
+              seriesId,
+              error: error instanceof Error ? error.message : 'Unknown error',
+            },
+          );
+          return undefined;
+        }
+      }),
+    );
+
+    return resolved.filter(
+      (market): market is PredictMarket => market !== undefined,
     );
   }
 
@@ -688,6 +787,34 @@ export class PredictController extends BaseController<
           nextCursor,
         };
       },
+    );
+  }
+
+  async listFilterOptions(
+    params: PredictFilterOptionsParams,
+  ): Promise<PredictFilterOption[]> {
+    return withTrace(
+      this.traceable,
+      {
+        method: 'listFilterOptions',
+        trace: {
+          name: TraceName.PredictListFilterOptions,
+          op: TraceOperation.PredictDataFetch,
+          tags: {
+            feature: PREDICT_CONSTANTS.FEATURE_NAME,
+            providerId: POLYMARKET_PROVIDER_ID,
+          },
+        },
+        errorContext: {
+          providerId: POLYMARKET_PROVIDER_ID,
+          source: params.source,
+        },
+        fallbackErrorCode: PREDICT_ERROR_CODES.MARKETS_FAILED,
+        traceData: (result) => ({
+          optionCount: result.length,
+        }),
+      },
+      async () => this.provider.listFilterOptions(params),
     );
   }
 
@@ -1097,6 +1224,32 @@ export class PredictController extends BaseController<
     this.analytics.trackActivityViewed(args);
   }
 
+  public trackPortfolioPositionsButtonTapped(
+    args: Parameters<
+      PredictAnalytics['trackPortfolioPositionsButtonTapped']
+    >[0],
+  ): void {
+    this.analytics.trackPortfolioPositionsButtonTapped(args);
+  }
+
+  public trackPortfolioTransactionInitiated(
+    args: Parameters<PredictAnalytics['trackPortfolioTransactionInitiated']>[0],
+  ): void {
+    this.analytics.trackPortfolioTransactionInitiated(args);
+  }
+
+  public trackPositionsScreenViewed(
+    args: Parameters<PredictAnalytics['trackPositionsScreenViewed']>[0],
+  ): void {
+    this.analytics.trackPositionsScreenViewed(args);
+  }
+
+  public trackPositionsTabViewed(
+    args: Parameters<PredictAnalytics['trackPositionsTabViewed']>[0],
+  ): void {
+    this.analytics.trackPositionsTabViewed(args);
+  }
+
   public trackGeoBlockTriggered(
     args: Parameters<PredictAnalytics['trackGeoBlockTriggered']>[0],
   ): void {
@@ -1119,6 +1272,17 @@ export class PredictController extends BaseController<
     args: Parameters<PredictAnalytics['trackShareAction']>[0],
   ): void {
     this.analytics.trackShareAction(args);
+  }
+
+  /**
+   * Track Predict Search Interacted analytics event
+   *
+   * @public
+   */
+  public trackSearchInteracted(
+    args: Parameters<PredictAnalytics['trackSearchInteracted']>[0],
+  ): void {
+    this.analytics.trackSearchInteracted(args);
   }
 
   /**
@@ -1156,7 +1320,8 @@ export class PredictController extends BaseController<
   }
 
   async placeOrder(params: PlaceOrderParams): Promise<Result> {
-    const activeOrderAddress = params.address ?? this.getEvmAccountAddress();
+    const activeOrderAddress =
+      params.address ?? this.requireEvmAccountAddress();
     const { predictWithAnyTokenEnabled } = this.resolveFeatureFlags();
     const isBuyWithAnyToken =
       predictWithAnyTokenEnabled && params.preview.side === Side.BUY;
@@ -1922,6 +2087,11 @@ export class PredictController extends BaseController<
 
   public clearOrderError(): void {
     const address = this.getEvmAccountAddress();
+
+    if (!address) {
+      return;
+    }
+
     this.update((state) => {
       if (state.activeBuyOrders[address]) {
         delete state.activeBuyOrders[address].error;
@@ -1931,6 +2101,11 @@ export class PredictController extends BaseController<
 
   public onPlaceOrderSuccess(): void {
     const address = this.getEvmAccountAddress();
+
+    if (!address) {
+      return;
+    }
+
     this.update((state) => {
       state.activeBuyOrders[address] = {
         state: ActiveOrderState.PREVIEW,
@@ -1941,6 +2116,11 @@ export class PredictController extends BaseController<
 
   public clearActiveOrderTransactionId(): void {
     const address = this.getEvmAccountAddress();
+
+    if (!address) {
+      return;
+    }
+
     this.update((state) => {
       if (state.activeBuyOrders[address]?.transactionId) {
         state.activeBuyOrders[address].transactionId = undefined;
@@ -1963,6 +2143,10 @@ export class PredictController extends BaseController<
     );
 
     const address = this.getEvmAccountAddress();
+    if (!address) {
+      return;
+    }
+
     const activeOrder = this.state.activeBuyOrders[address];
     if (!activeOrder) {
       return;
@@ -1997,6 +2181,11 @@ export class PredictController extends BaseController<
 
   public clearActiveOrder(): void {
     const address = this.getEvmAccountAddress();
+
+    if (!address) {
+      return;
+    }
+
     this.update((state) => {
       delete state.activeBuyOrders[address];
     });
@@ -2144,7 +2333,7 @@ export class PredictController extends BaseController<
    */
   public async initPayWithAnyToken(): Promise<Result<{ batchId: string }>> {
     const provider = this.provider;
-    const address = this.getEvmAccountAddress();
+    const address = this.requireEvmAccountAddress();
 
     if (!this.state.activeBuyOrders[address]) {
       this.update((state) => {
@@ -2336,10 +2525,24 @@ export class PredictController extends BaseController<
       return;
     }
 
+    const fallbackAddress = this.getEvmAccountAddress()?.toLowerCase();
     const address =
       (transactionMeta.txParams.from as string | undefined)?.toLowerCase() ??
-      this.getEvmAccountAddress().toLowerCase();
+      fallbackAddress;
     const transactionId = transactionMeta.id;
+
+    if (!address) {
+      Logger.error(
+        new Error('EVM account address is required'),
+        this.getErrorContext('handleTransactionStatusUpdate', {
+          operation: 'resolve_sender_address',
+          type,
+          status,
+          transactionId,
+        }),
+      );
+      return;
+    }
     const amount = this.getTransactionAmount({
       type,
       status,
@@ -2763,8 +2966,7 @@ export class PredictController extends BaseController<
   }
 
   public async getBalance(params: GetBalanceParams): Promise<number> {
-    const selectedAddress = this.getSigner().address;
-    const address = params.address ?? selectedAddress;
+    const address = params.address ?? this.requireEvmAccountAddress();
     let wasCached = false;
 
     return withTrace(
@@ -3186,5 +3388,6 @@ export type {
   PredictControllerTrackMarketDetailsOpenedAction,
   PredictControllerTrackPositionViewedAction,
   PredictControllerTrackPredictOrderEventAction,
+  PredictControllerTrackSearchInteractedAction,
   PredictControllerTrackShareActionAction,
 } from './PredictController-method-action-types';

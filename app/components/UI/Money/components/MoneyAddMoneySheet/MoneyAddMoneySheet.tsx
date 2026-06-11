@@ -30,17 +30,24 @@ import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
 import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
+import { useHasNativeFiatProvider } from '../../../Ramp/hooks/useHasNativeFiatProvider';
 import styleSheet from './MoneyAddMoneySheet.styles';
 import { MoneyAddMoneySheetTestIds } from './MoneyAddMoneySheet.testIds';
+import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import useMountEffect from '../../hooks/useMountEffect';
+import {
+  BOTTOM_SHEET_NAMES,
+  COMPONENT_NAMES,
+  SCREEN_NAMES,
+} from '../../constants/moneyEvents';
 
 interface Option {
   label: string;
-  description?: string;
-  descriptionTestID?: string;
   icon: IconName;
   onPress: () => void;
   testID: string;
   disabled?: boolean;
+  comingSoon?: boolean;
 }
 
 const MoneyAddMoneySheet: React.FC = () => {
@@ -59,10 +66,17 @@ const MoneyAddMoneySheet: React.FC = () => {
   const { initiateDeposit } = useMoneyAccountDeposit();
   const { enabledTransactionTypes } = useMMPayFiatConfig();
   const hasAnyCryptoBalance = useSelector(selectHasAnyNonZeroTokenBalance);
+  const hasNativeFiatProvider = useHasNativeFiatProvider();
   const isFiatDepositEnabled = useMemo(
     () => enabledTransactionTypes.includes(TransactionType.moneyAccountDeposit),
     [enabledTransactionTypes],
   );
+
+  const { trackBottomSheetViewed, trackSurfaceClicked } = useMoneyAnalytics({
+    bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_ADD_MONEY_SHEET,
+  });
+
+  useMountEffect(trackBottomSheetViewed);
 
   const closeAndNavigate = useCallback((navigateFn: () => void) => {
     sheetRef.current?.onCloseBottomSheet(navigateFn);
@@ -73,16 +87,26 @@ const MoneyAddMoneySheet: React.FC = () => {
   }, [navigation]);
 
   const handleConvertCrypto = useCallback(() => {
+    trackSurfaceClicked({
+      component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_CONVERT_CRYPTO,
+      redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+    });
+
     closeAndNavigate(() => {
       initiateDeposit().catch(() => undefined);
     });
-  }, [closeAndNavigate, initiateDeposit]);
+  }, [closeAndNavigate, initiateDeposit, trackSurfaceClicked]);
 
   const handleDepositFunds = useCallback(() => {
+    trackSurfaceClicked({
+      component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_DEPOSIT_FUNDS,
+      redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+    });
+
     closeAndNavigate(() => {
       initiateDeposit({ autoSelectFiatPayment: true }).catch(() => undefined);
     });
-  }, [closeAndNavigate, initiateDeposit]);
+  }, [closeAndNavigate, initiateDeposit, trackSurfaceClicked]);
 
   const handleMoveMusd = useCallback(() => {
     let sourceChainId: Hex = MUSD_CONVERSION_DEFAULT_CHAIN_ID;
@@ -97,6 +121,11 @@ const MoneyAddMoneySheet: React.FC = () => {
       }
     }
 
+    trackSurfaceClicked({
+      component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_MOVE_MUSD,
+      redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+    });
+
     closeAndNavigate(() => {
       initiateDeposit({
         intent: 'addMusd',
@@ -106,7 +135,12 @@ const MoneyAddMoneySheet: React.FC = () => {
         },
       }).catch(() => undefined);
     });
-  }, [closeAndNavigate, initiateDeposit, tokenBalanceByChain]);
+  }, [
+    closeAndNavigate,
+    initiateDeposit,
+    tokenBalanceByChain,
+    trackSurfaceClicked,
+  ]);
 
   const parsedMusdFiat = Number(fiatBalanceAggregated);
   const hasParsedFiatBalance =
@@ -123,8 +157,6 @@ const MoneyAddMoneySheet: React.FC = () => {
   const baseOptions: Option[] = [
     {
       label: strings('money.add_money_sheet.convert_crypto'),
-      description: strings('money.add_money_sheet.convert_crypto_description'),
-      descriptionTestID: MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_DESCRIPTION,
       icon: IconName.Refresh,
       onPress: handleConvertCrypto,
       testID: MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
@@ -134,14 +166,11 @@ const MoneyAddMoneySheet: React.FC = () => {
       ? [
           {
             label: strings('money.add_money_sheet.deposit_funds'),
-            description: strings(
-              'money.add_money_sheet.deposit_funds_description',
-            ),
-            descriptionTestID:
-              MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_DESCRIPTION,
-            icon: IconName.AttachMoney,
+            icon: IconName.Bank,
             onPress: handleDepositFunds,
             testID: MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
+            disabled: !hasNativeFiatProvider,
+            comingSoon: !hasNativeFiatProvider,
           },
         ]
       : []),
@@ -151,13 +180,16 @@ const MoneyAddMoneySheet: React.FC = () => {
     ...baseOptions,
     {
       label: moveMusdLabel,
-      description: strings('money.add_money_sheet.move_musd_description'),
-      descriptionTestID: MoneyAddMoneySheetTestIds.MOVE_MUSD_DESCRIPTION,
       icon: IconName.Add,
       onPress: handleMoveMusd,
       testID: MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
       disabled: !hasMusdBalance,
     },
+  ];
+
+  const orderedOptions: Option[] = [
+    ...options.filter((option) => !option.disabled),
+    ...options.filter((option) => option.disabled),
   ];
 
   return (
@@ -174,7 +206,7 @@ const MoneyAddMoneySheet: React.FC = () => {
         </Text>
       </BottomSheetHeader>
       <View style={styles.list}>
-        {options.map((item) => (
+        {orderedOptions.map((item) => (
           <TouchableOpacity
             key={item.testID}
             disabled={item.disabled}
@@ -189,24 +221,31 @@ const MoneyAddMoneySheet: React.FC = () => {
                 item.disabled ? IconColor.IconMuted : IconColor.IconDefault
               }
             />
-            <View style={styles.rowLabelContainer}>
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={item.disabled ? TextColor.TextAlternative : undefined}
-              >
-                {item.label}
-              </Text>
-              {item.description ? (
+            {item.comingSoon ? (
+              <View style={styles.disabledRowContent}>
                 <Text
-                  variant={TextVariant.BodySm}
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
                   color={TextColor.TextAlternative}
-                  testID={item.descriptionTestID}
                 >
-                  {item.description}
+                  {item.label}
                 </Text>
-              ) : null}
-            </View>
+                <Tag
+                  label={strings('money.add_money_sheet.coming_soon')}
+                  style={styles.comingSoonTag}
+                />
+              </View>
+            ) : (
+              <View style={styles.rowLabelContainer}>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  color={item.disabled ? TextColor.TextAlternative : undefined}
+                >
+                  {item.label}
+                </Text>
+              </View>
+            )}
           </TouchableOpacity>
         ))}
         <View

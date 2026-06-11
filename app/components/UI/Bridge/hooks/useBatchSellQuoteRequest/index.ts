@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import { debounce } from 'lodash';
 import BigNumber from 'bignumber.js';
 import {
+  FeatureId,
   formatAddressToAssetId,
   formatAddressToCaipReference,
 } from '@metamask/bridge-controller';
@@ -20,6 +21,8 @@ import { getDecimalChainId } from '../../../../../util/networks';
 import type { BridgeToken } from '../../types';
 import { getBatchSellSlippage } from '../../components/SlippageModal/utils';
 import { getSecurityWarnings } from '../../utils/tokenSecurityUtils';
+import { RootState } from '../../../../../reducers';
+import { getMaybeHexChainId } from '../../../../../util/bridge';
 
 export const BATCH_SELL_QUOTE_DEBOUNCE_MS = 300;
 
@@ -73,6 +76,27 @@ export function getBatchSellAtomicSourceAmount(
   if (!atomicAmount.isFinite() || atomicAmount.lte(0)) return undefined;
 
   return atomicAmount.toFixed(0);
+}
+
+export function hasValidBatchSellSourceAmounts(
+  sourceTokens: BridgeToken[],
+  batchSellSourceTokenAmounts: Record<string, string | undefined>,
+  destToken: BridgeToken | undefined,
+) {
+  if (!destToken) return false;
+
+  return sourceTokens.some((token) => {
+    const assetId = formatAddressToAssetId(token.address, token.chainId);
+
+    if (!assetId) return false;
+
+    return (
+      getBatchSellAtomicSourceAmount(
+        token,
+        batchSellSourceTokenAmounts[assetId],
+      ) !== undefined
+    );
+  });
 }
 
 function getBatchSellUsdAmountSource(token: BridgeToken, sourceAmount: string) {
@@ -142,6 +166,7 @@ export function buildBatchSellQuoteRequestData({
             sourceToken,
             sourceAmount,
           ),
+          feature_id: FeatureId.BATCH_SELL,
         },
       });
 
@@ -176,7 +201,10 @@ export function useBatchSellQuoteRequest() {
   const destToken = useSelector(selectBatchSellDestToken);
   const batchSellSlippages = useSelector(selectBatchSellSlippages);
   const walletAddress = useSelector(selectBatchSellSourceWalletAddress);
-  const smartTransactionsEnabled = useSelector(selectShouldUseSmartTransaction);
+  const batchSellChainId = getMaybeHexChainId(sourceTokens[0]?.chainId);
+  const smartTransactionsEnabled = useSelector((state: RootState) =>
+    selectShouldUseSmartTransaction(state, batchSellChainId),
+  );
 
   const quoteRequestData = useMemo(
     () =>

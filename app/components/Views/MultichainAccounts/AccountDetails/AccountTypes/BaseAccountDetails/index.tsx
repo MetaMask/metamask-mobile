@@ -105,7 +105,7 @@ export const BaseAccountDetails = ({
     <SafeAreaView style={styles.safeArea}>
       <HeaderBase
         style={styles.header}
-        titleTestID={HEADER_BASE_TITLE_TEST_ID}
+        textProps={{ testID: HEADER_BASE_TITLE_TEST_ID }}
         startButtonIconProps={{
           testID: AccountDetailsIds.BACK_BUTTON,
           iconName: IconName.ArrowLeft,
