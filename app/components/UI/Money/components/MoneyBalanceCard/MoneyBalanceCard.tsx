@@ -36,6 +36,8 @@ import { useMoneyAccountAddRouting } from '../../hooks/useMoneyAccountAddRouting
 import {
   SCREEN_NAMES,
   COMPONENT_NAMES,
+  MONEY_BUTTON_INTENTS,
+  MONEY_BUTTON_TYPES,
   MONEY_TOOLTIP_NAMES,
   MONEY_TOOLTIP_TYPES,
 } from '../../constants/moneyEvents';
@@ -58,19 +60,21 @@ const MoneyBalanceCard = () => {
   } = useMoneyAccountBalance();
   const { hasMoneyAccount } = useMoneyAccountInfo();
   const { navigateToMoneyHome } = useMoneyNavigation();
-  const { routeAddMoney } = useMoneyAccountAddRouting({
-    componentName: COMPONENT_NAMES.MONEY_BALANCE_CARD,
-  });
+  const { hasMusdBalance, routeAddMoney } = useMoneyAccountAddRouting();
   const hasSeenMoneyOnboarding = useSelector(selectMoneyOnboardingSeen);
   const hasOtherPrimaryCtaOnHome = useSelector(
     selectWalletHomeOnboardingFlowVisible,
   );
 
-  const { trackSurfaceClicked, trackComponentViewed, trackTooltipClicked } =
-    useMoneyAnalytics({
-      screen_name: SCREEN_NAMES.WALLET_HOME,
-      component_name: COMPONENT_NAMES.MONEY_BALANCE_CARD,
-    });
+  const {
+    trackButtonClicked,
+    trackSurfaceClicked,
+    trackComponentViewed,
+    trackTooltipClicked,
+  } = useMoneyAnalytics({
+    screen_name: SCREEN_NAMES.WALLET_HOME,
+    component_name: COMPONENT_NAMES.MONEY_BALANCE_CARD,
+  });
 
   const isRetrying =
     hasMoneyAccount && isBalanceFetchError && isBalanceFetching;
@@ -146,8 +150,17 @@ const MoneyBalanceCard = () => {
   }, [hasSeenMoneyOnboarding, navigateToMoneyHome, trackSurfaceClicked]);
 
   const handleAddPress = useCallback(() => {
+    trackButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+      button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+      label_key: buttonLabelKey,
+      redirect_target: hasMusdBalance
+        ? SCREEN_NAMES.MONEY_DEPOSIT
+        : SCREEN_NAMES.RAMP_BUY,
+    });
+
     routeAddMoney();
-  }, [routeAddMoney]);
+  }, [buttonLabelKey, hasMusdBalance, routeAddMoney, trackButtonClicked]);
 
   const handleInfoPress = useCallback(() => {
     trackTooltipClicked({

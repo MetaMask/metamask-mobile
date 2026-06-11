@@ -15,11 +15,14 @@ import { useMoneyAccountAddRouting } from '../../hooks/useMoneyAccountAddRouting
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
   COMPONENT_NAMES,
+  MONEY_BUTTON_INTENTS,
+  MONEY_BUTTON_TYPES,
   MONEY_TOOLTIP_NAMES,
   MONEY_TOOLTIP_TYPES,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 
+const mockTrackButtonClicked = jest.fn();
 const mockTrackComponentViewed = jest.fn();
 const mockTrackSurfaceClicked = jest.fn();
 const mockTrackTooltipClicked = jest.fn();
@@ -139,9 +142,11 @@ describe('MoneyBalanceCard', () => {
     });
     mockRouteAddMoney.mockResolvedValue(undefined);
     mockUseMoneyAccountAddRouting.mockReturnValue({
+      hasMusdBalance: false,
       routeAddMoney: mockRouteAddMoney,
     } as unknown as ReturnType<typeof useMoneyAccountAddRouting>);
     (useMoneyAnalytics as jest.Mock).mockReturnValue({
+      trackButtonClicked: mockTrackButtonClicked,
       trackComponentViewed: mockTrackComponentViewed,
       trackSurfaceClicked: mockTrackSurfaceClicked,
       trackTooltipClicked: mockTrackTooltipClicked,
@@ -229,6 +234,37 @@ describe('MoneyBalanceCard', () => {
       });
     });
 
+    it('tracks the Add click with the Buy flow redirect target when the wallet holds no mUSD', () => {
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      fireEvent.press(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON));
+
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+        label_key: 'money.balance_card.add',
+        redirect_target: SCREEN_NAMES.RAMP_BUY,
+      });
+    });
+
+    it('tracks the Add click with the deposit redirect target when the wallet holds mUSD', () => {
+      mockUseMoneyAccountAddRouting.mockReturnValue({
+        hasMusdBalance: true,
+        routeAddMoney: mockRouteAddMoney,
+      } as unknown as ReturnType<typeof useMoneyAccountAddRouting>);
+
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      fireEvent.press(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON));
+
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+        label_key: 'money.balance_card.add',
+        redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+      });
+    });
+
     it('renders the label', () => {
       const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
@@ -282,6 +318,19 @@ describe('MoneyBalanceCard', () => {
       expect(mockRouteAddMoney).toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
         screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+      });
+    });
+
+    it('tracks the Earn click with the empty-state label key', () => {
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      fireEvent.press(getByTestId(MoneyBalanceCardTestIds.EARN_BUTTON));
+
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+        label_key: 'homepage.sections.money_empty_state.earn',
+        redirect_target: SCREEN_NAMES.RAMP_BUY,
       });
     });
   });
