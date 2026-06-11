@@ -19,10 +19,7 @@ import {
   KeyringControllerState,
 } from '@metamask/keyring-controller';
 import { NetworkState, NetworkStatus } from '@metamask/network-controller';
-import {
-  TransactionController,
-  TransactionMeta,
-} from '@metamask/transaction-controller';
+import { TransactionController } from '@metamask/transaction-controller';
 import { GasFeeController } from '@metamask/gas-fee-controller';
 import { AcceptOptions } from '@metamask/approval-controller';
 import {
@@ -656,13 +653,6 @@ export class Engine {
         delete childControllers[name];
       }
     });
-
-    this.controllerMessenger.subscribe(
-      'TransactionController:incomingTransactionsReceived',
-      (incomingTransactions: TransactionMeta[]) => {
-        NotificationManager.gotIncomingTransaction(incomingTransactions);
-      },
-    );
 
     this.controllerMessenger.subscribe(
       AppConstants.NETWORK_STATE_CHANGE_EVENT,

@@ -276,7 +276,6 @@ jest.mock('../../core/NotificationManager', () => ({
   watchSubmittedTransaction: jest.fn(),
   getTransactionToView: jest.fn(),
   setTransactionToView: jest.fn(),
-  gotIncomingTransaction: jest.fn(),
   requestPushNotificationsPermission: jest.fn(),
   showSimpleNotification: jest.fn(),
 }));
