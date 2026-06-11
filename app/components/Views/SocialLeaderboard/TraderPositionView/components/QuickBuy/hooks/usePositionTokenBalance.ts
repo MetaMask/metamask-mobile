@@ -2,12 +2,10 @@ import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { formatUnits } from 'ethers/lib/utils';
 import {
-  isSolanaChainId,
   isNonEvmChainId,
   isNativeAddress,
   formatChainIdToHex,
 } from '@metamask/bridge-controller';
-import { SolScope } from '@metamask/keyring-api';
 import type { Hex, CaipChainId } from '@metamask/utils';
 import type { BridgeToken } from '../../../../../../UI/Bridge/types';
 import type { RootState } from '../../../../../../../reducers';
@@ -51,19 +49,16 @@ export const usePositionTokenBalance = (
   target: QuickBuyTarget | null,
   destToken: BridgeToken | undefined,
 ): BridgeToken | undefined => {
-  const accountAddress = useSelector(
-    (state: RootState) =>
-      selectSelectedInternalAccountByScope(state)(EVM_SCOPE)?.address,
+  const selectAccountByScope = useSelector(
+    selectSelectedInternalAccountByScope,
   );
+  const accountAddress = selectAccountByScope(EVM_SCOPE)?.address;
   const accountsByChainId = useSelector(selectAccountsByChainId);
   const tokenBalances = useSelector(selectTokensBalances);
   const tokenMarketData = useSelector(selectTokenMarketData);
   const currencyRates = useSelector(selectCurrencyRates);
   const currentCurrency = useSelector(selectCurrentCurrency);
 
-  const solanaAccount = useSelector((state: RootState) =>
-    selectSelectedInternalAccountByScope(state)(SolScope.Mainnet),
-  );
   const multichainBalances = useSelector(selectMultichainBalances);
   const multichainRates = useSelector(selectMultichainAssetsRates);
 
@@ -87,20 +82,12 @@ export const usePositionTokenBalance = (
     >[1];
     const zeroFiat = addCurrencySymbol('0.00', fiatCurrency);
 
-    // ─── Non-EVM, non-Solana (BTC, Tron) ──────────────────────────
-    // The multichain selectors above (`selectMultichainBalances`,
-    // `selectMultichainAssetsRates`) are chain-agnostic. We early-return here
-    // so the EVM branch's `formatChainIdToHex` doesn't throw "Invalid
-    // cross-chain swaps chainId" and crash the QuickBuy sheet.
-    if (isNonEvmChainId(caipChainId) && !isSolanaChainId(caipChainId)) {
-      return undefined;
-    }
-
-    // ─── Solana branch ─────────────────────────────────────────────────
-    if (isNonEvmChainId(caipChainId) && isSolanaChainId(caipChainId)) {
-      if (!solanaAccount) return undefined;
+    // ─── Non-EVM branch ─────────────────────────────────────────────────
+    if (isNonEvmChainId(caipChainId)) {
+      const nonEvmAccount = selectAccountByScope(caipChainId);
+      if (!nonEvmAccount) return undefined;
       const balanceEntry =
-        multichainBalances?.[solanaAccount.id]?.[destToken.address];
+        multichainBalances?.[nonEvmAccount.id]?.[destToken.address];
       const amountStr = balanceEntry?.amount;
       if (!amountStr) return undefined;
       const balanceNum = parseFloat(amountStr);
@@ -201,7 +188,7 @@ export const usePositionTokenBalance = (
     target,
     destToken,
     accountAddress,
-    solanaAccount,
+    selectAccountByScope,
     multichainBalances,
     multichainRates,
     accountsByChainId,
