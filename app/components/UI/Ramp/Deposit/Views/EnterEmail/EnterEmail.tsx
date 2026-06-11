@@ -19,11 +19,11 @@ import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import { createOtpCodeNavDetails } from '../OtpCode/OtpCode';
 import { validateEmail } from '../../utils';
 import DepositProgressBar from '../../components/DepositProgressBar/DepositProgressBar';
-import Button, {
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import PoweredByTransak from '../../components/PoweredByTransak';
 import Logger from '../../../../../../util/Logger';
 import useAnalytics from '../../../hooks/useAnalytics';
@@ -153,12 +153,13 @@ const EnterEmail = () => {
           <Button
             size={ButtonSize.Lg}
             onPress={handleSubmit}
-            label={strings('deposit.enter_email.submit_button')}
-            variant={ButtonVariants.Primary}
-            width={ButtonWidthTypes.Full}
-            loading={isLoading}
+            variant={ButtonVariant.Primary}
+            isFullWidth
+            isLoading={isLoading}
             isDisabled={isLoading}
-          />
+          >
+            {strings('deposit.enter_email.submit_button')}
+          </Button>
           <PoweredByTransak name="powered-by-transak-logo" />
         </ScreenLayout.Content>
       </ScreenLayout.Footer>

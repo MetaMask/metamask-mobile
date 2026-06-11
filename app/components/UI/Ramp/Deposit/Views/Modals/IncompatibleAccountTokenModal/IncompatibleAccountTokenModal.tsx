@@ -14,11 +14,11 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import Button, {
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 
 import { useStyles } from '../../../../../../hooks/useStyles';
 import { selectChainId } from '../../../../../../../selectors/networkController';
@@ -61,10 +61,11 @@ function IncompatibleAccountTokenModal() {
         <Button
           size={ButtonSize.Lg}
           onPress={() => sheetRef.current?.onCloseBottomSheet()}
-          label={strings('deposit.incompatible_token_acount_modal.cta')}
-          variant={ButtonVariants.Primary}
-          width={ButtonWidthTypes.Full}
-        />
+          variant={ButtonVariant.Primary}
+          isFullWidth
+        >
+          {strings('deposit.incompatible_token_acount_modal.cta')}
+        </Button>
       </View>
     </BottomSheet>
   );

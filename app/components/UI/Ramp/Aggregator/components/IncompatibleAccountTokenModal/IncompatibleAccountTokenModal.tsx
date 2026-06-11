@@ -10,11 +10,11 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import Button, {
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 
 import { useStyles } from '../../../../../hooks/useStyles';
 import { createNavigationDetails } from '../../../../../../util/navigation/navUtils';
@@ -54,12 +54,13 @@ function IncompatibleAccountTokenModal() {
         <Button
           size={ButtonSize.Lg}
           onPress={() => sheetRef.current?.onCloseBottomSheet()}
-          label={strings(
+          variant={ButtonVariant.Primary}
+          isFullWidth
+        >
+          {strings(
             'fiat_on_ramp_aggregator.incompatible_token_account_modal.cta',
           )}
-          variant={ButtonVariants.Primary}
-          width={ButtonWidthTypes.Full}
-        />
+        </Button>
       </View>
     </BottomSheet>
   );

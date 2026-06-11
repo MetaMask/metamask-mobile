@@ -4,7 +4,12 @@ import React, {
   useLayoutEffect,
   useState,
 } from 'react';
-import { HeaderStandard } from '@metamask/design-system-react-native';
+import {
+  Button,
+  ButtonVariant,
+  ButtonSize,
+  HeaderStandard,
+} from '@metamask/design-system-react-native';
 import { ActivityIndicator, RefreshControl } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -16,11 +21,6 @@ import useThunkDispatch from '../../../../../hooks/useThunkDispatch';
 import ScreenLayout from '../../components/ScreenLayout';
 import OrderDetail from '../../components/OrderDetails';
 import Row from '../../components/Row';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../../component-library/components/Buttons/Button';
 import {
   FiatOrder,
   getOrderById,
@@ -284,12 +284,13 @@ const OrderDetails = () => {
                 <Button
                   size={ButtonSize.Lg}
                   onPress={navigateToSendTransaction}
-                  label={strings(
+                  variant={ButtonVariant.Primary}
+                  isFullWidth
+                >
+                  {strings(
                     'fiat_on_ramp_aggregator.order_details.continue_order',
                   )}
-                  variant={ButtonVariants.Primary}
-                  width={ButtonWidthTypes.Full}
-                />
+                </Button>
               </Row>
             ) : null}
 
@@ -298,12 +299,13 @@ const OrderDetails = () => {
                 <Button
                   size={ButtonSize.Lg}
                   onPress={handleMakeAnotherPurchase}
-                  label={strings(
+                  variant={ButtonVariant.Primary}
+                  isFullWidth
+                >
+                  {strings(
                     'fiat_on_ramp_aggregator.order_details.start_new_order',
                   )}
-                  variant={ButtonVariants.Primary}
-                  width={ButtonWidthTypes.Full}
-                />
+                </Button>
               )}
           </ScreenLayout.Content>
         </ScreenLayout.Footer>

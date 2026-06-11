@@ -17,6 +17,9 @@ import BN4 from 'bnjs4';
 import {
   AvatarToken,
   AvatarTokenSize,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   HeaderStandard,
 } from '@metamask/design-system-react-native';
 
@@ -92,11 +95,6 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../../component-library/components/Buttons/Button';
 import { IconName } from '../../../../../../component-library/components/Icons/Icon';
 import { BuildQuoteSelectors } from './BuildQuote.testIds';
 
@@ -1158,12 +1156,13 @@ const BuildQuote = () => {
             <Button
               size={ButtonSize.Lg}
               onPress={handleGetQuotePress}
-              label={strings('fiat_on_ramp_aggregator.get_quotes')}
-              variant={ButtonVariants.Primary}
-              width={ButtonWidthTypes.Full}
+              variant={ButtonVariant.Primary}
+              isFullWidth
               isDisabled={amountNumber <= 0 || isFetching}
               accessibilityRole="button"
-            />
+            >
+              {strings('fiat_on_ramp_aggregator.get_quotes')}
+            </Button>
           </Row>
         </ScreenLayout.Content>
       </ScreenLayout.Footer>
@@ -1194,11 +1193,12 @@ const BuildQuote = () => {
           <Button
             size={ButtonSize.Lg}
             onPress={handleKeypadDone}
-            label={strings('fiat_on_ramp_aggregator.done')}
-            variant={ButtonVariants.Primary}
-            width={ButtonWidthTypes.Full}
+            variant={ButtonVariant.Primary}
+            isFullWidth
             accessibilityRole="button"
-          />
+          >
+            {strings('fiat_on_ramp_aggregator.done')}
+          </Button>
         </ScreenLayout.Content>
       </Animated.View>
     </ScreenLayout>

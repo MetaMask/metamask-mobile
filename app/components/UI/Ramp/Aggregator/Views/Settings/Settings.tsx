@@ -1,5 +1,10 @@
 import React, { useCallback } from 'react';
-import { HeaderStandard } from '@metamask/design-system-react-native';
+import {
+  HeaderStandard,
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
 import { KeyboardAvoidingView, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -12,11 +17,6 @@ import Row from '../../components/Row';
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
-import Button, {
-  ButtonVariants,
-  ButtonSize,
-  ButtonWidthTypes,
-} from '../../../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../../../locales/i18n';
 import useAnalytics from '../../../hooks/useAnalytics';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -96,12 +96,13 @@ function Settings() {
                     </ListItemColumn>
                   </ListItem>
                   <Button
-                    variant={ButtonVariants.Primary}
+                    variant={ButtonVariant.Primary}
                     size={ButtonSize.Lg}
-                    width={ButtonWidthTypes.Full}
+                    isFullWidth
                     onPress={handleChangeRegion}
-                    label={strings('app_settings.fiat_on_ramp.change_region')}
-                  />
+                  >
+                    {strings('app_settings.fiat_on_ramp.change_region')}
+                  </Button>
                 </Row>
               ) : (
                 <Row first>
@@ -127,12 +128,13 @@ function Settings() {
                   </ListItem>
                   {selectedRegion ? (
                     <Button
-                      variant={ButtonVariants.Secondary}
+                      variant={ButtonVariant.Secondary}
                       size={ButtonSize.Lg}
-                      width={ButtonWidthTypes.Full}
+                      isFullWidth
                       onPress={handleResetRegion}
-                      label={strings('app_settings.fiat_on_ramp.reset_region')}
-                    />
+                    >
+                      {strings('app_settings.fiat_on_ramp.reset_region')}
+                    </Button>
                   ) : null}
                 </Row>
               )}
@@ -144,15 +146,16 @@ function Settings() {
               {isInternalBuild ? (
                 <Row>
                   <Button
-                    variant={ButtonVariants.Secondary}
+                    variant={ButtonVariant.Secondary}
                     size={ButtonSize.Lg}
-                    width={ButtonWidthTypes.Full}
+                    isFullWidth
                     onPress={handleOpenHeadlessPlayground}
-                    label={strings(
+                    testID={RAMP_SETTINGS_HEADLESS_PLAYGROUND_BUTTON_TEST_ID}
+                  >
+                    {strings(
                       'app_settings.fiat_on_ramp.headless_playground.entry_button',
                     )}
-                    testID={RAMP_SETTINGS_HEADLESS_PLAYGROUND_BUTTON_TEST_ID}
-                  />
+                  </Button>
                 </Row>
               ) : null}
             </ScreenLayout.Content>

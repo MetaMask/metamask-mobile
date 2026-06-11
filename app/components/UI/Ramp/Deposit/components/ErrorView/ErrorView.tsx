@@ -12,10 +12,10 @@ import Text, {
   TextColor,
 } from '../../../../../../component-library/components/Texts/Text';
 import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-} from '../../../../../../component-library/components/Buttons/Button/Button.types';
-import Button from '../../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './ErrorView.styles';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
@@ -60,11 +60,12 @@ function ErrorView({ description, title, ctaLabel, ctaOnPress }: Props) {
         {ctaOnPress && (
           <Button
             style={styles.button}
-            variant={ButtonVariants.Primary}
+            variant={ButtonVariant.Primary}
             onPress={ctaOnPress}
-            label={ctaLabel || strings('deposit.error_view.try_again')}
             size={ButtonSize.Lg}
-          />
+          >
+            {ctaLabel || strings('deposit.error_view.try_again')}
+          </Button>
         )}
       </ScreenLayout.Content>
     </ScreenLayout>

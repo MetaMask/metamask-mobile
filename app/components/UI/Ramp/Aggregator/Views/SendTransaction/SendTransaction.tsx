@@ -2,7 +2,12 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ImageSourcePropType, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { HeaderStandard } from '@metamask/design-system-react-native';
+import {
+  Button,
+  ButtonVariant,
+  ButtonSize,
+  HeaderStandard,
+} from '@metamask/design-system-react-native';
 import BN4 from 'bnjs4';
 import { SellOrder } from '@consensys/on-ramp-sdk/dist/API';
 import {
@@ -29,11 +34,6 @@ import Avatar, {
   AvatarSize,
   AvatarVariant,
 } from '../../../../../../component-library/components/Avatars/Avatar';
-import Button, {
-  ButtonVariants,
-  ButtonSize,
-  ButtonWidthTypes,
-} from '../../../../../../component-library/components/Buttons/Button';
 import RemoteImage from '../../../../../Base/RemoteImage';
 
 import styleSheet from './SendTransaction.styles';
@@ -359,22 +359,21 @@ function SendTransaction() {
 
           <Row>
             <Button
-              variant={ButtonVariants.Primary}
+              variant={ButtonVariant.Primary}
               size={ButtonSize.Lg}
-              width={ButtonWidthTypes.Full}
+              isFullWidth
               onPress={handleSend}
               accessibilityRole="button"
               accessible
               isDisabled={isConfirming || !networkClientId}
-              label={
-                <Text
-                  variant={TextVariant.BodyLGMedium}
-                  color={TextColor.Inverse}
-                >
-                  {strings('fiat_on_ramp_aggregator.send_transaction.next')}
-                </Text>
-              }
-            />
+            >
+              <Text
+                variant={TextVariant.BodyLGMedium}
+                color={TextColor.Inverse}
+              >
+                {strings('fiat_on_ramp_aggregator.send_transaction.next')}
+              </Text>
+            </Button>
           </Row>
           {/* <Row>
             <ButtonConfirm onLongPress={handleSend} disabled={isLoadingGas} />
