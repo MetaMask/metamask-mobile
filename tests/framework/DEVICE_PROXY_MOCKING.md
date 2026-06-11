@@ -60,15 +60,15 @@ Per-test flow inside `withFixtures`:
 6. Launch or relaunch the app with the existing E2E launch args.
 7. On teardown, restore any platform proxy state that was changed (`cleanupProxy`).
 
-The generated CA files live under `.e2e-proxy-ca/` and are ignored by git:
+The CA is deterministic and checked in under `tests/framework/utils/e2e-proxy-ca/` (Decision DA/A1 — see the README there for why the private key is committed and how to rotate):
 
 ```text
-.e2e-proxy-ca/proxy-ca.key
-.e2e-proxy-ca/proxy-ca.pem
-.e2e-proxy-ca/proxy-ca.cer
+tests/framework/utils/e2e-proxy-ca/proxy-ca.key
+tests/framework/utils/e2e-proxy-ca/proxy-ca.pem
+tests/framework/utils/e2e-proxy-ca/proxy-ca.cer
 ```
 
-`MockServerE2E` uses `proxy-ca.pem` and `proxy-ca.key` for HTTPS interception. iOS trusts `proxy-ca.cer`; Android trusts `proxy-ca.pem`.
+`MockServerE2E` uses `proxy-ca.pem` and `proxy-ca.key` for HTTPS interception. iOS trusts `proxy-ca.cer` (installed into the simulator keychain at test time); Android trusts the same certificate **baked into the E2E APK** as `android/app/src/main/res/raw/e2e_proxy_ca.pem`. `ensureE2EProxyCa` regenerates the files only if they are missing (CA rotation).
 
 ## iOS Implementation
 
@@ -79,7 +79,7 @@ Instead, the app is configured at launch time:
 - `FixtureHelper` installs the generated DER certificate into the simulator keychain:
 
 ```bash
-xcrun simctl keychain "$DEVICE_UDID" add-root-cert .e2e-proxy-ca/proxy-ca.cer
+xcrun simctl keychain "$DEVICE_UDID" add-root-cert tests/framework/utils/e2e-proxy-ca/proxy-ca.cer
 ```
 
 - The harness passes the MockServer port through the `e2eIosProxyPort` launch arg.
@@ -114,10 +114,11 @@ Android uses the emulator global HTTP proxy through adb.
 
 `FixtureHelper` calls the Android device command handler after MockServer has started:
 
-1. Install the generated PEM certificate into the Android user CA store.
-2. Set Android global proxy settings to route outbound traffic to MockServer.
-3. Set a local harness exclusion list so framework-local traffic does not go through MockServer.
-4. Clear the proxy settings during fixture teardown.
+1. Set Android global proxy settings to route outbound traffic to MockServer.
+2. Set a local harness exclusion list so framework-local traffic does not go through MockServer.
+3. Clear the proxy settings during fixture teardown.
+
+There is no runtime CA install step on Android: the proxy CA is already trusted by the E2E APK (see below).
 
 The proxy host is `10.0.2.2` because Android emulators reach the host machine through that address.
 
@@ -145,9 +146,9 @@ String settings are cleared with `settings delete` instead of `settings put ... 
 
 The exclusion list is important. Local framework traffic such as fixture state, command queue, adb reverse ports, dapps, and local nodes uses device-relative hosts like `localhost`, `127.0.0.1`, and `10.0.2.2`. If those requests are proxied, MockServer receives URLs whose hostnames no longer have the same meaning from the Node process and can fail with `ECONNREFUSED`.
 
-Android E2E builds also use `android/app/src/main/res/xml/react_native_config_e2e.xml` through a manifest placeholder when `METAMASK_ENVIRONMENT=e2e`. This E2E network security config trusts user CAs so the generated proxy CA can decrypt HTTPS traffic. `scripts/build.sh` passes `-PmetamaskE2E=true` for E2E builds, and `android/app/build.gradle` fails the build if that property is set while `METAMASK_ENVIRONMENT` did not reach the Gradle process — a misconfigured build cannot silently fall back to the production network config.
+Android E2E builds also use `android/app/src/main/res/xml/react_native_config_e2e.xml` through a manifest placeholder when `METAMASK_ENVIRONMENT=e2e`. This E2E network security config trusts the checked-in proxy CA bundled into the APK at `res/raw/e2e_proxy_ca` (plus system and user CAs), so HTTPS interception works with **no `adb root` dependency and no runtime install**. `scripts/build.sh` passes `-PmetamaskE2E=true` for E2E builds, and `android/app/build.gradle` fails the build if that property is set while `METAMASK_ENVIRONMENT` did not reach the Gradle process — a misconfigured build cannot silently fall back to the production network config.
 
-The current Android CA installation writes to the emulator user CA store and requires an emulator image that supports `adb root`. This is a known fragility — the Android CA install strategy (bundled APK asset vs. adb-root emulator image vs. runtime push) is Decision DA on MMQA-1923.
+Decision DA on MMQA-1923 is resolved as **A1 (bundled APK asset)**: the previous runtime `adb root` push into the user CA store is removed, and `AndroidDeviceCommandHandler.installRootCertificate` now throws to catch accidental wiring. A unit test in `E2EProxyCa.test.ts` guards that the bundled cert stays byte-identical to the checked-in CA cert.
 
 Useful Android log markers:
 
@@ -199,16 +200,16 @@ E2E_NATIVE_PROXY_WS_CLOSE
 
 ## Platform Differences
 
-| Area                       | iOS                                              | Android                                                            |
-| -------------------------- | ------------------------------------------------ | ------------------------------------------------------------------ |
-| Proxy mechanism            | App-level launch arg                             | Emulator global HTTP proxy through adb                             |
-| Proxy host from app/device | `127.0.0.1`                                      | `10.0.2.2`                                                         |
-| Proxy port source          | `e2eIosProxyPort` launch arg                     | MockServer port written to Android global settings                 |
-| CA trust                   | `simctl keychain add-root-cert` with DER cert    | User CA store install with PEM cert                                |
-| HTTPS trust gate           | Simulator keychain trust plus Mockttp CA         | `METAMASK_ENVIRONMENT=e2e` network security config trusts user CAs |
-| WebSocket support          | SocketRocket E2E patch uses launch arg           | Depends on Android/network stack honoring global proxy             |
-| Local framework traffic    | App proxy exceptions avoid localhost-style hosts | Android global proxy exclusion list avoids localhost-style hosts   |
-| Cleanup                    | No device-wide proxy state to clear              | Clear Android global proxy settings on teardown                    |
+| Area                       | iOS                                              | Android                                                                            |
+| -------------------------- | ------------------------------------------------ | ---------------------------------------------------------------------------------- |
+| Proxy mechanism            | App-level launch arg                             | Emulator global HTTP proxy through adb                                             |
+| Proxy host from app/device | `127.0.0.1`                                      | `10.0.2.2`                                                                         |
+| Proxy port source          | `e2eIosProxyPort` launch arg                     | MockServer port written to Android global settings                                 |
+| CA trust                   | `simctl keychain add-root-cert` with DER cert    | User CA store install with PEM cert                                                |
+| HTTPS trust gate           | Simulator keychain trust plus Mockttp CA         | `METAMASK_ENVIRONMENT=e2e` network security config trusts the APK-bundled proxy CA |
+| WebSocket support          | SocketRocket E2E patch uses launch arg           | Depends on Android/network stack honoring global proxy                             |
+| Local framework traffic    | App proxy exceptions avoid localhost-style hosts | Android global proxy exclusion list avoids localhost-style hosts                   |
+| Cleanup                    | No device-wide proxy state to clear              | Clear Android global proxy settings on teardown                                    |
 
 ## Troubleshooting
 

@@ -135,6 +135,20 @@ export interface NormalizedHttpProxyRequest {
   requestBodyJson?: unknown;
 }
 
+/**
+ * Response shape flowing back through the proxy pipeline to mockttp.
+ *
+ * `body` MUST stay a Buffer for binary payloads (snap tarballs, images,
+ * PDFs): decoding bytes to a string and back is lossy (invalid UTF-8
+ * sequences become U+FFFD), which corrupts the payload and produces a
+ * content-length that no longer matches what the client expects.
+ */
+export interface ProxyHandlerResponse {
+  statusCode: number;
+  body: string | Buffer;
+  headers?: MockttpHeaders;
+}
+
 interface NormalizedHttpProxyRequestOptions {
   events: MockEventsObject;
   liveRequests?: LiveRequest[];
@@ -488,7 +502,7 @@ const handleDirectFetch = async (
   method: string,
   headers: MockttpHeaders,
   requestBody?: string,
-): Promise<{ statusCode: number; body: string }> => {
+): Promise<ProxyHandlerResponse> => {
   try {
     const fetchHeaders: HeadersInit = {};
     for (const [key, value] of Object.entries(headers)) {
@@ -503,8 +517,17 @@ const handleDirectFetch = async (
       body: ['POST', 'PUT', 'PATCH'].includes(method) ? requestBody : undefined,
     });
 
-    const responseBody = await response.text();
-    return { statusCode: response.status, body: responseBody };
+    // Read raw bytes, never text(): UTF-8 decoding corrupts binary payloads.
+    const responseBody = Buffer.from(await response.arrayBuffer());
+    // Forward content-type only. content-encoding must NOT be forwarded:
+    // fetch already decompressed the body, so echoing the upstream header
+    // would make clients try to decompress a second time.
+    const contentType = response.headers.get('content-type');
+    return {
+      statusCode: response.status,
+      body: responseBody,
+      ...(contentType ? { headers: { 'content-type': contentType } } : {}),
+    };
   } catch (error) {
     if (!isUrlSuppressedFromLogs(url)) {
       logger.error('Error forwarding request:', url, error);
@@ -564,7 +587,7 @@ const findMatchingMockEvent = (
 const createMockEventResponse = (
   matchingEvent: MockApiEndpoint,
   request: NormalizedHttpProxyRequest,
-): { statusCode: number; body: string } => {
+): ProxyHandlerResponse => {
   logger.debug(`Mocking ${request.method} request to: ${request.targetUrl}`);
   logger.debug(`Response status: ${matchingEvent.responseCode}`);
   logger.debug('Response:', matchingEvent.response);
@@ -588,12 +611,15 @@ const createMockEventResponse = (
     }
   }
 
+  const mockResponse = matchingEvent.response;
   return {
     statusCode: matchingEvent.responseCode,
     body:
-      typeof matchingEvent.response === 'string'
-        ? matchingEvent.response
-        : JSON.stringify(matchingEvent.response),
+      Buffer.isBuffer(mockResponse) || mockResponse instanceof Uint8Array
+        ? Buffer.from(mockResponse)
+        : typeof mockResponse === 'string'
+          ? mockResponse
+          : JSON.stringify(mockResponse),
   };
 };
 
@@ -617,7 +643,7 @@ const logDirectDeviceProxyMiss = (
 export const handleNormalizedHttpProxyRequest = async (
   request: NormalizedHttpProxyRequest,
   options: NormalizedHttpProxyRequestOptions,
-): Promise<{ statusCode: number; body: string }> => {
+): Promise<ProxyHandlerResponse> => {
   const method = request.method.toUpperCase();
   const requestBodyJson =
     request.requestBodyJson ?? parseRequestBodyJson(request.bodyText);

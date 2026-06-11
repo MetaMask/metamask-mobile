@@ -109,6 +109,101 @@ describe('handleNormalizedHttpProxyRequest', () => {
     });
   });
 
+  it('returns Buffer mock responses byte-identical (binary round-trip)', async () => {
+    // Bytes that are NOT valid UTF-8 (gzip magic + continuation bytes):
+    // any string decode/encode round-trip would mangle them.
+    const binaryPayload = Buffer.from([
+      0x1f, 0x8b, 0x08, 0x00, 0xff, 0xfe, 0x80, 0x81,
+    ]);
+    const events: MockEventsObject = {
+      GET: [
+        {
+          urlEndpoint: 'https://registry.example.test/snap.tgz',
+          responseCode: 200,
+          response: binaryPayload,
+        },
+      ],
+    };
+    const forwardRequest = jest.fn();
+
+    const response = await handleNormalizedHttpProxyRequest(
+      createRequest({
+        targetUrl: 'https://registry.example.test/snap.tgz',
+      }),
+      {
+        events,
+        forwardRequest,
+        getForwardUrl: (url) => url,
+      },
+    );
+
+    expect(response.statusCode).toBe(200);
+    expect(Buffer.isBuffer(response.body)).toBe(true);
+    expect(Buffer.compare(response.body as Buffer, binaryPayload)).toBe(0);
+    expect(forwardRequest).not.toHaveBeenCalled();
+  });
+
+  it('forwards binary upstream responses byte-identical through the default fetch path', async () => {
+    const binaryPayload = Buffer.from([
+      0x1f, 0x8b, 0x08, 0x00, 0xc0, 0xff, 0xee, 0x00, 0x80,
+    ]);
+    jest.spyOn(global, 'fetch').mockResolvedValue(
+      new Response(binaryPayload, {
+        status: 200,
+        headers: {
+          'content-type': 'application/octet-stream',
+          'content-encoding': 'gzip',
+        },
+      }),
+    );
+
+    // No forwardRequest override: exercises the real handleDirectFetch.
+    const response = await handleNormalizedHttpProxyRequest(
+      createRequest({
+        targetUrl: 'https://registry.example.test/snap.tgz',
+      }),
+      {
+        events: {},
+        getForwardUrl: (url) => url,
+      },
+    );
+
+    expect(response.statusCode).toBe(200);
+    expect(Buffer.isBuffer(response.body)).toBe(true);
+    expect(Buffer.compare(response.body as Buffer, binaryPayload)).toBe(0);
+    expect(response.headers).toEqual({
+      'content-type': 'application/octet-stream',
+    });
+  });
+
+  it('forwards text upstream responses intact through the default fetch path (text round-trip)', async () => {
+    const jsonText = JSON.stringify({ ok: true, value: 'näïve✓' });
+    jest.spyOn(global, 'fetch').mockResolvedValue(
+      new Response(jsonText, {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      }),
+    );
+
+    const response = await handleNormalizedHttpProxyRequest(
+      createRequest({
+        targetUrl: 'https://api.example.test/status',
+      }),
+      {
+        events: {},
+        getForwardUrl: (url) => url,
+      },
+    );
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.toString('utf8')).toBe(jsonText);
+    expect(JSON.parse(response.body.toString('utf8'))).toEqual({
+      ok: true,
+      value: 'näïve✓',
+    });
+    expect(response.headers).toEqual({ 'content-type': 'application/json' });
+  });
+
   it('uses PlatformDetector for Android shim localhost forwarding', () => {
     jest.spyOn(PlatformDetector, 'getPlatform').mockReturnValue('android');
 

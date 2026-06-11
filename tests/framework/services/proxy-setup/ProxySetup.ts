@@ -3,7 +3,6 @@ import { PlatformDetector } from '../../PlatformLocator';
 import type { PlatformDeviceCommandHandler } from '../device-commands';
 import {
   E2E_PROXY_CA_CERT_DER_PATH,
-  E2E_PROXY_CA_CERT_PEM_PATH,
   ensureE2EProxyCa,
 } from '../../utils/E2EProxyCa';
 
@@ -43,7 +42,7 @@ async function prepareProxyCa(): Promise<void> {
     proxyCaPreparation = (async () => {
       const paths = await ensureE2EProxyCa();
       logger.debug(
-        `[E2E_NATIVE_PROXY_CA_READY] Using generated CA certificate at ${paths.certPemPath}`,
+        `[E2E_NATIVE_PROXY_CA_READY] Using CA certificate at ${paths.certPemPath}`,
       );
     })();
     proxyCaPreparation.catch(() => {
@@ -158,17 +157,16 @@ async function setupAndroidDeviceProxy(
     return false;
   }
 
-  await deviceCommands.installRootCertificate({
-    certPath: E2E_PROXY_CA_CERT_PEM_PATH,
-  });
-
+  // No runtime CA install on Android (Decision DA/A1): the E2E APK bundles
+  // the proxy CA via res/raw/e2e_proxy_ca + react_native_config_e2e.xml, so
+  // the adb-root-dependent push is gone entirely.
   await deviceCommands.configureHttpProxy({
     host: ANDROID_E2E_PROXY_HOST,
     port: mockServerPort,
   });
 
   logger.warn(
-    `[E2E_ANDROID_DEVICE_PROXY_CONFIGURED] Installed CA certificate and set Android global HTTP proxy to ${ANDROID_E2E_PROXY_HOST}:${mockServerPort} with local harness exclusions. Search MockServer logs for E2E_NATIVE_PROXY_DIRECT_REQUEST, E2E_NATIVE_PROXY_WS_REQUEST, E2E_DEVICE_PROXY_UNMOCKED_REQUEST, or E2E_NATIVE_PROXY_REQUEST_INITIATED.`,
+    `[E2E_ANDROID_DEVICE_PROXY_CONFIGURED] Set Android global HTTP proxy to ${ANDROID_E2E_PROXY_HOST}:${mockServerPort} with local harness exclusions (proxy CA is bundled in the E2E APK). Search MockServer logs for E2E_NATIVE_PROXY_DIRECT_REQUEST, E2E_NATIVE_PROXY_WS_REQUEST, E2E_DEVICE_PROXY_UNMOCKED_REQUEST, or E2E_NATIVE_PROXY_REQUEST_INITIATED.`,
   );
 
   return true;

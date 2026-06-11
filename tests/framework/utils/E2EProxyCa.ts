@@ -22,10 +22,23 @@ export interface E2EProxyCaFilePaths {
   keyPath: string;
 }
 
-export const E2E_PROXY_CA_DIRECTORY = path.resolve(
-  process.cwd(),
-  '.e2e-proxy-ca',
-);
+/**
+ * Checked-in, deterministic E2E proxy CA (Decision DA/A1 on MMQA-1923).
+ *
+ * The CA cert AND private key are committed on purpose: the Android E2E APK
+ * bundles the cert at build time (android/app/src/main/res/raw/e2e_proxy_ca.pem,
+ * trusted via react_native_config_e2e.xml), while mockttp needs the matching
+ * key at test time — and in CI those are different jobs on different runners,
+ * so the material must be identical without coordination. This key signs
+ * nothing but throwaway E2E TLS interception certs; it is trusted only by
+ * E2E builds, never by production binaries.
+ *
+ * To rotate: delete the three files in this directory, run any device-proxy
+ * test (or call ensureE2EProxyCa()) to regenerate, then re-copy proxy-ca.pem
+ * to android/app/src/main/res/raw/e2e_proxy_ca.pem. A unit test guards that
+ * the two copies stay in sync.
+ */
+export const E2E_PROXY_CA_DIRECTORY = path.join(__dirname, 'e2e-proxy-ca');
 
 export const getE2EProxyCaFilePaths = (
   caDirectory = E2E_PROXY_CA_DIRECTORY,

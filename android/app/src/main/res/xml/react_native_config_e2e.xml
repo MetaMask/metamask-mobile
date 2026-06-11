@@ -10,6 +10,11 @@
 		<trust-anchors>
 			<certificates src="system" />
 			<certificates src="user" />
+			<!-- Bundled E2E proxy CA (Decision DA/A1): trusted without any
+			     runtime adb install. Must stay byte-identical to
+			     tests/framework/utils/e2e-proxy-ca/proxy-ca.pem - guarded by
+			     a unit test in E2EProxyCa.test.ts. -->
+			<certificates src="@raw/e2e_proxy_ca" />
 		</trust-anchors>
 	</base-config>
 </network-security-config>

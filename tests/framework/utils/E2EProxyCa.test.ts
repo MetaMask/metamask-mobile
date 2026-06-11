@@ -1,5 +1,12 @@
 /* eslint-disable import-x/no-nodejs-modules */
-import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'fs';
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'fs';
 import os from 'os';
 import path from 'path';
 import {
@@ -116,5 +123,29 @@ describe('ensureE2EProxyCa', () => {
     await expect(
       ensureE2EProxyCa({ caDirectory, execFileImpl }),
     ).rejects.toThrow('Failed to generate iOS E2E proxy CA');
+  });
+});
+
+describe('checked-in E2E proxy CA (Decision DA/A1)', () => {
+  const checkedInPaths = getE2EProxyCaFilePaths();
+  const bundledAndroidCertPath = path.resolve(
+    __dirname,
+    '../../../android/app/src/main/res/raw/e2e_proxy_ca.pem',
+  );
+
+  it('ships all three CA files in the repo so no runtime generation is needed', () => {
+    expect(existsSync(checkedInPaths.keyPath)).toBe(true);
+    expect(existsSync(checkedInPaths.certPemPath)).toBe(true);
+    expect(existsSync(checkedInPaths.certDerPath)).toBe(true);
+  });
+
+  it('keeps the Android-bundled cert byte-identical to the checked-in CA cert', () => {
+    // The APK trusts res/raw/e2e_proxy_ca (react_native_config_e2e.xml) while
+    // mockttp signs with the checked-in key at test time, on a different CI
+    // runner. If these copies diverge after a CA rotation, every HTTPS
+    // interception on Android fails with TLS errors.
+    const checkedInCert = readFileSync(checkedInPaths.certPemPath);
+    const bundledCert = readFileSync(bundledAndroidCertPath);
+    expect(Buffer.compare(checkedInCert, bundledCert)).toBe(0);
   });
 });
