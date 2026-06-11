@@ -6,12 +6,14 @@ import Icon, {
   IconSize,
   IconName,
 } from '../../../../component-library/components/Icons/Icon';
-import Button, {
-  ButtonSize,
-} from '../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../hooks/useStyles';
 import stylesheet from './styles';
-import { Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Text,
+  TextVariant,
+  Button,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
 
 const QuizContent = ({
   header,
@@ -64,10 +66,11 @@ const QuizContent = ({
             variant={btn.variant}
             size={ButtonSize.Lg}
             onPress={btn.onPress}
-            label={btn.label}
             style={styles.button}
             testID={btn.testID}
-          />
+          >
+            {btn.label}
+          </Button>
         ))}
       </View>
     </View>
