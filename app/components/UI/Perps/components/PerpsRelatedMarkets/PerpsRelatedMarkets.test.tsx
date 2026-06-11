@@ -11,18 +11,22 @@ import {
   RELATED_MARKETS_EVENT_PROPERTY,
   RELATED_MARKET_CLICKED,
   RELATED_MARKETS_SOURCE,
-  type RelatedMarketCollection,
 } from '../../utils/relatedMarkets';
 import PerpsRelatedMarkets from './PerpsRelatedMarkets';
 
 const mockNavigate = jest.fn();
 const mockTrack = jest.fn();
 const mockUseHomepageSparklines = jest.fn();
+const mockUsePerpsMarkets = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
   }),
+}));
+
+jest.mock('../../hooks/usePerpsMarkets', () => ({
+  usePerpsMarkets: (...args: unknown[]) => mockUsePerpsMarkets(...args),
 }));
 
 jest.mock('../../hooks/usePerpsEventTracking', () => ({
@@ -81,10 +85,13 @@ const createMarket = (
   ...overrides,
 });
 
-const collection: RelatedMarketCollection = {
-  id: 'crypto',
-  label: 'Crypto',
-};
+const mockMarketsResult = (markets: PerpsMarketData[]) => ({
+  markets,
+  isLoading: false,
+  error: null,
+  refresh: jest.fn(),
+  isRefreshing: false,
+});
 
 describe('PerpsRelatedMarkets', () => {
   beforeEach(() => {
@@ -95,16 +102,15 @@ describe('PerpsRelatedMarkets', () => {
         TAO: [3, 2, 1],
       },
     });
+    mockUsePerpsMarkets.mockReturnValue(mockMarketsResult([]));
   });
 
   it('renders related market tiles with homepage sparkline format', () => {
-    render(
-      <PerpsRelatedMarkets
-        currentMarket={createMarket('RNDR')}
-        collection={collection}
-        markets={[createMarket('FET'), createMarket('TAO')]}
-      />,
+    mockUsePerpsMarkets.mockReturnValue(
+      mockMarketsResult([createMarket('FET'), createMarket('TAO')]),
     );
+
+    render(<PerpsRelatedMarkets currentMarket={createMarket('RNDR')} />);
 
     expect(
       screen.getByTestId(PerpsRelatedMarketsSelectorsIDs.RAIL),
@@ -120,16 +126,23 @@ describe('PerpsRelatedMarkets', () => {
     expect(screen.getAllByText('+1.00%')).toHaveLength(2);
   });
 
+  it('renders nothing when there are no related markets', () => {
+    mockUsePerpsMarkets.mockReturnValue(
+      mockMarketsResult([createMarket('RNDR')]),
+    );
+
+    render(<PerpsRelatedMarkets currentMarket={createMarket('RNDR')} />);
+
+    expect(
+      screen.queryByTestId(PerpsRelatedMarketsSelectorsIDs.RAIL),
+    ).toBeNull();
+  });
+
   it('tracks tile tap and navigates with related markets source', () => {
     const targetMarket = createMarket('FET');
+    mockUsePerpsMarkets.mockReturnValue(mockMarketsResult([targetMarket]));
 
-    render(
-      <PerpsRelatedMarkets
-        currentMarket={createMarket('RNDR')}
-        collection={collection}
-        markets={[targetMarket]}
-      />,
-    );
+    render(<PerpsRelatedMarkets currentMarket={createMarket('RNDR')} />);
 
     fireEvent.press(
       screen.getByTestId(getPerpsRelatedMarketsSelector.tile('FET')),
@@ -155,13 +168,11 @@ describe('PerpsRelatedMarkets', () => {
   });
 
   it('tracks rail slide once', () => {
-    render(
-      <PerpsRelatedMarkets
-        currentMarket={createMarket('RNDR')}
-        collection={collection}
-        markets={[createMarket('FET')]}
-      />,
+    mockUsePerpsMarkets.mockReturnValue(
+      mockMarketsResult([createMarket('FET')]),
     );
+
+    render(<PerpsRelatedMarkets currentMarket={createMarket('RNDR')} />);
 
     const scrollView = screen.getByTestId(
       PerpsRelatedMarketsSelectorsIDs.SCROLL_VIEW,
@@ -181,12 +192,12 @@ describe('PerpsRelatedMarkets', () => {
   });
 
   it('tracks rail slide again after current market changes', () => {
+    mockUsePerpsMarkets.mockReturnValue(
+      mockMarketsResult([createMarket('FET')]),
+    );
+
     const { rerender } = render(
-      <PerpsRelatedMarkets
-        currentMarket={createMarket('RNDR')}
-        collection={collection}
-        markets={[createMarket('FET')]}
-      />,
+      <PerpsRelatedMarkets currentMarket={createMarket('RNDR')} />,
     );
 
     const scrollView = screen.getByTestId(
@@ -194,13 +205,7 @@ describe('PerpsRelatedMarkets', () => {
     );
     fireEvent(scrollView, 'scrollBeginDrag');
 
-    rerender(
-      <PerpsRelatedMarkets
-        currentMarket={createMarket('TAO')}
-        collection={collection}
-        markets={[createMarket('FET')]}
-      />,
-    );
+    rerender(<PerpsRelatedMarkets currentMarket={createMarket('TAO')} />);
 
     fireEvent(
       screen.getByTestId(PerpsRelatedMarketsSelectorsIDs.SCROLL_VIEW),

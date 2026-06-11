@@ -17,21 +17,20 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import PerpsMarketTileCard from '../../../../Views/Homepage/Sections/Perpetuals/components/PerpsMarketTileCard';
 import { useHomepageSparklines } from '../../../../Views/Homepage/Sections/Perpetuals/hooks/useHomepageSparklines';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import {
   getPerpsRelatedMarketsSelector,
   PerpsRelatedMarketsSelectorsIDs,
 } from '../../Perps.testIds';
 import {
+  getRelatedMarketsForMarket,
   RELATED_MARKETS_EVENT_PROPERTY,
   RELATED_MARKET_CLICKED,
   RELATED_MARKETS_SOURCE,
-  type RelatedMarketCollection,
 } from '../../utils/relatedMarkets';
 
 export interface PerpsRelatedMarketsProps {
   currentMarket: PerpsMarketData;
-  collection: RelatedMarketCollection;
-  markets: PerpsMarketData[];
 }
 
 const styles = StyleSheet.create({
@@ -50,12 +49,20 @@ const styles = StyleSheet.create({
 
 const PerpsRelatedMarkets: React.FC<PerpsRelatedMarketsProps> = ({
   currentMarket,
-  collection,
-  markets,
 }) => {
   const navigation = useNavigation();
   const { track } = usePerpsEventTracking();
   const hasTrackedSlide = useRef(false);
+
+  // Markets come from the StreamManager's marketData channel, so this
+  // subscription shares the cache with any other usePerpsMarkets consumer.
+  const { markets: allMarkets } = usePerpsMarkets();
+  const relatedMarketsResult = useMemo(
+    () => getRelatedMarketsForMarket(currentMarket, allMarkets),
+    [currentMarket, allMarkets],
+  );
+  const collectionId = relatedMarketsResult?.collection.id;
+  const markets = relatedMarketsResult?.markets;
 
   useEffect(() => {
     hasTrackedSlide.current = false;
@@ -63,11 +70,15 @@ const PerpsRelatedMarkets: React.FC<PerpsRelatedMarketsProps> = ({
 
   const handleMarketPress = useCallback(
     (market: PerpsMarketData, index: number) => {
+      if (!collectionId) {
+        return;
+      }
+
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
         [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]: RELATED_MARKET_CLICKED,
         [RELATED_MARKETS_EVENT_PROPERTY.SOURCE_MARKET]: currentMarket.symbol,
         [RELATED_MARKETS_EVENT_PROPERTY.MARKET]: market.symbol,
-        [RELATED_MARKETS_EVENT_PROPERTY.CATEGORY]: collection.id,
+        [RELATED_MARKETS_EVENT_PROPERTY.CATEGORY]: collectionId,
         [RELATED_MARKETS_EVENT_PROPERTY.POSITION]: index + 1,
       });
 
@@ -79,7 +90,7 @@ const PerpsRelatedMarkets: React.FC<PerpsRelatedMarketsProps> = ({
         },
       });
     },
-    [collection.id, currentMarket.symbol, navigation, track],
+    [collectionId, currentMarket.symbol, navigation, track],
   );
 
   const handleScrollBeginDrag = useCallback(() => {
@@ -99,14 +110,16 @@ const PerpsRelatedMarkets: React.FC<PerpsRelatedMarketsProps> = ({
   }, [currentMarket.symbol, track]);
 
   const symbols = useMemo(
-    () => markets.map((market) => market.symbol),
+    () => (markets ?? []).map((market) => market.symbol),
     [markets],
   );
   const { sparklines } = useHomepageSparklines(symbols);
 
-  if (markets.length === 0) {
+  if (!relatedMarketsResult || !markets) {
     return null;
   }
+
+  const { collection } = relatedMarketsResult;
 
   return (
     <View

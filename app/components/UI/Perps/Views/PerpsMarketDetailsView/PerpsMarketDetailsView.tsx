@@ -142,7 +142,6 @@ import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
 import { getMarketHoursStatus } from '../../utils/marketHours';
 import { normalizeMarketDetailsOrders } from '../../normalization/normalizeMarketDetailsOrders';
 import { ensureError } from '../../../../../util/errorUtils';
-import { getRelatedMarketsForMarket } from '../../utils/relatedMarkets';
 import {
   type TransactionActiveAbTestEntry,
   withPendingTransactionActiveAbTests,
@@ -212,10 +211,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     typeof routeMarket?.maxLeverage === 'string' &&
     routeMarket.maxLeverage.endsWith('x');
   const needsEnrichment = !hasFormattedMaxLeverage;
-  // Always fetch the full markets list when related markets is enabled so the
-  // rail has data, even when the current market is already enriched.
   const { markets } = usePerpsMarkets({
-    skipInitialFetch: !needsEnrichment && !isRelatedMarketsEnabled,
+    skipInitialFetch: !needsEnrichment,
   });
   const market = useMemo(() => {
     // If route market already has all required fields, use it directly
@@ -225,13 +222,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
     return fullMarket || routeMarket;
   }, [markets, routeMarket, needsEnrichment]);
-  const relatedMarketsResult = useMemo(
-    () =>
-      isRelatedMarketsEnabled
-        ? getRelatedMarketsForMarket(market, markets)
-        : null,
-    [isRelatedMarketsEnabled, market, markets],
-  );
   const dispatch = useDispatch();
 
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
@@ -1487,12 +1477,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           </View>
 
           {/* Related Markets Section */}
-          {relatedMarketsResult ? (
-            <PerpsRelatedMarkets
-              currentMarket={market}
-              collection={relatedMarketsResult.collection}
-              markets={relatedMarketsResult.markets}
-            />
+          {isRelatedMarketsEnabled && market ? (
+            <PerpsRelatedMarkets currentMarket={market} />
           ) : null}
 
           {/* Recent Trades Section */}
