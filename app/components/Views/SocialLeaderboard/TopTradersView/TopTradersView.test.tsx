@@ -172,9 +172,9 @@ describe('TopTradersView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders the Top Traders title', () => {
+  it('renders the Top traders title', () => {
     renderWithProvider(<TopTradersView />);
-    expect(screen.getByText('Top Traders')).toBeOnTheScreen();
+    expect(screen.getByText('Top traders')).toBeOnTheScreen();
   });
 
   it('calls goBack when the back button is pressed', () => {
