@@ -47,9 +47,16 @@ import { useStyles } from '../../hooks/useStyles';
 import ErrorBoundary from '../ErrorBoundary';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import UnifiedTransactionsView from '../UnifiedTransactionsView/UnifiedTransactionsView';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import ActivityScreen from '../ActivityScreen/ActivityScreen';
 import { selectIsActivityRedesignEnabled } from '../../../selectors/featureFlagController/activityRedesign';
+
+// Lazily loaded so the redesigned Activity screen and its dependencies are not
+// evaluated when `tmcuActivityRedesignEnabled` is off, keeping the legacy path
+// fully isolated.
+const ActivityScreen = React.lazy(
+  () =>
+    // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+    import('../ActivityScreen/ActivityScreen'),
+);
 
 const createStyles = (params) => {
   const { theme } = params;
@@ -334,7 +341,9 @@ const ActivityView = () => {
   );
 
   return isActivityRedesignEnabled ? (
-    <ActivityScreen />
+    <React.Suspense fallback={null}>
+      <ActivityScreen />
+    </React.Suspense>
   ) : (
     <LegacyActivityView />
   );

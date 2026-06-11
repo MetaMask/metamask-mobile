@@ -289,6 +289,12 @@ interface ActivityListItemRowProps {
   index?: number;
   chainId?: string;
   onPress?: (item: ActivityListItem) => void;
+  /**
+   * Optional pre-resolved title. Used to preserve the legacy Activity contract
+   * for swap/bridge rows (e.g. "Swap ETH to USDC", "Bridge to Optimism"), which
+   * the parent derives from bridge history. Falls back to the kind-based title.
+   */
+  title?: string;
 }
 
 export function ActivityListItemRow({
@@ -296,6 +302,7 @@ export function ActivityListItemRow({
   index,
   chainId,
   onPress,
+  title: titleOverride,
 }: ActivityListItemRowProps) {
   const { colors, typography } = useTheme();
   const osColorScheme = useColorScheme();
@@ -326,7 +333,7 @@ export function ActivityListItemRow({
         ? (item.data as { sourceToken?: TokenAmount }).sourceToken
         : undefined;
 
-  const title = resolveTitle(item.type, primaryToken);
+  const title = titleOverride ?? resolveTitle(item.type, primaryToken);
   const amount = resolveAmount(item);
 
   const networkChainId = chainId ?? item.chainId;
@@ -344,7 +351,7 @@ export function ActivityListItemRow({
       onPress={handlePress}
       underlayColor={colors.background.alternative}
       activeOpacity={1}
-      testID={`activity-item-${index ?? 0}`}
+      testID={`transaction-item-${index ?? 0}`}
     >
       <ListItem>
         <ListItem.Date style={styles.listItemDate}>
@@ -372,7 +379,7 @@ export function ActivityListItemRow({
             </ListItem.Title>
             <Text
               style={[styles.statusText, { color: statusColor }]}
-              testID={`activity-status-${item.data.hash ?? index}`}
+              testID={`transaction-status-${index ?? 0}`}
             >
               {statusDisplay.label}
             </Text>

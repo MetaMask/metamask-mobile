@@ -181,7 +181,7 @@ describe('ActivityListItemRow — status display', () => {
       const { getByTestId } = render(
         <ActivityListItemRow item={item} index={0} />,
       );
-      const el = getByTestId(`activity-status-0xabc`);
+      const el = getByTestId('transaction-status-0');
       expect(el.props.children).toBeTruthy();
     },
   );
@@ -191,7 +191,7 @@ describe('ActivityListItemRow — status display', () => {
     const { getByTestId } = render(
       <ActivityListItemRow item={item} index={0} />,
     );
-    const el = getByTestId('activity-status-0xabc');
+    const el = getByTestId('transaction-status-0');
     expect(el.props.children).toBe(strings('transaction.confirmed'));
   });
 
@@ -200,7 +200,7 @@ describe('ActivityListItemRow — status display', () => {
     const { getByTestId } = render(
       <ActivityListItemRow item={item} index={0} />,
     );
-    const el = getByTestId('activity-status-0xabc');
+    const el = getByTestId('transaction-status-0');
     expect(el.props.children).toBe(strings('transaction.failed'));
   });
 
@@ -209,7 +209,7 @@ describe('ActivityListItemRow — status display', () => {
     const { getByTestId } = render(
       <ActivityListItemRow item={item} index={0} />,
     );
-    const el = getByTestId('activity-status-0xabc');
+    const el = getByTestId('transaction-status-0');
     expect(el.props.children).toBe(strings('transaction.cancelled'));
   });
 
@@ -218,7 +218,7 @@ describe('ActivityListItemRow — status display', () => {
     const { getByTestId } = render(
       <ActivityListItemRow item={item} index={0} />,
     );
-    const el = getByTestId('activity-status-0xabc');
+    const el = getByTestId('transaction-status-0');
     expect(el.props.children).toBe(strings('transaction.submitted'));
   });
 });
@@ -348,6 +348,16 @@ describe('ActivityListItemRow — title display for all ActivityKind values', ()
 
     expect(getByText(EXPECTED_TITLES[type])).toBeOnTheScreen();
     expect(queryByText(strings('transactions.interaction'))).toBeNull();
+  });
+
+  it('prefers the title override when provided (legacy swap/bridge contract)', () => {
+    const item = makeItem({ type: 'swap', status: 'success' });
+    const { getByText, queryByText } = render(
+      <ActivityListItemRow item={item} index={0} title="Swap ETH to USDC" />,
+    );
+
+    expect(getByText('Swap ETH to USDC')).toBeOnTheScreen();
+    expect(queryByText(strings('transactions.swaps_transaction'))).toBeNull();
   });
 });
 

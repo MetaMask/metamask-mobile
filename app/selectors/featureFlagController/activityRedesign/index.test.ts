@@ -73,27 +73,27 @@ describe('Activity Redesign Feature Flag Selector', () => {
     expect(result).toBe(false);
   });
 
-  it('returns undefined when tmcuActivityRedesignEnabled feature flag property is missing', () => {
+  it('returns false when tmcuActivityRedesignEnabled feature flag property is missing', () => {
     const result = selectIsActivityRedesignEnabled(
       mockedStateWithoutActivityRedesignFlag,
     );
 
-    expect(result).toBeUndefined();
+    expect(result).toBe(false);
   });
 
-  it('returns undefined when feature flag state is empty', () => {
+  it('returns false when feature flag state is empty', () => {
     const result = selectIsActivityRedesignEnabled(mockedEmptyFlagsState);
 
-    expect(result).toBeUndefined();
+    expect(result).toBe(false);
   });
 
-  it('returns undefined when RemoteFeatureFlagController state is undefined', () => {
+  it('returns false when RemoteFeatureFlagController state is undefined', () => {
     const result = selectIsActivityRedesignEnabled(mockedUndefinedFlagsState);
 
-    expect(result).toBeUndefined();
+    expect(result).toBe(false);
   });
 
-  it('handles null values correctly', () => {
+  it('returns false for a null flag value', () => {
     const stateWithNullFlag = {
       engine: {
         backgroundState: {
@@ -109,6 +109,25 @@ describe('Activity Redesign Feature Flag Selector', () => {
 
     const result = selectIsActivityRedesignEnabled(stateWithNullFlag);
 
-    expect(result).toBeNull();
+    expect(result).toBe(false);
+  });
+
+  it('returns false for a truthy non-boolean flag value', () => {
+    const stateWithTruthyFlag = {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              tmcuActivityRedesignEnabled: 'true',
+            },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    };
+
+    const result = selectIsActivityRedesignEnabled(stateWithTruthyFlag);
+
+    expect(result).toBe(false);
   });
 });

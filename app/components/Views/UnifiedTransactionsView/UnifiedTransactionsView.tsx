@@ -38,7 +38,10 @@ import PriceChartContext, {
   PriceChartProvider,
 } from '../../UI/AssetOverview/PriceChart/PriceChart.context';
 import { useBridgeHistoryItemBySrcTxHash } from '../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash';
-import { handleUnifiedSwapsTxHistoryItemClick } from '../../UI/Bridge/utils/transaction-history';
+import {
+  getSwapBridgeTxActivityTitle,
+  handleUnifiedSwapsTxHistoryItemClick,
+} from '../../UI/Bridge/utils/transaction-history';
 import MultichainBridgeTransactionListItem from '../../UI/MultichainBridgeTransactionListItem';
 import TransactionElement from '../../UI/TransactionElement';
 import TransactionsFooter from '../../UI/Transactions/TransactionsFooter';
@@ -737,12 +740,25 @@ const UnifiedTransactionsView = ({
 
     // All other items (API EVM confirmed, completed local EVM, non-EVM non-bridge):
     // render from the shared ActivityListItem shape.
+    //
+    // Preserve the legacy Activity title for swap/bridge rows (e.g.
+    // "Swap ETH to USDC", "Bridge to Optimism") by deriving it from bridge
+    // history, mirroring TransactionElement. Falls back to the kind-based title.
+    const itemHash = item.data.hash;
+    const bridgeHistoryItem = itemHash
+      ? bridgeHistoryItemsBySrcTxHash[itemHash]
+      : undefined;
+    const title = bridgeHistoryItem
+      ? getSwapBridgeTxActivityTitle(bridgeHistoryItem)
+      : undefined;
+
     return (
       <ActivityListItemRow
         item={item}
         index={index}
         chainId={chainId}
         onPress={handleActivityItemPress}
+        title={title}
       />
     );
   };
