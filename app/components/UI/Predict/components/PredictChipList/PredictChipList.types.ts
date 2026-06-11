@@ -11,9 +11,7 @@ export interface PredictChipListProps {
   activeChipKey: string;
   onChipSelect: (key: string) => void;
   testID?: string;
-  scrollPersistenceKey?: string;
   containerTwClassName?: string;
   chipTwClassName?: string;
   getChipTestId?: (key: string) => string;
-  useGestureHandlerScrollView?: boolean;
 }

@@ -1,6 +1,5 @@
 import React, { memo, useCallback, useEffect, useMemo, useRef } from 'react';
 import { Image, Pressable, ScrollView } from 'react-native';
-import { ScrollView as GestureHandlerScrollView } from 'react-native-gesture-handler';
 import {
   Box,
   BoxAlignItems,
@@ -29,30 +28,27 @@ const PredictChipList: React.FC<PredictChipListProps> = ({
   activeChipKey,
   onChipSelect,
   testID = PREDICT_CHIP_LIST_TEST_IDS.CONTAINER,
-  scrollPersistenceKey,
   containerTwClassName = DEFAULT_CONTAINER_CLASS,
   chipTwClassName = DEFAULT_CHIP_CLASS,
   getChipTestId = getPredictChipTestId,
-  useGestureHandlerScrollView = false,
 }) => {
   const tw = useTailwind();
   const {
     scrollViewRef,
     handleScrollViewLayout,
     handleChipLayout,
-    handleScroll,
     scrollToChipAtIndex,
-    hasPersistedOffset,
-    initialScrollX,
-  } = useChipScrollList(chips.length, scrollPersistenceKey);
+  } = useChipScrollList(chips.length);
   const activeChipIndex = useMemo(
     () => chips.findIndex((chip) => chip.key === activeChipKey),
     [chips, activeChipKey],
   );
   const isFirstRenderRef = useRef(true);
+  const skipNextSyncScrollIndexRef = useRef<number | null>(null);
 
   const handlePress = useCallback(
     (key: string, index: number) => {
+      skipNextSyncScrollIndexRef.current = index;
       onChipSelect(key);
       scrollToChipAtIndex(index, true);
     },
@@ -66,16 +62,17 @@ const PredictChipList: React.FC<PredictChipListProps> = ({
 
     if (isFirstRenderRef.current) {
       isFirstRenderRef.current = false;
-      if (hasPersistedOffset) {
-        return;
-      }
-
       scrollToChipAtIndex(activeChipIndex, false);
       return;
     }
 
-    scrollToChipAtIndex(activeChipIndex, true);
-  }, [activeChipIndex, hasPersistedOffset, scrollToChipAtIndex]);
+    if (skipNextSyncScrollIndexRef.current === activeChipIndex) {
+      skipNextSyncScrollIndexRef.current = null;
+      return;
+    }
+
+    scrollToChipAtIndex(activeChipIndex, false);
+  }, [activeChipIndex, scrollToChipAtIndex]);
 
   if (chips.length === 0) {
     return null;
@@ -124,27 +121,14 @@ const PredictChipList: React.FC<PredictChipListProps> = ({
     horizontal: true as const,
     showsHorizontalScrollIndicator: false,
     contentContainerStyle: tw.style('px-4 gap-2'),
-    contentOffset: { x: initialScrollX, y: 0 },
     onLayout: handleScrollViewLayout,
-    onScroll: handleScroll,
-    scrollEventThrottle: 16,
   };
 
   return (
     <Box testID={testID} twClassName={containerTwClassName}>
-      {useGestureHandlerScrollView ? (
-        <GestureHandlerScrollView
-          ref={scrollViewRef}
-          {...scrollViewProps}
-          keyboardShouldPersistTaps="handled"
-        >
-          {chipItems}
-        </GestureHandlerScrollView>
-      ) : (
-        <ScrollView ref={scrollViewRef} {...scrollViewProps}>
-          {chipItems}
-        </ScrollView>
-      )}
+      <ScrollView ref={scrollViewRef} {...scrollViewProps}>
+        {chipItems}
+      </ScrollView>
     </Box>
   );
 };

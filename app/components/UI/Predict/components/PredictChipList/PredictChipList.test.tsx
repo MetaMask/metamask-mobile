@@ -44,10 +44,7 @@ describe('PredictChipList', () => {
       scrollViewRef: { current: null },
       handleScrollViewLayout: jest.fn(),
       handleChipLayout: jest.fn(),
-      handleScroll: jest.fn(),
       scrollToChipAtIndex: mockScrollToChipAtIndex,
-      hasPersistedOffset: false,
-      initialScrollX: 0,
     });
   });
 
@@ -189,6 +186,7 @@ describe('PredictChipList', () => {
 
       expect(mockOnChipSelect).toHaveBeenCalledTimes(1);
       expect(mockOnChipSelect).toHaveBeenCalledWith('points');
+      expect(mockScrollToChipAtIndex).toHaveBeenLastCalledWith(2, true);
     });
 
     it('calls onChipSelect when pressing the already active chip', () => {
@@ -230,30 +228,7 @@ describe('PredictChipList', () => {
         />,
       );
 
-      expect(mockScrollToChipAtIndex).toHaveBeenCalledWith(2, true);
-    });
-
-    it('does not override a persisted horizontal offset on initial mount', () => {
-      mockUseChipScrollList.mockReturnValue({
-        scrollViewRef: { current: null },
-        handleScrollViewLayout: jest.fn(),
-        handleChipLayout: jest.fn(),
-        handleScroll: jest.fn(),
-        scrollToChipAtIndex: mockScrollToChipAtIndex,
-        hasPersistedOffset: true,
-        initialScrollX: 120,
-      });
-
-      render(
-        <PredictChipList
-          chips={createMockChips()}
-          activeChipKey="points"
-          onChipSelect={mockOnChipSelect}
-          scrollPersistenceKey="persist-key"
-        />,
-      );
-
-      expect(mockScrollToChipAtIndex).not.toHaveBeenCalled();
+      expect(mockScrollToChipAtIndex).toHaveBeenCalledWith(2, false);
     });
   });
 

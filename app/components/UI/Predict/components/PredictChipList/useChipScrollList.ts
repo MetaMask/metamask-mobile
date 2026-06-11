@@ -1,51 +1,17 @@
 import { useCallback, useRef } from 'react';
-import type {
-  LayoutChangeEvent,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
-  ScrollView,
-} from 'react-native';
+import type { LayoutChangeEvent, ScrollView } from 'react-native';
 import { calculateChipScrollX } from './calculateChipScrollX';
 
-const chipScrollOffsetCache = new Map<string, number>();
-
-export function useChipScrollList(
-  chipCount: number,
-  scrollPersistenceKey?: string,
-) {
+export function useChipScrollList(chipCount: number) {
   const scrollViewRef = useRef<ScrollView>(null);
   const chipLayoutsRef = useRef<Map<number, { x: number; width: number }>>(
     new Map(),
   );
   const viewportWidthRef = useRef(0);
   const pendingChipIndexRef = useRef<number | null>(null);
-  const persistedOffset =
-    scrollPersistenceKey !== undefined
-      ? chipScrollOffsetCache.get(scrollPersistenceKey)
-      : undefined;
-  const hasPersistedOffset = persistedOffset !== undefined;
-  const initialScrollX = persistedOffset ?? 0;
-  const isHydratingPersistedOffsetRef = useRef(hasPersistedOffset);
-
-  const restorePersistedOffset = useCallback(() => {
-    if (!scrollPersistenceKey) {
-      isHydratingPersistedOffsetRef.current = false;
-      return false;
-    }
-    const scrollView = scrollViewRef.current;
-    const viewportWidth = viewportWidthRef.current;
-    const cachedOffset = chipScrollOffsetCache.get(scrollPersistenceKey);
-    if (!scrollView || viewportWidth === 0 || cachedOffset === undefined) {
-      return false;
-    }
-
-    scrollView.scrollTo({ x: cachedOffset, animated: false });
-    isHydratingPersistedOffsetRef.current = false;
-    return true;
-  }, [scrollPersistenceKey]);
 
   const tryScrollToChip = useCallback(
-    (chipIndex: number, animated = true) => {
+    (chipIndex: number, animated = false) => {
       const scrollView = scrollViewRef.current;
       const viewportWidth = viewportWidthRef.current;
       if (!scrollView || viewportWidth === 0) {
@@ -82,10 +48,9 @@ export function useChipScrollList(
   const handleScrollViewLayout = useCallback(
     (event: LayoutChangeEvent) => {
       viewportWidthRef.current = event.nativeEvent.layout.width;
-      restorePersistedOffset();
       tryFlushPendingScroll();
     },
-    [restorePersistedOffset, tryFlushPendingScroll],
+    [tryFlushPendingScroll],
   );
 
   const handleChipLayout = useCallback(
@@ -99,24 +64,8 @@ export function useChipScrollList(
     [tryFlushPendingScroll],
   );
 
-  const handleScroll = useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      if (!scrollPersistenceKey) {
-        return;
-      }
-      if (isHydratingPersistedOffsetRef.current) {
-        return;
-      }
-      chipScrollOffsetCache.set(
-        scrollPersistenceKey,
-        event.nativeEvent.contentOffset.x,
-      );
-    },
-    [scrollPersistenceKey],
-  );
-
   const scrollToChipAtIndex = useCallback(
-    (chipIndex: number, animated = true) => {
+    (chipIndex: number, animated = false) => {
       tryScrollToChip(chipIndex, animated);
     },
     [tryScrollToChip],
@@ -126,9 +75,6 @@ export function useChipScrollList(
     scrollViewRef,
     handleScrollViewLayout,
     handleChipLayout,
-    handleScroll,
     scrollToChipAtIndex,
-    hasPersistedOffset,
-    initialScrollX,
   };
 }
