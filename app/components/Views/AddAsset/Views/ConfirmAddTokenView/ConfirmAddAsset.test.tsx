@@ -20,8 +20,9 @@ import {
 } from '../../../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.constants';
 import Routes from '../../../../../constants/navigation/Routes';
 import Logger from '../../../../../util/Logger';
+import { strings } from '../../../../../../locales/i18n';
+import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
 
-const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockAddTokenList = jest.fn().mockResolvedValue(undefined);
@@ -32,7 +33,6 @@ jest.mock('@react-navigation/native', () => {
     ...actualReactNavigation,
     useNavigation: () => ({
       navigate: mockNavigate,
-      setOptions: mockSetOptions,
       goBack: mockGoBack,
     }),
   };
@@ -129,6 +129,16 @@ describe('ConfirmAddAsset', () => {
     expect(getByText('USDT')).toBeOnTheScreen();
     expect(getByText('USD Coin')).toBeOnTheScreen();
     expect(getByText('USDC')).toBeOnTheScreen();
+  });
+
+  it('calls goBack when HeaderStandard back button is pressed', async () => {
+    const { getByTestId } = renderWithProvider(<ConfirmAddAsset />, {
+      state: mockInitialState,
+    });
+
+    await userEvent.press(getByTestId('button-icon'));
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
   it('calls goBack when back button is pressed', async () => {
@@ -252,11 +262,22 @@ describe('ConfirmAddAsset', () => {
     expect(getByText('USDT')).toBeOnTheScreen();
   });
 
-  it('sets navigation bar options on mount', () => {
-    renderWithProvider(<ConfirmAddAsset />, {
+  it('renders HeaderStandard with the add asset title', () => {
+    const { getByText } = renderWithProvider(<ConfirmAddAsset />, {
       state: mockInitialState,
     });
 
-    expect(mockSetOptions).toHaveBeenCalledTimes(1);
+    expect(getByText(strings('add_asset.title'))).toBeOnTheScreen();
+  });
+
+  it('renders SafeAreaView with left, right, and bottom edges only', () => {
+    const { getByTestId } = renderWithProvider(<ConfirmAddAsset />, {
+      state: mockInitialState,
+    });
+
+    expect(
+      getByTestId(ImportTokenViewSelectorsIDs.ADD_CONFIRM_CUSTOM_ASSET).props
+        .edges,
+    ).toEqual(['left', 'right', 'bottom']);
   });
 });

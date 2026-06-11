@@ -139,9 +139,9 @@ describe('MoneyAddMoneySheet', () => {
     );
 
     expect(getByText('Convert crypto')).toBeOnTheScreen();
-    expect(getByText('Deposit funds')).toBeOnTheScreen();
-    expect(getByText('Add your $1,203.89 mUSD')).toBeOnTheScreen();
-    expect(getByText('Receive from external wallet')).toBeOnTheScreen();
+    expect(getByText('Debit card or bank')).toBeOnTheScreen();
+    expect(getByText('Your $1,203.89 mUSD')).toBeOnTheScreen();
+    expect(getByText('External wallet')).toBeOnTheScreen();
     expect(getByText('Coming soon')).toBeOnTheScreen();
     expect(
       getByTestId(MoneyAddMoneySheetTestIds.RECEIVE_EXTERNAL_ROW),
@@ -154,28 +154,6 @@ describe('MoneyAddMoneySheet', () => {
     expect(getByText('Add funds')).toBeOnTheScreen();
   });
 
-  it('renders a description under the Convert crypto row', () => {
-    const { getByTestId, getByText } = renderWithProvider(
-      <MoneyAddMoneySheet />,
-    );
-
-    expect(
-      getByTestId(MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_DESCRIPTION),
-    ).toBeOnTheScreen();
-    expect(getByText('From any account')).toBeOnTheScreen();
-  });
-
-  it('renders a description under the Deposit funds row', () => {
-    const { getByTestId, getByText } = renderWithProvider(
-      <MoneyAddMoneySheet />,
-    );
-
-    expect(
-      getByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_DESCRIPTION),
-    ).toBeOnTheScreen();
-    expect(getByText('From debit card or bank')).toBeOnTheScreen();
-  });
-
   it('preserves the locale fiat prefix in the Move mUSD row', () => {
     (useMusdBalance as jest.Mock).mockReturnValue({
       fiatBalanceAggregated: '1500.00',
@@ -186,7 +164,7 @@ describe('MoneyAddMoneySheet', () => {
     });
     const { getByText } = renderWithProvider(<MoneyAddMoneySheet />);
 
-    expect(getByText('Add your CA$1,500.00 mUSD')).toBeOnTheScreen();
+    expect(getByText('Your CA$1,500.00 mUSD')).toBeOnTheScreen();
   });
 
   it('shows the move-mUSD row disabled with the "Add mUSD" label when the selected EVM account has no mUSD tokens or fiat balance', () => {
@@ -237,7 +215,7 @@ describe('MoneyAddMoneySheet', () => {
     expect(mockInitiateDeposit).not.toHaveBeenCalled();
   });
 
-  it('shows the move-mUSD row with the "Add your $X mUSD" label when the selected EVM account mUSD fiat balance is positive', () => {
+  it('shows the move-mUSD row with the "Your $X mUSD" label when the selected EVM account mUSD fiat balance is positive', () => {
     (useMusdBalance as jest.Mock).mockReturnValue({
       fiatBalanceAggregated: '12.34',
       fiatBalanceAggregatedFormatted: '$12.34',
@@ -253,7 +231,7 @@ describe('MoneyAddMoneySheet', () => {
     expect(
       getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION),
     ).toBeOnTheScreen();
-    expect(getByText('Add your $12.34 mUSD')).toBeOnTheScreen();
+    expect(getByText('Your $12.34 mUSD')).toBeOnTheScreen();
   });
 
   it('shows the move-mUSD row with the token amount when the user has mUSD tokens but rates are unavailable', () => {
@@ -272,7 +250,7 @@ describe('MoneyAddMoneySheet', () => {
     expect(
       getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION),
     ).toBeOnTheScreen();
-    expect(getByText('Add your 42.50 mUSD')).toBeOnTheScreen();
+    expect(getByText('Your 42.50 mUSD')).toBeOnTheScreen();
   });
 
   it('initiates a deposit with autoSelectFiatPayment when Deposit funds is pressed', () => {
