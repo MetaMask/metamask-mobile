@@ -139,6 +139,7 @@ export class WebSocketManager {
     Set<CryptoPriceUpdateCallback>
   > = new Map();
   private rtdsReconnectAttempts = 0;
+  private rtdsHeartbeatTimeouts = 0;
   private rtdsReconnectTimeout: ReturnType<typeof setTimeout> | null = null;
   private rtdsPingInterval: ReturnType<typeof setInterval> | null = null;
   private rtdsLastMessageAt = 0;
@@ -1307,7 +1308,13 @@ export class WebSocketManager {
       return;
     }
 
-    if (this.rtdsReconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+    // Cap reconnect attempts from both TCP failures and heartbeat-triggered
+    // disconnects to prevent an infinite loop when the server is reachable
+    // but not sending data.
+    if (
+      this.rtdsReconnectAttempts >= MAX_RECONNECT_ATTEMPTS ||
+      this.rtdsHeartbeatTimeouts > MAX_RECONNECT_ATTEMPTS
+    ) {
       return;
     }
 
@@ -1352,13 +1359,24 @@ export class WebSocketManager {
           'WebSocketManager: RTDS WebSocket stale, forcing reconnect',
           { sinceLast, threshold: RTDS_STALE_THRESHOLD_MS },
         );
-        Logger.error(
-          new Error('WebSocketManager: RTDS WebSocket heartbeat timeout'),
-          this.getErrorContext('rtdsHeartbeat', 'rtds', {
-            sinceLastMessageMs: sinceLast,
-            thresholdMs: RTDS_STALE_THRESHOLD_MS,
-          }),
-        );
+        this.rtdsHeartbeatTimeouts++;
+        // Only escalate to Sentry if heartbeat timeouts persist after reconnecting,
+        // to avoid noisy errors for transient network blips.
+        if (this.rtdsHeartbeatTimeouts > 1) {
+          Logger.error(
+            new Error('WebSocketManager: RTDS WebSocket heartbeat timeout'),
+            this.getErrorContext('rtdsHeartbeat', 'rtds', {
+              sinceLastMessageMs: sinceLast,
+              thresholdMs: RTDS_STALE_THRESHOLD_MS,
+              heartbeatTimeouts: this.rtdsHeartbeatTimeouts,
+            }),
+          );
+        } else {
+          DevLogger.log(
+            'WebSocketManager: RTDS WebSocket stale (first timeout), forcing reconnect',
+            { sinceLast, threshold: RTDS_STALE_THRESHOLD_MS },
+          );
+        }
         this.rtdsWs.close();
       }
     }, HEARTBEAT_CHECK_INTERVAL_MS);
@@ -1405,6 +1423,7 @@ export class WebSocketManager {
   private disconnectRtds(): void {
     this.cleanupRtdsConnection();
     this.rtdsReconnectAttempts = 0;
+    this.rtdsHeartbeatTimeouts = 0;
   }
 
   private reconnectAll(): void {
@@ -1422,6 +1441,7 @@ export class WebSocketManager {
       this.connectMarket();
     }
     if (this.cryptoPriceSubscriptions.size > 0) {
+      this.rtdsHeartbeatTimeouts = 0;
       this.connectRtds();
     }
   }

@@ -7,8 +7,10 @@
  *
  * Run with: yarn jest -c jest.config.view.js PredictFeed.view.test --runInBand --silent --coverage=false
  */
+import React from 'react';
 import '../../../../../../tests/component-view/mocks';
 import Engine from '../../../../../../app/core/Engine';
+import { useRoute } from '@react-navigation/native';
 import {
   renderPredictFeedView,
   renderPredictFeedViewWithRoutes,
@@ -19,6 +21,7 @@ import {
   waitFor,
   within,
 } from '@testing-library/react-native';
+import { Text } from 'react-native';
 import {
   PredictMarketListSelectorsIDs,
   PredictSearchSelectorsIDs,
@@ -96,6 +99,33 @@ const createCryptoUpDownMarket = (
 const SEARCH_PLACEHOLDER = 'Search prediction markets';
 const CANCEL_TEXT = 'Cancel';
 const RETRY_TEXT = 'Retry';
+
+interface PredictRootRouteParams {
+  screen?: string;
+  params?: {
+    predictFeedTab?: string;
+  };
+}
+
+const PredictRootRouteParamsProbe = () => {
+  const route = useRoute<{
+    key: string;
+    name: string;
+    params?: PredictRootRouteParams;
+  }>();
+  const predictFeedTab = route.params?.params?.predictFeedTab ?? 'missing';
+
+  return (
+    <>
+      <Text testID={`route-${Routes.PREDICT.ROOT}`}>
+        {route.params?.screen ?? 'unknown'}
+      </Text>
+      <Text testID={`predict-root-tab-${predictFeedTab}`}>
+        {predictFeedTab}
+      </Text>
+    </>
+  );
+};
 
 const createPredictMarket = ({
   id,
@@ -197,6 +227,22 @@ describe('PredictFeed', () => {
       fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
 
       expect(await findByPlaceholderText(SEARCH_PLACEHOLDER)).toBeOnTheScreen();
+    });
+
+    it('tracks the search opened event with the active feed tab and entry point', async () => {
+      const { getByTestId } = renderPredictFeedView();
+
+      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
+
+      expect(
+        Engine.context.PredictController.trackSearchInteracted,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          interactionType: 'opened',
+          predictFeedTab: expect.any(String),
+          entryPoint: 'predict_feed',
+        }),
+      );
     });
 
     it('calls PredictController.searchMarkets with the typed query after the user searches', async () => {
@@ -317,6 +363,99 @@ describe('PredictFeed', () => {
       expect(within(resultCard).getByText(/Yes/)).toBeOnTheScreen();
       expect(within(resultCard).getByText(/No/)).toBeOnTheScreen();
 
+      // Assert — the `queried` event fires once with the resolved results count
+      await waitFor(() => {
+        expect(
+          Engine.context.PredictController.trackSearchInteracted,
+        ).toHaveBeenCalledWith(
+          expect.objectContaining({
+            interactionType: 'queried',
+            searchQuery: 'bitcoin',
+            resultsCount: 1,
+          }),
+        );
+      });
+
+      searchMarketsSpy.mockRestore();
+    });
+
+    it('reports the server total match count in the queried event, not the visible page length', async () => {
+      // Arrange — one market on the first page, but 42 matches server-side.
+      // `marketData.length` (1) must not be used as the result count.
+      const searchMarketsSpy = jest.spyOn(
+        Engine.context.PredictController,
+        'searchMarkets',
+      );
+      searchMarketsSpy.mockResolvedValue({
+        markets: [MOCK_PREDICT_MARKET],
+        totalResults: 42,
+      });
+      const { getByTestId, findByPlaceholderText } = renderPredictFeedView();
+
+      // Act — user opens search and types a query
+      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
+      const searchInput = await findByPlaceholderText(SEARCH_PLACEHOLDER);
+      fireEvent.changeText(searchInput, 'bitcoin');
+
+      // Assert — resultsCount is the server total (42), not the page length (1)
+      await waitFor(() => {
+        expect(
+          Engine.context.PredictController.trackSearchInteracted,
+        ).toHaveBeenCalledWith(
+          expect.objectContaining({
+            interactionType: 'queried',
+            searchQuery: 'bitcoin',
+            resultsCount: 42,
+          }),
+        );
+      });
+
+      searchMarketsSpy.mockRestore();
+    });
+
+    it('tracks the same query again after the user clears and retypes it', async () => {
+      const searchMarketsSpy = jest.spyOn(
+        Engine.context.PredictController,
+        'searchMarkets',
+      );
+      searchMarketsSpy.mockResolvedValue({
+        markets: [MOCK_PREDICT_MARKET],
+        totalResults: 1,
+      });
+
+      const trackSearchInteractedMock = Engine.context.PredictController
+        .trackSearchInteracted as jest.Mock;
+      const { getByTestId, findByPlaceholderText } = renderPredictFeedView();
+
+      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
+      trackSearchInteractedMock.mockClear();
+
+      const searchInput = await findByPlaceholderText(SEARCH_PLACEHOLDER);
+      fireEvent.changeText(searchInput, 'bitcoin');
+
+      const getQueriedEvents = () =>
+        trackSearchInteractedMock.mock.calls
+          .map(([args]) => args as { interactionType?: string })
+          .filter((args) => args.interactionType === 'queried');
+
+      await waitFor(() => {
+        expect(getQueriedEvents()).toHaveLength(1);
+      });
+
+      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.CLEAR_BUTTON));
+
+      await waitFor(() => {
+        expect(searchMarketsSpy).toHaveBeenCalledWith(
+          expect.objectContaining({ q: '' }),
+        );
+      });
+
+      fireEvent.changeText(searchInput, 'bitcoin');
+
+      await waitFor(() => {
+        expect(getQueriedEvents()).toHaveLength(2);
+      });
+
       searchMarketsSpy.mockRestore();
     });
 
@@ -332,7 +471,12 @@ describe('PredictFeed', () => {
 
       const { getByTestId, findByPlaceholderText, findByTestId } =
         renderPredictFeedViewWithRoutes({
-          extraRoutes: [{ name: Routes.PREDICT.ROOT }],
+          extraRoutes: [
+            {
+              name: Routes.PREDICT.ROOT,
+              Component: PredictRootRouteParamsProbe,
+            },
+          ],
         });
 
       fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
@@ -350,6 +494,19 @@ describe('PredictFeed', () => {
       expect(
         await findByTestId(`route-${Routes.PREDICT.ROOT}`),
       ).toBeOnTheScreen();
+      expect(await findByTestId('predict-root-tab-trending')).toBeOnTheScreen();
+
+      // Assert — the `result_clicked` event fires with the tapped market's id/title
+      expect(
+        Engine.context.PredictController.trackSearchInteracted,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          interactionType: 'result_clicked',
+          searchQuery: 'bitcoin',
+          marketId: MOCK_PREDICT_MARKET.id,
+          marketTitle: MOCK_PREDICT_MARKET.title,
+        }),
+      );
 
       searchMarketsSpy.mockRestore();
     });

@@ -336,6 +336,7 @@ jest.mock(
   '../../components/PerpsMarketBalanceActions',
   () => 'PerpsMarketBalanceActions',
 );
+jest.mock('../../components/PerpsProducts', () => 'PerpsProducts');
 jest.mock('../PerpsCloseAllPositionsView/PerpsCloseAllPositionsView', () => {
   const { View } = jest.requireActual('react-native');
   return function PerpsCloseAllPositionsView() {
@@ -499,6 +500,7 @@ describe('PerpsHomeView', () => {
     forexMarkets: [],
     recentActivity: [],
     sortBy: 'name',
+    categoryMarketCounts: {},
     isLoading: {
       positions: false,
       markets: false,
@@ -976,6 +978,14 @@ describe('PerpsHomeView', () => {
       expect(
         UNSAFE_getByType('PerpsMarketBalanceActions' as never),
       ).toBeTruthy();
+    });
+
+    it('hides the screen title and testnet badge when hideHeader is true', () => {
+      const { queryByTestId } = render(<PerpsHomeView hideHeader />);
+
+      expect(
+        queryByTestId(`${PerpsHomeViewSelectorsIDs.HOME_HEADING}-title`),
+      ).toBeNull();
     });
   });
 

@@ -140,6 +140,7 @@ import migration136 from './136';
 import migration137 from './137';
 import migration138 from './138';
 import migration139 from './139';
+import migration140 from './140';
 import migration141 from './141';
 
 // Add migrations above this line

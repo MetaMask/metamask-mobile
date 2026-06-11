@@ -1979,10 +1979,10 @@
       "stocks_and_commodities": "Khám phá cổ phiếu và hàng hóa",
       "tabs": {
         "crypto": "Crypto",
-        "stocks": "Cổ phiếu",
-        "commodities": "Hàng hóa",
         "forex": "Ngoại hối",
-        "new": "Mới"
+        "new": "Mới",
+        "stock": "Cổ phiếu",
+        "commodity": "Hàng hóa"
       },
       "filter_by": "Lọc theo",
       "forex": "Ngoại hối",
@@ -8454,7 +8454,7 @@
     "main_title": "Phần thưởng",
     "vip": {
       "bps_unit": "bps",
-      "badge_label": "VIP Fox {{tier}}",
+      "badge_label": "VIP {{tier}}",
       "swaps_label": "Swaps",
       "perps_label": "Perps",
       "error_title": "We couldn’t load your VIP dashboard",
@@ -8902,11 +8902,7 @@
       "stats_qualify_for_rank_description": "Giao dịch thêm {{notionalRemaining}} khối lượng danh nghĩa để đủ điều kiện tham gia.",
       "stats_error_title": "Không thể tải số liệu thống kê",
       "stats_error_description": "Chúng tôi đã gặp sự cố khi tải số liệu thống kê của bạn. Vui lòng thử lại.",
-      "stats_retry": "Thử lại",
-      "completed_label_total_participants": "Tổng số người tham gia",
-      "completed_label_total_volume": "Tổng khối lượng",
-      "completed_label_top_pnl": "Lãi/Lỗ cao nhất",
-      "completed_label_winners": "Người chiến thắng"
+      "stats_retry": "Thử lại"
     },
     "campaigns_preview": {
       "title": "Chiến dịch",
@@ -8971,7 +8967,7 @@
       "non_winner": {
         "title": "Kết quả đã có 🏅",
         "description": "Xem thứ hạng của bạn trong {{campaignName}}.",
-        "cta": "Xem"
+        "cta": "Xem chi tiết"
       }
     }
   },

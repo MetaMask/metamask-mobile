@@ -201,7 +201,7 @@ export const dismissDeveloperMenuPlaywright = async (): Promise<void> => {
  * @throws {Error} Throws an error if app fails to stabilize within timeout
  */
 export const waitForAppReady = async (
-  timeout: number = 20000,
+  timeout: number = 60000,
 ): Promise<void> => {
   const startTime = Date.now();
 

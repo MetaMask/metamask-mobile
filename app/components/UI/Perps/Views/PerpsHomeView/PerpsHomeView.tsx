@@ -99,6 +99,7 @@ import PerpsNavigationCard, {
 } from '../../components/PerpsNavigationCard/PerpsNavigationCard';
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
 import PerpsCompetitionBanner from '../../components/PerpsCompetitionBanner';
+import PerpsProducts from '../../components/PerpsProducts';
 import PerpsTopMoversSection from '../../components/PerpsTopMoversSection';
 
 interface PerpsHomeViewProps {
@@ -110,9 +111,9 @@ interface PerpsHomeViewProps {
   /** Forwarded to useDiscoveryScrollManager to sync icon animations with header hide/show. */
   onHeaderHiddenChange?: (hidden: boolean) => void;
   /**
-   * Top padding applied inside the scroll content container — used by HomepageDiscoveryTabs
-   * (Hub Page Discovery Tabs feature flag treatment) so the perps gradient extends up
-   * directly under the discovery tab bar instead of leaving a transparent gap.
+   * Top padding applied inside the scroll content container when embedded in
+   * HomepageDiscoveryTabs — keeps the perps background flush under the discovery
+   * tab bar and adds spacing before the screen title (32px in discovery tabs).
    */
   topInset?: number;
 }
@@ -534,7 +535,7 @@ const PerpsHomeView = ({
   const scrollContentContainerStyle = useMemo(
     () => [
       styles.scrollViewContent,
-      topInset > 0 ? { paddingTop: topInset } : null,
+      hideHeader && topInset > 0 ? { paddingTop: topInset } : null,
       showsFixedFooter
         ? { paddingBottom: 0 }
         : !hideHeader
@@ -611,6 +612,7 @@ const PerpsHomeView = ({
         showsVerticalScrollIndicator={false}
         onScroll={perpsScrollHandler}
         scrollEventThrottle={16}
+        testID={PerpsHomeViewSelectorsIDs.SCROLL_CONTENT}
       >
         <Box
           onLayout={(event) =>
@@ -619,11 +621,15 @@ const PerpsHomeView = ({
         >
           <TitleHub
             testID={PerpsHomeViewSelectorsIDs.HOME_HEADING}
-            title={perpsScreenTitle}
-            titleEndAccessory={titleEndAccessory}
-            titleProps={{
-              testID: `${PerpsHomeViewSelectorsIDs.HOME_HEADING}-title`,
-            }}
+            title={hideHeader ? undefined : perpsScreenTitle}
+            titleEndAccessory={hideHeader ? undefined : titleEndAccessory}
+            titleProps={
+              hideHeader
+                ? undefined
+                : {
+                    testID: `${PerpsHomeViewSelectorsIDs.HOME_HEADING}-title`,
+                  }
+            }
             amount={
               !isBalanceEmpty ? (
                 <SensitiveText
@@ -700,6 +706,7 @@ const PerpsHomeView = ({
                 key={`${position.symbol}-${index}`}
                 position={position}
                 source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+                testID={`${PerpsHomeViewSelectorsIDs.POSITION_CARD}-${index}`}
               />
             ))}
           </View>
@@ -715,11 +722,12 @@ const PerpsHomeView = ({
           renderSkeleton={() => <PerpsRowSkeleton count={2} />}
         >
           <View style={styles.positionsOrdersContainer}>
-            {orders.map((order) => (
+            {orders.map((order, index) => (
               <PerpsCard
                 key={order.orderId}
                 order={order}
                 source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+                testID={`${PerpsHomeViewSelectorsIDs.ORDER_CARD}-${index}`}
               />
             ))}
           </View>
@@ -741,6 +749,11 @@ const PerpsHomeView = ({
           source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
           transactionActiveAbTests={transactionActiveAbTests}
         />
+
+        {/* Products Section - Category pills grid */}
+        <View onLayout={handleSectionLayout('products')}>
+          <PerpsProducts transactionActiveAbTests={transactionActiveAbTests} />
+        </View>
 
         {/* Top Movers Section */}
         <PerpsTopMoversSection
@@ -765,7 +778,7 @@ const PerpsHomeView = ({
         <PerpsMarketTypeSection
           title={strings('perps.home.commodities')}
           markets={commoditiesMarkets}
-          marketType="commodities"
+          marketType="commodity"
           sortBy={sortBy}
           isLoading={isLoading.markets}
           source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
@@ -777,7 +790,7 @@ const PerpsHomeView = ({
           <PerpsMarketTypeSection
             title={strings('perps.home.stocks')}
             markets={stocksMarkets}
-            marketType="stocks"
+            marketType="stock"
             sortBy={sortBy}
             isLoading={isLoading.markets}
             source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
