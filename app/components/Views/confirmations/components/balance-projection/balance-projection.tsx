@@ -105,7 +105,7 @@ export function BalanceProjection({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="gap-1"
+          twClassName="gap-0.5"
         >
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {strings('confirm.custom_amount.projected_balance', {
@@ -135,7 +135,7 @@ export function BalanceProjection({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="gap-1"
+        twClassName="gap-0.5"
       >
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('confirm.custom_amount.earn_up_to_apy', {
