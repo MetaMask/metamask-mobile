@@ -1796,7 +1796,6 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     mockNotificationManagerGetTransactionToView.mockReturnValue('tx-123');
     const txToView = mockNotificationManagerGetTransactionToView();
     expect(txToView).toBe('tx-123');
-
   });
 
   it('should test component method patterns for coverage', () => {
