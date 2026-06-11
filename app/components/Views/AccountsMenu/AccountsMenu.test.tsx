@@ -419,7 +419,7 @@ describe('AccountsMenu', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.NOTIFICATIONS.VIEW);
     });
 
-    it('navigates to notifications view when not enabled and pressed', () => {
+    it('does not navigate to notifications view when not enabled and pressed', () => {
       jest.mocked(isNotificationsFeatureEnabled).mockReturnValue(true);
       setupNotificationMocks({ notificationEnabled: false });
 
@@ -430,7 +430,7 @@ describe('AccountsMenu', () => {
 
       fireEvent.press(notificationsButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.NOTIFICATIONS.VIEW);
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('display badge with count when notifications are enabled and unread count > 0', () => {
