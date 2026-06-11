@@ -12,6 +12,7 @@ import {
   IconSize,
   Skeleton,
   Text,
+  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -42,7 +43,10 @@ import {
   selectHasAcceptedVipInvite,
   selectReferralCode,
 } from '../../../../reducers/rewards/selectors';
-import { formatCompactValue } from '../utils/formatUtils';
+import {
+  formatCompactValue,
+  formatRewardsTimeOnly,
+} from '../utils/formatUtils';
 
 export const REWARDS_VIP_VIEW_TEST_IDS = {
   INVITE_BUTTON: 'rewards-vip-view-invite-button',
@@ -57,6 +61,7 @@ export const REWARDS_VIP_VIEW_TEST_IDS = {
   PERPS_FEE_TILE: 'rewards-vip-view-perps-fee-tile',
   REFERRAL_POINTS_TILE: 'rewards-vip-view-referral-points-tile',
   EQUITY_REBATE_TILE: 'rewards-vip-view-equity-rebate-tile',
+  LAST_UPDATED: 'rewards-vip-view-last-updated',
 } as const;
 
 const BENEFIT_TILE_GAP = 12;
@@ -296,6 +301,19 @@ const RewardsVipViewContent: React.FC = () => {
                   vipReferrals: dashboard.localizedText.vipReferralsTitle,
                 }}
               />
+
+              {dashboard.computedAt ? (
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                  twClassName="text-right"
+                  testID={REWARDS_VIP_VIEW_TEST_IDS.LAST_UPDATED}
+                >
+                  {strings('rewards.vip.last_updated', {
+                    time: formatRewardsTimeOnly(new Date(dashboard.computedAt)),
+                  })}
+                </Text>
+              ) : null}
 
               {/* Divider */}
               <Box twClassName="mt-4 border-b border-border-muted" />
