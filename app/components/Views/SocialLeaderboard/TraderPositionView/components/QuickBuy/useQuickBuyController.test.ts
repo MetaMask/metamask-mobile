@@ -1517,6 +1517,243 @@ describe('useQuickBuyController', () => {
     });
   });
 
+  describe('live available balances (TSA-632)', () => {
+    interface LatestBalanceArgs {
+      address?: string;
+      decimals?: number;
+      chainId?: string;
+      balance?: string;
+      refreshKey?: string | number;
+    }
+
+    const lastLatestBalanceArgs = (): LatestBalanceArgs =>
+      (useLatestBalance as jest.Mock).mock.calls.at(
+        -1,
+      )?.[0] as LatestBalanceArgs;
+
+    // `useLatestBalance` is mocked to echo the `balance` it is fed, so the
+    // displayed source fiat tracks whatever balance the controller resolves.
+    const echoLatestBalance = () => {
+      (useLatestBalance as jest.Mock).mockImplementation(
+        (args: LatestBalanceArgs) => ({
+          displayBalance: args.balance,
+          atomicBalance: undefined,
+        }),
+      );
+    };
+
+    const createReceiveToken = (
+      overrides: Partial<BridgeToken> = {},
+    ): BridgeToken =>
+      ({
+        address: '0xUSDC',
+        chainId: '0x1',
+        decimals: 6,
+        symbol: 'USDC',
+        name: 'USD Coin',
+        currencyExchangeRate: 1,
+        balance: '100',
+        balanceFiat: '$100.00',
+        tokenFiatAmount: 100,
+        ...overrides,
+      }) as BridgeToken;
+
+    describe('source (Pay with) balance', () => {
+      it('updates the displayed source balance when the underlying balance changes (external transfer)', () => {
+        // Arrange — sheet opens; ETH auto-selected with a live 1.0 balance.
+        echoLatestBalance();
+        (usePayWithTokens as jest.Mock).mockReturnValue({
+          options: [createSourceToken({ balance: '1.0' })],
+          isLoading: false,
+        });
+        const { result, rerender } = renderHook(() =>
+          useQuickBuyController(createTarget(), jest.fn()),
+        );
+        // 1.0 ETH * $2000 rate.
+        expect(result.current.sourceBalanceFiat).toBe('$2,000.00');
+
+        // Act — an external transfer (NOT via QuickBuy) lands: the reactive
+        // usePayWithTokens list recomputes with a higher balance while the
+        // selected token snapshot is unchanged.
+        (usePayWithTokens as jest.Mock).mockReturnValue({
+          options: [createSourceToken({ balance: '1.5' })],
+          isLoading: false,
+        });
+        rerender(undefined);
+
+        // Assert — the displayed available balance reflects the new state.
+        expect(lastLatestBalanceArgs().balance).toBe('1.5');
+        expect(result.current.sourceBalanceFiat).toBe('$3,000.00');
+      });
+
+      it('re-keys the on-chain fetch off the live balance so any change re-fetches', () => {
+        // Arrange
+        echoLatestBalance();
+        (usePayWithTokens as jest.Mock).mockReturnValue({
+          options: [createSourceToken({ balance: '1.0' })],
+          isLoading: false,
+        });
+        const { rerender } = renderHook(() =>
+          useQuickBuyController(createTarget(), jest.fn()),
+        );
+        // The key is derived from the live balance itself, NOT from any
+        // QuickBuy-specific state.
+        const initialRefreshKey = lastLatestBalanceArgs().refreshKey;
+        expect(initialRefreshKey).toBe('1.0');
+
+        // Act — any balance change (external or QuickBuy) updates the live value.
+        (usePayWithTokens as jest.Mock).mockReturnValue({
+          options: [createSourceToken({ balance: '0.75' })],
+          isLoading: false,
+        });
+        rerender(undefined);
+
+        // Assert — the key changes, forcing a fresh on-chain read.
+        expect(lastLatestBalanceArgs().refreshKey).toBe('0.75');
+        expect(lastLatestBalanceArgs().balance).toBe('0.75');
+      });
+
+      it('falls back to the snapshot balance when the selected token leaves the options list', () => {
+        // Arrange
+        echoLatestBalance();
+        (usePayWithTokens as jest.Mock).mockReturnValue({
+          options: [createSourceToken({ balance: '1.0' })],
+          isLoading: false,
+        });
+        const { result, rerender } = renderHook(() =>
+          useQuickBuyController(createTarget(), jest.fn()),
+        );
+
+        // Act — the user spent the whole balance, so the held-token list no
+        // longer contains the selected token.
+        (usePayWithTokens as jest.Mock).mockReturnValue({
+          options: [],
+          isLoading: false,
+        });
+        rerender(undefined);
+
+        // Assert — no live match: degrade to the snapshot value rather than
+        // blanking out.
+        expect(lastLatestBalanceArgs().balance).toBe('1.0');
+        expect(result.current.sourceBalanceFiat).toBe('$2,000.00');
+      });
+
+      it('updates the displayed fiat balance when the exchange rate refreshes without a balance change', () => {
+        echoLatestBalance();
+        (usePayWithTokens as jest.Mock).mockReturnValue({
+          options: [
+            createSourceToken({ balance: '1.0', currencyExchangeRate: 2000 }),
+          ],
+          isLoading: false,
+        });
+        const { result, rerender } = renderHook(() =>
+          useQuickBuyController(createTarget(), jest.fn()),
+        );
+
+        expect(result.current.sourceBalanceFiat).toBe('$2,000.00');
+
+        (usePayWithTokens as jest.Mock).mockReturnValue({
+          options: [
+            createSourceToken({ balance: '1.0', currencyExchangeRate: 2500 }),
+          ],
+          isLoading: false,
+        });
+        rerender(undefined);
+
+        expect(result.current.sourceBalanceFiat).toBe('$2,500.00');
+      });
+
+      it('updates the source balance when a QuickBuy swap settles (existing behaviour preserved)', () => {
+        // Arrange
+        echoLatestBalance();
+        (usePayWithTokens as jest.Mock).mockReturnValue({
+          options: [createSourceToken({ balance: '1.0' })],
+          isLoading: false,
+        });
+        const { result, rerender } = renderHook(() =>
+          useQuickBuyController(createTarget(), jest.fn()),
+        );
+        expect(result.current.sourceBalanceFiat).toBe('$2,000.00');
+
+        // Act — a QuickBuy swap settles: TokenBalancesController updates Redux
+        // and usePayWithTokens recomputes the same token with a lower balance.
+        (usePayWithTokens as jest.Mock).mockReturnValue({
+          options: [createSourceToken({ balance: '0.75' })],
+          isLoading: false,
+        });
+        rerender(undefined);
+
+        // Assert
+        expect(result.current.sourceBalanceFiat).toBe('$1,500.00');
+      });
+    });
+
+    describe('dest (Receive) balance', () => {
+      const renderSellMode = () => {
+        const utils = renderHook(() =>
+          useQuickBuyController(createTarget(), jest.fn()),
+        );
+        act(() => {
+          utils.result.current.setTradeMode('sell');
+        });
+        return utils;
+      };
+
+      it('updates the displayed dest balance when the underlying balance changes (external transfer)', () => {
+        // Arrange — sell mode; USDC receive token auto-selected at $100.
+        (useReceiveTokens as jest.Mock).mockReturnValue([
+          createReceiveToken({ balanceFiat: '$100.00' }),
+        ]);
+        const { result, rerender } = renderSellMode();
+        expect(result.current.destBalanceFiat).toBe('$100.00');
+
+        // Act — an external transfer lands: the reactive useReceiveTokens list
+        // recomputes with a higher balance while the selection is unchanged.
+        (useReceiveTokens as jest.Mock).mockReturnValue([
+          createReceiveToken({ balance: '150', balanceFiat: '$150.00' }),
+        ]);
+        rerender(undefined);
+
+        // Assert — the displayed receive balance reflects the new state.
+        expect(result.current.destBalanceFiat).toBe('$150.00');
+      });
+
+      it('updates the dest balance when a QuickBuy swap settles (existing behaviour preserved)', () => {
+        // Arrange
+        (useReceiveTokens as jest.Mock).mockReturnValue([
+          createReceiveToken({ balanceFiat: '$100.00' }),
+        ]);
+        const { result, rerender } = renderSellMode();
+        expect(result.current.destBalanceFiat).toBe('$100.00');
+
+        // Act — a QuickBuy sell settles into the receive token, raising its
+        // balance; the reactive list recomputes.
+        (useReceiveTokens as jest.Mock).mockReturnValue([
+          createReceiveToken({ balance: '125', balanceFiat: '$125.00' }),
+        ]);
+        rerender(undefined);
+
+        // Assert
+        expect(result.current.destBalanceFiat).toBe('$125.00');
+      });
+
+      it('falls back to the snapshot balance when the selected receive token leaves the list', () => {
+        // Arrange
+        (useReceiveTokens as jest.Mock).mockReturnValue([
+          createReceiveToken({ balanceFiat: '$100.00' }),
+        ]);
+        const { result, rerender } = renderSellMode();
+
+        // Act — the list no longer contains the selected token.
+        (useReceiveTokens as jest.Mock).mockReturnValue([]);
+        rerender(undefined);
+
+        // Assert — degrade to the snapshot's fiat rather than blanking out.
+        expect(result.current.destBalanceFiat).toBe('$100.00');
+      });
+    });
+  });
+
   describe('receive token auto-selection', () => {
     const NATIVE_ADDRESS = '0x0000000000000000000000000000000000000000';
     const USDC_DEST = '0xDEST'; // matches the default-mock position token

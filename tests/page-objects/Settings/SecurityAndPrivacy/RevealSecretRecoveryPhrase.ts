@@ -5,7 +5,16 @@ import {
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
 import Utilities from '../../../framework/Utilities';
-import { EncapsulatedElementType } from '../../../framework';
+import {
+  EncapsulatedElementType,
+  asPlaywrightElement,
+  asDetoxElement,
+} from '../../../framework';
+import { encapsulatedAction } from '../../../framework/encapsulatedAction';
+import PlaywrightAssertions from '../../../framework/PlaywrightAssertions';
+import PlaywrightGestures from '../../../framework/PlaywrightGestures';
+import UnifiedGestures from '../../../framework/UnifiedGestures';
+import { PlatformDetector } from '../../../framework/PlatformLocator';
 
 class RevealSecretRecoveryPhrase {
   get container(): EncapsulatedElementType {
@@ -37,6 +46,7 @@ class RevealSecretRecoveryPhrase {
       RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW_TEXT,
     );
   }
+
   get tabScrollViewQRCodeIdentifier(): Promise<DetoxMatcher> {
     return Matchers.getIdentifier(
       RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW_QR_CODE,
@@ -80,20 +90,49 @@ class RevealSecretRecoveryPhrase {
   }
 
   async enterPasswordToRevealSecretCredential(password: string): Promise<void> {
-    // Wait for password screen to be ready (e.g. after navigation or quiz on iOS/Android CI)
-    await Utilities.waitForElementToBeVisible(
-      this.passwordInputToRevealCredential,
-      15000,
-    );
-    await Gestures.typeText(this.passwordInputToRevealCredential, password, {
-      hideKeyboard: true,
-      elemDescription: 'Password input to reveal credential',
+    await encapsulatedAction({
+      detox: async () => {
+        await Utilities.waitForElementToBeVisible(
+          asDetoxElement(this.passwordInputToRevealCredential),
+          15000,
+        );
+        await Gestures.typeText(
+          asDetoxElement(this.passwordInputToRevealCredential),
+          password,
+          {
+            hideKeyboard: true,
+            elemDescription: 'Password input to reveal credential',
+          },
+        );
+      },
+      appium: async () => {
+        await PlaywrightAssertions.expectElementToBeVisible(
+          await asPlaywrightElement(this.passwordInputToRevealCredential),
+          {
+            timeout: 15000,
+            description: 'Password input to reveal credential',
+          },
+        );
+        const textToType = PlatformDetector.isIOS()
+          ? `${password}\n`
+          : password;
+        await UnifiedGestures.typeText(
+          this.passwordInputToRevealCredential,
+          textToType,
+          {
+            description: 'Password input to reveal credential',
+          },
+        );
+        if (PlatformDetector.isAndroid()) {
+          await PlaywrightGestures.hideKeyboard();
+        }
+      },
     });
   }
 
   async tapConfirmButton(): Promise<void> {
-    await Gestures.waitAndTap(this.confirmButton, {
-      elemDescription: 'Confirm button to reveal credential',
+    await UnifiedGestures.waitAndTap(this.confirmButton, {
+      description: 'Confirm button to reveal credential',
     });
   }
 
@@ -103,10 +142,20 @@ class RevealSecretRecoveryPhrase {
    */
   async isUnlocked(): Promise<boolean> {
     try {
-      await Utilities.waitForElementToBeVisible(
-        this.revealSecretRecoveryPhraseButton,
-        3000,
-      );
+      await encapsulatedAction({
+        detox: async () => {
+          await Utilities.waitForElementToBeVisible(
+            asDetoxElement(this.revealSecretRecoveryPhraseButton),
+            3000,
+          );
+        },
+        appium: async () => {
+          await PlaywrightAssertions.expectElementToBeVisible(
+            await asPlaywrightElement(this.revealSecretRecoveryPhraseButton),
+            { timeout: 3000 },
+          );
+        },
+      });
       return true;
     } catch {
       return false;
@@ -114,51 +163,55 @@ class RevealSecretRecoveryPhrase {
   }
 
   async tapToReveal(): Promise<void> {
-    await Gestures.waitAndTap(this.revealSecretRecoveryPhraseButton, {
-      elemDescription: 'Reveal secret recovery phrase button',
+    await UnifiedGestures.waitAndTap(this.revealSecretRecoveryPhraseButton, {
+      description: 'Reveal secret recovery phrase button',
     });
   }
 
   async tapToCopyCredentialToClipboard() {
-    await Gestures.tap(this.revealCredentialCopyToClipboardButton, {
-      elemDescription: 'Reveal credential copy to clipboard button',
+    await UnifiedGestures.tap(this.revealCredentialCopyToClipboardButton, {
+      description: 'Reveal credential copy to clipboard button',
     });
   }
 
   async tapToRevealPrivateCredentialQRCode(): Promise<void> {
-    await Gestures.tap(this.revealCredentialQRCodeTab, {
-      elemDescription: 'Reveal credential QR code tab',
+    await UnifiedGestures.tap(this.revealCredentialQRCodeTab, {
+      description: 'Reveal credential QR code tab',
     });
   }
 
   async scrollToDone(): Promise<void> {
-    await Gestures.scrollToElement(this.doneButton, this.scrollViewIdentifier, {
-      elemDescription: 'Done button',
-    });
+    await UnifiedGestures.scrollToElement(
+      this.doneButton,
+      RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_SCROLL_ID,
+      {
+        description: 'Done button',
+      },
+    );
   }
 
   async tapDoneButton(): Promise<void> {
-    await Gestures.waitAndTap(this.doneButton, {
-      elemDescription: 'Done button',
+    await UnifiedGestures.waitAndTap(this.doneButton, {
+      description: 'Done button',
     });
   }
 
   async scrollToCopyToClipboardButton(): Promise<void> {
-    await Gestures.scrollToElement(
+    await UnifiedGestures.scrollToElement(
       this.revealCredentialCopyToClipboardButton,
-      this.tabScrollViewTextIdentifier,
+      RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW_TEXT,
       {
-        elemDescription: 'Copy to clipboard button',
+        description: 'Copy to clipboard button',
       },
     );
   }
 
   async scrollToQR(): Promise<void> {
-    await Gestures.scrollToElement(
+    await UnifiedGestures.scrollToElement(
       this.revealCredentialQRCodeImage,
-      this.tabScrollViewQRCodeIdentifier,
+      RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW_QR_CODE,
       {
-        elemDescription: 'QR code',
+        description: 'QR code',
       },
     );
   }

@@ -16,6 +16,7 @@ import {
   CAMPAIGN_LEADERBOARD_SHARED_TEST_IDS,
 } from './CampaignLeaderboard';
 import { useCampaignLeaderboardEntries } from '../../hooks/useCampaignLeaderboardEntries';
+import { PREDICT_THE_PITCH_CAMPAIGN_MAX_WINNERS } from '../../utils/predictCampaignConstants';
 
 export const PREDICT_THE_PITCH_LEADERBOARD_TEST_IDS = {
   CONTAINER: 'predict-the-pitch-leaderboard-container',
@@ -75,7 +76,7 @@ const PredictThePitchLeaderboard: React.FC<PredictThePitchLeaderboardProps> = ({
   );
 
   if (isLoading && entries.length === 0) {
-    return <CampaignLeaderboardSkeleton skeletonRowCount={5} />;
+    return <CampaignLeaderboardSkeleton skeletonRowCount={maxEntries ?? 20} />;
   }
 
   if (hasError && entries.length === 0) {
@@ -145,6 +146,10 @@ const PredictThePitchLeaderboard: React.FC<PredictThePitchLeaderboardProps> = ({
                 qualified: currentUser ? (isCurrentUserEligible ?? true) : true,
               }}
               isCurrentUser={currentUser}
+              showCrown={
+                !isPreview &&
+                entry.rank <= PREDICT_THE_PITCH_CAMPAIGN_MAX_WINNERS
+              }
               isCampaignComplete={isCampaignComplete}
               formatPrimaryMetric={(e) => formatPercentChange(e.roi)}
               isPositivePrimaryMetric={(e) => e.roi >= 0}
@@ -166,6 +171,10 @@ const PredictThePitchLeaderboard: React.FC<PredictThePitchLeaderboardProps> = ({
                       : true,
                   }}
                   isCurrentUser={currentUser}
+                  showCrown={
+                    !isPreview &&
+                    entry.rank <= PREDICT_THE_PITCH_CAMPAIGN_MAX_WINNERS
+                  }
                   isCampaignComplete={isCampaignComplete}
                   formatPrimaryMetric={(e) => formatPercentChange(e.roi)}
                   isPositivePrimaryMetric={(e) => e.roi >= 0}
