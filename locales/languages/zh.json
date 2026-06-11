@@ -68,8 +68,8 @@
     },
     "insufficient_balance": {
       "title": "资金不足",
-      "message": "您的账户中没有足够的 %{nativeCurrency} 来支付网络费用。",
-      "buy_action": "买入 %{nativeCurrency}"
+      "message": "您的账户中没有足够的 {{nativeCurrency}} 来支付网络费用。",
+      "buy_action": "买入 {{nativeCurrency}}"
     },
     "signed_or_submitted": {
       "title": "交易进行中",
@@ -142,7 +142,7 @@
       "message": "该代币接收地址可能不支持直接转账，这可能导致资金损失。建议仅在确认该合约能够接收转账的情况下继续操作。"
     },
     "gas_sponsorship_reserve_balance": {
-      "message": "此特定网络要求在您的账户中保留 %{minBalance} %{nativeTokenSymbol} 的储备金。",
+      "message": "此特定网络要求在您的账户中保留 {{minBalance}} {{nativeTokenSymbol}} 的储备金。",
       "title": "需要维持储备金余额"
     },
     "token_trust_signal": {
@@ -442,7 +442,7 @@
     "forgot_password": "忘记密码？",
     "cant_proceed": "您在输入“删除”（Delete）一词之前不能继续。通过此操作，您选择删除您当前的钱包。",
     "invalid_password": "密码错误，请重试。",
-    "type_delete": "输入“%{erase}”以确认",
+    "type_delete": "输入“{{erase}}”以确认",
     "erase_my": "是，重设钱包",
     "cancel": "取消",
     "are_you_sure": "您确定吗？",
@@ -1008,7 +1008,7 @@
       "cancel_order_error": "我们无法取消您的订单。请重试。"
     },
     "webview_modal": {
-      "error": "Webview 收到错误代码：%{code}"
+      "error": "Webview 收到错误代码：{{code}}"
     },
     "notifications": {
       "deposit_failed_title": "{{currency}} 存款失败！请重试，给您带来不便，深表歉意！",
@@ -3564,13 +3564,13 @@
     "general_heading": "综合",
     "privacy_heading": "隐私",
     "failed_to_fetch_chain_id": "无法获取链 ID。您的 RPC URL 正确吗？",
-    "endpoint_returned_different_chain_id": "该端点返回了一个不同的链 ID：%{chainIdReturned}",
+    "endpoint_returned_different_chain_id": "该端点返回了一个不同的链 ID：{{chainIdReturned}}",
     "chain_id_required": "链 ID 是必需的。它必须与网络返回的链 ID 相匹配。您可以输入一个十进制或带有“0x”前缀的十六进制数字。",
     "invalid_hex_number": "无效的十六进制数字。",
     "invalid_hex_number_leading_zeros": "无效的十六进制数字。删除所有前导零。",
     "invalid_number": "无效数字。输入一个十进制或带有“0x”前缀的十六进制数字。",
     "invalid_number_leading_zeros": "无效数字。删除所有前导零。",
-    "invalid_number_range": "无效数字。输入1至%{maxSafeChainId}之间的数字",
+    "invalid_number_range": "无效数字。输入1至{{maxSafeChainId}}之间的数字",
     "hide_zero_balance_tokens_title": "隐藏没有余额的代币",
     "hide_zero_balance_tokens_desc": "防止没有余额的代币显示在您的代币列表中。",
     "haptic_feedback_title": "振动反馈",
@@ -4444,8 +4444,8 @@
     "confusable_msg": "我们在 ENS 名称中检测到一个可令人混淆的字符。检查 ENS 名称以避免潜在的欺诈。",
     "similar_to": "类似于",
     "contains_zero_width": "包含零宽度字符",
-    "dapp_suggested_gas": "此燃料费是由 %{origin} 建议的。它使用的是传统燃料估算，可能不准确。然而，编辑此燃料费可能会导致您的交易出现问题。如果您遇到问题，请联系 %{origin}。",
-    "dapp_suggested_eip1559_gas": "此燃料费是由 %{origin} 建议的。覆盖这个可能会导致您的交易出现问题。如果您遇到问题，请联系 %{origin}。",
+    "dapp_suggested_gas": "此燃料费是由 {{origin}} 建议的。它使用的是传统燃料估算，可能不准确。然而，编辑此燃料费可能会导致您的交易出现问题。如果您遇到问题，请联系 {{origin}}。",
+    "dapp_suggested_eip1559_gas": "此燃料费是由 {{origin}} 建议的。覆盖这个可能会导致您的交易出现问题。如果您遇到问题，请联系 {{origin}}。",
     "address_invalid": "接收方地址无效.",
     "ens_not_found": "此名称尚未设置地址。",
     "unknown_qr_code": "无效二维码，请重试。",
@@ -6071,7 +6071,7 @@
     "included": "已包含",
     "max_gas_fee": "最大燃料费",
     "edit": "编辑",
-    "quotes_include_fee": "报价包括 %{{fee}} 的 MetaMask 费用",
+    "quotes_include_fee": "报价包括 {{{fee}}} 的 MetaMask 费用",
     "quotes_include_gas_and_metamask_fee": "报价包括燃料费和 {{fee}}% 的 MetaMask 费用",
     "tap_to_swap": "点按以兑换",
     "swipe_to_swap": "滑动以兑换",
@@ -6216,7 +6216,7 @@
     }
   },
   "invalid_network": {
-    "title": "必须重新输入自定义网络\n %{network} \n的链 ID。",
+    "title": "必须重新输入自定义网络\n {{network}} \n的链 ID。",
     "message": "为了保护您免受恶意或有问题的网络供应商的影响，现在所有的自定义网络都需要有链 ID。",
     "hint": "您可以在以下来源找到大多数流行网络的链 ID：",
     "edit_network_button": "编辑网络",
@@ -6248,7 +6248,7 @@
     "cancel": "取消",
     "approve": "批准",
     "unrecognized_chain": "该自定义网络无法识别",
-    "invalid_chain": "该链 ID 的 %{rpcUrl} 与 chainid.network 列表不匹配",
+    "invalid_chain": "该链 ID 的 {{rpcUrl}} 与 chainid.network 列表不匹配",
     "alert_recommend": "我们建议您",
     "alert_verify": "验证链 ID",
     "warning_subtext_new": {
