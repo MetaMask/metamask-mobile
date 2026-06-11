@@ -10,9 +10,6 @@ import { type Hex } from '@metamask/utils';
 import {
   BottomSheet,
   BottomSheetHeader,
-  Button,
-  ButtonVariant,
-  ButtonSize,
   Text,
   TextColor,
   TextVariant,
@@ -31,6 +28,11 @@ import {
   selectCurrencyRates,
   selectCurrentCurrency,
 } from '../../../../../selectors/currencyRateController';
+import Button, {
+  ButtonVariants,
+  ButtonSize,
+  ButtonWidthTypes,
+} from '../../../../../component-library/components/Buttons/Button';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import AvatarNetwork from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import { Box } from '../../../Box/Box';
@@ -192,14 +194,13 @@ const CardTransactionDetails = ({ card }: { card: CardTransaction }) => {
           </TransactionDetailsRow>
 
           <Button
-            variant={ButtonVariant.Secondary}
+            variant={ButtonVariants.Secondary}
             size={ButtonSize.Lg}
-            isFullWidth
+            width={ButtonWidthTypes.Full}
+            label={strings('transaction_details.view_on_block_explorer')}
             onPress={handleViewOnExplorer}
             testID={MoneyCardTransactionDetailsSheetTestIds.EXPLORER_BUTTON}
-          >
-            {strings('transaction_details.view_on_block_explorer')}
-          </Button>
+          />
         </Box>
       </ScrollView>
     </BottomSheet>
