@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, act, waitFor } from '@testing-library/react-native';
+import { render, screen, act } from '@testing-library/react-native';
 import {
   NavigationContainer,
   NavigationContainerRef,
@@ -67,6 +67,11 @@ jest.mock('../views/PredictHome', () => {
 jest.mock('../views/PredictWorldCup', () => {
   const { View } = jest.requireActual('react-native');
   return () => <View testID="predict-world-cup" />;
+});
+
+jest.mock('../views/PredictFeedView', () => {
+  const { View } = jest.requireActual('react-native');
+  return () => <View testID="predict-feed-view" />;
 });
 
 jest.mock('../views/PredictMarketDetails', () => {
@@ -196,6 +201,18 @@ describe('PredictScreenStack', () => {
     expect(screen.getByTestId('predict-world-cup')).toBeOnTheScreen();
   });
 
+  it('navigates to FEED screen', async () => {
+    renderWithNavigation(<PredictScreenStack />);
+
+    await act(async () => {
+      navigationRef.current?.navigate(Routes.PREDICT.FEED, {
+        feedId: 'sports',
+      });
+    });
+
+    expect(screen.getByTestId('predict-feed-view')).toBeOnTheScreen();
+  });
+
   it('navigates to POSITIONS screen when portfolio flag is enabled', async () => {
     mockPredictPortfolioEnabled = true;
     renderWithNavigation(<PredictScreenStack />);
@@ -207,7 +224,7 @@ describe('PredictScreenStack', () => {
     expect(screen.getByTestId('predict-positions-view')).toBeOnTheScreen();
   });
 
-  it('returns to market list when POSITIONS screen is disabled', async () => {
+  it('navigates to POSITIONS screen when portfolio flag is disabled', async () => {
     mockPredictPortfolioEnabled = false;
     renderWithNavigation(<PredictScreenStack />);
 
@@ -215,12 +232,7 @@ describe('PredictScreenStack', () => {
       navigationRef.current?.navigate(Routes.PREDICT.POSITIONS);
     });
 
-    await waitFor(() => {
-      expect(navigationRef.current?.getCurrentRoute()?.name).toBe(
-        Routes.PREDICT.MARKET_LIST,
-      );
-    });
-    expect(screen.queryByTestId('predict-positions-view')).toBeNull();
+    expect(screen.getByTestId('predict-positions-view')).toBeOnTheScreen();
   });
 
   it('navigates to BUY_PREVIEW with PredictBuyPreview when payWithAnyToken is off', async () => {

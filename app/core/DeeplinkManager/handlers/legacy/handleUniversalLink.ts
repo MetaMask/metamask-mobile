@@ -21,6 +21,7 @@ import handleRampUrl from './handleRampUrl';
 import handleRampReturnUrl from './handleRampReturnUrl';
 import { navigateToHomeUrl } from './handleHomeUrl';
 import { handleSwapUrl } from './handleSwapUrl';
+import { handleBatchSellUrl } from './handleBatchSellUrl';
 import handleBrowserUrl from './handleBrowserUrl';
 import { handleCreateAccountUrl } from './handleCreateAccountUrl';
 import { handlePerpsUrl } from './handlePerpsUrl';
@@ -78,6 +79,7 @@ const SUPPORTED_ACTIONS = {
   HOME: ACTIONS.HOME,
   ASSET: ACTIONS.ASSET,
   SWAP: ACTIONS.SWAP,
+  BATCH_SELL: ACTIONS.BATCH_SELL,
   SEND: ACTIONS.SEND,
   CREATE_ACCOUNT: ACTIONS.CREATE_ACCOUNT,
   PERPS: ACTIONS.PERPS,
@@ -114,6 +116,7 @@ type SUPPORTED_ACTIONS =
 const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.DAPP,
   SUPPORTED_ACTIONS.SWAP,
+  SUPPORTED_ACTIONS.BATCH_SELL,
   SUPPORTED_ACTIONS.WC,
   SUPPORTED_ACTIONS.CARD_ONBOARDING,
   SUPPORTED_ACTIONS.CARD_HOME,
@@ -269,6 +272,23 @@ async function handleUniversalLink({
     );
     const { urlObj: mappedUrlObj, params } = extractURLParams(mappedUrl);
     const wcURL = params?.uri || mappedUrlObj.href;
+
+    // Fire DEEP_LINK_USED for SDK deeplinks (they previously bypassed all analytics)
+    const sdkRoute = isSupportedAction(action)
+      ? mapSupportedActionToRoute(action)
+      : DeepLinkRoute.INVALID;
+
+    trackDeepLinkAnalytics({
+      url,
+      route: sdkRoute,
+      urlParams: params || {},
+      branchParams: {},
+      signatureStatus: SignatureStatus.MISSING,
+      interstitialShown: false,
+      interstitialDisabled: false,
+      interstitialAction: InterstitialState.NOT_SHOWN,
+    });
+
     // `handleMetaMaskDeeplink` is async. We deliberately don't await it here;
     // the call is fire-and-forget from the deeplink pipeline's perspective,
     // but we must still surface rejections (including the synchronous
@@ -607,6 +627,10 @@ async function handleUniversalLink({
         swapPath: actionBasedRampPath,
       });
       return;
+    case SUPPORTED_ACTIONS.BATCH_SELL: {
+      handleBatchSellUrl();
+      break;
+    }
     case SUPPORTED_ACTIONS.DAPP: {
       // Extract everything after /dapp/ from the URL.
       // The path can contain either a bare domain (example.com/path)

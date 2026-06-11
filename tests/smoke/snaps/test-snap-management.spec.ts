@@ -48,7 +48,7 @@ describe(SmokeSnaps('Snap Management Tests'), () => {
         await SnapSettingsView.toggleEnable();
 
         await SnapSettingsView.tapBackButton();
-        await SnapSettingsView.tapBackButton();
+        await SnapSettingsView.tapListBackButton();
         // Settings → AccountsMenu → close SettingsFlow
         await SettingsView.tapBackButton();
         await AccountMenu.tapBack();
@@ -81,7 +81,7 @@ describe(SmokeSnaps('Snap Management Tests'), () => {
         await SnapSettingsView.toggleEnable();
 
         await SnapSettingsView.tapBackButton();
-        await SnapSettingsView.tapBackButton();
+        await SnapSettingsView.tapListBackButton();
         // Settings → AccountsMenu → close SettingsFlow
         await SettingsView.tapBackButton();
         await AccountMenu.tapBack();

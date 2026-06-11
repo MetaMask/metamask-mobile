@@ -19,6 +19,8 @@ import {
   PAY_ENABLE_DEPOSIT_WALLET_WITHDRAW_DEFAULT,
   PAY_ENABLE_PERPS_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT,
   PAY_ENABLE_PREDICT_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT,
+  PAY_ENABLE_MONEY_HOME_PAGE_PERPS_TRANSACTION_DEFAULT,
+  PAY_ENABLE_MONEY_HOME_PAGE_PREDICT_TRANSACTION_DEFAULT,
   PAY_HARDWARE_ENABLED_DEFAULT,
   PreferredToken,
   getPreferredTokensForTransactionType,
@@ -628,5 +630,81 @@ describe('selectMetaMaskPayFlags extended flags', () => {
     expect(
       selectMetaMaskPayFlags(state).enablePredictMoneyAccountTransactions,
     ).toBe(true);
+  });
+
+  describe('enableMoneyHomePagePerpsTransaction', () => {
+    it('returns default (false) when remote flag is absent', () => {
+      const state = cloneDeep(mockedEmptyFlagsState);
+
+      expect(
+        selectMetaMaskPayFlags(state).enableMoneyHomePagePerpsTransaction,
+      ).toEqual(PAY_ENABLE_MONEY_HOME_PAGE_PERPS_TRANSACTION_DEFAULT);
+    });
+
+    it('returns true when remote flag is true', () => {
+      const state = cloneDeep(mockedEmptyFlagsState);
+      state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+        {
+          confirmations_pay_extended: {
+            enablePerpsMoneyAccountTransactions: true,
+          },
+        };
+
+      expect(
+        selectMetaMaskPayFlags(state).enableMoneyHomePagePerpsTransaction,
+      ).toBe(true);
+    });
+
+    it('returns false when remote flag is false', () => {
+      const state = cloneDeep(mockedEmptyFlagsState);
+      state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+        {
+          confirmations_pay_extended: {
+            enablePerpsMoneyAccountTransactions: false,
+          },
+        };
+
+      expect(
+        selectMetaMaskPayFlags(state).enableMoneyHomePagePerpsTransaction,
+      ).toBe(false);
+    });
+  });
+
+  describe('enableMoneyHomePagePredictTransaction', () => {
+    it('returns default (false) when remote flag is absent', () => {
+      const state = cloneDeep(mockedEmptyFlagsState);
+
+      expect(
+        selectMetaMaskPayFlags(state).enableMoneyHomePagePredictTransaction,
+      ).toEqual(PAY_ENABLE_MONEY_HOME_PAGE_PREDICT_TRANSACTION_DEFAULT);
+    });
+
+    it('returns true when remote flag is true', () => {
+      const state = cloneDeep(mockedEmptyFlagsState);
+      state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+        {
+          confirmations_pay_extended: {
+            enablePredictMoneyAccountTransactions: true,
+          },
+        };
+
+      expect(
+        selectMetaMaskPayFlags(state).enableMoneyHomePagePredictTransaction,
+      ).toBe(true);
+    });
+
+    it('returns false when remote flag is false', () => {
+      const state = cloneDeep(mockedEmptyFlagsState);
+      state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+        {
+          confirmations_pay_extended: {
+            enablePredictMoneyAccountTransactions: false,
+          },
+        };
+
+      expect(
+        selectMetaMaskPayFlags(state).enableMoneyHomePagePredictTransaction,
+      ).toBe(false);
+    });
   });
 });
