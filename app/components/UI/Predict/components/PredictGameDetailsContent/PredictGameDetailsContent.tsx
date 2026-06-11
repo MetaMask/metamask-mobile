@@ -29,6 +29,7 @@ import PredictShareButton from '../PredictShareButton/PredictShareButton';
 import PredictSportScoreboard from '../PredictSportScoreboard';
 import PredictMarketDetailsTabBar from '../../views/PredictMarketDetails/components/PredictMarketDetailsTabBar';
 import PredictGameDetailsTabsContent from './PredictGameDetailsTabsContent';
+import PredictGameDetailsOutcomesList from './PredictGameDetailsOutcomesList';
 import { useGameDetailsTabs } from '../../hooks/useGameDetailsTabs';
 import { PredictGameDetailsContentProps } from './PredictGameDetailsContent.types';
 import { useTheme } from '../../../../../util/theme';
@@ -102,10 +103,27 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
     () => (showStickyHeader ? [CHIPS_STICKY_INDEX] : undefined),
     [showStickyHeader],
   );
-
   if (!outcome || !game) {
     return null;
   }
+
+  const outcomesListHeader = (
+    <>
+      <Box twClassName="px-4 py-2">
+        <PredictSportScoreboard
+          game={game}
+          testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.GAME_SCOREBOARD}
+        />
+      </Box>
+
+      <Box twClassName="mt-4">
+        <PredictGameChart
+          market={market}
+          testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.GAME_CHART}
+        />
+      </Box>
+    </>
+  );
 
   return (
     <SafeAreaView
@@ -147,65 +165,88 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
         <PredictShareButton marketId={market.id} marketSlug={market.slug} />
       </Box>
 
-      <ScrollView
-        style={tw.style('flex-1')}
-        contentContainerStyle={tw.style('pb-4')}
-        stickyHeaderIndices={stickyHeaderIndices}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={colors.primary.default}
-            colors={[colors.primary.default]}
-          />
-        }
-      >
-        <Box twClassName="px-4 py-2">
-          <PredictSportScoreboard
-            game={game}
-            testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.GAME_SCOREBOARD}
-          />
-        </Box>
-
-        <Box twClassName="mt-4">
-          <PredictGameChart
-            market={market}
-            testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.GAME_CHART}
-          />
-        </Box>
-
-        {showStickyHeader && (
-          <Box twClassName="bg-default">
-            {showTabBar && (
-              <PredictMarketDetailsTabBar
-                tabs={tabs}
-                activeTab={activeTab}
-                onTabPress={handleTabPress}
-              />
-            )}
-            {showChips && (
-              <PredictChipList
-                chips={chips}
-                activeChipKey={activeChipKey}
-                onChipSelect={handleChipSelect}
-              />
-            )}
-          </Box>
-        )}
-
-        <PredictGameDetailsTabsContent
+      {hasExtendedOutcomes ? (
+        <PredictGameDetailsOutcomesList
           market={market}
-          activeTab={activeTab}
-          tabs={tabs}
-          enabled={tabsEnabled}
-          showTabBar={showTabBar}
-          activePositions={activePositions}
-          claimablePositions={claimablePositions}
+          game={game}
           groupMap={groupMap}
           activeChipKey={activeChipKey}
           onBetPress={onBetPress}
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          showTabBar={showTabBar}
+          tabs={tabs}
+          activeTab={activeTab}
+          onTabPress={handleTabPress}
+          showChips={showChips}
+          chips={chips}
+          onChipSelect={handleChipSelect}
+          activePositions={activePositions}
+          claimablePositions={claimablePositions}
+          listHeaderComponent={outcomesListHeader}
         />
-      </ScrollView>
+      ) : (
+        <ScrollView
+          style={tw.style('flex-1')}
+          contentContainerStyle={tw.style('pb-4')}
+          stickyHeaderIndices={stickyHeaderIndices}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.primary.default}
+              colors={[colors.primary.default]}
+            />
+          }
+        >
+          <Box twClassName="px-4 py-2">
+            <PredictSportScoreboard
+              game={game}
+              testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.GAME_SCOREBOARD}
+            />
+          </Box>
+
+          <Box twClassName="mt-4">
+            <PredictGameChart
+              market={market}
+              testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.GAME_CHART}
+            />
+          </Box>
+
+          {showStickyHeader && (
+            <Box twClassName="bg-default">
+              {showTabBar && (
+                <PredictMarketDetailsTabBar
+                  tabs={tabs}
+                  activeTab={activeTab}
+                  onTabPress={handleTabPress}
+                />
+              )}
+              {showChips && (
+                <PredictChipList
+                  chips={chips}
+                  activeChipKey={activeChipKey}
+                  onChipSelect={handleChipSelect}
+                  scrollPersistenceKey={`predict-game-details-chips-${market.id}`}
+                />
+              )}
+            </Box>
+          )}
+
+          <PredictGameDetailsTabsContent
+            market={market}
+            activeTab={activeTab}
+            tabs={tabs}
+            enabled={tabsEnabled}
+            showTabBar={showTabBar}
+            activePositions={activePositions}
+            claimablePositions={claimablePositions}
+            groupMap={groupMap}
+            activeChipKey={activeChipKey}
+            onBetPress={onBetPress}
+          />
+        </ScrollView>
+      )}
 
       {showFooter && (
         <PredictGameDetailsFooter

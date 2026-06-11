@@ -1,4 +1,4 @@
-import React, { memo, useCallback } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useRef } from 'react';
 import { Image, Pressable, ScrollView } from 'react-native';
 import { ScrollView as GestureHandlerScrollView } from 'react-native-gesture-handler';
 import {
@@ -29,6 +29,7 @@ const PredictChipList: React.FC<PredictChipListProps> = ({
   activeChipKey,
   onChipSelect,
   testID = PREDICT_CHIP_LIST_TEST_IDS.CONTAINER,
+  scrollPersistenceKey,
   containerTwClassName = DEFAULT_CONTAINER_CLASS,
   chipTwClassName = DEFAULT_CHIP_CLASS,
   getChipTestId = getPredictChipTestId,
@@ -39,16 +40,42 @@ const PredictChipList: React.FC<PredictChipListProps> = ({
     scrollViewRef,
     handleScrollViewLayout,
     handleChipLayout,
+    handleScroll,
     scrollToChipAtIndex,
-  } = useChipScrollList(chips.length);
+    hasPersistedOffset,
+    initialScrollX,
+  } = useChipScrollList(chips.length, scrollPersistenceKey);
+  const activeChipIndex = useMemo(
+    () => chips.findIndex((chip) => chip.key === activeChipKey),
+    [chips, activeChipKey],
+  );
+  const isFirstRenderRef = useRef(true);
 
   const handlePress = useCallback(
     (key: string, index: number) => {
       onChipSelect(key);
-      scrollToChipAtIndex(index);
+      scrollToChipAtIndex(index, true);
     },
     [onChipSelect, scrollToChipAtIndex],
   );
+
+  useEffect(() => {
+    if (activeChipIndex < 0) {
+      return;
+    }
+
+    if (isFirstRenderRef.current) {
+      isFirstRenderRef.current = false;
+      if (hasPersistedOffset) {
+        return;
+      }
+
+      scrollToChipAtIndex(activeChipIndex, false);
+      return;
+    }
+
+    scrollToChipAtIndex(activeChipIndex, true);
+  }, [activeChipIndex, hasPersistedOffset, scrollToChipAtIndex]);
 
   if (chips.length === 0) {
     return null;
@@ -97,7 +124,10 @@ const PredictChipList: React.FC<PredictChipListProps> = ({
     horizontal: true as const,
     showsHorizontalScrollIndicator: false,
     contentContainerStyle: tw.style('px-4 gap-2'),
+    contentOffset: { x: initialScrollX, y: 0 },
     onLayout: handleScrollViewLayout,
+    onScroll: handleScroll,
+    scrollEventThrottle: 16,
   };
 
   return (

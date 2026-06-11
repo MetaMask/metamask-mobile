@@ -3,8 +3,8 @@ import type {
   PredictMarketGame,
   PredictOutcome,
   PredictOutcomeToken,
+  PriceUpdate,
 } from '../../types';
-import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
 import type { PredictBetButtonVariant } from '../PredictActionButtons/PredictActionButtons.types';
 import PredictSportOutcomeCard, {
   type PredictSportOutcomeButton,
@@ -18,7 +18,7 @@ export type BuyHandler = (
   token: PredictOutcomeToken,
 ) => void;
 
-export type GetLivePrice = ReturnType<typeof useLiveMarketPrices>['getPrice'];
+export type GetLivePrice = (tokenId: string) => PriceUpdate | undefined;
 
 export interface SharedPricingStrategy {
   kind: 'shared';
@@ -68,6 +68,8 @@ export interface PredictGameOutcomeCardProps {
   onBuyPress: BuyHandler;
   game?: PredictMarketGame;
   getPrice: GetLivePrice;
+  selectedLineIndex?: number;
+  onSelectedLineIndexChange?: (selectedIndex: number) => void;
 }
 
 const O_U_PLAYER_PATTERN = /^(.+?):\s+\w+ O\/U/;
@@ -149,6 +151,22 @@ const buildButtons = (
 const buildSubtitle = (outcome: PredictOutcome): string =>
   `$${formatVolume(outcome.volume)} Vol`;
 
+export const getDefaultSelectedLineIndex = (
+  outcomes: PredictOutcome[],
+  lineIndices: number[],
+): number => {
+  if (lineIndices.length === 0) {
+    return 0;
+  }
+
+  return lineIndices.reduce((bestIdx, outcomeIdx, currentIdx) => {
+    const bestVolume = outcomes[lineIndices[bestIdx]]?.volume ?? 0;
+    const currentVolume = outcomes[outcomeIdx]?.volume ?? 0;
+
+    return currentVolume > bestVolume ? currentIdx : bestIdx;
+  }, 0);
+};
+
 const SimpleOutcomeCard = memo(
   ({
     outcome,
@@ -192,6 +210,9 @@ const LineOutcomeCard = memo(
     game,
     sportsMarketType,
     testID,
+    getPrice,
+    selectedLineIndex,
+    onSelectedLineIndexChange,
   }: {
     outcomes: PredictOutcome[];
     title?: string;
@@ -199,6 +220,9 @@ const LineOutcomeCard = memo(
     game?: PredictMarketGame;
     sportsMarketType?: string;
     testID: string;
+    getPrice?: GetLivePrice;
+    selectedLineIndex?: number;
+    onSelectedLineIndexChange?: (selectedIndex: number) => void;
   }) => {
     const lineIndices = useMemo(
       () =>
@@ -218,44 +242,41 @@ const LineOutcomeCard = memo(
       [lineIndices, outcomes],
     );
 
-    const initialSelectedIdx = useMemo(() => {
-      if (lineIndices.length === 0) {
-        return 0;
-      }
+    const initialSelectedIdx = useMemo(
+      () => getDefaultSelectedLineIndex(outcomes, lineIndices),
+      [outcomes, lineIndices],
+    );
 
-      return lineIndices.reduce((bestIdx, outcomeIdx, currentIdx) => {
-        const bestVolume = outcomes[lineIndices[bestIdx]]?.volume ?? 0;
-        const currentVolume = outcomes[outcomeIdx]?.volume ?? 0;
-
-        return currentVolume > bestVolume ? currentIdx : bestIdx;
-      }, 0);
-    }, [lineIndices, outcomes]);
-
-    const [selectedIdx, setSelectedIdx] = useState(initialSelectedIdx);
+    const [uncontrolledSelectedIdx, setUncontrolledSelectedIdx] =
+      useState(initialSelectedIdx);
 
     useEffect(() => {
-      setSelectedIdx(initialSelectedIdx);
-    }, [initialSelectedIdx]);
+      if (selectedLineIndex === undefined) {
+        setUncontrolledSelectedIdx(initialSelectedIdx);
+      }
+    }, [initialSelectedIdx, selectedLineIndex]);
+
+    const resolvedSelectedIdx =
+      selectedLineIndex ?? uncontrolledSelectedIdx ?? initialSelectedIdx;
+    const safeSelectedIdx =
+      lineIndices[resolvedSelectedIdx] !== undefined
+        ? resolvedSelectedIdx
+        : initialSelectedIdx;
 
     const handleSelectLine = useCallback(
       (_line: number, indexInLines: number) => {
-        setSelectedIdx(indexInLines);
+        if (selectedLineIndex === undefined) {
+          setUncontrolledSelectedIdx(indexInLines);
+        }
+        onSelectedLineIndexChange?.(indexInLines);
       },
-      [],
+      [onSelectedLineIndexChange, selectedLineIndex],
     );
 
     const selectedOutcome = useMemo(
-      () => outcomes[lineIndices[selectedIdx]] ?? outcomes[0],
-      [outcomes, lineIndices, selectedIdx],
+      () => outcomes[lineIndices[safeSelectedIdx]] ?? outcomes[0],
+      [outcomes, lineIndices, safeSelectedIdx],
     );
-    const selectedTokenIds = useMemo(
-      () =>
-        selectedOutcome ? selectedOutcome.tokens.map((token) => token.id) : [],
-      [selectedOutcome],
-    );
-    const { getPrice: getSelectedLinePrice } =
-      useLiveMarketPrices(selectedTokenIds);
-
     if (!selectedOutcome) return null;
 
     return (
@@ -267,11 +288,11 @@ const LineOutcomeCard = memo(
           onBuyPress,
           game,
           sportsMarketType,
-          getSelectedLinePrice,
+          getPrice,
         )}
         lines={lines}
-        selectedLine={lines[selectedIdx]}
-        selectedIndex={selectedIdx}
+        selectedLine={lines[safeSelectedIdx]}
+        selectedIndex={safeSelectedIdx}
         onSelectLine={handleSelectLine}
         testID={testID}
       />
@@ -403,7 +424,14 @@ const MoneylineCard = memo(
 MoneylineCard.displayName = 'MoneylineCard';
 
 const PredictGameOutcomeCard = memo(
-  ({ cardModel, onBuyPress, game, getPrice }: PredictGameOutcomeCardProps) => {
+  ({
+    cardModel,
+    onBuyPress,
+    game,
+    getPrice,
+    selectedLineIndex,
+    onSelectedLineIndexChange,
+  }: PredictGameOutcomeCardProps) => {
     switch (cardModel.kind) {
       case 'moneyline':
         return (
@@ -423,8 +451,11 @@ const PredictGameOutcomeCard = memo(
             title={cardModel.title}
             onBuyPress={onBuyPress}
             game={game}
+            getPrice={getPrice}
             sportsMarketType={cardModel.sportsMarketType}
             testID={cardModel.testID}
+            selectedLineIndex={selectedLineIndex}
+            onSelectedLineIndexChange={onSelectedLineIndexChange}
           />
         );
       case 'simple':

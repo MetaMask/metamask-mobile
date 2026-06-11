@@ -8,6 +8,7 @@ import {
   getPredictChipLabelTestId,
 } from './PredictChipList.testIds';
 import type { PredictChipItem } from './PredictChipList.types';
+import { useChipScrollList } from './useChipScrollList';
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({
@@ -15,6 +16,10 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
       testStyle: classes.filter(Boolean).join(' '),
     }),
   }),
+}));
+
+jest.mock('./useChipScrollList', () => ({
+  useChipScrollList: jest.fn(),
 }));
 
 const createMockChips = (
@@ -30,9 +35,20 @@ const createMockChips = (
 
 describe('PredictChipList', () => {
   const mockOnChipSelect = jest.fn();
+  const mockScrollToChipAtIndex = jest.fn();
+  const mockUseChipScrollList = jest.mocked(useChipScrollList);
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseChipScrollList.mockReturnValue({
+      scrollViewRef: { current: null },
+      handleScrollViewLayout: jest.fn(),
+      handleChipLayout: jest.fn(),
+      handleScroll: jest.fn(),
+      scrollToChipAtIndex: mockScrollToChipAtIndex,
+      hasPersistedOffset: false,
+      initialScrollX: 0,
+    });
   });
 
   describe('rendering', () => {
@@ -189,6 +205,55 @@ describe('PredictChipList', () => {
       fireEvent.press(getByTestId(getPredictChipTestId('game_lines')));
 
       expect(mockOnChipSelect).toHaveBeenCalledWith('game_lines');
+    });
+
+    it('keeps the active chip in view when activeChipKey changes', () => {
+      const chips = createMockChips();
+
+      const { rerender } = render(
+        <PredictChipList
+          chips={chips}
+          activeChipKey="game_lines"
+          onChipSelect={mockOnChipSelect}
+        />,
+      );
+
+      expect(mockScrollToChipAtIndex).toHaveBeenCalledWith(0, false);
+
+      mockScrollToChipAtIndex.mockClear();
+
+      rerender(
+        <PredictChipList
+          chips={chips}
+          activeChipKey="points"
+          onChipSelect={mockOnChipSelect}
+        />,
+      );
+
+      expect(mockScrollToChipAtIndex).toHaveBeenCalledWith(2, true);
+    });
+
+    it('does not override a persisted horizontal offset on initial mount', () => {
+      mockUseChipScrollList.mockReturnValue({
+        scrollViewRef: { current: null },
+        handleScrollViewLayout: jest.fn(),
+        handleChipLayout: jest.fn(),
+        handleScroll: jest.fn(),
+        scrollToChipAtIndex: mockScrollToChipAtIndex,
+        hasPersistedOffset: true,
+        initialScrollX: 120,
+      });
+
+      render(
+        <PredictChipList
+          chips={createMockChips()}
+          activeChipKey="points"
+          onChipSelect={mockOnChipSelect}
+          scrollPersistenceKey="persist-key"
+        />,
+      );
+
+      expect(mockScrollToChipAtIndex).not.toHaveBeenCalled();
     });
   });
 

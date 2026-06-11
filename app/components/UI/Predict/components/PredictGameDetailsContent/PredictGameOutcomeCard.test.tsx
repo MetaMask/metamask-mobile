@@ -11,12 +11,7 @@ import type {
   PredictOutcomeToken,
 } from '../../types';
 import type { PredictSportOutcomeButton } from '../PredictSportOutcomeCard';
-import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
 import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
-
-jest.mock('../../hooks/useLiveMarketPrices', () => ({
-  useLiveMarketPrices: jest.fn(),
-}));
 
 interface CapturedCard {
   title: string;
@@ -98,9 +93,7 @@ jest.mock('../PredictSportOutcomeCard', () => {
   };
 });
 
-const mockUseLiveMarketPrices = jest.mocked(useLiveMarketPrices);
 const mockParentGetPrice = jest.fn();
-const mockLineGetPrice = jest.fn();
 const mockOnBuyPress = jest.fn();
 
 const createToken = (
@@ -186,13 +179,6 @@ describe('PredictGameOutcomeCard', () => {
     jest.clearAllMocks();
     mockCapturedCards = [];
     mockParentGetPrice.mockReturnValue(undefined);
-    mockLineGetPrice.mockReturnValue(undefined);
-    mockUseLiveMarketPrices.mockImplementation(() => ({
-      getPrice: mockLineGetPrice,
-      prices: new Map(),
-      isConnected: true,
-      lastUpdateTime: null,
-    }));
   });
 
   describe('simple cards', () => {
@@ -313,38 +299,52 @@ describe('PredictGameOutcomeCard', () => {
       expect(mockCapturedCards[0].title).toBe('Corners');
     });
 
-    it('uses selected-line subscriptions and updates when the line changes', () => {
-      mockUseLiveMarketPrices.mockImplementation((tokenIds: string[]) => ({
-        getPrice: (tokenId: string) =>
-          tokenIds.includes(tokenId)
-            ? {
-                tokenId,
-                price: 0,
-                bestBid: 0,
-                bestAsk:
-                  tokenId === 'o85' ? 0.53 : tokenId === 'o95' ? 0.42 : 0,
-              }
-            : undefined,
-        prices: new Map(),
-        isConnected: true,
-        lastUpdateTime: null,
-      }));
+    it('uses parent live prices and updates when the line changes', () => {
+      mockParentGetPrice.mockImplementation((tokenId: string) => {
+        if (tokenId === 'o85') {
+          return { tokenId, price: 0, bestBid: 0, bestAsk: 0.53 };
+        }
+        if (tokenId === 'o95') {
+          return { tokenId, price: 0, bestBid: 0, bestAsk: 0.42 };
+        }
+        return undefined;
+      });
 
       const { getByTestId } = renderCard(lineCardModel);
 
-      expect(
-        mockUseLiveMarketPrices.mock.calls.map(([tokenIds]) => tokenIds),
-      ).toEqual(expect.arrayContaining([['o95', 'u95']]));
       expect(mockCapturedCards[0].buttons[0].price).toBe(42);
 
       mockCapturedCards = [];
-      mockUseLiveMarketPrices.mockClear();
       fireEvent(getByTestId('corners-total_corners-line-0-8.5'), 'touchEnd');
 
-      expect(
-        mockUseLiveMarketPrices.mock.calls.map(([tokenIds]) => tokenIds),
-      ).toEqual(expect.arrayContaining([['o85', 'u85']]));
       expect(mockCapturedCards[0].buttons[0].price).toBe(53);
+    });
+
+    it('supports controlled line selection', () => {
+      const { rerender } = render(
+        <PredictGameOutcomeCard
+          cardModel={lineCardModel}
+          onBuyPress={mockOnBuyPress}
+          game={mockGame}
+          getPrice={mockParentGetPrice}
+          selectedLineIndex={0}
+        />,
+      );
+
+      expect(mockCapturedCards[0].selectedLine).toBe(8.5);
+
+      mockCapturedCards = [];
+      rerender(
+        <PredictGameOutcomeCard
+          cardModel={lineCardModel}
+          onBuyPress={mockOnBuyPress}
+          game={mockGame}
+          getPrice={mockParentGetPrice}
+          selectedLineIndex={1}
+        />,
+      );
+
+      expect(mockCapturedCards[0].selectedLine).toBe(9.5);
     });
 
     it('renders non-moneyline lines with draw variants and no team colors', () => {

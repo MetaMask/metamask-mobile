@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { Pressable, View } from 'react-native';
 import { playSelection } from '../../../../../util/haptics';
 import Animated, {
@@ -46,6 +46,7 @@ const PredictSportLineSelector: React.FC<PredictSportLineSelectorProps> = ({
   const tw = useTailwind();
   const translateX = useSharedValue(0);
   const containerWidth = useSharedValue(0);
+  const shouldAnimateSelectionRef = useRef(false);
 
   const selectedIndex =
     selectedIndexProp ?? Math.max(0, lines.indexOf(selectedLine));
@@ -72,10 +73,21 @@ const PredictSportLineSelector: React.FC<PredictSportLineSelectorProps> = ({
   useEffect(() => {
     if (containerWidth.value === 0) return;
 
-    translateX.value = withTiming(
-      computeTranslateX(selectedIndex, containerWidth.value),
-      { duration: ANIMATION_DURATION, easing: Easing.inOut(Easing.ease) },
+    const nextTranslateX = computeTranslateX(
+      selectedIndex,
+      containerWidth.value,
     );
+
+    if (shouldAnimateSelectionRef.current) {
+      translateX.value = withTiming(nextTranslateX, {
+        duration: ANIMATION_DURATION,
+        easing: Easing.inOut(Easing.ease),
+      });
+    } else {
+      translateX.value = nextTranslateX;
+    }
+
+    shouldAnimateSelectionRef.current = false;
   }, [selectedIndex, computeTranslateX, containerWidth, translateX]);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -86,6 +98,7 @@ const PredictSportLineSelector: React.FC<PredictSportLineSelectorProps> = ({
 
   const selectWithHaptics = useCallback(
     (line: number, index: number) => {
+      shouldAnimateSelectionRef.current = true;
       playSelection();
       onSelectLine(line, index);
     },

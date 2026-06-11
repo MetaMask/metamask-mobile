@@ -1,9 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import PredictGameOutcomesTab, {
-  buildOutcomeCardModels,
-  getSportsMarketTypeLabel,
-} from './PredictGameOutcomesTab';
+import PredictGameOutcomesTab from './PredictGameOutcomesTab';
 import type {
   PredictMarketGame,
   PredictOutcome,
@@ -15,6 +12,10 @@ import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
 import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
 import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 import Logger from '../../../../../util/Logger';
+import {
+  buildOutcomeCardModels,
+  getSportsMarketTypeLabel,
+} from './usePredictGameOutcomeRows';
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
@@ -769,7 +770,7 @@ describe('PredictGameOutcomesTab', () => {
   });
 
   describe('subscription ownership', () => {
-    it('uses shared subscriptions for non-line cards and selected-line subscriptions for line cards', () => {
+    it('subscribes once for every token in the active group', () => {
       const tab = createTab('game_lines', [
         createCard({
           key: 'soccer_player_goals-0',
@@ -820,27 +821,21 @@ describe('PredictGameOutcomesTab', () => {
       const initialTokenSubscriptions = mockUseLiveMarketPrices.mock.calls.map(
         ([tokenIds]) => tokenIds,
       );
-      expect(initialTokenSubscriptions).toEqual(
-        expect.arrayContaining([
-          ['player-over', 'player-under'],
-          ['line-high-over', 'line-high-under'],
-        ]),
-      );
+      expect(initialTokenSubscriptions).toEqual([
+        [
+          'player-over',
+          'player-under',
+          'line-low-over',
+          'line-low-under',
+          'line-high-over',
+          'line-high-under',
+        ],
+      ]);
 
       mockUseLiveMarketPrices.mockClear();
       fireEvent(getByTestId('game_lines-total_corners-line-0-8.5'), 'touchEnd');
 
-      const updatedTokenSubscriptions = mockUseLiveMarketPrices.mock.calls.map(
-        ([tokenIds]) => tokenIds,
-      );
-      expect(updatedTokenSubscriptions).toEqual(
-        expect.arrayContaining([['line-low-over', 'line-low-under']]),
-      );
-      expect(updatedTokenSubscriptions).not.toEqual(
-        expect.arrayContaining([
-          ['player-over', 'player-under', 'line-low-over', 'line-low-under'],
-        ]),
-      );
+      expect(mockUseLiveMarketPrices).not.toHaveBeenCalled();
     });
   });
 });
