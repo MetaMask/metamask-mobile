@@ -6,7 +6,8 @@ import {
   TextVariant,
   TextColor,
   FontWeight,
- Box } from '@metamask/design-system-react-native';
+  Box,
+} from '@metamask/design-system-react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
