@@ -935,6 +935,55 @@ export default class MockServerE2E implements Resource {
     this._installAbortFilter();
   }
 
+  /**
+   * Bridges device-proxied WebSocket traffic aimed at a local fallback port
+   * to the host-side mock WebSocket server's actual (dynamically allocated)
+   * port.
+   *
+   * Why this exists: shim.js reroutes known WS services to
+   * `ws://localhost:<fallbackPort>`, which normally travels the adb-reverse
+   * path on Android. But the emulator's global proxy does not reliably apply
+   * the exclusion list to WebSocket upgrades, so these connections can arrive
+   * at mockttp instead. The host-side server does NOT listen on the fallback
+   * port (that's only the device-side adb-reverse alias), so a blanket
+   * passthrough would dial a dead port and ECONNREFUSED. This mirrors the
+   * HTTP-side local-resource translation (getProxyForwardUrl) for WebSockets.
+   *
+   * Implementation notes (validated against mockttp 4.x behavior):
+   *
+   * Registered at priority 2 (above RulePriority.DEFAULT = 1) because mockttp
+   * returns the FIRST unused matching rule within a priority set, so a
+   * later-registered bridge can never beat the blanket
+   * `forAnyWebSocket().thenPassThrough()` from start() at equal priority.
+   *
+   * Uses a `.matching()` callback instead of `.withUrlMatching()` because
+   * mockttp's normalizeUrl mangles ws/wss URLs ("ws://x" becomes "ws//x"),
+   * so protocol-anchored URL regexes silently never match WebSocket rules.
+   */
+  async bridgeLocalWebSocketPort(
+    fallbackPort: number,
+    actualPort: number,
+  ): Promise<void> {
+    await this.server
+      .forAnyWebSocket()
+      .asPriority(2)
+      .matching((request) => {
+        try {
+          const url = new URL(request.url);
+          return (
+            DEVICE_LOCAL_HOST_ALIASES.has(url.hostname) &&
+            url.port === String(fallbackPort)
+          );
+        } catch {
+          return false;
+        }
+      })
+      .thenForwardTo(`ws://localhost:${actualPort}`);
+    logger.info(
+      `[E2E_NATIVE_PROXY_WS_LOCAL_BRIDGE] device fallback port ${fallbackPort} -> host port ${actualPort}`,
+    );
+  }
+
   private _logNativeProxyWebSocketRequest = (
     request: CompletedRequest,
   ): void => {

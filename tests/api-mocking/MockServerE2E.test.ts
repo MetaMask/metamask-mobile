@@ -1,4 +1,7 @@
-import {
+/* eslint-disable import-x/no-nodejs-modules */
+import { createServer, type AddressInfo } from 'net';
+import { WebSocketServer, WebSocket as WsClient } from 'ws';
+import MockServerE2E, {
   getProxyForwardUrl,
   handleNormalizedHttpProxyRequest,
   type NormalizedHttpProxyRequest,
@@ -6,6 +9,16 @@ import {
 import { PlatformDetector } from '../framework/PlatformLocator';
 import PortManager, { ResourceType } from '../framework/PortManager';
 import type { MockEventsObject } from '../framework';
+
+const getFreePort = (): Promise<number> =>
+  new Promise((resolve, reject) => {
+    const server = createServer();
+    server.once('error', reject);
+    server.listen(0, () => {
+      const { port } = server.address() as AddressInfo;
+      server.close(() => resolve(port));
+    });
+  });
 
 const headers = {};
 
@@ -234,4 +247,72 @@ describe('handleNormalizedHttpProxyRequest', () => {
       expect(forwardUrl).toBe('http://localhost:45678/state.json');
     },
   );
+});
+
+describe('bridgeLocalWebSocketPort', () => {
+  let mockServer: MockServerE2E | undefined;
+  let wsServer: WebSocketServer | undefined;
+  let client: WsClient | undefined;
+
+  afterEach(async () => {
+    client?.close();
+    await new Promise<void>((resolve) => {
+      if (!wsServer) return resolve();
+      wsServer.close(() => resolve());
+    });
+    await mockServer?.stop();
+    mockServer = undefined;
+    wsServer = undefined;
+    client = undefined;
+    PortManager.resetInstance();
+  });
+
+  it('forwards device-proxied WS on a fallback port to the actual host port, preserving the path', async () => {
+    // Host-side mock WS server on a dynamic port — the device-side fallback
+    // port is a different, dead port, exactly like CI.
+    wsServer = new WebSocketServer({ port: 0 });
+    await new Promise<void>((resolve) => wsServer?.once('listening', resolve));
+    const actualPort = (wsServer.address() as AddressInfo).port;
+    const fallbackPort = await getFreePort();
+
+    const seenPaths: string[] = [];
+    wsServer.on('connection', (socket, request) => {
+      seenPaths.push(request.url ?? '');
+      socket.send('bridged-hello');
+    });
+
+    mockServer = new MockServerE2E({ events: {} });
+    mockServer.setServerPort(await getFreePort());
+    await mockServer.start();
+    await mockServer.bridgeLocalWebSocketPort(fallbackPort, actualPort);
+
+    // Simulate the device-proxied connection: the client dials mockttp
+    // directly while the Host header carries the shim's
+    // localhost:<fallbackPort> target. Mockttp reconstructs the request URL
+    // from the Host header, so rule matching sees the same
+    // ws://localhost:<fallbackPort>/... URL as the emulator's proxied
+    // traffic in CI.
+    client = new WsClient(
+      `ws://127.0.0.1:${mockServer.getServerPort()}/v1?token=test`,
+      { headers: { host: `localhost:${fallbackPort}` } },
+    );
+
+    const message = await new Promise<string>((resolve, reject) => {
+      const timer = setTimeout(
+        () => reject(new Error('Timed out waiting for bridged WS message')),
+        10000,
+      );
+      client?.once('message', (data) => {
+        clearTimeout(timer);
+        resolve(data.toString());
+      });
+      client?.once('error', (error) => {
+        clearTimeout(timer);
+        reject(error);
+      });
+    });
+
+    expect(message).toBe('bridged-hello');
+    expect(seenPaths).toEqual(['/v1?token=test']);
+  }, 30000);
 });
