@@ -19,7 +19,7 @@
  *            tests/integration/STRATEGY.md (Shape A vs Shape B discussion)
  */
 
-import { renderHook, act } from '@testing-library/react-native';
+import { act } from '@testing-library/react-native';
 import { type OrderResult, type Position } from '@metamask/perps-controller';
 
 import { buildPerpsFlowHarness } from '../../../../../tests/integration/harnesses/perps-flow';
@@ -29,9 +29,9 @@ describe('Perps order lifecycle — FLOW integration', () => {
   describe('opening a position via the hook chain', () => {
     it('places a long market order through the real usePerpsTrading hook', async () => {
       // Arrange
-      const { harness } = buildPerpsFlowHarness();
-      harness.setupTradingReady();
-      const { result } = renderHook(() => usePerpsTrading());
+      const perps = buildPerpsFlowHarness();
+      perps.harness.setupTradingReady();
+      const { result } = perps.renderHookWithFlow(() => usePerpsTrading());
 
       // Act
       let placeOrderResult: Awaited<
@@ -51,8 +51,8 @@ describe('Perps order lifecycle — FLOW integration', () => {
       // chain was called. Both ends of the chain verified in one test.
       expect(placeOrderResult).not.toBeNull();
       expect(placeOrderResult).toMatchObject({ success: true, orderId: '123' });
-      expect(harness.mocks.exchangeClient.order).toHaveBeenCalledTimes(1);
-      expect(harness.mocks.exchangeClient.order).toHaveBeenCalledWith(
+      expect(perps.harness.mocks.exchangeClient.order).toHaveBeenCalledTimes(1);
+      expect(perps.harness.mocks.exchangeClient.order).toHaveBeenCalledWith(
         expect.objectContaining({
           orders: [
             expect.objectContaining({
@@ -85,8 +85,8 @@ describe('Perps order lifecycle — FLOW integration', () => {
   describe('reversing a position via the hook chain', () => {
     it('places the flip market order end-to-end', async () => {
       // Arrange
-      const { harness } = buildPerpsFlowHarness();
-      harness.setupTradingReady();
+      const perps = buildPerpsFlowHarness();
+      perps.harness.setupTradingReady();
       const openLongBTC: Position = {
         symbol: 'BTC',
         size: '0.1', // positive = long; flipPosition will compute 2x = 0.2
@@ -102,7 +102,7 @@ describe('Perps order lifecycle — FLOW integration', () => {
         takeProfitCount: 0,
         stopLossCount: 0,
       };
-      const { result } = renderHook(() => usePerpsTrading());
+      const { result } = perps.renderHookWithFlow(() => usePerpsTrading());
 
       // Act — through the real hook → real TradingService → real provider chain
       let flipResult: OrderResult | null = null;
@@ -120,8 +120,8 @@ describe('Perps order lifecycle — FLOW integration', () => {
         throw new Error('Expected flipPosition to return a result');
       }
       expect(flipResult).toMatchObject({ success: true });
-      expect(harness.mocks.exchangeClient.order).toHaveBeenCalledTimes(1);
-      expect(harness.mocks.exchangeClient.order).toHaveBeenCalledWith(
+      expect(perps.harness.mocks.exchangeClient.order).toHaveBeenCalledTimes(1);
+      expect(perps.harness.mocks.exchangeClient.order).toHaveBeenCalledWith(
         expect.objectContaining({
           orders: [
             expect.objectContaining({

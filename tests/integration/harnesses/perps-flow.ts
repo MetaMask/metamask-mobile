@@ -33,7 +33,7 @@
  *     rewards integration) is bypassed.
  *     Component-rendering tests also use mocked RewardsController methods for
  *     the fee/rewards hooks; those remain app I/O, not perps trading logic.
- *   - `usePerpsNetworkManagement` — Redux-bound; not part of the controller flow
+ *   - Network/confirmation controller methods reached by real hooks
  * ─────────────────────────────────────────────────────────────────────────
  *
  * Caveat: PerpsController itself is shimmed. The seam exercised is
@@ -46,14 +46,14 @@
  * USAGE:
  *
  *     import { buildPerpsFlowHarness } from '../../../../../tests/integration/harnesses/perps-flow';
- *     import { renderHook, act } from '@testing-library/react-native';
+ *     import { act } from '@testing-library/react-native';
  *     import { usePerpsTrading } from '../hooks/usePerpsTrading';
  *
  *     it('places an order via the real hook chain', async () => {
- *       const { harness } = buildPerpsFlowHarness();
+ *       const { harness, renderHookWithFlow } = buildPerpsFlowHarness();
  *       harness.setupTradingReady();
  *
- *       const { result } = renderHook(() => usePerpsTrading());
+ *       const { result } = renderHookWithFlow(() => usePerpsTrading());
  *       await act(async () => {
  *         await result.current.placeOrder({ ...params });
  *       });
@@ -61,21 +61,6 @@
  *       expect(harness.mocks.exchangeClient.order).toHaveBeenCalled();
  *     });
  */
-
-// ── Mocks specific to this harness (in addition to those in ./perps) ──────
-// usePerpsNetworkManagement reads from Redux and triggers an Arbitrum chain
-// add. Out of scope for trading-flow integration; mock to a no-op.
-jest.mock(
-  '../../../app/components/UI/Perps/hooks/usePerpsNetworkManagement',
-  () => ({
-    usePerpsNetworkManagement: () => ({
-      ensureArbitrumNetworkExists: jest.fn().mockResolvedValue(undefined),
-      enableArbitrumNetwork: jest.fn(),
-      getArbitrumChainId: jest.fn(),
-      currentNetwork: 'mainnet',
-    }),
-  }),
-);
 
 // Engine.context.PerpsController — wired in the factory below to delegate
 // to the real provider from the inner harness. The factory captures the
@@ -91,23 +76,84 @@ const mockRewardsController = {
 const mockAccountTreeController = {
   getAccountsFromSelectedAccountGroup: jest.fn().mockReturnValue([]),
 };
-jest.mock('../../../app/core/Engine', () => ({
-  __esModule: true,
-  default: {
-    context: {
-      get PerpsController() {
-        return mockDelegateController;
-      },
-      RewardsController: mockRewardsController,
-      AccountTreeController: mockAccountTreeController,
+const mockNetworkController = {
+  addNetwork: jest.fn().mockResolvedValue(undefined),
+  findNetworkClientIdByChainId: jest.fn((chainId: string) =>
+    chainId === '0xa4b1' ? 'arbitrum-mainnet' : 'mainnet',
+  ),
+  getNetworkConfigurationByNetworkClientId: jest.fn(
+    (networkClientId: string) =>
+      networkClientId === 'arbitrum-mainnet'
+        ? { chainId: '0xa4b1' }
+        : { chainId: '0x1' },
+  ),
+};
+const mockNetworkEnablementController = {
+  enableNetwork: jest.fn(),
+  disableNetwork: jest.fn(),
+  enableAllPopularNetworks: jest.fn(),
+  listPopularEvmNetworks: jest.fn().mockReturnValue([]),
+  listPopularMultichainNetworks: jest.fn().mockReturnValue([]),
+  listPopularNetworks: jest.fn().mockReturnValue([]),
+};
+const mockGasFeeController = {
+  fetchGasFeeEstimates: jest.fn().mockResolvedValue(undefined),
+  startPolling: jest.fn().mockReturnValue('perps-gas-poll-token'),
+  stopPollingByPollingToken: jest.fn(),
+};
+const mockTokensController = {
+  addToken: jest.fn().mockResolvedValue(undefined),
+};
+const mockTransactionPayController = {
+  updatePaymentToken: jest.fn(),
+  setTransactionConfig: jest.fn(
+    (
+      _transactionId: string,
+      updateConfig: (config: Record<string, unknown>) => void,
+    ) => {
+      const config = {};
+      updateConfig(config);
+      return config;
     },
-    controllerMessenger: {
-      call: jest.fn().mockResolvedValue(null),
-      subscribe: jest.fn(),
-      unsubscribe: jest.fn(),
-    },
-  },
-}));
+  ),
+};
+const mockTransactionController = {
+  getTransactions: jest.fn().mockReturnValue([]),
+  updateEditableParams: jest.fn(),
+  updateAtomicBatchData: jest.fn().mockResolvedValue(undefined),
+  updateTransaction: jest.fn(),
+  updateSelectedGasFeeToken: jest.fn(),
+};
+// Case 7: component-flow tests render real Perps hooks, and the rewards UI path
+// reaches Engine.controllerMessenger through usePerpsRewardAccountOptedIn. Keep
+// this mock scoped to RewardsController reads/subscriptions so it only replaces
+// app-level rewards I/O, not perps trading behavior.
+const mockControllerMessenger = {
+  call: jest.fn((action: string) => {
+    switch (action) {
+      case 'RewardsController:hasActiveSeason':
+        return Promise.resolve(false);
+      case 'RewardsController:getCandidateSubscriptionId':
+        return Promise.resolve(null);
+      case 'RewardsController:getHasAccountOptedIn':
+        return Promise.resolve(false);
+      case 'RewardsController:isOptInSupported':
+        return Promise.resolve(false);
+      default:
+        throw new Error(`Unhandled Perps flow messenger action: ${action}`);
+    }
+  }),
+  subscribe: jest.fn((event: string) => {
+    if (event !== 'RewardsController:accountLinked') {
+      throw new Error(`Unhandled Perps flow messenger event: ${event}`);
+    }
+  }),
+  unsubscribe: jest.fn((event: string) => {
+    if (event !== 'RewardsController:accountLinked') {
+      throw new Error(`Unhandled Perps flow messenger event: ${event}`);
+    }
+  }),
+};
 
 import {
   buildPerpsIntegrationHarness,
@@ -115,12 +161,49 @@ import {
   type PerpsHarnessOptions,
 } from './perps';
 import { TradingService } from '@metamask/perps-controller/services/TradingService';
-import type { ServiceContext } from '@metamask/perps-controller';
+import type {
+  FlipPositionParams,
+  ServiceContext,
+} from '@metamask/perps-controller';
 import { createMockInfrastructure } from '../../../app/components/UI/Perps/__mocks__/serviceMocks';
+import {
+  renderHookWithProvider,
+  type DeepPartial,
+} from '../../../app/util/test/renderWithProvider';
+import type { RootState } from '../../../app/reducers';
+import { initialStatePerps } from '../../component-view/presets/perpsStatePreset';
+import Engine from '../../../app/core/Engine';
+
+interface PerpsFlowRenderOptions {
+  stateOverrides?: DeepPartial<RootState>;
+}
+
+function installMockEngineContext() {
+  Object.assign(Engine.context as Record<string, unknown>, {
+    PerpsController: mockDelegateController,
+    RewardsController: mockRewardsController,
+    AccountTreeController: mockAccountTreeController,
+    NetworkController: mockNetworkController,
+    NetworkEnablementController: mockNetworkEnablementController,
+    GasFeeController: mockGasFeeController,
+    TokensController: mockTokensController,
+    TransactionPayController: mockTransactionPayController,
+    TransactionController: mockTransactionController,
+  });
+  Object.assign(Engine as unknown as Record<string, unknown>, {
+    controllerMessenger: mockControllerMessenger,
+    acceptPendingApproval: jest.fn().mockResolvedValue(undefined),
+    rejectPendingApproval: jest.fn(),
+  });
+}
 
 export interface PerpsFlowHarness {
   /** The underlying provider-level harness (provider, mocks, helpers). */
   harness: PerpsIntegrationHarness;
+  renderHookWithFlow: <Result, Props>(
+    hook: (props: Props) => Result,
+    options?: PerpsFlowRenderOptions,
+  ) => ReturnType<typeof renderHookWithProvider<Result, Props>>;
   /**
    * The real `TradingService` instance the shim delegates into. Exposed so
    * tests can spy on its methods or assert it was called for a specific flow.
@@ -148,6 +231,17 @@ export function buildPerpsFlowHarness(
 
   // Real TradingService — same platform deps shape the inner harness uses.
   const tradingService = new TradingService(createMockInfrastructure());
+  const renderHookWithFlow = <Result, Props>(
+    hook: (props: Props) => Result,
+    renderOptions: PerpsFlowRenderOptions = {},
+  ) => {
+    const stateBuilder = initialStatePerps();
+    if (renderOptions.stateOverrides) {
+      stateBuilder.withOverrides(renderOptions.stateOverrides);
+    }
+
+    return renderHookWithProvider(hook, { state: stateBuilder.build() });
+  };
 
   // Minimal ServiceContext factory. PerpsController's real
   // `#createServiceContext` builds a richer one (state manager callbacks,
@@ -197,10 +291,10 @@ export function buildPerpsFlowHarness(
         context: buildServiceContext('closePosition'),
         reportOrderToDataLake,
       }),
-    flipPosition: (params: { position: unknown }) =>
+    flipPosition: (params: FlipPositionParams) =>
       tradingService.flipPosition({
         provider: harness.provider,
-        position: params.position as never,
+        position: params.position,
         context: buildServiceContext('flipPosition'),
       }),
     // Read-only methods — no need to route through TradingService.
@@ -235,6 +329,7 @@ export function buildPerpsFlowHarness(
     savePendingTradeConfiguration: jest.fn(),
     clearPendingTradeConfiguration: jest.fn(),
   };
+  installMockEngineContext();
 
-  return { harness, tradingService };
+  return { harness, renderHookWithFlow, tradingService };
 }
