@@ -43,7 +43,7 @@ import {
 } from '../multichain/multichain';
 import { selectTokenMarketData } from '../tokenRatesController';
 import { selectAllTokenBalances } from '../tokenBalancesController';
-import { omitArcNativeTokenBalances } from './arc';
+import { omitArcNativeTokenBalances } from '../../enablement/assets/arc';
 import { selectAllTokens } from '../tokensController';
 import {
   selectCurrentCurrency,

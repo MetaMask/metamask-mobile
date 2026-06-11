@@ -3,7 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { PaymentType } from '@consensys/on-ramp-sdk';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { NETWORKS_CHAIN_ID } from '../../../../../../constants/network';
+import { shouldHideArc } from '../../../../../../enablement/assets/arc';
 import { RootState } from '../../../../../../reducers';
 import { selectPaymentOverrideByTransactionId } from '../../../../../../selectors/transactionPayController';
 import { TokenIcon, TokenIconVariant } from '../../token-icon';
@@ -72,7 +72,7 @@ export function PayWithRow({
   // On Arc, the transaction always pays with the native token (USDC) — there is
   // no alternative pay-with route, so skip rendering the row entirely. This
   // prevents the "no payment route" error.
-  if (transactionMeta?.chainId?.toLowerCase() === NETWORKS_CHAIN_ID.ARC) {
+  if (shouldHideArc(transactionMeta?.chainId)) {
     return null;
   }
 

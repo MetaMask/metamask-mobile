@@ -3,8 +3,10 @@ import type { Hex } from '@metamask/utils';
 import {
   ARC_CHAIN_ID,
   ARC_NATIVE_TOKEN_ADDRESS,
+  filterOutArcNativeAsset,
   isArcNativeAsset,
   omitArcNativeTokenBalances,
+  shouldHideArc,
 } from './arc';
 
 const ACCOUNT = '0x2bd63233fe369b0f13eaf25292af5a9b63d2b7ab' as Hex;
@@ -35,6 +37,45 @@ describe('isArcNativeAsset', () => {
 
   it('returns false when fields are missing', () => {
     expect(isArcNativeAsset({})).toBe(false);
+  });
+});
+
+describe('filterOutArcNativeAsset', () => {
+  it('removes the Arc native token but keeps every other asset', () => {
+    const assets = [
+      { chainId: ARC_CHAIN_ID, isNative: true, symbol: 'ARC' },
+      { chainId: ARC_CHAIN_ID, isNative: false, symbol: 'USDC' },
+      { chainId: '0x1', isNative: true, symbol: 'ETH' },
+    ];
+
+    expect(filterOutArcNativeAsset(assets)).toEqual([
+      { chainId: ARC_CHAIN_ID, isNative: false, symbol: 'USDC' },
+      { chainId: '0x1', isNative: true, symbol: 'ETH' },
+    ]);
+  });
+
+  it('returns an equivalent list when there is no Arc native token', () => {
+    const assets = [{ chainId: '0x1', isNative: true, symbol: 'ETH' }];
+
+    expect(filterOutArcNativeAsset(assets)).toEqual(assets);
+  });
+});
+
+describe('shouldHideArc', () => {
+  it('returns true for the Arc chain id', () => {
+    expect(shouldHideArc(ARC_CHAIN_ID)).toBe(true);
+  });
+
+  it('matches the Arc chain id case-insensitively', () => {
+    expect(shouldHideArc(ARC_CHAIN_ID.toUpperCase())).toBe(true);
+  });
+
+  it('returns false for other chains', () => {
+    expect(shouldHideArc('0x1')).toBe(false);
+  });
+
+  it('returns false when the chain id is missing', () => {
+    expect(shouldHideArc()).toBe(false);
   });
 });
 

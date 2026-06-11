@@ -42,7 +42,7 @@ import { selectTokenSortConfig } from '../preferencesController';
 import { selectHideZeroBalanceTokens } from '../settings';
 import { selectAllTokens } from '../tokensController';
 import { createDeepEqualSelector } from '../util';
-import { isArcNativeAsset } from './arc';
+import { isArcNativeAsset } from '../../enablement/assets/arc';
 import {
   getAccountTrackerControllerAccountsByChainId,
   getCurrencyRateControllerCurrencyRates,

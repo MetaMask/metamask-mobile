@@ -3,6 +3,13 @@ import type { Hex } from '@metamask/utils';
 import { NETWORKS_CHAIN_ID } from '../../constants/network';
 
 /**
+ * Arc augmentations hub.
+ *
+ * This module is the single place that documents and implements the special
+ * casing the app needs for the Arc network. Keeping it together makes it easy
+ * to understand *why* these adjustments exist and to reason about them as a
+ * group in the future.
+ *
  * Arc treats USDC as its display currency. Its native token lives at the zero
  * address and is effectively a duplicate of the USDC ERC20 that users actually
  * interact with. We therefore hide the Arc native token from the wallet token
@@ -30,6 +37,26 @@ export function isArcNativeAsset(asset: {
   return (
     Boolean(asset.isNative) && asset.chainId?.toLowerCase() === ARC_CHAIN_ID
   );
+}
+
+/**
+ * Removes every Arc native token from a list of assets. Generic over the asset
+ * shape so it can be reused by any consumer holding a token-like array (send
+ * picker, lists, etc.).
+ */
+export function filterOutArcNativeAsset<
+  T extends { chainId?: string; isNative?: boolean },
+>(assets: T[]): T[] {
+  return assets.filter((asset) => !isArcNativeAsset(asset));
+}
+
+/**
+ * Whether Arc-specific UI should be hidden for the given chain. On Arc the
+ * transaction always pays with the native token (USDC), so flows like the
+ * confirmation "pay with" row have no alternative route to offer.
+ */
+export function shouldHideArc(chainId?: string): boolean {
+  return chainId?.toLowerCase() === ARC_CHAIN_ID;
 }
 
 /**

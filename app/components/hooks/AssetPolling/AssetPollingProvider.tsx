@@ -7,7 +7,7 @@ import useTokenDetectionPolling from './useTokenDetectionPolling';
 import useTokenBalancesPolling from './useTokenBalancesPolling';
 import useMultichainAssetsRatePolling from './useMultichainAssetsRatePolling';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
-import { useArcDefaultTokens } from '../useArcDefaultTokens';
+import { useArcDefaultTokens } from '../../../enablement/assets/useArcDefaultTokens';
 
 export interface AssetPollingProviderProps {
   chainIds?: Hex[];
