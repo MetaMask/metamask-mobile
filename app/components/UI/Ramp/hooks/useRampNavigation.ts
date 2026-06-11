@@ -19,11 +19,11 @@ import {
 import { createRampUnsupportedModalNavigationDetails } from '../components/RampUnsupportedModal/RampUnsupportedModal';
 import { createEligibilityFailedModalNavigationDetails } from '../components/EligibilityFailedModal/EligibilityFailedModal';
 import { useRampsTokens } from './useRampsTokens';
-import { useRampsProviders } from './useRampsProviders';
 import { resolveRampControllerAssetId } from '../utils/resolveRampControllerAssetId';
 import Engine from '../../../../core/Engine';
 import { selectGeolocationLocation } from '../../../../selectors/geolocationController';
 import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
+import { selectProviders } from '../../../../selectors/rampsController';
 
 enum RampMode {
   AGGREGATOR = 'AGGREGATOR',
@@ -52,10 +52,10 @@ export const useRampNavigation = () => {
     error: tokensError,
   } = useRampsTokens();
   const {
-    providers,
+    data: providers,
     isLoading: providersLoading,
     error: providersError,
-  } = useRampsProviders();
+  } = useSelector(selectProviders);
 
   const goToBuy = useCallback(
     async (

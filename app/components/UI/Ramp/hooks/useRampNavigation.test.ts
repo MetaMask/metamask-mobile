@@ -27,6 +27,14 @@ let mockTokensError: string | null = null;
 let mockProviders: unknown[] = [mockProvider];
 let mockProvidersLoading = false;
 let mockProvidersError: string | null = null;
+let mockLastProviders = mockProviders;
+let mockLastProvidersLoading = mockProvidersLoading;
+let mockLastProvidersError = mockProvidersError;
+let mockProvidersSelectorResult = {
+  data: mockProviders,
+  isLoading: mockProvidersLoading,
+  error: mockProvidersError,
+};
 jest.mock('./useRampsTokens', () => ({
   useRampsTokens: () => ({
     setSelectedToken: mockSetSelectedToken,
@@ -35,12 +43,25 @@ jest.mock('./useRampsTokens', () => ({
     error: mockTokensError,
   }),
 }));
-jest.mock('./useRampsProviders', () => ({
-  useRampsProviders: () => ({
-    providers: mockProviders,
-    isLoading: mockProvidersLoading,
-    error: mockProvidersError,
-  }),
+jest.mock('../../../../selectors/rampsController', () => ({
+  selectProviders: () => {
+    if (
+      mockLastProviders !== mockProviders ||
+      mockLastProvidersLoading !== mockProvidersLoading ||
+      mockLastProvidersError !== mockProvidersError
+    ) {
+      mockLastProviders = mockProviders;
+      mockLastProvidersLoading = mockProvidersLoading;
+      mockLastProvidersError = mockProvidersError;
+      mockProvidersSelectorResult = {
+        data: mockProviders,
+        isLoading: mockProvidersLoading,
+        error: mockProvidersError,
+      };
+    }
+
+    return mockProvidersSelectorResult;
+  },
 }));
 jest.mock('@react-navigation/native');
 jest.mock('../Aggregator/routes/utils');
@@ -118,6 +139,14 @@ describe('useRampNavigation', () => {
     mockProviders = [mockProvider];
     mockProvidersLoading = false;
     mockProvidersError = null;
+    mockLastProviders = mockProviders;
+    mockLastProvidersLoading = mockProvidersLoading;
+    mockLastProvidersError = mockProvidersError;
+    mockProvidersSelectorResult = {
+      data: mockProviders,
+      isLoading: mockProvidersLoading,
+      error: mockProvidersError,
+    };
 
     mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
