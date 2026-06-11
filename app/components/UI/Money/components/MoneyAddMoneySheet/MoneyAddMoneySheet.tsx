@@ -47,10 +47,6 @@ import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 import { selectTransactions } from '../../../../../selectors/transactionController';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
 import { useHasNativeFiatProvider } from '../../../Ramp/hooks/useHasNativeFiatProvider';
-import {
-  getRampRoutingDecision,
-  UnifiedRampRoutingType,
-} from '../../../../../reducers/fiatOrders';
 import styleSheet from './MoneyAddMoneySheet.styles';
 import { MoneyAddMoneySheetTestIds } from './MoneyAddMoneySheet.testIds';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
@@ -88,7 +84,6 @@ const MoneyAddMoneySheet: React.FC = () => {
   const { initiateDeposit } = useMoneyAccountDeposit();
   const { enabledTransactionTypes } = useMMPayFiatConfig();
   const hasAnyCryptoBalance = useSelector(selectHasAnyNonZeroTokenBalance);
-  const rampRoutingDecision = useSelector(getRampRoutingDecision);
   const hasNativeFiatProvider = useHasNativeFiatProvider();
   const transactions = useSelector(selectTransactions);
   const isFiatDepositEnabled = useMemo(
@@ -227,8 +222,7 @@ const MoneyAddMoneySheet: React.FC = () => {
       testID: MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
       disabled: !hasAnyCryptoBalance,
     },
-    ...(isFiatDepositEnabled &&
-    rampRoutingDecision !== UnifiedRampRoutingType.UNSUPPORTED
+    ...(isFiatDepositEnabled
       ? [
           {
             label: strings('money.add_money_sheet.deposit_funds'),

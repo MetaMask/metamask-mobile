@@ -10,10 +10,6 @@ import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/us
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
 import { useHasNativeFiatProvider } from '../../../Ramp/hooks/useHasNativeFiatProvider';
 import {
-  getRampRoutingDecision,
-  UnifiedRampRoutingType,
-} from '../../../../../reducers/fiatOrders';
-import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
 } from '../../../Earn/constants/musd';
@@ -76,11 +72,6 @@ jest.mock('../../../../../selectors/transactionController', () => ({
   selectTransactions: jest.fn(() => []),
 }));
 
-jest.mock('../../../../../reducers/fiatOrders', () => ({
-  ...jest.requireActual('../../../../../reducers/fiatOrders'),
-  getRampRoutingDecision: jest.fn(),
-}));
-
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
   const { forwardRef, useImperativeHandle } = jest.requireActual('react');
@@ -135,7 +126,6 @@ describe('MoneyAddMoneySheet', () => {
       true,
     );
     (useHasNativeFiatProvider as jest.Mock).mockReturnValue(true);
-    (getRampRoutingDecision as jest.Mock).mockReturnValue(null);
   });
 
   it('renders all four options', () => {
@@ -329,10 +319,24 @@ describe('MoneyAddMoneySheet', () => {
     expect(mockInitiateDeposit).toHaveBeenCalledWith(undefined);
   });
 
-  it('hides the Deposit funds option when the ramp routing decision is UNSUPPORTED', () => {
-    (getRampRoutingDecision as jest.Mock).mockReturnValue(
-      UnifiedRampRoutingType.UNSUPPORTED,
-    );
+  it('shows the Deposit funds option when fiat deposit is enabled', () => {
+    (useMMPayFiatConfig as jest.Mock).mockReturnValue({
+      enabledTransactionTypes: [TransactionType.moneyAccountDeposit],
+      maxDelayMinutesForPaymentMethods: 10,
+    });
+
+    const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+    expect(
+      getByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides the Deposit funds option when fiat deposit is disabled', () => {
+    (useMMPayFiatConfig as jest.Mock).mockReturnValue({
+      enabledTransactionTypes: [],
+      maxDelayMinutesForPaymentMethods: 10,
+    });
 
     const { queryByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
 
