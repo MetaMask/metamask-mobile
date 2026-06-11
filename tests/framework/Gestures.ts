@@ -11,6 +11,7 @@ import {
 } from './types.ts';
 import { createLogger } from './logger.ts';
 import { sleep } from '../../app/util/testUtils';
+import { type EncapsulatedElementType } from './EncapsulatedElement.ts';
 
 const logger = createLogger({ name: 'Gestures' });
 
@@ -24,7 +25,7 @@ export default class Gestures {
    * @param options - Options for the tap action
    */
   private static tapWithChecks = async (
-    elem: DetoxElement | WebElement,
+    elem: DetoxElement | WebElement | EncapsulatedElementType,
     options: {
       checkStability?: boolean;
       checkVisibility?: boolean;
@@ -83,7 +84,7 @@ export default class Gestures {
    * @throws Will retry the operation if it fails, with retry logic handled by executeWith
    */
   static async tap(
-    elem: DetoxElement | WebElement,
+    elem: DetoxElement | WebElement | EncapsulatedElementType,
     options: TapOptions = {},
   ): Promise<void> {
     const {
@@ -120,7 +121,7 @@ export default class Gestures {
    * @throws Will retry the operation if it fails, with retry logic handled by executeWith
    */
   static async waitAndTap(
-    elem: DetoxElement | WebElement,
+    elem: DetoxElement | WebElement | EncapsulatedElementType,
     options: TapOptions = {},
   ): Promise<void> {
     const {
@@ -156,7 +157,7 @@ export default class Gestures {
    * @throws Will retry the operation if it fails, with retry logic handled by executeWithRetry
    */
   static async tapAtIndex(
-    elem: DetoxElement,
+    elem: DetoxElement | EncapsulatedElementType,
     index: number,
     options: TapOptions = {},
   ): Promise<void> {
@@ -203,7 +204,7 @@ export default class Gestures {
    * @throws Will retry the operation if it fails, with retry logic handled by executeWithRetry
    */
   static async tapAtPoint(
-    elem: DetoxElement,
+    elem: DetoxElement | EncapsulatedElementType,
     point: { x: number; y: number },
     options: TapOptions = {},
   ): Promise<void> {
@@ -240,7 +241,7 @@ export default class Gestures {
    * @throws Will retry the operation if it fails, with retry logic handled by executeWithRetry
    */
   static async dblTap(
-    elem: DetoxElement,
+    elem: DetoxElement | EncapsulatedElementType,
     options: TapOptions = {},
   ): Promise<void> {
     const {
@@ -279,7 +280,7 @@ export default class Gestures {
    * @throws Will retry the operation if it fails, with retry logic handled by executeWithRetry
    */
   static async longPress(
-    elem: DetoxElement,
+    elem: DetoxElement | EncapsulatedElementType,
     options: LongPressOptions = {},
   ): Promise<void> {
     const {
@@ -319,7 +320,7 @@ export default class Gestures {
    * @throws Will retry the operation if it fails, with retry logic handled by executeWith
    */
   static async typeText(
-    elem: DetoxElement,
+    elem: DetoxElement | EncapsulatedElementType,
     text: string,
     options: TypeTextOptions = {},
   ): Promise<void> {
@@ -412,7 +413,7 @@ export default class Gestures {
    * @throws Will retry the operation if it fails, with retry logic handled by executeWithRetry
    */
   static async replaceText(
-    elem: DetoxElement,
+    elem: DetoxElement | EncapsulatedElementType,
     text: string,
     options: GestureOptions = {},
   ): Promise<void> {
@@ -453,7 +454,7 @@ export default class Gestures {
    * @throws Will retry the operation if it fails, with retry logic handled by executeWith
    */
   static async swipe(
-    elem: DetoxElement,
+    elem: DetoxElement | EncapsulatedElementType,
     direction: 'up' | 'down' | 'left' | 'right',
     options: SwipeOptions = {},
   ): Promise<void> {
@@ -501,7 +502,7 @@ export default class Gestures {
    * @throws Will retry the operation if it fails, with retry logic handled by executeWith
    */
   static async scrollToElement(
-    targetElement: DetoxElement,
+    targetElement: DetoxElement | EncapsulatedElementType,
     scrollableContainer: Promise<Detox.NativeMatcher>,
     options: ScrollOptions = {},
   ): Promise<void> {
@@ -576,7 +577,7 @@ export default class Gestures {
    * @deprecated Use longPress() instead for better error handling and retry mechanisms
    */
   static async tapAndLongPress(
-    elem: DetoxElement,
+    elem: DetoxElement | EncapsulatedElementType,
     timeout = 2000,
   ): Promise<void> {
     return this.longPress(elem, { duration: timeout });
@@ -608,7 +609,9 @@ export default class Gestures {
    * Legacy method: Double tap an element
    * @deprecated Use dblTap() instead for better error handling and retry mechanisms - we should replace the function name when we have migrated all usages
    */
-  static async doubleTap(elem: DetoxElement): Promise<void> {
+  static async doubleTap(
+    elem: DetoxElement | EncapsulatedElementType,
+  ): Promise<void> {
     return Utilities.executeWithRetry(
       async () => {
         const el = (await elem) as Detox.IndexableNativeElement;
@@ -625,7 +628,7 @@ export default class Gestures {
    * @deprecated Use typeText() with clearFirst option or the replaceText() from Gestures.ts instead for better error handling and retry mechanisms
    */
   static async clearField(
-    elem: DetoxElement,
+    elem: DetoxElement | EncapsulatedElementType,
     options: GestureOptions = {},
   ): Promise<void> {
     const {
@@ -663,7 +666,7 @@ export default class Gestures {
    * @deprecated Use typeText() with hideKeyboard option instead for better error handling and retry mechanisms
    */
   static async typeTextAndHideKeyboard(
-    elem: DetoxElement,
+    elem: DetoxElement | EncapsulatedElementType,
     text: string,
   ): Promise<void> {
     return this.typeText(elem, text, {
@@ -677,7 +680,7 @@ export default class Gestures {
    * @deprecated Use typeText() with hideKeyboard: false option instead for better error handling and retry mechanisms
    */
   static async typeTextWithoutKeyboard(
-    elem: DetoxElement,
+    elem: DetoxElement | EncapsulatedElementType,
     text: string,
   ): Promise<void> {
     return this.typeText(elem, text, {
@@ -691,7 +694,7 @@ export default class Gestures {
    * @deprecated Use replaceText() instead for better error handling and retry mechanisms
    */
   static async replaceTextInField(
-    elem: DetoxElement,
+    elem: DetoxElement | EncapsulatedElementType,
     text: string,
     timeout = 10000,
   ): Promise<void> {

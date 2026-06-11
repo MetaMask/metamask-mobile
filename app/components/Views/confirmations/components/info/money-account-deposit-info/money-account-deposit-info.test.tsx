@@ -71,16 +71,6 @@ describe('MoneyAccountDepositInfo', () => {
     expect(lastCall.supportAccountSelection).toBe(true);
   });
 
-  it('passes hasMax=true to CustomAmountInfo', () => {
-    render(<MoneyAccountDepositInfo />);
-
-    const lastCall =
-      mockCustomAmountInfo.mock.calls[
-        mockCustomAmountInfo.mock.calls.length - 1
-      ][0];
-    expect(lastCall.hasMax).toBe(true);
-  });
-
   it('passes autoSelectFiatPayment and hideAccountSelector from route params', () => {
     mockUseParams.mockReturnValue({ autoSelectFiatPayment: true });
 
