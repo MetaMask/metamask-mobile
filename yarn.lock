@@ -7528,18 +7528,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ledgerhq/context-module@npm:^1.14.1":
-  version: 1.17.1
-  resolution: "@ledgerhq/context-module@npm:1.17.1"
+"@ledgerhq/context-module@npm:2.1.0":
+  version: 2.1.0
+  resolution: "@ledgerhq/context-module@npm:2.1.0"
   dependencies:
+    bs58: "npm:^6.0.0"
     crypto-js: "npm:^4.2.0"
     ethers: "npm:6.14.1"
     inversify: "npm:7.5.1"
     purify-ts: "npm:2.1.0"
     reflect-metadata: "npm:0.2.2"
   peerDependencies:
-    "@ledgerhq/device-management-kit": ^1.3.0
-  checksum: 10/84add9bdf855d29ca0770b59e5940c82702eb024ee8b6ed82c819b55d0c5b8a5cd2ca312dfb7853095ecf99f44ad2a18450dd51659a161d4a7537c79526314c6
+    "@ledgerhq/device-management-kit": ^1.5.1
+  checksum: 10/b641272c78b2e7b35d5547122e32521473f5e37c1140d61c3b0f52688b63e23eab41f30b084e0448d5722abd202999847ebc3a8bb0e97e89aa54e186d73a484e
   languageName: node
   linkType: hard
 
@@ -7568,6 +7569,27 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@ledgerhq/device-management-kit@npm:1.5.1":
+  version: 1.5.1
+  resolution: "@ledgerhq/device-management-kit@npm:1.5.1"
+  dependencies:
+    "@noble/hashes": "npm:^1.8.0"
+    "@sentry/minimal": "npm:6.19.7"
+    inversify: "npm:7.5.1"
+    isomorphic-ws: "npm:^5.0.0"
+    purify-ts: "npm:2.1.0"
+    reflect-metadata: "npm:0.2.2"
+    semver: "npm:7.7.2"
+    url: "npm:^0.11.4"
+    uuid: "npm:11.0.3"
+    ws: "npm:^8.18.0"
+    xstate: "npm:5.19.2"
+  peerDependencies:
+    rxjs: 7.8.2
+  checksum: 10/b73a620b6955b70608672e8798e12611faa973bade7521694e1aeea8dc1e8b316475600108259fbad4aeb007b992bb812dd665d5a89c990ea3a6c31ec3c99c86
+  languageName: node
+  linkType: hard
+
 "@ledgerhq/device-management-kit@npm:^1.5.0":
   version: 1.5.0
   resolution: "@ledgerhq/device-management-kit@npm:1.5.0"
@@ -7589,7 +7611,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ledgerhq/device-signer-kit-ethereum@npm:^1.16.0":
+"@ledgerhq/device-signer-kit-ethereum@npm:1.16.0, @ledgerhq/device-signer-kit-ethereum@npm:^1.16.0":
   version: 1.16.0
   resolution: "@ledgerhq/device-signer-kit-ethereum@npm:1.16.0"
   dependencies:
@@ -8744,14 +8766,14 @@ __metadata:
 
 "@metamask/eth-ledger-bridge-keyring@file:/Users/montelai/consensys/accounts/packages/keyring-eth-ledger-bridge::locator=metamask%40workspace%3A.":
   version: 12.1.0
-  resolution: "@metamask/eth-ledger-bridge-keyring@file:/Users/montelai/consensys/accounts/packages/keyring-eth-ledger-bridge#/Users/montelai/consensys/accounts/packages/keyring-eth-ledger-bridge::hash=9045c3&locator=metamask%40workspace%3A."
+  resolution: "@metamask/eth-ledger-bridge-keyring@file:/Users/montelai/consensys/accounts/packages/keyring-eth-ledger-bridge#/Users/montelai/consensys/accounts/packages/keyring-eth-ledger-bridge::hash=c858d7&locator=metamask%40workspace%3A."
   dependencies:
     "@ethereumjs/rlp": "npm:^5.0.2"
     "@ethereumjs/tx": "npm:^5.4.0"
     "@ethereumjs/util": "npm:^9.1.0"
-    "@ledgerhq/context-module": "npm:^1.14.1"
-    "@ledgerhq/device-management-kit": "npm:^1.5.0"
-    "@ledgerhq/device-signer-kit-ethereum": "npm:^1.16.0"
+    "@ledgerhq/context-module": "npm:2.1.0"
+    "@ledgerhq/device-management-kit": "npm:1.5.1"
+    "@ledgerhq/device-signer-kit-ethereum": "npm:1.16.0"
     "@ledgerhq/hw-app-eth": "npm:^6.42.0"
     "@ledgerhq/hw-transport": "npm:^6.31.3"
     "@metamask/eth-sig-util": "npm:^8.2.0"
@@ -8761,7 +8783,7 @@ __metadata:
     "@metamask/keyring-utils": "npm:^3.3.1"
     hdkey: "npm:^2.1.0"
     rxjs: "npm:^7.8.2"
-  checksum: 10/b4761a357946871a870c491c73e2c299de8acd88bdfbbae713d402f615c6c339da33eb55fc5006f400abd442566abf9342b22137c719588ac374661a3f824542
+  checksum: 10/6634b5b9307f6d1a064ccc2b0f48dbac44c49e47e27d4c6fcfdaea80f8710ea828f9dc747724fcefd5a7bceb0541fbb35a00452c52ff5c45856b2d31a10e034c
   languageName: node
   linkType: hard
 
