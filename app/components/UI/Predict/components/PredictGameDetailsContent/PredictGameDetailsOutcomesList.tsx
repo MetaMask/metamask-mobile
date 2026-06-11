@@ -151,7 +151,6 @@ const PredictGameDetailsOutcomesList = memo(
                   chips={chips}
                   activeChipKey={activeChipKey}
                   onChipSelect={onChipSelect}
-                  scrollPersistenceKey={`predict-game-details-chips-${market.id}`}
                 />
               )}
             </Box>
@@ -222,7 +221,6 @@ const PredictGameDetailsOutcomesList = memo(
           data={data}
           renderItem={renderItem}
           keyExtractor={keyExtractor}
-          estimatedItemSize={ESTIMATED_CARD_HEIGHT}
           ListHeaderComponent={listHeaderComponent}
           stickyHeaderIndices={showStickyHeader ? [0] : undefined}
           contentContainerStyle={tw.style('pb-4')}

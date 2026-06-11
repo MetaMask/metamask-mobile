@@ -14,4 +14,5 @@ export interface PredictChipListProps {
   containerTwClassName?: string;
   chipTwClassName?: string;
   getChipTestId?: (key: string) => string;
+  useGestureHandlerScrollView?: boolean;
 }

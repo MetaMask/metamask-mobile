@@ -8,15 +8,25 @@ export function useChipScrollList(chipCount: number) {
     new Map(),
   );
   const viewportWidthRef = useRef(0);
-  const pendingChipIndexRef = useRef<number | null>(null);
 
-  const tryScrollToChip = useCallback(
-    (chipIndex: number, animated = false) => {
+  const handleScrollViewLayout = useCallback((event: LayoutChangeEvent) => {
+    viewportWidthRef.current = event.nativeEvent.layout.width;
+  }, []);
+
+  const handleChipLayout = useCallback(
+    (index: number, event: LayoutChangeEvent) => {
+      const { x, width } = event.nativeEvent.layout;
+      chipLayoutsRef.current.set(index, { x, width });
+    },
+    [],
+  );
+
+  const scrollToChipAtIndex = useCallback(
+    (chipIndex: number) => {
       const scrollView = scrollViewRef.current;
       const viewportWidth = viewportWidthRef.current;
       if (!scrollView || viewportWidth === 0) {
-        pendingChipIndexRef.current = chipIndex;
-        return false;
+        return;
       }
 
       const scrollX = calculateChipScrollX(
@@ -26,49 +36,12 @@ export function useChipScrollList(chipCount: number) {
         viewportWidth,
       );
       if (scrollX === null) {
-        pendingChipIndexRef.current = chipIndex;
-        return false;
+        return;
       }
 
-      pendingChipIndexRef.current = null;
-      scrollView.scrollTo({ x: scrollX, animated });
-      return true;
+      scrollView.scrollTo({ x: scrollX, animated: true });
     },
     [chipCount],
-  );
-
-  const tryFlushPendingScroll = useCallback(() => {
-    const pendingChipIndex = pendingChipIndexRef.current;
-    if (pendingChipIndex === null) {
-      return;
-    }
-    tryScrollToChip(pendingChipIndex);
-  }, [tryScrollToChip]);
-
-  const handleScrollViewLayout = useCallback(
-    (event: LayoutChangeEvent) => {
-      viewportWidthRef.current = event.nativeEvent.layout.width;
-      tryFlushPendingScroll();
-    },
-    [tryFlushPendingScroll],
-  );
-
-  const handleChipLayout = useCallback(
-    (index: number, event: LayoutChangeEvent) => {
-      const { x, width } = event.nativeEvent.layout;
-      chipLayoutsRef.current.set(index, { x, width });
-      if (pendingChipIndexRef.current === index) {
-        tryFlushPendingScroll();
-      }
-    },
-    [tryFlushPendingScroll],
-  );
-
-  const scrollToChipAtIndex = useCallback(
-    (chipIndex: number, animated = false) => {
-      tryScrollToChip(chipIndex, animated);
-    },
-    [tryScrollToChip],
   );
 
   return {

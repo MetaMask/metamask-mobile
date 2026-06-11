@@ -1,5 +1,6 @@
-import React, { memo, useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { memo, useCallback } from 'react';
 import { Image, Pressable, ScrollView } from 'react-native';
+import { ScrollView as GestureHandlerScrollView } from 'react-native-gesture-handler';
 import {
   Box,
   BoxAlignItems,
@@ -31,6 +32,7 @@ const PredictChipList: React.FC<PredictChipListProps> = ({
   containerTwClassName = DEFAULT_CONTAINER_CLASS,
   chipTwClassName = DEFAULT_CHIP_CLASS,
   getChipTestId = getPredictChipTestId,
+  useGestureHandlerScrollView = false,
 }) => {
   const tw = useTailwind();
   const {
@@ -39,40 +41,14 @@ const PredictChipList: React.FC<PredictChipListProps> = ({
     handleChipLayout,
     scrollToChipAtIndex,
   } = useChipScrollList(chips.length);
-  const activeChipIndex = useMemo(
-    () => chips.findIndex((chip) => chip.key === activeChipKey),
-    [chips, activeChipKey],
-  );
-  const isFirstRenderRef = useRef(true);
-  const skipNextSyncScrollIndexRef = useRef<number | null>(null);
 
   const handlePress = useCallback(
     (key: string, index: number) => {
-      skipNextSyncScrollIndexRef.current = index;
       onChipSelect(key);
-      scrollToChipAtIndex(index, true);
+      scrollToChipAtIndex(index);
     },
     [onChipSelect, scrollToChipAtIndex],
   );
-
-  useEffect(() => {
-    if (activeChipIndex < 0) {
-      return;
-    }
-
-    if (isFirstRenderRef.current) {
-      isFirstRenderRef.current = false;
-      scrollToChipAtIndex(activeChipIndex, false);
-      return;
-    }
-
-    if (skipNextSyncScrollIndexRef.current === activeChipIndex) {
-      skipNextSyncScrollIndexRef.current = null;
-      return;
-    }
-
-    scrollToChipAtIndex(activeChipIndex, false);
-  }, [activeChipIndex, scrollToChipAtIndex]);
 
   if (chips.length === 0) {
     return null;
@@ -126,9 +102,19 @@ const PredictChipList: React.FC<PredictChipListProps> = ({
 
   return (
     <Box testID={testID} twClassName={containerTwClassName}>
-      <ScrollView ref={scrollViewRef} {...scrollViewProps}>
-        {chipItems}
-      </ScrollView>
+      {useGestureHandlerScrollView ? (
+        <GestureHandlerScrollView
+          ref={scrollViewRef}
+          {...scrollViewProps}
+          keyboardShouldPersistTaps="handled"
+        >
+          {chipItems}
+        </GestureHandlerScrollView>
+      ) : (
+        <ScrollView ref={scrollViewRef} {...scrollViewProps}>
+          {chipItems}
+        </ScrollView>
+      )}
     </Box>
   );
 };

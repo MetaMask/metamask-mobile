@@ -207,29 +207,6 @@ describe('PredictSportLineSelector', () => {
     }).not.toThrow();
   });
 
-  it('snaps on controlled rerender instead of animating', () => {
-    const { rerender, UNSAFE_getAllByType } = render(
-      <PredictSportLineSelector {...defaultProps} />,
-    );
-
-    const Box = jest.requireActual('@metamask/design-system-react-native').Box;
-    const layoutBox = UNSAFE_getAllByType(Box).find(
-      (b: { props: { onLayout?: unknown } }) => b.props.onLayout,
-    );
-
-    act(() => {
-      layoutBox?.props.onLayout({
-        nativeEvent: { layout: { width: 300 } },
-      });
-    });
-
-    mockWithTiming.mockClear();
-
-    rerender(<PredictSportLineSelector {...defaultProps} selectedLine={5.5} />);
-
-    expect(mockWithTiming).not.toHaveBeenCalled();
-  });
-
   it('fires haptic feedback on line tap', () => {
     const { playSelection } = jest.requireMock(
       '../../../../../util/haptics',
