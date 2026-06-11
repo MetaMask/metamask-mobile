@@ -67,15 +67,20 @@ export const usePostTradeTxStatus = ({
       : undefined,
   ) as TransactionMeta | undefined;
   const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
+  const submittedTransactionHash = transactionMeta?.hash ?? transactionHash;
 
   const bridgeHistoryItem = findBridgeHistoryItem({
     bridgeHistory,
     transactionMetaId,
     transactionActionId: transactionMeta?.actionId,
-    transactionHash: transactionMeta?.hash ?? transactionHash,
+    transactionHash: submittedTransactionHash,
   });
 
   const quote = bridgeHistoryItem?.quote;
+  const sourceTransactionHash =
+    submittedTransactionHash ??
+    bridgeHistoryItem?.status?.srcChain?.txHash ??
+    transactionMetaId;
   // Same-chain Solana swaps never terminalize in `BridgeStatusController`, so
   // resolve them from `MultichainTransactionsController` instead
   const shouldResolveFromMultichain = Boolean(
@@ -84,7 +89,7 @@ export const usePostTradeTxStatus = ({
   const multichainStatus = useSelector((state: RootState) =>
     getMultichainPostTradeStatus(
       state,
-      shouldResolveFromMultichain ? transactionHash : undefined,
+      shouldResolveFromMultichain ? sourceTransactionHash : undefined,
       quote?.srcChainId,
     ),
   );

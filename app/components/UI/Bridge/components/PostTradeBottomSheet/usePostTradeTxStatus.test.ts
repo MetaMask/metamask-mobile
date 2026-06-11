@@ -34,12 +34,14 @@ const statusOf = (
     isBridge = false,
     srcChainId,
     destChainId,
+    statusSrcTxHash,
     transactionHash,
     nonEvmTransactions = {},
   }: {
     isBridge?: boolean;
     srcChainId?: number;
     destChainId?: number;
+    statusSrcTxHash?: string;
     transactionHash?: string;
     nonEvmTransactions?: unknown;
   } = {},
@@ -53,7 +55,10 @@ const statusOf = (
               srcChainId: srcChainId ?? 1,
               destChainId: destChainId ?? 1,
             },
-            status: { status: bridgeStatus },
+            status: {
+              status: bridgeStatus,
+              srcChain: { txHash: statusSrcTxHash },
+            },
           },
         }
       : {};
@@ -68,10 +73,10 @@ const statusOf = (
   return renderHook(() => usePostTradeTxStatus(params)).result.current;
 };
 
-const solanaTx = (status: KeyringTransactionStatus) => ({
+const solanaTx = (status: KeyringTransactionStatus, id = 'sol-sig') => ({
   'account-1': {
     [SolScope.Mainnet]: {
-      transactions: [{ id: 'sol-sig', status }],
+      transactions: [{ id, status }],
     },
   },
 });
@@ -123,5 +128,25 @@ describe('usePostTradeTxStatus', () => {
         nonEvmTransactions: solanaTx(KeyringTransactionStatus.Confirmed),
       }),
     ).toBe(Status.InProgress);
+
+    expect(
+      statusOf(undefined, BridgeStatus.UNKNOWN, {
+        srcChainId: SOLANA_MAINNET_CHAIN_ID,
+        destChainId: SOLANA_MAINNET_CHAIN_ID,
+        statusSrcTxHash: 'sol-sig',
+        nonEvmTransactions: solanaTx(KeyringTransactionStatus.Confirmed),
+      }),
+    ).toBe(Status.Success);
+
+    expect(
+      statusOf(undefined, BridgeStatus.UNKNOWN, {
+        srcChainId: SOLANA_MAINNET_CHAIN_ID,
+        destChainId: SOLANA_MAINNET_CHAIN_ID,
+        nonEvmTransactions: solanaTx(
+          KeyringTransactionStatus.Confirmed,
+          'tx-id',
+        ),
+      }),
+    ).toBe(Status.Success);
   });
 });
