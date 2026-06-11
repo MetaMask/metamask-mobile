@@ -5,75 +5,76 @@ import {
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { OnboardingSelectorText } from '../../../app/components/Views/Onboarding/Onboarding.testIds';
+import { EncapsulatedElementType } from '../../framework';
 
 class ForgotPasswordModalView {
-  get container(): DetoxElement {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(ForgotPasswordModalSelectorsIDs.CONTAINER);
   }
 
-  get title(): DetoxElement {
+  get title(): EncapsulatedElementType {
     return Matchers.getElementByID(ForgotPasswordModalSelectorsIDs.TITLE);
   }
 
-  get description(): DetoxElement {
+  get description(): EncapsulatedElementType {
     return Matchers.getElementByID(ForgotPasswordModalSelectorsIDs.DESCRIPTION);
   }
 
-  get resetWalletButton(): DetoxElement {
+  get resetWalletButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ForgotPasswordModalSelectorsIDs.RESET_WALLET_BUTTON,
     );
   }
 
-  get yesResetWalletButton(): DetoxElement {
+  get yesResetWalletButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ForgotPasswordModalSelectorsIDs.YES_RESET_WALLET_BUTTON,
     );
   }
 
-  get cancelButton(): DetoxElement {
+  get cancelButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ForgotPasswordModalSelectorsIDs.CANCEL_BUTTON,
     );
   }
 
-  get warningText(): DetoxElement {
+  get warningText(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ForgotPasswordModalSelectorsIDs.WARNING_TEXT,
     );
   }
 
-  get titleText(): DetoxElement {
+  get titleText(): EncapsulatedElementType {
     return Matchers.getElementByText(ForgotPasswordModalSelectorsText.TITLE);
   }
 
-  get descriptionText(): DetoxElement {
+  get descriptionText(): EncapsulatedElementType {
     return Matchers.getElementByText(
       ForgotPasswordModalSelectorsText.DESCRIPTION,
     );
   }
 
-  get resetWalletText(): DetoxElement {
+  get resetWalletText(): EncapsulatedElementType {
     return Matchers.getElementByText(
       ForgotPasswordModalSelectorsText.RESET_WALLET,
     );
   }
 
-  get yesResetWalletText(): DetoxElement {
+  get yesResetWalletText(): EncapsulatedElementType {
     return Matchers.getElementByText(
       ForgotPasswordModalSelectorsText.YES_RESET_WALLET,
     );
   }
 
-  get cancelText(): DetoxElement {
+  get cancelText(): EncapsulatedElementType {
     return Matchers.getElementByText(ForgotPasswordModalSelectorsText.CANCEL);
   }
 
-  get warningTextContent(): DetoxElement {
+  get warningTextContent(): EncapsulatedElementType {
     return Matchers.getElementByText(ForgotPasswordModalSelectorsText.WARNING);
   }
 
-  get successBottomNotification(): DetoxElement {
+  get successBottomNotification(): EncapsulatedElementType {
     return Matchers.getElementByText(
       OnboardingSelectorText.SUCCESSFUL_WALLET_RESET,
     );

@@ -8,6 +8,7 @@ import {
   selectIsCurrentSubscriptionVipEnabled,
   selectRewardsSubscriptionId,
 } from '../../../../selectors/rewards';
+import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { useVipDashboard } from '../hooks/useVipDashboard';
@@ -186,6 +187,10 @@ jest.mock('../../../../selectors/rewards', () => ({
   selectRewardsSubscriptionId: jest.fn(),
 }));
 
+jest.mock('../../../../selectors/featureFlagController/vipProgram', () => ({
+  selectVipProgramEnabled: jest.fn(),
+}));
+
 jest.mock('../../../Views/ErrorBoundary', () => ({
   __esModule: true,
   default: function MockErrorBoundary({
@@ -346,6 +351,7 @@ const mockSubscribed = () => {
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectRewardsSubscriptionId) return 'test-subscription-id';
     if (selector === selectIsCurrentSubscriptionVipEnabled) return true;
+    if (selector === selectVipProgramEnabled) return true;
     return (
       selector as (state: ReturnType<typeof getRewardsSelectorState>) => unknown
     )(getRewardsSelectorState());
@@ -665,6 +671,37 @@ describe('RewardsVipView', () => {
         return 'test-subscription-id';
       }
       if (selector === selectIsCurrentSubscriptionVipEnabled) {
+        return false;
+      }
+      if (selector === selectVipProgramEnabled) {
+        return true;
+      }
+      return undefined;
+    });
+
+    const { queryByTestId } = render(<RewardsVipView />);
+
+    expect(queryByTestId(REWARDS_VIEW_SELECTORS.VIP_VIEW)).toBeNull();
+    expect(mockUseTrackRewardsPageView).toHaveBeenCalledWith({
+      page_type: 'vip',
+      enabled: false,
+    });
+    await waitFor(() => {
+      expect(mockDispatch).toHaveBeenCalledWith(
+        StackActions.replace(Routes.REWARDS_DASHBOARD),
+      );
+    });
+  });
+
+  it('redirects to the rewards dashboard when the VIP program flag is off, even for a VIP subscription', async () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectRewardsSubscriptionId) {
+        return 'test-subscription-id';
+      }
+      if (selector === selectIsCurrentSubscriptionVipEnabled) {
+        return true;
+      }
+      if (selector === selectVipProgramEnabled) {
         return false;
       }
       return undefined;

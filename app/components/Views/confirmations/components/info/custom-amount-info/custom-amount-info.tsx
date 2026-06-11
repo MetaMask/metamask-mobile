@@ -69,6 +69,7 @@ import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToke
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import PayAccountSelector from '../../PayAccountSelector';
 import { PerpsAccountPickerRow } from '../../rows/perps-account-picker-row';
+import { PredictAccountPickerRow } from '../../rows/predict-account-picker-row';
 import { useTransactionAccountOverride } from '../../../hooks/transactions/useTransactionAccountOverride';
 import { CustomAmountInfoTestIds } from './custom-amount-info.testIds';
 import { useConfirmationContext } from '../../../context/confirmation-context';
@@ -98,12 +99,6 @@ export interface CustomAmountInfoProps {
    * When true, the account selector is shown.
    */
   supportAccountSelection?: boolean;
-  /**
-   * Adds bottom space to the bottom block (rows + keyboard/confirm button).
-   * Used by Perps Withdraw on Android, where this screen has one extra
-   * balance line and otherwise clips behind the system gesture bar.
-   */
-  hasExtraBottomPadding?: boolean;
 }
 
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
@@ -114,7 +109,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     disableConfirm,
     disablePay,
     hasMax,
-    hasExtraBottomPadding,
     hideAccountSelector,
     onAmountSubmit,
     hidePayTokenAmount,
@@ -123,29 +117,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     supportAccountSelection,
   }) => {
     const transactionMeta = useTransactionMetadataRequest();
-    const isPredictDeposit = hasTransactionType(transactionMeta, [
-      TransactionType.predictDeposit,
-    ]);
     const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
       TransactionType.moneyAccountDeposit,
     ]);
-    const isMoneyAccountTransfer =
-      isMoneyAccountDeposit ||
-      hasTransactionType(transactionMeta, [
-        TransactionType.moneyAccountWithdraw,
-      ]);
-    const shouldRejectOnBackSwipe = isPredictDeposit || isMoneyAccountTransfer;
 
-    const clearPendingPredictDeposit = useCallback(() => {
-      Engine.context.PredictController.clearPendingDeposit();
-    }, []);
-
-    useClearConfirmationOnBackSwipe({
-      rejectOnBeforeRemove: shouldRejectOnBackSwipe,
-      rejectOnBeforeRemoveWithoutGesture: shouldRejectOnBackSwipe,
-      skipNavigationOnGestureEnd: shouldRejectOnBackSwipe,
-      onBeforeReject: isPredictDeposit ? clearPendingPredictDeposit : undefined,
-    });
+    useClearConfirmationOnBackSwipe();
 
     const { canSelectWithdrawToken } = useTransactionPayWithdraw();
 
@@ -277,7 +253,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         <Box
           gap={16}
           testID={CustomAmountInfoTestIds.BOTTOM_BLOCK}
-          style={hasExtraBottomPadding && styles.extraBottomPadding}
+          style={styles.bottomBlock}
         >
           <AlertMessage alertMessage={alertMessage ?? headlessBuyError} />
           {!isResultReady && (
@@ -288,6 +264,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                   <PayAccountSelector style={styles.separator} />
                 )}
               <PerpsAccountPickerRow />
+              <PredictAccountPickerRow />
               {disablePay !== true && hasPaymentOption && <PayWithRow />}
             </>
           )}
@@ -297,6 +274,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 !selectedFiatPaymentMethodId &&
                 !shouldHideAccountSelector && <PayAccountSelector />}
               <PerpsAccountPickerRow />
+              <PredictAccountPickerRow />
               {disablePay !== true && hasPaymentOption && (
                 <PayWithRow isResultReady />
               )}

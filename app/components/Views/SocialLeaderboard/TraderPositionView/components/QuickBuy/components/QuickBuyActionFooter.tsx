@@ -37,6 +37,7 @@ const QuickBuyActionFooter: React.FC = () => {
     tradeMode,
     sourceToken,
     sourceBalanceFiat,
+    destBalanceFiat,
     destToken,
     selectedDestStable,
     features,
@@ -45,9 +46,7 @@ const QuickBuyActionFooter: React.FC = () => {
 
   const pickerToken = tradeMode === 'sell' ? selectedDestStable : sourceToken;
   const pickerBalanceFiat =
-    tradeMode === 'sell'
-      ? (selectedDestStable?.balanceFiat ?? undefined)
-      : sourceBalanceFiat;
+    tradeMode === 'sell' ? destBalanceFiat : sourceBalanceFiat;
 
   return (
     <Box twClassName="px-4 pb-4">
@@ -85,7 +84,6 @@ const QuickBuyActionFooter: React.FC = () => {
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             gap={2}
-            twClassName="rounded-full bg-muted px-3 py-1"
           >
             {pickerToken ? (
               <QuickBuyTokenIcon
