@@ -6,7 +6,12 @@ import React, {
   useCallback,
   useMemo,
 } from 'react';
-import { Animated, ScrollView, LayoutChangeEvent } from 'react-native';
+import { ScrollView, LayoutChangeEvent } from 'react-native';
+import Reanimated, {
+  useSharedValue,
+  withTiming,
+  useAnimatedStyle,
+} from 'react-native-reanimated';
 
 // External dependencies.
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -50,10 +55,9 @@ const TabsBar: React.FC<TabsBarProps> = ({
 
   const scrollViewRef = useRef<ScrollView>(null);
 
-  const underlineAnimated = useRef(new Animated.Value(0)).current;
-  const underlineWidthAnimated = useRef(new Animated.Value(0)).current;
+  const underlineX = useSharedValue(0);
+  const underlineW = useSharedValue(0);
   const tabLayouts = useRef<(TabLayout | undefined)[]>([]);
-  const currentAnimation = useRef<Animated.CompositeAnimation | null>(null);
   const rafCallbackId = useRef<number | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [layoutsReady, setLayoutsReady] = useState(false);
@@ -96,12 +100,6 @@ const TabsBar: React.FC<TabsBarProps> = ({
       setLayoutsReady(false);
       setScrollEnabled(false);
 
-      // Stop any ongoing animation
-      if (currentAnimation.current) {
-        currentAnimation.current.stop();
-        currentAnimation.current = null;
-      }
-
       // Force Tab remount so onLayout fires for every tab after structural changes
       setLayoutGeneration((generation) => generation + 1);
     }
@@ -110,12 +108,6 @@ const TabsBar: React.FC<TabsBarProps> = ({
   // Animation function for smooth underline transitions
   const animateToTab = useCallback(
     (targetIndex: number) => {
-      // Stop any ongoing animation
-      if (currentAnimation.current) {
-        currentAnimation.current.stop();
-        currentAnimation.current = null;
-      }
-
       // Validate target index
       if (targetIndex < 0 || targetIndex >= tabs.length) {
         return;
@@ -131,31 +123,14 @@ const TabsBar: React.FC<TabsBarProps> = ({
       const isFirstTime = !isInitialized;
 
       if (isFirstTime) {
-        // First time - set position immediately
-        underlineAnimated.setValue(activeTabLayout.x);
-        underlineWidthAnimated.setValue(activeTabLayout.width);
+        // First time - set position immediately without animation
+        underlineX.value = activeTabLayout.x;
+        underlineW.value = activeTabLayout.width;
         setIsInitialized(true);
       } else {
-        // Animate to new position
-        const animation = Animated.parallel([
-          Animated.timing(underlineAnimated, {
-            toValue: activeTabLayout.x,
-            duration: 200,
-            useNativeDriver: false,
-          }),
-          Animated.timing(underlineWidthAnimated, {
-            toValue: activeTabLayout.width,
-            duration: 200,
-            useNativeDriver: false,
-          }),
-        ]);
-
-        currentAnimation.current = animation;
-        animation.start((finished) => {
-          if (finished && currentAnimation.current === animation) {
-            currentAnimation.current = null;
-          }
-        });
+        // Animate to new position on the UI thread
+        underlineX.value = withTiming(activeTabLayout.x, { duration: 200 });
+        underlineW.value = withTiming(activeTabLayout.width, { duration: 200 });
       }
 
       // Handle scrolling
@@ -166,13 +141,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
         });
       }
     },
-    [
-      scrollEnabled,
-      underlineAnimated,
-      underlineWidthAnimated,
-      tabs.length,
-      isInitialized,
-    ],
+    [scrollEnabled, underlineX, underlineW, tabs.length, isInitialized],
   );
 
   // Animate when activeIndex changes and layouts are ready
@@ -292,13 +261,14 @@ const TabsBar: React.FC<TabsBarProps> = ({
     [tabs.length, layoutsReady, containerWidth, animateToTab, isInitialized],
   );
 
+  const underlineStyle = useAnimatedStyle(() => ({
+    width: underlineW.value,
+    transform: [{ translateX: underlineX.value }],
+  }));
+
   // Cleanup effect
   useEffect(
     () => () => {
-      if (currentAnimation.current) {
-        currentAnimation.current.stop();
-        currentAnimation.current = null;
-      }
       if (rafCallbackId.current !== null) {
         cancelAnimationFrame(rafCallbackId.current);
         rafCallbackId.current = null;
@@ -349,11 +319,11 @@ const TabsBar: React.FC<TabsBarProps> = ({
 
             {/* Animated underline for scrollable tabs */}
             {activeIndex >= 0 && isInitialized && (
-              <Animated.View
-                style={tw.style('absolute bottom-0 h-0.5 bg-icon-default', {
-                  width: underlineWidthAnimated,
-                  transform: [{ translateX: underlineAnimated }],
-                })}
+              <Reanimated.View
+                style={[
+                  tw.style('absolute bottom-0 h-0.5 bg-icon-default'),
+                  underlineStyle,
+                ]}
               />
             )}
           </Box>
@@ -379,11 +349,11 @@ const TabsBar: React.FC<TabsBarProps> = ({
 
             {/* Animated underline for non-scrollable tabs */}
             {activeIndex >= 0 && isInitialized && (
-              <Animated.View
-                style={tw.style('absolute bottom-0 h-0.5 bg-icon-default', {
-                  width: underlineWidthAnimated,
-                  transform: [{ translateX: underlineAnimated }],
-                })}
+              <Reanimated.View
+                style={[
+                  tw.style('absolute bottom-0 h-0.5 bg-icon-default'),
+                  underlineStyle,
+                ]}
               />
             )}
           </Box>
