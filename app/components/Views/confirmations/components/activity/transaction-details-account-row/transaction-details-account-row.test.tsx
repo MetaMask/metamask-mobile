@@ -67,7 +67,6 @@ describe('TransactionDetailsAccountRow', () => {
   });
 
   it.each([
-    TransactionType.moneyAccountWithdraw,
     TransactionType.perpsWithdraw,
     TransactionType.predictClaim,
     TransactionType.predictWithdraw,

@@ -137,7 +137,7 @@ describe('TransactionDetailsHero', () => {
     expect(queryByTestId('transaction-details-hero')).toBeNull();
   });
 
-  it('renders targetFiat from metamaskPay when available', () => {
+  it('renders token amount with symbol for Money types with targetFiat', () => {
     useTransactionDetailsMock.mockReturnValue({
       transactionMeta: {
         ...TRANSACTION_META_MOCK,
@@ -149,10 +149,11 @@ describe('TransactionDetailsHero', () => {
 
     const { getByText } = render();
 
-    expect(getByText('$456.78')).toBeDefined();
+    expect(getByText(/456\.78/)).toBeDefined();
+    expect(getByText(/mUSD/)).toBeDefined();
   });
 
-  it('renders amount for musdConversion transactions', () => {
+  it('renders token amount for musdConversion transactions', () => {
     useTransactionDetailsMock.mockReturnValue({
       transactionMeta: {
         ...TRANSACTION_META_MOCK,
@@ -165,7 +166,8 @@ describe('TransactionDetailsHero', () => {
 
     const { getByText } = render();
 
-    expect(getByText('$100')).toBeDefined();
+    expect(getByText(/100\.00/)).toBeDefined();
+    expect(getByText(/mUSD/)).toBeDefined();
   });
 
   it('renders claim amount for musdClaim with valid claim data', () => {

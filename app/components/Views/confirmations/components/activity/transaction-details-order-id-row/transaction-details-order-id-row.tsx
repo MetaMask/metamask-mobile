@@ -1,12 +1,14 @@
 import React from 'react';
 import { TransactionType } from '@metamask/transaction-controller';
-import { Text } from '@metamask/design-system-react-native';
-import { strings } from '../../../../../../locales/i18n';
-import { useTransactionDetails } from '../../../../Views/confirmations/hooks/activity/useTransactionDetails';
-import { hasTransactionType } from '../../../../Views/confirmations/utils/transaction';
-import { TransactionDetailsRow } from '../../../../Views/confirmations/components/activity/transaction-details-row/transaction-details-row';
+import Text, {
+  TextColor,
+} from '../../../../../../component-library/components/Texts/Text';
+import { strings } from '../../../../../../../locales/i18n';
+import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
+import { hasTransactionType } from '../../../utils/transaction';
+import { TransactionDetailsRow } from '../transaction-details-row/transaction-details-row';
 
-export function MoneyTransactionDetailsOrderIdRow() {
+export function TransactionDetailsOrderIdRow() {
   const { transactionMeta } = useTransactionDetails();
 
   const isDeposit = hasTransactionType(transactionMeta, [
@@ -24,7 +26,7 @@ export function MoneyTransactionDetailsOrderIdRow() {
     <TransactionDetailsRow
       label={strings('transaction_details.label.order_id')}
     >
-      <Text>{displayId}</Text>
+      <Text color={TextColor.Alternative}>{displayId}</Text>
     </TransactionDetailsRow>
   );
 }

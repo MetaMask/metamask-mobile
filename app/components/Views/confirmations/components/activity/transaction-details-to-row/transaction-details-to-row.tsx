@@ -1,19 +1,21 @@
 import React, { useMemo } from 'react';
 import { type Hex } from '@metamask/utils';
 import { TransactionType } from '@metamask/transaction-controller';
-import { Box, Text } from '@metamask/design-system-react-native';
-import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
-import AvatarAccount from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
-import Name from '../../../Name/Name';
-import { NameType } from '../../../Name/Name.types';
-import { strings } from '../../../../../../locales/i18n';
-import { useTransactionDetails } from '../../../../Views/confirmations/hooks/activity/useTransactionDetails';
+import Text from '../../../../../../component-library/components/Texts/Text';
+import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
+import AvatarAccount from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
+import { Box } from '../../../../../UI/Box/Box';
+import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';
+import Name from '../../../../../UI/Name/Name';
+import { NameType } from '../../../../../UI/Name/Name.types';
+import { strings } from '../../../../../../../locales/i18n';
+import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import {
   hasTransactionType,
   parseStandardTokenTransactionData,
-} from '../../../../Views/confirmations/utils/transaction';
-import { TransactionDetailsRow } from '../../../../Views/confirmations/components/activity/transaction-details-row/transaction-details-row';
-import { getTokenTransferData } from '../../../../Views/confirmations/utils/transaction-pay';
+} from '../../../utils/transaction';
+import { TransactionDetailsRow } from '../transaction-details-row/transaction-details-row';
+import { getTokenTransferData } from '../../../utils/transaction-pay';
 
 const SEND_TYPES: TransactionType[] = [
   TransactionType.moneyAccountWithdraw,
@@ -56,7 +58,7 @@ function getToLabel(transactionMeta: {
   return undefined;
 }
 
-export function MoneyTransactionDetailsToRow() {
+export function TransactionDetailsToRow() {
   const { transactionMeta } = useTransactionDetails();
   const recipient = useRecipient();
   const chainId = transactionMeta?.chainId as Hex;
@@ -72,7 +74,11 @@ export function MoneyTransactionDetailsToRow() {
   return (
     <TransactionDetailsRow label={strings('transaction_details.label.to')}>
       {staticLabel ? (
-        <Box twClassName="flex-row items-center gap-1.5">
+        <Box
+          flexDirection={FlexDirection.Row}
+          alignItems={AlignItems.center}
+          gap={6}
+        >
           <AvatarAccount
             accountAddress={recipient ?? '0x0'}
             size={AvatarSize.Sm}

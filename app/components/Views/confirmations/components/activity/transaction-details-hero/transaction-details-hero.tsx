@@ -1,10 +1,11 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
+import { type Hex } from '@metamask/utils';
 import { Box } from '../../../../../UI/Box/Box';
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
-import { AlignItems } from '../../../../../UI/Box/box.types';
+import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { TransactionType } from '@metamask/transaction-controller';
 import {
@@ -30,6 +31,13 @@ import {
 } from '../../../../../../selectors/currencyRateController';
 import { RootState } from '../../../../../../reducers';
 import useNetworkInfo from '../../../hooks/useNetworkInfo';
+import { TokenIcon } from '../../token-icon';
+import { resolveMusdTransferMeta } from '../../../../../UI/Money/constants/activityStyles';
+import { fromTokenMinimalUnit } from '../../../../../../util/number/bigint';
+import {
+  MUSD_TOKEN,
+  MUSD_TOKEN_ADDRESS,
+} from '../../../../../UI/Earn/constants/musd';
 
 const SUPPORTED_TYPES = [
   TransactionType.moneyAccountDeposit,
@@ -42,6 +50,55 @@ const SUPPORTED_TYPES = [
   TransactionType.predictWithdraw,
 ];
 
+function useMusdHeroData(
+  transactionMeta: Parameters<typeof resolveMusdTransferMeta>[0],
+): {
+  amount: string;
+  symbol: string;
+  contractAddress: string;
+  chainId: Hex;
+} | null {
+  const tokenMeta = resolveMusdTransferMeta(transactionMeta);
+
+  if (tokenMeta) {
+    const humanReadable = fromTokenMinimalUnit(
+      tokenMeta.amount,
+      tokenMeta.decimals,
+      false,
+    );
+    const num = parseFloat(humanReadable);
+    if (isNaN(num)) return null;
+    return {
+      amount: num.toFixed(2),
+      symbol: tokenMeta.symbol,
+      contractAddress: tokenMeta.contractAddress,
+      chainId: transactionMeta.chainId as Hex,
+    };
+  }
+
+  const targetFiat = transactionMeta.metamaskPay?.targetFiat;
+  if (targetFiat && targetFiat !== '0') {
+    const num = new BigNumber(targetFiat).toNumber();
+    if (isNaN(num)) return null;
+    return {
+      amount: num.toFixed(2),
+      symbol: MUSD_TOKEN.symbol,
+      contractAddress: MUSD_TOKEN_ADDRESS,
+      chainId: transactionMeta.chainId as Hex,
+    };
+  }
+
+  return null;
+}
+
+const MUSD_HERO_TYPES = [
+  TransactionType.moneyAccountDeposit,
+  TransactionType.moneyAccountWithdraw,
+  TransactionType.musdConversion,
+  TransactionType.perpsDeposit,
+  TransactionType.predictDeposit,
+];
+
 export function TransactionDetailsHero() {
   const formatFiatPerps = useFiatFormatter({ currency: PERPS_CURRENCY });
   const formatFiatUser = useFiatFormatter();
@@ -51,9 +108,32 @@ export function TransactionDetailsHero() {
     useClaimAmount();
   const targetFiat = useTargetFiat();
   const { transactionMeta } = useTransactionDetails();
+  const musdHeroData = useMusdHeroData(transactionMeta);
 
   if (!hasTransactionType(transactionMeta, SUPPORTED_TYPES)) {
     return null;
+  }
+
+  if (hasTransactionType(transactionMeta, MUSD_HERO_TYPES) && musdHeroData) {
+    return (
+      <Box
+        testID="transaction-details-hero"
+        flexDirection={FlexDirection.Row}
+        alignItems={AlignItems.center}
+        gap={12}
+        style={styles.container}
+      >
+        <TokenIcon
+          chainId={musdHeroData.chainId}
+          address={musdHeroData.contractAddress as Hex}
+          symbol={musdHeroData.symbol}
+          showNetwork={false}
+        />
+        <Text variant={TextVariant.DisplayMD}>
+          {musdHeroData.amount} {musdHeroData.symbol}
+        </Text>
+      </Box>
+    );
   }
 
   const amount = targetFiat ?? claimAmount ?? decodedAmount;
