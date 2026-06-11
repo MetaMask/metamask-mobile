@@ -91,7 +91,7 @@ import {
   SOCIAL_AI_QUICK_BUY_AB_KEY,
   SOCIAL_AI_QUICK_BUY_EXPOSURE_METADATA,
   SOCIAL_AI_QUICK_BUY_VARIANTS,
-} from '../../../TokenDetails/components/abTestConfig';
+} from '../../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/abTestConfig';
 import type { TokenDetailsRouteParams } from '../../../TokenDetails/constants/constants';
 import { useABTest } from '../../../../../hooks/useABTest';
 import { ImpactMoment, playImpact } from '../../../../../util/haptics';

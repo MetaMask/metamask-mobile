@@ -38,10 +38,12 @@ import {
   AMBIENT_NEGATIVE_COLOR,
   AMBIENT_PRICE_COLOR_AB_KEY,
   AMBIENT_PRICE_COLOR_VARIANTS,
+} from '../components/abTestConfig';
+import {
   SOCIAL_AI_QUICK_BUY_AB_KEY,
   SOCIAL_AI_QUICK_BUY_EXPOSURE_METADATA,
   SOCIAL_AI_QUICK_BUY_VARIANTS,
-} from '../components/abTestConfig';
+} from '../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/abTestConfig';
 import AssetDetailsQuickBuy from '../components/AssetDetailsQuickBuy';
 import AssetOverviewContent from '../components/AssetOverviewContent';
 import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';

@@ -14,8 +14,8 @@ import {
 import {
   AMBIENT_NEGATIVE_COLOR,
   AMBIENT_PRICE_COLOR_AB_KEY,
-  SOCIAL_AI_QUICK_BUY_AB_KEY,
 } from '../components/abTestConfig';
+import { SOCIAL_AI_QUICK_BUY_AB_KEY } from '../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/abTestConfig';
 import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
 
