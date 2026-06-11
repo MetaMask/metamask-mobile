@@ -28,7 +28,7 @@ jest.mock('./hooks/useQuickBuySetup', () => ({
   useQuickBuySetup: jest.fn(),
 }));
 
-// Captures the onOpenBottomSheet callback registered by QuickBuyBottomSheetInner.
+// Captures the onOpenDialog callback registered by QuickBuyRootInner.
 // Call storedOnOpenCallback() inside act() after render to simulate the sheet
 // finishing its open animation and make isContentReady become true.
 let storedOnOpenCallback: (() => void) | undefined;
@@ -41,7 +41,7 @@ jest.mock('@metamask/design-system-react-native', () => {
 
   return {
     ...actual,
-    BottomSheet: ReactMock.forwardRef(
+    BottomSheetDialog: ReactMock.forwardRef(
       (
         {
           children,
@@ -53,13 +53,14 @@ jest.mock('@metamask/design-system-react-native', () => {
         ref: unknown,
       ) => {
         ReactMock.useImperativeHandle(ref, () => ({
-          onOpenBottomSheet: (cb: () => void) => {
+          onOpenDialog: (cb: () => void) => {
             storedOnOpenCallback = cb;
           },
+          onCloseDialog: (cb?: () => void) => cb?.(),
         }));
         return ReactMock.createElement(
           View,
-          { testID: 'mock-bottom-sheet', onTouchEnd: onClose },
+          { testID: 'mock-bottom-sheet-dialog', onTouchEnd: onClose },
           children,
         );
       },
@@ -305,7 +306,9 @@ describe('QuickBuy.Root', () => {
         />,
       );
 
-      expect(screen.queryByTestId('mock-bottom-sheet')).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('mock-bottom-sheet-dialog'),
+      ).not.toBeOnTheScreen();
     });
 
     it('mounts the inner sheet when visible with a valid position', () => {
@@ -318,7 +321,7 @@ describe('QuickBuy.Root', () => {
         />,
       );
 
-      expect(screen.getByTestId('mock-bottom-sheet')).toBeOnTheScreen();
+      expect(screen.getByTestId('mock-bottom-sheet-dialog')).toBeOnTheScreen();
     });
   });
 

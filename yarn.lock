@@ -8008,19 +8008,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/authenticated-user-storage@npm:^1.0.1":
-  version: 1.0.1
-  resolution: "@metamask/authenticated-user-storage@npm:1.0.1"
-  dependencies:
-    "@metamask/base-data-service": "npm:^0.1.2"
-    "@metamask/controller-utils": "npm:^12.0.0"
-    "@metamask/messenger": "npm:^1.2.0"
-    "@metamask/superstruct": "npm:^3.1.0"
-    "@metamask/utils": "npm:^11.9.0"
-  checksum: 10/e6ae2f9a094536e269ec73f87a9939701bf2ce9fd3bf32671da49341da8d13179d55a4e34a1c9d899e48e707c7a1d12e36faaf1f0b4e5fe82445ca43b5265fc5
-  languageName: node
-  linkType: hard
-
 "@metamask/authenticated-user-storage@npm:^2.0.0":
   version: 2.0.0
   resolution: "@metamask/authenticated-user-storage@npm:2.0.0"
@@ -8264,10 +8251,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/controller-utils@npm:^12.0.0, @metamask/controller-utils@npm:^12.1.0, @metamask/controller-utils@npm:^12.1.1":
-  version: 12.1.1
-  resolution: "@metamask/controller-utils@npm:12.1.1"
+"@metamask/controller-utils@npm:^12.0.0, @metamask/controller-utils@npm:^12.1.0, @metamask/controller-utils@npm:^12.1.1, @metamask/controller-utils@npm:^12.2.0":
+  version: 12.2.0
+  resolution: "@metamask/controller-utils@npm:12.2.0"
   dependencies:
+    "@ethersproject/abi": "npm:^5.7.0"
     "@metamask/eth-query": "npm:^4.0.0"
     "@metamask/ethjs-unit": "npm:^0.3.0"
     "@metamask/utils": "npm:^11.9.0"
@@ -8281,7 +8269,7 @@ __metadata:
     lodash: "npm:^4.17.21"
   peerDependencies:
     "@babel/runtime": ^7.0.0
-  checksum: 10/39e22e0247ee26a83316563c35ec206053bf95310e66441a6d416f33837f62da97abea1d52429b208e22b23fc97ad13b8a6d93d94607638b0567a45efdab1933
+  checksum: 10/24551cec486319b39e0db6792e5d26bafa7fb87dce63d516cc80a5645f7c185b7911e89d21189e7270d338436074bc6e1e6e0983b008cb130292ee1e1902c28d
   languageName: node
   linkType: hard
 
@@ -8315,15 +8303,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/delegation-controller@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "@metamask/delegation-controller@npm:3.0.0"
+"@metamask/delegation-controller@npm:^3.0.2":
+  version: 3.0.2
+  resolution: "@metamask/delegation-controller@npm:3.0.2"
   dependencies:
-    "@metamask/base-controller": "npm:^9.0.1"
-    "@metamask/keyring-controller": "npm:^25.2.0"
-    "@metamask/messenger": "npm:^1.1.1"
+    "@metamask/base-controller": "npm:^9.1.0"
+    "@metamask/keyring-controller": "npm:^27.0.0"
+    "@metamask/messenger": "npm:^1.2.0"
     "@metamask/utils": "npm:^11.9.0"
-  checksum: 10/39805fa41088f3e816d4ef650a81f724e4b52528ade882fd3580436acccdc2da4072658abe00d33fb27d597e88f97d104e140718d7e67b132ff1b9bba0887fa4
+  checksum: 10/d6c11c8edea96b72f0411c347cb5aa7b05b123bd688d6e68297aacb1db9a37ef4d2f680cfa6e59b44d66046df95b5fed6d454122b2559085eedea8f1a63e36d8
   languageName: node
   linkType: hard
 
@@ -8338,14 +8326,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/delegation-core@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "@metamask/delegation-core@npm:2.0.0"
+"@metamask/delegation-core@npm:^2.2.1":
+  version: 2.2.1
+  resolution: "@metamask/delegation-core@npm:2.2.1"
   dependencies:
     "@metamask/abi-utils": "npm:^3.0.0"
     "@metamask/utils": "npm:^11.4.0"
     "@noble/hashes": "npm:^1.8.0"
-  checksum: 10/b473160e4cb4a6d463c6015de6e90d057034d2e8f2905068e1f44f93c8247618c5d84a155e86dfaa125dacb040951643517b9a76961bf8d215c194dc4d1cc0ad
+  checksum: 10/8cc532e4a5fdc83eddb36fada6283d51629272fcce8b7c7c2d3b4addde5aff7c741365a3bcd701364460fbbcbbe94fccc0460ee3ef9af284a82f84ca708f0e06
   languageName: node
   linkType: hard
 
@@ -8356,7 +8344,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/delegation-deployments@npm:^1.0.0, @metamask/delegation-deployments@npm:^1.3.0":
+"@metamask/delegation-deployments@npm:^1.0.0, @metamask/delegation-deployments@npm:^1.4.0":
   version: 1.4.0
   resolution: "@metamask/delegation-deployments@npm:1.4.0"
   checksum: 10/e5e7b83e27daec5b1b61482647d43d4b685954818ff02687e2dbe8169a4dfe199cc8d2ed444242b60425ac2e7d2cf2a5ca29f3e69936abe6a8391f578ec693bb
@@ -9181,21 +9169,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/money-account-upgrade-controller@npm:^2.0.0":
-  version: 2.0.1
-  resolution: "@metamask/money-account-upgrade-controller@npm:2.0.1"
+"@metamask/money-account-upgrade-controller@npm:^2.0.5":
+  version: 2.0.5
+  resolution: "@metamask/money-account-upgrade-controller@npm:2.0.5"
   dependencies:
-    "@metamask/authenticated-user-storage": "npm:^1.0.1"
+    "@metamask/authenticated-user-storage": "npm:^2.0.0"
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/chomp-api-service": "npm:^3.1.0"
-    "@metamask/delegation-controller": "npm:^3.0.0"
-    "@metamask/delegation-core": "npm:^2.0.0"
-    "@metamask/delegation-deployments": "npm:^1.3.0"
-    "@metamask/keyring-controller": "npm:^25.5.0"
+    "@metamask/delegation-controller": "npm:^3.0.2"
+    "@metamask/delegation-core": "npm:^2.2.1"
+    "@metamask/delegation-deployments": "npm:^1.4.0"
+    "@metamask/keyring-controller": "npm:^27.0.0"
     "@metamask/messenger": "npm:^1.2.0"
     "@metamask/network-controller": "npm:^32.0.0"
-    "@metamask/utils": "npm:^11.9.0"
-  checksum: 10/5a903ccde41188f9e61a0200f79b8bae540c0ca31d8b7e4089708c876eaba46accdd7b2b5e110e7228d724b35e8f279b2fc5e257f3dc9d5d0f2b764416f968fe
+    "@metamask/utils": "npm:^11.11.0"
+  checksum: 10/ce7c34035abe401f310832fe15cd8cd99c3740d72ead914b170667cd65c2612820c6936eaaf8b9bf1bf2407aed92ff7cc2bff7bebfc12ce40683e68344b6c606
   languageName: node
   linkType: hard
 
@@ -9440,13 +9428,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/perps-controller@npm:^8.0.0":
-  version: 8.0.0
-  resolution: "@metamask/perps-controller@npm:8.0.0"
+"@metamask/perps-controller@npm:^8.1.0":
+  version: 8.1.0
+  resolution: "@metamask/perps-controller@npm:8.1.0"
   dependencies:
     "@metamask/abi-utils": "npm:^2.0.3"
     "@metamask/base-controller": "npm:^9.1.0"
-    "@metamask/controller-utils": "npm:^12.1.0"
+    "@metamask/controller-utils": "npm:^12.2.0"
     "@metamask/messenger": "npm:^1.2.0"
     "@metamask/utils": "npm:^11.9.0"
     "@myx-trade/sdk": "npm:^0.1.265"
@@ -9457,7 +9445,7 @@ __metadata:
   dependenciesMeta:
     "@myx-trade/sdk":
       optional: true
-  checksum: 10/7b06134fbb3a945a44a5349a29a120094069d66f011af9989ae560099e1bd12a4932aa1c5cb66a5a5c40b41f96738d7e633d3332e482b3e01d9b7f52be6363aa
+  checksum: 10/adb4501e0d5fcb8837ea87bdea43bc5c0444838d218d0cdd3d3153fb3dc25307906e5078f7ac38f2799569bb7d82c64c3d352b78d77829da4068275c5dec6849
   languageName: node
   linkType: hard
 
@@ -35282,7 +35270,7 @@ __metadata:
     "@metamask/mobile-wallet-protocol-wallet-client": "npm:^0.3.0"
     "@metamask/money-account-balance-service": "npm:^1.0.0"
     "@metamask/money-account-controller": "npm:^0.2.0"
-    "@metamask/money-account-upgrade-controller": "npm:^2.0.0"
+    "@metamask/money-account-upgrade-controller": "npm:^2.0.5"
     "@metamask/multichain-account-service": "npm:^10.0.2"
     "@metamask/multichain-api-client": "npm:^0.10.1"
     "@metamask/multichain-api-middleware": "npm:^3.1.1"
@@ -35294,7 +35282,7 @@ __metadata:
     "@metamask/notification-services-controller": "npm:24.1.1"
     "@metamask/object-multiplex": "npm:^1.1.0"
     "@metamask/permission-controller": "npm:^13.1.1"
-    "@metamask/perps-controller": "npm:^8.0.0"
+    "@metamask/perps-controller": "npm:^8.1.0"
     "@metamask/phishing-controller": "npm:^17.2.0"
     "@metamask/post-message-stream": "npm:^10.0.0"
     "@metamask/preferences-controller": "npm:^23.0.0"
