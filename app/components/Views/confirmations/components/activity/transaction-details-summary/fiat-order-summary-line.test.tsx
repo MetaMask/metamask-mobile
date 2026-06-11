@@ -15,10 +15,11 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { FiatOrderSummaryLine } from './fiat-order-summary-line';
 
 const mockNavigate = jest.fn();
+const mockGetParent = jest.fn(() => ({ navigate: mockNavigate }));
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({ navigate: mockNavigate }),
+  useNavigation: () => ({ navigate: jest.fn(), getParent: mockGetParent }),
 }));
 jest.mock('../../../../../../selectors/bridgeStatusController');
 jest.mock('../../../../../../util/bridge/hooks/useBridgeTxHistoryData');
@@ -61,6 +62,7 @@ describe('FiatOrderSummaryLine', () => {
   beforeEach(() => {
     jest.resetAllMocks();
     mockNavigate.mockClear();
+    mockGetParent.mockReturnValue({ navigate: mockNavigate });
 
     useFiatOrderStatusMock.mockReturnValue({
       severity: 'success',
