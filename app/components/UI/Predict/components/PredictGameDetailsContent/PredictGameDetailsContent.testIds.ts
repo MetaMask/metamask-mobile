@@ -4,4 +4,5 @@ export const PREDICT_GAME_DETAILS_CONTENT_TEST_IDS = {
   GAME_PICK: 'game-picks',
   TAB_CONTENT: 'game-details-tab-content',
   OUTCOMES_CONTENT: 'game-details-outcomes-content',
+  GAME_LIVE_BUTTON: 'game-details-game-live-button',
 } as const;

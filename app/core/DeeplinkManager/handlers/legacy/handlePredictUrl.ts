@@ -13,6 +13,7 @@ import {
 } from '../../../../components/UI/Predict/constants/worldCupTabs';
 import { DEFAULT_PREDICT_WORLD_CUP_FLAG } from '../../../../components/UI/Predict/constants/flags';
 import {
+  selectPredictGameLiveEnabledFlag,
   selectPredictHomeRedesignEnabledFlag,
   selectPredictWorldCupConfig,
 } from '../../../../components/UI/Predict/selectors/featureFlags';
@@ -41,6 +42,8 @@ interface PredictNavigationParams {
   feed?: string; // Dedicated feed key
   filter?: string; // Generic feed filter chip id (parsed separately from tab)
   query?: string; // Search query (when no market param)
+  live?: boolean; // Open the Game Live screen for the given market
+  mock?: boolean; // Game Live demo mode with a fully mocked game
 }
 
 /**
@@ -62,6 +65,8 @@ const parsePredictNavigationParams = (
   const feed = urlParams.get('feed')?.toLowerCase();
   const filter = urlParams.get('filter')?.toLowerCase();
   const query = urlParams.get('query') || urlParams.get('q') || undefined;
+  const live = urlParams.get('live')?.toLowerCase() === 'true';
+  const mock = urlParams.get('mock')?.toLowerCase() === 'true';
 
   return {
     market: marketId || undefined,
@@ -71,6 +76,8 @@ const parsePredictNavigationParams = (
     feed: feed || undefined,
     filter: filter || undefined,
     query,
+    live,
+    mock,
   };
 };
 
@@ -83,6 +90,18 @@ const getPredictWorldCupConfig = (): PredictWorldCupConfig => {
       error,
     );
     return DEFAULT_PREDICT_WORLD_CUP_FLAG;
+  }
+};
+
+const getPredictGameLiveEnabled = (): boolean => {
+  try {
+    return selectPredictGameLiveEnabledFlag(ReduxService.store.getState());
+  } catch (error) {
+    DevLogger.log(
+      '[handlePredictUrl] Unable to read Game Live flag, defaulting to disabled:',
+      error,
+    );
+    return false;
   }
 };
 
@@ -185,6 +204,34 @@ const handleGenericFeedNavigation = ({
 };
 
 /**
+ * Handle navigation to the Game Live screen (`?market=X&live=true`).
+ * Falls back to market details when the feature flag is disabled.
+ */
+const handleGameLiveNavigation = ({
+  marketId,
+  entryPoint,
+  mock,
+}: {
+  marketId: string;
+  entryPoint: string;
+  mock?: boolean;
+}) => {
+  DevLogger.log(
+    '[handlePredictUrl] Navigating to Game Live for market:',
+    marketId,
+  );
+
+  NavigationService.navigation.navigate(Routes.PREDICT.ROOT, {
+    screen: Routes.PREDICT.GAME_LIVE,
+    params: {
+      marketId,
+      entryPoint,
+      ...(mock && { mock }),
+    },
+  });
+};
+
+/**
  * Handle market-specific navigation
  * @param marketId The market ID to navigate to
  * @param entryPoint The entry point for analytics tracking
@@ -235,6 +282,8 @@ const handleMarketNavigation = (marketId: string, entryPoint: string) => {
  * - https://link.metamask.io/predict?feed=sports&tab=all&filter=live
  * - https://link.metamask.io/predict?feed=popular-today&filter=elections
  * - https://link.metamask.io/predict?feed=trending&q=bitcoin
+ * - https://link.metamask.io/predict?market=23246&live=true (Game Live screen, flag-gated)
+ * - https://link.metamask.io/predict?market=23246&live=true&mock=true (Game Live demo mode)
  *
  * Origin/EntryPoint handling:
  * - Base entryPoint is origin if provided, otherwise 'deeplink'
@@ -282,7 +331,13 @@ export const handlePredictUrl = async ({
       : baseEntryPoint;
     DevLogger.log('[handlePredictUrl] Entry point:', entryPoint);
 
-    if (navParams.market) {
+    if (navParams.market && navParams.live && getPredictGameLiveEnabled()) {
+      handleGameLiveNavigation({
+        marketId: navParams.market,
+        entryPoint,
+        mock: navParams.mock,
+      });
+    } else if (navParams.market) {
       handleMarketNavigation(navParams.market, entryPoint);
     } else if (navParams.feed === PREDICT_WORLD_CUP_FEED_PARAM) {
       handleWorldCupNavigation({

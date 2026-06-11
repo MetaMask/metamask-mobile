@@ -2,16 +2,28 @@ import React from 'react';
 import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 import { render, fireEvent, act } from '@testing-library/react-native';
 import PredictGameDetailsContent from './PredictGameDetailsContent';
+import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
+import Routes from '../../../../../constants/navigation/Routes';
 import { PredictMarket, PredictMarketStatus } from '../../types';
 import { useGameDetailsTabs } from '../../hooks/useGameDetailsTabs';
 
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     goBack: mockGoBack,
+    navigate: mockNavigate,
   }),
+}));
+
+// The component reads the Game Live feature flag via useSelector; this test
+// renders without a redux Provider, so stub the selector layer directly.
+let mockGameLiveEnabled = false;
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: () => mockGameLiveEnabled,
 }));
 
 jest.mock('../../hooks/usePredictActionGuard', () => ({
@@ -270,6 +282,7 @@ describe('PredictGameDetailsContent', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGameLiveEnabled = false;
     (useGameDetailsTabs as jest.Mock).mockReturnValue({
       enabled: false,
       showTabBar: false,
@@ -281,6 +294,55 @@ describe('PredictGameDetailsContent', () => {
       activeChipKey: '',
       handleChipSelect: jest.fn(),
       showChips: false,
+    });
+  });
+
+  describe('Game Live entry point', () => {
+    const renderWithGame = (
+      gameOverrides: Partial<NonNullable<PredictMarket['game']>> = {},
+    ) =>
+      render(
+        <PredictGameDetailsContent
+          market={createMockMarket({
+            game: { ...mockBaseGame, ...gameOverrides },
+          })}
+          onBack={mockOnBack}
+          onRefresh={mockOnRefresh}
+          onBetPress={mockOnBetPress}
+          refreshing={false}
+        />,
+      );
+
+    it('hides the Live button when the feature flag is disabled', () => {
+      const { queryByTestId } = renderWithGame({ status: 'ongoing' });
+
+      expect(
+        queryByTestId(PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.GAME_LIVE_BUTTON),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides the Live button for ended games even when enabled', () => {
+      mockGameLiveEnabled = true;
+
+      const { queryByTestId } = renderWithGame({ status: 'ended' });
+
+      expect(
+        queryByTestId(PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.GAME_LIVE_BUTTON),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows the Live button when enabled and navigates to Game Live on press', () => {
+      mockGameLiveEnabled = true;
+
+      const { getByTestId } = renderWithGame({ status: 'ongoing' });
+      fireEvent.press(
+        getByTestId(PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.GAME_LIVE_BUTTON),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.GAME_LIVE,
+        params: { marketId: 'test-market-id' },
+      });
     });
   });
 

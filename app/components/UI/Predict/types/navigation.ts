@@ -99,6 +99,14 @@ export interface PredictWorldCupParams {
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
+/** Predict Game Live screen parameters */
+export interface PredictGameLiveParams {
+  marketId: string;
+  entryPoint?: PredictEntryPoint;
+  /** Renders a fully mocked game + scripted updates (demo fallback). */
+  mock?: boolean;
+}
+
 /** Predict activity detail parameters */
 export interface PredictActivityDetailParams {
   activity: PredictActivityItem;
@@ -173,6 +181,7 @@ export interface PredictNavigationParamList extends ParamListBase {
   PredictMarketList: PredictMarketListRouteParams;
   PredictFeed: PredictFeedRouteParams;
   PredictMarketDetails: PredictMarketDetailsParams;
+  PredictGameLive: PredictGameLiveParams;
   PredictPositions: PredictPositionsParams | undefined;
   PredictWorldCup: PredictWorldCupParams | undefined;
   PredictSellPreview: PredictSellPreviewParams;

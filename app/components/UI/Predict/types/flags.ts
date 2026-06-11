@@ -57,6 +57,7 @@ export interface PredictFeatureFlags {
   predictWorldCup: PredictWorldCupConfig;
   predictPortfolioEnabled: boolean;
   predictHomeRedesignEnabled: boolean;
+  predictGameLiveEnabled: boolean;
 }
 
 export interface PredictHotTabFlag extends VersionGatedFeatureFlag {

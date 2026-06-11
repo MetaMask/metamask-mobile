@@ -12,13 +12,19 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
 import { Pressable, RefreshControl, ScrollView } from 'react-native';
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
+import { selectPredictGameLiveEnabledFlag } from '../../selectors/featureFlags';
+import type { PredictNavigationParamList } from '../../types/navigation';
+import { isGameEnded } from '../../utils/scoreboard';
 import { usePredictBottomSheet } from '../../hooks/usePredictBottomSheet';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import PredictChipList from '../PredictChipList';
@@ -63,6 +69,32 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
 
   const outcome = useMemo(() => market.outcomes[0], [market.outcomes]);
   const game = market.game;
+
+  const navigation =
+    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const gameLiveEnabled = useSelector(selectPredictGameLiveEnabledFlag);
+  const showGameLiveButton =
+    gameLiveEnabled &&
+    Boolean(game) &&
+    !isGameEnded({
+      status: game?.status,
+      period: game?.period,
+      endTime: game?.endTime,
+    });
+
+  // POC demo fallback: when the game hasn't started yet there's no live data
+  // to render, so open the scripted mock game instead.
+  const isGameInProgress = game?.status === 'ongoing';
+
+  const handleGameLivePress = useCallback(() => {
+    navigation.navigate(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.GAME_LIVE,
+      params: {
+        marketId: market.id,
+        ...(isGameInProgress ? {} : { mock: true }),
+      },
+    });
+  }, [isGameInProgress, market.id, navigation]);
 
   const { data: activePositions = [] } = usePredictPositions({
     marketId: market.id,
@@ -143,6 +175,23 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
             {market.title}
           </Text>
         </Box>
+
+        {showGameLiveButton && (
+          <Pressable
+            onPress={handleGameLivePress}
+            style={tw.style('bg-error-muted rounded-full px-3 py-1 mr-2')}
+            accessibilityRole="button"
+            testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.GAME_LIVE_BUTTON}
+          >
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.ErrorDefault}
+              style={tw.style('font-bold')}
+            >
+              {strings('predict.game_live.live_button')}
+            </Text>
+          </Pressable>
+        )}
 
         <PredictShareButton marketId={market.id} marketSlug={market.slug} />
       </Box>

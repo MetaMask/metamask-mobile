@@ -403,6 +403,7 @@ const Routes = {
     ACTIVITY_DETAIL: 'PredictActivityDetail',
     WORLD_CUP: 'PredictWorldCup',
     FEED: 'PredictFeed',
+    GAME_LIVE: 'PredictGameLive',
     MODALS: {
       ROOT: 'PredictModals',
       BUY_PREVIEW: 'PredictBuyPreview',

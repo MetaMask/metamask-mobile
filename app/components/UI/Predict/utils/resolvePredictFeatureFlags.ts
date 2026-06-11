@@ -57,7 +57,7 @@ export function resolvePredictFeatureFlags(
   const liveSportsFlag =
     unwrapRemoteFeatureFlag<PredictLiveSportsFlag>(flags.predictLiveSports) ??
     DEFAULT_LIVE_SPORTS_FLAG;
-  const liveSportsLeagues = liveSportsFlag.enabled
+  let liveSportsLeagues = liveSportsFlag.enabled
     ? filterSupportedLeagues(liveSportsFlag.leagues ?? [])
     : [];
 
@@ -123,6 +123,24 @@ export function resolvePredictFeatureFlags(
     ? parsedPredictWorldCup
     : DEFAULT_PREDICT_WORLD_CUP_FLAG;
 
+  // Resolved last so the validator call order seen by earlier flags is
+  // unchanged (their unit tests queue mock return values in call order).
+  const predictGameLiveEnabled = resolveVersionGatedBooleanFlag(
+    flags.predictGameLive,
+    process.env.MM_PREDICT_GAME_LIVE_ENABLED === 'true',
+  );
+  // POC convenience: the Game Live screen needs `market.game` populated, which
+  // is gated on the live-sports league list. When Game Live is enabled, make
+  // sure the leagues it targets are present regardless of the remote payload.
+  if (predictGameLiveEnabled) {
+    liveSportsLeagues = [
+      ...new Set([
+        ...liveSportsLeagues,
+        ...filterSupportedLeagues(['nba', 'nfl']),
+      ]),
+    ];
+  }
+
   return {
     feeCollection,
     liveSportsLeagues,
@@ -133,6 +151,7 @@ export function resolvePredictFeatureFlags(
     predictUpDownEnabled,
     predictPortfolioEnabled,
     predictHomeRedesignEnabled,
+    predictGameLiveEnabled,
     predictHomepageDiscoveryNbaChampionEnabled,
     predictWorldCup,
   };

@@ -19,6 +19,7 @@ import PredictPositionsView from '../views/PredictPositionsView';
 import PredictMarketListRoute from './PredictMarketListRoute';
 import PredictWorldCup from '../views/PredictWorldCup';
 import PredictFeedView from '../views/PredictFeedView';
+import PredictGameLive from '../views/PredictGameLive';
 import PredictGTMModal from '../components/PredictGTMModal';
 import { useSelector } from 'react-redux';
 import { PredictPreviewSheetProvider } from '../contexts';
@@ -100,6 +101,11 @@ const PredictScreenStack = () => {
         />
 
         <Stack.Screen name={Routes.PREDICT.FEED} component={PredictFeedView} />
+
+        <Stack.Screen
+          name={Routes.PREDICT.GAME_LIVE}
+          component={PredictGameLive}
+        />
 
         <Stack.Screen
           name={Routes.PREDICT.POSITIONS}

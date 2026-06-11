@@ -2752,6 +2752,17 @@
     "sports": {
       "halftime": "Halftime",
       "final": "Final"
+    },
+    "game_live": {
+      "tab_feed": "Feed",
+      "tab_markets": "Markets",
+      "win_probability": "Win probability",
+      "waiting_for_plays": "Waiting for live plays…",
+      "game_unavailable": "This game is unavailable right now.",
+      "flash_market_demo_badge": "FLASH · DEMO",
+      "flash_market_closes_in": "Closes in {{seconds}}s",
+      "flash_market_closed": "Closed",
+      "live_button": "Live"
     }
   },
   "rwa": {

@@ -26,6 +26,12 @@ import { resolvePredictFeatureFlags } from '../../utils/resolvePredictFeatureFla
 export const selectPredictEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
+    // Local dev override: force Predict on regardless of the remote flag so
+    // the screens stay registered in the navigator (POC / demo builds).
+    if (process.env.MM_PREDICT_ENABLED === 'true') {
+      return true;
+    }
+
     const remoteFlag = unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(
       remoteFeatureFlags?.predictTradingEnabled,
     );
@@ -186,6 +192,16 @@ export const selectPredictPortfolioEnabledFlag = createSelector(
 export const selectPredictHomeRedesignEnabledFlag = createSelector(
   selectPredictFeatureFlags,
   (flags) => flags.predictHomeRedesignEnabled,
+);
+
+/**
+ * Selector for the Predict Game Live screen (REAL-style live game feed with
+ * inline betting). Remote flag `predictGameLive`, local env fallback
+ * `MM_PREDICT_GAME_LIVE_ENABLED`.
+ */
+export const selectPredictGameLiveEnabledFlag = createSelector(
+  selectPredictFeatureFlags,
+  (flags) => flags.predictGameLiveEnabled,
 );
 
 export const selectPredictFeaturedCarouselEnabledFlag = createSelector(
