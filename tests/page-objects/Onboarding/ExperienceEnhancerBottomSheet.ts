@@ -13,7 +13,7 @@ import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import PlaywrightGestures from '../../framework/PlaywrightGestures';
 
 class ExperienceEnhancerBottomSheet {
-  get container(): DetoxElement {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ExperienceEnhancerBottomSheetSelectorsIDs.BOTTOM_SHEET,
     );

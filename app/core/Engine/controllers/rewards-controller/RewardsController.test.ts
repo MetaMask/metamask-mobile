@@ -3318,6 +3318,23 @@ describe('RewardsController', () => {
       expect(result).toBeNull();
     });
 
+    it('returns null when VIP is disabled via isVipDisabled callback', async () => {
+      const vipDisabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+        isVipDisabled: () => true,
+      });
+
+      const result = await vipDisabledController.getPerpsDiscountForAccount(
+        CAIP_ACCOUNT_1,
+        10,
+      );
+
+      expect(result).toBeNull();
+      expect(mockMessenger.call).not.toHaveBeenCalled();
+    });
+
     it('returns null for accounts the controller has never seen (unhydrated)', async () => {
       const result = await controller.getPerpsDiscountForAccount(
         CAIP_ACCOUNT_2,
@@ -3871,6 +3888,21 @@ describe('RewardsController', () => {
       expect(result).toBeNull();
     });
 
+    it('returns null when VIP is disabled via isVipDisabled callback', async () => {
+      const vipDisabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+        isVipDisabled: () => true,
+      });
+
+      const result =
+        await vipDisabledController.getVipTierForAccount(CAIP_ACCOUNT_1);
+
+      expect(result).toBeNull();
+      expect(mockMessenger.call).not.toHaveBeenCalled();
+    });
+
     it('returns null for accounts the controller has never seen (unhydrated)', async () => {
       const result = await controller.getVipTierForAccount(CAIP_ACCOUNT_2);
       expect(result).toBeNull();
@@ -3920,6 +3952,51 @@ describe('RewardsController', () => {
       const result = disabledController.isRewardsFeatureEnabled();
 
       expect(result).toBe(false);
+    });
+  });
+
+  describe('isVipFeatureEnabled', () => {
+    it('returns true when neither rewards nor VIP is disabled', () => {
+      const enabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+        isVipDisabled: () => false,
+      });
+
+      expect(enabledController.isVipFeatureEnabled()).toBe(true);
+    });
+
+    it('returns false when VIP is disabled via isVipDisabled callback', () => {
+      const vipDisabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+        isVipDisabled: () => true,
+      });
+
+      expect(vipDisabledController.isVipFeatureEnabled()).toBe(false);
+    });
+
+    it('returns false when rewards is disabled even if VIP is enabled', () => {
+      const rewardsDisabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => true,
+        isVipDisabled: () => false,
+      });
+
+      expect(rewardsDisabledController.isVipFeatureEnabled()).toBe(false);
+    });
+
+    it('defaults to enabled when isVipDisabled is not provided', () => {
+      const defaultController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+      });
+
+      expect(defaultController.isVipFeatureEnabled()).toBe(true);
     });
   });
 
@@ -6899,63 +6976,67 @@ describe('RewardsController', () => {
     const createMockVIPDashboard = (
       overrides: Partial<VipDashboardDto> = {},
     ): VipDashboardDto => ({
-      program: { id: 'vip', name: 'VIP Pilot' },
+      program: { id: 'mock-vip-program', name: 'Acme Rewards Beta' },
       period: {
-        start: '2026-03-31T00:00:00.000Z',
-        end: '2026-04-30T23:59:59.999Z',
+        start: '2099-06-01T00:00:00.000Z',
+        end: '2099-06-30T23:59:59.999Z',
       },
-      currentTier: { id: 'gold-fox-vip-3', name: 'Gold Fox VIP 3', tier: 3 },
-      nextTier: { id: 'gold-fox-vip-4', name: 'Gold Fox VIP 4', tier: 4 },
+      currentTier: {
+        id: 'mock-tier-alpha-3',
+        name: 'Mock Tier Alpha 3',
+        tier: 3,
+      },
+      nextTier: { id: 'mock-tier-alpha-4', name: 'Mock Tier Alpha 4', tier: 4 },
       progress: {
-        percent: 72,
-        remainingPointsToNextTier: 800000,
+        percent: 42,
+        remainingPointsToNextTier: 123456,
         status: 'on_track',
       },
       fees: {
-        revenueShareBps: 150,
-        swapsBps: 15,
-        perpsBps: 4,
-        nextTierRevenueShareBps: 200,
-        nextTierSwapsBps: 12,
-        nextTierPerpsBps: 3,
+        revenueShareBps: 99,
+        swapsBps: 11,
+        perpsBps: 7,
+        nextTierRevenueShareBps: 88,
+        nextTierSwapsBps: 9,
+        nextTierPerpsBps: 6,
       },
       volume: {
-        swapsUsd: 4100000,
-        perpsUsd: 2300000,
-        points: 24400000,
-        pointsFromReferrals: 500000,
-        referrals: 2,
-        referralsCap: 10,
+        swapsUsd: 1234567,
+        perpsUsd: 9876543,
+        points: 5555555,
+        pointsFromReferrals: 111111,
+        referrals: 3,
+        referralsCap: 7,
       },
       pointsAllocation: {
-        earned: 24400000,
-        threshold: 100000000,
-        percent: 24.4,
+        earned: 5555555,
+        threshold: 7777777,
+        percent: 71.4,
       },
       tiers: [
         {
-          id: 'gold-fox-vip-3',
-          name: 'Gold Fox 3',
+          id: 'mock-tier-alpha-3',
+          name: 'Mock Tier Alpha 3',
           tier: 3,
-          pointsRequirement: 750000,
-          revenueShareBps: 150,
-          swapsBps: 15,
-          perpsBps: 4,
-          referralCarryoverBps: 2000,
+          pointsRequirement: 321000,
+          revenueShareBps: 99,
+          swapsBps: 11,
+          perpsBps: 7,
+          referralCarryoverBps: 4242,
           status: 'current',
         },
       ],
       localizedText: {
-        periodTitle: 'Mar 31 - Apr 30',
+        periodTitle: 'Jun 1 - Jun 30',
         memberIdTitle: 'Member ID',
         swapsFeeTitle: 'Swaps fee',
         perpsFeeTitle: 'Perps fee',
-        nextTierSwapsFeeDelta: '↓ 12 bps next tier',
-        nextTierPerpsFeeDelta: '↓ 3 bps next tier',
+        nextTierSwapsFeeDelta: '↓ 9 bps next tier',
+        nextTierPerpsFeeDelta: '↓ 6 bps next tier',
         revenueShareTitle: 'Revenue share',
         referralPointsTitle: 'Referral points',
-        nextTierRevenueShareDelta: '↑ 2% next tier',
-        nextTierReferralPointsDelta: '↑ 20% next tier',
+        nextTierRevenueShareDelta: '↑ 1% next tier',
+        nextTierReferralPointsDelta: '↑ 42% next tier',
         topTierDescription: 'Top tier reached',
         statsTitle: 'Volume',
         pointsTitle: 'Points',
@@ -6976,8 +7057,8 @@ describe('RewardsController', () => {
       const cachedState: VipDashboardState = {
         ...createMockVIPDashboard({
           currentTier: {
-            id: 'gold-fox-vip-2',
-            name: 'Gold Fox VIP 2',
+            id: 'mock-tier-alpha-2',
+            name: 'Mock Tier Alpha 2',
             tier: 2,
           },
         }),
@@ -7034,6 +7115,24 @@ describe('RewardsController', () => {
         ...apiDashboard,
         lastFetched: 123,
       });
+    });
+
+    it('returns null without fetching when VIP is disabled via isVipDisabled callback', async () => {
+      const vipDisabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+        isVipDisabled: () => true,
+      });
+
+      const result =
+        await vipDisabledController.getVIPDashboard(mockSubscriptionId);
+
+      expect(result).toBeNull();
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:getVIPDashboard',
+        mockSubscriptionId,
+      );
     });
 
     it('persists fetched VIP dashboard to vipDashboard state', async () => {
@@ -9524,44 +9623,52 @@ describe('RewardsController', () => {
           },
           vipDashboard: {
             [subscriptionId]: {
-              program: { id: 'vip', name: 'VIP Pilot' },
-              period: { start: '2026-03-31', end: '2026-04-30' },
-              currentTier: { id: 't3', name: 'Gold Fox VIP 3', tier: 3 },
-              nextTier: { id: 't4', name: 'Gold Fox VIP 4', tier: 4 },
+              program: { id: 'mock-vip-program', name: 'Acme Rewards Beta' },
+              period: { start: '2099-06-01', end: '2099-06-30' },
+              currentTier: {
+                id: 'mock-tier-alpha-3',
+                name: 'Mock Tier Alpha 3',
+                tier: 3,
+              },
+              nextTier: {
+                id: 'mock-tier-alpha-4',
+                name: 'Mock Tier Alpha 4',
+                tier: 4,
+              },
               progress: {
-                percent: 72,
-                remainingPointsToNextTier: 800000,
+                percent: 42,
+                remainingPointsToNextTier: 123456,
                 status: 'on_track',
               },
               fees: {
-                revenueShareBps: 150,
-                swapsBps: 15,
-                perpsBps: 4,
-                nextTierRevenueShareBps: 200,
-                nextTierSwapsBps: 12,
-                nextTierPerpsBps: 3,
+                revenueShareBps: 99,
+                swapsBps: 11,
+                perpsBps: 7,
+                nextTierRevenueShareBps: 88,
+                nextTierSwapsBps: 9,
+                nextTierPerpsBps: 6,
               },
               volume: {
-                swapsUsd: 4100000,
-                perpsUsd: 2300000,
-                points: 24400000,
-                pointsFromReferrals: 500000,
-                referrals: 2,
-                referralsCap: 10,
+                swapsUsd: 1234567,
+                perpsUsd: 9876543,
+                points: 5555555,
+                pointsFromReferrals: 111111,
+                referrals: 3,
+                referralsCap: 7,
               },
               pointsAllocation: { earned: 0, threshold: 1, percent: 0 },
               tiers: [],
               localizedText: {
-                periodTitle: 'Mar 31 - Apr 30',
+                periodTitle: 'Jun 1 - Jun 30',
                 memberIdTitle: 'Member ID',
                 swapsFeeTitle: 'Swaps fee',
                 perpsFeeTitle: 'Perps fee',
-                nextTierSwapsFeeDelta: '↓ 12 bps next tier',
-                nextTierPerpsFeeDelta: '↓ 3 bps next tier',
+                nextTierSwapsFeeDelta: '↓ 9 bps next tier',
+                nextTierPerpsFeeDelta: '↓ 6 bps next tier',
                 revenueShareTitle: 'Revenue share',
                 referralPointsTitle: 'Referral points',
-                nextTierRevenueShareDelta: '↑ 2% next tier',
-                nextTierReferralPointsDelta: '↑ 20% next tier',
+                nextTierRevenueShareDelta: '↑ 1% next tier',
+                nextTierReferralPointsDelta: '↑ 42% next tier',
                 topTierDescription: 'Top tier reached',
                 statsTitle: 'Volume',
                 pointsTitle: 'Points',
@@ -21324,9 +21431,11 @@ describe('RewardsController', () => {
       eligible: true,
       neighbors: [],
       computedAt: '2026-06-30T12:00:00.000Z',
+      marketsTraded: 3,
+      minimumMarketsTraded: 3,
     };
     const mockPositions: PredictThePitchPositionsDto = {
-      positions: [
+      openPositions: [
         {
           outcomeAssetId: 'token-1',
           outcomeAsset: 'Yes',
@@ -21347,6 +21456,7 @@ describe('RewardsController', () => {
           fillDate: '2026-06-30T12:00:00.000Z',
         },
       ],
+      resolvedPositions: [],
       computedAt: '2026-06-30T12:00:00.000Z',
     };
     const mockOutcome = {

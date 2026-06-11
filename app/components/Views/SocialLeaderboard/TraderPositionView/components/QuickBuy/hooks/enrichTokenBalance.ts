@@ -1,6 +1,11 @@
 import type { Hex } from '@metamask/utils';
 import { formatUnits } from 'ethers/lib/utils';
-import { isSolanaChainId, isNativeAddress } from '@metamask/bridge-controller';
+import {
+  isNonEvmChainId,
+  isSolanaChainId,
+  isNativeAddress,
+} from '@metamask/bridge-controller';
+import { BtcScope, TrxScope } from '@metamask/keyring-api';
 import type { BridgeToken } from '../../../../../../UI/Bridge/types';
 import { addCurrencySymbol } from '../../../../../../../util/number/bigint';
 import type { selectTokenMarketData } from '../../../../../../../selectors/tokenRatesController';
@@ -41,6 +46,8 @@ export interface TokenBalanceDeps {
   currencyRates: ReturnType<typeof selectCurrencyRates>;
   allNetworkConfigs?: Record<string, { nativeCurrency?: string } | undefined>;
   solanaAccount?: { id: string };
+  tronAccount?: { id: string };
+  bitcoinAccount?: { id: string };
   multichainBalances?: Record<
     string,
     Record<string, { amount?: string } | undefined> | undefined
@@ -173,20 +180,36 @@ const enrichEvmTokenBalance = (
   return priced(displayBalance, exchangeRate, balanceNum);
 };
 
-const enrichSolanaTokenBalance = (
+/**
+ * Resolves the non-EVM account whose multichain balances cover the candidate's
+ * chain. Multichain balances/rates are keyed by account id + CAIP asset id, so
+ * each non-EVM chain needs the matching account from the selected group.
+ */
+const getNonEvmAccount = (
+  chainId: BridgeToken['chainId'],
+  deps: TokenBalanceDeps,
+): { id: string } | undefined => {
+  if (isSolanaChainId(chainId)) return deps.solanaAccount;
+  if (chainId === TrxScope.Mainnet) return deps.tronAccount;
+  if (chainId === BtcScope.Mainnet) return deps.bitcoinAccount;
+  return undefined;
+};
+
+const enrichNonEvmTokenBalance = (
   candidate: BridgeToken,
   deps: TokenBalanceDeps,
   options: EnrichTokenBalanceOptions,
 ): TokenBalanceEnrichment | null => {
   const { includeZeroBalance } = options;
-  const { solanaAccount, multichainBalances, multichainRates } = deps;
+  const { multichainBalances, multichainRates } = deps;
 
   const dropOrZero = () => (includeZeroBalance ? zeroEnrichment() : null);
 
-  if (!solanaAccount) return dropOrZero();
+  const nonEvmAccount = getNonEvmAccount(candidate.chainId, deps);
+  if (!nonEvmAccount) return dropOrZero();
 
   const amountStr =
-    multichainBalances?.[solanaAccount.id]?.[candidate.address]?.amount;
+    multichainBalances?.[nonEvmAccount.id]?.[candidate.address]?.amount;
   if (!amountStr) return dropOrZero();
 
   const balanceNum = parseFloat(amountStr);
@@ -207,14 +230,15 @@ const enrichSolanaTokenBalance = (
 /**
  * Prices a single token candidate from cached Redux balances, returning the
  * shared balance fields (or `null` when the token should be omitted). Handles
- * EVM natives, EVM ERC-20s, and Solana assets, keeping the USD exchange-rate
- * semantics QuickBuy's amount math depends on.
+ * EVM natives, EVM ERC-20s, and non-EVM assets (Solana, Tron, Bitcoin) via the
+ * multichain balance/rate controllers, keeping the USD exchange-rate semantics
+ * QuickBuy's amount math depends on.
  */
 export const enrichTokenBalance = (
   candidate: BridgeToken,
   deps: TokenBalanceDeps,
   options: EnrichTokenBalanceOptions = {},
 ): TokenBalanceEnrichment | null =>
-  isSolanaChainId(candidate.chainId)
-    ? enrichSolanaTokenBalance(candidate, deps, options)
+  isNonEvmChainId(candidate.chainId)
+    ? enrichNonEvmTokenBalance(candidate, deps, options)
     : enrichEvmTokenBalance(candidate, deps, options);

@@ -30,7 +30,6 @@ import Row from '../../components/Row';
 import Quote from '../../components/Quote';
 import CustomAction from '../../components/CustomAction';
 import InfoAlert from '../../components/InfoAlert';
-import { getDepositNavbarOptions } from '../../../../Navbar';
 import {
   ButtonSize,
   ButtonVariants,
@@ -117,7 +116,7 @@ function Quotes() {
   const [remainingTime, setRemainingTime] = useState(
     appConfig.POLLING_INTERVAL,
   );
-  const { styles, theme } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, {});
 
   const scrollOffsetY = useSharedValue(0);
   const scrollHandler = useAnimatedScrollHandler((event) => {
@@ -582,17 +581,6 @@ function Quotes() {
   }, [ErrorFetchingQuotes, pollingCyclesLeft]);
 
   useEffect(() => {
-    navigation.setOptions(
-      getDepositNavbarOptions(
-        navigation,
-        { title: strings('fiat_on_ramp_aggregator.select_a_quote') },
-        theme,
-        handleCancelPress,
-      ),
-    );
-  }, [navigation, theme, handleCancelPress]);
-
-  useEffect(() => {
     if (isFetchingQuotes) return;
     setShouldFinishAnimation(true);
   }, [isFetchingQuotes]);
@@ -967,6 +955,7 @@ function Quotes() {
         <HeaderStandard
           title={strings('fiat_on_ramp_aggregator.recommended_quote')}
           onClose={() => handleClosePress(bottomSheetRef)}
+          closeButtonProps={{ testID: QuoteSelectors.CLOSE_BUTTON }}
         />
 
         {isInPolling && (

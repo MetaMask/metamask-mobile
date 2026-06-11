@@ -37,9 +37,6 @@ import Icon, {
 } from '../../../component-library/components/Icons/Icon';
 import { AddContactViewSelectorsIDs } from '../../Views/Settings/Contacts/AddContactView.testIds';
 import { SettingsViewSelectorsIDs } from '../../Views/Settings/SettingsView.testIds';
-import HeaderBase, {
-  HeaderBaseVariant,
-} from '../../../component-library/components/HeaderBase';
 import getHeaderCompactStandardNavbarOptions from '../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
@@ -52,6 +49,7 @@ import {
   BadgeWrapper,
   ButtonIcon,
   ButtonIconSize,
+  HeaderBase,
   IconColor as MMDSIconColor,
 } from '@metamask/design-system-react-native';
 
@@ -1432,29 +1430,6 @@ export function getStakingNavbar(
       ) : (
         <></>
       ),
-  };
-}
-
-/**
- * Function that returns the navigation options for the DeFi Protocol Positions Details screen
- *
- * @param {Object} navigation - Navigation object required to push new views
- * @returns {Object} - Corresponding navbar options
- */
-export function getDeFiProtocolPositionDetailsNavbarOptions(navigation) {
-  return {
-    headerShown: true,
-    headerTitle: () => null,
-    headerLeft: () => (
-      <ButtonIcon
-        style={styles.headerLeftButton}
-        onPress={() => navigation.pop()}
-        testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
-        size={ButtonIconSize.Md}
-        iconName={IconName.ArrowLeft}
-        iconColor={IconColor.Default}
-      />
-    ),
   };
 }
 

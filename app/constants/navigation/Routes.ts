@@ -134,6 +134,8 @@ const Routes = {
     'RewardsPredictThePitchCampaignLeaderboard',
   REWARDS_PREDICT_THE_PITCH_CAMPAIGN_PORTFOLIO_VIEW:
     'RewardsPredictThePitchCampaignPortfolioView',
+  REWARDS_PREDICT_THE_PITCH_CAMPAIGN_STATS:
+    'RewardsPredictThePitchCampaignStats',
   REWARDS_PERPS_TRADING_CAMPAIGN_LEADERBOARD:
     'RewardsPerpsTradingCampaignLeaderboard',
   REWARDS_PERPS_TRADING_CAMPAIGN_STATS: 'RewardsPerpsTradingCampaignStats',
@@ -400,6 +402,7 @@ const Routes = {
     POSITIONS: 'PredictPositions',
     ACTIVITY_DETAIL: 'PredictActivityDetail',
     WORLD_CUP: 'PredictWorldCup',
+    FEED: 'PredictFeed',
     MODALS: {
       ROOT: 'PredictModals',
       BUY_PREVIEW: 'PredictBuyPreview',

@@ -17,6 +17,19 @@ import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
 } from '../../../Earn/constants/musd';
+import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import {
+  BOTTOM_SHEET_NAMES,
+  COMPONENT_NAMES,
+  SCREEN_NAMES,
+} from '../../constants/moneyEvents';
+
+const mockTrackBottomSheetViewed = jest.fn();
+const mockTrackSurfaceClicked = jest.fn();
+
+jest.mock('../../hooks/useMoneyAnalytics', () => ({
+  useMoneyAnalytics: jest.fn(),
+}));
 
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockNavigate = jest.fn();
@@ -95,6 +108,10 @@ describe('MoneyAddMoneySheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    (useMoneyAnalytics as jest.Mock).mockReturnValue({
+      trackBottomSheetViewed: mockTrackBottomSheetViewed,
+      trackSurfaceClicked: mockTrackSurfaceClicked,
+    });
     (useMusdBalance as jest.Mock).mockReturnValue({
       fiatBalanceAggregated: '1203.89',
       fiatBalanceAggregatedFormatted: '$1,203.89',
@@ -483,6 +500,59 @@ describe('MoneyAddMoneySheet', () => {
         address: MUSD_TOKEN_ADDRESS_BY_CHAIN[MUSD_CONVERSION_DEFAULT_CHAIN_ID],
         chainId: MUSD_CONVERSION_DEFAULT_CHAIN_ID,
       },
+    });
+  });
+
+  describe('analytics', () => {
+    it('initialises useMoneyAnalytics with MONEY_ADD_MONEY_SHEET bottom_sheet_name', () => {
+      renderWithProvider(<MoneyAddMoneySheet />);
+
+      expect(useMoneyAnalytics).toHaveBeenCalledWith({
+        bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_ADD_MONEY_SHEET,
+      });
+    });
+
+    it('calls trackBottomSheetViewed on mount', () => {
+      renderWithProvider(<MoneyAddMoneySheet />);
+
+      expect(mockTrackBottomSheetViewed).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls trackSurfaceClicked with CONVERT_CRYPTO component when "Convert crypto" row is pressed', () => {
+      const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+      fireEvent.press(
+        getByTestId(MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION),
+      );
+
+      expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
+        component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_CONVERT_CRYPTO,
+        redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+      });
+    });
+
+    it('calls trackSurfaceClicked with DEPOSIT_FUNDS component when "Deposit funds" row is pressed', () => {
+      const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+      fireEvent.press(
+        getByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
+      );
+
+      expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
+        component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_DEPOSIT_FUNDS,
+        redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+      });
+    });
+
+    it('calls trackSurfaceClicked with MOVE_MUSD component when "Move mUSD" row is pressed', () => {
+      const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+      fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION));
+
+      expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
+        component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_MOVE_MUSD,
+        redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+      });
     });
   });
 });
