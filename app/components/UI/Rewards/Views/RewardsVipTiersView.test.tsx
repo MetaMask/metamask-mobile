@@ -7,6 +7,7 @@ import {
   selectIsCurrentSubscriptionVipEnabled,
   selectRewardsSubscriptionId,
 } from '../../../../selectors/rewards';
+import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { useVipDashboard } from '../hooks/useVipDashboard';
 import type { VipDashboardState } from '../../../../core/Engine/controllers/rewards-controller/types';
@@ -171,6 +172,10 @@ jest.mock('../../../../selectors/rewards', () => ({
   selectRewardsSubscriptionId: jest.fn(),
 }));
 
+jest.mock('../../../../selectors/featureFlagController/vipProgram', () => ({
+  selectVipProgramEnabled: jest.fn(),
+}));
+
 jest.mock('../../../Views/ErrorBoundary', () => ({
   __esModule: true,
   default: function MockErrorBoundary({
@@ -288,6 +293,7 @@ const mockSubscribed = () => {
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectRewardsSubscriptionId) return 'test-subscription-id';
     if (selector === selectIsCurrentSubscriptionVipEnabled) return true;
+    if (selector === selectVipProgramEnabled) return true;
     return undefined;
   });
 };
@@ -354,6 +360,25 @@ describe('RewardsVipTiersView', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectRewardsSubscriptionId) return 'sub';
       if (selector === selectIsCurrentSubscriptionVipEnabled) return false;
+      if (selector === selectVipProgramEnabled) return true;
+      return undefined;
+    });
+
+    const { queryByTestId } = render(<RewardsVipTiersView />);
+    expect(queryByTestId(REWARDS_VIP_TIERS_VIEW_TEST_IDS.ROOT)).toBeNull();
+    await waitFor(() => {
+      expect(mockDispatch).toHaveBeenCalledWith(
+        StackActions.replace(Routes.REWARDS_DASHBOARD),
+      );
+    });
+  });
+
+  it('redirects to the rewards dashboard when the VIP program flag is off, even for a VIP subscription', async () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectRewardsSubscriptionId)
+        return 'test-subscription-id';
+      if (selector === selectIsCurrentSubscriptionVipEnabled) return true;
+      if (selector === selectVipProgramEnabled) return false;
       return undefined;
     });
 

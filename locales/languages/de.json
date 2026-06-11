@@ -9215,11 +9215,7 @@
       "stats_qualify_for_rank_description": "Handeln Sie {{notionalRemaining}} mehr an Nominalvolumen, um berechtigt zu sein.",
       "stats_error_title": "Statistiken konnten nicht geladen werden",
       "stats_error_description": "Wir hatten ein Problem beim Laden Ihrer Statistik. Bitte versuchen Sie es erneut.",
-      "stats_retry": "Erneut versuchen",
-      "completed_label_total_participants": "Gesamteilnehmer",
-      "completed_label_total_volume": "Gesamtvolumen",
-      "completed_label_top_pnl": "Top-GuV",
-      "completed_label_winners": "Gewinner"
+      "stats_retry": "Erneut versuchen"
     },
     "predict_the_pitch_campaign": {
       "title": "Predict The Pitch",

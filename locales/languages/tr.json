@@ -9215,11 +9215,7 @@
       "stats_qualify_for_rank_description": "Uygunluk kazanmak için {{notionalRemaining}} daha nominal hacimli işlem yapın.",
       "stats_error_title": "İstatistikler yüklenemiyor",
       "stats_error_description": "İstatistikleriniz yüklenirken bir problem yaşadık. Lütfen tekrar deneyin.",
-      "stats_retry": "Tekrar Dene",
-      "completed_label_total_participants": "Toplam katılımcı",
-      "completed_label_total_volume": "Toplam hacim",
-      "completed_label_top_pnl": "Toplam Kazanç/Zarar",
-      "completed_label_winners": "Kazananlar"
+      "stats_retry": "Tekrar Dene"
     },
     "predict_the_pitch_campaign": {
       "title": "Predict The Pitch",

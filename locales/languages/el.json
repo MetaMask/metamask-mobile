@@ -9215,11 +9215,7 @@
       "stats_qualify_for_rank_description": "Κάντε συναλλαγές επιπλέον {{notionalRemaining}} σε ονομαστικό όγκο για να πληροίτε τα κριτήρια.",
       "stats_error_title": "Δεν ήταν δυνατή η φόρτωση των στατιστικών",
       "stats_error_description": "Παρουσιάστηκε πρόβλημα κατά τη φόρτωση των στατιστικών σας. Προσπαθήστε ξανά.",
-      "stats_retry": "Επανάληψη",
-      "completed_label_total_participants": "Συνολικοί συμμετέχοντες",
-      "completed_label_total_volume": "Συνολικός όγκος συναλλαγών",
-      "completed_label_top_pnl": "Κορυφαία Κ&Ζ",
-      "completed_label_winners": "Νικητές"
+      "stats_retry": "Επανάληψη"
     },
     "predict_the_pitch_campaign": {
       "title": "Predict The Pitch",

@@ -9215,11 +9215,7 @@
       "stats_qualify_for_rank_description": "Giao dịch thêm {{notionalRemaining}} khối lượng danh nghĩa để đủ điều kiện tham gia.",
       "stats_error_title": "Không thể tải số liệu thống kê",
       "stats_error_description": "Chúng tôi đã gặp sự cố khi tải số liệu thống kê của bạn. Vui lòng thử lại.",
-      "stats_retry": "Thử lại",
-      "completed_label_total_participants": "Tổng số người tham gia",
-      "completed_label_total_volume": "Tổng khối lượng",
-      "completed_label_top_pnl": "Lãi/Lỗ cao nhất",
-      "completed_label_winners": "Người chiến thắng"
+      "stats_retry": "Thử lại"
     },
     "predict_the_pitch_campaign": {
       "title": "Predict The Pitch",

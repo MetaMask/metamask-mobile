@@ -9215,11 +9215,7 @@
       "stats_qualify_for_rank_description": "Наторгуйте еще {{notionalRemaining}} номинального объема, чтобы получить право на участие.",
       "stats_error_title": "Не удалось загрузить статистику",
       "stats_error_description": "У нас возникла проблема с загрузкой вашей статистики. Пожалуйста, попробуйте еще раз.",
-      "stats_retry": "Повтор",
-      "completed_label_total_participants": "Всего участников",
-      "completed_label_total_volume": "Общий объем",
-      "completed_label_top_pnl": "Лучший показатель П/У",
-      "completed_label_winners": "Победители"
+      "stats_retry": "Повтор"
     },
     "predict_the_pitch_campaign": {
       "title": "Predict The Pitch",

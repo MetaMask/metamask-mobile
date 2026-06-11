@@ -9215,11 +9215,7 @@
       "stats_qualify_for_rank_description": "Opera {{notionalRemaining}} más en volumen nocional para poder participar.",
       "stats_error_title": "No se pueden cargar las estadísticas",
       "stats_error_description": "Hubo un problema al cargar tus estadísticas. Inténtalo de nuevo.",
-      "stats_retry": "Reintentar",
-      "completed_label_total_participants": "Participantes totales",
-      "completed_label_total_volume": "Volumen total",
-      "completed_label_top_pnl": "Mejor P&L",
-      "completed_label_winners": "Ganadores"
+      "stats_retry": "Reintentar"
     },
     "predict_the_pitch_campaign": {
       "title": "Predict The Pitch",
