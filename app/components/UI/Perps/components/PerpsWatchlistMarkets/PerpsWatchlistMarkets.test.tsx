@@ -5,6 +5,8 @@ import PerpsWatchlistMarkets from './PerpsWatchlistMarkets';
 import { type PerpsMarketData } from '@metamask/perps-controller';
 import Routes from '../../../../../constants/navigation/Routes';
 import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
+import { selectPerpsWatchlistEnabledFlag } from '../../selectors/featureFlags';
+import { selectPerpsWatchlistMarkets } from '../../selectors/perpsController';
 
 // ---------------------------------------------------------------------------
 // Mocks
@@ -107,7 +109,15 @@ jest.mock('../../../../../component-library/components/Icons/Icon', () => ({
 }));
 
 jest.mock('react-redux', () => ({
-  useSelector: jest.fn(() => []),
+  useSelector: jest.fn(),
+}));
+
+jest.mock('../../selectors/featureFlags', () => ({
+  selectPerpsWatchlistEnabledFlag: jest.fn(),
+}));
+
+jest.mock('../../selectors/perpsController', () => ({
+  selectPerpsWatchlistMarkets: jest.fn(),
 }));
 
 // ---------------------------------------------------------------------------
@@ -145,7 +155,12 @@ describe('PerpsWatchlistMarkets', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (useSelector as jest.Mock).mockReturnValue([]);
+    // Default: flag enabled, empty watchlist symbols
+    (useSelector as jest.Mock).mockImplementation((selector) => {
+      if (selector === selectPerpsWatchlistEnabledFlag) return true;
+      if (selector === selectPerpsWatchlistMarkets) return [];
+      return [];
+    });
     const { useNavigation } = jest.requireMock('@react-navigation/native');
     useNavigation.mockReturnValue({ navigate: mockNavigate });
   });
@@ -503,6 +518,114 @@ describe('PerpsWatchlistMarkets', () => {
       expect(() =>
         fireEvent.press(screen.getByTestId('perps-watchlist-header')),
       ).not.toThrow();
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Flag disabled — legacy (pre-redesign) path
+  // -------------------------------------------------------------------------
+
+  describe('when perps-watchlist-v2-enabled flag is OFF (legacy path)', () => {
+    beforeEach(() => {
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        if (selector === selectPerpsWatchlistEnabledFlag) return false;
+        if (selector === selectPerpsWatchlistMarkets) return [];
+        return [];
+      });
+    });
+
+    it('returns null when markets is empty', () => {
+      const { toJSON } = render(<PerpsWatchlistMarkets markets={[]} />);
+      expect(toJSON()).toBeNull();
+    });
+
+    it('returns null even when suggestedMarkets are provided', () => {
+      const { toJSON } = render(
+        <PerpsWatchlistMarkets
+          markets={[]}
+          suggestedMarkets={mockSuggestedMarkets}
+        />,
+      );
+      expect(toJSON()).toBeNull();
+    });
+
+    it('renders market rows when markets are present', () => {
+      render(<PerpsWatchlistMarkets markets={mockMarkets} />);
+      expect(screen.getByText('BTC')).toBeOnTheScreen();
+      expect(screen.getByText('ETH')).toBeOnTheScreen();
+    });
+
+    it('renders the Watchlist section header', () => {
+      render(<PerpsWatchlistMarkets markets={mockMarkets} />);
+      expect(screen.getByText('Watchlist')).toBeOnTheScreen();
+    });
+
+    it('renders the section testID', () => {
+      render(<PerpsWatchlistMarkets markets={mockMarkets} />);
+      expect(screen.getByTestId('perps-watchlist-section')).toBeOnTheScreen();
+    });
+
+    it('does not render suggested markets', () => {
+      render(
+        <PerpsWatchlistMarkets
+          markets={mockMarkets}
+          suggestedMarkets={mockSuggestedMarkets}
+        />,
+      );
+      for (const market of mockSuggestedMarkets) {
+        expect(
+          screen.queryByTestId(`perps-market-row-${market.symbol}`),
+        ).not.toBeOnTheScreen();
+      }
+    });
+
+    it('does not render show-more button regardless of market count', () => {
+      const manyMarkets = [
+        makeMarket('BTC', 'Bitcoin'),
+        makeMarket('ETH', 'Ethereum'),
+        makeMarket('SOL', 'Solana'),
+        makeMarket('AVAX', 'Avalanche'),
+        makeMarket('DOT', 'Polkadot'),
+      ];
+      render(<PerpsWatchlistMarkets markets={manyMarkets} />);
+      expect(screen.queryByText(/Show \d+ more/)).not.toBeOnTheScreen();
+      expect(screen.queryByText('Show less')).not.toBeOnTheScreen();
+      // All markets rendered (no pagination)
+      expect(screen.getByText('BTC')).toBeOnTheScreen();
+      expect(screen.getByText('DOT')).toBeOnTheScreen();
+    });
+
+    it('does not render the suggested section or empty-state subtitle', () => {
+      render(
+        <PerpsWatchlistMarkets
+          markets={mockMarkets}
+          suggestedMarkets={mockSuggestedMarkets}
+        />,
+      );
+      expect(
+        screen.queryByTestId('perps-watchlist-suggested-section'),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByText('Tap + to add a market to your watchlist.'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows skeleton during loading', () => {
+      render(<PerpsWatchlistMarkets markets={mockMarkets} isLoading />);
+      expect(screen.getByTestId('perps-row-skeleton-3')).toBeOnTheScreen();
+    });
+
+    it('navigates to market details on row press', () => {
+      render(<PerpsWatchlistMarkets markets={mockMarkets} />);
+      fireEvent.press(screen.getByTestId('perps-market-row-BTC'));
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: {
+          market: mockMarkets[0],
+          initialTab: undefined,
+          source: undefined,
+        },
+      });
     });
   });
 

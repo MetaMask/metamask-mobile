@@ -25,6 +25,7 @@ import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import PerpsCard from '../../components/PerpsCard';
 import { useSelector } from 'react-redux';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
+import { selectPerpsWatchlistEnabledFlag } from '../../selectors/featureFlags';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -101,11 +102,17 @@ const PerpsTabView = () => {
     ? styles.watchlistHeaderStyleWithBalance // 24px/4px
     : styles.watchlistHeaderStyleNoBalance; // 16px/4px
 
-  // The watchlist section is visible if the user has watchlist markets OR when suggested
-  // markets are available (empty state is shown instead of hiding the section entirely).
+  const isWatchlistEnabled = useSelector(selectPerpsWatchlistEnabledFlag);
+
+  // The watchlist section is visible if the user has watchlist markets OR, when the
+  // redesigned flag is ON, when suggested markets are available (V2 empty state renders).
+  // When the flag is OFF the V1 path returns null for an empty watchlist, so suggestions
+  // must not contribute to visibility — otherwise the Explore header gets incorrect spacing.
   const isWatchlistVisible =
     watchlistMarkets.length > 0 ||
-    (suggestedWatchlistMarkets.length > 0 && !isExploreLoading);
+    (isWatchlistEnabled &&
+      suggestedWatchlistMarkets.length > 0 &&
+      !isExploreLoading);
 
   // Explore header: depends on position and balance
   const exploreSectionHeaderStyle = isWatchlistVisible
