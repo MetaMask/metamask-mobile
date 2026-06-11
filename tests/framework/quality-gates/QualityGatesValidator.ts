@@ -97,7 +97,7 @@ class QualityGatesValidator {
           baseThreshold,
           exceeded,
           percentOver,
-          message: `Step ${index + 1} exceeded: ${duration}ms > ${threshold}ms (+${exceeded}ms / +${percentOver}%)`,
+          message: `Step ${index + 1} exceeded: ${duration}ms > ${threshold}ms (+${exceeded}ms / +${percentOver}%)\n    Description: ${timer.id}`,
         });
       }
     });
@@ -224,7 +224,7 @@ class QualityGatesValidator {
           baseThreshold,
           exceeded,
           percentOver,
-          message: `Step ${index + 1} exceeded: ${duration}ms > ${threshold}ms (+${exceeded}ms / +${percentOver}%)`,
+          message: `Step ${index + 1} exceeded: ${duration}ms > ${threshold}ms (+${exceeded}ms / +${percentOver}%)\n    Description: ${name}`,
         });
       }
     });

@@ -1,10 +1,13 @@
 import React, { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { Box } from '@metamask/design-system-react-native';
+import {
+  Box,
+  SectionDivider,
+  SectionHeader,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 import Routes from '../../../../../../../constants/navigation/Routes';
-import SectionHeader from '../../../../../../../component-library/components-temp/SectionHeader';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../../../Wallet/WalletView.testIds';
 import { PredictEntryPointProvider } from '../../../../../../UI/Predict/contexts';
@@ -44,6 +47,7 @@ export interface HomepagePredictWorldCupDiscoveryProps {
   ) => void;
   headerTestIdKey: PredictionsTrendingHeaderTestId;
   worldCup: UseHomepagePredictWorldCupMarketsResult;
+  worldCupEventCount?: number;
   nbaChampion: UseHomepagePredictTaggedMarketsResult;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   onTreatmentCtaClick?: (
@@ -59,6 +63,7 @@ const HomepagePredictWorldCupDiscovery: React.FC<
   onViewAll,
   headerTestIdKey,
   worldCup,
+  worldCupEventCount,
   nbaChampion,
   transactionActiveAbTests,
   onTreatmentCtaClick,
@@ -90,7 +95,7 @@ const HomepagePredictWorldCupDiscovery: React.FC<
       ? WORLD_CUP_CTA_CATEGORY_NAME
       : 'nba';
 
-  const { marketData, isFetching, hasMore } = worldCup;
+  const { marketData, isFetching } = worldCup;
   const { marketData: nbaMarketData, isFetching: isNbaFetching } = nbaChampion;
 
   const isInitialLoad = isFetching && marketData.length === 0;
@@ -99,14 +104,15 @@ const HomepagePredictWorldCupDiscovery: React.FC<
     isNbaFetching &&
     nbaMarketData.length === 0;
 
-  const eventCountLabel = useMemo(() => {
-    const n = marketData.length;
-    const i18nKey =
-      n > 0 && hasMore
-        ? 'predict.homepage_discovery.events_in_total_overflow'
-        : 'predict.homepage_discovery.events_in_total';
-    return strings(i18nKey, { count: n });
-  }, [marketData.length, hasMore]);
+  const eventCountLabel = useMemo(
+    () =>
+      worldCupEventCount === undefined
+        ? undefined
+        : strings('predict.homepage_discovery.events_in_total_overflow', {
+            count: worldCupEventCount,
+          }),
+    [worldCupEventCount],
+  );
 
   const championshipRow: ChampionshipRowState = useMemo(() => {
     if (championshipRowKind === 'nba') {
@@ -236,16 +242,18 @@ const HomepagePredictWorldCupDiscovery: React.FC<
   }, [championshipCtaCategoryName, onTreatmentCtaClick]);
 
   return (
-    <Box>
+    <>
+      <SectionDivider />
       <SectionHeader
         title={title}
+        isInteractive
         onPress={handleViewAll}
         testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(headerTestIdKey)}
       />
       <PredictEntryPointProvider
         entryPoint={PredictEventValues.ENTRY_POINT.HOME_SECTION}
       >
-        <Box twClassName="px-4 mt-3">
+        <Box twClassName="px-4">
           <BtcLiveRow
             onPress={handleBtcRow}
             btcSpotUsd={btcSpotUsd}
@@ -267,7 +275,7 @@ const HomepagePredictWorldCupDiscovery: React.FC<
           onStagePress={goToWorldCup}
         />
       </PredictEntryPointProvider>
-    </Box>
+    </>
   );
 };
 

@@ -70,6 +70,7 @@ import FeaturedCarousel from '../../components/FeaturedCarousel';
 import PredictWorldCupMainFeedBanner from '../../components/PredictWorldCupMainFeedBanner';
 import {
   selectPredictFeaturedCarouselEnabledFlag,
+  selectPredictPortfolioEnabledFlag,
   selectPredictUpDownEnabledFlag,
 } from '../../selectors/featureFlags';
 import PredictFeedSessionManager from '../../services/PredictFeedSessionManager';
@@ -78,6 +79,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import { TraceName } from '../../../../../util/trace';
 import Routes from '../../../../../constants/navigation/Routes';
+import Engine from '../../../../../core/Engine';
 import {
   TabItem,
   TabsBar,
@@ -95,10 +97,16 @@ const AnimatedFlashList = Animated.createAnimatedComponent(
 
 const PredictFeedHeader: React.FC<{
   onDepositWalletWithdrawPress?: () => void;
-}> = ({ onDepositWalletWithdrawPress }) => (
-  <Box twClassName="pb-4">
+  topInset?: number;
+  hideTitle?: boolean;
+}> = ({ onDepositWalletWithdrawPress, topInset = 0, hideTitle = false }) => (
+  <Box
+    twClassName="pb-4"
+    style={topInset > 0 ? { paddingTop: topInset } : undefined}
+  >
     <PredictBalance
       onDepositWalletWithdrawPress={onDepositWalletWithdrawPress}
+      hideTitle={hideTitle}
     />
   </Box>
 );
@@ -145,6 +153,8 @@ interface AnimatedHeaderProps {
   onHeaderLayout: (event: LayoutChangeEvent) => void;
   onTabBarLayout: (event: LayoutChangeEvent) => void;
   onDepositWalletWithdrawPress?: () => void;
+  topInset?: number;
+  hideTitle?: boolean;
 }
 
 const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
@@ -158,6 +168,8 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
   onHeaderLayout,
   onTabBarLayout,
   onDepositWalletWithdrawPress,
+  topInset = 0,
+  hideTitle = false,
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -197,6 +209,8 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
       >
         <PredictFeedHeader
           onDepositWalletWithdrawPress={onDepositWalletWithdrawPress}
+          topInset={topInset}
+          hideTitle={hideTitle}
         />
         {isFeaturedCarouselEnabled && (
           <Box twClassName="pb-3">
@@ -515,6 +529,12 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
 
 interface PredictFeedProps {
   hideHeader?: boolean;
+  /**
+   * Top padding before the title/balance header when embedded in
+   * HomepageDiscoveryTabs — keeps the predict background flush under the
+   * discovery tab bar and adds spacing before the screen title (32px).
+   */
+  topInset?: number;
   entryPoint?: PredictEntryPoint;
   onHeaderHiddenChange?: (hidden: boolean) => void;
   walletHeaderTranslateY?: SharedValue<number>;
@@ -523,6 +543,7 @@ interface PredictFeedProps {
 
 const PredictFeed: React.FC<PredictFeedProps> = ({
   hideHeader = false,
+  topInset = 0,
   entryPoint: propEntryPoint,
   onHeaderHiddenChange,
   walletHeaderTranslateY,
@@ -539,6 +560,9 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
   const feedEntryPoint = propEntryPoint ?? route.params?.entryPoint;
   const listEntryPoint =
     feedEntryPoint ?? PredictEventValues.ENTRY_POINT.PREDICT_FEED;
+  const predictPortfolioEnabled = useSelector(
+    selectPredictPortfolioEnabledFlag,
+  );
 
   const headerRef = useRef<View>(null);
   const tabBarRef = useRef<View>(null);
@@ -571,6 +595,10 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
       isSearchVisible,
     },
   });
+
+  useEffect(() => {
+    sessionManager.setPortfolioModuleEnabled(predictPortfolioEnabled);
+  }, [predictPortfolioEnabled, sessionManager]);
 
   useEffect(() => {
     sessionManager.enableAppStateListener();
@@ -631,6 +659,17 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
     withdrawUnavailableSheetRef.current?.onOpenBottomSheet();
   }, []);
 
+  const handleShowSearch = useCallback(() => {
+    Engine.context.PredictController.trackSearchInteracted({
+      interactionType: PredictEventValues.SEARCH_INTERACTION.OPENED,
+      predictFeedTab: tabs[activeIndex]?.key,
+      entryPoint: listEntryPoint,
+    });
+    showSearch();
+  }, [tabs, activeIndex, listEntryPoint, showSearch]);
+
+  const headerTopInset = hideHeader ? topInset : 0;
+
   return (
     <SafeAreaView
       edges={hideHeader ? [] : { bottom: 'additive' }}
@@ -656,7 +695,7 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
               endButtonIconProps={[
                 {
                   iconName: IconName.Search,
-                  onPress: showSearch,
+                  onPress: handleShowSearch,
                   testID: PredictSearchSelectorsIDs.SEARCH_BUTTON,
                 },
               ]}
@@ -676,6 +715,8 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
             onHeaderLayout={onHeaderLayout}
             onTabBarLayout={onTabBarLayout}
             onDepositWalletWithdrawPress={handleDepositWalletWithdrawPress}
+            topInset={headerTopInset}
+            hideTitle={hideHeader}
           />
 
           {layoutReady && (
@@ -700,6 +741,8 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
           onSearchChange={setSearchQuery}
           onClose={clearSearchAndClose}
           transactionActiveAbTests={transactionActiveAbTests}
+          predictFeedTab={tabs[activeIndex]?.key}
+          entryPoint={listEntryPoint}
         />
       </Box>
       <Box pointerEvents="box-none" twClassName="absolute inset-0 z-50">
