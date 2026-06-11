@@ -21,7 +21,12 @@ import {
 import {
   useNotificationStoragePreferences,
   type NotificationStoragePreferenceSection,
+  type NotificationStoragePreferences,
 } from './hooks/useNotificationStoragePreferences';
+import {
+  AGENTIC_CLI_NOTIFICATION_PREFERENCE_SECTION,
+  resolveAgenticCliPreference,
+} from '../../../../util/notifications/agenticCliNotificationPreferences';
 import { AccountsList } from './AccountsList';
 import { strings } from '../../../../../locales/i18n';
 import SocialAINotificationPreferencesContent from './SocialAINotificationPreferencesContent';
@@ -168,7 +173,10 @@ const NotificationSettingsSection = ({
     return null;
   }
 
-  const sectionPrefs = preferences[type];
+  const sectionPrefs: NotificationStoragePreferences[typeof type] =
+    type === AGENTIC_CLI_NOTIFICATION_PREFERENCE_SECTION
+      ? resolveAgenticCliPreference(preferences)
+      : preferences[type];
   const SectionContent = SECTION_CONTENT_BY_TYPE[type];
 
   return (

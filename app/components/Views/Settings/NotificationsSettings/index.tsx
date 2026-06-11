@@ -12,7 +12,12 @@ import SwitchLoadingModal from '../../../UI/Notification/SwitchLoadingModal';
 import { Props } from './NotificationsSettings.types';
 
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
+import { selectAgenticCliNotificationsEnabled } from '../../../../selectors/featureFlagController/agenticCliNotifications';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import {
+  AGENTIC_CLI_NOTIFICATION_PREFERENCE_SECTION,
+  resolveAgenticCliPreference,
+} from '../../../../util/notifications/agenticCliNotificationPreferences';
 
 import Routes from '../../../../constants/navigation/Routes';
 
@@ -100,6 +105,9 @@ const NotificationsSettings = ({ navigation }: Props) => {
   const isSocialLeaderboardEnabled = useSelector(
     selectSocialLeaderboardEnabled,
   );
+  const isAgenticCliNotificationsEnabled = useSelector(
+    selectAgenticCliNotificationsEnabled,
+  );
 
   const loadingText = useSwitchNotificationLoadingText();
   const { preferences } = useNotificationStoragePreferences();
@@ -171,6 +179,27 @@ const NotificationsSettings = ({ navigation }: Props) => {
                     'socialAI',
                     strings('app_settings.notifications_opts.social_ai_title'),
                     strings('app_settings.notifications_opts.social_ai_desc'),
+                  )
+                }
+              />
+            )}
+
+            {isAgenticCliNotificationsEnabled && (
+              <NotificationRow
+                title={strings(
+                  'app_settings.notifications_opts.agentic_cli_title',
+                )}
+                status={getStatusText(
+                  resolveAgenticCliPreference(preferences ?? null),
+                )}
+                iconName={IconName.Code}
+                onPress={() =>
+                  navigateToSection(
+                    AGENTIC_CLI_NOTIFICATION_PREFERENCE_SECTION,
+                    strings(
+                      'app_settings.notifications_opts.agentic_cli_title',
+                    ),
+                    strings('app_settings.notifications_opts.agentic_cli_desc'),
                   )
                 }
               />

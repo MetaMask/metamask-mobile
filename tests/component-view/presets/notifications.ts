@@ -43,6 +43,7 @@ interface NotificationsPresetOptions {
   featureAnnouncementsEnabled?: boolean;
   pushEnabled?: boolean;
   socialLeaderboardEnabled?: boolean;
+  agentic_cli_notifications_enabled?: boolean;
   notifications?: typeof MOCK_NOTIFICATIONS;
 }
 
@@ -64,6 +65,7 @@ export function buildNotificationsState(
     featureAnnouncementsEnabled = true,
     pushEnabled = true,
     socialLeaderboardEnabled = false,
+    agentic_cli_notifications_enabled = false,
     notifications = MOCK_NOTIFICATIONS,
   } = options;
 
@@ -99,6 +101,7 @@ export function buildNotificationsState(
               enabled: socialLeaderboardEnabled,
               minimumVersion: '0.0.1',
             },
+            agentic_cli_notifications_enabled,
           },
         },
         AccountsController: {

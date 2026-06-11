@@ -1,6 +1,7 @@
 import FCMService from '../../../../util/notifications/services/FCMService';
 import NotificationsService from '../../../../util/notifications/services/NotificationService';
 import { PressActionId } from '../../../../util/notifications';
+import { shouldSuppressAgenticCliPushDelivery } from '../../../../util/notifications/agenticCliNotificationDelivery';
 import { createNotificationMessage } from './create-push-message';
 
 export const createRegToken = FCMService.createRegToken;
@@ -8,6 +9,10 @@ export const deleteRegToken = FCMService.deleteRegToken;
 
 export const createSubscribeToPushNotifications = () => async () =>
   FCMService.listenToPushNotificationsReceived(async (notification) => {
+    if (await shouldSuppressAgenticCliPushDelivery(notification)) {
+      return;
+    }
+
     const notificationMessage = createNotificationMessage(notification);
     if (!notificationMessage) {
       return;
