@@ -7,6 +7,20 @@ import { useFiatPaymentHighlightedActions } from '../useFiatPaymentHighlightedAc
 import { usePayWithFiatSection } from './usePayWithFiatSection';
 
 jest.mock('../useFiatPaymentHighlightedActions');
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn().mockReturnValue(undefined),
+}));
+jest.mock('../../transactions/useTransactionMetadataRequest', () => ({
+  useTransactionMetadataRequest: jest.fn().mockReturnValue(undefined),
+}));
+jest.mock('../../../../../../core/Engine', () => ({
+  context: {
+    TransactionPayController: {
+      setTransactionConfig: jest.fn(),
+    },
+  },
+}));
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));

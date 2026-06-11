@@ -32,6 +32,7 @@ import {
   setTokenSelectorNetworkFilter,
 } from '../../../../../core/redux/slices/bridge';
 import {
+  FeatureId,
   formatChainIdToCaip,
   UnifiedSwapBridgeEventName,
 } from '@metamask/bridge-controller';
@@ -68,7 +69,7 @@ export interface BridgeTokenSelectorRouteParams {
 }
 
 const MIN_SEARCH_LENGTH = 3;
-const ESTIMATED_ITEM_HEIGHT = 72;
+const ESTIMATED_ITEM_HEIGHT = 68; // container paddingVertical(4×2) + itemWrapper paddingVertical(10×2) + AvatarSize.Lg(40px)
 const LOAD_MORE_DISTANCE_THRESHOLD = 300; // Distance from bottom to trigger load
 
 export const BridgeTokenSelector: React.FC = () => {
@@ -361,6 +362,7 @@ export const BridgeTokenSelector: React.FC = () => {
           token_contract: item.address,
           chain_name: networkName,
           chain_id: item.chainId,
+          feature_id: FeatureId.UNIFIED_SWAP_BRIDGE,
         },
       );
     },
@@ -546,6 +548,10 @@ export const BridgeTokenSelector: React.FC = () => {
         ListFooterComponent={renderFooter}
         ListEmptyComponent={renderEmptyState}
         onLayout={handleFlatListLayout}
+        initialNumToRender={8}
+        maxToRenderPerBatch={5}
+        windowSize={5}
+        removeClippedSubviews
       />
     </SafeAreaView>
   );

@@ -57,7 +57,7 @@ const StepperContent = ({
         <Box alignItems={BoxAlignItems.End}>
           <ButtonIcon
             iconName={IconName.Close}
-            size={ButtonIconSize.Lg}
+            size={ButtonIconSize.Sm}
             iconProps={
               closeButtonIconColor ? { color: closeButtonIconColor } : undefined
             }

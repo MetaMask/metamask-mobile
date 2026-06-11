@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -20,12 +20,18 @@ import {
   ButtonSize,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import QRAccountDisplay from '../../../QRAccountDisplay';
 import QRCode from 'react-native-qrcode-svg';
 import { getFormattedAddressFromInternalAccount } from '../../../../../core/Multichain/utils';
 import { getMultichainBlockExplorer } from '../../../../../core/Multichain/networks';
 import { ShareAddressIds } from './ShareAddress.testIds';
 import PNG_MM_LOGO_PATH from '../../../../../images/branding/fox.png';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import {
+  getQrCodeViewedAccountType,
+  trackQrCodeViewed,
+} from '../../../../../util/analytics/qrCodeViewedTracking';
 
 interface RootNavigationParamList extends ParamListBase {
   ShareAddress: {
@@ -41,6 +47,7 @@ export const ShareAddress = () => {
   const route = useRoute<ShareAddressRouteProp>();
   const { account } = route.params;
   const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const formattedAddress = getFormattedAddressFromInternalAccount(account);
 
   const blockExplorer:
@@ -50,6 +57,13 @@ export const ShareAddress = () => {
         blockExplorerName: string;
       }
     | undefined = useMemo(() => getMultichainBlockExplorer(account), [account]);
+
+  useEffect(() => {
+    trackQrCodeViewed(trackEvent, createEventBuilder, {
+      location: 'account-details',
+      account_type: getQrCodeViewedAccountType(account),
+    });
+  }, [account, createEventBuilder, trackEvent]);
 
   const handleExplorerLinkPress = useCallback(() => {
     if (blockExplorer) {

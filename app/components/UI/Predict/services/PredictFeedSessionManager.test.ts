@@ -110,6 +110,26 @@ describe('PredictFeedSessionManager', () => {
       );
     });
 
+    it('should extend real feed viewed events when portfolio module is enabled', () => {
+      const entryPoint = 'homepage_balance';
+      const initialTab = 'crypto';
+
+      sessionManager.setPortfolioModuleEnabled(true);
+      sessionManager.startSession(entryPoint, initialTab);
+
+      expect(mockTrackFeedViewed).toHaveBeenCalledWith({
+        sessionId: 'mock-session-id',
+        feedTab: initialTab,
+        numPagesViewed: 0,
+        sessionTime: 0,
+        entryPoint,
+        isSessionEnd: false,
+        portfolioModuleEnabled: true,
+        predictComponent:
+          PredictEventValues.PREDICT_COMPONENT.PREDICT_PORTFOLIO_MODULE,
+      });
+    });
+
     it('should ignore startSession if session already active', () => {
       sessionManager.startSession('homepage_balance');
       mockTrackFeedViewed.mockClear();
@@ -213,6 +233,22 @@ describe('PredictFeedSessionManager', () => {
           pageViewCount: 1,
         }),
       );
+    });
+
+    it('reuses feed viewed analytics for the World Cup main feed tab', () => {
+      sessionManager.startSession('predict_feed');
+      mockTrackFeedViewed.mockClear();
+
+      sessionManager.trackTabChange('world-cup');
+
+      expect(mockTrackFeedViewed).toHaveBeenCalledWith({
+        sessionId: 'mock-session-id',
+        feedTab: 'world-cup',
+        numPagesViewed: 1,
+        sessionTime: 0,
+        entryPoint: 'predict_feed',
+        isSessionEnd: false,
+      });
     });
 
     it('should ignore if no active session', () => {
@@ -375,6 +411,8 @@ describe('PredictFeedSessionManager', () => {
     });
 
     it('should start new session when app returns from background', () => {
+      sessionManager.setPortfolioModuleEnabled(true);
+
       // End session by backgrounding
       if (appStateChangeHandler) {
         appStateChangeHandler('background');
@@ -391,6 +429,9 @@ describe('PredictFeedSessionManager', () => {
           sessionId: 'mock-session-id',
           entryPoint: PredictEventValues.ENTRY_POINT.BACKGROUND,
           isSessionEnd: false,
+          portfolioModuleEnabled: true,
+          predictComponent:
+            PredictEventValues.PREDICT_COMPONENT.PREDICT_PORTFOLIO_MODULE,
         }),
       );
 

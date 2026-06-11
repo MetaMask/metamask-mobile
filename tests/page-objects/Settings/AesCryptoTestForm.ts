@@ -8,6 +8,7 @@ import {
 } from '../../../app/components/Views/AesCryptoTestForm/AesCrypto.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import { EncapsulatedElementType } from '../../framework';
 
 class AesCryptoTestForm {
   get scrollViewIdentifier(): Promise<Detox.NativeMatcher> {
@@ -15,108 +16,108 @@ class AesCryptoTestForm {
   }
 
   // Get account address
-  get accountAddress(): DetoxElement {
+  get accountAddress(): EncapsulatedElementType {
     return Matchers.getElementByID(accountAddress);
   }
 
   // Get response text
-  get responseText(): DetoxElement {
+  get responseText(): EncapsulatedElementType {
     return Matchers.getElementByID(responseText);
   }
 
   // Generate salt getters
-  get generateSaltBytesCountInput(): DetoxElement {
+  get generateSaltBytesCountInput(): EncapsulatedElementType {
     return Matchers.getElementByID(aesCryptoFormInputs.saltBytesCountInput);
   }
-  get generateSaltResponse(): Promise<IndexableNativeElement> {
+  get generateSaltResponse(): EncapsulatedElementType {
     return Matchers.getElementByID(aesCryptoFormResponses.saltResponse);
   }
 
-  get generateSaltButton(): DetoxElement {
+  get generateSaltButton(): EncapsulatedElementType {
     return Matchers.getElementByID(aesCryptoFormButtons.generateSaltButton);
   }
 
   // Generate encryption key from password getters
-  get generateEncryptionKeyPasswordInput(): DetoxElement {
+  get generateEncryptionKeyPasswordInput(): EncapsulatedElementType {
     return Matchers.getElementByID(aesCryptoFormInputs.passwordInput);
   }
-  get generateEncryptionKeySaltInput(): DetoxElement {
+  get generateEncryptionKeySaltInput(): EncapsulatedElementType {
     return Matchers.getElementByID(
       aesCryptoFormInputs.saltInputForEncryptionKey,
     );
   }
-  get generateEncryptionKeyResponse(): Promise<IndexableNativeElement> {
+  get generateEncryptionKeyResponse(): EncapsulatedElementType {
     return Matchers.getElementByID(
       aesCryptoFormResponses.generateEncryptionKeyResponse,
     );
   }
-  get generateEncryptionKeyButton(): DetoxElement {
+  get generateEncryptionKeyButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       aesCryptoFormButtons.generateEncryptionKeyButton,
     );
   }
 
   // Encrypt getters
-  get encryptDataInput(): DetoxElement {
+  get encryptDataInput(): EncapsulatedElementType {
     return Matchers.getElementByID(aesCryptoFormInputs.dataInputForEncryption);
   }
-  get encryptPasswordInput(): DetoxElement {
+  get encryptPasswordInput(): EncapsulatedElementType {
     return Matchers.getElementByID(
       aesCryptoFormInputs.passwordInputForEncryption,
     );
   }
-  get encryptResponse(): DetoxElement {
+  get encryptResponse(): EncapsulatedElementType {
     return Matchers.getElementByID(aesCryptoFormResponses.encryptionResponse);
   }
-  get encryptButton(): DetoxElement {
+  get encryptButton(): EncapsulatedElementType {
     return Matchers.getElementByID(aesCryptoFormButtons.encryptButton);
   }
 
   // Decrypt getters
-  get decryptPasswordInput(): DetoxElement {
+  get decryptPasswordInput(): EncapsulatedElementType {
     return Matchers.getElementByID(
       aesCryptoFormInputs.passwordInputForDecryption,
     );
   }
-  get decryptResponse(): DetoxElement {
+  get decryptResponse(): EncapsulatedElementType {
     return Matchers.getElementByID(aesCryptoFormResponses.decryptionResponse);
   }
-  get decryptButton(): DetoxElement {
+  get decryptButton(): EncapsulatedElementType {
     return Matchers.getElementByID(aesCryptoFormButtons.decryptButton);
   }
 
   // Encrypt with key getters
-  get encryptWithKeyEncryptionKeyInput(): DetoxElement {
+  get encryptWithKeyEncryptionKeyInput(): EncapsulatedElementType {
     return Matchers.getElementByID(
       aesCryptoFormInputs.encryptionKeyInputForEncryptionWithKey,
     );
   }
-  get encryptWithKeyDataInput(): DetoxElement {
+  get encryptWithKeyDataInput(): EncapsulatedElementType {
     return Matchers.getElementByID(
       aesCryptoFormInputs.dataInputForEncryptionWithKey,
     );
   }
-  get encryptWithKeyResponse(): DetoxElement {
+  get encryptWithKeyResponse(): EncapsulatedElementType {
     return Matchers.getElementByID(
       aesCryptoFormResponses.encryptionWithKeyResponse,
     );
   }
-  get encryptWithKeyButton(): DetoxElement {
+  get encryptWithKeyButton(): EncapsulatedElementType {
     return Matchers.getElementByID(aesCryptoFormButtons.encryptWithKeyButton);
   }
 
   // Decrypt with key getters
-  get decryptWithKeyEncryptionKeyInput(): DetoxElement {
+  get decryptWithKeyEncryptionKeyInput(): EncapsulatedElementType {
     return Matchers.getElementByID(
       aesCryptoFormInputs.encryptionKeyInputForDecryptionWithKey,
     );
   }
-  get decryptWithKeyResponse(): DetoxElement {
+  get decryptWithKeyResponse(): EncapsulatedElementType {
     return Matchers.getElementByID(
       aesCryptoFormResponses.decryptionWithKeyResponse,
     );
   }
-  get decryptWithKeyButton(): DetoxElement {
+  get decryptWithKeyButton(): EncapsulatedElementType {
     return Matchers.getElementByID(aesCryptoFormButtons.decryptWithKeyButton);
   }
 
@@ -185,7 +186,7 @@ class AesCryptoTestForm {
     });
 
     const responseFieldAtts = await (
-      await this.generateSaltResponse
+      (await this.generateSaltResponse) as Detox.IndexableNativeElement
     ).getAttributes();
 
     return (responseFieldAtts as { label: string }).label;
@@ -210,7 +211,7 @@ class AesCryptoTestForm {
     });
 
     const responseFieldAtts = await (
-      await this.generateEncryptionKeyResponse
+      (await this.generateEncryptionKeyResponse) as Detox.IndexableNativeElement
     ).getAttributes();
 
     return (responseFieldAtts as { label: string }).label;

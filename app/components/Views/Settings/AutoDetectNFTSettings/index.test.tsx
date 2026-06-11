@@ -59,7 +59,7 @@ describe('AutoDetectNFTSettings', () => {
     jest.mocked(useAnalytics).mockReturnValue(
       createMockUseAnalyticsHook({
         trackEvent: mockTrackEvent,
-        addTraitsToUser: mockAddTraitsToUser,
+        identify: mockAddTraitsToUser,
       }),
     );
     (useNavigation as jest.Mock).mockImplementation(() => mockNavigation);

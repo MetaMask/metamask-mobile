@@ -14,8 +14,8 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'baseline',
     },
     collectibleMediaWrapper: {
-      paddingTop: 16,
-      paddingBottom: 40,
+      paddingTop: 4,
+      paddingBottom: 16,
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
@@ -70,7 +70,6 @@ const styleSheet = (params: { theme: Theme }) => {
     wrapper: {
       flex: 1,
       backgroundColor: colors.background.default,
-      padding: 16,
     },
     buttonSendWrapper: {
       flexDirection: 'row',
@@ -131,6 +130,10 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     buttonSend: {
       flexGrow: 1,
+    },
+    fullImageScreen: {
+      flex: 1,
+      backgroundColor: colors.background.default,
     },
     fullImageContainer: {
       position: 'relative',

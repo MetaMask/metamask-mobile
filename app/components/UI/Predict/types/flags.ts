@@ -11,7 +11,8 @@ export interface PredictLiveSportsFlag {
 
 export interface PredictMarketHighlight {
   category: string;
-  markets: string[];
+  markets?: string[];
+  series?: string[];
 }
 
 export interface PredictMarketHighlightsFlag extends VersionGatedFeatureFlag {
@@ -34,10 +35,13 @@ export interface PredictWorldCupConfig extends VersionGatedFeatureFlag {
   showMainFeedBanner: boolean;
   showMainFeedTab: boolean;
   showWorldCupScreen: boolean;
-  seriesId: string;
   tagSlug: string;
   gamesTagId: string;
-  bannerImageUrl?: string;
+  bannerImage?: {
+    url: string;
+    width: number;
+    height: number;
+  };
   stages: PredictWorldCupStageConfig[];
 }
 
@@ -49,7 +53,10 @@ export interface PredictFeatureFlags {
   fakOrdersEnabled: boolean;
   predictWithAnyTokenEnabled: boolean;
   predictUpDownEnabled: boolean;
+  predictHomepageDiscoveryNbaChampionEnabled: boolean;
   predictWorldCup: PredictWorldCupConfig;
+  predictPortfolioEnabled: boolean;
+  predictHomeRedesignEnabled: boolean;
 }
 
 export interface PredictHotTabFlag extends VersionGatedFeatureFlag {

@@ -7,8 +7,10 @@
  *
  * Run with: yarn jest -c jest.config.view.js PredictFeed.view.test --runInBand --silent --coverage=false
  */
+import React from 'react';
 import '../../../../../../tests/component-view/mocks';
 import Engine from '../../../../../../app/core/Engine';
+import { useRoute } from '@react-navigation/native';
 import {
   renderPredictFeedView,
   renderPredictFeedViewWithRoutes,
@@ -19,10 +21,12 @@ import {
   waitFor,
   within,
 } from '@testing-library/react-native';
+import { Text } from 'react-native';
 import {
   PredictMarketListSelectorsIDs,
   PredictSearchSelectorsIDs,
   PredictBalanceSelectorsIDs,
+  PredictCryptoUpDownMarketCardSelectorsIDs,
   PredictBalanceSelectorsText,
   PredictFeedSelectorsIDs,
   getPredictMarketListSelector,
@@ -32,11 +36,96 @@ import {
 import Routes from '../../../../../constants/navigation/Routes';
 import { MOCK_PREDICT_MARKET } from '../../../../../../tests/component-view/fixtures/predict';
 import { PREDICT_OFFLINE_TEST_IDS } from '../../components/PredictOffline/PredictOffline.testIds';
-import type { PredictMarket } from '../../types';
+import { Recurrence, type PredictMarket } from '../../types';
+
+const predictUpDownFlagOverrides = {
+  engine: {
+    backgroundState: {
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          predictUpDown: {
+            enabled: true,
+            featureVersion: '1.0.0',
+            minimumVersion: '0.0.1',
+          },
+        },
+      },
+    },
+  },
+};
+
+const createCryptoUpDownMarket = (
+  id: string,
+  endDate: string,
+): PredictMarket => ({
+  id,
+  providerId: 'polymarket',
+  slug: `${id}-btc-up-or-down-5m`,
+  title: 'BTC Up or Down - 5 Minutes',
+  description: 'BTC Up or Down',
+  image: 'https://example.com/btc.png',
+  status: 'open',
+  recurrence: Recurrence.NONE,
+  category: 'crypto',
+  tags: ['crypto', 'up-or-down', 'bitcoin'],
+  outcomes: [
+    {
+      id: `${id}-outcome`,
+      providerId: 'polymarket',
+      marketId: id,
+      title: 'BTC Up or Down',
+      description: '',
+      image: '',
+      status: 'open',
+      tokens: [
+        { id: `${id}-up`, title: 'Up', price: 0.4 },
+        { id: `${id}-down`, title: 'Down', price: 0.6 },
+      ],
+      volume: 1_500_000,
+      groupItemTitle: 'BTC',
+    },
+  ],
+  liquidity: 500_000,
+  volume: 1_500_000,
+  endDate,
+  series: {
+    id: 'btc-up-down-series',
+    slug: 'btc-up-or-down-5m',
+    title: 'BTC Up or Down - 5 Minutes',
+    recurrence: '5m',
+  },
+});
 
 const SEARCH_PLACEHOLDER = 'Search prediction markets';
 const CANCEL_TEXT = 'Cancel';
 const RETRY_TEXT = 'Retry';
+
+interface PredictRootRouteParams {
+  screen?: string;
+  params?: {
+    predictFeedTab?: string;
+  };
+}
+
+const PredictRootRouteParamsProbe = () => {
+  const route = useRoute<{
+    key: string;
+    name: string;
+    params?: PredictRootRouteParams;
+  }>();
+  const predictFeedTab = route.params?.params?.predictFeedTab ?? 'missing';
+
+  return (
+    <>
+      <Text testID={`route-${Routes.PREDICT.ROOT}`}>
+        {route.params?.screen ?? 'unknown'}
+      </Text>
+      <Text testID={`predict-root-tab-${predictFeedTab}`}>
+        {predictFeedTab}
+      </Text>
+    </>
+  );
+};
 
 const createPredictMarket = ({
   id,
@@ -128,7 +217,7 @@ describe('PredictFeed', () => {
     ).mockResolvedValue({ markets: [], nextCursor: null });
     (
       Engine.context.PredictController.searchMarkets as jest.Mock
-    ).mockResolvedValue([]);
+    ).mockResolvedValue({ markets: [], totalResults: 0 });
   });
 
   describe('search interaction', () => {
@@ -138,6 +227,22 @@ describe('PredictFeed', () => {
       fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
 
       expect(await findByPlaceholderText(SEARCH_PLACEHOLDER)).toBeOnTheScreen();
+    });
+
+    it('tracks the search opened event with the active feed tab and entry point', async () => {
+      const { getByTestId } = renderPredictFeedView();
+
+      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
+
+      expect(
+        Engine.context.PredictController.trackSearchInteracted,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          interactionType: 'opened',
+          predictFeedTab: expect.any(String),
+          entryPoint: 'predict_feed',
+        }),
+      );
     });
 
     it('calls PredictController.searchMarkets with the typed query after the user searches', async () => {
@@ -234,7 +339,10 @@ describe('PredictFeed', () => {
         Engine.context.PredictController,
         'searchMarkets',
       );
-      searchMarketsSpy.mockResolvedValue([MOCK_PREDICT_MARKET]);
+      searchMarketsSpy.mockResolvedValue({
+        markets: [MOCK_PREDICT_MARKET],
+        totalResults: 1,
+      });
       const { getByTestId, findByPlaceholderText, findByTestId } =
         renderPredictFeedView();
 
@@ -255,6 +363,99 @@ describe('PredictFeed', () => {
       expect(within(resultCard).getByText(/Yes/)).toBeOnTheScreen();
       expect(within(resultCard).getByText(/No/)).toBeOnTheScreen();
 
+      // Assert — the `queried` event fires once with the resolved results count
+      await waitFor(() => {
+        expect(
+          Engine.context.PredictController.trackSearchInteracted,
+        ).toHaveBeenCalledWith(
+          expect.objectContaining({
+            interactionType: 'queried',
+            searchQuery: 'bitcoin',
+            resultsCount: 1,
+          }),
+        );
+      });
+
+      searchMarketsSpy.mockRestore();
+    });
+
+    it('reports the server total match count in the queried event, not the visible page length', async () => {
+      // Arrange — one market on the first page, but 42 matches server-side.
+      // `marketData.length` (1) must not be used as the result count.
+      const searchMarketsSpy = jest.spyOn(
+        Engine.context.PredictController,
+        'searchMarkets',
+      );
+      searchMarketsSpy.mockResolvedValue({
+        markets: [MOCK_PREDICT_MARKET],
+        totalResults: 42,
+      });
+      const { getByTestId, findByPlaceholderText } = renderPredictFeedView();
+
+      // Act — user opens search and types a query
+      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
+      const searchInput = await findByPlaceholderText(SEARCH_PLACEHOLDER);
+      fireEvent.changeText(searchInput, 'bitcoin');
+
+      // Assert — resultsCount is the server total (42), not the page length (1)
+      await waitFor(() => {
+        expect(
+          Engine.context.PredictController.trackSearchInteracted,
+        ).toHaveBeenCalledWith(
+          expect.objectContaining({
+            interactionType: 'queried',
+            searchQuery: 'bitcoin',
+            resultsCount: 42,
+          }),
+        );
+      });
+
+      searchMarketsSpy.mockRestore();
+    });
+
+    it('tracks the same query again after the user clears and retypes it', async () => {
+      const searchMarketsSpy = jest.spyOn(
+        Engine.context.PredictController,
+        'searchMarkets',
+      );
+      searchMarketsSpy.mockResolvedValue({
+        markets: [MOCK_PREDICT_MARKET],
+        totalResults: 1,
+      });
+
+      const trackSearchInteractedMock = Engine.context.PredictController
+        .trackSearchInteracted as jest.Mock;
+      const { getByTestId, findByPlaceholderText } = renderPredictFeedView();
+
+      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
+      trackSearchInteractedMock.mockClear();
+
+      const searchInput = await findByPlaceholderText(SEARCH_PLACEHOLDER);
+      fireEvent.changeText(searchInput, 'bitcoin');
+
+      const getQueriedEvents = () =>
+        trackSearchInteractedMock.mock.calls
+          .map(([args]) => args as { interactionType?: string })
+          .filter((args) => args.interactionType === 'queried');
+
+      await waitFor(() => {
+        expect(getQueriedEvents()).toHaveLength(1);
+      });
+
+      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.CLEAR_BUTTON));
+
+      await waitFor(() => {
+        expect(searchMarketsSpy).toHaveBeenCalledWith(
+          expect.objectContaining({ q: '' }),
+        );
+      });
+
+      fireEvent.changeText(searchInput, 'bitcoin');
+
+      await waitFor(() => {
+        expect(getQueriedEvents()).toHaveLength(2);
+      });
+
       searchMarketsSpy.mockRestore();
     });
 
@@ -263,11 +464,19 @@ describe('PredictFeed', () => {
         Engine.context.PredictController,
         'searchMarkets',
       );
-      searchMarketsSpy.mockResolvedValue([MOCK_PREDICT_MARKET]);
+      searchMarketsSpy.mockResolvedValue({
+        markets: [MOCK_PREDICT_MARKET],
+        totalResults: 1,
+      });
 
       const { getByTestId, findByPlaceholderText, findByTestId } =
         renderPredictFeedViewWithRoutes({
-          extraRoutes: [{ name: Routes.PREDICT.ROOT }],
+          extraRoutes: [
+            {
+              name: Routes.PREDICT.ROOT,
+              Component: PredictRootRouteParamsProbe,
+            },
+          ],
         });
 
       fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
@@ -285,6 +494,19 @@ describe('PredictFeed', () => {
       expect(
         await findByTestId(`route-${Routes.PREDICT.ROOT}`),
       ).toBeOnTheScreen();
+      expect(await findByTestId('predict-root-tab-trending')).toBeOnTheScreen();
+
+      // Assert — the `result_clicked` event fires with the tapped market's id/title
+      expect(
+        Engine.context.PredictController.trackSearchInteracted,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          interactionType: 'result_clicked',
+          searchQuery: 'bitcoin',
+          marketId: MOCK_PREDICT_MARKET.id,
+          marketTitle: MOCK_PREDICT_MARKET.title,
+        }),
+      );
 
       searchMarketsSpy.mockRestore();
     });
@@ -456,6 +678,80 @@ describe('PredictFeed', () => {
     });
   });
 
+  describe('crypto Up/Down consolidated card', () => {
+    it('renders one feed card per series and opens details from the live card', async () => {
+      const now = Date.now();
+      const liveMarket = createCryptoUpDownMarket(
+        'btc-live-market',
+        new Date(now + 60_000).toISOString(),
+      );
+      const nextMarket = createCryptoUpDownMarket(
+        'btc-next-market',
+        new Date(now + 360_000).toISOString(),
+      );
+      const searchMarketsSpy = jest.spyOn(
+        Engine.context.PredictController,
+        'searchMarkets',
+      );
+      searchMarketsSpy.mockResolvedValue({
+        markets: [liveMarket, nextMarket],
+        totalResults: 2,
+      });
+      const getMarketSeriesSpy = jest.spyOn(
+        Engine.context.PredictController,
+        'getMarketSeries',
+      );
+      getMarketSeriesSpy.mockResolvedValue([liveMarket, nextMarket]);
+      const getCryptoPriceHistorySpy = jest.spyOn(
+        Engine.context.PredictController,
+        'getCryptoPriceHistory',
+      );
+      getCryptoPriceHistorySpy.mockResolvedValue([
+        { timestamp: 1, value: 69000 },
+        { timestamp: 2, value: 69100 },
+      ]);
+
+      const {
+        getByTestId,
+        findAllByText,
+        findByPlaceholderText,
+        findByTestId,
+      } = renderPredictFeedViewWithRoutes({
+        overrides: predictUpDownFlagOverrides,
+        extraRoutes: [{ name: Routes.PREDICT.ROOT }],
+      });
+
+      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
+      fireEvent.changeText(
+        await findByPlaceholderText(SEARCH_PLACEHOLDER),
+        'btc',
+      );
+
+      const searchResult = await findByTestId(
+        getPredictSearchSelector.resultCard(0),
+        {},
+        { timeout: 3000 },
+      );
+      expect(searchResult).toBeOnTheScreen();
+      expect(
+        await findByTestId(
+          PredictCryptoUpDownMarketCardSelectorsIDs.LIVE_BADGE,
+        ),
+      ).toBeOnTheScreen();
+      expect(await findAllByText('BTC Up or Down - 5 Minutes')).toHaveLength(1);
+
+      fireEvent.press(searchResult);
+
+      expect(
+        await findByTestId(`route-${Routes.PREDICT.ROOT}`),
+      ).toBeOnTheScreen();
+
+      searchMarketsSpy.mockRestore();
+      getMarketSeriesSpy.mockRestore();
+      getCryptoPriceHistorySpy.mockRestore();
+    });
+  });
+
   describe('back navigation', () => {
     it('navigates to the wallet when the user presses back from the root feed', async () => {
       const { getByTestId, findByTestId } = renderPredictFeedViewWithRoutes({
@@ -589,7 +885,7 @@ describe('PredictFeed', () => {
       const callCountBeforeRetry = searchMarketsSpy.mock.calls.length;
 
       // Make subsequent calls succeed so the retry completes quickly.
-      searchMarketsSpy.mockResolvedValue([]);
+      searchMarketsSpy.mockResolvedValue({ markets: [], totalResults: 0 });
 
       fireEvent.press(await findByText('Retry'));
 

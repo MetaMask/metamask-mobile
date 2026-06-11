@@ -1,21 +1,46 @@
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
-import Assertions from '../../framework/Assertions';
-import { WalletViewSelectorsIDs } from '../../../app/components/Views/Wallet/WalletView.testIds';
+import {
+  Assertions,
+  Gestures,
+  Matchers,
+  EncapsulatedElementType,
+} from '../../framework';
+import {
+  WalletAssetSelectorsIDs,
+  WalletAssetSelectorsRegex,
+  WalletAssetSelectorsText,
+} from '../../selectors/Wallet/WalletView.selectors';
+import {
+  WalletViewSelectorsIDs,
+  WalletViewSelectorsText,
+} from '../../../app/components/Views/Wallet/WalletView.testIds';
 
 class TokensFullView {
   /**
    * Back button in the tokens full view header
    */
-  get backButton(): DetoxElement {
+  get backButton(): EncapsulatedElementType {
     return Matchers.getElementByID(WalletViewSelectorsIDs.BACK_BUTTON);
   }
 
   /**
    * Network filter button in the tokens full view control bar
    */
-  get networkFilterButton(): DetoxElement {
+  get networkFilterButton(): EncapsulatedElementType {
     return Matchers.getElementByID(WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER);
+  }
+
+  get stakedEthereumAssetRow(): EncapsulatedElementType {
+    return Promise.resolve(
+      element(
+        by
+          .id(WalletAssetSelectorsIDs.STAKED_ETHEREUM)
+          .withDescendant(by.text(WalletViewSelectorsText.STAKED_ETHEREUM))
+          .withDescendant(
+            by.text(WalletAssetSelectorsText.STAKED_ETHEREUM_AMOUNT),
+          )
+          .withDescendant(by.text(WalletAssetSelectorsRegex.FIAT_BALANCE)),
+      ),
+    );
   }
 
   /**
@@ -34,6 +59,12 @@ class TokensFullView {
   async tapBackButton(): Promise<void> {
     await Gestures.waitAndTap(this.backButton, {
       elemDescription: 'Tokens Full View back button',
+    });
+  }
+
+  async expectStakedEthereumRowWithBalancesVisible(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.stakedEthereumAssetRow, {
+      description: 'Staked Ethereum row should display token and fiat balances',
     });
   }
 }

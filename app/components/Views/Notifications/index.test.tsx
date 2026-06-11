@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-  renderHook,
-  act,
-  render,
-  fireEvent,
-} from '@testing-library/react-native';
+import { renderHook, act, fireEvent } from '@testing-library/react-native';
 import { processNotification } from '@metamask/notification-services-controller/notification-services';
 import {
   createMockNotificationEthSent,
@@ -28,6 +23,7 @@ import NotificationsService from '../../../util/notifications/services/Notificat
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
 import { NotificationsViewSelectorsIDs } from './NotificationsView.testIds';
+import { NotificationMenuViewSelectorsIDs } from './NotificationMenuView.testIds';
 
 const navigationMock = {
   navigate: jest.fn(),
@@ -62,44 +58,69 @@ const mockInitialState: DeepPartial<RootState> = {
   },
 };
 
+const mockNotificationsDisabledState: DeepPartial<RootState> = {
+  engine: {
+    backgroundState: {
+      ...backgroundState,
+      NotificationServicesController: {
+        isNotificationServicesEnabled: false,
+        metamaskNotificationsList: [],
+      },
+    },
+  },
+};
+
 describe('NotificationsView - header', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   const arrange = () => {
-    const headerPieces = NotificationsView.navigationOptions({
-      navigation: navigationMock,
-    });
-    return headerPieces;
+    const renderResult = renderWithProvider(
+      <NotificationsView navigation={navigationMock} />,
+      { state: mockInitialState },
+    );
+    return renderResult;
   };
 
   it('finds header title', async () => {
-    const headerPieces = arrange();
-    const headerTitleTestUtils = render(headerPieces.headerTitle());
+    const { getByTestId } = arrange();
 
     expect(
-      headerTitleTestUtils.getByText(
-        strings('app_settings.notifications_title'),
-      ),
-    ).toBeTruthy();
+      getByTestId(NotificationMenuViewSelectorsIDs.TITLE).props.children,
+    ).toBe(strings('app_settings.notifications_title'));
   });
 
-  it('finds back button and invoke navigation when pressed', async () => {
-    const headerPieces = arrange();
-    const closeButtonTestUtils = render(headerPieces.headerLeft());
+  it('finds close button and invokes navigation when pressed', async () => {
+    const { getByTestId } = arrange();
 
-    expect(closeButtonTestUtils.root).toBeTruthy();
-    await act(() => fireEvent(closeButtonTestUtils.root, 'onPress'));
+    await act(() =>
+      fireEvent.press(
+        getByTestId(NotificationMenuViewSelectorsIDs.CLOSE_BUTTON),
+      ),
+    );
     expect(navigationMock.goBack).toHaveBeenCalled();
   });
 
-  it('finds settings button and invoke navigation when pressed', async () => {
-    const headerPieces = arrange();
-    const cogWheelTestUtils = render(headerPieces.headerRight());
+  it('navigates home when close button is pressed without back stack', async () => {
+    (navigationMock.canGoBack as jest.Mock).mockReturnValueOnce(false);
+    const { getByTestId } = arrange();
 
-    expect(cogWheelTestUtils.root).toBeTruthy();
-    await act(() => fireEvent(cogWheelTestUtils.root, 'onPress'));
+    await act(() =>
+      fireEvent.press(
+        getByTestId(NotificationMenuViewSelectorsIDs.CLOSE_BUTTON),
+      ),
+    );
+
+    expect(navigationMock.navigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+  });
+
+  it('finds settings button and invokes navigation when pressed', async () => {
+    const { getByTestId } = arrange();
+
+    await act(() =>
+      fireEvent.press(getByTestId(NotificationMenuViewSelectorsIDs.COG_WHEEL)),
+    );
     expect(navigationMock.navigate).toHaveBeenCalledWith(
       Routes.SETTINGS.NOTIFICATIONS,
     );
@@ -107,6 +128,10 @@ describe('NotificationsView - header', () => {
 });
 
 describe('NotificationsView - content', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('shows empty container when no notifications are available', () => {
     const { getByTestId } = renderWithProvider(
       <NotificationsView navigation={navigationMock} />,
@@ -115,6 +140,33 @@ describe('NotificationsView - content', () => {
     expect(
       getByTestId(NotificationsViewSelectorsIDs.NO_NOTIFICATIONS_CONTAINER),
     ).toBeOnTheScreen();
+  });
+
+  it('shows enable prompt and opens settings when notifications are disabled', () => {
+    const { getByText, getByTestId } = renderWithProvider(
+      <NotificationsView navigation={navigationMock} />,
+      { state: mockNotificationsDisabledState },
+    );
+
+    expect(
+      getByTestId(
+        NotificationsViewSelectorsIDs.DISABLED_NOTIFICATIONS_CONTAINER,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(strings('notifications.disabled.title')),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(strings('notifications.disabled.message')),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(
+      getByTestId(NotificationsViewSelectorsIDs.ENABLE_NOTIFICATIONS_BUTTON),
+    );
+
+    expect(navigationMock.navigate).toHaveBeenCalledWith(
+      Routes.SETTINGS.NOTIFICATIONS,
+    );
   });
 });
 

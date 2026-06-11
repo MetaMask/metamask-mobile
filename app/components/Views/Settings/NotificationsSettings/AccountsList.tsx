@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { SectionList, View } from 'react-native';
-import {
+import type {
   useAccountProps,
   useNotificationAccountListProps,
 } from './AccountsList.hooks';
@@ -11,18 +11,31 @@ import { useTheme } from '../../../../util/theme';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './NotificationsSettings.styles';
 
-export const AccountsList = () => {
+export type AccountProps = ReturnType<typeof useAccountProps>;
+export type NotificationAccountListProps = ReturnType<
+  typeof useNotificationAccountListProps
+>;
+
+interface AccountsListProps {
+  accountProps: AccountProps;
+  notificationAccountListProps: NotificationAccountListProps;
+}
+
+export const AccountsList = ({
+  accountProps,
+  notificationAccountListProps,
+}: AccountsListProps) => {
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, { theme });
 
-  const { accountAvatarType, accountWalletGroups } = useAccountProps();
+  const { accountAvatarType, accountWalletGroups } = accountProps;
   const {
     shouldDisableSwitches,
     isAccountLoading,
     isAccountEnabled,
     refetchAccountSettings,
     getEvmAddress,
-  } = useNotificationAccountListProps();
+  } = notificationAccountListProps;
 
   const sections = useMemo(
     () =>

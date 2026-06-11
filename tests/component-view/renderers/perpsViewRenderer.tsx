@@ -2,11 +2,13 @@ import '../mocks';
 import React from 'react';
 import { Text } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import renderWithProvider, {
   type DeepPartial,
 } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
 import Routes from '../../../app/constants/navigation/Routes';
+import { ConnectionStatus } from '@metamask/hw-wallet-sdk';
 import { renderComponentViewScreen, renderScreenWithRoutes } from '../render';
 import { initialStatePerps } from '../presets/perpsStatePreset';
 import {
@@ -18,11 +20,13 @@ import {
   type PerpsStreamManager,
 } from '../../../app/components/UI/Perps/providers/PerpsStreamManager';
 import { AccessRestrictedProvider } from '../../../app/components/UI/Compliance';
+import HardwareWalletContext, {
+  type HardwareWalletContextValue,
+} from '../../../app/core/HardwareWallet/contexts/HardwareWalletContext';
 import PerpsMarketDetailsView from '../../../app/components/UI/Perps/Views/PerpsMarketDetailsView/PerpsMarketDetailsView';
 import PerpsMarketListView from '../../../app/components/UI/Perps/Views/PerpsMarketListView/PerpsMarketListView';
 import PerpsSelectModifyActionView from '../../../app/components/UI/Perps/Views/PerpsSelectModifyActionView/PerpsSelectModifyActionView';
 import PerpsSelectProviderView from '../../../app/components/UI/Perps/Views/PerpsSelectProviderView/PerpsSelectProviderView';
-import PerpsTabView from '../../../app/components/UI/Perps/Views/PerpsTabView/PerpsTabView';
 import PerpsPositionsView from '../../../app/components/UI/Perps/Views/PerpsPositionsView/PerpsPositionsView';
 import PerpsHomeView from '../../../app/components/UI/Perps/Views/PerpsHomeView/PerpsHomeView';
 import PerpsClosePositionView from '../../../app/components/UI/Perps/Views/PerpsClosePositionView/PerpsClosePositionView';
@@ -32,6 +36,7 @@ import PerpsTransactionsView from '../../../app/components/UI/Perps/Views/PerpsT
 import PerpsHeroCardView from '../../../app/components/UI/Perps/Views/PerpsHeroCardView/PerpsHeroCardView';
 import PerpsTPSLView from '../../../app/components/UI/Perps/Views/PerpsTPSLView/PerpsTPSLView';
 import PerpsOrderDetailsView from '../../../app/components/UI/Perps/Views/PerpsOrderDetailsView/PerpsOrderDetailsView';
+import PerpsOrderView from '../../../app/components/UI/Perps/Views/PerpsOrderView/PerpsOrderView';
 import PerpsCancelAllOrdersView from '../../../app/components/UI/Perps/Views/PerpsCancelAllOrdersView/PerpsCancelAllOrdersView';
 import PerpsCloseAllPositionsView from '../../../app/components/UI/Perps/Views/PerpsCloseAllPositionsView/PerpsCloseAllPositionsView';
 import PerpsSelectAdjustMarginActionView from '../../../app/components/UI/Perps/Views/PerpsSelectAdjustMarginActionView/PerpsSelectAdjustMarginActionView';
@@ -48,6 +53,14 @@ import {
 /** No-op unsubscribe for test stream channels; subscribe() must return () => void */
 const noopUnsubscribe = (): void => undefined;
 
+const createPerpsQueryClient = () =>
+  new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
+
 /** Connection context value for view tests: "connected" so views render content instead of loading skeleton */
 const testConnectionValue: PerpsConnectionContextValue = {
   isConnected: true,
@@ -60,7 +73,56 @@ const testConnectionValue: PerpsConnectionContextValue = {
   reconnectWithNewContext: async (): Promise<void> => undefined,
 };
 
-/** Minimal account so usePerpsLiveAccount sets isInitialLoading=false; non-zero totalBalance so PerpsTabControlBar shows balance button */
+const testHardwareWalletValue: HardwareWalletContextValue = {
+  walletType: null,
+  deviceId: null,
+  connectionState: { status: ConnectionStatus.Disconnected },
+  deviceSelection: {
+    devices: [],
+    selectedDevice: null,
+    isScanning: false,
+    scanError: null,
+  },
+  ensureDeviceReady: async (): Promise<boolean> => true,
+  setTargetWalletType: (): void => undefined,
+  setPendingOperationAddress: (): void => undefined,
+  showHardwareWalletError: (): void => undefined,
+  showAwaitingConfirmation: (): void => undefined,
+  hideAwaitingConfirmation: (): void => undefined,
+  qr: {
+    pendingScanRequest: undefined,
+    isSigningQRObject: false,
+    setRequestCompleted: (): void => undefined,
+    isRequestCompleted: false,
+    cancelQRScanRequestIfPresent: async (): Promise<void> => undefined,
+  },
+};
+
+const PerpsTestProviders = ({
+  children,
+  connectionValue = testConnectionValue,
+  queryClient,
+  streamManager,
+}: {
+  children: React.ReactNode;
+  connectionValue?: PerpsConnectionContextValue;
+  queryClient: QueryClient;
+  streamManager: PerpsStreamManager;
+}) => (
+  <QueryClientProvider client={queryClient}>
+    <HardwareWalletContext.Provider value={testHardwareWalletValue}>
+      <AccessRestrictedProvider>
+        <PerpsConnectionContext.Provider value={connectionValue}>
+          <PerpsStreamProvider testStreamManager={streamManager}>
+            {children}
+          </PerpsStreamProvider>
+        </PerpsConnectionContext.Provider>
+      </AccessRestrictedProvider>
+    </HardwareWalletContext.Provider>
+  </QueryClientProvider>
+);
+
+/** Minimal account so usePerpsLiveAccount sets isInitialLoading=false; non-zero totalBalance so balance UI renders */
 const initialAccount: AccountState = {
   spendableBalance: '1',
   withdrawableBalance: '1',
@@ -292,7 +354,7 @@ const DefaultRouteProbe =
  * Renders a Perps view with preset state. State is driven by Redux; use overrides
  * to set e.g. PerpsController.isEligible for geo-restriction tests.
  * Wraps with PerpsConnectionProvider and PerpsStreamProvider so views that use
- * usePerpsStream() (e.g. PerpsTabView, PerpsMarketListView) render without errors.
+ * usePerpsStream() (e.g. PerpsMarketListView) render without errors.
  * When extraRoutes is provided, those routes are registered so navigation can be asserted.
  */
 export function renderPerpsView(
@@ -308,28 +370,27 @@ export function renderPerpsView(
   const state = builder.build();
   const { streamManager: testStreamManager, stream } =
     createTestStreamManager(streamOverrides);
+  const queryClient = createPerpsQueryClient();
 
   const WrappedComponent = (props: Record<string, unknown>) => (
-    <AccessRestrictedProvider>
-      <PerpsConnectionContext.Provider value={testConnectionValue}>
-        <PerpsStreamProvider testStreamManager={testStreamManager}>
-          <Component {...props} />
-        </PerpsStreamProvider>
-      </PerpsConnectionContext.Provider>
-    </AccessRestrictedProvider>
+    <PerpsTestProviders
+      queryClient={queryClient}
+      streamManager={testStreamManager}
+    >
+      <Component {...props} />
+    </PerpsTestProviders>
   );
 
   const wrapRouteWithPerpsProviders = (
     RouteComponent: React.ComponentType<unknown>,
   ) => {
     const WrappedRoute = (props: Record<string, unknown>) => (
-      <AccessRestrictedProvider>
-        <PerpsConnectionContext.Provider value={testConnectionValue}>
-          <PerpsStreamProvider testStreamManager={testStreamManager}>
-            <RouteComponent {...props} />
-          </PerpsStreamProvider>
-        </PerpsConnectionContext.Provider>
-      </AccessRestrictedProvider>
+      <PerpsTestProviders
+        queryClient={queryClient}
+        streamManager={testStreamManager}
+      >
+        <RouteComponent {...props} />
+      </PerpsTestProviders>
     );
     return WrappedRoute as unknown as React.ComponentType;
   };
@@ -343,7 +404,7 @@ export function renderPerpsView(
     const rootRoutes = extraRoutes.filter(
       ({ mount }) => mount !== 'perps-root',
     );
-    // PerpsTabView navigates via navigation.navigate(PERPS.ROOT, { screen: MARKET_LIST }).
+    // Some Perps views navigate via navigation.navigate(PERPS.ROOT, { screen: MARKET_LIST }).
     // So we register PERPS.ROOT as a nested stack containing the extra routes; then
     // navigating to ROOT with screen: MARKET_LIST shows the route probe.
     const nestedScreens = (
@@ -508,17 +569,6 @@ export function renderPerpsMarketListView(
   return renderPerpsView(
     PerpsMarketListView as unknown as React.ComponentType,
     'PerpsMarketListView',
-    options,
-  );
-}
-
-/**
- * Renders PerpsTabView. Use in PerpsTabView.view.test.tsx.
- */
-export function renderPerpsTabView(options: RenderPerpsViewOptions = {}) {
-  return renderPerpsView(
-    PerpsTabView as unknown as React.ComponentType,
-    'PerpsTabView',
     options,
   );
 }
@@ -753,6 +803,26 @@ export function renderPerpsOrderDetailsView(
 }
 
 /**
+ * Renders PerpsOrderView. Use in PerpsOrderView.view.test.tsx and flow tests.
+ */
+export function renderPerpsOrderView(options: RenderPerpsViewOptions = {}) {
+  const initialParams = {
+    direction: 'long',
+    asset: 'ETH',
+    amount: '100',
+    leverage: 3,
+    defaultSzDecimals: 2,
+    defaultMaxLeverage: 50,
+    ...options.initialParams,
+  };
+  return renderPerpsView(
+    PerpsOrderView as unknown as React.ComponentType,
+    'PerpsOrderView',
+    { ...options, initialParams },
+  );
+}
+
+/**
  * Renders PerpsCancelAllOrdersView (as full screen for view test). Use in PerpsCancelAllOrdersView.view.test.tsx.
  */
 export function renderPerpsCancelAllOrdersView(
@@ -846,15 +916,15 @@ export function renderPerpsComponent(
   const state = builder.build();
   const { streamManager: testStreamManager, stream } =
     createTestStreamManager(streamOverrides);
+  const queryClient = createPerpsQueryClient();
 
   const WrappedComponent = () => (
-    <AccessRestrictedProvider>
-      <PerpsConnectionContext.Provider value={testConnectionValue}>
-        <PerpsStreamProvider testStreamManager={testStreamManager}>
-          <Component {...props} />
-        </PerpsStreamProvider>
-      </PerpsConnectionContext.Provider>
-    </AccessRestrictedProvider>
+    <PerpsTestProviders
+      queryClient={queryClient}
+      streamManager={testStreamManager}
+    >
+      <Component {...props} />
+    </PerpsTestProviders>
   );
 
   return withStreamControls(
@@ -883,6 +953,7 @@ export function renderPerpsComponentDisconnected(
   const state = builder.build();
   const { streamManager: testStreamManager, stream } =
     createTestStreamManager(streamOverrides);
+  const queryClient = createPerpsQueryClient();
 
   const disconnectedValue: PerpsConnectionContextValue = {
     ...testConnectionValue,
@@ -893,13 +964,13 @@ export function renderPerpsComponentDisconnected(
   };
 
   const WrappedComponent = () => (
-    <AccessRestrictedProvider>
-      <PerpsConnectionContext.Provider value={disconnectedValue}>
-        <PerpsStreamProvider testStreamManager={testStreamManager}>
-          <Component {...props} />
-        </PerpsStreamProvider>
-      </PerpsConnectionContext.Provider>
-    </AccessRestrictedProvider>
+    <PerpsTestProviders
+      connectionValue={disconnectedValue}
+      queryClient={queryClient}
+      streamManager={testStreamManager}
+    >
+      <Component {...props} />
+    </PerpsTestProviders>
   );
 
   return withStreamControls(

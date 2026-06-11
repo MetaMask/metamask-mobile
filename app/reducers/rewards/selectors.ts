@@ -27,9 +27,6 @@ export const selectNextTier = (state: RootState) => state.rewards.nextTier;
 export const selectNextTierPointsNeeded = (state: RootState) =>
   state.rewards.nextTierPointsNeeded;
 
-export const selectBalanceRefereePortion = (state: RootState) =>
-  state.rewards.balanceRefereePortion;
-
 export const selectBalanceUpdatedAt = (state: RootState) =>
   state.rewards.balanceUpdatedAt;
 
@@ -180,6 +177,13 @@ export const selectVipDashboardLoading = (state: RootState): boolean =>
 
 export const selectVipDashboardError = (state: RootState): boolean =>
   state.rewards.vipDashboardError;
+
+export const selectHasAcceptedVipInvite =
+  (subscriptionId: string | null | undefined) =>
+  (state: RootState): boolean =>
+    subscriptionId
+      ? state.rewards.vipSplashAccepted?.[subscriptionId] === true
+      : false;
 
 // Campaigns selectors
 export const selectCampaigns = (
@@ -380,3 +384,41 @@ export const selectPerpsTradingCampaignVolumeLoading = (state: RootState) =>
 
 export const selectPerpsTradingCampaignVolumeError = (state: RootState) =>
   state.rewards.perpsTradingCampaignVolumeError;
+
+// Predict The Pitch leaderboard selectors
+export const selectPredictThePitchLeaderboard = (state: RootState) =>
+  state.rewards.predictThePitchLeaderboard;
+
+export const selectPredictThePitchLeaderboardLoading = (state: RootState) =>
+  state.rewards.predictThePitchLeaderboardLoading;
+
+export const selectPredictThePitchLeaderboardError = (state: RootState) =>
+  state.rewards.predictThePitchLeaderboardError;
+
+export const selectPredictThePitchLeaderboardPositionById =
+  (subscriptionId: string | undefined, campaignId: string | undefined) =>
+  (state: RootState) =>
+    subscriptionId && campaignId
+      ? (state.rewards.predictThePitchLeaderboardPositions[
+          `${subscriptionId}:${campaignId}`
+        ] ?? null)
+      : null;
+
+export const selectPredictThePitchPositionsById =
+  (subscriptionId: string | undefined, campaignId: string | undefined) =>
+  (state: RootState) =>
+    subscriptionId && campaignId
+      ? (state.rewards.predictThePitchPositions[
+          `${subscriptionId}:${campaignId}`
+        ] ?? null)
+      : null;
+
+// Predict The Pitch prize pool selectors
+export const selectPredictThePitchPrizePool = (state: RootState) =>
+  state.rewards.predictThePitchPrizePool;
+
+export const selectPredictThePitchPrizePoolLoading = (state: RootState) =>
+  state.rewards.predictThePitchPrizePoolLoading;
+
+export const selectPredictThePitchPrizePoolError = (state: RootState) =>
+  state.rewards.predictThePitchPrizePoolError;

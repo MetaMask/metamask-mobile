@@ -7,10 +7,7 @@ import React, {
 } from 'react';
 import { View, Modal, NativeScrollEvent } from 'react-native';
 import { useSelector } from 'react-redux';
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   useNavigation,
   useRoute,
@@ -22,10 +19,26 @@ import {
   ButtonVariant,
   ButtonSize,
   TextColor,
+  Box,
+  BoxFlexDirection,
+  HeaderStandardAnimated,
+  IconName,
+  useHeaderStandardAnimated,
+  SensitiveText,
+  SensitiveTextLength,
+  Tag,
+  TagSeverity,
+  Text,
+  TextVariant,
+  TitleHub,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
-import { formatPnl, formatPercentage } from '../../utils/formatUtils';
+import {
+  formatPnl,
+  formatPercentage,
+  formatPerpsBalance,
+} from '../../utils/formatUtils';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   usePerpsHomeData,
@@ -44,7 +57,10 @@ import {
   SUPPORT_CONFIG,
   FEEDBACK_CONFIG,
 } from '../../constants/perpsConfig';
-import { selectPerpsFeedbackEnabledFlag } from '../../selectors/featureFlags';
+import {
+  selectPerpsFeedbackEnabledFlag,
+  selectPerpsServiceInterruptionBannerEnabledFlag,
+} from '../../selectors/featureFlags';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import PerpsCard from '../../components/PerpsCard';
@@ -53,7 +69,9 @@ import PerpsMarketTypeSection from '../../components/PerpsMarketTypeSection';
 import PerpsRecentActivityList from '../../components/PerpsRecentActivityList/PerpsRecentActivityList';
 import PerpsHomeSection from '../../components/PerpsHomeSection';
 import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
-import PerpsHomeHeader from '../../components/PerpsHomeHeader';
+import { usePerpsProvider } from '../../hooks/usePerpsProvider';
+import { selectPerpsNetwork } from '../../selectors/perpsController';
+import { PerpsProviderSelectorBadge } from '../../components/PerpsProviderSelector';
 import WhatsHappeningSection from '../../../../UI/WhatsHappening';
 import { WhatsHappeningSource } from '../../../../UI/WhatsHappening/constants';
 import { selectWhatsHappeningEnabled } from '../../../../../selectors/featureFlagController/whatsHappening';
@@ -69,13 +87,20 @@ import {
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
-import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
+import {
+  PerpsHomeViewSelectorsIDs,
+  PerpsMarketBalanceActionsSelectorsIDs,
+} from '../../Perps.testIds';
 import PerpsCloseAllPositionsView from '../PerpsCloseAllPositionsView/PerpsCloseAllPositionsView';
 import PerpsCancelAllOrdersView from '../PerpsCancelAllOrdersView/PerpsCancelAllOrdersView';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import PerpsNavigationCard, {
   NavigationItem,
 } from '../../components/PerpsNavigationCard/PerpsNavigationCard';
+import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
+import PerpsCompetitionBanner from '../../components/PerpsCompetitionBanner';
+import PerpsProducts from '../../components/PerpsProducts';
+import PerpsTopMoversSection from '../../components/PerpsTopMoversSection';
 
 interface PerpsHomeViewProps {
   hideHeader?: boolean;
@@ -86,9 +111,9 @@ interface PerpsHomeViewProps {
   /** Forwarded to useDiscoveryScrollManager to sync icon animations with header hide/show. */
   onHeaderHiddenChange?: (hidden: boolean) => void;
   /**
-   * Top padding applied inside the scroll content container — used by HomepageDiscoveryTabs
-   * (Hub Page Discovery Tabs feature flag treatment) so the perps gradient extends up
-   * directly under the discovery tab bar instead of leaving a transparent gap.
+   * Top padding applied inside the scroll content container when embedded in
+   * HomepageDiscoveryTabs — keeps the perps background flush under the discovery
+   * tab bar and adds spacing before the screen title (32px in discovery tabs).
    */
   topInset?: number;
 }
@@ -106,10 +131,14 @@ const PerpsHomeView = ({
   const navigation = useNavigation();
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
+  const transactionActiveAbTests = route.params?.transactionActiveAbTests;
   const { trackEvent, createEventBuilder } = useAnalytics();
 
-  // Feature flag for feedback button
+  // Feature flags
   const isFeedbackEnabled = useSelector(selectPerpsFeedbackEnabledFlag);
+  const isServiceInterruptionBannerEnabled = useSelector(
+    selectPerpsServiceInterruptionBannerEnabledFlag,
+  );
   const privacyMode = useSelector(selectPrivacyMode);
   const isWhatsHappeningEnabled = useSelector(selectWhatsHappeningEnabled);
 
@@ -166,10 +195,19 @@ const PerpsHomeView = ({
     [handleScroll],
   );
 
+  const {
+    scrollY: headerScrollY,
+    setTitleSectionHeight,
+    titleSectionHeightSv,
+  } = useHeaderStandardAnimated();
+
+  const perpsScreenTitle = strings('perps.title');
+
   const { scrollHandler: perpsScrollHandler, onTabEnter: perpsOnTabEnter } =
     useDiscoveryScrollManager({
       walletHeaderHeight,
       walletHeaderTranslateY,
+      scrollY: hideHeader ? undefined : headerScrollY,
       onScrollEvent: handleScrollEvent,
       onHeaderHiddenChange,
     });
@@ -188,7 +226,13 @@ const PerpsHomeView = ({
   // Get balance state directly from Redux
   const { account: perpsAccount } = usePerpsLiveAccount({ throttleMs: 1000 });
   const totalBalance = perpsAccount?.totalBalance || '0';
-  const isBalanceEmpty = BigNumber(totalBalance).isZero();
+  const spendableBalance = perpsAccount?.spendableBalance || '0';
+  const totalBn = BigNumber(totalBalance);
+  const isBalanceEmpty = !totalBn.isFinite() || totalBn.isZero();
+
+  const network = useSelector(selectPerpsNetwork);
+  const isTestnet = network === 'testnet';
+  const { isMultiProviderEnabled } = usePerpsProvider();
 
   // Calculate P&L for positions subtitle
   const unrealizedPnl = perpsAccount?.unrealizedPnl || '0';
@@ -282,6 +326,8 @@ const PerpsHomeView = ({
       [PERPS_EVENT_PROPERTY.HAS_PERP_BALANCE]: hasPerpBalance,
       [PERPS_EVENT_PROPERTY.OPEN_POSITION]: livePositions.positions.length,
       [PERPS_EVENT_PROPERTY.OPEN_ORDER]: orders?.length || 0,
+      [PERPS_EVENT_PROPERTY.OUTAGE_BANNER_SHOWN]:
+        isServiceInterruptionBannerEnabled,
       ...(buttonClicked && {
         [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]: buttonClicked,
       }),
@@ -311,8 +357,14 @@ const PerpsHomeView = ({
       fromHome: true,
       button_clicked: PERPS_EVENT_VALUE.BUTTON_CLICKED.MAGNIFYING_GLASS,
       button_location: PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
+      ...(transactionActiveAbTests?.length ? { transactionActiveAbTests } : {}),
     });
-  }, [perpsNavigation, trackEvent, createEventBuilder]);
+  }, [
+    perpsNavigation,
+    trackEvent,
+    createEventBuilder,
+    transactionActiveAbTests,
+  ]);
 
   const navigtateToTutorial = useCallback(() => {
     // Track tutorial button click
@@ -460,12 +512,18 @@ const PerpsHomeView = ({
   // Footer: paddingTop(16) + button(48) + paddingBottom(16 + insets.bottom)
   const footerHeight = 80 + insets.bottom;
 
+  const showsFixedFooter =
+    !isBalanceEmpty &&
+    !showCloseAllSheet &&
+    !showCancelAllSheet &&
+    !HOME_SCREEN_CONFIG.ShowHeaderActionButtons;
+
   const bottomSpacerStyle = useMemo(
     () => ({
-      // When footer is visible, add space for it. Otherwise minimal spacing for tab bar.
-      height: isBalanceEmpty ? 16 : footerHeight + 16,
+      // Reserve space for the fixed footer only when it is rendered.
+      height: showsFixedFooter ? footerHeight + 16 : 16,
     }),
-    [isBalanceEmpty, footerHeight],
+    [showsFixedFooter, footerHeight],
   );
 
   // Add safe area inset to footer for Android navigation bar
@@ -474,19 +532,75 @@ const PerpsHomeView = ({
     [styles.fixedFooter, insets.bottom],
   );
 
+  const scrollContentContainerStyle = useMemo(
+    () => [
+      styles.scrollViewContent,
+      hideHeader && topInset > 0 ? { paddingTop: topInset } : null,
+      showsFixedFooter
+        ? { paddingBottom: 0 }
+        : !hideHeader
+          ? { paddingBottom: 16 + insets.bottom }
+          : null,
+    ],
+    [
+      styles.scrollViewContent,
+      topInset,
+      hideHeader,
+      showsFixedFooter,
+      insets.bottom,
+    ],
+  );
+
+  const titleEndAccessory = useMemo(() => {
+    const homeHeadingTestID = PerpsHomeViewSelectorsIDs.HOME_HEADING;
+
+    if (isMultiProviderEnabled) {
+      return (
+        <PerpsProviderSelectorBadge
+          testID={`${homeHeadingTestID}-provider-badge`}
+        />
+      );
+    }
+
+    if (isTestnet) {
+      return (
+        <Tag
+          severity={TagSeverity.Warning}
+          testID={`${homeHeadingTestID}-testnet-badge`}
+        >
+          Testnet
+        </Tag>
+      );
+    }
+
+    return undefined;
+  }, [isMultiProviderEnabled, isTestnet]);
+
   // Always navigate to wallet home to avoid navigation loops (tutorial/onboarding flow)
   const handleBackPress = perpsNavigation.navigateToWallet;
 
   return (
-    <SafeAreaView
-      style={styles.container}
-      edges={hideHeader ? { bottom: 'additive' } : undefined}
-    >
+    <View style={styles.container}>
       {/* Header */}
       {!hideHeader && (
-        <PerpsHomeHeader
+        <HeaderStandardAnimated
+          includesTopInset
+          scrollY={headerScrollY}
+          titleSectionHeight={titleSectionHeightSv}
+          title={perpsScreenTitle}
           onBack={handleBackPress}
-          onSearchToggle={handleSearchToggle}
+          backButtonProps={{
+            accessibilityLabel: 'Back',
+            testID: PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON,
+          }}
+          endButtonIconProps={[
+            {
+              iconName: IconName.Search,
+              onPress: handleSearchToggle,
+              accessibilityLabel: 'Search',
+              testID: PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE,
+            },
+          ]}
           testID="perps-home"
         />
       )}
@@ -494,22 +608,83 @@ const PerpsHomeView = ({
       {/* Main Content - ScrollView with all carousels */}
       <Reanimated.ScrollView
         style={styles.scrollView}
-        contentContainerStyle={[
-          styles.scrollViewContent,
-          topInset > 0 ? { paddingTop: topInset } : null,
-        ]}
+        contentContainerStyle={scrollContentContainerStyle}
         showsVerticalScrollIndicator={false}
         onScroll={perpsScrollHandler}
         scrollEventThrottle={16}
+        testID={PerpsHomeViewSelectorsIDs.SCROLL_CONTENT}
       >
-        <PerpsHomeHeader
-          segment="title"
-          testID={PerpsHomeViewSelectorsIDs.HOME_HEADING}
+        <Box
+          onLayout={(event) =>
+            setTitleSectionHeight(event.nativeEvent.layout.height)
+          }
+        >
+          <TitleHub
+            testID={PerpsHomeViewSelectorsIDs.HOME_HEADING}
+            title={hideHeader ? undefined : perpsScreenTitle}
+            titleEndAccessory={hideHeader ? undefined : titleEndAccessory}
+            titleProps={
+              hideHeader
+                ? undefined
+                : {
+                    testID: `${PerpsHomeViewSelectorsIDs.HOME_HEADING}-title`,
+                  }
+            }
+            amount={
+              !isBalanceEmpty ? (
+                <SensitiveText
+                  variant={TextVariant.DisplayLg}
+                  color={TextColor.TextDefault}
+                  testID={PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE}
+                  isHidden={privacyMode}
+                  length={SensitiveTextLength.Medium}
+                >
+                  {formatPerpsBalance(totalBalance)}
+                </SensitiveText>
+              ) : undefined
+            }
+            bottomLabel={
+              !isBalanceEmpty ? (
+                <Box flexDirection={BoxFlexDirection.Row}>
+                  <SensitiveText
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextAlternative}
+                    isHidden={privacyMode}
+                    length={SensitiveTextLength.Short}
+                    testID={
+                      PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT
+                    }
+                  >
+                    {formatPerpsBalance(spendableBalance)}
+                  </SensitiveText>
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextAlternative}
+                  >
+                    {' '}
+                    {strings('perps.available')}
+                  </Text>
+                </Box>
+              ) : undefined
+            }
+            twClassName="px-4 pb-3"
+          />
+        </Box>
+
+        {/* Service Interruption Banner */}
+        <PerpsServiceInterruptionBanner
+          testID={PerpsHomeViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER}
         />
 
         {/* Balance Actions Component */}
         <PerpsMarketBalanceActions
           showActionButtons={HOME_SCREEN_CONFIG.ShowHeaderActionButtons}
+          hideBalanceSection
+        />
+
+        {/* Competition Banner */}
+        <PerpsCompetitionBanner
+          testID={PerpsHomeViewSelectorsIDs.COMPETITION_BANNER}
         />
 
         {/* Positions Section */}
@@ -531,6 +706,7 @@ const PerpsHomeView = ({
                 key={`${position.symbol}-${index}`}
                 position={position}
                 source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+                testID={`${PerpsHomeViewSelectorsIDs.POSITION_CARD}-${index}`}
               />
             ))}
           </View>
@@ -546,15 +722,23 @@ const PerpsHomeView = ({
           renderSkeleton={() => <PerpsRowSkeleton count={2} />}
         >
           <View style={styles.positionsOrdersContainer}>
-            {orders.map((order) => (
+            {orders.map((order, index) => (
               <PerpsCard
                 key={order.orderId}
                 order={order}
                 source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+                testID={`${PerpsHomeViewSelectorsIDs.ORDER_CARD}-${index}`}
               />
             ))}
           </View>
         </PerpsHomeSection>
+
+        {/* What's Happening Section */}
+        {isWhatsHappeningEnabled && (
+          <View style={styles.whatsHappeningSection}>
+            <WhatsHappeningSection source={WhatsHappeningSource.Perps} />
+          </View>
+        )}
 
         {/* Watchlist Section */}
         <PerpsWatchlistMarkets
@@ -563,6 +747,18 @@ const PerpsHomeView = ({
           positions={positions}
           orders={orders}
           source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+          transactionActiveAbTests={transactionActiveAbTests}
+        />
+
+        {/* Products Section - Category pills grid */}
+        <View onLayout={handleSectionLayout('products')}>
+          <PerpsProducts transactionActiveAbTests={transactionActiveAbTests} />
+        </View>
+
+        {/* Top Movers Section */}
+        <PerpsTopMoversSection
+          source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+          transactionActiveAbTests={transactionActiveAbTests}
         />
 
         {/* Crypto Markets List */}
@@ -574,6 +770,7 @@ const PerpsHomeView = ({
             sortBy={sortBy}
             isLoading={isLoading.markets}
             source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+            transactionActiveAbTests={transactionActiveAbTests}
           />
         </View>
 
@@ -581,28 +778,23 @@ const PerpsHomeView = ({
         <PerpsMarketTypeSection
           title={strings('perps.home.commodities')}
           markets={commoditiesMarkets}
-          marketType="commodities"
+          marketType="commodity"
           sortBy={sortBy}
           isLoading={isLoading.markets}
           source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+          transactionActiveAbTests={transactionActiveAbTests}
         />
-
-        {/* What's Happening Section */}
-        {isWhatsHappeningEnabled && (
-          <View style={styles.whatsHappeningSection}>
-            <WhatsHappeningSection source={WhatsHappeningSource.Perps} />
-          </View>
-        )}
 
         {/* Stocks Markets List */}
         <View onLayout={handleSectionLayout('explore_stocks')}>
           <PerpsMarketTypeSection
             title={strings('perps.home.stocks')}
             markets={stocksMarkets}
-            marketType="stocks"
+            marketType="stock"
             sortBy={sortBy}
             isLoading={isLoading.markets}
             source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+            transactionActiveAbTests={transactionActiveAbTests}
           />
         </View>
 
@@ -613,6 +805,7 @@ const PerpsHomeView = ({
           marketType="forex"
           isLoading={isLoading.markets}
           source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+          transactionActiveAbTests={transactionActiveAbTests}
         />
 
         {/* Recent Activity List */}
@@ -648,37 +841,30 @@ const PerpsHomeView = ({
       )}
 
       {/* Fixed Footer with Action Buttons - Only show when balance is not empty and no sheets are open */}
-      {!isBalanceEmpty &&
-        !showCloseAllSheet &&
-        !showCancelAllSheet &&
-        !HOME_SCREEN_CONFIG.ShowHeaderActionButtons && (
-          <View style={fixedFooterStyle}>
-            <View style={styles.footerButtonsContainer}>
-              <View style={styles.footerButton}>
-                <Button
-                  variant={ButtonVariant.Secondary}
-                  size={ButtonSize.Lg}
-                  onPress={handleWithdraw}
-                  isFullWidth
-                  testID={PerpsHomeViewSelectorsIDs.WITHDRAW_BUTTON}
-                >
-                  {strings('perps.withdraw')}
-                </Button>
-              </View>
-              <View style={styles.footerButton}>
-                <Button
-                  variant={ButtonVariant.Primary}
-                  size={ButtonSize.Lg}
-                  onPress={handleAddFunds}
-                  isFullWidth
-                  testID={PerpsHomeViewSelectorsIDs.ADD_FUNDS_BUTTON}
-                >
-                  {strings('perps.add_funds')}
-                </Button>
-              </View>
-            </View>
+      {showsFixedFooter && (
+        <View style={fixedFooterStyle}>
+          <View style={styles.footerButtonsContainer} accessible={false}>
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Lg}
+              onPress={handleWithdraw}
+              style={styles.footerButton}
+              testID={PerpsHomeViewSelectorsIDs.WITHDRAW_BUTTON}
+            >
+              {strings('perps.withdraw')}
+            </Button>
+            <Button
+              variant={ButtonVariant.Primary}
+              size={ButtonSize.Lg}
+              onPress={handleAddFunds}
+              style={styles.footerButton}
+              testID={PerpsHomeViewSelectorsIDs.ADD_FUNDS_BUTTON}
+            >
+              {strings('perps.add_funds')}
+            </Button>
           </View>
-        )}
+        </View>
+      )}
 
       {/* Eligibility Modal */}
       {isEligibilityModalVisible && (
@@ -708,7 +894,7 @@ const PerpsHomeView = ({
           </Modal>
         </View>
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 

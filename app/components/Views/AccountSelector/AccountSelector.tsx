@@ -27,6 +27,7 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  HeaderStandard,
   FontWeight,
   Text,
   TextVariant,
@@ -35,13 +36,11 @@ import {
 // External dependencies.
 import MultichainAccountSelectorList from '../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList';
 import { MultichainAddWalletActions } from '../../../component-library/components-temp/MultichainAccounts';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import Engine from '../../../core/Engine';
 import { store } from '../../../store';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { strings } from '../../../../locales/i18n';
 import { useAccounts } from '../../hooks/useAccounts';
-import AddAccountActions from '../AddAccountActions';
 import { AccountListBottomSheetSelectorsIDs } from './AccountListBottomSheet.testIds';
 import { CommonSelectorsIDs } from '../../../util/Common.testIds';
 import { selectSelectedAccountGroup } from '../../../selectors/multichainAccounts/accountTreeController';
@@ -116,20 +115,11 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     navigateToAddAccountActions ===
     AccountSelectorScreens.MultichainAddWalletActions;
 
-  const getInitialScreen = (): AccountSelectorScreens => {
-    if (shouldRedirectToAddWallet) {
-      return AccountSelectorScreens.MultichainAddWalletActions;
-    }
-    if (
-      navigateToAddAccountActions === AccountSelectorScreens.AddAccountActions
-    ) {
-      return AccountSelectorScreens.AddAccountActions;
-    }
-    return AccountSelectorScreens.AccountSelector;
-  };
-
-  const [screen, setScreen] =
-    useState<AccountSelectorScreens>(getInitialScreen());
+  const [screen, setScreen] = useState<AccountSelectorScreens>(
+    shouldRedirectToAddWallet
+      ? AccountSelectorScreens.MultichainAddWalletActions
+      : AccountSelectorScreens.AccountSelector,
+  );
   const [keyboardAvoidingViewEnabled, setKeyboardAvoidingViewEnabled] =
     useState(false);
 
@@ -273,18 +263,12 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     ],
   );
 
-  const renderAddAccountActions = useCallback(
-    () => <AddAccountActions onBack={handleBackToSelector} />,
-    [handleBackToSelector],
-  );
-
   const renderMultichainAddWalletActions = useCallback(
     () => <MultichainAddWalletActions onBack={handleBackToSelector} />,
     [handleBackToSelector],
   );
 
   const showAddWalletModal =
-    screen === AccountSelectorScreens.AddAccountActions ||
     screen === AccountSelectorScreens.MultichainAddWalletActions;
 
   if (shouldRedirectToAddWallet) {
@@ -306,7 +290,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
             paddingBottom: insets.bottom,
           }}
         >
-          <HeaderCompactStandard
+          <HeaderStandard
             title={strings('accounts.accounts_title')}
             onBack={handleClose}
             backButtonProps={{
@@ -330,20 +314,14 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
               paddingBottom: insets.bottom,
             }}
           >
-            <HeaderCompactStandard
-              title={
-                screen === AccountSelectorScreens.AddAccountActions
-                  ? strings('account_actions.add_account')
-                  : strings('multichain_accounts.add_wallet')
-              }
+            <HeaderStandard
+              title={strings('multichain_accounts.add_wallet')}
               onBack={handleBackToSelector}
               backButtonProps={{
                 testID: CommonSelectorsIDs.BACK_ARROW_BUTTON,
               }}
             />
-            {screen === AccountSelectorScreens.AddAccountActions
-              ? renderAddAccountActions()
-              : renderMultichainAddWalletActions()}
+            {renderMultichainAddWalletActions()}
           </Box>
         ) : null}
       </Modal>

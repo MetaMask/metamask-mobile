@@ -20,6 +20,7 @@ import SectionHeader from '../components/SectionHeader';
 import TileCarousel from '../components/TileCarousel';
 import type { TabProps } from '../hooks/useExploreRefresh';
 import { trackExploreInteracted } from '../search/analytics';
+import { TrendingViewSelectorsIDs } from '../TrendingView.testIds';
 
 const DappsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -72,7 +73,11 @@ const DappsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const showSites = sites.isLoading || sites.data.length > 0;
 
   return (
-    <ExploreScroll refreshing={refreshing} onRefresh={onRefresh}>
+    <ExploreScroll
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      testID={TrendingViewSelectorsIDs.EXPLORE_DAPPS_SCROLL_VIEW}
+    >
       {showRecents && (
         <Box>
           <SectionHeader

@@ -22,6 +22,8 @@ import * as Constants from '../constants/config';
 import * as NotificationHooks from './useNotifications';
 // eslint-disable-next-line import-x/no-namespace
 import * as StorageHooks from '../../../store/storage-wrapper-hooks';
+// eslint-disable-next-line import-x/no-namespace
+import * as NotificationHelpers from '../../../actions/notification/helpers';
 import {
   useRegisterAndFetchNotifications,
   useEnableNotificationsByDefaultEffect,
@@ -103,6 +105,9 @@ describe('useRegisterAndFetchNotifications', () => {
     const mockIsFlagEnabled = jest
       .spyOn(Constants, 'isNotificationsFeatureEnabled')
       .mockReturnValue(true);
+    const mockHasNotificationPreferences = jest
+      .spyOn(NotificationHelpers, 'hasNotificationPreferences')
+      .mockResolvedValue(true);
 
     return {
       hooks: arrangeHooks(),
@@ -111,6 +116,7 @@ describe('useRegisterAndFetchNotifications', () => {
         mockGetStorageItem,
         mockSetStorageItem,
         mockIsFlagEnabled,
+        mockHasNotificationPreferences,
       },
     };
   };
@@ -139,6 +145,23 @@ describe('useRegisterAndFetchNotifications', () => {
     });
   });
 
+  it('refreshes notification registrations without prompting for push permission', async () => {
+    const mocks = arrange();
+    mocks.selectors.mockIsNotifsEnabled.mockReturnValue(true);
+    mocks.selectors.mockSelectBasicFunctionalityEnabled.mockReturnValue(true);
+    mocks.selectors.mockSelectIsUnlocked.mockReturnValue(true);
+    mocks.selectors.mockSelectIsSignedIn.mockReturnValue(true);
+
+    renderHookWithProvider(() => useRegisterAndFetchNotifications(), {});
+
+    await waitFor(() => {
+      expect(mocks.hooks.mockUseEnableNotifications).toHaveBeenCalledWith({
+        nudgeEnablePush: false,
+      });
+      expect(mocks.hooks.enableNotifications).toHaveBeenCalled();
+    });
+  });
+
   it('does not enable notifications if resubscription has not expired', async () => {
     const mocks = arrange();
     mocks.selectors.mockIsNotifsEnabled.mockReturnValue(true);
@@ -153,6 +176,24 @@ describe('useRegisterAndFetchNotifications', () => {
 
     await waitFor(() => {
       expect(mocks.hooks.enableNotifications).not.toHaveBeenCalled();
+      expect(mocks.hooks.listNotifications).toHaveBeenCalled();
+    });
+  });
+
+  it('enables notifications if AUS notification preferences are missing even when resubscription has not expired', async () => {
+    const mocks = arrange();
+    mocks.selectors.mockIsNotifsEnabled.mockReturnValue(true);
+    mocks.selectors.mockSelectBasicFunctionalityEnabled.mockReturnValue(true);
+    mocks.selectors.mockSelectIsUnlocked.mockReturnValue(true);
+    mocks.selectors.mockSelectIsSignedIn.mockReturnValue(true);
+
+    mocks.helpers.mockGetStorageItem.mockResolvedValue(Date.now() + 1000);
+    mocks.helpers.mockHasNotificationPreferences.mockResolvedValue(false);
+
+    renderHookWithProvider(() => useRegisterAndFetchNotifications(), {});
+
+    await waitFor(() => {
+      expect(mocks.hooks.enableNotifications).toHaveBeenCalled();
       expect(mocks.hooks.listNotifications).toHaveBeenCalled();
     });
   });
@@ -342,9 +383,6 @@ describe('useEnableNotificationsByDefaultEffect', () => {
     const mockGetIsNotificationEnabledByDefaultFeatureFlag = jest
       .spyOn(Selectors, 'getIsNotificationEnabledByDefaultFeatureFlag')
       .mockReturnValue(true);
-    const mockSelectHomepageSectionsV1Enabled = jest
-      .spyOn(HomepageFeatureSelectors, 'selectHomepageSectionsV1Enabled')
-      .mockReturnValue(false);
     const mockSelectWalletHomeOnboardingStepsEnabled = jest
       .spyOn(HomepageFeatureSelectors, 'selectWalletHomeOnboardingStepsEnabled')
       .mockReturnValue(false);
@@ -358,7 +396,6 @@ describe('useEnableNotificationsByDefaultEffect', () => {
       mockSelectIsUnlocked,
       mockSelectIsSignedIn,
       mockGetIsNotificationEnabledByDefaultFeatureFlag,
-      mockSelectHomepageSectionsV1Enabled,
       mockSelectWalletHomeOnboardingStepsEnabled,
       mockSelectShouldShowWalletHomeOnboardingSteps,
     };
@@ -474,7 +511,6 @@ describe('useEnableNotificationsByDefaultEffect', () => {
 
   it('does not enable notifications when wallet home post-onboarding checklist is active', async () => {
     const mocks = arrange();
-    mocks.selectors.mockSelectHomepageSectionsV1Enabled.mockReturnValue(true);
     mocks.selectors.mockSelectWalletHomeOnboardingStepsEnabled.mockReturnValue(
       true,
     );

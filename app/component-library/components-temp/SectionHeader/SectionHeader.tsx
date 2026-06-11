@@ -20,6 +20,8 @@ import { SectionHeaderProps } from './SectionHeader.types';
 /**
  * SectionHeader — homepage section header with optional press-to-navigate.
  *
+ * @deprecated Please update your code to use `SectionHeader` from `@metamask/design-system-react-native`.
+ *
  * @version 1 - UX Team (interim component)
  *
  * This is a v1 implementation created by the UX team to unblock RC milestones
@@ -77,7 +79,7 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
         <Icon
           testID="section-header-arrow-icon"
           name={endIconName}
-          size={IconSize.Sm}
+          size={IconSize.Md}
           color={endIconColor}
           style={tw.style('ml-1')}
         />

@@ -15,6 +15,16 @@ jest.mock('@react-navigation/stack', () => ({
     Navigator: 'Navigator',
     Screen: 'Screen',
   }),
+  TransitionPresets: {
+    ModalSlideFromBottomIOS: {},
+  },
+}));
+
+jest.mock('@react-navigation/native-stack', () => ({
+  createNativeStackNavigator: jest.fn().mockReturnValue({
+    Navigator: 'Navigator',
+    Screen: 'Screen',
+  }),
 }));
 
 jest.mock('@react-navigation/bottom-tabs', () => ({
@@ -36,12 +46,20 @@ jest.mock('../../UI/Perps', () => ({
   selectPerpsEnabledFlag: (state: unknown) => mockSelectPerpsEnabledFlag(state),
 }));
 
-jest.mock('../../UI/Predict', () => ({
-  PredictScreenStack: () => 'PredictScreenStack',
-  PredictModalStack: () => 'PredictModalStack',
-  selectPredictEnabledFlag: (state: unknown) =>
-    mockSelectPredictEnabledFlag(state),
-}));
+jest.mock('../../UI/Predict', () => {
+  const { Fragment } = jest.requireActual('react');
+  return {
+    PredictScreenStack: () => 'PredictScreenStack',
+    PredictModalStack: () => 'PredictModalStack',
+    PredictPreviewSheetProvider: ({
+      children,
+    }: {
+      children: React.ReactNode;
+    }) => jest.requireActual('react').createElement(Fragment, null, children),
+    selectPredictEnabledFlag: (state: unknown) =>
+      mockSelectPredictEnabledFlag(state),
+  };
+});
 
 jest.mock('../../UI/MarketInsights', () => ({
   MarketInsightsView: () => 'MarketInsightsView',
@@ -56,10 +74,15 @@ jest.mock('../../../selectors/featureFlagController/marketInsights', () => ({
 
 jest.mock('../../hooks/useAnalytics/useAnalytics');
 
-const mockSelectMoneyHomeScreenEnabledFlag = jest.fn().mockReturnValue(false);
+jest.mock('../../UI/Money/components/MoneyTabPressTracker', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
+const mockSelectMoneyEnableMoneyAccountFlag = jest.fn().mockReturnValue(false);
 jest.mock('../../UI/Money/selectors/featureFlags', () => ({
-  selectMoneyHomeScreenEnabledFlag: (state: unknown) =>
-    mockSelectMoneyHomeScreenEnabledFlag(state),
+  selectMoneyEnableMoneyAccountFlag: (state: unknown) =>
+    mockSelectMoneyEnableMoneyAccountFlag(state),
 }));
 
 describe('MainNavigator', () => {
@@ -177,10 +200,10 @@ describe('MainNavigator', () => {
       )[0];
 
       // Then every screen in the wallet tab stack, including pushed screens,
-      // inherits the themed card background.
+      // inherits the themed content background (native-stack uses contentStyle).
       expect(stackNavigator?.props?.screenOptions).toEqual(
         expect.objectContaining({
-          cardStyle: {
+          contentStyle: {
             backgroundColor: mockTheme.colors.background.default,
           },
         }),
@@ -833,19 +856,6 @@ describe('MainNavigator', () => {
         })) as ScreenChild[];
     };
 
-    it('includes CollectiblesDetails screen', () => {
-      const container = renderWithProvider(<MainNavigator />, {
-        state: initialRootState,
-      });
-
-      const screenProps = getScreenProps(container);
-      const screen = screenProps?.find(
-        (s) => s?.name === 'CollectiblesDetails',
-      );
-
-      expect(screen).toBeDefined();
-    });
-
     it('includes DeprecatedNetworkDetails screen', () => {
       const container = renderWithProvider(<MainNavigator />, {
         state: initialRootState,
@@ -971,6 +981,9 @@ describe('MainNavigator', () => {
       const screen = screenProps?.find((s) => s?.name === 'ConfirmAddAsset');
 
       expect(screen).toBeDefined();
+      expect(screen?.options?.headerShown).toBe(false);
+      expect(screen?.options?.animationEnabled).toBe(true);
+      expect(typeof screen?.options?.cardStyleInterpolator).toBe('function');
     });
 
     it('includes StakeScreens route', () => {
@@ -1043,19 +1056,6 @@ describe('MainNavigator', () => {
       expect(screen).toBeDefined();
     });
 
-    it('includes NotificationsOptInStack screen', () => {
-      const container = renderWithProvider(<MainNavigator />, {
-        state: initialRootState,
-      });
-
-      const screenProps = getScreenProps(container);
-      const screen = screenProps?.find(
-        (s) => s?.name === Routes.NOTIFICATIONS.OPT_IN_STACK,
-      );
-
-      expect(screen).toBeDefined();
-    });
-
     it('includes DeFiProtocolPositionDetails screen', () => {
       const container = renderWithProvider(<MainNavigator />, {
         state: initialRootState,
@@ -1067,6 +1067,9 @@ describe('MainNavigator', () => {
       );
 
       expect(screen).toBeDefined();
+      expect(screen?.options?.headerShown).toBe(false);
+      expect(screen?.options?.animationEnabled).toBe(true);
+      expect(typeof screen?.options?.cardStyleInterpolator).toBe('function');
     });
 
     it('includes Asset screen', () => {
@@ -1361,17 +1364,6 @@ describe('MainNavigator', () => {
         const Component = getScreenComponent(root, 'Asset');
         expect(renderInner(Component).toJSON()).toBeTruthy();
       });
-
-      it('renders NotificationsOptInStack navigator', () => {
-        const { root } = renderWithProvider(<MainNavigator />, {
-          state: initialRootState,
-        });
-        const Component = getScreenComponent(
-          root,
-          Routes.NOTIFICATIONS.OPT_IN_STACK,
-        );
-        expect(renderInner(Component).toJSON()).toBeTruthy();
-      });
     });
 
     describe('HomeTabs child tab screens', () => {
@@ -1488,9 +1480,23 @@ describe('MainNavigator', () => {
         );
         expect(renderInner(AssetStackFlow).toJSON()).toBeTruthy();
       });
+
+      it('renders SnapsSettingsStack inside SettingsFlow', () => {
+        const { root: mainRoot } = renderWithProvider(<MainNavigator />, {
+          state: initialRootState,
+        });
+        const SettingsFlow = getScreenComponent(mainRoot, Routes.SETTINGS_VIEW);
+        const { root: settingsRoot } = renderInner(SettingsFlow);
+
+        const SnapsSettingsStack = getScreenComponent(
+          settingsRoot,
+          Routes.SNAPS.SNAPS_SETTINGS_LIST,
+        );
+        expect(renderInner(SnapsSettingsStack).toJSON()).toBeTruthy();
+      });
     });
 
-    describe('Money home screen conditional rendering', () => {
+    describe('Money account conditional rendering', () => {
       const getHomeTabsScreenNames = (): string[] => {
         const { root: mainRoot } = renderWithProvider(<MainNavigator />, {
           state: initialRootState,
@@ -1521,16 +1527,16 @@ describe('MainNavigator', () => {
       };
 
       it('includes Money route when feature flag is enabled', () => {
-        mockSelectMoneyHomeScreenEnabledFlag.mockReturnValue(true);
+        mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(true);
 
         const tabScreenNames = getHomeTabsScreenNames();
 
         expect(tabScreenNames).toContain(Routes.MONEY.ROOT);
-        mockSelectMoneyHomeScreenEnabledFlag.mockReturnValue(false);
+        mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(false);
       });
 
       it('excludes Money route when feature flag is disabled', () => {
-        mockSelectMoneyHomeScreenEnabledFlag.mockReturnValue(false);
+        mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(false);
 
         const tabScreenNames = getHomeTabsScreenNames();
 

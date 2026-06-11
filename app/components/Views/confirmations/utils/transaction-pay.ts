@@ -318,8 +318,8 @@ export function isMatchingPayToken(
  * Resolves the preferred pay token for a transaction.
  *
  * Returns the explicit override when provided. Otherwise, falls back to
- * mUSD on mainnet for moneyAccountWithdraw transactions so the preferred-token
- * row in the pay-with bottom sheet reflects the deposit-default asset.
+ * mUSD on Monad for moneyAccountWithdraw transactions so the preferred-token
+ * row in the pay-with bottom sheet reflects the withdraw-default asset.
  *
  */
 export function resolvePreferredPayToken({
@@ -338,17 +338,9 @@ export function resolvePreferredPayToken({
   ) {
     return {
       address: MUSD_TOKEN_ADDRESS,
-      chainId: CHAIN_IDS.MAINNET,
+      chainId: CHAIN_IDS.MONAD,
     };
   }
 
   return undefined;
 }
-
-/**
- * Temporary build-time feature gate for the new Pay With bottom sheet UI.
- * Remove this helper and its callers once the bottom sheet ships behind the
- * remote `confirmations_pay_fiat` flag.
- */
-export const isPayWithBottomSheetEnabled = (): boolean =>
-  process.env.MM_DEV_PAY_WITH_BOTTOM_SHEET === 'true';

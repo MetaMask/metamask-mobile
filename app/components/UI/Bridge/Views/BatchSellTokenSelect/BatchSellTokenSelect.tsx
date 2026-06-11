@@ -4,6 +4,7 @@ import { ListRenderItemInfo, Pressable } from 'react-native';
 import { FlatList, ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
+import BigNumber from 'bignumber.js';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   AvatarBaseShape,
@@ -25,71 +26,132 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
-import { CaipChainId } from '@metamask/utils';
+import {
+  formatAddressToAssetId,
+  formatChainIdToCaip,
+} from '@metamask/bridge-controller';
+import { CaipAssetType, CaipChainId } from '@metamask/utils';
 
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
+  resetBridgeState,
   selectBatchSellDestStablecoins,
-  selectBatchSellDestStablecoinsByChain,
+  selectBatchSellSourceTokens,
   setBatchSellDestToken,
+  setBatchSellSourceTokenAmounts,
   setBatchSellSourceTokens,
+  setBatchSellTokenSlippages,
 } from '../../../../../core/redux/slices/bridge';
 import { RootState } from '../../../../../reducers';
 import { BridgeToken } from '../../types';
-import { useTokensWithBalance } from '../../hooks/useTokensWithBalance';
 import ButtonToggle from '../../../../../component-library/components-temp/Buttons/ButtonToggle';
 import { ButtonSize as ButtonToggleSize } from '../../../../../component-library/components/Buttons/Button';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import {
   buildBatchSellEligibleChains,
-  removeStablecoinsFromSourceTokens,
   getBatchSellDestinationToken,
   MAX_BATCH_SELL_SOURCE_TOKENS,
   BatchSellTokenSortDirection,
   sortBatchSellTokens,
-  SUPPORTED_BATCH_SELL_CHAIN_IDS,
 } from './BatchSellTokenSelect.utils';
 import { BatchSellTokenSelectSelectorsIDs } from './BatchSellTokenSelect.testIds';
 import { BatchSellTokenRow } from './BatchSellTokenRow';
 import { BatchSellEmptyState } from './BatchSellEmptyState';
+import { DEFAULT_BATCH_SELL_SLIPPAGE } from '../../components/SlippageModal/utils';
+import { normalizeTokenAddress } from '../../utils/tokenUtils';
+import { useBatchSellTokens } from './useBatchSellTokens';
 
 const getTokenKey = (token: BridgeToken) =>
-  `${formatChainIdToCaip(token.chainId)}:${token.address}`;
+  `${formatChainIdToCaip(token.chainId)}:${normalizeTokenAddress(
+    token.address,
+    token.chainId,
+  )}`;
+
+function getBatchSellSourceTokenAmount(token: BridgeToken, percent: number) {
+  if (percent <= 0) return '0';
+  if (!token.balance) return undefined;
+
+  const sourceAmount = new BigNumber(token.balance).times(percent).div(100);
+
+  return sourceAmount.isFinite() ? sourceAmount.toFixed() : undefined;
+}
+
+function getDefaultBatchSellSlippages(selectedTokens: BridgeToken[]) {
+  return selectedTokens.reduce<Partial<Record<CaipAssetType, string>>>(
+    (slippagesByAssetId, token) => {
+      const assetId = formatAddressToAssetId(token.address, token.chainId);
+
+      if (assetId) {
+        slippagesByAssetId[assetId] = DEFAULT_BATCH_SELL_SLIPPAGE;
+      }
+
+      return slippagesByAssetId;
+    },
+    {},
+  );
+}
+
+function getDefaultBatchSellSourceTokenAmounts(selectedTokens: BridgeToken[]) {
+  return selectedTokens.reduce<Partial<Record<CaipAssetType, string>>>(
+    (sourceAmountsByAssetId, token) => {
+      const assetId = formatAddressToAssetId(token.address, token.chainId);
+      const amount = getBatchSellSourceTokenAmount(token, 100);
+
+      if (assetId) {
+        sourceAmountsByAssetId[assetId] = amount;
+      }
+
+      return sourceAmountsByAssetId;
+    },
+    {},
+  );
+}
 
 export function BatchSellTokenSelect() {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const tw = useTailwind();
-  const allWalletTokens = useTokensWithBalance({
-    chainIds: SUPPORTED_BATCH_SELL_CHAIN_IDS,
-  });
-  const stablecoinsByChain = useSelector(selectBatchSellDestStablecoinsByChain);
+  const batchSellTokens = useBatchSellTokens();
   const [tokenSortDirection, setTokenSortDirection] =
     useState<BatchSellTokenSortDirection>('desc');
-  const eligibleSourceTokens = useMemo(() => {
-    const sourceTokens = removeStablecoinsFromSourceTokens({
-      tokens: allWalletTokens,
-      stablecoinsByChain,
-    });
-
-    return sortBatchSellTokens(sourceTokens, tokenSortDirection);
-  }, [allWalletTokens, stablecoinsByChain, tokenSortDirection]);
+  const sortedEligibleSourceTokens = useMemo(
+    () => sortBatchSellTokens(batchSellTokens, tokenSortDirection),
+    [batchSellTokens, tokenSortDirection],
+  );
   const sortedEligibleChains = useMemo(
-    () => buildBatchSellEligibleChains(eligibleSourceTokens),
-    [eligibleSourceTokens],
+    () => buildBatchSellEligibleChains(sortedEligibleSourceTokens),
+    [sortedEligibleSourceTokens],
   );
   const [selectedChainId, setSelectedChainId] = useState<
     CaipChainId | undefined
   >(() => sortedEligibleChains[0]?.chainId);
   const [selectedTokens, setSelectedTokens] = useState<BridgeToken[]>([]);
+  const committedSourceTokens = useSelector(selectBatchSellSourceTokens);
 
-  // Start each Batch Sell flow from a clean Redux handoff state.
   useEffect(() => {
-    dispatch(setBatchSellSourceTokens([]));
-    dispatch(setBatchSellDestToken(undefined));
+    dispatch(resetBridgeState());
   }, [dispatch]);
+
+  useEffect(() => {
+    // Tokens can be removed on the review page, which only updates Redux. Keep the
+    // local selection in sync so removed tokens appear deselected when returning here.
+    if (committedSourceTokens.length === 0) {
+      return;
+    }
+
+    const committedTokenKeys = new Set(committedSourceTokens.map(getTokenKey));
+
+    setSelectedTokens((tokens) => {
+      const reconciledTokens = tokens.filter((token) =>
+        committedTokenKeys.has(getTokenKey(token)),
+      );
+
+      return reconciledTokens.length === tokens.length
+        ? tokens
+        : reconciledTokens;
+    });
+  }, [committedSourceTokens]);
 
   useEffect(() => {
     // Default to the highest-value chain once balances load, but preserve a
@@ -119,11 +181,11 @@ export function BatchSellTokenSelect() {
   const selectedChainTokens = useMemo(
     () =>
       activeChainId
-        ? eligibleSourceTokens.filter(
+        ? sortedEligibleSourceTokens.filter(
             (token) => formatChainIdToCaip(token.chainId) === activeChainId,
           )
-        : eligibleSourceTokens,
-    [activeChainId, eligibleSourceTokens],
+        : sortedEligibleSourceTokens,
+    [activeChainId, sortedEligibleSourceTokens],
   );
   const selectedTokenKeys = useMemo(
     () => new Set(selectedTokens.map(getTokenKey)),
@@ -219,9 +281,38 @@ export function BatchSellTokenSelect() {
       return;
     }
 
-    dispatch(setBatchSellSourceTokens(selectedTokens));
+    const orderedSelectedTokens = sortBatchSellTokens(
+      selectedTokens,
+      tokenSortDirection,
+    );
+
+    dispatch(setBatchSellSourceTokens(orderedSelectedTokens));
+    dispatch(
+      setBatchSellSourceTokenAmounts(
+        getDefaultBatchSellSourceTokenAmounts(orderedSelectedTokens),
+      ),
+    );
+    dispatch(
+      setBatchSellDestToken(
+        getBatchSellDestinationToken(
+          orderedSelectedTokens[0].chainId,
+          destinationStablecoins,
+        ),
+      ),
+    );
+    dispatch(
+      setBatchSellTokenSlippages(
+        getDefaultBatchSellSlippages(orderedSelectedTokens),
+      ),
+    );
     navigation.navigate(Routes.BRIDGE.BATCH_SELL_REVIEW);
-  }, [destinationStablecoins, dispatch, navigation, selectedTokens]);
+  }, [
+    destinationStablecoins,
+    dispatch,
+    navigation,
+    selectedTokens,
+    tokenSortDirection,
+  ]);
 
   const handleExploreTokensPress = useCallback(() => {
     navigation.navigate(Routes.TRENDING_VIEW, {
@@ -334,7 +425,7 @@ export function BatchSellTokenSelect() {
                 {strings('bridge.batch_sell_select_subtitle')}
               </Text>
             </Box>
-            <Box twClassName="pt-4 pl-4">
+            <Box twClassName="py-4 pl-4">
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
@@ -354,7 +445,7 @@ export function BatchSellTokenSelect() {
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              twClassName="px-4 py-4"
+              twClassName="px-4 py-2"
             >
               <Pressable
                 accessibilityRole="button"
