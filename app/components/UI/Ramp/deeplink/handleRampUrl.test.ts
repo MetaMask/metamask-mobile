@@ -235,9 +235,9 @@ describe('handleRampUrl', () => {
         rampType: RampType.BUY,
       });
       expect(mockRefreshGeolocation).toHaveBeenCalledTimes(1);
-      expect(ReduxService.store.getState.mock.calls.length).toBeGreaterThanOrEqual(
-        2,
-      );
+      expect(
+        ReduxService.store.getState.mock.calls.length,
+      ).toBeGreaterThanOrEqual(2);
       expect(mockCreateTokenSelectionNavDetails).toHaveBeenCalled();
       expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
         'TOKEN_SELECTION_ROUTE',
