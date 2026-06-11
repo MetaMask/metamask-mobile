@@ -12,7 +12,7 @@ import { TokenIconProps } from '../../token-icon';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
-import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
+import { useAccountNoFundsAlert } from '../../../hooks/alerts/useAccountNoFundsAlert';
 import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod';
 import Routes from '../../../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
@@ -51,8 +51,8 @@ jest.mock('../../../hooks/pay/useTransactionPayWithdraw', () => ({
 jest.mock('../../../hooks/pay/useTransactionPayData', () => ({
   useTransactionPayRequiredTokens: jest.fn(),
 }));
-jest.mock('../../../hooks/pay/useTransactionPayAvailableTokens', () => ({
-  useTransactionPayAvailableTokens: jest.fn(() => ({ hasTokens: true })),
+jest.mock('../../../hooks/alerts/useAccountNoFundsAlert', () => ({
+  useAccountNoFundsAlert: jest.fn(() => []),
 }));
 jest.mock(
   '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod',
@@ -146,9 +146,7 @@ describe('PayWithRow', () => {
 
     isHardwareAccountMock.mockReturnValue(false);
 
-    jest
-      .mocked(useTransactionPayAvailableTokens)
-      .mockReturnValue({ availableTokens: [], hasTokens: true });
+    jest.mocked(useAccountNoFundsAlert).mockReturnValue([]);
   });
 
   it('renders selected pay token', async () => {

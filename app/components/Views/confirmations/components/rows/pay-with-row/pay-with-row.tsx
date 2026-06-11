@@ -9,7 +9,7 @@ import { TokenIcon, TokenIconVariant } from '../../token-icon';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
-import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
+import { useAccountNoFundsAlert } from '../../../hooks/alerts/useAccountNoFundsAlert';
 import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod';
 import { Image, TouchableOpacity } from 'react-native';
 import MoneyIcon from '../../../../../../images/money.png';
@@ -86,7 +86,8 @@ function PayWithRowInteractive() {
   const { payToken } = useTransactionPayToken();
   const { isWithdraw } = useTransactionPayWithdraw();
   const requiredTokens = useTransactionPayRequiredTokens();
-  const { hasTokens } = useTransactionPayAvailableTokens();
+  const accountNoFundsAlert = useAccountNoFundsAlert();
+  const hasAccountNoFunds = accountNoFundsAlert.length > 0;
   const selectedFiatPaymentMethod =
     useTransactionPaySelectedFiatPaymentMethod();
   const formatFiat = useFiatFormatter({ currency: 'usd' });
@@ -128,14 +129,14 @@ function PayWithRowInteractive() {
     (token) => !token.skipIfBalance && !token.allowUnderMinimum,
   );
   const displayToken = useMemo(() => {
-    if (!hasTokens) {
+    if (hasAccountNoFunds) {
       return null;
     }
     if (isWithdraw) {
       return payToken ?? defaultWithdrawToken ?? null;
     }
     return payToken ?? null;
-  }, [hasTokens, isWithdraw, payToken, defaultWithdrawToken]);
+  }, [hasAccountNoFunds, isWithdraw, payToken, defaultWithdrawToken]);
 
   const balanceUsdFormatted = useMemo(
     () => formatFiat(new BigNumber(accountBalanceUsd)),
@@ -155,7 +156,7 @@ function PayWithRowInteractive() {
   }
 
   if (!displayToken) {
-    if (hasTokens) {
+    if (!hasAccountNoFunds) {
       return <PayWithRowSkeleton />;
     }
 
