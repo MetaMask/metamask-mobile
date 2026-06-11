@@ -67,13 +67,13 @@ describe('TokensFullView', () => {
 
   it('renders header with title and back button', () => {
     // Arrange
-    const { getByTestId } = renderScreen(TokensFullView, {
+    const { getByTestId, getByText } = renderScreen(TokensFullView, {
       name: 'TokensFullView',
     });
 
     // Act & Assert
-    expect(getByTestId('header')).toBeOnTheScreen();
-    expect(getByTestId('header-title')).toBeOnTheScreen();
+    expect(getByTestId('back-button')).toBeOnTheScreen();
+    expect(getByText('Tokens')).toBeOnTheScreen();
     expect(getByTestId('tokens-component')).toBeOnTheScreen();
   });
 

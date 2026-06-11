@@ -2,7 +2,6 @@ import React, { useEffect, useRef } from 'react';
 import { Image, TouchableOpacity } from 'react-native';
 import {
   Box,
-  BoxAlignItems,
   Button,
   ButtonSize,
   ButtonVariant,
@@ -56,16 +55,14 @@ const StepperCard = ({
       testID={getTestId('container')}
     >
       {/* Image */}
-      <Box
-        alignItems={BoxAlignItems.Center}
-        testID={getTestId('step-image')}
-        twClassName="px-4 pt-4 h-[215px]"
-      >
-        <Image
-          source={step.image}
-          style={tw.style('w-full h-full')}
-          resizeMode="contain"
-        />
+      <Box twClassName="p-4">
+        <Box testID={getTestId('step-image')} twClassName="w-full aspect-video">
+          <Image
+            source={step.image}
+            style={tw.style('w-full h-full')}
+            resizeMode="contain"
+          />
+        </Box>
       </Box>
 
       {/* Content */}
@@ -112,6 +109,7 @@ const StepperCard = ({
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Lg}
               onPress={step.secondaryCta.onPress}
+              isDisabled={step.secondaryCta.disabled}
               twClassName="flex-1"
             >
               {step.secondaryCta.text}
@@ -121,6 +119,7 @@ const StepperCard = ({
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             onPress={step.primaryCta.onPress}
+            isDisabled={step.primaryCta.disabled}
             twClassName="flex-1"
             testID={getTestId('cta-button')}
           >

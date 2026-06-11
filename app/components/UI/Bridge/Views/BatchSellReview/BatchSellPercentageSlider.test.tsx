@@ -9,10 +9,8 @@ import {
 
 const SLIDER_TEST_ID = 'batch-sell-percentage-slider';
 
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({
-    style: () => ({}),
-  }),
+jest.mock('../../../../../component-library/hooks', () => ({
+  useStyles: () => ({ styles: {} }),
 }));
 
 jest.mock('react-native-gesture-handler', () => {

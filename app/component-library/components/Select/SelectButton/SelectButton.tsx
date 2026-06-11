@@ -23,6 +23,9 @@ import {
   SELECTBUTTON_TESTID,
 } from './SelectButton.constants';
 
+/**
+ * @deprecated Please update your code to use `SelectButton` from `@metamask/design-system-react-native`.
+ */
 const SelectButton: React.FC<SelectButtonProps> = ({
   style,
   size = DEFAULT_SELECTBUTTON_SIZE,

@@ -8,7 +8,6 @@ import { useQuickBuyContext } from './useQuickBuyContext';
 const QuickBuyAmount: React.FC = () => {
   const {
     amountDisplayMode,
-    features,
     usdAmount,
     target,
     tradeMode,
@@ -18,12 +17,10 @@ const QuickBuyAmount: React.FC = () => {
     sourceToken,
     estimatedReceiveAmount,
     destToken,
-    sourceBalanceFiat,
-    isQuoteLoading,
+    isBlockingQuoteLoad,
     hiddenInputRef,
     handleAmountAreaPress,
     handleAmountChange,
-    handleToggleAmountDisplay,
   } = useQuickBuyContext();
 
   const isUnpricedSource = tradeMode === 'sell' && !hasSourcePrice;
@@ -39,29 +36,19 @@ const QuickBuyAmount: React.FC = () => {
     ? sourceTokenAmount
     : estimatedReceiveAmount;
 
-  // For unpriced tokens we have no fiat rate, so the "X available" line should
-  // show the raw token balance rather than "$0.00".
-  const availableBalance =
-    isUnpricedSource && sourceToken?.balance
-      ? `${sourceToken.balance} ${sourceToken.symbol ?? ''}`
-      : sourceBalanceFiat;
-
   return (
     <QuickBuyAmountSection
       amountDisplayMode={amountDisplayMode}
-      fiatCryptoToggleEnabled={features.fiatCryptoToggle}
       usdAmount={usdAmount}
       destSymbol={cryptoSymbol}
       estimatedReceiveAmount={displayedCryptoAmount}
-      availableBalanceFiat={availableBalance}
-      isQuoteLoading={isQuoteLoading}
+      isQuoteLoading={isBlockingQuoteLoad}
       isUnpricedSource={isUnpricedSource}
       sourceCryptoAmount={sourceAmountTokens}
       sourceSymbol={sourceToken?.symbol ?? target.tokenSymbol}
       hiddenInputRef={hiddenInputRef}
       onAmountAreaPress={handleAmountAreaPress}
       onAmountChange={handleAmountChange}
-      onToggleAmountDisplay={handleToggleAmountDisplay}
     />
   );
 };

@@ -8,6 +8,7 @@ import {
   PERPS_CONSTANTS,
   sortMarkets,
   type PerpsMarketData,
+  type MarketTypeFilter,
   type SortField,
   type SortDirection,
 } from '@metamask/perps-controller';
@@ -648,7 +649,10 @@ describe('usePerpsMarketListView', () => {
 
       expect(result.current.marketCounts).toEqual({
         crypto: 3,
-        equity: 0,
+        stock: 0,
+        'pre-ipo': 0,
+        index: 0,
+        etf: 0,
         commodity: 0,
         forex: 0,
         new: 0,
@@ -661,12 +665,12 @@ describe('usePerpsMarketListView', () => {
         { ...createMockMarket('ETH', '$500M'), isHip3: false }, // crypto (no marketType, not HIP-3)
         {
           ...createMockMarket('AAPL', '$2B'),
-          marketType: 'equity' as const,
+          marketType: 'stock' as const,
           isHip3: true,
         },
         {
           ...createMockMarket('GOOGL', '$1.5B'),
-          marketType: 'equity' as const,
+          marketType: 'stock' as const,
           isHip3: true,
         },
         {
@@ -702,7 +706,10 @@ describe('usePerpsMarketListView', () => {
 
       expect(result.current.marketCounts).toEqual({
         crypto: 2,
-        equity: 2,
+        stock: 2,
+        'pre-ipo': 0,
+        index: 0,
+        etf: 0,
         commodity: 1,
         forex: 1,
         new: 0,
@@ -729,7 +736,10 @@ describe('usePerpsMarketListView', () => {
 
       expect(result.current.marketCounts).toEqual({
         crypto: 0,
-        equity: 0,
+        stock: 0,
+        'pre-ipo': 0,
+        index: 0,
+        etf: 0,
         commodity: 0,
         forex: 0,
         new: 0,
@@ -744,7 +754,7 @@ describe('usePerpsMarketListView', () => {
         ...initialMarkets,
         {
           ...createMockMarket('AAPL', '$2B'),
-          marketType: 'equity' as const,
+          marketType: 'stock' as const,
           isHip3: true,
         },
       ];
@@ -769,7 +779,7 @@ describe('usePerpsMarketListView', () => {
       const { result, rerender } = renderHook(() => usePerpsMarketListView());
 
       expect(result.current.marketCounts.crypto).toBe(1);
-      expect(result.current.marketCounts.equity).toBe(0);
+      expect(result.current.marketCounts.stock).toBe(0);
 
       // Update markets
       mockUsePerpsMarkets.mockReturnValue({
@@ -792,7 +802,7 @@ describe('usePerpsMarketListView', () => {
       rerender();
 
       expect(result.current.marketCounts.crypto).toBe(1);
-      expect(result.current.marketCounts.equity).toBe(1);
+      expect(result.current.marketCounts.stock).toBe(1);
     });
   });
 
@@ -802,12 +812,12 @@ describe('usePerpsMarketListView', () => {
       { ...createMockMarket('ETH', '$500M'), isHip3: false }, // crypto (no marketType, not HIP-3)
       {
         ...createMockMarket('AAPL', '$2B'),
-        marketType: 'equity' as const,
+        marketType: 'stock' as const,
         isHip3: true,
       },
       {
         ...createMockMarket('GOOGL', '$1.5B'),
-        marketType: 'equity' as const,
+        marketType: 'stock' as const,
         isHip3: true,
       },
       {
@@ -859,21 +869,21 @@ describe('usePerpsMarketListView', () => {
       expect(result.current.markets.every((m) => !m.isHip3)).toBe(true);
     });
 
-    it('filters to stocks (equity) when filter is "stocks"', () => {
+    it('filters to stocks when filter is "stock"', () => {
       const { result } = renderHook(() =>
-        usePerpsMarketListView({ defaultMarketTypeFilter: 'stocks' }),
+        usePerpsMarketListView({ defaultMarketTypeFilter: 'stock' }),
       );
 
-      // Should only include equity markets
+      // Should only include stock markets
       expect(result.current.markets.length).toBe(2);
       expect(
-        result.current.markets.every((m) => m.marketType === 'equity'),
+        result.current.markets.every((m) => m.marketType === 'stock'),
       ).toBe(true);
     });
 
-    it('filters to commodities when filter is "commodities"', () => {
+    it('filters to commodities when filter is "commodity"', () => {
       const { result } = renderHook(() =>
-        usePerpsMarketListView({ defaultMarketTypeFilter: 'commodities' }),
+        usePerpsMarketListView({ defaultMarketTypeFilter: 'commodity' }),
       );
 
       // Should only include commodity markets
@@ -912,15 +922,40 @@ describe('usePerpsMarketListView', () => {
 
     it('exposes market type filter state', () => {
       const { result } = renderHook(() =>
-        usePerpsMarketListView({ defaultMarketTypeFilter: 'stocks' }),
+        usePerpsMarketListView({ defaultMarketTypeFilter: 'stock' }),
       );
 
       expect(result.current.marketTypeFilterState.marketTypeFilter).toBe(
-        'stocks',
+        'stock',
       );
       expect(
         typeof result.current.marketTypeFilterState.setMarketTypeFilter,
       ).toBe('function');
+    });
+
+    it('syncs filter when defaultMarketTypeFilter changes on rerender', () => {
+      const { result, rerender } = renderHook(
+        ({
+          defaultMarketTypeFilter,
+        }: {
+          defaultMarketTypeFilter: MarketTypeFilter;
+        }) => usePerpsMarketListView({ defaultMarketTypeFilter }),
+        {
+          initialProps: {
+            defaultMarketTypeFilter: 'crypto' as MarketTypeFilter,
+          },
+        },
+      );
+
+      expect(result.current.marketTypeFilterState.marketTypeFilter).toBe(
+        'crypto',
+      );
+
+      rerender({ defaultMarketTypeFilter: 'stock' });
+
+      expect(result.current.marketTypeFilterState.marketTypeFilter).toBe(
+        'stock',
+      );
     });
   });
 });

@@ -14,6 +14,7 @@ import Utilities from '../../framework/Utilities';
 import { waitForStableEnabledIOS } from './waitForStableEnabledIOS';
 import PerpsHomeView from './PerpsHomeView';
 import PerpsMarketListView from './PerpsMarketListView';
+import { EncapsulatedElementType } from '../../framework';
 
 /** Portfolio: limit order primary (`formatOrderLabel`) + position primary (`{symbol} {n}x {side}`). */
 export interface PerpsPortfolioLimitFlowExpectOptions {
@@ -35,7 +36,7 @@ class PerpsView {
     leverageX: number,
     direction: 'long' | 'short',
     index = 0,
-  ): DetoxElement {
+  ): EncapsulatedElementType {
     return Matchers.getElementByID(
       new RegExp(
         `^perps-positions-item-${symbol}-${leverageX}x-${direction}-${index}$`,
@@ -51,7 +52,7 @@ class PerpsView {
     symbol: string,
     direction: 'long' | 'short',
     index = 0,
-  ): DetoxElement {
+  ): EncapsulatedElementType {
     const escapedSymbol = symbol.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     return Matchers.getElementByID(
       new RegExp(
@@ -67,11 +68,11 @@ class PerpsView {
   }
 
   // "Edit TP/SL" button visible on position details
-  get editTpslButton(): DetoxElement {
+  get editTpslButton(): EncapsulatedElementType {
     return Matchers.getElementByText('Edit TP/SL');
   }
 
-  get closePositionBottomSheetButton(): DetoxElement {
+  get closePositionBottomSheetButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
     );
@@ -105,22 +106,21 @@ class PerpsView {
     return Matchers.getElementByText('Dismiss');
   }
 
-  /** PerpsTabView main scroll (embedded tab). Not mounted on Perps home (homepage redesign). */
-  get anchor(): DetoxElement {
+  get anchor(): EncapsulatedElementType {
     return Matchers.getElementByID('perps-tab-scroll-view');
   }
 
   /** Perps home header — use as swipe target when {@link anchor} is absent. */
-  get perpsHomeHeader(): DetoxElement {
+  get perpsHomeHeader(): EncapsulatedElementType {
     return Matchers.getElementByID('perps-home');
   }
 
   // Orders section on the Perps main tab
-  get ordersSectionTitle(): DetoxElement {
+  get ordersSectionTitle(): EncapsulatedElementType {
     return Matchers.getElementByText('Orders');
   }
 
-  get anyOrderCardOnTab(): DetoxElement {
+  get anyOrderCardOnTab(): EncapsulatedElementType {
     // PerpsCard has no specific testID for orders; assert by the presence of the title and any text matching limit label
     return Matchers.getElementByText('Limit');
   }
@@ -289,11 +289,35 @@ class PerpsView {
   }
 
   async tapClosePositionButton() {
-    await Gestures.waitAndTap(this.closePositionButton, {
-      elemDescription: 'Close position button',
-      checkStability: true,
-      timeout: 15000,
-    });
+    await Utilities.waitUntil(
+      async () => {
+        if (
+          await Utilities.isElementVisible(
+            this.closePositionBottomSheetButton,
+            400,
+          )
+        ) {
+          return true;
+        }
+
+        if (await Utilities.isElementVisible(this.closePositionButton, 400)) {
+          await Gestures.waitAndTap(this.closePositionButton, {
+            elemDescription: 'Close position button',
+            checkStability: true,
+            timeout: 5000,
+          });
+        }
+
+        return Utilities.isElementVisible(
+          this.closePositionBottomSheetButton,
+          800,
+        );
+      },
+      {
+        interval: 500,
+        timeout: 15000,
+      },
+    );
   }
 
   async tapConfirmClosePositionButton() {

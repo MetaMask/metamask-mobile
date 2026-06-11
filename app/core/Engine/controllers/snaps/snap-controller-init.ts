@@ -23,7 +23,7 @@ import PREINSTALLED_SNAPS from '../../../../lib/snaps/preinstalled-snaps';
 import { buildAndTrackEvent } from '../../utils/analytics';
 import type { AnalyticsUnfilteredProperties } from '../../../../util/analytics/analytics.types';
 import { getMnemonicSeed } from '../../../Snaps/permissions/utils';
-import { createEnsureOnboardingCompleteCallback } from '../../utils/ensureOnboardingComplete';
+import { ensureOnboardingComplete } from '../../utils/ensureOnboardingComplete';
 import { CAN_INSTALL_THIRD_PARTY_SNAPS } from '../../../../constants/snaps';
 
 /**
@@ -69,8 +69,6 @@ export const snapControllerInit: MessengerClientInitFunction<
       disableSnaps: !isBasicFunctionalityToggleEnabled(),
     };
   }
-
-  const ensureOnboardingComplete = createEnsureOnboardingCompleteCallback();
 
   const controller = new SnapController({
     environmentEndowmentPermissions: Object.values(EndowmentPermissions),

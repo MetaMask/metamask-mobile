@@ -163,15 +163,6 @@ jest.mock('react-native/Libraries/Alert/Alert', () => {
 const mockMetricsIsEnabled = jest.fn().mockReturnValue(true);
 const mockTrackEvent = jest.fn();
 const mockEnable = jest.fn().mockResolvedValue(undefined);
-jest.mock('../../../core/Analytics/MetaMetrics', () => ({
-  getInstance: () => ({
-    isEnabled: mockMetricsIsEnabled,
-    trackEvent: mockTrackEvent,
-    enable: mockEnable,
-    updateDataRecordingFlag: jest.fn(),
-  }),
-}));
-
 const mockRunAfterInteractions = jest.fn().mockImplementation((cb) => {
   cb();
   return {
@@ -250,8 +241,6 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => mockMetrics,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  withAnalyticsAwareness: (Component: any) => Component,
 }));
 
 const VALID_PASSWORD = 'Test123456!';
@@ -583,19 +572,14 @@ describe('ChoosePassword', () => {
 
   describe('Navigation', () => {
     it('back button navigates to the previous screen', async () => {
-      renderWithProviders(<ChoosePassword />);
+      const { getByTestId } = renderWithProviders(<ChoosePassword />);
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
-      expect(mockNavigation.setOptions).toHaveBeenCalledWith(
-        expect.objectContaining({ headerLeft: expect.any(Function) }),
-      );
-
-      const headerLeftFn =
-        mockNavigation.setOptions.mock.calls[0][0].headerLeft;
+      const backButton = getByTestId(ChoosePasswordSelectorsIDs.BACK_BUTTON_ID);
       await act(async () => {
-        headerLeftFn().props.onPress();
+        fireEvent.press(backButton);
       });
 
       expect(mockNavigation.goBack).toHaveBeenCalled();

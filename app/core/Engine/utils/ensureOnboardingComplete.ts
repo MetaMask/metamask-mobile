@@ -7,44 +7,40 @@ import {
   type SetCompletedOnboardingAction,
 } from '../../../actions/onboarding';
 
+let onboardingPromise: Promise<void> | null = null;
+
+function* waitForOnboardingCompleteSaga(): SagaIterator {
+  while (true) {
+    const result = (yield take([
+      SET_COMPLETED_ONBOARDING,
+    ])) as SetCompletedOnboardingAction;
+
+    if (result.completedOnboarding) {
+      return;
+    }
+  }
+}
+
 /**
- * Build a function that resolves when onboarding is complete. Resolves
- * immediately when onboarding is already done; otherwise waits for the
- * `SET_COMPLETED_ONBOARDING` action with `completedOnboarding: true`.
+ * Resolves when onboarding is complete. Resolves immediately when onboarding
+ * is already done; otherwise waits for the `SET_COMPLETED_ONBOARDING` action
+ * with `completedOnboarding: true`.
  *
  * The pending promise is shared across concurrent callers so a single saga
  * task drives the wait.
- *
- * @returns Function that resolves once onboarding has been completed.
  */
-export function createEnsureOnboardingCompleteCallback(): () => Promise<void> {
-  let onboardingPromise: Promise<void> | null = null;
-
-  function* waitForOnboardingCompleteSaga(): SagaIterator {
-    while (true) {
-      const result = (yield take([
-        SET_COMPLETED_ONBOARDING,
-      ])) as SetCompletedOnboardingAction;
-
-      if (result.completedOnboarding) {
-        return;
-      }
-    }
+export async function ensureOnboardingComplete(): Promise<void> {
+  if (selectCompletedOnboarding(store.getState())) {
+    return;
   }
 
-  return async function ensureOnboardingComplete() {
-    if (selectCompletedOnboarding(store.getState())) {
-      return;
-    }
+  if (!onboardingPromise) {
+    onboardingPromise = runSaga(waitForOnboardingCompleteSaga).toPromise();
+  }
 
-    if (!onboardingPromise) {
-      onboardingPromise = runSaga(waitForOnboardingCompleteSaga).toPromise();
-    }
-
-    try {
-      await onboardingPromise;
-    } finally {
-      onboardingPromise = null;
-    }
-  };
+  try {
+    await onboardingPromise;
+  } finally {
+    onboardingPromise = null;
+  }
 }

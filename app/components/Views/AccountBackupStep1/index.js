@@ -1,11 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  ScrollView,
-  BackHandler,
-  Image,
-  Platform,
-  StatusBar,
-} from 'react-native';
+import { ScrollView, BackHandler, Image, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -33,7 +27,7 @@ import { useTheme } from '../../../util/theme';
 import { ManualBackUpStepsSelectorsIDs } from '../ManualBackupStep1/ManualBackUpSteps.testIds';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import Routes from '../../../constants/navigation/Routes';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import SRPDesignLight from '../../../images/secure_wallet_light.png';
 import SRPDesignDark from '../../../images/secure_wallet_dark.png';
 import { CommonActions, useNavigation } from '@react-navigation/native';
@@ -52,7 +46,7 @@ const AccountBackupStep1 = (props) => {
   const tw = useTailwind();
 
   const track = (event, properties) => {
-    const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
+    const eventBuilder = AnalyticsEventBuilder.createEventBuilder(event);
     eventBuilder.addProperties(properties);
     trackOnboarding(eventBuilder.build(), props.saveOnboardingEvent);
   };
@@ -139,25 +133,15 @@ const AccountBackupStep1 = (props) => {
 
   return (
     <SafeAreaView
-      style={tw.style(
-        'flex-1 bg-default',
-        Platform.OS === 'android'
-          ? `pt-[${StatusBar.currentHeight || 24}px]`
-          : 'pt-2',
-      )}
-      edges={['top', 'bottom']}
+      style={tw.style('flex-1 bg-default')}
+      edges={{ top: 'additive', bottom: 'additive' }}
     >
       <ScrollView
         contentContainerStyle={tw.style('flex-grow')}
-        style={tw.style(
-          'flex-1 bg-default',
-          Platform.OS === 'android'
-            ? `pt-[${StatusBar.currentHeight || 24}px]`
-            : 'pt-2',
-        )}
+        style={tw.style('flex-1 bg-default')}
         testID={ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER}
       >
-        <Box twClassName="flex-1 px-4">
+        <Box twClassName="flex-1 px-4 pt-2">
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {strings('manual_backup_step_1.steps', {
               currentStep: 2,
