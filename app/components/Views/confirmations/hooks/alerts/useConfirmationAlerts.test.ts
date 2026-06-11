@@ -28,6 +28,7 @@ import { useFirstTimeInteractionAlert } from './useFirstTimeInteractionAlert';
 import { useHeadlessBuyErrorAlert } from './useHeadlessBuyErrorAlert';
 import { useTokenContractAlert } from './useTokenContractAlert';
 import { useAddressPoisoningAlert } from './useAddressPoisoningAlert';
+import { useAccountNoFundsAlert } from './useAccountNoFundsAlert';
 
 jest.mock('./useBlockaidAlerts');
 jest.mock('./useGasEstimateFailedAlert');
@@ -51,6 +52,7 @@ jest.mock('./useFirstTimeInteractionAlert');
 jest.mock('./useHeadlessBuyErrorAlert');
 jest.mock('./useTokenContractAlert');
 jest.mock('./useAddressPoisoningAlert');
+jest.mock('./useAccountNoFundsAlert');
 
 describe('useConfirmationAlerts', () => {
   const ALERT_MESSAGE_MOCK = 'This is a test alert message.';
