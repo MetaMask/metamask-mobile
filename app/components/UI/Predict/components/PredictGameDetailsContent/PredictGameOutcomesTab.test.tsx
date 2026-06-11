@@ -521,7 +521,7 @@ describe('PredictGameOutcomesTab', () => {
       expect(mockCapturedCards).toHaveLength(1);
       expect(mockCapturedCards[0].title).toBe('Corners');
       expect(mockCapturedCards[0].lines).toEqual([8.5, 9.5]);
-      expect(mockCapturedCards[0].selectedLine).toBe(8.5);
+      expect(mockCapturedCards[0].selectedLine).toBe(9.5);
       expect(mockCapturedCards[0].testID).toBe('corners-total_corners');
     });
 
@@ -578,12 +578,12 @@ describe('PredictGameOutcomesTab', () => {
 
       const { getByTestId } = renderTab(tab);
 
-      expect(mockCapturedCards[0].buttons[0].price).toBe(53);
+      expect(mockCapturedCards[0].buttons[0].price).toBe(42);
 
       mockCapturedCards = [];
-      fireEvent(getByTestId('corners-total_corners-line-1-9.5'), 'touchEnd');
+      fireEvent(getByTestId('corners-total_corners-line-0-8.5'), 'touchEnd');
 
-      expect(mockCapturedCards[0].buttons[0].price).toBe(42);
+      expect(mockCapturedCards[0].buttons[0].price).toBe(53);
     });
 
     it('assigns draw variant and no team color for non-moneyline lines', () => {

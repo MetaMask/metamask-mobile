@@ -201,11 +201,24 @@ const LineOutcomeCard = memo(
       [lineIndices, outcomes],
     );
 
-    const [selectedIdx, setSelectedIdx] = useState(0);
+    const initialSelectedIdx = useMemo(() => {
+      if (lineIndices.length === 0) {
+        return 0;
+      }
+
+      return lineIndices.reduce((bestIdx, outcomeIdx, currentIdx) => {
+        const bestVolume = outcomes[lineIndices[bestIdx]]?.volume ?? 0;
+        const currentVolume = outcomes[outcomeIdx]?.volume ?? 0;
+
+        return currentVolume > bestVolume ? currentIdx : bestIdx;
+      }, 0);
+    }, [lineIndices, outcomes]);
+
+    const [selectedIdx, setSelectedIdx] = useState(initialSelectedIdx);
 
     useEffect(() => {
-      setSelectedIdx(0);
-    }, [outcomes]);
+      setSelectedIdx(initialSelectedIdx);
+    }, [initialSelectedIdx]);
 
     const handleSelectLine = useCallback(
       (_line: number, indexInLines: number) => {
