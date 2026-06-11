@@ -6647,6 +6647,7 @@ describe('RewardsController', () => {
         referralCode: 'NEWFRESH123',
         totalReferees: 25,
         referredByCode: 'REFERRER500',
+        isVipReferee: false,
       };
 
       controller = new RewardsController({
@@ -6872,6 +6873,7 @@ describe('RewardsController', () => {
         referralCode: 'UPDATED789',
         totalReferees: 15,
         referredByCode: 'REFERRER300',
+        isVipReferee: false,
       };
 
       controller = new RewardsController({
@@ -6988,6 +6990,51 @@ describe('RewardsController', () => {
       await expect(
         controller.getReferralDetails(mockSubscriptionId),
       ).rejects.toEqual(404);
+    });
+
+    it('maps isVipReferee and referredByVipCode when the VIP feature is enabled', async () => {
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+        isVipDisabled: () => false,
+      });
+
+      mockMessenger.call.mockResolvedValue({
+        referralCode: 'MYCODE',
+        totalReferees: 0,
+        referredByCode: 'TESTCODE',
+        isVipReferee: true,
+        vipReferrer: { referralCode: 'TESTCODE' },
+      });
+
+      const result = await controller.getReferralDetails(mockSubscriptionId);
+
+      expect(result?.isVipReferee).toBe(true);
+      expect(result?.referredByVipCode).toBe('TESTCODE');
+    });
+
+    it('forces isVipReferee=false and clears referredByVipCode when the VIP feature is disabled', async () => {
+      const vipDisabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+        isVipDisabled: () => true,
+      });
+
+      mockMessenger.call.mockResolvedValue({
+        referralCode: 'MYCODE',
+        totalReferees: 0,
+        referredByCode: 'TESTCODE',
+        isVipReferee: true,
+        vipReferrer: { referralCode: 'TESTCODE' },
+      });
+
+      const result =
+        await vipDisabledController.getReferralDetails(mockSubscriptionId);
+
+      expect(result?.isVipReferee).toBe(false);
+      expect(result?.referredByVipCode).toBeNull();
     });
   });
 
@@ -7161,6 +7208,7 @@ describe('RewardsController', () => {
         start: '2099-06-01T00:00:00.000Z',
         end: '2099-06-30T23:59:59.999Z',
       },
+      computedAt: '2099-06-30T14:52:00.000Z',
       currentTier: {
         id: 'mock-tier-alpha-3',
         name: 'Mock Tier Alpha 3',
@@ -7451,6 +7499,82 @@ describe('RewardsController', () => {
       expect(
         controller.state.subscriptions[mockSubscriptionId].features.vip.enabled,
       ).toBe(false);
+    });
+  });
+
+  describe('getVipRefereeDashboard', () => {
+    const mockSubscriptionId = 'sub-referee';
+    // Obviously-synthetic fixture — never real VIP codes/figures.
+    const apiReferee = {
+      referredByCode: 'TESTCODE',
+      points: 1234,
+      swapsVolume: 1000,
+      perpsVolume: 2000,
+      computedAt: '2099-06-30T14:52:00.000Z',
+    };
+
+    it('returns null without fetching when VIP is disabled', async () => {
+      const vipDisabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+        isVipDisabled: () => true,
+      });
+
+      const result =
+        await vipDisabledController.getVipRefereeDashboard(mockSubscriptionId);
+
+      expect(result).toBeNull();
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:getVipRefereeDashboard',
+        mockSubscriptionId,
+      );
+    });
+
+    it('fetches and persists the referee dashboard when enabled', async () => {
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+      });
+
+      mockMessenger.call.mockResolvedValue(apiReferee);
+
+      const result =
+        await controller.getVipRefereeDashboard(mockSubscriptionId);
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getVipRefereeDashboard',
+        mockSubscriptionId,
+      );
+      expect(result).toEqual({ ...apiReferee, lastFetched: 123 });
+      expect(controller.state.vipRefereeDashboard[mockSubscriptionId]).toEqual({
+        ...apiReferee,
+        lastFetched: 123,
+      });
+    });
+
+    it('returns null and clears cache when the API says not a referee', async () => {
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          vipRefereeDashboard: {
+            [mockSubscriptionId]: { ...apiReferee, lastFetched: -900000 },
+          },
+        },
+        isDisabled: () => false,
+      });
+
+      mockMessenger.call.mockResolvedValue(null);
+
+      const result =
+        await controller.getVipRefereeDashboard(mockSubscriptionId);
+
+      expect(result).toBeNull();
+      expect(
+        controller.state.vipRefereeDashboard[mockSubscriptionId],
+      ).toBeUndefined();
     });
   });
 
@@ -9854,6 +9978,7 @@ describe('RewardsController', () => {
             [subscriptionId]: {
               program: { id: 'mock-vip-program', name: 'Acme Rewards Beta' },
               period: { start: '2099-06-01', end: '2099-06-30' },
+              computedAt: '2099-06-30T14:52:00.000Z',
               currentTier: {
                 id: 'mock-tier-alpha-3',
                 name: 'Mock Tier Alpha 3',
@@ -16784,6 +16909,7 @@ describe('RewardsController', () => {
       subscriptions: {},
       unlockedRewards: {},
       vipDashboard: {},
+      vipRefereeDashboard: {},
       vipPerpsFees: {},
     });
   });
@@ -16821,6 +16947,7 @@ describe('RewardsController', () => {
       subscriptions: {},
       unlockedRewards: {},
       vipDashboard: {},
+      vipRefereeDashboard: {},
       vipPerpsFees: {},
     });
   });
@@ -16861,6 +16988,7 @@ describe('RewardsController', () => {
       subscriptions: {},
       unlockedRewards: {},
       vipDashboard: {},
+      vipRefereeDashboard: {},
     });
   });
 
