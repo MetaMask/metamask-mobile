@@ -265,6 +265,7 @@ describe('CustomAmountInfo', () => {
       amountFiat: '123.45',
       amountHuman: '0',
       amountHumanDebounced: '0',
+      amountFiatDebounced: '0',
       hasInput: true,
       isInputChanged: false,
       updatePendingAmount: noop,
@@ -502,6 +503,7 @@ describe('CustomAmountInfo', () => {
       amountFiat: '123.45',
       amountHuman: '0',
       amountHumanDebounced: '0',
+      amountFiatDebounced: '0',
       hasInput: true,
       isInputChanged: false,
       updatePendingAmount: noop,
@@ -550,6 +552,7 @@ describe('CustomAmountInfo', () => {
       amountFiat: '123.45',
       amountHuman: '0',
       amountHumanDebounced: '0',
+      amountFiatDebounced: '0',
       hasInput: true,
       isInputChanged: false,
       updatePendingAmount: noop,
@@ -599,12 +602,14 @@ describe('CustomAmountInfo', () => {
       alertMessage: strings('alert_system.account_no_funds.message'),
     });
 
-    const { getByText } = render({
+    const { getAllByText } = render({
       transactionType: TransactionType.moneyAccountDeposit,
     });
 
+    // The alert message appears in AlertMessage and in the keyboard's alertMessage
+    // prop now that hasFiatOption=true (asset-provider path). Check at least one.
     expect(
-      getByText(strings('alert_system.account_no_funds.message')),
+      getAllByText(strings('alert_system.account_no_funds.message'))[0],
     ).toBeOnTheScreen();
   });
 
@@ -654,6 +659,7 @@ describe('CustomAmountInfo', () => {
         amountFiat: '0',
         amountHuman: '0',
         amountHumanDebounced: '0',
+        amountFiatDebounced: '0',
         hasInput: false,
         isInputChanged: false,
         updatePendingAmount: noop,

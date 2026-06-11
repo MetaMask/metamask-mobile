@@ -120,6 +120,9 @@
     "account_no_funds": {
       "message": "No funds available. Use a different account."
     },
+    "fiat_buy_amount_limit": {
+      "title": "Amount out of range"
+    },
     "headless_buy_error": {
       "title": "Fiat purchase failed",
       "message": "Something went wrong with your fiat purchase. Please try again."
