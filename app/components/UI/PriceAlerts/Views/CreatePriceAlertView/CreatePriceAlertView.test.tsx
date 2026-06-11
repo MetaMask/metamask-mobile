@@ -111,6 +111,18 @@ describe('CreatePriceAlertView', () => {
     ).toBeOnTheScreen();
   });
 
+  it('keeps percentage pickers and hides Set button for zero-valued keypad input like "0."', () => {
+    const { getByTestId, getByText, queryByTestId } = renderWithToast();
+
+    fireEvent.press(getByTestId('keypad-key-dot'));
+
+    expect(getByText('$0.')).toBeOnTheScreen();
+    expect(
+      getByTestId(`${CreatePriceAlertTestIds.QUICK_PERCENTAGE_PREFIX}-5`),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON)).toBeNull();
+  });
+
   it('shows Set button after a quick-percentage pill is pressed', () => {
     const { getByTestId } = renderWithToast();
 
@@ -335,6 +347,36 @@ describe('CreatePriceAlertView — tiny price token', () => {
       getByTestId(`${CreatePriceAlertTestIds.QUICK_PERCENTAGE_PREFIX}-5`),
     );
 
+    expect(
+      getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
+  it('allows manual keypad entry beyond two decimal places for sub-cent tokens', () => {
+    setRoute({
+      symbol: 'SHIB',
+      ticker: 'SHIB',
+      currentPrice: 0.00001234,
+      currentCurrency: 'USD',
+      assetId: 'eip155:1/erc20:0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE',
+    });
+
+    const { getByTestId, getByText } = render(<CreatePriceAlertView />);
+
+    // Type 0.000012345 — blocked when keypad decimals are fixed at 2
+    fireEvent.press(getByTestId('keypad-key-0'));
+    fireEvent.press(getByTestId('keypad-key-dot'));
+    fireEvent.press(getByTestId('keypad-key-0'));
+    fireEvent.press(getByTestId('keypad-key-0'));
+    fireEvent.press(getByTestId('keypad-key-0'));
+    fireEvent.press(getByTestId('keypad-key-0'));
+    fireEvent.press(getByTestId('keypad-key-1'));
+    fireEvent.press(getByTestId('keypad-key-2'));
+    fireEvent.press(getByTestId('keypad-key-3'));
+    fireEvent.press(getByTestId('keypad-key-4'));
+    fireEvent.press(getByTestId('keypad-key-5'));
+
+    expect(getByText('$0.000012345')).toBeOnTheScreen();
     expect(
       getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
     ).toBeOnTheScreen();

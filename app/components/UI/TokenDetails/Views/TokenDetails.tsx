@@ -279,12 +279,15 @@ const TokenDetails: React.FC<{
   }, [onSend, onCtaClicked]);
 
   const handlePriceAlertPress = useCallback(() => {
+    if (!caip19AssetId) {
+      return;
+    }
     navigation.navigate(Routes.MANAGE_PRICE_ALERTS, {
       symbol: token.symbol,
       ticker: token.ticker,
       currentPrice,
       currentCurrency,
-      assetId: caip19AssetId ?? '',
+      assetId: caip19AssetId,
     });
   }, [
     navigation,
@@ -370,7 +373,7 @@ const TokenDetails: React.FC<{
       <TokenDetailsInlineHeader
         onBackPress={() => navigation.goBack()}
         onPriceAlertPress={
-          isPriceAlertsFeatureEnabled && currentPrice > 0
+          isPriceAlertsFeatureEnabled && currentPrice > 0 && caip19AssetId
             ? handlePriceAlertPress
             : undefined
         }

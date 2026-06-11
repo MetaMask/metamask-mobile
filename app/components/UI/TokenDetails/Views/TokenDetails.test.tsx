@@ -758,6 +758,24 @@ describe('TokenDetails', () => {
       );
     });
 
+    it('passes undefined onPriceAlertPress when CAIP-19 asset id cannot be resolved', () => {
+      enablePriceAlerts();
+      mockUseTokenPrice.mockReturnValue({
+        ...defaultUseTokenPriceReturn,
+        currentPrice: 100,
+      });
+      mockRouteParams.mockReturnValue({
+        ...defaultRouteParams,
+        chainId: undefined,
+      });
+
+      render(<TokenDetails />);
+
+      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({ onPriceAlertPress: undefined }),
+      );
+    });
+
     it('navigates to MANAGE_PRICE_ALERTS with the correct params when the price alert button is pressed', () => {
       enablePriceAlerts();
       mockUseTokenPrice.mockReturnValue({
@@ -788,6 +806,7 @@ describe('TokenDetails', () => {
           symbol: 'DAI',
           currentPrice: 2500,
           currentCurrency: 'USD',
+          assetId: expect.stringMatching(/^eip155:1\//),
         }),
       );
     });

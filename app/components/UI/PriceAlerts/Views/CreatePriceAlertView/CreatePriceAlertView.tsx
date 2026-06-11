@@ -56,6 +56,25 @@ import {
 import { useSavePriceAlert } from '../../api';
 
 const KEYPAD_EMPTY = '0';
+const MIN_KEYPAD_DECIMALS = 2;
+/** Fractional offset that yields 6 significant figures via toFixed. */
+const SIG_FIGS_FRACTIONAL_OFFSET = 5;
+
+/**
+ * Max fractional digits the keypad should allow for a given USD price.
+ * Mirrors the precision used by {@link toKeypadString} so manual entry and
+ * quick-percentage pills stay consistent (e.g. sub-cent SHIB prices).
+ */
+const getKeypadDecimalPlaces = (price: number): number => {
+  if (!Number.isFinite(price) || price <= 0) {
+    return MIN_KEYPAD_DECIMALS;
+  }
+
+  const exponent = Math.floor(Math.log10(price));
+  return exponent >= 0
+    ? Math.max(MIN_KEYPAD_DECIMALS, SIG_FIGS_FRACTIONAL_OFFSET - exponent)
+    : Math.abs(exponent) + SIG_FIGS_FRACTIONAL_OFFSET;
+};
 
 /**
  * Converts a computed price into a plain decimal string suitable for the keypad.
@@ -65,14 +84,7 @@ const KEYPAD_EMPTY = '0';
 const toKeypadString = (price: number): string => {
   if (!Number.isFinite(price) || price <= 0) return KEYPAD_EMPTY;
 
-  // toPrecision gives 6 significant figures but may return scientific notation
-  // for very small numbers, so we convert via toFixed with enough decimal places.
-  const exponent = Math.floor(Math.log10(price));
-  const decimalPlaces =
-    exponent >= 0
-      ? Math.max(0, 5 - exponent) // e.g. price=1641 → 0 dp after sig figs
-      : Math.abs(exponent) + 5; // e.g. price=0.3224 → 6 dp; price=1e-14 → 19 dp
-
+  const decimalPlaces = getKeypadDecimalPlaces(price);
   let str = price.toFixed(decimalPlaces);
 
   // Strip trailing zeros after the decimal point, and a trailing dot.
@@ -139,10 +151,11 @@ const CreatePriceAlertView: React.FC = () => {
   const hasInput = targetAmount !== KEYPAD_EMPTY;
 
   const targetPrice = useMemo(() => {
-    if (!hasInput) return 0;
     const parsed = parseFloat(targetAmount);
     return Number.isFinite(parsed) ? parsed : 0;
-  }, [hasInput, targetAmount]);
+  }, [targetAmount]);
+
+  const hasValidTarget = targetPrice > 0;
 
   const percentDiff = useMemo(() => {
     if (!hasInput || currentPrice <= 0 || targetPrice <= 0) {
@@ -174,6 +187,11 @@ const CreatePriceAlertView: React.FC = () => {
     [currentCurrency, currentPrice],
   );
 
+  const keypadDecimals = useMemo(
+    () => getKeypadDecimalPlaces(currentPrice),
+    [currentPrice],
+  );
+
   const { save, isSubmitting } = useSavePriceAlert();
   const { toastRef } = useContext(ToastContext);
 
@@ -182,6 +200,9 @@ const CreatePriceAlertView: React.FC = () => {
   }, [navigation]);
 
   const handleSaveAlert = useCallback(async () => {
+    if (!hasValidTarget) {
+      return;
+    }
     try {
       await save({
         asset: assetId,
@@ -215,6 +236,7 @@ const CreatePriceAlertView: React.FC = () => {
     save,
     assetId,
     targetPrice,
+    hasValidTarget,
     isRecurring,
     fromManage,
     navigation,
@@ -360,13 +382,13 @@ const CreatePriceAlertView: React.FC = () => {
                 />
               </Box>
 
-              {/* Quick-percentage pickers → hidden once user has typed a value */}
-              {hasInput ? (
+              {/* Quick-percentage pickers → hidden once a positive target is set */}
+              {hasValidTarget ? (
                 <Button
                   variant={ButtonVariant.Primary}
                   onPress={handleSaveAlert}
                   isLoading={isSubmitting}
-                  isDisabled={isSubmitting}
+                  isDisabled={isSubmitting || !hasValidTarget}
                   testID={CreatePriceAlertTestIds.SET_ALERT_BUTTON}
                   twClassName="mb-3 w-full"
                 >
@@ -395,7 +417,7 @@ const CreatePriceAlertView: React.FC = () => {
                 value={targetAmount}
                 onChange={handleKeypadChange}
                 currency="native"
-                decimals={2}
+                decimals={keypadDecimals}
               />
             </View>
           </>
