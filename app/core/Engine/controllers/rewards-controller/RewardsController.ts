@@ -2594,10 +2594,19 @@ export class RewardsController extends BaseController<
             'RewardsDataService:getReferralDetails',
             subscriptionId,
           );
+          // Gate the VIP-referee flag on the VIP feature flag: when the VIP
+          // program is disabled locally we never surface it (no gold-fox icon).
+          const vipEnabled = this.isVipFeatureEnabled();
           return {
             referralCode: referralDetails.referralCode,
             totalReferees: referralDetails.totalReferees,
             referredByCode: referralDetails.referredByCode,
+            isVipReferee: vipEnabled
+              ? Boolean(referralDetails.isVipReferee)
+              : false,
+            referredByVipCode: vipEnabled
+              ? (referralDetails.vipReferrer?.referralCode ?? null)
+              : null,
             lastFetched: Date.now(),
           };
         }, subscriptionId),
@@ -2607,6 +2616,18 @@ export class RewardsController extends BaseController<
         });
       },
     });
+
+    // Gate the VIP-referee fields at the single return point so a fresh cache
+    // hit (which bypasses fetchFresh) can never surface stale VIP data after
+    // the VIP program is disabled locally. The fetchFresh path already clears
+    // these before they reach the cache; this guards the cache-read path too.
+    if (result && !this.isVipFeatureEnabled()) {
+      return {
+        ...result,
+        isVipReferee: false,
+        referredByVipCode: null,
+      };
+    }
 
     return result;
   }
@@ -2984,16 +3005,18 @@ export class RewardsController extends BaseController<
   /**
    * Validate a referral code
    * @param code - The referral code to validate
-   * @returns Promise<boolean> - True if the code is valid, false otherwise
+   * @returns Promise<{ valid: boolean; isVipCode: boolean }> - Validation result including VIP status
    */
-  async validateReferralCode(code: string): Promise<boolean> {
+  async validateReferralCode(
+    code: string,
+  ): Promise<{ valid: boolean; isVipCode: boolean }> {
     const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) {
-      return false;
+      return { valid: false, isVipCode: false };
     }
 
     if (!code.trim()) {
-      return false;
+      return { valid: false, isVipCode: false };
     }
 
     try {
@@ -3001,7 +3024,11 @@ export class RewardsController extends BaseController<
         'RewardsDataService:validateReferralCode',
         code,
       );
-      return response.valid;
+      // A referral code is only treated as a VIP code when the backend says so
+      // AND the VIP feature is enabled locally (rewards on and VIP not disabled).
+      const isVipCode =
+        (response.isVipCode ?? false) && this.isVipFeatureEnabled();
+      return { valid: response.valid, isVipCode };
     } catch (error) {
       Logger.log(
         'RewardsController: Failed to validate referral code:',

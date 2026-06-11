@@ -394,7 +394,7 @@ export type RewardsControllerGetGeoRewardsMetadataAction = {
  * Validate a referral code
  *
  * @param code - The referral code to validate
- * @returns Promise<boolean> - True if the code is valid, false otherwise
+ * @returns Promise<{ valid: boolean; isVipCode: boolean }> - Validation result including VIP status
  */
 export type RewardsControllerValidateReferralCodeAction = {
   type: `RewardsController:validateReferralCode`;

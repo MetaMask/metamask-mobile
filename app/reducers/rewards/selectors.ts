@@ -19,6 +19,12 @@ export const selectReferralCount = (state: RootState) =>
 export const selectReferredByCode = (state: RootState) =>
   state.rewards.referredByCode;
 
+export const selectIsVipReferee = (state: RootState) =>
+  state.rewards.isVipReferee;
+
+export const selectReferredByVipCode = (state: RootState) =>
+  state.rewards.referredByVipCode;
+
 export const selectCurrentTier = (state: RootState) =>
   state.rewards.currentTier;
 

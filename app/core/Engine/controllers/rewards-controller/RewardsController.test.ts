@@ -6599,6 +6599,8 @@ describe('RewardsController', () => {
         referralCode: 'REF456',
         totalReferees: 10,
         referredByCode: 'REFERRER200',
+        isVipReferee: false,
+        referredByVipCode: null,
         lastFetched: recentTime,
       };
 
@@ -6685,6 +6687,184 @@ describe('RewardsController', () => {
       expect(result?.totalReferees).toBe(25);
       expect(result?.referredByCode).toBe('REFERRER500');
       expect(result?.lastFetched).toBeGreaterThan(Date.now() - 1000);
+      expect(result?.isVipReferee).toBe(false);
+      expect(result?.referredByVipCode).toBeNull();
+    });
+
+    it('maps isVipReferee and referredByVipCode when the VIP feature is enabled', async () => {
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {},
+          subscriptions: {
+            [mockSubscriptionId]: {
+              id: mockSubscriptionId,
+              referralCode: 'REF123',
+              accounts: [],
+              features: { vip: { enabled: false } },
+            },
+          },
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          activeBoosts: {},
+          unlockedRewards: {},
+          pointsEvents: {},
+        },
+        isDisabled: () => false,
+      });
+
+      mockMessenger.call.mockResolvedValue({
+        referralCode: 'NEWFRESH123',
+        totalReferees: 25,
+        referredByCode: 'REFERRER500',
+        isVipReferee: true,
+        vipReferrer: { referralCode: 'VIPCODE' },
+      });
+
+      const result = await controller.getReferralDetails(mockSubscriptionId);
+
+      expect(result?.isVipReferee).toBe(true);
+      expect(result?.referredByVipCode).toBe('VIPCODE');
+    });
+
+    it('forces isVipReferee=false and clears referredByVipCode when the VIP feature is disabled', async () => {
+      const vipDisabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {},
+          subscriptions: {
+            [mockSubscriptionId]: {
+              id: mockSubscriptionId,
+              referralCode: 'REF123',
+              accounts: [],
+              features: { vip: { enabled: false } },
+            },
+          },
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          activeBoosts: {},
+          unlockedRewards: {},
+          pointsEvents: {},
+        },
+        isDisabled: () => false,
+        isVipDisabled: () => true,
+      });
+
+      mockMessenger.call.mockResolvedValue({
+        referralCode: 'NEWFRESH123',
+        totalReferees: 25,
+        referredByCode: 'REFERRER500',
+        isVipReferee: true,
+        vipReferrer: { referralCode: 'VIPCODE' },
+      });
+
+      const result =
+        await vipDisabledController.getReferralDetails(mockSubscriptionId);
+
+      expect(result?.isVipReferee).toBe(false);
+      expect(result?.referredByVipCode).toBeNull();
+    });
+
+    it('clears VIP referee fields on a fresh cache hit when the VIP feature is disabled', async () => {
+      const recentTime = Date.now() - 10000; // within the 1-minute fresh threshold
+      // Cache was written while VIP was enabled, so it still holds VIP fields.
+      const cachedVipReferralDetails: SubscriptionReferralDetailState = {
+        referralCode: 'REF456',
+        totalReferees: 10,
+        referredByCode: 'REFERRER200',
+        isVipReferee: true,
+        referredByVipCode: 'VIPCODE',
+        lastFetched: recentTime,
+      };
+
+      const vipDisabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {},
+          subscriptions: {
+            [mockSubscriptionId]: {
+              id: mockSubscriptionId,
+              referralCode: 'REF123',
+              accounts: [],
+              features: { vip: { enabled: false } },
+            },
+          },
+          seasons: {},
+          subscriptionReferralDetails: {
+            [mockSubscriptionId]: cachedVipReferralDetails,
+          },
+          seasonStatuses: {},
+          activeBoosts: {},
+          unlockedRewards: {},
+          pointsEvents: {},
+        },
+        isDisabled: () => false,
+        isVipDisabled: () => true,
+      });
+
+      const result =
+        await vipDisabledController.getReferralDetails(mockSubscriptionId);
+
+      // The cache read path must not surface stale VIP fields once VIP is off.
+      expect(result?.isVipReferee).toBe(false);
+      expect(result?.referredByVipCode).toBeNull();
+      // Non-VIP fields are still returned from the fresh cache hit untouched.
+      expect(result?.referralCode).toBe('REF456');
+      expect(result?.referredByCode).toBe('REFERRER200');
+      // No fresh fetch should have been triggered (cache was fresh).
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:getReferralDetails',
+        expect.anything(),
+      );
+    });
+
+    it('preserves VIP referee fields on a fresh cache hit when the VIP feature is enabled', async () => {
+      const recentTime = Date.now() - 10000; // within the 1-minute fresh threshold
+      const cachedVipReferralDetails: SubscriptionReferralDetailState = {
+        referralCode: 'REF456',
+        totalReferees: 10,
+        referredByCode: 'REFERRER200',
+        isVipReferee: true,
+        referredByVipCode: 'VIPCODE',
+        lastFetched: recentTime,
+      };
+
+      const vipEnabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {},
+          subscriptions: {
+            [mockSubscriptionId]: {
+              id: mockSubscriptionId,
+              referralCode: 'REF123',
+              accounts: [],
+              features: { vip: { enabled: true } },
+            },
+          },
+          seasons: {},
+          subscriptionReferralDetails: {
+            [mockSubscriptionId]: cachedVipReferralDetails,
+          },
+          seasonStatuses: {},
+          activeBoosts: {},
+          unlockedRewards: {},
+          pointsEvents: {},
+        },
+        isDisabled: () => false,
+        isVipDisabled: () => false,
+      });
+
+      const result =
+        await vipEnabledController.getReferralDetails(mockSubscriptionId);
+
+      expect(result?.isVipReferee).toBe(true);
+      expect(result?.referredByVipCode).toBe('VIPCODE');
     });
 
     it('updates state when fetching fresh referral details', async () => {
@@ -8556,7 +8736,7 @@ describe('RewardsController', () => {
       const result = await disabledController.validateReferralCode('ABC123');
 
       // Assert
-      expect(result).toBe(false);
+      expect(result).toEqual({ valid: false, isVipCode: false });
       expect(mockMessenger.call).not.toHaveBeenCalledWith(
         'RewardsDataService:validateReferralCode',
         expect.anything(),
@@ -8565,9 +8745,9 @@ describe('RewardsController', () => {
 
     it('returns false for empty or whitespace-only codes and does not call data service', async () => {
       // Act & Assert
-      expect(await controller.validateReferralCode('')).toBe(false);
-      expect(await controller.validateReferralCode('   ')).toBe(false);
-      expect(await controller.validateReferralCode('\t\n')).toBe(false);
+      expect((await controller.validateReferralCode('')).valid).toBe(false);
+      expect((await controller.validateReferralCode('   ')).valid).toBe(false);
+      expect((await controller.validateReferralCode('\t\n')).valid).toBe(false);
       expect(mockMessenger.call).not.toHaveBeenCalledWith(
         'RewardsDataService:validateReferralCode',
         expect.anything(),
@@ -8588,7 +8768,7 @@ describe('RewardsController', () => {
       const result = await controller.validateReferralCode('BANKLESS');
 
       // Assert: vanity code is forwarded regardless of length or charset
-      expect(result).toBe(true);
+      expect(result.valid).toBe(true);
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:validateReferralCode',
         'BANKLESS',
@@ -8606,7 +8786,9 @@ describe('RewardsController', () => {
       });
 
       // Act & Assert
-      expect(await controller.validateReferralCode('ABCIOU')).toBe(false);
+      expect((await controller.validateReferralCode('ABCIOU')).valid).toBe(
+        false,
+      );
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:validateReferralCode',
         'ABCIOU',
@@ -8627,7 +8809,7 @@ describe('RewardsController', () => {
       const result = await controller.validateReferralCode('ABC234'); // Using valid Base32 code
 
       // Assert
-      expect(result).toBe(true);
+      expect(result.valid).toBe(true);
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:validateReferralCode',
         'ABC234',
@@ -8648,7 +8830,7 @@ describe('RewardsController', () => {
       const result = await controller.validateReferralCode('XYZ567'); // Using valid Base32 code
 
       // Assert
-      expect(result).toBe(false);
+      expect(result.valid).toBe(false);
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:validateReferralCode',
         'XYZ567',
@@ -8669,12 +8851,59 @@ describe('RewardsController', () => {
         });
 
         const result = await controller.validateReferralCode(code);
-        expect(result).toBe(true);
+        expect(result.valid).toBe(true);
         expect(mockMessenger.call).toHaveBeenCalledWith(
           'RewardsDataService:validateReferralCode',
           code,
         );
       }
+    });
+
+    it('returns isVipCode true when service marks code as VIP', async () => {
+      // Arrange
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'RewardsDataService:validateReferralCode') {
+          return Promise.resolve({ valid: true, isVipCode: true });
+        }
+        return Promise.resolve();
+      });
+
+      // Act
+      const result = await controller.validateReferralCode('VIPREF');
+
+      // Assert
+      expect(result).toEqual({ valid: true, isVipCode: true });
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:validateReferralCode',
+        'VIPREF',
+      );
+    });
+
+    it('returns isVipCode false when service marks code as VIP but VIP feature is disabled', async () => {
+      // Arrange — backend says VIP, but the VIP feature flag is disabled locally
+      const vipDisabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isVipDisabled: () => true,
+      });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'RewardsDataService:validateReferralCode') {
+          return Promise.resolve({ valid: true, isVipCode: true });
+        }
+        return Promise.resolve();
+      });
+
+      // Act
+      const result = await vipDisabledController.validateReferralCode('VIPREF');
+
+      // Assert — valid code is still honored, but VIP status is gated off
+      expect(result).toEqual({ valid: true, isVipCode: false });
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:validateReferralCode',
+        'VIPREF',
+      );
     });
 
     it('handles service errors and throw error', async () => {
@@ -10131,6 +10360,7 @@ describe('RewardsController', () => {
               referralCode: 'REF123',
               totalReferees: 5,
               referredByCode: 'REFERRER100',
+              isVipReferee: false,
               lastFetched: Date.now(),
             },
           },
@@ -17158,6 +17388,7 @@ describe('RewardsController', () => {
         referralCode: 'REF123',
         totalReferees: 5,
         referredByCode: 'REFERRER123',
+        isVipReferee: false,
         lastFetched: Date.now(),
       };
       initialState.pointsEvents[compositeKey] = {
@@ -17257,6 +17488,7 @@ describe('RewardsController', () => {
         referralCode: 'REF1',
         totalReferees: 3,
         referredByCode: 'REFERRER1',
+        isVipReferee: false,
         lastFetched: Date.now(),
       };
       initialState.pointsEvents[compositeKey1] = {
@@ -17478,12 +17710,14 @@ describe('RewardsController', () => {
         referralCode: 'REF1',
         totalReferees: 2,
         referredByCode: 'REFERRER1',
+        isVipReferee: false,
         lastFetched: Date.now(),
       };
       initialState.subscriptionReferralDetails[subscriptionId2] = {
         referralCode: 'REF2',
         totalReferees: 3,
         referredByCode: 'REFERRER2',
+        isVipReferee: false,
         lastFetched: Date.now(),
       };
       initialState.pointsEvents[compositeKey1] = {
@@ -17565,6 +17799,7 @@ describe('RewardsController', () => {
         referralCode: 'REF1',
         totalReferees: 2,
         referredByCode: 'REFERRER1',
+        isVipReferee: false,
         lastFetched: Date.now(),
       };
       initialState.pointsEvents[compositeKey2] = {
@@ -17673,6 +17908,7 @@ describe('RewardsController', () => {
         referralCode: 'REF_123',
         totalReferees: 1,
         referredByCode: 'REFERRER_123',
+        isVipReferee: false,
         lastFetched: Date.now(),
       };
       initialState.pointsEvents[compositeKey] = {
