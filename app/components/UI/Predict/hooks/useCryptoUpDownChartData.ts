@@ -360,10 +360,14 @@ export const useCryptoUpDownChartData = (
       ? newestLivePointTime - LIVE_CHART_WINDOW_SECS
       : undefined;
   const liveWindowPointCount =
-    typeof liveWindowStartSecs === 'number'
+    typeof liveWindowStartSecs === 'number' &&
+    typeof newestLivePointTime === 'number'
       ? chartData.reduce(
           (count, point) =>
-            point.time >= liveWindowStartSecs ? count + 1 : count,
+            point.time >= liveWindowStartSecs &&
+            point.time <= newestLivePointTime
+              ? count + 1
+              : count,
           0,
         )
       : 0;
