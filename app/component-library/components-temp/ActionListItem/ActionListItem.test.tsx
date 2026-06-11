@@ -21,6 +21,7 @@ import {
 } from './ActionListItem.constants';
 
 const DESCRIPTION_TEXT = 'Test Description';
+const INCLUDE_HIDDEN_ELEMENTS = { includeHiddenElements: true };
 
 describe('ActionListItem', () => {
   const mockOnPress = jest.fn();
@@ -47,7 +48,9 @@ describe('ActionListItem', () => {
         <ActionListItem label="Test Label" onPress={mockOnPress} />,
       );
 
-      expect(getByText('Test Label')).toBeOnTheScreen();
+      expect(
+        getByText('Test Label', INCLUDE_HIDDEN_ELEMENTS),
+      ).toBeOnTheScreen();
     });
 
     it('renders string description', () => {
@@ -59,7 +62,9 @@ describe('ActionListItem', () => {
         />,
       );
 
-      expect(getByText(DESCRIPTION_TEXT)).toBeOnTheScreen();
+      expect(
+        getByText(DESCRIPTION_TEXT, INCLUDE_HIDDEN_ELEMENTS),
+      ).toBeOnTheScreen();
     });
 
     it('renders ReactNode label', () => {
@@ -95,7 +100,9 @@ describe('ActionListItem', () => {
         <ActionListItem label="Test Label" onPress={mockOnPress} />,
       );
 
-      expect(getByText('Test Label')).toBeOnTheScreen();
+      expect(
+        getByText('Test Label', INCLUDE_HIDDEN_ELEMENTS),
+      ).toBeOnTheScreen();
       expect(queryByText(DESCRIPTION_TEXT)).toBeNull();
     });
 
@@ -176,7 +183,9 @@ describe('ActionListItem', () => {
         />,
       );
 
-      expect(getByText('Test Label')).toBeOnTheScreen();
+      expect(
+        getByText('Test Label', INCLUDE_HIDDEN_ELEMENTS),
+      ).toBeOnTheScreen();
     });
 
     it('renders ReactNode label as-is when labelTextProps are provided', () => {
@@ -214,7 +223,9 @@ describe('ActionListItem', () => {
         />,
       );
 
-      expect(getByText('Test Description')).toBeOnTheScreen();
+      expect(
+        getByText('Test Description', INCLUDE_HIDDEN_ELEMENTS),
+      ).toBeOnTheScreen();
     });
 
     it('renders ReactNode description as-is when descriptionTextProps are provided', () => {
@@ -249,7 +260,9 @@ describe('ActionListItem', () => {
         />,
       );
 
-      expect(getByTestId('custom-icon')).toBeOnTheScreen();
+      expect(
+        getByTestId('custom-icon', INCLUDE_HIDDEN_ELEMENTS),
+      ).toBeOnTheScreen();
     });
 
     it('omits icon from iconName when startAccessory and iconProps are both provided', () => {

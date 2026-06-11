@@ -7,6 +7,7 @@ import {
   PlaywrightAssertions,
   PlaywrightGestures,
   PlaywrightMatchers,
+  PlatformDetector,
   PortManager,
   ResourceType,
   sleep,
@@ -533,16 +534,7 @@ export const loginToAppPlaywright = async (
   const password = getPasswordForScenario(scenarioType);
   // Type password and unlock
   await LoginView.enterPassword(password ?? '');
-
-  try {
-    await PlaywrightAssertions.expectElementToBeVisible(
-      asPlaywrightElement(WalletView.container),
-      {
-        description: 'Wallet container should be visible after password entry',
-        timeout: 3000,
-      },
-    );
-  } catch {
+  if (!PlatformDetector.isIOS()) {
     await LoginView.tapLoginButton();
   }
 
