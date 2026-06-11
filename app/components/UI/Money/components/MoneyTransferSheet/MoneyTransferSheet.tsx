@@ -117,7 +117,7 @@ const MoneyTransferSheet = () => {
   const activeOptions: ActiveOption[] = [
     {
       label: strings('money.transfer_sheet.between_accounts'),
-      icon: IconName.SwapHorizontal,
+      icon: IconName.Arrow2UpRight,
       onPress: handleBetweenAccounts,
       testID: MoneyTransferSheetTestIds.BETWEEN_ACCOUNTS_OPTION,
     },

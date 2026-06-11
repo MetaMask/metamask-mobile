@@ -99,12 +99,6 @@ export interface CustomAmountInfoProps {
    * When true, the account selector is shown.
    */
   supportAccountSelection?: boolean;
-  /**
-   * Adds bottom space to the bottom block (rows + keyboard/confirm button).
-   * Used by Perps Withdraw on Android, where this screen has one extra
-   * balance line and otherwise clips behind the system gesture bar.
-   */
-  hasExtraBottomPadding?: boolean;
 }
 
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
@@ -115,7 +109,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     disableConfirm,
     disablePay,
     hasMax,
-    hasExtraBottomPadding,
     hideAccountSelector,
     onAmountSubmit,
     hidePayTokenAmount,
@@ -158,6 +151,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const transactionId = transactionMeta?.id;
     const accountOverride = useTransactionAccountOverride();
     const isWithdraw = isTransactionPayWithdraw(transactionMeta);
+
     const isResultReady = useIsResultReady({ isKeyboardVisible });
     const quotes = useTransactionPayQuotes();
     const isQuotesLoading = useIsTransactionPayLoading();
@@ -173,6 +167,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     const {
       amountFiat,
+      amountFiatDebounced,
       amountHuman,
       amountHumanDebounced,
       hasInput,
@@ -186,6 +181,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       isInputChanged,
       isKeyboardVisible,
       pendingTokenAmount: amountHumanDebounced,
+      pendingFiatAmount: amountFiatDebounced,
     });
 
     const handleDone = useCallback(async () => {
@@ -260,7 +256,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         <Box
           gap={16}
           testID={CustomAmountInfoTestIds.BOTTOM_BLOCK}
-          style={hasExtraBottomPadding && styles.extraBottomPadding}
+          style={styles.bottomBlock}
         >
           <AlertMessage alertMessage={alertMessage ?? headlessBuyError} />
           {!isResultReady && (
