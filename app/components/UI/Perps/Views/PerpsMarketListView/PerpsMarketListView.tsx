@@ -252,7 +252,10 @@ const PerpsMarketListView = ({
     // Empty search results - show when user has typed and no markets match
     if (searchQuery.trim() && filteredMarkets.length === 0) {
       return (
-        <View style={styles.emptyStateContainer}>
+        <View
+          style={styles.emptyStateContainer}
+          testID={PerpsMarketListViewSelectorsIDs.NO_RESULTS}
+        >
           <Icon
             name={IconName.Search}
             size={IconSize.Xl}

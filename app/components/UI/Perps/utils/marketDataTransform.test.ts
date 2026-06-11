@@ -68,7 +68,7 @@ describe('marketDataTransform', () => {
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({
         symbol: 'BTC',
-        name: 'BTC',
+        name: 'Bitcoin', // Human-readable name from HYPERLIQUID_ASSET_NAMES (@metamask/perps-controller 8.1.0)
         maxLeverage: '50x',
         price: '$52,000', // PRICE_RANGES_UNIVERSAL: 5 sig figs, 0 decimals for $10k-$100k
         change24h: '+$2,000', // No trailing zeros

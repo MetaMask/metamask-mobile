@@ -2275,6 +2275,9 @@
       "share_failed": "Failed to export image",
       "export_success": "Exported image",
       "referral_code_text": "Use my referral code to earn extra rewards."
+    },
+    "market_details": {
+      "category_search": "Browse related markets"
     }
   },
   "market_insights": {
@@ -6912,7 +6915,7 @@
     },
     "action": {
       "add": "Add",
-      "transfer": "Transfer",
+      "transfer": "Send",
       "card": "Card"
     },
     "earnings": {
@@ -6993,13 +6996,10 @@
     "add_money_sheet": {
       "title": "Add funds",
       "convert_crypto": "Convert crypto",
-      "convert_crypto_description": "From any account",
-      "deposit_funds": "Deposit funds",
-      "deposit_funds_description": "From debit card or bank",
-      "move_musd": "Add your {{amount}} mUSD",
+      "deposit_funds": "Debit card or bank",
+      "move_musd": "Your {{amount}} mUSD",
       "add_musd": "Add mUSD",
-      "move_musd_description": "From your balance",
-      "receive_external": "Receive from external wallet",
+      "receive_external": "External wallet",
       "coming_soon": "Coming soon"
     },
     "more_sheet": {
@@ -7009,12 +7009,12 @@
       "contact_support": "Contact support"
     },
     "transfer_sheet": {
-      "title": "Transfer funds to",
+      "title": "Send funds to",
       "between_accounts": "Another account",
       "perps_account": "Perps account",
       "predictions_account": "Predictions account",
-      "send_external": "Send to external address",
-      "withdraw_to_bank": "Withdraw to bank"
+      "send_external": "External address",
+      "withdraw_to_bank": "Bank"
     },
     "toasts": {
       "in_progress_title": "Transaction in progress",
