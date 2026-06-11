@@ -163,10 +163,10 @@ const worldCupTarget = ({
 };
 
 /**
- * Handle navigation to a generic, config-driven Predict feed (PredictFeedView).
+ * Build the target for a generic, config-driven Predict feed (`PredictFeedView`).
  * @param params Resolved generic feed params
  */
-const handleGenericFeedNavigation = ({
+const genericFeedTarget = ({
   feedId,
   initialTabId,
   initialFilterId,
@@ -178,18 +178,15 @@ const handleGenericFeedNavigation = ({
   initialFilterId?: string;
   query?: string;
   entryPoint: string;
-}) => {
+}): DeeplinkIntent['target'] => {
   DevLogger.log('[handlePredictUrl] Navigating to generic feed:', feedId);
 
-  NavigationService.navigation.navigate(Routes.PREDICT.ROOT, {
-    screen: Routes.PREDICT.FEED,
-    params: {
-      feedId,
-      ...(initialTabId && { initialTabId }),
-      ...(initialFilterId && { initialFilterId }),
-      ...(query && { query }),
-      entryPoint,
-    },
+  return predictTarget(Routes.PREDICT.FEED, {
+    feedId,
+    ...(initialTabId && { initialTabId }),
+    ...(initialFilterId && { initialFilterId }),
+    ...(query && { query }),
+    entryPoint,
   });
 };
 
@@ -279,8 +276,7 @@ const resolvePredictTarget = ({
 
   if (navParams.market) {
     return marketTarget(navParams.market, entryPoint);
-  }
-  if (navParams.feed === PREDICT_WORLD_CUP_FEED_PARAM) {
+  } else if (navParams.feed === PREDICT_WORLD_CUP_FEED_PARAM) {
     return worldCupTarget({
       requestedTab: navParams.worldCupTab,
       entryPoint,
@@ -289,7 +285,7 @@ const resolvePredictTarget = ({
     isPredictFeedId(navParams.feed) &&
     getPredictHomeRedesignEnabled()
   ) {
-    handleGenericFeedNavigation({
+    return genericFeedTarget({
       feedId: navParams.feed,
       // worldCupTab holds the raw (unvalidated) tab value; the generic feed's
       // sub-tab ids (e.g. basketball/all/live) are resolved by the view.
