@@ -42,9 +42,16 @@ jest.mock('../../../../core/redux/slices/bridge', () => ({
   selectIsSwapsEnabled: jest.fn(),
 }));
 
+const mockUseDepositEnabled = jest.fn(() => ({ isDepositEnabled: true }));
 jest.mock('../../../UI/Ramp/Deposit/hooks/useDepositEnabled', () => ({
   __esModule: true,
-  default: () => ({ isDepositEnabled: true }),
+  default: () => mockUseDepositEnabled(),
+}));
+
+const mockUseRampsUnifiedV1Enabled = jest.fn(() => false);
+jest.mock('../../../UI/Ramp/hooks/useRampsUnifiedV1Enabled', () => ({
+  __esModule: true,
+  default: () => mockUseRampsUnifiedV1Enabled(),
 }));
 
 // Mock useAnalytics hook
@@ -88,6 +95,36 @@ describe('AssetDetailsActions', () => {
     },
   });
 
+  const createStateWithFundAvailability = ({
+    enabledEvmNetworkMap,
+    rampNetworks,
+  }: {
+    enabledEvmNetworkMap: Record<string, boolean>;
+    rampNetworks: { chainId: string; active: boolean }[];
+  }) => ({
+    ...initialRootState,
+    fiatOrders: {
+      ...initialRootState.fiatOrders,
+      networks:
+        rampNetworks as typeof initialRootState.fiatOrders.networks,
+    },
+    engine: {
+      ...initialRootState.engine,
+      backgroundState: {
+        ...initialRootState.engine.backgroundState,
+        NetworkEnablementController: {
+          ...initialRootState.engine.backgroundState
+            .NetworkEnablementController,
+          enabledNetworkMap: {
+            ...initialRootState.engine.backgroundState
+              .NetworkEnablementController.enabledNetworkMap,
+            eip155: enabledEvmNetworkMap,
+          },
+        },
+      },
+    },
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
     mockNavigate.mockClear();
@@ -95,6 +132,8 @@ describe('AssetDetailsActions', () => {
     mockTrackEvent.mockClear();
     mockCreateEventBuilder.mockClear();
     jest.mocked(selectIsSwapsEnabled).mockReset();
+    mockUseDepositEnabled.mockReturnValue({ isDepositEnabled: true });
+    mockUseRampsUnifiedV1Enabled.mockReturnValue(false);
   });
 
   it('renders without crashing', () => {
@@ -301,6 +340,43 @@ describe('AssetDetailsActions', () => {
     // The receive button should always be enabled
     const receiveButton = getByTestId(TokenOverviewSelectorsIDs.RECEIVE_BUTTON);
     expect(receiveButton).not.toBeDisabled();
+  });
+
+  it('keeps buy enabled when a ramp-supported network remains enabled with HyperEVM', () => {
+    mockUseDepositEnabled.mockReturnValue({ isDepositEnabled: false });
+    mockUseRampsUnifiedV1Enabled.mockReturnValue(false);
+    const state = createStateWithFundAvailability({
+      enabledEvmNetworkMap: {
+        '0x1': true,
+        '0x3e7': true,
+      },
+      rampNetworks: [{ chainId: '1', active: true }],
+    });
+
+    const { getByTestId } = renderWithProvider(
+      <AssetDetailsActions {...defaultProps} />,
+      { state },
+    );
+
+    expect(getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON)).not.toBeDisabled();
+  });
+
+  it('disables buy when no funding option supports the enabled networks', () => {
+    mockUseDepositEnabled.mockReturnValue({ isDepositEnabled: false });
+    mockUseRampsUnifiedV1Enabled.mockReturnValue(false);
+    const state = createStateWithFundAvailability({
+      enabledEvmNetworkMap: {
+        '0x3e7': true,
+      },
+      rampNetworks: [{ chainId: '1', active: true }],
+    });
+
+    const { getByTestId } = renderWithProvider(
+      <AssetDetailsActions {...defaultProps} />,
+      { state },
+    );
+
+    expect(getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON)).toBeDisabled();
   });
 
   // Note: Test for fund button visibility when both deposit and ramp are unavailable

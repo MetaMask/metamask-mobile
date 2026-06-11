@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useEffect } from 'react';
+import React, { useRef, useCallback, useEffect, useMemo } from 'react';
 import { View } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import styleSheet from './AssetDetailsActions.styles';
@@ -20,6 +20,10 @@ import {
   ActionLocation,
   ActionPosition,
 } from '../../../../util/analytics/actionButtonTracking';
+import { getRampNetworks } from '../../../../reducers/fiatOrders';
+import { selectEVMEnabledNetworks } from '../../../../selectors/networkEnablementController';
+import { isNetworkRampSupported } from '../../../UI/Ramp/Aggregator/utils';
+import useRampsUnifiedV1Enabled from '../../../UI/Ramp/hooks/useRampsUnifiedV1Enabled';
 
 export interface AssetDetailsActionsProps {
   displayBuyButton: boolean | undefined;
@@ -84,9 +88,21 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
     return unsubscribe;
   }, [navigation]);
 
-  // Check if FundActionMenu would be empty
   const { isDepositEnabled } = useDepositEnabled();
-  const isBuyMenuAvailable = isDepositEnabled || true;
+  const rampNetworks = useSelector(getRampNetworks);
+  const enabledEvmChainIds = useSelector(selectEVMEnabledNetworks);
+  const isRampsUnifiedV1Enabled = useRampsUnifiedV1Enabled();
+  const hasRampSupportedEnabledNetwork = useMemo(
+    () =>
+      enabledEvmChainIds.some((chainId) =>
+        isNetworkRampSupported(chainId, rampNetworks),
+      ),
+    [enabledEvmChainIds, rampNetworks],
+  );
+  const isBuyMenuAvailable =
+    isDepositEnabled ||
+    isRampsUnifiedV1Enabled ||
+    hasRampSupportedEnabledNetwork;
 
   // Button should be enabled if we have standard funding options OR a custom onBuy function
   const isBuyingAvailable = isBuyMenuAvailable || !!onBuy;
