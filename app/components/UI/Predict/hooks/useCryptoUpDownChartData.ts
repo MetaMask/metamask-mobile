@@ -25,6 +25,12 @@ const MIN_LIVE_POINT_DELTA_SECS = 0.001;
 // blank (the reported "black chart" when the websocket is slow/cold). At that
 // point we surface the loading state instead.
 const LIVE_STREAM_STALE_TIMEOUT_MS = LIVE_CHART_WINDOW_SECS * 1000;
+// How long a live market may produce nothing renderable (no history, no live
+// ticks) before we treat it as an upstream data outage and surface a
+// connection-error state rather than an indefinite spinner. Long enough not to
+// flash during a normal cold start (history fetch + first tick), short enough
+// to inform the user promptly.
+const CONNECTION_ERROR_TIMEOUT_MS = 12000;
 
 const isFiniteLivelinePoint = (point: LivelinePoint): boolean =>
   Number.isFinite(point.time) && Number.isFinite(point.value);
@@ -108,6 +114,12 @@ export interface UseCryptoUpDownChartDataResult {
    * scrolling off-screen into a blank canvas.
    */
   paused: boolean;
+  /**
+   * True when a live market has produced no renderable data for a sustained
+   * grace period (upstream data outage). The UI should show a connection-error
+   * state instead of an indefinite loading spinner.
+   */
+  connectionError: boolean;
 }
 
 interface UseCryptoUpDownChartDataOptions {
@@ -157,6 +169,14 @@ export const useCryptoUpDownChartData = (
   const staleTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
   );
+  // True once a live market has gone a grace period with nothing renderable
+  // (no historical data and no live ticks) — i.e. an upstream data outage.
+  // Surfaced to the UI so it can show a connection-error state instead of an
+  // indefinite spinner.
+  const [connectionError, setConnectionError] = useState(false);
+  const connectionErrorTimerRef = useRef<
+    ReturnType<typeof setTimeout> | undefined
+  >(undefined);
   const [liveValue, setLiveValue] = useState(0);
   const [livePoints, setLivePoints] = useState<LivelinePoint[]>(EMPTY_DATA);
   const stableHistoricalDataRef = useRef<LivelinePoint[]>(EMPTY_DATA);
@@ -391,6 +411,36 @@ export const useCryptoUpDownChartData = (
 
   const historicalQueryEnabled = enabled && !!symbol && !!historyStartDate;
 
+  // Detect a sustained "live but no data" outage: a market that is live (so we
+  // expect a flowing stream) yet has produced nothing renderable after a grace
+  // period. Recovers automatically as soon as any renderable data arrives.
+  const isAwaitingLiveData = enabled && isLive && !hasRenderableChartData;
+  useEffect(() => {
+    if (!isAwaitingLiveData) {
+      if (connectionErrorTimerRef.current) {
+        clearTimeout(connectionErrorTimerRef.current);
+        connectionErrorTimerRef.current = undefined;
+      }
+      setConnectionError(false);
+      return undefined;
+    }
+
+    if (connectionErrorTimerRef.current) {
+      return undefined;
+    }
+    connectionErrorTimerRef.current = setTimeout(() => {
+      setConnectionError(true);
+    }, CONNECTION_ERROR_TIMEOUT_MS);
+
+    return () => {
+      if (connectionErrorTimerRef.current) {
+        clearTimeout(connectionErrorTimerRef.current);
+        connectionErrorTimerRef.current = undefined;
+      }
+    };
+    // `market.id` restarts the grace window when switching markets.
+  }, [isAwaitingLiveData, market.id]);
+
   if (!enabled) {
     return {
       data: EMPTY_DATA,
@@ -399,6 +449,7 @@ export const useCryptoUpDownChartData = (
       isLive: false,
       window: durationSecs,
       paused: false,
+      connectionError: false,
     };
   }
 
@@ -412,6 +463,7 @@ export const useCryptoUpDownChartData = (
       // Historical-only view: anchor the viewport to the data instead of
       // scrolling with "now" so the line stays on screen.
       paused: true,
+      connectionError: false,
     };
   }
 
@@ -431,6 +483,9 @@ export const useCryptoUpDownChartData = (
       // Freeze the viewport on the final frame once the market is no longer
       // live so the resolved line stays visible.
       paused: !isLive,
+      // Only a live market with no data is an outage; frozen/expired markets
+      // legitimately have a final frame to show.
+      connectionError: isLive ? connectionError : false,
     };
   }
 
@@ -446,5 +501,6 @@ export const useCryptoUpDownChartData = (
     isLive: false,
     window: durationSecs,
     paused: true,
+    connectionError: false,
   };
 };

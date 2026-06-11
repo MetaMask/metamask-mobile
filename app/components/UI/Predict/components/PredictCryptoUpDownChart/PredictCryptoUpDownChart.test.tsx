@@ -74,6 +74,7 @@ describe('PredictCryptoUpDownChart', () => {
       isLive: true,
       window: 300,
       paused: false,
+      connectionError: false,
     });
   });
 
@@ -144,6 +145,36 @@ describe('PredictCryptoUpDownChart', () => {
     });
 
     expect(screen.getByTestId('mock-liveline-chart').props.paused).toBe(true);
+  });
+
+  it('renders the connection-error state instead of the chart when connectionError is true', () => {
+    mockUseCryptoUpDownChartData.mockReturnValue({
+      data: [],
+      value: 0,
+      loading: true,
+      isLive: true,
+      window: 300,
+      paused: false,
+      connectionError: true,
+    });
+    const market = createMockMarket();
+
+    render(<PredictCryptoUpDownChart market={market} />);
+
+    const container = screen.getByTestId(
+      'predict-crypto-up-down-chart-container',
+    );
+    fireEvent(container, 'layout', {
+      nativeEvent: { layout: { height: 300 } },
+    });
+
+    expect(
+      screen.getByTestId('predict-crypto-up-down-chart-connection-error'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText('There is an issue connecting. Please try again later.'),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId('mock-liveline-chart')).not.toBeOnTheScreen();
   });
 
   it('passes a custom chart color to LivelineChart', () => {
