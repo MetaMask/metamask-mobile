@@ -47,6 +47,7 @@ describe('NavigationService', () => {
         type: 'stack',
         routeNames: ['Home'],
       })),
+      isReady: jest.fn(() => true),
     } as unknown as NavigationContainerRef<ParamListBase>;
 
     mockLoggerError = jest.spyOn(Logger, 'error');
@@ -85,6 +86,30 @@ describe('NavigationService', () => {
 
       expect(navigation1).toBeDefined();
       expect(navigation2).toBeDefined();
+    });
+  });
+
+  describe('isReady', () => {
+    it('returns false when navigation does not exist', () => {
+      expect(NavigationService.isReady()).toBe(false);
+      expect(Logger.error).not.toHaveBeenCalled();
+    });
+
+    it('returns true when navigation exists and is ready', () => {
+      NavigationService.navigation = mockNavigation;
+
+      expect(NavigationService.isReady()).toBe(true);
+    });
+
+    it('returns false when navigation exists but is not ready', () => {
+      const unreadyNavigation = {
+        ...mockNavigation,
+        isReady: jest.fn(() => false),
+      } as unknown as NavigationContainerRef<ParamListBase>;
+
+      NavigationService.navigation = unreadyNavigation;
+
+      expect(NavigationService.isReady()).toBe(false);
     });
   });
 
