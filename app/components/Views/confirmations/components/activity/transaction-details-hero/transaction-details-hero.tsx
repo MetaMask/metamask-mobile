@@ -50,47 +50,6 @@ const SUPPORTED_TYPES = [
   TransactionType.predictWithdraw,
 ];
 
-function useMusdHeroData(
-  transactionMeta: Parameters<typeof resolveMusdTransferMeta>[0],
-): {
-  amount: string;
-  symbol: string;
-  contractAddress: string;
-  chainId: Hex;
-} | null {
-  const tokenMeta = resolveMusdTransferMeta(transactionMeta);
-
-  if (tokenMeta) {
-    const humanReadable = fromTokenMinimalUnit(
-      tokenMeta.amount,
-      tokenMeta.decimals,
-      false,
-    );
-    const num = parseFloat(humanReadable);
-    if (isNaN(num)) return null;
-    return {
-      amount: num.toFixed(2),
-      symbol: tokenMeta.symbol,
-      contractAddress: tokenMeta.contractAddress,
-      chainId: transactionMeta.chainId as Hex,
-    };
-  }
-
-  const targetFiat = transactionMeta.metamaskPay?.targetFiat;
-  if (targetFiat && targetFiat !== '0') {
-    const num = new BigNumber(targetFiat).toNumber();
-    if (isNaN(num)) return null;
-    return {
-      amount: num.toFixed(2),
-      symbol: MUSD_TOKEN.symbol,
-      contractAddress: MUSD_TOKEN_ADDRESS,
-      chainId: transactionMeta.chainId as Hex,
-    };
-  }
-
-  return null;
-}
-
 const MUSD_HERO_TYPES = [
   TransactionType.moneyAccountDeposit,
   TransactionType.moneyAccountWithdraw,
@@ -232,4 +191,45 @@ function useClaimAmount(): { amount: BigNumber | null; isConverted: boolean } {
   });
 
   return { amount: fiatValue, isConverted };
+}
+
+function useMusdHeroData(
+  transactionMeta: Parameters<typeof resolveMusdTransferMeta>[0],
+): {
+  amount: string;
+  symbol: string;
+  contractAddress: string;
+  chainId: Hex;
+} | null {
+  const tokenMeta = resolveMusdTransferMeta(transactionMeta);
+
+  if (tokenMeta) {
+    const humanReadable = fromTokenMinimalUnit(
+      tokenMeta.amount,
+      tokenMeta.decimals,
+      false,
+    );
+    const num = parseFloat(humanReadable);
+    if (isNaN(num)) return null;
+    return {
+      amount: num.toFixed(2),
+      symbol: tokenMeta.symbol,
+      contractAddress: tokenMeta.contractAddress,
+      chainId: transactionMeta.chainId as Hex,
+    };
+  }
+
+  const targetFiat = transactionMeta.metamaskPay?.targetFiat;
+  if (targetFiat && targetFiat !== '0') {
+    const num = new BigNumber(targetFiat).toNumber();
+    if (isNaN(num)) return null;
+    return {
+      amount: num.toFixed(2),
+      symbol: MUSD_TOKEN.symbol,
+      contractAddress: MUSD_TOKEN_ADDRESS,
+      chainId: transactionMeta.chainId as Hex,
+    };
+  }
+
+  return null;
 }

@@ -23,6 +23,48 @@ const SEND_TYPES: TransactionType[] = [
   TransactionType.predictDeposit,
 ];
 
+export function TransactionDetailsToRow() {
+  const { transactionMeta } = useTransactionDetails();
+  const recipient = useRecipient();
+  const chainId = transactionMeta?.chainId as Hex;
+
+  const isSendType = hasTransactionType(transactionMeta, SEND_TYPES);
+
+  if (!isSendType) {
+    return null;
+  }
+
+  const staticLabel = getToLabel(transactionMeta);
+
+  if (!staticLabel && !recipient) {
+    return null;
+  }
+
+  return (
+    <TransactionDetailsRow label={strings('transaction_details.label.to')}>
+      {staticLabel ? (
+        <Box
+          flexDirection={FlexDirection.Row}
+          alignItems={AlignItems.center}
+          gap={6}
+        >
+          <AvatarAccount
+            accountAddress={recipient ?? '0x0'}
+            size={AvatarSize.Sm}
+          />
+          <Text>{staticLabel}</Text>
+        </Box>
+      ) : recipient ? (
+        <Name
+          type={NameType.EthereumAddress}
+          value={recipient}
+          variation={chainId}
+        />
+      ) : null}
+    </TransactionDetailsRow>
+  );
+}
+
 function useRecipient(): Hex | undefined {
   const { transactionMeta } = useTransactionDetails();
   return useMemo(() => {
@@ -56,42 +98,4 @@ function getToLabel(transactionMeta: {
     return strings('transaction_details.label.predictions_account');
   }
   return undefined;
-}
-
-export function TransactionDetailsToRow() {
-  const { transactionMeta } = useTransactionDetails();
-  const recipient = useRecipient();
-  const chainId = transactionMeta?.chainId as Hex;
-
-  const isSendType = hasTransactionType(transactionMeta, SEND_TYPES);
-
-  if (!isSendType) {
-    return null;
-  }
-
-  const staticLabel = getToLabel(transactionMeta);
-
-  return (
-    <TransactionDetailsRow label={strings('transaction_details.label.to')}>
-      {staticLabel ? (
-        <Box
-          flexDirection={FlexDirection.Row}
-          alignItems={AlignItems.center}
-          gap={6}
-        >
-          <AvatarAccount
-            accountAddress={recipient ?? '0x0'}
-            size={AvatarSize.Sm}
-          />
-          <Text>{staticLabel}</Text>
-        </Box>
-      ) : recipient ? (
-        <Name
-          type={NameType.EthereumAddress}
-          value={recipient}
-          variation={chainId}
-        />
-      ) : null}
-    </TransactionDetailsRow>
-  );
 }
