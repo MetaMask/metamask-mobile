@@ -576,6 +576,18 @@ describe('rewardsReducer', () => {
       expect(state.refereeCount).toBe(0);
     });
 
+    it('should store isVipReferee and referredByVipCode when provided', () => {
+      const action = setReferralDetails({
+        isVipReferee: true,
+        referredByVipCode: 'VIPCODE',
+      });
+
+      const state = rewardsReducer(initialState, action);
+
+      expect(state.isVipReferee).toBe(true);
+      expect(state.referredByVipCode).toBe('VIPCODE');
+    });
+
     it('should set referralDetailsLoading to false', () => {
       // Arrange
       const stateWithLoading = {
@@ -1991,6 +2003,8 @@ describe('rewardsReducer', () => {
         referralCode: 'TEST123',
         refereeCount: 10,
         referredByCode: null,
+        isVipReferee: false,
+        referredByVipCode: null,
         currentTier: {
           id: 'tier-platinum',
           name: 'Platinum',
@@ -2143,6 +2157,8 @@ describe('rewardsReducer', () => {
         referralCode: 'PERSISTED123',
         refereeCount: 15,
         referredByCode: null,
+        isVipReferee: false,
+        referredByVipCode: null,
         currentTier: {
           id: 'tier-diamond',
           name: 'Diamond',

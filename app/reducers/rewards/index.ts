@@ -86,6 +86,8 @@ export interface RewardsState {
   referralCode: string | null;
   refereeCount: number;
   referredByCode: string | null;
+  isVipReferee: boolean;
+  referredByVipCode: string | null;
 
   // Season tier state
   currentTier: SeasonTierDto | null;
@@ -248,6 +250,8 @@ export const initialState: RewardsState = {
   referralCode: null,
   refereeCount: 0,
   referredByCode: null,
+  isVipReferee: false,
+  referredByVipCode: null,
 
   currentTier: null,
   nextTier: null,
@@ -413,6 +417,8 @@ const rewardsSlice = createSlice({
         referralCode?: string;
         refereeCount?: number;
         referredByCode?: string;
+        isVipReferee?: boolean;
+        referredByVipCode?: string | null;
       }>,
     ) => {
       if (action.payload.referralCode !== undefined) {
@@ -423,6 +429,12 @@ const rewardsSlice = createSlice({
       }
       if (action.payload.referredByCode !== undefined) {
         state.referredByCode = action.payload.referredByCode;
+      }
+      if (action.payload.isVipReferee !== undefined) {
+        state.isVipReferee = action.payload.isVipReferee;
+      }
+      if (action.payload.referredByVipCode !== undefined) {
+        state.referredByVipCode = action.payload.referredByVipCode;
       }
       state.referralDetailsLoading = false;
     },

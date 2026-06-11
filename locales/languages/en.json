@@ -8755,6 +8755,7 @@
       "progress_to_next_tier": "{{pointsRemaining}} points to next tier",
       "bps_unit": "bps",
       "badge_label": "VIP {{tier}}",
+      "referral_tag_label": "VIP",
       "swaps_label": "Swaps",
       "perps_label": "Perps",
       "points_label": "Points",

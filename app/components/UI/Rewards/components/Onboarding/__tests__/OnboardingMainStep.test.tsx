@@ -210,6 +210,7 @@ jest.mock('@metamask/design-system-react-native', () => {
       onChangeText?: (text: string) => void;
       placeholder?: string;
       isDisabled?: boolean;
+      endAccessory?: React.ReactNode;
       inputProps?: { testID?: string; [key: string]: unknown };
       [key: string]: unknown;
     }) => {
@@ -226,6 +227,7 @@ jest.mock('@metamask/design-system-react-native', () => {
           placeholder: props.placeholder,
           editable: !props.isDisabled,
         }),
+        props.endAccessory ?? null,
       );
     },
   };
@@ -280,6 +282,7 @@ const mockUseValidateReferralCode = {
   isValid: false,
   isUnknownError: false,
   validateCode: jest.fn(),
+  isVipReferralCode: false,
 };
 
 jest.mock('../../../hooks/useValidateReferralCode', () => ({
@@ -313,6 +316,16 @@ jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
 jest.mock('../../../../../../store/storage-wrapper', () => ({
   setItem: jest.fn(),
 }));
+
+jest.mock('../../RewardsVipReferralTag/RewardsVipReferralTag', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      ReactActual.createElement(View, { testID: 'rewards-vip-referral-tag' }),
+  };
+});
 
 jest.mock('../OnboardingStep', () => {
   const ReactActual = jest.requireActual('react');
@@ -406,6 +419,7 @@ describe('OnboardingMainStep', () => {
     mockUseValidateReferralCode.isValidating = false;
     mockUseValidateReferralCode.isValid = false;
     mockUseValidateReferralCode.isUnknownError = false;
+    mockUseValidateReferralCode.isVipReferralCode = false;
     mockRewardsLegalDisclaimer.mockClear();
     setupSelectors();
   });
@@ -673,6 +687,42 @@ describe('OnboardingMainStep', () => {
           'mocked_rewards.onboarding.step4_referral_input_error',
         ),
       ).toBeNull();
+    });
+
+    it('shows VIP tag when referral code is valid and VIP', () => {
+      mockUseValidateReferralCode.referralCode = 'VIPCODE';
+      mockUseValidateReferralCode.isValid = true;
+      mockUseValidateReferralCode.isVipReferralCode = true;
+
+      renderWithProviders(<OnboardingMainStep />);
+
+      fireEvent.press(screen.getAllByTestId('referral-prompt')[0]);
+
+      expect(screen.getByTestId('rewards-vip-referral-tag')).toBeDefined();
+    });
+
+    it('does not show VIP tag when referral code is valid but not VIP', () => {
+      mockUseValidateReferralCode.referralCode = 'ABCDEF';
+      mockUseValidateReferralCode.isValid = true;
+      mockUseValidateReferralCode.isVipReferralCode = false;
+
+      renderWithProviders(<OnboardingMainStep />);
+
+      fireEvent.press(screen.getAllByTestId('referral-prompt')[0]);
+
+      expect(screen.queryByTestId('rewards-vip-referral-tag')).toBeNull();
+    });
+
+    it('does not show VIP tag when referral code is invalid', () => {
+      mockUseValidateReferralCode.referralCode = 'BADCODE';
+      mockUseValidateReferralCode.isValid = false;
+      mockUseValidateReferralCode.isVipReferralCode = false;
+
+      renderWithProviders(<OnboardingMainStep />);
+
+      fireEvent.press(screen.getAllByTestId('referral-prompt')[0]);
+
+      expect(screen.queryByTestId('rewards-vip-referral-tag')).toBeNull();
     });
   });
 

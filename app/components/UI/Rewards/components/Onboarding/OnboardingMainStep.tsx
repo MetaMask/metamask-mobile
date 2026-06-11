@@ -43,6 +43,7 @@ import storageWrapper from '../../../../../store/storage-wrapper';
 import OnboardingStepComponent from './OnboardingStep';
 import RewardsErrorBanner from '../RewardsErrorBanner';
 import RewardsLegalDisclaimer from './RewardsLegalDisclaimer';
+import RewardsVipReferralTag from '../RewardsVipReferralTag/RewardsVipReferralTag';
 
 const OnboardingMainStep: React.FC = () => {
   const tw = useTailwind();
@@ -72,6 +73,7 @@ const OnboardingMainStep: React.FC = () => {
     isValidating: isValidatingReferralCode,
     isValid: referralCodeIsValid,
     isUnknownError: isUnknownErrorReferralCode,
+    isVipReferralCode,
   } = useValidateReferralCode(
     onboardingReferralCode
       ? onboardingReferralCode.trim().toUpperCase()
@@ -273,6 +275,11 @@ const OnboardingMainStep: React.FC = () => {
       return <ActivityIndicator />;
     }
     if (referralCodeIsValid) {
+      // A VIP referral code shows the gold VIP tag instead of the success
+      // checkmark — never both.
+      if (isVipReferralCode) {
+        return <RewardsVipReferralTag />;
+      }
       return (
         <Icon
           name={IconName.Confirmation}

@@ -1042,7 +1042,9 @@ export class RewardsDataService {
    * @param code - The referral code to validate.
    * @returns Promise<{valid: boolean}> - Object indicating if the code is valid.
    */
-  async validateReferralCode(code: string): Promise<{ valid: boolean }> {
+  async validateReferralCode(
+    code: string,
+  ): Promise<{ valid: boolean; isVipCode?: boolean }> {
     const response = await this.makeRequest(
       `/referral/validate?code=${encodeURIComponent(code)}`,
       {
@@ -1056,7 +1058,7 @@ export class RewardsDataService {
       );
     }
 
-    return (await response.json()) as { valid: boolean };
+    return (await response.json()) as { valid: boolean; isVipCode?: boolean };
   }
 
   /**
