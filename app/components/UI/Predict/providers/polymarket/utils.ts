@@ -668,8 +668,9 @@ const isTeamTotalsType = (type: string): boolean => {
 const GOALSCORER_PREFIX_PATTERN = /^Goalscorer:\s*(.+)$/i;
 // "<name>: <n>+ <stat>" e.g. "Armando González: 2+ goals", "Alexis Vega: 4+ shots"
 const PLAYER_PROP_SUBJECT_PATTERN = /^(.+?):\s*\d+\+\s+\w+/;
-// "<name>: <stat> O/U <line>" e.g. "Victor Wembanyama: Points O/U 27.5"
-const PLAYER_OVER_UNDER_PATTERN = /^(.+?):\s+\w+\s+O\/U\b/;
+// "<name>: <stat> O/U <line>" e.g. "Victor Wembanyama: Points O/U 27.5",
+// "Alexis Vega: Shots on Target O/U 1.5"
+const PLAYER_OVER_UNDER_PATTERN = /^(.+?):\s+(.+?)\s+O\/U\b/;
 // "<subject> O/U <line>", "<subject>: O/U <line>", "O/U <line>"
 const OVER_UNDER_SUBJECT_PATTERN = /^(.*?)[:]?\s*O\/U\s*[\d.]+\s*$/;
 

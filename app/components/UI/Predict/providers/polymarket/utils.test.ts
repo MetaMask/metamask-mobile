@@ -479,6 +479,40 @@ describe('polymarket utils', () => {
       ]);
     });
 
+    it('keeps multi-word player O/U stat lines grouped under one player card', () => {
+      const [shotsOnTarget] = buildOutcomeGroups([
+        mkOutcome(
+          'soccer_player_shots_on_target',
+          'Alexis Vega: Shots on Target O/U 1.5',
+          {
+            line: 1.5,
+          },
+        ),
+        mkOutcome(
+          'soccer_player_shots_on_target',
+          'Alexis Vega: Shots on Target O/U 2.5',
+          {
+            line: 2.5,
+          },
+        ),
+        mkOutcome(
+          'soccer_player_shots_on_target',
+          'Brian Gutiérrez: Shots on Target O/U 0.5',
+          {
+            line: 0.5,
+          },
+        ),
+      ]);
+
+      expect(shotsOnTarget.key).toBe('shots_on_target');
+      expect(shotsOnTarget.subgroups?.map((s) => s.title)).toEqual([
+        'Alexis Vega',
+        'Brian Gutiérrez',
+      ]);
+      expect(shotsOnTarget.subgroups?.[0].outcomes).toHaveLength(2);
+      expect(shotsOnTarget.subgroups?.[1].outcomes).toHaveLength(1);
+    });
+
     it('keeps moneyline-like second half result as a single card in the second half tab', () => {
       const [secondHalf] = buildOutcomeGroups([
         mkOutcome('soccer_second_half_result', 'Mexico'),
@@ -650,6 +684,8 @@ describe('polymarket utils', () => {
       ['Brian Gutiérrez: 1+ assists', 'Brian Gutiérrez'],
       ['Goalscorer: Cho Guesung', 'Cho Guesung'],
       ['Victor Wembanyama: Points O/U 27.5', 'Victor Wembanyama'],
+      ['Alexis Vega: Shots on Target O/U 1.5', 'Alexis Vega'],
+      ['Lionel Messi: Goals + Assists O/U 1.5', 'Lionel Messi'],
     ])('extracts the subject from %p as %p', (title, expected) => {
       expect(subjectOf(title)).toBe(expected);
     });
