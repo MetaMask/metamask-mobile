@@ -4106,11 +4106,26 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  socialAiAssetDetailsQuickBuy: {
-    name: 'socialAiAssetDetailsQuickBuy',
+  socialAiTSA612AbtestQuickBuy: {
+    name: 'socialAiTSA612AbtestQuickBuy',
     type: FeatureFlagType.Remote,
     inProd: false,
-    productionDefault: false,
+    productionDefault: [
+      {
+        name: 'control',
+        scope: {
+          type: 'percentage_rollout',
+          value: 0.95,
+        },
+      },
+      {
+        name: 'treatment',
+        scope: {
+          type: 'percentage_rollout',
+          value: 1,
+        },
+      },
+    ],
     status: FeatureFlagStatus.Active,
   },
 
