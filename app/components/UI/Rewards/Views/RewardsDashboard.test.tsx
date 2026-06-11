@@ -9,8 +9,10 @@ import { usePerpsTradingCampaignEndedOutcomeToast } from '../hooks/usePerpsTradi
 import { useGetPredictThePitchOutcomeToast } from '../hooks/useGetPredictThePitchOutcomeToast';
 
 // Mock dependencies
+const mockDispatch = jest.fn();
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
+  useDispatch: () => mockDispatch,
 }));
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
@@ -41,6 +43,7 @@ jest.mock('../../../../reducers/rewards/selectors', () => ({
   selectHasAcceptedVipInvite: jest.fn(),
   selectHideCurrentAccountNotOptedInBannerArray: jest.fn(),
   selectHideUnlinkedAccountsBanner: jest.fn(),
+  selectPendingDeeplink: jest.fn(),
 }));
 
 jest.mock('../../../../selectors/rewards', () => ({
@@ -64,7 +67,11 @@ import {
   selectHasAcceptedVipInvite,
   selectHideUnlinkedAccountsBanner,
   selectHideCurrentAccountNotOptedInBannerArray,
+  selectPendingDeeplink,
 } from '../../../../reducers/rewards/selectors';
+// Real action creator (the rewards reducer module is intentionally not mocked),
+// so the deeplink tests can assert the exact clear action dispatched.
+import { setPendingDeeplink } from '../../../../reducers/rewards';
 import {
   selectIsCurrentSubscriptionVipEnabled,
   selectRewardsSubscriptionId,
@@ -104,6 +111,9 @@ const mockSelectSelectedAccountGroup =
   selectSelectedAccountGroup as jest.MockedFunction<
     typeof selectSelectedAccountGroup
   >;
+const mockSelectPendingDeeplink = selectPendingDeeplink as jest.MockedFunction<
+  typeof selectPendingDeeplink
+>;
 
 // Mock react-native-safe-area-context
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
@@ -134,6 +144,19 @@ jest.mock('../../../../core/Engine', () => ({
       call: (...args: unknown[]) => mockControllerMessengerCall(...args),
     },
   },
+}));
+
+// Data hooks owned by the dashboard. They perform data fetching/side effects
+// that are out of scope for these tests. The version guard now lives in
+// RewardsHome (MainNavigator), so it is no longer mocked here.
+jest.mock('../hooks/useCandidateSubscriptionId', () => ({
+  useCandidateSubscriptionId: jest.fn(),
+}));
+jest.mock('../hooks/useGeoRewardsMetadata', () => ({
+  useGeoRewardsMetadata: jest.fn(),
+}));
+jest.mock('../hooks/useReferralDetails', () => ({
+  useReferralDetails: jest.fn(),
 }));
 
 // Mock i18n
@@ -472,7 +495,10 @@ describe('RewardsDashboard', () => {
       fireEvent.press(settingsButton);
 
       // Assert
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_SETTINGS_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
+        screen: Routes.REWARDS_SETTINGS_VIEW,
+        params: undefined,
+      });
     });
 
     it('navigates to referral view when referral button is pressed', () => {
@@ -481,7 +507,10 @@ describe('RewardsDashboard', () => {
       fireEvent.press(getByTestId(REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON));
 
       // Assert
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.REFERRAL_REWARDS_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
+        screen: Routes.REFERRAL_REWARDS_VIEW,
+        params: undefined,
+      });
     });
 
     it('does not render the VIP button when VIP is disabled', () => {
@@ -560,7 +589,10 @@ describe('RewardsDashboard', () => {
       const { getByTestId } = render(<RewardsDashboard />);
       fireEvent.press(getByTestId(REWARDS_VIEW_SELECTORS.VIP_BUTTON));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIP_SPLASH_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
+        screen: Routes.REWARDS_VIP_SPLASH_VIEW,
+        params: undefined,
+      });
     });
 
     it('navigates to VIP view without splash when the invite was accepted', () => {
@@ -586,7 +618,94 @@ describe('RewardsDashboard', () => {
       const { getByTestId } = render(<RewardsDashboard />);
       fireEvent.press(getByTestId(REWARDS_VIEW_SELECTORS.VIP_BUTTON));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIP_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
+        screen: Routes.REWARDS_VIP_VIEW,
+        params: undefined,
+      });
+    });
+  });
+
+  describe('deeplink navigation', () => {
+    // The dashboard reads the pending deeplink from Redux on mount and routes
+    // into the corresponding rewards sub-page, then clears it so it does not
+    // re-fire. navigateToRewardsRoute (not mocked) forwards through the
+    // REWARDS_FLOW host, so mockNavigate receives that wrapper shape.
+    const renderWithPendingDeeplink = (
+      pendingDeeplink: Record<string, unknown> | null,
+    ) => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectPendingDeeplink) return pendingDeeplink;
+        if (selector === selectActiveTab)
+          return defaultSelectorValues.activeTab;
+        if (selector === selectRewardsSubscriptionId)
+          return defaultSelectorValues.subscriptionId;
+        if (selector === selectIsCurrentSubscriptionVipEnabled)
+          return defaultSelectorValues.isVipEnabled;
+        if (selector === selectHideUnlinkedAccountsBanner)
+          return defaultSelectorValues.hideUnlinkedAccountsBanner;
+        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
+          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
+        if (selector === selectSelectedAccountGroup)
+          return defaultSelectorValues.selectedAccountGroup;
+        if (selector === mockHasAcceptedVipInviteSelector) return false;
+        return undefined;
+      });
+      return render(<RewardsDashboard />);
+    };
+
+    it.each([
+      ['page', 'campaigns', Routes.REWARDS_CAMPAIGNS_VIEW],
+      ['campaign', 'ondo', Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW],
+      ['campaign', 'season1', Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW],
+      [
+        'campaign',
+        'perps-comp',
+        Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW,
+      ],
+      [
+        'campaign',
+        'predict-the-pitch',
+        Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_DETAILS_VIEW,
+      ],
+      ['page', 'musd', Routes.REWARDS_MUSD_CALCULATOR_VIEW],
+    ])(
+      'routes %s=%s into the rewards flow and clears the pending deeplink',
+      (key, value, expectedScreen) => {
+        renderWithPendingDeeplink({ [key]: value });
+
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
+          screen: expectedScreen,
+          params: undefined,
+        });
+        expect(mockDispatch).toHaveBeenCalledWith(setPendingDeeplink(null));
+      },
+    );
+
+    it('navigates directly to the benefits full view (registered at root) for page=benefits', () => {
+      // Benefits is registered at the root MainNavigator level, so the dashboard
+      // navigates directly rather than through the REWARDS_FLOW host.
+      renderWithPendingDeeplink({ page: 'benefits' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.REWARD_BENEFITS_FULL_VIEW,
+      );
+      expect(mockDispatch).toHaveBeenCalledWith(setPendingDeeplink(null));
+    });
+
+    it('does nothing when there is no pending deeplink', () => {
+      renderWithPendingDeeplink(null);
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalledWith(setPendingDeeplink(null));
+    });
+
+    it('does not clear the pending deeplink for an unrecognized page/campaign', () => {
+      // Unrecognized intents are preserved (not cleared) so they can be retried
+      // rather than silently dropped.
+      renderWithPendingDeeplink({ page: 'totally-unknown' });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalledWith(setPendingDeeplink(null));
     });
   });
 

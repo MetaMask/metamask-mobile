@@ -105,6 +105,7 @@ const Routes = {
   TRANSACTIONS_VIEW: 'TransactionsView',
   TRANSACTION_DETAILS: 'TransactionDetails',
   REWARDS_VIEW: 'RewardsView',
+  REWARDS_FLOW: 'RewardsFlow',
   REFERRAL_REWARDS_VIEW: 'ReferralRewardsView',
   REWARDS_SETTINGS_VIEW: 'RewardsSettingsView',
   REWARDS_DASHBOARD: 'RewardsDashboard',
