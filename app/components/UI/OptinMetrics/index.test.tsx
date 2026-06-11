@@ -59,12 +59,21 @@ jest.mock('../../../core/Analytics/MetaMetrics', () => ({
 
 // Import analytics to access mocks
 import { analytics } from '../../../util/analytics/analytics';
+import { AppStateEventProcessor } from '../../../core/AppStateEventListener';
+import { isAttributionOnlyDeeplink } from '../../../util/analytics/isAttributionOnlyDeeplink';
 import { persistAttributionFromPendingDeeplink } from '../../../util/analytics/persistAttributionFromPendingDeeplink';
 
 const mockPersistAttributionFromPendingDeeplink =
   persistAttributionFromPendingDeeplink as jest.MockedFunction<
     typeof persistAttributionFromPendingDeeplink
   >;
+const mockIsAttributionOnlyDeeplink =
+  isAttributionOnlyDeeplink as jest.MockedFunction<
+    typeof isAttributionOnlyDeeplink
+  >;
+const mockAppStateEventProcessor = AppStateEventProcessor as jest.Mocked<
+  typeof AppStateEventProcessor
+>;
 
 const mockAnalytics = analytics as jest.Mocked<typeof analytics>;
 
@@ -101,6 +110,17 @@ jest.mock(
   }),
 );
 
+jest.mock('../../../util/analytics/isAttributionOnlyDeeplink', () => ({
+  isAttributionOnlyDeeplink: jest.fn(),
+}));
+
+jest.mock('../../../core/AppStateEventListener', () => ({
+  AppStateEventProcessor: {
+    pendingDeeplink: null as string | null,
+    clearPendingDeeplink: jest.fn(),
+  },
+}));
+
 jest.mock('../../../util/analytics/walletSetupCompletedAttribution', () => ({
   getWalletSetupAttributionPropsFromStore: jest.fn().mockReturnValue({}),
 }));
@@ -126,6 +146,8 @@ describe('OptinMetrics', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockPersistAttributionFromPendingDeeplink.mockReturnValue(false);
+    mockIsAttributionOnlyDeeplink.mockReturnValue(false);
+    mockAppStateEventProcessor.pendingDeeplink = null;
     jest.mocked(useAnalytics).mockReturnValue(
       createMockUseAnalyticsHook({
         trackEvent: (event) => mockAnalytics.trackEvent(event),
@@ -195,13 +217,27 @@ describe('OptinMetrics', () => {
 
   describe('sets traits and sends metric event on confirm', () => {
     it('without marketing consent', async () => {
-      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+      const { store } = renderScreen(
+        OptinMetrics,
+        { name: 'OptinMetrics' },
+        {
+          state: {
+            attribution: {
+              attribution: {
+                utm_source: 'stale_campaign',
+                capturedAt: Date.now(),
+              },
+            },
+          },
+        },
+      );
       fireEvent.press(
         screen.getByRole('button', {
           name: strings('privacy_policy.continue'),
         }),
       );
       await waitFor(() => {
+        expect(store.getState().attribution.attribution).toBeNull();
         expect(
           mockPersistAttributionFromPendingDeeplink,
         ).not.toHaveBeenCalled();
@@ -276,6 +312,66 @@ describe('OptinMetrics', () => {
           deviceProp: 'Device value',
           userProp: 'User value',
         });
+      });
+    });
+
+    it('clears pending deeplink after persist when install link is attribution-only', async () => {
+      const pendingDeeplink =
+        'https://link.metamask.io/home?utm_source=campaign&utm_campaign=summer';
+      mockPersistAttributionFromPendingDeeplink.mockReturnValue(true);
+      mockIsAttributionOnlyDeeplink.mockReturnValue(true);
+      mockAppStateEventProcessor.pendingDeeplink = pendingDeeplink;
+
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+      fireEvent.press(
+        screen.getByText(strings('privacy_policy.checkbox_marketing')),
+      );
+      fireEvent.press(
+        screen.getByRole('button', {
+          name: strings('privacy_policy.continue'),
+        }),
+      );
+
+      await waitFor(() => {
+        expect(mockPersistAttributionFromPendingDeeplink).toHaveBeenCalledTimes(
+          1,
+        );
+        expect(mockIsAttributionOnlyDeeplink).toHaveBeenCalledWith(
+          pendingDeeplink,
+        );
+        expect(
+          mockAppStateEventProcessor.clearPendingDeeplink,
+        ).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('keeps pending deeplink when install link also targets navigation', async () => {
+      const pendingDeeplink =
+        'https://link.metamask.io/rewards?utm_source=campaign&utm_campaign=summer';
+      mockPersistAttributionFromPendingDeeplink.mockReturnValue(true);
+      mockIsAttributionOnlyDeeplink.mockReturnValue(false);
+      mockAppStateEventProcessor.pendingDeeplink = pendingDeeplink;
+
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+      fireEvent.press(
+        screen.getByText(strings('privacy_policy.checkbox_marketing')),
+      );
+      fireEvent.press(
+        screen.getByRole('button', {
+          name: strings('privacy_policy.continue'),
+        }),
+      );
+
+      await waitFor(() => {
+        expect(mockPersistAttributionFromPendingDeeplink).toHaveBeenCalledTimes(
+          1,
+        );
+        expect(mockIsAttributionOnlyDeeplink).toHaveBeenCalledWith(
+          pendingDeeplink,
+        );
+        expect(
+          mockAppStateEventProcessor.clearPendingDeeplink,
+        ).not.toHaveBeenCalled();
       });
     });
   });
