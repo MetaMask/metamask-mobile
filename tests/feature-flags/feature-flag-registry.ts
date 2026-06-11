@@ -4211,8 +4211,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  socialAiAssetDetailsQuickBuy: {
-    name: 'socialAiAssetDetailsQuickBuy',
+  socialAiTSA612AbtestQuickBuy: {
+    name: 'socialAiTSA612AbtestQuickBuy',
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
