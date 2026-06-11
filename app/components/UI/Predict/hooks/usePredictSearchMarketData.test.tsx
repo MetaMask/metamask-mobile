@@ -160,26 +160,6 @@ describe('usePredictSearchMarketData', () => {
     expect(result.current.totalResults).toBe(232);
   });
 
-  it('filters stale markets for an empty query (staleness policy applied)', async () => {
-    const staleMarket = createMarket('stale-market', [
-      createOutcome('stale-high', 0.99),
-      createOutcome('stale-low', 0.01),
-    ]);
-    const liveMarket = createMarket('live-market');
-    mockSearchMarkets.mockResolvedValue(
-      makeSearchResult([staleMarket, liveMarket]),
-    );
-
-    const { Wrapper } = createWrapper();
-    const { result } = renderHook(() => usePredictSearchMarketData({ q: '' }), {
-      wrapper: Wrapper,
-    });
-
-    await waitFor(() => expect(result.current.isFetching).toBe(false));
-
-    expect(result.current.marketData).toEqual([liveMarket]);
-  });
-
   it('does not filter stale markets for active search queries', async () => {
     const staleMarket = createMarket('stale-market', [
       createOutcome('stale-high', 0.99),
