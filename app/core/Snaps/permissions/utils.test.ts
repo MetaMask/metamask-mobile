@@ -14,7 +14,7 @@ const TEST_MNEMONIC =
 const TEST_MNEMONIC_SEED = hexToBytes(mnemonicToSeed(TEST_MNEMONIC));
 
 /**
- * Setup the messenger and mock `KeyringController:withKeyring`.
+ * Setup the messenger and mock `KeyringController:withKeyringV2`.
  *
  * @param deserialize - Whether to deserialize the HD keyring state before returning.
  * @returns The messenger.
@@ -35,11 +35,11 @@ async function getMessenger(deserialize = true) {
     main: new HdKeyringV2({
       legacyKeyring: hdKeyring,
       entropySource: 'mock-hd-keyring-id',
-    }),
+    }) as unknown as Keyring,
     ledger: new LedgerKeyringV2({
       legacyKeyring: ledgerKeyring,
       entropySource: 'mock-ledger-keyring-id',
-    }),
+    }) as unknown as Keyring,
   };
 
   const messenger = new Messenger<
