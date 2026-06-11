@@ -28,7 +28,7 @@ jest.mock('../../../../../../../locales/i18n', () => ({
       'confirm.pay_with_bottom_sheet.available_balance': `${
         params?.balance ?? ''
       } available`,
-      'confirm.pay_with_bottom_sheet.money_balance': 'Money account',
+      'confirm.pay_with_bottom_sheet.money_account': 'Money account',
     };
     return translations[key] ?? key;
   },
