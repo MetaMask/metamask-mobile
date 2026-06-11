@@ -39,6 +39,7 @@ on:
         options:
           - current
           - namespace
+          - bitrise
         default: current
       pr_number:
         description: 'PR number (shadow correlation, optional)'
@@ -60,7 +61,7 @@ jobs:
 
   check-diff:
     name: Check diff
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ios-build' || 'macos-latest' }}
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ios-build' || inputs.runner_provider == 'bitrise' && 'bitrise-m4-pro' || 'macos-latest' }}
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
@@ -152,7 +153,7 @@ jobs:
         uses: ./.github/actions/post-build-source-hash
         with:
           github-token: ${{ github.token }}
-          post-status: ${{ inputs.runner_provider != 'namespace' }}
+          post-status: ${{ inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' }}
           # Commit statuses must be posted on a real commit SHA (not the merge ref).
           # `find-reusable-build` looks up the status via `run.head_sha` from
           # `listWorkflowRuns`, which GitHub reports as the PR head SHA for pull_request
@@ -492,7 +493,7 @@ jobs:
           EOF
 
       - name: Post iOS JS bundle size to commit status
-        if: ${{ github.ref == 'refs/heads/main' && inputs.runner_provider != 'namespace' }}
+        if: ${{ github.ref == 'refs/heads/main' && inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
         shell: bash
@@ -541,9 +542,9 @@ jobs:
     name: Ship JS bundle size check
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     needs: [js-bundle-size-check]
-    # Skip on Namespace shadow runs: hourly cron against main would otherwise
+    # Skip on shadow runs (Namespace/Bitrise): cron against main would otherwise
     # push duplicate entries to the external mobile_bundlesize_stats repo.
-    if: ${{ github.ref == 'refs/heads/main' && inputs.runner_provider != 'namespace' }}
+    if: ${{ github.ref == 'refs/heads/main' && inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' }}
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ inputs.runner_provider == 'namespace' }}
@@ -997,7 +998,7 @@ jobs:
           github-token: ${{ github.token }}
           pr-number: ${{ github.event.pull_request.number }}
           repository: ${{ github.repository }}
-          post-comment: ${{ inputs.runner_provider != 'namespace' }}
+          post-comment: ${{ inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' }}
           base-ref: ${{ github.event.pull_request.base.ref }}
 
   run-performance-tests-pr:
@@ -1286,7 +1287,7 @@ jobs:
           path: fixture-results/
 
       - name: Report results
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' }}
         env:
           RESULTS_PATH: fixture-results
           VALIDATION_RESULT: ${{ needs.validate-e2e-fixtures.result }}
