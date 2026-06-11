@@ -88,6 +88,18 @@ export interface PositionLines {
 }
 
 /**
+ * Colors for the position overlay lines, supplied by the consumer from its own
+ * theme. Position lines are consumer-specific (currently Perps only), so the
+ * colors are passed in rather than read from the shared chart `CONFIG.theme`.
+ */
+export interface PositionLineColors {
+  entry: string;
+  takeProfit: string;
+  stopLoss: string;
+  liquidation: string;
+}
+
+/**
  * Crosshair OHLC data forwarded from the WebView when the user
  * scrubs over the chart. Mirrors the Perps OhlcData contract.
  */
@@ -290,6 +302,8 @@ export interface SetChartTypePayload {
 
 export interface SetPositionLinesPayload {
   position: PositionLines | null;
+  /** Consumer-supplied colors for the overlay lines. Falls back to defaults if absent. */
+  positionLineColors?: PositionLineColors;
 }
 
 export interface RealtimeUpdatePayload {
@@ -401,6 +415,10 @@ function isIndicatorType(value: unknown): value is IndicatorType {
   return typeof value === 'string' && value.length > 0;
 }
 
+/**
+ * Reads a finite numeric field from a parsed postMessage payload.
+ * Returns the number, or `undefined` if the field is missing or not a finite number.
+ */
 function getOptionalNumber(
   obj: Record<string, unknown>,
   key: string,
@@ -599,6 +617,8 @@ export interface AdvancedChartProps {
   selectedMAs?: string[];
   /** Position lines to overlay (Perps). Set to undefined to clear. */
   positionLines?: PositionLines;
+  /** Colors for the position overlay lines, supplied by the consumer's theme. */
+  positionLineColors?: PositionLineColors;
 
   /** Initial chart type */
   chartType?: ChartType;

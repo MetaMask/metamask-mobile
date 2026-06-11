@@ -11,8 +11,11 @@ import {
   ChartType,
   type CrosshairData,
   type PositionLines,
+  type PositionLineColors,
   type ChartRangeSettlePayload,
 } from '../../../Charts/AdvancedChart/AdvancedChart.types';
+import { useTheme } from '../../../../../util/theme';
+import type { Colors } from '../../../../../util/theme/models';
 import {
   endTrace,
   trace,
@@ -93,6 +96,20 @@ export function mapTpslToPositionLines(
   return result;
 }
 
+/**
+ * Resolves the four position-line colors from the MetaMask theme.
+ * Uses the same tokens as the existing Lightweight chart
+ * (TradingViewChartTemplate) for visual parity. Exported for unit testing.
+ */
+export function getPerpsPositionLineColors(colors: Colors): PositionLineColors {
+  return {
+    entry: colors.text.muted,
+    takeProfit: colors.success.default,
+    stopLoss: colors.background.alternative,
+    liquidation: colors.error.default,
+  };
+}
+
 type PerpsChartTransitionType = 'initial_load' | 'interval_change';
 
 function getPerpsChartVisibilityTrace(
@@ -159,9 +176,16 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
   // Per-mount error fallback: once errored, stay on Lightweight until unmount.
   const [hasFailed, setHasFailed] = useState(false);
 
+  const { colors } = useTheme();
+
   const positionLines = useMemo(
     () => mapTpslToPositionLines(tpslLines, positionSize),
     [tpslLines, positionSize],
+  );
+
+  const positionLineColors = useMemo(
+    () => getPerpsPositionLineColors(colors),
+    [colors],
   );
 
   // ---- Crosshair + haptics ----
@@ -341,6 +365,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
       volumeOverlay={false}
       isLoading={isLoading}
       positionLines={positionLines}
+      positionLineColors={positionLineColors}
       rnBackedPagination={{ enabled: true }}
       onFetchOlderBarsRequest={handleFetchOlderBarsRequest}
       onCrosshairMove={handleCrosshairMove}
