@@ -17,6 +17,7 @@ import {
   selectOnboardingReferralCode,
 } from '../../../../../../reducers/rewards/selectors';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../../../../selectors/multichainAccounts/accountTreeController';
+import { selectVipProgramEnabled } from '../../../../../../selectors/featureFlagController/vipProgram';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -396,6 +397,7 @@ const defaultSelectorMap = new Map<unknown, unknown>([
   [selectOptinAllowedForGeoError, false],
   [selectOnboardingReferralCode, null],
   [selectSelectedAccountGroupInternalAccounts, [{ address: '0x123' }]],
+  [selectVipProgramEnabled, true],
 ]);
 
 function setupSelectors(overrides: Map<unknown, unknown> = new Map()) {
@@ -699,6 +701,19 @@ describe('OnboardingMainStep', () => {
       fireEvent.press(screen.getAllByTestId('referral-prompt')[0]);
 
       expect(screen.getByTestId('rewards-vip-referral-tag')).toBeDefined();
+    });
+
+    it('does not show VIP tag when the VIP program flag is off, even for a valid VIP code', () => {
+      mockUseValidateReferralCode.referralCode = 'VIPCODE';
+      mockUseValidateReferralCode.isValid = true;
+      mockUseValidateReferralCode.isVipReferralCode = true;
+      setupSelectors(new Map([[selectVipProgramEnabled, false]]));
+
+      renderWithProviders(<OnboardingMainStep />);
+
+      fireEvent.press(screen.getAllByTestId('referral-prompt')[0]);
+
+      expect(screen.queryByTestId('rewards-vip-referral-tag')).toBeNull();
     });
 
     it('does not show VIP tag when referral code is valid but not VIP', () => {
