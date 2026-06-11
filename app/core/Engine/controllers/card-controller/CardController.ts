@@ -604,12 +604,7 @@ export class CardController extends BaseController<
   }
 
   /**
-   * Forced logout for an unrecoverable session: the provider rejected the
-   * refresh token (or none exists), typically after an environment switch
-   * or server-side revocation. Skips the remote logout call — the session
-   * is already dead server-side — and kicks a fresh cardHomeData fetch so
-   * the UI repaints with the unauthenticated on-chain view instead of
-   * sitting on a stale/empty screen.
+   * Forced logout for an unrecoverable session.
    */
   async #handleSessionExpired(): Promise<void> {
     await this.#clearLocalSession();
@@ -762,23 +757,14 @@ export class CardController extends BaseController<
         error instanceof CardProviderError &&
         error.code === CardProviderErrorCode.InvalidCredentials
       ) {
-        // Provider rejected the refresh token — session unrecoverable
-        // (environment switch, revocation, or refresh token expiry).
         await this.#handleSessionExpired();
       }
-      // Transient failure (network/timeout/5xx): keep tokens and auth state
-      // so a later call can retry the refresh.
       return null;
     }
   }
 
   /**
-   * Forces a token refresh regardless of local clock validity — used when
-   * the provider rejected an access token that validateTokens() still
-   * considers valid (environment switch, server-side revocation). Shares
-   * the in-flight refresh with getValidTokens(). Returns null when no
-   * fresh tokens could be obtained; the session is torn down only when
-   * the rejection is auth-shaped (handled inside #doRefresh).
+   * Forces a token refresh regardless of local clock validity.
    */
   async #forceRefresh(
     rejected: CardAuthTokens,
@@ -811,10 +797,6 @@ export class CardController extends BaseController<
 
   /**
    * Runs an authenticated provider operation with a single 401-retry.
-   * A 401 means the provider rejected an access token that passed local
-   * validation: force a refresh and retry the operation once with the
-   * fresh tokens. When the refresh is rejected too, the session is torn
-   * down (forced logout) and the original error is rethrown.
    */
   async #executeWithAuthRetry<T>(
     tokens: CardAuthTokens,
@@ -826,16 +808,12 @@ export class CardController extends BaseController<
       if (!isCardAuthTokenError(error)) throw error;
 
       const fresh = await this.#forceRefresh(tokens);
-      // No fresh tokens: either the session was torn down (auth-shaped
-      // refresh failure) or the refresh failed transiently (session kept).
-      // Either way this call failed — surface the original 401.
       if (!fresh) throw error;
 
       try {
         return await operation(fresh);
       } catch (retryError) {
         if (isCardAuthTokenError(retryError)) {
-          // Freshly minted token also rejected — definitively dead session.
           await this.#handleSessionExpired();
         }
         throw retryError;
@@ -879,10 +857,6 @@ export class CardController extends BaseController<
     const tokens = await this.getValidTokens();
     const provider = this.getActiveProvider();
     if (tokens) {
-      // On a 401 the wrapper refreshes and retries once; if the refresh is
-      // rejected the session is torn down and #handleSessionExpired kicks a
-      // new-generation fetch that repaints the unauthenticated view — the
-      // error rethrown here belongs to the stale generation and is dropped.
       return this.#executeWithAuthRetry(tokens, (validTokens) =>
         provider.getCardHomeData(address, validTokens),
       );
