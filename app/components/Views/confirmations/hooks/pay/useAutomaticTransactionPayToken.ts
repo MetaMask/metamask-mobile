@@ -175,11 +175,7 @@ export function useAutomaticTransactionPayToken({
     }
 
     if (autoSelectFiatPayment || tokens.length === 0) {
-      if (!isFiatEnabled) {
-        return;
-      }
-
-      if (paymentMethods.length === 0) {
+      if (!isFiatEnabled || paymentMethods.length === 0) {
         return;
       }
 

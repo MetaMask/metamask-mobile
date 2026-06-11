@@ -66,10 +66,6 @@ export function getProviderLimitMessage({
           }),
         });
       }
-
-      // Structured limits confirm the amount is in range — don't surface a
-      // stale backendError from a previous failed quote.
-      return null;
     }
   }
 
