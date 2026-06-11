@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import React from 'react';
-import { TransactionStatus ,
+import {
+  TransactionStatus,
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
