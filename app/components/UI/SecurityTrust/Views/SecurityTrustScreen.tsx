@@ -43,6 +43,7 @@ import TokenDetailsStickyFooter from '../../TokenDetails/components/TokenDetails
 import useBlockExplorer from '../../../hooks/useBlockExplorer';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { trackBlockExplorerLinkClicked } from '../../../../util/analytics/externalLinkTracking';
 import { isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
 
 const SectionHeader: React.FC<{ title: string }> = ({ title }) => (
@@ -165,7 +166,7 @@ const SecurityTrustScreen: React.FC = () => {
   const tokenType = params?.isNative ? 'Native' : 'ERC-20';
 
   const openLink = useCallback(
-    (url: string, ctaType: string) => {
+    (url: string, ctaType: string, linkText?: string) => {
       // Track CTA click
       trackEvent(
         createEventBuilder(MetaMetricsEvents.SECURITY_PAGE_CTA_CLICKED)
@@ -177,6 +178,14 @@ const SecurityTrustScreen: React.FC = () => {
           })
           .build(),
       );
+
+      if (ctaType === 'block_explorer') {
+        trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
+          location: 'security_trust_page',
+          text: linkText ?? strings('security_trust.etherscan'),
+          url,
+        });
+      }
 
       Linking.openURL(url).catch(() => null);
     },
@@ -655,7 +664,12 @@ const SecurityTrustScreen: React.FC = () => {
                   return blockExplorerUrl ? (
                     <ButtonBase
                       onPress={() =>
-                        openLink(blockExplorerUrl, 'block_explorer')
+                        openLink(
+                          blockExplorerUrl,
+                          'block_explorer',
+                          blockExplorerName ||
+                            strings('security_trust.etherscan'),
+                        )
                       }
                       size={ButtonBaseSize.Md}
                       twClassName={(pressed) =>

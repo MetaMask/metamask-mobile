@@ -1001,22 +1001,29 @@ jobs:
 
   run-performance-tests-pr:
     name: 'Run Performance Tests (PR)'
-    # Only run on pull_request events unless AI explicitly found no relevant changes.
+    # Run when:
+    # - run-performance-tests label is on the PR (forced run, all tests), OR
+    # - smart-e2e-selection ran and AI selected performance tags.
     # ai_performance_test_tags == '[]'  → AI ran and found no perf-relevant changes: skip.
-    # ai_performance_test_tags == ''    → conservative fallback (AI failed): run all tests.
+    # ai_performance_test_tags == ''    → conservative fallback (AI failed) or run-performance-tests label: run all tests.
     # ai_performance_test_tags == '[…]' → specific tags selected: run those tests.
     if: >-
       ${{
         github.event_name == 'pull_request' &&
         !cancelled() &&
-        needs.smart-e2e-selection.result != 'skipped' &&
-        needs.smart-e2e-selection.outputs.ai_performance_test_tags != '[]'
+        (
+          needs.get_requirements.outputs.run_performance == 'true' ||
+          (
+            needs.smart-e2e-selection.result == 'success' &&
+            needs.smart-e2e-selection.outputs.ai_performance_test_tags != '[]'
+          )
+        )
       }}
-    needs: [smart-e2e-selection]
+    needs: [get_requirements, smart-e2e-selection]
     uses: ./.github/workflows/run-performance-e2e.yml
     with:
-      performance_tags: ${{ needs.smart-e2e-selection.outputs.ai_performance_test_tags }}
-      performance_tags_reasoning: ${{ needs.smart-e2e-selection.outputs.ai_performance_test_reasoning }}
+      performance_tags: ${{ needs.get_requirements.outputs.run_performance != 'true' && needs.smart-e2e-selection.outputs.ai_performance_test_tags || '' }}
+      performance_tags_reasoning: ${{ needs.get_requirements.outputs.run_performance == 'true' && 'Forced run via run-performance-tests label on PR' || needs.smart-e2e-selection.outputs.ai_performance_test_reasoning }}
       build_variant: 'e2e'
       branch_name: ${{ github.head_ref }}
       pr_number: ${{ github.event.pull_request.number }}
