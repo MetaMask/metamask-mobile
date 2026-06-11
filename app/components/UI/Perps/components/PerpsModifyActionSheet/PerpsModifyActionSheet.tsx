@@ -1,10 +1,6 @@
 import React, { useRef, useEffect, useCallback } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -13,7 +9,13 @@ import Icon, {
   IconSize,
   IconName,
 } from '../../../../../component-library/components/Icons/Icon';
-import { Box } from '@metamask/design-system-react-native';
+import {
+  Box,
+  FontWeight,
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import styleSheet from './PerpsModifyActionSheet.styles';
 import type { ModifyAction } from './PerpsModifyActionSheet.types';
@@ -108,7 +110,7 @@ const PerpsModifyActionSheet: React.FC<PerpsModifyActionSheetProps> = ({
       testID={testID}
     >
       <BottomSheetHeader onClose={onClose}>
-        <Text variant={TextVariant.HeadingMD}>
+        <Text variant={TextVariant.HeadingSm}>
           {strings('perps.modify.title')}
         </Text>
       </BottomSheetHeader>
@@ -131,8 +133,13 @@ const PerpsModifyActionSheet: React.FC<PerpsModifyActionSheetProps> = ({
               />
             </View>
             <View style={styles.actionTextContainer}>
-              <Text variant={TextVariant.BodyMDBold}>{option.label}</Text>
-              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
+                {option.label}
+              </Text>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
                 {option.description}
               </Text>
             </View>

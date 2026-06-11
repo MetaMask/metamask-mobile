@@ -10,6 +10,10 @@ import {
 
 const mockNavigate = jest.fn();
 
+jest.mock('@metamask/design-system-react-native', () => ({
+  ...jest.requireActual('@metamask/design-system-react-native'),
+  Text: jest.requireActual('react-native').Text,
+}));
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
   return {

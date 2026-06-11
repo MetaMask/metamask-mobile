@@ -2,6 +2,9 @@ import {
   ButtonBaseSize,
   ButtonFilter,
   IconName,
+  Text,
+  TextVariant,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { View } from 'react-native';
@@ -15,10 +18,6 @@ import {
   ButtonSize,
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
 import {
   PERPS_SLIPPAGE_QUICK_PICKS_BPS,
@@ -118,15 +117,15 @@ const PerpsSlippageBottomSheet: React.FC<PerpsSlippageBottomSheetProps> = ({
       onClose={onClose}
     >
       <BottomSheetHeader onClose={onClose}>
-        <Text variant={TextVariant.HeadingMD}>
+        <Text variant={TextVariant.HeadingSm}>
           {strings('perps.slippage.config_title')}
         </Text>
       </BottomSheetHeader>
 
       <View style={styles.container}>
         <Text
-          variant={TextVariant.BodySM}
-          color={TextColor.Alternative}
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
           style={styles.description}
         >
           {strings('perps.slippage.config_description')}

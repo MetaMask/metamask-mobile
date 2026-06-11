@@ -1,10 +1,11 @@
 import React, { useMemo } from 'react';
 import { Pressable } from 'react-native';
-import { Box } from '@metamask/design-system-react-native';
-import Text, {
-  TextColor,
+import {
+  Box,
+  Text,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+  TextColor,
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
 import Icon, {
@@ -61,7 +62,7 @@ const PerpsMarketSortDropdowns: React.FC<PerpsMarketSortDropdownsProps> = ({
         onPress={onSortPress}
         testID={`${testID}-sort-field`}
       >
-        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           {sortLabel}
         </Text>
         <Icon

@@ -1,4 +1,9 @@
 import React from 'react';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 import { TouchableOpacity, View } from 'react-native';
 import { PerpsMarketHeaderSelectorsIDs } from '../../Perps.testIds';
 import ButtonIcon, {
@@ -9,10 +14,6 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import {
   getPerpsDisplaySymbol,
@@ -70,8 +71,8 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
       <View style={styles.leftSection}>
         <View style={styles.assetRow}>
           <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Default}
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextDefault}
             style={styles.assetName}
           >
             {getPerpsDisplaySymbol(market.symbol)}-USD

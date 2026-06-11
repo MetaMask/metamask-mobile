@@ -1,10 +1,12 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { TouchableOpacity, View } from 'react-native';
-import { useStyles } from '../../../../../component-library/hooks';
-import Text, {
+import {
+  FontWeight,
+  Text,
   TextVariant,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
+import { TouchableOpacity, View } from 'react-native';
+import { useStyles } from '../../../../../component-library/hooks';
 import Icon, {
   IconName,
   IconSize,
@@ -124,7 +126,7 @@ const PerpsMarketSortFieldBottomSheet: React.FC<
       testID={testID}
     >
       <BottomSheetHeader onClose={onClose}>
-        <Text variant={TextVariant.HeadingMD}>
+        <Text variant={TextVariant.HeadingSm}>
           {strings('perps.sort.sort_by')}
         </Text>
       </BottomSheetHeader>
@@ -140,7 +142,7 @@ const PerpsMarketSortFieldBottomSheet: React.FC<
               onPress={() => handleOptionPress(option.id)}
               testID={testID ? `${testID}-option-${option.id}` : undefined}
             >
-              <Text variant={TextVariant.BodyMD}>
+              <Text variant={TextVariant.BodyMd}>
                 {strings(option.labelKey)}
               </Text>
               {isSelected && (
@@ -149,8 +151,9 @@ const PerpsMarketSortFieldBottomSheet: React.FC<
                   testID={testID ? `${testID}-direction-indicator` : undefined}
                 >
                   <Text
-                    variant={TextVariant.BodyMDMedium}
-                    color={TextColor.Alternative}
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Medium}
+                    color={TextColor.TextAlternative}
                     testID={testID ? `${testID}-direction-text` : undefined}
                   >
                     {sortDirection === 'asc'

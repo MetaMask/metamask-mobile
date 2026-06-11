@@ -90,6 +90,8 @@ jest.mock(
 jest.mock('@metamask/design-system-react-native', () => {
   const { TouchableOpacity, Text, View } = jest.requireActual('react-native');
   return {
+    ...jest.requireActual('@metamask/design-system-react-native'),
+    Text,
     ButtonBaseSize: { Sm: 'sm', Md: 'md', Lg: 'lg' },
     ButtonFilter: ({
       children,
@@ -162,31 +164,6 @@ jest.mock('./PerpsCustomSlippageBottomSheet', () => {
           />
         </View>
       ) : null,
-  };
-});
-
-jest.mock('../../../../../component-library/components/Texts/Text', () => {
-  const { Text } = jest.requireActual('react-native');
-  const MockText = ({ children, testID, ...rest }: Record<string, unknown>) => (
-    <Text testID={testID as string} {...rest}>
-      {children as React.ReactNode}
-    </Text>
-  );
-  MockText.displayName = 'MockText';
-  return {
-    __esModule: true,
-    default: MockText,
-    TextColor: {
-      Alternative: 'Alternative',
-      Error: 'Error',
-      Default: 'Default',
-      Inverse: 'Inverse',
-    },
-    TextVariant: {
-      HeadingMD: 'HeadingMD',
-      BodySM: 'BodySM',
-      BodyLGMedium: 'BodyLGMedium',
-    },
   };
 });
 

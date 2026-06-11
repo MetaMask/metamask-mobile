@@ -1,5 +1,10 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 import { TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PerpsOrderHeaderSelectorsIDs } from '../../Perps.testIds';
@@ -11,10 +16,6 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
 import {
   PERPS_CONSTANTS,
@@ -117,7 +118,7 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
       />
       <View style={styles.headerLeft}>
         <Text
-          variant={TextVariant.HeadingMD}
+          variant={TextVariant.HeadingSm}
           style={styles.headerTitle}
           testID={PerpsOrderHeaderSelectorsIDs.ASSET_TITLE}
         >
@@ -129,13 +130,17 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
             } ${getPerpsDisplaySymbol(asset)}`}
         </Text>
         <View style={styles.priceRow}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
             {formattedPrice}
           </Text>
           {price > 0 && (
             <Text
-              variant={TextVariant.BodyMD}
-              color={priceChange >= 0 ? TextColor.Success : TextColor.Error}
+              variant={TextVariant.BodyMd}
+              color={
+                priceChange >= 0
+                  ? TextColor.SuccessDefault
+                  : TextColor.ErrorDefault
+              }
             >
               {formattedChange}
             </Text>
@@ -149,7 +154,7 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
           testID={PerpsOrderHeaderSelectorsIDs.ORDER_TYPE_BUTTON}
           disabled={isLoading}
         >
-          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
             {orderType === 'market'
               ? strings('perps.order.market')
               : strings('perps.order.limit')}

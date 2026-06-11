@@ -60,22 +60,6 @@ jest.mock('../../../../../component-library/components/Icons/Icon', () => {
   };
 });
 
-jest.mock('../../../../../component-library/components/Texts/Text', () => {
-  const { Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: Text,
-    TextVariant: {
-      BodyMD: 'BodyMD',
-      HeadingLG: 'HeadingLG',
-      HeadingMD: 'HeadingMD',
-    },
-    TextColor: {
-      Default: 'Default',
-    },
-  };
-});
-
 jest.mock('../../../../../component-library/hooks', () => ({
   useStyles: () => ({
     styles: {
