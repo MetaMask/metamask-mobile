@@ -7510,6 +7510,7 @@ describe('RewardsController', () => {
       points: 1234,
       swapsVolume: 1000,
       perpsVolume: 2000,
+      computedAt: '2099-06-30T14:52:00.000Z',
     };
 
     it('returns null without fetching when VIP is disabled', async () => {
@@ -9977,6 +9978,7 @@ describe('RewardsController', () => {
             [subscriptionId]: {
               program: { id: 'mock-vip-program', name: 'Acme Rewards Beta' },
               period: { start: '2099-06-01', end: '2099-06-30' },
+              computedAt: '2099-06-30T14:52:00.000Z',
               currentTier: {
                 id: 'mock-tier-alpha-3',
                 name: 'Mock Tier Alpha 3',
