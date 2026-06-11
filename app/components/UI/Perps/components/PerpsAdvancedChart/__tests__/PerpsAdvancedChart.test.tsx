@@ -1,5 +1,9 @@
-import { mapTpslToPositionLines } from '../PerpsAdvancedChart';
+import {
+  mapTpslToPositionLines,
+  getPerpsPositionLineColors,
+} from '../PerpsAdvancedChart';
 import type { TPSLLines } from '../../TradingViewChart/TradingViewChart';
+import type { Colors } from '../../../../../../util/theme/models';
 
 describe('mapTpslToPositionLines', () => {
   it('returns undefined when tpslLines is undefined', () => {
@@ -66,5 +70,23 @@ describe('mapTpslToPositionLines', () => {
   it('uses 0 size as long', () => {
     const result = mapTpslToPositionLines({ entryPrice: '42000' }, '0');
     expect(result?.side).toBe('long');
+  });
+});
+
+describe('getPerpsPositionLineColors', () => {
+  it('maps the four overlay lines to the matching theme tokens (parity with the Lightweight chart)', () => {
+    const colors = {
+      text: { muted: 'token-text-muted' },
+      success: { default: 'token-success-default' },
+      background: { alternative: 'token-background-alternative' },
+      error: { default: 'token-error-default' },
+    } as unknown as Colors;
+
+    expect(getPerpsPositionLineColors(colors)).toEqual({
+      entry: 'token-text-muted',
+      takeProfit: 'token-success-default',
+      stopLoss: 'token-background-alternative',
+      liquidation: 'token-error-default',
+    });
   });
 });

@@ -83,6 +83,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       onFetchOlderBarsRequest,
       indicators = [],
       positionLines,
+      positionLineColors,
       chartType,
       showVolume = false,
       volumeOverlay = false,
@@ -126,6 +127,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     const [webViewLoaded, setWebViewLoaded] = useState(false);
     const webViewLoadedRef = useRef(false);
     const prevPositionLinesRef = useRef(positionLines);
+    const positionLineColorsRef = useRef(positionLineColors);
+    positionLineColorsRef.current = positionLineColors;
     const prevChartTypeRef = useRef(chartType);
     const prevOhlcvDataRef = useRef<OHLCVBar[]>([]);
     const prevOhlcvSeriesKeyRef = useRef<string | undefined>(undefined);
@@ -598,7 +601,10 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
 
       postMessage({
         type: 'SET_POSITION_LINES',
-        payload: { position: positionLines ?? null },
+        payload: {
+          position: positionLines ?? null,
+          positionLineColors: positionLineColorsRef.current,
+        },
       });
     }, [positionLines, chartReadyCount, postMessage]);
 

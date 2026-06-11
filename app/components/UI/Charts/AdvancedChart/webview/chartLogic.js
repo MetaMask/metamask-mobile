@@ -2069,6 +2069,13 @@ function handleSetPositionLines(payload) {
 
   var position = payload.position;
   var theme = window.CONFIG.theme;
+  // Position lines are consumer-specific (currently Perps only); the consumer
+  // supplies colors via the payload. Fall back to theme-derived defaults.
+  var colors = payload.positionLineColors || {};
+  var entryColor = colors.entry || '#858585';
+  var takeProfitColor = colors.takeProfit || theme.successColor;
+  var stopLossColor = colors.stopLoss || '#858585';
+  var liquidationColor = colors.liquidation || theme.errorColor;
 
   try {
     var chart = window.chartWidget.activeChart();
@@ -2078,7 +2085,7 @@ function handleSetPositionLines(payload) {
       lines.push({
         price: position.entryPrice,
         text: 'Entry',
-        color: '#858585',
+        color: entryColor,
         lineStyle: 2,
       });
     }
@@ -2086,7 +2093,7 @@ function handleSetPositionLines(payload) {
       lines.push({
         price: position.takeProfitPrice,
         text: 'TP',
-        color: theme.successColor,
+        color: takeProfitColor,
         lineStyle: 2,
       });
     }
@@ -2094,7 +2101,7 @@ function handleSetPositionLines(payload) {
       lines.push({
         price: position.stopLossPrice,
         text: 'SL',
-        color: '#858585',
+        color: stopLossColor,
         lineStyle: 2,
       });
     }
@@ -2102,13 +2109,10 @@ function handleSetPositionLines(payload) {
       lines.push({
         price: position.liquidationPrice,
         text: 'Liq',
-        color: theme.errorColor,
+        color: liquidationColor,
         lineStyle: 2,
       });
     }
-    // TODO: currentPrice is defined in PositionLines but not yet rendered here.
-    // Add a line for position.currentPrice (e.g. a solid line showing live mark
-    // price) when the Perps integration is ready.
 
     for (var i = 0; i < lines.length; i++) {
       (function (line) {
