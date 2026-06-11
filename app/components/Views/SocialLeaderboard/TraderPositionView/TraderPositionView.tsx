@@ -117,7 +117,8 @@ const TraderPositionView = () => {
     pnlValue,
     pnlPercent,
     isPnlPositive,
-    trades,
+    allTrades,
+    chartTrades,
     activeTimePeriod,
     setActiveTimePeriod,
     timePeriods,
@@ -339,7 +340,7 @@ const TraderPositionView = () => {
               priceDiff={priceDiff}
               isPricesLoading={isPricesLoading}
               onChartIndexChange={handleChartIndexChange}
-              trades={trades}
+              trades={chartTrades}
             />
 
             <TraderTimePeriodSelector
@@ -357,7 +358,7 @@ const TraderPositionView = () => {
             />
 
             <TraderTradesSection
-              trades={trades}
+              trades={allTrades}
               traderName={traderName}
               traderImageUrl={traderImageUrl}
             />

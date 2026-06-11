@@ -1,4 +1,10 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Linking, RefreshControl, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -30,6 +36,7 @@ import { mergeMoneyActivity } from '../../hooks/useMoneyActivityItems';
 import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyActivityLoading';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
+import { useMoneyAccountAddRouting } from '../../hooks/useMoneyAccountAddRouting';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { moneyFormatFiat, DUST_THRESHOLD } from '../../utils/moneyFormatFiat';
 import { calculateProjectedEarnings } from '../../utils/projections';
@@ -38,6 +45,7 @@ import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import AppConstants from '../../../../../core/AppConstants';
 import NavigationService from '../../../../../core/NavigationService';
 import {
+  selectCardHomeDataStatus,
   selectHasMetalCard,
   selectIsCardholder,
 } from '../../../../../selectors/cardController';
@@ -49,6 +57,16 @@ import { useTheme } from '../../../../../util/theme';
 import { MoneyBalanceDisplayState } from '../../types';
 import { Hex } from '@metamask/utils';
 import { AssetType } from '../../../../Views/confirmations/types/token';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import {
+  CardActions,
+  CardEntryPoint,
+  CardFlow,
+  CardScreens,
+  deriveCardState,
+} from '../../../Card/util/metrics';
+
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import useMountEffect from '../../hooks/useMountEffect';
@@ -74,6 +92,8 @@ const MoneyHomeView = () => {
   const { styles } = useStyles(styleSheet, {});
   const currentCurrency = useSelector(selectCurrentCurrency);
   const { colors } = useTheme();
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const hasTrackedCardActionRowViewRef = useRef(false);
 
   const {
     trackButtonClicked,
@@ -120,6 +140,7 @@ const MoneyHomeView = () => {
 
   const { tokens: depositTokens, isNoFeeToken } = useMoneyDepositTokens();
   const { initiateDeposit } = useMoneyAccountDeposit();
+  const { hasMusdBalance, routeAddMoney } = useMoneyAccountAddRouting();
   const { allTransactions, moneyAddress, mockDataEnabled } =
     useMoneyAccountTransactions();
   const { cardTransactions, isLoading: isCardActivityLoading } =
@@ -137,6 +158,7 @@ const MoneyHomeView = () => {
   );
 
   const isCardholder = useSelector(selectIsCardholder);
+  const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
   const hasMetalCard = useSelector(selectHasMetalCard);
   const {
     startLinkFlow,
@@ -244,6 +266,20 @@ const MoneyHomeView = () => {
     [navigation, trackButtonClicked],
   );
 
+  const handleMusdRowAddPress = useCallback(() => {
+    trackButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+      button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+      label_key: 'money.musd_row.add',
+      component_name: COMPONENT_NAMES.MONEY_MUSD_TOKEN_SECTION,
+      redirect_target: hasMusdBalance
+        ? SCREEN_NAMES.MONEY_DEPOSIT
+        : SCREEN_NAMES.RAMP_BUY,
+    });
+
+    routeAddMoney();
+  }, [hasMusdBalance, routeAddMoney, trackButtonClicked]);
+
   const handleTransferPress = useCallback(() => {
     trackButtonClicked({
       button_type: MONEY_BUTTON_TYPES.TEXT,
@@ -260,17 +296,21 @@ const MoneyHomeView = () => {
     });
   }, [navigation, trackButtonClicked]);
 
+  const navigateToCardHome = useCallback(() => {
+    navigation.navigate(Routes.CARD.ROOT, {
+      screen: Routes.CARD.HOME,
+      params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
+    });
+  }, [navigation]);
+
   const handleCardHeaderPress = useCallback(() => {
     trackSurfaceClicked({
       component_name: COMPONENT_NAMES.MONEY_CARD_SECTION_HEADER,
       redirect_target: SCREEN_NAMES.CARD_HOME,
     });
 
-    navigation.navigate(Routes.CARD.ROOT, {
-      screen: Routes.CARD.HOME,
-      params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
-    });
-  }, [navigation, trackSurfaceClicked]);
+    navigateToCardHome();
+  }, [navigateToCardHome, trackSurfaceClicked]);
 
   const handleActionButtonCardPress = useCallback(() => {
     trackButtonClicked({
@@ -283,22 +323,40 @@ const MoneyHomeView = () => {
       button_row_button_count: ACTION_BUTTON_ROW_BUTTON_COUNT,
     });
 
-    navigation.navigate(Routes.CARD.ROOT, {
-      screen: Routes.CARD.HOME,
-      params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
-    });
-  }, [navigation, trackButtonClicked]);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties({
+          screen: CardScreens.MONEY_HOME,
+          entrypoint: CardEntryPoint.MONEY_HOME_ACTION_ROW,
+          action: CardActions.MONEY_ACCOUNT_CARD_ACTION_ROW_BUTTON,
+        })
+        .build(),
+    );
 
-  const handleCardPress = useCallback(() => {
-    navigation.navigate(Routes.CARD.ROOT, {
-      screen: Routes.CARD.HOME,
-      params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
-    });
-  }, [navigation]);
+    navigateToCardHome();
+  }, [trackButtonClicked, trackEvent, createEventBuilder, navigateToCardHome]);
 
   const handleLinkCardPress = useCallback(() => {
-    startLinkFlow(MONEY_HOME_CARD_ORIGIN);
+    startLinkFlow({
+      screen: Routes.MONEY.ROOT,
+      params: { screen: Routes.MONEY.HOME },
+      entrypoint: CardEntryPoint.MONEY_HOME_METAMASK_CARD,
+    });
   }, [startLinkFlow]);
+
+  useEffect(() => {
+    if (hasTrackedCardActionRowViewRef.current) return;
+    hasTrackedCardActionRowViewRef.current = true;
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
+        .addProperties({
+          screen: CardScreens.MONEY_HOME,
+          entrypoint: CardEntryPoint.MONEY_HOME_ACTION_ROW,
+        })
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder]);
 
   const handleApyInfoPress = useCallback(() => {
     trackTooltipClicked({
@@ -513,6 +571,13 @@ const MoneyHomeView = () => {
 
   const { primaryToken: cardPrimaryToken } = useCardHomeData();
   const cardBalance = cardPrimaryToken?.balanceFiat ?? formattedZero;
+  const cardState = deriveCardState({
+    isCardholder,
+    isCardAuthenticated,
+    isCardLinkedToMoneyAccount,
+  });
+  const isCardAnalyticsReady =
+    cardHomeDataStatus === 'success' || cardHomeDataStatus === 'error';
 
   return (
     <Box
@@ -585,12 +650,7 @@ const MoneyHomeView = () => {
                   componentName: COMPONENT_NAMES.MONEY_MUSD_TOKEN_SECTION,
                 })
               }
-              onAddPress={() =>
-                handleAddPress({
-                  labelKey: 'money.musd_row.add',
-                  componentName: COMPONENT_NAMES.MONEY_MUSD_TOKEN_SECTION,
-                })
-              }
+              onAddPress={handleMusdRowAddPress}
               balance={musdFiatFormatted}
             />
             <Divider />
@@ -631,14 +691,19 @@ const MoneyHomeView = () => {
         )}
         <MoneyMetaMaskCard
           mode={metamaskCardMode}
-          onGetNowPress={handleCardPress}
+          onGetNowPress={navigateToCardHome}
           onHeaderPress={handleCardHeaderPress}
           onLinkPress={handleLinkCardPress}
-          onManagePress={handleCardPress}
+          onManagePress={navigateToCardHome}
           showMetalCard={hasMetalCard}
           isLinkDisabled={isLinking}
           cardBalance={cardBalance}
           apy={apyPercent}
+          analyticsScreen={CardScreens.MONEY_HOME}
+          analyticsEntryPoint={CardEntryPoint.MONEY_HOME_METAMASK_CARD}
+          analyticsFlow={CardFlow.MONEY_ACCOUNT_LINKAGE}
+          analyticsCardState={cardState}
+          analyticsReady={isCardAnalyticsReady}
         />
         <Divider />
         {isFunded && (

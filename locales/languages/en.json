@@ -120,6 +120,9 @@
     "account_no_funds": {
       "message": "No funds available. Use a different account."
     },
+    "fiat_buy_amount_limit": {
+      "title": "Amount out of range"
+    },
     "headless_buy_error": {
       "title": "Fiat purchase failed",
       "message": "Something went wrong with your fiat purchase. Please try again."
@@ -1094,7 +1097,7 @@
       "buy": "Buy",
       "bought": "{{name}} bought",
       "sold": "{{name}} sold",
-      "no_trades": "No trades for this interval",
+      "no_trades": "No trades yet",
       "closed_position": "Closed position",
       "fallback_title": "Position not available",
       "fallback_subtitle": "We couldn't load this position right now.",
@@ -2142,6 +2145,16 @@
     "search_by_token_symbol": "Search by token symbol",
     "no_favorites_found": "No markets in watchlist",
     "no_favorites_description": "Tap the star icon on any market to add it to your watchlist",
+    "watchlist": {
+      "empty_title": "Start with the most-traded markets",
+      "empty_subtitle": "Tap + to add a market to your watchlist.",
+      "show_more": "Show {{count}} more",
+      "show_less": "Show less",
+      "add_error": "Failed to add market to watchlist",
+      "limit_reached": "Watchlist limit reached ({{limit}} markets max)",
+      "filter_badge_label": "Watchlist",
+      "suggested": "Suggested"
+    },
     "no_tokens_found": "No tokens found",
     "no_tokens_found_description": "We couldn't find any tokens with the name \"{{searchQuery}}\". Try a different search.",
     "testnet": "Testnet",
@@ -2274,6 +2287,9 @@
       "share_failed": "Failed to export image",
       "export_success": "Exported image",
       "referral_code_text": "Use my referral code to earn extra rewards."
+    },
+    "market_details": {
+      "category_search": "Browse related markets"
     }
   },
   "market_insights": {
@@ -2313,7 +2329,6 @@
     "select_predict_account": "Select predict account",
     "search_account": "Search an account",
     "home": {
-      "portfolio_module_placeholder": "Portfolio module",
       "live_now_title": "Live now",
       "categories_placeholder": "Categories",
       "popular_today_placeholder": "Popular today",
@@ -2326,7 +2341,7 @@
       "nba_2026_champion_title": "NBA 2026 Champion",
       "fifa_world_cup_2026_title": "FIFA World Cup 2026",
       "events_in_total": "{{count}} events in total",
-      "events_in_total_overflow": "{{count}}+ events in total",
+      "events_in_total_overflow": "{{count}}+ markets in total",
       "props_pill": "Props",
       "championship_unavailable": "No championship market to show yet.",
       "mens_world_cup_title": "Men's World Cup",
@@ -6912,7 +6927,7 @@
     },
     "action": {
       "add": "Add",
-      "transfer": "Transfer",
+      "transfer": "Send",
       "card": "Card"
     },
     "earnings": {
@@ -6993,13 +7008,10 @@
     "add_money_sheet": {
       "title": "Add funds",
       "convert_crypto": "Convert crypto",
-      "convert_crypto_description": "From any account",
-      "deposit_funds": "Deposit funds",
-      "deposit_funds_description": "From debit card or bank",
-      "move_musd": "Add your {{amount}} mUSD",
+      "deposit_funds": "Debit card or bank",
+      "move_musd": "Your {{amount}} mUSD",
       "add_musd": "Add mUSD",
-      "move_musd_description": "From your balance",
-      "receive_external": "Receive from external wallet",
+      "receive_external": "External wallet",
       "coming_soon": "Coming soon"
     },
     "more_sheet": {
@@ -7009,12 +7021,12 @@
       "contact_support": "Contact support"
     },
     "transfer_sheet": {
-      "title": "Transfer funds to",
+      "title": "Send funds to",
       "between_accounts": "Another account",
       "perps_account": "Perps account",
       "predictions_account": "Predictions account",
-      "send_external": "Send to external address",
-      "withdraw_to_bank": "Withdraw to bank"
+      "send_external": "External address",
+      "withdraw_to_bank": "Bank"
     },
     "toasts": {
       "in_progress_title": "Transaction in progress",
@@ -7398,7 +7410,7 @@
       "other_assets": "Other assets",
       "other_assets_description": "Select from your tokens",
       "other_assets_receive_description": "Select the token you want to receive",
-      "money_balance": "Money balance"
+      "money_account": "Money account"
     },
     "staking_footer": {
       "part1": "By continuing, you agree to our ",
@@ -9087,6 +9099,7 @@
       "total_participants": "Total participants",
       "total_volume": "Total volume",
       "top_return": "Top return",
+      "top_pnl": "Top PnL",
       "total_winners": "Total winners"
     },
     "campaign_prize_pool": {
@@ -9216,11 +9229,7 @@
       "stats_qualify_for_rank_description": "Trade {{notionalRemaining}} more in notional volume to become eligible.",
       "stats_error_title": "Unable to load stats",
       "stats_error_description": "We had a problem loading your stats. Please try again.",
-      "stats_retry": "Retry",
-      "completed_label_total_participants": "Total participants",
-      "completed_label_total_volume": "Total volume",
-      "completed_label_top_pnl": "Top PnL",
-      "completed_label_winners": "Winners"
+      "stats_retry": "Retry"
     },
     "predict_the_pitch_campaign": {
       "title": "Predict The Pitch",
