@@ -28,6 +28,7 @@ import type { CardTransaction } from '../../types/moneyActivity';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import {
+  selectCardHomeDataStatus,
   selectHasMetalCard,
   selectIsCardholder,
 } from '../../../../../selectors/cardController';
@@ -35,11 +36,24 @@ import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountC
 import { MONEY_HOME_CARD_ORIGIN } from '../../../Card/hooks/useCardPostAuthRedirect';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import {
+  CardActions,
+  CardEntryPoint,
+  CardScreens,
+} from '../../../Card/util/metrics';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockInitiateDeposit = jest.fn();
 const mockRefetchBalance = jest.fn();
+const mockTrackEvent = jest.fn();
+const mockBuild = jest.fn(() => ({ name: 'built-event' }));
+const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
+const mockCreateEventBuilder = jest.fn((_eventName?: unknown) => ({
+  addProperties: mockAddProperties,
+  build: mockBuild,
+}));
 const mockMoneyFormatFiat = moneyFormatFiat as jest.MockedFunction<
   typeof moneyFormatFiat
 >;
@@ -108,6 +122,21 @@ jest.mock('../../hooks/useMoneyAccountInfo', () => ({
   default: jest.fn(),
 }));
 
+jest.mock('../../../Earn/hooks/useMusdConversion', () => ({
+  useMusdConversion: jest.fn(),
+}));
+
+jest.mock('../../../Earn/hooks/useMusdBalance', () => ({
+  useMusdBalance: jest.fn(),
+}));
+
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
+
 jest.mock('../../../../../core/NavigationService', () => ({
   __esModule: true,
   default: {
@@ -126,6 +155,7 @@ jest.mock('../../../../../selectors/cardController', () => ({
   ...jest.requireActual('../../../../../selectors/cardController'),
   selectIsCardholder: jest.fn(),
   selectHasMetalCard: jest.fn(),
+  selectCardHomeDataStatus: jest.fn(() => 'idle'),
   selectIsMoneyAccountDelegatedForCard: jest.fn(() => false),
 }));
 
@@ -199,6 +229,7 @@ jest.mock('../../hooks/useOnboardingStep', () => ({
 
 const mockSelectIsCardholder = jest.mocked(selectIsCardholder);
 const mockSelectHasMetalCard = jest.mocked(selectHasMetalCard);
+const mockSelectCardHomeDataStatus = jest.mocked(selectCardHomeDataStatus);
 const mockUseMoneyAccountCardLinkage = jest.mocked(useMoneyAccountCardLinkage);
 const mockOpenLinkCardSheet = jest.fn();
 const mockStartLinkFlow = jest.fn();
@@ -292,6 +323,7 @@ describe('MoneyHomeView', () => {
 
     mockSelectIsCardholder.mockReturnValue(false);
     mockSelectHasMetalCard.mockReturnValue(false);
+    mockSelectCardHomeDataStatus.mockReturnValue('idle');
 
     mockOpenLinkCardSheet.mockReset();
     mockStartLinkFlow.mockReset();
@@ -873,13 +905,61 @@ describe('MoneyHomeView', () => {
 
   it('navigates to Card root when Card button is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+    jest.clearAllMocks();
 
     fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.CARD_BUTTON));
 
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.CARD_BUTTON_CLICKED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      screen: CardScreens.MONEY_HOME,
+      entrypoint: CardEntryPoint.MONEY_HOME_ACTION_ROW,
+      action: CardActions.MONEY_ACCOUNT_CARD_ACTION_ROW_BUTTON,
+    });
     expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
       screen: Routes.CARD.HOME,
       params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
     });
+  });
+
+  it('tracks Card Viewed for the Card action row on render', () => {
+    renderWithProvider(<MoneyHomeView />);
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.CARD_VIEWED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      screen: CardScreens.MONEY_HOME,
+      entrypoint: CardEntryPoint.MONEY_HOME_ACTION_ROW,
+    });
+  });
+
+  it('does not track the MetaMask Card impression while card home data is unsettled (idle status)', () => {
+    mockSelectCardHomeDataStatus.mockReturnValue('idle');
+
+    renderWithProvider(<MoneyHomeView />);
+
+    expect(mockAddProperties).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        entrypoint: CardEntryPoint.MONEY_HOME_METAMASK_CARD,
+      }),
+    );
+  });
+
+  it('tracks the MetaMask Card impression once the card home data fetch has settled', () => {
+    mockSelectCardHomeDataStatus.mockReturnValue('success');
+
+    renderWithProvider(<MoneyHomeView />);
+
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        screen: CardScreens.MONEY_HOME,
+        entrypoint: CardEntryPoint.MONEY_HOME_METAMASK_CARD,
+        mode: 'upsell',
+        card_state: 'non_cardholder',
+      }),
+    );
   });
 
   it('opens the APY info sheet when the APY info button is pressed', () => {
@@ -1249,7 +1329,11 @@ describe('MoneyHomeView', () => {
       fireEvent.press(getByTestId(MoneyMetaMaskCardTestIds.LINK_BUTTON));
 
       expect(mockStartLinkFlow).toHaveBeenCalledTimes(1);
-      expect(mockStartLinkFlow).toHaveBeenCalledWith(MONEY_HOME_CARD_ORIGIN);
+      expect(mockStartLinkFlow).toHaveBeenCalledWith({
+        screen: Routes.MONEY.ROOT,
+        params: { screen: Routes.MONEY.HOME },
+        entrypoint: CardEntryPoint.MONEY_HOME_METAMASK_CARD,
+      });
       expect(mockNavigate).not.toHaveBeenCalledWith(Routes.CARD.ROOT, {
         screen: Routes.CARD.HOME,
       });
@@ -1282,7 +1366,11 @@ describe('MoneyHomeView', () => {
         });
 
         expect(mockStartLinkFlow).toHaveBeenCalledTimes(1);
-        expect(mockStartLinkFlow).toHaveBeenCalledWith(MONEY_HOME_CARD_ORIGIN);
+        expect(mockStartLinkFlow).toHaveBeenCalledWith({
+          screen: Routes.MONEY.ROOT,
+          params: { screen: Routes.MONEY.HOME },
+          entrypoint: CardEntryPoint.MONEY_HOME_METAMASK_CARD,
+        });
         expect(mockNavigate).not.toHaveBeenCalledWith(Routes.CARD.ROOT, {
           screen: Routes.CARD.HOME,
         });

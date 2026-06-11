@@ -64,7 +64,6 @@ import { ExploreFeed } from '../../Views/TrendingView/TrendingView';
 import WhatsHappeningDetailView from '../../Views/WhatsHappeningDetailView';
 import ExploreSearchScreen from '../../Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen';
 import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
-import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
 
 import RampRoutes from '../../UI/Ramp/Aggregator/routes';
@@ -171,7 +170,6 @@ import CreatePriceAlertView from '../../UI/PriceAlerts/Views/CreatePriceAlertVie
 import ManagePriceAlertsView from '../../UI/PriceAlerts/Views/ManagePriceAlertsView/ManagePriceAlertsView';
 import BenefitFullView from '../../UI/Rewards/Views/BenefitFullView';
 import BenefitsFullView from '../../UI/Rewards/Views/BenefitsFullView';
-import { getDeFiProtocolPositionDetailsNavbarOptions } from '../../UI/Navbar';
 import MoneyTabPressTracker from '../../UI/Money/components/MoneyTabPressTracker';
 import { withMessenger } from '../../../messengers/helpers/route-messenger-helpers';
 
@@ -1031,20 +1029,6 @@ const MainNavigator = () => {
     >
       <Stack.Screen name="Home" component={HomeTabs} />
       <Stack.Screen
-        name="CollectiblesDetails"
-        component={CollectiblesDetails}
-        options={{
-          presentation: 'modal',
-          //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
-          cardStyle: { backgroundColor: importedColors.transparent },
-          cardStyleInterpolator: () => ({
-            overlayStyle: {
-              opacity: 0,
-            },
-          }),
-        }}
-      />
-      <Stack.Screen
         name={Routes.DEPRECATED_NETWORK_DETAILS}
         component={DeprecatedNetworkDetails}
         options={{
@@ -1077,7 +1061,7 @@ const MainNavigator = () => {
       <Stack.Screen
         name="ConfirmAddAsset"
         component={ConfirmAddAsset}
-        options={{ headerShown: true, ...slideFromRightAnimation }}
+        options={{ headerShown: false, ...slideFromRightAnimation }}
       />
       <Stack.Screen
         name={Routes.SETTINGS_VIEW}
@@ -1393,15 +1377,7 @@ const MainNavigator = () => {
       <Stack.Screen
         name="DeFiProtocolPositionDetails"
         component={DeFiProtocolPositionDetails}
-        options={({ navigation }) => ({
-          ...slideFromRightAnimation,
-          ...getDeFiProtocolPositionDetailsNavbarOptions(navigation),
-          headerStyle: {
-            backgroundColor: colors.background.default,
-            shadowColor: importedColors.transparent,
-            elevation: 0,
-          },
-        })}
+        options={{ headerShown: false, ...slideFromRightAnimation }}
       />
       {
         ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -1416,7 +1392,7 @@ const MainNavigator = () => {
       <Stack.Screen
         name={Routes.CARD.ROOT}
         component={CardRoutes}
-        options={TransitionPresets.ModalPresentationIOS}
+        options={TransitionPresets.ModalSlideFromBottomIOS}
       />
       <Stack.Screen
         name={Routes.RAMP.MODALS.PROCESSING_INFO}

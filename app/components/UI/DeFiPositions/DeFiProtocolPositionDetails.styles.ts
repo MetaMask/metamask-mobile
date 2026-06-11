@@ -18,6 +18,9 @@ const styleSheet = () =>
     protocolPositionDetailsWrapper: {
       flex: 1,
     },
+    protocolPositionDetailsContent: {
+      flex: 1,
+    },
   });
 
 export default styleSheet;
