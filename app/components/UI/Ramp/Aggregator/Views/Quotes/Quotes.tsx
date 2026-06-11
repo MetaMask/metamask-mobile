@@ -1063,10 +1063,10 @@ function Quotes() {
 
   return (
     <BottomSheet isInteractable={false} isFullscreen ref={bottomSheetRef}>
-      {/* <HeaderStandard
+      <HeaderStandard
         title={strings('fiat_on_ramp_aggregator.select_a_quote')}
         onClose={() => handleClosePress(bottomSheetRef)}
-      /> */}
+      />
       <ScreenLayout>
         <ScreenLayout.Header>
           {isInPolling && (
