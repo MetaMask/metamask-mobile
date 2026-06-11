@@ -55,7 +55,7 @@ export function TransactionDetailsSummary() {
         {fiatOrderId ? (
           <FiatOrderSummaryLine parentTransaction={transactionMeta} />
         ) : null}
-        {hasSourceHash ? (
+        {hasSourceHash && sourceHash ? (
           <SourceHashSummaryLine
             parentTransaction={transactionMeta}
             sourceHash={sourceHash}
