@@ -1152,7 +1152,7 @@ describe('Perps Feature Flag Selectors', () => {
           backgroundState: {
             RemoteFeatureFlagController: {
               remoteFeatureFlags: {
-                perpsWatchlistEnabled: {
+                'perps-watchlist-v2-enabled': {
                   enabled: true,
                   minimumVersion: '1.0.0',
                 },
@@ -1177,7 +1177,7 @@ describe('Perps Feature Flag Selectors', () => {
           backgroundState: {
             RemoteFeatureFlagController: {
               remoteFeatureFlags: {
-                perpsWatchlistEnabled: {
+                'perps-watchlist-v2-enabled': {
                   enabled: false,
                   minimumVersion: '1.0.0',
                 },
@@ -1202,7 +1202,7 @@ describe('Perps Feature Flag Selectors', () => {
           backgroundState: {
             RemoteFeatureFlagController: {
               remoteFeatureFlags: {
-                perpsWatchlistEnabled: {
+                'perps-watchlist-v2-enabled': {
                   enabled: true,
                   minimumVersion: '99.0.0',
                 },
@@ -1225,7 +1225,7 @@ describe('Perps Feature Flag Selectors', () => {
           backgroundState: {
             RemoteFeatureFlagController: {
               remoteFeatureFlags: {
-                perpsWatchlistEnabled: {
+                'perps-watchlist-v2-enabled': {
                   enabled: 'invalid',
                   minimumVersion: 123,
                 },
@@ -1248,7 +1248,7 @@ describe('Perps Feature Flag Selectors', () => {
           backgroundState: {
             RemoteFeatureFlagController: {
               remoteFeatureFlags: {
-                perpsWatchlistEnabled: null,
+                'perps-watchlist-v2-enabled': null,
               },
               cacheTimestamp: 0,
             },

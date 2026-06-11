@@ -330,6 +330,11 @@ jest.mock('../../selectors/perpsController', () => ({
   })),
 }));
 
+let mockWatchlistFlagEnabled = false;
+jest.mock('../../selectors/featureFlags', () => ({
+  selectPerpsWatchlistEnabledFlag: jest.fn(() => mockWatchlistFlagEnabled),
+}));
+
 jest.mock('../../utils/formatUtils', () => ({
   formatPerpsFiat: jest.fn((amount) => `$${amount}`),
 }));
@@ -891,24 +896,16 @@ describe('PerpsMarketListView', () => {
   // Note: Stocks/Commodities Dropdown and Market Type Dropdown tests removed - replaced with category badges
 
   describe('Watchlist feature flag gating', () => {
-    const mockStateWithWatchlistFlagEnabled = {
-      engine: {
-        backgroundState: {
-          PerpsController: {
-            watchlistMarkets: { testnet: [], mainnet: [] },
-          },
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              perpsWatchlistEnabled: { enabled: true, minimumVersion: '0.0.0' },
-            },
-            cacheTimestamp: 0,
-          },
-        },
-      },
-    };
+    beforeEach(() => {
+      mockWatchlistFlagEnabled = false;
+    });
 
-    it('does not render the watchlist pill when perpsWatchlistEnabled is OFF', () => {
-      // mockState has no RemoteFeatureFlagController → flag defaults to false
+    afterEach(() => {
+      mockWatchlistFlagEnabled = false;
+    });
+
+    it('does not render the watchlist pill when perps-watchlist-v2-enabled is OFF', () => {
+      mockWatchlistFlagEnabled = false;
       renderWithProvider(<PerpsMarketListView />, { state: mockState });
       expect(
         screen.queryByTestId(
@@ -917,10 +914,9 @@ describe('PerpsMarketListView', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('renders the watchlist pill when perpsWatchlistEnabled is ON', () => {
-      renderWithProvider(<PerpsMarketListView />, {
-        state: mockStateWithWatchlistFlagEnabled,
-      });
+    it('renders the watchlist pill when perps-watchlist-v2-enabled is ON', () => {
+      mockWatchlistFlagEnabled = true;
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
       expect(
         screen.getByTestId(
           `${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-categories-watchlist`,

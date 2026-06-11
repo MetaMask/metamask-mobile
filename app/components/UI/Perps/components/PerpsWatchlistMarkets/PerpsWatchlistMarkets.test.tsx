@@ -525,7 +525,7 @@ describe('PerpsWatchlistMarkets', () => {
   // Flag disabled — legacy (pre-redesign) path
   // -------------------------------------------------------------------------
 
-  describe('when perpsWatchlistEnabled flag is OFF (legacy path)', () => {
+  describe('when perps-watchlist-v2-enabled flag is OFF (legacy path)', () => {
     beforeEach(() => {
       (useSelector as jest.Mock).mockImplementation((selector) => {
         if (selector === selectPerpsWatchlistEnabledFlag) return false;
