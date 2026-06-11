@@ -151,6 +151,21 @@ export type VipDashboardState = VipDashboardDto & {
   lastFetched: number;
 };
 
+// Minimal stats for the "VIP Pilot" referee page (GET /vip/referee/me).
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipRefereeMeDto = {
+  referredByCode: string | null;
+  period: VipPeriodDto;
+  points: number;
+  pointsToReferrer: number;
+  volume: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipRefereeMeState = VipRefereeMeDto & {
+  lastFetched: number;
+};
+
 // Backend wire format for GET /vip/fees — mirrors va-mmcx-rewards
 // src/main/vip/dto/vip-fees.dto.ts (PR #546). Fee bips are returned as
 // strings; the controller parses them as needed.
@@ -2305,6 +2320,9 @@ export type RewardsControllerState = {
   };
   vipDashboard: {
     [subscriptionId: string]: VipDashboardState;
+  };
+  vipRefereeDashboard: {
+    [subscriptionId: string]: VipRefereeMeState;
   };
   vipPerpsFees: {
     [subscriptionId: string]: VipPerpsFeesState;

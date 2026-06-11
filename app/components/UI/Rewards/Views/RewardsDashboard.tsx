@@ -19,6 +19,8 @@ import Routes from '../../../../constants/navigation/Routes';
 import {
   selectActiveTab,
   selectHasAcceptedVipInvite,
+  selectHasAcceptedVipRefereeInvite,
+  selectIsVipReferee,
   selectHideUnlinkedAccountsBanner,
   selectHideCurrentAccountNotOptedInBannerArray,
 } from '../../../../reducers/rewards/selectors';
@@ -40,11 +42,12 @@ import { selectSelectedAccountGroup } from '../../../../selectors/multichainAcco
 import CampaignsPreview from '../components/Campaigns/CampaignsPreview';
 import EarnRewardsPreview from '../components/EarnRewards/EarnRewardsPreview';
 import BenefitsPreview from '../components/Benefits/BenefitsPreview.tsx';
-import { Pressable, ScrollView } from 'react-native';
+import { Image, Pressable, ScrollView } from 'react-native';
 import { useOndoOutcomeToast } from '../hooks/useOndoOutcomeToast';
 import { usePerpsTradingCampaignEndedOutcomeToast } from '../hooks/usePerpsTradingCampaignEndedOutcomeToast';
 import { useGetPredictThePitchOutcomeToast } from '../hooks/useGetPredictThePitchOutcomeToast';
 import VipIcon from '../../../../images/rewards/vip.svg';
+import VipRefereeFoxIcon from '../../../../images/rewards/vip_splash.png';
 import Engine from '../../../../core/Engine';
 
 const VIP_UNLOCK_TAP_COUNT = 5;
@@ -58,6 +61,10 @@ const RewardsDashboard: React.FC = () => {
   const isVipEnabled = useSelector(selectIsCurrentSubscriptionVipEnabled);
   const hasAcceptedVipInvite = useSelector(
     selectHasAcceptedVipInvite(subscriptionId),
+  );
+  const isVipReferee = useSelector(selectIsVipReferee);
+  const hasAcceptedVipRefereeInvite = useSelector(
+    selectHasAcceptedVipRefereeInvite(subscriptionId),
   );
   const activeTab = useSelector(selectActiveTab);
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -272,6 +279,14 @@ const RewardsDashboard: React.FC = () => {
     );
   }, [hasAcceptedVipInvite, navigation]);
 
+  const handleVipRefereePress = useCallback(() => {
+    navigation.navigate(
+      hasAcceptedVipRefereeInvite
+        ? Routes.REWARDS_VIP_REFEREE_VIEW
+        : Routes.REWARDS_VIP_REFEREE_SPLASH_VIEW,
+    );
+  }, [hasAcceptedVipRefereeInvite, navigation]);
+
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.REWARDS_DASHBOARD_TAB_VIEWED)
@@ -290,6 +305,21 @@ const RewardsDashboard: React.FC = () => {
         <HeaderRoot
           endAccessory={
             <Box twClassName="flex-row gap-2">
+              {isVipProgramEnabled && isVipReferee && (
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={handleVipRefereePress}
+                  style={tw.style('h-8 w-8 items-center justify-center')}
+                  testID={REWARDS_VIEW_SELECTORS.VIP_REFEREE_BUTTON}
+                >
+                  <Image
+                    source={VipRefereeFoxIcon}
+                    style={tw.style('h-6 w-6')}
+                    width={24}
+                    height={24}
+                  />
+                </Pressable>
+              )}
               {isVipProgramEnabled && isVipEnabled && (
                 <Pressable
                   accessibilityRole="button"

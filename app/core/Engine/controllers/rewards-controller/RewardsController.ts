@@ -56,6 +56,8 @@ import {
   type SubscriptionBenefitsState,
   type VipDashboardDto,
   type VipDashboardState,
+  type VipRefereeMeDto,
+  type VipRefereeMeState,
   type VipFeesResponseDto,
   type VipPerpsFeesState,
   CampaignType,
@@ -371,6 +373,12 @@ const metadata: StateMetadata<RewardsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
+  vipRefereeDashboard: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
   vipPerpsFees: {
     includeInStateLogs: true,
     persist: true,
@@ -543,6 +551,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'getSeasonStatus',
   'getUnlockedRewards',
   'getVIPDashboard',
+  'getVipRefereeDashboard',
   'handleAuthenticationTrigger',
   'hasActiveSeason',
   'hasActivityChanged',
@@ -4601,6 +4610,70 @@ export class RewardsController extends BaseController<
   }
 
   /**
+   * Get the VIP referee stats with caching.
+   * @param subscriptionId - The subscription ID for authentication
+   * @returns Promise<VipRefereeMeState | null> - The referee stats, or null when the user is not a VIP referee
+   */
+  async getVipRefereeDashboard(
+    subscriptionId: string,
+  ): Promise<VipRefereeMeState | null> {
+    if (!this.isVipFeatureEnabled()) return null;
+
+    return await wrapWithCache<VipRefereeMeState | null>({
+      key: subscriptionId,
+      ttl: VIP_DASHBOARD_CACHE_THRESHOLD_MS,
+      readCache: (key) => {
+        const cached = this.state.vipRefereeDashboard[key] || undefined;
+        if (!cached) return;
+        return {
+          payload: cached,
+          lastFetched: cached.lastFetched,
+        };
+      },
+      fetchFresh: async () => {
+        try {
+          Logger.log(
+            'RewardsController: Fetching fresh VIP referee dashboard via API call for',
+            subscriptionId,
+          );
+          const referee: VipRefereeMeDto | null = await this.#withAuthRetry(
+            () =>
+              this.messenger.call(
+                'RewardsDataService:getVipRefereeDashboard',
+                subscriptionId,
+              ),
+            subscriptionId,
+          );
+
+          if (!referee) {
+            return null;
+          }
+
+          return {
+            ...referee,
+            lastFetched: Date.now(),
+          };
+        } catch (error) {
+          Logger.log(
+            'RewardsController: Failed to get VIP referee dashboard:',
+            error instanceof Error ? error.message : String(error),
+          );
+          throw error;
+        }
+      },
+      writeCache: (key, payload) => {
+        this.update((state) => {
+          if (payload) {
+            state.vipRefereeDashboard[key] = payload;
+          } else {
+            delete state.vipRefereeDashboard[key];
+          }
+        });
+      },
+    });
+  }
+
+  /**
    * Post a benefit impression with caching to prevent duplicate impressions within a short time frame
    * @param subscriptionId - The subscription ID for authentication
    * @param benefitId - The specific benefit ID that was impressed
@@ -4807,6 +4880,7 @@ export class RewardsController extends BaseController<
       if (shouldInvalidateAllCompositeCaches) {
         delete state.subscriptionBenefits?.[subscriptionId];
         delete state.vipDashboard?.[subscriptionId];
+        delete state.vipRefereeDashboard?.[subscriptionId];
         delete state.vipPerpsFees?.[subscriptionId];
         delete state.offDeviceSubscriptionAccounts?.[subscriptionId];
         delete state.subscriptionReferralDetails?.[subscriptionId];

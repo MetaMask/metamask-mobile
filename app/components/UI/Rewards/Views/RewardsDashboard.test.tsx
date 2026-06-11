@@ -39,6 +39,8 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('../../../../reducers/rewards/selectors', () => ({
   selectActiveTab: jest.fn(),
   selectHasAcceptedVipInvite: jest.fn(),
+  selectHasAcceptedVipRefereeInvite: jest.fn(),
+  selectIsVipReferee: jest.fn(),
   selectHideCurrentAccountNotOptedInBannerArray: jest.fn(),
   selectHideUnlinkedAccountsBanner: jest.fn(),
 }));

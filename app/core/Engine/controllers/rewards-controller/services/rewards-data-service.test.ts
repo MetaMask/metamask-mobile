@@ -22,6 +22,7 @@ import type {
   LineaTokenRewardDto,
   CampaignDto,
   VipDashboardDto,
+  VipRefereeMeDto,
   VipFeesResponseDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
@@ -1798,6 +1799,7 @@ describe('RewardsDataService', () => {
       referralCode: 'TEST123',
       totalReferees: 5,
       referredByCode: 'REFERRER100',
+      isVipReferee: false,
     };
 
     beforeEach(() => {
@@ -4514,6 +4516,74 @@ describe('RewardsDataService', () => {
       await expect(service.getVIPDashboard(mockSubscriptionId)).rejects.toThrow(
         'Get VIP dashboard failed: 500',
       );
+    });
+  });
+
+  describe('getVipRefereeDashboard', () => {
+    const mockSubscriptionId = 'sub-referee';
+    const mockToken = 'test-bearer-token';
+    // Obviously-synthetic fixture — never real VIP codes/figures.
+    const mockRefereeDashboard: VipRefereeMeDto = {
+      referredByCode: 'TESTCODE',
+      period: {
+        start: '2099-06-01T00:00:00.000Z',
+        end: '2099-06-30T23:59:59.999Z',
+      },
+      points: 1234,
+      pointsToReferrer: 0,
+      volume: 1000,
+    };
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: jest.fn().mockResolvedValue(mockRefereeDashboard),
+      } as unknown as Response);
+    });
+
+    it('fetches the referee dashboard from the expected endpoint with auth headers', async () => {
+      const result = await service.getVipRefereeDashboard(mockSubscriptionId);
+
+      expect(mockGetSubscriptionToken).toHaveBeenCalledWith(mockSubscriptionId);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://uat.rewards.test/vip/referee/me',
+        expect.objectContaining({
+          method: 'GET',
+          credentials: 'omit',
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+            'rewards-access-token': mockToken,
+          }),
+        }),
+      );
+      expect(result).toEqual(mockRefereeDashboard);
+    });
+
+    it('returns null when the user is not a VIP referee', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 404,
+      } as Response);
+
+      await expect(
+        service.getVipRefereeDashboard(mockSubscriptionId),
+      ).resolves.toBe(null);
+    });
+
+    it('throws when the referee dashboard response is not ok', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 500,
+      } as Response);
+
+      await expect(
+        service.getVipRefereeDashboard(mockSubscriptionId),
+      ).rejects.toThrow('Get VIP referee dashboard failed: 500');
     });
   });
 
