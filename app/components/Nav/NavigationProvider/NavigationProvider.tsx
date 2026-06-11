@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useState } from 'react';
 import {
   NavigationContainer,
   NavigationContainerRef,
@@ -27,17 +27,19 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
   children,
 }) => {
   const dispatch = useDispatch();
-  const hasInitialized = useRef(false);
 
-  // Start trace when navigation provider is initialized
-  if (!hasInitialized.current) {
+  // Start the navigation-init trace exactly once, on first render. A lazy
+  // useState initializer runs a single time and—unlike reading/writing a ref
+  // during render—is compatible with the React Compiler, while preserving the
+  // original "start during the first render" timing.
+  useState(() => {
     trace({
       name: TraceName.NavInit,
       parentContext: getUIStartupSpan(),
       op: TraceOperation.NavInit,
     });
-    hasInitialized.current = true;
-  }
+    return true;
+  });
 
   /**
    * Triggers when the navigation is ready
