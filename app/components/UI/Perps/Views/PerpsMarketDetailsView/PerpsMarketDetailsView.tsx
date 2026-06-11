@@ -31,6 +31,7 @@ import {
   PERPS_EVENT_VALUE,
   PERPS_CONSTANTS,
   getPerpsDisplaySymbol,
+  getMarketTypeFilter,
   type Position,
   type PerpsMarketData,
   type TPSLTrackingData,
@@ -161,6 +162,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // Use centralized navigation hook for all Perps navigation
   const {
     navigateToHome,
+    navigateToMarketList,
     navigateToOrder,
     navigateToTutorial,
     navigateToClosePosition,
@@ -694,6 +696,28 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       [PERPS_EVENT_PROPERTY.FAVORITES_COUNT]: watchlistCount,
     });
   }, [market, isWatchlist, track]);
+
+  const handleCategorySearchPress = useCallback(() => {
+    if (!market) return;
+
+    const resolvedCategory = getMarketTypeFilter(market);
+
+    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+      [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+        PERPS_EVENT_VALUE.BUTTON_CLICKED.MAGNIFYING_GLASS,
+      [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
+        PERPS_EVENT_VALUE.BUTTON_LOCATION.PERP_MARKET_DETAILS,
+      [PERPS_EVENT_PROPERTY.ASSET]: market.symbol,
+      [PERPS_EVENT_PROPERTY.MARKET_CATEGORY]: resolvedCategory,
+    });
+
+    navigateToMarketList({
+      source: PERPS_EVENT_VALUE.SOURCE.MAGNIFYING_GLASS,
+      defaultMarketTypeFilter: resolvedCategory,
+    });
+  }, [market, track, navigateToMarketList]);
 
   const handleTradeAction = useCallback(
     (direction: 'long' | 'short') =>
@@ -1250,6 +1274,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             iconName: isWatchlist ? IconName.StarFilled : IconName.Star,
             onPress: handleWatchlistPress,
             testID: PerpsMarketHeaderSelectorsIDs.FAVORITE_BUTTON,
+          },
+          {
+            iconName: IconName.Search,
+            onPress: handleCategorySearchPress,
+            testID: PerpsMarketHeaderSelectorsIDs.CATEGORY_SEARCH_BUTTON,
+            accessibilityLabel: strings('perps.market_details.category_search'),
           },
         ]}
         testID={PerpsMarketDetailsViewSelectorsIDs.HEADER}
