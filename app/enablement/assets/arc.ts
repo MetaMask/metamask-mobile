@@ -2,10 +2,10 @@ import type { TokenBalancesControllerState } from '@metamask/assets-controllers'
 import type { Hex } from '@metamask/utils';
 import { NETWORKS_CHAIN_ID } from '../../constants/network';
 
-export const ARC_CHAIN_ID = NETWORKS_CHAIN_ID.ARC as Hex;
+export const ARC_CHAIN_ID: Hex = NETWORKS_CHAIN_ID.ARC;
 
-export const ARC_NATIVE_TOKEN_ADDRESS =
-  '0x0000000000000000000000000000000000000000' as Hex;
+export const ARC_NATIVE_TOKEN_ADDRESS: Hex =
+  '0x0000000000000000000000000000000000000000';
 
 /**
  * Whether an asset is the Arc native token (the zero-address duplicate of the

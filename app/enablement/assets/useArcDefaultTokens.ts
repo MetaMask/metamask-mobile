@@ -23,13 +23,10 @@ const ARC_USDC_METADATA = {
 };
 
 /**
- * Adds USDC on Arc as a custom asset for every EVM account that doesn't already
- * have it, whenever the Arc network is present. Arc users realistically only
- * interact with USDC (which doubles as the native token), so it is shown by
- * default. Also backfills accounts created after Arc was added.
- *
- * No-op unless the unified assets state is enabled, since the AssetsController
- * is the source of custom assets in that mode.
+ * Adds USDC on Arc as a default token for every EVM account that doesn't
+ * already have it, whenever the Arc network is present. Arc users realistically
+ * only interact with USDC (which doubles as the native token), so it is shown
+ * by default. Also backfills accounts created after Arc was added.
  */
 export function useArcDefaultTokensEffect() {
   const isAssetsUnifyStateEnabled = useSelector(
@@ -46,27 +43,46 @@ export function useArcDefaultTokensEffect() {
   const dispatchedRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
-    if (!isAssetsUnifyStateEnabled) {
-      return;
-    }
-
     if (!networkConfigurations?.[NETWORKS_CHAIN_ID.ARC]) {
       return;
     }
+
+    const networkClientId =
+      Engine.context.NetworkController.findNetworkClientIdByChainId(
+        NETWORKS_CHAIN_ID.ARC,
+      );
 
     for (const account of evmAccounts) {
       if (dispatchedRef.current.has(account.id)) {
         continue;
       }
 
-      const accountAssets = customAssets[account.id] ?? [];
-      if (accountAssets.includes(ARC_USDC_ASSET_ID)) {
-        // Already present — mark as handled so we never re-dispatch.
-        dispatchedRef.current.add(account.id);
+      dispatchedRef.current.add(account.id);
+
+      // Legacy TokensController
+      Engine.context.TokensController.addToken({
+        address: ARC_USDC_TOKEN_ADDRESS,
+        symbol: ARC_USDC_METADATA.symbol,
+        decimals: ARC_USDC_METADATA.decimals,
+        name: ARC_USDC_METADATA.name,
+        networkClientId,
+        interactingAddress: account.address,
+      }).catch((error) => {
+        Logger.error(error as Error, {
+          message: 'Failed to add default Arc USDC token for account',
+          accountId: account.id,
+        });
+      });
+
+      // New AssetsController
+      if (!isAssetsUnifyStateEnabled) {
         continue;
       }
 
-      dispatchedRef.current.add(account.id);
+      const accountAssets = customAssets[account.id] ?? [];
+      if (accountAssets.includes(ARC_USDC_ASSET_ID)) {
+        continue;
+      }
 
       Engine.context.AssetsController.addCustomAsset(
         account.id,
@@ -74,7 +90,7 @@ export function useArcDefaultTokensEffect() {
         ARC_USDC_METADATA,
       ).catch((error) => {
         Logger.error(error as Error, {
-          message: 'Failed to add default Arc USDC for account',
+          message: 'Failed to add default Arc USDC custom asset for account',
           accountId: account.id,
         });
       });
