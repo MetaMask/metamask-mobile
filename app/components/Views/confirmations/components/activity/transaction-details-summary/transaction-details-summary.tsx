@@ -73,12 +73,12 @@ export function TransactionDetailsSummary() {
   const { sourceHash, fiat } = metamaskPay ?? {};
   const { orderId: fiatOrderId } = fiat ?? {};
 
-  const hasSourceHash = !hasDepositTransactions && Boolean(sourceHash);
-
   const isMoneyAccountFlow = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountDeposit,
     TransactionType.moneyAccountWithdraw,
   ]);
+
+  const showSourceHash = !hasDepositTransactions && sourceHash;
 
   return (
     <Box gap={12}>
@@ -89,7 +89,7 @@ export function TransactionDetailsSummary() {
                 transactions,
                 transactionMeta,
                 hasFiatOrder: Boolean(fiatOrderId),
-                hasSourceHash,
+                hasSourceHash: Boolean(showSourceHash),
               }).toString(),
             })
           : strings('transaction_details.label.summary')}
@@ -98,7 +98,7 @@ export function TransactionDetailsSummary() {
         {fiatOrderId ? (
           <FiatOrderSummaryLine parentTransaction={transactionMeta} />
         ) : null}
-        {hasSourceHash && sourceHash ? (
+        {showSourceHash ? (
           <SourceHashSummaryLine
             parentTransaction={transactionMeta}
             sourceHash={sourceHash}
