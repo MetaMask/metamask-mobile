@@ -255,38 +255,76 @@ class CreatePasswordView {
   }
 
   /**
-   * Reads marketing checkbox selection from Detox element attributes.
-   * Returns undefined when state cannot be determined (do not tap in that case).
+   * Reads marketing checkbox selection from native accessibility attributes.
+   * Returns undefined when state cannot be determined.
    */
+  private parseMarketingCheckboxCheckedState(
+    attributes: Record<string, unknown>,
+  ): boolean | undefined {
+    const accessibilityState = attributes.accessibilityState as
+      | { checked?: boolean }
+      | undefined;
+
+    if (typeof accessibilityState?.checked === 'boolean') {
+      return accessibilityState.checked;
+    }
+
+    if (typeof attributes.checked === 'boolean') {
+      return attributes.checked;
+    }
+
+    if (attributes.checked === 'true') {
+      return true;
+    }
+
+    if (attributes.checked === 'false') {
+      return false;
+    }
+
+    if (attributes.value === 1 || attributes.value === '1') {
+      return true;
+    }
+
+    if (attributes.value === 0 || attributes.value === '0') {
+      return false;
+    }
+
+    if (attributes['aria-checked'] === 'true') {
+      return true;
+    }
+
+    if (attributes['aria-checked'] === 'false') {
+      return false;
+    }
+
+    return undefined;
+  }
+
   private async readMarketingCheckboxChecked(
     el: Detox.IndexableNativeElement,
   ): Promise<boolean | undefined> {
     try {
       const attributes = (await el.getAttributes()) as Record<string, unknown>;
-      const accessibilityState = attributes.accessibilityState as
-        | { checked?: boolean }
-        | undefined;
-
-      if (typeof accessibilityState?.checked === 'boolean') {
-        return accessibilityState.checked;
-      }
-
-      if (typeof attributes.checked === 'boolean') {
-        return attributes.checked;
-      }
-
-      if (attributes.value === 1 || attributes.value === '1') {
-        return true;
-      }
-
-      if (attributes.value === 0 || attributes.value === '0') {
-        return false;
-      }
+      return this.parseMarketingCheckboxCheckedState(attributes);
     } catch {
       return undefined;
     }
+  }
 
-    return undefined;
+  private async readMarketingCheckboxCheckedAppium(
+    checkbox: Awaited<ReturnType<typeof asPlaywrightElement>>,
+  ): Promise<boolean | undefined> {
+    try {
+      const attributes: Record<string, unknown> = {
+        'aria-checked': await checkbox.getAttribute('aria-checked'),
+        checked: await checkbox.getAttribute('checked'),
+        value: await checkbox.getAttribute('value'),
+      };
+
+      return this.parseMarketingCheckboxCheckedState(attributes);
+    } catch {
+      return undefined;
+    }
   }
 
   /**
@@ -311,12 +349,20 @@ class CreatePasswordView {
       },
       appium: async () => {
         const checkbox = await asPlaywrightElement(this.iUnderstandCheckbox);
-        const ariaChecked = await checkbox.getAttribute('aria-checked');
+        const isChecked =
+          await this.readMarketingCheckboxCheckedAppium(checkbox);
 
-        if (ariaChecked === 'false') {
+        if (isChecked === false) {
           await UnifiedGestures.waitAndTap(this.iUnderstandCheckbox, {
             description: 'Create Password - Marketing opt-in checkbox',
           });
+          return;
+        }
+
+        if (isChecked === undefined) {
+          throw new Error(
+            'Unable to determine marketing opt-in checkbox state in Appium',
+          );
         }
       },
     });

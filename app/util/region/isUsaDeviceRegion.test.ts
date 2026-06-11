@@ -1,70 +1,45 @@
+import { getCountry } from 'react-native-localize';
 import { isUsaDeviceRegion } from './isUsaDeviceRegion';
 
+jest.mock('react-native-localize', () => ({
+  getCountry: jest.fn(),
+}));
+
+const mockGetCountry = getCountry as jest.MockedFunction<typeof getCountry>;
+
 describe('isUsaDeviceRegion', () => {
-  const originalDateTimeFormat = Intl.DateTimeFormat;
-
-  afterEach(() => {
-    Intl.DateTimeFormat = originalDateTimeFormat;
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
-  const mockDeviceLocale = (locale: string) => {
-    Intl.DateTimeFormat = jest.fn().mockImplementation(() => ({
-      resolvedOptions: () => ({ locale }),
-    })) as unknown as typeof Intl.DateTimeFormat;
-  };
-
-  it('returns true for en-US locale', () => {
-    mockDeviceLocale('en-US');
+  it('returns true when device region is US', () => {
+    mockGetCountry.mockReturnValue('US');
 
     expect(isUsaDeviceRegion()).toBe(true);
   });
 
-  it('returns true for es-US locale', () => {
-    mockDeviceLocale('es-US');
+  it('returns true when device region is us (lowercase)', () => {
+    mockGetCountry.mockReturnValue('us');
 
     expect(isUsaDeviceRegion()).toBe(true);
   });
 
-  it('returns true for en_US locale with underscore separator', () => {
-    mockDeviceLocale('en_US');
-
-    expect(isUsaDeviceRegion()).toBe(true);
-  });
-
-  it('returns true for en-US locale with unicode extensions', () => {
-    mockDeviceLocale('en-US-u-nu-latn');
-
-    expect(isUsaDeviceRegion()).toBe(true);
-  });
-
-  it('returns false for en-GB locale with unicode extensions', () => {
-    mockDeviceLocale('en-GB-u-nu-latn');
+  it('returns false when device region is GB', () => {
+    mockGetCountry.mockReturnValue('GB');
 
     expect(isUsaDeviceRegion()).toBe(false);
   });
 
-  it('returns true for locale with script subtag before region', () => {
-    mockDeviceLocale('zh-Hans-US');
-
-    expect(isUsaDeviceRegion()).toBe(true);
-  });
-
-  it('returns false for en-GB locale', () => {
-    mockDeviceLocale('en-GB');
+  it('returns false when device region is unavailable', () => {
+    mockGetCountry.mockReturnValue('');
 
     expect(isUsaDeviceRegion()).toBe(false);
   });
 
-  it('returns false when locale has no region subtag', () => {
-    mockDeviceLocale('en');
-
-    expect(isUsaDeviceRegion()).toBe(false);
-  });
-
-  it('returns false when Intl.DateTimeFormat throws', () => {
-    Intl.DateTimeFormat = jest.fn().mockImplementation(() => {
-      throw new Error('Intl unavailable');
-    }) as unknown as typeof Intl.DateTimeFormat;
+  it('returns false when getCountry throws', () => {
+    mockGetCountry.mockImplementation(() => {
+      throw new Error('native module unavailable');
+    });
 
     expect(isUsaDeviceRegion()).toBe(false);
   });
