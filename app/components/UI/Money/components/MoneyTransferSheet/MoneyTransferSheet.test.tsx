@@ -103,10 +103,6 @@ describe('MoneyTransferSheet', () => {
       trackBottomSheetViewed: mockTrackBottomSheetViewed,
       trackSurfaceClicked: mockTrackSurfaceClicked,
     });
-    (useMoneyAnalytics as jest.Mock).mockReturnValue({
-      trackBottomSheetViewed: mockTrackBottomSheetViewed,
-      trackSurfaceClicked: mockTrackSurfaceClicked,
-    });
   });
 
   it('renders the sheet title', () => {
@@ -156,6 +152,14 @@ describe('MoneyTransferSheet', () => {
     expect(global.alert).not.toHaveBeenCalled();
   });
 
+  it('disables the "Perps account" option when flag is disabled', () => {
+    const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
+
+    expect(
+      getByTestId(MoneyTransferSheetTestIds.PERPS_ACCOUNT_OPTION),
+    ).toBeDisabled();
+  });
+
   it('does nothing when "Perps account" is pressed and flag is disabled', () => {
     const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
 
@@ -165,6 +169,19 @@ describe('MoneyTransferSheet', () => {
 
     expect(mockOnCloseBottomSheet).not.toHaveBeenCalled();
     expect(mockInitiatePerpsDeposit).not.toHaveBeenCalled();
+  });
+
+  it('enables the "Perps account" option when flag is enabled', () => {
+    (useMoneyPerpsDeposit as jest.Mock).mockReturnValue({
+      isEnabled: true,
+      initiatePerpsDeposit: mockInitiatePerpsDeposit,
+    });
+
+    const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
+
+    expect(
+      getByTestId(MoneyTransferSheetTestIds.PERPS_ACCOUNT_OPTION),
+    ).toBeEnabled();
   });
 
   it('closes the sheet and calls initiatePerpsDeposit when flag is enabled', () => {
@@ -183,6 +200,14 @@ describe('MoneyTransferSheet', () => {
     expect(mockInitiatePerpsDeposit).toHaveBeenCalledTimes(1);
   });
 
+  it('disables the "Predictions account" option when flag is disabled', () => {
+    const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
+
+    expect(
+      getByTestId(MoneyTransferSheetTestIds.PREDICTIONS_ACCOUNT_OPTION),
+    ).toBeDisabled();
+  });
+
   it('does nothing when "Predictions account" is pressed and flag is disabled', () => {
     const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
 
@@ -192,6 +217,19 @@ describe('MoneyTransferSheet', () => {
 
     expect(mockOnCloseBottomSheet).not.toHaveBeenCalled();
     expect(mockInitiatePredictDeposit).not.toHaveBeenCalled();
+  });
+
+  it('enables the "Predictions account" option when flag is enabled', () => {
+    (useMoneyPredictDeposit as jest.Mock).mockReturnValue({
+      isEnabled: true,
+      initiatePredictDeposit: mockInitiatePredictDeposit,
+    });
+
+    const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
+
+    expect(
+      getByTestId(MoneyTransferSheetTestIds.PREDICTIONS_ACCOUNT_OPTION),
+    ).toBeEnabled();
   });
 
   it('closes the sheet and calls initiatePredictDeposit when flag is enabled', () => {

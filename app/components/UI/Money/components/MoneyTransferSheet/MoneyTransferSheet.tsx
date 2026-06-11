@@ -32,17 +32,13 @@ import {
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import useMountEffect from '../../hooks/useMountEffect';
 
-interface ActiveOption {
+interface Option {
   label: string;
   icon: IconName;
-  onPress: () => void;
+  onPress?: () => void;
   testID: string;
-}
-
-interface DisabledOption {
-  label: string;
-  icon: IconName;
-  testID: string;
+  disabled?: boolean;
+  comingSoon?: boolean;
 }
 
 const MoneyTransferSheet = () => {
@@ -84,10 +80,6 @@ const MoneyTransferSheet = () => {
   }, [initiateWithdrawal, trackSurfaceClicked]);
 
   const handlePerpsAccount = useCallback(() => {
-    if (!isPerpsEnabled) {
-      return;
-    }
-
     trackSurfaceClicked({
       component_name: COMPONENT_NAMES.MONEY_TRANSFER_MONEY_SHEET_PERPS_ACCOUNT,
       redirect_target: SCREEN_NAMES.MONEY_TRANSFER,
@@ -96,13 +88,9 @@ const MoneyTransferSheet = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
       initiatePerpsDeposit();
     });
-  }, [isPerpsEnabled, initiatePerpsDeposit, trackSurfaceClicked]);
+  }, [initiatePerpsDeposit, trackSurfaceClicked]);
 
   const handlePredictionsAccount = useCallback(() => {
-    if (!isPredictEnabled) {
-      return;
-    }
-
     trackSurfaceClicked({
       component_name:
         COMPONENT_NAMES.MONEY_TRANSFER_MONEY_SHEET_PREDICTIONS_ACCOUNT,
@@ -112,9 +100,9 @@ const MoneyTransferSheet = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
       initiatePredictDeposit();
     });
-  }, [isPredictEnabled, initiatePredictDeposit, trackSurfaceClicked]);
+  }, [initiatePredictDeposit, trackSurfaceClicked]);
 
-  const activeOptions: ActiveOption[] = [
+  const options: Option[] = [
     {
       label: strings('money.transfer_sheet.between_accounts'),
       icon: IconName.Arrow2UpRight,
@@ -126,26 +114,34 @@ const MoneyTransferSheet = () => {
       icon: IconName.Candlestick,
       onPress: handlePerpsAccount,
       testID: MoneyTransferSheetTestIds.PERPS_ACCOUNT_OPTION,
+      disabled: !isPerpsEnabled,
     },
     {
       label: strings('money.transfer_sheet.predictions_account'),
       icon: IconName.Speedometer,
       onPress: handlePredictionsAccount,
       testID: MoneyTransferSheetTestIds.PREDICTIONS_ACCOUNT_OPTION,
+      disabled: !isPredictEnabled,
     },
-  ];
-
-  const disabledOptions: DisabledOption[] = [
     {
       label: strings('money.transfer_sheet.send_external'),
       icon: IconName.Send,
       testID: MoneyTransferSheetTestIds.SEND_EXTERNAL_ROW,
+      disabled: true,
+      comingSoon: true,
     },
     {
       label: strings('money.transfer_sheet.withdraw_to_bank'),
       icon: IconName.Bank,
       testID: MoneyTransferSheetTestIds.WITHDRAW_TO_BANK_ROW,
+      disabled: true,
+      comingSoon: true,
     },
+  ];
+
+  const orderedOptions: Option[] = [
+    ...options.filter((option) => !option.disabled),
+    ...options.filter((option) => option.disabled),
   ];
 
   return (
@@ -162,44 +158,45 @@ const MoneyTransferSheet = () => {
         </Text>
       </BottomSheetHeader>
       <View style={styles.list}>
-        {activeOptions.map((item) => (
+        {orderedOptions.map((item) => (
           <TouchableOpacity
             key={item.testID}
-            onPress={item.onPress}
+            disabled={item.disabled}
+            onPress={item.disabled ? undefined : item.onPress}
             style={styles.row}
             testID={item.testID}
           >
             <Icon
               name={item.icon}
               size={IconSize.Lg}
-              color={IconColor.IconDefault}
+              color={
+                item.disabled ? IconColor.IconMuted : IconColor.IconDefault
+              }
             />
-            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-              {item.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-        {disabledOptions.map((item) => (
-          <View key={item.testID} style={styles.row} testID={item.testID}>
-            <Icon
-              name={item.icon}
-              size={IconSize.Lg}
-              color={IconColor.IconMuted}
-            />
-            <View style={styles.disabledRowContent}>
+            {item.comingSoon ? (
+              <View style={styles.disabledRowContent}>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextAlternative}
+                >
+                  {item.label}
+                </Text>
+                <Tag
+                  label={strings('money.add_money_sheet.coming_soon')}
+                  style={styles.comingSoonTag}
+                />
+              </View>
+            ) : (
               <Text
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
-                color={TextColor.TextAlternative}
+                color={item.disabled ? TextColor.TextAlternative : undefined}
               >
                 {item.label}
               </Text>
-              <Tag
-                label={strings('money.add_money_sheet.coming_soon')}
-                style={styles.comingSoonTag}
-              />
-            </View>
-          </View>
+            )}
+          </TouchableOpacity>
         ))}
       </View>
     </BottomSheet>
