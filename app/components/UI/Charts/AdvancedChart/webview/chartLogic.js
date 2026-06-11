@@ -351,7 +351,16 @@ function handleMessage(event) {
     let message =
       typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
 
-    if (!window.isChartReady && message.type !== 'SET_OHLCV_DATA') {
+    // SET_OHLCV_DATA bootstraps the chart, and FETCH_OLDER_BARS_RESPONSE resolves a
+    // datafeed getBars() callback — both can legitimately arrive before `onChartReady`
+    // (TradingView calls getBars during initial load). Queuing the older-bars response
+    // would deadlock: onChartReady drains the queue, but it cannot fire until the pending
+    // getBars callback this response carries is resolved.
+    if (
+      !window.isChartReady &&
+      message.type !== 'SET_OHLCV_DATA' &&
+      message.type !== 'FETCH_OLDER_BARS_RESPONSE'
+    ) {
       window.pendingMessages.push(message);
       return;
     }
