@@ -9351,13 +9351,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/multichain-api-client@npm:^0.10.1":
-  version: 0.10.1
-  resolution: "@metamask/multichain-api-client@npm:0.10.1"
-  checksum: 10/adedb90f433cd619eee54943197dc32eb30e461173e928ea698ec70bf8c6780d9ac0bb9b12a22a17f984170841c071d228aa49e6988d5060e8a30e99c433a8f5
-  languageName: node
-  linkType: hard
-
 "@metamask/multichain-api-client@npm:^0.11.0":
   version: 0.11.0
   resolution: "@metamask/multichain-api-client@npm:0.11.0"
@@ -35548,7 +35541,7 @@ __metadata:
     "@metamask/money-account-controller": "npm:^0.2.0"
     "@metamask/money-account-upgrade-controller": "npm:^2.0.5"
     "@metamask/multichain-account-service": "npm:^10.0.2"
-    "@metamask/multichain-api-client": "npm:^0.10.1"
+    "@metamask/multichain-api-client": "npm:^0.11.0"
     "@metamask/multichain-api-middleware": "npm:^3.1.1"
     "@metamask/multichain-network-controller": "npm:^3.1.0"
     "@metamask/multichain-transactions-controller": "npm:^7.1.0"
