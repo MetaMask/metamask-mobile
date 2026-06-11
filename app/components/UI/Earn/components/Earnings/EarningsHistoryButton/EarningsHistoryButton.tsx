@@ -2,11 +2,11 @@ import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { View } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import {
-  Button,
-  ButtonVariant,
+import Button, {
   ButtonSize,
-} from '@metamask/design-system-react-native';
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../../component-library/components/Buttons/Button';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { TokenI } from '../../../../Tokens/types';
 import { WalletViewSelectorsIDs } from '../../../../../Views/Wallet/WalletView.testIds';
@@ -36,15 +36,16 @@ const EarningsHistoryButton = ({ asset }: EarningsHistoryButtonProps) => {
     <View>
       <Button
         testID={WalletViewSelectorsIDs.EARN_EARNINGS_HISTORY_BUTTON}
-        isFullWidth
-        variant={ButtonVariant.Secondary}
+        width={ButtonWidthTypes.Full}
+        variant={ButtonVariants.Secondary}
         size={ButtonSize.Md}
+        label={
+          outputToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING
+            ? strings('earn.view_earnings_history.lending')
+            : strings('earn.view_earnings_history.staking')
+        }
         onPress={onViewEarningsHistoryPress}
-      >
-        {outputToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING
-          ? strings('earn.view_earnings_history.lending')
-          : strings('earn.view_earnings_history.staking')}
-      </Button>
+      />
     </View>
   );
 };
