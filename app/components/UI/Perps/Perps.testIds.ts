@@ -142,6 +142,7 @@ export const PerpsMarketListViewSelectorsIDs = {
   BACK_BUTTON: 'perps-market-list-back-button',
   SEARCH_CLEAR_BUTTON: 'perps-market-list-search-bar-clear',
   SEARCH_BAR: 'perps-market-list-search-bar',
+  NO_RESULTS: 'perps-market-list-no-results',
   SKELETON_ROW: 'perps-market-list-skeleton-row',
   LIST_HEADER: 'perps-market-list-header',
   MARKET_LIST: 'perps-market-list',
