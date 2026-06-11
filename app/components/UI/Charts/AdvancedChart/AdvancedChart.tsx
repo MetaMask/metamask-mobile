@@ -224,13 +224,17 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     const paginationRef = useRef<OHLCVPaginationConfig | undefined>(
       ohlcvPagination,
     );
-    paginationRef.current = ohlcvPagination;
-
     const visibleFromMsRef = useRef<number | undefined>(visibleFromMs);
-    visibleFromMsRef.current = visibleFromMs;
-
     const visibleToMsRef = useRef<number | undefined>(visibleToMs);
-    visibleToMsRef.current = visibleToMs;
+
+    // Keep the latest prop values available to callbacks (e.g. sendOHLCVData)
+    // without writing refs during render. Declared before the data-sync effect
+    // below so these refs are current when that effect invokes sendOHLCVData.
+    useEffect(() => {
+      paginationRef.current = ohlcvPagination;
+      visibleFromMsRef.current = visibleFromMs;
+      visibleToMsRef.current = visibleToMs;
+    });
 
     const sendOHLCVData = useCallback(
       (data: OHLCVBar[]) => {
