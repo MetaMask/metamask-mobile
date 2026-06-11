@@ -176,6 +176,7 @@ module.exports = {
       // instead of being a per-line comment. Runtime behavior is unchanged.
       files: [
         'app/components/hooks/useAsyncResult.ts',
+        'app/components/hooks/useOTAUpdates.ts',
       ],
       rules: {
         'react-hooks/exhaustive-deps': 'off',
