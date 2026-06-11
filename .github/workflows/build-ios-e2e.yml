@@ -41,6 +41,7 @@ jobs:
       app-uploaded: ${{ steps.upload-app-namespace.outcome == 'success' || steps.upload-app.outcome == 'success' }}
       sourcemap-uploaded: ${{ steps.upload-sourcemap-namespace.outcome == 'success' || steps.upload-sourcemap.outcome == 'success' }}
     env:
+      IOS_APP_CACHE_VERSION: 2
       XCODE_CACHE_VERSION: 1
       RCT_NO_LAUNCH_PACKAGER: 1
       XCODE_BUILD_SETTINGS: 'COMPILER_INDEX_STORE_ENABLE=NO'
@@ -276,6 +277,8 @@ jobs:
       # Heavy native setup — only runs on a full native-build path.
       # -------------------------------------------------------------------------
 
+      # Bitrise skips cirruslabs DerivedData caches below; RN Build Cache replaces them (INFRA-3591).
+
       - name: Restore Xcode derived data from branch cache
         id: xcode-restore-cache
         if: ${{ inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' && steps.gate.outputs.needs-native-build == 'true' }}
@@ -408,9 +411,77 @@ jobs:
             echo "📦 Setting up project (lightweight, skips Xcode build)..."
             yarn setup:github-ci --no-build-ios --no-build-android
 
+      - name: Activate Bitrise Build Cache for React Native
+        if: ${{ inputs.runner_provider == 'bitrise' && steps.gate.outputs.needs-native-build == 'true' }}
+        env:
+          BITRISE_BUILD_CACHE_AUTH_TOKEN: ${{ secrets.BITRISE_BUILD_CACHE_AUTH_TOKEN }}
+          BITRISE_BUILD_CACHE_WORKSPACE_ID: ${{ vars.BITRISE_BUILD_CACHE_WORKSPACE_ID }}
+        run: |
+          #!/usr/bin/env bash
+          set -euxo pipefail
+          curl --retry 5 -sSfL 'https://raw.githubusercontent.com/bitrise-io/bitrise-build-cache-cli/main/install/installer.sh' | sh -s -- -b /tmp/bin -d
+          /tmp/bin/bitrise-build-cache activate react-native
+          echo "/tmp/bin" >> "$GITHUB_PATH"
+        shell: bash
+
+      - name: Generate current fingerprint
+        if: ${{ inputs.runner_provider == 'bitrise' && steps.gate.outputs.needs-native-build == 'true' }}
+        id: generate-fingerprint
+        run: |
+          if [[ -n "${{ inputs.source-fingerprint }}" ]]; then
+            FINGERPRINT="${{ inputs.source-fingerprint }}"
+          else
+            FINGERPRINT=$(yarn fingerprint:generate)
+          fi
+          echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
+          echo "Current fingerprint: ${FINGERPRINT}"
+
+      - name: Restore iOS app matching fingerprint from branch cache
+        if: ${{ inputs.runner_provider == 'bitrise' && steps.gate.outputs.needs-native-build == 'true' }}
+        id: cache-restore
+        uses: actions/cache@v4
+        with:
+          path: |
+            ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
+          key: bitrise-ios-app-${{ inputs.build_type }}-${{ github.ref_name }}-v${{ env.IOS_APP_CACHE_VERSION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
+
+      - name: Restore iOS app matching fingerprint from main cache
+        if: ${{ inputs.runner_provider == 'bitrise' && steps.gate.outputs.needs-native-build == 'true' && steps.cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
+        id: cache-restore-main
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
+          key: bitrise-ios-app-${{ inputs.build_type }}-main-v${{ env.IOS_APP_CACHE_VERSION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
+
+      - name: Build iOS E2E App (Bitrise RN cache)
+        if: ${{ inputs.runner_provider == 'bitrise' && steps.gate.outputs.needs-native-build == 'true' && steps.cache-restore.outputs.cache-hit != 'true' && steps.cache-restore-main.outputs.cache-hit != 'true' }}
+        run: |
+          echo "Building iOS E2E App on Bitrise runner..."
+          bitrise-build-cache react-native run yarn build:ios:${{ inputs.build_type }}:e2e
+        shell: bash
+        env:
+          PLATFORM: ios
+          METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
+          METAMASK_BUILD_TYPE: ${{ inputs.build_type }}
+          HAS_TEST_OVERRIDES: true
+          IS_SIM_BUILD: 'true'
+          IGNORE_BOXLOGS_DEVELOPMENT: true
+          GITHUB_CI: 'true'
+          CI: 'true'
+          NODE_OPTIONS: '--max-old-space-size=8192'
+          SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
+          SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
+          SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
+          SEGMENT_REGULATIONS_ENDPOINT_QA: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_QA }}
+          MM_SENTRY_DSN_TEST: ${{ secrets.MM_SENTRY_DSN_TEST }}
+          MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
+          GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
+          GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
+
       # Build the iOS E2E app for simulator
       - name: Build iOS E2E App
-        if: ${{ steps.gate.outputs.needs-native-build == 'true' }}
+        if: ${{ inputs.runner_provider != 'bitrise' && steps.gate.outputs.needs-native-build == 'true' }}
         run: |
           echo "🏗 Building iOS E2E App..."
           export NODE_OPTIONS="--max-old-space-size=8192"
@@ -440,7 +511,7 @@ jobs:
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
 
       - name: Repack iOS app with JS updates using @expo/repack-app
-        if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
+        if: ${{ steps.gate.outputs.needs-native-build != 'true' || (inputs.runner_provider == 'bitrise' && (steps.cache-restore.outputs.cache-hit == 'true' || steps.cache-restore-main.outputs.cache-hit == 'true')) }}
         run: |
           echo "📦 Repacking iOS app with updated JavaScript bundle using @expo/repack-app..."
           # Use the optimized repack script which uses @expo/repack-app
