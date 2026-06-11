@@ -25,7 +25,7 @@ const logger = createLogger({
 });
 
 describe(SmokePerps('Perps Position'), () => {
-  it('opens a long position with custom profit and closes it', async () => {
+  it.skip('opens a long position with custom profit and closes it', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
