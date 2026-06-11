@@ -36,6 +36,7 @@ import { mergeMoneyActivity } from '../../hooks/useMoneyActivityItems';
 import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyActivityLoading';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
+import { useMoneyAccountAddRouting } from '../../hooks/useMoneyAccountAddRouting';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { moneyFormatFiat, DUST_THRESHOLD } from '../../utils/moneyFormatFiat';
 import { calculateProjectedEarnings } from '../../utils/projections';
@@ -139,6 +140,7 @@ const MoneyHomeView = () => {
 
   const { tokens: depositTokens, isNoFeeToken } = useMoneyDepositTokens();
   const { initiateDeposit } = useMoneyAccountDeposit();
+  const { hasMusdBalance, routeAddMoney } = useMoneyAccountAddRouting();
   const { allTransactions, moneyAddress, mockDataEnabled } =
     useMoneyAccountTransactions();
   const { cardTransactions, isLoading: isCardActivityLoading } =
@@ -263,6 +265,20 @@ const MoneyHomeView = () => {
     },
     [navigation, trackButtonClicked],
   );
+
+  const handleMusdRowAddPress = useCallback(() => {
+    trackButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+      button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+      label_key: 'money.musd_row.add',
+      component_name: COMPONENT_NAMES.MONEY_MUSD_TOKEN_SECTION,
+      redirect_target: hasMusdBalance
+        ? SCREEN_NAMES.MONEY_DEPOSIT
+        : SCREEN_NAMES.RAMP_BUY,
+    });
+
+    routeAddMoney();
+  }, [hasMusdBalance, routeAddMoney, trackButtonClicked]);
 
   const handleTransferPress = useCallback(() => {
     trackButtonClicked({
@@ -635,12 +651,7 @@ const MoneyHomeView = () => {
                   componentName: COMPONENT_NAMES.MONEY_MUSD_TOKEN_SECTION,
                 })
               }
-              onAddPress={() =>
-                handleAddPress({
-                  labelKey: 'money.musd_row.add',
-                  componentName: COMPONENT_NAMES.MONEY_MUSD_TOKEN_SECTION,
-                })
-              }
+              onAddPress={handleMusdRowAddPress}
               balance={musdFiatFormatted}
             />
             <Divider />
