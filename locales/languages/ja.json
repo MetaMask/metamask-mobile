@@ -774,6 +774,11 @@
       "search_by_country": "国で検索",
       "no_regions_found": "「{{searchString}}」に一致する地域がありません"
     },
+    "phone_country_modal": {
+      "select_phone_country": "電話の国を選択",
+      "search_by_country": "国で検索",
+      "no_countries_found": "「{{searchString}}」に一致する国がありません"
+    },
     "state_modal": {
       "select_a_state": "州を選択",
       "search_by_state": "州で検索",

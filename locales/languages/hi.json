@@ -774,6 +774,11 @@
       "search_by_country": "देश के अनुसार खोजें",
       "no_regions_found": "कोई क्षेत्र \"{{searchString}}\" से मेल नहीं खाता"
     },
+    "phone_country_modal": {
+      "select_phone_country": "फ़ोन देश चुनें",
+      "search_by_country": "देश के अनुसार खोजें",
+      "no_countries_found": "कोई देश \"{{searchString}}\" से मेल नहीं खाता"
+    },
     "state_modal": {
       "select_a_state": "एक स्टेट चुनें",
       "search_by_state": "राज्य के अनुसार खोजें",

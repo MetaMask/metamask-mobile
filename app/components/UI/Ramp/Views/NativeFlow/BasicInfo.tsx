@@ -31,7 +31,6 @@ import { useForm } from '../../Deposit/hooks/useForm';
 import DepositProgressBar from '../../Deposit/components/DepositProgressBar';
 import DepositDateField from '../../Deposit/components/DepositDateField';
 import { VALIDATION_REGEX } from '../../Deposit/constants/constants';
-import { formatNumberToTemplate } from '../../Deposit/components/DepositPhoneField/formatNumberToTemplate';
 import PoweredByTransak from '../../Deposit/components/PoweredByTransak';
 import PrivacySection from '../../Deposit/components/PrivacySection';
 import { timestampToTransakFormat } from '../../Deposit/utils';
@@ -45,49 +44,12 @@ import { useTransakController } from '../../hooks/useTransakController';
 import useRampsController from '../../hooks/useRampsController';
 import { useRampsUserRegion } from '../../hooks/useRampsUserRegion';
 import { useRampsCountries } from '../../hooks/useRampsCountries';
-import type { Country, TransakBuyQuote } from '@metamask/ramps-controller';
+import type { TransakBuyQuote } from '@metamask/ramps-controller';
 import type { AddressFormData } from '../../Deposit/Views/EnterAddress/EnterAddress';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import { BASIC_INFO_TEST_IDS } from './BasicInfo.testIds';
 import { createV2EnterEmailNavDetails } from './EnterEmail';
-import { createPhoneCountrySelectorModalNavigationDetails } from '../Modals/PhoneCountrySelectorModal';
-
-const DEFAULT_PHONE_TEMPLATE = '(XXX) XXX-XXXX';
-
-function getPhonePrefixDigits(country?: Country | null): string {
-  return country?.phone?.prefix?.replace(/\D/g, '') ?? '';
-}
-
-function getLocalPhoneDigits(
-  mobileNumber: string,
-  country?: Country | null,
-): string {
-  const digits = mobileNumber.replace(/\D/g, '');
-  const prefixDigits = getPhonePrefixDigits(country);
-
-  if (!prefixDigits) return digits;
-
-  return digits.replace(new RegExp(`^${prefixDigits}`), '');
-}
-
-function findCountryByPhonePrefix(
-  countries: Country[],
-  mobileNumber?: string,
-): Country | null {
-  const digits = mobileNumber?.replace(/\D/g, '') ?? '';
-  if (!digits) return null;
-
-  const sortedCountries = [...countries].sort(
-    (a, b) => getPhonePrefixDigits(b).length - getPhonePrefixDigits(a).length,
-  );
-
-  return (
-    sortedCountries.find((country) => {
-      const prefixDigits = getPhonePrefixDigits(country);
-      return Boolean(prefixDigits) && digits.startsWith(prefixDigits);
-    }) ?? null
-  );
-}
+import PhoneField from './components/PhoneField';
 
 export interface BasicInfoFormData {
   firstName: string;
@@ -122,7 +84,6 @@ const V2BasicInfo = (): JSX.Element => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPhoneRegisteredError, setIsPhoneRegisteredError] = useState(false);
-  const phoneCountryManuallySelectedRef = useRef(false);
 
   const firstNameInputRef = useRef<TextInput>(null);
   const lastNameInputRef = useRef<TextInput>(null);
@@ -131,25 +92,6 @@ const V2BasicInfo = (): JSX.Element => {
   const ssnInputRef = useRef<TextInput>(null);
 
   const regionIsoCode = userRegion?.country?.isoCode || '';
-
-  const defaultPhoneCountry = useMemo(
-    () =>
-      findCountryByPhonePrefix(countries, previousFormData?.mobileNumber) ??
-      userRegion?.country ??
-      null,
-    [countries, previousFormData?.mobileNumber, userRegion?.country],
-  );
-  const [phoneCountry, setPhoneCountry] = useState<Country | null>(
-    defaultPhoneCountry,
-  );
-
-  useEffect(() => {
-    if (phoneCountryManuallySelectedRef.current || !defaultPhoneCountry) {
-      return;
-    }
-
-    setPhoneCountry(defaultPhoneCountry);
-  }, [defaultPhoneCountry]);
 
   const utcDateToPrefill = new Date(previousFormData?.dob || '');
   const timestamp = utcDateToPrefill.getTime();
@@ -377,51 +319,13 @@ const V2BasicInfo = (): JSX.Element => {
     [formData, handleFormDataChange],
   );
 
-  const phonePrefix = phoneCountry?.phone?.prefix ?? '';
-  const phoneTemplate = phoneCountry?.phone?.template ?? DEFAULT_PHONE_TEMPLATE;
-
-  const rawPhoneDigits = getLocalPhoneDigits(formData.mobileNumber, phoneCountry);
-  const formattedPhoneValue = formatNumberToTemplate(
-    rawPhoneDigits,
-    phoneTemplate,
-  );
-
-  const handlePhoneCountrySelect = useCallback(
-    (country: Country) => {
-      const digits = getLocalPhoneDigits(formData.mobileNumber, phoneCountry);
-      const nextPhonePrefix = country.phone?.prefix ?? '';
-
+  const handlePhoneNumberChange = useCallback(
+    (mobileNumber: string) => {
       setError(null);
       setIsPhoneRegisteredError(false);
-      phoneCountryManuallySelectedRef.current = true;
-      setPhoneCountry(country);
-      handleFormDataChange('mobileNumber')(
-        nextPhonePrefix ? `${nextPhonePrefix}${digits}` : digits,
-      );
+      handleFormDataChange('mobileNumber')(mobileNumber);
     },
-    [formData.mobileNumber, handleFormDataChange, phoneCountry],
-  );
-
-  const handlePhoneCountryPress = useCallback(() => {
-    navigation.navigate(
-      ...createPhoneCountrySelectorModalNavigationDetails({
-        countries,
-        selectedCountry: phoneCountry,
-        onCountrySelect: handlePhoneCountrySelect,
-      }),
-    );
-  }, [countries, handlePhoneCountrySelect, navigation, phoneCountry]);
-
-  const handlePhoneChange = useCallback(
-    (text: string) => {
-      const digits = text.replace(/\D/g, '');
-      const fullNumber = phonePrefix ? phonePrefix + digits : digits;
-      handleFieldChange(
-        'mobileNumber',
-        focusNextField(dateInputRef),
-      )(fullNumber);
-    },
-    [phonePrefix, handleFieldChange, focusNextField, dateInputRef],
+    [handleFormDataChange],
   );
 
   return (
@@ -504,41 +408,18 @@ const V2BasicInfo = (): JSX.Element => {
               />
             </View>
 
-            <DepositTextField
+            <PhoneField
               label={strings('deposit.basic_info.phone_number')}
-              placeholder={
-                phoneCountry?.phone?.placeholder ??
-                strings('deposit.basic_info.enter_phone_number')
-              }
-              value={formattedPhoneValue}
-              onChangeText={handlePhoneChange}
+              value={formData.mobileNumber}
+              onChangeText={handlePhoneNumberChange}
+              countries={countries}
+              fallbackCountry={userRegion?.country}
+              initialNumber={previousFormData?.mobileNumber}
               error={errors.mobileNumber}
               ref={phoneInputRef}
               testID={BASIC_INFO_TEST_IDS.PHONE_INPUT}
+              countrySelectorTestID={BASIC_INFO_TEST_IDS.PHONE_COUNTRY_SELECTOR}
               onSubmitEditing={focusNextField(dateInputRef)}
-              keyboardType="phone-pad"
-              textContentType="telephoneNumber"
-              autoComplete="tel"
-              startAccessory={
-                phoneCountry || countries.length > 0 ? (
-                  <TouchableOpacity
-                    onPress={handlePhoneCountryPress}
-                    accessibilityRole="button"
-                    accessible
-                    style={styles.phoneFlagRow}
-                    testID={BASIC_INFO_TEST_IDS.PHONE_COUNTRY_SELECTOR}
-                  >
-                    {phoneCountry?.flag ? (
-                      <Text style={styles.phoneFlagEmoji}>
-                        {phoneCountry.flag}
-                      </Text>
-                    ) : null}
-                    {phonePrefix ? (
-                      <Text style={styles.phonePrefix}>{phonePrefix}</Text>
-                    ) : null}
-                  </TouchableOpacity>
-                ) : undefined
-              }
             />
 
             <DepositDateField

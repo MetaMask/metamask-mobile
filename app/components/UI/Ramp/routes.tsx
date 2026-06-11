@@ -138,7 +138,7 @@ const TokenListModalsRoutes = () => (
       component={SsnInfoModal}
     />
     <ModalsStack.Screen
-      name={Routes.RAMP.MODALS.REGION_SELECTOR}
+      name={Routes.RAMP.MODALS.PHONE_COUNTRY_SELECTOR}
       component={PhoneCountrySelectorModal}
     />
     <ModalsStack.Screen

@@ -774,6 +774,11 @@
       "search_by_country": "Ülkeye göre ara",
       "no_regions_found": "\"{{searchString}}\" ile eşleşen bölge yok"
     },
+    "phone_country_modal": {
+      "select_phone_country": "Telefon ülkesini seçin",
+      "search_by_country": "Ülkeye göre ara",
+      "no_countries_found": "\"{{searchString}}\" ile eşleşen ülke yok"
+    },
     "state_modal": {
       "select_a_state": "Bir eyalet seçin",
       "search_by_state": "Eyalete göre ara",

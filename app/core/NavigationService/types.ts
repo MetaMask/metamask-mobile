@@ -307,6 +307,7 @@ export interface RootStackParamList extends ParamListBase {
   RampFiatSelectorModal: undefined;
   RampIncompatibleAccountTokenModal: undefined;
   RampRegionSelectorModal: undefined;
+  RampPhoneCountrySelectorModal: undefined;
   RampUnsupportedRegionModal: undefined;
   RampUnsupportedTokenModal: undefined;
   RampPaymentMethodSelectorModal: undefined;

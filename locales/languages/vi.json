@@ -774,6 +774,11 @@
       "search_by_country": "Tìm kiếm theo quốc gia",
       "no_regions_found": "Không có khu vực nào khớp với \"{{searchString}}\""
     },
+    "phone_country_modal": {
+      "select_phone_country": "Chọn quốc gia điện thoại",
+      "search_by_country": "Tìm kiếm theo quốc gia",
+      "no_countries_found": "Không có quốc gia nào khớp với \"{{searchString}}\""
+    },
     "state_modal": {
       "select_a_state": "Chọn một bang",
       "search_by_state": "Tìm kiếm theo tiểu bang",

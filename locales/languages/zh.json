@@ -774,6 +774,11 @@
       "search_by_country": "按国家搜索",
       "no_regions_found": "没有符合“{{searchString}}”的地区"
     },
+    "phone_country_modal": {
+      "select_phone_country": "选择电话国家",
+      "search_by_country": "按国家搜索",
+      "no_countries_found": "没有符合“{{searchString}}”的国家"
+    },
     "state_modal": {
       "select_a_state": "选择州",
       "search_by_state": "按州搜索",

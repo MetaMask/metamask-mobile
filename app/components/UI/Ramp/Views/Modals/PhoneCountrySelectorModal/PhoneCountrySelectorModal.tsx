@@ -45,7 +45,7 @@ export interface PhoneCountrySelectorModalParams {
 export const createPhoneCountrySelectorModalNavigationDetails =
   createNavigationDetails<PhoneCountrySelectorModalParams>(
     Routes.RAMP.MODALS.ID,
-    Routes.RAMP.MODALS.REGION_SELECTOR,
+    Routes.RAMP.MODALS.PHONE_COUNTRY_SELECTOR,
   );
 
 function PhoneCountrySelectorModal() {
@@ -151,19 +151,14 @@ function PhoneCountrySelectorModal() {
         </ListItemColumn>
       </ListItemSelect>
     ),
-    [
-      handleCountryPress,
-      selectedCountry?.isoCode,
-      styles.emoji,
-      styles.region,
-    ],
+    [handleCountryPress, selectedCountry?.isoCode, styles.emoji, styles.region],
   );
 
   const renderEmptyList = useCallback(
     () => (
       <View style={styles.emptyList}>
         <Text variant={TextVariant.BodyLg} fontWeight={FontWeight.Medium}>
-          {strings('fiat_on_ramp_aggregator.region.no_region_results', {
+          {strings('deposit.phone_country_modal.no_countries_found', {
             searchString,
           })}
         </Text>
@@ -192,7 +187,7 @@ function PhoneCountrySelectorModal() {
       twClassName={surfaceClass}
     >
       <HeaderStandard
-        title={strings('deposit.region_modal.select_a_region')}
+        title={strings('deposit.phone_country_modal.select_phone_country')}
         onClose={() => sheetRef.current?.onCloseBottomSheet()}
       />
       <View style={styles.searchContainer}>
@@ -201,7 +196,7 @@ function PhoneCountrySelectorModal() {
           onPressClearButton={clearSearchText}
           onFocus={scrollToTop}
           onChangeText={handleSearchTextChange}
-          placeholder={strings('deposit.region_modal.search_by_country')}
+          placeholder={strings('deposit.phone_country_modal.search_by_country')}
         />
       </View>
       <FlatList
