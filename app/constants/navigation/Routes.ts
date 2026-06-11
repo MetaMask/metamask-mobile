@@ -12,6 +12,7 @@ const Routes = {
     BUY: 'RampBuy',
     SELL: 'RampSell',
     TOKEN_SELECTION: 'RampTokenSelection',
+    TOKEN_SELECTION_ROOT: 'RampTokenSelectionRoot',
     GET_STARTED: 'GetStarted',
     BUILD_QUOTE: 'BuildQuote',
     BUILD_QUOTE_HAS_STARTED: 'BuildQuoteHasStarted',
@@ -125,6 +126,16 @@ const Routes = {
   REWARDS_CAMPAIGN_TOUR_STEP: 'RewardsCampaignTourStep',
   REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW:
     'RewardsPerpsTradingCampaignDetails',
+  REWARDS_PREDICT_THE_PITCH_CAMPAIGN_DETAILS_VIEW:
+    'RewardsPredictThePitchCampaignDetails',
+  REWARDS_PREDICT_THE_PITCH_CAMPAIGN_WINNING_VIEW:
+    'RewardsPredictThePitchCampaignWinning',
+  REWARDS_PREDICT_THE_PITCH_CAMPAIGN_LEADERBOARD:
+    'RewardsPredictThePitchCampaignLeaderboard',
+  REWARDS_PREDICT_THE_PITCH_CAMPAIGN_PORTFOLIO_VIEW:
+    'RewardsPredictThePitchCampaignPortfolioView',
+  REWARDS_PREDICT_THE_PITCH_CAMPAIGN_STATS:
+    'RewardsPredictThePitchCampaignStats',
   REWARDS_PERPS_TRADING_CAMPAIGN_LEADERBOARD:
     'RewardsPerpsTradingCampaignLeaderboard',
   REWARDS_PERPS_TRADING_CAMPAIGN_STATS: 'RewardsPerpsTradingCampaignStats',
@@ -192,6 +203,7 @@ const Routes = {
     REHYDRATE: 'Rehydrate',
     WALLET_CREATION_ERROR: 'WalletCreationError',
     INTEREST_QUESTIONNAIRE: 'OnboardingInterestQuestionnaire',
+    CRYPTO_EXPERIENCE_QUESTIONNAIRE: 'OnboardingCryptoExperienceQuestionnaire',
   },
   SEND_FLOW: {
     SEND_TO: 'SendTo',
@@ -230,6 +242,7 @@ const Routes = {
     CONFIRM_TURN_ON_BACKUP_AND_SYNC: 'ConfirmTurnOnBackupAndSync',
     SDK_LOADING: 'SDKLoading',
     SDK_FEEDBACK: 'SDKFeedback',
+    SDK_CONNECT_V2_OTP: 'SDKConnectV2Otp',
     DATA_COLLECTION: 'DataCollection',
     EXPERIENCE_ENHANCER: 'ExperienceEnhancer',
     SDK_MANAGE_CONNECTIONS: 'SDKManageConnections',
@@ -324,6 +337,7 @@ const Routes = {
       MISSING_PRICE_MODAL: 'MissingPriceModal',
       TOKEN_WARNING_MODAL: 'TokenWarningModal',
       HIGH_RATE_ALERT_MODAL: 'HighRateAlertModal',
+      POST_TRADE_MODAL: 'PostTradeModal',
       BATCH_SELL_DESTINATION_TOKEN_SELECTOR_MODAL:
         'BatchSellDestinationTokenSelectorModal',
       BATCH_SELL_QUOTE_DETAILS_MODAL: 'BatchSellQuoteDetailsModal',
@@ -388,6 +402,7 @@ const Routes = {
     POSITIONS: 'PredictPositions',
     ACTIVITY_DETAIL: 'PredictActivityDetail',
     WORLD_CUP: 'PredictWorldCup',
+    FEED: 'PredictFeed',
     MODALS: {
       ROOT: 'PredictModals',
       BUY_PREVIEW: 'PredictBuyPreview',
@@ -454,6 +469,7 @@ const Routes = {
       LINK_CARD_SHEET: 'MoneyLinkCardSheet',
       EARN_CRYPTO_INFO_SHEET: 'MoneyEarnCryptoInfoSheet',
       TRANSACTION_DETAILS_SHEET: 'MoneyTransactionDetailsSheet',
+      CARD_TRANSACTION_DETAILS_SHEET: 'MoneyCardTransactionDetailsSheet',
     },
   },
   FULL_SCREEN_CONFIRMATIONS: {
@@ -541,9 +557,16 @@ const Routes = {
   SDK: {
     RETURN_TO_DAPP_NOTIFICATION: 'ReturnToDappToast',
   },
+  AGENTIC_CLI_DASHBOARD_WEBVIEW: {
+    ID: 'AgenticCliDashboardWebview',
+    CONFIRM: 'AgenticCliDashboardConfirmation',
+  },
   FEATURE_FLAG_OVERRIDE: 'FeatureFlagOverride',
   SECURITY_TRUST: 'SecurityTrust',
-  NAVIGATION_DEV_PANEL: 'NavigationDevPanel',
+  AGENTIC_CLI_APPROVAL: {
+    ID: 'AgenticCliApproval',
+    CONFIRM: 'AgenticCliApprovalConfirm',
+  },
 };
 
 export default Routes;

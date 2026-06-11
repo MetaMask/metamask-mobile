@@ -1,11 +1,11 @@
-import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
+import React from 'react';
 import { StyleSheet } from 'react-native';
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
-import QuickBuyPayWithScreen from './QuickBuyPayWithScreen';
-import { useQuickBuyContext } from './useQuickBuyContext';
 import { useChainDisplayInfos } from './hooks/useChainDisplayInfos';
-import { getTokenKey } from './sourceTokenCandidates';
+import QuickBuyPayWithScreen from './QuickBuyPayWithScreen';
+import { getTokenKey } from './tokenKey';
+import { useQuickBuyContext } from './useQuickBuyContext';
 
 jest.mock('./useQuickBuyContext', () => ({
   useQuickBuyContext: jest.fn(),
@@ -33,54 +33,14 @@ const createToken = (overrides: Partial<BridgeToken> = {}): BridgeToken => ({
   ...overrides,
 });
 
-const buildContext = (
-  tradeMode: 'buy' | 'sell',
-  overrides: Record<string, unknown> = {},
-) => ({
-  tradeMode,
-  target: {
-    chain: 'eip155:1',
-    tokenAddress: '0x0000000000000000000000000000000000000000',
-    tokenSymbol: 'ETH',
-    tokenName: 'Ether',
-  },
+const buildContext = (overrides: Record<string, unknown> = {}) => ({
+  tradeMode: 'buy',
   sourceTokenOptions: [createToken()],
   selectedSourceToken: createToken(),
   handleSelectSourceToken: jest.fn(),
-  sellDestTokenOptions: [
-    createToken({ symbol: 'USDC', chainId: '0x1' }),
-    createToken({
-      symbol: 'USDT',
-      chainId: '0x1',
-      address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
-    }),
-  ],
-  selectedDestStable: createToken({ symbol: 'USDC', chainId: '0x1' }),
-  handleSelectDestStable: jest.fn(),
   setActiveScreen: jest.fn(),
   ...overrides,
 });
-
-jest.mock(
-  './utils/chainMapping',
-  () => ({
-    chainNameToId: () => 'eip155:1',
-  }),
-  { virtual: true },
-);
-
-jest.mock(
-  '../../../utils/chainMapping',
-  () => ({
-    chainNameToId: () => 'eip155:1',
-  }),
-  { virtual: true },
-);
-
-jest.mock('@metamask/bridge-controller', () => ({
-  formatChainIdToHex: () => '0x1',
-  isNonEvmChainId: () => false,
-}));
 
 describe('QuickBuyPayWithScreen', () => {
   const handleSelectSourceToken = jest.fn();
@@ -97,53 +57,15 @@ describe('QuickBuyPayWithScreen', () => {
         })),
     );
     (useQuickBuyContext as jest.Mock).mockReturnValue(
-      buildContext('buy', { handleSelectSourceToken, setActiveScreen }),
+      buildContext({ handleSelectSourceToken, setActiveScreen }),
     );
   });
 
-  it('renders the pay with header title in buy mode', () => {
+  it('renders the pay with header title', () => {
     render(<QuickBuyPayWithScreen />);
     expect(
       screen.getByText('social_leaderboard.quick_buy.pay_with'),
     ).toBeOnTheScreen();
-  });
-
-  it('renders the receive with header title in sell mode', () => {
-    (useQuickBuyContext as jest.Mock).mockReturnValue(
-      buildContext('sell', { setActiveScreen }),
-    );
-    render(<QuickBuyPayWithScreen />);
-    expect(
-      screen.getByText('social_leaderboard.quick_buy.receive'),
-    ).toBeOnTheScreen();
-  });
-
-  it('shows stable-only candidates in sell mode (no natives)', () => {
-    const stableToken = createToken({ symbol: 'USDC', chainId: '0x1' });
-    (useQuickBuyContext as jest.Mock).mockReturnValue(
-      buildContext('sell', {
-        setActiveScreen,
-        sellDestTokenOptions: [stableToken],
-      }),
-    );
-    render(<QuickBuyPayWithScreen />);
-    expect(screen.getByTestId(getRowTestId(stableToken))).toBeOnTheScreen();
-  });
-
-  it('calls handleSelectDestStable in sell mode when a token is pressed', () => {
-    const handleSelectDestStable = jest.fn();
-    const stableToken = createToken({ symbol: 'USDC', chainId: '0x1' });
-    (useQuickBuyContext as jest.Mock).mockReturnValue(
-      buildContext('sell', {
-        setActiveScreen,
-        sellDestTokenOptions: [stableToken],
-        handleSelectDestStable,
-      }),
-    );
-    render(<QuickBuyPayWithScreen />);
-    fireEvent.press(screen.getByTestId(getRowTestId(stableToken)));
-    expect(handleSelectDestStable).toHaveBeenCalledWith(stableToken);
-    expect(setActiveScreen).toHaveBeenCalledWith('amount');
   });
 
   it('renders source token rows', () => {
@@ -152,9 +74,9 @@ describe('QuickBuyPayWithScreen', () => {
     expect(screen.getByTestId(getRowTestId(token))).toBeOnTheScreen();
   });
 
-  it('shows empty state when there are no source tokens in buy mode', () => {
+  it('shows the empty state when there are no source tokens', () => {
     (useQuickBuyContext as jest.Mock).mockReturnValue(
-      buildContext('buy', {
+      buildContext({
         sourceTokenOptions: [],
         selectedSourceToken: undefined,
         handleSelectSourceToken,
@@ -184,7 +106,7 @@ describe('QuickBuyPayWithScreen', () => {
 
   it('shows the chain filter when tokens span multiple chains', () => {
     (useQuickBuyContext as jest.Mock).mockReturnValue(
-      buildContext('buy', {
+      buildContext({
         sourceTokenOptions: [
           createToken({ symbol: 'USDC', chainId: '0x1' }),
           createToken({
@@ -222,7 +144,7 @@ describe('QuickBuyPayWithScreen', () => {
       address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
     });
     (useQuickBuyContext as jest.Mock).mockReturnValue(
-      buildContext('buy', {
+      buildContext({
         sourceTokenOptions: [usdcToken, usdtToken],
         selectedSourceToken: createToken(),
         handleSelectSourceToken,
@@ -246,7 +168,7 @@ describe('QuickBuyPayWithScreen', () => {
       address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
     });
     (useQuickBuyContext as jest.Mock).mockReturnValue(
-      buildContext('buy', {
+      buildContext({
         sourceTokenOptions: [usdcToken, usdtToken],
         selectedSourceToken: createToken(),
         handleSelectSourceToken,

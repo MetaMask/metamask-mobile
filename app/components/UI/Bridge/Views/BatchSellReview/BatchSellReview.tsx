@@ -48,8 +48,8 @@ import { getBatchSellSlippage } from '../../components/SlippageModal/utils';
 import { BatchSellReviewSelectorsIDs } from './BatchSellReview.testIds';
 import { BatchSellReviewTokenRow } from './BatchSellReviewTokenRow';
 import {
-  getBatchSellAtomicSourceAmount,
   getBatchSellSourceTokenAmount,
+  hasValidBatchSellSourceAmounts,
   useBatchSellQuoteRequest,
 } from '../../hooks/useBatchSellQuoteRequest';
 import { useBatchSellQuoteData } from '../../hooks/useBatchSellQuoteData';
@@ -129,19 +129,13 @@ export function BatchSellReview() {
   const { updateBatchSellQuoteParams, getNewQuote: handleGetNewQuote } =
     useBatchSellQuoteRequest();
   const batchSellQuoteData = useBatchSellQuoteData();
-  const hasValidBatchSellInputs = useMemo(
+  const hasValidSourceAmounts = useMemo(
     () =>
-      Boolean(selectedDestinationToken) &&
-      selectedTokens.some((token) => {
-        const assetId = formatAddressToAssetId(token.address, token.chainId);
-        return (
-          assetId &&
-          getBatchSellAtomicSourceAmount(
-            token,
-            batchSellSourceTokenAmounts[assetId],
-          )
-        );
-      }),
+      hasValidBatchSellSourceAmounts(
+        selectedTokens,
+        batchSellSourceTokenAmounts,
+        selectedDestinationToken,
+      ),
     [batchSellSourceTokenAmounts, selectedDestinationToken, selectedTokens],
   );
 
@@ -164,14 +158,17 @@ export function BatchSellReview() {
   }, [selectedTokens]);
 
   useEffect(() => {
-    if (hasValidBatchSellInputs) {
+    if (hasValidSourceAmounts) {
       updateBatchSellQuoteParams();
+    } else {
+      updateBatchSellQuoteParams.cancel();
+      Engine.context.BridgeController?.resetState?.();
     }
 
     return () => {
       updateBatchSellQuoteParams.cancel();
     };
-  }, [hasValidBatchSellInputs, updateBatchSellQuoteParams]);
+  }, [hasValidSourceAmounts, updateBatchSellQuoteParams]);
 
   useEffect(
     () => () => {
@@ -329,7 +326,8 @@ export function BatchSellReview() {
   const hasReviewableQuote =
     batchSellQuoteData.hasAnyQuote && !batchSellQuoteData.hasPendingQuoteRows;
   const isReviewButtonDisabled =
-    !shouldGetNewQuote && (isFetchingQuotes || !hasReviewableQuote);
+    !hasValidSourceAmounts ||
+    (!shouldGetNewQuote && (isFetchingQuotes || !hasReviewableQuote));
   let reviewButtonLabel = strings('bridge.batch_sell_review');
 
   if (shouldGetNewQuote) {

@@ -23,6 +23,7 @@ jest.mock('./hooks/useQuickBuySetup', () => ({
 }));
 
 let storedOnOpenCallback: (() => void) | undefined;
+const mockOnCloseDialog = jest.fn((cb?: () => void) => cb?.());
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -31,7 +32,7 @@ jest.mock('@metamask/design-system-react-native', () => {
 
   return {
     ...actual,
-    BottomSheet: ReactMock.forwardRef(
+    BottomSheetDialog: ReactMock.forwardRef(
       (
         {
           children,
@@ -43,17 +44,36 @@ jest.mock('@metamask/design-system-react-native', () => {
         ref: unknown,
       ) => {
         ReactMock.useImperativeHandle(ref, () => ({
-          onOpenBottomSheet: (cb: () => void) => {
+          onOpenDialog: (cb: () => void) => {
             storedOnOpenCallback = cb;
           },
+          onCloseDialog: mockOnCloseDialog,
         }));
         return ReactMock.createElement(
           View,
-          { testID: 'mock-bottom-sheet', onTouchEnd: onClose },
+          { testID: 'mock-bottom-sheet-dialog', onTouchEnd: onClose },
           children,
         );
       },
     ),
+  };
+});
+
+// Render Animated.View as a plain host View that forwards layout-animation props
+// (entering/exiting) so the suppression of the exit transition is observable.
+jest.mock('react-native-reanimated', () => {
+  const actual = jest.requireActual('react-native-reanimated');
+  const ReactMock = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  const AnimatedView = ReactMock.forwardRef(
+    (props: Record<string, unknown>, ref: unknown) =>
+      ReactMock.createElement(View, { ...props, ref }),
+  );
+  AnimatedView.displayName = 'MockAnimatedView';
+  return {
+    ...actual,
+    __esModule: true,
+    default: { ...actual.default, View: AnimatedView },
   };
 });
 
@@ -157,6 +177,7 @@ const buildHookResult = (
   estimatedReceiveAmount: undefined,
   sourceBalanceFiat: '$0.00',
   sourceBalanceDisplay: undefined,
+  destBalanceFiat: undefined,
   formattedNetworkFee: '-',
   formattedSlippage: '-',
   formattedMinimumReceived: '-',
@@ -165,6 +186,7 @@ const buildHookResult = (
   formattedRate: undefined,
   totalAmountUsd: '$0',
   isQuoteLoading: false,
+  isBlockingQuoteLoad: false,
   isSubmittingTx: false,
   isTotalLoading: false,
   sortedQuotes: [],
@@ -232,6 +254,7 @@ describe('QuickBuyRoot', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     storedOnOpenCallback = undefined;
+    mockOnCloseDialog.mockImplementation((cb?: () => void) => cb?.());
     (useQuickBuyController as jest.Mock).mockReturnValue(buildHookResult());
     (useQuickBuySetup as jest.Mock).mockReturnValue({
       chainId: '0x1',
@@ -390,6 +413,69 @@ describe('QuickBuyRoot', () => {
 
     expect(StyleSheet.flatten(container.props.style)).toMatchObject({
       height: 480,
+    });
+  });
+
+  describe('close behavior', () => {
+    const CloseProbe = () => {
+      const { onClose } = useQuickBuyContext();
+      return <Pressable testID="probe-close" onPress={onClose} />;
+    };
+
+    it('animates the sheet down via onCloseDialog and runs the parent onClose', () => {
+      const onClose = jest.fn();
+      renderWithProvider(
+        <QuickBuyRoot
+          isVisible
+          target={positionToQuickBuyTarget(createPosition())}
+          features={TOP_TRADERS_QUICK_BUY_FEATURES}
+          onClose={onClose}
+        >
+          <CloseProbe />
+        </QuickBuyRoot>,
+      );
+      act(() => {
+        storedOnOpenCallback?.();
+      });
+
+      act(() => {
+        fireEvent.press(screen.getByTestId('probe-close'));
+      });
+
+      expect(mockOnCloseDialog).toHaveBeenCalledTimes(1);
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('suppresses the content exit transition while closing', () => {
+      renderWithProvider(
+        <QuickBuyRoot
+          isVisible
+          target={positionToQuickBuyTarget(createPosition())}
+          features={TOP_TRADERS_QUICK_BUY_FEATURES}
+          onClose={jest.fn()}
+        >
+          <CloseProbe />
+        </QuickBuyRoot>,
+      );
+      act(() => {
+        storedOnOpenCallback?.();
+      });
+
+      const beforeContainer = screen.getByTestId('quick-buy-content-container');
+      const animatedBefore = beforeContainer.children[0] as {
+        props: { exiting?: unknown };
+      };
+      expect(animatedBefore.props.exiting).toBeDefined();
+
+      act(() => {
+        fireEvent.press(screen.getByTestId('probe-close'));
+      });
+
+      const afterContainer = screen.getByTestId('quick-buy-content-container');
+      const animatedAfter = afterContainer.children[0] as {
+        props: { exiting?: unknown };
+      };
+      expect(animatedAfter.props.exiting).toBeUndefined();
     });
   });
 

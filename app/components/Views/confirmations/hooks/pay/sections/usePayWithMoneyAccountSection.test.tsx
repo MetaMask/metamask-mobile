@@ -194,8 +194,14 @@ describe('usePayWithMoneyAccountSection', () => {
     expect(result.current).toBeNull();
   });
 
-  it.each([TransactionType.perpsDeposit, TransactionType.predictDeposit])(
-    'returns section config with "available" suffix for deposit transaction type %s',
+  it.each([
+    TransactionType.perpsDeposit,
+    TransactionType.predictDeposit,
+    TransactionType.perpsWithdraw,
+    TransactionType.predictWithdraw,
+    TransactionType.predictDepositAndOrder,
+  ])(
+    'returns section config with "available" subtitle for transaction type %s',
     (txType) => {
       useTransactionMetadataRequestMock.mockReturnValue({
         id: 'tx-1',
@@ -208,7 +214,7 @@ describe('usePayWithMoneyAccountSection', () => {
       expect(result.current).toEqual(
         expect.objectContaining({
           id: 'money-account',
-          title: 'Money account',
+          title: '',
           testID: PAY_WITH_MONEY_ACCOUNT_SECTION_TEST_ID,
         }),
       );
@@ -216,37 +222,11 @@ describe('usePayWithMoneyAccountSection', () => {
       expect(result.current?.rows[0]).toEqual(
         expect.objectContaining({
           id: 'money-account-musd',
-          title: 'mUSD',
+          title: 'Money account',
           subtitle: '$100.00 available',
           isSelected: false,
           isLastUsed: false,
           trailingElement: 'none',
-          testID: PAY_WITH_MONEY_ACCOUNT_ROW_TEST_ID,
-        }),
-      );
-    },
-  );
-
-  it.each([
-    TransactionType.perpsWithdraw,
-    TransactionType.predictWithdraw,
-    TransactionType.predictDepositAndOrder,
-  ])(
-    'omits the "available" suffix for non-deposit transaction type %s',
-    (txType) => {
-      useTransactionMetadataRequestMock.mockReturnValue({
-        id: 'tx-1',
-        type: txType,
-        txParams: {},
-      } as never);
-
-      const { result } = renderHook(() => usePayWithMoneyAccountSection());
-
-      expect(result.current?.rows[0]).toEqual(
-        expect.objectContaining({
-          id: 'money-account-musd',
-          title: 'mUSD',
-          subtitle: '$100.00',
           testID: PAY_WITH_MONEY_ACCOUNT_ROW_TEST_ID,
         }),
       );
@@ -273,14 +253,14 @@ describe('usePayWithMoneyAccountSection', () => {
     expect(result.current?.rows[0].subtitle).toBeUndefined();
   });
 
-  it('renders an Image icon with the MUSD token image URI', () => {
+  it('renders an Image icon with the money.png source', () => {
     const { result } = renderHook(() => usePayWithMoneyAccountSection());
 
     const icon = result.current?.rows[0].icon as React.ReactElement<{
-      source: { uri: string };
+      source: number;
     }>;
     expect(icon).toBeDefined();
-    expect(icon.props.source.uri).toContain('tokenIcons');
+    expect(icon.props.source).toBeDefined();
   });
 
   it('keeps the result reference stable across renders when nothing changes', () => {

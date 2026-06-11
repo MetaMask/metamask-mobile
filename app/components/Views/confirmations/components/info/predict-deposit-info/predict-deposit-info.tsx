@@ -5,9 +5,22 @@ import { strings } from '../../../../../../../locales/i18n';
 import { POLYGON_PUSD, PREDICT_CURRENCY } from '../../../constants/predict';
 import { useAddToken } from '../../../hooks/tokens/useAddToken';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { useMoneyAccountPaymentOverride } from '../../../hooks/pay/useMoneyAccountPaymentOverride';
+import { useParams } from '../../../../../../util/navigation/navUtils';
+import {
+  ConfirmationParams,
+  PayWithOption,
+} from '../../confirm/confirm-component';
 
 export function PredictDepositInfo() {
-  useNavbar(strings('confirm.title.predict_deposit'));
+  const { payWithOption } = useParams<ConfirmationParams>({});
+  const title =
+    payWithOption === PayWithOption.MoneyAccount
+      ? strings('predict.transfer_to_predictions')
+      : strings('confirm.title.predict_deposit');
+
+  useNavbar(title);
+  useMoneyAccountPaymentOverride();
 
   useAddToken({
     chainId: CHAIN_IDS.POLYGON,
