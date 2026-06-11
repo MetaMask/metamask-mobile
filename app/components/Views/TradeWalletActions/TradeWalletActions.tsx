@@ -78,6 +78,14 @@ const animationDuration = AnimationDuration.Fast;
 const batchSellIconStyle = {
   transform: [{ rotate: '180deg' }],
 } satisfies ViewStyle;
+const getActionAccessibilityProps = (label: string, description: string) => ({
+  accessible: true,
+  accessibilityRole: 'button' as const,
+  accessibilityLabel: `${label}, ${description}`,
+  labelTextProps: { accessible: false },
+  descriptionTextProps: { accessible: false },
+  iconProps: { accessible: false },
+});
 
 interface TradeWalletActionsParams {
   onDismiss?: () => void;
@@ -367,6 +375,10 @@ function TradeWalletActions() {
                     label={strings('asset_overview.swap')}
                     description={strings('asset_overview.swap_description')}
                     iconName={IconName.SwapVertical}
+                    {...getActionAccessibilityProps(
+                      strings('asset_overview.swap'),
+                      strings('asset_overview.swap_description'),
+                    )}
                     onPress={goToSwaps}
                     testID={WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON}
                     isDisabled={!isSwapsEnabled}
@@ -378,6 +390,10 @@ function TradeWalletActions() {
                     label={strings('asset_overview.perps_button')}
                     description={strings('asset_overview.perps_description')}
                     iconName={IconName.Candlestick}
+                    {...getActionAccessibilityProps(
+                      strings('asset_overview.perps_button'),
+                      strings('asset_overview.perps_description'),
+                    )}
                     onPress={onPerps}
                     testID={WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON}
                     isDisabled={!canSignTransactions}
@@ -389,6 +405,10 @@ function TradeWalletActions() {
                     label={strings('asset_overview.predict_button')}
                     description={strings('asset_overview.predict_description')}
                     iconName={IconName.Speedometer}
+                    {...getActionAccessibilityProps(
+                      strings('asset_overview.predict_button'),
+                      strings('asset_overview.predict_description'),
+                    )}
                     onPress={onPredict}
                     testID={WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON}
                     isDisabled={!canSignTransactions}
@@ -400,6 +420,10 @@ function TradeWalletActions() {
                     label={strings('asset_overview.earn_button')}
                     description={strings('asset_overview.earn_description')}
                     iconName={IconName.Stake}
+                    {...getActionAccessibilityProps(
+                      strings('asset_overview.earn_button'),
+                      strings('asset_overview.earn_description'),
+                    )}
                     onPress={onEarn}
                     testID={WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON}
                     isDisabled={!canSignTransactions}
