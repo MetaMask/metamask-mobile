@@ -142,9 +142,8 @@ describe('MoneyBalanceCard', () => {
     });
     mockRouteAddMoney.mockResolvedValue(undefined);
     mockUseMoneyAccountAddRouting.mockReturnValue({
-      hasMusdBalance: false,
       routeAddMoney: mockRouteAddMoney,
-    } as unknown as ReturnType<typeof useMoneyAccountAddRouting>);
+    });
     (useMoneyAnalytics as jest.Mock).mockReturnValue({
       trackButtonClicked: mockTrackButtonClicked,
       trackComponentViewed: mockTrackComponentViewed,
@@ -234,25 +233,7 @@ describe('MoneyBalanceCard', () => {
       });
     });
 
-    it('tracks the Add click with the Buy flow redirect target when the wallet holds no mUSD', () => {
-      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
-
-      fireEvent.press(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON));
-
-      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
-        button_type: MONEY_BUTTON_TYPES.TEXT,
-        button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
-        label_key: 'money.balance_card.add',
-        redirect_target: SCREEN_NAMES.RAMP_BUY,
-      });
-    });
-
-    it('tracks the Add click with the deposit redirect target when the wallet holds mUSD', () => {
-      mockUseMoneyAccountAddRouting.mockReturnValue({
-        hasMusdBalance: true,
-        routeAddMoney: mockRouteAddMoney,
-      } as unknown as ReturnType<typeof useMoneyAccountAddRouting>);
-
+    it('tracks the Add click with the deposit redirect target', () => {
       const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
       fireEvent.press(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON));
@@ -330,7 +311,7 @@ describe('MoneyBalanceCard', () => {
         button_type: MONEY_BUTTON_TYPES.TEXT,
         button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
         label_key: 'homepage.sections.money_empty_state.earn',
-        redirect_target: SCREEN_NAMES.RAMP_BUY,
+        redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
       });
     });
   });

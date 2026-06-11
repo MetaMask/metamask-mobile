@@ -60,7 +60,7 @@ const MoneyBalanceCard = () => {
   } = useMoneyAccountBalance();
   const { hasMoneyAccount } = useMoneyAccountInfo();
   const { navigateToMoneyHome } = useMoneyNavigation();
-  const { hasMusdBalance, routeAddMoney } = useMoneyAccountAddRouting();
+  const { routeAddMoney } = useMoneyAccountAddRouting();
   const hasSeenMoneyOnboarding = useSelector(selectMoneyOnboardingSeen);
   const hasOtherPrimaryCtaOnHome = useSelector(
     selectWalletHomeOnboardingFlowVisible,
@@ -154,13 +154,11 @@ const MoneyBalanceCard = () => {
       button_type: MONEY_BUTTON_TYPES.TEXT,
       button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
       label_key: buttonLabelKey,
-      redirect_target: hasMusdBalance
-        ? SCREEN_NAMES.MONEY_DEPOSIT
-        : SCREEN_NAMES.RAMP_BUY,
+      redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
     });
 
     routeAddMoney();
-  }, [buttonLabelKey, hasMusdBalance, routeAddMoney, trackButtonClicked]);
+  }, [buttonLabelKey, routeAddMoney, trackButtonClicked]);
 
   const handleInfoPress = useCallback(() => {
     trackTooltipClicked({
