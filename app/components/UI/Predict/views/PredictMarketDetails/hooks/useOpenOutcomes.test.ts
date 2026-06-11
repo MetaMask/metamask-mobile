@@ -1,15 +1,10 @@
 import { renderHook } from '@testing-library/react-native';
 import { Recurrence, type PredictMarket } from '../../../types';
 import { useLiveMarketPrices } from '../../../hooks/useLiveMarketPrices';
-import { usePredictPrices } from '../../../hooks/usePredictPrices';
 import { useOpenOutcomes } from './useOpenOutcomes';
 
 jest.mock('../../../hooks/useLiveMarketPrices', () => ({
   useLiveMarketPrices: jest.fn(),
-}));
-
-jest.mock('../../../hooks/usePredictPrices', () => ({
-  usePredictPrices: jest.fn(),
 }));
 
 const createMarket = (): PredictMarket => ({
@@ -47,16 +42,9 @@ const createMarket = (): PredictMarket => ({
 
 describe('useOpenOutcomes', () => {
   const mockUseLiveMarketPrices = useLiveMarketPrices as jest.Mock;
-  const mockUsePredictPrices = usePredictPrices as jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUsePredictPrices.mockReturnValue({
-      prices: { providerId: '', results: [] },
-      isFetching: false,
-      error: null,
-      refetch: jest.fn(),
-    });
   });
 
   it('uses live best ask prices for open outcome tokens', () => {
@@ -76,39 +64,50 @@ describe('useOpenOutcomes', () => {
     expect(result.current.yesPercentage).toBe(71);
   });
 
-  it('falls back to REST buy prices when live prices are temporarily unavailable', () => {
+  it('falls back to the base market price when live prices are unavailable', () => {
     mockUseLiveMarketPrices.mockReturnValue({
       getPrice: () => undefined,
-    });
-    mockUsePredictPrices.mockReturnValue({
-      prices: {
-        providerId: 'polymarket',
-        results: [
-          {
-            marketId: 'market-1',
-            outcomeId: 'outcome-1',
-            outcomeTokenId: 'up-token',
-            entry: { buy: 0.63, sell: 0.37 },
-          },
-          {
-            marketId: 'market-1',
-            outcomeId: 'outcome-1',
-            outcomeTokenId: 'down-token',
-            entry: { buy: 0.43, sell: 0.57 },
-          },
-        ],
-      },
-      isFetching: false,
-      error: null,
-      refetch: jest.fn(),
     });
 
     const { result } = renderHook(() =>
       useOpenOutcomes({ market: createMarket() }),
     );
 
-    expect(result.current.openOutcomes[0].tokens[0].price).toBe(0.63);
-    expect(result.current.openOutcomes[0].tokens[1].price).toBe(0.43);
-    expect(result.current.yesPercentage).toBe(63);
+    expect(result.current.openOutcomes[0].tokens[0].price).toBe(0.51);
+    expect(result.current.openOutcomes[0].tokens[1].price).toBe(0.49);
+    expect(result.current.yesPercentage).toBe(51);
+  });
+
+  it('subscribes to the open outcome token ids for live prices', () => {
+    mockUseLiveMarketPrices.mockReturnValue({ getPrice: () => undefined });
+
+    renderHook(() => useOpenOutcomes({ market: createMarket() }));
+
+    expect(mockUseLiveMarketPrices).toHaveBeenCalledWith(
+      ['up-token', 'down-token'],
+      { enabled: true },
+    );
+  });
+
+  it('does not subscribe when market is null', () => {
+    mockUseLiveMarketPrices.mockReturnValue({ getPrice: () => undefined });
+
+    renderHook(() => useOpenOutcomes({ market: null }));
+
+    expect(mockUseLiveMarketPrices).toHaveBeenCalledWith([], {
+      enabled: false,
+    });
+  });
+
+  it('does not subscribe when disabled', () => {
+    mockUseLiveMarketPrices.mockReturnValue({ getPrice: () => undefined });
+
+    renderHook(() =>
+      useOpenOutcomes({ market: createMarket(), enabled: false }),
+    );
+
+    expect(mockUseLiveMarketPrices).toHaveBeenCalledWith([], {
+      enabled: false,
+    });
   });
 });
