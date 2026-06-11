@@ -23,6 +23,10 @@ import MoneyCardTransactionDetailsSheet from '../components/MoneyCardTransaction
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import { useEmptyNavHeaderForConfirmations } from '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
 import { useUpgradeMoneyAccountOnMount } from '../hooks/useUpgradeMoneyAccountOnMount';
+import {
+  MoneyConfirmationHeaderPreview,
+  MONEY_CONFIRMATION_HEADER_PREVIEW_ROUTE,
+} from '../../../Nav/MainNavigatorDeveloperOptionsSection';
 
 const Stack = createNativeStackNavigator();
 const ModalStack = createNativeStackNavigator();
@@ -80,6 +84,11 @@ const MoneyConfirmationScreenStack = () => {
         name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
         options={emptyNavHeaderOptions}
         component={Confirm}
+      />
+      <Stack.Screen
+        name={MONEY_CONFIRMATION_HEADER_PREVIEW_ROUTE}
+        component={MoneyConfirmationHeaderPreview}
+        options={{ headerShown: false }}
       />
     </Stack.Navigator>
   );
