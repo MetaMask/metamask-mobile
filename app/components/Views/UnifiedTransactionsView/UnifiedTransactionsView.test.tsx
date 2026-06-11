@@ -933,22 +933,6 @@ describe('UnifiedTransactionsView - Speed up / Cancel modal', () => {
   });
 });
 
-describe('UnifiedTransactionsView - refresh', () => {
-  const initialState = {
-    engine: {
-      backgroundState,
-    },
-  };
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-    mockUseTransactionsQuery();
-    (useUnifiedTxActions as jest.Mock).mockImplementation(
-      () => mockDefaultUnifiedTxActionsReturn,
-    );
-  });
-});
-
 describe('UnifiedTransactionsView - token poisoning protection', () => {
   const FRIEND_ADDRESS = '0x1234000000000000000000000000000000000001';
   const ACTIVE_EVM_ADDRESS = '0xabc';
