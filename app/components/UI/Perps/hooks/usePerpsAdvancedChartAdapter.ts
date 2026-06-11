@@ -5,6 +5,7 @@ import {
   type CandleData,
 } from '@metamask/perps-controller';
 import { usePerpsStream } from '../providers/PerpsStreamManager';
+import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import type {
   OHLCVBar,
   FetchOlderBarsRequest,
@@ -99,6 +100,8 @@ export function usePerpsAdvancedChartAdapter({
   const latestCandleDataRef = useRef<CandleData | null>(null);
   /** Last bar emitted — used to detect ticks vs full loads. */
   const prevLastBarRef = useRef<OHLCVBar | null>(null);
+  /** Cleared once the first delivery (or an error) lands, so the skeleton never hangs. */
+  const hasReceivedFirstUpdateRef = useRef(false);
 
   useEffect(() => {
     // Reset on symbol/interval change.
@@ -107,6 +110,7 @@ export function usePerpsAdvancedChartAdapter({
     setRealtimeBar(undefined);
     prevLastBarRef.current = null;
     latestCandleDataRef.current = null;
+    hasReceivedFirstUpdateRef.current = false;
 
     const unsubscribe = stream.candles.subscribe({
       symbol,
@@ -124,6 +128,15 @@ export function usePerpsAdvancedChartAdapter({
         latestCandleDataRef.current = candleData;
 
         const converted = convertCandlesToOHLCVBars(candleData.candles);
+
+        // Clear the skeleton on the first delivery for this subscription, even if the
+        // frame is empty (matches usePerpsLiveCandles). Otherwise an empty initial frame
+        // leaves the loading overlay up indefinitely.
+        if (!hasReceivedFirstUpdateRef.current) {
+          hasReceivedFirstUpdateRef.current = true;
+          setIsLoading(false);
+        }
+
         if (converted.length === 0) return;
 
         const lastBar = converted[converted.length - 1];
@@ -132,7 +145,6 @@ export function usePerpsAdvancedChartAdapter({
         if (prev === null) {
           // First data for this symbol+interval — send full dataset.
           setOhlcvData(converted);
-          setIsLoading(false);
           // realtimeBar stays undefined; AdvancedChart uses ohlcvData for initial render.
         } else if (
           lastBar.time !== prev.time ||
@@ -147,6 +159,17 @@ export function usePerpsAdvancedChartAdapter({
         // If nothing changed (e.g. throttle burst with same values), skip update.
 
         prevLastBarRef.current = lastBar;
+      },
+      onError: (err: Error) => {
+        // Surface the error by clearing the skeleton so the chart never hangs on a
+        // subscription failure (e.g. a cold first load before the WS is established).
+        // A transient candle error should not tear down the WebView chart, so we do
+        // not trigger the Lightweight fallback here.
+        setIsLoading(false);
+        DevLogger.log(
+          'usePerpsAdvancedChartAdapter: candle subscription error',
+          { symbol, interval: interval as string, error: err?.message },
+        );
       },
     });
 
