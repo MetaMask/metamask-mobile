@@ -223,6 +223,7 @@ describe('useConfirmationAlerts', () => {
     (useHeadlessBuyErrorAlert as jest.Mock).mockReturnValue([]);
     (useTokenContractAlert as jest.Mock).mockReturnValue([]);
     (useAddressPoisoningAlert as jest.Mock).mockReturnValue([]);
+    (useAccountNoFundsAlert as jest.Mock).mockReturnValue([]);
   });
 
   it('returns empty array if no alerts', () => {
