@@ -327,7 +327,7 @@ function PayWithRowMoneyAccount() {
             color={TextColor.TextDefault}
             testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
           >
-            {strings('confirm.pay_with_bottom_sheet.money_balance')}
+            {strings('confirm.pay_with_bottom_sheet.money_account')}
           </Text>
           <Icon
             name={IconName.ArrowDown}

@@ -34,7 +34,7 @@ class PerpsMarketListView {
    * HeaderCompactStandard back on explore market list (see PerpsMarketListView.tsx).
    * Navigates from the market list back to Perps portfolio home.
    */
-  get headerBackButton(): DetoxElement {
+  get headerBackButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-back-button`,
     );
@@ -108,7 +108,6 @@ class PerpsMarketListView {
 
   // Generic selector for first market row item (regardless of coin)
   get firstMarketRowItem() {
-    // Match any element with testID that starts with 'perps-market-row-item-' and get the first one
     return Matchers.getElementByID(/^perps-market-row-item-.*/, 0);
   }
 

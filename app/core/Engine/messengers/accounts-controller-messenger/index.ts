@@ -1,11 +1,6 @@
 import { AccountsControllerMessenger } from '@metamask/accounts-controller';
 import { RootExtendedMessenger, RootMessenger } from '../../types';
 import {
-  SnapKeyringAccountAssetListUpdatedEvent,
-  SnapKeyringAccountBalancesUpdatedEvent,
-  SnapKeyringAccountTransactionsUpdatedEvent,
-} from '../../../SnapKeyring/constants';
-import {
   Messenger,
   MessengerActions,
   MessengerEvents,
@@ -40,9 +35,9 @@ export function getAccountsControllerMessenger(
     ],
     events: [
       'KeyringController:stateChange',
-      SnapKeyringAccountAssetListUpdatedEvent,
-      SnapKeyringAccountBalancesUpdatedEvent,
-      SnapKeyringAccountTransactionsUpdatedEvent,
+      'SnapAccountService:accountAssetListUpdated',
+      'SnapAccountService:accountBalancesUpdated',
+      'SnapAccountService:accountTransactionsUpdated',
       'MultichainNetworkController:networkDidChange',
     ],
     messenger,

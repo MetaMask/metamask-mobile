@@ -101,7 +101,7 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
         source: MoneyIcon,
         style: styles.moneyIcon,
       }),
-      title: strings('confirm.pay_with_bottom_sheet.money_balance'),
+      title: strings('confirm.pay_with_bottom_sheet.money_account'),
       subtitle,
       isSelected: isMoneyAccountSelected,
       isLastUsed: false,

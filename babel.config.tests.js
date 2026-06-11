@@ -71,6 +71,8 @@ const newOverrides = [
       'app/util/networks/customNetworks.tsx',
       'tests/framework/playwrightLogger.ts',
       'tests/framework/services/providers/emulator/reinstallLocalBuildFromPath.ts',
+      'tests/framework/services/appium/ScreenRecording.ts',
+      'tests/framework/services/appium/AppiumServer.ts',
       '.yarn/plugins/plugin-usage-tracking.cjs',
       '.yarn/plugins/plugin-usage-tracking.test.ts',
     ],

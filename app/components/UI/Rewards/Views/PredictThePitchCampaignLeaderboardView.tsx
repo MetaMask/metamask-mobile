@@ -91,7 +91,6 @@ const PredictThePitchCampaignLeaderboardView: React.FC = () => {
 
   const isCampaignComplete =
     campaign != null && getCampaignStatus(campaign) === 'complete';
-  const totalParticipants = leaderboard?.totalParticipants ?? 0;
 
   return (
     <ErrorBoundary
@@ -140,22 +139,6 @@ const PredictThePitchCampaignLeaderboardView: React.FC = () => {
           )}
 
           <Box twClassName="py-4">
-            <Box
-              twClassName="px-4 gap-0.5 mb-2"
-              testID={PREDICT_THE_PITCH_LEADERBOARD_TEST_IDS.TOTAL_PARTICIPANTS}
-            >
-              {totalParticipants > 0 && (
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.TextAlternative}
-                >
-                  {strings(
-                    'rewards.predict_the_pitch_campaign.leaderboard_total_participants',
-                    { count: totalParticipants.toLocaleString() },
-                  )}
-                </Text>
-              )}
-            </Box>
             <PredictThePitchLeaderboard
               entries={leaderboard?.entries ?? []}
               isLoading={isLeaderboardLoading}

@@ -17,7 +17,6 @@ jest.mock('@react-navigation/stack', () => ({
   }),
   TransitionPresets: {
     ModalSlideFromBottomIOS: {},
-    ModalPresentationIOS: {},
   },
 }));
 
@@ -857,19 +856,6 @@ describe('MainNavigator', () => {
         })) as ScreenChild[];
     };
 
-    it('includes CollectiblesDetails screen', () => {
-      const container = renderWithProvider(<MainNavigator />, {
-        state: initialRootState,
-      });
-
-      const screenProps = getScreenProps(container);
-      const screen = screenProps?.find(
-        (s) => s?.name === 'CollectiblesDetails',
-      );
-
-      expect(screen).toBeDefined();
-    });
-
     it('includes DeprecatedNetworkDetails screen', () => {
       const container = renderWithProvider(<MainNavigator />, {
         state: initialRootState,
@@ -995,6 +981,9 @@ describe('MainNavigator', () => {
       const screen = screenProps?.find((s) => s?.name === 'ConfirmAddAsset');
 
       expect(screen).toBeDefined();
+      expect(screen?.options?.headerShown).toBe(false);
+      expect(screen?.options?.animationEnabled).toBe(true);
+      expect(typeof screen?.options?.cardStyleInterpolator).toBe('function');
     });
 
     it('includes StakeScreens route', () => {
@@ -1078,6 +1067,9 @@ describe('MainNavigator', () => {
       );
 
       expect(screen).toBeDefined();
+      expect(screen?.options?.headerShown).toBe(false);
+      expect(screen?.options?.animationEnabled).toBe(true);
+      expect(typeof screen?.options?.cardStyleInterpolator).toBe('function');
     });
 
     it('includes Asset screen', () => {
