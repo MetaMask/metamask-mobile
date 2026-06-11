@@ -317,13 +317,17 @@ export const unlockLedgerWalletAccount = async (index: number) => {
           );
         }
 
-        const accounts = await keyring.createAccounts({
+        const [account] = await keyring.createAccounts({
           type: 'bip44:derive-index',
           entropySource: keyring.entropySource,
           groupIndex: index,
         });
+
+        if (!account) {
+          throw new Error(`No account created for device: Ledger`);
+        }
         return {
-          unlockAccount: accounts[accounts.length - 1].address,
+          unlockAccount: account.address,
           name: accountName,
         };
       },
