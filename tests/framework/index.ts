@@ -79,4 +79,5 @@ export {
   type UnifiedGestureOptions,
   type TapAtIndexElement,
   type ScrollViewMatcher,
+  type ScrollContainer,
 } from './GestureStrategy.ts';

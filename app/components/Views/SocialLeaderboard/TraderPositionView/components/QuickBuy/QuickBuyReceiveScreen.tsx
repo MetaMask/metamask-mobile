@@ -30,15 +30,20 @@ const QuickBuyReceiveScreen: React.FC = () => {
     // `target.chain` is already a CAIP id — `positionToQuickBuyTarget` does the
     // chain-name → CAIP conversion when the target is built.
     const caip = target.chain as CaipChainId;
-    if (isNonEvmChainId(caip)) return null;
-    let hexChainId: string;
-    try {
-      hexChainId = formatChainIdToHex(caip);
-    } catch {
-      return null;
+    // Receive candidates carry hex chain ids on EVM and CAIP ids on non-EVM
+    // (e.g. Solana), so the filter id must match the candidate format.
+    let chainFilterId: string;
+    if (isNonEvmChainId(caip)) {
+      chainFilterId = caip;
+    } else {
+      try {
+        chainFilterId = formatChainIdToHex(caip);
+      } catch {
+        return null;
+      }
     }
-    return sellDestTokenOptions.some((t) => t.chainId === hexChainId)
-      ? hexChainId
+    return sellDestTokenOptions.some((t) => t.chainId === chainFilterId)
+      ? chainFilterId
       : null;
   }, [target.chain, sellDestTokenOptions]);
 
