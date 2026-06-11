@@ -35,12 +35,20 @@ describe('persistAttributionFromPendingDeeplink', () => {
     const payload = { utm_source: 'e2e', utm_campaign: 'test' };
     AppStateEventProcessor.pendingDeeplink = deeplink;
     mockAttributionPayloadFromDeeplink.mockReturnValue(payload);
+    const clearPendingDeeplinkSpy = jest.spyOn(
+      AppStateEventProcessor,
+      'clearPendingDeeplink',
+    );
 
     const result = persistAttributionFromPendingDeeplink(dispatch);
 
     expect(result).toBe(true);
     expect(mockAttributionPayloadFromDeeplink).toHaveBeenCalledWith(deeplink);
     expect(dispatch).toHaveBeenCalledWith(saveAttribution(payload));
+    expect(clearPendingDeeplinkSpy).toHaveBeenCalledTimes(1);
+    expect(AppStateEventProcessor.pendingDeeplink).toBeNull();
+
+    clearPendingDeeplinkSpy.mockRestore();
   });
 
   it('falls back to current deeplink when pending deeplink is absent', () => {
@@ -48,12 +56,19 @@ describe('persistAttributionFromPendingDeeplink', () => {
     const payload = { utm_source: 'current' };
     AppStateEventProcessor.currentDeeplink = deeplink;
     mockAttributionPayloadFromDeeplink.mockReturnValue(payload);
+    const clearPendingDeeplinkSpy = jest.spyOn(
+      AppStateEventProcessor,
+      'clearPendingDeeplink',
+    );
 
     const result = persistAttributionFromPendingDeeplink(dispatch);
 
     expect(result).toBe(true);
     expect(mockAttributionPayloadFromDeeplink).toHaveBeenCalledWith(deeplink);
     expect(dispatch).toHaveBeenCalledWith(saveAttribution(payload));
+    expect(clearPendingDeeplinkSpy).not.toHaveBeenCalled();
+
+    clearPendingDeeplinkSpy.mockRestore();
   });
 
   it('returns false when deeplink has no attributable params', () => {
