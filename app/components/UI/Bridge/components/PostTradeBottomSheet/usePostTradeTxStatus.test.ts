@@ -10,7 +10,7 @@ import { usePostTradeTxStatus } from './usePostTradeTxStatus';
 
 const SOLANA_MAINNET_CHAIN_ID = 1151111081099710;
 
-let mockTransactionMeta: { status: TxStatus } | undefined;
+let mockTransactionMeta: { status?: TxStatus; hash?: string } | undefined;
 let mockBridgeHistory = {};
 let mockNonEvmTransactions: unknown = {};
 
@@ -32,6 +32,7 @@ const statusOf = (
   bridgeStatus?: BridgeStatus,
   {
     isBridge = false,
+    metaHash,
     srcChainId,
     destChainId,
     statusSrcTxHash,
@@ -39,6 +40,7 @@ const statusOf = (
     nonEvmTransactions = {},
   }: {
     isBridge?: boolean;
+    metaHash?: string;
     srcChainId?: number;
     destChainId?: number;
     statusSrcTxHash?: string;
@@ -46,7 +48,10 @@ const statusOf = (
     nonEvmTransactions?: unknown;
   } = {},
 ) => {
-  mockTransactionMeta = txStatus ? { status: txStatus } : undefined;
+  mockTransactionMeta =
+    txStatus || metaHash !== undefined
+      ? { status: txStatus, hash: metaHash }
+      : undefined;
   mockBridgeHistory =
     bridgeStatus !== undefined
       ? {
@@ -103,6 +108,16 @@ describe('usePostTradeTxStatus', () => {
   it('resolves same-chain Solana swaps from multichain transactions', () => {
     expect(
       statusOf(undefined, BridgeStatus.UNKNOWN, {
+        srcChainId: SOLANA_MAINNET_CHAIN_ID,
+        destChainId: SOLANA_MAINNET_CHAIN_ID,
+        transactionHash: 'sol-sig',
+        nonEvmTransactions: solanaTx(KeyringTransactionStatus.Confirmed),
+      }),
+    ).toBe(Status.Success);
+
+    expect(
+      statusOf(undefined, BridgeStatus.UNKNOWN, {
+        metaHash: '',
         srcChainId: SOLANA_MAINNET_CHAIN_ID,
         destChainId: SOLANA_MAINNET_CHAIN_ID,
         transactionHash: 'sol-sig',
