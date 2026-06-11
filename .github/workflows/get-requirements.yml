@@ -27,7 +27,7 @@ on:
         description: 'Whether the smart-e2e-selection job should run. False for non-PR events, forks, or hard E2E skips.'
         value: ${{ jobs.detect-changes.outputs.run_smart_e2e_selection }}
       run_performance:
-        description: 'Whether performance E2E tests should be forced to run via the run-performance PR label'
+        description: 'Whether performance E2E tests should be forced to run via the run-performance-tests PR label'
         value: ${{ jobs.detect-changes.outputs.run_performance }}
 
 jobs:
@@ -112,9 +112,9 @@ jobs:
             echo "-> SKIP_SMART_SELECTION=true due to 'skip-smart-e2e-selection' label on PR"
           fi
 
-          if echo "$LABELS" | grep -qx "run-performance"; then
+          if echo "$LABELS" | grep -qx "run-performance-tests"; then
             echo "RUN_PERFORMANCE=true" >> "$GITHUB_OUTPUT"
-            echo "-> RUN_PERFORMANCE=true due to 'run-performance' label on PR"
+            echo "-> RUN_PERFORMANCE=true due to 'run-performance-tests' label on PR"
           fi
 
       - name: Filter changed files
