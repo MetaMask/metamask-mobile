@@ -6,6 +6,7 @@ import NavigationService from '../../../../core/NavigationService';
 import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
 import type { Country, UserRegion } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
+import ReduxService from '../../../../core/redux';
 
 jest.mock('../../../../core/NavigationService', () => ({
   navigation: {
@@ -234,6 +235,9 @@ describe('handleRampUrl', () => {
         rampType: RampType.BUY,
       });
       expect(mockRefreshGeolocation).toHaveBeenCalledTimes(1);
+      expect(ReduxService.store.getState.mock.calls.length).toBeGreaterThanOrEqual(
+        2,
+      );
       expect(mockCreateTokenSelectionNavDetails).toHaveBeenCalled();
       expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
         'TOKEN_SELECTION_ROUTE',

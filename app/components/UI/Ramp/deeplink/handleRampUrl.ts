@@ -30,8 +30,10 @@ interface RampUrlOptions {
   rampType: RampType;
 }
 
-async function navigateUnifiedV2Buy(rampIntent?: ReturnType<typeof parseRampIntent>) {
-  const state = ReduxService.store.getState();
+async function navigateUnifiedV2Buy(
+  rampIntent?: ReturnType<typeof parseRampIntent>,
+) {
+  let state = ReduxService.store.getState();
 
   // Prefer the location already in state, only refreshing when unknown.
   let location = selectGeolocationLocation(state);
@@ -40,6 +42,8 @@ async function navigateUnifiedV2Buy(rampIntent?: ReturnType<typeof parseRampInte
     location = await Promise.resolve(
       Engine.context.GeolocationController?.refreshGeolocation?.(),
     ).catch(() => undefined);
+    // Geo refresh may hydrate RampsController; re-read store before eligibility.
+    state = ReduxService.store.getState();
   }
 
   if (!location || location === UNKNOWN_LOCATION) {
