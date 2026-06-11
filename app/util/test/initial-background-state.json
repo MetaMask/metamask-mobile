@@ -452,6 +452,12 @@
         "name": "MetaMask USD",
         "symbol": "mUSD",
         "type": "erc20"
+      },
+      "eip155:5042/erc20:0x3600000000000000000000000000000000000000": {
+        "decimals": 6,
+        "name": "USDC",
+        "symbol": "USDC",
+        "type": "erc20"
       }
     },
     "assetsPrice": {},
