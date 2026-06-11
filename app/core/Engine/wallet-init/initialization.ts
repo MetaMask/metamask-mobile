@@ -3,7 +3,6 @@ import { Json } from '@metamask/utils';
 import { getKeyringBuilders } from './keyrings';
 import { RootMessenger } from '../types';
 import { Encryptor, LEGACY_DERIVATION_OPTIONS } from '../../Encryptor';
-import { mobileStorageAdapter } from '../utils/storage-service-utils';
 
 export function initializeWallet({
   messenger,
@@ -23,9 +22,7 @@ export function initializeWallet({
       keyringController: {
         encryptor,
         keyringBuilders: getKeyringBuilders(messenger),
-      },
-      storageService: {
-        storage: mobileStorageAdapter,
+        keyringV2Builders: getKeyringV2Builders(messenger),
       },
     },
   });

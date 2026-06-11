@@ -7,7 +7,11 @@ import { snapAccountServiceInit } from './snap-account-service-init';
 
 jest.mock('@metamask/snap-account-service');
 jest.mock('../../utils/ensureOnboardingComplete', () => ({
+<<<<<<< HEAD
+  createEnsureOnboardingCompleteCallback: jest.fn(() => jest.fn()),
+=======
   ensureOnboardingComplete: jest.fn(() => jest.fn()),
+>>>>>>> main
 }));
 
 function getInitRequestMock() {

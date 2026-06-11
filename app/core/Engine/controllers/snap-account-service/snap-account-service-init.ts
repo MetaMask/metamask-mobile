@@ -1,7 +1,11 @@
 import { SnapAccountService } from '@metamask/snap-account-service';
 import type { MessengerClientInitFunction } from '../../types';
 import type { SnapAccountServiceMessenger } from '../../messengers/snap-account-service-messenger/snap-account-service-messenger';
+<<<<<<< HEAD
+import { createEnsureOnboardingCompleteCallback } from '../../utils/ensureOnboardingComplete';
+=======
 import { ensureOnboardingComplete } from '../../utils/ensureOnboardingComplete';
+>>>>>>> main
 
 /**
  * Initialize the Snap account service.
@@ -18,7 +22,11 @@ export const snapAccountServiceInit: MessengerClientInitFunction<
     messenger: controllerMessenger,
     config: {
       snapPlatformWatcher: {
+<<<<<<< HEAD
+        ensureOnboardingComplete: createEnsureOnboardingCompleteCallback(),
+=======
         ensureOnboardingComplete,
+>>>>>>> main
       },
     },
   });
