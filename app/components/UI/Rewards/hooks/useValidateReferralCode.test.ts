@@ -249,6 +249,27 @@ describe('useValidateReferralCode', () => {
     expect(result.current.isValidating).toBe(false);
   });
 
+  it('sets an invalid-code error when the backend rejects the code after debounce', async () => {
+    mockEngineCall.mockResolvedValueOnce({ valid: false, isVipCode: false });
+    const { result } = renderHook(() => useValidateReferralCode());
+
+    act(() => {
+      result.current.setReferralCode('ABCDEF');
+    });
+
+    await advanceReferralCodeDebounce();
+
+    await waitFor(() => {
+      expect(result.current.isValid).toBe(false);
+    });
+    expect(mockEngineCall).toHaveBeenCalledWith(
+      'RewardsController:validateReferralCode',
+      'ABCDEF',
+    );
+    expect(result.current.isUnknownError).toBe(false);
+    expect(result.current.isVipReferralCode).toBe(false);
+  });
+
   it('sets isUnknownError when validation throws', async () => {
     mockEngineCall.mockRejectedValueOnce(new Error('Network error'));
     const { result } = renderHook(() => useValidateReferralCode());
