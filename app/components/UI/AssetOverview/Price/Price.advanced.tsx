@@ -367,11 +367,17 @@ const PriceAdvanced = ({
   const chartHeight = BASE_CHART_HEIGHT;
 
   const handleIndicatorToggle = useCallback((name: string) => {
+    const subPaneIndicators = ['MACD', 'RSI'];
     setActiveIndicators((prev) => {
       const next = new Set(prev);
       if (next.has(name)) {
         next.delete(name);
       } else {
+        if (subPaneIndicators.includes(name)) {
+          subPaneIndicators.forEach((i) => {
+            if (i !== name) next.delete(i);
+          });
+        }
         next.add(name);
       }
       return next;
