@@ -962,9 +962,7 @@ describe('UnifiedTransactionsView - refresh', () => {
       () => mockDefaultUnifiedTxActionsReturn,
     );
   });
-
 });
-
 
 describe('UnifiedTransactionsView - token poisoning protection', () => {
   const FRIEND_ADDRESS = '0x1234000000000000000000000000000000000001';

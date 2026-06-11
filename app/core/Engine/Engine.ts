@@ -743,7 +743,6 @@ export class Engine {
             } catch {
               // Chain may not be configured locally — skip balance refresh
             }
-
           }
         } catch (error) {
           console.error(
