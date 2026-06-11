@@ -118,8 +118,8 @@
       "title": "No quotes"
     },
     "account_no_funds": {
-      "title": "Insufficient funds",
-      "message": "No funds available. Use a different account."
+      "message": "No funds available. Use a different account.",
+      "title": "Insufficient funds"
     },
     "headless_buy_error": {
       "title": "Fiat purchase failed",
