@@ -73,7 +73,10 @@ export function TransactionDetailsHero() {
     return null;
   }
 
-  if (hasTransactionType(transactionMeta, MUSD_HERO_TYPES) && musdHeroData) {
+  const showTokenHero =
+    hasTransactionType(transactionMeta, MUSD_HERO_TYPES) && musdHeroData;
+
+  if (showTokenHero) {
     return (
       <Box
         testID="transaction-details-hero"

@@ -1,14 +1,21 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import React from 'react';
-import {
-  TransactionStatus,
-  TransactionMeta,
-  TransactionType,
-} from '@metamask/transaction-controller';
+import React, { useMemo } from 'react';
 import Text, {
   TextColor,
 } from '../../../../../../component-library/components/Texts/Text';
 import { Box } from '../../../../../UI/Box/Box';
+import {
+  selectTransactionsByBatchId,
+  selectTransactionsByIds,
+} from '../../../../../../selectors/transactionController';
+import { useSelector } from 'react-redux';
+import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
+import { RootState } from '../../../../../../reducers';
+import {
+  TransactionMeta,
+  TransactionStatus,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import { hasTransactionType } from '../../../utils/transaction';
 import { RELAY_DEPOSIT_TYPES } from '../../../constants/confirmations';
 import { ProgressList } from '../../progress-list';
@@ -18,17 +25,53 @@ import { ApprovalSummaryLine } from './approval-summary-line';
 import { ReceiveSummaryLine } from './receive-summary-line';
 import { DefaultSummaryLine } from './default-summary-line';
 import { FiatOrderSummaryLine } from './fiat-order-summary-line';
-import { useSummaryTransactions } from '../../../hooks/activity/useSummaryTransactions';
 import { strings } from '../../../../../../../locales/i18n';
 
 export function TransactionDetailsSummary() {
+  const { transactionMeta } = useTransactionDetails();
   const {
-    transactionMeta,
-    transactions,
-    hasDepositTransactions,
-    sourceHash,
-    fiatOrderId,
-  } = useSummaryTransactions();
+    batchId,
+    id: transactionId,
+    metamaskPay,
+    requiredTransactionIds,
+  } = transactionMeta;
+
+  const batchTransactions = useSelector((state: RootState) =>
+    selectTransactionsByBatchId(state, batchId ?? ''),
+  );
+
+  const batchTransactionIds = useMemo(
+    () =>
+      batchTransactions
+        .filter((transaction) => transaction.id !== transactionId)
+        .map((transaction) => transaction.id),
+    [batchTransactions, transactionId],
+  );
+
+  const transactionIds = useMemo(
+    () => [
+      ...(requiredTransactionIds ?? []),
+      ...(batchTransactionIds ?? []),
+      transactionId,
+    ],
+    [requiredTransactionIds, batchTransactionIds, transactionId],
+  );
+
+  const allTransactions = useSelector((state: RootState) =>
+    selectTransactionsByIds(state, transactionIds),
+  );
+
+  const transactions = allTransactions.filter(
+    (transaction) =>
+      !isSkippedTransaction(transaction, transactionMeta) ||
+      transaction.id === transactionId,
+  );
+
+  const hasDepositTransactions =
+    (requiredTransactionIds?.length ?? 0) > 0 || batchTransactionIds.length > 0;
+
+  const { sourceHash, fiat } = metamaskPay ?? {};
+  const { orderId: fiatOrderId } = fiat ?? {};
 
   const hasFiatOrder = Boolean(fiatOrderId);
   const hasSourceHash = !hasDepositTransactions && Boolean(sourceHash);
@@ -51,7 +94,7 @@ export function TransactionDetailsSummary() {
           count: Math.min(completedCount, totalSteps).toString(),
         })}
       </Text>
-      <ProgressList>
+      <ProgressList showConnectors={false}>
         {fiatOrderId ? (
           <FiatOrderSummaryLine parentTransaction={transactionMeta} />
         ) : null}
@@ -80,7 +123,6 @@ function SummaryLine({
   transactionMeta: TransactionMeta;
   parentTransaction: TransactionMeta;
 }) {
-  // Relay deposit types render as send lines
   if (hasTransactionType(transactionMeta, RELAY_DEPOSIT_TYPES)) {
     return (
       <DepositSummaryLine
@@ -107,4 +149,14 @@ function SummaryLine({
   }
 
   return <DefaultSummaryLine transactionMeta={transactionMeta} />;
+}
+
+function isSkippedTransaction(
+  transaction: TransactionMeta,
+  parentTransaction: TransactionMeta,
+): boolean {
+  return (
+    hasTransactionType(parentTransaction, [TransactionType.musdConversion]) &&
+    !hasTransactionType(transaction, [TransactionType.relayDeposit])
+  );
 }
