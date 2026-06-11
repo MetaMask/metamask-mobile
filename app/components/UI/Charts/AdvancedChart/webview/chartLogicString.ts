@@ -618,7 +618,7 @@ function handleAddIndicator(payload) {
         studyName = 'MACD';
         inputs = { in_0: 12, in_1: 26, in_2: 9 };
         overrides = {
-          'showLegendValues': false,
+          showLegendValues: false,
           'MACD.color': '#2962FF',
           'Signal.color': '#FF6D00',
           'Histogram.color.0': '#26A69A',
@@ -629,7 +629,7 @@ function handleAddIndicator(payload) {
         studyName = 'Relative Strength Index';
         inputs = { in_0: 14 };
         overrides = {
-          'showLegendValues': false,
+          showLegendValues: false,
           'RSI.color': '#4CAF50',
         };
         break;
@@ -637,7 +637,7 @@ function handleAddIndicator(payload) {
         studyName = 'Bollinger Bands';
         inputs = { in_0: 20, in_1: 2 };
         overrides = {
-          'showLegendValues': false,
+          showLegendValues: false,
           'Upper.color': '#E040FB',
           'Basis.color': '#E040FB',
           'Lower.color': '#E040FB',
@@ -646,16 +646,22 @@ function handleAddIndicator(payload) {
       case 'MA200':
         studyName = 'Moving Average';
         inputs = { length: 200 };
-        overrides = { 'showLegendValues': false };
+        overrides = { showLegendValues: false };
         break;
       default:
         studyName = indicatorName;
         inputs = payload.inputs || {};
-        overrides = { 'showLegendValues': false };
+        overrides = { showLegendValues: false };
         break;
     }
 
-    var promise = chart.createStudy(studyName, false, false, inputs, overrides || {});
+    var promise = chart.createStudy(
+      studyName,
+      false,
+      false,
+      inputs,
+      overrides || {},
+    );
 
     promise
       .then(function (studyId) {
@@ -665,6 +671,7 @@ function handleAddIndicator(payload) {
           name: indicatorName,
           id: String(studyId),
         });
+        scheduleStudyLegendRefresh();
       })
       .catch(function (error) {
         sendToReactNative('ERROR', {
@@ -725,7 +732,9 @@ function handleSetMAVisibility(payload) {
 
   window.maStudies.forEach(function (studyId, name) {
     if (!visibleSet[name]) {
-      try { chart.removeEntity(studyId); } catch (e) {}
+      try {
+        chart.removeEntity(studyId);
+      } catch (e) {}
       window.maStudies.delete(name);
     }
   });
@@ -735,14 +744,20 @@ function handleSetMAVisibility(payload) {
     if (window.maStudies.has(name)) continue;
     if (!MA_LENGTHS[name]) continue;
     (function (maName) {
-      chart.createStudy('Moving Average', false, false,
-        { length: MA_LENGTHS[maName] },
-        { 'showLegendValues': false, 'Plot.color': MA_COLORS[maName] }
-      ).then(function (studyId) {
-        window.maStudies.set(maName, studyId);
-        subscribeStudyDataLoaded(studyId);
-        scheduleStudyLegendRefresh();
-      }).catch(function () {});
+      chart
+        .createStudy(
+          'Moving Average',
+          false,
+          false,
+          { length: MA_LENGTHS[maName] },
+          { showLegendValues: false, 'Plot.color': MA_COLORS[maName] },
+        )
+        .then(function (studyId) {
+          window.maStudies.set(maName, studyId);
+          subscribeStudyDataLoaded(studyId);
+          scheduleStudyLegendRefresh();
+        })
+        .catch(function () {});
     })(name);
   }
 
@@ -3223,9 +3238,7 @@ var INDICATOR_LEGEND_CONFIG = {
     useIndex: true,
   },
   RSI: {
-    plots: [
-      { tvTitle: 'Plot', label: 'RSI(14)', color: '#4CAF50' },
-    ],
+    plots: [{ tvTitle: 'Plot', label: 'RSI(14)', color: '#4CAF50' }],
     useIndex: true,
   },
   BOL: {
@@ -3237,16 +3250,34 @@ var INDICATOR_LEGEND_CONFIG = {
     useIndex: true,
   },
   Volume: {
-    plots: [
-      { tvTitle: 'Vol', label: 'Vol', color: null },
-    ],
+    plots: [{ tvTitle: 'Vol', label: 'Vol', color: null }],
     useIndex: true,
   },
-  MA5: { isMA: true, useIndex: true, plots: [{ tvTitle: 'Plot', label: 'MA(5)', color: '#8B8BF5' }] },
-  MA25: { isMA: true, useIndex: true, plots: [{ tvTitle: 'Plot', label: 'MA(25)', color: '#FF6B9D' }] },
-  MA50: { isMA: true, useIndex: true, plots: [{ tvTitle: 'Plot', label: 'MA(50)', color: '#F5A623' }] },
-  MA75: { isMA: true, useIndex: true, plots: [{ tvTitle: 'Plot', label: 'MA(75)', color: '#B8E62E' }] },
-  MA99: { isMA: true, useIndex: true, plots: [{ tvTitle: 'Plot', label: 'MA(99)', color: '#5CC9F5' }] },
+  MA5: {
+    isMA: true,
+    useIndex: true,
+    plots: [{ tvTitle: 'Plot', label: 'MA(5)', color: '#8B8BF5' }],
+  },
+  MA25: {
+    isMA: true,
+    useIndex: true,
+    plots: [{ tvTitle: 'Plot', label: 'MA(25)', color: '#FF6B9D' }],
+  },
+  MA50: {
+    isMA: true,
+    useIndex: true,
+    plots: [{ tvTitle: 'Plot', label: 'MA(50)', color: '#F5A623' }],
+  },
+  MA75: {
+    isMA: true,
+    useIndex: true,
+    plots: [{ tvTitle: 'Plot', label: 'MA(75)', color: '#B8E62E' }],
+  },
+  MA99: {
+    isMA: true,
+    useIndex: true,
+    plots: [{ tvTitle: 'Plot', label: 'MA(99)', color: '#5CC9F5' }],
+  },
 };
 
 function createStudyLegendOverlay() {
@@ -3293,17 +3324,25 @@ function buildLegendHTML(studyDataList) {
 
     if (cfg.isMA) {
       var maPlot = cfg.plots[0];
-      var maVal = (cfg.useIndex && values.length > 0) ? values[0].value : '';
+      var maVal = cfg.useIndex && values.length > 0 ? values[0].value : '';
       if (!maVal) {
         for (var v = 0; v < values.length; v++) {
-          if (values[v].title === maPlot.tvTitle) { maVal = values[v].value; break; }
+          if (values[v].title === maPlot.tvTitle) {
+            maVal = values[v].value;
+            break;
+          }
         }
       }
       if (maVal && maVal !== 'n/a' && maVal !== '∅') {
         if (maSpans) maSpans += '<span style="margin-left:8px"></span>';
         maSpans +=
-          '<span style="color:' + maPlot.color + '">' +
-          maPlot.label + ' ' + maVal + '</span>';
+          '<span style="color:' +
+          maPlot.color +
+          '">' +
+          maPlot.label +
+          ' ' +
+          maVal +
+          '</span>';
       }
       continue;
     }
@@ -3323,11 +3362,17 @@ function buildLegendHTML(studyDataList) {
         }
       }
       if (!plotVal || plotVal === 'n/a' || plotVal === '∅') continue;
-      var color = plotCfg.color || (window.CONFIG.theme.successColor || '#26A69A');
+      var color =
+        plotCfg.color || window.CONFIG.theme.successColor || '#26A69A';
       if (spans) spans += '<span style="margin-left:8px"></span>';
       spans +=
-        '<span style="color:' + color + '">' +
-        plotCfg.label + ' ' + plotVal + '</span>';
+        '<span style="color:' +
+        color +
+        '">' +
+        plotCfg.label +
+        ' ' +
+        plotVal +
+        '</span>';
     }
     if (spans) html += '<div>' + spans + '</div>';
   }
@@ -3339,7 +3384,10 @@ function buildLegendHTML(studyDataList) {
 function updateStudyLegendFromEntityValues(entityValues) {
   var overlay = document.getElementById('study-legend-overlay');
   if (!overlay) return;
-  if (!entityValues) { overlay.innerHTML = ''; return; }
+  if (!entityValues) {
+    overlay.innerHTML = '';
+    return;
+  }
 
   var studyIdMap = collectStudyIdMap();
   var studyDataList = [];
@@ -3363,9 +3411,13 @@ function subscribeStudyDataLoaded(studyId) {
     var chart = window.chartWidget.activeChart();
     var study = chart.getStudyById(studyId);
     if (study && study.onDataLoaded) {
-      study.onDataLoaded().subscribe(null, function () {
-        refreshStudyLegendFromExport();
-      }, true);
+      study.onDataLoaded().subscribe(
+        null,
+        function () {
+          refreshStudyLegendFromExport();
+        },
+        true,
+      );
     }
   } catch (e) {}
 }
@@ -3419,9 +3471,7 @@ function refreshStudyLegendFromExport() {
       .then(function (data) {
         if (!data || !data.schema || !data.data) return;
         var lastRow =
-          data.data.length > 0
-            ? data.data[data.data.length - 1]
-            : null;
+          data.data.length > 0 ? data.data[data.data.length - 1] : null;
         if (!lastRow) return;
 
         var byStudy = {};
@@ -3433,9 +3483,10 @@ function refreshStudyLegendFromExport() {
           var sid = String(sourceId);
           if (!byStudy[sid]) byStudy[sid] = [];
           var rawVal = lastRow[s];
-          var displayVal = (rawVal !== undefined && !isNaN(rawVal))
-            ? formatLegendValue(rawVal)
-            : '';
+          var displayVal =
+            rawVal !== undefined && !isNaN(rawVal)
+              ? formatLegendValue(rawVal)
+              : '';
           if (data.displayedData && data.displayedData.length > 0) {
             var dispRow = data.displayedData[data.displayedData.length - 1];
             if (dispRow && dispRow[s]) displayVal = dispRow[s];
@@ -3506,7 +3557,7 @@ function createVolumeStudy(useOverlay) {
     var chart = window.chartWidget.activeChart();
     var t = window.CONFIG.theme;
     var overrides = {
-      'showLegendValues': false,
+      showLegendValues: false,
       'volume.transparency': useOverlay ? 70 : 0,
       'volume.color.0': t.errorColor,
       'volume.color.1': t.successColor,

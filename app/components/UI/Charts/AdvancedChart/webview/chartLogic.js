@@ -662,6 +662,7 @@ function handleAddIndicator(payload) {
           name: indicatorName,
           id: String(studyId),
         });
+        scheduleStudyLegendRefresh();
       })
       .catch(function (error) {
         sendToReactNative('ERROR', {

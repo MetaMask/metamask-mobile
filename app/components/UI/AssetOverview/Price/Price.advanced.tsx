@@ -18,7 +18,6 @@ import styleSheet from './Price.styles';
 import {
   CHART_DATA_THRESHOLD,
   TOKEN_OVERVIEW_CHART_HEIGHT as BASE_CHART_HEIGHT,
-  INDICATOR_PANE_HEIGHT,
 } from './tokenOverviewChart.constants';
 import { TokenOverviewSelectorsIDs } from '../TokenOverview.testIds';
 import { TokenI } from '../../Tokens/types';
@@ -71,8 +70,6 @@ import {
   TraceOperation,
 } from '../../../../util/trace';
 import { selectTokenDetailsOhlcvWsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsOhlcvWsIntegration';
-
-const SEPARATE_PANE_INDICATORS = new Set(['MACD', 'RSI']);
 
 /**
  * Maps UI time-range selections to the WebSocket candle interval used by
@@ -367,13 +364,7 @@ const PriceAdvanced = ({
     [activeIndicators],
   );
 
-  const subPaneCount = useMemo(
-    () =>
-      [...activeIndicators].filter((i) => SEPARATE_PANE_INDICATORS.has(i))
-        .length,
-    [activeIndicators],
-  );
-  const chartHeight = BASE_CHART_HEIGHT + subPaneCount * INDICATOR_PANE_HEIGHT;
+  const chartHeight = BASE_CHART_HEIGHT;
 
   const handleIndicatorToggle = useCallback((name: string) => {
     setActiveIndicators((prev) => {
