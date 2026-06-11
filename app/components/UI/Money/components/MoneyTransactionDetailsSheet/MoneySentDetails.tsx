@@ -8,6 +8,9 @@ import {
   Text,
   TextColor,
   TextVariant,
+  Button,
+  ButtonVariant,
+  ButtonSize,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -18,11 +21,6 @@ import {
 } from '../../../../../util/networks';
 import { formatAddress } from '../../../../../util/address';
 import { useStyles } from '../../../../../component-library/hooks';
-import Button, {
-  ButtonVariants,
-  ButtonSize,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import AvatarAccount from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import AvatarNetwork from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
@@ -231,13 +229,14 @@ export function MoneySentDetails() {
         ) : null}
 
         <Button
-          variant={ButtonVariants.Secondary}
+          variant={ButtonVariant.Secondary}
           size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
+          isFullWidth
           style={styles.button}
-          label={strings('transaction_details.view_on_block_explorer')}
           onPress={handleViewOnExplorer}
-        />
+        >
+          {strings('transaction_details.view_on_block_explorer')}
+        </Button>
       </Box>
     </ScrollView>
   );
