@@ -6,6 +6,8 @@ import {
   selectBalanceTotal,
   selectReferralCount,
   selectReferredByCode,
+  selectIsVipReferee,
+  selectReferredByVipCode,
   selectCurrentTier,
   selectNextTier,
   selectNextTierPointsNeeded,
@@ -245,6 +247,30 @@ describe('Rewards selectors', () => {
 
       const { result } = renderHook(() => useSelector(selectReferredByCode));
       expect(result.current).toBe('');
+    });
+  });
+
+  describe('selectIsVipReferee', () => {
+    it('returns true when the referee is a VIP', () => {
+      const state = createMockRootState({ isVipReferee: true });
+      expect(selectIsVipReferee(state)).toBe(true);
+    });
+
+    it('returns false when the referee is not a VIP', () => {
+      const state = createMockRootState({ isVipReferee: false });
+      expect(selectIsVipReferee(state)).toBe(false);
+    });
+  });
+
+  describe('selectReferredByVipCode', () => {
+    it('returns the VIP referral code when referred by one', () => {
+      const state = createMockRootState({ referredByVipCode: 'VIPCODE' });
+      expect(selectReferredByVipCode(state)).toBe('VIPCODE');
+    });
+
+    it('returns null when not referred by a VIP code', () => {
+      const state = createMockRootState({ referredByVipCode: null });
+      expect(selectReferredByVipCode(state)).toBeNull();
     });
   });
 
