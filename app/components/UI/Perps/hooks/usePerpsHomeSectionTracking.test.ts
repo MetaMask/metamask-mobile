@@ -140,6 +140,26 @@ describe('usePerpsHomeSectionTracking', () => {
     expect(mockTrackEvent).toHaveBeenCalledTimes(2);
   });
 
+  it('maps products section to correct source value', () => {
+    const { result } = renderHook(() => usePerpsHomeSectionTracking());
+
+    act(() => {
+      result.current.handleSectionLayout('products')(
+        createLayoutEvent(100, 100),
+      );
+    });
+
+    act(() => {
+      result.current.handleScroll(createScrollEvent(50, 200));
+    });
+
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        [PERPS_EVENT_PROPERTY.SECTION_VIEWED]: 'perps_home_products',
+      }),
+    );
+  });
+
   it('maps explore_stocks section to correct source value', () => {
     const { result } = renderHook(() => usePerpsHomeSectionTracking());
 

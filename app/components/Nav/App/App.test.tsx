@@ -68,6 +68,13 @@ jest.mock('../../UI/Predict/hooks/usePredictToastRegistrations', () => ({
   usePredictToastRegistrations: jest.fn().mockReturnValue([]),
 }));
 
+jest.mock(
+  '../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/hooks/useQuickBuyToastRegistrations',
+  () => ({
+    useQuickBuyToastRegistrations: jest.fn().mockReturnValue([]),
+  }),
+);
+
 jest.mock('../../UI/Ramp/RampsBootstrap', () => () => null);
 
 jest.mock('../../Views/Onboarding', () => () => (
@@ -357,6 +364,7 @@ jest.mock('../../../selectors/networkController', () => ({
 jest.mock('../../../util/address', () => ({
   ...jest.requireActual('../../../util/address'),
   getInternalAccountByAddress: () => mockAccount,
+  getAddressAccountType: jest.fn().mockReturnValue('MetaMask'),
 }));
 
 jest.mock('../../../components/hooks/useAsyncResult', () => ({

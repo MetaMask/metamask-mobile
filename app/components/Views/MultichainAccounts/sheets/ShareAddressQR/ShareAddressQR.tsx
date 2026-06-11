@@ -1,9 +1,7 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { AccountGroupId } from '@metamask/account-api';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { strings } from '../../../../../../locales/i18n';
 import {
   ParamListBase,
@@ -12,13 +10,15 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import {
+  BottomSheet,
+  BottomSheetHeader,
+  type BottomSheetRef,
   Box,
   BoxFlexDirection,
   BoxAlignItems,
   Button,
   ButtonVariant,
   ButtonSize,
-  HeaderStandard,
   TextVariant,
   TextColor,
   FontWeight,
@@ -29,6 +29,12 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import QRAccountDisplay from '../../../QRAccountDisplay';
 import QRCode from 'react-native-qrcode-svg';
 import useBlockExplorer from '../../../../hooks/useBlockExplorer';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import {
+  getQrCodeViewedAccountType,
+  trackQrCodeViewed,
+} from '../../../../../util/analytics/qrCodeViewedTracking';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { ShareAddressQRIds } from './ShareAddressQR.testIds';
 import { selectAccountGroupById } from '../../../../../selectors/multichainAccounts/accountTreeController';
@@ -39,6 +45,8 @@ export interface ShareAddressQRParams {
   networkName: string;
   chainId: string;
   groupId: AccountGroupId;
+  location: string;
+  account: InternalAccount;
 }
 
 interface RootNavigationParamList extends ParamListBase {
@@ -54,15 +62,25 @@ export const ShareAddressQR = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const tw = useTailwind();
   const route = useRoute<ShareAddressQRRouteProp>();
-  const { address, networkName, chainId, groupId } = route.params;
+  const { address, networkName, chainId, groupId, location, account } =
+    route.params;
   const accountGroup = useSelector((state: RootState) =>
     selectAccountGroupById(state, groupId),
   );
   const accountGroupName = accountGroup?.metadata.name;
 
   const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { toBlockExplorer, getBlockExplorerName } = useBlockExplorer(chainId);
   const networkImageSource = getNetworkImageSource({ chainId });
+
+  useEffect(() => {
+    trackQrCodeViewed(trackEvent, createEventBuilder, {
+      location,
+      account_type: getQrCodeViewedAccountType(account),
+      chain_id_caip: formatChainIdToCaip(chainId),
+    });
+  }, [account, chainId, createEventBuilder, location, trackEvent]);
 
   const handleOnBack = useCallback(() => {
     navigation.goBack();
@@ -73,12 +91,13 @@ export const ShareAddressQR = () => {
   }, [address, toBlockExplorer]);
 
   return (
-    <BottomSheet ref={sheetRef}>
-      <HeaderStandard
-        title={`${accountGroupName} / ${networkName}`}
+    <BottomSheet ref={sheetRef} goBack={handleOnBack}>
+      <BottomSheetHeader
         onClose={handleOnBack}
         closeButtonProps={{ testID: ShareAddressQRIds.GO_BACK }}
-      />
+      >
+        {`${accountGroupName} / ${networkName}`}
+      </BottomSheetHeader>
       <Box
         flexDirection={BoxFlexDirection.Column}
         alignItems={BoxAlignItems.Center}

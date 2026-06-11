@@ -58,6 +58,7 @@ describe(SmokeStake('Lending Withdrawal from Wallet'), (): void => {
         await WalletView.tapOnTokensSection();
         await TokensView.tapNetworkFilter();
         await TokensView.tapAllPopularNetworks();
+        await TokensView.waitForTokenBalance('aEthUSDC');
         await TokensView.tapToken('aEthUSDC');
         await EarnLendingView.tapWithdraw();
 

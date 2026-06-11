@@ -35,9 +35,11 @@ import { buildSocialLoggerErrorOptions } from '../../../../../../../util/social/
 import {
   SocialLeaderboardEventProperties,
   useSocialLeaderboardAnalytics,
+  type QuickBuySheetSource,
 } from '../../../../analytics';
 import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
 import { getQuoteRefreshRate } from '../../../../../../UI/Bridge/utils/quoteUtils';
+import { getQuickBuyFeatureId } from '../utils/getQuickBuyFeatureId';
 
 export type QuickBuyQuote = QuoteResponse & L1GasFees & NonEvmFees;
 
@@ -48,6 +50,8 @@ export interface QuickBuyQuotesAnalyticsContext {
   caip19?: string;
   /** USD amount the user has selected; used as `amount_usd`. */
   amountUsd?: number;
+  /** Entry surface for FeatureId mapping on fetchQuotes. */
+  source?: QuickBuySheetSource;
 }
 
 export type EnrichedQuickBuyQuote = ReturnType<
@@ -63,6 +67,13 @@ interface UseQuickBuyQuotesParams {
   analyticsContext?: QuickBuyQuotesAnalyticsContext;
   /** When set, overrides the recommended quote with the quote matching this requestId. */
   selectedQuoteRequestId?: string;
+  /**
+   * Monotonic nonce bumped by the consumer when the amount change is a
+   * committed value (e.g. a slider release) rather than rapidly-changing input
+   * (e.g. typing). When it increments, the pending debounce is flushed so the
+   * quote fetch fires immediately instead of waiting out the typing debounce.
+   */
+  immediateFetchToken?: number;
 }
 
 export interface UseQuickBuyQuotesResult {
@@ -164,6 +175,7 @@ export function useQuickBuyQuotes({
   sourceTokenAmount,
   analyticsContext,
   selectedQuoteRequestId,
+  immediateFetchToken,
 }: UseQuickBuyQuotesParams): UseQuickBuyQuotesResult {
   const slippage = useSelector(selectSlippage);
   const destAddress = useSelector(selectDestAddress);
@@ -311,9 +323,8 @@ export function useQuickBuyQuotes({
     try {
       const result = await Engine.context.BridgeController.fetchQuotes(
         params,
+        getQuickBuyFeatureId(analyticsContext?.source),
         controller.signal,
-        // @ts-expect-error quickBuy has not been added as a FeatureId yet
-        'quickBuy',
       );
 
       if (controller.signal.aborted) {
@@ -379,6 +390,21 @@ export function useQuickBuyQuotes({
       debouncedFetchQuotes.cancel();
     };
   }, [debouncedFetchQuotes]);
+
+  // Committed-value paths (e.g. slider release) bump `immediateFetchToken`.
+  // The reactive effect above has already scheduled the debounced fetch for the
+  // new amount in this same commit; cancelling it and invoking `fetchQuotes`
+  // directly fetches immediately with the current value, skipping the typing
+  // debounce. The initial render is a no-op (token unchanged from its initial).
+  const prevImmediateFetchTokenRef = useRef(immediateFetchToken);
+  useEffect(() => {
+    if (prevImmediateFetchTokenRef.current === immediateFetchToken) {
+      return;
+    }
+    prevImmediateFetchTokenRef.current = immediateFetchToken;
+    debouncedFetchQuotes.cancel();
+    fetchQuotes();
+  }, [immediateFetchToken, debouncedFetchQuotes, fetchQuotes]);
 
   // Auto-refresh quotes on a fixed interval indefinitely.
   // `refreshCount` starts at 0 and increments on each successful fetch, so

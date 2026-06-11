@@ -1,48 +1,40 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
-import PerpsTradingCampaignEndedStats, {
-  PERPS_CAMPAIGN_ENDED_STATS_TEST_IDS,
-} from './PerpsTradingCampaignEndedStats';
+import { render } from '@testing-library/react-native';
+import { TextColor } from '@metamask/design-system-react-native';
+import PerpsTradingCampaignEndedStats from './PerpsTradingCampaignEndedStats';
 import type {
   PerpsTradingCampaignLeaderboardDto,
   PerpsTradingCampaignLeaderboardEntry,
 } from '../../../../../core/Engine/controllers/rewards-controller/types';
 
-jest.mock('../RewardsErrorBanner', () => {
+interface CapturedEndedStatsProps {
+  totalParticipants: { label: string; value: string; isLoading?: boolean };
+  totalVolume: { label: string; value: string; isLoading?: boolean };
+  topMetric: {
+    label: string;
+    value: string;
+    isLoading?: boolean;
+    valueColor?: unknown;
+  };
+  totalWinners: { label: string; value: string; isLoading?: boolean };
+  hasError?: boolean;
+  onRetry?: () => void;
+}
+
+let latestProps: CapturedEndedStatsProps | null = null;
+
+jest.mock('./CampaignEndedStats', () => {
   const ReactActual = jest.requireActual('react');
-  const RN = jest.requireActual('react-native');
+  const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: (props: { title: string; onConfirm: () => void }) =>
-      ReactActual.createElement(
-        RN.View,
-        { testID: 'rewards-error-banner' },
-        ReactActual.createElement(RN.Text, null, props.title),
-        ReactActual.createElement(RN.TouchableOpacity, {
-          testID: 'rewards-error-banner-retry',
-          onPress: props.onConfirm,
-        }),
-      ),
+    default: (props: CapturedEndedStatsProps) => {
+      latestProps = props;
+      return ReactActual.createElement(View, {
+        testID: 'campaign-ended-stats',
+      });
+    },
   };
-});
-
-jest.mock('@metamask/design-system-react-native', () => {
-  const actual = jest.requireActual('@metamask/design-system-react-native');
-  const ReactActual = jest.requireActual('react');
-  const RN = jest.requireActual('react-native');
-  return {
-    ...actual,
-    Text: (props: Record<string, unknown>) =>
-      ReactActual.createElement(RN.Text, props, props.children),
-    Skeleton: (props: Record<string, unknown>) =>
-      ReactActual.createElement(RN.View, { testID: 'skeleton', ...props }),
-  };
-});
-
-jest.mock('@metamask/design-system-twrnc-preset', () => {
-  const tw = (..._args: unknown[]) => ({});
-  tw.style = jest.fn(() => ({}));
-  return { useTailwind: () => tw };
 });
 
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -87,38 +79,50 @@ const makeLeaderboard = (
 };
 
 describe('PerpsTradingCampaignEndedStats', () => {
-  it('renders all four stat cells with correct values when leaderboard has 20+ entries', () => {
-    const { getByTestId } = render(
+  beforeEach(() => {
+    latestProps = null;
+    jest.clearAllMocks();
+  });
+
+  it('maps perps leaderboard and volume into the generic ended stats props', () => {
+    render(
       <PerpsTradingCampaignEndedStats
         leaderboard={makeLeaderboard(25, 200, 80_000)}
         totalNotionalVolume="27500000"
         isLeaderboardLoading={false}
         isVolumeLoading={false}
+        hasLeaderboardError={false}
+        hasVolumeError={false}
       />,
     );
 
-    expect(
-      getByTestId(PERPS_CAMPAIGN_ENDED_STATS_TEST_IDS.CONTAINER),
-    ).toBeTruthy();
-    expect(
-      getByTestId(PERPS_CAMPAIGN_ENDED_STATS_TEST_IDS.TOTAL_PARTICIPANTS).props
-        .children,
-    ).toBe((200).toLocaleString());
-    expect(
-      getByTestId(PERPS_CAMPAIGN_ENDED_STATS_TEST_IDS.TOTAL_VOLUME).props
-        .children,
-    ).toBe('$27.5M');
-    expect(
-      getByTestId(PERPS_CAMPAIGN_ENDED_STATS_TEST_IDS.TOP_PNL).props.children,
-    ).toBe('+$80,000');
-    // Leaderboard has 25 entries (>= 20) → fixed 20 winners
-    expect(
-      getByTestId(PERPS_CAMPAIGN_ENDED_STATS_TEST_IDS.WINNERS).props.children,
-    ).toBe('20');
+    expect(latestProps).toMatchObject({
+      totalParticipants: {
+        label: 'rewards.campaign_ended_stats.total_participants',
+        value: '200',
+        isLoading: false,
+      },
+      totalVolume: {
+        label: 'rewards.campaign_ended_stats.total_volume',
+        value: '$27.5M',
+        isLoading: false,
+      },
+      topMetric: {
+        label: 'rewards.campaign_ended_stats.top_pnl',
+        value: '+$80,000',
+        isLoading: false,
+      },
+      totalWinners: {
+        label: 'rewards.campaign_ended_stats.total_winners',
+        value: '20',
+        isLoading: false,
+      },
+      hasError: false,
+    });
   });
 
   it('shows dash for winners when leaderboard has fewer than 20 entries', () => {
-    const { getByTestId } = render(
+    render(
       <PerpsTradingCampaignEndedStats
         leaderboard={makeLeaderboard(15, 50)}
         totalNotionalVolume="1000000"
@@ -127,13 +131,11 @@ describe('PerpsTradingCampaignEndedStats', () => {
       />,
     );
 
-    expect(
-      getByTestId(PERPS_CAMPAIGN_ENDED_STATS_TEST_IDS.WINNERS).props.children,
-    ).toBe('-');
+    expect(latestProps?.totalWinners.value).toBe('-');
   });
 
   it('shows dashes when leaderboard and volume are null', () => {
-    const { getByTestId } = render(
+    render(
       <PerpsTradingCampaignEndedStats
         leaderboard={null}
         totalNotionalVolume={null}
@@ -142,24 +144,16 @@ describe('PerpsTradingCampaignEndedStats', () => {
       />,
     );
 
-    expect(
-      getByTestId(PERPS_CAMPAIGN_ENDED_STATS_TEST_IDS.TOTAL_PARTICIPANTS).props
-        .children,
-    ).toBe('-');
-    expect(
-      getByTestId(PERPS_CAMPAIGN_ENDED_STATS_TEST_IDS.TOTAL_VOLUME).props
-        .children,
-    ).toBe('-');
-    expect(
-      getByTestId(PERPS_CAMPAIGN_ENDED_STATS_TEST_IDS.TOP_PNL).props.children,
-    ).toBe('-');
-    expect(
-      getByTestId(PERPS_CAMPAIGN_ENDED_STATS_TEST_IDS.WINNERS).props.children,
-    ).toBe('-');
+    expect(latestProps).toMatchObject({
+      totalParticipants: { value: '-', isLoading: false },
+      totalVolume: { value: '-', isLoading: false },
+      topMetric: { value: '-', isLoading: false },
+      totalWinners: { value: '-', isLoading: false },
+    });
   });
 
-  it('renders skeletons while data is loading', () => {
-    const { getAllByTestId } = render(
+  it('shows loading state while uncached data is loading', () => {
+    render(
       <PerpsTradingCampaignEndedStats
         leaderboard={null}
         totalNotionalVolume={null}
@@ -168,11 +162,15 @@ describe('PerpsTradingCampaignEndedStats', () => {
       />,
     );
 
-    const skeletons = getAllByTestId('skeleton');
-    expect(skeletons.length).toBeGreaterThanOrEqual(3);
+    expect(latestProps).toMatchObject({
+      totalParticipants: { value: '-', isLoading: true },
+      totalVolume: { value: '-', isLoading: true },
+      topMetric: { value: '-', isLoading: true },
+      totalWinners: { value: '-', isLoading: true },
+    });
   });
 
-  it('handles a leaderboard with no entries (no top PnL)', () => {
+  it('handles a leaderboard with no entries', () => {
     const empty: PerpsTradingCampaignLeaderboardDto = {
       campaignId: 'perps-1',
       computedAt: '2026-01-01T00:00:00Z',
@@ -181,7 +179,7 @@ describe('PerpsTradingCampaignEndedStats', () => {
       entries: [],
     };
 
-    const { getByTestId } = render(
+    render(
       <PerpsTradingCampaignEndedStats
         leaderboard={empty}
         totalNotionalVolume="0"
@@ -190,23 +188,40 @@ describe('PerpsTradingCampaignEndedStats', () => {
       />,
     );
 
-    expect(
-      getByTestId(PERPS_CAMPAIGN_ENDED_STATS_TEST_IDS.TOTAL_PARTICIPANTS).props
-        .children,
-    ).toBe('0');
-    expect(
-      getByTestId(PERPS_CAMPAIGN_ENDED_STATS_TEST_IDS.TOP_PNL).props.children,
-    ).toBe('-');
-    expect(
-      getByTestId(PERPS_CAMPAIGN_ENDED_STATS_TEST_IDS.WINNERS).props.children,
-    ).toBe('-');
+    expect(latestProps).toMatchObject({
+      totalParticipants: { value: '0' },
+      topMetric: { value: '-' },
+      totalWinners: { value: '-' },
+    });
   });
 
-  it('shows error banner when both sources fail and triggers both retries', () => {
+  it('uses error color for negative top PnL', () => {
+    const negativeTop: PerpsTradingCampaignLeaderboardDto = {
+      campaignId: 'perps-1',
+      computedAt: '2026-01-01T00:00:00Z',
+      totalParticipants: 1,
+      minVolumeForEligibility: 25_000,
+      entries: [makeEntry(1, -5_000)],
+    };
+
+    render(
+      <PerpsTradingCampaignEndedStats
+        leaderboard={negativeTop}
+        totalNotionalVolume="1000"
+        isLeaderboardLoading={false}
+        isVolumeLoading={false}
+      />,
+    );
+
+    expect(latestProps?.topMetric.value).toBe('-$5,000');
+    expect(latestProps?.topMetric.valueColor).toBe(TextColor.ErrorDefault);
+  });
+
+  it('shows error and retries both data sources when uncached data fails', () => {
     const onRetryLeaderboard = jest.fn();
     const onRetryVolume = jest.fn();
 
-    const { getByTestId } = render(
+    render(
       <PerpsTradingCampaignEndedStats
         leaderboard={null}
         totalNotionalVolume={null}
@@ -219,14 +234,14 @@ describe('PerpsTradingCampaignEndedStats', () => {
       />,
     );
 
-    expect(getByTestId('rewards-error-banner')).toBeTruthy();
-    fireEvent.press(getByTestId('rewards-error-banner-retry'));
+    expect(latestProps?.hasError).toBe(true);
+    latestProps?.onRetry?.();
     expect(onRetryLeaderboard).toHaveBeenCalledTimes(1);
     expect(onRetryVolume).toHaveBeenCalledTimes(1);
   });
 
-  it('shows error banner when only leaderboard fails; volume still renders', () => {
-    const { getByTestId } = render(
+  it('shows error when only leaderboard fails while volume still renders', () => {
+    render(
       <PerpsTradingCampaignEndedStats
         leaderboard={null}
         totalNotionalVolume="27500000"
@@ -236,46 +251,22 @@ describe('PerpsTradingCampaignEndedStats', () => {
       />,
     );
 
-    expect(getByTestId('rewards-error-banner')).toBeTruthy();
-    expect(
-      getByTestId(PERPS_CAMPAIGN_ENDED_STATS_TEST_IDS.TOTAL_VOLUME).props
-        .children,
-    ).toBe('$27.5M');
+    expect(latestProps?.hasError).toBe(true);
+    expect(latestProps?.totalVolume.value).toBe('$27.5M');
   });
 
-  it('does not render error banner when there are no errors', () => {
-    const { queryByTestId } = render(
+  it('does not show error when there are no errors', () => {
+    render(
       <PerpsTradingCampaignEndedStats
         leaderboard={makeLeaderboard(25, 100, 10_000)}
         totalNotionalVolume="1000000"
         isLeaderboardLoading={false}
         isVolumeLoading={false}
+        hasLeaderboardError={false}
+        hasVolumeError={false}
       />,
     );
 
-    expect(queryByTestId('rewards-error-banner')).toBeNull();
-  });
-
-  it('renders negative top PnL with error color and a minus sign', () => {
-    const negativeTop: PerpsTradingCampaignLeaderboardDto = {
-      campaignId: 'perps-1',
-      computedAt: '2026-01-01T00:00:00Z',
-      totalParticipants: 1,
-      minVolumeForEligibility: 25_000,
-      entries: [makeEntry(1, -5_000)],
-    };
-
-    const { getByTestId } = render(
-      <PerpsTradingCampaignEndedStats
-        leaderboard={negativeTop}
-        totalNotionalVolume="1000"
-        isLeaderboardLoading={false}
-        isVolumeLoading={false}
-      />,
-    );
-
-    expect(
-      getByTestId(PERPS_CAMPAIGN_ENDED_STATS_TEST_IDS.TOP_PNL).props.children,
-    ).toBe('-$5,000');
+    expect(latestProps?.hasError).toBe(false);
   });
 });
