@@ -7,6 +7,7 @@ import {
   TransactionType,
   type TransactionMeta,
 } from '@metamask/transaction-controller';
+import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import { Hex } from '@metamask/utils';
 import Routes from '../../../constants/navigation/Routes';
 import UnifiedTransactionsView from './UnifiedTransactionsView';
@@ -558,6 +559,7 @@ describe('UnifiedTransactionsView with transactions', () => {
       },
       estimatedProcessingTimeInSeconds: 60,
       slippagePercentage: 0,
+      hasApprovalTx: false,
       completionTime: Date.now(),
       startTime: Date.now() - 60000,
     },
@@ -631,7 +633,9 @@ describe('UnifiedTransactionsView with transactions', () => {
     );
 
     expect(bridgeActivityItem?.props.title).toBe(
-      getSwapBridgeTxActivityTitle(bridgeHistory[BRIDGE_TX_ID]),
+      getSwapBridgeTxActivityTitle(
+        bridgeHistory[BRIDGE_TX_ID] as BridgeHistoryItem,
+      ),
     );
   });
 
