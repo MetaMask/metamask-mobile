@@ -1442,6 +1442,55 @@ describe('CardController — freezeCard', () => {
 
     expect(provider.freezeCard).toHaveBeenCalledWith('card-1', mockTokenSet);
   });
+
+  it('rejects when the post-freeze refresh forces a logout', async () => {
+    const provider = buildMockProvider();
+    mockTokenStore.get.mockResolvedValue(mockTokenSet);
+    provider.validateTokens.mockReturnValue('valid');
+    provider.freezeCard.mockResolvedValue(undefined);
+    // Freeze succeeds, but the follow-up getCardDetails 401s and the refresh is
+    // rejected, tearing down the session inside #withAuthRetry.
+    provider.getCardDetails.mockRejectedValue(mockUnauthorizedError);
+    provider.refreshTokens.mockRejectedValue(mockRefreshRejectedError);
+
+    const { controller } = buildControllerWithMockMessenger(provider, {
+      isAuthenticated: true,
+      cardHomeData: mockCardHomeData as unknown as Record<string, null>,
+      cardHomeDataStatus: 'success',
+    });
+    jest.spyOn(controller, 'fetchCardHomeData').mockResolvedValue();
+
+    await expect(controller.freezeCard('card-1')).rejects.toBe(
+      mockUnauthorizedError,
+    );
+
+    expect(provider.freezeCard).toHaveBeenCalledWith('card-1', mockTokenSet);
+    expect(controller.state.isAuthenticated).toBe(false);
+    expect(controller.state.cardHomeData).toBeNull();
+  });
+
+  it('resolves and keeps optimistic status when the refresh fails transiently', async () => {
+    const provider = buildMockProvider();
+    mockTokenStore.get.mockResolvedValue(mockTokenSet);
+    provider.validateTokens.mockReturnValue('valid');
+    provider.freezeCard.mockResolvedValue(undefined);
+    // Refresh fails for a non-auth (transient) reason: session stays intact and
+    // the mutation still counts as successful.
+    provider.getCardDetails.mockRejectedValue(new Error('network blip'));
+
+    const { controller } = buildControllerWithMockMessenger(provider, {
+      isAuthenticated: true,
+      cardHomeData: mockCardHomeData as unknown as Record<string, null>,
+      cardHomeDataStatus: 'success',
+    });
+
+    await expect(controller.freezeCard('card-1')).resolves.toBeUndefined();
+
+    expect(controller.state.isAuthenticated).toBe(true);
+    const finalData = controller.state
+      .cardHomeData as unknown as typeof mockCardHomeData;
+    expect(finalData?.card?.status).toBe(CardStatus.FROZEN);
+  });
 });
 
 describe('CardController — unfreezeCard', () => {
@@ -1531,6 +1580,63 @@ describe('CardController — unfreezeCard', () => {
 
     expect(controller.state.isAuthenticated).toBe(false);
     expect(controller.state.cardHomeData).toBeNull();
+  });
+
+  it('rejects when the post-unfreeze refresh forces a logout', async () => {
+    const provider = buildMockProvider();
+    mockTokenStore.get.mockResolvedValue(mockTokenSet);
+    provider.validateTokens.mockReturnValue('valid');
+    provider.unfreezeCard.mockResolvedValue(undefined);
+    // Unfreeze succeeds, but the follow-up getCardDetails 401s and the refresh
+    // is rejected, tearing down the session inside #withAuthRetry.
+    provider.getCardDetails.mockRejectedValue(mockUnauthorizedError);
+    provider.refreshTokens.mockRejectedValue(mockRefreshRejectedError);
+
+    const frozenHomeData = {
+      ...mockCardHomeData,
+      card: { ...mockCard, status: CardStatus.FROZEN },
+    };
+    const { controller } = buildControllerWithMockMessenger(provider, {
+      isAuthenticated: true,
+      cardHomeData: frozenHomeData as unknown as Record<string, null>,
+      cardHomeDataStatus: 'success',
+    });
+    jest.spyOn(controller, 'fetchCardHomeData').mockResolvedValue();
+
+    await expect(controller.unfreezeCard('card-1')).rejects.toBe(
+      mockUnauthorizedError,
+    );
+
+    expect(provider.unfreezeCard).toHaveBeenCalledWith('card-1', mockTokenSet);
+    expect(controller.state.isAuthenticated).toBe(false);
+    expect(controller.state.cardHomeData).toBeNull();
+  });
+
+  it('resolves and keeps optimistic status when the refresh fails transiently', async () => {
+    const provider = buildMockProvider();
+    mockTokenStore.get.mockResolvedValue(mockTokenSet);
+    provider.validateTokens.mockReturnValue('valid');
+    provider.unfreezeCard.mockResolvedValue(undefined);
+    // Refresh fails for a non-auth (transient) reason: session stays intact and
+    // the mutation still counts as successful.
+    provider.getCardDetails.mockRejectedValue(new Error('network blip'));
+
+    const frozenHomeData = {
+      ...mockCardHomeData,
+      card: { ...mockCard, status: CardStatus.FROZEN },
+    };
+    const { controller } = buildControllerWithMockMessenger(provider, {
+      isAuthenticated: true,
+      cardHomeData: frozenHomeData as unknown as Record<string, null>,
+      cardHomeDataStatus: 'success',
+    });
+
+    await expect(controller.unfreezeCard('card-1')).resolves.toBeUndefined();
+
+    expect(controller.state.isAuthenticated).toBe(true);
+    const finalData = controller.state
+      .cardHomeData as unknown as typeof mockCardHomeData;
+    expect(finalData?.card?.status).toBe(CardStatus.ACTIVE);
   });
 });
 

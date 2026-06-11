@@ -833,6 +833,35 @@ export class CardController extends BaseController<
     });
   }
 
+  async #refreshCardAfterStatusChange(method: string): Promise<void> {
+    try {
+      const freshCard = await this.#withAuthRetry((tokens) =>
+        this.getActiveProvider().getCardDetails(tokens),
+      );
+      const current = this.state.cardHomeData as unknown as CardHomeData | null;
+      if (freshCard && current) {
+        this.update((s) => {
+          (s as unknown as CardControllerState).cardHomeData = {
+            ...current,
+            card: freshCard,
+          } as unknown as Record<string, Json>;
+        });
+      }
+    } catch (refreshError) {
+      if (!this.state.isAuthenticated) {
+        throw refreshError;
+      }
+
+      Logger.error(refreshError as Error, {
+        tags: { feature: 'card' },
+        context: {
+          name: 'CardController',
+          data: { method },
+        },
+      });
+    }
+  }
+
   async freezeCard(cardId: string): Promise<void> {
     const previous = this.state.cardHomeData as unknown as CardHomeData | null;
     if (previous?.card) {
@@ -847,30 +876,7 @@ export class CardController extends BaseController<
       await this.#withAuthRetry((tokens) =>
         this.getActiveProvider().freezeCard(cardId, tokens),
       );
-      try {
-        const freshCard = await this.#withAuthRetry((tokens) =>
-          this.getActiveProvider().getCardDetails(tokens),
-        );
-        const current = this.state
-          .cardHomeData as unknown as CardHomeData | null;
-        if (freshCard && current) {
-          this.update((s) => {
-            (s as unknown as CardControllerState).cardHomeData = {
-              ...current,
-              card: freshCard,
-            } as unknown as Record<string, Json>;
-          });
-        }
-      } catch (refreshError) {
-        // Optimistic update already applied; log so we know the refresh failed.
-        Logger.error(refreshError as Error, {
-          tags: { feature: 'card' },
-          context: {
-            name: 'CardController',
-            data: { method: 'freezeCard/refresh' },
-          },
-        });
-      }
+      await this.#refreshCardAfterStatusChange('freezeCard/refresh');
     } catch (error) {
       this.#restoreCardHomeDataAfterOptimisticFailure(previous);
       throw error;
@@ -891,30 +897,7 @@ export class CardController extends BaseController<
       await this.#withAuthRetry((tokens) =>
         this.getActiveProvider().unfreezeCard(cardId, tokens),
       );
-      try {
-        const freshCard = await this.#withAuthRetry((tokens) =>
-          this.getActiveProvider().getCardDetails(tokens),
-        );
-        const current = this.state
-          .cardHomeData as unknown as CardHomeData | null;
-        if (freshCard && current) {
-          this.update((s) => {
-            (s as unknown as CardControllerState).cardHomeData = {
-              ...current,
-              card: freshCard,
-            } as unknown as Record<string, Json>;
-          });
-        }
-      } catch (refreshError) {
-        // Optimistic update already applied; log so we know the refresh failed.
-        Logger.error(refreshError as Error, {
-          tags: { feature: 'card' },
-          context: {
-            name: 'CardController',
-            data: { method: 'unfreezeCard/refresh' },
-          },
-        });
-      }
+      await this.#refreshCardAfterStatusChange('unfreezeCard/refresh');
     } catch (error) {
       this.#restoreCardHomeDataAfterOptimisticFailure(previous);
       throw error;
