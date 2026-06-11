@@ -23,6 +23,7 @@ import { resolveRampControllerAssetId } from '../utils/resolveRampControllerAsse
 import Engine from '../../../../core/Engine';
 import { selectGeolocationLocation } from '../../../../selectors/geolocationController';
 import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
+import { selectProviders } from '../../../../selectors/rampsController';
 
 enum RampMode {
   AGGREGATOR = 'AGGREGATOR',
@@ -44,7 +45,17 @@ export const useRampNavigation = () => {
   const isRampsUnifiedV2Enabled = useRampsUnifiedV2Enabled();
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
   const geolocationLocation = useSelector(selectGeolocationLocation);
-  const { setSelectedToken, tokens: rampsTokens } = useRampsTokens();
+  const {
+    setSelectedToken,
+    tokens: rampsTokens,
+    isLoading: tokensLoading,
+    error: tokensError,
+  } = useRampsTokens();
+  const {
+    data: providers,
+    isLoading: providersLoading,
+    error: providersError,
+  } = useSelector(selectProviders);
 
   const goToBuy = useCallback(
     async (
@@ -62,6 +73,22 @@ export const useRampNavigation = () => {
         (isRampsUnifiedV1Enabled || isRampsUnifiedV2Enabled) &&
         !overrideUnifiedRouting;
 
+      const v2CatalogHasLoaded =
+        isRampsUnifiedV2Enabled &&
+        !overrideUnifiedRouting &&
+        !providersLoading &&
+        !tokensLoading &&
+        !providersError &&
+        !tokensError;
+      const v2CatalogHasNoProviders =
+        v2CatalogHasLoaded && rampsTokens && providers.length === 0;
+      const v2CatalogHasNoBuyableTokens =
+        v2CatalogHasLoaded &&
+        rampsTokens &&
+        !rampsTokens.allTokens.some((token) => token.tokenSupported);
+      const isV2CatalogUnsupported =
+        v2CatalogHasNoProviders || v2CatalogHasNoBuyableTokens;
+
       // Check error states first (applies to both V1 and V2)
       if (isUnifiedRoutingEnabled) {
         if (rampRoutingDecision === UnifiedRampRoutingType.ERROR) {
@@ -77,6 +104,12 @@ export const useRampNavigation = () => {
           }
 
           if (location && location !== UNKNOWN_LOCATION) {
+            if (isV2CatalogUnsupported) {
+              navigation.navigate(
+                ...createRampUnsupportedModalNavigationDetails(),
+              );
+              return;
+            }
             navigation.navigate(...createTokenSelectionNavDetails());
           } else {
             navigation.navigate(
@@ -90,6 +123,11 @@ export const useRampNavigation = () => {
           navigation.navigate(...createRampUnsupportedModalNavigationDetails());
           return;
         }
+      }
+
+      if (isV2CatalogUnsupported) {
+        navigation.navigate(...createRampUnsupportedModalNavigationDetails());
+        return;
       }
 
       // V2: If assetId is provided and V2 is enabled, route to BuildQuote
@@ -185,6 +223,11 @@ export const useRampNavigation = () => {
       isRampsUnifiedV2Enabled,
       rampRoutingDecision,
       rampsTokens,
+      tokensLoading,
+      tokensError,
+      providers,
+      providersLoading,
+      providersError,
       geolocationLocation,
     ],
   );
