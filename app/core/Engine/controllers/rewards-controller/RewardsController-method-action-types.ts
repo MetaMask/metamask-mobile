@@ -277,9 +277,11 @@ export type RewardsControllerIsRewardsFeatureEnabledAction = {
 };
 
 /**
- * Check if the VIP feature is enabled
+ * Check if the VIP feature is enabled.
+ * VIP is a sub-feature of rewards, so it requires both the rewards feature
+ * and the dedicated VIP feature flag to be enabled.
  *
- * @returns boolean - True if VIP feature is enabled, false otherwise
+ * @returns boolean - True if the VIP feature is enabled, false otherwise
  */
 export type RewardsControllerIsVipFeatureEnabledAction = {
   type: `RewardsController:isVipFeatureEnabled`;
