@@ -11,7 +11,6 @@ import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import PlaywrightGestures from '../../framework/PlaywrightGestures';
 import UnifiedGestures from '../../framework/UnifiedGestures';
-import Utilities from '../../framework/Utilities';
 
 class LoginView {
   get container(): EncapsulatedElementType {
