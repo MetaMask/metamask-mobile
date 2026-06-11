@@ -508,6 +508,31 @@ export interface AdvancedChartProps {
   successColorOverride?: string;
   /** Override the candlestick down/error color baked into the HTML template (A/B test). */
   errorColorOverride?: string;
+
+  /**
+   * Opt-in custom DOM legend overlay. When provided with `enabled: true`,
+   * the native TradingView legend is hidden and a custom overlay renders
+   * indicator labels/values with the specified colors and abbreviations.
+   * When omitted or `enabled: false`, the native TV legend is used as-is.
+   */
+  legendOverlay?: LegendOverlayConfig;
+}
+
+export interface LegendPlotConfig {
+  tvTitle: string;
+  label: string;
+  color: string | null;
+}
+
+export interface LegendIndicatorConfig {
+  plots: LegendPlotConfig[];
+  isMA?: boolean;
+  useIndex?: boolean;
+}
+
+export interface LegendOverlayConfig {
+  enabled: boolean;
+  config: Record<string, LegendIndicatorConfig>;
 }
 
 /**

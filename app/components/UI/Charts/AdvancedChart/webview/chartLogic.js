@@ -604,12 +604,14 @@ function handleAddIndicator(payload) {
     var chart = window.chartWidget.activeChart();
     var studyName, inputs, overrides;
 
+    var hideValues = isLegendOverlayEnabled();
+
     switch (indicatorName) {
       case 'MACD':
         studyName = 'MACD';
         inputs = { in_0: 12, in_1: 26, in_2: 9 };
         overrides = {
-          showLegendValues: false,
+          showLegendValues: !hideValues,
           'MACD.color': '#2962FF',
           'Signal.color': '#FF6D00',
           'Histogram.color.0': '#26A69A',
@@ -620,7 +622,7 @@ function handleAddIndicator(payload) {
         studyName = 'Relative Strength Index';
         inputs = { in_0: 14 };
         overrides = {
-          showLegendValues: false,
+          showLegendValues: !hideValues,
           'RSI.color': '#4CAF50',
         };
         break;
@@ -628,7 +630,7 @@ function handleAddIndicator(payload) {
         studyName = 'Bollinger Bands';
         inputs = { in_0: 20, in_1: 2 };
         overrides = {
-          showLegendValues: false,
+          showLegendValues: !hideValues,
           'Upper.color': '#E040FB',
           'Basis.color': '#E040FB',
           'Lower.color': '#E040FB',
@@ -637,12 +639,12 @@ function handleAddIndicator(payload) {
       case 'MA200':
         studyName = 'Moving Average';
         inputs = { length: 200 };
-        overrides = { showLegendValues: false };
+        overrides = { showLegendValues: !hideValues };
         break;
       default:
         studyName = indicatorName;
         inputs = payload.inputs || {};
-        overrides = { showLegendValues: false };
+        overrides = { showLegendValues: !hideValues };
         break;
     }
 
@@ -741,7 +743,10 @@ function handleSetMAVisibility(payload) {
           false,
           false,
           { length: MA_LENGTHS[maName] },
-          { showLegendValues: false, 'Plot.color': MA_COLORS[maName] },
+          {
+            showLegendValues: !isLegendOverlayEnabled(),
+            'Plot.color': MA_COLORS[maName],
+          },
         )
         .then(function (studyId) {
           window.maStudies.set(maName, studyId);
@@ -3219,6 +3224,23 @@ function refreshLineEndDot() {
 // Custom Study Legend (DOM overlay)
 // ============================================
 
+function isLegendOverlayEnabled() {
+  return (
+    window.CONFIG &&
+    window.CONFIG.legendOverlay &&
+    window.CONFIG.legendOverlay.enabled
+  );
+}
+
+function getLegendConfig() {
+  return (
+    (window.CONFIG &&
+      window.CONFIG.legendOverlay &&
+      window.CONFIG.legendOverlay.config) ||
+    {}
+  );
+}
+
 var INDICATOR_LEGEND_CONFIG = {
   MACD: {
     plots: [
@@ -3310,7 +3332,9 @@ function buildLegendHTML(studyDataList) {
     var indicatorName = entry.name;
     var values = entry.values;
 
-    var cfg = INDICATOR_LEGEND_CONFIG[indicatorName];
+    var dynamicConfig = getLegendConfig();
+    var cfg =
+      dynamicConfig[indicatorName] || INDICATOR_LEGEND_CONFIG[indicatorName];
     if (!cfg) continue;
 
     if (cfg.isMA) {
@@ -3373,6 +3397,7 @@ function buildLegendHTML(studyDataList) {
 }
 
 function updateStudyLegendFromEntityValues(entityValues) {
+  if (!isLegendOverlayEnabled()) return;
   var overlay = document.getElementById('study-legend-overlay');
   if (!overlay) return;
   if (!entityValues) {
@@ -3416,6 +3441,7 @@ function subscribeStudyDataLoaded(studyId) {
 var _studyLegendRefreshTimer = null;
 
 function scheduleStudyLegendRefresh() {
+  if (!isLegendOverlayEnabled()) return;
   if (_studyLegendRefreshTimer) clearTimeout(_studyLegendRefreshTimer);
   _studyLegendRefreshTimer = setTimeout(function () {
     _studyLegendRefreshTimer = null;
@@ -3548,7 +3574,7 @@ function createVolumeStudy(useOverlay) {
     var chart = window.chartWidget.activeChart();
     var t = window.CONFIG.theme;
     var overrides = {
-      showLegendValues: false,
+      showLegendValues: !isLegendOverlayEnabled(),
       'volume.transparency': useOverlay ? 70 : 0,
       'volume.color.0': t.errorColor,
       'volume.color.1': t.successColor,
@@ -4179,9 +4205,12 @@ function initChart() {
           'paneProperties.legendProperties.showBarChange': false,
           'paneProperties.legendProperties.showVolume': false,
           'paneProperties.legendProperties.showBackground': false,
-          'paneProperties.legendProperties.showStudyTitles': false,
-          'paneProperties.legendProperties.showStudyArguments': false,
-          'paneProperties.legendProperties.showStudyValues': false,
+          'paneProperties.legendProperties.showStudyTitles':
+            !isLegendOverlayEnabled(),
+          'paneProperties.legendProperties.showStudyArguments':
+            !isLegendOverlayEnabled(),
+          'paneProperties.legendProperties.showStudyValues':
+            !isLegendOverlayEnabled(),
           'mainSeriesProperties.showPriceLine': !initCustomDashed,
 
           'mainSeriesProperties.candleStyle.upColor': theme.successColor,
@@ -4267,8 +4296,10 @@ function initChart() {
 
       subscribeLastCloseLabelUpdates();
 
-      createStudyLegendOverlay();
-      injectHideLegendButtonsCSS();
+      if (isLegendOverlayEnabled()) {
+        createStudyLegendOverlay();
+        injectHideLegendButtonsCSS();
+      }
 
       sendToReactNative('CHART_READY', {});
 
