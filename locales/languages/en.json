@@ -6868,8 +6868,6 @@
     "apy_label": "{{percentage}}% APY",
     "apy_currency_suffix": " • mUSD",
     "apy_info_label": "APY info",
-    "deposit_tooltip_title": "Earn up to {{percentage}}%",
-    "deposit_tooltip_description": "Add funds to your Money account and earn up to {{percentage}}% APY automatically. You can add funds by converting your existing stablecoin balance or depositing directly from your bank or card.",
     "balance_unavailable": "Balance unavailable",
     "balance_retry": "Retry",
     "balance_no_account": "Money account not found",
