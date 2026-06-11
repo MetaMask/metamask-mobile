@@ -20,8 +20,9 @@ import { ActivityScreenSelectorsIDs } from './ActivityScreen.testIds';
 import ActivityTypeFilterSheet, {
   ACTIVITY_TYPE_FILTER_LABEL_KEY,
 } from './components/ActivityTypeFilterSheet';
-import ActivityEmptyState from './components/ActivityEmptyState';
 import AssetListControlBar from './components/AssetListControlBar';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import ActivityList from '../ActivityList';
 import { TrendingTokenNetworkBottomSheet } from '../../UI/Trending/components/TrendingTokensBottomSheet/TrendingTokenNetworkBottomSheet';
 import { TRENDING_NETWORKS_LIST } from '../../UI/Trending/utils/trendingNetworksList';
 import type { CaipChainId } from '@metamask/utils';
@@ -169,8 +170,7 @@ const ActivityScreen = () => {
               onTypePress={handleOpenTypeSheet}
             />
 
-            {/* TODO: unified activity list (perps, predict, sends, swaps, bridges, non-EVM) */}
-            <ActivityEmptyState typeFilter={typeFilter} />
+            <ActivityList />
           </Animated.ScrollView>
         </Box>
 

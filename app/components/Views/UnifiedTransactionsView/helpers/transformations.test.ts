@@ -3,14 +3,14 @@ import type {
   V4MultiAccountTransactionsResponse,
 } from '@metamask/core-backend';
 import type { InfiniteData } from '@tanstack/react-query';
-import type { ActivityListItem } from '../types';
 import {
   isBridgeHistoryForEvmTransaction,
   mergeTransactionsByTime,
-  selectApiEvmTransactions,
+  selectTransactions,
 } from './transformations';
+import { TransactionKind } from '../types';
 
-describe('selectApiEvmTransactions', () => {
+describe('selectTransactions', () => {
   const address = '0x0000000000000000000000000000000000000001';
   const otherAddress = '0x0000000000000000000000000000000000000002';
 
@@ -43,17 +43,17 @@ describe('selectApiEvmTransactions', () => {
       pageParams: [undefined],
     }) as InfiniteData<V4MultiAccountTransactionsResponse>;
 
-  it('transforms transactions into ActivityListItems with hash and chainId', () => {
+  it('transforms transactions into view models with id and transactionMeta', () => {
     const tx = buildTransaction();
-    const result = selectApiEvmTransactions({ address })(buildData([tx]));
+    const result = selectTransactions({ address })(buildData([tx]));
 
     expect(result.pages).toHaveLength(1);
     expect(result.pages[0].data).toHaveLength(1);
-    const [item] = result.pages[0].data;
-    expect(item.data.hash).toBe('0xhash');
-    expect(item.chainId).toBe('eip155:1');
-    expect(item.status).toBeDefined();
-    expect(item.type).toBeDefined();
+    const [viewModel] = result.pages[0].data;
+    expect(viewModel.id).toBe('0xhash-1');
+    expect(viewModel.hexChainId).toBe('0x1');
+    expect(viewModel.transactionMeta).toBeDefined();
+    expect(viewModel.hash).toBe('0xhash');
   });
 
   it('filters out spam token transfers', () => {
@@ -63,12 +63,10 @@ describe('selectApiEvmTransactions', () => {
     } as Partial<V1TransactionByHashResponse>);
     const normal = buildTransaction({ hash: '0xnormal' });
 
-    const result = selectApiEvmTransactions({ address })(
-      buildData([spam, normal]),
-    );
+    const result = selectTransactions({ address })(buildData([spam, normal]));
 
     expect(result.pages[0].data).toHaveLength(1);
-    expect(result.pages[0].data[0].data.hash).toBe('0xnormal');
+    expect(result.pages[0].data[0].hash).toBe('0xnormal');
   });
 
   it('filters out transactions unrelated to the address', () => {
@@ -78,9 +76,7 @@ describe('selectApiEvmTransactions', () => {
       to: '0x0000000000000000000000000000000000000004',
     });
 
-    const result = selectApiEvmTransactions({ address })(
-      buildData([unrelated]),
-    );
+    const result = selectTransactions({ address })(buildData([unrelated]));
 
     expect(result.pages[0].data).toHaveLength(0);
   });
@@ -89,13 +85,13 @@ describe('selectApiEvmTransactions', () => {
     const excluded = buildTransaction({ hash: '0xEXCLUDED' });
     const normal = buildTransaction({ hash: '0xnormal' });
 
-    const result = selectApiEvmTransactions({
+    const result = selectTransactions({
       address,
       excludedTxHashes: new Set(['0xexcluded']),
     })(buildData([excluded, normal]));
 
     expect(result.pages[0].data).toHaveLength(1);
-    expect(result.pages[0].data[0].data.hash).toBe('0xnormal');
+    expect(result.pages[0].data[0].hash).toBe('0xnormal');
   });
 
   it('filters incoming token transfers', () => {
@@ -113,12 +109,12 @@ describe('selectApiEvmTransactions', () => {
     } as Partial<V1TransactionByHashResponse>);
     const outgoing = buildTransaction({ hash: '0xoutgoing' });
 
-    const result = selectApiEvmTransactions({ address })(
+    const result = selectTransactions({ address })(
       buildData([incomingTokenTransfer, outgoing]),
     );
 
     expect(result.pages[0].data).toHaveLength(1);
-    expect(result.pages[0].data[0].data.hash).toBe('0xoutgoing');
+    expect(result.pages[0].data[0].hash).toBe('0xoutgoing');
   });
 
   it('filters incoming native transfers', () => {
@@ -135,12 +131,12 @@ describe('selectApiEvmTransactions', () => {
     } as Partial<V1TransactionByHashResponse>);
     const outgoing = buildTransaction({ hash: '0xoutgoing' });
 
-    const result = selectApiEvmTransactions({ address })(
+    const result = selectTransactions({ address })(
       buildData([incomingNativeTransfer, outgoing]),
     );
 
     expect(result.pages[0].data).toHaveLength(1);
-    expect(result.pages[0].data[0].data.hash).toBe('0xoutgoing');
+    expect(result.pages[0].data[0].hash).toBe('0xoutgoing');
   });
 
   it('filters zero-value self sends without calldata or transfers', () => {
@@ -152,7 +148,7 @@ describe('selectApiEvmTransactions', () => {
       valueTransfers: [],
     });
 
-    const result = selectApiEvmTransactions({ address })(buildData([selfSend]));
+    const result = selectTransactions({ address })(buildData([selfSend]));
 
     expect(result.pages[0].data).toHaveLength(0);
   });
@@ -209,90 +205,51 @@ describe('isBridgeHistoryForEvmTransaction', () => {
 });
 
 describe('mergeTransactionsByTime', () => {
-  const makeItem = (overrides: Record<string, unknown>): ActivityListItem =>
-    ({
-      type: 'send',
-      chainId: 'eip155:1',
-      status: 'success',
-      timestamp: 1000,
-      data: { hash: undefined, from: '0x0', to: '0x1' },
-      ...overrides,
-    }) as unknown as ActivityListItem;
-
-  it('deduplicates local items by hash when a confirmed item exists', () => {
-    const localDuplicate = makeItem({
-      timestamp: 300,
-      data: { hash: '0xduplicate', from: '0x0', to: '0x1' },
-      raw: {
-        type: 'localTransaction' as const,
-        data: {} as never,
-      },
-    });
-    const localUnique = makeItem({
-      timestamp: 200,
-      data: { hash: '0xlocal', from: '0x0', to: '0x1' },
-      raw: {
-        type: 'localTransaction' as const,
-        data: {} as never,
-      },
-    });
-    const confirmedDuplicate = makeItem({
-      timestamp: 400,
-      data: { hash: '0xduplicate', from: '0x0', to: '0x1' },
-      raw: {
-        type: 'apiEvmTransaction' as const,
-        data: {} as never,
-      },
-    });
-    const nonEvm = makeItem({
-      chainId: 'bip122:0',
+  it('sorts unified transactions by time and removes local transactions with confirmed hashes', () => {
+    const localDuplicate = {
+      id: 'local-duplicate',
+      hash: '0xDUPLICATE',
+      time: 300,
+    };
+    const localUnique = {
+      id: 'local-unique',
+      hash: '0xlocal',
+      time: 200,
+    };
+    const confirmedDuplicate = {
+      id: 'confirmed-duplicate',
+      hash: '0xduplicate',
+      time: 400,
+    };
+    const nonEvm = {
+      id: 'non-evm',
       timestamp: 1,
-      data: { hash: 'bip-hash', from: '0x0', to: '0x1' },
-      raw: {
-        type: 'keyringTransaction' as const,
-        data: {} as never,
-      },
-    });
+    };
 
     const result = mergeTransactionsByTime(
-      [localDuplicate, localUnique],
-      [confirmedDuplicate],
-      [nonEvm],
+      [localDuplicate, localUnique] as Parameters<
+        typeof mergeTransactionsByTime
+      >[0],
+      [confirmedDuplicate] as Parameters<typeof mergeTransactionsByTime>[1],
+      [nonEvm] as Parameters<typeof mergeTransactionsByTime>[2],
     );
 
-    // localDuplicate should be deduplicated; result has 3 items
-    expect(result).toHaveLength(3);
-
-    // Sorted by timestamp descending
-    expect(result[0].data.hash).toBe('0xduplicate');
-    expect(result[0].timestamp).toBe(400);
-
-    expect(result[1].data.hash).toBe('0xlocal');
-    expect(result[1].timestamp).toBe(200);
-
-    expect(result[2].data.hash).toBe('bip-hash');
-    expect(result[2].timestamp).toBe(1);
-  });
-
-  it('preserves all items when there are no duplicate hashes', () => {
-    const local = makeItem({
-      timestamp: 300,
-      data: { hash: '0xlocal', from: '0x0', to: '0x1' },
-    });
-    const confirmed = makeItem({
-      timestamp: 400,
-      data: { hash: '0xconfirmed', from: '0x0', to: '0x1' },
-    });
-    const nonEvm = makeItem({
-      timestamp: 200,
-      data: { hash: 'non-evm', from: '0x0', to: '0x1' },
-    });
-
-    const result = mergeTransactionsByTime([local], [confirmed], [nonEvm]);
-
-    expect(result).toHaveLength(3);
-    expect(result[0].timestamp).toBe(400);
-    expect(result[1].timestamp).toBe(300);
-    expect(result[2].timestamp).toBe(200);
+    expect(result).toStrictEqual([
+      {
+        kind: TransactionKind.NonEvm,
+        tx: nonEvm,
+        time: 1000,
+      },
+      {
+        kind: TransactionKind.ConfirmedEvm,
+        tx: confirmedDuplicate,
+        time: 400,
+      },
+      {
+        kind: TransactionKind.Evm,
+        tx: localUnique,
+        time: 200,
+      },
+    ]);
   });
 });
