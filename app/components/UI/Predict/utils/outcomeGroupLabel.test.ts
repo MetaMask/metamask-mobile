@@ -46,4 +46,21 @@ describe('getOutcomeGroupLabel', () => {
 
     expect(result).toBe('Assists');
   });
+
+  it('falls back when i18n returns a missing translation placeholder', () => {
+    mockStrings.mockReturnValue(
+      '[missing "predict.outcome_groups.goalkeeper_saves" translation]',
+    );
+
+    const result = getOutcomeGroupLabel('goalkeeper_saves');
+
+    expect(result).toBe('Goalkeeper Saves');
+  });
+
+  it('formats derived group keys into readable labels', () => {
+    mockStrings.mockImplementation((key: string) => key);
+
+    expect(getOutcomeGroupLabel('goals_plus_assists')).toBe('Goals + Assists');
+    expect(getOutcomeGroupLabel('shots_on_target')).toBe('Shots on Target');
+  });
 });

@@ -44,6 +44,11 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'predict.sports_market_types.soccer_player_goals': 'Goals',
       'predict.sports_market_types.soccer_player_assists': 'Assists',
       'predict.sports_market_types.soccer_player_shots': 'Shots',
+      'predict.sports_market_types.soccer_player_goals_plus_assists':
+        'Goals + Assists',
+      'predict.sports_market_types.soccer_player_shots_on_target':
+        'Shots on Target',
+      'predict.sports_market_types.soccer_player_goalkeeper_saves': 'Saves',
       'predict.sports_market_types.basketball_total_points': 'Totals',
       'predict.sports_market_types.basketball_odd_even': 'Odd/Even Score',
       'predict.sports_market_types.basketball_team_to_score_first':
@@ -294,12 +299,21 @@ describe('PredictGameOutcomesTab', () => {
       ['soccer_player_goals', 'Goals'],
       ['soccer_player_assists', 'Assists'],
       ['soccer_player_shots', 'Shots'],
+      ['soccer_player_goals_plus_assists', 'Goals + Assists'],
+      ['soccer_player_shots_on_target', 'Shots on Target'],
+      ['soccer_player_goalkeeper_saves', 'Saves'],
     ])('returns translated label for %s', (marketType, expected) => {
       expect(getSportsMarketTypeLabel(marketType)).toBe(expected);
     });
 
     it('returns title-cased fallback for unknown type', () => {
       expect(getSportsMarketTypeLabel('unknown_type')).toBe('Unknown Type');
+    });
+
+    it('parses player market types into readable labels when translation is missing', () => {
+      expect(
+        getSportsMarketTypeLabel('soccer_player_goalkeeper_saves_missing'),
+      ).toBe('Goalkeeper Saves Missing');
     });
 
     it('returns provided fallback when translation is missing', () => {

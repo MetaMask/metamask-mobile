@@ -48,7 +48,7 @@ import type {
 import {
   ClobAuthDomain,
   DEFAULT_CLOB_BASE_URL,
-  DEFAULT_GROUP_KEY,
+  getSportsMarketTypeGroupKey,
   EIP712Domain,
   GROUP_ORDER,
   SPORTS_MARKET_TYPE_PRIORITIES,
@@ -764,10 +764,10 @@ const buildCardsForType = (
 
 /**
  * Groups a flat list of outcomes into the tab → card hierarchy the game detail
- * view renders directly. Each top-level group is a tab (keyed by
- * SPORTS_MARKET_TYPE_TO_GROUP) and each subgroup is a ready-to-render card. All
- * splitting (team totals per team, player props per player) happens here so the
- * view only has to render.
+ * view renders directly. Each top-level group is a tab (derived from the market
+ * type) and each subgroup is a ready-to-render card. All splitting (team totals
+ * per team, player props per player) happens here so the view only has to
+ * render.
  */
 export function buildOutcomeGroups(
   outcomes: PredictOutcome[],
@@ -778,10 +778,7 @@ export function buildOutcomeGroups(
 
   const tabMap = new Map<string, PredictOutcome[]>();
   for (const outcome of outcomes) {
-    const tabKey =
-      (outcome.sportsMarketType &&
-        SPORTS_MARKET_TYPE_TO_GROUP[outcome.sportsMarketType]) ||
-      DEFAULT_GROUP_KEY;
+    const tabKey = getSportsMarketTypeGroupKey(outcome.sportsMarketType);
 
     const bucket = tabMap.get(tabKey);
     if (bucket) {

@@ -153,11 +153,33 @@ export const GROUP_ORDER: string[] = [
   'corners',
   'goals',
   'goalscorers',
+  'goals_plus_assists',
   'assists',
   'shots',
+  'shots_on_target',
+  'goalkeeper_saves',
 ];
 
 export const DEFAULT_GROUP_KEY = 'game_lines';
+
+const PLAYER_PROP_GROUP_PATTERN = /^[a-z0-9]+_player_(.+)$/;
+
+const derivePlayerPropGroupKey = (type: string): string | null =>
+  type.match(PLAYER_PROP_GROUP_PATTERN)?.[1] ?? null;
+
+export const getSportsMarketTypeGroupKey = (type?: string): string => {
+  if (!type) {
+    return DEFAULT_GROUP_KEY;
+  }
+
+  const lower = type.toLowerCase();
+
+  return (
+    SPORTS_MARKET_TYPE_TO_GROUP[lower] ??
+    derivePlayerPropGroupKey(lower) ??
+    DEFAULT_GROUP_KEY
+  );
+};
 
 export const SPORTS_MARKET_TYPE_PRIORITIES: Record<string, number> = {
   moneyline: 0,

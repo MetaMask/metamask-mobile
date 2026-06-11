@@ -7,6 +7,7 @@ import { Side, type OrderPreview, type PredictOutcome } from '../../types';
 import { PREDICT_ERROR_CODES } from '../../constants/errors';
 import {
   DEFAULT_CLOB_BASE_URL,
+  getSportsMarketTypeGroupKey,
   MATIC_CONTRACTS_V2,
   POLYGON_MAINNET_CHAIN_ID,
   POLYMARKET_PROVIDER_ID,
@@ -241,6 +242,20 @@ describe('polymarket utils', () => {
       mkOutcome('soccer_team_totals', 'South Africa O/U 1.5', { line: 1.5 }),
     ];
 
+    it('derives group keys for new player stat market types', () => {
+      expect(getSportsMarketTypeGroupKey('soccer_player_goals')).toBe('goals');
+      expect(getSportsMarketTypeGroupKey('soccer_player_shots_on_target')).toBe(
+        'shots_on_target',
+      );
+      expect(
+        getSportsMarketTypeGroupKey('soccer_player_goals_plus_assists'),
+      ).toBe('goals_plus_assists');
+      expect(
+        getSportsMarketTypeGroupKey('soccer_player_goalkeeper_saves'),
+      ).toBe('goalkeeper_saves');
+      expect(getSportsMarketTypeGroupKey('totals')).toBe('game_lines');
+    });
+
     it('assigns soccer market types to the expected tabs in order', () => {
       const groups = buildOutcomeGroups([
         mkOutcome('moneyline', 'Mexico'),
@@ -250,6 +265,23 @@ describe('polymarket utils', () => {
           line: 0.5,
         }),
         mkOutcome('soccer_player_shots', 'Player A: 1+ shots', { line: 0.5 }),
+        mkOutcome(
+          'soccer_player_goals_plus_assists',
+          'Player A: 1+ goals + assists',
+          {
+            line: 0.5,
+          },
+        ),
+        mkOutcome(
+          'soccer_player_shots_on_target',
+          'Player A: 1+ shots on target',
+          {
+            line: 0.5,
+          },
+        ),
+        mkOutcome('soccer_player_goalkeeper_saves', 'Keeper A: 2+ saves', {
+          line: 1.5,
+        }),
         mkOutcome('soccer_exact_score', 'Mexico 1 - 0 South Africa'),
         mkOutcome('soccer_halftime_result', 'Mexico'),
         mkOutcome('soccer_second_half_result', 'Mexico'),
@@ -265,8 +297,11 @@ describe('polymarket utils', () => {
         'halftime',
         'corners',
         'goals',
+        'goals_plus_assists',
         'assists',
         'shots',
+        'shots_on_target',
+        'goalkeeper_saves',
       ]);
     });
 
@@ -312,6 +347,40 @@ describe('polymarket utils', () => {
       // The player with two lines keeps both outcomes in one card.
       expect(goals.subgroups?.[0].outcomes).toHaveLength(2);
       expect(goals.subgroups?.[1].outcomes).toHaveLength(1);
+    });
+
+    it('splits generic player stat tabs by player while keeping each player lines together', () => {
+      const [shotsOnTarget] = buildOutcomeGroups([
+        mkOutcome(
+          'soccer_player_shots_on_target',
+          'Armando González: 1+ shots on target',
+          {
+            line: 0.5,
+          },
+        ),
+        mkOutcome(
+          'soccer_player_shots_on_target',
+          'Armando González: 2+ shots on target',
+          {
+            line: 1.5,
+          },
+        ),
+        mkOutcome(
+          'soccer_player_shots_on_target',
+          'Gilberto Mora: 1+ shots on target',
+          {
+            line: 0.5,
+          },
+        ),
+      ]);
+
+      expect(shotsOnTarget.key).toBe('shots_on_target');
+      expect(shotsOnTarget.subgroups?.map((s) => s.title)).toEqual([
+        'Armando González',
+        'Gilberto Mora',
+      ]);
+      expect(shotsOnTarget.subgroups?.[0].outcomes).toHaveLength(2);
+      expect(shotsOnTarget.subgroups?.[1].outcomes).toHaveLength(1);
     });
 
     it('keeps a single-subject line market (corners) as one untitled card', () => {
