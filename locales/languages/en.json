@@ -7045,6 +7045,7 @@
     },
     "earn_crypto_info_sheet": {
       "title": "Earn on your crypto",
+      "deposit_title": "Projected 1-year balance",
       "body": "Projection assumes {{percentage}}% Annual Percentage Yield (APY) remains unchanged for one year. APY is variable and is not guaranteed."
     },
     "activity": {

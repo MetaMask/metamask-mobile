@@ -79,6 +79,7 @@ export function BalanceProjection({
 
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.EARN_CRYPTO_INFO_SHEET,
+      params: { variant: 'deposit' },
     });
   }, [navigation, trackTooltipClicked]);
 
@@ -119,7 +120,9 @@ export function BalanceProjection({
             iconProps={{ color: IconColor.IconAlternative, size: IconSize.Sm }}
             size={ButtonIconSize.Sm}
             onPress={handleEarnCryptoInfoPress}
-            accessibilityLabel={strings('money.earn_crypto_info_sheet.title')}
+            accessibilityLabel={strings(
+              'money.earn_crypto_info_sheet.deposit_title',
+            )}
             testID="balance-projection-info-button"
           />
         </Box>
