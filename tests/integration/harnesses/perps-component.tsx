@@ -83,75 +83,6 @@ jest.mock('../../../app/util/haptics', () => {
     }),
   };
 });
-jest.mock(
-  '../../../app/components/Views/confirmations/hooks/pay/useTransactionPayData',
-  () => ({
-    useTransactionPayTotals: () => null,
-    useIsTransactionPayQuoteLoading: () => false,
-  }),
-);
-jest.mock(
-  '../../../app/components/Views/confirmations/hooks/pay/useTransactionPayMetrics',
-  () => ({
-    useTransactionPayMetrics: jest.fn(),
-  }),
-);
-jest.mock(
-  '../../../app/components/Views/confirmations/hooks/pay/useTransactionPayToken',
-  () => ({
-    useTransactionPayToken: () => ({ payToken: null }),
-  }),
-);
-jest.mock(
-  '../../../app/components/Views/confirmations/hooks/tokens/useAddToken',
-  () => ({
-    useAddToken: jest.fn(),
-  }),
-);
-jest.mock(
-  '../../../app/components/Views/confirmations/hooks/transactions/useTransactionConfirm',
-  () => ({
-    useTransactionConfirm: () => ({
-      onConfirm: jest.fn().mockResolvedValue(undefined),
-    }),
-  }),
-);
-jest.mock(
-  '../../../app/components/Views/confirmations/hooks/transactions/useTransactionCustomAmount',
-  () => ({
-    useTransactionCustomAmount: () => ({ setCustomAmount: jest.fn() }),
-  }),
-);
-jest.mock(
-  '../../../app/components/Views/confirmations/hooks/transactions/useTransactionMetadataRequest',
-  () => ({
-    useTransactionMetadataRequest: () => undefined,
-  }),
-);
-jest.mock(
-  '../../../app/components/Views/confirmations/hooks/transactions/useUpdateTokenAmount',
-  () => ({
-    useUpdateTokenAmount: () => jest.fn(),
-  }),
-);
-jest.mock(
-  '../../../app/components/Views/confirmations/hooks/useConfirmActions',
-  () => ({
-    useConfirmActions: () => ({ onReject: jest.fn() }),
-  }),
-);
-jest.mock(
-  '../../../app/components/Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert',
-  () => ({
-    useInsufficientPayTokenBalanceAlert: () => [],
-  }),
-);
-jest.mock(
-  '../../../app/components/Views/confirmations/hooks/alerts/useNoPayTokenQuotesAlert',
-  () => ({
-    useNoPayTokenQuotesAlert: () => [],
-  }),
-);
 jest.mock('../../../app/util/trace', () => ({
   TraceName: {
     PerpsOrderView: 'PerpsOrderView',
@@ -170,6 +101,8 @@ import React from 'react';
 import { View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { createStackNavigator } from '@react-navigation/stack';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ConnectionStatus } from '@metamask/hw-wallet-sdk';
 
 import { buildPerpsFlowHarness, type PerpsFlowHarness } from './perps-flow';
 import type { PerpsHarnessOptions } from './perps';
@@ -193,6 +126,9 @@ import type {
 import { AccessRestrictedProvider } from '../../../app/components/UI/Compliance';
 import Routes from '../../../app/constants/navigation/Routes';
 import { initialStatePerps } from '../../component-view/presets/perpsStatePreset';
+import HardwareWalletContext, {
+  type HardwareWalletContextValue,
+} from '../../../app/core/HardwareWallet/contexts/HardwareWalletContext';
 
 type ToastOptionsForHarness = ToastOptions;
 
@@ -230,6 +166,30 @@ export interface PerpsComponentHarness extends PerpsFlowHarness {
 
 const noopUnsubscribe = (): void => undefined;
 
+function createTestQueryClient() {
+  return new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
+}
+
+function QueryClientBoundary({ children }: { children: React.ReactNode }) {
+  const [queryClient] = React.useState(createTestQueryClient);
+
+  React.useEffect(
+    () => () => {
+      queryClient.clear();
+    },
+    [queryClient],
+  );
+
+  return (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
+}
+
 const testConnectionValue: PerpsConnectionContextValue = {
   isConnected: true,
   isConnecting: false,
@@ -239,6 +199,31 @@ const testConnectionValue: PerpsConnectionContextValue = {
   disconnect: async (): Promise<void> => undefined,
   resetError: (): void => undefined,
   reconnectWithNewContext: async (): Promise<void> => undefined,
+};
+
+const testHardwareWalletValue: HardwareWalletContextValue = {
+  walletType: null,
+  deviceId: null,
+  connectionState: { status: ConnectionStatus.Disconnected },
+  deviceSelection: {
+    devices: [],
+    selectedDevice: null,
+    isScanning: false,
+    scanError: null,
+  },
+  ensureDeviceReady: async (): Promise<boolean> => true,
+  setTargetWalletType: (): void => undefined,
+  setPendingOperationAddress: (): void => undefined,
+  showHardwareWalletError: (): void => undefined,
+  showAwaitingConfirmation: (): void => undefined,
+  hideAwaitingConfirmation: (): void => undefined,
+  qr: {
+    pendingScanRequest: undefined,
+    isSigningQRObject: false,
+    setRequestCompleted: (): void => undefined,
+    isRequestCompleted: false,
+    cancelQRScanRequestIfPresent: async (): Promise<void> => undefined,
+  },
 };
 
 function channelWithInitialValue<T>(initialValue: T) {
@@ -349,15 +334,19 @@ export function buildPerpsComponentHarness(
           insets: { top: 0, left: 0, right: 0, bottom: 0 },
         }}
       >
-        <ToastContext.Provider value={{ toastRef }}>
-          <AccessRestrictedProvider>
-            <PerpsConnectionContext.Provider value={testConnectionValue}>
-              <PerpsStreamProvider testStreamManager={streamManager}>
-                {component}
-              </PerpsStreamProvider>
-            </PerpsConnectionContext.Provider>
-          </AccessRestrictedProvider>
-        </ToastContext.Provider>
+        <QueryClientBoundary>
+          <HardwareWalletContext.Provider value={testHardwareWalletValue}>
+            <ToastContext.Provider value={{ toastRef }}>
+              <AccessRestrictedProvider>
+                <PerpsConnectionContext.Provider value={testConnectionValue}>
+                  <PerpsStreamProvider testStreamManager={streamManager}>
+                    {component}
+                  </PerpsStreamProvider>
+                </PerpsConnectionContext.Provider>
+              </AccessRestrictedProvider>
+            </ToastContext.Provider>
+          </HardwareWalletContext.Provider>
+        </QueryClientBoundary>
       </SafeAreaProvider>
     );
 

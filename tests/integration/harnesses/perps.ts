@@ -15,9 +15,9 @@
  *   - HyperLiquidClientService     — SDK clients, network mode
  *   - HyperLiquidWalletService     — keyring/wallet
  *   - HyperLiquidSubscriptionService — websocket subscriptions + caches
- *   - TradingReadinessCache        — module-level signing cache
- *   - streamManager platform dep   — UI subscription orchestrator mock
- *     provided through createMockInfrastructure(), not a module mock
+ *   - TradingReadinessCache        — module-level readiness cache
+ *   - PerpsSigningCache            — module-level signing cache
+ *   - PerpsStreamManager            — UI subscription orchestrator
  *   - hyperLiquidValidation utils  — basic-shape validators (separate file
  *     from the class method `validateOrder`, which IS real)
  * ─────────────────────────────────────────────────────────────────────────
@@ -38,16 +38,11 @@
  *     });
  */
 
-jest.mock(
-  '../../../node_modules/@metamask/perps-controller/dist/services/HyperLiquidClientService.cjs',
-);
-jest.mock(
-  '../../../node_modules/@metamask/perps-controller/dist/services/HyperLiquidWalletService.cjs',
-);
-jest.mock(
-  '../../../node_modules/@metamask/perps-controller/dist/services/HyperLiquidSubscriptionService.cjs',
-);
-let mockTradingReadinessCache: {
+jest.mock('@metamask/perps-controller/services/HyperLiquidClientService');
+jest.mock('@metamask/perps-controller/services/HyperLiquidWalletService');
+jest.mock('@metamask/perps-controller/services/HyperLiquidSubscriptionService');
+
+interface MockReadinessCache {
   get: jest.Mock;
   set: jest.Mock;
   getBuilderFee: jest.Mock;
@@ -66,72 +61,74 @@ let mockTradingReadinessCache: {
   getAll: jest.Mock;
   size: jest.Mock;
   debugState: jest.Mock;
-};
-jest.mock(
-  '../../../node_modules/@metamask/perps-controller/dist/services/TradingReadinessCache.cjs',
-  () => {
-    mockTradingReadinessCache = {
-      get: jest.fn(),
-      set: jest.fn(),
-      getBuilderFee: jest.fn(),
-      setBuilderFee: jest.fn(),
-      getReferral: jest.fn(),
-      setReferral: jest.fn(),
-      getWalletRegistered: jest.fn(),
-      setWalletRegistered: jest.fn(),
-      isInFlight: jest.fn(),
-      setInFlight: jest.fn(),
-      clearUnifiedAccount: jest.fn(),
-      clearBuilderFee: jest.fn(),
-      clearReferral: jest.fn(),
-      clear: jest.fn(),
-      clearAll: jest.fn(),
-      getAll: jest.fn(() => new Map()),
-      size: jest.fn(() => 0),
-      debugState: jest.fn(() => '(empty)'),
-    };
-    return {
-      TradingReadinessCache: mockTradingReadinessCache,
-      PerpsSigningCache: mockTradingReadinessCache,
-    };
-  },
-);
+}
+
+function mockCreateReadinessCache(): MockReadinessCache {
+  return {
+    get: jest.fn(),
+    set: jest.fn(),
+    getBuilderFee: jest.fn(),
+    setBuilderFee: jest.fn(),
+    getReferral: jest.fn(),
+    setReferral: jest.fn(),
+    getWalletRegistered: jest.fn(),
+    setWalletRegistered: jest.fn(),
+    isInFlight: jest.fn(),
+    setInFlight: jest.fn(),
+    clearUnifiedAccount: jest.fn(),
+    clearBuilderFee: jest.fn(),
+    clearReferral: jest.fn(),
+    clear: jest.fn(),
+    clearAll: jest.fn(),
+    getAll: jest.fn(() => new Map()),
+    size: jest.fn(() => 0),
+    debugState: jest.fn(() => '(empty)'),
+  };
+}
+
+let mockTradingReadinessCache: MockReadinessCache;
+let mockPerpsSigningCache: MockReadinessCache;
+jest.mock('@metamask/perps-controller/services/TradingReadinessCache', () => {
+  mockTradingReadinessCache = mockCreateReadinessCache();
+  mockPerpsSigningCache = mockCreateReadinessCache();
+  return {
+    TradingReadinessCache: mockTradingReadinessCache,
+    PerpsSigningCache: mockPerpsSigningCache,
+  };
+});
 // PerpsStreamManager is NOT mocked — `HyperLiquidProvider` no longer imports
 // `getStreamManagerInstance` directly (see HyperLiquidProvider.ts:170, "removed:
 // use this.#deps.streamManager instead"). The streamManager dependency comes
 // in via createMockInfrastructure() in the platform deps. Re-add this mock if
 // a future change reintroduces a transitive import.
-jest.mock(
-  '../../../node_modules/@metamask/perps-controller/dist/utils/hyperLiquidValidation.cjs',
-  () => ({
-    validateOrderParams: jest.fn().mockReturnValue({ isValid: true }),
-    validateWithdrawalParams: jest.fn().mockReturnValue({ isValid: true }),
-    validateDepositParams: jest.fn().mockReturnValue({ isValid: true }),
-    validateCoinExists: jest.fn().mockReturnValue({ isValid: true }),
-    validateAssetSupport: jest.fn().mockReturnValue({ isValid: true }),
-    validateBalance: jest.fn().mockReturnValue({ isValid: true }),
-    getSupportedPaths: jest.fn().mockReturnValue([]),
-    getBridgeInfo: jest.fn().mockReturnValue({
-      chainId: 'eip155:42161',
-      contractAddress: '0x1234567890123456789012345678901234567890',
-    }),
-    createErrorResult: jest.fn(
-      (error: unknown, defaultResponse: Record<string, unknown>) => ({
-        ...defaultResponse,
-        success: false,
-        error: error instanceof Error ? error.message : String(error),
-      }),
-    ),
+jest.mock('@metamask/perps-controller/utils/hyperLiquidValidation', () => ({
+  validateOrderParams: jest.fn().mockReturnValue({ isValid: true }),
+  validateWithdrawalParams: jest.fn().mockReturnValue({ isValid: true }),
+  validateDepositParams: jest.fn().mockReturnValue({ isValid: true }),
+  validateCoinExists: jest.fn().mockReturnValue({ isValid: true }),
+  validateAssetSupport: jest.fn().mockReturnValue({ isValid: true }),
+  validateBalance: jest.fn().mockReturnValue({ isValid: true }),
+  getSupportedPaths: jest.fn().mockReturnValue([]),
+  getBridgeInfo: jest.fn().mockReturnValue({
+    chainId: 'eip155:42161',
+    contractAddress: '0x1234567890123456789012345678901234567890',
   }),
-);
+  createErrorResult: jest.fn(
+    (error: unknown, defaultResponse: Record<string, unknown>) => ({
+      ...defaultResponse,
+      success: false,
+      error: error instanceof Error ? error.message : String(error),
+    }),
+  ),
+}));
 
 import {
   HyperLiquidProvider,
   type PerpsPlatformDependencies,
 } from '@metamask/perps-controller';
-import { HyperLiquidClientService } from '../../../node_modules/@metamask/perps-controller/dist/services/HyperLiquidClientService.cjs';
-import { HyperLiquidWalletService } from '../../../node_modules/@metamask/perps-controller/dist/services/HyperLiquidWalletService.cjs';
-import { HyperLiquidSubscriptionService } from '../../../node_modules/@metamask/perps-controller/dist/services/HyperLiquidSubscriptionService.cjs';
+import { HyperLiquidClientService } from '@metamask/perps-controller/services/HyperLiquidClientService';
+import { HyperLiquidWalletService } from '@metamask/perps-controller/services/HyperLiquidWalletService';
+import { HyperLiquidSubscriptionService } from '@metamask/perps-controller/services/HyperLiquidSubscriptionService';
 import {
   createMockInfrastructure,
   createMockMessenger,
@@ -148,6 +145,15 @@ const DEFAULT_ASSET_MAPPING: [string, number][] = [
 ];
 
 const DEFAULT_USER_ADDRESS = '0x1234567890123456789012345678901234567890';
+
+function resetMockReadinessCache(cache: MockReadinessCache) {
+  cache.get.mockReturnValue(undefined);
+  cache.getBuilderFee.mockReturnValue(undefined);
+  cache.getReferral.mockReturnValue(undefined);
+  cache.getWalletRegistered.mockReturnValue(undefined);
+  cache.isInFlight.mockReturnValue(undefined);
+  cache.setInFlight.mockReturnValue(jest.fn());
+}
 
 /**
  * Minimal SDK info-client mock — covers the methods the provider calls during
@@ -298,13 +304,10 @@ export function buildPerpsIntegrationHarness(
     ...(options.cachedPrices ?? {}),
   };
 
-  const MockedCache = mockTradingReadinessCache;
-  MockedCache.get.mockReturnValue(undefined);
-  MockedCache.getBuilderFee.mockReturnValue(undefined);
-  MockedCache.getReferral.mockReturnValue(undefined);
-  MockedCache.getWalletRegistered.mockReturnValue(undefined);
-  MockedCache.isInFlight.mockReturnValue(undefined);
-  MockedCache.setInFlight.mockReturnValue(jest.fn());
+  const MockedTradingReadinessCache = mockTradingReadinessCache;
+  const MockedPerpsSigningCache = mockPerpsSigningCache;
+  resetMockReadinessCache(MockedTradingReadinessCache);
+  resetMockReadinessCache(MockedPerpsSigningCache);
 
   const infoClient = createMockInfoClient();
   const exchangeClient = createMockExchangeClient();
@@ -401,17 +404,20 @@ export function buildPerpsIntegrationHarness(
    * the Arrange phase of any test that exercises trading.
    */
   const setupTradingReady = () => {
-    MockedCache.getBuilderFee.mockReturnValue({
+    MockedPerpsSigningCache.getBuilderFee.mockReturnValue({
       attempted: true,
       success: true,
     });
-    MockedCache.getReferral.mockReturnValue({ attempted: true, success: true });
-    MockedCache.get.mockReturnValue({
+    MockedPerpsSigningCache.getReferral.mockReturnValue({
+      attempted: true,
+      success: true,
+    });
+    MockedTradingReadinessCache.get.mockReturnValue({
       attempted: true,
       enabled: true,
       timestamp: Date.now(),
     });
-    MockedCache.getWalletRegistered.mockReturnValue({
+    MockedPerpsSigningCache.getWalletRegistered.mockReturnValue({
       known: true,
       registered: true,
     });

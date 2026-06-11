@@ -9,6 +9,8 @@
  * Reference: tests/integration/AGENTS.md · .agents/skills/integration-test/
  */
 
+import { type Position } from '@metamask/perps-controller';
+
 import { buildPerpsIntegrationHarness } from '../../../../../tests/integration/harnesses/perps';
 
 describe('Perps order lifecycle — integration', () => {
@@ -107,8 +109,7 @@ describe('Perps order lifecycle — integration', () => {
 
   describe('closing a position', () => {
     /** Long BTC position seeded into the subscription cache. */
-    const openLongBTC = {
-      coin: 'BTC',
+    const openLongBTC: Position = {
       symbol: 'BTC',
       size: '0.1', // positive = long
       entryPrice: '50000',
@@ -120,6 +121,8 @@ describe('Perps order lifecycle — integration', () => {
       maxLeverage: 50,
       returnOnEquity: '0',
       cumulativeFunding: { allTime: '0', sinceOpen: '0', sinceChange: '0' },
+      takeProfitCount: 0,
+      stopLossCount: 0,
     };
 
     it('closes a long position fully when size is omitted (cache-lookup path)', async () => {
@@ -129,9 +132,7 @@ describe('Perps order lifecycle — integration', () => {
       setupTradingReady();
       // Realistic flow: provider reads the position from the WS subscription
       // cache rather than receiving it inline from the UI.
-      mocks.subscription.getCachedPositions.mockReturnValue([
-        openLongBTC as never,
-      ]);
+      mocks.subscription.getCachedPositions.mockReturnValue([openLongBTC]);
 
       // Act — full close, no `size`, no `position` param
       const result = await provider.closePosition({
