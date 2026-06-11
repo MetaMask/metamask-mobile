@@ -125,7 +125,11 @@ class AccountListBottomSheet {
   getAccountElementByAccountNameV2(
     accountName: string,
   ): EncapsulatedElementType {
-    return Matchers.getElementByIDAndLabel(AccountCellIds.ADDRESS, accountName);
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByIDAndLabel(AccountCellIds.ADDRESS, accountName),
+      appium: () => PlaywrightMatchers.getElementByText(accountName),
+    });
   }
 
   getSelectElement(index: number): EncapsulatedElementType {

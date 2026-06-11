@@ -1,5 +1,5 @@
 import { AccountsControllerMessenger } from '@metamask/accounts-controller';
-import { RootExtendedMessenger, RootMessenger } from '../../types';
+import { RootMessenger } from '../../types';
 import {
   Messenger,
   MessengerActions,
@@ -16,19 +16,17 @@ export * from './types';
  * @returns The AccountsControllerMessenger.
  */
 export function getAccountsControllerMessenger(
-  rootExtendedMessenger: RootExtendedMessenger,
-): AccountsControllerMessenger {
-  const messenger = new Messenger<
-    'AccountsController',
+  rootMessenger: RootMessenger<
     MessengerActions<AccountsControllerMessenger>,
-    MessengerEvents<AccountsControllerMessenger>,
-    RootMessenger
-  >({
+    MessengerEvents<AccountsControllerMessenger>
+  >,
+): AccountsControllerMessenger {
+  const messenger: AccountsControllerMessenger = new Messenger({
     namespace: 'AccountsController',
-    parent: rootExtendedMessenger,
+    parent: rootMessenger,
   });
 
-  rootExtendedMessenger.delegate({
+  rootMessenger.delegate({
     actions: [
       'KeyringController:getState',
       'KeyringController:getKeyringsByType',
