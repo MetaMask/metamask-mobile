@@ -7,7 +7,7 @@ import useTokenDetectionPolling from './useTokenDetectionPolling';
 import useTokenBalancesPolling from './useTokenBalancesPolling';
 import useMultichainAssetsRatePolling from './useMultichainAssetsRatePolling';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
-import { useArcDefaultTokens } from '../../../enablement/assets/useArcDefaultTokens';
+import { useArcDefaultTokensEffect } from '../../../enablement/assets/useArcDefaultTokens';
 
 export interface AssetPollingProviderProps {
   chainIds?: Hex[];
@@ -42,7 +42,7 @@ export const AssetPollingProvider = memo((props: AssetPollingProviderProps) => {
     account?.id ? { accountId: account.id } : { accountId: '' },
   );
 
-  useArcDefaultTokens();
+  useArcDefaultTokensEffect();
 
   return null;
 });

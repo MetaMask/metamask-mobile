@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
-import { useArcDefaultTokens } from './useArcDefaultTokens';
+import { useArcDefaultTokensEffect } from './useArcDefaultTokens';
 import { NETWORKS_CHAIN_ID } from '../../constants/network';
 import Engine from '../../core/Engine';
 import { selectIsAssetsUnifyStateEnabled } from '../../selectors/featureFlagController/assetsUnifyState';
@@ -67,7 +67,7 @@ describe('useArcDefaultTokens', () => {
   it('adds USDC for an EVM account that does not have it when Arc is present', () => {
     mockSelectors();
 
-    renderHook(() => useArcDefaultTokens());
+    renderHook(() => useArcDefaultTokensEffect());
 
     expect(addCustomAssetMock).toHaveBeenCalledWith(
       EVM_ACCOUNT.id,
@@ -84,7 +84,7 @@ describe('useArcDefaultTokens', () => {
   it('does nothing when the unified assets state is disabled', () => {
     mockSelectors({ isEnabled: false });
 
-    renderHook(() => useArcDefaultTokens());
+    renderHook(() => useArcDefaultTokensEffect());
 
     expect(addCustomAssetMock).not.toHaveBeenCalled();
   });
@@ -92,7 +92,7 @@ describe('useArcDefaultTokens', () => {
   it('does nothing when the Arc network is not present', () => {
     mockSelectors({ arcPresent: false });
 
-    renderHook(() => useArcDefaultTokens());
+    renderHook(() => useArcDefaultTokensEffect());
 
     expect(addCustomAssetMock).not.toHaveBeenCalled();
   });
@@ -102,7 +102,7 @@ describe('useArcDefaultTokens', () => {
       customAssets: { [EVM_ACCOUNT.id]: [ARC_USDC_ASSET_ID] },
     });
 
-    renderHook(() => useArcDefaultTokens());
+    renderHook(() => useArcDefaultTokensEffect());
 
     expect(addCustomAssetMock).not.toHaveBeenCalled();
   });
@@ -110,7 +110,7 @@ describe('useArcDefaultTokens', () => {
   it('only dispatches once per account across re-renders', () => {
     mockSelectors();
 
-    const { rerender } = renderHook(() => useArcDefaultTokens());
+    const { rerender } = renderHook(() => useArcDefaultTokensEffect());
     rerender({});
 
     expect(addCustomAssetMock).toHaveBeenCalledTimes(1);

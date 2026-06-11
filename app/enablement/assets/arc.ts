@@ -2,25 +2,6 @@ import type { TokenBalancesControllerState } from '@metamask/assets-controllers'
 import type { Hex } from '@metamask/utils';
 import { NETWORKS_CHAIN_ID } from '../../constants/network';
 
-/**
- * Arc augmentations hub.
- *
- * This module is the single place that documents and implements the special
- * casing the app needs for the Arc network. Keeping it together makes it easy
- * to understand *why* these adjustments exist and to reason about them as a
- * group in the future.
- *
- * Arc treats USDC as its display currency. Its native token lives at the zero
- * address and is effectively a duplicate of the USDC ERC20 that users actually
- * interact with. We therefore hide the Arc native token from the wallet token
- * list and exclude it from the aggregated balance.
- *
- * This filtering is intentionally scoped to the wallet token-list and
- * aggregated-balance selectors only. Other consumers — network fee / gas
- * estimation, and the confirmation/send "pay with" flow (`useAccountTokens`) —
- * still need the real native token, so it must NOT be stripped at the base
- * (`assets-migration` / `selectAssetsBySelectedAccountGroup`) selector layer.
- */
 export const ARC_CHAIN_ID = NETWORKS_CHAIN_ID.ARC as Hex;
 
 export const ARC_NATIVE_TOKEN_ADDRESS =
@@ -28,7 +9,7 @@ export const ARC_NATIVE_TOKEN_ADDRESS =
 
 /**
  * Whether an asset is the Arc native token (the zero-address duplicate of the
- * USDC ERC20). Used to hide it from the wallet token list.
+ * USDC ERC20). Used to hide it from the wallet token list - native should not be shown.
  */
 export function isArcNativeAsset(asset: {
   chainId?: string;

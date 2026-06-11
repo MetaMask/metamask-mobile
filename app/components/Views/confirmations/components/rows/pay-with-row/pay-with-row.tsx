@@ -69,9 +69,7 @@ export function PayWithRow({
   );
   const { payWithOption } = useParams<ConfirmationParams>({});
 
-  // On Arc, the transaction always pays with the native token (USDC) — there is
-  // no alternative pay-with route, so skip rendering the row entirely. This
-  // prevents the "no payment route" error.
+  // No alternative pay-with route on Arc.
   if (shouldHideArc(transactionMeta?.chainId)) {
     return null;
   }

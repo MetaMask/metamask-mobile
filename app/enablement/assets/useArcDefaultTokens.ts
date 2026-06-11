@@ -31,7 +31,7 @@ const ARC_USDC_METADATA = {
  * No-op unless the unified assets state is enabled, since the AssetsController
  * is the source of custom assets in that mode.
  */
-export function useArcDefaultTokens() {
+export function useArcDefaultTokensEffect() {
   const isAssetsUnifyStateEnabled = useSelector(
     selectIsAssetsUnifyStateEnabled,
   );

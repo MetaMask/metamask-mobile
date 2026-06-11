@@ -26,9 +26,6 @@ export function useSendTokens({
   });
 
   return useMemo(() => {
-    // Hide the Arc native token from the send picker; users send USDC (the
-    // ERC20) instead. The native token is still available to the pay/gas flow,
-    // which reads `useAccountTokens` directly rather than this send wrapper.
     const tokens = filterOutArcNativeAsset(allTokens);
 
     const accountTypeMap: Record<string, boolean> = {
