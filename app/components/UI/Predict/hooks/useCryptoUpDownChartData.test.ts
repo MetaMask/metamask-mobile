@@ -216,6 +216,50 @@ describe('useCryptoUpDownChartData', () => {
       expect(result.current.loading).toBe(false);
     });
 
+    it('keeps loading when only one point sits near the live edge (post-reconnect)', () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket();
+      historicalData = [];
+
+      const { result } = renderHook(() => useCryptoUpDownChartData(market), {
+        wrapper: Wrapper,
+      });
+
+      // Two points survive the 60s retention buffer, but they are >30s apart so
+      // only the newest falls inside the live window. Liveline can't draw a line
+      // from a single in-window point, so the hook must keep the spinner up
+      // instead of handing over data that renders as a blank canvas.
+      act(() => {
+        liveUpdateHandler?.({
+          symbol: 'btc/usd',
+          price: 51000,
+          timestamp: 1000,
+        });
+        liveUpdateHandler?.({
+          symbol: 'btc/usd',
+          price: 52000,
+          timestamp: 1040,
+        });
+      });
+
+      expect(result.current.data).toEqual([
+        { time: 1000, value: 51000 },
+        { time: 1040, value: 52000 },
+      ]);
+      expect(result.current.loading).toBe(true);
+
+      // A second point lands inside the window -> enough to draw -> spinner off.
+      act(() => {
+        liveUpdateHandler?.({
+          symbol: 'btc/usd',
+          price: 52500,
+          timestamp: 1055,
+        });
+      });
+
+      expect(result.current.loading).toBe(false);
+    });
+
     it('preserves second-based live timestamps', () => {
       const { Wrapper } = createWrapper();
       const market = createMarket();
@@ -1110,6 +1154,86 @@ describe('useCryptoUpDownChartData', () => {
         'btc/usd',
         expect.any(Function),
       );
+    });
+  });
+
+  describe('live-only path (historicalEnabled: false)', () => {
+    it('does not let historical data populate the chart even after it resolves', async () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket();
+      historicalData = [
+        { time: 100, value: 50000 },
+        { time: 200, value: 51000 },
+      ];
+
+      const { result } = renderHook(
+        () =>
+          useCryptoUpDownChartData(market, undefined, {
+            historicalEnabled: false,
+          }),
+        { wrapper: Wrapper },
+      );
+
+      // Flush any microtasks the query layer might schedule; with the query
+      // disabled it must never run, so the chart stays empty (no history).
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(result.current.data).toEqual([]);
+    });
+
+    it('renders only live points, ignoring resolved historical data', async () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket();
+      historicalData = [
+        { time: 100, value: 50000 },
+        { time: 200, value: 51000 },
+      ];
+
+      const { result } = renderHook(
+        () =>
+          useCryptoUpDownChartData(market, undefined, {
+            historicalEnabled: false,
+          }),
+        { wrapper: Wrapper },
+      );
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      act(() => {
+        liveUpdateHandler?.({ symbol: 'btc/usd', price: 60000, timestamp: 10 });
+        liveUpdateHandler?.({ symbol: 'btc/usd', price: 60500, timestamp: 20 });
+      });
+
+      expect(result.current.data).toEqual([
+        { time: 10, value: 60000 },
+        { time: 20, value: 60500 },
+      ]);
+      expect(result.current.value).toBe(60500);
+      expect(result.current.loading).toBe(false);
+    });
+
+    it('stays loading (not blanked by history) until live points arrive', () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket();
+      historicalData = [
+        { time: 100, value: 50000 },
+        { time: 200, value: 51000 },
+      ];
+
+      const { result } = renderHook(
+        () =>
+          useCryptoUpDownChartData(market, undefined, {
+            historicalEnabled: false,
+          }),
+        { wrapper: Wrapper },
+      );
+
+      expect(result.current.data).toEqual([]);
+      expect(result.current.loading).toBe(true);
     });
   });
 

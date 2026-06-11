@@ -125,6 +125,19 @@ export interface UseCryptoUpDownChartDataResult {
 interface UseCryptoUpDownChartDataOptions {
   enabled?: boolean;
   liveUpdatesEnabled?: boolean;
+  /**
+   * When false, the historical price series is neither fetched nor merged into
+   * the chart data — only the live websocket stream is rendered. Defaults to
+   * true.
+   *
+   * The details-page chart uses a short, "now"-anchored live window. Historical
+   * points (from event start, often minutes old) sit outside that window so
+   * Liveline can't draw them, yet their presence inflates the renderable-point
+   * count and suppresses the loading spinner — producing a blank canvas with no
+   * spinner whenever the live stream is sparse or cold. Disabling history makes
+   * the spinner/empty state track the live data the chart can actually draw.
+   */
+  historicalEnabled?: boolean;
   historicalWindow?: {
     startDate: string;
     endDate?: string;
@@ -138,6 +151,7 @@ export const useCryptoUpDownChartData = (
 ): UseCryptoUpDownChartDataResult => {
   const enabled = options.enabled ?? true;
   const liveUpdatesEnabled = options.liveUpdatesEnabled ?? true;
+  const historicalEnabled = options.historicalEnabled ?? true;
   const preserveHistoricalDataAcrossMarket =
     !liveUpdatesEnabled && Boolean(options.historicalWindow);
   const symbol = getCryptoSymbol(market);
@@ -324,7 +338,7 @@ export const useCryptoUpDownChartData = (
       variant,
       endDate: historyEndDate,
     }),
-    enabled: enabled && !!symbol && !!historyStartDate,
+    enabled: enabled && historicalEnabled && !!symbol && !!historyStartDate,
     keepPreviousData: true,
     staleTime: shouldStreamLive ? 1000 : Infinity,
     refetchOnMount: shouldStreamLive || !liveUpdatesEnabled ? 'always' : false,
@@ -390,8 +404,35 @@ export const useCryptoUpDownChartData = (
     shouldUseFallbackStartPoint ? stableFallbackStartPoint : EMPTY_DATA,
     stableHistoricalData,
   );
-  const chartData = mergeLivelinePoints(baseHistoricalData, livePoints);
+  // Live-only consumers (e.g. the details-page chart) intentionally drop the
+  // historical/seed series so the renderable-point count tracks the live data
+  // the "now"-anchored window can actually draw, rather than off-window
+  // history that would suppress the spinner while drawing nothing.
+  const chartData = historicalEnabled
+    ? mergeLivelinePoints(baseHistoricalData, livePoints)
+    : mergeLivelinePoints(EMPTY_DATA, livePoints);
   const hasRenderableChartData = chartData.length >= 2;
+  // Liveline anchors its visible window to "now" and needs at least two points
+  // inside that window to draw a line; with fewer it falls back to a
+  // transparent empty state that reads as a blank/black canvas. The total point
+  // count isn't sufficient: right after a reconnect the newest tick can be the
+  // only point near the live edge while older (still-retained) points inflate
+  // the total. So gate the live spinner on how many points sit within one
+  // window span of the newest point, not on the raw count.
+  const newestChartPointTime = chartData.at(-1)?.time;
+  const liveWindowStartSecs =
+    typeof newestChartPointTime === 'number'
+      ? newestChartPointTime - LIVE_CHART_WINDOW_SECS
+      : undefined;
+  const liveWindowPointCount =
+    typeof liveWindowStartSecs === 'number'
+      ? chartData.reduce(
+          (count, point) =>
+            point.time >= liveWindowStartSecs ? count + 1 : count,
+          0,
+        )
+      : 0;
+  const hasRenderableLiveWindow = liveWindowPointCount >= 2;
   const displayedLiveValue =
     liveLoadingRef.current && typeof historicalValue === 'number'
       ? historicalValue
@@ -409,7 +450,8 @@ export const useCryptoUpDownChartData = (
     }
   }, [enabled, historicalValue, isCurrentMarket, isLive]);
 
-  const historicalQueryEnabled = enabled && !!symbol && !!historyStartDate;
+  const historicalQueryEnabled =
+    enabled && historicalEnabled && !!symbol && !!historyStartDate;
 
   // Detect a sustained "live but no data" outage: a market that is live (so we
   // expect a flowing stream) yet has produced nothing renderable after a grace
@@ -476,7 +518,7 @@ export const useCryptoUpDownChartData = (
       // scrolls out of the live window. Frozen/expired data only "loads" when
       // there is genuinely nothing renderable.
       loading: isLive
-        ? !symbol || !hasRenderableChartData || liveStreamStale
+        ? !symbol || !hasRenderableLiveWindow || liveStreamStale
         : !hasRenderableChartData,
       isLive,
       window: LIVE_CHART_WINDOW_SECS,

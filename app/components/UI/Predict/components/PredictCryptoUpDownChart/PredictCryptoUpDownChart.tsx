@@ -84,7 +84,13 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
     paused,
     connectionError,
     window: chartWindow,
-  } = useCryptoUpDownChartData(market, targetPrice);
+  } = useCryptoUpDownChartData(market, targetPrice, {
+    // Details-page chart renders the live stream only. Historical points sit
+    // outside the live "now"-anchored window so Liveline can't draw them; if
+    // merged in they suppress the loading spinner while leaving the canvas
+    // blank whenever the live stream is sparse or cold.
+    historicalEnabled: false,
+  });
 
   const chartHeight = explicitHeight ?? measuredHeight;
   const bottomPadding = computeBottomPadding(
@@ -123,34 +129,37 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
       }
       testID="predict-crypto-up-down-chart-container"
     >
-      {/*
-       * Connection-error state for an upstream data outage. This only swaps the
-       * view — `useCryptoUpDownChartData` (above) keeps the live subscription
-       * and history polling active underneath, so the chart re-renders
-       * automatically as soon as data flows again. Do not gate the hook on this.
-       */}
-      {connectionError ? (
-        <Box
-          twClassName="flex-1 px-8 gap-2"
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-          testID="predict-crypto-up-down-chart-connection-error"
-        >
-          <Icon
-            name={IconName.WifiOff}
-            size={IconSize.Xl}
-            color={IconColor.IconMuted}
-          />
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            twClassName="text-center"
+      {chartHeight > 0 &&
+        (connectionError ? (
+          /*
+           * Connection-error state for an upstream data outage. Sized to the
+           * exact chart height and centered so it occupies the same space as
+           * the chart. This only swaps the view — `useCryptoUpDownChartData`
+           * (above) keeps the live subscription and history polling active
+           * underneath, so the chart re-renders automatically as soon as data
+           * flows again. Do not gate the hook on this.
+           */
+          <Box
+            style={{ height: chartHeight }}
+            twClassName="px-8 gap-2"
+            alignItems={BoxAlignItems.Center}
+            justifyContent={BoxJustifyContent.Center}
+            testID="predict-crypto-up-down-chart-connection-error"
           >
-            There is an issue connecting. Please try again later.
-          </Text>
-        </Box>
-      ) : (
-        chartHeight > 0 && (
+            <Icon
+              name={IconName.WifiOff}
+              size={IconSize.Xl}
+              color={IconColor.IconMuted}
+            />
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+              twClassName="text-center"
+            >
+              There is an issue connecting. Please try again later.
+            </Text>
+          </Box>
+        ) : (
           <LivelineChart
             data={data}
             value={value}
@@ -176,8 +185,7 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
             formatValue={CRYPTO_UP_DOWN_FORMAT_VALUE}
             formatTime={CRYPTO_UP_DOWN_FORMAT_TIME}
           />
-        )
-      )}
+        ))}
     </Box>
   );
 };
