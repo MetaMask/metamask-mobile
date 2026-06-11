@@ -43,6 +43,7 @@ describe('actionButtonTracking', () => {
       name: 'test',
       properties: {},
       sensitiveProperties: {},
+      saveDataRecording: false,
       isOptIn: false,
       isEnabled: true,
       isAnonymous: false,
