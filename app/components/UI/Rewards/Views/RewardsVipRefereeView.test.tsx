@@ -107,8 +107,8 @@ jest.mock('../../../../../locales/i18n', () => ({
       'rewards.vip.referee_stats_title': 'Stats',
       'rewards.vip.referee_period_last_30d': 'Last 30d',
       'rewards.vip.referee_points_label': 'Points',
-      'rewards.vip.referee_points_to_referrer_label': 'Points to referrer',
-      'rewards.vip.referee_volume_label': 'Volume',
+      'rewards.vip.referee_swaps_volume_label': 'Swaps volume',
+      'rewards.vip.referee_perps_volume_label': 'Perps volume',
       'rewards.vip.referee_error_title': 'Error title',
       'rewards.vip.referee_error_description': 'Error description',
       'rewards.vip.retry_button': 'Retry',
@@ -161,13 +161,9 @@ const mockFetch = jest.fn();
 
 const defaultDashboard: VipRefereeMeState = {
   referredByCode: 'TESTCODE',
-  period: {
-    start: '2099-06-01T00:00:00.000Z',
-    end: '2099-06-30T23:59:59.999Z',
-  },
   points: 1234,
-  pointsToReferrer: 0,
-  volume: 1000,
+  swapsVolume: 1000,
+  perpsVolume: 2000,
   lastFetched: 0,
 };
 
@@ -236,10 +232,10 @@ describe('RewardsVipRefereeView', () => {
       getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.POINTS),
     ).toBeOnTheScreen();
     expect(
-      getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.POINTS_TO_REFERRER),
+      getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.SWAPS_VOLUME),
     ).toBeOnTheScreen();
     expect(
-      getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.VOLUME),
+      getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.PERPS_VOLUME),
     ).toBeOnTheScreen();
     expect(mockUseTrack).toHaveBeenCalledWith({
       page_type: 'vip_referee',

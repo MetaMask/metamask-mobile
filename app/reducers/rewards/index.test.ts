@@ -5011,13 +5011,9 @@ describe('VIP referee actions', () => {
   // Obviously-synthetic fixture — never real VIP codes/figures.
   const mockRefereeDashboard = {
     referredByCode: 'TESTCODE',
-    period: {
-      start: '2099-06-01T00:00:00.000Z',
-      end: '2099-06-30T23:59:59.999Z',
-    },
     points: 1234,
-    pointsToReferrer: 0,
-    volume: 1000,
+    swapsVolume: 1000,
+    perpsVolume: 2000,
     lastFetched: 1767225600000,
   };
 

@@ -7506,13 +7506,9 @@ describe('RewardsController', () => {
     // Obviously-synthetic fixture — never real VIP codes/figures.
     const apiReferee = {
       referredByCode: 'TESTCODE',
-      period: {
-        start: '2099-06-01T00:00:00.000Z',
-        end: '2099-06-30T23:59:59.999Z',
-      },
       points: 1234,
-      pointsToReferrer: 0,
-      volume: 1000,
+      swapsVolume: 1000,
+      perpsVolume: 2000,
     };
 
     it('returns null without fetching when VIP is disabled', async () => {

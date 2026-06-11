@@ -155,10 +155,12 @@ export type VipDashboardState = VipDashboardDto & {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type VipRefereeMeDto = {
   referredByCode: string | null;
-  period: VipPeriodDto;
   points: number;
-  pointsToReferrer: number;
-  volume: number;
+  swapsVolume: number;
+  perpsVolume: number;
+  // ISO-8601 instant the referee stats were last computed, or null if
+  // unavailable. v1 backend placeholder — currently the current time.
+  computedAt: string | null;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions

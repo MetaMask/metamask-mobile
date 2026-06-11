@@ -43,8 +43,8 @@ export const REWARDS_VIP_REFEREE_VIEW_TEST_IDS = {
   ERROR: 'rewards-vip-referee-view-error',
   REFERRED_BY_CARD: 'rewards-vip-referee-view-referred-by-card',
   POINTS: 'rewards-vip-referee-view-points',
-  POINTS_TO_REFERRER: 'rewards-vip-referee-view-points-to-referrer',
-  VOLUME: 'rewards-vip-referee-view-volume',
+  SWAPS_VOLUME: 'rewards-vip-referee-view-swaps-volume',
+  PERPS_VOLUME: 'rewards-vip-referee-view-perps-volume',
 } as const;
 
 const referredByCardStyle = {
@@ -207,38 +207,38 @@ const RewardsVipRefereeViewContent: React.FC = () => {
                 </Box>
                 <Box
                   twClassName="flex-1"
-                  testID={REWARDS_VIP_REFEREE_VIEW_TEST_IDS.POINTS_TO_REFERRER}
+                  testID={REWARDS_VIP_REFEREE_VIEW_TEST_IDS.SWAPS_VOLUME}
                 >
                   <Text
                     variant={TextVariant.BodySm}
                     color={TextColor.TextAlternative}
                   >
-                    {strings('rewards.vip.referee_points_to_referrer_label')}
+                    {strings('rewards.vip.referee_swaps_volume_label')}
                   </Text>
                   <Text
                     variant={TextVariant.HeadingSm}
                     fontWeight={FontWeight.Bold}
                   >
-                    {formatNumber(dashboard.pointsToReferrer)}
+                    {formatUsd(dashboard.swapsVolume)}
                   </Text>
                 </Box>
               </Box>
 
               <Box
                 twClassName="flex-1"
-                testID={REWARDS_VIP_REFEREE_VIEW_TEST_IDS.VOLUME}
+                testID={REWARDS_VIP_REFEREE_VIEW_TEST_IDS.PERPS_VOLUME}
               >
                 <Text
                   variant={TextVariant.BodySm}
                   color={TextColor.TextAlternative}
                 >
-                  {strings('rewards.vip.referee_volume_label')}
+                  {strings('rewards.vip.referee_perps_volume_label')}
                 </Text>
                 <Text
                   variant={TextVariant.HeadingSm}
                   fontWeight={FontWeight.Bold}
                 >
-                  {formatUsd(dashboard.volume)}
+                  {formatUsd(dashboard.perpsVolume)}
                 </Text>
               </Box>
             </>
