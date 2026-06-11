@@ -358,7 +358,7 @@ describe('CustomAmountInfo', () => {
     expect(getByTestId('deposit-keyboard')).toBeDefined();
   });
 
-  describe('hasExtraBottomPadding', () => {
+  describe('bottomBlock', () => {
     const originalPlatformOS = Platform.OS;
 
     afterEach(() => {
@@ -368,43 +368,30 @@ describe('CustomAmountInfo', () => {
       });
     });
 
-    it('applies 56dp paddingBottom to the bottom block on Android when hasExtraBottomPadding is true', () => {
+    it('applies 16dp paddingBottom to the bottom block on Android', () => {
       Object.defineProperty(Platform, 'OS', {
         value: 'android',
         writable: true,
       });
 
-      const { getByTestId } = render({ hasExtraBottomPadding: true });
+      const { getByTestId } = render();
 
       expect(getByTestId(CustomAmountInfoTestIds.BOTTOM_BLOCK)).toHaveStyle({
-        paddingBottom: 56,
+        paddingBottom: 16,
       });
     });
 
-    it('does not apply paddingBottom to the bottom block when hasExtraBottomPadding is false (Android)', () => {
-      Object.defineProperty(Platform, 'OS', {
-        value: 'android',
-        writable: true,
-      });
-
-      const { getByTestId } = render({ hasExtraBottomPadding: false });
-
-      expect(getByTestId(CustomAmountInfoTestIds.BOTTOM_BLOCK)).not.toHaveStyle(
-        { paddingBottom: 56 },
-      );
-    });
-
-    it('does not apply paddingBottom to the bottom block on iOS even when hasExtraBottomPadding is true', () => {
+    it('does not apply paddingBottom to the bottom block on iOS', () => {
       Object.defineProperty(Platform, 'OS', {
         value: 'ios',
         writable: true,
       });
 
-      const { getByTestId } = render({ hasExtraBottomPadding: true });
+      const { getByTestId } = render();
 
-      expect(getByTestId(CustomAmountInfoTestIds.BOTTOM_BLOCK)).not.toHaveStyle(
-        { paddingBottom: 56 },
-      );
+      expect(getByTestId(CustomAmountInfoTestIds.BOTTOM_BLOCK)).toHaveStyle({
+        paddingBottom: 0,
+      });
     });
   });
 

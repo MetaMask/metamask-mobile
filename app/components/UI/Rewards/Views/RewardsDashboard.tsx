@@ -26,6 +26,7 @@ import {
   selectIsCurrentSubscriptionVipEnabled,
   selectRewardsSubscriptionId,
 } from '../../../../selectors/rewards';
+import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
 import { useRewardOptinSummary } from '../hooks/useRewardOptinSummary';
 import {
   useRewardDashboardModals,
@@ -53,6 +54,7 @@ const RewardsDashboard: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const isVipProgramEnabled = useSelector(selectVipProgramEnabled);
   const isVipEnabled = useSelector(selectIsCurrentSubscriptionVipEnabled);
   const hasAcceptedVipInvite = useSelector(
     selectHasAcceptedVipInvite(subscriptionId),
@@ -288,7 +290,7 @@ const RewardsDashboard: React.FC = () => {
         <HeaderRoot
           endAccessory={
             <Box twClassName="flex-row gap-2">
-              {isVipEnabled && (
+              {isVipProgramEnabled && isVipEnabled && (
                 <Pressable
                   accessibilityRole="button"
                   onPress={handleVipPress}
