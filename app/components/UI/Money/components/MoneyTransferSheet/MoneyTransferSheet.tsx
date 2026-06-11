@@ -1,26 +1,23 @@
 import React, { useCallback, useRef } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
   BottomSheet,
   BottomSheetHeader,
-  FontWeight,
-  Icon,
-  IconColor,
   IconName,
-  IconSize,
   Text,
-  TextColor,
   TextVariant,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
-import Tag from '../../../../../component-library/components/Tags/Tag';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import { useMoneyAccountWithdrawal } from '../../hooks/useMoneyAccount';
 import { useMoneyPerpsDeposit } from '../../../../Views/confirmations/hooks/pay/useMoneyPerpsDeposit';
 import { useMoneyPredictDeposit } from '../../../../Views/confirmations/hooks/pay/useMoneyPredictDeposit';
 import Logger from '../../../../../util/Logger';
+import MoneySheetOptionsList, {
+  type MoneySheetOption,
+} from '../MoneySheetOptionsList';
 import styleSheet from './MoneyTransferSheet.styles';
 import { MoneyTransferSheetTestIds } from './MoneyTransferSheet.testIds';
 import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
@@ -31,15 +28,6 @@ import {
 } from '../../constants/moneyEvents';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import useMountEffect from '../../hooks/useMountEffect';
-
-interface Option {
-  label: string;
-  icon: IconName;
-  onPress?: () => void;
-  testID: string;
-  disabled?: boolean;
-  comingSoon?: boolean;
-}
 
 const MoneyTransferSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -102,7 +90,7 @@ const MoneyTransferSheet = () => {
     });
   }, [initiatePredictDeposit, trackSurfaceClicked]);
 
-  const options: Option[] = [
+  const options: MoneySheetOption[] = [
     {
       label: strings('money.transfer_sheet.between_accounts'),
       icon: IconName.Arrow2UpRight,
@@ -139,11 +127,6 @@ const MoneyTransferSheet = () => {
     },
   ];
 
-  const orderedOptions: Option[] = [
-    ...options.filter((option) => !option.disabled),
-    ...options.filter((option) => option.disabled),
-  ];
-
   return (
     <BottomSheet
       ref={sheetRef}
@@ -158,46 +141,7 @@ const MoneyTransferSheet = () => {
         </Text>
       </BottomSheetHeader>
       <View style={styles.list}>
-        {orderedOptions.map((item) => (
-          <TouchableOpacity
-            key={item.testID}
-            disabled={item.disabled}
-            onPress={item.disabled ? undefined : item.onPress}
-            style={styles.row}
-            testID={item.testID}
-          >
-            <Icon
-              name={item.icon}
-              size={IconSize.Lg}
-              color={
-                item.disabled ? IconColor.IconMuted : IconColor.IconDefault
-              }
-            />
-            {item.comingSoon ? (
-              <View style={styles.disabledRowContent}>
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.TextAlternative}
-                >
-                  {item.label}
-                </Text>
-                <Tag
-                  label={strings('money.add_money_sheet.coming_soon')}
-                  style={styles.comingSoonTag}
-                />
-              </View>
-            ) : (
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={item.disabled ? TextColor.TextAlternative : undefined}
-              >
-                {item.label}
-              </Text>
-            )}
-          </TouchableOpacity>
-        ))}
+        <MoneySheetOptionsList options={options} />
       </View>
     </BottomSheet>
   );
