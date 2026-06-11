@@ -8,6 +8,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { StyleSheet } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { fromTokenMinimalUnit } from '../../../../../../util/number/bigint';
 import formatFiat from '../../../../../../util/formatFiat';
@@ -16,6 +17,10 @@ import { QuoteRow } from '../../../../../UI/Bridge/components/QuoteSelectorView/
 import { strings } from '../../../../../../../locales/i18n';
 import { useQuickBuyContext } from './useQuickBuyContext';
 import QuickBuySubScreenHeader from './components/QuickBuySubScreenHeader';
+
+const styles = StyleSheet.create({
+  scrollView: { flex: 1 },
+});
 
 const QuickBuySelectQuoteScreen: React.FC = () => {
   const {
@@ -96,6 +101,7 @@ const QuickBuySelectQuoteScreen: React.FC = () => {
         <ScrollView
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
+          style={styles.scrollView}
         >
           <Box twClassName="px-4 pb-2 mb-2">
             <Text
