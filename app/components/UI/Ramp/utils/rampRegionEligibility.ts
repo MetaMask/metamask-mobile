@@ -9,14 +9,9 @@ import type { Country, UserRegion } from '@metamask/ramps-controller';
  * "only divert when data has loaded" pattern used elsewhere in the ramp UI).
  *
  * Resolution order:
- * 1. Clean controller predicate — `UserRegion.state.supported.buy` (when a
- *    state is selected and carries support flags), then
- *    `UserRegion.country.supported.buy`. These are the canonical
- *    `@metamask/ramps-controller` flags and are preferred.
- * 2. Countries-membership fallback — when the region carries no support flags,
- *    match the region's ISO-2 country code against the loaded supported
- *    `countries` list. Only a loaded, non-empty list is treated as reliable;
- *    a missing match in a loaded list is a definitive negative.
+ * 1. Clean controller predicate — `UserRegion.state.supported.buy` when a state
+ * is selected and carries support flags, then `UserRegion.country.supported.buy`.
+ * 2. Countries-membership fallback when the region carries no support flags.
  *
  * @param userRegion - The resolved user region from RampsController, or null.
  * @param countries - The loaded supported countries from RampsController.

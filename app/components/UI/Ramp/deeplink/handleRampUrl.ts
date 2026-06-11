@@ -36,7 +36,7 @@ async function navigateUnifiedV2Buy(
   let state = ReduxService.store.getState();
 
   // Prefer the location already in state, only refreshing when unknown.
-  let location = selectGeolocationLocation(state);
+  let location: string | undefined = selectGeolocationLocation(state);
 
   if (!location || location === UNKNOWN_LOCATION) {
     location = await Promise.resolve(

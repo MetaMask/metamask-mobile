@@ -236,7 +236,7 @@ describe('handleRampUrl', () => {
       });
       expect(mockRefreshGeolocation).toHaveBeenCalledTimes(1);
       expect(
-        ReduxService.store.getState.mock.calls.length,
+        jest.mocked(ReduxService.store.getState).mock.calls.length,
       ).toBeGreaterThanOrEqual(2);
       expect(mockCreateTokenSelectionNavDetails).toHaveBeenCalled();
       expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
