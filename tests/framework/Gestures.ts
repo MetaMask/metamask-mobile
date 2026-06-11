@@ -334,6 +334,7 @@ export default class Gestures {
       return UnifiedGestures.longPress(elem as EncapsulatedElementType, {
         timeout: options.timeout,
         description: options.elemDescription,
+        duration: options.duration,
       });
     }
 

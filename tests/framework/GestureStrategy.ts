@@ -38,6 +38,8 @@ export interface UnifiedGestureOptions {
   enabledStableReads?: number;
   /** Extra wait (ms) after enabled/interactive, before click — Appium only */
   postEnabledSettleMs?: number;
+  /** Long press duration in ms — passed through to PlaywrightGestures.longPress */
+  duration?: number;
 }
 
 /**
@@ -279,6 +281,7 @@ export class DetoxGestureStrategy implements GestureStrategy {
     await Gestures.longPress(asDetoxElement(elem), {
       timeout: opts?.timeout,
       elemDescription: opts?.description,
+      duration: opts?.duration,
     });
   }
 
@@ -445,9 +448,12 @@ export class AppiumGestureStrategy implements GestureStrategy {
    * @param elem - The element to long press
    * @returns A promise that resolves when the long press is complete
    */
-  async longPress(elem: EncapsulatedElementType): Promise<void> {
+  async longPress(
+    elem: EncapsulatedElementType,
+    opts?: UnifiedGestureOptions,
+  ): Promise<void> {
     const el = await asPlaywrightElement(elem);
-    await PlaywrightGestures.longPress(el);
+    await PlaywrightGestures.longPress(el, opts?.duration);
   }
 
   /**
