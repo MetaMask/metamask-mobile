@@ -79,7 +79,9 @@ export const useNotificationPreferences =
         setPersistError(null);
 
         try {
-          await updatePreferencesSection('socialAI', updater);
+          await updatePreferencesSection('socialAI', (prev) =>
+            updater(prev ?? getDefaultSocialAIPreferences()),
+          );
         } catch (err) {
           Logger.error(
             err as Error,

@@ -173,6 +173,37 @@ describe('useNotificationPreferences', () => {
     );
   });
 
+  it('applies default socialAI preferences when stored preferences omit the section', async () => {
+    const { socialAI: _socialAI, ...preferencesWithoutSocialAI } =
+      buildStoragePreferences();
+    mockUseNotificationStoragePreferences.mockReturnValue({
+      preferences:
+        preferencesWithoutSocialAI as unknown as ReturnType<
+          typeof useNotificationStoragePreferences
+        >['preferences'],
+      hasNotificationPreferences: true,
+      isLoading: false,
+      error: null,
+      updatePreferencesSection: mockUpdatePreferencesSection,
+      updateSectionChannel: mockUpdateSectionChannel,
+      updatePreference: jest.fn(),
+      isUpdatingPreferences: false,
+      refetch: jest.fn(),
+    });
+
+    const { result } = renderHook(() => useNotificationPreferences());
+    await act(async () => {
+      await result.current.toggleTraderNotification('trader-1');
+    });
+
+    const updater = mockUpdatePreferencesSection.mock.calls[0][1];
+    expect(updater(undefined)).toEqual(
+      expect.objectContaining({
+        mutedTraderProfileIds: ['trader-1'],
+      }),
+    );
+  });
+
   it('chains rapid trader toggles without losing prior muted ids', async () => {
     const { result } = renderHook(() => useNotificationPreferences());
 
