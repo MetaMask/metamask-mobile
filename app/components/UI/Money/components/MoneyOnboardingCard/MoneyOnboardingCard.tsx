@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Box } from '@metamask/design-system-react-native';
 import moneyOnboardingStepperStep1 from '../../../../../images/money-onboarding-stepper-step-1.png';
 import moneyOnboardingStepperStep2 from '../../../../../images/money-onboarding-stepper-step-2.png';
@@ -11,6 +11,19 @@ import StepperCard, {
 } from '../../../../../component-library/components-temp/StepperCard';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import {
+  CardActions,
+  CardEntryPoint,
+  CardScreens,
+  deriveCardState,
+} from '../../../Card/util/metrics';
+import { useSelector } from 'react-redux';
+import {
+  selectIsCardholder,
+  selectCardHomeDataStatus,
+} from '../../../../../selectors/cardController';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
   COMPONENT_NAMES,
@@ -23,6 +36,9 @@ import {
 export const MONEY_ONBOARDING_TOTAL_STEPS = 2;
 
 const MoneyOnboardingCard = () => {
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const hasTrackedCardStepViewRef = useRef(false);
+
   const {
     currentStep,
     incrementStep,
@@ -45,6 +61,20 @@ const MoneyOnboardingCard = () => {
     isCardLinkedToMoneyAccount,
     isLinking,
   } = useMoneyAccountCardLinkage();
+  const isCardholder = useSelector(selectIsCardholder);
+  const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
+
+  const isMoneyAccountFunded = Boolean(
+    !isAggregatedBalanceLoading && tokenTotal?.isGreaterThan(0),
+  );
+  const isCardAnalyticsReady =
+    cardHomeDataStatus === 'success' || cardHomeDataStatus === 'error';
+
+  const cardState = deriveCardState({
+    isCardholder,
+    isCardAuthenticated,
+    isCardLinkedToMoneyAccount,
+  });
 
   const handleRedirectToCryptoDeposit = useCallback(async () => {
     await initiateDeposit().catch(() => undefined);
@@ -72,6 +102,17 @@ const MoneyOnboardingCard = () => {
         });
       }
 
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+          .addProperties({
+            screen: CardScreens.MONEY_HOME,
+            entrypoint: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
+            action: CardActions.MONEY_ACCOUNT_ONBOARDING_CARD_PRIMARY_BUTTON,
+            card_state: cardState,
+          })
+          .build(),
+      );
+
       startLinkFlow(MONEY_HOME_CARD_ORIGIN);
     },
     [
@@ -80,6 +121,9 @@ const MoneyOnboardingCard = () => {
       isCardLinkedToMoneyAccount,
       startLinkFlow,
       trackOnboardingEvent,
+      trackEvent,
+      createEventBuilder,
+      cardState,
     ],
   );
 
@@ -93,16 +137,32 @@ const MoneyOnboardingCard = () => {
         step_action: MONEY_ONBOARDING_STEP_ACTIONS.SKIPPED,
       });
 
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+          .addProperties({
+            screen: CardScreens.MONEY_HOME,
+            entrypoint: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
+            action: CardActions.MONEY_ACCOUNT_ONBOARDING_CARD_SKIP_BUTTON,
+            card_state: cardState,
+          })
+          .build(),
+      );
+
       incrementStep();
     },
-    [currentStep, incrementStep, trackOnboardingEvent],
+    [
+      currentStep,
+      incrementStep,
+      trackOnboardingEvent,
+      trackEvent,
+      createEventBuilder,
+      cardState,
+    ],
   );
 
   const targetStepFromCompletion = useMemo(() => {
     // Step 1 completion is based on having a non-zero balance (after loading).
-    const isStep1Complete = Boolean(
-      !isAggregatedBalanceLoading && tokenTotal?.isGreaterThan(0),
-    );
+    const isStep1Complete = isMoneyAccountFunded;
 
     // Step 2 completion can be evaluated if either:
     // - persisted progress is already at step index ≥ 1 (auto-advanced on a
@@ -117,8 +177,7 @@ const MoneyOnboardingCard = () => {
     return 0;
   }, [
     currentStep,
-    isAggregatedBalanceLoading,
-    tokenTotal,
+    isMoneyAccountFunded,
     isCardAuthenticated,
     isCardLinkedToMoneyAccount,
   ]);
@@ -134,6 +193,39 @@ const MoneyOnboardingCard = () => {
       incrementStep();
     }
   }, [currentStep, targetStepFromCompletion, incrementStep]);
+
+  useEffect(() => {
+    if (
+      hasTrackedCardStepViewRef.current ||
+      isAggregatedBalanceLoading ||
+      !isCardAnalyticsReady ||
+      !isOnboardingCardVisible ||
+      !isVisibleAfterAutoSkip ||
+      effectiveCurrentStep !== 1
+    ) {
+      return;
+    }
+
+    hasTrackedCardStepViewRef.current = true;
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
+        .addProperties({
+          screen: CardScreens.MONEY_HOME,
+          entrypoint: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
+          card_state: cardState,
+        })
+        .build(),
+    );
+  }, [
+    trackEvent,
+    createEventBuilder,
+    effectiveCurrentStep,
+    isAggregatedBalanceLoading,
+    isCardAnalyticsReady,
+    isOnboardingCardVisible,
+    isVisibleAfterAutoSkip,
+    cardState,
+  ]);
 
   const handleStep1CtaPressed = useCallback(() => {
     trackOnboardingEvent({

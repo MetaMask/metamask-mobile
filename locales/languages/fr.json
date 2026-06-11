@@ -8901,11 +8901,7 @@
       "stats_qualify_for_rank_description": "Tradez {{notionalRemaining}} de plus en volume notionnel pour devenir admissible.",
       "stats_error_title": "Impossible de charger les statistiques",
       "stats_error_description": "Nous avons rencontré un problème lors du chargement de vos statistiques. Veuillez réessayer.",
-      "stats_retry": "Réessayer",
-      "completed_label_total_participants": "Nombre total de participants",
-      "completed_label_total_volume": "Volume total",
-      "completed_label_top_pnl": "Meilleur résultat net",
-      "completed_label_winners": "Gagnants"
+      "stats_retry": "Réessayer"
     },
     "campaigns_preview": {
       "title": "Campagnes",

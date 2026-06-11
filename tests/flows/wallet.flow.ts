@@ -422,12 +422,9 @@ export const loginToApp = async (password?: string): Promise<void> => {
       await Assertions.expectElementToBeVisible(LoginView.container, {
         description: 'Login View container should be visible',
       });
-      await Assertions.expectElementToBeVisible(
-        asDetoxElement(LoginView.passwordInput),
-        {
-          description: 'Login View password input should be visible',
-        },
-      );
+      await Assertions.expectElementToBeVisible(LoginView.passwordInput, {
+        description: 'Login View password input should be visible',
+      });
 
       await LoginView.enterPassword(PASSWORD);
 
@@ -502,6 +499,21 @@ export const loginToAppPlaywright = async (
   options: { scenarioType?: string; dismissModals?: boolean } = {},
 ): Promise<void> => {
   const { scenarioType = 'login' } = options;
+
+  await PlaywrightAssertions.expectElementToBeVisible(
+    asPlaywrightElement(LoginView.container),
+    {
+      description: 'Login view container',
+      timeout: 45_000,
+    },
+  );
+  await PlaywrightAssertions.expectElementToBeVisible(
+    asPlaywrightElement(LoginView.passwordInput),
+    {
+      description: 'Login password input',
+      timeout: 15_000,
+    },
+  );
 
   const password = getPasswordForScenario(scenarioType);
   // Type password and unlock
