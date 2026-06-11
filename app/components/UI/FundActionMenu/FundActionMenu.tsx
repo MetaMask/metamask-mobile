@@ -128,6 +128,8 @@ const FundActionMenu = () => {
               goToBuy({ assetId: assetContext?.assetId });
             }
           },
+          traceName: TraceName.LoadRampExperience,
+          traceProperties: { tags: { rampType: RampType.BUY } },
         },
         {
           type: 'sell',

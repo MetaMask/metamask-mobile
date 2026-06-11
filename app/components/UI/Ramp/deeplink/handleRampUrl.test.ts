@@ -107,9 +107,15 @@ jest.mock('../../../../core/Engine', () => ({
       RampsController: {
         setSelectedToken: jest.fn(),
       },
+      GeolocationController: {
+        refreshGeolocation: jest.fn(),
+      },
     },
   },
 }));
+
+const mockRefreshGeolocation = Engine.context.GeolocationController
+  .refreshGeolocation as jest.Mock;
 
 describe('handleRampUrl', () => {
   beforeEach(() => {
@@ -203,12 +209,14 @@ describe('handleRampUrl', () => {
       mockSelectCountries.mockReturnValue({ data: [] });
     });
 
-    it('navigates to eligibility failed modal when geolocation is unknown', () => {
+    it('navigates to eligibility failed modal when geolocation stays unknown after refresh', async () => {
       mockSelectGeolocationLocation.mockReturnValue(UNKNOWN_LOCATION);
-      handleRampUrl({
+      mockRefreshGeolocation.mockResolvedValue(UNKNOWN_LOCATION);
+      await handleRampUrl({
         rampPath: '?as=example',
         rampType: RampType.BUY,
       });
+      expect(mockRefreshGeolocation).toHaveBeenCalledTimes(1);
       expect(handleRedirection).not.toHaveBeenCalled();
       expect(
         mockCreateEligibilityFailedModalNavigationDetails,
@@ -218,13 +226,37 @@ describe('handleRampUrl', () => {
       );
     });
 
-    it('navigates to unsupported modal when the resolved region is definitively unsupported', () => {
+    it('continues to TokenSelection when geolocation refresh resolves a known region', async () => {
+      mockSelectGeolocationLocation.mockReturnValue(UNKNOWN_LOCATION);
+      mockRefreshGeolocation.mockResolvedValue('us-ca');
+      await handleRampUrl({
+        rampPath: '?as=example',
+        rampType: RampType.BUY,
+      });
+      expect(mockRefreshGeolocation).toHaveBeenCalledTimes(1);
+      expect(mockCreateTokenSelectionNavDetails).toHaveBeenCalled();
+      expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
+        'TOKEN_SELECTION_ROUTE',
+      );
+    });
+
+    it('does not refresh geolocation when a known location is already in state', async () => {
+      mockSelectGeolocationLocation.mockReturnValue('us-ca');
+      await handleRampUrl({
+        rampPath: '?as=example',
+        rampType: RampType.BUY,
+      });
+      expect(mockRefreshGeolocation).not.toHaveBeenCalled();
+      expect(mockCreateTokenSelectionNavDetails).toHaveBeenCalled();
+    });
+
+    it('navigates to unsupported modal when the resolved region is definitively unsupported', async () => {
       mockSelectUserRegion.mockReturnValue({
         regionCode: 'cu',
         country: { isoCode: 'CU', supported: { buy: false, sell: false } },
         state: null,
       } as unknown as UserRegion);
-      handleRampUrl({
+      await handleRampUrl({
         rampPath: '?as=example',
         rampType: RampType.BUY,
       });
@@ -237,8 +269,8 @@ describe('handleRampUrl', () => {
       );
     });
 
-    it('navigates to TokenSelection when V2 enabled and no assetId in intent', () => {
-      handleRampUrl({
+    it('navigates to TokenSelection when V2 enabled and no assetId in intent', async () => {
+      await handleRampUrl({
         rampPath: '?as=example',
         rampType: RampType.BUY,
       });
@@ -249,14 +281,14 @@ describe('handleRampUrl', () => {
       );
     });
 
-    it('navigates to BuildQuote when V2 enabled and ramp intent has assetId', () => {
+    it('navigates to BuildQuote when V2 enabled and ramp intent has assetId', async () => {
       mockResolveRampControllerAssetId.mockReturnValue(
         'eip155:1/erc20:0x123456',
       );
       mockSelectTokens.mockReturnValue({
         data: { allTokens: [{ assetId: 'eip155:1/erc20:0x123456' }] },
       });
-      handleRampUrl({
+      await handleRampUrl({
         rampPath: '?chainId=1&address=0x123456',
         rampType: RampType.BUY,
       });

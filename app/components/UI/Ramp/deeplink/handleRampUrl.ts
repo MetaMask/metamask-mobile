@@ -30,6 +30,57 @@ interface RampUrlOptions {
   rampType: RampType;
 }
 
+async function navigateUnifiedV2Buy(rampIntent?: ReturnType<typeof parseRampIntent>) {
+  const state = ReduxService.store.getState();
+
+  // Prefer the location already in state, only refreshing when unknown.
+  let location = selectGeolocationLocation(state);
+
+  if (!location || location === UNKNOWN_LOCATION) {
+    location = await Promise.resolve(
+      Engine.context.GeolocationController?.refreshGeolocation?.(),
+    ).catch(() => undefined);
+  }
+
+  if (!location || location === UNKNOWN_LOCATION) {
+    NavigationService.navigation.navigate(
+      ...createEligibilityFailedModalNavigationDetails(),
+    );
+    return;
+  }
+
+  // Non-blocking: only divert on a definitive negative signal.
+  const userRegion = selectUserRegion(state);
+  const countries = selectCountries(state).data;
+  if (isRampRegionDefinitivelyUnsupported(userRegion, countries)) {
+    NavigationService.navigation.navigate(
+      ...createRampUnsupportedModalNavigationDetails(),
+    );
+    return;
+  }
+
+  if (rampIntent?.assetId) {
+    const allTokens = selectTokens(state).data?.allTokens ?? [];
+    const controllerAssetId = resolveRampControllerAssetId(
+      rampIntent.assetId,
+      allTokens,
+    );
+    try {
+      Engine.context.RampsController.setSelectedToken(controllerAssetId);
+    } catch {
+      // Token may not be in controller's list yet; navigate anyway
+    }
+    NavigationService.navigation.navigate(
+      ...createBuildQuoteNavDetails({
+        assetId: controllerAssetId,
+      }),
+    );
+    return;
+  }
+
+  NavigationService.navigation.navigate(...createTokenSelectionNavDetails());
+}
+
 export default function handleRampUrl({ rampPath, rampType }: RampUrlOptions) {
   try {
     const [redirectPaths, pathParams] = getRedirectPathsAndParams(rampPath);
@@ -48,49 +99,7 @@ export default function handleRampUrl({ rampPath, rampType }: RampUrlOptions) {
         try {
           const state = ReduxService.store.getState();
           if (isRampsUnifiedV2Enabled(state)) {
-            // Eligibility gate sourced from RampsController + GeolocationController
-            // (replaces the legacy smart-routing decision).
-            const location = selectGeolocationLocation(state);
-            if (!location || location === UNKNOWN_LOCATION) {
-              NavigationService.navigation.navigate(
-                ...createEligibilityFailedModalNavigationDetails(),
-              );
-              return;
-            }
-
-            // Non-blocking: only divert on a definitive negative signal.
-            const userRegion = selectUserRegion(state);
-            const countries = selectCountries(state).data;
-            if (isRampRegionDefinitivelyUnsupported(userRegion, countries)) {
-              NavigationService.navigation.navigate(
-                ...createRampUnsupportedModalNavigationDetails(),
-              );
-              return;
-            }
-            if (rampIntent?.assetId) {
-              const allTokens = selectTokens(state).data?.allTokens ?? [];
-              const controllerAssetId = resolveRampControllerAssetId(
-                rampIntent.assetId,
-                allTokens,
-              );
-              try {
-                Engine.context.RampsController.setSelectedToken(
-                  controllerAssetId,
-                );
-              } catch {
-                // Token may not be in controller's list yet; navigate anyway
-              }
-              NavigationService.navigation.navigate(
-                ...createBuildQuoteNavDetails({
-                  assetId: controllerAssetId,
-                }),
-              );
-              return;
-            }
-            NavigationService.navigation.navigate(
-              ...createTokenSelectionNavDetails(),
-            );
-            return;
+            return navigateUnifiedV2Buy(rampIntent);
           }
         } catch {
           // Store may not be ready; fall through to legacy behavior
