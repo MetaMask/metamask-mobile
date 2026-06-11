@@ -7,6 +7,11 @@ import type { MultichainTransactionDisplayData } from '../../hooks/useMultichain
 import type { Transaction } from '@metamask/keyring-api';
 import Routes from '../../../constants/navigation/Routes';
 
+jest.mock('../../../util/analytics/externalLinkTracking', () => ({
+  ...jest.requireActual('../../../util/analytics/externalLinkTracking'),
+  trackBlockExplorerLinkClicked: jest.fn(),
+}));
+import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
 const mockNavigate = jest.fn();
 const mockOnCloseBottomSheet = jest.fn();
 const mockUseRoute = jest.fn();
@@ -254,5 +259,13 @@ describe('MultichainTransactionDetailsSheet', () => {
         url: `https://explorer.example.com/tx/${mockTransaction.id}?chain=${mockTransaction.chain}`,
       },
     });
+    expect(jest.mocked(trackBlockExplorerLinkClicked)).toHaveBeenCalledWith(
+      expect.any(Function),
+      expect.any(Function),
+      expect.objectContaining({
+        location: 'transaction_details_modal',
+        text: 'View details',
+      }),
+    );
   });
 });

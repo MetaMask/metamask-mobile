@@ -4,6 +4,11 @@ import { Linking, useColorScheme } from 'react-native';
 import SecurityTrustScreen from './SecurityTrustScreen';
 import { strings } from '../../../../../locales/i18n';
 
+jest.mock('../../../../util/analytics/externalLinkTracking', () => ({
+  ...jest.requireActual('../../../../util/analytics/externalLinkTracking'),
+  trackBlockExplorerLinkClicked: jest.fn(),
+}));
+import { trackBlockExplorerLinkClicked } from '../../../../util/analytics/externalLinkTracking';
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 
@@ -206,6 +211,21 @@ describe('SecurityTrustScreen', () => {
     fireEvent.press(backButton);
 
     expect(mockGoBack).toHaveBeenCalled();
+  });
+
+  it('tracks External Link Clicked when block explorer button is pressed', () => {
+    const { getByText } = render(<SecurityTrustScreen />);
+
+    fireEvent.press(getByText('Etherscan'));
+
+    expect(jest.mocked(trackBlockExplorerLinkClicked)).toHaveBeenCalledWith(
+      expect.any(Function),
+      expect.any(Function),
+      expect.objectContaining({
+        location: 'security_trust_page',
+        url: expect.stringContaining('etherscan.io'),
+      }),
+    );
   });
 
   it('opens external link when link is pressed', () => {
