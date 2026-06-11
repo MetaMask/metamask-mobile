@@ -181,12 +181,15 @@ const RootRPCMethodsUI = (props) => {
     };
   }, [handleUnapprovedTransaction]);
 
+  // TODO: Verify if this ever gets called since RootRPCMethodsUI is never unmounted.
   useEffect(
     () =>
       function cleanup() {
         Engine.context.TokensController?.hub?.removeAllListeners();
       },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Empty deps are intentional and complete: the cleanup only touches the
+    // module-level `Engine` singleton, so this registers a one-time unmount
+    // teardown. No reactive values are referenced.
     [],
   );
 
