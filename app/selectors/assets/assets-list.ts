@@ -43,6 +43,10 @@ import { selectHideZeroBalanceTokens } from '../settings';
 import { selectAllTokens } from '../tokensController';
 import { createDeepEqualSelector } from '../util';
 import {
+  omitArcNativeFromAccountGroupAssets,
+  omitArcNativeFromAllAssets,
+} from './arc';
+import {
   getAccountTrackerControllerAccountsByChainId,
   getCurrencyRateControllerCurrencyRates,
   getCurrencyRateControllerCurrentCurrency,
@@ -156,7 +160,10 @@ function callSelectAssetsBySelectedAccountGroup(
 
 export const selectAssetsBySelectedAccountGroup = createDeepEqualSelector(
   getStateForAssetSelector,
-  (assetsState) => callSelectAssetsBySelectedAccountGroup(assetsState),
+  (assetsState) =>
+    omitArcNativeFromAccountGroupAssets(
+      callSelectAssetsBySelectedAccountGroup(assetsState),
+    ),
 );
 
 /**
@@ -188,7 +195,7 @@ const selectAllAssetsGrouped = createDeepEqualSelector(
   getStateForAssetSelector,
   (assetsState) => {
     try {
-      return _selectAllAssets(assetsState);
+      return omitArcNativeFromAllAssets(_selectAllAssets(assetsState));
     } catch {
       return {};
     }
