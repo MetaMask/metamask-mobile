@@ -243,39 +243,58 @@ const LineOutcomeCard = memo(
 
 LineOutcomeCard.displayName = 'LineOutcomeCard';
 
-const isDrawOutcome = (outcome: PredictOutcome): boolean =>
-  outcome.groupItemTitle?.toLowerCase().startsWith('draw') ?? false;
+// The neutral pick of a 3-way market — "Draw" (moneyline) or "Neither" (first
+// to score). It is rendered as the middle button with no team color.
+const isNeutralOutcome = (outcome: PredictOutcome): boolean => {
+  const title = outcome.groupItemTitle?.toLowerCase() ?? '';
+  return title.startsWith('draw') || title.startsWith('neither');
+};
 
 const sortMoneylineOutcomes = (
   outcomes: PredictOutcome[],
   game?: PredictMarketGame,
 ): PredictOutcome[] => {
-  const hasThresholds = outcomes.some((o) => o.groupItemThreshold != null);
-  if (hasThresholds) {
-    return [...outcomes].sort(
-      (a, b) => (a.groupItemThreshold ?? 0) - (b.groupItemThreshold ?? 0),
+  const ordered = ((): PredictOutcome[] => {
+    const hasThresholds = outcomes.some((o) => o.groupItemThreshold != null);
+    if (hasThresholds) {
+      return [...outcomes].sort(
+        (a, b) => (a.groupItemThreshold ?? 0) - (b.groupItemThreshold ?? 0),
+      );
+    }
+
+    const neutral = outcomes.find(isNeutralOutcome);
+    const others = outcomes.filter((o) => !isNeutralOutcome(o));
+    if (!neutral || others.length < 2) {
+      return [...outcomes];
+    }
+
+    if (game) {
+      const homeAbbr = game.homeTeam.abbreviation;
+      const home = others.find((o) => o.tokens[0]?.shortTitle === homeAbbr);
+      const away = others.find((o) => o !== home);
+      if (home && away) {
+        return [home, neutral, away];
+      }
+    }
+
+    const sorted = [...others].sort((a, b) =>
+      (a.groupItemTitle ?? '').localeCompare(b.groupItemTitle ?? ''),
     );
-  }
+    return [sorted[0], neutral, ...sorted.slice(1)];
+  })();
 
-  const draw = outcomes.find(isDrawOutcome);
-  const nonDraw = outcomes.filter((o) => !isDrawOutcome(o));
-  if (!draw || nonDraw.length < 2) {
-    return [...outcomes];
-  }
-
-  if (game) {
-    const homeAbbr = game.homeTeam.abbreviation;
-    const home = nonDraw.find((o) => o.tokens[0]?.shortTitle === homeAbbr);
-    const away = nonDraw.find((o) => o !== home);
-    if (home && away) {
-      return [home, draw, away];
+  // Keep the neutral pick (Draw / Neither) in the middle of a 3-way market so it
+  // gets the neutral button styling, even when the source order does not.
+  if (ordered.length === 3) {
+    const neutralIdx = ordered.findIndex(isNeutralOutcome);
+    if (neutralIdx === 0 || neutralIdx === 2) {
+      const neutral = ordered[neutralIdx];
+      const rest = ordered.filter((_, i) => i !== neutralIdx);
+      return [rest[0], neutral, rest[1]];
     }
   }
 
-  const sorted = [...nonDraw].sort((a, b) =>
-    (a.groupItemTitle ?? '').localeCompare(b.groupItemTitle ?? ''),
-  );
-  return [sorted[0], draw, ...sorted.slice(1)];
+  return ordered;
 };
 
 const buildMoneylineButtons = (
@@ -353,35 +372,46 @@ const MoneylineCard = memo(
 
 MoneylineCard.displayName = 'MoneylineCard';
 
-const SubgroupCards = memo(
-  ({
-    subgroup,
-    onBuyPress,
-    game,
-    groupKey,
-    index,
-  }: {
-    subgroup: PredictOutcomeGroup;
-    onBuyPress: BuyHandler;
-    game?: PredictMarketGame;
-    groupKey: string;
-    index: number;
-  }) => {
-    const translatedTitle = getTranslatedSportsMarketTypeLabel(subgroup.key);
-    const firstOutcomeTitle = subgroup.outcomes[0]
-      ? formatOutcomeCardTitle(subgroup.outcomes[0])
-      : undefined;
-    const title =
-      translatedTitle ?? firstOutcomeTitle ?? toTitleCase(subgroup.key);
-    const testID = `${groupKey}-${subgroup.key}-${index}`;
+interface OutcomeCardProps {
+  card: PredictOutcomeGroup;
+  onBuyPress: BuyHandler;
+  game?: PredictMarketGame;
+  groupKey: string;
+}
 
-    if (
-      isMoneylineLikeMarketType(subgroup.key) &&
-      subgroup.outcomes.length > 1
-    ) {
+/**
+ * Renders a single pre-built card. The provider (buildOutcomeGroups) has
+ * already assigned each card to a tab and split markets into per-subject cards
+ * (team totals per team, player props per player), so the only decision here is
+ * the card layout, derived from the card's outcomes: a moneyline-like type with
+ * multiple outcomes renders an inline Home/Draw/Away card; multiple outcomes
+ * render a line card with an Over/Under selector; a single outcome renders a
+ * simple card. The title comes from the provider (`card.title`, set for subject
+ * splits) or is derived — the market-type label for aggregate cards, else the
+ * outcome's own title.
+ */
+const OutcomeCard = memo(
+  ({ card, onBuyPress, game, groupKey }: OutcomeCardProps) => {
+    const { outcomes } = card;
+    const firstOutcome = outcomes[0];
+    const sportsMarketType = firstOutcome?.sportsMarketType;
+    const testID = `${groupKey}-${card.key}`;
+
+    // Cards split by subject (team / player) and individual markets (exact
+    // score, ...) carry their title from the provider. Aggregate cards
+    // (moneyline, totals, corners, ...) have no title and are labelled by their
+    // market type — including single-outcome ones like a two-way moneyline.
+    const title =
+      card.title ??
+      getSportsMarketTypeLabel(
+        sportsMarketType ?? card.key,
+        firstOutcome ? formatOutcomeCardTitle(firstOutcome) : card.key,
+      );
+
+    if (isMoneylineLikeMarketType(sportsMarketType) && outcomes.length > 1) {
       return (
         <MoneylineCard
-          outcomes={subgroup.outcomes}
+          outcomes={outcomes}
           onBuyPress={onBuyPress}
           game={game}
           title={title}
@@ -390,14 +420,15 @@ const SubgroupCards = memo(
       );
     }
 
-    if (subgroup.outcomes.length === 1) {
+    if (outcomes.length <= 1) {
+      if (!firstOutcome) return null;
       return (
         <SimpleOutcomeCard
-          outcome={subgroup.outcomes[0]}
+          outcome={firstOutcome}
           title={title}
           onBuyPress={onBuyPress}
           game={game}
-          sportsMarketType={subgroup.key}
+          sportsMarketType={sportsMarketType}
           testID={testID}
         />
       );
@@ -405,36 +436,18 @@ const SubgroupCards = memo(
 
     return (
       <LineOutcomeCard
-        outcomes={subgroup.outcomes}
-        title={translatedTitle}
+        outcomes={outcomes}
+        title={title}
         onBuyPress={onBuyPress}
         game={game}
-        sportsMarketType={subgroup.key}
+        sportsMarketType={sportsMarketType}
         testID={testID}
       />
     );
   },
 );
 
-SubgroupCards.displayName = 'SubgroupCards';
-
-/**
- * A "line ladder" is a flat group whose outcomes are the same market offered at
- * different Over/Under lines (e.g. Total Corners O/U 8.5 / 9.5 / 10.5 / 11.5).
- * These collapse into a single card with a line selector, matching Polymarket.
- *
- * It is distinct from player-prop style groups (e.g. Points), where every
- * outcome is a different entity (player) that also carries a line — those stay
- * as separate cards. The two are told apart by their card title: line-ladder
- * outcomes all share one title, player props do not.
- */
-const isLineLadderGroup = (outcomes: PredictOutcome[]): boolean => {
-  if (outcomes.length < 2 || !outcomes.every((o) => o.line != null)) {
-    return false;
-  }
-  const firstTitle = formatOutcomeCardTitle(outcomes[0]);
-  return outcomes.every((o) => formatOutcomeCardTitle(o) === firstTitle);
-};
+OutcomeCard.displayName = 'OutcomeCard';
 
 const OutcomesContent = memo(
   ({
@@ -445,76 +458,19 @@ const OutcomesContent = memo(
     group: PredictOutcomeGroup;
     onBuyPress: BuyHandler;
     game?: PredictMarketGame;
-  }) => {
-    if (group.subgroups && group.subgroups.length > 0) {
-      return (
-        <>
-          {group.subgroups.map((subgroup, index) => (
-            <SubgroupCards
-              key={subgroup.key}
-              subgroup={subgroup}
-              onBuyPress={onBuyPress}
-              game={game}
-              groupKey={group.key}
-              index={index}
-            />
-          ))}
-        </>
-      );
-    }
-
-    const firstType = group.outcomes[0]?.sportsMarketType;
-    if (
-      firstType &&
-      isMoneylineLikeMarketType(firstType) &&
-      group.outcomes.length > 1
-    ) {
-      return (
-        <MoneylineCard
-          outcomes={group.outcomes}
+  }) => (
+    <>
+      {(group.subgroups ?? []).map((card) => (
+        <OutcomeCard
+          key={card.key}
+          card={card}
           onBuyPress={onBuyPress}
           game={game}
-          title={getSportsMarketTypeLabel(
-            firstType,
-            formatOutcomeCardTitle(group.outcomes[0]),
-          )}
-          testID={`${group.key}-moneyline`}
+          groupKey={group.key}
         />
-      );
-    }
-
-    if (isLineLadderGroup(group.outcomes)) {
-      return (
-        <LineOutcomeCard
-          outcomes={group.outcomes}
-          title={getSportsMarketTypeLabel(
-            firstType ?? group.key,
-            formatOutcomeCardTitle(group.outcomes[0]),
-          )}
-          onBuyPress={onBuyPress}
-          game={game}
-          sportsMarketType={firstType}
-          testID={`${group.key}-line`}
-        />
-      );
-    }
-
-    return (
-      <>
-        {group.outcomes.map((outcome, index) => (
-          <SimpleOutcomeCard
-            key={outcome.id}
-            outcome={outcome}
-            title={formatOutcomeCardTitle(outcome)}
-            onBuyPress={onBuyPress}
-            game={game}
-            sportsMarketType={outcome.sportsMarketType}
-            testID={`${group.key}-outcome-${index}`}
-          />
-        ))}
-      </>
-    );
-  },
+      ))}
+    </>
+  ),
 );
 
 OutcomesContent.displayName = 'OutcomesContent';

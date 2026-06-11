@@ -98,21 +98,41 @@ export const POLYGON_PUSD_CAIP_ASSET_ID =
   `${POLYGON_MAINNET_CAIP_CHAIN_ID}/erc20:${MATIC_CONTRACTS_V2.collateral}` as const;
 
 export const SPORTS_MARKET_TYPE_TO_GROUP: Record<string, string> = {
+  // First half
   first_half_moneyline: 'first_half',
   first_half_spreads: 'first_half',
   first_half_totals: 'first_half',
+  soccer_first_half_team_totals: 'first_half',
+  both_teams_to_score_first_half: 'first_half',
+  // Second half
+  second_half_totals: 'second_half',
+  soccer_second_half_team_totals: 'second_half',
+  both_teams_to_score_second_half: 'second_half',
+  soccer_second_half_result: 'second_half',
+  // NFL
   team_totals: 'team_totals',
   anytime_touchdowns: 'touchdowns',
   first_touchdowns: 'touchdowns',
   rushing_yards: 'rushing',
   receiving_yards: 'receiving',
+  // NBA
   points: 'points',
   assists: 'assists',
   rebounds: 'rebounds',
+  // Soccer
   soccer_anytime_goalscorer: 'goalscorers',
+  soccer_player_goals: 'goals',
+  soccer_player_assists: 'assists',
+  soccer_player_shots: 'shots',
   soccer_exact_score: 'exact_score',
   soccer_halftime_result: 'halftime',
   total_corners: 'corners',
+  soccer_team_total_corners: 'corners',
+  soccer_first_half_total_corners: 'corners',
+  soccer_second_half_total_corners: 'corners',
+  soccer_first_corner: 'corners',
+  soccer_game_corners_odd_even: 'corners',
+  // Tennis
   tennis_first_set_winner: 'first_set',
   tennis_first_set_totals: 'first_set',
 };
@@ -120,18 +140,21 @@ export const SPORTS_MARKET_TYPE_TO_GROUP: Record<string, string> = {
 export const GROUP_ORDER: string[] = [
   'game_lines',
   'first_half',
+  'second_half',
   'first_set',
   'team_totals',
   'touchdowns',
   'rushing',
   'receiving',
   'points',
-  'assists',
   'rebounds',
-  'goalscorers',
   'exact_score',
   'halftime',
   'corners',
+  'goals',
+  'goalscorers',
+  'assists',
+  'shots',
 ];
 
 export const DEFAULT_GROUP_KEY = 'game_lines';

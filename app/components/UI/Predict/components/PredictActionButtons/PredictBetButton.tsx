@@ -65,7 +65,7 @@ const PredictBetButton: React.FC<PredictBetButtonProps> = ({
             layout === 'inlineNoSeparator' ? TextVariant.BodySm : undefined
           }
           style={textStyle}
-          numberOfLines={1}
+          numberOfLines={2}
         >
           {inlineLabel}
         </Text>

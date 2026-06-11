@@ -126,11 +126,40 @@ export const MONEYLINE_MARKET_TYPES: ReadonlySet<string> = new Set([
   'moneyline',
   'first_half_moneyline',
   'soccer_halftime_result',
+  'soccer_second_half_result',
+  'soccer_first_to_score',
   'tennis_first_set_winner',
 ]);
 
 export const isMoneylineLikeMarketType = (type?: string): boolean =>
   type !== undefined && MONEYLINE_MARKET_TYPES.has(type.toLowerCase());
+
+/**
+ * Per-player markets (goals, assists, shots, points, ...). These are split into
+ * one card per player. Soccer types follow the `*_player_*` naming; the rest
+ * are listed explicitly.
+ */
+export const PLAYER_PROP_MARKET_TYPES: ReadonlySet<string> = new Set([
+  'points',
+  'assists',
+  'rebounds',
+  'rushing_yards',
+  'receiving_yards',
+  'anytime_touchdowns',
+  'first_touchdowns',
+  'soccer_anytime_goalscorer',
+  'soccer_player_goals',
+  'soccer_player_assists',
+  'soccer_player_shots',
+]);
+
+export const isPlayerPropMarketType = (type?: string): boolean => {
+  if (type === undefined) {
+    return false;
+  }
+  const lower = type.toLowerCase();
+  return PLAYER_PROP_MARKET_TYPES.has(lower) || lower.includes('player');
+};
 
 export const getPrimaryMoneylineOutcomes = <
   T extends { sportsMarketType?: string },

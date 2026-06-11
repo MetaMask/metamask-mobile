@@ -14,6 +14,7 @@ import {
 import {
   buildMarketListQueryParams,
   buildOutcomeGroups,
+  getOutcomeSubject,
   calculateConservativeBuyMarketFee,
   clearClobMarketInfoCache,
   clearClobMarketInfoSessionState,
@@ -208,6 +209,333 @@ describe('polymarket utils', () => {
       'tennis_first_set_winner',
       'tennis_first_set_totals',
     ]);
+  });
+
+  describe('buildOutcomeGroups soccer grouping', () => {
+    const mkOutcome = (
+      sportsMarketType: string,
+      groupItemTitle: string,
+      extra: Partial<PredictOutcome> = {},
+    ): PredictOutcome => ({
+      id: extra.id ?? `${sportsMarketType}-${groupItemTitle}`,
+      providerId: POLYMARKET_PROVIDER_ID,
+      marketId: 'market-1',
+      title: groupItemTitle,
+      description: groupItemTitle,
+      image: 'icon.png',
+      status: 'open',
+      tokens: [
+        { id: `${groupItemTitle}-over`, title: 'Over', price: 0.5 },
+        { id: `${groupItemTitle}-under`, title: 'Under', price: 0.5 },
+      ],
+      volume: 100,
+      groupItemTitle,
+      sportsMarketType,
+      ...extra,
+    });
+
+    const teamTotals = [
+      mkOutcome('soccer_team_totals', 'Mexico O/U 0.5', { line: 0.5 }),
+      mkOutcome('soccer_team_totals', 'Mexico O/U 1.5', { line: 1.5 }),
+      mkOutcome('soccer_team_totals', 'South Africa O/U 0.5', { line: 0.5 }),
+      mkOutcome('soccer_team_totals', 'South Africa O/U 1.5', { line: 1.5 }),
+    ];
+
+    it('assigns soccer market types to the expected tabs in order', () => {
+      const groups = buildOutcomeGroups([
+        mkOutcome('moneyline', 'Mexico'),
+        mkOutcome('total_corners', 'Total Corners: O/U 8.5', { line: 8.5 }),
+        mkOutcome('soccer_player_goals', 'Player A: 1+ goals', { line: 0.5 }),
+        mkOutcome('soccer_player_assists', 'Player A: 1+ assists', {
+          line: 0.5,
+        }),
+        mkOutcome('soccer_player_shots', 'Player A: 1+ shots', { line: 0.5 }),
+        mkOutcome('soccer_exact_score', 'Mexico 1 - 0 South Africa'),
+        mkOutcome('soccer_halftime_result', 'Mexico'),
+        mkOutcome('soccer_second_half_result', 'Mexico'),
+        mkOutcome('first_half_totals', '1st Half O/U 1.5', { line: 1.5 }),
+        mkOutcome('second_half_totals', '2nd Half O/U 1.5', { line: 1.5 }),
+      ]);
+
+      expect(groups.map((g) => g.key)).toEqual([
+        'game_lines',
+        'first_half',
+        'second_half',
+        'exact_score',
+        'halftime',
+        'corners',
+        'goals',
+        'assists',
+        'shots',
+      ]);
+    });
+
+    it('splits team totals into one card per team', () => {
+      const [gameLines] = buildOutcomeGroups(teamTotals);
+      const card = gameLines.subgroups?.find((s) =>
+        s.key.startsWith('soccer_team_totals'),
+      );
+      // Two distinct teams -> two cards.
+      const teamCards = gameLines.subgroups?.filter((s) =>
+        s.key.startsWith('soccer_team_totals'),
+      );
+      expect(teamCards).toHaveLength(2);
+      expect(teamCards?.map((s) => s.title).sort()).toEqual([
+        'Mexico Totals',
+        'South Africa Totals',
+      ]);
+      // Each team card has its two lines.
+      expect(card?.outcomes).toHaveLength(2);
+      expect(teamCards?.[0].key).toBe('soccer_team_totals-0');
+      expect(teamCards?.[1].key).toBe('soccer_team_totals-1');
+    });
+
+    it('splits player props into one card per player titled by name', () => {
+      const [goals] = buildOutcomeGroups([
+        mkOutcome('soccer_player_goals', 'Armando González: 1+ goals', {
+          line: 0.5,
+        }),
+        mkOutcome('soccer_player_goals', 'Armando González: 2+ goals', {
+          line: 1.5,
+        }),
+        mkOutcome('soccer_player_goals', 'Gilberto Mora: 1+ goals', {
+          line: 0.5,
+        }),
+      ]);
+
+      expect(goals.key).toBe('goals');
+      expect(goals.subgroups).toHaveLength(2);
+      expect(goals.subgroups?.map((s) => s.title)).toEqual([
+        'Armando González',
+        'Gilberto Mora',
+      ]);
+      // The player with two lines keeps both outcomes in one card.
+      expect(goals.subgroups?.[0].outcomes).toHaveLength(2);
+      expect(goals.subgroups?.[1].outcomes).toHaveLength(1);
+    });
+
+    it('keeps a single-subject line market (corners) as one untitled card', () => {
+      const [corners] = buildOutcomeGroups([
+        mkOutcome('total_corners', 'Total Corners: O/U 8.5', { line: 8.5 }),
+        mkOutcome('total_corners', 'Total Corners: O/U 9.5', { line: 9.5 }),
+      ]);
+
+      expect(corners.key).toBe('corners');
+      expect(corners.subgroups).toHaveLength(1);
+      expect(corners.subgroups?.[0].key).toBe('total_corners');
+      expect(corners.subgroups?.[0].outcomes).toHaveLength(2);
+      // No title -> the view derives the market-type label.
+      expect(corners.subgroups?.[0].title).toBeUndefined();
+    });
+
+    it('renders one card per outcome for exact score', () => {
+      const [exactScore] = buildOutcomeGroups([
+        mkOutcome('soccer_exact_score', 'Mexico 1 - 0 South Africa'),
+        mkOutcome('soccer_exact_score', 'Mexico 2 - 1 South Africa'),
+        mkOutcome('soccer_exact_score', 'Mexico 0 - 0 South Africa'),
+      ]);
+
+      expect(exactScore.key).toBe('exact_score');
+      expect(exactScore.subgroups).toHaveLength(3);
+      expect(exactScore.subgroups?.every((s) => s.outcomes.length === 1)).toBe(
+        true,
+      );
+      expect(exactScore.subgroups?.map((s) => s.key)).toEqual([
+        'soccer_exact_score-0',
+        'soccer_exact_score-1',
+        'soccer_exact_score-2',
+      ]);
+      // Individual markets carry their own title (not the market-type label).
+      expect(exactScore.subgroups?.map((s) => s.title)).toEqual([
+        'Mexico 1 - 0 South Africa',
+        'Mexico 2 - 1 South Africa',
+        'Mexico 0 - 0 South Africa',
+      ]);
+    });
+
+    it('keeps a two-way moneyline as one untitled (type-labelled) card', () => {
+      // A single head-to-head market (tennis / baseball) is one outcome with two
+      // tokens. It must stay one aggregate card with no title so the view labels
+      // it by market type ("Moneyline").
+      const [gameLines] = buildOutcomeGroups([
+        mkOutcome('moneyline', 'Snigur vs Udvardy', {
+          tokens: [
+            { id: 'a', title: 'Snigur', price: 0.32 },
+            { id: 'b', title: 'Udvardy', price: 0.68 },
+          ],
+        }),
+      ]);
+
+      expect(gameLines.subgroups).toHaveLength(1);
+      expect(gameLines.subgroups?.[0].key).toBe('moneyline');
+      expect(gameLines.subgroups?.[0].outcomes).toHaveLength(1);
+      expect(gameLines.subgroups?.[0].title).toBeUndefined();
+    });
+
+    it('keeps game totals as one untitled card even when titles embed the matchup', () => {
+      // NHL totals fall back to the question for their title, e.g.
+      // "Golden Knights vs. Hurricanes: O/U 3.5". They must not be split by the
+      // matchup name — the view labels the single card "Totals".
+      const [gameLines] = buildOutcomeGroups([
+        mkOutcome('totals', 'Golden Knights vs. Hurricanes: O/U 3.5', {
+          line: 3.5,
+        }),
+        mkOutcome('totals', 'O/U 4.5', { line: 4.5 }),
+        mkOutcome('totals', 'Golden Knights vs. Hurricanes: O/U 5.5', {
+          line: 5.5,
+        }),
+      ]);
+
+      const totalsCards = gameLines.subgroups?.filter(
+        (s) => s.outcomes[0]?.sportsMarketType === 'totals',
+      );
+      expect(totalsCards).toHaveLength(1);
+      expect(totalsCards?.[0].key).toBe('totals');
+      expect(totalsCards?.[0].outcomes).toHaveLength(3);
+      expect(totalsCards?.[0].title).toBeUndefined();
+    });
+
+    it('splits NBA player props (points) into one card per player', () => {
+      const [points] = buildOutcomeGroups([
+        mkOutcome('points', 'Victor Wembanyama: Points O/U 27.5', {
+          line: 27.5,
+        }),
+        mkOutcome('points', 'Jalen Brunson: Points O/U 26.5', { line: 26.5 }),
+      ]);
+
+      expect(points.key).toBe('points');
+      expect(points.subgroups?.map((s) => s.title)).toEqual([
+        'Victor Wembanyama',
+        'Jalen Brunson',
+      ]);
+    });
+
+    it('keeps moneyline-like second half result as a single card in the second half tab', () => {
+      const [secondHalf] = buildOutcomeGroups([
+        mkOutcome('soccer_second_half_result', 'Mexico'),
+        mkOutcome('soccer_second_half_result', 'Draw'),
+        mkOutcome('soccer_second_half_result', 'South Africa'),
+      ]);
+
+      expect(secondHalf.key).toBe('second_half');
+      expect(secondHalf.subgroups).toHaveLength(1);
+      expect(secondHalf.subgroups?.[0].key).toBe('soccer_second_half_result');
+      expect(secondHalf.subgroups?.[0].outcomes).toHaveLength(3);
+    });
+
+    it('does not split spreads', () => {
+      const [gameLines] = buildOutcomeGroups([
+        mkOutcome('spreads', 'Mexico (-1.5)', { line: -1.5 }),
+        mkOutcome('spreads', 'South Africa (-1.5)', { line: -1.5 }),
+      ]);
+
+      const spreadCards = gameLines.subgroups?.filter(
+        (s) => s.key === 'spreads',
+      );
+      expect(spreadCards).toHaveLength(1);
+      expect(spreadCards?.[0].outcomes).toHaveLength(2);
+    });
+
+    it('groups every corner market type into the corners tab', () => {
+      const groups = buildOutcomeGroups([
+        mkOutcome('total_corners', 'Total Corners: O/U 8.5', { line: 8.5 }),
+        mkOutcome('soccer_team_total_corners', 'Mexico Corners: O/U 4.5', {
+          line: 4.5,
+        }),
+        mkOutcome(
+          'soccer_first_half_total_corners',
+          '1st Half Total Corners: O/U 5.5',
+          { line: 5.5 },
+        ),
+        mkOutcome(
+          'soccer_second_half_total_corners',
+          '2nd Half Total Corners: O/U 4.5',
+          { line: 4.5 },
+        ),
+        mkOutcome('soccer_first_corner', 'Team to Take First Corner'),
+        mkOutcome('soccer_game_corners_odd_even', 'Total Corners: Odd or Even'),
+      ]);
+
+      // Every corner market lands in a single corners tab.
+      expect(groups.map((g) => g.key)).toEqual(['corners']);
+    });
+
+    it('splits team corner totals per team without a "Totals" suffix', () => {
+      const [corners] = buildOutcomeGroups([
+        mkOutcome('soccer_team_total_corners', 'Mexico Corners: O/U 4.5', {
+          line: 4.5,
+        }),
+        mkOutcome('soccer_team_total_corners', 'Mexico Corners: O/U 5.5', {
+          line: 5.5,
+        }),
+        mkOutcome(
+          'soccer_team_total_corners',
+          'South Africa Corners: O/U 2.5',
+          {
+            line: 2.5,
+          },
+        ),
+      ]);
+
+      const cornerCards = corners.subgroups?.filter((s) =>
+        s.key.startsWith('soccer_team_total_corners'),
+      );
+      expect(cornerCards?.map((s) => s.title)).toEqual([
+        'Mexico Corners',
+        'South Africa Corners',
+      ]);
+    });
+
+    it('keeps first-to-score as a single moneyline-style card', () => {
+      const [gameLines] = buildOutcomeGroups([
+        mkOutcome('soccer_first_to_score', 'Mexico', {
+          id: 'fts-mex',
+          groupItemThreshold: 0,
+        }),
+        mkOutcome('soccer_first_to_score', 'Neither', {
+          id: 'fts-neither',
+          groupItemThreshold: 2,
+        }),
+        mkOutcome('soccer_first_to_score', 'South Africa', {
+          id: 'fts-rsa',
+          groupItemThreshold: 1,
+        }),
+      ]);
+
+      expect(gameLines.key).toBe('game_lines');
+      const card = gameLines.subgroups?.find(
+        (s) => s.key === 'soccer_first_to_score',
+      );
+      expect(card?.outcomes).toHaveLength(3);
+    });
+  });
+
+  describe('getOutcomeSubject', () => {
+    const subjectOf = (groupItemTitle: string): string | null =>
+      getOutcomeSubject({ groupItemTitle } as PredictOutcome);
+
+    it.each([
+      ['O/U 2.5', ''],
+      ['Mexico O/U 0.5', 'Mexico'],
+      ['Mexico 1st Half O/U 0.5', 'Mexico 1st Half'],
+      ['Total Corners: O/U 8.5', 'Total Corners'],
+      ['Armando González: 2+ goals', 'Armando González'],
+      ['Alexis Vega: 4+ shots', 'Alexis Vega'],
+      ['Brian Gutiérrez: 1+ assists', 'Brian Gutiérrez'],
+      ['Goalscorer: Cho Guesung', 'Cho Guesung'],
+      ['Victor Wembanyama: Points O/U 27.5', 'Victor Wembanyama'],
+    ])('extracts the subject from %p as %p', (title, expected) => {
+      expect(subjectOf(title)).toBe(expected);
+    });
+
+    it.each([
+      ['Mexico (-1.5)'],
+      ['Mexico'],
+      ['Both Teams to Score'],
+      ['Mexico 1 - 0 South Africa'],
+    ])('returns null for non-subject market %p', (title) => {
+      expect(subjectOf(title)).toBeNull();
+    });
   });
 
   it('parses World Cup game events with game metadata when team data is available', () => {
