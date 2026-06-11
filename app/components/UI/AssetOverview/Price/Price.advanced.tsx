@@ -85,7 +85,7 @@ const TOKEN_DETAILS_LEGEND_OVERLAY: LegendOverlayConfig = {
       useIndex: true,
     },
     RSI: {
-      plots: [{ tvTitle: 'Plot', label: 'RSI(14)', color: '#4CAF50' }],
+      plots: [{ tvTitle: 'Plot', label: 'RSI(14)', color: '#E91E90' }],
       useIndex: true,
     },
     BOL: {

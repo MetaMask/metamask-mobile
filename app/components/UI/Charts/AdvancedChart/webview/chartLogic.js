@@ -623,7 +623,8 @@ function handleAddIndicator(payload) {
         inputs = { in_0: 14 };
         overrides = {
           showLegendValues: !hideValues,
-          'RSI.color': '#4CAF50',
+          'Plot.color': '#E91E90',
+          'hlines background.visible': false,
         };
         break;
       case 'BOL':
@@ -3251,7 +3252,7 @@ var INDICATOR_LEGEND_CONFIG = {
     useIndex: true,
   },
   RSI: {
-    plots: [{ tvTitle: 'Plot', label: 'RSI(14)', color: '#4CAF50' }],
+    plots: [{ tvTitle: 'Plot', label: 'RSI(14)', color: '#E91E90' }],
     useIndex: true,
   },
   BOL: {

@@ -632,7 +632,8 @@ function handleAddIndicator(payload) {
         inputs = { in_0: 14 };
         overrides = {
           showLegendValues: !hideValues,
-          'RSI.color': '#4CAF50',
+          'Plot.color': '#E91E90',
+          'hlines background.visible': false,
         };
         break;
       case 'BOL':
@@ -752,7 +753,10 @@ function handleSetMAVisibility(payload) {
           false,
           false,
           { length: MA_LENGTHS[maName] },
-          { showLegendValues: !isLegendOverlayEnabled(), 'Plot.color': MA_COLORS[maName] },
+          {
+            showLegendValues: !isLegendOverlayEnabled(),
+            'Plot.color': MA_COLORS[maName],
+          },
         )
         .then(function (studyId) {
           window.maStudies.set(maName, studyId);
@@ -3231,11 +3235,20 @@ function refreshLineEndDot() {
 // ============================================
 
 function isLegendOverlayEnabled() {
-  return window.CONFIG && window.CONFIG.legendOverlay && window.CONFIG.legendOverlay.enabled;
+  return (
+    window.CONFIG &&
+    window.CONFIG.legendOverlay &&
+    window.CONFIG.legendOverlay.enabled
+  );
 }
 
 function getLegendConfig() {
-  return (window.CONFIG && window.CONFIG.legendOverlay && window.CONFIG.legendOverlay.config) || {};
+  return (
+    (window.CONFIG &&
+      window.CONFIG.legendOverlay &&
+      window.CONFIG.legendOverlay.config) ||
+    {}
+  );
 }
 
 var INDICATOR_LEGEND_CONFIG = {
@@ -3248,7 +3261,7 @@ var INDICATOR_LEGEND_CONFIG = {
     useIndex: true,
   },
   RSI: {
-    plots: [{ tvTitle: 'Plot', label: 'RSI(14)', color: '#4CAF50' }],
+    plots: [{ tvTitle: 'Plot', label: 'RSI(14)', color: '#E91E90' }],
     useIndex: true,
   },
   BOL: {
@@ -3330,7 +3343,8 @@ function buildLegendHTML(studyDataList) {
     var values = entry.values;
 
     var dynamicConfig = getLegendConfig();
-    var cfg = dynamicConfig[indicatorName] || INDICATOR_LEGEND_CONFIG[indicatorName];
+    var cfg =
+      dynamicConfig[indicatorName] || INDICATOR_LEGEND_CONFIG[indicatorName];
     if (!cfg) continue;
 
     if (cfg.isMA) {
@@ -4201,9 +4215,12 @@ function initChart() {
           'paneProperties.legendProperties.showBarChange': false,
           'paneProperties.legendProperties.showVolume': false,
           'paneProperties.legendProperties.showBackground': false,
-          'paneProperties.legendProperties.showStudyTitles': !isLegendOverlayEnabled(),
-          'paneProperties.legendProperties.showStudyArguments': !isLegendOverlayEnabled(),
-          'paneProperties.legendProperties.showStudyValues': !isLegendOverlayEnabled(),
+          'paneProperties.legendProperties.showStudyTitles':
+            !isLegendOverlayEnabled(),
+          'paneProperties.legendProperties.showStudyArguments':
+            !isLegendOverlayEnabled(),
+          'paneProperties.legendProperties.showStudyValues':
+            !isLegendOverlayEnabled(),
           'mainSeriesProperties.showPriceLine': !initCustomDashed,
 
           'mainSeriesProperties.candleStyle.upColor': theme.successColor,
