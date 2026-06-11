@@ -36,10 +36,26 @@ const ActionListItem: React.FC<ActionListItemProps> = ({
   descriptionTextProps,
   iconProps,
   isDisabled = false,
+  accessibilityLabel,
   ...pressableProps
 }) => {
   const tw = useTailwind();
   const surfaceClass = useElevatedSurface();
+  const defaultAccessibilityLabel =
+    typeof label === 'string'
+      ? [label, typeof description === 'string' ? description : undefined]
+          .filter(Boolean)
+          .join(', ')
+      : undefined;
+  const pressableAccessibilityLabel =
+    accessibilityLabel ?? defaultAccessibilityLabel;
+  const shouldHideDescendants = Boolean(
+    pressableAccessibilityLabel &&
+      typeof label === 'string' &&
+      (!description || typeof description === 'string') &&
+      !startAccessory &&
+      !endAccessory,
+  );
 
   // Render label based on type
   const renderLabel = () => {
@@ -49,7 +65,7 @@ const ActionListItem: React.FC<ActionListItemProps> = ({
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
           {...labelTextProps}
-          accessible={false}
+          accessible={!shouldHideDescendants}
         >
           {label}
         </Text>
@@ -69,7 +85,7 @@ const ActionListItem: React.FC<ActionListItemProps> = ({
           fontWeight={FontWeight.Medium}
           color={TextColor.TextAlternative}
           {...descriptionTextProps}
-          accessible={false}
+          accessible={!shouldHideDescendants}
         >
           {description}
         </Text>
@@ -118,9 +134,9 @@ const ActionListItem: React.FC<ActionListItemProps> = ({
     <Pressable
       style={getStyle}
       disabled={isDisabled}
-      accessible
+      accessible={shouldHideDescendants}
       accessibilityRole="button"
-      accessibilityLabel={typeof label === 'string' ? label : undefined}
+      accessibilityLabel={pressableAccessibilityLabel}
       accessibilityState={{ disabled: isDisabled }}
       {...pressableProps}
     >
@@ -129,7 +145,9 @@ const ActionListItem: React.FC<ActionListItemProps> = ({
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
         gap={4}
-        importantForAccessibility="no-hide-descendants"
+        importantForAccessibility={
+          shouldHideDescendants ? 'no-hide-descendants' : undefined
+        }
       >
         {/* Left side content (start accessory/icon + label/description) */}
         <Box
