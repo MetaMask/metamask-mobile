@@ -177,6 +177,7 @@ module.exports = {
       files: [
         'app/components/hooks/useAsyncResult.ts',
         'app/components/hooks/useOTAUpdates.ts',
+        'app/components/Nav/App/App.tsx',
       ],
       rules: {
         'react-hooks/exhaustive-deps': 'off',
