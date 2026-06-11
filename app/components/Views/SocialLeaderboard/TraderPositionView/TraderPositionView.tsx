@@ -20,8 +20,12 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { playImpact, ImpactMoment } from '../../../../util/haptics';
 import {
   Box,
+  BoxFlexDirection,
+  Button,
   ButtonHero,
   ButtonHeroSize,
+  ButtonSize,
+  ButtonVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
@@ -53,6 +57,7 @@ import {
 } from '../analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { chainNameToId } from '../utils/chainMapping';
+import { isPerpPosition } from '../utils/perp';
 import { toAssetId } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
 
 const TraderPositionView = () => {
@@ -287,6 +292,12 @@ const TraderPositionView = () => {
     // TODO: update displayed price on scrub.
   }, []);
 
+  // Perp positions surface Long/Short CTAs instead of Buy. Perp trade entry
+  // isn't wired up yet, so these are intentional placeholders that don't
+  // navigate anywhere (a future ticket will hook them up).
+  const isPerp = resolvedPosition ? isPerpPosition(resolvedPosition) : false;
+  const handlePerpActionPress = useCallback(() => undefined, []);
+
   const isInitialLoading =
     !resolvedPosition && (isPositionLoading || isProfileLoading);
   const hasFailed =
@@ -364,25 +375,56 @@ const TraderPositionView = () => {
             />
           </ScrollView>
 
-          <Box twClassName="px-4 py-3">
-            <ButtonHero
-              size={ButtonHeroSize.Lg}
-              isFullWidth
-              onPress={handleBuyPress}
-              testID={TraderPositionViewSelectorsIDs.BUY_BUTTON}
+          {isPerp ? (
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              gap={3}
+              twClassName="px-4 py-3"
             >
-              {strings('social_leaderboard.trader_position.buy')}
-            </ButtonHero>
-          </Box>
+              <Button
+                variant={ButtonVariant.Secondary}
+                size={ButtonSize.Lg}
+                onPress={handlePerpActionPress}
+                twClassName="flex-1"
+                testID={TraderPositionViewSelectorsIDs.LONG_BUTTON}
+              >
+                {strings('social_leaderboard.trader_position.long')}
+              </Button>
+              <Button
+                variant={ButtonVariant.Primary}
+                size={ButtonSize.Lg}
+                onPress={handlePerpActionPress}
+                twClassName="flex-1"
+                testID={TraderPositionViewSelectorsIDs.SHORT_BUTTON}
+              >
+                {strings('social_leaderboard.trader_position.short')}
+              </Button>
+            </Box>
+          ) : (
+            <>
+              <Box twClassName="px-4 py-3">
+                <ButtonHero
+                  size={ButtonHeroSize.Lg}
+                  isFullWidth
+                  onPress={handleBuyPress}
+                  testID={TraderPositionViewSelectorsIDs.BUY_BUTTON}
+                >
+                  {strings('social_leaderboard.trader_position.buy')}
+                </ButtonHero>
+              </Box>
 
-          <TraderPositionQuickBuy
-            isVisible={isQuickBuyVisible}
-            position={resolvedPosition ?? null}
-            onClose={handleQuickBuyClose}
-            traderAddress={traderAddress}
-            marketCap={typeof marketCap === 'number' ? marketCap : undefined}
-            source={quickBuySource}
-          />
+              <TraderPositionQuickBuy
+                isVisible={isQuickBuyVisible}
+                position={resolvedPosition ?? null}
+                onClose={handleQuickBuyClose}
+                traderAddress={traderAddress}
+                marketCap={
+                  typeof marketCap === 'number' ? marketCap : undefined
+                }
+                source={quickBuySource}
+              />
+            </>
+          )}
         </>
       )}
     </SafeAreaView>

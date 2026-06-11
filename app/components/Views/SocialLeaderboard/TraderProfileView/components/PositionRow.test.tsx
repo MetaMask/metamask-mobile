@@ -230,4 +230,46 @@ describe('PositionRow', () => {
       expect(screen.getByText('+25%')).toBeOnTheScreen();
     });
   });
+
+  describe('perp positions', () => {
+    const perpPosition: Position = {
+      ...basePosition,
+      tokenSymbol: 'ETH',
+      chain: 'hyperliquid',
+      perpPositionType: 'long',
+      perpLeverage: 5,
+      positionAmountWithLeverage: 25,
+    };
+
+    it('renders the leverage and LONG direction badges for a long perp', () => {
+      renderWithProvider(<PositionRow position={perpPosition} />);
+
+      expect(screen.getByText('5x')).toBeOnTheScreen();
+      expect(screen.getByText('LONG')).toBeOnTheScreen();
+    });
+
+    it('renders a SHORT badge for a short perp', () => {
+      const position = { ...perpPosition, perpPositionType: 'short' as const };
+
+      renderWithProvider(<PositionRow position={position} />);
+
+      expect(screen.getByText('SHORT')).toBeOnTheScreen();
+    });
+
+    it('omits the leverage badge when perpLeverage is null', () => {
+      const position = { ...perpPosition, perpLeverage: null };
+
+      renderWithProvider(<PositionRow position={position} />);
+
+      expect(screen.queryByText('5x')).not.toBeOnTheScreen();
+      expect(screen.getByText('LONG')).toBeOnTheScreen();
+    });
+
+    it('does not render perp badges for a spot position', () => {
+      renderWithProvider(<PositionRow position={basePosition} />);
+
+      expect(screen.queryByText('LONG')).not.toBeOnTheScreen();
+      expect(screen.queryByText('SHORT')).not.toBeOnTheScreen();
+    });
+  });
 });
