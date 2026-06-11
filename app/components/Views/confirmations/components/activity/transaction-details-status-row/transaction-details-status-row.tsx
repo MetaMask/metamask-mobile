@@ -12,6 +12,8 @@ const TEXT_ONLY_STATUS_TYPES = [
   TransactionType.moneyAccountWithdraw,
   TransactionType.musdConversion,
   TransactionType.musdClaim,
+  TransactionType.perpsDeposit,
+  TransactionType.perpsWithdraw,
   TransactionType.predictDeposit,
   TransactionType.predictWithdraw,
   TransactionType.predictClaim,
