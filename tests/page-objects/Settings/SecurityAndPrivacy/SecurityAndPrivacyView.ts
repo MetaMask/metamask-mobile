@@ -5,7 +5,6 @@ import {
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
 import { EncapsulatedElementType } from '../../../framework';
-import UnifiedGestures from '../../../framework/UnifiedGestures';
 
 class SecurityAndPrivacy {
   get changePasswordButton(): EncapsulatedElementType {
@@ -112,8 +111,8 @@ class SecurityAndPrivacy {
   }
 
   async tapRevealSecretRecoveryPhraseButton(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.revealSecretRecoveryPhraseButton, {
-      description: 'Reveal secret recovery phrase button',
+    await Gestures.waitAndTap(this.revealSecretRecoveryPhraseButton, {
+      elemDescription: 'Reveal secret recovery phrase button',
     });
   }
 
