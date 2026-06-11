@@ -501,14 +501,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       component={AccountSelector}
       options={accountSelectorTransitionOptions}
     />
-    <NativeStack.Screen
-      name={Routes.SHEET.ADD_WALLET}
-      component={AddWallet}
-      options={{
-        presentation: 'transparentModal',
-        contentStyle: { backgroundColor: importedColors.transparent },
-      }}
-    />
+    <NativeStack.Screen name={Routes.SHEET.ADD_WALLET} component={AddWallet} />
     <NativeStack.Screen
       name={Routes.SHEET.ADDRESS_SELECTOR}
       component={AddressSelector}
@@ -771,6 +764,7 @@ const ConnectQRHardwareFlow = ({
         name="ConnectQRHardware"
         component={ConnectQRHardware}
         initialParams={route?.params}
+        options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
       />
     </NativeStack.Navigator>
   );
@@ -1070,7 +1064,6 @@ const AppFlow = () => {
       <NativeStack.Screen
         name="ConnectQRHardwareFlow"
         component={ConnectQRHardwareFlow}
-        options={{ animation: 'slide_from_right' }}
       />
       <NativeStack.Screen
         name={Routes.HW.CONNECT_LEDGER}
