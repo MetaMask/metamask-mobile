@@ -268,6 +268,28 @@ describe('OrderDetails', () => {
     ).toBeOnTheScreen();
   });
 
+  it('renders refund messaging for failed Transak sell orders', () => {
+    const failedSellOrder = {
+      ...mockOrder,
+      orderType: OrderOrderTypeEnum.Sell,
+      state: FIAT_ORDER_STATES.FAILED,
+      data: {
+        ...mockOrder.data,
+        provider: {
+          name: 'Transak',
+        },
+      },
+    };
+
+    render(OrderDetails, [failedSellOrder]);
+
+    expect(
+      screen.getByText(
+        'Your crypto will be refunded to the original wallet address using the same token and network.',
+      ),
+    ).toBeOnTheScreen();
+  });
+
   it('sends analytics events when an order is loaded', () => {
     render(OrderDetails);
     expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
