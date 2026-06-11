@@ -36,7 +36,6 @@ import { baseStyles } from '../../../styles/common';
 import { areAddressesEqual, isHardwareAccount } from '../../../util/address';
 import { getBlockExplorerAddressUrl } from '../../../util/networks';
 import { useTheme } from '../../../util/theme';
-import { updateIncomingTransactions } from '../../../util/transaction-controller';
 import { useStyles } from '../../hooks/useStyles';
 import PriceChartContext, {
   PriceChartProvider,
@@ -527,7 +526,7 @@ const UnifiedTransactionsView = ({
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await Promise.all([updateIncomingTransactions(), refetch()]);
+      await refetch();
     } finally {
       setRefreshing(false);
     }

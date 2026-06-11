@@ -17,7 +17,6 @@ import NetInfo from '@react-native-community/netinfo';
 import PropTypes from 'prop-types';
 import { connect, useSelector } from 'react-redux';
 import GlobalAlert from '../../UI/GlobalAlert';
-import BackgroundTimer from 'react-native-background-timer';
 import NotificationManager from '../../../core/NotificationManager';
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
@@ -76,11 +75,6 @@ import {
 import Routes from '../../../constants/navigation/Routes';
 import WarningAlert from '../../../components/UI/WarningAlert';
 import { GOERLI_DEPRECATED_ARTICLE } from '../../../constants/urls';
-import {
-  updateIncomingTransactions,
-  startIncomingTransactionPolling,
-  stopIncomingTransactionPolling,
-} from '../../../util/transaction-controller';
 import isNetworkUiRedesignEnabled from '../../../util/networks/isNetworkUiRedesignEnabled';
 import { useConnectionHandler } from '../../../util/navigation/useConnectionHandler';
 import { getGlobalEthQuery } from '../../../util/networks/global-network';
@@ -151,11 +145,6 @@ const Main = (props) => {
     }
   }, [props.chainId]);
 
-  useEffect(() => {
-    stopIncomingTransactionPolling();
-    startIncomingTransactionPolling();
-  }, [chainId, networkClientId, props.networkConfigurations]);
-
   const checkInfuraAvailability = useCallback(async () => {
     if (props.providerType !== 'rpc') {
       try {
@@ -183,22 +172,10 @@ const Main = (props) => {
     (appState) => {
       const newModeIsBackground = appState === 'background';
 
-      // If it was in background and it's not anymore
-      // we need to stop the Background timer
-      if (backgroundMode.current && !newModeIsBackground) {
-        BackgroundTimer.stop();
-      }
-
       backgroundMode.current = newModeIsBackground;
 
-      // If the app is now in background, we need to start
-      // the background timer, which is less intense
       if (backgroundMode.current) {
         removeNotVisibleNotifications();
-
-        BackgroundTimer.runBackgroundTimer(async () => {
-          await updateIncomingTransactions();
-        }, AppConstants.TX_CHECK_BACKGROUND_FREQUENCY);
       }
     },
     [backgroundMode, removeNotVisibleNotifications],

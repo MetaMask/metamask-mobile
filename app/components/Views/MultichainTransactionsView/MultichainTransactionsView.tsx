@@ -19,7 +19,6 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../selector
 import MultichainTransactionListItem from '../../UI/MultichainTransactionListItem';
 import styles from './MultichainTransactionsView.styles';
 import { useBridgeHistoryItemBySrcTxHash } from '../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash';
-import { updateIncomingTransactions } from '../../../util/transaction-controller';
 import MultichainTransactionsFooter from './MultichainTransactionsFooter';
 import PriceChartContext, {
   PriceChartProvider,
@@ -125,15 +124,8 @@ const MultichainTransactionsView = ({
 
   const onRefresh = React.useCallback(async () => {
     if (!enableRefresh) return;
-
     setRefreshing(true);
-    try {
-      await updateIncomingTransactions();
-    } catch (error) {
-      console.warn('Error refreshing transactions:', error);
-    } finally {
-      setRefreshing(false);
-    }
+    setRefreshing(false);
   }, [enableRefresh]);
 
   const renderEmptyList = () => (
