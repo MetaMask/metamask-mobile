@@ -87,8 +87,13 @@ import {
 import { usePerpsEventTracking } from '../../../Perps/hooks/usePerpsEventTracking';
 import TokenDetailsStickyFooter from '../../../TokenDetails/components/TokenDetailsStickyFooter';
 import AssetDetailsQuickBuy from '../../../TokenDetails/components/AssetDetailsQuickBuy';
+import {
+  SOCIAL_AI_QUICK_BUY_AB_KEY,
+  SOCIAL_AI_QUICK_BUY_EXPOSURE_METADATA,
+  SOCIAL_AI_QUICK_BUY_VARIANTS,
+} from '../../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/abTestConfig';
 import type { TokenDetailsRouteParams } from '../../../TokenDetails/constants/constants';
-import { selectSocialAiAssetDetailsQuickBuyEnabled } from '../../../../../selectors/featureFlagController/socialAiAssetDetailsQuickBuy';
+import { useABTest } from '../../../../../hooks/useABTest';
 import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 
 const feedbackByDigest = new Map<string, 'up' | 'down'>();
@@ -227,9 +232,12 @@ const MarketInsightsView: React.FC = () => {
   );
 
   const isEligible = useSelector(selectPerpsEligibility);
-  const isQuickBuyEnabled = useSelector(
-    selectSocialAiAssetDetailsQuickBuyEnabled,
+  const { variant: quickBuyVariant } = useABTest(
+    SOCIAL_AI_QUICK_BUY_AB_KEY,
+    SOCIAL_AI_QUICK_BUY_VARIANTS,
+    SOCIAL_AI_QUICK_BUY_EXPOSURE_METADATA,
   );
+  const isQuickBuyEnabled = quickBuyVariant.showQuickBuy;
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
     useState(false);
   const [isQuickBuyVisible, setIsQuickBuyVisible] = useState(false);

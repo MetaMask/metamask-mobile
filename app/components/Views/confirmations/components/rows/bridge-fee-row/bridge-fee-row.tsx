@@ -39,6 +39,7 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
+import { resolveTransactionType } from '../../../utils/transaction';
 
 export function BridgeFeeRow() {
   const transactionMetadata = useTransactionMetadataOrThrow();
@@ -200,7 +201,15 @@ function Tooltip({
   transactionMeta: TransactionMeta;
   totals: TransactionPayTotals;
 }): ReactNode {
-  const key = TOOLTIP_MESSAGE_KEY[transactionMeta.type as TransactionType];
+  const transactionType = resolveTransactionType(
+    transactionMeta,
+    Object.keys(TOOLTIP_MESSAGE_KEY) as TransactionType[],
+  );
+
+  const key =
+    transactionType !== undefined
+      ? TOOLTIP_MESSAGE_KEY[transactionType]
+      : undefined;
 
   if (!key) return null;
 
