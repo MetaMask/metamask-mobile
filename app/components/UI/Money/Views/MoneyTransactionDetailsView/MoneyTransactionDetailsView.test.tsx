@@ -76,14 +76,6 @@ jest.mock(
     };
   },
 );
-jest.mock('./MoneyTransactionDetailsRetryButton', () => {
-  const ReactActual = jest.requireActual('react');
-  const { Text } = jest.requireActual('react-native');
-  return {
-    MoneyTransactionDetailsRetryButton: () =>
-      ReactActual.createElement(Text, { testID: 'retry' }, 'retry'),
-  };
-});
 jest.mock('./MoneyTransactionDetailsFromRow', () => {
   const ReactActual = jest.requireActual('react');
   const { Text } = jest.requireActual('react-native');

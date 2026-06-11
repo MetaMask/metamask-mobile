@@ -22,7 +22,6 @@ import { MoneyTransactionDetailsToRow } from './MoneyTransactionDetailsToRow';
 import { MoneyTransactionDetailsOrderIdRow } from './MoneyTransactionDetailsOrderIdRow';
 import { MoneyTransactionDetailsSummary } from './MoneyTransactionDetailsSummary';
 import { TransactionDetailsDateRow } from '../../../../Views/confirmations/components/activity/transaction-details-date-row';
-import { MoneyTransactionDetailsRetryButton } from './MoneyTransactionDetailsRetryButton';
 import styleSheet from './MoneyTransactionDetailsView.styles';
 
 const SEND_TYPES: TransactionType[] = [
@@ -108,7 +107,6 @@ export default function MoneyTransactionDetailsView() {
                 <MoneyTransactionDetailsSummary />
               </>
             )}
-            <MoneyTransactionDetailsRetryButton />
           </Box>
         </ScrollView>
       ) : null}

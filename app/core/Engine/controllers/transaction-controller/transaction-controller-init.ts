@@ -27,7 +27,6 @@ import {
 } from './event-handlers/metrics';
 import { handleShowNotification } from './event-handlers/notification';
 import { handleUnapprovedTransactionAddedForMoneyAccount } from './event-handlers/money-account-override';
-import { handleTransactionSubmittedForOriginatingAddress } from './event-handlers/persist-originating-address';
 import { trace } from '../../../../util/trace';
 import { accountSupports7702 } from '../../../../util/transactions/account-supports-7702';
 import { isSendBundleSupported } from '../../../../util/transactions/sentinel-api';
@@ -238,13 +237,6 @@ function addTransactionControllerListeners(
         transactionMeta,
         transactionEventHandlerRequest,
       );
-    },
-  );
-
-  initMessenger.subscribe(
-    'TransactionController:transactionSubmitted',
-    ({ transactionMeta }: { transactionMeta: TransactionMeta }) => {
-      handleTransactionSubmittedForOriginatingAddress(transactionMeta);
     },
   );
 
