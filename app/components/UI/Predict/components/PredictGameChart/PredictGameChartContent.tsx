@@ -168,7 +168,7 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
 
   if (error) {
     return (
-      <Box twClassName="flex-1 justify-center items-center" testID={testID}>
+      <Box twClassName="w-full justify-center items-center" testID={testID}>
         <Box twClassName={`h-[${CHART_HEIGHT}px] justify-center items-center`}>
           <Icon
             name={IconName.Warning}
@@ -206,7 +206,7 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
 
   if (!hasData) {
     return (
-      <Box twClassName="flex-1 justify-center items-center" testID={testID}>
+      <Box twClassName="w-full justify-center items-center" testID={testID}>
         <Box twClassName={`h-[${CHART_HEIGHT}px] justify-center items-center`}>
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             No price history available
@@ -235,7 +235,7 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
   const isTooltipActive = activeIndex >= 0;
 
   return (
-    <Box twClassName="flex-1" testID={testID}>
+    <Box twClassName="w-full" testID={testID}>
       <View
         style={tw.style(`h-[${CHART_HEIGHT}px]`)}
         {...panResponder.panHandlers}

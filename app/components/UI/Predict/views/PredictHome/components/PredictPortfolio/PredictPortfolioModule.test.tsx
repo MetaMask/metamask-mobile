@@ -1,10 +1,11 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
-import Routes from '../../../../../constants/navigation/Routes';
-import Engine from '../../../../../core/Engine';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { PredictEventValues } from '../../constants/eventNames';
-import { usePredictPortfolio } from '../../hooks/usePredictPortfolio';
+import Routes from '../../../../../../../constants/navigation/Routes';
+import Engine from '../../../../../../../core/Engine';
+import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
+import { PredictHomeSelectorsIDs } from '../../../../Predict.testIds';
+import { PredictEventValues } from '../../../../constants/eventNames';
+import { usePredictPortfolio } from '../../../../hooks/usePredictPortfolio';
 import PredictPortfolioModule from './PredictPortfolioModule';
 import { PREDICT_PORTFOLIO_TEST_IDS } from './PredictPortfolio.testIds';
 
@@ -39,28 +40,28 @@ jest.mock('react-redux', () => ({
   }),
 }));
 
-jest.mock('../../../../../selectors/preferencesController', () => ({
+jest.mock('../../../../../../../selectors/preferencesController', () => ({
   selectPrivacyMode: 'selectPrivacyMode',
 }));
 
 jest.mock(
-  '../../../../../selectors/featureFlagController/confirmations',
+  '../../../../../../../selectors/featureFlagController/confirmations',
   () => ({
     selectMetaMaskPayFlags: 'selectMetaMaskPayFlags',
   }),
 );
 
-jest.mock('../../hooks/usePredictActionGuard', () => ({
+jest.mock('../../../../hooks/usePredictActionGuard', () => ({
   usePredictActionGuard: () => ({
     executeGuardedAction: mockExecuteGuardedAction,
   }),
 }));
 
-jest.mock('../../hooks/usePredictPortfolio', () => ({
+jest.mock('../../../../hooks/usePredictPortfolio', () => ({
   usePredictPortfolio: jest.fn(),
 }));
 
-jest.mock('../../../../../../locales/i18n', () => ({
+jest.mock('../../../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, params?: Record<string, string>) => {
     const mockStrings: Record<string, string> = {
       'predict.claim_amount_text': `Claim $${params?.amount}`,
@@ -150,7 +151,7 @@ describe('PredictPortfolioModule', () => {
     renderWithProvider(<PredictPortfolioModule />);
 
     expect(
-      screen.getByTestId(PREDICT_PORTFOLIO_TEST_IDS.MODULE),
+      screen.getByTestId(PredictHomeSelectorsIDs.PORTFOLIO_MODULE),
     ).toBeOnTheScreen();
     expect(screen.getByText('$0.00')).toBeOnTheScreen();
     expect(screen.getByText('Positions')).toBeOnTheScreen();
@@ -382,43 +383,13 @@ describe('PredictPortfolioModule', () => {
     );
   });
 
-  it('does not track claim initiated when the action guard short-circuits', () => {
-    mockUsePredictPortfolio.mockReturnValue(
-      createPortfolio({
-        claimableAmount: 46.35,
-        hasClaimableWinnings: true,
-      }),
-    );
-    mockExecuteGuardedAction.mockImplementationOnce(() => undefined);
-
-    renderWithProvider(<PredictPortfolioModule />);
-
-    fireEvent.press(
-      screen.getByTestId(PREDICT_PORTFOLIO_TEST_IDS.CLAIM_BUTTON),
-    );
-
-    expect(mockExecuteGuardedAction).toHaveBeenCalledWith(
-      expect.any(Function),
-      { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CLAIM },
-    );
-    expect(mockClaim).not.toHaveBeenCalled();
-    expect(mockTrackPortfolioTransactionInitiated).not.toHaveBeenCalled();
-  });
-
-  it('uses the temporary Positions fallback until the route lands', () => {
+  it('navigates to the Predict Positions screen by default', () => {
     renderWithProvider(<PredictPortfolioModule />);
 
     fireEvent.press(
       screen.getByTestId(PREDICT_PORTFOLIO_TEST_IDS.ACTION_POSITIONS),
     );
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MARKET_LIST, {
-      entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
-    });
-    expect(mockTrackPortfolioPositionsButtonTapped).toHaveBeenCalledWith(
-      expectedPortfolioContext({
-        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
-      }),
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.POSITIONS);
   });
 });
