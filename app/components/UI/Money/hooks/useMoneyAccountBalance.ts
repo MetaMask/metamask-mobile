@@ -31,6 +31,7 @@ import {
 } from '../../../../core/redux/slices/moneyBalance';
 
 const DEFAULT_REFETCH_INTERVAL = 30 * 1000; // 30 seconds
+const FIVE_MINUTES_MS = 5 * 60 * 1000;
 
 // TODO: Remove __DEV__ values before launch. This is temporary to circumvent the Vault's current 0% APY.
 const DEV_APY = {
@@ -73,7 +74,7 @@ const useMoneyAccountBalance = (
 
   const vaultApyQuery = useQuery({
     queryKey: [MoneyAccountBalanceServiceQueryKeys.GET_VAULT_APY],
-    refetchInterval: 10 * 60 * 1000, // 5 minutes
+    refetchInterval: FIVE_MINUTES_MS,
   }) as UseQueryResult<NormalizedVaultApyResponse>;
 
   const musdFiatRate = useMemo(() => {
