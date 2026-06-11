@@ -7,6 +7,241 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.82.0]
+
+### Uncategorized
+
+- chore(pure-black): elevate ActionModal surface; remove orphan CustomAlert and CollectibleContractInformation (#31178)
+- Bump `@metamask/assets-controllers` from 108.4.0 to 109.0.0 (#31508)
+- Perps market search now matches full market names and keywords — e.g. searching "bitcoin" finds BTC (and BCH), "tesla" finds (#31537)
+  TSLA, "spacex" finds SPCX.
+- chore: remove unused CollectiblesDetails route and CollectibleModal (#31482)
+- Updated the Sei network and token logos to fix sizing and use the correct brand treatment. (#31108)
+- Emove sticky buttons AB test "Swap" vs "Convert" (#31192)
+- Fixed Batch Sell final review showing a disabled "Sell all" button with no explanation when network fees fail to load (#31224)
+- Add TDP origin from explore search (#31165)
+- Add result count instrumentation to explore search: (#31155)
+- Remove deprecated code from old homepage tabs (#31017)
+- chore(release): sync stable to main for version 7.79.0 (#30828)
+- Bump assets controller v8.3.1 (#31063)
+- Updated the Sei native token icon to Sei's maroon token mark. (#31038)
+- chore: in development, show deposit and withdraw errors in money account (#30670)
+- Add migration 139 for asset state consolidation (#30681)
+- Updated the Sei network and token logo to Sei's new brand mark. (#30892)
+- Move to using the new RWAs endpoint in Explore (#30785)
+- Added token details closed event (#30792)
+- chore: nightly build external distributed (#30887)
+- Add gainers and losers section in Explore/Now (#30837)
+- Added a new Positions screen for Predict users to view active positions and history (#30718)
+- Bump assets controller v8.1.0 (#30836)
+- Improve crypto movers section in explore (#30809)
+- chore(release): sync stable to main for version 7.78.0 (#30807)
+- Remove explore search V1 (#30787)
+- Remove inconsistencies on token import flow (#30791)
+
+### Added
+
+- Improved deep link routing to support direct startup navigation for Perps, Swap, Predict, and Trending flows. (#31160)
+- Migrate zkSync Era default RPC to Infura (#31562)
+- Adds Swap/Bridge feature to ARC mainnet (#31413)
+- Added inline min/max validation error for fiat deposit amounts that fall outside the provider's configured buy limits (#31479)
+- Add new empty state for Perps Watchlist (#31242)
+- Added category-aware search shortcut to market detail page (#30738)
+- Fixed the World Cup events count shown in the homepage Predictions discovery row. (#31465)
+- Updated the Money Home Send action icon and label, and refreshed the Add funds and Send funds bottom sheet copy (#31470)
+- VIP rewards surfaces (home VIP icon, VIP splash page) and VIP controller endpoints (`getVIPDashboard`, `getVipTierForAccount`, (#31531)
+  `getPerpsDiscountForAccount`) are now gated behind the
+  `vipProgramEnabled` feature flag.
+- Fixed a bug where the trade list on a trader position only showed trades inside the active chart time period, hiding older (#31515)
+  trades that still belonged to the position.
+- Added paid by metamask tag for Money account deposits when fees are subsidized. (#31485)
+- Disable the transfer button on the Money Home screen when Money account does not have spendable balance. (#31440)
+- Added Batch Sell deeplink support (#31144)
+- Added Predict the Pitch campaign stats and portfolio views with open and closed position sections (#31435)
+- Added USDC and USDT receive options on all supported networks in the QuickBuy sell flow. (#31417)
+- Add Money account event tracking (#31051)
+- Made the Money Account the default spending source on the Card onboarding and enable-card flows, even before it is funded. (#31432)
+- Improve batch sell slider styling to match that of perps slider (#31424)
+- Fixed QuickBuy success/failed toast not appearing for same-chain Solana swaps (#31415)
+- Keep asset ordering between screens in batch sell the same (#31394)
+- Fixed post-onboarding checklist sometimes staying on the fund step after importing a wallet that already had a balance (#30800)
+- Support UAC custom asset import and dynamic image fallbacks (#31168)
+- Fixed the Money Account "Add money" sheet offering fiat deposits in regions without a native on-ramp provider — the deposit (#31209)
+  option is now shown as "Coming soon" where unavailable, preventing a
+  stuck buy flow.
+- Add Predict the Pitch Campaign Views (#31053)
+- Money Account card funding is now resolved from the Veda vault token and displayed as mUSD across Card surfaces. (#31150)
+- Show card transactions in money account activity list (#31088)
+- Added a post-trade swap modal flow behind an A/B test (#30841)
+- Excluded RWA and Ondo tokenized assets from Batch Sell source token selection (#31096)
+- Added Products section with category pills to Perps home screen and expanded market category filters to include Pre-IPO, (#31058)
+  Indices, and ETFs
+- Fixed QuickBuy showing networks the user hasn't enabled and labeling some networks as "Unknown network". (#31092)
+- Add Arc as Default Network (network/native logo + native price + multicall) (#30879)
+- Adds top movers section to perps home (#30897)
+- Added QR login flow for MetaMask Agent CLI, including OTP pairing and dashboard project selection in a WebView. (#30911)
+- Reduced false-positive RPC connection banners — single-provider outages no longer pop the banner, even when many popular (#31047)
+  networks fail at once.
+- QuickBuy now stays on the current screen after you tap Buy and shows pending, complete, and failed swap toasts (including for (#31073)
+  slow cross-chain swaps).
+- Fixed the "Add funds" fiat deposit flow (Perps/Money Account): card and Apple Pay quotes now load, and the Transak checkout (#31021)
+  no longer prompts for a wallet address after OTP login.
+- Added mobile WebView approval for MetaMask CLI requests opened via `agentic-cli` universal links. (#30935)
+- Added a Quick Buy button to the Market Insights view for faster asset purchases. (#31014)
+- Fixed incorrect fiat balances shown in the Sell (off-ramp) flow when the selected asset was on a different network than (#30869)
+  the globally selected one.
+- Added a Positions button to the Predict balance card and surfaced claim-pending predictions in Positions history. (#30900)
+- Added an onboarding crypto experience questionnaire shown after the interest questionnaire during onboarding. (#30767)
+- Enabled Card linkage on Money Accounts that have not yet been EIP-7702-upgraded — the upgrade now happens atomically with the (#30889)
+  linkage approve transaction, so users no longer need a separate upgrade
+  step before linking.
+- Added Scroll mainnet logo (#30993)
+- Implement sent txn modal for money account activity list (#30926)
+- Only intialise money account upgrade controller if isMoneyAccountEnabled flag is on (#30362)
+- Fixed the Buy flow so unavailable providers/payment methods show a clear limit message (e.g. "Minimum purchase is 12 EUR") (#30733)
+  or a generic "Quote unavailable." instead of raw technical error text.
+- Added WalletConnect support for Tron dapp connections and signing requests (#30519)
+- Added conditional logic to the Add money sheet: Deposit funds is hidden in unsupported on-ramp regions, and Convert crypto / Add (#30862)
+  mUSD are shown disabled when the user has no corresponding balance.
+- Added a Quick Buy lightning-bolt button to the Asset Details screen for one-tap token purchases. (#30725)
+- Update analytic events (#30069)
+- feat: app icons backgrounds are now pure black (#30895)
+- Animates transitions between views in the Quick Buy bottom sheet (#30896)
+- Expanded "Earn on your crypto" in Money to show all MM Pay-supported deposit tokens and start deposit with the selected token. (#30824)
+- Added Batch Sell submit support (#30710)
+- Add world cup predictions in explore (FF gated) (#30854)
+- Improved the wallet home onboarding **Add funds** step to open the buy flow with mUSD or Ethereum preselected when those assets (#30692)
+  are available for the user’s region.
+- Updated the Spending Limit spend-and-earn promo card copy, styling, and Link card CTA to match the Money account design. (#30709)
+- Update moneyHomeScreenEnabled UI gating to use moneyEnableMoneyAccount; remove featureDisabled MoneyBalanceDisplayState (#30772)
+  code paths since they are now unreachable
+- feat(component-library): migrate row primitives to Pressable (#30764)
+- Added quote fetching and quote review details to Batch Sell. (#30284)
+
+### Fixed
+
+- Fixed Card sessions getting stuck on a stale screen when authentication expired — expired sessions now transparently refresh (#31587)
+  and retry, fall back to a forced logout when unrecoverable, and survive
+  transient network failures.
+- Fixed bridge fee tooltip not displaying for batch transactions containing supported nested transaction types (#31567)
+- Fixed an issue where Card login and session data was retained after resetting the app, leaving the user still logged in to (#31579)
+  the Card.
+- Fixed a bug that destination token to be reset upon source token change. (#31577)
+- Fixed the AI Market Insights page showing Long/Short trade buttons when a perps market is at its open interest cap. (#31194)
+- Fix add money with pending transaction bug (#31143)
+- Fixed duplicate Bridge transaction notifications while post-trade screens are visible. (#31549)
+- Fixed a bug where the Money onboarding stepper showed "Get card" instead of "Link card" for users who already hold a MetaMask (#31520)
+  card
+- Fixed the Perps home screen hiding open positions and orders beyond the 10th — all open positions and orders are now shown. (#31444)
+- Fixed error icons rendering black instead of the error color (e.g. in the Quick Buy failure toast) (#31454)
+- Fixed the `Add` button on the Money tab to route directly to the right funding flow based on your mUSD balance, and (#30804)
+  adjusted spacing on the Money deposit screen so the rows no longer
+  overlap the footer button on Android and tall iPhones.
+- Funding the Money account from the home-screen balance card now opens the deposit flow directly instead of a bottom sheet, and (#31266)
+  the card's button always shows "Earn" or "Add".
+- Fixed a bug that caused same-chain Solana swaps to remain stuck as in progress after completion. (#31539)
+- Fixed an Android crash when entering Earn onboarding caused by the Rive Canvas renderer being forced app-wide. (#31475)
+- Fixed the Quick Buy "Pay with" and "Receive" available balances not refreshing when the underlying balance changes (a swap (#31460)
+  settling, an external transfer, a send in another flow, etc.)
+- Fixed the presentation of the Card screens so they slide up from the bottom. (#31487)
+- Added Solana, Tron and Bitcoin network options to the Quick Buy receive view (#31457)
+- Fixed QuickBuy showing duplicate transaction toasts for smart-account and gas-included trades (#31462)
+- Fixed QuickBuy so selling a token no longer lists or defaults the receive token to the same token; the sold token is removed (#31469)
+  from the receive options and the default is now the chain's native token
+  (e.g. selling USDC on Base defaults to ETH).
+- Fixed a bug where selling your entire balance of a token in QuickBuy could be incorrectly blocked with an "Insufficient (#31450)
+  funds" error.
+- Fixed Ledger signing not appearing on device after app relaunch when the device was previously disconnected (#30920)
+- Fixed back swipe not rejecting confirmation transactions on full-screen confirmations (#31451)
+- Fixed the VIP rewards badge label so it now reads `VIP <tier>` instead of `VIP Fox <tier>`. (#31449)
+- Polished the Money account screens (FAQs heading, button and divider spacing, light-blue "No fee" tag, full-screen card (#31398)
+  education) and fixed a flicker of the "How it works" section when
+  returning from the Add-funds flow.
+- Updated useMusdBalance to consume remote feature flag earnMusdBalanceChainIds (#31232)
+- Fixed a bug where tokens removed during Batch Sell review still appeared selected when navigating back to the token select (#31328)
+  screen.
+- Fixed post-login from the Card sign-up flow not returning to the Money tab when initiated from Money Account, and (#31244)
+  corrected the "Link card" CTA on the Money tab to appear for any
+  card-authenticated user.
+- Fixed an issue where money accounts that already held a balance were incorrectly shown onboarding/empty-state content. (#31391)
+- Added projected 1-year balance and APY pitch on Money Account deposit; updated conversion fee tooltips on Money Account (#30689)
+  deposit and withdraw screens.
+- Fixed Perps and Predictions layout in wallet discovery tabs by hiding duplicate screen titles and applying consistent spacing (#31236)
+  above the balance section
+- Fixed Top Traders leaderboard chain tabs to rank and display PnL scoped to the selected chain; "All" tab and trader profile (#31419)
+  PnL now exclude hyperliquid.
+- Fixed flipped fiat and token balance order on the Batch Sell token select screen (#31418)
+- Fixed Batch Sell review modal so the "You sell" token details section starts collapsed instead of expanded. (#31264)
+- Fix padding in balance sorting row in batch sell (#31260)
+- Fixed misaligned network fee divider in the Batch Sell review sheet. (#31262)
+- Fixed the text size in Batch Sell network fee and minimum received info modals for improved readability (#31263)
+- Fixed network name length label when too long (#31215)
+- Fixed sluggish navigation and a layout shift when adding money to a Money Account. (#31084)
+- Fixed a bug where dismissing the token selection modal by swiping down would freeze the Pay With screen, and corrected label in (#31137)
+  the payment picker
+- Fixed the amount on the Money Account max conversion screen dropping its last decimal digit (e.g. showing $3.4 instead of (#31067)
+  $3.40).
+- Fixed the QuickBuy Buy button sometimes staying disabled briefly after the quote finished loading. (#31218)
+- Fix perps pills dont update price on explore page (#31086)
+- Use correct chomp api feature flag name (#31205)
+- Fixed QuickBuy "Pay with" not showing all tokens the user holds, and corrected the fiat amount currency shown for non-USD (#31195)
+  users.
+- Updated Money Account copy — the MetaMask Card header now reads "Get MetaMask Card", refined the "How it works" description, (#31196)
+  and populated the FAQ with full content.
+- Fixed the Card "Fund with cash" option to route to the Unified Buy v2 flow when the feature is enabled, instead of always (#31124)
+  opening the legacy deposit flow.
+- Fixed Batch Sell transactions failing to submit when gas-included EIP-7702 quotes were used with Smart Transactions enabled (#31098)
+- Fixed Money tab MetaMask Card section showing the wrong action for cardholders and disabled link actions while card linkage is (#31115)
+  in progress
+- Updated the transfer bottom sheet copy to clarify the transfer destination (#31135)
+- Fixed Batch Sell review allowing Review and stale quotes when all token sliders are set to 0% (#31107)
+- Fixed token balances not updating immediately after a swap when the unified assets state is enabled. (#31091)
+- Fixed a crash during social login onboarding when completing wallet creation (#31076)
+- Added an "Earn up to X% APY" prompt on the Money account input screen empty state. (#31064)
+- Show correct token values for ERC20 token deposits to money account (#30789)
+- Stabilize headline price in token details. (#30940)
+- Fix NFT/token/DeFi full view headers and NFT grid layout (#31010)
+- Fixed missing native token icons (e.g. Linea ETH) in the QuickBuy "Pay with" list. (#31026)
+- SafeArea view style polish (#30970)
+- Fixed a crash that could occur on the money account onboarding screen. (#31007)
+- Updated the in-progress, success, and failed toasts for Money account transfers to "Transfer in progress / Transfer complete / (#30770)
+  Transfer failed" with the Figma body copy.
+- Fixed "Paid by MetaMask" badge display (#30902)
+- Fixed: browser address bar now reflects the committed page after (#30872)
+  back/forward navigation.
+- Fixed Card cashback withdrawal to request the net amount shown in the UI instead of the gross balance (#30934)
+- Fixed scanning EIP-681 deeplinks with large token amounts failing with a "Network not found" error by converting uint256 (#30832)
+  values from scientific notation to decimal strings. (#23672)
+- Fix crash when navigating to Money Home screen when user holds non-EVM tokens (#30974)
+- Fixed an issue where the Estimated earnings section was incorrectly shown to users with a zero Money account balance (#30961)
+- Fixed dapp scanning in the in-app browser and account connection flow to evaluate the full URL path rather than only the (#30865)
+  origin/hostname
+- Fixed buy flow incorrectly opening the amount-input screen for tokens that are not supported by the ramps service; users now (#30680)
+  see the unsupported-token modal instead.
+- Filtered out low-quality tokens from trending lists on the Explore page (#30904)
+- Fixed an "Eligibility check failed" error that could incorrectly block eligible users from the "Add funds" flow when (#30852)
+  geolocation was momentarily missing or unknown.
+- Fixed an issue where the address bar could display incorrect URL information when navigating to pages with large URL (#30873)
+  fragments
+- Fixed in-app browser bridge initialization to occur on committed navigation, keeping the bridge origin aligned with the (#30868)
+  rendered page.
+- Fixed a crash in the sell flow caused by not resetting the amount when switching the input token to one with fewer supported (#30899)
+  decimals.
+- Fixed the Money Home Activity and "Earn on your crypto" sections to show the section arrow and "View all" button only when there (#30851)
+  are more than 5 items.
+- Fixed a bug that caused the Sell option to be hidden from the Fund action menu for some selected networks (#30071)
+- Update token list mUSD filtering to include check for money hub enablement; when money hub is disabled mUSD is included in the (#30903)
+  Token list.
+- Fixed fiat payment method auto-selection for supported transaction types when user has no crypto tokens (#30856)
+- Locked Quick Buy bottom sheet height to prevent layout shift (#30853)
+- Adds name fallback if symbol is undefined and shows new string when both are undefined in security banners. (#30811)
+- Fixed Predict deposit confirmation showing zero fiat values when assetsUnifyState is enabled (#30783)
+- Fixed a bug that caused the SPCX leverage pill to show an unformatted value when opened from the SpaceX carousel banner (#30736)
+- Fixed an issue where certain URLs would not be consider valid in the in-app browser (#30801)
+- Fixed an issue where the marketing consent notification pre-prompt could reappear after turning marketing consent off in (#30808)
+  Settings.
+- Fixed a crash affecting some Android social-login users by removing the onboarding success animation in that flow. (#30765)
+
 ## [7.80.0]
 
 ### Added
@@ -202,10 +437,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.78.1]
 
-### Fixed
-
-- Fixed a crash caused by CloseEvent dispatch on WebSocket failing instanceof validation (#30612)
-
 ### Added
 
 - Updated the onboarding interest questionnaire layout to a two-column grid with refreshed option labels. (#30753)
@@ -303,6 +534,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed a crash caused by CloseEvent dispatch on WebSocket failing instanceof validation (#30612)
 - Fixed the "Add mUSD" option in the Money account "Add money" sheet so it opens the deposit flow with mUSD pre-selected, and (#30741)
   corrected the in-progress / success / failed toast copy for both the
   Convert and Add flows.
@@ -11912,8 +12144,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.80.0...HEAD
-[7.80.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.78.0...v7.80.0
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.82.0...HEAD
+[7.82.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.80.0...v7.82.0
+[7.80.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.79.1...v7.80.0
 [7.79.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.79.0...v7.79.1
 [7.79.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.78.1...v7.79.0
 [7.78.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.78.0...v7.78.1
