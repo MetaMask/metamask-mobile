@@ -380,9 +380,20 @@ export function useQuickBuyController(
   // ─── Sell mode: position token (what the user is selling) ──────────────
   const positionToken = usePositionTokenBalance(target, positionTokenFromSetup);
 
-  // ─── Sell "Receive" options (stablecoins) ──────────────────────────────
-  const sellDestTokenOptions = useReceiveTokens(
+  // ─── Sell "Receive" options (stablecoins + natives) ────────────────────
+  const receiveTokenCandidates = useReceiveTokens(
     destChainId as string | undefined,
+  );
+  // "Receive" options surfaced to the picker: the asset being sold is excluded
+  // so the user can never select a destination equal to the sell source.
+  const sellDestTokenOptions = useMemo(
+    () =>
+      positionTokenFromSetup
+        ? receiveTokenCandidates.filter(
+            (token) => !isSameAsset(token, positionTokenFromSetup),
+          )
+        : receiveTokenCandidates,
+    [receiveTokenCandidates, positionTokenFromSetup],
   );
   const [selectedDestStable, setSelectedDestStable] = useState<
     BridgeToken | undefined
@@ -395,6 +406,17 @@ export function useQuickBuyController(
       setSelectedDestStable(sellDestTokenOptions[0]);
     }
   }, [sellDestTokenOptions, selectedDestStable]);
+
+  // If the current receive selection turns out to BE the asset being sold —
+  // e.g. it was picked while metadata was still resolving and the normalised
+  // position address only matched afterwards — fall back to the first
+  // available non-sold option. Clears the selection so the auto-select effect
+  // can take over again.
+  useEffect(() => {
+    if (!selectedDestStable || !positionTokenFromSetup) return;
+    if (!isSameAsset(selectedDestStable, positionTokenFromSetup)) return;
+    setSelectedDestStable(undefined);
+  }, [selectedDestStable, positionTokenFromSetup]);
 
   // ─── Source / dest resolution (mode-dependent) ─────────────────────────
   const sourceToken = tradeMode === 'buy' ? selectedSourceToken : positionToken;
