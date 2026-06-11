@@ -5,7 +5,7 @@ import { useSelector } from 'react-redux';
 
 import { selectAssetsBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
 import { useParams } from '../../../../../util/navigation/navUtils';
-import { AssetType, Nft } from '../../types/token';
+import { AssetType, Nft, TokenStandard } from '../../types/token';
 import { useSendContext } from '../../context/send-context';
 import { useEVMNfts } from './useNfts';
 
@@ -46,6 +46,19 @@ export const useRouteParams = () => {
           paramChainId === tokenChainId.toLowerCase() &&
           assetId?.toLowerCase() === paramsAsset.address?.toLowerCase(),
       ) as AssetType | Nft | undefined;
+
+      // BIP44 fungible assets don't carry a `standard`. Tag it as ERC20 (matching
+      // the in-flow picker's `useAccountTokens` enrichment) so the send flow can
+      // infer the transaction type directly instead of falling back to on-chain
+      // type detection — which can hang on some RPCs (e.g. Arc) and leave the
+      // confirmation stuck on a loading screen. Native sends are unaffected as
+      // `isNativeToken` is always checked first.
+      if (filteredAsset) {
+        filteredAsset = {
+          ...filteredAsset,
+          standard: TokenStandard.ERC20,
+        } as AssetType;
+      }
 
       if (!filteredAsset && nfts.length) {
         filteredAsset = nfts.find(

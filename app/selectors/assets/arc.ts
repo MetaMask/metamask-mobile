@@ -1,8 +1,4 @@
-import type {
-  AccountGroupAssets,
-  AssetsByAccountGroup,
-  TokenBalancesControllerState,
-} from '@metamask/assets-controllers';
+import type { TokenBalancesControllerState } from '@metamask/assets-controllers';
 import type { Hex } from '@metamask/utils';
 import { NETWORKS_CHAIN_ID } from '../../constants/network';
 
@@ -12,15 +8,29 @@ import { NETWORKS_CHAIN_ID } from '../../constants/network';
  * interact with. We therefore hide the Arc native token from the wallet token
  * list and exclude it from the aggregated balance.
  *
- * This filtering is intentionally scoped to the token-list and aggregated-balance
- * selectors only — other consumers (e.g. network fee / gas estimation) still
- * need the real native token, so it must NOT be stripped at the base
- * (assets-migration) selector layer.
+ * This filtering is intentionally scoped to the wallet token-list and
+ * aggregated-balance selectors only. Other consumers — network fee / gas
+ * estimation, and the confirmation/send "pay with" flow (`useAccountTokens`) —
+ * still need the real native token, so it must NOT be stripped at the base
+ * (`assets-migration` / `selectAssetsBySelectedAccountGroup`) selector layer.
  */
 export const ARC_CHAIN_ID = NETWORKS_CHAIN_ID.ARC as Hex;
 
 export const ARC_NATIVE_TOKEN_ADDRESS =
   '0x0000000000000000000000000000000000000000' as Hex;
+
+/**
+ * Whether an asset is the Arc native token (the zero-address duplicate of the
+ * USDC ERC20). Used to hide it from the wallet token list.
+ */
+export function isArcNativeAsset(asset: {
+  chainId?: string;
+  isNative?: boolean;
+}): boolean {
+  return (
+    Boolean(asset.isNative) && asset.chainId?.toLowerCase() === ARC_CHAIN_ID
+  );
+}
 
 /**
  * Removes the Arc native (zero address) balance from a token-balances map so it
@@ -52,50 +62,4 @@ export function omitArcNativeTokenBalances(
   }
 
   return mutated ? result : tokenBalances;
-}
-
-/**
- * Removes the Arc native token from a per-account-group asset map (ChainId ->
- * Asset[]) so it does not appear in the wallet token list. Returns the original
- * reference when there is nothing to strip, preserving memoization.
- */
-export function omitArcNativeFromAccountGroupAssets(
-  assets: AccountGroupAssets,
-): AccountGroupAssets {
-  const arcAssets = assets[ARC_CHAIN_ID];
-  if (!arcAssets) {
-    return assets;
-  }
-
-  const filtered = arcAssets.filter((asset) => !asset.isNative);
-  if (filtered.length === arcAssets.length) {
-    return assets;
-  }
-
-  return { ...assets, [ARC_CHAIN_ID]: filtered };
-}
-
-/**
- * Removes the Arc native token from a grouped asset map keyed by account group
- * (AccountGroupId -> ChainId -> Asset[]). Returns the original reference when
- * there is nothing to strip, preserving memoization.
- */
-export function omitArcNativeFromAllAssets(
-  grouped: AssetsByAccountGroup,
-): AssetsByAccountGroup {
-  let mutated = false;
-  const result: AssetsByAccountGroup = {};
-
-  for (const [groupId, groupAssets] of Object.entries(grouped) as [
-    keyof AssetsByAccountGroup,
-    AccountGroupAssets,
-  ][]) {
-    const filtered = omitArcNativeFromAccountGroupAssets(groupAssets);
-    if (filtered !== groupAssets) {
-      mutated = true;
-    }
-    result[groupId] = filtered;
-  }
-
-  return mutated ? result : grouped;
 }

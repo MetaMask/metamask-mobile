@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { AssetType } from '../../types/token';
+import { isArcNativeAsset } from '../../../../../selectors/assets/arc';
 import { useAccountTokens, EnrichTokenRequest } from './useAccountTokens';
 import { useSendType } from './useSendType';
 
@@ -25,6 +26,11 @@ export function useSendTokens({
   });
 
   return useMemo(() => {
+    // Hide the Arc native token from the send picker; users send USDC (the
+    // ERC20) instead. The native token is still available to the pay/gas flow,
+    // which reads `useAccountTokens` directly rather than this send wrapper.
+    const tokens = allTokens.filter((token) => !isArcNativeAsset(token));
+
     const accountTypeMap: Record<string, boolean> = {
       eip155: !!isPredefinedEvm,
       solana: !!isPredefinedSolana,
@@ -37,10 +43,10 @@ export function useSendTokens({
     )?.[0];
 
     if (!matchedAccountType) {
-      return allTokens;
+      return tokens;
     }
 
-    return allTokens.filter((token) =>
+    return tokens.filter((token) =>
       token.accountType?.includes(matchedAccountType),
     );
   }, [

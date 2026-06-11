@@ -42,10 +42,7 @@ import { selectTokenSortConfig } from '../preferencesController';
 import { selectHideZeroBalanceTokens } from '../settings';
 import { selectAllTokens } from '../tokensController';
 import { createDeepEqualSelector } from '../util';
-import {
-  omitArcNativeFromAccountGroupAssets,
-  omitArcNativeFromAllAssets,
-} from './arc';
+import { isArcNativeAsset } from './arc';
 import {
   getAccountTrackerControllerAccountsByChainId,
   getCurrencyRateControllerCurrencyRates,
@@ -160,10 +157,7 @@ function callSelectAssetsBySelectedAccountGroup(
 
 export const selectAssetsBySelectedAccountGroup = createDeepEqualSelector(
   getStateForAssetSelector,
-  (assetsState) =>
-    omitArcNativeFromAccountGroupAssets(
-      callSelectAssetsBySelectedAccountGroup(assetsState),
-    ),
+  (assetsState) => callSelectAssetsBySelectedAccountGroup(assetsState),
 );
 
 /**
@@ -195,7 +189,7 @@ const selectAllAssetsGrouped = createDeepEqualSelector(
   getStateForAssetSelector,
   (assetsState) => {
     try {
-      return omitArcNativeFromAllAssets(_selectAllAssets(assetsState));
+      return _selectAllAssets(assetsState);
     } catch {
       return {};
     }
@@ -344,6 +338,8 @@ export const createSelectSortedAssetsBySelectedAccountGroup = (
         .flatMap(([_, chainAssets]) =>
           chainAssets.filter((asset) => {
             if (isTronSpecialAsset(asset.chainId, asset.symbol)) return false;
+            // Hide the Arc native token; USDC (the ERC20) is shown instead.
+            if (isArcNativeAsset(asset)) return false;
             if (
               hideZeroBalance &&
               !asset.isNative &&
@@ -468,7 +464,9 @@ export const selectSortedAssetsBySelectedAccountGroupForChainIds =
         .filter(([networkId]) => allowedIds.has(networkId))
         .flatMap(([_, chainAssets]) =>
           chainAssets.filter(
-            (asset) => !isTronSpecialAsset(asset.chainId, asset.symbol),
+            (asset) =>
+              !isTronSpecialAsset(asset.chainId, asset.symbol) &&
+              !isArcNativeAsset(asset),
           ),
         );
       return mergeStakedSortAndDedupeAssets(
@@ -498,6 +496,8 @@ export const selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance =
         .flatMap(([_, chainAssets]) =>
           chainAssets.filter((asset) => {
             if (isTronSpecialAsset(asset.chainId, asset.symbol)) return false;
+            // Hide the Arc native token; USDC (the ERC20) is shown instead.
+            if (isArcNativeAsset(asset)) return false;
             if (hideZeroBalance && parseFloat(asset.balance ?? '0') === 0)
               return false;
             return true;

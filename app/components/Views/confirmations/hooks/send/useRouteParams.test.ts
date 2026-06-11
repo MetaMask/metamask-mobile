@@ -3,7 +3,7 @@ import { waitFor } from '@testing-library/react-native';
 
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useParams } from '../../../../../util/navigation/navUtils';
-import { Nft } from '../../types/token';
+import { Nft, TokenStandard } from '../../types/token';
 import { evmSendStateMock } from '../../__mocks__/send.mock';
 import { useSendContext } from '../../context/send-context';
 import { useEVMNfts } from './useNfts';
@@ -184,7 +184,10 @@ describe('useRouteParams', () => {
     renderHookWithProvider(() => useRouteParams(), mockState);
 
     await waitFor(() => {
-      expect(mockUpdateAsset).toHaveBeenCalledWith(assetToken);
+      expect(mockUpdateAsset).toHaveBeenCalledWith({
+        ...assetToken,
+        standard: TokenStandard.ERC20,
+      });
     });
   });
 
