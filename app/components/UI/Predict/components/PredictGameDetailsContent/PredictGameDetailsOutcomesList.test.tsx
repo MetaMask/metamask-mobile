@@ -1,6 +1,6 @@
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
-import { flashListMock as mockFlashListMock } from '../../../../../util/test/mockFlashList';
+import { render } from '@testing-library/react-native';
+import { View } from 'react-native';
 import PredictGameDetailsOutcomesList from './PredictGameDetailsOutcomesList';
 import type {
   PredictMarket,
@@ -10,16 +10,15 @@ import type {
   PredictOutcomeToken,
 } from '../../types';
 import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
+import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
 import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
-
-jest.mock('@shopify/flash-list', () => mockFlashListMock());
 
 jest.mock('../../hooks/useLiveMarketPrices', () => ({
   useLiveMarketPrices: jest.fn(),
 }));
 
 jest.mock('../PredictSportOutcomeCard', () => {
-  const { View, Text } = jest.requireActual('react-native');
+  const { View: ActualView, Text } = jest.requireActual('react-native');
   return function MockPredictSportOutcomeCard(props: {
     title: string;
     lines?: number[];
@@ -28,10 +27,10 @@ jest.mock('../PredictSportOutcomeCard', () => {
     testID?: string;
   }) {
     return (
-      <View testID={props.testID}>
+      <ActualView testID={props.testID}>
         <Text>{props.title}</Text>
         {props.lines?.map((line, index) => (
-          <View
+          <ActualView
             key={`${index}-${line}`}
             testID={`${props.testID}-line-${index}-${line}`}
             accessibilityHint={
@@ -40,22 +39,29 @@ jest.mock('../PredictSportOutcomeCard', () => {
             onTouchEnd={() => props.onSelectLine?.(line, index)}
           />
         ))}
-      </View>
+      </ActualView>
     );
   };
 });
 
 jest.mock('../PredictSportScoreboard', () => {
-  const { View } = jest.requireActual('react-native');
+  const { View: ActualView } = jest.requireActual('react-native');
   return function MockPredictSportScoreboard({ testID }: { testID?: string }) {
-    return <View testID={testID} />;
+    return <ActualView testID={testID} />;
   };
 });
 
 jest.mock('../PredictGameChart', () => {
-  const { View } = jest.requireActual('react-native');
+  const { View: ActualView } = jest.requireActual('react-native');
   return function MockPredictGameChart({ testID }: { testID?: string }) {
-    return <View testID={testID} />;
+    return <ActualView testID={testID} />;
+  };
+});
+
+jest.mock('../PredictPicks/PredictPicks', () => {
+  const { View: ActualView } = jest.requireActual('react-native');
+  return function MockPredictPicks({ testID }: { testID?: string }) {
+    return <ActualView testID={testID} />;
   };
 });
 
@@ -184,67 +190,53 @@ describe('PredictGameDetailsOutcomesList', () => {
     });
   });
 
-  it('preserves the selected line when switching away and back', () => {
-    const { getByTestId, rerender } = render(
+  it('renders the list header, sticky controls, and outcomes content', () => {
+    const { getAllByTestId, getByTestId } = render(
       <PredictGameDetailsOutcomesList
         market={mockMarket}
-        game={mockGame}
+        enabled
         groupMap={groupMap}
         activeChipKey="game_lines"
         onBetPress={jest.fn()}
         refreshing={false}
         onRefresh={jest.fn()}
-        showTabBar={false}
-        tabs={[]}
+        showTabBar
+        tabs={[{ key: 'outcomes', label: 'Outcomes' }]}
         activeTab={0}
         onTabPress={jest.fn()}
-        showChips={false}
-        chips={[]}
+        showChips
+        chips={[{ key: 'game_lines', label: 'Game Lines' }]}
         onChipSelect={jest.fn()}
         activePositions={[]}
         claimablePositions={[]}
+        listHeaderComponent={<View testID="list-header" />}
       />,
     );
 
-    fireEvent(getByTestId('game_lines-total_corners-line-0-8.5'), 'touchEnd');
+    expect(getByTestId('list-header')).toBeOnTheScreen();
     expect(
-      getByTestId('game_lines-total_corners-line-0-8.5').props
-        .accessibilityHint,
-    ).toBe('selected');
+      getAllByTestId(PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.OUTCOMES_CONTENT),
+    ).toHaveLength(2);
+    expect(getByTestId('predict-chip-game_lines')).toBeOnTheScreen();
+    expect(getByTestId('game_lines-total_corners')).toBeOnTheScreen();
+  });
 
-    rerender(
+  it('renders positions content for the positions tab', () => {
+    const { getByTestId } = render(
       <PredictGameDetailsOutcomesList
         market={mockMarket}
-        game={mockGame}
-        groupMap={groupMap}
-        activeChipKey="goals"
-        onBetPress={jest.fn()}
-        refreshing={false}
-        onRefresh={jest.fn()}
-        showTabBar={false}
-        tabs={[]}
-        activeTab={0}
-        onTabPress={jest.fn()}
-        showChips={false}
-        chips={[]}
-        onChipSelect={jest.fn()}
-        activePositions={[]}
-        claimablePositions={[]}
-      />,
-    );
-
-    rerender(
-      <PredictGameDetailsOutcomesList
-        market={mockMarket}
-        game={mockGame}
+        enabled
         groupMap={groupMap}
         activeChipKey="game_lines"
         onBetPress={jest.fn()}
         refreshing={false}
         onRefresh={jest.fn()}
-        showTabBar={false}
-        tabs={[]}
-        activeTab={0}
+        showTabBar
+        tabs={[
+          { key: 'outcomes', label: 'Outcomes' },
+          { key: 'positions', label: 'Positions' },
+        ]}
+        activeTab={1}
         onTabPress={jest.fn()}
         showChips={false}
         chips={[]}
@@ -255,8 +247,10 @@ describe('PredictGameDetailsOutcomesList', () => {
     );
 
     expect(
-      getByTestId('game_lines-total_corners-line-0-8.5').props
-        .accessibilityHint,
-    ).toBe('selected');
+      getByTestId(PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.TAB_CONTENT),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.GAME_PICK),
+    ).toBeOnTheScreen();
   });
 });
