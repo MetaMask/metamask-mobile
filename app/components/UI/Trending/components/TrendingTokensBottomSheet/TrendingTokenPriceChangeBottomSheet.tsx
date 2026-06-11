@@ -266,6 +266,7 @@ const TrendingTokenPriceChangeBottomSheet: React.FC<
           onPress={handleApply}
           size={ButtonSize.Lg}
           isFullWidth
+          testID="apply-button"
         >
           {strings('trending.apply')}
         </Button>
