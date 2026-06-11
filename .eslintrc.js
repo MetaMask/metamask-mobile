@@ -169,6 +169,19 @@ module.exports = {
       extends: ['./tests/framework/.eslintrc.js'],
     },
     {
+      // These files intentionally omit dependencies from a useEffect/useCallback
+      // (documented inline at each call site). The React Compiler refuses to
+      // optimize any file containing an inline `eslint-disable` for a React
+      // rule, so the suppression is relocated here (invisible to the compiler)
+      // instead of being a per-line comment. Runtime behavior is unchanged.
+      files: [
+        'app/components/hooks/useAsyncResult.ts',
+      ],
+      rules: {
+        'react-hooks/exhaustive-deps': 'off',
+      },
+    },
+    {
       files: ['*.{ts,tsx}'],
       extends: ['@metamask/eslint-config-typescript'],
       rules: {
