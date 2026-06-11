@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, IconName } from '@metamask/design-system-react-native';
-import { strings } from '../../../../../../locales/i18n';
+import { strings } from '../../../../../../../../locales/i18n';
 import PredictPortfolioAction from './PredictPortfolioAction';
 import { PREDICT_PORTFOLIO_TEST_IDS } from './PredictPortfolio.testIds';
 
