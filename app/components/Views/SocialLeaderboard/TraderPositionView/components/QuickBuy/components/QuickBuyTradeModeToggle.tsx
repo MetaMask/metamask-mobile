@@ -20,12 +20,19 @@ import { useTheme } from '../../../../../../../util/theme';
 import { playSelection } from '../../../../../../../util/haptics';
 
 const styles = StyleSheet.create({
-  container: {
+  // Inner row owns the relative positioning context. It carries no border or
+  // padding, so the absolute slider's insets line up 1:1 with the buttons'
+  // measured frames (the outer border would otherwise offset the slider by its
+  // width, leaving a larger gap at the top than the bottom).
+  row: {
     position: 'relative',
   },
   slider: {
     position: 'absolute',
-    borderRadius: 10,
+    top: 0,
+    bottom: 0,
+    // Matches the buttons' rounded-lg (8px) so the fill tucks neatly behind them.
+    borderRadius: 8,
   },
 });
 
@@ -53,7 +60,9 @@ const QuickBuyTradeModeToggle: React.FC<QuickBuyTradeModeToggleProps> = ({
     if (!buyLayout) return;
     Animated.spring(slideAnim, {
       toValue: tradeMode === 'buy' ? 0 : buyLayout.width,
-      useNativeDriver: true,
+      // Color interpolation (backgroundColor below) is not supported by the
+      // native driver, so the slide must run on the JS driver too.
+      useNativeDriver: false,
       tension: 180,
       friction: 20,
     }).start();
@@ -61,74 +70,91 @@ const QuickBuyTradeModeToggle: React.FC<QuickBuyTradeModeToggleProps> = ({
 
   const sliderWidth = tradeMode === 'buy' ? (buyLayout?.width ?? 0) : sellWidth;
 
+  // Transition the slider background from green (buy, translateX 0) to red
+  // (sell, translateX = buy button width) as it slides across.
+  const sliderBackgroundColor =
+    buyLayout && buyLayout.width > 0
+      ? slideAnim.interpolate({
+          inputRange: [0, buyLayout.width],
+          outputRange: [colors.success.default, colors.error.default],
+        })
+      : colors.success.default;
+
   return (
     <Box
       flexDirection={BoxFlexDirection.Row}
       twClassName="border border-muted rounded-xl p-1"
       testID={testID}
-      style={styles.container}
     >
-      {buyLayout && sliderWidth > 0 && (
-        <Animated.View
-          style={[
-            styles.slider,
-            {
-              left: buyLayout.x,
-              top: buyLayout.y,
-              height: buyLayout.height,
-              width: sliderWidth,
-              backgroundColor: colors.background.muted,
-              transform: [{ translateX: slideAnim }],
-            },
-          ]}
-        />
-      )}
+      <Box flexDirection={BoxFlexDirection.Row} style={styles.row}>
+        {buyLayout && sliderWidth > 0 && (
+          <Animated.View
+            style={[
+              styles.slider,
+              {
+                left: buyLayout.x,
+                width: sliderWidth,
+                backgroundColor: sliderBackgroundColor,
+                transform: [{ translateX: slideAnim }],
+              },
+            ]}
+          />
+        )}
 
-      <TouchableOpacity
-        onPress={() => handlePress('buy')}
-        onLayout={(e) => setBuyLayout(e.nativeEvent.layout)}
-        accessibilityRole="button"
-        accessibilityState={{ selected: tradeMode === 'buy' }}
-        testID="quick-buy-trade-mode-buy"
-      >
-        <Box twClassName="rounded-[10px] px-3 py-1">
-          <Text
-            variant={TextVariant.BodySm}
-            fontWeight={
-              tradeMode === 'buy' ? FontWeight.Medium : FontWeight.Regular
-            }
-            color={TextColor.TextDefault}
-          >
-            {strings('social_leaderboard.quick_buy.buy_label')}
-          </Text>
-        </Box>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        onPress={() => handlePress('sell')}
-        disabled={!hasSellableBalance}
-        onLayout={(e) => setSellWidth(e.nativeEvent.layout.width)}
-        accessibilityRole="button"
-        accessibilityState={{
-          selected: tradeMode === 'sell',
-          disabled: !hasSellableBalance,
-        }}
-        testID="quick-buy-trade-mode-sell"
-      >
-        <Box
-          twClassName={`rounded-[10px] px-3 py-1 ${!hasSellableBalance ? 'opacity-40' : ''}`}
+        <TouchableOpacity
+          onPress={() => handlePress('buy')}
+          onLayout={(e) => setBuyLayout(e.nativeEvent.layout)}
+          accessibilityRole="button"
+          accessibilityState={{ selected: tradeMode === 'buy' }}
+          testID="quick-buy-trade-mode-buy"
         >
-          <Text
-            variant={TextVariant.BodySm}
-            fontWeight={
-              tradeMode === 'sell' ? FontWeight.Medium : FontWeight.Regular
-            }
-            color={TextColor.TextDefault}
+          <Box twClassName="rounded-lg px-4 py-1">
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={
+                tradeMode === 'buy' ? FontWeight.Medium : FontWeight.Regular
+              }
+              color={
+                tradeMode === 'buy'
+                  ? TextColor.PrimaryInverse
+                  : TextColor.TextDefault
+              }
+            >
+              {strings('social_leaderboard.quick_buy.buy_label')}
+            </Text>
+          </Box>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => handlePress('sell')}
+          disabled={!hasSellableBalance}
+          onLayout={(e) => setSellWidth(e.nativeEvent.layout.width)}
+          accessibilityRole="button"
+          accessibilityState={{
+            selected: tradeMode === 'sell',
+            disabled: !hasSellableBalance,
+          }}
+          testID="quick-buy-trade-mode-sell"
+        >
+          <Box
+            twClassName={`rounded-lg px-4 py-1 ${!hasSellableBalance ? 'opacity-40' : ''}`}
           >
-            {strings('social_leaderboard.quick_buy.sell_label')}
-          </Text>
-        </Box>
-      </TouchableOpacity>
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={
+                tradeMode === 'sell' ? FontWeight.Medium : FontWeight.Regular
+              }
+              color={
+                tradeMode === 'sell'
+                  ? TextColor.PrimaryInverse
+                  : TextColor.TextDefault
+              }
+            >
+              {strings('social_leaderboard.quick_buy.sell_label')}
+            </Text>
+          </Box>
+        </TouchableOpacity>
+      </Box>
     </Box>
   );
 };
