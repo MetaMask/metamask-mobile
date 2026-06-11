@@ -101,6 +101,7 @@ import {
   endQuickBuySubmission,
 } from '../quickBuyTradeTracker';
 import { resolveQuickBuyTerminalToast } from '../resolveQuickBuyTerminalToast';
+import { resolveLiveTokenBalance } from './liveSelectedTokenBalance';
 
 export type QuickBuyButtonError =
   | 'insufficient_balance'
@@ -160,6 +161,12 @@ export interface UseQuickBuyControllerResult {
   estimatedReceiveAmount: string | undefined;
   sourceBalanceFiat: string;
   sourceBalanceDisplay: string | undefined;
+  /**
+   * Live fiat balance of the sell-mode "Receive" token, resynced from the
+   * reactive receive-token list so it tracks underlying balance changes.
+   * `undefined` when no receive token is selected or its price is unresolved.
+   */
+  destBalanceFiat: string | undefined;
   formattedNetworkFee: string;
   formattedSlippage: string;
   formattedMinimumReceived: string;
@@ -436,15 +443,72 @@ export function useQuickBuyController(
   const hasInitializedRecipient = useRef(false);
   useRecipientInitialization(hasInitializedRecipient);
 
-  const hasSourcePrice = Boolean(
-    sourceToken?.currencyExchangeRate && sourceToken.currencyExchangeRate > 0,
+  // ─── Live selected-token balances (TSA-632) ────────────────────────────
+  // The selected pay-with token (`selectedSourceToken`, buy mode) and receive
+  // token (`selectedDestStable`, sell mode) are `useState` snapshots, so their
+  // cached `balance` / `balanceFiat` freeze at selection time. The option lists
+  // they were picked from — `usePayWithTokens` / `useReceiveTokens` — recompute
+  // on every balance-state change because they subscribe (via `useSelector`) to
+  // `TokenBalancesController` / `AccountTrackerController` (EVM) and the
+  // multichain balances state (Solana). Re-reading the matching option here
+  // makes both displayed balances track the underlying state whatever changed
+  // it: a QuickBuy swap settling, an external incoming transfer, a send in
+  // another flow, etc.
+  //
+  // The other side of each trade is already selector-driven and needs no
+  // resync: sell-mode `positionToken` comes from `usePositionTokenBalance`, and
+  // buy-mode `destToken` (`positionTokenFromSetup`) carries no displayed
+  // balance in the footer.
+  //
+  // Only the balance fields are pulled from the live option — never the token
+  // reference passed to quote fetching — so market-data ticks can't churn quote
+  // requests (see `destTokenForRate` below for the same invariant).
+  const liveSelectedSourceBalance = resolveLiveTokenBalance(
+    selectedSourceToken,
+    sourceTokenOptions,
   );
+  const liveSelectedDestBalance = resolveLiveTokenBalance(
+    selectedDestStable,
+    sellDestTokenOptions,
+  );
+
+  // In buy mode, read the live exchange rate from the reactive option list so
+  // the displayed fiat balance and slider cap stay in sync with the option list
+  // when `usePayWithTokens` refreshes rates without a balance string change
+  // (Bugbot: "Stale rate with live balance"). In sell mode `sourceToken` is
+  // `positionToken` (already selector-driven), so the frozen value is live.
+  //
+  // Intentionally NOT used in `sourceTokenAmount` (the quote pipeline): a rate
+  // tick must not churn quote requests — only balance changes do.
+  const liveSourceCurrencyExchangeRate =
+    tradeMode === 'buy'
+      ? (liveSelectedSourceBalance?.currencyExchangeRate ??
+        sourceToken?.currencyExchangeRate)
+      : sourceToken?.currencyExchangeRate;
+
+  const hasSourcePrice = Boolean(
+    liveSourceCurrencyExchangeRate && liveSourceCurrencyExchangeRate > 0,
+  );
+
+  // The live balance for whichever token is the *source* this mode: the
+  // resynced pay-with token in buy mode, or the already-live position token in
+  // sell mode.
+  const liveSourceBalance =
+    tradeMode === 'buy'
+      ? liveSelectedSourceBalance?.balance
+      : positionToken?.balance;
 
   const latestSourceBalance = useLatestBalance({
     address: sourceToken?.address,
     decimals: sourceToken?.decimals,
     chainId: sourceToken?.chainId,
-    balance: sourceToken?.balance,
+    balance: liveSourceBalance,
+    // `useLatestBalance` does a one-shot on-chain RPC fetch that shadows the
+    // cached value until its token identity or this key changes. Keying it off
+    // the live balance itself means any change to the underlying balance — for
+    // ANY reason — triggers a fresh on-chain read and re-render, independent of
+    // QuickBuy's own state.
+    refreshKey: liveSourceBalance ?? '',
   });
 
   const sourceTokenAmount = useMemo(() => {
@@ -502,8 +566,13 @@ export function useQuickBuyController(
     return Number.isFinite(v) ? v : 0;
   }, [usdAmount]);
   const quotesAnalyticsContext = useMemo(
-    () => ({ traderAddress, caip19, amountUsd: quotedUsdAmountNumber }),
-    [traderAddress, caip19, quotedUsdAmountNumber],
+    () => ({
+      traderAddress,
+      caip19,
+      amountUsd: quotedUsdAmountNumber,
+      source: analyticsContext?.source,
+    }),
+    [traderAddress, caip19, quotedUsdAmountNumber, analyticsContext?.source],
   );
 
   const {
@@ -655,15 +724,15 @@ export function useQuickBuyController(
   const sourceBalanceFiatUsd = useMemo(() => {
     if (
       !latestSourceBalance?.displayBalance ||
-      !sourceToken?.currencyExchangeRate
+      !liveSourceCurrencyExchangeRate
     ) {
       return 0;
     }
     const balance = parseFloat(latestSourceBalance.displayBalance);
     if (!Number.isFinite(balance)) return 0;
-    const fiat = balance * sourceToken.currencyExchangeRate;
+    const fiat = balance * liveSourceCurrencyExchangeRate;
     return Number.isFinite(fiat) && fiat > 0 ? fiat : 0;
-  }, [latestSourceBalance?.displayBalance, sourceToken?.currencyExchangeRate]);
+  }, [latestSourceBalance?.displayBalance, liveSourceCurrencyExchangeRate]);
 
   const sourceBalanceFiat = useMemo(
     () => formatCurrency(sourceBalanceFiatUsd, currentCurrency),
@@ -682,6 +751,12 @@ export function useQuickBuyController(
     }).format(balance);
     return `${formatted} ${sourceToken.symbol}`;
   }, [latestSourceBalance?.displayBalance, sourceToken?.symbol]);
+
+  // Live fiat balance for the sell-mode "Receive" token, resynced from the
+  // reactive `useReceiveTokens` list so the footer pill tracks balance changes
+  // (TSA-632). `enrichTokenBalance` already formats this as a fiat string, so we
+  // pass it straight through rather than re-deriving it from a token amount.
+  const destBalanceFiat = liveSelectedDestBalance?.balanceFiat;
 
   const maxSpendUsd = sourceBalanceFiatUsd;
 
@@ -893,15 +968,15 @@ export function useQuickBuyController(
       if (
         Number.isFinite(tokens) &&
         tokens > 0 &&
-        sourceToken?.currencyExchangeRate
+        liveSourceCurrencyExchangeRate
       ) {
-        const usd = (tokens * sourceToken.currencyExchangeRate).toFixed(2);
+        const usd = (tokens * liveSourceCurrencyExchangeRate).toFixed(2);
         setUsdAmount(usd);
         setQuotedUsdAmount(usd);
         lastCommittedUsdRef.current = usd;
       }
     }
-  }, [hasSourcePrice, sourceAmountTokens, sourceToken?.currencyExchangeRate]);
+  }, [hasSourcePrice, sourceAmountTokens, liveSourceCurrencyExchangeRate]);
 
   const handleSelectSourceToken = useCallback(
     (token: BridgeToken) => {
@@ -1350,6 +1425,7 @@ export function useQuickBuyController(
     estimatedReceiveAmount,
     sourceBalanceFiat,
     sourceBalanceDisplay,
+    destBalanceFiat,
     formattedNetworkFee,
     formattedSlippage,
     formattedMinimumReceived,

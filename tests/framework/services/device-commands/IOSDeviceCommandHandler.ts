@@ -257,17 +257,22 @@ export class IOSDeviceCommandHandler implements PlatformDeviceCommandHandler {
   }
 
   /**
-   * Resolves the simulator name or UDID from current device details.
+   * Resolves the simulator identifier for simctl: prefers the UDID (set at
+   * fixture time by resolving the booted simulator) over the display name.
+   * Using a UDID avoids ambiguity when multiple simulators share the same name
+   * across iOS runtime versions.
    */
   private resolveSimDevice(): string {
-    const deviceName =
-      this.deviceId ?? this.options.currentDeviceDetails.deviceName?.trim();
-    if (!deviceName) {
+    const simDevice =
+      this.deviceId ??
+      this.options.currentDeviceDetails.udid?.trim() ??
+      this.options.currentDeviceDetails.deviceName?.trim();
+    if (!simDevice) {
       throw new Error(
-        'iOS device commands require deviceId or currentDeviceDetails.deviceName (simctl device name or UDID).',
+        'iOS device commands require deviceId, currentDeviceDetails.udid, or currentDeviceDetails.deviceName (simctl device name or UDID).',
       );
     }
-    return deviceName;
+    return simDevice;
   }
 
   /**

@@ -654,7 +654,9 @@ describe('DeviceCommandHandler', () => {
       new DeviceCommandHandler({
         currentDeviceDetails: iosDevice({ deviceName: '' }),
       }).installApp({ buildPath: '/tmp/MetaMask.app' }),
-    ).rejects.toThrow('currentDeviceDetails.deviceName');
+    ).rejects.toThrow(
+      'deviceId, currentDeviceDetails.udid, or currentDeviceDetails.deviceName',
+    );
 
     await expect(
       new DeviceCommandHandler({
