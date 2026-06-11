@@ -17,7 +17,8 @@ import {
   useListNotifications,
   useMarkNotificationAsRead,
 } from '../../../../util/notifications/hooks/useNotifications';
-import onChainAnalyticProperties from '../../../../util/notifications/methods/notification-analytics';
+import { notificationAnalyticsProperties } from '../../../../util/notifications/methods/notification-analytics';
+import { useSessionProfileId } from '../../../../util/notifications/hooks/useSessionProfileId';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import Empty from '../Empty';
 import { NotificationMenuItem } from '../NotificationMenuItem';
@@ -61,6 +62,7 @@ export function useNotificationOnClick(
 ) {
   const { markNotificationAsRead } = useMarkNotificationAsRead();
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const { profileId } = useSessionProfileId();
 
   const handleNotificationClickMetricsAndUpdates = useCallback(
     (item: INotification) => {
@@ -75,16 +77,12 @@ export function useNotificationOnClick(
       trackEvent(
         createEventBuilder(MetaMetricsEvents.NOTIFICATION_CLICKED)
           .addProperties({
-            notification_id: item.id,
-            notification_type: item.type,
-            previously_read: item.isRead,
-            ...onChainAnalyticProperties(item),
-            data: item, // data blob for feature teams to analyse their notification shapes
+            ...notificationAnalyticsProperties(item, profileId),
           })
           .build(),
       );
     },
-    [createEventBuilder, markNotificationAsRead, trackEvent],
+    [createEventBuilder, markNotificationAsRead, trackEvent, profileId],
   );
 
   const onNavigation = useCallback(

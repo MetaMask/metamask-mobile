@@ -4,7 +4,7 @@ import {
   RouteProp,
   StackActions,
 } from '@react-navigation/native';
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { ScrollView, Switch, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -21,6 +21,7 @@ import {
 import {
   useNotificationStoragePreferences,
   type NotificationStoragePreferenceSection,
+  type NotificationStoragePreferenceChannelKey,
 } from './hooks/useNotificationStoragePreferences';
 import { AccountsList } from './AccountsList';
 import { strings } from '../../../../../locales/i18n';
@@ -29,6 +30,10 @@ import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/noti
 import Routes from '../../../../constants/navigation/Routes';
 import { useWalletActivityAccountSelection } from './AccountsList.hooks';
 import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
+import { NotificationChannel } from '../../../../core/Analytics/events/channels';
+import { useSessionProfileId } from '../../../../util/notifications/hooks/useSessionProfileId';
 
 type NotificationSettingsStyles = ReturnType<typeof styleSheet>;
 
@@ -36,7 +41,21 @@ interface SectionContentProps {
   styles: NotificationSettingsStyles;
 }
 
+const SETTINGS_TYPE_BY_SECTION: Record<
+  NotificationStoragePreferenceSection,
+  string
+> = {
+  walletActivity: 'wallet_activity',
+  perps: 'perps',
+  socialAI: 'social_ai',
+  marketing: 'marketing',
+};
+
 const WalletActivitySectionContent = ({ styles }: SectionContentProps) => {
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { profileId } = useSessionProfileId();
+  const { preferences, updatePreferencesSection } =
+    useNotificationStoragePreferences();
   const {
     accountProps,
     notificationAccountListProps,
@@ -45,6 +64,41 @@ const WalletActivitySectionContent = ({ styles }: SectionContentProps) => {
     isUpdatingAllAccounts,
     toggleAllAccounts,
   } = useWalletActivityAccountSelection();
+
+  // Toggling all accounts flips both wallet-activity channels in one section
+  // update so they don't race on the shared (stale) preferences snapshot.
+  const handleToggleAllAccounts = useCallback(async () => {
+    const nextEnabled = !hasEnabledAccount;
+
+    await toggleAllAccounts();
+
+    if (preferences) {
+      await updatePreferencesSection('walletActivity', {
+        ...preferences.walletActivity,
+        pushNotificationsEnabled: nextEnabled,
+        inAppNotificationsEnabled: nextEnabled,
+      });
+    }
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.NOTIFICATIONS_SETTINGS_UPDATED)
+        .addProperties({
+          settings_type: SETTINGS_TYPE_BY_SECTION.walletActivity,
+          notification_channel: NotificationChannel.ALL,
+          enabled: nextEnabled,
+          ...(profileId ? { profile_id: profileId } : {}),
+        })
+        .build(),
+    );
+  }, [
+    hasEnabledAccount,
+    toggleAllAccounts,
+    preferences,
+    updatePreferencesSection,
+    trackEvent,
+    createEventBuilder,
+    profileId,
+  ]);
 
   return (
     <>
@@ -60,7 +114,7 @@ const WalletActivitySectionContent = ({ styles }: SectionContentProps) => {
           </Text>
           {hasNotificationAccounts ? (
             <TouchableOpacity
-              onPress={toggleAllAccounts}
+              onPress={handleToggleAllAccounts}
               disabled={isUpdatingAllAccounts}
               accessibilityRole="button"
               style={styles.selectAllButton}
@@ -152,11 +206,44 @@ const NotificationSettingsSection = ({
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, { theme });
   const { type, title, description } = route.params;
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { profileId } = useSessionProfileId();
 
   const isMetamaskNotificationsEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
   const { preferences, updatePreference } = useNotificationStoragePreferences();
+
+  const trackChannelUpdate = useCallback(
+    (channel: NotificationChannel, enabled: boolean) => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.NOTIFICATIONS_SETTINGS_UPDATED)
+          .addProperties({
+            settings_type: SETTINGS_TYPE_BY_SECTION[type],
+            notification_channel: channel,
+            enabled,
+            ...(profileId ? { profile_id: profileId } : {}),
+          })
+          .build(),
+      );
+    },
+    [trackEvent, createEventBuilder, type, profileId],
+  );
+
+  const handleToggleChannel = useCallback(
+    async (
+      key: NotificationStoragePreferenceChannelKey,
+      channel: NotificationChannel,
+      currentValue: boolean,
+    ) => {
+      const nextEnabled = !currentValue;
+
+      await updatePreference(type, key, nextEnabled);
+
+      trackChannelUpdate(channel, nextEnabled);
+    },
+    [updatePreference, trackChannelUpdate, type],
+  );
 
   useEffect(() => {
     if (!isMetamaskNotificationsEnabled) {
@@ -201,10 +288,10 @@ const NotificationSettingsSection = ({
           <Switch
             value={sectionPrefs.pushNotificationsEnabled}
             onChange={() =>
-              updatePreference(
-                type,
+              handleToggleChannel(
                 'pushNotificationsEnabled',
-                !sectionPrefs.pushNotificationsEnabled,
+                NotificationChannel.PUSH,
+                sectionPrefs.pushNotificationsEnabled,
               )
             }
             trackColor={{
@@ -228,10 +315,10 @@ const NotificationSettingsSection = ({
           <Switch
             value={sectionPrefs.inAppNotificationsEnabled}
             onChange={() =>
-              updatePreference(
-                type,
+              handleToggleChannel(
                 'inAppNotificationsEnabled',
-                !sectionPrefs.inAppNotificationsEnabled,
+                NotificationChannel.IN_APP,
+                sectionPrefs.inAppNotificationsEnabled,
               )
             }
             trackColor={{

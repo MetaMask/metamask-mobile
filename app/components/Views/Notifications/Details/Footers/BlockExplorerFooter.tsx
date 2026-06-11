@@ -14,7 +14,8 @@ import { ModalFooterBlockExplorer } from '../../../../../util/notifications/noti
 import useStyles from '../useStyles';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import onChainAnalyticProperties from '../../../../../util/notifications/methods/notification-analytics';
+import { notificationAnalyticsProperties } from '../../../../../util/notifications/methods/notification-analytics';
+import { useSessionProfileId } from '../../../../../util/notifications/hooks/useSessionProfileId';
 import {
   INotification,
   isOnChainRawNotification,
@@ -28,6 +29,7 @@ export default function BlockExplorerFooter(props: BlockExplorerFooterProps) {
   const { styles } = useStyles();
   const { notification } = props;
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const { profileId } = useSessionProfileId();
 
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
@@ -60,9 +62,7 @@ export default function BlockExplorerFooter(props: BlockExplorerFooterProps) {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.NOTIFICATION_DETAIL_CLICKED)
         .addProperties({
-          notification_id: notification.id,
-          notification_type: notification.type,
-          ...onChainAnalyticProperties(notification),
+          ...notificationAnalyticsProperties(notification, profileId),
           clicked_item: 'block_explorer',
         })
         .build(),

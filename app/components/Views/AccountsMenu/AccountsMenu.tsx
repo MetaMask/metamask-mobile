@@ -40,7 +40,6 @@ import {
   getMetamaskNotificationsUnreadCount,
   selectIsMetamaskNotificationsEnabled,
 } from '../../../selectors/notifications';
-import { selectIsBackupAndSyncEnabled } from '../../../selectors/identity';
 import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
 
 const AccountsMenu = () => {
@@ -60,7 +59,6 @@ const AccountsMenu = () => {
     getMetamaskNotificationsUnreadCount,
   );
   const readNotificationCount = useSelector(getMetamaskNotificationsReadCount);
-  const isBackupAndSyncEnabled = useSelector(selectIsBackupAndSyncEnabled);
 
   const onPressDeposit = useCallback(() => {
     trackEvent(
@@ -99,16 +97,6 @@ const AccountsMenu = () => {
           })
           .build(),
       );
-    } else {
-      navigation.navigate(Routes.NOTIFICATIONS.VIEW);
-      trackEvent(
-        createEventBuilder(EVENT_NAME.NOTIFICATIONS_ACTIVATED)
-          .addProperties({
-            action_type: 'started',
-            is_profile_syncing_enabled: isBackupAndSyncEnabled,
-          })
-          .build(),
-      );
     }
   }, [
     isNotificationEnabled,
@@ -117,7 +105,6 @@ const AccountsMenu = () => {
     createEventBuilder,
     unreadNotificationCount,
     readNotificationCount,
-    isBackupAndSyncEnabled,
   ]);
   const handleBack = useCallback(() => {
     navigation.goBack();

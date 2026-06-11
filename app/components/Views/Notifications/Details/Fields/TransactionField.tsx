@@ -22,7 +22,8 @@ import useStyles from '../useStyles';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import type { INotification } from '../../../../../util/notifications/types';
-import onChainAnalyticProperties from '../../../../../util/notifications/methods/notification-analytics';
+import { notificationAnalyticsProperties } from '../../../../../util/notifications/methods/notification-analytics';
+import { useSessionProfileId } from '../../../../../util/notifications/hooks/useSessionProfileId';
 
 type TransactionFieldProps = ModalFieldTransaction & {
   notification: INotification;
@@ -30,6 +31,7 @@ type TransactionFieldProps = ModalFieldTransaction & {
 
 function TransactionField(props: TransactionFieldProps) {
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const { profileId } = useSessionProfileId();
   const { txHash, notification } = props;
   const { styles, theme } = useStyles();
   const copyToClipboard = useCopyClipboard();
@@ -59,9 +61,7 @@ function TransactionField(props: TransactionFieldProps) {
             trackEvent(
               createEventBuilder(MetaMetricsEvents.NOTIFICATION_DETAIL_CLICKED)
                 .addProperties({
-                  notification_id: notification.id,
-                  notification_type: notification.type,
-                  ...onChainAnalyticProperties(notification),
+                  ...notificationAnalyticsProperties(notification, profileId),
                   clicked_item: 'tx_id',
                 })
                 .build(),
