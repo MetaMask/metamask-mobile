@@ -22,7 +22,7 @@ import {
   ButtonVariant,
   ButtonSize,
 } from '@metamask/design-system-react-native';
-import Loader from '../../../../../../component-library-temp/Loader/Loader';
+import Loader from '../../../../../../component-library/components-temp/Loader/Loader';
 import { ORDER_PROCESSING_TEST_IDS } from './OrderProcessing.testIds';
 
 export interface OrderProcessingParams {
