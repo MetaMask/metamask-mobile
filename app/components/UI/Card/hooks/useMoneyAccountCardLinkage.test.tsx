@@ -6,12 +6,14 @@ import Logger from '../../../../util/Logger';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../selectors/featureFlagController/gasFeesSponsored';
+import { selectCardFeatureFlag } from '../../../../selectors/featureFlagController/card';
 import {
   selectCardDelegationSettings,
   selectCardHomeDataStatus,
   selectIsCardAuthenticated,
   selectIsCardholder,
   selectIsMoneyAccountDelegatedForCard,
+  selectMoneyAccountVedaTokenConfig,
 } from '../../../../selectors/cardController';
 import {
   selectPendingMoneyAccountCardLink,
@@ -141,6 +143,9 @@ const buildSelectors = (
     pendingMoneyAccountCardLink?: boolean;
     cardHomeDataStatus?: CardHomeDataStatusMock;
     isMonadSponsorshipEnabled?: boolean;
+    moneyAccountCardLinkInProgress?: boolean;
+    cardFeatureFlag?: unknown;
+    vedaConfig?: unknown;
   } = {},
 ) => ({
   primaryMoneyAccount: { address: MONEY_ACCOUNT_ADDRESS },
@@ -153,6 +158,29 @@ const buildSelectors = (
   pendingMoneyAccountCardLink: false,
   cardHomeDataStatus: 'success' as CardHomeDataStatusMock,
   isMonadSponsorshipEnabled: true,
+  moneyAccountCardLinkInProgress: false,
+  cardFeatureFlag: {
+    chains: {
+      'eip155:143': {
+        enabled: true,
+        tokens: [
+          {
+            address: '0xveda',
+            symbol: 'veda',
+            decimals: 6,
+            enabled: true,
+            name: 'Veda',
+          },
+        ],
+      },
+    },
+  },
+  vedaConfig: {
+    caipChainId: 'eip155:143',
+    address: '0xveda',
+    decimals: 6,
+    delegationContract: '0xdelegation',
+  },
   ...overrides,
 });
 
@@ -175,6 +203,8 @@ const applySelectorMocks = (state: ReturnType<typeof buildSelectors>) => {
       return state.pendingMoneyAccountCardLink;
     if (selector === getGasFeesSponsoredNetworkEnabled)
       return (_chainId: string) => state.isMonadSponsorshipEnabled;
+    if (selector === selectCardFeatureFlag) return state.cardFeatureFlag;
+    if (selector === selectMoneyAccountVedaTokenConfig) return state.vedaConfig;
     return undefined;
   });
 };
@@ -247,6 +277,87 @@ describe('useMoneyAccountCardLinkage', () => {
       applySelectorMocks(buildSelectors({ vaultConfig: undefined }));
       const { result } = renderLinkageHook();
       expect(result.current.canLink).toBe(false);
+    });
+
+    it('reports canLink=false when VEDA is not allowlisted in the cardFeature flag', () => {
+      applySelectorMocks(
+        buildSelectors({
+          cardFeatureFlag: {
+            chains: {
+              'eip155:143': {
+                enabled: true,
+                tokens: [
+                  {
+                    address: '0xusdc',
+                    symbol: 'USDC',
+                    decimals: 6,
+                    enabled: true,
+                    name: 'USD Coin',
+                  },
+                ],
+              },
+            },
+          },
+        }),
+      );
+      const { result } = renderLinkageHook();
+      expect(result.current.canLink).toBe(false);
+      expect(result.current.hasMoneyAccountRequirements).toBe(false);
+      expect(result.current.moneyAccountCardToken).toBeNull();
+    });
+
+    it('reports canLink=true when VEDA is allowlisted by address under the mUSD display symbol', () => {
+      applySelectorMocks(
+        buildSelectors({
+          cardFeatureFlag: {
+            chains: {
+              'eip155:143': {
+                enabled: true,
+                tokens: [
+                  {
+                    address: '0xveda',
+                    symbol: 'mUSD',
+                    decimals: 6,
+                    enabled: true,
+                    name: 'MetaMask USD',
+                  },
+                ],
+              },
+            },
+          },
+        }),
+      );
+      const { result } = renderLinkageHook();
+      expect(result.current.canLink).toBe(true);
+      expect(result.current.hasMoneyAccountRequirements).toBe(true);
+      expect(result.current.moneyAccountCardToken).toBe(MOCK_TOKEN);
+    });
+
+    it('reports canLink=false when VEDA is present but disabled in the cardFeature flag', () => {
+      applySelectorMocks(
+        buildSelectors({
+          cardFeatureFlag: {
+            chains: {
+              'eip155:143': {
+                enabled: true,
+                tokens: [
+                  {
+                    address: '0xveda',
+                    symbol: 'veda',
+                    decimals: 6,
+                    enabled: false,
+                    name: 'Veda',
+                  },
+                ],
+              },
+            },
+          },
+        }),
+      );
+      const { result } = renderLinkageHook();
+      expect(result.current.canLink).toBe(false);
+      expect(result.current.hasMoneyAccountRequirements).toBe(false);
+      expect(result.current.moneyAccountCardToken).toBeNull();
     });
 
     it('reports canLink=false when the Monad USDC token cannot be resolved', () => {

@@ -28,12 +28,14 @@ import { useTheme } from '../../../../util/theme';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../selectors/featureFlagController/gasFeesSponsored';
+import { selectCardFeatureFlag } from '../../../../selectors/featureFlagController/card';
 import {
   selectCardDelegationSettings,
   selectCardHomeDataStatus,
   selectIsCardAuthenticated,
   selectIsCardholder,
   selectIsMoneyAccountDelegatedForCard,
+  selectMoneyAccountVedaTokenConfig,
 } from '../../../../selectors/cardController';
 import {
   selectPendingMoneyAccountCardLink,
@@ -46,6 +48,7 @@ import {
 } from '../../../../core/Engine/controllers/card-controller/utils/moneyAccountCardToken';
 import { CardLinkageInProgressError } from '../../../../core/Engine/controllers/card-controller/provider-types';
 import { BAANX_MAX_LIMIT } from '../constants';
+import { isMoneyAccountCardTokenAllowlisted } from '../util/vedaToken';
 import { CardFundingToken } from '../types';
 import { UserCancelledError } from './useCardDelegation';
 
@@ -104,6 +107,8 @@ export const useMoneyAccountCardLinkage =
     const isCardAuthenticated = useSelector(selectIsCardAuthenticated);
     const isCardholder = useSelector(selectIsCardholder);
     const delegationSettings = useSelector(selectCardDelegationSettings);
+    const vedaConfig = useSelector(selectMoneyAccountVedaTokenConfig);
+    const cardFeatureFlag = useSelector(selectCardFeatureFlag);
     const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
     const isAlreadyDelegated = useSelector(
       selectIsMoneyAccountDelegatedForCard,
@@ -118,16 +123,27 @@ export const useMoneyAccountCardLinkage =
     const [status, setStatus] = useState<LinkageStatus>('idle');
     const [error, setError] = useState<Error | null>(null);
 
-    const moneyAccountCardToken = useMemo(
+    const rawMoneyAccountCardToken = useMemo(
       () => resolveMoneyAccountCardToken(delegationSettings),
       [delegationSettings],
     );
 
-    const hasRequirements = hasMoneyAccountCardRequirements({
-      isMoneyAccountEnabled,
-      vaultConfig,
-      moneyAccountAddress: primaryMoneyAccount?.address,
-    });
+    const isMoneyAccountCardSupported = useMemo(
+      () =>
+        isMoneyAccountCardTokenAllowlisted(cardFeatureFlag?.chains, vedaConfig),
+      [cardFeatureFlag, vedaConfig],
+    );
+
+    const moneyAccountCardToken = isMoneyAccountCardSupported
+      ? rawMoneyAccountCardToken
+      : null;
+
+    const hasRequirements =
+      hasMoneyAccountCardRequirements({
+        isMoneyAccountEnabled,
+        vaultConfig,
+        moneyAccountAddress: primaryMoneyAccount?.address,
+      }) && isMoneyAccountCardSupported;
 
     const canSubmitDelegation = Boolean(
       hasRequirements &&
