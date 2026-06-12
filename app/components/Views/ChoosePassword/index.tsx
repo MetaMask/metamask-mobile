@@ -547,7 +547,7 @@ const ChoosePassword = () => {
     track(MetaMetricsEvents.EXTERNAL_LINK_CLICKED, {
       text: 'Learn More',
       location: 'choose_password',
-      url: RESET_PASSWORD_GUIDE_URL,
+      url_domain: RESET_PASSWORD_GUIDE_URL,
     });
 
     navigation.navigate('Webview', {
