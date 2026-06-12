@@ -408,7 +408,12 @@ const MESSENGER_EXPOSED_METHODS = [
   'trackGeoBlockTriggered',
   'trackMarketDetailsOpened',
   'trackPositionViewed',
+  'trackPortfolioPositionsButtonTapped',
+  'trackPortfolioTransactionInitiated',
+  'trackPositionsScreenViewed',
+  'trackPositionsTabViewed',
   'trackPredictOrderEvent',
+  'trackSearchInteracted',
   'trackShareAction',
 ] as const;
 
@@ -1219,6 +1224,32 @@ export class PredictController extends BaseController<
     this.analytics.trackActivityViewed(args);
   }
 
+  public trackPortfolioPositionsButtonTapped(
+    args: Parameters<
+      PredictAnalytics['trackPortfolioPositionsButtonTapped']
+    >[0],
+  ): void {
+    this.analytics.trackPortfolioPositionsButtonTapped(args);
+  }
+
+  public trackPortfolioTransactionInitiated(
+    args: Parameters<PredictAnalytics['trackPortfolioTransactionInitiated']>[0],
+  ): void {
+    this.analytics.trackPortfolioTransactionInitiated(args);
+  }
+
+  public trackPositionsScreenViewed(
+    args: Parameters<PredictAnalytics['trackPositionsScreenViewed']>[0],
+  ): void {
+    this.analytics.trackPositionsScreenViewed(args);
+  }
+
+  public trackPositionsTabViewed(
+    args: Parameters<PredictAnalytics['trackPositionsTabViewed']>[0],
+  ): void {
+    this.analytics.trackPositionsTabViewed(args);
+  }
+
   public trackGeoBlockTriggered(
     args: Parameters<PredictAnalytics['trackGeoBlockTriggered']>[0],
   ): void {
@@ -1241,6 +1272,17 @@ export class PredictController extends BaseController<
     args: Parameters<PredictAnalytics['trackShareAction']>[0],
   ): void {
     this.analytics.trackShareAction(args);
+  }
+
+  /**
+   * Track Predict Search Interacted analytics event
+   *
+   * @public
+   */
+  public trackSearchInteracted(
+    args: Parameters<PredictAnalytics['trackSearchInteracted']>[0],
+  ): void {
+    this.analytics.trackSearchInteracted(args);
   }
 
   /**
@@ -3346,5 +3388,6 @@ export type {
   PredictControllerTrackMarketDetailsOpenedAction,
   PredictControllerTrackPositionViewedAction,
   PredictControllerTrackPredictOrderEventAction,
+  PredictControllerTrackSearchInteractedAction,
   PredictControllerTrackShareActionAction,
 } from './PredictController-method-action-types';

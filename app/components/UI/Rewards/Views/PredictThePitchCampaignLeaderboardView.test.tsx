@@ -93,9 +93,7 @@ jest.mock('../components/Campaigns/PredictThePitchLeaderboard', () => {
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    PREDICT_THE_PITCH_LEADERBOARD_TEST_IDS: {
-      TOTAL_PARTICIPANTS: 'predict-the-pitch-leaderboard-total-participants',
-    },
+    PREDICT_THE_PITCH_LEADERBOARD_TEST_IDS: {},
     default: (props: Record<string, unknown>) => {
       mockPredictLeaderboard(props);
       return ReactActual.createElement(View, {
@@ -125,15 +123,7 @@ jest.mock('../hooks/useGetCampaignParticipantStatus');
 jest.mock('../hooks/useTrackRewardsPageView', () => jest.fn());
 
 jest.mock('../../../../../locales/i18n', () => ({
-  strings: (key: string, params?: { count?: string }) => {
-    if (
-      key ===
-      'rewards.predict_the_pitch_campaign.leaderboard_total_participants'
-    ) {
-      return `${params?.count ?? '0'} participants`;
-    }
-    return key;
-  },
+  strings: (key: string) => key,
 }));
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
@@ -159,6 +149,8 @@ const basePosition: PredictThePitchLeaderboardPositionDto = {
   eligible: true,
   neighbors: [{ rank: 3, referralCode: 'A', roi: 0.3 }],
   computedAt: '2025-01-01T00:00:00.000Z',
+  marketsTraded: 3,
+  minimumMarketsTraded: 3,
 };
 
 const leaderboardHookDefaults = {
@@ -392,10 +384,5 @@ describe('PredictThePitchCampaignLeaderboardView', () => {
         isCampaignComplete: false,
       }),
     );
-  });
-
-  it('shows total participants when count is greater than zero', () => {
-    const { getByText } = render(<PredictThePitchCampaignLeaderboardView />);
-    expect(getByText('50 participants')).toBeDefined();
   });
 });
