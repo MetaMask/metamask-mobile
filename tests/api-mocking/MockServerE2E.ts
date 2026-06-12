@@ -444,6 +444,25 @@ const logSolanaRelatedHttpCandidate = (
 
 const logNativeProxyRequestInitiated = (request: InitiatedRequest): void => {
   if (isShimProxyRequest(request.path)) {
+    // Log the decoded /proxy target so CI logs show every shim-routed
+    // request regardless of which mock layer ends up serving it — matched
+    // mockttp rules are otherwise invisible at INFO level, which made
+    // balance-pipeline starvation undiagnosable from host logs alone.
+    try {
+      const target = new URL(request.url).searchParams.get('url');
+      if (target && !isUrlSuppressedFromLogs(target)) {
+        const viaLoopback = Boolean(
+          request.headers?.[DEVICE_PROXY_INGRESS_MARKER_HEADER],
+        );
+        logger.info(
+          `[E2E_SHIM_PROXY_REQUEST_INITIATED] ${request.method} ${redactNativeProxyUrl(
+            target,
+          )}${viaLoopback ? ' source=device-proxy-loopback' : ''}`,
+        );
+      }
+    } catch {
+      // Malformed wrapper URL — nothing useful to log.
+    }
     return;
   }
 
@@ -569,6 +588,9 @@ const NETWORK_ERROR_CODES = new Set([
   'EHOSTUNREACH',
   'ENETUNREACH',
   'UND_ERR_CONNECT_TIMEOUT',
+  // undici's "other side closed": the upstream (or a thenCloseConnection
+  // mock rule, see setupMockNetworkFailure) dropped the socket mid-request.
+  'UND_ERR_SOCKET',
 ]);
 
 const isNetworkLevelFetchError = (error: unknown): boolean => {
@@ -689,8 +711,12 @@ const createMockEventResponse = (
   matchingEvent: MockApiEndpoint,
   request: NormalizedHttpProxyRequest,
 ): ProxyHandlerResponse => {
-  logger.debug(`Mocking ${request.method} request to: ${request.targetUrl}`);
-  logger.debug(`Response status: ${matchingEvent.responseCode}`);
+  // INFO marker so CI logs show which requests the events table (defaults)
+  // served — rule-served and event-served traffic are otherwise
+  // indistinguishable from silence in the logs.
+  logger.info(
+    `[E2E_EVENT_MOCK_SERVED] ${request.method} ${request.targetUrl} status=${matchingEvent.responseCode}`,
+  );
   logger.debug('Response:', matchingEvent.response);
 
   if (request.method === 'POST' && matchingEvent.requestBody) {
