@@ -42,23 +42,29 @@ export const useSendActions = () => {
       // Context update is not immediate when submitting from the recipient list
       // so we use the passed recipientAddress or fall back to the context value
       const toAddress = recipientAddress || to;
+
       if (isEvmSendType) {
-        submitEvmTransaction({
-          asset: asset as AssetType,
-          chainId: chainId as Hex,
-          from: from as Hex,
-          to: toAddress as Hex,
-          value: normalizeAmount(value),
-        });
-        navigation.navigate(
-          Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-          {
-            params: {
-              maxValueMode,
+        try {
+          await submitEvmTransaction({
+            asset: asset as AssetType,
+            chainId: chainId as Hex,
+            from: from as Hex,
+            to: toAddress as Hex,
+            value: normalizeAmount(value),
+          });
+
+          navigation.navigate(
+            Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+            {
+              params: {
+                maxValueMode,
+              },
+              loader: ConfirmationLoader.Transfer,
             },
-            loader: ConfirmationLoader.Transfer,
-          },
-        );
+          );
+        } catch (error) {
+          Alert.alert(strings('send.transaction_error'));
+        }
       } else {
         try {
           const result = (await sendMultichainTransactionForReview(

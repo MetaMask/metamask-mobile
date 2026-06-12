@@ -8,6 +8,7 @@ import { getMultichainNetworkControllerMessenger } from './multichain-network-co
 import { getNetworkEnablementControllerMessenger } from './network-enablement-controller-messenger/network-enablement-controller-messenger';
 import { getCurrencyRateControllerMessenger } from './currency-rate-controller-messenger/currency-rate-controller-messenger';
 import { getAppMetadataControllerMessenger } from './app-metadata-controller-messenger';
+import { getApprovalControllerMessenger } from './approval-controller-messenger';
 import {
   getDeFiPositionsControllerInitMessenger,
   getDeFiPositionsControllerMessenger,
@@ -179,6 +180,10 @@ export const MESSENGER_FACTORIES = {
   },
   AddressBookController: {
     getMessenger: getAddressBookControllerMessenger,
+    getInitMessenger: noop,
+  },
+  ApprovalController: {
+    getMessenger: getApprovalControllerMessenger,
     getInitMessenger: noop,
   },
   ConnectivityController: {

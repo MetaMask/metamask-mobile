@@ -7,7 +7,12 @@ import { simpleSendTransaction } from '../../../__mocks__/controllers/transactio
 import { GasModalType } from '../../../constants/gas';
 import { AdvancedEIP1559Modal } from './advanced-eip1559-modal';
 
+const mockPersistGasFeePreference = jest.fn();
+
 jest.mock('../../../../../../util/transaction-controller');
+jest.mock('../../../hooks/gas/usePersistGasFeePreference', () => ({
+  usePersistGasFeePreference: jest.fn(() => mockPersistGasFeePreference),
+}));
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest', () => {
   const { simpleSendTransaction: actualSimpleSendTransaction } =
     jest.requireActual(
@@ -73,6 +78,14 @@ describe('AdvancedEIP1559Modal', () => {
         userFeeLevel: 'custom',
       }),
     );
+    expect(mockPersistGasFeePreference).toHaveBeenCalledWith(
+      simpleSendTransaction,
+      {
+        userFeeLevel: 'custom',
+        maxBaseFee: simpleSendTransaction.txParams.maxFeePerGas,
+        priorityFee: simpleSendTransaction.txParams.maxPriorityFeePerGas,
+      },
+    );
     expect(mockHandleCloseModals).toHaveBeenCalledTimes(1);
   });
 
@@ -107,6 +120,14 @@ describe('AdvancedEIP1559Modal', () => {
         maxPriorityFeePerGas: '0x12a05f200',
         userFeeLevel: 'custom',
       }),
+    );
+    expect(mockPersistGasFeePreference).toHaveBeenCalledWith(
+      simpleSendTransaction,
+      {
+        userFeeLevel: 'custom',
+        maxBaseFee: '0x174876e800',
+        priorityFee: '0x12a05f200',
+      },
     );
   });
 

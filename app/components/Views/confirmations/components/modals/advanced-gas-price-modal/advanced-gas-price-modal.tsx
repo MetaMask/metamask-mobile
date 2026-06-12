@@ -2,7 +2,10 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { Hex } from '@metamask/utils';
 import { pickBy } from 'lodash';
-import { TransactionMeta } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  UserFeeLevel,
+} from '@metamask/transaction-controller';
 
 import { useStyles } from '../../../../../../component-library/hooks';
 import {
@@ -19,6 +22,7 @@ import { GasPriceInput } from '../../../components/gas/gas-price-input';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import BottomModal from '../../UI/bottom-modal';
 import styleSheet from './advanced-gas-price-modal.styles';
+import { usePersistGasFeePreference } from '../../../hooks/gas/usePersistGasFeePreference';
 
 export const AdvancedGasPriceModal = ({
   setActiveModal,
@@ -29,6 +33,7 @@ export const AdvancedGasPriceModal = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
+  const persistGasFeePreference = usePersistGasFeePreference();
 
   const { gas, gasPrice } = transactionMeta?.txParams || {};
 
@@ -48,11 +53,15 @@ export const AdvancedGasPriceModal = ({
 
   const handleSaveClick = useCallback(() => {
     updateTransactionGasFees(transactionMeta.id, {
-      userFeeLevel: 'custom',
+      userFeeLevel: UserFeeLevel.CUSTOM,
       ...pickBy(gasParams, Boolean),
     });
+    persistGasFeePreference(transactionMeta, {
+      userFeeLevel: UserFeeLevel.CUSTOM,
+      ...pickBy({ gasPrice: gasParams.gasPrice }, Boolean),
+    });
     handleCloseModals();
-  }, [transactionMeta.id, gasParams, handleCloseModals]);
+  }, [transactionMeta, gasParams, persistGasFeePreference, handleCloseModals]);
 
   const navigateToEstimatesModal = useCallback(() => {
     setActiveModal(GasModalType.ESTIMATES);

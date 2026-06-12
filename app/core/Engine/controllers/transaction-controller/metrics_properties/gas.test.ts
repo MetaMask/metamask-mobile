@@ -1,4 +1,7 @@
-import { TransactionMeta } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  UserFeeLevel,
+} from '@metamask/transaction-controller';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 
 import { getGasMetricsProperties } from './gas';
@@ -111,6 +114,16 @@ describe('getGasMetricsProperties', () => {
     const result = getGasMetricsProperties(request);
 
     expect(result.properties.gas_fee_selected).toBe('medium');
+  });
+
+  it('returns dapp_proposed as gas_fee_selected when the dapp suggested fee is selected', () => {
+    const request = createMockRequest({
+      userFeeLevel: UserFeeLevel.DAPP_SUGGESTED,
+    });
+
+    const result = getGasMetricsProperties(request);
+
+    expect(result.properties.gas_fee_selected).toBe('dapp_proposed');
   });
 
   it('returns gas_payment_tokens_available from gasFeeTokens', () => {

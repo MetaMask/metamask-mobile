@@ -23,6 +23,7 @@ import { GasInput } from '../../../components/gas/gas-input';
 import { MaxBaseFeeInput } from '../../../components/gas/max-base-fee-input';
 import { PriorityFeeInput } from '../../../components/gas/priority-fee-input';
 import styleSheet from './advanced-eip1559-modal.styles';
+import { usePersistGasFeePreference } from '../../../hooks/gas/usePersistGasFeePreference';
 
 export const AdvancedEIP1559Modal = ({
   setActiveModal,
@@ -33,6 +34,7 @@ export const AdvancedEIP1559Modal = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
+  const persistGasFeePreference = usePersistGasFeePreference();
 
   const { gas, maxFeePerGas, maxPriorityFeePerGas } =
     transactionMeta?.txParams || {};
@@ -61,8 +63,18 @@ export const AdvancedEIP1559Modal = ({
       userFeeLevel: UserFeeLevel.CUSTOM,
       ...pickBy(gasParams, Boolean),
     });
+    persistGasFeePreference(transactionMeta, {
+      userFeeLevel: UserFeeLevel.CUSTOM,
+      ...pickBy(
+        {
+          maxBaseFee: gasParams.maxFeePerGas,
+          priorityFee: gasParams.maxPriorityFeePerGas,
+        },
+        Boolean,
+      ),
+    });
     handleCloseModals();
-  }, [transactionMeta.id, gasParams, handleCloseModals]);
+  }, [transactionMeta, gasParams, persistGasFeePreference, handleCloseModals]);
 
   const navigateToEstimatesModal = useCallback(() => {
     setActiveModal(GasModalType.ESTIMATES);
