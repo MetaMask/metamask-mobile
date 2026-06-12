@@ -109,16 +109,15 @@ const selectTokenBalancesStateForBalances = createSelector(
             chainId === NETWORKS_CHAIN_ID.ARC
               ? Object.fromEntries(
                   Object.entries(addressMap).filter(
-                    ([address]) =>
-                      address.toLowerCase() !== ARC_USDC_TOKEN_ADDRESS,
+                    ([address]) => address !== ARC_USDC_TOKEN_ADDRESS,
                   ),
                 )
               : addressMap,
           ]),
         ),
       ]),
-    ) as typeof tokenBalances;
-    return { tokenBalances: result } as TokenBalancesControllerState;
+    );
+    return { tokenBalances: result };
   },
 );
 

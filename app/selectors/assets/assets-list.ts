@@ -157,8 +157,7 @@ function filterArcUsdcErc20Token(
     ...assets,
     [NETWORKS_CHAIN_ID.ARC]: arcAssets.filter(
       (asset) =>
-        !('address' in asset) ||
-        asset?.address?.toLowerCase() !== ARC_USDC_TOKEN_ADDRESS,
+        !('address' in asset) || asset?.address !== ARC_USDC_TOKEN_ADDRESS,
     ),
   };
 }

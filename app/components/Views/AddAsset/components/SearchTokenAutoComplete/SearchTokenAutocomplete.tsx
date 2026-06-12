@@ -104,13 +104,8 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
 
     const tokens = convertTrendingAssetsToImporAssets(apiResults);
 
-    if (
-      String(selectedChainId).toLowerCase() ===
-      NETWORKS_CHAIN_ID.ARC.toLowerCase()
-    ) {
-      return tokens.filter(
-        (t) => t.address.toLowerCase() !== ARC_USDC_TOKEN_ADDRESS.toLowerCase(),
-      );
+    if (selectedChainId === NETWORKS_CHAIN_ID.ARC) {
+      return tokens.filter((t) => t.address !== ARC_USDC_TOKEN_ADDRESS);
     }
 
     return tokens;
