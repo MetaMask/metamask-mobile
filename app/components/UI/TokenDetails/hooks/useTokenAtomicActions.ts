@@ -349,12 +349,10 @@ export const useHandleOnSwap = ({
     );
 
     if (buySourceToken) {
-      goToSwaps(
-        buySourceToken,
-        destTokenOverride ?? currentTokenAsBridgeToken,
-        undefined,
-        true,
-      );
+      // The viewed token is the destination the user wants to acquire, so the
+      // per-source override (which describes where to route when swapping FROM
+      // the viewed token) must not be applied here.
+      goToSwaps(buySourceToken, currentTokenAsBridgeToken, undefined, true);
       return;
     }
     goToSwaps(currentTokenAsBridgeToken, destTokenOverride, undefined, true);

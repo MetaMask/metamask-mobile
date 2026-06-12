@@ -906,7 +906,7 @@ describe('useTokenAtomicActions - useHandleOnSwap', () => {
       );
     });
 
-    it('passes the per-source override as destToken on the swap-into path (zero balance, buy source available)', () => {
+    it('ignores the per-source override on the swap-into path and keeps the viewed token as destToken (zero balance, buy source available)', () => {
       mockSelectAssetsBySelectedAccountGroup.mockReturnValue({
         '0x1': [
           userAsset({
@@ -924,9 +924,12 @@ describe('useTokenAtomicActions - useHandleOnSwap', () => {
 
       result.current();
 
-      const [, destToken] = mockGoToSwaps.mock.lastCall ?? [];
+      const [sourceToken, destToken] = mockGoToSwaps.mock.lastCall ?? [];
+      expect(sourceToken).toStrictEqual(
+        expect.objectContaining({ address: WETH_ADDRESS }),
+      );
       expect(destToken).toStrictEqual(
-        expect.objectContaining({ address: MOCK_OVERRIDE_TOKEN.address }),
+        expect.objectContaining({ address: defaultToken.address }),
       );
     });
 
