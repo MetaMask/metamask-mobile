@@ -118,6 +118,33 @@ describe('PriceChart', () => {
         queryByText('Data is not available for this time period'),
       ).not.toBeOnTheScreen();
     });
+
+    it('shows overlay when hasInsufficientCoverage is true despite having enough points', () => {
+      const { getByTestId } = render(
+        <PriceChart
+          {...defaultProps}
+          prices={fiveTokenPrices()}
+          hasInsufficientCoverage
+        />,
+      );
+
+      expect(getByTestId('price-chart-insufficient-data')).toBeOnTheScreen();
+    });
+
+    it('does not show overlay when hasInsufficientCoverage is false', () => {
+      const { queryByTestId } = render(
+        <PriceChart
+          {...defaultProps}
+          prices={fiveTokenPrices()}
+          hasInsufficientCoverage={false}
+        />,
+      );
+
+      expect(
+        queryByTestId('price-chart-insufficient-data'),
+      ).not.toBeOnTheScreen();
+      expect(queryByTestId('price-chart-no-data')).not.toBeOnTheScreen();
+    });
   });
 
   describe('Loading state', () => {

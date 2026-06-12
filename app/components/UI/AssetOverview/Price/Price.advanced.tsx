@@ -135,6 +135,7 @@ export interface PriceAdvancedProps {
   setTimePeriod?: (period: TimePeriod) => void;
   onPriceDirectionChange?: (isPositive: boolean) => void;
   useAmbientColor?: boolean;
+  hasInsufficientCoverage?: boolean;
 }
 
 const PriceAdvanced = ({
@@ -150,6 +151,7 @@ const PriceAdvanced = ({
   setTimePeriod,
   onPriceDirectionChange,
   useAmbientColor = false,
+  hasInsufficientCoverage = false,
 }: PriceAdvancedProps) => {
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -364,18 +366,12 @@ const PriceAdvanced = ({
 
   const dateLabel = strings(TIME_RANGE_LABELS[timeRange]);
 
-  // Use the previous bar's close as the percentage baseline to avoid wick
-  // outliers on the first visible candle distorting the header percentage.
-  // The previous bar's close represents the settled price at the moment the
-  // visible window begins — standard practice in financial charting.
+  // Calculate the current compare price from OHLCV data
   const currentComparePrice = useMemo(() => {
     if (ohlcvData.length === 0 || visibleFromMs == null) return null;
-    const firstVisibleIdx = ohlcvData.findIndex((c) => c.time >= visibleFromMs);
-    if (firstVisibleIdx < 0) return ohlcvData[0].close;
-    if (firstVisibleIdx > 0) {
-      return ohlcvData[firstVisibleIdx - 1].close;
-    }
-    return ohlcvData[firstVisibleIdx].close;
+    const firstVisible =
+      ohlcvData.find((c) => c.time >= visibleFromMs) ?? ohlcvData[0];
+    return firstVisible.close;
   }, [ohlcvData, visibleFromMs]);
 
   // Store last good compare price to show during loading
@@ -564,6 +560,7 @@ const PriceAdvanced = ({
         isLoading={isLoading}
         onPriceDirectionChange={onPriceDirectionChange}
         useAmbientColor={useAmbientColor}
+        hasInsufficientCoverage={hasInsufficientCoverage}
       />
     );
   }

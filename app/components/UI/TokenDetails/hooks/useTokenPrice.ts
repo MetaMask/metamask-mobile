@@ -50,6 +50,7 @@ export interface UseTokenPriceResult {
   setTimePeriod: (period: TimePeriod) => void;
   chartNavigationButtons: TimePeriod[];
   currentCurrency: string;
+  hasInsufficientCoverage: boolean;
 }
 
 export interface UseTokenPriceParams {
@@ -89,7 +90,11 @@ export const useTokenPrice = ({
     ? safeToChecksumAddress(token.address)
     : token.address;
 
-  const { data: prices = [], isLoading } = useTokenHistoricalPrices({
+  const {
+    data: prices = [],
+    isLoading,
+    hasInsufficientCoverage,
+  } = useTokenHistoricalPrices({
     asset: token,
     address: token.address as Hex,
     chainId,
@@ -236,6 +241,7 @@ export const useTokenPrice = ({
     setTimePeriod,
     chartNavigationButtons,
     currentCurrency,
+    hasInsufficientCoverage,
   };
 };
 

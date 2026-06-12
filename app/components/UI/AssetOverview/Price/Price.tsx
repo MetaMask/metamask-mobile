@@ -15,6 +15,7 @@ interface PriceSharedProps {
   currentCurrency: string;
   comparePrice: number;
   isLoading: boolean;
+  hasInsufficientCoverage?: boolean;
 }
 
 /**

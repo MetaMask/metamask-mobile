@@ -87,6 +87,7 @@ describe('useTokenPrice', () => {
       data: [],
       isLoading: false,
       error: undefined,
+      hasInsufficientCoverage: false,
     });
     setupDefaultMocks();
   });
@@ -105,6 +106,7 @@ describe('useTokenPrice', () => {
       isLoading: true,
       data: undefined,
       error: undefined,
+      hasInsufficientCoverage: false,
     });
 
     const { result } = renderHook(() => useTokenPrice({ token }));
@@ -137,6 +139,7 @@ describe('useTokenPrice', () => {
       ],
       isLoading: false,
       error: undefined,
+      hasInsufficientCoverage: false,
     });
 
     const { result } = renderHook(() => useTokenPrice({ token }));
@@ -211,6 +214,7 @@ describe('useTokenPrice', () => {
       data: [['1700000000', 145.0]],
       isLoading: false,
       error: undefined,
+      hasInsufficientCoverage: false,
     });
 
     const { result } = renderHook(() =>
@@ -222,6 +226,26 @@ describe('useTokenPrice', () => {
     });
     expect(result.current.comparePrice).toBe(145.0);
     expect(result.current.priceDiff).toBe(5.5);
+  });
+
+  it('forwards hasInsufficientCoverage from the historical prices hook', async () => {
+    const token = {
+      address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+      chainId: '0x1',
+    } as TokenI;
+
+    mockUseTokenHistoricalPrices.mockReturnValue({
+      data: [['1700000000', 1.0]],
+      isLoading: false,
+      error: undefined,
+      hasInsufficientCoverage: true,
+    });
+
+    const { result } = renderHook(() => useTokenPrice({ token }));
+
+    await waitFor(() => {
+      expect(result.current.hasInsufficientCoverage).toBe(true);
+    });
   });
 
   it('clears stale fetchedMarketData when token changes', async () => {
@@ -239,6 +263,7 @@ describe('useTokenPrice', () => {
       data: [],
       isLoading: false,
       error: undefined,
+      hasInsufficientCoverage: false,
     });
 
     let resolveA!: (v: unknown) => void;
