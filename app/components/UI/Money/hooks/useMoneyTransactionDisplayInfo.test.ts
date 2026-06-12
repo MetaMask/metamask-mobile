@@ -475,15 +475,16 @@ describe('useMoneyTransactionDisplayInfo — ERC-20 (stablecoin) primary amount'
     expect(result.current.primaryAmount).toBe('+1.25 USDC');
   });
 
-  it('leaves primaryAmount empty when stablecoin market data is unavailable', () => {
-    // No peg fallback: without market data we cannot price USDC, so we show
-    // nothing rather than a misleading "+1.00 USDC". The fiat line still renders.
+  it('falls back to the mUSD deposit amount when stablecoin market data is unavailable', () => {
+    // Without market data we cannot price the pay token (USDC), so we never show
+    // a misleading "+1.00 USDC". Instead we fall back to the mUSD deposit value
+    // carried on requiredAssets ($1.00) rather than leaving the row blank.
     const { result } = renderHookWithProvider(
       () => useMoneyTransactionDisplayInfo(makeUsdcDepositTx(), undefined),
       { state: makeUsdcState({}) },
     );
 
-    expect(result.current.primaryAmount).toBe('');
+    expect(result.current.primaryAmount).toBe('+1.00 mUSD');
   });
 });
 
@@ -578,38 +579,38 @@ describe('useMoneyTransactionDisplayInfo — non-stable ERC-20 primary amount', 
     expect(result.current.primaryAmount).toBe('+0.02 LINK');
   });
 
-  it('leaves primaryAmount empty (not +0.00) when market data is unavailable', () => {
-    // No market data and no ETH rate → we cannot price LINK, so we must show
-    // nothing rather than a misleading "+0.00 LINK". Fiat still renders from
-    // its own pipeline.
+  it('falls back to the mUSD deposit amount (not +0.00 LINK) when market data is unavailable', () => {
+    // No market data and no ETH rate → we cannot price LINK, so we never show a
+    // misleading "+0.00 LINK". We fall back to the mUSD deposit value ($0.50)
+    // rather than leaving the row blank.
     const { result } = renderHookWithProvider(
       () => useMoneyTransactionDisplayInfo(makeLinkDepositTx(), undefined),
       { state: makeLinkState({}) },
     );
 
-    expect(result.current.primaryAmount).toBe('');
+    expect(result.current.primaryAmount).toBe('+0.50 mUSD');
   });
 
-  it('leaves primaryAmount empty when token→ETH price exists but ETH→USD rate is missing', () => {
+  it('falls back to the mUSD deposit amount when token→ETH price exists but ETH→USD rate is missing', () => {
     const { result } = renderHookWithProvider(
       () => useMoneyTransactionDisplayInfo(makeLinkDepositTx(), undefined),
       { state: makeLinkState({ tokenToEthPrice: 0.01 }) },
     );
 
-    expect(result.current.primaryAmount).toBe('');
+    expect(result.current.primaryAmount).toBe('+0.50 mUSD');
   });
 
-  it('leaves primaryAmount empty (not +0) when the token amount underflows 6 decimals', () => {
+  it('falls back to the mUSD deposit amount (not +0 LINK) when the pay-token amount underflows 6 decimals', () => {
     // High-unit-value token: token→ETH 400 × ETH→USD 2500 = $1,000,000 per token.
-    // $0.50 / $1,000,000 = 0.0000005, which rounds down to "0.000000" at 6
-    // decimals. We must show nothing rather than a misleading "+0 LINK" — this
-    // is the same class of bug MUSD-857 fixed, just one decimal place over.
+    // $0.50 / $1,000,000 = 0.0000005, which would round down to "+0 LINK" — a
+    // misleading zero (the MUSD-857 class of bug). Instead of the underflowing
+    // pay-token amount we show the mUSD deposit value ($0.50).
     const { result } = renderHookWithProvider(
       () => useMoneyTransactionDisplayInfo(makeLinkDepositTx(), undefined),
       { state: makeLinkState({ tokenToEthPrice: 400, ethUsdRate: 2500 }) },
     );
 
-    expect(result.current.primaryAmount).toBe('');
+    expect(result.current.primaryAmount).toBe('+0.50 mUSD');
   });
 });
 
@@ -671,7 +672,7 @@ describe('useMoneyTransactionDisplayInfo — native token (ETH) primary amount',
     expect(result.current.primaryAmount).toBe('+0.000445 ETH');
   });
 
-  it('leaves primaryAmount empty when exchange rate is unavailable', () => {
+  it('falls back to the mUSD deposit amount when exchange rate is unavailable', () => {
     const tx = makeTx(TransactionType.moneyAccountDeposit, {
       metamaskPay: { tokenAddress: ETH_ADDRESS, chainId: CHAIN_ID },
       requiredAssets: [{ address: ETH_ADDRESS, amount: '998537' }],
@@ -682,7 +683,9 @@ describe('useMoneyTransactionDisplayInfo — native token (ETH) primary amount',
       { state: makeState({ currencyRates: {} }) },
     );
 
-    expect(result.current.primaryAmount).toBe('');
+    // Pay token (ETH) can't be priced → fall back to the mUSD deposit value
+    // ($0.998537 → 1.00 at 2dp) rather than leaving the row blank.
+    expect(result.current.primaryAmount).toBe('+1.00 mUSD');
   });
 });
 
@@ -708,13 +711,53 @@ describe('useMoneyTransactionDisplayInfo — fiat amount fallback', () => {
 });
 
 // ---------------------------------------------------------------------------
+// Deposit with no pay-token metadata at all (the blank-row bug)
+// ---------------------------------------------------------------------------
+
+describe('useMoneyTransactionDisplayInfo — deposit without pay-token metadata', () => {
+  it('shows the mUSD amount and fiat from requiredAssets when there is no metamaskPay', () => {
+    // Mirrors a real moneyAccountDeposit that never got pay-token enrichment:
+    // no transferInformation, no metamaskPay, value only on requiredAssets.
+    // Previously rendered fully blank.
+    const tx = makeTx(TransactionType.moneyAccountDeposit, {
+      requiredAssets: [{ address: MUSD_TOKEN_ADDRESS, amount: '42500000' }],
+    });
+
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState({ currentCurrency: 'usd' }) },
+    );
+
+    expect(result.current.primaryAmount).toBe('+42.50 mUSD');
+    expect(result.current.fiatAmount).toBeTruthy();
+    expect(result.current.fiatAmount.startsWith('+')).toBe(true);
+  });
+
+  it('leaves the row value-less when the deposit has a zero requiredAssets amount', () => {
+    // e.g. a deposit that failed before any amount was encoded.
+    const tx = makeTx(TransactionType.moneyAccountDeposit, {
+      requiredAssets: [{ address: MUSD_TOKEN_ADDRESS, amount: '0x0' }],
+    });
+
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState({ currentCurrency: 'usd' }) },
+    );
+
+    expect(result.current.primaryAmount).toBe('');
+    expect(result.current.fiatAmount).toBe('');
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Token resolution — catch branch and no-token fallback
 // ---------------------------------------------------------------------------
 
 describe('useMoneyTransactionDisplayInfo — token resolution edge cases', () => {
-  it('leaves primaryAmount empty when token is not in state and address is not native', () => {
-    // USDC address but NOT present in TokensController state → not native, not erc-20
-    // → sourceTokenSymbol is undefined → primaryAmount stays empty
+  it('falls back to the mUSD deposit amount when the pay token is not in state and not native', () => {
+    // USDC address but NOT present in TokensController state → not native, not
+    // erc-20 → sourceTokenSymbol is undefined, so the pay-token amount can't be
+    // resolved. We fall back to the mUSD deposit value ($1.00).
     const tx = makeTx(TransactionType.moneyAccountDeposit, {
       metamaskPay: { tokenAddress: USDC_ADDRESS, chainId: CHAIN_ID },
       requiredAssets: [{ address: USDC_ADDRESS, amount: '1000000' }],
@@ -726,10 +769,10 @@ describe('useMoneyTransactionDisplayInfo — token resolution edge cases', () =>
       { state: makeState() },
     );
 
-    expect(result.current.primaryAmount).toBe('');
+    expect(result.current.primaryAmount).toBe('+1.00 mUSD');
   });
 
-  it('leaves primaryAmount empty when getNativeTokenAddress throws for unknown chainId', () => {
+  it('falls back to the mUSD deposit amount when getNativeTokenAddress throws for unknown chainId', () => {
     // Use a chainId our mock does not support → isNativeTokenAddress catch → returns false.
     // We also include the chain in networkConfigurationsByChainId so that
     // selectTickerByChainId does not error if the reselect stability check
@@ -761,7 +804,7 @@ describe('useMoneyTransactionDisplayInfo — token resolution edge cases', () =>
       { state: stateWithPolygon },
     );
 
-    expect(result.current.primaryAmount).toBe('');
+    expect(result.current.primaryAmount).toBe('+1.00 mUSD');
   });
 });
 

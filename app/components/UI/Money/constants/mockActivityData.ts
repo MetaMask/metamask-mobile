@@ -1,4 +1,5 @@
 import {
+  CHAIN_IDS,
   type TransactionMeta,
   type TransactionParams,
   TransactionStatus,
@@ -35,9 +36,13 @@ export type MoneyActivityTransactionMeta = TransactionMeta & {
   moneyActivityTitleKey?: MoneyActivityTitleKey;
 };
 
-export const MOCK_CHAIN_ID = '0x1' as Hex;
+// The Money Account lives on Monad — mock rows MUST be on this chain so the
+// mUSD display path (`isMusdOnMoneyAccountChain`) resolves their amounts.
+// Using mainnet here is what previously left every transferInformation-backed
+// mock row blank.
+export const MOCK_CHAIN_ID = CHAIN_IDS.MONAD as Hex;
 
-export const MOCK_NETWORK_CLIENT_ID = 'mainnet';
+export const MOCK_NETWORK_CLIENT_ID = 'monad';
 
 const defaultTxParams = {
   from: '0x0000000000000000000000000000000000000001',
@@ -84,7 +89,68 @@ function makeMoneyTx(config: {
   };
 }
 
+/** USD value → mUSD minimal units (6dp) as Hex, matching `requiredAssets[0].amount`. */
+const usdToRequiredAssetHex = (usd: number): Hex =>
+  `0x${Math.round(usd * 1e6).toString(16)}` as Hex;
+
+/**
+ * Builds a {@link TransactionType.moneyAccountDeposit} that mirrors a REAL MM Pay
+ * deposit: NO `transferInformation` (that field is only populated by incoming
+ * polling), with the USD-denominated (6dp) deposit target carried on
+ * `requiredAssets[0].amount` and an optional `metamaskPay.targetFiat`. Use this
+ * to reproduce the blank "Deposited" rows that appear when the pay-token
+ * symbol/price can't be resolved.
+ */
+function makeMoneyDepositTx(config: {
+  id: string;
+  timestampSec: number;
+  usdValue: number;
+  status?: TransactionStatus;
+  targetFiat?: string;
+}): MoneyActivityTransactionMeta {
+  const {
+    id,
+    timestampSec,
+    usdValue,
+    status = TransactionStatus.confirmed,
+    targetFiat,
+  } = config;
+
+  return {
+    id,
+    chainId: MOCK_CHAIN_ID,
+    networkClientId: MOCK_NETWORK_CLIENT_ID,
+    status,
+    time: timestampSec * 1000,
+    txParams: defaultTxParams,
+    type: TransactionType.moneyAccountDeposit,
+    requiredAssets: [
+      {
+        address: MUSD_TOKEN_ADDRESS,
+        amount: usdToRequiredAssetHex(usdValue),
+        standard: 'erc20',
+      },
+    ],
+    ...(targetFiat !== undefined ? { metamaskPay: { targetFiat } } : {}),
+  };
+}
+
 const MOCK_MONEY_TRANSACTIONS: MoneyActivityTransactionMeta[] = [
+  // Realistic MM Pay deposit: no `transferInformation`, value only on
+  // `requiredAssets`, pay-token symbol/price unavailable. Renders blank before
+  // the requiredAssets fallback in useMoneyTransactionDisplayInfo.
+  makeMoneyDepositTx({
+    id: 'money-tx-deposit-no-transfer-info',
+    timestampSec: 1747095600,
+    usdValue: 42.5,
+  }),
+  // Failed deposit with no resolved amount — renders with no value (expected).
+  makeMoneyDepositTx({
+    id: 'money-tx-deposit-failed',
+    timestampSec: 1747095000,
+    usdValue: 0,
+    status: TransactionStatus.failed,
+  }),
   makeMoneyTx({
     id: 'money-tx-1',
     timestampSec: 1747094400,

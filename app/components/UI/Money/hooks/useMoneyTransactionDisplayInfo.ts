@@ -30,7 +30,7 @@ import {
   type TokenMarketDataMap,
 } from '../utils/moneyActivityFiat';
 import { moneyFormatFiat } from '../utils/moneyFormatFiat';
-import { isMusdToken } from '../../Earn/constants/musd';
+import { isMusdToken, MUSD_TOKEN } from '../../Earn/constants/musd';
 import { ETH_TICKER } from '../constants/moneyTokens';
 import type {
   MoneyActivityTitleKey,
@@ -397,6 +397,25 @@ export function useMoneyTransactionDisplayInfo(
       }
     }
 
+    // Final fallback: a money-account deposit always lands as mUSD in the vault,
+    // and `requiredAssets[0].amount` is the USD-denominated (6dp) deposit
+    // target. When neither the mUSD transfer meta nor a pay-token amount could
+    // be resolved (e.g. the pay token is missing from the registry or has no
+    // price), show the mUSD amount rather than leaving the row blank.
+    if (!primaryAmount) {
+      const requiredAsset = getRequiredAsset(tx);
+      if (requiredAsset) {
+        const musdAmount = new BigNumber(requiredAsset.amount).dividedBy(1e6);
+        if (musdAmount.isGreaterThan(0)) {
+          primaryAmount = formatPrimaryTokenAmount(
+            musdAmount,
+            MUSD_TOKEN.symbol,
+            true,
+          );
+        }
+      }
+    }
+
     // --- Fiat amount ---
     // Prefer calculated market-rate value.
     let fiatAmount = buildMoneyActivityFiatLine(
@@ -409,6 +428,16 @@ export function useMoneyTransactionDisplayInfo(
       const rawFiat = Number(tx.metamaskPay?.targetFiat);
       if (!isNaN(rawFiat) && rawFiat > 0) {
         fiatAmount = `+${moneyFormatFiat(new BigNumber(rawFiat), currentCurrency)}`;
+      } else {
+        // Fall back to the mUSD deposit target (USD-denominated, 6dp) when no
+        // explicit fiat figure is present, so the row isn't left value-less.
+        const requiredAsset = getRequiredAsset(tx);
+        if (requiredAsset) {
+          const usdValue = new BigNumber(requiredAsset.amount).dividedBy(1e6);
+          if (usdValue.isGreaterThan(0)) {
+            fiatAmount = `+${moneyFormatFiat(usdValue, currentCurrency)}`;
+          }
+        }
       }
     }
 
