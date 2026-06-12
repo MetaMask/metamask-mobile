@@ -73,7 +73,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
       );
       const timer6 = new TimerHelper(
         'Apple: Dismiss feature sheet → wallet main screen visible',
-        { ios: 30000, android: 5000 },
+        { ios: 10000, android: 5000 },
         currentDeviceDetails.platform,
       );
 
@@ -159,9 +159,10 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
         await dismisspredictionsModalPlaywright();
         await timer6.measure(async () => {
           await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(WalletView.accountIcon), // Workaround until iOS nested component gets fixed
+            () => asPlaywrightElement(WalletView.accountIcon), // Workaround until iOS nested component gets fixed
             {
               description: 'Wallet main screen should be visible',
+              fastAppiumLookup: true,
             },
           );
         });
@@ -182,9 +183,10 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
 
         await timer4.measure(async () => {
           await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(WalletView.container),
+            () => asPlaywrightElement(WalletView.container),
             {
               description: 'Wallet main screen should be visible',
+              fastAppiumLookup: true,
             },
           );
         });

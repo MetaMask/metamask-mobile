@@ -41,6 +41,7 @@ import { useTheme } from '../../../../../util/theme';
 import { AppThemeKey } from '../../../../../util/theme/models';
 import { TabIconAnimationContext } from '../../../../../component-library/components-temp/Tabs/TabsIconTab/TabsIconAnimationContext';
 import useTabViewedEvent, { HomeTabNames } from '../../hooks/useTabViewedEvent';
+import { HomepageDiscoveryTabsSelectorsIDs } from '../../Homepage.testIds';
 
 // Tab indices — kept as a const so future tabs can be added without renumbering.
 const TAB_INDEX = {
@@ -94,6 +95,7 @@ interface DiscoveryTabViewProps {
   tabLabel: string;
   tabIcon?: IconName;
   keepMounted?: boolean;
+  testID?: string;
   style?: StyleProp<ViewStyle>;
   children?: React.ReactNode;
 }
@@ -360,6 +362,7 @@ const HomepageDiscoveryTabs = forwardRef<
                 <DiscoveryTabView
                   tabLabel="Portfolio"
                   tabIcon={IconName.PieChart}
+                  testID={HomepageDiscoveryTabsSelectorsIDs.PORTFOLIO_TAB}
                 >
                   <Reanimated.ScrollView
                     showsVerticalScrollIndicator={false}
@@ -376,6 +379,7 @@ const HomepageDiscoveryTabs = forwardRef<
                 <DiscoveryTabView
                   tabLabel="Perpetuals"
                   tabIcon={IconName.Candlestick}
+                  testID={HomepageDiscoveryTabsSelectorsIDs.PERPS_TAB}
                 >
                   <PerpsHomeView
                     hideHeader
@@ -390,6 +394,7 @@ const HomepageDiscoveryTabs = forwardRef<
                 <DiscoveryTabView
                   tabLabel="Predictions"
                   tabIcon={IconName.Predictions}
+                  testID={HomepageDiscoveryTabsSelectorsIDs.PREDICTIONS_TAB}
                   keepMounted={false}
                 >
                   <PredictPreviewSheetProvider disableBottomSheet>

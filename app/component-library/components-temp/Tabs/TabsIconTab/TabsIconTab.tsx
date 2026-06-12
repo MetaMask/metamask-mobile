@@ -38,6 +38,10 @@ const TabsIconTab: React.FC<TabsIconTabProps> = ({
   shouldFillWidth = false,
   iconProps,
   style: externalStyle,
+  accessibilityLabel,
+  accessibilityRole,
+  accessibilityState,
+  accessible,
   ...pressableProps
 }) => {
   const tw = useTailwind();
@@ -94,12 +98,23 @@ const TabsIconTab: React.FC<TabsIconTabProps> = ({
         onPress={isDisabled ? undefined : onPress}
         disabled={isDisabled}
         testID={testID}
+        accessible={accessible ?? true}
+        accessibilityLabel={accessibilityLabel ?? label}
+        accessibilityRole={accessibilityRole ?? 'button'}
+        accessibilityState={{
+          ...accessibilityState,
+          disabled: isDisabled,
+          selected: isActive,
+        }}
         {...pressableProps}
       >
         <Box
           flexDirection={BoxFlexDirection.Column}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
+          accessible={false}
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
         >
           <Reanimated.View style={iconAnimatedStyle}>
             <Icon

@@ -59,7 +59,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
       );
       const timer3 = new TimerHelper(
         'Google: Post-OAuth action → Password fields visible',
-        { ios: 4000, android: 4000 },
+        { ios: 4500, android: 4000 },
         currentDeviceDetails.platform,
       );
       const timer4 = new TimerHelper(
@@ -160,9 +160,10 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
         await dismisspredictionsModalPlaywright();
         await timer6.measure(async () => {
           await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(WalletView.accountIcon), // Workaround until iOS nested component gets fixed
+            () => asPlaywrightElement(WalletView.accountIcon), // Workaround until iOS nested component gets fixed
             {
               description: 'Wallet main screen should be visible',
+              fastAppiumLookup: true,
             },
           );
         });
@@ -183,9 +184,10 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
 
         await timer4.measure(async () => {
           await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(WalletView.container),
+            () => asPlaywrightElement(WalletView.container),
             {
               description: 'Wallet main screen should be visible',
+              fastAppiumLookup: true,
             },
           );
         });

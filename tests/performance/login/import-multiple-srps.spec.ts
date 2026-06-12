@@ -80,10 +80,11 @@ perfTest.describe(PerformanceAccountList, () => {
 
       await walletReadyTimer.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(WalletView.accountIcon),
+          () => asPlaywrightElement(WalletView.accountIcon),
           {
             description:
               'Wallet main screen should be visible after importing SRP',
+            fastAppiumLookup: true,
           },
         );
       });

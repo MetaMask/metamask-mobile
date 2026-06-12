@@ -161,15 +161,15 @@ export async function ensureAccountGroupsFinishedLoading(
   currentDeviceDetails: CurrentDeviceDetails,
 ): Promise<void> {
   await PlaywrightAssertions.expectElementToBeVisible(
-    asPlaywrightElement(WalletView.container),
-    { timeout: 15000 },
+    () => asPlaywrightElement(WalletView.container),
+    { fastAppiumLookup: true, timeout: 15000 },
   );
   await PlaywrightGestures.terminateApp(currentDeviceDetails);
   await PlaywrightGestures.activateApp(currentDeviceDetails);
   await loginToAppPlaywright();
   await PlaywrightAssertions.expectElementToBeVisible(
-    asPlaywrightElement(WalletView.container),
-    { timeout: 15000 },
+    () => asPlaywrightElement(WalletView.container),
+    { fastAppiumLookup: true, timeout: 15000 },
   );
   await WalletView.tapIdenticon();
   await AccountListBottomSheet.waitForAccountSyncToComplete();
@@ -177,8 +177,8 @@ export async function ensureAccountGroupsFinishedLoading(
   await PlaywrightGestures.activateApp(currentDeviceDetails);
   await loginToAppPlaywright();
   await PlaywrightAssertions.expectElementToBeVisible(
-    asPlaywrightElement(WalletView.container),
-    { timeout: 15000 },
+    () => asPlaywrightElement(WalletView.container),
+    { fastAppiumLookup: true, timeout: 15000 },
   );
 }
 
