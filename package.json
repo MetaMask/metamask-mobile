@@ -242,7 +242,7 @@
     "@metamask/app-metadata-controller": "^2.0.0",
     "@metamask/approval-controller": "^9.0.0",
     "@metamask/assets-controller": "^8.3.1",
-    "@metamask/assets-controllers": "npm:@metamask-previews/assets-controllers@109.0.0-preview-bb11942f2",
+    "@metamask/assets-controllers": "^109.0.0",
     "@metamask/authenticated-user-storage": "^2.0.0",
     "@metamask/base-controller": "^9.0.1",
     "@metamask/bitcoin-wallet-snap": "^1.12.0",
