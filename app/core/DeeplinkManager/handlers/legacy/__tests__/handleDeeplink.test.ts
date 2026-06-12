@@ -1,7 +1,4 @@
-import {
-  handleDeeplink,
-  resetDeeplinkDeduplication,
-} from '../handleDeeplink';
+import { handleDeeplink, resetDeeplinkDeduplication } from '../handleDeeplink';
 import { checkForDeeplink } from '../../../../../actions/user';
 import { saveAttribution } from '../../../../redux/slices/attribution';
 import ReduxService from '../../../../redux';
