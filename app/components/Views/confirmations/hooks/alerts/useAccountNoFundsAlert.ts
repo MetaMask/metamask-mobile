@@ -25,7 +25,7 @@ export function useAccountNoFundsAlert(): Alert[] {
     return [
       {
         key: AlertKeys.AccountNoFunds,
-        title: strings('alert_system.account_no_funds.message'),
+        title: strings('alert_system.account_no_funds.title'),
         message: strings('alert_system.account_no_funds.message'),
         severity: Severity.Danger,
         isBlocking: true,
