@@ -66,6 +66,7 @@ export const getSportsMarketTypeLabel = (
   toTitleCase(type);
 
 type BuyHandler = (outcome: PredictOutcome, token: PredictOutcomeToken) => void;
+type GetLivePrice = ReturnType<typeof useLiveMarketPrices>['getPrice'];
 
 const O_U_PLAYER_PATTERN = /^(.+?):\s+\w+ O\/U/;
 
@@ -124,21 +125,48 @@ const buildButtons = (
   onBuyPress: BuyHandler,
   game?: PredictMarketGame,
   sportsMarketType?: string,
+  getPrice?: ReturnType<typeof useLiveMarketPrices>['getPrice'],
 ): PredictSportOutcomeButton[] => {
   const moneyline = isMoneylineLikeMarketType(sportsMarketType);
-  return outcome.tokens.map((token, index) => ({
-    label: token.shortTitle ?? token.title,
-    price: Math.round(token.price * 100),
-    onPress: () => onBuyPress(outcome, token),
-    variant: getButtonVariant(index, outcome.tokens.length, moneyline),
-    teamColor: moneyline
-      ? getTeamColor(token.shortTitle ?? token.title, game)
-      : undefined,
-  }));
+  return outcome.tokens.map((token, index) => {
+    const liveBestAsk = getPrice?.(token.id)?.bestAsk;
+
+    return {
+      label: token.shortTitle ?? token.title,
+      price: Math.round(
+        (isValidPrice(liveBestAsk) ? liveBestAsk : token.price) * 100,
+      ),
+      onPress: () => onBuyPress(outcome, token),
+      variant: getButtonVariant(index, outcome.tokens.length, moneyline),
+      teamColor: moneyline
+        ? getTeamColor(token.shortTitle ?? token.title, game)
+        : undefined,
+    };
+  });
 };
 
 const buildSubtitle = (outcome: PredictOutcome): string =>
   `$${formatVolume(outcome.volume)} Vol`;
+
+const collectOutcomeTokenIds = (outcomes: PredictOutcome[]): string[] => [
+  ...new Set(
+    outcomes.flatMap((outcome) => outcome.tokens.map((token) => token.id)),
+  ),
+];
+
+const collectNonLineSubgroupTokenIds = (
+  subgroups: PredictOutcomeGroup[],
+): string[] => [
+  ...new Set(
+    subgroups.flatMap((subgroup) => {
+      const isLineCard =
+        !isMoneylineLikeMarketType(subgroup.key) &&
+        subgroup.outcomes.length > 1;
+
+      return isLineCard ? [] : collectOutcomeTokenIds(subgroup.outcomes);
+    }),
+  ),
+];
 
 const SimpleOutcomeCard = memo(
   ({
@@ -147,6 +175,7 @@ const SimpleOutcomeCard = memo(
     onBuyPress,
     game,
     sportsMarketType,
+    getPrice,
     testID,
   }: {
     outcome: PredictOutcome;
@@ -154,12 +183,19 @@ const SimpleOutcomeCard = memo(
     onBuyPress: BuyHandler;
     game?: PredictMarketGame;
     sportsMarketType?: string;
+    getPrice?: GetLivePrice;
     testID: string;
   }) => (
     <PredictSportOutcomeCard
       title={title}
       subtitle={buildSubtitle(outcome)}
-      buttons={buildButtons(outcome, onBuyPress, game, sportsMarketType)}
+      buttons={buildButtons(
+        outcome,
+        onBuyPress,
+        game,
+        sportsMarketType,
+        getPrice,
+      )}
       testID={testID}
     />
   ),
@@ -174,6 +210,7 @@ const LineOutcomeCard = memo(
     onBuyPress,
     game,
     sportsMarketType,
+    getPrice,
     testID,
   }: {
     outcomes: PredictOutcome[];
@@ -181,6 +218,7 @@ const LineOutcomeCard = memo(
     onBuyPress: BuyHandler;
     game?: PredictMarketGame;
     sportsMarketType?: string;
+    getPrice?: GetLivePrice;
     testID: string;
   }) => {
     const lineIndices = useMemo(
@@ -218,6 +256,13 @@ const LineOutcomeCard = memo(
       () => outcomes[lineIndices[selectedIdx]] ?? outcomes[0],
       [outcomes, lineIndices, selectedIdx],
     );
+    const selectedTokenIds = useMemo(
+      () =>
+        selectedOutcome ? selectedOutcome.tokens.map((token) => token.id) : [],
+      [selectedOutcome],
+    );
+    const { getPrice: getSelectedLinePrice } =
+      useLiveMarketPrices(selectedTokenIds);
 
     if (!selectedOutcome) return null;
 
@@ -230,6 +275,7 @@ const LineOutcomeCard = memo(
           onBuyPress,
           game,
           sportsMarketType,
+          getSelectedLinePrice,
         )}
         lines={lines}
         selectedLine={lines[selectedIdx]}
@@ -314,26 +360,20 @@ const MoneylineCard = memo(
     onBuyPress,
     game,
     title,
+    getPrice,
     testID,
   }: {
     outcomes: PredictOutcome[];
     onBuyPress: BuyHandler;
     game?: PredictMarketGame;
     title: string;
+    getPrice?: GetLivePrice;
     testID: string;
   }) => {
     const subtitle = useMemo(
       () => buildMoneylineSubtitle(outcomes),
       [outcomes],
     );
-    const tokenIds = useMemo(
-      () =>
-        sortMoneylineOutcomes(outcomes, game)
-          .map((outcome) => outcome.tokens[0]?.id)
-          .filter((id): id is string => Boolean(id)),
-      [outcomes, game],
-    );
-    const { getPrice } = useLiveMarketPrices(tokenIds);
     const buttons = useMemo(
       () => buildMoneylineButtons(outcomes, onBuyPress, game, getPrice),
       [outcomes, onBuyPress, game, getPrice],
@@ -358,12 +398,14 @@ const SubgroupCards = memo(
     subgroup,
     onBuyPress,
     game,
+    getPrice,
     groupKey,
     index,
   }: {
     subgroup: PredictOutcomeGroup;
     onBuyPress: BuyHandler;
     game?: PredictMarketGame;
+    getPrice?: GetLivePrice;
     groupKey: string;
     index: number;
   }) => {
@@ -384,6 +426,7 @@ const SubgroupCards = memo(
           outcomes={subgroup.outcomes}
           onBuyPress={onBuyPress}
           game={game}
+          getPrice={getPrice}
           title={title}
           testID={testID}
         />
@@ -397,6 +440,7 @@ const SubgroupCards = memo(
           title={title}
           onBuyPress={onBuyPress}
           game={game}
+          getPrice={getPrice}
           sportsMarketType={subgroup.key}
           testID={testID}
         />
@@ -409,6 +453,7 @@ const SubgroupCards = memo(
         title={translatedTitle}
         onBuyPress={onBuyPress}
         game={game}
+        getPrice={getPrice}
         sportsMarketType={subgroup.key}
         testID={testID}
       />
@@ -428,6 +473,15 @@ const OutcomesContent = memo(
     onBuyPress: BuyHandler;
     game?: PredictMarketGame;
   }) => {
+    const tokenIds = useMemo(() => {
+      if (group.subgroups && group.subgroups.length > 0) {
+        return collectNonLineSubgroupTokenIds(group.subgroups);
+      }
+
+      return collectOutcomeTokenIds(group.outcomes);
+    }, [group]);
+    const { getPrice } = useLiveMarketPrices(tokenIds);
+
     if (group.subgroups && group.subgroups.length > 0) {
       return (
         <>
@@ -437,6 +491,7 @@ const OutcomesContent = memo(
               subgroup={subgroup}
               onBuyPress={onBuyPress}
               game={game}
+              getPrice={getPrice}
               groupKey={group.key}
               index={index}
             />
@@ -456,6 +511,7 @@ const OutcomesContent = memo(
           outcomes={group.outcomes}
           onBuyPress={onBuyPress}
           game={game}
+          getPrice={getPrice}
           title={getSportsMarketTypeLabel(
             firstType,
             formatOutcomeCardTitle(group.outcomes[0]),
@@ -474,6 +530,7 @@ const OutcomesContent = memo(
             title={formatOutcomeCardTitle(outcome)}
             onBuyPress={onBuyPress}
             game={game}
+            getPrice={getPrice}
             sportsMarketType={outcome.sportsMarketType}
             testID={`${group.key}-outcome-${index}`}
           />

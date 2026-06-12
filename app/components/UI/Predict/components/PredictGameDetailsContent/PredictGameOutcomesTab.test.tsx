@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
 import PredictGameOutcomesTab, {
   getSportsMarketTypeLabel,
 } from './PredictGameOutcomesTab';
@@ -212,6 +213,10 @@ const mockGame: PredictMarketGame = {
 };
 
 describe('PredictGameOutcomesTab', () => {
+  const mockUseLiveMarketPrices = useLiveMarketPrices as jest.MockedFunction<
+    typeof useLiveMarketPrices
+  >;
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetLivePrice.mockReturnValue(undefined);
@@ -438,6 +443,62 @@ describe('PredictGameOutcomesTab', () => {
   });
 
   describe('subgroups', () => {
+    it('subscribes non-line subgroups at the parent level and line cards by selected line', () => {
+      const subgroups: PredictOutcomeGroup[] = [
+        createGroup({
+          key: 'moneyline',
+          outcomes: [
+            createOutcome({
+              id: 'ml-1',
+              tokens: [createToken({ id: 'ml-token-1', shortTitle: 'TA' })],
+            }),
+            createOutcome({
+              id: 'ml-2',
+              tokens: [createToken({ id: 'ml-token-2', shortTitle: 'TB' })],
+            }),
+          ],
+        }),
+        createGroup({
+          key: 'spreads',
+          outcomes: [
+            createOutcome({
+              id: 'spread-1',
+              line: 1.5,
+              tokens: [
+                createToken({ id: 'spread-over', shortTitle: 'Over' }),
+                createToken({ id: 'spread-under', shortTitle: 'Under' }),
+              ],
+            }),
+            createOutcome({
+              id: 'spread-2',
+              line: 2.5,
+              tokens: [
+                createToken({ id: 'spread-over-2', shortTitle: 'Over' }),
+                createToken({ id: 'spread-under-2', shortTitle: 'Under' }),
+              ],
+            }),
+          ],
+        }),
+      ];
+      const groups = [
+        createGroup({ key: 'game_lines', outcomes: [], subgroups }),
+      ];
+
+      render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={mockGame}
+          activeChipKey="game_lines"
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      expect(mockUseLiveMarketPrices.mock.calls).toEqual([
+        [['ml-token-1', 'ml-token-2']],
+        [['spread-over', 'spread-under']],
+      ]);
+    });
+
     it('renders SubgroupCards for each subgroup', () => {
       const subgroups: PredictOutcomeGroup[] = [
         createGroup({
@@ -948,6 +1009,72 @@ describe('PredictGameOutcomesTab', () => {
   });
 
   describe('line selection', () => {
+    it('resubscribes line cards only for the selected line token ids', () => {
+      const subgroups: PredictOutcomeGroup[] = [
+        createGroup({
+          key: 'spreads',
+          outcomes: [
+            createOutcome({
+              id: 's1',
+              line: 3.5,
+              tokens: [
+                createToken({
+                  id: 'line-1-over',
+                  shortTitle: 'TA',
+                  price: 0.6,
+                }),
+                createToken({
+                  id: 'line-1-under',
+                  shortTitle: 'TB',
+                  price: 0.4,
+                }),
+              ],
+            }),
+            createOutcome({
+              id: 's2',
+              line: 7.5,
+              tokens: [
+                createToken({
+                  id: 'line-2-over',
+                  shortTitle: 'TA',
+                  price: 0.8,
+                }),
+                createToken({
+                  id: 'line-2-under',
+                  shortTitle: 'TB',
+                  price: 0.2,
+                }),
+              ],
+            }),
+          ],
+        }),
+      ];
+      const groups = [
+        createGroup({ key: 'game_lines', outcomes: [], subgroups }),
+      ];
+
+      const { getByTestId } = render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={mockGame}
+          activeChipKey="game_lines"
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      expect(mockUseLiveMarketPrices).toHaveBeenLastCalledWith([
+        'line-1-over',
+        'line-1-under',
+      ]);
+
+      fireEvent(getByTestId('game_lines-spreads-0-line-1-7.5'), 'touchEnd');
+
+      expect(mockUseLiveMarketPrices).toHaveBeenLastCalledWith([
+        'line-2-over',
+        'line-2-under',
+      ]);
+    });
+
     it('sorts lines numerically in ascending order', () => {
       const subgroups: PredictOutcomeGroup[] = [
         createGroup({
@@ -1263,6 +1390,120 @@ describe('PredictGameOutcomesTab', () => {
       );
 
       expect(mockCapturedCards[0].buttons[0].price).toBe(45);
+    });
+
+    it('uses live best ask prices for simple non-moneyline cards', () => {
+      mockGetLivePrice.mockImplementation((tokenId: string) => ({
+        tokenId,
+        price: 0,
+        bestBid: 0,
+        bestAsk: tokenId === 'tok-over' ? 0.62 : 0.38,
+      }));
+
+      const groups = [
+        createGroup({
+          key: 'totals',
+          outcomes: [
+            createOutcome({
+              id: 'totals-1',
+              sportsMarketType: 'totals',
+              tokens: [
+                createToken({
+                  id: 'tok-over',
+                  title: 'Over',
+                  shortTitle: 'Over',
+                  price: 0.51,
+                }),
+                createToken({
+                  id: 'tok-under',
+                  title: 'Under',
+                  shortTitle: 'Under',
+                  price: 0.49,
+                }),
+              ],
+            }),
+          ],
+        }),
+      ];
+
+      render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={mockGame}
+          activeChipKey="totals"
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      expect(mockCapturedCards[0].buttons[0].price).toBe(62);
+      expect(mockCapturedCards[0].buttons[1].price).toBe(38);
+    });
+
+    it('uses live best ask prices for line cards', () => {
+      mockGetLivePrice.mockImplementation((tokenId: string) => ({
+        tokenId,
+        price: 0,
+        bestBid: 0,
+        bestAsk: tokenId === 'tok-line-over' ? 0.57 : 0.43,
+      }));
+
+      const groups = [
+        createGroup({
+          key: 'spreads',
+          outcomes: [
+            createOutcome({
+              id: 'spread-1',
+              sportsMarketType: 'spreads',
+              line: 1.5,
+              tokens: [
+                createToken({
+                  id: 'tok-line-over',
+                  title: 'Over',
+                  shortTitle: 'Over',
+                  price: 0.52,
+                }),
+                createToken({
+                  id: 'tok-line-under',
+                  title: 'Under',
+                  shortTitle: 'Under',
+                  price: 0.48,
+                }),
+              ],
+            }),
+            createOutcome({
+              id: 'spread-2',
+              sportsMarketType: 'spreads',
+              line: 2.5,
+              tokens: [
+                createToken({
+                  id: 'tok-line-over-2',
+                  title: 'Over',
+                  shortTitle: 'Over',
+                  price: 0.45,
+                }),
+                createToken({
+                  id: 'tok-line-under-2',
+                  title: 'Under',
+                  shortTitle: 'Under',
+                  price: 0.55,
+                }),
+              ],
+            }),
+          ],
+        }),
+      ];
+
+      render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={mockGame}
+          activeChipKey="spreads"
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      expect(mockCapturedCards[0].buttons[0].price).toBe(57);
+      expect(mockCapturedCards[0].buttons[1].price).toBe(43);
     });
 
     it('calls onBuyPress with correct outcome and token for moneyline button', () => {
