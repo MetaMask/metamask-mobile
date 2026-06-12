@@ -76,8 +76,7 @@ export const isVedaToken = (
 
 /**
  * True when the Money Account spending token (VEDA) is present and enabled in
- * the cardFeature allowlist, matched by the canonical `veda` symbol — the same
- * key the provider's delegation settings use — across all configured chains.
+ * the cardFeature allowlist for VEDA's chain.
  */
 export const isMoneyAccountCardTokenAllowlisted = (
   chains:
@@ -85,22 +84,28 @@ export const isMoneyAccountCardTokenAllowlisted = (
         string,
         | {
             tokens?:
-              | { symbol?: string | null; enabled?: boolean | null }[]
+              | {
+                  address?: string | null;
+                  symbol?: string | null;
+                  enabled?: boolean | null;
+                }[]
               | null;
           }
         | undefined
       >
     | null
     | undefined,
+  vedaConfig: VedaTokenConfig | null | undefined,
 ): boolean => {
-  if (!chains) {
+  if (!chains || !vedaConfig) {
     return false;
   }
-  return Object.values(chains).some((chain) =>
-    (chain?.tokens ?? []).some(
-      (token) =>
-        token?.enabled !== false &&
-        token?.symbol?.toLowerCase() === MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
-    ),
+  const target = vedaConfig.address.toLowerCase();
+  const chain = chains[vedaConfig.caipChainId];
+  return (chain?.tokens ?? []).some(
+    (token) =>
+      token?.enabled !== false &&
+      (token?.address?.toLowerCase() === target ||
+        token?.symbol?.toLowerCase() === MONEY_ACCOUNT_DELEGATION_TOKEN_KEY),
   );
 };

@@ -36,6 +36,7 @@ import {
   selectIsCardholder,
   selectIsMoneyAccountCardLinkInProgress,
   selectIsMoneyAccountDelegatedForCard,
+  selectMoneyAccountVedaTokenConfig,
 } from '../../../../selectors/cardController';
 import {
   selectPendingMoneyAccountCardLink,
@@ -120,6 +121,7 @@ export const useMoneyAccountCardLinkage =
     const isCardAuthenticated = useSelector(selectIsCardAuthenticated);
     const isCardholder = useSelector(selectIsCardholder);
     const delegationSettings = useSelector(selectCardDelegationSettings);
+    const vedaConfig = useSelector(selectMoneyAccountVedaTokenConfig);
     const cardFeatureFlag = useSelector(selectCardFeatureFlag);
     const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
     const isAlreadyDelegated = useSelector(
@@ -142,8 +144,9 @@ export const useMoneyAccountCardLinkage =
     );
 
     const isMoneyAccountCardSupported = useMemo(
-      () => isMoneyAccountCardTokenAllowlisted(cardFeatureFlag?.chains),
-      [cardFeatureFlag],
+      () =>
+        isMoneyAccountCardTokenAllowlisted(cardFeatureFlag?.chains, vedaConfig),
+      [cardFeatureFlag, vedaConfig],
     );
 
     const moneyAccountCardToken = isMoneyAccountCardSupported
