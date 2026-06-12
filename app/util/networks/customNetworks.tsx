@@ -132,8 +132,7 @@ export const PopularList = [
   {
     chainId: toHex('324'),
     nickname: 'zkSync Era',
-    rpcUrl: `https://zksync-mainnet.infura.io/v3/${infuraProjectId}`,
-    failoverRpcUrls: [],
+    rpcUrl: `https://mainnet.era.zksync.io`,
     ticker: 'ETH',
     warning: true,
     rpcPrefs: {

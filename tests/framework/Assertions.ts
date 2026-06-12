@@ -2,14 +2,7 @@ import { waitFor } from 'detox';
 import Utilities, { BASE_DEFAULTS } from './Utilities.ts';
 import { AssertionOptions } from './types.ts';
 import Matchers from './Matchers.ts';
-import {
-  asDetoxElement,
-  asPlaywrightElement,
-  type EncapsulatedElementType,
-} from './EncapsulatedElement.ts';
 import { Json } from '@metamask/utils';
-import { FrameworkDetector } from './FrameworkDetector.ts';
-import PlaywrightAssertions from './PlaywrightAssertions.ts';
 
 /**
  * Assertions with auto-retry and better error messages
@@ -19,21 +12,13 @@ export default class Assertions {
    * Assert element is visible with auto-retry
    */
   static async expectElementToBeVisible(
-    elem:
+    detoxElement:
       | DetoxElement
       | WebElement
       | DetoxMatcher
-      | IndexableNativeElement
-      | EncapsulatedElementType,
+      | IndexableNativeElement,
     options: AssertionOptions = {},
   ): Promise<void> {
-    if (FrameworkDetector.isAppium()) {
-      return PlaywrightAssertions.expectElementToBeVisible(
-        asPlaywrightElement(elem as EncapsulatedElementType),
-        options,
-      );
-    }
-
     const {
       timeout = BASE_DEFAULTS.timeout,
       description = 'element should be visible',
@@ -41,9 +26,7 @@ export default class Assertions {
 
     return Utilities.executeWithRetry(
       async () => {
-        const el = (await elem) as Awaited<
-          DetoxElement | WebElement | DetoxMatcher | IndexableNativeElement
-        >;
+        const el = await detoxElement;
         const isWebElement = Utilities.isWebElement(el);
         if (isWebElement) {
           // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
@@ -65,21 +48,13 @@ export default class Assertions {
    * Assert element is not visible with auto-retry
    */
   static async expectElementToNotBeVisible(
-    elem:
+    detoxElement:
       | DetoxElement
       | WebElement
       | DetoxMatcher
-      | IndexableNativeElement
-      | EncapsulatedElementType,
+      | IndexableNativeElement,
     options: AssertionOptions = {},
   ): Promise<void> {
-    if (FrameworkDetector.isAppium()) {
-      return PlaywrightAssertions.expectElementToNotBeVisible(
-        asPlaywrightElement(elem as EncapsulatedElementType),
-        options,
-      );
-    }
-
     const {
       timeout = BASE_DEFAULTS.timeout,
       description = 'element should not visible',
@@ -87,9 +62,7 @@ export default class Assertions {
 
     return Utilities.executeWithRetry(
       async () => {
-        const el = (await elem) as Awaited<
-          DetoxElement | WebElement | DetoxMatcher | IndexableNativeElement
-        >;
+        const el = await detoxElement;
         const isWebElement = Utilities.isWebElement(el);
         if (isWebElement) {
           // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
@@ -109,18 +82,10 @@ export default class Assertions {
    * Assert element has specific text with auto-retry
    */
   static async expectElementToHaveText(
-    elem: EncapsulatedElementType,
+    detoxElement: DetoxElement,
     text: string,
     options: AssertionOptions = {},
   ): Promise<void> {
-    if (FrameworkDetector.isAppium()) {
-      return PlaywrightAssertions.expectElementText(
-        asPlaywrightElement(elem),
-        text,
-        options,
-      );
-    }
-
     const {
       timeout = BASE_DEFAULTS.timeout,
       description = `element has text "${text}"`,
@@ -128,7 +93,7 @@ export default class Assertions {
 
     return Utilities.executeWithRetry(
       async () => {
-        const el = (await elem) as Detox.IndexableNativeElement;
+        const el = (await detoxElement) as Detox.IndexableNativeElement;
         await waitFor(el).toHaveText(text).withTimeout(100);
       },
       {
@@ -177,7 +142,7 @@ export default class Assertions {
    * Assert element does not have specific text with auto-retry
    */
   static async expectElementToNotHaveText(
-    elem: EncapsulatedElementType,
+    detoxElement: DetoxElement,
     text: string,
     options: AssertionOptions = {},
   ): Promise<void> {
@@ -188,7 +153,7 @@ export default class Assertions {
 
     return Utilities.executeWithRetry(
       async () => {
-        const el = (await elem) as Detox.IndexableNativeElement;
+        const el = (await detoxElement) as Detox.IndexableNativeElement;
         await waitFor(el).not.toHaveText(text).withTimeout(100);
       },
       {
@@ -202,7 +167,7 @@ export default class Assertions {
    * Assert element has specific label with auto-retry
    */
   static async expectElementToHaveLabel(
-    elem: EncapsulatedElementType,
+    detoxElement: DetoxElement,
     label: string,
     options: AssertionOptions = {},
   ): Promise<void> {
@@ -213,7 +178,7 @@ export default class Assertions {
 
     return Utilities.executeWithRetry(
       async () => {
-        const el = (await elem) as Detox.IndexableNativeElement;
+        const el = (await detoxElement) as Detox.IndexableNativeElement;
         await waitFor(el).toHaveLabel(label).withTimeout(100);
       },
       {
@@ -230,27 +195,18 @@ export default class Assertions {
     text: string,
     options: AssertionOptions & { allowDuplicates?: boolean } = {},
   ): Promise<void> {
-    if (FrameworkDetector.isAppium()) {
-      return PlaywrightAssertions.expectTextDisplayed(text, options);
-    }
-
     const { timeout = BASE_DEFAULTS.timeout, allowDuplicates = false } =
       options;
 
     return Utilities.executeWithRetry(
       async () => {
         const textElement = allowDuplicates
-          ? Matchers.getElementByText(text, 0)
-          : Matchers.getElementByText(text);
-        const el = await asDetoxElement(textElement);
+          ? (await Matchers.getElementByText(text)).atIndex(0)
+          : await Matchers.getElementByText(text);
         if (device.getPlatform() === 'ios') {
-          await waitFor(el as Detox.NativeElement)
-            .toExist()
-            .withTimeout(100);
+          await waitFor(textElement).toExist().withTimeout(100);
         } else {
-          await waitFor(el as Detox.NativeElement)
-            .toBeVisible()
-            .withTimeout(100);
+          await waitFor(textElement).toBeVisible().withTimeout(100);
         }
       },
       {
@@ -269,22 +225,14 @@ export default class Assertions {
     text: string,
     options: AssertionOptions = {},
   ): Promise<void> {
-    if (FrameworkDetector.isAppium()) {
-      return PlaywrightAssertions.expectTextNotDisplayed(text, options);
-    }
-
     const { timeout = BASE_DEFAULTS.timeout } = options;
     return Utilities.executeWithRetry(
       async () => {
-        const el = await asDetoxElement(Matchers.getElementByText(text));
+        const textElement = await Matchers.getElementByText(text);
         if (device.getPlatform() === 'ios') {
-          await waitFor(el as Detox.NativeElement)
-            .not.toExist()
-            .withTimeout(100);
+          await waitFor(textElement).not.toExist().withTimeout(100);
         } else {
-          await waitFor(el as Detox.NativeElement)
-            .not.toBeVisible()
-            .withTimeout(100);
+          await waitFor(textElement).not.toBeVisible().withTimeout(100);
         }
       },
       {
@@ -298,7 +246,7 @@ export default class Assertions {
    * Assert element is enabled with auto-retry
    */
   static async expectToggleToBeOn(
-    elem: EncapsulatedElementType,
+    detoxElement: DetoxElement,
     options: AssertionOptions = {},
   ): Promise<void> {
     const {
@@ -310,7 +258,7 @@ export default class Assertions {
       async () => {
         try {
           const el = (await Utilities.waitForReadyState(
-            elem,
+            detoxElement,
           )) as Detox.IndexableNativeElement;
           // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
           await (expect(el) as any).toHaveToggleValue(true);
@@ -336,7 +284,7 @@ export default class Assertions {
    * Assert element is disabled with auto-retry
    */
   static async expectToggleToBeOff(
-    elem: EncapsulatedElementType,
+    detoxElement: DetoxElement,
     options: AssertionOptions = {},
   ): Promise<void> {
     const {
@@ -348,7 +296,7 @@ export default class Assertions {
       async () => {
         try {
           const el = (await Utilities.waitForReadyState(
-            elem,
+            detoxElement,
           )) as Detox.IndexableNativeElement;
           // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
           await (expect(el) as any).toHaveToggleValue(false);
@@ -378,7 +326,7 @@ export default class Assertions {
         throw new Error('Both actual and expected text must be provided');
       }
 
-      expect(actualText).toBe(expectedText);
+      return expect(actualText).toBe(expectedText);
     } catch (error) {
       if (actualText !== expectedText) {
         throw new Error(
@@ -593,21 +541,19 @@ export default class Assertions {
    * @deprecated Use expectElementToBeVisible() instead for better error handling and retry mechanisms
    */
   static async checkIfVisible(
-    elem: EncapsulatedElementType,
+    detoxElement: DetoxElement,
     timeout = 15000,
   ): Promise<void> {
-    return this.expectElementToBeVisible(elem, { timeout });
+    return this.expectElementToBeVisible(detoxElement, { timeout });
   }
 
   /**
    * Legacy method: Check if a web element exists
    * @deprecated Use expectElementToBeVisible() instead for better error handling and retry mechanisms
    */
-  static async webViewElementExists(
-    elem: EncapsulatedElementType,
-  ): Promise<void> {
+  static async webViewElementExists(detoxElement: DetoxElement): Promise<void> {
     // For web elements, just use the basic expect assertion
-    const el = (await elem) as Detox.IndexableNativeElement;
+    const el = (await detoxElement) as Detox.IndexableNativeElement;
     // Use Detox's expect which has toExist method
     // Use Detox's expect syntax for element existence
     // eslint-disable-next-line @typescript-eslint/no-explicit-any, jest/valid-expect
@@ -619,10 +565,10 @@ export default class Assertions {
    * @deprecated Use expectElementToNotBeVisible() instead for better error handling and retry mechanisms
    */
   static async checkIfNotVisible(
-    elem: EncapsulatedElementType,
+    detoxElement: DetoxElement,
     timeout = 15000,
   ): Promise<void> {
-    return this.expectElementToNotBeVisible(elem as DetoxElement, {
+    return this.expectElementToNotBeVisible(detoxElement as DetoxElement, {
       timeout,
     });
   }
@@ -632,11 +578,11 @@ export default class Assertions {
    * @deprecated Use expectElementToHaveText() instead for better error handling and retry mechanisms
    */
   static async checkIfElementToHaveText(
-    elem: EncapsulatedElementType,
+    detoxElement: DetoxElement,
     text: string,
     timeout = 15000,
   ): Promise<void> {
-    return this.expectElementToHaveText(elem as DetoxElement, text, {
+    return this.expectElementToHaveText(detoxElement as DetoxElement, text, {
       timeout,
     });
   }
@@ -646,11 +592,11 @@ export default class Assertions {
    * @deprecated Use expectElementToHaveLabel() instead for better error handling and retry mechanisms
    */
   static async checkIfElementHasLabel(
-    elem: EncapsulatedElementType,
+    detoxElement: DetoxElement,
     label: string,
     timeout = 15000,
   ): Promise<void> {
-    return this.expectElementToHaveLabel(elem, label, { timeout });
+    return this.expectElementToHaveLabel(detoxElement, label, { timeout });
   }
 
   /**
@@ -674,10 +620,8 @@ export default class Assertions {
   ): Promise<void> {
     return Utilities.executeWithRetry(
       async () => {
-        const el = await asDetoxElement(Matchers.getElementByText(text));
-        await waitFor(el as Detox.NativeElement)
-          .not.toBeVisible()
-          .withTimeout(100);
+        const textElement = await Matchers.getElementByText(text);
+        await waitFor(textElement).not.toBeVisible().withTimeout(100);
       },
       {
         timeout,
@@ -691,13 +635,13 @@ export default class Assertions {
    * @deprecated Use expectElementToNotHaveText() or custom assertion instead for better error handling and retry mechanisms
    */
   static async checkIfElementNotToHaveText(
-    elem: EncapsulatedElementType,
+    detoxElement: DetoxElement,
     text: string,
     timeout = 15000,
   ): Promise<void> {
     return Utilities.executeWithRetry(
       async () => {
-        const el = (await elem) as Detox.IndexableNativeElement;
+        const el = (await detoxElement) as Detox.IndexableNativeElement;
         await waitFor(el).not.toHaveText(text).withTimeout(100);
       },
       {
@@ -712,13 +656,13 @@ export default class Assertions {
    * @deprecated Use expectElementToNotBeVisible() or custom assertion instead for better error handling and retry mechanisms
    */
   static async checkIfElementDoesNotHaveLabel(
-    elem: EncapsulatedElementType,
+    detoxElement: DetoxElement,
     label: string,
     timeout = 15000,
   ): Promise<void> {
     return Utilities.executeWithRetry(
       async () => {
-        const el = (await elem) as Detox.IndexableNativeElement;
+        const el = (await detoxElement) as Detox.IndexableNativeElement;
         await waitFor(el).not.toHaveLabel(label).withTimeout(100);
       },
       {
@@ -732,8 +676,8 @@ export default class Assertions {
    * Legacy method: Check if toggle is in "on" state
    * @deprecated Use expectToggleToBeOn() instead for better error handling and retry mechanisms
    */
-  static async checkIfToggleIsOn(elem: EncapsulatedElementType): Promise<void> {
-    const el = (await elem) as Detox.IndexableNativeElement;
+  static async checkIfToggleIsOn(detoxElement: DetoxElement): Promise<void> {
+    const el = (await detoxElement) as Detox.IndexableNativeElement;
     // Use Detox's expect syntax for toggle values
     // eslint-disable-next-line @typescript-eslint/no-explicit-any, jest/valid-expect
     await (expect(el) as any).toHaveToggleValue(true);
@@ -743,10 +687,8 @@ export default class Assertions {
    * Legacy method: Check if toggle is in "off" state
    * @deprecated Use expectToggleToBeOff() instead for better error handling and retry mechanisms
    */
-  static async checkIfToggleIsOff(
-    elem: EncapsulatedElementType,
-  ): Promise<void> {
-    const el = (await elem) as Detox.IndexableNativeElement;
+  static async checkIfToggleIsOff(detoxElement: DetoxElement): Promise<void> {
+    const el = (await detoxElement) as Detox.IndexableNativeElement;
     // Use Detox's expect syntax for toggle values
     // eslint-disable-next-line @typescript-eslint/no-explicit-any, jest/valid-expect
     await (expect(el) as any).toHaveToggleValue(false);
@@ -756,8 +698,8 @@ export default class Assertions {
    * Legacy method: Check if element is enabled
    * @deprecated Use Utilities.waitForElementToBeEnabled() instead for better retry handling
    */
-  static async checkIfEnabled(elem: EncapsulatedElementType): Promise<boolean> {
-    const el = (await elem) as Detox.IndexableNativeElement;
+  static async checkIfEnabled(detoxElement: DetoxElement): Promise<boolean> {
+    const el = (await detoxElement) as Detox.IndexableNativeElement;
     const attributes = await el.getAttributes();
     return 'enabled' in attributes ? !!attributes.enabled : false;
   }
@@ -766,10 +708,8 @@ export default class Assertions {
    * Legacy method: Check if element is disabled
    * @deprecated Use Utilities.waitForElementToBeEnabled() with negated logic instead
    */
-  static async checkIfDisabled(
-    elem: EncapsulatedElementType,
-  ): Promise<boolean> {
-    const el = (await elem) as Detox.IndexableNativeElement;
+  static async checkIfDisabled(detoxElement: DetoxElement): Promise<boolean> {
+    const el = (await detoxElement) as Detox.IndexableNativeElement;
     const attributes = await el.getAttributes();
     return 'enabled' in attributes ? !attributes.enabled : true;
   }

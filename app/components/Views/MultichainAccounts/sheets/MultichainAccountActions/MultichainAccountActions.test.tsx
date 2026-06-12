@@ -161,7 +161,6 @@ describe('MultichainAccountActions', () => {
       {
         groupId: mockAccountGroup.id,
         title: `Addresses / ${mockAccountGroup.metadata.name}`,
-        source: 'account_actions',
         onLoad: expect.any(Function),
       },
     );

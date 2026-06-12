@@ -15,6 +15,7 @@ import { type AssetsControllerInitMessenger } from '../../messengers/assets-cont
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import { selectCompletedOnboarding } from '../../../../selectors/onboarding';
 import { store } from '../../../../store';
+import { trace } from '../../../../util/trace';
 import { selectIsUnlocked } from '../../../../selectors/keyringController';
 
 type QueryApiClient = AssetsControllerOptions['queryApiClient'];
@@ -149,6 +150,8 @@ export const assetsControllerInit: MessengerClientInitFunction<
       pollInterval: 30_000,
       enabled: true,
     },
+    // @ts-expect-error: Type of `TraceRequest` is different.
+    trace,
     isOnboarded: () => selectCompletedOnboarding(store.getState()),
   });
 

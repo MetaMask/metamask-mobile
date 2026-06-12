@@ -1,18 +1,17 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { WalletDetailsIds } from '../../../app/components/Views/MultichainAccounts/WalletDetails/WalletDetails.testIds';
-import { EncapsulatedElementType } from '../../framework';
 
 class WalletDetails {
-  get container(): EncapsulatedElementType {
+  get container(): DetoxElement {
     return Matchers.getElementByID(WalletDetailsIds.WALLET_DETAILS_CONTAINER);
   }
 
-  get createAccountLink(): EncapsulatedElementType {
+  get createAccountLink(): DetoxElement {
     return Matchers.getElementByID(WalletDetailsIds.ADD_ACCOUNT_BUTTON);
   }
 
-  get srpButton(): EncapsulatedElementType {
+  get srpButton(): DetoxElement {
     return Matchers.getElementByID(WalletDetailsIds.REVEAL_SRP_BUTTON);
   }
 

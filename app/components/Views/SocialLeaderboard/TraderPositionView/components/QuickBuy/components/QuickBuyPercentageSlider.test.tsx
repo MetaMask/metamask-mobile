@@ -6,7 +6,6 @@ import { playImpact, ImpactMoment } from '../../../../../../../util/haptics';
 // Capture gesture handlers so tests can invoke them directly. We re-assign
 // these in beforeEach via the mock factory below.
 let tapOnEnd: ((event: { x: number }) => void) | undefined;
-let panOnStart: (() => void) | undefined;
 let panOnUpdate: ((event: { x: number }) => void) | undefined;
 let panOnEnd: ((event: { x: number }) => void) | undefined;
 
@@ -24,10 +23,6 @@ jest.mock('react-native-gesture-handler', () => {
       }),
       Pan: () => {
         const panBuilder = {
-          onStart: (cb: () => void) => {
-            panOnStart = cb;
-            return panBuilder;
-          },
           onUpdate: (cb: (event: { x: number }) => void) => {
             panOnUpdate = cb;
             return panBuilder;
@@ -64,7 +59,7 @@ jest.mock('react-native-reanimated', () => {
 
 jest.mock('../../../../../../../util/haptics', () => ({
   playImpact: jest.fn(),
-  ImpactMoment: { SliderTick: 'sliderTick', SliderGrip: 'sliderGrip' },
+  ImpactMoment: { SliderTick: 'sliderTick' },
 }));
 
 const SLIDER_WIDTH = 200;
@@ -94,7 +89,6 @@ describe('QuickBuyPercentageSlider', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     tapOnEnd = undefined;
-    panOnStart = undefined;
     panOnUpdate = undefined;
     panOnEnd = undefined;
   });
@@ -279,44 +273,6 @@ describe('QuickBuyPercentageSlider', () => {
       // Move within (25, 50) — no threshold crossed.
       act(() => panOnUpdate?.({ x: 70 })); // 35%
       act(() => panOnUpdate?.({ x: 90 })); // 45%
-
-      expect(playImpact).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('grip haptics', () => {
-    it('fires a grip haptic when the drag starts and again when it ends', () => {
-      render(
-        <QuickBuyPercentageSlider
-          value={0}
-          onValueChange={jest.fn()}
-          onDragEnd={jest.fn()}
-        />,
-      );
-      act(() => triggerLayout());
-
-      act(() => panOnStart?.());
-      expect(playImpact).toHaveBeenCalledTimes(1);
-      expect(playImpact).toHaveBeenLastCalledWith(ImpactMoment.SliderGrip);
-
-      act(() => panOnEnd?.({ x: 100 }));
-      expect(playImpact).toHaveBeenLastCalledWith(ImpactMoment.SliderGrip);
-      expect(playImpact).toHaveBeenCalledTimes(2);
-    });
-
-    it('does not fire grip haptics when disabled', () => {
-      render(
-        <QuickBuyPercentageSlider
-          value={0}
-          onValueChange={jest.fn()}
-          onDragEnd={jest.fn()}
-          disabled
-        />,
-      );
-      act(() => triggerLayout());
-
-      act(() => panOnStart?.());
-      act(() => panOnEnd?.({ x: 100 }));
 
       expect(playImpact).not.toHaveBeenCalled();
     });

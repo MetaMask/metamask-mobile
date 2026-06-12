@@ -10,10 +10,10 @@ import QuickBuyTokenSelectList from './QuickBuyTokenSelectList';
 import { useQuickBuyContext } from './useQuickBuyContext';
 
 /**
- * Sell mode "Receive" screen: lets the user pick which token (stablecoin or
- * native) they receive when selling their position. Wires the receive options
- * and dest selection from context into the shared token-list screen, defaulting
- * the chain filter to the position's chain when candidates exist there.
+ * Sell mode "Receive" screen: lets the user pick which stablecoin they receive
+ * when selling their position. Wires the stablecoin options and dest-stable
+ * selection from context into the shared token-list screen, defaulting the
+ * chain filter to the position's chain when stables exist there.
  */
 const QuickBuyReceiveScreen: React.FC = () => {
   const {
@@ -25,25 +25,20 @@ const QuickBuyReceiveScreen: React.FC = () => {
   } = useQuickBuyContext();
 
   // Default the chain filter to the position chain only when at least one
-  // receive candidate exists on it — avoids an immediately-empty list.
+  // stablecoin candidate exists on it — avoids an immediately-empty list.
   const defaultChainId = useMemo(() => {
     // `target.chain` is already a CAIP id — `positionToQuickBuyTarget` does the
     // chain-name → CAIP conversion when the target is built.
     const caip = target.chain as CaipChainId;
-    // Receive candidates carry hex chain ids on EVM and CAIP ids on non-EVM
-    // (e.g. Solana), so the filter id must match the candidate format.
-    let chainFilterId: string;
-    if (isNonEvmChainId(caip)) {
-      chainFilterId = caip;
-    } else {
-      try {
-        chainFilterId = formatChainIdToHex(caip);
-      } catch {
-        return null;
-      }
+    if (isNonEvmChainId(caip)) return null;
+    let hexChainId: string;
+    try {
+      hexChainId = formatChainIdToHex(caip);
+    } catch {
+      return null;
     }
-    return sellDestTokenOptions.some((t) => t.chainId === chainFilterId)
-      ? chainFilterId
+    return sellDestTokenOptions.some((t) => t.chainId === hexChainId)
+      ? hexChainId
       : null;
   }, [target.chain, sellDestTokenOptions]);
 

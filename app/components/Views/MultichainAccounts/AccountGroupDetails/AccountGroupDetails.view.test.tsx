@@ -112,9 +112,6 @@ describeForPlatforms('Multichain account group details', () => {
       expect(getByTestId(addressListRouteParamsTestId).props.children).toEqual(
         expect.stringContaining(fixture.groups.account1.id),
       );
-      expect(getByTestId(addressListRouteParamsTestId).props.children).toEqual(
-        expect.stringContaining('account_details'),
-      );
     });
   });
 

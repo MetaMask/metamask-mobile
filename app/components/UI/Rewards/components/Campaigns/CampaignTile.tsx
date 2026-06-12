@@ -26,7 +26,6 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import useGetCampaignParticipantStatus from '../../hooks/useGetCampaignParticipantStatus';
 import { useCampaignReminderActions } from '../../hooks/useCampaignReminderActions';
-import { navigateToRewardsRoute } from '../../utils';
 
 interface CampaignTileProps {
   campaign: CampaignDto;
@@ -104,34 +103,25 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
       onPress();
     } else if (campaign.type === CampaignType.ONDO_HOLDING) {
       if (shouldShowTour) {
-        navigateToRewardsRoute(navigation, Routes.REWARDS_CAMPAIGN_TOUR_STEP, {
+        navigation.navigate(Routes.REWARDS_CAMPAIGN_TOUR_STEP, {
           campaignId: campaign.id,
         });
       } else {
-        navigateToRewardsRoute(
-          navigation,
-          Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW,
-          {
-            campaignId: campaign.id,
-          },
-        );
+        navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW, {
+          campaignId: campaign.id,
+        });
       }
     } else if (campaign.type === CampaignType.SEASON_1) {
-      navigateToRewardsRoute(
-        navigation,
-        Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW,
-        {
-          campaignId: campaign.id,
-        },
-      );
+      navigation.navigate(Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW, {
+        campaignId: campaign.id,
+      });
     } else if (campaign.type === CampaignType.PERPS_TRADING) {
       if (shouldShowTour) {
-        navigateToRewardsRoute(navigation, Routes.REWARDS_CAMPAIGN_TOUR_STEP, {
+        navigation.navigate(Routes.REWARDS_CAMPAIGN_TOUR_STEP, {
           campaignId: campaign.id,
         });
       } else {
-        navigateToRewardsRoute(
-          navigation,
+        navigation.navigate(
           Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW,
           {
             campaignId: campaign.id,
@@ -140,12 +130,11 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
       }
     } else if (campaign.type === CampaignType.PREDICT_THE_PITCH) {
       if (shouldShowTour) {
-        navigateToRewardsRoute(navigation, Routes.REWARDS_CAMPAIGN_TOUR_STEP, {
+        navigation.navigate(Routes.REWARDS_CAMPAIGN_TOUR_STEP, {
           campaignId: campaign.id,
         });
       } else {
-        navigateToRewardsRoute(
-          navigation,
+        navigation.navigate(
           Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_DETAILS_VIEW,
           {
             campaignId: campaign.id,

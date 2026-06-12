@@ -2,34 +2,33 @@ import { ChoosePasswordSelectorsIDs } from '../../../../app/components/Views/Cho
 import { ChangePasswordViewSelectorsText } from '../../../selectors/Settings/SecurityAndPrivacy/ChangePasswordView.selectors';
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
-import { EncapsulatedElementType } from '../../../framework';
 
 class ChangePasswordView {
-  get title(): EncapsulatedElementType {
+  get title(): DetoxElement {
     return Matchers.getElementByText(
       ChangePasswordViewSelectorsText.CHANGE_PASSWORD,
     );
   }
 
-  get passwordInput(): EncapsulatedElementType {
+  get passwordInput(): DetoxElement {
     return Matchers.getElementByID(
       ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
     );
   }
 
-  get confirmPasswordInput(): EncapsulatedElementType {
+  get confirmPasswordInput(): DetoxElement {
     return Matchers.getElementByID(
       ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
     );
   }
 
-  get iUnderstandCheckBox(): EncapsulatedElementType {
+  get iUnderstandCheckBox(): DetoxElement {
     return Matchers.getElementByLabel(
       ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
     );
   }
 
-  get submitButton(): EncapsulatedElementType {
+  get submitButton(): DetoxElement {
     return Matchers.getElementByText(
       ChoosePasswordSelectorsIDs.SAVE_PASSWORD_BUTTON_TEXT,
     );

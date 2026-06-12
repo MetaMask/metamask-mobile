@@ -10,7 +10,7 @@ import Device from '../../../util/device';
 import { SEED_PHRASE_HINTS } from '../../../constants/storage';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 jest.mock('react-native-confetti-cannon', () => {
   const { View } = jest.requireActual('react-native');
@@ -48,8 +48,8 @@ jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding', () =>
   ),
 );
 
-jest.mock('../../../util/analytics/AnalyticsEventBuilder', () => ({
-  AnalyticsEventBuilder: {
+jest.mock('../../../core/Analytics/MetricsEventBuilder', () => ({
+  MetricsEventBuilder: {
     createEventBuilder: jest.fn(() => ({
       build: jest.fn().mockReturnValue({ event: 'mock-event' }),
     })),
@@ -469,7 +469,7 @@ describe('ManualBackupStep3', () => {
       fireEvent.press(getByTestId('hint-confirm'));
 
       await waitFor(() => {
-        expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
+        expect(MetricsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
           MetaMetricsEvents.WALLET_SECURITY_RECOVERY_HINT_SAVED,
         );
         expect(trackOnboarding).toHaveBeenCalledWith(

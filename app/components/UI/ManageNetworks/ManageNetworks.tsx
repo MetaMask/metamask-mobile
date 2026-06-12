@@ -1,5 +1,9 @@
 import React, { useCallback } from 'react';
 import { View, Linking } from 'react-native';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../component-library/components/Texts/Text';
 import PickerNetwork from '../../../component-library/components/Pickers/PickerNetwork';
 import { strings } from '../../../../locales/i18n';
 import { useSelector } from 'react-redux';
@@ -14,11 +18,6 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { ConnectedAccountsSelectorsIDs } from '../../Views/MultichainAccounts/shared/ConnectedAccountModal.testIds';
 import AppConstants from '../../../core/AppConstants';
 import styles from './ManageNetworks.styles';
-import {
-  Text,
-  TextVariant,
-  TextColor,
-} from '@metamask/design-system-react-native';
 
 export default function ManageNetworksComponent() {
   const navigation = useNavigation();
@@ -48,18 +47,18 @@ export default function ManageNetworksComponent() {
   return (
     <View style={styles.setting}>
       <View style={styles.heading}>
-        <Text variant={TextVariant.HeadingSm}>
+        <Text variant={TextVariant.HeadingSM}>
           {strings('default_settings.manage_networks')}
         </Text>
       </View>
       <Text
-        variant={TextVariant.BodyMd}
-        color={TextColor.TextAlternative}
+        variant={TextVariant.BodyMD}
+        color={TextColor.Alternative}
         style={styles.description}
       >
         {strings('default_settings.manage_networks_body')}
         <Text
-          color={TextColor.InfoDefault}
+          color={TextColor.Info}
           testID="privacy-policy-link"
           onPress={openPrivacyPolicyLink}
         >
@@ -67,7 +66,7 @@ export default function ManageNetworksComponent() {
         </Text>
         {strings('default_settings.manage_networks_body2')}
         <Text
-          color={TextColor.InfoDefault}
+          color={TextColor.Info}
           testID="solana-privacy-policy-link"
           onPress={openAddSolanaAccountPrivacyPolicyLink}
         >

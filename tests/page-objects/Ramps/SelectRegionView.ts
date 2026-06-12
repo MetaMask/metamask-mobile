@@ -1,14 +1,13 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { SelectRegionSelectors } from '../../selectors/Ramps/SelectRegion.selectors';
-import { EncapsulatedElementType } from '../../framework';
 
 class SelectRegionView {
-  get continueButton(): EncapsulatedElementType {
+  get continueButton(): DetoxElement {
     return Matchers.getElementByText(SelectRegionSelectors.CONTINUE_BUTTON);
   }
 
-  get regionSearchInput(): EncapsulatedElementType {
+  get regionSearchInput(): DetoxElement {
     return Matchers.getElementByID(
       SelectRegionSelectors.REGION_MODAL_SEARCH_INPUT,
     );

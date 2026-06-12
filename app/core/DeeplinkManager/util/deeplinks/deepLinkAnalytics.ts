@@ -461,7 +461,6 @@ const routeExtractors: Record<
   (urlParams: UrlParamValues, sensitiveProps: Record<string, string>) => void
 > = {
   [DeepLinkRoute.SWAP]: extractSwapProperties,
-  [DeepLinkRoute.BATCH_SELL]: extractInvalidProperties,
   [DeepLinkRoute.PERPS]: extractPerpsProperties,
   [DeepLinkRoute.TRANSACTION]: extractTransactionProperties,
   [DeepLinkRoute.BUY]: extractBuyProperties,
@@ -580,8 +579,6 @@ export const mapSupportedActionToRoute = (
   switch (action) {
     case ACTIONS.SWAP:
       return DeepLinkRoute.SWAP;
-    case ACTIONS.BATCH_SELL:
-      return DeepLinkRoute.BATCH_SELL;
     case ACTIONS.PERPS:
     case ACTIONS.PERPS_MARKETS:
     case ACTIONS.PERPS_ASSET:
@@ -658,8 +655,6 @@ export const extractRouteFromUrl = (url: string): DeepLinkRoute => {
     switch (route) {
       case 'swap':
         return DeepLinkRoute.SWAP;
-      case 'batch-sell':
-        return DeepLinkRoute.BATCH_SELL;
       case 'perps':
         return DeepLinkRoute.PERPS;
       case 'deposit':

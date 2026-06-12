@@ -252,13 +252,6 @@ export function PayWithModal() {
       ref={bottomSheetRef}
       keyboardAvoidingViewEnabled={false}
       shouldNavigateBack={dismissOnSelectCount <= 1}
-      onClose={(hasCallback) => {
-        // Swipe/overlay/back-button dismiss: navigate back manually.
-        // X button or token selection: postCallback handles it (hasCallback=true).
-        if (!hasCallback && dismissOnSelectCount > 1) {
-          navigation.goBack();
-        }
-      }}
     >
       <HeaderStandard title={modalTitle} onClose={handleClose} />
       <Asset

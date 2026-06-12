@@ -1,26 +1,25 @@
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
 import { NFTImportScreenSelectorsIDs } from '../../../../app/components/Views/AddAsset/ImportAssetView.testIds';
-import { EncapsulatedElementType } from '../../../framework';
 
 class ImportNFTView {
-  get container(): EncapsulatedElementType {
+  get container(): DetoxElement {
     return Matchers.getElementByID(NFTImportScreenSelectorsIDs.CONTAINER);
   }
 
-  get addressInput(): EncapsulatedElementType {
+  get addressInput(): DetoxElement {
     return Matchers.getElementByID(
       NFTImportScreenSelectorsIDs.ADDRESS_INPUT_BOX,
     );
   }
 
-  get addressWarningMessage(): EncapsulatedElementType {
+  get addressWarningMessage(): DetoxElement {
     return Matchers.getElementByID(
       NFTImportScreenSelectorsIDs.ADDRESS_WARNING_MESSAGE,
     );
   }
 
-  get identifierInput(): EncapsulatedElementType {
+  get identifierInput(): DetoxElement {
     return Matchers.getElementByID(
       NFTImportScreenSelectorsIDs.IDENTIFIER_INPUT_BOX,
     );

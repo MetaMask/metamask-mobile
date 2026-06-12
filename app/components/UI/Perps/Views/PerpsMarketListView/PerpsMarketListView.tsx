@@ -16,13 +16,11 @@ import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceAction
 import PerpsMarketSortFieldBottomSheet from '../../components/PerpsMarketSortFieldBottomSheet';
 import PerpsMarketFiltersBar from './components/PerpsMarketFiltersBar';
 import PerpsMarketList from '../../components/PerpsMarketList';
-import PerpsWatchlistMarkets from '../../components/PerpsWatchlistMarkets/PerpsWatchlistMarkets';
 import {
   usePerpsMarketListView,
   usePerpsMeasurement,
   usePerpsNavigation,
 } from '../../hooks';
-import { selectPerpsWatchlistEnabledFlag } from '../../selectors/featureFlags';
 import { usePerpsLivePositions, usePerpsLiveAccount } from '../../hooks/stream';
 import PerpsMarketRowSkeleton from './components/PerpsMarketRowSkeleton';
 import styleSheet from './PerpsMarketListView.styles';
@@ -35,7 +33,6 @@ import {
 } from '@metamask/perps-controller';
 import { PerpsMarketListViewSelectorsIDs } from '../../Perps.testIds';
 import { useRoute, RouteProp } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TraceName } from '../../../../../util/trace';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -69,8 +66,6 @@ const PerpsMarketListView = ({
   const defaultSortDirection = route.params?.defaultSortDirection;
   const transactionActiveAbTests = route.params?.transactionActiveAbTests;
 
-  const isWatchlistEnabled = useSelector(selectPerpsWatchlistEnabledFlag);
-
   const fadeAnimation = useRef(new Animated.Value(0)).current;
   const [isSortFieldSheetVisible, setIsSortFieldSheetVisible] = useState(false);
 
@@ -97,13 +92,7 @@ const PerpsMarketListView = ({
   const { selectedOptionId, sortBy, direction, handleOptionChange } = sortState;
 
   // Destructure favorites state for easier access
-  const {
-    showFavoritesOnly,
-    setShowFavoritesOnly,
-    hasWatchlistMarkets,
-    watchlistMarketObjects,
-    suggestedMarkets,
-  } = favoritesState;
+  const { showFavoritesOnly } = favoritesState;
 
   // Destructure market type filter state
   const { marketTypeFilter, setMarketTypeFilter } = marketTypeFilterState;
@@ -126,7 +115,7 @@ const PerpsMarketListView = ({
 
   const { track } = usePerpsEventTracking();
 
-  // Handle category badge selection — clears watchlist filter (mutual exclusivity)
+  // Handle category badge selection
   const handleCategorySelect = useCallback(
     (category: MarketTypeFilter) => {
       if (category !== 'all') {
@@ -139,22 +128,9 @@ const PerpsMarketListView = ({
         });
       }
       setMarketTypeFilter(category);
-      // Deactivate the watchlist filter whenever a category badge is activated
-      if (category !== 'all') {
-        setShowFavoritesOnly(false);
-      }
     },
-    [setMarketTypeFilter, setShowFavoritesOnly, track],
+    [setMarketTypeFilter, track],
   );
-
-  // Toggle watchlist-only filter — clears category filter (mutual exclusivity)
-  const handleWatchlistToggle = useCallback(() => {
-    const willActivate = !showFavoritesOnly;
-    setShowFavoritesOnly(willActivate);
-    if (willActivate) {
-      setMarketTypeFilter('all');
-    }
-  }, [showFavoritesOnly, setShowFavoritesOnly, setMarketTypeFilter]);
 
   useEffect(() => {
     if (filteredMarkets.length > 0) {
@@ -245,25 +221,38 @@ const PerpsMarketListView = ({
       );
     }
 
-    // Empty watchlist — show suggested markets with the same default state as PerpsHome
-    // Only reachable when the watchlist flag is enabled (pill is hidden otherwise)
-    if (isWatchlistEnabled && showFavoritesOnly && !hasWatchlistMarkets) {
+    // Empty favorites results - show when favorites filter is active but no favorites found
+    if (showFavoritesOnly && filteredMarkets.length === 0) {
       return (
-        <PerpsWatchlistMarkets
-          markets={watchlistMarketObjects}
-          suggestedMarkets={suggestedMarkets}
-          showHeader={false}
-        />
+        <View style={styles.emptyStateContainer}>
+          <Icon
+            name={IconName.Star}
+            size={IconSize.Xl}
+            color={theme.colors.icon.muted}
+            style={styles.emptyStateIcon}
+          />
+          <Text
+            variant={TextVariant.HeadingSM}
+            color={TextColor.Default}
+            style={styles.emptyStateTitle}
+          >
+            {strings('perps.no_favorites_found')}
+          </Text>
+          <Text
+            variant={TextVariant.BodyMD}
+            color={TextColor.Alternative}
+            style={styles.emptyStateDescription}
+          >
+            {strings('perps.no_favorites_description')}
+          </Text>
+        </View>
       );
     }
 
     // Empty search results - show when user has typed and no markets match
     if (searchQuery.trim() && filteredMarkets.length === 0) {
       return (
-        <View
-          style={styles.emptyStateContainer}
-          testID={PerpsMarketListViewSelectorsIDs.NO_RESULTS}
-        >
+        <View style={styles.emptyStateContainer}>
           <Icon
             name={IconName.Search}
             size={IconSize.Xl}
@@ -343,9 +332,6 @@ const PerpsMarketListView = ({
           onSortPress={() => setIsSortFieldSheetVisible(true)}
           marketTypeFilter={marketTypeFilter}
           onCategorySelect={handleCategorySelect}
-          showWatchlistBadge={isWatchlistEnabled}
-          isWatchlistSelected={showFavoritesOnly}
-          onWatchlistToggle={handleWatchlistToggle}
           testID={PerpsMarketListViewSelectorsIDs.SORT_FILTERS}
         />
       )}

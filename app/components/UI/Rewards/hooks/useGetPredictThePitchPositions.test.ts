@@ -61,7 +61,7 @@ const mockUseInvalidateByRewardEvents =
 const CAMPAIGN_ID = 'predict-campaign-1';
 const SUBSCRIPTION_ID = 'sub-predict-1';
 const MOCK_POSITIONS: PredictThePitchPositionsDto = {
-  openPositions: [
+  positions: [
     {
       outcomeAssetId: 'token-1',
       outcomeAsset: 'Yes',
@@ -82,7 +82,6 @@ const MOCK_POSITIONS: PredictThePitchPositionsDto = {
       fillDate: '2026-06-30T12:00:00.000Z',
     },
   ],
-  resolvedPositions: [],
   computedAt: '2026-06-30T12:00:00.000Z',
 };
 

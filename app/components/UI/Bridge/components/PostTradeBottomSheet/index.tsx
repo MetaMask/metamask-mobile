@@ -15,9 +15,9 @@ import {
   BoxJustifyContent,
   ButtonSize,
   ButtonsAlignment,
-  IconColor,
-  IconName,
-  IconSize,
+  IconColor as DSIconColor,
+  IconName as DSIconName,
+  IconSize as DSIconSize,
   Spinner,
   Text,
   TextColor,
@@ -44,10 +44,6 @@ import {
 import styleSheet from './PostTradeBottomSheet.styles';
 import { usePostTradeTxStatus } from './usePostTradeTxStatus';
 import { useBridgeQuoteRequest } from '../../hooks/useBridgeQuoteRequest';
-import {
-  hidePostTradeNotificationSurface,
-  showPostTradeNotificationSurface,
-} from '../../utils/postTradeNotifications';
 
 export const getTradeSubtitle = ({
   sourceAmount,
@@ -86,9 +82,9 @@ const StatusIcon = ({ status }: { status: PostTradeStatus }) => {
 
     return (
       <AvatarIcon
-        iconName={isSuccess ? IconName.CheckBold : IconName.Error}
+        iconName={isSuccess ? DSIconName.CheckBold : DSIconName.Error}
         severity={
-          isSuccess ? AvatarIconSeverity.Success : AvatarIconSeverity.Danger
+          isSuccess ? AvatarIconSeverity.Success : AvatarIconSeverity.Error
         }
         size={AvatarIconSize.Xl}
       />
@@ -103,9 +99,9 @@ const StatusIcon = ({ status }: { status: PostTradeStatus }) => {
       twClassName="h-12 w-12 rounded-full"
     >
       <Spinner
-        color={IconColor.PrimaryDefault}
+        color={DSIconColor.PrimaryDefault}
         spinnerIconProps={{
-          size: IconSize.Xl,
+          size: DSIconSize.Xl,
         }}
       />
     </Box>
@@ -131,14 +127,6 @@ export const PostTradeBottomSheet = () => {
     transactionMetaId: params.transactionMetaId,
     transactionHash: params.transactionHash,
   });
-
-  useEffect(() => {
-    showPostTradeNotificationSurface();
-
-    return () => {
-      hidePostTradeNotificationSurface();
-    };
-  }, []);
 
   useEffect(() => {
     const isTerminalStatus =

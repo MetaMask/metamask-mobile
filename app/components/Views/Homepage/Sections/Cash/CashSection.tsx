@@ -7,11 +7,8 @@ import React, {
 } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
-import {
-  Box,
-  SectionDivider,
-  SectionHeader,
-} from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
+import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
 import SectionRow from '../../components/SectionRow';
 import { strings } from '../../../../../../locales/i18n';
 import useHomeViewedEvent, {
@@ -97,11 +94,9 @@ const CashSection = forwardRef<SectionRefreshHandle, CashSectionProps>(
 
     return (
       <View ref={sectionViewRef} onLayout={onLayout}>
-        <Box paddingBottom={3}>
-          <SectionDivider />
+        <Box gap={3}>
           <SectionHeader
             title={title}
-            isInteractive
             onPress={navigateToCash}
             testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('cash')}
           />

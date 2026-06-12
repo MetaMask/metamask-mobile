@@ -34,25 +34,12 @@ jest.mock('./CampaignOptInSheet', () => {
 // Controlled per-test via these variables
 let mockIsGeoRestricted = false;
 let mockIsGeoLoading = false;
-const mockUseCampaignGeoRestriction = jest.fn<
-  { isGeoRestricted: boolean; isGeoLoading: boolean },
-  [unknown?, Set<string>?, boolean?]
->(() => ({
-  isGeoRestricted: mockIsGeoRestricted,
-  isGeoLoading: mockIsGeoLoading,
-}));
 jest.mock('../../hooks/useCampaignGeoRestriction', () => ({
   __esModule: true,
-  default: (
-    campaign: unknown,
-    customRestrictedCountries?: Set<string>,
-    isFeatureGeoRestricted?: boolean,
-  ) =>
-    mockUseCampaignGeoRestriction(
-      campaign,
-      customRestrictedCountries,
-      isFeatureGeoRestricted,
-    ),
+  default: () => ({
+    isGeoRestricted: mockIsGeoRestricted,
+    isGeoLoading: mockIsGeoLoading,
+  }),
 }));
 
 const mockShowToast = jest.fn();
@@ -278,24 +265,6 @@ describe('CampaignOptInCta', () => {
         />,
       );
       expect(queryByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeNull();
-    });
-  });
-
-  describe('feature geo restriction', () => {
-    it('passes isFeatureGeoRestricted to useCampaignGeoRestriction', () => {
-      render(
-        <CampaignOptInCta
-          campaign={buildCampaign()}
-          participantStatus={notOptedIn}
-          isFeatureGeoRestricted
-        />,
-      );
-
-      expect(mockUseCampaignGeoRestriction).toHaveBeenCalledWith(
-        buildCampaign(),
-        undefined,
-        true,
-      );
     });
   });
 });

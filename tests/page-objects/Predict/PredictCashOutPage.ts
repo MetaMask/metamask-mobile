@@ -1,11 +1,11 @@
-import { Matchers, Gestures, EncapsulatedElementType } from '../../framework';
+import { Matchers, Gestures } from '../../framework';
 import { PredictCashOutSelectorsIDs } from '../../../app/components/UI/Predict/Predict.testIds';
 
 class PredictCashOutPage {
-  get container(): EncapsulatedElementType {
+  get container(): DetoxElement {
     return Matchers.getElementByID(PredictCashOutSelectorsIDs.CONTAINER);
   }
-  get cashOutButton(): EncapsulatedElementType {
+  get cashOutButton(): DetoxElement {
     return Matchers.getElementByID(
       PredictCashOutSelectorsIDs.SELL_PREVIEW_CASH_OUT_BUTTON,
     );

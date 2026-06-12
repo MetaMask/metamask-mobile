@@ -15,12 +15,14 @@ import { AnalyticsControllerActions } from '@metamask/analytics-controller';
  * @returns The UserStorageControllerMessenger.
  */
 export function getUserStorageControllerMessenger(
-  rootMessenger: RootMessenger<
-    MessengerActions<UserStorageControllerMessenger>,
-    MessengerEvents<UserStorageControllerMessenger>
-  >,
+  rootMessenger: RootMessenger,
 ): UserStorageControllerMessenger {
-  const messenger: UserStorageControllerMessenger = new Messenger({
+  const messenger = new Messenger<
+    'UserStorageController',
+    MessengerActions<UserStorageControllerMessenger>,
+    MessengerEvents<UserStorageControllerMessenger>,
+    RootMessenger
+  >({
     namespace: 'UserStorageController',
     parent: rootMessenger,
   });
@@ -56,19 +58,24 @@ type UserStorageControllerInitMessengerActions = AnalyticsControllerActions;
  * @param rootMessenger - The root messenger.
  * @returns The UserStorageControllerInitMessenger.
  */
-export type UserStorageControllerInitMessenger = Messenger<
-  'UserStorageControllerInit',
-  UserStorageControllerInitMessengerActions,
-  never
+export type UserStorageControllerInitMessenger = ReturnType<
+  typeof getUserStorageControllerInitMessenger
 >;
 
 export function getUserStorageControllerInitMessenger(
-  rootMessenger: RootMessenger<
-    MessengerActions<UserStorageControllerInitMessenger>,
-    MessengerEvents<UserStorageControllerInitMessenger>
-  >,
-): UserStorageControllerInitMessenger {
-  const messenger: UserStorageControllerInitMessenger = new Messenger({
+  rootMessenger: RootMessenger,
+): Messenger<
+  'UserStorageControllerInit',
+  UserStorageControllerInitMessengerActions,
+  never,
+  RootMessenger
+> {
+  const messenger = new Messenger<
+    'UserStorageControllerInit',
+    UserStorageControllerInitMessengerActions,
+    never,
+    RootMessenger
+  >({
     namespace: 'UserStorageControllerInit',
     parent: rootMessenger,
   });

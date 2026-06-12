@@ -27,7 +27,7 @@ const PopularNetworksList = {
     providerConfig: {
       type: 'rpc',
       chainId: toHex('324'),
-      rpcUrl: `https://zksync-mainnet.infura.io/v3/${infuraProjectId}`,
+      rpcUrl: `https://mainnet.era.zksync.io`,
       nickname: 'zkSync Era Mainnet',
       ticker: 'FTM',
     },

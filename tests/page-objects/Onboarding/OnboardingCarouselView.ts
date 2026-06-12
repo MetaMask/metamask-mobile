@@ -4,44 +4,43 @@ import {
 } from '../../selectors/Onboarding/OnboardingCarousel.selectors';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { EncapsulatedElementType } from '../../framework';
 
 class OnboardingCarouselView {
-  get container(): EncapsulatedElementType {
+  get container(): DetoxElement {
     return Matchers.getElementByID(
       OnboardingCarouselSelectorIDs.CAROUSEL_CONTAINER_ID,
     );
   }
 
-  get getStartedButton(): EncapsulatedElementType {
+  get getStartedButton(): DetoxElement {
     return Matchers.getElementByID(
       OnboardingCarouselSelectorIDs.GET_STARTED_BUTTON_ID,
     );
   }
 
-  get titleOne(): EncapsulatedElementType {
+  get titleOne(): DetoxElement {
     return Matchers.getElementByText(OnboardingCarouselSelectorText.TITLE_ONE);
   }
 
-  get imageOne(): EncapsulatedElementType {
+  get imageOne(): DetoxElement {
     return Matchers.getElementByID(OnboardingCarouselSelectorIDs.ONE_IMAGE_ID);
   }
 
-  get titleTwo(): EncapsulatedElementType {
+  get titleTwo(): DetoxElement {
     return Matchers.getElementByText(OnboardingCarouselSelectorText.TITLE_TWO);
   }
 
-  get imageTwo(): EncapsulatedElementType {
+  get imageTwo(): DetoxElement {
     return Matchers.getElementByID(OnboardingCarouselSelectorIDs.TWO_IMAGE_ID);
   }
 
-  get titleThree(): EncapsulatedElementType {
+  get titleThree(): DetoxElement {
     return Matchers.getElementByText(
       OnboardingCarouselSelectorText.TITLE_THREE,
     );
   }
 
-  get imageThree(): EncapsulatedElementType {
+  get imageThree(): DetoxElement {
     return Matchers.getElementByID(
       OnboardingCarouselSelectorIDs.THREE_IMAGE_ID,
     );

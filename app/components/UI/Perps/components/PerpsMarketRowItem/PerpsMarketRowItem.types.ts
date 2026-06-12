@@ -40,9 +40,4 @@ export interface PerpsMarketRowItemProps {
    * @default false
    */
   compact?: boolean;
-  /**
-   * When provided, renders a trailing circular "+" button (e.g. add to watchlist).
-   * The callback receives the current displayMarket (with live price merged in).
-   */
-  onAddPress?: (market: PerpsMarketData) => void;
 }

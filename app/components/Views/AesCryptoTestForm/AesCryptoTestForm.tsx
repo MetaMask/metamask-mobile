@@ -1,9 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  HeaderStandard,
-  Text,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -30,6 +26,9 @@ import {
   accountAddress,
   responseText,
 } from './AesCrypto.testIds';
+import Text, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { useSelector } from 'react-redux';
 
@@ -154,10 +153,10 @@ const AesCryptoTestForm = () => {
         contentContainerStyle={styles.scrollContainer}
         testID={aesCryptoFormScrollIdentifier}
       >
-        <Text variant={TextVariant.HeadingSm} style={styles.formTitle}>
+        <Text variant={TextVariant.HeadingSM} style={styles.formTitle}>
           Current selected address
         </Text>
-        <Text variant={TextVariant.HeadingSm} testID={accountAddress}>
+        <Text variant={TextVariant.HeadingSM} testID={accountAddress}>
           {selectedFormattedAddress}
         </Text>
         <TestForm

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
+import React, { useCallback, useLayoutEffect } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -6,10 +6,7 @@ import { FlashList } from '@shopify/flash-list';
 
 import { useStyles } from '../../../hooks/useStyles';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import {
-  selectInternalAccountListSpreadByScopesByGroupId,
-  selectInternalAccountsByGroupId,
-} from '../../../../selectors/multichainAccounts/accounts';
+import { selectInternalAccountListSpreadByScopesByGroupId } from '../../../../selectors/multichainAccounts/accounts';
 import { IconName, Toaster, toast } from '@metamask/design-system-react-native';
 import MultichainAddressRow, {
   MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID,
@@ -27,10 +24,6 @@ import ClipboardManager from '../../../../core/ClipboardManager';
 import getHeaderCompactStandardNavbarOptions from '../../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
 import { strings } from '../../../../../locales/i18n';
 import { EVENT_NAME } from '../../../../core/Analytics/MetaMetrics.events';
-import {
-  getAddressListViewedAccountType,
-  trackAddressListViewed,
-} from '../../../../util/analytics/addressListViewedTracking';
 
 export const createAddressListNavigationDetails =
   createNavigationDetails<AddressListProps>(
@@ -47,33 +40,13 @@ export const AddressList = () => {
   const { styles } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useAnalytics();
 
-  const { groupId, title, source, onLoad } = useParams<AddressListProps>();
+  const { groupId, title, onLoad } = useParams<AddressListProps>();
 
   const selectInternalAccountsSpreadByScopes = useSelector(
     selectInternalAccountListSpreadByScopesByGroupId,
   );
   const internalAccountsSpreadByScopes =
     selectInternalAccountsSpreadByScopes(groupId);
-
-  const selectInternalAccountsByGroup = useSelector(
-    selectInternalAccountsByGroupId,
-  );
-  const internalAccounts = selectInternalAccountsByGroup(groupId);
-
-  const hasTrackedViewRef = useRef(false);
-
-  useEffect(() => {
-    if (hasTrackedViewRef.current || !source) {
-      return;
-    }
-
-    hasTrackedViewRef.current = true;
-
-    trackAddressListViewed(trackEvent, createEventBuilder, {
-      source,
-      account_type: getAddressListViewedAccountType(internalAccounts),
-    });
-  }, [source, internalAccounts, trackEvent, createEventBuilder]);
 
   const renderAddressItem = useCallback(
     ({ item }: { item: AddressItem }) => {
@@ -119,8 +92,6 @@ export const AddressList = () => {
                       networkName: item.networkName,
                       chainId: item.scope,
                       groupId,
-                      location: 'address-list',
-                      account: item.account,
                     },
                   },
                 );

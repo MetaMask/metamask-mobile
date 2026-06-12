@@ -10,9 +10,6 @@ class QualityGateError extends Error {
     super(message);
     this.name = 'QualityGateError';
     this.isQualityGateError = true;
-    // Suppress stack trace so Playwright reporters don't show code snippets —
-    // the violation message is already self-explanatory.
-    this.stack = `QualityGateError: ${message}`;
   }
 }
 

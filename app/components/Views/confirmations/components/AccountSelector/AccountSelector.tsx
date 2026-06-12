@@ -153,22 +153,6 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
 
   const accountName = selectedAccountGroup?.metadata?.name;
 
-  const displayLabel = useMemo(() => {
-    if (
-      !filteredAccountSections ||
-      filteredAccountSections.length <= 1 ||
-      !selectedAccountGroup
-    ) {
-      return label;
-    }
-
-    const walletName = filteredAccountSections.find((section) =>
-      section.data.some((group) => group.id === selectedAccountGroup.id),
-    )?.title;
-
-    return walletName ? `${label} ${walletName}` : label;
-  }, [filteredAccountSections, selectedAccountGroup, label]);
-
   return (
     <View style={[styles.container, style]}>
       <TouchableOpacity
@@ -177,7 +161,7 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
         testID={ACCOUNT_SELECTOR_TEST_IDS.PILL}
       >
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {displayLabel}
+          {label}
         </Text>
         <View style={styles.valueContainer}>
           {selectedAddress && accountName ? (

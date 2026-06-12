@@ -356,10 +356,7 @@ describe('CampaignsPreview', () => {
     const { getByText } = render(<CampaignsPreview />);
     fireEvent.press(getByText('Campaigns'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
-      screen: Routes.REWARDS_CAMPAIGNS_VIEW,
-      params: undefined,
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_CAMPAIGNS_VIEW);
   });
 
   it('navigates to campaigns view even when no featured campaigns exist', () => {
@@ -368,9 +365,6 @@ describe('CampaignsPreview', () => {
     const { getByText } = render(<CampaignsPreview />);
     fireEvent.press(getByText('Campaigns'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
-      screen: Routes.REWARDS_CAMPAIGNS_VIEW,
-      params: undefined,
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_CAMPAIGNS_VIEW);
   });
 });

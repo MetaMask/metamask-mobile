@@ -12,21 +12,6 @@ import { MoneyActivityLoadingTestIds } from '../../components/MoneyActivityLoadi
 import MoneyActivityView from './MoneyActivityView';
 import { MoneyActivityViewTestIds } from './MoneyActivityView.testIds';
 import type { CardTransaction } from '../../types/moneyActivity';
-import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
-import {
-  COMPONENT_NAMES,
-  MONEY_BUTTON_INTENTS,
-  MONEY_BUTTON_TYPES,
-  SCREEN_NAMES,
-} from '../../constants/moneyEvents';
-
-const mockTrackScreenViewed = jest.fn();
-const mockTrackButtonClicked = jest.fn();
-const mockTrackActivitySurfaceClicked = jest.fn();
-
-jest.mock('../../hooks/useMoneyAnalytics', () => ({
-  useMoneyAnalytics: jest.fn(),
-}));
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -63,11 +48,11 @@ jest.mock('../../components/MoneyActivityItem/MoneyActivityItem', () => {
       onPress,
     }: {
       tx: { id: string };
-      onPress?: (tx: { id: string }) => void;
+      onPress?: (id: string) => void;
     }) => (
       <RNPressable
         testID={`activity-mock-tx-${tx.id}`}
-        onPress={() => onPress?.(tx)}
+        onPress={() => onPress?.(tx.id)}
       >
         <Text>{tx.id}</Text>
       </RNPressable>
@@ -136,11 +121,6 @@ describe('MoneyActivityView', () => {
       submittedTransactions: [],
       moneyAddress: '0x0000000000000000000000000000000000000001',
       mockDataEnabled: false,
-    });
-    (useMoneyAnalytics as jest.Mock).mockReturnValue({
-      trackScreenViewed: mockTrackScreenViewed,
-      trackButtonClicked: mockTrackButtonClicked,
-      trackActivitySurfaceClicked: mockTrackActivitySurfaceClicked,
     });
     mockUseMoneyAccountCardTransactions.mockReturnValue({
       cardTransactions: [],
@@ -310,61 +290,5 @@ describe('MoneyActivityView', () => {
     const { queryByTestId } = renderWithProvider(<MoneyActivityView />);
 
     expect(queryByTestId(CARD_ROW_TEST_ID)).toBeNull();
-  });
-
-  describe('analytics', () => {
-    it('initialises useMoneyAnalytics with MONEY_ACTIVITY screen_name', () => {
-      renderWithProvider(<MoneyActivityView />);
-
-      expect(useMoneyAnalytics).toHaveBeenCalledWith({
-        screen_name: SCREEN_NAMES.MONEY_ACTIVITY,
-      });
-    });
-
-    it('calls trackScreenViewed on mount', () => {
-      renderWithProvider(<MoneyActivityView />);
-
-      expect(mockTrackScreenViewed).toHaveBeenCalledTimes(1);
-    });
-
-    it('calls trackButtonClicked with FILTER intent and All filter label when "All" filter is pressed', () => {
-      const { getByTestId } = renderWithProvider(<MoneyActivityView />);
-
-      fireEvent.press(getByTestId(MoneyActivityViewTestIds.FILTER_ALL));
-
-      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
-        button_type: MONEY_BUTTON_TYPES.TEXT,
-        button_intent: MONEY_BUTTON_INTENTS.FILTER,
-        label_key: 'money.activity.filter_all',
-        component_name: COMPONENT_NAMES.MONEY_ACTIVITY_FILTER_ALL,
-      });
-    });
-
-    it('calls trackButtonClicked with FILTER intent and Deposits filter label when "Deposits" filter is pressed', () => {
-      const { getByTestId } = renderWithProvider(<MoneyActivityView />);
-
-      fireEvent.press(getByTestId(MoneyActivityViewTestIds.FILTER_DEPOSITS));
-
-      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
-        button_type: MONEY_BUTTON_TYPES.TEXT,
-        button_intent: MONEY_BUTTON_INTENTS.FILTER,
-        label_key: 'money.activity.filter_deposits',
-        component_name: COMPONENT_NAMES.MONEY_ACTIVITY_FILTER_DEPOSITS,
-      });
-    });
-
-    it('calls trackActivitySurfaceClicked with transaction and MONEY_ACTIVITY_DETAILS redirect when a row is pressed', () => {
-      const { getByTestId } = renderWithProvider(<MoneyActivityView />);
-
-      fireEvent.press(getByTestId('activity-mock-tx-money-tx-1'));
-
-      expect(mockTrackActivitySurfaceClicked).toHaveBeenCalledWith(
-        expect.objectContaining({
-          redirect_target: SCREEN_NAMES.MONEY_ACTIVITY_DETAILS,
-          component_name: COMPONENT_NAMES.MONEY_ACTIVITY_LIST_ITEM,
-          transaction: expect.objectContaining({ id: 'money-tx-1' }),
-        }),
-      );
-    });
   });
 });

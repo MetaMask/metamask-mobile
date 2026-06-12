@@ -4,7 +4,6 @@ import { useStickyTokenActions } from './useStickyTokenActions';
 import { useHandleOnBuy, useHandleOnSwap } from './useTokenAtomicActions';
 import { useAddNetwork } from '../../../hooks/useAddNetwork';
 import { TokenI } from '../../Tokens/types';
-import { selectHasEligibleSwapSource } from '../../../../selectors/assets/assets-list';
 
 const mockOnBuy = jest.fn();
 const mockOnSwap = jest.fn();
@@ -72,11 +71,5 @@ describe('useStickyTokenActions', () => {
       currentTokenBalance: '1.25',
       sourcePage: 'TokenDetails',
     });
-  });
-
-  it('selects swap eligibility without excluding the viewed token', () => {
-    renderHook(() => useStickyTokenActions({ token: defaultToken }));
-
-    expect(mockUseSelector).toHaveBeenCalledWith(selectHasEligibleSwapSource);
   });
 });

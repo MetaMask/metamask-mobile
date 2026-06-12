@@ -5,72 +5,71 @@ import {
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { NetworkListModalSelectorsIDs } from '../../../app/components/Views/NetworkSelector/NetworkListModal.testIds';
-import { EncapsulatedElementType } from '../../framework';
 
 class NetworkView {
-  get networkContainer(): EncapsulatedElementType {
+  get networkContainer(): DetoxElement {
     return Matchers.getElementByID(NetworksViewSelectorsIDs.NETWORK_CONTAINER);
   }
 
-  get networkFormContainer(): EncapsulatedElementType {
+  get networkFormContainer(): DetoxElement {
     return Matchers.getElementByID(NetworksViewSelectorsIDs.CONTAINER);
   }
 
-  get rpcContainer(): EncapsulatedElementType {
+  get rpcContainer(): DetoxElement {
     return Matchers.getElementByID(NetworksViewSelectorsIDs.RPC_CONTAINER);
   }
 
-  get addNetworkButtonForm(): EncapsulatedElementType {
+  get addNetworkButtonForm(): DetoxElement {
     return Matchers.getElementByID(NetworkListModalSelectorsIDs.ADD_BUTTON);
   }
 
-  get addRpcDropDownButton(): EncapsulatedElementType {
+  get addRpcDropDownButton(): DetoxElement {
     return Matchers.getElementByID(NetworksViewSelectorsIDs.ICON_BUTTON_RPC);
   }
 
-  get addBlockExplorerDropDownButton(): EncapsulatedElementType {
+  get addBlockExplorerDropDownButton(): DetoxElement {
     return Matchers.getElementByID(
       NetworksViewSelectorsIDs.ICON_BUTTON_BLOCK_EXPLORER,
     );
   }
 
-  get addBlockExplorerButton(): EncapsulatedElementType {
+  get addBlockExplorerButton(): DetoxElement {
     return Matchers.getElementByID(NetworksViewSelectorsIDs.ADD_BLOCK_EXPLORER);
   }
 
-  get addRpcButton(): EncapsulatedElementType {
+  get addRpcButton(): DetoxElement {
     return Matchers.getElementByID(NetworksViewSelectorsIDs.ADD_RPC_BUTTON);
   }
 
-  get noMatchingText(): EncapsulatedElementType {
+  get noMatchingText(): DetoxElement {
     return Matchers.getElementByText(
       NetworkViewSelectorsText.NO_MATCHING_SEARCH_RESULTS,
     );
   }
 
-  get emptyPopularNetworksText(): EncapsulatedElementType {
+  get emptyPopularNetworksText(): DetoxElement {
     return Matchers.getElementByText(
       NetworkViewSelectorsText.EMPTY_POPULAR_NETWORKS,
     );
   }
 
-  get closeIcon(): EncapsulatedElementType {
+  get closeIcon(): DetoxElement {
     return Matchers.getElementByID(NetworksViewSelectorsIDs.CLOSE_ICON);
   }
 
-  get deleteNetworkButton(): EncapsulatedElementType {
+  get deleteNetworkButton(): DetoxElement {
     return Matchers.getElementByID(
       NetworksViewSelectorsIDs.REMOVE_NETWORK_BUTTON,
     );
   }
 
-  get networkSearchInput(): EncapsulatedElementType {
+  get networkSearchInput(): DetoxElement {
     return Matchers.getElementByID(
       NetworksViewSelectorsIDs.SEARCH_NETWORK_INPUT_BOX_ID,
     );
   }
 
-  get addNetworkButton(): EncapsulatedElementType {
+  get addNetworkButton(): DetoxElement {
     return device.getPlatform() === 'ios'
       ? Matchers.getElementByID(NetworksViewSelectorsIDs.ADD_NETWORKS_BUTTON)
       : Matchers.getElementByLabel(
@@ -78,69 +77,69 @@ class NetworkView {
         );
   }
 
-  get customNetworkTab(): EncapsulatedElementType {
+  get customNetworkTab(): DetoxElement {
     return Matchers.getElementByText(
       NetworkViewSelectorsText.CUSTOM_NETWORK_TAB,
     );
   }
 
-  get networkNameInput(): EncapsulatedElementType {
+  get networkNameInput(): DetoxElement {
     return Matchers.getElementByID(NetworksViewSelectorsIDs.NETWORK_NAME_INPUT);
   }
 
-  get rpcURLInput(): EncapsulatedElementType {
+  get rpcURLInput(): DetoxElement {
     return Matchers.getElementByID(NetworksViewSelectorsIDs.RPC_URL_INPUT);
   }
 
-  get chainIDInput(): EncapsulatedElementType {
+  get chainIDInput(): DetoxElement {
     return Matchers.getElementByID(NetworksViewSelectorsIDs.CHAIN_INPUT);
   }
 
-  get networkSymbolInput(): EncapsulatedElementType {
+  get networkSymbolInput(): DetoxElement {
     return Matchers.getElementByID(
       NetworksViewSelectorsIDs.NETWORKS_SYMBOL_INPUT,
     );
   }
 
-  get networkBlockExplorerInput(): EncapsulatedElementType {
+  get networkBlockExplorerInput(): DetoxElement {
     return Matchers.getElementByID(
       NetworksViewSelectorsIDs.BLOCK_EXPLORER_INPUT,
     );
   }
 
-  get rpcAddButton(): EncapsulatedElementType {
+  get rpcAddButton(): DetoxElement {
     return Matchers.getElementByID(
       NetworksViewSelectorsIDs.ADD_CUSTOM_NETWORK_BUTTON,
     );
   }
 
-  get blockExplorer(): EncapsulatedElementType {
+  get blockExplorer(): DetoxElement {
     return Matchers.getElementByLabel(NetworkViewSelectorsText.BLOCK_EXPLORER);
   }
 
-  get chainIdLabel(): EncapsulatedElementType {
+  get chainIdLabel(): DetoxElement {
     return Matchers.getElementByLabel(NetworkViewSelectorsText.CHAIN_ID_LABEL);
   }
 
-  get rpcWarningBanner(): EncapsulatedElementType {
+  get rpcWarningBanner(): DetoxElement {
     return Matchers.getElementByID(NetworksViewSelectorsIDs.RPC_WARNING_BANNER);
   }
 
-  get customNetworkList(): EncapsulatedElementType {
+  get customNetworkList(): DetoxElement {
     return Matchers.getElementByID(
       NetworksViewSelectorsIDs.CUSTOM_NETWORK_LIST,
     );
   }
 
-  get removeNetwork(): EncapsulatedElementType {
+  get removeNetwork(): DetoxElement {
     return Matchers.getElementByText(NetworkViewSelectorsText.REMOVE_NETWORK);
   }
 
-  get saveButton(): EncapsulatedElementType {
+  get saveButton(): DetoxElement {
     return Matchers.getElementByText(NetworkViewSelectorsText.SAVE_BUTTON);
   }
 
-  async getnetworkName(networkName: string): Promise<EncapsulatedElementType> {
+  async getnetworkName(networkName: string): Promise<DetoxElement> {
     return Matchers.getElementByText(networkName);
   }
   async tapAddNetworkButton(): Promise<void> {

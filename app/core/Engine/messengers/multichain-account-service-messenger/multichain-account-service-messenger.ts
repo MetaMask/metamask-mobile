@@ -17,12 +17,14 @@ import { RootMessenger } from '../../types';
  * @returns The MultichainAccountServiceMessenger.
  */
 export function getMultichainAccountServiceMessenger(
-  rootMessenger: RootMessenger<
-    MessengerActions<MultichainAccountServiceMessenger>,
-    MessengerEvents<MultichainAccountServiceMessenger>
-  >,
+  rootMessenger: RootMessenger,
 ): MultichainAccountServiceMessenger {
-  const messenger: MultichainAccountServiceMessenger = new Messenger({
+  const messenger = new Messenger<
+    'MultichainAccountService',
+    MessengerActions<MultichainAccountServiceMessenger>,
+    MessengerEvents<MultichainAccountServiceMessenger>,
+    RootMessenger
+  >({
     namespace: 'MultichainAccountService',
     parent: rootMessenger,
   });
@@ -32,21 +34,22 @@ export function getMultichainAccountServiceMessenger(
       'AccountsController:getAccountByAddress',
       'AccountsController:getAccount',
       'AccountsController:getAccounts',
+      'SnapController:handleRequest',
       'KeyringController:getState',
       'KeyringController:withKeyring',
-      'KeyringController:withKeyringV2',
       'KeyringController:addNewKeyring',
       'KeyringController:getKeyringsByType',
       'KeyringController:createNewVaultAndKeychain',
       'KeyringController:createNewVaultAndRestore',
       'NetworkController:getNetworkClientById',
       'NetworkController:findNetworkClientIdByChainId',
-      'SnapController:handleRequest',
-      'SnapAccountService:ensureReady',
+      'SnapController:getState',
     ],
     events: [
+      'KeyringController:stateChange',
       'AccountsController:accountAdded',
       'AccountsController:accountRemoved',
+      'SnapController:stateChange',
     ],
     messenger,
   });
@@ -56,10 +59,10 @@ export function getMultichainAccountServiceMessenger(
 type AllowedInitializationEvents =
   MultichainAccountServiceMultichainAccountGroupUpdatedEvent;
 
-export type MultichainAccountServiceInitMessenger = Messenger<
-  'MultichainAccountServiceInit',
-  never,
-  AllowedInitializationEvents
+type AllowedInitializationActions = never;
+
+export type MultichainAccountServiceInitMessenger = ReturnType<
+  typeof getMultichainAccountServiceInitMessenger
 >;
 
 /**
@@ -70,12 +73,14 @@ export type MultichainAccountServiceInitMessenger = Messenger<
  * @returns The MultichainAccountServiceInitMessenger.
  */
 export function getMultichainAccountServiceInitMessenger(
-  rootMessenger: RootMessenger<
-    MessengerActions<MultichainAccountServiceInitMessenger>,
-    MessengerEvents<MultichainAccountServiceInitMessenger>
-  >,
-): MultichainAccountServiceInitMessenger {
-  const messenger: MultichainAccountServiceInitMessenger = new Messenger({
+  rootMessenger: RootMessenger,
+) {
+  const messenger = new Messenger<
+    'MultichainAccountServiceInit',
+    AllowedInitializationActions,
+    AllowedInitializationEvents,
+    RootMessenger
+  >({
     namespace: 'MultichainAccountServiceInit',
     parent: rootMessenger,
   });

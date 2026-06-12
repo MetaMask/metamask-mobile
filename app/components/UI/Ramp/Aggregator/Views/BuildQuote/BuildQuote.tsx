@@ -17,7 +17,6 @@ import BN4 from 'bnjs4';
 import {
   AvatarToken,
   AvatarTokenSize,
-  HeaderStandard,
 } from '@metamask/design-system-react-native';
 
 import { useRampSDK } from '../../sdk';
@@ -52,7 +51,7 @@ import BadgeWrapper, {
 import BadgeNetwork from '../../../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
 
 import { NATIVE_ADDRESS } from '../../../../../../constants/on-ramp';
-import { NavbarSelectorsIDs } from '../../../../Navbar/Navbar.testIds';
+import { getDepositNavbarOptions } from '../../../../Navbar';
 import { strings } from '../../../../../../../locales/i18n';
 import {
   createNavigationDetails,
@@ -97,7 +96,6 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
-import { IconName } from '../../../../../../component-library/components/Icons/Icon';
 import { BuildQuoteSelectors } from './BuildQuote.testIds';
 
 import { isNonEvmAddress } from '../../../../../../core/Multichain/utils';
@@ -123,7 +121,6 @@ const BuildQuote = () => {
   const navigation = useNavigation();
   const params = useParams<BuildQuoteParams>();
   const { showBack } = params;
-  const shouldShowBack = showBack !== false;
 
   // Memoize the intent object to prevent unnecessary re-renders
   const intent = useMemo(() => {
@@ -486,11 +483,30 @@ const BuildQuote = () => {
     navigation.navigate(...createBuySettingsModalNavigationDetails());
   }, [navigation]);
 
-  const handleBackPress = useCallback(() => {
-    handleCancelPress();
-    // @ts-expect-error navigation prop mismatch
-    navigation.pop();
-  }, [handleCancelPress, navigation]);
+  useEffect(() => {
+    navigation.setOptions(
+      getDepositNavbarOptions(
+        navigation,
+        {
+          title: isBuy
+            ? strings('fiat_on_ramp_aggregator.amount_to_buy')
+            : strings('fiat_on_ramp_aggregator.amount_to_sell'),
+          showBack: showBack ?? false,
+          showConfiguration: isBuy,
+          onConfigurationPress: handleConfigurationPress,
+        },
+        theme,
+        handleCancelPress,
+      ),
+    );
+  }, [
+    navigation,
+    theme,
+    handleCancelPress,
+    showBack,
+    isBuy,
+    handleConfigurationPress,
+  ]);
 
   /**
    * * Keypad style, handlers and effects
@@ -908,31 +924,6 @@ const BuildQuote = () => {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
-        <HeaderStandard
-          title={
-            isBuy
-              ? strings('fiat_on_ramp_aggregator.amount_to_buy')
-              : strings('fiat_on_ramp_aggregator.amount_to_sell')
-          }
-          onBack={shouldShowBack ? handleBackPress : undefined}
-          backButtonProps={
-            shouldShowBack
-              ? { testID: 'deposit-back-navbar-button' }
-              : undefined
-          }
-          endButtonIconProps={
-            isBuy
-              ? [
-                  {
-                    iconName: IconName.Setting,
-                    onPress: handleConfigurationPress,
-                    testID: NavbarSelectorsIDs.DEPOSIT_CONFIGURATION_BUTTON,
-                  },
-                ]
-              : undefined
-          }
-          includesTopInset
-        />
         <Pressable
           onPress={handleKeypadDone}
           style={styles.viewContainer}

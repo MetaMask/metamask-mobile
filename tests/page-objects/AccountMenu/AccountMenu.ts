@@ -1,49 +1,47 @@
 import { AccountsMenuSelectorsIDs } from '../../../app/components/Views/AccountsMenu/AccountsMenu.testIds';
 import Matchers from '../../../tests/framework/Matchers';
 import Gestures from '../../../tests/framework/Gestures';
-import { EncapsulatedElementType } from '../../framework';
-import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class AccountMenu {
-  get container(): EncapsulatedElementType {
+  get container(): DetoxElement {
     return Matchers.getElementByID(
       AccountsMenuSelectorsIDs.ACCOUNTS_MENU_SCROLL_ID,
     );
   }
 
-  get backButton(): EncapsulatedElementType {
+  get backButton(): DetoxElement {
     return Matchers.getElementByID(AccountsMenuSelectorsIDs.BACK_BUTTON);
   }
 
-  get settingsButton(): EncapsulatedElementType {
+  get settingsButton(): DetoxElement {
     return Matchers.getElementByID(AccountsMenuSelectorsIDs.SETTINGS);
   }
 
-  get contactsButton(): EncapsulatedElementType {
+  get contactsButton(): DetoxElement {
     return Matchers.getElementByID(AccountsMenuSelectorsIDs.CONTACTS);
   }
 
-  get manageCardButton(): EncapsulatedElementType {
+  get manageCardButton(): DetoxElement {
     return Matchers.getElementByID(AccountsMenuSelectorsIDs.MANAGE_CARD);
   }
 
-  get permissionsButton(): EncapsulatedElementType {
+  get permissionsButton(): DetoxElement {
     return Matchers.getElementByID(AccountsMenuSelectorsIDs.PERMISSIONS);
   }
 
-  get aboutMetaMaskButton(): EncapsulatedElementType {
+  get aboutMetaMaskButton(): DetoxElement {
     return Matchers.getElementByID(AccountsMenuSelectorsIDs.ABOUT_METAMASK);
   }
 
-  get requestFeatureButton(): EncapsulatedElementType {
+  get requestFeatureButton(): DetoxElement {
     return Matchers.getElementByID(AccountsMenuSelectorsIDs.REQUEST_FEATURE);
   }
 
-  get supportButton(): EncapsulatedElementType {
+  get supportButton(): DetoxElement {
     return Matchers.getElementByID(AccountsMenuSelectorsIDs.SUPPORT);
   }
 
-  get lockButton(): EncapsulatedElementType {
+  get lockButton(): DetoxElement {
     return Matchers.getElementByID(AccountsMenuSelectorsIDs.LOCK);
   }
 
@@ -54,8 +52,8 @@ class AccountMenu {
   }
 
   async tapSettings(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.settingsButton, {
-      description: 'Settings button',
+    await Gestures.waitAndTap(this.settingsButton, {
+      elemDescription: 'Settings button',
     });
   }
 
@@ -95,7 +93,7 @@ class AccountMenu {
     });
   }
 
-  get notificationsButton(): EncapsulatedElementType {
+  get notificationsButton(): DetoxElement {
     return Matchers.getElementByID(
       AccountsMenuSelectorsIDs.NOTIFICATIONS_BUTTON,
     );

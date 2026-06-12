@@ -61,8 +61,15 @@ import { BannerAlertSeverity } from '../../../../../component-library/components
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useSelector } from 'react-redux';
+import {
+  getRampRoutingDecision,
+  UnifiedRampRoutingType,
+} from '../../../../../reducers/fiatOrders';
+
 import TruncatedError from '../../components/TruncatedError';
 import { PROVIDER_LINKS } from '../../Aggregator/types';
+import { failSession } from '../../headless/sessionRegistry';
 const BAILED_ORDER_STATUSES = new Set<RampsOrderStatus>([
   RampsOrderStatus.Precreated,
   RampsOrderStatus.IdExpired,
@@ -90,14 +97,22 @@ export interface BuildQuoteParams {
   buyFlowOrigin?: BuyFlowOrigin;
   /** Pre-fill the amount input (e.g. when restoring state after a navigation reset). */
   amount?: number;
+  /**
+   * Legacy param from Phase 3. The headless flow now navigates straight
+   * to `Routes.RAMP.HEADLESS_HOST` and never lands on BuildQuote, so the
+   * field is unused. Kept as `optional` for backward compatibility with
+   * any in-flight deeplinks; safe to remove once we're sure no callers
+   * pass it.
+   *
+   * @deprecated Use `Routes.RAMP.HEADLESS_HOST` instead.
+   */
+  headlessSessionId?: string;
 }
 
 /**
  * Creates navigation details for the BuildQuote screen (RampAmountInput).
  * This screen is nested inside TokenListRoutes, so navigation must go through
- * the parent route Routes.RAMP.TOKEN_SELECTION, then the intermediate
- * RootStack wrapper Routes.RAMP.TOKEN_SELECTION_ROOT, before reaching the
- * AMOUNT_INPUT leaf screen.
+ * the parent route Routes.RAMP.TOKEN_SELECTION.
  */
 export const createBuildQuoteNavDetails = (
   params?: BuildQuoteParams,
@@ -114,7 +129,7 @@ export const createBuildQuoteNavDetails = (
   [
     Routes.RAMP.TOKEN_SELECTION,
     {
-      screen: Routes.RAMP.TOKEN_SELECTION_ROOT,
+      screen: Routes.RAMP.TOKEN_SELECTION,
       params: {
         screen: Routes.RAMP.AMOUNT_INPUT,
         params,
@@ -145,10 +160,24 @@ function BuildQuote() {
 
   useEffect(() => {
     if (params?.nativeFlowError) {
+      if (
+        params.headlessSessionId &&
+        failSession(
+          params.headlessSessionId,
+          {
+            code: 'AUTH_FAILED',
+            message: params.nativeFlowError,
+          },
+          'AUTH_FAILED',
+        )
+      ) {
+        navigation.setParams({ nativeFlowError: undefined });
+        return;
+      }
       setRampsError(params.nativeFlowError);
       navigation.setParams({ nativeFlowError: undefined });
     }
-  }, [params?.nativeFlowError, navigation]);
+  }, [params?.headlessSessionId, params?.nativeFlowError, navigation]);
 
   const {
     userRegion,
@@ -165,6 +194,7 @@ function BuildQuote() {
   const { continueWithQuote } = useContinueWithQuote();
 
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const rampRoutingDecision = useSelector(getRampRoutingDecision);
   const prevSelectedProviderRef = useRef(selectedProvider);
 
   /*
@@ -338,16 +368,19 @@ function BuildQuote() {
   const hasTrackedScreenViewRef = useRef(false);
   useEffect(() => {
     if (hasTrackedScreenViewRef.current) return;
-    hasTrackedScreenViewRef.current = true;
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.RAMPS_SCREEN_VIEWED)
-        .addProperties({
-          location: 'Amount Input',
-          ramp_type: 'UNIFIED_BUY_2',
-        })
-        .build(),
-    );
-  }, [trackEvent, createEventBuilder]);
+    if (rampRoutingDecision != null) {
+      hasTrackedScreenViewRef.current = true;
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.RAMPS_SCREEN_VIEWED)
+          .addProperties({
+            location: 'Amount Input',
+            ramp_type: 'UNIFIED_BUY_2',
+            ramp_routing: rampRoutingDecision,
+          })
+          .build(),
+      );
+    }
+  }, [rampRoutingDecision, trackEvent, createEventBuilder]);
 
   /*
    * Sets the default amount for the user's region.
@@ -450,6 +483,7 @@ function BuildQuote() {
             payment_method_id: selectedPaymentMethod?.id,
             chain_id: selectedToken?.chainId,
             ramp_type: 'UNIFIED_BUY_2',
+            ramp_routing: rampRoutingDecision ?? undefined,
           })
           .build(),
       );
@@ -465,6 +499,7 @@ function BuildQuote() {
     selectedToken?.assetId,
     selectedToken?.chainId,
     selectedPaymentMethod?.id,
+    rampRoutingDecision,
     trackEvent,
     createEventBuilder,
   ]);
@@ -587,6 +622,8 @@ function BuildQuote() {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.RAMPS_CONTINUE_BUTTON_CLICKED)
         .addProperties({
+          ramp_routing:
+            rampRoutingDecision ?? UnifiedRampRoutingType.AGGREGATOR,
           ramp_type: 'UNIFIED_BUY_2',
           amount_source: amountAsNumber,
           payment_method_id: selectedPaymentMethod?.id ?? '',
@@ -607,6 +644,9 @@ function BuildQuote() {
         assetId: selectedToken?.assetId ?? '',
       });
     } catch (err) {
+      if (failSession(params?.headlessSessionId, err)) {
+        return;
+      }
       setRampsError((err as Error).message);
     } finally {
       setIsContinueLoading(false);
@@ -620,7 +660,9 @@ function BuildQuote() {
     amountAsNumber,
     currency,
     selectedPaymentMethod?.id,
+    rampRoutingDecision,
     userRegion?.regionCode,
+    params?.headlessSessionId,
     trackEvent,
     createEventBuilder,
     continueWithQuote,

@@ -34,7 +34,6 @@ class PredictFeedSessionManager {
   // Tracking
   private currentTab: string = 'trending';
   private pageViewCount: number = 0;
-  private portfolioModuleEnabled: boolean = false;
 
   // AppState subscription (only active when PredictFeed is mounted)
   private appStateSubscription: ReturnType<
@@ -183,19 +182,7 @@ class PredictFeedSessionManager {
       sessionTime: this.getElapsedTime(),
       entryPoint: this.entryPoint,
       isSessionEnd,
-      ...(this.portfolioModuleEnabled && {
-        portfolioModuleEnabled: true,
-        predictComponent:
-          PredictEventValues.PREDICT_COMPONENT.PREDICT_PORTFOLIO_MODULE,
-      }),
     });
-  }
-
-  /**
-   * Set whether the Predict portfolio module is enabled for the current feed.
-   */
-  public setPortfolioModuleEnabled(enabled: boolean): void {
-    this.portfolioModuleEnabled = enabled;
   }
 
   /**
@@ -335,7 +322,6 @@ class PredictFeedSessionManager {
   public destroy(): void {
     this.removeAppStateListener();
     this.reset();
-    this.portfolioModuleEnabled = false;
   }
 }
 

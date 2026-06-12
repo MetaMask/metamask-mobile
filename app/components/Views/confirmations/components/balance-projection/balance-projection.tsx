@@ -9,8 +9,6 @@ import {
 import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBalance';
 import useFiatFormatter from '../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { strings } from '../../../../../../locales/i18n';
-import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
-import { isPositiveNumberOrZero } from '../../../../UI/Money/utils/number';
 
 export interface BalanceProjectionProps {
   amountFiat: string;
@@ -24,13 +22,18 @@ export function BalanceProjection({
   const { vaultApyQuery, apyDecimal, apyPercent } = useMoneyAccountBalance();
   const formatFiat = useFiatFormatter();
 
-  const amount = useMemo(() => {
-    const value = new BigNumber(amountFiat || '0');
-    return value.isFinite() ? value : null;
-  }, [amountFiat]);
+  const amount = useMemo(() => new BigNumber(amountFiat || '0'), [amountFiat]);
 
   const projected = useMemo(() => {
-    if (amount === null || !isPositiveNumberOrZero(apyDecimal)) {
+    if (
+      typeof apyDecimal !== 'number' ||
+      !isFinite(apyDecimal) ||
+      apyDecimal < 0
+    ) {
+      return null;
+    }
+
+    if (!amount.isFinite()) {
       return null;
     }
 
@@ -39,43 +42,35 @@ export function BalanceProjection({
     );
   }, [amount, apyDecimal, projectedYears]);
 
-  if (vaultApyQuery.isLoading) {
-    return (
-      <View testID="balance-projection-skeleton">
-        <Skeleton height={20} width={160} />
-      </View>
-    );
-  }
-
-  if (
-    amount === null ||
-    !isPositiveNumberOrZero(apyDecimal) ||
-    !isPositiveNumberOrZero(apyPercent)
-  ) {
+  if (vaultApyQuery.isLoading || projected === null) {
     return null;
   }
 
-  if (amount.isGreaterThan(0) && projected !== null) {
+  if (amount.isZero()) {
+    if (apyPercent === undefined) {
+      return null;
+    }
+
     return (
       <View testID="balance-projection">
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {strings('confirm.custom_amount.projected_balance', {
-            projectedYears,
-          })}{' '}
-          <Text variant={TextVariant.BodyMd} color={TextColor.SuccessDefault}>
-            {formatFiat(projected)}
-          </Text>
+          {strings('confirm.custom_amount.earn_up_to_apy', {
+            percentage: apyPercent,
+          })}
         </Text>
       </View>
     );
   }
 
   return (
-    <View testID="balance-projection-apy-pitch">
+    <View testID="balance-projection">
       <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-        {strings('confirm.custom_amount.earn_up_to_apy', {
-          percentage: apyPercent,
-        })}
+        {strings('confirm.custom_amount.projected_balance', {
+          projectedYears,
+        })}{' '}
+        <Text variant={TextVariant.BodyMd} color={TextColor.SuccessDefault}>
+          {formatFiat(projected)}
+        </Text>
       </Text>
     </View>
   );

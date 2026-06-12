@@ -113,13 +113,12 @@ export async function analyzeWithAgent<M extends ModeKey>(
   mode: M,
   context: AnalysisContext,
   availableSkills: SkillMetadata[],
-  options: { skipHardRules?: boolean } = {},
 ): Promise<ModeAnalysisResult<M>> {
   // Get mode configuration
   const modeConfig = MODES[mode];
 
   // Check mode-specific hard rules before AI analysis
-  if (!options.skipHardRules && modeConfig.checkHardRules) {
+  if (modeConfig.checkHardRules) {
     const hardRuleResult = modeConfig.checkHardRules(allChangedFiles, context);
     if (hardRuleResult) {
       return hardRuleResult as ModeAnalysisResult<M>;

@@ -2,16 +2,14 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Keyboard, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import Text, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
 import ClipboardText from './Clipboard';
-import {
-  Text,
-  TextVariant,
-  FontWeight,
-} from '@metamask/design-system-react-native';
 
 const TestForm = ({
   title,
@@ -66,7 +64,7 @@ const TestForm = ({
 
   return (
     <SafeAreaView style={styles.form}>
-      <Text variant={TextVariant.HeadingSm} style={styles.formTitle}>
+      <Text variant={TextVariant.HeadingSM} style={styles.formTitle}>
         {title}
       </Text>
       {textFields.map((textField, index) => (
@@ -84,11 +82,7 @@ const TestForm = ({
       ))}
       {result && (
         <>
-          <Text
-            variant={TextVariant.BodyMd}
-            testID={responseTextTestId}
-            fontWeight={FontWeight.Bold}
-          >
+          <Text variant={TextVariant.BodyMDBold} testID={responseTextTestId}>
             Response
           </Text>
           <ClipboardText

@@ -870,6 +870,13 @@ export class BackgroundBridge extends EventEmitter {
    */
   createEip5792Middleware() {
     return createEip5792Middleware({
+      getAccounts: () => {
+        const { AccountsController } = Engine.context;
+        const addresses = AccountsController.listAccounts().map(
+          (acc) => acc.address,
+        );
+        return Promise.resolve(addresses);
+      },
       // EIP-5792
       processSendCalls: processSendCalls.bind(
         null,
@@ -908,8 +915,6 @@ export class BackgroundBridge extends EventEmitter {
             }),
           isAuxiliaryFundsSupported: (chainId) =>
             ALLOWED_BRIDGE_CHAIN_IDS.includes(chainId),
-          getPermittedAccountsForOrigin: async () =>
-            getPermittedAccounts(this.channelIdOrOrigin),
         },
         Engine.controllerMessenger,
       ),

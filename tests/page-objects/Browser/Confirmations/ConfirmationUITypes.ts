@@ -1,13 +1,12 @@
 import { ConfirmationUIType } from '../../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import Matchers from '../../../framework/Matchers';
-import { EncapsulatedElementType } from '../../../framework';
 
 class ConfirmationUITypes {
-  get ModalConfirmationContainer(): EncapsulatedElementType {
+  get ModalConfirmationContainer(): DetoxElement {
     return Matchers.getElementByID(ConfirmationUIType.MODAL);
   }
 
-  get FlatConfirmationContainer(): EncapsulatedElementType {
+  get FlatConfirmationContainer(): DetoxElement {
     return Matchers.getElementByID(ConfirmationUIType.FLAT);
   }
 }

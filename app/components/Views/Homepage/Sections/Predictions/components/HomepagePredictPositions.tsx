@@ -1,9 +1,6 @@
 import React from 'react';
-import {
-  Box,
-  SectionDivider,
-  SectionHeader,
-} from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
+import SectionHeader from '../../../../../../component-library/components-temp/SectionHeader';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../../Wallet/WalletView.testIds';
 import { strings } from '../../../../../../../locales/i18n';
@@ -44,13 +41,11 @@ const HomepagePredictPositions = ({
   onPositionPress,
   showHeader = true,
 }: HomepagePredictPositionsProps) => (
-  <>
+  <Box gap={3}>
     {showHeader && (
-      <>
-        <SectionDivider />
+      <Box gap={1}>
         <SectionHeader
           title={title}
-          isInteractive
           onPress={onViewAll}
           testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('predictions')}
         />
@@ -63,36 +58,32 @@ const HomepagePredictPositions = ({
             testID="homepage-predict-unrealized-pnl"
           />
         )}
-      </>
+      </Box>
     )}
-    <Box gap={3}>
-      {isLoadingPositions ? (
-        <>
-          <PredictPositionRowSkeleton />
-          <PredictPositionRowSkeleton />
-        </>
-      ) : (
-        positions.map((position) => (
-          <PredictPositionRow
-            key={`${position.outcomeId}:${position.outcomeIndex}`}
-            position={position}
-            onPress={onPositionPress}
-            privacyMode={Boolean(privacyMode)}
-          />
-        ))
-      )}
-      {!isLoadingPositions &&
-        !isLoadingClaimable &&
-        totalClaimableValue > 0 && (
-          <Box paddingHorizontal={4} paddingTop={1} paddingBottom={3}>
-            <PredictClaimButton
-              amount={privacyMode ? undefined : totalClaimableValue}
-              onPress={onClaim}
-            />
-          </Box>
-        )}
-    </Box>
-  </>
+    {isLoadingPositions ? (
+      <>
+        <PredictPositionRowSkeleton />
+        <PredictPositionRowSkeleton />
+      </>
+    ) : (
+      positions.map((position) => (
+        <PredictPositionRow
+          key={`${position.outcomeId}:${position.outcomeIndex}`}
+          position={position}
+          onPress={onPositionPress}
+          privacyMode={Boolean(privacyMode)}
+        />
+      ))
+    )}
+    {!isLoadingPositions && !isLoadingClaimable && totalClaimableValue > 0 && (
+      <Box paddingHorizontal={4} paddingTop={1} paddingBottom={3}>
+        <PredictClaimButton
+          amount={privacyMode ? undefined : totalClaimableValue}
+          onPress={onClaim}
+        />
+      </Box>
+    )}
+  </Box>
 );
 
 export default HomepagePredictPositions;

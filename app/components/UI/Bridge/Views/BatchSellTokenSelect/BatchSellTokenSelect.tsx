@@ -37,7 +37,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import {
   resetBridgeState,
   selectBatchSellDestStablecoins,
-  selectBatchSellSourceTokens,
   setBatchSellDestToken,
   setBatchSellSourceTokenAmounts,
   setBatchSellSourceTokens,
@@ -59,14 +58,10 @@ import { BatchSellTokenSelectSelectorsIDs } from './BatchSellTokenSelect.testIds
 import { BatchSellTokenRow } from './BatchSellTokenRow';
 import { BatchSellEmptyState } from './BatchSellEmptyState';
 import { DEFAULT_BATCH_SELL_SLIPPAGE } from '../../components/SlippageModal/utils';
-import { normalizeTokenAddress } from '../../utils/tokenUtils';
 import { useBatchSellTokens } from './useBatchSellTokens';
 
 const getTokenKey = (token: BridgeToken) =>
-  `${formatChainIdToCaip(token.chainId)}:${normalizeTokenAddress(
-    token.address,
-    token.chainId,
-  )}`;
+  `${formatChainIdToCaip(token.chainId)}:${token.address}`;
 
 function getBatchSellSourceTokenAmount(token: BridgeToken, percent: number) {
   if (percent <= 0) return '0';
@@ -127,31 +122,10 @@ export function BatchSellTokenSelect() {
     CaipChainId | undefined
   >(() => sortedEligibleChains[0]?.chainId);
   const [selectedTokens, setSelectedTokens] = useState<BridgeToken[]>([]);
-  const committedSourceTokens = useSelector(selectBatchSellSourceTokens);
 
   useEffect(() => {
     dispatch(resetBridgeState());
   }, [dispatch]);
-
-  useEffect(() => {
-    // Tokens can be removed on the review page, which only updates Redux. Keep the
-    // local selection in sync so removed tokens appear deselected when returning here.
-    if (committedSourceTokens.length === 0) {
-      return;
-    }
-
-    const committedTokenKeys = new Set(committedSourceTokens.map(getTokenKey));
-
-    setSelectedTokens((tokens) => {
-      const reconciledTokens = tokens.filter((token) =>
-        committedTokenKeys.has(getTokenKey(token)),
-      );
-
-      return reconciledTokens.length === tokens.length
-        ? tokens
-        : reconciledTokens;
-    });
-  }, [committedSourceTokens]);
 
   useEffect(() => {
     // Default to the highest-value chain once balances load, but preserve a
@@ -281,38 +255,25 @@ export function BatchSellTokenSelect() {
       return;
     }
 
-    const orderedSelectedTokens = sortBatchSellTokens(
-      selectedTokens,
-      tokenSortDirection,
-    );
-
-    dispatch(setBatchSellSourceTokens(orderedSelectedTokens));
+    dispatch(setBatchSellSourceTokens(selectedTokens));
     dispatch(
       setBatchSellSourceTokenAmounts(
-        getDefaultBatchSellSourceTokenAmounts(orderedSelectedTokens),
+        getDefaultBatchSellSourceTokenAmounts(selectedTokens),
       ),
     );
     dispatch(
       setBatchSellDestToken(
         getBatchSellDestinationToken(
-          orderedSelectedTokens[0].chainId,
+          selectedTokens[0].chainId,
           destinationStablecoins,
         ),
       ),
     );
     dispatch(
-      setBatchSellTokenSlippages(
-        getDefaultBatchSellSlippages(orderedSelectedTokens),
-      ),
+      setBatchSellTokenSlippages(getDefaultBatchSellSlippages(selectedTokens)),
     );
     navigation.navigate(Routes.BRIDGE.BATCH_SELL_REVIEW);
-  }, [
-    destinationStablecoins,
-    dispatch,
-    navigation,
-    selectedTokens,
-    tokenSortDirection,
-  ]);
+  }, [destinationStablecoins, dispatch, navigation, selectedTokens]);
 
   const handleExploreTokensPress = useCallback(() => {
     navigation.navigate(Routes.TRENDING_VIEW, {
@@ -425,7 +386,7 @@ export function BatchSellTokenSelect() {
                 {strings('bridge.batch_sell_select_subtitle')}
               </Text>
             </Box>
-            <Box twClassName="py-4 pl-4">
+            <Box twClassName="pt-4 pl-4">
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
@@ -445,7 +406,7 @@ export function BatchSellTokenSelect() {
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              twClassName="px-4 py-2"
+              twClassName="px-4 py-4"
             >
               <Pressable
                 accessibilityRole="button"

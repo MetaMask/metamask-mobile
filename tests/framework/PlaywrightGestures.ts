@@ -3,15 +3,9 @@ import { CurrentDeviceDetails } from './fixtures/playwright';
 import { PlatformDetector } from './PlatformLocator';
 import { PlaywrightElement } from './PlaywrightAdapter';
 import { boxedStep, getDriver } from './PlaywrightUtilities';
-import {
-  createPlaywrightLogger,
-  debugElementAction,
-} from './playwrightLogger.ts';
-
-const logger = createPlaywrightLogger('PlaywrightGestures');
 
 export interface ScrollOptions {
-  scrollParams?: { direction?: 'up' | 'down' | 'left' | 'right' };
+  scrollParams?: { direction?: 'up' | 'down' };
   from?: { x: number; y: number };
   to?: { x: number; y: number };
   percent?: number;
@@ -23,7 +17,8 @@ export interface ScrollOptions {
  * PlaywrightGestures - Gesture helpers for WebdriverIO/Playwright
  *
  * This class provides gesture methods that wrap PlaywrightElement API.
- * Currently these are simple wrappers with debug logging (similar to Detox Gestures).
+ * Currently these are simple wrappers, but can be enhanced with retries,
+ * stability checks, and logging in the future (similar to Detox Gestures).
  *
  * @example
  * const elem = await PlaywrightMatchers.getByXPath('...');
@@ -40,7 +35,6 @@ export default class PlaywrightGestures {
    */
   @boxedStep
   static async tap(elem: PlaywrightElement): Promise<void> {
-    await debugElementAction(logger, 'Tapping element', elem);
     await elem.unwrap().click();
   }
 
@@ -199,7 +193,6 @@ export default class PlaywrightGestures {
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
 
-    await debugElementAction(logger, 'Wait and tap element', elem);
     await elem.unwrap().click();
   }
 
@@ -211,7 +204,6 @@ export default class PlaywrightGestures {
    */
   @boxedStep
   static async typeText(elem: PlaywrightElement, text: string): Promise<void> {
-    await debugElementAction(logger, 'Typing into element', elem);
     await elem.unwrap().addValue(text);
   }
 
@@ -246,7 +238,6 @@ export default class PlaywrightGestures {
       from,
       to,
     } = options || {};
-    logger.debug(`Swiping ${scrollParams.direction ?? 'up'}`);
     await drv.swipe({
       direction: scrollParams.direction,
       duration,
@@ -270,7 +261,6 @@ export default class PlaywrightGestures {
     const x = location.x + size.width / 2;
     const y = location.y + size.height / 2;
 
-    await debugElementAction(logger, 'Long pressing element', elem);
     await elem
       .unwrap()
       .touchAction([
@@ -291,7 +281,6 @@ export default class PlaywrightGestures {
   static async dblTap(elem: PlaywrightElement, intervalMs = 60): Promise<void> {
     const wrapped = elem.unwrap();
 
-    await debugElementAction(logger, 'Double tapping element', elem);
     await wrapped.click();
 
     if (intervalMs > 0) {
@@ -317,7 +306,6 @@ export default class PlaywrightGestures {
       scrollableElement,
       duration,
     } = options || {};
-    await debugElementAction(logger, 'Scrolling element into view', elem);
     await elem.unwrap().scrollIntoView({
       direction: scrollParams.direction,
       from,
@@ -354,11 +342,6 @@ export default class PlaywrightGestures {
     const safeBottom = windowSize.height * 0.85;
 
     if (elementBottom > safeBottom) {
-      await debugElementAction(
-        logger,
-        'Adjusting scroll to clear bottom nav for element',
-        elem,
-      );
       const overshoot = Math.ceil(elementBottom - safeBottom) + 20;
       const midX = Math.floor(windowSize.width / 2);
       const startY = Math.floor(windowSize.height * 0.6);
@@ -409,14 +392,13 @@ export default class PlaywrightGestures {
       throw new Error('Package name or app id is not available');
     }
 
-    logger.debug(`Terminating app: ${bundleId}`);
     while (retries > 0) {
       try {
         await drv.terminateApp(bundleId);
         await new Promise((resolve) => setTimeout(resolve, retryDelay));
         return;
       } catch (error) {
-        logger.warn(`Error terminating app ${bundleId}:`, error);
+        console.log('Error terminating app', bundleId);
         retries--;
       }
     }
@@ -439,7 +421,6 @@ export default class PlaywrightGestures {
     if (!drv) throw new Error('Driver is not available');
 
     if (packageId) {
-      logger.debug(`Activating app: ${packageId}`);
       await drv.activateApp(packageId);
       return;
     }
@@ -448,7 +429,6 @@ export default class PlaywrightGestures {
       currentDeviceDetails?.platform === 'android' &&
       currentDeviceDetails.packageName
     ) {
-      logger.debug(`Activating app: ${currentDeviceDetails.packageName}`);
       await drv.activateApp(currentDeviceDetails.packageName);
       return;
     }
@@ -457,7 +437,6 @@ export default class PlaywrightGestures {
       currentDeviceDetails?.platform === 'ios' &&
       currentDeviceDetails.appId
     ) {
-      logger.debug(`Activating app: ${currentDeviceDetails.appId}`);
       await drv.activateApp(currentDeviceDetails.appId);
       return;
     }
@@ -474,7 +453,6 @@ export default class PlaywrightGestures {
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
 
-    logger.debug(`Backgrounding app for ${seconds}s`);
     await drv.execute('mobile: backgroundApp', { seconds });
   }
 
@@ -482,21 +460,18 @@ export default class PlaywrightGestures {
    * Hide keyboard for both Android and iOS
    * @param keyName - The key to press on iOS keyboard (default: 'Done'). Common values: 'Done', 'Return', 'Search', 'Go', 'Next'
    */
-  static async hideKeyboard(): Promise<void> {
+  static async hideKeyboard(keyName: string = 'Done'): Promise<void> {
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
 
-    logger.debug('Hiding keyboard');
     if (PlatformDetector.isAndroid()) {
       await drv.hideKeyboard();
     } else {
-      // iOS — use 'tapOutside' to dismiss the keyboard without pressing a
-      // return key. 'pressKey: Done' would trigger onSubmitEditing on inputs
-      // that have returnKeyType='done', causing unintended form submissions
-      // before the test has a chance to interact with other elements.
+      // iOS - tapOutside dismisses the keyboard by tapping outside the focused
+      // element, which works regardless of keyboard type (password, numeric, etc.)
       try {
         await drv.executeScript('mobile: hideKeyboard', [
-          { strategy: 'tapOutside' },
+          { strategy: 'pressKey', key: keyName },
         ]);
       } catch {
         // Keyboard may already be hidden

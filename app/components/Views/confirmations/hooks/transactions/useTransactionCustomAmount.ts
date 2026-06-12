@@ -35,7 +35,7 @@ import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSou
 import { useConfirmationMetricEvents } from '../metrics/useConfirmationMetricEvents';
 
 export const MAX_LENGTH = 28;
-const DEBOUNCE_DELAY = 300;
+const DEBOUNCE_DELAY = 500;
 
 function formatFiatAmount(value: BigNumber): string {
   return value.isInteger() ? value.toString(10) : value.toFixed(2);
@@ -49,9 +49,6 @@ export function useTransactionCustomAmount({
   const [isInputChanged, setInputChanged] = useState(false);
   const [hasInput, setHasInput] = useState(false);
   const [amountHumanDebounced, setAmountHumanDebounced] = useState('0');
-  const [amountFiatDebounced, setAmountFiatDebounced] = useState(
-    defaultAmount ?? '0',
-  );
   const totals = useTransactionPayTotals();
   const hasSourceAmount = useTransactionPayHasSourceAmount();
   const isPostQuote = useTransactionPayIsPostQuote();
@@ -60,9 +57,8 @@ export function useTransactionCustomAmount({
 
   const debounceSetAmountDelayed = useMemo(
     () =>
-      debounce((humanValue: string, fiatValue: string) => {
-        setAmountHumanDebounced(humanValue);
-        setAmountFiatDebounced(fiatValue);
+      debounce((value: string) => {
+        setAmountHumanDebounced(value);
       }, DEBOUNCE_DELAY),
     [],
   );
@@ -124,14 +120,8 @@ export function useTransactionCustomAmount({
   );
 
   useEffect(() => {
-    debounceSetAmountDelayed(amountHuman, amountFiat);
-
-    // Clearing the input should drop pending-amount alerts immediately —
-    // don't make the user wait out the debounce for a stale error to vanish.
-    if (amountFiat === '0' || amountFiat === '') {
-      debounceSetAmountDelayed.flush();
-    }
-  }, [amountHuman, amountFiat, debounceSetAmountDelayed]);
+    debounceSetAmountDelayed(amountHuman);
+  }, [amountHuman, debounceSetAmountDelayed]);
 
   useEffect(() => {
     if (amountHumanDebounced !== '0') {
@@ -250,7 +240,6 @@ export function useTransactionCustomAmount({
 
   return {
     amountFiat,
-    amountFiatDebounced,
     amountHuman,
     amountHumanDebounced,
     hasInput,

@@ -62,8 +62,6 @@ describe('useReferralDetails', () => {
     referralCode: 'ABC123',
     totalReferees: 5,
     referredByCode: 'REFERRER100',
-    isVipReferee: true,
-    referredByVipCode: 'VIPCODE',
   };
 
   beforeEach(() => {
@@ -120,8 +118,6 @@ describe('useReferralDetails', () => {
         referralCode: mockReferralDetails.referralCode,
         refereeCount: mockReferralDetails.totalReferees,
         referredByCode: mockReferralDetails.referredByCode,
-        isVipReferee: mockReferralDetails.isVipReferee,
-        referredByVipCode: mockReferralDetails.referredByVipCode,
       }),
     );
     expect(mockDispatch).toHaveBeenCalledWith(setReferralDetailsLoading(false));

@@ -9,6 +9,7 @@ import {
 } from '../../framework/EncapsulatedElement';
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import PlaywrightGestures from '../../framework/PlaywrightGestures';
 import UnifiedGestures from '../../framework/UnifiedGestures';
 import Utilities from '../../framework/Utilities';
 
@@ -43,11 +44,11 @@ class LoginView {
     });
   }
 
-  get forgotPasswordButton(): EncapsulatedElementType {
+  get forgotPasswordButton(): DetoxElement {
     return Matchers.getElementByID(LoginViewSelectors.RESET_WALLET);
   }
 
-  get rememberMeSwitch(): EncapsulatedElementType {
+  get rememberMeSwitch(): DetoxElement {
     return Matchers.getElementByID(LoginViewSelectors.REMEMBER_ME_SWITCH);
   }
 
@@ -82,11 +83,7 @@ class LoginView {
         await UnifiedGestures.typeText(this.passwordInput, password, {
           description: 'Password Input',
         });
-        // Do NOT call hideKeyboard here — the login button is above the
-        // keyboard (~184pt vs keyboard at ~574pt) and does not need dismissal.
-        // Both 'pressKey: Done' and 'tapOutside' strategies trigger navigation
-        // (either via onSubmitEditing or by tapping the login button itself)
-        // before tapLoginButton can find and tap the element.
+        await PlaywrightGestures.hideKeyboard();
       },
     });
   }

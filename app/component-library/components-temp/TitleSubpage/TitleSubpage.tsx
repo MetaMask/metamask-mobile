@@ -19,8 +19,6 @@ import { TitleSubpageProps } from './TitleSubpage.types';
  * TitleSubpage is a component that displays a title with optional accessories
  * in a left-aligned layout, with an optional startAccessory to the left.
  *
- * @deprecated Please update your code to use `TitleSubpage` from `@metamask/design-system-react-native`.
- *
  * @example
  * ```tsx
  * <TitleSubpage

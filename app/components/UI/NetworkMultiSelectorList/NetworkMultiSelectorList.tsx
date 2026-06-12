@@ -9,8 +9,7 @@ import React, {
 } from 'react';
 import { useSelector } from 'react-redux';
 import { ImageSourcePropType, View } from 'react-native';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
-import { TextVariant as LegacyTextVariant } from '../../../component-library/components/Texts/Text';
+import { Box } from '@metamask/design-system-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import {
@@ -20,7 +19,6 @@ import {
 } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { debounce } from 'lodash';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 // External dependencies.
 import { useStyles } from '../../../component-library/hooks/index.ts';
@@ -29,6 +27,9 @@ import { IconName } from '../../../component-library/components/Icons/Icon/index
 import Cell, {
   CellVariant,
 } from '../../../component-library/components/Cells/Cell/index.ts';
+import Text, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text/index.ts';
 import { isTestNet } from '../../../util/networks/index.js';
 import hideProtocolFromUrl from '../../../util/hideProtocolFromUrl';
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
@@ -64,7 +65,6 @@ import { strings } from '../../../../locales/i18n';
 import TagColored, {
   TagColor,
 } from '../../../component-library/components-temp/TagColored';
-import { useElevatedSurface } from '../../../util/theme/themeUtils';
 
 const SELECTION_DEBOUNCE_DELAY = 150;
 
@@ -116,8 +116,6 @@ const NetworkMultiSelectList = ({
   );
 
   const { styles } = useStyles(styleSheet, {});
-  const tw = useTailwind();
-  const surfaceClass = useElevatedSurface();
 
   const processedNetworks = useMemo(
     (): ProcessedNetwork[] =>
@@ -289,19 +287,13 @@ const NetworkMultiSelectList = ({
             isSelected={isSelected}
             title={
               isGasSponsored ? (
-                <Box twClassName="flex-row gap-2 items-center">
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    numberOfLines={1}
-                    style={styles.networkNameText}
-                  >
-                    {name}
-                  </Text>
+                <Box twClassName="flex-row gap-2">
+                  <Text variant={TextVariant.BodyMD}>{name}</Text>
                   <TagColored
                     color={TagColor.Success}
                     style={styles.noNetworkFeeContainer}
                     labelProps={{
-                      variant: LegacyTextVariant.BodySM,
+                      variant: TextVariant.BodySM,
                       style: {
                         textTransform: 'none',
                         textAlign: 'center',
@@ -331,7 +323,7 @@ const NetworkMultiSelectList = ({
             disabled={isDisabled}
             showButtonIcon={showButtonIcon}
             buttonProps={createButtonProps(network)}
-            style={tw.style(`${surfaceClass} items-center`)}
+            style={styles.centeredNetworkCell}
             testID={NETWORK_MULTI_SELECTOR_TEST_IDS.NETWORK_LIST_ITEM(
               caipChainId,
               isSelected,
@@ -360,10 +352,8 @@ const NetworkMultiSelectList = ({
       openRpcModal,
       isGasFeesSponsoredNetworkEnabled,
       isHardwareWallet,
+      styles.centeredNetworkCell,
       styles.noNetworkFeeContainer,
-      surfaceClass,
-      tw,
-      styles.networkNameText,
     ],
   );
 

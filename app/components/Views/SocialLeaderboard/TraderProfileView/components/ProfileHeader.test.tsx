@@ -48,7 +48,7 @@ describe('ProfileHeader', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders Maskicon fallback when imageUrl is falsy', () => {
+  it('renders fallback AvatarBase when imageUrl is falsy', () => {
     const profileNoImage = { ...baseProfile, imageUrl: '' };
     renderWithProvider(
       <ProfileHeader profile={profileNoImage} followerCount={45} />,
@@ -77,7 +77,7 @@ describe('ProfileHeader', () => {
     expect(screen.getByText('0 followers')).toBeOnTheScreen();
   });
 
-  it('renders without a fallback letter when imageUrl is undefined', () => {
+  it('renders the fallback letter when imageUrl is undefined', () => {
     const profileWithoutImage: TraderProfile = {
       ...baseProfile,
       imageUrl: undefined,
@@ -87,11 +87,10 @@ describe('ProfileHeader', () => {
       <ProfileHeader profile={profileWithoutImage} followerCount={45} />,
     );
 
-    expect(screen.queryByText('D')).toBeNull();
-    expect(screen.getByText('dutchiono')).toBeOnTheScreen();
+    expect(screen.getByText('D')).toBeOnTheScreen();
   });
 
-  it('renders without a fallback letter when imageUrl is empty string', () => {
+  it('renders the fallback letter when imageUrl is empty', () => {
     const profileWithoutImage: TraderProfile = {
       ...baseProfile,
       imageUrl: '',
@@ -101,8 +100,7 @@ describe('ProfileHeader', () => {
       <ProfileHeader profile={profileWithoutImage} followerCount={45} />,
     );
 
-    expect(screen.queryByText('D')).toBeNull();
-    expect(screen.getByText('dutchiono')).toBeOnTheScreen();
+    expect(screen.getByText('D')).toBeOnTheScreen();
   });
 
   describe('X (Twitter) icon', () => {

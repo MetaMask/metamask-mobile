@@ -28,7 +28,7 @@ jest.mock('../../../../../../../locales/i18n', () => ({
       'confirm.pay_with_bottom_sheet.available_balance': `${
         params?.balance ?? ''
       } available`,
-      'confirm.pay_with_bottom_sheet.money_account': 'Money account',
+      'confirm.pay_with_bottom_sheet.money_balance': 'Money balance',
     };
     return translations[key] ?? key;
   },
@@ -222,7 +222,7 @@ describe('usePayWithMoneyAccountSection', () => {
       expect(result.current?.rows[0]).toEqual(
         expect.objectContaining({
           id: 'money-account-musd',
-          title: 'Money account',
+          title: 'Money balance',
           subtitle: '$100.00 available',
           isSelected: false,
           isLastUsed: false,

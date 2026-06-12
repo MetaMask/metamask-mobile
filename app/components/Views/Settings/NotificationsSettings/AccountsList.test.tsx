@@ -8,7 +8,10 @@ import {
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
 // eslint-disable-next-line import-x/no-namespace
 import * as useSwitchNotificationsModule from '../../../../util/notifications/hooks/useSwitchNotifications';
-import { NOTIFICATION_OPTIONS_TOGGLE_CONTAINER_TEST_ID } from './NotificationOptionToggle';
+import {
+  NOTIFICATION_OPTIONS_TOGGLE_LOADING_TEST_ID,
+  NOTIFICATION_OPTIONS_TOGGLE_CONTAINER_TEST_ID,
+} from './NotificationOptionToggle';
 import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
 import { toFormattedAddress } from '../../../../util/address';
 import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
@@ -48,12 +51,22 @@ const ACCOUNT_1_TEST_ID = {
       CHECKSUMMED_ADDRESS_1,
     ),
   ),
+  itemLoading: NOTIFICATION_OPTIONS_TOGGLE_LOADING_TEST_ID(
+    NotificationSettingsViewSelectorsIDs.ACCOUNT_NOTIFICATION_TOGGLE(
+      CHECKSUMMED_ADDRESS_1,
+    ),
+  ),
   itemSwitch: NotificationSettingsViewSelectorsIDs.ACCOUNT_NOTIFICATION_TOGGLE(
     CHECKSUMMED_ADDRESS_1,
   ),
 };
 const ACCOUNT_2_TEST_ID = {
   item: NOTIFICATION_OPTIONS_TOGGLE_CONTAINER_TEST_ID(
+    NotificationSettingsViewSelectorsIDs.ACCOUNT_NOTIFICATION_TOGGLE(
+      CHECKSUMMED_ADDRESS_2,
+    ),
+  ),
+  itemLoading: NOTIFICATION_OPTIONS_TOGGLE_LOADING_TEST_ID(
     NotificationSettingsViewSelectorsIDs.ACCOUNT_NOTIFICATION_TOGGLE(
       CHECKSUMMED_ADDRESS_2,
     ),
@@ -189,7 +202,6 @@ describe('AccountList', () => {
     const mockRefetchAccountSettings = jest.fn();
     const notificationAccountListProps: NotificationAccountListProps = {
       shouldDisableSwitches: false,
-      isAnyAccountUpdating: false,
       refetchAccountSettings: mockRefetchAccountSettings,
       isAccountLoading: jest
         .fn()
@@ -242,15 +254,20 @@ describe('AccountList', () => {
 
   it('renders correctly', () => {
     const mocks = arrangeMocks();
-    const { getByTestId } = renderAccountsList(mocks);
+    const { getByTestId, queryByTestId } = renderAccountsList(mocks);
 
     // Assert - Items exist
     expect(getByTestId(ACCOUNT_1_TEST_ID.item)).toBeOnTheScreen();
     expect(getByTestId(ACCOUNT_2_TEST_ID.item)).toBeOnTheScreen();
     expect(getByTestId(ACCOUNT_3_TEST_ID.item)).toBeOnTheScreen();
 
+    // Assert - Item Loading
+    expect(getByTestId(ACCOUNT_1_TEST_ID.itemLoading)).toBeTruthy();
+
+    expect(queryByTestId(ACCOUNT_2_TEST_ID.itemLoading)).toBe(null);
+
     // Assert - Item Switch
-    expect(getByTestId(ACCOUNT_1_TEST_ID.itemSwitch).props.value).toBe(true);
+    expect(queryByTestId(ACCOUNT_1_TEST_ID.itemSwitch)).toBe(null); // We are loading, so this is null
     expect(getByTestId(ACCOUNT_2_TEST_ID.itemSwitch).props.value).toBe(false); // The switch is set to false
   });
 
@@ -276,26 +293,6 @@ describe('AccountList', () => {
     );
   });
 
-  it('disables every switch while an account update is reported', () => {
-    const mocks = arrangeMocks();
-
-    const { getByTestId } = renderAccountsList(mocks, {
-      notificationAccountListProps: {
-        ...mocks.notificationAccountListProps,
-        isAnyAccountUpdating: true,
-      },
-    });
-
-    expect(getByTestId(ACCOUNT_1_TEST_ID.itemSwitch)).toHaveProp(
-      'disabled',
-      true,
-    );
-    expect(getByTestId(ACCOUNT_2_TEST_ID.itemSwitch)).toHaveProp(
-      'disabled',
-      true,
-    );
-  });
-
   it('invokes switch toggle logic when clicked', async () => {
     const mocks = arrangeMocks();
 
@@ -309,66 +306,11 @@ describe('AccountList', () => {
 
     // Act
     const toggleSwitch = getByTestId(ACCOUNT_1_TEST_ID.itemSwitch);
-    fireEvent(toggleSwitch, 'onValueChange', false);
+    fireEvent(toggleSwitch, 'onChange', { nativeEvent: { value: false } });
 
     // Assert account was toggled, and we refetch all account notification toggles
     await waitFor(() => {
-      expect(mocks.mockOnToggle).toHaveBeenCalledWith(
-        [CHECKSUMMED_ADDRESS_1],
-        false,
-      );
-      expect(mocks.mockRefetchAccountSettings).toHaveBeenCalled();
-    });
-  });
-
-  it('disables all switches immediately and ignores rapid second toggle', async () => {
-    const mocks = arrangeMocks();
-    let resolveToggle: () => void = () => undefined;
-    mocks.mockOnToggle.mockReturnValueOnce(
-      new Promise<void>((resolve) => {
-        resolveToggle = resolve;
-      }),
-    );
-
-    const { getByTestId } = renderAccountsList(mocks, {
-      notificationAccountListProps: {
-        ...mocks.notificationAccountListProps,
-        shouldDisableSwitches: false,
-        isAccountLoading: jest.fn().mockReturnValue(false),
-      },
-    });
-
-    const firstToggle = getByTestId(ACCOUNT_1_TEST_ID.itemSwitch);
-    const secondToggle = getByTestId(ACCOUNT_2_TEST_ID.itemSwitch);
-    fireEvent(firstToggle, 'onValueChange', false);
-    fireEvent(secondToggle, 'onValueChange', true);
-
-    expect(mocks.mockOnToggle).toHaveBeenCalledTimes(1);
-    expect(mocks.mockOnToggle).toHaveBeenCalledWith(
-      [CHECKSUMMED_ADDRESS_1],
-      false,
-    );
-    await waitFor(() => {
-      expect(getByTestId(ACCOUNT_1_TEST_ID.itemSwitch)).toHaveProp(
-        'value',
-        false,
-      );
-      expect(getByTestId(ACCOUNT_2_TEST_ID.itemSwitch)).toHaveProp(
-        'value',
-        false,
-      );
-      expect(getByTestId(ACCOUNT_1_TEST_ID.itemSwitch)).toHaveProp(
-        'disabled',
-        true,
-      );
-      expect(getByTestId(ACCOUNT_2_TEST_ID.itemSwitch)).toHaveProp(
-        'disabled',
-        true,
-      );
-    });
-
-    resolveToggle();
-    await waitFor(() => {
+      expect(mocks.mockOnToggle).toHaveBeenCalled();
       expect(mocks.mockRefetchAccountSettings).toHaveBeenCalled();
     });
   });

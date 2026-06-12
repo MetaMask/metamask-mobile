@@ -16,6 +16,9 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../component-library/components/Icons/Icon';
+import Text, {
+  TextVariant,
+} from '../../../../component-library/components/Texts/Text';
 import { useNetworkInfo } from '../../../../selectors/selectedNetworkController';
 import { getHost } from '../../../../util/browser';
 import Device from '../../../../util/device';
@@ -28,7 +31,6 @@ import { getPermittedEvmAddressesByHostname } from '../../../../core/Permissions
 import { useFavicon } from '../../../hooks/useFavicon';
 import { selectInternalAccounts } from '../../../../selectors/accountsController';
 import { areAddressesEqual } from '../../../../util/address';
-import { Text, TextVariant } from '@metamask/design-system-react-native';
 
 /**
  * View that renders a tab thumbnail to be displayed in the in-app browser.
@@ -122,7 +124,7 @@ const TabThumbnail = ({
               </BadgeWrapper>
             </View>
             <Text
-              variant={TextVariant.BodySm}
+              variant={TextVariant.BodySM}
               style={styles.footerText}
               numberOfLines={1}
               ellipsizeMode="tail"

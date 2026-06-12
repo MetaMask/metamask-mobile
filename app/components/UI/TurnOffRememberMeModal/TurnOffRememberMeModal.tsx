@@ -6,6 +6,9 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Text, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 import { OutlinedTextField } from 'react-native-material-textfield';
 import { createStyles } from './styles';
 import ReusableModal, { ReusableModalRef } from '../ReusableModal';
@@ -24,8 +27,6 @@ import {
   Box,
   BoxFlexDirection,
   BoxAlignItems,
-  Text,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 
 export const createTurnOffRememberMeModalNavDetails = createNavigationDetails(
@@ -117,10 +118,10 @@ const TurnOffRememberMeModal = () => {
         >
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View style={styles.areYouSure}>
-              <Text variant={TextVariant.HeadingLg} style={styles.textStyle}>
+              <Text variant={TextVariant.HeadingLG} style={styles.textStyle}>
                 {strings('turn_off_remember_me.title')}
               </Text>
-              <Text variant={TextVariant.BodyMd} style={styles.textStyle}>
+              <Text variant={TextVariant.BodyMD} style={styles.textStyle}>
                 {strings('turn_off_remember_me.description')}
               </Text>
               {isLoading ? (

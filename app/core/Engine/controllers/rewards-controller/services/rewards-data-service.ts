@@ -43,7 +43,6 @@ import type {
   PredictThePitchCampaignParticipantOutcomeDto,
   PredictThePitchPrizePoolDto,
   VipDashboardDto,
-  VipRefereeMeDto,
   VipFeesResponseDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
@@ -342,11 +341,6 @@ export interface RewardsDataServiceGetVIPDashboardAction {
   handler: RewardsDataService['getVIPDashboard'];
 }
 
-export interface RewardsDataServiceGetVipRefereeDashboardAction {
-  type: `${typeof SERVICE_NAME}:getVipRefereeDashboard`;
-  handler: RewardsDataService['getVipRefereeDashboard'];
-}
-
 export interface RewardsDataServiceGetVipFeesAction {
   type: `${typeof SERVICE_NAME}:getVipFees`;
   handler: RewardsDataService['getVipFees'];
@@ -389,7 +383,6 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceOptInToCampaignAction
   | RewardsDataServiceGetBenefitsAction
   | RewardsDataServiceGetVIPDashboardAction
-  | RewardsDataServiceGetVipRefereeDashboardAction
   | RewardsDataServiceGetVipFeesAction
   | RewardsDataServicePostBenefitImpressionAction
   | RewardsDataServiceGetCampaignParticipantStatusAction
@@ -639,10 +632,6 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getVIPDashboard`,
       this.getVIPDashboard.bind(this),
-    );
-    this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:getVipRefereeDashboard`,
-      this.getVipRefereeDashboard.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getVipFees`,
@@ -1053,9 +1042,7 @@ export class RewardsDataService {
    * @param code - The referral code to validate.
    * @returns Promise<{valid: boolean}> - Object indicating if the code is valid.
    */
-  async validateReferralCode(
-    code: string,
-  ): Promise<{ valid: boolean; isVipCode?: boolean }> {
+  async validateReferralCode(code: string): Promise<{ valid: boolean }> {
     const response = await this.makeRequest(
       `/referral/validate?code=${encodeURIComponent(code)}`,
       {
@@ -1069,7 +1056,7 @@ export class RewardsDataService {
       );
     }
 
-    return (await response.json()) as { valid: boolean; isVipCode?: boolean };
+    return (await response.json()) as { valid: boolean };
   }
 
   /**
@@ -1607,33 +1594,6 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as VipDashboardDto;
-  }
-
-  /**
-   * Get the VIP referee stats for the current subscription.
-   * @param subscriptionId - The subscription ID for authentication.
-   * @returns The referee stats, or null when the user is not a VIP referee.
-   */
-  async getVipRefereeDashboard(
-    subscriptionId: string,
-  ): Promise<VipRefereeMeDto | null> {
-    const response = await this.makeRequest(
-      '/vip/referee/me',
-      {
-        method: 'GET',
-      },
-      subscriptionId,
-    );
-
-    if (response.status === 404) {
-      return null;
-    }
-
-    if (!response.ok) {
-      throw new Error(`Get VIP referee dashboard failed: ${response.status}`);
-    }
-
-    return (await response.json()) as VipRefereeMeDto;
   }
 
   /**

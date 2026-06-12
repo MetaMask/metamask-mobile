@@ -17,7 +17,7 @@ import {
  * - Uses NetInfo to detect network connectivity
  * - Uses `isInternetReachable` for actual internet connectivity (preferred)
  * - Falls back to `isConnected` if `isInternetReachable` is null (still determining)
- * - Fetches initial state on demand via {@link getStatus} (used by the controller's `init()`)
+ * - Fetches initial state asynchronously on subscription
  * - Subscribes to NetInfo state changes
  * - Handles cleanup of NetInfo subscriptions
  *
@@ -42,51 +42,42 @@ export class NetInfoConnectivityAdapter implements ConnectivityAdapter {
   /**
    * Returns the current connectivity status.
    *
-   * If no NetInfo state has been observed yet, fetches it asynchronously so
-   * the controller's `init()` resolves with an accurate initial value rather
-   * than a default-online guess.
+   * For initial state, we default to online since NetInfo requires async
+   * fetch for initial state. The actual state will be determined once
+   * the subscription callback fires or initial fetch completes.
    *
-   * @returns A promise resolving to the current connectivity status.
+   * @returns The current connectivity status.
    */
-  async getStatus(): Promise<ConnectivityStatus> {
+  getStatus(): ConnectivityStatus {
     if (!this.#currentState) {
-      const fetched = await netInfoFetch();
-      // A NetInfo event may have populated `#currentState` while the fetch
-      // was in flight; that listener-supplied state is at least as fresh as
-      // the fetched snapshot, so only seed when we still have nothing.
-      if (!this.#currentState) {
-        this.#currentState = fetched;
-      }
+      return CONNECTIVITY_STATUSES.Online;
     }
-    return this.#statusFromState(this.#currentState);
+
+    // Use isInternetReachable for actual internet connectivity
+    // Falls back to isConnected if isInternetReachable is null (still determining)
+    const isOnline =
+      this.#currentState.isInternetReachable ??
+      this.#currentState.isConnected ??
+      false;
+    return isOnline
+      ? CONNECTIVITY_STATUSES.Online
+      : CONNECTIVITY_STATUSES.Offline;
   }
 
   /**
    * Registers a callback to be called when connectivity status changes.
    *
-   * Initial status is fetched by the controller's `init()` via
-   * {@link getStatus}; this method only subscribes to subsequent changes.
+   * Fetches the initial state asynchronously and then subscribes to changes.
    *
    * @param callback - Function called with the new connectivity status.
    */
   onConnectivityChange(callback: (status: ConnectivityStatus) => void): void {
     this.#onConnectivityChangeCallbacks.push(callback);
-  }
 
-  /**
-   * Derives a {@link ConnectivityStatus} from a NetInfo state.
-   *
-   * Uses `isInternetReachable` for actual internet connectivity and falls
-   * back to `isConnected` if `isInternetReachable` is null (still determining).
-   *
-   * @param state - The NetInfo state to inspect.
-   * @returns The derived connectivity status.
-   */
-  #statusFromState(state: NetInfoState): ConnectivityStatus {
-    const isOnline = state.isInternetReachable ?? state.isConnected ?? false;
-    return isOnline
-      ? CONNECTIVITY_STATUSES.Online
-      : CONNECTIVITY_STATUSES.Offline;
+    // Fetch initial state first
+    netInfoFetch().then((state: NetInfoState) => {
+      this.#update(state);
+    });
   }
 
   /**
@@ -96,7 +87,7 @@ export class NetInfoConnectivityAdapter implements ConnectivityAdapter {
    */
   #update(state: NetInfoState): void {
     this.#currentState = state;
-    const status = this.#statusFromState(state);
+    const status = this.getStatus();
 
     this.#onConnectivityChangeCallbacks.forEach((callback) => callback(status));
   }

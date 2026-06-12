@@ -65,7 +65,12 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   }),
 }));
 
-jest.mock('../../hooks/useAnalytics/useAnalytics');
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
+  __esModule: true,
+  useAnalytics: jest.fn(() => ({
+    addTraitsToUser: jest.fn(),
+  })),
+}));
 
 // Mock Engine
 const mockSetFlagOverride = jest.fn();

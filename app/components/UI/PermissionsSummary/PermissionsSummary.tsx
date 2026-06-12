@@ -17,6 +17,10 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
+import TextComponent, {
+  TextColor,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
 import Button, {
   ButtonSize,
@@ -68,12 +72,6 @@ import AccountConnectCreateInitialAccount from '../../Views/MultichainAccounts/s
 import { SolScope } from '@metamask/keyring-api';
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 import { endTrace, trace, TraceName } from '../../../util/trace';
-import {
-  Text as TextComponent,
-  TextVariant,
-  TextColor,
-  FontWeight,
-} from '@metamask/design-system-react-native';
 
 const PermissionsSummary = ({
   currentPageInformation,
@@ -269,9 +267,8 @@ const PermissionsSummary = ({
       ) : (
         <View style={styles.editTextContainer}>
           <TextComponent
-            color={TextColor.PrimaryDefault}
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
+            color={TextColor.Primary}
+            variant={TextVariant.BodyMDMedium}
           >
             {strings('permissions.edit')}
           </TextComponent>
@@ -372,7 +369,7 @@ const PermissionsSummary = ({
             iconColor={colors.icon.alternative}
           />
           <View style={styles.accountPermissionRequestDetails}>
-            <TextComponent variant={TextVariant.BodyMd}>
+            <TextComponent variant={TextVariant.BodyMD}>
               {strings('permissions.see_your_accounts')}
             </TextComponent>
             <View style={styles.permissionRequestAccountInfo}>
@@ -384,7 +381,7 @@ const PermissionsSummary = ({
                   numberOfLines={1}
                   ellipsizeMode="tail"
                 >
-                  <TextComponent variant={TextVariant.BodySm}>
+                  <TextComponent variant={TextVariant.BodySM}>
                     {getAccountLabel()}
                   </TextComponent>
                 </TextComponent>
@@ -427,7 +424,7 @@ const PermissionsSummary = ({
             iconColor={colors.icon.alternative}
           />
           <View style={styles.networkPermissionRequestDetails}>
-            <TextComponent variant={TextVariant.BodyMd}>
+            <TextComponent variant={TextVariant.BodyMD}>
               {strings('permissions.use_enabled_networks')}
             </TextComponent>
             <View style={styles.permissionRequestNetworkInfo}>
@@ -435,13 +432,10 @@ const PermissionsSummary = ({
                 <>
                   <View style={styles.permissionRequestNetworkName}>
                     <TextComponent numberOfLines={1} ellipsizeMode="tail">
-                      <TextComponent variant={TextVariant.BodySm}>
+                      <TextComponent variant={TextVariant.BodySM}>
                         {strings('permissions.requesting_for')}
                       </TextComponent>
-                      <TextComponent
-                        variant={TextVariant.BodySm}
-                        fontWeight={FontWeight.Medium}
-                      >
+                      <TextComponent variant={TextVariant.BodySMMedium}>
                         {isNonDappNetworkSwitch
                           ? networkName || providerConfig.nickname
                           : chainName}
@@ -470,7 +464,7 @@ const PermissionsSummary = ({
                 <>
                   <View style={styles.permissionRequestNetworkName}>
                     <TextComponent numberOfLines={1} ellipsizeMode="tail">
-                      <TextComponent variant={TextVariant.BodySm}>
+                      <TextComponent variant={TextVariant.BodySM}>
                         {getNetworkLabel()}
                       </TextComponent>
                     </TextComponent>
@@ -630,10 +624,10 @@ const PermissionsSummary = ({
           >
             <TextComponent
               style={styles.connectionTitle}
-              variant={TextVariant.HeadingMd}
+              variant={TextVariant.HeadingMD}
               color={
                 isMaliciousDapp && !isAlreadyConnected
-                  ? TextColor.ErrorDefault
+                  ? TextColor.Error
                   : undefined
               }
             >
@@ -646,13 +640,13 @@ const PermissionsSummary = ({
                     })}
             </TextComponent>
             {isMaliciousDapp && !isAlreadyConnected && <MaliciousDappUrlIcon />}
-            <TextComponent variant={TextVariant.BodyMd}>
+            <TextComponent variant={TextVariant.BodyMD}>
               {strings('account_dapp_connections.account_summary_header')}
             </TextComponent>
           </View>
           {isNonDappNetworkSwitch && (
             <TextComponent
-              variant={TextVariant.BodyMd}
+              variant={TextVariant.BodyMD}
               style={styles.description}
             >
               {strings('permissions.non_permitted_network_description')}

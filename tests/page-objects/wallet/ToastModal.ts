@@ -21,7 +21,7 @@ const DEFAULT_TOAST_APPEAR_TIMEOUT_MS = 5_000;
 const TOAST_POLL_INTERVAL_MS = 250;
 
 class ToastModal {
-  get container(): EncapsulatedElementType {
+  get container(): DetoxElement {
     return Matchers.getElementByID(ToastSelectorsIDs.CONTAINER);
   }
 
@@ -35,11 +35,11 @@ class ToastModal {
     });
   }
 
-  get notificationTitle(): EncapsulatedElementType {
+  get notificationTitle(): DetoxElement {
     return Matchers.getElementByID(ToastSelectorsIDs.NOTIFICATION_TITLE);
   }
 
-  get toastCloseButton(): EncapsulatedElementType {
+  get toastCloseButton(): DetoxElement {
     return Matchers.getElementByText(ToastSelectorsText.CLOSE_BUTTON);
   }
 

@@ -3,25 +3,25 @@ import { OtpCodeSelectorsIDs } from '../../../app/components/UI/Ramp/Views/Nativ
 import { VerifyIdentitySelectorsIDs } from '../../../app/components/UI/Ramp/Views/NativeFlow/VerifyIdentity.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { Utilities, EncapsulatedElementType } from '../../framework';
+import { Utilities } from '../../framework';
 class KYCScreen {
-  get verifyIdentityContinueButton(): EncapsulatedElementType {
+  get verifyIdentityContinueButton(): DetoxElement {
     return Matchers.getElementByID(VerifyIdentitySelectorsIDs.CONTINUE_BUTTON);
   }
 
-  get emailInput(): EncapsulatedElementType {
+  get emailInput(): DetoxElement {
     return Matchers.getElementByID(EnterEmailSelectorsIDs.EMAIL_INPUT);
   }
 
-  get sendEmailButton(): EncapsulatedElementType {
+  get sendEmailButton(): DetoxElement {
     return Matchers.getElementByID(EnterEmailSelectorsIDs.SEND_EMAIL_BUTTON);
   }
 
-  get otpScreen(): EncapsulatedElementType {
+  get otpScreen(): DetoxElement {
     return Matchers.getElementByID(OtpCodeSelectorsIDs.OTP_CODE_SCREEN);
   }
 
-  get otpCodeInput(): EncapsulatedElementType {
+  get otpCodeInput(): DetoxElement {
     return Matchers.getElementByID(OtpCodeSelectorsIDs.OTP_CODE_INPUT);
   }
 

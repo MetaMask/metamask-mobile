@@ -1,11 +1,7 @@
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import { RedesignedSendViewSelectorsIDs } from '../../../app/components/Views/confirmations/components/send/RedesignedSendView.testIds';
-import {
-  Utilities,
-  Assertions,
-  EncapsulatedElementType,
-} from '../../framework';
+import { Utilities, Assertions } from '../../framework';
 import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
 import { SendActionViewSelectorsIDs } from '../../selectors/SendFlow/SendActionView.selectors';
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
@@ -16,69 +12,69 @@ import { PlatformDetector } from '../../framework/PlatformLocator';
 import { getNetworkFilterTestId } from '../../../app/components/Views/confirmations/components/network-filter/network-filter.testIds';
 
 class SendView {
-  get ethereumTokenButton(): EncapsulatedElementType {
+  get ethereumTokenButton(): DetoxElement {
     return Matchers.getElementByText('Ethereum');
   }
 
-  get erc20TokenButton(): EncapsulatedElementType {
+  get erc20TokenButton(): DetoxElement {
     return Matchers.getElementByText('USD Coin');
   }
 
-  get zeroButton(): EncapsulatedElementType {
+  get zeroButton(): DetoxElement {
     return Matchers.getElementByText('0', 1);
   }
 
-  get amountFiveButton(): EncapsulatedElementType {
+  get amountFiveButton(): DetoxElement {
     return Matchers.getElementByText('5');
   }
 
-  get fiftyPercentButton(): EncapsulatedElementType {
+  get fiftyPercentButton(): DetoxElement {
     return Matchers.getElementByID('percentage-button-50');
   }
 
-  get maxButton(): EncapsulatedElementType {
+  get maxButton(): DetoxElement {
     return Matchers.getElementByID('percentage-button-100');
   }
 
-  get continueButton(): EncapsulatedElementType {
+  get continueButton(): DetoxElement {
     return Matchers.getElementByText('Continue');
   }
 
-  get recipientAddressInput(): EncapsulatedElementType {
+  get recipientAddressInput(): DetoxElement {
     return Matchers.getElementByID(
       RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
     );
   }
 
-  get reviewButton(): EncapsulatedElementType {
+  get reviewButton(): DetoxElement {
     return Matchers.getElementByID(
       RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
     );
   }
 
-  get amountInputField(): EncapsulatedElementType {
+  get amountInputField(): DetoxElement {
     return Matchers.getElementByID('txn-amount-input');
   }
 
-  get nextButton(): EncapsulatedElementType {
+  get nextButton(): DetoxElement {
     return Matchers.getElementByID('txn-amount-next-button');
   }
 
-  get currencySwitch(): EncapsulatedElementType {
+  get currencySwitch(): DetoxElement {
     return Matchers.getElementByID('amount-screen-currency-switch');
   }
 
-  get backButton(): EncapsulatedElementType {
+  get backButton(): DetoxElement {
     return Matchers.getElementByID(CommonSelectorsIDs.BACK_ARROW_BUTTON);
   }
 
-  get insufficientBalanceToCoverFeesError(): EncapsulatedElementType {
+  get insufficientBalanceToCoverFeesError(): DetoxElement {
     return Matchers.getElementByText(
       SendActionViewSelectorsIDs.INSUFFICIENT_BALANCE_TO_COVER_FEES_ERROR,
     );
   }
 
-  get insufficientFundsError(): EncapsulatedElementType {
+  get insufficientFundsError(): DetoxElement {
     return Matchers.getElementByText(
       SendActionViewSelectorsIDs.INSUFFICIENT_FUNDS_ERROR,
     );

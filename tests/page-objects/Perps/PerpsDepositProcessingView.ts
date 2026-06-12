@@ -2,28 +2,27 @@ import { PerpsDepositProcessingViewSelectorsIDs } from '../../../app/components/
 import Matchers from '../../framework/Matchers';
 import Assertions from '../../framework/Assertions';
 import Gestures from '../../framework/Gestures';
-import { EncapsulatedElementType } from '../../framework';
 
 class PerpsDepositProcessingView {
-  get headerTitle(): EncapsulatedElementType {
+  get headerTitle(): DetoxElement {
     return Matchers.getElementByID(
       PerpsDepositProcessingViewSelectorsIDs.HEADER_TITLE,
     );
   }
 
-  get statusTitle(): EncapsulatedElementType {
+  get statusTitle(): DetoxElement {
     return Matchers.getElementByID(
       PerpsDepositProcessingViewSelectorsIDs.STATUS_TITLE,
     );
   }
 
-  get statusDescription(): EncapsulatedElementType {
+  get statusDescription(): DetoxElement {
     return Matchers.getElementByID(
       PerpsDepositProcessingViewSelectorsIDs.STATUS_DESCRIPTION,
     );
   }
 
-  get viewBalanceButton(): EncapsulatedElementType {
+  get viewBalanceButton(): DetoxElement {
     return Matchers.getElementByID(
       PerpsDepositProcessingViewSelectorsIDs.VIEW_BALANCE_BUTTON,
     );

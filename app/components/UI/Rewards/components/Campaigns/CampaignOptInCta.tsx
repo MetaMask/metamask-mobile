@@ -27,8 +27,6 @@ interface CampaignOptInCtaProps {
   onJoinPress?: () => void;
   /** An optional set of country codes that are restricted independently of the campaign's `excludedRegions`. Checked before `excludedRegions`. When the user's country matches this list the CTA shows "Check eligibility" and a geo-locked toast instead of opening the opt-in sheet. */
   customRestrictedCountries?: Set<string>;
-  /** When `true`, the user is geo-restricted because the underlying product feature is unavailable in their region. */
-  isFeatureGeoRestricted?: boolean;
 }
 
 /**
@@ -42,14 +40,12 @@ const CampaignOptInCta: React.FC<CampaignOptInCtaProps> = ({
   participantStatus,
   onJoinPress,
   customRestrictedCountries,
-  isFeatureGeoRestricted,
 }) => {
   const [isOptInSheetOpen, setIsOptInSheetOpen] = useState(false);
   const { showToast, RewardsToastOptions } = useRewardsToast();
   const { isGeoRestricted, isGeoLoading } = useCampaignGeoRestriction(
     campaign,
     customRestrictedCountries,
-    isFeatureGeoRestricted,
   );
 
   const campaignStatus = getCampaignStatus(campaign);

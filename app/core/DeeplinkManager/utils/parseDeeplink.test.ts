@@ -1,15 +1,10 @@
 import { DeeplinkManager } from '../DeeplinkManager';
 import extractURLParams from './extractURLParams';
-import {
-  handleDappUrl,
-  createDappDeeplinkIntent,
-  getDappUrl,
-} from '../handlers/legacy/handleDappUrl';
+import handleDappUrl from '../handlers/legacy/handleDappUrl';
 import handleUniversalLink from '../handlers/legacy/handleUniversalLink';
 import connectWithWC from '../handlers/legacy/connectWithWC';
 import parseDeeplink from './parseDeeplink';
 import handleEthereumUrl from '../handlers/legacy/handleEthereumUrl';
-import type { DeeplinkIntent } from '../types/DeeplinkIntent';
 
 jest.mock('../../../constants/deeplinks');
 jest.mock('../../../util/Logger');
@@ -47,11 +42,6 @@ describe('parseDeeplink', () => {
   const mockHandleDappProtocol = handleDappUrl as jest.MockedFunction<
     typeof handleDappUrl
   >;
-  const mockCreateDappDeeplinkIntent =
-    createDappDeeplinkIntent as jest.MockedFunction<
-      typeof createDappDeeplinkIntent
-    >;
-  const mockGetDappUrl = getDappUrl as jest.MockedFunction<typeof getDappUrl>;
 
   const mockHandleEthereumUrl = handleEthereumUrl as jest.MockedFunction<
     typeof handleEthereumUrl
@@ -61,10 +51,6 @@ describe('parseDeeplink', () => {
     jest.clearAllMocks();
     instance = {} as unknown as DeeplinkManager;
     mockHandleEthereumUrl.mockResolvedValue(undefined);
-    mockGetDappUrl.mockImplementation((urlObj) => {
-      urlObj.set('protocol', 'https:');
-      return urlObj.href;
-    });
   });
 
   it('calls handleUniversalLinks for HTTP protocol', async () => {
@@ -196,33 +182,6 @@ describe('parseDeeplink', () => {
       url: expectedMappedUrl,
       source: 'testOrigin',
       mode: 'execute',
-    });
-  });
-
-  it('returns a dapp startup intent for DAPP protocol in resolve mode', async () => {
-    const url = 'dapp://example.com';
-    const intent: DeeplinkIntent = {
-      target: {
-        type: 'home-tab',
-        routeName: 'BrowserTabHome',
-      },
-    };
-    mockCreateDappDeeplinkIntent.mockReturnValueOnce(intent);
-
-    const result = await parseDeeplink({
-      deeplinkManager: instance,
-      url,
-      origin: 'testOrigin',
-      browserCallBack: mockBrowserCallBack,
-      onHandled: mockOnHandled,
-      mode: 'resolve',
-    });
-
-    expect(result).toBe(intent);
-    expect(mockOnHandled).toHaveBeenCalled();
-    expect(mockHandleDappProtocol).not.toHaveBeenCalled();
-    expect(mockCreateDappDeeplinkIntent).toHaveBeenCalledWith({
-      url: 'https://example.com',
     });
   });
 

@@ -1,39 +1,33 @@
 import { web, system } from 'detox';
-import { type EncapsulatedElementType } from './EncapsulatedElement.ts';
-import { FrameworkDetector } from './FrameworkDetector.ts';
-import { resolve } from './Selector.ts';
 
 /**
  * Utility class for matching (locating) UI elements
  */
 export default class Matchers {
   /**
-   * Get element by ID with optional index.
+   * Get element by ID with optional index
    */
-  static getElementByID(
+  static async getElementByID(
     elementId: string | RegExp,
     index?: number,
-  ): EncapsulatedElementType {
-    if (typeof elementId === 'string') {
-      return resolve({ testID: elementId, index });
-    }
+  ): Promise<Detox.IndexableNativeElement> {
     const el = element(by.id(elementId));
-    return (index !== undefined
-      ? el.atIndex(index)
-      : el) as unknown as DetoxElement;
+    if (index !== undefined) {
+      return el.atIndex(index) as Detox.IndexableNativeElement;
+    }
+    return el as Detox.IndexableNativeElement;
   }
 
   /**
-   * Get element by text with optional index.
+   * Get element by text with optional index
    */
-  static getElementByText(
+  static async getElementByText(
     text: string | RegExp,
     index = 0,
-  ): EncapsulatedElementType {
-    if (typeof text === 'string') {
-      return resolve({ text, index });
-    }
-    return element(by.text(text)).atIndex(index) as unknown as DetoxElement;
+  ): Promise<Detox.IndexableNativeElement> {
+    return element(by.text(text)).atIndex(
+      index,
+    ) as Detox.IndexableNativeElement;
   }
 
   /**
@@ -45,9 +39,7 @@ export default class Matchers {
   ): Promise<Detox.IndexableNativeElement> {
     const escaped = containsText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const pattern = new RegExp(escaped, 'i');
-    return element(by.text(pattern)).atIndex(
-      index,
-    ) as Detox.IndexableNativeElement;
+    return this.getElementByText(pattern, index);
   }
 
   /**
@@ -68,11 +60,13 @@ export default class Matchers {
   /**
    * Get element by label (accessibility label on iOS, content description on Android)
    */
-  static getElementByLabel(
+  static async getElementByLabel(
     label: string,
-    index?: number,
-  ): EncapsulatedElementType {
-    return resolve({ label, index });
+    index = 0,
+  ): Promise<Detox.IndexableNativeElement> {
+    return element(by.label(label)).atIndex(
+      index,
+    ) as Detox.IndexableNativeElement;
   }
 
   /**
@@ -184,11 +178,6 @@ export default class Matchers {
   static async getIdentifier(
     selectorString: string,
   ): Promise<Detox.NativeMatcher> {
-    if (FrameworkDetector.isAppium()) {
-      throw new Error(
-        'Matchers.getIdentifier is Detox-only. Use scrollContainer(testId) for cross-framework scroll.',
-      );
-    }
     return by.id(selectorString);
   }
 

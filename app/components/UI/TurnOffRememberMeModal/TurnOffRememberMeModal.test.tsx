@@ -156,21 +156,16 @@ jest.mock('./styles', () => ({
   }),
 }));
 
-// Mock Box and Text from design-system-react-native
+// Mock Box from design-system-react-native
 jest.mock('@metamask/design-system-react-native', () => {
-  const { Text, View } = jest.requireActual('react-native');
+  const { View } = jest.requireActual('react-native');
   return {
     Box: View,
-    Text,
     BoxFlexDirection: {
       Row: 'row',
     },
     BoxAlignItems: {
       Center: 'center',
-    },
-    TextVariant: {
-      HeadingLg: 'HeadingLg',
-      BodyMd: 'BodyMd',
     },
   };
 });

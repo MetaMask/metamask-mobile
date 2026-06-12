@@ -9,7 +9,7 @@ import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class OnboardingSuccessView {
-  get container(): EncapsulatedElementType {
+  get container(): DetoxElement {
     return Matchers.getElementByID(OnboardingSuccessSelectorIDs.CONTAINER_ID);
   }
 

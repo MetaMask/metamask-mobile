@@ -38,11 +38,6 @@ export class CardProviderError extends Error {
   }
 }
 
-export function isCardAuthTokenError(error: unknown): boolean {
-  const statusCode = (error as { statusCode?: unknown }).statusCode;
-  return error instanceof Error && (statusCode === 401 || statusCode === 403);
-}
-
 export class CardLinkageInProgressError extends Error {
   constructor(
     message = 'A Money Account to Card linkage is already in progress',
@@ -351,6 +346,7 @@ export interface ICardProvider {
   refreshTokens(tokens: CardAuthTokens): Promise<CardAuthTokens>;
   validateTokens(tokens: CardAuthTokens): AuthTokenValidity;
   logout(tokens: CardAuthTokens): Promise<void>;
+
   getCardHomeData(
     address: string,
     tokens: CardAuthTokens,

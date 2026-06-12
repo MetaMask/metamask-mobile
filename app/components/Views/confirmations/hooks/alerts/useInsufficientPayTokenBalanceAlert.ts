@@ -22,7 +22,6 @@ import { useTokenWithBalance } from '../tokens/useTokenWithBalance';
 import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBalance';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionPaySelectedFiatPaymentMethod } from '../pay/useTransactionPaySelectedFiatPaymentMethod';
-import { usePayTokenAccountBalance } from '../pay/usePayTokenAccountBalance';
 
 export function useInsufficientPayTokenBalanceAlert({
   pendingAmountUsd,
@@ -60,13 +59,11 @@ export function useInsufficientPayTokenBalanceAlert({
   const isMoneyPaymentOverride =
     paymentOverride === PaymentOverride.MoneyAccount;
   const { totalFiatRaw } = useMoneyAccountBalance();
-  const { balanceUsd: accountBalanceUsd, balanceRaw: accountBalanceRaw } =
-    usePayTokenAccountBalance();
 
+  const { balanceUsd: onChainBalanceUsd, balanceRaw } = payToken ?? {};
   const balanceUsd = isMoneyPaymentOverride
     ? (totalFiatRaw ?? '0')
-    : accountBalanceUsd;
-  const balanceRaw = accountBalanceRaw;
+    : onChainBalanceUsd;
 
   const ticker = useSelector((state: RootState) =>
     selectTickerByChainId(state, sourceChainId),

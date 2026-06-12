@@ -99,11 +99,11 @@ export const getResultTypeConfig = (
         subtitle: strings('security_trust.subtitle_malicious'),
         icon: IconName.Error,
         iconColor: IconColor.ErrorDefault,
-        iconAlertSeverity: IconAlertSeverity.Danger,
+        iconAlertSeverity: IconAlertSeverity.Error,
         badge: {
           icon: IconName.Danger,
           iconColor: IconColor.ErrorDefault,
-          iconAlertSeverity: IconAlertSeverity.Danger,
+          iconAlertSeverity: IconAlertSeverity.Error,
           label: strings('security_trust.malicious'),
           bg: 'bg-error-muted',
           textColor: TextColor.ErrorDefault,

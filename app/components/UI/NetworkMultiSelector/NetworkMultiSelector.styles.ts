@@ -17,6 +17,7 @@ const stylesheet = (params: { theme: Theme }) => {
     // select all popular networks cell
     selectAllPopularNetworksCell: {
       alignItems: 'center',
+      backgroundColor: getElevatedSurfaceColor(theme),
     },
   });
 };

@@ -46,7 +46,7 @@ describe('usePerpsCategories', () => {
     const { result } = renderHook(() => usePerpsCategories());
 
     expect(result.current).toEqual([
-      { id: 'stock', label: strings('perps.home.tabs.stock') },
+      { id: 'stocks', label: strings('perps.home.tabs.stocks') },
     ]);
   });
 
@@ -97,7 +97,7 @@ describe('usePerpsCategories', () => {
       const { result } = renderHook(() => usePerpsCategories());
 
       const ids = result.current.map((c) => c.id);
-      expect(ids).toEqual(['crypto', 'stock', 'forex', 'etf']);
+      expect(ids).toEqual(['crypto', 'stocks', 'forex', 'etfs']);
     });
 
     it('places all known categories in the correct order', () => {
@@ -116,12 +116,12 @@ describe('usePerpsCategories', () => {
       const ids = result.current.map((c) => c.id);
       expect(ids).toEqual([
         'crypto',
-        'stock',
+        'stocks',
         'pre-ipo',
         'forex',
-        'commodity',
-        'index',
-        'etf',
+        'commodities',
+        'indices',
+        'etfs',
       ]);
     });
   });

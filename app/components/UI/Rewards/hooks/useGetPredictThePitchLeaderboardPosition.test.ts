@@ -69,8 +69,6 @@ const MOCK_POSITION: PredictThePitchLeaderboardPositionDto = {
   eligible: true,
   neighbors: [],
   computedAt: '2026-06-30T12:00:00.000Z',
-  marketsTraded: 3,
-  minimumMarketsTraded: 3,
 };
 
 async function flushHookEffects() {

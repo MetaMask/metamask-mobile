@@ -15,7 +15,6 @@ import {
 //   TransactionConfirmViewSelectorsText,
 // } from '../../../app/components/Views/confirmations/legacy/components/Confirm/TransactionConfirmView.testIds';
 import RowComponents from '../Browser/Confirmations/RowComponents';
-import { EncapsulatedElementType } from '../../framework';
 
 // Temporary placeholders to prevent TypeScript errors
 const TransactionConfirmViewSelectorsIDs = {
@@ -30,7 +29,7 @@ const TransactionConfirmViewSelectorsText = {
 };
 
 class TransactionConfirmationView {
-  get confirmButton(): EncapsulatedElementType {
+  get confirmButton(): DetoxElement {
     return device.getPlatform() === 'ios'
       ? Matchers.getElementByID(
           TransactionConfirmViewSelectorsIDs.CONFIRM_TRANSACTION_BUTTON_ID,
@@ -40,68 +39,68 @@ class TransactionConfirmationView {
         );
   }
 
-  get cancelButton(): EncapsulatedElementType {
+  get cancelButton(): DetoxElement {
     return Matchers.getElementByText(
       TransactionConfirmViewSelectorsText.CANCEL_BUTTON,
     );
   }
 
-  get maxGasFee(): EncapsulatedElementType {
+  get maxGasFee(): DetoxElement {
     return Matchers.getElementByID(
       EditGasViewSelectorsIDs.MAX_PRIORITY_FEE_INPUT_TEST_ID,
     );
   }
 
-  get editPriorityFeeSheetContainer(): EncapsulatedElementType {
+  get editPriorityFeeSheetContainer(): DetoxElement {
     return Matchers.getElementByID(
       EditGasViewSelectorsIDs.EDIT_PRIORITY_SCREEN_TEST_ID,
     );
   }
 
-  get transactionAmount(): EncapsulatedElementType {
+  get transactionAmount(): DetoxElement {
     return Matchers.getElementByID(
       TransactionConfirmViewSelectorsIDs.CONFIRM_TXN_AMOUNT,
     );
   }
 
-  get estimatedGasLink(): EncapsulatedElementType {
+  get estimatedGasLink(): DetoxElement {
     return Matchers.getElementByID(
       EditGasViewSelectorsIDs.ESTIMATED_FEE_TEST_ID,
     );
   }
 
-  get transactionViewContainer(): EncapsulatedElementType {
+  get transactionViewContainer(): DetoxElement {
     return Matchers.getElementByID(
       TransactionConfirmViewSelectorsIDs.TRANSACTION_VIEW_CONTAINER_ID,
     );
   }
-  get LowPriorityText(): EncapsulatedElementType {
+  get LowPriorityText(): DetoxElement {
     return Matchers.getElementByText(EditGasViewSelectorsText.LOW);
   }
-  get MarketPriorityText(): EncapsulatedElementType {
+  get MarketPriorityText(): DetoxElement {
     return Matchers.getElementByText(EditGasViewSelectorsText.MARKET);
   }
-  get AggressivePriorityText(): EncapsulatedElementType {
+  get AggressivePriorityText(): DetoxElement {
     return Matchers.getElementByText(EditGasViewSelectorsText.AGGRESSIVE);
   }
-  get EditPrioritySaveButtonText(): EncapsulatedElementType {
+  get EditPrioritySaveButtonText(): DetoxElement {
     return Matchers.getElementByText(EditGasViewSelectorsText.SAVE_BUTTON);
   }
-  get EditPriorityAdvancedOptionsText(): EncapsulatedElementType {
+  get EditPriorityAdvancedOptionsText(): DetoxElement {
     return Matchers.getElementByText(EditGasViewSelectorsText.ADVANCE_OPTIONS);
   }
 
-  get editPriorityLegacyModal(): EncapsulatedElementType {
+  get editPriorityLegacyModal(): DetoxElement {
     return Matchers.getElementByID(EditGasViewSelectorsIDs.LEGACY_CONTAINER);
   }
 
-  get securityAlertBanner(): EncapsulatedElementType {
+  get securityAlertBanner(): DetoxElement {
     return Matchers.getElementByID(
       ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_BANNER,
     );
   }
 
-  get securityAlertResponseFailedBanner(): EncapsulatedElementType {
+  get securityAlertResponseFailedBanner(): DetoxElement {
     return Matchers.getElementByID(
       ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_RESPONSE_FAILED_BANNER,
     );

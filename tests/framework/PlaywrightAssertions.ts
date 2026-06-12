@@ -7,9 +7,6 @@ import {
   addOverhead,
   isOverheadTrackingActive,
 } from './PlaywrightUtilities.ts';
-import { createPlaywrightLogger } from './playwrightLogger.ts';
-
-const logger = createPlaywrightLogger('PlaywrightAssertions');
 
 export interface VisibilityWithSettleOptions extends AssertionOptions {
   settleMs?: number;
@@ -120,7 +117,6 @@ export default class PlaywrightAssertions {
     if (isOverheadTrackingActive()) {
       addOverhead(Date.now() - t0);
     }
-    logger.debug('Waiting for element to be visible');
     await this.pollUntilVisible(el, this.getTimeout(options));
   }
 
@@ -272,7 +268,9 @@ export default class PlaywrightAssertions {
         return;
       } catch (error) {
         lastError = error;
-        logger.debug(`Condition not met on attempt ${i + 1}/${maxRetries}`);
+        console.log(
+          `PlaywrightAssertions: condition not met on attempt ${i + 1}`,
+        );
         await new Promise((resolve) => setTimeout(resolve, interval));
       }
     }

@@ -5,8 +5,7 @@ export interface CurrentDeviceDetails {
   platform: 'android' | 'ios';
   deviceName: string;
   /**
-   * Android: adb serial (e.g. `emulator-5554`) after AVD name resolution.
-   * iOS: simulator UDID resolved from the display name at fixture time (prefers the Booted one).
+   * Android: adb serial (e.g. `emulator-5554`) after AVD name resolution. Omitted on iOS.
    */
   udid?: string;
   packageName?: string;

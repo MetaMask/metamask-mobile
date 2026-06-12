@@ -1,22 +1,21 @@
 import { PredictActivityDetailsSelectorsIDs } from '../../../app/components/UI/Predict/Predict.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { EncapsulatedElementType } from '../../framework';
 
 class PredictActivityDetails {
-  get container(): EncapsulatedElementType {
+  get container(): DetoxElement {
     return Matchers.getElementByID(
       PredictActivityDetailsSelectorsIDs.CONTAINER,
     );
   }
 
-  get backButton(): EncapsulatedElementType {
+  get backButton(): DetoxElement {
     return Matchers.getElementByID(
       PredictActivityDetailsSelectorsIDs.BACK_BUTTON,
     );
   }
 
-  get amountDisplay(): EncapsulatedElementType {
+  get amountDisplay(): DetoxElement {
     return Matchers.getElementByID(
       PredictActivityDetailsSelectorsIDs.AMOUNT_DISPLAY,
     );

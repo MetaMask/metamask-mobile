@@ -3,18 +3,17 @@ import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
 import TestHelpers from '../../../helpers';
 import { encapsulatedAction } from '../../../framework/encapsulatedAction';
-import { EncapsulatedElementType } from '../../../framework/EncapsulatedElement';
 import PlaywrightMatchers from '../../../framework/PlaywrightMatchers';
 import PlaywrightGestures from '../../../framework/PlaywrightGestures';
 
 class FooterActions {
-  get confirmButton(): EncapsulatedElementType {
+  get confirmButton(): DetoxElement {
     return Matchers.getElementByID(
       ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
     );
   }
 
-  get cancelButton(): EncapsulatedElementType {
+  get cancelButton(): DetoxElement {
     return Matchers.getElementByID(ConfirmationFooterSelectorIDs.CANCEL_BUTTON);
   }
 

@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useEffect } from 'react';
+import React, { useCallback } from 'react';
 import { Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -32,21 +32,10 @@ import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import styleSheet from './MoneyBalanceCard.styles';
 import { MoneyBalanceCardTestIds } from './MoneyBalanceCard.testIds';
 import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
-import { useMoneyAccountAddRouting } from '../../hooks/useMoneyAccountAddRouting';
-import {
-  SCREEN_NAMES,
-  COMPONENT_NAMES,
-  MONEY_BUTTON_INTENTS,
-  MONEY_BUTTON_TYPES,
-  MONEY_TOOLTIP_NAMES,
-  MONEY_TOOLTIP_TYPES,
-} from '../../constants/moneyEvents';
-import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 
 const MoneyBalanceCard = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
-  const hasSeenMoneyCardRef = useRef(false);
   const { styles } = useStyles(styleSheet, {});
   const {
     totalFiatRaw,
@@ -60,21 +49,10 @@ const MoneyBalanceCard = () => {
   } = useMoneyAccountBalance();
   const { hasMoneyAccount } = useMoneyAccountInfo();
   const { navigateToMoneyHome } = useMoneyNavigation();
-  const { hasMusdBalance, routeAddMoney } = useMoneyAccountAddRouting();
   const hasSeenMoneyOnboarding = useSelector(selectMoneyOnboardingSeen);
   const hasOtherPrimaryCtaOnHome = useSelector(
     selectWalletHomeOnboardingFlowVisible,
   );
-
-  const {
-    trackButtonClicked,
-    trackSurfaceClicked,
-    trackComponentViewed,
-    trackTooltipClicked,
-  } = useMoneyAnalytics({
-    screen_name: SCREEN_NAMES.WALLET_HOME,
-    component_name: COMPONENT_NAMES.MONEY_BALANCE_CARD,
-  });
 
   const isRetrying =
     hasMoneyAccount && isBalanceFetchError && isBalanceFetching;
@@ -100,77 +78,70 @@ const MoneyBalanceCard = () => {
   const balanceText = totalFiatFormatted ?? '';
 
   let buttonVariant: ButtonVariant;
-  let buttonLabelKey: string;
+  let buttonLabel: string;
   let buttonTestId: string;
   let containerTestId: string;
 
   if (!hasMoneyAccount || isError || isRetrying) {
     buttonVariant = ButtonVariant.Secondary;
-    buttonLabelKey = 'money.balance_card.add';
+    buttonLabel = strings('money.balance_card.add');
     buttonTestId = MoneyBalanceCardTestIds.ADD_BUTTON;
     containerTestId = MoneyBalanceCardTestIds.ERROR_CONTAINER;
   } else if (isUnavailable) {
     buttonVariant = ButtonVariant.Secondary;
-    buttonLabelKey = 'money.balance_card.add';
+    buttonLabel = strings('money.balance_card.add');
     buttonTestId = MoneyBalanceCardTestIds.ADD_BUTTON;
     containerTestId = MoneyBalanceCardTestIds.UNAVAILABLE_CONTAINER;
+  } else if (isNewUser) {
+    buttonVariant = hasOtherPrimaryCtaOnHome
+      ? ButtonVariant.Secondary
+      : ButtonVariant.Primary;
+    buttonLabel = strings(
+      hasOtherPrimaryCtaOnHome
+        ? 'homepage.sections.money_empty_state.get_started'
+        : 'homepage.sections.money_empty_state.earn',
+    );
+    buttonTestId = hasOtherPrimaryCtaOnHome
+      ? MoneyBalanceCardTestIds.GET_STARTED_BUTTON
+      : MoneyBalanceCardTestIds.EARN_BUTTON;
+    containerTestId = MoneyBalanceCardTestIds.NEW_USER_CONTAINER;
   } else if (isEmpty) {
     buttonVariant = hasOtherPrimaryCtaOnHome
       ? ButtonVariant.Secondary
       : ButtonVariant.Primary;
-    buttonLabelKey = 'homepage.sections.money_empty_state.earn';
+    buttonLabel = strings('homepage.sections.money_empty_state.earn');
     buttonTestId = MoneyBalanceCardTestIds.EARN_BUTTON;
-    containerTestId = isNewUser
-      ? MoneyBalanceCardTestIds.NEW_USER_CONTAINER
-      : MoneyBalanceCardTestIds.EMPTY_CONTAINER;
+    containerTestId = MoneyBalanceCardTestIds.EMPTY_CONTAINER;
   } else {
     buttonVariant = hasOtherPrimaryCtaOnHome
       ? ButtonVariant.Secondary
       : ButtonVariant.Primary;
-    buttonLabelKey = 'money.balance_card.add';
+    buttonLabel = strings('money.balance_card.add');
     buttonTestId = MoneyBalanceCardTestIds.ADD_BUTTON;
     containerTestId = MoneyBalanceCardTestIds.FUNDED_CONTAINER;
   }
 
-  useEffect(() => {
-    if (hasSeenMoneyCardRef.current) {
-      return;
-    }
-    hasSeenMoneyCardRef.current = true;
-    trackComponentViewed();
-  }, [trackComponentViewed]);
-
   const handleCardPress = useCallback(() => {
-    trackSurfaceClicked({
-      redirect_target: hasSeenMoneyOnboarding
-        ? SCREEN_NAMES.MONEY_HOME
-        : SCREEN_NAMES.MONEY_ONBOARDING,
-    });
     navigateToMoneyHome();
-  }, [hasSeenMoneyOnboarding, navigateToMoneyHome, trackSurfaceClicked]);
+  }, [navigateToMoneyHome]);
 
   const handleAddPress = useCallback(() => {
-    trackButtonClicked({
-      button_type: MONEY_BUTTON_TYPES.TEXT,
-      button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
-      label_key: buttonLabelKey,
-      redirect_target: hasMusdBalance
-        ? SCREEN_NAMES.MONEY_DEPOSIT
-        : SCREEN_NAMES.RAMP_BUY,
+    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
     });
+  }, [navigation]);
 
-    routeAddMoney();
-  }, [buttonLabelKey, hasMusdBalance, routeAddMoney, trackButtonClicked]);
+  const handleGetStartedPress = useCallback(() => {
+    navigateToMoneyHome();
+  }, [navigateToMoneyHome]);
+
+  const handleButtonPress = isNewUser ? handleGetStartedPress : handleAddPress;
 
   const handleInfoPress = useCallback(() => {
-    trackTooltipClicked({
-      tooltip_name: MONEY_TOOLTIP_NAMES.MONEY_BALANCE,
-      tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
-    });
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.MONEY_BALANCE_INFO_SHEET,
     });
-  }, [navigation, trackTooltipClicked]);
+  }, [navigation]);
 
   const renderBalanceSlot = () => {
     if (!hasMoneyAccount) {
@@ -318,9 +289,9 @@ const MoneyBalanceCard = () => {
           testID={buttonTestId}
           variant={buttonVariant}
           size={ButtonSize.Md}
-          onPress={handleAddPress}
+          onPress={handleButtonPress}
         >
-          {strings(buttonLabelKey)}
+          {buttonLabel}
         </Button>
       </Box>
     </Pressable>

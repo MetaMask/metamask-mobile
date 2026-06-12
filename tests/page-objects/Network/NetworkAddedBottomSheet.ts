@@ -4,22 +4,21 @@ import {
 } from '../../../app/components/UI/NetworkModal/NetworkAddedBottomSheet.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { EncapsulatedElementType } from '../../framework';
 
 class NetworkAddedBottomSheet {
-  get switchNetwork(): EncapsulatedElementType {
+  get switchNetwork(): DetoxElement {
     return Matchers.getElementByText(
       NetworkAddedBottomSheetSelectorsText.SWITCH_NETWORK,
     );
   }
 
-  get switchNetworkButton(): EncapsulatedElementType {
+  get switchNetworkButton(): DetoxElement {
     return Matchers.getElementByID(
       NetworkAddedBottomSheetSelectorsIDs.SWITCH_NETWORK_BUTTON,
     );
   }
 
-  get closeNetworkButton(): EncapsulatedElementType {
+  get closeNetworkButton(): DetoxElement {
     return Matchers.getElementByID(
       NetworkAddedBottomSheetSelectorsIDs.CLOSE_NETWORK_BUTTON,
     );

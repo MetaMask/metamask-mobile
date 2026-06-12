@@ -6,7 +6,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import DeFiPositionsListItem from './DeFiPositionsListItem';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -18,12 +18,13 @@ jest.mock('@react-navigation/native', () => ({
 
 const mockTrackEvent = jest.fn();
 jest.mock('../../hooks/useAnalytics/useAnalytics', () => {
-  const { AnalyticsEventBuilder: MockAnalyticsEventBuilder } =
-    jest.requireActual('../../../util/analytics/AnalyticsEventBuilder');
+  const { MetricsEventBuilder: MockMetricsEventBuilder } = jest.requireActual(
+    '../../../core/Analytics/MetricsEventBuilder',
+  );
   return {
     useAnalytics: () => ({
       trackEvent: mockTrackEvent,
-      createEventBuilder: MockAnalyticsEventBuilder.createEventBuilder,
+      createEventBuilder: MockMetricsEventBuilder.createEventBuilder,
     }),
   };
 });
@@ -182,7 +183,7 @@ describe('DeFiPositionsListItem', () => {
 
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
     expect(mockTrackEvent).toHaveBeenCalledWith(
-      AnalyticsEventBuilder.createEventBuilder(
+      MetricsEventBuilder.createEventBuilder(
         MetaMetricsEvents.DEFI_PROTOCOL_DETAILS_OPENED,
       )
         .addProperties({

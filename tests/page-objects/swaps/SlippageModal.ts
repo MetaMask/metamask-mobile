@@ -5,30 +5,29 @@ import {
   SlippageModalSelectorIDs,
   SlippageModalSelectorText,
 } from '../../selectors/Bridge/SlippageModal.selectors';
-import { EncapsulatedElementType } from '../../framework';
 
 class SlippageModal {
-  get editSlippageButton(): EncapsulatedElementType {
+  get editSlippageButton(): DetoxElement {
     return Matchers.getElementByID(
       SlippageModalSelectorIDs.EDIT_SLIPPAGE_BUTTON,
     );
   }
 
-  get customButton(): EncapsulatedElementType {
+  get customButton(): DetoxElement {
     return Matchers.getElementByText(SlippageModalSelectorText.CUSTOM);
   }
 
-  get confirmButton(): EncapsulatedElementType {
+  get confirmButton(): DetoxElement {
     return Matchers.getElementByText(SlippageModalSelectorText.CONFIRM);
   }
 
-  get inputStepperInput(): EncapsulatedElementType {
+  get inputStepperInput(): DetoxElement {
     return Matchers.getElementByID(
       SlippageModalSelectorIDs.INPUT_STEPPER_INPUT,
     );
   }
 
-  get keypadDeleteButton(): EncapsulatedElementType {
+  get keypadDeleteButton(): DetoxElement {
     return Matchers.getElementByID(
       SlippageModalSelectorIDs.KEYPAD_DELETE_BUTTON,
     );

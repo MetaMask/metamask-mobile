@@ -5,14 +5,13 @@ import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import Utilities from '../../framework/Utilities';
 import NetworkManager from './NetworkManager';
-import { EncapsulatedElementType } from '../../framework';
 
 class TokensView {
-  get networkFilter(): EncapsulatedElementType {
+  get networkFilter(): DetoxElement {
     return Matchers.getElementByID(WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER);
   }
 
-  earnCtaForToken(tokenSymbol: string): EncapsulatedElementType {
+  earnCtaForToken(tokenSymbol: string): DetoxElement {
     return Matchers.getElementIDWithAncestor(
       SECONDARY_BALANCE_BUTTON_TEST_ID,
       getAssetTestId(tokenSymbol),

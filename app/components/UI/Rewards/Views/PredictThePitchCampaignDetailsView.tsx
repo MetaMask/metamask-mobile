@@ -11,7 +11,6 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  BoxJustifyContent,
   FontWeight,
   HeaderStandard,
   Icon,
@@ -63,8 +62,6 @@ type PredictThePitchCampaignDetailsRouteParams = {
 export const PREDICT_THE_PITCH_CAMPAIGN_DETAILS_VIEW_TEST_IDS = {
   CONTAINER: 'predict-the-pitch-campaign-details-view-container',
   HOW_IT_WORKS: 'predict-the-pitch-campaign-details-how-it-works',
-  POSITIONS_COUNT_BADGE:
-    'predict-the-pitch-campaign-details-positions-count-badge',
 } as const;
 
 const sessionWinningViewAutoNavCampaignIds = new Set<string>();
@@ -123,35 +120,7 @@ const PredictThePitchCampaignDetailsView: React.FC = () => {
     isOptedIn ? effectiveCampaignId || undefined : undefined,
   );
 
-  const hasPortfolioPositions = Boolean(
-    positions &&
-      ((positions.openPositions?.length ?? 0) > 0 ||
-        (positions.resolvedPositions?.length ?? 0) > 0),
-  );
-
-  const positionsCountBadgeLabel = useMemo(() => {
-    if (!positions) {
-      return null;
-    }
-
-    const openCount = positions.openPositions?.length ?? 0;
-    if (openCount > 0) {
-      return strings(
-        'rewards.predict_the_pitch_campaign.positions_open_badge',
-        { count: openCount },
-      );
-    }
-
-    const closedCount = positions.resolvedPositions?.length ?? 0;
-    if (closedCount > 0) {
-      return strings(
-        'rewards.predict_the_pitch_campaign.positions_closed_badge',
-        { count: closedCount },
-      );
-    }
-
-    return null;
-  }, [positions]);
+  const hasPosition = Boolean(positions?.positions.length);
 
   const {
     position: leaderboardPosition,
@@ -161,11 +130,6 @@ const PredictThePitchCampaignDetailsView: React.FC = () => {
   } = useGetPredictThePitchLeaderboardPosition(
     isOptedIn ? effectiveCampaignId || undefined : undefined,
   );
-
-  const hasLeaderboardPosition =
-    leaderboardPosition != null &&
-    Number.isFinite(leaderboardPosition.volume) &&
-    leaderboardPosition.volume > 0;
 
   const {
     leaderboard,
@@ -222,25 +186,20 @@ const PredictThePitchCampaignDetailsView: React.FC = () => {
     }
 
     const showEndedStats =
-      isComplete &&
-      !isParticipantStatusLoading &&
-      (!isOptedIn || !hasLeaderboardPosition);
+      isComplete && !isParticipantStatusLoading && (!isOptedIn || !hasPosition);
 
     return {
       showHowItWorksSection:
-        Boolean(campaign.details?.howItWorks) &&
-        !hasLeaderboardPosition &&
-        isActive,
-      showStatsSummarySection: hasLeaderboardPosition,
+        Boolean(campaign.details?.howItWorks) && !hasPosition && isActive,
+      showStatsSummarySection: hasPosition,
       showPrizePoolSection: isActive || isComplete,
       showLeaderboardSection: true,
-      showPortfolioSection: isOptedIn && hasPortfolioPositions && !isComplete,
+      showPortfolioSection: isOptedIn && hasPosition && !isComplete,
       showCampaignEndedStats: showEndedStats,
     };
   }, [
     campaign,
-    hasLeaderboardPosition,
-    hasPortfolioPositions,
+    hasPosition,
     isActive,
     isComplete,
     isOptedIn,
@@ -262,13 +221,6 @@ const PredictThePitchCampaignDetailsView: React.FC = () => {
         campaignId: effectiveCampaignId,
       },
     );
-  }, [effectiveCampaignId, navigation]);
-
-  const navigateToStats = useCallback(() => {
-    if (!effectiveCampaignId) return;
-    navigation.navigate(Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_STATS, {
-      campaignId: effectiveCampaignId,
-    });
   }, [effectiveCampaignId, navigation]);
 
   const navigateToLeaderboard = useCallback(() => {
@@ -402,27 +354,13 @@ const PredictThePitchCampaignDetailsView: React.FC = () => {
 
               {showStatsSummarySection && (
                 <Box twClassName="p-4">
-                  <Pressable onPress={navigateToStats}>
-                    <Box
-                      flexDirection={BoxFlexDirection.Row}
-                      alignItems={BoxAlignItems.Center}
-                      twClassName="gap-2 mb-3"
-                    >
-                      <Text
-                        variant={TextVariant.HeadingMd}
-                        fontWeight={FontWeight.Bold}
-                      >
-                        {strings(
-                          'rewards.predict_the_pitch_campaign.stats_title',
-                        )}
-                      </Text>
-                      <Icon
-                        name={IconName.ArrowRight}
-                        size={IconSize.Md}
-                        color={IconColor.IconAlternative}
-                      />
-                    </Box>
-                  </Pressable>
+                  <Text
+                    variant={TextVariant.HeadingMd}
+                    fontWeight={FontWeight.Bold}
+                    twClassName="mb-3"
+                  >
+                    {strings('rewards.predict_the_pitch_campaign.stats_title')}
+                  </Text>
                   <PredictThePitchStatsSummary
                     leaderboardPosition={leaderboardPosition}
                     isLoading={isLeaderboardPositionLoading}
@@ -444,42 +382,21 @@ const PredictThePitchCampaignDetailsView: React.FC = () => {
                     <Box
                       flexDirection={BoxFlexDirection.Row}
                       alignItems={BoxAlignItems.Center}
-                      justifyContent={BoxJustifyContent.Between}
-                      twClassName="mb-3"
+                      twClassName="gap-2 mb-3"
                     >
-                      <Box
-                        flexDirection={BoxFlexDirection.Row}
-                        alignItems={BoxAlignItems.Center}
-                        twClassName="gap-2"
+                      <Text
+                        variant={TextVariant.HeadingMd}
+                        fontWeight={FontWeight.Bold}
                       >
-                        <Text
-                          variant={TextVariant.HeadingMd}
-                          fontWeight={FontWeight.Bold}
-                        >
-                          {strings(
-                            'rewards.predict_the_pitch_campaign.positions_title',
-                          )}
-                        </Text>
-                        <Icon
-                          name={IconName.ArrowRight}
-                          size={IconSize.Md}
-                          color={IconColor.IconAlternative}
-                        />
-                      </Box>
-                      {positionsCountBadgeLabel != null && (
-                        <Box twClassName="bg-muted rounded px-1.5 py-0">
-                          <Text
-                            variant={TextVariant.BodySm}
-                            fontWeight={FontWeight.Medium}
-                            color={TextColor.TextAlternative}
-                            testID={
-                              PREDICT_THE_PITCH_CAMPAIGN_DETAILS_VIEW_TEST_IDS.POSITIONS_COUNT_BADGE
-                            }
-                          >
-                            {positionsCountBadgeLabel}
-                          </Text>
-                        </Box>
-                      )}
+                        {strings(
+                          'rewards.predict_the_pitch_campaign.positions_title',
+                        )}
+                      </Text>
+                      <Icon
+                        name={IconName.ArrowRight}
+                        size={IconSize.Md}
+                        color={IconColor.IconAlternative}
+                      />
                     </Box>
                   </Pressable>
                   <PredictThePitchPortfolio
@@ -487,7 +404,7 @@ const PredictThePitchCampaignDetailsView: React.FC = () => {
                     isLoading={isPositionsLoading}
                     hasError={hasPositionsError}
                     refetch={refetchPositions}
-                    maxEntries={positions?.numberOfPositionsToShow ?? 3}
+                    maxEntries={3}
                   />
                 </Box>
               )}
@@ -566,7 +483,6 @@ const PredictThePitchCampaignDetailsView: React.FC = () => {
                       userPosition={leaderboardUserPosition}
                       maxEntries={5}
                       isCampaignComplete={isComplete}
-                      isCurrentUserEligible={leaderboardPosition?.eligible}
                     />
                   </Box>
                 </>

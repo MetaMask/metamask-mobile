@@ -337,7 +337,6 @@ jest.mock('../../app/core/Engine', () => {
           markets: [],
           nextCursor: null,
         }),
-        listFilterOptions: jest.fn().mockResolvedValue([]),
         searchMarkets: jest
           .fn()
           .mockResolvedValue({ markets: [], totalResults: 0 }),
@@ -362,11 +361,6 @@ jest.mock('../../app/core/Engine', () => {
         trackMarketDetailsOpened: jest.fn(),
         trackGeoBlockTriggered: jest.fn(),
         trackActivityViewed: jest.fn(),
-        trackSearchInteracted: jest.fn(),
-        trackPortfolioPositionsButtonTapped: jest.fn(),
-        trackPortfolioTransactionInitiated: jest.fn(),
-        trackPositionsScreenViewed: jest.fn(),
-        trackPositionsTabViewed: jest.fn(),
         refreshEligibility: jest.fn().mockResolvedValue(undefined),
         claimWithConfirmation: jest.fn().mockResolvedValue(undefined),
         depositWithConfirmation: jest.fn().mockResolvedValue(undefined),

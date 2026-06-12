@@ -1,10 +1,9 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { OnBoardingSelectors } from '../../selectors/swaps/OnBoarding.selectors';
-import { EncapsulatedElementType } from '../../framework';
 
 class Onboarding {
-  get startSwappingButton(): EncapsulatedElementType {
+  get startSwappingButton(): DetoxElement {
     return Matchers.getElementByText(OnBoardingSelectors.START_SWAPPING);
   }
 

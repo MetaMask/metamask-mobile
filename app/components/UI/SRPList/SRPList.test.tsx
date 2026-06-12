@@ -15,7 +15,7 @@ import SRPList from './SRPList';
 import { fireEvent } from '@testing-library/react-native';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
-import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 const mockTrackEvent = jest.fn();
 jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
@@ -81,7 +81,7 @@ describe('SRPList', () => {
     );
     (useAnalytics as jest.Mock).mockReturnValue({
       trackEvent: mockTrackEvent,
-      createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+      createEventBuilder: MetricsEventBuilder.createEventBuilder,
     });
   });
 
@@ -134,7 +134,7 @@ describe('SRPList', () => {
     );
 
     expect(mockTrackEvent).toHaveBeenCalledWith(
-      AnalyticsEventBuilder.createEventBuilder(
+      MetricsEventBuilder.createEventBuilder(
         MetaMetricsEvents.SECRET_RECOVERY_PHRASE_PICKER_CLICKED,
       )
         .addProperties({

@@ -1,7 +1,12 @@
-import React, { useCallback, useMemo } from 'react';
+import React, {
+  useCallback,
+  useMemo,
+  useState,
+  useRef,
+  useEffect,
+} from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
-import type { CaipChainId } from '@metamask/utils';
 import Engine from '../../../../../core/Engine';
 import createStyles from './AccountGroupBalance.styles';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
@@ -14,17 +19,14 @@ import { selectWalletHomeOnboardingStepsEnabled } from '../../../../../selectors
 import {
   selectShouldShowWalletHomeOnboardingSteps,
   selectWalletHomeOnboardingSkipInitialBalanceWait,
-  selectWalletHomeOnboardingSteps,
 } from '../../../../../selectors/onboarding';
-import { useWalletHomeOnboardingFundStepBalanceGate } from '../../../WalletHomeOnboardingSteps/useWalletHomeOnboardingFundStepBalanceGate';
 import { selectEvmChainId } from '../../../../../selectors/networkController';
 import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { TEST_NETWORK_IDS } from '../../../../../constants/network';
-import {
-  SensitiveText,
+import SensitiveText, {
   SensitiveTextLength,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+} from '../../../../../component-library/components/Texts/SensitiveText';
+import { TextVariant } from '../../../../../component-library/components/Texts/Text';
 import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { useFormatters } from '../../../../hooks/useFormatters';
@@ -33,8 +35,13 @@ import BalanceEmptyState from '../../../BalanceEmptyState';
 import WalletHomeOnboardingSteps from '../../../WalletHomeOnboardingSteps';
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import { useWalletHomeOnboardingChecklistFundPress } from '../../../WalletHomeOnboardingSteps/useWalletHomeOnboardingChecklistFundPress';
-import { useAccountGroupBalanceFetchState } from './useAccountGroupBalanceFetchState';
-import { useWalletHomeOnboardingBalanceRefreshEffect } from './useWalletHomeOnboardingBalanceRefreshEffect';
+
+/**
+ * Timeout for account group balance fetch
+ * This is to prevent a flash of empty state when the balance is not yet fetched
+ * !TODO: This is a temporary fix for an artificial loading state and should be refactored after Account API v4 integration
+ */
+const ACCOUNT_GROUP_BALANCE_FETCH_TIMEOUT = 3000;
 
 export interface AccountGroupBalanceProps {
   /**
@@ -69,11 +76,6 @@ const AccountGroupBalance = ({
   const walletHomeOnboardingSkipInitialBalanceWait = useSelector(
     selectWalletHomeOnboardingSkipInitialBalanceWait,
   );
-  const walletHomeOnboardingStepsState = useSelector(
-    selectWalletHomeOnboardingSteps,
-  );
-  const walletHomeOnboardingStepIndex =
-    walletHomeOnboardingStepsState.stepIndex ?? 0;
   const { goToBuy } = useRampNavigation();
   const onFundPrimaryPressWithChecklistAnalytics =
     useWalletHomeOnboardingChecklistFundPress(goToBuy);
@@ -81,7 +83,7 @@ const AccountGroupBalance = ({
 
   // Stabilize chain IDs by content so selector identity doesn't change every render (avoids max depth / infinite loop).
   const popularChainIdsKey = (popularNetworks ?? []).join(',');
-  const chainIdsForBalance = useMemo<CaipChainId[]>(
+  const chainIdsForBalance = useMemo(
     () => [...(popularNetworks ?? [])],
     // popularChainIdsKey stabilizes by content; popularNetworks is a new array ref every render from the hook
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -109,10 +111,70 @@ const AccountGroupBalance = ({
   const balanceChange1d = useSelector(balanceChange1dSelector);
   const selectedChainId = useSelector(selectEvmChainId);
 
-  const hasBalanceFetched = useAccountGroupBalanceFetchState({
-    groupBalance,
-    accountGroupBalance,
-  });
+  // Track if balance has been fetched to prevent flash of empty state
+  const [hasBalanceFetched, setHasBalanceFetched] = useState(false);
+  const initialBalanceRef = useRef<number | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const currentGroupIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const groupId = groupBalance?.groupId ?? null;
+
+    // Check if groupId has changed (account switch)
+    if (currentGroupIdRef.current !== groupId) {
+      // Reset all tracking state for new account
+      setHasBalanceFetched(false);
+      initialBalanceRef.current = null;
+      currentGroupIdRef.current = groupId;
+
+      // Clear existing timeout
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+
+      // Start new timeout for this account (3 seconds)
+      timeoutRef.current = setTimeout(() => {
+        setHasBalanceFetched(true);
+      }, ACCOUNT_GROUP_BALANCE_FETCH_TIMEOUT);
+    }
+
+    // Store initial balance when it first appears
+    if (initialBalanceRef.current === null && groupBalance) {
+      initialBalanceRef.current = groupBalance.totalBalanceInUserCurrency;
+    }
+
+    // Track balance changes - if EITHER balance updates from initial value, mark as fetched
+    // We track both groupBalance AND accountGroupBalance since empty state uses accountGroupBalance
+    if (groupBalance && initialBalanceRef.current !== null) {
+      const currentBalance = groupBalance.totalBalanceInUserCurrency;
+      const accountGroupCurrentBalance =
+        accountGroupBalance?.totalBalanceInUserCurrency ?? null;
+
+      // Mark as fetched if either balance has changed from initial 0, or if both exist and are non-zero
+      const hasChanged = currentBalance !== initialBalanceRef.current;
+      const bothExistAndNonZero =
+        currentBalance > 0 &&
+        accountGroupCurrentBalance !== null &&
+        accountGroupCurrentBalance > 0;
+
+      if (hasChanged || bothExistAndNonZero) {
+        setHasBalanceFetched(true);
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+        }
+      }
+    }
+  }, [groupBalance, accountGroupBalance]);
+
+  // Cleanup timeout on unmount
+  useEffect(
+    () => () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    },
+    [],
+  );
 
   const togglePrivacy = useCallback(
     (value: boolean) => {
@@ -144,24 +206,13 @@ const AccountGroupBalance = ({
   const inWalletHomePostOnboardingFlow =
     isWalletHomeOnboardingStepsEnabled && shouldShowWalletHomeOnboardingSteps;
 
-  const isWalletHomeOnboardingFundStep =
-    inWalletHomePostOnboardingFlow && walletHomeOnboardingStepIndex === 0;
-
   /** While the flow is active, always use the checklist surface — never the balance row (avoids a flash before loading/empty state is known). */
   const showWalletHomeOnboardingStepsTile = inWalletHomePostOnboardingFlow;
 
   const canAdvanceFundStepAfterBalance =
-    useWalletHomeOnboardingFundStepBalanceGate({
-      enabled: isWalletHomeOnboardingFundStep,
-      accountGroupBalance,
-      groupId: groupBalance?.groupId ?? null,
-    });
-
-  useWalletHomeOnboardingBalanceRefreshEffect({
-    enabled:
-      isWalletHomeOnboardingFundStep &&
-      walletHomeOnboardingSkipInitialBalanceWait,
-  });
+    hasBalanceFetched &&
+    accountGroupBalance != null &&
+    accountGroupBalance.totalBalanceInUserCurrency > 0;
 
   const renderBalanceOrEmpty = () =>
     !isLoading && shouldShowEmptyState ? (
@@ -179,7 +230,7 @@ const AccountGroupBalance = ({
             isHidden={privacyMode}
             length={SensitiveTextLength.Long}
             testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
-            variant={TextVariant.DisplayLg}
+            variant={TextVariant.DisplayLG}
           >
             {displayBalance}
           </SensitiveText>

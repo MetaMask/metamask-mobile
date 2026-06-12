@@ -19,9 +19,11 @@ import {
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
+import Text, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 import TagUrl from '../../../component-library/components/Tags/TagUrl';
 import { resetOriginSpamState } from '../../../core/redux/slices/originThrottling';
-import { Text, TextVariant } from '@metamask/design-system-react-native';
 
 export const BLOCK_BUTTON_TEST_ID = 'block-origin-button';
 export const CONTINUE_BUTTON_TEST_ID = 'continue-origin-button';
@@ -92,7 +94,7 @@ const MultipleRequestContent = ({
         size={IconSize.Xl}
       />
       <View style={styles.titleWrapper}>
-        <Text style={styles.title} variant={TextVariant.HeadingMd}>
+        <Text style={styles.title} variant={TextVariant.HeadingMD}>
           {strings('spam_filter.title')}
         </Text>
       </View>

@@ -84,7 +84,7 @@ export function usePayWithPerpsSection(): PayWithSectionConfig | null {
         size: IconSize.Md,
         color: IconColor.IconAlternative,
       }),
-      title: strings('confirm.pay_with_bottom_sheet.perps_balance'),
+      title: strings('confirm.pay_with_bottom_sheet.perps_account'),
       subtitle: strings('confirm.pay_with_bottom_sheet.available_balance', {
         balance,
       }),

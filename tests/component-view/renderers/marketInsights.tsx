@@ -64,11 +64,11 @@ function RampMainRoutes(): React.ReactElement {
 function RampNavigator(): React.ReactElement {
   return (
     <RampOuterStack.Navigator
-      initialRouteName={Routes.RAMP.TOKEN_SELECTION_ROOT}
+      initialRouteName={Routes.RAMP.TOKEN_SELECTION}
       screenOptions={{ headerShown: false }}
     >
       <RampOuterStack.Screen
-        name={Routes.RAMP.TOKEN_SELECTION_ROOT}
+        name={Routes.RAMP.TOKEN_SELECTION}
         component={RampMainRoutes}
       />
     </RampOuterStack.Navigator>

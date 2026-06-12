@@ -4,10 +4,9 @@ import {
   useHardwareWallet,
   isUserCancellation,
 } from '../../../../core/HardwareWallet';
-import { getDeviceIdForAddress } from '../../../../core/HardwareWallet/helpers';
+import { getDeviceId } from '../../../../core/Ledger/Ledger';
 
 interface UseLedgerConfirmOptions {
-  fromAddress?: string;
   onReject: () => void;
   onTransactionConfirm: (opts?: {
     onError?: (err: unknown) => void;
@@ -22,7 +21,6 @@ interface UseLedgerConfirmOptions {
  * signing dispatch, and error / cancellation handling.
  */
 export function useLedgerConfirm({
-  fromAddress,
   onReject,
   onTransactionConfirm,
   executeApproval,
@@ -47,7 +45,7 @@ export function useLedgerConfirm({
     };
 
     try {
-      const deviceId = await getDeviceIdForAddress(fromAddress ?? '');
+      const deviceId = await getDeviceId();
       const isReady = await ensureDeviceReady(deviceId);
 
       if (!isReady) {
@@ -89,7 +87,6 @@ export function useLedgerConfirm({
     showAwaitingConfirmation,
     hideAwaitingConfirmation,
     showHardwareWalletError,
-    fromAddress,
   ]);
 
   return { onConfirm };

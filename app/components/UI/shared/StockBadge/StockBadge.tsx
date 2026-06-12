@@ -1,6 +1,10 @@
 import React from 'react';
 import { View, ViewStyle } from 'react-native';
 import { useStyles } from '../../../../component-library/hooks';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../component-library/components/Texts/Text';
 import Icon, {
   IconColor,
   IconName,
@@ -11,11 +15,6 @@ import styleSheet from './StockBadge.styles';
 import { Box } from '../../Box/Box';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import { BridgeToken } from '../../Bridge/types';
-import {
-  Text,
-  TextVariant,
-  TextColor,
-} from '@metamask/design-system-react-native';
 
 interface StockBadgeProps {
   /**
@@ -45,7 +44,7 @@ const StockBadge: React.FC<StockBadgeProps> = ({ token, style }) => {
             color={IconColor.Alternative}
           />
         )}
-        <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
+        <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
           {strings('token.stock')}
         </Text>
       </View>

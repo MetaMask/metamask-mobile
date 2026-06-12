@@ -11,37 +11,37 @@ import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
 
 class WalletActionsBottomSheet {
-  get sendButton(): EncapsulatedElementType {
+  get sendButton(): DetoxElement {
     return Matchers.getElementByID(
       WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON,
     );
   }
 
-  get receiveButton(): EncapsulatedElementType {
+  get receiveButton(): DetoxElement {
     return Matchers.getElementByID(
       WalletActionsBottomSheetSelectorsIDs.RECEIVE_BUTTON,
     );
   }
 
-  get swapButton(): EncapsulatedElementType {
+  get swapButton(): DetoxElement {
     return Matchers.getElementByID(
       WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON,
     );
   }
 
-  get bridgeButton(): EncapsulatedElementType {
+  get bridgeButton(): DetoxElement {
     return Matchers.getElementByID(
       WalletActionsBottomSheetSelectorsIDs.BRIDGE_BUTTON,
     );
   }
 
-  get buyButton(): EncapsulatedElementType {
+  get buyButton(): DetoxElement {
     return Matchers.getElementByID(
       WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON,
     );
   }
 
-  get sellButton(): EncapsulatedElementType {
+  get sellButton(): DetoxElement {
     return Matchers.getElementByID(
       WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON,
     );

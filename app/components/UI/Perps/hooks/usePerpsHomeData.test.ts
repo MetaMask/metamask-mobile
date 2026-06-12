@@ -348,7 +348,8 @@ describe('usePerpsHomeData', () => {
       ]);
     });
 
-    it('leaves positions and orders uncapped while limiting recent activity', () => {
+    it('applies default limits to data', () => {
+      // Create more data than default limits
       const manyPositions = Array.from({ length: 10 }, (_, i) =>
         createMockPosition({ symbol: `COIN${i}` }),
       );
@@ -374,41 +375,10 @@ describe('usePerpsHomeData', () => {
 
       const { result } = renderHook(() => usePerpsHomeData());
 
-      // Positions and orders are intentionally uncapped on the home screen.
-      expect(result.current.positions).toHaveLength(10);
-      expect(result.current.orders).toHaveLength(10);
-      // Recent activity keeps its dedicated limit from HOME_SCREEN_CONFIG.
+      // Default limits from HOME_SCREEN_CONFIG
+      expect(result.current.positions.length).toBeLessThanOrEqual(10);
+      expect(result.current.orders.length).toBeLessThanOrEqual(10);
       expect(result.current.recentActivity.length).toBeLessThanOrEqual(3);
-    });
-
-    it('displays every open position when more than ten are open', () => {
-      const twelvePositions = Array.from({ length: 12 }, (_, i) =>
-        createMockPosition({ symbol: `COIN${i}` }),
-      );
-
-      mockUsePerpsLivePositions.mockReturnValue({
-        positions: twelvePositions,
-        isInitialLoading: false,
-      });
-
-      const { result } = renderHook(() => usePerpsHomeData());
-
-      expect(result.current.positions).toHaveLength(12);
-    });
-
-    it('displays every open order when more than ten are open', () => {
-      const twelveOrders = Array.from({ length: 12 }, (_, i) =>
-        createMockOrder({ symbol: `COIN${i}`, orderId: `order-${i}` }),
-      );
-
-      mockUsePerpsLiveOrders.mockReturnValue({
-        orders: twelveOrders,
-        isInitialLoading: false,
-      });
-
-      const { result } = renderHook(() => usePerpsHomeData());
-
-      expect(result.current.orders).toHaveLength(12);
     });
 
     it('respects custom limits from parameters', () => {

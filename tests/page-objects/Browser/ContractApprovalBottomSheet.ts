@@ -9,7 +9,6 @@
 // } from '../../../app/components/Views/confirmations/legacy/components/ContractApprovalBottomSheet.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { EncapsulatedElementType } from '../../framework';
 
 // Temporary placeholders to prevent TypeScript errors
 const ContractApprovalBottomSheetSelectorsIDs = {
@@ -28,55 +27,55 @@ const ContractApprovalBottomSheetSelectorsText = {
 };
 
 class ContractApprovalBottomSheet {
-  get container(): EncapsulatedElementType {
+  get container(): DetoxElement {
     return Matchers.getElementByID(
       ContractApprovalBottomSheetSelectorsIDs.CONTAINER,
     );
   }
 
-  get addNickName(): EncapsulatedElementType {
+  get addNickName(): DetoxElement {
     return Matchers.getElementByText(
       ContractApprovalBottomSheetSelectorsText.ADD_NICKNAME,
     );
   }
 
-  get editNickName(): EncapsulatedElementType {
+  get editNickName(): DetoxElement {
     return Matchers.getElementByText(
       ContractApprovalBottomSheetSelectorsText.EDIT_NICKNAME,
     );
   }
 
-  get rejectButton(): EncapsulatedElementType {
+  get rejectButton(): DetoxElement {
     return Matchers.getElementByText(
       ContractApprovalBottomSheetSelectorsText.REJECT,
     );
   }
 
-  get approveButton(): EncapsulatedElementType {
+  get approveButton(): DetoxElement {
     return Matchers.getElementByText(
       ContractApprovalBottomSheetSelectorsText.APPROVE,
     );
   }
 
-  get contractAddress(): EncapsulatedElementType {
+  get contractAddress(): DetoxElement {
     return Matchers.getElementByID(
       ContractApprovalBottomSheetSelectorsIDs.CONTRACT_ADDRESS,
     );
   }
 
-  get nextButton(): EncapsulatedElementType {
+  get nextButton(): DetoxElement {
     return Matchers.getElementByText(
       ContractApprovalBottomSheetSelectorsText.NEXT,
     );
   }
 
-  get approveTokenAmount(): EncapsulatedElementType {
+  get approveTokenAmount(): DetoxElement {
     return Matchers.getElementByID(
       ContractApprovalBottomSheetSelectorsIDs.APPROVE_TOKEN_AMOUNT,
     );
   }
 
-  get confirmButton(): EncapsulatedElementType {
+  get confirmButton(): DetoxElement {
     return Matchers.getElementByText(
       ContractApprovalBottomSheetSelectorsText.CONFIRM,
     );

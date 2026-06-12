@@ -35,11 +35,9 @@ import { buildSocialLoggerErrorOptions } from '../../../../../../../util/social/
 import {
   SocialLeaderboardEventProperties,
   useSocialLeaderboardAnalytics,
-  type QuickBuySheetSource,
 } from '../../../../analytics';
 import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
 import { getQuoteRefreshRate } from '../../../../../../UI/Bridge/utils/quoteUtils';
-import { getQuickBuyFeatureId } from '../utils/getQuickBuyFeatureId';
 
 export type QuickBuyQuote = QuoteResponse & L1GasFees & NonEvmFees;
 
@@ -50,8 +48,6 @@ export interface QuickBuyQuotesAnalyticsContext {
   caip19?: string;
   /** USD amount the user has selected; used as `amount_usd`. */
   amountUsd?: number;
-  /** Entry surface for FeatureId mapping on fetchQuotes. */
-  source?: QuickBuySheetSource;
 }
 
 export type EnrichedQuickBuyQuote = ReturnType<
@@ -323,8 +319,9 @@ export function useQuickBuyQuotes({
     try {
       const result = await Engine.context.BridgeController.fetchQuotes(
         params,
-        getQuickBuyFeatureId(analyticsContext?.source),
         controller.signal,
+        // @ts-expect-error quickBuy has not been added as a FeatureId yet
+        'quickBuy',
       );
 
       if (controller.signal.aborted) {

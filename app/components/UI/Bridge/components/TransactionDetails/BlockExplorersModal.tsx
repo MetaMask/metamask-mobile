@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import { StyleSheet } from 'react-native';
 import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
@@ -24,8 +24,6 @@ import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import { useMultichainBlockExplorerTxUrl } from '../../hooks/useMultichainBlockExplorerTxUrl';
 import { Transaction } from '@metamask/keyring-api';
-import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
 
 const styleSheet = (params: { theme: Theme }) =>
   StyleSheet.create({
@@ -45,7 +43,6 @@ interface BlockExplorersModalRouteParams {
 
 const BlockExplorersModal = () => {
   const navigation = useNavigation();
-  const { trackEvent, createEventBuilder } = useAnalytics();
   const route =
     useRoute<RouteProp<{ params: BlockExplorersModalRouteParams }, 'params'>>();
   const { styles } = useStyles(styleSheet, {});
@@ -70,26 +67,6 @@ const BlockExplorersModal = () => {
     txHash: bridgeTxHistoryItem?.status.destChain?.txHash,
   });
 
-  const handleBlockExplorerPress = useCallback(
-    (url: string | undefined, text: string) => {
-      if (!url) {
-        return;
-      }
-      trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
-        location: 'bridge_transaction_details',
-        text,
-        url,
-      });
-      navigation.navigate(Routes.WEBVIEW.MAIN, {
-        screen: Routes.WEBVIEW.SIMPLE,
-        params: {
-          url,
-        },
-      });
-    },
-    [trackEvent, createEventBuilder, navigation],
-  );
-
   return (
     <BottomSheet>
       <BottomSheetHeader>
@@ -111,12 +88,14 @@ const BlockExplorersModal = () => {
           <Button
             variant={ButtonVariant.Secondary}
             isFullWidth
-            onPress={() =>
-              handleBlockExplorerPress(
-                srcExplorerData.explorerTxUrl,
-                srcExplorerData.explorerName ?? srcExplorerData.chainName ?? '',
-              )
-            }
+            onPress={() => {
+              navigation.navigate(Routes.WEBVIEW.MAIN, {
+                screen: Routes.WEBVIEW.SIMPLE,
+                params: {
+                  url: srcExplorerData.explorerTxUrl,
+                },
+              });
+            }}
           >
             <Box
               flexDirection={FlexDirection.Row}
@@ -139,14 +118,14 @@ const BlockExplorersModal = () => {
           <Button
             variant={ButtonVariant.Secondary}
             isFullWidth
-            onPress={() =>
-              handleBlockExplorerPress(
-                bridgeDestExplorerData.explorerTxUrl,
-                bridgeDestExplorerData.explorerName ??
-                  bridgeDestExplorerData.chainName ??
-                  '',
-              )
-            }
+            onPress={() => {
+              navigation.navigate(Routes.WEBVIEW.MAIN, {
+                screen: Routes.WEBVIEW.SIMPLE,
+                params: {
+                  url: bridgeDestExplorerData.explorerTxUrl,
+                },
+              });
+            }}
           >
             <Box
               flexDirection={FlexDirection.Row}

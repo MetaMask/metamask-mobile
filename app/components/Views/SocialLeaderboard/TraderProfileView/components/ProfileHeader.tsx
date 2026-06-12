@@ -8,9 +8,8 @@ import {
   TextColor,
   BoxFlexDirection,
   BoxAlignItems,
-  AvatarAccount,
-  AvatarAccountSize,
-  AvatarAccountVariant,
+  AvatarBase,
+  AvatarBaseSize,
   Icon,
   IconName,
   IconSize,
@@ -22,8 +21,6 @@ import type { TraderProfile } from '@metamask/social-controllers';
 import { TraderProfileViewSelectorsIDs } from '../TraderProfileView.testIds';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { TopRankAvatar } from '../../../Homepage/Sections/TopTraders/topRank';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { hasRealAvatar } from '../../../Homepage/Sections/TopTraders/utils/avatarFallback';
 
 const AVATAR_SIZE = 40;
 
@@ -61,7 +58,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
       testID={TraderProfileViewSelectorsIDs.HEADER}
     >
       <TopRankAvatar rank={rank ?? 0}>
-        {hasRealAvatar(profile.imageUrl) ? (
+        {profile.imageUrl ? (
           <Image
             source={{ uri: profile.imageUrl }}
             style={tw.style(
@@ -70,11 +67,9 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
             resizeMode="cover"
           />
         ) : (
-          <AvatarAccount
-            variant={AvatarAccountVariant.Maskicon}
-            address={profile.address}
-            size={AvatarAccountSize.Lg}
-            twClassName="rounded-full"
+          <AvatarBase
+            size={AvatarBaseSize.Lg}
+            fallbackText={profile.name.charAt(0).toUpperCase()}
           />
         )}
       </TopRankAvatar>

@@ -1,28 +1,27 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { ShareAddressIds } from '../../../app/components/Views/MultichainAccounts/sheets/ShareAddress/ShareAddress.testIds';
-import { EncapsulatedElementType } from '../../framework';
 
 class ShareAddress {
-  get container(): EncapsulatedElementType {
+  get container(): DetoxElement {
     return Matchers.getElementByID(ShareAddressIds.SHARE_ADDRESS_CONTAINER);
   }
 
-  get qrCode(): EncapsulatedElementType {
+  get qrCode(): DetoxElement {
     return Matchers.getElementByID(ShareAddressIds.SHARE_ADDRESS_QR_CODE);
   }
 
-  get accountAddress(): EncapsulatedElementType {
+  get accountAddress(): DetoxElement {
     return Matchers.getElementByID(
       ShareAddressIds.SHARE_ADDRESS_ACCOUNT_ADDRESS,
     );
   }
 
-  get copyButton(): EncapsulatedElementType {
+  get copyButton(): DetoxElement {
     return Matchers.getElementByID(ShareAddressIds.SHARE_ADDRESS_COPY_BUTTON);
   }
 
-  get viewOnExplorerButton(): EncapsulatedElementType {
+  get viewOnExplorerButton(): DetoxElement {
     return Matchers.getElementByID(
       ShareAddressIds.SHARE_ADDRESS_VIEW_ON_EXPLORER_BUTTON,
     );

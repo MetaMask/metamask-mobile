@@ -4,22 +4,21 @@ import {
   CommonSelectorsIDs,
   CommonSelectorsText,
 } from '../../app/util/Common.testIds';
-import { EncapsulatedElementType } from '../framework';
 
 class CommonView {
-  get okAlertByText(): EncapsulatedElementType {
+  get okAlertByText(): DetoxElement {
     return Matchers.getElementByText('OK');
   }
 
-  get backButton(): EncapsulatedElementType {
+  get backButton(): DetoxElement {
     return Matchers.getElementByID(CommonSelectorsIDs.BACK_ARROW_BUTTON);
   }
 
-  get errorMessage(): EncapsulatedElementType {
+  get errorMessage(): DetoxElement {
     return Matchers.getElementByID(CommonSelectorsIDs.ERROR_MESSAGE);
   }
 
-  get okAlertButton(): EncapsulatedElementType {
+  get okAlertButton(): DetoxElement {
     return Matchers.getElementByText(CommonSelectorsText.OK_ALERT_BUTTON);
   }
 

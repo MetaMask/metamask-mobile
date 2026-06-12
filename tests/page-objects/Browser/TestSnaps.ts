@@ -20,7 +20,7 @@ import { IndexableWebElement } from 'detox/detox';
 import Utilities from '../../framework/Utilities';
 import { ConfirmationFooterSelectorIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import { waitForTestSnapsToLoad } from '../../flows/browser.flow';
-import { RetryOptions, EncapsulatedElementType } from '../../framework';
+import { RetryOptions } from '../../framework';
 import { Json } from '@metamask/utils';
 import ToastModal from '../wallet/ToastModal';
 import SolanaTestDApp from './SolanaTestDApp';
@@ -29,65 +29,65 @@ export const TEST_SNAPS_URL =
   'https://metamask.github.io/snaps/test-snaps/3.4.2/';
 
 class TestSnaps {
-  get getConnectSnapButton(): EncapsulatedElementType {
+  get getConnectSnapButton(): DetoxElement {
     return Matchers.getElementByID(SNAP_INSTALL_CONNECT);
   }
 
-  get getApproveSnapPermissionsRequestButton(): EncapsulatedElementType {
+  get getApproveSnapPermissionsRequestButton(): DetoxElement {
     return Matchers.getElementByID(SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE);
   }
 
-  get getConnectSnapInstallOkButton(): EncapsulatedElementType {
+  get getConnectSnapInstallOkButton(): DetoxElement {
     return Matchers.getElementByID(SNAP_INSTALL_OK);
   }
 
-  get getApproveSignRequestButton(): EncapsulatedElementType {
+  get getApproveSignRequestButton(): DetoxElement {
     return Matchers.getElementByID(
       TestSnapBottomSheetSelectorWebIDS.BOTTOMSHEET_FOOTER_BUTTON_ID,
     );
   }
 
-  get confirmSignatureButton(): EncapsulatedElementType {
+  get confirmSignatureButton(): DetoxElement {
     return Matchers.getElementByID(
       ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
     );
   }
 
-  get solanaConfirmButton(): EncapsulatedElementType {
+  get solanaConfirmButton(): DetoxElement {
     return Matchers.getElementByID(
       'confirm-sign-message-confirm-snap-footer-button',
     );
   }
 
-  get footerButton(): EncapsulatedElementType {
+  get footerButton(): DetoxElement {
     return Matchers.getElementByID(
       TestSnapBottomSheetSelectorWebIDS.DEFAULT_FOOTER_BUTTON_ID,
     );
   }
 
-  get checkboxElement(): EncapsulatedElementType {
+  get checkboxElement(): DetoxElement {
     return Matchers.getElementByID('snap-ui-renderer__checkbox');
   }
 
-  get dateTimePickerTouchable(): EncapsulatedElementType {
+  get dateTimePickerTouchable(): DetoxElement {
     return Matchers.getElementByID(
       'snap-ui-renderer__date-time-picker--datetime-touchable',
     );
   }
 
-  get datePickerTouchable(): EncapsulatedElementType {
+  get datePickerTouchable(): DetoxElement {
     return Matchers.getElementByID(
       'snap-ui-renderer__date-time-picker--date-touchable',
     );
   }
 
-  get timePickerTouchable(): EncapsulatedElementType {
+  get timePickerTouchable(): DetoxElement {
     return Matchers.getElementByID(
       'snap-ui-renderer__date-time-picker--time-touchable',
     );
   }
 
-  get dateTimePickerOkButton(): EncapsulatedElementType {
+  get dateTimePickerOkButton(): DetoxElement {
     return Matchers.getElementByText('OK');
   }
 

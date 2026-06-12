@@ -22,7 +22,7 @@ export interface UnifiedGestureOptions {
   speed?: 'fast' | 'slow';
   /** Swipe percentage (0–1) — Detox only; Appium ignores this */
   percentage?: number;
-  /** Scroll direction — used by scrollToElement (Detox default and Appium scrollIntoView) */
+  /** Scroll direction — Detox only; used by scrollToElement */
   direction?: 'up' | 'down' | 'left' | 'right';
   /** Scroll amount in px — Detox only; used by scrollToElement */
   scrollAmount?: number;
@@ -38,8 +38,6 @@ export interface UnifiedGestureOptions {
   enabledStableReads?: number;
   /** Extra wait (ms) after enabled/interactive, before click — Appium only */
   postEnabledSettleMs?: number;
-  /** Long press duration in ms — passed through to PlaywrightGestures.longPress */
-  duration?: number;
 }
 
 /**
@@ -48,9 +46,6 @@ export interface UnifiedGestureOptions {
  */
 export type TapAtIndexElement = EncapsulatedElementType | PlaywrightElement[];
 export type ScrollViewMatcher = Promise<Detox.NativeMatcher>;
-
-/** Detox scroll container: matcher promise, or testID resolved inside UnifiedGestures. */
-export type ScrollContainer = ScrollViewMatcher | string;
 
 /**
  * Strategy interface for framework-agnostic gesture execution.
@@ -90,7 +85,7 @@ export interface GestureStrategy {
 
   scrollToElement(
     target: EncapsulatedElementType,
-    scrollView?: ScrollContainer,
+    scrollView: ScrollViewMatcher,
     opts?: UnifiedGestureOptions,
   ): Promise<void>;
 
@@ -223,21 +218,9 @@ export class DetoxGestureStrategy implements GestureStrategy {
    */
   async scrollToElement(
     target: EncapsulatedElementType,
-    scrollView?: ScrollContainer,
+    scrollView: ScrollViewMatcher,
     opts?: UnifiedGestureOptions,
   ): Promise<void> {
-    if (!scrollView) {
-      throw new Error(
-        'DetoxGestureStrategy.scrollToElement requires a scroll container testID or matcher.',
-      );
-    }
-
-    if (typeof scrollView === 'string') {
-      throw new Error(
-        'DetoxGestureStrategy.scrollToElement received a testID string — resolve it in UnifiedGestures first.',
-      );
-    }
-
     const resolvedScrollView = await scrollView;
 
     if (this.isLikelyDetoxElement(resolvedScrollView)) {
@@ -281,7 +264,6 @@ export class DetoxGestureStrategy implements GestureStrategy {
     await Gestures.longPress(asDetoxElement(elem), {
       timeout: opts?.timeout,
       elemDescription: opts?.description,
-      duration: opts?.duration,
     });
   }
 
@@ -349,17 +331,9 @@ export class AppiumGestureStrategy implements GestureStrategy {
    * @param elem - The element to tap
    * @returns A promise that resolves when the tap is complete
    */
-  async tap(
-    elem: EncapsulatedElementType,
-    opts?: UnifiedGestureOptions,
-  ): Promise<void> {
+  async tap(elem: EncapsulatedElementType): Promise<void> {
     const el = await asPlaywrightElement(elem);
-    await PlaywrightGestures.waitAndTap(el, {
-      timeout: opts?.timeout,
-      delay: opts?.delay,
-      checkForDisplayed: opts?.checkForDisplayed ?? true,
-      checkForEnabled: opts?.checkForEnabled,
-    });
+    await PlaywrightGestures.waitAndTap(el);
   }
 
   /**
@@ -376,7 +350,7 @@ export class AppiumGestureStrategy implements GestureStrategy {
     await PlaywrightGestures.waitAndTap(el, {
       timeout: opts?.timeout,
       delay: opts?.delay,
-      checkForDisplayed: opts?.checkForDisplayed ?? true,
+      checkForDisplayed: opts?.checkForDisplayed,
       checkForEnabled: opts?.checkForEnabled,
       waitForInteractive: opts?.waitForInteractive,
       enabledStableReads: opts?.enabledStableReads,
@@ -434,13 +408,10 @@ export class AppiumGestureStrategy implements GestureStrategy {
    */
   async scrollToElement(
     target: EncapsulatedElementType,
-    _scrollView?: ScrollContainer,
-    opts?: UnifiedGestureOptions,
+    _scrollView: ScrollViewMatcher,
   ): Promise<void> {
     const el = await asPlaywrightElement(target);
-    await PlaywrightGestures.scrollIntoView(el, {
-      scrollParams: { direction: opts?.direction ?? 'down' },
-    });
+    await PlaywrightGestures.scrollIntoView(el);
   }
 
   /**
@@ -448,12 +419,9 @@ export class AppiumGestureStrategy implements GestureStrategy {
    * @param elem - The element to long press
    * @returns A promise that resolves when the long press is complete
    */
-  async longPress(
-    elem: EncapsulatedElementType,
-    opts?: UnifiedGestureOptions,
-  ): Promise<void> {
+  async longPress(elem: EncapsulatedElementType): Promise<void> {
     const el = await asPlaywrightElement(elem);
-    await PlaywrightGestures.longPress(el, opts?.duration);
+    await PlaywrightGestures.longPress(el);
   }
 
   /**

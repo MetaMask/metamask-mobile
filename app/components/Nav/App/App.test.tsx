@@ -364,7 +364,6 @@ jest.mock('../../../selectors/networkController', () => ({
 jest.mock('../../../util/address', () => ({
   ...jest.requireActual('../../../util/address'),
   getInternalAccountByAddress: () => mockAccount,
-  getAddressAccountType: jest.fn().mockReturnValue('MetaMask'),
 }));
 
 jest.mock('../../../components/hooks/useAsyncResult', () => ({

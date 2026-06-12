@@ -21,14 +21,6 @@ import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 import styleSheet from './MoneyMoreSheet.styles';
 import { MoneyMoreSheetTestIds } from './MoneyMoreSheet.testIds';
 import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
-import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
-import useMountEffect from '../../hooks/useMountEffect';
-import {
-  BOTTOM_SHEET_NAMES,
-  COMPONENT_NAMES,
-  MONEY_URLS,
-  SCREEN_NAMES,
-} from '../../constants/moneyEvents';
 
 interface MenuOption {
   label: string;
@@ -43,12 +35,6 @@ const MoneyMoreSheet = () => {
   const { styles } = useStyles(styleSheet, {});
   const surfaceClass = useElevatedSurface();
 
-  const { trackBottomSheetViewed, trackSurfaceClicked } = useMoneyAnalytics({
-    bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_MORE_SHEET,
-  });
-
-  useMountEffect(trackBottomSheetViewed);
-
   const closeAndNavigate = useCallback((navigateFn: () => void) => {
     sheetRef.current?.onCloseBottomSheet(navigateFn);
   }, []);
@@ -58,37 +44,22 @@ const MoneyMoreSheet = () => {
   }, [navigation]);
 
   const handleHowItWorks = useCallback(() => {
-    trackSurfaceClicked({
-      component_name: COMPONENT_NAMES.MONEY_MORE_SHEET_HOW_IT_WORKS,
-      redirect_target: SCREEN_NAMES.MONEY_HOW_IT_WORKS,
-    });
-
     closeAndNavigate(() => {
       navigation.navigate(Routes.MONEY.HOW_IT_WORKS as never);
     });
-  }, [closeAndNavigate, navigation, trackSurfaceClicked]);
+  }, [closeAndNavigate, navigation]);
 
   const handleWhatYouGet = useCallback(() => {
-    trackSurfaceClicked({
-      component_name: COMPONENT_NAMES.MONEY_MORE_SHEET_WHAT_YOU_GET,
-      redirect_target: MONEY_URLS.MUSD_LEARN_MORE,
-    });
-
     closeAndNavigate(() => {
       Linking.openURL(AppConstants.URLS.MUSD_LEARN_MORE);
     });
-  }, [closeAndNavigate, trackSurfaceClicked]);
+  }, [closeAndNavigate]);
 
   const handleContactSupport = useCallback(() => {
-    trackSurfaceClicked({
-      component_name: COMPONENT_NAMES.MONEY_MORE_SHEET_CONTACT_SUPPORT,
-      redirect_target: MONEY_URLS.METAMASK_SUPPORT,
-    });
-
     closeAndNavigate(() => {
       Linking.openURL(METAMASK_SUPPORT_URL);
     });
-  }, [closeAndNavigate, trackSurfaceClicked]);
+  }, [closeAndNavigate]);
 
   const options: MenuOption[] = [
     {

@@ -1,10 +1,9 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { SelectPaymentMethodSelectors } from '../../selectors/Ramps/SelectPaymentMethod.selectors';
-import { EncapsulatedElementType } from '../../framework';
 
 class SelectPaymentMethodView {
-  get continueButton(): EncapsulatedElementType {
+  get continueButton(): DetoxElement {
     return Matchers.getElementByText(
       SelectPaymentMethodSelectors.CONTINUE_BUTTON,
     );

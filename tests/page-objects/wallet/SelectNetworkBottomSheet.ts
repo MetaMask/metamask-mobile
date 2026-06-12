@@ -1,10 +1,9 @@
 import { PermissionSummaryBottomSheetSelectorsText } from '../../../app/components/Views/MultichainAccounts/shared/PermissionSummaryBottomSheet.testIds';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
-import { EncapsulatedElementType } from '../../framework';
 
 class SelectNetworksBottomSheet {
-  get connectedAccountsText(): EncapsulatedElementType {
+  get connectedAccountsText(): DetoxElement {
     return Matchers.getElementByText(
       PermissionSummaryBottomSheetSelectorsText.CONNECTED_ACCOUNTS_TEXT,
     );

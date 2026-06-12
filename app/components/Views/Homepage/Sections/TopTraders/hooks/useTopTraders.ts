@@ -31,7 +31,6 @@ export interface UseTopTradersResult {
 
 interface UseTopTradersOptions {
   limit?: number;
-  chains?: string[];
   enabled?: boolean;
 }
 
@@ -40,15 +39,9 @@ export const useTopTraders = (
 ): UseTopTradersResult => {
   const isUnlocked = useSelector(selectIsUnlocked);
 
-  const hasLimit = options?.limit !== undefined;
-  const hasChains = options?.chains !== undefined;
-  const fetchOptions: FetchLeaderboardOptions | null =
-    hasLimit || hasChains
-      ? {
-          ...(hasLimit && { limit: options?.limit }),
-          ...(hasChains && { chains: options?.chains }),
-        }
-      : null;
+  const fetchOptions: FetchLeaderboardOptions | null = options?.limit
+    ? { limit: options.limit }
+    : null;
 
   const queryKey: [string, FetchLeaderboardOptions | null] = [
     'SocialService:fetchLeaderboard',
@@ -62,11 +55,8 @@ export const useTopTraders = (
     });
 
   const leaderboardQueryParams = useMemo(
-    () => ({
-      limit: options?.limit ?? 0,
-      ...(hasChains && { chains: (options?.chains ?? []).join(',') }),
-    }),
-    [options?.limit, options?.chains, hasChains],
+    () => ({ limit: options?.limit ?? 0 }),
+    [options?.limit],
   );
 
   useLogSocialQueryError(error, {

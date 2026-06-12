@@ -33,7 +33,7 @@ class TokenOverview {
     });
   }
 
-  get tokenPrice(): EncapsulatedElementType {
+  get tokenPrice(): DetoxElement {
     return Matchers.getElementByID(TokenOverviewSelectorsIDs.TOKEN_PRICE);
   }
 
@@ -91,73 +91,73 @@ class TokenOverview {
     });
   }
 
-  get unstakeButton(): EncapsulatedElementType {
+  get unstakeButton(): DetoxElement {
     return Matchers.getElementByID(WalletViewSelectorsIDs.UNSTAKE_BUTTON);
   }
 
-  get stakeMoreButton(): EncapsulatedElementType {
+  get stakeMoreButton(): DetoxElement {
     return Matchers.getElementByID(WalletViewSelectorsIDs.STAKE_MORE_BUTTON);
   }
 
-  get stakedBalance(): EncapsulatedElementType {
+  get stakedBalance(): DetoxElement {
     return Matchers.getElementByID(TokenOverviewSelectorsText.STAKED_BALANCE);
   }
 
-  get actionSheetSendButton(): EncapsulatedElementType {
+  get actionSheetSendButton(): DetoxElement {
     return Matchers.getElementByID(
       WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON,
     );
   }
 
-  get swapButton(): EncapsulatedElementType {
+  get swapButton(): DetoxElement {
     return Matchers.getElementByID(TokenOverviewSelectorsIDs.SWAP_BUTTON);
   }
 
-  get bridgeButton(): EncapsulatedElementType {
+  get bridgeButton(): DetoxElement {
     return Matchers.getElementByID(TokenOverviewSelectorsIDs.BRIDGE_BUTTON);
   }
 
-  get claimButton(): EncapsulatedElementType {
+  get claimButton(): DetoxElement {
     return Matchers.getElementByID(TokenOverviewSelectorsIDs.CLAIM_BUTTON);
   }
 
-  get receiveButton(): EncapsulatedElementType {
+  get receiveButton(): DetoxElement {
     return Matchers.getElementByID(TokenOverviewSelectorsIDs.RECEIVE_BUTTON);
   }
 
-  get noChartData(): EncapsulatedElementType {
+  get noChartData(): DetoxElement {
     return Matchers.getElementByText(TokenOverviewSelectorsText.NO_CHART_DATA);
   }
 
-  get closeButton(): EncapsulatedElementType {
+  get closeButton(): DetoxElement {
     return Matchers.getElementByID(CommonSelectorsIDs.BACK_ARROW_BUTTON);
   }
 
-  get unstakingBanner(): EncapsulatedElementType {
+  get unstakingBanner(): DetoxElement {
     return Matchers.getElementByID(TokenOverviewSelectorsIDs.UNSTAKING_BANNER);
   }
 
-  get chartPeriod1d(): EncapsulatedElementType {
+  get chartPeriod1d(): DetoxElement {
     return Matchers.getElementByText(TokenOverviewSelectorsText['1d']);
   }
 
-  get chartPeriod1w(): EncapsulatedElementType {
+  get chartPeriod1w(): DetoxElement {
     return Matchers.getElementByText(TokenOverviewSelectorsText['1w']);
   }
 
-  get chartPeriod1m(): EncapsulatedElementType {
+  get chartPeriod1m(): DetoxElement {
     return Matchers.getElementByText(TokenOverviewSelectorsText['1m']);
   }
 
-  get chartPeriod3m(): EncapsulatedElementType {
+  get chartPeriod3m(): DetoxElement {
     return Matchers.getElementByText(TokenOverviewSelectorsText['3m']);
   }
 
-  get chartPeriod1y(): EncapsulatedElementType {
+  get chartPeriod1y(): DetoxElement {
     return Matchers.getElementByText(TokenOverviewSelectorsText['1y']);
   }
 
-  get chartPeriod3y(): EncapsulatedElementType {
+  get chartPeriod3y(): DetoxElement {
     return Matchers.getElementByText(TokenOverviewSelectorsText['3y']);
   }
 

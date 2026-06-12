@@ -1,10 +1,6 @@
 import { Connection } from '../services/connection';
 import { ConnectionInfo } from './connection-info';
 
-export interface ShowConnectionLoadingOptions {
-  autodismissMs?: number;
-}
-
 /**
  * Defines the contract for the host MetaMask Mobile application.
  * This adapter is the sole boundary between the isolated SDKConnectV2 logic
@@ -17,10 +13,7 @@ export interface IHostApplicationAdapter {
    * Displays a global, non-interactive loading modal. Used to indicate
    * background activity, such as establishing a connection.
    */
-  showConnectionLoading(
-    conninfo: ConnectionInfo,
-    options?: ShowConnectionLoadingOptions,
-  ): void;
+  showConnectionLoading(conninfo: ConnectionInfo): void;
 
   /**
    * Hides the global loading modal.

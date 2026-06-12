@@ -57,9 +57,6 @@ export interface BoxProps extends ViewProps {
   testID?: string;
 }
 
-/**
- * @deprecated Please update your code to use `Box` from `@metamask/design-system-react-native`.
- */
 export const Box = React.forwardRef<View, BoxProps>(
   ({ children, ...props }, ref) => (
     <View

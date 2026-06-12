@@ -12,7 +12,6 @@ const Routes = {
     BUY: 'RampBuy',
     SELL: 'RampSell',
     TOKEN_SELECTION: 'RampTokenSelection',
-    TOKEN_SELECTION_ROOT: 'RampTokenSelectionRoot',
     GET_STARTED: 'GetStarted',
     BUILD_QUOTE: 'BuildQuote',
     BUILD_QUOTE_HAS_STARTED: 'BuildQuoteHasStarted',
@@ -105,15 +104,12 @@ const Routes = {
   TRANSACTIONS_VIEW: 'TransactionsView',
   TRANSACTION_DETAILS: 'TransactionDetails',
   REWARDS_VIEW: 'RewardsView',
-  REWARDS_FLOW: 'RewardsFlow',
   REFERRAL_REWARDS_VIEW: 'ReferralRewardsView',
   REWARDS_SETTINGS_VIEW: 'RewardsSettingsView',
   REWARDS_DASHBOARD: 'RewardsDashboard',
   REWARDS_VIP_SPLASH_VIEW: 'RewardsVipSplashView',
   REWARDS_VIP_VIEW: 'RewardsVipView',
   REWARDS_VIP_TIERS_VIEW: 'RewardsVipTiersView',
-  REWARDS_VIP_REFEREE_SPLASH_VIEW: 'RewardsVipRefereeSplashView',
-  REWARDS_VIP_REFEREE_VIEW: 'RewardsVipRefereeView',
   REWARDS_CAMPAIGNS_VIEW: 'RewardsCampaignsView',
   REWARDS_MUSD_CALCULATOR_VIEW: 'RewardsMusdCalculatorView',
   REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW: 'RewardsCampaignDetails',
@@ -137,8 +133,6 @@ const Routes = {
     'RewardsPredictThePitchCampaignLeaderboard',
   REWARDS_PREDICT_THE_PITCH_CAMPAIGN_PORTFOLIO_VIEW:
     'RewardsPredictThePitchCampaignPortfolioView',
-  REWARDS_PREDICT_THE_PITCH_CAMPAIGN_STATS:
-    'RewardsPredictThePitchCampaignStats',
   REWARDS_PERPS_TRADING_CAMPAIGN_LEADERBOARD:
     'RewardsPerpsTradingCampaignLeaderboard',
   REWARDS_PERPS_TRADING_CAMPAIGN_STATS: 'RewardsPerpsTradingCampaignStats',
@@ -405,7 +399,6 @@ const Routes = {
     POSITIONS: 'PredictPositions',
     ACTIVITY_DETAIL: 'PredictActivityDetail',
     WORLD_CUP: 'PredictWorldCup',
-    FEED: 'PredictFeed',
     MODALS: {
       ROOT: 'PredictModals',
       BUY_PREVIEW: 'PredictBuyPreview',

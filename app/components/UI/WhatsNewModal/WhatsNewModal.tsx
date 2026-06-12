@@ -26,6 +26,10 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../component-library/hooks';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 import Icon, {
   IconColor,
   IconName,
@@ -41,12 +45,6 @@ import { useNavigation } from '@react-navigation/native';
 import createStyles from './WhatsNewModal.styles';
 import Device from '../../../util/device';
 import { SlideContent, SlideContentType } from './types';
-import {
-  Text,
-  TextVariant,
-  TextColor,
-  FontWeight,
-} from '@metamask/design-system-react-native';
 
 const CAROUSEL_INTERVAL_MS = 4000;
 const SLIDE_PADDING = 48;
@@ -220,10 +218,9 @@ const WhatsNewModal = () => {
         case SlideContentType.TITLE:
           return (
             <Text
-              color={TextColor.TextDefault}
-              variant={TextVariant.BodyLg}
+              color={TextColor.Default}
+              variant={TextVariant.BodyLGMedium}
               style={styles.slideTitle}
-              fontWeight={FontWeight.Medium}
             >
               {elementInfo.title}
             </Text>
@@ -231,8 +228,8 @@ const WhatsNewModal = () => {
         case SlideContentType.DESCRIPTION:
           return (
             <Text
-              color={TextColor.TextDefault}
-              variant={TextVariant.BodyMd}
+              color={TextColor.Default}
+              variant={TextVariant.BodyMD}
               style={styles.slideDescription}
             >
               {elementInfo.description}
@@ -250,8 +247,8 @@ const WhatsNewModal = () => {
                     style={styles.featureCheckmark}
                   />
                   <Text
-                    color={TextColor.TextDefault}
-                    variant={TextVariant.BodyMd}
+                    color={TextColor.Default}
+                    variant={TextVariant.BodyMD}
                     style={styles.featureText}
                   >
                     {descriptionKey}
@@ -349,8 +346,8 @@ const WhatsNewModal = () => {
         case SlideContentType.MORE_INFORMATION:
           return (
             <Text
-              color={TextColor.TextDefault}
-              variant={TextVariant.BodyMd}
+              color={TextColor.Default}
+              variant={TextVariant.BodyMD}
               style={styles.moreInformation}
             >
               {elementInfo.moreInformation}
@@ -422,7 +419,7 @@ const WhatsNewModal = () => {
   return (
     <BottomSheet ref={sheetRef} onClose={recordSeenModal}>
       <View style={styles.headerContainer}>
-        <Text variant={TextVariant.HeadingMd} style={styles.header}>
+        <Text variant={TextVariant.HeadingMD} style={styles.header}>
           {strings('whats_new.remove_gns_new_ui_update.title')}
         </Text>
       </View>

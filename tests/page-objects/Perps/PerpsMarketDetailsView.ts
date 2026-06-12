@@ -133,7 +133,7 @@ class PerpsMarketDetailsView {
   }
 
   // Scroll view
-  get scrollView(): EncapsulatedElementType {
+  get scrollView(): DetoxElement {
     return Matchers.getElementByID(
       PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
     );

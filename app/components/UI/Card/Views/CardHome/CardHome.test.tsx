@@ -509,7 +509,6 @@ import Engine from '../../../../../core/Engine';
 import { CardHomeSelectors } from './CardHome.testIds';
 import { CARD_SUPPORT_EMAIL } from '../../constants';
 import { isSolanaChainId } from '@metamask/bridge-controller';
-import { CardEntryPoint } from '../../util/metrics';
 
 // Get references to the mocked functions
 const mockSetActiveNetwork = Engine.context.NetworkController
@@ -6369,7 +6368,6 @@ describe('CardHome Component', () => {
 
       expect(mockStartMoneyAccountLinkFlow).toHaveBeenCalledWith({
         screen: Routes.CARD.HOME,
-        entrypoint: CardEntryPoint.CARD_HOME_MONEY_ACCOUNT_CARD,
       });
     });
 
@@ -6385,7 +6383,6 @@ describe('CardHome Component', () => {
 
       expect(mockStartMoneyAccountLinkFlow).toHaveBeenCalledWith({
         screen: Routes.CARD.HOME,
-        entrypoint: CardEntryPoint.CARD_HOME_MONEY_ACCOUNT_CARD,
       });
     });
 

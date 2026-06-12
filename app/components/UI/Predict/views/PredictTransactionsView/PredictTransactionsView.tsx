@@ -57,7 +57,6 @@ interface PredictTransactionsViewProps {
   isPrivacyMode?: boolean;
   containerStyle?: string;
   activityContainerStyle?: string;
-  shouldTrackActivityViewed?: boolean;
 }
 
 interface ActivityHistoryItem {
@@ -219,7 +218,6 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
   isPrivacyMode = false,
   containerStyle,
   activityContainerStyle,
-  shouldTrackActivityViewed = true,
 }) => {
   const tw = useTailwind();
   const {
@@ -247,12 +245,12 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
 
   // Track activity list viewed when tab becomes visible
   useEffect(() => {
-    if (shouldTrackActivityViewed && isVisible && !isLoading) {
+    if (isVisible && !isLoading) {
       Engine.context.PredictController.trackActivityViewed({
         activityType: PredictEventValues.ACTIVITY_TYPE.ACTIVITY_LIST,
       });
     }
-  }, [isVisible, isLoading, shouldTrackActivityViewed]);
+  }, [isVisible, isLoading]);
 
   const sections: ActivitySection[] = useMemo(() => {
     const sortedClaimPendingPositions = claimPendingPositions

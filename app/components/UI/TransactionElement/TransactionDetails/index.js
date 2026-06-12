@@ -14,9 +14,6 @@ import {
   getBlockExplorerTxUrl,
 } from '../../../../util/networks';
 import Logger from '../../../../util/Logger';
-import { analytics } from '../../../../util/analytics/analytics';
-import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
-import { trackBlockExplorerLinkClicked } from '../../../../util/analytics/externalLinkTracking';
 import EthereumAddress from '../../EthereumAddress';
 import TransactionSummary from '../../../Views/TransactionSummary';
 import { toDateFormat } from '../../../../util/date';
@@ -263,17 +260,6 @@ class TransactionDetails extends PureComponent {
     const { rpcBlockExplorer } = this.state;
     try {
       const { url, title } = getBlockExplorerTxUrl(RPC, hash, rpcBlockExplorer);
-      trackBlockExplorerLinkClicked(
-        analytics.trackEvent,
-        AnalyticsEventBuilder.createEventBuilder,
-        {
-          location: 'transaction_details',
-          text: `${strings('transactions.view_on')} ${getBlockExplorerName(
-            rpcBlockExplorer,
-          )}`,
-          url,
-        },
-      );
       navigation.push('Webview', {
         screen: 'SimpleWebview',
         params: { url, title },

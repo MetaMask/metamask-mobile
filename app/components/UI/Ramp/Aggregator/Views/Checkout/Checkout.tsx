@@ -5,6 +5,8 @@ import { WebView, WebViewNavigation } from '@metamask/react-native-webview';
 import { useNavigation } from '@react-navigation/native';
 import { Provider } from '@consensys/on-ramp-sdk';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
+import { useTheme } from '../../../../../../util/theme';
+import { getDepositNavbarOptions } from '../../../../Navbar';
 import { useRampSDK, SDK } from '../../sdk';
 import {
   addFiatCustomIdData,
@@ -64,6 +66,7 @@ const CheckoutWebView = () => {
   const [key, setKey] = useState(0);
   const navigation = useNavigation();
   const params = useParams<CheckoutParams>();
+  const theme = useTheme();
   const handleSuccessfulOrder = useHandleSuccessfulOrder();
 
   const { styles } = useStyles(styleSheet, {});
@@ -91,6 +94,17 @@ const CheckoutWebView = () => {
     handleCancelPress();
     sheetRef.current?.onCloseBottomSheet();
   }, [handleCancelPress]);
+
+  useEffect(() => {
+    navigation.setOptions(
+      getDepositNavbarOptions(
+        navigation,
+        { title: provider.name },
+        theme,
+        handleCancelPress,
+      ),
+    );
+  }, [navigation, theme, handleCancelPress, provider.name]);
 
   useEffect(() => {
     if (

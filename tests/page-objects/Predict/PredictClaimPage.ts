@@ -1,13 +1,13 @@
-import { Matchers, Gestures, EncapsulatedElementType } from '../../framework';
+import { Matchers, Gestures } from '../../framework';
 import { PredictClaimConfirmationSelectorsIDs } from '../../../app/components/UI/Predict/Predict.testIds';
 
 class PredictClaimPage {
-  get container(): EncapsulatedElementType {
+  get container(): DetoxElement {
     return Matchers.getElementByID(
       PredictClaimConfirmationSelectorsIDs.CLAIM_BACKGROUND_CONTAINER,
     );
   }
-  get claimConfirmButton(): EncapsulatedElementType {
+  get claimConfirmButton(): DetoxElement {
     return Matchers.getElementByID(
       PredictClaimConfirmationSelectorsIDs.CLAIM_CONFIRM_BUTTON,
     );

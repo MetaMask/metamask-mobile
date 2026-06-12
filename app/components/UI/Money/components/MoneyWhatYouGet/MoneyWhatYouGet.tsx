@@ -98,7 +98,7 @@ const MoneyWhatYouGet = ({ apy, onLearnMorePress }: MoneyWhatYouGetProps) => (
     </Box>
 
     {onLearnMorePress ? (
-      <Box twClassName="pt-3">
+      <Box twClassName="py-3">
         <Button
           variant={ButtonVariant.Secondary}
           size={ButtonSize.Lg}

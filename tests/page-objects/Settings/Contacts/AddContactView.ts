@@ -4,48 +4,47 @@ import {
   AddContactViewSelectorsText,
 } from '../../../../app/components/Views/Settings/Contacts/AddContactView.testIds';
 import Gestures from '../../../framework/Gestures';
-import { EncapsulatedElementType } from '../../../framework';
 
 class AddContactView {
-  get container(): EncapsulatedElementType {
+  get container(): DetoxElement {
     return Matchers.getElementByID(AddContactViewSelectorsIDs.CONTAINER);
   }
 
-  get addButton(): EncapsulatedElementType {
+  get addButton(): DetoxElement {
     return device.getPlatform() === 'ios'
       ? Matchers.getElementByID(AddContactViewSelectorsIDs.ADD_BUTTON)
       : Matchers.getElementByLabel(AddContactViewSelectorsIDs.ADD_BUTTON);
   }
 
-  get editButton(): EncapsulatedElementType {
+  get editButton(): DetoxElement {
     return device.getPlatform() === 'ios'
       ? Matchers.getElementByID(AddContactViewSelectorsIDs.EDIT_BUTTON)
       : Matchers.getElementByLabel(AddContactViewSelectorsText.EDIT_BUTTON);
   }
 
-  get editContact(): EncapsulatedElementType {
+  get editContact(): DetoxElement {
     return Matchers.getElementByText(AddContactViewSelectorsText.EDIT_CONTACT);
   }
 
-  get deleteButton(): EncapsulatedElementType {
+  get deleteButton(): DetoxElement {
     return device.getPlatform() === 'ios'
       ? Matchers.getElementByID(AddContactViewSelectorsIDs.DELETE_BUTTON)
       : Matchers.getElementByLabel(AddContactViewSelectorsIDs.DELETE_BUTTON);
   }
 
-  get nameInput(): EncapsulatedElementType {
+  get nameInput(): DetoxElement {
     return Matchers.getElementByID(AddContactViewSelectorsIDs.NAME_INPUT);
   }
 
-  get memoLabel(): EncapsulatedElementType {
+  get memoLabel(): DetoxElement {
     return Matchers.getElementByText(AddContactViewSelectorsText.MEMO);
   }
 
-  get memoInput(): EncapsulatedElementType {
+  get memoInput(): DetoxElement {
     return Matchers.getElementByID(AddContactViewSelectorsIDs.MEMO_INPUT);
   }
 
-  get addressInput(): EncapsulatedElementType {
+  get addressInput(): DetoxElement {
     return Matchers.getElementByID(AddContactViewSelectorsIDs.ADDRESS_INPUT);
   }
 

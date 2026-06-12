@@ -4,12 +4,10 @@ import {
   GestureStrategy,
   UnifiedGestureOptions,
   TapAtIndexElement,
-  type ScrollContainer,
+  ScrollViewMatcher,
   DetoxGestureStrategy,
   AppiumGestureStrategy,
 } from './GestureStrategy.ts';
-import Matchers from './Matchers.ts';
-import { resolve, isSelector, type Selector } from './Selector.ts';
 
 /**
  * UnifiedGestures — Static facade for framework-agnostic gesture execution.
@@ -49,120 +47,74 @@ export default class UnifiedGestures {
     this._strategy = null;
   }
 
-  /**
-   * Resolve scroll container for scrollToElement.
-   * - `string` testID → Detox matcher via Matchers.getIdentifier; omitted under Appium.
-   * - `ScrollViewMatcher` → passed through (Detox-only; do not build with getIdentifier in page objects under Appium).
-   */
-  private static resolveScrollContainer(
-    scrollView?: ScrollContainer,
-  ): ScrollContainer | undefined {
-    if (scrollView === undefined) {
-      return undefined;
-    }
-    if (typeof scrollView === 'string') {
-      if (FrameworkDetector.isAppium()) {
-        return undefined;
-      }
-      return Matchers.getIdentifier(scrollView);
-    }
-    return scrollView;
-  }
-
   // ── Gesture Methods ─────────────────────────────────────────
 
   static async tap(
-    elem: EncapsulatedElementType | Selector,
+    elem: EncapsulatedElementType,
     opts?: UnifiedGestureOptions,
   ): Promise<void> {
-    await this.strategy.tap(isSelector(elem) ? resolve(elem) : elem, opts);
+    await this.strategy.tap(elem, opts);
   }
 
   static async waitAndTap(
-    elem: EncapsulatedElementType | Selector,
+    elem: EncapsulatedElementType,
     opts?: UnifiedGestureOptions,
   ): Promise<void> {
-    await this.strategy.waitAndTap(
-      isSelector(elem) ? resolve(elem) : elem,
-      opts,
-    );
+    await this.strategy.waitAndTap(elem, opts);
   }
 
   static async typeText(
-    elem: EncapsulatedElementType | Selector,
+    elem: EncapsulatedElementType,
     text: string,
     opts?: UnifiedGestureOptions,
   ): Promise<void> {
-    await this.strategy.typeText(
-      isSelector(elem) ? resolve(elem) : elem,
-      text,
-      opts,
-    );
+    await this.strategy.typeText(elem, text, opts);
   }
 
   static async replaceText(
-    elem: EncapsulatedElementType | Selector,
+    elem: EncapsulatedElementType,
     text: string,
     opts?: UnifiedGestureOptions,
   ): Promise<void> {
-    await this.strategy.replaceText(
-      isSelector(elem) ? resolve(elem) : elem,
-      text,
-      opts,
-    );
+    await this.strategy.replaceText(elem, text, opts);
   }
 
   static async swipe(
-    elem: EncapsulatedElementType | Selector,
+    elem: EncapsulatedElementType,
     direction: 'up' | 'down' | 'left' | 'right',
     opts?: UnifiedGestureOptions,
   ): Promise<void> {
-    await this.strategy.swipe(
-      isSelector(elem) ? resolve(elem) : elem,
-      direction,
-      opts,
-    );
+    await this.strategy.swipe(elem, direction, opts);
   }
 
   static async scrollToElement(
-    target: EncapsulatedElementType | Selector,
-    scrollView?: ScrollContainer,
+    target: EncapsulatedElementType,
+    scrollView: ScrollViewMatcher,
     opts?: UnifiedGestureOptions,
   ): Promise<void> {
-    await this.strategy.scrollToElement(
-      isSelector(target) ? resolve(target) : target,
-      this.resolveScrollContainer(scrollView),
-      opts,
-    );
+    await this.strategy.scrollToElement(target, scrollView, opts);
   }
 
   static async longPress(
-    elem: EncapsulatedElementType | Selector,
+    elem: EncapsulatedElementType,
     opts?: UnifiedGestureOptions,
   ): Promise<void> {
-    await this.strategy.longPress(
-      isSelector(elem) ? resolve(elem) : elem,
-      opts,
-    );
+    await this.strategy.longPress(elem, opts);
   }
 
   static async dblTap(
-    elem: EncapsulatedElementType | Selector,
+    elem: EncapsulatedElementType,
     opts?: UnifiedGestureOptions,
   ): Promise<void> {
-    await this.strategy.dblTap(isSelector(elem) ? resolve(elem) : elem, opts);
+    await this.strategy.dblTap(elem, opts);
   }
 
   static async tapAtPoint(
-    elem: EncapsulatedElementType | Selector,
+    elem: EncapsulatedElementType,
     point: { x: number; y: number },
     opts?: UnifiedGestureOptions,
   ): Promise<void> {
-    await this.strategy.tapAtPoint(
-      isSelector(elem) ? resolve(elem) : elem,
-      point,
-      opts,
-    );
+    await this.strategy.tapAtPoint(elem, point, opts);
   }
 
   static async tapAtIndex(

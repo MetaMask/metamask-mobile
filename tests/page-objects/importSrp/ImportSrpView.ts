@@ -1,26 +1,25 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 import { ImportSRPIDs } from '../../../app/components/Views/ImportNewSecretRecoveryPhrase/SRPImport.testIds';
 
 class ImportSrpView {
-  get container(): EncapsulatedElementType {
+  get container(): DetoxElement {
     return Matchers.getElementByID(ImportSRPIDs.CONTAINER);
   }
 
-  get title(): EncapsulatedElementType {
+  get title(): DetoxElement {
     return Matchers.getElementByID(ImportSRPIDs.SCREEN_TITLE_ID);
   }
 
-  get importButton(): EncapsulatedElementType {
+  get importButton(): DetoxElement {
     return Matchers.getElementByID(ImportSRPIDs.IMPORT_BUTTON);
   }
 
-  get textareaInput(): EncapsulatedElementType {
+  get textareaInput(): DetoxElement {
     return Matchers.getElementByID(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
   }
 
-  seedPhraseInput(index: number): EncapsulatedElementType {
+  seedPhraseInput(index: number): DetoxElement {
     if (index !== 0) {
       return Matchers.getElementByID(
         `${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_${index}`,

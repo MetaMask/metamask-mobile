@@ -6,52 +6,51 @@ import { NetworksViewSelectorsIDs } from '../../../app/components/Views/Settings
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { NETWORK_MULTI_SELECTOR_TEST_IDS } from '../../../app/components/UI/NetworkMultiSelector/NetworkMultiSelector.constants';
-import { EncapsulatedElementType } from '../../framework';
 
 class NetworkListModal {
-  get networkScroll(): EncapsulatedElementType {
+  get networkScroll(): DetoxElement {
     return Matchers.getElementByID(NetworkListModalSelectorsIDs.SCROLL);
   }
 
-  get closeIcon(): EncapsulatedElementType {
+  get closeIcon(): DetoxElement {
     return Matchers.getElementByID(NetworksViewSelectorsIDs.CLOSE_ICON);
   }
 
-  get deleteNetworkButton(): EncapsulatedElementType {
+  get deleteNetworkButton(): DetoxElement {
     return Matchers.getElementByText(
       NetworkListModalSelectorsText.DELETE_NETWORK,
     );
   }
 
-  get addPopularNetworkButton(): EncapsulatedElementType {
+  get addPopularNetworkButton(): DetoxElement {
     return Matchers.getElementByText(
       NetworkListModalSelectorsText.ADD_POPULAR_NETWORK_BUTTON,
     );
   }
 
-  get networkSearchInput(): EncapsulatedElementType {
+  get networkSearchInput(): DetoxElement {
     return Matchers.getElementByID(
       NetworksViewSelectorsIDs.SEARCH_NETWORK_INPUT_BOX_ID,
     );
   }
 
-  get selectNetwork(): EncapsulatedElementType {
+  get selectNetwork(): DetoxElement {
     return Matchers.getElementByText(
       NetworkListModalSelectorsText.SELECT_NETWORK,
     );
   }
 
-  get testNetToggle(): EncapsulatedElementType {
+  get testNetToggle(): DetoxElement {
     return Matchers.getElementByID(
       NetworkListModalSelectorsIDs.TEST_NET_TOGGLE,
     );
   }
 
-  get deleteButton(): EncapsulatedElementType {
+  get deleteButton(): DetoxElement {
     return Matchers.getElementByID('delete-network-button');
   }
 
-  get popularNetworksContainer(): EncapsulatedElementType {
+  get popularNetworksContainer(): DetoxElement {
     return Matchers.getElementByID(
       NETWORK_MULTI_SELECTOR_TEST_IDS.POPULAR_NETWORKS_CONTAINER,
     );
@@ -60,7 +59,7 @@ class NetworkListModal {
   async getCustomNetwork(
     network: string,
     custom = false,
-  ): Promise<EncapsulatedElementType> {
+  ): Promise<DetoxElement> {
     if (device.getPlatform() === 'android' || !custom) {
       return Matchers.getElementByText(network);
     }

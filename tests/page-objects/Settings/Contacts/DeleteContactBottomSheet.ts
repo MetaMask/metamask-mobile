@@ -1,16 +1,15 @@
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
 import { DeleteContactBottomSheetSelectorsText } from '../../../selectors/Settings/Contacts/DeleteContactBottomSheet.selectors';
-import { EncapsulatedElementType } from '../../../framework';
 
 class DeleteContactBottomSheet {
-  get title(): EncapsulatedElementType {
+  get title(): DetoxElement {
     return Matchers.getElementByText(
       DeleteContactBottomSheetSelectorsText.MODAL_TITLE,
     );
   }
 
-  get deleteButton(): EncapsulatedElementType {
+  get deleteButton(): DetoxElement {
     return device.getPlatform() === 'ios'
       ? Matchers.getElementByText(
           DeleteContactBottomSheetSelectorsText.DELETE_BUTTON,

@@ -48,8 +48,6 @@ export const useReferralDetails = ({
           referralCode: referralDetails?.referralCode,
           refereeCount: referralDetails?.totalReferees,
           referredByCode: referralDetails?.referredByCode,
-          isVipReferee: referralDetails?.isVipReferee ?? false,
-          referredByVipCode: referralDetails?.referredByVipCode ?? null,
         }),
       );
     } catch (error) {

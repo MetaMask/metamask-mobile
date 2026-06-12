@@ -28,7 +28,7 @@ const logger = createLogger({
 });
 
 describe(SmokePerps('Perps Position Stop Loss'), () => {
-  it.skip('opens a long with stop loss and closes when mark crosses the SL trigger', async () => {
+  it('opens a long with stop loss and closes when mark crosses the SL trigger', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()

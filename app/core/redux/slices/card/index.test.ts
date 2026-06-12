@@ -15,7 +15,6 @@ import cardReducer, {
   setPendingMoneyAccountCardLink,
   selectPendingMoneyAccountCardLink,
 } from '.';
-import { CardEntryPoint } from '../../../../components/UI/Card/util/metrics';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const CARD_STATE_MOCK: CardSliceState = {
@@ -26,7 +25,7 @@ const CARD_STATE_MOCK: CardSliceState = {
     contactVerificationId: null,
     consentSetId: null,
   },
-  pendingMoneyAccountCardLink: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
+  pendingMoneyAccountCardLink: false,
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -38,7 +37,7 @@ const EMPTY_CARD_STATE_MOCK: CardSliceState = {
     contactVerificationId: null,
     consentSetId: null,
   },
-  pendingMoneyAccountCardLink: null,
+  pendingMoneyAccountCardLink: false,
 };
 
 describe('Card Selectors', () => {
@@ -59,22 +58,18 @@ describe('Card Selectors', () => {
   });
 
   describe('selectPendingMoneyAccountCardLink', () => {
-    it('returns null by default from initial state', () => {
+    it('returns false by default from initial state', () => {
       const mockRootState = { card: initialState } as unknown as RootState;
-      expect(selectPendingMoneyAccountCardLink(mockRootState)).toBe(null);
+      expect(selectPendingMoneyAccountCardLink(mockRootState)).toBe(false);
     });
 
-    it('returns the pending Money Account Card link entrypoint', () => {
-      const stateWithEntryPoint: CardSliceState = {
+    it('returns true when pendingMoneyAccountCardLink is true', () => {
+      const stateWithFlag: CardSliceState = {
         ...initialState,
-        pendingMoneyAccountCardLink: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
+        pendingMoneyAccountCardLink: true,
       };
-      const mockRootState = {
-        card: stateWithEntryPoint,
-      } as unknown as RootState;
-      expect(selectPendingMoneyAccountCardLink(mockRootState)).toBe(
-        CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
-      );
+      const mockRootState = { card: stateWithFlag } as unknown as RootState;
+      expect(selectPendingMoneyAccountCardLink(mockRootState)).toBe(true);
     });
   });
 
@@ -160,7 +155,7 @@ describe('Card Reducer', () => {
           contactVerificationId: null,
           consentSetId: null,
         },
-        pendingMoneyAccountCardLink: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
+        pendingMoneyAccountCardLink: true,
       };
 
       const state = cardReducer(currentState, resetCardState());
@@ -169,30 +164,24 @@ describe('Card Reducer', () => {
     });
 
     describe('setPendingMoneyAccountCardLink', () => {
-      it('stores the entrypoint for post-auth sheet resume', () => {
+      it('sets pendingMoneyAccountCardLink to true', () => {
         const state = cardReducer(
           initialState,
-          setPendingMoneyAccountCardLink(
-            CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
-          ),
+          setPendingMoneyAccountCardLink(true),
         );
-
-        expect(state.pendingMoneyAccountCardLink).toBe(
-          CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
-        );
+        expect(state.pendingMoneyAccountCardLink).toBe(true);
       });
 
-      it('clears pending state when set to null', () => {
+      it('sets pendingMoneyAccountCardLink back to false', () => {
         const current: CardSliceState = {
           ...initialState,
-          pendingMoneyAccountCardLink:
-            CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
+          pendingMoneyAccountCardLink: true,
         };
         const state = cardReducer(
           current,
-          setPendingMoneyAccountCardLink(null),
+          setPendingMoneyAccountCardLink(false),
         );
-        expect(state.pendingMoneyAccountCardLink).toBeNull();
+        expect(state.pendingMoneyAccountCardLink).toBe(false);
       });
     });
 

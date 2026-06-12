@@ -1,16 +1,15 @@
 import { ManualBackUpStepsSelectorsIDs } from '../../../app/components/Views/ManualBackupStep1/ManualBackUpSteps.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { EncapsulatedElementType } from '../../framework';
 
 class ManualBackupStep1View {
-  get container(): EncapsulatedElementType {
+  get container(): DetoxElement {
     return Matchers.getElementByID(
       ManualBackUpStepsSelectorsIDs.STEP_1_CONTAINER,
     );
   }
 
-  get remindMeLaterButton(): EncapsulatedElementType {
+  get remindMeLaterButton(): DetoxElement {
     return Matchers.getElementByID(
       ManualBackUpStepsSelectorsIDs.REMIND_ME_LATER_BUTTON,
     );

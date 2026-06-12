@@ -82,6 +82,7 @@ jest.mock('../../../util/Logger', () => ({
 
 describe('startupDeeplinkNavigation', () => {
   const intent: DeeplinkIntent = {
+    type: 'navigation',
     target: {
       type: 'home-tab',
       routeName: 'RewardsView',

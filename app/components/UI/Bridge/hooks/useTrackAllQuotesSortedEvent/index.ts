@@ -1,5 +1,4 @@
 import {
-  FeatureId,
   formatProviderLabel,
   getNativeAssetForChainId,
   Quote,
@@ -49,7 +48,6 @@ export const useTrackAllQuotesSortedEvent = (
             : ' '),
         token_symbol_destination: destToken?.symbol ?? null,
         stx_enabled: smartTransactionsEnabled,
-        feature_id: FeatureId.UNIFIED_SWAP_BRIDGE,
         ...(isBridge && {
           sort_order: SortOrder.COST_ASC,
           best_quote_provider: formatProviderLabel(quote),

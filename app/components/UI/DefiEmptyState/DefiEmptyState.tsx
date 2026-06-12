@@ -6,7 +6,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   TabEmptyState,
   type TabEmptyStateProps,
-} from '@metamask/design-system-react-native';
+} from '../../../component-library/components-temp/TabEmptyState';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import { EXPLORE_TAB_INDEX } from '../../Views/TrendingView/TrendingView';

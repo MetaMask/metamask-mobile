@@ -30,14 +30,14 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 const baseTier = {
-  id: 'mock-tier-alpha-3',
-  name: 'Mock Tier Alpha 3',
+  id: 'gold-fox-vip-3',
+  name: 'Gold Fox 3',
   tier: 3,
-  pointsRequirement: 321_000,
-  revenueShareBps: 99,
-  swapsBps: 11,
-  perpsBps: 7,
-  referralCarryoverBps: 4242,
+  pointsRequirement: 750_000,
+  revenueShareBps: 150,
+  swapsBps: 15,
+  perpsBps: 4,
+  referralCarryoverBps: 2000,
   status: 'current' as const,
 };
 
@@ -64,7 +64,7 @@ describe('VipTierRow', () => {
       <VipTierRow tier={baseTier} localizedText={localizedText} />,
     );
 
-    expect(getByText('Mock Tier Alpha 3')).toBeOnTheScreen();
+    expect(getByText('Gold Fox 3')).toBeOnTheScreen();
     expect(
       getByTestId(`${VIP_TIER_ROW_TEST_IDS.CONTAINER}-${baseTier.id}`),
     ).toHaveStyle({ backgroundColor: VIP_GOLD_BACKGROUND_MUTED });
@@ -78,7 +78,7 @@ describe('VipTierRow', () => {
       getByTestId(VIP_TIER_ROW_TEST_IDS.CURRENT_TIER_GRADIENT).props.end,
     ).toEqual({ x: 0, y: 1 });
     expect(getByTestId(VIP_TIER_ROW_TEST_IDS.THRESHOLDS)).toHaveTextContent(
-      /321k points/,
+      /750k points/,
     );
     expect(getByText('Revenue share')).toBeOnTheScreen();
     expect(getByText('Swap fees')).toBeOnTheScreen();
@@ -86,16 +86,16 @@ describe('VipTierRow', () => {
     expect(getByText('Referral points')).toBeOnTheScreen();
     expect(
       getByTestId(VIP_TIER_ROW_TEST_IDS.REVENUE_SHARE_FEE),
-    ).toHaveTextContent(/0.99%/);
+    ).toHaveTextContent(/1.5%/);
     expect(getByTestId(VIP_TIER_ROW_TEST_IDS.SWAPS_FEE)).toHaveTextContent(
-      /11 bps/,
+      /15 bps/,
     );
     expect(getByTestId(VIP_TIER_ROW_TEST_IDS.PERPS_FEE)).toHaveTextContent(
-      /7 bps/,
+      /4 bps/,
     );
     expect(
       getByTestId(VIP_TIER_ROW_TEST_IDS.REFERRAL_POINTS),
-    ).toHaveTextContent(/42.42%/);
+    ).toHaveTextContent(/20%/);
   });
 
   it('keeps the gradient mounted when collapse starts so opacity can animate', () => {
@@ -153,8 +153,8 @@ describe('VipTierRow', () => {
       <VipTierRow
         tier={{
           ...baseTier,
-          id: 'mock-tier-alpha-1',
-          name: 'Mock Tier Alpha 1',
+          id: 'gold-fox-vip-1',
+          name: 'Gold Fox 1',
           tier: 1,
           pointsRequirement: 100_000,
           status: 'completed',

@@ -12,6 +12,10 @@ import { useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import styleSheet from './DeepLinkModal.styles';
 import { strings } from '../../../../locales/i18n';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../component-library/components/Texts/Text';
 import { useParams } from '../../../util/navigation/navUtils';
 import { useStyles } from '../../../component-library/hooks';
 import Button, {
@@ -36,11 +40,6 @@ import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon
 import { pageNotFound, foxLogo } from './constant';
 import { DeepLinkModalParams, ModalImageProps } from './types';
 import { DeepLinkModalLinkType } from '../../../core/DeeplinkManager/types/deepLink.types';
-import {
-  Text,
-  TextVariant,
-  TextColor,
-} from '@metamask/design-system-react-native';
 
 const ModalImage = memo<ModalImageProps>(({ linkType, styles }) => {
   if (linkType === DeepLinkModalLinkType.INVALID) {
@@ -73,21 +72,21 @@ const ModalDescription = memo<{
   return (
     <View style={styles.description}>
       <Text
-        variant={TextVariant.BodyMd}
-        color={TextColor.TextAlternative}
+        variant={TextVariant.BodyMD}
+        color={TextColor.Alternative}
         style={styles.description}
       >
         {description}
       </Text>
       {linkType === DeepLinkModalLinkType.INVALID && (
         <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextAlternative}
+          variant={TextVariant.BodyMD}
+          color={TextColor.Alternative}
           style={styles.storeLinkContainer}
         >
           <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.PrimaryDefault}
+            variant={TextVariant.BodyMD}
+            color={TextColor.Primary}
             style={styles.storeLink}
             onPress={onOpenMetaMaskStore}
           >
@@ -218,7 +217,7 @@ const DeepLinkModal = () => {
       </Box>
       <ScrollView contentContainerStyle={styles.content}>
         <ModalImage linkType={linkType} styles={styles} />
-        <Text variant={TextVariant.HeadingLg} style={styles.title}>
+        <Text variant={TextVariant.HeadingLG} style={styles.title}>
           {LINK_TYPE_MAP[linkType].title}
         </Text>
         <ModalDescription

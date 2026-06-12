@@ -3,8 +3,7 @@ import { fireEvent } from '@testing-library/react-native';
 import { StackActions } from '@react-navigation/native';
 import AccountStatus from '.';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
-import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
-import { createMockEventBuilder } from '../../../util/test/analyticsMock';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { strings } from '../../../../locales/i18n';
 import renderWithProvider from '../../../util/test/renderWithProvider';
@@ -59,8 +58,8 @@ jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding', () =>
   jest.fn(),
 );
 
-jest.mock('../../../util/analytics/AnalyticsEventBuilder', () => ({
-  AnalyticsEventBuilder: {
+jest.mock('../../../core/Analytics/MetricsEventBuilder', () => ({
+  MetricsEventBuilder: {
     createEventBuilder: jest.fn(() => ({
       addProperties: jest.fn().mockReturnThis(),
       build: jest.fn(),
@@ -69,19 +68,14 @@ jest.mock('../../../util/analytics/AnalyticsEventBuilder', () => ({
 }));
 
 const getMockEventBuilder = () => {
-  const eventBuilder = createMockEventBuilder();
-  jest
-    .mocked(AnalyticsEventBuilder.createEventBuilder)
-    .mockImplementation(
-      () =>
-        eventBuilder as unknown as ReturnType<
-          typeof AnalyticsEventBuilder.createEventBuilder
-        >,
-    );
-  const mockBuild = eventBuilder.build;
-  const mockAddProperties = eventBuilder.addProperties;
-  const mockCreateEventBuilder = jest.mocked(
-    AnalyticsEventBuilder.createEventBuilder,
+  const mockBuild = jest.fn();
+  const mockAddProperties = jest.fn().mockReturnThis();
+  const mockCreateEventBuilder = jest.fn(() => ({
+    addProperties: mockAddProperties,
+    build: mockBuild,
+  }));
+  (MetricsEventBuilder.createEventBuilder as jest.Mock).mockImplementation(
+    mockCreateEventBuilder,
   );
   return { mockBuild, mockAddProperties, mockCreateEventBuilder };
 };

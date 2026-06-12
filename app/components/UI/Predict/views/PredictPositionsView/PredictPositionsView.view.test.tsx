@@ -181,9 +181,9 @@ describe('PredictPositionsView component view', () => {
   });
 
   it('switches to history and renders activity through the history wrapper', async () => {
-    const trackPositionsTabViewedSpy = jest.spyOn(
+    const trackActivityViewedSpy = jest.spyOn(
       Engine.context.PredictController,
-      'trackPositionsTabViewed',
+      'trackActivityViewed',
     );
     mockPredictData({
       activity: [ACTIVITY],
@@ -200,14 +200,8 @@ describe('PredictPositionsView component view', () => {
     expect(await findByText('Predicted')).toBeOnTheScreen();
     expect(await findByText(ACTIVITY.title as string)).toBeOnTheScreen();
     await waitFor(() => {
-      expect(trackPositionsTabViewedSpy).toHaveBeenCalledWith({
-        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
-        openPositionsCount: 1,
-        claimablePositionsCount: 0,
-        hasClaimableWinnings: false,
-        predictScreen:
-          PredictEventValues.PREDICT_SCREEN.PREDICT_POSITIONS_SCREEN,
-        predictFeedTab: PredictEventValues.PREDICT_FEED_TAB.HISTORY,
+      expect(trackActivityViewedSpy).toHaveBeenCalledWith({
+        activityType: PredictEventValues.ACTIVITY_TYPE.ACTIVITY_LIST,
       });
     });
   });

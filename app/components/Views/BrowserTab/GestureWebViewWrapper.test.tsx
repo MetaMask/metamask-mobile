@@ -331,10 +331,10 @@ describe('GestureWebViewWrapper', () => {
       expect(getByTestId('test-webview')).toBeTruthy();
     });
 
-    it('uses useAnalytics hook for analytics', () => {
+    it('uses useMetrics hook for analytics', () => {
       const { getByTestId } = renderComponent();
 
-      // If useAnalytics didn't work, rendering would fail
+      // If useMetrics didn't work, rendering would fail
       expect(getByTestId('test-webview')).toBeTruthy();
     });
   });

@@ -6,14 +6,16 @@ import {
   ActionButtonProperties,
 } from './actionButtonTracking';
 import { MetaMetricsEvents } from '../../core/Analytics';
-import { AnalyticsEventBuilder } from './AnalyticsEventBuilder';
+import { MetricsEventBuilder } from '../../core/Analytics/MetricsEventBuilder';
 import { ITrackingEvent } from './analytics.types';
 
 // Mock dependencies
 jest.mock('../../core/Analytics');
-jest.mock('./AnalyticsEventBuilder');
+jest.mock('../../core/Analytics/MetricsEventBuilder');
 
-const mockedAnalyticsEventBuilder = jest.mocked(AnalyticsEventBuilder);
+const mockedMetricsEventBuilder = MetricsEventBuilder as jest.Mocked<
+  typeof MetricsEventBuilder
+>;
 
 describe('actionButtonTracking', () => {
   // Mock functions
@@ -25,10 +27,10 @@ describe('actionButtonTracking', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    // Setup AnalyticsEventBuilder mock
-    mockedAnalyticsEventBuilder.createEventBuilder.mockReturnValue(
+    // Setup MetricsEventBuilder mock
+    mockedMetricsEventBuilder.createEventBuilder.mockReturnValue(
       mockCreateEventBuilder as unknown as ReturnType<
-        typeof AnalyticsEventBuilder.createEventBuilder
+        typeof MetricsEventBuilder.createEventBuilder
       >,
     );
     mockCreateEventBuilder.mockReturnValue({

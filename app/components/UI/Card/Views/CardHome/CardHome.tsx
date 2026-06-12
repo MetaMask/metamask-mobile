@@ -38,7 +38,6 @@ import { strings } from '../../../../../../locales/i18n';
 import {
   selectIsCardAuthenticated,
   selectCardUserLocation,
-  selectCardHomeDataStatus,
 } from '../../../../../selectors/cardController';
 import {
   CardStatus,
@@ -73,7 +72,6 @@ import CardHomeFooter from './components/CardHomeFooter';
 import { useCardHomeActions } from './hooks/useCardHomeActions';
 import { useCardHomeAnalytics } from './hooks/useCardHomeAnalytics';
 import { useCardProvisioning } from './hooks/useCardProvisioning';
-import { CardEntryPoint, CardFlow, CardScreens } from '../../util/metrics';
 
 interface CardHomeRouteParams {
   showDeeplinkToast?: boolean;
@@ -126,15 +124,8 @@ const CardHome = () => {
   } = useMoneyAccountCardLinkage();
   const { apyPercent: moneyAccountApyPercent } = useMoneyAccountBalance();
   const hasMetalCard = data?.card?.type === CardType.METAL;
-  const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
-  const isCardAnalyticsReady =
-    cardHomeDataStatus === 'success' || cardHomeDataStatus === 'error';
   const handleLinkMoneyAccountCard = useCallback(
-    () =>
-      startMoneyAccountLink({
-        screen: Routes.CARD.HOME,
-        entrypoint: CardEntryPoint.CARD_HOME_MONEY_ACCOUNT_CARD,
-      }),
+    () => startMoneyAccountLink({ screen: Routes.CARD.HOME }),
     [startMoneyAccountLink],
   );
 
@@ -436,13 +427,6 @@ const CardHome = () => {
                 onGetNowPress={handleLinkMoneyAccountCard}
                 onHeaderPress={handleLinkMoneyAccountCard}
                 onLinkPress={handleLinkMoneyAccountCard}
-                analyticsScreen={CardScreens.HOME}
-                analyticsEntryPoint={
-                  CardEntryPoint.CARD_HOME_MONEY_ACCOUNT_CARD
-                }
-                analyticsFlow={CardFlow.MONEY_ACCOUNT_LINKAGE}
-                analyticsCardState="unlinked_card"
-                analyticsReady={isCardAnalyticsReady}
               />
             </Box>
             <Box

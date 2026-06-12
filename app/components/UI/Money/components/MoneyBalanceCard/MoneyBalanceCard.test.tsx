@@ -11,29 +11,9 @@ import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import { selectMoneyOnboardingSeen } from '../../../../../reducers/user/selectors';
 import { selectWalletHomeOnboardingFlowVisible } from '../../../../../selectors/onboarding';
 import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
-import { useMoneyAccountAddRouting } from '../../hooks/useMoneyAccountAddRouting';
-import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
-import {
-  COMPONENT_NAMES,
-  MONEY_BUTTON_INTENTS,
-  MONEY_BUTTON_TYPES,
-  MONEY_TOOLTIP_NAMES,
-  MONEY_TOOLTIP_TYPES,
-  SCREEN_NAMES,
-} from '../../constants/moneyEvents';
-
-const mockTrackButtonClicked = jest.fn();
-const mockTrackComponentViewed = jest.fn();
-const mockTrackSurfaceClicked = jest.fn();
-const mockTrackTooltipClicked = jest.fn();
-
-jest.mock('../../hooks/useMoneyAnalytics', () => ({
-  useMoneyAnalytics: jest.fn(),
-}));
 
 const mockNavigate = jest.fn();
 const mockNavigateToMoneyHome = jest.fn();
-const mockRouteAddMoney = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -60,11 +40,6 @@ jest.mock('../../hooks/useMoneyNavigation', () => ({
   useMoneyNavigation: jest.fn(),
 }));
 
-jest.mock('../../hooks/useMoneyAccountAddRouting', () => ({
-  __esModule: true,
-  useMoneyAccountAddRouting: jest.fn(),
-}));
-
 jest.mock('../../../../../reducers/user/selectors', () => ({
   __esModule: true,
   selectMoneyOnboardingSeen: jest.fn(),
@@ -82,7 +57,6 @@ const mockSelectWalletHomeOnboardingFlowVisible = jest.mocked(
   selectWalletHomeOnboardingFlowVisible,
 );
 const mockUseMoneyNavigation = jest.mocked(useMoneyNavigation);
-const mockUseMoneyAccountAddRouting = jest.mocked(useMoneyAccountAddRouting);
 
 const createBalanceMock = (
   overrides: Partial<ReturnType<typeof useMoneyAccountBalance>> = {},
@@ -139,17 +113,6 @@ describe('MoneyBalanceCard', () => {
     mockSelectWalletHomeOnboardingFlowVisible.mockReturnValue(false);
     mockUseMoneyNavigation.mockReturnValue({
       navigateToMoneyHome: mockNavigateToMoneyHome,
-    });
-    mockRouteAddMoney.mockResolvedValue(undefined);
-    mockUseMoneyAccountAddRouting.mockReturnValue({
-      hasMusdBalance: false,
-      routeAddMoney: mockRouteAddMoney,
-    } as unknown as ReturnType<typeof useMoneyAccountAddRouting>);
-    (useMoneyAnalytics as jest.Mock).mockReturnValue({
-      trackButtonClicked: mockTrackButtonClicked,
-      trackComponentViewed: mockTrackComponentViewed,
-      trackSurfaceClicked: mockTrackSurfaceClicked,
-      trackTooltipClicked: mockTrackTooltipClicked,
     });
   });
 
@@ -223,45 +186,14 @@ describe('MoneyBalanceCard', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('initiates a deposit when Add is pressed', () => {
+    it('opens the Add money sheet when Add is pressed', () => {
       const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
       fireEvent.press(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON));
 
-      expect(mockRouteAddMoney).toHaveBeenCalled();
-      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
         screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
-      });
-    });
-
-    it('tracks the Add click with the Buy flow redirect target when the wallet holds no mUSD', () => {
-      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
-
-      fireEvent.press(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON));
-
-      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
-        button_type: MONEY_BUTTON_TYPES.TEXT,
-        button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
-        label_key: 'money.balance_card.add',
-        redirect_target: SCREEN_NAMES.RAMP_BUY,
-      });
-    });
-
-    it('tracks the Add click with the deposit redirect target when the wallet holds mUSD', () => {
-      mockUseMoneyAccountAddRouting.mockReturnValue({
-        hasMusdBalance: true,
-        routeAddMoney: mockRouteAddMoney,
-      } as unknown as ReturnType<typeof useMoneyAccountAddRouting>);
-
-      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
-
-      fireEvent.press(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON));
-
-      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
-        button_type: MONEY_BUTTON_TYPES.TEXT,
-        button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
-        label_key: 'money.balance_card.add',
-        redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
       });
     });
 
@@ -310,27 +242,14 @@ describe('MoneyBalanceCard', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('routes add money when Earn is pressed', () => {
+    it('opens the Add money sheet when Earn is pressed', () => {
       const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
       fireEvent.press(getByTestId(MoneyBalanceCardTestIds.EARN_BUTTON));
 
-      expect(mockRouteAddMoney).toHaveBeenCalled();
-      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
         screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
-      });
-    });
-
-    it('tracks the Earn click with the empty-state label key', () => {
-      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
-
-      fireEvent.press(getByTestId(MoneyBalanceCardTestIds.EARN_BUTTON));
-
-      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
-        button_type: MONEY_BUTTON_TYPES.TEXT,
-        button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
-        label_key: 'homepage.sections.money_empty_state.earn',
-        redirect_target: SCREEN_NAMES.RAMP_BUY,
       });
     });
   });
@@ -390,13 +309,12 @@ describe('MoneyBalanceCard', () => {
         ).toBeOnTheScreen();
       });
 
-      it('routes add money when Earn is pressed', () => {
+      it('calls navigateToMoneyHome when Earn is pressed', () => {
         const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
         fireEvent.press(getByTestId(MoneyBalanceCardTestIds.EARN_BUTTON));
 
-        expect(mockRouteAddMoney).toHaveBeenCalled();
-        expect(mockNavigateToMoneyHome).not.toHaveBeenCalled();
+        expect(mockNavigateToMoneyHome).toHaveBeenCalledTimes(1);
       });
     });
 
@@ -405,18 +323,18 @@ describe('MoneyBalanceCard', () => {
         mockSelectWalletHomeOnboardingFlowVisible.mockReturnValue(true);
       });
 
-      it('renders the Earn button (never Get started) when the stepper is visible', () => {
+      it('renders the Get started button with the get_started label', () => {
         const { getByTestId, queryByTestId } = renderWithProvider(
           <MoneyBalanceCard />,
         );
 
         expect(
-          getByTestId(MoneyBalanceCardTestIds.EARN_BUTTON),
+          getByTestId(MoneyBalanceCardTestIds.GET_STARTED_BUTTON),
         ).toHaveTextContent(
-          strings('homepage.sections.money_empty_state.earn'),
+          strings('homepage.sections.money_empty_state.get_started'),
         );
         expect(
-          queryByTestId(MoneyBalanceCardTestIds.GET_STARTED_BUTTON),
+          queryByTestId(MoneyBalanceCardTestIds.EARN_BUTTON),
         ).not.toBeOnTheScreen();
       });
 
@@ -428,12 +346,14 @@ describe('MoneyBalanceCard', () => {
         ).toBeOnTheScreen();
       });
 
-      it('routes add money when Earn is pressed', () => {
+      it('calls navigateToMoneyHome when Get started is pressed', () => {
         const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
-        fireEvent.press(getByTestId(MoneyBalanceCardTestIds.EARN_BUTTON));
+        fireEvent.press(
+          getByTestId(MoneyBalanceCardTestIds.GET_STARTED_BUTTON),
+        );
 
-        expect(mockRouteAddMoney).toHaveBeenCalled();
+        expect(mockNavigateToMoneyHome).toHaveBeenCalledTimes(1);
       });
     });
   });
@@ -494,12 +414,14 @@ describe('MoneyBalanceCard', () => {
       expect(mockNavigateToMoneyHome).toHaveBeenCalledTimes(1);
     });
 
-    it('routes add money when Add is pressed', () => {
+    it('opens the Add money sheet when Add is pressed', () => {
       const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
       fireEvent.press(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON));
 
-      expect(mockRouteAddMoney).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+      });
     });
 
     it('opens the Money balance info sheet when the info icon is pressed', () => {
@@ -512,7 +434,7 @@ describe('MoneyBalanceCard', () => {
       });
     });
 
-    it('routes add money (and not the Money home) when Earn is pressed in empty state', () => {
+    it('opens the Add money sheet (and not the Money home) when Earn is pressed in empty state', () => {
       mockUseMoneyAccountBalance.mockReturnValue(
         createBalanceMock({
           totalFiatRaw: '0',
@@ -524,8 +446,10 @@ describe('MoneyBalanceCard', () => {
 
       fireEvent.press(getByTestId(MoneyBalanceCardTestIds.EARN_BUTTON));
 
-      expect(mockRouteAddMoney).toHaveBeenCalled();
-      expect(mockNavigateToMoneyHome).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+      });
     });
   });
 
@@ -699,13 +623,16 @@ describe('MoneyBalanceCard', () => {
         ).toBe(ButtonVariant.Primary);
       });
 
-      it('renders Earn as Secondary when the onboarding stepper is visible', () => {
+      it('renders Get started as Secondary when the onboarding stepper is visible', () => {
         mockSelectWalletHomeOnboardingFlowVisible.mockReturnValue(true);
 
         const { UNSAFE_getByProps } = renderWithProvider(<MoneyBalanceCard />);
 
         expect(
-          getVariant(UNSAFE_getByProps, MoneyBalanceCardTestIds.EARN_BUTTON),
+          getVariant(
+            UNSAFE_getByProps,
+            MoneyBalanceCardTestIds.GET_STARTED_BUTTON,
+          ),
         ).toBe(ButtonVariant.Secondary);
       });
     });
@@ -837,63 +764,6 @@ describe('MoneyBalanceCard', () => {
       expect(
         queryByTestId(MoneyBalanceCardTestIds.BALANCE_ERROR),
       ).not.toBeOnTheScreen();
-    });
-  });
-
-  describe('analytics', () => {
-    it('initialises useMoneyAnalytics with WALLET_HOME screen_name and MONEY_BALANCE_CARD component_name', () => {
-      renderWithProvider(<MoneyBalanceCard />);
-
-      expect(useMoneyAnalytics).toHaveBeenCalledWith({
-        screen_name: SCREEN_NAMES.WALLET_HOME,
-        component_name: COMPONENT_NAMES.MONEY_BALANCE_CARD,
-      });
-    });
-
-    it('calls trackComponentViewed on mount', () => {
-      renderWithProvider(<MoneyBalanceCard />);
-
-      expect(mockTrackComponentViewed).toHaveBeenCalledTimes(1);
-    });
-
-    it('does not call trackComponentViewed again on re-render', () => {
-      const { rerender } = renderWithProvider(<MoneyBalanceCard />);
-
-      rerender(<MoneyBalanceCard />);
-
-      expect(mockTrackComponentViewed).toHaveBeenCalledTimes(1);
-    });
-
-    it('calls trackSurfaceClicked with MONEY_HOME redirect when the funded card body is pressed and onboarding has been seen', () => {
-      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
-
-      fireEvent.press(getByTestId(MoneyBalanceCardTestIds.FUNDED_CONTAINER));
-
-      expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
-        redirect_target: SCREEN_NAMES.MONEY_HOME,
-      });
-    });
-
-    it('calls trackSurfaceClicked with MONEY_ONBOARDING redirect when card is pressed and onboarding has not been seen', () => {
-      mockSelectMoneyOnboardingSeen.mockReturnValue(false);
-      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
-
-      fireEvent.press(getByTestId(MoneyBalanceCardTestIds.FUNDED_CONTAINER));
-
-      expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
-        redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
-      });
-    });
-
-    it('calls trackTooltipClicked with MONEY_BALANCE name and INFO type when the info button is pressed', () => {
-      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
-
-      fireEvent.press(getByTestId(MoneyBalanceCardTestIds.INFO_BUTTON));
-
-      expect(mockTrackTooltipClicked).toHaveBeenCalledWith({
-        tooltip_name: MONEY_TOOLTIP_NAMES.MONEY_BALANCE,
-        tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
-      });
     });
   });
 });

@@ -2,21 +2,20 @@ import { RampsOrderDetailsSelectorsIDs } from '../../../app/components/UI/Ramp/V
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Utilities from '../../framework/Utilities';
-import { EncapsulatedElementType } from '../../framework';
 
 class OrderDetailsView {
-  get container(): EncapsulatedElementType {
+  get container(): DetoxElement {
     return Matchers.getElementByID(RampsOrderDetailsSelectorsIDs.CONTAINER);
   }
 
-  get closeButton(): EncapsulatedElementType {
+  get closeButton(): DetoxElement {
     return Matchers.getElementByID(RampsOrderDetailsSelectorsIDs.CLOSE_BUTTON);
   }
 
-  get tokenAmount(): EncapsulatedElementType {
+  get tokenAmount(): DetoxElement {
     return Matchers.getElementByID(RampsOrderDetailsSelectorsIDs.TOKEN_AMOUNT);
   }
-  get backButton(): EncapsulatedElementType {
+  get backButton(): DetoxElement {
     return Matchers.getElementByID(RampsOrderDetailsSelectorsIDs.BACK_BUTTON);
   }
 

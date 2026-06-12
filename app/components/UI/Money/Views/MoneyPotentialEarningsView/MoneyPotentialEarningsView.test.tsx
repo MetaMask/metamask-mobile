@@ -125,15 +125,6 @@ jest.mock('@react-native-masked-view/masked-view', () => 'MaskedView');
 jest.mock('../../utils/moneyFormatFiat', () => ({
   moneyFormatFiat: jest.fn((value: BigNumber) => `$${value.toFixed(2)}`),
 }));
-jest.mock('../../hooks/useMoneyAnalytics', () => ({
-  useMoneyAnalytics: jest.fn(() => ({
-    trackButtonClicked: jest.fn(),
-    trackScreenViewed: jest.fn(),
-    trackTokenButtonClicked: jest.fn(),
-    trackTokenSurfaceClicked: jest.fn(),
-    trackTooltipClicked: jest.fn(),
-  })),
-}));
 
 const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
 

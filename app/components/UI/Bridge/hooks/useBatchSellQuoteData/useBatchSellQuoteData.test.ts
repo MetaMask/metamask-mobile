@@ -129,7 +129,6 @@ const usdcNetworkFeeAsset = {
   decimals: 6,
 };
 
-let mockShouldUseSmartTransaction = false;
 let mockSelectedTokens: BridgeToken[] = [ethToken, uniToken];
 let mockSelectedDestinationToken: BridgeToken | undefined = usdcToken;
 let mockBatchSellSourceTokenAmounts: Partial<
@@ -204,10 +203,6 @@ jest.mock('../../../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: jest.fn(() => 'USD'),
 }));
 
-jest.mock('../../../../../selectors/smartTransactionsController', () => ({
-  selectShouldUseSmartTransaction: jest.fn(() => mockShouldUseSmartTransaction),
-}));
-
 jest.mock('../../../../../util/Logger', () => ({
   __esModule: true,
   default: {
@@ -216,22 +211,9 @@ jest.mock('../../../../../util/Logger', () => ({
   },
 }));
 
-jest.mock('../../../../../util/bridge', () => ({
-  getMaybeHexChainId: jest.fn(
-    (chainId?: string): string | undefined => chainId,
-  ),
-}));
-
-const { selectShouldUseSmartTransaction: mockSelectShouldUseSmartTransaction } =
-  jest.requireMock('../../../../../selectors/smartTransactionsController');
-const { getMaybeHexChainId: mockGetMaybeHexChainId } = jest.requireMock(
-  '../../../../../util/bridge',
-);
-
 describe('useBatchSellQuoteData', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockShouldUseSmartTransaction = false;
     mockSelectedTokens = [ethToken, uniToken];
     mockSelectedDestinationToken = usdcToken;
     mockBatchSellSourceTokenAmounts = {
@@ -314,7 +296,7 @@ describe('useBatchSellQuoteData', () => {
     );
     expect(
       Engine.context.BridgeController.updateBatchSellTrades,
-    ).toHaveBeenCalledWith(mockBatchSellQuotes.recommendedQuotes, false);
+    ).toHaveBeenCalledWith(mockBatchSellQuotes.recommendedQuotes);
     expect(result.current.tokenData).toEqual({
       [ethAssetId]: expect.objectContaining({
         key: ethAssetId,
@@ -530,26 +512,6 @@ describe('useBatchSellQuoteData', () => {
     ).toHaveBeenCalledTimes(2);
   });
 
-  it('passes isSmartTransaction=false to updateBatchSellTrades when STX is disabled', () => {
-    mockShouldUseSmartTransaction = false;
-
-    renderHook(() => useBatchSellQuoteData());
-
-    expect(
-      Engine.context.BridgeController.updateBatchSellTrades,
-    ).toHaveBeenCalledWith(expect.any(Array), false);
-  });
-
-  it('passes isSmartTransaction=true to updateBatchSellTrades when STX is enabled', () => {
-    mockShouldUseSmartTransaction = true;
-
-    renderHook(() => useBatchSellQuoteData());
-
-    expect(
-      Engine.context.BridgeController.updateBatchSellTrades,
-    ).toHaveBeenCalledWith(expect.any(Array), true);
-  });
-
   it('falls back to destination token amounts when display currency values are unavailable', () => {
     mockBatchSellQuotes = {
       ...mockBatchSellQuotes,
@@ -744,7 +706,7 @@ describe('useBatchSellQuoteData', () => {
     expect(result.current.hasPendingQuoteRows).toBe(false);
     expect(
       Engine.context.BridgeController.updateBatchSellTrades,
-    ).toHaveBeenCalledWith([mockBatchSellQuotes.recommendedQuotes[0]], false);
+    ).toHaveBeenCalledWith([mockBatchSellQuotes.recommendedQuotes[0]]);
     expect(result.current.tokenData[uniAssetId]).toEqual(
       expect.objectContaining({
         tokenSymbol: 'UNI',
@@ -809,7 +771,7 @@ describe('useBatchSellQuoteData', () => {
     expect(result.current.hasPendingQuoteRows).toBe(false);
     expect(
       Engine.context.BridgeController.updateBatchSellTrades,
-    ).toHaveBeenCalledWith(mockBatchSellQuotes.recommendedQuotes, false);
+    ).toHaveBeenCalledWith(mockBatchSellQuotes.recommendedQuotes);
   });
 
   it('hides stale quotes when a refresh starts and reveals new streamed quotes progressively', () => {
@@ -905,30 +867,6 @@ describe('useBatchSellQuoteData', () => {
         isLoading: true,
         isQuoteUnavailable: false,
       }),
-    );
-  });
-
-  it('passes the normalized source chain ID to selectShouldUseSmartTransaction', () => {
-    mockSelectedTokens = [{ ...ethToken, chainId: '0x1' as Hex }];
-
-    renderHook(() => useBatchSellQuoteData());
-
-    expect(mockGetMaybeHexChainId).toHaveBeenCalledWith('0x1');
-    expect(mockSelectShouldUseSmartTransaction).toHaveBeenCalledWith(
-      expect.anything(),
-      '0x1',
-    );
-  });
-
-  it('passes undefined chain ID to selectShouldUseSmartTransaction when there are no source tokens', () => {
-    mockSelectedTokens = [];
-
-    renderHook(() => useBatchSellQuoteData());
-
-    expect(mockGetMaybeHexChainId).toHaveBeenCalledWith(undefined);
-    expect(mockSelectShouldUseSmartTransaction).toHaveBeenCalledWith(
-      expect.anything(),
-      undefined,
     );
   });
 

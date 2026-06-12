@@ -12,15 +12,11 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
-import Engine from '../../../../../core/Engine';
 import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import type { PredictPortfolioModel } from '../../hooks/usePredictPortfolio';
 import { PredictPositionsViewSelectorsIDs } from '../../Predict.testIds';
-import type {
-  PredictEntryPoint,
-  PredictNavigationParamList,
-} from '../../types/navigation';
+import type { PredictNavigationParamList } from '../../types/navigation';
 import {
   formatPredictUnrealizedPnLStringParts,
   formatPrice,
@@ -28,7 +24,6 @@ import {
 import PredictClaimButton from '../PredictActionButtons/PredictClaimButton';
 
 interface PredictPositionsViewHeaderProps {
-  entryPoint?: PredictEntryPoint;
   isPrivacyMode: boolean;
   portfolio: PredictPortfolioModel;
 }
@@ -50,7 +45,6 @@ const formatUnrealizedPnl = (amount: number, percent: number | undefined) => {
 };
 
 const PredictPositionsViewHeader = ({
-  entryPoint = PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
   isPrivacyMode,
   portfolio,
 }: PredictPositionsViewHeaderProps) => {
@@ -79,28 +73,11 @@ const PredictPositionsViewHeader = ({
   const handleClaimPress = useCallback(async () => {
     await executeGuardedAction(
       async () => {
-        Engine.context.PredictController.trackPortfolioTransactionInitiated({
-          entryPoint,
-          openPositionsCount: portfolio.openPositionCount,
-          claimablePositionsCount: portfolio.claimablePositionCount,
-          hasClaimableWinnings: portfolio.hasClaimableWinnings,
-          predictScreen:
-            PredictEventValues.PREDICT_SCREEN.PREDICT_POSITIONS_SCREEN,
-          transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_CLAIM,
-        });
-
         await claim();
       },
       { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CLAIM },
     );
-  }, [
-    claim,
-    entryPoint,
-    executeGuardedAction,
-    portfolio.claimablePositionCount,
-    portfolio.hasClaimableWinnings,
-    portfolio.openPositionCount,
-  ]);
+  }, [claim, executeGuardedAction]);
 
   return (
     <Box

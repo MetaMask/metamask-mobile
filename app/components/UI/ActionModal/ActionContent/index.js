@@ -4,9 +4,8 @@ import { StyleSheet, View } from 'react-native';
 import StyledButton from '../../StyledButton';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
-import { getElevatedSurfaceColor } from '../../../../util/theme/themeUtils';
 
-const createStyles = (theme) =>
+const createStyles = (colors) =>
   StyleSheet.create({
     viewWrapper: {
       flexDirection: 'column',
@@ -16,15 +15,14 @@ const createStyles = (theme) =>
     },
     viewContainer: {
       width: '100%',
-      backgroundColor: getElevatedSurfaceColor(theme),
-      borderWidth: 1,
+      backgroundColor: colors.background.default,
       borderRadius: 10,
     },
     actionHorizontalContainer: {
       flexDirection: 'row',
       padding: 16,
       borderTopWidth: 1,
-      borderTopColor: theme.colors.border.muted,
+      borderTopColor: colors.border.muted,
     },
     actionVerticalContainer: {
       flexDirection: 'column',
@@ -68,8 +66,8 @@ export default function ActionContent({
   childrenContainerStyle = null,
   verticalButtons,
 }) {
-  const theme = useTheme();
-  const styles = createStyles(theme);
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
 
   return (
     <View style={[styles.viewWrapper, viewWrapperStyle]}>

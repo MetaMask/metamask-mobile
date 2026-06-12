@@ -1,20 +1,19 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 import { ImportAccountFromPrivateKeyIDs } from '../../../app/components/Views/ImportPrivateKey/ImportAccountFromPrivateKey.testIds';
 
 class ImportAccountView {
-  get container(): EncapsulatedElementType {
+  get container(): DetoxElement {
     return Matchers.getElementByID(ImportAccountFromPrivateKeyIDs.CONTAINER);
   }
 
-  get importButton(): EncapsulatedElementType {
+  get importButton(): DetoxElement {
     return Matchers.getElementByID(
       ImportAccountFromPrivateKeyIDs.IMPORT_BUTTON,
     );
   }
 
-  get privateKeyField(): EncapsulatedElementType {
+  get privateKeyField(): DetoxElement {
     return Matchers.getElementByID(
       ImportAccountFromPrivateKeyIDs.PRIVATE_KEY_INPUT_BOX,
     );

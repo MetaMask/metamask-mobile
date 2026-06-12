@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/lib/integration/react';
 import { store, persistor } from '../../../store';
@@ -24,11 +24,6 @@ import { ReducedMotionConfig, ReduceMotion } from 'react-native-reanimated';
 import { QueryClientProvider } from '@tanstack/react-query';
 import reactQueryService from '../../../core/ReactQueryService';
 import { HardwareWalletProvider } from '../../../core/HardwareWallet';
-import { UIMessengerProvider } from '../../../contexts/ui-messenger';
-import {
-  createUIMessenger,
-  UIMessenger,
-} from '../../../messengers/ui-messenger';
 
 /**
  * Top level of the component hierarchy
@@ -36,14 +31,6 @@ import {
  */
 const Root = ({ foxCode }: RootProps) => {
   const [isStoreLoading, setIsStoreLoading] = useState(true);
-
-  // We use a ref to make sure the UI messenger is only created once.
-  const uiMessengerRef = useRef<UIMessenger | null>(null);
-  if (!uiMessengerRef.current) {
-    uiMessengerRef.current = createUIMessenger();
-  }
-
-  const uiMessenger = uiMessengerRef.current;
 
   /**
    * Wait for store to be initialized in Detox tests
@@ -99,14 +86,12 @@ const Root = ({ foxCode }: RootProps) => {
                 <ThemeProvider>
                   <NavigationProvider>
                     <ControllersGate>
-                      <UIMessengerProvider value={uiMessenger}>
-                        <ToastContextWrapper>
-                          <HardwareWalletProvider>
-                            <ReducedMotionConfig mode={ReduceMotion.Never} />
-                            <App />
-                          </HardwareWalletProvider>
-                        </ToastContextWrapper>
-                      </UIMessengerProvider>
+                      <ToastContextWrapper>
+                        <HardwareWalletProvider>
+                          <ReducedMotionConfig mode={ReduceMotion.Never} />
+                          <App />
+                        </HardwareWalletProvider>
+                      </ToastContextWrapper>
                     </ControllersGate>
                   </NavigationProvider>
                 </ThemeProvider>

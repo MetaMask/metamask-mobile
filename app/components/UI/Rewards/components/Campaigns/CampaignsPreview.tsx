@@ -24,7 +24,6 @@ import CampaignReminder from './CampaignReminder';
 import RewardsErrorBanner from '../RewardsErrorBanner';
 import type { CampaignDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { getCampaignStatus } from './CampaignTile.utils';
-import { navigateToRewardsRoute } from '../../utils';
 
 /**
  * CampaignsPreview shows featured campaigns on the dashboard.
@@ -46,7 +45,7 @@ const CampaignsPreview: React.FC = () => {
   const hasFeaturedCampaigns = featuredCampaigns.length > 0;
 
   const handleNavigateToCampaigns = useCallback(() => {
-    navigateToRewardsRoute(navigation, Routes.REWARDS_CAMPAIGNS_VIEW);
+    navigation.navigate(Routes.REWARDS_CAMPAIGNS_VIEW);
   }, [navigation]);
 
   return (

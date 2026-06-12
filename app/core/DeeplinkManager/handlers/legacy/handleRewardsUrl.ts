@@ -96,6 +96,7 @@ const prepareRewardsDeeplink = (rewardsPath: string) => {
 export const createRewardsDeeplinkIntent = ({
   rewardsPath,
 }: HandleRewardsUrlParams): DeeplinkIntent => ({
+  type: 'navigation',
   target: {
     type: 'home-tab',
     routeName: Routes.REWARDS_VIEW,

@@ -1,40 +1,39 @@
 import { SendActionViewSelectorsIDs } from '../../selectors/SendFlow/SendActionView.selectors';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
-import { EncapsulatedElementType } from '../../framework';
 
 class SendActionBottomSheet {
-  get solanaAddressInputField(): EncapsulatedElementType {
+  get solanaAddressInputField(): DetoxElement {
     return Matchers.getElementByID(
       SendActionViewSelectorsIDs.SOLANA_INPUT_ADDRESS_FIELD,
     );
   }
 
-  get solanaAmountInputField(): EncapsulatedElementType {
+  get solanaAmountInputField(): DetoxElement {
     return Matchers.getElementByID(
       SendActionViewSelectorsIDs.SOLANA_INPUT_AMOUNT_FIELD,
     );
   }
 
-  get invalidAddressError(): EncapsulatedElementType {
+  get invalidAddressError(): DetoxElement {
     return Matchers.getElementByID(
       SendActionViewSelectorsIDs.INVALID_ADDRESS_ERROR,
     );
   }
 
-  get continueButton(): EncapsulatedElementType {
+  get continueButton(): DetoxElement {
     return Matchers.getElementByID(SendActionViewSelectorsIDs.CONTINUE_BUTTON);
   }
 
-  get cancelButton(): EncapsulatedElementType {
+  get cancelButton(): DetoxElement {
     return Matchers.getElementByID(SendActionViewSelectorsIDs.CANCEL_BUTTON);
   }
 
-  get closeModalButton(): EncapsulatedElementType {
+  get closeModalButton(): DetoxElement {
     return Matchers.getElementByID(SendActionViewSelectorsIDs.CLOSE_BUTTON);
   }
 
-  get sendSOLTransactionButton(): EncapsulatedElementType {
+  get sendSOLTransactionButton(): DetoxElement {
     return Matchers.getElementByID(
       SendActionViewSelectorsIDs.SEND_TRANSACTION_BUTTON,
     );

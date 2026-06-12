@@ -5,6 +5,9 @@ import { strings } from '../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
+import Text, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 import BottomSheetFooter, {
   ButtonsAlignment,
 } from '../../../component-library/components/BottomSheets/BottomSheetFooter';
@@ -20,7 +23,6 @@ import Icon, {
 } from '../../../component-library/components/Icons/Icon';
 import createStyles from './styles';
 import { DataCollectionBottomSheetSelectorsIDs } from './DataCollectionBottomSheet.testIds';
-import { Text, TextVariant } from '@metamask/design-system-react-native';
 
 const DataCollectionModal = () => {
   const styles = createStyles();
@@ -46,7 +48,7 @@ const DataCollectionModal = () => {
           testID={DataCollectionBottomSheetSelectorsIDs.ICON_WARNING}
         />
         <View style={styles.content}>
-          <Text variant={TextVariant.BodyMd}>
+          <Text variant={TextVariant.BodyMD}>
             {strings('data_collection_modal.content')}
           </Text>
         </View>

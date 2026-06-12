@@ -56,16 +56,16 @@ describe('VipFeeTile', () => {
     const { getByText, getByTestId } = renderWithTheme(
       <VipFeeTile
         label="Swaps fee"
-        currentBps={11}
-        nextTierLabel="↓ 9 bps next tier"
+        currentBps={15}
+        nextTierLabel="↓ 12 bps next tier"
       />,
     );
 
     expect(getByText('Swaps fee')).toBeOnTheScreen();
-    expect(getByTestId(VIP_FEE_TILE_TEST_IDS.CURRENT)).toHaveTextContent(/11/);
+    expect(getByTestId(VIP_FEE_TILE_TEST_IDS.CURRENT)).toHaveTextContent(/15/);
     expect(getByTestId(VIP_FEE_TILE_TEST_IDS.CURRENT)).toHaveTextContent(/bps/);
     expect(getByTestId(VIP_FEE_TILE_TEST_IDS.NEXT)).toHaveTextContent(
-      /↓ 9 bps next tier/,
+      /↓ 12 bps next tier/,
     );
   });
 
@@ -73,8 +73,8 @@ describe('VipFeeTile', () => {
     const { getByTestId } = renderWithTheme(
       <VipFeeTile
         label="Perps fee"
-        currentBps={7}
-        nextTierLabel="↓ 6 bps next tier"
+        currentBps={4}
+        nextTierLabel="↓ 3 bps next tier"
         testID="custom-tile"
       />,
     );
@@ -85,24 +85,24 @@ describe('VipFeeTile', () => {
     const { getByText, getByTestId } = renderWithTheme(
       <VipFeeTile
         label="Revenue share"
-        currentBps={99}
+        currentBps={150}
         unit="%"
-        nextTierLabel="↑ 1% next tier"
+        nextTierLabel="↑ 2% next tier"
       />,
     );
 
     expect(getByText('Revenue share')).toBeOnTheScreen();
     expect(getByTestId(VIP_FEE_TILE_TEST_IDS.CURRENT)).toHaveTextContent(
-      /0.99%/,
+      /1.5%/,
     );
     expect(getByTestId(VIP_FEE_TILE_TEST_IDS.NEXT)).toHaveTextContent(
-      /↑ 1% next tier/,
+      /↑ 2% next tier/,
     );
   });
 
   it('omits the next-tier row when no label is provided', () => {
     const { queryByTestId } = renderWithTheme(
-      <VipFeeTile label="Revenue share" currentBps={456} unit="%" />,
+      <VipFeeTile label="Revenue share" currentBps={400} unit="%" />,
     );
 
     expect(queryByTestId(VIP_FEE_TILE_TEST_IDS.NEXT)).toBeNull();
@@ -112,8 +112,8 @@ describe('VipFeeTile', () => {
     const { getByTestId } = renderWithTheme(
       <VipFeeTile
         label="Swaps fee"
-        currentBps={11}
-        nextTierLabel="↓ 9 bps next tier"
+        currentBps={15}
+        nextTierLabel="↓ 12 bps next tier"
       />,
     );
 
@@ -126,8 +126,8 @@ describe('VipFeeTile', () => {
     const { getByTestId } = renderWithTheme(
       <VipFeeTile
         label="Swaps fee"
-        currentBps={11}
-        nextTierLabel="↓ 9 bps next tier"
+        currentBps={15}
+        nextTierLabel="↓ 12 bps next tier"
       />,
       AppThemeKey.dark,
     );

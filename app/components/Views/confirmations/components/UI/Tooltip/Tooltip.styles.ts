@@ -7,6 +7,9 @@ const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
 
   return StyleSheet.create({
+    modal: {
+      margin: 0,
+    },
     modalView: {
       backgroundColor: theme.colors.background.section,
       justifyContent: 'center',
@@ -16,16 +19,31 @@ const styleSheet = (params: { theme: Theme }) => {
       elevation: 11,
       paddingVertical: 24,
     },
+    modalHeader: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      width: '100%',
+    },
     closeModalBtn: {
       alignSelf: 'center',
       position: 'absolute',
       left: 0,
     },
+    modalTitle: {
+      color: theme.colors.text.default,
+      ...fontStyles.bold,
+      fontSize: 16,
+      marginTop: 8,
+    },
     modalContent: {
       alignSelf: 'stretch',
-      marginTop: 8,
-      marginBottom: 30,
+      backgroundColor: theme.colors.background.muted,
+      marginTop: 16,
       marginHorizontal: 16,
+      paddingVertical: 20,
+      paddingHorizontal: 16,
+      borderRadius: 8,
+      display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
     },

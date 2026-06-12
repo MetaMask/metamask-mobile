@@ -1,14 +1,13 @@
 import NavigationService from '../../../NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
 import {
+  PERFORMANCE_CONFIG,
   type PerpsMarketData,
   type MarketTypeFilter,
 } from '@metamask/perps-controller';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
 import ReduxService from '../../../redux';
 import { selectIsFirstTimePerpsUser } from '../../../../components/UI/Perps/selectors/perpsController';
-import type { DeeplinkIntent } from '../../types/DeeplinkIntent';
-import { executeDeeplinkIntent } from '../../utils/executeDeeplinkIntent';
 
 interface HandlePerpsUrlParams {
   perpsPath: string;
@@ -18,16 +17,16 @@ interface HandlePerpsUrlParams {
  * Maps URL tab parameter to internal MarketTypeFilter values
  * - 'all' → 'all' (shows all markets)
  * - 'crypto' → 'crypto' (crypto-only markets)
- * - 'stocks' → 'stock' (HIP3 equities; URL key kept for backward compat)
- * - 'commodities' → 'commodity' (HIP3 commodities; URL key kept for backward compat)
+ * - 'stocks' → 'stocks' (HIP3 equities)
+ * - 'commodities' → 'commodities' (HIP3 commodities)
  * - 'forex' → 'forex' (HIP3 forex)
  * - 'new' → 'new' (uncategorized HIP3 markets)
  */
 const TAB_TO_FILTER_MAP: Record<string, MarketTypeFilter> = {
   all: 'all',
   crypto: 'crypto',
-  stocks: 'stock',
-  commodities: 'commodity',
+  stocks: 'stocks',
+  commodities: 'commodities',
   forex: 'forex',
   new: 'new',
 };
@@ -39,7 +38,7 @@ const TAB_TO_FILTER_MAP: Record<string, MarketTypeFilter> = {
 interface PerpsNavigationParams {
   screen?: 'tabs' | 'home' | 'markets' | 'market-list' | 'asset' | 'tutorial';
   symbol?: string;
-  /** Market category tab filter: 'all' | 'crypto' | 'stock' */
+  /** Market category tab filter: 'all' | 'crypto' | 'stocks' */
   tab?: string;
 }
 
@@ -82,13 +81,28 @@ const parseHip3Symbol = (
 };
 
 /**
- * Build a minimal market object from a raw asset symbol.
- * Supports both standard crypto symbols (BTC, ETH) and HIP-3 format (xyz:TSLA).
- * The PerpsMarketDetailsView fetches the full data; we only need the symbol
- * (and optional marketSource for HIP-3) to route.
- * @param rawSymbol The asset symbol (may include a dex prefix for HIP-3)
+ * Handle asset-specific navigation with proper error handling
+ * Supports both standard crypto symbols (BTC, ETH) and HIP-3 format (xyz:TSLA)
+ * @param rawSymbol The asset symbol to navigate to (may include dex prefix for HIP-3)
  */
-const buildPerpsMarket = (rawSymbol: string): PerpsMarketData => {
+const handleAssetNavigation = async (rawSymbol: string) => {
+  DevLogger.log(
+    '[handlePerpsUrl] Navigating to asset details for symbol:',
+    rawSymbol,
+  );
+
+  if (!rawSymbol) {
+    DevLogger.log(
+      '[handlePerpsUrl] No symbol provided, fallback to markets list',
+    );
+    NavigationService.navigation.navigate(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.PERPS_HOME,
+      params: { source: 'deeplink' },
+    });
+    return;
+  }
+
+  // Parse HIP-3 format (dex:symbol) to extract marketSource
   const { marketSource, symbol } = parseHip3Symbol(rawSymbol);
 
   if (marketSource) {
@@ -98,8 +112,10 @@ const buildPerpsMarket = (rawSymbol: string): PerpsMarketData => {
     });
   }
 
+  // Create a minimal market object with the symbol and optional marketSource
+  // The PerpsMarketDetailsView will fetch the full data
   // Use combined format (dex:symbol) for HIP-3 to match API format
-  return {
+  const market = {
     symbol: marketSource ? `${marketSource}:${symbol}` : symbol,
     name: symbol,
     price: '0',
@@ -115,28 +131,45 @@ const buildPerpsMarket = (rawSymbol: string): PerpsMarketData => {
     fundingIntervalHours: 8,
     ...(marketSource && { marketSource }),
   } as PerpsMarketData;
+
+  NavigationService.navigation.navigate(Routes.PERPS.ROOT, {
+    screen: Routes.PERPS.MARKET_DETAILS,
+    params: {
+      market,
+      source: 'deeplink',
+    },
+  });
 };
 
 /**
- * Build a `main-stack` target into the Perps stack for a specific screen.
+ * Handle navigation to wallet home with perps tab selected
+ * @param tab Optional specific tab to select (future extensibility)
  */
-const perpsScreenTarget = (
-  screen: string,
-  params: object,
-): DeeplinkIntent['target'] => ({
-  type: 'main-stack',
-  routeName: Routes.PERPS.ROOT,
-  params: { screen, params: { source: 'deeplink', ...params } },
-});
+const handleTabsNavigation = (tab?: string) => {
+  DevLogger.log(
+    '[handlePerpsUrl] Navigating to wallet home with perps tab selected',
+  );
+  NavigationService.navigation.navigate(Routes.WALLET.HOME);
+
+  // The timeout is REQUIRED - React Navigation needs time to:
+  // 1. Complete the navigation transition
+  // 2. Mount the Wallet component
+  // 3. Make navigation context available for setParams
+  // Without this delay, the tab selection will fail
+  setTimeout(() => {
+    NavigationService.navigation.setParams({
+      initialTab: 'perps',
+      shouldSelectPerpsTab: true,
+      // Future: could use tab parameter for more specific navigation
+      ...(tab && { specificTab: tab }),
+    });
+  }, PERFORMANCE_CONFIG.NavigationParamsDelayMs);
+};
 
 /**
- * Build the Perps home (`PerpsHomeView`) target.
- */
-const perpsHomeTarget = (): DeeplinkIntent['target'] =>
-  perpsScreenTarget(Routes.PERPS.PERPS_HOME, {});
-
-/**
- * Resolve the navigation target for a perps deeplink.
+ * Unified perps deeplink handler with extensible parameter support
+ *
+ * @param params Object containing the perps path
  *
  * Supported URL formats:
  * - https://link.metamask.io/perps                                    → Wallet home with Perps tab
@@ -164,101 +197,6 @@ const perpsHomeTarget = (): DeeplinkIntent['target'] =>
  * - Standard crypto: 'BTC', 'ETH'
  * - HIP-3 (dex:symbol): 'xyz:TSLA', 'xyz:xyz100' → marketSource='xyz'
  */
-const resolvePerpsTarget = ({
-  perpsPath,
-}: HandlePerpsUrlParams): DeeplinkIntent['target'] => {
-  // Parse navigation parameters from URL
-  const navParams = parsePerpsNavigationParams(perpsPath);
-  DevLogger.log('[handlePerpsUrl] Parsed navigation parameters:', navParams);
-
-  // Check if user is first-time perps user - always goes to tutorial first
-  const isFirstTime = selectIsFirstTimePerpsUser(ReduxService.store.getState());
-  DevLogger.log('[handlePerpsUrl] isFirstTimeUser:', isFirstTime);
-
-  if (isFirstTime) {
-    DevLogger.log(
-      '[handlePerpsUrl] First-time user, navigating to tutorial regardless of URL parameters',
-    );
-    return {
-      type: 'main-stack',
-      routeName: Routes.PERPS.TUTORIAL,
-      params: { isFromDeeplink: true },
-    };
-  }
-
-  // Returning users: route based on screen parameter
-  switch (navParams.screen) {
-    case 'home':
-      // Explicit navigation to PerpsHomeView
-      DevLogger.log('[handlePerpsUrl] Navigating to PerpsHomeView');
-      return perpsHomeTarget();
-
-    case 'markets':
-      // Backwards compatibility: screen=markets → PerpsHomeView
-      DevLogger.log(
-        '[handlePerpsUrl] Navigating to PerpsHomeView (backwards compat)',
-      );
-      return perpsHomeTarget();
-
-    case 'market-list': {
-      // Navigate to PerpsMarketListView with optional market type filter
-      const marketTypeFilter =
-        navParams.tab &&
-        Object.prototype.hasOwnProperty.call(TAB_TO_FILTER_MAP, navParams.tab)
-          ? TAB_TO_FILTER_MAP[navParams.tab]
-          : undefined;
-      DevLogger.log(
-        '[handlePerpsUrl] Navigating to PerpsMarketListView with filter:',
-        marketTypeFilter,
-      );
-      return perpsScreenTarget(Routes.PERPS.MARKET_LIST, {
-        ...(marketTypeFilter && { defaultMarketTypeFilter: marketTypeFilter }),
-      });
-    }
-
-    case 'asset': {
-      DevLogger.log('[handlePerpsUrl] Navigating to asset details');
-      const rawSymbol = navParams.symbol || '';
-      if (!rawSymbol) {
-        DevLogger.log(
-          '[handlePerpsUrl] No symbol provided, fallback to markets list',
-        );
-        return perpsHomeTarget();
-      }
-      return perpsScreenTarget(Routes.PERPS.MARKET_DETAILS, {
-        market: buildPerpsMarket(rawSymbol),
-      });
-    }
-
-    case 'tabs':
-    default:
-      // No screen parameter: default to tabs behavior for consistency. The
-      // Wallet home reads these params via useHomeDeepLinkEffects and selects
-      // the Perps tab once focused.
-      /* DevLogger.log(
-        '[handlePerpsUrl] Navigating to wallet home with perps tab selected',
-      ); */
-      DevLogger.log(
-        '[handlePerpsUrl] Navigating to wallet home with perps tab selected',
-      );
-      return {
-        type: 'home-tab',
-        routeName: Routes.WALLET.HOME,
-        params: {
-          initialTab: 'perps',
-          shouldSelectPerpsTab: true,
-          ...(navParams.tab && { specificTab: navParams.tab }),
-        },
-      };
-  }
-};
-
-export const createPerpsDeeplinkIntent = ({
-  perpsPath,
-}: HandlePerpsUrlParams): DeeplinkIntent => ({
-  target: resolvePerpsTarget({ perpsPath }),
-});
-
 export const handlePerpsUrl = async ({ perpsPath }: HandlePerpsUrlParams) => {
   DevLogger.log(
     '[handlePerpsUrl] Starting perps deeplink handling with path:',
@@ -266,7 +204,88 @@ export const handlePerpsUrl = async ({ perpsPath }: HandlePerpsUrlParams) => {
   );
 
   try {
-    await executeDeeplinkIntent(createPerpsDeeplinkIntent({ perpsPath }));
+    // Parse navigation parameters from URL
+    const navParams = parsePerpsNavigationParams(perpsPath);
+    DevLogger.log('[handlePerpsUrl] Parsed navigation parameters:', navParams);
+
+    // Check if user is first-time perps user - always goes to tutorial first
+    const isFirstTime = selectIsFirstTimePerpsUser(
+      ReduxService.store.getState(),
+    );
+    DevLogger.log('[handlePerpsUrl] isFirstTimeUser:', isFirstTime);
+
+    if (isFirstTime) {
+      DevLogger.log(
+        '[handlePerpsUrl] First-time user, navigating to tutorial regardless of URL parameters',
+      );
+      NavigationService.navigation.navigate(Routes.PERPS.TUTORIAL, {
+        isFromDeeplink: true,
+      });
+      return;
+    }
+
+    // Returning users: route based on screen parameter
+    switch (navParams.screen) {
+      case 'home':
+        // Explicit navigation to PerpsHomeView
+        DevLogger.log('[handlePerpsUrl] Navigating to PerpsHomeView');
+        NavigationService.navigation.navigate(Routes.PERPS.ROOT, {
+          screen: Routes.PERPS.PERPS_HOME,
+          params: { source: 'deeplink' },
+        });
+        break;
+
+      case 'markets':
+        // Backwards compatibility: screen=markets → PerpsHomeView
+        DevLogger.log(
+          '[handlePerpsUrl] Navigating to PerpsHomeView (backwards compat)',
+        );
+        NavigationService.navigation.navigate(Routes.PERPS.ROOT, {
+          screen: Routes.PERPS.PERPS_HOME,
+          params: { source: 'deeplink' },
+        });
+        break;
+
+      case 'market-list': {
+        // Navigate to PerpsMarketListView with optional market type filter
+        const marketTypeFilter =
+          navParams.tab &&
+          Object.prototype.hasOwnProperty.call(TAB_TO_FILTER_MAP, navParams.tab)
+            ? TAB_TO_FILTER_MAP[navParams.tab]
+            : undefined;
+        DevLogger.log(
+          '[handlePerpsUrl] Navigating to PerpsMarketListView with filter:',
+          marketTypeFilter,
+        );
+        NavigationService.navigation.navigate(Routes.PERPS.ROOT, {
+          screen: Routes.PERPS.MARKET_LIST,
+          params: {
+            source: 'deeplink',
+            ...(marketTypeFilter && {
+              defaultMarketTypeFilter: marketTypeFilter,
+            }),
+          },
+        });
+        break;
+      }
+
+      case 'asset':
+        DevLogger.log('[handlePerpsUrl] Navigating to asset details');
+        await handleAssetNavigation(navParams.symbol || '');
+        break;
+
+      case 'tabs':
+        handleTabsNavigation(navParams.tab);
+        break;
+
+      default:
+        // No screen parameter: default to tabs behavior for consistency
+        DevLogger.log(
+          '[handlePerpsUrl] No screen parameter, defaulting to tabs navigation',
+        );
+        handleTabsNavigation(navParams.tab);
+        break;
+    }
   } catch (error) {
     DevLogger.log('Failed to handle perps deeplink:', error);
     // Fallback to markets list on error

@@ -5,61 +5,60 @@ import {
   SettingsViewSelectorsText,
 } from '../../../app/components/Views/Settings/SettingsView.testIds';
 import { CommonSelectorsText } from '../../../app/util/Common.testIds';
-import { EncapsulatedElementType } from '../../framework';
 
 class SettingsView {
-  get title(): EncapsulatedElementType {
+  get title(): DetoxElement {
     return Matchers.getElementByText(SettingsViewSelectorsText.TITLE);
   }
 
-  get generalSettingsButton(): EncapsulatedElementType {
+  get generalSettingsButton(): DetoxElement {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.GENERAL);
   }
 
-  get advancedButton(): EncapsulatedElementType {
+  get advancedButton(): DetoxElement {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.ADVANCED);
   }
 
-  get contactsSettingsButton(): EncapsulatedElementType {
+  get contactsSettingsButton(): DetoxElement {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.CONTACTS);
   }
 
-  get securityAndPrivacyButton(): EncapsulatedElementType {
+  get securityAndPrivacyButton(): DetoxElement {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.SECURITY);
   }
 
-  get notificationsButton(): EncapsulatedElementType {
+  get notificationsButton(): DetoxElement {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.NOTIFICATIONS);
   }
 
-  get aesCryptoTestForm(): EncapsulatedElementType {
+  get aesCryptoTestForm(): DetoxElement {
     return Matchers.getElementByID(
       SettingsViewSelectorsIDs.AES_CRYPTO_TEST_FORM,
     );
   }
 
-  get lockSettingsButton(): EncapsulatedElementType {
+  get lockSettingsButton(): DetoxElement {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.LOCK);
   }
-  get contactSupportButton(): EncapsulatedElementType {
+  get contactSupportButton(): DetoxElement {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.CONTACT);
   }
 
-  get contactSupportSectionTitle(): EncapsulatedElementType {
+  get contactSupportSectionTitle(): DetoxElement {
     return Matchers.getElementByText(
       SettingsViewSelectorsText.CONTACT_SUPPORT_TITLE,
     );
   }
 
-  get backupAndSyncSectionButton(): EncapsulatedElementType {
+  get backupAndSyncSectionButton(): DetoxElement {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.BACKUP_AND_SYNC);
   }
 
-  get snapsSectionButton(): EncapsulatedElementType {
+  get snapsSectionButton(): DetoxElement {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.SNAPS);
   }
 
-  get alertButton(): EncapsulatedElementType {
+  get alertButton(): DetoxElement {
     return device.getPlatform() === 'android'
       ? Matchers.getElementByText(CommonSelectorsText.YES_ALERT_BUTTON)
       : Matchers.getElementByLabel(CommonSelectorsText.YES_ALERT_BUTTON);
@@ -195,7 +194,7 @@ class SettingsView {
     });
   }
 
-  get backButton(): EncapsulatedElementType {
+  get backButton(): DetoxElement {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.BACK_BUTTON);
   }
 

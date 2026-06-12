@@ -11,6 +11,7 @@ import { ToastContext } from '../../../../../../../component-library/components/
 import { RampsButtonClickData } from '../../../../hooks/useRampsButtonClickData';
 
 const mockButtonClickData: RampsButtonClickData = {
+  ramp_routing: undefined,
   is_authenticated: false,
   preferred_provider: undefined,
   order_count: 0,
@@ -162,6 +163,7 @@ describe('ConfigurationModal', () => {
       location: 'Deposit Settings Modal',
       ramp_type: 'BUY',
       region: 'us',
+      ramp_routing: undefined,
       is_authenticated: false,
       preferred_provider: undefined,
       order_count: 0,

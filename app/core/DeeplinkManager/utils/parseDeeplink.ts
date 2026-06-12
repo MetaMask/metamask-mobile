@@ -4,11 +4,7 @@ import Logger from '../../../util/Logger';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
 import { DeeplinkManager } from '../DeeplinkManager';
 import extractURLParams from './extractURLParams';
-import {
-  handleDappUrl,
-  createDappDeeplinkIntent,
-  getDappUrl,
-} from '../handlers/legacy/handleDappUrl';
+import handleDappUrl from '../handlers/legacy/handleDappUrl';
 import handleUniversalLink from '../handlers/legacy/handleUniversalLink';
 import connectWithWC from '../handlers/legacy/connectWithWC';
 import { Alert } from 'react-native';
@@ -99,8 +95,7 @@ async function parseDeeplink({
       // For ex. navigate to a specific dapp
       case PROTOCOLS.DAPP:
         if (mode === 'resolve') {
-          handled();
-          return createDappDeeplinkIntent({ url: getDappUrl(urlObj) });
+          return null;
         }
         handleDappUrl({ handled, urlObj, browserCallBack });
         break;

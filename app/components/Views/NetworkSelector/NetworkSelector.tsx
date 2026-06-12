@@ -572,14 +572,8 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
                 name
               ) : (
                 <View>
-                  <Box twClassName="flex-row gap-2 items-center">
-                    <Text
-                      variant={TextVariant.BodyMD}
-                      numberOfLines={1}
-                      style={styles.networkNameText}
-                    >
-                      {name}
-                    </Text>
+                  <Box twClassName="flex-row gap-2">
+                    <Text variant={TextVariant.BodyMD}>{name}</Text>
                     {!isHardwareWallet &&
                     isGasFeesSponsoredNetworkEnabled(chainId) ? (
                       <TagColored

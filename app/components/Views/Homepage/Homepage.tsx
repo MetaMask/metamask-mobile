@@ -297,7 +297,9 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
           value={trendingAbTestContextValue}
         >
           <Box
+            gap={8}
             marginBottom={8}
+            paddingTop={6}
             testID={WalletViewSelectorsIDs.HOMEPAGE_CONTAINER}
             accessible={false}
           >
@@ -325,7 +327,9 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
                       totalSectionsLoaded={totalSectionsLoaded}
                       mode={sectionMode}
                     />
-                    <>{renderTreatmentNonPerpsSections(trendingPerpsSection)}</>
+                    <Box gap={8}>
+                      {renderTreatmentNonPerpsSections(trendingPerpsSection)}
+                    </Box>
                   </>
                 );
                 return perpsProvidersHoisted ? (
@@ -347,7 +351,9 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
         value={trendingAbTestContextValue}
       >
         <Box
+          gap={8}
           marginBottom={8}
+          paddingTop={6}
           testID={WalletViewSelectorsIDs.HOMEPAGE_CONTAINER}
           accessible={false}
         >

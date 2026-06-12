@@ -5,39 +5,38 @@ import Utilities from '../../framework/Utilities';
 import EditAccountNameView from './EditAccountNameView';
 import MultichainAccountDetails from '../MultichainAccounts/AccountDetails';
 import MultichainEditAccountName from '../MultichainAccounts/EditAccountName';
-import { EncapsulatedElementType } from '../../framework';
 class AccountActionsBottomSheet {
-  get editAccount(): EncapsulatedElementType {
+  get editAccount(): DetoxElement {
     return Matchers.getElementByID(
       AccountActionsBottomSheetSelectorsIDs.EDIT_ACCOUNT,
     );
   }
 
-  get showPrivateKey(): EncapsulatedElementType {
+  get showPrivateKey(): DetoxElement {
     return Matchers.getElementByID(
       AccountActionsBottomSheetSelectorsIDs.SHOW_PRIVATE_KEY,
     );
   }
 
-  get switchToSmartAccount(): EncapsulatedElementType {
+  get switchToSmartAccount(): DetoxElement {
     return Matchers.getElementByID(
       AccountActionsBottomSheetSelectorsIDs.SWITCH_TO_SMART_ACCOUNT,
     );
   }
 
-  get showSrp(): EncapsulatedElementType {
+  get showSrp(): DetoxElement {
     return Matchers.getElementByID(
       AccountActionsBottomSheetSelectorsIDs.SHOW_SECRET_RECOVERY_PHRASE,
     );
   }
 
-  get multichainEditName(): EncapsulatedElementType {
+  get multichainEditName(): DetoxElement {
     return Matchers.getElementByID(
       AccountActionsBottomSheetSelectorsIDs.MULTICHAIN_EDIT_NAME,
     );
   }
 
-  get multichainAccountDetails(): EncapsulatedElementType {
+  get multichainAccountDetails(): DetoxElement {
     return Matchers.getElementByID(
       AccountActionsBottomSheetSelectorsIDs.MULTICHAIN_ACCOUNT_DETAILS,
     );

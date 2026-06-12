@@ -5,38 +5,38 @@ import {
 } from '../../../app/components/Views/confirmations/components/activity/TransactionDetailsModal.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { Assertions, logger, EncapsulatedElementType } from '../../framework';
+import { Assertions, logger } from '../../framework';
 
 class TransactionDetailsModal {
-  get closeIcon(): EncapsulatedElementType {
+  get closeIcon(): DetoxElement {
     return Matchers.getElementByID(
       TransactionDetailsModalSelectorsIDs.CLOSE_ICON,
     );
   }
 
-  get networkFee(): EncapsulatedElementType {
+  get networkFee(): DetoxElement {
     return Matchers.getElementByID(TransactionDetailsSelectorIDs.NETWORK_FEE);
   }
 
-  get paidWithSymbol(): EncapsulatedElementType {
+  get paidWithSymbol(): DetoxElement {
     return Matchers.getElementByID(
       TransactionDetailsSelectorIDs.PAID_WITH_SYMBOL,
     );
   }
 
-  get status(): EncapsulatedElementType {
+  get status(): DetoxElement {
     return Matchers.getElementByID(TransactionDetailsSelectorIDs.STATUS);
   }
 
-  get title(): EncapsulatedElementType {
+  get title(): DetoxElement {
     return Matchers.getElementByID(TransactionDetailsModalSelectorsIDs.TITLE);
   }
 
-  get total(): EncapsulatedElementType {
+  get total(): DetoxElement {
     return Matchers.getElementByID(TransactionDetailsSelectorIDs.TOTAL);
   }
 
-  get transactionFee(): EncapsulatedElementType {
+  get transactionFee(): DetoxElement {
     return Matchers.getElementByID(
       TransactionDetailsSelectorIDs.TRANSACTION_FEE,
     );

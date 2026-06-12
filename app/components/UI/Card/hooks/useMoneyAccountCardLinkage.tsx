@@ -49,16 +49,6 @@ import { CardLinkageInProgressError } from '../../../../core/Engine/controllers/
 import { BAANX_MAX_LIMIT } from '../constants';
 import { CardFundingToken } from '../types';
 import { UserCancelledError } from './useCardDelegation';
-import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import {
-  IMetaMetricsEvent,
-  MetaMetricsEvents,
-} from '../../../../core/Analytics';
-import {
-  CardEntryPoint,
-  CardFlow,
-  CardLinkingFailureReason,
-} from '../util/metrics';
 
 export type LinkageStatus =
   | 'idle'
@@ -70,7 +60,6 @@ export type LinkageStatus =
 export interface LinkFlowOrigin {
   screen: string;
   params?: object;
-  entrypoint?: CardEntryPoint;
 }
 
 export interface UseMoneyAccountCardLinkageReturn {
@@ -86,10 +75,9 @@ export interface UseMoneyAccountCardLinkageReturn {
   error: Error | null;
 
   startLinkFlow: (origin: LinkFlowOrigin) => void;
-  openLinkCardSheet: (entrypoint?: CardEntryPoint | string) => void;
+  openLinkCardSheet: () => void;
   confirmLinkInBackground: (options?: {
     delegationAmountHuman?: string;
-    entrypoint?: CardEntryPoint | string;
   }) => Promise<boolean>;
   reset: () => void;
 }
@@ -108,7 +96,6 @@ export const useMoneyAccountCardLinkage =
     const theme = useTheme();
     const navigation = useNavigation();
     const dispatch = useDispatch();
-    const { trackEvent, createEventBuilder } = useAnalytics();
 
     const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
     const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
@@ -122,7 +109,7 @@ export const useMoneyAccountCardLinkage =
     const isAlreadyDelegated = useSelector(
       selectIsMoneyAccountDelegatedForCard,
     );
-    const pendingMoneyAccountCardLinkEntryPoint = useSelector(
+    const pendingMoneyAccountCardLink = useSelector(
       selectPendingMoneyAccountCardLink,
     );
     const linkInProgress = useSelector(selectIsMoneyAccountCardLinkInProgress);
@@ -240,47 +227,24 @@ export const useMoneyAccountCardLinkage =
       [theme.colors.error.default, toastRef],
     );
 
-    const trackMoneyAccountLinkingEvent = useCallback(
-      (
-        eventName: IMetaMetricsEvent,
-        properties: Record<string, string | boolean | undefined> = {},
-      ) => {
-        trackEvent(
-          createEventBuilder(eventName)
-            .addProperties({
-              flow: CardFlow.MONEY_ACCOUNT_LINKAGE,
-              ...properties,
-            })
-            .build(),
-        );
-      },
-      [trackEvent, createEventBuilder],
-    );
-
-    const openLinkCardSheet = useCallback(
-      (entrypoint?: CardEntryPoint | string): void => {
-        if (linkInProgress) {
-          return;
-        }
-        if (!canLink || !primaryMoneyAccount?.address) {
-          showErrorToast();
-          return;
-        }
-        navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-          screen: Routes.MONEY.MODALS.LINK_CARD_SHEET,
-          params: {
-            entrypoint: entrypoint ?? CardEntryPoint.MONEY_LINK_CARD_SHEET,
-          },
-        });
-      },
-      [
-        linkInProgress,
-        canLink,
-        primaryMoneyAccount?.address,
-        navigation,
-        showErrorToast,
-      ],
-    );
+    const openLinkCardSheet = useCallback((): void => {
+      if (linkInProgress) {
+        return;
+      }
+      if (!canLink || !primaryMoneyAccount?.address) {
+        showErrorToast();
+        return;
+      }
+      navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.LINK_CARD_SHEET,
+      });
+    }, [
+      linkInProgress,
+      canLink,
+      primaryMoneyAccount?.address,
+      navigation,
+      showErrorToast,
+    ]);
 
     const startLinkFlow = useCallback(
       (origin: LinkFlowOrigin): void => {
@@ -302,16 +266,12 @@ export const useMoneyAccountCardLinkage =
             return;
           }
 
-          openLinkCardSheet(origin.entrypoint);
+          openLinkCardSheet();
           return;
         }
 
         if (isCardholder) {
-          dispatch(
-            setPendingMoneyAccountCardLink(
-              origin.entrypoint ?? CardEntryPoint.MONEY_LINK_CARD_SHEET,
-            ),
-          );
+          dispatch(setPendingMoneyAccountCardLink(true));
           navigation.navigate(Routes.CARD.ROOT, {
             screen: Routes.CARD.HOME,
             params: {
@@ -346,16 +306,16 @@ export const useMoneyAccountCardLinkage =
     );
 
     useEffect(() => {
-      if (!pendingMoneyAccountCardLinkEntryPoint) return;
+      if (!pendingMoneyAccountCardLink) return;
       if (!isCardAuthenticated) return;
 
       if (!hasRequirements || !primaryMoneyAccount?.address) {
-        dispatch(setPendingMoneyAccountCardLink(null));
+        dispatch(setPendingMoneyAccountCardLink(false));
         return;
       }
 
       if (isAlreadyDelegated) {
-        dispatch(setPendingMoneyAccountCardLink(null));
+        dispatch(setPendingMoneyAccountCardLink(false));
         return;
       }
 
@@ -364,16 +324,15 @@ export const useMoneyAccountCardLinkage =
           cardHomeDataStatus === 'success' ||
           cardHomeDataStatus === 'error'
         ) {
-          dispatch(setPendingMoneyAccountCardLink(null));
+          dispatch(setPendingMoneyAccountCardLink(false));
         }
         return;
       }
 
-      const entrypoint = pendingMoneyAccountCardLinkEntryPoint;
-      dispatch(setPendingMoneyAccountCardLink(null));
-      openLinkCardSheet(entrypoint);
+      dispatch(setPendingMoneyAccountCardLink(false));
+      openLinkCardSheet();
     }, [
-      pendingMoneyAccountCardLinkEntryPoint,
+      pendingMoneyAccountCardLink,
       isCardAuthenticated,
       hasRequirements,
       moneyAccountCardToken,
@@ -387,23 +346,12 @@ export const useMoneyAccountCardLinkage =
     const confirmLinkInBackground = useCallback(
       async (options?: {
         delegationAmountHuman?: string;
-        entrypoint?: CardEntryPoint | string;
       }): Promise<boolean> => {
-        const entrypoint =
-          options?.entrypoint ?? CardEntryPoint.MONEY_LINK_CARD_SHEET;
         const isRevoke =
           options?.delegationAmountHuman !== undefined &&
           parseFloat(options.delegationAmountHuman) === 0;
 
         if (!canSubmitDelegation || !primaryMoneyAccount?.address) {
-          trackMoneyAccountLinkingEvent(
-            MetaMetricsEvents.CARD_MONEY_ACCOUNT_LINKING_FAILED,
-            {
-              entrypoint,
-              reason: CardLinkingFailureReason.PRECONDITION_FAILED,
-              is_revoke: isRevoke,
-            },
-          );
           showErrorToast(isRevoke);
           return false;
         }
@@ -417,25 +365,11 @@ export const useMoneyAccountCardLinkage =
         showPendingToast(isRevoke);
 
         try {
-          trackMoneyAccountLinkingEvent(
-            MetaMetricsEvents.CARD_MONEY_ACCOUNT_LINKING_STARTED,
-            {
-              entrypoint,
-              is_revoke: isRevoke,
-            },
-          );
           await Engine.context.CardController.linkMoneyAccountCard({
             moneyAccountAddress: primaryMoneyAccount.address,
             delegationAmountHuman:
               options?.delegationAmountHuman ?? BAANX_MAX_LIMIT,
           });
-          trackMoneyAccountLinkingEvent(
-            MetaMetricsEvents.CARD_MONEY_ACCOUNT_LINKING_COMPLETED,
-            {
-              entrypoint,
-              is_revoke: isRevoke,
-            },
-          );
           setStatus('success');
           showSuccessToast(isRevoke);
           return true;
@@ -444,45 +378,16 @@ export const useMoneyAccountCardLinkage =
             caught instanceof Error ? caught : new Error(String(caught));
 
           if (linkageError instanceof UserCancelledError) {
-            trackMoneyAccountLinkingEvent(
-              MetaMetricsEvents.CARD_MONEY_ACCOUNT_LINKING_FAILED,
-              {
-                entrypoint,
-                reason: CardLinkingFailureReason.USER_CANCELLED,
-                is_revoke: isRevoke,
-              },
-            );
             setStatus('cancelled');
             return false;
           }
 
           if (linkageError instanceof CardLinkageInProgressError) {
-            trackMoneyAccountLinkingEvent(
-              MetaMetricsEvents.CARD_MONEY_ACCOUNT_LINKING_FAILED,
-              {
-                entrypoint,
-                reason: CardLinkingFailureReason.CONTROLLER_FAILED,
-                error_name: linkageError.name,
-                is_revoke: isRevoke,
-              },
-            );
             setStatus('idle');
             setError(null);
             return false;
           }
 
-          trackMoneyAccountLinkingEvent(
-            MetaMetricsEvents.CARD_MONEY_ACCOUNT_LINKING_FAILED,
-            {
-              entrypoint,
-              reason:
-                caught instanceof Error
-                  ? CardLinkingFailureReason.CONTROLLER_FAILED
-                  : CardLinkingFailureReason.UNKNOWN,
-              error_name: linkageError.name,
-              is_revoke: isRevoke,
-            },
-          );
           Logger.error(linkageError, 'useMoneyAccountCardLinkage failed');
           setError(linkageError);
           setStatus('error');
@@ -496,7 +401,6 @@ export const useMoneyAccountCardLinkage =
         showErrorToast,
         showPendingToast,
         showSuccessToast,
-        trackMoneyAccountLinkingEvent,
       ],
     );
 

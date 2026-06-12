@@ -4,24 +4,23 @@ import {
 } from '../../../../app/components/UI/DeleteWalletModal/DeleteWalletModal.testIds';
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
-import { EncapsulatedElementType } from '../../../framework';
 
 class DeleteWalletModal {
-  get container(): EncapsulatedElementType {
+  get container(): DetoxElement {
     return Matchers.getElementByID(DeleteWalletModalSelectorsIDs.CONTAINER);
   }
 
-  get understandButton(): EncapsulatedElementType {
+  get understandButton(): DetoxElement {
     return Matchers.getElementByText(
       DeleteWalletModalSelectorsText.UNDERSTAND_BUTTON,
     );
   }
 
-  get deleteWalletButton(): EncapsulatedElementType {
+  get deleteWalletButton(): DetoxElement {
     return Matchers.getElementByText(DeleteWalletModalSelectorsText.DELETE_MY);
   }
 
-  get deleteInput(): EncapsulatedElementType {
+  get deleteInput(): DetoxElement {
     return Matchers.getElementByID(DeleteWalletModalSelectorsIDs.INPUT);
   }
 

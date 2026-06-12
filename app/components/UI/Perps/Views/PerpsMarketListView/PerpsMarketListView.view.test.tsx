@@ -57,7 +57,7 @@ describe('PerpsMarketListView', () => {
         `${sortFiltersId}-categories-crypto`,
       );
       const commoditiesBadge = screen.getByTestId(
-        `${sortFiltersId}-categories-commodity`,
+        `${sortFiltersId}-categories-commodities`,
       );
       expect(cryptoBadge).toBeOnTheScreen();
       expect(commoditiesBadge).toBeOnTheScreen();
@@ -94,14 +94,16 @@ describe('PerpsMarketListView', () => {
       });
     });
 
-    it('shows empty watchlist state when view starts in watchlist-only mode with no favorites', async () => {
+    it('shows empty favorites state when view starts in watchlist-only mode with no favorites', async () => {
       renderPerpsMarketListView({
         initialParams: { showWatchlistOnly: true },
-        streamOverrides: { marketData: marketDataWithCategories },
       });
 
       expect(
-        await screen.findByText(strings('perps.watchlist.empty_subtitle')),
+        await screen.findByText(strings('perps.no_favorites_found')),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(strings('perps.no_favorites_description')),
       ).toBeOnTheScreen();
     });
   });

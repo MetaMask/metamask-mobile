@@ -4,7 +4,7 @@
 
 import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
-import path from 'node:path';
+import { join } from 'node:path';
 import {
   SelectTagsAnalysis,
   PerformanceTestSelection,
@@ -188,11 +188,7 @@ function makeConservativeResult(
   const fullReason = `Hard rule (${ruleName}): ${reason}. Running all tests.`;
   result.reasoning = fullReason;
   result.confidence = 100;
-  result.performanceTests = {
-    selectedTags: [],
-    reasoning:
-      'Performance tests are selected by AI analysis only; E2E hard rules do not force performance tags.',
-  };
+  result.performanceTests.reasoning = fullReason;
   return result;
 }
 
@@ -294,7 +290,7 @@ function extractTagsFromSpecFile(
   validTags: Set<string>,
 ): string[] {
   try {
-    const content = readFileSync(path.join(baseDir, filePath), 'utf-8');
+    const content = readFileSync(join(baseDir, filePath), 'utf-8');
     const matches = content.matchAll(
       /import\s*\{([^}]+)\}\s*from\s*['"][^'"]*\/tags(?:\.js)?['"]/g,
     );

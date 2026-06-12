@@ -55,7 +55,6 @@ export {
 } from './EncapsulatedElement.ts';
 
 export { FrameworkDetector, TestFramework } from './FrameworkDetector.ts';
-export { resolve, isSelector, type Selector } from './Selector.ts';
 export { PlatformDetector } from './PlatformLocator.ts';
 export { default as UnifiedGestures } from './UnifiedGestures.ts';
 export { encapsulatedAction } from './encapsulatedAction.ts';
@@ -79,5 +78,4 @@ export {
   type UnifiedGestureOptions,
   type TapAtIndexElement,
   type ScrollViewMatcher,
-  type ScrollContainer,
 } from './GestureStrategy.ts';

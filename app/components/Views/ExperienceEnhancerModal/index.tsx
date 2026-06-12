@@ -6,6 +6,9 @@ import { strings } from '../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
+import Text, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 import createStyles from './styles';
 import BottomSheetFooter, {
   ButtonsAlignment,
@@ -21,7 +24,6 @@ import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytic
 import { HOW_TO_MANAGE_METRAMETRICS_SETTINGS } from '../../../constants/urls';
 import { ExperienceEnhancerBottomSheetSelectorsIDs } from './ExperienceEnhancerModal.testIds';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
-import { Text, TextVariant } from '@metamask/design-system-react-native';
 
 const ExperienceEnhancerModal = () => {
   const dispatch = useDispatch();
@@ -83,7 +85,7 @@ const ExperienceEnhancerModal = () => {
       testID={ExperienceEnhancerBottomSheetSelectorsIDs.BOTTOM_SHEET}
     >
       <Text
-        variant={TextVariant.HeadingMd}
+        variant={TextVariant.HeadingMD}
         style={styles.title}
         testID={ExperienceEnhancerBottomSheetSelectorsIDs.TITLE}
       >
@@ -93,7 +95,7 @@ const ExperienceEnhancerModal = () => {
         style={styles.content}
         testID={ExperienceEnhancerBottomSheetSelectorsIDs.CONTENT}
       >
-        <Text variant={TextVariant.BodyMd}>
+        <Text variant={TextVariant.BodyMD}>
           {strings('experience_enhancer_modal.paragraph1a')}
           <Button
             variant={ButtonVariants.Link}
@@ -105,7 +107,7 @@ const ExperienceEnhancerModal = () => {
         </Text>
 
         <Text
-          variant={TextVariant.BodyMd}
+          variant={TextVariant.BodyMD}
           testID={ExperienceEnhancerBottomSheetSelectorsIDs.PARAGRAPH_2}
         >
           {strings('experience_enhancer_modal.paragraph2')}
@@ -134,7 +136,7 @@ const ExperienceEnhancerModal = () => {
           </Text>
         </View>
         <Text
-          variant={TextVariant.BodyMd}
+          variant={TextVariant.BodyMD}
           testID={ExperienceEnhancerBottomSheetSelectorsIDs.FOOTER}
         >
           {strings('experience_enhancer_modal.footer')}

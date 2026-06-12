@@ -12,89 +12,88 @@ import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
-import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
 
 class ActivitiesView {
-  get title(): EncapsulatedElementType {
+  get title(): DetoxElement {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.TITLE);
   }
-  get predictionsTab(): EncapsulatedElementType {
+  get predictionsTab(): DetoxElement {
     return Matchers.getElementByLabel(
       ActivitiesViewSelectorsText.PREDICTIONS_TAB,
     );
   }
-  get transferTab(): EncapsulatedElementType {
+  get transferTab(): DetoxElement {
     return Matchers.getElementByID(ActivitiesViewSelectorsIDs.TRANSFER_TAB);
   }
 
-  get tabsBar(): EncapsulatedElementType {
+  get tabsBar(): DetoxElement {
     return Matchers.getElementByID(
       `${ActivitiesViewSelectorsIDs.TABS_CONTAINER}-bar`,
     );
   }
 
-  get container(): EncapsulatedElementType {
+  get container(): DetoxElement {
     return Matchers.getElementByID(ActivitiesViewSelectorsIDs.CONTAINER);
   }
 
-  get confirmedLabel(): EncapsulatedElementType {
+  get confirmedLabel(): DetoxElement {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.CONFIRM_TEXT);
   }
 
-  get stakeDepositedLabel(): EncapsulatedElementType {
+  get stakeDepositedLabel(): DetoxElement {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.STAKE_DEPOSIT);
   }
 
-  get stakeMoreDepositedLabel(): EncapsulatedElementType {
+  get stakeMoreDepositedLabel(): DetoxElement {
     return Matchers.getElementByText(
       ActivitiesViewSelectorsText.STAKE_DEPOSIT,
       0,
     );
   }
 
-  get unstakeLabel(): EncapsulatedElementType {
+  get unstakeLabel(): DetoxElement {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.UNSTAKE);
   }
 
-  get stackingClaimLabel(): EncapsulatedElementType {
+  get stackingClaimLabel(): DetoxElement {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.STAKING_CLAIM);
   }
 
-  get approveActivity(): EncapsulatedElementType {
+  get approveActivity(): DetoxElement {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.APPROVE);
   }
 
-  get lendingDepositActivity(): EncapsulatedElementType {
+  get lendingDepositActivity(): DetoxElement {
     return Matchers.getElementByText(
       ActivitiesViewSelectorsText.LENDING_DEPOSIT,
     );
   }
 
-  get lendingWithdrawalActivity(): EncapsulatedElementType {
+  get lendingWithdrawalActivity(): DetoxElement {
     return Matchers.getElementByText(
       ActivitiesViewSelectorsText.LENDING_WITHDRAWAL,
     );
   }
 
-  get predictDeposit(): EncapsulatedElementType {
+  get predictDeposit(): DetoxElement {
     return Matchers.getElementByText(
       ActivitiesViewSelectorsText.PREDICT_DEPOSIT,
     );
   }
 
-  get predictWithdraw(): EncapsulatedElementType {
+  get predictWithdraw(): DetoxElement {
     return Matchers.getElementByText(
       ActivitiesViewSelectorsText.PREDICT_WITHDRAW,
     );
   }
 
-  transactionStatus(row: number): EncapsulatedElementType {
+  transactionStatus(row: number): DetoxElement {
     return Matchers.getElementByID(`transaction-status-${row}`);
   }
 
-  transactionItem(row: number): EncapsulatedElementType {
+  transactionItem(row: number): DetoxElement {
     return Matchers.getElementByID(`transaction-item-${row}`);
   }
 
@@ -117,17 +116,17 @@ class ActivitiesView {
   swapActivityTitle(
     sourceToken: string,
     destinationToken: string,
-  ): EncapsulatedElementType {
+  ): DetoxElement {
     return Matchers.getElementByText(
       this.generateSwapActivityLabel(sourceToken, destinationToken),
     );
   }
 
-  swapApprovalActivityTitle(): EncapsulatedElementType {
+  swapApprovalActivityTitle(): DetoxElement {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.APPROVE);
   }
 
-  bridgeActivityTitle(destNetwork: string): EncapsulatedElementType {
+  bridgeActivityTitle(destNetwork: string): DetoxElement {
     return Matchers.getElementByText(
       this.generateBridgeActivityLabel(destNetwork),
     );
@@ -185,7 +184,7 @@ class ActivitiesView {
   rampsOrderCryptoAmount(
     orderType: RampsOrderTypeSlug,
     rowIndex: number,
-  ): EncapsulatedElementType {
+  ): DetoxElement {
     return Matchers.getElementByID(
       getOrderRowCryptoAmountTestId(orderType, rowIndex),
     );
@@ -194,7 +193,7 @@ class ActivitiesView {
   rampsOrderFiatAmount(
     orderType: RampsOrderTypeSlug,
     rowIndex: number,
-  ): EncapsulatedElementType {
+  ): DetoxElement {
     return Matchers.getElementByID(
       getOrderRowFiatAmountTestId(orderType, rowIndex),
     );

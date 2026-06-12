@@ -16,12 +16,14 @@ const name = 'AuthenticationController';
  * @returns The AuthenticationControllerMessenger.
  */
 export function getAuthenticationControllerMessenger(
-  rootMessenger: RootMessenger<
-    MessengerActions<AuthenticationControllerMessenger>,
-    MessengerEvents<AuthenticationControllerMessenger>
-  >,
+  rootMessenger: RootMessenger,
 ): AuthenticationControllerMessenger {
-  const messenger: AuthenticationControllerMessenger = new Messenger({
+  const messenger = new Messenger<
+    typeof name,
+    MessengerActions<AuthenticationControllerMessenger>,
+    MessengerEvents<AuthenticationControllerMessenger>,
+    RootMessenger
+  >({
     namespace: name,
     parent: rootMessenger,
   });

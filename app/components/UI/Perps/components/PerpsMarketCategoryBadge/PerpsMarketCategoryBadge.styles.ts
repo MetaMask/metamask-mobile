@@ -31,8 +31,5 @@ export const styleSheet = (params: {
     badgeText: {
       color: isSelected ? theme.colors.icon.inverse : theme.colors.text.default,
     },
-    badgeIcon: {
-      color: isSelected ? theme.colors.icon.inverse : theme.colors.icon.default,
-    },
   });
 };

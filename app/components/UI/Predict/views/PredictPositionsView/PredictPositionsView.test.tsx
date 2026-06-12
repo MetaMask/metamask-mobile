@@ -2,8 +2,6 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
-import Engine from '../../../../../core/Engine';
-import { PredictEventValues } from '../../constants/eventNames';
 import type { PredictPortfolioModel } from '../../hooks/usePredictPortfolio';
 import {
   PredictPositionsEmptySelectorsIDs,
@@ -121,8 +119,6 @@ const mockNavigation = {
 const mockUseNavigation = useNavigation as jest.Mock;
 const mockUseRoute = useRoute as jest.Mock;
 const mockClaim = jest.fn();
-const mockTrackPositionsScreenViewed = jest.fn();
-const mockTrackPositionsTabViewed = jest.fn();
 
 const createClaimablePosition = (
   overrides: Partial<PredictPosition> = {},
@@ -190,32 +186,9 @@ const createPortfolio = (
   ...overrides,
 });
 
-const expectedPositionsAnalyticsContext = (
-  overrides: Record<string, unknown> = {},
-) => ({
-  entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
-  openPositionsCount: 0,
-  claimablePositionsCount: 0,
-  hasClaimableWinnings: false,
-  predictScreen: PredictEventValues.PREDICT_SCREEN.PREDICT_POSITIONS_SCREEN,
-  ...overrides,
-});
-
-interface PredictPositionsRouteParams {
-  entryPoint?: string;
-  initialTab?: 'positions' | 'history';
-}
-
-const renderScreen = (
-  paramsOrInitialTab?: PredictPositionsRouteParams | 'positions' | 'history',
-) => {
-  const params =
-    typeof paramsOrInitialTab === 'string'
-      ? { initialTab: paramsOrInitialTab }
-      : paramsOrInitialTab;
-
+const renderScreen = (initialTab?: 'positions' | 'history') => {
   mockUseRoute.mockReturnValue({
-    params,
+    params: initialTab ? { initialTab } : undefined,
   });
 
   return render(<PredictPositionsView />);
@@ -235,15 +208,6 @@ describe('PredictPositionsView', () => {
     mockNavigation.canGoBack.mockReturnValue(true);
     mockUseNavigation.mockReturnValue(mockNavigation);
     mockUsePredictPortfolio.mockReturnValue(createPortfolio());
-    const predictController = {
-      trackPositionsScreenViewed: mockTrackPositionsScreenViewed,
-      trackPositionsTabViewed: mockTrackPositionsTabViewed,
-    };
-    (
-      Engine.context as unknown as {
-        PredictController: typeof predictController;
-      }
-    ).PredictController = predictController;
   });
 
   it('renders the fixed header, summary placeholder, tabs, and positions tab by default', () => {
@@ -283,126 +247,8 @@ describe('PredictPositionsView', () => {
     expect(getMountedHistoryVisibilityText(false)).toBeTruthy();
   });
 
-  it('tracks Positions screen viewed without duplicating the default tab', () => {
-    mockUsePredictPortfolio.mockReturnValue(
-      createPortfolio({
-        claimableAmount: 46.35,
-        claimablePositionCount: 1,
-        hasClaimableWinnings: true,
-        openPositionCount: 2,
-        portfolioValue: 4000,
-        totalUnrealizedPnlAmount: -18.47,
-      }),
-    );
-
-    renderScreen();
-
-    expect(mockTrackPositionsScreenViewed).toHaveBeenCalledWith(
-      expectedPositionsAnalyticsContext({
-        openPositionsCount: 2,
-        claimablePositionsCount: 1,
-        hasClaimableWinnings: true,
-      }),
-    );
-    expect(mockTrackPositionsTabViewed).not.toHaveBeenCalled();
-
-    const payload = mockTrackPositionsScreenViewed.mock.calls[0][0];
-    expect(payload).not.toHaveProperty('claimableAmount');
-    expect(payload).not.toHaveProperty('portfolioValue');
-    expect(payload).not.toHaveProperty('totalUnrealizedPnlAmount');
-  });
-
-  it('waits for portfolio data before tracking Positions screen viewed', () => {
-    mockUsePredictPortfolio
-      .mockReturnValueOnce(
-        createPortfolio({
-          isLoading: true,
-        }),
-      )
-      .mockReturnValue(
-        createPortfolio({
-          claimablePositionCount: 3,
-          hasClaimableWinnings: true,
-          isLoading: false,
-          openPositionCount: 6,
-        }),
-      );
-
-    const { rerender } = renderScreen();
-
-    expect(mockTrackPositionsScreenViewed).not.toHaveBeenCalled();
-
-    rerender(<PredictPositionsView />);
-
-    expect(mockTrackPositionsScreenViewed).toHaveBeenCalledTimes(1);
-    expect(mockTrackPositionsScreenViewed).toHaveBeenCalledWith(
-      expectedPositionsAnalyticsContext({
-        claimablePositionsCount: 3,
-        hasClaimableWinnings: true,
-        openPositionsCount: 6,
-      }),
-    );
-  });
-
-  it('does not duplicate History tab tracking when data loads after the tab press', () => {
-    let portfolio = createPortfolio({
-      isLoading: true,
-    });
-    mockUsePredictPortfolio.mockImplementation(() => portfolio);
-
-    const { rerender } = renderScreen();
-
-    fireEvent.press(
-      screen.getByTestId(PredictPositionsViewSelectorsIDs.HISTORY_TAB),
-    );
-
-    expect(mockTrackPositionsScreenViewed).not.toHaveBeenCalled();
-    expect(mockTrackPositionsTabViewed).toHaveBeenCalledTimes(1);
-    expect(mockTrackPositionsTabViewed).toHaveBeenCalledWith(
-      expectedPositionsAnalyticsContext({
-        predictFeedTab: PredictEventValues.PREDICT_FEED_TAB.HISTORY,
-      }),
-    );
-
-    portfolio = createPortfolio({
-      claimablePositionCount: 3,
-      hasClaimableWinnings: true,
-      isLoading: false,
-      openPositionCount: 6,
-    });
-
-    rerender(<PredictPositionsView />);
-
-    expect(mockTrackPositionsScreenViewed).toHaveBeenCalledTimes(1);
-    expect(mockTrackPositionsScreenViewed).toHaveBeenCalledWith(
-      expectedPositionsAnalyticsContext({
-        claimablePositionsCount: 3,
-        hasClaimableWinnings: true,
-        openPositionsCount: 6,
-      }),
-    );
-    expect(mockTrackPositionsTabViewed).toHaveBeenCalledTimes(1);
-  });
-
-  it('tracks Active positions tab when the selected tab is pressed again', () => {
-    renderScreen();
-
-    expect(mockTrackPositionsTabViewed).not.toHaveBeenCalled();
-
-    fireEvent.press(
-      screen.getByTestId(PredictPositionsViewSelectorsIDs.POSITIONS_TAB),
-    );
-
-    expect(mockTrackPositionsTabViewed).toHaveBeenCalledTimes(1);
-    expect(mockTrackPositionsTabViewed).toHaveBeenCalledWith(
-      expectedPositionsAnalyticsContext({
-        predictFeedTab: PredictEventValues.PREDICT_FEED_TAB.POSITIONS,
-      }),
-    );
-  });
-
   it('uses the initial history tab from route params', () => {
-    renderScreen({ initialTab: 'history' });
+    renderScreen('history');
 
     expect(
       screen.getByTestId(PredictPositionsViewSelectorsIDs.HISTORY_TAB_CONTENT),
@@ -416,15 +262,6 @@ describe('PredictPositionsView', () => {
         PredictPositionsViewSelectorsIDs.POSITIONS_TAB_CONTENT,
       ),
     ).toBeTruthy();
-    expect(mockTrackPositionsScreenViewed).toHaveBeenCalledWith(
-      expectedPositionsAnalyticsContext(),
-    );
-    expect(mockTrackPositionsTabViewed).toHaveBeenCalledTimes(1);
-    expect(mockTrackPositionsTabViewed).toHaveBeenCalledWith(
-      expectedPositionsAnalyticsContext({
-        predictFeedTab: PredictEventValues.PREDICT_FEED_TAB.HISTORY,
-      }),
-    );
   });
 
   it('switches between Positions and History tabs', () => {
@@ -452,20 +289,6 @@ describe('PredictPositionsView', () => {
       ),
     ).toBeOnTheScreen();
     expect(getMountedHistoryVisibilityText(false)).toBeTruthy();
-    expect(mockTrackPositionsScreenViewed).toHaveBeenCalledTimes(1);
-    expect(mockTrackPositionsTabViewed).toHaveBeenNthCalledWith(
-      1,
-      expectedPositionsAnalyticsContext({
-        predictFeedTab: PredictEventValues.PREDICT_FEED_TAB.HISTORY,
-      }),
-    );
-    expect(mockTrackPositionsTabViewed).toHaveBeenNthCalledWith(
-      2,
-      expectedPositionsAnalyticsContext({
-        predictFeedTab: PredictEventValues.PREDICT_FEED_TAB.POSITIONS,
-      }),
-    );
-    expect(mockTrackPositionsTabViewed).toHaveBeenCalledTimes(2);
   });
 
   it('passes only actionable claimable positions and privacy mode to History', () => {

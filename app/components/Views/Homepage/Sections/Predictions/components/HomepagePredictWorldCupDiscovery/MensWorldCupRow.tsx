@@ -17,7 +17,7 @@ import HomepagePredictDiscoveryMaterialGlyph from './HomepagePredictDiscoveryMat
 
 interface MensWorldCupRowProps {
   onPress: () => void;
-  eventCountLabel?: string;
+  eventCountLabel: string;
 }
 
 const MensWorldCupRow = ({
@@ -48,15 +48,13 @@ const MensWorldCupRow = ({
         >
           {strings('predict.homepage_discovery.fifa_world_cup_2026_title')}
         </Text>
-        {eventCountLabel ? (
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.TextAlternative}
-            numberOfLines={1}
-          >
-            {eventCountLabel}
-          </Text>
-        ) : null}
+        <Text
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
+          numberOfLines={1}
+        >
+          {eventCountLabel}
+        </Text>
       </Box>
       <Icon
         name={IconName.ArrowRight}

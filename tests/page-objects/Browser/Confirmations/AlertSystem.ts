@@ -8,60 +8,59 @@ import {
   AlertTypeIDs,
 } from '../../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import Gestures from '../../../framework/Gestures';
-import { EncapsulatedElementType } from '../../../framework';
 
 class AlertSystem {
-  get securityAlertBanner(): EncapsulatedElementType {
+  get securityAlertBanner(): DetoxElement {
     return Matchers.getElementByID(
       ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_BANNER_REDESIGNED,
     );
   }
 
-  get securityAlertResponseFailedBanner(): EncapsulatedElementType {
+  get securityAlertResponseFailedBanner(): DetoxElement {
     return Matchers.getElementByText(
       ConfirmationTopSheetSelectorsText.BANNER_FAILED_TITLE,
     );
   }
 
-  get securityAlertResponseMaliciousBanner(): EncapsulatedElementType {
+  get securityAlertResponseMaliciousBanner(): DetoxElement {
     return Matchers.getElementByText(
       ConfirmationTopSheetSelectorsText.BANNER_MALICIOUS_TITLE,
     );
   }
 
-  get inlineAlert(): EncapsulatedElementType {
+  get inlineAlert(): DetoxElement {
     return Matchers.getElementByID(AlertTypeIDs.INLINE_ALERT);
   }
 
-  get alertMismatchTitle(): EncapsulatedElementType {
+  get alertMismatchTitle(): DetoxElement {
     return Matchers.getElementByText(
       AlertModalSelectorsText.ALERT_ORIGIN_MISMATCH_TITLE,
     );
   }
 
-  get acknowledgeAlertModal(): EncapsulatedElementType {
+  get acknowledgeAlertModal(): DetoxElement {
     return Matchers.getElementByID(AlertModalSelectorsIDs.ALERT_MODAL_CHECKBOX);
   }
 
-  get acknowledgeAlertModalButton(): EncapsulatedElementType {
+  get acknowledgeAlertModalButton(): DetoxElement {
     return Matchers.getElementByID(
       AlertModalSelectorsIDs.ALERT_MODAL_ACKNOWLEDGE_BUTTON,
     );
   }
 
-  get confirmAlertModal(): EncapsulatedElementType {
+  get confirmAlertModal(): DetoxElement {
     return Matchers.getElementByID(
       ConfirmAlertModalSelectorsIDs.CONFIRM_ALERT_MODAL,
     );
   }
 
-  get confirmAlertModalButton(): EncapsulatedElementType {
+  get confirmAlertModalButton(): DetoxElement {
     return Matchers.getElementByID(
       ConfirmAlertModalSelectorsIDs.CONFIRM_ALERT_BUTTON,
     );
   }
 
-  get acknowledgeConfirmAlertModal(): EncapsulatedElementType {
+  get acknowledgeConfirmAlertModal(): DetoxElement {
     return Matchers.getElementByID(
       ConfirmAlertModalSelectorsIDs.CONFIRM_ALERT_CHECKBOX,
     );

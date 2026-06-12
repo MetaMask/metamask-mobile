@@ -18,15 +18,13 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
+import Text, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import Routes from '../../../constants/navigation/Routes';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 import { RootState } from '../../../reducers';
-import {
-  Text,
-  TextVariant,
-  FontWeight,
-} from '@metamask/design-system-react-native';
 
 const BROWSER_ROUTE = 'BrowserView';
 
@@ -137,9 +135,8 @@ const BackupAlert = ({ navigation, onDismiss }: BackupAlertI) => {
           </View>
           <View style={baseStyles.flexGrow}>
             <Text
-              variant={TextVariant.BodyMd}
+              variant={TextVariant.BodyMDBold}
               style={styles.backupAlertTitle}
-              fontWeight={FontWeight.Bold}
             >
               {strings('backup_alert.title')}
             </Text>
@@ -149,9 +146,8 @@ const BackupAlert = ({ navigation, onDismiss }: BackupAlertI) => {
                 testID={PROTECT_WALLET_BUTTON}
               >
                 <Text
-                  variant={TextVariant.BodyMd}
+                  variant={TextVariant.BodyMDBold}
                   style={styles.backupAlertMessage}
-                  fontWeight={FontWeight.Bold}
                 >
                   {strings('backup_alert.right_button')}
                 </Text>
@@ -161,7 +157,7 @@ const BackupAlert = ({ navigation, onDismiss }: BackupAlertI) => {
                 style={styles.dismissButton}
               >
                 <Text
-                  variant={TextVariant.BodyMd}
+                  variant={TextVariant.BodyMD}
                   style={styles.backupAlertMessage}
                   testID={ProtectWalletModalSelectorsIDs.REMIND_ME_LATER_BUTTON}
                 >

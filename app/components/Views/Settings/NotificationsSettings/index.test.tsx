@@ -82,6 +82,8 @@ jest.mock(
   }),
 );
 
+jest.mock('../../../UI/Notification/SwitchLoadingModal', () => () => null);
+
 jest.mock('./hooks/useNotificationStoragePreferences', () => ({
   useNotificationStoragePreferences: () => ({
     preferences: {

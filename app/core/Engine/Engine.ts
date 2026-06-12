@@ -17,6 +17,9 @@ import { AccountsController } from '@metamask/accounts-controller';
 import {
   KeyringController,
   KeyringControllerState,
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+  KeyringTypes,
+  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-controller';
 import { NetworkState, NetworkStatus } from '@metamask/network-controller';
 import {
@@ -33,6 +36,10 @@ import {
   SubjectMetadataController,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/permission-controller';
+import {
+  QrKeyring,
+  QrKeyringDeferredPromiseBridge,
+} from '@metamask/eth-qr-keyring';
 import { isTestNet } from '../../util/networks';
 import { deprecatedGetNetworkId } from '../../util/networks/engineNetworkUtils';
 import AppConstants from '../AppConstants';
@@ -95,7 +102,6 @@ import { multichainAssetsControllerInit } from './controllers/multichain-assets-
 import { multichainAssetsRatesControllerInit } from './controllers/multichain-assets-rates-controller/multichain-assets-rates-controller-init';
 import { multichainTransactionsControllerInit } from './controllers/multichain-transactions-controller/multichain-transactions-controller-init';
 import { multichainAccountServiceInit } from './controllers/multichain-account-service/multichain-account-service-init';
-import { snapAccountServiceInit } from './controllers/snap-account-service/snap-account-service-init';
 import { SnapKeyring } from '@metamask/eth-snap-keyring';
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -372,7 +378,6 @@ export class Engine {
         AccountActivityService: accountActivityServiceInit,
         OHLCVService: ohlcvServiceInit,
         ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-        SnapAccountService: snapAccountServiceInit,
         MultichainAssetsController: multichainAssetsControllerInit,
         MultichainAssetsRatesController: multichainAssetsRatesControllerInit,
         MultichainBalancesController: multichainBalancesControllerInit,
@@ -539,7 +544,6 @@ export class Engine {
       messengerClientsByName.MultichainTransactionsController;
     const multichainAccountService =
       messengerClientsByName.MultichainAccountService;
-    const snapAccountService = messengerClientsByName.SnapAccountService;
     ///: END:ONLY_INCLUDE_IF
 
     const networkEnablementController =
@@ -613,7 +617,6 @@ export class Engine {
       MultichainAssetsRatesController: multichainAssetsRatesController,
       MultichainTransactionsController: multichainTransactionsController,
       MultichainAccountService: multichainAccountService,
-      SnapAccountService: snapAccountService,
       ///: END:ONLY_INCLUDE_IF
       TokenSearchDiscoveryDataController: tokenSearchDiscoveryDataController,
       MultichainNetworkController: multichainNetworkController,
@@ -1147,8 +1150,18 @@ export class Engine {
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   getSnapKeyring = async (): Promise<SnapKeyring> => {
-    const { SnapAccountService } = this.context;
-    return await SnapAccountService.getLegacySnapKeyring();
+    // TODO: Replace `getKeyringsByType` with `withKeyring`
+    let [snapKeyring] = this.keyringController.getKeyringsByType(
+      KeyringTypes.snap,
+    );
+    if (!snapKeyring) {
+      await this.keyringController.addNewKeyring(KeyringTypes.snap);
+      // TODO: Replace `getKeyringsByType` with `withKeyring`
+      [snapKeyring] = this.keyringController.getKeyringsByType(
+        KeyringTypes.snap,
+      );
+    }
+    return snapKeyring as SnapKeyring;
   };
 
   /**

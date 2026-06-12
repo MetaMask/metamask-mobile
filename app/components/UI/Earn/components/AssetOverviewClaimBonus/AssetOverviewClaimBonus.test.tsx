@@ -14,7 +14,7 @@ import {
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents, EVENT_NAME } from '../../../../../core/Analytics';
 import { MUSD_EVENTS_CONSTANTS } from '../../constants/events/musdEvents';
-import { MONEY_HUB_EVENTS_CONSTANTS } from '../../../Money/constants/moneyHubEvents';
+import { MONEY_EVENTS_CONSTANTS } from '../../../Money/constants/moneyEvents';
 import AppConstants from '../../../../../core/AppConstants';
 import { ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS } from './AssetOverviewClaimBonus.testIds';
 import { TokenI } from '../../../Tokens/types';
@@ -776,8 +776,7 @@ describe('AssetOverviewClaimBonus', () => {
 
   describe('location prop', () => {
     it('passes location prop to useMerklBonusClaim', () => {
-      const customLocation =
-        MONEY_HUB_EVENTS_CONSTANTS.EVENT_LOCATIONS.MONEY_HUB;
+      const customLocation = MONEY_EVENTS_CONSTANTS.EVENT_LOCATIONS.MONEY_HUB;
 
       renderWithProvider(
         <AssetOverviewClaimBonus

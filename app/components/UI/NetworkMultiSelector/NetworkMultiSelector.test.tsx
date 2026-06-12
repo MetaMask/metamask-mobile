@@ -18,7 +18,6 @@ import { selectSelectedInternalAccountByScope } from '../../../selectors/multich
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 import {
   selectEvmNetworkConfigurationsByChainId,
   selectEvmChainId,
@@ -211,6 +210,9 @@ describe('NetworkMultiSelector', () => {
     typeof useNetworksToUse
   >;
   const mockUseSelector = jest.mocked(useSelector);
+  const mockUseAnalytics = useAnalytics as jest.MockedFunction<
+    typeof useAnalytics
+  >;
 
   // Shared helper functions for all tests
   const createMockNetwork = (
@@ -448,6 +450,7 @@ describe('NetworkMultiSelector', () => {
       return undefined;
     });
 
+    // Mock useMetrics
     const mockAddProperties = jest.fn().mockReturnThis();
     const mockBuild = jest.fn(() => ({ event: 'test', properties: {} }));
     mockCreateEventBuilder.mockReturnValue({
@@ -455,12 +458,20 @@ describe('NetworkMultiSelector', () => {
       build: mockBuild,
     });
 
-    jest.mocked(useAnalytics).mockReturnValue(
-      createMockUseAnalyticsHook({
-        trackEvent: mockTrackEvent,
-        createEventBuilder: mockCreateEventBuilder,
-      }),
-    );
+    mockUseAnalytics.mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: mockCreateEventBuilder,
+      identify: jest.fn(),
+      isEnabled: () => true,
+      enable: jest.fn(),
+      addTraitsToUser: jest.fn(),
+      createDataDeletionTask: jest.fn(),
+      checkDataDeleteStatus: jest.fn(),
+      getDeleteRegulationCreationDate: jest.fn(),
+      getDeleteRegulationId: jest.fn(),
+      isDataRecorded: jest.fn(),
+      getAnalyticsId: jest.fn(),
+    });
   });
 
   // TODO: Refactor tests - they aren't up to par

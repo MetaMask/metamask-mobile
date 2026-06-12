@@ -40,11 +40,6 @@ export interface UseValidateReferralCodeResult {
    * Whether an unknown error occurred while validating the referral code
    */
   isUnknownError: boolean;
-
-  /**
-   * Whether the current referral code belongs to a VIP user
-   */
-  isVipReferralCode: boolean;
 }
 
 /**
@@ -64,7 +59,6 @@ export const useValidateReferralCode = (
   const initialReferralCode = normalizeReferralCode(initialValue);
   const [referralCode, setReferralCodeState] = useState(initialReferralCode);
   const [error, setError] = useState('');
-  const [isVipCode, setIsVipCode] = useState(false);
   const [isValidating, setIsValidating] = useState(
     isReferralCodeFormatValid(initialReferralCode),
   );
@@ -87,11 +81,11 @@ export const useValidateReferralCode = (
     }
 
     try {
-      const result = await Engine.controllerMessenger.call(
+      const valid = await Engine.controllerMessenger.call(
         'RewardsController:validateReferralCode',
         refinedCode,
       );
-      if (!result.valid) {
+      if (!valid) {
         return strings('rewards.error_messages.invalid_referral_code');
       }
       return '';
@@ -107,45 +101,18 @@ export const useValidateReferralCode = (
 
       clearDebounceTimer();
       setError('');
-      setIsVipCode(false);
       setIsValidating(true);
 
       debounceTimerRef.current = setTimeout(async () => {
-        const refinedCode = normalizeReferralCode(code);
+        const validationError = await validateCode(code);
 
-        if (!isReferralCodeFormatValid(refinedCode)) {
-          if (currentRequestId !== requestIdRef.current) return;
-          setError(strings('rewards.error_messages.invalid_referral_code'));
-          setIsVipCode(false);
-          setIsValidating(false);
-          return;
-        }
+        if (currentRequestId !== requestIdRef.current) return;
 
-        try {
-          const result = await Engine.controllerMessenger.call(
-            'RewardsController:validateReferralCode',
-            refinedCode,
-          );
-
-          if (currentRequestId !== requestIdRef.current) return;
-
-          if (!result.valid) {
-            setError(strings('rewards.error_messages.invalid_referral_code'));
-            setIsVipCode(false);
-          } else {
-            setError('');
-            setIsVipCode(result.isVipCode);
-          }
-        } catch {
-          if (currentRequestId !== requestIdRef.current) return;
-          setError(REFERRAL_CODE_UNKNOWN_ERROR);
-          setIsVipCode(false);
-        }
-
+        setError(validationError);
         setIsValidating(false);
       }, debounceMs);
     },
-    [clearDebounceTimer, debounceMs],
+    [clearDebounceTimer, debounceMs, validateCode],
   );
 
   const setReferralCode = useCallback(
@@ -158,7 +125,6 @@ export const useValidateReferralCode = (
         clearDebounceTimer();
         setIsValidating(false);
         setError('');
-        setIsVipCode(false);
         return;
       }
 
@@ -167,7 +133,6 @@ export const useValidateReferralCode = (
         clearDebounceTimer();
         setIsValidating(false);
         setError(strings('rewards.error_messages.invalid_referral_code'));
-        setIsVipCode(false);
         return;
       }
 
@@ -197,7 +162,6 @@ export const useValidateReferralCode = (
   const isValid =
     isReferralCodeFormatValid(referralCode) && !error && !isValidating;
   const isUnknownError = error === REFERRAL_CODE_UNKNOWN_ERROR;
-  const isVipReferralCode = isValid && isVipCode;
 
   return {
     referralCode,
@@ -206,7 +170,6 @@ export const useValidateReferralCode = (
     isValidating,
     isValid,
     isUnknownError,
-    isVipReferralCode,
   };
 };
 

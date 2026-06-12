@@ -12,20 +12,19 @@ import {
   WalletViewSelectorsIDs,
   WalletViewSelectorsText,
 } from '../../../app/components/Views/Wallet/WalletView.testIds';
-import { EncapsulatedElementType } from '../../framework';
 
 class NetworkManager {
   /**
    * Button to open the network manager
    */
-  get openNetworkManagerButton(): EncapsulatedElementType {
+  get openNetworkManagerButton(): DetoxElement {
     return Matchers.getElementByID(WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER);
   }
 
   /**
    * Select the bottom sheet of the network manager
    */
-  get networkManagerBottomSheet(): EncapsulatedElementType {
+  get networkManagerBottomSheet(): DetoxElement {
     return Matchers.getElementByID(
       NetworkManagerSelectorIDs.NETWORK_MANAGER_BOTTOM_SHEET,
     );
@@ -34,7 +33,7 @@ class NetworkManager {
   /**
    * Select the tab of the popular networks
    */
-  get popularNetworksTab(): EncapsulatedElementType {
+  get popularNetworksTab(): DetoxElement {
     return Matchers.getElementByText(
       NetworkManagerSelectorText.POPULAR_NETWORKS_TAB,
     );
@@ -43,7 +42,7 @@ class NetworkManager {
   /**
    * Select the tab of the custom networks
    */
-  get customNetworksTab(): EncapsulatedElementType {
+  get customNetworksTab(): DetoxElement {
     return Matchers.getElementByText(
       NetworkManagerSelectorText.CUSTOM_NETWORKS_TAB,
     );
@@ -52,7 +51,7 @@ class NetworkManager {
   /**
    * Select the container of the popular networks tab
    */
-  get popularNetworksContainer(): EncapsulatedElementType {
+  get popularNetworksContainer(): DetoxElement {
     return Matchers.getElementByID(
       NetworkManagerSelectorIDs.POPULAR_NETWORKS_CONTAINER,
     );
@@ -61,7 +60,7 @@ class NetworkManager {
   /**
    * Select the container of the custom networks tab
    */
-  get customNetworksContainer(): EncapsulatedElementType {
+  get customNetworksContainer(): DetoxElement {
     return Matchers.getElementByID(
       NetworkManagerSelectorIDs.CUSTOM_NETWORKS_CONTAINER,
     );
@@ -70,7 +69,7 @@ class NetworkManager {
   /**
    * Select the button to select all popular networks
    */
-  get selectAllPopularNetworksSelected(): EncapsulatedElementType {
+  get selectAllPopularNetworksSelected(): DetoxElement {
     return Matchers.getElementByID(
       NetworkManagerSelectorIDs.SELECT_ALL_POPULAR_NETWORKS_SELECTED,
     );
@@ -79,7 +78,7 @@ class NetworkManager {
   /**
    * Select the button to select all popular networks
    */
-  get selectAllPopularNetworksNotSelected(): EncapsulatedElementType {
+  get selectAllPopularNetworksNotSelected(): DetoxElement {
     return Matchers.getElementByID(
       NetworkManagerSelectorIDs.SELECT_ALL_POPULAR_NETWORKS_NOT_SELECTED,
     );
@@ -88,7 +87,7 @@ class NetworkManager {
   /**
    * Select the network by name wether it is selected or not
    */
-  getNetworkByCaipChainId(caipChainId: CaipChainId): EncapsulatedElementType {
+  getNetworkByCaipChainId(caipChainId: CaipChainId): DetoxElement {
     return Matchers.getElementByID(
       new RegExp(`^network-list-item-${caipChainId}-(selected|not-selected)$`),
     );
@@ -97,9 +96,7 @@ class NetworkManager {
   /**
    * Select the network by name if it is selected
    */
-  getSelectedNetworkByCaipChainId(
-    caipChainId: CaipChainId,
-  ): EncapsulatedElementType {
+  getSelectedNetworkByCaipChainId(caipChainId: CaipChainId): DetoxElement {
     return Matchers.getElementByID(
       NetworkManagerSelectorIDs.NETWORK_LIST_ITEM(caipChainId, true),
     );
@@ -108,9 +105,7 @@ class NetworkManager {
   /**
    * Select the network by name if it is not selected
    */
-  getNotSelectedNetworkByCaipChainId(
-    caipChainId: CaipChainId,
-  ): EncapsulatedElementType {
+  getNotSelectedNetworkByCaipChainId(caipChainId: CaipChainId): DetoxElement {
     return Matchers.getElementByID(
       NetworkManagerSelectorIDs.NETWORK_LIST_ITEM(caipChainId, false),
     );
@@ -119,7 +114,7 @@ class NetworkManager {
   /**
    * Select the network by name in the base control bar
    */
-  getBaseControlBarText(caipChainId: CaipChainId): EncapsulatedElementType {
+  getBaseControlBarText(caipChainId: CaipChainId): DetoxElement {
     return Matchers.getElementByID(
       `${WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}-${caipChainId}`,
     );
@@ -129,7 +124,7 @@ class NetworkManager {
    * Get token element by symbol
    * Note: Gets the first instance in case of duplicates during render cycles
    */
-  getTokenBySymbol(symbol: string): EncapsulatedElementType {
+  getTokenBySymbol(symbol: string): DetoxElement {
     return Matchers.getElementByID(`asset-${symbol}`, 0);
   }
 
@@ -348,7 +343,7 @@ class NetworkManager {
   /**
    * Get network by display name (for custom networks)
    */
-  getNetworkByName(networkName: string): EncapsulatedElementType {
+  getNetworkByName(networkName: string): DetoxElement {
     return Matchers.getElementByText(networkName);
   }
 

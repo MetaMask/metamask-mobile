@@ -16,8 +16,6 @@ import { useBridgeTxHistoryData } from '../../../../../../util/bridge/hooks/useB
 import { useTokenAmount } from '../../../hooks/useTokenAmount';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { SourceHashSummaryLine } from './source-hash-summary-line';
-import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
-import { configureUseAnalyticsExternalLinkMock } from '../../../../../../util/test/analyticsMock';
 
 const mockNavigate = jest.fn();
 
@@ -28,9 +26,6 @@ jest.mock('../../../../../../selectors/bridgeStatusController');
 jest.mock('../../../../../../util/bridge/hooks/useBridgeTxHistoryData');
 jest.mock('../../../hooks/useTokenAmount');
 jest.mock('../../../hooks/activity/useTransactionDetails');
-jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: jest.fn(),
-}));
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -76,8 +71,6 @@ describe('SourceHashSummaryLine', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
-
-    configureUseAnalyticsExternalLinkMock();
 
     useMultichainBlockExplorerTxUrlMock.mockReturnValue({
       explorerTxUrl: 'https://explorer.example',

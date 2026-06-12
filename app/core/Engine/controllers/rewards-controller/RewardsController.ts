@@ -38,6 +38,7 @@ import {
   type PredictThePitchPositionsDto,
   type PredictThePitchCampaignParticipantOutcomeDto,
   type PredictThePitchPrizePoolDto,
+  type PredictThePitchPositionsState,
   type OndoGmActivityState,
   type PointsEstimateHistoryEntry,
   ClaimRewardDto,
@@ -56,8 +57,6 @@ import {
   type SubscriptionBenefitsState,
   type VipDashboardDto,
   type VipDashboardState,
-  type VipRefereeMeDto,
-  type VipRefereeMeState,
   type VipFeesResponseDto,
   type VipPerpsFeesState,
   CampaignType,
@@ -373,12 +372,6 @@ const metadata: StateMetadata<RewardsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
-  vipRefereeDashboard: {
-    includeInStateLogs: true,
-    persist: true,
-    includeInDebugSnapshot: false,
-    usedInUi: true,
-  },
   vipPerpsFees: {
     includeInStateLogs: true,
     persist: true,
@@ -551,7 +544,6 @@ const MESSENGER_EXPOSED_METHODS = [
   'getSeasonStatus',
   'getUnlockedRewards',
   'getVIPDashboard',
-  'getVipRefereeDashboard',
   'handleAuthenticationTrigger',
   'hasActiveSeason',
   'hasActivityChanged',
@@ -561,7 +553,6 @@ const MESSENGER_EXPOSED_METHODS = [
   'invalidateSubscriptionCache',
   'isOptInSupported',
   'isRewardsFeatureEnabled',
-  'isVipFeatureEnabled',
   'linkAccountsToSubscriptionCandidate',
   'linkAccountToSubscriptionCandidate',
   'logout',
@@ -595,7 +586,6 @@ export class RewardsController extends BaseController<
     { payload: OndoGmCampaignParticipantOutcomeDto; lastFetched: number }
   > = new Map();
   #isDisabled: () => boolean;
-  #isVipDisabled: () => boolean;
   #reauthPromises: Map<string, Promise<void>> = new Map();
 
   // Deduplicates concurrent /vip/fees fetches for the same subscriptionId.
@@ -763,12 +753,10 @@ export class RewardsController extends BaseController<
     messenger,
     state,
     isDisabled,
-    isVipDisabled,
   }: {
     messenger: RewardsControllerMessenger;
     state?: Partial<RewardsControllerState>;
     isDisabled?: () => boolean;
-    isVipDisabled?: () => boolean;
   }) {
     super({
       name: controllerName,
@@ -781,7 +769,6 @@ export class RewardsController extends BaseController<
     });
 
     this.#isDisabled = isDisabled ?? (() => false);
-    this.#isVipDisabled = isVipDisabled ?? (() => false);
 
     this.messenger.registerMethodActionHandlers(
       this,
@@ -1812,7 +1799,8 @@ export class RewardsController extends BaseController<
   }
 
   async getVipTierForAccount(account: CaipAccountId): Promise<number | null> {
-    if (!this.isVipFeatureEnabled()) return null;
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
+    if (!rewardsEnabled) return null;
 
     const subscriptionId = this.getActualSubscriptionId(account);
     if (!subscriptionId) return null;
@@ -1854,7 +1842,8 @@ export class RewardsController extends BaseController<
     account: CaipAccountId,
     baseFeeBips: number,
   ): Promise<number | null> {
-    if (!this.isVipFeatureEnabled()) return null;
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
+    if (!rewardsEnabled) return null;
 
     const vipDiscountBips = await this.#getVipPerpsDiscountBips(
       account,
@@ -2332,18 +2321,6 @@ export class RewardsController extends BaseController<
   }
 
   /**
-   * Check if the VIP feature is enabled.
-   * VIP is a sub-feature of rewards, so it requires both the rewards feature
-   * and the dedicated VIP feature flag to be enabled.
-   * @returns boolean - True if the VIP feature is enabled, false otherwise
-   */
-  isVipFeatureEnabled(): boolean {
-    if (!this.isRewardsFeatureEnabled()) return false;
-    if (this.#isVipDisabled()) return false;
-    return true;
-  }
-
-  /**
    * Check if there is an active season.
    * Temporarily hardcoded to false while no season is configured. Callers
    * gate season-scoped flows (points estimates, rewards rows, dashboard
@@ -2603,19 +2580,10 @@ export class RewardsController extends BaseController<
             'RewardsDataService:getReferralDetails',
             subscriptionId,
           );
-          // Gate the VIP-referee flag on the VIP feature flag: when the VIP
-          // program is disabled locally we never surface it (no gold-fox icon).
-          const vipEnabled = this.isVipFeatureEnabled();
           return {
             referralCode: referralDetails.referralCode,
             totalReferees: referralDetails.totalReferees,
             referredByCode: referralDetails.referredByCode,
-            isVipReferee: vipEnabled
-              ? Boolean(referralDetails.isVipReferee)
-              : false,
-            referredByVipCode: vipEnabled
-              ? (referralDetails.vipReferrer?.referralCode ?? null)
-              : null,
             lastFetched: Date.now(),
           };
         }, subscriptionId),
@@ -2625,18 +2593,6 @@ export class RewardsController extends BaseController<
         });
       },
     });
-
-    // Gate the VIP-referee fields at the single return point so a fresh cache
-    // hit (which bypasses fetchFresh) can never surface stale VIP data after
-    // the VIP program is disabled locally. The fetchFresh path already clears
-    // these before they reach the cache; this guards the cache-read path too.
-    if (result && !this.isVipFeatureEnabled()) {
-      return {
-        ...result,
-        isVipReferee: false,
-        referredByVipCode: null,
-      };
-    }
 
     return result;
   }
@@ -3014,18 +2970,16 @@ export class RewardsController extends BaseController<
   /**
    * Validate a referral code
    * @param code - The referral code to validate
-   * @returns Promise<{ valid: boolean; isVipCode: boolean }> - Validation result including VIP status
+   * @returns Promise<boolean> - True if the code is valid, false otherwise
    */
-  async validateReferralCode(
-    code: string,
-  ): Promise<{ valid: boolean; isVipCode: boolean }> {
+  async validateReferralCode(code: string): Promise<boolean> {
     const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) {
-      return { valid: false, isVipCode: false };
+      return false;
     }
 
     if (!code.trim()) {
-      return { valid: false, isVipCode: false };
+      return false;
     }
 
     try {
@@ -3033,11 +2987,7 @@ export class RewardsController extends BaseController<
         'RewardsDataService:validateReferralCode',
         code,
       );
-      // A referral code is only treated as a VIP code when the backend says so
-      // AND the VIP feature is enabled locally (rewards on and VIP not disabled).
-      const isVipCode =
-        (response.isVipCode ?? false) && this.isVipFeatureEnabled();
-      return { valid: response.valid, isVipCode };
+      return response.valid;
     } catch (error) {
       Logger.log(
         'RewardsController: Failed to validate referral code:',
@@ -4541,8 +4491,6 @@ export class RewardsController extends BaseController<
   async getVIPDashboard(
     subscriptionId: string,
   ): Promise<VipDashboardState | null> {
-    if (!this.isVipFeatureEnabled()) return null;
-
     return await wrapWithCache<VipDashboardState | null>({
       key: subscriptionId,
       ttl: VIP_DASHBOARD_CACHE_THRESHOLD_MS,
@@ -4603,70 +4551,6 @@ export class RewardsController extends BaseController<
             }
           } else {
             delete state.vipDashboard[key];
-          }
-        });
-      },
-    });
-  }
-
-  /**
-   * Get the VIP referee stats with caching.
-   * @param subscriptionId - The subscription ID for authentication
-   * @returns Promise<VipRefereeMeState | null> - The referee stats, or null when the user is not a VIP referee
-   */
-  async getVipRefereeDashboard(
-    subscriptionId: string,
-  ): Promise<VipRefereeMeState | null> {
-    if (!this.isVipFeatureEnabled()) return null;
-
-    return await wrapWithCache<VipRefereeMeState | null>({
-      key: subscriptionId,
-      ttl: VIP_DASHBOARD_CACHE_THRESHOLD_MS,
-      readCache: (key) => {
-        const cached = this.state.vipRefereeDashboard[key] || undefined;
-        if (!cached) return;
-        return {
-          payload: cached,
-          lastFetched: cached.lastFetched,
-        };
-      },
-      fetchFresh: async () => {
-        try {
-          Logger.log(
-            'RewardsController: Fetching fresh VIP referee dashboard via API call for',
-            subscriptionId,
-          );
-          const referee: VipRefereeMeDto | null = await this.#withAuthRetry(
-            () =>
-              this.messenger.call(
-                'RewardsDataService:getVipRefereeDashboard',
-                subscriptionId,
-              ),
-            subscriptionId,
-          );
-
-          if (!referee) {
-            return null;
-          }
-
-          return {
-            ...referee,
-            lastFetched: Date.now(),
-          };
-        } catch (error) {
-          Logger.log(
-            'RewardsController: Failed to get VIP referee dashboard:',
-            error instanceof Error ? error.message : String(error),
-          );
-          throw error;
-        }
-      },
-      writeCache: (key, payload) => {
-        this.update((state) => {
-          if (payload) {
-            state.vipRefereeDashboard[key] = payload;
-          } else {
-            delete state.vipRefereeDashboard[key];
           }
         });
       },
@@ -4880,7 +4764,6 @@ export class RewardsController extends BaseController<
       if (shouldInvalidateAllCompositeCaches) {
         delete state.subscriptionBenefits?.[subscriptionId];
         delete state.vipDashboard?.[subscriptionId];
-        delete state.vipRefereeDashboard?.[subscriptionId];
         delete state.vipPerpsFees?.[subscriptionId];
         delete state.offDeviceSubscriptionAccounts?.[subscriptionId];
         delete state.subscriptionReferralDetails?.[subscriptionId];
@@ -5013,8 +4896,6 @@ export class RewardsController extends BaseController<
             eligible: cached.eligible,
             neighbors: cached.neighbors,
             computedAt: cached.computedAt,
-            marketsTraded: cached.marketsTraded,
-            minimumMarketsTraded: cached.minimumMarketsTraded,
           },
           lastFetched: cached.lastFetched,
         };
@@ -5068,11 +4949,9 @@ export class RewardsController extends BaseController<
       readCache: (k) => {
         const cached = this.state.predictThePitchPositions[k];
         if (!cached) return undefined;
-
         return {
           payload: {
-            openPositions: cached.openPositions,
-            resolvedPositions: cached.resolvedPositions,
+            positions: cached.positions,
             computedAt: cached.computedAt,
           },
           lastFetched: cached.lastFetched,
@@ -5092,8 +4971,7 @@ export class RewardsController extends BaseController<
       writeCache: (k, payload) => {
         this.update((state) => {
           state.predictThePitchPositions[k] = {
-            openPositions: payload.openPositions,
-            resolvedPositions: payload.resolvedPositions,
+            positions: payload.positions,
             computedAt: payload.computedAt,
             lastFetched: Date.now(),
           };

@@ -199,7 +199,7 @@ describe('useNetworkConnectionBanner', () => {
     // @ts-expect-error - Mocking Engine for testing
     Engine.context = mockEngine.context;
 
-    // Mock the useAnalytics hook to return stable functions
+    // Mock the useMetrics hook to return stable functions
     stableTrackEvent = jest.fn();
     mockAddProperties = jest.fn().mockReturnThis();
     mockBuild = jest.fn(() => ({ event: 'test-event', properties: {} }));

@@ -44,24 +44,24 @@ class AccountListBottomSheet {
     });
   }
 
-  get accountTypeLabel(): EncapsulatedElementType {
+  get accountTypeLabel(): DetoxElement {
     return Matchers.getElementByID(
       AccountListBottomSheetSelectorsIDs.ACCOUNT_TYPE_LABEL,
     );
   }
 
-  get accountTagLabel(): EncapsulatedElementType {
+  get accountTagLabel(): DetoxElement {
     return Matchers.getElementByID(CellComponentSelectorsIDs.TAG_LABEL);
   }
 
-  get title(): EncapsulatedElementType {
+  get title(): DetoxElement {
     return Matchers.getElementByText(
       AccountListBottomSheetSelectorsText.ACCOUNTS_LIST_TITLE,
     );
   }
 
   /** Header back control (same testID as CommonView.backButton / AccountSelector HeaderCompactStandard). */
-  get backButton(): EncapsulatedElementType {
+  get backButton(): DetoxElement {
     return Matchers.getElementByID(CommonSelectorsIDs.BACK_ARROW_BUTTON);
   }
 
@@ -80,19 +80,19 @@ class AccountListBottomSheet {
     });
   }
 
-  get addEthereumAccountButton(): EncapsulatedElementType {
+  get addEthereumAccountButton(): DetoxElement {
     return Matchers.getElementByText(
       AccountListBottomSheetSelectorsText.ADD_ETHEREUM_ACCOUNT,
     );
   }
 
-  get removeAccountAlertText(): EncapsulatedElementType {
+  get removeAccountAlertText(): DetoxElement {
     return Matchers.getElementByText(
       AccountListBottomSheetSelectorsText.REMOVE_IMPORTED_ACCOUNT,
     );
   }
 
-  get connectAccountsButton(): EncapsulatedElementType {
+  get connectAccountsButton(): DetoxElement {
     return Matchers.getElementByID(
       ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON,
     );
@@ -122,21 +122,15 @@ class AccountListBottomSheet {
     );
   }
 
-  getAccountElementByAccountNameV2(
-    accountName: string,
-  ): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByIDAndLabel(AccountCellIds.ADDRESS, accountName),
-      appium: () => PlaywrightMatchers.getElementByText(accountName),
-    });
+  getAccountElementByAccountNameV2(accountName: string): DetoxElement {
+    return Matchers.getElementByIDAndLabel(AccountCellIds.ADDRESS, accountName);
   }
 
-  getSelectElement(index: number): EncapsulatedElementType {
+  async getSelectElement(index: number): DetoxElement {
     return Matchers.getElementByID(CellComponentSelectorsIDs.SELECT, index);
   }
 
-  getMultiselectElement(index: number): EncapsulatedElementType {
+  async getMultiselectElement(index: number): Promise<DetoxElement> {
     return Matchers.getElementByID(
       CellComponentSelectorsIDs.MULTISELECT,
       index,
@@ -151,7 +145,7 @@ class AccountListBottomSheet {
    * @param {number} index - The index of the element to retrieve.
    * @returns {Detox.IndexableNativeElement} The matcher for the element's title/name.
    */
-  getSelectWithMenuElementName(index: number): EncapsulatedElementType {
+  getSelectWithMenuElementName(index: number): DetoxElement {
     return Matchers.getElementByID(CellComponentSelectorsIDs.BASE_TITLE, index);
   }
 
@@ -323,7 +317,7 @@ class AccountListBottomSheet {
   }
 
   // V2 Multichain Accounts Methods
-  get ellipsisMenuButton(): EncapsulatedElementType {
+  get ellipsisMenuButton(): DetoxElement {
     return Matchers.getElementByID(AccountCellIds.MENU);
   }
 

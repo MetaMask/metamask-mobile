@@ -3,7 +3,6 @@ import {
   type ConnectivityControllerMessenger,
 } from '@metamask/connectivity-controller';
 
-import Logger from '../../../../util/Logger';
 import { MessengerClientInitFunction } from '../../types';
 
 import { NetInfoConnectivityAdapter } from './netinfo-connectivity-adapter';
@@ -30,16 +29,6 @@ export const connectivityControllerInit: MessengerClientInitFunction<
   const controller = new ConnectivityController({
     messenger: controllerMessenger,
     connectivityAdapter,
-  });
-
-  // Fire-and-forget: fetches the initial connectivity status from the adapter
-  // and seeds controller state. Failure leaves the default (online) in place;
-  // subsequent NetInfo events will correct it via the subscription path.
-  controller.init().catch((error) => {
-    Logger.error(
-      error as Error,
-      'ConnectivityController: failed to initialize',
-    );
   });
 
   return {

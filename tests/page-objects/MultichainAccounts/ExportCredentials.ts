@@ -2,40 +2,39 @@ import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { ExportCredentialsIds } from '../../../app/components/Views/MultichainAccounts/AccountDetails/ExportCredentials.testIds';
 import { RevealSeedViewSelectorsIDs } from '../../../app/components/Views/RevealPrivateCredential/RevealSeedView.testIds';
-import { EncapsulatedElementType } from '../../framework';
 
 class ExportCredentials {
-  get srpInfoContainer(): EncapsulatedElementType {
+  get srpInfoContainer(): DetoxElement {
     return Matchers.getElementByID(ExportCredentialsIds.CONTAINER);
   }
 
-  get revealContainer(): EncapsulatedElementType {
+  get revealContainer(): DetoxElement {
     return Matchers.getElementByID(
       RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID,
     );
   }
 
-  get exportPrivateKeyButton(): EncapsulatedElementType {
+  get exportPrivateKeyButton(): DetoxElement {
     return Matchers.getElementByID(
       ExportCredentialsIds.EXPORT_PRIVATE_KEY_BUTTON,
     );
   }
 
-  get exportSrpButton(): EncapsulatedElementType {
+  get exportSrpButton(): DetoxElement {
     return Matchers.getElementByID(ExportCredentialsIds.EXPORT_SRP_BUTTON);
   }
 
-  get passwordInput(): EncapsulatedElementType {
+  get passwordInput(): DetoxElement {
     return Matchers.getElementByID(
       RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
     );
   }
 
-  get nextButton(): EncapsulatedElementType {
+  get nextButton(): DetoxElement {
     return Matchers.getElementByID(ExportCredentialsIds.NEXT_BUTTON);
   }
 
-  get learnMoreButton(): EncapsulatedElementType {
+  get learnMoreButton(): DetoxElement {
     return Matchers.getElementByID(ExportCredentialsIds.LEARN_MORE_BUTTON);
   }
 

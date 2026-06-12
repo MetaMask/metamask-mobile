@@ -20,9 +20,6 @@ import Animated, {
 import HeaderCompactStandard from '../HeaderCompactStandard';
 import { HeaderStandardAnimatedProps } from './HeaderStandardAnimated.types';
 
-/**
- * @deprecated Please update your code to use `HeaderStandardAnimated` from `@metamask/design-system-react-native`.
- */
 const HeaderStandardAnimated: React.FC<HeaderStandardAnimatedProps> = ({
   title,
   titleProps,

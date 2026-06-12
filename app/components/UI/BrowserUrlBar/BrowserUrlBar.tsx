@@ -29,6 +29,7 @@ import { BrowserViewSelectorsIDs } from '../../Views/BrowserTab/BrowserView.test
 import { strings } from '../../../../locales/i18n';
 import { BrowserURLBarSelectorsIDs } from './BrowserURLBar.testIds';
 import AccountRightButton from '../AccountRightButton';
+import Text from '../../../component-library/components/Texts/Text';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import { useSelector } from 'react-redux';
 import { selectNetworkConfigurations } from '../../../selectors/networkController';
@@ -42,7 +43,6 @@ import ButtonIcon, {
 } from '../../../component-library/components/Buttons/ButtonIcon';
 import { hasProperty } from '@metamask/utils';
 import TabCountIcon from '../Tabs/TabCountIcon';
-import { Text } from '@metamask/design-system-react-native';
 
 const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
   (

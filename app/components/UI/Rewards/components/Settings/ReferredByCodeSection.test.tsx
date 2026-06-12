@@ -5,27 +5,9 @@ import ReferredByCodeSection from './ReferredByCodeSection';
 import { useReferralDetails } from '../../hooks/useReferralDetails';
 import { useValidateReferralCode } from '../../hooks/useValidateReferralCode';
 import { useApplyReferralCode } from '../../hooks/useApplyReferralCode';
-import {
-  selectReferredByCode,
-  selectIsVipReferee,
-  selectReferralDetailsLoading,
-  selectReferralDetailsError,
-} from '../../../../../reducers/rewards/selectors';
-import { selectVipProgramEnabled } from '../../../../../selectors/featureFlagController/vipProgram';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
-}));
-
-jest.mock('../../../../../reducers/rewards/selectors', () => ({
-  selectReferredByCode: jest.fn(),
-  selectIsVipReferee: jest.fn(),
-  selectReferralDetailsLoading: jest.fn(),
-  selectReferralDetailsError: jest.fn(),
-}));
-
-jest.mock('../../../../../selectors/featureFlagController/vipProgram', () => ({
-  selectVipProgramEnabled: jest.fn(),
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -221,17 +203,6 @@ jest.mock('../RewardsErrorBanner', () => {
   };
 });
 
-jest.mock('../RewardsVipReferralTag/RewardsVipReferralTag', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-
-  return {
-    __esModule: true,
-    default: () =>
-      ReactActual.createElement(View, { testID: 'rewards-vip-referral-tag' }),
-  };
-});
-
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
@@ -281,32 +252,23 @@ describe('ReferredByCodeSection', () => {
     referredByCode?: string | null;
     isLoading?: boolean;
     referralDetailsError?: boolean;
-    isVipReferee?: boolean;
-    isVipProgramEnabled?: boolean;
   }) => {
     const {
       referredByCode = null,
       isLoading = false,
       referralDetailsError = false,
-      isVipReferee = false,
-      isVipProgramEnabled = true,
     } = overrides;
 
     return (selector: unknown) => {
-      if (selector === selectReferredByCode) {
+      const selectorString = selector?.toString() || '';
+      if (selectorString.includes('selectReferredByCode')) {
         return referredByCode;
       }
-      if (selector === selectReferralDetailsLoading) {
+      if (selectorString.includes('selectReferralDetailsLoading')) {
         return isLoading;
       }
-      if (selector === selectReferralDetailsError) {
+      if (selectorString.includes('selectReferralDetailsError')) {
         return referralDetailsError;
-      }
-      if (selector === selectIsVipReferee) {
-        return isVipReferee;
-      }
-      if (selector === selectVipProgramEnabled) {
-        return isVipProgramEnabled;
       }
       return undefined;
     };
@@ -326,7 +288,6 @@ describe('ReferredByCodeSection', () => {
       isValidating: false,
       isValid: false,
       isUnknownError: false,
-      isVipReferralCode: false,
     });
 
     mockUseApplyReferralCode.mockReturnValue({
@@ -509,7 +470,6 @@ describe('ReferredByCodeSection', () => {
         isValidating: true,
         isValid: false,
         isUnknownError: false,
-        isVipReferralCode: false,
       });
 
       const { getByTestId } = render(<ReferredByCodeSection />);
@@ -527,7 +487,6 @@ describe('ReferredByCodeSection', () => {
         isValidating: false,
         isValid: true,
         isUnknownError: false,
-        isVipReferralCode: false,
       });
       mockUseApplyReferralCode.mockReturnValue({
         applyReferralCode: mockApplyReferralCode,
@@ -551,7 +510,6 @@ describe('ReferredByCodeSection', () => {
         isValidating: false,
         isValid: false,
         isUnknownError: false,
-        isVipReferralCode: false,
       });
 
       const { getByTestId } = render(<ReferredByCodeSection />);
@@ -568,7 +526,6 @@ describe('ReferredByCodeSection', () => {
         isValidating: false,
         isValid: false,
         isUnknownError: false,
-        isVipReferralCode: false,
       });
 
       const { getByTestId } = render(<ReferredByCodeSection />);
@@ -584,7 +541,6 @@ describe('ReferredByCodeSection', () => {
         isValidating: false,
         isValid: false,
         isUnknownError: true,
-        isVipReferralCode: false,
       });
 
       const { queryByTestId } = render(<ReferredByCodeSection />);
@@ -600,7 +556,6 @@ describe('ReferredByCodeSection', () => {
         isValidating: false,
         isValid: false,
         isUnknownError: false,
-        isVipReferralCode: false,
       });
 
       const { queryByTestId } = render(<ReferredByCodeSection />);
@@ -623,7 +578,6 @@ describe('ReferredByCodeSection', () => {
         isValidating: false,
         isValid: true,
         isUnknownError: false,
-        isVipReferralCode: false,
       });
 
       render(<ReferredByCodeSection />);
@@ -645,7 +599,6 @@ describe('ReferredByCodeSection', () => {
         isValidating: false,
         isValid: true,
         isUnknownError: false,
-        isVipReferralCode: false,
       });
 
       render(<ReferredByCodeSection />);
@@ -661,7 +614,6 @@ describe('ReferredByCodeSection', () => {
         isValidating: false,
         isValid: false,
         isUnknownError: false,
-        isVipReferralCode: false,
       });
 
       render(<ReferredByCodeSection />);
@@ -678,7 +630,6 @@ describe('ReferredByCodeSection', () => {
         isValidating: false,
         isValid: true,
         isUnknownError: false,
-        isVipReferralCode: false,
       });
 
       render(<ReferredByCodeSection />);
@@ -697,7 +648,6 @@ describe('ReferredByCodeSection', () => {
         isValidating: false,
         isValid: true,
         isUnknownError: false,
-        isVipReferralCode: false,
       });
       mockUseApplyReferralCode.mockReturnValue({
         applyReferralCode: mockApplyReferralCode,
@@ -724,7 +674,6 @@ describe('ReferredByCodeSection', () => {
         isValidating: false,
         isValid: true,
         isUnknownError: false,
-        isVipReferralCode: false,
       });
       mockUseApplyReferralCode.mockReturnValue({
         applyReferralCode: mockApplyReferralCode,
@@ -762,7 +711,6 @@ describe('ReferredByCodeSection', () => {
         isValidating: false,
         isValid: true,
         isUnknownError: false,
-        isVipReferralCode: false,
       });
       mockUseApplyReferralCode.mockReturnValue({
         applyReferralCode: mockApplyReferralCode,
@@ -785,7 +733,6 @@ describe('ReferredByCodeSection', () => {
         isValidating: false,
         isValid: false,
         isUnknownError: false,
-        isVipReferralCode: false,
       });
       mockUseApplyReferralCode.mockReturnValue({
         applyReferralCode: mockApplyReferralCode,
@@ -810,7 +757,6 @@ describe('ReferredByCodeSection', () => {
         isValidating: false,
         isValid: true,
         isUnknownError: false,
-        isVipReferralCode: false,
       });
       mockUseApplyReferralCode.mockReturnValue({
         applyReferralCode: mockApplyReferralCode,
@@ -824,98 +770,6 @@ describe('ReferredByCodeSection', () => {
 
       const endAccessory = getByTestId('referred-by-code-input-end-accessory');
       expect(endAccessory).toBeOnTheScreen();
-    });
-  });
-
-  describe('VIP Referral Tag gating', () => {
-    it('renders the VIP referral tag when linked to a VIP referrer and the VIP program is enabled', () => {
-      mockUseSelector.mockImplementation(
-        createMockSelectors({
-          referredByCode: 'VIPREFCODE',
-          isVipReferee: true,
-          isVipProgramEnabled: true,
-        }),
-      );
-
-      const { getByTestId } = render(<ReferredByCodeSection />);
-
-      expect(getByTestId('rewards-vip-referral-tag')).toBeOnTheScreen();
-    });
-
-    it('does not render the VIP referral tag when isVipReferee is true but the VIP program is disabled', () => {
-      // Simulates a fresh referral-details cache hit still holding
-      // isVipReferee: true after the VIP program was turned off locally.
-      mockUseSelector.mockImplementation(
-        createMockSelectors({
-          referredByCode: 'VIPREFCODE',
-          isVipReferee: true,
-          isVipProgramEnabled: false,
-        }),
-      );
-
-      const { queryByTestId } = render(<ReferredByCodeSection />);
-
-      expect(queryByTestId('rewards-vip-referral-tag')).toBeNull();
-    });
-
-    it('does not render the VIP referral tag when the VIP program is enabled but the user is not a VIP referee', () => {
-      mockUseSelector.mockImplementation(
-        createMockSelectors({
-          referredByCode: 'NORMALCODE',
-          isVipReferee: false,
-          isVipProgramEnabled: true,
-        }),
-      );
-
-      const { queryByTestId } = render(<ReferredByCodeSection />);
-
-      expect(queryByTestId('rewards-vip-referral-tag')).toBeNull();
-    });
-
-    it('renders the VIP referral tag while entering a VIP code when the VIP program is enabled', () => {
-      mockUseValidateReferralCode.mockReturnValue({
-        referralCode: 'VIPENTRY',
-        setReferralCode: mockSetInputCode,
-        validateCode: jest.fn().mockResolvedValue(''),
-        isValidating: false,
-        isValid: false,
-        isUnknownError: false,
-        isVipReferralCode: true,
-      });
-      mockUseSelector.mockImplementation(
-        createMockSelectors({
-          referredByCode: null,
-          isVipReferee: false,
-          isVipProgramEnabled: true,
-        }),
-      );
-
-      const { getByTestId } = render(<ReferredByCodeSection />);
-
-      expect(getByTestId('rewards-vip-referral-tag')).toBeOnTheScreen();
-    });
-
-    it('does not render the VIP referral tag while entering a VIP code when the VIP program is disabled', () => {
-      mockUseValidateReferralCode.mockReturnValue({
-        referralCode: 'VIPENTRY',
-        setReferralCode: mockSetInputCode,
-        validateCode: jest.fn().mockResolvedValue(''),
-        isValidating: false,
-        isValid: false,
-        isUnknownError: false,
-        isVipReferralCode: true,
-      });
-      mockUseSelector.mockImplementation(
-        createMockSelectors({
-          referredByCode: null,
-          isVipReferee: false,
-          isVipProgramEnabled: false,
-        }),
-      );
-
-      const { queryByTestId } = render(<ReferredByCodeSection />);
-
-      expect(queryByTestId('rewards-vip-referral-tag')).toBeNull();
     });
   });
 });

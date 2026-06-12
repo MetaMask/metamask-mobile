@@ -2,7 +2,7 @@ import { Messenger } from '@metamask/messenger';
 import {
   KeyringControllerLockEvent,
   KeyringControllerUnlockEvent,
-  KeyringControllerWithKeyringV2UnsafeAction,
+  KeyringControllerWithKeyringAction,
 } from '@metamask/keyring-controller';
 import { PreferencesControllerGetStateAction } from '@metamask/preferences-controller';
 import { RootMessenger } from '../../types';
@@ -70,7 +70,7 @@ export function getSnapControllerMessenger(rootMessenger: RootMessenger) {
 }
 
 type InitActions =
-  | KeyringControllerWithKeyringV2UnsafeAction
+  | KeyringControllerWithKeyringAction
   | PreferencesControllerGetStateAction
   | SnapControllerSetClientActiveAction
   | AnalyticsControllerActions;
@@ -100,7 +100,7 @@ export function getSnapControllerInitMessenger(rootMessenger: RootMessenger) {
   });
   rootMessenger.delegate({
     actions: [
-      'KeyringController:withKeyringV2Unsafe',
+      'KeyringController:withKeyring',
       'PreferencesController:getState',
       'SnapController:setClientActive',
       'AnalyticsController:trackEvent',

@@ -2,18 +2,14 @@ import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { SuccessImportAccountIDs } from '../../../app/components/Views/ImportPrivateKeySuccess/SuccessImportAccount.testIds';
 import WalletView from '../wallet/WalletView';
-import {
-  asDetoxElement,
-  Utilities,
-  EncapsulatedElementType,
-} from '../../framework';
+import { asDetoxElement, Utilities } from '../../framework';
 
 class SuccessImportAccountView {
-  get container(): EncapsulatedElementType {
+  get container(): DetoxElement {
     return Matchers.getElementByID(SuccessImportAccountIDs.CONTAINER);
   }
 
-  get closeButton(): EncapsulatedElementType {
+  get closeButton(): DetoxElement {
     return Matchers.getElementByID(SuccessImportAccountIDs.CLOSE_BUTTON);
   }
 

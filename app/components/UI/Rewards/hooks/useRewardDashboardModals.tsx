@@ -22,7 +22,6 @@ import { useLinkAccountGroup } from './useLinkAccountGroup';
 import { isHardwareAccount } from '../../../../util/address';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectInternalAccountsByGroupId } from '../../../../selectors/multichainAccounts/accounts';
-import { navigateToRewardsRoute } from '../utils';
 
 /**
  * Session tracking singleton to prevent multiple modal shows per app session per account group.
@@ -132,7 +131,7 @@ export const useRewardDashboardModals = () => {
         ),
         onPress: () => {
           dispatch(setHideUnlinkedAccountsBanner(true));
-          navigateToRewardsRoute(navigation, Routes.REWARDS_SETTINGS_VIEW);
+          navigation.navigate(Routes.REWARDS_SETTINGS_VIEW);
         },
         variant: ButtonVariant.Primary,
       },

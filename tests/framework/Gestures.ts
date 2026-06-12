@@ -11,9 +11,6 @@ import {
 } from './types.ts';
 import { createLogger } from './logger.ts';
 import { sleep } from '../../app/util/testUtils';
-import { type EncapsulatedElementType } from './EncapsulatedElement.ts';
-import { FrameworkDetector } from './FrameworkDetector.ts';
-import UnifiedGestures from './UnifiedGestures.ts';
 
 const logger = createLogger({ name: 'Gestures' });
 
@@ -27,7 +24,7 @@ export default class Gestures {
    * @param options - Options for the tap action
    */
   private static tapWithChecks = async (
-    elem: DetoxElement | WebElement | EncapsulatedElementType,
+    elem: DetoxElement | WebElement,
     options: {
       checkStability?: boolean;
       checkVisibility?: boolean;
@@ -86,17 +83,9 @@ export default class Gestures {
    * @throws Will retry the operation if it fails, with retry logic handled by executeWith
    */
   static async tap(
-    elem: DetoxElement | WebElement | EncapsulatedElementType,
+    elem: DetoxElement | WebElement,
     options: TapOptions = {},
   ): Promise<void> {
-    if (FrameworkDetector.isAppium()) {
-      return UnifiedGestures.tap(elem as EncapsulatedElementType, {
-        timeout: options.timeout,
-        description: options.elemDescription,
-        delay: options.delay,
-      });
-    }
-
     const {
       timeout = BASE_DEFAULTS.timeout,
       checkStability = false,
@@ -131,17 +120,9 @@ export default class Gestures {
    * @throws Will retry the operation if it fails, with retry logic handled by executeWith
    */
   static async waitAndTap(
-    elem: DetoxElement | WebElement | EncapsulatedElementType,
+    elem: DetoxElement | WebElement,
     options: TapOptions = {},
   ): Promise<void> {
-    if (FrameworkDetector.isAppium()) {
-      return UnifiedGestures.waitAndTap(elem as EncapsulatedElementType, {
-        timeout: options.timeout,
-        description: options.elemDescription,
-        delay: options.delay,
-      });
-    }
-
     const {
       timeout = BASE_DEFAULTS.timeout,
       checkStability = false,
@@ -175,21 +156,10 @@ export default class Gestures {
    * @throws Will retry the operation if it fails, with retry logic handled by executeWithRetry
    */
   static async tapAtIndex(
-    elem: DetoxElement | EncapsulatedElementType,
+    elem: DetoxElement,
     index: number,
     options: TapOptions = {},
   ): Promise<void> {
-    if (FrameworkDetector.isAppium()) {
-      return UnifiedGestures.tapAtIndex(
-        elem as EncapsulatedElementType,
-        index,
-        {
-          timeout: options.timeout,
-          description: options.elemDescription,
-        },
-      );
-    }
-
     const {
       timeout = BASE_DEFAULTS.timeout,
       elemDescription,
@@ -233,21 +203,10 @@ export default class Gestures {
    * @throws Will retry the operation if it fails, with retry logic handled by executeWithRetry
    */
   static async tapAtPoint(
-    elem: DetoxElement | EncapsulatedElementType,
+    elem: DetoxElement,
     point: { x: number; y: number },
     options: TapOptions = {},
   ): Promise<void> {
-    if (FrameworkDetector.isAppium()) {
-      return UnifiedGestures.tapAtPoint(
-        elem as EncapsulatedElementType,
-        point,
-        {
-          timeout: options.timeout,
-          description: options.elemDescription,
-        },
-      );
-    }
-
     const {
       timeout = BASE_DEFAULTS.timeout,
       checkStability = false,
@@ -281,16 +240,9 @@ export default class Gestures {
    * @throws Will retry the operation if it fails, with retry logic handled by executeWithRetry
    */
   static async dblTap(
-    elem: DetoxElement | EncapsulatedElementType,
+    elem: DetoxElement,
     options: TapOptions = {},
   ): Promise<void> {
-    if (FrameworkDetector.isAppium()) {
-      return UnifiedGestures.dblTap(elem as EncapsulatedElementType, {
-        timeout: options.timeout,
-        description: options.elemDescription,
-      });
-    }
-
     const {
       timeout = BASE_DEFAULTS.timeout,
       checkStability = false,
@@ -327,17 +279,9 @@ export default class Gestures {
    * @throws Will retry the operation if it fails, with retry logic handled by executeWithRetry
    */
   static async longPress(
-    elem: DetoxElement | EncapsulatedElementType,
+    elem: DetoxElement,
     options: LongPressOptions = {},
   ): Promise<void> {
-    if (FrameworkDetector.isAppium()) {
-      return UnifiedGestures.longPress(elem as EncapsulatedElementType, {
-        timeout: options.timeout,
-        description: options.elemDescription,
-        duration: options.duration,
-      });
-    }
-
     const {
       timeout = BASE_DEFAULTS.timeout,
       checkStability = false,
@@ -375,17 +319,10 @@ export default class Gestures {
    * @throws Will retry the operation if it fails, with retry logic handled by executeWith
    */
   static async typeText(
-    elem: DetoxElement | EncapsulatedElementType,
+    elem: DetoxElement,
     text: string,
     options: TypeTextOptions = {},
   ): Promise<void> {
-    if (FrameworkDetector.isAppium()) {
-      return UnifiedGestures.typeText(elem as EncapsulatedElementType, text, {
-        timeout: options.timeout,
-        description: options.elemDescription,
-      });
-    }
-
     const {
       timeout = BASE_DEFAULTS.timeout,
       clearFirst = true,
@@ -475,21 +412,10 @@ export default class Gestures {
    * @throws Will retry the operation if it fails, with retry logic handled by executeWithRetry
    */
   static async replaceText(
-    elem: DetoxElement | EncapsulatedElementType,
+    elem: DetoxElement,
     text: string,
     options: GestureOptions = {},
   ): Promise<void> {
-    if (FrameworkDetector.isAppium()) {
-      return UnifiedGestures.replaceText(
-        elem as EncapsulatedElementType,
-        text,
-        {
-          timeout: options.timeout,
-          description: options.elemDescription,
-        },
-      );
-    }
-
     const {
       timeout = BASE_DEFAULTS.timeout,
       checkStability = false,
@@ -527,19 +453,10 @@ export default class Gestures {
    * @throws Will retry the operation if it fails, with retry logic handled by executeWith
    */
   static async swipe(
-    elem: DetoxElement | EncapsulatedElementType,
+    elem: DetoxElement,
     direction: 'up' | 'down' | 'left' | 'right',
     options: SwipeOptions = {},
   ): Promise<void> {
-    if (FrameworkDetector.isAppium()) {
-      return UnifiedGestures.swipe(elem as EncapsulatedElementType, direction, {
-        timeout: options.timeout,
-        description: options.elemDescription,
-        speed: options.speed,
-        percentage: options.percentage,
-      });
-    }
-
     const {
       timeout = BASE_DEFAULTS.timeout,
       speed = 'fast',
@@ -584,23 +501,10 @@ export default class Gestures {
    * @throws Will retry the operation if it fails, with retry logic handled by executeWith
    */
   static async scrollToElement(
-    targetElement: DetoxElement | EncapsulatedElementType,
+    targetElement: DetoxElement,
     scrollableContainer: Promise<Detox.NativeMatcher>,
     options: ScrollOptions = {},
   ): Promise<void> {
-    if (FrameworkDetector.isAppium()) {
-      return UnifiedGestures.scrollToElement(
-        targetElement as EncapsulatedElementType,
-        scrollableContainer,
-        {
-          timeout: options.timeout,
-          description: options.elemDescription,
-          direction: options.direction,
-          scrollAmount: options.scrollAmount,
-        },
-      );
-    }
-
     const {
       timeout = BASE_DEFAULTS.timeout,
       direction = 'down',
@@ -672,7 +576,7 @@ export default class Gestures {
    * @deprecated Use longPress() instead for better error handling and retry mechanisms
    */
   static async tapAndLongPress(
-    elem: DetoxElement | EncapsulatedElementType,
+    elem: DetoxElement,
     timeout = 2000,
   ): Promise<void> {
     return this.longPress(elem, { duration: timeout });
@@ -704,9 +608,7 @@ export default class Gestures {
    * Legacy method: Double tap an element
    * @deprecated Use dblTap() instead for better error handling and retry mechanisms - we should replace the function name when we have migrated all usages
    */
-  static async doubleTap(
-    elem: DetoxElement | EncapsulatedElementType,
-  ): Promise<void> {
+  static async doubleTap(elem: DetoxElement): Promise<void> {
     return Utilities.executeWithRetry(
       async () => {
         const el = (await elem) as Detox.IndexableNativeElement;
@@ -723,7 +625,7 @@ export default class Gestures {
    * @deprecated Use typeText() with clearFirst option or the replaceText() from Gestures.ts instead for better error handling and retry mechanisms
    */
   static async clearField(
-    elem: DetoxElement | EncapsulatedElementType,
+    elem: DetoxElement,
     options: GestureOptions = {},
   ): Promise<void> {
     const {
@@ -761,7 +663,7 @@ export default class Gestures {
    * @deprecated Use typeText() with hideKeyboard option instead for better error handling and retry mechanisms
    */
   static async typeTextAndHideKeyboard(
-    elem: DetoxElement | EncapsulatedElementType,
+    elem: DetoxElement,
     text: string,
   ): Promise<void> {
     return this.typeText(elem, text, {
@@ -775,7 +677,7 @@ export default class Gestures {
    * @deprecated Use typeText() with hideKeyboard: false option instead for better error handling and retry mechanisms
    */
   static async typeTextWithoutKeyboard(
-    elem: DetoxElement | EncapsulatedElementType,
+    elem: DetoxElement,
     text: string,
   ): Promise<void> {
     return this.typeText(elem, text, {
@@ -789,7 +691,7 @@ export default class Gestures {
    * @deprecated Use replaceText() instead for better error handling and retry mechanisms
    */
   static async replaceTextInField(
-    elem: DetoxElement | EncapsulatedElementType,
+    elem: DetoxElement,
     text: string,
     timeout = 10000,
   ): Promise<void> {

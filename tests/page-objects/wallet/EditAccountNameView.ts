@@ -1,15 +1,14 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { EditAccountNameSelectorIDs } from '../../../app/components/Views/EditAccountName/EditAccountName.testIds';
-import { EncapsulatedElementType } from '../../framework';
 
 class EditAccountNameView {
-  get saveButton(): EncapsulatedElementType {
+  get saveButton(): DetoxElement {
     return Matchers.getElementByID(
       EditAccountNameSelectorIDs.EDIT_ACCOUNT_NAME_SAVE,
     );
   }
-  get accountNameInput(): EncapsulatedElementType {
+  get accountNameInput(): DetoxElement {
     return Matchers.getElementByID(
       EditAccountNameSelectorIDs.ACCOUNT_NAME_INPUT,
     );

@@ -210,80 +210,76 @@ function NetworkFeeRow({
     : TextColor.TextDefault;
 
   return (
-    <>
-      <Box twClassName="border-t border-muted mx-4" />
+    <Box
+      testID={BatchSellFinalReviewModalSelectorsIDs.NETWORK_FEE_ROW}
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      paddingHorizontal={4}
+      paddingVertical={3}
+      twClassName="border-t border-muted"
+    >
       <Box
-        testID={BatchSellFinalReviewModalSelectorsIDs.NETWORK_FEE_ROW}
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        paddingHorizontal={4}
-        paddingVertical={3}
+        gap={1}
       >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          gap={1}
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          color={textColor}
         >
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            color={textColor}
-          >
-            {strings('bridge.network_fee')}
-          </Text>
-          <Pressable
-            onPress={onInfoPress}
-            testID={
-              BatchSellFinalReviewModalSelectorsIDs.NETWORK_FEE_INFO_BUTTON
-            }
-            accessibilityRole="button"
-          >
-            <Icon
-              name={IconName.Info}
-              size={IconSize.Sm}
-              color={IconColor.IconAlternative}
-            />
-          </Pressable>
-        </Box>
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.End}
-          gap={2}
-          twClassName="min-w-0 flex-1"
+          {strings('bridge.network_fee')}
+        </Text>
+        <Pressable
+          onPress={onInfoPress}
+          testID={BatchSellFinalReviewModalSelectorsIDs.NETWORK_FEE_INFO_BUTTON}
+          accessibilityRole="button"
         >
-          {isLoading ? (
-            <Skeleton
-              width={NETWORK_FEE_VALUES_SKELETON_WIDTH}
-              height={NETWORK_FEE_SKELETON_HEIGHT}
-              twClassName="rounded-lg"
-              testID={
-                BatchSellFinalReviewModalSelectorsIDs.NETWORK_FEE_VALUES_SKELETON
-              }
-            />
-          ) : (
-            <>
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={textColor}
-                numberOfLines={1}
-              >
-                {networkFee.formatted}
-              </Text>
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={fiatTextColor}
-                numberOfLines={1}
-              >
-                {networkFee.formattedFiat}
-              </Text>
-            </>
-          )}
-        </Box>
+          <Icon
+            name={IconName.Info}
+            size={IconSize.Sm}
+            color={IconColor.IconAlternative}
+          />
+        </Pressable>
       </Box>
-    </>
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.End}
+        gap={2}
+        twClassName="min-w-0 flex-1"
+      >
+        {isLoading ? (
+          <Skeleton
+            width={NETWORK_FEE_VALUES_SKELETON_WIDTH}
+            height={NETWORK_FEE_SKELETON_HEIGHT}
+            twClassName="rounded-lg"
+            testID={
+              BatchSellFinalReviewModalSelectorsIDs.NETWORK_FEE_VALUES_SKELETON
+            }
+          />
+        ) : (
+          <>
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={textColor}
+              numberOfLines={1}
+            >
+              {networkFee.formatted}
+            </Text>
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={fiatTextColor}
+              numberOfLines={1}
+            >
+              {networkFee.formattedFiat}
+            </Text>
+          </>
+        )}
+      </Box>
+    </Box>
   );
 }
 
@@ -303,7 +299,7 @@ export function BatchSellFinalReviewModal() {
     networkFee: batchSellQuoteData.networkFee,
   });
   const surfaceClass = useElevatedSurface();
-  const [isTokenDetailsExpanded, setIsTokenDetailsExpanded] = useState(false);
+  const [isTokenDetailsExpanded, setIsTokenDetailsExpanded] = useState(true);
   const finalReviewQuoteData = useMemo(
     () =>
       getFinalReviewQuoteData({

@@ -4,92 +4,91 @@ import Utilities from '../../framework/Utilities';
 
 import { BuildQuoteSelectors } from '../../../app/components/UI/Ramp/Aggregator/Views/BuildQuote/BuildQuote.testIds';
 import { AddressSelectorSelectors } from '../../../app/components/Views/AddressSelector/AddressSelector.testIds';
-import { EncapsulatedElementType } from '../../framework';
 
 class BuildQuoteView {
-  get amountToBuyLabel(): EncapsulatedElementType {
+  get amountToBuyLabel(): DetoxElement {
     return Matchers.getElementByText(BuildQuoteSelectors.AMOUNT_TO_BUY_LABEL);
   }
 
-  get amountToSellLabel(): EncapsulatedElementType {
+  get amountToSellLabel(): DetoxElement {
     return Matchers.getElementByText(BuildQuoteSelectors.AMOUNT_TO_SELL_LABEL);
   }
 
-  get getQuotesButton(): EncapsulatedElementType {
+  get getQuotesButton(): DetoxElement {
     return Matchers.getElementByText(BuildQuoteSelectors.GET_QUOTES_BUTTON);
   }
 
-  get cancelButton(): EncapsulatedElementType {
+  get cancelButton(): DetoxElement {
     return Matchers.getElementByText(BuildQuoteSelectors.CANCEL_BUTTON_TEXT);
   }
 
-  get selectRegionDropdown(): EncapsulatedElementType {
+  get selectRegionDropdown(): DetoxElement {
     return Matchers.getElementByText(BuildQuoteSelectors.SELECT_REGION);
   }
 
-  get selectPaymentMethodDropdown(): EncapsulatedElementType {
+  get selectPaymentMethodDropdown(): DetoxElement {
     return Matchers.getElementByText(BuildQuoteSelectors.SELECT_PAYMENT_METHOD);
   }
 
-  get selectCurrencyDropdown(): EncapsulatedElementType {
+  get selectCurrencyDropdown(): DetoxElement {
     return Matchers.getElementByID(BuildQuoteSelectors.SELECT_CURRENCY);
   }
 
-  get amountInput(): EncapsulatedElementType {
+  get amountInput(): DetoxElement {
     return Matchers.getElementByID(BuildQuoteSelectors.AMOUNT_INPUT);
   }
 
-  get regionDropdown(): EncapsulatedElementType {
+  get regionDropdown(): DetoxElement {
     return Matchers.getElementByID(BuildQuoteSelectors.REGION_DROPDOWN);
   }
 
-  get accountPicker(): EncapsulatedElementType {
+  get accountPicker(): DetoxElement {
     return Matchers.getElementByID(BuildQuoteSelectors.ACCOUNT_PICKER);
   }
 
-  get minLimitErrorMessage(): EncapsulatedElementType {
+  get minLimitErrorMessage(): DetoxElement {
     return Matchers.getElementByID(BuildQuoteSelectors.MIN_LIMIT_ERROR);
   }
 
-  get maxLimitErrorMessage(): EncapsulatedElementType {
+  get maxLimitErrorMessage(): DetoxElement {
     return Matchers.getElementByID(BuildQuoteSelectors.MAX_LIMIT_ERROR);
   }
 
-  get insufficientBalanceErrorMessage(): EncapsulatedElementType {
+  get insufficientBalanceErrorMessage(): DetoxElement {
     return Matchers.getElementByID(
       BuildQuoteSelectors.INSUFFICIENT_BALANCE_ERROR,
     );
   }
 
-  get keypadDeleteButton(): EncapsulatedElementType {
+  get keypadDeleteButton(): DetoxElement {
     return Matchers.getElementByID(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON);
   }
 
-  get doneButton(): EncapsulatedElementType {
+  get doneButton(): DetoxElement {
     return Matchers.getElementByText(BuildQuoteSelectors.DONE_BUTTON);
   }
 
-  get continueButton(): EncapsulatedElementType {
+  get continueButton(): DetoxElement {
     return Matchers.getElementByID(BuildQuoteSelectors.CONTINUE_BUTTON);
   }
 
-  get quickAmount25(): EncapsulatedElementType {
+  get quickAmount25(): DetoxElement {
     return Matchers.getElementByLabel('25%');
   }
 
-  get quickAmount50(): EncapsulatedElementType {
+  get quickAmount50(): DetoxElement {
     return Matchers.getElementByLabel('50%');
   }
 
-  get quickAmount75(): EncapsulatedElementType {
+  get quickAmount75(): DetoxElement {
     return Matchers.getElementByLabel('75%');
   }
 
-  get quickAmountMax(): EncapsulatedElementType {
+  get quickAmountMax(): DetoxElement {
     return Matchers.getElementByLabel('MAX');
   }
 
-  get accountPickerDropdown(): EncapsulatedElementType {
+  get accountPickerDropdown(): DetoxElement {
     return Matchers.getElementByID(
       AddressSelectorSelectors.ACCOUNT_PICKER_DROPDOWN,
     );
@@ -189,10 +188,7 @@ class BuildQuoteView {
   async tapPaymentMethodDropdown(
     paymentMethod: string | RegExp,
   ): Promise<void> {
-    const paymentMethodOption =
-      typeof paymentMethod === 'string'
-        ? Matchers.getElementByText(paymentMethod)
-        : Matchers.getElementByText(paymentMethod as RegExp);
+    const paymentMethodOption = Matchers.getElementByText(paymentMethod);
     await Gestures.waitAndTap(paymentMethodOption, {
       elemDescription: `Payment Method Dropdown (${paymentMethod}) in Build Quote View`,
     });
@@ -202,9 +198,7 @@ class BuildQuoteView {
     regex: string | RegExp,
   ): Promise<string | undefined> {
     try {
-      const elem = await (typeof regex === 'string'
-        ? Matchers.getElementByText(regex)
-        : Matchers.getElementByText(regex as RegExp));
+      const elem = await Matchers.getElementByText(regex);
       const attributes = await (
         elem as unknown as IndexableNativeElement
       ).getAttributes();

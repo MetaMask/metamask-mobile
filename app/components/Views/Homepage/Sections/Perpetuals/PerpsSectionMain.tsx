@@ -8,11 +8,7 @@ import React, {
   useState,
 } from 'react';
 import { View } from 'react-native';
-import {
-  Box,
-  SectionDivider,
-  SectionHeader,
-} from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import {
@@ -21,6 +17,7 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
+import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
 import SectionRow from '../../components/SectionRow';
 import ErrorState from '../../components/ErrorState';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -336,16 +333,12 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       return null;
     }
 
-    const showsVerticalPositions = showSkeleton || pendingTrending || hasItems;
-
     if (connectionError) {
       return (
         <View ref={sectionViewRef} onLayout={onLayout}>
-          <Box paddingBottom={3}>
-            <SectionDivider />
+          <Box gap={3}>
             <SectionHeader
               title={title}
-              isInteractive
               onPress={handleViewAllPerps}
               testID={homepageSectionTitleTestId(analyticsName)}
             />
@@ -364,26 +357,25 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       return null;
     }
 
-    const sectionContent = (
-      <>
-        <SectionDivider />
-        <SectionHeader
-          title={title}
-          isInteractive
-          onPress={handleViewAllPerps}
-          testID={homepageSectionTitleTestId(analyticsName)}
-          twClassName="pb-1"
-        />
+    return (
+      <View ref={sectionViewRef} onLayout={onLayout}>
         <Box gap={3}>
-          {showHomepageUnrealizedPnl && (
-            <HomepageSectionUnrealizedPnlRow
-              isLoading={perpsAccountLoading}
-              valueText={homepageUnrealizedPnl?.valueText}
-              tone={homepageUnrealizedPnl?.tone ?? 'neutral'}
-              label={strings('perps.unrealized_pnl')}
-              testID="homepage-perps-unrealized-pnl"
+          <Box gap={1}>
+            <SectionHeader
+              title={title}
+              onPress={handleViewAllPerps}
+              testID={homepageSectionTitleTestId(analyticsName)}
             />
-          )}
+            {showHomepageUnrealizedPnl && (
+              <HomepageSectionUnrealizedPnlRow
+                isLoading={perpsAccountLoading}
+                valueText={homepageUnrealizedPnl?.valueText}
+                tone={homepageUnrealizedPnl?.tone ?? 'neutral'}
+                label={strings('perps.unrealized_pnl')}
+                testID="homepage-perps-unrealized-pnl"
+              />
+            )}
+          </Box>
           {showSkeleton || pendingTrending || hasItems ? (
             <SectionRow>
               {showSkeleton || pendingTrending ? (
@@ -424,16 +416,6 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
             />
           )}
         </Box>
-      </>
-    );
-
-    return (
-      <View ref={sectionViewRef} onLayout={onLayout}>
-        {showsVerticalPositions ? (
-          sectionContent
-        ) : (
-          <Box paddingBottom={3}>{sectionContent}</Box>
-        )}
       </View>
     );
   },

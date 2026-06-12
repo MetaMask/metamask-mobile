@@ -1,9 +1,4 @@
-import {
-  Assertions,
-  Gestures,
-  Matchers,
-  EncapsulatedElementType,
-} from '../../framework';
+import { Assertions, Gestures, Matchers } from '../../framework';
 import { BridgeViewSelectorsIDs } from '../../../app/components/UI/Bridge/Views/BridgeView/BridgeView.testIds';
 import { BridgeTrendingTokensSectionTestIds } from '../../../app/components/UI/Bridge/components/BridgeTrendingTokensSection/BridgeTrendingTokensSection.testIds';
 
@@ -18,55 +13,55 @@ const SwapTrendingTokensViewTestIds = {
 } as const;
 
 class SwapTrendingTokensView {
-  public get section(): EncapsulatedElementType {
+  public get section(): DetoxElement {
     return Matchers.getElementByID(BridgeTrendingTokensSectionTestIds.SECTION);
   }
 
-  public get priceFilter(): EncapsulatedElementType {
+  public get priceFilter(): DetoxElement {
     return Matchers.getElementByID(
       BridgeTrendingTokensSectionTestIds.PRICE_FILTER,
     );
   }
 
-  public get networkFilter(): EncapsulatedElementType {
+  public get networkFilter(): DetoxElement {
     return Matchers.getElementByID(
       BridgeTrendingTokensSectionTestIds.NETWORK_FILTER,
     );
   }
 
-  public get timeFilter(): EncapsulatedElementType {
+  public get timeFilter(): DetoxElement {
     return Matchers.getElementByID(
       BridgeTrendingTokensSectionTestIds.TIME_FILTER,
     );
   }
 
-  public get priceBottomSheet(): EncapsulatedElementType {
+  public get priceBottomSheet(): DetoxElement {
     return Matchers.getElementByID(
       SwapTrendingTokensViewTestIds.PRICE_BOTTOM_SHEET,
     );
   }
 
-  public get networkBottomSheet(): EncapsulatedElementType {
+  public get networkBottomSheet(): DetoxElement {
     return Matchers.getElementByID(
       SwapTrendingTokensViewTestIds.NETWORK_BOTTOM_SHEET,
     );
   }
 
-  public get timeBottomSheet(): EncapsulatedElementType {
+  public get timeBottomSheet(): DetoxElement {
     return Matchers.getElementByID(
       SwapTrendingTokensViewTestIds.TIME_BOTTOM_SHEET,
     );
   }
 
-  public get innerList(): EncapsulatedElementType {
+  public get innerList(): DetoxElement {
     return Matchers.getElementByID(SwapTrendingTokensViewTestIds.INNER_LIST);
   }
 
-  public get closeButton(): EncapsulatedElementType {
+  public get closeButton(): DetoxElement {
     return Matchers.getElementByID(SwapTrendingTokensViewTestIds.CLOSE_BUTTON);
   }
 
-  public get timeSelectSixHours(): EncapsulatedElementType {
+  public get timeSelectSixHours(): DetoxElement {
     return Matchers.getElementByID(
       SwapTrendingTokensViewTestIds.TIME_SELECT_6H,
     );
@@ -111,7 +106,7 @@ class SwapTrendingTokensView {
     });
   }
 
-  tokenRow(assetId: string): EncapsulatedElementType {
+  tokenRow(assetId: string): DetoxElement {
     return Matchers.getElementByID(
       `${SwapTrendingTokensViewTestIds.TOKEN_ROW_PREFIX}${assetId}`,
     );

@@ -267,13 +267,11 @@ export const useSwapBridgeNavigation = ({
         : undefined;
 
       let destTokenToSet: BridgeToken | undefined;
-      let isExplicitDestTokenSelection = false;
       if (
         validDestTokenBase &&
         !areAddressesEqual(sourceToken.address, validDestTokenBase.address)
       ) {
         destTokenToSet = validDestTokenBase;
-        isExplicitDestTokenSelection = true;
       } else {
         const defaultDestToken = getDefaultDestToken(sourceToken.chainId);
         if (
@@ -332,7 +330,7 @@ export const useSwapBridgeNavigation = ({
         params,
       });
 
-      dispatch(setIsDestTokenManuallySet(isExplicitDestTokenSelection));
+      dispatch(setIsDestTokenManuallySet(false));
       dispatch(setAbTestContext(abTestContext));
       dispatch(setSourceToken(sourceToken));
       if (destTokenToSet) {

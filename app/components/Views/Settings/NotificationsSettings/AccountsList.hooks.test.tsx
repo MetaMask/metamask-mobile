@@ -254,7 +254,6 @@ describe('useNotificationAccountListProps', () => {
     });
     expect(hook.result.current.isAccountLoading(['id-0x123'])).toBe(true);
     expect(hook.result.current.isAccountLoading(['id-0x456'])).toBe(false);
-    expect(hook.result.current.isAnyAccountUpdating).toBe(true);
   });
 
   it('returns correct account enabled state', async () => {

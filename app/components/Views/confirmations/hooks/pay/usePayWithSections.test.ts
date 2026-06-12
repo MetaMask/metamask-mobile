@@ -32,7 +32,7 @@ const PERPS_SECTION_MOCK: PayWithSectionConfig = {
     {
       id: 'perps-balance',
       icon: 'Perps',
-      title: 'Perps balance',
+      title: 'Perps account',
     },
   ],
 };
@@ -44,7 +44,7 @@ const PREDICT_SECTION_MOCK: PayWithSectionConfig = {
     {
       id: 'predict-balance',
       icon: 'Predict',
-      title: 'Predict balance',
+      title: 'Predict account',
     },
   ],
 };
@@ -55,8 +55,8 @@ const MONEY_ACCOUNT_SECTION_MOCK: PayWithSectionConfig = {
   rows: [
     {
       id: 'money-account-musd',
-      icon: 'Money account',
-      title: 'Money account',
+      icon: 'Money balance',
+      title: 'Money balance',
     },
   ],
 };

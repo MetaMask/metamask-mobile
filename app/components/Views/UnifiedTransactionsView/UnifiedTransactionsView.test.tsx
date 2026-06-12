@@ -14,9 +14,6 @@ import { updateIncomingTransactions } from '../../../util/transaction-controller
 import { useUnifiedTxActions } from './useUnifiedTxActions';
 import { useTransactionsQuery } from './useTransactionsQuery';
 import { selectTransactions } from './helpers/transformations';
-import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
-import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
-import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 
 // Type helper for UNSAFE_queryByType with mocked string components
 const asComponentType = (name: string) => name as unknown as ComponentType;
@@ -129,18 +126,6 @@ jest.mock('../../hooks/useBlockExplorer', () => ({
     getBlockExplorerName: jest.fn().mockReturnValue('Etherscan'),
   }),
 }));
-
-jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: jest.fn(),
-}));
-
-beforeEach(() => {
-  jest.mocked(useAnalytics).mockReturnValue(
-    createMockUseAnalyticsHook({
-      createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
-    }),
-  );
-});
 
 const mockSelectBridgeHistoryForAccount = jest.fn(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

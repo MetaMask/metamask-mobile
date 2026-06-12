@@ -44,7 +44,6 @@ import {
 import { selectInternalAccountsById } from '../../../../selectors/accountsController';
 import { SecretRecoveryPhrase, Wallet, RemoveAccount } from './components';
 import { createAddressListNavigationDetails } from '../AddressList';
-import { AddressListViewedSource } from '../../../../util/analytics/addressListViewedTracking';
 import { createPrivateKeyListNavigationDetails } from '../PrivateKeyList/PrivateKeyList';
 import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
 import {
@@ -140,7 +139,6 @@ export const AccountGroupDetails = () => {
         title: `${strings('multichain_accounts.address_list.addresses')} / ${
           metadata.name
         }`,
-        source: AddressListViewedSource.ACCOUNT_DETAILS,
         onLoad: () => {
           endTrace({ name: TraceName.ShowAccountAddressList });
         },

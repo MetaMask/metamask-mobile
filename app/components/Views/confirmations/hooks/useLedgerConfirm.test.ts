@@ -17,10 +17,9 @@ jest.mock('../../../../core/HardwareWallet', () => ({
   isUserCancellation: (...args: unknown[]) => mockIsUserCancellation(...args),
 }));
 
-const mockGetDeviceIdForAddress = jest.fn().mockResolvedValue('device-123');
-jest.mock('../../../../core/HardwareWallet/helpers', () => ({
-  getDeviceIdForAddress: (...args: unknown[]) =>
-    mockGetDeviceIdForAddress(...args),
+const mockGetDeviceId = jest.fn().mockResolvedValue('device-123');
+jest.mock('../../../../core/Ledger/Ledger', () => ({
+  getDeviceId: () => mockGetDeviceId(),
 }));
 
 describe('useLedgerConfirm', () => {
@@ -29,7 +28,6 @@ describe('useLedgerConfirm', () => {
   const executeApproval = jest.fn().mockResolvedValue(undefined);
 
   const defaultOptions = {
-    fromAddress: '0x1234567890abcdef1234567890abcdef12345678',
     onReject,
     onTransactionConfirm,
     executeApproval,
@@ -49,9 +47,6 @@ describe('useLedgerConfirm', () => {
     });
 
     expect(mockEnsureDeviceReady).toHaveBeenCalledWith('device-123');
-    expect(mockGetDeviceIdForAddress).toHaveBeenCalledWith(
-      defaultOptions.fromAddress,
-    );
     expect(mockShowAwaitingConfirmation).toHaveBeenCalledWith(
       'message',
       expect.any(Function),
@@ -78,18 +73,6 @@ describe('useLedgerConfirm', () => {
       onError: expect.any(Function),
     });
     expect(executeApproval).not.toHaveBeenCalled();
-  });
-
-  it('continues with readiness check when device id is unavailable', async () => {
-    mockGetDeviceIdForAddress.mockResolvedValueOnce(undefined);
-    const { result } = renderHook(() => useLedgerConfirm(defaultOptions));
-
-    await act(async () => {
-      await result.current.onConfirm();
-    });
-
-    expect(mockEnsureDeviceReady).toHaveBeenCalledWith(undefined);
-    expect(executeApproval).toHaveBeenCalledTimes(1);
   });
 
   it('rejects when device is not ready', async () => {

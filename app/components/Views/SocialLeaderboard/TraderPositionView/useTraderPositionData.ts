@@ -92,8 +92,8 @@ export interface TraderPositionData {
   pnlPercent: number | null;
   isPnlPositive: boolean;
 
-  allTrades: Position['trades'];
-  chartTrades: Position['trades'];
+  // Trades (filtered by active period)
+  trades: Position['trades'];
 
   // Time period
   activeTimePeriod: TimePeriod;
@@ -285,23 +285,18 @@ export function useTraderPositionData(
     : (positionParam?.pnlPercent ?? null);
   const isPnlPositive = (pnlValue ?? 0) >= 0;
 
-  // ── Trades ─────────────────────────────────────────────────────────────
+  // ── Trades (filtered by period) ────────────────────────────────────────
 
-  const allTrades = useMemo(
-    () => positionParam?.trades ?? [],
-    [positionParam?.trades],
-  );
-
-  const chartTrades = useMemo(() => {
+  const trades = useMemo(() => {
     const now = Date.now();
-    return allTrades.filter((t) => {
+    return (positionParam?.trades ?? []).filter((t) => {
       const tsMs =
         t.timestamp > 0 && t.timestamp < 1e12
           ? t.timestamp * 1000
           : t.timestamp;
       return tsMs >= now - PERIOD_DURATION_MS[activeTimePeriod];
     });
-  }, [allTrades, activeTimePeriod]);
+  }, [positionParam?.trades, activeTimePeriod]);
 
   // ── Return ─────────────────────────────────────────────────────────────
 
@@ -318,8 +313,7 @@ export function useTraderPositionData(
     pnlValue,
     pnlPercent,
     isPnlPositive,
-    allTrades,
-    chartTrades,
+    trades,
     activeTimePeriod,
     setActiveTimePeriod: setActiveTimePeriod as (period: TimePeriod) => void,
     timePeriods: TIME_PERIODS,

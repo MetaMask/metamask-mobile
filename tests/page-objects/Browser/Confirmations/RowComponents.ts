@@ -3,80 +3,79 @@ import {
   GasFeeTokenSelectorIDs,
 } from '../../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import Matchers from '../../../framework/Matchers';
-import { EncapsulatedElementType } from '../../../framework';
 
 class RowComponents {
-  get AccountNetwork(): EncapsulatedElementType {
+  get AccountNetwork(): DetoxElement {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.ACCOUNT_NETWORK);
   }
 
-  get AdvancedDetails(): EncapsulatedElementType {
+  get AdvancedDetails(): DetoxElement {
     return Matchers.getElementByID(
       ConfirmationRowComponentIDs.ADVANCED_DETAILS,
     );
   }
 
-  get FromTo(): EncapsulatedElementType {
+  get FromTo(): DetoxElement {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.FROM_TO);
   }
 
-  get GasFeesDetails(): EncapsulatedElementType {
+  get GasFeesDetails(): DetoxElement {
     return Matchers.getElementByID(
       ConfirmationRowComponentIDs.GAS_FEES_DETAILS,
     );
   }
 
-  get Message(): EncapsulatedElementType {
+  get Message(): DetoxElement {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.MESSAGE);
   }
 
-  get OriginInfo(): EncapsulatedElementType {
+  get OriginInfo(): DetoxElement {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.ORIGIN_INFO);
   }
 
-  get SimulationDetails(): EncapsulatedElementType {
+  get SimulationDetails(): DetoxElement {
     return Matchers.getElementByID(
       ConfirmationRowComponentIDs.SIMULATION_DETAILS,
     );
   }
 
-  get SiweSigningAccountInfo(): EncapsulatedElementType {
+  get SiweSigningAccountInfo(): DetoxElement {
     return Matchers.getElementByID(
       ConfirmationRowComponentIDs.SIWE_SIGNING_ACCOUNT_INFO,
     );
   }
 
-  get TokenHero(): EncapsulatedElementType {
+  get TokenHero(): DetoxElement {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.TOKEN_HERO);
   }
 
-  get ApproveRow(): EncapsulatedElementType {
+  get ApproveRow(): DetoxElement {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.APPROVE_ROW);
   }
 
-  get NetworkAndOrigin(): EncapsulatedElementType {
+  get NetworkAndOrigin(): DetoxElement {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.NETWORK);
   }
 
-  get NetworkFeePaidByMetaMask(): EncapsulatedElementType {
+  get NetworkFeePaidByMetaMask(): DetoxElement {
     return Matchers.getElementByID(
       ConfirmationRowComponentIDs.PAID_BY_METAMASK,
     );
   }
 
-  get NetworkFeeGasFeeTokenPill(): EncapsulatedElementType {
+  get NetworkFeeGasFeeTokenPill(): DetoxElement {
     return Matchers.getElementByID(
       ConfirmationRowComponentIDs.GAS_FEE_TOKEN_PILL,
     );
   }
 
-  get NetworkFeeGasFeeTokenSymbol(): EncapsulatedElementType {
+  get NetworkFeeGasFeeTokenSymbol(): DetoxElement {
     return Matchers.getElementByID(
       GasFeeTokenSelectorIDs.SELECTED_GAS_FEE_TOKEN_SYMBOL,
     );
   }
 
-  get NetworkFeeGasFeeTokenArrow(): EncapsulatedElementType {
+  get NetworkFeeGasFeeTokenArrow(): DetoxElement {
     return Matchers.getElementByID(
       GasFeeTokenSelectorIDs.SELECTED_GAS_FEE_TOKEN_ARROW,
     );

@@ -44,10 +44,6 @@ export const initialStatePerps = () =>
         featureVersion: null,
         minimumVersion: null,
       },
-      perpsWatchlistV2Enabled: {
-        enabled: true,
-        minimumVersion: '0.0.0',
-      },
     } as Record<string, unknown>)
     .withOverrides({
       engine: {

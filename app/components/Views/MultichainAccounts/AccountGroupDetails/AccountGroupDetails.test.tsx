@@ -362,7 +362,6 @@ describe('AccountGroupDetails', () => {
     expect(mockNavigate).toHaveBeenCalledWith(expect.any(String), {
       groupId: mockAccountGroup.id,
       title: `Addresses / ${mockAccountGroup.metadata.name}`,
-      source: 'account_details',
       onLoad: expect.any(Function),
     });
   });

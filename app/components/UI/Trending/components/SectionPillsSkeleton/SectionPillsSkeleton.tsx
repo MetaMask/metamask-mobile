@@ -6,7 +6,7 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
 } from '@metamask/design-system-react-native';
-import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
+import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 
 const SKELETON_PILLS_PER_ROW = 6;
 const SKELETON_PILL_WIDTH = 104;

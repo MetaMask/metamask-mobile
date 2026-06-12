@@ -2,7 +2,6 @@ import { WalletViewSelectorsIDs } from '../../../app/components/Views/Wallet/Wal
 import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
 import Assertions from '../../framework/Assertions';
 import Matchers from '../../framework/Matchers';
-import { EncapsulatedElementType } from '../../framework';
 
 /**
  * Page Object for the DeFi position details screen (e.g. "Aave V3").
@@ -10,14 +9,14 @@ import { EncapsulatedElementType } from '../../framework';
  */
 class DefiPositionView {
   /** Main container of the position details screen */
-  get container(): EncapsulatedElementType {
+  get container(): DetoxElement {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.DEFI_POSITIONS_DETAILS_CONTAINER,
     );
   }
 
   /** Back arrow button in the navbar (navigates to DeFi list) */
-  get backButton(): EncapsulatedElementType {
+  get backButton(): DetoxElement {
     return Matchers.getElementByID(CommonSelectorsIDs.BACK_ARROW_BUTTON);
   }
 

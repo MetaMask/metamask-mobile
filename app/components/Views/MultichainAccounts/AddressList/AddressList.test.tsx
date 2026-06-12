@@ -11,7 +11,6 @@ import { AddressList } from './AddressList';
 import { MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID } from '../../../../component-library/components-temp/MultichainAccounts/MultichainAddressRow';
 import { toFormattedAddress } from '../../../../util/address';
 import { EVENT_NAME } from '../../../../core/Analytics/MetaMetrics.events';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { strings } from '../../../../../locales/i18n';
 import { AddressListIds } from './AddressList.testIds';
 
@@ -36,7 +35,6 @@ jest.mock('../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn().mockReturnValue({
     title: TITLE,
     groupId: ACCOUNT_GROUP_ID,
-    source: 'copy_button',
   }),
   useRoute: jest.fn(),
   createNavigationDetails: jest.fn(),
@@ -183,15 +181,6 @@ const renderWithAddressList = () => {
 describe('AddressList', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-
-    const { useParams } = jest.requireMock(
-      '../../../../util/navigation/navUtils',
-    );
-    useParams.mockReturnValue({
-      title: TITLE,
-      groupId: ACCOUNT_GROUP_ID,
-      source: 'copy_button',
-    });
   });
 
   it('renders correctly with list of addresses from a specific account group', () => {
@@ -275,8 +264,6 @@ describe('AddressList', () => {
           networkName: 'Ethereum',
           chainId: 'eip155:1',
           groupId: ACCOUNT_GROUP_ID,
-          location: 'address-list',
-          account: expect.objectContaining({ id: mockEthEoaAccount.id }),
         },
       },
     );
@@ -288,32 +275,6 @@ describe('AddressList', () => {
       mockCreateEventBuilder.mockClear();
       mockAddProperties.mockClear();
       mockBuild.mockClear();
-    });
-
-    it('tracks "Address List Viewed" event when screen is shown', () => {
-      renderWithAddressList();
-
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.ADDRESS_LIST_VIEWED,
-      );
-      expect(mockAddProperties).toHaveBeenCalledWith({
-        source: 'copy_button',
-        account_type: expect.any(String),
-      });
-      expect(mockBuild).toHaveBeenCalled();
-      expect(mockTrackEvent).toHaveBeenCalled();
-    });
-
-    it('tracks "Address List Viewed" only once on re-render', () => {
-      const { rerender } = renderWithAddressList();
-
-      rerender(<AddressList />);
-
-      const addressListViewedCalls = mockCreateEventBuilder.mock.calls.filter(
-        ([eventName]) => eventName === MetaMetricsEvents.ADDRESS_LIST_VIEWED,
-      );
-
-      expect(addressListViewedCalls).toHaveLength(1);
     });
 
     it('tracks "Copied Address" event when copy button is pressed', async () => {
@@ -379,9 +340,8 @@ describe('AddressList', () => {
 
       await new Promise(process.nextTick);
 
-      const addPropertiesCall = mockAddProperties.mock.calls.find(
-        ([properties]) => properties.location === 'address-list',
-      )?.[0];
+      // Access the first call from this test (now properly cleared between tests)
+      const addPropertiesCall = mockAddProperties.mock.calls[0][0];
 
       expect(addPropertiesCall).toHaveProperty('location', 'address-list');
     });

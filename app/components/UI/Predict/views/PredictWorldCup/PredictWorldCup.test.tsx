@@ -1,5 +1,4 @@
 import React from 'react';
-import { ScrollView } from 'react-native';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import PredictWorldCup, {
   PREDICT_WORLD_CUP_SCREEN_TEST_IDS,
@@ -329,60 +328,6 @@ describe('PredictWorldCup', () => {
     );
 
     expect(mockTrackFeedViewed).toHaveBeenCalledTimes(1);
-  });
-
-  it('scrolls the initial pill into view once its layout is measured', () => {
-    const scrollToSpy = jest.spyOn(ScrollView.prototype, 'scrollTo');
-    mockRouteParams = { initialTab: 'group_l' };
-
-    render(<PredictWorldCup />);
-
-    fireEvent(
-      screen.getByTestId(`${PREDICT_WORLD_CUP_SCREEN_TEST_IDS.TAB}-group_l`),
-      'layout',
-      { nativeEvent: { layout: { x: 800, width: 51 } } },
-    );
-
-    expect(scrollToSpy).toHaveBeenCalledWith({ x: 784, animated: false });
-
-    scrollToSpy.mockRestore();
-  });
-
-  it('scrolls the selected pill into view when a tab is pressed', () => {
-    const scrollToSpy = jest.spyOn(ScrollView.prototype, 'scrollTo');
-
-    render(<PredictWorldCup />);
-
-    fireEvent(
-      screen.getByTestId(`${PREDICT_WORLD_CUP_SCREEN_TEST_IDS.TAB}-props`),
-      'layout',
-      { nativeEvent: { layout: { x: 200, width: 51 } } },
-    );
-
-    fireEvent.press(
-      screen.getByTestId(`${PREDICT_WORLD_CUP_SCREEN_TEST_IDS.TAB}-props`),
-    );
-
-    expect(scrollToSpy).toHaveBeenLastCalledWith({ x: 184, animated: true });
-
-    scrollToSpy.mockRestore();
-  });
-
-  it('clamps the scroll offset to zero for an early pill', () => {
-    const scrollToSpy = jest.spyOn(ScrollView.prototype, 'scrollTo');
-    mockRouteParams = { initialTab: 'live' };
-
-    render(<PredictWorldCup />);
-
-    fireEvent(
-      screen.getByTestId(`${PREDICT_WORLD_CUP_SCREEN_TEST_IDS.TAB}-live`),
-      'layout',
-      { nativeEvent: { layout: { x: 10, width: 51 } } },
-    );
-
-    expect(scrollToSpy).toHaveBeenCalledWith({ x: 0, animated: false });
-
-    scrollToSpy.mockRestore();
   });
 
   it('uses a configured available stage initial tab', () => {

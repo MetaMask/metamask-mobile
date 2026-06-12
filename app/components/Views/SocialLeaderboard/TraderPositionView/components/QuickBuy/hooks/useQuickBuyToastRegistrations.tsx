@@ -1,12 +1,8 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import type { ToastRef } from '../../../../../../../component-library/components/Toast/Toast.types';
-import { useAppThemeFromContext } from '../../../../../../../util/theme';
-import { registerNotificationSkipPredicate } from '../../../../../../../core/notificationSkipPredicates';
 import type { ToastRegistration } from '../../../../../../Nav/App/ControllerEventToastBridge';
-import {
-  getTrackedQuickBuyTradeIds,
-  isQuickBuyTransaction,
-} from '../quickBuyTradeTracker';
+import { useAppThemeFromContext } from '../../../../../../../util/theme';
+import { getTrackedQuickBuyTradeIds } from '../quickBuyTradeTracker';
 import { resolveQuickBuyTerminalToast } from '../resolveQuickBuyTerminalToast';
 
 /**
@@ -17,21 +13,12 @@ import { resolveQuickBuyTerminalToast } from '../resolveQuickBuyTerminalToast';
  * toast fires even after the user navigates away (important for slow
  * cross-chain swaps). The handler is scoped to QuickBuy-initiated trades via
  * `quickBuyTradeTracker` and reads the authoritative lifecycle status from
- * `BridgeStatusController` — falling back to `MultichainTransactionsController`
- * for same-chain Solana swaps, which never reach a terminal bridge status.
+ * `BridgeStatusController`.
  */
 export const useQuickBuyToastRegistrations = (): ToastRegistration[] => {
   const theme = useAppThemeFromContext();
 
-  // Opt QuickBuy-initiated transactions out of the generic transaction
-  // notifications so the user only sees QuickBuy's own toasts. Registered at
-  // the app root so it covers submissions regardless of sheet lifecycle.
-  useEffect(() => registerNotificationSkipPredicate(isQuickBuyTransaction), []);
-
-  // Shared by both controller subscriptions: `resolveQuickBuyTerminalToast`
-  // checks each tracked trade against whichever controller is authoritative for
-  // it, so we can fan out the same scan regardless of which event fired.
-  const handleControllerStateChange = useCallback(
+  const handleBridgeStatusChange = useCallback(
     (_payload: unknown, showToast: ToastRef['showToast']): void => {
       const trackedIds = getTrackedQuickBuyTradeIds();
       if (trackedIds.length === 0) {
@@ -51,13 +38,9 @@ export const useQuickBuyToastRegistrations = (): ToastRegistration[] => {
     () => [
       {
         eventName: 'BridgeStatusController:stateChange',
-        handler: handleControllerStateChange,
-      },
-      {
-        eventName: 'MultichainTransactionsController:stateChange',
-        handler: handleControllerStateChange,
+        handler: handleBridgeStatusChange,
       },
     ],
-    [handleControllerStateChange],
+    [handleBridgeStatusChange],
   );
 };

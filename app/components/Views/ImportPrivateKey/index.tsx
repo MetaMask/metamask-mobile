@@ -1,10 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import {
-  HeaderStandard,
-  Text,
-  TextVariant,
-  TextColor,
-} from '@metamask/design-system-react-native';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
 import { Alert, TextInput, View, DimensionValue } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -21,6 +16,10 @@ import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import Routes from '../../../constants/navigation/Routes';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import { Authentication } from '../../../core';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../component-library/components/Texts/Text';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -172,13 +171,13 @@ const ImportPrivateKey = () => {
               <View style={styles.descriptionContainer}>
                 {isSRP ? (
                   <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextAlternative}
+                    variant={TextVariant.BodyMD}
+                    color={TextColor.Alternative}
                   >
                     {strings('import_private_key.description_srp')}{' '}
                     <Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.PrimaryDefault}
+                      variant={TextVariant.BodyMD}
+                      color={TextColor.Primary}
                       onPress={learnMore}
                     >
                       {strings('import_private_key.learn_more')}
@@ -187,19 +186,19 @@ const ImportPrivateKey = () => {
                 ) : (
                   <>
                     <Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.TextAlternative}
+                      variant={TextVariant.BodyMD}
+                      color={TextColor.Alternative}
                     >
                       {strings('import_private_key.description_one')}
                     </Text>
                     <Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.TextAlternative}
+                      variant={TextVariant.BodyMD}
+                      color={TextColor.Alternative}
                       onPress={learnMore}
                     >
                       <Text
-                        variant={TextVariant.BodyMd}
-                        color={TextColor.PrimaryDefault}
+                        variant={TextVariant.BodyMD}
+                        color={TextColor.Primary}
                       >
                         {strings('import_private_key.learn_more')}{' '}
                       </Text>

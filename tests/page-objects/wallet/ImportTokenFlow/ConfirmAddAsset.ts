@@ -4,34 +4,33 @@ import {
 } from '../../../../app/components/Views/AddAsset/ImportAssetView.testIds';
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
-import { EncapsulatedElementType } from '../../../framework';
 
 class ConfirmAddAssetView {
-  get container(): EncapsulatedElementType {
+  get container(): DetoxElement {
     return Matchers.getElementByID(
       ImportTokenViewSelectorsIDs.ADD_CONFIRM_CUSTOM_ASSET,
     );
   }
 
-  get cancelButton(): EncapsulatedElementType {
+  get cancelButton(): DetoxElement {
     return Matchers.getElementByText(
       ImportTokenViewSelectorsText.CANCEL_IMPORT_TOKEN,
     );
   }
 
-  get confirmButton(): EncapsulatedElementType {
+  get confirmButton(): DetoxElement {
     return Matchers.getElementByID(
       ImportTokenViewSelectorsIDs.BOTTOMSHEETFOOTER_BUTTON_SUBSEQUENT,
     );
   }
 
-  get cancelModal(): EncapsulatedElementType {
+  get cancelModal(): DetoxElement {
     return Matchers.getElementByID(
       ImportTokenViewSelectorsIDs.ADD_CANCEL_ADD_CUSTOM_ASSET_MODAL,
     );
   }
 
-  get confirmButtonModal(): EncapsulatedElementType {
+  get confirmButtonModal(): DetoxElement {
     return Matchers.getElementByText(
       ImportTokenViewSelectorsText.CONFIRM_CANCEL_IMPORT_TOKEN,
     );

@@ -9,7 +9,6 @@ const PENDING_AMOUNT_ALERTS: AlertKeys[] = [
   AlertKeys.InsufficientPredictBalance,
   AlertKeys.InsufficientPerpsBalance,
   AlertKeys.InsufficientMoneyAccountBalance,
-  AlertKeys.FiatBuyAmountLimit,
 ];
 
 const KEYBOARD_ALERTS: AlertKeys[] = [
@@ -20,7 +19,6 @@ const KEYBOARD_ALERTS: AlertKeys[] = [
   AlertKeys.InsufficientPredictBalance,
   AlertKeys.InsufficientPerpsBalance,
   AlertKeys.InsufficientMoneyAccountBalance,
-  AlertKeys.FiatBuyAmountLimit,
 ];
 
 const ON_CHANGE_ALERTS = [
@@ -29,28 +27,22 @@ const ON_CHANGE_ALERTS = [
   AlertKeys.InsufficientPredictBalance,
   AlertKeys.InsufficientPerpsBalance,
   AlertKeys.InsufficientMoneyAccountBalance,
-  AlertKeys.FiatBuyAmountLimit,
 ];
 
 export function useTransactionCustomAmountAlerts({
   isInputChanged,
   isKeyboardVisible,
   pendingTokenAmount,
-  pendingFiatAmount,
 }: {
   isInputChanged: boolean;
   isKeyboardVisible: boolean;
   pendingTokenAmount: string;
-  pendingFiatAmount?: string;
 }): {
   alertMessage?: string;
   alertTitle?: string;
 } {
   const { alerts: confirmationAlerts } = useAlerts();
-  const pendingTokenAlerts = usePendingAmountAlerts({
-    pendingTokenAmount,
-    pendingFiatAmount,
-  });
+  const pendingTokenAlerts = usePendingAmountAlerts({ pendingTokenAmount });
 
   const filteredAlerts = useMemo(() => {
     const relevantAlerts = confirmationAlerts.filter((a) => a.isBlocking);

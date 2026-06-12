@@ -1,5 +1,5 @@
 import { CommonActions } from '@react-navigation/native';
-import { AnalyticsEventBuilder } from '../analytics/AnalyticsEventBuilder';
+import { MetricsEventBuilder } from '../../core/Analytics/MetricsEventBuilder';
 import trackOnboarding from '../metrics/TrackOnboarding/trackOnboarding';
 import Routes from '../../constants/navigation/Routes';
 import {
@@ -47,12 +47,9 @@ export const createTrackFunction =
     event: IMetaMetricsEvent,
     properties: Record<string, string | boolean | number> = {},
   ) => {
-    trackOnboarding(
-      AnalyticsEventBuilder.createEventBuilder(event)
-        .addProperties(properties)
-        .build(),
-      saveOnboardingEvent,
-    );
+    const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
+    eventBuilder.addProperties(properties);
+    trackOnboarding(eventBuilder.build(), saveOnboardingEvent);
   };
 
 /**

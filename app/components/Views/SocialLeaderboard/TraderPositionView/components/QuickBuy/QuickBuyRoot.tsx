@@ -1,6 +1,6 @@
 import {
-  BottomSheetDialog,
-  type BottomSheetDialogRef,
+  BottomSheet,
+  type BottomSheetRef,
   Box,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -83,7 +83,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
   children,
 }) => {
   const tw = useTailwind();
-  const bottomSheetRef = useRef<BottomSheetDialogRef>(null);
+  const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [isContentReady, setIsContentReady] = useState(false);
   const [activeScreen, setActiveScreen] = useState<QuickBuyScreen>('amount');
   const [lockedHeight, setLockedHeight] = useState<number | null>(null);
@@ -115,7 +115,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
   );
 
   useEffect(() => {
-    bottomSheetRef.current?.onOpenDialog(() => {
+    bottomSheetRef.current?.onOpenBottomSheet(() => {
       setIsContentReady(true);
     });
   }, []);
@@ -126,8 +126,8 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
   const requestClose = useCallback(() => {
     setIsClosing(true);
     const sheet = bottomSheetRef.current;
-    if (sheet?.onCloseDialog) {
-      sheet.onCloseDialog(onClose);
+    if (sheet?.onCloseBottomSheet) {
+      sheet.onCloseBottomSheet(onClose);
     } else {
       onClose();
     }
@@ -147,7 +147,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
   );
 
   return (
-    <BottomSheetDialog
+    <BottomSheet
       ref={bottomSheetRef}
       isInteractable={!isSubmittingTx}
       onClose={onClose}
@@ -186,7 +186,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
           <QuickBuyBottomSheetSkeleton />
         </AnimatedScrollView>
       )}
-    </BottomSheetDialog>
+    </BottomSheet>
   );
 };
 

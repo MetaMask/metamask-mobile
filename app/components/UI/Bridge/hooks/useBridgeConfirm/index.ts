@@ -24,7 +24,6 @@ import {
   POST_TRADE_MODAL_VARIANTS,
 } from '../../components/PostTradeBottomSheet/abTestConfig';
 import Engine from '../../../../../core/Engine';
-import { withPostTradeNotificationSuppression } from '../../utils/postTradeNotifications';
 
 interface Params {
   activeQuote: ReturnType<typeof useBridgeQuoteData>['activeQuote'] | null;
@@ -69,15 +68,11 @@ export const useBridgeConfirm = ({
     try {
       dispatch(setIsSubmittingTx(true));
 
-      const submitTransaction = () =>
-        submitBridgeTx({
-          quoteResponse: activeQuote,
-          location,
-          transactionActiveAbTests,
-        });
-      const submittedTransaction = isPostTradeModalEnabled
-        ? await withPostTradeNotificationSuppression(submitTransaction)
-        : await submitTransaction();
+      const submittedTransaction = await submitBridgeTx({
+        quoteResponse: activeQuote,
+        location,
+        transactionActiveAbTests,
+      });
       const transactionHash =
         submittedTransaction &&
         'hash' in submittedTransaction &&

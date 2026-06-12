@@ -1,4 +1,5 @@
 import trackOnboarding from './trackOnboarding';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import { analytics } from '../../../util/analytics/analytics';
 
@@ -32,7 +33,7 @@ describe('trackOnboarding', () => {
 
   it('calls saveOnboardingEvent when metrics is not enabled', async () => {
     const mockProperties = { prop: 'testProp' };
-    const mockEvent = AnalyticsEventBuilder.createEventBuilder({
+    const mockEvent = MetricsEventBuilder.createEventBuilder({
       category: 'testEvent',
     })
       .addProperties(mockProperties)
@@ -50,7 +51,7 @@ describe('trackOnboarding', () => {
 
   it('call trackEvent when metrics is not enabled but saveOnboardingEvent is not defined', async () => {
     const mockProperties = { prop: 'testProp' };
-    const mockEvent = AnalyticsEventBuilder.createEventBuilder({
+    const mockEvent = MetricsEventBuilder.createEventBuilder({
       category: 'testEvent',
     })
       .addProperties(mockProperties)
@@ -69,7 +70,7 @@ describe('trackOnboarding', () => {
 
   it('call trackEvent when metrics is enabled', async () => {
     const mockProperties = { prop: 'testProp' };
-    const mockEvent = AnalyticsEventBuilder.createEventBuilder({
+    const mockEvent = MetricsEventBuilder.createEventBuilder({
       category: 'testEvent',
     })
       .addProperties(mockProperties)

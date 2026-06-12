@@ -1,20 +1,19 @@
 import { ProtectWalletModalSelectorsIDs } from '../../../app/components/UI/ProtectYourWalletModal/ProtectWalletModal.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { EncapsulatedElementType } from '../../framework';
 
 class ProtectYourWalletModal {
-  get container(): EncapsulatedElementType {
+  get container(): DetoxElement {
     return Matchers.getElementByID(ProtectWalletModalSelectorsIDs.CONTAINER);
   }
 
-  get remindMeLaterButton(): EncapsulatedElementType {
+  get remindMeLaterButton(): DetoxElement {
     return Matchers.getElementByID(
       ProtectWalletModalSelectorsIDs.REMIND_ME_LATER_BUTTON,
     );
   }
 
-  get collapseWalletModal(): EncapsulatedElementType {
+  get collapseWalletModal(): DetoxElement {
     return Matchers.getElementByID(
       ProtectWalletModalSelectorsIDs.COLLAPSED_WALLET_MODAL,
     );

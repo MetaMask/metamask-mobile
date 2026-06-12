@@ -11,103 +11,102 @@ import type {
   NativeElement,
   IndexableSystemElement,
 } from 'detox/detox';
-import { EncapsulatedElementType } from '../../framework';
 type DetoxElement = Promise<
   IndexableNativeElement | NativeElement | IndexableSystemElement
 >;
 
 class ConnectedAccountsModal {
-  get container(): EncapsulatedElementType {
+  get container(): DetoxElement {
     return Matchers.getElementByID(ConnectedAccountsSelectorsIDs.CONTAINER);
   }
 
-  get permissionsButton(): EncapsulatedElementType {
+  get permissionsButton(): DetoxElement {
     return Matchers.getElementByText(
       ConnectedAccountModalSelectorsText.PERMISSION_LINK,
     );
   }
 
-  get networkPicker(): EncapsulatedElementType {
+  get networkPicker(): DetoxElement {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.NETWORK_PICKER,
     );
   }
 
-  get disconnectAllButton(): EncapsulatedElementType {
+  get disconnectAllButton(): DetoxElement {
     return Matchers.getElementByText(
       ConnectedAccountModalSelectorsText.DISCONNECT_ALL,
     );
   }
 
-  get disconnectButton(): EncapsulatedElementType {
+  get disconnectButton(): DetoxElement {
     return Matchers.getElementByID(ConnectedAccountsSelectorsIDs.DISCONNECT);
   }
 
-  get disconnectAllAccountsAndNetworksButton(): EncapsulatedElementType {
+  get disconnectAllAccountsAndNetworksButton(): DetoxElement {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.DISCONNECT_ALL_ACCOUNTS_NETWORKS,
     );
   }
 
-  get navigateToEditAccountsPermissionsButton(): EncapsulatedElementType {
+  get navigateToEditAccountsPermissionsButton(): DetoxElement {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.NAVIGATE_TO_EDIT_ACCOUNTS_PERMISSIONS_BUTTON,
     );
   }
 
-  get navigateToEditNetworksPermissionsButton(): EncapsulatedElementType {
+  get navigateToEditNetworksPermissionsButton(): DetoxElement {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.NAVIGATE_TO_EDIT_NETWORKS_PERMISSIONS_BUTTON,
     );
   }
 
-  get connectAccountsButton(): EncapsulatedElementType {
+  get connectAccountsButton(): DetoxElement {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.CONNECT_ACCOUNTS_BUTTON,
     );
   }
 
-  get managePermissionsButton(): EncapsulatedElementType {
+  get managePermissionsButton(): DetoxElement {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.MANAGE_PERMISSIONS,
     );
   }
 
-  get permissionsSummaryTab(): EncapsulatedElementType {
+  get permissionsSummaryTab(): DetoxElement {
     return Matchers.getElementByText(
       WalletViewSelectorsText.PERMISSIONS_SUMMARY_TAB,
     );
   }
 
-  get accountsSummaryTab(): EncapsulatedElementType {
+  get accountsSummaryTab(): DetoxElement {
     return Matchers.getElementByText(
       WalletViewSelectorsText.ACCOUNTS_SUMMARY_TAB,
     );
   }
 
-  get accountListBottomSheet(): EncapsulatedElementType {
+  get accountListBottomSheet(): DetoxElement {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.ACCOUNT_LIST_BOTTOM_SHEET,
     );
   }
 
-  get title(): EncapsulatedElementType {
+  get title(): DetoxElement {
     return Matchers.getElementByText(ConnectedAccountModalSelectorsText.TITLE);
   }
 
-  get selectAllNetworksButton(): EncapsulatedElementType {
+  get selectAllNetworksButton(): DetoxElement {
     return Matchers.getElementByText(
       ConnectedAccountModalSelectorsText.SELECT_ALL,
     );
   }
 
-  get disconnectNetworksButton(): EncapsulatedElementType {
+  get disconnectNetworksButton(): DetoxElement {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.DISCONNECT_NETWORKS_BUTTON,
     );
   }
 
-  get confirmDisconnectNetworksButton(): EncapsulatedElementType {
+  get confirmDisconnectNetworksButton(): DetoxElement {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.CONFIRM_DISCONNECT_NETWORKS_BUTTON,
     );
@@ -244,9 +243,7 @@ class ConnectedAccountsModal {
 
     for (const accountName of possibleAccountNames) {
       try {
-        const textElement = (await Matchers.getElementByText(
-          accountName,
-        )) as Detox.NativeElement;
+        const textElement = await Matchers.getElementByText(accountName);
         await waitFor(textElement).toBeVisible().withTimeout(1000);
         displayedAccounts.push(accountName);
       } catch (e) {

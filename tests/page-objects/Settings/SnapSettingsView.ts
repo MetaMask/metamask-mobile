@@ -1,13 +1,12 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { EncapsulatedElementType } from '../../framework';
 
 class SnapSettingsView {
-  get enabledToggle(): EncapsulatedElementType {
+  get enabledToggle(): DetoxElement {
     return Matchers.getElementByID('snap-details-switch');
   }
 
-  get removeButton(): EncapsulatedElementType {
+  get removeButton(): DetoxElement {
     return Matchers.getElementByID('snap-settings-remove-button');
   }
 
@@ -15,11 +14,11 @@ class SnapSettingsView {
     return Matchers.getIdentifier('snap-settings-scrollview');
   }
 
-  get backButton(): EncapsulatedElementType {
+  get backButton(): DetoxElement {
     return Matchers.getElementByID('snap-settings-back-button');
   }
 
-  get listBackButton(): EncapsulatedElementType {
+  get listBackButton(): DetoxElement {
     return Matchers.getElementByID('snaps-settings-list-back-button');
   }
 

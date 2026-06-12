@@ -1,9 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import {
-  AccessibilityActionEvent,
-  LayoutChangeEvent,
-  View,
-} from 'react-native';
+import { AccessibilityActionEvent, LayoutChangeEvent } from 'react-native';
 import {
   Gesture,
   GestureDetector,
@@ -14,11 +10,11 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
-import { useStyles } from '../../../../../component-library/hooks';
-import styleSheet from './BatchSellPercentageSlider.styles';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
-const HANDLE_SIZE = 32;
-const PERCENTAGE_STEPS = [0, 25, 50, 75, 100] as const;
+const HANDLE_SIZE = 24;
+const MARKER_SIZE = 4;
+const ACCESSIBILITY_STEP = 1;
 export const MARKER_POINTS = [25, 50, 75, 100];
 const MIN_PERCENTAGE = 0;
 const MAX_PERCENTAGE = 100;
@@ -38,7 +34,7 @@ export function BatchSellPercentageSlider({
   onValueChange,
   testID,
 }: BatchSellPercentageSliderProps) {
-  const { styles } = useStyles(styleSheet, {});
+  const tw = useTailwind();
   const clampedValue = clampToPercentage(value);
   const sliderWidth = useSharedValue(0);
   const translateX = useSharedValue(0);
@@ -113,10 +109,7 @@ export function BatchSellPercentageSlider({
           return;
         }
 
-        // Track finger position at 1 % granularity while dragging.
-        const rawPos = Math.max(0, Math.min(event.x, width));
-        const pct = Math.round((rawPos / width) * MAX_PERCENTAGE);
-        translateX.value = (pct / MAX_PERCENTAGE) * width;
+        translateX.value = Math.max(0, Math.min(event.x, width));
       })
       .onEnd((event) => {
         runOnJS(commitValueFromPosition)(event.x, sliderWidth.value);
@@ -127,8 +120,8 @@ export function BatchSellPercentageSlider({
     (event: AccessibilityActionEvent) => {
       const nextValue =
         event.nativeEvent.actionName === 'increment'
-          ? clampToPercentage(clampedValue + 1)
-          : clampToPercentage(clampedValue - 1);
+          ? clampToPercentage(clampedValue + ACCESSIBILITY_STEP)
+          : clampToPercentage(clampedValue - ACCESSIBILITY_STEP);
 
       onValueChange(nextValue);
     },
@@ -147,30 +140,48 @@ export function BatchSellPercentageSlider({
       }}
       accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
       onAccessibilityAction={handleAccessibilityAction}
-      style={styles.container}
+      style={tw.style('h-6 w-full')}
     >
-      <View style={styles.trackContainer}>
-        <GestureDetector gesture={gesture}>
-          <Animated.View onLayout={handleLayout} style={styles.gestureArea}>
-            <Animated.View style={styles.track} />
-            <Animated.View style={[styles.progress, progressStyle]} />
-            <Animated.View style={[styles.thumb, handleStyle]} />
-          </Animated.View>
-        </GestureDetector>
-
-        {PERCENTAGE_STEPS.map((percent) => (
-          <View
-            key={`dot-${percent}`}
-            pointerEvents="none"
-            testID={
-              testID && MARKER_POINTS.includes(percent)
-                ? `${testID}-marker-point-${percent}`
-                : undefined
-            }
-            style={[styles.dot, styles[`dot${percent}` as keyof typeof styles]]}
+      <GestureDetector gesture={gesture}>
+        <Animated.View
+          onLayout={handleLayout}
+          style={tw.style('h-6 w-full justify-center')}
+        >
+          <Animated.View
+            style={tw.style(
+              'absolute left-0 right-0 h-1 rounded-full bg-icon-muted',
+            )}
           />
-        ))}
-      </View>
+          <Animated.View
+            style={[
+              tw.style('absolute left-0 h-1 rounded-full bg-icon-default'),
+              progressStyle,
+            ]}
+          />
+          {MARKER_POINTS.map((markerPoint) => (
+            <Animated.View
+              key={markerPoint}
+              pointerEvents="none"
+              testID={
+                testID ? `${testID}-marker-point-${markerPoint}` : undefined
+              }
+              style={[
+                tw.style('absolute h-1 w-1 rounded-full bg-icon-muted'),
+                {
+                  left: `${markerPoint}%`,
+                  transform: [{ translateX: -MARKER_SIZE / 2 }],
+                },
+              ]}
+            />
+          ))}
+          <Animated.View
+            style={[
+              tw.style('absolute h-6 w-6 rounded-full bg-icon-default'),
+              handleStyle,
+            ]}
+          />
+        </Animated.View>
+      </GestureDetector>
     </GestureHandlerRootView>
   );
 }

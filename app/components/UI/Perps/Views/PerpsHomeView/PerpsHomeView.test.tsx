@@ -979,14 +979,6 @@ describe('PerpsHomeView', () => {
         UNSAFE_getByType('PerpsMarketBalanceActions' as never),
       ).toBeTruthy();
     });
-
-    it('hides the screen title and testnet badge when hideHeader is true', () => {
-      const { queryByTestId } = render(<PerpsHomeView hideHeader />);
-
-      expect(
-        queryByTestId(`${PerpsHomeViewSelectorsIDs.HOME_HEADING}-title`),
-      ).toBeNull();
-    });
   });
 
   describe('tabEnterCallbackRef prop', () => {

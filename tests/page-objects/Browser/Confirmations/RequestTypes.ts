@@ -1,15 +1,14 @@
 import { ConfirmationRequestTypeIDs } from '../../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import Matchers from '../../../framework/Matchers';
-import { EncapsulatedElementType } from '../../../framework';
 
 class RequestTypes {
-  get PersonalSignRequest(): EncapsulatedElementType {
+  get PersonalSignRequest(): DetoxElement {
     return Matchers.getElementByID(
       ConfirmationRequestTypeIDs.PERSONAL_SIGN_REQUEST,
     );
   }
 
-  get TypedSignRequest(): EncapsulatedElementType {
+  get TypedSignRequest(): DetoxElement {
     return Matchers.getElementByID(
       ConfirmationRequestTypeIDs.TYPED_SIGN_REQUEST,
     );

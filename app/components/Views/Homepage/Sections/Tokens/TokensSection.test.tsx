@@ -3,7 +3,6 @@ import { screen, fireEvent, waitFor, act } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import TokensSection from './TokensSection';
 import Routes from '../../../../../constants/navigation/Routes';
-import { homepageSectionTitleTestId } from '../../Homepage.testIds';
 
 const mockNavigate = jest.fn();
 const mockGoToBuy = jest.fn();
@@ -624,7 +623,7 @@ describe('TokensSection', () => {
       <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
 
-    fireEvent.press(screen.getByTestId(homepageSectionTitleTestId('tokens')));
+    fireEvent.press(screen.getByLabelText('Tokens'));
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.TOKENS_FULL_VIEW);
   });
@@ -1068,7 +1067,7 @@ describe('TokensSection', () => {
         />,
       );
 
-      fireEvent.press(screen.getByTestId(homepageSectionTitleTestId('tokens')));
+      fireEvent.press(screen.getByLabelText('Trending tokens'));
 
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,

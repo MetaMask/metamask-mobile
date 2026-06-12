@@ -39,7 +39,6 @@ export enum DeepLinkRoute {
   HOME = 'home',
   ASSET = 'asset',
   SWAP = 'swap',
-  BATCH_SELL = 'batch-sell',
   PERPS = 'perps',
   TRANSACTION = 'transaction',
   BUY = 'buy',

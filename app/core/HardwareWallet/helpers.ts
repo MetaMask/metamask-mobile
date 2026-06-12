@@ -44,11 +44,6 @@ const withLedgerDeviceIdLookupTimeout = async <Result>(
   });
 };
 
-const isLedgerDeviceIdLookupTimeoutError = (error: unknown): boolean =>
-  error instanceof HardwareWalletError &&
-  error.code === ErrorCode.DeviceUnresponsive &&
-  error.metadata?.errorName === 'LedgerDeviceIdLookupTimeoutError';
-
 /**
  * Helper to get wallet type display name
  */
@@ -96,16 +91,7 @@ export async function getDeviceIdForAddress(
 
   switch (walletType) {
     case HardwareWalletType.Ledger:
-      try {
-        return await withLedgerDeviceIdLookupTimeout(getDeviceId());
-      } catch (error) {
-        // On cold app start, keyring mutex contention can delay device-id lookup.
-        // Falling back to undefined lets the readiness flow recover via scan/connect.
-        if (isLedgerDeviceIdLookupTimeoutError(error)) {
-          return undefined;
-        }
-        throw error;
-      }
+      return await withLedgerDeviceIdLookupTimeout(getDeviceId());
     default:
       return undefined;
   }

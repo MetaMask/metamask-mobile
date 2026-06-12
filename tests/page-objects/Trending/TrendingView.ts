@@ -3,7 +3,6 @@ import {
   Gestures,
   Assertions,
   type ScrollOptions,
-  EncapsulatedElementType,
 } from '../../framework';
 import {
   TrendingViewSelectorsIDs,
@@ -19,80 +18,80 @@ import BrowserView from '../Browser/BrowserView';
 class TrendingView {
   private activeScrollViewID: string = TrendingViewSelectorsIDs.NOW_SCROLL_VIEW;
 
-  get searchButton(): EncapsulatedElementType {
+  get searchButton(): DetoxElement {
     return Matchers.getElementByID(TrendingViewSelectorsIDs.SEARCH_BUTTON);
   }
 
-  get browserButton(): EncapsulatedElementType {
+  get browserButton(): DetoxElement {
     return Matchers.getElementByID(TrendingViewSelectorsIDs.BROWSER_BUTTON);
   }
 
-  get searchInputContainer(): EncapsulatedElementType {
+  get searchInputContainer(): DetoxElement {
     return Matchers.getElementByID(TrendingViewSelectorsIDs.SEARCH_INPUT);
   }
 
-  get searchInput(): EncapsulatedElementType {
+  get searchInput(): DetoxElement {
     return Matchers.getElementByID(TrendingViewSelectorsIDs.SEARCH_TEXT_INPUT);
   }
 
-  get searchCancelButton(): EncapsulatedElementType {
+  get searchCancelButton(): DetoxElement {
     return Matchers.getElementByID(
       TrendingViewSelectorsIDs.SEARCH_CANCEL_BUTTON,
     );
   }
 
-  get searchAllPill(): EncapsulatedElementType {
+  get searchAllPill(): DetoxElement {
     return Matchers.getElementByID(TrendingViewSelectorsIDs.SEARCH_PILL_ALL);
   }
 
-  get searchCryptosPill(): EncapsulatedElementType {
+  get searchCryptosPill(): DetoxElement {
     return Matchers.getElementByID(
       TrendingViewSelectorsIDs.SEARCH_PILL_CRYPTOS,
     );
   }
 
-  get searchResultsList(): EncapsulatedElementType {
+  get searchResultsList(): DetoxElement {
     return Matchers.getElementByID(
       TrendingViewSelectorsIDs.SEARCH_RESULTS_LIST,
     );
   }
 
-  getTokenRow(assetId: string): EncapsulatedElementType {
+  getTokenRow(assetId: string): DetoxElement {
     return Matchers.getElementByID(
       `${TrendingViewSelectorsIDs.TOKEN_ROW_ITEM_PREFIX}${assetId}`,
       0,
     );
   }
 
-  getPerpRow(symbol: string): EncapsulatedElementType {
+  getPerpRow(symbol: string): DetoxElement {
     return Matchers.getElementByID(
       `${TrendingViewSelectorsIDs.PERPS_ROW_ITEM_PREFIX}${symbol}`,
       0,
     );
   }
 
-  getPredictionRow(id: string): EncapsulatedElementType {
+  getPredictionRow(id: string): DetoxElement {
     return Matchers.getElementByID(
       `${TrendingViewSelectorsIDs.PREDICTIONS_ROW_ITEM_PREFIX}${id}`,
       0,
     );
   }
 
-  getSiteRow(name: string): EncapsulatedElementType {
+  getSiteRow(name: string): DetoxElement {
     return Matchers.getElementByID(
       `${TrendingViewSelectorsIDs.SITE_ROW_ITEM_PREFIX}${name}`,
       0,
     );
   }
 
-  getSectionHeader(title: string): EncapsulatedElementType {
+  getSectionHeader(title: string): DetoxElement {
     return Matchers.getElementByText(title);
   }
 
   /**
    * Get section header by testID (for full view headers)
    */
-  getSectionHeaderByTestID(title: string): EncapsulatedElementType | null {
+  getSectionHeaderByTestID(title: string): DetoxElement | null {
     const headerTestID = SECTION_FULL_VIEW_HEADERS[title];
     if (!headerTestID) {
       return null;
@@ -100,7 +99,7 @@ class TrendingView {
     return Matchers.getElementByID(headerTestID);
   }
 
-  getBackButton(testID: string): EncapsulatedElementType {
+  getBackButton(testID: string): DetoxElement {
     return Matchers.getElementByID(testID);
   }
 
@@ -167,7 +166,7 @@ class TrendingView {
    * Uses Gestures.scrollToElement which retries scroll + visibility check until the element is on screen.
    */
   private async scrollToElementInFeed(
-    targetElement: EncapsulatedElementType,
+    targetElement: DetoxElement,
     description: string,
     direction: 'up' | 'down' = 'down',
     options: Partial<ScrollOptions> = {},
@@ -286,7 +285,7 @@ class TrendingView {
    * @param itemType - Type of item for description ('token', 'perp', 'prediction', 'site')
    */
   private async verifyItemVisible(
-    getElement: () => EncapsulatedElementType,
+    getElement: () => DetoxElement,
     identifier: string,
     itemType: string,
     options: Partial<ScrollOptions> = {},
@@ -310,7 +309,7 @@ class TrendingView {
    * Gestures.scrollToElement retries scroll until the element is visible.
    */
   private async tapItemRow(
-    getElement: () => EncapsulatedElementType,
+    getElement: () => DetoxElement,
     identifier: string,
     itemType: string,
   ): Promise<void> {

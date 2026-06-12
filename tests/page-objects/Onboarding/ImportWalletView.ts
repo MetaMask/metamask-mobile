@@ -17,7 +17,7 @@ import UnifiedGestures from '../../framework/UnifiedGestures';
 import PlaywrightGestures from '../../framework/PlaywrightGestures';
 
 class ImportWalletView {
-  get container(): EncapsulatedElementType {
+  get container(): DetoxElement {
     return Matchers.getElementByID(ImportFromSeedSelectorsIDs.CONTAINER_ID);
   }
 
@@ -35,13 +35,13 @@ class ImportWalletView {
     });
   }
 
-  get newPasswordInput(): EncapsulatedElementType {
+  get newPasswordInput(): DetoxElement {
     return Matchers.getElementByID(
       ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
     );
   }
 
-  get confirmPasswordInput(): EncapsulatedElementType {
+  get confirmPasswordInput(): DetoxElement {
     return Matchers.getElementByID(
       ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
     );

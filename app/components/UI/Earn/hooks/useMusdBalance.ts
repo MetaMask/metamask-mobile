@@ -15,23 +15,17 @@ import {
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 import { fromTokenMinimalUnitString } from '../../../../util/number';
 import BigNumber from 'bignumber.js';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { getLocaleLanguageCode } from '../../../hooks/useFormatters';
 import { formatWithThreshold } from '../../../../util/assets';
-import { selectMusdBalanceChainIds } from '../selectors/featureFlags';
 
-interface UseMusdBalanceResult {
-  hasMusdBalanceOnAnyChain: boolean;
-  hasMusdBalanceOnChain: (chainId: Hex) => boolean;
-  tokenBalanceByChain: Record<Hex, string>;
-  fiatBalanceByChain: Record<Hex, string>;
-  fiatBalanceFormattedByChain: Record<Hex, string>;
-  tokenBalanceAggregated: string;
-  fiatBalanceAggregated: string | undefined;
-  fiatBalanceAggregatedFormatted: string;
-}
+const SUPPORTED_MUSD_CHAIN_IDS = [
+  CHAIN_IDS.MAINNET,
+  CHAIN_IDS.LINEA_MAINNET,
+] as const;
 
 /**
- * Hook to get MUSD token balance across supported chains.
+ * Hook to get MUSD token balance across supported chains (Mainnet, Linea).
  * @returns Object containing:
  * - hasMusdBalanceOnAnyChain: true if the user has MUSD on any supported chain
  * - hasMusdBalanceOnChain: (chainId) => true if the user has MUSD on that chain
@@ -42,7 +36,7 @@ interface UseMusdBalanceResult {
  * - fiatBalanceAggregated: sum of fiat value across chains (string, or undefined if no rates)
  * - fiatBalanceAggregatedFormatted: aggregated fiat value as locale-formatted currency string
  */
-export const useMusdBalance = (): UseMusdBalanceResult => {
+export const useMusdBalance = () => {
   const selectedEvmAddress = useSelector(
     (state: RootState) =>
       selectSelectedInternalAccountByScope(state)(EVM_SCOPE)?.address,
@@ -53,7 +47,6 @@ export const useMusdBalance = (): UseMusdBalanceResult => {
   const currencyRates = useSelector(selectCurrencyRates);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
-  const musdBalanceChainIds = useSelector(selectMusdBalanceChainIds);
 
   const balancesPerChainId = useMemo(
     () =>
@@ -81,7 +74,7 @@ export const useMusdBalance = (): UseMusdBalanceResult => {
     let tokenBalanceTotal = new BigNumber(0);
     let fiatBalanceTotal: BigNumber | undefined;
 
-    for (const chainId of musdBalanceChainIds as Hex[]) {
+    for (const chainId of SUPPORTED_MUSD_CHAIN_IDS) {
       const tokenAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN[chainId];
       const chainBalances = balancesPerChainId[chainId];
       if (!chainBalances || !tokenAddress) {
@@ -183,7 +176,6 @@ export const useMusdBalance = (): UseMusdBalanceResult => {
     balancesPerChainId,
     currencyRates,
     currentCurrency,
-    musdBalanceChainIds,
     networkConfigurations,
     tokenMarketDataByAddressByChainId,
   ]);

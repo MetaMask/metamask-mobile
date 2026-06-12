@@ -3,6 +3,9 @@ import { StyleSheet, View } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import { NetworkAddedBottomSheetSelectorsIDs } from '../NetworkAddedBottomSheet.testIds';
 import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import Text, {
+  TextVariant,
+} from '../../../../component-library/components/Texts/Text';
 import BottomSheetFooter, {
   ButtonsAlignment,
 } from '../../../../component-library/components/BottomSheets/BottomSheetFooter';
@@ -11,11 +14,6 @@ import {
   ButtonVariants,
   ButtonSize,
 } from '../../../../component-library/components/Buttons/Button/Button.types';
-import {
-  Text,
-  TextVariant,
-  FontWeight,
-} from '@metamask/design-system-react-native';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -69,12 +67,12 @@ const NetworkAdded = (props: NetworkAddedProps) => {
       </BottomSheetHeader>
       <View style={styles.content}>
         <Text>
-          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
+          <Text variant={TextVariant.BodyMDBold}>
             {`"${strings('networks.network_name', {
               networkName: nickname ?? '',
             })}"`}
           </Text>
-          <Text variant={TextVariant.BodyMd}>
+          <Text variant={TextVariant.BodyMD}>
             {strings('networks.network_added')}
           </Text>
         </Text>

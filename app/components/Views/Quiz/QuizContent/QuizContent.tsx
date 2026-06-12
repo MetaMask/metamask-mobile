@@ -9,9 +9,11 @@ import Icon, {
 import Button, {
   ButtonSize,
 } from '../../../../component-library/components/Buttons/Button';
+import Text, {
+  TextVariant,
+} from '../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../hooks/useStyles';
 import stylesheet from './styles';
-import { Text, TextVariant } from '@metamask/design-system-react-native';
 
 const QuizContent = ({
   header,
@@ -30,7 +32,7 @@ const QuizContent = ({
       <>
         <View style={styles.header}>
           <View style={styles.spacer} />
-          <Text variant={TextVariant.HeadingSm} style={styles.headerText}>
+          <Text variant={TextVariant.HeadingSM} style={styles.headerText}>
             {header}
           </Text>
           <TouchableOpacity onPress={dismiss}>
@@ -45,14 +47,14 @@ const QuizContent = ({
         {icon ? icon() : null}
         {image ? <Image source={image} style={styles.image} /> : null}
         <Text
-          variant={TextVariant.HeadingLg}
+          variant={TextVariant.HeadingLG}
           style={{ ...styles.title, ...title.style }}
           testID={title.testID}
         >
           {title.content}
         </Text>
         {content ? (
-          <Text variant={TextVariant.BodyMd} style={styles.content}>
+          <Text variant={TextVariant.BodyMD} style={styles.content}>
             {content}
           </Text>
         ) : null}

@@ -46,6 +46,7 @@ Before testing, confirm the following:
 
   | Flag                | Purpose                                        |
   | ------------------- | ---------------------------------------------- |
+  | `rampsUnifiedBuyV1` | Enables the Buy button entry point             |
   | `rampsUnifiedBuyV2` | Enables the V2 provider/quote flow             |
   | `depositConfig`     | Required for the Transak native (deposit) flow |
 
@@ -229,7 +230,7 @@ Regardless of provider, verify:
 ## Troubleshooting
 
 **Buy button is not visible**
-Confirm the `rampsUnifiedBuyV2` feature flag is active on your build. The Buy entry point is always rendered, but V2 enables the V2 provider/quote flow.
+Confirm `rampsUnifiedBuyV1` and `rampsUnifiedBuyV2` feature flags are active on your build. These are required for the Buy entry point to appear.
 
 **No providers or quotes returned**
 Your detected region may not be supported. Verify your device's region is set to a supported country (US, France, Spain, or Saint Lucia) and relaunch the app.

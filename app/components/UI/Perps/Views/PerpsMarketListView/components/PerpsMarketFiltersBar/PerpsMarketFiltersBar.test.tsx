@@ -38,7 +38,7 @@ jest.mock('../../../../components/PerpsMarketCategoryBadges', () => {
     }) => (
       <View testID={testID}>
         <Text testID={`${testID}-selected`}>{selectedCategory}</Text>
-        {['crypto', 'stock', 'commodity', 'forex'].map((cat: string) => (
+        {['crypto', 'stocks', 'commodities', 'forex'].map((cat: string) => (
           <TouchableOpacity
             key={cat}
             testID={`${testID}-${cat}`}
@@ -156,8 +156,8 @@ describe('PerpsMarketFiltersBar', () => {
       fireEvent.press(getByTestId('filters-bar-categories-crypto'));
       expect(mockOnCategorySelect).toHaveBeenCalledWith('crypto');
 
-      fireEvent.press(getByTestId('filters-bar-categories-stock'));
-      expect(mockOnCategorySelect).toHaveBeenCalledWith('stock');
+      fireEvent.press(getByTestId('filters-bar-categories-stocks'));
+      expect(mockOnCategorySelect).toHaveBeenCalledWith('stocks');
     });
   });
 
@@ -211,8 +211,8 @@ describe('PerpsMarketFiltersBar', () => {
     it('renders with specific category selected', () => {
       const categories: MarketTypeFilter[] = [
         'crypto',
-        'stock',
-        'commodity',
+        'stocks',
+        'commodities',
         'forex',
       ];
 

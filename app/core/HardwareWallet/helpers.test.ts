@@ -4,7 +4,11 @@ import {
   getConnectionTipsForWalletType,
   getDeviceIdForAddress,
 } from './helpers';
-import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
+import {
+  ErrorCode,
+  HardwareWalletError,
+  HardwareWalletType,
+} from '@metamask/hw-wallet-sdk';
 
 jest.mock('../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
@@ -163,7 +167,7 @@ describe('HardwareWallet helpers', () => {
       expect(mockGetDeviceId).toHaveBeenCalledTimes(1);
     });
 
-    it('falls back to undefined when Ledger device id lookup times out', async () => {
+    it('rejects with a HardwareWalletError when Ledger device id lookup times out', async () => {
       jest.useFakeTimers();
       mockIsHardwareAccount.mockReset();
       mockIsHardwareAccount
@@ -174,9 +178,16 @@ describe('HardwareWallet helpers', () => {
         new Promise(() => {}),
       );
 
-      const resultPromise = getDeviceIdForAddress(testAddress);
+      const resultPromise = getDeviceIdForAddress(testAddress).catch(
+        (error) => error,
+      );
       await jest.advanceTimersByTimeAsync(6000);
-      await expect(resultPromise).resolves.toBeUndefined();
+      const error = await resultPromise;
+
+      expect(error).toEqual(expect.any(HardwareWalletError));
+      expect(error).toMatchObject({
+        code: ErrorCode.DeviceUnresponsive,
+      });
       jest.useRealTimers();
     });
 

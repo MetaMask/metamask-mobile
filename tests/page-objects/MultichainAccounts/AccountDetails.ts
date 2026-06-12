@@ -2,54 +2,53 @@ import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { AccountDetailsIds } from '../../../app/components/Views/MultichainAccounts/AccountDetails.testIds';
 import { ExportCredentialsIds } from '../../../app/components/Views/MultichainAccounts/AccountDetails/ExportCredentials.testIds';
-import { EncapsulatedElementType } from '../../framework';
 
 class AccountDetails {
-  get container(): EncapsulatedElementType {
+  get container(): DetoxElement {
     return Matchers.getElementByID(AccountDetailsIds.ACCOUNT_DETAILS_CONTAINER);
   }
 
-  get shareAddress(): EncapsulatedElementType {
+  get shareAddress(): DetoxElement {
     return Matchers.getElementByID(AccountDetailsIds.ACCOUNT_ADDRESS_LINK);
   }
 
-  get editAccountName(): EncapsulatedElementType {
+  get editAccountName(): DetoxElement {
     return Matchers.getElementByID(AccountDetailsIds.ACCOUNT_NAME_LINK);
   }
 
-  get editWalletName(): EncapsulatedElementType {
+  get editWalletName(): DetoxElement {
     return Matchers.getElementByID(AccountDetailsIds.WALLET_NAME_LINK);
   }
 
-  get networksLink(): EncapsulatedElementType {
+  get networksLink(): DetoxElement {
     return Matchers.getElementByID(AccountDetailsIds.NETWORKS_LINK);
   }
 
-  get backButton(): EncapsulatedElementType {
+  get backButton(): DetoxElement {
     return Matchers.getElementByID(AccountDetailsIds.BACK_BUTTON);
   }
 
-  get deleteAccountLink(): EncapsulatedElementType {
+  get deleteAccountLink(): DetoxElement {
     return Matchers.getElementByID(AccountDetailsIds.REMOVE_ACCOUNT_BUTTON);
   }
 
-  get accountSrpLink(): EncapsulatedElementType {
+  get accountSrpLink(): DetoxElement {
     return Matchers.getElementByID(
       AccountDetailsIds.SECRET_RECOVERY_PHRASE_LINK,
     );
   }
 
-  get exportPrivateKeyButton(): EncapsulatedElementType {
+  get exportPrivateKeyButton(): DetoxElement {
     return Matchers.getElementByID(
       ExportCredentialsIds.EXPORT_PRIVATE_KEY_BUTTON,
     );
   }
 
-  get privateKeysLink(): EncapsulatedElementType {
+  get privateKeysLink(): DetoxElement {
     return Matchers.getElementByID(AccountDetailsIds.PRIVATE_KEYS_LINK);
   }
 
-  get exportSrpButton(): EncapsulatedElementType {
+  get exportSrpButton(): DetoxElement {
     return Matchers.getElementByID(ExportCredentialsIds.EXPORT_SRP_BUTTON);
   }
 

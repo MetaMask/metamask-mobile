@@ -25,10 +25,13 @@ const styleSheet = (params: {
 
   return StyleSheet.create({
     base: Object.assign({} as ViewStyle, style) as ViewStyle,
-    cellBase: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    } as ViewStyle,
+    cellBase: Object.assign(
+      {
+        flexDirection: 'row',
+        alignItems: 'center',
+      } as ViewStyle,
+      style,
+    ) as ViewStyle,
     avatar: {
       marginRight: 16,
     },

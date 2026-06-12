@@ -34,12 +34,7 @@ import {
 } from '../../../selectors/transactionController';
 import { baseStyles } from '../../../styles/common';
 import { areAddressesEqual, isHardwareAccount } from '../../../util/address';
-import {
-  getBlockExplorerAddressUrl,
-  getBlockExplorerName,
-} from '../../../util/networks';
-import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
-import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
+import { getBlockExplorerAddressUrl } from '../../../util/networks';
 import { useTheme } from '../../../util/theme';
 import { updateIncomingTransactions } from '../../../util/transaction-controller';
 import { useStyles } from '../../hooks/useStyles';
@@ -115,7 +110,6 @@ const UnifiedTransactionsView = ({
   location,
 }: UnifiedTransactionsViewProps) => {
   const navigation = useNavigation();
-  const { trackEvent, createEventBuilder } = useAnalytics();
   const { colors } = useTheme();
   const tw = useTailwind();
   const { styles } = useStyles(styleSheet, {});
@@ -403,18 +397,6 @@ const UnifiedTransactionsView = ({
         : undefined;
     }
 
-    if (!url) {
-      return;
-    }
-
-    trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
-      location: 'activity_tab',
-      text: title
-        ? `${strings('transactions.view_full_history_on')} ${title}`
-        : strings('asset_details.options.view_on_block'),
-      url,
-    });
-
     navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
@@ -423,10 +405,8 @@ const UnifiedTransactionsView = ({
       },
     });
   }, [
-    createEventBuilder,
     navigation,
     blockExplorerUrl,
-    trackEvent,
     selectedAccountGroupEvmAddress,
     popularListBlockExplorer,
     enabledEVMChainIds,
@@ -470,19 +450,13 @@ const UnifiedTransactionsView = ({
       return;
     }
 
-    trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
-      location: 'activity_tab',
-      text: `${strings('transactions.view_full_history_on')} ${getBlockExplorerName(nonEvmExplorerUrl)}`,
-      url: nonEvmExplorerUrl,
-    });
-
     navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
         url: nonEvmExplorerUrl,
       },
     });
-  }, [createEventBuilder, navigation, nonEvmExplorerUrl, trackEvent]);
+  }, [navigation, nonEvmExplorerUrl]);
 
   const footerComponent = useMemo(() => {
     if (isFetchingNextPage) {

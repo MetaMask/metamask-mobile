@@ -49,14 +49,6 @@ jest.mock('./useInsufficientMoneyAccountBalanceAlert', () => ({
   ],
 }));
 
-jest.mock('./useFiatBuyLimitAlert', () => ({
-  useFiatBuyLimitAlert: () => [
-    {
-      id: 'alert-8',
-    },
-  ],
-}));
-
 describe('usePendingAmountAlerts', () => {
   it('returns alerts', () => {
     const { result } = renderHook(() =>
@@ -69,7 +61,6 @@ describe('usePendingAmountAlerts', () => {
       { id: 'alert-4' },
       { id: 'alert-5' },
       { id: 'alert-7' },
-      { id: 'alert-8' },
       { id: 'alert-6' },
     ]);
   });

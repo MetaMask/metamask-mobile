@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { getOrders } from '../../../../reducers/fiatOrders';
+import {
+  getOrders,
+  getRampRoutingDecision,
+  UnifiedRampRoutingType,
+} from '../../../../reducers/fiatOrders';
 import { selectRampsOrdersForSelectedAccountGroup } from '../../../../selectors/rampsController';
 import { getProviderToken } from '../Deposit/utils/ProviderTokenVault';
 import {
@@ -9,6 +13,7 @@ import {
 } from '../utils/determinePreferredProvider';
 
 export interface RampsButtonClickData {
+  ramp_routing?: UnifiedRampRoutingType;
   is_authenticated?: boolean;
   preferred_provider?: string;
   order_count: number;
@@ -19,6 +24,7 @@ export function useRampsButtonClickData(): RampsButtonClickData {
   const controllerOrders = useSelector(
     selectRampsOrdersForSelectedAccountGroup,
   );
+  const rampRoutingDecision = useSelector(getRampRoutingDecision);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
   useEffect(() => {
@@ -63,11 +69,12 @@ export function useRampsButtonClickData(): RampsButtonClickData {
     }
 
     return {
+      ramp_routing: rampRoutingDecision ?? undefined,
       is_authenticated: isAuthenticated,
       preferred_provider: preferredProvider,
       order_count: orderCount,
     };
-  }, [orders, controllerOrders, isAuthenticated]);
+  }, [orders, controllerOrders, rampRoutingDecision, isAuthenticated]);
 
   return data;
 }

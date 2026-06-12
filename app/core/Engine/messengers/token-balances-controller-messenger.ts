@@ -54,6 +54,7 @@ export function getTokenBalancesControllerMessenger(
       'AccountActivityService:statusChanged',
       'AccountsController:selectedEvmAccountChange',
       'TransactionController:transactionConfirmed',
+      'TransactionController:incomingTransactionsReceived',
     ],
     messenger,
   });

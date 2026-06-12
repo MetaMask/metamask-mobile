@@ -28,7 +28,7 @@ jest.mock('./hooks/useQuickBuySetup', () => ({
   useQuickBuySetup: jest.fn(),
 }));
 
-// Captures the onOpenDialog callback registered by QuickBuyRootInner.
+// Captures the onOpenBottomSheet callback registered by QuickBuyBottomSheetInner.
 // Call storedOnOpenCallback() inside act() after render to simulate the sheet
 // finishing its open animation and make isContentReady become true.
 let storedOnOpenCallback: (() => void) | undefined;
@@ -41,7 +41,7 @@ jest.mock('@metamask/design-system-react-native', () => {
 
   return {
     ...actual,
-    BottomSheetDialog: ReactMock.forwardRef(
+    BottomSheet: ReactMock.forwardRef(
       (
         {
           children,
@@ -53,14 +53,13 @@ jest.mock('@metamask/design-system-react-native', () => {
         ref: unknown,
       ) => {
         ReactMock.useImperativeHandle(ref, () => ({
-          onOpenDialog: (cb: () => void) => {
+          onOpenBottomSheet: (cb: () => void) => {
             storedOnOpenCallback = cb;
           },
-          onCloseDialog: (cb?: () => void) => cb?.(),
         }));
         return ReactMock.createElement(
           View,
-          { testID: 'mock-bottom-sheet-dialog', onTouchEnd: onClose },
+          { testID: 'mock-bottom-sheet', onTouchEnd: onClose },
           children,
         );
       },
@@ -195,7 +194,6 @@ const buildHookResult = (
   estimatedReceiveAmount: undefined,
   sourceBalanceFiat: '$0.00',
   sourceBalanceDisplay: undefined,
-  destBalanceFiat: undefined,
   formattedNetworkFee: '-',
   formattedSlippage: '-',
   formattedMinimumReceived: '-',
@@ -306,9 +304,7 @@ describe('QuickBuy.Root', () => {
         />,
       );
 
-      expect(
-        screen.queryByTestId('mock-bottom-sheet-dialog'),
-      ).not.toBeOnTheScreen();
+      expect(screen.queryByTestId('mock-bottom-sheet')).not.toBeOnTheScreen();
     });
 
     it('mounts the inner sheet when visible with a valid position', () => {
@@ -321,7 +317,7 @@ describe('QuickBuy.Root', () => {
         />,
       );
 
-      expect(screen.getByTestId('mock-bottom-sheet-dialog')).toBeOnTheScreen();
+      expect(screen.getByTestId('mock-bottom-sheet')).toBeOnTheScreen();
     });
   });
 

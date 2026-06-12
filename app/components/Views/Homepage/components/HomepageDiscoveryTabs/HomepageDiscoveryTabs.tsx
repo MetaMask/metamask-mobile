@@ -62,9 +62,6 @@ const TAB_NAMES = {
   [TAB_INDEX.PREDICTIONS]: HomeTabNames.PREDICTIONS,
 } as const;
 
-/** Space between the discovery tab bar and the Perps / Predictions screen title. */
-const DISCOVERY_TAB_TITLE_SPACING = 32;
-
 // Static per-tab gradient color stops. Keyed by TAB_INDEX so adding a new tab
 // only requires adding an entry here.
 // Design spec: linear-gradient(180deg, <color> 0%, rgba(<color>, 0) 100%)
@@ -383,7 +380,7 @@ const HomepageDiscoveryTabs = forwardRef<
                     walletHeaderHeight={walletHeaderHeight}
                     tabEnterCallbackRef={perpsTabEnterRef}
                     onHeaderHiddenChange={animateIcons}
-                    topInset={DISCOVERY_TAB_TITLE_SPACING}
+                    topInset={22}
                   />
                 </DiscoveryTabView>
 
@@ -395,7 +392,6 @@ const HomepageDiscoveryTabs = forwardRef<
                   <PredictPreviewSheetProvider disableBottomSheet>
                     <PredictFeed
                       hideHeader
-                      topInset={DISCOVERY_TAB_TITLE_SPACING}
                       entryPoint={PredictEventValues.ENTRY_POINT.PREDICT_FEED}
                       walletHeaderTranslateY={walletHeaderTranslateY}
                       walletHeaderHeight={walletHeaderHeight}

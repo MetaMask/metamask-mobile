@@ -13,9 +13,6 @@ import {
 import { getTeamInfoFromTags } from '../../utils/teams';
 import { publishPerformanceScenarioToSentry } from '../../../reporters/providers/sentry/PerformanceSentryPublisher';
 import type { TestLevelFixtures } from './types.ts';
-import { createPlaywrightLogger } from '../../playwrightLogger.ts';
-
-const logger = createPlaywrightLogger('performanceTracker');
 
 function getSessionIdFromAnnotations(
   annotations?: { type: string; description?: string }[],
@@ -41,6 +38,9 @@ export const performanceTrackerFixture = {
       testInfo.retry > 0 &&
       hasQualityGateFailure(testId)
     ) {
+      console.log(
+        `⏭️ Aborting retry for "${testInfo.title}" - previous attempt failed due to Quality Gates (threshold exceeded, not a test execution error)`,
+      );
       throw new QualityGateError(
         `Quality Gates failed on a previous attempt for "${testInfo.title}". Retries are not allowed for quality gate failures.`,
       );
@@ -52,8 +52,8 @@ export const performanceTrackerFixture = {
     const teamInfo = getTeamInfoFromTags(testTags);
     performanceTracker.setTeamInfo(teamInfo);
 
-    logger.info(
-      `Test assigned to team: ${teamInfo.teamName} (${teamInfo.teamId})`,
+    console.log(
+      `👥 Test assigned to team: ${teamInfo.teamName} (${teamInfo.teamId})`,
     );
 
     await use(performanceTracker);
@@ -62,13 +62,13 @@ export const performanceTrackerFixture = {
       return;
     }
 
-    logger.info('Post-test cleanup: attaching performance metrics');
-    logger.debug(
-      `Found ${performanceTracker.timers.length} timers in performance tracker`,
+    console.log('🔍 Post-test cleanup: attaching performance metrics...');
+    console.log(
+      `📊 Found ${performanceTracker.timers.length} timers in tracker`,
     );
 
     if (performanceTracker.timers.length === 0) {
-      logger.warn('No timers found in performance tracker');
+      console.log('⚠️ No timers found in performance tracker');
     }
 
     // Propagate BrowserStack session creation time (infra overhead, not counted in total)
@@ -81,13 +81,16 @@ export const performanceTrackerFixture = {
     let metrics: MetricsOutput | null = null;
     try {
       metrics = await performanceTracker.attachToTest(testInfo);
-      logger.info(
-        `Performance metrics attached: ${
+      console.log(
+        `✅ Performance metrics attached: ${
           metrics.steps.length
         } steps, ${metrics.total.toFixed(2)}s total`,
       );
     } catch (error) {
-      logger.error('Failed to attach performance metrics:', error);
+      console.error(
+        '❌ Failed to attach performance metrics:',
+        (error as Error).message,
+      );
     }
 
     const sessionId = getSessionIdFromAnnotations(testInfo.annotations);
@@ -110,12 +113,12 @@ export const performanceTrackerFixture = {
         });
 
         if (sentToSentry) {
-          logger.info(`Scenario "${testInfo.title}" sent to Sentry`);
+          console.log(`📡 Scenario "${testInfo.title}" sent to Sentry`);
         }
       } catch (error) {
-        logger.error(
-          `Failed to publish scenario "${testInfo.title}" to Sentry:`,
-          error,
+        console.error(
+          `❌ Failed to publish scenario "${testInfo.title}" to Sentry:`,
+          (error as Error).message,
         );
       }
     }
@@ -124,27 +127,27 @@ export const performanceTrackerFixture = {
       t.hasThreshold(),
     );
     if (hasThresholds) {
-      logger.info('Validating quality gates');
+      console.log('🔍 Validating quality gates...');
       try {
         QualityGatesValidator.assertThresholds(
           testInfo.title,
           performanceTracker.timers,
         );
-        logger.info('Quality gates passed');
+        console.log('✅ Quality gates PASSED');
       } catch (error) {
         if (
           (error as Error & { isQualityGateError?: boolean }).isQualityGateError
         ) {
           markQualityGateFailure(testId);
-          logger.warn(
-            'Quality gates failed - retries will be skipped for this test',
+          console.log(
+            '🚫 Quality gates FAILED - retries will be skipped for this test',
           );
         }
         throw error;
       }
     }
 
-    logger.debug('Looking for session ID');
+    console.log('🔍 Looking for session ID...');
 
     if (sessionId) {
       await testInfo.attach('session-data', {
@@ -160,9 +163,9 @@ export const performanceTrackerFixture = {
         contentType: 'application/json',
       });
 
-      logger.info(`Session data stored: ${sessionId}`);
+      console.log(`✅ Session data stored: ${sessionId}`);
     } else {
-      logger.warn('No session ID found - video URL cannot be retrieved');
+      console.log('⚠️ No session ID found - video URL cannot be retrieved');
     }
   },
 };

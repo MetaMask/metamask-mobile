@@ -1,7 +1,4 @@
-import {
-  AGENTIC_CLI_CONNECTION_LOADING_AUTODISMISS_MS,
-  HostApplicationAdapter,
-} from '../SDKConnectV2/adapters/host-application-adapter';
+import { HostApplicationAdapter } from '../SDKConnectV2/adapters/host-application-adapter';
 import { KeyManager } from '../SDKConnectV2/services/key-manager';
 import { Connection } from '../SDKConnectV2/services/connection';
 import { ConnectionInfo } from '../SDKConnectV2/types/connection-info';
@@ -15,6 +12,10 @@ import {
   isAgenticCliDeeplink,
 } from './AgenticCliMwpConnectionService';
 import {
+  hideAgenticCliConnectionLoading,
+  showAgenticCliConnectionLoading,
+} from './agenticCliLoading';
+import {
   hideAgenticCliOtpCode,
   showAgenticCliOtpCode,
 } from './agenticCliOtpUi';
@@ -23,6 +24,10 @@ import Engine from '../Engine';
 jest.mock('../SDKConnectV2/adapters/host-application-adapter');
 jest.mock('../SDKConnectV2/services/key-manager');
 jest.mock('../SDKConnectV2/services/connection');
+jest.mock('./agenticCliLoading', () => ({
+  showAgenticCliConnectionLoading: jest.fn(),
+  hideAgenticCliConnectionLoading: jest.fn(),
+}));
 jest.mock('./agenticCliOtpUi', () => ({
   showAgenticCliOtpCode: jest.fn(),
   hideAgenticCliOtpCode: jest.fn(),
@@ -196,7 +201,7 @@ describe('AgenticCliMwpConnectionService', () => {
     await Promise.resolve();
 
     expect(Connection.create).not.toHaveBeenCalled();
-    expect(mockHostApp.showConnectionLoading).not.toHaveBeenCalled();
+    expect(showAgenticCliConnectionLoading).not.toHaveBeenCalled();
 
     resolveUnlock();
     await promise;
@@ -212,7 +217,7 @@ describe('AgenticCliMwpConnectionService', () => {
         conn: mockConnection,
       }),
     );
-    expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledWith(
+    expect(hideAgenticCliConnectionLoading).toHaveBeenCalledWith(
       expect.objectContaining({
         id: mockConnectionInfo.id,
       }),
@@ -241,7 +246,7 @@ describe('AgenticCliMwpConnectionService', () => {
     expect(hideAgenticCliOtpCode).toHaveBeenCalledWith(
       expect.objectContaining({ id: mockConnectionInfo.id }),
     );
-    expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledWith(
+    expect(hideAgenticCliConnectionLoading).toHaveBeenCalledWith(
       expect.objectContaining({ id: mockConnectionInfo.id }),
     );
     expect(mockHostApp.showConnectionError).toHaveBeenCalled();
@@ -290,12 +295,8 @@ describe('AgenticCliMwpConnectionService', () => {
       cleanupConnection: jest.fn().mockResolvedValue(undefined),
     });
 
-    expect(mockHostApp.showConnectionLoading).toHaveBeenCalledTimes(1);
-    expect(mockHostApp.showConnectionLoading).toHaveBeenCalledWith(
-      expect.objectContaining({ id: mockConnectionInfo.id }),
-      { autodismissMs: AGENTIC_CLI_CONNECTION_LOADING_AUTODISMISS_MS },
-    );
-    expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledTimes(1);
+    expect(showAgenticCliConnectionLoading).toHaveBeenCalledTimes(1);
+    expect(hideAgenticCliConnectionLoading).toHaveBeenCalledTimes(1);
     expect(mockHandleAgenticCliQrLogin).toHaveBeenCalledTimes(1);
   });
 });

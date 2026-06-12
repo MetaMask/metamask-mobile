@@ -4,46 +4,45 @@ import {
 } from '../../../app/components/Views/MultichainAccounts/shared/ConnectAccountBottomSheet.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
 
 class ConnectBottomSheet {
-  get container(): EncapsulatedElementType {
+  get container(): DetoxElement {
     return Matchers.getElementByID(
       ConnectAccountBottomSheetSelectorsIDs.CONTAINER,
     );
   }
-  get connectButton(): EncapsulatedElementType {
+  get connectButton(): DetoxElement {
     return device.getPlatform() === 'android'
       ? Matchers.getElementByLabel(CommonSelectorsIDs.CONNECT_BUTTON)
       : Matchers.getElementByID(CommonSelectorsIDs.CONNECT_BUTTON);
   }
 
-  get connectAccountsButton(): EncapsulatedElementType {
+  get connectAccountsButton(): DetoxElement {
     return Matchers.getElementByText(
       ConnectAccountBottomSheetSelectorsText.CONNECT_ACCOUNTS,
     );
   }
 
-  get importButton(): EncapsulatedElementType {
+  get importButton(): DetoxElement {
     return Matchers.getElementByText(
       ConnectAccountBottomSheetSelectorsText.IMPORT_ACCOUNT,
     );
   }
 
-  get selectAllButton(): EncapsulatedElementType {
+  get selectAllButton(): DetoxElement {
     return Matchers.getElementByText(
       ConnectAccountBottomSheetSelectorsText.SELECT_ALL,
     );
   }
 
-  get selectMultiButton(): EncapsulatedElementType {
+  get selectMultiButton(): DetoxElement {
     return Matchers.getElementByID(
       ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON,
     );
   }
 
-  get cancelButton(): EncapsulatedElementType {
+  get cancelButton(): DetoxElement {
     return Matchers.getElementByID(
       ConnectAccountBottomSheetSelectorsIDs.CANCEL_BUTTON,
     );

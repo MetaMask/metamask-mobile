@@ -20,6 +20,7 @@ import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsCo
 import { strings } from '../../../../../locales/i18n';
 import ReduxService from '../../../../core/redux/ReduxService';
 import { ReduxStore } from '../../../../core/redux/types';
+
 const initialState = {
   privacy: { approvedHosts: {} },
   browser: { history: [] },
@@ -91,7 +92,6 @@ jest.mock('../../../../core/Authentication/hooks/useAuthCapabilities', () => ({
 
 describe('SecuritySettings', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
     mockGoBack.mockClear();
     mockUseParamsValues = {
       scrollToDetectNFTs: undefined,

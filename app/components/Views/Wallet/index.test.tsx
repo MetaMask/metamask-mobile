@@ -836,7 +836,6 @@ describe('Wallet', () => {
         expect.objectContaining({
           groupId: expect.any(String),
           title: expect.any(String),
-          source: 'receive_button',
         }),
       );
     });

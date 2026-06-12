@@ -66,7 +66,7 @@ describe('TopTraderCard', () => {
     expect(screen.getByTestId('top-trader-avatar-trader-1')).toBeOnTheScreen();
   });
 
-  it('renders Maskicon fallback when avatarUri is absent', () => {
+  it('renders fallback AvatarBase when avatarUri is absent', () => {
     const traderNoAvatar = { ...baseTrader, avatarUri: undefined };
     renderWithProvider(
       <TopTraderCard
@@ -74,10 +74,7 @@ describe('TopTraderCard', () => {
         onFollowPress={mockOnFollowPress}
       />,
     );
-    expect(
-      screen.getByTestId(`top-trader-card-${traderNoAvatar.id}`),
-    ).toBeOnTheScreen();
-    expect(screen.queryByText('S')).toBeNull();
+    expect(screen.getByText('S')).toBeOnTheScreen();
   });
 
   it('shows Follow when not following', () => {

@@ -1,4 +1,3 @@
-import { FeatureId } from '@metamask/bridge-controller';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import {
@@ -67,7 +66,6 @@ export const useUnifiedSwapBridgeContext = () => {
       security_warnings: getSecurityWarnings(toToken),
       warnings: [], // TODO
       usd_amount_source: usdAmountSource,
-      feature_id: FeatureId.UNIFIED_SWAP_BRIDGE,
     }),
     [smartTransactionsEnabled, fromToken, toToken, usdAmountSource],
   );

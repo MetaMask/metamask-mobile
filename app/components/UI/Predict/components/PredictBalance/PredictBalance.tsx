@@ -49,14 +49,11 @@ import Routes from '../../../../../constants/navigation/Routes';
 interface PredictBalanceProps {
   onLayout?: (height: number) => void;
   onDepositWalletWithdrawPress?: () => void;
-  /** Hides the screen title row — used when embedded in wallet discovery tabs. */
-  hideTitle?: boolean;
 }
 
 const PredictBalance: React.FC<PredictBalanceProps> = ({
   onLayout,
   onDepositWalletWithdrawPress,
-  hideTitle = false,
 }) => {
   const tw = useTailwind();
   const privacyMode = useSelector(selectPrivacyMode);
@@ -163,9 +160,7 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({
     return (
       <Box twClassName="px-4 gap-3" testID={PREDICT_BALANCE_TEST_IDS.SKELETON}>
         <Box twClassName="gap-2">
-          {!hideTitle && (
-            <Skeleton width={120} height={24} style={tw.style('rounded')} />
-          )}
+          <Skeleton width={120} height={24} style={tw.style('rounded')} />
           <Skeleton width={160} height={48} style={tw.style('rounded')} />
           <Skeleton width={100} height={16} style={tw.style('rounded')} />
         </Box>
@@ -208,7 +203,7 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({
       <Box twClassName="px-4">
         <TitleHub
           twClassName="w-full"
-          title={hideTitle ? undefined : strings('wallet.predict')}
+          title={strings('wallet.predict')}
           amount={
             <SensitiveText
               variant={ComponentTextVariant.DisplayLG}

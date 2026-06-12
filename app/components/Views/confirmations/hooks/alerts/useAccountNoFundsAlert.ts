@@ -6,30 +6,28 @@ import { strings } from '../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionPayAvailableTokens } from '../pay/useTransactionPayAvailableTokens';
 import { hasTransactionType } from '../../utils/transaction';
-import { useIsFiatPaymentAvailable } from '../pay/useIsFiatPaymentAvailable';
 
 export function useAccountNoFundsAlert(): Alert[] {
   const transactionMeta = useTransactionMetadataRequest();
   const { hasTokens } = useTransactionPayAvailableTokens();
-  const isFiatAvailable = useIsFiatPaymentAvailable();
 
   const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountDeposit,
   ]);
 
   return useMemo(() => {
-    if (!isMoneyAccountDeposit || hasTokens || isFiatAvailable) {
+    if (!isMoneyAccountDeposit || hasTokens) {
       return [];
     }
 
     return [
       {
         key: AlertKeys.AccountNoFunds,
-        title: strings('alert_system.account_no_funds.title'),
+        title: strings('alert_system.account_no_funds.message'),
         message: strings('alert_system.account_no_funds.message'),
         severity: Severity.Danger,
         isBlocking: true,
       },
     ];
-  }, [isMoneyAccountDeposit, hasTokens, isFiatAvailable]);
+  }, [isMoneyAccountDeposit, hasTokens]);
 }

@@ -4,28 +4,27 @@ import {
   PrivateKeyListIds,
   PrivateKeyListSelectorsText,
 } from '../../../app/components/Views/MultichainAccounts/PrivateKeyList/PrivateKeyList.testIds';
-import { EncapsulatedElementType } from '../../framework';
 
 class PrivateKeyList {
-  get passwordInput(): EncapsulatedElementType {
+  get passwordInput(): DetoxElement {
     return Matchers.getElementByID(PrivateKeyListIds.PASSWORD_INPUT);
   }
 
-  get continueButton(): EncapsulatedElementType {
+  get continueButton(): DetoxElement {
     return Matchers.getElementByID(PrivateKeyListIds.CONTINUE_BUTTON);
   }
 
-  get copyToClipboard(): EncapsulatedElementType {
+  get copyToClipboard(): DetoxElement {
     return Matchers.getElementByID(PrivateKeyListIds.COPY_TO_CLIPBOARD_BUTTON);
   }
 
-  get privateKeyCopiedLabel(): EncapsulatedElementType {
+  get privateKeyCopiedLabel(): DetoxElement {
     return Matchers.getElementByText(
       PrivateKeyListSelectorsText.PRIVATE_KEY_COPIED,
     );
   }
 
-  get wrongPasswordLabel(): EncapsulatedElementType {
+  get wrongPasswordLabel(): DetoxElement {
     return Matchers.getElementByText(
       PrivateKeyListSelectorsText.WRONG_PASSWORD_ERROR,
     );

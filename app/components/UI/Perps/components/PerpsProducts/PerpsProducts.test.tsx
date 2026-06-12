@@ -43,18 +43,18 @@ jest.mock('../../hooks/usePerpsCategories', () => ({
 
 const ALL_CATEGORIES: PerpsCategory[] = [
   { id: 'crypto', label: 'Crypto' },
-  { id: 'stock', label: 'Stocks' },
-  { id: 'commodity', label: 'Commodities' },
+  { id: 'stocks', label: 'Stocks' },
+  { id: 'commodities', label: 'Commodities' },
   { id: 'forex', label: 'Forex' },
 ];
 
 const ALL_SEVEN_CATEGORIES: PerpsCategory[] = [
   { id: 'crypto', label: 'Crypto' },
-  { id: 'stock', label: 'Stocks' },
+  { id: 'stocks', label: 'Stocks' },
   { id: 'pre-ipo', label: 'Pre-IPO' },
-  { id: 'index', label: 'Indices' },
-  { id: 'etf', label: 'ETFs' },
-  { id: 'commodity', label: 'Commodities' },
+  { id: 'indices', label: 'Indices' },
+  { id: 'etfs', label: 'ETFs' },
+  { id: 'commodities', label: 'Commodities' },
   { id: 'forex', label: 'Forex' },
 ];
 
@@ -90,7 +90,7 @@ describe('PerpsProducts', () => {
   it('renders pills for available categories', () => {
     mockCategories = [
       { id: 'crypto', label: 'Crypto' },
-      { id: 'stock', label: 'Stocks' },
+      { id: 'stocks', label: 'Stocks' },
       { id: 'forex', label: 'Forex' },
     ];
 
@@ -120,12 +120,12 @@ describe('PerpsProducts', () => {
   it('navigates with correct filter for stocks category', () => {
     const { getByTestId } = render(<PerpsProducts />);
 
-    fireEvent.press(getByTestId('perps-products-stock'));
+    fireEvent.press(getByTestId('perps-products-stocks'));
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.MARKET_LIST,
       params: {
-        defaultMarketTypeFilter: 'stock',
+        defaultMarketTypeFilter: 'stocks',
         source: 'perps_home__product_pill',
       },
     });
@@ -148,14 +148,14 @@ describe('PerpsProducts', () => {
   it('tracks analytics with product_pill_tapped, product, and pill_position', () => {
     const { getByTestId } = render(<PerpsProducts />);
 
-    fireEvent.press(getByTestId('perps-products-stock'));
+    fireEvent.press(getByTestId('perps-products-stocks'));
 
     expect(mockCreateEventBuilder).toHaveBeenCalledWith('PERPS_UI_INTERACTION');
     expect(mockTrackEvent).toHaveBeenCalled();
     expect(mockAddProperties).toHaveBeenCalledWith(
       expect.objectContaining({
         button_clicked: 'product_pill_tapped',
-        product: 'stock',
+        product: 'stocks',
         pill_position: 1,
       }),
     );

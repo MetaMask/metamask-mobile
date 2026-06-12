@@ -9,7 +9,6 @@ import { parseCaipChainId } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { useSelector } from 'react-redux';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 // external dependencies
 import { strings } from '../../../../locales/i18n';
@@ -23,6 +22,9 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
+import Text, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 import { isTestNet } from '../../../util/networks';
 import Routes from '../../../constants/navigation/Routes';
 import { selectEvmChainId } from '../../../selectors/networkController';
@@ -40,22 +42,15 @@ import {
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
 import { useNetworksToUse } from '../../hooks/useNetworksToUse/useNetworksToUse';
 import AccountGroupBalancePerChain from '../Assets/components/Balance/AccountGroupBalancePerChain';
+
 // internal dependencies
 import createStyles from './CustomNetworkSelector.styles';
-import { useElevatedSurface } from '../../../util/theme/themeUtils';
-
 import {
   CustomNetworkItem,
   CustomNetworkSelectorProps,
 } from './CustomNetworkSelector.types';
 import { NETWORK_MULTI_SELECTOR_TEST_IDS } from '../NetworkMultiSelector/NetworkMultiSelector.constants';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
-import {
-  Text,
-  TextVariant,
-  TextColor,
-  FontWeight,
-} from '@metamask/design-system-react-native';
 
 const CustomNetworkSelector = ({
   openModal,
@@ -64,8 +59,6 @@ const CustomNetworkSelector = ({
 }: CustomNetworkSelectorProps) => {
   const { colors } = useTheme();
   const { styles } = useStyles(createStyles, {});
-  const tw = useTailwind();
-  const surfaceClass = useElevatedSurface();
   const { navigate } = useNavigation();
   const safeAreaInsets = useSafeAreaInsets();
 
@@ -168,7 +161,7 @@ const CustomNetworkSelector = ({
               caipChainId,
               isSelected,
             )}
-            style={tw.style(surfaceClass)}
+            style={styles.networkItem}
           >
             {(!isTestNet(chainId) || showFiatOnTestnets) && (
               <AccountGroupBalancePerChain caipChainId={caipChainId} />
@@ -183,10 +176,9 @@ const CustomNetworkSelector = ({
       dismissModal,
       openRpcModal,
       createAvatarProps,
+      styles.networkItem,
       selectedChainIdCaip,
       showFiatOnTestnets,
-      surfaceClass,
-      tw,
     ],
   );
 
@@ -204,11 +196,7 @@ const CustomNetworkSelector = ({
           />
         </View>
 
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.PrimaryDefault}
-          fontWeight={FontWeight.Medium}
-        >
+        <Text variant={TextVariant.BodyMDMedium} color={colors.primary.default}>
           {strings('app_settings.network_add_custom_network')}
         </Text>
       </TouchableOpacity>

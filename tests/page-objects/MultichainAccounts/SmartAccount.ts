@@ -1,14 +1,13 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { SmartAccountIds } from '../../../app/components/Views/MultichainAccounts/SmartAccount.testIds';
-import { EncapsulatedElementType } from '../../framework';
 
 class SmartAccount {
-  get container(): EncapsulatedElementType {
+  get container(): DetoxElement {
     return Matchers.getElementByID(SmartAccountIds.SMART_ACCOUNT_CONTAINER);
   }
 
-  get smartAccountSwitch(): EncapsulatedElementType {
+  get smartAccountSwitch(): DetoxElement {
     return Matchers.getElementByID(SmartAccountIds.SMART_ACCOUNT_SWITCH);
   }
 

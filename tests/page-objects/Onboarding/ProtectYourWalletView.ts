@@ -13,7 +13,7 @@ import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 
 class ProtectYourWalletView {
-  get container(): EncapsulatedElementType {
+  get container(): DetoxElement {
     return Matchers.getElementByID(
       ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER,
     );

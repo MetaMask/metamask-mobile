@@ -145,12 +145,12 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
   );
 
   if (isLoading && entries.length === 0) {
-    return <CampaignLeaderboardSkeleton skeletonRowCount={maxEntries ?? 20} />;
+    return <CampaignLeaderboardSkeleton />;
   }
 
   if (hasError && entries.length === 0) {
     return (
-      <Box twClassName="px-4 py-2">
+      <Box twClassName="px-4">
         <RewardsErrorBanner
           title={strings('rewards.ondo_campaign_leaderboard.error_loading')}
           description={strings(
