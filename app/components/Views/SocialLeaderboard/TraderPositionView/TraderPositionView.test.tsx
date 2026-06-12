@@ -373,6 +373,53 @@ describe('TraderPositionView', () => {
     ).toBeOnTheScreen();
   });
 
+  describe('perp positions', () => {
+    beforeEach(() => {
+      mockRouteParams.position = {
+        ...makeDefaultPosition(),
+        tokenSymbol: 'ETH',
+        chain: 'hyperliquid',
+        perpPositionType: 'short',
+        perpLeverage: 10,
+      };
+    });
+
+    it('renders Long/Short buttons instead of the Buy button', () => {
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      expect(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.LONG_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.SHORT_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not open QuickBuy when the Long/Short buttons are pressed', () => {
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      fireEvent.press(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.LONG_BUTTON),
+      );
+      fireEvent.press(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.SHORT_BUTTON),
+      );
+
+      // No navigation/CTA haptic — the buttons are intentional placeholders.
+      expect(mockPlayImpact).not.toHaveBeenCalled();
+    });
+
+    it('renders the perp leverage and direction badges in the header', () => {
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      expect(screen.getByText('10x')).toBeOnTheScreen();
+      expect(screen.getByText('SHORT')).toBeOnTheScreen();
+    });
+  });
+
   it('forwards the filtered trades to the chart component', async () => {
     renderWithProvider(<TraderPositionView />, { state: mockState });
 

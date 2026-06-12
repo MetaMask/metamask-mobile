@@ -1104,7 +1104,11 @@
       "fallback_subtitle": "We couldn't load this position right now.",
       "fallback_back_to_profile": "Back to profile",
       "fallback_back_to_leaderboard": "Back to leaderboard",
-      "sell": "Sell"
+      "sell": "Sell",
+      "long": "Long",
+      "short": "Short",
+      "opened": "{{name}} opened",
+      "closed_action": "{{name}} closed"
     },
     "quick_buy": {
       "title": "Buy {{symbol}}",

@@ -158,6 +158,12 @@
     "worktree:remove": "yarn ts-node --transpile-only scripts/worktree-remove.ts",
     "skills:postinstall": "metamask-skills postinstall"
   },
+  "previewBuilds": {
+    "@metamask/social-controllers": {
+      "type": "non-breaking",
+      "previewVersion": "2.2.1-preview-a3e0ef7eb"
+    }
+  },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
       "prettier --write",

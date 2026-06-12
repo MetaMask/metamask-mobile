@@ -20,6 +20,8 @@ import type { Position } from '@metamask/social-controllers';
 import { strings } from '../../../../../../locales/i18n';
 import { formatCompactUsd } from '../../../../UI/Rewards/utils/formatUtils';
 import PositionTokenAvatar from '../../components/PositionTokenAvatar';
+import PerpBadges from '../../components/PerpBadges';
+import { getPerpPositionDirection } from '../../utils/perp';
 
 export interface TraderTokenInfoRowProps {
   symbol: string;
@@ -52,6 +54,7 @@ const TraderTokenIdentity: React.FC<TraderTokenIdentityProps> = ({
   const canCopyTokenAddress = Boolean(
     position?.tokenAddress && onCopyTokenAddress,
   );
+  const perpDirection = position ? getPerpPositionDirection(position) : null;
 
   const content = (
     <Box
@@ -68,16 +71,24 @@ const TraderTokenIdentity: React.FC<TraderTokenIdentityProps> = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          gap={1}
+          gap={2}
         >
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
             color={TextColor.TextDefault}
             numberOfLines={1}
+            twClassName="shrink"
           >
             {symbol}
           </Text>
+          {perpDirection ? (
+            <PerpBadges
+              direction={perpDirection}
+              leverage={position?.perpLeverage}
+              testID="trader-position-perp-badges"
+            />
+          ) : null}
           {canCopyTokenAddress ? (
             <Icon
               name={IconName.Copy}

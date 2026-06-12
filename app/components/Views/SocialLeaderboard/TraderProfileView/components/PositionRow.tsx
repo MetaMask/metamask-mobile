@@ -12,6 +12,8 @@ import {
 } from '@metamask/design-system-react-native';
 import type { Position } from '@metamask/social-controllers';
 import PositionTokenAvatar from '../../components/PositionTokenAvatar';
+import PerpBadges from '../../components/PerpBadges';
+import { getPerpPositionDirection } from '../../utils/perp';
 import {
   formatUsd,
   formatTokenAmount,
@@ -41,6 +43,8 @@ const PositionRow: React.FC<PositionRowProps> = ({ position, onPress }) => {
   const isPnlPositive = hasPnl && (displayPnlPercent ?? 0) >= 0;
   const testID = `position-row-${position.tokenSymbol}`;
 
+  const perpDirection = getPerpPositionDirection(position);
+
   const content = (
     <Box
       flexDirection={BoxFlexDirection.Row}
@@ -58,14 +62,28 @@ const PositionRow: React.FC<PositionRowProps> = ({ position, onPress }) => {
         <PositionTokenAvatar position={position} showChainBadge />
 
         <Box twClassName="flex-1 min-w-0">
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextDefault}
-            numberOfLines={1}
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={2}
           >
-            {position.tokenSymbol}
-          </Text>
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextDefault}
+              numberOfLines={1}
+              twClassName="shrink"
+            >
+              {position.tokenSymbol}
+            </Text>
+            {perpDirection ? (
+              <PerpBadges
+                direction={perpDirection}
+                leverage={position.perpLeverage}
+                testID={`position-row-perp-badges-${position.tokenSymbol}`}
+              />
+            ) : null}
+          </Box>
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
