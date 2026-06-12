@@ -1594,14 +1594,15 @@ describe('MoneyHomeView', () => {
     });
 
     it('opens the Money landing URL when Learn more is pressed', () => {
-      const { Linking: MockLinking } = jest.requireMock('react-native');
+      const mockOpenURL = jest
+        .spyOn(Linking, 'openURL')
+        .mockResolvedValue(undefined);
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       fireEvent.press(getByTestId(MoneyWhatYouGetTestIds.LEARN_MORE_BUTTON));
 
-      expect(MockLinking.openURL).toHaveBeenCalledWith(
-        AppConstants.URLS.MONEY_LANDING,
-      );
+      expect(mockOpenURL).toHaveBeenCalledWith(AppConstants.URLS.MONEY_LANDING);
+      mockOpenURL.mockRestore();
     });
   });
 

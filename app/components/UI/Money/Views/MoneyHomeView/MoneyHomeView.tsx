@@ -264,6 +264,13 @@ const MoneyHomeView = () => {
     [navigation, trackButtonClicked],
   );
 
+  const handleFooterAddMoneyPress = useCallback(() => {
+    handleAddPress({
+      labelKey: 'money.footer.add_money',
+      componentName: COMPONENT_NAMES.MONEY_FOOTER,
+    });
+  }, [handleAddPress]);
+
   const handleMusdRowAddPress = useCallback(() => {
     trackButtonClicked({
       button_type: MONEY_BUTTON_TYPES.TEXT,
@@ -399,7 +406,9 @@ const MoneyHomeView = () => {
         redirect_target: MONEY_URLS.MUSD_PRICE,
       });
 
-      Linking.openURL(AppConstants.URLS.MUSD_PRICE);
+      Linking.openURL(AppConstants.URLS.MUSD_PRICE).catch((error: Error) => {
+        Logger.error(error, '[MoneyHomeView] Failed to open mUSD price page');
+      });
     },
     [trackSurfaceClicked],
   );
@@ -492,7 +501,9 @@ const MoneyHomeView = () => {
       redirect_target: MONEY_URLS.MONEY_LANDING,
     });
 
-    Linking.openURL(AppConstants.URLS.MONEY_LANDING);
+    Linking.openURL(AppConstants.URLS.MONEY_LANDING).catch((error: Error) => {
+      Logger.error(error, '[MoneyHomeView] Failed to open Money landing page');
+    });
   }, [trackSurfaceClicked]);
 
   const handleLearnMorePress = useCallback(() => {
@@ -504,7 +515,9 @@ const MoneyHomeView = () => {
       redirect_target: MONEY_URLS.MONEY_LANDING,
     });
 
-    Linking.openURL(AppConstants.URLS.MONEY_LANDING);
+    Linking.openURL(AppConstants.URLS.MONEY_LANDING).catch((error: Error) => {
+      Logger.error(error, '[MoneyHomeView] Failed to open Money landing page');
+    });
   }, [trackButtonClicked]);
 
   const handleHowItWorksPress = useCallback(
@@ -649,14 +662,7 @@ const MoneyHomeView = () => {
               onAddPress={handleMusdRowAddPress}
               balance={musdFiatFormatted}
             />
-            <MoneyFooter
-              onAddMoneyPress={() =>
-                handleAddPress({
-                  labelKey: 'money.footer.add_money',
-                  componentName: COMPONENT_NAMES.MONEY_FOOTER,
-                })
-              }
-            />
+            <MoneyFooter onAddMoneyPress={handleFooterAddMoneyPress} />
           </>
         )}
         {(showCardActivityLoading || activityItems.length >= 1) && (
@@ -710,24 +716,20 @@ const MoneyHomeView = () => {
         />
         <Divider />
         {isFunded && (
-          <>
-            <MoneyCondensedInfoCards
-              onHowItWorksPress={() =>
-                handleHowItWorksPress({
-                  componentName:
-                    COMPONENT_NAMES.MONEY_CONDENSED_INFO_CARDS_HOW_IT_WORKS,
-                })
-              }
-              onMusdPress={() =>
-                handleMusdRowPress({
-                  componentName:
-                    COMPONENT_NAMES.MONEY_CONDENSED_INFO_CARDS_MUSD,
-                })
-              }
-              onWhatYouGetPress={handleWhatYouGetPress}
-            />
-            <Divider />
-          </>
+          <MoneyCondensedInfoCards
+            onHowItWorksPress={() =>
+              handleHowItWorksPress({
+                componentName:
+                  COMPONENT_NAMES.MONEY_CONDENSED_INFO_CARDS_HOW_IT_WORKS,
+              })
+            }
+            onMusdPress={() =>
+              handleMusdRowPress({
+                componentName: COMPONENT_NAMES.MONEY_CONDENSED_INFO_CARDS_MUSD,
+              })
+            }
+            onWhatYouGetPress={handleWhatYouGetPress}
+          />
         )}
         {isEmptyState && (
           <MoneyWhatYouGet
@@ -736,14 +738,7 @@ const MoneyHomeView = () => {
           />
         )}
         {!isEmptyState && (
-          <MoneyFooter
-            onAddMoneyPress={() =>
-              handleAddPress({
-                labelKey: 'money.footer.add_money',
-                componentName: COMPONENT_NAMES.MONEY_FOOTER,
-              })
-            }
-          />
+          <MoneyFooter onAddMoneyPress={handleFooterAddMoneyPress} />
         )}
       </ScrollView>
     </Box>
