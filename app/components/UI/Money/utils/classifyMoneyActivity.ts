@@ -112,7 +112,7 @@ const KIND_LABEL_KEY: Record<MoneyActivityKind, string> = {
 };
 
 // Present-tense labels for in-flight rows (e.g. "Depositing"). If there's
-// no entry entry we will fall back to the confirmed.
+// no entry we will fall back to the confirmed.
 const KIND_PENDING_LABEL_KEY: Partial<Record<MoneyActivityKind, string>> = {
   deposited: 'money.transaction.depositing',
   converted: 'money.transaction.converting',

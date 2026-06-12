@@ -42,6 +42,7 @@ import {
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import { partition } from 'lodash';
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
@@ -103,8 +104,8 @@ function buildSections(
   items: MoneyActivityItem[],
   locale: string,
 ): ActivitySection[] {
-  const pending = items.filter(isPendingItem);
-  const settled = items.filter((item) => !isPendingItem(item));
+  const [pending, settled] = partition(items, isPendingItem);
+
   const dateSections = groupByDate(settled, locale);
   if (pending.length === 0) {
     return dateSections;
