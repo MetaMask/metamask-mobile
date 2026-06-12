@@ -51,6 +51,10 @@ function isExternalAppRequestSource(requestSource?: string | null): boolean {
     requestSource === REQUEST_SOURCES.SDK_REMOTE_CONN ||
     requestSource === REQUEST_SOURCES.MM_CONNECT ||
     requestSource === REQUEST_SOURCES.WC ||
+    // Defensive only: no live code path emits WC2 today — `getSource()` in
+    // RPCMethodMiddleware returns REQUEST_SOURCES.WC for all WalletConnect
+    // requests, including v2 sessions. Kept so that if a future emitter
+    // starts producing it, the request is still classified as unverifiable.
     requestSource === REQUEST_SOURCES.WC2
   );
 }
