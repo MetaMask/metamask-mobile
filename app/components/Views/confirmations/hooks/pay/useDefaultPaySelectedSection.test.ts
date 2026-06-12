@@ -1,5 +1,5 @@
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import { useIsDefaultMoneyAccountSection } from './useIsDefaultMoneyAccountSection';
+import { useDefaultPaySelectedSection } from './useDefaultPaySelectedSection';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
 import { selectMetaMaskPayFlags } from '../../../../../selectors/featureFlagController/confirmations';
@@ -28,9 +28,9 @@ const DEFAULT_FLAGS = {
 };
 
 const render = () =>
-  renderHookWithProvider(() => useIsDefaultMoneyAccountSection());
+  renderHookWithProvider(() => useDefaultPaySelectedSection());
 
-describe('useIsDefaultMoneyAccountSection', () => {
+describe('useDefaultPaySelectedSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (useParams as jest.Mock).mockReturnValue({});

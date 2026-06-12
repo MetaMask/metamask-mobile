@@ -51,7 +51,7 @@ import {
   PayWithOption,
 } from '../../confirm/confirm-component';
 import { SetPayTokenRequest } from '../../../hooks/pay/useAutomaticTransactionPayToken';
-import { useIsDefaultMoneyAccountSection } from '../../../hooks/pay/useIsDefaultMoneyAccountSection';
+import { useDefaultPaySelectedSection } from '../../../hooks/pay/useDefaultPaySelectedSection';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useTheme } from '../../../../../../util/theme';
 import { usePayTokenAccountBalance } from '../../../hooks/pay/usePayTokenAccountBalance';
@@ -69,7 +69,7 @@ export function PayWithRow({
     selectPaymentOverrideByTransactionId(state, transactionId),
   );
   const { payWithOption } = useParams<ConfirmationParams>({});
-  const isDefaultMoneyAccount = useIsDefaultMoneyAccountSection();
+  const isDefaultMoneyAccount = useDefaultPaySelectedSection();
 
   // Once the controller has set a paymentOverride (even if later cleared by the
   // user switching away), Redux is the source of truth and the flag-based

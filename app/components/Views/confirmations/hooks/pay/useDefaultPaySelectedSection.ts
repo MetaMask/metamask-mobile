@@ -12,7 +12,7 @@ import { ConfirmationParams } from '../../components/confirm/confirm-component';
  * This value is derived synchronously at render time so consumers can
  * use it on the very first render — no effect delay, no flash.
  */
-export function useIsDefaultMoneyAccountSection(): boolean {
+export function useDefaultPaySelectedSection(): boolean {
   const { payWithOption } = useParams<ConfirmationParams>({});
   const moneyAccount = useSelector(selectPrimaryMoneyAccount);
   const { defaultPaySelectedSection } = useSelector(selectMetaMaskPayFlags);

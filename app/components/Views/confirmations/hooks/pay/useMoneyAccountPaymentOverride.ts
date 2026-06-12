@@ -10,14 +10,14 @@ import {
   ConfirmationParams,
   PayWithOption,
 } from '../../components/confirm/confirm-component';
-import { useIsDefaultMoneyAccountSection } from './useIsDefaultMoneyAccountSection';
+import { useDefaultPaySelectedSection } from './useDefaultPaySelectedSection';
 import { isTransactionPayWithdraw } from '../../utils/transaction';
 
 export function useMoneyAccountPaymentOverride() {
   const { payWithOption } = useParams<ConfirmationParams>({});
   const transactionMeta = useTransactionMetadataRequest();
   const moneyAccount = useSelector(selectPrimaryMoneyAccount);
-  const isDefaultMoneyAccount = useIsDefaultMoneyAccountSection();
+  const isDefaultMoneyAccount = useDefaultPaySelectedSection();
   const isWithdraw = isTransactionPayWithdraw(transactionMeta);
   const appliedRef = useRef<string | undefined>(undefined);
 

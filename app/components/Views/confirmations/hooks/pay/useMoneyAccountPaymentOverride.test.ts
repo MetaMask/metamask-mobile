@@ -6,7 +6,7 @@ import { useMoneyAccountPaymentOverride } from './useMoneyAccountPaymentOverride
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
-import { useIsDefaultMoneyAccountSection } from './useIsDefaultMoneyAccountSection';
+import { useDefaultPaySelectedSection } from './useDefaultPaySelectedSection';
 import { PayWithOption } from '../../components/confirm/confirm-component';
 
 const TRANSACTION_ID = 'tx-perps-1';
@@ -36,8 +36,8 @@ jest.mock('../../../../../selectors/moneyAccountController', () => ({
   selectPrimaryMoneyAccount: jest.fn(),
 }));
 
-jest.mock('./useIsDefaultMoneyAccountSection', () => ({
-  useIsDefaultMoneyAccountSection: jest.fn(),
+jest.mock('./useDefaultPaySelectedSection', () => ({
+  useDefaultPaySelectedSection: jest.fn(),
 }));
 
 const setTransactionConfigMock = jest.mocked(
@@ -53,7 +53,7 @@ describe('useMoneyAccountPaymentOverride', () => {
     (selectPrimaryMoneyAccount as unknown as jest.Mock).mockReturnValue({
       address: MONEY_ACCOUNT_ADDRESS,
     });
-    (useIsDefaultMoneyAccountSection as jest.Mock).mockReturnValue(false);
+    (useDefaultPaySelectedSection as jest.Mock).mockReturnValue(false);
     (useParams as jest.Mock).mockReturnValue({});
     (useTransactionMetadataRequest as jest.Mock).mockReturnValue(undefined);
   });
@@ -158,7 +158,7 @@ describe('useMoneyAccountPaymentOverride', () => {
 
   describe('defaultPaySelectedSection flag', () => {
     it('sets PaymentOverride.MoneyAccount with refundTo for deposit when flag is active', () => {
-      (useIsDefaultMoneyAccountSection as jest.Mock).mockReturnValue(true);
+      (useDefaultPaySelectedSection as jest.Mock).mockReturnValue(true);
       (useTransactionMetadataRequest as jest.Mock).mockReturnValue({
         id: TRANSACTION_ID,
         type: TransactionType.perpsDeposit,
@@ -180,7 +180,7 @@ describe('useMoneyAccountPaymentOverride', () => {
     });
 
     it('sets PaymentOverride.MoneyAccount without refundTo for withdraw when flag is active', () => {
-      (useIsDefaultMoneyAccountSection as jest.Mock).mockReturnValue(true);
+      (useDefaultPaySelectedSection as jest.Mock).mockReturnValue(true);
       (useTransactionMetadataRequest as jest.Mock).mockReturnValue({
         id: TRANSACTION_ID,
         type: TransactionType.predictWithdraw,
@@ -196,8 +196,8 @@ describe('useMoneyAccountPaymentOverride', () => {
       expect(config.refundTo).toBeUndefined();
     });
 
-    it('does not set override when useIsDefaultMoneyAccountSection returns false', () => {
-      (useIsDefaultMoneyAccountSection as jest.Mock).mockReturnValue(false);
+    it('does not set override when useDefaultPaySelectedSection returns false', () => {
+      (useDefaultPaySelectedSection as jest.Mock).mockReturnValue(false);
       (useTransactionMetadataRequest as jest.Mock).mockReturnValue({
         id: TRANSACTION_ID,
       });
