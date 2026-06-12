@@ -195,31 +195,41 @@ jest.mock(
   '../../components/PerpsWatchlistMarkets/PerpsWatchlistMarkets',
   () => {
     const MockReact = jest.requireActual('react');
-    const { View, Text } = jest.requireActual('react-native');
+    const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
     return function MockPerpsWatchlistMarkets({
       markets,
       suggestedMarkets,
       enableShowMore,
+      onMarketPress,
     }: {
       markets: { symbol: string }[];
       suggestedMarkets?: { symbol: string }[];
       enableShowMore?: boolean;
+      onMarketPress?: (market: { symbol: string }) => void;
     }) {
       return MockReact.createElement(
         View,
         { testID: 'perps-watchlist-markets' },
         markets.map((m) =>
           MockReact.createElement(
-            Text,
-            { key: m.symbol, testID: `watchlist-row-${m.symbol}` },
-            m.symbol,
+            TouchableOpacity,
+            {
+              key: m.symbol,
+              testID: `watchlist-row-${m.symbol}`,
+              onPress: () => onMarketPress?.(m),
+            },
+            MockReact.createElement(Text, null, m.symbol),
           ),
         ),
         (suggestedMarkets ?? []).map((m) =>
           MockReact.createElement(
-            Text,
-            { key: m.symbol, testID: `suggested-row-${m.symbol}` },
-            m.symbol,
+            TouchableOpacity,
+            {
+              key: m.symbol,
+              testID: `suggested-row-${m.symbol}`,
+              onPress: () => onMarketPress?.(m),
+            },
+            MockReact.createElement(Text, null, m.symbol),
           ),
         ),
         enableShowMore === false
@@ -896,6 +906,182 @@ describe('PerpsMarketListView', () => {
       expect(screen.getByTestId('perps-watchlist-markets')).toBeOnTheScreen();
       expect(screen.getByTestId('suggested-row-BTC')).toBeOnTheScreen();
       expect(screen.getByTestId('suggested-row-ETH')).toBeOnTheScreen();
+    });
+
+    it('routes watchlist row press through navigateToMarketDetails when watchlist filter is active', () => {
+      mockWatchlistFlagEnabled = true;
+
+      const watchlistMarket = mockMarketData[0]; // BTC
+
+      mockUsePerpsMarketListView.mockReturnValueOnce({
+        markets: [watchlistMarket],
+        searchState: {
+          searchQuery: '',
+          setSearchQuery: mockSetSearchQuery,
+          clearSearch: mockClearSearch,
+        },
+        sortState: {
+          selectedOptionId: 'volume',
+          sortBy: 'volume',
+          direction: 'desc',
+          handleOptionChange: jest.fn(),
+        },
+        favoritesState: {
+          showFavoritesOnly: true,
+          setShowFavoritesOnly: jest.fn(),
+          hasWatchlistMarkets: true,
+          watchlistMarketObjects: [watchlistMarket],
+          suggestedMarkets: [],
+        },
+        marketTypeFilterState: {
+          marketTypeFilter: 'all',
+          setMarketTypeFilter: jest.fn(),
+        },
+        marketCounts: {
+          crypto: 3,
+          stocks: 0,
+          'pre-ipo': 0,
+          indices: 0,
+          etfs: 0,
+          commodities: 0,
+          forex: 0,
+          new: 0,
+        },
+        isLoading: false,
+        error: null,
+      });
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      fireEvent.press(screen.getByTestId('watchlist-row-BTC'));
+
+      expect(mockNavigateToMarketDetails).toHaveBeenCalledWith(
+        watchlistMarket,
+        'perp_markets',
+        undefined,
+      );
+    });
+
+    it('routes watchlist row press through onMarketSelect when provided and watchlist filter is active', () => {
+      mockWatchlistFlagEnabled = true;
+
+      const mockOnMarketSelect = jest.fn();
+      const watchlistMarket = mockMarketData[0]; // BTC
+
+      mockUsePerpsMarketListView.mockReturnValueOnce({
+        markets: [watchlistMarket],
+        searchState: {
+          searchQuery: '',
+          setSearchQuery: mockSetSearchQuery,
+          clearSearch: mockClearSearch,
+        },
+        sortState: {
+          selectedOptionId: 'volume',
+          sortBy: 'volume',
+          direction: 'desc',
+          handleOptionChange: jest.fn(),
+        },
+        favoritesState: {
+          showFavoritesOnly: true,
+          setShowFavoritesOnly: jest.fn(),
+          hasWatchlistMarkets: true,
+          watchlistMarketObjects: [watchlistMarket],
+          suggestedMarkets: [],
+        },
+        marketTypeFilterState: {
+          marketTypeFilter: 'all',
+          setMarketTypeFilter: jest.fn(),
+        },
+        marketCounts: {
+          crypto: 3,
+          stocks: 0,
+          'pre-ipo': 0,
+          indices: 0,
+          etfs: 0,
+          commodities: 0,
+          forex: 0,
+          new: 0,
+        },
+        isLoading: false,
+        error: null,
+      });
+
+      renderWithProvider(
+        <PerpsMarketListView onMarketSelect={mockOnMarketSelect} />,
+        { state: mockState },
+      );
+
+      fireEvent.press(screen.getByTestId('watchlist-row-BTC'));
+
+      expect(mockOnMarketSelect).toHaveBeenCalledWith(watchlistMarket);
+      expect(mockNavigateToMarketDetails).not.toHaveBeenCalled();
+    });
+
+    it('carries transactionActiveAbTests through navigateToMarketDetails when watchlist row is pressed', () => {
+      mockWatchlistFlagEnabled = true;
+
+      const transactionActiveAbTests = [
+        createActiveABTestAssignment(
+          'homeTMCU725AbtestHomepagePerpsPillsEmptyState',
+          'treatment',
+        ),
+      ];
+
+      const watchlistMarket = mockMarketData[0]; // BTC
+
+      mockUseRoute.mockReturnValue({
+        key: 'PerpsMarketListView-123',
+        name: 'PerpsMarketListView',
+        params: { transactionActiveAbTests },
+      });
+
+      mockUsePerpsMarketListView.mockReturnValueOnce({
+        markets: [watchlistMarket],
+        searchState: {
+          searchQuery: '',
+          setSearchQuery: mockSetSearchQuery,
+          clearSearch: mockClearSearch,
+        },
+        sortState: {
+          selectedOptionId: 'volume',
+          sortBy: 'volume',
+          direction: 'desc',
+          handleOptionChange: jest.fn(),
+        },
+        favoritesState: {
+          showFavoritesOnly: true,
+          setShowFavoritesOnly: jest.fn(),
+          hasWatchlistMarkets: true,
+          watchlistMarketObjects: [watchlistMarket],
+          suggestedMarkets: [],
+        },
+        marketTypeFilterState: {
+          marketTypeFilter: 'all',
+          setMarketTypeFilter: jest.fn(),
+        },
+        marketCounts: {
+          crypto: 3,
+          stocks: 0,
+          'pre-ipo': 0,
+          indices: 0,
+          etfs: 0,
+          commodities: 0,
+          forex: 0,
+          new: 0,
+        },
+        isLoading: false,
+        error: null,
+      });
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      fireEvent.press(screen.getByTestId('watchlist-row-BTC'));
+
+      expect(mockNavigateToMarketDetails).toHaveBeenCalledWith(
+        watchlistMarket,
+        'perp_markets',
+        transactionActiveAbTests,
+      );
     });
   });
 

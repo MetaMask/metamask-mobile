@@ -255,6 +255,7 @@ const PerpsMarketListView = ({
           suggestedMarkets={suggestedMarkets}
           showHeader={false}
           enableShowMore={false}
+          onMarketPress={handleMarketPress}
         />
       );
     }

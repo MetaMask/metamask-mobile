@@ -68,6 +68,13 @@ interface PerpsWatchlistMarketsProps {
   headerStyle?: StyleProp<ViewStyle>;
   /** Override content container styles (e.g., to remove horizontal margin) */
   contentContainerStyle?: StyleProp<ViewStyle>;
+  /**
+   * Override the default internal navigation when a market row is pressed.
+   * Use this when the parent screen owns navigation (e.g. PerpsMarketListView),
+   * so that onMarketSelect and transactionActiveAbTests are handled correctly.
+   * When omitted the component falls back to its own navigation.navigate call.
+   */
+  onMarketPress?: (market: PerpsMarketData) => void;
   /** Called when the "Watchlist >" header is pressed */
   onSeeAllPress?: () => void;
   /** Whether to render the "Watchlist" section header. Defaults to true. */
@@ -93,6 +100,7 @@ const PerpsWatchlistMarketsV1: React.FC<PerpsWatchlistMarketsProps> = ({
   sectionStyle,
   headerStyle,
   contentContainerStyle,
+  onMarketPress: onMarketPressProp,
   onSeeAllPress,
   showHeader = true,
 }) => {
@@ -101,6 +109,11 @@ const PerpsWatchlistMarketsV1: React.FC<PerpsWatchlistMarketsProps> = ({
 
   const handleMarketPress = useCallback(
     (market: PerpsMarketData) => {
+      if (onMarketPressProp) {
+        onMarketPressProp(market);
+        return;
+      }
+
       const hasPosition = positions.some((p) => p.symbol === market.symbol);
       const hasOrder = orders.some((o) => o.symbol === market.symbol);
 
@@ -123,7 +136,14 @@ const PerpsWatchlistMarketsV1: React.FC<PerpsWatchlistMarketsProps> = ({
         },
       });
     },
-    [navigation, positions, orders, source, transactionActiveAbTests],
+    [
+      onMarketPressProp,
+      navigation,
+      positions,
+      orders,
+      source,
+      transactionActiveAbTests,
+    ],
   );
 
   const renderMarket = useCallback(
@@ -199,6 +219,7 @@ const PerpsWatchlistMarketsV2: React.FC<PerpsWatchlistMarketsProps> = ({
   sectionStyle,
   headerStyle,
   contentContainerStyle,
+  onMarketPress: onMarketPressProp,
   onSeeAllPress,
   showHeader = true,
   enableShowMore = true,
@@ -214,6 +235,11 @@ const PerpsWatchlistMarketsV2: React.FC<PerpsWatchlistMarketsProps> = ({
 
   const handleMarketPress = useCallback(
     (market: PerpsMarketData) => {
+      if (onMarketPressProp) {
+        onMarketPressProp(market);
+        return;
+      }
+
       const hasPosition = positions.some((p) => p.symbol === market.symbol);
       const hasOrder = orders.some((o) => o.symbol === market.symbol);
 
@@ -236,7 +262,14 @@ const PerpsWatchlistMarketsV2: React.FC<PerpsWatchlistMarketsProps> = ({
         },
       });
     },
-    [navigation, positions, orders, source, transactionActiveAbTests],
+    [
+      onMarketPressProp,
+      navigation,
+      positions,
+      orders,
+      source,
+      transactionActiveAbTests,
+    ],
   );
 
   const SectionHeader = useCallback(

@@ -497,6 +497,49 @@ describe('PerpsWatchlistMarkets', () => {
   });
 
   // -------------------------------------------------------------------------
+  // onMarketPress override
+  // -------------------------------------------------------------------------
+
+  describe('onMarketPress prop (navigation override)', () => {
+    it('calls onMarketPress instead of navigation.navigate when a watchlist row is pressed', () => {
+      const onMarketPress = jest.fn();
+      render(
+        <PerpsWatchlistMarkets
+          markets={mockMarkets}
+          onMarketPress={onMarketPress}
+        />,
+      );
+      fireEvent.press(screen.getByTestId('perps-market-row-BTC'));
+      expect(onMarketPress).toHaveBeenCalledTimes(1);
+      expect(onMarketPress).toHaveBeenCalledWith(mockMarkets[0]);
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('calls onMarketPress instead of navigation.navigate when a suggested row is pressed', () => {
+      const onMarketPress = jest.fn();
+      render(
+        <PerpsWatchlistMarkets
+          markets={[]}
+          suggestedMarkets={mockSuggestedMarkets}
+          onMarketPress={onMarketPress}
+        />,
+      );
+      fireEvent.press(screen.getByTestId('perps-market-row-SOL'));
+      expect(onMarketPress).toHaveBeenCalledTimes(1);
+      expect(onMarketPress).toHaveBeenCalledWith(mockSuggestedMarkets[0]);
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('falls back to navigation.navigate when onMarketPress is not provided', () => {
+      render(
+        <PerpsWatchlistMarkets markets={mockMarkets} source="perps_home" />,
+      );
+      fireEvent.press(screen.getByTestId('perps-market-row-BTC'));
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  // -------------------------------------------------------------------------
   // onSeeAllPress header behaviour
   // -------------------------------------------------------------------------
 
