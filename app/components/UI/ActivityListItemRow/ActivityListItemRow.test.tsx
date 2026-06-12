@@ -8,6 +8,46 @@ import { ActivityListItemRow } from './ActivityListItemRow';
 import { strings } from '../../../../locales/i18n';
 import { getNetworkImageSource } from '../../../util/networks';
 
+const LINEA_MUSD_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
+
+const mockState = {
+  user: {
+    appTheme: 'light',
+  },
+  settings: {
+    showFiatOnTestnets: true,
+  },
+  engine: {
+    backgroundState: {
+      CurrencyRateController: {
+        currentCurrency: 'usd',
+        currencyRates: {
+          ETH: {
+            conversionRate: 2500,
+            usdConversionRate: 2500,
+          },
+        },
+      },
+      NetworkController: {
+        networkConfigurationsByChainId: {
+          '0x1': {
+            nativeCurrency: 'ETH',
+          },
+        },
+      },
+      TokenRatesController: {
+        marketData: {
+          '0x1': {
+            [LINEA_MUSD_ADDRESS]: {
+              price: 0.0004,
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
 // Minimal required mocks
 jest.mock('../../../util/theme', () => ({
   useTheme: jest.fn(() => ({
@@ -31,11 +71,26 @@ jest.mock('../../../util/theme', () => ({
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn((selector) => {
-    // Return a default mock value for any selector
-    const str = selector.toString();
-    if (str.includes('appTheme')) return 'light';
-    return undefined;
+    try {
+      return selector(mockState);
+    } catch {
+      return undefined;
+    }
   }),
+}));
+
+jest.mock('../../../selectors/currencyRateController', () => ({
+  selectCurrentCurrency: jest.fn(
+    (state) =>
+      state.engine.backgroundState.CurrencyRateController.currentCurrency,
+  ),
+  selectCurrencyRateForChainId: jest.fn(() => 2500),
+}));
+
+jest.mock('../../../selectors/tokenRatesController', () => ({
+  selectTokenMarketData: jest.fn(
+    (state) => state.engine.backgroundState.TokenRatesController.marketData,
+  ),
 }));
 
 jest.mock('react-native', () => {
@@ -114,6 +169,10 @@ jest.mock('../../Base/ListItem', () => {
     style?: object;
   }) => ReactActual.createElement(TextActual, rest, children);
   ListItem.Amount = ({ children }: { children: React.ReactNode }) =>
+    ReactActual.createElement(TextActual, null, children);
+  ListItem.Amounts = ({ children }: { children: React.ReactNode }) =>
+    ReactActual.createElement(View, null, children);
+  ListItem.FiatAmount = ({ children }: { children: React.ReactNode }) =>
     ReactActual.createElement(TextActual, null, children);
 
   return ListItem;
@@ -232,6 +291,46 @@ describe('ActivityListItemRow — network badge', () => {
     expect(getNetworkImageSource).toHaveBeenCalledWith({
       chainId: item.chainId,
     });
+  });
+});
+
+describe('ActivityListItemRow — amount display', () => {
+  it('formats raw token base units and renders fiat when rates are available', () => {
+    const item = makeItem({
+      status: 'success',
+      token: {
+        amount: '1000000',
+        decimals: 6,
+        symbol: 'mUSD',
+        assetId: `eip155:1/erc20:${LINEA_MUSD_ADDRESS}`,
+        direction: 'in',
+      },
+    });
+
+    const { getByText } = render(<ActivityListItemRow item={item} index={0} />);
+
+    expect(getByText('+1 mUSD')).toBeOnTheScreen();
+    expect(getByText('+$1')).toBeOnTheScreen();
+  });
+
+  it('does not render fiat when token market data is unavailable', () => {
+    const item = makeItem({
+      status: 'success',
+      token: {
+        amount: '1000000',
+        decimals: 6,
+        symbol: 'UNKNOWN',
+        assetId: 'eip155:1/erc20:0x0000000000000000000000000000000000000001',
+        direction: 'in',
+      },
+    });
+
+    const { getByText, queryByText } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByText('+1 UNKNOWN')).toBeOnTheScreen();
+    expect(queryByText('+$1')).toBeNull();
   });
 });
 

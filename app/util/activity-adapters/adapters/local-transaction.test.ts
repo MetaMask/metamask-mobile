@@ -6,6 +6,7 @@ import {
 import { mapLocalTransaction } from './local-transaction';
 import type { TransactionGroup } from './transaction-group';
 import { toAssetId } from './shims';
+import { MERKL_DISTRIBUTOR_ADDRESS } from '../../../components/UI/Earn/components/MerklRewards/constants';
 
 const from = '0x9bed78535d6a03a955f1504aadba974d9a29e292';
 const to = '0x80181d3ba89220cdb80234fc7aa19d5cc56229cc';
@@ -17,6 +18,8 @@ const baseAavePool = '0xa238dd80c259a72e81d7e4664a9801593f98d1c5';
 const lineaDai = '0x4af15ec2a0bd43db75dd04e62faa3b8ef36b00d5';
 const lineaMusd = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
 const wethContractAddress = '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2';
+const erc20TransferTopic =
+  '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
 
 const withoutRaw = (item: ReturnType<typeof mapLocalTransaction>) => {
   const activity = { ...item };
@@ -34,6 +37,9 @@ const makeGroup = (
     nativeAssetSymbol: 'ETH',
     ...overrides,
   }) as TransactionGroup;
+
+const addressTopic = (address: string) =>
+  `0x${address.toLowerCase().replace('0x', '').padStart(64, '0')}`;
 
 describe('mapLocalTransaction', () => {
   it('maps a pending native send to a Send activity', () => {
@@ -402,6 +408,54 @@ describe('mapLocalTransaction', () => {
         },
         destinationToken: {
           amount: '100099',
+          assetId: toAssetId(lineaMusd, 'eip155:59144'),
+          decimals: 6,
+          direction: 'in',
+          symbol: 'mUSD',
+        },
+      },
+    });
+  });
+
+  it('maps an mUSD claim receipt payout to a Claim mUSD bonus activity with token amount', () => {
+    const transaction = {
+      chainId: linea,
+      id: 'musd-claim-id',
+      hash: '0xmusdclaim',
+      status: TransactionStatus.confirmed,
+      time: 1779805800000,
+      type: TransactionType.musdClaim,
+      txParams: {
+        from,
+        to: MERKL_DISTRIBUTOR_ADDRESS,
+        value: '0x0',
+      },
+      txReceipt: {
+        logs: [
+          {
+            address: lineaMusd,
+            data: '0x0f4240',
+            topics: [
+              erc20TransferTopic,
+              addressTopic(MERKL_DISTRIBUTOR_ADDRESS),
+              addressTopic(from),
+            ],
+          },
+        ],
+      },
+    } as unknown as Partial<TransactionMeta>;
+
+    expect(
+      withoutRaw(mapLocalTransaction(makeGroup(transaction))),
+    ).toStrictEqual({
+      type: 'claimMusdBonus',
+      chainId: 'eip155:59144',
+      status: 'success',
+      timestamp: 1779805800000,
+      data: {
+        hash: '0xmusdclaim',
+        token: {
+          amount: '1000000',
           assetId: toAssetId(lineaMusd, 'eip155:59144'),
           decimals: 6,
           direction: 'in',

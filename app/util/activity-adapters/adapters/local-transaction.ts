@@ -6,7 +6,14 @@
  * Extension dependencies are provided via ActivityAdapterEnvironment.
  */
 import { TransactionType } from '@metamask/transaction-controller';
-import { KnownCaipNamespace, toCaipChainId } from '@metamask/utils';
+import { KnownCaipNamespace, toCaipChainId, type Hex } from '@metamask/utils';
+import { getClaimPayoutFromReceipt } from '../../../components/UI/Earn/utils/musd';
+import {
+  MUSD_DECIMALS,
+  MUSD_TOKEN,
+  MUSD_TOKEN_ADDRESS,
+  MUSD_TOKEN_ASSET_ID_BY_CHAIN,
+} from '../../../components/UI/Earn/constants/musd';
 import type { ActivityListItem, TokenAmount } from '../types';
 import type { TransactionGroup } from './transaction-group';
 import {
@@ -398,7 +405,12 @@ export function mapLocalTransaction(
         },
       };
 
-    case TransactionType.musdClaim:
+    case TransactionType.musdClaim: {
+      const claimAmountRaw = getClaimPayoutFromReceipt(
+        primaryTransaction.txReceipt?.logs,
+        from,
+      );
+
       return {
         type: 'claimMusdBonus',
         chainId,
@@ -407,8 +419,23 @@ export function mapLocalTransaction(
         raw: { type: 'localTransaction', data: transactionGroup },
         data: {
           hash,
+          ...(claimAmountRaw
+            ? {
+                token: {
+                  amount: claimAmountRaw,
+                  assetId:
+                    MUSD_TOKEN_ASSET_ID_BY_CHAIN[
+                      initialTransaction.chainId as Hex
+                    ] ?? environment.toAssetId(MUSD_TOKEN_ADDRESS, chainId),
+                  decimals: MUSD_DECIMALS,
+                  direction: 'in',
+                  symbol: MUSD_TOKEN.symbol,
+                },
+              }
+            : {}),
         },
       };
+    }
 
     default: {
       const isSupplyContractInteraction =

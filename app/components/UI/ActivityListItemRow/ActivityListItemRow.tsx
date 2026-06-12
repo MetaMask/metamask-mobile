@@ -12,6 +12,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { useSelector } from 'react-redux';
+import type { Hex } from '@metamask/utils';
 import { useTheme } from '../../../util/theme';
 import { getTransactionIcon } from '../../../util/transaction-icons';
 import { toDateFormat } from '../../../util/date';
@@ -29,12 +30,127 @@ import {
   getFontFamily,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import type {
-  ActivityListItem,
-  ActivityKind,
-  Status,
-  TokenAmount,
+import {
+  applyDisplaySign,
+  getDisplaySignPrefix,
+  getHumanReadableTokenAmount,
+  toMarketRateLookupToken,
+  type ActivityListItem,
+  type ActivityKind,
+  type Status,
+  type TokenAmount,
 } from '../../../util/activity-adapters';
+import {
+  selectCurrencyRateForChainId,
+  selectCurrentCurrency,
+} from '../../../selectors/currencyRateController';
+import { selectTokenMarketData } from '../../../selectors/tokenRatesController';
+import { NATIVE_TOKEN_ADDRESS } from '../../../util/activity-adapters/adapters/shims';
+import { balanceToFiatNumber, renderFiat } from '../../../util/number/bigint';
+
+type TokenMarketData = ReturnType<typeof selectTokenMarketData>;
+
+type FiatCurrencyCode = Parameters<typeof renderFiat>[1];
+
+// ---------------------------------------------------------------------------
+// Chain/token helpers
+// ---------------------------------------------------------------------------
+
+function resolveDisplayToken(item: ActivityListItem): TokenAmount | undefined {
+  const { data } = item;
+
+  if ('destinationToken' in data && data.destinationToken?.symbol) {
+    return data.destinationToken;
+  }
+
+  if ('sourceToken' in data && data.sourceToken?.symbol) {
+    return data.sourceToken;
+  }
+
+  if ('token' in data && data.token?.symbol) {
+    return data.token;
+  }
+
+  return undefined;
+}
+
+const getHexChainId = (chainId: string): Hex | undefined => {
+  const decimalChainId = chainId.split(':')[1];
+  if (!decimalChainId) {
+    return undefined;
+  }
+
+  return `0x${Number.parseInt(decimalChainId, 10).toString(16)}` as Hex;
+};
+
+function getTokenPrice({
+  token,
+  hexChainId,
+  marketData,
+}: {
+  token: TokenAmount;
+  hexChainId: Hex;
+  marketData: TokenMarketData;
+}): number | undefined {
+  const marketRateToken = toMarketRateLookupToken(token, hexChainId);
+
+  if (!marketRateToken) {
+    return undefined;
+  }
+
+  const tokenAddress = marketRateToken.address as Hex;
+
+  if (tokenAddress === NATIVE_TOKEN_ADDRESS) {
+    return 1;
+  }
+
+  return marketData?.[hexChainId]?.[tokenAddress]?.price;
+}
+
+function resolveFiatAmount({
+  token,
+  hexChainId,
+  marketData,
+  nativeConversionRate,
+  currentCurrency,
+}: {
+  token: TokenAmount | undefined;
+  hexChainId: Hex | undefined;
+  marketData: TokenMarketData;
+  nativeConversionRate: number | undefined;
+  currentCurrency: string | undefined;
+}): string | undefined {
+  if (
+    !token ||
+    !hexChainId ||
+    !nativeConversionRate ||
+    !currentCurrency ||
+    token.amount === undefined
+  ) {
+    return undefined;
+  }
+
+  const amount = getHumanReadableTokenAmount(token);
+  const tokenPrice = getTokenPrice({ token, hexChainId, marketData });
+
+  if (!amount || tokenPrice === undefined) {
+    return undefined;
+  }
+
+  const fiatNumber = balanceToFiatNumber(
+    amount,
+    nativeConversionRate,
+    tokenPrice,
+  );
+  const fiatAmount = renderFiat(
+    fiatNumber,
+    currentCurrency as FiatCurrencyCode,
+    2,
+  );
+  const signPrefix = getDisplaySignPrefix(token.direction, { showPlus: true });
+
+  return applyDisplaySign(fiatAmount, signPrefix);
+}
 
 // ---------------------------------------------------------------------------
 // Status → display
@@ -223,31 +339,16 @@ function resolveIconType(type: ActivityKind): string {
 // Amount display
 // ---------------------------------------------------------------------------
 
-function resolveAmount(item: ActivityListItem): string {
-  const { data } = item;
-
-  // Primary token (send/receive/approve/etc.)
-  if ('token' in data && data.token?.symbol) {
-    const dir = data.token.direction === 'in' ? '+' : '-';
-    const amount = data.token.amount ? ` ${data.token.amount}` : '';
-    return `${dir}${amount} ${data.token.symbol}`.trim();
+function resolveAmount(token: TokenAmount | undefined): string {
+  if (!token?.symbol) {
+    return '';
   }
 
-  // Destination token (swap/bridge)
-  if ('destinationToken' in data && data.destinationToken?.symbol) {
-    const dt = data.destinationToken;
-    const amount = dt.amount ? ` ${dt.amount}` : '';
-    return `+${amount} ${dt.symbol}`.trim();
-  }
+  const amount = getHumanReadableTokenAmount(token);
+  const signPrefix = getDisplaySignPrefix(token.direction, { showPlus: true });
+  const value = amount ? `${amount} ${token.symbol}` : token.symbol;
 
-  // Source token fallback
-  if ('sourceToken' in data && data.sourceToken?.symbol) {
-    const st = data.sourceToken;
-    const amount = st.amount ? ` ${st.amount}` : '';
-    return `-${amount} ${st.symbol}`.trim();
-  }
-
-  return '';
+  return applyDisplaySign(value, signPrefix);
 }
 
 // ---------------------------------------------------------------------------
@@ -342,7 +443,21 @@ export function ActivityListItemRow({
           : colors.text.muted;
 
   const title = resolveActivityListItemTitle(item, titleOverride);
-  const amount = resolveAmount(item);
+  const displayToken = resolveDisplayToken(item);
+  const amount = resolveAmount(displayToken);
+  const marketData = useSelector(selectTokenMarketData);
+  const currentCurrency = useSelector(selectCurrentCurrency);
+  const hexChainId = getHexChainId(item.chainId);
+  const nativeConversionRate = useSelector((state: RootState) =>
+    hexChainId ? selectCurrencyRateForChainId(state, hexChainId) : undefined,
+  );
+  const fiatAmount = resolveFiatAmount({
+    token: displayToken,
+    hexChainId,
+    marketData,
+    nativeConversionRate,
+    currentCurrency,
+  });
 
   const networkImageSource = getNetworkImageSource({
     chainId: item.chainId,
@@ -392,9 +507,16 @@ export function ActivityListItemRow({
             </Text>
           </ListItem.Body>
           {Boolean(amount) && (
-            <ListItem.Amount style={styles.listItemAmount}>
-              {amount}
-            </ListItem.Amount>
+            <ListItem.Amounts>
+              {Boolean(fiatAmount) && (
+                <ListItem.FiatAmount style={styles.listItemAmount}>
+                  {fiatAmount}
+                </ListItem.FiatAmount>
+              )}
+              <ListItem.Amount style={styles.listItemAmount}>
+                {amount}
+              </ListItem.Amount>
+            </ListItem.Amounts>
           )}
         </ListItem.Content>
       </ListItem>
