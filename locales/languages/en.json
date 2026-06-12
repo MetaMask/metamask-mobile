@@ -118,7 +118,8 @@
       "title": "No quotes"
     },
     "account_no_funds": {
-      "message": "No funds available. Use a different account."
+      "message": "No funds available. Use a different account.",
+      "title": "Insufficient funds"
     },
     "fiat_buy_amount_limit": {
       "title": "Amount out of range"
@@ -7466,6 +7467,7 @@
       "pay_with": "Pay with",
       "payment_method": "Payment method",
       "receive_as": "Receive",
+      "select_token": "Select token",
       "from": "From",
       "to": "To",
       "total": "Total",
