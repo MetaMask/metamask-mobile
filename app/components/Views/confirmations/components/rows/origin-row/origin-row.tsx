@@ -6,7 +6,8 @@ import { useSignatureRequest } from '../../../hooks/signatures/useSignatureReque
 import useApprovalRequest from '../../../hooks/useApprovalRequest';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useApprovalInfo } from '../../../hooks/useApprovalInfo';
-import { isDappOrigin, isExternalAppOrigin } from '../../../utils/origin';
+import { useIsExternalAppRequest } from '../../../hooks/useIsExternalAppRequest';
+import { isDappOrigin } from '../../../utils/origin';
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
@@ -22,6 +23,11 @@ const OriginRow = () => {
   const signatureRequest = useSignatureRequest();
   const transactionMetadata = useTransactionMetadataRequest();
   const { chainId, fromAddress, isSIWEMessage, url } = useApprovalInfo() ?? {};
+  // For requests where we cannot verify the dapp's identity (e.g. an
+  // `ethereum:` deeplink launched from an external browser, or an SDK / MWP /
+  // WalletConnect connection), display a generic "External app" label rather
+  // than the raw origin or the self-reported page URL.
+  const isExternalApp = useIsExternalAppRequest();
 
   if (!approvalRequest) {
     return null;
@@ -31,11 +37,6 @@ const OriginRow = () => {
   if (transactionMetadata && !isDappTransaction) {
     return null;
   }
-
-  // For requests where we cannot verify the dapp's identity (e.g. an
-  // `ethereum:` deeplink launched from an external browser), display a
-  // generic "External app" label rather than the raw `'deeplink'` origin.
-  const isExternalApp = isExternalAppOrigin(url);
 
   return (
     <InfoSection testID={ConfirmationRowComponentIDs.ORIGIN_INFO}>
