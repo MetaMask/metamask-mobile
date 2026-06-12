@@ -224,6 +224,9 @@ describe('handleNormalizedHttpProxyRequest', () => {
     expect(Buffer.compare(response.body as Buffer, binaryPayload)).toBe(0);
     expect(response.headers).toMatchObject({
       'content-type': 'application/octet-stream',
+      // Recomputed from the decompressed body — the mobile snap installer
+      // hard-asserts on this header for tarball downloads.
+      'content-length': String(binaryPayload.length),
     });
     expect(response.headers).not.toHaveProperty('content-encoding');
   });

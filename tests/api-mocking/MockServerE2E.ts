@@ -569,6 +569,14 @@ const handleDirectFetch = async (
         responseHeaders[key] = value;
       }
     });
+    // Recompute content-length from the (already-decompressed) body we are
+    // actually sending: mockttp passes these headers straight to writeHead,
+    // so omitting it serves the response chunked — and the mobile snap
+    // installer hard-asserts on content-length for NPM tarballs
+    // (app/core/Snaps/location/npm.ts).
+    if (response.status !== 204 && response.status !== 304) {
+      responseHeaders['content-length'] = String(responseBody.length);
+    }
     return {
       statusCode: response.status,
       body: responseBody,
