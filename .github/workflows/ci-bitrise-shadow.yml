@@ -13,6 +13,9 @@ name: CI (Bitrise shadow)
 #   - Actions variable TOKEN_EXCHANGE_URL (already used elsewhere, e.g. triage-forwarder).
 #   - Rego policy mm-metamask-mobile-bitrise-shadow-ci-token-exchange in
 #     token-exchange-service (matches the OIDC `workflow_ref` claim).
+#
+# Auto-dispatch gate: set repo Actions variable BITRISE_SHADOW_AUTO_DISPATCH=true
+# to dispatch on PR/push. Default (unset/false) = manual workflow_dispatch only.
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
@@ -37,7 +40,12 @@ jobs:
     name: "[bitrise-shadow] Dispatch"
     runs-on: ubuntu-latest
     # Fork PRs use head.repo != github.repository — skip (no shadow, no token exchange).
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    # PR/push auto-dispatch requires BITRISE_SHADOW_AUTO_DISPATCH=true; workflow_dispatch always runs.
+    if: >-
+      ${{
+        (github.event_name == 'workflow_dispatch' || vars.BITRISE_SHADOW_AUTO_DISPATCH == 'true') &&
+        (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+      }}
     steps:
       - name: Get access token
         id: get-token
@@ -114,4 +122,8 @@ jobs:
             fi
             echo
             echo "_Bitrise shadow CI runs **fire-and-forget**: it does not appear in this PR's checks and never blocks the merge queue. This is a benchmark run for INFRA-3679._"
+            if [ "${{ vars.BITRISE_SHADOW_AUTO_DISPATCH }}" != "true" ] && [ "${{ github.event_name }}" != "workflow_dispatch" ]; then
+              echo
+              echo "_Auto-dispatch is **disabled** (BITRISE_SHADOW_AUTO_DISPATCH ≠ true). Use workflow_dispatch on this workflow or ci.yml._"
+            fi
           } >> "$GITHUB_STEP_SUMMARY"
