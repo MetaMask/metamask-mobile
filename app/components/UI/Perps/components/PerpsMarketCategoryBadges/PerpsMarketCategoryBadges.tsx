@@ -1,4 +1,5 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import { type LayoutChangeEvent } from 'react-native';
 import Animated, { FadeIn, LinearTransition } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -42,10 +43,41 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
   const categories = usePerpsCategories();
   const hasNewMarkets = useHasNewMarkets();
 
+  const scrollViewRef = useRef<{
+    scrollTo(opts: { x: number; animated: boolean }): void;
+  } | null>(null);
+  const badgeLayoutsRef = useRef<Record<string, { x: number; width: number }>>(
+    {},
+  );
+
   const displayCategories = useMemo(
     () => (hasNewMarkets ? [...categories, NEW_CATEGORY] : categories),
     [categories, hasNewMarkets],
   );
+
+  const handleBadgeLayout = useCallback(
+    (categoryId: string, event: LayoutChangeEvent) => {
+      const { x, width } = event.nativeEvent.layout;
+      badgeLayoutsRef.current[categoryId] = { x, width };
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (selectedCategory === 'all') {
+      return;
+    }
+    const timer = setTimeout(() => {
+      const layout = badgeLayoutsRef.current[selectedCategory];
+      if (layout && scrollViewRef.current) {
+        scrollViewRef.current.scrollTo({
+          x: Math.max(0, layout.x - 16),
+          animated: true,
+        });
+      }
+    }, ANIMATION_DURATION + 100);
+    return () => clearTimeout(timer);
+  }, [selectedCategory]);
 
   const handleCategoryPress = useCallback(
     (category: Exclude<MarketTypeFilter, 'all'>) => {
@@ -60,6 +92,7 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
 
   return (
     <Animated.ScrollView
+      ref={scrollViewRef as React.RefObject<Animated.ScrollView>}
       horizontal
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.scrollContent}
@@ -71,6 +104,7 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
         <Animated.View
           entering={FadeIn.duration(ANIMATION_DURATION)}
           layout={LinearTransition.duration(ANIMATION_DURATION)}
+          onLayout={(e) => handleBadgeLayout('watchlist', e)}
         >
           <PerpsMarketCategoryBadge
             icon={IconName.StarFilled}
@@ -88,6 +122,7 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
             key={category.id}
             entering={FadeIn.duration(ANIMATION_DURATION).delay(index * 50)}
             layout={LinearTransition.duration(ANIMATION_DURATION)}
+            onLayout={(e) => handleBadgeLayout(category.id, e)}
           >
             <PerpsMarketCategoryBadge
               label={category.label}
