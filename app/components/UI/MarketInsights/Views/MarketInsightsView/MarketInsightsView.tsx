@@ -87,8 +87,13 @@ import {
 import { usePerpsEventTracking } from '../../../Perps/hooks/usePerpsEventTracking';
 import TokenDetailsStickyFooter from '../../../TokenDetails/components/TokenDetailsStickyFooter';
 import AssetDetailsQuickBuy from '../../../TokenDetails/components/AssetDetailsQuickBuy';
+import {
+  SOCIAL_AI_QUICK_BUY_AB_KEY,
+  SOCIAL_AI_QUICK_BUY_EXPOSURE_METADATA,
+  SOCIAL_AI_QUICK_BUY_VARIANTS,
+} from '../../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/abTestConfig';
 import type { TokenDetailsRouteParams } from '../../../TokenDetails/constants/constants';
-import { selectSocialAiAssetDetailsQuickBuyEnabled } from '../../../../../selectors/featureFlagController/socialAiAssetDetailsQuickBuy';
+import { useABTest } from '../../../../../hooks/useABTest';
 import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 
 const feedbackByDigest = new Map<string, 'up' | 'down'>();
@@ -163,6 +168,12 @@ interface MarketInsightsRouteParams {
   isPerps?: boolean;
   /** When true, the user has an existing perps position for this asset */
   hasPerpsPosition?: boolean;
+  /**
+   * When true, the perps market is at its open interest cap. Mirrors the market
+   * detail screen by hiding the Long/Short action buttons. Computed upstream via
+   * usePerpsOICap (which requires PerpsStreamProvider, unavailable on this route).
+   */
+  isAtOICap?: boolean;
   /** Surface from which Market Insights was accessed */
   source?: 'token_details' | 'perps' | 'unknown';
   /** Whether the price trend is positive on the parent Token Details screen. */
@@ -196,6 +207,7 @@ const MarketInsightsView: React.FC = () => {
     token: stickyFooterToken,
     isPerps = false,
     hasPerpsPosition = false,
+    isAtOICap = false,
     source: routeSource = 'unknown',
     isPricePositive,
     useAmbientColor,
@@ -220,9 +232,12 @@ const MarketInsightsView: React.FC = () => {
   );
 
   const isEligible = useSelector(selectPerpsEligibility);
-  const isQuickBuyEnabled = useSelector(
-    selectSocialAiAssetDetailsQuickBuyEnabled,
+  const { variant: quickBuyVariant } = useABTest(
+    SOCIAL_AI_QUICK_BUY_AB_KEY,
+    SOCIAL_AI_QUICK_BUY_VARIANTS,
+    SOCIAL_AI_QUICK_BUY_EXPOSURE_METADATA,
   );
+  const isQuickBuyEnabled = quickBuyVariant.showQuickBuy;
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
     useState(false);
   const [isQuickBuyVisible, setIsQuickBuyVisible] = useState(false);
@@ -828,38 +843,42 @@ const MarketInsightsView: React.FC = () => {
 
       {!(isPerps && hasPerpsPosition) &&
         (isPerps ? (
-          <Box
-            twClassName={`border-t border-muted bg-default px-4 pt-4 pb-[${insets.bottom + 8}px]`}
-          >
-            <Box flexDirection={BoxFlexDirection.Row} gap={3}>
-              <Button
-                variant={ButtonVariant.Primary}
-                size={ButtonSize.Lg}
-                twClassName="flex-1"
-                onPress={() => handlePerpsDirectionPress('long')}
-                testID={MarketInsightsSelectorsIDs.LONG_BUTTON}
-              >
-                {strings('perps.market.long')}
-              </Button>
-              <Button
-                variant={ButtonVariant.Primary}
-                size={ButtonSize.Lg}
-                twClassName="flex-1"
-                onPress={() => handlePerpsDirectionPress('short')}
-                testID={MarketInsightsSelectorsIDs.SHORT_BUTTON}
-              >
-                {strings('perps.market.short')}
-              </Button>
+          // Mirror the market detail screen: hide the Long/Short action buttons
+          // when the market is at its open interest cap.
+          isAtOICap ? null : (
+            <Box
+              twClassName={`border-t border-muted bg-default px-4 pt-4 pb-[${insets.bottom + 8}px]`}
+            >
+              <Box flexDirection={BoxFlexDirection.Row} gap={3}>
+                <Button
+                  variant={ButtonVariant.Primary}
+                  size={ButtonSize.Lg}
+                  twClassName="flex-1"
+                  onPress={() => handlePerpsDirectionPress('long')}
+                  testID={MarketInsightsSelectorsIDs.LONG_BUTTON}
+                >
+                  {strings('perps.market.long')}
+                </Button>
+                <Button
+                  variant={ButtonVariant.Primary}
+                  size={ButtonSize.Lg}
+                  twClassName="flex-1"
+                  onPress={() => handlePerpsDirectionPress('short')}
+                  testID={MarketInsightsSelectorsIDs.SHORT_BUTTON}
+                >
+                  {strings('perps.market.short')}
+                </Button>
+              </Box>
+              <Box twClassName="pt-3" alignItems={BoxAlignItems.Center}>
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings('market_insights.footer_disclaimer')}
+                </Text>
+              </Box>
             </Box>
-            <Box twClassName="pt-3" alignItems={BoxAlignItems.Center}>
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-              >
-                {strings('market_insights.footer_disclaimer')}
-              </Text>
-            </Box>
-          </Box>
+          )
         ) : stickyFooterToken ? (
           <Box
             twClassName="bg-default"
