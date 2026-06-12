@@ -25,6 +25,7 @@ import {
   PredictMarket,
   PredictOutcomeToken,
   PredictOutcome as PredictOutcomeType,
+  PriceQuery,
 } from '../../types';
 import {
   PredictNavigationParamList,
@@ -39,6 +40,7 @@ import {
 import styleSheet from './PredictMarketOutcome.styles';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { usePredictPreviewSheet } from '../../contexts';
+import { useVisibleOutcomePrices } from '../../hooks/useVisibleOutcomePrices';
 
 interface PredictMarketOutcomeProps {
   market: PredictMarket;
@@ -46,6 +48,7 @@ interface PredictMarketOutcomeProps {
   entryPoint?: PredictEntryPoint;
   outcomeToken?: PredictOutcomeToken;
   isClosed?: boolean;
+  visible?: boolean;
 }
 
 const MAX_LABEL_LENGTH = 6;
@@ -56,6 +59,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
   entryPoint = PredictEventValues.ENTRY_POINT.PREDICT_FEED,
   isClosed = false,
   outcomeToken,
+  visible = true,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const tw = useTailwind();
@@ -67,8 +71,38 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
   });
   const { openBuySheet } = usePredictPreviewSheet();
 
+  const priceQueries = React.useMemo<PriceQuery[]>(
+    () =>
+      outcome.tokens.map((token) => ({
+        marketId: outcome.marketId,
+        outcomeId: outcome.id,
+        outcomeTokenId: token.id,
+      })),
+    [outcome.id, outcome.marketId, outcome.tokens],
+  );
+  const { getTokenPrice } = useVisibleOutcomePrices({
+    queries: priceQueries,
+    tokens: outcome.tokens,
+    visible: visible && !isClosed,
+  });
+  const displayedTokens = React.useMemo(
+    () =>
+      outcome.tokens.map((token) => ({
+        ...token,
+        price: isClosed ? token.price : getTokenPrice(token),
+      })),
+    [getTokenPrice, isClosed, outcome.tokens],
+  );
+  const displayedOutcome = React.useMemo(
+    () => ({
+      ...outcome,
+      tokens: displayedTokens,
+    }),
+    [displayedTokens, outcome],
+  );
+
   const getOutcomePrices = (): number[] =>
-    outcome.tokens.map((token) => token.price);
+    displayedOutcome.tokens.map((token) => token.price);
 
   const getYesPercentage = (): string => {
     const prices = getOutcomePrices();
@@ -82,23 +116,24 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
     if (isClosed && outcomeToken) {
       return outcomeToken.title;
     }
-    return outcome.groupItemTitle || outcome.title || '';
+    return displayedOutcome.groupItemTitle || displayedOutcome.title || '';
   };
 
-  const getImageUrl = (): string => outcome.image;
+  const getImageUrl = (): string => displayedOutcome.image;
 
-  const getVolumeDisplay = (): string => formatVolume(outcome.volume ?? 0);
+  const getVolumeDisplay = (): string =>
+    formatVolume(displayedOutcome.volume ?? 0);
 
   const isBiggerLabel =
-    outcome.tokens[0].title.length > MAX_LABEL_LENGTH ||
-    outcome.tokens[1].title.length > MAX_LABEL_LENGTH;
+    displayedOutcome.tokens[0].title.length > MAX_LABEL_LENGTH ||
+    displayedOutcome.tokens[1].title.length > MAX_LABEL_LENGTH;
 
   const handleBuy = (token: PredictOutcomeToken) => {
     executeGuardedAction(
       () => {
         openBuySheet({
           market,
-          outcome,
+          outcome: displayedOutcome,
           outcomeToken: token,
           entryPoint,
         });
@@ -190,12 +225,12 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
                 style={tw.style('font-medium text-center')}
                 color={TextColor.SuccessDefault}
               >
-                {outcome.tokens[0].title}
+                {displayedOutcome.tokens[0].title}
                 {isBiggerLabel ? '\n' : ' • '}
-                {formatCents(outcome.tokens[0].price)}
+                {formatCents(displayedOutcome.tokens[0].price)}
               </Text>
             }
-            onPress={() => handleBuy(outcome.tokens[0])}
+            onPress={() => handleBuy(displayedOutcome.tokens[0])}
             style={[styles.buttonYes, isBiggerLabel && tw.style('h-full py-2')]}
           />
           <Button
@@ -207,12 +242,12 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
                 style={tw.style('font-medium text-center')}
                 color={TextColor.ErrorDefault}
               >
-                {outcome.tokens[1].title}
+                {displayedOutcome.tokens[1].title}
                 {isBiggerLabel ? '\n' : ' • '}
-                {formatCents(outcome.tokens[1].price)}
+                {formatCents(displayedOutcome.tokens[1].price)}
               </Text>
             }
-            onPress={() => handleBuy(outcome.tokens[1])}
+            onPress={() => handleBuy(displayedOutcome.tokens[1])}
             style={[styles.buttonNo, isBiggerLabel && tw.style('h-full py-2')]}
           />
         </View>

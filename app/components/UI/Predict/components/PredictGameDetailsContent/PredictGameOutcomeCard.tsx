@@ -3,14 +3,12 @@ import type {
   PredictMarketGame,
   PredictOutcome,
   PredictOutcomeToken,
-  PriceUpdate,
 } from '../../types';
 import type { PredictBetButtonVariant } from '../PredictActionButtons/PredictActionButtons.types';
 import PredictSportOutcomeCard, {
   type PredictSportOutcomeButton,
 } from '../PredictSportOutcomeCard';
 import { formatVolume } from '../../utils/format';
-import { isValidPrice } from '../../utils/prices';
 import { isMoneylineLikeMarketType } from '../../constants/sports';
 
 export type BuyHandler = (
@@ -18,7 +16,7 @@ export type BuyHandler = (
   token: PredictOutcomeToken,
 ) => void;
 
-export type GetLivePrice = (tokenId: string) => PriceUpdate | undefined;
+export type GetTokenPrice = (token: PredictOutcomeToken) => number;
 
 export interface SharedPricingStrategy {
   kind: 'shared';
@@ -67,7 +65,7 @@ export interface PredictGameOutcomeCardProps {
   cardModel: OutcomeCardModel;
   onBuyPress: BuyHandler;
   game?: PredictMarketGame;
-  getPrice: GetLivePrice;
+  getTokenPrice?: GetTokenPrice;
   selectedLineIndex?: number;
   onSelectedLineIndexChange?: (selectedIndex: number) => void;
 }
@@ -129,23 +127,20 @@ const buildButtons = (
   onBuyPress: BuyHandler,
   game?: PredictMarketGame,
   sportsMarketType?: string,
-  getPrice?: GetLivePrice,
+  getTokenPrice?: GetTokenPrice,
 ): PredictSportOutcomeButton[] => {
   const moneyline = isMoneylineLikeMarketType(sportsMarketType);
-  return outcome.tokens.map((token, index) => {
-    const liveBestAsk = getPrice?.(token.id)?.bestAsk;
-    const price = isValidPrice(liveBestAsk) ? liveBestAsk : token.price;
-
-    return {
+  return outcome.tokens.map((token, index) => ({
       label: token.shortTitle ?? token.title,
-      price: Math.round(price * 100),
+      price: Math.round(
+        (getTokenPrice ? getTokenPrice(token) : token.price) * 100,
+      ),
       onPress: () => onBuyPress(outcome, token),
       variant: getButtonVariant(index, outcome.tokens.length, moneyline),
       teamColor: moneyline
         ? getTeamColor(token.shortTitle ?? token.title, game)
         : undefined,
-    };
-  });
+    }));
 };
 
 const buildSubtitle = (outcome: PredictOutcome): string =>
@@ -174,7 +169,7 @@ const SimpleOutcomeCard = memo(
     onBuyPress,
     game,
     sportsMarketType,
-    getPrice,
+    getTokenPrice,
     testID,
   }: {
     outcome: PredictOutcome;
@@ -182,7 +177,7 @@ const SimpleOutcomeCard = memo(
     onBuyPress: BuyHandler;
     game?: PredictMarketGame;
     sportsMarketType?: string;
-    getPrice?: GetLivePrice;
+    getTokenPrice?: GetTokenPrice;
     testID: string;
   }) => (
     <PredictSportOutcomeCard
@@ -193,7 +188,7 @@ const SimpleOutcomeCard = memo(
         onBuyPress,
         game,
         sportsMarketType,
-        getPrice,
+        getTokenPrice,
       )}
       testID={testID}
     />
@@ -210,7 +205,7 @@ const LineOutcomeCard = memo(
     game,
     sportsMarketType,
     testID,
-    getPrice,
+    getTokenPrice,
     selectedLineIndex,
     onSelectedLineIndexChange,
   }: {
@@ -220,7 +215,7 @@ const LineOutcomeCard = memo(
     game?: PredictMarketGame;
     sportsMarketType?: string;
     testID: string;
-    getPrice?: GetLivePrice;
+    getTokenPrice?: GetTokenPrice;
     selectedLineIndex?: number;
     onSelectedLineIndexChange?: (selectedIndex: number) => void;
   }) => {
@@ -288,7 +283,7 @@ const LineOutcomeCard = memo(
           onBuyPress,
           game,
           sportsMarketType,
-          getPrice,
+          getTokenPrice,
         )}
         lines={lines}
         selectedLine={lines[safeSelectedIdx]}
@@ -358,7 +353,7 @@ const buildMoneylineButtons = (
   outcomes: PredictOutcome[],
   onBuyPress: BuyHandler,
   game?: PredictMarketGame,
-  getPrice?: GetLivePrice,
+  getTokenPrice?: GetTokenPrice,
 ): PredictSportOutcomeButton[] => {
   const sortedWithTokens = sortMoneylineOutcomes(outcomes, game).filter(
     (outcome) => outcome.tokens[0] !== undefined,
@@ -366,12 +361,11 @@ const buildMoneylineButtons = (
 
   return sortedWithTokens.map((outcome, i) => {
     const yesToken = outcome.tokens[0];
-    const liveBestAsk = getPrice?.(yesToken.id)?.bestAsk;
-    const price = isValidPrice(liveBestAsk) ? liveBestAsk : yesToken.price;
-
     return {
       label: yesToken.shortTitle ?? yesToken.title,
-      price: Math.round(price * 100),
+      price: Math.round(
+        (getTokenPrice ? getTokenPrice(yesToken) : yesToken.price) * 100,
+      ),
       onPress: () => onBuyPress(outcome, yesToken),
       variant: getButtonVariant(i, sortedWithTokens.length, true),
       teamColor: getTeamColor(yesToken.shortTitle ?? yesToken.title, game),
@@ -390,14 +384,14 @@ const MoneylineCard = memo(
     onBuyPress,
     game,
     title,
-    getPrice,
+    getTokenPrice,
     testID,
   }: {
     outcomes: PredictOutcome[];
     onBuyPress: BuyHandler;
     game?: PredictMarketGame;
     title: string;
-    getPrice?: GetLivePrice;
+    getTokenPrice?: GetTokenPrice;
     testID: string;
   }) => {
     const subtitle = useMemo(
@@ -405,8 +399,8 @@ const MoneylineCard = memo(
       [outcomes],
     );
     const buttons = useMemo(
-      () => buildMoneylineButtons(outcomes, onBuyPress, game, getPrice),
-      [outcomes, onBuyPress, game, getPrice],
+      () => buildMoneylineButtons(outcomes, onBuyPress, game, getTokenPrice),
+      [outcomes, onBuyPress, game, getTokenPrice],
     );
 
     return (
@@ -428,7 +422,7 @@ const PredictGameOutcomeCard = memo(
     cardModel,
     onBuyPress,
     game,
-    getPrice,
+    getTokenPrice,
     selectedLineIndex,
     onSelectedLineIndexChange,
   }: PredictGameOutcomeCardProps) => {
@@ -439,8 +433,8 @@ const PredictGameOutcomeCard = memo(
             outcomes={cardModel.outcomes}
             onBuyPress={onBuyPress}
             game={game}
-            getPrice={getPrice}
             title={cardModel.title}
+            getTokenPrice={getTokenPrice}
             testID={cardModel.testID}
           />
         );
@@ -451,8 +445,8 @@ const PredictGameOutcomeCard = memo(
             title={cardModel.title}
             onBuyPress={onBuyPress}
             game={game}
-            getPrice={getPrice}
             sportsMarketType={cardModel.sportsMarketType}
+            getTokenPrice={getTokenPrice}
             testID={cardModel.testID}
             selectedLineIndex={selectedLineIndex}
             onSelectedLineIndexChange={onSelectedLineIndexChange}
@@ -465,8 +459,8 @@ const PredictGameOutcomeCard = memo(
             title={cardModel.title}
             onBuyPress={onBuyPress}
             game={game}
-            getPrice={getPrice}
             sportsMarketType={cardModel.sportsMarketType}
+            getTokenPrice={getTokenPrice}
             testID={cardModel.testID}
           />
         );

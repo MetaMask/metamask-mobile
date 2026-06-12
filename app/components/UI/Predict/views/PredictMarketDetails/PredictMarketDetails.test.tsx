@@ -56,6 +56,61 @@ jest.mock('@react-navigation/native', () => ({
     children,
 }));
 
+jest.mock('@shopify/flash-list', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+
+  return {
+    __esModule: true,
+    FlashList: ({
+      data,
+      renderItem,
+      onViewableItemsChanged,
+      keyExtractor,
+      testID,
+      ListFooterComponent,
+    }: {
+      data: unknown[];
+      renderItem: (params: { item: unknown; index: number }) => React.ReactNode;
+      onViewableItemsChanged?: (params: {
+        viewableItems: { item: unknown; key: string; index: number }[];
+      }) => void;
+      keyExtractor?: (item: unknown, index: number) => string;
+      testID?: string;
+      ListFooterComponent?: React.ReactNode;
+    }) => {
+      const hasReportedVisibilityRef = ReactActual.useRef(false);
+
+      ReactActual.useEffect(() => {
+        if (hasReportedVisibilityRef.current) {
+          return;
+        }
+        hasReportedVisibilityRef.current = true;
+        onViewableItemsChanged?.({
+          viewableItems: data.map((item, index) => ({
+            item,
+            key: keyExtractor ? keyExtractor(item, index) : `${index}`,
+            index,
+          })),
+        });
+      }, [data, keyExtractor, onViewableItemsChanged]);
+
+      return (
+        <View testID={testID ?? 'mock-flash-list'}>
+          {data.map((item, index) => (
+            <ReactActual.Fragment
+              key={keyExtractor ? keyExtractor(item, index) : index}
+            >
+              {renderItem({ item, index })}
+            </ReactActual.Fragment>
+          ))}
+          {ListFooterComponent}
+        </View>
+      );
+    },
+  };
+});
+
 jest.mock('../../hooks/usePredictActiveOrder', () => ({
   usePredictActiveOrder: () => ({
     initializeActiveOrder: jest.fn(),
@@ -3523,95 +3578,7 @@ describe('PredictMarketDetails', () => {
   });
 
   describe('Real-time Price Updates', () => {
-    it('calls useLiveMarketPrices hook for open outcome tokens', () => {
-      const { useLiveMarketPrices } = jest.requireMock(
-        '../../hooks/useLiveMarketPrices',
-      );
-
-      const marketWithTokens = createMockMarket({
-        status: 'open',
-        outcomes: [
-          {
-            id: 'outcome-1',
-            title: 'Yes',
-            status: 'open',
-            tokens: [{ id: 'token-1', price: 0.65 }],
-            volume: 1000000,
-          },
-        ],
-      });
-
-      setupPredictMarketDetailsTest(marketWithTokens);
-
-      expect(useLiveMarketPrices).toHaveBeenCalledWith(['token-1'], {
-        enabled: true,
-      });
-    });
-
-    it('handles useLiveMarketPrices hook being called', () => {
-      const { useLiveMarketPrices } = jest.requireMock(
-        '../../hooks/useLiveMarketPrices',
-      );
-
-      setupPredictMarketDetailsTest();
-
-      expect(useLiveMarketPrices).toHaveBeenCalled();
-    });
-
-    it('uses useLiveMarketPrices hook for live pricing', () => {
-      const { useLiveMarketPrices } = jest.requireMock(
-        '../../hooks/useLiveMarketPrices',
-      );
-
-      setupPredictMarketDetailsTest();
-
-      expect(useLiveMarketPrices).toHaveBeenCalledWith(['token-1', 'token-2'], {
-        enabled: true,
-      });
-    });
-
-    it('pauses and resumes broad outcome price updates as buy sheet visibility changes', () => {
-      const { useLiveMarketPrices } = jest.requireMock(
-        '../../hooks/useLiveMarketPrices',
-      );
-      const worldCupWinnerMarket = createMockMarket({
-        status: 'open',
-        outcomes: Array.from({ length: 64 }, (_, index) => ({
-          id: `outcome-${index + 1}`,
-          title: `Team ${index + 1}`,
-          groupItemTitle: `Team ${index + 1}`,
-          status: 'open',
-          tokens: [
-            { id: `token-${index + 1}-yes`, title: 'Yes', price: 0.5 },
-            { id: `token-${index + 1}-no`, title: 'No', price: 0.5 },
-          ],
-          volume: 1000000,
-        })),
-      });
-
-      mockIsBuySheetOpen = false;
-      const { rerender } = setupPredictMarketDetailsTest(worldCupWinnerMarket);
-
-      expect(useLiveMarketPrices).toHaveBeenLastCalledWith(expect.any(Array), {
-        enabled: true,
-      });
-
-      mockIsBuySheetOpen = true;
-      rerender(<PredictMarketDetails />);
-
-      expect(useLiveMarketPrices).toHaveBeenLastCalledWith([], {
-        enabled: false,
-      });
-
-      mockIsBuySheetOpen = false;
-      rerender(<PredictMarketDetails />);
-
-      expect(useLiveMarketPrices).toHaveBeenLastCalledWith(expect.any(Array), {
-        enabled: true,
-      });
-    });
-
-    it('handles price fetching errors gracefully', () => {
+    it('handles price hook errors gracefully', () => {
       const { useLiveMarketPrices } = jest.requireMock(
         '../../hooks/useLiveMarketPrices',
       );

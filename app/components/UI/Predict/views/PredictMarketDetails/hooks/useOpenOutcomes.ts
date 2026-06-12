@@ -1,6 +1,4 @@
 import { useMemo } from 'react';
-import { useLiveMarketPrices } from '../../../hooks/useLiveMarketPrices';
-import { isValidPrice } from '../../../utils/prices';
 import {
   OPEN_PREDICT_OUTCOME_STATUS,
   type PredictMarket,
@@ -18,12 +16,12 @@ interface UseOpenOutcomesResult {
   yesPercentage: number;
 }
 
-const EMPTY_TOKEN_IDS: string[] = [];
-
 export const useOpenOutcomes = ({
   market,
   enabled = true,
 }: UseOpenOutcomesParams): UseOpenOutcomesResult => {
+  void enabled;
+
   const closedOutcomes = useMemo(
     () =>
       market?.outcomes?.filter((outcome) => outcome.status === 'closed') ?? [],
@@ -37,38 +35,8 @@ export const useOpenOutcomes = ({
     [market?.outcomes],
   );
 
-  const tokenIds = useMemo(
-    () =>
-      openOutcomesBase.flatMap((outcome) => outcome.tokens.map((t) => t.id)),
-    [openOutcomesBase],
-  );
-
-  const shouldSubscribe = enabled && tokenIds.length > 0;
-  const activeTokenIds = shouldSubscribe ? tokenIds : EMPTY_TOKEN_IDS;
-
-  const { getPrice: getLivePrice } = useLiveMarketPrices(activeTokenIds, {
-    enabled: shouldSubscribe,
-  });
-
-  // Price precedence: live WebSocket bestAsk > base market price.
-  const openOutcomes = useMemo(
-    () =>
-      openOutcomesBase.map((outcome) => ({
-        ...outcome,
-        tokens: outcome.tokens.map((token) => ({
-          ...token,
-          price: (() => {
-            const liveBestAsk = getLivePrice(token.id)?.bestAsk;
-            return isValidPrice(liveBestAsk) ? liveBestAsk : token.price;
-          })(),
-        })),
-      })),
-    [openOutcomesBase, getLivePrice],
-  );
-
   const yesPercentage = useMemo((): number => {
-    // Use real-time price if available from open outcomes
-    const firstOpenOutcome = openOutcomes[0];
+    const firstOpenOutcome = openOutcomesBase[0];
     const firstTokenPrice = firstOpenOutcome?.tokens?.[0]?.price;
 
     if (typeof firstTokenPrice === 'number') {
@@ -81,11 +49,11 @@ export const useOpenOutcomes = ({
       return Math.round(firstOutcomePrice * 100);
     }
     return 0;
-  }, [market?.outcomes, openOutcomes]);
+  }, [market?.outcomes, openOutcomesBase]);
 
   return {
     closedOutcomes,
-    openOutcomes,
+    openOutcomes: openOutcomesBase,
     yesPercentage,
   };
 };

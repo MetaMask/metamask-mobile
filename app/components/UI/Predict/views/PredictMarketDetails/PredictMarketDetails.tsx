@@ -68,7 +68,7 @@ interface PredictMarketDetailsProps {}
 const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
-  const { openBuySheet, isBuySheetOpen } = usePredictPreviewSheet();
+  const { openBuySheet } = usePredictPreviewSheet();
   const { colors } = useTheme();
   const { claim, isClaimPending } = usePredictClaim();
   const route =
@@ -228,12 +228,8 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     timeframes,
   } = useChartData({ market, hasAnyOutcomeToken });
 
-  const shouldRefreshOpenOutcomePrices =
-    market?.status === PredictMarketStatus.OPEN && !isBuySheetOpen;
-
   const { closedOutcomes, openOutcomes, yesPercentage } = useOpenOutcomes({
     market,
-    enabled: shouldRefreshOpenOutcomePrices,
   });
 
   const handleBackPress = () => {

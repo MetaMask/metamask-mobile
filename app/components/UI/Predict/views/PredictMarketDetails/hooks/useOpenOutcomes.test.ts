@@ -1,11 +1,6 @@
 import { renderHook } from '@testing-library/react-native';
 import { Recurrence, type PredictMarket } from '../../../types';
-import { useLiveMarketPrices } from '../../../hooks/useLiveMarketPrices';
 import { useOpenOutcomes } from './useOpenOutcomes';
-
-jest.mock('../../../hooks/useLiveMarketPrices', () => ({
-  useLiveMarketPrices: jest.fn(),
-}));
 
 const createMarket = (): PredictMarket => ({
   id: 'market-1',
@@ -41,34 +36,7 @@ const createMarket = (): PredictMarket => ({
 });
 
 describe('useOpenOutcomes', () => {
-  const mockUseLiveMarketPrices = useLiveMarketPrices as jest.Mock;
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('uses live best ask prices for open outcome tokens', () => {
-    mockUseLiveMarketPrices.mockReturnValue({
-      getPrice: (tokenId: string) =>
-        tokenId === 'up-token'
-          ? { tokenId, price: 0.7, bestBid: 0.69, bestAsk: 0.71 }
-          : { tokenId, price: 0.3, bestBid: 0.29, bestAsk: 0.31 },
-    });
-
-    const { result } = renderHook(() =>
-      useOpenOutcomes({ market: createMarket() }),
-    );
-
-    expect(result.current.openOutcomes[0].tokens[0].price).toBe(0.71);
-    expect(result.current.openOutcomes[0].tokens[1].price).toBe(0.31);
-    expect(result.current.yesPercentage).toBe(71);
-  });
-
-  it('falls back to the base market price when live prices are unavailable', () => {
-    mockUseLiveMarketPrices.mockReturnValue({
-      getPrice: () => undefined,
-    });
-
+  it('returns the base open outcomes and snapshot yes percentage', () => {
     const { result } = renderHook(() =>
       useOpenOutcomes({ market: createMarket() }),
     );
@@ -78,36 +46,18 @@ describe('useOpenOutcomes', () => {
     expect(result.current.yesPercentage).toBe(51);
   });
 
-  it('subscribes to the open outcome token ids for live prices', () => {
-    mockUseLiveMarketPrices.mockReturnValue({ getPrice: () => undefined });
-
-    renderHook(() => useOpenOutcomes({ market: createMarket() }));
-
-    expect(mockUseLiveMarketPrices).toHaveBeenCalledWith(
-      ['up-token', 'down-token'],
-      { enabled: true },
-    );
+  it('returns empty outcomes and zero yes percentage when market is null', () => {
+    const { result } = renderHook(() => useOpenOutcomes({ market: null }));
+    expect(result.current.openOutcomes).toEqual([]);
+    expect(result.current.closedOutcomes).toEqual([]);
+    expect(result.current.yesPercentage).toBe(0);
   });
 
-  it('does not subscribe when market is null', () => {
-    mockUseLiveMarketPrices.mockReturnValue({ getPrice: () => undefined });
-
-    renderHook(() => useOpenOutcomes({ market: null }));
-
-    expect(mockUseLiveMarketPrices).toHaveBeenCalledWith([], {
-      enabled: false,
-    });
-  });
-
-  it('does not subscribe when disabled', () => {
-    mockUseLiveMarketPrices.mockReturnValue({ getPrice: () => undefined });
-
-    renderHook(() =>
+  it('ignores the enabled flag and still returns static outcomes', () => {
+    const { result } = renderHook(() =>
       useOpenOutcomes({ market: createMarket(), enabled: false }),
     );
-
-    expect(mockUseLiveMarketPrices).toHaveBeenCalledWith([], {
-      enabled: false,
-    });
+    expect(result.current.openOutcomes).toHaveLength(1);
+    expect(result.current.yesPercentage).toBe(51);
   });
 });

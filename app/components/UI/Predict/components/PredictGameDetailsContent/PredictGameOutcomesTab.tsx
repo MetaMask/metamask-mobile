@@ -1,49 +1,18 @@
-import React, { memo } from 'react';
+import React, { memo, useCallback } from 'react';
 import { Box } from '@metamask/design-system-react-native';
+import { FlashList } from '@shopify/flash-list';
 import type {
   PredictMarketGame,
   PredictOutcome,
   PredictOutcomeGroup,
   PredictOutcomeToken,
 } from '../../types';
-import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
 import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
 import PredictGameOutcomeCard, {
   type BuyHandler,
 } from './PredictGameOutcomeCard';
 import { usePredictGameOutcomeRows } from './usePredictGameOutcomeRows';
-
-const OutcomesContent = memo(
-  ({
-    group,
-    onBuyPress,
-    game,
-  }: {
-    group: PredictOutcomeGroup;
-    onBuyPress: BuyHandler;
-    game?: PredictMarketGame;
-  }) => {
-    const { cardModels, activeGroupTokenIds } =
-      usePredictGameOutcomeRows(group);
-    const { getPrice } = useLiveMarketPrices(activeGroupTokenIds);
-
-    return (
-      <>
-        {cardModels.map((cardModel) => (
-          <PredictGameOutcomeCard
-            key={cardModel.key}
-            cardModel={cardModel}
-            onBuyPress={onBuyPress}
-            game={game}
-            getPrice={getPrice}
-          />
-        ))}
-      </>
-    );
-  },
-);
-
-OutcomesContent.displayName = 'OutcomesContent';
+import { useVisibleGameOutcomePricing } from './useVisibleGameOutcomePricing';
 
 export interface OutcomesTabProps {
   groupMap: Map<string, PredictOutcomeGroup>;
@@ -55,15 +24,50 @@ export interface OutcomesTabProps {
 const PredictGameOutcomesTab = memo(
   ({ groupMap, game, activeChipKey, onBuyPress }: OutcomesTabProps) => {
     const selectedGroup = groupMap.get(activeChipKey);
+    const { cardModels } = usePredictGameOutcomeRows(selectedGroup);
+    const {
+      getTokenPrice,
+      onSelectedLineIndexChange,
+      onViewableItemsChanged,
+      selectedLineIndices,
+      viewabilityConfig,
+    } = useVisibleGameOutcomePricing({
+      cardModels,
+    });
+
+    const renderItem = useCallback(
+      ({ item }: { item: (typeof cardModels)[number] }) => (
+        <PredictGameOutcomeCard
+          cardModel={item}
+          onBuyPress={onBuyPress as BuyHandler}
+          game={game}
+          getTokenPrice={getTokenPrice}
+          selectedLineIndex={selectedLineIndices[item.key]}
+          onSelectedLineIndexChange={(nextIndex) =>
+            onSelectedLineIndexChange(item.key, nextIndex)
+          }
+        />
+      ),
+      [
+        game,
+        getTokenPrice,
+        onSelectedLineIndexChange,
+        onBuyPress,
+        selectedLineIndices,
+      ],
+    );
 
     return (
       <Box testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.OUTCOMES_CONTENT}>
         {selectedGroup && (
           <Box twClassName="px-4">
-            <OutcomesContent
-              group={selectedGroup}
-              onBuyPress={onBuyPress}
-              game={game}
+            <FlashList
+              data={cardModels}
+              keyExtractor={(item) => item.key}
+              renderItem={renderItem}
+              scrollEnabled={false}
+              onViewableItemsChanged={onViewableItemsChanged}
+              viewabilityConfig={viewabilityConfig}
             />
           </Box>
         )}
