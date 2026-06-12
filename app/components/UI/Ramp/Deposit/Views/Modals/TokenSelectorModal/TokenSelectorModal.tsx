@@ -2,7 +2,6 @@ import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { View, useWindowDimensions } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { CaipChainId } from '@metamask/utils';
-import { useSelector } from 'react-redux';
 
 import NetworksFilterBar from '../../../components/NetworksFilterBar';
 import NetworksFilterSelector from '../../../components/NetworksFilterSelector/NetworksFilterSelector';
@@ -14,7 +13,6 @@ import Text, {
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
-import HeaderCompactStandard from '../../../../../../../component-library/components-temp/HeaderCompactStandard';
 import ListItemSelect from '../../../../../../../component-library/components/List/ListItemSelect';
 import TextFieldSearch from '../../../../../../../component-library/components/Form/TextFieldSearch';
 
@@ -31,9 +29,11 @@ import { useDepositCryptoCurrencyNetworkName } from '../../../hooks/useDepositCr
 import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
-import { TextColor } from '@metamask/design-system-react-native';
+import {
+  HeaderStandard,
+  TextColor,
+} from '@metamask/design-system-react-native';
 import useAnalytics from '../../../../hooks/useAnalytics';
-import { getRampRoutingDecision } from '../../../../../../../reducers/fiatOrders';
 
 interface TokenSelectorModalParams {
   cryptoCurrencies: DepositCryptoCurrency[];
@@ -60,7 +60,6 @@ function TokenSelectorModal() {
 
   const trackEvent = useAnalytics();
   const getNetworkName = useDepositCryptoCurrencyNetworkName();
-  const rampRoutingDecision = useSelector(getRampRoutingDecision);
 
   const {
     setSelectedCryptoCurrency,
@@ -94,7 +93,6 @@ function TokenSelectorModal() {
           is_authenticated: isAuthenticated,
           token_caip19: selectedToken.assetId,
           token_symbol: selectedToken.symbol,
-          ramp_routing: rampRoutingDecision ?? undefined,
         });
         setSelectedCryptoCurrency(selectedToken);
       }
@@ -108,7 +106,6 @@ function TokenSelectorModal() {
       selectedRegion?.currency,
       isAuthenticated,
       setSelectedCryptoCurrency,
-      rampRoutingDecision,
     ],
   );
 
@@ -168,7 +165,7 @@ function TokenSelectorModal() {
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <HeaderCompactStandard
+      <HeaderStandard
         title={
           isEditingNetworkFilter
             ? strings('deposit.networks_filter_selector.select_network')

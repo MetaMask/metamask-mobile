@@ -219,6 +219,7 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     'engine.backgroundState.AccountTreeController.selectedAccountGroup',
     'engine.backgroundState.AccountTreeController.accountGroupsMetadata',
     'engine.backgroundState.AccountTreeController.accountWalletsMetadata',
+    'engine.backgroundState.MoneyAccountController.moneyAccounts',
     'engine.backgroundState.TokenBalancesController.tokenBalances',
     'engine.backgroundState.MultichainNetworkController.networksWithTransactionActivity',
     'browser.activeTab',
@@ -252,7 +253,6 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     'engine.backgroundState.RemoteFeatureFlagController.rawRemoteFeatureFlags',
     'engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags',
     'engine.backgroundState.RemoteFeatureFlagController.thresholdCache',
-    'engine.backgroundState.TokenListController.tokensChainsCache',
     'engine.backgroundState.TokenRatesController.marketData',
     'engine.backgroundState.TokenSearchDiscoveryDataController',
 
@@ -321,7 +321,6 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     'card.geoLocation',
     'engine.backgroundState.GeolocationController.location',
     'engine.backgroundState.GeolocationController.lastFetchedAt',
-    'fiatOrders.rampRoutingDecision',
 
     // ── Networks present in app defaults but not in fixture (added by controller at runtime) ──
     'engine.backgroundState.NetworkController.networkConfigurationsByChainId.0x2105', // Base

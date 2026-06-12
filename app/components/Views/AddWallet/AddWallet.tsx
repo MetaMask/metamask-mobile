@@ -8,8 +8,8 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  ButtonIcon,
   FontWeight,
+  HeaderStandard,
   Icon,
   IconColor,
   IconName,
@@ -27,7 +27,6 @@ import { IMetaMetricsEvent } from '../../../core/Analytics/MetaMetrics.types';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { selectAddDeviceSyncEnabled } from '../../../selectors/featureFlagController/addDeviceSync';
 import { AddWalletTestIds } from './AddWallet.testIds';
-
 interface ActionConfig {
   analyticsEvent: IMetaMetricsEvent;
   description: string;
@@ -97,6 +96,11 @@ const AddWallet = () => {
   const handleActionPress = useCallback(
     (config: ActionConfig) => {
       navigation.navigate(config.routeName as never);
+      // Dismiss AddWallet so that hardware wallet completion (pop(2) in HW
+      // screens) lands on AccountSelector rather than back here.
+      if (config.routeName === Routes.HW.CONNECT) {
+        navigation.goBack();
+      }
       trackEvent(createEventBuilder(config.analyticsEvent).build());
     },
     [createEventBuilder, navigation, trackEvent],
@@ -105,14 +109,13 @@ const AddWallet = () => {
   return (
     <SafeAreaView style={tw`flex-1 bg-default`} edges={['top', 'bottom']}>
       <Box testID={AddWalletTestIds.SCREEN} twClassName="flex-1 bg-default">
-        <Box twClassName="px-2 py-4">
-          <ButtonIcon
-            accessibilityLabel="Back"
-            iconName={IconName.ArrowLeft}
-            onPress={handleBack}
-            testID={AddWalletTestIds.BACK_BUTTON}
-          />
-        </Box>
+        <HeaderStandard
+          backButtonProps={{
+            accessibilityLabel: strings('navigation.back'),
+            onPress: handleBack,
+            testID: AddWalletTestIds.BACK_BUTTON,
+          }}
+        />
 
         <Box gap={6} paddingHorizontal={4}>
           <Text color={TextColor.TextDefault} variant={TextVariant.HeadingLg}>

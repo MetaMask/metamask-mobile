@@ -1,8 +1,53 @@
 import { isHardwareAccount } from '../../util/address';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
-import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
+import {
+  Category,
+  ErrorCode,
+  HardwareWalletError,
+  HardwareWalletType,
+  Severity,
+} from '@metamask/hw-wallet-sdk';
 import { strings } from '../../../locales/i18n';
 import { getDeviceId } from '../Ledger/Ledger';
+
+const LEDGER_DEVICE_ID_LOOKUP_TIMEOUT_MS = 5000;
+
+const createLedgerDeviceIdLookupTimeoutError = () =>
+  new HardwareWalletError('Ledger device id lookup timed out', {
+    code: ErrorCode.DeviceUnresponsive,
+    severity: Severity.Warning,
+    category: Category.Connection,
+    userMessage: strings('hardware_wallet.errors.connection_timeout'),
+    metadata: {
+      walletType: HardwareWalletType.Ledger,
+      errorName: 'LedgerDeviceIdLookupTimeoutError',
+    },
+  });
+
+const withLedgerDeviceIdLookupTimeout = async <Result>(
+  promise: Promise<Result>,
+): Promise<Result> => {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(
+      () => reject(createLedgerDeviceIdLookupTimeoutError()),
+      LEDGER_DEVICE_ID_LOOKUP_TIMEOUT_MS,
+    );
+  });
+
+  return await Promise.race([promise, timeoutPromise]).finally(() => {
+    // This only releases the caller. If another keyring operation already holds
+    // the mutex, it still releases when that underlying operation settles.
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+  });
+};
+
+const isLedgerDeviceIdLookupTimeoutError = (error: unknown): boolean =>
+  error instanceof HardwareWalletError &&
+  error.code === ErrorCode.DeviceUnresponsive &&
+  error.metadata?.errorName === 'LedgerDeviceIdLookupTimeoutError';
 
 /**
  * Helper to get wallet type display name
@@ -51,7 +96,16 @@ export async function getDeviceIdForAddress(
 
   switch (walletType) {
     case HardwareWalletType.Ledger:
-      return await getDeviceId();
+      try {
+        return await withLedgerDeviceIdLookupTimeout(getDeviceId());
+      } catch (error) {
+        // On cold app start, keyring mutex contention can delay device-id lookup.
+        // Falling back to undefined lets the readiness flow recover via scan/connect.
+        if (isLedgerDeviceIdLookupTimeoutError(error)) {
+          return undefined;
+        }
+        throw error;
+      }
     default:
       return undefined;
   }

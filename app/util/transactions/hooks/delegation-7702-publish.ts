@@ -8,8 +8,10 @@ import {
   PublishHook,
   PublishHookResult,
   TransactionMeta,
+  TransactionType,
+  decodeAuthorizationSignature,
 } from '@metamask/transaction-controller';
-import { Hex, add0x, createProjectLogger } from '@metamask/utils';
+import { Hex, createProjectLogger } from '@metamask/utils';
 import {
   ANY_BENEFICIARY,
   BATCH_DEFAULT_MODE,
@@ -38,10 +40,10 @@ import {
   waitForRelayResult,
 } from '../transaction-relay';
 import { NetworkClientId } from '@metamask/network-controller';
-import { toHex } from '@metamask/controller-utils';
-import { isE2ETest, stripSingleLeadingZero } from '../util';
+import { isE2ETest } from '../util';
 import {
   getClientForTransactionMetadata,
+  getClientVersionForTransactionMetadata,
   sanitizeOrigin,
 } from '../../../constants/smartTransactions';
 
@@ -107,6 +109,11 @@ export class Delegation7702PublishHook {
     transactionMeta: TransactionMeta,
     _signedTx: string,
   ): Promise<PublishHookResult> {
+    if (transactionMeta.type === TransactionType.revokeDelegation) {
+      log('Skipping: revokeDelegation must publish as top-level setCode');
+      return EMPTY_RESULT;
+    }
+
     const { chainId, gasFeeTokens, selectedGasFeeToken, txParams } =
       transactionMeta;
 
@@ -200,6 +207,7 @@ export class Delegation7702PublishHook {
       metadata: {
         txType: transactionMeta.type,
         client: getClientForTransactionMetadata(),
+        clientVersion: getClientVersionForTransactionMetadata(),
         origin: sanitizeOrigin(transactionMeta.origin),
       },
     };
@@ -433,7 +441,7 @@ export class Delegation7702PublishHook {
       },
     )) as Hex;
 
-    const { r, s, yParity } = this.#decodeAuthorizationSignature(
+    const { r, s, yParity } = decodeAuthorizationSignature(
       authorizationSignature,
     );
 
@@ -456,19 +464,6 @@ export class Delegation7702PublishHook {
       recipient,
       amount,
     ]) as Hex;
-  }
-
-  #decodeAuthorizationSignature(signature: Hex) {
-    const r = stripSingleLeadingZero(signature.slice(0, 66)) as Hex;
-    const s = stripSingleLeadingZero(add0x(signature.slice(66, 130))) as Hex;
-    const v = parseInt(signature.slice(130, 132), 16);
-    const yParity = toHex(v - 27 === 0 ? 0 : 1);
-
-    return {
-      r,
-      s,
-      yParity,
-    };
   }
 
   #normalizeCallData(data: unknown): Hex {

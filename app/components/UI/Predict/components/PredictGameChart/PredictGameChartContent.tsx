@@ -20,7 +20,10 @@ import { PredictGameChartContentProps } from './PredictGameChart.types';
 import TimeframeSelector from './TimeframeSelector';
 import ChartTooltip from './ChartTooltip';
 import EndpointDots from './EndpointDots';
-import { CHART_HEIGHT } from './PredictGameChart.constants';
+import {
+  CHART_HEIGHT,
+  CHART_WITH_TIMEFRAME_SELECTOR_HEIGHT,
+} from './PredictGameChart.constants';
 import { PREDICT_GAME_CHART_CONTENT_TEST_IDS } from './PredictGameChartContent.testIds';
 
 const CHART_CONTENT_INSET = { top: 30, bottom: 20, left: 0, right: 80 };
@@ -41,6 +44,9 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
   const [activeIndex, setActiveIndex] = useState<number>(-1);
   const chartWidthRef = useRef<number>(0);
   const primaryDataLengthRef = useRef<number>(0);
+  const loadingContainerMinHeight = onTimeframeChange
+    ? CHART_WITH_TIMEFRAME_SELECTOR_HEIGHT
+    : CHART_HEIGHT;
 
   const seriesToRender = data;
   const nonEmptySeries = useMemo(
@@ -139,7 +145,11 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
 
   if (isLoading) {
     return (
-      <Box twClassName="flex-1" testID={testID}>
+      <Box
+        twClassName="w-full"
+        style={{ minHeight: loadingContainerMinHeight }}
+        testID={testID}
+      >
         <Box
           twClassName={`h-[${CHART_HEIGHT}px] bg-transparent rounded-lg items-center justify-center`}
         >
@@ -158,7 +168,7 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
 
   if (error) {
     return (
-      <Box twClassName="flex-1 justify-center items-center" testID={testID}>
+      <Box twClassName="w-full justify-center items-center" testID={testID}>
         <Box twClassName={`h-[${CHART_HEIGHT}px] justify-center items-center`}>
           <Icon
             name={IconName.Warning}
@@ -196,7 +206,7 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
 
   if (!hasData) {
     return (
-      <Box twClassName="flex-1 justify-center items-center" testID={testID}>
+      <Box twClassName="w-full justify-center items-center" testID={testID}>
         <Box twClassName={`h-[${CHART_HEIGHT}px] justify-center items-center`}>
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             No price history available
@@ -225,7 +235,7 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
   const isTooltipActive = activeIndex >= 0;
 
   return (
-    <Box twClassName="flex-1" testID={testID}>
+    <Box twClassName="w-full" testID={testID}>
       <View
         style={tw.style(`h-[${CHART_HEIGHT}px]`)}
         {...panResponder.panHandlers}

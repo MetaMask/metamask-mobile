@@ -12,7 +12,14 @@ const mockNavigate = jest.fn();
 const mockUseSelector = jest.fn();
 const mockUseBenefits = jest.fn();
 
-const mockStrings = jest.fn((key: string) => {
+const mockStrings = jest.fn((key: string, params?: Record<string, unknown>) => {
+  if (
+    key === 'rewards.benefits.available_count' &&
+    params &&
+    typeof params.count === 'string'
+  ) {
+    return `${params.count} available`;
+  }
   const translations: Record<string, string> = {
     'rewards.benefits.title': 'Benefits',
     'rewards.benefits.empty-list': 'No benefits available yet',
@@ -42,12 +49,15 @@ jest.mock('../../hooks/useBenefits', () => ({
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string) => mockStrings(key),
+  strings: (key: string, params?: Record<string, unknown>) =>
+    mockStrings(key, params),
 }));
 
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({ style: (...args: unknown[]) => args }),
-}));
+jest.mock('@metamask/design-system-twrnc-preset', () => {
+  const tw = (..._args: unknown[]) => ({});
+  tw.style = jest.fn(() => ({}));
+  return { useTailwind: () => tw };
+});
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -124,7 +134,10 @@ describe('BenefitsPreview', () => {
   it('requests rewards benefits title copy from i18n', () => {
     render(<BenefitsPreview />);
 
-    expect(mockStrings).toHaveBeenCalledWith('rewards.benefits.title');
+    expect(mockStrings).toHaveBeenCalledWith(
+      'rewards.benefits.title',
+      undefined,
+    );
   });
 
   it('reads subscription benefits and loading state from the store', () => {
@@ -167,7 +180,20 @@ describe('BenefitsPreview', () => {
 
       expect(getByTestId('benefit-empty-list')).toBeOnTheScreen();
       expect(getByText('No benefits available yet')).toBeOnTheScreen();
-      expect(mockStrings).toHaveBeenCalledWith('rewards.benefits.empty-list');
+      expect(mockStrings).toHaveBeenCalledWith(
+        'rewards.benefits.empty-list',
+        undefined,
+      );
+    });
+
+    it('does not request available_count copy when there are no benefits', () => {
+      render(<BenefitsPreview />);
+
+      const availableCountCalls = mockStrings.mock.calls.filter(
+        (call) => call[0] === 'rewards.benefits.available_count',
+      );
+
+      expect(availableCountCalls).toHaveLength(0);
     });
 
     it('does not render benefit details container without benefits', () => {
@@ -222,6 +248,70 @@ describe('BenefitsPreview', () => {
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.REWARD_BENEFITS_FULL_VIEW,
       );
+    });
+
+    it('shows available benefits count in the header tag', () => {
+      const { getByText } = render(<BenefitsPreview />);
+
+      expect(getByText('2 available')).toBeOnTheScreen();
+      expect(mockStrings).toHaveBeenCalledWith(
+        'rewards.benefits.available_count',
+        {
+          count: '2',
+        },
+      );
+    });
+
+    it('caps displayed benefits count at 99+ in the header tag', () => {
+      mockBenefits = Array.from({ length: 100 }, (_, index) => ({
+        id: index + 1,
+        longTitle: `Benefit ${index + 1}`,
+        shortDescription: 'd',
+      }));
+
+      const { getByText } = render(<BenefitsPreview />);
+
+      expect(getByText('99+ available')).toBeOnTheScreen();
+      expect(mockStrings).toHaveBeenCalledWith(
+        'rewards.benefits.available_count',
+        {
+          count: '99+',
+        },
+      );
+    });
+
+    it('displays numeric count 99 in the header tag when there are exactly 99 benefits', () => {
+      mockBenefits = Array.from({ length: 99 }, (_, index) => ({
+        id: index + 1,
+        longTitle: `Benefit ${index + 1}`,
+        shortDescription: 'd',
+      }));
+
+      const { getByText } = render(<BenefitsPreview />);
+
+      expect(getByText('99 available')).toBeOnTheScreen();
+      expect(mockStrings).toHaveBeenCalledWith(
+        'rewards.benefits.available_count',
+        {
+          count: '99',
+        },
+      );
+    });
+
+    it('renders a single benefit card when the list has one item', () => {
+      mockBenefits = [
+        { id: 42, longTitle: 'Solo benefit', shortDescription: 'only one' },
+      ];
+
+      const { getByTestId, getByText, queryByTestId } = render(
+        <BenefitsPreview />,
+      );
+
+      expect(
+        getByTestId(REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS),
+      ).toBeOnTheScreen();
+      expect(getByText('Solo benefit')).toBeOnTheScreen();
+      expect(queryByTestId('benefit-card-2')).toBeNull();
     });
   });
 

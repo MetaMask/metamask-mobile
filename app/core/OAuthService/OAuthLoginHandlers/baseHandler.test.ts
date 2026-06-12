@@ -1,6 +1,7 @@
 import {
   AuthConnection,
   AuthRequestParams,
+  AuthResponse,
   HandleFlowParams,
   LoginHandlerResult,
 } from '../OAuthInterface';
@@ -177,6 +178,49 @@ describe('BaseLoginHandler', () => {
       const decoded = mockHandler.decodeIdToken(mockToken);
 
       expect(decoded).toBe(JSON.stringify(mockPayload));
+    });
+  });
+
+  describe('getUserInfo', () => {
+    const buildAuthResponse = (
+      payload: Record<string, string>,
+      accountName?: string,
+    ): AuthResponse => ({
+      id_token: `header.${Buffer.from(JSON.stringify(payload)).toString(
+        'base64',
+      )}.signature`,
+      access_token: 'mock-access-token',
+      metadata_access_token: 'mock-metadata-access-token',
+      indexes: [1],
+      endpoints: {},
+      account_name: accountName,
+    });
+
+    it('uses the response account name when provided', () => {
+      const authResponse = buildAuthResponse(
+        {
+          sub: 'user-id',
+          email: 'test@example.com',
+        },
+        'Telegram TylerC',
+      );
+
+      expect(mockHandler.getUserInfo(authResponse)).toEqual({
+        userId: 'user-id',
+        accountName: 'Telegram TylerC',
+      });
+    });
+
+    it('falls back to the id token email when account name is missing', () => {
+      const authResponse = buildAuthResponse({
+        sub: 'user-id',
+        email: 'test@example.com',
+      });
+
+      expect(mockHandler.getUserInfo(authResponse)).toEqual({
+        userId: 'user-id',
+        accountName: 'test@example.com',
+      });
     });
   });
 

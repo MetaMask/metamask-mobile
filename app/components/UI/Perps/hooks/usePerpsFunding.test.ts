@@ -3,6 +3,7 @@ import { waitFor } from '@testing-library/react-native';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
 import { usePerpsFunding } from './usePerpsFunding';
+import { resetPerpsRestCacheForTests } from '@metamask/perps-controller/utils/coalescePerpsRestRequest';
 import {
   type Funding,
   type GetFundingParams,
@@ -56,6 +57,7 @@ const mockLogger = DevLogger as jest.Mocked<typeof DevLogger>;
 describe('usePerpsFunding', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    resetPerpsRestCacheForTests();
     jest.useFakeTimers();
 
     // Set up default successful mock
@@ -107,7 +109,10 @@ describe('usePerpsFunding', () => {
       expect(result.current.funding).toEqual(mockFunding);
       expect(result.current.error).toBeNull();
       expect(mockPerpsController.getFunding).toHaveBeenCalledTimes(1);
-      expect(mockPerpsController.getFunding).toHaveBeenCalledWith(undefined);
+      expect(mockPerpsController.getFunding).toHaveBeenCalledWith(
+        undefined,
+        expect.objectContaining({ forceRefresh: false }),
+      );
       expect(mockLogger.log).toHaveBeenCalledWith(
         'Perps: Fetching funding data from controller...',
       );
@@ -152,7 +157,10 @@ describe('usePerpsFunding', () => {
       });
 
       // Assert
-      expect(mockPerpsController.getFunding).toHaveBeenCalledWith(params);
+      expect(mockPerpsController.getFunding).toHaveBeenCalledWith(
+        params,
+        expect.any(Object),
+      );
     });
 
     it('updates funding when data changes', async () => {
@@ -504,6 +512,7 @@ describe('usePerpsFunding', () => {
 
       expect(mockPerpsController.getFunding).toHaveBeenCalledWith(
         initialParams,
+        expect.any(Object),
       );
 
       // Reset call count
@@ -514,7 +523,10 @@ describe('usePerpsFunding', () => {
       rerender({ params: newParams });
 
       await waitFor(() => {
-        expect(mockPerpsController.getFunding).toHaveBeenCalledWith(newParams);
+        expect(mockPerpsController.getFunding).toHaveBeenCalledWith(
+          newParams,
+          expect.any(Object),
+        );
       });
     });
 
@@ -548,10 +560,13 @@ describe('usePerpsFunding', () => {
       });
 
       await waitFor(() => {
-        expect(mockPerpsController.getFunding).toHaveBeenCalledWith({
-          startTime: 1640995000000,
-          endTime: 1641000000000,
-        });
+        expect(mockPerpsController.getFunding).toHaveBeenCalledWith(
+          {
+            startTime: 1640995000000,
+            endTime: 1641000000000,
+          },
+          expect.any(Object),
+        );
       });
     });
 
@@ -577,10 +592,10 @@ describe('usePerpsFunding', () => {
         jest.advanceTimersByTime(100);
       });
 
-      // Assert - should refetch due to object reference change
-      await waitFor(() => {
-        expect(mockPerpsController.getFunding).toHaveBeenCalledTimes(1);
-      });
+      // Assert - new params object reference triggers a fresh controller
+      // call. Dedup of identical stringified params happens inside
+      // MarketDataService (mocked away here) and is covered by its suite.
+      expect(mockPerpsController.getFunding).toHaveBeenCalledTimes(1);
     });
   });
 

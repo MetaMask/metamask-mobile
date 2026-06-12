@@ -44,7 +44,7 @@ export interface PlatformLocator {
  * }
  */
 export interface LocatorConfig {
-  detox?: () => DetoxElement;
+  detox?: () => EncapsulatedElementType;
   appium?:
     | (() => Promise<PlaywrightElement>)
     | {
@@ -120,7 +120,7 @@ export class EncapsulatedElement {
     }
 
     // Execute the function to get the DetoxElement
-    return config.detox();
+    return config.detox() as unknown as DetoxElement;
   }
 
   /**
@@ -137,11 +137,11 @@ export class EncapsulatedElement {
 
     // If appium is a function, use it as a generic locator
     if (typeof config.appium === 'function') {
-      return config.appium();
+      return config.appium() as Promise<PlaywrightElement>;
     }
 
     // Otherwise, it's a platform-specific configuration
-    const platform = await PlatformDetector.getPlatform();
+    const platform = PlatformDetector.getPlatform();
     const platformLocator = config.appium[platform];
 
     if (!platformLocator) {
@@ -151,7 +151,7 @@ export class EncapsulatedElement {
     }
 
     // Execute the platform-specific function to get the Promise<PlaywrightElement>
-    return platformLocator();
+    return platformLocator() as Promise<PlaywrightElement>;
   }
 }
 
@@ -175,9 +175,9 @@ export function encapsulated(config: LocatorConfig): EncapsulatedElementType {
  * @returns PlaywrightElement
  */
 export async function asPlaywrightElement(
-  element: EncapsulatedElementType,
+  elem: EncapsulatedElementType,
 ): Promise<PlaywrightElement> {
-  return (await element) as PlaywrightElement;
+  return (await elem) as PlaywrightElement;
 }
 
 /**
@@ -192,6 +192,6 @@ export async function asPlaywrightElement(
  *
  * @returns DetoxElement
  */
-export function asDetoxElement(element: EncapsulatedElementType): DetoxElement {
-  return element as DetoxElement;
+export function asDetoxElement(elem: EncapsulatedElementType): DetoxElement {
+  return elem as DetoxElement;
 }

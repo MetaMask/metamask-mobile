@@ -99,6 +99,35 @@ describe('toCardFundingToken', () => {
     });
   });
 
+  describe('isMoneyAccountEntry flag', () => {
+    it('defaults to false when no flag is provided', () => {
+      const result = toCardFundingToken(makeAsset());
+      expect(result.isMoneyAccountEntry).toBe(false);
+    });
+
+    it('forwards true when caller passes true', () => {
+      const result = toCardFundingToken(makeAsset(), true);
+      expect(result.isMoneyAccountEntry).toBe(true);
+    });
+
+    it('forwards false when caller passes false explicitly', () => {
+      const result = toCardFundingToken(makeAsset(), false);
+      expect(result.isMoneyAccountEntry).toBe(false);
+    });
+  });
+
+  describe('displaySymbol', () => {
+    it('is undefined when no displaySymbol is provided', () => {
+      const result = toCardFundingToken(makeAsset());
+      expect(result.displaySymbol).toBeUndefined();
+    });
+
+    it('forwards the provided displaySymbol', () => {
+      const result = toCardFundingToken(makeAsset(), true, 'mUSD');
+      expect(result.displaySymbol).toBe('mUSD');
+    });
+  });
+
   describe('field passthrough', () => {
     it('maps remaining balance to spendableBalance and total cap to spendingCap', () => {
       const asset = makeAsset({
@@ -109,6 +138,7 @@ describe('toCardFundingToken', () => {
         chainId: 'eip155:1' as `eip155:${number}`,
         spendableBalance: '123',
         spendingCap: '999',
+        originalSpendingCap: '1500',
         walletAddress: '0xowner',
       });
       const result = toCardFundingToken(asset);
@@ -119,6 +149,7 @@ describe('toCardFundingToken', () => {
       expect(result.caipChainId).toBe('eip155:1');
       expect(result.spendableBalance).toBe('123');
       expect(result.spendingCap).toBe('999');
+      expect(result.originalSpendingCap).toBe('1500');
       expect(result.walletAddress).toBe('0xowner');
     });
   });

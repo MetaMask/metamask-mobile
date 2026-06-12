@@ -14,6 +14,7 @@ import Engine from '../../../../core/Engine';
 import NotificationManager from '../../../../core/NotificationManager';
 import { getDecimalChainId } from '../../../../util/networks';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { trackBlockExplorerLinkClicked } from '../../../../util/analytics/externalLinkTracking';
 import { WalletActionsBottomSheetSelectorsIDs } from '../../../Views/WalletActions/WalletActionsBottomSheet.testIds';
 import Logger from '../../../../util/Logger';
 import { Hex, isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
@@ -22,6 +23,12 @@ import { TokenI } from '../../Tokens/types';
 import { RootState } from '../../../../reducers';
 import { selectAsset } from '../../../../selectors/assets/assets-list';
 import { isMusdToken } from '../../../UI/Earn/constants/musd';
+import { selectIsAssetsUnifyStateEnabled } from '../../../../selectors/featureFlagController/assetsUnifyState';
+import useAssetVisibility from './useAssetVisibility';
+import { TokenDetailsAction } from '../constants/constants';
+import { isNonEvmChainId } from '../../../../core/Multichain/utils';
+import { removeNonEvmToken } from '../../Tokens/util/removeNonEvmToken';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 
 export interface MoreTokenActionsMenuParams {
   hasPerpsMarket: boolean;
@@ -31,6 +38,7 @@ export interface MoreTokenActionsMenuParams {
   asset: TokenI;
   onBuy: () => void;
   onReceive?: () => void;
+  onActionTapped?: (action: TokenDetailsAction) => void;
 }
 
 type MoreTokenActionsMenuRouteProp = RouteProp<
@@ -62,10 +70,19 @@ const MoreTokenActionsMenu = () => {
     asset,
     onBuy,
     onReceive,
+    onActionTapped,
   } = route.params;
 
   const { trackEvent, createEventBuilder } = useAnalytics();
   const explorer = useBlockExplorer(asset.chainId);
+
+  const isAssetsUnifyStateEnabled = useSelector(
+    selectIsAssetsUnifyStateEnabled,
+  );
+  const selectInternalAccountByScope = useSelector(
+    selectSelectedInternalAccountByScope,
+  );
+  const { handleHideToken } = useAssetVisibility(asset);
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -112,30 +129,52 @@ const MoreTokenActionsMenu = () => {
     }
 
     if (url) {
+      trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
+        location: 'token_details_menu',
+        text: strings('asset_details.options.view_on_block'),
+        url,
+      });
+      onActionTapped?.(TokenDetailsAction.ViewOnExplorer);
       goToBrowserUrl(url, explorer.getBlockExplorerName(asset.chainId));
     }
   }, [
+    createEventBuilder,
     isNativeCurrency,
     explorer,
     asset.chainId,
     asset.address,
     goToBrowserUrl,
+    onActionTapped,
+    trackEvent,
   ]);
 
   const handleRemoveToken = useCallback(() => {
+    onActionTapped?.(TokenDetailsAction.RemoveToken);
     closeBottomSheetAndNavigate(() => {
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: 'AssetHideConfirmation',
         params: {
-          onConfirm: () => {
+          onConfirm: async () => {
             navigation.navigate('WalletView');
             try {
-              const { TokensController, NetworkController } = Engine.context;
-              const networkClientId =
-                NetworkController.findNetworkClientIdByChainId(
-                  asset.chainId as Hex,
-                );
-              TokensController.ignoreTokens([asset.address], networkClientId);
+              if (asset.chainId && isNonEvmChainId(asset.chainId)) {
+                await removeNonEvmToken({
+                  tokenAddress: asset.address,
+                  tokenChainId: asset.chainId,
+                  selectInternalAccountByScope,
+                });
+              } else {
+                const { TokensController, NetworkController } = Engine.context;
+                const networkClientId =
+                  NetworkController.findNetworkClientIdByChainId(
+                    asset.chainId as Hex,
+                  );
+                TokensController.ignoreTokens([asset.address], networkClientId);
+              }
+
+              if (isAssetsUnifyStateEnabled) {
+                handleHideToken();
+              }
 
               const tokenSymbol = asset.symbol || null;
 
@@ -172,8 +211,12 @@ const MoreTokenActionsMenu = () => {
     asset.chainId,
     asset.address,
     asset.symbol,
+    isAssetsUnifyStateEnabled,
+    handleHideToken,
+    selectInternalAccountByScope,
     trackEvent,
     createEventBuilder,
+    onActionTapped,
   ]);
 
   const tokenIsInAccount = !!useSelector((state: RootState) =>

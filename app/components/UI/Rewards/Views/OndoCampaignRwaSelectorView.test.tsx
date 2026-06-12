@@ -1,7 +1,9 @@
 import React from 'react';
-import { render, fireEvent, act } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
-import OndoCampaignRwaSelectorView from './OndoCampaignRwaSelectorView';
+import OndoCampaignRwaSelectorView, {
+  getOndoOpenPositionSourceToken,
+} from './OndoCampaignRwaSelectorView';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import {
@@ -49,70 +51,27 @@ jest.mock('@react-navigation/stack', () => ({
 
 jest.mock('@metamask/design-system-react-native', () => {
   const ReactActual = jest.requireActual('react');
-  const { View, Text } = jest.requireActual('react-native');
+  const { View } = jest.requireActual('react-native');
+  const Actual = jest.requireActual('@metamask/design-system-react-native');
   const stub = () => ReactActual.createElement(View, null);
   return {
-    BadgeWrapper: ({ children }: { children: React.ReactNode }) =>
-      ReactActual.createElement(View, null, children),
-    BadgeWrapperPosition: { BottomRight: 'bottom-right' },
-    Box: ({ children }: { children?: React.ReactNode }) =>
-      ReactActual.createElement(View, null, children),
-    BoxAlignItems: { Center: 'center' },
-    BoxFlexDirection: { Row: 'row' },
+    ...Actual,
     Icon: stub,
-    IconColor: { IconAlternative: 'alternative' },
-    IconName: { Search: 'search', Close: 'close' },
-    IconSize: { Sm: 'sm' },
     Skeleton: stub,
-    Text: ({ children }: { children?: React.ReactNode }) =>
-      ReactActual.createElement(Text, null, children),
-    TextColor: { TextAlternative: 'alternative' },
-    TextVariant: { BodyMd: 'body-md', HeadingSm: 'heading-sm' },
   };
 });
 
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => {
-    const tw = () => ({});
-    tw.style = (..._args: unknown[]) => ({});
-    return tw;
-  },
-}));
-
-jest.mock(
-  '../../../../component-library/components-temp/HeaderCompactStandard',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const { View, Pressable } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: ({
-        title,
-        onBack,
-        onClose,
-      }: {
-        title: React.ReactNode;
-        onBack?: () => void;
-        onClose?: () => void;
-      }) =>
-        ReactActual.createElement(
-          View,
-          { testID: 'header' },
-          ReactActual.createElement(Pressable, {
-            onPress: onBack ?? onClose,
-            testID: 'header-back-button',
-          }),
-          typeof title === 'string'
-            ? ReactActual.createElement(
-                jest.requireActual('react-native').Text,
-                { testID: 'header-title' },
-                title,
-              )
-            : title,
-        ),
-    };
-  },
-);
+jest.mock('@metamask/design-system-twrnc-preset', () => {
+  const { Theme } = jest.requireActual('@metamask/design-system-twrnc-preset');
+  const tw = Object.assign(() => ({}), {
+    style: (..._args: unknown[]) => ({}),
+  });
+  return {
+    Theme,
+    useTailwind: () => tw,
+    useTheme: () => Theme.Light,
+  };
+});
 
 jest.mock('../../../Views/ErrorBoundary', () => {
   const ReactActual = jest.requireActual('react');
@@ -185,12 +144,19 @@ jest.mock('../../../../core/Analytics', () => ({
 
 jest.mock('../utils/formatUtils', () => ({
   ...jest.requireActual('../utils/formatUtils'),
-  parseCaip19: jest.fn(() => ({
-    namespace: 'eip155',
-    chainId: '1',
-    assetReference: '0xabc',
-  })),
-  caipChainIdToHex: jest.fn(() => '0x1'),
+  parseCaip19: jest.fn((assetId: string) => {
+    const [chainId, assetPath] = assetId.split('/');
+    const [namespace, chainReference] = chainId.split(':');
+    const [, assetReference] = assetPath.split(':');
+    return {
+      namespace,
+      chainId: chainReference,
+      assetReference,
+    };
+  }),
+  caipChainIdToHex: jest.fn((caipChainId: string) =>
+    caipChainId === 'eip155:56' ? '0x38' : '0x1',
+  ),
 }));
 
 jest.mock(
@@ -294,59 +260,6 @@ jest.mock('react-native-safe-area-context', () => ({
   SafeAreaView: jest.requireActual('react-native').View,
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
 }));
-
-// Mock the shared ListHeaderWithSearch used by TrendingListHeader
-jest.mock('../../shared/ListHeaderWithSearch', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View, Text, Pressable, TextInput } =
-    jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({
-      title,
-      isSearchVisible,
-      searchQuery,
-      onSearchQueryChange,
-      onBack,
-      onSearchToggle,
-      searchPlaceholder,
-      testID,
-    }: {
-      title: React.ReactNode;
-      isSearchVisible: boolean;
-      searchQuery: string;
-      onSearchQueryChange: (q: string) => void;
-      onBack: () => void;
-      onSearchToggle: () => void;
-      searchPlaceholder?: string;
-      cancelText?: string;
-      testID?: string;
-    }) =>
-      ReactActual.createElement(
-        View,
-        { testID: testID ?? 'header' },
-        ReactActual.createElement(Pressable, {
-          onPress: onBack,
-          testID: 'header-back-button',
-        }),
-        typeof title === 'string'
-          ? ReactActual.createElement(Text, { testID: 'header-title' }, title)
-          : title,
-        ReactActual.createElement(Pressable, {
-          onPress: onSearchToggle,
-          testID: 'search-toggle',
-        }),
-        isSearchVisible
-          ? ReactActual.createElement(TextInput, {
-              testID: 'search-input',
-              placeholder: searchPlaceholder,
-              value: searchQuery,
-              onChangeText: onSearchQueryChange,
-            })
-          : null,
-      ),
-  };
-});
 
 // Mock FilterBar
 jest.mock('../../Trending/components/FilterBar/FilterBar', () => {
@@ -472,7 +385,7 @@ describe('OndoCampaignRwaSelectorView', () => {
 
   it('navigates back when back button is pressed', () => {
     const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
-    fireEvent.press(getByTestId('header-back-button'));
+    fireEvent.press(getByTestId('ondo-rwa-selector-header-back-button'));
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
@@ -566,22 +479,22 @@ describe('OndoCampaignRwaSelectorView', () => {
     });
   });
 
-  describe('open_position mode — USDY source preselection', () => {
-    const USDY_HEX_ADDRESS = '0xabc';
+  describe('open_position mode — source token preselection', () => {
+    const USDY_ADDRESS = '0x96f6ef951840721adbf46ac996b59e0235cb985c';
     const ACCOUNT_ADDRESS = '0xaccount1';
 
     beforeEach(() => {
       mockRouteParams = { mode: 'open_position', campaignId: 'campaign-1' };
     });
 
-    it('passes USDY as source token when user holds a non-zero USDY balance', () => {
+    it('prefers USDY as the source token when user holds a non-zero USDY balance', () => {
       mockUseRwaTokens.mockReturnValue({
-        data: [buildToken('AAPL')],
+        data: [buildToken('AAPL', 'eip155:1/erc20:0xaapl')],
         isLoading: false,
       });
       mockActiveGroupAccounts = [{ address: ACCOUNT_ADDRESS }];
       mockAllTokenBalances = {
-        [ACCOUNT_ADDRESS]: { '0x1': { [USDY_HEX_ADDRESS]: '0x64' } },
+        [ACCOUNT_ADDRESS]: { '0x1': { [USDY_ADDRESS]: '0x64' } },
       };
 
       const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
@@ -594,40 +507,39 @@ describe('OndoCampaignRwaSelectorView', () => {
       expect(destArg?.symbol).toBe('AAPL');
     });
 
-    it('passes undefined as source token when active group accounts are empty', () => {
+    it('falls back to USDC on mainnet as the source token for mainnet assets', () => {
       mockUseRwaTokens.mockReturnValue({
-        data: [buildToken('AAPL')],
+        data: [buildToken('AAPL', 'eip155:1/erc20:0xaapl')],
         isLoading: false,
       });
-      mockActiveGroupAccounts = [];
 
       const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
       fireEvent.press(getByTestId('token-row-AAPL'));
 
       expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
-      const [srcArg] = mockGoToSwaps.mock.calls[0];
-      expect(srcArg).toBeUndefined();
+      const [srcArg, destArg] = mockGoToSwaps.mock.calls[0];
+      expect(srcArg?.symbol).toBe('USDC');
+      expect(srcArg?.chainId).toBe('0x1');
+      expect(destArg?.symbol).toBe('AAPL');
     });
 
-    it('passes undefined as source token when USDY balance is zero', () => {
+    it('passes USDT on BNB Chain as the source token for BNB Chain assets', () => {
       mockUseRwaTokens.mockReturnValue({
-        data: [buildToken('AAPL')],
+        data: [buildToken('AAPL', 'eip155:56/erc20:0xaapl')],
         isLoading: false,
       });
-      mockActiveGroupAccounts = [{ address: ACCOUNT_ADDRESS }];
-      mockAllTokenBalances = {
-        [ACCOUNT_ADDRESS]: { '0x1': { [USDY_HEX_ADDRESS]: '0x0' } },
-      };
 
       const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
       fireEvent.press(getByTestId('token-row-AAPL'));
 
       expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
-      const [srcArg] = mockGoToSwaps.mock.calls[0];
-      expect(srcArg).toBeUndefined();
+      const [srcArg, destArg] = mockGoToSwaps.mock.calls[0];
+      expect(srcArg?.symbol).toBe('USDT');
+      expect(srcArg?.chainId).toBe('0x38');
+      expect(destArg?.chainId).toBe('eip155:56');
     });
 
-    it('does not preset USDY as source in swap mode even when user holds balance', () => {
+    it('does not preset an open-position source in swap mode', () => {
       mockRouteParams = {
         mode: 'swap',
         campaignId: 'campaign-1',
@@ -639,10 +551,6 @@ describe('OndoCampaignRwaSelectorView', () => {
         data: [buildToken('AAPL')],
         isLoading: false,
       });
-      mockActiveGroupAccounts = [{ address: ACCOUNT_ADDRESS }];
-      mockAllTokenBalances = {
-        [ACCOUNT_ADDRESS]: { '0x1': { [USDY_HEX_ADDRESS]: '0x64' } },
-      };
 
       const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
       fireEvent.press(getByTestId('token-row-AAPL'));
@@ -653,18 +561,8 @@ describe('OndoCampaignRwaSelectorView', () => {
     });
   });
 
-  describe('token name sanitization', () => {
-    it('strips "Ondo Tokenized " prefix from token names in list rows', () => {
-      const token = { ...buildToken('AAPL'), name: 'Ondo Tokenized Apple' };
-      mockUseRwaTokens.mockReturnValue({ data: [token], isLoading: false });
-      const { getByText, queryByText } = render(
-        <OndoCampaignRwaSelectorView />,
-      );
-      expect(getByText('Apple')).toBeDefined();
-      expect(queryByText('Ondo Tokenized Apple')).toBeNull();
-    });
-
-    it('strips "(Ondo Tokenized)" suffix from token names in list rows', () => {
+  describe('Ondo token name display', () => {
+    it('preserves backend-provided suffix names in list rows', () => {
       const token = {
         ...buildToken('AAPL'),
         name: 'Apple (Ondo Tokenized)',
@@ -673,25 +571,21 @@ describe('OndoCampaignRwaSelectorView', () => {
       const { getByText, queryByText } = render(
         <OndoCampaignRwaSelectorView />,
       );
-      expect(getByText('Apple')).toBeDefined();
-      expect(queryByText('Apple (Ondo Tokenized)')).toBeNull();
+      expect(getByText('Apple (Ondo Tokenized)')).toBeDefined();
+      expect(queryByText('Apple')).toBeNull();
     });
 
-    it('leaves unrelated token names unchanged', () => {
-      const token = { ...buildToken('USDY'), name: 'Ondo USD Yield' };
-      mockUseRwaTokens.mockReturnValue({ data: [token], isLoading: false });
-      const { getByText } = render(<OndoCampaignRwaSelectorView />);
-      expect(getByText('Ondo USD Yield')).toBeDefined();
-    });
-
-    it('passes original unsanitized name to goToSwaps when token has Ondo prefix', () => {
-      const token = { ...buildToken('AAPL'), name: 'Ondo Tokenized Apple' };
+    it('passes the backend-provided name to goToSwaps', () => {
+      const token = {
+        ...buildToken('AAPL'),
+        name: 'Apple (Ondo Tokenized)',
+      };
       mockUseRwaTokens.mockReturnValue({ data: [token], isLoading: false });
       const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
       fireEvent.press(getByTestId('token-row-AAPL'));
       expect(mockGoToSwaps).toHaveBeenCalledWith(
-        undefined,
-        expect.objectContaining({ name: 'Ondo Tokenized Apple' }),
+        expect.objectContaining({ symbol: 'USDC' }),
+        expect.objectContaining({ name: 'Apple (Ondo Tokenized)' }),
       );
     });
   });
@@ -782,6 +676,20 @@ describe('OndoCampaignRwaSelectorView', () => {
       expect(queryByTestId('after-hours-sheet')).toBeNull();
     });
 
+    it('uses USDT as the source token for BNB Chain assets when after hours confirm is pressed', () => {
+      const token = buildToken('AAPL', 'eip155:56/erc20:0xaapl');
+      mockUseRwaTokens.mockReturnValue({ data: [token], isLoading: false });
+      const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
+      fireEvent.press(getByTestId('token-row-AAPL'));
+      fireEvent.press(getByTestId('after-hours-confirm'));
+
+      expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
+      const [srcArg, destArg] = mockGoToSwaps.mock.calls[0];
+      expect(srcArg?.symbol).toBe('USDT');
+      expect(srcArg?.chainId).toBe('0x38');
+      expect(destArg?.chainId).toBe('eip155:56');
+    });
+
     it('tracks button_clicked event when after hours confirm is pressed', () => {
       const token = buildToken('AAPL');
       mockUseRwaTokens.mockReturnValue({ data: [token], isLoading: false });
@@ -806,19 +714,37 @@ describe('OndoCampaignRwaSelectorView', () => {
         <OndoCampaignRwaSelectorView />,
       );
       expect(getByTestId('filter-bar')).toBeDefined();
-      fireEvent.press(getByTestId('search-toggle'));
+      fireEvent.press(getByTestId('ondo-rwa-selector-header-search-toggle'));
       expect(queryByTestId('filter-bar')).toBeNull();
     });
 
     it('shows filter bar again when search is dismissed', () => {
       mockUseRwaTokens.mockReturnValue({ data: [], isLoading: false });
       const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
-      fireEvent.press(getByTestId('search-toggle'));
-      fireEvent.press(getByTestId('search-toggle'));
+      fireEvent.press(getByTestId('ondo-rwa-selector-header-search-toggle'));
+      fireEvent.press(getByTestId('ondo-rwa-selector-header-search-close'));
       expect(getByTestId('filter-bar')).toBeDefined();
     });
   });
 });
 
-// keep the act import used in other test files from triggering "unused import" lint
-void act;
+describe('getOndoOpenPositionSourceToken', () => {
+  it('returns USDT for BNB Chain when the chain ID is hex', () => {
+    expect(getOndoOpenPositionSourceToken('0x38')).toEqual(
+      expect.objectContaining({
+        symbol: 'USDT',
+        chainId: '0x38',
+      }),
+    );
+  });
+
+  it('returns undefined when no chain ID is provided', () => {
+    expect(getOndoOpenPositionSourceToken(undefined)).toBeUndefined();
+  });
+
+  it('returns undefined for unsupported non-EVM chain IDs', () => {
+    expect(
+      getOndoOpenPositionSourceToken('solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'),
+    ).toBeUndefined();
+  });
+});

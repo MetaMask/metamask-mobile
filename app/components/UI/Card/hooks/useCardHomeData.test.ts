@@ -149,6 +149,12 @@ describe('useCardHomeData', () => {
       expect(result.current.isLoading).toBe(true);
     });
 
+    it("is false when status is 'loading' with cached data", () => {
+      setupSelectors({ primaryFundingAsset: null }, 'loading');
+      const { result } = renderHook(() => useCardHomeData());
+      expect(result.current.isLoading).toBe(false);
+    });
+
     it("is false when status is 'success'", () => {
       setupSelectors({ primaryFundingAsset: null }, 'success');
       const { result } = renderHook(() => useCardHomeData());
@@ -169,6 +175,12 @@ describe('useCardHomeData', () => {
       expect(result.current.isError).toBe(true);
     });
 
+    it("is false when status is 'error' with cached data", () => {
+      setupSelectors({ primaryFundingAsset: null }, 'error');
+      const { result } = renderHook(() => useCardHomeData());
+      expect(result.current.isError).toBe(false);
+    });
+
     it("is false when status is 'success'", () => {
       setupSelectors({ primaryFundingAsset: null }, 'success');
       const { result } = renderHook(() => useCardHomeData());
@@ -179,6 +191,20 @@ describe('useCardHomeData', () => {
       setupSelectors(null, 'idle');
       const { result } = renderHook(() => useCardHomeData());
       expect(result.current.isError).toBe(false);
+    });
+  });
+
+  describe('isRefreshing', () => {
+    it("is true when status is 'loading' with cached data", () => {
+      setupSelectors({ primaryFundingAsset: null }, 'loading');
+      const { result } = renderHook(() => useCardHomeData());
+      expect(result.current.isRefreshing).toBe(true);
+    });
+
+    it("is false when status is 'loading' without cached data", () => {
+      setupSelectors(null, 'loading');
+      const { result } = renderHook(() => useCardHomeData());
+      expect(result.current.isRefreshing).toBe(false);
     });
   });
 

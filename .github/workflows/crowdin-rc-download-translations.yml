@@ -1,0 +1,88 @@
+name: Crowdin Download Approved RC Translations
+
+on:
+  workflow_dispatch:
+
+jobs:
+  find-rc-branches:
+    name: Find release candidate branches
+    if: ${{ github.ref_name == 'main' }}
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      branches: ${{ steps.find-branches.outputs.branches }}
+    steps:
+      - name: Find release candidate branches
+        id: find-branches
+        uses: actions/github-script@v9
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { data: prs } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              base: 'stable',
+              state: 'open',
+            });
+
+            const releaseBranchRegex = /^release\/[0-9]+\.[0-9]+\.[0-9]+$/;
+
+            const branches = prs
+              .map((pr) => pr.head.ref)
+              .filter((branchName) => releaseBranchRegex.test(branchName));
+
+            core.info(`Found release branches: ${branches.join(',')}`);
+            core.setOutput('branches', JSON.stringify(branches));
+
+
+  download-translations:
+    name: Download translations
+    # Use `!cancelled()` to ensure this runs even when `find-rc-branches` is skipped
+    if: ${{ !cancelled() }}
+    needs: [find-rc-branches]
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+
+    strategy:
+      matrix:
+        # If run on `main`, we download translations for all RCs
+        # If run on a non-default branch, we just download translations for that individual branch
+        branch: >-
+          ${{
+            github.ref_name == 'main' &&
+            fromJson(needs.find-rc-branches.outputs.branches) ||
+            fromJson(format('[{0}]', github.ref_name))
+          }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ matrix.branch }}
+          # Use PAT to ensure that the commit later can trigger status check workflows
+          token: ${{ secrets.METAMASKBOT_CROWDIN_TOKEN }}
+
+      - name: crowdin download approved translations
+        uses: crowdin/github-action@a3160b9e5a9e00739392c23da5e580c6cabe526d
+        with:
+          upload_sources: false
+          upload_translations: false # disabled to prevent translations overwriting Blends translations
+          download_translations: true # created separate action to pull down completed translations
+          export_only_approved: true
+
+          crowdin_branch_name: ${{ matrix.branch }}
+          pull_request_base_branch_name: ${{ matrix.branch }}
+          localization_branch_name: l10n_crowdin_translations_${{ matrix.branch }}
+          pull_request_title: 'chore: New Crowdin Translations for ${{ matrix.branch }}'
+          skip_ref_checkout: true
+          # This will be in dry-run mode until after we've tested this on `main`
+          dryrun_action: true
+
+          github_user_name: metamaskbot
+          github_user_email: metamaskbot@users.noreply.github.com
+        env:
+          GITHUB_TOKEN: ${{ secrets.METAMASKBOT_CROWDIN_TOKEN }}
+          GITHUB_ACTOR: metamaskbot
+          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}

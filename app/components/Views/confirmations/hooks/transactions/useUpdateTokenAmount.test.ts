@@ -129,4 +129,18 @@ describe('useUpdateTokenAmount', () => {
     expect(updateEditableParamsMock).not.toHaveBeenCalled();
     expect(updateAtomicBatchDataMock).not.toHaveBeenCalled();
   });
+
+  it('does not throw when transaction has no token transfer data', () => {
+    expect(() =>
+      runHook({
+        transactionMeta: {
+          txParams: {
+            data: '0x',
+            from: '0x13',
+            to: tokenAddress1Mock,
+          },
+        },
+      }),
+    ).not.toThrow();
+  });
 });

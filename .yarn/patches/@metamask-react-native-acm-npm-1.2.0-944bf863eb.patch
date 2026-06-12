@@ -1,0 +1,57 @@
+# @metamask/react-native-acm@1.2.0 was authored against an older RN where:
+#   - ReactContextBaseJavaModule.getCurrentActivity() was a Java method, so Kotlin
+#     auto-exposed it as the synthetic property `currentActivity`.
+#   - ActivityEventListener.onNewIntent took a nullable `Intent?` parameter.
+#
+# In React Native 0.81 both classes were rewritten in Kotlin source. Because
+# `getCurrentActivity()` is now declared as `fun getCurrentActivity()` (not as a
+# property), Kotlin does NOT expose `currentActivity` as a synthetic accessor —
+# callers must use the explicit method form. Additionally, `onNewIntent` is now
+# `fun onNewIntent(intent: Intent)` (non-nullable). Without this patch the
+# package fails to compile on RN 0.81 with:
+#   - "Unresolved reference 'currentActivity'." (3 sites)
+#   - "'onNewIntent' overrides nothing. Potential signatures for overriding:
+#      fun onNewIntent(intent: Intent): Unit"
+#
+# When @metamask/react-native-acm publishes an RN 0.81-compatible release, this
+# patch (and the resolution in package.json) can be removed.
+diff --git a/android/src/main/java/com/googleacm/GoogleAcmModule.kt b/android/src/main/java/com/googleacm/GoogleAcmModule.kt
+index 395a46ebdcc45bc3afd596903e7926525ebe5874..0495944fb891b0999624b50801c11a313e8adee1 100644
+--- a/android/src/main/java/com/googleacm/GoogleAcmModule.kt
++++ b/android/src/main/java/com/googleacm/GoogleAcmModule.kt
+@@ -65,7 +65,7 @@ class GoogleAcmModule(reactContext: ReactApplicationContext) :
+     requestObject: ReadableMap,
+     promise: Promise
+   ) {
+-    val activity: Activity? = currentActivity
++    val activity: Activity? = getCurrentActivity()
+     if (activity == null) {
+       promise.reject("E_NO_ACTIVITY", "Current activity is null, cannot launch UI.")
+       return
+@@ -133,7 +133,7 @@ class GoogleAcmModule(reactContext: ReactApplicationContext) :
+   }
+ 
+   private suspend fun tryLegacySignIn(serverClientId: String): ReadableMap? {
+-    val activity = currentActivity
++    val activity = getCurrentActivity()
+       ?: throw Exception("No activity available for legacy sign-in")
+ 
+     val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+@@ -188,7 +188,7 @@ class GoogleAcmModule(reactContext: ReactApplicationContext) :
+     }
+   }
+ 
+-  override fun onNewIntent(intent: Intent?) { }
++  override fun onNewIntent(intent: Intent) { }
+ 
+   private fun handleLegacySignInResult(resultCode: Int, data: Intent?): ReadableMap? {
+     if (resultCode != Activity.RESULT_OK) {
+@@ -278,7 +278,7 @@ class GoogleAcmModule(reactContext: ReactApplicationContext) :
+   }
+ 
+   suspend fun handleSignOut() {
+-    val activity: Activity? = currentActivity
++    val activity: Activity? = getCurrentActivity()
+     if (activity == null) {
+       throw Exception("Current activity is null, cannot sign out.")
+     }

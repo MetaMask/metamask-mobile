@@ -5,17 +5,8 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import NetworkManager from '../../page-objects/wallet/NetworkManager';
 import { NetworkToCaipChainId } from '../../../app/components/UI/NetworkMultiSelector/NetworkMultiSelector.constants';
 import Assertions from '../../framework/Assertions';
-import { Mockttp } from 'mockttp';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 
 describe(SmokeNetworkAbstractions('Network Manager'), () => {
-  const testSpecificMock = async (mockServer: Mockttp) => {
-    await setupRemoteFeatureFlagsMock(mockServer, {
-      homepageRedesignV1: { enabled: false, minimumVersion: '0.0.0' },
-      homepageSectionsV1: { enabled: false, minimumVersion: '0.0.0' },
-    });
-  };
-
   beforeAll(async () => {
     jest.setTimeout(170000);
   });
@@ -23,23 +14,25 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
   it('should reflect the correct enabled networks state in the network manager', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder().build(),
+        fixture: new FixtureBuilder().withPopularNetworks().build(),
         restartDevice: true,
-        testSpecificMock,
       },
       async () => {
         await loginToApp();
 
-        await NetworkManager.openNetworkManager();
+        await NetworkManager.openNetworkManagerFromHomepage();
 
         await Assertions.expectElementToBeVisible(
           NetworkManager.popularNetworksContainer,
         );
+        // Default fixture starts with Polygon as the active chain, so a single
+        // network is selected rather than "all networks"
         await Assertions.expectElementToBeVisible(
           NetworkManager.selectAllPopularNetworksSelected,
         );
 
-        // Verify all popular networks are not selected (since "Select All" is selected)
+        // Verify individual popular networks are in the "not selected" state
+        // (since "Select All" is selected, individual rows show as not-selected)
         const popularNetworks = [
           NetworkToCaipChainId.ETHEREUM,
           NetworkToCaipChainId.LINEA,
@@ -56,13 +49,12 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
   it('should reflect the enabled networks state in the network manager, when all popular networks are selected', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder().build(),
+        fixture: new FixtureBuilder().withPopularNetworks().build(),
         restartDevice: true,
-        testSpecificMock,
       },
       async () => {
         await loginToApp();
-        await NetworkManager.openNetworkManager();
+        await NetworkManager.openNetworkManagerFromHomepage();
         // verify popular networks container is visible
         await NetworkManager.checkPopularNetworksContainerIsVisible();
 
@@ -77,35 +69,31 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
-        testSpecificMock,
       },
       async () => {
         await loginToApp();
-        await NetworkManager.openNetworkManager();
+        // Navigate to TokensFullView then open network manager
+        await NetworkManager.openNetworkManagerFromHomepage();
 
-        await NetworkManager.checkAllPopularNetworksIsSelected();
-
-        // Select and check the network in the base control bar
+        // Select Ethereum — sheet closes, lands back on TokensFullView
         await NetworkManager.tapNetwork(NetworkToCaipChainId.ETHEREUM);
         await NetworkManager.checkBaseControlBarText(
           NetworkToCaipChainId.ETHEREUM,
         );
 
-        // Open the network manager and check the network is selected
+        // Re-open network manager (already in TokensFullView)
         await NetworkManager.openNetworkManager();
-
         await NetworkManager.checkNetworkIsSelected(
           NetworkToCaipChainId.ETHEREUM,
         );
 
-        // Select Avalanche and check if Ethereum is not selected
+        // Select Linea and check if Ethereum is deselected
         await NetworkManager.tapNetwork(NetworkToCaipChainId.LINEA);
-
         await NetworkManager.checkBaseControlBarText(
           NetworkToCaipChainId.LINEA,
         );
 
-        // validate that Ethereum is not selected
+        // Re-open and verify Ethereum is now deselected
         await NetworkManager.openNetworkManager();
         await NetworkManager.checkNetworkIsNotSelected(
           NetworkToCaipChainId.ETHEREUM,
@@ -119,26 +107,24 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
-        testSpecificMock,
       },
       async () => {
         await loginToApp();
-        // Open network manager and check popular networks container is visible
-        await NetworkManager.openNetworkManager();
+        // Navigate to TokensFullView then open network manager
+        await NetworkManager.openNetworkManagerFromHomepage();
         await NetworkManager.checkPopularNetworksContainerIsVisible();
 
         // Tap custom networks tab and check custom networks container is visible
         await NetworkManager.tapCustomNetworksTab();
         await NetworkManager.checkCustomNetworksContainerIsVisible();
 
-        // Tap localhost network and check base control bar text
+        // Tap localhost network — sheet closes, lands back on TokensFullView
         await NetworkManager.tapNetwork(NetworkToCaipChainId.LOCALHOST);
-
         await NetworkManager.checkBaseControlBarText(
           NetworkToCaipChainId.LOCALHOST,
         );
 
-        // Open network manager and check custom networks container is visible
+        // Re-open network manager (already in TokensFullView)
         await NetworkManager.openNetworkManager();
         await NetworkManager.checkCustomNetworksContainerIsVisible();
       },
@@ -150,11 +136,10 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
-        testSpecificMock,
       },
       async () => {
         await loginToApp();
-        await NetworkManager.openNetworkManager();
+        await NetworkManager.openNetworkManagerFromHomepage();
         await NetworkManager.checkPopularNetworksContainerIsVisible();
       },
     );

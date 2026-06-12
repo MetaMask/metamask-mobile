@@ -3,6 +3,7 @@ import enContent from '../../../locales/languages/en.json';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import { getTestDappLocalUrl } from '../../framework/fixtures/FixtureUtils';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
 import { TestDappSelectorsWebIDs } from '../../selectors/Browser/TestDapp.selectors';
 import Browser from './BrowserView';
@@ -18,11 +19,11 @@ interface ContractNavigationParams {
 }
 
 class TestDApp {
-  get confirmButtonText(): DetoxElement {
+  get confirmButtonText(): EncapsulatedElementType {
     return Matchers.getElementByText(CONFIRM_BUTTON_TEXT);
   }
 
-  get approveButtonText(): DetoxElement {
+  get approveButtonText(): EncapsulatedElementType {
     return Matchers.getElementByText(APPROVE_BUTTON_TEXT);
   }
 

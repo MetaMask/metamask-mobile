@@ -7,6 +7,35 @@ import { backgroundState } from '../../../../../../util/test/initial-root-state'
 import { createStateSelectorModalNavigationDetails } from '../StateSelectorModal/StateSelectorModal';
 import Routes from '../../../../../../constants/navigation/Routes';
 
+// Mock BottomSheet so onCloseBottomSheet immediately invokes its callback
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const { forwardRef, useImperativeHandle } = jest.requireActual('react');
+  return {
+    ...actual,
+    BottomSheet: forwardRef(
+      (
+        {
+          children,
+          goBack,
+        }: { children: React.ReactNode; goBack?: () => void },
+        ref: React.Ref<unknown>,
+      ) => {
+        useImperativeHandle(ref, () => ({
+          onCloseBottomSheet: (callback?: () => void) => {
+            goBack?.();
+            callback?.();
+          },
+          onOpenBottomSheet: (callback?: () => void) => {
+            callback?.();
+          },
+        }));
+        return <>{children}</>;
+      },
+    ),
+  };
+});
+
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockOnStateSelect = jest.fn();

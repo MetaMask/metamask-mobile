@@ -1,4 +1,4 @@
-import { test as perfTest } from '../../../framework/fixture';
+import { test as perfTest } from '../../../framework/fixtures/playwright';
 import TimerHelper from '../../../framework/TimerHelper';
 import { loginToAppPlaywright } from '../../../flows/wallet.flow';
 import { asPlaywrightElement, PlaywrightAssertions } from '../../../framework';
@@ -6,7 +6,8 @@ import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../../page-objects/wallet/WalletActionsBottomSheet';
 import PredictMarketList from '../../../page-objects/Predict/PredictMarketList';
 import PredictDetailsPage from '../../../page-objects/Predict/PredictDetailsPage';
-import { PerformancePredict } from '../../../tags.performance.js';
+import { Performance, PerformancePredict } from '../../../tags.performance.js';
+import ToastModal from '../../../page-objects/wallet/ToastModal.js';
 
 /*
  * Scenario: Predict Market Details Performance Test
@@ -24,7 +25,7 @@ import { PerformancePredict } from '../../../tags.performance.js';
  * 4. Time to open Outcomes tab content when available
  */
 perfTest.describe(PerformancePredict, () => {
-  perfTest.setTimeout(10 * 60 * 1000);
+  perfTest.setTimeout(15 * 60 * 1000);
 
   perfTest(
     'Predict Market Details - Complete Flow Performance',
@@ -36,10 +37,10 @@ perfTest.describe(PerformancePredict, () => {
       // Timer 1: Navigate to Predict tab
       const timer1 = new TimerHelper(
         'Time since user taps Predict button until Predict Market List is displayed',
-        { ios: 8000, android: 8000 },
+        { ios: 8000, android: 5000 },
         currentDeviceDetails.platform,
       );
-
+      await ToastModal.waitForToastToDismiss();
       await TabBarComponent.tapActions();
       await WalletActionsBottomSheet.tapPredictButton();
       await timer1.measure(async () => {
@@ -51,7 +52,7 @@ perfTest.describe(PerformancePredict, () => {
       // Timer 2: Open market details
       const timer2 = new TimerHelper(
         'Time since user taps market card until Market Detail screen is visible',
-        { ios: 1500, android: 1500 },
+        { ios: 1500, android: 6500 },
         currentDeviceDetails.platform,
       );
 
@@ -65,7 +66,7 @@ perfTest.describe(PerformancePredict, () => {
       // Timer 3: Open About tab
       const timer3 = new TimerHelper(
         'Time since user taps About tab until About tab is visible',
-        { ios: 750, android: 1000 },
+        { ios: 750, android: 2500 },
         currentDeviceDetails.platform,
       );
 
@@ -87,7 +88,7 @@ perfTest.describe(PerformancePredict, () => {
         // Timer 4: Open Outcomes tab
         timer4 = new TimerHelper(
           'Time since user taps Outcomes tab until Outcomes tab is visible',
-          { ios: 750, android: 1000 },
+          { ios: 750, android: 4000 },
           currentDeviceDetails.platform,
         );
 

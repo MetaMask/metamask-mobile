@@ -1437,6 +1437,63 @@ export const createTradingViewChartTemplate = (
                             }
                         }
                         break;
+                    case 'UPDATE_LAST_CANDLE':
+                        // Incremental update path: apply only the last 1-2 candles
+                        // via series.update() instead of resetting the full dataset.
+                        // This preserves the user's visible range / zoom and avoids
+                        // the viewport flicker that series.setData() causes — the
+                        // bug that appeared when revisiting a previously-visited
+                        // interval while live ticks continued to stream in.
+                        if (
+                            window.chart &&
+                            window.candlestickSeries &&
+                            Array.isArray(message.candles) &&
+                            message.candles.length > 0
+                        ) {
+                            try {
+                                message.candles.forEach(function (candle) {
+                                    // Update candlestick series (handles both in-place
+                                    // tick updates and newly appended bars).
+                                    window.candlestickSeries.update(candle);
+
+                                    // Keep allCandleData in sync so zoom/price-range
+                                    // calculations use the latest candle values.
+                                    if (window.allCandleData && window.allCandleData.length > 0) {
+                                        var existingIndex = -1;
+                                        for (var i = window.allCandleData.length - 1; i >= 0; i--) {
+                                            if (window.allCandleData[i].time === candle.time) {
+                                                existingIndex = i;
+                                                break;
+                                            }
+                                        }
+                                        if (existingIndex >= 0) {
+                                            window.allCandleData[existingIndex] = candle;
+                                        } else {
+                                            window.allCandleData.push(candle);
+                                        }
+                                    }
+
+                                    // Mirror the update on the volume series when visible.
+                                    if (window.volumeSeries) {
+                                        var volumePoint = {
+                                            time: candle.time,
+                                            value: (parseFloat(candle.volume) * parseFloat(candle.close)) || 0,
+                                            color: window.coloredVolume
+                                                ? (candle.close >= candle.open ? '${hexToRgba(theme.colors.success.default, 0.3)}' : '${hexToRgba(theme.colors.error.default, 0.3)}')
+                                                : '${hexToRgba(theme.colors.border.muted, 0.3)}'
+                                        };
+                                        window.volumeSeries.update(volumePoint);
+                                    }
+                                });
+
+                                // Refresh dynamic Y-axis decimal precision without
+                                // triggering a zoom/range change.
+                                window.updateVisiblePriceRange();
+                            } catch (error) {
+                                console.error('TradingView: Error applying incremental update:', error);
+                            }
+                        }
+                        break;
                     case 'CLEAR_DATA':
                         // Clear chart data (e.g., during market switch)
                         if (window.candlestickSeries) {

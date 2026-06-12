@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import { BackHandler } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -29,7 +30,6 @@ import Row from '../../components/Row';
 import Quote from '../../components/Quote';
 import CustomAction from '../../components/CustomAction';
 import InfoAlert from '../../components/InfoAlert';
-import { getDepositNavbarOptions } from '../../../../Navbar';
 import {
   ButtonSize,
   ButtonVariants,
@@ -37,7 +37,6 @@ import {
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import BottomSheetFooter, {
   ButtonsAlignment,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheetFooter';
@@ -117,7 +116,7 @@ function Quotes() {
   const [remainingTime, setRemainingTime] = useState(
     appConfig.POLLING_INTERVAL,
   );
-  const { styles, theme } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, {});
 
   const scrollOffsetY = useSharedValue(0);
   const scrollHandler = useAnimatedScrollHandler((event) => {
@@ -170,7 +169,7 @@ function Quotes() {
   ]);
 
   const handleClosePress = useCallback(
-    (bottomSheetDialogRef: React.RefObject<BottomSheetRef>) => {
+    (bottomSheetDialogRef: React.RefObject<BottomSheetRef | null>) => {
       handleCancelPress();
       if (bottomSheetDialogRef?.current) {
         bottomSheetDialogRef.current.onCloseBottomSheet();
@@ -582,17 +581,6 @@ function Quotes() {
   }, [ErrorFetchingQuotes, pollingCyclesLeft]);
 
   useEffect(() => {
-    navigation.setOptions(
-      getDepositNavbarOptions(
-        navigation,
-        { title: strings('fiat_on_ramp_aggregator.select_a_quote') },
-        theme,
-        handleCancelPress,
-      ),
-    );
-  }, [navigation, theme, handleCancelPress]);
-
-  useEffect(() => {
     if (isFetchingQuotes) return;
     setShouldFinishAnimation(true);
   }, [isFetchingQuotes]);
@@ -829,9 +817,7 @@ function Quotes() {
 
     return (
       <BottomSheet isFullscreen isInteractable={false} ref={bottomSheetRef}>
-        <HeaderCompactStandard
-          onClose={() => handleClosePress(bottomSheetRef)}
-        />
+        <HeaderStandard onClose={() => handleClosePress(bottomSheetRef)} />
         <ErrorViewWithReporting error={sdkError} location={'Quotes Screen'} />
       </BottomSheet>
     );
@@ -853,9 +839,7 @@ function Quotes() {
 
     return (
       <BottomSheet isFullscreen isInteractable={false} ref={bottomSheetRef}>
-        <HeaderCompactStandard
-          onClose={() => handleClosePress(bottomSheetRef)}
-        />
+        <HeaderStandard onClose={() => handleClosePress(bottomSheetRef)} />
         <ErrorView
           description={ErrorFetchingQuotes}
           ctaOnPress={handleFetchQuotes}
@@ -883,9 +867,7 @@ function Quotes() {
     }
     return (
       <BottomSheet isFullscreen isInteractable={false} ref={bottomSheetRef}>
-        <HeaderCompactStandard
-          onClose={() => handleClosePress(bottomSheetRef)}
-        />
+        <HeaderStandard onClose={() => handleClosePress(bottomSheetRef)} />
         <ErrorView
           icon="expired"
           title={strings('fiat_on_ramp_aggregator.quotes_timeout')}
@@ -914,9 +896,7 @@ function Quotes() {
 
     return (
       <BottomSheet isFullscreen isInteractable={false} ref={bottomSheetRef}>
-        <HeaderCompactStandard
-          onClose={() => handleClosePress(bottomSheetRef)}
-        />
+        <HeaderStandard onClose={() => handleClosePress(bottomSheetRef)} />
         <LoadingAnimation
           title={strings('fiat_on_ramp_aggregator.fetching_quotes')}
           finish={shouldFinishAnimation}
@@ -952,9 +932,7 @@ function Quotes() {
 
     return (
       <BottomSheet isFullscreen isInteractable={false} ref={bottomSheetRef}>
-        <HeaderCompactStandard
-          onClose={() => handleClosePress(bottomSheetRef)}
-        />
+        <HeaderStandard onClose={() => handleClosePress(bottomSheetRef)} />
         <ScreenLayout>
           <ErrorView
             title={strings('fiat_on_ramp_aggregator.no_providers_available')}
@@ -974,9 +952,10 @@ function Quotes() {
   if (!isExpanded) {
     return (
       <BottomSheet ref={bottomSheetRef}>
-        <HeaderCompactStandard
+        <HeaderStandard
           title={strings('fiat_on_ramp_aggregator.recommended_quote')}
           onClose={() => handleClosePress(bottomSheetRef)}
+          closeButtonProps={{ testID: QuoteSelectors.CLOSE_BUTTON }}
         />
 
         {isInPolling && (
@@ -1084,7 +1063,7 @@ function Quotes() {
 
   return (
     <BottomSheet isInteractable={false} isFullscreen ref={bottomSheetRef}>
-      <HeaderCompactStandard
+      <HeaderStandard
         title={strings('fiat_on_ramp_aggregator.select_a_quote')}
         onClose={() => handleClosePress(bottomSheetRef)}
       />

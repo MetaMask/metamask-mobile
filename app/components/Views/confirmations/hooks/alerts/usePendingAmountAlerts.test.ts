@@ -9,8 +9,8 @@ jest.mock('./useInsufficientPayTokenBalanceAlert', () => ({
   ],
 }));
 
-jest.mock('./usePerpsHardwareAccountAlert', () => ({
-  usePerpsHardwareAccountAlert: () => [
+jest.mock('./useMMPayHardwareAccountAlert', () => ({
+  useMMPayHardwareAccountAlert: () => [
     {
       id: 'alert-1',
     },
@@ -33,6 +33,14 @@ jest.mock('./useInsufficientPerpsBalanceAlert', () => ({
   ],
 }));
 
+jest.mock('./useAccountNoFundsAlert', () => ({
+  useAccountNoFundsAlert: () => [
+    {
+      id: 'alert-6',
+    },
+  ],
+}));
+
 jest.mock('./useInsufficientMoneyAccountBalanceAlert', () => ({
   useInsufficientMoneyAccountBalanceAlert: () => [
     {
@@ -41,10 +49,10 @@ jest.mock('./useInsufficientMoneyAccountBalanceAlert', () => ({
   ],
 }));
 
-jest.mock('./useAccountNoFundsAlert', () => ({
-  useAccountNoFundsAlert: () => [
+jest.mock('./useFiatBuyLimitAlert', () => ({
+  useFiatBuyLimitAlert: () => [
     {
-      id: 'alert-6',
+      id: 'alert-8',
     },
   ],
 }));
@@ -61,6 +69,7 @@ describe('usePendingAmountAlerts', () => {
       { id: 'alert-4' },
       { id: 'alert-5' },
       { id: 'alert-7' },
+      { id: 'alert-8' },
       { id: 'alert-6' },
     ]);
   });

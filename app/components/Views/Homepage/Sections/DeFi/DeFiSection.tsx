@@ -8,10 +8,13 @@ import { View } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
-import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../util/theme';
-import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
+import {
+  SectionDivider,
+  Box,
+  SectionHeader,
+} from '@metamask/design-system-react-native';
 import SectionRow from '../../components/SectionRow';
 import ErrorState from '../../components/ErrorState';
 import { SectionRefreshHandle } from '../../types';
@@ -26,6 +29,8 @@ import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 
 const MAX_POSITIONS_DISPLAYED = 5;
 
@@ -126,9 +131,9 @@ const DeFiSection = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
 
     useSectionPerformance({
       sectionId: HomeSectionNames.DEFI,
-      // Align with other sections: loading finished without error = ready (empty is success + content_state empty).
-      contentReady: !isLoading && !hasError,
-      isEmpty: isEmpty || hasError,
+      contentReady: !isLoading,
+      isEmpty: isEmpty && !hasError,
+      contentStateForTrace: hasError ? 'error' : undefined,
       isLoading,
       enabled: isDeFiEnabled,
     });
@@ -147,41 +152,47 @@ const DeFiSection = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
     if (!isLoading && hasError) {
       return (
         <View ref={sectionViewRef} onLayout={onLayout}>
-          <Box gap={3}>
-            <SectionHeader title={title} onPress={handleViewAllDeFi} />
-            <ErrorState
-              title={strings('homepage.error.unable_to_load', {
-                section: title.toLowerCase(),
-              })}
-              onRetry={refresh}
-            />
-          </Box>
+          <SectionDivider />
+          <SectionHeader
+            title={title}
+            isInteractive
+            onPress={handleViewAllDeFi}
+            testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('defi')}
+          />
+          <ErrorState
+            title={strings('homepage.error.unable_to_load', {
+              section: title.toLowerCase(),
+            })}
+            onRetry={refresh}
+          />
         </View>
       );
     }
 
     return (
       <View ref={sectionViewRef} onLayout={onLayout}>
-        <Box gap={3}>
-          <SectionHeader title={title} onPress={handleViewAllDeFi} />
-          <SectionRow>
-            <Box>
-              {isLoading ? (
-                <DeFiPositionsSkeleton />
-              ) : (
-                positions.map((position: DeFiPositionEntry) => (
-                  <DeFiPositionsListItem
-                    key={`${position.chainId}-${position.protocolAggregate.protocolDetails.name}`}
-                    chainId={position.chainId}
-                    protocolId={position.protocolId}
-                    protocolAggregate={position.protocolAggregate}
-                    privacyMode={privacyMode}
-                  />
-                ))
-              )}
-            </Box>
-          </SectionRow>
-        </Box>
+        <SectionDivider />
+        <SectionHeader
+          title={title}
+          isInteractive
+          onPress={handleViewAllDeFi}
+          testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('defi')}
+        />
+        <SectionRow>
+          {isLoading ? (
+            <DeFiPositionsSkeleton />
+          ) : (
+            positions.map((position: DeFiPositionEntry) => (
+              <DeFiPositionsListItem
+                key={`${position.chainId}-${position.protocolAggregate.protocolDetails.name}`}
+                chainId={position.chainId}
+                protocolId={position.protocolId}
+                protocolAggregate={position.protocolAggregate}
+                privacyMode={privacyMode}
+              />
+            ))
+          )}
+        </SectionRow>
       </View>
     );
   },

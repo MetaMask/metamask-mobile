@@ -5,8 +5,11 @@ export {
   getChainIdFromAssetId,
 } from './useHeadlessBuy';
 export {
+  closeSession,
   createSession,
   endSession,
+  getActiveSessionId,
   getSession,
   setStatus,
 } from './sessionRegistry';
+export { useHeadlessSessionDismissal } from './useHeadlessSessionDismissal';

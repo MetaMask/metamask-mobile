@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { EthScope } from '@metamask/keyring-api';
 import useAccounts from './useAccounts';
@@ -96,7 +96,7 @@ describe('useAccounts', () => {
     jest.clearAllMocks();
   });
 
-  it('returns empty data if isLoading is true', async () => {
+  it('returns empty data if isLoading is true', () => {
     const { result } = renderHook(() => useAccounts({ isLoading: true }));
     expect(result.current.accounts).toStrictEqual([]);
     expect(result.current.ensByAccountAddress).toStrictEqual({});
@@ -107,9 +107,9 @@ describe('useAccounts', () => {
       MOCK_ACCOUNT_1,
       MOCK_ACCOUNT_2,
     ];
-    const { result, waitForNextUpdate } = renderHook(() => useAccounts());
-    await act(async () => {
-      await waitForNextUpdate();
+    const { result } = renderHook(() => useAccounts());
+    await waitFor(() => {
+      expect(result.current.accounts.length).toBeGreaterThan(0);
     });
     expect(result.current.accounts).toStrictEqual(expectedInternalAccounts);
   });
@@ -118,17 +118,19 @@ describe('useAccounts', () => {
     const expectedENSNames = {
       [MOCK_ACCOUNT_1.address]: MOCK_ENS_CACHED_NAME,
     };
-    const { result, waitForNextUpdate } = renderHook(() => useAccounts());
-    await act(async () => {
-      await waitForNextUpdate();
+    const { result } = renderHook(() => useAccounts());
+    await waitFor(() => {
+      expect(
+        Object.keys(result.current.ensByAccountAddress).length,
+      ).toBeGreaterThan(0);
     });
     expect(result.current.ensByAccountAddress).toStrictEqual(expectedENSNames);
   });
 
   it('returns scopes for evm accounts', async () => {
-    const { result, waitForNextUpdate } = renderHook(() => useAccounts());
-    await act(async () => {
-      await waitForNextUpdate();
+    const { result } = renderHook(() => useAccounts());
+    await waitFor(() => {
+      expect(result.current.accounts.length).toBeGreaterThan(0);
     });
     expect(result.current.accounts[0].scopes).toStrictEqual([EthScope.Eoa]);
   });
@@ -139,9 +141,11 @@ describe('useAccounts', () => {
         [MOCK_ACCOUNT_1.address]: MOCK_ENS_CACHED_NAME,
       };
 
-      const { result, waitForNextUpdate } = renderHook(() => useAccounts());
-      await act(async () => {
-        await waitForNextUpdate();
+      const { result } = renderHook(() => useAccounts());
+      await waitFor(() => {
+        expect(
+          Object.keys(result.current.ensByAccountAddress).length,
+        ).toBeGreaterThan(0);
       });
 
       expect(result.current.ensByAccountAddress).toStrictEqual(
@@ -154,11 +158,11 @@ describe('useAccounts', () => {
         [MOCK_ACCOUNT_1.address]: MOCK_ENS_CACHED_NAME,
       };
 
-      const { result, waitForNextUpdate } = renderHook(() =>
-        useAccounts({ fetchENS: true }),
-      );
-      await act(async () => {
-        await waitForNextUpdate();
+      const { result } = renderHook(() => useAccounts({ fetchENS: true }));
+      await waitFor(() => {
+        expect(
+          Object.keys(result.current.ensByAccountAddress).length,
+        ).toBeGreaterThan(0);
       });
 
       expect(result.current.ensByAccountAddress).toStrictEqual(

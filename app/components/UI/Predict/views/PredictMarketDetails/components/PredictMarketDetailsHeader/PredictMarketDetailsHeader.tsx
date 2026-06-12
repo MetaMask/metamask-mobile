@@ -52,35 +52,33 @@ const PredictMarketDetailsHeader = memo(
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Start}
-        twClassName="gap-3 pb-4"
+        twClassName="gap-3 pb-4 px-3"
         style={{ paddingTop: insetsTop + 12 }}
       >
-        <Box twClassName="flex-row items-center gap-3 px-1">
-          <Pressable
-            onPress={onBackPress}
-            hitSlop={12}
-            accessibilityRole="button"
-            accessibilityLabel={strings('predict.buttons.back')}
-            style={tw.style('items-center justify-center rounded-full')}
-            testID={PredictMarketDetailsSelectorsIDs.BACK_BUTTON}
-          >
-            <Icon
-              name={IconName.ArrowLeft}
-              size={IconSize.Lg}
-              color={colors.icon.default}
+        <Pressable
+          onPress={onBackPress}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel={strings('predict.buttons.back')}
+          style={tw.style('items-center justify-center rounded-full')}
+          testID={PredictMarketDetailsSelectorsIDs.BACK_BUTTON}
+        >
+          <Icon
+            name={IconName.ArrowLeft}
+            size={IconSize.Lg}
+            color={colors.icon.default}
+          />
+        </Pressable>
+        <Box twClassName="w-10 h-10 rounded-lg bg-muted overflow-hidden">
+          {image || market?.image ? (
+            <Image
+              source={{ uri: image || market?.image }}
+              style={tw.style('w-full h-full')}
+              resizeMode="cover"
             />
-          </Pressable>
-          <Box twClassName="w-10 h-10 rounded-lg bg-muted overflow-hidden">
-            {image || market?.image ? (
-              <Image
-                source={{ uri: image || market?.image }}
-                style={tw.style('w-full h-full')}
-                resizeMode="cover"
-              />
-            ) : (
-              <Box twClassName="w-full h-full bg-muted" />
-            )}
-          </Box>
+          ) : (
+            <Box twClassName="w-full h-full bg-muted" />
+          )}
         </Box>
         <Box
           twClassName="flex-1 min-h-[40px]"
@@ -93,9 +91,7 @@ const PredictMarketDetailsHeader = memo(
             {title || market?.title || ''}
           </Text>
         </Box>
-        <Box twClassName="pr-2">
-          <PredictShareButton marketId={market?.id} marketSlug={market?.slug} />
-        </Box>
+        <PredictShareButton marketId={market?.id} marketSlug={market?.slug} />
       </Box>
     );
   },

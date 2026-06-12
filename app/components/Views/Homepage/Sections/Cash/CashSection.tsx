@@ -7,15 +7,21 @@ import React, {
 } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { Box } from '@metamask/design-system-react-native';
-import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
+import {
+  Box,
+  SectionDivider,
+  SectionHeader,
+} from '@metamask/design-system-react-native';
 import SectionRow from '../../components/SectionRow';
 import { strings } from '../../../../../../locales/i18n';
 import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 import { selectIsMusdConversionFlowEnabledFlag } from '../../../../UI/Earn/selectors/featureFlags';
+import { selectMoneyEnableMoneyAccountFlag } from '../../../../UI/Money/selectors/featureFlags';
 import { useMusdConversionEligibility } from '../../../../UI/Earn/hooks/useMusdConversionEligibility';
 import { useMusdBalance } from '../../../../UI/Earn/hooks/useMusdBalance';
 import MusdAggregatedRow from './MusdAggregatedRow';
@@ -42,11 +48,15 @@ const CashSection = forwardRef<SectionRefreshHandle, CashSectionProps>(
     const isMusdConversionEnabled = useSelector(
       selectIsMusdConversionFlowEnabledFlag,
     );
+    const isMoneyAccountEnabled = useSelector(
+      selectMoneyEnableMoneyAccountFlag,
+    );
     const { isEligible: isGeoEligible } = useMusdConversionEligibility();
     const { hasMusdBalanceOnAnyChain } = useMusdBalance();
     const { navigateToCash } = useCashNavigation();
 
-    const isCashSectionEnabled = isMusdConversionEnabled && isGeoEligible;
+    const isCashSectionEnabled =
+      isMusdConversionEnabled && isGeoEligible && !isMoneyAccountEnabled;
 
     const { onLayout } = useHomeViewedEvent({
       sectionRef: sectionViewRef,
@@ -73,18 +83,28 @@ const CashSection = forwardRef<SectionRefreshHandle, CashSectionProps>(
     useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
     if (!isCashSectionEnabled) {
+      let reason = 'flag_off';
+      if (isMusdConversionEnabled) {
+        reason = !isGeoEligible ? 'geo_ineligible' : 'money_home_on';
+      }
       Logger.log(
-        `[CashSection] not rendered flag=${isMusdConversionEnabled} geo=${isGeoEligible} reason=${!isMusdConversionEnabled ? 'flag_off' : 'geo_ineligible'}`,
+        `[CashSection] not rendered flag=${isMusdConversionEnabled} geo=${isGeoEligible} moneyHome=${isMoneyAccountEnabled} reason=${reason}`,
       );
       return null;
     }
 
-    const title = strings('homepage.sections.cash');
+    const title = strings('homepage.sections.money');
 
     return (
       <View ref={sectionViewRef} onLayout={onLayout}>
-        <Box gap={3}>
-          <SectionHeader title={title} onPress={navigateToCash} />
+        <Box paddingBottom={3}>
+          <SectionDivider />
+          <SectionHeader
+            title={title}
+            isInteractive
+            onPress={navigateToCash}
+            testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('cash')}
+          />
           {!hasMusdBalanceOnAnyChain ? (
             <SectionRow>
               <CashGetMusdEmptyState key={`cash-empty-${refreshVersion}`} />

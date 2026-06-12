@@ -6,6 +6,7 @@ import {
 import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
 import { Transaction } from '@metamask/keyring-api';
 import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
+import { findBridgeHistoryItem } from '../findBridgeHistoryItem';
 
 export const FINAL_NON_CONFIRMED_STATUSES = [
   TransactionStatus.failed,
@@ -35,28 +36,17 @@ export function useBridgeTxHistoryData({
 
   let bridgeHistoryItem: BridgeHistoryItem | undefined;
   if (evmTxMeta) {
-    const srcTxMetaId = evmTxMeta?.id;
-    bridgeHistoryItem = srcTxMetaId ? bridgeHistory[srcTxMetaId] : undefined;
-
-    // If not found, try to find by actionId (history items can be keyed by actionId)
-    if (!bridgeHistoryItem && evmTxMeta.actionId) {
-      bridgeHistoryItem = bridgeHistory[evmTxMeta.actionId];
-    }
-
-    // If not found, try to find by originalTransactionId for intent transactions
-    if (!bridgeHistoryItem && srcTxMetaId) {
-      const matchingEntry = Object.entries(bridgeHistory).find(
-        ([_, historyItem]) =>
-          (historyItem as unknown as { originalTransactionId: string })
-            .originalTransactionId === srcTxMetaId,
-      );
-      bridgeHistoryItem = matchingEntry ? matchingEntry[1] : undefined;
-    }
+    bridgeHistoryItem = findBridgeHistoryItem({
+      bridgeHistory,
+      transactionMetaId: evmTxMeta.id,
+      transactionActionId: evmTxMeta.actionId,
+      transactionHash: evmTxMeta.hash,
+    });
   } else if (multiChainTx) {
-    const srcTxHash = multiChainTx?.id;
-    bridgeHistoryItem = Object.values(bridgeHistory).find(
-      (item) => item.status.srcChain.txHash === srcTxHash,
-    );
+    bridgeHistoryItem = findBridgeHistoryItem({
+      bridgeHistory,
+      transactionHash: multiChainTx.id,
+    });
   }
 
   // By complete, this means BOTH source and dest tx are confirmed

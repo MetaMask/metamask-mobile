@@ -14,6 +14,9 @@ import { useTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
 import { baseStyles } from '../../../styles/common';
 import { getAddressUrl } from '../../../core/Multichain/utils';
+import { getBlockExplorerName } from '../../../util/networks';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
 import { selectNonEvmTransactions } from '../../../selectors/multichain/multichain';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import MultichainTransactionListItem from '../../UI/MultichainTransactionListItem';
@@ -29,6 +32,8 @@ import { KnownCaipNamespace, parseCaipChainId } from '@metamask/utils';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { TabEmptyState } from '../../../component-library/components-temp/TabEmptyState';
 import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
+import { useMultichainActivityMaliciousTokenKeys } from '../../hooks/useMultichainActivityMaliciousTokenKeys/useMultichainActivityMaliciousTokenKeys';
+import { filterMultichainTransactionsExcludingMaliciousTokenActivity } from '../../../util/multichain/multichainTransactionTokenScan';
 
 interface MultichainTransactionsViewProps {
   /**
@@ -89,6 +94,7 @@ const MultichainTransactionsView = ({
   const style = styles();
   const defaultNavigation = useNavigation();
   const nav = navigation ?? defaultNavigation;
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { namespace } = parseCaipChainId(chainId as CaipChainId);
   const isBitcoinNetwork = namespace === KnownCaipNamespace.Bip122;
 
@@ -102,6 +108,19 @@ const MultichainTransactionsView = ({
   const txList = useMemo(
     () => transactions ?? nonEvmTransactions?.transactions,
     [transactions, nonEvmTransactions],
+  );
+
+  const { maliciousTokenKeys } = useMultichainActivityMaliciousTokenKeys(
+    txList ?? [],
+  );
+
+  const visibleMultichainTransactions = useMemo(
+    () =>
+      filterMultichainTransactionsExcludingMaliciousTokenActivity(
+        txList ?? [],
+        maliciousTokenKeys,
+      ),
+    [txList, maliciousTokenKeys],
   );
 
   const { bridgeHistoryItemsBySrcTxHash } = useBridgeHistoryItemBySrcTxHash();
@@ -134,10 +153,18 @@ const MultichainTransactionsView = ({
   const footer = (
     <MultichainTransactionsFooter
       url={url}
-      hasTransactions={(txList?.length ?? 0) > 0}
+      hasTransactions={(visibleMultichainTransactions?.length ?? 0) > 0}
       showDisclaimer={showDisclaimer}
       showExplorerLink={!isBitcoinNetwork}
       onViewMore={() => {
+        if (!url) {
+          return;
+        }
+        trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
+          location: 'multichain_activity_tab',
+          text: `${strings('transactions.view_full_history_on')} ${getBlockExplorerName(url)}`,
+          url,
+        });
         nav.navigate('Webview', {
           screen: 'SimpleWebview',
           params: { url },
@@ -181,7 +208,7 @@ const MultichainTransactionsView = ({
         <PriceChartContext.Consumer>
           {({ isChartBeingTouched }) => (
             <FlashList
-              data={txList}
+              data={visibleMultichainTransactions}
               renderItem={renderTransactionItem}
               keyExtractor={(item) => item.id}
               ListHeaderComponent={header}

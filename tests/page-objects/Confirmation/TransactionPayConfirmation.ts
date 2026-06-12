@@ -2,6 +2,7 @@ import {
   ConfirmationRowComponentIDs,
   TransactionPayComponentIDs,
 } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
+import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
 import { getNetworkFilterTestId } from '../../../app/components/Views/confirmations/components/network-filter/network-filter.testIds';
 import { TEXTFIELDSEARCH_TEST_ID } from '../../../app/component-library/components/Form/TextFieldSearch/TextFieldSearch.constants';
 import enContent from '../../../locales/languages/en.json';
@@ -24,6 +25,7 @@ import {
 
 const TOKEN_SEARCH_PLACEHOLDER = enContent.send.search_tokens;
 const ETHEREUM_NETWORK_FILTER_TEST_ID = getNetworkFilterTestId('0x1');
+const ARBITRUM_NETWORK_FILTER_TEST_ID = getNetworkFilterTestId('0xa4b1');
 
 export function getKeypadKeyTestId(key: string): string {
   return key === '.' ? 'keypad-key-dot' : `keypad-key-${key}`;
@@ -197,6 +199,14 @@ class TransactionPayConfirmation {
     });
   }
 
+  getTokenBySymbol(symbol: string): EncapsulatedElementType {
+    const testId = getAssetTestId(symbol);
+    return encapsulated({
+      detox: () => Matchers.getElementByID(testId),
+      appium: () => PlaywrightMatchers.getElementById(testId, { exact: true }),
+    });
+  }
+
   getTokenOptionAt(
     tokenSymbol: string,
     index: number,
@@ -224,27 +234,41 @@ class TransactionPayConfirmation {
   getFirstTokenOption(tokenSymbol: string): EncapsulatedElementType {
     return encapsulated({
       detox: () => Matchers.getElementByText(tokenSymbol, 0),
-      appium: () => PlaywrightMatchers.getElementByCatchAll(tokenSymbol),
+      appium: () =>
+        PlaywrightMatchers.getElementByXPath(
+          `//*[@resource-id='${tokenSymbol}' or contains(@text,'${tokenSymbol}') or contains(@content-desc,'${tokenSymbol}')]/*[@resource-id='badgenetwork']`,
+        ),
     });
   }
 
   getNetworkFilter(networkName: string): EncapsulatedElementType {
     return encapsulated({
       detox: () => Matchers.getElementByText(networkName),
-      appium: () =>
-        PlaywrightMatchers.getElementById(ETHEREUM_NETWORK_FILTER_TEST_ID, {
+      appium: () => {
+        const networkFilter =
+          networkName === 'Ethereum'
+            ? ETHEREUM_NETWORK_FILTER_TEST_ID
+            : ARBITRUM_NETWORK_FILTER_TEST_ID;
+        return PlaywrightMatchers.getElementById(networkFilter, {
           exact: true,
-        }),
+        });
+      },
     });
   }
 
   getKeypadButton(key: string): EncapsulatedElementType {
     return encapsulated({
       detox: () => Matchers.getElementByText(key),
-      appium: () =>
-        PlaywrightMatchers.getElementById(getKeypadKeyTestId(key), {
-          exact: true,
-        }),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(getKeypadKeyTestId(key), {
+            exact: true,
+          }),
+        ios: () =>
+          PlaywrightMatchers.getElementByAccessibilityId(
+            getKeypadKeyTestId(key),
+          ),
+      },
     });
   }
 
@@ -297,42 +321,46 @@ class TransactionPayConfirmation {
     });
   }
 
-  async tapEthereumFilter(): Promise<void> {
-    const ethereumFilter = this.getNetworkFilter('Ethereum');
-
+  async tapByNetworkFilter(networkName: string): Promise<void> {
+    const networkFilter = this.getNetworkFilter(networkName);
     await encapsulatedAction({
       detox: async () => {
-        await Assertions.expectElementToBeVisible(ethereumFilter, {
+        await Assertions.expectElementToBeVisible(networkFilter, {
           description: 'Ethereum filter should be visible',
           timeout: 15000,
         });
 
-        await UnifiedGestures.waitAndTap(ethereumFilter, {
+        await UnifiedGestures.waitAndTap(networkFilter, {
           description: 'Ethereum Filter',
         });
       },
       appium: async () => {
-        const resolvedFilter = await asPlaywrightElement(ethereumFilter);
+        const resolvedFilter = await asPlaywrightElement(networkFilter);
         await PlaywrightAssertions.expectElementToBeVisible(resolvedFilter, {
           timeout: 15000,
-          description: 'Ethereum filter should be visible',
+          description: 'Network filter should be visible',
         });
 
         if (await PlatformDetector.isIOS()) {
           await PlaywrightGestures.dblTap(resolvedFilter);
-          return;
+        } else {
+          await PlaywrightGestures.waitAndTap(resolvedFilter, {
+            checkForDisplayed: true,
+            checkForEnabled: true,
+          });
         }
 
-        await PlaywrightGestures.waitAndTap(resolvedFilter, {
-          checkForDisplayed: true,
-          checkForEnabled: true,
+        await PlaywrightGestures.waitForElementStable(resolvedFilter, {
+          timeout: 3000,
+          interval: 200,
+          stableCount: 4,
         });
       },
     });
   }
 
   async tapFirstUsdc(tokenName: string): Promise<void> {
-    const tokenElement = this.getFirstTokenOption(tokenName);
+    const tokenElement = this.getTokenBySymbol(tokenName);
 
     await encapsulatedAction({
       detox: async () => {

@@ -8,17 +8,17 @@ import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
 } from '../../framework/fixtures/FixtureBuilder';
 import WalletView from '../../page-objects/wallet/WalletView';
-import NetworkListModal from '../../page-objects/Network/NetworkListModal';
-import { SmokeTrade } from '../../tags';
+import TokensFullView from '../../page-objects/wallet/HomeSections';
+import NetworkManager from '../../page-objects/wallet/NetworkManager';
+import { SmokeStake } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import StakeView from '../../page-objects/Stake/StakeView';
 import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 import { AnvilManager } from '../../seeder/anvil-manager';
 import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 
-describe(SmokeTrade('Stake from Actions'), (): void => {
+describe(SmokeStake('Stake from Actions'), (): void => {
   const FIRST_ROW: number = 0;
   const AMOUNT_TO_STAKE: string = '1';
 
@@ -47,6 +47,7 @@ describe(SmokeTrade('Stake from Actions'), (): void => {
               nickname: 'Localhost',
               ticker: 'ETH',
             })
+            .withNetworkEnabledMap({ eip155: { [chainId]: true } })
             .build();
         },
         localNodeOptions: [
@@ -61,11 +62,6 @@ describe(SmokeTrade('Stake from Actions'), (): void => {
         ],
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
-          await setupRemoteFeatureFlagsMock(mockServer, {
-            homepageRedesignV1: { enabled: false, minimumVersion: '0.0.0' },
-            homepageSectionsV1: { enabled: false, minimumVersion: '0.0.0' },
-          });
-
           // Mock Accounts API V4 (flat array) so the app reports correct ETH balance.
           // Without this, the default mock returns 0 balance and the Earn button
           // is hidden (StakeButton returns null when balanceFiatNumber < 0.01).
@@ -137,16 +133,18 @@ describe(SmokeTrade('Stake from Actions'), (): void => {
       },
       async () => {
         await loginToApp();
+
+        await Assertions.expectElementToBeVisible(WalletView.earnButton, {
+          timeout: 60000,
+          description:
+            'Earn button should be visible after balance loads from fixture state',
+        });
+
         // Earn and stake flows keep recurring native timers; with sync on, Detox waits for
         // idle indefinitely after opening stake. Keep sync off through confirm, then re-enable
         // for Activity (FlashList row text is unreliable with sync disabled on iOS).
         await device.disableSynchronization();
         try {
-          await Assertions.expectElementToBeVisible(WalletView.earnButton, {
-            timeout: 45000,
-            description:
-              'Earn button should be visible after balance loads from mocked API',
-          });
           await WalletView.tapOnEarnButton();
           await Assertions.expectElementToBeVisible(StakeView.stakeContainer);
           await StakeView.enterAmount(AMOUNT_TO_STAKE);
@@ -175,14 +173,13 @@ describe(SmokeTrade('Stake from Actions'), (): void => {
         // Go back to Home tab
         await TabBarComponent.tapHome();
 
-        // Open network picker and select Localhost
-        await WalletView.tapTokenNetworkFilter();
-        await NetworkListModal.changeNetworkTo('Localhost');
+        // Navigate to TokensFullView and filter by Localhost
+        await NetworkManager.navigateToTokensFullView();
+        await NetworkManager.openNetworkManager();
+        await NetworkManager.tapNetwork('eip155:1');
 
-        // Verify staked asset in wallet
-        await Assertions.expectTextDisplayed('Staked Ethereum');
-        await Assertions.expectTextDisplayed('1 ETH');
-        await Assertions.expectTextDisplayed('$4,291.85');
+        // Verify staked asset in wallet (now in TokensFullView)
+        await TokensFullView.expectStakedEthereumRowWithBalancesVisible();
       },
     );
   });

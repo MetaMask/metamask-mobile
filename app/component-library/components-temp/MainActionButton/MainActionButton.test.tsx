@@ -45,10 +45,8 @@ describe('MainActionButton', () => {
         testID={MAINACTIONBUTTON_TEST_ID}
       />,
     );
-
-    expect(
-      getByTestId(MAINACTIONBUTTON_TEST_ID).props.accessibilityState.disabled,
-    ).toBe(true);
+    const button = getByTestId(MAINACTIONBUTTON_TEST_ID);
+    expect(button).toBeDisabled();
   });
 
   it('calls onPress when pressed', () => {
@@ -141,8 +139,8 @@ describe('MainActionButton', () => {
       />,
     );
 
-    expect(getByTestId(MAINACTIONBUTTON_TEST_ID).props.style).toContainEqual(
-      expect.objectContaining(customStyle),
+    expect(getByTestId(MAINACTIONBUTTON_TEST_ID).props.style).toMatchObject(
+      customStyle,
     );
   });
 });

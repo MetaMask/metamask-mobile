@@ -3,7 +3,7 @@ import {
   ProfileMetricsServiceMessenger,
 } from '@metamask/profile-metrics-controller';
 import { MessengerClientInitFunction } from '../types';
-import { SDK } from '@metamask/profile-sync-controller';
+import { authEnv } from '../../devApiEnv';
 
 /**
  * Initialize the profile metrics service.
@@ -16,13 +16,10 @@ export const profileMetricsServiceInit: MessengerClientInitFunction<
   ProfileMetricsService,
   ProfileMetricsServiceMessenger
 > = ({ controllerMessenger }) => {
-  // The environment must be the same used by AuthenticationController.
-  const env = SDK.Env.PRD;
-
   const controller = new ProfileMetricsService({
     messenger: controllerMessenger,
     fetch: fetch.bind(globalThis),
-    env,
+    env: authEnv(),
   });
 
   return {

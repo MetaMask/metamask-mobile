@@ -25,11 +25,10 @@ const CODE_SIGNING_KEYIDS = {
 module.exports = {
   name: 'MetaMask',
   displayName: 'MetaMask',
-  experiments: {
-    reactCompiler: {
-      enabled: true,
-    },
-  },
+  // NOTE: React Compiler is enabled via the `react-compiler` babel plugin in
+  // babel.config.js, not here. This repo uses the React Native community Metro
+  // transformer, which doesn't pass the `supportsReactCompiler` caller flag that
+  // Expo's `experiments.reactCompiler` relies on, so the flag would be a no-op.
   plugins: [
     [
       'expo-build-properties',
@@ -81,6 +80,8 @@ module.exports = {
         ],
       },
     ],
+    'expo-asset',
+    '@react-native-community/datetimepicker',
   ],
   android: {
     package:

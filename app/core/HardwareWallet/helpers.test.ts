@@ -163,6 +163,23 @@ describe('HardwareWallet helpers', () => {
       expect(mockGetDeviceId).toHaveBeenCalledTimes(1);
     });
 
+    it('falls back to undefined when Ledger device id lookup times out', async () => {
+      jest.useFakeTimers();
+      mockIsHardwareAccount.mockReset();
+      mockIsHardwareAccount
+        .mockReturnValueOnce(true)
+        .mockReturnValueOnce(false);
+      mockGetDeviceId.mockReturnValueOnce(
+        // eslint-disable-next-line no-empty-function
+        new Promise(() => {}),
+      );
+
+      const resultPromise = getDeviceIdForAddress(testAddress);
+      await jest.advanceTimersByTimeAsync(6000);
+      await expect(resultPromise).resolves.toBeUndefined();
+      jest.useRealTimers();
+    });
+
     it('returns undefined for QR accounts', async () => {
       mockIsHardwareAccount.mockReset();
       mockIsHardwareAccount

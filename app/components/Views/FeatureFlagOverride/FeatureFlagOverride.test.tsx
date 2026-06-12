@@ -65,12 +65,7 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   }),
 }));
 
-jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
-  __esModule: true,
-  useAnalytics: jest.fn(() => ({
-    addTraitsToUser: jest.fn(),
-  })),
-}));
+jest.mock('../../hooks/useAnalytics/useAnalytics');
 
 // Mock Engine
 const mockSetFlagOverride = jest.fn();
@@ -336,7 +331,7 @@ describe('FeatureFlagOverride', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders HeaderCompactStandard with title', () => {
+    it('renders HeaderStandard with title', () => {
       renderWithProviders();
 
       expect(
@@ -755,7 +750,7 @@ describe('FeatureFlagOverride', () => {
       const versionSwitch = switches.find(
         (switchElement) => switchElement.props.value === true,
       );
-      expect(versionSwitch?.props.disabled).toBe(true);
+      expect(versionSwitch).toHaveProp('disabled', true);
     });
 
     it('handles toggle for boolean with minimumVersion flag', () => {
@@ -904,7 +899,7 @@ describe('FeatureFlagOverride', () => {
       );
 
       const switches = screen.getAllByRole('switch');
-      expect(switches[0].props.disabled).toBe(false);
+      expect(switches[0]).toBeEnabled();
     });
   });
 

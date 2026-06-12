@@ -11,6 +11,7 @@ import {
   IconName,
   IconSize,
   IconColor,
+  IconAlert,
   BoxFlexDirection,
   BoxAlignItems,
   FontWeight,
@@ -28,12 +29,16 @@ interface SecurityTrustEntryCardProps {
   securityData: TokenSecurityData | null;
   isLoading: boolean;
   token: TokenDetailsRouteParams;
+  isPricePositive?: boolean;
+  useAmbientColor?: boolean;
 }
 
 const SecurityTrustEntryCard: React.FC<SecurityTrustEntryCardProps> = ({
   securityData,
   isLoading,
   token,
+  isPricePositive,
+  useAmbientColor,
 }) => {
   const tw = useTailwind();
   const navigation = useNavigation();
@@ -41,8 +46,7 @@ const SecurityTrustEntryCard: React.FC<SecurityTrustEntryCardProps> = ({
   const hasTrackedView = useRef(false);
 
   const config = getResultTypeConfig(securityData?.resultType);
-  const tagIcon = config.icon;
-  const tagIconColor = config.iconColor;
+  const { iconAlertSeverity } = config;
   const { tags: featureTags, remainingCount } = securityData
     ? getFeatureTags(securityData.features ?? [], securityData.resultType)
     : { tags: [], remainingCount: 0 };
@@ -93,6 +97,8 @@ const SecurityTrustEntryCard: React.FC<SecurityTrustEntryCardProps> = ({
     navigation.navigate(Routes.SECURITY_TRUST, {
       ...token,
       securityData,
+      isPricePositive,
+      useAmbientColor,
     });
   };
 
@@ -124,9 +130,9 @@ const SecurityTrustEntryCard: React.FC<SecurityTrustEntryCardProps> = ({
         )}
       </Box>
       <Text
-        variant={TextVariant.HeadingMd}
+        variant={TextVariant.BodyMd}
         color={config.textColor}
-        fontWeight={'600' as FontWeight}
+        fontWeight={FontWeight.Medium}
       >
         {config.label}
       </Text>
@@ -145,12 +151,8 @@ const SecurityTrustEntryCard: React.FC<SecurityTrustEntryCardProps> = ({
                 twClassName="bg-muted rounded self-start min-w-[22px] px-1.5 py-0.5"
                 gap={1}
               >
-                {tagIcon && tagIconColor && (
-                  <Icon
-                    name={tagIcon}
-                    size={IconSize.Sm}
-                    color={tagIconColor}
-                  />
+                {iconAlertSeverity && (
+                  <IconAlert severity={iconAlertSeverity} size={IconSize.Sm} />
                 )}
                 <Text
                   variant={TextVariant.BodySm}

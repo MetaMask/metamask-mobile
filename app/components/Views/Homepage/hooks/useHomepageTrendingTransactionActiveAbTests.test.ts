@@ -2,6 +2,7 @@ import { renderHook } from '@testing-library/react-native';
 
 import { HOMEPAGE_TRENDING_SECTIONS_AB_KEY } from '../abTestConfig';
 import { useHomepageTrendingTransactionActiveAbTests } from './useHomepageTrendingTransactionActiveAbTests';
+import { createActiveABTestAssignment } from '../../../../util/analytics/activeABTestAssignments';
 
 const mockTrendingAbTest = jest.fn(() => ({
   isActive: false,
@@ -27,7 +28,7 @@ describe('useHomepageTrendingTransactionActiveAbTests', () => {
     expect(result.current).toBeUndefined();
   });
 
-  it('returns key/value pair when assignment is active', () => {
+  it('returns a normalized assignment when assignment is active', () => {
     mockTrendingAbTest.mockReturnValue({
       isActive: true,
       variantName: 'trendingSections',
@@ -38,10 +39,10 @@ describe('useHomepageTrendingTransactionActiveAbTests', () => {
     );
 
     expect(result.current).toEqual([
-      {
-        key: HOMEPAGE_TRENDING_SECTIONS_AB_KEY,
-        value: 'trendingSections',
-      },
+      createActiveABTestAssignment(
+        HOMEPAGE_TRENDING_SECTIONS_AB_KEY,
+        'trendingSections',
+      ),
     ]);
   });
 });

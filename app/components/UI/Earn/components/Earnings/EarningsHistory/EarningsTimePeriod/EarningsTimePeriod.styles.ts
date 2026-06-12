@@ -18,13 +18,10 @@ const styleSheet = (params: { theme: Theme }) => {
     selectedButtonLabel: {
       color: colors.text.alternative,
     },
-    buttonContainer: {
-      marginLeft: 8,
-      marginRight: 8,
-    },
     button: {
       backgroundColor: colors.background.default,
-      width: '100%',
+      marginLeft: 8,
+      marginRight: 8,
       borderRadius: 32,
       paddingHorizontal: 14,
       paddingVertical: 7,

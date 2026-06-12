@@ -457,11 +457,6 @@ const PredictDetailsChart: React.FC<PredictDetailsChartProps> = ({
               )}
             </Box>
           </Box>
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            justifyContent={BoxJustifyContent.Between}
-            twClassName="px-4 pt-4 pb-0 min-h-[31px]"
-          />
         </Box>
       );
     }
@@ -586,14 +581,14 @@ const PredictDetailsChart: React.FC<PredictDetailsChartProps> = ({
   };
 
   return (
-    <Box>
+    <>
       {renderGraph()}
       <TimeframeSelector
         timeframes={timeframes}
         selectedTimeframe={selectedTimeframe}
         onTimeframeChange={onTimeframeChange}
       />
-    </Box>
+    </>
   );
 };
 

@@ -32,7 +32,25 @@ exports[`image component renders an SVG image 1`] = `
       testID="snap-ui-renderer__scrollview"
     >
       <View>
-        <TouchableHighlight>
+        <View
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          focusable={false}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+        >
           <View
             style={
               [
@@ -87,7 +105,7 @@ exports[`image component renders an SVG image 1`] = `
               />
             </RNSVGSvgView>
           </View>
-        </TouchableHighlight>
+        </View>
       </View>
     </RCTScrollView>
   </View>
@@ -130,7 +148,25 @@ exports[`image component renders an external image 1`] = `
       testID="snap-ui-renderer__scrollview"
     >
       <View>
-        <TouchableHighlight>
+        <View
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          focusable={false}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+        >
           <View
             source={
               {
@@ -153,7 +189,7 @@ exports[`image component renders an external image 1`] = `
               ]
             }
           />
-        </TouchableHighlight>
+        </View>
       </View>
     </RCTScrollView>
   </View>

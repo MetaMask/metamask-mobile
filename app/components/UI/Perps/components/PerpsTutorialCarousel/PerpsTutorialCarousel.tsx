@@ -20,10 +20,11 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import { strings } from '../../../../../../locales/i18n';
-import Button, {
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import Text, {
   TextColor,
   TextVariant,
@@ -421,7 +422,7 @@ const PerpsTutorialCarousel: React.FC = () => {
           onChangeTab={handleTabChange}
           initialPage={0}
         >
-          {tutorialScreens.map((screen) => (
+          {tutorialScreens.map((screen, index) => (
             <View key={screen.id} style={styles.fullScreenContainer}>
               <ScrollView
                 style={styles.scrollableContent}
@@ -461,7 +462,7 @@ const PerpsTutorialCarousel: React.FC = () => {
                     <View style={styles.contentSection}>{screen.content}</View>
                   )}
 
-                  {screen?.riveArtboardName && (
+                  {screen?.riveArtboardName && currentTab === index && (
                     <View style={styles.animationContainer}>
                       <Rive
                         key={screen.id}
@@ -496,22 +497,24 @@ const PerpsTutorialCarousel: React.FC = () => {
       <View style={[styles.footer, { paddingBottom: safeAreaInsets.bottom }]}>
         <View style={styles.buttonRow}>
           <Button
-            variant={ButtonVariants.Primary}
-            label={buttonLabel}
+            variant={ButtonVariant.Primary}
             onPress={handleContinue}
             size={ButtonSize.Lg}
             testID={PerpsTutorialSelectorsIDs.CONTINUE_BUTTON}
             style={styles.continueButton}
-          />
+          >
+            {buttonLabel}
+          </Button>
           {isLastScreen && (
             <Button
-              variant={ButtonVariants.Secondary}
-              label={strings('perps.tutorial.learn_more')}
+              variant={ButtonVariant.Secondary}
               onPress={handleLearnMore}
               size={ButtonSize.Lg}
               style={styles.continueButton}
               testID={PerpsTutorialSelectorsIDs.LEARN_MORE_BUTTON}
-            />
+            >
+              {strings('perps.tutorial.learn_more')}
+            </Button>
           )}
           {!isLastScreen && (
             <View style={styles.skipButton}>

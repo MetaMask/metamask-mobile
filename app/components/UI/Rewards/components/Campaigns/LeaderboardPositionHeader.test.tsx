@@ -16,9 +16,11 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({ style: (...args: unknown[]) => args }),
-}));
+jest.mock('@metamask/design-system-twrnc-preset', () => {
+  const tw = (..._args: unknown[]) => ({});
+  tw.style = jest.fn(() => ({}));
+  return { useTailwind: () => tw };
+});
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
@@ -167,7 +169,7 @@ describe('LeaderboardPositionHeader', () => {
       );
       expect(getByTestId(TEST_IDS.PRIZE_POOL_VALUE)).toBeDefined();
       expect(getByText('$25,000')).toBeDefined();
-      expect(getByText('rewards.ondo_campaign_prize_pool.title')).toBeDefined();
+      expect(getByText('rewards.campaign_prize_pool.title')).toBeDefined();
     });
 
     it('shows dash when showPrizePool is true but prizePoolValue is undefined', () => {

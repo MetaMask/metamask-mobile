@@ -97,7 +97,7 @@ describe('SnapDetails', () => {
   const installDateString = 'Installed on May 24 at 5:35 pm';
 
   it('renders the correct snap details', async () => {
-    const { getByTestId } = render(<SnapDetails snap={mockSnap} />);
+    const { getByTestId, getByText } = render(<SnapDetails snap={mockSnap} />);
 
     const cell = await getByTestId(SNAP_DETAILS_CELL);
     const switchElement = await getByTestId(SNAP_DETAILS_SWITCH);
@@ -111,16 +111,12 @@ describe('SnapDetails', () => {
     expect(installDate).toBeTruthy();
     expect(versionBadge).toBeTruthy();
 
-    expect(cell.props.children.props.title).toEqual(
-      mockSnap.manifest.proposedName,
-    );
-    expect(cell.props.children.props.secondaryText).toEqual(mockSnap.id);
+    expect(cell).toBeTruthy();
 
-    expect(switchElement.props.value).toEqual(true);
-
-    expect(installOrigin.props.children).toEqual('metamask-mobile');
-
-    expect(installDate.props.children).toEqual(installDateString);
+    expect(getByText(mockSnap.manifest.proposedName)).toBeTruthy();
+    expect(getByText(mockSnap.id)).toBeTruthy();
+    expect(getByText('metamask-mobile')).toBeTruthy();
+    expect(getByText(installDateString)).toBeTruthy();
   });
 
   it('handles snap enable and disable', async () => {

@@ -1,4 +1,4 @@
-import { FlaskBuildTests } from '../../tags';
+import { SmokeSnaps } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
 import { navigateToBrowserView } from '../../flows/browser.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
@@ -10,13 +10,14 @@ import { defaultOptions } from '../../seeder/anvil-manager';
 
 jest.setTimeout(150_000);
 
-describe(FlaskBuildTests('Network Access Snap Tests'), () => {
+describe(SmokeSnaps('Network Access Snap Tests'), () => {
   it('can use fetch and WebSockets', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         skipReactNativeReload: true,
+        disableSynchronization: true,
         localNodeOptions: [
           {
             type: LocalNodeType.anvil,
@@ -42,12 +43,6 @@ describe(FlaskBuildTests('Network Access Snap Tests'), () => {
         );
 
         // Use WebSockets
-        // Disable synchronization on iOS before starting WebSocket to prevent
-        // Detox from hanging due to the open connection keeping the app "busy"
-        if (device.getPlatform() === 'ios') {
-          await device.disableSynchronization();
-        }
-
         const webSocketUrl = `ws://localhost:${getAnvilPortForTest()}`;
         await TestSnaps.fillMessage('webSocketUrlInput', webSocketUrl);
         await TestSnaps.tapButton('startWebSocket');

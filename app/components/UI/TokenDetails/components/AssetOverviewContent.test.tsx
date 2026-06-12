@@ -388,7 +388,7 @@ describe('AssetOverviewContent', () => {
           onClose: expect.any(Function),
           contentKey: 'geo_block',
         }),
-        expect.anything(),
+        undefined,
       );
 
       // Extract onClose from the last render call and invoke it
@@ -428,6 +428,7 @@ describe('AssetOverviewContent', () => {
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
         caip19: 'eip155:1/erc20:0x123',
+        source: 'token_details',
         asset_symbol: 'eth',
         digest_id: 'a8154c57-c665-449c-8bb5-fcaae96ef922',
       });
@@ -650,8 +651,8 @@ describe('AssetOverviewContent', () => {
       );
 
       expect(queryByTestId('security-badge-verified')).toBeNull();
-      expect(queryByTestId('security-badge-warning')).toBeNull();
-      expect(queryByTestId('security-badge-malicious')).toBeNull();
+      expect(queryByTestId('security-banner-warning')).toBeNull();
+      expect(queryByTestId('security-banner-malicious')).toBeNull();
     });
 
     it('renders warning badge when securityData resultType is Warning', () => {
@@ -663,8 +664,8 @@ describe('AssetOverviewContent', () => {
         { state: createState(true) },
       );
 
-      const badge = getByTestId('security-badge-warning');
-      expect(badge).toBeOnTheScreen();
+      const banner = getByTestId('security-banner-warning');
+      expect(banner).toBeOnTheScreen();
     });
 
     it('renders warning badge when securityData resultType is Spam', () => {
@@ -676,8 +677,8 @@ describe('AssetOverviewContent', () => {
         { state: createState(true) },
       );
 
-      const badge = getByTestId('security-badge-warning');
-      expect(badge).toBeOnTheScreen();
+      const banner = getByTestId('security-banner-warning');
+      expect(banner).toBeOnTheScreen();
     });
 
     it('renders malicious badge when securityData resultType is Malicious', () => {
@@ -689,8 +690,8 @@ describe('AssetOverviewContent', () => {
         { state: createState(true) },
       );
 
-      const badge = getByTestId('security-badge-malicious');
-      expect(badge).toBeOnTheScreen();
+      const banner = getByTestId('security-banner-malicious');
+      expect(banner).toBeOnTheScreen();
     });
 
     it('navigates to security badge bottom sheet when verified badge is pressed', () => {
@@ -727,7 +728,7 @@ describe('AssetOverviewContent', () => {
         { state: createState(true) },
       );
 
-      fireEvent.press(getByTestId('security-badge-warning'));
+      fireEvent.press(getByTestId('security-banner-warning'));
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.MODAL.SECURITY_BADGE_BOTTOM_SHEET,
@@ -752,7 +753,7 @@ describe('AssetOverviewContent', () => {
         { state: createState(true) },
       );
 
-      fireEvent.press(getByTestId('security-badge-warning'));
+      fireEvent.press(getByTestId('security-banner-warning'));
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.MODAL.SECURITY_BADGE_BOTTOM_SHEET,
@@ -777,7 +778,7 @@ describe('AssetOverviewContent', () => {
         { state: createState(true) },
       );
 
-      fireEvent.press(getByTestId('security-badge-malicious'));
+      fireEvent.press(getByTestId('security-banner-malicious'));
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.MODAL.SECURITY_BADGE_BOTTOM_SHEET,
@@ -813,8 +814,8 @@ describe('AssetOverviewContent', () => {
       );
 
       expect(queryByTestId('security-badge-verified')).toBeNull();
-      expect(queryByTestId('security-badge-warning')).toBeNull();
-      expect(queryByTestId('security-badge-malicious')).toBeNull();
+      expect(queryByTestId('security-banner-warning')).toBeNull();
+      expect(queryByTestId('security-banner-malicious')).toBeNull();
     });
 
     it('does not render badge when securityData is undefined', () => {
@@ -824,8 +825,8 @@ describe('AssetOverviewContent', () => {
       );
 
       expect(queryByTestId('security-badge-verified')).toBeNull();
-      expect(queryByTestId('security-badge-warning')).toBeNull();
-      expect(queryByTestId('security-badge-malicious')).toBeNull();
+      expect(queryByTestId('security-banner-warning')).toBeNull();
+      expect(queryByTestId('security-banner-malicious')).toBeNull();
     });
 
     it('renders malicious warning banner when resultType is Malicious', () => {
@@ -913,7 +914,7 @@ describe('AssetOverviewContent', () => {
 
         expect(tokenDetailsActionsSpy).toHaveBeenCalledWith(
           expect.objectContaining({ hasBalance: expectedHasBalance }),
-          expect.anything(),
+          undefined,
         );
       },
     );

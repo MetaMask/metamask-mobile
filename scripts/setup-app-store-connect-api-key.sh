@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 # Setup App Store Connect API Key for Fastlane
-# This script can be used in both Bitrise and GitHub Actions workflows
 #
 # Usage:
 #   ./scripts/setup-app-store-connect-api-key.sh <issuer_id> <key_id> <key_content>
@@ -50,16 +49,8 @@ export APP_STORE_CONNECT_API_KEY_ISSUER_ID="$ISSUER_ID"
 export APP_STORE_CONNECT_API_KEY_KEY_ID="$KEY_ID"
 export APP_STORE_CONNECT_API_KEY_KEY_FILEPATH="$KEY_FILEPATH"
 
-# Persist variables based on CI environment (for passing to subsequent steps)
-if [ -n "${BITRISE_BUILD_URL:-}" ] || command -v envman &> /dev/null; then
-  # Use envman to persist variables in Bitrise
-  if command -v envman &> /dev/null; then
-    envman add --key APP_STORE_CONNECT_API_KEY_ISSUER_ID --value "$ISSUER_ID"
-    envman add --key APP_STORE_CONNECT_API_KEY_KEY_ID --value "$KEY_ID"
-    envman add --key APP_STORE_CONNECT_API_KEY_KEY_FILEPATH --value "$KEY_FILEPATH"
-  fi
-elif [ -n "${GITHUB_ENV:-}" ]; then
-  # Use GITHUB_ENV to persist variables in GitHub Actions
+# Persist variables for GitHub Actions (passing to subsequent steps)
+if [ -n "${GITHUB_ENV:-}" ]; then
   echo "APP_STORE_CONNECT_API_KEY_ISSUER_ID=$ISSUER_ID" >> "$GITHUB_ENV"
   echo "APP_STORE_CONNECT_API_KEY_KEY_ID=$KEY_ID" >> "$GITHUB_ENV"
   echo "APP_STORE_CONNECT_API_KEY_KEY_FILEPATH=$KEY_FILEPATH" >> "$GITHUB_ENV"

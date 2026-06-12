@@ -1,7 +1,8 @@
 import React from 'react';
-import { ActivityIndicator } from 'react-native';
+import { ActivityIndicator, AppState, type AppStateStatus } from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import { TokenDetails } from './TokenDetails';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { selectNetworkConfigurationByChainId } from '../../../../selectors/networkController';
 import { selectPerpsEnabledFlag } from '../../Perps';
 import { selectMerklCampaignClaimingEnabledFlag } from '../../Earn/selectors/featureFlags';
@@ -10,6 +11,13 @@ import {
   selectDepositActiveFlag,
   selectDepositMinimumVersionFlag,
 } from '../../../../selectors/featureFlagController/deposit';
+import {
+  AMBIENT_NEGATIVE_COLOR,
+  AMBIENT_PRICE_COLOR_AB_KEY,
+} from '../components/abTestConfig';
+import { SOCIAL_AI_QUICK_BUY_AB_KEY } from '../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/abTestConfig';
+import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
+import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
 
 const mockUseSelector = jest.fn();
 jest.mock('react-redux', () => ({
@@ -48,21 +56,27 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
+    addListener: jest.fn(() => jest.fn()),
   }),
   useRoute: () => ({ params: mockRouteParams() }),
+  useFocusEffect: jest.fn((cb: () => () => void) => {
+    cb();
+  }),
 }));
 
+const defaultUseTokenPriceReturn = {
+  currentPrice: 100,
+  priceDiff: 5,
+  comparePrice: 95,
+  prices: [],
+  isLoading: false,
+  setTimePeriod: jest.fn(),
+  chartNavigationButtons: ['1d', '1w', '1m'],
+  currentCurrency: 'USD',
+};
+const mockUseTokenPrice = jest.fn(() => defaultUseTokenPriceReturn);
 jest.mock('../hooks/useTokenPrice', () => ({
-  useTokenPrice: () => ({
-    currentPrice: 100,
-    priceDiff: 5,
-    comparePrice: 95,
-    prices: [],
-    isLoading: false,
-    setTimePeriod: jest.fn(),
-    chartNavigationButtons: ['1d', '1w', '1m'],
-    currentCurrency: 'USD',
-  }),
+  useTokenPrice: (...args: unknown[]) => mockUseTokenPrice(...(args as [])),
 }));
 
 const mockUseTokenBalance = jest.fn();
@@ -83,6 +97,11 @@ jest.mock('../hooks/useTokenActions', () => ({
   useTokenActions: () => mockUseTokenActions(),
 }));
 
+const mockUseStickyTokenActions = jest.fn();
+jest.mock('../hooks/useStickyTokenActions', () => ({
+  useStickyTokenActions: () => mockUseStickyTokenActions(),
+}));
+
 const defaultUseTokenTransactionsReturn = {
   transactions: [],
   submittedTxs: [],
@@ -101,10 +120,16 @@ jest.mock('../hooks/useTokenTransactions', () => ({
     mockUseTokenTransactions(...args),
 }));
 
+const mockTokenDetailsInlineHeader = jest.fn(
+  (_props: Record<string, unknown>) => null,
+);
 jest.mock('../components/TokenDetailsInlineHeader', () => ({
-  TokenDetailsInlineHeader: () => null,
+  TokenDetailsInlineHeader: (props: Record<string, unknown>) =>
+    mockTokenDetailsInlineHeader(props),
 }));
 
+let mockLastUseAmbientColorProp: boolean | undefined;
+let mockLatestPriceDirectionChange: ((isPositive: boolean) => void) | undefined;
 let mockAutoResolveMarketInsights = true;
 let mockLatestMarketInsightsResolver:
   | ((params: { isDisplayed: boolean; severity: string | undefined }) => void)
@@ -123,14 +148,20 @@ jest.mock('../components/AssetOverviewContent', () => {
   const ReactLib = jest.requireActual('react');
   const AssetOverviewContentMock = ({
     onMarketInsightsDisplayResolved,
+    onPriceDirectionChange,
     token,
+    useAmbientColor,
   }: {
     onMarketInsightsDisplayResolved?: (params: {
       isDisplayed: boolean;
       severity: string | undefined;
     }) => void;
+    onPriceDirectionChange?: (isPositive: boolean) => void;
     token?: { address?: string; chainId?: string; symbol?: string };
+    useAmbientColor?: boolean;
   }) => {
+    mockLastUseAmbientColorProp = useAmbientColor;
+    mockLatestPriceDirectionChange = onPriceDirectionChange;
     const insightsTokenKey = `${token?.address ?? ''}:${token?.chainId ?? ''}:${token?.symbol ?? ''}`;
     ReactLib.useEffect(() => {
       mockLatestMarketInsightsResolver = onMarketInsightsDisplayResolved;
@@ -226,12 +257,29 @@ jest.mock('../../Bridge/hooks/useRWAToken', () => ({
   }),
 }));
 
-jest.mock('../../../../hooks/useABTest', () => ({
-  useABTest: jest.fn(() => ({
+const mockUseABTest = jest.fn((key: string) => {
+  if (key === AMBIENT_PRICE_COLOR_AB_KEY) {
+    return {
+      variant: { useAmbientPriceColor: false },
+      variantName: 'control',
+      isActive: false,
+    };
+  }
+  if (key === SOCIAL_AI_QUICK_BUY_AB_KEY) {
+    return {
+      variant: { showQuickBuy: true },
+      variantName: 'treatment',
+      isActive: true,
+    };
+  }
+  return {
     variant: { swapLabelKey: 'asset_overview.swap' },
     variantName: 'control',
     isActive: false,
-  })),
+  };
+});
+jest.mock('../../../../hooks/useABTest', () => ({
+  useABTest: (...args: unknown[]) => mockUseABTest(...(args as [string])),
 }));
 
 jest.mock('../hooks/useStickyFooterTracking', () => ({
@@ -242,12 +290,28 @@ jest.mock('../../MarketInsights', () => ({
   MarketInsightsDisclaimerBottomSheet: () => null,
 }));
 
+const mockAssetDetailsQuickBuy = jest.fn(
+  (_props: Record<string, unknown>) => null,
+);
+jest.mock('../components/AssetDetailsQuickBuy', () => ({
+  __esModule: true,
+  default: (props: Record<string, unknown>) => mockAssetDetailsQuickBuy(props),
+}));
+
+jest.mock('../../../../util/haptics', () => ({
+  playImpact: jest.fn(),
+  ImpactMoment: { PrimaryCTA: 'primaryCta' },
+}));
+
 describe('TokenDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockRouteParams.mockReturnValue(defaultRouteParams);
     mockAutoResolveMarketInsights = true;
     mockLatestMarketInsightsResolver = undefined;
+    mockLastUseAmbientColorProp = undefined;
+    mockLatestPriceDirectionChange = undefined;
+    mockUseTokenPrice.mockReturnValue(defaultUseTokenPriceReturn);
     mockBuild.mockReturnValue({ category: 'token-details-opened' });
     mockAddProperties.mockReturnValue({ build: mockBuild });
     mockCreateEventBuilder.mockReturnValue({
@@ -263,7 +327,10 @@ describe('TokenDetails', () => {
       onBuy: mockOnBuy,
       onSend: jest.fn(),
       onReceive: jest.fn(),
-      handleStickySwapPress: mockHandleStickySwapPress,
+    });
+    mockUseStickyTokenActions.mockReturnValue({
+      onBuy: mockOnBuy,
+      onSwap: mockHandleStickySwapPress,
       hasEligibleSwapTokens: true,
       networkModal: null,
     });
@@ -348,11 +415,9 @@ describe('TokenDetails', () => {
     });
 
     it('shows only Buy when user has no eligible swap tokens', () => {
-      mockUseTokenActions.mockReturnValue({
+      mockUseStickyTokenActions.mockReturnValue({
         onBuy: mockOnBuy,
-        onSend: jest.fn(),
-        onReceive: jest.fn(),
-        handleStickySwapPress: mockHandleStickySwapPress,
+        onSwap: mockHandleStickySwapPress,
         hasEligibleSwapTokens: false,
         networkModal: null,
       });
@@ -361,6 +426,62 @@ describe('TokenDetails', () => {
 
       expect(getByText('Buy')).toBeOnTheScreen();
       expect(queryByText('Swap')).toBeNull();
+    });
+  });
+
+  describe('Quick Buy', () => {
+    const getLastQuickBuyProps = () =>
+      mockAssetDetailsQuickBuy.mock.calls[
+        mockAssetDetailsQuickBuy.mock.calls.length - 1
+      ][0];
+
+    it('mounts AssetDetailsQuickBuy hidden by default with the current token', () => {
+      render(<TokenDetails />);
+
+      expect(mockAssetDetailsQuickBuy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          isVisible: false,
+          token: expect.objectContaining({ symbol: 'DAI', chainId: '0x1' }),
+        }),
+      );
+    });
+
+    it('opens AssetDetailsQuickBuy when the sticky lightning button is pressed', () => {
+      const { getByTestId } = render(<TokenDetails />);
+
+      expect(getLastQuickBuyProps()).toEqual(
+        expect.objectContaining({ isVisible: false }),
+      );
+
+      fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.QUICK_BUY_BUTTON));
+
+      expect(getLastQuickBuyProps()).toEqual(
+        expect.objectContaining({ isVisible: true }),
+      );
+    });
+
+    it('hides the lightning button and does not mount AssetDetailsQuickBuy when the control variant is assigned', () => {
+      mockUseABTest.mockImplementation((key: string) => {
+        if (key === SOCIAL_AI_QUICK_BUY_AB_KEY) {
+          return {
+            variant: { showQuickBuy: false },
+            variantName: 'control',
+            isActive: true,
+          };
+        }
+        return {
+          variant: { useAmbientPriceColor: false },
+          variantName: 'control',
+          isActive: false,
+        };
+      });
+
+      const { queryByTestId } = render(<TokenDetails />);
+
+      expect(
+        queryByTestId(TokenOverviewSelectorsIDs.QUICK_BUY_BUTTON),
+      ).toBeNull();
+      expect(mockAssetDetailsQuickBuy).not.toHaveBeenCalled();
     });
   });
 
@@ -479,6 +600,177 @@ describe('TokenDetails', () => {
           has_perps_market: true,
         }),
       );
+    });
+  });
+
+  describe('Ambient price color A/B test', () => {
+    const enableAmbientColor = () => {
+      mockUseABTest.mockImplementation((key: string) => {
+        if (key === AMBIENT_PRICE_COLOR_AB_KEY) {
+          return {
+            variant: { useAmbientPriceColor: true },
+            variantName: 'treatment',
+            isActive: true,
+          };
+        }
+        return {
+          variant: { swapLabelKey: 'asset_overview.swap' },
+          variantName: 'control',
+          isActive: false,
+        };
+      });
+    };
+
+    it('does not pass useAmbientColor in control variant', () => {
+      render(<TokenDetails />);
+
+      expect(mockLastUseAmbientColorProp).toBeFalsy();
+      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({ iconColor: undefined }),
+      );
+    });
+
+    it('passes useAmbientColor=true in treatment variant', () => {
+      enableAmbientColor();
+
+      render(<TokenDetails />);
+
+      expect(mockLastUseAmbientColorProp).toBe(true);
+    });
+
+    it('keeps iconColor undefined until chart reports direction', () => {
+      enableAmbientColor();
+      mockUseTokenPrice.mockReturnValue({
+        ...defaultUseTokenPriceReturn,
+        priceDiff: 10,
+      });
+
+      render(<TokenDetails />);
+
+      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({ iconColor: undefined }),
+      );
+    });
+
+    it('applies success green when chart reports positive direction', () => {
+      enableAmbientColor();
+
+      render(<TokenDetails />);
+      act(() => {
+        mockLatestPriceDirectionChange?.(true);
+      });
+
+      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({ iconColor: LIGHT_MODE_SUCCESS_GREEN }),
+      );
+    });
+
+    it('applies negative color when chart reports negative direction', () => {
+      enableAmbientColor();
+
+      render(<TokenDetails />);
+      act(() => {
+        mockLatestPriceDirectionChange?.(false);
+      });
+
+      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          iconColor: AMBIENT_NEGATIVE_COLOR,
+        }),
+      );
+    });
+
+    it('returns undefined iconColor when treatment + price is loading', () => {
+      enableAmbientColor();
+      mockUseTokenPrice.mockReturnValue({
+        ...defaultUseTokenPriceReturn,
+        isLoading: true,
+        priceDiff: 0,
+      });
+
+      render(<TokenDetails />);
+
+      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({ iconColor: undefined }),
+      );
+    });
+
+    it('hides sticky footer while chart direction is unresolved', () => {
+      enableAmbientColor();
+
+      const { queryByTestId } = render(<TokenDetails />);
+
+      expect(queryByTestId('bottomsheetfooter')).toBeNull();
+    });
+  });
+
+  describe('TOKEN_DETAILS_CLOSED app state tracking', () => {
+    let handleAppStateChange: (nextState: AppStateStatus) => void;
+
+    const getTokenDetailsClosedCallCount = () =>
+      mockCreateEventBuilder.mock.calls.filter(
+        ([event]) => event === MetaMetricsEvents.TOKEN_DETAILS_CLOSED,
+      ).length;
+
+    beforeEach(() => {
+      jest
+        .spyOn(AppState, 'addEventListener')
+        .mockImplementation((_, listener) => {
+          handleAppStateChange = listener;
+          return { remove: jest.fn() };
+        });
+      Object.defineProperty(AppState, 'currentState', {
+        configurable: true,
+        value: 'active',
+      });
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('does not fire TOKEN_DETAILS_CLOSED on transient inactive (e.g. Control Center)', () => {
+      render(<TokenDetails />);
+
+      act(() => {
+        handleAppStateChange('inactive');
+        handleAppStateChange('active');
+      });
+
+      expect(getTokenDetailsClosedCallCount()).toBe(0);
+    });
+
+    it('fires TOKEN_DETAILS_CLOSED with app_backgrounded only when app is backgrounded', () => {
+      render(<TokenDetails />);
+
+      act(() => {
+        handleAppStateChange('background');
+      });
+
+      expect(getTokenDetailsClosedCallCount()).toBe(1);
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ exit_action: 'app_backgrounded' }),
+      );
+    });
+
+    it('resets session after iOS background → inactive → active sequence', () => {
+      render(<TokenDetails />);
+
+      act(() => {
+        handleAppStateChange('background');
+      });
+      expect(getTokenDetailsClosedCallCount()).toBe(1);
+
+      act(() => {
+        handleAppStateChange('inactive');
+        handleAppStateChange('active');
+      });
+
+      act(() => {
+        handleAppStateChange('background');
+      });
+
+      expect(getTokenDetailsClosedCallCount()).toBe(2);
     });
   });
 });

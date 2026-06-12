@@ -2,4 +2,5 @@
 export const DATA_SERVICES: string[] = [
   'SocialService',
   'MoneyAccountBalanceService',
+  'AuthenticatedUserStorageService',
 ];

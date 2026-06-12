@@ -100,6 +100,17 @@ jest.mock('../../../../selectors/networkController', () => ({
   selectTickerByChainId: jest.fn(() => undefined),
 }));
 
+let mockBottomSheetEnabled = false;
+let mockProviderMounted = false;
+
+jest.mock('../selectors/featureFlags', () => ({
+  selectPredictBottomSheetEnabledFlag: jest.fn(() => mockBottomSheetEnabled),
+}));
+
+jest.mock('../contexts/PredictPreviewSheetContext', () => ({
+  shouldSuppressLegacyOrderFailureToast: jest.fn(() => mockProviderMounted),
+}));
+
 describe('usePredictToastRegistrations', () => {
   const showToast = jest.fn();
 
@@ -113,6 +124,8 @@ describe('usePredictToastRegistrations', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
 
+    mockBottomSheetEnabled = false;
+    mockProviderMounted = false;
     mockWithdrawTransaction = { amount: 123.45 };
 
     mockDeposit.mockResolvedValue(undefined);
@@ -898,6 +911,66 @@ describe('usePredictToastRegistrations', () => {
         showToast,
       );
 
+      expect(showToast).toHaveBeenCalledWith(
+        expect.not.objectContaining({
+          linkButtonOptions: expect.anything(),
+        }),
+      );
+    });
+
+    it('suppresses the failure toast when bottom sheet flag is ON and provider is mounted (state-based trigger handles it)', () => {
+      mockBottomSheetEnabled = true;
+      mockProviderMounted = true;
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'order',
+          status: 'failed',
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(showToast).not.toHaveBeenCalled();
+    });
+
+    it('shows the plain failure toast when bottom sheet flag is ON but provider is not mounted (fallback)', () => {
+      mockBottomSheetEnabled = true;
+      mockProviderMounted = false;
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'order',
+          status: 'failed',
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledTimes(1);
+      expect(showToast).toHaveBeenCalledWith(
+        expect.not.objectContaining({
+          linkButtonOptions: expect.anything(),
+        }),
+      );
+    });
+
+    it('shows the legacy plain failure toast when bottom sheet flag is OFF', () => {
+      mockBottomSheetEnabled = false;
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'order',
+          status: 'failed',
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledTimes(1);
       expect(showToast).toHaveBeenCalledWith(
         expect.not.objectContaining({
           linkButtonOptions: expect.anything(),

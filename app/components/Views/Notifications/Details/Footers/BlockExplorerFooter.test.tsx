@@ -17,9 +17,6 @@ import {
 import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
 import { getNetworkDetailsFromNotifPayload } from '../../../../../util/notifications';
 
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  openURL: jest.fn(),
-}));
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
@@ -33,10 +30,6 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 }));
 
 const trackEventMock = jest.fn();
-
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  openURL: jest.fn(),
-}));
 
 describe('BlockExplorerFooter', () => {
   beforeEach(() => {
@@ -100,6 +93,17 @@ describe('BlockExplorerFooter', () => {
     fireEvent(button, 'onPress');
 
     expect(Linking.openURL).toHaveBeenCalled();
+    expect(trackEventMock).toHaveBeenCalledWith(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.EXTERNAL_LINK_CLICKED,
+      )
+        .addProperties({
+          location: 'notification_detail',
+          text: strings('asset_details.options.view_on_block'),
+          url_domain: 'blockexplorer.com',
+        })
+        .build(),
+    );
     expect(trackEventMock).toHaveBeenCalledWith(
       AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.NOTIFICATION_DETAIL_CLICKED,

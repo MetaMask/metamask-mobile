@@ -28,6 +28,7 @@ import {
 import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import { selectCampaignById } from '../../../../reducers/rewards/selectors';
 import Routes from '../../../../constants/navigation/Routes';
+import { CampaignType } from '../../../../core/Engine/controllers/rewards-controller/types';
 import ProgressIndicator from '../components/Onboarding/ProgressIndicator';
 import CampaignTourStep, {
   CAMPAIGN_TOUR_STEP_TEST_IDS,
@@ -63,13 +64,24 @@ const CampaignTourStepView: React.FC = () => {
     typeof ScrollableTabView & { goToPage: (page: number) => void }
   >(null);
 
+  const campaignType = campaign?.type;
+
   const navigateToDetails = useCallback(() => {
+    const detailsRoute = (() => {
+      if (campaignType === CampaignType.PERPS_TRADING) {
+        return Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW;
+      }
+      if (campaignType === CampaignType.PREDICT_THE_PITCH) {
+        return Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_DETAILS_VIEW;
+      }
+      return Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW;
+    })();
     navigation.dispatch(
-      StackActions.replace(Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW, {
+      StackActions.replace(detailsRoute, {
         campaignId,
       }),
     );
-  }, [navigation, campaignId]);
+  }, [navigation, campaignId, campaignType]);
 
   const currentStep = tour?.[currentTab];
   const isLastStep = tour ? currentTab === tour.length - 1 : false;

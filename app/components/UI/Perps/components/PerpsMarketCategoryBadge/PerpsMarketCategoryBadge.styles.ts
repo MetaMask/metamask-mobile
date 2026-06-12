@@ -20,17 +20,19 @@ export const styleSheet = (params: {
       justifyContent: 'center',
       paddingHorizontal: 12,
       paddingVertical: 8,
-      borderRadius: 8,
+      borderRadius: 12,
       backgroundColor: isSelected
         ? theme.colors.icon.default
         : theme.colors.background.muted,
-      gap: 4,
     },
     badgePressed: {
       opacity: 0.7,
     },
     badgeText: {
       color: isSelected ? theme.colors.icon.inverse : theme.colors.text.default,
+    },
+    badgeIcon: {
+      color: isSelected ? theme.colors.icon.inverse : theme.colors.icon.default,
     },
   });
 };

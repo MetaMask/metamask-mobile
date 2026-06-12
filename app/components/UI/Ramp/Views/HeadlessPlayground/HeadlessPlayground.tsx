@@ -12,10 +12,12 @@ import {
   Button,
   ButtonVariant,
   FontWeight,
+  HeaderStandard,
   Icon,
   IconColor,
   IconName,
   IconSize,
+  Spinner,
   Text,
   TextColor,
   TextVariant,
@@ -23,7 +25,6 @@ import {
 
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import Row from '../../Aggregator/components/Row';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import Accordion from '../../../../../component-library/components/Accordions/Accordion/Accordion';
 import { AccordionHeaderHorizontalAlignment } from '../../../../../component-library/components/Accordions/Accordion';
 
@@ -37,6 +38,7 @@ import {
   type PaymentMethod,
   type QuotesResponse,
 } from '../../headless';
+import type { Quote } from '../../types';
 
 import styleSheet from './HeadlessPlayground.styles';
 
@@ -63,6 +65,8 @@ export const HEADLESS_PLAYGROUND_RESET_PROVIDER_TEST_ID =
   'headless-playground-reset-provider';
 export const HEADLESS_PLAYGROUND_START_BUTTON_TEST_ID =
   'headless-playground-start-button';
+export const HEADLESS_PLAYGROUND_START_BUTTON_SPINNER_TEST_ID =
+  'headless-playground-start-button-spinner';
 export const HEADLESS_PLAYGROUND_CANCEL_BUTTON_TEST_ID =
   'headless-playground-cancel-button';
 export const HEADLESS_PLAYGROUND_EVENT_LOG_TEST_ID =
@@ -468,6 +472,7 @@ function HeadlessPlayground() {
   const [activeSession, setActiveSession] = useState<{
     sessionId: string;
     cancel: () => void;
+    quoteIndex: number;
   } | null>(null);
 
   const appendEvent = useCallback((message: string) => {
@@ -477,72 +482,81 @@ function HeadlessPlayground() {
     ]);
   }, []);
 
-  const handleStartHeadlessBuy = useCallback(() => {
-    if (!headlessAmountIsValid) {
-      return;
-    }
-    const params = {
-      assetId: effectiveAssetId,
-      amount: headlessAmountAsNumber,
-      paymentMethodId: effectivePaymentMethodId,
-      providerId: effectiveProviderId,
-    };
-    const session = startHeadlessBuy(params, {
-      onOrderCreated: (orderId) => {
-        appendEvent(
-          strings(
-            'app_settings.fiat_on_ramp.headless_playground.event_log_order_created',
-            { orderId },
-          ),
-        );
-        setActiveSession(null);
-      },
-      onError: (error) => {
-        appendEvent(
-          strings(
-            'app_settings.fiat_on_ramp.headless_playground.event_log_error',
-            {
-              code: error.code,
-              messageSuffix: error.message ? ` (${error.message})` : '',
-            },
-          ),
-        );
-        setActiveSession(null);
-      },
-      onClose: (info) => {
-        appendEvent(
-          strings(
-            'app_settings.fiat_on_ramp.headless_playground.event_log_close',
-            { reason: info.reason },
-          ),
-        );
-        setActiveSession(null);
-      },
-    });
-    appendEvent(
-      strings(
-        'app_settings.fiat_on_ramp.headless_playground.event_log_started',
-        {
-          sessionId: session.sessionId,
-          assetId: params.assetId,
-          amount: params.amount,
-          paymentMethodId: params.paymentMethodId,
-          providerSuffix: params.providerId
-            ? `, provider=${params.providerId}`
-            : '',
+  const fiatCurrency = userRegion?.country?.currency;
+
+  // Per-quote start: each successful row in the quotes list renders a
+  // "Start headless buy" action that calls back here with the actual
+  // Quote object. The hook itself enforces the single-live-session
+  // policy (auto-cancels any prior active session), so this UI only has
+  // to wire callbacks + log events.
+  const handleStartHeadlessBuyForQuote = useCallback(
+    (quote: Quote, quoteIndex: number) => {
+      if (!headlessAmountIsValid) {
+        return;
+      }
+      const params = {
+        quote,
+        assetId: effectiveAssetId,
+        amount: headlessAmountAsNumber,
+        currency: fiatCurrency,
+      };
+      const session = startHeadlessBuy(params, {
+        onOrderCreated: (orderId) => {
+          appendEvent(
+            strings(
+              'app_settings.fiat_on_ramp.headless_playground.event_log_order_created',
+              { orderId },
+            ),
+          );
+          setActiveSession(null);
         },
-      ),
-    );
-    setActiveSession(session);
-  }, [
-    appendEvent,
-    effectiveAssetId,
-    effectivePaymentMethodId,
-    effectiveProviderId,
-    headlessAmountAsNumber,
-    headlessAmountIsValid,
-    startHeadlessBuy,
-  ]);
+        onError: (error) => {
+          appendEvent(
+            strings(
+              'app_settings.fiat_on_ramp.headless_playground.event_log_error',
+              {
+                code: error.code,
+                messageSuffix: error.message ? ` (${error.message})` : '',
+              },
+            ),
+          );
+          setActiveSession(null);
+        },
+        onClose: (info) => {
+          appendEvent(
+            strings(
+              'app_settings.fiat_on_ramp.headless_playground.event_log_close',
+              { reason: info.reason },
+            ),
+          );
+          setActiveSession(null);
+        },
+      });
+      appendEvent(
+        strings(
+          'app_settings.fiat_on_ramp.headless_playground.event_log_started',
+          {
+            sessionId: session.sessionId,
+            assetId: params.assetId,
+            amount: params.amount,
+            paymentMethodId: quote.quote.paymentMethod ?? '',
+            providerSuffix: quote.providerInfo?.id
+              ? `, provider=${quote.providerInfo.id}`
+              : `, provider=${quote.provider}`,
+          },
+        ),
+      );
+      setActiveSession({ ...session, quoteIndex });
+    },
+    [
+      appendEvent,
+      effectiveAssetId,
+      fiatCurrency,
+      headlessAmountAsNumber,
+      headlessAmountIsValid,
+      startHeadlessBuy,
+    ],
+  );
 
   const handleCancelHeadlessSession = useCallback(() => {
     if (!activeSession) {
@@ -634,7 +648,7 @@ function HeadlessPlayground() {
 
   return (
     <SafeAreaView edges={['top']} style={styles.container}>
-      <HeaderCompactStandard
+      <HeaderStandard
         testID={HEADLESS_PLAYGROUND_HEADER_TEST_ID}
         title={strings('app_settings.fiat_on_ramp.headless_playground.title')}
         onBack={handleBack}
@@ -1025,84 +1039,6 @@ function HeadlessPlayground() {
                   ) : null}
                 </View>
 
-                <View style={styles.actionsRow}>
-                  <Button
-                    variant={ButtonVariant.Secondary}
-                    onPress={handleStartHeadlessBuy}
-                    isDisabled={!canGetQuotes || activeSession !== null}
-                    testID={HEADLESS_PLAYGROUND_START_BUTTON_TEST_ID}
-                  >
-                    {strings(
-                      'app_settings.fiat_on_ramp.headless_playground.start_headless_buy',
-                    )}
-                  </Button>
-                  {activeSession ? (
-                    <Pressable
-                      onPress={handleCancelHeadlessSession}
-                      style={styles.sandboxParamReset}
-                      accessibilityRole="button"
-                      testID={HEADLESS_PLAYGROUND_CANCEL_BUTTON_TEST_ID}
-                    >
-                      <Text
-                        variant={TextVariant.BodySm}
-                        color={TextColor.PrimaryDefault}
-                        fontWeight={FontWeight.Medium}
-                      >
-                        {strings(
-                          'app_settings.fiat_on_ramp.headless_playground.cancel_headless_buy',
-                        )}
-                      </Text>
-                    </Pressable>
-                  ) : null}
-                  {!canGetQuotes ? (
-                    <Text
-                      variant={TextVariant.BodyXs}
-                      color={TextColor.TextAlternative}
-                      style={styles.actionsHint}
-                    >
-                      {strings(
-                        'app_settings.fiat_on_ramp.headless_playground.start_headless_buy_disabled_hint',
-                      )}
-                    </Text>
-                  ) : null}
-                </View>
-
-                <View
-                  style={styles.eventLogSection}
-                  testID={HEADLESS_PLAYGROUND_EVENT_LOG_TEST_ID}
-                >
-                  <Text
-                    variant={TextVariant.BodySm}
-                    fontWeight={FontWeight.Medium}
-                    style={styles.eventLogTitle}
-                  >
-                    {strings(
-                      'app_settings.fiat_on_ramp.headless_playground.event_log_title',
-                    )}
-                  </Text>
-                  {eventLog.length === 0 ? (
-                    <Text
-                      variant={TextVariant.BodyXs}
-                      color={TextColor.TextAlternative}
-                    >
-                      {strings(
-                        'app_settings.fiat_on_ramp.headless_playground.event_log_empty',
-                      )}
-                    </Text>
-                  ) : (
-                    eventLog.map((line, index) => (
-                      <Text
-                        key={`event-${index}`}
-                        variant={TextVariant.BodyXs}
-                        color={TextColor.TextAlternative}
-                        style={styles.eventLogLine}
-                      >
-                        {line}
-                      </Text>
-                    ))
-                  )}
-                </View>
-
                 <View
                   style={styles.section}
                   testID={HEADLESS_PLAYGROUND_QUOTES_SECTION_TEST_ID}
@@ -1156,13 +1092,86 @@ function HeadlessPlayground() {
                             quotes={headlessQuotesResult}
                             paymentMethods={paymentMethods}
                             cryptoSymbol={headlessResolvedToken?.symbol}
-                            fiatCurrency={userRegion?.country?.currency?.toUpperCase()}
+                            fiatCurrency={fiatCurrency?.toUpperCase()}
+                            canStart={canGetQuotes}
+                            hasActiveSession={activeSession !== null}
+                            activeSessionQuoteIndex={
+                              activeSession?.quoteIndex ?? null
+                            }
+                            onStartHeadlessBuy={handleStartHeadlessBuyForQuote}
                             styles={styles}
                           />
                         ) : null}
                       </ScrollView>
                     </View>
                   </Accordion>
+                </View>
+
+                {activeSession ? (
+                  <View style={styles.actionsRow}>
+                    <Text
+                      variant={TextVariant.BodyXs}
+                      color={TextColor.TextAlternative}
+                      style={styles.actionsHint}
+                    >
+                      {strings(
+                        'app_settings.fiat_on_ramp.headless_playground.active_session_hint',
+                        { sessionId: activeSession.sessionId },
+                      )}
+                    </Text>
+                    <Pressable
+                      onPress={handleCancelHeadlessSession}
+                      style={styles.sandboxParamReset}
+                      accessibilityRole="button"
+                      testID={HEADLESS_PLAYGROUND_CANCEL_BUTTON_TEST_ID}
+                    >
+                      <Text
+                        variant={TextVariant.BodySm}
+                        color={TextColor.PrimaryDefault}
+                        fontWeight={FontWeight.Medium}
+                      >
+                        {strings(
+                          'app_settings.fiat_on_ramp.headless_playground.cancel_headless_buy',
+                        )}
+                      </Text>
+                    </Pressable>
+                  </View>
+                ) : null}
+
+                <View
+                  style={styles.eventLogSection}
+                  testID={HEADLESS_PLAYGROUND_EVENT_LOG_TEST_ID}
+                >
+                  <Text
+                    variant={TextVariant.BodySm}
+                    fontWeight={FontWeight.Medium}
+                    style={styles.eventLogTitle}
+                  >
+                    {strings(
+                      'app_settings.fiat_on_ramp.headless_playground.event_log_title',
+                    )}
+                  </Text>
+                  {eventLog.length === 0 ? (
+                    <Text
+                      variant={TextVariant.BodyXs}
+                      color={TextColor.TextAlternative}
+                    >
+                      {strings(
+                        'app_settings.fiat_on_ramp.headless_playground.event_log_empty',
+                      )}
+                    </Text>
+                  ) : (
+                    eventLog.map((line, index) => (
+                      <Text
+                        key={`event-${index}`}
+                        variant={TextVariant.BodyXs}
+                        color={TextColor.TextAlternative}
+                        style={styles.eventLogLine}
+                      >
+                        {line}
+                      </Text>
+                    ))
+                  )}
                 </View>
               </View>
             </Row>
@@ -1178,6 +1187,10 @@ interface QuotesListProps {
   paymentMethods: PaymentMethod[];
   cryptoSymbol?: string;
   fiatCurrency?: string;
+  canStart: boolean;
+  hasActiveSession: boolean;
+  activeSessionQuoteIndex: number | null;
+  onStartHeadlessBuy: (quote: Quote, quoteIndex: number) => void;
   styles: ReturnType<typeof styleSheet>;
 }
 
@@ -1186,9 +1199,13 @@ function QuotesList({
   paymentMethods,
   cryptoSymbol,
   fiatCurrency,
+  canStart,
+  hasActiveSession,
+  activeSessionQuoteIndex,
+  onStartHeadlessBuy,
   styles,
 }: QuotesListProps) {
-  const successList = quotes?.success ?? [];
+  const successList = (quotes?.success ?? []) as Quote[];
   const errorList = quotes?.error ?? [];
 
   if (successList.length === 0 && errorList.length === 0) {
@@ -1211,6 +1228,10 @@ function QuotesList({
           paymentMethods={paymentMethods}
           cryptoSymbol={cryptoSymbol}
           fiatCurrency={fiatCurrency}
+          canStart={canStart}
+          hasActiveSession={hasActiveSession}
+          isActiveSessionQuote={activeSessionQuoteIndex === index}
+          onStartHeadlessBuy={onStartHeadlessBuy}
           styles={styles}
         />
       ))}
@@ -1248,11 +1269,15 @@ function QuotesList({
 }
 
 interface QuoteRowProps {
-  entry: unknown;
+  entry: Quote;
   index: number;
   paymentMethods: PaymentMethod[];
   cryptoSymbol?: string;
   fiatCurrency?: string;
+  canStart: boolean;
+  hasActiveSession: boolean;
+  isActiveSessionQuote: boolean;
+  onStartHeadlessBuy: (quote: Quote, quoteIndex: number) => void;
   styles: ReturnType<typeof styleSheet>;
 }
 
@@ -1262,6 +1287,10 @@ function QuoteRow({
   paymentMethods,
   cryptoSymbol,
   fiatCurrency,
+  canStart,
+  hasActiveSession,
+  isActiveSessionQuote,
+  onStartHeadlessBuy,
   styles,
 }: QuoteRowProps) {
   const provider = readQuoteProvider(entry);
@@ -1373,6 +1402,33 @@ function QuoteRow({
           styles={styles}
         />
       ) : null}
+
+      <View style={styles.quoteRowAction}>
+        <Button
+          variant={ButtonVariant.Primary}
+          isFullWidth
+          isDisabled={!canStart}
+          onPress={() => onStartHeadlessBuy(entry, index)}
+          startAccessory={
+            isActiveSessionQuote ? (
+              <Spinner
+                color={IconColor.PrimaryInverse}
+                spinnerIconProps={{ size: IconSize.Sm }}
+                testID={`${HEADLESS_PLAYGROUND_START_BUTTON_SPINNER_TEST_ID}-${index}`}
+              />
+            ) : undefined
+          }
+          testID={`${HEADLESS_PLAYGROUND_START_BUTTON_TEST_ID}-${index}`}
+        >
+          {hasActiveSession
+            ? strings(
+                'app_settings.fiat_on_ramp.headless_playground.replace_and_start_headless_buy',
+              )
+            : strings(
+                'app_settings.fiat_on_ramp.headless_playground.start_headless_buy',
+              )}
+        </Button>
+      </View>
     </View>
   );
 }

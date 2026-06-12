@@ -12,6 +12,7 @@ import { CardFundingToken, FundingStatus } from '../../types';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
+import useRampsUnifiedV2Enabled from '../../../Ramp/hooks/useRampsUnifiedV2Enabled';
 import { CardHomeSelectors } from '../../Views/CardHome/CardHome.testIds';
 import { RampsButtonClickData } from '../../../Ramp/hooks/useRampsButtonClickData';
 
@@ -19,6 +20,7 @@ import { RampsButtonClickData } from '../../../Ramp/hooks/useRampsButtonClickDat
 const mockUseParams = jest.fn();
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+const mockGoToBuy = jest.fn();
 const mockGoToDeposit = jest.fn();
 
 // Mock dependencies
@@ -74,7 +76,6 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
 }));
 
 const mockButtonClickData: RampsButtonClickData = {
-  ramp_routing: undefined,
   is_authenticated: false,
   preferred_provider: undefined,
   order_count: 0,
@@ -148,8 +149,13 @@ describe('AddFundsBottomSheet', () => {
     });
 
     (useRampNavigation as jest.Mock).mockReturnValue({
+      goToBuy: mockGoToBuy,
       goToDeposit: mockGoToDeposit,
     });
+
+    // Default V2 enabled — the whole point of this migration is UB2 routing.
+    // Individual tests override to false where they need to assert V1 fallback.
+    (useRampsUnifiedV2Enabled as jest.Mock).mockReturnValue(true);
 
     (useDepositEnabled as jest.Mock).mockReturnValue({
       isDepositEnabled: true,
@@ -223,7 +229,7 @@ describe('AddFundsBottomSheet', () => {
     expect(getByText('Swap tokens into USDC on Linea')).toBeTruthy();
   });
 
-  it('handles deposit option press correctly', () => {
+  it('tracks analytics and trace with UNIFIED_BUY_2 ramp_type when Fund with cash is pressed', () => {
     const { getByText } = setupComponent();
 
     fireEvent.press(getByText('Fund with cash'));
@@ -239,8 +245,7 @@ describe('AddFundsBottomSheet', () => {
         button_text: 'Fund with cash',
         location: 'CardHome',
         chain_id_destination: '59144',
-        ramp_type: 'DEPOSIT',
-        ramp_routing: undefined,
+        ramp_type: 'UNIFIED_BUY_2',
         is_authenticated: false,
         preferred_provider: undefined,
         order_count: 0,
@@ -250,6 +255,20 @@ describe('AddFundsBottomSheet', () => {
     expect(trace).toHaveBeenCalledWith({
       name: TraceName.LoadDepositExperience,
     });
+  });
+
+  it('tags analytics with ramp_type DEPOSIT when the UB2 feature flag is disabled', () => {
+    (useRampsUnifiedV2Enabled as jest.Mock).mockReturnValue(false);
+
+    const { getByText } = setupComponent();
+
+    fireEvent.press(getByText('Fund with cash'));
+
+    expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        ramp_type: 'DEPOSIT',
+      }),
+    );
   });
 
   it('handles swap option press correctly', () => {
@@ -321,12 +340,44 @@ describe('AddFundsBottomSheet', () => {
     expect(getByText('Swap tokens into ETH on Linea')).toBeTruthy();
   });
 
-  it('navigates to deposit route when deposit callback is executed', () => {
+  it('routes Fund with cash through goToBuy (UB2-aware) with the priority token CAIP-19 assetId', () => {
     const { getByText } = setupComponent();
 
     fireEvent.press(getByText('Fund with cash'));
 
-    expect(mockGoToDeposit).toHaveBeenCalled();
+    // goToBuy is the smart router in useRampNavigation; when V2 is enabled
+    // (default for this suite), it dispatches to UB2 (BuildQuote). See
+    // useRampNavigation.test.ts > 'goToBuy > when unified V2 is enabled'.
+    expect(mockGoToBuy).toHaveBeenCalledTimes(1);
+    expect(mockGoToBuy).toHaveBeenCalledWith({
+      assetId: `${mockPriorityToken.caipChainId}/erc20:${mockPriorityToken.address}`,
+    });
+  });
+
+  it('does NOT call the deprecated goToDeposit (UB1) when Fund with cash is pressed', () => {
+    // Regression guard: this entry point was migrated off goToDeposit (UB1)
+    // to goToBuy (UB2-aware). If someone reverts that, this test goes red.
+    const { getByText } = setupComponent();
+
+    fireEvent.press(getByText('Fund with cash'));
+
+    expect(mockGoToDeposit).not.toHaveBeenCalled();
+  });
+
+  it('falls back to goToBuy() with no intent when the priority token has no address', () => {
+    // No assetId → useRampNavigation routes UB2 to TokenSelection
+    // (see useRampNavigation.ts, 'V2: If no assetId and V2 is enabled').
+    const tokenWithoutAddress: CardFundingToken = {
+      ...mockPriorityToken,
+      address: null,
+    };
+
+    const { getByText } = setupComponent(tokenWithoutAddress);
+
+    fireEvent.press(getByText('Fund with cash'));
+
+    expect(mockGoToBuy).toHaveBeenCalledTimes(1);
+    expect(mockGoToBuy).toHaveBeenCalledWith(undefined);
   });
 
   it('renders component correctly', () => {

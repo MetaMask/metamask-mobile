@@ -493,7 +493,7 @@ describe('ConfirmPhoneNumber Component', () => {
       );
 
       const button = getByTestId('confirm-phone-number-continue-button');
-      expect(button.props.disabled).toBe(true);
+      expect(button).toBeDisabled();
     });
 
     it('should be disabled when confirmation code is incomplete', () => {
@@ -508,7 +508,7 @@ describe('ConfirmPhoneNumber Component', () => {
       fireEvent.changeText(codeFieldInput, '123');
 
       const button = getByTestId('confirm-phone-number-continue-button');
-      expect(button.props.disabled).toBe(true);
+      expect(button).toBeDisabled();
     });
 
     it('should be enabled when confirmation code is complete', () => {
@@ -523,7 +523,7 @@ describe('ConfirmPhoneNumber Component', () => {
       fireEvent.changeText(codeFieldInput, '123456');
 
       const button = getByTestId('confirm-phone-number-continue-button');
-      expect(button.props.disabled).toBe(false);
+      expect(button).not.toBeDisabled();
     });
 
     it('navigates to VERIFY_IDENTITY when continue button is pressed', async () => {
@@ -865,7 +865,7 @@ describe('ConfirmPhoneNumber Component', () => {
       const continueButton = getByTestId(
         'confirm-phone-number-continue-button',
       );
-      expect(continueButton.props.disabled).toBe(true);
+      expect(continueButton).toBeDisabled();
     });
 
     it('has continue button disabled when code is incomplete', () => {
@@ -882,7 +882,7 @@ describe('ConfirmPhoneNumber Component', () => {
       );
 
       fireEvent.changeText(codeField, '12345');
-      expect(continueButton.props.disabled).toBe(true);
+      expect(continueButton).toBeDisabled();
     });
 
     it('enables continue button when code is complete and valid', () => {
@@ -899,7 +899,7 @@ describe('ConfirmPhoneNumber Component', () => {
       );
 
       fireEvent.changeText(codeField, '123456');
-      expect(continueButton.props.disabled).toBe(false);
+      expect(continueButton).not.toBeDisabled();
     });
 
     it('disables continue button when verification is loading', () => {
@@ -924,7 +924,7 @@ describe('ConfirmPhoneNumber Component', () => {
       );
 
       fireEvent.changeText(codeField, '123456');
-      expect(continueButton.props.disabled).toBe(true);
+      expect(continueButton).toBeDisabled();
     });
 
     it('disables continue button when verification has error', () => {
@@ -949,7 +949,7 @@ describe('ConfirmPhoneNumber Component', () => {
       );
 
       fireEvent.changeText(codeField, '123456');
-      expect(continueButton.props.disabled).toBe(true);
+      expect(continueButton).toBeDisabled();
     });
 
     it('disables continue button when required Redux state is missing', () => {
@@ -972,7 +972,7 @@ describe('ConfirmPhoneNumber Component', () => {
       );
 
       fireEvent.changeText(codeField, '123456');
-      expect(continueButton.props.disabled).toBe(true);
+      expect(continueButton).toBeDisabled();
     });
   });
 

@@ -34,6 +34,9 @@ interface UseWithdrawalRequestsResult {
   refetch: () => Promise<void>;
 }
 
+const EMPTY_WITHDRAWAL_REQUESTS: WithdrawalRequest[] = [];
+const EMPTY_TX_HASHES: string[] = [];
+
 const WITHDRAWAL_POLL_INTERVAL_MS = 5000;
 const WITHDRAWAL_SEARCH_BUFFER_MS = 60000;
 
@@ -56,8 +59,10 @@ export const useWithdrawalRequests = (
 
   const allWithdrawals = useStableArray(
     usePerpsSelector((state) => {
-      const withdrawals = state?.withdrawalRequests || [];
-      if (!selectedAddress) return [];
+      const withdrawals =
+        state?.withdrawalRequests ?? EMPTY_WITHDRAWAL_REQUESTS;
+      if (!selectedAddress || withdrawals.length === 0)
+        return EMPTY_WITHDRAWAL_REQUESTS;
       return withdrawals.filter(
         (req) =>
           req.accountAddress?.toLowerCase() === selectedAddress.toLowerCase(),
@@ -79,7 +84,7 @@ export const useWithdrawalRequests = (
     (state) => state?.lastCompletedWithdrawalTimestamp ?? null,
   );
   const lastCompletedTxHashes = usePerpsSelector(
-    (state) => state?.lastCompletedWithdrawalTxHashes ?? [],
+    (state) => state?.lastCompletedWithdrawalTxHashes ?? EMPTY_TX_HASHES,
   );
 
   const initialFetchDoneRef = useRef(false);

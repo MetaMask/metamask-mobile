@@ -1,42 +1,46 @@
-import { SECURITY_PRIVACY_DELETE_WALLET_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
 import {
   SecurityPrivacyViewSelectorsIDs,
   SecurityPrivacyViewSelectorsText,
 } from '../../../../app/components/Views/Settings/SecuritySettings/SecurityPrivacyView.testIds';
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
+import { EncapsulatedElementType } from '../../../framework';
 
 class SecurityAndPrivacy {
-  get changePasswordButton(): DetoxElement {
+  get changePasswordButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_BUTTON,
     );
   }
 
-  get revealSecretRecoveryPhraseButton(): DetoxElement {
+  get revealSecretRecoveryPhraseButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       SecurityPrivacyViewSelectorsIDs.REVEAL_SEED_BUTTON,
     );
   }
-  get clearPrivacyDataButton(): DetoxElement {
+  get clearPrivacyDataButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       SecurityPrivacyViewSelectorsIDs.CLEAR_PRIVACY_DATA_BUTTON,
     );
   }
 
-  get securityAndPrivacyHeading(): DetoxElement {
+  get securityAndPrivacyHeading(): EncapsulatedElementType {
     return Matchers.getElementByText(
       SecurityPrivacyViewSelectorsText.SECURITY_AND_PRIVACY_HEADING,
     );
   }
 
-  get deleteWalletButton(): DetoxElement {
+  get deleteWalletButton(): EncapsulatedElementType {
     return device.getPlatform() === 'ios'
-      ? Matchers.getElementByID(SECURITY_PRIVACY_DELETE_WALLET_BUTTON)
-      : Matchers.getElementByLabel(SECURITY_PRIVACY_DELETE_WALLET_BUTTON);
+      ? Matchers.getElementByID(
+          SecurityPrivacyViewSelectorsIDs.DELETE_WALLET_BUTTON,
+        )
+      : Matchers.getElementByLabel(
+          SecurityPrivacyViewSelectorsIDs.DELETE_WALLET_BUTTON,
+        );
   }
 
-  get metaMetricsToggle(): DetoxElement {
+  get metaMetricsToggle(): EncapsulatedElementType {
     return Matchers.getElementByID(
       SecurityPrivacyViewSelectorsIDs.METAMETRICS_SWITCH,
     );
@@ -47,60 +51,60 @@ class SecurityAndPrivacy {
     );
   }
 
-  get autoLockSection(): DetoxElement {
+  get autoLockSection(): EncapsulatedElementType {
     return Matchers.getElementByID(
       SecurityPrivacyViewSelectorsIDs.AUTO_LOCK_SECTION,
     );
   }
 
-  get autoLockDefault30Seconds(): DetoxElement {
+  get autoLockDefault30Seconds(): EncapsulatedElementType {
     return Matchers.getElementByText(
       SecurityPrivacyViewSelectorsText.AUTO_LOCK_30_SECONDS,
     );
   }
 
-  get rememberMeToggle(): DetoxElement {
+  get rememberMeToggle(): EncapsulatedElementType {
     return Matchers.getElementByID(
       SecurityPrivacyViewSelectorsIDs.REMEMBER_ME_TOGGLE,
     );
   }
 
-  get changePasswordSection(): DetoxElement {
+  get changePasswordSection(): EncapsulatedElementType {
     return Matchers.getElementByID(
       SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_CONTAINER,
     );
   }
 
-  get securitySettingsScroll(): DetoxElement {
+  get securitySettingsScroll(): EncapsulatedElementType {
     return Matchers.getElementByID(
       SecurityPrivacyViewSelectorsIDs.SECURITY_SETTINGS_SCROLL,
     );
   }
-  get showPrivateKey(): DetoxElement {
+  get showPrivateKey(): EncapsulatedElementType {
     return Matchers.getElementByText(
       SecurityPrivacyViewSelectorsText.SHOW_PRIVATE_KEY,
     );
   }
 
-  get showPrivateKeyButton(): DetoxElement {
+  get showPrivateKeyButton(): EncapsulatedElementType {
     return Matchers.getElementByText(
       SecurityPrivacyViewSelectorsText.SHOW_PRIVATE_KEY,
     );
   }
 
-  get backUpNow(): DetoxElement {
+  get backUpNow(): EncapsulatedElementType {
     return Matchers.getElementByText(
       SecurityPrivacyViewSelectorsText.BACK_UP_NOW,
     );
   }
 
-  get privacyHeader(): DetoxElement {
+  get privacyHeader(): EncapsulatedElementType {
     return Matchers.getElementByText(
       SecurityPrivacyViewSelectorsText.PRIVACY_HEADING,
     );
   }
 
-  get clearBrowserCookiesButton(): DetoxElement {
+  get clearBrowserCookiesButton(): EncapsulatedElementType {
     return Matchers.getElementByText(
       SecurityPrivacyViewSelectorsText.CLEAR_BROWSER_COOKIES,
     );

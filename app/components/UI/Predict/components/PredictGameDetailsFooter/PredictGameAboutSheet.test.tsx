@@ -5,10 +5,6 @@ import PredictGameAboutSheet from './PredictGameAboutSheet';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import Logger from '../../../../../util/Logger';
 
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  openURL: jest.fn().mockResolvedValue(undefined),
-}));
-
 jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
 }));

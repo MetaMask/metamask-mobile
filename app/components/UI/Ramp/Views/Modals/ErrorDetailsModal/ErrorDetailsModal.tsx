@@ -5,19 +5,19 @@ import { useNavigation, type ParamListBase } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import {
   BottomSheet,
-  type BottomSheetRef,
-  Text,
-  TextVariant,
-  TextColor,
   Button,
-  ButtonVariant,
   ButtonBaseSize,
+  ButtonVariant,
+  HeaderStandard,
   Icon,
+  IconColor,
   IconName,
   IconSize,
-  IconColor,
+  Text,
+  TextColor,
+  TextVariant,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
-import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import { useStyles } from '../../../../../hooks/useStyles';
 import {
   createNavigationDetails,
@@ -27,6 +27,7 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import Logger from '../../../../../../util/Logger';
 import styleSheet from './ErrorDetailsModal.styles';
+import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
 
 export interface ErrorDetailsModalParams {
   errorMessage: string;
@@ -57,6 +58,7 @@ function ErrorDetailsModal() {
     showChangeProvider,
     amount,
   } = useParams<ErrorDetailsModalParams>();
+  const surfaceClass = useElevatedSurface();
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -91,8 +93,12 @@ function ErrorDetailsModal() {
   }, [navigation, amount]);
 
   return (
-    <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
-      <HeaderCompactStandard
+    <BottomSheet
+      ref={sheetRef}
+      goBack={navigation.goBack}
+      twClassName={surfaceClass}
+    >
+      <HeaderStandard
         onClose={handleClose}
         closeButtonProps={{ testID: 'error-details-close-button' }}
       >
@@ -106,7 +112,7 @@ function ErrorDetailsModal() {
             {strings('deposit.errors.error_details_title')}
           </Text>
         </View>
-      </HeaderCompactStandard>
+      </HeaderStandard>
 
       <ScrollView style={styles.scrollView}>
         <View style={styles.contentContainer}>

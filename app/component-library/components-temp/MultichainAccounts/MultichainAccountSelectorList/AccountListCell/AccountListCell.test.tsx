@@ -8,9 +8,9 @@ import {
   createMockState,
   createMockWallet,
 } from '../../test-utils';
-import { AvatarAccountType } from '../../../../components/Avatars/Avatar';
+import { AvatarAccountType } from '../../avatarAccountVariant';
 import { RootState } from '../../../../../reducers';
-import { CHECKBOX_ICON_TESTID } from '../../../../components/Checkbox/Checkbox.constants';
+import { ACCOUNT_LIST_CELL_CHECKBOX_ICON_TEST_ID } from './AccountListCell.testIds';
 
 const mockNavigate = jest.fn();
 
@@ -169,7 +169,7 @@ describe('AccountListCell', () => {
       expect(
         getByTestId(`account-list-cell-checkbox-${mockAccountGroup.id}`),
       ).toBeTruthy();
-      expect(getByTestId(CHECKBOX_ICON_TESTID)).toBeTruthy();
+      expect(getByTestId(ACCOUNT_LIST_CELL_CHECKBOX_ICON_TEST_ID)).toBeTruthy();
     });
 
     it('renders unchecked checkbox when isSelected is false', () => {
@@ -188,7 +188,9 @@ describe('AccountListCell', () => {
       expect(
         getByTestId(`account-list-cell-checkbox-${mockAccountGroup.id}`),
       ).toBeTruthy();
-      expect(queryByTestId(CHECKBOX_ICON_TESTID)).toBeFalsy();
+      expect(
+        queryByTestId(ACCOUNT_LIST_CELL_CHECKBOX_ICON_TEST_ID),
+      ).toBeFalsy();
     });
 
     it('calls onSelectAccount when checkbox is pressed', () => {
@@ -246,7 +248,7 @@ describe('AccountListCell', () => {
       expect(
         getByTestId(`account-list-cell-checkbox-${mockAccountGroup.id}`),
       ).toBeTruthy();
-      expect(getByTestId(CHECKBOX_ICON_TESTID)).toBeTruthy();
+      expect(getByTestId(ACCOUNT_LIST_CELL_CHECKBOX_ICON_TEST_ID)).toBeTruthy();
       expect(getByText('Test Account')).toBeTruthy();
     });
   });

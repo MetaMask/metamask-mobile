@@ -9,7 +9,7 @@ import React, {
 import { addBreadcrumb } from '@sentry/react-native';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 import { PERPS_CONNECTION_SOURCE } from '../constants/perpsConfig';
-import { isE2E } from '../../../../util/test/utils';
+import { hasTestOverrides } from '../../../../util/test/utils';
 import PerpsConnectionErrorView from '../components/PerpsConnectionErrorView';
 import {
   PERPS_CONSTANTS,
@@ -52,13 +52,13 @@ export const PerpsConnectionProvider: React.FC<
     PerpsConnectionManager.getConnectionState(),
   );
   const [retryAttempts, setRetryAttempts] = useState(0);
-  const pollIntervalRef = useRef<NodeJS.Timeout>();
+  const pollIntervalRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const lastErrorBreadcrumbRef = useRef<string | null>(null);
 
   // Poll connection state to sync with singleton
   useEffect(() => {
     // Skip polling in E2E mode to prevent timer interference
-    if (isE2E) {
+    if (hasTestOverrides) {
       // Set mock connected state for E2E
       setConnectionState({
         isConnected: true,
@@ -100,7 +100,7 @@ export const PerpsConnectionProvider: React.FC<
   }, []);
 
   useEffect(() => {
-    if (isE2E || suppressErrorView) {
+    if (hasTestOverrides || suppressErrorView) {
       return;
     }
 
@@ -277,7 +277,7 @@ export const PerpsConnectionProvider: React.FC<
   );
 
   useEffect(() => {
-    if (!connectionState.error) {
+    if (!connectionState.error || suppressErrorView) {
       lastErrorBreadcrumbRef.current = null;
       return;
     }
@@ -296,7 +296,7 @@ export const PerpsConnectionProvider: React.FC<
       },
     });
     lastErrorBreadcrumbRef.current = connectionState.error;
-  }, [connectionState.error, retryAttempts]);
+  }, [connectionState.error, retryAttempts, suppressErrorView]);
 
   // Environment-level error handling - show error screen if connection failed
   // This ensures NO Perps screen can render when there's a connection error

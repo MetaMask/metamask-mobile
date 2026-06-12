@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Keyboard, TextInput, TouchableOpacity, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useNavigation } from '@react-navigation/native';
@@ -12,9 +18,9 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from '../../Deposit/Views/BasicInfo/BasicInfo.styles';
 import { useParams } from '../../../../../util/navigation/navUtils';
@@ -36,11 +42,13 @@ import { BannerAlertSeverity } from '../../../../../component-library/components
 import { ButtonVariants } from '../../../../../component-library/components/Buttons/Button';
 import { TextVariant as ComponentLibraryTextVariant } from '../../../../../component-library/components/Texts/Text/Text.types';
 import { useTransakController } from '../../hooks/useTransakController';
+import useRampsController from '../../hooks/useRampsController';
 import { useRampsUserRegion } from '../../hooks/useRampsUserRegion';
 import type { TransakBuyQuote } from '@metamask/ramps-controller';
 import type { AddressFormData } from '../../Deposit/Views/EnterAddress/EnterAddress';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import { BASIC_INFO_TEST_IDS } from './BasicInfo.testIds';
+import { createV2EnterEmailNavDetails } from './EnterEmail';
 
 export interface BasicInfoFormData {
   firstName: string;
@@ -53,15 +61,23 @@ export interface BasicInfoFormData {
 interface V2BasicInfoParams {
   quote: TransakBuyQuote;
   previousFormData?: BasicInfoFormData & AddressFormData;
+  /**
+   * Forwarded from `useTransakRouting` resets when in a headless buy flow
+   * so logout / address steps keep the session id for `EnterEmail` →
+   * `OtpCode` and post-auth stack resets.
+   */
+  headlessSessionId?: string;
 }
 
 const V2BasicInfo = (): JSX.Element => {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
   const trackEvent = useAnalytics();
-  const { quote, previousFormData } = useParams<V2BasicInfoParams>();
+  const { quote, previousFormData, headlessSessionId } =
+    useParams<V2BasicInfoParams>();
   const { logoutFromProvider, patchUser, submitSsnDetails } =
     useTransakController();
+  const { selectedToken } = useRampsController();
   const { userRegion } = useRampsUserRegion();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -183,6 +199,7 @@ const V2BasicInfo = (): JSX.Element => {
       navigation.navigate(Routes.RAMP.ENTER_ADDRESS, {
         previousFormData,
         quote,
+        ...(headlessSessionId ? { headlessSessionId } : {}),
       });
     } catch (submissionError) {
       const apiError = (
@@ -229,21 +246,46 @@ const V2BasicInfo = (): JSX.Element => {
     navigation,
     quote,
     previousFormData,
+    headlessSessionId,
     regionIsoCode,
     trackEvent,
   ]);
 
+  const enterEmailParamsForLogout = useMemo(
+    () =>
+      headlessSessionId
+        ? {
+            headlessSessionId,
+            amount:
+              quote?.fiatAmount != null ? String(quote.fiatAmount) : undefined,
+            // TransakBuyQuote uses plain strings for fiatCurrency / cryptoCurrency
+            // (not `{ symbol }` / `{ assetId }` objects).
+            currency: quote?.fiatCurrency,
+            // CAIP asset id for post-logout OTP quote fetch — prefer controller
+            // (seeded in headless buy) over quote.cryptoCurrency (a display ticker).
+            assetId: selectedToken?.assetId,
+          }
+        : undefined,
+    [headlessSessionId, quote, selectedToken?.assetId],
+  );
+
   const handleLogout = useCallback(async () => {
     try {
       await logoutFromProvider(false);
-      navigation.navigate(Routes.RAMP.ENTER_EMAIL as never);
+      if (enterEmailParamsForLogout) {
+        navigation.navigate(
+          ...createV2EnterEmailNavDetails(enterEmailParamsForLogout),
+        );
+      } else {
+        navigation.navigate(Routes.RAMP.ENTER_EMAIL as never);
+      }
     } catch (logoutError) {
       Logger.error(
         logoutError as Error,
         'Error logging out from BasicInfo error banner',
       );
     }
-  }, [logoutFromProvider, navigation]);
+  }, [logoutFromProvider, navigation, enterEmailParamsForLogout]);
 
   const handleSsnInfoPress = useCallback(() => {
     navigation.navigate(Routes.RAMP.MODALS.ID, {
@@ -252,7 +294,7 @@ const V2BasicInfo = (): JSX.Element => {
   }, [navigation]);
 
   const focusNextField = useCallback(
-    (nextRef: React.RefObject<TextInput>) => () => {
+    (nextRef: React.RefObject<TextInput | null>) => () => {
       nextRef.current?.focus();
     },
     [],
@@ -304,7 +346,7 @@ const V2BasicInfo = (): JSX.Element => {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
-        <HeaderCompactStandard
+        <HeaderStandard
           title={strings('deposit.basic_info.navbar_title')}
           onBack={handleHeaderBack}
           backButtonProps={{ testID: 'deposit-back-navbar-button' }}

@@ -9,6 +9,7 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   ButtonIcon,
+  HeaderStandard,
   IconName,
   IconSize,
   FontWeight,
@@ -27,7 +28,6 @@ import {
 } from '../../../../../util/networks';
 import ClipboardManager from '../../../../../core/ClipboardManager';
 import type { OffDeviceAccount } from '../../hooks/useLinkedOffDeviceAccounts';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 
 const styles = StyleSheet.create({
@@ -147,7 +147,8 @@ const LinkedOffDeviceAccountsSheet: React.FC<
 
   return (
     <BottomSheet shouldNavigateBack={false} onClose={onClose}>
-      <HeaderCompactStandard
+      <HeaderStandard
+        testID="header-compact-standard"
         title={strings('rewards.settings.off_device_accounts_sheet_title')}
         onClose={onClose}
       />

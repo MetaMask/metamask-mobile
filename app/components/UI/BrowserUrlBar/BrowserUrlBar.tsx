@@ -29,7 +29,6 @@ import { BrowserViewSelectorsIDs } from '../../Views/BrowserTab/BrowserView.test
 import { strings } from '../../../../locales/i18n';
 import { BrowserURLBarSelectorsIDs } from './BrowserURLBar.testIds';
 import AccountRightButton from '../AccountRightButton';
-import Text from '../../../component-library/components/Texts/Text';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import { useSelector } from 'react-redux';
 import { selectNetworkConfigurations } from '../../../selectors/networkController';
@@ -43,6 +42,7 @@ import ButtonIcon, {
 } from '../../../component-library/components/Buttons/ButtonIcon';
 import { hasProperty } from '@metamask/utils';
 import TabCountIcon from '../Tabs/TabCountIcon';
+import { Text } from '@metamask/design-system-react-native';
 
 const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
   (
@@ -77,6 +77,23 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
         return new URLParse(activeUrl).origin;
       } catch {
         return '';
+      }
+    }, [activeUrl]);
+
+    /**
+     * URL to display in the unfocused address bar.
+     * Strips the fragment (hash) to prevent address bar spoofing via large
+     * URL fragments (e.g. #lns=) that cause misleading domain display when
+     * the text is head-truncated.
+     */
+    const displayUrl = useMemo(() => {
+      if (!activeUrl) return activeUrl;
+      try {
+        const parsed = new URLParse(activeUrl);
+        // Reconstruct URL without fragment: origin + pathname + query
+        return `${parsed.origin}${parsed.pathname}${parsed.query}`;
+      } catch {
+        return activeUrl;
       }
     }, [activeUrl]);
     const {
@@ -291,7 +308,7 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
                 numberOfLines={1}
                 ellipsizeMode="head"
               >
-                {inputValueRef.current || activeUrl}
+                {inputValueRef.current || displayUrl}
               </Text>
             </TouchableWithoutFeedback>
           </View>

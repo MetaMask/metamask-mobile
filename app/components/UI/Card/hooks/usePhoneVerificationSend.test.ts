@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act } from '@testing-library/react-native';
 import { useCardSDK } from '../sdk';
 import {
   PhoneVerificationSendRequest,
@@ -130,11 +130,16 @@ describe('usePhoneVerificationSend', () => {
 
       const { result } = renderHook(() => usePhoneVerificationSend());
 
-      await expect(
-        act(async () => {
+      let thrownError: unknown;
+      await act(async () => {
+        try {
           await result.current.sendPhoneVerification(mockSendRequest);
-        }),
-      ).rejects.toThrow('Card SDK not initialized');
+        } catch (e) {
+          thrownError = e;
+        }
+      });
+
+      expect(thrownError).toEqual(new Error('Card SDK not initialized'));
 
       expect(result.current.isLoading).toBe(false);
       expect(result.current.isSuccess).toBe(false);
@@ -149,11 +154,16 @@ describe('usePhoneVerificationSend', () => {
 
       const { result } = renderHook(() => usePhoneVerificationSend());
 
-      await expect(
-        act(async () => {
+      let thrownError: unknown;
+      await act(async () => {
+        try {
           await result.current.sendPhoneVerification(mockSendRequest);
-        }),
-      ).rejects.toThrow('Card SDK not initialized');
+        } catch (e) {
+          thrownError = e;
+        }
+      });
+
+      expect(thrownError).toEqual(new Error('Card SDK not initialized'));
     });
 
     it('should handle CardError correctly', async () => {
@@ -165,11 +175,16 @@ describe('usePhoneVerificationSend', () => {
 
       const { result } = renderHook(() => usePhoneVerificationSend());
 
-      await expect(
-        act(async () => {
+      let thrownError: unknown;
+      await act(async () => {
+        try {
           await result.current.sendPhoneVerification(mockSendRequest);
-        }),
-      ).rejects.toThrow(cardError);
+        } catch (e) {
+          thrownError = e;
+        }
+      });
+
+      expect(thrownError).toBe(cardError);
 
       expect(mockGetErrorMessage).toHaveBeenCalledWith(cardError);
       expect(result.current.isLoading).toBe(false);
@@ -184,11 +199,16 @@ describe('usePhoneVerificationSend', () => {
 
       const { result } = renderHook(() => usePhoneVerificationSend());
 
-      await expect(
-        act(async () => {
+      let thrownError: unknown;
+      await act(async () => {
+        try {
           await result.current.sendPhoneVerification(mockSendRequest);
-        }),
-      ).rejects.toThrow(networkError);
+        } catch (e) {
+          thrownError = e;
+        }
+      });
+
+      expect(thrownError).toBe(networkError);
 
       expect(mockGetErrorMessage).toHaveBeenCalledWith(networkError);
       expect(result.current.isLoading).toBe(false);
@@ -203,11 +223,16 @@ describe('usePhoneVerificationSend', () => {
 
       const { result } = renderHook(() => usePhoneVerificationSend());
 
-      await expect(
-        act(async () => {
+      let thrownError: unknown;
+      await act(async () => {
+        try {
           await result.current.sendPhoneVerification(mockSendRequest);
-        }),
-      ).rejects.toBe(unknownError);
+        } catch (e) {
+          thrownError = e;
+        }
+      });
+
+      expect(thrownError).toBe(unknownError);
 
       expect(mockGetErrorMessage).toHaveBeenCalledWith(unknownError);
       expect(result.current.isLoading).toBe(false);
@@ -225,11 +250,13 @@ describe('usePhoneVerificationSend', () => {
       const { result } = renderHook(() => usePhoneVerificationSend());
 
       // First, trigger an error
-      await expect(
-        act(async () => {
+      await act(async () => {
+        try {
           await result.current.sendPhoneVerification(mockSendRequest);
-        }),
-      ).rejects.toThrow();
+        } catch (_e) {
+          // expected
+        }
+      });
 
       expect(result.current.isError).toBe(true);
       expect(result.current.error).toBe('Mocked error message');
@@ -278,11 +305,13 @@ describe('usePhoneVerificationSend', () => {
       const { result } = renderHook(() => usePhoneVerificationSend());
 
       // First, trigger an error
-      await expect(
-        act(async () => {
+      await act(async () => {
+        try {
           await result.current.sendPhoneVerification(mockSendRequest);
-        }),
-      ).rejects.toThrow();
+        } catch (_e) {
+          // expected
+        }
+      });
 
       expect(result.current.isError).toBe(true);
       expect(result.current.error).toBe('Mocked error message');
@@ -331,11 +360,16 @@ describe('usePhoneVerificationSend', () => {
 
       const { result } = renderHook(() => usePhoneVerificationSend());
 
-      await expect(
-        act(async () => {
+      let thrownError: unknown;
+      await act(async () => {
+        try {
           await result.current.sendPhoneVerification(mockSendRequest);
-        }),
-      ).rejects.toThrow();
+        } catch (e) {
+          thrownError = e;
+        }
+      });
+
+      expect(thrownError).toBeDefined();
     });
   });
 
@@ -389,7 +423,7 @@ describe('usePhoneVerificationSend', () => {
       const initialClearError = result.current.clearError;
       const initialReset = result.current.reset;
 
-      rerender();
+      rerender(undefined);
 
       expect(result.current.sendPhoneVerification).toBe(
         initialSendPhoneVerification,

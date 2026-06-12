@@ -1,10 +1,15 @@
 import React from 'react';
+import { Linking } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import ShowWarningBanner from './showWarningBanner';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 import { CONNECTING_TO_A_DECEPTIVE_SITE } from '../../../constants/urls';
 
+jest.mock('../../../util/analytics/externalLinkTracking', () => ({
+  ...jest.requireActual('../../../util/analytics/externalLinkTracking'),
+  trackExternalLinkClicked: jest.fn(),
+}));
+import { trackExternalLinkClicked } from '../../../util/analytics/externalLinkTracking';
 const mockTrackEvent = jest.fn();
 jest.mock('../../../util/analytics/analytics', () => ({
   analytics: {
@@ -26,13 +31,6 @@ jest.mock('../../../util/analytics/AnalyticsEventBuilder', () => {
   };
 });
 
-const mockOpenURL = jest.fn();
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  openURL: (url: string) => mockOpenURL(url),
-  addEventListener: jest.fn(() => ({ remove: jest.fn() })),
-  removeEventListener: jest.fn(),
-}));
-
 describe('ShowWarningBanner', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -43,10 +41,14 @@ describe('ShowWarningBanner', () => {
 
     fireEvent.press(getByText('Learn more'));
 
-    expect(mockTrackEvent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        name: MetaMetricsEvents.EXTERNAL_LINK_CLICKED,
-      }),
+    expect(jest.mocked(trackExternalLinkClicked)).toHaveBeenCalledWith(
+      expect.any(Function),
+      expect.any(Function),
+      {
+        location: 'dapp_connection_request',
+        text: 'Learn More',
+        url_domain: CONNECTING_TO_A_DECEPTIVE_SITE,
+      },
     );
   });
 
@@ -55,6 +57,8 @@ describe('ShowWarningBanner', () => {
 
     fireEvent.press(getByText('Learn more'));
 
-    expect(mockOpenURL).toHaveBeenCalledWith(CONNECTING_TO_A_DECEPTIVE_SITE);
+    expect(Linking.openURL).toHaveBeenCalledWith(
+      CONNECTING_TO_A_DECEPTIVE_SITE,
+    );
   });
 });

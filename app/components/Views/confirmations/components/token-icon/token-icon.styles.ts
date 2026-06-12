@@ -20,7 +20,7 @@ const styleSheet = (params: {
   const { variant } = params.vars;
 
   const container: ViewStyle = {
-    marginTop: 0,
+    alignSelf: 'center',
   };
 
   const tokenIcon: ViewStyle = {

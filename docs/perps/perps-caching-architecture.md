@@ -78,12 +78,12 @@ All 9 channels support `pause()`/`resume()` — pausing blocks emission to React
 
 ### Session Layer: TradingReadinessCache (Global Singleton)
 
-| Cache           | What it stores                         | Key format                   | Cleared on disconnect? |
-| --------------- | -------------------------------------- | ---------------------------- | ---------------------- |
-| Signing state   | DEX abstraction, builder fee, referral | `network:userAddress`        | Never (intentional)    |
-| In-flight locks | Concurrent signing operation guards    | `opType:network:userAddress` | Self-clearing          |
+| Cache           | What it stores                                   | Key format                   | Cleared on disconnect? |
+| --------------- | ------------------------------------------------ | ---------------------------- | ---------------------- |
+| Signing state   | Unified Account migration, builder fee, referral | `network:userAddress`        | Never (intentional)    |
+| In-flight locks | Concurrent signing operation guards              | `opType:network:userAddress` | Self-clearing          |
 
-This is the most important "survives everything" cache. Providers are recreated on account/network changes, which resets all instance-level caches. TradingReadinessCache persists as a global singleton specifically to remember that a hardware wallet user already approved DEX abstraction — without it, every reconnect would trigger another QR code scan.
+This is the most important "survives everything" cache. Providers are recreated on account/network changes, which resets all instance-level caches. TradingReadinessCache persists as a global singleton specifically to remember that a hardware wallet user already approved the Unified Account migration — without it, every reconnect would trigger another QR code scan.
 
 ### Disk Layer: MMKV Cold-Start Cache
 
@@ -139,7 +139,7 @@ MMKV snapshots are written by both `PerpsController` preload and `PerpsStreamMan
 
 `PerpsController` and `PerpsStreamManager` both persist MMKV snapshots, and `PerpsController.#hydrateCacheFromDiskSync()` hydrates them on startup. This eliminates the cold-start loading skeleton: the last-known market list renders immediately with `$---` placeholder prices until fresh values arrive.
 
-**Latest validation**: iOS simulator `mm-3` measured `3908ms` for the first clean-cache PerpsHome load, `0ms` for same-session reopen, and after `yarn a:reload` the controller hydrated `286` markets in `9ms` with the first post-reload PerpsHome market data at `0ms`.
+**Latest validation**: iOS simulator `mm-3` measured `3908ms` for the first clean-cache PerpsHome load, `0ms` for same-session reopen, and after a Metro reload the controller hydrated `286` markets in `9ms` with the first post-reload PerpsHome market data at `0ms`.
 
 See [Disk Layer](#disk-layer-mmkv-cold-start-cache) above for full details.
 

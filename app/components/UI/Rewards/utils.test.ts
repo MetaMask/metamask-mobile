@@ -3,6 +3,7 @@ import {
   SOLANA_SIGNUP_NOT_SUPPORTED,
   convertInternalAccountToCaipAccountId,
   deriveAccountMetricProps,
+  getActiveRouteNameFromNavigationState,
 } from './utils';
 import { parseCaipChainId, toCaipAccountId } from '@metamask/utils';
 import Logger from '../../../util/Logger';
@@ -201,6 +202,47 @@ describe('Rewards Utils', () => {
           mockAccount.address,
         );
       });
+    });
+  });
+
+  describe('getActiveRouteNameFromNavigationState', () => {
+    it('returns the active route name from a nested navigation state', () => {
+      const routeName = getActiveRouteNameFromNavigationState({
+        index: 1,
+        routes: [
+          { name: 'Wallet' },
+          {
+            name: 'RewardsTab',
+            state: {
+              index: 1,
+              routes: [
+                { name: 'RewardsDashboard' },
+                { name: 'RewardsCampaignsView' },
+              ],
+            },
+          },
+        ],
+      });
+
+      expect(routeName).toBe('RewardsCampaignsView');
+    });
+
+    it('falls back to the route name when there is no nested state', () => {
+      const routeName = getActiveRouteNameFromNavigationState({
+        index: 0,
+        routes: [{ name: 'RewardsDashboard' }],
+      });
+
+      expect(routeName).toBe('RewardsDashboard');
+    });
+
+    it('returns undefined when the navigation state has no active route', () => {
+      const routeName = getActiveRouteNameFromNavigationState({
+        index: 2,
+        routes: [{ name: 'RewardsDashboard' }],
+      });
+
+      expect(routeName).toBeUndefined();
     });
   });
 

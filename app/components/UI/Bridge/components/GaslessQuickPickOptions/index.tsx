@@ -1,5 +1,8 @@
 import React, { useCallback, useMemo } from 'react';
-import { UnifiedSwapBridgeEventName } from '@metamask/bridge-controller';
+import {
+  FeatureId,
+  UnifiedSwapBridgeEventName,
+} from '@metamask/bridge-controller';
 import { QuickPickButtonOption } from '../SwapsKeypad/types';
 import { QuickPickButtons } from '../SwapsKeypad/QuickPickButtons';
 import { useShouldRenderMaxOption } from '../../hooks/useShouldRenderMaxOption';
@@ -7,6 +10,7 @@ import { BridgeToken } from '../../types';
 import { BigNumber } from 'bignumber.js';
 import { useABTest } from '../../../../../hooks';
 import Engine from '../../../../../core/Engine';
+import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
 import {
   NUMPAD_QUICK_ACTIONS_NO_MAX_VARIANTS,
   NUMPAD_QUICK_ACTIONS_AB_KEY,
@@ -44,15 +48,16 @@ export const GaslessQuickPickOptions = ({
         {
           input: 'token_amount_source',
           input_value: inputValue,
+          feature_id: FeatureId.UNIFIED_SWAP_BRIDGE,
           ...(preset && { input_amount_preset: preset }),
           // This Bridge-specific event bypasses the shared analytics wrappers,
           // so its A/B context still needs to be attached manually here.
           ...(isActive && {
             active_ab_tests: [
-              {
-                key: NUMPAD_QUICK_ACTIONS_AB_KEY,
-                value: variantName,
-              },
+              createActiveABTestAssignment(
+                NUMPAD_QUICK_ACTIONS_AB_KEY,
+                variantName,
+              ),
             ],
           }),
         },

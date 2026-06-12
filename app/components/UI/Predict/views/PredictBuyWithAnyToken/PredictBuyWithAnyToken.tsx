@@ -5,7 +5,12 @@ import {
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { RouteProp, useRoute } from '@react-navigation/native';
+import {
+  NavigationProp,
+  RouteProp,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import React, {
   useCallback,
   useEffect,
@@ -23,6 +28,7 @@ import PredictBuyActionButton from './components/PredictBuyActionButton';
 import PredictBuyAmountSection from './components/PredictBuyAmountSection';
 import PredictBuyBottomContent from './components/PredictBuyBottomContent';
 import PredictBuyError from './components/PredictBuyError';
+import PredictBuyErrorBanner from './components/PredictBuyErrorBanner';
 import PredictBuyPreviewHeader from './components/PredictBuyPreviewHeader/PredictBuyPreviewHeader';
 import PredictFeeBreakdownSheet from '../../components/PredictFeeBreakdownSheet';
 import PredictFeeSummary from './components/PredictFeeSummary/PredictFeeSummary';
@@ -51,25 +57,86 @@ import {
   PredictBuyPreviewProps,
   PredictNavigationParamList,
 } from '../../types/navigation';
+import Routes from '../../../../../constants/navigation/Routes';
 import { parseAnalyticsProperties } from '../../utils/analytics';
 import { formatPrice } from '../../utils/format';
 import { usePredictBuyError } from './hooks/usePredictBuyError';
 import { usePredictActiveOrder } from '../../hooks/usePredictActiveOrder';
+import { usePredictDeposit } from '../../hooks/usePredictDeposit';
+import {
+  predictBuyPreviewDismissedViaBackRef,
+  predictBuyPreviewSessionRef,
+} from '../PredictBuyPreview/PredictBuyPreview';
+
+interface BuyActionButtonStateParams {
+  isPaymentSelectorNavigationLocked: boolean;
+  isBannerActive: boolean;
+  isChangePaymentMode: boolean;
+  isAddFundsMode: boolean;
+  isRetrying: boolean;
+  hasPreview: boolean;
+  canPlaceBet: boolean;
+}
+
+const getBuyActionButtonState = ({
+  isPaymentSelectorNavigationLocked,
+  isBannerActive,
+  isChangePaymentMode,
+  isAddFundsMode,
+  isRetrying,
+  hasPreview,
+  canPlaceBet,
+}: BuyActionButtonStateParams) => {
+  if (isPaymentSelectorNavigationLocked) {
+    return {
+      disabled: true,
+      reducedOpacity: true,
+    };
+  }
+
+  if (!isBannerActive && (isChangePaymentMode || isAddFundsMode)) {
+    return {
+      disabled: false,
+      reducedOpacity: false,
+    };
+  }
+
+  if (isBannerActive) {
+    return {
+      disabled: isRetrying || !hasPreview,
+      reducedOpacity: !hasPreview,
+    };
+  }
+
+  return {
+    disabled: !canPlaceBet,
+    reducedOpacity: !canPlaceBet,
+  };
+};
 
 const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
   const tw = useTailwind();
   const keypadRef = useRef<PredictKeypadHandles>(null);
   const feeBreakdownSheetRef = useRef<BottomSheetRef>(null);
+  const navigation =
+    useNavigation<NavigationProp<PredictNavigationParamList>>();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
 
   const isSheetMode = props.mode === 'sheet';
-  const { market, outcome, outcomeToken, entryPoint } = isSheetMode
-    ? props
-    : route.params;
+  const {
+    market,
+    outcome,
+    outcomeToken,
+    entryPoint,
+    predictFeedTab,
+    predictScreen,
+    transactionActiveAbTests,
+  } = isSheetMode ? props : route.params;
   const onClose = isSheetMode ? props.onClose : undefined;
 
   const { isPlacingOrder } = usePredictActiveOrder();
+  const { deposit } = usePredictDeposit();
 
   const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
 
@@ -79,8 +146,15 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
   const fakOrdersEnabled = useSelector(selectPredictFakOrdersEnabledFlag);
 
   const analyticsProperties = useMemo(
-    () => parseAnalyticsProperties(market, outcomeToken, entryPoint),
-    [market, outcomeToken, entryPoint],
+    () =>
+      parseAnalyticsProperties(
+        market,
+        outcomeToken,
+        entryPoint,
+        predictFeedTab,
+        predictScreen,
+      ),
+    [market, outcomeToken, entryPoint, predictFeedTab, predictScreen],
   );
 
   const { availableBalance, isBalanceLoading } =
@@ -100,21 +174,21 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     setCurrentValue,
     currentValueUSDString,
     setCurrentValueUSDString,
-    isInputFocused,
-    setIsInputFocused,
+    isKeypadOpen,
+    setIsKeypadOpen,
     isUserInputChange,
     setIsUserInputChange,
     isConfirming,
     setIsConfirming,
-  } = usePredictBuyInputState();
+  } = usePredictBuyInputState({ initialKeypadOpen: !isSheetMode });
 
   const handleQuickAmount = useCallback(
     (amount: number) => {
       setCurrentValue(amount);
       setCurrentValueUSDString(amount.toString());
-      setIsInputFocused(false);
+      setIsKeypadOpen(false);
     },
-    [setCurrentValue, setCurrentValueUSDString, setIsInputFocused],
+    [setCurrentValue, setCurrentValueUSDString, setIsKeypadOpen],
   );
 
   const handleFeesInfoPress = useCallback(() => {
@@ -141,7 +215,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
   const {
     toWin,
     metamaskFee,
-    providerFee,
+    exchangeFee,
     total,
     depositFee,
     rewardsFeeAmount,
@@ -149,7 +223,6 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     hasBlockingPayAlerts,
     blockingPayAlertMessage,
   } = usePredictBuyInfo({
-    currentValue,
     preview,
     previewError,
     isConfirming,
@@ -163,7 +236,11 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     isBalancePulsing,
     isBelowMinimum,
     isInsufficientBalance,
-    maxBetAmount,
+    isCurrentTokenInsufficient,
+    hasAlternativeBalance,
+    isPaySystemSettling,
+    isPaymentSelectorNavigationLocked,
+    lockPaymentSelectorNavigation,
   } = usePredictBuyConditions({
     currentValue,
     preview,
@@ -171,22 +248,54 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     isUserInputChange,
     isConfirming,
     totalPayForPredictBalance,
-    isInputFocused,
     hasBlockingPayAlerts,
   });
 
-  const { errorMessage, isOrderNotFilled, resetOrderNotFilled } =
-    usePredictBuyError({
-      preview,
-      previewError,
-      isPlacingOrder,
-      isBelowMinimum,
-      isInsufficientBalance,
-      maxBetAmount,
-      isConfirming,
-      isPayFeesLoading,
-      blockingPayAlertMessage,
-    });
+  const {
+    errorMessage,
+    errorMessageSource,
+    buyErrorBanner,
+    isOrderNotFilled,
+    resetOrderNotFilled,
+    clearBuyErrorBanner,
+  } = usePredictBuyError({
+    preview,
+    previewError,
+    isPlacingOrder,
+    isBelowMinimum,
+    isInsufficientBalance,
+    isConfirming,
+    isPayFeesLoading,
+    isPaySystemSettling,
+    blockingPayAlertMessage,
+    outcomeTokenPrice: outcomeToken?.price,
+    isSheetMode,
+  });
+
+  const isChangePaymentMode = useMemo(
+    () => isCurrentTokenInsufficient && hasAlternativeBalance,
+    [isCurrentTokenInsufficient, hasAlternativeBalance],
+  );
+  const isAddFundsMode = useMemo(
+    () => isCurrentTokenInsufficient && !hasAlternativeBalance,
+    [isCurrentTokenInsufficient, hasAlternativeBalance],
+  );
+
+  const handleChangePaymentMethod = useCallback(() => {
+    lockPaymentSelectorNavigation();
+    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET);
+  }, [lockPaymentSelectorNavigation, navigation]);
+
+  const handleAddFunds = useCallback(() => {
+    if (isSheetMode) {
+      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
+        params: { autoDeposit: true },
+      });
+    } else {
+      deposit();
+    }
+  }, [deposit, isSheetMode, navigation]);
 
   const { handleConfirm, placeOrder } = usePredictBuyActions({
     analyticsProperties,
@@ -194,6 +303,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     setIsConfirming,
     isSheetMode,
     onClose,
+    transactionActiveAbTests,
   });
 
   useEffect(() => {
@@ -201,6 +311,14 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
       setIsUserInputChange(false);
     }
   }, [isPreviewCalculating, setIsUserInputChange]);
+
+  // Keep the shared session ref in sync so swipe/hardware-back dismiss tracking
+  // in PredictPreviewSheetContext reads the correct hadEnteredAmount value.
+  useEffect(() => {
+    if (currentValue > 0) {
+      predictBuyPreviewSessionRef.hadEnteredAmount = true;
+    }
+  }, [currentValue]);
 
   const {
     retrySheetRef,
@@ -213,7 +331,55 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     analyticsProperties,
     isOrderNotFilled,
     resetOrderNotFilled,
+    isSheetMode,
   });
+
+  const isBannerActive = !!buyErrorBanner;
+  const previousValueRef = useRef(currentValue);
+  useEffect(() => {
+    if (previousValueRef.current !== currentValue && isUserInputChange) {
+      clearBuyErrorBanner();
+    }
+    previousValueRef.current = currentValue;
+  }, [currentValue, isUserInputChange, clearBuyErrorBanner]);
+
+  // When the banner appears in sheet mode, close the keypad so the Retry CTA
+  // + banner are immediately visible without the user having to dismiss the
+  // keyboard.
+  useEffect(() => {
+    if (isSheetMode && isBannerActive && isKeypadOpen) {
+      setIsKeypadOpen(false);
+    }
+  }, [isSheetMode, isBannerActive, isKeypadOpen, setIsKeypadOpen]);
+
+  const handleBuyButtonPress = useCallback(() => {
+    if (isPaymentSelectorNavigationLocked) {
+      return;
+    }
+
+    if (isBannerActive) {
+      handleRetryWithBestPrice();
+      return;
+    }
+    if (isChangePaymentMode) {
+      handleChangePaymentMethod();
+      return;
+    }
+    if (isAddFundsMode) {
+      handleAddFunds();
+      return;
+    }
+    handleConfirm();
+  }, [
+    isBannerActive,
+    isPaymentSelectorNavigationLocked,
+    isChangePaymentMode,
+    isAddFundsMode,
+    handleRetryWithBestPrice,
+    handleChangePaymentMethod,
+    handleAddFunds,
+    handleConfirm,
+  ]);
 
   // Track screen load performance (balance + initial preview)
   usePredictMeasurement({
@@ -231,6 +397,26 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     ? { twClassName: 'bg-background-default' }
     : { style: tw.style('flex-1 bg-background-default') };
 
+  const {
+    disabled: isBuyActionButtonDisabled,
+    reducedOpacity: showBuyActionButtonReducedOpacity,
+  } = getBuyActionButtonState({
+    isPaymentSelectorNavigationLocked,
+    isBannerActive,
+    isChangePaymentMode,
+    isAddFundsMode,
+    isRetrying,
+    hasPreview: Boolean(preview),
+    canPlaceBet,
+  });
+  const shouldSuppressInlineError =
+    (isChangePaymentMode || isAddFundsMode) &&
+    errorMessageSource === 'insufficient_balance';
+  const shouldRenderInlineError =
+    !isSheetMode ||
+    !buyErrorBanner ||
+    errorMessageSource === 'blocking_pay_alert';
+
   return (
     <Wrapper {...wrapperProps}>
       {!isSheetMode && (
@@ -239,6 +425,12 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
           outcome={outcome}
           outcomeToken={outcomeToken}
           preview={preview}
+          onBack={() => {
+            // Mark this dismissal as a back-button press so the beforeRemove
+            // listener in usePredictBuyActions reports BACK_BUTTON instead of SWIPE.
+            predictBuyPreviewDismissedViaBackRef.current = true;
+            navigation.goBack();
+          }}
         />
       )}
       {isSheetMode ? (
@@ -250,7 +442,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
           <PredictBuyAmountSection
             currentValueUSDString={currentValueUSDString}
             keypadRef={keypadRef}
-            isInputFocused={isInputFocused}
+            isKeypadOpen={isKeypadOpen}
             isBalanceLoading={isBalanceLoading}
             isBalancePulsing={isBalancePulsing}
             availableBalanceDisplay={availableBalanceDisplay}
@@ -275,7 +467,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
             <PredictBuyAmountSection
               currentValueUSDString={currentValueUSDString}
               keypadRef={keypadRef}
-              isInputFocused={isInputFocused}
+              isKeypadOpen={isKeypadOpen}
               isBalanceLoading={isBalanceLoading}
               isBalancePulsing={isBalancePulsing}
               availableBalanceDisplay={availableBalanceDisplay}
@@ -285,75 +477,100 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
               hideAvailableBalance={false}
             />
             {payWithAnyTokenEnabled && (
-              <PredictPayWithRow disabled={isPlacingOrder} />
+              <PredictPayWithRow
+                disabled={isPlacingOrder || isPaymentSelectorNavigationLocked}
+                onPaymentSelectorOpen={lockPaymentSelectorNavigation}
+              />
             )}
           </Box>
         </ScrollView>
       )}
-      <PredictBuyError errorMessage={errorMessage} />
+      {shouldRenderInlineError && (
+        <PredictBuyError
+          errorMessage={shouldSuppressInlineError ? undefined : errorMessage}
+        />
+      )}
       {!isSheetMode && (
         <PredictKeypad
           ref={keypadRef}
-          isInputFocused={isInputFocused}
+          isKeypadOpen={isKeypadOpen}
           currentValue={currentValue}
           currentValueUSDString={currentValueUSDString}
           setCurrentValue={setCurrentValue}
           setCurrentValueUSDString={setCurrentValueUSDString}
-          setIsInputFocused={setIsInputFocused}
+          setIsKeypadOpen={setIsKeypadOpen}
         />
       )}
-      <PredictBuyBottomContent
-        isInputFocused={isSheetMode ? false : isInputFocused}
-        hideBorder={isSheetMode}
-      >
-        {isSheetMode && (
-          <PredictQuickAmounts
-            onSelectAmount={handleQuickAmount}
-            disabled={isPlacingOrder}
+      {(isSheetMode || !isKeypadOpen) && (
+        <PredictBuyBottomContent hideBorder={isSheetMode}>
+          {isSheetMode && (
+            <PredictQuickAmounts
+              onSelectAmount={handleQuickAmount}
+              disabled={isPlacingOrder}
+            />
+          )}
+          {payWithAnyTokenEnabled && isSheetMode && (
+            <PredictPayWithRow
+              disabled={isPlacingOrder || isPaymentSelectorNavigationLocked}
+              variant="row"
+              availableBalance={availableBalanceDisplay}
+              onPaymentSelectorOpen={lockPaymentSelectorNavigation}
+            />
+          )}
+          {/* Always enabled when rendered: in legacy mode the parent only
+              mounts PredictBuyBottomContent while the keypad is closed; in
+              sheet mode the fee summary is always actionable. */}
+          <PredictFeeSummary
+            disabled={false}
+            loading={isPayFeesLoading}
+            total={total}
+            rewardsFeeAmountUsd={rewardsFeeAmount}
+            rewardsLoadingOverride={isUserChangeTriggeringCalculation}
+            handleFeesInfoPress={handleFeesInfoPress}
           />
-        )}
-        {payWithAnyTokenEnabled && isSheetMode && (
-          <PredictPayWithRow
-            disabled={isPlacingOrder}
-            variant="row"
-            availableBalance={availableBalanceDisplay}
+          {isSheetMode && buyErrorBanner && (
+            <PredictBuyErrorBanner
+              variant={buyErrorBanner.variant}
+              title={buyErrorBanner.title}
+              description={buyErrorBanner.description}
+              testID={
+                buyErrorBanner.variant === 'price_changed'
+                  ? PredictBuyPreviewSelectorsIDs.PRICE_CHANGED_BANNER
+                  : PredictBuyPreviewSelectorsIDs.ORDER_FAILED_BANNER
+              }
+            />
+          )}
+          <PredictBuyActionButton
+            isLoading={isPlacingOrder || (isBannerActive && isRetrying)}
+            onPress={handleBuyButtonPress}
+            disabled={isBuyActionButtonDisabled}
+            showReducedOpacity={showBuyActionButtonReducedOpacity}
+            outcomeTokenTitle={outcomeToken?.title}
+            sharePrice={preview?.sharePrice ?? outcomeToken?.price ?? 0}
+            isSheetMode={isSheetMode}
+            isRetry={isSheetMode && isBannerActive}
+            isChangePaymentMode={!isBannerActive && isChangePaymentMode}
+            isAddFundsMode={!isBannerActive && isAddFundsMode}
+            testID={PredictBuyPreviewSelectorsIDs.PLACE_BET_BUTTON}
           />
-        )}
-        <PredictFeeSummary
-          disabled={isSheetMode ? false : isInputFocused}
-          loading={isPayFeesLoading}
-          total={total}
-          rewardsFeeAmountUsd={rewardsFeeAmount}
-          rewardsLoadingOverride={isUserChangeTriggeringCalculation}
-          handleFeesInfoPress={handleFeesInfoPress}
-        />
-        <PredictBuyActionButton
-          isLoading={isPlacingOrder}
-          onPress={handleConfirm}
-          disabled={!canPlaceBet}
-          showReducedOpacity={!canPlaceBet}
-          outcomeTokenTitle={outcomeToken?.title}
-          sharePrice={preview?.sharePrice ?? outcomeToken?.price ?? 0}
-          isSheetMode={isSheetMode}
-          testID={PredictBuyPreviewSelectorsIDs.PLACE_BET_BUTTON}
-        />
-      </PredictBuyBottomContent>
+        </PredictBuyBottomContent>
+      )}
       {isSheetMode && (
         <PredictKeypad
           ref={keypadRef}
-          isInputFocused={isInputFocused}
+          isKeypadOpen={isKeypadOpen}
           currentValue={currentValue}
           currentValueUSDString={currentValueUSDString}
           setCurrentValue={setCurrentValue}
           setCurrentValueUSDString={setCurrentValueUSDString}
-          setIsInputFocused={setIsInputFocused}
+          setIsKeypadOpen={setIsKeypadOpen}
           hideHeader
         />
       )}
       {isFeeBreakdownVisible && (
         <PredictFeeBreakdownSheet
           ref={feeBreakdownSheetRef}
-          providerFee={providerFee}
+          providerFee={exchangeFee}
           metamaskFee={metamaskFee}
           depositFee={depositFee}
           sharePrice={preview?.sharePrice ?? outcomeToken?.price ?? 0}
@@ -376,7 +593,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
       <PredictPayWithAnyTokenInfo
         currentValue={currentValue}
         preview={preview}
-        isInputFocused={isSheetMode ? false : isInputFocused}
+        shouldDeferRelaySetup={!isSheetMode && isKeypadOpen}
       />
     </Wrapper>
   );

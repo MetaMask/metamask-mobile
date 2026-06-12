@@ -1,13 +1,14 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import { Pressable } from 'react-native';
-import Text, {
+import {
+  FontWeight,
+  Text,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import Icon, {
-  IconName,
+  Icon,
   IconSize,
   IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
+  IconName,
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { styleSheet } from './PerpsMarketCategoryBadge.styles';
 import type { PerpsMarketCategoryBadgeProps } from './PerpsMarketCategoryBadge.types';
@@ -15,59 +16,62 @@ import type { PerpsMarketCategoryBadgeProps } from './PerpsMarketCategoryBadge.t
 /**
  * PerpsMarketCategoryBadge - Interactive badge for category filtering
  *
- * Displays a pressable badge/pill for selecting market categories.
- * When selected and showDismiss is true, shows an "×" icon to clear the filter.
+ * Supports two modes:
+ * - Text mode (default): renders a text label pill.
+ * - Icon mode: when `icon` is provided, renders an icon-only pill (same size/shape).
  *
  * @example
  * ```tsx
+ * // Text badge
  * <PerpsMarketCategoryBadge
- *   category="crypto"
  *   label="Crypto"
+ *   accessibilityLabel="Crypto"
  *   isSelected={selectedCategory === 'crypto'}
- *   showDismiss={selectedCategory === 'crypto'}
- *   onPress={() => setSelectedCategory('crypto')}
- *   onDismiss={() => setSelectedCategory('all')}
+ *   onPress={() => handleCategoryPress('crypto')}
+ * />
+ *
+ * // Icon-only badge (e.g. watchlist star)
+ * <PerpsMarketCategoryBadge
+ *   icon={IconName.Star}
+ *   accessibilityLabel="Watchlist"
+ *   isSelected={showFavoritesOnly}
+ *   onPress={onWatchlistToggle}
  * />
  * ```
  */
 const PerpsMarketCategoryBadge: React.FC<PerpsMarketCategoryBadgeProps> = ({
   label,
+  icon,
+  accessibilityLabel,
   isSelected,
-  showDismiss = false,
   onPress,
-  onDismiss,
   testID,
 }) => {
   const { styles } = useStyles(styleSheet, { isSelected });
 
-  const handlePress = useCallback(() => {
-    if (showDismiss && onDismiss) {
-      // If showing dismiss and clicked, treat as dismiss
-      onDismiss();
-    } else {
-      onPress();
-    }
-  }, [showDismiss, onDismiss, onPress]);
-
   return (
     <Pressable
       style={({ pressed }) => [styles.badge, pressed && styles.badgePressed]}
-      onPress={handlePress}
+      onPress={onPress}
       testID={testID}
       accessibilityRole="button"
       accessibilityState={{ selected: isSelected }}
-      accessibilityLabel={label}
+      accessibilityLabel={accessibilityLabel}
     >
-      <Text variant={TextVariant.BodySM} style={styles.badgeText}>
-        {label}
-      </Text>
-      {showDismiss && (
+      {icon ? (
         <Icon
-          name={IconName.Close}
-          size={IconSize.Xs}
-          color={IconColor.Inverse}
-          testID={testID ? `${testID}-dismiss` : undefined}
+          name={icon as IconName}
+          size={IconSize.Md}
+          color={isSelected ? IconColor.PrimaryInverse : IconColor.IconDefault}
         />
+      ) : (
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          style={styles.badgeText}
+        >
+          {label}
+        </Text>
       )}
     </Pressable>
   );

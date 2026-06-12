@@ -55,8 +55,8 @@ describe('PoolStakingLearnMoreModal', () => {
     jest.clearAllMocks();
   });
 
-  it('render matches snapshot', async () => {
-    const { toJSON, getByTestId } = renderWithProvider(
+  it('renders chart container', async () => {
+    const { getByTestId } = renderWithProvider(
       <SafeAreaProvider initialMetrics={initialMetrics}>
         <PoolStakingLearnMoreModal />
       </SafeAreaProvider>,
@@ -69,6 +69,8 @@ describe('PoolStakingLearnMoreModal', () => {
 
     fireLayoutEvent(areaChart);
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(
+      getByTestId(INTERACTIVE_TIMESPAN_CHART_DEFAULT_TEST_ID),
+    ).toBeOnTheScreen();
   });
 });

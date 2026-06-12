@@ -8,7 +8,6 @@ import type { Json } from '@metamask/utils';
 export enum FeatureFlagNames {
   rewardsEnabled = 'rewardsEnabled',
   otaUpdatesEnabled = 'otaUpdatesEnabled',
-  rewardsEnableMusdHolding = 'rewardsEnableMusdHolding',
   fullPageAccountList = 'fullPageAccountList',
   assetsDefiPositionsEnabled = 'assetsDefiPositionsEnabled',
   tokenDetailsV2Buttons = 'tokenDetailsV2Buttons',
@@ -16,8 +15,10 @@ export enum FeatureFlagNames {
   complianceEnabled = 'complianceEnabled',
   legacyIosGoogleConfigEnabled = 'legacyIosGoogleConfigEnabled',
   googleLoginIosUnsupportedBlockingEnabled = 'googleLoginIosUnsupportedBlockingEnabled',
+  telegramLoginEnabled = 'telegram_login_enabled',
   tronClaimUnstakedTrxButtonEnabled = 'tronClaimUnstakedTrxButtonEnabled',
   addDeviceSyncEnabled = 'addDeviceSyncEnabled',
+  hapticsKillSwitch = 'hapticsKillSwitch',
 }
 
 export const DEFAULT_FEATURE_FLAG_VALUES: Partial<
@@ -29,4 +30,5 @@ export const DEFAULT_FEATURE_FLAG_VALUES: Partial<
   [FeatureFlagNames.tronClaimUnstakedTrxButtonEnabled]: false,
   [FeatureFlagNames.googleLoginIosUnsupportedBlockingEnabled]: false,
   [FeatureFlagNames.addDeviceSyncEnabled]: true,
+  [FeatureFlagNames.telegramLoginEnabled]: false,
 };

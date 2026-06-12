@@ -10,7 +10,6 @@ import {
 } from '../../../actions/notification';
 import Engine from '../../Engine';
 import { Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
-
 jest.mock('../../../store', () => ({
   store: {
     dispatch: jest.fn(),
@@ -81,12 +80,26 @@ describe('HostApplicationAdapter', () => {
       expect(showSimpleNotification).toHaveBeenCalledTimes(1);
       expect(showSimpleNotification).toHaveBeenCalledWith({
         id: 'session-123',
-        autodismiss: 8000,
+        autodismiss: 10000,
         title: 'sdk_connect_v2.show_loading.title',
         description: 'sdk_connect_v2.show_loading.description',
         status: 'pending',
       });
       expect(store.dispatch).toHaveBeenCalledTimes(1);
+    });
+
+    it('uses a custom autodismiss timeout when provided', () => {
+      adapter.showConnectionLoading(
+        createMockConnectionInfo('session-123', 'Test DApp'),
+        { autodismissMs: 15000 },
+      );
+
+      expect(showSimpleNotification).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'session-123',
+          autodismiss: 15000,
+        }),
+      );
     });
   });
 

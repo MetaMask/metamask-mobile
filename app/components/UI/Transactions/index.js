@@ -19,7 +19,6 @@ import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { NO_RPC_BLOCK_EXPLORER, RPC } from '../../../constants/network';
 import Engine from '../../../core/Engine';
 import ToastService from '../../../core/ToastService/ToastService';
-import { getDeviceId } from '../../../core/Ledger/Ledger';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import NotificationManager from '../../../core/NotificationManager';
 import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
@@ -41,6 +40,9 @@ import { baseStyles, fontStyles } from '../../../styles/common';
 import { isHardwareAccount } from '../../../util/address';
 import Device from '../../../util/device';
 import Logger from '../../../util/Logger';
+import { analytics } from '../../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
 import {
   findBlockExplorerForNonEvmChainId,
   findBlockExplorerForRpc,
@@ -58,10 +60,13 @@ import {
 import {
   getGasValuesForReplacement,
   getMediumGasPriceHex,
+  normalizeReplacementGasFeeParams,
 } from '../../../util/confirmation/gas';
 import { validateTransactionActionBalance } from '../../../util/transactions';
-import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
-import { createQRSigningTransactionModalNavDetails } from '../../UI/QRHardware/QRSigningTransactionModal';
+import {
+  createQRSigningTransactionModalNavDetails,
+  QRSignMode,
+} from '../../UI/QRHardware/QRSigningTransactionModal';
 import { CancelSpeedupModal } from '../../Views/confirmations/components/modals/cancel-speedup-modal';
 import PriceChartContext, {
   PriceChartProvider,
@@ -71,7 +76,12 @@ import TransactionElement from '../TransactionElement';
 import TransactionsFooter from './TransactionsFooter';
 import { filterDuplicateOutgoingTransactions } from './utils';
 import { TabEmptyState } from '../../../component-library/components-temp/TabEmptyState';
+import {
+  useHardwareWallet,
+  executeHardwareWalletOperation,
+} from '../../../core/HardwareWallet';
 import { getTransactionUpdateErrorToastOptions } from '../../../util/confirmation/transactions';
+import { LedgerReplacementTxTypes } from '../LedgerModals/LedgerTransactionModal';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -203,10 +213,24 @@ class Transactions extends PureComponent {
      * Location context for analytics tracking (home or asset_details)
      */
     location: PropTypes.string,
+    hardwareWallet: PropTypes.shape({
+      ensureDeviceReady: PropTypes.func,
+      setPendingOperationAddress: PropTypes.func,
+      showAwaitingConfirmation: PropTypes.func,
+      hideAwaitingConfirmation: PropTypes.func,
+      showHardwareWalletError: PropTypes.func,
+    }),
   };
 
   static defaultProps = {
     headerHeight: 0,
+    hardwareWallet: {
+      ensureDeviceReady: async () => false,
+      setPendingOperationAddress: () => undefined,
+      showAwaitingConfirmation: () => undefined,
+      hideAwaitingConfirmation: () => undefined,
+      showHardwareWalletError: () => undefined,
+    },
   };
 
   state = {
@@ -454,6 +478,22 @@ class Transactions extends PureComponent {
         title = result.title;
       }
 
+      if (!url) {
+        throw new Error('Missing block explorer URL');
+      }
+
+      trackBlockExplorerLinkClicked(
+        analytics.trackEvent,
+        AnalyticsEventBuilder.createEventBuilder,
+        {
+          location: 'transactions_list',
+          text: title
+            ? `${strings('transactions.view_full_history_on')} ${title}`
+            : strings('asset_details.options.view_on_block'),
+          url,
+        },
+      );
+
       navigation.push('Webview', {
         screen: 'SimpleWebview',
         params: {
@@ -589,6 +629,11 @@ class Transactions extends PureComponent {
         ExtendedKeyringTypes.ledger,
       ]);
 
+      const isQRHardwareAccount = isHardwareAccount(
+        this.props.selectedAddress,
+        [ExtendedKeyringTypes.qr],
+      );
+
       const rawParams = this.getParamsToSend(transactionObject);
       const params = getGasValuesForReplacement(
         rawParams,
@@ -606,9 +651,26 @@ class Transactions extends PureComponent {
               : { legacyGasFee: params }),
           },
         });
-      } else {
-        await speedUpTransaction(this.speedUpTxId, params);
+        // The shared hardware-wallet flow closes the modal itself on success
+        // or rejection.
+        return;
       }
+
+      if (isQRHardwareAccount) {
+        const transactionId = this.speedUpTxId;
+        this.props.navigation.navigate(
+          ...createQRSigningTransactionModalNavDetails({
+            transactionId,
+            signMode: QRSignMode.SpeedUp,
+            gasValues: params,
+            onConfirmationComplete: () => undefined,
+          }),
+        );
+        this.closeSpeedUpCancelModal();
+        return;
+      }
+
+      await speedUpTransaction(this.speedUpTxId, params);
       this.closeSpeedUpCancelModal();
     } catch (e) {
       this.handleSpeedUpTransactionFailure(e);
@@ -630,23 +692,58 @@ class Transactions extends PureComponent {
   };
 
   signLedgerTransaction = async (transaction) => {
-    const deviceId = await getDeviceId();
+    const { hardwareWallet, selectedAddress } = this.props;
 
-    const onConfirmation = (isComplete) => {
-      if (isComplete) {
-        this.closeSpeedUpCancelModal();
-      }
-    };
+    if (!selectedAddress) {
+      throw new Error('Missing selected address for hardware wallet operation');
+    }
 
-    this.props.navigation.navigate(
-      ...createLedgerTransactionModalNavDetails({
-        transactionId: transaction.id,
-        deviceId,
-        onConfirmationComplete: onConfirmation,
-        type: 'signTransaction',
-        replacementParams: transaction?.replacementParams,
-      }),
+    const gasFeeParams = normalizeReplacementGasFeeParams(
+      transaction?.replacementParams,
     );
+
+    const didComplete = await executeHardwareWalletOperation({
+      address: selectedAddress,
+      operationType: 'transaction',
+      ensureDeviceReady: hardwareWallet.ensureDeviceReady,
+      setPendingOperationAddress: hardwareWallet.setPendingOperationAddress,
+      showAwaitingConfirmation: hardwareWallet.showAwaitingConfirmation,
+      hideAwaitingConfirmation: hardwareWallet.hideAwaitingConfirmation,
+      showHardwareWalletError: hardwareWallet.showHardwareWalletError,
+      execute: async () => {
+        if (
+          transaction?.replacementParams?.type ===
+          LedgerReplacementTxTypes.SPEED_UP
+        ) {
+          await speedUpTransaction(transaction.id, gasFeeParams);
+          return;
+        }
+
+        if (
+          transaction?.replacementParams?.type ===
+          LedgerReplacementTxTypes.CANCEL
+        ) {
+          await Engine.context.TransactionController.stopTransaction(
+            transaction.id,
+            gasFeeParams,
+          );
+          return;
+        }
+
+        await Engine.context.ApprovalController.acceptRequest(
+          transaction.id,
+          undefined,
+          {
+            waitForResult: true,
+          },
+        );
+      },
+      onRejected: this.closeSpeedUpCancelModal,
+    });
+
+    if (didComplete) {
+      this.closeSpeedUpCancelModal();
+    }
   };
 
   cancelUnsignedQRTransaction = async (tx) => {
@@ -667,6 +764,11 @@ class Transactions extends PureComponent {
         ExtendedKeyringTypes.ledger,
       ]);
 
+      const isQRHardwareAccount = isHardwareAccount(
+        this.props.selectedAddress,
+        [ExtendedKeyringTypes.qr],
+      );
+
       const rawParams = this.getParamsToSend(transactionObject);
       const params = getGasValuesForReplacement(
         rawParams,
@@ -684,12 +786,29 @@ class Transactions extends PureComponent {
               : { legacyGasFee: params }),
           },
         });
-      } else {
-        await Engine.context.TransactionController.stopTransaction(
-          this.cancelTxId,
-          params,
-        );
+        // The shared hardware-wallet flow closes the modal itself on success
+        // or rejection.
+        return;
       }
+
+      if (isQRHardwareAccount) {
+        const transactionId = this.cancelTxId;
+        this.props.navigation.navigate(
+          ...createQRSigningTransactionModalNavDetails({
+            transactionId,
+            signMode: QRSignMode.Cancel,
+            gasValues: params,
+            onConfirmationComplete: () => undefined,
+          }),
+        );
+        this.closeSpeedUpCancelModal();
+        return;
+      }
+
+      await Engine.context.TransactionController.stopTransaction(
+        this.cancelTxId,
+        params,
+      );
       this.closeSpeedUpCancelModal();
     } catch (e) {
       this.handleCancelTransactionFailure(e);
@@ -876,7 +995,13 @@ const mapDispatchToProps = (dispatch) => ({
 
 export { Transactions as UnconnectedTransactions };
 
+const TransactionsWithHardwareWallet = (props) => {
+  const hardwareWallet = useHardwareWallet();
+
+  return <Transactions {...props} hardwareWallet={hardwareWallet} />;
+};
+
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-)(withQRHardwareAwareness(Transactions));
+)(withQRHardwareAwareness(TransactionsWithHardwareWallet));

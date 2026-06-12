@@ -46,8 +46,8 @@ describe('ShowNftSheet', () => {
     jest.clearAllMocks();
   });
 
-  it('render matches snapshot', () => {
-    const { toJSON } = renderWithProvider(
+  it('renders the sheet title', () => {
+    const { getByText } = renderWithProvider(
       <Stack.Navigator>
         <Stack.Screen name={Routes.SHEET.SHOW_NFT_DISPLAY_MEDIA}>
           {() => <ShowDisplayNFTMediaSheet />}
@@ -58,7 +58,7 @@ describe('ShowNftSheet', () => {
       },
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('Display NFT media')).toBeOnTheScreen();
   });
 
   it('setDisplayNftMedia to true on confirm', () => {

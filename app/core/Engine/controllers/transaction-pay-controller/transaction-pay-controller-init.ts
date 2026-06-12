@@ -3,11 +3,12 @@ import Logger from '../../../../util/Logger';
 import {
   TransactionPayController,
   TransactionPayControllerMessenger,
-  TransactionPayStrategy,
 } from '@metamask/transaction-pay-controller';
-import { TransactionMeta } from '@metamask/transaction-controller';
 import { TransactionPayControllerInitMessenger } from '../../messengers/transaction-pay-controller-messenger';
+import { getAmountData } from './amount-data-callback';
 import { getDelegationTransaction } from '../../../../util/transactions/delegation';
+import { getPaymentOverrideData } from './paymentoverride-callback';
+import { createPolymarketCallbacks } from './polymarket-callbacks';
 
 export const TransactionPayControllerInit: MessengerClientInitFunction<
   TransactionPayController,
@@ -18,10 +19,13 @@ export const TransactionPayControllerInit: MessengerClientInitFunction<
 
   try {
     const transactionPayController = new TransactionPayController({
+      getAmountData,
       getDelegationTransaction: ({ transaction }) =>
         getDelegationTransaction(initMessenger, transaction),
-      getStrategy,
+      getPaymentOverrideData: (request) =>
+        getPaymentOverrideData(request, initMessenger),
       messenger: controllerMessenger,
+      polymarket: createPolymarketCallbacks(initMessenger),
       state: persistedState.TransactionPayController,
     });
 
@@ -34,7 +38,3 @@ export const TransactionPayControllerInit: MessengerClientInitFunction<
     throw error;
   }
 };
-
-function getStrategy(_transaction: TransactionMeta): TransactionPayStrategy {
-  return TransactionPayStrategy.Relay;
-}

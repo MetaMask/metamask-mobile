@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
 import {
@@ -76,6 +76,9 @@ jest.mock('../../../../../locales/i18n', () => ({
 jest.mock('../utils', () => ({
   convertInternalAccountToCaipAccountId: jest.fn(
     (account) => `eip155:1:${account.id}`,
+  ),
+  navigateToRewardsRoute: jest.fn((navigation, screen, params) =>
+    navigation.navigate('RewardsFlow', { screen, params }),
   ),
 }));
 
@@ -240,7 +243,10 @@ describe('useRewardDashboardModals', () => {
         type: 'SET_HIDE_UNLINKED_ACCOUNTS_BANNER',
         payload: true,
       });
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_SETTINGS_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
+        screen: Routes.REWARDS_SETTINGS_VIEW,
+        params: undefined,
+      });
     });
 
     it('handles cancel action correctly', () => {

@@ -18,18 +18,13 @@ import {
   pbkdf2,
 } from '../../../Encryptor';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
-import { store, runSaga } from '../../../../store';
+import { store } from '../../../../store';
 import PREINSTALLED_SNAPS from '../../../../lib/snaps/preinstalled-snaps';
 import { buildAndTrackEvent } from '../../utils/analytics';
 import type { AnalyticsUnfilteredProperties } from '../../../../util/analytics/analytics.types';
-import { take } from 'redux-saga/effects';
-import { selectCompletedOnboarding } from '../../../../selectors/onboarding';
-import {
-  SET_COMPLETED_ONBOARDING,
-  SetCompletedOnboardingAction,
-} from '../../../../actions/onboarding';
-import { SagaIterator } from 'redux-saga';
 import { getMnemonicSeed } from '../../../Snaps/permissions/utils';
+import { ensureOnboardingComplete } from '../../utils/ensureOnboardingComplete';
+import { CAN_INSTALL_THIRD_PARTY_SNAPS } from '../../../../constants/snaps';
 
 /**
  * Initialize the Snap controller.
@@ -48,7 +43,7 @@ export const snapControllerInit: MessengerClientInitFunction<
   SnapControllerInitMessenger
 > = ({ initMessenger, controllerMessenger, persistedState }) => {
   const requireAllowlist = process.env.METAMASK_BUILD_TYPE !== 'flask';
-  const disableSnapInstallation = process.env.METAMASK_BUILD_TYPE !== 'flask';
+  const disableSnapInstallation = !CAN_INSTALL_THIRD_PARTY_SNAPS;
   const allowLocalSnaps = process.env.METAMASK_BUILD_TYPE === 'flask';
   const autoUpdatePreinstalledSnaps = true;
 
@@ -73,33 +68,6 @@ export const snapControllerInit: MessengerClientInitFunction<
     return {
       disableSnaps: !isBasicFunctionalityToggleEnabled(),
     };
-  }
-
-  function* ensureOnboardingCompleteSaga(): SagaIterator {
-    while (true) {
-      const result = (yield take([
-        SET_COMPLETED_ONBOARDING,
-      ])) as SetCompletedOnboardingAction;
-
-      if (result.completedOnboarding) {
-        return;
-      }
-    }
-  }
-
-  let onboardingPromise: Promise<void> | null = null;
-
-  async function ensureOnboardingComplete() {
-    if (selectCompletedOnboarding(store.getState())) {
-      return;
-    }
-
-    if (!onboardingPromise) {
-      onboardingPromise = runSaga(ensureOnboardingCompleteSaga).toPromise();
-    }
-
-    await onboardingPromise;
-    onboardingPromise = null;
   }
 
   const controller = new SnapController({
