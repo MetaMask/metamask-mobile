@@ -93,7 +93,7 @@ export const useTopTraders = (
       username: entry.name,
       avatarUri: entry.imageUrl ?? undefined,
       percentageChange: (entry.roiPercent30d ?? 0) * 100,
-      pnlValue: entry.pnl30d,
+      pnlValue: entry.pnl7d ?? entry.pnl30d,
       pnlPerChain: entry.pnlPerChain ?? {},
       isFollowing: isFollowing(entry.profileId),
     }));
