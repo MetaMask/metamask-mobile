@@ -21,7 +21,6 @@ import { TransactionDetailLocation } from '../../../../core/Analytics/events/tra
 import { useABTest } from '../../../../hooks/useABTest';
 import { RootState } from '../../../../reducers';
 import { selectNetworkConfigurationByChainId } from '../../../../selectors/networkController';
-import { ImpactMoment, playImpact } from '../../../../util/haptics';
 import { LIGHT_MODE_SUCCESS_GREEN, useTheme } from '../../../../util/theme';
 import { AppThemeKey } from '../../../../util/theme/models';
 import { TraceName, endTrace } from '../../../../util/trace';
@@ -39,12 +38,7 @@ import {
   AMBIENT_PRICE_COLOR_AB_KEY,
   AMBIENT_PRICE_COLOR_VARIANTS,
 } from '../components/abTestConfig';
-import {
-  SOCIAL_AI_QUICK_BUY_AB_KEY,
-  SOCIAL_AI_QUICK_BUY_EXPOSURE_METADATA,
-  SOCIAL_AI_QUICK_BUY_VARIANTS,
-} from '../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/abTestConfig';
-import AssetDetailsQuickBuy from '../components/AssetDetailsQuickBuy';
+import { useStickyQuickBuy } from '../hooks/useStickyQuickBuy';
 import AssetOverviewContent from '../components/AssetOverviewContent';
 import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
 import TokenDetailsStickyFooter from '../components/TokenDetailsStickyFooter';
@@ -165,28 +159,15 @@ const TokenDetails: React.FC<{
   const navigation = useNavigation();
   const [isInsightsDisclaimerVisible, setIsInsightsDisclaimerVisible] =
     useState(false);
-  const [isQuickBuyVisible, setIsQuickBuyVisible] = useState(false);
-
-  const handleQuickBuyPress = useCallback(() => {
-    playImpact(ImpactMoment.PrimaryCTA);
-    setIsQuickBuyVisible(true);
-  }, []);
-
-  const handleQuickBuyClose = useCallback(() => {
-    setIsQuickBuyVisible(false);
-  }, []);
+  const { onQuickBuyPress, quickBuySheet } = useStickyQuickBuy({
+    token,
+    source: 'asset_details',
+  });
   const { variant: ambientColorVariant } = useABTest(
     AMBIENT_PRICE_COLOR_AB_KEY,
     AMBIENT_PRICE_COLOR_VARIANTS,
   );
   const useAmbientColor = ambientColorVariant.useAmbientPriceColor;
-
-  const { variant: quickBuyVariant } = useABTest(
-    SOCIAL_AI_QUICK_BUY_AB_KEY,
-    SOCIAL_AI_QUICK_BUY_VARIANTS,
-    SOCIAL_AI_QUICK_BUY_EXPOSURE_METADATA,
-  );
-  const isQuickBuyEnabled = quickBuyVariant.showQuickBuy;
 
   const caip19AssetId = useMemo((): CaipAssetType | null => {
     try {
@@ -406,7 +387,7 @@ const TokenDetails: React.FC<{
           useAmbientColor={useAmbientColor}
           onSwapPress={onCtaClicked}
           onBuyPress={onCtaClicked}
-          onQuickBuyPress={isQuickBuyEnabled ? handleQuickBuyPress : undefined}
+          onQuickBuyPress={onQuickBuyPress}
           quickBuyTestID={TokenOverviewSelectorsIDs.QUICK_BUY_BUTTON}
         />
       )}
@@ -415,13 +396,7 @@ const TokenDetails: React.FC<{
           onClose={() => setIsInsightsDisclaimerVisible(false)}
         />
       )}
-      {isQuickBuyEnabled && (
-        <AssetDetailsQuickBuy
-          isVisible={isQuickBuyVisible}
-          token={token}
-          onClose={handleQuickBuyClose}
-        />
-      )}
+      {quickBuySheet}
     </View>
   );
 };
