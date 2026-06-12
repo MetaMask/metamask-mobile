@@ -27,11 +27,10 @@ describe('TraderRow', () => {
     jest.clearAllMocks();
   });
 
-  it('renders rank, username, and PnL', () => {
+  it('renders username and PnL', () => {
     renderWithProvider(
       <TraderRow trader={baseTrader} onFollowPress={mockOnFollowPress} />,
     );
-    expect(screen.getByText('1')).toBeOnTheScreen();
     expect(screen.getByText('sniperliquid')).toBeOnTheScreen();
     expect(screen.getByText('+$963,146.80')).toBeOnTheScreen();
   });
@@ -203,24 +202,6 @@ describe('TraderRow', () => {
 
       expect(buttonWithMinWidth).not.toBeNull();
       expect(resolveMinWidth(buttonWithMinWidth as ReactTestInstance)).toBe(96);
-    });
-
-    it('renders the rank on a single line so the trailing dot does not wrap for double-digit ranks', () => {
-      const doubleDigitTrader: TopTrader = {
-        ...baseTrader,
-        rank: 20,
-        overallRank: 20,
-      };
-      renderWithProvider(
-        <TraderRow
-          trader={doubleDigitTrader}
-          onFollowPress={mockOnFollowPress}
-        />,
-      );
-
-      const rankText = screen.getByText('20');
-
-      expect(rankText.props.numberOfLines).toBe(1);
     });
 
     it('vertically centers the Follow button so it sits in the middle of the row (overrides ButtonBase self-start default)', () => {

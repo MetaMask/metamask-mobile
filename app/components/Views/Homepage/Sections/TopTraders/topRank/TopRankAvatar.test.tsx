@@ -14,21 +14,8 @@ const renderWithRank = (rank: number) =>
   );
 
 describe('TopRankAvatar', () => {
-  it.each([1, 2, 3])(
-    'wraps the avatar with a gradient ring and floating crown for rank %s',
-    (rank) => {
-      renderWithRank(rank);
-
-      expect(
-        screen.getByTestId(`top-rank-gradient-ring-${rank}`),
-      ).toBeOnTheScreen();
-      expect(screen.getByTestId(`top-rank-crown-${rank}`)).toBeOnTheScreen();
-      expect(screen.getByTestId('avatar-child')).toBeOnTheScreen();
-    },
-  );
-
-  it.each([0, 4, 5, 19, 100])(
-    'passes children through unchanged for non-podium rank %s',
+  it.each([1, 2, 3, 4, 5, 100])(
+    'passes children through unchanged for rank %s',
     (rank) => {
       renderWithRank(rank);
 
