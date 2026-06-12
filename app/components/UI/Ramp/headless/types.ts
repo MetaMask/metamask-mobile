@@ -132,14 +132,6 @@ export interface HeadlessBuyParams {
    * Override the destination wallet address the on-ramp order will be
    * created for. When omitted, the Host falls back to
    * `useRampAccountAddress(chainId)` — same EOA the BuildQuote screen uses.
-   *
-   * Used by the `directMoneyMusdEnabled` MetaMask Pay flow so the ramps
-   * order is created against the MoneyAccount (the same address that
-   * appears as `txParams.from` on the on-chain `moneyAccountDeposit`
-   * batch), rather than the user's selected EOA. Without this override
-   * the on-ramp top-up lands on the EOA and the on-chain leg fails with
-   * `Signer had insufficient balance` because it expects the funds on
-   * the MoneyAccount.
    */
   walletAddress?: string;
 }
