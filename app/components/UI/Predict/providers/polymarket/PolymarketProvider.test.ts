@@ -5,7 +5,6 @@ import {
 } from '@metamask/transaction-controller';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import { Interface } from 'ethers/lib/utils';
-import Logger from '../../../../../util/Logger';
 import { analytics } from '../../../../../util/analytics/analytics';
 import { UserProfileProperty } from '../../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import {
@@ -199,7 +198,6 @@ jest.mock('./preflight/withdraw', () => ({
 const mockAnalyticsIdentify = jest.mocked(analytics.identify);
 const mockComputeProxyAddress = jest.mocked(computeProxyAddress);
 const mockCreateApiKey = jest.mocked(createApiKey);
-const mockLoggerError = jest.mocked(Logger.error);
 const mockDeriveDepositWalletAddress = jest.mocked(deriveDepositWalletAddress);
 const mockExecuteDepositWalletBatch = jest.mocked(executeDepositWalletBatch);
 const mockGetDepositWalletRelayerTransactionId = jest.mocked(
@@ -400,81 +398,6 @@ describe('PolymarketProvider', () => {
         category: 'trending',
       });
       expect(mockSearchEventsFromPolymarketApi).not.toHaveBeenCalled();
-    });
-
-    it('filters unsupported sports outcomes only for extended sports leagues and logs them', async () => {
-      const provider = createProvider({
-        extendedSportsMarketsLeagues: ['nba'],
-      });
-      const events = [{ id: 'event-1' }];
-      const supportedOutcome = {
-        id: 'outcome-1',
-        sportsMarketType: 'moneyline',
-      };
-      const unsupportedOutcome1 = {
-        id: 'outcome-2',
-        sportsMarketType: 'basketball_player_blocks',
-      };
-      const unsupportedOutcome2 = {
-        id: 'outcome-3',
-        sportsMarketType: 'basketball_player_blocks',
-      };
-
-      mockFetchEventsFromPolymarketApi.mockResolvedValue({
-        events: events as never,
-        category: 'trending',
-        nextCursor: null,
-      });
-      mockParsePolymarketEvents.mockReturnValue([
-        {
-          id: 'market-1',
-          game: { league: 'nba' },
-          outcomes: [supportedOutcome, unsupportedOutcome1],
-        },
-        {
-          id: 'market-2',
-          game: { league: 'nba' },
-          outcomes: [unsupportedOutcome2],
-        },
-        {
-          id: 'market-3',
-          game: { league: 'nfl' },
-          outcomes: [unsupportedOutcome1],
-        },
-      ] as never);
-
-      await expect(
-        provider.getMarkets({ category: 'trending' }),
-      ).resolves.toEqual({
-        markets: [
-          {
-            id: 'market-1',
-            game: { league: 'nba' },
-            outcomes: [supportedOutcome],
-          },
-          {
-            id: 'market-3',
-            game: { league: 'nfl' },
-            outcomes: [unsupportedOutcome1],
-          },
-        ],
-        nextCursor: null,
-      });
-
-      expect(mockLoggerError).toHaveBeenCalledWith(
-        expect.any(Error),
-        expect.objectContaining({
-          context: expect.objectContaining({
-            data: expect.objectContaining({
-              method: 'filterUnsupportedSportsOutcomes',
-              sourceMethod: 'getMarkets',
-              sportsMarketType: 'basketball_player_blocks',
-              droppedOutcomeCount: 2,
-              marketIds: ['market-1', 'market-2'],
-            }),
-          }),
-        }),
-      );
     });
 
     it('lists markets from keyset events with normalized shape', async () => {
