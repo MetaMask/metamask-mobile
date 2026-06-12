@@ -1,15 +1,21 @@
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { render } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
 import { BtcScope, SolScope, TransactionType } from '@metamask/keyring-api';
 import MultichainTransactionsView from './MultichainTransactionsView';
 import { selectNonEvmTransactions } from '../../../selectors/multichain';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { ButtonProps } from '../../../component-library/components/Buttons/Button/Button.types';
-
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { configureUseAnalyticsExternalLinkMock } from '../../../util/test/analyticsMock';
 jest.useFakeTimers();
 
+jest.mock('../../../util/analytics/externalLinkTracking', () => ({
+  ...jest.requireActual('../../../util/analytics/externalLinkTracking'),
+  trackBlockExplorerLinkClicked: jest.fn(),
+}));
+import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
 const mockUseTheme = jest.fn();
 jest.mock('../../../util/theme', () => ({
   useTheme: () => mockUseTheme(),
@@ -67,6 +73,10 @@ jest.mock('../../../util/networks', () => ({
   getBlockExplorerName: jest.fn(() => 'Explorer'),
 }));
 
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
+}));
+
 describe('MultichainTransactionsView', () => {
   const mockNavigation = { navigate: jest.fn() };
   const mockSelectedAddress = '7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV';
@@ -109,6 +119,8 @@ describe('MultichainTransactionsView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.clearAllTimers();
+
+    configureUseAnalyticsExternalLinkMock();
 
     // Ensure selector returns a static instance
     const mockTransactionsData = { transactions: mockTransactions };
@@ -169,5 +181,33 @@ describe('MultichainTransactionsView', () => {
     expect(
       queryByText('transactions.view_full_history_on'),
     ).not.toBeOnTheScreen();
+  });
+
+  it('tracks External Link Clicked when view more explorer link is pressed', () => {
+    customRender(
+      <MultichainTransactionsView
+        selectedAddress={mockSelectedAddress}
+        chainId={SolScope.Mainnet}
+      />,
+    );
+
+    const { default: MockButton } = jest.requireMock(
+      '../../../component-library/components/Buttons/Button',
+    ) as { default: { lastProps: ButtonProps } };
+
+    MockButton.lastProps.onPress?.();
+
+    expect(jest.mocked(trackBlockExplorerLinkClicked)).toHaveBeenCalledWith(
+      expect.any(Function),
+      expect.any(Function),
+      expect.objectContaining({
+        location: 'multichain_activity_tab',
+        url: 'https://solscan.io/account/testaddress',
+      }),
+    );
+    expect(mockNavigation.navigate).toHaveBeenCalledWith('Webview', {
+      screen: 'SimpleWebview',
+      params: { url: 'https://solscan.io/account/testaddress' },
+    });
   });
 });
