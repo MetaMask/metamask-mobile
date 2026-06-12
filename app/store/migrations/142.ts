@@ -1,0 +1,174 @@
+import { captureException } from '@sentry/react-native';
+import {
+  getErrorMessage,
+  hasProperty,
+  Hex,
+  isHexString,
+  isObject,
+} from '@metamask/utils';
+import { v4 as uuidV4 } from 'uuid';
+
+import { ensureValidState, ValidState } from './util';
+import { cloneDeep } from 'lodash';
+
+interface RpcEndpoint {
+  failoverUrls?: string[];
+  name?: string;
+  networkClientId: string;
+  url: string;
+  type: string;
+}
+
+interface NetworkConfiguration {
+  blockExplorerUrls: string[];
+  chainId: Hex;
+  defaultBlockExplorerUrlIndex?: number;
+  defaultRpcEndpointIndex: number;
+  name: string;
+  nativeCurrency: string;
+  rpcEndpoints: RpcEndpoint[];
+}
+
+export const migrationVersion = 142;
+
+export const ARC_CHAIN_ID: Hex = '0x13b2';
+
+/**
+ * This migration adds the Arc network to the user's NetworkController state
+ * if it is not already present.
+ *
+ * @param versionedState - MetaMask state, exactly what we persist to disk.
+ * @returns Updated MetaMask state.
+ */
+export default function migrate(versionedState: unknown) {
+  const INFURA_KEY = process.env.MM_INFURA_PROJECT_ID;
+  const infuraProjectId = INFURA_KEY === 'null' ? '' : INFURA_KEY;
+
+  const state = cloneDeep(versionedState);
+  try {
+    if (!ensureValidState(state, migrationVersion)) {
+      return state;
+    }
+
+    const networkState = validateNetworkController(state);
+    if (networkState === undefined) {
+      console.warn(
+        `Migration ${migrationVersion}: Missing or invalid NetworkController state, skip the migration`,
+      );
+      return state;
+    }
+
+    const { networkConfigurationsByChainId } = networkState;
+
+    if (hasProperty(networkConfigurationsByChainId, ARC_CHAIN_ID)) {
+      return state;
+    }
+
+    if (!infuraProjectId) {
+      captureException(
+        new Error(
+          `Migration ${migrationVersion}: Infura project ID is not set, skip the migration`,
+        ),
+      );
+      return state;
+    }
+
+    const arcConfiguration: NetworkConfiguration = {
+      chainId: ARC_CHAIN_ID,
+      name: 'Arc',
+      nativeCurrency: 'USDC',
+      blockExplorerUrls: ['https://explorer.arc.io/'],
+      defaultBlockExplorerUrlIndex: 0,
+      defaultRpcEndpointIndex: 0,
+      rpcEndpoints: [
+        {
+          networkClientId: uuidV4(),
+          type: 'custom',
+          url: `https://arc-mainnet.infura.io/v3/${infuraProjectId}`,
+          failoverUrls: [],
+        },
+      ],
+    };
+
+    (networkConfigurationsByChainId as Record<string, unknown>)[ARC_CHAIN_ID] =
+      arcConfiguration;
+
+    return state;
+  } catch (error) {
+    console.error(error);
+    captureException(
+      new Error(`Migration ${migrationVersion}: ${getErrorMessage(error)}`),
+    );
+
+    return versionedState;
+  }
+}
+
+function validateNetworkController(state: ValidState):
+  | {
+      networkConfigurationsByChainId: Record<Hex, unknown>;
+    }
+  | undefined {
+  if (!hasProperty(state.engine.backgroundState, 'NetworkController')) {
+    captureException(
+      new Error(
+        `Migration ${migrationVersion}: Invalid NetworkController state: missing NetworkController`,
+      ),
+    );
+    return undefined;
+  }
+
+  const networkState = state.engine.backgroundState.NetworkController;
+
+  if (!isValidNetworkControllerState(networkState)) {
+    return undefined;
+  }
+
+  return networkState;
+}
+
+function isValidNetworkControllerState(value: unknown): value is {
+  networkConfigurationsByChainId: Record<Hex, unknown>;
+} {
+  if (!isObject(value)) {
+    captureException(
+      new Error(
+        `Migration ${migrationVersion}: Invalid NetworkController state: NetworkController state is not an object: '${typeof value}'`,
+      ),
+    );
+    return false;
+  }
+
+  if (!hasProperty(value, 'networkConfigurationsByChainId')) {
+    captureException(
+      new Error(
+        `Migration ${migrationVersion}: Invalid NetworkController state: missing networkConfigurationsByChainId property`,
+      ),
+    );
+    return false;
+  }
+
+  if (
+    !isValidNetworkConfigurationsByChainId(value.networkConfigurationsByChainId)
+  ) {
+    captureException(
+      new Error(
+        `Migration ${migrationVersion}: Invalid NetworkController state: networkConfigurationsByChainId is not a valid Record<Hex, unknown>`,
+      ),
+    );
+    return false;
+  }
+
+  return true;
+}
+
+function isValidNetworkConfigurationsByChainId(
+  value: unknown,
+): value is Record<Hex, unknown> {
+  return (
+    isObject(value) &&
+    Object.entries(value).every(
+      ([chainId]) => typeof chainId === 'string' && isHexString(chainId),
+    )
+  );
+}
