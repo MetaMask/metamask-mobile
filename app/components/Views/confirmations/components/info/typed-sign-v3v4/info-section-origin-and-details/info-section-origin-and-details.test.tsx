@@ -105,9 +105,7 @@ describe('InfoSectionOriginAndDetails', () => {
       const { getByText, queryByText } = renderWithProvider(
         <InfoSectionOriginAndDetails />,
         {
-          state: typedSignV4OriginState(
-            AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
-          ),
+          state: typedSignV4OriginState(AppConstants.DEEPLINKS.ORIGIN_DEEPLINK),
         },
       );
 
