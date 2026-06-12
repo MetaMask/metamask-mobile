@@ -3,11 +3,12 @@ import {
   IconName,
 } from '../../../../../component-library/components/Icons/Icon';
 import React, { useState, useContext, useMemo, useCallback } from 'react';
-import { useSelector } from 'react-redux';
-import Text, {
-  TextColor,
+import {
+  Text,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+  TextColor,
+} from '@metamask/design-system-react-native';
+import { useSelector } from 'react-redux';
 import { View, Switch, ActivityIndicator, StyleSheet } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -81,7 +82,7 @@ const PerpsProviderToggleContent = () => {
       style={styles.container}
       testID={PerpsProviderToggleSelectorsIDs.ROOT}
     >
-      <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
+      <Text color={TextColor.TextAlternative} variant={TextVariant.BodyMd}>
         {strings('perps.developer_options.provider_mode_toggle')}
       </Text>
       <Switch
@@ -97,7 +98,7 @@ const PerpsProviderToggleContent = () => {
           testID={PerpsProviderToggleSelectorsIDs.LOADING_INDICATOR}
         />
       ) : (
-        <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
+        <Text color={TextColor.TextAlternative} variant={TextVariant.BodyMd}>
           {currentProvider}
         </Text>
       )}

@@ -10,19 +10,23 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  FontWeight,
+  Text,
+  TextVariant,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../../component-library/components/Texts/SensitiveText';
+import {
+  TextVariant as LegacyTextVariant,
+  TextColor as LegacyTextColor,
+} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import {
@@ -138,14 +142,14 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   const isNearZeroFunding = Math.abs(fundingSinceOpen) < 0.005; // Threshold: |value| < $0.005 -> display $0.00
 
   // Keep original color logic: exact zero = neutral, positive = cost (Error), negative = payment (Success)
-  let fundingColorFromValue = TextColor.Default;
+  let fundingColorFromValue = LegacyTextColor.Default;
   if (fundingSinceOpen > 0) {
-    fundingColorFromValue = TextColor.Error;
+    fundingColorFromValue = LegacyTextColor.Error;
   } else if (fundingSinceOpen < 0) {
-    fundingColorFromValue = TextColor.Success;
+    fundingColorFromValue = LegacyTextColor.Success;
   }
   const fundingColor = isNearZeroFunding
-    ? TextColor.Default
+    ? LegacyTextColor.Default
     : fundingColorFromValue;
 
   const fundingSignPrefix = fundingSinceOpen >= 0 ? '-' : '+';
@@ -233,21 +237,21 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
       secondaryLabel = showTpSlSkeleton ? (
         <View style={styles.tpSlSkeleton} testID="tp-sl-skeleton" />
       ) : (
-        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           {tpSlLabel ?? strings('homepage.sections.positions.no_tp_sl')}
         </Text>
       );
       secondaryValue = (
         <SensitiveText
-          variant={TextVariant.BodySM}
+          variant={LegacyTextVariant.BodySM}
           color={
             privacyMode
-              ? TextColor.Default
+              ? LegacyTextColor.Default
               : hasValidRoe
                 ? roeRaw >= 0
-                  ? TextColor.Success
-                  : TextColor.Error
-                : TextColor.Alternative
+                  ? LegacyTextColor.Success
+                  : LegacyTextColor.Error
+                : LegacyTextColor.Alternative
           }
           isHidden={privacyMode}
           length={SensitiveTextLength.Short}
@@ -258,8 +262,8 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
     } else {
       secondaryLabel = (
         <SensitiveText
-          variant={TextVariant.BodySM}
-          color={TextColor.Alternative}
+          variant={LegacyTextVariant.BodySM}
+          color={LegacyTextColor.Alternative}
           isHidden={privacyMode}
           length={SensitiveTextLength.Short}
         >
@@ -268,13 +272,13 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
       );
       secondaryValue = (
         <SensitiveText
-          variant={TextVariant.BodySM}
+          variant={LegacyTextVariant.BodySM}
           color={
             privacyMode
-              ? TextColor.Default
+              ? LegacyTextColor.Default
               : pnlNum >= 0
-                ? TextColor.Success
-                : TextColor.Error
+                ? LegacyTextColor.Success
+                : LegacyTextColor.Error
           }
           isHidden={privacyMode}
           length={SensitiveTextLength.Short}
@@ -299,8 +303,9 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             <View style={styles.compactInfo}>
               <View style={styles.compactNameRow}>
                 <Text
-                  variant={TextVariant.BodyMDMedium}
-                  color={TextColor.Default}
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextDefault}
                 >
                   {directionLabel} {displaySymbol}
                 </Text>
@@ -311,8 +316,8 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           </View>
           <View style={styles.compactRight}>
             <SensitiveText
-              variant={TextVariant.BodyMDMedium}
-              color={TextColor.Default}
+              variant={LegacyTextVariant.BodyMD}
+              color={LegacyTextColor.Default}
               isHidden={privacyMode}
               length={SensitiveTextLength.Short}
             >
@@ -331,7 +336,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
     <View style={styles.container} testID={PerpsPositionCardSelectorsIDs.CARD}>
       {/* Header Section */}
       <View style={styles.header} testID={PerpsPositionCardSelectorsIDs.HEADER}>
-        <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
+        <Text variant={TextVariant.HeadingSm} color={TextColor.TextDefault}>
           {strings('perps.position.card.position_title')}
         </Text>
         {onSharePress && (
@@ -350,17 +355,17 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           style={[styles.pnlCard, styles.pnlCardLeft]}
           testID={PerpsPositionCardSelectorsIDs.PNL_CARD}
         >
-          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
             {strings('perps.position.card.pnl_label')}
           </Text>
           <SensitiveText
-            variant={TextVariant.BodyMD}
+            variant={LegacyTextVariant.BodyMD}
             color={
               privacyMode
-                ? TextColor.Default
+                ? LegacyTextColor.Default
                 : pnlNum >= 0
-                  ? TextColor.Success
-                  : TextColor.Error
+                  ? LegacyTextColor.Success
+                  : LegacyTextColor.Error
             }
             testID={PerpsPositionCardSelectorsIDs.PNL_VALUE}
             isHidden={privacyMode}
@@ -374,17 +379,17 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           style={[styles.pnlCard, styles.pnlCardRight]}
           testID={PerpsPositionCardSelectorsIDs.RETURN_CARD}
         >
-          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
             {strings('perps.position.card.return_label')}
           </Text>
           <SensitiveText
-            variant={TextVariant.BodyMD}
+            variant={LegacyTextVariant.BodyMD}
             color={
               privacyMode
-                ? TextColor.Default
+                ? LegacyTextColor.Default
                 : roe >= 0
-                  ? TextColor.Success
-                  : TextColor.Error
+                  ? LegacyTextColor.Success
+                  : LegacyTextColor.Error
             }
             testID={PerpsPositionCardSelectorsIDs.RETURN_VALUE}
             isHidden={privacyMode}
@@ -404,12 +409,15 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           testID={PerpsPositionCardSelectorsIDs.SIZE_CONTAINER}
         >
           <View style={styles.sizeLeftContent}>
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
               {strings('perps.position.card.size_label')}
             </Text>
             <SensitiveText
-              variant={TextVariant.BodyMD}
-              color={TextColor.Default}
+              variant={LegacyTextVariant.BodyMD}
+              color={LegacyTextColor.Default}
               testID={PerpsPositionCardSelectorsIDs.SIZE_VALUE}
               isHidden={privacyMode}
               length={SensitiveTextLength.Short}
@@ -440,12 +448,15 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           testID={PerpsPositionCardSelectorsIDs.MARGIN_CONTAINER}
         >
           <View style={styles.marginLeftContent}>
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
               {strings('perps.position.card.margin_label')}
             </Text>
             <SensitiveText
-              variant={TextVariant.BodyMD}
-              color={TextColor.Default}
+              variant={LegacyTextVariant.BodyMD}
+              color={LegacyTextColor.Default}
               testID={PerpsPositionCardSelectorsIDs.MARGIN_VALUE}
               isHidden={privacyMode}
               length={SensitiveTextLength.Short}
@@ -479,7 +490,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
         testID={PerpsPositionCardSelectorsIDs.AUTO_CLOSE_TOGGLE}
       >
         <View style={styles.autoCloseTextContainer}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {strings('perps.auto_close.title')}
           </Text>
           {(() => {
@@ -532,8 +543,8 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
               return (
                 <SensitiveText
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Default}
+                  variant={LegacyTextVariant.BodyMD}
+                  color={LegacyTextColor.Default}
                   isHidden={privacyMode}
                   length={SensitiveTextLength.Short}
                 >
@@ -543,7 +554,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             }
 
             return (
-              <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+              <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
                 {strings('perps.auto_close.description')}
               </Text>
             );
@@ -569,8 +580,8 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
         testID={PerpsPositionCardSelectorsIDs.DETAILS_SECTION}
       >
         <Text
-          variant={TextVariant.HeadingMD}
-          color={TextColor.Default}
+          variant={TextVariant.HeadingSm}
+          color={TextColor.TextDefault}
           style={styles.detailsTitle}
         >
           {strings('perps.position.card.details_title')}
@@ -578,14 +589,15 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
         <View style={[styles.detailRow, styles.detailRowFirst]}>
           <Text
-            variant={TextVariant.BodyMDMedium}
-            color={TextColor.Alternative}
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
           >
             {strings('perps.position.card.direction_label')}
           </Text>
           <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Default}
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextDefault}
             testID={PerpsPositionCardSelectorsIDs.DIRECTION_VALUE}
           >
             {direction === 'long'
@@ -597,14 +609,15 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
         <View style={styles.detailRow}>
           <Text
-            variant={TextVariant.BodyMDMedium}
-            color={TextColor.Alternative}
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
           >
             {strings('perps.position.card.entry_label')}
           </Text>
           <SensitiveText
-            variant={TextVariant.BodyMD}
-            color={TextColor.Default}
+            variant={LegacyTextVariant.BodyMD}
+            color={LegacyTextColor.Default}
             isHidden={privacyMode}
             length={SensitiveTextLength.Short}
             testID={PerpsPositionCardSelectorsIDs.ENTRY_VALUE}
@@ -617,15 +630,16 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
         <View style={styles.detailRow}>
           <Text
-            variant={TextVariant.BodyMDMedium}
-            color={TextColor.Alternative}
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
           >
             {strings('perps.position.card.liquidation_price_label')}
           </Text>
           <View style={styles.liquidationPriceValue}>
             <SensitiveText
-              variant={TextVariant.BodyMD}
-              color={TextColor.Default}
+              variant={LegacyTextVariant.BodyMD}
+              color={LegacyTextColor.Default}
               isHidden={privacyMode}
               length={SensitiveTextLength.Short}
               testID={PerpsPositionCardSelectorsIDs.LIQUIDATION_PRICE_VALUE}
@@ -640,8 +654,8 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             {liquidationDistance !== null && !privacyMode && (
               <>
                 <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
                 >
                   {' '}
                   {Math.round(liquidationDistance)}%
@@ -658,14 +672,15 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
         <View style={[styles.detailRow, styles.detailRowLast]}>
           <Text
-            variant={TextVariant.BodyMDMedium}
-            color={TextColor.Alternative}
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
           >
             {strings('perps.position.card.funding_payments_label')}
           </Text>
           <SensitiveText
-            variant={TextVariant.BodyMD}
-            color={privacyMode ? TextColor.Default : fundingColor}
+            variant={LegacyTextVariant.BodyMD}
+            color={privacyMode ? LegacyTextColor.Default : fundingColor}
             isHidden={privacyMode}
             length={SensitiveTextLength.Short}
             testID={PerpsPositionCardSelectorsIDs.FUNDING_PAYMENTS_VALUE}

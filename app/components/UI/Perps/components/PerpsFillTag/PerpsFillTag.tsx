@@ -1,10 +1,12 @@
 import React, { useMemo } from 'react';
+import {
+  FontWeight,
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 import { View, TouchableOpacity, Linking } from 'react-native';
 import { useSelector } from 'react-redux';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import TagBase, {
   TagSeverity,
   TagShape,
@@ -60,7 +62,7 @@ const PerpsFillTag: React.FC<PerpsFillTagProps> = ({
       [FillType.AutoDeleveraging]: {
         label: strings('perps.transactions.order.auto_deleveraging'),
         severity: TagSeverity.Info,
-        textColor: TextColor.Default,
+        textColor: TextColor.TextDefault,
         includesBorder: false,
         testID: PerpsTransactionSelectorsIDs.FILL_TAG_ADL,
       },
@@ -73,21 +75,21 @@ const PerpsFillTag: React.FC<PerpsFillTagProps> = ({
           fill.liquidation.liquidatedUser === selectedAccount.address,
         label: strings('perps.transactions.order.liquidated'),
         severity: TagSeverity.Danger,
-        textColor: TextColor.Error,
+        textColor: TextColor.ErrorDefault,
         includesBorder: false,
         testID: PerpsTransactionSelectorsIDs.FILL_TAG_LIQUIDATED,
       },
       [FillType.TakeProfit]: {
         label: strings('perps.transactions.order.take_profit'),
         severity: TagSeverity.Default,
-        textColor: TextColor.Alternative,
+        textColor: TextColor.TextAlternative,
         includesBorder: true,
         testID: PerpsTransactionSelectorsIDs.FILL_TAG_TAKE_PROFIT,
       },
       [FillType.StopLoss]: {
         label: strings('perps.transactions.order.stop_loss'),
         severity: TagSeverity.Default,
-        textColor: TextColor.Alternative,
+        textColor: TextColor.TextAlternative,
         includesBorder: true,
         testID: PerpsTransactionSelectorsIDs.FILL_TAG_STOP_LOSS,
       },
@@ -106,7 +108,11 @@ const PerpsFillTag: React.FC<PerpsFillTagProps> = ({
           severity={tagConfig.severity}
           includesBorder={tagConfig.includesBorder}
         >
-          <Text variant={TextVariant.BodyXSMedium} color={tagConfig.textColor}>
+          <Text
+            variant={TextVariant.BodyXs}
+            fontWeight={FontWeight.Medium}
+            color={tagConfig.textColor}
+          >
             {tagConfig.label}
           </Text>
         </TagBase>

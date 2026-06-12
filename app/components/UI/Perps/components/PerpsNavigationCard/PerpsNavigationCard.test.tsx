@@ -51,15 +51,9 @@ jest.mock('../../../../../component-library/components/Icons/Icon', () => ({
     Primary: 'Primary',
   },
 }));
-jest.mock('../../../../../component-library/components/Texts/Text', () => ({
-  __esModule: true,
-  default: 'Text',
-  TextVariant: {
-    BodyMD: 'BodyMD',
-  },
-  TextColor: {
-    Default: 'Default',
-  },
+jest.mock('@metamask/design-system-react-native', () => ({
+  ...jest.requireActual('@metamask/design-system-react-native'),
+  Text: jest.requireActual('react-native').Text,
 }));
 
 describe('PerpsNavigationCard', () => {

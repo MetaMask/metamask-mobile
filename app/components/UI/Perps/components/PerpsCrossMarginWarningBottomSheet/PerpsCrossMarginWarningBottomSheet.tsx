@@ -1,5 +1,10 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useRef } from 'react';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 import { View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import BottomSheet, {
@@ -9,10 +14,6 @@ import BottomSheetHeader from '../../../../../component-library/components/Botto
 import BottomSheetFooter, {
   ButtonsAlignment,
 } from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import {
   ButtonSize,
   ButtonVariants,
@@ -53,12 +54,12 @@ const PerpsCrossMarginWarningBottomSheet: React.FC<
       onClose={handleClose}
     >
       <BottomSheetHeader onClose={handleClose}>
-        <Text variant={TextVariant.HeadingMD}>
+        <Text variant={TextVariant.HeadingSm}>
           {strings('perps.crossMargin.title')}
         </Text>
       </BottomSheetHeader>
       <View style={styles.contentContainer}>
-        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('perps.crossMargin.message')}
         </Text>
       </View>

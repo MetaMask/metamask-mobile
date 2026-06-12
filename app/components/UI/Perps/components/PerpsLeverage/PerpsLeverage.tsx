@@ -1,9 +1,10 @@
 import React from 'react';
-import { View } from 'react-native';
-import Text, {
-  TextColor,
+import {
+  Text,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+  TextColor,
+} from '@metamask/design-system-react-native';
+import { View } from 'react-native';
 import styleSheet from './PerpsLeverage.styles';
 import { useStyles } from '../../../../hooks/useStyles';
 
@@ -20,7 +21,7 @@ const PerpsLeverage = ({
 
   return (
     <View style={styles.maxLeverage} testID={testID}>
-      <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
+      <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
         {maxLeverage}
       </Text>
     </View>

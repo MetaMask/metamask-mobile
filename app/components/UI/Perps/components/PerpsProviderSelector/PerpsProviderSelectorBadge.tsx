@@ -1,12 +1,13 @@
 import React, { useCallback } from 'react';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 import { TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useStyles } from '../../../../../component-library/hooks';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
 import Icon, {
   IconName,
   IconSize,
@@ -61,8 +62,8 @@ const PerpsProviderSelectorBadge: React.FC<PerpsProviderSelectorBadgeProps> = ({
     >
       {isTestnet && <View style={styles.testnetDot} />}
       <Text
-        variant={TextVariant.BodySM}
-        color={isTestnet ? TextColor.Warning : TextColor.Alternative}
+        variant={TextVariant.BodySm}
+        color={isTestnet ? TextColor.WarningDefault : TextColor.TextAlternative}
         style={styles.badgeText}
       >
         {currentProvider.name}
