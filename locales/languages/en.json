@@ -8021,8 +8021,8 @@
     "add_wallet_hardware_description": "Using Bluetooth or a QR Code",
     "add_hardware_wallet": "Add a hardware wallet",
     "syncing": "Syncing",
-    "link_metamask_extension" : "Link MetaMask extension",
-    "link_metamask_extension_description": "Link your MetaMask extension to your wallet",
+    "link_metamask_extension" : "Import accounts from MetaMask extension",
+    "link_metamask_extension_description": "Import accounts from MetaMask extension to your wallet",
     "account_details": {
       "header_title": "Account details",
       "account_name": "Account name",
