@@ -267,6 +267,12 @@ export function HardwareWalletsSwaps() {
   }, [allStepsSigned, isQrHardwareWallet, setForceHideBottomSheet]);
 
   useEffect(() => {
+    // ── Flow termination ──────────────────────────────────────────────
+    // All device signing steps are complete AND a submission was started.
+    // This fires exactly once (guarded by hasAutoNavigatedRef) to show the
+    // success toast, reset hardware-wallet-swaps state, and navigate to the
+    // activity / transactions view. This is where the swaps signing flow ends.
+    // ──────────────────────────────────────────────────────────────────
     if (!allStepsSigned) return;
     if (hasAutoNavigatedRef.current) return;
     if (!hasInitialSubmissionRef.current) return;
