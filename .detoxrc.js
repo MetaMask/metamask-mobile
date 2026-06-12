@@ -15,6 +15,10 @@ module.exports = {
         enabled: true,  // Enable video recording
         keepOnlyFailedTestsArtifacts: true,  // Keep only failed tests' videos
       },
+      log: {
+        enabled: true,  // Capture device logs (adb logcat / simulator log)
+        keepOnlyFailedTestsArtifacts: true,  // Keep only failed tests' logs
+      },
     },
   },
   testRunner: {

@@ -15,7 +15,10 @@ import EnsWebsite from '../../../page-objects/Browser/ExternalWebsites/EnsWebsit
 import RedirectWebsite from '../../../page-objects/Browser/ExternalWebsites/RedirectWebsite';
 import { Assertions, Utilities } from '../../../framework';
 import { TestSpecificMock } from '../../../framework/types';
-import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
+import {
+  setupMockRequest,
+  setupMockNetworkFailure,
+} from '../../../api-mocking/helpers/mockHelpers';
 import { ensResolutionMock } from '../../../api-mocking/mock-responses/ens-resolution-mocks';
 
 const INVALID_URL = 'https://quackquakc.easq';
@@ -25,11 +28,14 @@ const INVALID_URL = 'https://quackquakc.easq';
  * Also provides a catch-all for background HyperLiquid API calls not covered by defaults.
  */
 const invalidUrlMock: TestSpecificMock = async (mockServer) => {
-  await setupMockRequest(mockServer, {
+  // The test depends on the navigation FAILING at network level: the in-app
+  // browser renders its error page (with the Return-home button) only on a
+  // load failure, never for an HTTP response. An HTTP mock here would
+  // "load" a blank page now that device-proxied navigations consult test
+  // mocks, so simulate the DNS failure with a connection drop instead.
+  await setupMockNetworkFailure(mockServer, {
     requestMethod: 'GET',
     url: INVALID_URL,
-    response: '',
-    responseCode: 404,
   });
 
   await setupMockRequest(mockServer, {

@@ -7,7 +7,11 @@ import MockServerE2E, {
   type NormalizedHttpProxyRequest,
   type ProxyHandlerResponse,
 } from './MockServerE2E';
-import { setupMockRequest } from './helpers/mockHelpers';
+import {
+  setupMockRequest,
+  setupMockPostRequest,
+  setupMockNetworkFailure,
+} from './helpers/mockHelpers';
 import { PlatformDetector } from '../framework/PlatformLocator';
 import PortManager, { ResourceType } from '../framework/PortManager';
 import type { MockEventsObject } from '../framework';
@@ -834,4 +838,115 @@ describe('reconfigure', () => {
     );
     mockServer = undefined;
   });
+});
+
+describe('JSON-RPC mock helpers', () => {
+  let mockServer: MockServerE2E | undefined;
+
+  afterEach(async () => {
+    await mockServer?.stop();
+    mockServer = undefined;
+    PortManager.resetInstance();
+    jest.restoreAllMocks();
+  });
+
+  it('echoes the JSON-RPC envelope of the request into envelope-less mock responses', async () => {
+    // Strict RPC clients (e.g. the Solana SDK used by snaps) reject
+    // responses whose envelope is missing or whose id does not match the
+    // request — a verbatim { result } fragment broke the multichain snap
+    // spec once device-proxied traffic started consulting test mocks.
+    mockServer = new MockServerE2E({ events: {} });
+    mockServer.setServerPort(await getFreePort());
+    await mockServer.start();
+    await setupMockPostRequest(
+      mockServer.server,
+      /solana-mainnet\.example\.test/u,
+      { method: 'getGenesisHash', params: [] },
+      { result: '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' },
+    );
+
+    const response = await fetch(
+      `http://127.0.0.1:${mockServer.getServerPort()}/proxy?url=${encodeURIComponent(
+        'https://solana-mainnet.example.test/v3/key',
+      )}`,
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 7,
+          method: 'getGenesisHash',
+          params: [],
+        }),
+      },
+    );
+
+    expect(await response.json()).toEqual({
+      jsonrpc: '2.0',
+      id: 7,
+      result: '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    });
+  }, 15000);
+
+  it('returns non-RPC mock responses verbatim', async () => {
+    mockServer = new MockServerE2E({ events: {} });
+    mockServer.setServerPort(await getFreePort());
+    await mockServer.start();
+    await setupMockPostRequest(
+      mockServer.server,
+      'https://api.example.test/info',
+      {},
+      { universe: 'plain-rest' },
+    );
+
+    const response = await fetch(
+      `http://127.0.0.1:${mockServer.getServerPort()}/proxy?url=${encodeURIComponent(
+        'https://api.example.test/info',
+      )}`,
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ type: 'meta' }),
+      },
+    );
+
+    expect(await response.json()).toEqual({ universe: 'plain-rest' });
+  }, 15000);
+
+  it('setupMockNetworkFailure surfaces as a connection failure for device-proxied navigations', async () => {
+    // The invalid-URL browser test depends on the navigation FAILING at
+    // network level so the error page renders. The mock closes the inner
+    // loopback connection; the device-proxy ingress must convert that into
+    // a dropped connection (no HTTP response), not a synthesized 500.
+    mockServer = new MockServerE2E({ events: {} });
+    mockServer.setServerPort(await getFreePort());
+    await mockServer.start();
+    await setupMockNetworkFailure(mockServer.server, {
+      requestMethod: 'GET',
+      url: 'http://quackquakc.easq',
+    });
+
+    // Raw absolute-form arrival, the shape WebView navigations take through
+    // the device proxy.
+    const raw = await new Promise<string>((resolve, reject) => {
+      const socket = connect(
+        mockServer?.getServerPort() as number,
+        '127.0.0.1',
+        () => {
+          socket.write(
+            `GET http://quackquakc.easq/ HTTP/1.1\r\nHost: quackquakc.easq\r\nConnection: close\r\n\r\n`,
+          );
+        },
+      );
+      let data = '';
+      socket.on('data', (chunk: Buffer) => (data += chunk.toString('utf8')));
+      socket.on('end', () => resolve(data));
+      socket.on('close', () => resolve(data));
+      socket.on('error', reject);
+      setTimeout(() => reject(new Error('request timeout')), 10000);
+    });
+
+    // Connection dropped without an HTTP response.
+    expect(raw).toBe('');
+  }, 15000);
 });
