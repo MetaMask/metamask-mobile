@@ -24,11 +24,7 @@ export interface PendingSpinnerProps {
 }
 
 /**
- * The in-flight indicator from the Money activity design: the `Loading` icon
- * (an open ring) rotating continuously. Uses the shared icon library so the
- * glyph stays in sync with the design system, and a reanimated worklet for the
- * rotation — which runs on the UI thread, so it keeps spinning even while the
- * JS thread is busy (e.g. during initial data/balance load).
+ * The in-flight indicator from the Money activity design
  */
 const PendingSpinner = ({
   size = IconSize.Sm,
@@ -49,8 +45,7 @@ const PendingSpinner = ({
     transform: [{ rotate: `${rotation.value}deg` }],
   }));
 
-  // Explicit dimensions so the rotation pivots around the icon's centre rather
-  // than a zero-size view's origin (the bug in the first reanimated attempt).
+  // Explicit dimensions so the rotation pivots around the icon's centre
   const dimension = Number(size);
   const containerStyle = useMemo(
     () => ({

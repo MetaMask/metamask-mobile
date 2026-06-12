@@ -11,11 +11,6 @@ import type {
   MoneyActivityTransactionMeta,
 } from '../constants/mockActivityData';
 
-/**
- * The lifecycle state of a Money activity row, as far as the display cares.
- * In-flight transactions are `pending`, `failed` ones errored, and everything
- * else surfaced in activity is treated as `confirmed`.
- */
 export type MoneyActivityStatus = 'pending' | 'confirmed' | 'failed';
 
 export function getMoneyActivityStatus(
@@ -24,8 +19,7 @@ export function getMoneyActivityStatus(
   switch (tx.status) {
     // `approved`/`signed` = user has confirmed but the tx is held by the
     // MetaMask Pay publish hook while a cross-chain payment (e.g. bridge)
-    // completes — in-flight from the user's perspective, and the status the
-    // tx keeps for nearly its whole pending life on cross-chain conversions.
+    // completes — in-flight from the user's perspective.
     case TransactionStatus.approved:
     case TransactionStatus.signed:
     case TransactionStatus.submitted:
@@ -37,17 +31,6 @@ export function getMoneyActivityStatus(
   }
 }
 
-/**
- * The semantic kind of a Money activity row, parsed once from a
- * {@link TransactionMeta} so the rest of the display layer renders from a
- * single well-typed value rather than re-deriving from raw transaction types.
- *
- * Mirrors the activity row types in the Money design (Converted / Deposited /
- * Received / Sent). Card transactions are not {@link TransactionMeta}-backed
- * and are classified separately — see `cardTransactionDisplayInfo` — but
- * `'card'` is kept here so the explicit `moneyActivityTitleKey` override can
- * still target it.
- */
 export type MoneyActivityKind =
   | 'deposited'
   | 'received'
@@ -63,11 +46,6 @@ const TITLE_KEY_TO_KIND: Record<MoneyActivityTitleKey, MoneyActivityKind> = {
   sent: 'sent',
 };
 
-/**
- * The most significant Money transaction type for `tx`. For EIP-7702 batches
- * (e.g. the approve+deposit / withdraw+transfer pairs) the meaningful type
- * lives on a nested call, so we surface that; otherwise the top-level type.
- */
 function resolveMoneyTransactionType(
   tx: TransactionMeta,
 ): TransactionType | undefined {
@@ -89,21 +67,11 @@ function isFiatDeposit(tx: TransactionMeta): boolean {
   return Boolean(tx.metamaskPay?.fiat);
 }
 
-/** A `moneyAccountDeposit` paid with mUSD itself (a top-up / move, not a conversion). */
+/** A `moneyAccountDeposit` paid with mUSD itself. */
 function isMusdPayToken(tx: TransactionMeta): boolean {
   return isMusdToken(tx.metamaskPay?.tokenAddress);
 }
 
-/**
- * Parses a Money activity {@link TransactionMeta} into a single
- * {@link MoneyActivityKind}. An explicit `moneyActivityTitleKey` (mock or
- * enriched rows) always wins; otherwise the kind is derived from the
- * transaction type.
- *
- * A `moneyAccountDeposit` paid with crypto is a *conversion* into mUSD (shown
- * as e.g. "ETH → mUSD"), so it maps to `'converted'`. Fiat on-ramp deposits
- * (Transak) and mUSD top-ups keep the `'deposited'` label.
- */
 export function classifyMoneyActivity(tx: TransactionMeta): MoneyActivityKind {
   const { moneyActivityTitleKey } = tx as MoneyActivityTransactionMeta;
   if (moneyActivityTitleKey) {
@@ -143,8 +111,8 @@ const KIND_LABEL_KEY: Record<MoneyActivityKind, string> = {
   card: 'money.transaction.card_transaction',
 };
 
-// Present-tense labels for in-flight rows (e.g. "Depositing"). Kinds without an
-// entry fall back to their confirmed label.
+// Present-tense labels for in-flight rows (e.g. "Depositing"). If there's
+// no entry entry we will fall back to the confirmed.
 const KIND_PENDING_LABEL_KEY: Partial<Record<MoneyActivityKind, string>> = {
   deposited: 'money.transaction.depositing',
   converted: 'money.transaction.converting',
@@ -152,9 +120,8 @@ const KIND_PENDING_LABEL_KEY: Partial<Record<MoneyActivityKind, string>> = {
   received: 'money.transaction.receiving',
 };
 
-// Failed-state labels. Stems differ from the confirmed form ("Converted" →
-// "Conversion failed"), so they're enumerated rather than derived. Kinds
-// without an entry fall back to their confirmed label.
+// Failed-state labels.
+// Kinds without an entry fall back to their confirmed label.
 const KIND_FAILED_LABEL_KEY: Partial<Record<MoneyActivityKind, string>> = {
   deposited: 'money.transaction.deposit_failed',
   converted: 'money.transaction.conversion_failed',

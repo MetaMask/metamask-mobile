@@ -89,11 +89,6 @@ function makeMoneyTx(config: {
   };
 }
 
-// A QA fixture covering the full kind × status matrix from the MUSD-956 design.
-// `type` drives the +/- sign and incoming colour; `moneyActivityTitleKey` pins
-// the kind; `status` drives the label form (Depositing / Deposit failed / …)
-// and the spinner; `moneySubtitle` supplies the subtitle text (the token
-// registry isn't populated in mock mode, so we set it explicitly).
 const MOCK_MONEY_TRANSACTIONS: MoneyActivityTransactionMeta[] = [
   // --- Pending (in-flight): present-tense label + spinner ---
   makeMoneyTx({
@@ -201,8 +196,7 @@ export default MOCK_MONEY_TRANSACTIONS;
 /**
  * Mock card spend for QA. Card rows come from the Accounts API (a separate
  * source from on-chain txns), so they aren't part of MOCK_MONEY_TRANSACTIONS —
- * MoneyActivityView merges these in when mock data is enabled. Time sits within
- * the confirmed rows so it groups under the same date section.
+ * MoneyActivityView merges these in when mock data is enabled.
  */
 export const MOCK_CARD_TRANSACTIONS: CardTransaction[] = [
   {

@@ -83,10 +83,6 @@ function formatMusdAmount(amount: BigNumber, isIncoming: boolean): string {
   return `${isIncoming ? '+' : '-'}${formatted} ${MUSD_TOKEN.symbol}`;
 }
 
-/**
- * Human-friendly fiat on-ramp provider name from a provider code, e.g.
- * "transak-native" → "Transak". Returns undefined when there's no provider.
- */
 function prettifyFiatProvider(
   provider: string | undefined,
 ): string | undefined {
@@ -96,8 +92,8 @@ function prettifyFiatProvider(
 }
 
 /**
- * The subtitle for a Money activity row, by kind. An explicit `moneySubtitle`
- * always wins (mock / enriched rows). Otherwise:
+ * Gets the subtitle for a Money activity row, by kind. An explicit
+ * `moneySubtitle` always wins (mock / enriched rows). Otherwise:
  * - converted → "{token} → mUSD"
  * - sent      → "mUSD → {token}" (the withdraw destination token)
  * - received  → "From: 0x…" (the sender)
@@ -196,8 +192,6 @@ export function useMoneyTransactionDisplayInfo(
   });
 
   return useMemo(() => {
-    // mUSD is often not in the token registry, so fall back to its symbol
-    // directly — this is what surfaces "mUSD" on an mUSD-funded top-up deposit.
     const sourceTokenSymbol =
       payToken?.symbol ??
       nativeTicker ??
@@ -206,14 +200,6 @@ export function useMoneyTransactionDisplayInfo(
     const status = getMoneyActivityStatus(tx);
     const isIncoming = isIncomingMoneyTransactionMeta(tx);
 
-    // --- Primary amount ---
-    // Money-account rows are denominated in mUSD (the account's currency).
-    // `getMusdDisplayAmountFromTransactionMeta` covers rows carrying an explicit
-    // mUSD transfer (received / sent / local transfers, with the correct +/-
-    // prefix). MetaMask Pay conversion deposits don't persist an mUSD transfer,
-    // so derive the amount from the mUSD deposit target in `requiredAssets` —
-    // i.e. the USD value of the deposit, pegged 1:1. (Showing the mUSD value
-    // rather than the pay-token amount is the design decision in MUSD-956.)
     let primaryAmount = getMusdDisplayAmountFromTransactionMeta(tx);
     if (!primaryAmount) {
       const requiredAsset = getMusdRequiredAsset(tx);
@@ -222,8 +208,7 @@ export function useMoneyTransactionDisplayInfo(
           -MUSD_DECIMALS,
         );
         // Render only amounts visible at 2 decimals: a dust amount would
-        // otherwise display as "+0.00 mUSD", which failed rows reserve as
-        // their "nothing moved" marker (below).
+        // otherwise display as "+0.00 mUSD"
         if (musdAmount.decimalPlaces(2).isGreaterThan(0)) {
           primaryAmount = formatMusdAmount(musdAmount, isIncoming);
         }
@@ -232,8 +217,6 @@ export function useMoneyTransactionDisplayInfo(
       }
     }
 
-    // --- Fiat amount ---
-    // Prefer calculated market-rate value.
     let fiatAmount = buildMoneyActivityFiatLine(
       tx,
       currencyRates,
@@ -247,9 +230,6 @@ export function useMoneyTransactionDisplayInfo(
       }
     }
 
-    // Failed rows show a zero amount, signed by the row's direction (MUSD-956).
-    // To surface the attempted amount instead, drop this block — the computed
-    // primaryAmount/fiatAmount above already hold it.
     if (status === 'failed') {
       primaryAmount = formatMusdAmount(new BigNumber(0), isIncoming);
       if (currentCurrency) {
