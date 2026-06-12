@@ -13,6 +13,10 @@ import {
 } from '../../framework/EncapsulatedElement';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import { encapsulatedAction, PlaywrightGestures } from '../../framework';
+import Utilities from '../../framework/Utilities';
+import PerpsMarketDetailsView from './PerpsMarketDetailsView';
+
+export type PerpsOrderSide = 'long' | 'short';
 
 class PerpsMarketListView {
   // Main container
@@ -184,6 +188,29 @@ class PerpsMarketListView {
         await PlaywrightGestures.waitAndTap(marketElement);
       },
     });
+  }
+
+  /**
+   * Selects a market from the Perps home watchlist and taps Long or Short on
+   * market details. Retries until both steps succeed (watchlist can load slowly).
+   */
+  async selectMarketAndTapOrderSide(
+    marketName: string,
+    side: PerpsOrderSide,
+    options: { interval?: number; timeout?: number } = {},
+  ): Promise<void> {
+    const { interval = 1000, timeout = 30000 } = options;
+    await Utilities.executeWithRetry(
+      async () => {
+        await this.selectMarket(marketName);
+        if (side === 'long') {
+          await PerpsMarketDetailsView.tapLongButton();
+        } else {
+          await PerpsMarketDetailsView.tapShortButton();
+        }
+      },
+      { interval, timeout },
+    );
   }
 }
 
