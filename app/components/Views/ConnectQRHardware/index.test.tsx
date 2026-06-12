@@ -301,7 +301,7 @@ describe('ConnectQRHardware', () => {
     );
   });
 
-  it('does not add header top margin when SafeAreaView handles top inset', async () => {
+  it('adds header top margin for the top inset', async () => {
     mockKeyringController.getAccounts.mockResolvedValue([]);
 
     const { getByTestId } = renderWithProvider(
@@ -316,7 +316,7 @@ describe('ConnectQRHardware', () => {
     const header = getByTestId(ConnectQRHardwareSelectorsIDs.HEADER);
 
     expect(header).toBeOnTheScreen();
-    expect(StyleSheet.flatten(header.props.style).marginTop).toBeUndefined();
+    expect(StyleSheet.flatten(header.props.style).marginTop).toBe(44);
   });
 
   it('excludes bottom edge from parent SafeAreaView because instruction owns bottom spacing', async () => {
