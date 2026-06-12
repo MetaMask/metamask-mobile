@@ -562,11 +562,6 @@ const MoneyHomeView = () => {
     [navigation, trackActivitySurfaceClicked],
   );
 
-  // `link` mode is only offered when the Money Account ↔ card requirements are
-  // met — which now includes the card spending token (VEDA) being allowlisted
-  // in the cardFeature flag (see useMoneyAccountCardLinkage). When a cardholder
-  // / authenticated user can't link (e.g. VEDA not enabled), the card section
-  // is hidden rather than showing a dead "Link card" CTA.
   let metamaskCardMode: 'upsell' | 'link' | 'manage' | null;
   if (isCardLinkedToMoneyAccount) {
     metamaskCardMode = 'manage';
