@@ -27,14 +27,13 @@ describe('TraderRow', () => {
     jest.clearAllMocks();
   });
 
-  it('renders rank, username, ROI, and PnL', () => {
+  it('renders rank, username, and PnL', () => {
     renderWithProvider(
       <TraderRow trader={baseTrader} onFollowPress={mockOnFollowPress} />,
     );
     expect(screen.getByText('1')).toBeOnTheScreen();
     expect(screen.getByText('sniperliquid')).toBeOnTheScreen();
-    expect(screen.getByText('+43.0%')).toBeOnTheScreen();
-    expect(screen.getByText('+$963K')).toBeOnTheScreen();
+    expect(screen.getByText('+$963,146.80')).toBeOnTheScreen();
   });
 
   it('renders avatar image when avatarUri is present', () => {
@@ -122,7 +121,7 @@ describe('TraderRow', () => {
     expect(mockOnTraderPress).not.toHaveBeenCalled();
   });
 
-  it('displays negative ROI and PnL values', () => {
+  it('displays negative PnL values', () => {
     const negativeTrader: TopTrader = {
       ...baseTrader,
       percentageChange: -15.3,
@@ -131,8 +130,7 @@ describe('TraderRow', () => {
     renderWithProvider(
       <TraderRow trader={negativeTrader} onFollowPress={mockOnFollowPress} />,
     );
-    expect(screen.getByText('-15.3%')).toBeOnTheScreen();
-    expect(screen.getByText('-$500')).toBeOnTheScreen();
+    expect(screen.getByText('-$500.00')).toBeOnTheScreen();
   });
 
   it('uses custom testID when provided', () => {
@@ -183,9 +181,9 @@ describe('TraderRow', () => {
         <TraderRow trader={trader} onFollowPress={mockOnFollowPress} />,
       );
 
-      const roiSegment = screen.getByText('+28233.0%');
+      const pnlSegment = screen.getByText('+$407,000.00');
       const statsText = findAncestor(
-        roiSegment,
+        pnlSegment,
         (node) => node.props?.numberOfLines === 1,
       );
 

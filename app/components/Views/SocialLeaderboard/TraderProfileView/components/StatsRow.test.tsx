@@ -112,18 +112,18 @@ describe('StatsRow', () => {
   it('renders win rate label', () => {
     renderWithProvider(<StatsRow stats={baseStats} />);
 
-    expect(screen.getByText('win rate')).toBeOnTheScreen();
+    expect(screen.getByText('Win rate')).toBeOnTheScreen();
   });
 
-  it('renders 30D Return label', () => {
+  it('renders 7D Return label', () => {
     renderWithProvider(<StatsRow stats={baseStats} />);
 
-    expect(screen.getByText('30D Return')).toBeOnTheScreen();
+    expect(screen.getByText('7D Return')).toBeOnTheScreen();
   });
 
   it('renders hold time label', () => {
     renderWithProvider(<StatsRow stats={baseStats} />);
 
-    expect(screen.getByText('hold time')).toBeOnTheScreen();
+    expect(screen.getByText('Hold time')).toBeOnTheScreen();
   });
 });

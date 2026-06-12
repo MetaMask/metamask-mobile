@@ -107,15 +107,15 @@ describe('formatTokenAmount', () => {
 
 describe('formatPercent', () => {
   it('formats positive percent with plus sign', () => {
-    expect(formatPercent(182)).toBe('+182%');
+    expect(formatPercent(182)).toBe('+182.00%');
   });
 
   it('formats negative percent', () => {
-    expect(formatPercent(-25)).toBe('-25%');
+    expect(formatPercent(-25)).toBe('-25.00%');
   });
 
   it('formats zero percent with plus sign', () => {
-    expect(formatPercent(0)).toBe('+0%');
+    expect(formatPercent(0)).toBe('+0.00%');
   });
 
   it('returns an em dash for null', () => {
