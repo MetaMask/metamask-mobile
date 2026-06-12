@@ -21,6 +21,7 @@ import {
   PredictOutcomeToken,
 } from '../../../../types';
 import { formatCents } from '../../../../utils/format';
+import { resolvePredictBuyHeaderDisplay } from '../../../../utils/predictBuyHeader';
 
 export interface PredictBuyPreviewHeaderProps {
   market: PredictMarket;
@@ -37,22 +38,6 @@ export interface PredictBuyPreviewHeaderTitleProps {
   preview?: OrderPreview | null;
 }
 
-const getOutcomeTokenLabel = (
-  outcome: PredictOutcome,
-  outcomeToken: PredictOutcomeToken,
-  preview?: OrderPreview | null,
-) => {
-  const selectedOutcomeToken =
-    outcome.tokens.find((token) => token.id === preview?.outcomeTokenId) ??
-    outcomeToken;
-  const sharePrice = preview?.sharePrice ?? selectedOutcomeToken?.price ?? 0;
-
-  return {
-    title: selectedOutcomeToken?.title ?? '',
-    sharePrice,
-  };
-};
-
 export function PredictBuyPreviewHeaderTitle({
   market,
   outcome,
@@ -60,11 +45,14 @@ export function PredictBuyPreviewHeaderTitle({
   preview,
 }: PredictBuyPreviewHeaderTitleProps) {
   const tw = useTailwind();
-  const { title: outcomeTokenTitle, sharePrice } = getOutcomeTokenLabel(
-    outcome,
-    outcomeToken,
-    preview,
-  );
+  const { selectedOutcomeToken, outcomeGroupTitle, outcomeTokenTitle, image } =
+    resolvePredictBuyHeaderDisplay({
+      market,
+      outcome,
+      outcomeToken,
+      previewOutcomeTokenId: preview?.outcomeTokenId,
+    });
+  const sharePrice = preview?.sharePrice ?? selectedOutcomeToken.price ?? 0;
 
   const separator = '·';
   const outcomeTokenLabel = strings('predict.buy_preview_outcome_at_price', {
@@ -78,21 +66,18 @@ export function PredictBuyPreviewHeaderTitle({
       alignItems={BoxAlignItems.Center}
       twClassName="flex-1 min-w-0 gap-3"
     >
-      <Image
-        source={{ uri: outcome.image }}
-        style={tw.style('w-10 h-10 rounded')}
-      />
+      <Image source={{ uri: image }} style={tw.style('w-10 h-10 rounded')} />
       <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1 min-w-0">
         <Text variant={TextVariant.HeadingSm}>{market.title}</Text>
         <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-1 flex-wrap">
-          {!!outcome.groupItemTitle && (
+          {!!outcomeGroupTitle && (
             <>
               <Text
                 variant={TextVariant.BodySm}
                 twClassName="font-medium"
                 color={TextColor.TextAlternative}
               >
-                {outcome.groupItemTitle}
+                {outcomeGroupTitle}
               </Text>
               <Text
                 variant={TextVariant.BodySm}
