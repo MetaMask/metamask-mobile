@@ -54,8 +54,6 @@ const MUSD_HERO_TYPES = [
   TransactionType.moneyAccountDeposit,
   TransactionType.moneyAccountWithdraw,
   TransactionType.musdConversion,
-  TransactionType.perpsDeposit,
-  TransactionType.predictDeposit,
 ];
 
 export function TransactionDetailsHero() {

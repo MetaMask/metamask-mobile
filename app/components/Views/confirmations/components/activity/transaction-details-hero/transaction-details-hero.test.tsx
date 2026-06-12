@@ -141,6 +141,7 @@ describe('TransactionDetailsHero', () => {
     useTransactionDetailsMock.mockReturnValue({
       transactionMeta: {
         ...TRANSACTION_META_MOCK,
+        type: TransactionType.moneyAccountDeposit,
         metamaskPay: {
           targetFiat: '456.78',
         },
@@ -152,6 +153,26 @@ describe('TransactionDetailsHero', () => {
     expect(getByText(/456\.78/)).toBeDefined();
     expect(getByText(/mUSD/)).toBeDefined();
   });
+
+  it.each([TransactionType.perpsDeposit, TransactionType.predictDeposit])(
+    'renders fiat (not mUSD) for %s with targetFiat',
+    (type) => {
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          type,
+          metamaskPay: {
+            targetFiat: '100.00',
+          },
+        } as unknown as TransactionMeta,
+      });
+
+      const { getByText, queryByText } = render();
+
+      expect(getByText(/\$100/)).toBeDefined();
+      expect(queryByText(/mUSD/)).toBeNull();
+    },
+  );
 
   it('renders token amount for musdConversion transactions', () => {
     useTransactionDetailsMock.mockReturnValue({
