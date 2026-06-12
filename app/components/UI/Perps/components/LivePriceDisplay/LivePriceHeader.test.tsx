@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import LivePriceHeader from './LivePriceHeader';
 import { PriceUpdate, usePerpsLivePrices } from '../../hooks/stream';
-import Text from '../../../../../component-library/components/Texts/Text';
+import { Text, TextColor } from '@metamask/design-system-react-native';
 
 jest.mock('../../hooks/stream', () => ({
   usePerpsLivePrices: jest.fn(),
@@ -157,7 +157,7 @@ describe('LivePriceHeader', () => {
       const textElements = UNSAFE_getAllByType(Text);
       const changeText = textElements.find((el) => el.props.children === '--%');
       expect(changeText).toBeDefined();
-      expect(changeText?.props.color).toBe('Default');
+      expect(changeText?.props.color).toBe(TextColor.TextDefault);
     });
 
     it('uses neutral color for loading state when no live data exists', () => {
@@ -170,7 +170,7 @@ describe('LivePriceHeader', () => {
       const textElements = UNSAFE_getAllByType(Text);
       const changeText = textElements.find((el) => el.props.children === '--%');
       expect(changeText).toBeDefined();
-      expect(changeText?.props.color).toBe('Default');
+      expect(changeText?.props.color).toBe(TextColor.TextDefault);
     });
 
     it('uses success color for positive percentage change', () => {
@@ -192,7 +192,7 @@ describe('LivePriceHeader', () => {
         (el) => el.props.children === '+5.50%',
       );
       expect(changeText).toBeDefined();
-      expect(changeText?.props.color).toBe('Success');
+      expect(changeText?.props.color).toBe(TextColor.SuccessDefault);
     });
 
     it('uses error color for negative percentage change', () => {
@@ -214,7 +214,7 @@ describe('LivePriceHeader', () => {
         (el) => el.props.children === '-3.20%',
       );
       expect(changeText).toBeDefined();
-      expect(changeText?.props.color).toBe('Error');
+      expect(changeText?.props.color).toBe(TextColor.ErrorDefault);
     });
 
     it('uses success color for zero percentage change', () => {
@@ -236,7 +236,7 @@ describe('LivePriceHeader', () => {
         (el) => el.props.children === '+0.00%',
       );
       expect(changeText).toBeDefined();
-      expect(changeText?.props.color).toBe('Success');
+      expect(changeText?.props.color).toBe(TextColor.SuccessDefault);
     });
   });
 

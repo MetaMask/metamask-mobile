@@ -135,6 +135,7 @@ export const getPerpsPayWithRowSelector = {
 // ========================================
 
 export const PerpsMarketListViewSelectorsIDs = {
+  SCREEN: 'perps-market-list-view-screen',
   SEARCH_TOGGLE_BUTTON: 'perps-market-list-search-toggle-button',
   CLOSE_BUTTON: 'perps-market-list-close-button',
   BACK_HEADER_BUTTON: 'perps-market-header-back-button',

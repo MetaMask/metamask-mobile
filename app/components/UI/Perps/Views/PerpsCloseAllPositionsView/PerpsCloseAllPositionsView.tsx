@@ -1,5 +1,10 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo, useRef } from 'react';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 import { View, ActivityIndicator } from 'react-native';
 import { NotificationMoment } from '../../../../../util/haptics';
 import { strings } from '../../../../../../locales/i18n';
@@ -10,10 +15,6 @@ import BottomSheetHeader from '../../../../../component-library/components/Botto
 import BottomSheetFooter, {
   ButtonsAlignment,
 } from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import {
   ButtonSize,
   ButtonVariants,
@@ -260,7 +261,7 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
         onClose={externalSheetRef ? onExternalClose : undefined}
       >
         <BottomSheetHeader onClose={handleClose}>
-          <Text variant={TextVariant.HeadingMD}>
+          <Text variant={TextVariant.HeadingMd}>
             {strings('perps.close_all_modal.title')}
           </Text>
         </BottomSheetHeader>
@@ -283,12 +284,12 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
         onClose={externalSheetRef ? onExternalClose : undefined}
       >
         <BottomSheetHeader onClose={handleClose}>
-          <Text variant={TextVariant.HeadingMD}>
+          <Text variant={TextVariant.HeadingMd}>
             {strings('perps.close_all_modal.title')}
           </Text>
         </BottomSheetHeader>
         <View style={styles.emptyContainer}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {strings('perps.position.no_positions')}
           </Text>
         </View>
@@ -303,15 +304,15 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
       onClose={externalSheetRef ? onExternalClose : undefined}
     >
       <BottomSheetHeader onClose={handleClose}>
-        <Text variant={TextVariant.HeadingMD}>
+        <Text variant={TextVariant.HeadingMd}>
           {strings('perps.close_all_modal.title')}
         </Text>
       </BottomSheetHeader>
 
       <View style={styles.contentContainer}>
         <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
           style={styles.description}
         >
           {strings('perps.close_all_modal.description')}
@@ -324,8 +325,8 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
               color={theme.colors.primary.default}
             />
             <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Alternative}
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
               style={styles.loadingText}
             >
               {strings('perps.close_all_modal.closing')}

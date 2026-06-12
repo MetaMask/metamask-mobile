@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import {
+  Text,
+  TextVariant,
+  FontWeight,
+} from '@metamask/design-system-react-native';
+import {
   View,
   TouchableOpacity,
   ActivityIndicator,
   ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Text, {
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../component-library/hooks';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { ensureError } from '../../../../util/errorUtils';
@@ -469,8 +471,8 @@ const HIP3DebugView: React.FC = () => {
         edges={['bottom', 'left', 'right']}
       >
         <View style={styles.section}>
-          <Text variant={TextVariant.HeadingLG}>Debug Tools</Text>
-          <Text variant={TextVariant.BodySM} style={styles.subtitle}>
+          <Text variant={TextVariant.HeadingLg}>Debug Tools</Text>
+          <Text variant={TextVariant.BodySm} style={styles.subtitle}>
             Only available in development builds
           </Text>
         </View>
@@ -485,8 +487,8 @@ const HIP3DebugView: React.FC = () => {
         edges={['bottom', 'left', 'right']}
       >
         <View style={styles.section}>
-          <Text variant={TextVariant.HeadingLG}>HIP-3 Debug Tools</Text>
-          <Text variant={TextVariant.BodySM} style={styles.subtitle}>
+          <Text variant={TextVariant.HeadingLg}>HIP-3 Debug Tools</Text>
+          <Text variant={TextVariant.BodySm} style={styles.subtitle}>
             Provider not initialized
           </Text>
         </View>
@@ -499,23 +501,23 @@ const HIP3DebugView: React.FC = () => {
       <ScrollView style={styles.scrollView}>
         {/* DEX Selector Section */}
         <View style={styles.section}>
-          <Text variant={TextVariant.HeadingMD} style={styles.sectionTitle}>
+          <Text variant={TextVariant.HeadingMd} style={styles.sectionTitle}>
             Step 1: Select HIP-3 DEX
           </Text>
-          <Text variant={TextVariant.BodySM} style={styles.subtitle}>
+          <Text variant={TextVariant.BodySm} style={styles.subtitle}>
             Choose a DEX to test (avoids querying all {availableDexs.length}{' '}
             DEXs)
           </Text>
 
           {loadingDexs && <ActivityIndicator style={styles.loader} />}
           {!loadingDexs && availableDexs.length === 0 && (
-            <Text variant={TextVariant.BodySM} style={styles.subtitle}>
+            <Text variant={TextVariant.BodySm} style={styles.subtitle}>
               No HIP-3 DEXs available
             </Text>
           )}
           {!loadingDexs && availableDexs.length > 0 && (
             <View>
-              <Text variant={TextVariant.BodySM} style={styles.subtitle}>
+              <Text variant={TextVariant.BodySm} style={styles.subtitle}>
                 Selected: {selectedDex || 'None'}
               </Text>
               {availableDexs.slice(0, 10).map((dex) => (
@@ -530,7 +532,7 @@ const HIP3DebugView: React.FC = () => {
                   onPress={() => setSelectedDex(dex)}
                 >
                   <Text
-                    variant={TextVariant.BodyMD}
+                    variant={TextVariant.BodyMd}
                     style={
                       selectedDex === dex
                         ? styles.buttonText
@@ -548,22 +550,22 @@ const HIP3DebugView: React.FC = () => {
         {/* Market Selector Section */}
         {selectedDex && (
           <View style={styles.section}>
-            <Text variant={TextVariant.HeadingMD} style={styles.sectionTitle}>
+            <Text variant={TextVariant.HeadingMd} style={styles.sectionTitle}>
               Step 2: Select Market
             </Text>
-            <Text variant={TextVariant.BodySM} style={styles.subtitle}>
+            <Text variant={TextVariant.BodySm} style={styles.subtitle}>
               Choose a market on {selectedDex} DEX for testing
             </Text>
 
             {loadingMarkets && <ActivityIndicator style={styles.loader} />}
             {!loadingMarkets && markets.length === 0 && (
-              <Text variant={TextVariant.BodySM} style={styles.subtitle}>
+              <Text variant={TextVariant.BodySm} style={styles.subtitle}>
                 No markets available for {selectedDex}
               </Text>
             )}
             {!loadingMarkets && markets.length > 0 && (
               <View>
-                <Text variant={TextVariant.BodySM} style={styles.subtitle}>
+                <Text variant={TextVariant.BodySm} style={styles.subtitle}>
                   Selected: {selectedMarket || 'None'}
                 </Text>
                 {markets.slice(0, 5).map((market) => (
@@ -578,7 +580,7 @@ const HIP3DebugView: React.FC = () => {
                     onPress={() => setSelectedMarket(market.name)}
                   >
                     <Text
-                      variant={TextVariant.BodyMD}
+                      variant={TextVariant.BodyMd}
                       style={
                         selectedMarket === market.name
                           ? styles.buttonText
@@ -596,16 +598,16 @@ const HIP3DebugView: React.FC = () => {
 
         {/* Balance Check Section */}
         <View style={styles.section}>
-          <Text variant={TextVariant.HeadingMD} style={styles.sectionTitle}>
+          <Text variant={TextVariant.HeadingMd} style={styles.sectionTitle}>
             Balance Check
           </Text>
-          <Text variant={TextVariant.BodySM} style={styles.subtitle}>
+          <Text variant={TextVariant.BodySm} style={styles.subtitle}>
             Check balances across all DEXs. Results will be logged to DevLogger
             console.
           </Text>
 
           <TouchableOpacity style={styles.button} onPress={checkBalance}>
-            <Text variant={TextVariant.BodyMD} style={styles.buttonText}>
+            <Text variant={TextVariant.BodyMd} style={styles.buttonText}>
               Check Balance
             </Text>
           </TouchableOpacity>
@@ -614,21 +616,22 @@ const HIP3DebugView: React.FC = () => {
           {balanceInfo && (
             <View style={styles.successBox}>
               <Text
-                variant={TextVariant.BodySMMedium}
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
                 style={styles.successText}
               >
                 Account Summary
               </Text>
-              <Text variant={TextVariant.BodySM} style={styles.successText}>
+              <Text variant={TextVariant.BodySm} style={styles.successText}>
                 Total: ${balanceInfo.totalBalance}
               </Text>
-              <Text variant={TextVariant.BodySM} style={styles.successText}>
+              <Text variant={TextVariant.BodySm} style={styles.successText}>
                 Available: ${balanceInfo.spendableBalance}
               </Text>
-              <Text variant={TextVariant.BodySM} style={styles.successText}>
+              <Text variant={TextVariant.BodySm} style={styles.successText}>
                 Margin Used: ${balanceInfo.marginUsed}
               </Text>
-              <Text variant={TextVariant.BodySM} style={styles.successText}>
+              <Text variant={TextVariant.BodySm} style={styles.successText}>
                 Positions: {balanceInfo.positionCount} | Sub-Accounts:{' '}
                 {balanceInfo.subAccountCount}
               </Text>
@@ -638,7 +641,8 @@ const HIP3DebugView: React.FC = () => {
                 Object.keys(balanceInfo.subAccountBreakdown).length > 0 && (
                   <View style={styles.subAccountSection}>
                     <Text
-                      variant={TextVariant.BodySMMedium}
+                      variant={TextVariant.BodySm}
+                      fontWeight={FontWeight.Medium}
                       style={styles.successText}
                     >
                       Per Sub-Account Balances:
@@ -647,19 +651,19 @@ const HIP3DebugView: React.FC = () => {
                       ([subAccount, breakdown]) => (
                         <View key={subAccount} style={styles.subAccountItem}>
                           <Text
-                            variant={TextVariant.BodySM}
+                            variant={TextVariant.BodySm}
                             style={styles.successText}
                           >
                             {subAccount || 'main'}:
                           </Text>
                           <Text
-                            variant={TextVariant.BodySM}
+                            variant={TextVariant.BodySm}
                             style={styles.successText}
                           >
                             {'  '}Total: ${breakdown.totalBalance}
                           </Text>
                           <Text
-                            variant={TextVariant.BodySM}
+                            variant={TextVariant.BodySm}
                             style={styles.successText}
                           >
                             {'  '}Available: ${breakdown.spendableBalance}
@@ -675,7 +679,7 @@ const HIP3DebugView: React.FC = () => {
 
         {/* Manual Transfer Testing */}
         <View style={styles.section}>
-          <Text variant={TextVariant.HeadingMD} style={styles.sectionTitle}>
+          <Text variant={TextVariant.HeadingMd} style={styles.sectionTitle}>
             Manual Transfer Testing
           </Text>
 
@@ -684,7 +688,7 @@ const HIP3DebugView: React.FC = () => {
             onPress={testTransferToSelectedDex}
             disabled={!selectedDex}
           >
-            <Text variant={TextVariant.BodyMD} style={styles.buttonText}>
+            <Text variant={TextVariant.BodyMd} style={styles.buttonText}>
               Transfer $10 → {selectedDex || '(select DEX)'} DEX
             </Text>
           </TouchableOpacity>
@@ -695,7 +699,7 @@ const HIP3DebugView: React.FC = () => {
             disabled={!selectedDex}
           >
             <Text
-              variant={TextVariant.BodyMD}
+              variant={TextVariant.BodyMd}
               style={[styles.buttonText, styles.buttonTextSecondary]}
             >
               Reset: Transfer ALL ← {selectedDex || '(select DEX)'} DEX
@@ -708,7 +712,7 @@ const HIP3DebugView: React.FC = () => {
 
           {transferResult.status === 'error' && (
             <View style={styles.errorBox}>
-              <Text variant={TextVariant.BodySM} style={styles.errorText}>
+              <Text variant={TextVariant.BodySm} style={styles.errorText}>
                 ❌ {transferResult.error}
               </Text>
             </View>
@@ -716,7 +720,7 @@ const HIP3DebugView: React.FC = () => {
 
           {transferResult.status === 'success' && (
             <View style={styles.successBox}>
-              <Text variant={TextVariant.BodySM} style={styles.successText}>
+              <Text variant={TextVariant.BodySm} style={styles.successText}>
                 {transferResult.data}
               </Text>
             </View>
@@ -725,7 +729,7 @@ const HIP3DebugView: React.FC = () => {
 
         {/* Auto-Transfer Testing */}
         <View style={styles.section}>
-          <Text variant={TextVariant.HeadingMD} style={styles.sectionTitle}>
+          <Text variant={TextVariant.HeadingMd} style={styles.sectionTitle}>
             Auto-Transfer Testing
           </Text>
 
@@ -733,7 +737,7 @@ const HIP3DebugView: React.FC = () => {
             style={styles.button}
             onPress={testOrderWithAutoTransfer}
           >
-            <Text variant={TextVariant.BodyMD} style={styles.buttonText}>
+            <Text variant={TextVariant.BodyMd} style={styles.buttonText}>
               Place Order (Test Auto-Transfer)
             </Text>
           </TouchableOpacity>
@@ -744,7 +748,7 @@ const HIP3DebugView: React.FC = () => {
 
           {orderResult.status === 'error' && (
             <View style={styles.errorBox}>
-              <Text variant={TextVariant.BodySM} style={styles.errorText}>
+              <Text variant={TextVariant.BodySm} style={styles.errorText}>
                 ❌ {orderResult.error}
               </Text>
             </View>
@@ -752,7 +756,7 @@ const HIP3DebugView: React.FC = () => {
 
           {orderResult.status === 'success' && (
             <View style={styles.successBox}>
-              <Text variant={TextVariant.BodySM} style={styles.successText}>
+              <Text variant={TextVariant.BodySm} style={styles.successText}>
                 {orderResult.data}
               </Text>
             </View>
@@ -763,7 +767,7 @@ const HIP3DebugView: React.FC = () => {
             onPress={testCloseWithAutoTransferBack}
           >
             <Text
-              variant={TextVariant.BodyMD}
+              variant={TextVariant.BodyMd}
               style={[styles.buttonText, styles.buttonTextSecondary]}
             >
               Close Position (Test Transfer Back)
@@ -776,7 +780,7 @@ const HIP3DebugView: React.FC = () => {
 
           {closeResult.status === 'error' && (
             <View style={styles.errorBox}>
-              <Text variant={TextVariant.BodySM} style={styles.errorText}>
+              <Text variant={TextVariant.BodySm} style={styles.errorText}>
                 ❌ {closeResult.error}
               </Text>
             </View>
@@ -784,7 +788,7 @@ const HIP3DebugView: React.FC = () => {
 
           {closeResult.status === 'success' && (
             <View style={styles.successBox}>
-              <Text variant={TextVariant.BodySM} style={styles.successText}>
+              <Text variant={TextVariant.BodySm} style={styles.successText}>
                 {closeResult.data}
               </Text>
             </View>
@@ -793,7 +797,7 @@ const HIP3DebugView: React.FC = () => {
 
         {/* Debug Info */}
         <View style={styles.section}>
-          <Text variant={TextVariant.BodyXS} style={styles.subtitle}>
+          <Text variant={TextVariant.BodyXs} style={styles.subtitle}>
             Check DevLogger console for detailed logs
           </Text>
         </View>

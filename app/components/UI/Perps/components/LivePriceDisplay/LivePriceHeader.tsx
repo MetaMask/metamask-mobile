@@ -1,9 +1,10 @@
 import React, { memo, useMemo } from 'react';
-import { View, StyleSheet } from 'react-native';
-import Text, {
+import {
+  Text,
   TextVariant,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
+import { View, StyleSheet } from 'react-native';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import {
   formatPerpsFiat,
@@ -63,10 +64,10 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
   const isPositiveChange = displayChange !== null && displayChange >= 0;
   const changeColor =
     displayChange === null
-      ? TextColor.Default // Neutral color for loading state
+      ? TextColor.TextDefault // Neutral color for loading state
       : isPositiveChange
-        ? TextColor.Success
-        : TextColor.Error;
+        ? TextColor.SuccessDefault
+        : TextColor.ErrorDefault;
 
   // Format price display with edge case handling
   const formattedPrice = useMemo(() => {
@@ -105,14 +106,14 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
   return (
     <View style={styles.container}>
       <Text
-        variant={TextVariant.BodySM}
-        color={TextColor.Alternative}
+        variant={TextVariant.BodySm}
+        color={TextColor.TextAlternative}
         testID={testIDPrice}
       >
         {formattedPrice}
       </Text>
       <Text
-        variant={TextVariant.BodySM}
+        variant={TextVariant.BodySm}
         color={changeColor}
         testID={testIDChange}
       >

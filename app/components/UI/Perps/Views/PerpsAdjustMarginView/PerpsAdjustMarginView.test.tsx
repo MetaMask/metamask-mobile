@@ -133,9 +133,12 @@ jest.mock('../../components/PerpsSlider', () => {
 });
 
 jest.mock('@metamask/design-system-react-native', () => {
-  const { TouchableOpacity, Text } = jest.requireActual('react-native');
+  const { TouchableOpacity, Text: RNText } = jest.requireActual('react-native');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
   return {
+    ...actual,
     __esModule: true,
+    Text: RNText,
     Button: ({
       label,
       onPress,
@@ -152,7 +155,7 @@ jest.mock('@metamask/design-system-react-native', () => {
         accessibilityLabel={label}
         {...props}
       >
-        {!isLoading && <Text>{label ?? children}</Text>}
+        {!isLoading && <RNText>{label ?? children}</RNText>}
       </TouchableOpacity>
     ),
     ButtonVariant: {
