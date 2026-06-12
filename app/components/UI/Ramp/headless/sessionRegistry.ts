@@ -169,6 +169,28 @@ export function endSession(id: string): void {
 }
 
 /**
+ * Registers (or clears) the screen-scoped teardown for a live session. Called
+ * by Checkout on mount with its own valid-scope `dismissHeadlessFlow`, and
+ * again with `undefined` on unmount so the registry never holds a dismiss tied
+ * to an unmounted navigation. No-op when the session is absent, so callers do
+ * not have to null-check the session first.
+ *
+ * See TRAM-3637: tearing the headless flow down from `useTransakRouting`'s
+ * (HeadlessHost-scoped) navigation no-ops once Checkout is the focused route,
+ * whereas Checkout's own mounted navigation tears down reliably.
+ */
+export function registerSessionDismiss(
+  sessionId: string,
+  dismiss: (() => void) | undefined,
+): void {
+  const session = sessions.get(sessionId);
+  if (!session) {
+    return;
+  }
+  session.dismiss = dismiss;
+}
+
+/**
  * Returns the id of the first non-terminal session, if any. Used by
  * `startHeadlessBuy` to enforce a "single live session at a time" policy:
  * starting a new session auto-cancels the previous one (Phase 5).
@@ -216,6 +238,10 @@ export function closeSession(
     session.status =
       options?.terminalStatus === 'failed' ? 'failed' : 'cancelled';
   }
+  // Drop the screen-scoped dismiss as the session is torn down so a stale
+  // teardown (tied to a navigation that may since have unmounted) can never
+  // be reused (TRAM-3637).
+  session.dismiss = undefined;
   sessions.delete(id);
   try {
     session.callbacks.onClose(info);

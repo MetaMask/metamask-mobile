@@ -37,6 +37,7 @@ import {
   closeSession,
   failSession,
   getSession,
+  registerSessionDismiss,
 } from '../../headless/sessionRegistry';
 import {
   dismissHeadlessFlow,
@@ -196,6 +197,21 @@ const Checkout = () => {
   const dismissActiveHeadlessFlow = useCallback(() => {
     dismissHeadlessFlow(navigation);
   }, [navigation]);
+
+  // Hand the session Checkout's OWN valid-scope teardown. `useTransakRouting`'s
+  // hook-scoped `dismissHeadlessFlow` no-ops once Checkout is the focused
+  // route, so the session-registered dismiss (used by the recovery / completion
+  // paths in useTransakRouting) must come from here (TRAM-3637). This effect is
+  // pure registration: it never touches terminal state.
+  useEffect(() => {
+    if (!headlessSessionId) {
+      return;
+    }
+    registerSessionDismiss(headlessSessionId, dismissActiveHeadlessFlow);
+    return () => {
+      registerSessionDismiss(headlessSessionId, undefined);
+    };
+  }, [headlessSessionId, dismissActiveHeadlessFlow]);
 
   const failHeadlessCheckout = useCallback(
     (checkoutError: unknown) => {

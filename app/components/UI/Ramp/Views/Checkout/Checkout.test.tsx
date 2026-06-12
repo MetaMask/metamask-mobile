@@ -55,6 +55,7 @@ jest.mock('../../headless/sessionRegistry', () => ({
   getSession: jest.fn(),
   closeSession: jest.fn(),
   failSession: jest.fn(),
+  registerSessionDismiss: jest.fn(),
 }));
 
 jest.mock('../../../../../util/Logger', () => ({
@@ -660,6 +661,9 @@ describe('Checkout', () => {
       .closeSession as jest.Mock;
     const mockFailSession = jest.requireMock('../../headless/sessionRegistry')
       .failSession as jest.Mock;
+    const mockRegisterSessionDismiss = jest.requireMock(
+      '../../headless/sessionRegistry',
+    ).registerSessionDismiss as jest.Mock;
     const showV2OrderToastMock = jest.requireMock('../../utils/v2OrderToast')
       .showV2OrderToast as jest.Mock;
 
@@ -684,6 +688,7 @@ describe('Checkout', () => {
       mockGetSession.mockReset();
       mockCloseSession.mockReset();
       mockFailSession.mockReset();
+      mockRegisterSessionDismiss.mockReset();
       mockParentPop = jest.fn();
       mockNavigation.getParent.mockImplementation(() => ({
         pop: mockParentPop,
@@ -693,6 +698,48 @@ describe('Checkout', () => {
       }));
       mockGetOrderFromCallback.mockResolvedValue(mockOrder);
       mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
+    });
+
+    it('registers a valid-scope dismiss on mount and clears it on unmount', () => {
+      mockUseParams.mockReturnValue(callbackFlowParams);
+
+      const { unmount } = renderWithProvider(<Checkout />, {}, true, false);
+
+      // Mount registers a function for this session id.
+      expect(mockRegisterSessionDismiss).toHaveBeenCalledWith(
+        'hs-1',
+        expect.any(Function),
+      );
+
+      // The registered dismiss is Checkout's own teardown: invoking it walks
+      // Checkout's mounted navigation (getParent().pop()).
+      const registeredDismiss = mockRegisterSessionDismiss.mock.calls.find(
+        (call) => typeof call[1] === 'function',
+      )?.[1] as () => void;
+      registeredDismiss();
+      expect(mockParentPop).toHaveBeenCalled();
+
+      unmount();
+
+      // Unmount clears the registration so the registry never holds a dismiss
+      // tied to an unmounted navigation.
+      expect(mockRegisterSessionDismiss).toHaveBeenCalledWith(
+        'hs-1',
+        undefined,
+      );
+    });
+
+    it('does not register a dismiss when there is no headless session', () => {
+      mockUseParams.mockReturnValue({
+        url: 'https://provider.example.com/checkout',
+        providerName: 'Test Provider',
+        providerCode: 'moonpay',
+        walletAddress: '0xdeadbeef',
+      });
+
+      renderWithProvider(<Checkout />, {}, true, false);
+
+      expect(mockRegisterSessionDismiss).not.toHaveBeenCalled();
     });
 
     it('fires onOrderCreated, closes the session, and pops the ramp stack when a live session is present', async () => {
