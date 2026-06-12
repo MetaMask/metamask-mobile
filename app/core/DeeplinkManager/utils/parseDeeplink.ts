@@ -15,6 +15,17 @@ import type { DeeplinkIntent } from '../types/DeeplinkIntent';
 
 export type DeeplinkParseMode = 'execute' | 'resolve';
 
+const alertResolve = (title: string, message: unknown): Promise<void> =>
+  new Promise((resolve) => {
+    const body =
+      typeof message === 'string'
+        ? message
+        : message instanceof Error
+          ? (message.stack ?? message.message)
+          : JSON.stringify(message, null, 2);
+    Alert.alert(title, body, [{ text: 'OK', onPress: () => resolve() }]);
+  });
+
 async function parseDeeplink({
   deeplinkManager: instance,
   url,
@@ -33,6 +44,8 @@ async function parseDeeplink({
   try {
     const validatedUrl = new URL(url);
     DevLogger.log('DeepLinkManager:parse validatedUrl', validatedUrl);
+
+    await alertResolve('DEEPLINK MANAGER parseDeeplink url', url);
 
     const { urlObj, params } = extractURLParams(url);
 

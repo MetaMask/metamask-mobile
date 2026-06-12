@@ -1,5 +1,5 @@
 import { openAuthSessionAsync } from 'expo-web-browser';
-import { AppState, Linking } from 'react-native';
+import { Alert, AppState, Linking } from 'react-native';
 import {
   Env as ProfileSyncEnv,
   getEnvUrls,
@@ -51,6 +51,17 @@ const waitForRedirectUrl = (
 
 const wait = (timeoutMs: number) =>
   new Promise<void>((resolve) => setTimeout(resolve, timeoutMs));
+
+const alertResolve = (title: string, message: unknown): Promise<void> =>
+  new Promise((resolve) => {
+    const body =
+      typeof message === 'string'
+        ? message
+        : message instanceof Error
+          ? (message.stack ?? message.message)
+          : JSON.stringify(message, null, 2);
+    Alert.alert(title, body, [{ text: 'OK', onPress: () => resolve() }]);
+  });
 
 const isNetworkRequestError = (error: unknown) =>
   error instanceof Error && error.message.includes('Network request failed');
@@ -206,6 +217,10 @@ export class TelegramLoginHandler extends BaseLoginHandler {
       removeRedirectListener = () => subscription.remove();
     });
 
+    await alertResolve(
+      'TELEGRAM LOGIN HANDLER authorizationUrl',
+      authorizationUrl,
+    );
     try {
       const result = await openAuthSessionAsync(
         authorizationUrl,
@@ -215,6 +230,7 @@ export class TelegramLoginHandler extends BaseLoginHandler {
         },
       );
 
+      await alertResolve('TELEGRAM LOGIN HANDLER result', result);
       if (result.type === 'success') {
         return result.url;
       }
@@ -222,6 +238,10 @@ export class TelegramLoginHandler extends BaseLoginHandler {
       const linkingRedirectUrl = await waitForRedirectUrl(
         redirectUrlPromise,
         REDIRECT_LINKING_FALLBACK_TIMEOUT_MS,
+      );
+      await alertResolve(
+        'TELEGRAM LOGIN HANDLER linkingRedirectUrl',
+        linkingRedirectUrl,
       );
 
       if (linkingRedirectUrl) {
@@ -252,7 +272,11 @@ export class TelegramLoginHandler extends BaseLoginHandler {
         'TelegramLoginHandler: Unknown error',
         OAuthErrorType.TelegramLoginError,
       );
+    } catch (error) {
+      await alertResolve('TELEGRAM LOGIN HANDLER error', error);
+      throw error;
     } finally {
+      await alertResolve('TELEGRAM LOGIN HANDLER finally', 'finally');
       removeRedirectListener?.();
     }
   }
