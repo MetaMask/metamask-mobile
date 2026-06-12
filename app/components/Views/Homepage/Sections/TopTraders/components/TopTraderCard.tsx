@@ -18,6 +18,7 @@ import { Image, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import type { TopTrader } from '../types';
 import { hasRealAvatar } from '../utils/avatarFallback';
+import { formatFullPnl } from '../utils/formatPnl';
 
 export interface TopTraderCardProps {
   trader: TopTrader;
@@ -55,11 +56,7 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
   const tw = useTailwind();
 
   const isPnlPositive = trader.pnlValue >= 0;
-  const pnlSign = isPnlPositive ? '+' : '-';
-  const pnlAbs = Math.abs(trader.pnlValue);
-  const pnlParts = pnlAbs.toFixed(2).split('.');
-  pnlParts[0] = pnlParts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  const pnlText = `${pnlSign}$${pnlParts.join('.')}`;
+  const pnlText = formatFullPnl(trader.pnlValue);
 
   return (
     <Box

@@ -2,20 +2,18 @@
 import { addThousandsSeparator } from '../../../../SocialLeaderboard/utils/numberFormatting';
 
 /**
- * Format a raw PnL number into a compact display string.
+ * Format a raw USD PnL number for display in trader rows and cards.
  *
- * Uses manual rounding instead of `toLocaleString` options because
- * React Native's Hermes engine does not honour `maximumFractionDigits`.
+ * Shows the full value with thousands separators and exactly two decimal
+ * places, signed (e.g. "+$963,146.80", "-$1,200.00"). Uses manual formatting
+ * because React Native's Hermes engine does not honour `toLocaleString`
+ * fraction-digit options.
  *
  * @param value - Raw USD PnL value.
- * @returns Formatted string like "+$963K" or "-$1,200".
+ * @returns Signed, full-precision USD string.
  */
-export function formatPnl(value: number): string {
-  const rounded = Math.round(Math.abs(value));
+export function formatFullPnl(value: number): string {
   const sign = value >= 0 ? '+' : '-';
-
-  if (rounded >= 1_000) {
-    return `${sign}$${addThousandsSeparator(String(Math.round(rounded / 1_000)))}K`;
-  }
-  return `${sign}$${addThousandsSeparator(String(rounded))}`;
+  const [whole, decimals] = Math.abs(value).toFixed(2).split('.');
+  return `${sign}$${addThousandsSeparator(whole)}.${decimals}`;
 }

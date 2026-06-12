@@ -21,6 +21,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import { TopRankAvatar } from '../topRank';
 import type { TopTrader } from '../types';
 import { hasRealAvatar } from '../utils/avatarFallback';
+import { formatFullPnl } from '../utils/formatPnl';
 
 const AVATAR_SIZE = 40;
 // Fixed row height so the skeleton placeholder can match it exactly without
@@ -54,11 +55,7 @@ const TraderRow: React.FC<TraderRowProps> = ({
   const tw = useTailwind();
 
   const isPnlPositive = trader.pnlValue >= 0;
-  const pnlSign = isPnlPositive ? '+' : '-';
-  const pnlAbs = Math.abs(trader.pnlValue);
-  const pnlParts = pnlAbs.toFixed(2).split('.');
-  pnlParts[0] = pnlParts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  const pnlText = `${pnlSign}$${pnlParts.join('.')}`;
+  const pnlText = formatFullPnl(trader.pnlValue);
 
   return (
     <Box
