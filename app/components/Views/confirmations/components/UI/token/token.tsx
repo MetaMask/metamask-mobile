@@ -1,9 +1,7 @@
-import React, { useCallback } from 'react';
+import React, { ReactNode, useCallback } from 'react';
 import { Pressable } from 'react-native';
 import {
   Box,
-  Tag,
-  TagSeverity,
   Text,
   TextVariant,
   FontWeight,
@@ -27,13 +25,15 @@ import { formatAmount } from '../../../../../../components/UI/SimulationDetails/
 import { ACCOUNT_TYPE_LABELS } from '../../../../../../constants/account-type-labels';
 import AssetLogo from '../../../../../UI/Assets/components/AssetLogo/AssetLogo';
 
+export type TokenTagRenderer = (token: AssetType) => ReactNode;
+
 interface TokenProps {
   asset: AssetType;
-  isNoFee?: boolean;
   onPress: (asset: AssetType) => void;
+  tagRenderers?: TokenTagRenderer[];
 }
 
-export function Token({ asset, isNoFee, onPress }: TokenProps) {
+export function Token({ asset, tagRenderers, onPress }: TokenProps) {
   const tw = useTailwind();
 
   const handlePress = useCallback(() => {
@@ -95,13 +95,10 @@ export function Token({ asset, isNoFee, onPress }: TokenProps) {
             >
               {asset.name || asset.symbol || 'Unknown Token'}
             </Text>
-            {isNoFee ? (
-              <Box twClassName="shrink-0">
-                <Tag severity={TagSeverity.Info}>
-                  {I18n.t('money.potential_earnings.no_fee')}
-                </Tag>
-              </Box>
-            ) : null}
+            {tagRenderers?.reduce<ReactNode>(
+              (found, render) => found ?? render(asset),
+              null,
+            )}
             <AccountTypeLabel label={typeLabel} />
           </Box>
           <Text

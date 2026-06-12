@@ -15,6 +15,7 @@ import { useAssetSelectionMetrics } from '../../../hooks/send/metrics/useAssetSe
 import { useSendNavbar } from '../../../hooks/send/useSendNavbar';
 import { useTokenSearch } from '../../../hooks/send/useTokenSearch';
 import { TokenList } from '../../token-list';
+import { TokenTagRenderer } from '../../UI/token';
 import { NftList } from '../../nft-list';
 
 import {
@@ -37,7 +38,7 @@ export interface AssetProps {
   includeNoBalance?: boolean;
   onTokenSelect?: (token: AssetType) => void;
   tokenFilter?: (assets: AssetType[]) => TokenListItem[];
-  isNoFeeToken?: (token: AssetType) => boolean;
+  tagRenderers?: TokenTagRenderer[];
   hideNetworkFilter?: boolean;
   // Hides the in-body send navbar. Set by consumers that render their own
   // header (e.g. pay-with-modal) while reusing this asset picker.
@@ -57,7 +58,7 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
     includeNoBalance = false,
     onTokenSelect,
     tokenFilter,
-    isNoFeeToken,
+    tagRenderers,
     hideNetworkFilter = false,
     hideHeader = false,
   } = props;
@@ -283,7 +284,7 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
               tokens={filteredTokens}
               highlightedAssets={filteredHighlightedItemsInAssetList}
               onSelect={onTokenSelect}
-              isNoFeeToken={isNoFeeToken}
+              tagRenderers={tagRenderers}
             />
             {!hideNfts && (
               <>

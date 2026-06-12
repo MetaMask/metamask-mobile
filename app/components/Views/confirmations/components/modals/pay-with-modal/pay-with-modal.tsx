@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { HeaderStandard } from '@metamask/design-system-react-native';
 import { Hex } from '@metamask/utils';
 import { StackActions, useNavigation } from '@react-navigation/native';
@@ -86,10 +86,10 @@ export function PayWithModal() {
     isPredictContext ? resetSelectedPaymentToken : undefined,
   );
 
-  const { isNoFeeToken: isNoFeeTokenCheck } = usePayWithNoFeeToken();
-  const isNoFeeToken = useCallback(
-    (token: AssetType) => isNoFeeTokenCheck(token.address, token.chainId ?? ''),
-    [isNoFeeTokenCheck],
+  const { renderNoFeeTag } = usePayWithNoFeeToken();
+  const tagRenderers = useMemo(
+    () => (isWithdraw ? undefined : [renderNoFeeTag]),
+    [isWithdraw, renderNoFeeTag],
   );
 
   const close = useCallback((onClosed?: () => void) => {
@@ -273,7 +273,7 @@ export function PayWithModal() {
         hideNfts
         hideHeader
         tokenFilter={tokenFilter}
-        isNoFeeToken={isNoFeeToken}
+        tagRenderers={tagRenderers}
         onTokenSelect={handleTokenSelect}
         hideNetworkFilter={hideNetworkFilter}
       />

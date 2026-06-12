@@ -123,6 +123,7 @@ describe('usePayWithCryptoSection', () => {
     usePayWithNoFeeTokenMock.mockReturnValue({
       noFeeToken: undefined,
       isNoFeeToken: jest.fn().mockReturnValue(false),
+      renderNoFeeTag: jest.fn().mockReturnValue(null),
     });
 
     useNavigationMock.mockReturnValue({
@@ -1055,6 +1056,7 @@ describe('usePayWithCryptoSection', () => {
       usePayWithNoFeeTokenMock.mockReturnValue({
         noFeeToken: noFeeTokenMock,
         isNoFeeToken: jest.fn().mockReturnValue(false),
+        renderNoFeeTag: jest.fn().mockReturnValue(null),
       });
 
       const { result } = renderHook(() => usePayWithCryptoSection());
@@ -1077,6 +1079,7 @@ describe('usePayWithCryptoSection', () => {
       usePayWithNoFeeTokenMock.mockReturnValue({
         noFeeToken: undefined,
         isNoFeeToken: jest.fn().mockReturnValue(false),
+        renderNoFeeTag: jest.fn().mockReturnValue(null),
       });
 
       const { result } = renderHook(() => usePayWithCryptoSection());
@@ -1086,6 +1089,35 @@ describe('usePayWithCryptoSection', () => {
         (row) => row.id === 'crypto-no-fee-token',
       );
       expect(noFeeRow).toBeUndefined();
+    });
+
+    it('does not render no-fee row or tags in withdraw flows', () => {
+      const noFeeTokenMock = {
+        address: '0xnoFee' as Hex,
+        chainId: '0x1' as Hex,
+        symbol: 'USDT',
+        balanceUsd: '10',
+      };
+      usePayWithNoFeeTokenMock.mockReturnValue({
+        noFeeToken: noFeeTokenMock,
+        isNoFeeToken: jest.fn().mockReturnValue(true),
+        renderNoFeeTag: jest.fn().mockReturnValue(null),
+      });
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: TransactionType.perpsWithdraw,
+        txParams: {},
+      } as never);
+
+      const { result } = renderHook(() => usePayWithCryptoSection());
+
+      expect(
+        result.current?.rows.find((row) => row.id === 'crypto-no-fee-token'),
+      ).toBeUndefined();
+      expect(
+        result.current?.rows.some(
+          (row) => row.id !== 'crypto-other-assets' && row.isNoFee,
+        ),
+      ).toBe(false);
     });
 
     it('sets isNoFee on preferred token when it is a no-fee token', () => {
@@ -1098,6 +1130,7 @@ describe('usePayWithCryptoSection', () => {
       usePayWithNoFeeTokenMock.mockReturnValue({
         noFeeToken: undefined,
         isNoFeeToken: isNoFeeTokenMock,
+        renderNoFeeTag: jest.fn().mockReturnValue(null),
       });
 
       const { result } = renderHook(() => usePayWithCryptoSection());
@@ -1122,6 +1155,7 @@ describe('usePayWithCryptoSection', () => {
       usePayWithNoFeeTokenMock.mockReturnValue({
         noFeeToken: noFeeTokenMock,
         isNoFeeToken: jest.fn().mockReturnValue(false),
+        renderNoFeeTag: jest.fn().mockReturnValue(null),
       });
       usePayWithPreferredTokenMock.mockReturnValue({
         hasTokens: true,
@@ -1153,6 +1187,7 @@ describe('usePayWithCryptoSection', () => {
       usePayWithNoFeeTokenMock.mockReturnValue({
         noFeeToken: noFeeTokenMock,
         isNoFeeToken: jest.fn().mockReturnValue(false),
+        renderNoFeeTag: jest.fn().mockReturnValue(null),
       });
 
       const { result } = renderHook(() => usePayWithCryptoSection());
@@ -1182,6 +1217,7 @@ describe('usePayWithCryptoSection', () => {
       usePayWithNoFeeTokenMock.mockReturnValue({
         noFeeToken: noFeeTokenMock,
         isNoFeeToken: jest.fn().mockReturnValue(false),
+        renderNoFeeTag: jest.fn().mockReturnValue(null),
       });
       usePayWithSelectedTokenMock.mockReturnValue({
         isSelectedDistinctFromAutomatic: true,
@@ -1208,6 +1244,7 @@ describe('usePayWithCryptoSection', () => {
       usePayWithNoFeeTokenMock.mockReturnValue({
         noFeeToken: undefined,
         isNoFeeToken: isNoFeeTokenMock,
+        renderNoFeeTag: jest.fn().mockReturnValue(null),
       });
       const distinctSelectedToken = {
         ...TOKEN_MOCK,

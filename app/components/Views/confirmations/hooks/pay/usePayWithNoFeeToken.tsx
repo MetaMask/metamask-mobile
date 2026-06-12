@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { selectMoneyNoFeeTokens } from '../../../../UI/Money/selectors/featureFlags';
@@ -6,6 +6,8 @@ import { isTokenInWildcardList } from '../../../../UI/Earn/utils/wildcardTokenLi
 import { safeFormatChainIdToHex } from '../../../../UI/Card/util/safeFormatChainIdToHex';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { AssetType } from '../../types/token';
+import { NoFeeTag } from '../../components/UI/no-fee-tag';
+import { TokenTagRenderer } from '../../components/UI/token';
 
 export interface NoFeeTokenResult {
   address: Hex;
@@ -28,9 +30,22 @@ export function usePayWithNoFeeToken({
 } = {}): {
   noFeeToken: NoFeeTokenResult | undefined;
   isNoFeeToken: (address: string, chainId: string) => boolean;
+  renderNoFeeTag: TokenTagRenderer;
 } {
   const noFeeTokenList = useSelector(selectMoneyNoFeeTokens);
   const { availableTokens } = useTransactionPayAvailableTokens();
+
+  const matchesNoFeeList = useCallback(
+    (symbol: string, chainId: string | undefined): boolean => {
+      if (!chainId) return false;
+      return isTokenInWildcardList(
+        symbol,
+        noFeeTokenList,
+        safeFormatChainIdToHex(chainId),
+      );
+    },
+    [noFeeTokenList],
+  );
 
   const isNoFeeToken = useCallback(
     (address: string, chainId: string): boolean => {
@@ -40,29 +55,18 @@ export function usePayWithNoFeeToken({
           t.chainId?.toLowerCase() === chainId.toLowerCase(),
       );
 
-      if (!token?.chainId) return false;
+      if (!token) return false;
 
-      return isTokenInWildcardList(
-        token.symbol,
-        noFeeTokenList,
-        safeFormatChainIdToHex(token.chainId),
-      );
+      return matchesNoFeeList(token.symbol, token.chainId);
     },
-    [availableTokens, noFeeTokenList],
+    [availableTokens, matchesNoFeeList],
   );
 
   const noFeeToken = useMemo(() => {
-    const enabledTokens = availableTokens.filter((t) => !t.disabled);
-
-    const eligible = enabledTokens.filter((token: AssetType) => {
-      if (!token.chainId) return false;
-
-      return isTokenInWildcardList(
-        token.symbol,
-        noFeeTokenList,
-        safeFormatChainIdToHex(token.chainId),
-      );
-    });
+    const eligible = availableTokens.filter(
+      (token: AssetType) =>
+        !token.disabled && matchesNoFeeList(token.symbol, token.chainId),
+    );
 
     const sorted = [...eligible].sort(
       (a, b) => (b.fiat?.balance ?? 0) - (a.fiat?.balance ?? 0),
@@ -85,7 +89,17 @@ export function usePayWithNoFeeToken({
       chainId: match.chainId as Hex,
       symbol: match.symbol,
     };
-  }, [availableTokens, excludeToken, noFeeTokenList]);
+  }, [availableTokens, excludeToken, matchesNoFeeList]);
 
-  return { noFeeToken, isNoFeeToken };
+  const renderNoFeeTag: TokenTagRenderer = useCallback(
+    (token: AssetType) => {
+      if (!matchesNoFeeList(token.symbol, token.chainId)) {
+        return null;
+      }
+      return <NoFeeTag />;
+    },
+    [matchesNoFeeList],
+  );
+
+  return { noFeeToken, isNoFeeToken, renderNoFeeTag };
 }
