@@ -124,11 +124,6 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: jest.fn(),
 }));
 
-jest.mock('../../../../../reducers/fiatOrders', () => ({
-  getRampRoutingDecision: () => 'AGGREGATOR',
-  UnifiedRampRoutingType: { AGGREGATOR: 'AGGREGATOR' },
-}));
-
 jest.mock('../../hooks/useRampAccountAddress', () => ({
   __esModule: true,
   default: () => '0x1234567890123456789012345678901234567890',
@@ -319,19 +314,6 @@ describe('createBuildQuoteNavDetails', () => {
     expect(result[1].params.params).toEqual({
       assetId: 'eip155:1/slip44:60',
       nativeFlowError: 'error',
-    });
-  });
-
-  it('forwards headlessSessionId for headless buy attempts', () => {
-    const result = createBuildQuoteNavDetails({
-      assetId: 'eip155:1/slip44:60',
-      amount: 25,
-      headlessSessionId: 'headless-abc',
-    });
-    expect(result[1].params.params).toEqual({
-      assetId: 'eip155:1/slip44:60',
-      amount: 25,
-      headlessSessionId: 'headless-abc',
     });
   });
 });

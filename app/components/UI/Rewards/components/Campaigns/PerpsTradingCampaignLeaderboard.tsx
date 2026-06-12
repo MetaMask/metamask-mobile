@@ -100,7 +100,7 @@ const PerpsTradingCampaignLeaderboard: React.FC<
   );
 
   if (isLoading && entries.length === 0) {
-    return <CampaignLeaderboardSkeleton skeletonRowCount={5} />;
+    return <CampaignLeaderboardSkeleton skeletonRowCount={maxEntries ?? 20} />;
   }
 
   if (hasError && entries.length === 0) {

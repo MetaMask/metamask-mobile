@@ -139,7 +139,7 @@ describe('TopTradersSection', () => {
   it('navigates to the Top Traders view when the section header is pressed', () => {
     renderWithProvider(<TopTradersSection {...defaultProps} />);
 
-    fireEvent.press(screen.getByText('Top Traders'));
+    fireEvent.press(screen.getByText('Weekly Top Traders'));
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL_LEADERBOARD.VIEW, {
       source: 'home_carousel',
