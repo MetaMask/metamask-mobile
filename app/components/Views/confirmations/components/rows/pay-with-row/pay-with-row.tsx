@@ -3,7 +3,6 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { PaymentType } from '@consensys/on-ramp-sdk';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { shouldHideArc } from '../../../../../../enablement/assets/arc';
 import { RootState } from '../../../../../../reducers';
 import { selectPaymentOverrideByTransactionId } from '../../../../../../selectors/transactionPayController';
 import { TokenIcon, TokenIconVariant } from '../../token-icon';
@@ -69,11 +68,6 @@ export function PayWithRow({
     selectPaymentOverrideByTransactionId(state, transactionId),
   );
   const { payWithOption } = useParams<ConfirmationParams>({});
-
-  // No alternative pay-with route on Arc.
-  if (shouldHideArc(transactionMeta?.chainId)) {
-    return null;
-  }
 
   // Nav-param means money home pre-set the method; bottom-sheet selection doesn't set this.
   if (payWithOption === PayWithOption.MoneyAccount) {

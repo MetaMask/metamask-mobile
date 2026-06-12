@@ -379,23 +379,6 @@ describe('PayWithRow', () => {
     });
   });
 
-  describe('Arc network', () => {
-    it('hides the row when the confirmation is on Arc', () => {
-      jest.mocked(useTransactionMetadataRequest).mockReturnValue({
-        id: 'tx-arc',
-        chainId: '0x13b2',
-      } as never);
-
-      const { queryByTestId } = renderWithProvider(<PayWithRow />, {
-        state: STATE_MOCK,
-      });
-
-      expect(queryByTestId('pay-with')).toBeNull();
-      expect(queryByTestId('pay-with-symbol')).toBeNull();
-      expect(queryByTestId('pay-with-row-skeleton')).toBeNull();
-    });
-  });
-
   describe('money home navigation', () => {
     it('hides row when payWithOption is MoneyAccount in nav params', () => {
       useParamsMock.mockReturnValue({
