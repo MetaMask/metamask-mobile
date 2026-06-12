@@ -123,7 +123,13 @@ jest.mock('@shopify/flash-list', () => {
             {ListFooterComponent}
             <TouchableOpacity
               testID="mock-refresh"
-              onPress={() => refreshControl?.props.onRefresh()}
+              onPress={() =>
+                (
+                  refreshControl as
+                    | React.ReactElement<{ onRefresh: () => void }>
+                    | undefined
+                )?.props.onRefresh()
+              }
             />
             <TouchableOpacity
               testID="mock-scroll"

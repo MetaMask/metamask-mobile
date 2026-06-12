@@ -93,9 +93,14 @@ describe('ActivityList transformations', () => {
             to: address,
             valueTransfers: [
               {
+                amount: '1000000',
                 contractAddress: '0xtoken',
+                decimal: 6,
                 from: otherAddress,
+                name: 'Mock Token',
+                symbol: 'MOCK',
                 to: address,
+                transferType: 'ERC20',
               },
             ],
           }),
@@ -107,7 +112,18 @@ describe('ActivityList transformations', () => {
           makeTx({
             from: otherAddress,
             to: address,
-            valueTransfers: [{ from: otherAddress, to: address }],
+            valueTransfers: [
+              {
+                amount: '1',
+                contractAddress: '',
+                decimal: 18,
+                from: otherAddress,
+                name: 'Ether',
+                symbol: 'ETH',
+                to: address,
+                transferType: 'NATIVE',
+              },
+            ],
           }),
         ),
       ).toBe(true);
@@ -160,10 +176,20 @@ describe('ActivityList transformations', () => {
 
     const result = select({
       pageParams: [undefined],
-      pages: [{ cursor: 'next', data: [tx, skipped] }],
+      pages: [
+        {
+          data: [tx, skipped],
+          pageInfo: {
+            count: 2,
+            endCursor: 'next',
+            hasNextPage: true,
+          },
+          unprocessedNetworks: [],
+        },
+      ],
     } as never);
 
-    expect(result.pages[0].cursor).toBe('next');
+    expect(result.pages[0].pageInfo.endCursor).toBe('next');
     expect(result.pages[0].data).toHaveLength(1);
     expect(mapApiEvmTransactions).toHaveBeenCalledWith({
       subjectAddress: address.toLowerCase(),
@@ -195,7 +221,7 @@ describe('ActivityList transformations', () => {
           chainId: 'eip155:1',
           status: 'success',
           timestamp: 3,
-          data: { hash: '0xconfirmed' },
+          data: { from: otherAddress, hash: '0xconfirmed', to: address },
         },
       ],
       [
@@ -204,7 +230,7 @@ describe('ActivityList transformations', () => {
           chainId: 'solana:mainnet',
           status: 'success',
           timestamp: 2,
-          data: { hash: '0xnon-evm' },
+          data: { from: otherAddress, hash: '0xnon-evm', to: address },
         },
       ],
     );

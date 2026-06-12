@@ -105,6 +105,9 @@ let hardwareAccountType: 'ledger' | 'qr' | undefined;
 const tx = {
   chainId: '0x1',
   id: 'tx-id',
+  networkClientId: 'mainnet',
+  status: 'submitted',
+  time: 1,
   type: TransactionType.simpleSend,
   txParams: {
     from: '0xselected',
@@ -112,7 +115,7 @@ const tx = {
     to: '0xrecipient',
     value: '0x1',
   },
-} as TransactionMeta;
+} as unknown as TransactionMeta;
 
 describe('useUnifiedTxActions', () => {
   beforeEach(() => {

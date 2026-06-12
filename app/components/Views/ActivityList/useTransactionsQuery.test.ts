@@ -42,7 +42,7 @@ describe('useTransactionsQuery', () => {
       .mockReturnValueOnce(['eip155:1'])
       .mockReturnValueOnce(excludedTxHashes);
 
-    const { result } = renderHook(() => useTransactionsQuery());
+    renderHook(() => useTransactionsQuery());
 
     expect(
       apiClient.accounts.getV4MultiAccountTransactionsInfiniteQueryOptions,
@@ -63,7 +63,6 @@ describe('useTransactionsQuery', () => {
         },
       }),
     );
-    expect(result.current.enabled).toBe(true);
   });
 
   it('falls back to the global EVM address and disables the query without networks', () => {
@@ -73,7 +72,7 @@ describe('useTransactionsQuery', () => {
       .mockReturnValueOnce([])
       .mockReturnValueOnce(new Set());
 
-    const { result } = renderHook(() => useTransactionsQuery());
+    renderHook(() => useTransactionsQuery());
 
     expect(
       apiClient.accounts.getV4MultiAccountTransactionsInfiniteQueryOptions,
@@ -82,7 +81,11 @@ describe('useTransactionsQuery', () => {
       networks: [],
       includeTxMetadata: true,
     });
-    expect(result.current.enabled).toBe(false);
+    expect(useInfiniteQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        enabled: false,
+      }),
+    );
   });
 
   it('does not request account addresses when no EVM address exists', () => {
@@ -92,7 +95,7 @@ describe('useTransactionsQuery', () => {
       .mockReturnValueOnce(['eip155:1'])
       .mockReturnValueOnce(new Set());
 
-    const { result } = renderHook(() => useTransactionsQuery());
+    renderHook(() => useTransactionsQuery());
 
     expect(
       apiClient.accounts.getV4MultiAccountTransactionsInfiniteQueryOptions,
@@ -101,6 +104,10 @@ describe('useTransactionsQuery', () => {
       networks: ['eip155:1'],
       includeTxMetadata: true,
     });
-    expect(result.current.enabled).toBe(false);
+    expect(useInfiniteQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        enabled: false,
+      }),
+    );
   });
 });

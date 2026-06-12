@@ -9,6 +9,8 @@ import { strings } from '../../../../locales/i18n';
 import { getNetworkImageSource } from '../../../util/networks';
 
 const LINEA_MUSD_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
+const LINEA_MUSD_CHECKSUM_ADDRESS =
+  '0xacA92E438df0B2401fF60dA7E4337B687a2435DA';
 
 const mockState = {
   user: {
@@ -38,7 +40,7 @@ const mockState = {
       TokenRatesController: {
         marketData: {
           '0x1': {
-            [LINEA_MUSD_ADDRESS]: {
+            [LINEA_MUSD_CHECKSUM_ADDRESS]: {
               price: 0.0004,
             },
           },

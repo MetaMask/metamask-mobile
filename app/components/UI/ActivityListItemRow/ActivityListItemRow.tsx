@@ -104,7 +104,24 @@ function getTokenPrice({
     return 1;
   }
 
-  return marketData?.[hexChainId]?.[tokenAddress]?.price;
+  const chainMarketData = marketData?.[hexChainId];
+  if (!chainMarketData) {
+    return undefined;
+  }
+
+  const exactPrice = chainMarketData[tokenAddress]?.price;
+  if (exactPrice !== undefined) {
+    return exactPrice;
+  }
+
+  const normalizedTokenAddress = tokenAddress.toLowerCase();
+  const marketDataAddress = Object.keys(chainMarketData).find(
+    (address) => address.toLowerCase() === normalizedTokenAddress,
+  );
+
+  return marketDataAddress
+    ? chainMarketData[marketDataAddress as Hex]?.price
+    : undefined;
 }
 
 function resolveFiatAmount({
