@@ -382,19 +382,36 @@ function updateRpcUrlsWithAllocatedPorts(state: Fixture): Fixture {
     for (const chainId of Object.keys(networkConfigs)) {
       const config = networkConfigs[chainId as `0x${string}`];
       if (config.rpcEndpoints) {
+        // Android fixture URLs must carry the FALLBACK port: adb reverse
+        // maps fallback -> actual host port, so an actual host port baked by
+        // a spec (node.getPort()) is unreachable on-device — the shim's
+        // silent raw-URL fallback then dead-ends and the app's RPC/balance
+        // pipeline starves (MMQA-1923 S3, stake-action regression). iOS
+        // shares the host network, so it needs the opposite direction.
+        const isAndroidPlatform = PlatformDetector.isAndroid();
         for (const endpoint of config.rpcEndpoints) {
           if (endpoint.url) {
             if (actualAnvilPort !== undefined) {
-              endpoint.url = endpoint.url.replace(
-                new RegExp(`:${DEFAULT_ANVIL_PORT}(\\/|$)`),
-                `:${actualAnvilPort}$1`,
-              );
+              endpoint.url = isAndroidPlatform
+                ? endpoint.url.replace(
+                    new RegExp(`:${actualAnvilPort}(\\/|$)`),
+                    `:${DEFAULT_ANVIL_PORT}$1`,
+                  )
+                : endpoint.url.replace(
+                    new RegExp(`:${DEFAULT_ANVIL_PORT}(\\/|$)`),
+                    `:${actualAnvilPort}$1`,
+                  );
             }
             if (actualGanachePort !== undefined) {
-              endpoint.url = endpoint.url.replace(
-                new RegExp(`:${DEFAULT_GANACHE_PORT}(\\/|$)`),
-                `:${actualGanachePort}$1`,
-              );
+              endpoint.url = isAndroidPlatform
+                ? endpoint.url.replace(
+                    new RegExp(`:${actualGanachePort}(\\/|$)`),
+                    `:${DEFAULT_GANACHE_PORT}$1`,
+                  )
+                : endpoint.url.replace(
+                    new RegExp(`:${DEFAULT_GANACHE_PORT}(\\/|$)`),
+                    `:${actualGanachePort}$1`,
+                  );
             }
           }
         }
