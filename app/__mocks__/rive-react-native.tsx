@@ -31,6 +31,8 @@ type MockRiveProps = ViewProps & {
   autoplay?: boolean;
   stateMachineName?: string;
   onPlay?: () => void;
+  onPause?: () => void;
+  onStop?: () => void;
 };
 
 const DEFAULT_TEST_ID = 'mock-rive-animation';
@@ -65,7 +67,9 @@ const RiveMock = forwardRef<RiveRef, MockRiveProps>(
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    return <View testID={testID} {...viewProps} />;
+    return (
+      <View testID={testID} {...({ onPlay } as ViewProps)} {...viewProps} />
+    );
   },
 );
 
