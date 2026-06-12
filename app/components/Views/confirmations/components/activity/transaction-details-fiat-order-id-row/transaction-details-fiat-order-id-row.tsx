@@ -8,7 +8,7 @@ import { useTransactionDetails } from '../../../hooks/activity/useTransactionDet
 import { hasTransactionType } from '../../../utils/transaction';
 import { TransactionDetailsRow } from '../transaction-details-row/transaction-details-row';
 
-export function TransactionDetailsOrderIdRow() {
+export function TransactionDetailsFiatOrderIdRow() {
   const { transactionMeta } = useTransactionDetails();
 
   const isDeposit = hasTransactionType(transactionMeta, [

@@ -13,7 +13,6 @@ import { useTransactionDetails } from '../../../hooks/activity/useTransactionDet
 import { RootState } from '../../../../../../reducers';
 import {
   TransactionMeta,
-  TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
 import { hasTransactionType } from '../../../utils/transaction';
@@ -25,7 +24,6 @@ import { ApprovalSummaryLine } from './approval-summary-line';
 import { ReceiveSummaryLine } from './receive-summary-line';
 import { DefaultSummaryLine } from './default-summary-line';
 import { FiatOrderSummaryLine } from './fiat-order-summary-line';
-import { strings } from '../../../../../../../locales/i18n';
 
 export function TransactionDetailsSummary() {
   const { transactionMeta } = useTransactionDetails();
@@ -73,27 +71,11 @@ export function TransactionDetailsSummary() {
   const { sourceHash, fiat } = metamaskPay ?? {};
   const { orderId: fiatOrderId } = fiat ?? {};
 
-  const isMoneyAccountFlow = hasTransactionType(transactionMeta, [
-    TransactionType.moneyAccountDeposit,
-    TransactionType.moneyAccountWithdraw,
-  ]);
-
   const showSourceHash = !hasDepositTransactions && sourceHash;
 
   return (
     <Box gap={12}>
-      <Text color={TextColor.Alternative}>
-        {isMoneyAccountFlow
-          ? strings('transaction_details.label.steps_completed', {
-              count: getCompletedCount({
-                transactions,
-                transactionMeta,
-                hasFiatOrder: Boolean(fiatOrderId),
-                hasSourceHash: Boolean(showSourceHash),
-              }).toString(),
-            })
-          : strings('transaction_details.label.summary')}
-      </Text>
+      <Text color={TextColor.Alternative}>Summary</Text>
       <ProgressList showConnectors={false}>
         {fiatOrderId ? (
           <FiatOrderSummaryLine parentTransaction={transactionMeta} />
@@ -159,29 +141,4 @@ function isSkippedTransaction(
     hasTransactionType(parentTransaction, [TransactionType.musdConversion]) &&
     !hasTransactionType(transaction, [TransactionType.relayDeposit])
   );
-}
-
-function getCompletedCount({
-  transactions,
-  transactionMeta,
-  hasFiatOrder,
-  hasSourceHash,
-}: {
-  transactions: TransactionMeta[];
-  transactionMeta: TransactionMeta;
-  hasFiatOrder: boolean;
-  hasSourceHash: boolean;
-}): number {
-  const totalSteps =
-    transactions.length + (hasFiatOrder ? 1 : 0) + (hasSourceHash ? 1 : 0);
-  const confirmedTxCount = transactions.filter(
-    (tx) => tx.status === TransactionStatus.confirmed,
-  ).length;
-  const isParentConfirmed =
-    transactionMeta.status === TransactionStatus.confirmed;
-  const completedCount =
-    confirmedTxCount +
-    (hasFiatOrder && isParentConfirmed ? 1 : 0) +
-    (hasSourceHash && isParentConfirmed ? 1 : 0);
-  return Math.min(completedCount, totalSteps);
 }

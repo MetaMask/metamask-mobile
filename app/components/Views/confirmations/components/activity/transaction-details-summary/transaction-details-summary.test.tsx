@@ -322,55 +322,7 @@ describe('TransactionDetailsSummary', () => {
     expect(queryByText('DefaultSummaryLine')).toBeNull();
   });
 
-  it('renders "Steps (X completed)" label for moneyAccountDeposit', () => {
-    useTransactionDetailsMock.mockReturnValue({
-      transactionMeta: {
-        id: transactionIdMock,
-        chainId: '0x1',
-        type: TransactionType.moneyAccountDeposit,
-        status: TransactionStatus.confirmed,
-      } as unknown as TransactionMeta,
-    });
-
-    const { getByText } = render({
-      transactions: [
-        {
-          id: transactionIdMock,
-          chainId: '0x1',
-          type: TransactionType.moneyAccountDeposit,
-          status: TransactionStatus.confirmed,
-        },
-      ],
-    });
-
-    expect(getByText('Steps (1 completed)')).toBeDefined();
-  });
-
-  it('renders "Steps (X completed)" label for moneyAccountWithdraw', () => {
-    useTransactionDetailsMock.mockReturnValue({
-      transactionMeta: {
-        id: transactionIdMock,
-        chainId: '0x1',
-        type: TransactionType.moneyAccountWithdraw,
-        status: TransactionStatus.confirmed,
-      } as unknown as TransactionMeta,
-    });
-
-    const { getByText } = render({
-      transactions: [
-        {
-          id: transactionIdMock,
-          chainId: '0x1',
-          type: TransactionType.moneyAccountWithdraw,
-          status: TransactionStatus.confirmed,
-        },
-      ],
-    });
-
-    expect(getByText('Steps (1 completed)')).toBeDefined();
-  });
-
-  it('renders "Summary" label for non-money-account flows', () => {
+  it('renders "Summary" label', () => {
     useTransactionDetailsMock.mockReturnValue({
       transactionMeta: {
         id: transactionIdMock,
@@ -390,61 +342,6 @@ describe('TransactionDetailsSummary', () => {
     });
 
     expect(getByText('Summary')).toBeDefined();
-  });
-
-  it('counts fiat order and source hash in completed steps', () => {
-    useTransactionDetailsMock.mockReturnValue({
-      transactionMeta: {
-        id: transactionIdMock,
-        chainId: '0x1',
-        type: TransactionType.moneyAccountDeposit,
-        status: TransactionStatus.confirmed,
-        txParams: { from: '0xSender' },
-        metamaskPay: {
-          sourceHash: '0xabc',
-          tokenAddress: '0x123',
-          chainId: '0x1',
-          fiat: { orderId: 'order-1' },
-        },
-      } as unknown as TransactionMeta,
-    });
-
-    const { getByText } = render({
-      transactions: [
-        {
-          id: transactionIdMock,
-          chainId: '0x1',
-          type: TransactionType.moneyAccountDeposit,
-          status: TransactionStatus.confirmed,
-        },
-      ],
-    });
-
-    expect(getByText('Steps (3 completed)')).toBeDefined();
-  });
-
-  it('counts zero completed when all transactions are pending', () => {
-    useTransactionDetailsMock.mockReturnValue({
-      transactionMeta: {
-        id: transactionIdMock,
-        chainId: '0x1',
-        type: TransactionType.moneyAccountDeposit,
-        status: TransactionStatus.submitted,
-      } as unknown as TransactionMeta,
-    });
-
-    const { getByText } = render({
-      transactions: [
-        {
-          id: transactionIdMock,
-          chainId: '0x1',
-          type: TransactionType.moneyAccountDeposit,
-          status: TransactionStatus.submitted,
-        },
-      ],
-    });
-
-    expect(getByText('Steps (0 completed)')).toBeDefined();
   });
 
   it('renders FiatOrderSummaryLine when fiat orderId exists', () => {

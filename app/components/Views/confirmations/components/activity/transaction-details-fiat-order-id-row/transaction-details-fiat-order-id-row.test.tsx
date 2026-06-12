@@ -5,7 +5,7 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import { TransactionDetailsOrderIdRow } from './transaction-details-order-id-row';
+import { TransactionDetailsFiatOrderIdRow } from './transaction-details-fiat-order-id-row';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 
 jest.mock('../../../hooks/activity/useTransactionDetails');
@@ -28,10 +28,10 @@ function createTransactionMeta(
 }
 
 function render() {
-  return renderWithProvider(<TransactionDetailsOrderIdRow />, {});
+  return renderWithProvider(<TransactionDetailsFiatOrderIdRow />, {});
 }
 
-describe('TransactionDetailsOrderIdRow', () => {
+describe('TransactionDetailsFiatOrderIdRow', () => {
   const useTransactionDetailsMock = jest.mocked(useTransactionDetails);
 
   beforeEach(() => {

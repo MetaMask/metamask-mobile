@@ -28,9 +28,7 @@ export function TransactionDetailsToRow() {
   const recipient = useRecipient();
   const chainId = transactionMeta?.chainId as Hex;
 
-  const isSendType = hasTransactionType(transactionMeta, SEND_TYPES);
-
-  if (!isSendType) {
+  if (!hasTransactionType(transactionMeta, SEND_TYPES)) {
     return null;
   }
 
@@ -40,9 +38,9 @@ export function TransactionDetailsToRow() {
     return null;
   }
 
-  return (
-    <TransactionDetailsRow label={strings('transaction_details.label.to')}>
-      {staticLabel ? (
+  if (staticLabel) {
+    return (
+      <TransactionDetailsRow label={strings('transaction_details.label.to')}>
         <Box
           flexDirection={FlexDirection.Row}
           alignItems={AlignItems.center}
@@ -54,13 +52,21 @@ export function TransactionDetailsToRow() {
           />
           <Text>{staticLabel}</Text>
         </Box>
-      ) : recipient ? (
-        <Name
-          type={NameType.EthereumAddress}
-          value={recipient}
-          variation={chainId}
-        />
-      ) : null}
+      </TransactionDetailsRow>
+    );
+  }
+
+  if (!recipient) {
+    return null;
+  }
+
+  return (
+    <TransactionDetailsRow label={strings('transaction_details.label.to')}>
+      <Name
+        type={NameType.EthereumAddress}
+        value={recipient}
+        variation={chainId}
+      />
     </TransactionDetailsRow>
   );
 }

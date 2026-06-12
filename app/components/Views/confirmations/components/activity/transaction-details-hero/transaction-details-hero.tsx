@@ -50,7 +50,7 @@ const SUPPORTED_TYPES = [
   TransactionType.predictWithdraw,
 ];
 
-const MUSD_HERO_TYPES = [
+const TOKEN_ICON_TYPES = [
   TransactionType.moneyAccountDeposit,
   TransactionType.moneyAccountWithdraw,
   TransactionType.musdConversion,
@@ -65,16 +65,16 @@ export function TransactionDetailsHero() {
     useClaimAmount();
   const targetFiat = useTargetFiat();
   const { transactionMeta } = useTransactionDetails();
-  const musdHeroData = useMusdHeroData(transactionMeta);
+  const tokenMeta = useTokenMeta(transactionMeta);
 
   if (!hasTransactionType(transactionMeta, SUPPORTED_TYPES)) {
     return null;
   }
 
-  const showTokenHero =
-    hasTransactionType(transactionMeta, MUSD_HERO_TYPES) && musdHeroData;
+  const showTokenIcon =
+    hasTransactionType(transactionMeta, TOKEN_ICON_TYPES) && tokenMeta;
 
-  if (showTokenHero) {
+  if (showTokenIcon) {
     return (
       <Box
         testID="transaction-details-hero"
@@ -84,13 +84,13 @@ export function TransactionDetailsHero() {
         style={styles.container}
       >
         <TokenIcon
-          chainId={musdHeroData.chainId}
-          address={musdHeroData.contractAddress as Hex}
-          symbol={musdHeroData.symbol}
+          chainId={tokenMeta.chainId}
+          address={tokenMeta.contractAddress as Hex}
+          symbol={tokenMeta.symbol}
           showNetwork={false}
         />
         <Text variant={TextVariant.DisplayMD}>
-          {musdHeroData.amount} {musdHeroData.symbol}
+          {tokenMeta.amount} {tokenMeta.symbol}
         </Text>
       </Box>
     );
@@ -194,7 +194,7 @@ function useClaimAmount(): { amount: BigNumber | null; isConverted: boolean } {
   return { amount: fiatValue, isConverted };
 }
 
-function useMusdHeroData(
+function useTokenMeta(
   transactionMeta: Parameters<typeof resolveMusdTransferMeta>[0],
 ): {
   amount: string;
@@ -202,20 +202,20 @@ function useMusdHeroData(
   contractAddress: string;
   chainId: Hex;
 } | null {
-  const tokenMeta = resolveMusdTransferMeta(transactionMeta);
+  const resolved = resolveMusdTransferMeta(transactionMeta);
 
-  if (tokenMeta) {
+  if (resolved) {
     const humanReadable = fromTokenMinimalUnit(
-      tokenMeta.amount,
-      tokenMeta.decimals,
+      resolved.amount,
+      resolved.decimals,
       false,
     );
     const num = parseFloat(humanReadable);
     if (isNaN(num)) return null;
     return {
       amount: num.toFixed(2),
-      symbol: tokenMeta.symbol,
-      contractAddress: tokenMeta.contractAddress,
+      symbol: resolved.symbol,
+      contractAddress: resolved.contractAddress,
       chainId: transactionMeta.chainId as Hex,
     };
   }

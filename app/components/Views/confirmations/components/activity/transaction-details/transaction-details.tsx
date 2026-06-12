@@ -23,9 +23,8 @@ import { TransactionDetailsBridgeFeeRow } from '../transaction-details-bridge-fe
 import { hasTransactionType } from '../../../utils/transaction';
 import { TransactionDetailsRetry } from '../transaction-details-retry';
 import { TransactionDetailsAccountRow } from '../transaction-details-account-row';
-import { TransactionDetailsFromRow } from '../transaction-details-from-row';
 import { TransactionDetailsToRow } from '../transaction-details-to-row';
-import { TransactionDetailsOrderIdRow } from '../transaction-details-order-id-row';
+import { TransactionDetailsFiatOrderIdRow } from '../transaction-details-fiat-order-id-row';
 
 export const SUMMARY_SECTION_TYPES = [
   TransactionType.musdClaim,
@@ -69,9 +68,8 @@ export function TransactionDetails() {
             <TransactionDetailsDateRow />
             <TransactionDetailsAccountRow />
             <TransactionDetailDivider />
-            <TransactionDetailsFromRow />
             <TransactionDetailsToRow />
-            <TransactionDetailsOrderIdRow />
+            <TransactionDetailsFiatOrderIdRow />
             <TransactionDetailsPaidWithRow />
             <TransactionDetailsNetworkFeeRow />
             <TransactionDetailsBridgeFeeRow />
