@@ -8,6 +8,7 @@ import {
   selectIsCurrentSubscriptionVipEnabled,
   selectRewardsSubscriptionId,
 } from '../../../../selectors/rewards';
+import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { useVipDashboard } from '../hooks/useVipDashboard';
@@ -186,6 +187,10 @@ jest.mock('../../../../selectors/rewards', () => ({
   selectRewardsSubscriptionId: jest.fn(),
 }));
 
+jest.mock('../../../../selectors/featureFlagController/vipProgram', () => ({
+  selectVipProgramEnabled: jest.fn(),
+}));
+
 jest.mock('../../../Views/ErrorBoundary', () => ({
   __esModule: true,
   default: function MockErrorBoundary({
@@ -237,6 +242,7 @@ const defaultDashboard: VipDashboardState = {
     start: '2099-06-01T00:00:00.000Z',
     end: '2099-06-30T23:59:59.999Z',
   },
+  computedAt: '2099-06-30T14:52:00.000Z',
   currentTier: { id: 'mock-tier-alpha-3', name: 'Mock Tier Alpha 3', tier: 3 },
   nextTier: { id: 'mock-tier-alpha-4', name: 'Mock Tier Alpha 4', tier: 4 },
   progress: {
@@ -346,6 +352,7 @@ const mockSubscribed = () => {
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectRewardsSubscriptionId) return 'test-subscription-id';
     if (selector === selectIsCurrentSubscriptionVipEnabled) return true;
+    if (selector === selectVipProgramEnabled) return true;
     return (
       selector as (state: ReturnType<typeof getRewardsSelectorState>) => unknown
     )(getRewardsSelectorState());
@@ -406,6 +413,36 @@ describe('RewardsVipView', () => {
       page_type: 'vip',
       enabled: true,
     });
+  });
+
+  it('renders the "Last updated" row when computedAt is present', () => {
+    mockUseVipDashboard.mockReturnValue({
+      dashboard: defaultDashboard,
+      isLoading: false,
+      hasError: false,
+      hasAttemptedFetch: true,
+      fetchVipDashboard: mockFetch,
+    });
+
+    const { getByTestId } = render(<RewardsVipView />);
+
+    expect(
+      getByTestId(REWARDS_VIP_VIEW_TEST_IDS.LAST_UPDATED),
+    ).toBeOnTheScreen();
+  });
+
+  it('does not render the "Last updated" row when computedAt is null', () => {
+    mockUseVipDashboard.mockReturnValue({
+      dashboard: { ...defaultDashboard, computedAt: null },
+      isLoading: false,
+      hasError: false,
+      hasAttemptedFetch: true,
+      fetchVipDashboard: mockFetch,
+    });
+
+    const { queryByTestId } = render(<RewardsVipView />);
+
+    expect(queryByTestId(REWARDS_VIP_VIEW_TEST_IDS.LAST_UPDATED)).toBeNull();
   });
 
   it('renders skeleton placeholders while loading without dashboard data', () => {
@@ -665,6 +702,37 @@ describe('RewardsVipView', () => {
         return 'test-subscription-id';
       }
       if (selector === selectIsCurrentSubscriptionVipEnabled) {
+        return false;
+      }
+      if (selector === selectVipProgramEnabled) {
+        return true;
+      }
+      return undefined;
+    });
+
+    const { queryByTestId } = render(<RewardsVipView />);
+
+    expect(queryByTestId(REWARDS_VIEW_SELECTORS.VIP_VIEW)).toBeNull();
+    expect(mockUseTrackRewardsPageView).toHaveBeenCalledWith({
+      page_type: 'vip',
+      enabled: false,
+    });
+    await waitFor(() => {
+      expect(mockDispatch).toHaveBeenCalledWith(
+        StackActions.replace(Routes.REWARDS_DASHBOARD),
+      );
+    });
+  });
+
+  it('redirects to the rewards dashboard when the VIP program flag is off, even for a VIP subscription', async () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectRewardsSubscriptionId) {
+        return 'test-subscription-id';
+      }
+      if (selector === selectIsCurrentSubscriptionVipEnabled) {
+        return true;
+      }
+      if (selector === selectVipProgramEnabled) {
         return false;
       }
       return undefined;

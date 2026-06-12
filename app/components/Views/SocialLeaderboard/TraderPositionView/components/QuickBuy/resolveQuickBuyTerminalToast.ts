@@ -10,7 +10,7 @@ import type { Theme } from '../../../../../../util/theme/models';
 import { buildQuickBuyToastOptions } from './quickBuyToastOptions';
 import {
   getTrackedQuickBuyTrade,
-  untrackQuickBuyTrade,
+  markQuickBuyTradeSettled,
   type TrackedQuickBuyTrade,
 } from './quickBuyTradeTracker';
 
@@ -65,11 +65,13 @@ function resolveFromMultichain(signature: string): TerminalOutcome | undefined {
 }
 
 /**
- * Claims the trade atomically (untrack doubles as the dedupe), surfaces the
+ * Claims the trade atomically (settling doubles as the dedupe), surfaces the
  * matching `complete` / `failed` toast and fires the paired haptic. The first
- * caller to reach a terminal status removes the trade, so any later
+ * caller to reach a terminal status settles the trade, so any later
  * `stateChange` emission — or a concurrent resolve from the other controller —
- * becomes a no-op.
+ * becomes a no-op. Settling (rather than a plain untrack) keeps the id known to
+ * `isQuickBuyTransaction` so the delayed generic success/error toast is still
+ * suppressed.
  */
 function emitTerminalToast(
   txMetaId: string,
@@ -78,7 +80,7 @@ function emitTerminalToast(
   showToast: ToastRef['showToast'],
   theme: Theme,
 ): boolean {
-  untrackQuickBuyTrade(txMetaId);
+  markQuickBuyTradeSettled(txMetaId);
 
   const isComplete = outcome === 'complete';
   showToast(

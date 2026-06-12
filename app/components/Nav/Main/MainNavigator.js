@@ -59,12 +59,18 @@ import ManualBackupStep2 from '../../Views/ManualBackupStep2';
 import ManualBackupStep3 from '../../Views/ManualBackupStep3';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
+import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
+import { selectIsRewardsVersionBlocked } from '../../../reducers/rewards/selectors';
+import useRewardsVersionGuard from '../../UI/Rewards/hooks/useRewardsVersionGuard';
+import { useCandidateSubscriptionId } from '../../UI/Rewards/hooks/useCandidateSubscriptionId';
+import RewardsUpdateRequired from '../../UI/Rewards/components/RewardsUpdateRequired/RewardsUpdateRequired';
 import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
+import RewardsDashboard from '../../UI/Rewards/Views/RewardsDashboard';
+import RewardsOnboardingNavigator from '../../UI/Rewards/OnboardingNavigator';
 import { ExploreFeed } from '../../Views/TrendingView/TrendingView';
 import WhatsHappeningDetailView from '../../Views/WhatsHappeningDetailView';
 import ExploreSearchScreen from '../../Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen';
 import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
-import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
 
 import RampRoutes from '../../UI/Ramp/Aggregator/routes';
@@ -86,7 +92,10 @@ import SendTransaction from '../../UI/Ramp/Aggregator/Views/SendTransaction';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
-import { SnapSettings } from '../../Views/Snaps/SnapSettings';
+import {
+  SnapSettings,
+  ALLOWED_CAPABILITIES as SNAPS_SETTINGS_ROUTE_ALLOWED_CAPABILITIES,
+} from '../../Views/Snaps/SnapSettings';
 import { CAN_INSTALL_THIRD_PARTY_SNAPS } from '../../../constants/snaps';
 ///: END:ONLY_INCLUDE_IF
 import Routes from '../../../constants/navigation/Routes';
@@ -166,8 +175,8 @@ import SitesFullView from '../../Views/SitesFullView/SitesFullView';
 import { TokenDetails } from '../../UI/TokenDetails/Views/TokenDetails';
 import BenefitFullView from '../../UI/Rewards/Views/BenefitFullView';
 import BenefitsFullView from '../../UI/Rewards/Views/BenefitsFullView';
-import { getDeFiProtocolPositionDetailsNavbarOptions } from '../../UI/Navbar';
 import MoneyTabPressTracker from '../../UI/Money/components/MoneyTabPressTracker';
+import { withMessenger } from '../../../messengers/helpers/route-messenger-helpers';
 
 const Stack = createStackNavigator();
 const NativeStack = createNativeStackNavigator();
@@ -335,10 +344,29 @@ const TransactionsHome = () => {
 
 const RewardsHome = () => {
   const { colors } = useTheme();
+  const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const isVersionBlocked = useSelector(selectIsRewardsVersionBlocked);
+  // Fetch client version requirements at the Rewards tab entry point, before the
+  // onboarding/dashboard branch below. Both opted-in and onboarding users mount
+  // RewardsHome, so gating here ensures version-blocked clients always see the
+  // update-required screen (and the requirements are always fetched), regardless
+  // of subscription status.
+  useRewardsVersionGuard();
+  // Resolve the candidate subscription ID here for the same reason: both the
+  // dashboard and onboarding branches depend on it (onboarding's OnboardingMainStep
+  // renders a full-screen skeleton until candidateSubscriptionId leaves its initial
+  // 'pending' state). Only RewardsHome mounts for non-opted-in users, so fetching at
+  // this shared entry point prevents the onboarding tab from loading indefinitely.
+  useCandidateSubscriptionId();
   const rewardsModalScreenOptions = {
     ...transparentModalScreenOptions,
     contentStyle: { backgroundColor: 'transparent' },
   };
+
+  if (isVersionBlocked) {
+    return <RewardsUpdateRequired />;
+  }
+
   return (
     <NativeStack.Navigator
       screenOptions={{
@@ -347,10 +375,17 @@ const RewardsHome = () => {
         contentStyle: { backgroundColor: colors.background.default },
       }}
     >
-      <NativeStack.Screen
-        name={Routes.REWARDS_VIEW}
-        component={RewardsNavigator}
-      />
+      {subscriptionId ? (
+        <NativeStack.Screen
+          name={Routes.REWARDS_DASHBOARD}
+          component={RewardsDashboard}
+        />
+      ) : (
+        <NativeStack.Screen
+          name={Routes.REWARDS_ONBOARDING_FLOW}
+          component={RewardsOnboardingNavigator}
+        />
+      )}
       <NativeStack.Screen
         name={Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL}
         component={RewardsBottomSheetModal}
@@ -430,6 +465,10 @@ const ExploreHome = () => {
 };
 
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+const SnapSettingsWithMessenger = withMessenger(SnapSettings, {
+  capabilities: SNAPS_SETTINGS_ROUTE_ALLOWED_CAPABILITIES,
+});
+
 const SnapsSettingsStack = () => {
   const { colors } = useTheme();
   return (
@@ -445,7 +484,7 @@ const SnapsSettingsStack = () => {
       />
       <NativeStack.Screen
         name={Routes.SNAPS.SNAP_SETTINGS}
-        component={SnapSettings}
+        component={SnapSettingsWithMessenger}
       />
     </NativeStack.Navigator>
   );
@@ -1012,19 +1051,17 @@ const MainNavigator = () => {
       initialRouteName={'Home'}
     >
       <Stack.Screen name="Home" component={HomeTabs} />
+      {/*
+       * Separate from the Rewards tab (REWARDS_VIEW → RewardsHome). RewardsNavigator
+       * is its own native stack pushed onto this JS root stack; nesting a native
+       * stack inside the JS stack is supported — the outer push uses the JS-stack
+       * transition, while screens inside RewardsNavigator animate natively.
+       * Reach it with navigation.navigate(REWARDS_FLOW, { screen, params }).
+       */}
       <Stack.Screen
-        name="CollectiblesDetails"
-        component={CollectiblesDetails}
-        options={{
-          presentation: 'modal',
-          //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
-          cardStyle: { backgroundColor: importedColors.transparent },
-          cardStyleInterpolator: () => ({
-            overlayStyle: {
-              opacity: 0,
-            },
-          }),
-        }}
+        name={Routes.REWARDS_FLOW}
+        component={RewardsNavigator}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name={Routes.DEPRECATED_NETWORK_DETAILS}
@@ -1059,7 +1096,7 @@ const MainNavigator = () => {
       <Stack.Screen
         name="ConfirmAddAsset"
         component={ConfirmAddAsset}
-        options={{ headerShown: true, ...slideFromRightAnimation }}
+        options={{ headerShown: false, ...slideFromRightAnimation }}
       />
       <Stack.Screen
         name={Routes.SETTINGS_VIEW}
@@ -1375,15 +1412,7 @@ const MainNavigator = () => {
       <Stack.Screen
         name="DeFiProtocolPositionDetails"
         component={DeFiProtocolPositionDetails}
-        options={({ navigation }) => ({
-          ...slideFromRightAnimation,
-          ...getDeFiProtocolPositionDetailsNavbarOptions(navigation),
-          headerStyle: {
-            backgroundColor: colors.background.default,
-            shadowColor: importedColors.transparent,
-            elevation: 0,
-          },
-        })}
+        options={{ headerShown: false, ...slideFromRightAnimation }}
       />
       {
         ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -1398,7 +1427,7 @@ const MainNavigator = () => {
       <Stack.Screen
         name={Routes.CARD.ROOT}
         component={CardRoutes}
-        options={TransitionPresets.ModalPresentationIOS}
+        options={TransitionPresets.ModalSlideFromBottomIOS}
       />
       <Stack.Screen
         name={Routes.RAMP.MODALS.PROCESSING_INFO}
