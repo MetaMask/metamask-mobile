@@ -1,7 +1,6 @@
 import React from 'react';
 
 interface TopRankAvatarProps {
-  rank: number;
   children: React.ReactNode;
 }
 

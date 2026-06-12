@@ -85,7 +85,7 @@ const TraderRow: React.FC<TraderRowProps> = ({
           alignItems={BoxAlignItems.Center}
           gap={3}
         >
-          <TopRankAvatar rank={trader.overallRank}>
+          <TopRankAvatar>
             {hasRealAvatar(trader.avatarUri) ? (
               <Image
                 source={{ uri: trader.avatarUri }}
