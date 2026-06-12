@@ -11,6 +11,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
+import { useParams } from '../../../../../util/navigation/navUtils';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import styleSheet from './MoneyEarnCryptoInfoSheet.styles';
 import { MoneyEarnCryptoInfoSheetTestIds } from './MoneyEarnCryptoInfoSheet.testIds';
@@ -22,10 +23,17 @@ import { BOTTOM_SHEET_NAMES } from '../../constants/moneyEvents';
 
 const FALLBACK_APY = 4;
 
+type MoneyEarnCryptoInfoSheetVariant = 'default' | 'deposit';
+
+interface MoneyEarnCryptoInfoSheetParams {
+  variant?: MoneyEarnCryptoInfoSheetVariant;
+}
+
 const MoneyEarnCryptoInfoSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
+  const { variant = 'default' } = useParams<MoneyEarnCryptoInfoSheetParams>();
   const { apyPercent } = useMoneyAccountBalance();
   const surfaceClass = useElevatedSurface();
 
@@ -43,6 +51,11 @@ const MoneyEarnCryptoInfoSheet = () => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
 
+  const title =
+    variant === 'deposit'
+      ? strings('money.earn_crypto_info_sheet.deposit_title')
+      : strings('money.earn_crypto_info_sheet.title');
+
   return (
     <BottomSheet
       ref={sheetRef}
@@ -57,7 +70,7 @@ const MoneyEarnCryptoInfoSheet = () => {
           fontWeight={FontWeight.Bold}
           testID={MoneyEarnCryptoInfoSheetTestIds.TITLE}
         >
-          {strings('money.earn_crypto_info_sheet.title')}
+          {title}
         </Text>
       </BottomSheetHeader>
       <View style={styles.content}>

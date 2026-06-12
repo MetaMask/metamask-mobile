@@ -226,18 +226,6 @@ jest.mock('../../hooks/useMoneyAccount', () => ({
   })),
 }));
 
-const mockRouteAddMoney = jest.fn();
-let mockHasMusdBalance = false;
-jest.mock('../../hooks/useMoneyAccountAddRouting', () => ({
-  useMoneyAccountAddRouting: jest.fn(() => ({
-    hasMusdBalance: mockHasMusdBalance,
-    convertCrypto: jest.fn(),
-    depositFunds: jest.fn(),
-    moveMusd: jest.fn(),
-    routeAddMoney: mockRouteAddMoney,
-  })),
-}));
-
 jest.mock('../../hooks/useOnboardingStep', () => ({
   useOnboardingStep: jest.fn(() => ({
     currentStep: 0,
@@ -333,7 +321,6 @@ describe('MoneyHomeView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     global.alert = jest.fn();
-    mockHasMusdBalance = false;
 
     mockUseMoneyAccountCardTransactions.mockReturnValue({
       cardTransactions: [],
@@ -1254,6 +1241,16 @@ describe('MoneyHomeView', () => {
       ).toBeOnTheScreen();
     });
 
+    it('navigates to HowItWorks when the condensed how-it-works card is pressed', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(
+        getByTestId(MoneyCondensedInfoCardsTestIds.HOW_IT_WORKS_CARD),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.HOW_IT_WORKS);
+    });
+
     it('opens the mUSD price URL when the condensed mUSD card is pressed', () => {
       const mockOpenURL = jest
         .spyOn(Linking, 'openURL')
@@ -1528,33 +1525,37 @@ describe('MoneyHomeView', () => {
       });
     });
 
-    it('routes directly via useMoneyAccountAddRouting when the mUSD row Add button is pressed', () => {
+    it('initiates a deposit without preselection when the mUSD row Add button is pressed', () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       fireEvent.press(getByTestId(MoneyMusdTokenRowTestIds.ADD_BUTTON));
 
-      expect(mockRouteAddMoney).toHaveBeenCalledTimes(1);
+      expect(mockInitiateDeposit).toHaveBeenCalledTimes(1);
+      expect(mockInitiateDeposit).toHaveBeenCalledWith();
       expect(mockNavigate).not.toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
         screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
       });
     });
 
-    it('tracks the mUSD row Add click with the Buy flow redirect target when there is no mUSD balance', () => {
+    it('logs an error when the mUSD row deposit rejects', async () => {
+      mockInitiateDeposit.mockRejectedValueOnce(new Error('network failure'));
+      const Logger = jest.requireMock('../../../../../util/Logger');
+
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       fireEvent.press(getByTestId(MoneyMusdTokenRowTestIds.ADD_BUTTON));
 
-      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
-        button_type: MONEY_BUTTON_TYPES.TEXT,
-        button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
-        label_key: 'money.musd_row.add',
-        component_name: COMPONENT_NAMES.MONEY_MUSD_TOKEN_SECTION,
-        redirect_target: SCREEN_NAMES.RAMP_BUY,
-      });
+      await Promise.resolve();
+
+      expect(Logger.default.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          message: expect.stringContaining('mUSD row'),
+        }),
+      );
     });
 
-    it('tracks the mUSD row Add click with the deposit redirect target when there is an mUSD balance', () => {
-      mockHasMusdBalance = true;
+    it('tracks the mUSD row Add click with the deposit redirect target', () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       fireEvent.press(getByTestId(MoneyMusdTokenRowTestIds.ADD_BUTTON));
