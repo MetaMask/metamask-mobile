@@ -15,6 +15,10 @@ import {
   isRecognizedPermit,
   parseAndNormalizeSignTypedDataFromSignatureRequest,
 } from '../../../../utils/signature';
+import {
+  isExternalAppOrigin,
+  isExternalAppRequestSource,
+} from '../../../../utils/origin';
 import { useSignatureRequest } from '../../../../hooks/signatures/useSignatureRequest';
 import useApprovalRequest from '../../../../hooks/useApprovalRequest';
 import { View } from 'react-native';
@@ -35,6 +39,25 @@ export const InfoSectionOriginAndDetails = () => {
 
   const signatureRequest = useSignatureRequest();
   const isPermit = isRecognizedPermit(signatureRequest);
+
+  // `request_source` is the transport the request arrived on. It is only
+  // populated on signature requests; `meta` is not on the persisted
+  // MessageParams union type, hence the structural cast.
+  const requestSource = (
+    signatureRequest?.messageParams as
+      | { meta?: { analytics?: { request_source?: string } } }
+      | undefined
+  )?.meta?.analytics?.request_source;
+
+  // For requests where we cannot verify the dapp's identity, display a generic
+  // "External app" label rather than the raw origin — same handling as
+  // OriginRow / NetworkAndOriginRow. This covers `ethereum:` deeplinks /
+  // scanned QR codes, MetaMask SDK and MetaMask Connect (MWP) connections
+  // (origin is a bare connection UUID), and any remote transport whose origin
+  // is self-reported and therefore unverifiable (SDK v1, MWP, WalletConnect)
+  // as identified by `request_source`.
+  const isExternalApp =
+    isExternalAppOrigin(origin) || isExternalAppRequestSource(requestSource);
 
   const parsedData =
     parseAndNormalizeSignTypedDataFromSignatureRequest(signatureRequest);
@@ -66,7 +89,13 @@ export const InfoSectionOriginAndDetails = () => {
         label={strings('confirm.label.request_from')}
         tooltip={strings('confirm.personal_sign_tooltip')}
       >
-        <DisplayURL url={origin} />
+        {isExternalApp ? (
+          <Text variant={TextVariant.BodyMD}>
+            {strings('confirm.label.external_app')}
+          </Text>
+        ) : (
+          <DisplayURL url={origin} />
+        )}
       </InfoRow>
       <InfoRow label={strings('transactions.network')}>
         <View style={styles.networkRowContainer}>
