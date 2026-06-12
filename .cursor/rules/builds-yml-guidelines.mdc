@@ -1,0 +1,108 @@
+---
+description: Guidelines for updating builds.yml when adding secrets, environment variables, or build configurations. builds.yml is the single source of truth for all CI build configurations.
+globs:
+  - "builds.yml"
+  - ".js.env"
+  - "scripts/apply-build-config.js"
+  - "scripts/set-secrets-from-config.js"
+  - "scripts/validate-build-config.js"
+alwaysApply: false
+---
+
+# builds.yml Update Guidelines
+
+`builds.yml` is the **single source of truth** for all build configurations. Any new environment variable or secret that CI needs **must** be added here. Full documentation: `docs/readme/builds-yml.md`.
+
+## When to Update builds.yml
+
+You MUST update `builds.yml` when:
+- Adding a new `process.env.X` or env var read by app code that needs a CI-provided value
+- Adding a new secret (API key, token, credential) the app consumes
+- Changing a server URL that differs between production and dev/test environments
+- Adding or removing a code fencing feature
+
+## File Layout (read before editing)
+
+```yaml
+# Anchors (reusable, prefixed with _)
+_public_envs: &public_envs    # Non-secret env vars shared by ALL builds
+_secrets: &secrets             # Secret name mappings shared by ALL builds
+_signing_*: &signing_*         # AWS signing configs (one per tier)
+_code_fencing_*:               # Feature lists per build type
+
+# Actual build definitions
+builds:
+  <type>-<env>:                # e.g. main-prod, flask-dev, qa-prod
+    github_environment: ...
+    signing: *signing_anchor   # optional
+    env:
+      <<: *public_envs         # merge shared, then override
+    secrets: *secrets           # or <<: *secrets with overrides
+    code_fencing: *code_fencing_anchor
+```
+
+## Adding a Non-Secret Environment Variable
+
+1. **Shared across all builds (same value):** Add to `_public_envs` anchor.
+2. **Different per environment:** Add production default to `_public_envs`, override in specific builds.
+3. **All values MUST be quoted strings** (e.g. `'true'`, not `true`).
+
+```yaml
+# In _public_envs anchor:
+_public_envs: &public_envs
+  MY_API_URL: 'https://my-api.api.cx.metamask.io'
+
+# Override in dev/test builds that need staging:
+main-test:
+  env:
+    <<: *public_envs
+    MY_API_URL: 'https://my-api.dev-api.cx.metamask.io'
+```
+
+**Checklist — apply to EVERY build that needs a non-production value:**
+- [ ] `main-test` and `main-e2e` (QA + E2E use staging APIs)
+- [ ] `main-exp` and `main-dev` (experimental + local dev)
+- [ ] `flask-test`, `flask-e2e`, `flask-dev` (Flask equivalents)
+- [ ] `qa-dev` (QA dev build)
+
+## Adding a Secret
+
+1. Add the mapping to `_secrets` anchor: key = env var name the code reads, value = GitHub Secret name.
+2. Create the actual secret in the required GitHub Environments.
+3. No workflow file changes needed — `set-secrets-from-config.js` uses `toJSON(secrets)`.
+
+```yaml
+_secrets: &secrets
+  MY_NEW_SECRET: 'MY_NEW_SECRET'
+```
+
+If a specific build needs a **different** GitHub Secret name (e.g. QA):
+```yaml
+qa-prod:
+  secrets:
+    <<: *secrets
+    MY_NEW_SECRET: MY_NEW_SECRET_QA
+```
+
+## Adding a Code Fencing Feature
+
+Add the feature name to the appropriate anchor(s):
+- `_code_fencing_main` — main builds
+- `_code_fencing_flask` — flask builds (includes `flask` + `external-snaps`)
+- `_code_fencing_beta` — beta builds (includes `beta`)
+- `_code_fencing_experimental` — experimental builds (includes `experimental`)
+
+## Validation (MANDATORY before committing)
+
+```bash
+node scripts/validate-build-config.js
+```
+
+This checks every build has: `github_environment`, `env.METAMASK_ENVIRONMENT`, `env.METAMASK_BUILD_TYPE`.
+
+## Common Mistakes to Avoid
+
+- **Unquoted values:** YAML interprets `true`/`false` as booleans. Always use `'true'`/`'false'`.
+- **Forgetting dev/test overrides:** If prod uses `https://api.example.com` but dev needs `https://dev.api.example.com`, you must override in every non-prod build.
+- **Duplicating instead of using anchors:** Never copy-paste URLs or secret mappings. Use `<<: *anchor` merge and override only what differs.
+- **Adding to `.js.env` but not `builds.yml`:** `.js.env` is for local dev only. CI reads `builds.yml`. Both must stay in sync for the variable to work everywhere.
