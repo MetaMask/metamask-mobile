@@ -1,10 +1,11 @@
 /* eslint-disable import-x/no-nodejs-modules */
-import { createServer, type AddressInfo } from 'net';
+import { connect, createServer, type AddressInfo } from 'net';
 import { WebSocketServer, WebSocket as WsClient } from 'ws';
 import MockServerE2E, {
   getProxyForwardUrl,
   handleNormalizedHttpProxyRequest,
   type NormalizedHttpProxyRequest,
+  type ProxyHandlerResponse,
 } from './MockServerE2E';
 import { PlatformDetector } from '../framework/PlatformLocator';
 import PortManager, { ResourceType } from '../framework/PortManager';
@@ -122,6 +123,43 @@ describe('handleNormalizedHttpProxyRequest', () => {
     });
   });
 
+  it('unwraps legacy localhost:8000/proxy wrappers (including double-wrapped fixture URLs) before matching', async () => {
+    const events: MockEventsObject = {
+      GET: [
+        {
+          urlEndpoint: 'https://polygon-mainnet.infura.io/v3/test-key',
+          responseCode: 200,
+          response: { jsonrpc: '2.0', result: '0x1' },
+        },
+      ],
+    };
+    const forwardRequest = jest.fn();
+
+    // Fixture state bakes wrapped RPC URLs; the shim wraps again. The inner
+    // wrapper arrives as the "target" of a shim-proxy request.
+    const doubleWrapped = `http://localhost:8000/proxy?url=${encodeURIComponent(
+      'https://polygon-mainnet.infura.io/v3/test-key',
+    )}`;
+
+    const response = await handleNormalizedHttpProxyRequest(
+      createRequest({
+        source: 'shim-proxy',
+        targetUrl: doubleWrapped,
+      }),
+      {
+        events,
+        forwardRequest,
+        getForwardUrl: (url) => url,
+      },
+    );
+
+    expect(response).toEqual({
+      statusCode: 200,
+      body: JSON.stringify({ jsonrpc: '2.0', result: '0x1' }),
+    });
+    expect(forwardRequest).not.toHaveBeenCalled();
+  });
+
   it('returns Buffer mock responses byte-identical (binary round-trip)', async () => {
     // Bytes that are NOT valid UTF-8 (gzip magic + continuation bytes):
     // any string decode/encode round-trip would mangle them.
@@ -139,7 +177,7 @@ describe('handleNormalizedHttpProxyRequest', () => {
     };
     const forwardRequest = jest.fn();
 
-    const response = await handleNormalizedHttpProxyRequest(
+    const response = (await handleNormalizedHttpProxyRequest(
       createRequest({
         targetUrl: 'https://registry.example.test/snap.tgz',
       }),
@@ -148,7 +186,7 @@ describe('handleNormalizedHttpProxyRequest', () => {
         forwardRequest,
         getForwardUrl: (url) => url,
       },
-    );
+    )) as ProxyHandlerResponse;
 
     expect(response.statusCode).toBe(200);
     expect(Buffer.isBuffer(response.body)).toBe(true);
@@ -171,7 +209,7 @@ describe('handleNormalizedHttpProxyRequest', () => {
     );
 
     // No forwardRequest override: exercises the real handleDirectFetch.
-    const response = await handleNormalizedHttpProxyRequest(
+    const response = (await handleNormalizedHttpProxyRequest(
       createRequest({
         targetUrl: 'https://registry.example.test/snap.tgz',
       }),
@@ -179,14 +217,15 @@ describe('handleNormalizedHttpProxyRequest', () => {
         events: {},
         getForwardUrl: (url) => url,
       },
-    );
+    )) as ProxyHandlerResponse;
 
     expect(response.statusCode).toBe(200);
     expect(Buffer.isBuffer(response.body)).toBe(true);
     expect(Buffer.compare(response.body as Buffer, binaryPayload)).toBe(0);
-    expect(response.headers).toEqual({
+    expect(response.headers).toMatchObject({
       'content-type': 'application/octet-stream',
     });
+    expect(response.headers).not.toHaveProperty('content-encoding');
   });
 
   it('forwards text upstream responses intact through the default fetch path (text round-trip)', async () => {
@@ -198,7 +237,7 @@ describe('handleNormalizedHttpProxyRequest', () => {
       }),
     );
 
-    const response = await handleNormalizedHttpProxyRequest(
+    const response = (await handleNormalizedHttpProxyRequest(
       createRequest({
         targetUrl: 'https://api.example.test/status',
       }),
@@ -206,7 +245,7 @@ describe('handleNormalizedHttpProxyRequest', () => {
         events: {},
         getForwardUrl: (url) => url,
       },
-    );
+    )) as ProxyHandlerResponse;
 
     expect(response.statusCode).toBe(200);
     expect(response.body.toString('utf8')).toBe(jsonText);
@@ -215,6 +254,78 @@ describe('handleNormalizedHttpProxyRequest', () => {
       value: 'näïve✓',
     });
     expect(response.headers).toEqual({ 'content-type': 'application/json' });
+  });
+
+  it('forwards CORS response headers so WebView preflights survive the live-forward path', async () => {
+    jest.spyOn(global, 'fetch').mockResolvedValue(
+      new Response(null, {
+        status: 204,
+        headers: {
+          'access-control-allow-origin': '*',
+          'access-control-allow-methods': 'POST, OPTIONS',
+          'access-control-allow-headers': 'content-type',
+          'content-encoding': 'gzip',
+          connection: 'keep-alive',
+        },
+      }),
+    );
+
+    const response = (await handleNormalizedHttpProxyRequest(
+      createRequest({
+        targetUrl: 'https://solana-mainnet.example.test/',
+        method: 'OPTIONS',
+      }),
+      {
+        events: {},
+        getForwardUrl: (url) => url,
+      },
+    )) as ProxyHandlerResponse;
+
+    expect(response.statusCode).toBe(204);
+    expect(response.headers).toMatchObject({
+      'access-control-allow-origin': '*',
+      'access-control-allow-methods': 'POST, OPTIONS',
+      'access-control-allow-headers': 'content-type',
+    });
+    // Hop-by-hop and body-encoding headers must not be echoed.
+    expect(response.headers).not.toHaveProperty('content-encoding');
+    expect(response.headers).not.toHaveProperty('connection');
+  });
+
+  it("returns 'close' for network-level forward failures instead of a synthesized 500", async () => {
+    const dnsError = new TypeError('fetch failed');
+    (dnsError as TypeError & { cause?: unknown }).cause = {
+      code: 'ENOTFOUND',
+    };
+    jest.spyOn(global, 'fetch').mockRejectedValue(dnsError);
+
+    const response = await handleNormalizedHttpProxyRequest(
+      createRequest({
+        targetUrl: 'https://quackquakc.easq/',
+      }),
+      {
+        events: {},
+        getForwardUrl: (url) => url,
+      },
+    );
+
+    expect(response).toBe('close');
+  });
+
+  it('still returns 500 for non-network forward failures', async () => {
+    jest.spyOn(global, 'fetch').mockRejectedValue(new Error('boom'));
+
+    const response = (await handleNormalizedHttpProxyRequest(
+      createRequest({
+        targetUrl: 'https://api.example.test/oops',
+      }),
+      {
+        events: {},
+        getForwardUrl: (url) => url,
+      },
+    )) as ProxyHandlerResponse;
+
+    expect(response.statusCode).toBe(500);
   });
 
   it('uses PlatformDetector for Android shim localhost forwarding', () => {
@@ -247,6 +358,80 @@ describe('handleNormalizedHttpProxyRequest', () => {
       expect(forwardUrl).toBe('http://localhost:45678/state.json');
     },
   );
+});
+
+describe('device-proxied legacy mock-server traffic', () => {
+  let mockServer: MockServerE2E | undefined;
+
+  afterEach(async () => {
+    await mockServer?.stop();
+    mockServer = undefined;
+    PortManager.resetInstance();
+    jest.restoreAllMocks();
+  });
+
+  /**
+   * Sends a raw absolute-form (proxy-form) HTTP/1.1 request — the shape the
+   * emulator's global proxy produces — and returns the raw response text.
+   * Plain http direct requests can't exercise this path: mockttp routes
+   * path-form /proxy requests to the shim ingress rule instead.
+   */
+  const sendProxyFormRequest = (
+    proxyPort: number,
+    absoluteUrl: string,
+  ): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const socket = connect(proxyPort, '127.0.0.1', () => {
+        const { host } = new URL(absoluteUrl);
+        socket.write(
+          `GET ${absoluteUrl} HTTP/1.1\r\nHost: ${host}\r\nConnection: close\r\n\r\n`,
+        );
+      });
+      let data = '';
+      socket.on('data', (chunk: Buffer) => (data += chunk.toString('utf8')));
+      socket.on('end', () => resolve(data));
+      socket.on('error', reject);
+      setTimeout(() => reject(new Error('proxy-form request timeout')), 10000);
+    });
+
+  it('unwraps /proxy?url=... wrappers that leak through the device proxy and serves the mock', async () => {
+    mockServer = new MockServerE2E({
+      events: {
+        GET: [
+          {
+            urlEndpoint: 'https://rpc.example.test/balance',
+            responseCode: 200,
+            response: { balance: '42' },
+          },
+        ],
+      },
+    });
+    mockServer.setServerPort(await getFreePort());
+    await mockServer.start();
+
+    const wrapped = encodeURIComponent('https://rpc.example.test/balance');
+    const raw = await sendProxyFormRequest(
+      mockServer.getServerPort(),
+      `http://localhost:8000/proxy?url=${wrapped}`,
+    );
+
+    expect(raw).toContain('HTTP/1.1 200');
+    expect(raw).toContain('{"balance":"42"}');
+  });
+
+  it('serves /health-check for device-proxied legacy mock-server requests', async () => {
+    mockServer = new MockServerE2E({ events: {} });
+    mockServer.setServerPort(await getFreePort());
+    await mockServer.start();
+
+    const raw = await sendProxyFormRequest(
+      mockServer.getServerPort(),
+      'http://localhost:8000/health-check',
+    );
+
+    expect(raw).toContain('HTTP/1.1 200');
+    expect(raw).toContain('Mock server is running');
+  });
 });
 
 describe('bridgeLocalWebSocketPort', () => {

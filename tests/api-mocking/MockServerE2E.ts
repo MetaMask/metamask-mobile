@@ -149,6 +149,13 @@ export interface ProxyHandlerResponse {
   headers?: MockttpHeaders;
 }
 
+/**
+ * What a proxy handler hands back to mockttp: an HTTP response, or 'close'
+ * to drop the connection — used to surface upstream network-level failures
+ * (DNS, refused) as connection failures rather than synthesized 500s.
+ */
+export type ProxyHandlerResult = ProxyHandlerResponse | 'close';
+
 interface NormalizedHttpProxyRequestOptions {
   events: MockEventsObject;
   liveRequests?: LiveRequest[];
@@ -497,12 +504,45 @@ const getMockttpProxyOptions = () => {
   return {};
 };
 
+/**
+ * Response headers NOT forwarded from live upstream responses.
+ *
+ * content-encoding/content-length/transfer-encoding: fetch already
+ * decompressed the body, so echoing these would corrupt client decoding,
+ * and mockttp recomputes the length from the body we hand it.
+ *
+ * connection/keep-alive: hop-by-hop, never forwarded by proxies.
+ */
+const NON_FORWARDABLE_RESPONSE_HEADERS = new Set([
+  'content-encoding',
+  'content-length',
+  'transfer-encoding',
+  'connection',
+  'keep-alive',
+]);
+
+const NETWORK_ERROR_CODES = new Set([
+  'ENOTFOUND',
+  'ECONNREFUSED',
+  'ECONNRESET',
+  'ETIMEDOUT',
+  'EAI_AGAIN',
+  'EHOSTUNREACH',
+  'ENETUNREACH',
+  'UND_ERR_CONNECT_TIMEOUT',
+]);
+
+const isNetworkLevelFetchError = (error: unknown): boolean => {
+  const cause = (error as { cause?: { code?: string } })?.cause;
+  return Boolean(cause?.code && NETWORK_ERROR_CODES.has(cause.code));
+};
+
 const handleDirectFetch = async (
   url: string,
   method: string,
   headers: MockttpHeaders,
   requestBody?: string,
-): Promise<ProxyHandlerResponse> => {
+): Promise<ProxyHandlerResult> => {
   try {
     const fetchHeaders: HeadersInit = {};
     for (const [key, value] of Object.entries(headers)) {
@@ -519,18 +559,32 @@ const handleDirectFetch = async (
 
     // Read raw bytes, never text(): UTF-8 decoding corrupts binary payloads.
     const responseBody = Buffer.from(await response.arrayBuffer());
-    // Forward content-type only. content-encoding must NOT be forwarded:
-    // fetch already decompressed the body, so echoing the upstream header
-    // would make clients try to decompress a second time.
-    const contentType = response.headers.get('content-type');
+    // Forward upstream response headers (minus hop-by-hop and body-encoding
+    // headers). WebView fetches are CORS-bound: dropping the upstream
+    // Access-Control-Allow-* headers makes every preflighted request fail
+    // even when the upstream answered it correctly.
+    const responseHeaders: MockttpHeaders = {};
+    response.headers.forEach((value, key) => {
+      if (!NON_FORWARDABLE_RESPONSE_HEADERS.has(key.toLowerCase())) {
+        responseHeaders[key] = value;
+      }
+    });
     return {
       statusCode: response.status,
       body: responseBody,
-      ...(contentType ? { headers: { 'content-type': contentType } } : {}),
+      headers: responseHeaders,
     };
   } catch (error) {
     if (!isUrlSuppressedFromLogs(url)) {
       logger.error('Error forwarding request:', url, error);
+    }
+    // Network-level failures (DNS, refused, reset) must surface to the client
+    // as connection failures, not synthesized HTTP 500s: a 500 means "the
+    // server answered", which breaks error-handling semantics — e.g. the
+    // in-app browser renders a 500 page instead of its network-error screen
+    // for an unresolvable host.
+    if (isNetworkLevelFetchError(error)) {
+      return 'close';
     }
     return {
       statusCode: 500,
@@ -640,10 +694,58 @@ const logDirectDeviceProxyMiss = (
   }
 };
 
+/**
+ * Unwraps legacy mock-server wrapper URLs (http://<local-alias>:8000/proxy?url=X)
+ * nested inside a request target, repeatedly until a real target emerges.
+ *
+ * Fixture state bakes already-wrapped RPC URLs into controller state (e.g.
+ * NetworkController RPC endpoints), so the app's shim wraps them a second
+ * time: the outer /proxy reaches us normally but its inner "target" is
+ * another wrapper aimed at the device-side port 8000, which is dead on the
+ * host. Without unwrapping, those forwards ECONNREFUSED and the app's
+ * chain/balance state never loads.
+ */
+const unwrapLegacyMockServerWrappers = (targetUrl: string): string => {
+  let current = targetUrl;
+  for (let depth = 0; depth < 5; depth++) {
+    let parsed: URL;
+    try {
+      parsed = new URL(current);
+    } catch {
+      return current;
+    }
+    const isWrapper =
+      DEVICE_LOCAL_HOST_ALIASES.has(parsed.hostname) &&
+      parsed.port === '8000' &&
+      parsed.pathname === '/proxy' &&
+      parsed.searchParams.has('url');
+    if (!isWrapper) {
+      return current;
+    }
+    const inner = parsed.searchParams.get('url') as string;
+    logger.warn(
+      `[E2E_DEVICE_PROXY_LEGACY_WRAPPER_UNWRAPPED] ${current} -> ${inner}`,
+    );
+    current = inner;
+  }
+  return current;
+};
+
 export const handleNormalizedHttpProxyRequest = async (
   request: NormalizedHttpProxyRequest,
   options: NormalizedHttpProxyRequestOptions,
-): Promise<ProxyHandlerResponse> => {
+): Promise<ProxyHandlerResult> => {
+  const unwrappedTargetUrl = unwrapLegacyMockServerWrappers(request.targetUrl);
+  if (unwrappedTargetUrl !== request.targetUrl) {
+    // A wrapper is the app's shim addressing the mock server, so the
+    // unwrapped request carries shim-proxy semantics regardless of which
+    // ingress it arrived through.
+    request = {
+      ...request,
+      targetUrl: unwrappedTargetUrl,
+      source: 'shim-proxy',
+    };
+  }
   const method = request.method.toUpperCase();
   const requestBodyJson =
     request.requestBodyJson ?? parseRequestBodyJson(request.bodyText);
@@ -880,21 +982,6 @@ export default class MockServerE2E implements Resource {
 
       this._activeRequests++;
       try {
-        // Check for MockServer self-reference to prevent ECONNREFUSED
-        try {
-          const url = new URL(request.url);
-          const isLocalhost = DEVICE_LOCAL_HOST_ALIASES.has(url.hostname);
-          const isMockServerPort =
-            url.port === '8000' || url.port === this._serverPort.toString();
-
-          if (isLocalhost && isMockServerPort) {
-            logger.debug(`Ignoring MockServer self-reference: ${request.url}`);
-            return { statusCode: 204, body: '' };
-          }
-        } catch (e) {
-          // Ignore URL parsing errors
-        }
-
         const method = request.method.toUpperCase();
         const bodyText = methodCanHaveRequestBody(method)
           ? await safeGetBodyText(request)
@@ -902,6 +989,33 @@ export default class MockServerE2E implements Resource {
         // If body read was aborted, return 499 (client closed request)
         if (method === 'POST' && bodyText === undefined) {
           return { statusCode: 499, body: '' };
+        }
+
+        // Device-proxied traffic aimed at the mock server itself. The app's
+        // JS shim wraps fetches as http://localhost:8000/proxy?url=<target>
+        // expecting the adb-reverse path, but the emulator global proxy does
+        // not reliably honor the exclusion list, so those wrappers arrive
+        // here in proxy form. They MUST be unwrapped and served through the
+        // shim-proxy pipeline — black-holing them (the old 204) or live-
+        // forwarding the wrapper to the host's dead port 8000 starves the
+        // app of fixture-backed state (local-node RPC, balances).
+        try {
+          const url = new URL(request.url);
+          const isLocalhost = DEVICE_LOCAL_HOST_ALIASES.has(url.hostname);
+          const isMockServerPort =
+            url.port === '8000' || url.port === this._serverPort.toString();
+
+          if (isLocalhost && isMockServerPort && url.pathname !== '/proxy') {
+            // /proxy wrappers fall through to handleNormalizedHttpProxyRequest,
+            // whose unwrap step serves them with shim-proxy semantics.
+            if (url.pathname === '/health-check') {
+              return { statusCode: 200, body: 'Mock server is running' };
+            }
+            logger.debug(`Ignoring MockServer self-reference: ${request.url}`);
+            return { statusCode: 204, body: '' };
+          }
+        } catch (e) {
+          // Ignore URL parsing errors
         }
 
         return await handleNormalizedHttpProxyRequest(
