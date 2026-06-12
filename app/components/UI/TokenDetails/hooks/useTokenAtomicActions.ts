@@ -44,6 +44,7 @@ import {
 import useRampsUnifiedV2Enabled from '../../Ramp/hooks/useRampsUnifiedV2Enabled';
 import { BridgeToken } from '../../Bridge/types';
 import { adaptTokenSecurityData } from '../../Bridge/utils/tokenSecurityUtils';
+import { getSwapDestToken } from '../../Bridge/utils/getSwapDestToken';
 import { selectAssetsBySelectedAccountGroup } from '../../../../selectors/assets/assets-list';
 import {
   isExploreTokenDetailsSource,
@@ -330,8 +331,12 @@ export const useHandleOnSwap = ({
     const currentTokenAsBridgeToken = toCurrentTokenAsBridgeToken(token);
     const balanceForCheck = currentTokenBalance ?? token.balance;
 
+    const destTokenOverride = token.chainId
+      ? getSwapDestToken(token.chainId, token.address)
+      : undefined;
+
     if (hasPositiveBalance(balanceForCheck)) {
-      goToSwaps(currentTokenAsBridgeToken, undefined, undefined, true);
+      goToSwaps(currentTokenAsBridgeToken, destTokenOverride, undefined, true);
       return;
     }
 
@@ -344,11 +349,15 @@ export const useHandleOnSwap = ({
     );
 
     if (buySourceToken) {
-      goToSwaps(buySourceToken, currentTokenAsBridgeToken, undefined, true);
+      goToSwaps(
+        buySourceToken,
+        destTokenOverride ?? currentTokenAsBridgeToken,
+        undefined,
+        true,
+      );
       return;
     }
-
-    goToSwaps(currentTokenAsBridgeToken, undefined, undefined, true);
+    goToSwaps(currentTokenAsBridgeToken, destTokenOverride, undefined, true);
   }, [goToSwaps, store, token, currentTokenBalance]);
 };
 
