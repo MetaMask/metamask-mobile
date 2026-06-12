@@ -62,7 +62,6 @@ jobs:
           permissions: |
             contents: write
             pull_requests: write
-            members: read
 
       - name: Checkout release branch
         uses: actions/checkout@v4
