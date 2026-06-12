@@ -136,6 +136,11 @@ const DeleteMetaMetricsData = (props: DeleteMetaMetricsDataProps) => {
       const deleteResponse = await createDataDeletionTask();
 
       if (DataDeleteResponseStatus.ok === deleteResponse?.status) {
+        // Local-to-screen reset: no new event has been generated since this
+        // deletion request was just initiated, so the button must reflect
+        // "no data tracked since last deletion" regardless of metricsOptin.
+        // The mount effect will re-seed from metricsOptin on re-entry.
+        setDataTrackedSinceLastDeletion(false);
         await checkInitialStatus();
         trackDataDeletionRequest();
       } else {
