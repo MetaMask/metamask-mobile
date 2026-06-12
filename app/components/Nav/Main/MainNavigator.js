@@ -59,7 +59,14 @@ import ManualBackupStep2 from '../../Views/ManualBackupStep2';
 import ManualBackupStep3 from '../../Views/ManualBackupStep3';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
+import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
+import { selectIsRewardsVersionBlocked } from '../../../reducers/rewards/selectors';
+import useRewardsVersionGuard from '../../UI/Rewards/hooks/useRewardsVersionGuard';
+import { useCandidateSubscriptionId } from '../../UI/Rewards/hooks/useCandidateSubscriptionId';
+import RewardsUpdateRequired from '../../UI/Rewards/components/RewardsUpdateRequired/RewardsUpdateRequired';
 import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
+import RewardsDashboard from '../../UI/Rewards/Views/RewardsDashboard';
+import RewardsOnboardingNavigator from '../../UI/Rewards/OnboardingNavigator';
 import { ExploreFeed } from '../../Views/TrendingView/TrendingView';
 import WhatsHappeningDetailView from '../../Views/WhatsHappeningDetailView';
 import ExploreSearchScreen from '../../Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen';
@@ -337,10 +344,29 @@ const TransactionsHome = () => {
 
 const RewardsHome = () => {
   const { colors } = useTheme();
+  const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const isVersionBlocked = useSelector(selectIsRewardsVersionBlocked);
+  // Fetch client version requirements at the Rewards tab entry point, before the
+  // onboarding/dashboard branch below. Both opted-in and onboarding users mount
+  // RewardsHome, so gating here ensures version-blocked clients always see the
+  // update-required screen (and the requirements are always fetched), regardless
+  // of subscription status.
+  useRewardsVersionGuard();
+  // Resolve the candidate subscription ID here for the same reason: both the
+  // dashboard and onboarding branches depend on it (onboarding's OnboardingMainStep
+  // renders a full-screen skeleton until candidateSubscriptionId leaves its initial
+  // 'pending' state). Only RewardsHome mounts for non-opted-in users, so fetching at
+  // this shared entry point prevents the onboarding tab from loading indefinitely.
+  useCandidateSubscriptionId();
   const rewardsModalScreenOptions = {
     ...transparentModalScreenOptions,
     contentStyle: { backgroundColor: 'transparent' },
   };
+
+  if (isVersionBlocked) {
+    return <RewardsUpdateRequired />;
+  }
+
   return (
     <NativeStack.Navigator
       screenOptions={{
@@ -349,10 +375,17 @@ const RewardsHome = () => {
         contentStyle: { backgroundColor: colors.background.default },
       }}
     >
-      <NativeStack.Screen
-        name={Routes.REWARDS_VIEW}
-        component={RewardsNavigator}
-      />
+      {subscriptionId ? (
+        <NativeStack.Screen
+          name={Routes.REWARDS_DASHBOARD}
+          component={RewardsDashboard}
+        />
+      ) : (
+        <NativeStack.Screen
+          name={Routes.REWARDS_ONBOARDING_FLOW}
+          component={RewardsOnboardingNavigator}
+        />
+      )}
       <NativeStack.Screen
         name={Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL}
         component={RewardsBottomSheetModal}
@@ -1018,6 +1051,18 @@ const MainNavigator = () => {
       initialRouteName={'Home'}
     >
       <Stack.Screen name="Home" component={HomeTabs} />
+      {/*
+       * Separate from the Rewards tab (REWARDS_VIEW → RewardsHome). RewardsNavigator
+       * is its own native stack pushed onto this JS root stack; nesting a native
+       * stack inside the JS stack is supported — the outer push uses the JS-stack
+       * transition, while screens inside RewardsNavigator animate natively.
+       * Reach it with navigation.navigate(REWARDS_FLOW, { screen, params }).
+       */}
+      <Stack.Screen
+        name={Routes.REWARDS_FLOW}
+        component={RewardsNavigator}
+        options={{ headerShown: false }}
+      />
       <Stack.Screen
         name={Routes.DEPRECATED_NETWORK_DETAILS}
         component={DeprecatedNetworkDetails}
