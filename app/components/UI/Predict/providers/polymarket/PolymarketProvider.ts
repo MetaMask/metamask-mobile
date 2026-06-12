@@ -18,7 +18,10 @@ import {
   isSmartContractAddress,
 } from '../../../../../util/transactions';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../../constants/errors';
-import { filterSupportedLeagues } from '../../constants/sports';
+import {
+  filterSupportedLeagues,
+  isSupportedSportsMarketType,
+} from '../../constants/sports';
 import { PREDICT_ACTIVITY_PAGE_SIZE } from '../../constants/transactions';
 import { SERIES_MAX_EVENTS } from '../../utils/series';
 import {
@@ -372,10 +375,12 @@ export class PolymarketProvider implements PredictProvider {
     events,
     category,
     filterEmptyOutcomes = false,
+    sourceMethod,
   }: {
     events: PolymarketApiEvent[];
     category: PredictCategory;
     filterEmptyOutcomes?: boolean;
+    sourceMethod: string;
   }): Promise<PredictMarket[]> {
     const supportedLeagues = this.#getSupportedLeagues();
     const liveSportsEnabled = supportedLeagues.length > 0;
@@ -390,6 +395,8 @@ export class PolymarketProvider implements PredictProvider {
       teamLookup,
       extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
     });
+
+    markets = this.#filterUnsupportedSportsOutcomes(markets, sourceMethod);
 
     if (filterEmptyOutcomes) {
       markets = markets.filter((m) => m.outcomes.length > 0);
@@ -466,6 +473,107 @@ export class PolymarketProvider implements PredictProvider {
         },
       },
     };
+  }
+
+  #logUnsupportedSportsMarketType(params: {
+    sourceMethod: string;
+    sportsMarketType: string;
+    droppedOutcomeCount: number;
+    marketIds: string[];
+  }): void {
+    const { sourceMethod, sportsMarketType, droppedOutcomeCount, marketIds } =
+      params;
+    const message = `Unsupported Predict sports market type: ${sportsMarketType}`;
+
+    Logger.error(new Error(message), {
+      ...this.getErrorContext('filterUnsupportedSportsOutcomes', {
+        sourceMethod,
+        sportsMarketType,
+        droppedOutcomeCount,
+        marketIds,
+      }),
+      context: {
+        name: 'PolymarketProvider',
+        data: {
+          method: 'filterUnsupportedSportsOutcomes',
+          sourceMethod,
+          sportsMarketType,
+          droppedOutcomeCount,
+          marketIds,
+        },
+      },
+    });
+  }
+
+  #filterUnsupportedSportsOutcomes(
+    markets: PredictMarket[],
+    sourceMethod: string,
+    dropMarketsWithoutOutcomes = true,
+  ): PredictMarket[] {
+    const extendedSportsMarketsLeagues =
+      this.#getExtendedSportsMarketsLeagues();
+
+    const unsupportedByType = new Map<
+      string,
+      { droppedOutcomeCount: number; marketIds: Set<string> }
+    >();
+
+    const filteredMarkets = markets.flatMap((market) => {
+      const shouldFilterMarket =
+        market.game?.league !== undefined &&
+        extendedSportsMarketsLeagues.includes(market.game.league);
+
+      if (!shouldFilterMarket) {
+        return [market];
+      }
+
+      const unsupportedOutcomes = market.outcomes.filter(
+        (outcome) => !isSupportedSportsMarketType(outcome.sportsMarketType),
+      );
+
+      if (unsupportedOutcomes.length === 0) {
+        return [market];
+      }
+
+      unsupportedOutcomes.forEach((outcome) => {
+        const sportsMarketType = outcome.sportsMarketType?.toLowerCase();
+        if (!sportsMarketType) {
+          return;
+        }
+
+        const current = unsupportedByType.get(sportsMarketType) ?? {
+          droppedOutcomeCount: 0,
+          marketIds: new Set<string>(),
+        };
+
+        current.droppedOutcomeCount += 1;
+        current.marketIds.add(market.id);
+        unsupportedByType.set(sportsMarketType, current);
+      });
+
+      const supportedOutcomes = market.outcomes.filter((outcome) =>
+        isSupportedSportsMarketType(outcome.sportsMarketType),
+      );
+
+      if (dropMarketsWithoutOutcomes && supportedOutcomes.length === 0) {
+        return [];
+      }
+
+      return [{ ...market, outcomes: supportedOutcomes }];
+    });
+
+    unsupportedByType.forEach(
+      ({ droppedOutcomeCount, marketIds }, sportsMarketType) => {
+        this.#logUnsupportedSportsMarketType({
+          sourceMethod,
+          sportsMarketType,
+          droppedOutcomeCount,
+          marketIds: [...marketIds],
+        });
+      },
+    );
+
+    return filteredMarkets;
   }
 
   #hasPermit2Config(params: {
@@ -851,9 +959,19 @@ export class PolymarketProvider implements PredictProvider {
         throw new Error('Failed to parse market details');
       }
 
+      const [filteredMarket] = this.#filterUnsupportedSportsOutcomes(
+        [parsedMarket],
+        'getMarketDetails',
+        false,
+      );
+
+      if (!filteredMarket) {
+        throw new Error('Failed to filter market details');
+      }
+
       const result = isSportsEvent
-        ? GameCache.getInstance().overlayOnMarket(parsedMarket)
-        : parsedMarket;
+        ? GameCache.getInstance().overlayOnMarket(filteredMarket)
+        : filteredMarket;
 
       if (childMarketIds) {
         result.childMarketIds = childMarketIds;
@@ -952,6 +1070,7 @@ export class PolymarketProvider implements PredictProvider {
       const markets = await this.#parseEventsToMarkets({
         events,
         category,
+        sourceMethod: 'getMarkets',
       });
 
       return { markets, nextCursor };
@@ -980,6 +1099,7 @@ export class PolymarketProvider implements PredictProvider {
       const markets = await this.#parseEventsToMarkets({
         events,
         category: PolymarketProvider.FALLBACK_CATEGORY,
+        sourceMethod: 'listMarkets',
       });
 
       return { markets, nextCursor };
@@ -1046,6 +1166,7 @@ export class PolymarketProvider implements PredictProvider {
         events,
         category: PolymarketProvider.FALLBACK_CATEGORY,
         filterEmptyOutcomes: true,
+        sourceMethod: 'searchMarkets',
       });
 
       return { markets, totalResults };
@@ -1107,11 +1228,14 @@ export class PolymarketProvider implements PredictProvider {
 
       const teamLookup = this.#createTeamLookup(liveSportsEnabled);
 
-      return parsePolymarketEvents(events, {
-        category: PolymarketProvider.FALLBACK_CATEGORY,
-        teamLookup,
-        extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
-      });
+      return this.#filterUnsupportedSportsOutcomes(
+        parsePolymarketEvents(events, {
+          category: PolymarketProvider.FALLBACK_CATEGORY,
+          teamLookup,
+          extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
+        }),
+        'getMarketSeries',
+      );
     } catch (error) {
       DevLogger.log('Error fetching series events via Polymarket API:', error);
 
@@ -1144,12 +1268,15 @@ export class PolymarketProvider implements PredictProvider {
 
       const teamLookup = this.#createTeamLookup(liveSportsEnabled);
 
-      const parsedMarkets = parsePolymarketEvents(events, {
-        category: 'trending',
-        sortMarketsBy: 'price',
-        teamLookup,
-        extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
-      })
+      const parsedMarkets = this.#filterUnsupportedSportsOutcomes(
+        parsePolymarketEvents(events, {
+          category: 'trending',
+          sortMarketsBy: 'price',
+          teamLookup,
+          extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
+        }),
+        'getCarouselMarkets',
+      )
         .filter((m) => m.status === 'open' && m.outcomes.length > 0)
         .map((market) => {
           // Carousel cards only have room for a single "winning team /
