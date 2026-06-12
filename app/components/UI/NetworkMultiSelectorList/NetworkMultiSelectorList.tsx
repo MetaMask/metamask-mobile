@@ -20,6 +20,7 @@ import {
 } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { debounce } from 'lodash';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 // External dependencies.
 import { useStyles } from '../../../component-library/hooks/index.ts';
@@ -63,6 +64,7 @@ import { strings } from '../../../../locales/i18n';
 import TagColored, {
   TagColor,
 } from '../../../component-library/components-temp/TagColored';
+import { useElevatedSurface } from '../../../util/theme/themeUtils';
 
 const SELECTION_DEBOUNCE_DELAY = 150;
 
@@ -114,6 +116,8 @@ const NetworkMultiSelectList = ({
   );
 
   const { styles } = useStyles(styleSheet, {});
+  const tw = useTailwind();
+  const surfaceClass = useElevatedSurface();
 
   const processedNetworks = useMemo(
     (): ProcessedNetwork[] =>
@@ -327,7 +331,7 @@ const NetworkMultiSelectList = ({
             disabled={isDisabled}
             showButtonIcon={showButtonIcon}
             buttonProps={createButtonProps(network)}
-            style={styles.centeredNetworkCell}
+            style={tw.style(`${surfaceClass} items-center`)}
             testID={NETWORK_MULTI_SELECTOR_TEST_IDS.NETWORK_LIST_ITEM(
               caipChainId,
               isSelected,
@@ -356,8 +360,9 @@ const NetworkMultiSelectList = ({
       openRpcModal,
       isGasFeesSponsoredNetworkEnabled,
       isHardwareWallet,
-      styles.centeredNetworkCell,
       styles.noNetworkFeeContainer,
+      surfaceClass,
+      tw,
       styles.networkNameText,
     ],
   );

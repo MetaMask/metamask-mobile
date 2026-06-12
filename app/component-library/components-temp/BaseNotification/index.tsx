@@ -54,7 +54,7 @@ export const getIcon = (status: BaseNotificationStatus | undefined) => {
     case 'error':
     case 'simple_notification_rejected':
       return (
-        <IconAlert severity={IconAlertSeverity.Error} size={IconSize.Lg} />
+        <IconAlert severity={IconAlertSeverity.Danger} size={IconSize.Lg} />
       );
     default:
       return null;
