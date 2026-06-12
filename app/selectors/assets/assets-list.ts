@@ -42,6 +42,7 @@ import { selectTokenSortConfig } from '../preferencesController';
 import { selectHideZeroBalanceTokens } from '../settings';
 import { selectAllTokens } from '../tokensController';
 import { createDeepEqualSelector } from '../util';
+import { isArcNativeAsset } from '../../enablement/assets/arc';
 import {
   getAccountTrackerControllerAccountsByChainId,
   getCurrencyRateControllerCurrencyRates,
@@ -337,6 +338,7 @@ export const createSelectSortedAssetsBySelectedAccountGroup = (
         .flatMap(([_, chainAssets]) =>
           chainAssets.filter((asset) => {
             if (isTronSpecialAsset(asset.chainId, asset.symbol)) return false;
+            if (isArcNativeAsset(asset)) return false;
             if (
               hideZeroBalance &&
               !asset.isNative &&
@@ -461,7 +463,9 @@ export const selectSortedAssetsBySelectedAccountGroupForChainIds =
         .filter(([networkId]) => allowedIds.has(networkId))
         .flatMap(([_, chainAssets]) =>
           chainAssets.filter(
-            (asset) => !isTronSpecialAsset(asset.chainId, asset.symbol),
+            (asset) =>
+              !isTronSpecialAsset(asset.chainId, asset.symbol) &&
+              !isArcNativeAsset(asset),
           ),
         );
       return mergeStakedSortAndDedupeAssets(
@@ -491,6 +495,7 @@ export const selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance =
         .flatMap(([_, chainAssets]) =>
           chainAssets.filter((asset) => {
             if (isTronSpecialAsset(asset.chainId, asset.symbol)) return false;
+            if (isArcNativeAsset(asset)) return false;
             if (hideZeroBalance && parseFloat(asset.balance ?? '0') === 0)
               return false;
             return true;

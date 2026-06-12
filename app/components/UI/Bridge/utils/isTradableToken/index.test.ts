@@ -1,6 +1,7 @@
 import { TrxScope } from '@metamask/keyring-api';
 import { isTradableToken } from './index';
 import { BridgeToken } from '../../types';
+import { ARC_CHAIN_ID } from '../../../../../enablement/assets/arc';
 
 // Helper function to create test tokens
 const createTestToken = (
@@ -170,6 +171,18 @@ describe('isTradableToken', () => {
 
       expect(result).toBe(true);
     });
+
+    it('returns true for a non-native Arc token (e.g. USDC ERC20)', () => {
+      const token = createTestToken({
+        chainId: ARC_CHAIN_ID,
+        symbol: 'USDC',
+        ...({ isNative: false } as Partial<BridgeToken>),
+      });
+
+      const result = isTradableToken(token);
+
+      expect(result).toBe(true);
+    });
   });
 
   describe('non-tradable Tron resource tokens', () => {
@@ -265,6 +278,20 @@ describe('isTradableToken', () => {
       const token = createTestToken({
         chainId: TrxScope.Mainnet,
         symbol: 'TRX-IN-LOCK-PERIOD',
+      });
+
+      const result = isTradableToken(token);
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('non-tradable Arc native token', () => {
+    it('returns false for the Arc native token', () => {
+      const token = createTestToken({
+        chainId: ARC_CHAIN_ID,
+        symbol: 'USDC',
+        ...({ isNative: true } as Partial<BridgeToken>),
       });
 
       const result = isTradableToken(token);

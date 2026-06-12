@@ -43,6 +43,7 @@ import {
 } from '../multichain/multichain';
 import { selectTokenMarketData } from '../tokenRatesController';
 import { selectAllTokenBalances } from '../tokenBalancesController';
+import { omitArcNativeTokenBalances } from '../../enablement/assets/arc';
 import { selectAllTokens } from '../tokensController';
 import {
   selectCurrentCurrency,
@@ -93,7 +94,11 @@ const selectAccountsStateForBalances = createSelector(
 const selectTokenBalancesStateForBalances = createSelector(
   [selectAllTokenBalances],
   (tokenBalances): TokenBalancesControllerState =>
-    ({ tokenBalances }) as TokenBalancesControllerState,
+    ({
+      // Exclude the Arc native (zero address) balance so it isn't double-counted
+      // against the USDC ERC20 in the aggregated balance.
+      tokenBalances: omitArcNativeTokenBalances(tokenBalances),
+    }) as TokenBalancesControllerState,
 );
 
 const selectTokenRatesStateForBalances = createSelector(
