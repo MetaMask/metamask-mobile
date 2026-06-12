@@ -71,7 +71,7 @@ export async function setupSmartTransactionsMocks(
   // Mock POST /getFees – returns a single fee tier so createSignedTransactions
   // produces a non-empty rawTxs array that can be forwarded to Anvil.
   await setupMockRequest(mockServer, {
-    url: /transaction\.api\.cx\.metamask\.io\/networks\/\d+\/getFees/,
+    url: /\.api\.cx\.metamask\.io\/(v\d+\/)?networks\/\d+\/getFees/,
     response: GET_FEES_RESPONSE,
     requestMethod: 'POST',
     responseCode: 200,
@@ -83,7 +83,7 @@ export async function setupSmartTransactionsMocks(
     .forPost('/proxy')
     .matching((request) => {
       const url = getDecodedProxiedURL(request.url);
-      return /transaction\.api\.cx\.metamask\.io\/networks\/\d+\/submitTransactions/.test(
+      return /\.api\.cx\.metamask\.io\/(v\d+\/)?networks\/\d+\/submitTransactions/.test(
         url,
       );
     })
@@ -150,11 +150,117 @@ export async function setupSmartTransactionsMocks(
   };
 
   await setupMockRequest(mockServer, {
-    url: /transaction\.api\.cx\.metamask\.io\/networks\/\d+\/batchStatus/,
+    url: /\.api\.cx\.metamask\.io\/(v\d+\/)?networks\/\d+\/batchStatus/,
     response: GET_BATCH_STATUS_SUCCESS,
     requestMethod: 'GET',
     responseCode: 200,
   });
+
+  // -- 7702 Relay mocks --
+  // When a quote has gasIncluded7702: true the delegation-7702-publish hook
+  // bypasses STX and submits through the Sentinel relay API instead.
+  // We mock both the submit (JSON-RPC POST) and polling (GET) endpoints,
+  // and send a simple tx to Anvil so TransactionController finds a receipt.
+
+  const RELAY_UUID = 'relay-7702-e2e-uuid';
+  let relayTxHash: string | undefined;
+
+  // Mock POST eth_sendRelayTransaction – JSON-RPC to sentinel root URL.
+  await mockServer
+    .forPost('/proxy')
+    .matching((request) => {
+      const url = getDecodedProxiedURL(request.url);
+      // Relay submit goes to the root sentinel URL (no path beyond /)
+      return /tx-sentinel[^/]*\.api\.cx\.metamask\.io\/?$/.test(url);
+    })
+    .asPriority(1000)
+    .thenCallback(async (request) => {
+      let rpcId: unknown = 1;
+      try {
+        const bodyText = await request.body.getText();
+        const body = JSON.parse(bodyText ?? '{}');
+        rpcId = body?.id ?? 1;
+      } catch {
+        // Ignore parse errors
+      }
+
+      // Impersonate the test wallet and send a dummy tx to Anvil so a real
+      // receipt exists when TransactionController polls eth_getTransactionReceipt.
+      const walletAddress = '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
+      try {
+        const anvilUrl = getActualAnvilRpcUrl();
+
+        await fetch(anvilUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            method: 'anvil_impersonateAccount',
+            params: [walletAddress],
+            id: 1,
+          }),
+        });
+
+        const txResp = await fetch(anvilUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            method: 'eth_sendTransaction',
+            params: [{ from: walletAddress, to: walletAddress, value: '0x0' }],
+            id: 2,
+          }),
+        });
+
+        const txResult = await txResp.json();
+        relayTxHash = txResult?.result;
+
+        await fetch(anvilUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            method: 'anvil_stopImpersonatingAccount',
+            params: [walletAddress],
+            id: 3,
+          }),
+        });
+      } catch {
+        // Non-fatal: the relay UUID is still returned.
+      }
+
+      return {
+        statusCode: 200,
+        json: {
+          jsonrpc: '2.0',
+          result: { uuid: RELAY_UUID },
+          id: rpcId,
+        },
+      };
+    });
+
+  // Mock GET /smart-transactions/{uuid} – relay polling endpoint.
+  // waitForRelayResult polls this until status !== PENDING.
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) => {
+      const url = getDecodedProxiedURL(request.url);
+      return /tx-sentinel[^/]*\.api\.cx\.metamask\.io.*\/smart-transactions\//.test(
+        url,
+      );
+    })
+    .asPriority(1000)
+    .thenCallback(() => ({
+      statusCode: 200,
+      json: {
+        transactions: [
+          {
+            hash: relayTxHash,
+            status: 'VALIDATED',
+          },
+        ],
+      },
+    }));
 
   // Mock GET /getTxStatus – fallback for same-chain swap tests.
   // Registered at priority 1 so bridge-mocks.ts (priority 999) always wins
