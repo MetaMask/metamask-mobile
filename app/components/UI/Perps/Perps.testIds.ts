@@ -187,6 +187,20 @@ export const getPerpsMarketRowItemSelector = {
 };
 
 // ========================================
+// PERPS RELATED MARKETS SELECTORS
+// ========================================
+
+export const PerpsRelatedMarketsSelectorsIDs = {
+  RAIL: 'perps-related-markets-rail',
+  SCROLL_VIEW: 'perps-related-markets-scroll-view',
+  HEADER: 'perps-related-markets-header',
+};
+
+export const getPerpsRelatedMarketsSelector = {
+  tile: (symbol: string) => `perps-related-markets-tile-${symbol}`,
+};
+
+// ========================================
 // PERPS ORDER HEADER SELECTORS
 // ========================================
 
