@@ -72,6 +72,8 @@ interface PerpsWatchlistMarketsProps {
   onSeeAllPress?: () => void;
   /** Whether to render the "Watchlist" section header. Defaults to true. */
   showHeader?: boolean;
+  /** Whether to render the collapsible "Show more"/"Show less" toggle. Defaults to true. */
+  enableShowMore?: boolean;
 }
 
 // ─── Legacy (flag OFF) ──────────────────────────────────────────────────────
@@ -199,6 +201,7 @@ const PerpsWatchlistMarketsV2: React.FC<PerpsWatchlistMarketsProps> = ({
   contentContainerStyle,
   onSeeAllPress,
   showHeader = true,
+  enableShowMore = true,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
@@ -287,7 +290,8 @@ const PerpsWatchlistMarketsV2: React.FC<PerpsWatchlistMarketsProps> = ({
   }
 
   // Expand/collapse applies only to the watchlist rows
-  const hasMore = hasWatchlist && markets.length > INITIAL_DISPLAY_COUNT;
+  const hasMore =
+    enableShowMore && hasWatchlist && markets.length > INITIAL_DISPLAY_COUNT;
   const displayedMarkets =
     hasMore && !expanded ? markets.slice(0, INITIAL_DISPLAY_COUNT) : markets;
   const hiddenCount = markets.length - INITIAL_DISPLAY_COUNT;

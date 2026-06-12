@@ -245,14 +245,16 @@ const PerpsMarketListView = ({
       );
     }
 
-    // Empty watchlist — show suggested markets with the same default state as PerpsHome
-    // Only reachable when the watchlist flag is enabled (pill is hidden otherwise)
-    if (isWatchlistEnabled && showFavoritesOnly && !hasWatchlistMarkets) {
+    // Watchlist filter active — show watchlisted markets plus suggestions.
+    // Mirrors PerpsHome behavior, without the collapsible "Show more" toggle.
+    // Only reachable when the watchlist flag is enabled (pill is hidden otherwise).
+    if (isWatchlistEnabled && showFavoritesOnly) {
       return (
         <PerpsWatchlistMarkets
           markets={watchlistMarketObjects}
           suggestedMarkets={suggestedMarkets}
           showHeader={false}
+          enableShowMore={false}
         />
       );
     }

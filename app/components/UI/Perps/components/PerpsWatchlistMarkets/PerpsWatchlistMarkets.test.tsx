@@ -630,6 +630,58 @@ describe('PerpsWatchlistMarkets', () => {
   });
 
   // -------------------------------------------------------------------------
+  // enableShowMore prop
+  // -------------------------------------------------------------------------
+
+  describe('enableShowMore prop', () => {
+    const fiveMarkets = [
+      makeMarket('BTC', 'Bitcoin'),
+      makeMarket('ETH', 'Ethereum'),
+      makeMarket('SOL', 'Solana'),
+      makeMarket('AVAX', 'Avalanche'),
+      makeMarket('DOT', 'Polkadot'),
+    ];
+
+    it('shows all markets without a "Show more" button when enableShowMore is false', () => {
+      render(
+        <PerpsWatchlistMarkets markets={fiveMarkets} enableShowMore={false} />,
+      );
+      // All five markets visible
+      expect(screen.getByText('BTC')).toBeOnTheScreen();
+      expect(screen.getByText('ETH')).toBeOnTheScreen();
+      expect(screen.getByText('SOL')).toBeOnTheScreen();
+      expect(screen.getByText('AVAX')).toBeOnTheScreen();
+      expect(screen.getByText('DOT')).toBeOnTheScreen();
+      // No show-more toggle
+      expect(screen.queryByText(/Show \d+ more/)).not.toBeOnTheScreen();
+      expect(screen.queryByText('Show less')).not.toBeOnTheScreen();
+    });
+
+    it('still renders suggestions below watchlist rows when enableShowMore is false', () => {
+      render(
+        <PerpsWatchlistMarkets
+          markets={fiveMarkets}
+          suggestedMarkets={mockSuggestedMarkets}
+          enableShowMore={false}
+        />,
+      );
+      // All watchlist rows visible (incl. markets beyond INITIAL_DISPLAY_COUNT)
+      expect(screen.getByText('DOT')).toBeOnTheScreen();
+      // Suggested rows present with add buttons — BNB only exists in suggestions
+      expect(
+        screen.getByTestId('perps-market-row-BNB-add-button'),
+      ).toBeOnTheScreen();
+      // No toggle
+      expect(screen.queryByText(/Show \d+ more/)).not.toBeOnTheScreen();
+    });
+
+    it('defaults to showing show-more toggle when enableShowMore is not specified', () => {
+      render(<PerpsWatchlistMarkets markets={fiveMarkets} />);
+      expect(screen.getByText('Show 2 more')).toBeOnTheScreen();
+    });
+  });
+
+  // -------------------------------------------------------------------------
   // Component lifecycle
   // -------------------------------------------------------------------------
 
