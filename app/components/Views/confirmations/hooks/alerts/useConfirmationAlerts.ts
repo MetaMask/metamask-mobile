@@ -14,6 +14,7 @@ import { useNoPayTokenQuotesAlert } from './useNoPayTokenQuotesAlert';
 import { useInsufficientPredictBalanceAlert } from './useInsufficientPredictBalanceAlert';
 import { useInsufficientPerpsBalanceAlert } from './useInsufficientPerpsBalanceAlert';
 import { useInsufficientMoneyAccountBalanceAlert } from './useInsufficientMoneyAccountBalanceAlert';
+import { useFiatBuyLimitAlert } from './useFiatBuyLimitAlert';
 import { useBurnAddressAlert } from './useBurnAddressAlert';
 import { useTokenTrustSignalAlerts } from './useTokenTrustSignalAlerts';
 import { useAddressTrustSignalAlerts } from './useAddressTrustSignalAlerts';
@@ -44,6 +45,7 @@ function useTransactionAlerts(): Alert[] {
   const insufficientPerpsBalanceAlert = useInsufficientPerpsBalanceAlert();
   const insufficientMoneyAccountBalanceAlert =
     useInsufficientMoneyAccountBalanceAlert();
+  const fiatBuyLimitAlert = useFiatBuyLimitAlert();
   const burnAddressAlert = useBurnAddressAlert();
   const headlessBuyErrorAlert = useHeadlessBuyErrorAlert();
   const tokenTrustSignalAlerts = useTokenTrustSignalAlerts();
@@ -65,6 +67,7 @@ function useTransactionAlerts(): Alert[] {
       ...insufficientPredictBalanceAlert,
       ...insufficientPerpsBalanceAlert,
       ...insufficientMoneyAccountBalanceAlert,
+      ...fiatBuyLimitAlert,
       ...burnAddressAlert,
       ...headlessBuyErrorAlert,
       ...tokenTrustSignalAlerts,
@@ -85,6 +88,7 @@ function useTransactionAlerts(): Alert[] {
       insufficientPredictBalanceAlert,
       insufficientPerpsBalanceAlert,
       insufficientMoneyAccountBalanceAlert,
+      fiatBuyLimitAlert,
       burnAddressAlert,
       headlessBuyErrorAlert,
       tokenTrustSignalAlerts,

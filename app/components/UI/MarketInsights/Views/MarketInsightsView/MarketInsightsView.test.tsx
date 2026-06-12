@@ -32,6 +32,7 @@ let mockRouteParams: {
   token?: Record<string, unknown>;
   isPerps?: boolean;
   hasPerpsPosition?: boolean;
+  isAtOICap?: boolean;
   source?: 'token_details' | 'perps' | 'unknown';
 } = {
   assetSymbol: 'ETH',
@@ -274,12 +275,13 @@ jest.mock('../../../TokenDetails/components/AssetDetailsQuickBuy', () => ({
 }));
 
 let mockIsQuickBuyEnabled = false;
-jest.mock(
-  '../../../../../selectors/featureFlagController/socialAiAssetDetailsQuickBuy',
-  () => ({
-    selectSocialAiAssetDetailsQuickBuyEnabled: () => mockIsQuickBuyEnabled,
+jest.mock('../../../../../hooks/useABTest', () => ({
+  useABTest: () => ({
+    variant: { showQuickBuy: mockIsQuickBuyEnabled },
+    variantName: mockIsQuickBuyEnabled ? 'treatment' : 'control',
+    isActive: true,
   }),
-);
+}));
 
 const mockPlayImpact = jest.fn();
 jest.mock('../../../../../util/haptics', () => ({
@@ -805,6 +807,64 @@ describe('MarketInsightsView', () => {
       getByTestId(MarketInsightsSelectorsIDs.SHORT_BUTTON),
     ).toBeOnTheScreen();
     expect(queryByTestId('token-details-sticky-footer')).toBeNull();
+  });
+
+  it('hides Long and Short buttons when the perps market is at its open interest cap', () => {
+    mockRouteParams = {
+      assetSymbol: 'ETH',
+      assetIdentifier: 'ETH',
+      isPerps: true,
+      isAtOICap: true,
+    };
+    mockUseMarketInsights.mockReturnValue({
+      report: {
+        asset: 'eth',
+        generatedAt: '2026-02-17T11:55:00.000Z',
+        headline: 'ETH perps insight',
+        summary: 'Open interest at cap',
+        trends: [],
+        sources: [],
+      },
+      isLoading: false,
+      error: null,
+      timeAgo: '1m ago',
+    });
+
+    const { queryByTestId } = renderWithProvider(<MarketInsightsView />);
+
+    expect(queryByTestId(MarketInsightsSelectorsIDs.LONG_BUTTON)).toBeNull();
+    expect(queryByTestId(MarketInsightsSelectorsIDs.SHORT_BUTTON)).toBeNull();
+  });
+
+  it('shows Long and Short buttons when the perps market is below its open interest cap', () => {
+    mockRouteParams = {
+      assetSymbol: 'ETH',
+      assetIdentifier: 'ETH',
+      isPerps: true,
+      isAtOICap: false,
+    };
+    mockUseMarketInsights.mockReturnValue({
+      report: {
+        asset: 'eth',
+        generatedAt: '2026-02-17T11:55:00.000Z',
+        headline: 'ETH perps insight',
+        summary: 'Open interest below cap',
+        trends: [],
+        sources: [],
+      },
+      isLoading: false,
+      error: null,
+      timeAgo: '1m ago',
+    });
+
+    const { getByTestId } = renderWithProvider(<MarketInsightsView />);
+
+    expect(
+      getByTestId(MarketInsightsSelectorsIDs.LONG_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(MarketInsightsSelectorsIDs.SHORT_BUTTON),
+    ).toBeOnTheScreen();
   });
 
   it('navigates to PerpsOrderRedirect with long direction when Long button is pressed', async () => {
