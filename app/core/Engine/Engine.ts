@@ -183,6 +183,7 @@ import { phishingControllerInit } from './controllers/phishing-controller-init';
 import { addressBookControllerInit } from './controllers/address-book-controller-init';
 import { analyticsControllerInit } from './controllers/analytics-controller/analytics-controller-init';
 import { connectivityControllerInit } from './controllers/connectivity/connectivity-controller-init';
+import { networkConnectionBannerControllerInit } from './controllers/network-connection-banner-controller/network-connection-banner-controller-init';
 import { multichainRoutingServiceInit } from './controllers/multichain-routing-service-init.ts';
 import { profileMetricsControllerInit } from './controllers/profile-metrics-controller-init';
 import { profileMetricsServiceInit } from './controllers/profile-metrics-service-init';
@@ -398,6 +399,8 @@ export class Engine {
         RewardsDataService: rewardsDataServiceInit,
         DelegationController: DelegationControllerInit,
         ConnectivityController: connectivityControllerInit,
+        NetworkConnectionBannerController:
+          networkConnectionBannerControllerInit,
         ProfileMetricsController: profileMetricsControllerInit,
         ProfileMetricsService: profileMetricsServiceInit,
         AnalyticsController: analyticsControllerInit,
@@ -451,6 +454,8 @@ export class Engine {
     const addressBookController = messengerClientsByName.AddressBookController;
     const connectivityController =
       messengerClientsByName.ConnectivityController;
+    const networkConnectionBannerController =
+      messengerClientsByName.NetworkConnectionBannerController;
     const profileMetricsController =
       messengerClientsByName.ProfileMetricsController;
     const profileMetricsService = messengerClientsByName.ProfileMetricsService;
@@ -567,6 +572,7 @@ export class Engine {
       AddressBookController: addressBookController,
       AppMetadataController: messengerClientsByName.AppMetadataController,
       ConnectivityController: connectivityController,
+      NetworkConnectionBannerController: networkConnectionBannerController,
       AssetsContractController: assetsContractController,
       AssetsController: messengerClientsByName.AssetsController,
       NftController: nftController,
@@ -1428,6 +1434,7 @@ export default {
       BridgeStatusController,
       CardController,
       ConnectivityController,
+      NetworkConnectionBannerController,
       CurrencyRateController,
       DeFiPositionsController,
       DelegationController,
@@ -1500,6 +1507,8 @@ export default {
       BridgeController: BridgeController.state,
       BridgeStatusController: BridgeStatusController.state,
       ConnectivityController: ConnectivityController.state,
+      NetworkConnectionBannerController:
+        NetworkConnectionBannerController.state,
       CurrencyRateController: CurrencyRateController.state,
       DeFiPositionsController: DeFiPositionsController.state,
       DelegationController: DelegationController.state,

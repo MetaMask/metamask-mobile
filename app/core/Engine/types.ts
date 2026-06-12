@@ -87,6 +87,12 @@ import {
   AddressBookControllerEvents,
   AddressBookControllerState,
 } from '@metamask/address-book-controller';
+import type {
+  NetworkConnectionBannerController,
+  NetworkConnectionBannerControllerState,
+  NetworkConnectionBannerControllerActions,
+  NetworkConnectionBannerControllerEvents,
+} from '@metamask/network-connection-banner-controller';
 import {
   ConnectivityController,
   ConnectivityControllerActions,
@@ -538,6 +544,7 @@ export type GlobalActions =
   | KeyringControllerActions
   | NetworkControllerActions
   | NetworkEnablementControllerActions
+  | NetworkConnectionBannerControllerActions
   | PermissionControllerActions
   | SignatureControllerActions
   | LoggingControllerActions
@@ -629,6 +636,7 @@ export type GlobalEvents =
   | KeyringControllerEvents
   | NetworkControllerEvents
   | NetworkEnablementControllerEvents
+  | NetworkConnectionBannerControllerEvents
   | PermissionControllerEvents
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   | SnapsGlobalEvents
@@ -748,6 +756,7 @@ export type MessengerClients = {
   AddressBookController: AddressBookController;
   AppMetadataController: AppMetadataController;
   ConnectivityController: ConnectivityController;
+  NetworkConnectionBannerController: NetworkConnectionBannerController;
   ApprovalController: ApprovalController;
   AssetsContractController: AssetsContractController;
   AssetsController: AssetsController;
@@ -853,6 +862,7 @@ export type EngineState = {
   AssetsController: AssetsControllerState;
   AppMetadataController: AppMetadataControllerState;
   ConnectivityController: ConnectivityControllerState;
+  NetworkConnectionBannerController: NetworkConnectionBannerControllerState;
   NftController: NftControllerState;
   CurrencyRateController: CurrencyRateState;
   KeyringController: KeyringControllerState;
@@ -954,6 +964,7 @@ export type MessengerClientsToInitialize =
   | 'AssetsContractController'
   | 'AssetsController'
   | 'ConnectivityController'
+  | 'NetworkConnectionBannerController'
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   | 'AuthenticationController'
   | 'CronjobController'
