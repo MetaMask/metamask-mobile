@@ -35,6 +35,7 @@ describe('TransactionDetailsFromRow', () => {
     useNetworkInfoMock.mockReturnValue({
       networkName: 'Arbitrum',
       networkImage: 'https://example.com/arb.png',
+      networkNativeCurrency: 'ETH',
     });
   });
 
