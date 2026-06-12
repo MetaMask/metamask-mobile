@@ -393,8 +393,8 @@ describe('MainNavigator', () => {
         component: { name: string };
         options?: {
           headerShown?: boolean;
-          animationEnabled?: boolean;
-          cardStyleInterpolator?: unknown;
+          animation?: string;
+          contentStyle?: unknown;
         };
       }
       return container.root.children
@@ -845,8 +845,8 @@ describe('MainNavigator', () => {
         component: { name: string };
         options?: {
           headerShown?: boolean;
-          animationEnabled?: boolean;
-          cardStyleInterpolator?: unknown;
+          animation?: string;
+          contentStyle?: unknown;
         };
       }
       return container.root.children
@@ -990,8 +990,7 @@ describe('MainNavigator', () => {
 
       expect(screen).toBeDefined();
       expect(screen?.options?.headerShown).toBe(false);
-      expect(screen?.options?.animationEnabled).toBe(true);
-      expect(typeof screen?.options?.cardStyleInterpolator).toBe('function');
+      expect(screen?.options?.animation).toBe('slide_from_right');
     });
 
     it('includes StakeScreens route', () => {
@@ -1076,8 +1075,7 @@ describe('MainNavigator', () => {
 
       expect(screen).toBeDefined();
       expect(screen?.options?.headerShown).toBe(false);
-      expect(screen?.options?.animationEnabled).toBe(true);
-      expect(typeof screen?.options?.cardStyleInterpolator).toBe('function');
+      expect(screen?.options?.animation).toBe('slide_from_right');
     });
 
     it('includes Asset screen', () => {
@@ -1190,8 +1188,7 @@ describe('MainNavigator', () => {
 
       expect(screen).toBeDefined();
       expect(screen?.options?.headerShown).toBe(false);
-      expect(screen?.options?.animationEnabled).toBe(true);
-      expect(typeof screen?.options?.cardStyleInterpolator).toBe('function');
+      expect(screen?.options?.animation).toBe('slide_from_right');
     });
 
     it('includes Benefit detail full view route', () => {
@@ -1206,8 +1203,7 @@ describe('MainNavigator', () => {
 
       expect(screen).toBeDefined();
       expect(screen?.options?.headerShown).toBe(false);
-      expect(screen?.options?.animationEnabled).toBe(true);
-      expect(typeof screen?.options?.cardStyleInterpolator).toBe('function');
+      expect(screen?.options?.animation).toBe('slide_from_right');
     });
   });
 

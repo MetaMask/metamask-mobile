@@ -136,6 +136,9 @@ export type VipLocalizedTextDto = {
 export type VipDashboardDto = {
   program: VipProgramDto;
   period: VipPeriodDto;
+  // ISO-8601 instant the subscription's tier snapshot was last computed
+  // (vip_subscription_tier.computed_at), or null if no snapshot exists yet.
+  computedAt: string | null;
   currentTier: VipTierRefDto;
   nextTier: VipTierRefDto;
   progress: VipProgressDto;
@@ -148,6 +151,23 @@ export type VipDashboardDto = {
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type VipDashboardState = VipDashboardDto & {
+  lastFetched: number;
+};
+
+// Minimal stats for the "VIP Pilot" referee page (GET /vip/referee/me).
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipRefereeMeDto = {
+  referredByCode: string | null;
+  points: number;
+  swapsVolume: number;
+  perpsVolume: number;
+  // ISO-8601 instant the referee stats were last computed, or null if
+  // unavailable. v1 backend placeholder — currently the current time.
+  computedAt: string | null;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipRefereeMeState = VipRefereeMeDto & {
   lastFetched: number;
 };
 
@@ -1760,6 +1780,10 @@ export interface SubscriptionReferralDetailsDto {
   referralCode: string;
   totalReferees: number;
   referredByCode: string;
+  /** True when this subscription signed up with a VIP's referral code. */
+  isVipReferee?: boolean;
+  /** The VIP referrer's primary referral code, when isVipReferee is true. */
+  vipReferrer?: { referralCode: string };
 }
 
 export interface PointsBoostEnvelopeDto {
@@ -1835,6 +1859,10 @@ export type SubscriptionReferralDetailState = {
   referralCode: string;
   totalReferees: number;
   referredByCode: string;
+  /** True when this subscription signed up with a VIP's referral code. */
+  isVipReferee: boolean;
+  /** The VIP referrer's primary referral code, when isVipReferee is true. */
+  referredByVipCode?: string | null;
   lastFetched?: number;
 };
 
@@ -2297,6 +2325,9 @@ export type RewardsControllerState = {
   };
   vipDashboard: {
     [subscriptionId: string]: VipDashboardState;
+  };
+  vipRefereeDashboard: {
+    [subscriptionId: string]: VipRefereeMeState;
   };
   vipPerpsFees: {
     [subscriptionId: string]: VipPerpsFeesState;

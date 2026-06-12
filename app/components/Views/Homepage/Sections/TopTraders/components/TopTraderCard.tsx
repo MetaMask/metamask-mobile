@@ -1,6 +1,7 @@
 import {
-  AvatarBase,
-  AvatarBaseSize,
+  AvatarAccount,
+  AvatarAccountSize,
+  AvatarAccountVariant,
   Box,
   BoxAlignItems,
   Button,
@@ -17,6 +18,7 @@ import { Image, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import type { TopTrader } from '../types';
 import { formatPnl } from '../utils/formatPnl';
+import { hasRealAvatar } from '../utils/avatarFallback';
 
 export interface TopTraderCardProps {
   trader: TopTrader;
@@ -73,7 +75,7 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
         testID={`top-trader-card-pressable-${trader.id}`}
       >
         <Box alignItems={BoxAlignItems.Center} twClassName="gap-1">
-          {trader.avatarUri ? (
+          {hasRealAvatar(trader.avatarUri) ? (
             <Image
               source={{ uri: trader.avatarUri }}
               style={tw.style(
@@ -83,10 +85,12 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
               testID={`top-trader-avatar-${trader.id}`}
             />
           ) : (
-            <AvatarBase
-              size={AvatarBaseSize.Xl}
-              fallbackText={trader.username.charAt(0).toUpperCase()}
-              twClassName={`w-[${AVATAR_SIZE}px] h-[${AVATAR_SIZE}px]`}
+            <AvatarAccount
+              variant={AvatarAccountVariant.Maskicon}
+              address={trader.address}
+              size={AvatarAccountSize.Xl}
+              twClassName={`w-[${AVATAR_SIZE}px] h-[${AVATAR_SIZE}px] rounded-full`}
+              maskiconProps={{ size: AVATAR_SIZE }}
             />
           )}
 

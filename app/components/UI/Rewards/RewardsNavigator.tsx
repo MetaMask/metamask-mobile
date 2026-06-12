@@ -9,6 +9,8 @@ import ReferralRewardsView from './Views/RewardsReferralView';
 import RewardsSettingsView from './Views/RewardsSettingsView';
 import RewardsVipSplashView from './Views/RewardsVipSplashView';
 import RewardsVipView from './Views/RewardsVipView';
+import RewardsVipRefereeSplashView from './Views/RewardsVipRefereeSplashView';
+import RewardsVipRefereeView from './Views/RewardsVipRefereeView';
 import RewardsVipTiersView from './Views/RewardsVipTiersView';
 import CampaignsView from './Views/CampaignsView';
 import OndoCampaignDetailsView from './Views/OndoCampaignDetailsView';
@@ -193,6 +195,16 @@ const RewardsNavigator: React.FC = () => {
       <Stack.Screen
         name={Routes.REWARDS_VIP_TIERS_VIEW}
         component={RewardsVipTiersView}
+        options={vipScreenOptions}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_VIP_REFEREE_SPLASH_VIEW}
+        component={RewardsVipRefereeSplashView}
+        options={vipScreenOptions}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_VIP_REFEREE_VIEW}
+        component={RewardsVipRefereeView}
         options={vipScreenOptions}
       />
       <Stack.Screen
