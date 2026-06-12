@@ -12,7 +12,7 @@ import {
  * PerpsController uses the messenger for all cross-controller communication:
  * NetworkController, KeyringController, TransactionController,
  * RemoteFeatureFlagController, AccountsController, AccountTreeController,
- * AuthenticationController.
+ * AuthenticationController, AuthenticatedUserStorageService.
  * The root messenger already registers actions for these controllers,
  * so the child messenger can call them through the parent.
  *
@@ -31,6 +31,11 @@ export function getPerpsControllerMessenger(
     namespace: 'PerpsController',
     parent: rootExtendedMessenger,
   });
+  // TS2590: The union of PerpsControllerAllowedActions & GlobalActions exceeds
+  // TypeScript's complexity limit. The delegate call is correct at runtime;
+  // suppress the compiler error rather than weakening the types.
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-expect-error TS2590
   rootExtendedMessenger.delegate({
     actions: [
       'GeolocationController:getGeolocation',
@@ -44,6 +49,8 @@ export function getPerpsControllerMessenger(
       'AccountsController:getSelectedAccount',
       'AccountTreeController:getAccountsFromSelectedAccountGroup',
       'AuthenticationController:getBearerToken',
+      'AuthenticatedUserStorageService:getNotificationPreferences',
+      'AuthenticatedUserStorageService:putNotificationPreferences',
     ],
     events: [
       'RemoteFeatureFlagController:stateChange',
