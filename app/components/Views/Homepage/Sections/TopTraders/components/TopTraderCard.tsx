@@ -89,7 +89,7 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
               variant={AvatarAccountVariant.Maskicon}
               address={trader.address}
               size={AvatarAccountSize.Xl}
-              twClassName={`w-[${AVATAR_SIZE}px] h-[${AVATAR_SIZE}px]`}
+              twClassName={`w-[${AVATAR_SIZE}px] h-[${AVATAR_SIZE}px] rounded-full`}
               maskiconProps={{ size: AVATAR_SIZE }}
             />
           )}

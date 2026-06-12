@@ -74,6 +74,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
             variant={AvatarAccountVariant.Maskicon}
             address={profile.address}
             size={AvatarAccountSize.Lg}
+            twClassName="rounded-full"
           />
         )}
       </TopRankAvatar>

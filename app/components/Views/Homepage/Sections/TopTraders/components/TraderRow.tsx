@@ -104,6 +104,7 @@ const TraderRow: React.FC<TraderRowProps> = ({
                 variant={AvatarAccountVariant.Maskicon}
                 address={trader.address}
                 size={AvatarAccountSize.Lg}
+                twClassName="rounded-full"
               />
             )}
           </TopRankAvatar>
