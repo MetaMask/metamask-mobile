@@ -55,7 +55,7 @@ export function formatTokenAmount(value: number): string {
 
 export function formatPercent(value: number | null | undefined): string {
   if (value == null) return EM_DASH;
-  return formatPercentage(value, 0);
+  return formatPercentage(value, 2);
 }
 
 /**

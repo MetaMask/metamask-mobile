@@ -17,8 +17,8 @@ import React from 'react';
 import { Image, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import type { TopTrader } from '../types';
-import { formatPnl } from '../utils/formatPnl';
 import { hasRealAvatar } from '../utils/avatarFallback';
+import { formatFullPnl } from '../utils/formatPnl';
 
 export interface TopTraderCardProps {
   trader: TopTrader;
@@ -55,8 +55,13 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
 }) => {
   const tw = useTailwind();
 
-  const pnlText = formatPnl(trader.pnlValue);
-  const isPnlPositive = trader.pnlValue >= 0;
+  const pnlText = formatFullPnl(trader.pnlValue);
+  const pnlColorClass =
+    trader.pnlValue == null
+      ? undefined
+      : trader.pnlValue >= 0
+        ? 'text-success-default'
+        : 'text-error-default';
 
   return (
     <Box
@@ -114,18 +119,10 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
               <Text
                 variant={TextVariant.BodySm}
                 fontWeight={FontWeight.Medium}
-                twClassName={
-                  isPnlPositive ? 'text-success-default' : 'text-error-default'
-                }
+                twClassName={pnlColorClass}
+                color={pnlColorClass ? undefined : TextColor.TextAlternative}
               >
                 {pnlText}
-              </Text>
-              <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextAlternative}
-              >
-                {' 30D'}
               </Text>
             </Text>
           </Box>

@@ -18,10 +18,10 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React from 'react';
 import { Image, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import { TopRankAvatar, TopRankIndicator } from '../topRank';
+import { TopRankAvatar } from '../topRank';
 import type { TopTrader } from '../types';
-import { formatPnl } from '../utils/formatPnl';
 import { hasRealAvatar } from '../utils/avatarFallback';
+import { formatFullPnl } from '../utils/formatPnl';
 
 const AVATAR_SIZE = 40;
 // Fixed row height so the skeleton placeholder can match it exactly without
@@ -54,11 +54,13 @@ const TraderRow: React.FC<TraderRowProps> = ({
 }) => {
   const tw = useTailwind();
 
-  const roiSign = trader.percentageChange >= 0 ? '+' : '';
-  const roiText = `${roiSign}${trader.percentageChange.toFixed(1)}%`;
-  const pnlText = formatPnl(trader.pnlValue);
-  const isPnlPositive = trader.pnlValue >= 0;
-  const isRoiPositive = trader.percentageChange >= 0;
+  const pnlText = formatFullPnl(trader.pnlValue);
+  const pnlColorClass =
+    trader.pnlValue == null
+      ? undefined
+      : trader.pnlValue >= 0
+        ? 'text-success-default'
+        : 'text-error-default';
 
   return (
     <Box
@@ -85,12 +87,7 @@ const TraderRow: React.FC<TraderRowProps> = ({
           alignItems={BoxAlignItems.Center}
           gap={3}
         >
-          <TopRankIndicator
-            rank={trader.rank}
-            podiumRank={trader.overallRank}
-          />
-
-          <TopRankAvatar rank={trader.overallRank}>
+          <TopRankAvatar>
             {hasRealAvatar(trader.avatarUri) ? (
               <Image
                 source={{ uri: trader.avatarUri }}
@@ -121,40 +118,11 @@ const TraderRow: React.FC<TraderRowProps> = ({
             <Text
               variant={TextVariant.BodySm}
               fontWeight={FontWeight.Medium}
+              twClassName={pnlColorClass}
+              color={pnlColorClass ? undefined : TextColor.TextAlternative}
               numberOfLines={1}
             >
-              <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                twClassName={
-                  isRoiPositive ? 'text-success-default' : 'text-error-default'
-                }
-              >
-                {roiText}
-              </Text>
-              <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextDefault}
-              >
-                {' \u00B7 '}
-              </Text>
-              <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                twClassName={
-                  isPnlPositive ? 'text-success-default' : 'text-error-default'
-                }
-              >
-                {pnlText}
-              </Text>
-              <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextAlternative}
-              >
-                {' 30D'}
-              </Text>
+              {pnlText}
             </Text>
           </Box>
         </Box>

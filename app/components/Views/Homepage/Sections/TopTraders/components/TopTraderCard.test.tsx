@@ -25,13 +25,12 @@ describe('TopTraderCard', () => {
     jest.clearAllMocks();
   });
 
-  it('renders username and 30D PnL', () => {
+  it('renders username and PnL', () => {
     renderWithProvider(
       <TopTraderCard trader={baseTrader} onFollowPress={mockOnFollowPress} />,
     );
     expect(screen.getByText('sniperliquid')).toBeOnTheScreen();
-    expect(screen.getByText('+$963K')).toBeOnTheScreen();
-    expect(screen.getByText(/30D/)).toBeOnTheScreen();
+    expect(screen.getByText('+$963,146.80')).toBeOnTheScreen();
   });
 
   it('does not display ROI percentage on the card', () => {
@@ -186,6 +185,6 @@ describe('TopTraderCard', () => {
         onFollowPress={mockOnFollowPress}
       />,
     );
-    expect(screen.getByText('-$500')).toBeOnTheScreen();
+    expect(screen.getByText('-$500.00')).toBeOnTheScreen();
   });
 });

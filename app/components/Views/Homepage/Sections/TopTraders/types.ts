@@ -22,8 +22,11 @@ export interface TopTrader {
   avatarUri?: string;
   /** ROI percentage over 30 days (e.g. 96.2 for +96.2%). */
   percentageChange: number;
-  /** Absolute PnL over 30 days in USD (raw number, formatted by the UI). */
-  pnlValue: number;
+  /**
+   * Absolute 7-day PnL in USD (raw number, formatted by the UI). `null` when
+   * the leaderboard entry has no 7-day data — the UI renders an em-dash.
+   */
+  pnlValue: number | null;
   /** PnL broken down by chain. Used for client-side chain filtering. */
   pnlPerChain: Record<string, number>;
   /** Whether the current user is following this trader. */
