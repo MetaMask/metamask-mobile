@@ -60,16 +60,11 @@ jest.mock('../../../core/Analytics/MetaMetrics', () => ({
 // Import analytics to access mocks
 import { analytics } from '../../../util/analytics/analytics';
 import { AppStateEventProcessor } from '../../../core/AppStateEventListener';
-import { isAttributionOnlyDeeplink } from '../../../util/analytics/isAttributionOnlyDeeplink';
 import { persistAttributionFromPendingDeeplink } from '../../../util/analytics/persistAttributionFromPendingDeeplink';
 
 const mockPersistAttributionFromPendingDeeplink =
   persistAttributionFromPendingDeeplink as jest.MockedFunction<
     typeof persistAttributionFromPendingDeeplink
-  >;
-const mockIsAttributionOnlyDeeplink =
-  isAttributionOnlyDeeplink as jest.MockedFunction<
-    typeof isAttributionOnlyDeeplink
   >;
 const mockAppStateEventProcessor = AppStateEventProcessor as jest.Mocked<
   typeof AppStateEventProcessor
@@ -110,10 +105,6 @@ jest.mock(
   }),
 );
 
-jest.mock('../../../util/analytics/isAttributionOnlyDeeplink', () => ({
-  isAttributionOnlyDeeplink: jest.fn(),
-}));
-
 jest.mock('../../../core/AppStateEventListener', () => ({
   AppStateEventProcessor: {
     pendingDeeplink: null as string | null,
@@ -146,7 +137,6 @@ describe('OptinMetrics', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockPersistAttributionFromPendingDeeplink.mockReturnValue(false);
-    mockIsAttributionOnlyDeeplink.mockReturnValue(false);
     mockAppStateEventProcessor.pendingDeeplink = null;
     jest.mocked(useAnalytics).mockReturnValue(
       createMockUseAnalyticsHook({
@@ -318,10 +308,9 @@ describe('OptinMetrics', () => {
       });
     });
 
-    it('clears attribution-only pending deeplink without marketing consent', async () => {
+    it('clears persisted attribution without marketing consent while keeping pending deeplink', async () => {
       const pendingDeeplink =
         'https://link.metamask.io/home?utm_source=campaign&utm_campaign=summer';
-      mockIsAttributionOnlyDeeplink.mockReturnValue(true);
       mockAppStateEventProcessor.pendingDeeplink = pendingDeeplink;
 
       renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
@@ -335,20 +324,19 @@ describe('OptinMetrics', () => {
         expect(
           mockPersistAttributionFromPendingDeeplink,
         ).not.toHaveBeenCalled();
-        expect(mockIsAttributionOnlyDeeplink).toHaveBeenCalledWith(
-          pendingDeeplink,
-        );
         expect(
           mockAppStateEventProcessor.clearPendingDeeplink,
-        ).toHaveBeenCalledTimes(1);
+        ).not.toHaveBeenCalled();
+        expect(mockAppStateEventProcessor.pendingDeeplink).toBe(
+          pendingDeeplink,
+        );
       });
     });
 
-    it('clears pending deeplink after persist when install link is attribution-only', async () => {
+    it('persists attribution from pending deeplink without clearing it after opt-in', async () => {
       const pendingDeeplink =
         'https://link.metamask.io/home?utm_source=campaign&utm_campaign=summer';
       mockPersistAttributionFromPendingDeeplink.mockReturnValue(true);
-      mockIsAttributionOnlyDeeplink.mockReturnValue(true);
       mockAppStateEventProcessor.pendingDeeplink = pendingDeeplink;
 
       renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
@@ -365,12 +353,12 @@ describe('OptinMetrics', () => {
         expect(mockPersistAttributionFromPendingDeeplink).toHaveBeenCalledTimes(
           1,
         );
-        expect(mockIsAttributionOnlyDeeplink).toHaveBeenCalledWith(
-          pendingDeeplink,
-        );
         expect(
           mockAppStateEventProcessor.clearPendingDeeplink,
-        ).toHaveBeenCalledTimes(1);
+        ).not.toHaveBeenCalled();
+        expect(mockAppStateEventProcessor.pendingDeeplink).toBe(
+          pendingDeeplink,
+        );
       });
     });
 
@@ -378,7 +366,6 @@ describe('OptinMetrics', () => {
       const pendingDeeplink =
         'https://link.metamask.io/rewards?utm_source=campaign&utm_campaign=summer';
       mockPersistAttributionFromPendingDeeplink.mockReturnValue(true);
-      mockIsAttributionOnlyDeeplink.mockReturnValue(false);
       mockAppStateEventProcessor.pendingDeeplink = pendingDeeplink;
 
       renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
@@ -395,12 +382,12 @@ describe('OptinMetrics', () => {
         expect(mockPersistAttributionFromPendingDeeplink).toHaveBeenCalledTimes(
           1,
         );
-        expect(mockIsAttributionOnlyDeeplink).toHaveBeenCalledWith(
-          pendingDeeplink,
-        );
         expect(
           mockAppStateEventProcessor.clearPendingDeeplink,
         ).not.toHaveBeenCalled();
+        expect(mockAppStateEventProcessor.pendingDeeplink).toBe(
+          pendingDeeplink,
+        );
       });
     });
   });
