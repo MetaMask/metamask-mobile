@@ -23,15 +23,17 @@ import { BOTTOM_SHEET_NAMES } from '../../constants/moneyEvents';
 
 const FALLBACK_APY = 4;
 
+type MoneyEarnCryptoInfoSheetVariant = 'default' | 'deposit';
+
 interface MoneyEarnCryptoInfoSheetParams {
-  variant?: 'deposit';
+  variant?: MoneyEarnCryptoInfoSheetVariant;
 }
 
 const MoneyEarnCryptoInfoSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
-  const { variant } = useParams<MoneyEarnCryptoInfoSheetParams>();
+  const { variant = 'default' } = useParams<MoneyEarnCryptoInfoSheetParams>();
   const { apyPercent } = useMoneyAccountBalance();
   const surfaceClass = useElevatedSurface();
 

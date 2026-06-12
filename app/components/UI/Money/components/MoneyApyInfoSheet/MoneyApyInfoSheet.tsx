@@ -18,16 +18,18 @@ import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import useMountEffect from '../../hooks/useMountEffect';
 import { BOTTOM_SHEET_NAMES } from '../../constants/moneyEvents';
 
+type MoneyApyInfoSheetVariant = 'default' | 'deposit';
+
 interface MoneyApyInfoSheetParams {
   apy: number;
-  variant?: 'deposit';
+  variant?: MoneyApyInfoSheetVariant;
 }
 
 const MoneyApyInfoSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
-  const { apy, variant } = useParams<MoneyApyInfoSheetParams>();
+  const { apy, variant = 'default' } = useParams<MoneyApyInfoSheetParams>();
   const surfaceClass = useElevatedSurface();
 
   const { trackBottomSheetViewed } = useMoneyAnalytics({
