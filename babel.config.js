@@ -67,11 +67,13 @@ module.exports = {
     ...(isTestEnv ? [] : ['react-compiler']),
     'transform-inline-environment-variables',
     dynamicImportToRequire,
-    // NOTE: react-native-reanimated/plugin must be listed LAST.
-    // Required by reanimated v3 to compile `'worklet'` directives; without it,
-    // gesture-handler worklets silently no-op on iOS Fabric and GestureDetector
-    // children (e.g. WebView) render at 0x0 (white screen).
-    'react-native-reanimated/plugin',
+    // NOTE: react-native-worklets/plugin must be listed LAST.
+    // Reanimated v4 moved the worklets implementation into the standalone
+    // `react-native-worklets` package, so the Babel plugin that compiles
+    // `'worklet'` directives now ships there. Without it, gesture-handler
+    // worklets silently no-op on iOS Fabric and GestureDetector children
+    // (e.g. WebView) render at 0x0 (white screen).
+    'react-native-worklets/plugin',
   ],
   overrides: [
     {
