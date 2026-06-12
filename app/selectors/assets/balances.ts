@@ -94,13 +94,13 @@ const selectAccountsStateForBalances = createSelector(
     }) as AccountsControllerState,
 );
 
-const selectTokenBalancesStateForBalances = createSelector(
+export const selectTokenBalancesStateForBalances = createSelector(
   [selectAllTokenBalances],
   (tokenBalances): TokenBalancesControllerState => {
     // Strip the Arc USDC ERC-20 (0x3600…) so it is excluded from the
     // aggregated balance — the native token already reflects the USDC balance
     // on Arc and is the source of truth, so counting both would double it.
-    const result = Object.fromEntries(
+    const filteredTokenBalances = Object.fromEntries(
       Object.entries(tokenBalances).map(([account, chainMap]) => [
         account,
         Object.fromEntries(
@@ -117,7 +117,7 @@ const selectTokenBalancesStateForBalances = createSelector(
         ),
       ]),
     );
-    return { tokenBalances: result };
+    return { tokenBalances: filteredTokenBalances };
   },
 );
 
