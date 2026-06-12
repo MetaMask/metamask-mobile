@@ -52,6 +52,12 @@ jest.mock('../../../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../../hooks/pay/usePayWithNoFeeToken', () => ({
+  usePayWithNoFeeToken: () => ({
+    noFeeToken: undefined,
+    isNoFeeToken: () => false,
+  }),
+}));
 jest.mock('../../../hooks/pay/useTransactionPayToken');
 jest.mock('../../../hooks/pay/useTransactionPayData');
 jest.mock('../../../hooks/pay/useTransactionPayWithdraw');

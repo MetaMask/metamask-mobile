@@ -82,7 +82,7 @@ const TOKEN_MOCK: TransactionPaymentToken = {
 
 const SELECTED_TOKEN_MOCK = {
   address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd' as Hex,
-  balanceUsd: '20',
+  balanceUsd: '5',
   chainId: '0x1' as Hex,
   symbol: 'POL',
 };
@@ -359,7 +359,7 @@ describe('usePayWithCryptoSection', () => {
     expect(result.current?.rows[1]).toEqual(
       expect.objectContaining({
         id: 'crypto-selected-token',
-        subtitle: '$20.00',
+        subtitle: '$5.00',
       }),
     );
     expect(result.current?.rows[2]).toEqual(
@@ -463,7 +463,7 @@ describe('usePayWithCryptoSection', () => {
       expect.objectContaining({
         id: 'crypto-selected-token',
         title: SELECTED_TOKEN_MOCK.symbol,
-        subtitle: '$20.00 available',
+        subtitle: '$5.00 available',
         isSelected: true,
         trailingElement: 'checkmark',
         testID: 'pay-with-crypto-section-selected-token-row',

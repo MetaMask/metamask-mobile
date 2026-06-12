@@ -210,7 +210,7 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
       return null;
     }
 
-    const rows: PayWithRowConfig[] = [];
+    const tokenRows: (PayWithRowConfig & { _balanceUsd: number })[] = [];
 
     const isPreferredTokenMoneyAccountToken =
       isMoneyAccountSelected &&
@@ -232,7 +232,8 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
         preferredToken.chainId,
       );
 
-      rows.push({
+      tokenRows.push({
+        _balanceUsd: parseFloat(preferredToken.balanceUsd) || 0,
         id: 'crypto-preferred-token',
         icon: React.createElement(TokenIcon, {
           address: preferredToken.address,
@@ -259,7 +260,8 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
       selectedTokenDisplay &&
       !isDedicatedSectionOwningSelection
     ) {
-      rows.push({
+      tokenRows.push({
+        _balanceUsd: parseFloat(selectedTokenDisplay.balanceUsd) || 0,
         id: 'crypto-selected-token',
         icon: React.createElement(TokenIcon, {
           address: selectedTokenDisplay.address,
@@ -301,7 +303,8 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
         noFeeToken,
       );
 
-      rows.push({
+      tokenRows.push({
+        _balanceUsd: parseFloat(noFeeToken.balanceUsd) || 0,
         id: 'crypto-no-fee-token',
         icon: React.createElement(TokenIcon, {
           address: noFeeToken.address,
@@ -321,6 +324,12 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
         testID: PAY_WITH_CRYPTO_NO_FEE_TOKEN_ROW_TEST_ID,
       });
     }
+
+    tokenRows.sort((a, b) => b._balanceUsd - a._balanceUsd);
+
+    const rows: PayWithRowConfig[] = tokenRows.map(
+      ({ _balanceUsd: _, ...row }) => row,
+    );
 
     rows.push({
       id: 'crypto-other-assets',
