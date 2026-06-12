@@ -7008,10 +7008,10 @@
     "add_money_sheet": {
       "title": "Add funds",
       "convert_crypto": "Convert crypto",
-      "deposit_funds": "Debit card or bank",
-      "move_musd": "Your {{amount}} mUSD",
+      "deposit_funds": "Debit card or bank account",
+      "move_musd": "{{amount}} mUSD",
       "add_musd": "Add mUSD",
-      "receive_external": "External wallet",
+      "receive_external": "External address",
       "coming_soon": "Coming soon"
     },
     "more_sheet": {
@@ -7026,7 +7026,7 @@
       "perps_account": "Perps account",
       "predictions_account": "Predictions account",
       "send_external": "External address",
-      "withdraw_to_bank": "Bank"
+      "withdraw_to_bank": "Bank account"
     },
     "toasts": {
       "in_progress_title": "Transaction in progress",
@@ -7737,14 +7737,27 @@
     "hardware_wallet_not_supported": "Hardware wallets aren't supported yet. Use a hot wallet to continue.",
     "hardware_wallet_not_supported_solana": "Hardware wallets aren't supported for Solana yet. Use a hot wallet to continue.",
     "hardware_wallet_progress": {
-      "approved_token": "Approved {{amount}} {{symbol}}",
+      "confirm_title": "Confirm on your hardware wallet ({{current}}/{{total}})",
+      "submitted_title": "Transaction submitted",
+      "rejected_title": "You rejected this transaction on your device",
+      "failed_title": "Transaction failed",
+      "disconnected_title": "Device disconnected",
+      "approve_token": "Approve {{amount}} {{symbol}}",
       "approving_token": "Approving {{amount}} {{symbol}}",
+      "approved_token": "Approved {{amount}} {{symbol}}",
       "send_token": "Send {{amount}} {{symbol}}",
       "sending_token": "Sending {{amount}} {{symbol}}",
       "sent_token": "Sent {{amount}} {{symbol}}",
+      "spender": "Spender",
       "spender_address": "Spender {{address}}",
+      "recipient": "Recipient",
       "recipient_address": "Recipient {{address}}",
-      "rejected": "Rejected"
+      "rejected": "Rejected",
+      "reconnect": "Reconnect",
+      "done": "Done",
+      "scan_next_qr_code": "Scan next QR code",
+      "scanner_step_text": "Step {{current}} of {{total}}: Scan the QR code shown on your wallet",
+      "scanner_last_step_text": "Last step: Scan the QR code shown on your wallet"
     },
     "price_impact_info_title": "Price impact",
     "price_impact_info_description": "This is how your trade changes the market price of a token. It depends on the trade size, available liquidity, and provider fees. MetaMask doesn't control price impact.",

@@ -28,7 +28,10 @@ import useIsInsufficientBalance from '../../../../../UI/Bridge/hooks/useInsuffic
 import { useLatestBalance } from '../../../../../UI/Bridge/hooks/useLatestBalance';
 import { usePriceImpactViewData } from '../../../../../UI/Bridge/hooks/usePriceImpactViewData';
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
-import { selectDefaultSourceToken } from '../../../utils/tokenSelection';
+import {
+  isSameAsset,
+  selectDefaultSourceToken,
+} from '../../../utils/tokenSelection';
 import { usePayWithTokens } from './hooks/usePayWithTokens';
 import { usePositionTokenBalance } from './hooks/usePositionTokenBalance';
 import { useQuickBuyController } from './hooks/useQuickBuyController';
@@ -1854,6 +1857,274 @@ describe('useQuickBuyController', () => {
       );
 
       expect(result.current.selectedDestStable).toBeUndefined();
+    });
+  });
+
+  describe('sourceTokenOptions destination filtering (TSA-660)', () => {
+    it('excludes the asset being bought from the pay-with options (case-insensitive address match)', () => {
+      const destChecksumAddress = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+      (useQuickBuySetup as jest.Mock).mockReturnValue({
+        chainId: '0x1',
+        destToken: {
+          address: destChecksumAddress,
+          chainId: '0x1',
+          decimals: 6,
+          symbol: 'USDC',
+          name: 'USD Coin',
+        },
+        isLoading: false,
+        isUnsupportedChain: false,
+      });
+      const usdcOnMainnet = createSourceToken({
+        address: destChecksumAddress.toLowerCase(),
+        chainId: '0x1',
+        symbol: 'USDC',
+        tokenFiatAmount: 3000,
+      });
+      const ethOnMainnet = createSourceToken({
+        symbol: 'ETH',
+        tokenFiatAmount: 2000,
+      });
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [usdcOnMainnet, ethOnMainnet],
+        isLoading: false,
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(
+          createTarget({
+            tokenAddress: destChecksumAddress,
+            tokenSymbol: 'USDC',
+          }),
+          jest.fn(),
+        ),
+      );
+
+      expect(result.current.sourceTokenOptions).toEqual([ethOnMainnet]);
+    });
+
+    it('keeps a same-address token on a different chain in the pay-with options', () => {
+      const sharedAddress = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+      (useQuickBuySetup as jest.Mock).mockReturnValue({
+        chainId: '0x1',
+        destToken: {
+          address: sharedAddress,
+          chainId: '0x1',
+          decimals: 6,
+          symbol: 'USDC',
+          name: 'USD Coin',
+        },
+        isLoading: false,
+        isUnsupportedChain: false,
+      });
+      const usdcOnBase = createSourceToken({
+        address: sharedAddress.toLowerCase(),
+        chainId: '0x2105',
+        symbol: 'USDC',
+        tokenFiatAmount: 3000,
+      });
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [usdcOnBase],
+        isLoading: false,
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(
+          createTarget({ tokenAddress: sharedAddress, tokenSymbol: 'USDC' }),
+          jest.fn(),
+        ),
+      );
+
+      expect(result.current.sourceTokenOptions).toEqual([usdcOnBase]);
+    });
+
+    it('excludes the non-EVM destination when CAIP forms differ but the symbol matches', () => {
+      const solChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+      const solNative = createSourceToken({
+        address: `${solChainId}/slip44:501`,
+        chainId: solChainId as BridgeToken['chainId'],
+        symbol: 'SOL',
+        tokenFiatAmount: 5000,
+      });
+      const usdcOnSolana = createSourceToken({
+        address: `${solChainId}/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`,
+        chainId: solChainId as BridgeToken['chainId'],
+        symbol: 'USDC',
+        tokenFiatAmount: 1000,
+      });
+      (useQuickBuySetup as jest.Mock).mockReturnValue({
+        chainId: solChainId,
+        destToken: {
+          address: 'So11111111111111111111111111111111111111112',
+          chainId: solChainId as BridgeToken['chainId'],
+          symbol: 'SOL',
+          name: 'Solana',
+          decimals: 9,
+          image: '',
+        },
+        isLoading: false,
+        isUnsupportedChain: false,
+      });
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [solNative, usdcOnSolana],
+        isLoading: false,
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(
+          createTarget({
+            chain: 'solana',
+            tokenAddress: 'So11111111111111111111111111111111111111112',
+            tokenSymbol: 'SOL',
+          }),
+          jest.fn(),
+        ),
+      );
+
+      expect(result.current.sourceTokenOptions).toEqual([usdcOnSolana]);
+    });
+
+    it('returns no pay-with options and no selection when the destination is the only holding', () => {
+      const nativeAddress = '0x0000000000000000000000000000000000000000';
+      (useQuickBuySetup as jest.Mock).mockReturnValue({
+        chainId: '0x1',
+        destToken: {
+          address: nativeAddress,
+          chainId: '0x1',
+          decimals: 18,
+          symbol: 'ETH',
+          name: 'Ether',
+        },
+        isLoading: false,
+        isUnsupportedChain: false,
+      });
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [createSourceToken()],
+        isLoading: false,
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(
+          createTarget({ tokenAddress: nativeAddress, tokenSymbol: 'ETH' }),
+          jest.fn(),
+        ),
+      );
+
+      expect(result.current.sourceTokenOptions).toEqual([]);
+      expect(result.current.sourceToken).toBeUndefined();
+    });
+
+    it('falls back to another token when the selected pay token resolves to the destination asset', () => {
+      const nativeAddress = '0x0000000000000000000000000000000000000000';
+      const ethOnMainnet = createSourceToken({
+        symbol: 'ETH',
+        tokenFiatAmount: 2000,
+      });
+      const usdcOnMainnet = createSourceToken({
+        address: '0xTokenUSDC',
+        symbol: 'USDC',
+        tokenFiatAmount: 1000,
+      });
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [ethOnMainnet, usdcOnMainnet],
+        isLoading: false,
+      });
+
+      // Setup initially resolves a non-ETH destination, so ETH (native on the
+      // dest chain) is auto-selected as the pay-with token.
+      const { result, rerender } = renderHook(() =>
+        useQuickBuyController(
+          createTarget({ tokenAddress: nativeAddress, tokenSymbol: 'ETH' }),
+          jest.fn(),
+        ),
+      );
+      expect(result.current.sourceToken?.symbol).toBe('ETH');
+
+      // The destination then normalises to native ETH — the very token that is
+      // selected. The selection must fall back to another holding instead of
+      // keeping an invalid same-token pair.
+      (useQuickBuySetup as jest.Mock).mockReturnValue({
+        chainId: '0x1',
+        destToken: {
+          address: nativeAddress,
+          chainId: '0x1',
+          decimals: 18,
+          symbol: 'ETH',
+          name: 'Ether',
+        },
+        isLoading: false,
+        isUnsupportedChain: false,
+      });
+      rerender(undefined);
+
+      expect(result.current.sourceTokenOptions).toEqual([usdcOnMainnet]);
+      expect(result.current.sourceToken?.symbol).toBe('USDC');
+    });
+  });
+
+  describe('isSameAsset', () => {
+    const solChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+
+    it('matches EVM addresses case-insensitively on the same chain', () => {
+      const token = createSourceToken({
+        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        chainId: '0x1',
+        symbol: 'USDC',
+      });
+
+      const result = isSameAsset(token, {
+        address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+        chainId: '0x1' as BridgeToken['chainId'],
+      });
+
+      expect(result).toBe(true);
+    });
+
+    it('treats the same address on a different chain as a different asset', () => {
+      const token = createSourceToken({
+        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        chainId: '0x2105',
+        symbol: 'USDC',
+      });
+
+      const result = isSameAsset(token, {
+        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        chainId: '0x1' as BridgeToken['chainId'],
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('falls back to symbol matching on non-EVM chains when address forms differ', () => {
+      const token = createSourceToken({
+        address: `${solChainId}/slip44:501`,
+        chainId: solChainId as BridgeToken['chainId'],
+        symbol: 'SOL',
+      });
+
+      const result = isSameAsset(token, {
+        address: 'So11111111111111111111111111111111111111112',
+        chainId: solChainId as BridgeToken['chainId'],
+        symbol: 'SOL',
+      });
+
+      expect(result).toBe(true);
+    });
+
+    it('does NOT fall back to symbol matching on EVM chains', () => {
+      const token = createSourceToken({
+        address: '0xfakefakefakefakefakefakefakefakefakefake',
+        chainId: '0x1',
+        symbol: 'USDC',
+      });
+
+      const result = isSameAsset(token, {
+        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        chainId: '0x1' as BridgeToken['chainId'],
+        symbol: 'USDC',
+      });
+
+      expect(result).toBe(false);
     });
   });
 
