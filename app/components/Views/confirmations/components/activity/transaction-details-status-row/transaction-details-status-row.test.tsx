@@ -54,34 +54,11 @@ describe('TransactionDetailsStatusRow', () => {
     expect(getByText(expectedText)).toBeDefined();
   });
 
-  it.each([
-    TransactionType.moneyAccountDeposit,
-    TransactionType.moneyAccountWithdraw,
-    TransactionType.musdConversion,
-    TransactionType.musdClaim,
-    TransactionType.perpsDeposit,
-    TransactionType.perpsWithdraw,
-    TransactionType.predictDeposit,
-    TransactionType.predictWithdraw,
-    TransactionType.predictClaim,
-  ])('hides status icon for %s', (type) => {
+  it('always shows the status icon', () => {
     useTransactionDetailsMock.mockReturnValue({
       transactionMeta: {
         status: TransactionStatus.confirmed,
-        type,
-      } as unknown as TransactionMeta,
-    });
-
-    const { queryByTestId } = render();
-
-    expect(queryByTestId('status-icon-success')).toBeNull();
-  });
-
-  it('shows status icon for non-text-only types', () => {
-    useTransactionDetailsMock.mockReturnValue({
-      transactionMeta: {
-        status: TransactionStatus.confirmed,
-        type: TransactionType.simpleSend,
+        type: TransactionType.moneyAccountDeposit,
       } as unknown as TransactionMeta,
     });
 
