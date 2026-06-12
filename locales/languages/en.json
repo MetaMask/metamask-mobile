@@ -1852,6 +1852,7 @@
       "position": "Position",
       "orders": "Orders",
       "go_to_activity": "Go to your activity",
+      "related_markets": "Related markets",
       "recent_trades": "Recent activity",
       "no_trades": "No recent activity",
       "trading_24_7": "This asset may be traded 24/7",
