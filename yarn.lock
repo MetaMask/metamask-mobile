@@ -9216,9 +9216,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/money-account-balance-service@npm:@metamask-previews/money-account-balance-service@1.0.2-preview-1b0db3500":
-  version: 1.0.2-preview-1b0db3500
-  resolution: "@metamask-previews/money-account-balance-service@npm:1.0.2-preview-1b0db3500"
+"@metamask/money-account-balance-service@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "@metamask/money-account-balance-service@npm:2.0.0"
   dependencies:
     "@ethersproject/contracts": "npm:^5.7.0"
     "@ethersproject/providers": "npm:^5.7.0"
@@ -9230,7 +9230,7 @@ __metadata:
     "@metamask/remote-feature-flag-controller": "npm:^4.2.2"
     "@metamask/superstruct": "npm:^3.1.0"
     "@metamask/utils": "npm:^11.11.0"
-  checksum: 10/a9d478855792ffe79e0982bcb03033e9c725f3dcf21dc0087428336aa2f9fc88296f636e28895ea1288a6a43573d1bb880d5c84278001ff3b460fa0def0d2ed2
+  checksum: 10/47c66554d975250d8de73287d7eb35fb3c3d57de53514902ec5801482f20c12e69c8ebc2910996a3c97c73d5acdc403660e53b755aff88a7877a3979f6cc9544
   languageName: node
   linkType: hard
 
@@ -35350,7 +35350,7 @@ __metadata:
     "@metamask/mobile-provider": "npm:^3.0.0"
     "@metamask/mobile-wallet-protocol-core": "npm:^0.4.0"
     "@metamask/mobile-wallet-protocol-wallet-client": "npm:^0.3.0"
-    "@metamask/money-account-balance-service": "npm:^1.0.0"
+    "@metamask/money-account-balance-service": "npm:^2.0.0"
     "@metamask/money-account-controller": "npm:^0.2.0"
     "@metamask/money-account-upgrade-controller": "npm:^2.0.5"
     "@metamask/multichain-account-service": "npm:^10.0.2"
