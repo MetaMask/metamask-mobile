@@ -908,7 +908,7 @@ describe('PerpsMarketListView', () => {
       expect(screen.getByTestId('suggested-row-ETH')).toBeOnTheScreen();
     });
 
-    it('routes watchlist row press through navigateToMarketDetails when watchlist filter is active', () => {
+    it('navigates to market details via push when watchlist row is pressed', () => {
       mockWatchlistFlagEnabled = true;
 
       const watchlistMarket = mockMarketData[0]; // BTC
@@ -955,10 +955,18 @@ describe('PerpsMarketListView', () => {
 
       fireEvent.press(screen.getByTestId('watchlist-row-BTC'));
 
-      expect(mockNavigateToMarketDetails).toHaveBeenCalledWith(
-        watchlistMarket,
-        'perp_markets',
-        undefined,
+      // handleMarketPress uses StackActions.push via navigation.dispatch so that
+      // MARKET_LIST is always preserved in the stack below MARKET_DETAILS.
+      expect(mockNavigation.dispatch).toHaveBeenCalledTimes(1);
+      expect(mockNavigation.dispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          payload: expect.objectContaining({
+            params: expect.objectContaining({
+              market: watchlistMarket,
+              source: 'perp_markets',
+            }),
+          }),
+        }),
       );
     });
 
@@ -1014,10 +1022,10 @@ describe('PerpsMarketListView', () => {
       fireEvent.press(screen.getByTestId('watchlist-row-BTC'));
 
       expect(mockOnMarketSelect).toHaveBeenCalledWith(watchlistMarket);
-      expect(mockNavigateToMarketDetails).not.toHaveBeenCalled();
+      expect(mockNavigation.dispatch).not.toHaveBeenCalled();
     });
 
-    it('carries transactionActiveAbTests through navigateToMarketDetails when watchlist row is pressed', () => {
+    it('carries transactionActiveAbTests through dispatch when watchlist row is pressed', () => {
       mockWatchlistFlagEnabled = true;
 
       const transactionActiveAbTests = [
@@ -1077,10 +1085,17 @@ describe('PerpsMarketListView', () => {
 
       fireEvent.press(screen.getByTestId('watchlist-row-BTC'));
 
-      expect(mockNavigateToMarketDetails).toHaveBeenCalledWith(
-        watchlistMarket,
-        'perp_markets',
-        transactionActiveAbTests,
+      expect(mockNavigation.dispatch).toHaveBeenCalledTimes(1);
+      expect(mockNavigation.dispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          payload: expect.objectContaining({
+            params: expect.objectContaining({
+              market: watchlistMarket,
+              source: 'perp_markets',
+              transactionActiveAbTests,
+            }),
+          }),
+        }),
       );
     });
   });
@@ -1105,7 +1120,7 @@ describe('PerpsMarketListView', () => {
       expect(() => fireEvent.press(btcRows[0])).not.toThrow();
     });
 
-    it('navigates to SPCX details with market-list source when SPCX is pressed', () => {
+    it('navigates to SPCX details via push with market-list source when SPCX is pressed', () => {
       const spcxMarket: PerpsMarketData = {
         symbol: 'xyz:SPCX',
         name: 'SPCX',
@@ -1123,14 +1138,20 @@ describe('PerpsMarketListView', () => {
 
       fireEvent.press(screen.getByTestId('market-row-xyz:SPCX'));
 
-      expect(mockNavigateToMarketDetails).toHaveBeenCalledWith(
-        spcxMarket,
-        'perp_markets',
-        undefined,
+      expect(mockNavigation.dispatch).toHaveBeenCalledTimes(1);
+      expect(mockNavigation.dispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          payload: expect.objectContaining({
+            params: expect.objectContaining({
+              market: spcxMarket,
+              source: 'perp_markets',
+            }),
+          }),
+        }),
       );
     });
 
-    it('carries route transactionActiveAbTests when a market opens market details', () => {
+    it('carries route transactionActiveAbTests when a market row is pressed', () => {
       const transactionActiveAbTests = [
         createActiveABTestAssignment(
           'homeTMCU725AbtestHomepagePerpsPillsEmptyState',
@@ -1147,10 +1168,17 @@ describe('PerpsMarketListView', () => {
 
       fireEvent.press(screen.getAllByTestId('market-row-BTC')[0]);
 
-      expect(mockNavigateToMarketDetails).toHaveBeenCalledWith(
-        mockMarketData[0],
-        'perp_markets',
-        transactionActiveAbTests,
+      expect(mockNavigation.dispatch).toHaveBeenCalledTimes(1);
+      expect(mockNavigation.dispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          payload: expect.objectContaining({
+            params: expect.objectContaining({
+              market: mockMarketData[0],
+              source: 'perp_markets',
+              transactionActiveAbTests,
+            }),
+          }),
+        }),
       );
     });
   });

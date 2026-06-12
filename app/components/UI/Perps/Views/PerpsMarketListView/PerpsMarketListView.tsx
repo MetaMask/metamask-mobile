@@ -34,7 +34,13 @@ import {
   type MarketTypeFilter,
 } from '@metamask/perps-controller';
 import { PerpsMarketListViewSelectorsIDs } from '../../Perps.testIds';
-import { useRoute, RouteProp } from '@react-navigation/native';
+import {
+  useRoute,
+  RouteProp,
+  useNavigation,
+  StackActions,
+} from '@react-navigation/native';
+import Routes from '../../../../../constants/navigation/Routes';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TraceName } from '../../../../../util/trace';
@@ -56,6 +62,7 @@ const PerpsMarketListView = ({
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
 
   const perpsNavigation = usePerpsNavigation();
+  const navigation = useNavigation();
 
   const variant = route.params?.variant ?? propVariant ?? 'full';
   const title = route.params?.title ?? propTitle;
@@ -114,14 +121,23 @@ const PerpsMarketListView = ({
       if (onMarketSelect) {
         onMarketSelect(market);
       } else {
-        perpsNavigation.navigateToMarketDetails(
-          market,
-          PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS,
-          transactionActiveAbTests,
+        // Use push instead of navigate so that MARKET_LIST is always beneath
+        // MARKET_DETAILS in the stack. navigate() can jump to an existing
+        // MARKET_DETAILS entry (e.g. one opened from PerpsHome via the watchlist
+        // component's ROOT-based navigation), which would skip MARKET_LIST on
+        // back and land the user on PERPS_HOME instead.
+        navigation.dispatch(
+          StackActions.push(Routes.PERPS.MARKET_DETAILS, {
+            market,
+            source: PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS,
+            ...(transactionActiveAbTests?.length
+              ? { transactionActiveAbTests }
+              : {}),
+          }),
         );
       }
     },
-    [onMarketSelect, perpsNavigation, transactionActiveAbTests],
+    [onMarketSelect, navigation, transactionActiveAbTests],
   );
 
   const { track } = usePerpsEventTracking();
