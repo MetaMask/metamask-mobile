@@ -30,6 +30,11 @@ on:
         description: 'PR head SHA (shadow correlation, optional)'
         type: string
         required: false
+      bitrise_mixed_e2e_sizing:
+        description: 'Route 6 memory-heavy iOS smoke shards to M2 Pro 12c/28g (INFRA-3679 mixed sizing experiment)'
+        type: boolean
+        required: false
+        default: false
   workflow_dispatch:
     inputs:
       runner_provider:
@@ -49,6 +54,11 @@ on:
         description: 'PR head SHA (shadow correlation, optional)'
         required: false
         type: string
+      bitrise_mixed_e2e_sizing:
+        description: 'Route 6 memory-heavy iOS smoke shards to M2 Pro 12c/28g (INFRA-3679 mixed sizing experiment)'
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref == 'refs/heads/main' && github.sha || github.ref }}
@@ -1199,6 +1209,7 @@ jobs:
           '["ALL"]'
         }}
       runner_provider: ${{ inputs.runner_provider }}
+      bitrise_mixed_e2e_sizing: ${{ inputs.bitrise_mixed_e2e_sizing == true }}
     secrets: inherit
 
   appium-smoke-gate:

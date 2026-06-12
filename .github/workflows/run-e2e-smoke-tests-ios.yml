@@ -18,6 +18,11 @@ on:
         required: false
         type: string
         default: current
+      bitrise_mixed_e2e_sizing:
+        description: 'INFRA-3679 mixed E2E sizing — route memory-heavy smoke shards to M2 Pro 12c/28g (machine_type label)'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -94,6 +99,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       runner_provider: ${{ inputs.runner_provider }}
+      bitrise_runner_label: ${{ inputs.bitrise_mixed_e2e_sizing && 'machine_type:g2.mac.m2pro.12c-28g' || '' }}
     secrets: inherit
 
   wallet-platform-ios-smoke:
@@ -184,6 +190,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       runner_provider: ${{ inputs.runner_provider }}
+      bitrise_runner_label: ${{ inputs.bitrise_mixed_e2e_sizing && 'machine_type:g2.mac.m2pro.12c-28g' || '' }}
     secrets: inherit
 
   money-ios-smoke:
@@ -274,6 +281,7 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       runner_provider: ${{ inputs.runner_provider }}
+      bitrise_runner_label: ${{ inputs.bitrise_mixed_e2e_sizing && (matrix.split == 1 || matrix.split == 3 || matrix.split == 4) && 'machine_type:g2.mac.m2pro.12c-28g' || '' }}
     secrets: inherit
 
   report-ios-smoke-tests:
