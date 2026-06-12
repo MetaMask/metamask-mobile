@@ -29,7 +29,7 @@ interface NetworkConfiguration {
   rpcEndpoints: RpcEndpoint[];
 }
 
-export const migrationVersion = 140;
+export const migrationVersion = 142;
 
 export const ARC_CHAIN_ID: Hex = '0x13b2';
 
