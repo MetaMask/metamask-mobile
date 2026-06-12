@@ -93,7 +93,7 @@ const CardRow = ({
     justifyContent={BoxJustifyContent.Between}
     alignItems={BoxAlignItems.Center}
     testID={testID}
-    twClassName="py-3"
+    twClassName="pt-3"
   >
     <Box
       flexDirection={BoxFlexDirection.Row}
@@ -253,7 +253,7 @@ const ManageRow = ({
     alignItems={BoxAlignItems.Center}
     justifyContent={BoxJustifyContent.Between}
     testID={containerTestID}
-    twClassName="py-3 gap-3"
+    twClassName="pt-3 gap-3"
   >
     <Box
       flexDirection={BoxFlexDirection.Row}

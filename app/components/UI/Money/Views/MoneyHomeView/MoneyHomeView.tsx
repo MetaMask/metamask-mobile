@@ -39,10 +39,7 @@ import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { moneyFormatFiat, DUST_THRESHOLD } from '../../utils/moneyFormatFiat';
 import { calculateProjectedEarnings } from '../../utils/projections';
-import { MUSD_MAINNET_ASSET_FOR_DETAILS } from '../../../../Views/Homepage/Sections/Cash/CashGetMusdEmptyState.constants';
-import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import AppConstants from '../../../../../core/AppConstants';
-import NavigationService from '../../../../../core/NavigationService';
 import {
   selectCardHomeDataStatus,
   selectHasMetalCard,
@@ -187,6 +184,7 @@ const MoneyHomeView = () => {
     !!totalFiatRaw &&
     new BigNumber(totalFiatRaw).abs().gte(DUST_THRESHOLD);
   const isFunded = hasSpendableBalance || activityItems.length > 0;
+  const isEmptyState = hasBalanceValue && !isFunded;
 
   const formattedZero = useMemo(
     () => moneyFormatFiat(new BigNumber(0), currentCurrency),
@@ -264,6 +262,13 @@ const MoneyHomeView = () => {
     },
     [navigation, trackButtonClicked],
   );
+
+  const handleFooterAddMoneyPress = useCallback(() => {
+    handleAddPress({
+      labelKey: 'money.footer.add_money',
+      componentName: COMPONENT_NAMES.MONEY_FOOTER,
+    });
+  }, [handleAddPress]);
 
   const handleMusdRowAddPress = useCallback(() => {
     trackButtonClicked({
@@ -399,12 +404,11 @@ const MoneyHomeView = () => {
     ({ componentName }: { componentName: COMPONENT_NAMES }) => {
       trackSurfaceClicked({
         component_name: componentName,
-        redirect_target: SCREEN_NAMES.ASSET_OVERVIEW,
+        redirect_target: MONEY_URLS.MUSD_PRICE,
       });
 
-      NavigationService.navigation.navigate('Asset', {
-        ...MUSD_MAINNET_ASSET_FOR_DETAILS,
-        source: TokenDetailsSource.MobileTokenListPage,
+      Linking.openURL(AppConstants.URLS.MUSD_PRICE).catch((error: Error) => {
+        Logger.error(error, '[MoneyHomeView] Failed to open mUSD price page');
       });
     },
     [trackSurfaceClicked],
@@ -495,10 +499,12 @@ const MoneyHomeView = () => {
   const handleWhatYouGetPress = useCallback(() => {
     trackSurfaceClicked({
       component_name: COMPONENT_NAMES.MONEY_CONDENSED_INFO_CARDS_WHAT_YOU_GET,
-      redirect_target: MONEY_URLS.MUSD_LEARN_MORE,
+      redirect_target: MONEY_URLS.MONEY_LANDING,
     });
 
-    Linking.openURL(AppConstants.URLS.MUSD_LEARN_MORE);
+    Linking.openURL(AppConstants.URLS.MONEY_LANDING).catch((error: Error) => {
+      Logger.error(error, '[MoneyHomeView] Failed to open Money landing page');
+    });
   }, [trackSurfaceClicked]);
 
   const handleLearnMorePress = useCallback(() => {
@@ -507,10 +513,12 @@ const MoneyHomeView = () => {
       button_intent: MONEY_BUTTON_INTENTS.LEARN_MORE,
       component_name: COMPONENT_NAMES.MONEY_WHAT_YOU_GET_SECTION,
       label_key: 'money.what_you_get.learn_more',
-      redirect_target: MONEY_URLS.MUSD_LEARN_MORE,
+      redirect_target: MONEY_URLS.MONEY_LANDING,
     });
 
-    Linking.openURL(AppConstants.URLS.MUSD_LEARN_MORE);
+    Linking.openURL(AppConstants.URLS.MONEY_LANDING).catch((error: Error) => {
+      Logger.error(error, '[MoneyHomeView] Failed to open Money landing page');
+    });
   }, [trackButtonClicked]);
 
   const handleHowItWorksPress = useCallback(
@@ -623,7 +631,7 @@ const MoneyHomeView = () => {
           card={{ onPress: handleActionButtonCardPress }}
         />
         <MoneyOnboardingCard />
-        {hasSpendableBalance && (
+        {hasBalanceValue && isFunded && (
           <>
             <MoneyEarnings
               monthlyEarnings={monthlyEarnings}
@@ -634,7 +642,7 @@ const MoneyHomeView = () => {
             <Divider />
           </>
         )}
-        {hasBalanceValue && !isFunded && (
+        {isEmptyState && (
           <>
             <MoneyHowItWorks
               apy={apyPercent}
@@ -655,7 +663,7 @@ const MoneyHomeView = () => {
               onAddPress={handleMusdRowAddPress}
               balance={musdFiatFormatted}
             />
-            <Divider />
+            <MoneyFooter onAddMoneyPress={handleFooterAddMoneyPress} />
           </>
         )}
         {(showCardActivityLoading || activityItems.length >= 1) && (
@@ -713,39 +721,30 @@ const MoneyHomeView = () => {
           </>
         )}
         {isFunded && (
-          <>
-            <MoneyCondensedInfoCards
-              onHowItWorksPress={() =>
-                handleHowItWorksPress({
-                  componentName:
-                    COMPONENT_NAMES.MONEY_CONDENSED_INFO_CARDS_HOW_IT_WORKS,
-                })
-              }
-              onMusdPress={() =>
-                handleMusdRowPress({
-                  componentName:
-                    COMPONENT_NAMES.MONEY_CONDENSED_INFO_CARDS_MUSD,
-                })
-              }
-              onWhatYouGetPress={handleWhatYouGetPress}
-            />
-            <Divider />
-          </>
+          <MoneyCondensedInfoCards
+            onHowItWorksPress={() =>
+              handleHowItWorksPress({
+                componentName:
+                  COMPONENT_NAMES.MONEY_CONDENSED_INFO_CARDS_HOW_IT_WORKS,
+              })
+            }
+            onMusdPress={() =>
+              handleMusdRowPress({
+                componentName: COMPONENT_NAMES.MONEY_CONDENSED_INFO_CARDS_MUSD,
+              })
+            }
+            onWhatYouGetPress={handleWhatYouGetPress}
+          />
         )}
-        {hasBalanceValue && !isFunded && (
+        {isEmptyState && (
           <MoneyWhatYouGet
             apy={apyPercent}
             onLearnMorePress={handleLearnMorePress}
           />
         )}
-        <MoneyFooter
-          onAddMoneyPress={() =>
-            handleAddPress({
-              labelKey: 'money.footer.add_money',
-              componentName: COMPONENT_NAMES.MONEY_FOOTER,
-            })
-          }
-        />
+        {!isEmptyState && (
+          <MoneyFooter onAddMoneyPress={handleFooterAddMoneyPress} />
+        )}
       </ScrollView>
     </Box>
   );
