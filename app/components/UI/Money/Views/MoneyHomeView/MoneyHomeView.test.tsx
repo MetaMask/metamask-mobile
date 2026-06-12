@@ -1491,6 +1491,24 @@ describe('MoneyHomeView', () => {
       });
     });
 
+    it('logs an error when the mUSD row deposit rejects', async () => {
+      mockInitiateDeposit.mockRejectedValueOnce(new Error('network failure'));
+      const Logger = jest.requireMock('../../../../../util/Logger');
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(getByTestId(MoneyMusdTokenRowTestIds.ADD_BUTTON));
+
+      await Promise.resolve();
+
+      expect(Logger.default.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          message: expect.stringContaining('mUSD row'),
+        }),
+      );
+    });
+
     it('tracks the mUSD row Add click with the deposit redirect target', () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 

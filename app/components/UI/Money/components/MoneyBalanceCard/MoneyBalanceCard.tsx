@@ -33,6 +33,7 @@ import styleSheet from './MoneyBalanceCard.styles';
 import { MoneyBalanceCardTestIds } from './MoneyBalanceCard.testIds';
 import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
+import Logger from '../../../../../util/Logger';
 import {
   SCREEN_NAMES,
   COMPONENT_NAMES,
@@ -157,7 +158,11 @@ const MoneyBalanceCard = () => {
       redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
     });
 
-    initiateDeposit().catch(() => undefined);
+    initiateDeposit().catch((error) =>
+      Logger.error(error as Error, {
+        message: '[MoneyBalanceCard] Failed to initiate deposit',
+      }),
+    );
   }, [buttonLabelKey, initiateDeposit, trackButtonClicked]);
 
   const handleInfoPress = useCallback(() => {

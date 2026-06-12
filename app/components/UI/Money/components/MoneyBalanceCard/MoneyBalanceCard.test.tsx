@@ -75,6 +75,11 @@ jest.mock('../../../../../selectors/onboarding', () => ({
   selectWalletHomeOnboardingFlowVisible: jest.fn(),
 }));
 
+jest.mock('../../../../../util/Logger', () => ({
+  __esModule: true,
+  default: { error: jest.fn() },
+}));
+
 const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
 const mockUseMoneyAccountInfo = jest.mocked(useMoneyAccountInfo);
 const mockSelectMoneyOnboardingSeen = jest.mocked(selectMoneyOnboardingSeen);
@@ -231,6 +236,24 @@ describe('MoneyBalanceCard', () => {
       expect(mockNavigate).not.toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
         screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
       });
+    });
+
+    it('logs an error when initiateDeposit rejects', async () => {
+      mockInitiateDeposit.mockRejectedValueOnce(new Error('network failure'));
+      const Logger = jest.requireMock('../../../../../util/Logger');
+
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      fireEvent.press(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON));
+
+      await Promise.resolve();
+
+      expect(Logger.default.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          message: expect.stringContaining('MoneyBalanceCard'),
+        }),
+      );
     });
 
     it('tracks the Add click with the deposit redirect target', () => {

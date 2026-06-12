@@ -273,7 +273,11 @@ const MoneyHomeView = () => {
       redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
     });
 
-    initiateDeposit().catch(() => undefined);
+    initiateDeposit().catch((error) =>
+      Logger.error(error as Error, {
+        message: '[MoneyHomeView] Failed to initiate deposit from mUSD row',
+      }),
+    );
   }, [initiateDeposit, trackButtonClicked]);
 
   const handleTransferPress = useCallback(() => {
