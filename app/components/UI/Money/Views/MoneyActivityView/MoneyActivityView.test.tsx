@@ -96,7 +96,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'money.activity.empty': 'No activity yet',
       'money.activity.filter_all': 'All',
       'money.activity.filter_deposits': 'Deposits',
-      'money.activity.filter_transfers': 'Transfers',
+      'money.activity.filter_sends': 'Sends',
+      'money.activity.pending': 'Pending',
     };
     return map[key] ?? key;
   },
@@ -206,6 +207,35 @@ describe('MoneyActivityView', () => {
     expect(
       getByTestId('activity-mock-tx-money-tx-converted'),
     ).toBeOnTheScreen();
+  });
+
+  it('renders a Pending section for in-flight rows', () => {
+    const { getByTestId } = renderWithProvider(<MoneyActivityView />);
+
+    // The fixture includes submitted (pending) rows, so the bucket appears.
+    expect(
+      getByTestId(MoneyActivityViewTestIds.PENDING_HEADER),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId('activity-mock-tx-money-tx-depositing'),
+    ).toBeOnTheScreen();
+  });
+
+  it('omits the Pending section when nothing is in flight', () => {
+    mockUseMoneyAccountTransactions.mockReturnValue({
+      allTransactions: MOCK_DEPOSITS.filter(
+        (tx) => tx.id === 'money-tx-converted',
+      ),
+      deposits: MOCK_DEPOSITS.filter((tx) => tx.id === 'money-tx-converted'),
+      transfers: [],
+      submittedTransactions: [],
+      moneyAddress: '0x0000000000000000000000000000000000000001',
+      mockDataEnabled: false,
+    });
+
+    const { queryByTestId } = renderWithProvider(<MoneyActivityView />);
+
+    expect(queryByTestId(MoneyActivityViewTestIds.PENDING_HEADER)).toBeNull();
   });
 
   it('shows only deposit rows when the Deposits filter is selected', () => {

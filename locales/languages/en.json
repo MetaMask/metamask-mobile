@@ -7069,9 +7069,10 @@
       "title": "Activity",
       "view_all": "View all",
       "empty": "No activity yet",
+      "pending": "Pending",
       "filter_all": "All",
       "filter_deposits": "Deposits",
-      "filter_transfers": "Transfers"
+      "filter_sends": "Sends"
     },
     "condensed_cards": {
       "how_it_works_title": "How it works",
@@ -7082,11 +7083,9 @@
       "what_you_get_subtitle": "Explore your benefits"
     },
     "transaction": {
-      "added": "Added",
       "deposited": "Deposited",
       "received": "Received",
       "sent": "Sent",
-      "transferred": "Transferred",
       "card_transaction": "Card transaction",
       "converted": "Converted",
       "depositing": "Depositing",

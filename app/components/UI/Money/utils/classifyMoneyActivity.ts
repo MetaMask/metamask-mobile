@@ -37,28 +37,24 @@ export function getMoneyActivityStatus(
  * single well-typed value rather than re-deriving from raw transaction types.
  *
  * Mirrors the activity row types in the Money design (Converted / Deposited /
- * Added / Received / Sent / Transferred). Card transactions are not
- * {@link TransactionMeta}-backed and are classified separately — see
- * `cardTransactionDisplayInfo` — but `'card'` is kept here so the explicit
- * `moneyActivityTitleKey` override can still target it.
+ * Received / Sent). Card transactions are not {@link TransactionMeta}-backed
+ * and are classified separately — see `cardTransactionDisplayInfo` — but
+ * `'card'` is kept here so the explicit `moneyActivityTitleKey` override can
+ * still target it.
  */
 export type MoneyActivityKind =
-  | 'added'
   | 'deposited'
   | 'received'
   | 'converted'
   | 'sent'
-  | 'transferred'
   | 'card';
 
 const TITLE_KEY_TO_KIND: Record<MoneyActivityTitleKey, MoneyActivityKind> = {
-  added: 'added',
   deposited: 'deposited',
   received: 'received',
   card_transaction: 'card',
   converted: 'converted',
   sent: 'sent',
-  transferred: 'transferred',
 };
 
 /**
@@ -134,12 +130,10 @@ export function classifyMoneyActivity(tx: TransactionMeta): MoneyActivityKind {
 }
 
 const KIND_LABEL_KEY: Record<MoneyActivityKind, string> = {
-  added: 'money.transaction.added',
   deposited: 'money.transaction.deposited',
   received: 'money.transaction.received',
   converted: 'money.transaction.converted',
   sent: 'money.transaction.sent',
-  transferred: 'money.transaction.transferred',
   card: 'money.transaction.card_transaction',
 };
 
@@ -176,7 +170,6 @@ export function moneyActivityLabel(
 
 export function moneyActivityKindToIcon(kind: MoneyActivityKind): IconName {
   switch (kind) {
-    case 'added':
     case 'deposited':
       return IconName.Add;
     case 'received':
@@ -185,8 +178,6 @@ export function moneyActivityKindToIcon(kind: MoneyActivityKind): IconName {
       return IconName.Refresh;
     case 'sent':
       return IconName.Arrow2UpRight;
-    case 'transferred':
-      return IconName.SwapHorizontal;
     case 'card':
       return IconName.Card;
     default:

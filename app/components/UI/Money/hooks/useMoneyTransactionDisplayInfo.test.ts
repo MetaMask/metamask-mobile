@@ -93,13 +93,11 @@ function makeTx(
 
 describe('useMoneyTransactionDisplayInfo — titleKeyToLabel all keys', () => {
   const cases: [string, string][] = [
-    ['added', 'money.transaction.added'],
     ['deposited', 'money.transaction.deposited'],
     ['received', 'money.transaction.received'],
     ['card_transaction', 'money.transaction.card_transaction'],
     ['converted', 'money.transaction.converted'],
     ['sent', 'money.transaction.sent'],
-    ['transferred', 'money.transaction.transferred'],
     // unknown key hits the default branch → 'received'
     ['unknown_key_xyz', 'money.transaction.received'],
   ];
@@ -268,13 +266,11 @@ describe('useMoneyTransactionDisplayInfo — getLabelForTransactionType', () => 
 
 describe('useMoneyTransactionDisplayInfo — titleKeyToIcon all keys', () => {
   const cases: [string, IconName][] = [
-    ['added', IconName.Add],
     ['deposited', IconName.Add],
     ['received', IconName.Arrow2Down],
     ['card_transaction', IconName.Card],
     ['converted', IconName.Refresh],
     ['sent', IconName.Arrow2UpRight],
-    ['transferred', IconName.SwapHorizontal],
     // unknown key → default → Arrow2Down
     ['unknown_key_xyz', IconName.Arrow2Down],
   ];

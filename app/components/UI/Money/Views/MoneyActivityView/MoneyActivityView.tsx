@@ -28,6 +28,7 @@ import { useMoneyAccountCardTransactions } from '../../hooks/useMoneyAccountCard
 import { mergeMoneyActivity } from '../../hooks/useMoneyActivityItems';
 import { onchainItem, type MoneyActivityItem } from '../../types/moneyActivity';
 import { MoneyActivityFilter } from '../../constants/mockActivityData';
+import { getMoneyActivityStatus } from '../../utils/classifyMoneyActivity';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MoneyActivityViewTestIds } from './MoneyActivityView.testIds';
 import useMountEffect from '../../hooks/useMountEffect';
@@ -46,12 +47,21 @@ const styles = StyleSheet.create({
 const FILTER_LABEL_KEYS = {
   all: 'money.activity.filter_all',
   deposits: 'money.activity.filter_deposits',
-  transfers: 'money.activity.filter_transfers',
+  transfers: 'money.activity.filter_sends',
 } as const;
 
-interface DateSection {
+interface ActivitySection {
   title: string;
   data: MoneyActivityItem[];
+  /** Marks the in-flight bucket so its header renders distinctly from dates. */
+  isPending?: boolean;
+}
+
+/** True for an in-flight on-chain row. Card spends are never pending. */
+function isPendingItem(item: MoneyActivityItem): boolean {
+  return (
+    item.kind === 'onchain' && getMoneyActivityStatus(item.tx) === 'pending'
+  );
 }
 
 function dateKeyUtc(time: number): string {
@@ -61,7 +71,7 @@ function dateKeyUtc(time: number): string {
 function groupByDate(
   items: MoneyActivityItem[],
   locale: string,
-): DateSection[] {
+): ActivitySection[] {
   const groups = new Map<string, MoneyActivityItem[]>();
   for (const item of items) {
     const key = dateKeyUtc(item.time);
@@ -80,6 +90,30 @@ function groupByDate(
     }),
     data,
   }));
+}
+
+/**
+ * Builds the list sections: a single "Pending" bucket (in-flight rows) on top,
+ * followed by the confirmed/failed rows grouped by date.
+ */
+function buildSections(
+  items: MoneyActivityItem[],
+  locale: string,
+): ActivitySection[] {
+  const pending = items.filter(isPendingItem);
+  const settled = items.filter((item) => !isPendingItem(item));
+  const dateSections = groupByDate(settled, locale);
+  if (pending.length === 0) {
+    return dateSections;
+  }
+  return [
+    {
+      title: strings('money.activity.pending'),
+      data: pending,
+      isPending: true,
+    },
+    ...dateSections,
+  ];
 }
 
 const MoneyActivityView = () => {
@@ -177,17 +211,21 @@ const MoneyActivityView = () => {
   }, [filter, allItems, depositItems, transferItems]);
 
   const sections = useMemo(
-    () => groupByDate(filtered, I18n.locale),
+    () => buildSections(filtered, I18n.locale),
     [filtered],
   );
 
-  const renderSectionHeader = ({ section }: { section: DateSection }) => (
+  const renderSectionHeader = ({ section }: { section: ActivitySection }) => (
     <Box twClassName="px-4 pt-2 pb-1 bg-default">
       <Text
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
         color={TextColor.TextAlternative}
-        testID={MoneyActivityViewTestIds.DATE_HEADER}
+        testID={
+          section.isPending
+            ? MoneyActivityViewTestIds.PENDING_HEADER
+            : MoneyActivityViewTestIds.DATE_HEADER
+        }
       >
         {section.title}
       </Text>

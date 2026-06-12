@@ -20,13 +20,11 @@ export enum MoneyActivityFilter {
  * When set on mock or enriched {@link TransactionMeta}, overrides the default title from {@link TransactionType}.
  */
 export type MoneyActivityTitleKey =
-  | 'added'
   | 'deposited'
   | 'received'
   | 'card_transaction'
   | 'converted'
-  | 'sent'
-  | 'transferred';
+  | 'sent';
 
 /**
  * {@link TransactionMeta} plus optional Money activity presentation fields.

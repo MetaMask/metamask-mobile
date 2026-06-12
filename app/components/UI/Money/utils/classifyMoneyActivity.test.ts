@@ -117,9 +117,9 @@ describe('classifyMoneyActivity', () => {
       // A crypto deposit would derive "converted"; the title key wins.
       type: TransactionType.moneyAccountDeposit,
       metamaskPay: { tokenAddress: USDC_ADDRESS, chainId: CHAIN_ID },
-      moneyActivityTitleKey: 'added',
+      moneyActivityTitleKey: 'deposited',
     });
-    expect(classifyMoneyActivity(tx)).toBe('added');
+    expect(classifyMoneyActivity(tx)).toBe('deposited');
   });
 
   it('maps the card_transaction title key to the card kind', () => {
@@ -144,12 +144,10 @@ describe('getMoneyActivityStatus', () => {
 
 describe('moneyActivityLabel — confirmed labels + icons', () => {
   const cases: [MoneyActivityKind, string, IconName][] = [
-    ['added', 'money.transaction.added', IconName.Add],
     ['deposited', 'money.transaction.deposited', IconName.Add],
     ['received', 'money.transaction.received', IconName.Arrow2Down],
     ['converted', 'money.transaction.converted', IconName.Refresh],
     ['sent', 'money.transaction.sent', IconName.Arrow2UpRight],
-    ['transferred', 'money.transaction.transferred', IconName.SwapHorizontal],
     ['card', 'money.transaction.card_transaction', IconName.Card],
   ];
 
