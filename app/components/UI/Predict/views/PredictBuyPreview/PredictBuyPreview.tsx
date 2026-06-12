@@ -78,6 +78,7 @@ import {
   getPredictExchangeFee,
   roundUpToCents,
 } from '../../utils/orders';
+import { resolvePredictBuyHeaderDisplay } from '../../utils/predictBuyHeader';
 
 /**
  * Module-level flag shared by three consumers to distinguish an explicit
@@ -325,12 +326,15 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
     isLoading || previewError ? undefined : (preview?.fees?.totalFee ?? 0);
 
   const title = market.title;
-  const outcomeGroupTitle = outcome.groupItemTitle
-    ? outcome.groupItemTitle
-    : '';
+  const { outcomeGroupTitle, outcomeTokenTitle, image } =
+    resolvePredictBuyHeaderDisplay({
+      market,
+      outcome,
+      outcomeToken,
+    });
 
   const separator = '·';
-  const outcomeTokenLabel = `${outcomeToken?.title} at ${formatCents(
+  const outcomeTokenLabel = `${outcomeTokenTitle} at ${formatCents(
     preview?.sharePrice ?? outcomeToken?.price ?? 0,
   )}`;
 
@@ -421,10 +425,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
       >
         <Icon name={IconName.ArrowLeft} size={IconSize.Md} />
       </TouchableOpacity>
-      <Image
-        source={{ uri: outcome?.image }}
-        style={tw.style('w-10 h-10 rounded')}
-      />
+      <Image source={{ uri: image }} style={tw.style('w-10 h-10 rounded')} />
       <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1 min-w-0">
         <Box flexDirection={BoxFlexDirection.Row} twClassName="min-w-0 gap-4">
           <Box twClassName="flex-1 min-w-0">
@@ -464,7 +465,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
                 variant={TextVariant.BodySm}
                 twClassName="font-medium"
                 color={
-                  outcomeToken?.title === 'Yes'
+                  outcomeTokenTitle === 'Yes'
                     ? TextColor.SuccessDefault
                     : TextColor.ErrorDefault
                 }

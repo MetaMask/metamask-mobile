@@ -440,6 +440,86 @@ describe('PredictPreviewSheetContext', () => {
     expect(screen.getByTestId('sheet-image')).toBeOnTheScreen();
   });
 
+  it('normalizes moneyline team selections and uses the team logo in the buy sheet header', () => {
+    const moneylineBuyParams: PredictBuyPreviewParams = {
+      market: {
+        id: 'market-2',
+        title: 'Korea Republic vs. Czechia',
+        game: {
+          id: 'game-1',
+          startTime: '2026-06-11T23:00:00Z',
+          status: 'scheduled',
+          league: 'fifwc',
+          elapsed: null,
+          period: null,
+          score: null,
+          homeTeam: {
+            id: 'team-home',
+            name: 'Korea Republic',
+            logo: 'https://example.com/korea.png',
+            abbreviation: 'KOR',
+            color: mockTestHexColors.ERROR_BRIGHT,
+          },
+          awayTeam: {
+            id: 'team-away',
+            name: 'Czechia',
+            logo: 'https://example.com/czechia.png',
+            abbreviation: 'CZE',
+            color: mockTestHexColors.PURE_BLUE,
+          },
+        },
+      } as PredictBuyPreviewParams['market'],
+      outcome: {
+        id: 'outcome-2',
+        title: 'Korea Republic vs. Czechia',
+        groupItemTitle: 'Korea Republic',
+        image: 'https://example.com/soccer-ball.png',
+        sportsMarketType: 'moneyline',
+        tokens: [
+          {
+            id: 'token-2',
+            title: 'Korea Republic',
+            shortTitle: 'KOR',
+            price: 0.375,
+          },
+        ],
+      } as PredictBuyPreviewParams['outcome'],
+      outcomeToken: {
+        id: 'token-2',
+        title: 'Korea Republic',
+        shortTitle: 'KOR',
+        price: 0.375,
+      } as PredictBuyPreviewParams['outcomeToken'],
+    };
+    const MoneylineConsumer = () => {
+      const { openBuySheet } = usePredictPreviewSheet();
+
+      return (
+        <TouchableOpacity
+          testID="open-moneyline-buy"
+          onPress={() => openBuySheet(moneylineBuyParams)}
+        >
+          <Text>Open Moneyline Buy</Text>
+        </TouchableOpacity>
+      );
+    };
+
+    render(
+      <PredictPreviewSheetProvider>
+        <MoneylineConsumer />
+      </PredictPreviewSheetProvider>,
+    );
+
+    fireEvent.press(screen.getByTestId('open-moneyline-buy'));
+
+    expect(screen.getByTestId('sheet-title')).toHaveTextContent(
+      'Yes · Korea Republic',
+    );
+    expect(screen.getByTestId('sheet-image')).toHaveTextContent(
+      'https://example.com/korea.png',
+    );
+  });
+
   it('renders SellSheetHeader with position info for sell sheet', () => {
     render(
       <PredictPreviewSheetProvider>

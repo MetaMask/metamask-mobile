@@ -8,6 +8,7 @@ import React from 'react';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { PredictMarket } from '../../types';
+import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 import PredictBuyPreview, {
   predictBuyPreviewDismissedViaBackRef,
   predictBuyPreviewOrderInitiatedRef,
@@ -2084,6 +2085,69 @@ describe('PredictBuyPreview', () => {
 
       // Separator should not be present when groupItemTitle is empty
       expect(screen.getByText('Yes at 50¢')).toBeOnTheScreen();
+    });
+
+    it('normalizes moneyline team picks back to Yes', () => {
+      const moneylineMarket: PredictMarket = {
+        ...mockMarket,
+        title: 'Korea Republic vs. Czechia',
+        game: {
+          id: 'game-1',
+          startTime: '2026-06-11T23:00:00Z',
+          status: 'scheduled',
+          league: 'fifwc',
+          elapsed: null,
+          period: null,
+          score: null,
+          homeTeam: {
+            id: 'team-home',
+            name: 'Korea Republic',
+            logo: 'https://example.com/korea.png',
+            abbreviation: 'KOR',
+            color: TEST_HEX_COLORS.ERROR_BRIGHT,
+          },
+          awayTeam: {
+            id: 'team-away',
+            name: 'Czechia',
+            logo: 'https://example.com/czechia.png',
+            abbreviation: 'CZE',
+            color: TEST_HEX_COLORS.PURE_BLUE,
+          },
+        },
+        outcomes: [
+          {
+            ...mockMarket.outcomes[0],
+            title: 'Korea Republic vs. Czechia',
+            groupItemTitle: 'Korea Republic',
+            sportsMarketType: 'moneyline',
+            tokens: [
+              {
+                id: 'outcome-token-789',
+                title: 'Korea Republic',
+                shortTitle: 'KOR',
+                price: 0.5,
+              },
+            ],
+          },
+        ],
+      };
+      mockUseRoute.mockReturnValue({
+        ...mockRoute,
+        params: {
+          ...mockRoute.params,
+          market: moneylineMarket,
+          outcome: moneylineMarket.outcomes[0],
+          outcomeToken: moneylineMarket.outcomes[0].tokens[0],
+        },
+      });
+      mockBalance = 1000;
+      mockBalanceLoading = false;
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      expect(screen.getByText('Korea Republic')).toBeOnTheScreen();
+      expect(screen.getByText('Yes at 50¢')).toBeOnTheScreen();
+      expect(screen.queryByText('Korea Republic at 50¢')).not.toBeOnTheScreen();
     });
   });
 
