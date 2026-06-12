@@ -87,19 +87,24 @@ const createTestState = () => ({
   },
 });
 
-const createMonadMainnetConfiguration = (): NetworkConfiguration => ({
+const QUICKNODE_MONAD_URL = 'https://failover.quicknode.example/monad';
+
+const createMonadMainnetConfiguration = (
+  failoverUrls?: string[],
+): NetworkConfiguration => ({
   chainId: '0x8f',
   rpcEndpoints: [
     {
       networkClientId: 'monad-mainnet',
       url: 'https://monad-mainnet.infura.io/v3/{infuraProjectId}',
       type: RpcEndpointType.Infura,
+      ...(failoverUrls ? { failoverUrls } : {}),
     },
   ],
   defaultRpcEndpointIndex: 0,
   blockExplorerUrls: ['https://monadscan.com'],
   defaultBlockExplorerUrlIndex: 0,
-  name: 'Monad Mainnet',
+  name: 'Monad',
   nativeCurrency: 'MON',
 });
 
@@ -118,10 +123,11 @@ describe('Migration 142: Add `Monad Mainnet`', () => {
     expect(migratedState).toStrictEqual({ some: 'state' });
   });
 
-  it('adds `Monad Mainnet` as a default Infura network to state', () => {
+  it('adds `Monad Mainnet` as a default Infura network to state without failoverUrls when QUICKNODE_MONAD_URL is not set', () => {
     const monadMainnetConfiguration = createMonadMainnetConfiguration();
     const oldState = createTestState();
     mockedEnsureValidState.mockReturnValue(true);
+    delete process.env.QUICKNODE_MONAD_URL;
 
     const expectedData = {
       engine: {
@@ -141,6 +147,36 @@ describe('Migration 142: Add `Monad Mainnet`', () => {
     const migratedState = migrate(oldState);
 
     expect(migratedState).toStrictEqual(expectedData);
+  });
+
+  it('adds `Monad Mainnet` with failoverUrls when QUICKNODE_MONAD_URL is set', () => {
+    const monadMainnetConfiguration = createMonadMainnetConfiguration([
+      QUICKNODE_MONAD_URL,
+    ]);
+    const oldState = createTestState();
+    mockedEnsureValidState.mockReturnValue(true);
+    process.env.QUICKNODE_MONAD_URL = QUICKNODE_MONAD_URL;
+
+    const expectedData = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            ...oldState.engine.backgroundState.NetworkController,
+            networkConfigurationsByChainId: {
+              ...oldState.engine.backgroundState.NetworkController
+                .networkConfigurationsByChainId,
+              [monadMainnetConfiguration.chainId]: monadMainnetConfiguration,
+            },
+          },
+        },
+      },
+    };
+
+    const migratedState = migrate(oldState);
+
+    expect(migratedState).toStrictEqual(expectedData);
+
+    delete process.env.QUICKNODE_MONAD_URL;
   });
 
   it('does not overwrite an existing `Monad Mainnet` NetworkConfiguration', () => {

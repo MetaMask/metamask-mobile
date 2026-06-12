@@ -49,6 +49,8 @@ const migration = (state: unknown): unknown => {
     return state;
   }
 
+  const quickNodeUrl = process.env.QUICKNODE_MONAD_URL;
+
   const monadMainnetConfig: NetworkConfiguration = {
     name: NetworkNickname[BuiltInNetworkName.MonadMainnet],
     chainId: ChainId[BuiltInNetworkName.MonadMainnet],
@@ -59,6 +61,7 @@ const migration = (state: unknown): unknown => {
         type: RpcEndpointType.Infura,
         url: `https://monad-mainnet.infura.io/v3/{infuraProjectId}`,
         networkClientId: NetworkType[BuiltInNetworkName.MonadMainnet],
+        ...(quickNodeUrl ? { failoverUrls: [quickNodeUrl] } : {}),
       },
     ],
     defaultRpcEndpointIndex: 0,
