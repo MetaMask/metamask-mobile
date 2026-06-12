@@ -37,10 +37,10 @@ export const NetworkAndOriginRow = () => {
   // `request_source` is the transport the request arrived on. It is only
   // populated on signature requests; transactions persist only `origin`.
   const requestSource = (
-    signatureRequest?.messageParams?.meta as
-      | { analytics?: { request_source?: string } }
+    signatureRequest?.messageParams as
+      | { meta?: { analytics?: { request_source?: string } } }
       | undefined
-  )?.analytics?.request_source;
+  )?.meta?.analytics?.request_source;
 
   const isDappOrigin = origin !== MMM_ORIGIN;
 
