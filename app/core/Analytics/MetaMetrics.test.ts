@@ -337,15 +337,15 @@ describe('MetaMetrics', () => {
     });
   });
 
-  describe('E2E Mode', () => {
+  describe('hasTestOverrides Mode', () => {
     beforeEach(() => {
       mockTrackE2EEvent.mockClear();
     });
 
-    const testE2EMode = async (isE2E: boolean) => {
+    const testE2EMode = async (hasTestOverrides: boolean) => {
       // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
       const utils = require('../../util/test/utils');
-      utils.isE2E = isE2E;
+      utils.hasTestOverrides = hasTestOverrides;
 
       // Ensure analytics is enabled for the test
       (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
@@ -359,18 +359,18 @@ describe('MetaMetrics', () => {
 
       metaMetrics.trackEvent(event);
 
-      if (isE2E) {
+      if (hasTestOverrides) {
         expect(mockTrackE2EEvent).toHaveBeenCalledWith(event);
       } else {
         expect(mockTrackE2EEvent).not.toHaveBeenCalled();
       }
     };
 
-    it('calls MetaMetricsTestUtils.trackEvent when isE2E is true', async () => {
+    it('calls MetaMetricsTestUtils.trackEvent when hasTestOverrides is true', async () => {
       await testE2EMode(true);
     });
 
-    it('does not call MetaMetricsTestUtils.trackEvent when isE2E is false', async () => {
+    it('does not call MetaMetricsTestUtils.trackEvent when hasTestOverrides is false', async () => {
       await testE2EMode(false);
     });
   });

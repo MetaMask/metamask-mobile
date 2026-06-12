@@ -2,6 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import MoneyPotentialEarnings from './MoneyPotentialEarnings';
 import { MoneyPotentialEarningsTestIds } from './MoneyPotentialEarnings.testIds';
+import { MoneySectionHeaderTestIds } from '../MoneySectionHeader/MoneySectionHeader.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import { AssetType } from '../../../../Views/confirmations/types/token';
 
@@ -223,27 +224,33 @@ describe('MoneyPotentialEarnings', () => {
     expect(onViewAll).toHaveBeenCalledTimes(1);
   });
 
-  it('calls onTokenPress with the pressed token when Convert is tapped', () => {
+  it('calls onTokenButtonPress with the pressed token when the Add button is tapped', () => {
     const onTokenPress = jest.fn();
     const { getByText } = render(
       <MoneyPotentialEarnings
         apy={4}
         tokens={[MOCK_USDC]}
-        onTokenPress={onTokenPress}
+        onTokenButtonPress={onTokenPress}
       />,
     );
 
     fireEvent.press(getByText(strings('money.potential_earnings.add')));
 
-    expect(onTokenPress).toHaveBeenCalledWith(MOCK_USDC);
+    expect(onTokenPress).toHaveBeenCalledWith(MOCK_USDC, 0, 1);
   });
 
   it('calls onHeaderPress when the section header is tapped', () => {
     const onHeader = jest.fn();
+    const extra = makeToken({
+      name: 'Extra',
+      symbol: 'EXT',
+      address: '0x0000000000000000000000000000000000000004',
+      fiat: { balance: 100 },
+    });
     const { getByText } = render(
       <MoneyPotentialEarnings
         apy={4}
-        tokens={[MOCK_USDC]}
+        tokens={[MOCK_USDC, MOCK_USDT, MOCK_DAI, MOCK_ETH, MOCK_SOL, extra]}
         onHeaderPress={onHeader}
       />,
     );
@@ -251,6 +258,42 @@ describe('MoneyPotentialEarnings', () => {
     fireEvent.press(getByText(strings('money.potential_earnings.title')));
 
     expect(onHeader).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders the section arrow when more than five tokens are eligible', () => {
+    const extra = makeToken({
+      name: 'Extra',
+      symbol: 'EXT',
+      address: '0x0000000000000000000000000000000000000004',
+      fiat: { balance: 100 },
+    });
+    const { getByTestId } = render(
+      <MoneyPotentialEarnings
+        apy={4}
+        tokens={[MOCK_USDC, MOCK_USDT, MOCK_DAI, MOCK_ETH, MOCK_SOL, extra]}
+        onHeaderPress={jest.fn()}
+      />,
+    );
+
+    expect(getByTestId(MoneySectionHeaderTestIds.CHEVRON)).toBeOnTheScreen();
+  });
+
+  it('hides the section arrow and ignores header taps with five or fewer eligible tokens', () => {
+    const onHeader = jest.fn();
+    const { queryByTestId, getByText } = render(
+      <MoneyPotentialEarnings
+        apy={4}
+        tokens={[MOCK_USDC, MOCK_USDT, MOCK_DAI, MOCK_ETH, MOCK_SOL]}
+        onHeaderPress={onHeader}
+      />,
+    );
+
+    expect(
+      queryByTestId(MoneySectionHeaderTestIds.CHEVRON),
+    ).not.toBeOnTheScreen();
+
+    fireEvent.press(getByText(strings('money.potential_earnings.title')));
+    expect(onHeader).not.toHaveBeenCalled();
   });
 
   it('renders the inline info button when onInfoPress is provided', () => {

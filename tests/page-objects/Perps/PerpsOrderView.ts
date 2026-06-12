@@ -64,7 +64,7 @@ class PerpsOrderView {
   }
 
   // Leverage chip by visible text, e.g., "3x", "10x", "20x"
-  leverageOption(leverageX: number, index = 0): DetoxElement {
+  leverageOption(leverageX: number, index = 0): EncapsulatedElementType {
     return Matchers.getElementByText(`${leverageX}x`, index);
   }
 
@@ -77,7 +77,7 @@ class PerpsOrderView {
   }
 
   // Modal title to ensure the leverage bottom sheet is visible
-  get leverageModalTitle(): DetoxElement {
+  get leverageModalTitle(): EncapsulatedElementType {
     return Matchers.getElementByText('Set Leverage');
   }
 
@@ -262,6 +262,10 @@ class PerpsOrderView {
           checkForDisplayed: true,
           checkForEnabled: true,
         });
+        await UnifiedGestures.waitAndTap(this.keypadDeleteButton, {
+          checkForDisplayed: true,
+          checkForEnabled: true,
+        });
         for (const ch of amount) {
           const keyEl = await asPlaywrightElement(this.getKeypadKey(ch));
           await PlaywrightGestures.waitAndTap(keyEl, {
@@ -279,16 +283,16 @@ class PerpsOrderView {
   }
 
   // Order type / Limit Price helpers
-  private get orderTypeMarket(): DetoxElement {
+  private get orderTypeMarket(): EncapsulatedElementType {
     return Matchers.getElementByText('Market');
   }
 
-  private get orderTypeSelector(): DetoxElement {
+  private get orderTypeSelector(): EncapsulatedElementType {
     return Matchers.getElementByID(
       PerpsOrderHeaderSelectorsIDs.ORDER_TYPE_BUTTON,
     );
   }
-  private get orderTypeLimit(): DetoxElement {
+  private get orderTypeLimit(): EncapsulatedElementType {
     return Matchers.getElementByText('Limit');
   }
 

@@ -185,7 +185,6 @@ export enum TraceName {
   PredictSellPreviewView = 'Predict Sell Preview View',
   PredictActivityDetailView = 'Predict Activity Detail View',
   PredictTransactionHistoryView = 'Predict Transaction History View',
-  PredictTabView = 'Predict Tab View',
   PredictAddFundsModal = 'Predict Add Funds Modal',
   PredictUnavailableModal = 'Predict Unavailable Modal',
   PredictOrderSubmissionToast = 'Predict Order Submission Toast',
@@ -202,6 +201,8 @@ export enum TraceName {
 
   // Predict Data Fetches
   PredictGetMarkets = 'Predict Get Markets',
+  PredictListMarkets = 'Predict List Markets',
+  PredictListFilterOptions = 'Predict List Filter Options',
   PredictGetMarket = 'Predict Get Market',
   PredictGetPositions = 'Predict Get Positions',
   PredictGetActivity = 'Predict Get Activity',

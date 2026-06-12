@@ -30,11 +30,15 @@ const overlayScreenOptions = {
 
 const MainRoutes = () => (
   <Stack.Navigator initialRouteName={Routes.RAMP.BUILD_QUOTE}>
-    <Stack.Screen name={Routes.RAMP.BUILD_QUOTE} component={BuildQuote} />
+    <Stack.Screen
+      name={Routes.RAMP.BUILD_QUOTE}
+      component={BuildQuote}
+      options={{ headerShown: false }}
+    />
     <Stack.Screen
       name={Routes.RAMP.BUILD_QUOTE_HAS_STARTED}
       component={BuildQuote}
-      options={{ animation: 'none' }}
+      options={{ animation: 'none', headerShown: false }}
     />
     <Stack.Screen
       name={Routes.RAMP.QUOTES}

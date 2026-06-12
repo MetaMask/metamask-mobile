@@ -6,6 +6,7 @@ import {
   CryptoPriceUpdateCallback,
   GameUpdateCallback,
   GeoBlockResponse,
+  GetActivityParams,
   GetBalanceParams,
   GetCryptoPriceHistoryParams,
   GetCryptoTargetPriceParams,
@@ -22,7 +23,11 @@ import {
   PlaceOrderParams,
   PredictActivity,
   PredictFees,
+  PredictFilterOption,
+  PredictFilterOptionsParams,
   PredictMarket,
+  PredictMarketListParams,
+  PredictMarketListResponse,
   PredictPosition,
   PredictPriceHistoryPoint,
   PreviewOrderParams,
@@ -44,6 +49,7 @@ export type {
   CryptoPriceUpdateCallback,
   GameUpdateCallback,
   GeoBlockResponse,
+  GetActivityParams,
   GetBalanceParams,
   GetMarketsParams,
   GetMarketsResult,
@@ -53,6 +59,10 @@ export type {
   OrderResult,
   PlaceOrderParams,
   PredictFees,
+  PredictFilterOption,
+  PredictFilterOptionsParams,
+  PredictMarketListParams,
+  PredictMarketListResponse,
   PreviewOrderParams,
   PriceUpdateCallback,
   SearchMarketsParams,
@@ -158,6 +168,12 @@ export interface PredictProvider {
   readonly chainId: number;
 
   getMarkets(params: GetMarketsParams): Promise<GetMarketsResult>;
+  listMarkets(
+    params: PredictMarketListParams,
+  ): Promise<PredictMarketListResponse>;
+  listFilterOptions(
+    params: PredictFilterOptionsParams,
+  ): Promise<PredictFilterOption[]>;
   searchMarkets(
     params: SearchMarketsParams,
   ): Promise<{ markets: PredictMarket[]; totalResults: number }>;
@@ -178,7 +194,9 @@ export interface PredictProvider {
   getPositions(
     params: GetPositionsParams & { address: string },
   ): Promise<PredictPosition[]>;
-  getActivity(params: { address: string }): Promise<PredictActivity[]>;
+  getActivity(
+    params: GetActivityParams & { address: string },
+  ): Promise<PredictActivity[]>;
   getUnrealizedPnL(params: { address: string }): Promise<UnrealizedPnL>;
 
   previewOrder(

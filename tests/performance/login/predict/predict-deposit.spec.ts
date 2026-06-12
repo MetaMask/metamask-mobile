@@ -1,4 +1,4 @@
-import { test as perfTest } from '../../../framework/fixture';
+import { test as perfTest } from '../../../framework/fixtures/playwright';
 import TimerHelper from '../../../framework/TimerHelper';
 import { loginToAppPlaywright } from '../../../flows/wallet.flow';
 import { asPlaywrightElement, PlaywrightAssertions } from '../../../framework';
@@ -49,7 +49,7 @@ perfTest.describe(`${Performance} ${PerformancePredict}`, () => {
       // Timer 2: Open deposit screen
       const timer2 = new TimerHelper(
         'Time since user taps Add Funds button until Predict Deposit screen is visible',
-        { ios: 2500, android: 6000 },
+        { ios: 1000, android: 5000 },
         currentDeviceDetails.platform,
       );
 

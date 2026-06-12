@@ -1484,7 +1484,7 @@ function aggregateReports() {
     // Search only in directories where CI artifacts are downloaded
     const searchDirs = [
       './test-results',
-      './performance-results', 
+      './performance-results',
       './onboarding-results',
       './tests/reporters/reports',
     ];

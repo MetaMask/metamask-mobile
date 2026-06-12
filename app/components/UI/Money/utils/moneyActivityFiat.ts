@@ -44,7 +44,7 @@ function getMarketDataRowForChain(
 /**
  * Token→ETH `price` for {@link balanceToFiatNumber}, with checksum + case-insensitive address keys.
  */
-function getTokenToEthPrice(
+export function getTokenToEthPrice(
   tokenMarketData: TokenMarketDataMap | undefined,
   chainId: Hex,
   contractAddress: string,
@@ -129,6 +129,23 @@ function getEthToFiatConversionRate(
   currencyRates: CurrencyRatesMap | undefined,
 ): number | undefined {
   return resolveCurrencyRateEntry(currencyRates, ETH_TICKER)?.conversionRate;
+}
+
+/**
+ * USD → user's selected fiat rate. For a USD-pegged token (USDC/mUSD) the USD
+ * amount equals the token amount, so this is all that's needed to render its
+ * fiat line. Derived as (currency per ETH) ÷ (USD per ETH); `undefined` when
+ * rates aren't available (caller should then omit the fiat line). Returns `1`
+ * implicitly when the selected currency already is USD (the two ETH rates match).
+ */
+export function getUsdToFiatConversionRate(
+  currencyRates: CurrencyRatesMap | undefined,
+): number | undefined {
+  const entry = resolveCurrencyRateEntry(currencyRates, ETH_TICKER);
+  if (!entry) {
+    return undefined;
+  }
+  return entry.conversionRate / entry.usdConversionRate;
 }
 
 /**

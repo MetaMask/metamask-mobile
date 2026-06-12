@@ -17,7 +17,7 @@ import {
   ButtonVariant,
   ButtonSize,
 } from '@metamask/design-system-react-native';
-import type { CaipAssetType, Hex } from '@metamask/utils';
+import type { Hex } from '@metamask/utils';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { useNavigation, type ParamListBase } from '@react-navigation/native';
@@ -302,14 +302,21 @@ const AddCustomToken = ({
 
     if (isAssetsUnifyStateEnabled) {
       const caipChainId = formatChainIdToCaip(chainId as SupportedCaipChainId);
-      const caipAssetType = toAssetId(address.trim(), caipChainId);
+      const trimmedAddress = address.trim();
+      const caipAssetType = toAssetId(trimmedAddress, caipChainId);
       if (caipAssetType) {
         try {
           if (isHidden) {
             // Token exists but was hidden — unhide it instead of re-adding
             handleHideToken();
           } else {
-            await handleAddCustomAsset(caipAssetType);
+            await handleAddCustomAsset(caipAssetType, {
+              address: trimmedAddress,
+              symbol,
+              name,
+              decimals: Number(decimals),
+              chainId: caipChainId,
+            });
           }
         } catch (error) {
           Logger.error(error as Error, 'AddCustomToken: addCustomAsset failed');

@@ -34,6 +34,7 @@ import { getMultichainAssetsRatesControllerMessenger } from './multichain-assets
 import { getMultichainAssetsControllerMessenger } from './multichain-assets-controller-messenger/multichain-assets-controller-messenger';
 import { getMultichainBalancesControllerMessenger } from './multichain-balances-controller-messenger/multichain-balances-controller-messenger';
 import { getMultichainTransactionsControllerMessenger } from './multichain-transactions-controller-messenger/multichain-transactions-controller-messenger';
+import { getSnapAccountServiceMessenger } from './snap-account-service-messenger/snap-account-service-messenger';
 ///: END:ONLY_INCLUDE_IF
 import {
   getTransactionControllerInitMessenger,
@@ -117,7 +118,6 @@ import {
   getDelegationControllerMessenger,
 } from './delegation/delegation-controller-messenger';
 import { getRemoteFeatureFlagControllerMessenger } from './remote-feature-flag-controller-messenger';
-import { getStorageServiceMessenger } from './storage-service-messenger';
 import { getLoggingControllerMessenger } from './logging-controller-messenger';
 import {
   getRampsControllerMessenger,
@@ -262,10 +262,6 @@ export const MESSENGER_FACTORIES = {
     getMessenger: getSignatureControllerMessenger,
     getInitMessenger: noop,
   },
-  StorageService: {
-    getMessenger: getStorageServiceMessenger,
-    getInitMessenger: noop,
-  },
   DeFiPositionsController: {
     getMessenger: getDeFiPositionsControllerMessenger,
     getInitMessenger: getDeFiPositionsControllerInitMessenger,
@@ -339,6 +335,10 @@ export const MESSENGER_FACTORIES = {
   },
   MultichainTransactionsController: {
     getMessenger: getMultichainTransactionsControllerMessenger,
+    getInitMessenger: noop,
+  },
+  SnapAccountService: {
+    getMessenger: getSnapAccountServiceMessenger,
     getInitMessenger: noop,
   },
   ///: END:ONLY_INCLUDE_IF

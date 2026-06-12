@@ -29,8 +29,9 @@ import { getBridgeTokenImageSource } from '../getBridgeTokenImageSource';
 const QuickBuyActionFooter: React.FC = () => {
   const {
     sliderPercent,
-    maxSpendUsd,
+    isSliderDisabled,
     handleSliderChange,
+    handleSliderDragEnd,
     confirmButtonState,
     getButtonLabel,
     hasValidAmount,
@@ -38,15 +39,33 @@ const QuickBuyActionFooter: React.FC = () => {
     handleBuy,
     metamaskFeePercent,
     isHardwareSolanaBlocked,
+    tradeMode,
     sourceToken,
     sourceChainId,
     sourceBalanceFiat,
+    destBalanceFiat,
+    destToken,
+    selectedDestStable,
     features,
     setActiveScreen,
   } = useQuickBuyContext();
 
-  const networkImage = sourceChainId
-    ? getNetworkImageSource({ chainId: sourceChainId })
+  const pickerToken = tradeMode === 'sell' ? selectedDestStable : sourceToken;
+  const pickerChainId =
+    tradeMode === 'sell'
+      ? (selectedDestStable?.chainId as
+          | import('@metamask/utils').Hex
+          | undefined)
+      : sourceChainId;
+  // Both balances are driven by live, selector-backed state (TSA-632):
+  // `sourceBalanceFiat` from `useLatestBalance` re-keyed off the live cached
+  // balance, and `destBalanceFiat` resynced from the reactive receive-token
+  // list. Either updates the pill the moment the underlying balance changes.
+  const pickerBalanceFiat =
+    tradeMode === 'sell' ? destBalanceFiat : sourceBalanceFiat;
+
+  const networkImage = pickerChainId
+    ? getNetworkImageSource({ chainId: pickerChainId })
     : undefined;
 
   return (
@@ -56,19 +75,22 @@ const QuickBuyActionFooter: React.FC = () => {
         <QuickBuyPercentageSlider
           value={sliderPercent}
           onValueChange={handleSliderChange}
-          disabled={maxSpendUsd <= 0}
+          disabled={isSliderDisabled}
+          onDragEnd={handleSliderDragEnd}
         />
       </Box>
 
-      {/* Pay with row */}
+      {/* Pay with / Receive with row */}
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
-        twClassName="pb-3"
+        twClassName="pb-5"
       >
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {strings('social_leaderboard.quick_buy.pay_with')}
+          {tradeMode === 'sell'
+            ? strings('social_leaderboard.quick_buy.receive')
+            : strings('social_leaderboard.quick_buy.pay_with')}
         </Text>
 
         <TouchableOpacity
@@ -82,9 +104,8 @@ const QuickBuyActionFooter: React.FC = () => {
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             gap={2}
-            twClassName="rounded-full bg-muted px-3 py-1"
           >
-            {sourceToken ? (
+            {pickerToken ? (
               networkImage ? (
                 <BadgeWrapper
                   position={BadgeWrapperPosition.BottomRight}
@@ -92,23 +113,23 @@ const QuickBuyActionFooter: React.FC = () => {
                 >
                   <AvatarToken
                     size={AvatarTokenSize.Sm}
-                    name={sourceToken.symbol}
-                    src={getBridgeTokenImageSource(sourceToken)}
+                    name={pickerToken.symbol}
+                    src={getBridgeTokenImageSource(pickerToken)}
                   />
                 </BadgeWrapper>
               ) : (
                 <AvatarToken
                   size={AvatarTokenSize.Sm}
-                  name={sourceToken.symbol}
-                  src={getBridgeTokenImageSource(sourceToken)}
+                  name={pickerToken.symbol}
+                  src={getBridgeTokenImageSource(pickerToken)}
                 />
               )
             ) : null}
             <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
-              {sourceToken
-                ? sourceBalanceFiat
-                  ? `${sourceToken.symbol} (${sourceBalanceFiat})`
-                  : sourceToken.symbol
+              {pickerToken
+                ? pickerBalanceFiat
+                  ? `${pickerToken.symbol} (${pickerBalanceFiat})`
+                  : pickerToken.symbol
                 : '—'}
             </Text>
             {features.payWithSheet ? (

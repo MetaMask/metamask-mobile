@@ -1,13 +1,14 @@
 import { AddBookmarkViewSelectorsIDs } from '../../../app/components/Views/AddBookmark/AddBookmarkView.testIds';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
+import { EncapsulatedElementType } from '../../framework';
 
 class AddFavoritesView {
-  get container(): DetoxElement {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(AddBookmarkViewSelectorsIDs.CONTAINER);
   }
 
-  get addBookmarkButton(): DetoxElement {
+  get addBookmarkButton(): EncapsulatedElementType {
     return device.getPlatform() === 'ios'
       ? Matchers.getElementByID(AddBookmarkViewSelectorsIDs.CONFIRM_BUTTON)
       : Matchers.getElementByLabel(AddBookmarkViewSelectorsIDs.CONFIRM_BUTTON);

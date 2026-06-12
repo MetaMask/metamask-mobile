@@ -15,27 +15,6 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../UI/NftGrid/NftGrid', () => 'NftGrid');
 
-jest.mock(
-  '../../../component-library/components/BottomSheets/BottomSheetHeader',
-  () => {
-    const { TouchableOpacity, View, Text } = jest.requireActual('react-native');
-    return ({
-      children,
-      onBack,
-    }: {
-      children: React.ReactNode;
-      onBack: () => void;
-    }) => (
-      <View testID="bottom-sheet-header">
-        <TouchableOpacity testID="header-back-button" onPress={onBack}>
-          <Text>Back</Text>
-        </TouchableOpacity>
-        <Text testID="header-title">{children}</Text>
-      </View>
-    );
-  },
-);
-
 describe('NftFullView', () => {
   const initialState = {
     engine: {
@@ -72,7 +51,7 @@ describe('NftFullView', () => {
     });
 
     // Act
-    const backButton = getByTestId('header-back-button');
+    const backButton = getByTestId('back-button');
     fireEvent.press(backButton);
 
     // Assert
@@ -81,11 +60,11 @@ describe('NftFullView', () => {
 
   it('displays NFTs header title', () => {
     // Arrange & Act
-    const { getByTestId } = renderWithProvider(<NftFullView />, {
+    const { getByText } = renderWithProvider(<NftFullView />, {
       state: initialState,
     });
 
     // Assert
-    expect(getByTestId('header-title')).toBeOnTheScreen();
+    expect(getByText('NFTs')).toBeOnTheScreen();
   });
 });
