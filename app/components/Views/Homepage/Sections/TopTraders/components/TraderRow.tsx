@@ -18,7 +18,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React from 'react';
 import { Image, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import { TopRankAvatar, TopRankIndicator } from '../topRank';
+import { TopRankAvatar } from '../topRank';
 import type { TopTrader } from '../types';
 import { hasRealAvatar } from '../utils/avatarFallback';
 
@@ -85,11 +85,6 @@ const TraderRow: React.FC<TraderRowProps> = ({
           alignItems={BoxAlignItems.Center}
           gap={3}
         >
-          <TopRankIndicator
-            rank={trader.rank}
-            podiumRank={trader.overallRank}
-          />
-
           <TopRankAvatar rank={trader.overallRank}>
             {hasRealAvatar(trader.avatarUri) ? (
               <Image
