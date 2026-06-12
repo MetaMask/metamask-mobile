@@ -7781,6 +7781,7 @@
       "bridge_success": "Bridge complete",
       "bridge_failed": "Bridge failed",
       "trade_subtitle": "{{sourceAmount}} {{sourceSymbol}} → {{destAmount}} {{destSymbol}}",
+      "what_to_swap_next": "What to swap next",
       "view_activity": "View activity",
       "try_again": "Try again"
     },
