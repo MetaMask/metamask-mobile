@@ -12,6 +12,7 @@ import { TokenIconProps } from '../../token-icon';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
+import { useAccountNoFundsAlert } from '../../../hooks/alerts/useAccountNoFundsAlert';
 import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod';
 import Routes from '../../../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
@@ -49,6 +50,9 @@ jest.mock('../../../hooks/pay/useTransactionPayWithdraw', () => ({
 }));
 jest.mock('../../../hooks/pay/useTransactionPayData', () => ({
   useTransactionPayRequiredTokens: jest.fn(),
+}));
+jest.mock('../../../hooks/alerts/useAccountNoFundsAlert', () => ({
+  useAccountNoFundsAlert: jest.fn(() => []),
 }));
 jest.mock(
   '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod',
@@ -141,6 +145,8 @@ describe('PayWithRow', () => {
     } as ReturnType<typeof useMoneyAccountBalance>);
 
     isHardwareAccountMock.mockReturnValue(false);
+
+    jest.mocked(useAccountNoFundsAlert).mockReturnValue([]);
   });
 
   it('renders selected pay token', async () => {
@@ -329,7 +335,7 @@ describe('PayWithRow', () => {
     it('renders money balance label without inline balance', () => {
       const { getByTestId, queryByTestId } = renderMoneyAccount();
 
-      expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money balance');
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money account');
       expect(queryByTestId('pay-with-balance')).toBeNull();
     });
 
@@ -357,7 +363,7 @@ describe('PayWithRow', () => {
     it('renders money account row regardless of isResultReady when paymentOverride is MoneyAccount', () => {
       const { getByTestId } = renderMoneyAccount({ isResultReady: true });
 
-      expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money balance');
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money account');
     });
 
     it('renders money account row for perps deposit', () => {
@@ -369,7 +375,7 @@ describe('PayWithRow', () => {
       const { getByTestId } = renderMoneyAccount();
 
       expect(getByTestId('pay-with')).toBeDefined();
-      expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money balance');
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money account');
     });
   });
 

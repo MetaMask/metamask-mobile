@@ -160,6 +160,15 @@ export function useTransactionConfirm() {
             screen: Routes.PERPS.PERPS_HOME,
           });
         }
+      } else if (type === TransactionType.predictDeposit) {
+        if (payWithOption === PayWithOption.MoneyAccount) {
+          navigation.navigate(Routes.HOME_TABS, {
+            screen: Routes.MONEY.ROOT,
+            params: { screen: Routes.MONEY.HOME },
+          });
+        } else {
+          navigation.goBack();
+        }
       } else if (type === TransactionType.musdConversion) {
         musdConversionNavigateOnConfirm();
       } else if (

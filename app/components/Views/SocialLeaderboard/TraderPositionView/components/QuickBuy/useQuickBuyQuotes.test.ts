@@ -1,4 +1,5 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
+import { FeatureId } from '@metamask/bridge-controller';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../../../core/Engine';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
@@ -168,6 +169,18 @@ const setupSelectors = () => {
   );
 };
 
+type QuickBuyQuotesParams = Parameters<typeof useQuickBuyQuotes>[0];
+
+function quotesParams(params: QuickBuyQuotesParams): QuickBuyQuotesParams {
+  return {
+    ...params,
+    analyticsContext: {
+      source: 'leaderboard',
+      ...params.analyticsContext,
+    },
+  };
+}
+
 describe('useQuickBuyQuotes', () => {
   beforeEach(() => {
     jest.useFakeTimers();
@@ -185,11 +198,13 @@ describe('useQuickBuyQuotes', () => {
 
   it('returns idle state when any required input is missing', () => {
     const { result } = renderHook(() =>
-      useQuickBuyQuotes({
-        sourceToken: undefined,
-        destToken: createDestToken(),
-        sourceTokenAmount: '0.001',
-      }),
+      useQuickBuyQuotes(
+        quotesParams({
+          sourceToken: undefined,
+          destToken: createDestToken(),
+          sourceTokenAmount: '0.001',
+        }),
+      ),
     );
 
     expect(result.current.activeQuote).toBeUndefined();
@@ -202,11 +217,13 @@ describe('useQuickBuyQuotes', () => {
     fetchQuotesMock.mockResolvedValue([createFetchedQuote()]);
 
     renderHook(() =>
-      useQuickBuyQuotes({
-        sourceToken: createSourceToken(),
-        destToken: createDestToken(),
-        sourceTokenAmount: '0.001',
-      }),
+      useQuickBuyQuotes(
+        quotesParams({
+          sourceToken: createSourceToken(),
+          destToken: createDestToken(),
+          sourceTokenAmount: '0.001',
+        }),
+      ),
     );
 
     expect(fetchQuotesMock).not.toHaveBeenCalled();
@@ -223,12 +240,14 @@ describe('useQuickBuyQuotes', () => {
 
     const { rerender } = renderHook(
       ({ token }: { token: number }) =>
-        useQuickBuyQuotes({
-          sourceToken: createSourceToken(),
-          destToken: createDestToken(),
-          sourceTokenAmount: '0.001',
-          immediateFetchToken: token,
-        }),
+        useQuickBuyQuotes(
+          quotesParams({
+            sourceToken: createSourceToken(),
+            destToken: createDestToken(),
+            sourceTokenAmount: '0.001',
+            immediateFetchToken: token,
+          }),
+        ),
       { initialProps: { token: 0 } },
     );
 
@@ -244,12 +263,14 @@ describe('useQuickBuyQuotes', () => {
 
     const { rerender } = renderHook(
       ({ amount }: { amount: string }) =>
-        useQuickBuyQuotes({
-          sourceToken: createSourceToken(),
-          destToken: createDestToken(),
-          sourceTokenAmount: amount,
-          immediateFetchToken: 0,
-        }),
+        useQuickBuyQuotes(
+          quotesParams({
+            sourceToken: createSourceToken(),
+            destToken: createDestToken(),
+            sourceTokenAmount: amount,
+            immediateFetchToken: 0,
+          }),
+        ),
       { initialProps: { amount: '0.001' } },
     );
 
@@ -289,12 +310,14 @@ describe('useQuickBuyQuotes', () => {
 
     const { result, rerender } = renderHook(
       ({ token, amount }: { token: number; amount: string }) =>
-        useQuickBuyQuotes({
-          sourceToken: createSourceToken(),
-          destToken: createDestToken(),
-          sourceTokenAmount: amount,
-          immediateFetchToken: token,
-        }),
+        useQuickBuyQuotes(
+          quotesParams({
+            sourceToken: createSourceToken(),
+            destToken: createDestToken(),
+            sourceTokenAmount: amount,
+            immediateFetchToken: token,
+          }),
+        ),
       { initialProps: { token: 0, amount: '0.001' } },
     );
 
@@ -306,7 +329,7 @@ describe('useQuickBuyQuotes', () => {
     );
 
     expect(fetchQuotesMock).toHaveBeenCalledTimes(2);
-    const firstRequestSignal = fetchQuotesMock.mock.calls[0][1];
+    const firstRequestSignal = fetchQuotesMock.mock.calls[0][2];
     expect(firstRequestSignal.aborted).toBe(true);
 
     await act(async () => {
@@ -321,11 +344,13 @@ describe('useQuickBuyQuotes', () => {
     fetchQuotesMock.mockResolvedValue([createFetchedQuote()]);
 
     renderHook(() =>
-      useQuickBuyQuotes({
-        sourceToken: createSourceToken(),
-        destToken: createDestToken(),
-        sourceTokenAmount: '0.001',
-      }),
+      useQuickBuyQuotes(
+        quotesParams({
+          sourceToken: createSourceToken(),
+          destToken: createDestToken(),
+          sourceTokenAmount: '0.001',
+        }),
+      ),
     );
 
     act(() => {
@@ -342,6 +367,34 @@ describe('useQuickBuyQuotes', () => {
       gasIncluded: false,
       gasIncluded7702: false,
     });
+    expect(fetchQuotesMock.mock.calls[0][1]).toBe(
+      FeatureId.QUICK_BUY_FOLLOW_TRADING,
+    );
+  });
+
+  it('passes QUICK_BUY_TOKEN_DETAILS FeatureId when source is asset_details', async () => {
+    fetchQuotesMock.mockResolvedValue([createFetchedQuote()]);
+
+    renderHook(() =>
+      useQuickBuyQuotes(
+        quotesParams({
+          sourceToken: createSourceToken(),
+          destToken: createDestToken(),
+          sourceTokenAmount: '0.001',
+          analyticsContext: { source: 'asset_details' },
+        }),
+      ),
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(QUICK_BUY_QUOTE_DEBOUNCE_MS);
+    });
+
+    await waitFor(() => expect(fetchQuotesMock).toHaveBeenCalled());
+
+    expect(fetchQuotesMock.mock.calls[0][1]).toBe(
+      FeatureId.QUICK_BUY_TOKEN_DETAILS,
+    );
   });
 
   it('issues a quote request for a Tron destination (TRC-20) pair', async () => {
@@ -385,11 +438,13 @@ describe('useQuickBuyQuotes', () => {
     fetchQuotesMock.mockResolvedValue([]);
 
     const { result } = renderHook(() =>
-      useQuickBuyQuotes({
-        sourceToken: createSourceToken(),
-        destToken: createDestToken(),
-        sourceTokenAmount: '0.001',
-      }),
+      useQuickBuyQuotes(
+        quotesParams({
+          sourceToken: createSourceToken(),
+          destToken: createDestToken(),
+          sourceTokenAmount: '0.001',
+        }),
+      ),
     );
 
     act(() => {
@@ -404,11 +459,13 @@ describe('useQuickBuyQuotes', () => {
     fetchQuotesMock.mockRejectedValue(new Error('boom'));
 
     const { result } = renderHook(() =>
-      useQuickBuyQuotes({
-        sourceToken: createSourceToken(),
-        destToken: createDestToken(),
-        sourceTokenAmount: '0.001',
-      }),
+      useQuickBuyQuotes(
+        quotesParams({
+          sourceToken: createSourceToken(),
+          destToken: createDestToken(),
+          sourceTokenAmount: '0.001',
+        }),
+      ),
     );
 
     act(() => {
@@ -424,11 +481,13 @@ describe('useQuickBuyQuotes', () => {
     fetchQuotesMock.mockRejectedValue(fetchError);
 
     renderHook(() =>
-      useQuickBuyQuotes({
-        sourceToken: createSourceToken(),
-        destToken: createDestToken(),
-        sourceTokenAmount: '0.001',
-      }),
+      useQuickBuyQuotes(
+        quotesParams({
+          sourceToken: createSourceToken(),
+          destToken: createDestToken(),
+          sourceTokenAmount: '0.001',
+        }),
+      ),
     );
 
     act(() => {
@@ -454,11 +513,13 @@ describe('useQuickBuyQuotes', () => {
 
   it('skips fetching when the atomic source amount normalizes to zero', () => {
     renderHook(() =>
-      useQuickBuyQuotes({
-        sourceToken: createSourceToken({ decimals: 18 }),
-        destToken: createDestToken(),
-        sourceTokenAmount: '0',
-      }),
+      useQuickBuyQuotes(
+        quotesParams({
+          sourceToken: createSourceToken({ decimals: 18 }),
+          destToken: createDestToken(),
+          sourceTokenAmount: '0',
+        }),
+      ),
     );
 
     act(() => {
@@ -470,13 +531,15 @@ describe('useQuickBuyQuotes', () => {
 
   it('skips fetching when sourceToken.decimals is undefined', () => {
     renderHook(() =>
-      useQuickBuyQuotes({
-        sourceToken: createSourceToken({
-          decimals: undefined as unknown as number,
+      useQuickBuyQuotes(
+        quotesParams({
+          sourceToken: createSourceToken({
+            decimals: undefined as unknown as number,
+          }),
+          destToken: createDestToken(),
+          sourceTokenAmount: '0.001',
         }),
-        destToken: createDestToken(),
-        sourceTokenAmount: '0.001',
-      }),
+      ),
     );
 
     act(() => {
@@ -491,16 +554,18 @@ describe('useQuickBuyQuotes', () => {
     fetchQuotesMock.mockResolvedValue([fetched]);
 
     renderHook(() =>
-      useQuickBuyQuotes({
-        sourceToken: createSourceToken(),
-        destToken: createDestToken(),
-        sourceTokenAmount: '0.001',
-        analyticsContext: {
-          traderAddress: '0xTRADER',
-          caip19: 'eip155:8453/erc20:0xDEST',
-          amountUsd: 50,
-        },
-      }),
+      useQuickBuyQuotes(
+        quotesParams({
+          sourceToken: createSourceToken(),
+          destToken: createDestToken(),
+          sourceTokenAmount: '0.001',
+          analyticsContext: {
+            traderAddress: '0xTRADER',
+            caip19: 'eip155:8453/erc20:0xDEST',
+            amountUsd: 50,
+          },
+        }),
+      ),
     );
 
     act(() => {
@@ -534,15 +599,17 @@ describe('useQuickBuyQuotes', () => {
     fetchQuotesMock.mockRejectedValue(new Error('network error'));
 
     renderHook(() =>
-      useQuickBuyQuotes({
-        sourceToken: createSourceToken(),
-        destToken: createDestToken(),
-        sourceTokenAmount: '0.001',
-        analyticsContext: {
-          traderAddress: '0xTRADER',
-          caip19: 'eip155:8453/erc20:0xDEST',
-        },
-      }),
+      useQuickBuyQuotes(
+        quotesParams({
+          sourceToken: createSourceToken(),
+          destToken: createDestToken(),
+          sourceTokenAmount: '0.001',
+          analyticsContext: {
+            traderAddress: '0xTRADER',
+            caip19: 'eip155:8453/erc20:0xDEST',
+          },
+        }),
+      ),
     );
 
     act(() => {
@@ -561,16 +628,18 @@ describe('useQuickBuyQuotes', () => {
     fetchQuotesMock.mockResolvedValue([createFetchedQuote()]);
 
     renderHook(() =>
-      useQuickBuyQuotes({
-        sourceToken: createSourceToken(),
-        destToken: createDestToken(),
-        sourceTokenAmount: '0.001',
-        analyticsContext: {
-          traderAddress: '0xTRADER',
-          caip19: 'eip155:8453/erc20:0xDEST',
-          // amountUsd intentionally absent
-        },
-      }),
+      useQuickBuyQuotes(
+        quotesParams({
+          sourceToken: createSourceToken(),
+          destToken: createDestToken(),
+          sourceTokenAmount: '0.001',
+          analyticsContext: {
+            traderAddress: '0xTRADER',
+            caip19: 'eip155:8453/erc20:0xDEST',
+            // amountUsd intentionally absent
+          },
+        }),
+      ),
     );
 
     act(() => {
@@ -592,11 +661,13 @@ describe('useQuickBuyQuotes', () => {
       .mockRejectedValue(new Error('network error'));
 
     const { result } = renderHook(() =>
-      useQuickBuyQuotes({
-        sourceToken: createSourceToken(),
-        destToken: createDestToken(),
-        sourceTokenAmount: '0.001',
-      }),
+      useQuickBuyQuotes(
+        quotesParams({
+          sourceToken: createSourceToken(),
+          destToken: createDestToken(),
+          sourceTokenAmount: '0.001',
+        }),
+      ),
     );
 
     await act(async () => {
@@ -638,11 +709,13 @@ describe('useQuickBuyQuotes', () => {
     );
 
     const { result } = renderHook(() =>
-      useQuickBuyQuotes({
-        sourceToken: createSourceToken(),
-        destToken: createDestToken(),
-        sourceTokenAmount: '0.001',
-      }),
+      useQuickBuyQuotes(
+        quotesParams({
+          sourceToken: createSourceToken(),
+          destToken: createDestToken(),
+          sourceTokenAmount: '0.001',
+        }),
+      ),
     );
 
     act(() => {
@@ -661,11 +734,13 @@ describe('useQuickBuyQuotes', () => {
     fetchQuotesMock.mockResolvedValue([createFetchedQuote()]);
 
     const { result, rerender } = renderHook(() =>
-      useQuickBuyQuotes({
-        sourceToken: createSourceToken(),
-        destToken: createDestToken(),
-        sourceTokenAmount: '0.001',
-      }),
+      useQuickBuyQuotes(
+        quotesParams({
+          sourceToken: createSourceToken(),
+          destToken: createDestToken(),
+          sourceTokenAmount: '0.001',
+        }),
+      ),
     );
 
     await act(async () => {
@@ -690,11 +765,13 @@ describe('useQuickBuyQuotes', () => {
     fetchQuotesMock.mockResolvedValue([createFetchedQuote()]);
 
     const { result, rerender } = renderHook(() =>
-      useQuickBuyQuotes({
-        sourceToken: createSourceToken(),
-        destToken: createDestToken(),
-        sourceTokenAmount: '0.001',
-      }),
+      useQuickBuyQuotes(
+        quotesParams({
+          sourceToken: createSourceToken(),
+          destToken: createDestToken(),
+          sourceTokenAmount: '0.001',
+        }),
+      ),
     );
 
     await act(async () => {

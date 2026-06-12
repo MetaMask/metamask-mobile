@@ -33,6 +33,8 @@ import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
 import { Box } from '../../../Box/Box';
 import { AlignItems, FlexDirection } from '../../../Box/box.types';
 import Name from '../../../Name/Name';
@@ -80,6 +82,7 @@ function useRecipient(): Hex | undefined {
 export function MoneySentDetails() {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { transactionMeta } = useTransactionDetails();
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
@@ -118,11 +121,23 @@ export function MoneySentDetails() {
     if (!url) {
       return;
     }
+    trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
+      location: 'money_transaction_details',
+      text: strings('transaction_details.view_on_block_explorer'),
+      url,
+    });
     navigation.navigate(Routes.WEBVIEW.MAIN, {
       screen: Routes.WEBVIEW.SIMPLE,
       params: { url, title },
     });
-  }, [chainId, navigation, networkConfigurations, transactionMeta]);
+  }, [
+    chainId,
+    createEventBuilder,
+    navigation,
+    networkConfigurations,
+    trackEvent,
+    transactionMeta,
+  ]);
 
   return (
     <ScrollView>

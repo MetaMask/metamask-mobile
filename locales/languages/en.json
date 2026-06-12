@@ -118,7 +118,11 @@
       "title": "No quotes"
     },
     "account_no_funds": {
-      "message": "No funds available. Use a different account."
+      "message": "No funds available. Use a different account.",
+      "title": "Insufficient funds"
+    },
+    "fiat_buy_amount_limit": {
+      "title": "Amount out of range"
     },
     "headless_buy_error": {
       "title": "Fiat purchase failed",
@@ -1071,7 +1075,7 @@
       "followers_count": "{{count}} follower",
       "followers_count_plural": "{{count}} followers",
       "win_rate": "win rate",
-      "pnl_30d": "30D P&L",
+      "pnl_30d": "30D Return",
       "hold_time": "hold time",
       "hold_time_minutes": "{{count}}m",
       "hold_time_hours": "{{count}} hrs",
@@ -1094,7 +1098,7 @@
       "buy": "Buy",
       "bought": "{{name}} bought",
       "sold": "{{name}} sold",
-      "no_trades": "No trades for this interval",
+      "no_trades": "No trades yet",
       "closed_position": "Closed position",
       "fallback_title": "Position not available",
       "fallback_subtitle": "We couldn't load this position right now.",
@@ -1143,6 +1147,7 @@
   "perps": {
     "basic_functionality_disabled_title": "Perps is not available",
     "title": "Perps",
+    "transfer_to_perps": "Transfer to Perps",
     "perps_trading": "Perps trading",
     "perp_account_balance": "Perp account balance",
     "manage_balance": "Manage balance",
@@ -2041,13 +2046,13 @@
       "stocks_and_commodities": "Explore stocks and commodities",
       "tabs": {
         "crypto": "Crypto",
-        "stocks": "Stocks",
         "pre_ipo": "Pre-IPO",
-        "indices": "Indices",
-        "etfs": "ETFs",
-        "commodities": "Commodities",
         "forex": "Forex",
-        "new": "New"
+        "new": "New",
+        "stock": "Stocks",
+        "index": "Indices",
+        "etf": "ETFs",
+        "commodity": "Commodities"
       },
       "filter_by": "Filter by",
       "forex": "Forex",
@@ -2142,6 +2147,16 @@
     "search_by_token_symbol": "Search by token symbol",
     "no_favorites_found": "No markets in watchlist",
     "no_favorites_description": "Tap the star icon on any market to add it to your watchlist",
+    "watchlist": {
+      "empty_title": "Start with the most-traded markets",
+      "empty_subtitle": "Tap + to add a market to your watchlist.",
+      "show_more": "Show {{count}} more",
+      "show_less": "Show less",
+      "add_error": "Failed to add market to watchlist",
+      "limit_reached": "Watchlist limit reached ({{limit}} markets max)",
+      "filter_badge_label": "Watchlist",
+      "suggested": "Suggested"
+    },
     "no_tokens_found": "No tokens found",
     "no_tokens_found_description": "We couldn't find any tokens with the name \"{{searchQuery}}\". Try a different search.",
     "testnet": "Testnet",
@@ -2274,6 +2289,9 @@
       "share_failed": "Failed to export image",
       "export_success": "Exported image",
       "referral_code_text": "Use my referral code to earn extra rewards."
+    },
+    "market_details": {
+      "category_search": "Browse related markets"
     }
   },
   "market_insights": {
@@ -2309,8 +2327,10 @@
   },
   "predict": {
     "title": "MetaMask Predictions",
+    "transfer_to_predictions": "Transfer to Predictions",
+    "select_predict_account": "Select predict account",
+    "search_account": "Search an account",
     "home": {
-      "portfolio_module_placeholder": "Portfolio module",
       "live_now_title": "Live now",
       "categories_placeholder": "Categories",
       "popular_today_placeholder": "Popular today",
@@ -2323,7 +2343,7 @@
       "nba_2026_champion_title": "NBA 2026 Champion",
       "fifa_world_cup_2026_title": "FIFA World Cup 2026",
       "events_in_total": "{{count}} events in total",
-      "events_in_total_overflow": "{{count}}+ events in total",
+      "events_in_total_overflow": "{{count}}+ markets in total",
       "props_pill": "Props",
       "championship_unavailable": "No championship market to show yet.",
       "mens_world_cup_title": "Men's World Cup",
@@ -6866,8 +6886,6 @@
     "apy_label": "{{percentage}}% APY",
     "apy_currency_suffix": " • mUSD",
     "apy_info_label": "APY info",
-    "deposit_tooltip_title": "Earn up to {{percentage}}%",
-    "deposit_tooltip_description": "Add funds to your Money account and earn up to {{percentage}}% APY automatically. You can add funds by converting your existing stablecoin balance or depositing directly from your bank or card.",
     "balance_unavailable": "Balance unavailable",
     "balance_retry": "Retry",
     "balance_no_account": "Money account not found",
@@ -6909,7 +6927,7 @@
     },
     "action": {
       "add": "Add",
-      "transfer": "Transfer",
+      "transfer": "Send",
       "card": "Card"
     },
     "earnings": {
@@ -6990,13 +7008,10 @@
     "add_money_sheet": {
       "title": "Add funds",
       "convert_crypto": "Convert crypto",
-      "convert_crypto_description": "From any account",
-      "deposit_funds": "Deposit funds",
-      "deposit_funds_description": "From debit card or bank",
-      "move_musd": "Add your {{amount}} mUSD",
+      "deposit_funds": "Debit card or bank",
+      "move_musd": "Your {{amount}} mUSD",
       "add_musd": "Add mUSD",
-      "move_musd_description": "From your balance",
-      "receive_external": "Receive from external wallet",
+      "receive_external": "External wallet",
       "coming_soon": "Coming soon"
     },
     "more_sheet": {
@@ -7006,12 +7021,12 @@
       "contact_support": "Contact support"
     },
     "transfer_sheet": {
-      "title": "Transfer funds to",
+      "title": "Send funds to",
       "between_accounts": "Another account",
       "perps_account": "Perps account",
       "predictions_account": "Predictions account",
-      "send_external": "Send to external address",
-      "withdraw_to_bank": "Withdraw to bank"
+      "send_external": "External address",
+      "withdraw_to_bank": "Bank"
     },
     "toasts": {
       "in_progress_title": "Transaction in progress",
@@ -7039,7 +7054,8 @@
       "title": "Annual Percentage Yield (APY)",
       "paragraph_1": "Your Money account earns up to {{percentage}}% automatically.",
       "paragraph_2": "The rate shown is an estimated Annual Percentage Yield (APY) based on current market conditions. APY is variable and may change due to various factors. The rate is generated by third-party DeFi platforms that deploy funds in blockchain protocols.",
-      "paragraph_3": "When you link your MetaMask Card, purchases will be deducted from this balance."
+      "paragraph_3": "When you link your MetaMask Card, purchases will be deducted from this balance.",
+      "deposit_body": "The rate shown is an estimated Annual Percentage Yield (APY) based on current market conditions. APY is variable and is not guaranteed."
     },
     "earnings_tooltip": {
       "title": "Estimated earnings",
@@ -7047,7 +7063,8 @@
     },
     "earn_crypto_info_sheet": {
       "title": "Earn on your crypto",
-      "body": "Projection assumes {{percentage}}% Annual Percentage Yield (APY) remains unchanged for one year. APY is variable and is not guaranteed. No guarantee of return."
+      "deposit_title": "Projected 1-year balance",
+      "body": "Projection assumes {{percentage}}% Annual Percentage Yield (APY) remains unchanged for one year. APY is variable and is not guaranteed."
     },
     "activity": {
       "title": "Activity",
@@ -7395,7 +7412,7 @@
       "other_assets": "Other assets",
       "other_assets_description": "Select from your tokens",
       "other_assets_receive_description": "Select the token you want to receive",
-      "money_balance": "Money balance"
+      "money_account": "Money account"
     },
     "staking_footer": {
       "part1": "By continuing, you agree to our ",
@@ -7421,6 +7438,7 @@
       "pay_with": "Pay with",
       "payment_method": "Payment method",
       "receive_as": "Receive",
+      "select_token": "Select token",
       "from": "From",
       "to": "To",
       "total": "Total",
@@ -7573,7 +7591,7 @@
       "buy_predict": "Add funds to your wallet to use Predictions.",
       "buy_perps": "Add funds to your wallet to use Perps.",
       "projected_balance": "Projected {{projectedYears}}-year balance:",
-      "earn_up_to_apy": "Earn up to {{percentage}}% APY"
+      "earn_up_to_apy": "Earn {{percentage}}% APY"
     },
     "unlimited": "Unlimited",
     "all": "All",
@@ -8755,7 +8773,8 @@
     "vip": {
       "progress_to_next_tier": "{{pointsRemaining}} points to next tier",
       "bps_unit": "bps",
-      "badge_label": "VIP Fox {{tier}}",
+      "badge_label": "VIP {{tier}}",
+      "referral_tag_label": "VIP",
       "swaps_label": "Swaps",
       "perps_label": "Perps",
       "points_label": "Points",
@@ -8780,7 +8799,22 @@
       "retry_button": "Retry",
       "tiers_title": "Tiers",
       "tier_thresholds": "{{points}} points",
-      "bps_value": "{{bps}} bps"
+      "bps_value": "{{bps}} bps",
+      "referee_splash_title": "WELCOME\nTO GOLD\nFOX VIP",
+      "referee_splash_description": "Unlock exclusive perks, early features, and curated rewards. By invitation only.",
+      "referee_splash_continue": "Continue",
+      "referee_splash_not_now": "Not now",
+      "referee_referred_by": "Referred by {{code}}",
+      "referee_page_title": "VIP Pilot",
+      "referee_stats_title": "Stats",
+      "referee_period_last_30d": "Last 30d",
+      "referee_points_label": "Points",
+      "referee_swaps_volume_label": "Swaps volume",
+      "referee_perps_volume_label": "Perps volume",
+      "referee_error_title": "We couldn’t load your VIP referee details",
+      "referee_error_description": "Check your connection and try again.",
+      "referral_tag_label": "VIP",
+      "last_updated": "Last updated: {{time}}"
     },
     "referral_title": "Referrals",
     "referral_stats_earned_from_referrals": "Earned from referrals",
@@ -9084,6 +9118,7 @@
       "total_participants": "Total participants",
       "total_volume": "Total volume",
       "top_return": "Top return",
+      "top_pnl": "Top PnL",
       "total_winners": "Total winners"
     },
     "campaign_prize_pool": {
@@ -9213,11 +9248,7 @@
       "stats_qualify_for_rank_description": "Trade {{notionalRemaining}} more in notional volume to become eligible.",
       "stats_error_title": "Unable to load stats",
       "stats_error_description": "We had a problem loading your stats. Please try again.",
-      "stats_retry": "Retry",
-      "completed_label_total_participants": "Total participants",
-      "completed_label_total_volume": "Total volume",
-      "completed_label_top_pnl": "Top PnL",
-      "completed_label_winners": "Winners"
+      "stats_retry": "Retry"
     },
     "predict_the_pitch_campaign": {
       "title": "Predict The Pitch",
@@ -9229,6 +9260,11 @@
       "label_pnl": "PnL",
       "predict_now_cta": "Predict now",
       "positions_title": "Your predictions",
+      "positions_open_section": "Open",
+      "positions_closed_section": "Closed",
+      "position_sold_at": "Sold {{time}}",
+      "positions_open_badge": "{{count}} open",
+      "positions_closed_badge": "{{count}} closed",
       "positions_error": "Failed to load predictions",
       "positions_error_description": "Something went wrong while loading your predictions. Please try again.",
       "positions_retry": "Retry",
@@ -9243,7 +9279,13 @@
       "leaderboard_not_yet_computed": "Leaderboard hasn't been computed yet. Check back soon.",
       "stats_error_title": "Unable to load stats",
       "stats_error_description": "We had a problem loading your stats. Please try again.",
-      "stats_retry": "Retry"
+      "label_markets_traded": "Markets traded",
+      "stats_retry": "Retry",
+      "performance_title": "Performance",
+      "stats_qualified_title": "You're qualified",
+      "stats_qualified_description": "Keep trading to improve your ROI and climb the leaderboard before the competition ends.",
+      "stats_qualify_for_rank_title": "Qualify for the leaderboard",
+      "stats_qualify_for_rank_description": "Trade at least $10 in at least 3 eligible markets before the competition ends."
     },
     "campaigns_preview": {
       "title": "Campaigns",

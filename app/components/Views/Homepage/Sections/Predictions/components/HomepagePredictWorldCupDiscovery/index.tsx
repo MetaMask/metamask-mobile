@@ -47,6 +47,7 @@ export interface HomepagePredictWorldCupDiscoveryProps {
   ) => void;
   headerTestIdKey: PredictionsTrendingHeaderTestId;
   worldCup: UseHomepagePredictWorldCupMarketsResult;
+  worldCupEventCount?: number;
   nbaChampion: UseHomepagePredictTaggedMarketsResult;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   onTreatmentCtaClick?: (
@@ -62,6 +63,7 @@ const HomepagePredictWorldCupDiscovery: React.FC<
   onViewAll,
   headerTestIdKey,
   worldCup,
+  worldCupEventCount,
   nbaChampion,
   transactionActiveAbTests,
   onTreatmentCtaClick,
@@ -93,7 +95,7 @@ const HomepagePredictWorldCupDiscovery: React.FC<
       ? WORLD_CUP_CTA_CATEGORY_NAME
       : 'nba';
 
-  const { marketData, isFetching, hasMore } = worldCup;
+  const { marketData, isFetching } = worldCup;
   const { marketData: nbaMarketData, isFetching: isNbaFetching } = nbaChampion;
 
   const isInitialLoad = isFetching && marketData.length === 0;
@@ -102,14 +104,15 @@ const HomepagePredictWorldCupDiscovery: React.FC<
     isNbaFetching &&
     nbaMarketData.length === 0;
 
-  const eventCountLabel = useMemo(() => {
-    const n = marketData.length;
-    const i18nKey =
-      n > 0 && hasMore
-        ? 'predict.homepage_discovery.events_in_total_overflow'
-        : 'predict.homepage_discovery.events_in_total';
-    return strings(i18nKey, { count: n });
-  }, [marketData.length, hasMore]);
+  const eventCountLabel = useMemo(
+    () =>
+      worldCupEventCount === undefined
+        ? undefined
+        : strings('predict.homepage_discovery.events_in_total_overflow', {
+            count: worldCupEventCount,
+          }),
+    [worldCupEventCount],
+  );
 
   const championshipRow: ChampionshipRowState = useMemo(() => {
     if (championshipRowKind === 'nba') {

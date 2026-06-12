@@ -59,6 +59,14 @@ export function QuickBuyPercentageSlider({
     [translateX],
   );
 
+  // Fired when the user grabs the handle (pan start) and again when they let
+  // go (pan end) — a tactile "pick up / drop" pair distinct from the per-tick
+  // SliderTick crossings.
+  const handleGrip = useCallback(() => {
+    if (disabled) return;
+    playImpact(ImpactMoment.SliderGrip);
+  }, [disabled]);
+
   const checkThresholdCrossing = useCallback((nextValue: number) => {
     const prevValue = previousValueRef.current;
     for (const threshold of HAPTIC_THRESHOLDS) {
@@ -150,12 +158,18 @@ export function QuickBuyPercentageSlider({
       runOnJS(commitFromPosition)(event.x, sliderWidth.value);
     }),
     Gesture.Pan()
+      .onStart(() => {
+        // Pick up — fire the grip haptic the moment the drag is recognized.
+        runOnJS(handleGrip)();
+      })
       .onUpdate((event) => {
         runOnJS(updateValueFromPosition)(event.x, sliderWidth.value);
       })
       .onEnd((event) => {
         // Commit the final position when the user lifts their finger.
         runOnJS(commitFromPosition)(event.x, sliderWidth.value);
+        // Drop — fire the grip haptic again on release.
+        runOnJS(handleGrip)();
       }),
   );
 
