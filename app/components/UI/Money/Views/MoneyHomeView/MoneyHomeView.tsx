@@ -163,6 +163,7 @@ const MoneyHomeView = () => {
     isCardAuthenticated,
     isCardLinkedToMoneyAccount,
     isLinking,
+    hasMoneyAccountRequirements,
   } = useMoneyAccountCardLinkage();
 
   let displayState: MoneyBalanceDisplayState;
@@ -561,11 +562,11 @@ const MoneyHomeView = () => {
     [navigation, trackActivitySurfaceClicked],
   );
 
-  let metamaskCardMode: 'upsell' | 'link' | 'manage';
+  let metamaskCardMode: 'upsell' | 'link' | 'manage' | null;
   if (isCardLinkedToMoneyAccount) {
     metamaskCardMode = 'manage';
   } else if (isCardAuthenticated || isCardholder) {
-    metamaskCardMode = 'link';
+    metamaskCardMode = hasMoneyAccountRequirements ? 'link' : null;
   } else {
     metamaskCardMode = 'upsell';
   }
@@ -690,23 +691,27 @@ const MoneyHomeView = () => {
             <Divider />
           </>
         )}
-        <MoneyMetaMaskCard
-          mode={metamaskCardMode}
-          onGetNowPress={navigateToCardHome}
-          onHeaderPress={handleCardHeaderPress}
-          onLinkPress={handleLinkCardPress}
-          onManagePress={navigateToCardHome}
-          showMetalCard={hasMetalCard}
-          isLinkDisabled={isLinking}
-          cardBalance={cardBalance}
-          apy={apyPercent}
-          analyticsScreen={CardScreens.MONEY_HOME}
-          analyticsEntryPoint={CardEntryPoint.MONEY_HOME_METAMASK_CARD}
-          analyticsFlow={CardFlow.MONEY_ACCOUNT_LINKAGE}
-          analyticsCardState={cardState}
-          analyticsReady={isCardAnalyticsReady}
-        />
-        <Divider />
+        {metamaskCardMode && (
+          <>
+            <MoneyMetaMaskCard
+              mode={metamaskCardMode}
+              onGetNowPress={navigateToCardHome}
+              onHeaderPress={handleCardHeaderPress}
+              onLinkPress={handleLinkCardPress}
+              onManagePress={navigateToCardHome}
+              showMetalCard={hasMetalCard}
+              isLinkDisabled={isLinking}
+              cardBalance={cardBalance}
+              apy={apyPercent}
+              analyticsScreen={CardScreens.MONEY_HOME}
+              analyticsEntryPoint={CardEntryPoint.MONEY_HOME_METAMASK_CARD}
+              analyticsFlow={CardFlow.MONEY_ACCOUNT_LINKAGE}
+              analyticsCardState={cardState}
+              analyticsReady={isCardAnalyticsReady}
+            />
+            <Divider />
+          </>
+        )}
         {isFunded && (
           <>
             <MoneyCondensedInfoCards
