@@ -55,8 +55,13 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
 }) => {
   const tw = useTailwind();
 
-  const isPnlPositive = trader.pnlValue >= 0;
   const pnlText = formatFullPnl(trader.pnlValue);
+  const pnlColorClass =
+    trader.pnlValue == null
+      ? undefined
+      : trader.pnlValue >= 0
+        ? 'text-success-default'
+        : 'text-error-default';
 
   return (
     <Box
@@ -114,9 +119,8 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
               <Text
                 variant={TextVariant.BodySm}
                 fontWeight={FontWeight.Medium}
-                twClassName={
-                  isPnlPositive ? 'text-success-default' : 'text-error-default'
-                }
+                twClassName={pnlColorClass}
+                color={pnlColorClass ? undefined : TextColor.TextAlternative}
               >
                 {pnlText}
               </Text>

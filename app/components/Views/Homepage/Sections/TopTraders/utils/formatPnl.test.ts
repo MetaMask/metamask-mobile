@@ -36,4 +36,22 @@ describe('formatFullPnl', () => {
       expect(formatFullPnl(-1_200_000)).toBe('-$1,200,000.00');
     });
   });
+
+  describe('missing / invalid values', () => {
+    it('returns an em-dash for null', () => {
+      expect(formatFullPnl(null)).toBe('—');
+    });
+
+    it('returns an em-dash for undefined', () => {
+      expect(formatFullPnl(undefined)).toBe('—');
+    });
+
+    it('returns an em-dash for NaN', () => {
+      expect(formatFullPnl(NaN)).toBe('—');
+    });
+
+    it('returns an em-dash for Infinity', () => {
+      expect(formatFullPnl(Infinity)).toBe('—');
+    });
+  });
 });
