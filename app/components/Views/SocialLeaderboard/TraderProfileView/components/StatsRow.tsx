@@ -61,7 +61,7 @@ const StatsRow: React.FC<StatsRowProps> = ({ stats, holdTimeMinutes }) => {
       : '\u2014';
   const isWinRatePositive = (stats.winRate30d ?? 0) > 0;
 
-  const pnlValue = stats.pnl7d ?? stats.pnl30d;
+  const pnlValue = stats.pnl7d;
   const hasPnl = pnlValue != null;
   const pnl = pnlValue != null ? formatPnlWithCents(pnlValue) : '\u2014';
   const isPnlPositive = pnlValue != null && pnlValue >= 0;

@@ -44,21 +44,10 @@ describe('StatsRow', () => {
     expect(screen.getByText('+$20,610.00')).toBeOnTheScreen();
   });
 
-  it('falls back to pnl30d when pnl7d is absent (backend transition)', () => {
-    const stats = {
-      ...baseStats,
-      pnl7d: undefined,
-      pnl30d: 15000,
-    } as unknown as TraderStats;
-    renderWithProvider(<StatsRow stats={stats} />);
-    expect(screen.getByText('+$15,000.00')).toBeOnTheScreen();
-  });
-
   it('renders dash when pnl7d is null', () => {
     const stats = {
       ...baseStats,
       pnl7d: null,
-      pnl30d: undefined,
     } as unknown as TraderStats;
     renderWithProvider(<StatsRow stats={stats} />);
     const dashes = screen.getAllByText('\u2014');
