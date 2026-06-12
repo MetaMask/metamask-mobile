@@ -1,6 +1,7 @@
 import {
-  AvatarBase,
-  AvatarBaseSize,
+  AvatarAccount,
+  AvatarAccountSize,
+  AvatarAccountVariant,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -20,6 +21,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import { TopRankAvatar, TopRankIndicator } from '../topRank';
 import type { TopTrader } from '../types';
 import { formatPnl } from '../utils/formatPnl';
+import { hasRealAvatar } from '../utils/avatarFallback';
 
 const AVATAR_SIZE = 40;
 // Fixed row height so the skeleton placeholder can match it exactly without
@@ -89,7 +91,7 @@ const TraderRow: React.FC<TraderRowProps> = ({
           />
 
           <TopRankAvatar rank={trader.overallRank}>
-            {trader.avatarUri ? (
+            {hasRealAvatar(trader.avatarUri) ? (
               <Image
                 source={{ uri: trader.avatarUri }}
                 style={tw.style(
@@ -98,9 +100,11 @@ const TraderRow: React.FC<TraderRowProps> = ({
                 resizeMode="cover"
               />
             ) : (
-              <AvatarBase
-                size={AvatarBaseSize.Lg}
-                fallbackText={trader.username.charAt(0).toUpperCase()}
+              <AvatarAccount
+                variant={AvatarAccountVariant.Maskicon}
+                address={trader.address}
+                size={AvatarAccountSize.Lg}
+                twClassName="rounded-full"
               />
             )}
           </TopRankAvatar>

@@ -289,11 +289,35 @@ class PerpsView {
   }
 
   async tapClosePositionButton() {
-    await Gestures.waitAndTap(this.closePositionButton, {
-      elemDescription: 'Close position button',
-      checkStability: true,
-      timeout: 15000,
-    });
+    await Utilities.waitUntil(
+      async () => {
+        if (
+          await Utilities.isElementVisible(
+            this.closePositionBottomSheetButton,
+            400,
+          )
+        ) {
+          return true;
+        }
+
+        if (await Utilities.isElementVisible(this.closePositionButton, 400)) {
+          await Gestures.waitAndTap(this.closePositionButton, {
+            elemDescription: 'Close position button',
+            checkStability: true,
+            timeout: 5000,
+          });
+        }
+
+        return Utilities.isElementVisible(
+          this.closePositionBottomSheetButton,
+          800,
+        );
+      },
+      {
+        interval: 500,
+        timeout: 15000,
+      },
+    );
   }
 
   async tapConfirmClosePositionButton() {
