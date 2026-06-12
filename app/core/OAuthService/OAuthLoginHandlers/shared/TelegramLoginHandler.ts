@@ -21,6 +21,7 @@ import {
 } from '../baseHandler';
 import { isRetryableError, retryWithDelay } from '../utils';
 import { OAuthError, OAuthErrorType } from '../../error';
+import { AuthRequest } from 'expo-auth-session';
 
 const TELEGRAM_AUTH_SERVER_INITIATE_PATH = '/api/v2/telegram/login/initiate';
 const TELEGRAM_AUTH_SERVER_VERIFY_PATH = '/api/v2/telegram/login/verify';
@@ -192,15 +193,51 @@ export class TelegramLoginHandler extends BaseLoginHandler {
     initiateUrl.searchParams.set('app_redirect_uri', this.redirectUri);
     initiateUrl.searchParams.set('code_challenge', challenge);
 
-    await this.loginWithAuthSession(initiateUrl.toString());
-
-    return {
-      authConnection: this.authConnection,
-      code: challenge,
+    const authRequest = new AuthRequest({
       clientId: this.clientId,
       redirectUri: this.redirectUri,
-      codeVerifier,
-    };
+    });
+
+    const result = await authRequest.promptAsync(
+      {},
+      { url: initiateUrl.toString() },
+    );
+
+    if (result.type === 'success') {
+      return {
+        authConnection: this.authConnection,
+        code: challenge,
+        clientId: this.clientId,
+        redirectUri: this.redirectUri,
+        codeVerifier,
+      };
+    }
+
+    if (result.type === 'error') {
+      if (result.error) {
+        throw new OAuthError(result.error.message, OAuthErrorType.LoginError);
+      }
+      throw new OAuthError(
+        'TelegramLoginHandler: Unknown error',
+        OAuthErrorType.TelegramLoginError,
+      );
+    }
+    if (result.type === 'cancel') {
+      throw new OAuthError(
+        'TelegramLoginHandler: User cancelled the login process',
+        OAuthErrorType.UserCancelled,
+      );
+    }
+    if (result.type === 'dismiss') {
+      throw new OAuthError(
+        'TelegramLoginHandler: User dismissed the login process',
+        OAuthErrorType.UserDismissed,
+      );
+    }
+    throw new OAuthError(
+      'TelegramLoginHandler: Unknown error',
+      OAuthErrorType.TelegramLoginError,
+    );
   }
 
   async loginWithAuthSession(authorizationUrl: string): Promise<string> {
