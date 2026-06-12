@@ -186,7 +186,7 @@ const fixtureProfile: TraderProfileResponse = {
     imageUrl: 'https://example.com/avatar.png',
   },
   stats: {
-    pnl30d: 20610,
+    pnl7d: 20610,
     winRate30d: 0.92,
     roiPercent30d: 1.5,
     tradeCount30d: 48,
@@ -859,10 +859,10 @@ describe('TraderProfileView', () => {
       expect(screen.getByText('+$7,500.00')).toBeOnTheScreen();
     });
 
-    it('falls back to the global stats.pnl30d when perChainPnl is empty', () => {
+    it('falls back to the global stats.pnl7d when perChainPnl is empty', () => {
       mockProfileResult.profile = {
         ...fixtureProfile,
-        stats: { ...fixtureProfile.stats, pnl30d: 20_610 },
+        stats: { ...fixtureProfile.stats, pnl7d: 20_610 },
         perChainBreakdown: {
           perChainPnl: {},
           perChainRoi: {},
