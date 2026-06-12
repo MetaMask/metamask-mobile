@@ -50,7 +50,7 @@ export default defineConfig({
   fullyParallel: false,
   // Per-test timeout: cold WDA build on CI can take up to 10 min plus test time.
   timeout: 15 * 60 * 1000,
-  retries: 1,
+  retries: process.env.CI === 'true' ? 1 : 0,
   reporter: [
     ['html', { open: 'never', outputFolder: htmlReportDir }],
     ['junit', { outputFile: junitReportPath }],
