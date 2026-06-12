@@ -37,6 +37,8 @@ const AssetDetailsQuickBuy: React.FC<AssetDetailsQuickBuyProps> = ({
   const tokenAddress = token?.address;
   const tokenSymbol = token?.symbol;
   const tokenName = token?.name;
+  const tokenDecimals = token?.decimals;
+  const tokenImage = token?.image;
 
   const target = useMemo<QuickBuyTarget | null>(() => {
     if (!chainId || !tokenAddress) {
@@ -54,8 +56,20 @@ const AssetDetailsQuickBuy: React.FC<AssetDetailsQuickBuyProps> = ({
       tokenSymbol: tokenSymbol ?? '',
       tokenName: tokenName ?? tokenSymbol ?? '',
       chain,
+      // The asset page already holds the fully-resolved token; passing its
+      // metadata lets QuickBuy build the dest token without a metadata fetch
+      // (required for chains the metadata lookup can't validate, e.g. Tron).
+      tokenDecimals,
+      tokenImage,
     };
-  }, [chainId, tokenAddress, tokenSymbol, tokenName]);
+  }, [
+    chainId,
+    tokenAddress,
+    tokenSymbol,
+    tokenName,
+    tokenDecimals,
+    tokenImage,
+  ]);
 
   const analyticsContext: QuickBuyAnalyticsContext = { source };
 

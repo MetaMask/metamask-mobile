@@ -85,6 +85,41 @@ describe('AssetDetailsQuickBuy', () => {
     );
   });
 
+  it('forwards host token metadata (decimals + image) into the target', () => {
+    // Arrange — a Tron TRC-20 asset as it appears on the asset-details page:
+    // CAIP chain id and CAIP-19 address, with metadata already resolved.
+    mockFormatChainIdToCaip.mockImplementation((chainId: string) => chainId);
+    const tronToken = {
+      address: 'tron:728126428/trc20:TUPM7K8REVzD2UdV4R5fe5M8XbnR2DdoJ6',
+      symbol: 'HTX',
+      name: 'HTX DAO',
+      chainId: 'tron:728126428',
+      decimals: 18,
+      image: 'https://example.com/htx.png',
+    } as unknown as TokenDetailsRouteParams;
+
+    // Act
+    render(
+      <AssetDetailsQuickBuy isVisible token={tronToken} onClose={jest.fn()} />,
+    );
+
+    // Assert — decimals/image ride along so QuickBuy can build the dest
+    // token without a metadata fetch.
+    expect(mockQuickBuyRoot).toHaveBeenCalledWith(
+      expect.objectContaining({
+        target: {
+          tokenAddress:
+            'tron:728126428/trc20:TUPM7K8REVzD2UdV4R5fe5M8XbnR2DdoJ6',
+          tokenSymbol: 'HTX',
+          tokenName: 'HTX DAO',
+          chain: 'tron:728126428',
+          tokenDecimals: 18,
+          tokenImage: 'https://example.com/htx.png',
+        },
+      }),
+    );
+  });
+
   it('passes null target when token has no address', () => {
     const tokenNoAddress = {
       symbol: 'TKN',

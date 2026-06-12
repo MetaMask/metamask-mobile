@@ -24,13 +24,21 @@ const AnimatedScrollView = Animated.createAnimatedComponent(
  */
 const QuickBuyAmountScreen: React.FC = () => {
   const tw = useTailwind();
-  const { isUnsupportedChain } = useQuickBuyContext();
+  const { isUnsupportedChain, isDestTokenUnavailable } = useQuickBuyContext();
 
-  if (isUnsupportedChain) {
+  // Both states are terminal for this sheet: without a supported chain and a
+  // resolved destination token, quotes can never be fetched. Replace the buy
+  // flow with an explicit message instead of leaving the Buy button silently
+  // disabled with no feedback (TSA-659).
+  if (isUnsupportedChain || isDestTokenUnavailable) {
     return (
       <Box twClassName="px-4 py-8" alignItems={BoxAlignItems.Center}>
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {strings('social_leaderboard.quick_buy.unsupported_chain')}
+          {strings(
+            isUnsupportedChain
+              ? 'social_leaderboard.quick_buy.unsupported_chain'
+              : 'social_leaderboard.quick_buy.token_unavailable',
+          )}
         </Text>
       </Box>
     );

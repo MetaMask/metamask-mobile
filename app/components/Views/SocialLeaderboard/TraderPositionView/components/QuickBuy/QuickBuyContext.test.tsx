@@ -45,6 +45,7 @@ const buildController = (
   destToken: undefined,
   isSetupLoading: false,
   isUnsupportedChain: false,
+  isDestTokenUnavailable: false,
   sourceToken: undefined,
   sourceChainId: '0x1',
   sourceTokenOptions: [],

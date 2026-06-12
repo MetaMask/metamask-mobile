@@ -28,6 +28,7 @@ jest.mock('@metamask/bridge-controller', () => ({
   },
   isNonEvmChainId: (chainId: string) =>
     !chainId.startsWith('0x') && !chainId.startsWith('eip155:'),
+  isTronChainId: (chainId: string) => chainId.startsWith('tron:'),
   isNativeAddress: () => false,
   getNativeAssetForChainId: () => undefined,
 }));

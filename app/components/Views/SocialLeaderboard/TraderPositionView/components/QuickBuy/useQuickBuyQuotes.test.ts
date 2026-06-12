@@ -397,6 +397,43 @@ describe('useQuickBuyQuotes', () => {
     );
   });
 
+  it('issues a quote request for a Tron destination (TRC-20) pair', async () => {
+    // Arrange — EVM source paying for HTX on Tron, the TSA-659 repro pair.
+    // The dest token carries the CAIP-19 trc20 assetId in `address`, as
+    // resolved by useQuickBuySetup for non-EVM chains.
+    fetchQuotesMock.mockResolvedValue([]);
+    const tronDestToken = createDestToken({
+      address: 'tron:728126428/trc20:TUPM7K8REVzD2UdV4R5fe5M8XbnR2DdoJ6',
+      chainId: 'tron:728126428',
+      decimals: 18,
+      symbol: 'HTX',
+      name: 'HTX DAO',
+    });
+
+    // Act
+    renderHook(() =>
+      useQuickBuyQuotes({
+        sourceToken: createSourceToken(),
+        destToken: tronDestToken,
+        sourceTokenAmount: '0.001',
+      }),
+    );
+    act(() => {
+      jest.advanceTimersByTime(QUICK_BUY_QUOTE_DEBOUNCE_MS);
+    });
+
+    // Assert — the request IS issued (no silent dead-end) with the CAIP
+    // chain id and the bare base58 token address bridge-api expects.
+    await waitFor(() => expect(fetchQuotesMock).toHaveBeenCalled());
+    const [request] = fetchQuotesMock.mock.calls[0];
+    expect(request).toMatchObject({
+      srcChainId: '1',
+      destChainId: 'tron:728126428',
+      destTokenAddress: 'TUPM7K8REVzD2UdV4R5fe5M8XbnR2DdoJ6',
+      walletAddress: '0xWALLET',
+    });
+  });
+
   it('flags isNoQuotesAvailable when fetchQuotes returns an empty array', async () => {
     fetchQuotesMock.mockResolvedValue([]);
 
