@@ -80,6 +80,7 @@ import PerpsOHLCVBar from '../../components/PerpsOHLCVBar';
 import PerpsOICapWarning from '../../components/PerpsOICapWarning';
 import PerpsPositionCard from '../../components/PerpsPositionCard';
 import PerpsPriceDeviationWarning from '../../components/PerpsPriceDeviationWarning';
+import PerpsRelatedMarkets from '../../components/PerpsRelatedMarkets';
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
 import PerpsStopLossPromptBanner from '../../components/PerpsStopLossPromptBanner';
 import TradingViewChart, {
@@ -122,6 +123,7 @@ import { selectPerpsChartPreferredCandlePeriod } from '../../selectors/chartPref
 import {
   selectPerpsButtonColorTestVariant,
   selectPerpsOrderBookEnabledFlag,
+  selectPerpsRelatedMarketsEnabledFlag,
   selectPerpsServiceInterruptionBannerEnabledFlag,
 } from '../../selectors/featureFlags';
 import {
@@ -202,6 +204,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     transactionActiveAbTests,
   } = route.params || {};
   const { track } = usePerpsEventTracking();
+  const isRelatedMarketsEnabled = useSelector(
+    selectPerpsRelatedMarketsEnabledFlag,
+  );
   const { showToast, PerpsToastOptions } = usePerpsToasts();
 
   // Get full market data from stream to ensure all fields (including maxLeverage) are available
@@ -211,7 +216,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     typeof routeMarket?.maxLeverage === 'string' &&
     routeMarket.maxLeverage.endsWith('x');
   const needsEnrichment = !hasFormattedMaxLeverage;
-  const { markets } = usePerpsMarkets({ skipInitialFetch: !needsEnrichment });
+  const { markets } = usePerpsMarkets({
+    skipInitialFetch: !needsEnrichment,
+  });
   const market = useMemo(() => {
     // If route market already has all required fields, use it directly
     if (!needsEnrichment) return routeMarket;
@@ -262,6 +269,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const isPerpsInsightsEnabled = useSelector(selectMarketInsightsPerpsEnabled);
   const {
     report: perpsInsightsReport,
+    reportAssetId: perpsInsightsAssetId,
     timeAgo: perpsInsightsTimeAgo,
     isLoading: isPerpsInsightsLoading,
   } = useMarketInsights(market?.symbol, isPerpsInsightsEnabled);
@@ -584,12 +592,20 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // reflects the actual display state rather than a loading-time snapshot.
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+    resetKey: market?.symbol,
     conditions: [
       !!market,
       !!marketStats,
       !isLoadingHistory,
       !isLoadingPosition,
       !isPerpsInsightsLoading,
+      // Guard against stale insights from a prior symbol (the loading flag
+      // may not flip to true until the next render after a symbol change).
+      // Uses reportAssetId (the input identifier) instead of report.asset
+      // to avoid casing mismatches between the API response and market symbol.
+      !isPerpsInsightsEnabled ||
+        !perpsInsightsReport ||
+        perpsInsightsAssetId === market?.symbol,
     ],
     properties: {
       [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
@@ -1505,6 +1521,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               }
             />
           </View>
+
+          {/* Related Markets Section */}
+          {isRelatedMarketsEnabled && market ? (
+            <PerpsRelatedMarkets currentMarket={market} />
+          ) : null}
 
           {/* Recent Trades Section */}
           {market?.symbol && (
