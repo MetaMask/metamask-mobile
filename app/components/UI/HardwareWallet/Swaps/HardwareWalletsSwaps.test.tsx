@@ -150,7 +150,7 @@ const signingStep = step(Approval, Signing);
 
 const defaultBridgeState: HardwareWalletsSwapsState = {
   status: HardwareWalletsSwapsStatus.Waiting,
-  currentStep: 1,
+  currentStep: 0,
   totalSteps: 2,
   disconnectedStep: null,
   steps: defaultSteps,
@@ -158,13 +158,13 @@ const defaultBridgeState: HardwareWalletsSwapsState = {
 
 const SUBMITTED_STATE: Partial<HardwareWalletsSwapsState> = {
   status: HardwareWalletsSwapsStatus.Submitted,
-  currentStep: 2,
+  currentStep: 1,
   steps: signedSteps,
 };
 
 const DISCONNECTED_STATE: Partial<HardwareWalletsSwapsState> = {
   status: HardwareWalletsSwapsStatus.Disconnected,
-  disconnectedStep: 1,
+  disconnectedStep: 0,
   steps: defaultSteps,
 };
 
@@ -371,7 +371,7 @@ describe('HardwareWalletsSwaps', () => {
       },
       {
         status: HardwareWalletsSwapsStatus.Submitted,
-        currentStep: 2,
+        currentStep: 1,
         steps: signedSteps,
         expectedTrigger: 'found',
       },
@@ -389,7 +389,7 @@ describe('HardwareWalletsSwaps', () => {
       },
       {
         status: HardwareWalletsSwapsStatus.Disconnected,
-        disconnectedStep: 1,
+        disconnectedStep: 0,
         steps: defaultSteps,
         expectedTrigger: 'wallet_disconnected',
       },
@@ -422,7 +422,7 @@ describe('HardwareWalletsSwaps', () => {
 
     it('renders approved and send titles for signed approval + waiting transaction', () => {
       const { getByText } = renderScreen({
-        currentStep: 2,
+        currentStep: 1,
         steps: [step(Approval, Signed), step(Transaction, StepWaiting)],
       });
 
