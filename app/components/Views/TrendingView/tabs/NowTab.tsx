@@ -7,7 +7,7 @@ import React, {
 } from 'react';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { Box } from '@metamask/design-system-react-native';
+import { Box, SectionDivider } from '@metamask/design-system-react-native';
 import type { ListRenderItem } from '@shopify/flash-list';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
@@ -50,9 +50,9 @@ import {
 import { getCaipChainIdFromAssetId } from '../../../UI/Trending/components/TrendingTokenRowItem/utils';
 import CardList from '../components/CardList';
 import ExploreScroll from '../components/ExploreScroll';
+import SectionHeader from '../components/SectionHeader';
 import PillScrollList from '../components/PillScrollList';
 import PillRow, { type PillOption } from '../components/PillRow';
-import SectionHeader from '../components/SectionHeader';
 import type { TabProps } from '../hooks/useExploreRefresh';
 import { trackExploreInteracted } from '../search/analytics';
 import WhatsHappeningSection from '../../../UI/WhatsHappening';
@@ -69,9 +69,16 @@ import {
 interface PerpsBlockProps {
   refresh: TabProps['refresh'];
   navigation: NavigationProp<PerpsNavigationParamList>;
+  showDivider?: boolean;
+  addSectionTailGap?: boolean;
 }
 
-const PerpsBlock: React.FC<PerpsBlockProps> = ({ refresh, navigation }) => {
+const PerpsBlock: React.FC<PerpsBlockProps> = ({
+  refresh,
+  navigation,
+  showDivider = false,
+  addSectionTailGap = false,
+}) => {
   const [activeMoverDirection, setActiveMoverDirection] =
     useState<PerpsPriceChangeDirection>('gainers');
   const perps = usePerpsFeed({
@@ -146,7 +153,8 @@ const PerpsBlock: React.FC<PerpsBlockProps> = ({ refresh, navigation }) => {
   if (!perps.isLoading && perps.data.length === 0) return null;
 
   return (
-    <Box>
+    <Box twClassName={addSectionTailGap ? 'pb-3' : undefined}>
+      {showDivider ? <SectionDivider twClassName="-mx-4" /> : null}
       <SectionHeader
         title={strings('trending.perps_movers')}
         onViewAll={() =>
@@ -200,7 +208,11 @@ const CRYPTO_MOVERS_TIME_OPTION = TimeOption.OneHour;
 const CRYPTO_MOVERS_ROW_COUNT = 3;
 const CRYPTO_MOVERS_MAX_PILLS = 18;
 
-const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
+const NowTabContent: React.FC<TabProps> = ({
+  refresh,
+  refreshing,
+  onRefresh,
+}) => {
   const navigation = useNavigation<AppNavigationProp>();
   const perpsNavigation =
     useNavigation<NavigationProp<PerpsNavigationParamList>>();
@@ -230,6 +242,11 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const displayedPredictions = worldCupPredictions.isEnabled
     ? worldCupPredictions
     : predictions;
+  const perpsFeed = usePerpsFeed({
+    variant: 'all',
+    refresh,
+    withTileExtras: false,
+  });
   const cryptoMovers = useTokensFeed({
     refresh,
     hideRiskyTokens: true,
@@ -263,45 +280,66 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
     [],
   );
 
+  const showPredictions =
+    isPredictEnabled &&
+    (displayedPredictions.isLoading || displayedPredictions.data.length > 0);
   const showCryptoMovers =
     cryptoMovers.isLoading || cryptoMovers.data.length > 0;
+  const showPerps =
+    isPerpsEnabled && (perpsFeed.isLoading || perpsFeed.data.length > 0);
   const showStocks = stocks.isLoading || stocks.data.length > 0;
 
-  const whatsHappeningSection = isWhatsHappeningEnabled ? (
-    <Box key="whats-happening" twClassName="-mx-4" marginBottom={6}>
-      <WhatsHappeningSection
-        ref={whatsHappeningRef}
-        source={WhatsHappeningSource.Explore}
-      />
-    </Box>
-  ) : null;
+  const sectionLayout = useMemo(() => {
+    const sections: { key: string; isVerticalList: boolean }[] = [];
+    const whFirst = whatsHappeningExploreVariant.whatsHappeningBeforePredict;
 
-  const predictionsSection = (
-    <PredictionsCarouselSection
-      key="predictions"
-      feed={displayedPredictions}
-      tabName="Now"
-      sectionName="predictions_trending"
-      title={
-        worldCupPredictions.isEnabled
-          ? strings('predict.world_cup.predictions_title')
-          : strings('wallet.predict')
+    const pushWh = () => {
+      if (isWhatsHappeningEnabled) {
+        sections.push({ key: 'wh', isVerticalList: false });
       }
-      testIdPrefix="predict-market-row-item"
-      idPrefix="predictions"
-      onViewAll={() =>
-        worldCupPredictions.isEnabled
-          ? navigateToExploreWorldCupPredictions(navigation)
-          : navigateToExplorePredictionsList(navigation, 'trending')
+    };
+    const pushPredict = () => {
+      if (showPredictions) {
+        sections.push({ key: 'predict', isVerticalList: false });
       }
-      isEnabled={isPredictEnabled}
-    />
-  );
+    };
 
-  const orderedIntroSections =
-    whatsHappeningExploreVariant.whatsHappeningBeforePredict
-      ? [whatsHappeningSection, predictionsSection]
-      : [predictionsSection, whatsHappeningSection];
+    if (whFirst) {
+      pushWh();
+      pushPredict();
+    } else {
+      pushPredict();
+      pushWh();
+    }
+    if (showCryptoMovers) {
+      sections.push({ key: 'crypto_movers', isVerticalList: false });
+    }
+    if (showPerps) {
+      sections.push({ key: 'perps', isVerticalList: false });
+    }
+    if (showStocks) {
+      sections.push({ key: 'stocks', isVerticalList: true });
+    }
+
+    return (key: string) => {
+      const index = sections.findIndex((section) => section.key === key);
+      if (index === -1) {
+        return { showDivider: false, addSectionTailGap: false };
+      }
+      const { isVerticalList } = sections[index];
+      return {
+        showDivider: index > 0,
+        addSectionTailGap: index < sections.length - 1 && !isVerticalList,
+      };
+    };
+  }, [
+    isWhatsHappeningEnabled,
+    showPredictions,
+    showCryptoMovers,
+    showPerps,
+    showStocks,
+    whatsHappeningExploreVariant.whatsHappeningBeforePredict,
+  ]);
 
   return (
     <ExploreScroll
@@ -309,10 +347,57 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
       onRefresh={onRefresh}
       testID={TrendingViewSelectorsIDs.EXPLORE_NOW_SCROLL_VIEW}
     >
-      {orderedIntroSections}
+      {isWhatsHappeningEnabled &&
+        whatsHappeningExploreVariant.whatsHappeningBeforePredict && (
+          <WhatsHappeningSection
+            ref={whatsHappeningRef}
+            source={WhatsHappeningSource.Explore}
+            hideHeader
+            {...sectionLayout('wh')}
+          />
+        )}
+
+      <PredictionsCarouselSection
+        feed={displayedPredictions}
+        tabName="Now"
+        sectionName="predictions_trending"
+        title={
+          worldCupPredictions.isEnabled
+            ? strings('predict.world_cup.predictions_title')
+            : strings('wallet.predict')
+        }
+        testIdPrefix="predict-market-row-item"
+        idPrefix="predictions"
+        onViewAll={() =>
+          worldCupPredictions.isEnabled
+            ? navigateToExploreWorldCupPredictions(navigation)
+            : navigateToExplorePredictionsList(navigation, 'trending')
+        }
+        isEnabled={isPredictEnabled}
+        {...sectionLayout('predict')}
+      />
+
+      {isWhatsHappeningEnabled &&
+        !whatsHappeningExploreVariant.whatsHappeningBeforePredict && (
+          <WhatsHappeningSection
+            ref={whatsHappeningRef}
+            source={WhatsHappeningSource.Explore}
+            hideHeader
+            {...sectionLayout('wh')}
+          />
+        )}
 
       {showCryptoMovers && (
-        <Box>
+        <Box
+          twClassName={
+            sectionLayout('crypto_movers').addSectionTailGap
+              ? 'pb-3'
+              : undefined
+          }
+        >
+          {sectionLayout('crypto_movers').showDivider ? (
+            <SectionDivider twClassName="-mx-4" />
+          ) : null}
           <SectionHeader
             title={strings('trending.crypto_movers')}
             onViewAll={() =>
@@ -356,13 +441,18 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
       )}
 
       {isPerpsEnabled && (
-        <PerpsSectionProvider>
-          <PerpsBlock refresh={refresh} navigation={perpsNavigation} />
-        </PerpsSectionProvider>
+        <PerpsBlock
+          refresh={refresh}
+          navigation={perpsNavigation}
+          {...sectionLayout('perps')}
+        />
       )}
 
       {showStocks && (
         <Box>
+          {sectionLayout('stocks').showDivider ? (
+            <SectionDivider twClassName="-mx-4" />
+          ) : null}
           <SectionHeader
             title={strings('trending.stocks')}
             onViewAll={() =>
@@ -384,5 +474,11 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
     </ExploreScroll>
   );
 };
+
+const NowTab: React.FC<TabProps> = (props) => (
+  <PerpsSectionProvider>
+    <NowTabContent {...props} />
+  </PerpsSectionProvider>
+);
 
 export default NowTab;

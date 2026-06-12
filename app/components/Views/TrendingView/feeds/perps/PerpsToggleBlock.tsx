@@ -1,5 +1,5 @@
 import React, { useCallback, useRef } from 'react';
-import { Box } from '@metamask/design-system-react-native';
+import { Box, SectionDivider } from '@metamask/design-system-react-native';
 import type { ListRenderItem } from '@shopify/flash-list';
 import type { PerpsMarketData, SortOptionId } from '@metamask/perps-controller';
 import PerpsRowItem from './PerpsRowItem';
@@ -31,6 +31,8 @@ export interface PerpsToggleBlockProps {
   idPrefix: string;
   testIdPrefix: string;
   listTestId: string;
+  showDivider?: boolean;
+  addSectionTailGap?: boolean;
 }
 
 /**
@@ -50,6 +52,8 @@ const PerpsToggleBlock: React.FC<PerpsToggleBlockProps> = ({
   idPrefix,
   testIdPrefix,
   listTestId,
+  showDivider = false,
+  addSectionTailGap = false,
 }) => {
   const activePillKey = useRef<string>(defaultPillKey);
 
@@ -73,7 +77,8 @@ const PerpsToggleBlock: React.FC<PerpsToggleBlockProps> = ({
   );
 
   return (
-    <Box>
+    <Box twClassName={addSectionTailGap ? 'pb-3' : undefined}>
+      {showDivider ? <SectionDivider twClassName="-mx-4" /> : null}
       <SectionHeader
         title={title}
         onViewAll={() => onViewAll(activePillKey.current, sortOptionId)}

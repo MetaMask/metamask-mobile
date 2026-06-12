@@ -1,10 +1,11 @@
 import React, { useCallback } from 'react';
 import {
+  SectionHeader as MMDSSectionHeader,
   Text,
   TextVariant,
   TextColor,
+  Box,
 } from '@metamask/design-system-react-native';
-import BaseSectionHeader from '../../../../component-library/components-temp/SectionHeader';
 import {
   trackExploreSectionSeeAll,
   type ExploreTabName,
@@ -39,23 +40,20 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
   }, [onViewAll, tabName, sectionName]);
 
   return (
-    <>
-      <BaseSectionHeader
+    <Box>
+      <MMDSSectionHeader
         testID={testID}
         title={title}
+        isInteractive={Boolean(onViewAll)}
         onPress={onViewAll ? handleViewAll : undefined}
-        twClassName={`px-0 ${subtitle ? 'mb-0.5' : 'mb-2'}`}
+        twClassName="px-0"
       />
-      {subtitle && (
-        <Text
-          variant={TextVariant.BodySm}
-          color={TextColor.TextAlternative}
-          twClassName="mt-1"
-        >
+      {subtitle ? (
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           {subtitle}
         </Text>
-      )}
-    </>
+      ) : null}
+    </Box>
   );
 };
 

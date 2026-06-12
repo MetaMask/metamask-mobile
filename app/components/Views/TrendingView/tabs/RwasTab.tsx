@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { Box } from '@metamask/design-system-react-native';
+import { Box, SectionDivider } from '@metamask/design-system-react-native';
 import type { ListRenderItem } from '@shopify/flash-list';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import type { PerpsMarketData, SortOptionId } from '@metamask/perps-controller';
@@ -29,8 +29,8 @@ import PredictionsCarouselSection from '../feeds/predictions/PredictionsCarousel
 import { navigateToExplorePredictionsList } from '../feeds/predictions/predictionsNavigation';
 import CardList from '../components/CardList';
 import ExploreScroll from '../components/ExploreScroll';
-import type { PillToggleCardListTab } from '../components/PillToggleCardList';
 import SectionHeader from '../components/SectionHeader';
+import type { PillToggleCardListTab } from '../components/PillToggleCardList';
 import type { TabProps } from '../hooks/useExploreRefresh';
 import { trackExploreInteracted } from '../search/analytics';
 import { TrendingViewSelectorsIDs } from '../TrendingView.testIds';
@@ -38,11 +38,15 @@ import { TrendingViewSelectorsIDs } from '../TrendingView.testIds';
 interface RwaPerpsBlockProps {
   refresh: TabProps['refresh'];
   onViewAll: (filter: string, sortOptionId: SortOptionId) => void;
+  showDivider?: boolean;
+  addSectionTailGap?: boolean;
 }
 
 const RwaPerpsBlock: React.FC<RwaPerpsBlockProps> = ({
   refresh,
   onViewAll,
+  showDivider,
+  addSectionTailGap,
 }) => {
   const perps = usePerpsFeed({ variant: 'rwa', refresh });
 
@@ -91,11 +95,17 @@ const RwaPerpsBlock: React.FC<RwaPerpsBlockProps> = ({
       idPrefix="rwa_perps"
       testIdPrefix="rwa-perps-pills"
       listTestId="rwa-perps-pill-toggled-list"
+      showDivider={showDivider}
+      addSectionTailGap={addSectionTailGap}
     />
   );
 };
 
-const RwasTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
+const RwasTabContent: React.FC<TabProps> = ({
+  refresh,
+  refreshing,
+  onRefresh,
+}) => {
   const appNavigation = useNavigation<AppNavigationProp>();
   const perpsNavigation =
     useNavigation<NavigationProp<PerpsNavigationParamList>>();
@@ -107,6 +117,7 @@ const RwasTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
     refresh,
     pageSize: STOCKS_FEED_PREVIEW_PAGE_SIZE,
   });
+  const rwaPerps = usePerpsFeed({ variant: 'rwa', refresh });
 
   const renderStockItem: ListRenderItem<TrendingAsset> = useCallback(
     ({ item, index }) => (
@@ -132,6 +143,31 @@ const RwasTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   );
 
   const showStocks = stocks.isLoading || stocks.data.length > 0;
+  const showPredictions =
+    isPredictEnabled && (politics.isLoading || politics.data.length > 0);
+  const showPerps =
+    isPerpsEnabled && (rwaPerps.isLoading || rwaPerps.data.length > 0);
+
+  const sectionLayout = useMemo(() => {
+    const sections: { key: string; isVerticalList: boolean }[] = [];
+    if (showPredictions) {
+      sections.push({ key: 'predictions', isVerticalList: false });
+    }
+    if (showStocks) sections.push({ key: 'stocks', isVerticalList: true });
+    if (showPerps) sections.push({ key: 'perps', isVerticalList: true });
+
+    return (key: string) => {
+      const index = sections.findIndex((section) => section.key === key);
+      if (index === -1) {
+        return { showDivider: false, addSectionTailGap: false };
+      }
+      const { isVerticalList } = sections[index];
+      return {
+        showDivider: index > 0,
+        addSectionTailGap: index < sections.length - 1 && !isVerticalList,
+      };
+    };
+  }, [showPredictions, showStocks, showPerps]);
 
   return (
     <ExploreScroll
@@ -150,10 +186,14 @@ const RwasTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
           navigateToExplorePredictionsList(appNavigation, 'politics')
         }
         isEnabled={isPredictEnabled}
+        {...sectionLayout('predictions')}
       />
 
       {showStocks && (
         <Box>
+          {sectionLayout('stocks').showDivider ? (
+            <SectionDivider twClassName="-mx-4" />
+          ) : null}
           <SectionHeader
             title={strings('trending.stocks')}
             onViewAll={() =>
@@ -174,17 +214,22 @@ const RwasTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
       )}
 
       {isPerpsEnabled && (
-        <PerpsSectionProvider>
-          <RwaPerpsBlock
-            refresh={refresh}
-            onViewAll={(filter, sortOptionId) =>
-              navigateToPerpsMarketList(perpsNavigation, filter, sortOptionId)
-            }
-          />
-        </PerpsSectionProvider>
+        <RwaPerpsBlock
+          refresh={refresh}
+          onViewAll={(filter, sortOptionId) =>
+            navigateToPerpsMarketList(perpsNavigation, filter, sortOptionId)
+          }
+          {...sectionLayout('perps')}
+        />
       )}
     </ExploreScroll>
   );
 };
+
+const RwasTab: React.FC<TabProps> = (props) => (
+  <PerpsSectionProvider>
+    <RwasTabContent {...props} />
+  </PerpsSectionProvider>
+);
 
 export default RwasTab;
