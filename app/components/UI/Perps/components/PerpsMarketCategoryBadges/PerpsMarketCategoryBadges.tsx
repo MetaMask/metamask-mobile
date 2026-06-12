@@ -1,5 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { type LayoutChangeEvent } from 'react-native';
+import {
+  type LayoutChangeEvent,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+} from 'react-native';
 import Animated, { FadeIn, LinearTransition } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -49,6 +53,8 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
   const badgeLayoutsRef = useRef<Record<string, { x: number; width: number }>>(
     {},
   );
+  const scrollOffsetRef = useRef(0);
+  const viewportWidthRef = useRef(0);
 
   const displayCategories = useMemo(
     () => (hasNewMarkets ? [...categories, NEW_CATEGORY] : categories),
@@ -63,13 +69,35 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
     [],
   );
 
+  const handleScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      scrollOffsetRef.current = event.nativeEvent.contentOffset.x;
+    },
+    [],
+  );
+
+  const handleScrollViewLayout = useCallback((event: LayoutChangeEvent) => {
+    viewportWidthRef.current = event.nativeEvent.layout.width;
+  }, []);
+
   useEffect(() => {
     if (selectedCategory === 'all') {
       return;
     }
     const timer = setTimeout(() => {
       const layout = badgeLayoutsRef.current[selectedCategory];
-      if (layout && scrollViewRef.current) {
+      if (!layout || !scrollViewRef.current) {
+        return;
+      }
+
+      const badgeLeft = layout.x;
+      const badgeRight = layout.x + layout.width;
+      const visibleLeft = scrollOffsetRef.current;
+      const visibleRight = visibleLeft + viewportWidthRef.current;
+
+      const isFullyVisible =
+        badgeLeft >= visibleLeft && badgeRight <= visibleRight;
+      if (!isFullyVisible) {
         scrollViewRef.current.scrollTo({
           x: Math.max(0, layout.x - 16),
           animated: true,
@@ -97,6 +125,9 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.scrollContent}
       style={styles.scrollContainer}
+      onScroll={handleScroll}
+      onLayout={handleScrollViewLayout}
+      scrollEventThrottle={16}
       testID={testID}
     >
       {/* Watchlist star badge — shown first */}
