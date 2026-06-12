@@ -20,6 +20,7 @@ import { MoneyCondensedInfoCardsTestIds } from '../../components/MoneyCondensedI
 import { MoneyMusdTokenRowTestIds } from '../../components/MoneyMusdTokenRow/MoneyMusdTokenRow.testIds';
 import { MoneySectionHeaderTestIds } from '../../components/MoneySectionHeader/MoneySectionHeader.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
+import AppConstants from '../../../../../core/AppConstants';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
 import { useMoneyAccountCardTransactions } from '../../hooks/useMoneyAccountCardTransactions';
 import { strings } from '../../../../../../locales/i18n';
@@ -327,6 +328,8 @@ jest.mock('../../../../../util/Logger', () => ({
 }));
 
 describe('MoneyHomeView', () => {
+  let defaultMoneyAccountBalance: ReturnType<typeof useMoneyAccountBalance>;
+
   beforeEach(() => {
     jest.clearAllMocks();
     global.alert = jest.fn();
@@ -369,7 +372,7 @@ describe('MoneyHomeView', () => {
       },
     } as ReturnType<typeof useMoneyAccountInfo>);
 
-    mockUseMoneyAccountBalance.mockReturnValue({
+    defaultMoneyAccountBalance = {
       totalFiatFormatted: '$3.00',
       musdFiatFormatted: '$1.00',
       musdSHFvdFiatFormatted: '$2.00',
@@ -397,7 +400,8 @@ describe('MoneyHomeView', () => {
         },
         isLoading: false,
       },
-    } as unknown as ReturnType<typeof useMoneyAccountBalance>);
+    } as unknown as ReturnType<typeof useMoneyAccountBalance>;
+    mockUseMoneyAccountBalance.mockReturnValue(defaultMoneyAccountBalance);
 
     mockUseMusdBalance.mockReturnValue({
       hasMusdBalanceOnAnyChain: true,
@@ -868,9 +872,20 @@ describe('MoneyHomeView', () => {
   });
 
   describe('transfer button disabled state', () => {
+    beforeEach(() => {
+      mockUseMoneyAccountTransactions.mockReturnValue({
+        allTransactions: [],
+        deposits: [],
+        transfers: [],
+        submittedTransactions: [],
+        moneyAddress: '0x0000000000000000000000000000000000000001',
+        mockDataEnabled: false,
+      });
+    });
+
     it('disables Transfer button when initial balance is loading', () => {
       mockUseMoneyAccountBalance.mockReturnValue({
-        ...mockUseMoneyAccountBalance.mock.results[0]?.value,
+        ...defaultMoneyAccountBalance,
         tokenTotal: undefined,
         isAggregatedBalanceLoading: true,
         isBalanceFetchError: false,
@@ -887,7 +902,7 @@ describe('MoneyHomeView', () => {
 
     it('disables Transfer button when account has zero balance', () => {
       mockUseMoneyAccountBalance.mockReturnValue({
-        ...mockUseMoneyAccountBalance.mock.results[0]?.value,
+        ...defaultMoneyAccountBalance,
         totalFiatFormatted: '$0.00',
         totalFiatRaw: '0',
         isAggregatedBalanceLoading: false,
@@ -905,7 +920,7 @@ describe('MoneyHomeView', () => {
 
     it('does not navigate to Transfer sheet when Transfer button is pressed while disabled', () => {
       mockUseMoneyAccountBalance.mockReturnValue({
-        ...mockUseMoneyAccountBalance.mock.results[0]?.value,
+        ...defaultMoneyAccountBalance,
         totalFiatFormatted: '$0.00',
         totalFiatRaw: '0',
         isAggregatedBalanceLoading: false,
@@ -1043,7 +1058,7 @@ describe('MoneyHomeView', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.POTENTIAL_EARNINGS);
   });
 
-  it('opens the MUSD learn more URL when learn more is pressed in unfunded state', () => {
+  it('opens the Money landing URL when learn more is pressed in unfunded state', () => {
     const mockOpenURL = jest
       .spyOn(Linking, 'openURL')
       .mockResolvedValue(undefined);
@@ -1075,6 +1090,7 @@ describe('MoneyHomeView', () => {
     fireEvent.press(getByTestId(MoneyWhatYouGetTestIds.LEARN_MORE_BUTTON));
 
     expect(mockOpenURL).toHaveBeenCalledTimes(1);
+    expect(mockOpenURL).toHaveBeenCalledWith(AppConstants.URLS.MONEY_LANDING);
     mockOpenURL.mockRestore();
   });
 
@@ -1236,6 +1252,39 @@ describe('MoneyHomeView', () => {
       expect(
         getByTestId(MoneyCondensedInfoCardsTestIds.CONTAINER),
       ).toBeOnTheScreen();
+    });
+
+    it('opens the mUSD price URL when the condensed mUSD card is pressed', () => {
+      const mockOpenURL = jest
+        .spyOn(Linking, 'openURL')
+        .mockResolvedValue(undefined);
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(getByTestId(MoneyCondensedInfoCardsTestIds.MUSD_CARD));
+
+      expect(mockOpenURL).toHaveBeenCalledWith(AppConstants.URLS.MUSD_PRICE);
+      mockOpenURL.mockRestore();
+    });
+
+    it('opens the Money landing URL when the condensed What you get card is pressed', () => {
+      const mockOpenURL = jest
+        .spyOn(Linking, 'openURL')
+        .mockResolvedValue(undefined);
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(
+        getByTestId(MoneyCondensedInfoCardsTestIds.WHAT_YOU_GET_CARD),
+      );
+
+      expect(mockOpenURL).toHaveBeenCalledWith(AppConstants.URLS.MONEY_LANDING);
+      mockOpenURL.mockRestore();
+    });
+
+    it('renders a single bottom Add money footer', () => {
+      const { getAllByTestId } = renderWithProvider(<MoneyHomeView />);
+      expect(getAllByTestId(MoneyFooterTestIds.CONTAINER)).toHaveLength(1);
     });
 
     it('hides expanded HowItWorks section', () => {
@@ -1452,6 +1501,33 @@ describe('MoneyHomeView', () => {
       expect(getByTestId(MoneyWhatYouGetTestIds.CONTAINER)).toBeOnTheScreen();
     });
 
+    it('hides MoneyEarnings for a brand-new account with no activity', () => {
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        queryByTestId(MoneyEarningsTestIds.CONTAINER),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders a single Add money footer alongside the mUSD token row', () => {
+      const { getAllByTestId, getByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      expect(getByTestId(MoneyMusdTokenRowTestIds.CONTAINER)).toBeOnTheScreen();
+      expect(getAllByTestId(MoneyFooterTestIds.CONTAINER)).toHaveLength(1);
+    });
+
+    it('opens the Add money sheet from the empty-state footer', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(getByTestId(MoneyFooterTestIds.ADD_MONEY_BUTTON));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+      });
+    });
+
     it('routes directly via useMoneyAccountAddRouting when the mUSD row Add button is pressed', () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
@@ -1492,19 +1568,21 @@ describe('MoneyHomeView', () => {
       });
     });
 
-    it('navigates to Asset details when the mUSD token row is pressed', () => {
+    it('opens the mUSD price URL when the mUSD token row is pressed', () => {
       const NavigationService = jest.requireMock(
         '../../../../../core/NavigationService',
       ).default;
+      const mockOpenURL = jest
+        .spyOn(Linking, 'openURL')
+        .mockResolvedValue(undefined);
 
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       fireEvent.press(getByTestId(MoneyMusdTokenRowTestIds.CONTAINER));
 
-      expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
-        'Asset',
-        expect.objectContaining({ source: expect.any(String) }),
-      );
+      expect(mockOpenURL).toHaveBeenCalledWith(AppConstants.URLS.MUSD_PRICE);
+      expect(NavigationService.navigation.navigate).not.toHaveBeenCalled();
+      mockOpenURL.mockRestore();
     });
 
     it('navigates to HowItWorks when its section header is pressed', () => {
@@ -1515,14 +1593,14 @@ describe('MoneyHomeView', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.HOW_IT_WORKS);
     });
 
-    it('opens the Learn more URL when Learn more is pressed', () => {
+    it('opens the Money landing URL when Learn more is pressed', () => {
       const { Linking: MockLinking } = jest.requireMock('react-native');
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       fireEvent.press(getByTestId(MoneyWhatYouGetTestIds.LEARN_MORE_BUTTON));
 
       expect(MockLinking.openURL).toHaveBeenCalledWith(
-        expect.stringContaining('http'),
+        AppConstants.URLS.MONEY_LANDING,
       );
     });
   });
@@ -1604,6 +1682,16 @@ describe('MoneyHomeView', () => {
       expect(
         getByTestId(MoneyCondensedInfoCardsTestIds.CONTAINER),
       ).toBeOnTheScreen();
+    });
+
+    it('renders MoneyEarnings when balance is zero but activity exists', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      expect(getByTestId(MoneyEarningsTestIds.CONTAINER)).toBeOnTheScreen();
+    });
+
+    it('renders a single bottom Add money footer', () => {
+      const { getAllByTestId } = renderWithProvider(<MoneyHomeView />);
+      expect(getAllByTestId(MoneyFooterTestIds.CONTAINER)).toHaveLength(1);
     });
 
     it('hides expanded HowItWorks section', () => {

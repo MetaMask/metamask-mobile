@@ -40,10 +40,7 @@ import { useMoneyAccountAddRouting } from '../../hooks/useMoneyAccountAddRouting
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { moneyFormatFiat, DUST_THRESHOLD } from '../../utils/moneyFormatFiat';
 import { calculateProjectedEarnings } from '../../utils/projections';
-import { MUSD_MAINNET_ASSET_FOR_DETAILS } from '../../../../Views/Homepage/Sections/Cash/CashGetMusdEmptyState.constants';
-import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import AppConstants from '../../../../../core/AppConstants';
-import NavigationService from '../../../../../core/NavigationService';
 import {
   selectCardHomeDataStatus,
   selectHasMetalCard,
@@ -188,6 +185,7 @@ const MoneyHomeView = () => {
     !!totalFiatRaw &&
     new BigNumber(totalFiatRaw).abs().gte(DUST_THRESHOLD);
   const isFunded = hasSpendableBalance || activityItems.length > 0;
+  const isEmptyState = hasBalanceValue && !isFunded;
 
   const formattedZero = useMemo(
     () => moneyFormatFiat(new BigNumber(0), currentCurrency),
@@ -398,13 +396,10 @@ const MoneyHomeView = () => {
     ({ componentName }: { componentName: COMPONENT_NAMES }) => {
       trackSurfaceClicked({
         component_name: componentName,
-        redirect_target: SCREEN_NAMES.ASSET_OVERVIEW,
+        redirect_target: MONEY_URLS.MUSD_PRICE,
       });
 
-      NavigationService.navigation.navigate('Asset', {
-        ...MUSD_MAINNET_ASSET_FOR_DETAILS,
-        source: TokenDetailsSource.MobileTokenListPage,
-      });
+      Linking.openURL(AppConstants.URLS.MUSD_PRICE);
     },
     [trackSurfaceClicked],
   );
@@ -494,10 +489,10 @@ const MoneyHomeView = () => {
   const handleWhatYouGetPress = useCallback(() => {
     trackSurfaceClicked({
       component_name: COMPONENT_NAMES.MONEY_CONDENSED_INFO_CARDS_WHAT_YOU_GET,
-      redirect_target: MONEY_URLS.MUSD_LEARN_MORE,
+      redirect_target: MONEY_URLS.MONEY_LANDING,
     });
 
-    Linking.openURL(AppConstants.URLS.MUSD_LEARN_MORE);
+    Linking.openURL(AppConstants.URLS.MONEY_LANDING);
   }, [trackSurfaceClicked]);
 
   const handleLearnMorePress = useCallback(() => {
@@ -506,10 +501,10 @@ const MoneyHomeView = () => {
       button_intent: MONEY_BUTTON_INTENTS.LEARN_MORE,
       component_name: COMPONENT_NAMES.MONEY_WHAT_YOU_GET_SECTION,
       label_key: 'money.what_you_get.learn_more',
-      redirect_target: MONEY_URLS.MUSD_LEARN_MORE,
+      redirect_target: MONEY_URLS.MONEY_LANDING,
     });
 
-    Linking.openURL(AppConstants.URLS.MUSD_LEARN_MORE);
+    Linking.openURL(AppConstants.URLS.MONEY_LANDING);
   }, [trackButtonClicked]);
 
   const handleHowItWorksPress = useCallback(
@@ -622,7 +617,7 @@ const MoneyHomeView = () => {
           card={{ onPress: handleActionButtonCardPress }}
         />
         <MoneyOnboardingCard />
-        {hasSpendableBalance && (
+        {hasBalanceValue && isFunded && (
           <>
             <MoneyEarnings
               monthlyEarnings={monthlyEarnings}
@@ -633,7 +628,7 @@ const MoneyHomeView = () => {
             <Divider />
           </>
         )}
-        {hasBalanceValue && !isFunded && (
+        {isEmptyState && (
           <>
             <MoneyHowItWorks
               apy={apyPercent}
@@ -654,7 +649,14 @@ const MoneyHomeView = () => {
               onAddPress={handleMusdRowAddPress}
               balance={musdFiatFormatted}
             />
-            <Divider />
+            <MoneyFooter
+              onAddMoneyPress={() =>
+                handleAddPress({
+                  labelKey: 'money.footer.add_money',
+                  componentName: COMPONENT_NAMES.MONEY_FOOTER,
+                })
+              }
+            />
           </>
         )}
         {(showCardActivityLoading || activityItems.length >= 1) && (
@@ -727,20 +729,22 @@ const MoneyHomeView = () => {
             <Divider />
           </>
         )}
-        {hasBalanceValue && !isFunded && (
+        {isEmptyState && (
           <MoneyWhatYouGet
             apy={apyPercent}
             onLearnMorePress={handleLearnMorePress}
           />
         )}
-        <MoneyFooter
-          onAddMoneyPress={() =>
-            handleAddPress({
-              labelKey: 'money.footer.add_money',
-              componentName: COMPONENT_NAMES.MONEY_FOOTER,
-            })
-          }
-        />
+        {!isEmptyState && (
+          <MoneyFooter
+            onAddMoneyPress={() =>
+              handleAddPress({
+                labelKey: 'money.footer.add_money',
+                componentName: COMPONENT_NAMES.MONEY_FOOTER,
+              })
+            }
+          />
+        )}
       </ScrollView>
     </Box>
   );

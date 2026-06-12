@@ -7009,10 +7009,10 @@
     "add_money_sheet": {
       "title": "Add funds",
       "convert_crypto": "Convert crypto",
-      "deposit_funds": "Debit card or bank",
-      "move_musd": "Your {{amount}} mUSD",
+      "deposit_funds": "Debit card or bank account",
+      "move_musd": "{{amount}} mUSD",
       "add_musd": "Add mUSD",
-      "receive_external": "External wallet",
+      "receive_external": "External address",
       "coming_soon": "Coming soon"
     },
     "more_sheet": {
@@ -7027,7 +7027,7 @@
       "perps_account": "Perps account",
       "predictions_account": "Predictions account",
       "send_external": "External address",
-      "withdraw_to_bank": "Bank"
+      "withdraw_to_bank": "Bank account"
     },
     "toasts": {
       "in_progress_title": "Transaction in progress",
