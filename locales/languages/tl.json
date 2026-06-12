@@ -774,11 +774,6 @@
       "search_by_country": "Maghanap ayon sa bansa",
       "no_regions_found": "Walang katugmang mga rehiyon \"{{searchString}}\""
     },
-    "phone_country_modal": {
-      "select_phone_country": "Pumili ng bansa ng telepono",
-      "search_by_country": "Maghanap ayon sa bansa",
-      "no_countries_found": "Walang katugmang mga bansa \"{{searchString}}\""
-    },
     "state_modal": {
       "select_a_state": "Pumili ng estado",
       "search_by_state": "Maghanap ayon sa estado",

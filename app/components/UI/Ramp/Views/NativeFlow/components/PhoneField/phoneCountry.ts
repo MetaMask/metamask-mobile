@@ -29,24 +29,37 @@ export function getLocalPhoneDigits(
 
 /**
  * Finds the country whose dialing prefix matches the start of the given mobile
- * number. Longer prefixes are matched first so that overlapping codes (e.g.
- * `+1` vs `+1xxx`) resolve to the most specific country.
+ * number. Longer prefixes win first so that overlapping codes (e.g. `+1` vs
+ * `+1xxx`) resolve to the most specific country. When several countries share
+ * the same code (e.g. US and Canada both use `+1`), the `fallbackCountry` is
+ * preferred among the tied matches so a prefilled number keeps its expected
+ * region instead of an arbitrary one.
  */
 export function findCountryByPhonePrefix(
   countries: Country[],
   mobileNumber?: string,
+  fallbackCountry?: Country | null,
 ): Country | null {
   const digits = mobileNumber?.replace(/\D/g, '') ?? '';
   if (!digits) return null;
 
-  const sortedCountries = [...countries].sort(
-    (a, b) => getPhonePrefixDigits(b).length - getPhonePrefixDigits(a).length,
+  const matches = countries.filter((country) => {
+    const prefixDigits = getPhonePrefixDigits(country);
+    return Boolean(prefixDigits) && digits.startsWith(prefixDigits);
+  });
+  if (matches.length === 0) return null;
+
+  // Keep only the most specific (longest-prefix) matches before breaking ties.
+  const longestPrefixLength = Math.max(
+    ...matches.map((country) => getPhonePrefixDigits(country).length),
+  );
+  const bestMatches = matches.filter(
+    (country) => getPhonePrefixDigits(country).length === longestPrefixLength,
   );
 
-  return (
-    sortedCountries.find((country) => {
-      const prefixDigits = getPhonePrefixDigits(country);
-      return Boolean(prefixDigits) && digits.startsWith(prefixDigits);
-    }) ?? null
-  );
+  const fallbackMatch = fallbackCountry
+    ? bestMatches.find((country) => country.isoCode === fallbackCountry.isoCode)
+    : undefined;
+
+  return fallbackMatch ?? bestMatches[0];
 }

@@ -774,11 +774,6 @@
       "search_by_country": "Αναζήτηση ανά χώρα",
       "no_regions_found": "Καμία περιοχή δεν αντιστοιχεί στο '{{searchString}}'\""
     },
-    "phone_country_modal": {
-      "select_phone_country": "Επιλέξτε χώρα τηλεφώνου",
-      "search_by_country": "Αναζήτηση ανά χώρα",
-      "no_countries_found": "Καμία χώρα δεν αντιστοιχεί στο '{{searchString}}'"
-    },
     "state_modal": {
       "select_a_state": "Επιλέξτε μια πολιτεία",
       "search_by_state": "Αναζήτηση κατά πολιτεία",

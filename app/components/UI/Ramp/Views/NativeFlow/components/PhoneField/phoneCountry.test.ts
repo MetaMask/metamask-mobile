@@ -16,6 +16,7 @@ const makeCountry = (isoCode: string, prefix: string): Country =>
   }) as Country;
 
 const US = makeCountry('US', '+1');
+const CA = makeCountry('CA', '+1');
 const PT = makeCountry('PT', '+351');
 const GB = makeCountry('GB', '+44');
 const countries = [US, PT, GB];
@@ -60,5 +61,24 @@ describe('findCountryByPhonePrefix', () => {
     expect(findCountryByPhonePrefix(countries, '')).toBeNull();
     expect(findCountryByPhonePrefix(countries, undefined)).toBeNull();
     expect(findCountryByPhonePrefix(countries, '+9990000')).toBeNull();
+  });
+
+  it('prefers the fallback country when several share a dialing code', () => {
+    // US and CA both use +1; the fallback breaks the tie either way.
+    const sharedCode = [US, CA];
+    expect(findCountryByPhonePrefix(sharedCode, '+15551234567', CA)).toBe(CA);
+    expect(findCountryByPhonePrefix(sharedCode, '+15551234567', US)).toBe(US);
+  });
+
+  it('falls back to the first match when the fallback does not share the code', () => {
+    const sharedCode = [US, CA];
+    // GB is not a +1 country, so the first tied match wins.
+    expect(findCountryByPhonePrefix(sharedCode, '+15551234567', GB)).toBe(US);
+    expect(findCountryByPhonePrefix(sharedCode, '+15551234567')).toBe(US);
+  });
+
+  it('ignores the fallback when a more specific prefix matches', () => {
+    // '+351...' must still resolve to PT even if a shorter-code fallback is set.
+    expect(findCountryByPhonePrefix(countries, '+351912345678', US)).toBe(PT);
   });
 });

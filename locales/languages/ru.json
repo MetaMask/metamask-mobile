@@ -774,11 +774,6 @@
       "search_by_country": "Поиск по стране",
       "no_regions_found": "Нет регионов, соответствующих «{{searchString}}»"
     },
-    "phone_country_modal": {
-      "select_phone_country": "Выберите страну телефона",
-      "search_by_country": "Поиск по стране",
-      "no_countries_found": "Нет стран, соответствующих «{{searchString}}»"
-    },
     "state_modal": {
       "select_a_state": "Выбрать штат",
       "search_by_state": "Поиск по стейту",

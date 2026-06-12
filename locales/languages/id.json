@@ -774,11 +774,6 @@
       "search_by_country": "Cari berdasarkan negara",
       "no_regions_found": "Tidak ada wilayah yang cocok dengan \"{{searchString}}\""
     },
-    "phone_country_modal": {
-      "select_phone_country": "Pilih negara telepon",
-      "search_by_country": "Cari berdasarkan negara",
-      "no_countries_found": "Tidak ada negara yang cocok dengan \"{{searchString}}\""
-    },
     "state_modal": {
       "select_a_state": "Pilih state",
       "search_by_state": "Cari berdasarkan negara bagian",

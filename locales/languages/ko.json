@@ -774,11 +774,6 @@
       "search_by_country": "국가별 검색",
       "no_regions_found": "\"{{searchString}}\"(와)과 일치하는 지역이 없습니다"
     },
-    "phone_country_modal": {
-      "select_phone_country": "전화 국가 선택",
-      "search_by_country": "국가별 검색",
-      "no_countries_found": "\"{{searchString}}\"(와)과 일치하는 국가가 없습니다"
-    },
     "state_modal": {
       "select_a_state": "주 선택",
       "search_by_state": "주별 검색",

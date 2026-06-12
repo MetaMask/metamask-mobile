@@ -774,11 +774,6 @@
       "search_by_country": "Rechercher par pays",
       "no_regions_found": "Aucune région correspondant à vos critères de recherche : {{searchString}}"
     },
-    "phone_country_modal": {
-      "select_phone_country": "Sélectionner le pays du téléphone",
-      "search_by_country": "Rechercher par pays",
-      "no_countries_found": "Aucun pays correspondant à vos critères de recherche : {{searchString}}"
-    },
     "state_modal": {
       "select_a_state": "Sélectionner un État",
       "search_by_state": "Recherche par État",

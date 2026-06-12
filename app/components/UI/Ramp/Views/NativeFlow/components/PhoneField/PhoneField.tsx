@@ -59,7 +59,7 @@ const PhoneField = forwardRef<TextInput, PhoneFieldProps>(
 
     const defaultPhoneCountry = useMemo(
       () =>
-        findCountryByPhonePrefix(countries, initialNumber) ??
+        findCountryByPhonePrefix(countries, initialNumber, fallbackCountry) ??
         fallbackCountry ??
         null,
       [countries, initialNumber, fallbackCountry],
