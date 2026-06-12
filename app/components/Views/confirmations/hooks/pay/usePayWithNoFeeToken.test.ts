@@ -4,7 +4,7 @@ import { selectMoneyNoFeeTokens } from '../../../../UI/Money/selectors/featureFl
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { AssetType } from '../../types/token';
 import { Hex } from '@metamask/utils';
-import { WildcardTokenList } from '../../../../UI/Earn/types/wildcardTokenList';
+import { WildcardTokenList } from '../../../../UI/Earn/utils/wildcardTokenList';
 
 jest.mock('../../../../UI/Money/selectors/featureFlags');
 jest.mock('./useTransactionPayAvailableTokens');
