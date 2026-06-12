@@ -15,17 +15,17 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBalance';
-import useFiatFormatter from '../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
+import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import useFiatFormatter from '../../../SimulationDetails/FiatDisplay/useFiatFormatter';
 import { strings } from '../../../../../../locales/i18n';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
-import { isPositiveNumberOrZero } from '../../../../UI/Money/utils/number';
-import { useMoneyAnalytics } from '../../../../UI/Money/hooks/useMoneyAnalytics';
+import { isPositiveNumberOrZero } from '../../utils/number';
+import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
   MONEY_TOOLTIP_NAMES,
   MONEY_TOOLTIP_TYPES,
   SCREEN_NAMES,
-} from '../../../../UI/Money/constants/moneyEvents';
+} from '../../constants/moneyEvents';
 import Routes from '../../../../../constants/navigation/Routes';
 
 export interface BalanceProjectionProps {

@@ -1,22 +1,22 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import BigNumber from 'bignumber.js';
-import { BalanceProjection } from './balance-projection';
-import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBalance';
-import useFiatFormatter from '../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
+import { BalanceProjection } from './BalanceProjection';
+import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import useFiatFormatter from '../../../SimulationDetails/FiatDisplay/useFiatFormatter';
 import { strings } from '../../../../../../locales/i18n';
 import {
   MONEY_TOOLTIP_NAMES,
   MONEY_TOOLTIP_TYPES,
-} from '../../../../UI/Money/constants/moneyEvents';
+} from '../../constants/moneyEvents';
 import Routes from '../../../../../constants/navigation/Routes';
 
-jest.mock('../../../../UI/Money/hooks/useMoneyAccountBalance');
-jest.mock('../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter');
+jest.mock('../../hooks/useMoneyAccountBalance');
+jest.mock('../../../SimulationDetails/FiatDisplay/useFiatFormatter');
 
 const mockTrackTooltipClicked = jest.fn();
 
-jest.mock('../../../../UI/Money/hooks/useMoneyAnalytics', () => ({
+jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(() => ({
     trackTooltipClicked: mockTrackTooltipClicked,
   })),
