@@ -7,6 +7,7 @@ import {
   PlaywrightAssertions,
   PlaywrightGestures,
   PlaywrightMatchers,
+  PlatformDetector,
   PortManager,
   ResourceType,
   sleep,
@@ -517,7 +518,9 @@ export const loginToAppPlaywright = async (
   const password = getPasswordForScenario(scenarioType);
   // Type password and unlock
   await LoginView.enterPassword(password ?? '');
-  await LoginView.tapLoginButton();
+  if (!PlatformDetector.isIOS()) {
+    await LoginView.tapLoginButton();
+  }
 
   await PlaywrightUtilities.wait(5000);
   await dismissPushNotificationExistingUserSheet();

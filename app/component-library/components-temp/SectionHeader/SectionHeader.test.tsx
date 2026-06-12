@@ -8,6 +8,7 @@ import {
   BoxJustifyContent,
   IconColor,
   IconName,
+  IconSize,
 } from '@metamask/design-system-react-native';
 
 // Internal dependencies.
@@ -17,9 +18,13 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({ style: () => ({}) }),
 }));
 
-// Arrow icon testID
-const ARROW_ICON_TEST_ID = 'section-header-arrow-icon';
 const CONTAINER_TEST_ID = 'section-header-container';
+const DEFAULT_ARROW_ICON_PROPS = {
+  name: IconName.ArrowRight,
+  size: IconSize.Md,
+  accessible: false,
+  importantForAccessibility: 'no',
+};
 
 describe('SectionHeader', () => {
   describe('rendering', () => {
@@ -51,17 +56,17 @@ describe('SectionHeader', () => {
 
   describe('onPress', () => {
     it('does not render trailing icon when onPress is not provided', () => {
-      const { queryByTestId } = render(<SectionHeader title="Tokens" />);
+      const { UNSAFE_queryByProps } = render(<SectionHeader title="Tokens" />);
 
-      expect(queryByTestId(ARROW_ICON_TEST_ID)).not.toBeOnTheScreen();
+      expect(UNSAFE_queryByProps(DEFAULT_ARROW_ICON_PROPS)).toBeNull();
     });
 
     it('renders trailing icon when onPress is provided', () => {
-      const { getByTestId } = render(
+      const { UNSAFE_getByProps } = render(
         <SectionHeader title="Tokens" onPress={jest.fn()} />,
       );
 
-      expect(getByTestId(ARROW_ICON_TEST_ID)).toBeOnTheScreen();
+      expect(UNSAFE_getByProps(DEFAULT_ARROW_ICON_PROPS)).toBeTruthy();
     });
 
     it('has button accessibilityRole when onPress is provided', () => {
@@ -128,7 +133,7 @@ describe('SectionHeader', () => {
 
   describe('endIconName', () => {
     it('renders the trailing icon when onPress is provided', () => {
-      const { getByTestId } = render(
+      const { UNSAFE_getByProps } = render(
         <SectionHeader
           title="NFTs"
           onPress={jest.fn()}
@@ -136,15 +141,25 @@ describe('SectionHeader', () => {
         />,
       );
 
-      expect(getByTestId(ARROW_ICON_TEST_ID)).toBeOnTheScreen();
+      expect(
+        UNSAFE_getByProps({
+          ...DEFAULT_ARROW_ICON_PROPS,
+          name: IconName.Arrow2Right,
+        }),
+      ).toBeTruthy();
     });
 
     it('does not render the trailing icon when onPress is absent', () => {
-      const { queryByTestId } = render(
+      const { UNSAFE_queryByProps } = render(
         <SectionHeader title="NFTs" endIconName={IconName.Arrow2Right} />,
       );
 
-      expect(queryByTestId(ARROW_ICON_TEST_ID)).not.toBeOnTheScreen();
+      expect(
+        UNSAFE_queryByProps({
+          ...DEFAULT_ARROW_ICON_PROPS,
+          name: IconName.Arrow2Right,
+        }),
+      ).toBeNull();
     });
   });
 
@@ -165,15 +180,15 @@ describe('SectionHeader', () => {
 
   describe('endIconColor', () => {
     it('renders the trailing icon with the default IconAlternative color', () => {
-      const { getByTestId } = render(
+      const { UNSAFE_getByProps } = render(
         <SectionHeader title="Tokens" onPress={jest.fn()} />,
       );
 
-      expect(getByTestId(ARROW_ICON_TEST_ID)).toBeOnTheScreen();
+      expect(UNSAFE_getByProps(DEFAULT_ARROW_ICON_PROPS)).toBeTruthy();
     });
 
     it('renders the trailing icon with a custom color', () => {
-      const { getByTestId } = render(
+      const { UNSAFE_getByProps } = render(
         <SectionHeader
           title="Perps"
           onPress={jest.fn()}
@@ -181,7 +196,12 @@ describe('SectionHeader', () => {
         />,
       );
 
-      expect(getByTestId(ARROW_ICON_TEST_ID)).toBeOnTheScreen();
+      expect(
+        UNSAFE_getByProps({
+          ...DEFAULT_ARROW_ICON_PROPS,
+          color: IconColor.IconDefault,
+        }),
+      ).toBeTruthy();
     });
   });
 
@@ -199,7 +219,6 @@ describe('SectionHeader', () => {
 
       expect(getByText('Tokens')).toBeOnTheScreen();
       expect(getByText('Badge')).toBeOnTheScreen();
-      expect(getByTestId(ARROW_ICON_TEST_ID)).toBeOnTheScreen();
       expect(getByTestId(CONTAINER_TEST_ID)).toBeOnTheScreen();
     });
   });
