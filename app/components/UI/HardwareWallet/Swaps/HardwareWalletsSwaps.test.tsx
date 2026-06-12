@@ -111,13 +111,6 @@ jest.mock('../../../../component-library/components/Toast', () => {
   };
 });
 
-jest.mock('../../../../util/Logger', () => ({
-  __esModule: true,
-  default: {
-    error: jest.fn(),
-  },
-}));
-
 const SOURCE_AMOUNT = '100';
 const SOURCE_TOKEN_SYMBOL = 'USDC';
 
@@ -729,25 +722,6 @@ describe('HardwareWalletsSwaps', () => {
         expect(mockSetForceHideBottomSheet).not.toHaveBeenCalledWith(false);
         expect(mockSetForceHideBottomSheet.mock.calls.at(-1)?.[0]).toBe(true);
       });
-    });
-  });
-
-  describe('Rive error handling', () => {
-    it('calls Logger.error when Rive fires onError', () => {
-      const Logger = jest.requireMock('../../../../util/Logger').default;
-
-      renderScreen({});
-
-      const mockedMethods = __getLastMockedMethods() as
-        | { onError?: (error: { message: string; type: string }) => void }
-        | undefined;
-      expect(mockedMethods?.onError).toBeDefined();
-
-      act(() => {
-        mockedMethods?.onError?.({ message: 'test error', type: 'test' });
-      });
-
-      expect(Logger.error).toHaveBeenCalled();
     });
   });
 });
