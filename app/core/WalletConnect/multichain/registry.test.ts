@@ -23,6 +23,7 @@ import {
   getAllRegisteredNamespaces,
 } from './registry';
 import { solanaAdapter } from './solana';
+import { stellarAdapter } from './stellar';
 import { tronAdapter } from './tron';
 
 describe('multichain/registry', () => {
@@ -34,6 +35,10 @@ describe('multichain/registry', () => {
     expect(getAdapter('solana')).toBe(solanaAdapter);
   });
 
+  it('registers the stellar adapter under the stellar CAIP-2 namespace', () => {
+    expect(getAdapter('stellar')).toBe(stellarAdapter);
+  });
+
   it('returns undefined for namespaces that have no registered adapter', () => {
     expect(getAdapter('eip155')).toBeUndefined();
     expect(getAdapter('cosmos')).toBeUndefined();
@@ -42,6 +47,7 @@ describe('multichain/registry', () => {
   it('exposes the registered namespaces via getAllRegisteredNamespaces', () => {
     expect(getAllRegisteredNamespaces()).toContain('tron');
     expect(getAllRegisteredNamespaces()).toContain('solana');
+    expect(getAllRegisteredNamespaces()).toContain('stellar');
   });
 
   it('exposes the registered adapters via getAllAdapters', () => {
@@ -49,5 +55,6 @@ describe('multichain/registry', () => {
 
     expect(adapters).toContain(tronAdapter);
     expect(adapters).toContain(solanaAdapter);
+    expect(adapters).toContain(stellarAdapter);
   });
 });
