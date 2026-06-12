@@ -256,7 +256,10 @@ describe('handleNormalizedHttpProxyRequest', () => {
       ok: true,
       value: 'näïve✓',
     });
-    expect(response.headers).toEqual({ 'content-type': 'application/json' });
+    expect(response.headers).toEqual({
+      'content-type': 'application/json',
+      'content-length': String(Buffer.byteLength(jsonText, 'utf8')),
+    });
   });
 
   it('forwards CORS response headers so WebView preflights survive the live-forward path', async () => {
