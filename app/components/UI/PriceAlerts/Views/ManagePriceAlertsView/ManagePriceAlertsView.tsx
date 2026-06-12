@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { ActivityIndicator, FlatList, Switch, View } from 'react-native';
 import {
   useNavigation,
@@ -49,48 +50,43 @@ const ManagePriceAlertsView: React.FC = () => {
   const { symbol, ticker, currentPrice, currentCurrency, assetId } =
     route.params;
 
-  const [alerts, setAlerts] = useState<PriceAlert[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const {
+    data: alerts = [],
+    isLoading,
+    isError,
+  } = useQuery<PriceAlert[], Error>({
+    queryKey: ['priceAlerts', assetId],
+    queryFn: async () => {
+      const response = await fetchAlerts(assetId);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return response.json() as Promise<PriceAlert[]>;
+    },
+    retry: false,
+    staleTime: 0,
+    gcTime: 0,
+  });
 
   useEffect(() => {
-    let cancelled = false;
-    const load = async () => {
-      try {
-        const response = await fetchAlerts(assetId);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const data: PriceAlert[] = await response.json();
-        if (cancelled) return;
-        if (data.length === 0) {
-          // No alerts — replace this screen with Create so back goes straight to TokenDetails
-          navigation.replace(Routes.CREATE_PRICE_ALERT, {
-            symbol,
-            ticker,
-            currentPrice,
-            currentCurrency,
-            assetId,
-          });
-        } else {
-          setAlerts(data);
-          setIsLoading(false);
-        }
-      } catch {
-        if (!cancelled) {
-          // On error, fall through to Create screen so the user can still add an alert
-          navigation.replace(Routes.CREATE_PRICE_ALERT, {
-            symbol,
-            ticker,
-            currentPrice,
-            currentCurrency,
-            assetId,
-          });
-        }
-      }
-    };
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, [assetId, navigation, symbol, ticker, currentPrice, currentCurrency]);
+    if (!isLoading && (isError || alerts.length === 0)) {
+      navigation.replace(Routes.CREATE_PRICE_ALERT, {
+        symbol,
+        ticker,
+        currentPrice,
+        currentCurrency,
+        assetId,
+      });
+    }
+  }, [
+    isLoading,
+    isError,
+    alerts.length,
+    navigation,
+    symbol,
+    ticker,
+    currentPrice,
+    currentCurrency,
+    assetId,
+  ]);
 
   const handleBack = useCallback(() => {
     navigation.goBack();

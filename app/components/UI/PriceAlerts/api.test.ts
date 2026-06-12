@@ -1,5 +1,22 @@
-import { renderHook, act } from '@testing-library/react-hooks';
+import React from 'react';
+import { renderHook, act, waitFor } from '@testing-library/react-native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { notifyManager } from '@tanstack/query-core';
 import { fetchAlerts, createAlert, useSavePriceAlert } from './api';
+
+// Prevents teardown crashes with unstable_batchedUpdates in Jest
+notifyManager.setBatchNotifyFunction((callback: () => void) => {
+  callback();
+});
+
+const createWrapper = () => {
+  const queryClient = new QueryClient({
+    defaultOptions: { mutations: { retry: false } },
+  });
+  const Wrapper = ({ children }: { children: React.ReactNode }) =>
+    React.createElement(QueryClientProvider, { client: queryClient }, children);
+  return { Wrapper, queryClient };
+};
 
 const mockGetBearerToken = jest.fn().mockResolvedValue('test-bearer-token');
 
@@ -126,7 +143,10 @@ describe('createAlert', () => {
 
 describe('useSavePriceAlert', () => {
   it('starts with isSubmitting = false', () => {
-    const { result } = renderHook(() => useSavePriceAlert());
+    const { Wrapper } = createWrapper();
+    const { result } = renderHook(() => useSavePriceAlert(), {
+      wrapper: Wrapper,
+    });
     expect(result.current.isSubmitting).toBe(false);
   });
 
@@ -138,30 +158,38 @@ describe('useSavePriceAlert', () => {
       }),
     );
 
-    const { result } = renderHook(() => useSavePriceAlert());
+    const { Wrapper } = createWrapper();
+    const { result } = renderHook(() => useSavePriceAlert(), {
+      wrapper: Wrapper,
+    });
 
-    let savePromise!: Promise<void>;
     act(() => {
-      savePromise = result.current.save({
+      result.current.save({
         asset: 'eip155:1/slip44:60',
         threshold: 1000,
         recurring: true,
       });
     });
 
-    expect(result.current.isSubmitting).toBe(true);
+    await waitFor(() => {
+      expect(result.current.isSubmitting).toBe(true);
+    });
 
     await act(async () => {
       resolveRequest();
-      await savePromise;
     });
 
-    expect(result.current.isSubmitting).toBe(false);
+    await waitFor(() => {
+      expect(result.current.isSubmitting).toBe(false);
+    });
   });
 
   it('resets isSubmitting = false even when the request fails', async () => {
     mockFetch.mockResolvedValueOnce(makeErrorResponse(500, 'Server Error'));
-    const { result } = renderHook(() => useSavePriceAlert());
+    const { Wrapper } = createWrapper();
+    const { result } = renderHook(() => useSavePriceAlert(), {
+      wrapper: Wrapper,
+    });
 
     await act(async () => {
       await expect(
@@ -178,7 +206,10 @@ describe('useSavePriceAlert', () => {
 
   it('throws with the HTTP status and body text on a non-ok response', async () => {
     mockFetch.mockResolvedValueOnce(makeErrorResponse(409, 'Conflict'));
-    const { result } = renderHook(() => useSavePriceAlert());
+    const { Wrapper } = createWrapper();
+    const { result } = renderHook(() => useSavePriceAlert(), {
+      wrapper: Wrapper,
+    });
 
     await act(async () => {
       await expect(
@@ -198,7 +229,10 @@ describe('useSavePriceAlert', () => {
       text: jest.fn().mockRejectedValue(new Error('stream error')),
     } as unknown as Response;
     mockFetch.mockResolvedValueOnce(response);
-    const { result } = renderHook(() => useSavePriceAlert());
+    const { Wrapper } = createWrapper();
+    const { result } = renderHook(() => useSavePriceAlert(), {
+      wrapper: Wrapper,
+    });
 
     await act(async () => {
       await expect(
@@ -217,7 +251,10 @@ describe('useSavePriceAlert', () => {
       threshold: 3500,
       recurring: false,
     };
-    const { result } = renderHook(() => useSavePriceAlert());
+    const { Wrapper } = createWrapper();
+    const { result } = renderHook(() => useSavePriceAlert(), {
+      wrapper: Wrapper,
+    });
 
     await act(async () => {
       await result.current.save(params);

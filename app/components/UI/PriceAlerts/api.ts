@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import AppConstants from '../../../core/AppConstants';
 import Engine from '../../../core/Engine';
 import type { SaveAlertParams } from './constants';
@@ -32,20 +32,14 @@ export const createAlert = (params: SaveAlertParams): Promise<Response> =>
   });
 
 export const useSavePriceAlert = () => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const save = useCallback(async (params: SaveAlertParams) => {
-    setIsSubmitting(true);
-    try {
+  const { mutateAsync, isPending } = useMutation<void, Error, SaveAlertParams>({
+    mutationFn: async (params) => {
       const response = await createAlert(params);
       if (!response.ok) {
         const body = await response.text().catch(() => '(no body)');
         throw new Error(`HTTP ${response.status}: ${body}`);
       }
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, []);
-
-  return { save, isSubmitting };
+    },
+  });
+  return { save: mutateAsync, isSubmitting: isPending };
 };

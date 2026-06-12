@@ -1,8 +1,29 @@
 import React from 'react';
-import { render, act, fireEvent } from '@testing-library/react-native';
+import { render, act, fireEvent, waitFor } from '@testing-library/react-native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { notifyManager } from '@tanstack/query-core';
 import ManagePriceAlertsView from './ManagePriceAlertsView';
 import { ManagePriceAlertsTestIds, type PriceAlert } from '../../constants';
 import Routes from '../../../../../constants/navigation/Routes';
+
+// Prevents act() warnings caused by useQuery's internal batched updates
+notifyManager.setBatchNotifyFunction((callback: () => void) => {
+  callback();
+});
+
+const createWrapper = () => {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  const Wrapper = ({ children }: { children: React.ReactNode }) =>
+    React.createElement(QueryClientProvider, { client: queryClient }, children);
+  return { Wrapper, queryClient };
+};
+
+const renderView = () => {
+  const { Wrapper } = createWrapper();
+  return render(<ManagePriceAlertsView />, { wrapper: Wrapper });
+};
 
 const mockGoBack = jest.fn();
 const mockReplace = jest.fn();
@@ -49,9 +70,9 @@ const makeFetchResponse = (alerts: PriceAlert[], ok = true) => ({
   text: jest.fn().mockResolvedValue(''),
 });
 
-const flush = () =>
-  act(async () => {
-    await Promise.resolve();
+const waitForLoaded = (screen: ReturnType<typeof render>) =>
+  waitFor(() => {
+    expect(screen.queryByTestId(ManagePriceAlertsTestIds.LOADING)).toBeNull();
   });
 
 beforeEach(() => {
@@ -67,7 +88,7 @@ describe('ManagePriceAlertsView', () => {
       }),
     );
 
-    const { getByTestId } = render(<ManagePriceAlertsView />);
+    const { getByTestId } = renderView();
     expect(getByTestId(ManagePriceAlertsTestIds.LOADING)).toBeOnTheScreen();
 
     await act(async () => {
@@ -77,18 +98,18 @@ describe('ManagePriceAlertsView', () => {
 
   it('hides the loading indicator once alerts are loaded', async () => {
     mockFetchAlerts.mockResolvedValue(makeFetchResponse([makeAlert()]));
-    const { queryByTestId } = render(<ManagePriceAlertsView />);
+    const screen = renderView();
 
-    await flush();
+    await waitForLoaded(screen);
 
-    expect(queryByTestId(ManagePriceAlertsTestIds.LOADING)).toBeNull();
+    expect(screen.queryByTestId(ManagePriceAlertsTestIds.LOADING)).toBeNull();
   });
 
   it('calls fetchAlerts with the assetId from route params', async () => {
     mockFetchAlerts.mockResolvedValue(makeFetchResponse([makeAlert()]));
-    render(<ManagePriceAlertsView />);
+    const screen = renderView();
 
-    await flush();
+    await waitForLoaded(screen);
 
     expect(mockFetchAlerts).toHaveBeenCalledWith('eip155:1/slip44:60');
   });
@@ -109,22 +130,26 @@ describe('ManagePriceAlertsView', () => {
     });
 
     it('renders one row per alert', async () => {
-      const { getByTestId } = render(<ManagePriceAlertsView />);
-      await flush();
+      const screen = renderView();
+      await waitForLoaded(screen);
 
       expect(
-        getByTestId(`${ManagePriceAlertsTestIds.ALERT_ITEM_PREFIX}-alert-1`),
+        screen.getByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_ITEM_PREFIX}-alert-1`,
+        ),
       ).toBeOnTheScreen();
       expect(
-        getByTestId(`${ManagePriceAlertsTestIds.ALERT_ITEM_PREFIX}-alert-2`),
+        screen.getByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_ITEM_PREFIX}-alert-2`,
+        ),
       ).toBeOnTheScreen();
     });
 
     it('shows the formatted threshold in each row', async () => {
-      const { getByText } = render(<ManagePriceAlertsView />);
-      await flush();
+      const screen = renderView();
+      await waitForLoaded(screen);
 
-      expect(getByText('Reaches $3,000.00')).toBeOnTheScreen();
+      expect(screen.getByText('Reaches $3,000.00')).toBeOnTheScreen();
     });
 
     it('formats tiny thresholds with subscript notation instead of scientific notation', async () => {
@@ -134,46 +159,52 @@ describe('ManagePriceAlertsView', () => {
         ]),
       );
 
-      const { getByText } = render(<ManagePriceAlertsView />);
-      await flush();
+      const screen = renderView();
+      await waitForLoaded(screen);
 
-      expect(getByText('Reaches $0.0₁₃105')).toBeOnTheScreen();
+      expect(screen.getByText('Reaches $0.0₁₃105')).toBeOnTheScreen();
     });
 
     it('shows "Recurring" for recurring alerts and "Once" for one-shot alerts', async () => {
-      const { getAllByText, getByText } = render(<ManagePriceAlertsView />);
-      await flush();
+      const screen = renderView();
+      await waitForLoaded(screen);
 
-      expect(getAllByText('Recurring').length).toBeGreaterThanOrEqual(1);
-      expect(getByText('Once')).toBeOnTheScreen();
+      expect(screen.getAllByText('Recurring').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getByText('Once')).toBeOnTheScreen();
     });
 
     it('renders a delete button and active toggle for each row', async () => {
-      const { getByTestId } = render(<ManagePriceAlertsView />);
-      await flush();
+      const screen = renderView();
+      await waitForLoaded(screen);
 
       expect(
-        getByTestId(`${ManagePriceAlertsTestIds.ALERT_DELETE_PREFIX}-alert-1`),
+        screen.getByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_DELETE_PREFIX}-alert-1`,
+        ),
       ).toBeOnTheScreen();
       expect(
-        getByTestId(`${ManagePriceAlertsTestIds.ALERT_TOGGLE_PREFIX}-alert-1`),
+        screen.getByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_TOGGLE_PREFIX}-alert-1`,
+        ),
       ).toBeOnTheScreen();
     });
 
     it('shows the "Add alert" button', async () => {
-      const { getByTestId } = render(<ManagePriceAlertsView />);
-      await flush();
+      const screen = renderView();
+      await waitForLoaded(screen);
 
       expect(
-        getByTestId(ManagePriceAlertsTestIds.ADD_ALERT_BUTTON),
+        screen.getByTestId(ManagePriceAlertsTestIds.ADD_ALERT_BUTTON),
       ).toBeOnTheScreen();
     });
 
     it('navigates to CreatePriceAlert with fromManage=true when "Add alert" is pressed', async () => {
-      const { getByTestId } = render(<ManagePriceAlertsView />);
-      await flush();
+      const screen = renderView();
+      await waitForLoaded(screen);
 
-      fireEvent.press(getByTestId(ManagePriceAlertsTestIds.ADD_ALERT_BUTTON));
+      fireEvent.press(
+        screen.getByTestId(ManagePriceAlertsTestIds.ADD_ALERT_BUTTON),
+      );
 
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.CREATE_PRICE_ALERT,
@@ -192,8 +223,9 @@ describe('ManagePriceAlertsView', () => {
   describe('redirect to CreatePriceAlert', () => {
     it('replaces the screen when the API returns an empty list', async () => {
       mockFetchAlerts.mockResolvedValue(makeFetchResponse([]));
-      render(<ManagePriceAlertsView />);
-      await flush();
+      renderView();
+
+      await waitFor(() => expect(mockReplace).toHaveBeenCalled());
 
       expect(mockReplace).toHaveBeenCalledWith(
         Routes.CREATE_PRICE_ALERT,
@@ -204,8 +236,9 @@ describe('ManagePriceAlertsView', () => {
 
     it('replaces the screen on a non-ok HTTP response', async () => {
       mockFetchAlerts.mockResolvedValue(makeFetchResponse([], false));
-      render(<ManagePriceAlertsView />);
-      await flush();
+      renderView();
+
+      await waitFor(() => expect(mockReplace).toHaveBeenCalled());
 
       expect(mockReplace).toHaveBeenCalledWith(
         Routes.CREATE_PRICE_ALERT,
@@ -215,8 +248,9 @@ describe('ManagePriceAlertsView', () => {
 
     it('replaces the screen when the fetch rejects entirely', async () => {
       mockFetchAlerts.mockRejectedValue(new Error('Network failure'));
-      render(<ManagePriceAlertsView />);
-      await flush();
+      renderView();
+
+      await waitFor(() => expect(mockReplace).toHaveBeenCalled());
 
       expect(mockReplace).toHaveBeenCalledWith(
         Routes.CREATE_PRICE_ALERT,
