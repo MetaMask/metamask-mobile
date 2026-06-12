@@ -47,6 +47,7 @@ import {
   BridgeStatusControllerActions,
   BridgeStatusControllerEvents,
 } from '@metamask/bridge-status-controller';
+import type { GasFeeControllerFetchGasFeeEstimatesAction } from '@metamask/gas-fee-controller';
 import { DelegationControllerSignDelegationAction } from '@metamask/delegation-controller';
 import {
   AccountTrackerControllerGetStateAction,
@@ -109,6 +110,7 @@ type InitMessengerActions =
   | BridgeStatusControllerActions
   | CurrencyRateControllerActions
   | DelegationControllerSignDelegationAction
+  | GasFeeControllerFetchGasFeeEstimatesAction
   | NetworkControllerFindNetworkClientIdByChainIdAction
   | NetworkControllerGetNetworkClientByIdAction
   | KeyringControllerGetKeyringForAccountAction
@@ -178,6 +180,7 @@ export function getTransactionControllerInitMessenger(
       'BridgeStatusController:submitTx',
       'CurrencyRateController:getState',
       'DelegationController:signDelegation',
+      'GasFeeController:fetchGasFeeEstimates',
       'NetworkController:findNetworkClientIdByChainId',
       'NetworkController:getEIP1559Compatibility',
       'NetworkController:getNetworkClientById',

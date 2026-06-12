@@ -1,11 +1,13 @@
 import { NetworkController } from '@metamask/network-controller';
 import {
+  GasFeeEstimateLevel,
   PublishHook,
   TransactionController,
   TransactionControllerMessenger,
   TransactionControllerOptions,
   TransactionMeta,
   TransactionType,
+  UserFeeLevel,
   type PublishBatchHookTransaction,
 } from '@metamask/transaction-controller';
 
@@ -123,11 +125,18 @@ function buildInitRequestMock(
 > {
   const {
     predictControllerMock: providedPredictControllerMock,
+    preferencesState: providedPreferencesState,
     ...requestOverrides
   } = initRequestProperties;
   const predictControllerMock =
     (providedPredictControllerMock as ControllerMock | undefined) ??
     buildControllerMock();
+  const preferencesState = providedPreferencesState ?? {
+    privacyMode: false,
+    securityAlertsEnabled: true,
+    useTransactionSimulations: true,
+    advancedGasFee: {},
+  };
   const initMessenger = new ExtendedMessenger<MockAnyNamespace>({
     namespace: MOCK_ANY_NAMESPACE,
   });
@@ -145,11 +154,7 @@ function buildInitRequestMock(
       }
 
       if (actionType === 'PreferencesController:getState') {
-        return {
-          privacyMode: false,
-          securityAlertsEnabled: true,
-          useTransactionSimulations: true,
-        };
+        return preferencesState;
       }
 
       if (
@@ -304,6 +309,102 @@ describe('Transaction Controller Init', () => {
     });
 
     expect(optionFn?.()).toBe(true);
+  });
+
+  describe('getSavedGasFees', () => {
+    const account = '0x123';
+
+    function getSavedGasFeesOption(gasFeePreferences: Record<string, unknown>) {
+      return testConstructorOption(
+        'getSavedGasFees',
+        {},
+        {
+          preferencesState: {
+            privacyMode: false,
+            securityAlertsEnabled: true,
+            useTransactionSimulations: true,
+            advancedGasFee: {
+              '0x1': {
+                [account]: gasFeePreferences,
+              },
+            },
+          },
+        },
+      );
+    }
+
+    it('returns saved custom gas fees for the transaction chain and account', () => {
+      const optionFn = getSavedGasFeesOption({
+        userFeeLevel: UserFeeLevel.CUSTOM,
+        maxBaseFee: '0x1',
+        priorityFee: '0x2',
+        gasPrice: '0x3',
+      });
+
+      expect(
+        optionFn?.({
+          ...MOCK_TRANSACTION_META,
+          txParams: {
+            ...MOCK_TRANSACTION_META.txParams,
+            from: '0x123',
+          },
+        }),
+      ).toEqual({
+        level: UserFeeLevel.CUSTOM,
+        maxBaseFee: '0x1',
+        priorityFee: '0x2',
+        gasPrice: '0x3',
+      });
+    });
+
+    it('returns saved estimate level gas fees for the transaction chain and account', () => {
+      const optionFn = getSavedGasFeesOption({
+        userFeeLevel: GasFeeEstimateLevel.Low,
+      });
+
+      expect(optionFn?.(MOCK_TRANSACTION_META)).toEqual({
+        level: GasFeeEstimateLevel.Low,
+      });
+    });
+
+    it('normalizes the transaction account before lookup', () => {
+      const optionFn = getSavedGasFeesOption({
+        userFeeLevel: GasFeeEstimateLevel.High,
+      });
+
+      expect(
+        optionFn?.({
+          ...MOCK_TRANSACTION_META,
+          txParams: {
+            ...MOCK_TRANSACTION_META.txParams,
+            from: '0x123'.toUpperCase(),
+          },
+        }),
+      ).toEqual({
+        level: GasFeeEstimateLevel.High,
+      });
+    });
+
+    it('returns undefined for MM Pay transactions', () => {
+      const optionFn = getSavedGasFeesOption({
+        userFeeLevel: GasFeeEstimateLevel.Low,
+      });
+
+      expect(
+        optionFn?.({
+          ...MOCK_TRANSACTION_META,
+          metamaskPay: {} as TransactionMeta['metamaskPay'],
+        }),
+      ).toBeUndefined();
+    });
+
+    it('returns undefined for unsupported saved fee levels', () => {
+      const optionFn = getSavedGasFeesOption({
+        userFeeLevel: 'dappSuggested',
+      });
+
+      expect(optionFn?.(MOCK_TRANSACTION_META)).toBeUndefined();
+    });
   });
 
   describe('beforePublish hook', () => {

@@ -288,6 +288,7 @@ export const submitEvmTransaction = async ({
   const { NetworkController } = Engine.context;
   const networkClientId =
     NetworkController.findNetworkClientIdByChainId(chainId);
+
   const trxnParams = prepareEVMTransaction(asset, { from, to, value });
 
   let transactionType;
@@ -307,13 +308,15 @@ export const submitEvmTransaction = async ({
     networkClientId,
   );
 
-  await addTransaction(trxnParams, {
+  const { transactionMeta } = await addTransaction(trxnParams, {
     origin: MMM_ORIGIN,
     isInternal: true,
     networkClientId,
     type: transactionType,
     securityAlertResponse,
   });
+
+  return transactionMeta;
 };
 
 export function toTokenMinimalUnit(tokenValue: string, decimals: number) {
