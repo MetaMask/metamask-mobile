@@ -13,6 +13,7 @@ import {
   selectPerpsPayWithAnyTokenAllowlistAssets,
   selectPerpsRewardsReferralCodeEnabledFlag,
   selectPerpsMYXProviderEnabledFlag,
+  selectPerpsWatchlistEnabledFlag,
 } from '.';
 import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
 import type { StateWithPartialEngine } from '../../../../../selectors/featureFlagController/types';
@@ -1122,6 +1123,140 @@ describe('Perps Feature Flag Selectors', () => {
       const result = selectPerpsCompetitionBannerEnabledFlag(
         stateWithNullRemoteFlag,
       );
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('selectPerpsWatchlistEnabledFlag', () => {
+    const createEmptyFlagsState = () => ({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {},
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    });
+
+    it('returns false when remote flag is not set', () => {
+      const result = selectPerpsWatchlistEnabledFlag(createEmptyFlagsState());
+      expect(result).toBe(false);
+    });
+
+    it('returns true when remote flag is valid and enabled', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+
+      const stateWithEnabledRemoteFlag = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                perpsWatchlistV2Enabled: {
+                  enabled: true,
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPerpsWatchlistEnabledFlag(
+        stateWithEnabledRemoteFlag,
+      );
+      expect(result).toBe(true);
+    });
+
+    it('returns false when remote flag is valid but disabled', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+
+      const stateWithDisabledRemoteFlag = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                perpsWatchlistV2Enabled: {
+                  enabled: false,
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPerpsWatchlistEnabledFlag(
+        stateWithDisabledRemoteFlag,
+      );
+      expect(result).toBe(false);
+    });
+
+    it('returns false when enabled but version check fails', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(false);
+
+      const stateWithVersionCheckFailure = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                perpsWatchlistV2Enabled: {
+                  enabled: true,
+                  minimumVersion: '99.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPerpsWatchlistEnabledFlag(
+        stateWithVersionCheckFailure,
+      );
+      expect(result).toBe(false);
+    });
+
+    it('returns false when remote flag is invalid', () => {
+      const stateWithInvalidRemoteFlag = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                perpsWatchlistV2Enabled: {
+                  enabled: 'invalid',
+                  minimumVersion: 123,
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPerpsWatchlistEnabledFlag(
+        stateWithInvalidRemoteFlag,
+      );
+      expect(result).toBe(false);
+    });
+
+    it('returns false when remote flag is null', () => {
+      const stateWithNullRemoteFlag = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                perpsWatchlistV2Enabled: null,
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPerpsWatchlistEnabledFlag(stateWithNullRemoteFlag);
       expect(result).toBe(false);
     });
   });

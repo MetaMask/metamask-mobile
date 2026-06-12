@@ -61,12 +61,6 @@ import { BannerAlertSeverity } from '../../../../../component-library/components
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { useSelector } from 'react-redux';
-import {
-  getRampRoutingDecision,
-  UnifiedRampRoutingType,
-} from '../../../../../reducers/fiatOrders';
-
 import TruncatedError from '../../components/TruncatedError';
 import { PROVIDER_LINKS } from '../../Aggregator/types';
 const BAILED_ORDER_STATUSES = new Set<RampsOrderStatus>([
@@ -171,7 +165,6 @@ function BuildQuote() {
   const { continueWithQuote } = useContinueWithQuote();
 
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const rampRoutingDecision = useSelector(getRampRoutingDecision);
   const prevSelectedProviderRef = useRef(selectedProvider);
 
   /*
@@ -345,19 +338,16 @@ function BuildQuote() {
   const hasTrackedScreenViewRef = useRef(false);
   useEffect(() => {
     if (hasTrackedScreenViewRef.current) return;
-    if (rampRoutingDecision != null) {
-      hasTrackedScreenViewRef.current = true;
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.RAMPS_SCREEN_VIEWED)
-          .addProperties({
-            location: 'Amount Input',
-            ramp_type: 'UNIFIED_BUY_2',
-            ramp_routing: rampRoutingDecision,
-          })
-          .build(),
-      );
-    }
-  }, [rampRoutingDecision, trackEvent, createEventBuilder]);
+    hasTrackedScreenViewRef.current = true;
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_SCREEN_VIEWED)
+        .addProperties({
+          location: 'Amount Input',
+          ramp_type: 'UNIFIED_BUY_2',
+        })
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder]);
 
   /*
    * Sets the default amount for the user's region.
@@ -460,7 +450,6 @@ function BuildQuote() {
             payment_method_id: selectedPaymentMethod?.id,
             chain_id: selectedToken?.chainId,
             ramp_type: 'UNIFIED_BUY_2',
-            ramp_routing: rampRoutingDecision ?? undefined,
           })
           .build(),
       );
@@ -476,7 +465,6 @@ function BuildQuote() {
     selectedToken?.assetId,
     selectedToken?.chainId,
     selectedPaymentMethod?.id,
-    rampRoutingDecision,
     trackEvent,
     createEventBuilder,
   ]);
@@ -599,8 +587,6 @@ function BuildQuote() {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.RAMPS_CONTINUE_BUTTON_CLICKED)
         .addProperties({
-          ramp_routing:
-            rampRoutingDecision ?? UnifiedRampRoutingType.AGGREGATOR,
           ramp_type: 'UNIFIED_BUY_2',
           amount_source: amountAsNumber,
           payment_method_id: selectedPaymentMethod?.id ?? '',
@@ -634,7 +620,6 @@ function BuildQuote() {
     amountAsNumber,
     currency,
     selectedPaymentMethod?.id,
-    rampRoutingDecision,
     userRegion?.regionCode,
     trackEvent,
     createEventBuilder,

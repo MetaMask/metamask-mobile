@@ -264,6 +264,22 @@ const MoneyHomeView = () => {
     [navigation, trackButtonClicked],
   );
 
+  const handleMusdRowAddPress = useCallback(() => {
+    trackButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+      button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+      label_key: 'money.musd_row.add',
+      component_name: COMPONENT_NAMES.MONEY_MUSD_TOKEN_SECTION,
+      redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+    });
+
+    initiateDeposit().catch((error) =>
+      Logger.error(error as Error, {
+        message: '[MoneyHomeView] Failed to initiate deposit from mUSD row',
+      }),
+    );
+  }, [initiateDeposit, trackButtonClicked]);
+
   const handleTransferPress = useCallback(() => {
     trackButtonClicked({
       button_type: MONEY_BUTTON_TYPES.TEXT,
@@ -635,12 +651,7 @@ const MoneyHomeView = () => {
                   componentName: COMPONENT_NAMES.MONEY_MUSD_TOKEN_SECTION,
                 })
               }
-              onAddPress={() =>
-                handleAddPress({
-                  labelKey: 'money.musd_row.add',
-                  componentName: COMPONENT_NAMES.MONEY_MUSD_TOKEN_SECTION,
-                })
-              }
+              onAddPress={handleMusdRowAddPress}
               balance={musdFiatFormatted}
             />
             <Divider />

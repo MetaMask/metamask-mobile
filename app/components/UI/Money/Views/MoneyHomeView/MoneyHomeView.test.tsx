@@ -36,6 +36,12 @@ import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountC
 import { MONEY_HOME_CARD_ORIGIN } from '../../../Card/hooks/useCardPostAuthRedirect';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
+import {
+  COMPONENT_NAMES,
+  MONEY_BUTTON_INTENTS,
+  MONEY_BUTTON_TYPES,
+  SCREEN_NAMES,
+} from '../../constants/moneyEvents';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   CardActions,
@@ -197,9 +203,10 @@ jest.mock('../../../Earn/hooks/useMusdBalance', () => ({
   useMusdBalance: jest.fn(() => ({ tokenBalanceAggregated: '0' })),
 }));
 
+const mockTrackButtonClicked = jest.fn();
 jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(() => ({
-    trackButtonClicked: jest.fn(),
+    trackButtonClicked: mockTrackButtonClicked,
     trackTooltipClicked: jest.fn(),
     trackSurfaceClicked: jest.fn(),
     trackTokenButtonClicked: jest.fn(),
@@ -1218,6 +1225,46 @@ describe('MoneyHomeView', () => {
       ).toBeOnTheScreen();
     });
 
+    it('navigates to HowItWorks when the condensed how-it-works card is pressed', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(
+        getByTestId(MoneyCondensedInfoCardsTestIds.HOW_IT_WORKS_CARD),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.HOW_IT_WORKS);
+    });
+
+    it('navigates to Asset details when the condensed mUSD card is pressed', () => {
+      const NavigationService = jest.requireMock(
+        '../../../../../core/NavigationService',
+      ).default;
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(getByTestId(MoneyCondensedInfoCardsTestIds.MUSD_CARD));
+
+      expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
+        'Asset',
+        expect.objectContaining({ source: expect.any(String) }),
+      );
+    });
+
+    it('opens the MUSD learn more URL when the condensed what-you-get card is pressed', () => {
+      const mockOpenURL = jest
+        .spyOn(Linking, 'openURL')
+        .mockResolvedValue(undefined);
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(
+        getByTestId(MoneyCondensedInfoCardsTestIds.WHAT_YOU_GET_CARD),
+      );
+
+      expect(mockOpenURL).toHaveBeenCalledTimes(1);
+      mockOpenURL.mockRestore();
+    });
+
     it('hides expanded HowItWorks section', () => {
       const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
       expect(
@@ -1432,18 +1479,49 @@ describe('MoneyHomeView', () => {
       expect(getByTestId(MoneyWhatYouGetTestIds.CONTAINER)).toBeOnTheScreen();
     });
 
-    it.each([['mUSD row Add', MoneyMusdTokenRowTestIds.ADD_BUTTON]])(
-      'opens the Add money sheet from the %s button',
-      (_label, testId) => {
-        const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+    it('initiates a deposit without preselection when the mUSD row Add button is pressed', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
-        fireEvent.press(getByTestId(testId));
+      fireEvent.press(getByTestId(MoneyMusdTokenRowTestIds.ADD_BUTTON));
 
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
-          screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
-        });
-      },
-    );
+      expect(mockInitiateDeposit).toHaveBeenCalledTimes(1);
+      expect(mockInitiateDeposit).toHaveBeenCalledWith();
+      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+      });
+    });
+
+    it('logs an error when the mUSD row deposit rejects', async () => {
+      mockInitiateDeposit.mockRejectedValueOnce(new Error('network failure'));
+      const Logger = jest.requireMock('../../../../../util/Logger');
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(getByTestId(MoneyMusdTokenRowTestIds.ADD_BUTTON));
+
+      await Promise.resolve();
+
+      expect(Logger.default.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          message: expect.stringContaining('mUSD row'),
+        }),
+      );
+    });
+
+    it('tracks the mUSD row Add click with the deposit redirect target', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(getByTestId(MoneyMusdTokenRowTestIds.ADD_BUTTON));
+
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+        label_key: 'money.musd_row.add',
+        component_name: COMPONENT_NAMES.MONEY_MUSD_TOKEN_SECTION,
+        redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+      });
+    });
 
     it('navigates to Asset details when the mUSD token row is pressed', () => {
       const NavigationService = jest.requireMock(
