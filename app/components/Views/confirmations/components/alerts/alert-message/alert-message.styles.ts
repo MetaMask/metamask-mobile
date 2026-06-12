@@ -6,6 +6,7 @@ const styleSheet = (params: { theme: Theme }) =>
     container: {
       flexDirection: 'row',
       backgroundColor: params.theme.colors.error.muted,
+      borderRadius: 4,
       overflow: 'hidden',
     },
     border: {
