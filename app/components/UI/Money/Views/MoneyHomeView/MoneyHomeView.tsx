@@ -165,6 +165,7 @@ const MoneyHomeView = () => {
     isCardAuthenticated,
     isCardLinkedToMoneyAccount,
     isLinking,
+    hasMoneyAccountRequirements,
   } = useMoneyAccountCardLinkage();
 
   let displayState: MoneyBalanceDisplayState;
@@ -561,11 +562,16 @@ const MoneyHomeView = () => {
     [navigation, trackActivitySurfaceClicked],
   );
 
-  let metamaskCardMode: 'upsell' | 'link' | 'manage';
+  // `link` mode is only offered when the Money Account ↔ card requirements are
+  // met — which now includes the card spending token (VEDA) being allowlisted
+  // in the cardFeature flag (see useMoneyAccountCardLinkage). When a cardholder
+  // / authenticated user can't link (e.g. VEDA not enabled), the card section
+  // is hidden rather than showing a dead "Link card" CTA.
+  let metamaskCardMode: 'upsell' | 'link' | 'manage' | null;
   if (isCardLinkedToMoneyAccount) {
     metamaskCardMode = 'manage';
   } else if (isCardAuthenticated || isCardholder) {
-    metamaskCardMode = 'link';
+    metamaskCardMode = hasMoneyAccountRequirements ? 'link' : null;
   } else {
     metamaskCardMode = 'upsell';
   }
@@ -690,23 +696,27 @@ const MoneyHomeView = () => {
             <Divider />
           </>
         )}
-        <MoneyMetaMaskCard
-          mode={metamaskCardMode}
-          onGetNowPress={navigateToCardHome}
-          onHeaderPress={handleCardHeaderPress}
-          onLinkPress={handleLinkCardPress}
-          onManagePress={navigateToCardHome}
-          showMetalCard={hasMetalCard}
-          isLinkDisabled={isLinking}
-          cardBalance={cardBalance}
-          apy={apyPercent}
-          analyticsScreen={CardScreens.MONEY_HOME}
-          analyticsEntryPoint={CardEntryPoint.MONEY_HOME_METAMASK_CARD}
-          analyticsFlow={CardFlow.MONEY_ACCOUNT_LINKAGE}
-          analyticsCardState={cardState}
-          analyticsReady={isCardAnalyticsReady}
-        />
-        <Divider />
+        {metamaskCardMode && (
+          <>
+            <MoneyMetaMaskCard
+              mode={metamaskCardMode}
+              onGetNowPress={navigateToCardHome}
+              onHeaderPress={handleCardHeaderPress}
+              onLinkPress={handleLinkCardPress}
+              onManagePress={navigateToCardHome}
+              showMetalCard={hasMetalCard}
+              isLinkDisabled={isLinking}
+              cardBalance={cardBalance}
+              apy={apyPercent}
+              analyticsScreen={CardScreens.MONEY_HOME}
+              analyticsEntryPoint={CardEntryPoint.MONEY_HOME_METAMASK_CARD}
+              analyticsFlow={CardFlow.MONEY_ACCOUNT_LINKAGE}
+              analyticsCardState={cardState}
+              analyticsReady={isCardAnalyticsReady}
+            />
+            <Divider />
+          </>
+        )}
         {isFunded && (
           <>
             <MoneyCondensedInfoCards

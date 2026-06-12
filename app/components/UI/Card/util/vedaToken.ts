@@ -73,3 +73,34 @@ export const isVedaToken = (
     token.symbol?.toLowerCase() === MONEY_ACCOUNT_DELEGATION_TOKEN_KEY
   );
 };
+
+/**
+ * True when the Money Account spending token (VEDA) is present and enabled in
+ * the cardFeature allowlist, matched by the canonical `veda` symbol — the same
+ * key the provider's delegation settings use — across all configured chains.
+ */
+export const isMoneyAccountCardTokenAllowlisted = (
+  chains:
+    | Record<
+        string,
+        | {
+            tokens?:
+              | { symbol?: string | null; enabled?: boolean | null }[]
+              | null;
+          }
+        | undefined
+      >
+    | null
+    | undefined,
+): boolean => {
+  if (!chains) {
+    return false;
+  }
+  return Object.values(chains).some((chain) =>
+    (chain?.tokens ?? []).some(
+      (token) =>
+        token?.enabled !== false &&
+        token?.symbol?.toLowerCase() === MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
+    ),
+  );
+};

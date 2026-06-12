@@ -3,6 +3,7 @@ import type { DelegationSettingsResponse } from '../types';
 import {
   getVedaTokenConfig,
   isVedaToken,
+  isMoneyAccountCardTokenAllowlisted,
   MONEY_ACCOUNT_DELEGATION_NETWORK,
   MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
   MONEY_ACCOUNT_DISPLAY_SYMBOL,
@@ -193,6 +194,57 @@ describe('isVedaToken', () => {
         },
         vedaConfig,
       ),
+    ).toBe(false);
+  });
+});
+
+describe('isMoneyAccountCardTokenAllowlisted', () => {
+  it('returns false when chains is null/undefined', () => {
+    expect(isMoneyAccountCardTokenAllowlisted(null)).toBe(false);
+    expect(isMoneyAccountCardTokenAllowlisted(undefined)).toBe(false);
+  });
+
+  it('returns true when an enabled veda token is present', () => {
+    expect(
+      isMoneyAccountCardTokenAllowlisted({
+        'eip155:143': {
+          tokens: [{ symbol: 'veda', enabled: true }],
+        },
+      }),
+    ).toBe(true);
+  });
+
+  it('matches the veda symbol case-insensitively', () => {
+    expect(
+      isMoneyAccountCardTokenAllowlisted({
+        'eip155:143': { tokens: [{ symbol: 'VEDA', enabled: true }] },
+      }),
+    ).toBe(true);
+  });
+
+  it('treats a token with enabled omitted as enabled', () => {
+    expect(
+      isMoneyAccountCardTokenAllowlisted({
+        'eip155:143': { tokens: [{ symbol: 'veda' }] },
+      }),
+    ).toBe(true);
+  });
+
+  it('returns false when the veda token is disabled', () => {
+    expect(
+      isMoneyAccountCardTokenAllowlisted({
+        'eip155:143': { tokens: [{ symbol: 'veda', enabled: false }] },
+      }),
+    ).toBe(false);
+  });
+
+  it('returns false when no veda token is allowlisted', () => {
+    expect(
+      isMoneyAccountCardTokenAllowlisted({
+        'eip155:143': {
+          tokens: [{ symbol: 'USDC', enabled: true }],
+        },
+      }),
     ).toBe(false);
   });
 });
