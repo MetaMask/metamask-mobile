@@ -14,6 +14,14 @@ name: CI (Bitrise shadow)
 #   - Rego policy mm-metamask-mobile-bitrise-shadow-ci-token-exchange in
 #     token-exchange-service (matches the OIDC `workflow_ref` claim).
 on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths-ignore:
+      - "docs/**"
+      - "**/*.md"
+      - ".github/CODEOWNERS"
+  push:
+    branches: [main]
   workflow_dispatch:
 
 concurrency:
@@ -28,7 +36,8 @@ jobs:
   dispatch-shadow:
     name: "[bitrise-shadow] Dispatch"
     runs-on: ubuntu-latest
-    if: ${{ github.event.pull_request.head.repo.fork != true }}
+    # Fork PRs use head.repo != github.repository — skip (no shadow, no token exchange).
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
     steps:
       - name: Get access token
         id: get-token
