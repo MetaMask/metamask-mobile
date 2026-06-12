@@ -10,6 +10,10 @@ import './shim.js';
 // but before any code that uses fetch().
 import './app/core/NitroFetchSetup';
 
+// Replace global.WebSocket with react-native-nitro-websockets (native C++ via
+// libwebsockets + mbedTLS) and prewarm the MetaMask backend gateway on cold start.
+import './app/core/NitroWebSocketSetup';
+
 // TODO: This import may not be required anymore since we've upgraded to v2 - https://docs.swmansion.com/react-native-gesture-handler/docs/fundamentals/installation/#requirements
 // Legacy - Need to import early for native module initialization - https://docs.swmansion.com/react-native-gesture-handler/docs/1.x/
 import 'react-native-gesture-handler';

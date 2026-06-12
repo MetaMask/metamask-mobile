@@ -32,6 +32,7 @@ import io.metamask.nativeModules.RNTar.RNTarPackage
 import io.metamask.nativeModules.NotificationPackage
 import com.braze.BrazeActivityLifecycleCallbackListener
 import com.margelo.nitro.nitrofetch.AutoPrefetcher
+import com.margelo.nitro.nitrofetchwebsockets.NitroWebSocketAutoPrewarmer
 
 class MainApplication : Application(), ShareApplication, ReactApplication {
 
@@ -99,6 +100,14 @@ class MainApplication : Application(), ShareApplication, ReactApplication {
             // Non-fatal: prefetch is a cold-start optimisation. If it fails (e.g. fresh
             // install, missing native queue, or early init race) the app continues normally
             // and requests are served by the standard fetch path.
+        }
+
+        // Fire prewarmOnAppStart queue for WebSocket connections before JS loads.
+        // iOS is auto-bootstrapped via the Nitro +load hook.
+        try {
+            NitroWebSocketAutoPrewarmer.prewarmOnStart(this)
+        } catch (e: Exception) {
+            // Non-fatal: prewarm is a cold-start optimisation.
         }
 
         loadReactNative(this)
