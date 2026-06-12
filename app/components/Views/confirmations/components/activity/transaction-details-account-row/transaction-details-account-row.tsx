@@ -1,39 +1,89 @@
 import React from 'react';
-import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
-import { TransactionDetailsRow } from '../transaction-details-row/transaction-details-row';
-import { strings } from '../../../../../../../locales/i18n';
-import { NameType } from '../../../../../UI/Name/Name.types';
-import { useAccountNames } from '../../../../../hooks/DisplayName/useAccountNames';
+import { useSelector } from 'react-redux';
+import { type Hex } from '@metamask/utils';
+import { TransactionType } from '@metamask/transaction-controller';
 import Text, {
   TextColor,
 } from '../../../../../../component-library/components/Texts/Text';
-import { TransactionType } from '@metamask/transaction-controller';
+import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
+import AvatarAccount from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
+import Badge, {
+  BadgeVariant,
+} from '../../../../../../component-library/components/Badges/Badge';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../../../component-library/components/Badges/BadgeWrapper';
+import { Box } from '../../../../../UI/Box/Box';
+import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';
+import { NameType } from '../../../../../UI/Name/Name.types';
+import { useAccountNames } from '../../../../../hooks/DisplayName/useAccountNames';
+import { strings } from '../../../../../../../locales/i18n';
+import { selectPrimaryMoneyAccount } from '../../../../../../selectors/moneyAccountController';
+import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { hasTransactionType } from '../../../utils/transaction';
+import { TransactionDetailsRow } from '../transaction-details-row/transaction-details-row';
+import useNetworkInfo from '../../../hooks/useNetworkInfo';
 
-const TRANSACTION_TYPES = [
-  TransactionType.moneyAccountWithdraw,
+const ACCOUNT_TYPES = [
   TransactionType.perpsWithdraw,
   TransactionType.predictClaim,
   TransactionType.predictWithdraw,
 ];
 
+const WITHDRAW_TYPES = [TransactionType.moneyAccountWithdraw];
+
 export function TransactionDetailsAccountRow() {
   const { transactionMeta } = useTransactionDetails();
+  const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
+  const moneyAddress = primaryMoneyAccount?.address;
+
+  const chainId = (transactionMeta.metamaskPay?.chainId ??
+    transactionMeta.chainId) as Hex;
+
+  const { networkName, networkImage } = useNetworkInfo(chainId);
 
   const {
-    chainId,
     txParams: { from },
   } = transactionMeta;
 
   const accountName = useAccountNames([
     {
       value: from,
-      variation: chainId,
+      variation: transactionMeta.chainId,
       type: NameType.EthereumAddress,
     },
   ])?.[0];
 
-  if (!hasTransactionType(transactionMeta, TRANSACTION_TYPES)) {
+  const isWithdraw =
+    hasTransactionType(transactionMeta, WITHDRAW_TYPES) && moneyAddress;
+
+  if (isWithdraw) {
+    return (
+      <TransactionDetailsRow label={strings('transaction_details.label.from')}>
+        <Box
+          flexDirection={FlexDirection.Row}
+          alignItems={AlignItems.center}
+          gap={6}
+        >
+          <BadgeWrapper
+            badgePosition={BadgePosition.BottomRight}
+            badgeElement={
+              <Badge
+                variant={BadgeVariant.Network}
+                imageSource={networkImage}
+                name={networkName}
+              />
+            }
+          >
+            <AvatarAccount accountAddress={moneyAddress} size={AvatarSize.Sm} />
+          </BadgeWrapper>
+          <Text>{strings('transaction_details.label.money_account')}</Text>
+        </Box>
+      </TransactionDetailsRow>
+    );
+  }
+
+  if (!hasTransactionType(transactionMeta, ACCOUNT_TYPES)) {
     return null;
   }
 

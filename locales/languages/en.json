@@ -9398,6 +9398,7 @@
       "bridge_fee": "Bridge fee",
       "provider_fee": "Provider fee",
       "network_fee": "Network fee",
+      "transaction_fee": "Transaction fee",
       "paid_with": "Paid with",
       "receive_token": "Receive token",
       "retry_button": "Try again",
@@ -9407,9 +9408,15 @@
       "received_total": "Received total",
       "from": "From",
       "to": "To",
+      "order_id": "Order ID",
       "network": "Network",
       "you_sent": "You sent",
-      "token_received": "Token received"
+      "token_received": "Token received",
+      "money_account": "Money account",
+      "perps_account": "Perps Account 1",
+      "predictions_account": "Predictions Account 1",
+      "steps_completed": "Steps ({{count}} completed)",
+      "summary": "Summary"
     },
     "view_on_block_explorer": "View on block explorer",
     "summary_title": {
