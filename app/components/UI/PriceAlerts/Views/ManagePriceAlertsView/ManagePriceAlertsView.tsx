@@ -54,16 +54,16 @@ const ManagePriceAlertsView: React.FC = () => {
     data: alerts = [],
     isLoading,
     isError,
-  } = useQuery<PriceAlert[], Error>({
+  } = useQuery({
     queryKey: ['priceAlerts', assetId],
-    queryFn: async () => {
+    queryFn: async (): Promise<PriceAlert[]> => {
       const response = await fetchAlerts(assetId);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      return response.json() as Promise<PriceAlert[]>;
+      return response.json();
     },
     retry: false,
     staleTime: 0,
-    gcTime: 0,
+    cacheTime: 0,
   });
 
   useEffect(() => {
