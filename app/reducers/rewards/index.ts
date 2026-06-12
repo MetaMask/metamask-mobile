@@ -25,6 +25,7 @@ import {
   PredictThePitchPositionsDto,
   PredictThePitchPrizePoolDto,
   VipDashboardState,
+  VipRefereeMeState,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { OnboardingStep } from './types';
 import { AccountGroupId } from '@metamask/account-api';
@@ -86,6 +87,8 @@ export interface RewardsState {
   referralCode: string | null;
   refereeCount: number;
   referredByCode: string | null;
+  isVipReferee: boolean;
+  referredByVipCode: string | null;
 
   // Season tier state
   currentTier: SeasonTierDto | null;
@@ -138,7 +141,11 @@ export interface RewardsState {
   vipDashboard: Record<string, VipDashboardState>;
   vipDashboardLoading: boolean;
   vipDashboardError: boolean;
+  vipRefereeDashboard: Record<string, VipRefereeMeState>;
+  vipRefereeDashboardLoading: boolean;
+  vipRefereeDashboardError: boolean;
   vipSplashAccepted: Record<string, boolean>;
+  vipRefereeSplashAccepted: Record<string, boolean>;
 
   // Campaigns state
   campaigns: CampaignDto[];
@@ -248,6 +255,8 @@ export const initialState: RewardsState = {
   referralCode: null,
   refereeCount: 0,
   referredByCode: null,
+  isVipReferee: false,
+  referredByVipCode: null,
 
   currentTier: null,
   nextTier: null,
@@ -295,7 +304,11 @@ export const initialState: RewardsState = {
   vipDashboard: {},
   vipDashboardLoading: false,
   vipDashboardError: false,
+  vipRefereeDashboard: {},
+  vipRefereeDashboardLoading: false,
+  vipRefereeDashboardError: false,
   vipSplashAccepted: {},
+  vipRefereeSplashAccepted: {},
 
   // Campaigns initial state
   campaigns: [],
@@ -413,6 +426,8 @@ const rewardsSlice = createSlice({
         referralCode?: string;
         refereeCount?: number;
         referredByCode?: string;
+        isVipReferee?: boolean;
+        referredByVipCode?: string | null;
       }>,
     ) => {
       if (action.payload.referralCode !== undefined) {
@@ -423,6 +438,12 @@ const rewardsSlice = createSlice({
       }
       if (action.payload.referredByCode !== undefined) {
         state.referredByCode = action.payload.referredByCode;
+      }
+      if (action.payload.isVipReferee !== undefined) {
+        state.isVipReferee = action.payload.isVipReferee;
+      }
+      if (action.payload.referredByVipCode !== undefined) {
+        state.referredByVipCode = action.payload.referredByVipCode;
       }
       state.referralDetailsLoading = false;
     },
@@ -463,7 +484,11 @@ const rewardsSlice = createSlice({
       state.vipDashboard = {};
       state.vipDashboardLoading = false;
       state.vipDashboardError = false;
+      state.vipRefereeDashboard = {};
+      state.vipRefereeDashboardLoading = false;
+      state.vipRefereeDashboardError = false;
       state.vipSplashAccepted = {};
+      state.vipRefereeSplashAccepted = {};
       state.predictThePitchLeaderboard = null;
       state.predictThePitchLeaderboardLoading = false;
       state.predictThePitchLeaderboardError = false;
@@ -523,6 +548,7 @@ const rewardsSlice = createSlice({
           bulkLink: state.bulkLink,
           dismissedCampaignOutcomeToasts: state.dismissedCampaignOutcomeToasts,
           vipSplashAccepted: state.vipSplashAccepted,
+          vipRefereeSplashAccepted: state.vipRefereeSplashAccepted,
           versionGuardMinimumMobileVersion:
             state.versionGuardMinimumMobileVersion,
           versionGuardLoading: state.versionGuardLoading,
@@ -775,11 +801,42 @@ const rewardsSlice = createSlice({
       state.vipDashboardError = action.payload;
     },
 
+    setVipRefereeDashboard: (
+      state,
+      action: PayloadAction<{
+        subscriptionId: string;
+        dashboard: VipRefereeMeState | null;
+      }>,
+    ) => {
+      if (action.payload.dashboard) {
+        state.vipRefereeDashboard[action.payload.subscriptionId] =
+          action.payload.dashboard;
+      } else {
+        delete state.vipRefereeDashboard[action.payload.subscriptionId];
+      }
+      state.vipRefereeDashboardError = false;
+    },
+
+    setVipRefereeDashboardLoading: (state, action: PayloadAction<boolean>) => {
+      state.vipRefereeDashboardLoading = action.payload;
+    },
+
+    setVipRefereeDashboardError: (state, action: PayloadAction<boolean>) => {
+      state.vipRefereeDashboardError = action.payload;
+    },
+
     acceptVipInvite: (
       state,
       action: PayloadAction<{ subscriptionId: string }>,
     ) => {
       state.vipSplashAccepted[action.payload.subscriptionId] = true;
+    },
+
+    acceptVipRefereeInvite: (
+      state,
+      action: PayloadAction<{ subscriptionId: string }>,
+    ) => {
+      state.vipRefereeSplashAccepted[action.payload.subscriptionId] = true;
     },
 
     setOndoCampaignActivity: (
@@ -1078,7 +1135,11 @@ const rewardsSlice = createSlice({
               unlockedRewards: action.payload.rewards.unlockedRewards,
               campaigns: action.payload.rewards.campaigns ?? [],
               vipDashboard: action.payload.rewards.vipDashboard ?? {},
+              vipRefereeDashboard:
+                action.payload.rewards.vipRefereeDashboard ?? {},
               vipSplashAccepted: action.payload.rewards.vipSplashAccepted ?? {},
+              vipRefereeSplashAccepted:
+                action.payload.rewards.vipRefereeSplashAccepted ?? {},
               campaignParticipantStatuses:
                 action.payload.rewards.campaignParticipantStatuses ?? {},
               ondoCampaignLeaderboardPositions:
@@ -1160,7 +1221,11 @@ export const {
   setVipDashboard,
   setVipDashboardError,
   setVipDashboardLoading,
+  setVipRefereeDashboard,
+  setVipRefereeDashboardError,
+  setVipRefereeDashboardLoading,
   acceptVipInvite,
+  acceptVipRefereeInvite,
   // Campaigns actions
   setCampaigns,
   setCampaignsLoading,
