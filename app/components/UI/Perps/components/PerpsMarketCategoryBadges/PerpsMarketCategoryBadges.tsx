@@ -1,9 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import {
-  type LayoutChangeEvent,
-  type NativeScrollEvent,
-  type NativeSyntheticEvent,
-} from 'react-native';
+import React, { useCallback, useMemo } from 'react';
 import Animated, { FadeIn, LinearTransition } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -17,6 +12,7 @@ import {
   type PerpsCategory,
 } from '../../hooks/usePerpsCategories';
 import { useHasNewMarkets } from '../../hooks/useHasNewMarkets';
+import { useScrollToSelected } from '../../hooks/useScrollToSelected';
 
 const ANIMATION_DURATION = 250;
 
@@ -47,65 +43,20 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
   const categories = usePerpsCategories();
   const hasNewMarkets = useHasNewMarkets();
 
-  const scrollViewRef = useRef<{
-    scrollTo(opts: { x: number; animated: boolean }): void;
-  } | null>(null);
-  const badgeLayoutsRef = useRef<Record<string, { x: number; width: number }>>(
-    {},
-  );
-  const scrollOffsetRef = useRef(0);
-  const viewportWidthRef = useRef(0);
+  const {
+    scrollViewRef,
+    handleItemLayout,
+    handleScroll,
+    handleScrollViewLayout,
+  } = useScrollToSelected({
+    selectedKey: selectedCategory === 'all' ? undefined : selectedCategory,
+    delay: ANIMATION_DURATION + 100,
+  });
 
   const displayCategories = useMemo(
     () => (hasNewMarkets ? [...categories, NEW_CATEGORY] : categories),
     [categories, hasNewMarkets],
   );
-
-  const handleBadgeLayout = useCallback(
-    (categoryId: string, event: LayoutChangeEvent) => {
-      const { x, width } = event.nativeEvent.layout;
-      badgeLayoutsRef.current[categoryId] = { x, width };
-    },
-    [],
-  );
-
-  const handleScroll = useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      scrollOffsetRef.current = event.nativeEvent.contentOffset.x;
-    },
-    [],
-  );
-
-  const handleScrollViewLayout = useCallback((event: LayoutChangeEvent) => {
-    viewportWidthRef.current = event.nativeEvent.layout.width;
-  }, []);
-
-  useEffect(() => {
-    if (selectedCategory === 'all') {
-      return;
-    }
-    const timer = setTimeout(() => {
-      const layout = badgeLayoutsRef.current[selectedCategory];
-      if (!layout || !scrollViewRef.current) {
-        return;
-      }
-
-      const badgeLeft = layout.x;
-      const badgeRight = layout.x + layout.width;
-      const visibleLeft = scrollOffsetRef.current;
-      const visibleRight = visibleLeft + viewportWidthRef.current;
-
-      const isFullyVisible =
-        badgeLeft >= visibleLeft && badgeRight <= visibleRight;
-      if (!isFullyVisible) {
-        scrollViewRef.current.scrollTo({
-          x: Math.max(0, layout.x - 16),
-          animated: true,
-        });
-      }
-    }, ANIMATION_DURATION + 100);
-    return () => clearTimeout(timer);
-  }, [selectedCategory]);
 
   const handleCategoryPress = useCallback(
     (category: Exclude<MarketTypeFilter, 'all'>) => {
@@ -135,7 +86,7 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
         <Animated.View
           entering={FadeIn.duration(ANIMATION_DURATION)}
           layout={LinearTransition.duration(ANIMATION_DURATION)}
-          onLayout={(e) => handleBadgeLayout('watchlist', e)}
+          onLayout={(e) => handleItemLayout('watchlist', e)}
         >
           <PerpsMarketCategoryBadge
             icon={IconName.StarFilled}
@@ -153,7 +104,7 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
             key={category.id}
             entering={FadeIn.duration(ANIMATION_DURATION).delay(index * 50)}
             layout={LinearTransition.duration(ANIMATION_DURATION)}
-            onLayout={(e) => handleBadgeLayout(category.id, e)}
+            onLayout={(e) => handleItemLayout(category.id, e)}
           >
             <PerpsMarketCategoryBadge
               label={category.label}
