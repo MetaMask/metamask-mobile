@@ -113,7 +113,7 @@ const MoneyTransferSheet = () => {
     },
     {
       label: strings('money.transfer_sheet.send_external'),
-      icon: IconName.Send,
+      icon: IconName.Arrow2Up,
       testID: MoneyTransferSheetTestIds.SEND_EXTERNAL_ROW,
       disabled: true,
       comingSoon: true,

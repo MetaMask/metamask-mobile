@@ -1,8 +1,5 @@
 import React from 'react';
-import {
-  type TransactionMeta,
-  TransactionStatus,
-} from '@metamask/transaction-controller';
+import { type TransactionMeta } from '@metamask/transaction-controller';
 import { useMoneyTransactionDisplayInfo } from '../../hooks/useMoneyTransactionDisplayInfo';
 import ActivityRowView from './ActivityRowView';
 
@@ -26,7 +23,6 @@ const MoneyActivityItem = ({
     <ActivityRowView
       id={tx.id}
       display={display}
-      isFailed={tx.status === TransactionStatus.failed}
       chainId={tx.chainId}
       onPress={() => onPress?.(tx)}
       showNetworkBadge={showNetworkBadge}
