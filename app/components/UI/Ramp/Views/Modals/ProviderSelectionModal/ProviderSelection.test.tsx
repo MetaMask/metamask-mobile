@@ -502,7 +502,7 @@ describe('ProviderSelection', () => {
             error: [
               {
                 provider: '/providers/moonpay',
-                error: 'Amount below minimum 25 USD',
+                error: 'Minimum purchase is 25 USD',
               },
             ],
             customActions: [],
@@ -518,7 +518,7 @@ describe('ProviderSelection', () => {
     );
 
     await waitFor(() => {
-      expect(getByText('Amount below minimum 25 USD')).toBeOnTheScreen();
+      expect(getByText('Minimum purchase is 25 USD')).toBeOnTheScreen();
     });
 
     fireEvent.press(getByText('MoonPay'));
@@ -543,7 +543,7 @@ describe('ProviderSelection', () => {
             error: [
               {
                 provider: '/providers/moonpay',
-                error: 'Amount below minimum',
+                error: 'Minimum purchase is 10 EUR',
               },
             ],
             customActions: [],
@@ -560,7 +560,46 @@ describe('ProviderSelection', () => {
     );
 
     expect(queryByText('Previously used')).toBeNull();
-    expect(queryByText('Amount below minimum')).toBeOnTheScreen();
+    expect(queryByText('Minimum purchase is 10 EUR')).toBeOnTheScreen();
+  });
+
+  it('shows a generic message instead of a non-limit provider error', async () => {
+    jest.mocked(useRampsController).mockReturnValue({
+      ...defaultMockController,
+      userRegion: mockUserRegion,
+      selectedToken: mockSelectedToken,
+      providers: [transakProvider, moonpayProvider],
+      selectedProvider: null,
+    });
+
+    const { getByText, queryByText } = renderScreen(
+      () => (
+        <ProviderSelection
+          quotes={{
+            success: [createMockQuote('/providers/transak', 'Transak')],
+            sorted: [],
+            error: [
+              {
+                provider: '/providers/moonpay',
+                error: '[object Object]',
+              },
+            ],
+            customActions: [],
+          }}
+          quotesLoading={false}
+          quotesError={null}
+          onProviderSelect={jest.fn()}
+          onBack={mockOnBack}
+        />
+      ),
+      { name: 'ProviderSelection' },
+      { state: { engine: { backgroundState } } },
+    );
+
+    await waitFor(() => {
+      expect(getByText('Quote unavailable.')).toBeOnTheScreen();
+    });
+    expect(queryByText('[object Object]')).toBeNull();
   });
 
   it('keeps provider selectable when it has a matched quote even if an error entry exists', async () => {

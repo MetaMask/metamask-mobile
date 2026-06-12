@@ -18,6 +18,14 @@ import { Recipient } from './recipient';
 
 jest.mock('../../../../../../component-library/components-temp/Skeleton');
 
+jest.mock('../../../hooks/send/useSendNavbar', () => ({
+  useSendNavbar: () => ({
+    Amount: { header: () => null },
+    Asset: { header: () => null },
+    Recipient: { header: () => null },
+  }),
+}));
+
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   const ReactActual = jest.requireActual('react');

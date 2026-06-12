@@ -1,30 +1,14 @@
 import React from 'react';
-import { StyleSheet, Text } from 'react-native';
+import { StyleSheet, Text, type View } from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
 
 import { mockTheme } from '../../../util/theme';
 
-import Pressable from './Pressable';
-
-interface AnyStyle {
-  [key: string]: unknown;
-}
-
-const flatten = (style: unknown): AnyStyle => {
-  if (Array.isArray(style)) {
-    return style.reduce<AnyStyle>(
-      (acc, item) => ({ ...acc, ...flatten(item) }),
-      {},
-    );
-  }
-  if (style && typeof style === 'object') {
-    return style as AnyStyle;
-  }
-  return {};
-};
+import Pressable, { PRESSED_OPACITY, pressedStyleFor } from './Pressable';
+import { PressableVariant } from './Pressable.types';
 
 const RESTING = mockTheme.colors.background.section;
-const PRESSED = mockTheme.colors.background.pressed;
+const PRESSED_BG = mockTheme.colors.background.pressed;
 
 const styles = StyleSheet.create({
   padded: { padding: 16, backgroundColor: RESTING },
@@ -91,21 +75,49 @@ describe('Pressable', () => {
       </Pressable>,
     );
 
-    const resting = flatten(getByTestId('p').props.style);
-    expect(resting.backgroundColor).toBe(RESTING);
-    expect(resting.padding).toBe(16);
+    const resting = getByTestId('p').props.style;
+    const flat = Array.isArray(resting)
+      ? Object.assign({}, ...resting.filter(Boolean))
+      : resting;
+    expect(flat.backgroundColor).toBe(RESTING);
+    expect(flat.padding).toBe(16);
   });
 
-  it('resolves a function-form caller style on render', () => {
-    const styleFn = jest.fn(() => ({ borderWidth: 1 }));
+  it('forwards a ref to the underlying view', () => {
+    const ref = React.createRef<View>();
     render(
-      <Pressable testID="p" style={styleFn} onPress={jest.fn()}>
+      <Pressable ref={ref} onPress={jest.fn()}>
         <Text>x</Text>
       </Pressable>,
     );
 
-    expect(styleFn).toHaveBeenCalledWith(
-      expect.objectContaining({ pressed: expect.any(Boolean) }),
-    );
+    expect(ref.current).not.toBeNull();
+    expect(typeof ref.current?.measure).toBe('function');
+  });
+
+  describe('pressedStyleFor', () => {
+    it('default variant returns subtree opacity dim', () => {
+      expect(pressedStyleFor(PressableVariant.Default, PRESSED_BG)).toEqual({
+        opacity: PRESSED_OPACITY,
+      });
+    });
+
+    it('highlight variant returns background.pressed overlay', () => {
+      expect(pressedStyleFor(PressableVariant.Highlight, PRESSED_BG)).toEqual({
+        backgroundColor: PRESSED_BG,
+      });
+    });
+
+    it('does not include both opacity and backgroundColor for either variant', () => {
+      const def = pressedStyleFor(PressableVariant.Default, PRESSED_BG);
+      const hi = pressedStyleFor(PressableVariant.Highlight, PRESSED_BG);
+      expect('backgroundColor' in def).toBe(false);
+      expect('opacity' in hi).toBe(false);
+    });
+
+    it('none variant returns an empty overlay (no opacity, no background)', () => {
+      const overlay = pressedStyleFor(PressableVariant.None, PRESSED_BG);
+      expect(overlay).toEqual({});
+    });
   });
 });

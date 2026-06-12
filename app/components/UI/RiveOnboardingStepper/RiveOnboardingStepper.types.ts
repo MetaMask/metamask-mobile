@@ -88,4 +88,10 @@ export interface RiveOnboardingStepperProps {
    * `durationMs` elapses, without requiring a button tap.
    */
   autoCompleteOnLastStep?: boolean;
+  /**
+   * When false, the Rive animation is not mounted at all and the stepper renders
+   * only its background and text content. Use to disable the native Rive renderer
+   * on builds/platforms where it is unstable. Defaults to true.
+   */
+  enableRiveAnimation?: boolean;
 }

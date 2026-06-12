@@ -58,6 +58,7 @@ export enum ConfirmationLoader {
 }
 
 export interface ConfirmationParams {
+  autoSelectFiatPayment?: boolean;
   loader?: ConfirmationLoader;
   maxValueMode?: boolean;
   forceBottomSheet?: boolean;

@@ -36,7 +36,7 @@ export interface StepperCardProps {
   onComplete?: () => void;
   /**
    * Optional prefix used to derive child testIDs:
-   * `${testID}-container`, `${testID}-progress-bar`, `${testID}-step-image`,
+   * `${testID}-container`, `${testID}-step-image`,
    * `${testID}-title`, `${testID}-description`, `${testID}-cta-button`
    */
   testID?: string;

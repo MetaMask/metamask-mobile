@@ -25,6 +25,8 @@ import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
 import { selectPredictEnabledFlag } from '../../UI/Predict';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import { isHardwareAccount } from '../../../util/address';
+import { selectBatchSellEnabled } from '../../../selectors/featureFlagController/batchSell';
 import TradeWalletActions from './TradeWalletActions';
 
 jest.mock('react-native-device-info', () => ({
@@ -188,9 +190,13 @@ jest.mock('../../../core/AppConstants', () => {
   };
 });
 
-jest.mock('../../../constants/bridge', () => ({
-  ...jest.requireActual('../../../constants/bridge'),
-  BATCH_SELL_ENABLED: true,
+jest.mock('../../../selectors/featureFlagController/batchSell', () => ({
+  selectBatchSellEnabled: jest.fn().mockReturnValue(true),
+}));
+
+jest.mock('../../../util/address', () => ({
+  ...jest.requireActual('../../../util/address'),
+  isHardwareAccount: jest.fn(),
 }));
 
 const mockInitialState: DeepPartial<RootState> = {
@@ -291,6 +297,7 @@ jest.mock('../../../util/navigation/navUtils', () => ({
 describe('TradeWalletActions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(isHardwareAccount).mockReturnValue(false);
 
     mockUseStakingEligibility.mockReturnValue({
       isEligible: true,
@@ -308,6 +315,8 @@ describe('TradeWalletActions', () => {
         y: 321,
       },
     });
+
+    jest.mocked(selectBatchSellEnabled).mockReturnValue(true);
   });
 
   afterEach(() => {
@@ -373,6 +382,45 @@ describe('TradeWalletActions', () => {
     expect(
       getByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
     ).toBeDefined();
+  });
+
+  it('does not render Batch Sell for hardware wallets', () => {
+    jest.mocked(isHardwareAccount).mockReturnValue(true);
+
+    const { getByTestId, queryByTestId } = renderScreen(
+      TradeWalletActions,
+      {
+        name: 'TradeWalletActions',
+      },
+      {
+        state: mockInitialState,
+      },
+    );
+
+    expect(
+      queryByTestId(WalletActionsBottomSheetSelectorsIDs.BATCH_SELL_BUTTON),
+    ).toBeNull();
+    expect(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON),
+    ).toBeDefined();
+  });
+
+  it('does not render Batch Sell when feature flag is disabled', () => {
+    jest.mocked(selectBatchSellEnabled).mockReturnValue(false);
+
+    const { queryByTestId } = renderScreen(
+      TradeWalletActions,
+      {
+        name: 'TradeWalletActions',
+      },
+      {
+        state: mockInitialState,
+      },
+    );
+
+    expect(
+      queryByTestId(WalletActionsBottomSheetSelectorsIDs.BATCH_SELL_BUTTON),
+    ).toBeNull();
   });
 
   it('does not render earn button when user is not eligible', () => {

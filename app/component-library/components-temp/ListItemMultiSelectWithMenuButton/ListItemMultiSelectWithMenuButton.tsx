@@ -2,10 +2,11 @@
 
 // Third party dependencies.
 import React from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../hooks';
+import Pressable, { PressableVariant } from '../Pressable';
 import ListItem from '../../../component-library/components/List/ListItem/ListItem';
 import Checkbox from '../../components/Checkbox';
 
@@ -15,6 +16,7 @@ import { ListItemMultiSelectWithMenuButtonProps } from './ListItemMultiSelectWit
 import {
   BUTTON_TEST_ID,
   DEFAULT_LIST_ITEM_MULTISELECT_WITH_MENU_BUTTON_GAP,
+  ROW_TEST_ID,
 } from './ListItemMultiSelectWithMenuButton.constants';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
 import {
@@ -43,19 +45,21 @@ const ListItemMultiSelectWithMenuButton: React.FC<
   });
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity
-        style={styles.base}
-        disabled={isDisabled}
-        onPress={props.onPress}
-        onLongPress={props.onLongPress}
-        {...props}
-      >
+    <Pressable
+      variant={PressableVariant.Highlight}
+      testID={ROW_TEST_ID}
+      style={styles.container}
+      disabled={isDisabled}
+      onPress={props.onPress}
+      onLongPress={props.onLongPress}
+      {...props}
+    >
+      <View style={styles.base}>
         <ListItem gap={gap} style={styles.containerColumn}>
           <Checkbox isChecked={isSelected} onPressIn={props.onPress} />
           {children}
         </ListItem>
-      </TouchableOpacity>
+      </View>
       {showButtonIcon ? (
         <View style={styles.buttonIcon}>
           <ButtonIcon
@@ -67,7 +71,7 @@ const ListItemMultiSelectWithMenuButton: React.FC<
           />
         </View>
       ) : null}
-    </View>
+    </Pressable>
   );
 };
 

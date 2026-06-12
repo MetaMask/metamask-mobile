@@ -26,6 +26,7 @@ export interface MetricsOutput {
     percentOver: string | null;
   } | null;
   device: DeviceInfo;
+  sessionCreationDurationMs?: number;
 }
 
 /**
@@ -35,6 +36,7 @@ export interface MetricsOutput {
 export class PerformanceTracker {
   timers: Timer[];
   teamInfo: TeamInfo | null;
+  private _sessionCreationDurationMs?: number;
 
   constructor() {
     this.timers = [];
@@ -43,6 +45,10 @@ export class PerformanceTracker {
 
   setTeamInfo(teamInfo: TeamInfo): void {
     this.teamInfo = teamInfo;
+  }
+
+  setSessionCreationDuration(ms: number): void {
+    this._sessionCreationDurationMs = ms;
   }
 
   addTimers(...timers: Timer[]): void {
@@ -71,6 +77,9 @@ export class PerformanceTracker {
       hasThresholds: false,
       totalValidation: null,
       device: { name: 'Unknown', osVersion: 'Unknown', provider: 'unknown' },
+      ...(this._sessionCreationDurationMs !== undefined && {
+        sessionCreationDurationMs: this._sessionCreationDurationMs,
+      }),
     };
 
     let totalSeconds = 0;

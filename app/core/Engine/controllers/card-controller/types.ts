@@ -22,7 +22,6 @@ import type {
   TransactionControllerAddTransactionAction,
   TransactionControllerAddTransactionBatchAction,
   TransactionControllerGetStateAction,
-  TransactionControllerIsAtomicBatchSupportedAction,
   TransactionControllerTransactionConfirmedEvent,
   TransactionControllerTransactionFailedEvent,
 } from '@metamask/transaction-controller';
@@ -78,8 +77,7 @@ type CardControllerAllowedActions =
   | NetworkControllerFindNetworkClientIdByChainIdAction
   | TransactionControllerAddTransactionAction
   | TransactionControllerAddTransactionBatchAction
-  | TransactionControllerGetStateAction
-  | TransactionControllerIsAtomicBatchSupportedAction;
+  | TransactionControllerGetStateAction;
 
 type CardControllerAllowedEvents =
   | AccountTreeControllerStateChangeEvent

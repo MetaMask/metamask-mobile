@@ -6,7 +6,6 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getNftDetailsNavbarOptions } from '../../UI/Navbar';
 import Text from '../../../component-library/components/Texts/Text/Text';
 import { useNavigation } from '@react-navigation/native';
 import { useParams } from '../../../util/navigation/navUtils';
@@ -15,7 +14,12 @@ import styleSheet from './NftDetails.styles';
 import Routes from '../../../constants/navigation/Routes';
 import { NftDetailsParams } from './NftDetails.types';
 import { ScrollView } from 'react-native-gesture-handler';
-import { Button, ButtonVariant } from '@metamask/design-system-react-native';
+import {
+  Button,
+  ButtonVariant,
+  HeaderStandard,
+  IconName as DSIconName,
+} from '@metamask/design-system-react-native';
 import NftDetailsBox from './NftDetailsBox';
 import NftDetailsInformationRow from './NftDetailsInformationRow';
 import { renderShortAddress } from '../../../util/address';
@@ -78,26 +82,14 @@ const NftDetails = () => {
     theme: { colors },
   } = useStyles(styleSheet, {});
 
-  const updateNavBar = useCallback(() => {
-    navigation.setOptions(
-      getNftDetailsNavbarOptions(
-        navigation,
-        colors,
-        () =>
-          navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-            screen: 'NftOptions',
-            params: {
-              collectible,
-            },
-          }),
-        undefined,
-      ),
-    );
-  }, [collectible, colors, navigation]);
-
-  useEffect(() => {
-    updateNavBar();
-  }, [updateNavBar]);
+  const openNftOptions = useCallback(() => {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: 'NftOptions',
+      params: {
+        collectible,
+      },
+    });
+  }, [collectible, navigation]);
 
   useEffect(() => {
     trackEvent(
@@ -300,7 +292,17 @@ const NftDetails = () => {
     collectible?.attributes && collectible?.attributes?.length !== 0;
 
   return (
-    <SafeAreaView style={styles.wrapper}>
+    <SafeAreaView style={styles.wrapper} edges={['left', 'right', 'bottom']}>
+      <HeaderStandard
+        includesTopInset
+        onBack={() => navigation.goBack()}
+        endButtonIconProps={[
+          {
+            iconName: DSIconName.MoreVertical,
+            onPress: openNftOptions,
+          },
+        ]}
+      />
       <ScrollView>
         <View style={styles.infoContainer}>
           <TouchableOpacity

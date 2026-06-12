@@ -17,7 +17,6 @@ import PerpsE2EModifiers from '../../helpers/perps/perps-modifiers';
 import { TestSuiteParams } from '../../framework/types';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import Utilities from '../../framework/Utilities';
 describe(SmokePerps('Perps - ETH limit long fill'), () => {
   it('creates ETH limit long at Mid, shows open order, then fills after -15%', async () => {
@@ -26,6 +25,7 @@ describe(SmokePerps('Perps - ETH limit long fill'), () => {
         fixture: new FixtureBuilder()
           .withPerpsProfile('no-positions')
           .withPerpsFirstTimeUser(false)
+          .withAccountTreeController()
           .withNetworkController({
             type: 'rpc',
             chainId: '0xa4b1',
@@ -46,9 +46,7 @@ describe(SmokePerps('Perps - ETH limit long fill'), () => {
           .build(),
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
-          await setupRemoteFeatureFlagsMock(mockServer, {
-            ...remoteFeatureFlagHomepageSectionsV1Enabled(),
-          });
+          await setupRemoteFeatureFlagsMock(mockServer, {});
           await PERPS_ARBITRUM_MOCKS(mockServer);
           await mockPerpsGeolocation(
             mockServer,

@@ -82,6 +82,10 @@ jest.mock('../../../../UI/Earn/selectors/featureFlags', () => ({
   selectIsMusdConversionFlowEnabledFlag: jest.fn(() => false),
 }));
 
+jest.mock('../../../../UI/Money/selectors/featureFlags', () => ({
+  selectMoneyHubEnabledFlag: jest.fn(() => false),
+}));
+
 const mockUseMusdConversionEligibility = jest.fn(() => ({ isEligible: false }));
 jest.mock('../../../../UI/Earn/hooks/useMusdConversionEligibility', () => ({
   useMusdConversionEligibility: () => mockUseMusdConversionEligibility(),
@@ -440,6 +444,9 @@ describe('TokensSection', () => {
     jest
       .requireMock('../../../../UI/Earn/selectors/featureFlags')
       .selectIsMusdConversionFlowEnabledFlag.mockReturnValue(false);
+    jest
+      .requireMock('../../../../UI/Money/selectors/featureFlags')
+      .selectMoneyHubEnabledFlag.mockReturnValue(false);
     mockUseMusdConversionEligibility.mockReturnValue({ isEligible: false });
     mockUseHomepageTrendingTransactionActiveAbTests.mockReturnValue(undefined);
   });
@@ -586,11 +593,14 @@ describe('TokensSection', () => {
     expect(screen.queryByTestId('token-item-0xtoken7')).toBeNull();
   });
 
-  it('filters out mUSD from displayed tokens (mUSD is shown only in Cash section)', () => {
+  it('filters out mUSD from displayed tokens when Cash section is enabled', () => {
     const MUSD_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
     jest
       .requireMock('../../../../UI/Earn/selectors/featureFlags')
       .selectIsMusdConversionFlowEnabledFlag.mockReturnValue(true);
+    jest
+      .requireMock('../../../../UI/Money/selectors/featureFlags')
+      .selectMoneyHubEnabledFlag.mockReturnValue(true);
     mockUseMusdConversionEligibility.mockReturnValue({ isEligible: true });
     mockUseIsZeroBalanceAccount.mockReturnValue(false);
     mockSortedTokenKeys.mockReturnValue([
@@ -909,6 +919,9 @@ describe('TokensSection', () => {
       jest
         .requireMock('../../../../UI/Earn/selectors/featureFlags')
         .selectIsMusdConversionFlowEnabledFlag.mockReturnValue(true);
+      jest
+        .requireMock('../../../../UI/Money/selectors/featureFlags')
+        .selectMoneyHubEnabledFlag.mockReturnValue(true);
       mockUseMusdConversionEligibility.mockReturnValue({ isEligible: true });
       mockSortedTokenKeys.mockReturnValue([
         {

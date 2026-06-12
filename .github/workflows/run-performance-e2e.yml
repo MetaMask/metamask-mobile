@@ -72,7 +72,7 @@ on:
         required: false
         type: string
       build_variant:
-        description: 'Build variant (e2e = e2e environment, exp = experimental, rc = release)'
+        description: 'BrowserStack build profile (e2e = build-e2e, works on feature branches; rc = build-rc, release branches only; exp = experimental)'
         required: false
         type: string
         default: 'e2e'
@@ -97,6 +97,7 @@ env:
   TEST_SRP_1: ${{ secrets.TEST_SRP_1 }}
   TEST_SRP_2: ${{ secrets.TEST_SRP_2 }}
   TEST_SRP_3: ${{ secrets.TEST_SRP_3 }}
+  TEST_SRP_4: ${{ secrets.TEST_SRP_4 }}
   E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
   DISABLE_VIDEO_DOWNLOAD: true
 
@@ -216,6 +217,7 @@ jobs:
     uses: ./.github/workflows/build-ios-upload-to-browserstack.yml
     needs: [determine-branch-name]
     if: false # temporarily disabled — iOS tests not yet active
+    # if: (!inputs.browserstack_app_url_ios_onboarding && !inputs.browserstack_app_url_ios_imported_wallet)
     with:
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       build_variant: ${{ inputs.build_variant || 'e2e' }}
@@ -259,6 +261,7 @@ jobs:
         determine-branch-name,
       ]
     if: false # temporarily disabled — Android only
+    # if: always() && !failure() && !cancelled() && (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success') && (inputs.browserstack_app_url_ios_onboarding != '' || needs.trigger-ios-dual-versions.outputs.without-srp-browserstack-url != '')
     with:
       platform: ios
       build_type: onboarding
@@ -322,6 +325,7 @@ jobs:
         determine-branch-name,
       ]
     if: false # temporarily disabled — Android only
+    # if: always() && !cancelled() && (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success') && (inputs.browserstack_app_url_ios_imported_wallet != '' || needs.trigger-ios-dual-versions.outputs.with-srp-browserstack-url != '')
     with:
       platform: ios
       build_type: imported-wallet

@@ -618,13 +618,12 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'money.metamask_card.link_title': 'Link MetaMask Card',
       'money.metamask_card.link_card': 'Link card',
       'money.metamask_card.link_subtitle_no_apy':
-        'Spend your Money balance and earn on purchases.',
+        'Spend your balance and earn on purchases.',
     };
     const value = strings[key];
     if (value) return value;
     if (key === 'money.metamask_card.link_subtitle') {
-      const apy = (params as { apy?: number | string } | undefined)?.apy;
-      return `Spend your Money balance and earn on purchases. Plus, up to ${apy}% APY on your balance.`;
+      return 'Spend your balance and earn on purchases.';
     }
     if (key === 'money.metamask_card.link_bullet_cashback') {
       const percentage = (
@@ -634,7 +633,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
     }
     if (key === 'money.metamask_card.link_bullet_apy') {
       const apy = (params as { apy?: number | string } | undefined)?.apy;
-      return `Earn up to ${apy}% APY`;
+      return `Earn up to ~${apy}% APY`;
     }
     return key;
   },
@@ -6465,7 +6464,7 @@ describe('CardHome Component', () => {
           strings('money.metamask_card.link_subtitle', { apy: 4 }),
         ),
       ).toBeOnTheScreen();
-      expect(screen.getByText('Earn up to 4% APY')).toBeOnTheScreen();
+      expect(screen.getByText('Earn up to ~4% APY')).toBeOnTheScreen();
     });
   });
 });

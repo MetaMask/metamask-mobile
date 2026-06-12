@@ -32,13 +32,14 @@ const MoneyActivityList = ({
   }
 
   const previewItems = transactions.slice(0, MAX_PREVIEW_ITEMS);
+  const hasMoreItems = transactions.length > MAX_PREVIEW_ITEMS;
 
   return (
     <Box testID={MoneyActivityListTestIds.CONTAINER}>
       <Box twClassName="px-4 pt-3 pb-1">
         <MoneySectionHeader
           title={strings('money.activity.title')}
-          onPress={onHeaderPress}
+          onPress={hasMoreItems ? onHeaderPress : undefined}
         />
       </Box>
       {previewItems.map((item) => (
@@ -49,7 +50,7 @@ const MoneyActivityList = ({
           onPress={onItemPress}
         />
       ))}
-      {onViewAllPress && (
+      {hasMoreItems && onViewAllPress && (
         <Box twClassName="px-4 my-3">
           <Button
             variant={ButtonVariant.Secondary}

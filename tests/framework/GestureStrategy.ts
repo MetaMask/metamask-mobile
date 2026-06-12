@@ -32,6 +32,12 @@ export interface UnifiedGestureOptions {
   checkForDisplayed?: boolean;
   /** Check if the element is enabled — Appium only; Detox ignores this */
   checkForEnabled?: boolean;
+  /** Stricter enabled polling (Android attrs + stable reads) — Appium only */
+  waitForInteractive?: boolean;
+  /** Consecutive interactive polls required before tap — Appium only */
+  enabledStableReads?: number;
+  /** Extra wait (ms) after enabled/interactive, before click — Appium only */
+  postEnabledSettleMs?: number;
 }
 
 /**
@@ -333,11 +339,23 @@ export class AppiumGestureStrategy implements GestureStrategy {
   /**
    * Wait for an element to be visible and then tap it
    * @param elem - The element to wait and tap
+   * @param opts - The options for the wait and tap
    * @returns A promise that resolves when the wait and tap is complete
    */
-  async waitAndTap(elem: EncapsulatedElementType): Promise<void> {
+  async waitAndTap(
+    elem: EncapsulatedElementType,
+    opts?: UnifiedGestureOptions,
+  ): Promise<void> {
     const el = await asPlaywrightElement(elem);
-    await PlaywrightGestures.waitAndTap(el);
+    await PlaywrightGestures.waitAndTap(el, {
+      timeout: opts?.timeout,
+      delay: opts?.delay,
+      checkForDisplayed: opts?.checkForDisplayed,
+      checkForEnabled: opts?.checkForEnabled,
+      waitForInteractive: opts?.waitForInteractive,
+      enabledStableReads: opts?.enabledStableReads,
+      postEnabledSettleMs: opts?.postEnabledSettleMs,
+    });
   }
 
   /**

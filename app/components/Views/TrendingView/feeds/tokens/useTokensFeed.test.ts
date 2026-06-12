@@ -1,6 +1,7 @@
 import { renderHook, waitFor } from '@testing-library/react-native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import { useTrendingSearch } from '../../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
+import { TimeOption } from '../../../../UI/Trending/components/TrendingTokensBottomSheet';
 import type { RefreshConfig } from '../../hooks/useExploreRefresh';
 import { useTokensFeed } from './useTokensFeed';
 
@@ -100,6 +101,29 @@ describe('useTokensFeed', () => {
     expect(mockUseTrendingSearch).toHaveBeenCalledWith({
       searchQuery: 'sol',
       enableDebounce: false,
+      filterLowQuality: true,
+      sortBy: undefined,
+      sortTrendingTokensOptions: undefined,
+    });
+  });
+
+  it('passes timeOption into request and local price-change sorting options', () => {
+    renderHook(() =>
+      useTokensFeed({
+        timeOption: TimeOption.OneHour,
+      }),
+    );
+
+    expect(mockUseTrendingSearch).toHaveBeenCalledWith({
+      searchQuery: undefined,
+      enableDebounce: false,
+      filterLowQuality: true,
+      sortBy: 'h1_trending',
+      sortTrendingTokensOptions: {
+        option: 'price_change',
+        direction: 'descending',
+        timeOption: TimeOption.OneHour,
+      },
     });
   });
 

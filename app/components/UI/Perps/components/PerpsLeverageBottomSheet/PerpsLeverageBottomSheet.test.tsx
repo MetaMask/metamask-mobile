@@ -81,6 +81,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
     if (key === 'perps.order.leverage_modal.rises') {
       return 'rises';
     }
+    if (key === 'perps.order.leverage_modal.price_unavailable') {
+      return 'Price information unavailable';
+    }
     return key;
   }),
 }));

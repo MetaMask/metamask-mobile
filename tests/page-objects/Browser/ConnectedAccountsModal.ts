@@ -1,7 +1,7 @@
 import {
   ConnectedAccountModalSelectorsText,
   ConnectedAccountsSelectorsIDs,
-} from '../../../app/components/Views/AccountConnect/ConnectedAccountModal.testIds';
+} from '../../../app/components/Views/MultichainAccounts/shared/ConnectedAccountModal.testIds';
 import { WalletViewSelectorsText } from '../../../app/components/Views/Wallet/WalletView.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';

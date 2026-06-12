@@ -1,11 +1,12 @@
 // Third party dependencies.
-import { TouchableOpacityProps, ViewStyle } from 'react-native';
+import { ViewStyle } from 'react-native';
 import { IconSize } from '../../Icons/Icon';
+import { PressableProps } from '../../../components-temp/Pressable';
 
 /**
  * PickerBase component props.
  */
-export interface PickerBaseProps extends TouchableOpacityProps {
+export interface PickerBaseProps extends PressableProps {
   /**
    * Callback to trigger when pressed.
    */

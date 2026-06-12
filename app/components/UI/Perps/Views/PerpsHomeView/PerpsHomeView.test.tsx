@@ -69,6 +69,10 @@ jest.mock(
   '../../components/PerpsRecentActivityList/PerpsRecentActivityList',
   () => 'PerpsRecentActivityList',
 );
+jest.mock(
+  '../../components/PerpsTopMoversSection',
+  () => 'PerpsTopMoversSection',
+);
 
 // Mock hooks (consolidated to avoid conflicts)
 const mockNavigateBack = jest.fn();

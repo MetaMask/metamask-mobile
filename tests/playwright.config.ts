@@ -4,6 +4,9 @@ import { defineConfig } from './framework/config';
 export default defineConfig({
   testDir: './',
   fullyParallel: false,
+  workers: process.env.PLAYWRIGHT_WORKERS
+    ? parseInt(process.env.PLAYWRIGHT_WORKERS, 10)
+    : 3,
   timeout: 7 * 60 * 1000, //7 minutes until we introduce fixtures
   grep: /@Performance/,
   reporter: [

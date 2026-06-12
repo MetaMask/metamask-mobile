@@ -1,4 +1,34 @@
-import type { QRHardwareScanError } from '../../../core/HardwareWallet/errors';
+import {
+  type QRHardwareScanError,
+  QRHardwareScanErrorType,
+} from '../../../core/HardwareWallet/errors';
+
+/**
+ * Builds {@link MetaMetricsEvents.HARDWARE_WALLET_ERROR} properties for QR hardware flows.
+ *
+ * - `error_category` — set for decode / scan pipeline failures (not for native camera errors).
+ * - `received_ur_type` — only when `error_category` is `wrong_ur_type` (decoded UR type mismatch).
+ * - `is_ur_format` — whether the scanned payload (trimmed) starts with `ur:` (case-insensitive).
+ */
+export function buildQrHardwareWalletErrorAnalyticsProperties(options: {
+  error: string;
+  error_category?: QRHardwareScanErrorType;
+  is_ur_format: boolean;
+  received_ur_type?: string;
+}): Record<string, unknown> {
+  const { error, error_category, is_ur_format, received_ur_type } = options;
+  const payload: Record<string, unknown> = {
+    error,
+    is_ur_format,
+  };
+  if (error_category !== undefined) {
+    payload.error_category = error_category;
+  }
+  if (error_category === QRHardwareScanErrorType.WrongURType) {
+    payload.received_ur_type = received_ur_type ?? '';
+  }
+  return payload;
+}
 
 /**
  * Returns `true` when two {@link QRHardwareScanError} instances carry the same message and

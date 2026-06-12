@@ -1,12 +1,13 @@
 import { renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
-import type { Position } from '@metamask/social-controllers';
+import type { CaipChainId } from '@metamask/utils';
 import {
   useAssetMetadata,
   AssetType,
 } from '../../../../../UI/Bridge/hooks/useAssetMetadata';
 import { selectIsBridgeEnabledSourceFactory } from '../../../../../../core/redux/slices/bridge';
 import { useQuickBuySetup } from './hooks/useQuickBuySetup';
+import type { QuickBuyTarget } from './types';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -23,14 +24,20 @@ const mockUseAssetMetadata = useAssetMetadata as jest.MockedFunction<
   typeof useAssetMetadata
 >;
 
-const createPosition = (overrides: Partial<Position> = {}): Position =>
+const BASE_CAIP: CaipChainId = 'eip155:8453';
+const SOLANA_CAIP: CaipChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+const UNMAPPED_CAIP = 'eip155:9999' as CaipChainId;
+
+const createTarget = (
+  overrides: Partial<QuickBuyTarget> = {},
+): QuickBuyTarget =>
   ({
-    chain: 'base',
+    chain: BASE_CAIP,
     tokenAddress: '0x1234567890123456789012345678901234567890',
     tokenSymbol: 'TEST',
     tokenName: 'Test Token',
     ...overrides,
-  }) as Position;
+  }) as QuickBuyTarget;
 
 describe('useQuickBuySetup', () => {
   beforeEach(() => {
@@ -71,8 +78,8 @@ describe('useQuickBuySetup', () => {
       return undefined;
     });
 
-    const position = createPosition({ chain: 'base' });
-    const { result } = renderHook(() => useQuickBuySetup(position));
+    const target = createTarget({ chain: BASE_CAIP });
+    const { result } = renderHook(() => useQuickBuySetup(target));
 
     expect(result.current).toEqual({
       chainId: undefined,
@@ -82,10 +89,16 @@ describe('useQuickBuySetup', () => {
     });
   });
 
-  it('marks unsupported chains when the position chain is not mapped', () => {
-    const position = createPosition({ chain: 'unknown-chain' });
+  it('marks unsupported chains when the target chain is not bridge-enabled', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectIsBridgeEnabledSourceFactory) {
+        return (chainId: string) => chainId !== UNMAPPED_CAIP;
+      }
+      return undefined;
+    });
+    const target = createTarget({ chain: UNMAPPED_CAIP });
 
-    const { result } = renderHook(() => useQuickBuySetup(position));
+    const { result } = renderHook(() => useQuickBuySetup(target));
 
     expect(result.current).toEqual({
       chainId: undefined,
@@ -94,14 +107,14 @@ describe('useQuickBuySetup', () => {
       isUnsupportedChain: true,
     });
     expect(mockUseAssetMetadata).toHaveBeenCalledWith(
-      position.tokenAddress,
+      target.tokenAddress,
       false,
       undefined,
     );
   });
 
-  it('uses the position token address for EVM destination tokens', () => {
-    const position = createPosition({ chain: 'base' });
+  it('uses the target token address for EVM destination tokens', () => {
+    const target = createTarget({ chain: BASE_CAIP });
 
     mockUseAssetMetadata.mockReturnValue({
       assetMetadata: {
@@ -118,23 +131,23 @@ describe('useQuickBuySetup', () => {
       pending: false,
     });
 
-    const { result } = renderHook(() => useQuickBuySetup(position));
+    const { result } = renderHook(() => useQuickBuySetup(target));
 
     expect(result.current.chainId).toBe('0x2105');
     expect(result.current.destToken).toEqual({
-      address: position.tokenAddress,
+      address: target.tokenAddress,
       chainId: '0x2105',
       decimals: 6,
       image: 'https://example.com/test-token.png',
-      name: position.tokenName,
-      symbol: position.tokenSymbol,
+      name: target.tokenName,
+      symbol: target.tokenSymbol,
     });
     expect(result.current.isUnsupportedChain).toBe(false);
   });
 
   it('uses the CAIP assetId for non-EVM destination tokens', () => {
-    const position = createPosition({
-      chain: 'solana',
+    const target = createTarget({
+      chain: SOLANA_CAIP,
       tokenAddress: 'ignored-on-non-evm',
     });
 
@@ -144,7 +157,7 @@ describe('useQuickBuySetup', () => {
         symbol: 'TEST',
         decimals: 9,
         image: 'https://example.com/solana-token.png',
-        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        chainId: SOLANA_CAIP,
         isNative: false,
         type: AssetType.token,
         balance: '',
@@ -153,22 +166,19 @@ describe('useQuickBuySetup', () => {
       pending: true,
     });
 
-    const { result } = renderHook(() => useQuickBuySetup(position));
+    const { result } = renderHook(() => useQuickBuySetup(target));
 
-    expect(result.current.chainId).toBe(
-      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-    );
+    expect(result.current.chainId).toBe(SOLANA_CAIP);
     // For non-EVM destinations, address is the CAIP-19 assetId so it
     // matches the format of destAsset.assetId returned by the bridge
     // controller (used by useQuickBuyQuotes for token-pair matching).
     expect(result.current.destToken).toEqual({
-      address:
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:solana-token-address',
-      chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      address: `${SOLANA_CAIP}/token:solana-token-address`,
+      chainId: SOLANA_CAIP,
       decimals: 9,
       image: 'https://example.com/solana-token.png',
-      name: position.tokenName,
-      symbol: position.tokenSymbol,
+      name: target.tokenName,
+      symbol: target.tokenSymbol,
     });
     expect(result.current.isLoading).toBe(true);
     expect(result.current.isUnsupportedChain).toBe(false);

@@ -35,6 +35,21 @@ const hasEventName = (
   eventName: string,
 ): boolean => mapping.eventNames.includes(eventName);
 
+const eventMatchesPropertyRequirements = (
+  mapping: ABTestAnalyticsMapping,
+  event: { name: string; properties: Record<string, unknown> },
+): boolean => {
+  const requirements = mapping.eventPropertyRequirements?.[event.name];
+  if (!requirements) {
+    return true;
+  }
+
+  return Object.entries(requirements).every(
+    ([propertyKey, expectedValue]) =>
+      event.properties[propertyKey] === expectedValue,
+  );
+};
+
 const eventMatchesInjectGate = (
   properties: Record<string, unknown>,
   mapping: ABTestAnalyticsMapping,
@@ -73,6 +88,7 @@ export const enrichWithABTests = <
   const relevantMappings = AB_TEST_ANALYTICS_MAPPINGS.filter(
     (mapping) =>
       hasEventName(mapping, event.name) &&
+      eventMatchesPropertyRequirements(mapping, event) &&
       eventMatchesInjectGate(event.properties, mapping),
   );
 

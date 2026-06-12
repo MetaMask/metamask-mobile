@@ -416,8 +416,8 @@ const PerpsTabView = () => {
           </View>
         ) : (
           <View style={styles.tradeInfoContainer}>
-            <View>{renderPositionsSection()}</View>
-            <View>{renderOrdersSection()}</View>
+            {renderPositionsSection()}
+            {renderOrdersSection()}
           </View>
         )}
       </ConditionalScrollView>

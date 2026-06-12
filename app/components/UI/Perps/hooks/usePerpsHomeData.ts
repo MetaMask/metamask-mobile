@@ -8,6 +8,7 @@ import {
 import { usePerpsMarkets } from './usePerpsMarkets';
 import {
   MARKET_SORTING_CONFIG,
+  MarketCategory,
   sortMarkets,
   type Position,
   type Order,
@@ -15,6 +16,7 @@ import {
   type OrderFill,
   type SortField,
 } from '@metamask/perps-controller';
+import { isEquityAsset } from '../utils/marketHours';
 import type { PerpsTransaction } from '../types/transactionHistory';
 import {
   transformFillsToTransactions,
@@ -178,11 +180,11 @@ export const usePerpsHomeData = ({
     [allMarkets, sortBy, direction, trendingLimit],
   );
 
-  // Stocks (equity) - top N by user preference
+  // Stocks (stock, pre-ipo, index, etf) - top N by user preference
   const stocksMarkets = useMemo(
     () =>
       sortMarkets({
-        markets: allMarkets.filter((m) => m.marketType === 'equity'),
+        markets: allMarkets.filter((m) => isEquityAsset(m.marketType)),
         sortBy,
         direction,
       }).slice(0, trendingLimit),
@@ -193,7 +195,9 @@ export const usePerpsHomeData = ({
   const commoditiesMarkets = useMemo(
     () =>
       sortMarkets({
-        markets: allMarkets.filter((m) => m.marketType === 'commodity'),
+        markets: allMarkets.filter(
+          (m) => m.marketType === MarketCategory.Commodity,
+        ),
         sortBy,
         direction,
       }).slice(0, trendingLimit),
@@ -205,7 +209,9 @@ export const usePerpsHomeData = ({
     () =>
       sortMarkets({
         markets: allMarkets.filter(
-          (m) => m.marketType === 'equity' || m.marketType === 'commodity',
+          (m) =>
+            isEquityAsset(m.marketType) ||
+            m.marketType === MarketCategory.Commodity,
         ),
         sortBy,
         direction,
@@ -217,7 +223,9 @@ export const usePerpsHomeData = ({
   const forexMarkets = useMemo(
     () =>
       sortMarkets({
-        markets: allMarkets.filter((m) => m.marketType === 'forex'),
+        markets: allMarkets.filter(
+          (m) => m.marketType === MarketCategory.Forex,
+        ),
         sortBy,
         direction,
       }).slice(0, trendingLimit),
@@ -317,14 +325,16 @@ export const usePerpsHomeData = ({
     if (!searchQuery.trim()) {
       return stocksMarkets;
     }
-    return filteredData.markets.filter((m) => m.marketType === 'equity');
+    return filteredData.markets.filter((m) => isEquityAsset(m.marketType));
   }, [searchQuery, stocksMarkets, filteredData.markets]);
 
   const searchedCommoditiesMarkets = useMemo(() => {
     if (!searchQuery.trim()) {
       return commoditiesMarkets;
     }
-    return filteredData.markets.filter((m) => m.marketType === 'commodity');
+    return filteredData.markets.filter(
+      (m) => m.marketType === MarketCategory.Commodity,
+    );
   }, [searchQuery, commoditiesMarkets, filteredData.markets]);
 
   const searchedStocksAndCommoditiesMarkets = useMemo(() => {
@@ -332,7 +342,9 @@ export const usePerpsHomeData = ({
       return stocksAndCommoditiesMarkets;
     }
     return filteredData.markets.filter(
-      (m) => m.marketType === 'equity' || m.marketType === 'commodity',
+      (m) =>
+        isEquityAsset(m.marketType) ||
+        m.marketType === MarketCategory.Commodity,
     );
   }, [searchQuery, stocksAndCommoditiesMarkets, filteredData.markets]);
 
@@ -340,7 +352,9 @@ export const usePerpsHomeData = ({
     if (!searchQuery.trim()) {
       return forexMarkets;
     }
-    return filteredData.markets.filter((m) => m.marketType === 'forex');
+    return filteredData.markets.filter(
+      (m) => m.marketType === MarketCategory.Forex,
+    );
   }, [searchQuery, forexMarkets, filteredData.markets]);
 
   return {

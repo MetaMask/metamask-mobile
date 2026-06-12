@@ -376,29 +376,29 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
               />
             )}
           </Box>
-          {showSkeleton || pendingTrending ? (
+          {showSkeleton || pendingTrending || hasItems ? (
             <SectionRow>
-              <PerpsPositionSkeleton />
-            </SectionRow>
-          ) : hasItems ? (
-            <SectionRow>
-              <Box testID="homepage-perps-positions">
-                {displayPositions.map((position) => (
-                  <PerpsCard
-                    key={position.symbol}
-                    position={position}
-                    onPress={() => handlePositionPress(position)}
-                    testID={`perps-position-row-${position.symbol}`}
-                  />
-                ))}
-                {displayOrders.map((order) => (
-                  <PerpsCard
-                    key={order.orderId}
-                    order={order}
-                    testID={`perps-order-row-${order.orderId}`}
-                  />
-                ))}
-              </Box>
+              {showSkeleton || pendingTrending ? (
+                <PerpsPositionSkeleton />
+              ) : (
+                <Box testID="homepage-perps-positions">
+                  {displayPositions.map((position) => (
+                    <PerpsCard
+                      key={position.symbol}
+                      position={position}
+                      onPress={() => handlePositionPress(position)}
+                      testID={`perps-position-row-${position.symbol}`}
+                    />
+                  ))}
+                  {displayOrders.map((order) => (
+                    <PerpsCard
+                      key={order.orderId}
+                      order={order}
+                      testID={`perps-order-row-${order.orderId}`}
+                    />
+                  ))}
+                </Box>
+              )}
             </SectionRow>
           ) : shouldShowPillsEmptyState ? (
             <PerpsPillsRail

@@ -138,6 +138,7 @@ describe('usePerpsWithdrawConfirmation', () => {
     expect(mockAddTransactionBatch).toHaveBeenCalledWith({
       from: MOCK_ACCOUNT,
       origin: ORIGIN_METAMASK,
+      isInternal: true,
       networkClientId: MOCK_NETWORK_CLIENT_ID,
       disableHook: true,
       disableSequential: true,

@@ -23,9 +23,15 @@ import {
   getMusdDisplayAmountFromTransactionMeta,
   isIncomingMoneyTransactionMeta,
 } from '../constants/activityStyles';
-import { buildMoneyActivityFiatLine } from '../utils/moneyActivityFiat';
+import {
+  buildMoneyActivityFiatLine,
+  getTokenToEthPrice,
+  type CurrencyRatesMap,
+  type TokenMarketDataMap,
+} from '../utils/moneyActivityFiat';
 import { moneyFormatFiat } from '../utils/moneyFormatFiat';
-import { fromTokenMinimalUnit } from '../../../../util/number/bigint';
+import { isMusdToken } from '../../Earn/constants/musd';
+import { ETH_TICKER } from '../constants/moneyTokens';
 import type {
   MoneyActivityTitleKey,
   MoneyActivityTransactionMeta,
@@ -180,25 +186,112 @@ function getRequiredAsset(tx: TransactionMeta): RequiredAsset | undefined {
 }
 
 /**
- * Formats a hex or decimal token minimal-unit amount into a human-readable
- * string with symbol, e.g. "+1.00 USDC".
+ * Symbols of major USD-pegged stablecoins. This set is used purely for *display
+ * formatting* — stables render with 2 fixed decimals ("+1.00 USDC") while other
+ * tokens use trimmed 6-decimal precision ("+0.02 LINK"). Pricing itself always
+ * comes from the Price API (token→ETH market price × ETH→USD), the same path
+ * every other token uses.
  */
-function buildSourceTokenAmount(
-  rawAmount: string,
-  decimals: number,
+const USD_PEGGED_STABLE_SYMBOLS = new Set([
+  'USDC',
+  'USDT',
+  'DAI',
+  'MUSD',
+  'USDS',
+  'PYUSD',
+  'GUSD',
+  'TUSD',
+  'USDP',
+]);
+
+function isUsdPeggedStable(
+  tokenAddress: string | undefined,
+  symbol: string | undefined,
+): boolean {
+  if (isMusdToken(tokenAddress)) {
+    return true;
+  }
+  return symbol ? USD_PEGGED_STABLE_SYMBOLS.has(symbol.toUpperCase()) : false;
+}
+
+/**
+ * USD price for one whole unit of the pay token, or `undefined` when it can't
+ * be determined (in which case the primary amount is left blank rather than
+ * shown as a misleading "0.00").
+ *
+ * - Native token (e.g. ETH) → its `usdConversionRate`.
+ * - Other ERC-20s (including USD-pegged stablecoins) → the Price API value, i.e. token→ETH market price × ETH→USD rate.
+ */
+function getPayTokenUsdPrice(args: {
+  isNative: boolean;
+  nativeTicker: string | undefined;
+  chainId: Hex | undefined;
+  tokenAddress: Hex | undefined;
+  currencyRates: CurrencyRatesMap | undefined;
+  tokenMarketData: TokenMarketDataMap | undefined;
+}): BigNumber | undefined {
+  const {
+    isNative,
+    nativeTicker,
+    chainId,
+    tokenAddress,
+    currencyRates,
+    tokenMarketData,
+  } = args;
+
+  const ethToUsdRate = currencyRates?.[ETH_TICKER]?.usdConversionRate;
+
+  if (isNative) {
+    const nativeToUsdRate = nativeTicker
+      ? currencyRates?.[nativeTicker]?.usdConversionRate
+      : undefined;
+    return nativeToUsdRate && nativeToUsdRate > 0
+      ? new BigNumber(nativeToUsdRate)
+      : undefined;
+  }
+
+  if (!chainId || !tokenAddress || !ethToUsdRate || ethToUsdRate <= 0) {
+    return undefined;
+  }
+  const tokenToEthPrice = getTokenToEthPrice(
+    tokenMarketData,
+    chainId,
+    tokenAddress,
+  );
+  if (!tokenToEthPrice || tokenToEthPrice <= 0) {
+    return undefined;
+  }
+  return new BigNumber(tokenToEthPrice).times(ethToUsdRate);
+}
+
+/**
+ * Formats a token amount with symbol. USD-pegged stables use 2 fixed decimals
+ * (e.g. "+1.00 USDC"); other tokens show up to 6 decimals with trailing zeros
+ * trimmed (e.g. "+0.000445 ETH", "+0.02 LINK").
+ *
+ * Returns `''` when the amount is too small to represent at this precision
+ * (it would render as "+0 TOKEN") since showing nothing is preferable to a misleading
+ * zero.
+ */
+function formatPrimaryTokenAmount(
+  amount: BigNumber,
   symbol: string,
+  isStable: boolean,
 ): string {
-  const humanReadable = fromTokenMinimalUnit(rawAmount, decimals);
-  const num = parseFloat(humanReadable);
-  if (isNaN(num)) {
+  if (isStable) {
+    const formatted = getIntlNumberFormatter(I18n.locale, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+      useGrouping: true,
+    }).format(amount.toNumber());
+    return `+${formatted} ${symbol}`;
+  }
+  const fixed = amount.toFixed(6, BigNumber.ROUND_DOWN);
+  const trimmed = fixed.replace(/(\.\d*[1-9])0+$/, '$1').replace(/\.0+$/, '');
+  if (trimmed === '0') {
     return '';
   }
-  const formatted = getIntlNumberFormatter(I18n.locale, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-    useGrouping: true,
-  }).format(num);
-  return `+${formatted} ${symbol}`;
+  return `+${trimmed} ${symbol}`;
 }
 
 /**
@@ -257,43 +350,50 @@ export function useMoneyTransactionDisplayInfo(
     const sourceTokenSymbol = payToken?.symbol ?? nativeTicker;
 
     // --- Primary amount ---
-    // Prefer transferInformation (set on simple confirmed txs).
-    // For batch deposits it's absent, so fall back to requiredAssets.
+    // Prefer the mUSD transfer amount (set on simple confirmed txs / decoded
+    // from calldata). For batch deposits it's absent, so fall back to
+    // requiredAssets.
+    //
+    // `requiredAssets[0].amount` is always denominated in the mUSD deposit
+    // target (6 decimals), i.e. the *USD value* of the deposit — NOT in the pay
+    // token's own minimal units. So for every pay token (native or ERC-20) we
+    // convert that USD value into the pay token amount via the pay token's USD
+    // price. (Treating it as token minimal units is what produced the
+    // "+0.00 LINK" bug — see MUSD-857.)
+    //
+    // NOTE — historic vs. calculated value:
+    // For these MetaMask Pay deposit rows the pay-token amount is NOT a
+    // historic on-chain figure. The signed batch is `approve`/`deposit` of
+    // *mUSD* (the pay-token → mUSD conversion happens off-batch in Pay's
+    // routing), so the amount of LINK/ETH/etc. the user actually spent is
+    // never persisted on the tx. The authoritative value is the
+    // *fiat* (`targetFiat` / the mUSD target); the token amount below is
+    // calculated based on current token price and so will drift as the token
+    // price moves. This mirrors how the rest of the app renders Pay post-quote
+    // rows (see `getPostQuoteDisplay` in TransactionElement/utils.js).
     let primaryAmount = getMusdDisplayAmountFromTransactionMeta(tx);
     if (!primaryAmount && sourceTokenSymbol) {
       const requiredAsset = getRequiredAsset(tx);
       if (requiredAsset) {
-        if (isNative) {
-          // For native tokens requiredAssets[0].amount is stored
-          // in USDC-equivalent 6-decimal units (the USD value of the deposit),
-          // NOT in wei.
-
-          const nativeToUsdRate = nativeTicker
-            ? currencyRates?.[nativeTicker]?.usdConversionRate
-            : undefined;
-          const usdValue = new BigNumber(requiredAsset.amount).dividedBy(1e6);
-          if (
-            usdValue.isGreaterThan(0) &&
-            nativeToUsdRate &&
-            nativeToUsdRate > 0
-          ) {
-            const nativeAmount = usdValue.dividedBy(nativeToUsdRate);
-            // Show up to 6 decimal places, trim trailing zeros.
-            const fixed = nativeAmount.toFixed(6, BigNumber.ROUND_DOWN);
-            const trimmed = fixed
-              .replace(/(\.\d*[1-9])0+$/, '$1')
-              .replace(/\.0+$/, '');
-            primaryAmount = `+${trimmed} ${sourceTokenSymbol}`;
-          }
-          // If the rate isn't available, primaryAmount stays empty and we fall
-          // through — the fiatAmount line will still show the correct value.
-        } else {
-          primaryAmount = buildSourceTokenAmount(
-            requiredAsset.amount,
-            payToken?.decimals ?? 6,
+        const usdValue = new BigNumber(requiredAsset.amount).dividedBy(1e6);
+        const usdPrice = getPayTokenUsdPrice({
+          isNative,
+          nativeTicker,
+          chainId: payTokenChainId,
+          tokenAddress: payTokenAddress,
+          currencyRates,
+          tokenMarketData,
+        });
+        if (usdValue.isGreaterThan(0) && usdPrice?.isGreaterThan(0)) {
+          const tokenAmount = usdValue.dividedBy(usdPrice);
+          primaryAmount = formatPrimaryTokenAmount(
+            tokenAmount,
             sourceTokenSymbol,
+            isUsdPeggedStable(payTokenAddress, sourceTokenSymbol),
           );
         }
+        // If the price isn't available, primaryAmount stays empty — the
+        // fiatAmount line below still shows the correct value.
       }
     }
 
@@ -330,6 +430,8 @@ export function useMoneyTransactionDisplayInfo(
     currencyRates,
     tokenMarketData,
     payToken,
+    payTokenAddress,
+    payTokenChainId,
     nativeTicker,
   ]);
 }

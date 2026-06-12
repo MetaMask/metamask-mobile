@@ -1,7 +1,7 @@
 import {
   PermissionSummaryBottomSheetSelectorsIDs,
   PermissionSummaryBottomSheetSelectorsText,
-} from '../../../app/components/Views/AccountConnect/PermissionSummaryBottomSheet.testIds';
+} from '../../../app/components/Views/MultichainAccounts/shared/PermissionSummaryBottomSheet.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 

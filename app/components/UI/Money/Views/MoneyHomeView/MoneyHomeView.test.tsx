@@ -26,14 +26,14 @@ import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import { selectIsCardholder } from '../../../../../selectors/cardController';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
+import { MONEY_HOME_CARD_ORIGIN } from '../../../Card/hooks/useCardPostAuthRedirect';
 import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
-import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
-const mockInitiateCustomConversion = jest.fn();
+const mockInitiateDeposit = jest.fn();
 const mockRefetchBalance = jest.fn();
 const mockMoneyFormatFiat = moneyFormatFiat as jest.MockedFunction<
   typeof moneyFormatFiat
@@ -50,7 +50,7 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-const mockConversionTokens = [
+const mockDepositTokens = [
   {
     name: 'USD Coin',
     symbol: 'USDC',
@@ -62,15 +62,15 @@ const mockConversionTokens = [
   },
 ];
 
-const mockUseMusdConversionTokens = jest.fn(() => ({
-  tokens: mockConversionTokens as ReturnType<typeof Array.from>,
+const mockUseMoneyDepositTokens = jest.fn(() => ({
+  tokens: mockDepositTokens as ReturnType<typeof Array.from>,
+  isNoFeeToken: jest.fn(() => false),
+  isEligibleToken: jest.fn(() => false),
+  filterAllowedTokens: jest.fn((t) => t),
 }));
 
-jest.mock('../../../Earn/hooks/useMusdConversionTokens', () => ({
-  useMusdConversionTokens: () => mockUseMusdConversionTokens(),
-  STABLECOIN_SYMBOLS: new Set(['USDC', 'USDT', 'DAI']),
-  tokenFiatValue: (token: { fiat?: { balance?: number } }) =>
-    token?.fiat?.balance ?? 0,
+jest.mock('../../hooks/useMoneyDepositTokens', () => ({
+  useMoneyDepositTokens: () => mockUseMoneyDepositTokens(),
 }));
 
 jest.mock('../../hooks/useMoneyAccountTransactions', () => ({
@@ -85,14 +85,6 @@ jest.mock('../../hooks/useMoneyAccountBalance', () => ({
 jest.mock('../../hooks/useMoneyAccountInfo', () => ({
   __esModule: true,
   default: jest.fn(),
-}));
-
-jest.mock('../../../Earn/hooks/useMusdConversion', () => ({
-  useMusdConversion: jest.fn(),
-}));
-
-jest.mock('../../../Earn/hooks/useMusdBalance', () => ({
-  useMusdBalance: jest.fn(),
 }));
 
 jest.mock('../../../../../core/NavigationService', () => ({
@@ -139,7 +131,7 @@ jest.mock('../../../Earn/hooks/useMusdBalance', () => ({
 
 jest.mock('../../hooks/useMoneyAccount', () => ({
   useMoneyAccountDeposit: jest.fn(() => ({
-    initiateDeposit: jest.fn(() => Promise.resolve()),
+    initiateDeposit: mockInitiateDeposit,
   })),
   useMoneyAccountWithdrawal: jest.fn(() => ({
     initiateWithdrawal: jest.fn(() => Promise.resolve()),
@@ -170,12 +162,10 @@ const mockUseMoneyAccountTransactions = jest.mocked(
   useMoneyAccountTransactions,
 );
 
-const mockUseMusdConversion = jest.mocked(useMusdConversion);
+const mockUseMusdBalance = jest.mocked(useMusdBalance);
 
 const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
 const mockUseMoneyAccountInfo = jest.mocked(useMoneyAccountInfo);
-
-const mockUseMusdBalance = jest.mocked(useMusdBalance);
 
 jest.mock(
   '../../../../UI/Assets/components/AssetLogo/AssetLogo',
@@ -230,10 +220,7 @@ describe('MoneyHomeView', () => {
     jest.clearAllMocks();
     global.alert = jest.fn();
 
-    mockInitiateCustomConversion.mockResolvedValue(undefined);
-    mockUseMusdConversion.mockReturnValue({
-      initiateCustomConversion: mockInitiateCustomConversion,
-    } as unknown as ReturnType<typeof useMusdConversion>);
+    mockInitiateDeposit.mockResolvedValue(undefined);
 
     mockSelectIsCardholder.mockReturnValue(false);
     mockGetDetectedGeolocation.mockReturnValue('US');
@@ -255,7 +242,6 @@ describe('MoneyHomeView', () => {
     } as unknown as ReturnType<typeof useMoneyAccountCardLinkage>);
 
     mockUseMoneyAccountInfo.mockReturnValue({
-      isMoneyAccountFeatureEnabled: true,
       hasMoneyAccount: true,
       primaryMoneyAccount: {
         address: '0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B',
@@ -435,32 +421,11 @@ describe('MoneyHomeView', () => {
   });
 
   describe('displayState precedence matrix', () => {
-    it('featureDisabled — renders feature-disabled message, hides MoneyEarnings', () => {
-      mockUseMoneyAccountInfo.mockReturnValue({
-        isMoneyAccountFeatureEnabled: false,
-        hasMoneyAccount: true,
-        primaryMoneyAccount: {
-          address: '0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B',
-        },
-      } as ReturnType<typeof useMoneyAccountInfo>);
-
-      const { getByTestId, queryByTestId } = renderWithProvider(
-        <MoneyHomeView />,
-      );
-
-      expect(
-        getByTestId(MoneyBalanceSummaryTestIds.BALANCE_FEATURE_DISABLED),
-      ).toBeOnTheScreen();
-      expect(
-        queryByTestId(MoneyEarningsTestIds.CONTAINER),
-      ).not.toBeOnTheScreen();
-    });
-
     it('noAccount — renders no-account message, hides MoneyEarnings', () => {
       mockUseMoneyAccountInfo.mockReturnValue({
-        isMoneyAccountFeatureEnabled: true,
         hasMoneyAccount: false,
         primaryMoneyAccount: undefined,
+        isMoneyAccountFeatureEnabled: true,
       });
 
       const { getByTestId, queryByTestId } = renderWithProvider(
@@ -472,25 +437,6 @@ describe('MoneyHomeView', () => {
       ).toBeOnTheScreen();
       expect(
         queryByTestId(MoneyEarningsTestIds.CONTAINER),
-      ).not.toBeOnTheScreen();
-    });
-
-    it('featureDisabled takes precedence over noAccount', () => {
-      mockUseMoneyAccountInfo.mockReturnValue({
-        isMoneyAccountFeatureEnabled: false,
-        hasMoneyAccount: false,
-        primaryMoneyAccount: undefined,
-      });
-
-      const { getByTestId, queryByTestId } = renderWithProvider(
-        <MoneyHomeView />,
-      );
-
-      expect(
-        getByTestId(MoneyBalanceSummaryTestIds.BALANCE_FEATURE_DISABLED),
-      ).toBeOnTheScreen();
-      expect(
-        queryByTestId(MoneyBalanceSummaryTestIds.BALANCE_NO_ACCOUNT),
       ).not.toBeOnTheScreen();
     });
 
@@ -570,11 +516,11 @@ describe('MoneyHomeView', () => {
       });
     });
 
-    it('MoneyHowItWorks stays mounted in featureDisabled state (empty tx count)', () => {
+    it('MoneyHowItWorks stays mounted in noAccount state (empty tx count)', () => {
       mockUseMoneyAccountInfo.mockReturnValue({
-        isMoneyAccountFeatureEnabled: false,
         hasMoneyAccount: false,
         primaryMoneyAccount: undefined,
+        isMoneyAccountFeatureEnabled: true,
       });
       mockUseMoneyAccountTransactions.mockReturnValue({
         allTransactions: [],
@@ -671,7 +617,10 @@ describe('MoneyHomeView', () => {
 
     fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.CARD_BUTTON));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+      screen: Routes.CARD.HOME,
+      params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
+    });
   });
 
   it('opens the APY info sheet when the APY info button is pressed', () => {
@@ -710,17 +659,23 @@ describe('MoneyHomeView', () => {
 
     fireEvent.press(getByTestId(MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+      screen: Routes.CARD.HOME,
+      params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
+    });
   });
 
   it('navigates to potential earnings screen when View potential earnings is pressed', () => {
-    mockUseMusdConversionTokens.mockReturnValueOnce({
+    mockUseMoneyDepositTokens.mockReturnValueOnce({
       tokens: Array.from({ length: 6 }, (_, i) => ({
-        ...mockConversionTokens[0],
+        ...mockDepositTokens[0],
         address:
           `0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB${i.toString(16).padStart(2, '0')}` as `0x${string}`,
         fiat: { balance: 5000 },
       })),
+      isNoFeeToken: jest.fn(() => false),
+      isEligibleToken: jest.fn(() => false),
+      filterAllowedTokens: jest.fn((t) => t),
     });
     const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
@@ -854,6 +809,13 @@ describe('MoneyHomeView', () => {
     it('renders the activity list', () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
       expect(getByTestId(MoneyActivityListTestIds.CONTAINER)).toBeOnTheScreen();
+    });
+
+    it('hides the Activity View all button with 5 or fewer transactions', () => {
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+      expect(
+        queryByTestId(MoneyActivityListTestIds.VIEW_ALL_BUTTON),
+      ).not.toBeOnTheScreen();
     });
 
     it('renders condensed info cards', () => {
@@ -1108,13 +1070,16 @@ describe('MoneyHomeView', () => {
 
   describe('filled state navigation handlers', () => {
     it('navigates to Potential Earnings when View all is pressed on potential earnings section', () => {
-      mockUseMusdConversionTokens.mockReturnValueOnce({
+      mockUseMoneyDepositTokens.mockReturnValueOnce({
         tokens: Array.from({ length: 6 }, (_, i) => ({
-          ...mockConversionTokens[0],
+          ...mockDepositTokens[0],
           address:
             `0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB${i.toString(16).padStart(2, '0')}` as `0x${string}`,
           fiat: { balance: 5000 },
         })),
+        isNoFeeToken: jest.fn(() => false),
+        isEligibleToken: jest.fn(() => false),
+        filterAllowedTokens: jest.fn((t) => t),
       });
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
@@ -1127,7 +1092,7 @@ describe('MoneyHomeView', () => {
       );
     });
 
-    it('initiates a custom conversion when a token Convert button is pressed', async () => {
+    it('initiates a deposit when a token Convert button is pressed', async () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       const potentialEarnings = getByTestId(
@@ -1139,19 +1104,17 @@ describe('MoneyHomeView', () => {
         ),
       );
 
-      expect(mockInitiateCustomConversion).toHaveBeenCalledWith(
+      expect(mockInitiateDeposit).toHaveBeenCalledWith(
         expect.objectContaining({
           preferredPaymentToken: expect.objectContaining({
-            address: mockConversionTokens[0].address,
+            address: mockDepositTokens[0].address,
           }),
         }),
       );
     });
 
-    it('logs an error when initiateCustomConversion rejects', async () => {
-      mockInitiateCustomConversion.mockRejectedValueOnce(
-        new Error('network failure'),
-      );
+    it('logs an error when initiateDeposit rejects', async () => {
+      mockInitiateDeposit.mockRejectedValueOnce(new Error('network failure'));
       const Logger = jest.requireMock('../../../../../util/Logger');
 
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
@@ -1182,7 +1145,10 @@ describe('MoneyHomeView', () => {
 
       fireEvent.press(getByTestId(MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+        params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
+      });
     });
   });
 
@@ -1297,7 +1263,10 @@ describe('MoneyHomeView', () => {
 
       fireEvent.press(getByTestId(MoneyMetaMaskCardTestIds.MANAGE_BUTTON));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+        params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
+      });
     });
   });
 
@@ -1309,7 +1278,10 @@ describe('MoneyHomeView', () => {
 
       fireEvent.press(getByText(strings('money.metamask_card.get_now')));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+        params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
+      });
     });
 
     it('navigates to the card sign-up flow when the metal card Get now button is pressed', () => {
@@ -1320,7 +1292,10 @@ describe('MoneyHomeView', () => {
 
       fireEvent.press(buttons[1]);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+        params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
+      });
     });
   });
 });

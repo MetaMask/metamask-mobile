@@ -27,6 +27,7 @@ _public_envs: &public_envs # Servers (production)
   MM_PORTFOLIO_URL: 'https://portfolio.api.cx.metamask.io'
   SECURITY_ALERTS_API_URL: 'https://security-alerts.api.cx.metamask.io'
   DECODING_API_URL: 'https://signature-insights.api.cx.metamask.io/v1'
+  COMPLIANCE_API_URL: 'https://compliance.api.cx.metamask.io'
   AUTH_SERVICE_URL: 'https://auth-service.api.cx.metamask.io'
   DIGEST_API_URL: 'https://digest.api.cx.metamask.io/api/v1'
   SOCIAL_API_URL: 'https://social.api.cx.metamask.io'
@@ -36,9 +37,9 @@ _public_envs: &public_envs # Servers (production)
   RAMPS_ENVIRONMENT: 'production'
   RAMP_DEV_BUILD: 'false'
   BRIDGE_USE_DEV_APIS: 'false'
-  MM_BATCH_SELL_ENABLED: 'false'
+  MM_BATCH_SELL_ENABLED: 'true'
   RAMP_INTERNAL_BUILD: 'false'
-  IS_TEST: 'false'
+  HAS_TEST_OVERRIDES: 'false'
   SEEDLESS_ONBOARDING_ENABLED: 'true'
   MM_NOTIFICATIONS_UI_ENABLED: 'true'
   MM_PERPS_BLOCKED_REGIONS: 'US,CA-ON,GB,BE'
@@ -88,6 +89,7 @@ _secrets: &secrets # Infrastructure
   QUICKNODE_OPTIMISM_URL: 'QUICKNODE_OPTIMISM_URL'
   QUICKNODE_POLYGON_URL: 'QUICKNODE_POLYGON_URL'
   QUICKNODE_HYPEREVM_URL: 'QUICKNODE_HYPEREVM_URL'
+  QUICKNODE_ARC_URL: 'QUICKNODE_ARC_URL'
   # OAuth
   IOS_GOOGLE_CLIENT_ID: 'IOS_GOOGLE_CLIENT_ID'
   IOS_GOOGLE_REDIRECT_URI: 'IOS_GOOGLE_REDIRECT_URI'
@@ -236,7 +238,7 @@ builds:
       RAMP_INTERNAL_BUILD: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_main
-    
+
   # BrowserStack performance builds — with pre-imported wallet (ADDITIONAL_SRP_1 baked in)
   # IS_PERFORMANCE_TEST suppresses E2E startup overhead (ReadOnlyNetworkStore, command
   # polling, Sentry mock) while keeping METAMASK_ENVIRONMENT='e2e' so this build works
@@ -315,7 +317,7 @@ builds:
       RAMPS_ENVIRONMENT: 'staging'
       RAMP_DEV_BUILD: 'true'
       RAMP_INTERNAL_BUILD: 'true'
-      IS_TEST: 'true'
+      HAS_TEST_OVERRIDES: 'true'
       IGNORE_BOXLOGS_DEVELOPMENT: 'true'
       IS_SIM_BUILD: 'true'
     secrets: *secrets
@@ -339,7 +341,7 @@ builds:
       RAMPS_ENVIRONMENT: 'staging'
       RAMP_INTERNAL_BUILD: 'true'
       RAMP_DEV_BUILD: 'true'
-      IS_TEST: 'true'
+      HAS_TEST_OVERRIDES: 'true'
       IGNORE_BOXLOGS_DEVELOPMENT: 'true'
       IS_SIM_BUILD: 'true'
     secrets: *secrets
@@ -363,7 +365,7 @@ builds:
       RAMPS_ENVIRONMENT: 'staging'
       RAMP_INTERNAL_BUILD: 'true'
       RAMP_DEV_BUILD: 'true'
-      IS_TEST: 'false'
+      HAS_TEST_OVERRIDES: 'false'
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_experimental
@@ -422,7 +424,7 @@ builds:
       RAMPS_ENVIRONMENT: 'staging'
       RAMP_INTERNAL_BUILD: 'true'
       RAMP_DEV_BUILD: 'true'
-      IS_TEST: 'false'
+      HAS_TEST_OVERRIDES: 'false'
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
       # TODO: Decouple configuration, profile, and build type
       PROFILE: 'development'
@@ -449,7 +451,7 @@ builds:
       RAMPS_ENVIRONMENT: 'staging'
       RAMP_INTERNAL_BUILD: 'true'
       RAMP_DEV_BUILD: 'true'
-      IS_TEST: 'false'
+      HAS_TEST_OVERRIDES: 'false'
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
       IS_SIM_BUILD: 'true'
       IS_DEVICE_BUILD: 'true'
@@ -493,7 +495,7 @@ builds:
       RAMPS_ENVIRONMENT: 'staging'
       RAMP_INTERNAL_BUILD: 'true'
       RAMP_DEV_BUILD: 'true'
-      IS_TEST: 'true'
+      HAS_TEST_OVERRIDES: 'true'
       IGNORE_BOXLOGS_DEVELOPMENT: 'true'
       IS_SIM_BUILD: 'true'
     secrets: *secrets
@@ -517,7 +519,7 @@ builds:
       RAMPS_ENVIRONMENT: 'staging'
       RAMP_INTERNAL_BUILD: 'true'
       RAMP_DEV_BUILD: 'true'
-      IS_TEST: 'true'
+      HAS_TEST_OVERRIDES: 'true'
       IGNORE_BOXLOGS_DEVELOPMENT: 'true'
       IS_SIM_BUILD: 'true'
     secrets: *secrets
@@ -540,7 +542,7 @@ builds:
       RAMPS_ENVIRONMENT: 'staging'
       RAMP_DEV_BUILD: 'true'
       RAMP_INTERNAL_BUILD: 'true'
-      IS_TEST: 'false'
+      HAS_TEST_OVERRIDES: 'false'
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
       IS_SIM_BUILD: 'true'
       CONFIGURATION: 'Debug'

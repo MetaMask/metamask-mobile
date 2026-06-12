@@ -43,7 +43,7 @@ import sampleCounterReducer from '../features/SampleFeature/reducers/sample-coun
 ///: END:ONLY_INCLUDE_IF
 import cardReducer from '../core/redux/slices/card';
 import rewardsReducer, { RewardsState } from './rewards';
-import { isTest } from '../util/test/utils';
+import { isTestEnvironment } from '../util/test/utils';
 import attributionReducer from '../core/redux/slices/attribution';
 
 /**
@@ -178,7 +178,7 @@ const baseReducers = {
   networkConnectionBanner: networkConnectionBannerReducer,
 };
 
-if (isTest) {
+if (isTestEnvironment) {
   // @ts-expect-error - it's expected to not exist, it should only exist in not production environments
   baseReducers.performance = performanceReducer;
 }

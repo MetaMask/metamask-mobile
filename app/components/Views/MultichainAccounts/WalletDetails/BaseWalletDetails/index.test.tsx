@@ -116,11 +116,6 @@ jest.mock(
   }),
 );
 
-// Mock the dependencies of WalletAddAccountActions instead of the component itself
-jest.mock('../../../../../actions/multiSrp', () => ({
-  addNewHdAccount: jest.fn(),
-}));
-
 jest.mock('../../../../../core/SnapKeyring/MultichainWalletSnapClient', () => ({
   MultichainWalletSnapFactory: {
     createClient: jest.fn(),

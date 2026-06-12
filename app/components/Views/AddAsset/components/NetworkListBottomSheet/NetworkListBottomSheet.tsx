@@ -8,7 +8,7 @@ import { useSelector } from 'react-redux';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
-import { Box } from '@metamask/design-system-react-native';
+import { Box, HeaderStandard } from '@metamask/design-system-react-native';
 import Device from '../../../../../util/device';
 import Cell, {
   CellVariant,
@@ -19,7 +19,6 @@ import {
 } from '../../../../../component-library/components/Avatars/Avatar';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { getNetworkImageSource } from '../../../../../util/networks';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import {
   MultichainNetworkConfiguration,
   SupportedCaipChainId,
@@ -86,7 +85,7 @@ export default function NetworkListBottomSheet({
       )}
       testID={NETWORK_LIST_BOTTOM_SHEET}
     >
-      <HeaderCompactStandard
+      <HeaderStandard
         title={strings('networks.select_network')}
         onClose={() => {
           sheetRef.current?.onCloseBottomSheet(() => {

@@ -40,7 +40,7 @@ import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBui
 import AppConstants from '../../../core/AppConstants';
 import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
 import { useSelector } from 'react-redux';
-import { isTest } from '../../../util/test/utils';
+import { isTestEnvironment } from '../../../util/test/utils';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -245,7 +245,7 @@ export const Fallback = (props) => {
         />
       )}
 
-      {isTest && !isOnboardingError && (
+      {isTestEnvironment && !isOnboardingError && (
         <Text
           onPress={props.showExportSeedphrase}
           variant={TextVariant.BodyMD}

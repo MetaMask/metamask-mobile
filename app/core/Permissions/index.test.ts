@@ -26,6 +26,7 @@ import {
   updatePermittedChains,
   sortMultichainAccountsByLastSelected,
   getPermittedAccounts,
+  getPermittedCaipChainIds,
   removePermittedChain,
 } from '.';
 import { CaipAccountId, CaipChainId, Hex, Json } from '@metamask/utils';
@@ -407,6 +408,36 @@ describe('Permission Utility Functions', () => {
         sessionProperties: {},
         isMultichainOrigin: false,
       });
+    });
+  });
+
+  describe('getPermittedCaipChainIds', () => {
+    it('returns permitted non-wallet CAIP chain IDs across namespaces', async () => {
+      const mockCaveat = {
+        type: Caip25CaveatType,
+        value: {
+          optionalScopes: {
+            'wallet:eip155': {
+              accounts: [],
+            },
+            'eip155:1': {
+              accounts: [],
+            },
+            'tron:728126428': {
+              accounts: [],
+            },
+          },
+          requiredScopes: {},
+          isMultichainOrigin: false,
+          sessionProperties: {},
+        },
+      };
+
+      mockGetCaveat.mockReturnValue(mockCaveat);
+
+      const result = await getPermittedCaipChainIds('https://example.com');
+
+      expect(result).toEqual(['eip155:1', 'tron:728126428']);
     });
   });
 

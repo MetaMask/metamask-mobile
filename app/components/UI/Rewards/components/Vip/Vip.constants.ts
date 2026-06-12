@@ -3,6 +3,12 @@ export const VIP_GOLD_TEXT_DEFAULT = '#EAD797FF';
 export const VIP_GOLD_TEXT_MUTED = '#F7F0D699';
 export const VIP_GOLD_BORDER_DEFAULT = '#CBAE6933';
 export const VIP_GOLD_BACKGROUND_MUTED = '#EAD79726';
+export const VIP_SPLASH_BACKGROUND_GRADIENT_COLORS = [
+  '#AA985F26',
+  'transparent',
+];
+export const VIP_SPLASH_TITLE_GRADIENT_COLORS = ['#FFE181', '#F7F0D6'];
+export const VIP_SPLASH_ACCEPT_BUTTON_BACKGROUND = '#1E1C17';
 export const VIP_GOLD_BACKGROUND_GRADIENT_COLORS = ['transparent', '#CBAE6950'];
 export const VIP_GOLD_TIER_GRADIENT_COLORS = [
   'rgba(234, 215, 151, 0.12)',

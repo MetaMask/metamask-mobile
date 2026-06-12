@@ -22,6 +22,7 @@ import Icon, {
 import {
   BottomSheet,
   BottomSheetRef,
+  HeaderStandard,
   Skeleton,
   Text,
   TextColor,
@@ -29,7 +30,6 @@ import {
 } from '@metamask/design-system-react-native';
 import MultichainAccountSelectorList from '../../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/MultichainAccountSelectorList';
 import { AccountSection } from '../../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/MultichainAccountSelectorList.types';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { useStyles } from '../../../../../component-library/hooks/useStyles';
 import { strings } from '../../../../../../locales/i18n';
 import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
@@ -39,6 +39,8 @@ import {
 } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
 import stylesheet from './AccountSelector.styles';
+
+import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 export const ACCOUNT_SELECTOR_TEST_IDS = {
   PILL: 'account-selector-pill',
@@ -66,7 +68,7 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
 }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
-
+  const surfaceClass = useElevatedSurface();
   const { styles } = useStyles(stylesheet, {});
 
   const internalAccountsById = useSelector(selectInternalAccountsById);
@@ -209,8 +211,9 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
             isFullscreen
             keyboardAvoidingViewEnabled={false}
             onClose={handleSheetClosed}
+            twClassName={surfaceClass}
           >
-            <HeaderCompactStandard
+            <HeaderStandard
               title={selectorTitle}
               onClose={() => closeAccountSheet()}
             />

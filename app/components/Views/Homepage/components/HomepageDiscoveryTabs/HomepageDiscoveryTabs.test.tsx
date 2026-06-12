@@ -1,7 +1,10 @@
 import React from 'react';
 import { InteractionManager, Text } from 'react-native';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
-import type { SectionRefreshHandle } from '../../types';
+import type {
+  HomepageDiscoveryTabsHandle,
+  SectionRefreshHandle,
+} from '../../types';
 import HomepageDiscoveryTabs from './HomepageDiscoveryTabs';
 import { PredictEventValues } from '../../../../UI/Predict/constants/eventNames';
 import { HomeTabNames } from '../../hooks/useTabViewedEvent';
@@ -200,13 +203,25 @@ describe('HomepageDiscoveryTabs', () => {
 
   describe('ref / imperative handle', () => {
     it('exposes a refresh method via ref', () => {
-      const ref = React.createRef<{ refresh: () => Promise<void> }>();
+      const ref = React.createRef<HomepageDiscoveryTabsHandle>();
       render(<HomepageDiscoveryTabs ref={ref} />);
       expect(typeof ref.current?.refresh).toBe('function');
     });
 
+    it('exposes goToPerpsTab via ref', async () => {
+      const ref = React.createRef<HomepageDiscoveryTabsHandle>();
+      render(<HomepageDiscoveryTabs ref={ref} />);
+      expect(typeof ref.current?.goToPerpsTab).toBe('function');
+
+      await act(async () => {
+        ref.current?.goToPerpsTab();
+      });
+
+      expect(screen.getByTestId('perps-home-view')).toBeOnTheScreen();
+    });
+
     it('calling refresh does not throw', async () => {
-      const ref = React.createRef<{ refresh: () => Promise<void> }>();
+      const ref = React.createRef<HomepageDiscoveryTabsHandle>();
       render(<HomepageDiscoveryTabs ref={ref} />);
       await act(async () => {
         await ref.current?.refresh();

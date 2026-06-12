@@ -5,10 +5,7 @@ import { loginToApp } from '../../flows/wallet.flow';
 import PredictMarketList from '../../page-objects/Predict/PredictMarketList';
 import PredictDetailsPage from '../../page-objects/Predict/PredictDetailsPage';
 import Assertions from '../../framework/Assertions';
-import {
-  remoteFeatureFlagHomepageSectionsV1Enabled,
-  remoteFeatureFlagPredictEnabled,
-} from '../../api-mocking/mock-responses/feature-flags-mocks';
+import { remoteFeatureFlagPredictEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import {
@@ -41,7 +38,6 @@ const positionDetails = {
 const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
     ...remoteFeatureFlagPredictEnabled(true),
-    ...remoteFeatureFlagHomepageSectionsV1Enabled(),
     carouselBanners: false,
   });
   await POLYMARKET_COMPLETE_MOCKS(mockServer);

@@ -14,7 +14,7 @@ jest.mock('fs/promises', () => ({
 
 import { execFile } from 'child_process';
 import fs from 'fs/promises';
-import type { CurrentDeviceDetails } from '../../fixture';
+import type { CurrentDeviceDetails } from '../../fixtures/playwright';
 import { DeviceCommandHandler } from './DeviceCommandHandler';
 
 const execFileMock = execFile as unknown as jest.Mock;

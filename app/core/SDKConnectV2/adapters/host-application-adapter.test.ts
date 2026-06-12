@@ -10,7 +10,6 @@ import {
 } from '../../../actions/notification';
 import Engine from '../../Engine';
 import { Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
-
 jest.mock('../../../store', () => ({
   store: {
     dispatch: jest.fn(),

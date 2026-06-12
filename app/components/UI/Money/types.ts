@@ -3,7 +3,7 @@
  * Exactly one kind is active at a time.
  *
  * Precedence (highest → lowest):
- * featureDisabled > noAccount > error > retrying > loading > unavailable > balance
+ * noAccount > error > retrying > loading > unavailable > balance
  *
  * `unavailable` covers the case where balance queries succeeded but a
  * dependency required to render the fiat balance (e.g. `musdFiatRate`)
@@ -12,7 +12,6 @@
  * their respective controllers and hydrate on their own tick.
  */
 export type MoneyBalanceDisplayState =
-  | { kind: 'featureDisabled' }
   | { kind: 'noAccount' }
   | { kind: 'error'; onRetry: () => void }
   | { kind: 'retrying' }

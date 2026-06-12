@@ -232,6 +232,11 @@ export const PerpsHomeViewSelectorsIDs = {
   POSITIONS_PNL_VALUE: 'perps-home-positions-pnl-value',
   SERVICE_INTERRUPTION_BANNER: 'perps-service-interruption-banner',
   COMPETITION_BANNER: 'perps-home-competition-banner',
+  TOP_MOVERS_SECTION: 'perps-home-top-movers-section',
+  TOP_MOVERS_HEADER: 'perps-home-top-movers-header',
+  TOP_MOVERS_GAINERS_PILL: 'perps-home-top-movers-gainers',
+  TOP_MOVERS_LOSERS_PILL: 'perps-home-top-movers-losers',
+  TOP_MOVERS_LIST: 'perps-home-top-movers-list',
   // TabBar mock items (for testing)
   TAB_BAR_WALLET: 'tab-bar-item-wallet',
   TAB_BAR_BROWSER: 'tab-bar-item-browser',

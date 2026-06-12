@@ -2,6 +2,13 @@ import { renderHook, act } from '@testing-library/react-native';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { ActionLocation } from '../../../util/analytics/actionButtonTracking';
 import { useWalletHomeOnboardingChecklistFundPress } from './useWalletHomeOnboardingChecklistFundPress';
+import { MAINNET_MUSD_RAMP_ASSET_ID } from './fundRampPriorityAssets';
+
+const mockUseWalletHomeOnboardingFundRampIntent = jest.fn();
+jest.mock('./useWalletHomeOnboardingFundRampIntent', () => ({
+  useWalletHomeOnboardingFundRampIntent: () =>
+    mockUseWalletHomeOnboardingFundRampIntent(),
+}));
 
 const mockTrackEvent = jest.fn();
 const mockAddProperties = jest.fn().mockReturnThis();
@@ -64,6 +71,10 @@ describe('useWalletHomeOnboardingChecklistFundPress', () => {
     mockUseRampsButtonClickData.mockReturnValue(defaultButtonClickData);
     mockUseRampsUnifiedV1Enabled.mockReturnValue(false);
     mockUseRampsUnifiedV2Enabled.mockReturnValue(false);
+    mockUseWalletHomeOnboardingFundRampIntent.mockReturnValue({
+      rampIntent: undefined,
+      isLoading: false,
+    });
   });
 
   it('fires RAMPS_BUTTON_CLICKED with location onboarding_checklist then calls goToBuy', () => {
@@ -89,7 +100,26 @@ describe('useWalletHomeOnboardingChecklistFundPress', () => {
       order_count: 2,
     });
     expect(mockTrackEvent).toHaveBeenCalledWith({ event: 'built' });
-    expect(goToBuy).toHaveBeenCalledTimes(1);
+    expect(goToBuy).toHaveBeenCalledWith(undefined);
+  });
+
+  it('passes resolved ramp intent to goToBuy when available', () => {
+    mockUseWalletHomeOnboardingFundRampIntent.mockReturnValue({
+      rampIntent: { assetId: MAINNET_MUSD_RAMP_ASSET_ID },
+      isLoading: false,
+    });
+
+    const { result } = renderHook(() =>
+      useWalletHomeOnboardingChecklistFundPress(goToBuy),
+    );
+
+    act(() => {
+      result.current();
+    });
+
+    expect(goToBuy).toHaveBeenCalledWith({
+      assetId: MAINNET_MUSD_RAMP_ASSET_ID,
+    });
   });
 
   it('uses UNIFIED_BUY_2 ramp_type when V2 unified is enabled', () => {

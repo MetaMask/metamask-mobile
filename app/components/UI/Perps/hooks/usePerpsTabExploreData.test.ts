@@ -44,7 +44,7 @@ describe('usePerpsTabExploreData', () => {
       volume: '$500M',
       openInterest: '$250M',
       volumeNumber: 500000000,
-      marketType: 'equity',
+      marketType: 'stock',
     },
     {
       symbol: 'SOL',
@@ -193,7 +193,7 @@ describe('usePerpsTabExploreData', () => {
       // Arrange
       const mixedMarkets: PerpsMarketDataWithVolumeNumber[] = [
         { ...mockMarkets[0], marketType: undefined }, // crypto (no type)
-        { ...mockMarkets[1], marketType: 'equity' }, // equity
+        { ...mockMarkets[1], marketType: 'stock' }, // stock
         {
           ...mockMarkets[2],
           marketType: 'forex' as PerpsMarketData['marketType'],

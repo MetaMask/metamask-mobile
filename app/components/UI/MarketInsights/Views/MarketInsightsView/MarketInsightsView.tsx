@@ -86,7 +86,10 @@ import {
 } from '@metamask/perps-controller';
 import { usePerpsEventTracking } from '../../../Perps/hooks/usePerpsEventTracking';
 import TokenDetailsStickyFooter from '../../../TokenDetails/components/TokenDetailsStickyFooter';
+import AssetDetailsQuickBuy from '../../../TokenDetails/components/AssetDetailsQuickBuy';
 import type { TokenDetailsRouteParams } from '../../../TokenDetails/constants/constants';
+import { selectSocialAiAssetDetailsQuickBuyEnabled } from '../../../../../selectors/featureFlagController/socialAiAssetDetailsQuickBuy';
+import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 
 const feedbackByDigest = new Map<string, 'up' | 'down'>();
 
@@ -217,8 +220,12 @@ const MarketInsightsView: React.FC = () => {
   );
 
   const isEligible = useSelector(selectPerpsEligibility);
+  const isQuickBuyEnabled = useSelector(
+    selectSocialAiAssetDetailsQuickBuyEnabled,
+  );
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
     useState(false);
+  const [isQuickBuyVisible, setIsQuickBuyVisible] = useState(false);
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
   const { gate } = useComplianceGate(selectedAddress ?? '');
   const { track } = usePerpsEventTracking();
@@ -389,6 +396,32 @@ const MarketInsightsView: React.FC = () => {
     assetSymbolProperty,
     routeSource,
   ]);
+
+  const handleStickyQuickBuyPress = useCallback(() => {
+    playImpact(ImpactMoment.PrimaryCTA);
+    const event = createEventBuilder(
+      MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
+    )
+      .addProperties({
+        ...assetIdProperty,
+        ...assetSymbolProperty,
+        interaction_type: 'quick_buy',
+        source: routeSource,
+      })
+      .build();
+    trackEvent(event);
+    setIsQuickBuyVisible(true);
+  }, [
+    trackEvent,
+    createEventBuilder,
+    assetIdProperty,
+    assetSymbolProperty,
+    routeSource,
+  ]);
+
+  const handleQuickBuyClose = useCallback(() => {
+    setIsQuickBuyVisible(false);
+  }, []);
 
   const handleTrendPress = useCallback((trend: MarketInsightsTrend) => {
     const hasArticles = trend.articles.length > 0;
@@ -677,6 +710,17 @@ const MarketInsightsView: React.FC = () => {
           </Box>
         </AnimatedSection>
 
+        {!isPerps && Boolean(stickyFooterToken) && (
+          <Box alignItems={BoxAlignItems.Center} twClassName="px-4 pb-6">
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              {strings('market_insights.footer_disclaimer')}
+            </Text>
+          </Box>
+        )}
+
         {/* "What's being said" section */}
         {allTweets.length > 0 && (
           <AnimatedSection delay={SECTION_ANIMATION_DELAYS_MS.whatsBeingSaid}>
@@ -828,18 +872,14 @@ const MarketInsightsView: React.FC = () => {
               buyTestID={MarketInsightsSelectorsIDs.BUY_BUTTON}
               onSwapPress={handleStickySwapPress}
               onBuyPress={handleStickyBuyPress}
+              onQuickBuyPress={
+                isQuickBuyEnabled ? handleStickyQuickBuyPress : undefined
+              }
+              quickBuyTestID={MarketInsightsSelectorsIDs.QUICK_BUY_BUTTON}
               sourcePage="MarketInsightsView"
               isPricePositive={isPricePositive}
               useAmbientColor={useAmbientColor}
             />
-            <Box alignItems={BoxAlignItems.Center}>
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-              >
-                {strings('market_insights.footer_disclaimer')}
-              </Text>
-            </Box>
           </Box>
         ) : null)}
 
@@ -860,6 +900,15 @@ const MarketInsightsView: React.FC = () => {
           onSubmit={handleFeedbackSubmit}
         />
       ) : null}
+
+      {isQuickBuyEnabled && stickyFooterToken && (
+        <AssetDetailsQuickBuy
+          isVisible={isQuickBuyVisible}
+          token={stickyFooterToken}
+          onClose={handleQuickBuyClose}
+          source="market_insights"
+        />
+      )}
 
       {isEligibilityModalVisible && (
         // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.

@@ -1,5 +1,5 @@
 import PlaywrightUtilities from './PlaywrightUtilities';
-import type { CurrentDeviceDetails } from './fixture';
+import type { CurrentDeviceDetails } from './fixtures/playwright';
 
 describe('PlaywrightUtilities.launchApp', () => {
   const executeMock = jest.fn();

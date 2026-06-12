@@ -48,7 +48,7 @@ jobs:
       PLATFORM: ios
       METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
       METAMASK_BUILD_TYPE: ${{ inputs.build_type }}
-      IS_TEST: true
+      HAS_TEST_OVERRIDES: true
       E2E: 'true'
       IGNORE_BOXLOGS_DEVELOPMENT: true
       CI: 'true'
@@ -410,13 +410,13 @@ jobs:
         run: |
           echo "🏗 Building iOS E2E App..."
           export NODE_OPTIONS="--max-old-space-size=8192"
-          yarn build:ios:main:e2e
+          yarn build:ios:${{ inputs.build_type }}:e2e
         shell: bash
         env:
           PLATFORM: ios
-          METAMASK_ENVIRONMENT: main
-          METAMASK_BUILD_TYPE: main
-          IS_TEST: true
+          METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
+          METAMASK_BUILD_TYPE: ${{ inputs.build_type }}
+          HAS_TEST_OVERRIDES: true
           IS_SIM_BUILD: 'true' # Ensures simulator build (.app) not device build (.ipa)
           IGNORE_BOXLOGS_DEVELOPMENT: true
           GITHUB_CI: 'true'
@@ -444,9 +444,9 @@ jobs:
           echo "📦 Final app size: $(du -sh "ios/build/Build/Products/Release-iphonesimulator/MetaMask.app" | cut -f1)"
         env:
           PLATFORM: ios
-          METAMASK_ENVIRONMENT: qa
-          METAMASK_BUILD_TYPE: main
-          IS_TEST: true
+          METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
+          METAMASK_BUILD_TYPE: ${{ inputs.build_type }}
+          HAS_TEST_OVERRIDES: true
           E2E: 'true'
           IGNORE_BOXLOGS_DEVELOPMENT: true
           GITHUB_CI: 'true'
@@ -589,7 +589,7 @@ jobs:
         continue-on-error: true
 
       # Upload source map file for crash debugging and error tracking.
-      # Both paths produce it: `yarn build:ios:main:e2e` via
+      # Both paths produce it: `yarn build:ios:${{ inputs.build_type }}:e2e` via
       # `scripts/ios/bundle-js-and-sentry-upload.sh` and `yarn build:repack:ios`
       # via `scripts/repack.js` both write to `sourcemaps/ios/index.js.map`.
       - name: Upload iOS Source Map (Namespace)

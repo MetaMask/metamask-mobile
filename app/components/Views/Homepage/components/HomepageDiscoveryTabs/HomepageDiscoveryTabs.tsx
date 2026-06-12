@@ -32,7 +32,7 @@ import {
   getStreamManagerInstance,
 } from '../../../../UI/Perps/providers/PerpsStreamManager';
 import { PredictPreviewSheetProvider } from '../../../../UI/Predict/contexts';
-import { SectionRefreshHandle } from '../../types';
+import { HomepageDiscoveryTabsHandle, SectionRefreshHandle } from '../../types';
 import { IconName } from '../../../../../component-library/components/Icons/Icon/Icon.types';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './HomepageDiscoveryTabs.styles';
@@ -148,7 +148,7 @@ export interface HomepageDiscoveryTabsProps {
  * - Predictions: PredictFeed wrapped in preview sheet provider
  */
 const HomepageDiscoveryTabs = forwardRef<
-  SectionRefreshHandle,
+  HomepageDiscoveryTabsHandle,
   HomepageDiscoveryTabsProps
 >(
   (
@@ -225,6 +225,9 @@ const HomepageDiscoveryTabs = forwardRef<
     useImperativeHandle(ref, () => ({
       refresh: async () => {
         await homepageRef.current?.refresh();
+      },
+      goToPerpsTab: () => {
+        tabsRef.current?.goToTabIndex(TAB_INDEX.PERPETUALS);
       },
     }));
 

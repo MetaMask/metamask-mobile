@@ -234,10 +234,50 @@ const BuildQuote = () => {
     currentFiatCurrency,
   );
 
-  useEffect(() => {
+  const resetAmountInput = useCallback(() => {
     setAmount('0');
     setAmountNumber(0);
-  }, [selectedRegion]);
+    setAmountBNMinimalUnit(undefined);
+    setAmountFocused(false);
+    setIsKeyboardFreshlyOpened(false);
+  }, []);
+
+  useEffect(() => {
+    resetAmountInput();
+  }, [resetAmountInput, selectedRegion]);
+
+  const selectedAssetKey = useMemo(() => {
+    const id = selectedAsset?.id;
+    const chainId = selectedAsset?.network?.chainId;
+    const address = selectedAsset?.address;
+
+    if (!id && !chainId && !address) {
+      return undefined;
+    }
+
+    return `${id ?? ''}:${chainId ?? ''}:${address ?? ''}`;
+  }, [
+    selectedAsset?.id,
+    selectedAsset?.network?.chainId,
+    selectedAsset?.address,
+  ]);
+
+  const previousSelectedAssetKey = useRef<string | undefined>(selectedAssetKey);
+
+  useEffect(() => {
+    if (
+      isSell &&
+      selectedAssetKey &&
+      previousSelectedAssetKey.current &&
+      previousSelectedAssetKey.current !== selectedAssetKey
+    ) {
+      resetAmountInput();
+    }
+
+    if (selectedAssetKey) {
+      previousSelectedAssetKey.current = selectedAssetKey;
+    }
+  }, [isSell, resetAmountInput, selectedAssetKey]);
 
   const shouldShowUnsupportedModal = useMemo(
     () =>

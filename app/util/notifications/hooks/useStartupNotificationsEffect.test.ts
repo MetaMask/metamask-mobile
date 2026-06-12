@@ -383,9 +383,6 @@ describe('useEnableNotificationsByDefaultEffect', () => {
     const mockGetIsNotificationEnabledByDefaultFeatureFlag = jest
       .spyOn(Selectors, 'getIsNotificationEnabledByDefaultFeatureFlag')
       .mockReturnValue(true);
-    const mockSelectHomepageSectionsV1Enabled = jest
-      .spyOn(HomepageFeatureSelectors, 'selectHomepageSectionsV1Enabled')
-      .mockReturnValue(false);
     const mockSelectWalletHomeOnboardingStepsEnabled = jest
       .spyOn(HomepageFeatureSelectors, 'selectWalletHomeOnboardingStepsEnabled')
       .mockReturnValue(false);
@@ -399,7 +396,6 @@ describe('useEnableNotificationsByDefaultEffect', () => {
       mockSelectIsUnlocked,
       mockSelectIsSignedIn,
       mockGetIsNotificationEnabledByDefaultFeatureFlag,
-      mockSelectHomepageSectionsV1Enabled,
       mockSelectWalletHomeOnboardingStepsEnabled,
       mockSelectShouldShowWalletHomeOnboardingSteps,
     };
@@ -515,7 +511,6 @@ describe('useEnableNotificationsByDefaultEffect', () => {
 
   it('does not enable notifications when wallet home post-onboarding checklist is active', async () => {
     const mocks = arrange();
-    mocks.selectors.mockSelectHomepageSectionsV1Enabled.mockReturnValue(true);
     mocks.selectors.mockSelectWalletHomeOnboardingStepsEnabled.mockReturnValue(
       true,
     );

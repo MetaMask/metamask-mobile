@@ -17,7 +17,6 @@ export type SearchFeedId =
   | 'sites';
 
 const DEBOUNCE_MS = 200;
-const TOP_ITEMS_WITHOUT_QUERY = 3;
 
 export interface SearchFeedSection<T = unknown> {
   feedId: SearchFeedId;
@@ -35,22 +34,14 @@ export interface ExploreSearchResult {
 }
 
 export interface UseExploreSearchOptions {
-  /** Limit each section to TOP_ITEMS_WITHOUT_QUERY when there is no query. */
-  truncateWithoutQuery?: boolean;
   /** Forward fetchMore / hasMore / total on sections that support it. */
   exposePagination?: boolean;
-  /** 'v1' uses trending.* keys; 'v2' uses trending.search_tabs.* keys. */
-  titleVariant?: 'v1' | 'v2';
 }
 export const useExploreSearch = (
   query: string,
   options: UseExploreSearchOptions = {},
 ): ExploreSearchResult => {
-  const {
-    truncateWithoutQuery = false,
-    exposePagination = false,
-    titleVariant = 'v2',
-  } = options;
+  const { exposePagination = false } = options;
 
   const [debouncedQuery, setDebouncedQuery] = useState(query);
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
@@ -72,18 +63,11 @@ export const useExploreSearch = (
   const sites = useSitesFeed({ query: debouncedQuery });
 
   return useMemo<ExploreSearchResult>(() => {
-    const showTopItems = truncateWithoutQuery && !debouncedQuery.trim();
-    const trim = <T>(arr: T[]) =>
-      showTopItems ? arr.slice(0, TOP_ITEMS_WITHOUT_QUERY) : arr;
-
-    const t = (v2Key: string, v1Key: string) =>
-      strings(titleVariant === 'v2' ? v2Key : v1Key);
-
     const sections: SearchFeedSection[] = [
       {
         feedId: 'tokens',
-        title: t('trending.search_tabs.crypto', 'trending.crypto'),
-        items: trim(tokens.data),
+        title: strings('trending.search_tabs.crypto'),
+        items: tokens.data,
         isLoading: isDebouncing || tokens.isLoading,
         ...(exposePagination && {
           fetchMore: tokens.loadMore,
@@ -97,8 +81,8 @@ export const useExploreSearch = (
     if (isPerpsEnabled) {
       sections.push({
         feedId: 'perps',
-        title: t('trending.search_tabs.perps', 'trending.perps'),
-        items: trim(perps.data.map((d) => d.market)),
+        title: strings('trending.search_tabs.perps'),
+        items: perps.data.map((d) => d.market),
         isLoading: isDebouncing || perps.isLoading,
       });
     }
@@ -106,14 +90,20 @@ export const useExploreSearch = (
     sections.push(
       {
         feedId: 'stocks',
-        title: t('trending.search_tabs.stocks', 'trending.stocks'),
-        items: trim(stocks.data),
+        title: strings('trending.search_tabs.stocks'),
+        items: stocks.data,
         isLoading: isDebouncing || stocks.isLoading,
+        ...(exposePagination && {
+          fetchMore: stocks.loadMore,
+          isFetchingMore: stocks.isLoadingMore,
+          hasMore: stocks.hasMore,
+          total: stocks.totalCount,
+        }),
       },
       {
         feedId: 'predictions',
-        title: t('trending.search_tabs.predictions', 'wallet.predict'),
-        items: trim(predictions.data),
+        title: strings('trending.search_tabs.predictions'),
+        items: predictions.data,
         isLoading: isDebouncing || predictions.isLoading,
         ...(exposePagination && {
           fetchMore: predictions.fetchMore,
@@ -124,20 +114,17 @@ export const useExploreSearch = (
       },
       {
         feedId: 'sites',
-        title: t('trending.search_tabs.sites', 'trending.sites'),
-        items: trim(sites.data),
+        title: strings('trending.search_tabs.sites'),
+        items: sites.data,
         isLoading: isDebouncing || sites.isLoading,
       },
     );
 
     return { sections };
   }, [
-    debouncedQuery,
     isDebouncing,
     isPerpsEnabled,
-    truncateWithoutQuery,
     exposePagination,
-    titleVariant,
     tokens.data,
     tokens.isLoading,
     tokens.loadMore,
@@ -148,6 +135,10 @@ export const useExploreSearch = (
     perps.isLoading,
     stocks.data,
     stocks.isLoading,
+    stocks.loadMore,
+    stocks.isLoadingMore,
+    stocks.hasMore,
+    stocks.totalCount,
     predictions.data,
     predictions.isLoading,
     predictions.fetchMore,

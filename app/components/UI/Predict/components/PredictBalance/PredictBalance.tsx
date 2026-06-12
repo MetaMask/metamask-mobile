@@ -29,6 +29,7 @@ import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
 import Button, {
+  ButtonSize,
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
@@ -43,6 +44,8 @@ import { usePredictAccountState } from '../../hooks/usePredictAccountState';
 import { PredictEventValues } from '../../constants/eventNames';
 import { selectMetaMaskPayFlags } from '../../../../../selectors/featureFlagController/confirmations';
 import { PREDICT_BALANCE_TEST_IDS } from './PredictBalance.testIds';
+import { selectPredictPortfolioEnabledFlag } from '../../selectors/featureFlags';
+import Routes from '../../../../../constants/navigation/Routes';
 
 // This is a temporary component that will be removed when the deposit flow is fully implemented
 interface PredictBalanceProps {
@@ -57,6 +60,9 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({
   const tw = useTailwind();
   const privacyMode = useSelector(selectPrivacyMode);
   const { enableDepositWalletWithdraw } = useSelector(selectMetaMaskPayFlags);
+  const predictPortfolioEnabled = useSelector(
+    selectPredictPortfolioEnabledFlag,
+  );
 
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
@@ -76,6 +82,14 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({
   });
   const walletType = accountState?.walletType;
   const isWithdrawDisabled = hasBalance && !walletType;
+  const actionButtonStyle = tw.style(
+    'flex-1',
+    predictPortfolioEnabled && 'h-12 items-center justify-center px-2',
+  );
+  const actionButtonSize = predictPortfolioEnabled ? ButtonSize.Lg : undefined;
+  const actionButtonLabelTextVariant = predictPortfolioEnabled
+    ? ComponentTextVariant.BodySMMedium
+    : undefined;
 
   useEffect(() => {
     if (!isDepositPending) {
@@ -97,6 +111,10 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({
       { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.DEPOSIT },
     );
   }, [deposit, executeGuardedAction]);
+
+  const handlePositionsPress = useCallback(() => {
+    navigation.navigate(Routes.PREDICT.POSITIONS);
+  }, [navigation]);
 
   const handleWithdraw = useCallback(() => {
     // Do not proceed until account state is loaded; otherwise Deposit Wallet
@@ -216,18 +234,33 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({
           </BadgeWrapper>
         </Box>
         <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
+          {predictPortfolioEnabled && (
+            <Button
+              variant={ButtonVariants.Secondary}
+              size={actionButtonSize}
+              style={actionButtonStyle}
+              labelTextVariant={actionButtonLabelTextVariant}
+              label={strings('predict.tabs.positions')}
+              onPress={handlePositionsPress}
+              testID={PREDICT_BALANCE_TEST_IDS.POSITIONS_BUTTON}
+            />
+          )}
           <Button
             variant={
               hasBalance ? ButtonVariants.Secondary : ButtonVariants.Primary
             }
-            style={tw.style('flex-1')}
+            size={actionButtonSize}
+            style={actionButtonStyle}
+            labelTextVariant={actionButtonLabelTextVariant}
             label={strings('predict.deposit.add_funds')}
             onPress={handleAddFunds}
           />
           {hasBalance && (
             <Button
               variant={ButtonVariants.Secondary}
-              style={tw.style('flex-1')}
+              size={actionButtonSize}
+              style={actionButtonStyle}
+              labelTextVariant={actionButtonLabelTextVariant}
               label={strings('predict.deposit.withdraw')}
               onPress={handleWithdraw}
               isDisabled={isWithdrawDisabled}

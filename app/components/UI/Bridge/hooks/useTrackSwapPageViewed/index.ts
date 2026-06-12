@@ -1,7 +1,10 @@
 import { useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import {
+  MetaMetricsEvents,
+  mergeAssetViewedProperties,
+} from '../../../../../core/Analytics';
 import { getDecimalChainId } from '../../../../../util/networks';
 import {
   selectDestToken,
@@ -31,6 +34,13 @@ export const useTrackSwapPageViewed = () => {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.SWAP_PAGE_VIEWED)
           .addProperties(pageViewedProperties)
+          .build(),
+      );
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.ASSET_VIEWED)
+          .addProperties(
+            mergeAssetViewedProperties('Swaps', pageViewedProperties),
+          )
           .build(),
       );
     }

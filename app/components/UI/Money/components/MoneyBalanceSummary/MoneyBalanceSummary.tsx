@@ -81,7 +81,7 @@ const MoneyBalanceSummary = ({
         {onApyInfoPress && displayState.kind === 'balance' && (
           <ButtonIcon
             iconName={IconName.Info}
-            iconProps={{ color: IconColor.IconAlternative }}
+            iconProps={{ color: IconColor.IconAlternative, size: IconSize.Sm }}
             size={ButtonIconSize.Sm}
             onPress={onApyInfoPress}
             accessibilityLabel={strings('money.apy_info_label')}
@@ -131,17 +131,6 @@ const MoneyBalanceSummary = ({
             twClassName="mb-2"
           >
             {displayState.value}
-          </Text>
-        );
-      case 'featureDisabled':
-        return (
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            testID={MoneyBalanceSummaryTestIds.BALANCE_FEATURE_DISABLED}
-            twClassName="mb-2"
-          >
-            {strings('money.balance_feature_disabled')}
           </Text>
         );
       case 'noAccount':

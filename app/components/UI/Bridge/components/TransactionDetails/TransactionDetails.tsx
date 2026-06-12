@@ -91,6 +91,10 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     gap: 2,
   },
+  paidByMetaMask: {
+    height: undefined,
+    paddingVertical: 2,
+  },
 });
 
 interface BridgeTransactionDetailsProps {
@@ -105,12 +109,12 @@ interface BridgeTransactionDetailsProps {
 const PaidByMetaMask = () => (
   <TagColored
     color={TagColor.Success}
+    style={styles.paidByMetaMask}
     labelProps={{
       variant: TextVariant.BodySM,
       style: {
         textTransform: 'none',
         textAlign: 'center',
-        bottom: 1,
         fontWeight: 'normal',
       },
       testID: 'paid-by-metamask',

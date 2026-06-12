@@ -124,4 +124,38 @@ describe('MoneyActivityList', () => {
     fireEvent.press(getByTestId('section-header'));
     expect(mockPress).toHaveBeenCalledTimes(1);
   });
+
+  it('hides View all and does not wire the header arrow with 5 or fewer transactions', () => {
+    const onHeaderPress = jest.fn();
+    const onViewAllPress = jest.fn();
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <MoneyActivityList
+        transactions={MOCK_MONEY_TRANSACTIONS.slice(0, 5)}
+        onHeaderPress={onHeaderPress}
+        onViewAllPress={onViewAllPress}
+      />,
+    );
+
+    fireEvent.press(getByTestId('section-header'));
+    expect(onHeaderPress).not.toHaveBeenCalled();
+    expect(queryByTestId(MoneyActivityListTestIds.VIEW_ALL_BUTTON)).toBeNull();
+  });
+
+  it('wires the header arrow and renders View all with more than 5 transactions', () => {
+    const onHeaderPress = jest.fn();
+    const onViewAllPress = jest.fn();
+    const { getByTestId } = renderWithProvider(
+      <MoneyActivityList
+        transactions={MOCK_MONEY_TRANSACTIONS}
+        onHeaderPress={onHeaderPress}
+        onViewAllPress={onViewAllPress}
+      />,
+    );
+
+    fireEvent.press(getByTestId('section-header'));
+    expect(onHeaderPress).toHaveBeenCalledTimes(1);
+
+    fireEvent.press(getByTestId(MoneyActivityListTestIds.VIEW_ALL_BUTTON));
+    expect(onViewAllPress).toHaveBeenCalledTimes(1);
+  });
 });

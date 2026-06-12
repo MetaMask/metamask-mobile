@@ -2,7 +2,7 @@ import React, { useCallback, useMemo } from 'react';
 import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { type StackNavigationProp } from '@react-navigation/stack';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   ButtonVariant,
   IconColor,
@@ -15,6 +15,7 @@ import RiveOnboardingStepper, {
   type RiveConfig,
 } from '../../../RiveOnboardingStepper';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
 import { useTheme } from '../../../../../util/theme';
 import { setMoneyOnboardingSeen } from '../../../../../actions/user';
 import { AppThemeKey } from '../../../../../util/theme/models';
@@ -53,6 +54,10 @@ const MoneyOnboardingView = () => {
   const dispatch = useDispatch();
 
   const { colors, themeAppearance } = useTheme();
+
+  const isStepperAnimationEnabled = useSelector(
+    selectMoneyOnboardingStepperAnimationEnabled,
+  );
 
   const tw = useTailwind();
 
@@ -157,6 +162,7 @@ const MoneyOnboardingView = () => {
       onClose={handleComplete}
       onComplete={handleComplete}
       autoCompleteOnLastStep
+      enableRiveAnimation={isStepperAnimationEnabled}
     />
   );
 };

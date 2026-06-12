@@ -132,7 +132,7 @@ describe('MoneyMetaMaskCard', () => {
         getByTestId(MoneyMetaMaskCardTestIds.LINK_BULLET_APY),
       ).toBeOnTheScreen();
       expect(getByText('Get 1% mUSD back')).toBeOnTheScreen();
-      expect(getByText('Earn up to 4% APY')).toBeOnTheScreen();
+      expect(getByText('Earn up to ~4% APY (variable)')).toBeOnTheScreen();
       expect(queryByText('Get 3% mUSD back')).not.toBeOnTheScreen();
     });
 
@@ -153,7 +153,7 @@ describe('MoneyMetaMaskCard', () => {
         getByTestId(MoneyMetaMaskCardTestIds.LINK_BULLET_APY),
       ).toBeOnTheScreen();
       expect(getByText('Get 3% mUSD back')).toBeOnTheScreen();
-      expect(getByText('Earn up to 4% APY')).toBeOnTheScreen();
+      expect(getByText('Earn up to ~4% APY (variable)')).toBeOnTheScreen();
       expect(queryByText('Get 1% mUSD back')).not.toBeOnTheScreen();
     });
 
@@ -251,7 +251,7 @@ describe('MoneyMetaMaskCard', () => {
           getByTestId(MoneyMetaMaskCardTestIds.LINK_BULLET_APY),
         ).toBeOnTheScreen();
         expect(getByText('Get 1% mUSD back')).toBeOnTheScreen();
-        expect(getByText('Earn up to 4% APY')).toBeOnTheScreen();
+        expect(getByText('Earn up to ~4% APY (variable)')).toBeOnTheScreen();
         expect(
           getByTestId(MoneyMetaMaskCardTestIds.LINK_BUTTON),
         ).toBeOnTheScreen();
@@ -260,16 +260,15 @@ describe('MoneyMetaMaskCard', () => {
 
     describe('apy undefined (no-APY copy)', () => {
       it('renders link_subtitle_no_apy when apy is undefined', () => {
-        const { getByText, queryByText } = render(
+        const { getByText } = render(
           <MoneyMetaMaskCard mode="link" onGetNowPress={jest.fn()} />,
         );
 
         expect(
           getByText(strings('money.metamask_card.link_subtitle_no_apy')),
         ).toBeOnTheScreen();
-        expect(
-          queryByText(strings('money.metamask_card.link_subtitle', { apy: 0 })),
-        ).not.toBeOnTheScreen();
+        // link_subtitle and link_subtitle_no_apy share the same copy, so no
+        // absence check is needed here.
       });
 
       it('omits the APY bullet when apy is undefined', () => {

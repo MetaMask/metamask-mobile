@@ -250,7 +250,7 @@ const useMoneyToasts = (): {
         inProgress: () => ({
           ...moneyBaseToastOptions.inProgress,
           labelOptions: getMoneyToastLabels({
-            primary: strings('money.toasts.in_progress_title'),
+            primary: strings('money.toasts.withdraw_in_progress_title'),
             primaryIsBold: true,
             secondary: (
               <Text
@@ -266,7 +266,7 @@ const useMoneyToasts = (): {
         success: ({ amountFiat, destination }: WithdrawSuccessParams) => ({
           ...moneyBaseToastOptions.success,
           labelOptions: getMoneyToastLabels({
-            primary: strings('money.toasts.success_title'),
+            primary: strings('money.toasts.withdraw_success_title'),
             primaryIsBold: true,
             secondary: (
               <Text

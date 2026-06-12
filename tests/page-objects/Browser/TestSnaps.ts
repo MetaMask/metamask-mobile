@@ -368,9 +368,14 @@ class TestSnaps {
       },
     );
 
-    await Gestures.waitAndTap(this.dateTimePickerTouchable);
+    await Gestures.waitAndTap(this.dateTimePickerTouchable, {
+      checkStability: true,
+      elemDescription: 'open date-time picker',
+    });
 
-    await Gestures.waitAndTap(this.dateTimePickerOkButton);
+    await Gestures.waitAndTap(this.dateTimePickerOkButton, {
+      elemDescription: 'date-time picker OK',
+    });
 
     // Android date and time picker is a two-step process, so we need to tap OK again
     if (device.getPlatform() === 'android') {
@@ -379,15 +384,25 @@ class TestSnaps {
   }
 
   async selectDateInDatePicker() {
-    await Gestures.waitAndTap(this.datePickerTouchable);
+    await Gestures.waitAndTap(this.datePickerTouchable, {
+      checkStability: true,
+      elemDescription: 'open date picker',
+    });
 
-    await Gestures.waitAndTap(this.dateTimePickerOkButton);
+    await Gestures.waitAndTap(this.dateTimePickerOkButton, {
+      elemDescription: 'date picker OK',
+    });
   }
 
   async selectTimeInTimePicker() {
-    await Gestures.waitAndTap(this.timePickerTouchable);
+    await Gestures.waitAndTap(this.timePickerTouchable, {
+      checkStability: true,
+      elemDescription: 'open time picker',
+    });
 
-    await Gestures.waitAndTap(this.dateTimePickerOkButton);
+    await Gestures.waitAndTap(this.dateTimePickerOkButton, {
+      elemDescription: 'time picker OK',
+    });
   }
 
   async installSnap(

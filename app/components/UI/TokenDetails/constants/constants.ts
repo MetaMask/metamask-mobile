@@ -70,3 +70,11 @@ export interface TokenDetailsRouteParams extends TokenI {
   /** Carried into swap / perps / predict flows for tx-scoped `active_ab_tests` */
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
+
+/**
+ * Exit actions tracked by TOKEN_DETAILS_CLOSED event.
+ */
+export type TokenDetailsExitAction =
+  | 'back_navigation'
+  | 'cta_clicked'
+  | 'app_backgrounded';

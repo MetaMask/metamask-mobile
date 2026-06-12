@@ -104,14 +104,14 @@ describe('PerpsMarketDetailsView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('opens market-hours tooltip when info button is pressed for equity markets', async () => {
+  it('opens market-hours tooltip when info button is pressed for stock markets', async () => {
     renderPerpsMarketDetailsView({
       initialParams: {
         market: {
           symbol: 'AAPL',
           name: 'Apple',
           maxLeverage: '10x',
-          marketType: 'equity',
+          marketType: 'stock',
           price: '$200',
           change24h: '$0',
           change24hPercent: '0%',
@@ -431,7 +431,7 @@ describe('PerpsMarketDetailsView', () => {
             symbol: 'AAPL',
             name: 'Apple',
             maxLeverage: '10x',
-            marketType: 'equity',
+            marketType: 'stock',
             price: '$200',
             change24h: '$0',
             change24hPercent: '0%',

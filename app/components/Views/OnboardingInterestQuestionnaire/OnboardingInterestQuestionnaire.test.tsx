@@ -11,6 +11,7 @@ import {
 } from '../../../util/test/analyticsMock';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { strings } from '../../../../locales/i18n';
+import Routes from '../../../constants/navigation/Routes';
 
 jest.mock('../../hooks/useAnalytics/useAnalytics');
 
@@ -181,7 +182,13 @@ describe('OnboardingInterestQuestionnaire', () => {
       renderComponent();
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.ONBOARDING_INTEREST_QUESTION_VIEWED,
+        MetaMetricsEvents.ONBOARDING_QUESTION_VIEWED,
+      );
+      const viewedBuilder = mockCreateEventBuilder.mock.results[0]?.value;
+      expect(viewedBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          question_type: 'interest',
+        }),
       );
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
     });
@@ -193,7 +200,9 @@ describe('OnboardingInterestQuestionnaire', () => {
 
       const viewedBuilder = mockCreateEventBuilder.mock.results[0]?.value;
 
-      expect(viewedBuilder.addProperties).toHaveBeenCalledWith({});
+      expect(viewedBuilder.addProperties).toHaveBeenCalledWith({
+        question_type: 'interest',
+      });
     });
 
     it('includes account_type in Viewed event when route supplies accountType', () => {
@@ -205,6 +214,7 @@ describe('OnboardingInterestQuestionnaire', () => {
 
       expect(viewedBuilder.addProperties).toHaveBeenCalledWith(
         expect.objectContaining({
+          question_type: 'interest',
           account_type: 'imported',
         }),
       );
@@ -271,10 +281,11 @@ describe('OnboardingInterestQuestionnaire', () => {
 
       expect(mockCreateEventBuilder).toHaveBeenNthCalledWith(
         2,
-        MetaMetricsEvents.ONBOARDING_INTEREST_QUESTION_SUBMITTED,
+        MetaMetricsEvents.ONBOARDING_QUESTION_SUBMITTED,
       );
       expect(builderInstance.addProperties).toHaveBeenCalledWith(
         expect.objectContaining({
+          question_type: 'interest',
           selected_interests: [],
           item_count: 0,
           skipped: true,
@@ -300,6 +311,7 @@ describe('OnboardingInterestQuestionnaire', () => {
 
       expect(builderInstance.addProperties).toHaveBeenCalledWith(
         expect.objectContaining({
+          question_type: 'interest',
           selected_interests: [],
           skipped: true,
           account_type: 'hardware_wallet',
@@ -333,6 +345,7 @@ describe('OnboardingInterestQuestionnaire', () => {
 
       expect(builderInstance.addProperties).toHaveBeenCalledWith(
         expect.objectContaining({
+          question_type: 'interest',
           selected_interests: expect.arrayContaining([
             'buy_and_sell_crypto',
             'predict_sports_events',
@@ -343,7 +356,7 @@ describe('OnboardingInterestQuestionnaire', () => {
       );
     });
 
-    it('calls onComplete after pressing Continue', async () => {
+    it('navigates to crypto experience questionnaire with onComplete on Continue', async () => {
       renderComponent();
 
       await act(async () => {
@@ -355,11 +368,19 @@ describe('OnboardingInterestQuestionnaire', () => {
       });
 
       await waitFor(() => {
-        expect(mockOnComplete).toHaveBeenCalledTimes(1);
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.ONBOARDING.CRYPTO_EXPERIENCE_QUESTIONNAIRE,
+          expect.objectContaining({
+            onComplete: mockOnComplete,
+          }),
+        );
       });
+      expect(mockOnComplete).not.toHaveBeenCalled();
     });
 
-    it('does not navigate to another screen on Continue', async () => {
+    it('passes accountType to crypto experience when route supplies accountType', async () => {
+      mockInterestQuestionnaireRouteParams.accountType = 'imported';
+
       renderComponent();
 
       await act(async () => {
@@ -370,7 +391,13 @@ describe('OnboardingInterestQuestionnaire', () => {
         );
       });
 
-      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.ONBOARDING.CRYPTO_EXPERIENCE_QUESTIONNAIRE,
+        expect.objectContaining({
+          onComplete: mockOnComplete,
+          accountType: 'imported',
+        }),
+      );
     });
   });
 });

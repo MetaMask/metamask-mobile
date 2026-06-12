@@ -247,49 +247,6 @@ describe('MoneyBalanceSummary', () => {
     });
   });
 
-  describe('featureDisabled state', () => {
-    const featureDisabledState: MoneyBalanceDisplayState = {
-      kind: 'featureDisabled',
-    };
-
-    it('renders the feature-disabled message', () => {
-      const { getByTestId } = render(
-        <MoneyBalanceSummary apy={4} displayState={featureDisabledState} />,
-      );
-
-      expect(
-        getByTestId(MoneyBalanceSummaryTestIds.BALANCE_FEATURE_DISABLED),
-      ).toHaveTextContent(strings('money.balance_feature_disabled'));
-    });
-
-    it('does not render the balance text', () => {
-      const { queryByTestId } = render(
-        <MoneyBalanceSummary apy={4} displayState={featureDisabledState} />,
-      );
-
-      expect(
-        queryByTestId(MoneyBalanceSummaryTestIds.BALANCE),
-      ).not.toBeOnTheScreen();
-    });
-
-    it('hides the APY row', () => {
-      const { queryByTestId } = render(
-        <MoneyBalanceSummary
-          apy={4}
-          displayState={featureDisabledState}
-          onApyInfoPress={jest.fn()}
-        />,
-      );
-
-      expect(
-        queryByTestId(MoneyBalanceSummaryTestIds.APY),
-      ).not.toBeOnTheScreen();
-      expect(
-        queryByTestId(MoneyBalanceSummaryTestIds.APY_INFO_BUTTON),
-      ).not.toBeOnTheScreen();
-    });
-  });
-
   describe('noAccount state', () => {
     const noAccountState: MoneyBalanceDisplayState = { kind: 'noAccount' };
 

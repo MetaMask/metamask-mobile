@@ -1003,7 +1003,7 @@ jobs:
       ${{
         !cancelled() &&
         needs.get_requirements.outputs.android_e2e_needed == 'true' &&
-        !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
+        !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
       }}
     permissions:
       contents: read
@@ -1032,7 +1032,7 @@ jobs:
       changed_files: ${{ needs.get_requirements.outputs.changed_files }}
       selected_tags: >-
         ${{
-          (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
+          (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
           '["ALL"]'
         }}
       runner_provider: ${{ inputs.runner_provider }}
@@ -1044,7 +1044,7 @@ jobs:
       ${{
         !cancelled() &&
         needs.get_requirements.outputs.ios_e2e_needed == 'true' &&
-        !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
+        !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
       }}
     permissions:
       contents: read
@@ -1080,7 +1080,7 @@ jobs:
       changed_files: ${{ needs.get_requirements.outputs.changed_files }}
       selected_tags: >-
         ${{
-          (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
+          (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
           '["ALL"]'
         }}
       runner_provider: ${{ inputs.runner_provider }}
@@ -1243,8 +1243,6 @@ jobs:
           if [[ "$LABEL" == "skip-sonar-cloud" ]]; then
             echo "skip-sonar-cloud label found. Skipping SonarCloud Quality Gate check."
           else
-            sleep 30
-
             PROJECT_KEY="metamask-mobile"
             PR_NUMBER="${{ github.event.pull_request.number }}"
             SONAR_TOKEN="${{ secrets.SONAR_TOKEN }}"
@@ -1254,21 +1252,33 @@ jobs:
               exit 1
             fi
 
-            RESPONSE=$(curl -s -u "$SONAR_TOKEN:" \
-              "https://sonarcloud.io/api/qualitygates/project_status?projectKey=$PROJECT_KEY&pullRequest=$PR_NUMBER")
-            echo "SonarCloud API Response: $RESPONSE"
+            # Poll until SonarCloud has finished ingesting the analysis (status OK or ERROR),
+            # retrying on NONE/empty which means ingestion is still in progress.
+            # Retries up to 12 times, 15s apart (~2m45s total), then fails the check on timeout.
+            MAX_ATTEMPTS=12
+            SLEEP_INTERVAL=15
+            for i in $(seq 1 $MAX_ATTEMPTS); do
+              RESPONSE=$(curl -s -u "$SONAR_TOKEN:" \
+                "https://sonarcloud.io/api/qualitygates/project_status?projectKey=$PROJECT_KEY&pullRequest=$PR_NUMBER")
+              echo "SonarCloud API Response (attempt $i/$MAX_ATTEMPTS): $RESPONSE"
+              STATUS=$(echo "$RESPONSE" | jq -r '.projectStatus.status')
 
-            STATUS=$(echo "$RESPONSE" | jq -r '.projectStatus.status')
+              if [[ "$STATUS" == "OK" ]]; then
+                echo "Quality Gate passed."
+                exit 0
+              elif [[ "$STATUS" == "ERROR" ]]; then
+                echo "Quality Gate failed."
+                exit 1
+              fi
 
-            if [[ "$STATUS" == "ERROR" ]]; then
-              echo "Quality Gate failed."
-              exit 1
-            elif [[ "$STATUS" == "OK" ]]; then
-              echo "Quality Gate passed."
-            else
-              echo "Could not determine Quality Gate status."
-              exit 1
-            fi
+              echo "Quality Gate status not yet settled (got: '$STATUS'). Retrying in ${SLEEP_INTERVAL}s..."
+              if [[ $i -lt $MAX_ATTEMPTS ]]; then
+                sleep "$SLEEP_INTERVAL"
+              fi
+            done
+
+            echo "Could not determine Quality Gate status after $MAX_ATTEMPTS attempts."
+            exit 1
           fi
 
   # TEMP: delete the ci-js-deps artifact once all consumers have finished so it

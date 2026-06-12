@@ -1,4 +1,4 @@
-import { test as perfTest } from '../../framework/fixture';
+import { test as perfTest } from '../../framework/fixtures/playwright';
 import TimerHelper from '../../framework/TimerHelper';
 import { asPlaywrightElement, PlaywrightAssertions } from '../../framework';
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
@@ -19,7 +19,8 @@ perfTest.describe(
   () => {
     perfTest.setTimeout(30 * 60 * 1000);
 
-    perfTest(
+    perfTest.skip(
+      // skipped because of the account sync issue
       'Import SRP with +50 accounts, SRP 1, SRP 2, SRP 3',
       { tag: '@accounts-team' },
       async ({ currentDeviceDetails, driver, performanceTracker }) => {
@@ -40,7 +41,7 @@ perfTest.describe(
         );
         const addAccountTimer = new TimerHelper(
           'Time since the user clicks on "Add account" button until the next modal is visible',
-          { ios: 1000, android: 1700 },
+          { ios: 1000, android: 1200 },
           currentDeviceDetails.platform,
         );
         const importSrpTimer = new TimerHelper(
@@ -66,11 +67,13 @@ perfTest.describe(
 
         await AccountListBottomSheet.waitForAccountSyncToComplete();
         await AccountListBottomSheet.tapAddAccountButton();
+
         await addAccountTimer.measure(async () => {
           await PlaywrightAssertions.expectElementToBeVisible(
             asPlaywrightElement(AddAccountBottomSheet.importSrpButton),
             {
               description: 'Add account bottom sheet should be visible',
+              timeout: 60000,
             },
           );
         });

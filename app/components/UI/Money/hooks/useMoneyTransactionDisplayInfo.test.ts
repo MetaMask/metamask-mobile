@@ -384,20 +384,43 @@ describe('useMoneyTransactionDisplayInfo — getIconForTransactionType', () => {
 // Primary amount — ERC-20 (USDC)
 // ---------------------------------------------------------------------------
 
-describe('useMoneyTransactionDisplayInfo — ERC-20 primary amount', () => {
-  it('formats USDC requiredAssets amount as +X.XX USDC', () => {
-    // 1_000_000 minimal units = 1.00 USDC (6 decimals)
-    const tx = makeTx(TransactionType.moneyAccountDeposit, {
-      metamaskPay: { tokenAddress: USDC_ADDRESS, chainId: CHAIN_ID },
-      requiredAssets: [{ address: USDC_ADDRESS, amount: '1000000' }],
-    });
-
-    // Provide the token in state so it looks like an ERC-20 (not native).
-    const stateWithUsdc = {
+describe('useMoneyTransactionDisplayInfo — ERC-20 (stablecoin) primary amount', () => {
+  /**
+   * Builds state where USDC is a known ERC-20 with optional market data.
+   * Like every other ERC-20, USDC is priced via the Price API
+   * (token→ETH `price` × ETH→USD rate) — there is no $1 peg shortcut. The
+   * `USDC` symbol only affects *formatting* (2 fixed decimals).
+   */
+  function makeUsdcState(opts: {
+    tokenToEthPrice?: number;
+    ethUsdRate?: number;
+  }): ProviderValues['state'] {
+    const marketData =
+      opts.tokenToEthPrice === undefined
+        ? {}
+        : {
+            [CHAIN_ID]: {
+              [safeToChecksumAddress(USDC_ADDRESS) as string]: {
+                price: opts.tokenToEthPrice,
+              },
+            },
+          };
+    return {
       engine: {
         backgroundState: {
-          CurrencyRateController: { currentCurrency: 'usd', currencyRates: {} },
-          TokenRatesController: { marketData: {} },
+          CurrencyRateController: {
+            currentCurrency: 'usd',
+            currencyRates:
+              opts.ethUsdRate === undefined
+                ? {}
+                : {
+                    ETH: {
+                      conversionRate: opts.ethUsdRate,
+                      usdConversionRate: opts.ethUsdRate,
+                    },
+                  },
+          },
+          TokenRatesController: { marketData },
           TokensController: {
             allTokens: {
               [CHAIN_ID]: {
@@ -420,12 +443,173 @@ describe('useMoneyTransactionDisplayInfo — ERC-20 primary amount', () => {
         },
       },
     } as unknown as ProviderValues['state'];
+  }
 
+  function makeUsdcDepositTx(): TransactionMeta {
+    // 1_000_000 → $1.00 (6-decimal USD value).
+    return makeTx(TransactionType.moneyAccountDeposit, {
+      metamaskPay: { tokenAddress: USDC_ADDRESS, chainId: CHAIN_ID },
+      requiredAssets: [{ address: USDC_ADDRESS, amount: '1000000' }],
+    });
+  }
+
+  it('prices USDC at its market value (~$1) and formats with 2 decimals', () => {
+    // USDC→ETH 0.0004 × ETH→USD 2500 = $1.00 per USDC.
+    // $1.00 / $1.00 = 1.00 USDC.
     const { result } = renderHookWithProvider(
-      () => useMoneyTransactionDisplayInfo(tx, undefined),
-      { state: stateWithUsdc },
+      () => useMoneyTransactionDisplayInfo(makeUsdcDepositTx(), undefined),
+      { state: makeUsdcState({ tokenToEthPrice: 0.0004, ethUsdRate: 2500 }) },
     );
+
     expect(result.current.primaryAmount).toBe('+1.00 USDC');
+  });
+
+  it('reflects a de-pegged market price rather than assuming $1', () => {
+    // USDC trading at $0.80: USDC→ETH 0.00032 × ETH→USD 2500 = $0.80 per USDC.
+    // $1.00 / $0.80 = 1.25 USDC — the Price API value, not the flat $1 peg.
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(makeUsdcDepositTx(), undefined),
+      { state: makeUsdcState({ tokenToEthPrice: 0.00032, ethUsdRate: 2500 }) },
+    );
+
+    expect(result.current.primaryAmount).toBe('+1.25 USDC');
+  });
+
+  it('leaves primaryAmount empty when stablecoin market data is unavailable', () => {
+    // No peg fallback: without market data we cannot price USDC, so we show
+    // nothing rather than a misleading "+1.00 USDC". The fiat line still renders.
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(makeUsdcDepositTx(), undefined),
+      { state: makeUsdcState({}) },
+    );
+
+    expect(result.current.primaryAmount).toBe('');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Primary amount — non-stable ERC-20 (LINK), regression for MUSD-857
+// ---------------------------------------------------------------------------
+
+describe('useMoneyTransactionDisplayInfo — non-stable ERC-20 primary amount', () => {
+  // Mainnet LINK: 18 decimals, NOT a USD-pegged stablecoin.
+  const LINK_ADDRESS: Hex = '0x514910771AF9Ca656af840dff83E8264EcF986CA';
+
+  /**
+   * Builds state where LINK is a known ERC-20 with optional market data.
+   *
+   * `requiredAssets[0].amount` is denominated in the mUSD deposit target
+   * (6 decimals / a USD value), NOT in the pay token's own minimal units —
+   * so it must be priced via the pay token's USD price, exactly like the
+   * native (ETH) path. `tokenMarketData` stores the token→ETH price; the
+   * USD price is `tokenToEth × ETH→USD`.
+   */
+  function makeLinkState(opts: {
+    tokenToEthPrice?: number;
+    ethUsdRate?: number;
+  }): ProviderValues['state'] {
+    const marketData =
+      opts.tokenToEthPrice === undefined
+        ? {}
+        : {
+            [CHAIN_ID]: {
+              [safeToChecksumAddress(LINK_ADDRESS) as string]: {
+                price: opts.tokenToEthPrice,
+              },
+            },
+          };
+    return {
+      engine: {
+        backgroundState: {
+          CurrencyRateController: {
+            currentCurrency: 'usd',
+            currencyRates:
+              opts.ethUsdRate === undefined
+                ? {}
+                : {
+                    ETH: {
+                      conversionRate: opts.ethUsdRate,
+                      usdConversionRate: opts.ethUsdRate,
+                    },
+                  },
+          },
+          TokenRatesController: { marketData },
+          TokensController: {
+            allTokens: {
+              [CHAIN_ID]: {
+                '0xSomeWallet': [
+                  {
+                    address: LINK_ADDRESS,
+                    symbol: 'LINK',
+                    decimals: 18,
+                    image: undefined,
+                  },
+                ],
+              },
+            },
+          },
+          NetworkController: {
+            networkConfigurationsByChainId: {
+              [CHAIN_ID]: { nativeCurrency: 'ETH' },
+            },
+          },
+        },
+      },
+    } as unknown as ProviderValues['state'];
+  }
+
+  function makeLinkDepositTx(): TransactionMeta {
+    // amount = 500000 → $0.50 (6-decimal USD value), the deposit shown in the
+    // bug screenshot as "+0.00 LINK".
+    return makeTx(TransactionType.moneyAccountDeposit, {
+      metamaskPay: { tokenAddress: LINK_ADDRESS, chainId: CHAIN_ID },
+      requiredAssets: [{ address: LINK_ADDRESS, amount: '500000' }],
+    });
+  }
+
+  it('prices the 6-decimal USD amount via market data (LINK at $25 → +0.02 LINK)', () => {
+    // LINK→ETH price 0.01 × ETH→USD 2500 = $25 per LINK.
+    // $0.50 / $25 = 0.02 LINK.
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(makeLinkDepositTx(), undefined),
+      { state: makeLinkState({ tokenToEthPrice: 0.01, ethUsdRate: 2500 }) },
+    );
+
+    expect(result.current.primaryAmount).toBe('+0.02 LINK');
+  });
+
+  it('leaves primaryAmount empty (not +0.00) when market data is unavailable', () => {
+    // No market data and no ETH rate → we cannot price LINK, so we must show
+    // nothing rather than a misleading "+0.00 LINK". Fiat still renders from
+    // its own pipeline.
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(makeLinkDepositTx(), undefined),
+      { state: makeLinkState({}) },
+    );
+
+    expect(result.current.primaryAmount).toBe('');
+  });
+
+  it('leaves primaryAmount empty when token→ETH price exists but ETH→USD rate is missing', () => {
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(makeLinkDepositTx(), undefined),
+      { state: makeLinkState({ tokenToEthPrice: 0.01 }) },
+    );
+
+    expect(result.current.primaryAmount).toBe('');
+  });
+
+  it('leaves primaryAmount empty (not +0) when the token amount underflows 6 decimals', () => {
+    // High-unit-value token: token→ETH 400 × ETH→USD 2500 = $1,000,000 per token.
+    // $0.50 / $1,000,000 = 0.0000005, which rounds down to "0.000000" at 6
+    // decimals. We must show nothing rather than a misleading "+0 LINK" — this
+    // is the same class of bug MUSD-857 fixed, just one decimal place over.
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(makeLinkDepositTx(), undefined),
+      { state: makeLinkState({ tokenToEthPrice: 400, ethUsdRate: 2500 }) },
+    );
+
+    expect(result.current.primaryAmount).toBe('');
   });
 });
 

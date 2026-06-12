@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */
 // Force E2E mode
-jest.mock('../../../../util/test/utils', () => ({ isE2E: true }));
+jest.mock('../../../../util/test/utils', () => ({ hasTestOverrides: true }));
 
 // Mock Linking to avoid RN bindings
 jest.mock('react-native', () => {

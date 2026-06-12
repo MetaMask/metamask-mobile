@@ -133,7 +133,7 @@ describe(SmokeWalletPlatform('Trending Feed View All Navigation'), () => {
               tapItem: () => TrendingView.tapTokenRow(RWA_STOCK_ASSET_ID),
               verifyVisible: () =>
                 TrendingView.verifyTokenDetailsTitleVisible(
-                  'Ondo US Dollar Yield (Ondo Tokenized)',
+                  'Ondo US Dollar Yield',
                 ),
               tapBack: () => TrendingView.tapBackFromTokenDetails(),
             },

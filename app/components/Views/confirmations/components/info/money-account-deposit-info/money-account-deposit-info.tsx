@@ -10,10 +10,15 @@ export function MoneyAccountDepositInfo() {
   useMoneyAccountDepositNavbar();
   const { preferredPaymentToken } = useParams<ConfirmationParams>({});
 
+  const params = useParams<ConfirmationParams>();
+  const autoFiat = params?.autoSelectFiatPayment;
+
   return (
     <CustomAmountInfo
+      autoSelectFiatPayment={autoFiat}
       currency={MONEY_ACCOUNT_CURRENCY}
       hasMax
+      hideAccountSelector={autoFiat}
       supportAccountSelection
       preferredToken={preferredPaymentToken}
     />

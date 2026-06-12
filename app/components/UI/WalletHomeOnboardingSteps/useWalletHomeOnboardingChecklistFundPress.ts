@@ -8,6 +8,7 @@ import useRampsUnifiedV1Enabled from '../Ramp/hooks/useRampsUnifiedV1Enabled';
 import useRampsUnifiedV2Enabled from '../Ramp/hooks/useRampsUnifiedV2Enabled';
 import { useRampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
 import { walletHomeOnboardingPrimaryLabelForStep } from './walletHomeOnboardingStepsStrings';
+import { useWalletHomeOnboardingFundRampIntent } from './useWalletHomeOnboardingFundRampIntent';
 
 type GoToBuyFromRampNavigation = ReturnType<
   typeof import('../Ramp/hooks/useRampNavigation').useRampNavigation
@@ -25,6 +26,7 @@ export function useWalletHomeOnboardingChecklistFundPress(
   const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
   const isV2UnifiedEnabled = useRampsUnifiedV2Enabled();
   const region = useSelector(getDetectedGeolocation);
+  const { rampIntent } = useWalletHomeOnboardingFundRampIntent();
 
   return useCallback(() => {
     const rampType = isV2UnifiedEnabled
@@ -48,7 +50,7 @@ export function useWalletHomeOnboardingChecklistFundPress(
         .build(),
     );
 
-    goToBuy();
+    goToBuy(rampIntent);
   }, [
     buttonClickData.is_authenticated,
     buttonClickData.order_count,
@@ -57,6 +59,7 @@ export function useWalletHomeOnboardingChecklistFundPress(
     createEventBuilder,
     goToBuy,
     isV2UnifiedEnabled,
+    rampIntent,
     rampUnifiedV1Enabled,
     region,
     trackEvent,

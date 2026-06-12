@@ -24,12 +24,7 @@ const styleSheet = (params: {
   const { colors } = params.theme;
 
   return StyleSheet.create({
-    base: Object.assign(
-      {
-        padding: 16,
-      } as ViewStyle,
-      style,
-    ) as ViewStyle,
+    base: Object.assign({} as ViewStyle, style) as ViewStyle,
     cellBase: Object.assign(
       {
         flexDirection: 'row',

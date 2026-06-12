@@ -22,11 +22,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
-import {
-  useMusdConversionTokens,
-  STABLECOIN_SYMBOLS,
-} from '../../../Earn/hooks/useMusdConversionTokens';
-import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
+import { useMoneyDepositTokens } from '../../hooks/useMoneyDepositTokens';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { useProjectedEarnings } from '../../hooks/useProjectedEarnings';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
@@ -39,6 +35,7 @@ import PotentialEarningsTokenRow from '../../components/MoneyPotentialEarnings/P
 import { isPositiveNumber } from '../../utils/number';
 import styleSheet from './MoneyPotentialEarningsView.styles';
 import { MoneyPotentialEarningsViewTestIds } from './MoneyPotentialEarningsView.testIds';
+import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 
 const MoneyPotentialEarningsView = () => {
   const navigation = useNavigation();
@@ -46,13 +43,13 @@ const MoneyPotentialEarningsView = () => {
   const { styles } = useStyles(styleSheet, {});
   const currentCurrency = useSelector(selectCurrentCurrency);
 
-  const { tokens } = useMusdConversionTokens();
-  const { initiateCustomConversion } = useMusdConversion();
+  const { tokens: depositTokens, isNoFeeToken } = useMoneyDepositTokens();
+  const { initiateDeposit } = useMoneyAccountDeposit();
   const { apyPercent } = useMoneyAccountBalance();
   const apyPercentForProjection = apyPercent ?? 0;
 
   const { eligibleTokens, totalAssetsFiat, projectedAmount } =
-    useProjectedEarnings(tokens, apyPercent);
+    useProjectedEarnings(depositTokens, apyPercent);
 
   const handleBackPress = useCallback(() => {
     navigation.goBack();
@@ -65,16 +62,13 @@ const MoneyPotentialEarningsView = () => {
   }, [navigation]);
 
   const handleConvertPress = useCallback(async () => {
-    // The conversion flow picks the actual source by inspecting balances; the
-    // first eligible token (sorted by useMusdConversionTokens) seeds the
-    // confirmation screen so it can resolve a default if the user does not
-    // change it.
     const defaultToken = eligibleTokens[0];
+
     if (!defaultToken) {
       return;
     }
     try {
-      await initiateCustomConversion({
+      await initiateDeposit({
         preferredPaymentToken: {
           address: defaultToken.address as Hex,
           chainId: defaultToken.chainId as Hex,
@@ -83,15 +77,15 @@ const MoneyPotentialEarningsView = () => {
     } catch (error) {
       Logger.error(error as Error, {
         message:
-          '[MoneyPotentialEarningsView] Failed to initiate conversion from CTA',
+          '[MoneyPotentialEarningsView] Failed to initiate deposit from CTA',
       });
     }
-  }, [eligibleTokens, initiateCustomConversion]);
+  }, [eligibleTokens, initiateDeposit]);
 
   const handleTokenPress = useCallback(
     (token: AssetType) => async () => {
       try {
-        await initiateCustomConversion({
+        await initiateDeposit({
           preferredPaymentToken: {
             address: token.address as Hex,
             chainId: token.chainId as Hex,
@@ -99,11 +93,11 @@ const MoneyPotentialEarningsView = () => {
         });
       } catch (error) {
         Logger.error(error as Error, {
-          message: '[MoneyPotentialEarningsView] Failed to initiate conversion',
+          message: '[MoneyPotentialEarningsView] Failed to initiate deposit',
         });
       }
     },
-    [initiateCustomConversion],
+    [initiateDeposit],
   );
 
   return (
@@ -184,7 +178,7 @@ const MoneyPotentialEarningsView = () => {
           <PotentialEarningsTokenRow
             key={`${token.address}-${token.chainId}`}
             token={token}
-            hasSubsidizedFee={STABLECOIN_SYMBOLS.has(token.symbol)}
+            hasSubsidizedFee={isNoFeeToken(token)}
             apyPercent={apyPercentForProjection}
             onPress={handleTokenPress(token)}
             testID={MoneyPotentialEarningsViewTestIds.TOKEN_ROW(index)}

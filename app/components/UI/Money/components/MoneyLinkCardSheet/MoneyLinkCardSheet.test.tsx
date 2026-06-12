@@ -111,8 +111,12 @@ describe('MoneyLinkCardSheet', () => {
     ).toBeOnTheScreen();
     expect(
       getByText(
-        strings('money.metamask_card.link_card_sheet_description', { apy: 4 }),
+        strings('money.metamask_card.link_card_sheet_description_prefix'),
+        { exact: false },
       ),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(strings('money.apy_label', { percentage: 4 })),
     ).toBeOnTheScreen();
     expect(
       getByText(strings('money.metamask_card.link_card_sheet_cta')),
@@ -129,13 +133,10 @@ describe('MoneyLinkCardSheet', () => {
     );
 
     expect(
-      getByText(
-        strings('money.metamask_card.link_card_sheet_description', { apy: 7 }),
-      ),
+      getByText(strings('money.apy_label', { percentage: 7 })),
     ).toBeOnTheScreen();
-    // Defence against regressions: the description must NEVER render the raw
-    // i18n placeholder (which is what happens if `apy` is not passed at all).
     expect(queryByText(/{{apy}}/)).toBeNull();
+    expect(queryByText(/{{percentage}}/)).toBeNull();
   });
 
   it('falls back to no-APY copy when the vault APY query has not resolved yet', () => {

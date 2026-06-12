@@ -5,6 +5,7 @@ import {
   type OrderType,
   type PerpsMarketData,
   type TPSLTrackingData,
+  type SortDirection,
   type SortOptionId,
 } from '@metamask/perps-controller';
 import { PerpsTransaction } from './transactionHistory';
@@ -93,6 +94,7 @@ export interface PerpsNavigationParamList extends ParamListBase {
       | 'forex'
       | 'new';
     defaultSortOptionId?: SortOptionId;
+    defaultSortDirection?: SortDirection;
     fromHome?: boolean;
     button_clicked?: string;
     button_location?: string;

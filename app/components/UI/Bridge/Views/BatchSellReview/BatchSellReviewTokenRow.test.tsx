@@ -22,55 +22,6 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   }),
 }));
 
-jest.mock('@metamask/design-system-react-native', () => {
-  const ReactActual = jest.requireActual('react');
-  const {
-    Pressable: RNPressable,
-    View: RNView,
-    Text: RNText,
-  } = jest.requireActual('react-native');
-
-  return {
-    AvatarToken: ({ testID }: { testID?: string }) =>
-      ReactActual.createElement(RNView, { testID }),
-    AvatarTokenSize: { Lg: 'lg' },
-    Box: ({ children, ...props }: { children?: React.ReactNode }) =>
-      ReactActual.createElement(RNView, props, children),
-    BoxAlignItems: { Center: 'center' },
-    BoxFlexDirection: { Row: 'row' },
-    ButtonIcon: ({
-      accessibilityLabel,
-      isDisabled,
-      onPress,
-      testID,
-    }: {
-      accessibilityLabel?: string;
-      isDisabled?: boolean;
-      onPress?: () => void;
-      testID?: string;
-    }) =>
-      ReactActual.createElement(
-        RNPressable,
-        {
-          accessibilityLabel,
-          accessibilityState: { disabled: Boolean(isDisabled) },
-          disabled: isDisabled,
-          onPress: isDisabled ? undefined : onPress,
-          testID,
-        },
-        null,
-      ),
-    ButtonIconSize: { Md: 'md' },
-    FontWeight: { Medium: 'medium' },
-    IconColor: { IconAlternative: 'icon-alternative' },
-    IconName: { Customize: 'customize', RemoveMinus: 'remove-minus' },
-    Text: ({ children, ...props }: { children?: React.ReactNode }) =>
-      ReactActual.createElement(RNText, props, children),
-    TextColor: { TextAlternative: 'text-alternative' },
-    TextVariant: { BodySm: 'body-sm' },
-  };
-});
-
 jest.mock('../../../../../component-library/components-temp/Skeleton', () => {
   const ReactActual = jest.requireActual('react');
   const { View: RNView } = jest.requireActual('react-native');
@@ -119,6 +70,8 @@ describe('BatchSellReviewTokenRow', () => {
         token={mockToken}
         tokenKey={mockTokenKey}
         percent={100}
+        receivedAmount="123.45 USDC"
+        isLoading
         onPercentChange={mockOnPercentChange}
         onSlippagePress={mockOnSlippagePress}
         onRemovePress={mockOnRemovePress}
@@ -136,17 +89,129 @@ describe('BatchSellReviewTokenRow', () => {
     expect(getByText('1.49812 ETH • 100%')).toBeOnTheScreen();
   });
 
+  it('renders the received amount when loaded', () => {
+    const { getByText, queryByTestId } = render(
+      <BatchSellReviewTokenRow
+        token={mockToken}
+        tokenKey={mockTokenKey}
+        percent={100}
+        receivedAmount="123.45 USDC"
+        onPercentChange={mockOnPercentChange}
+      />,
+    );
+
+    expect(getByText('123.45 USDC')).toBeOnTheScreen();
+    expect(
+      queryByTestId(
+        `${BatchSellReviewSelectorsIDs.TOKEN_AMOUNT_SKELETON}-${mockTokenKey}`,
+      ),
+    ).toBeNull();
+  });
+
+  it('renders and forwards high price impact tag presses', () => {
+    const mockOnHighPriceImpactPress = jest.fn();
+    const { getByTestId, getByText } = render(
+      <BatchSellReviewTokenRow
+        token={mockToken}
+        tokenKey={mockTokenKey}
+        percent={100}
+        receivedAmount="123.45 USDC"
+        isHighPriceImpact
+        onHighPriceImpactPress={mockOnHighPriceImpactPress}
+        onPercentChange={mockOnPercentChange}
+      />,
+    );
+    const tag = getByTestId(
+      `${BatchSellReviewSelectorsIDs.HIGH_PRICE_IMPACT_TAG}-${mockTokenKey}`,
+    );
+
+    expect(getByText('High price impact')).toBeOnTheScreen();
+    fireEvent.press(tag);
+
+    expect(mockOnHighPriceImpactPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not render high price impact tag while loading or unavailable', () => {
+    const { queryByTestId, rerender } = render(
+      <BatchSellReviewTokenRow
+        token={mockToken}
+        tokenKey={mockTokenKey}
+        percent={100}
+        receivedAmount="123.45 USDC"
+        isHighPriceImpact
+        isLoading
+        onHighPriceImpactPress={jest.fn()}
+        onPercentChange={mockOnPercentChange}
+      />,
+    );
+    const tagTestId = `${BatchSellReviewSelectorsIDs.HIGH_PRICE_IMPACT_TAG}-${mockTokenKey}`;
+
+    expect(queryByTestId(tagTestId)).toBeNull();
+
+    rerender(
+      <BatchSellReviewTokenRow
+        token={mockToken}
+        tokenKey={mockTokenKey}
+        percent={100}
+        receivedAmount="123.45 USDC"
+        isHighPriceImpact
+        isQuoteUnavailable
+        onHighPriceImpactPress={jest.fn()}
+        onPercentChange={mockOnPercentChange}
+      />,
+    );
+
+    expect(queryByTestId(tagTestId)).toBeNull();
+  });
+
+  it('renders a no quote available row state', () => {
+    const { getByText, queryByTestId } = render(
+      <BatchSellReviewTokenRow
+        token={mockToken}
+        tokenKey={mockTokenKey}
+        percent={100}
+        receivedAmount="123.45 USDC"
+        isQuoteUnavailable
+        onPercentChange={mockOnPercentChange}
+      />,
+    );
+
+    const noQuoteText = getByText('No quote available');
+
+    expect(noQuoteText).toBeOnTheScreen();
+    expect(
+      queryByTestId(
+        `${BatchSellReviewSelectorsIDs.TOKEN_AMOUNT_SKELETON}-${mockTokenKey}`,
+      ),
+    ).toBeNull();
+  });
+
   it('matches token picker balance formatting for tiny balances', () => {
     const { getByText } = render(
       <BatchSellReviewTokenRow
         token={{ ...mockToken, balance: '0.000001' }}
         tokenKey={mockTokenKey}
         percent={100}
+        receivedAmount="123.45 USDC"
         onPercentChange={mockOnPercentChange}
       />,
     );
 
     expect(getByText('< 0.00001 ETH • 100%')).toBeOnTheScreen();
+  });
+
+  it('renders the source amount used in the quote request', () => {
+    const { getByText } = render(
+      <BatchSellReviewTokenRow
+        token={mockToken}
+        tokenKey={mockTokenKey}
+        percent={50}
+        receivedAmount="123.45 USDC"
+        onPercentChange={mockOnPercentChange}
+      />,
+    );
+
+    expect(getByText('0.74906 ETH • 50%')).toBeOnTheScreen();
   });
 
   it('forwards slider percent changes', () => {
@@ -155,6 +220,7 @@ describe('BatchSellReviewTokenRow', () => {
         token={mockToken}
         tokenKey={mockTokenKey}
         percent={100}
+        receivedAmount="123.45 USDC"
         onPercentChange={mockOnPercentChange}
       />,
     );
@@ -174,6 +240,7 @@ describe('BatchSellReviewTokenRow', () => {
         token={mockToken}
         tokenKey={mockTokenKey}
         percent={100}
+        receivedAmount="123.45 USDC"
         onPercentChange={mockOnPercentChange}
         onSlippagePress={mockOnSlippagePress}
         onRemovePress={mockOnRemovePress}
@@ -201,6 +268,7 @@ describe('BatchSellReviewTokenRow', () => {
         token={mockToken}
         tokenKey={mockTokenKey}
         percent={100}
+        receivedAmount="123.45 USDC"
         onPercentChange={mockOnPercentChange}
         onRemovePress={mockOnRemovePress}
         isRemoveTokenDisabled

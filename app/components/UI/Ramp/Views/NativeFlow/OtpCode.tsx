@@ -48,7 +48,7 @@ import { useTransakRouting } from '../../hooks/useTransakRouting';
 import { useRampsController } from '../../hooks/useRampsController';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import { OtpCodeSelectorsIDs } from './OtpCode.testIds';
-import { isE2E } from '../../../../../util/test/utils';
+import { hasTestOverrides } from '../../../../../util/test/utils';
 
 export interface V2OtpCodeParams {
   email: string;
@@ -172,7 +172,7 @@ const V2OtpCode = () => {
   useEffect(() => {
     // Skip the countdown timer in E2E: the recurring setTimeout keeps the JS
     // thread non-idle and causes Detox synchronization to stall indefinitely.
-    if (isE2E) return;
+    if (hasTestOverrides) return;
 
     if (resendButtonState === 'cooldown' && cooldownSeconds > 0) {
       timerRef.current = setTimeout(() => {
@@ -415,7 +415,8 @@ const V2OtpCode = () => {
                 <Text style={styles.cellText}>
                   {/* Cursor uses setInterval which keeps the JS thread non-idle,
                       stalling Detox synchronization. Omit it in E2E builds. */}
-                  {symbol || (isFocused && !isE2E ? <Cursor /> : null)}
+                  {symbol ||
+                    (isFocused && !hasTestOverrides ? <Cursor /> : null)}
                 </Text>
               </View>
             )}

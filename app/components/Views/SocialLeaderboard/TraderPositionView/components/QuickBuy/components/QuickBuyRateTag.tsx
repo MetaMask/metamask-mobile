@@ -12,17 +12,32 @@ import {
   IconName,
   IconSize,
 } from '@metamask/design-system-react-native';
+import { strings } from '../../../../../../../../locales/i18n';
 
 interface QuickBuyRateTagProps {
   label: string | undefined;
   onPress?: () => void;
+  isHighPriceImpact?: boolean;
 }
 
 const QuickBuyRateTag: React.FC<QuickBuyRateTagProps> = ({
   label,
   onPress,
+  isHighPriceImpact = false,
 }) => {
-  if (!label) return null;
+  if (!label && !isHighPriceImpact) return null;
+
+  const displayLabel = isHighPriceImpact
+    ? strings('bridge.price_impact_warning_title')
+    : label;
+
+  const textColor = isHighPriceImpact
+    ? TextColor.ErrorDefault
+    : TextColor.TextAlternative;
+
+  const iconColor = isHighPriceImpact
+    ? IconColor.ErrorDefault
+    : IconColor.IconAlternative;
 
   const content = (
     <Box
@@ -30,20 +45,20 @@ const QuickBuyRateTag: React.FC<QuickBuyRateTagProps> = ({
       alignItems={BoxAlignItems.Center}
       gap={1}
     >
-      <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-        {label}
+      <Text variant={TextVariant.BodySm} color={textColor}>
+        {displayLabel}
       </Text>
-      <Icon
-        name={IconName.ArrowRight}
-        size={IconSize.Sm}
-        color={IconColor.IconAlternative}
-      />
+      <Icon name={IconName.ArrowRight} size={IconSize.Sm} color={iconColor} />
     </Box>
   );
 
   return (
     <Box
-      twClassName="rounded-full bg-muted px-3 py-1"
+      twClassName={
+        isHighPriceImpact
+          ? 'rounded-full bg-error-muted px-3 py-1'
+          : 'rounded-full bg-muted px-3 py-1'
+      }
       testID="quick-buy-rate-tag"
     >
       {onPress ? (

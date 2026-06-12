@@ -1,11 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  ScrollView,
-  BackHandler,
-  Image,
-  Platform,
-  StatusBar,
-} from 'react-native';
+import { ScrollView, BackHandler, Image, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -37,7 +31,7 @@ import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder
 import SRPDesignLight from '../../../images/secure_wallet_light.png';
 import SRPDesignDark from '../../../images/secure_wallet_dark.png';
 import { CommonActions, useNavigation } from '@react-navigation/native';
-import { useMetrics } from '../../hooks/useMetrics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import {
   AccountType,
   ONBOARDING_SUCCESS_FLOW,
@@ -48,7 +42,7 @@ import { AppThemeKey } from '../../../util/theme/models';
 const AccountBackupStep1 = (props) => {
   const [hasFunds, setHasFunds] = useState(false);
   const { themeAppearance } = useTheme();
-  const { isEnabled: isMetricsEnabled } = useMetrics();
+  const { isEnabled: isAnalyticsEnabled } = useAnalytics();
   const tw = useTailwind();
 
   const track = (event, properties) => {
@@ -100,7 +94,7 @@ const AccountBackupStep1 = (props) => {
     endTrace({ name: TraceName.OnboardingNewSrpCreateWallet });
     endTrace({ name: TraceName.OnboardingJourneyOverall });
 
-    if (isMetricsEnabled()) {
+    if (isAnalyticsEnabled()) {
       navigation.dispatch(resetAction);
     } else {
       navigation.navigate('OptinMetrics', {
@@ -139,25 +133,15 @@ const AccountBackupStep1 = (props) => {
 
   return (
     <SafeAreaView
-      style={tw.style(
-        'flex-1 bg-default',
-        Platform.OS === 'android'
-          ? `pt-[${StatusBar.currentHeight || 24}px]`
-          : 'pt-2',
-      )}
-      edges={['top', 'bottom']}
+      style={tw.style('flex-1 bg-default')}
+      edges={{ top: 'additive', bottom: 'additive' }}
     >
       <ScrollView
         contentContainerStyle={tw.style('flex-grow')}
-        style={tw.style(
-          'flex-1 bg-default',
-          Platform.OS === 'android'
-            ? `pt-[${StatusBar.currentHeight || 24}px]`
-            : 'pt-2',
-        )}
+        style={tw.style('flex-1 bg-default')}
         testID={ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER}
       >
-        <Box twClassName="flex-1 px-4">
+        <Box twClassName="flex-1 px-4 pt-2">
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {strings('manual_backup_step_1.steps', {
               currentStep: 2,

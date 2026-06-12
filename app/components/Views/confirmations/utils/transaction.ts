@@ -85,6 +85,7 @@ export async function addMMOriginatedTransaction(
   const { transactionMeta } = await addTransaction(txParams, {
     ...options,
     origin: ORIGIN_METAMASK,
+    isInternal: true,
   });
 
   const id = transactionMeta.id;

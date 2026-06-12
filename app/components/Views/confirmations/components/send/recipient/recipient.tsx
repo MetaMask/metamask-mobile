@@ -22,6 +22,7 @@ import { useContacts } from '../../../hooks/send/useContacts';
 import { useRecipientPageReset } from '../../../hooks/send/useRecipientPageReset';
 import { useRouteParams } from '../../../hooks/send/useRouteParams';
 import { useSendActions } from '../../../hooks/send/useSendActions';
+import { useSendNavbar } from '../../../hooks/send/useSendNavbar';
 import { useAddressPoisoningDetection } from '../../../hooks/send/useAddressPoisoningDetection';
 import { useToAddressValidation } from '../../../hooks/send/useToAddressValidation';
 import { RecipientInput } from '../../recipient-input';
@@ -37,6 +38,7 @@ export const Recipient = () => {
   const [pastedRecipient, setPastedRecipient] = useState<string>();
   const [isAlertModalOpen, setIsAlertModalOpen] = useState(false);
   const { to, updateTo, asset, chainId } = useSendContext();
+  const { header: renderRecipientHeader } = useSendNavbar().Recipient;
   const { handleSubmitPress } = useSendActions();
   const accounts = useAccounts();
   const contacts = useContacts();
@@ -209,6 +211,7 @@ export const Recipient = () => {
 
   return (
     <SafeAreaView edges={['left', 'right', 'bottom']} style={styles.container}>
+      {renderRecipientHeader()}
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.container}

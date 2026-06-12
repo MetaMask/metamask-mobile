@@ -10,6 +10,7 @@ import { RootState } from '../reducers';
 import {
   selectSourceToken,
   selectDestToken,
+  selectBatchSellSourceTokens,
   selectIsSwap,
   selectIsGasIncludedSTXSendBundleSupported,
   selectIsGasIncluded7702Supported,
@@ -28,6 +29,24 @@ import { getGaslessBridgeWith7702EnabledForChain } from './smartTransactionsCont
 export const selectSourceWalletAddress = createSelector(
   [(state: RootState) => state, selectSourceToken],
   (state, sourceToken) => {
+    if (!sourceToken) return undefined;
+
+    const chainId = formatChainIdToCaip(sourceToken.chainId);
+    const internalAccount =
+      selectSelectedInternalAccountByScope(state)(chainId);
+
+    return internalAccount ? internalAccount.address : undefined;
+  },
+);
+
+/**
+ * Gets the wallet address for the first Batch Sell source token by finding the
+ * selected account that matches the token's chain scope.
+ */
+export const selectBatchSellSourceWalletAddress = createSelector(
+  [(state: RootState) => state, selectBatchSellSourceTokens],
+  (state, sourceTokens) => {
+    const [sourceToken] = sourceTokens;
     if (!sourceToken) return undefined;
 
     const chainId = formatChainIdToCaip(sourceToken.chainId);

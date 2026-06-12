@@ -8,7 +8,7 @@ const ACTIVITY_VIEWED = 'Predict Activity Viewed';
  *
  * Note: "Predict Position Viewed" is not asserted here. It is only emitted from legacy
  * `PredictHomePositions` inside `PredictTabView` when the wallet Predict tab is visible.
- * With homepage sections v1 (`remoteFeatureFlagHomepageSectionsV1Enabled`), the wallet uses
+ * The wallet uses the sections-based homepage UI.
  * `Homepage` + `PredictionsSection` instead — that path does not call `trackPositionViewed`.
  */
 export const predictCashOutFlowAnalyticsExpectations: AnalyticsExpectations = {

@@ -252,51 +252,6 @@
             "url": "https://monad-mainnet.infura.io/v3/{infuraProjectId}"
           }
         ]
-      },
-      "0x10e6": {
-        "blockExplorerUrls": [],
-        "chainId": "0x10e6",
-        "defaultRpcEndpointIndex": 0,
-        "name": "MegaETH Mainnet",
-        "nativeCurrency": "ETH",
-        "rpcEndpoints": [
-          {
-            "failoverUrls": [],
-            "networkClientId": "megaeth-mainnet",
-            "type": "infura",
-            "url": "https://megaeth-mainnet.infura.io/v3/{infuraProjectId}"
-          }
-        ]
-      },
-      "0x144": {
-        "blockExplorerUrls": [],
-        "chainId": "0x144",
-        "defaultRpcEndpointIndex": 0,
-        "name": "ZKsync Era",
-        "nativeCurrency": "ETH",
-        "rpcEndpoints": [
-          {
-            "failoverUrls": [],
-            "networkClientId": "zksync-mainnet",
-            "type": "infura",
-            "url": "https://zksync-mainnet.infura.io/v3/{infuraProjectId}"
-          }
-        ]
-      },
-      "0xa86a": {
-        "blockExplorerUrls": [],
-        "chainId": "0xa86a",
-        "defaultRpcEndpointIndex": 0,
-        "name": "Avalanche Mainnet",
-        "nativeCurrency": "AVAX",
-        "rpcEndpoints": [
-          {
-            "failoverUrls": [],
-            "networkClientId": "avalanche-mainnet",
-            "type": "infura",
-            "url": "https://avalanche-mainnet.infura.io/v3/{infuraProjectId}"
-          }
-        ]
       }
     }
   },
@@ -698,6 +653,8 @@
   },
   "BridgeController": {
     "assetExchangeRates": {},
+    "batchSellTrades": null,
+    "batchSellTradesLoadingStatus": null,
     "minimumBalanceForRentExemptionInLamports": "0",
     "quoteFetchError": null,
     "quoteRequest": [

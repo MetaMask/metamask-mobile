@@ -5,6 +5,7 @@ export const BatchSellReviewSelectorsIDs = {
   DESTINATION_TOKEN_PILL: 'batch-sell-review-destination-token-pill',
   TOKEN_ROW: 'batch-sell-review-token-row',
   TOKEN_AMOUNT_SKELETON: 'batch-sell-review-token-amount-skeleton',
+  HIGH_PRICE_IMPACT_TAG: 'batch-sell-review-high-price-impact-tag',
   TOKEN_SLIDER: 'batch-sell-review-token-slider',
   CUSTOMIZE_BUTTON: 'batch-sell-review-customize-button',
   REMOVE_BUTTON: 'batch-sell-review-remove-button',

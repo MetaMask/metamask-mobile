@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import type { PerpsMarketData, SortOptionId } from '@metamask/perps-controller';
+import { isEquityAsset } from '../../../UI/Perps/utils/marketHours';
 import type { PerpsNavigationParamList } from '../../../UI/Perps/types/navigation';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
@@ -35,11 +36,15 @@ const MacroPerpsBlock: React.FC<MacroPerpsBlockProps> = ({
         .filter((d) => d.market.marketType === type)
         .slice(0, 3)
         .map((d) => d.market);
+    const stockLikeItems = perps.data
+      .filter((d) => isEquityAsset(d.market.marketType))
+      .slice(0, 3)
+      .map((d) => d.market);
     return [
       {
         key: 'stocks',
         name: strings('trending.macro_pill_stocks'),
-        items: byType('equity'),
+        items: stockLikeItems,
       },
       {
         key: 'commodities',

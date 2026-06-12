@@ -83,7 +83,7 @@ import ReduxService from '../../../core/redux';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import type { AnalyticsTrackingEvent } from '../../../util/analytics/AnalyticsEventBuilder';
 import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
-import { isE2E } from '../../../util/test/utils';
+import { hasTestOverrides } from '../../../util/test/utils';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import useAuthentication from '../../../core/Authentication/hooks/useAuthentication';
 import { SeedlessOnboardingControllerError } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
@@ -150,7 +150,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   }, []);
 
   useEffect(() => {
-    if (Platform.OS === 'android' && !isE2E) {
+    if (Platform.OS === 'android' && !hasTestOverrides) {
       KeyboardController.setInputMode(
         AndroidSoftInputModes.SOFT_INPUT_ADJUST_PAN,
       );
@@ -504,7 +504,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
           </Box>
         </KeyboardAwareScrollView>
         <FadeOutOverlay />
-        {!isE2E && (
+        {!hasTestOverrides && (
           <TouchableOpacity
             style={tw.style('absolute bottom-0 left-0 right-0 h-[200px]')}
             delayLongPress={10 * 1000} // 10 seconds

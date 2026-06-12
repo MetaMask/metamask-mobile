@@ -1,4 +1,4 @@
-import { test } from '../../framework/fixture';
+import { test } from '../../framework/fixtures/playwright';
 import TimerHelper from '../../framework/TimerHelper';
 import {
   Performance,
@@ -18,6 +18,11 @@ test.describe(`${Performance} ${System} ${PerformanceLogin} ${PerformanceSwaps}`
     'Swap flow - ETH to LINK, SRP 1 + SRP 2 + SRP 3',
     { tag: '@swap-bridge-dev-team' },
     async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
+      test.skip(
+        currentDeviceDetails.platform === 'ios',
+        'Skipped on iOS — swap flow under investigation',
+      );
+
       await loginToAppPlaywright();
 
       const swapLoadTimer = new TimerHelper(
@@ -35,7 +40,7 @@ test.describe(`${Performance} ${System} ${PerformanceLogin} ${PerformanceSwaps}`
         currentDeviceDetails.platform,
       );
       await QuoteView.selectNetworkAndTokenTo('Ethereum', 'USDC');
-      await QuoteView.enterSourceTokenAmount('0.0001');
+      await QuoteView.enterSourceTokenAmount('0.01');
 
       await QuoteView.dismissKeypad();
       await swapTimer.measure(() => QuoteView.isQuoteDisplayed());

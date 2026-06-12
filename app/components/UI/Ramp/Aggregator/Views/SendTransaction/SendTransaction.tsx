@@ -196,6 +196,7 @@ function SendTransaction() {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
         networkClientId,
         origin: RAMPS_SEND,
+        isInternal: true,
       });
 
       const hash = await response.result;

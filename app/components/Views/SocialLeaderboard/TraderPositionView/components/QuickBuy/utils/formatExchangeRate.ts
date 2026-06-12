@@ -1,14 +1,17 @@
 import type { BridgeToken } from '../../../../../../UI/Bridge/types';
-import { formatAmountWithThreshold } from '../../../../../../../util/number/bigint';
-
-/** Matches social leaderboard token amount formatting (see `formatTokenAmount`). */
-const MAX_RATE_DECIMAL_PLACES = 5;
+import { getIntlNumberFormatter } from '../../../../../../../util/intl';
+import { MINIMUM_DISPLAY_THRESHOLD } from '../../../../../../../util/number/bigint';
+import I18n from '../../../../../../../../locales/i18n';
 
 /**
  * Formats a human-readable exchange rate between destination and source tokens.
- * Example: "1 ETH = 4,381 USDC"
+ * Example: "1 ETH = 1,862.12 USDC"
  *
- * Very small positive rates use the shared dust threshold (`< 0.00001`).
+ * Uses the same locale-aware formatting as the quote-derived `formattedRate`
+ * in the controller so the pre-quote and post-quote pills look identical:
+ * - Rate > 1 (e.g. ETH→USDC): up to 2 decimal places with thousands grouping.
+ * - Rate < 1 (e.g. USDC→ETH): 2–3 significant digits.
+ * - Sub-threshold rates (meme coins): shown as `< 0.00001`.
  */
 export function formatExchangeRate(
   destToken: BridgeToken | undefined,
@@ -25,9 +28,16 @@ export function formatExchangeRate(
   const sourcePerDest = destUsd / sourceUsd;
   if (sourcePerDest <= 0) return undefined;
 
-  const formattedAmount = String(
-    formatAmountWithThreshold(sourcePerDest, MAX_RATE_DECIMAL_PLACES),
-  );
+  // Preserve the dust-threshold display for sub-micro rates (e.g. meme coins).
+  if (sourcePerDest < MINIMUM_DISPLAY_THRESHOLD) {
+    return `1 ${destToken.symbol} = < ${MINIMUM_DISPLAY_THRESHOLD} ${sourceToken.symbol}`;
+  }
 
-  return `1 ${destToken.symbol} = ${formattedAmount} ${sourceToken.symbol}`;
+  const formatter = getIntlNumberFormatter(I18n.locale, {
+    ...(sourcePerDest > 1
+      ? { maximumFractionDigits: 2 }
+      : { maximumSignificantDigits: 3 }),
+  });
+
+  return `1 ${destToken.symbol} = ${formatter.format(sourcePerDest)} ${sourceToken.symbol}`;
 }

@@ -13,6 +13,14 @@ on:
         description: 'Branch, tag, or SHA to build'
         required: true
         type: string
+      version:
+        description: >-
+          Optional semver (e.g. 7.43.0) to apply inline on each runner via set-semvar-version.sh
+          without committing or pushing. Used by post-release-cut-testflight to stamp an x+2
+          version onto a main checkout without creating an ephemeral branch.
+        required: false
+        type: string
+        default: ''
       build_number:
         description: >-
           Optional (workflow_call only). From generate-build-version.yml. When non-empty, each matrix
@@ -133,6 +141,15 @@ jobs:
           node-version-file: '.nvmrc'
           cache: 'yarn'
       - run: yarn install --immutable
+
+      - name: Apply version override locally
+        if: ${{ inputs.version != '' }}
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          bash scripts/set-semvar-version.sh "$VERSION"
+          echo "Version bumped locally to $VERSION (no commit)"
+
       - run: node scripts/validate-build-config.js
 
       - name: Load config
@@ -200,6 +217,14 @@ jobs:
         with:
           ref: ${{ inputs.source_branch }}
           submodules: recursive
+
+      - name: Apply version override locally
+        if: ${{ inputs.version != '' }}
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          bash scripts/set-semvar-version.sh "$VERSION"
+          echo "Version bumped locally to $VERSION (no commit)"
 
       - name: Apply build number locally
         if: ${{ inputs.build_number != '' }}
@@ -608,6 +633,14 @@ jobs:
         with:
           fetch-depth: 1
           ref: ${{ needs.prepare.outputs.checkout_ref_for_setup }}
+
+      - name: Apply version override locally
+        if: ${{ inputs.version != '' }}
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          bash scripts/set-semvar-version.sh "$VERSION"
+          echo "Version bumped locally to $VERSION (no commit)"
 
       - name: Apply build number locally
         if: ${{ inputs.build_number != '' }}

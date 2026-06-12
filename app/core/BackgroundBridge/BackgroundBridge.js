@@ -435,8 +435,8 @@ export class BackgroundBridge extends EventEmitter {
       this.networkVersionSent = publicState.networkVersion;
       await this.notifyChainChanged(publicState);
     }
-    // ONLY NEEDED FOR WC FOR NOW, THE BROWSER HANDLES THIS NOTIFICATION BY ITSELF
-    if (this.isWalletConnect || this.isRemoteConn) {
+    // WalletConnect now relies exclusively on AccountTreeController:selectedAccountGroupChange.
+    if (this.isRemoteConn) {
       const accountControllerSelectedAddress = toFormattedAddress(
         Engine.context.AccountsController.getSelectedAccount().address,
       );

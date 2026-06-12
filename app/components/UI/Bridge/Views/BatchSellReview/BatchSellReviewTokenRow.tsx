@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
+import { Pressable } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   AvatarToken,
@@ -9,8 +10,10 @@ import {
   ButtonIcon,
   ButtonIconSize,
   FontWeight,
+  Icon,
   IconColor,
   IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -22,11 +25,17 @@ import { formatTokenBalance } from '../../utils';
 import { BridgeToken } from '../../types';
 import { BatchSellReviewSelectorsIDs } from './BatchSellReview.testIds';
 import { BatchSellPercentageSlider } from './BatchSellPercentageSlider';
+import { getBatchSellSourceTokenAmount } from '../../hooks/useBatchSellQuoteRequest';
 
 interface BatchSellReviewTokenRowProps {
   token: BridgeToken;
   tokenKey: string;
   percent: number;
+  receivedAmount: string;
+  isLoading?: boolean;
+  isQuoteUnavailable?: boolean;
+  isHighPriceImpact?: boolean;
+  onHighPriceImpactPress?: () => void;
   onPercentChange: (tokenKey: string, percent: number) => void;
   onSlippagePress?: (token: BridgeToken) => void;
   onRemovePress?: (token: BridgeToken) => void;
@@ -34,8 +43,9 @@ interface BatchSellReviewTokenRowProps {
 }
 
 function getTokenBalanceText(token: BridgeToken, percent: number) {
-  const balanceText = token.balance
-    ? `${formatTokenBalance(token.balance)} ${token.symbol}`
+  const sourceAmount = getBatchSellSourceTokenAmount(token, percent);
+  const balanceText = sourceAmount
+    ? `${formatTokenBalance(sourceAmount)} ${token.symbol}`
     : token.symbol;
 
   return `${balanceText} • ${percent}%`;
@@ -45,6 +55,11 @@ export function BatchSellReviewTokenRow({
   token,
   tokenKey,
   percent,
+  receivedAmount,
+  isLoading = false,
+  isQuoteUnavailable = false,
+  isHighPriceImpact = false,
+  onHighPriceImpactPress,
   onPercentChange,
   onSlippagePress,
   onRemovePress,
@@ -55,6 +70,8 @@ export function BatchSellReviewTokenRow({
     () => getTokenBalanceText(token, percent),
     [percent, token],
   );
+  const shouldShowHighPriceImpactTag =
+    !isLoading && !isQuoteUnavailable && isHighPriceImpact;
 
   const handlePercentChange = useCallback(
     (nextPercent: number) => {
@@ -85,12 +102,76 @@ export function BatchSellReviewTokenRow({
           size={AvatarTokenSize.Lg}
         />
         <Box twClassName="min-w-0 flex-1 gap-0.5">
-          <Skeleton
-            width={114}
-            height={24}
-            style={tw.style('rounded-lg')}
-            testID={`${BatchSellReviewSelectorsIDs.TOKEN_AMOUNT_SKELETON}-${tokenKey}`}
-          />
+          {isLoading ? (
+            <Skeleton
+              width={114}
+              height={24}
+              style={tw.style('rounded-lg')}
+              testID={`${BatchSellReviewSelectorsIDs.TOKEN_AMOUNT_SKELETON}-${tokenKey}`}
+            />
+          ) : isQuoteUnavailable ? (
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.ErrorDefault}
+              numberOfLines={1}
+            >
+              {strings('bridge.batch_sell_no_quote_available')}
+            </Text>
+          ) : (
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={2}
+              twClassName="min-w-0"
+            >
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextDefault}
+                numberOfLines={1}
+                twClassName="shrink"
+              >
+                {receivedAmount}
+              </Text>
+              {shouldShowHighPriceImpactTag && (
+                <Pressable
+                  onPress={onHighPriceImpactPress}
+                  disabled={!onHighPriceImpactPress}
+                  accessibilityRole="button"
+                  accessibilityLabel={strings(
+                    'bridge.batch_sell_high_price_impact',
+                  )}
+                  testID={`${BatchSellReviewSelectorsIDs.HIGH_PRICE_IMPACT_TAG}-${tokenKey}`}
+                  style={({ pressed }) =>
+                    tw.style(
+                      'rounded-md bg-warning-muted px-1.5 py-0.5',
+                      pressed && 'opacity-70',
+                    )
+                  }
+                >
+                  <Box
+                    flexDirection={BoxFlexDirection.Row}
+                    alignItems={BoxAlignItems.Center}
+                    gap={1}
+                  >
+                    <Icon
+                      name={IconName.Danger}
+                      size={IconSize.Xs}
+                      color={IconColor.WarningDefault}
+                    />
+                    <Text
+                      variant={TextVariant.BodyXs}
+                      color={TextColor.WarningDefault}
+                      numberOfLines={1}
+                    >
+                      {strings('bridge.batch_sell_high_price_impact')}
+                    </Text>
+                  </Box>
+                </Pressable>
+              )}
+            </Box>
+          )}
           <Text
             variant={TextVariant.BodySm}
             fontWeight={FontWeight.Medium}

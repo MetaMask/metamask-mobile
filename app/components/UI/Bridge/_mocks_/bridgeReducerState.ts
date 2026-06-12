@@ -1,4 +1,5 @@
 import type { BridgeState } from '../../../../core/redux/slices/bridge';
+import { initialHardwareWalletsSwapsState } from '../../HardwareWallet/Swaps/HardwareWalletsSwaps.state';
 import { BridgeViewMode } from '../types';
 
 export const mockBridgeReducerState: BridgeState = {
@@ -38,7 +39,9 @@ export const mockBridgeReducerState: BridgeState = {
   tokenSelectorNetworkFilter: undefined,
   visiblePillChainIds: undefined,
   selectedQuoteRequestId: undefined,
+  hardwareWalletsSwaps: initialHardwareWalletsSwapsState,
   batchSellSourceTokens: [],
+  batchSellSourceTokenAmounts: {},
   batchSellDestToken: undefined,
   batchSellSlippages: {},
 };

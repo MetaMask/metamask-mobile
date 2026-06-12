@@ -17,8 +17,13 @@ import {
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
+import { getMemoizedInternalAccountByAddress } from '../../../../selectors/accountsController';
+import { selectAccountToGroupMap } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
-import { toChecksumAddress } from '../../../../util/address';
+import {
+  renderShortAddress,
+  toChecksumAddress,
+} from '../../../../util/address';
 import {
   MUSD_DECIMALS,
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
@@ -38,6 +43,47 @@ import {
 } from './useMoneyAccount';
 
 const TELLER_INTERFACE = new ethers.utils.Interface(TELLER_ABI);
+const ERC20_TRANSFER_INTERFACE = new ethers.utils.Interface([
+  'function transfer(address to, uint256 amount)',
+]);
+
+function decodeErc20TransferRecipient(
+  data: string | undefined,
+): string | undefined {
+  if (!data) return undefined;
+  try {
+    const [to] = ERC20_TRANSFER_INTERFACE.decodeFunctionData('transfer', data);
+    return to as string;
+  } catch (error) {
+    Logger.error(
+      error as Error,
+      'useMoneyTransactionStatus: failed to decode erc20 transfer calldata',
+    );
+    return undefined;
+  }
+}
+
+function resolveWithdrawDestination(
+  transactionMeta: TransactionMeta,
+): string | undefined {
+  const transferNested = nestedTxWithType(
+    transactionMeta,
+    TransactionType.tokenMethodTransfer,
+  );
+  const recipient = decodeErc20TransferRecipient(transferNested?.data);
+  if (!recipient) return undefined;
+  const state = store.getState();
+  const account = getMemoizedInternalAccountByAddress(state, recipient);
+  if (!account) return renderShortAddress(recipient);
+  const groupName =
+    selectAccountToGroupMap(state)[account.id]?.metadata?.name?.trim();
+  const accountName = account.metadata?.name?.trim();
+  return (
+    groupName ||
+    accountName ||
+    strings('money.toasts.withdraw_fallback_destination')
+  );
+}
 
 function decodeTellerAmount(
   type: TransactionType,
@@ -203,12 +249,11 @@ export const useMoneyTransactionStatus = () => {
         showToast(MoneyToastOptions.deposit.success({ amountFiat, intent }));
         clearMoneyAccountDepositIntent(transactionMeta.batchId);
       } else {
-        // TODO: derive destination from tx metadata once Perps/Predict transfers ship.
+        const destination =
+          resolveWithdrawDestination(transactionMeta) ??
+          strings('money.toasts.withdraw_fallback_destination');
         showToast(
-          MoneyToastOptions.withdraw.success({
-            amountFiat,
-            destination: strings('money.transfer_sheet.between_accounts'),
-          }),
+          MoneyToastOptions.withdraw.success({ amountFiat, destination }),
         );
       }
       scheduleCleanup(transactionMeta.id, CONFIRMED_KEY);

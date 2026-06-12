@@ -18,6 +18,7 @@ import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
 import Routes from '../../../../constants/navigation/Routes';
 import {
   selectActiveTab,
+  selectHasAcceptedVipInvite,
   selectHideUnlinkedAccountsBanner,
   selectHideCurrentAccountNotOptedInBannerArray,
 } from '../../../../reducers/rewards/selectors';
@@ -52,6 +53,9 @@ const RewardsDashboard: React.FC = () => {
   const navigation = useNavigation();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const isVipEnabled = useSelector(selectIsCurrentSubscriptionVipEnabled);
+  const hasAcceptedVipInvite = useSelector(
+    selectHasAcceptedVipInvite(subscriptionId),
+  );
   const activeTab = useSelector(selectActiveTab);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const hasTrackedDashboardViewed = useRef(false);
@@ -256,6 +260,14 @@ const RewardsDashboard: React.FC = () => {
     })();
   }, [isVipEnabled, subscriptionId]);
 
+  const handleVipPress = useCallback(() => {
+    navigation.navigate(
+      hasAcceptedVipInvite
+        ? Routes.REWARDS_VIP_VIEW
+        : Routes.REWARDS_VIP_SPLASH_VIEW,
+    );
+  }, [hasAcceptedVipInvite, navigation]);
+
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.REWARDS_DASHBOARD_TAB_VIEWED)
@@ -277,7 +289,7 @@ const RewardsDashboard: React.FC = () => {
               {isVipEnabled && (
                 <Pressable
                   accessibilityRole="button"
-                  onPress={() => navigation.navigate(Routes.REWARDS_VIP_VIEW)}
+                  onPress={handleVipPress}
                   style={tw.style('h-8 w-8 items-center justify-center')}
                   testID={REWARDS_VIEW_SELECTORS.VIP_BUTTON}
                 >

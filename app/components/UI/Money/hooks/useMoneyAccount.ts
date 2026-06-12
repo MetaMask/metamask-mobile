@@ -14,6 +14,7 @@ import {
 } from '../utils/moneyAccountTransactions';
 import { getProviderByChainId } from '../../../../util/notifications/methods/common';
 import Logger from '../../../../util/Logger';
+import { showDevErrorAlert } from '../utils/devErrorAlert';
 import Engine from '../../../../core/Engine';
 import Routes from '../../../../constants/navigation/Routes';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
@@ -45,6 +46,7 @@ export interface InitiateDepositOptions {
     chainId: Hex;
   };
   intent?: MoneyAccountDepositIntent;
+  autoSelectFiatPayment?: boolean;
 }
 
 function resolveNetworkClientId(chainId: Hex): string {
@@ -108,6 +110,7 @@ export function useMoneyAccountDeposit() {
         loader: ConfirmationLoader.CustomAmount,
         stack: Routes.MONEY.CONFIRMATIONS_ROOT,
         preferredPaymentToken,
+        autoSelectFiatPayment: options?.autoSelectFiatPayment,
       });
 
       try {
@@ -119,6 +122,7 @@ export function useMoneyAccountDeposit() {
           from: primaryMoneyAccount.address as Hex,
           networkClientId,
           origin: ORIGIN_METAMASK,
+          isInternal: true,
           disableHook: true,
           disableSequential: true,
           transactions: [approveTx, depositTx],
@@ -133,6 +137,10 @@ export function useMoneyAccountDeposit() {
       } catch (error) {
         depositIntentByBatchId.delete(batchId.toLowerCase());
         Logger.error(error as Error, `${LOG_TAG} Deposit transaction failed`);
+        showDevErrorAlert(
+          `${LOG_TAG} Deposit transaction failed`,
+          error as Error,
+        );
         // Rethrow so the caller can roll back navigation / surface a toast.
         throw error;
       }
@@ -193,12 +201,17 @@ export function useMoneyAccountWithdrawal() {
         from: primaryMoneyAccount.address as Hex,
         networkClientId,
         origin: ORIGIN_METAMASK,
+        isInternal: true,
         disableHook: true,
         disableSequential: true,
         transactions: [withdrawTx, transferTx],
       });
     } catch (error) {
       Logger.error(error as Error, `${LOG_TAG} Withdrawal transaction failed`);
+      showDevErrorAlert(
+        `${LOG_TAG} Withdrawal transaction failed`,
+        error as Error,
+      );
       // Rethrow so the caller can roll back navigation / surface a toast.
       throw error;
     }

@@ -16,7 +16,7 @@ import {
   setupDepositOnRampMocks,
   setupBuyOnRampMocks,
 } from '../../api-mocking/mock-responses/ramps/ramps-mocks';
-import { remoteFeatureFlagRampsUnifiedEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import { remoteFeatureFlagRampsUnifiedMatrixForE2E } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { ONRAMP_PERSONA } from '../../api-mocking/mock-responses/ramps/onramp-persona-data';
 
@@ -32,7 +32,7 @@ const selectedRegion = RampsRegions[RampsRegionsEnum.UNITED_STATES];
 
 const newUserUnifiedBuyV2Mocks = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
-    ...remoteFeatureFlagRampsUnifiedEnabled(true),
+    ...remoteFeatureFlagRampsUnifiedMatrixForE2E(true, true),
     depositConfig: {
       active: true,
       providerApiKey: 'DUMMY_VALUE_FOR_TESTING',
@@ -46,7 +46,7 @@ const newUserUnifiedBuyV2Mocks = async (mockServer: Mockttp) => {
 const returningUserUnifiedBuyV2Mocks = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(
     mockServer,
-    remoteFeatureFlagRampsUnifiedEnabled(true),
+    remoteFeatureFlagRampsUnifiedMatrixForE2E(true, true),
   );
   await setupBuyOnRampMocks(mockServer, selectedRegion);
 };
@@ -81,6 +81,7 @@ describe(SmokeMoney('Onramp Unified Buy'), () => {
         fixture: new FixtureBuilder()
           .withNetworkController(CustomNetworks.Tenderly.Mainnet.providerConfig)
           .withRampsSelectedRegion(selectedRegion)
+          .withRampsUnifiedBuyRemoteFlagsSeededForE2E()
           .withMetaMetricsOptIn()
           .build(),
         restartDevice: true,
@@ -148,6 +149,7 @@ describe(SmokeMoney('Onramp Unified Buy'), () => {
         fixture: new FixtureBuilder()
           .withNetworkController(CustomNetworks.Tenderly.Mainnet.providerConfig)
           .withRampsSelectedRegion(selectedRegion)
+          .withRampsUnifiedBuyRemoteFlagsSeededForE2E()
           .withMetaMetricsOptIn()
           .build(),
         restartDevice: true,

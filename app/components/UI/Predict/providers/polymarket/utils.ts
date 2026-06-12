@@ -38,6 +38,7 @@ import type {
   GetMarketsParams,
   OrderPreview,
   PredictFees,
+  PredictMarketListParams,
   PreviewOrderParams,
   SearchMarketsParams,
 } from '../types';
@@ -1225,6 +1226,22 @@ export const parsePolymarketEvents = (
  * Keeps essential metadata used by UI (title/outcome/icon)
  * Note: Lost redeems (activities with no payout) are excluded by the API via excludeLostRedeems parameter
  */
+const getPolymarketActivityId = (activity: PolymarketApiActivity): string =>
+  [
+    activity.transactionHash || 'no-transaction',
+    activity.type || 'unknown-type',
+    activity.side || 'unknown-side',
+    activity.conditionId || 'unknown-condition',
+    activity.outcomeIndex ?? 'unknown-outcome-index',
+    activity.timestamp ?? 'unknown-timestamp',
+    activity.usdcSize ?? 'unknown-size',
+    activity.price ?? 'unknown-price',
+    activity.title || 'unknown-title',
+    activity.outcome || 'unknown-outcome',
+  ]
+    .map(String)
+    .join(':');
+
 export const parsePolymarketActivity = (
   activities: PolymarketApiActivity[],
 ): PredictActivity[] => {
@@ -1243,8 +1260,7 @@ export const parsePolymarketActivity = (
             : 'claimWinnings'
         : 'claimWinnings';
 
-    const id =
-      activity.transactionHash ?? String(activity.timestamp ?? Math.random());
+    const id = getPolymarketActivityId(activity);
     const timestamp = Number(activity.timestamp ?? Date.now());
 
     const price = Number(activity.price ?? 0);
@@ -1399,6 +1415,130 @@ export const fetchEventsFromPolymarketApi = async (
   return {
     events,
     category,
+    nextCursor: responseData.next_cursor ?? null,
+  };
+};
+
+/**
+ * The single, centralized place where {@link PredictMarketListParams} are turned
+ * into Polymarket `/events/keyset` query params for the generic `listMarkets`
+ * path. Keeping this construction in one function (per the API ticket) makes the
+ * param mapping easy to audit and test.
+ *
+ * Mapping rules:
+ * - `order`: `volume24hr`/`liquidity` -> descending; `ending_soon` -> `order=endDate&ascending=true`; `newest` -> `order=startDate&ascending=false`. Defaults to `volume24hr` (descending).
+ * - `status`: `open` -> `active=true&archived=false&closed=false`; `closed`/`resolved` -> `closed=true`. `resolved` intentionally maps to the same `closed=true` params (no separate server-side filter).
+ * - `tags` -> repeated `tag_id`; `series` -> repeated `series_id`.
+ * - `live` -> `live=true`. `limit` defaults to 20. `afterCursor` -> `after_cursor`.
+ * - `search` -> `title_search` (case-insensitive title filter). Composes with cursor pagination, so it stays on this endpoint (kept in the provider layer). Blank/whitespace is ignored (browse mode).
+ */
+export const buildMarketListQueryParams = (
+  params: PredictMarketListParams = {},
+): URLSearchParams => {
+  const {
+    tags,
+    series,
+    order = 'volume24hr',
+    status = 'open',
+    live,
+    limit = 20,
+    afterCursor,
+    search,
+  } = params;
+
+  const queryParams = new URLSearchParams({
+    limit: String(limit),
+  });
+
+  switch (status) {
+    case 'closed':
+    case 'resolved':
+      // 'resolved' intentionally maps to the same closed=true params (no separate server-side filter).
+      queryParams.set('closed', 'true');
+      break;
+    case 'open':
+    default:
+      queryParams.set('active', 'true');
+      queryParams.set('archived', 'false');
+      queryParams.set('closed', 'false');
+      break;
+  }
+
+  switch (order) {
+    case 'liquidity':
+      queryParams.set('order', 'liquidity');
+      queryParams.set('ascending', 'false');
+      break;
+    case 'ending_soon':
+      queryParams.set('order', 'endDate');
+      queryParams.set('ascending', 'true');
+      break;
+    case 'newest':
+      queryParams.set('order', 'startDate');
+      queryParams.set('ascending', 'false');
+      break;
+    case 'volume24hr':
+    default:
+      queryParams.set('order', 'volume24hr');
+      queryParams.set('ascending', 'false');
+      break;
+  }
+
+  tags?.forEach((tagId) => queryParams.append('tag_id', tagId));
+  series?.forEach((seriesId) => queryParams.append('series_id', seriesId));
+
+  if (live) {
+    queryParams.set('live', 'true');
+  }
+
+  if (afterCursor) {
+    queryParams.set('after_cursor', afterCursor);
+  }
+
+  const trimmedSearch = search?.trim();
+  if (trimmedSearch) {
+    queryParams.set('title_search', trimmedSearch);
+  }
+
+  return queryParams;
+};
+
+export interface FetchMarketsResult {
+  events: PolymarketApiEvent[];
+  nextCursor: string | null;
+}
+
+/**
+ * Generic, category-free market fetch for the `listMarkets` path. Mirrors
+ * {@link fetchEventsFromPolymarketApi} but builds its query exclusively via
+ * {@link buildMarketListQueryParams} and returns only `{ events, nextCursor }`.
+ */
+export const fetchMarketsFromPolymarketApi = async (
+  params?: PredictMarketListParams,
+): Promise<FetchMarketsResult> => {
+  const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
+
+  const queryParams = buildMarketListQueryParams(params);
+
+  DevLogger.log('Listing markets via Polymarket API:', queryParams.toString());
+
+  const endpoint = `${GAMMA_API_ENDPOINT}/events/keyset?${queryParams.toString()}`;
+
+  const response = await fetch(endpoint);
+
+  if (!response.ok) {
+    throw new Error('Failed to list markets');
+  }
+
+  const data = await response.json();
+  const responseData = data as PolymarketApiEventsKeysetResponse;
+
+  if (!Array.isArray(responseData.events)) {
+    throw new Error('Malformed keyset events response');
+  }
+
+  return {
+    events: responseData.events,
     nextCursor: responseData.next_cursor ?? null,
   };
 };

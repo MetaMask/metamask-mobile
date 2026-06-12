@@ -22,7 +22,7 @@ import {
   KeyboardStickyView,
   useKeyboardState,
 } from 'react-native-keyboard-controller';
-import { isTest } from '../../../util/test/utils';
+import { isTestEnvironment } from '../../../util/test/utils';
 import AppConstants from '../../../core/AppConstants';
 import {
   failedSeedPhraseRequirements,
@@ -202,7 +202,7 @@ const ImportFromSecretRecoveryPhrase = ({
 
   const animateToStep = useCallback(
     (nextStep) => {
-      if (isTest) {
+      if (isTestEnvironment) {
         setCurrentStep(nextStep);
         return;
       }

@@ -6,15 +6,6 @@ import {
   type ViewStyle,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import Icon, {
-  IconName,
-  IconSize,
-  IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
 import {
   formatPerpsFiat,
@@ -30,6 +21,15 @@ import { useStyles } from '../../../../hooks/useStyles';
 import createStyles from './PerpsCloseSummary.styles';
 import Routes from '../../../../../constants/navigation/Routes';
 import { InternalAccount } from '@metamask/keyring-internal-api';
+import {
+  Text,
+  TextColor,
+  TextVariant,
+  Icon,
+  IconName,
+  IconSize,
+  IconColor,
+} from '@metamask/design-system-react-native';
 
 export interface PerpsCloseSummaryProps {
   /** Total margin including P&L */
@@ -165,23 +165,25 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
       {/* Margin with P&L breakdown */}
       <View style={styles.summaryRow}>
         <View style={styles.summaryLabel}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {strings('perps.close_position.margin')}
           </Text>
         </View>
         <View style={styles.summaryValue}>
-          <Text testID={testIDs?.marginValue} variant={TextVariant.BodyMD}>
+          <Text testID={testIDs?.marginValue} variant={TextVariant.BodyMd}>
             {formatPerpsFiat(totalMargin, {
               ranges: PRICE_RANGES_MINIMAL_VIEW,
             })}
           </Text>
           <View style={styles.inclusiveFeeRow}>
-            <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+            <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
               {strings('perps.close_position.includes_pnl')}
             </Text>
             <Text
-              variant={TextVariant.BodySM}
-              color={totalPnl < 0 ? TextColor.Error : TextColor.Success}
+              variant={TextVariant.BodySm}
+              color={
+                totalPnl < 0 ? TextColor.ErrorDefault : TextColor.SuccessDefault
+              }
             >
               {totalPnl < 0 ? '-' : '+'}
               {formatPerpsFiat(Math.abs(totalPnl), {
@@ -208,17 +210,23 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
               style={styles.labelWithTooltip}
               testID={testIDs?.feesTooltip}
             >
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
                 {strings('perps.close_position.fees')}
               </Text>
               <Icon
                 name={IconName.Info}
                 size={IconSize.Sm}
-                color={IconColor.Muted}
+                color={IconColor.IconMuted}
               />
             </TouchableOpacity>
           ) : (
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+            >
               {strings('perps.close_position.fees')}
             </Text>
           )}
@@ -237,10 +245,10 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
               fee={totalFees}
               originalFee={originalTotalFees}
               testID={testIDs?.feesValue}
-              variant={TextVariant.BodyMD}
+              variant={TextVariant.BodyMd}
             />
           ) : (
-            <Text variant={TextVariant.BodyMD}>--</Text>
+            <Text variant={TextVariant.BodyMd}>--</Text>
           )}
         </View>
       </View>
@@ -254,25 +262,25 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
               style={styles.labelWithTooltip}
               testID={testIDs?.receiveTooltip}
             >
-              <Text variant={TextVariant.BodyMD}>
+              <Text variant={TextVariant.BodyMd}>
                 {strings('perps.close_position.you_receive')}
               </Text>
               <Icon
                 name={IconName.Info}
                 size={IconSize.Sm}
-                color={IconColor.Muted}
+                color={IconColor.IconMuted}
               />
             </TouchableOpacity>
           ) : (
-            <Text variant={TextVariant.BodyMD}>
+            <Text variant={TextVariant.BodyMd}>
               {strings('perps.close_position.you_receive')}
             </Text>
           )}
         </View>
         <View style={styles.summaryValue}>
           <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Default}
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextDefault}
             testID={testIDs?.receiveValue}
           >
             {formatPerpsFiat(receiveAmount, {
@@ -294,17 +302,23 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
                   style={styles.labelWithTooltip}
                   testID={testIDs?.pointsTooltip}
                 >
-                  <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextDefault}
+                  >
                     {strings('perps.estimated_points')}
                   </Text>
                   <Icon
                     name={IconName.Info}
                     size={IconSize.Sm}
-                    color={IconColor.Muted}
+                    color={IconColor.IconMuted}
                   />
                 </TouchableOpacity>
               ) : (
-                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextDefault}
+                >
                   {strings('perps.estimated_points')}
                 </Text>
               )}

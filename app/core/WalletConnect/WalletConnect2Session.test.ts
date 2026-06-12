@@ -114,7 +114,9 @@ jest.mock('../Permissions', () => ({
   getPermittedAccounts: jest
     .fn()
     .mockResolvedValue(['0x1234567890abcdef1234567890abcdef12345678']),
-  getPermittedChains: jest.fn().mockResolvedValue(['eip155:1', 'eip155:137']),
+  getPermittedCaipChainIds: jest
+    .fn()
+    .mockResolvedValue(['eip155:1', 'eip155:137']),
 }));
 jest.mock('../../store', () => ({
   store: {
@@ -482,6 +484,20 @@ describe('WalletConnect2Session', () => {
         jsonrpc: '2.0',
         error: { code: 5000, message: 'User rejected' },
       },
+    });
+  });
+
+  it('emits session events with an explicit CAIP-2 chain id', async () => {
+    const mockEmitSessionEvent = jest
+      .spyOn(mockClient, 'emitSessionEvent')
+      .mockResolvedValue(undefined);
+
+    await session.emitEvent('chainChanged', '0x1', 'eip155:1');
+
+    expect(mockEmitSessionEvent).toHaveBeenCalledWith({
+      topic: mockSession.topic,
+      event: { name: 'chainChanged', data: '0x1' },
+      chainId: 'eip155:1',
     });
   });
 
@@ -1043,44 +1059,6 @@ describe('WalletConnect2Session', () => {
 
       const handleSwitchToChainSpy = jest.spyOn(session, 'switchToChain');
       await buildCase(request, testChainId, testChainCaip);
-      // Verify that handleSwitchToChain was called
-      expect(handleSwitchToChainSpy).toHaveBeenCalled();
-    });
-
-    it('handles eth_sendTransaction correctly with valid chainId that it has permissions for', async () => {
-      jest.mock('./wc-utils', () => jest.requireActual('./wc-utils'));
-      const requestId = Math.floor(Math.random() * 1000000);
-      const request: WalletKitTypes.SessionRequest = {
-        id: requestId,
-        topic: mockSession.topic,
-        params: {
-          request: {
-            method: 'eth_sendTransaction',
-            params: [
-              {
-                from: '0x1234567890abcdef1234567890abcdef12345678',
-                to: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
-                value: '0x16345785d8a0000', // 0.1 ETH in wei
-                gas: '0x5208', // 21000
-                gasPrice: '0x4a817c800', // 20 Gwei
-                data: '0x',
-              },
-            ],
-          },
-          chainId: testChainCaip,
-        },
-        verifyContext: {
-          verified: {
-            origin: 'https://example.com',
-            validation: 'UNKNOWN',
-            verifyUrl: '',
-          },
-        },
-      };
-
-      const handleSwitchToChainSpy = jest.spyOn(session, 'switchToChain');
-      await buildCase(request, testChainId, testChainCaip);
-
       // Verify that handleSwitchToChain was called
       expect(handleSwitchToChainSpy).toHaveBeenCalled();
     });

@@ -15,7 +15,7 @@ import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { ConnectedAccountsSelectorsIDs } from '../../Views/AccountConnect/ConnectedAccountModal.testIds';
+import { ConnectedAccountsSelectorsIDs } from '../../Views/MultichainAccounts/shared/ConnectedAccountModal.testIds';
 import AppConstants from '../../../core/AppConstants';
 import styles from './ManageNetworks.styles';
 

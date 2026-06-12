@@ -4,14 +4,14 @@ import { useNavigation } from '@react-navigation/native';
 import {
   BottomSheet,
   BottomSheetHeader,
-  type BottomSheetRef,
   FontWeight,
   Icon,
+  IconColor,
   IconName,
   IconSize,
-  IconColor,
   Text,
   TextVariant,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -20,6 +20,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 import styleSheet from './MoneyMoreSheet.styles';
 import { MoneyMoreSheetTestIds } from './MoneyMoreSheet.testIds';
+import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 interface MenuOption {
   label: string;
@@ -32,6 +33,7 @@ const MoneyMoreSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
+  const surfaceClass = useElevatedSurface();
 
   const closeAndNavigate = useCallback((navigateFn: () => void) => {
     sheetRef.current?.onCloseBottomSheet(navigateFn);
@@ -86,6 +88,7 @@ const MoneyMoreSheet = () => {
       goBack={handleGoBack}
       testID={MoneyMoreSheetTestIds.CONTAINER}
       keyboardAvoidingViewEnabled={false}
+      twClassName={surfaceClass}
     >
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
         <Text variant={TextVariant.HeadingSm}>

@@ -87,6 +87,14 @@ export class PlaywrightElement {
   }
 
   /**
+   * Check if elem is displayed and enabled (WebdriverIO isClickable).
+   */
+  @boxedStep
+  async isClickable(): Promise<boolean> {
+    return await this.elem.isClickable();
+  }
+
+  /**
    * Get attribute value (Playwright-style)
    * Maps to WebdriverIO's getAttribute()
    * @param name - The name of the attribute to get

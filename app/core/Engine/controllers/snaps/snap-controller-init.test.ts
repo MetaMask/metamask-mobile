@@ -35,7 +35,7 @@ jest.mock('.../../../../store', () => ({
 }));
 
 jest.mock('../../../../util/test/utils', () => ({
-  isTest: false,
+  isTestEnvironment: false,
 }));
 
 function getInitRequestMock(

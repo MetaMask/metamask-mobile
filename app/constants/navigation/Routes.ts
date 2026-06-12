@@ -107,6 +107,7 @@ const Routes = {
   REFERRAL_REWARDS_VIEW: 'ReferralRewardsView',
   REWARDS_SETTINGS_VIEW: 'RewardsSettingsView',
   REWARDS_DASHBOARD: 'RewardsDashboard',
+  REWARDS_VIP_SPLASH_VIEW: 'RewardsVipSplashView',
   REWARDS_VIP_VIEW: 'RewardsVipView',
   REWARDS_VIP_TIERS_VIEW: 'RewardsVipTiersView',
   REWARDS_CAMPAIGNS_VIEW: 'RewardsCampaignsView',
@@ -132,7 +133,6 @@ const Routes = {
   WHATS_HAPPENING_DETAIL: 'WhatsHappeningDetailView',
   SITES_FULL_VIEW: 'SitesFullView',
   EXPLORE_SEARCH: 'ExploreSearch',
-  EXPLORE_SECTION_RESULTS_FULL_VIEW: 'ExploreSectionResultsFullView',
   REWARDS_ONBOARDING_FLOW: 'RewardsOnboardingFlow',
   REWARDS_ONBOARDING_INTRO: 'RewardsOnboardingIntro',
   REWARD_BENEFITS_FULL_VIEW: 'BenefitsFullView',
@@ -192,6 +192,7 @@ const Routes = {
     REHYDRATE: 'Rehydrate',
     WALLET_CREATION_ERROR: 'WalletCreationError',
     INTEREST_QUESTIONNAIRE: 'OnboardingInterestQuestionnaire',
+    CRYPTO_EXPERIENCE_QUESTIONNAIRE: 'OnboardingCryptoExperienceQuestionnaire',
   },
   SEND_FLOW: {
     SEND_TO: 'SendTo',
@@ -230,6 +231,7 @@ const Routes = {
     CONFIRM_TURN_ON_BACKUP_AND_SYNC: 'ConfirmTurnOnBackupAndSync',
     SDK_LOADING: 'SDKLoading',
     SDK_FEEDBACK: 'SDKFeedback',
+    SDK_CONNECT_V2_OTP: 'SDKConnectV2Otp',
     DATA_COLLECTION: 'DataCollection',
     EXPERIENCE_ENHANCER: 'ExperienceEnhancer',
     SDK_MANAGE_CONNECTIONS: 'SDKManageConnections',
@@ -331,6 +333,7 @@ const Routes = {
       BATCH_SELL_NETWORK_FEE_INFO_MODAL: 'BatchSellNetworkFeeInfoModal',
       BATCH_SELL_MINIMUM_RECEIVED_INFO_MODAL:
         'BatchSellMinimumReceivedInfoModal',
+      BATCH_SELL_PRICE_IMPACT_INFO_MODAL: 'BatchSellPriceImpactInfoModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },
@@ -384,6 +387,7 @@ const Routes = {
     ROOT: 'Predict',
     MARKET_LIST: 'PredictMarketList',
     MARKET_DETAILS: 'PredictMarketDetails',
+    POSITIONS: 'PredictPositions',
     ACTIVITY_DETAIL: 'PredictActivityDetail',
     WORLD_CUP: 'PredictWorldCup',
     MODALS: {
@@ -539,8 +543,16 @@ const Routes = {
   SDK: {
     RETURN_TO_DAPP_NOTIFICATION: 'ReturnToDappToast',
   },
+  AGENTIC_CLI_DASHBOARD_WEBVIEW: {
+    ID: 'AgenticCliDashboardWebview',
+    CONFIRM: 'AgenticCliDashboardConfirmation',
+  },
   FEATURE_FLAG_OVERRIDE: 'FeatureFlagOverride',
   SECURITY_TRUST: 'SecurityTrust',
+  AGENTIC_CLI_APPROVAL: {
+    ID: 'AgenticCliApproval',
+    CONFIRM: 'AgenticCliApprovalConfirm',
+  },
 };
 
 export default Routes;

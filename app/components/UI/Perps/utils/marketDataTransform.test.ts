@@ -309,7 +309,7 @@ describe('marketDataTransform', () => {
       expect(result[0].fundingIntervalHours).toBeUndefined();
     });
 
-    it('extracts marketSource and marketType for HIP-3 equity assets', () => {
+    it('extracts marketSource and marketType for HIP-3 index assets', () => {
       const xyzAsset = {
         name: 'xyz:XYZ100',
         maxLeverage: 20,
@@ -331,7 +331,7 @@ describe('marketDataTransform', () => {
       expect(result).toHaveLength(1);
       expect(result[0].symbol).toBe('xyz:XYZ100');
       expect(result[0].marketSource).toBe('xyz');
-      expect(result[0].marketType).toBe('equity');
+      expect(result[0].marketType).toBe('index');
       expect(result[0].isHip3).toBe(true);
       expect(result[0].isNewMarket).toBe(false); // Explicitly mapped, not "new"
     });

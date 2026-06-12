@@ -1,6 +1,5 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import { strings } from '../../../../../../locales/i18n';
-import type { TrendingAsset } from '@metamask/assets-controllers';
 import {
   PriceChangeOption,
   TimeOption,
@@ -18,6 +17,8 @@ const RWATokensFullView = () => {
   const {
     data: searchResults,
     isLoading,
+    isLoadingMore,
+    loadMore,
     refetch: refetchStocks,
   } = useRwaTokens({
     searchQuery: filters.searchQuery || undefined,
@@ -29,15 +30,10 @@ const RWATokensFullView = () => {
     },
   });
 
-  const trendingTokens = useMemo<TrendingAsset[]>(
-    () => (searchResults.length === 0 ? [] : searchResults),
-    [searchResults],
-  );
-
   const handleRefresh = useCallback(async () => {
     filters.setRefreshing(true);
     try {
-      refetchStocks?.();
+      await refetchStocks();
     } catch (error) {
       console.warn('Failed to refresh stocks:', error);
     } finally {
@@ -50,11 +46,13 @@ const RWATokensFullView = () => {
       title={strings('trending.stocks')}
       testID="rwa-tokens-header"
       filters={filters}
-      tokens={trendingTokens}
+      tokens={searchResults}
       searchResults={searchResults}
       isLoading={isLoading}
       onRefresh={handleRefresh}
       allowedNetworks={RWA_NETWORKS_LIST}
+      onLoadMore={loadMore}
+      isLoadingMore={isLoadingMore}
     />
   );
 };

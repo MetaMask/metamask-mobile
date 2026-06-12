@@ -1,9 +1,14 @@
 import {
   Box,
   Button as DSButton,
+  ButtonSemantic,
+  ButtonSemanticSeverity,
   ButtonVariant,
   ButtonSize as ButtonSizeRNDesignSystem,
   IconName,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import {
   useNavigation,
@@ -34,14 +39,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { setPerpsChartPreferredCandlePeriod } from '../../../../../actions/settings';
-import ButtonSemantic, {
-  ButtonSemanticSeverity,
-} from '../../../../../component-library/components-temp/Buttons/ButtonSemantic';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
@@ -203,8 +201,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   // Get full market data from stream to ensure all fields (including maxLeverage) are available
   // This handles cases where navigation passes minimal market data (e.g., from Recent Activity)
-  // Skip fetching if routeMarket already has maxLeverage (performance optimization)
-  const needsEnrichment = !routeMarket?.maxLeverage;
+  // Skip fetching if routeMarket already has a formatted maxLeverage.
+  const hasFormattedMaxLeverage =
+    typeof routeMarket?.maxLeverage === 'string' &&
+    routeMarket.maxLeverage.endsWith('x');
+  const needsEnrichment = !hasFormattedMaxLeverage;
   const { markets } = usePerpsMarkets({ skipInitialFetch: !needsEnrichment });
   const market = useMemo(() => {
     // If route market already has all required fields, use it directly
@@ -1188,7 +1189,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           style={styles.errorContainer}
           testID={PerpsMarketDetailsViewSelectorsIDs.ERROR}
         >
-          <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+          <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
             {strings('perps.market.details.error_message')}
           </Text>
         </View>
@@ -1410,7 +1411,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           {/* Orders Section - Compact view (includes standalone TP/SL orders) */}
           {displayOrders.length > 0 && (
             <View style={styles.section}>
-              <Text variant={TextVariant.HeadingMD} style={styles.sectionTitle}>
+              <Text variant={TextVariant.HeadingMd} style={styles.sectionTitle}>
                 {strings('perps.market.orders')}
               </Text>
               {displayOrders.map((order, index) => (
@@ -1475,13 +1476,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           <View style={styles.section}>
             <Text
               style={styles.riskDisclaimer}
-              variant={TextVariant.BodyXS}
-              color={TextColor.Alternative}
+              variant={TextVariant.BodyXs}
+              color={TextColor.TextAlternative}
             >
               {strings('perps.risk_disclaimer', riskDisclaimerParams)}{' '}
               <Text
-                variant={TextVariant.BodyXS}
-                color={TextColor.Alternative}
+                variant={TextVariant.BodyXs}
+                color={TextColor.TextAlternative}
                 onPress={handleTradingViewPress}
               >
                 TradingView.
@@ -1496,105 +1497,95 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         <View style={styles.actionsFooter}>
           {/* Show Modify/Close buttons when position exists */}
           {hasLongShortButtons && existingPosition && (
-            <View style={styles.actionsContainer}>
-              <View style={styles.actionButtonWrapper}>
-                <DSButton
-                  variant={ButtonVariant.Secondary}
-                  size={ButtonSizeRNDesignSystem.Lg}
-                  isFullWidth
-                  onPress={handleModifyPress}
-                  testID={PerpsMarketDetailsViewSelectorsIDs.MODIFY_BUTTON}
-                >
-                  {strings('perps.market.modify')}
-                </DSButton>
-              </View>
+            <View style={styles.actionsContainer} accessible={false}>
+              <DSButton
+                variant={ButtonVariant.Secondary}
+                size={ButtonSizeRNDesignSystem.Lg}
+                onPress={handleModifyPress}
+                style={styles.actionButtonWrapper}
+                testID={PerpsMarketDetailsViewSelectorsIDs.MODIFY_BUTTON}
+              >
+                {strings('perps.market.modify')}
+              </DSButton>
 
-              <View style={styles.actionButtonWrapper}>
-                <DSButton
-                  variant={ButtonVariant.Primary}
-                  size={ButtonSizeRNDesignSystem.Lg}
-                  isFullWidth
-                  onPress={handleClosePosition}
-                  testID={PerpsMarketDetailsViewSelectorsIDs.CLOSE_BUTTON}
-                >
-                  {parseFloat(existingPosition.size) >= 0
-                    ? strings('perps.market.close_long')
-                    : strings('perps.market.close_short')}
-                </DSButton>
-              </View>
+              <DSButton
+                variant={ButtonVariant.Primary}
+                size={ButtonSizeRNDesignSystem.Lg}
+                onPress={handleClosePosition}
+                style={styles.actionButtonWrapper}
+                testID={PerpsMarketDetailsViewSelectorsIDs.CLOSE_BUTTON}
+              >
+                {parseFloat(existingPosition.size) >= 0
+                  ? strings('perps.market.close_long')
+                  : strings('perps.market.close_short')}
+              </DSButton>
             </View>
           )}
 
           {/* Show Add funds CTA when no perps balance and no allowlist token to preselect */}
           {shouldShowAddFundsCTASection && (
-            <View style={styles.actionsContainer}>
-              <View style={styles.actionButtonWrapper}>
-                <DSButton
-                  variant={ButtonVariant.Primary}
-                  size={ButtonSizeRNDesignSystem.Lg}
-                  isFullWidth
-                  onPress={handleAddFunds}
-                  testID={PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON}
-                >
-                  {strings('perps.add_funds')}
-                </DSButton>
-              </View>
+            <View style={styles.actionsContainer} accessible={false}>
+              <DSButton
+                variant={ButtonVariant.Primary}
+                size={ButtonSizeRNDesignSystem.Lg}
+                onPress={handleAddFunds}
+                style={styles.actionButtonWrapper}
+                testID={PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON}
+              >
+                {strings('perps.add_funds')}
+              </DSButton>
             </View>
           )}
           {/* Show Long/Short buttons when no position exists and user can trade */}
           {shouldShowLongShortButtonsOnly && (
-            <View style={styles.actionsContainer}>
-              <View style={styles.actionButtonWrapper}>
-                {buttonColorVariant === 'monochrome' ? (
-                  <DSButton
-                    variant={ButtonVariant.Primary}
-                    size={ButtonSizeRNDesignSystem.Lg}
-                    isFullWidth
-                    onPress={handleLongPress}
-                    isDisabled={isAtOICap}
-                    testID={PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON}
-                  >
-                    {strings('perps.market.long')}
-                  </DSButton>
-                ) : (
-                  <ButtonSemantic
-                    severity={ButtonSemanticSeverity.Success}
-                    onPress={handleLongPress}
-                    isFullWidth
-                    size={ButtonSizeRNDesignSystem.Lg}
-                    isDisabled={isAtOICap}
-                    testID={PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON}
-                  >
-                    {strings('perps.market.long')}
-                  </ButtonSemantic>
-                )}
-              </View>
+            <View style={styles.actionsContainer} accessible={false}>
+              {buttonColorVariant === 'monochrome' ? (
+                <DSButton
+                  variant={ButtonVariant.Primary}
+                  size={ButtonSizeRNDesignSystem.Lg}
+                  onPress={handleLongPress}
+                  isDisabled={isAtOICap}
+                  style={styles.actionButtonWrapper}
+                  testID={PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON}
+                >
+                  {strings('perps.market.long')}
+                </DSButton>
+              ) : (
+                <ButtonSemantic
+                  severity={ButtonSemanticSeverity.Success}
+                  onPress={handleLongPress}
+                  size={ButtonSizeRNDesignSystem.Lg}
+                  isDisabled={isAtOICap}
+                  style={styles.actionButtonWrapper}
+                  testID={PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON}
+                >
+                  {strings('perps.market.long')}
+                </ButtonSemantic>
+              )}
 
-              <View style={styles.actionButtonWrapper}>
-                {buttonColorVariant === 'monochrome' ? (
-                  <DSButton
-                    variant={ButtonVariant.Primary}
-                    size={ButtonSizeRNDesignSystem.Lg}
-                    isFullWidth
-                    onPress={handleShortPress}
-                    isDisabled={isAtOICap}
-                    testID={PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON}
-                  >
-                    {strings('perps.market.short')}
-                  </DSButton>
-                ) : (
-                  <ButtonSemantic
-                    severity={ButtonSemanticSeverity.Danger}
-                    onPress={handleShortPress}
-                    isFullWidth
-                    size={ButtonSizeRNDesignSystem.Lg}
-                    isDisabled={isAtOICap}
-                    testID={PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON}
-                  >
-                    {strings('perps.market.short')}
-                  </ButtonSemantic>
-                )}
-              </View>
+              {buttonColorVariant === 'monochrome' ? (
+                <DSButton
+                  variant={ButtonVariant.Primary}
+                  size={ButtonSizeRNDesignSystem.Lg}
+                  onPress={handleShortPress}
+                  isDisabled={isAtOICap}
+                  style={styles.actionButtonWrapper}
+                  testID={PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON}
+                >
+                  {strings('perps.market.short')}
+                </DSButton>
+              ) : (
+                <ButtonSemantic
+                  severity={ButtonSemanticSeverity.Danger}
+                  onPress={handleShortPress}
+                  size={ButtonSizeRNDesignSystem.Lg}
+                  isDisabled={isAtOICap}
+                  style={styles.actionButtonWrapper}
+                  testID={PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON}
+                >
+                  {strings('perps.market.short')}
+                </ButtonSemantic>
+              )}
             </View>
           )}
         </View>

@@ -5,17 +5,10 @@ import {
   VersionGatedFeatureFlag,
 } from '../../../../util/remoteFeatureFlag';
 import { isMoneyAccountEnabled } from '../../../../lib/Money/feature-flags';
-
-export const selectMoneyHomeScreenEnabledFlag = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => {
-    const localFlag = process.env.MM_MONEY_HOME_SCREEN_ENABLED === 'true';
-    const remoteFlag =
-      remoteFeatureFlags?.moneyHomeScreenEnabled as unknown as VersionGatedFeatureFlag;
-
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
-  },
-);
+import {
+  getWildcardTokenListFromConfig,
+  WildcardTokenList,
+} from '../../Earn/utils/wildcardTokenList';
 
 /** Temporary flag: remote value is a boolean only. */
 export const selectMoneyActivityMockDataEnabledFlag = createSelector(
@@ -42,5 +35,121 @@ export const selectMoneyHubEnabledFlag = createSelector(
       remoteFeatureFlags?.earnMoneyHubEnabled as unknown as VersionGatedFeatureFlag;
 
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/**
+ * Selects the blocked payment tokens for Money surfaces from remote config or local fallback.
+ * Returns a wildcard blocklist mapping chain IDs (or "*") to token symbols (or ["*"]).
+ *
+ * Supports wildcards:
+ * - "*" as chain key: applies to all chains
+ * - "*" in symbol array: blocks all tokens on that chain
+ *
+ * Examples:
+ * - { "*": ["SCAM"] }              - Block SCAM on ALL chains
+ * - { "0x1": ["*"] }               - Block ALL tokens on Ethereum mainnet
+ * - { "0xa4b1": ["USDT", "DAI"] }  - Block specific tokens on specific chain
+ *
+ * Remote flag takes precedence over local env var.
+ * If both are unavailable, returns {} (no blocking).
+ */
+export const selectMoneyDepositTokensBlocklist = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): WildcardTokenList =>
+    getWildcardTokenListFromConfig(
+      remoteFeatureFlags?.earnMoneyPaymentTokensBlocklist,
+      'earnMoneyPaymentTokensBlocklist',
+      process.env.MM_MONEY_PAYMENT_TOKENS_BLOCKLIST,
+      'MM_MONEY_PAYMENT_TOKENS_BLOCKLIST',
+    ),
+);
+
+/**
+ * Selects the no-fee tokens for Money surfaces from remote config or local fallback.
+ * Returns a wildcard map of chain IDs (or "*") to token symbols (or ["*"]) that are
+ * eligible for fee-free deposit into the Money account.
+ *
+ * Used by useMoneyDepositTokens to apply "no-fee priority" sorting when the remote
+ * sort mode flag is set to `noFeePriority`.
+ *
+ * Remote flag takes precedence over local env var.
+ * If both are unavailable, returns {} (no tokens have subsidised fees).
+ */
+export const selectMoneyNoFeeTokens = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): WildcardTokenList =>
+    getWildcardTokenListFromConfig(
+      remoteFeatureFlags?.earnMoneyDepositNoFeeTokens,
+      'earnMoneyDepositNoFeeTokens',
+      process.env.MM_MONEY_DEPOSIT_NO_FEE_TOKENS,
+      'MM_MONEY_DEPOSIT_NO_FEE_TOKENS',
+    ),
+);
+
+const FALLBACK_MONEY_DEPOSIT_MIN_BALANCE = 0.01; // 1 cent
+
+/**
+ * Selects the minimum fiat balance (in the user's selected currency) a token
+ * must have to appear in Money deposit surfaces.
+ *
+ * Prevents dust tokens from cluttering the deposit token list.
+ *
+ * Accepts a number or numeric string from the remote flag.
+ * Remote flag takes precedence over local env var.
+ * Fallback: $0.01 (1 cent).
+ */
+export const selectMoneyDepositMinBalance = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): number => {
+    const localRaw = process.env.MM_MONEY_DEPOSIT_MIN_ASSET_BALANCE;
+    const local =
+      localRaw === undefined ? undefined : Number.parseFloat(localRaw);
+
+    const remoteRaw = remoteFeatureFlags?.earnMoneyDepositMinAssetBalance;
+    const remote =
+      typeof remoteRaw === 'number'
+        ? remoteRaw
+        : typeof remoteRaw === 'string'
+          ? Number.parseFloat(remoteRaw)
+          : undefined;
+
+    const remoteValue = Number.isFinite(remote) ? remote : undefined;
+    const localValue = Number.isFinite(local) ? local : undefined;
+
+    return remoteValue ?? localValue ?? FALLBACK_MONEY_DEPOSIT_MIN_BALANCE;
+  },
+);
+
+/**
+ * Valid sort modes for useMoneyDepositTokens.
+ * - fiatBalanceDesc: all eligible tokens sorted by fiat balance descending (default)
+ * - noFeePriority: no-fee tokens bucket first (fiat-desc), then fee tokens bucket (fiat-desc)
+ */
+export type MoneyTokensSortMode = 'fiatBalanceDesc' | 'noFeePriority';
+
+const VALID_SORT_MODES: MoneyTokensSortMode[] = [
+  'fiatBalanceDesc',
+  'noFeePriority',
+];
+
+/**
+ * Selects the remote sort mode for Money token lists.
+ * Remote flag `moneyTokensSortMode` accepts the string values
+ * `fiatBalanceDesc` or `noFeePriority`.
+ *
+ * Fallback: `fiatBalanceDesc` when the remote value is absent or invalid.
+ */
+export const selectMoneyTokensSortMode = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): MoneyTokensSortMode => {
+    const remote = remoteFeatureFlags?.earnMoneyTokensSortMode;
+    if (
+      typeof remote === 'string' &&
+      VALID_SORT_MODES.includes(remote as MoneyTokensSortMode)
+    ) {
+      return remote as MoneyTokensSortMode;
+    }
+    return 'fiatBalanceDesc';
   },
 );

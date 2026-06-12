@@ -8,6 +8,7 @@ import {
   selectPredictFeeCollectionFlag,
   selectPredictGtmOnboardingModalEnabledFlag,
   selectPredictHomeFeaturedVariant,
+  selectPredictHomeRedesignEnabledFlag,
   selectPredictHomepageDiscoveryNbaChampionEnabledFlag,
   selectPredictHotTabFlag,
   selectPredictPortfolioEnabledFlag,
@@ -1660,6 +1661,128 @@ describe('Predict Feature Flag Selectors', () => {
       };
 
       const result = selectPredictPortfolioEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('selectPredictHomeRedesignEnabledFlag', () => {
+    it('returns false when flag is missing', () => {
+      const result = selectPredictHomeRedesignEnabledFlag(
+        mockedEmptyFlagsState,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('returns true when flag is enabled and version requirement is met', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictHomeRedesign: {
+                  enabled: true,
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPredictHomeRedesignEnabledFlag(state);
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when flag is disabled', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictHomeRedesign: {
+                  enabled: false,
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPredictHomeRedesignEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when flag is malformed', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictHomeRedesign: {
+                  enabled: 'true',
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPredictHomeRedesignEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when app version is below minimum required', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(false);
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictHomeRedesign: {
+                  enabled: true,
+                  minimumVersion: '99.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPredictHomeRedesignEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when minimumVersion is the default empty string', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictHomeRedesign: {
+                  enabled: true,
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPredictHomeRedesignEnabledFlag(state);
 
       expect(result).toBe(false);
     });

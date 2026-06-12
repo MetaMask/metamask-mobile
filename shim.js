@@ -35,8 +35,8 @@ import { LaunchArguments } from 'react-native-launch-arguments';
 import {
   FALLBACK_FIXTURE_SERVER_PORT,
   FALLBACK_COMMAND_QUEUE_SERVER_PORT,
-  isE2E,
-  isTest,
+  hasTestOverrides,
+  isTestEnvironment,
   enableApiCallLogs,
   testConfig,
 } from './app/util/test/utils.js';
@@ -79,14 +79,14 @@ require('react-native-browser-polyfill'); // eslint-disable-line import-x/no-com
 import 'expo';
 
 // Log early if running in E2E mode to help diagnose accidental js.env flags
-if (isE2E) {
+if (hasTestOverrides) {
   // eslint-disable-next-line no-console
   console.warn(
-    '[E2E MODE] App running with isE2E=true. If unexpected, check your .js.env and unset IS_TEST or METAMASK_ENVIRONMENT=e2e.',
+    '[E2E MODE] App running with hasTestOverrides=true. If unexpected, check your .js.env and unset HAS_TEST_OVERRIDES',
   );
   // eslint-disable-next-line no-console
   console.warn(
-    `IS_TEST=${process.env.IS_TEST || 'unset'} METAMASK_ENVIRONMENT=${
+    `HAS_TEST_OVERRIDES=${process.env.HAS_TEST_OVERRIDES || 'unset'} METAMASK_ENVIRONMENT=${
       process.env.METAMASK_ENVIRONMENT || 'unset'
     }`,
   );
@@ -106,7 +106,7 @@ if (isE2E) {
 //          adb reverse to transparently map these hardcoded ports to dynamically allocated ports.
 //          Example: App connects to localhost:12345, adb reverse maps it to host port 30002.
 //          See FixtureHelper.ts for the port mapping implementation.
-if (isTest) {
+if (isTestEnvironment) {
   const raw = LaunchArguments.value();
   testConfig.fixtureServerPort = raw?.fixtureServerPort
     ? raw.fixtureServerPort
@@ -263,7 +263,7 @@ if (typeof localStorage !== 'undefined') {
   localStorage.debug = isDev ? '*' : '';
 }
 
-if (enableApiCallLogs || isTest) {
+if (enableApiCallLogs || isTestEnvironment) {
   (async () => {
     const raw = LaunchArguments.value();
     const mockServerPort = raw?.mockServerPort ?? defaultMockPort;

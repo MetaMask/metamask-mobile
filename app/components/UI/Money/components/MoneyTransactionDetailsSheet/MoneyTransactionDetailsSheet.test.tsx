@@ -44,15 +44,27 @@ jest.mock('./MoneyReceivedDetails', () => {
       ),
   };
 });
+jest.mock('./MoneySentDetails', () => {
+  const ReactActual = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
+  return {
+    MoneySentDetails: () =>
+      ReactActual.createElement(Text, { testID: 'money-sent-details' }, 'sent'),
+  };
+});
 
 const CHAIN_ID_MOCK = '0x8f';
 
-function render(type: TransactionType) {
+function render(
+  type: TransactionType,
+  nestedTransactions?: { type: TransactionType }[],
+) {
   jest.mocked(useTransactionDetails).mockReturnValue({
     transactionMeta: {
       id: 'tx-1',
       chainId: CHAIN_ID_MOCK,
       type,
+      nestedTransactions,
     } as unknown as TransactionMeta,
   });
   return renderWithProvider(<MoneyTransactionDetailsSheet />, {
@@ -73,13 +85,31 @@ describe('MoneyTransactionDetailsSheet', () => {
     expect(queryByTestId('shared-transaction-details')).not.toBeOnTheScreen();
   });
 
+  it('renders MoneySentDetails for moneyAccountWithdraw', () => {
+    const { getByTestId, queryByTestId } = render(
+      TransactionType.moneyAccountWithdraw,
+    );
+    expect(getByTestId('money-sent-details')).toBeOnTheScreen();
+    expect(queryByTestId('shared-transaction-details')).not.toBeOnTheScreen();
+  });
+
+  it('renders MoneySentDetails for a batch with a nested moneyAccountWithdraw', () => {
+    const { getByTestId, queryByTestId } = render(TransactionType.batch, [
+      { type: TransactionType.moneyAccountWithdraw },
+      { type: TransactionType.tokenMethodTransfer },
+    ]);
+    expect(getByTestId('money-sent-details')).toBeOnTheScreen();
+    expect(queryByTestId('money-received-details')).not.toBeOnTheScreen();
+    expect(queryByTestId('shared-transaction-details')).not.toBeOnTheScreen();
+  });
+
   it.each([
     TransactionType.moneyAccountDeposit,
-    TransactionType.moneyAccountWithdraw,
     TransactionType.musdConversion,
   ])('renders shared TransactionDetails for %s', (type) => {
     const { getByTestId, queryByTestId } = render(type);
     expect(getByTestId('shared-transaction-details')).toBeOnTheScreen();
     expect(queryByTestId('money-received-details')).not.toBeOnTheScreen();
+    expect(queryByTestId('money-sent-details')).not.toBeOnTheScreen();
   });
 });

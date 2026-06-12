@@ -5,6 +5,11 @@ export interface SectionRefreshHandle {
   refresh: () => Promise<void>;
 }
 
+/** Imperative handle for HomepageDiscoveryTabs (refresh + deeplink tab selection). */
+export interface HomepageDiscoveryTabsHandle extends SectionRefreshHandle {
+  goToPerpsTab: () => void;
+}
+
 /**
  * Rendering mode for homepage sections that have both positions and trending content.
  *

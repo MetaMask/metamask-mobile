@@ -37,7 +37,7 @@ const TraderPositionQuickBuy: React.FC<TraderPositionQuickBuyProps> = ({
   const target = useMemo(
     () => (position ? positionToQuickBuyTarget(position) : null),
     [position],
-  );
+  ); // `null` when position is null OR when its chain name has no CAIP mapping
 
   const analyticsContext = useMemo(() => {
     const hasAny =

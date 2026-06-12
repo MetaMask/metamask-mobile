@@ -1,64 +1,193 @@
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
+import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import { lightTheme } from '@metamask/design-tokens';
 
 import Routes from '../../../../../constants/navigation/Routes';
 import { BatchSellQuoteDetailsModalSelectorsIDs } from '../BatchSellQuoteDetailsModal/BatchSellQuoteDetailsModal.testIds';
 import { BatchSellFinalReviewModal } from './index';
 import { BatchSellFinalReviewModalSelectorsIDs } from './BatchSellFinalReviewModal.testIds';
-import { BatchSellFinalReviewModalParams } from './BatchSellFinalReviewModal.types';
 
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
 const mockReplace = jest.fn();
-let mockRouteParams: BatchSellFinalReviewModalParams;
+const mockDispatch = jest.fn();
+const mockUpdateBatchSellQuoteParams = jest.fn();
+const mockGetNewQuote = jest.fn();
+const mockSubmitBatchSellTx = jest.fn();
+const mockUseBatchSellHasSufficientGas = jest.fn((_params: unknown) => true);
+const errorTextColor = lightTheme.colors.error.default;
+const ethAssetId = 'eip155:1/erc20:0x1111111111111111111111111111111111111111';
+const uniAssetId = 'eip155:1/erc20:0x2222222222222222222222222222222222222222';
+const linkAssetId = 'eip155:1/erc20:0x3333333333333333333333333333333333333333';
+const defaultSelectedTokens = [
+  {
+    address: '0x1111111111111111111111111111111111111111',
+    chainId: '0x1',
+    decimals: 18,
+    symbol: 'ETH',
+    image: 'eth-image-url',
+  },
+  {
+    address: '0x2222222222222222222222222222222222222222',
+    chainId: '0x1',
+    decimals: 18,
+    symbol: 'UNI',
+  },
+];
+const linkToken = {
+  address: '0x3333333333333333333333333333333333333333',
+  chainId: '0x1',
+  decimals: 18,
+  symbol: 'LINK',
+};
+const defaultRecommendedQuotes = [
+  { quoteId: 'eth-quote-id' },
+  { quoteId: 'uni-quote-id' },
+];
+let mockIsSubmittingTx = false;
+
+interface MockQuoteTokenData {
+  key: string;
+  tokenSymbol: string;
+  slippage: string;
+  receivedAmount: string;
+  receivedAmountFiat: string;
+  isLoading: boolean;
+  isHighPriceImpact: boolean;
+  isQuoteUnavailable: boolean;
+}
+
+interface MockBatchSellQuoteData {
+  tokenData: Record<string, MockQuoteTokenData>;
+  totalReceived: { formatted: string };
+  minimumReceived: { formatted: string };
+  isLoading: boolean;
+  isSummaryLoading: boolean;
+  isGasless: boolean;
+  isBatchSellTradeAvailable: boolean;
+  isBatchSellTradesLoading: boolean;
+  hasAnyQuote: boolean;
+  hasPendingQuoteRows: boolean;
+  needsNewQuote: boolean;
+  quotePercentFee?: string;
+  recommendedQuotes: unknown[];
+  networkFee: {
+    amount?: string;
+    valueInCurrency?: string | null;
+    asset?: {
+      address: string;
+      assetId: string;
+      chainId: number;
+      decimals: number;
+      name: string;
+      symbol: string;
+    };
+    formatted: string;
+    formattedFiat: string;
+  };
+}
+
+const defaultQuoteData: MockBatchSellQuoteData = {
+  tokenData: {
+    [ethAssetId]: {
+      key: ethAssetId,
+      tokenSymbol: 'ETH',
+      slippage: '0.5%',
+      receivedAmount: '3,456.78 USDC',
+      receivedAmountFiat: '$3,456.78',
+      isLoading: false,
+      isHighPriceImpact: false,
+      isQuoteUnavailable: false,
+    },
+    [uniAssetId]: {
+      key: uniAssetId,
+      tokenSymbol: 'UNI',
+      slippage: '0.5%',
+      receivedAmount: '500 USDC',
+      receivedAmountFiat: '$500.00',
+      isLoading: false,
+      isHighPriceImpact: false,
+      isQuoteUnavailable: false,
+    },
+  },
+  totalReceived: { formatted: '7,638.23 USDC' },
+  minimumReceived: { formatted: '7,485.47 USDC' },
+  isLoading: false,
+  isSummaryLoading: false,
+  isGasless: false,
+  isBatchSellTradeAvailable: true,
+  isBatchSellTradesLoading: false,
+  hasAnyQuote: true,
+  hasPendingQuoteRows: false,
+  needsNewQuote: false,
+  quotePercentFee: '1.25',
+  recommendedQuotes: defaultRecommendedQuotes,
+  networkFee: {
+    amount: '1.2',
+    valueInCurrency: '1.2',
+    asset: {
+      address: '0x0000000000000000000000000000000000000000',
+      assetId: 'eip155:1/slip44:60',
+      chainId: 1,
+      decimals: 18,
+      name: 'Ethereum',
+      symbol: 'ETH',
+    },
+    formatted: '1.20 USDC',
+    formattedFiat: '$1.20',
+  },
+};
+let mockSelectedTokens = defaultSelectedTokens;
+let mockBatchSellQuoteData = defaultQuoteData;
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     goBack: mockGoBack,
+    navigate: mockNavigate,
     replace: mockReplace,
   }),
 }));
 
-jest.mock('../../../../../util/navigation/navUtils', () => ({
-  useParams: () => mockRouteParams,
+jest.mock('react-redux', () => ({
+  useSelector: (selector: (state: unknown) => unknown) => selector({}),
+  useDispatch: () => mockDispatch,
 }));
 
-const defaultParams: BatchSellFinalReviewModalParams = {
-  sourceTokens: [
-    {
-      key: 'eth',
-      tokenSymbol: 'ETH',
-      image: 'eth-image-url',
-    },
-    {
-      key: 'uni',
-      tokenSymbol: 'UNI',
-    },
-  ],
-  tokenData: [
-    {
-      key: 'eth',
-      tokenSymbol: 'ETH',
-      slippage: '0.5%',
-      receivedAmount: '3,456.78 USDC',
-    },
-    {
-      key: 'uni',
-      tokenSymbol: 'UNI',
-      slippage: '0.5%',
-      receivedAmount: '500 USDC',
-    },
-  ],
-  totalReceived: '+7,638.23 USDC',
-  minimumReceived: '+7,485.47 USDC',
-  isLoading: false,
-  networkFee: '1.20 USDC',
-  networkFeeFiat: '$1.20',
-  metamaskFeePercent: '0.875',
-};
+jest.mock('../../../../../core/redux/slices/bridge', () => ({
+  selectBatchSellSourceTokens: jest.fn(() => mockSelectedTokens),
+  selectIsSubmittingTx: jest.fn(() => mockIsSubmittingTx),
+  setIsSubmittingTx: jest.fn((isSubmittingTx: boolean) => ({
+    type: 'bridge/setIsSubmittingTx',
+    payload: isSubmittingTx,
+  })),
+}));
 
-function renderModal(overrides: Partial<BatchSellFinalReviewModalParams> = {}) {
-  mockRouteParams = {
-    ...defaultParams,
+jest.mock('../../hooks/useBatchSellQuoteData', () => ({
+  useBatchSellQuoteData: jest.fn(() => mockBatchSellQuoteData),
+}));
+
+jest.mock('../../hooks/useBatchSellQuoteRequest', () => ({
+  useBatchSellQuoteRequest: jest.fn(() => ({
+    updateBatchSellQuoteParams: mockUpdateBatchSellQuoteParams,
+    getNewQuote: mockGetNewQuote,
+  })),
+}));
+
+jest.mock('../../hooks/useBatchSellHasSufficientGas', () => ({
+  useBatchSellHasSufficientGas: (params: unknown) =>
+    mockUseBatchSellHasSufficientGas(params),
+}));
+
+jest.mock('../../hooks/useSubmitBatchSellTx', () => ({
+  useSubmitBatchSellTx: () => ({
+    submitBatchSellTx: mockSubmitBatchSellTx,
+  }),
+}));
+
+function renderModal(overrides: Partial<MockBatchSellQuoteData> = {}) {
+  mockBatchSellQuoteData = {
+    ...defaultQuoteData,
     ...overrides,
   };
 
@@ -68,11 +197,20 @@ function renderModal(overrides: Partial<BatchSellFinalReviewModalParams> = {}) {
 describe('BatchSellFinalReviewModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockRouteParams = defaultParams;
+    mockSelectedTokens = defaultSelectedTokens;
+    mockIsSubmittingTx = false;
+    mockBatchSellQuoteData = defaultQuoteData;
+    mockUpdateBatchSellQuoteParams.mockClear();
+    mockGetNewQuote.mockClear();
+    mockSubmitBatchSellTx.mockResolvedValue(undefined);
+    mockUseBatchSellHasSufficientGas.mockReturnValue(true);
   });
 
-  it('renders the final review sheet content from route params', () => {
+  it('renders the final review sheet content from live quote data', () => {
     const { getByTestId, getByText } = renderModal();
+    const sellAllButton = getByTestId(
+      BatchSellFinalReviewModalSelectorsIDs.SELL_ALL_BUTTON,
+    );
 
     expect(
       getByTestId(BatchSellFinalReviewModalSelectorsIDs.SHEET),
@@ -83,14 +221,66 @@ describe('BatchSellFinalReviewModal', () => {
     expect(getByText('ETH • 0.5% slippage')).toBeOnTheScreen();
     expect(getByText('3,456.78 USDC')).toBeOnTheScreen();
     expect(getByText('Total received')).toBeOnTheScreen();
-    expect(getByText('+7,638.23 USDC')).toBeOnTheScreen();
+    expect(getByText('7,638.23 USDC')).toBeOnTheScreen();
     expect(getByText('Minimum received')).toBeOnTheScreen();
-    expect(getByText('+7,485.47 USDC')).toBeOnTheScreen();
+    expect(getByText('7,485.47 USDC')).toBeOnTheScreen();
     expect(getByText('Network fee')).toBeOnTheScreen();
     expect(getByText('1.20 USDC')).toBeOnTheScreen();
     expect(getByText('$1.20')).toBeOnTheScreen();
     expect(getByText('Sell all')).toBeOnTheScreen();
-    expect(getByText('Includes 0.875% MetaMask fee')).toBeOnTheScreen();
+    expect(sellAllButton.props.accessibilityState.disabled).not.toBe(true);
+    expect(getByText('Includes 1.25% MetaMask fee')).toBeOnTheScreen();
+  });
+
+  it('hides the MetaMask fee disclosure when quoteBpsFee has no fee', () => {
+    const { queryByTestId } = renderModal({
+      quotePercentFee: undefined,
+    });
+
+    expect(
+      queryByTestId(
+        BatchSellFinalReviewModalSelectorsIDs.METAMASK_FEE_DISCLOSURE,
+      ),
+    ).toBeNull();
+  });
+
+  it('submits Batch Sell with the recommended quotes', async () => {
+    const { getByTestId } = renderModal();
+
+    fireEvent.press(
+      getByTestId(BatchSellFinalReviewModalSelectorsIDs.SELL_ALL_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(mockSubmitBatchSellTx).toHaveBeenCalledWith({
+        quoteResponses: defaultRecommendedQuotes,
+      });
+    });
+    expect(mockDispatch).toHaveBeenNthCalledWith(1, {
+      type: 'bridge/setIsSubmittingTx',
+      payload: true,
+    });
+    expect(mockDispatch).toHaveBeenLastCalledWith({
+      type: 'bridge/setIsSubmittingTx',
+      payload: false,
+    });
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+  });
+
+  it('blocks Sell all while submitting', () => {
+    mockIsSubmittingTx = true;
+
+    const { getByTestId, getByText } = renderModal();
+
+    expect(getByText('Submitting')).toBeOnTheScreen();
+    expect(
+      getByTestId(BatchSellFinalReviewModalSelectorsIDs.SELL_ALL_BUTTON).props
+        .accessibilityState.disabled,
+    ).toBe(true);
+    expect(
+      getByTestId(BatchSellFinalReviewModalSelectorsIDs.SELL_ALL_BUTTON).props
+        .accessibilityState.busy,
+    ).toBe(true);
   });
 
   it('closes with navigation when the close button is pressed', () => {
@@ -113,9 +303,9 @@ describe('BatchSellFinalReviewModal', () => {
     expect(queryByText('ETH • 0.5% slippage')).toBeNull();
     expect(queryByText('UNI • 0.5% slippage')).toBeNull();
     expect(getByText('Total received')).toBeOnTheScreen();
-    expect(getByText('+7,638.23 USDC')).toBeOnTheScreen();
+    expect(getByText('7,638.23 USDC')).toBeOnTheScreen();
     expect(getByText('Minimum received')).toBeOnTheScreen();
-    expect(getByText('+7,485.47 USDC')).toBeOnTheScreen();
+    expect(getByText('7,485.47 USDC')).toBeOnTheScreen();
   });
 
   it('expands token rows after they are collapsed', () => {
@@ -129,6 +319,30 @@ describe('BatchSellFinalReviewModal', () => {
 
     expect(getByText('ETH • 0.5% slippage')).toBeOnTheScreen();
     expect(getByText('UNI • 0.5% slippage')).toBeOnTheScreen();
+  });
+
+  it('shows only quoted rows and source tokens', () => {
+    mockSelectedTokens = [...defaultSelectedTokens, linkToken];
+    const { getByText, queryByText } = renderModal({
+      tokenData: {
+        ...defaultQuoteData.tokenData,
+        [linkAssetId]: {
+          key: linkAssetId,
+          tokenSymbol: 'LINK',
+          slippage: '0.5%',
+          receivedAmount: '-- USDC',
+          receivedAmountFiat: '-',
+          isLoading: false,
+          isHighPriceImpact: false,
+          isQuoteUnavailable: true,
+        },
+      },
+    });
+
+    expect(getByText('2 tokens')).toBeOnTheScreen();
+    expect(getByText('ETH • 0.5% slippage')).toBeOnTheScreen();
+    expect(getByText('UNI • 0.5% slippage')).toBeOnTheScreen();
+    expect(queryByText('LINK • 0.5% slippage')).toBeNull();
   });
 
   it('switches to the minimum received info modal when the info button is pressed', () => {
@@ -145,7 +359,6 @@ describe('BatchSellFinalReviewModal', () => {
       {
         sourceModal: {
           screen: Routes.BRIDGE.MODALS.BATCH_SELL_FINAL_REVIEW_MODAL,
-          params: defaultParams,
         },
       },
     );
@@ -165,21 +378,40 @@ describe('BatchSellFinalReviewModal', () => {
       {
         sourceModal: {
           screen: Routes.BRIDGE.MODALS.BATCH_SELL_FINAL_REVIEW_MODAL,
-          params: defaultParams,
         },
       },
     );
   });
 
-  it('renders quote amount skeletons while loading', () => {
-    const { getByTestId, getByText, queryByText } = renderModal({
+  it('keeps token rows visible as skeletons while loading and disables Sell all', () => {
+    const { getByTestId, getByText, queryByTestId, queryByText } = renderModal({
+      tokenData: {
+        [ethAssetId]: {
+          ...defaultQuoteData.tokenData[ethAssetId],
+          isLoading: true,
+        },
+        [uniAssetId]: {
+          ...defaultQuoteData.tokenData[uniAssetId],
+          isLoading: true,
+        },
+      },
       isLoading: true,
+      isSummaryLoading: true,
+      hasAnyQuote: false,
+      hasPendingQuoteRows: true,
     });
 
+    expect(getByText('2 tokens')).toBeOnTheScreen();
     expect(getByText('ETH • 0.5% slippage')).toBeOnTheScreen();
+    expect(getByText('UNI • 0.5% slippage')).toBeOnTheScreen();
     expect(
       getByTestId(
-        `${BatchSellQuoteDetailsModalSelectorsIDs.QUOTE_ROW_RECEIVED_AMOUNT_SKELETON}-eth`,
+        `${BatchSellQuoteDetailsModalSelectorsIDs.QUOTE_ROW_RECEIVED_AMOUNT_SKELETON}-${ethAssetId}`,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(
+        `${BatchSellQuoteDetailsModalSelectorsIDs.QUOTE_ROW_RECEIVED_AMOUNT_SKELETON}-${uniAssetId}`,
       ),
     ).toBeOnTheScreen();
     expect(
@@ -193,6 +425,148 @@ describe('BatchSellFinalReviewModal', () => {
       ),
     ).toBeOnTheScreen();
     expect(queryByText('3,456.78 USDC')).toBeNull();
-    expect(queryByText('+7,638.23 USDC')).toBeNull();
+    expect(queryByText('7,638.23 USDC')).toBeNull();
+    expect(
+      queryByTestId(
+        `${BatchSellFinalReviewModalSelectorsIDs.SOURCE_TOKEN_AVATAR}-${linkAssetId}`,
+      ),
+    ).toBeNull();
+    expect(
+      getByTestId(BatchSellFinalReviewModalSelectorsIDs.SELL_ALL_BUTTON).props
+        .accessibilityState.disabled,
+    ).toBe(true);
+    expect(
+      getByTestId(BatchSellFinalReviewModalSelectorsIDs.SELL_ALL_BUTTON).props
+        .accessibilityState.busy,
+    ).toBe(true);
+  });
+
+  it('renders a network fee values skeleton while the network fee is loading', () => {
+    const { getByTestId, getByText, queryByText } = renderModal({
+      isBatchSellTradeAvailable: false,
+      isBatchSellTradesLoading: true,
+    });
+
+    expect(
+      getByTestId(
+        BatchSellFinalReviewModalSelectorsIDs.NETWORK_FEE_VALUES_SKELETON,
+      ),
+    ).toBeOnTheScreen();
+    expect(getByText('Network fee')).toBeOnTheScreen();
+    expect(queryByText('1.20 USDC')).toBeNull();
+    expect(queryByText('$1.20')).toBeNull();
+    expect(
+      getByTestId(BatchSellFinalReviewModalSelectorsIDs.SELL_ALL_BUTTON).props
+        .accessibilityState.disabled,
+    ).toBe(true);
+    expect(
+      getByTestId(BatchSellFinalReviewModalSelectorsIDs.SELL_ALL_BUTTON).props
+        .accessibilityState.busy,
+    ).toBe(true);
+  });
+
+  it('blocks Sell all while the Batch Sell trade is unavailable', () => {
+    const { getByTestId } = renderModal({
+      isBatchSellTradeAvailable: false,
+    });
+
+    expect(
+      getByTestId(BatchSellFinalReviewModalSelectorsIDs.SELL_ALL_BUTTON).props
+        .accessibilityState.disabled,
+    ).toBe(true);
+  });
+
+  it('shows insufficient funds when gasless destination-token fee cannot be covered', () => {
+    const { getByTestId, getByText, queryByTestId } = renderModal({
+      isGasless: true,
+      isBatchSellTradeAvailable: false,
+      isBatchSellTradesLoading: false,
+    });
+    const getTextColor = (text: string) =>
+      StyleSheet.flatten(getByText(text).props.style).color;
+
+    expect(
+      queryByTestId(
+        BatchSellFinalReviewModalSelectorsIDs.NETWORK_FEE_VALUES_SKELETON,
+      ),
+    ).toBeNull();
+    expect(getByText('Insufficient funds')).toBeOnTheScreen();
+    expect(getTextColor('Network fee')).toBe(errorTextColor);
+    expect(getTextColor('1.20 USDC')).toBe(errorTextColor);
+    expect(getTextColor('$1.20')).toBe(errorTextColor);
+    expect(
+      getByTestId(BatchSellFinalReviewModalSelectorsIDs.SELL_ALL_BUTTON).props
+        .accessibilityState.disabled,
+    ).toBe(true);
+    expect(
+      getByTestId(BatchSellFinalReviewModalSelectorsIDs.SELL_ALL_BUTTON).props
+        .accessibilityState.busy,
+    ).not.toBe(true);
+  });
+
+  it('blocks Sell all and highlights the network fee when gas is insufficient', () => {
+    mockUseBatchSellHasSufficientGas.mockReturnValue(false);
+
+    const { getByTestId, getByText } = renderModal();
+    const getTextColor = (text: string) =>
+      StyleSheet.flatten(getByText(text).props.style).color;
+
+    expect(getByText('Insufficient funds')).toBeOnTheScreen();
+    expect(getTextColor('Network fee')).toBe(errorTextColor);
+    expect(getTextColor('1.20 USDC')).toBe(errorTextColor);
+    expect(getTextColor('$1.20')).toBe(errorTextColor);
+    expect(
+      getByTestId(BatchSellFinalReviewModalSelectorsIDs.SELL_ALL_BUTTON).props
+        .accessibilityState.disabled,
+    ).toBe(true);
+    expect(
+      getByTestId(BatchSellFinalReviewModalSelectorsIDs.SELL_ALL_BUTTON).props
+        .accessibilityState.busy,
+    ).not.toBe(true);
+  });
+
+  it('shows Get new quote when max refresh expires and fetches fresh quotes', () => {
+    mockUseBatchSellHasSufficientGas.mockReturnValue(false);
+
+    const { getByTestId, getByText } = renderModal({
+      needsNewQuote: true,
+      isBatchSellTradeAvailable: false,
+      hasPendingQuoteRows: true,
+    });
+    const button = getByTestId(
+      BatchSellFinalReviewModalSelectorsIDs.SELL_ALL_BUTTON,
+    );
+
+    fireEvent.press(button);
+
+    expect(getByText('Get new quote')).toBeOnTheScreen();
+    expect(button.props.accessibilityState.disabled).not.toBe(true);
+    expect(button.props.accessibilityState.busy).not.toBe(true);
+    expect(mockGetNewQuote).toHaveBeenCalledTimes(1);
+  });
+
+  it('updates quote values from live data while mounted', () => {
+    const { getByText, rerender } = renderModal();
+
+    expect(getByText('7,638.23 USDC')).toBeOnTheScreen();
+
+    mockBatchSellQuoteData = {
+      ...defaultQuoteData,
+      tokenData: {
+        ...defaultQuoteData.tokenData,
+        [ethAssetId]: {
+          ...defaultQuoteData.tokenData[ethAssetId],
+          receivedAmount: '3,500 USDC',
+        },
+      },
+      totalReceived: { formatted: '7,700 USDC' },
+      minimumReceived: { formatted: '7,650 USDC' },
+    };
+
+    rerender(<BatchSellFinalReviewModal />);
+
+    expect(getByText('3,500 USDC')).toBeOnTheScreen();
+    expect(getByText('7,700 USDC')).toBeOnTheScreen();
+    expect(getByText('7,650 USDC')).toBeOnTheScreen();
   });
 });

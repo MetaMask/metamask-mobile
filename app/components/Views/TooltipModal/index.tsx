@@ -1,7 +1,6 @@
 import React, { useRef, isValidElement, useCallback } from 'react';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
+  HeaderStandard,
   Box,
   Text,
   TextVariant,
@@ -9,10 +8,11 @@ import {
   BottomSheetFooter,
   ButtonSize,
 } from '@metamask/design-system-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import { strings } from '../../../../locales/i18n';
 
 import { TooltipModalRouteParams } from './ToolTipModal.types';
@@ -44,7 +44,12 @@ const TooltipModal = () => {
 
   return (
     <BottomSheet ref={bottomSheetRef}>
-      <HeaderCompactStandard title={title} onClose={onCloseModal} />
+      <HeaderStandard
+        title={title}
+        onClose={onCloseModal}
+        testID="tooltip-modal-header"
+        closeButtonProps={{ testID: 'tooltip-modal-close' }}
+      />
       <Box twClassName="px-4">
         {isValidElement(tooltip) ? (
           tooltip

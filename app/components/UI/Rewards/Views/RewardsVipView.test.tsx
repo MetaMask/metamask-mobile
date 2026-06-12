@@ -1,8 +1,9 @@
 import React from 'react';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { StackActions } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import Routes from '../../../../constants/navigation/Routes';
+import { acceptVipInvite } from '../../../../reducers/rewards';
 import {
   selectIsCurrentSubscriptionVipEnabled,
   selectRewardsSubscriptionId,
@@ -18,10 +19,13 @@ import { VIP_POINTS_SECTION_TEST_IDS } from '../components/Vip/VipPointsSection'
 import { VIP_FEE_TILE_TEST_IDS } from '../components/Vip/VipFeeTile';
 
 const mockDispatch = jest.fn();
+const mockReduxDispatch = jest.fn();
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+let mockVipSplashAccepted: Record<string, boolean> = {};
 
 jest.mock('react-redux', () => ({
+  useDispatch: jest.fn(() => mockReduxDispatch),
   useSelector: jest.fn(),
 }));
 
@@ -322,22 +326,37 @@ jest.mock('../hooks/useVipDashboard', () => ({
 }));
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+const mockUseDispatch = useDispatch as jest.MockedFunction<typeof useDispatch>;
 const mockUseTrackRewardsPageView =
   useTrackRewardsPageView as jest.MockedFunction<
     typeof useTrackRewardsPageView
   >;
 
+const getRewardsSelectorState = () => ({
+  user: {
+    appTheme: 'dark',
+  },
+  rewards: {
+    referralCode: null,
+    vipSplashAccepted: mockVipSplashAccepted,
+  },
+});
+
 const mockSubscribed = () => {
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectRewardsSubscriptionId) return 'test-subscription-id';
     if (selector === selectIsCurrentSubscriptionVipEnabled) return true;
-    return undefined;
+    return (
+      selector as (state: ReturnType<typeof getRewardsSelectorState>) => unknown
+    )(getRewardsSelectorState());
   });
 };
 
 describe('RewardsVipView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockVipSplashAccepted = {};
+    mockUseDispatch.mockReturnValue(mockReduxDispatch);
     mockFetch.mockReset();
     mockSubscribed();
     mockUseVipDashboard.mockReturnValue({
@@ -347,6 +366,24 @@ describe('RewardsVipView', () => {
       hasAttemptedFetch: true,
       fetchVipDashboard: mockFetch,
     });
+  });
+
+  it('accepts the VIP invite on mount when it has not been accepted', () => {
+    render(<RewardsVipView />);
+
+    expect(mockReduxDispatch).toHaveBeenCalledWith(
+      acceptVipInvite({ subscriptionId: 'test-subscription-id' }),
+    );
+  });
+
+  it('does not accept the VIP invite again when it was already accepted', () => {
+    mockVipSplashAccepted = { 'test-subscription-id': true };
+
+    render(<RewardsVipView />);
+
+    expect(mockReduxDispatch).not.toHaveBeenCalledWith(
+      acceptVipInvite({ subscriptionId: 'test-subscription-id' }),
+    );
   });
 
   it('renders the guarded VIP shell with the pilot title and invite button', () => {

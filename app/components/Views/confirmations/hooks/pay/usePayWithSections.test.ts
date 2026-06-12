@@ -51,12 +51,12 @@ const PREDICT_SECTION_MOCK: PayWithSectionConfig = {
 
 const MONEY_ACCOUNT_SECTION_MOCK: PayWithSectionConfig = {
   id: 'money-account',
-  title: 'Money account',
+  title: '',
   rows: [
     {
       id: 'money-account-musd',
-      icon: 'mUSD',
-      title: 'mUSD',
+      icon: 'Money balance',
+      title: 'Money balance',
     },
   ],
 };

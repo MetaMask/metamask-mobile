@@ -53,7 +53,7 @@ const HomepagePredictTrendingCarousel = ({
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={tw.style('px-4 gap-3')}
+        contentContainerStyle={tw.style('px-4 gap-3 py-3')}
       >
         {isLoadingMarkets ? (
           CAROUSEL_SKELETON_KEYS.map((key) => (

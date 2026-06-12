@@ -1,4 +1,4 @@
-import { PermissionSummaryBottomSheetSelectorsText } from '../../../app/components/Views/AccountConnect/PermissionSummaryBottomSheet.testIds';
+import { PermissionSummaryBottomSheetSelectorsText } from '../../../app/components/Views/MultichainAccounts/shared/PermissionSummaryBottomSheet.testIds';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 

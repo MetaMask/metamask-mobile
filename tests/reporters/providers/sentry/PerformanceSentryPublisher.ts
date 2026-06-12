@@ -21,6 +21,7 @@ const MAX_MEASUREMENT_KEY_LENGTH = 64;
 const RESERVED_MEASUREMENT_KEYS = [
   'scenario_total_time_ms',
   'scenario_total_threshold_ms',
+  'bs_session_creation_ms',
 ] as const;
 
 interface PublishPerformanceScenarioOptions {
@@ -289,6 +290,13 @@ export async function publishPerformanceScenarioToSentry(
     };
   }
 
+  if (options.metrics.sessionCreationDurationMs !== undefined) {
+    measurements.bs_session_creation_ms = {
+      value: options.metrics.sessionCreationDurationMs,
+      unit: 'millisecond',
+    };
+  }
+
   const provider = options.metrics.device.provider || 'unknown';
   const teamId = options.metrics.team?.teamId || 'unknown';
   const teamName = options.metrics.team?.teamName || 'unknown';
@@ -398,6 +406,7 @@ export async function publishPerformanceScenarioToSentry(
       total_threshold_ms: options.metrics.totalThreshold,
       total_validation: options.metrics.totalValidation,
       timer_steps: timerMeasurements,
+      bs_session_creation_ms: options.metrics.sessionCreationDurationMs ?? null,
       sentry_project_id: parsedDsn.projectId,
     },
   };
