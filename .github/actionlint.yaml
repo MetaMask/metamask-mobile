@@ -23,6 +23,10 @@ self-hosted-runner:
     # Bitrise Build Hub (INFRA-3679). bitrise_pool_name:<role-label> — value matches Build Hub runner label.
     - "bitrise_pool_name:bitrise-metamask-ios-build"
     - "bitrise_pool_name:bitrise-metamask-ios-e2e"
+    # Bitrise machine_type labels (mixed E2E sizing — INFRA-3679)
+    - "machine_type:g2.mac.m2pro.12c-28g"
+    - "machine_type:g2.mac.m4.10c-28g"
+    - "machine_type:g2.mac.m4pro.14c-54g"
 
 # Configuration variables in array of strings defined in your repository or
 # organization. `null` means disabling configuration variables check.
