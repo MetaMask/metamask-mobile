@@ -58,7 +58,15 @@ const PendingSpinner = ({
   );
 
   return (
-    <Animated.View style={[containerStyle, animatedStyle]} testID={testID}>
+    // Decorative: the pending state is conveyed by the row's status label,
+    // so hide the spinner from assistive technology on both platforms.
+    <Animated.View
+      style={[containerStyle, animatedStyle]}
+      testID={testID}
+      accessible={false}
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+    >
       <Icon name={IconName.Loading} size={size} color={color} />
     </Animated.View>
   );

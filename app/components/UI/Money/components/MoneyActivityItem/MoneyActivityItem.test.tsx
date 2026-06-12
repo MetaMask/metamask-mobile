@@ -225,7 +225,9 @@ describe('MoneyActivityItem', () => {
 
     expect(getByText('Depositing')).toBeOnTheScreen();
     expect(
-      getByTestId(MoneyActivityItemTestIds.PENDING_SPINNER),
+      getByTestId(MoneyActivityItemTestIds.PENDING_SPINNER, {
+        includeHiddenElements: true,
+      }),
     ).toBeOnTheScreen();
   });
 });
