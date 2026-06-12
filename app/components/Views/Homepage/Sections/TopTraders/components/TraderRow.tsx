@@ -20,7 +20,6 @@ import { Image, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { TopRankAvatar, TopRankIndicator } from '../topRank';
 import type { TopTrader } from '../types';
-import { formatPnl } from '../utils/formatPnl';
 import { hasRealAvatar } from '../utils/avatarFallback';
 
 const AVATAR_SIZE = 40;
@@ -54,11 +53,12 @@ const TraderRow: React.FC<TraderRowProps> = ({
 }) => {
   const tw = useTailwind();
 
-  const roiSign = trader.percentageChange >= 0 ? '+' : '';
-  const roiText = `${roiSign}${trader.percentageChange.toFixed(1)}%`;
-  const pnlText = formatPnl(trader.pnlValue);
   const isPnlPositive = trader.pnlValue >= 0;
-  const isRoiPositive = trader.percentageChange >= 0;
+  const pnlSign = isPnlPositive ? '+' : '-';
+  const pnlAbs = Math.abs(trader.pnlValue);
+  const pnlParts = pnlAbs.toFixed(2).split('.');
+  pnlParts[0] = pnlParts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  const pnlText = `${pnlSign}$${pnlParts.join('.')}`;
 
   return (
     <Box
@@ -121,40 +121,12 @@ const TraderRow: React.FC<TraderRowProps> = ({
             <Text
               variant={TextVariant.BodySm}
               fontWeight={FontWeight.Medium}
+              twClassName={
+                isPnlPositive ? 'text-success-default' : 'text-error-default'
+              }
               numberOfLines={1}
             >
-              <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                twClassName={
-                  isRoiPositive ? 'text-success-default' : 'text-error-default'
-                }
-              >
-                {roiText}
-              </Text>
-              <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextDefault}
-              >
-                {' \u00B7 '}
-              </Text>
-              <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                twClassName={
-                  isPnlPositive ? 'text-success-default' : 'text-error-default'
-                }
-              >
-                {pnlText}
-              </Text>
-              <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextAlternative}
-              >
-                {' 30D'}
-              </Text>
+              {pnlText}
             </Text>
           </Box>
         </Box>
