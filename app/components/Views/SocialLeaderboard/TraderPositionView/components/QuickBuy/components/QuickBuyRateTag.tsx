@@ -56,8 +56,8 @@ const QuickBuyRateTag: React.FC<QuickBuyRateTagProps> = ({
     <Box
       twClassName={
         isHighPriceImpact
-          ? 'rounded-full bg-error-muted px-3 py-1'
-          : 'rounded-full bg-muted px-3 py-1'
+          ? 'rounded-md bg-error-muted px-3 py-1'
+          : 'rounded-md bg-muted px-3 py-1'
       }
       testID="quick-buy-rate-tag"
     >

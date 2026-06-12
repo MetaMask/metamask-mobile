@@ -277,6 +277,18 @@ export type RewardsControllerIsRewardsFeatureEnabledAction = {
 };
 
 /**
+ * Check if the VIP feature is enabled.
+ * VIP is a sub-feature of rewards, so it requires both the rewards feature
+ * and the dedicated VIP feature flag to be enabled.
+ *
+ * @returns boolean - True if the VIP feature is enabled, false otherwise
+ */
+export type RewardsControllerIsVipFeatureEnabledAction = {
+  type: `RewardsController:isVipFeatureEnabled`;
+  handler: RewardsController['isVipFeatureEnabled'];
+};
+
+/**
  * Check if there is an active season.
  * Temporarily hardcoded to false while no season is configured. Callers
  * gate season-scoped flows (points estimates, rewards rows, dashboard
@@ -382,7 +394,7 @@ export type RewardsControllerGetGeoRewardsMetadataAction = {
  * Validate a referral code
  *
  * @param code - The referral code to validate
- * @returns Promise<boolean> - True if the code is valid, false otherwise
+ * @returns Promise<{ valid: boolean; isVipCode: boolean }> - Validation result including VIP status
  */
 export type RewardsControllerValidateReferralCodeAction = {
   type: `RewardsController:validateReferralCode`;
@@ -687,6 +699,17 @@ export type RewardsControllerGetVIPDashboardAction = {
 };
 
 /**
+ * Get the VIP referee stats with caching.
+ *
+ * @param subscriptionId - The subscription ID for authentication
+ * @returns Promise<VipRefereeMeState | null> - The referee stats, or null when the user is not a VIP referee
+ */
+export type RewardsControllerGetVipRefereeDashboardAction = {
+  type: `RewardsController:getVipRefereeDashboard`;
+  handler: RewardsController['getVipRefereeDashboard'];
+};
+
+/**
  * Post a benefit impression with caching to prevent duplicate impressions within a short time frame
  *
  * @param subscriptionId - The subscription ID for authentication
@@ -864,6 +887,7 @@ export type RewardsControllerMethodActions =
   | RewardsControllerEstimatePointsAction
   | RewardsControllerAddPointsEstimateToHistoryAction
   | RewardsControllerIsRewardsFeatureEnabledAction
+  | RewardsControllerIsVipFeatureEnabledAction
   | RewardsControllerHasActiveSeasonAction
   | RewardsControllerGetSeasonMetadataAction
   | RewardsControllerGetSeasonStatusAction
@@ -899,6 +923,7 @@ export type RewardsControllerMethodActions =
   | RewardsControllerGetSeasonOneLineaRewardTokensAction
   | RewardsControllerGetBenefitsAction
   | RewardsControllerGetVIPDashboardAction
+  | RewardsControllerGetVipRefereeDashboardAction
   | RewardsControllerPostBenefitImpressionAction
   | RewardsControllerApplyReferralCodeAction
   | RewardsControllerApplyBonusCodeAction
