@@ -299,8 +299,9 @@ export function HardwareWalletsSwaps() {
         return;
       }
       const currentProgress = progressRef.current;
-      // Avoid overriding user-initiated terminal states. Only Waiting transitions
-      // to Failed in the reducer; Submitted is a no-op since all signing already completed.
+      // We can't use isSigning here because it would skip transaction failed when it isn't signing.
+      // 1. Early throw — submitBridgeTx fails before signing starts (step status still Waiting, overall status Waiting).
+      // 2. Post-signing throw — all steps signed (status Submitted, step status Signed), then broadcast fails.
       if (
         currentProgress.status === HardwareWalletsSwapsStatus.Waiting ||
         currentProgress.status === HardwareWalletsSwapsStatus.Submitted
