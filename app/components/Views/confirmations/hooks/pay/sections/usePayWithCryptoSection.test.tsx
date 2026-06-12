@@ -1043,4 +1043,199 @@ describe('usePayWithCryptoSection', () => {
       expect(setTransactionConfigMock).not.toHaveBeenCalled();
     });
   });
+
+  describe('no-fee token row', () => {
+    it('renders no-fee token row when noFeeToken is available', () => {
+      const noFeeTokenMock = {
+        address: '0xnoFee' as Hex,
+        chainId: '0x1' as Hex,
+        symbol: 'USDT',
+        balanceUsd: '10',
+      };
+      usePayWithNoFeeTokenMock.mockReturnValue({
+        noFeeToken: noFeeTokenMock,
+        isNoFeeToken: jest.fn().mockReturnValue(false),
+      });
+
+      const { result } = renderHook(() => usePayWithCryptoSection());
+
+      expect(result.current?.rows).toHaveLength(3);
+      const noFeeRow = result.current?.rows.find(
+        (row) => row.id === 'crypto-no-fee-token',
+      );
+      expect(noFeeRow).toEqual(
+        expect.objectContaining({
+          id: 'crypto-no-fee-token',
+          isNoFee: true,
+          title: 'USDT',
+          testID: 'pay-with-crypto-section-no-fee-token-row',
+        }),
+      );
+    });
+
+    it('does not render no-fee token row when noFeeToken is undefined', () => {
+      usePayWithNoFeeTokenMock.mockReturnValue({
+        noFeeToken: undefined,
+        isNoFeeToken: jest.fn().mockReturnValue(false),
+      });
+
+      const { result } = renderHook(() => usePayWithCryptoSection());
+
+      expect(result.current?.rows).toHaveLength(2);
+      const noFeeRow = result.current?.rows.find(
+        (row) => row.id === 'crypto-no-fee-token',
+      );
+      expect(noFeeRow).toBeUndefined();
+    });
+
+    it('sets isNoFee on preferred token when it is a no-fee token', () => {
+      const isNoFeeTokenMock = jest
+        .fn()
+        .mockImplementation(
+          (address, chainId) =>
+            address === TOKEN_MOCK.address && chainId === TOKEN_MOCK.chainId,
+        );
+      usePayWithNoFeeTokenMock.mockReturnValue({
+        noFeeToken: undefined,
+        isNoFeeToken: isNoFeeTokenMock,
+      });
+
+      const { result } = renderHook(() => usePayWithCryptoSection());
+
+      const preferredRow = result.current?.rows.find(
+        (row) => row.id === 'crypto-preferred-token',
+      );
+      expect(preferredRow).toEqual(
+        expect.objectContaining({
+          isNoFee: true,
+        }),
+      );
+    });
+
+    it('sorts token rows by balance descending', () => {
+      const noFeeTokenMock = {
+        address: '0xnoFee' as Hex,
+        chainId: '0x1' as Hex,
+        symbol: 'USDT',
+        balanceUsd: '15',
+      };
+      usePayWithNoFeeTokenMock.mockReturnValue({
+        noFeeToken: noFeeTokenMock,
+        isNoFeeToken: jest.fn().mockReturnValue(false),
+      });
+      usePayWithPreferredTokenMock.mockReturnValue({
+        hasTokens: true,
+        preferredToken: {
+          ...TOKEN_MOCK,
+          balanceUsd: '5',
+        },
+        selectedToken: {
+          ...TOKEN_MOCK,
+          balanceUsd: '5',
+        },
+      });
+
+      const { result } = renderHook(() => usePayWithCryptoSection());
+
+      expect(result.current?.rows).toHaveLength(3);
+      expect(result.current?.rows[0].id).toBe('crypto-no-fee-token');
+      expect(result.current?.rows[1].id).toBe('crypto-preferred-token');
+      expect(result.current?.rows[2].id).toBe('crypto-other-assets');
+    });
+
+    it('pressing the no-fee token row calls setPayToken and navigates back', () => {
+      const noFeeTokenMock = {
+        address: '0xnoFee' as Hex,
+        chainId: '0x1' as Hex,
+        symbol: 'USDT',
+        balanceUsd: '10',
+      };
+      usePayWithNoFeeTokenMock.mockReturnValue({
+        noFeeToken: noFeeTokenMock,
+        isNoFeeToken: jest.fn().mockReturnValue(false),
+      });
+
+      const { result } = renderHook(() => usePayWithCryptoSection());
+
+      const noFeeRow = result.current?.rows.find(
+        (row) => row.id === 'crypto-no-fee-token',
+      );
+
+      act(() => {
+        noFeeRow?.onPress?.();
+      });
+
+      expect(setPayTokenMock).toHaveBeenCalledWith({
+        address: noFeeTokenMock.address,
+        chainId: noFeeTokenMock.chainId,
+      });
+      expect(goBackMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not render no-fee token row when it duplicates the selected token', () => {
+      const noFeeTokenMock = {
+        address: SELECTED_TOKEN_MOCK.address,
+        chainId: SELECTED_TOKEN_MOCK.chainId,
+        symbol: SELECTED_TOKEN_MOCK.symbol,
+        balanceUsd: SELECTED_TOKEN_MOCK.balanceUsd,
+      };
+      usePayWithNoFeeTokenMock.mockReturnValue({
+        noFeeToken: noFeeTokenMock,
+        isNoFeeToken: jest.fn().mockReturnValue(false),
+      });
+      usePayWithSelectedTokenMock.mockReturnValue({
+        isSelectedDistinctFromAutomatic: true,
+        selectedToken: SELECTED_TOKEN_MOCK,
+        selectToken: selectTokenMock,
+      });
+
+      const { result } = renderHook(() => usePayWithCryptoSection());
+
+      const noFeeRow = result.current?.rows.find(
+        (row) => row.id === 'crypto-no-fee-token',
+      );
+      expect(noFeeRow).toBeUndefined();
+    });
+
+    it('sets isNoFee on selected token row when it is a no-fee token', () => {
+      const isNoFeeTokenMock = jest
+        .fn()
+        .mockImplementation(
+          (address, chainId) =>
+            address === SELECTED_TOKEN_MOCK.address &&
+            chainId === SELECTED_TOKEN_MOCK.chainId,
+        );
+      usePayWithNoFeeTokenMock.mockReturnValue({
+        noFeeToken: undefined,
+        isNoFeeToken: isNoFeeTokenMock,
+      });
+      const distinctSelectedToken = {
+        ...TOKEN_MOCK,
+        address: SELECTED_TOKEN_MOCK.address,
+        symbol: SELECTED_TOKEN_MOCK.symbol,
+        balanceUsd: SELECTED_TOKEN_MOCK.balanceUsd,
+      };
+      usePayWithPreferredTokenMock.mockReturnValue({
+        hasTokens: true,
+        preferredToken: TOKEN_MOCK,
+        selectedToken: distinctSelectedToken,
+      });
+      usePayWithSelectedTokenMock.mockReturnValue({
+        isSelectedDistinctFromAutomatic: true,
+        selectedToken: SELECTED_TOKEN_MOCK,
+        selectToken: selectTokenMock,
+      });
+
+      const { result } = renderHook(() => usePayWithCryptoSection());
+
+      const selectedRow = result.current?.rows.find(
+        (row) => row.id === 'crypto-selected-token',
+      );
+      expect(selectedRow).toEqual(
+        expect.objectContaining({
+          isNoFee: true,
+        }),
+      );
+    });
+  });
 });

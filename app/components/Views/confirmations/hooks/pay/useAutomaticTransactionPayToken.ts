@@ -426,21 +426,23 @@ function getBestToken({
   }
 
   if (tokens?.length && !isWithdraw) {
-    const noFeeMatch = tokens.find((token) => {
-      if (!token.chainId) return false;
-      const fiatBalance = token.fiat?.balance ?? 0;
-      if (fiatBalance < minimumRequiredTokenBalance) return false;
-      return isTokenInWildcardList(
-        token.symbol,
-        noFeeTokenList,
-        safeFormatChainIdToHex(token.chainId),
-      );
-    });
+    const noFeeCandidates = tokens
+      .filter((token) => {
+        if (!token.chainId) return false;
+        const fiatBalance = token.fiat?.balance ?? 0;
+        if (fiatBalance < minimumRequiredTokenBalance) return false;
+        return isTokenInWildcardList(
+          token.symbol,
+          noFeeTokenList,
+          safeFormatChainIdToHex(token.chainId),
+        );
+      })
+      .sort((a, b) => (b.fiat?.balance ?? 0) - (a.fiat?.balance ?? 0));
 
-    if (noFeeMatch) {
+    if (noFeeCandidates.length) {
       return {
-        address: noFeeMatch.address as Hex,
-        chainId: noFeeMatch.chainId as Hex,
+        address: noFeeCandidates[0].address as Hex,
+        chainId: noFeeCandidates[0].chainId as Hex,
       };
     }
   }
