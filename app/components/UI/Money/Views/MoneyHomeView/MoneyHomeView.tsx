@@ -36,7 +36,6 @@ import { mergeMoneyActivity } from '../../hooks/useMoneyActivityItems';
 import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyActivityLoading';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
-import { useMoneyAccountAddRouting } from '../../hooks/useMoneyAccountAddRouting';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { moneyFormatFiat, DUST_THRESHOLD } from '../../utils/moneyFormatFiat';
 import { calculateProjectedEarnings } from '../../utils/projections';
@@ -140,7 +139,6 @@ const MoneyHomeView = () => {
 
   const { tokens: depositTokens, isNoFeeToken } = useMoneyDepositTokens();
   const { initiateDeposit } = useMoneyAccountDeposit();
-  const { routeAddMoney } = useMoneyAccountAddRouting();
   const { allTransactions, moneyAddress, mockDataEnabled } =
     useMoneyAccountTransactions();
   const { cardTransactions, isLoading: isCardActivityLoading } =
@@ -275,8 +273,8 @@ const MoneyHomeView = () => {
       redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
     });
 
-    routeAddMoney();
-  }, [routeAddMoney, trackButtonClicked]);
+    initiateDeposit().catch(() => undefined);
+  }, [initiateDeposit, trackButtonClicked]);
 
   const handleTransferPress = useCallback(() => {
     trackButtonClicked({

@@ -32,7 +32,7 @@ import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import styleSheet from './MoneyBalanceCard.styles';
 import { MoneyBalanceCardTestIds } from './MoneyBalanceCard.testIds';
 import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
-import { useMoneyAccountAddRouting } from '../../hooks/useMoneyAccountAddRouting';
+import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import {
   SCREEN_NAMES,
   COMPONENT_NAMES,
@@ -60,7 +60,7 @@ const MoneyBalanceCard = () => {
   } = useMoneyAccountBalance();
   const { hasMoneyAccount } = useMoneyAccountInfo();
   const { navigateToMoneyHome } = useMoneyNavigation();
-  const { routeAddMoney } = useMoneyAccountAddRouting();
+  const { initiateDeposit } = useMoneyAccountDeposit();
   const hasSeenMoneyOnboarding = useSelector(selectMoneyOnboardingSeen);
   const hasOtherPrimaryCtaOnHome = useSelector(
     selectWalletHomeOnboardingFlowVisible,
@@ -157,8 +157,8 @@ const MoneyBalanceCard = () => {
       redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
     });
 
-    routeAddMoney();
-  }, [buttonLabelKey, routeAddMoney, trackButtonClicked]);
+    initiateDeposit().catch(() => undefined);
+  }, [buttonLabelKey, initiateDeposit, trackButtonClicked]);
 
   const handleInfoPress = useCallback(() => {
     trackTooltipClicked({

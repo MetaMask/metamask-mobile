@@ -11,7 +11,7 @@ import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import { selectMoneyOnboardingSeen } from '../../../../../reducers/user/selectors';
 import { selectWalletHomeOnboardingFlowVisible } from '../../../../../selectors/onboarding';
 import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
-import { useMoneyAccountAddRouting } from '../../hooks/useMoneyAccountAddRouting';
+import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
   COMPONENT_NAMES,
@@ -33,7 +33,7 @@ jest.mock('../../hooks/useMoneyAnalytics', () => ({
 
 const mockNavigate = jest.fn();
 const mockNavigateToMoneyHome = jest.fn();
-const mockRouteAddMoney = jest.fn();
+const mockInitiateDeposit = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -60,9 +60,9 @@ jest.mock('../../hooks/useMoneyNavigation', () => ({
   useMoneyNavigation: jest.fn(),
 }));
 
-jest.mock('../../hooks/useMoneyAccountAddRouting', () => ({
+jest.mock('../../hooks/useMoneyAccount', () => ({
   __esModule: true,
-  useMoneyAccountAddRouting: jest.fn(),
+  useMoneyAccountDeposit: jest.fn(),
 }));
 
 jest.mock('../../../../../reducers/user/selectors', () => ({
@@ -82,7 +82,7 @@ const mockSelectWalletHomeOnboardingFlowVisible = jest.mocked(
   selectWalletHomeOnboardingFlowVisible,
 );
 const mockUseMoneyNavigation = jest.mocked(useMoneyNavigation);
-const mockUseMoneyAccountAddRouting = jest.mocked(useMoneyAccountAddRouting);
+const mockUseMoneyAccountDeposit = jest.mocked(useMoneyAccountDeposit);
 
 const createBalanceMock = (
   overrides: Partial<ReturnType<typeof useMoneyAccountBalance>> = {},
@@ -140,9 +140,9 @@ describe('MoneyBalanceCard', () => {
     mockUseMoneyNavigation.mockReturnValue({
       navigateToMoneyHome: mockNavigateToMoneyHome,
     });
-    mockRouteAddMoney.mockResolvedValue(undefined);
-    mockUseMoneyAccountAddRouting.mockReturnValue({
-      routeAddMoney: mockRouteAddMoney,
+    mockInitiateDeposit.mockResolvedValue(undefined);
+    mockUseMoneyAccountDeposit.mockReturnValue({
+      initiateDeposit: mockInitiateDeposit,
     });
     (useMoneyAnalytics as jest.Mock).mockReturnValue({
       trackButtonClicked: mockTrackButtonClicked,
@@ -227,7 +227,7 @@ describe('MoneyBalanceCard', () => {
 
       fireEvent.press(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON));
 
-      expect(mockRouteAddMoney).toHaveBeenCalled();
+      expect(mockInitiateDeposit).toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
         screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
       });
@@ -296,7 +296,7 @@ describe('MoneyBalanceCard', () => {
 
       fireEvent.press(getByTestId(MoneyBalanceCardTestIds.EARN_BUTTON));
 
-      expect(mockRouteAddMoney).toHaveBeenCalled();
+      expect(mockInitiateDeposit).toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
         screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
       });
@@ -376,7 +376,7 @@ describe('MoneyBalanceCard', () => {
 
         fireEvent.press(getByTestId(MoneyBalanceCardTestIds.EARN_BUTTON));
 
-        expect(mockRouteAddMoney).toHaveBeenCalled();
+        expect(mockInitiateDeposit).toHaveBeenCalled();
         expect(mockNavigateToMoneyHome).not.toHaveBeenCalled();
       });
     });
@@ -414,7 +414,7 @@ describe('MoneyBalanceCard', () => {
 
         fireEvent.press(getByTestId(MoneyBalanceCardTestIds.EARN_BUTTON));
 
-        expect(mockRouteAddMoney).toHaveBeenCalled();
+        expect(mockInitiateDeposit).toHaveBeenCalled();
       });
     });
   });
@@ -480,7 +480,7 @@ describe('MoneyBalanceCard', () => {
 
       fireEvent.press(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON));
 
-      expect(mockRouteAddMoney).toHaveBeenCalled();
+      expect(mockInitiateDeposit).toHaveBeenCalled();
     });
 
     it('opens the Money balance info sheet when the info icon is pressed', () => {
@@ -505,7 +505,7 @@ describe('MoneyBalanceCard', () => {
 
       fireEvent.press(getByTestId(MoneyBalanceCardTestIds.EARN_BUTTON));
 
-      expect(mockRouteAddMoney).toHaveBeenCalled();
+      expect(mockInitiateDeposit).toHaveBeenCalled();
       expect(mockNavigateToMoneyHome).not.toHaveBeenCalled();
     });
   });

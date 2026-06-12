@@ -225,13 +225,6 @@ jest.mock('../../hooks/useMoneyAccount', () => ({
   })),
 }));
 
-const mockRouteAddMoney = jest.fn();
-jest.mock('../../hooks/useMoneyAccountAddRouting', () => ({
-  useMoneyAccountAddRouting: jest.fn(() => ({
-    routeAddMoney: mockRouteAddMoney,
-  })),
-}));
-
 jest.mock('../../hooks/useOnboardingStep', () => ({
   useOnboardingStep: jest.fn(() => ({
     currentStep: 0,
@@ -1486,12 +1479,13 @@ describe('MoneyHomeView', () => {
       expect(getByTestId(MoneyWhatYouGetTestIds.CONTAINER)).toBeOnTheScreen();
     });
 
-    it('routes directly via useMoneyAccountAddRouting when the mUSD row Add button is pressed', () => {
+    it('initiates a deposit without preselection when the mUSD row Add button is pressed', () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       fireEvent.press(getByTestId(MoneyMusdTokenRowTestIds.ADD_BUTTON));
 
-      expect(mockRouteAddMoney).toHaveBeenCalledTimes(1);
+      expect(mockInitiateDeposit).toHaveBeenCalledTimes(1);
+      expect(mockInitiateDeposit).toHaveBeenCalledWith();
       expect(mockNavigate).not.toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
         screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
       });
