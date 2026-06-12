@@ -6071,7 +6071,7 @@
     "included": "已包含",
     "max_gas_fee": "最大燃料费",
     "edit": "编辑",
-    "quotes_include_fee": "报价包括 {{{fee}}} 的 MetaMask 费用",
+    "quotes_include_fee": "报价包括 {{fee}} 的 MetaMask 费用",
     "quotes_include_gas_and_metamask_fee": "报价包括燃料费和 {{fee}}% 的 MetaMask 费用",
     "tap_to_swap": "点按以兑换",
     "swipe_to_swap": "滑动以兑换",
