@@ -1,6 +1,6 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { BackHandler, StyleSheet, View } from 'react-native';
+import { BackHandler, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -47,7 +47,8 @@ import { useStyles } from '../../hooks/useStyles';
 import ErrorBoundary from '../ErrorBoundary';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import UnifiedTransactionsView from '../UnifiedTransactionsView/UnifiedTransactionsView';
-import { selectIsActivityRedesignEnabled } from '../../../selectors/featureFlagController/activityRedesign';
+import styleSheet from './ActivityView.styles';
+import { selectIsActivityRedesignEnabled } from './selectors/featureFlags';
 
 // Lazily loaded so the redesigned Activity screen and its dependencies are not
 // evaluated when `tmcuActivityRedesignEnabled` is off, keeping the legacy path
@@ -58,47 +59,11 @@ const ActivityScreen = React.lazy(
     import('../ActivityScreen/ActivityScreen'),
 );
 
-const createStyles = (params) => {
-  const { theme } = params;
-  const { colors } = theme;
-  return StyleSheet.create({
-    tabWrapper: {
-      flex: 1,
-      backgroundColor: colors.background.default,
-    },
-    controlButtonOuterWrapper: {
-      flexDirection: 'row',
-      width: '100%',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginVertical: 8,
-      paddingHorizontal: 16,
-    },
-    controlButton: {
-      backgroundColor: colors.background.default,
-      borderColor: colors.border.muted,
-      borderWidth: 1,
-      borderRadius: 8,
-      maxWidth: '80%',
-      paddingHorizontal: 12,
-    },
-    networkManagerWrapper: {
-      display: 'flex',
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 4,
-    },
-    titleText: {
-      color: colors.text.default,
-    },
-  });
-};
-
 const LegacyActivityView = () => {
   const { colors } = useTheme();
   const tw = useTailwind();
 
-  const { styles } = useStyles(createStyles);
+  const { styles } = useStyles(styleSheet, {});
 
   const navigation = useNavigation();
 
