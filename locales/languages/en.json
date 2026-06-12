@@ -1852,6 +1852,7 @@
       "position": "Position",
       "orders": "Orders",
       "go_to_activity": "Go to your activity",
+      "related_markets": "Related markets",
       "recent_trades": "Recent activity",
       "no_trades": "No recent activity",
       "trading_24_7": "This asset may be traded 24/7",
@@ -7069,9 +7070,10 @@
       "title": "Activity",
       "view_all": "View all",
       "empty": "No activity yet",
+      "pending": "Pending",
       "filter_all": "All",
       "filter_deposits": "Deposits",
-      "filter_transfers": "Transfers"
+      "filter_sends": "Sends"
     },
     "condensed_cards": {
       "how_it_works_title": "How it works",
@@ -7082,13 +7084,19 @@
       "what_you_get_subtitle": "Explore your benefits"
     },
     "transaction": {
-      "added": "Added",
       "deposited": "Deposited",
       "received": "Received",
       "sent": "Sent",
-      "transferred": "Transferred",
       "card_transaction": "Card transaction",
       "converted": "Converted",
+      "depositing": "Depositing",
+      "converting": "Converting",
+      "sending": "Sending",
+      "receiving": "Receiving",
+      "deposit_failed": "Deposit failed",
+      "conversion_failed": "Conversion failed",
+      "send_failed": "Send failed",
+      "received_from": "From: {{address}}",
       "failed": "Failed"
     },
     "card_details": {
