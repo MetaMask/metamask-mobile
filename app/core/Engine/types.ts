@@ -94,6 +94,15 @@ import {
   ConnectivityControllerState,
 } from '@metamask/connectivity-controller';
 import {
+  ConfigRegistryController,
+  type ConfigRegistryControllerState,
+  type ConfigRegistryControllerEvents,
+  ConfigRegistryControllerActions,
+  ConfigRegistryApiServiceActions,
+  ConfigRegistryApiServiceEvents,
+  ConfigRegistryApiService,
+} from '@metamask/config-registry-controller';
+import {
   KeyringController,
   KeyringControllerActions,
   KeyringControllerEvents,
@@ -610,6 +619,8 @@ export type GlobalActions =
   | ComplianceControllerActions
   | ComplianceServiceActions
   | TransakServiceActions
+  | ConfigRegistryControllerActions
+  | ConfigRegistryApiServiceActions
   | ChompApiServiceActions
   | MoneyAccountUpgradeControllerActions;
 
@@ -623,6 +634,8 @@ export type GlobalEvents =
   | AddressBookControllerEvents
   | ApprovalControllerEvents
   | ConnectivityControllerEvents
+  | ConfigRegistryControllerEvents
+  | ConfigRegistryApiServiceEvents
   | CurrencyRateControllerEvents
   | GasFeeControllerEvents
   | GatorPermissionsControllerEvents
@@ -748,8 +761,9 @@ export type MessengerClients = {
   AddressBookController: AddressBookController;
   AppMetadataController: AppMetadataController;
   ConnectivityController: ConnectivityController;
+  ConfigRegistryController: ConfigRegistryController;
+  ConfigRegistryApiService: ConfigRegistryApiService;
   ApprovalController: ApprovalController;
-  AssetsContractController: AssetsContractController;
   AssetsController: AssetsController;
   CurrencyRateController: CurrencyRateController;
   GasFeeController: GasFeeController;
@@ -853,6 +867,7 @@ export type EngineState = {
   AssetsController: AssetsControllerState;
   AppMetadataController: AppMetadataControllerState;
   ConnectivityController: ConnectivityControllerState;
+  ConfigRegistryController: ConfigRegistryControllerState;
   NftController: NftControllerState;
   CurrencyRateController: CurrencyRateState;
   KeyringController: KeyringControllerState;
@@ -954,6 +969,8 @@ export type MessengerClientsToInitialize =
   | 'AssetsContractController'
   | 'AssetsController'
   | 'ConnectivityController'
+  | 'ConfigRegistryController'
+  | 'ConfigRegistryApiService'
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   | 'AuthenticationController'
   | 'CronjobController'

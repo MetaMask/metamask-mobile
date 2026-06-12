@@ -3,6 +3,7 @@
 // Third party dependencies.
 import React, { useCallback, useEffect, useState } from 'react';
 import { Image, ImageSourcePropType } from 'react-native';
+import { SvgUri } from 'react-native-svg';
 
 // External dependencies.
 import AvatarBase from '../../foundation/AvatarBase';
@@ -44,6 +45,18 @@ const AvatarNetwork = ({
     <AvatarBase size={size} style={styles.base} {...props}>
       {showFallback ? (
         <Text style={styles.label}>{chainNameFirstLetter}</Text>
+      ) : imageSource &&
+        typeof imageSource === 'object' &&
+        'uri' in imageSource &&
+        (imageSource.uri?.endsWith('.svg') ||
+          imageSource.uri?.startsWith('data:image/svg+xml')) ? (
+        <SvgUri
+          uri={imageSource.uri}
+          width={size}
+          height={size}
+          onError={onError}
+          testID={AVATARNETWORK_IMAGE_TESTID}
+        />
       ) : (
         <Image
           source={imageSource as ImageSourcePropType}

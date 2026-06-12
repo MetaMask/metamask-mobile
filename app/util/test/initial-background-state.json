@@ -684,6 +684,12 @@
     "providerData": {},
     "moneyAccountCardLinkInProgress": false
   },
+  "ConfigRegistryController": {
+    "configs": { "networks": {} },
+    "etag": null,
+    "lastFetched": null,
+    "version": null
+  },
   "ClientController": {
     "isUiOpen": false
   },

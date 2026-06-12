@@ -128,6 +128,7 @@ import { getTransakServiceMessenger } from './transak-service-messenger/transak-
 import { getPhishingControllerMessenger } from './phishing-controller-messenger';
 import { getAddressBookControllerMessenger } from './address-book-controller-messenger';
 import { getConnectivityControllerMessenger } from './connectivity-controller-messenger';
+import { getConfigRegistryControllerMessenger } from './config-registry-controller-messenger';
 import {
   getMultichainRoutingServiceInitMessenger,
   getMultichainRoutingServiceMessenger,
@@ -153,6 +154,7 @@ import { getCardControllerMessenger } from './card-controller-messenger';
 import { getClientControllerMessenger } from './client-controller-messenger';
 import { getComplianceServiceMessenger } from './compliance/compliance-service-messenger';
 import { getComplianceControllerMessenger } from './compliance/compliance-controller-messenger';
+import { getConfigRegistryApiServiceMessenger } from './config-registry-api-service-messenger.ts';
 import {
   getChompApiServiceMessenger,
   getChompApiServiceInitMessenger,
@@ -184,6 +186,14 @@ export const MESSENGER_FACTORIES = {
   },
   ConnectivityController: {
     getMessenger: getConnectivityControllerMessenger,
+    getInitMessenger: noop,
+  },
+  ConfigRegistryController: {
+    getMessenger: getConfigRegistryControllerMessenger,
+    getInitMessenger: noop,
+  },
+  ConfigRegistryApiService: {
+    getMessenger: getConfigRegistryApiServiceMessenger,
     getInitMessenger: noop,
   },
   ApprovalController: {
