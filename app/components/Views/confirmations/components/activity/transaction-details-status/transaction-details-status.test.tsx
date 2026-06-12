@@ -22,10 +22,14 @@ jest.mock('../../../hooks/useTokenAmount');
 
 const ERROR_MESSAGE_MOCK = 'Test Error';
 
-function render(transactionMeta: Partial<TransactionMeta> = {}) {
+function render(
+  transactionMeta: Partial<TransactionMeta> = {},
+  props: { showIcon?: boolean } = {},
+) {
   return renderWithProvider(
     <TransactionDetailsStatus
       transactionMeta={transactionMeta as TransactionMeta}
+      {...props}
     />,
     {
       state: merge({}, otherControllersMock),
@@ -108,6 +112,16 @@ describe('TransactionDetailsStatus', () => {
 
     expect(getByText(strings('transaction.failed'))).toBeDefined();
     expect(getByText(ERROR_MESSAGE_MOCK)).toBeDefined();
+  });
+
+  it('hides icon when showIcon is false', () => {
+    const { queryByTestId, getByText } = render(
+      { status: TransactionStatus.confirmed },
+      { showIcon: false },
+    );
+
+    expect(queryByTestId('status-icon-success')).toBeNull();
+    expect(getByText(strings('transaction.confirmed'))).toBeDefined();
   });
 
   it('renders solution text if bridge failed but user has successful perps bridge', () => {

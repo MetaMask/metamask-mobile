@@ -4,6 +4,7 @@ import { useTransactionDetails } from '../../../hooks/activity/useTransactionDet
 import {
   TransactionMeta,
   TransactionStatus,
+  TransactionType,
 } from '@metamask/transaction-controller';
 import { TransactionDetailsStatusRow } from './transaction-details-status-row';
 import { strings } from '../../../../../../../locales/i18n';
@@ -51,5 +52,41 @@ describe('TransactionDetailsStatusRow', () => {
     const { getByText } = render();
 
     expect(getByText(expectedText)).toBeDefined();
+  });
+
+  it.each([
+    TransactionType.moneyAccountDeposit,
+    TransactionType.moneyAccountWithdraw,
+    TransactionType.musdConversion,
+    TransactionType.musdClaim,
+    TransactionType.perpsDeposit,
+    TransactionType.perpsWithdraw,
+    TransactionType.predictDeposit,
+    TransactionType.predictWithdraw,
+    TransactionType.predictClaim,
+  ])('hides status icon for %s', (type) => {
+    useTransactionDetailsMock.mockReturnValue({
+      transactionMeta: {
+        status: TransactionStatus.confirmed,
+        type,
+      } as unknown as TransactionMeta,
+    });
+
+    const { queryByTestId } = render();
+
+    expect(queryByTestId('status-icon-success')).toBeNull();
+  });
+
+  it('shows status icon for non-text-only types', () => {
+    useTransactionDetailsMock.mockReturnValue({
+      transactionMeta: {
+        status: TransactionStatus.confirmed,
+        type: TransactionType.simpleSend,
+      } as unknown as TransactionMeta,
+    });
+
+    const { getByTestId } = render();
+
+    expect(getByTestId('status-icon-success')).toBeDefined();
   });
 });
