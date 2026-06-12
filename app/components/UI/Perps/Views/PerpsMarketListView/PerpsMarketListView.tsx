@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { HeaderStandard } from '@metamask/design-system-react-native';
-import { View, Animated } from 'react-native';
+import { View, Animated, ScrollView } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import Icon, {
   IconName,
@@ -319,13 +319,18 @@ const PerpsMarketListView = ({
       }
 
       return (
-        <PerpsWatchlistMarkets
-          markets={visibleWatchlistMarkets}
-          suggestedMarkets={visibleSuggestedMarkets}
-          showHeader={false}
-          enableShowMore={false}
-          onMarketPress={handleMarketPress}
-        />
+        <ScrollView
+          style={styles.watchlistScrollContainer}
+          contentContainerStyle={styles.watchlistScrollContent}
+        >
+          <PerpsWatchlistMarkets
+            markets={visibleWatchlistMarkets}
+            suggestedMarkets={visibleSuggestedMarkets}
+            showHeader={false}
+            enableShowMore={false}
+            onMarketPress={handleMarketPress}
+          />
+        </ScrollView>
       );
     }
 
