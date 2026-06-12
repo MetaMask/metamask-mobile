@@ -206,11 +206,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     const pendingBackForwardNavRef = useRef<PendingBackForwardNav | null>(null);
     const backgroundBridgeRef = useRef<
       | {
-        url: string;
-        sendNotificationEip1193: (payload: unknown) => void;
-        onDisconnect: () => void;
-        onMessage: (message: Record<string, unknown>) => void;
-      }
+          url: string;
+          sendNotificationEip1193: (payload: unknown) => void;
+          onDisconnect: () => void;
+          onMessage: (message: Record<string, unknown>) => void;
+        }
       | undefined
     >(undefined);
     const searchEngine = useSelector(selectSearchEngine);
@@ -399,8 +399,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             chainId: activeChainId,
           });
           if (type === 'ipfs-ns') {
-            gatewayUrl = `${ipfsGateway}${hash}${pathname || '/'}${query || ''
-              }`;
+            gatewayUrl = `${ipfsGateway}${hash}${pathname || '/'}${
+              query || ''
+            }`;
             const response = await fetch(gatewayUrl, {
               headers: {
                 'User-Agent': 'MetaMask Mobile Browser',
@@ -412,11 +413,13 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
               return null;
             }
           } else if (type === 'swarm-ns') {
-            gatewayUrl = `${AppConstants.SWARM_DEFAULT_GATEWAY_URL}${hash}${pathname || '/'
-              }${query || ''}`;
+            gatewayUrl = `${AppConstants.SWARM_DEFAULT_GATEWAY_URL}${hash}${
+              pathname || '/'
+            }${query || ''}`;
           } else if (type === 'ipns-ns') {
-            gatewayUrl = `${AppConstants.IPNS_DEFAULT_GATEWAY_URL}${hostname}${pathname || '/'
-              }${query || ''}`;
+            gatewayUrl = `${AppConstants.IPNS_DEFAULT_GATEWAY_URL}${hostname}${
+              pathname || '/'
+            }${query || ''}`;
           }
           return {
             url: gatewayUrl,
@@ -529,8 +532,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         const entryScriptWeb3Fetched = await EntryScriptWeb3.get();
         setEntryScriptWeb3(
           entryScriptWeb3Fetched +
-          SPA_urlChangeListener +
-          SCROLL_TRACKER_SCRIPT,
+            SPA_urlChangeListener +
+            SCROLL_TRACKER_SCRIPT,
         );
       };
 
