@@ -1073,7 +1073,12 @@ jobs:
 
   e2e-smoke-tests-android:
     name: 'Android E2E Smoke Tests'
-    if: ${{ !cancelled() && needs.build-android-apks.result == 'success' }}
+    if: >-
+      ${{
+        !cancelled() &&
+        needs.build-android-apks.result == 'success' &&
+        (needs.prepare-e2e-timings.result == 'success' || needs.prepare-e2e-timings.result == 'failure' || needs.prepare-e2e-timings.result == 'skipped')
+      }}
     permissions:
       contents: read
       id-token: write
@@ -1121,7 +1126,12 @@ jobs:
 
   e2e-smoke-tests-ios:
     name: 'iOS E2E Smoke Tests'
-    if: ${{ !cancelled() && needs.ios-tests-ready.result == 'success' }}
+    if: >-
+      ${{
+        !cancelled() &&
+        needs.ios-tests-ready.result == 'success' &&
+        (needs.prepare-e2e-timings.result == 'success' || needs.prepare-e2e-timings.result == 'failure' || needs.prepare-e2e-timings.result == 'skipped')
+      }}
     permissions:
       contents: read
       id-token: write
