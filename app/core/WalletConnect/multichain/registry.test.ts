@@ -22,6 +22,7 @@ import {
   getAllAdapters,
   getAllRegisteredNamespaces,
 } from './registry';
+import { bitcoinAdapter } from './bitcoin';
 import { solanaAdapter } from './solana';
 import { stellarAdapter } from './stellar';
 import { tronAdapter } from './tron';
@@ -39,6 +40,10 @@ describe('multichain/registry', () => {
     expect(getAdapter('stellar')).toBe(stellarAdapter);
   });
 
+  it('registers the bitcoin adapter under the bip122 CAIP-2 namespace', () => {
+    expect(getAdapter('bip122')).toBe(bitcoinAdapter);
+  });
+
   it('returns undefined for namespaces that have no registered adapter', () => {
     expect(getAdapter('eip155')).toBeUndefined();
     expect(getAdapter('cosmos')).toBeUndefined();
@@ -48,6 +53,7 @@ describe('multichain/registry', () => {
     expect(getAllRegisteredNamespaces()).toContain('tron');
     expect(getAllRegisteredNamespaces()).toContain('solana');
     expect(getAllRegisteredNamespaces()).toContain('stellar');
+    expect(getAllRegisteredNamespaces()).toContain('bip122');
   });
 
   it('exposes the registered adapters via getAllAdapters', () => {
@@ -56,5 +62,6 @@ describe('multichain/registry', () => {
     expect(adapters).toContain(tronAdapter);
     expect(adapters).toContain(solanaAdapter);
     expect(adapters).toContain(stellarAdapter);
+    expect(adapters).toContain(bitcoinAdapter);
   });
 });

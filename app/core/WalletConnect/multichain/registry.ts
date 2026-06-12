@@ -15,6 +15,7 @@ import { tronAdapter } from './tron';
 ///: END:ONLY_INCLUDE_IF
 import { solanaAdapter } from './solana';
 import { stellarAdapter } from './stellar';
+import { bitcoinAdapter } from './bitcoin';
 
 // Keyed by raw namespace string so lookups accept whatever a dapp proposal
 // sent, which we don't trust upfront.
@@ -53,3 +54,4 @@ registerAdapter(tronAdapter);
 ///: END:ONLY_INCLUDE_IF
 registerAdapter(solanaAdapter);
 registerAdapter(stellarAdapter);
+registerAdapter(bitcoinAdapter);
