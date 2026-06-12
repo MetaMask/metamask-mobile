@@ -1293,6 +1293,11 @@ export interface ParsePolymarketEventsOptions {
   sortMarketsBy?: 'price' | 'ascending' | 'descending';
   teamLookup?: PolymarketTeamLookupFn;
   extendedSportsMarketsLeagues?: string[];
+  // Outcome groups (the tab → card hierarchy) are only consumed by the market
+  // detail view. Building them eagerly while parsing feed/list/search results
+  // is wasted work and surfaces "unsupported sports market type" noise for
+  // markets the user never opens, so it's opt-in per call.
+  includeOutcomeGroups?: boolean;
 }
 
 export const parsePolymarketEvents = (
@@ -1305,7 +1310,12 @@ export const parsePolymarketEvents = (
       ? { category: categoryOrOptions, sortMarketsBy }
       : categoryOrOptions;
 
-  const { category, teamLookup, extendedSportsMarketsLeagues } = options;
+  const {
+    category,
+    teamLookup,
+    extendedSportsMarketsLeagues,
+    includeOutcomeGroups = false,
+  } = options;
   const sortBy = options.sortMarketsBy ?? sortMarketsBy;
 
   return events.flatMap((event: PolymarketApiEvent) => {
@@ -1355,6 +1365,7 @@ export const parsePolymarketEvents = (
       );
 
       const outcomeGroupingEnabled =
+        includeOutcomeGroups &&
         game &&
         eventLeague &&
         extendedSportsMarketsLeagues?.includes(eventLeague);
