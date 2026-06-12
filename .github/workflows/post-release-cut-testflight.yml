@@ -43,10 +43,10 @@ jobs:
       next-version: ${{ steps.version.outputs.next }}
       bumped: ${{ steps.version.outputs.bumped }}
     steps:
-      - name: Checkout main
+      - name: Checkout pushed commit
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: ${{ github.sha }}
           fetch-depth: 2
 
       - name: Compute x+2 version
