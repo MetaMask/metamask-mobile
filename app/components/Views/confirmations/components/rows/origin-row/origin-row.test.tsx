@@ -36,7 +36,6 @@ describe('InfoRowOrigin', () => {
     expect(queryByText('Request from')).toBeNull();
   });
 
-  // Bug: https://github.com/MetaMask/metamask-mobile/issues/30401
   // When a transaction is requested from a dapp opened in an external
   // browser, the wallet receives the request via the `ethereum:` deeplink
   // path and the resulting transaction has `origin === 'deeplink'`. The

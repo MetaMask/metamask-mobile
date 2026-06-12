@@ -175,7 +175,6 @@ describe('NetworkAndOriginRow', () => {
     expect(queryByText(MMM_ORIGIN)).toBeNull();
   });
 
-  // Bug: https://github.com/MetaMask/metamask-mobile/issues/30401
   it.each([
     ['deeplink', 'deeplink'],
     ['QR-code', 'qr-code'],
