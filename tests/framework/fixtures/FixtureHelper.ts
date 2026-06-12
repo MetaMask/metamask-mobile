@@ -14,6 +14,7 @@ import {
   startResourceWithRetry,
   startMultiInstanceResourceWithRetry,
   cleanupAllAndroidPortForwarding,
+  setupAndroidPortForwarding,
 } from './FixtureUtils';
 import Utilities from '../Utilities';
 import {
@@ -45,6 +46,7 @@ import {
   FALLBACK_MOCKSERVER_PORT,
   FALLBACK_FIXTURE_SERVER_PORT,
   FALLBACK_COMMAND_QUEUE_SERVER_PORT,
+  FALLBACK_GANACHE_PORT,
 } from '../Constants';
 import ContractAddressRegistry from '../../../app/util/test/contract-address-registry';
 import FixtureBuilder from './FixtureBuilder';
@@ -525,21 +527,59 @@ export const loadFixture = async (
   }
 };
 
+/**
+ * The mock server is shared across tests within a spec file instead of being
+ * stopped and restarted per test. On Android the emulator's global proxy
+ * tunnels the Detox tester WebSocket through this server (the proxy exclusion
+ * list is not honored for WS upgrades); stopping the server between tests
+ * cleanly closes that tunnel, which makes the app-side Detox client terminate
+ * permanently and breaks every later test using restartDevice: false.
+ * Per-test isolation comes from MockServerE2E.reconfigure(), which resets all
+ * rules/subscriptions without touching established tunnels. The instance is
+ * stopped once per spec file (afterAll in tests/init.detox.js); on Playwright
+ * workers it lives until the worker process exits.
+ */
+let sharedMockServerInstance: MockServerE2E | undefined;
+
+export const stopSharedMockServer = async (): Promise<void> => {
+  const instance = sharedMockServerInstance;
+  sharedMockServerInstance = undefined;
+  if (instance?.isStarted()) {
+    await instance.stop();
+  }
+};
+
 export const createMockAPIServer = async (
   testSpecificMock?: TestSpecificMock,
 ): Promise<{
   mockServerInstance: MockServerE2E;
   mockServerPort: number;
 }> => {
-  const mockServerInstance = new MockServerE2E({
-    events: DEFAULT_MOCKS,
-    testSpecificMock,
-  });
+  let mockServerInstance: MockServerE2E;
+  let mockServerPort: number;
 
-  const mockServerPort = await startResourceWithRetry(
-    ResourceType.MOCK_SERVER,
-    mockServerInstance,
-  );
+  if (sharedMockServerInstance?.isStarted()) {
+    mockServerInstance = sharedMockServerInstance;
+    mockServerPort = mockServerInstance.getServerPort();
+    await mockServerInstance.reconfigure({
+      events: DEFAULT_MOCKS,
+      testSpecificMock,
+    });
+    // cleanupAllAndroidPortForwarding removed the fallback-port reverse at
+    // the start of this test; the reused server skips startResourceWithRetry,
+    // so re-establish it here.
+    await setupAndroidPortForwarding(ResourceType.MOCK_SERVER, mockServerPort);
+  } else {
+    mockServerInstance = new MockServerE2E({
+      events: DEFAULT_MOCKS,
+      testSpecificMock,
+    });
+    mockServerPort = await startResourceWithRetry(
+      ResourceType.MOCK_SERVER,
+      mockServerInstance,
+    );
+    sharedMockServerInstance = mockServerInstance;
+  }
 
   const mockServer = mockServerInstance.server;
 
@@ -712,6 +752,29 @@ export async function withFixtures(
       SOLANA_INFURA_WS.fallbackPort,
       solanaInfuraWsServer.getServerPort(),
     );
+    // Local-node RPC is reachable over WS too (snaps' network-access tests
+    // open ws://localhost:8545 from the WebView), and those upgrades get
+    // captured by the device proxy exactly like the bridges above. The
+    // host-side node listens on a dynamic port, so an unbridged upgrade
+    // would dial a dead host port and ECONNREFUSED.
+    const anvilActualPort = PortManager.getInstance().getPort(
+      ResourceType.ANVIL,
+    );
+    if (anvilActualPort !== undefined) {
+      await mockServerInstance.bridgeLocalWebSocketPort(
+        DEFAULT_ANVIL_PORT,
+        anvilActualPort,
+      );
+    }
+    const ganacheActualPort = PortManager.getInstance().getPort(
+      ResourceType.GANACHE,
+    );
+    if (ganacheActualPort !== undefined) {
+      await mockServerInstance.bridgeLocalWebSocketPort(
+        FALLBACK_GANACHE_PORT,
+        ganacheActualPort,
+      );
+    }
     // Resolve fixture after local nodes are started so dynamic ports are known
     let resolvedFixture: FixtureBuilder | Fixture;
     if (typeof fixtureOption === 'function') {
@@ -964,15 +1027,10 @@ export async function withFixtures(
       cleanupErrors.push(cleanupError as Error);
     }
 
-    // Clean up the mock server
-    if (mockServerInstance?.isStarted()) {
-      try {
-        await mockServerInstance.stop();
-      } catch (cleanupError) {
-        logger.error('Error during mock server cleanup:', cleanupError);
-        cleanupErrors.push(cleanupError as Error);
-      }
-    }
+    // The mock server is intentionally NOT stopped here: it is shared across
+    // tests in this spec file (see sharedMockServerInstance) and stays in
+    // drain mode until the next test reconfigures it. It is stopped once per
+    // spec file via stopSharedMockServer() in tests/init.detox.js.
 
     // Clean up the fixture server
     if (fixtureServer?.isStarted()) {

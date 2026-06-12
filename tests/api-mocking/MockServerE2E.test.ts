@@ -7,6 +7,7 @@ import MockServerE2E, {
   type NormalizedHttpProxyRequest,
   type ProxyHandlerResponse,
 } from './MockServerE2E';
+import { setupMockRequest } from './helpers/mockHelpers';
 import { PlatformDetector } from '../framework/PlatformLocator';
 import PortManager, { ResourceType } from '../framework/PortManager';
 import type { MockEventsObject } from '../framework';
@@ -334,6 +335,47 @@ describe('handleNormalizedHttpProxyRequest', () => {
     expect(response.statusCode).toBe(500);
   });
 
+  it('strips body-framing and host headers from live-forwarded requests', async () => {
+    // Mockttp hands the proxy the DECODED request body, so the original
+    // content-length no longer matches what we forward — undici rejects the
+    // mismatch with UND_ERR_REQ_CONTENT_LENGTH_MISMATCH (seen on device-
+    // proxied Firebase installation POSTs).
+    const fetchSpy = jest
+      .spyOn(global, 'fetch')
+      .mockResolvedValue(new Response('{}', { status: 200 }));
+
+    await handleNormalizedHttpProxyRequest(
+      createRequest({
+        targetUrl: 'https://firebaseinstallations.example.test/v1/install',
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'content-length': '999',
+          'content-encoding': 'gzip',
+          host: 'firebaseinstallations.example.test',
+          'x-goog-api-key': 'test-key',
+        },
+        bodyText: '{"fid":"abc"}',
+      }),
+      {
+        events: {},
+        getForwardUrl: (url) => url,
+      },
+    );
+
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    const forwardedHeaders = (
+      fetchSpy.mock.calls[0][1] as { headers: Record<string, string> }
+    ).headers;
+    expect(forwardedHeaders).toMatchObject({
+      'content-type': 'application/json',
+      'x-goog-api-key': 'test-key',
+    });
+    expect(forwardedHeaders).not.toHaveProperty('content-length');
+    expect(forwardedHeaders).not.toHaveProperty('content-encoding');
+    expect(forwardedHeaders).not.toHaveProperty('host');
+  });
+
   it('uses PlatformDetector for Android shim localhost forwarding', () => {
     jest.spyOn(PlatformDetector, 'getPlatform').mockReturnValue('android');
 
@@ -506,4 +548,290 @@ describe('bridgeLocalWebSocketPort', () => {
     expect(message).toBe('bridged-hello');
     expect(seenPaths).toEqual(['/v1?token=test']);
   }, 30000);
+});
+
+describe('raw device-proxy ingress (loopback re-entry)', () => {
+  let mockServer: MockServerE2E | undefined;
+
+  afterEach(async () => {
+    await mockServer?.stop();
+    mockServer = undefined;
+    PortManager.resetInstance();
+    jest.restoreAllMocks();
+  });
+
+  /**
+   * Raw absolute-form request for a NON-local target — the shape true
+   * device-proxied app traffic (e.g. an accounts-API balance fetch issued
+   * before the shim patches fetch) arrives in.
+   */
+  const sendRawProxyFormRequest = (
+    proxyPort: number,
+    absoluteUrl: string,
+  ): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const socket = connect(proxyPort, '127.0.0.1', () => {
+        const { host } = new URL(absoluteUrl);
+        socket.write(
+          `GET ${absoluteUrl} HTTP/1.1\r\nHost: ${host}\r\nConnection: close\r\n\r\n`,
+        );
+      });
+      let data = '';
+      socket.on('data', (chunk: Buffer) => (data += chunk.toString('utf8')));
+      socket.on('end', () => resolve(data));
+      socket.on('error', reject);
+      setTimeout(() => reject(new Error('proxy-form request timeout')), 10000);
+    });
+
+  it('serves testSpecificMock rules for raw device-proxy arrivals', async () => {
+    // testSpecificMock registers priority-999 mockttp rules on the /proxy
+    // path. Raw device-proxy arrivals never hit that path directly — the
+    // loopback re-entry must make those rules apply anyway. Regression test
+    // for the stake balance starvation: the spec's accounts-API override was
+    // invisible to device-proxy traffic, so the app got the 0-ETH default.
+    mockServer = new MockServerE2E({
+      events: {
+        GET: [
+          {
+            urlEndpoint: 'http://accounts.api.example.test/v4/balances',
+            responseCode: 200,
+            response: { balance: '0' },
+          },
+        ],
+      },
+      testSpecificMock: async (server) => {
+        await setupMockRequest(server, {
+          requestMethod: 'GET',
+          url: 'http://accounts.api.example.test/v4/balances',
+          response: { balance: '10000' },
+          responseCode: 200,
+        });
+      },
+    });
+    mockServer.setServerPort(await getFreePort());
+    await mockServer.start();
+
+    const raw = await sendRawProxyFormRequest(
+      mockServer.getServerPort(),
+      'http://accounts.api.example.test/v4/balances',
+    );
+
+    expect(raw).toContain('HTTP/1.1 200');
+    expect(raw).toContain('{"balance":"10000"}');
+  }, 15000);
+
+  it('still serves default mock events for raw device-proxy arrivals', async () => {
+    mockServer = new MockServerE2E({
+      events: {
+        GET: [
+          {
+            urlEndpoint: 'http://api.example.test/feature-flags',
+            responseCode: 200,
+            response: { flags: [] },
+          },
+        ],
+      },
+    });
+    mockServer.setServerPort(await getFreePort());
+    await mockServer.start();
+
+    const raw = await sendRawProxyFormRequest(
+      mockServer.getServerPort(),
+      'http://api.example.test/feature-flags',
+    );
+
+    expect(raw).toContain('HTTP/1.1 200');
+    expect(raw).toContain('{"flags":[]}');
+  }, 15000);
+
+  it('keeps device-proxy source semantics through the loopback (no live-request failures)', async () => {
+    mockServer = new MockServerE2E({ events: {} });
+    mockServer.setServerPort(await getFreePort());
+    await mockServer.start();
+
+    // Unmocked, unforwardable target: the loopback re-enters /proxy with the
+    // ingress marker, so the miss must be treated as device-proxy traffic
+    // (logged, forwarded, NOT recorded as an allowlist violation).
+    await sendRawProxyFormRequest(
+      mockServer.getServerPort(),
+      'http://unmocked.device-noise.invalid/collect',
+    ).catch(() => '');
+
+    expect(() => mockServer?.validateLiveRequests()).not.toThrow();
+  }, 15000);
+});
+
+describe('reconfigure', () => {
+  let mockServer: MockServerE2E | undefined;
+  let wsServer: WebSocketServer | undefined;
+  let client: WsClient | undefined;
+
+  afterEach(async () => {
+    client?.close();
+    await new Promise<void>((resolve) => {
+      if (!wsServer) return resolve();
+      wsServer.close(() => resolve());
+    });
+    await mockServer?.stop();
+    mockServer = undefined;
+    wsServer = undefined;
+    client = undefined;
+    PortManager.resetInstance();
+    jest.restoreAllMocks();
+  });
+
+  const sendShimProxyRequest = async (
+    serverPort: number,
+    targetUrl: string,
+  ): Promise<Response> =>
+    await fetch(
+      `http://127.0.0.1:${serverPort}/proxy?url=${encodeURIComponent(targetUrl)}`,
+    );
+
+  it('swaps testSpecificMock rules and default events for the next test', async () => {
+    mockServer = new MockServerE2E({
+      events: {},
+      testSpecificMock: async (server) => {
+        await setupMockRequest(server, {
+          requestMethod: 'GET',
+          url: 'http://api.example.test/value',
+          response: { value: 'first-test' },
+          responseCode: 200,
+        });
+      },
+    });
+    mockServer.setServerPort(await getFreePort());
+    await mockServer.start();
+
+    const first = await sendShimProxyRequest(
+      mockServer.getServerPort(),
+      'http://api.example.test/value',
+    );
+    expect(await first.json()).toEqual({ value: 'first-test' });
+
+    await mockServer.reconfigure({
+      events: {},
+      testSpecificMock: async (server) => {
+        await setupMockRequest(server, {
+          requestMethod: 'GET',
+          url: 'http://api.example.test/value',
+          response: { value: 'second-test' },
+          responseCode: 200,
+        });
+      },
+    });
+
+    const second = await sendShimProxyRequest(
+      mockServer.getServerPort(),
+      'http://api.example.test/value',
+    );
+    expect(await second.json()).toEqual({ value: 'second-test' });
+  }, 15000);
+
+  it('clears recorded live requests between tests', async () => {
+    mockServer = new MockServerE2E({ events: {} });
+    mockServer.setServerPort(await getFreePort());
+    await mockServer.start();
+
+    // Shim-proxy miss to a non-allowlisted host records a live request...
+    await sendShimProxyRequest(
+      mockServer.getServerPort(),
+      'http://unmocked.shim-miss.invalid/data',
+    ).catch(() => undefined);
+    expect(() => mockServer?.validateLiveRequests()).toThrow(
+      /unmocked request/,
+    );
+
+    // ...which must not leak into the next test after reconfigure.
+    await mockServer.reconfigure({ events: {} });
+    expect(() => mockServer?.validateLiveRequests()).not.toThrow();
+  }, 15000);
+
+  it('keeps established WebSocket tunnels alive across reconfigure', async () => {
+    // The whole point of reusing the server across tests: on Android the
+    // device proxy tunnels the Detox tester WebSocket through this server.
+    // reset() + re-registration must NOT sever an established tunnel — a
+    // clean close makes the app-side Detox client terminate permanently.
+    wsServer = new WebSocketServer({ port: 0 });
+    await new Promise<void>((resolve) => wsServer?.once('listening', resolve));
+    const actualPort = (wsServer.address() as AddressInfo).port;
+    const fallbackPort = await getFreePort();
+
+    const upstreamSockets: import('ws').WebSocket[] = [];
+    wsServer.on('connection', (socket) => {
+      upstreamSockets.push(socket);
+      socket.send('hello-test-1');
+    });
+
+    mockServer = new MockServerE2E({ events: {} });
+    mockServer.setServerPort(await getFreePort());
+    await mockServer.start();
+    await mockServer.bridgeLocalWebSocketPort(fallbackPort, actualPort);
+
+    client = new WsClient(
+      `ws://127.0.0.1:${mockServer.getServerPort()}/session`,
+      { headers: { host: `localhost:${fallbackPort}` } },
+    );
+
+    const waitForMessage = (expected: string): Promise<string> =>
+      new Promise((resolve, reject) => {
+        const timer = setTimeout(
+          () => reject(new Error(`Timed out waiting for "${expected}"`)),
+          10000,
+        );
+        client?.once('message', (data) => {
+          clearTimeout(timer);
+          resolve(data.toString());
+        });
+        client?.once('error', (error) => {
+          clearTimeout(timer);
+          reject(error);
+        });
+      });
+
+    expect(await waitForMessage('hello-test-1')).toBe('hello-test-1');
+
+    // Next test's configuration swap: rules are reset and re-registered.
+    await mockServer.reconfigure({ events: {} });
+    await mockServer.bridgeLocalWebSocketPort(fallbackPort, actualPort);
+
+    // The tunnel established during "test 1" must still deliver messages.
+    const survived = waitForMessage('hello-test-2');
+    upstreamSockets[0].send('hello-test-2');
+    expect(await survived).toBe('hello-test-2');
+
+    // And brand-new connections work against the re-registered bridge.
+    const secondClient = new WsClient(
+      `ws://127.0.0.1:${mockServer.getServerPort()}/session`,
+      { headers: { host: `localhost:${fallbackPort}` } },
+    );
+    try {
+      const secondMessage = await new Promise<string>((resolve, reject) => {
+        const timer = setTimeout(
+          () => reject(new Error('Timed out waiting for second connection')),
+          10000,
+        );
+        secondClient.once('message', (data) => {
+          clearTimeout(timer);
+          resolve(data.toString());
+        });
+        secondClient.once('error', (error) => {
+          clearTimeout(timer);
+          reject(error);
+        });
+      });
+      expect(secondMessage).toBe('hello-test-1');
+    } finally {
+      secondClient.close();
+    }
+  }, 30000);
+
+  it('rejects reconfigure on a server that is not running', async () => {
+    mockServer = new MockServerE2E({ events: {} });
+
+    await expect(mockServer.reconfigure({ events: {} })).rejects.toThrow(
+      'Cannot reconfigure a mock server that is not running',
+    );
+    mockServer = undefined;
+  });
 });

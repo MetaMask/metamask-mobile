@@ -172,6 +172,16 @@ const DEVICE_LOCAL_HOST_ALIASES = new Set([
 ]);
 
 /**
+ * Internal marker set on loopback re-entries of raw device-proxy traffic
+ * (see the forUnmatchedRequest handler). Lets the /proxy ingress preserve
+ * device-proxy source semantics (allowlist exemption, unmocked-request
+ * logging) for requests that re-enter through the shim ingress. Never
+ * forwarded upstream.
+ */
+export const DEVICE_PROXY_INGRESS_MARKER_HEADER =
+  'x-metamask-e2e-device-proxy-ingress';
+
+/**
  * Translates fallback ports to actual allocated ports in URLs.
  * This allows the MockServer (running on host) to forward requests to dynamically allocated local resources.
  *
@@ -521,6 +531,35 @@ const NON_FORWARDABLE_RESPONSE_HEADERS = new Set([
   'keep-alive',
 ]);
 
+/**
+ * Request headers NOT forwarded on live upstream forwards.
+ *
+ * content-length/content-encoding/transfer-encoding: mockttp hands us the
+ * DECODED request body, so the original framing headers no longer describe
+ * what we send — undici rejects the mismatch with
+ * UND_ERR_REQ_CONTENT_LENGTH_MISMATCH (observed on device-proxied Firebase
+ * installation POSTs) and recomputes content-length itself from the body.
+ *
+ * host: must describe the host we actually dial; after local-resource port
+ * translation the original value is stale, and undici derives the correct
+ * one from the target URL.
+ *
+ * Remaining entries are hop-by-hop headers that proxies never forward.
+ */
+const NON_FORWARDABLE_REQUEST_HEADERS = new Set([
+  'content-length',
+  'content-encoding',
+  'transfer-encoding',
+  'connection',
+  'keep-alive',
+  'proxy-connection',
+  'expect',
+  'upgrade',
+  'te',
+  'trailer',
+  'host',
+]);
+
 const NETWORK_ERROR_CODES = new Set([
   'ENOTFOUND',
   'ECONNREFUSED',
@@ -546,7 +585,7 @@ const handleDirectFetch = async (
   try {
     const fetchHeaders: HeadersInit = {};
     for (const [key, value] of Object.entries(headers)) {
-      if (value) {
+      if (value && !NON_FORWARDABLE_REQUEST_HEADERS.has(key.toLowerCase())) {
         fetchHeaders[key] = Array.isArray(value) ? value[0] : value;
       }
     }
@@ -878,34 +917,87 @@ export default class MockServerE2E implements Resource {
       `Mockttp server running at http://${getLocalHost()}:${this._serverPort}`,
     );
 
-    await this._server.on('request-initiated', logNativeProxyRequestInitiated);
-    await this._server.on('tls-client-error', logNativeProxyTlsClientError);
-    await this._server.on('client-error', logNativeProxyClientError);
-    await this._server.on(
-      'websocket-request',
-      this._logNativeProxyWebSocketRequest,
-    );
-    await this._server.on(
+    await this._applyServerConfiguration();
+
+    this._serverStatus = ServerStatus.STARTED;
+    this._installAbortFilter();
+  }
+
+  /**
+   * Swaps in the next test's mock configuration on the already-running
+   * server, instead of stopping and restarting it.
+   *
+   * Why the server must survive test boundaries: on Android the emulator's
+   * global proxy routes the Detox tester WebSocket through this server (the
+   * proxy exclusion list is not honored for WS upgrades). Stopping the
+   * server between tests severs that tunnel with a clean close — and on a
+   * clean close the app-side Detox client dispatches its termination action
+   * (DetoxServerAdapter.onClosed) and never reconnects, so every subsequent
+   * test running with restartDevice: false fails with "Detox can't seem to
+   * connect to the test app(s)". server.reset() disposes rules and
+   * subscriptions but leaves the listening socket and established tunnels
+   * intact, so per-test mock isolation is preserved without killing the
+   * Detox session.
+   */
+  async reconfigure(params: {
+    events: MockEventsObject;
+    testSpecificMock?: TestSpecificMock;
+  }): Promise<void> {
+    if (!this._server || this._serverStatus !== ServerStatus.STARTED) {
+      throw new Error('Cannot reconfigure a mock server that is not running');
+    }
+
+    // Let the previous test's in-flight handlers finish before their rules
+    // and events are swapped out from under them.
+    await this._waitForActiveRequests();
+
+    this._events = params.events;
+    this._testSpecificMock = params.testSpecificMock;
+    this._shuttingDown = false;
+    this._webSocketUrlsByStreamId.clear();
+    this._server._liveRequests = [];
+
+    this._server.reset();
+    await this._applyServerConfiguration();
+
+    // The per-test cleanup in withFixtures restores Jest's handlers via
+    // removeAbortFilter(); re-arm the filter for the next test.
+    this._installAbortFilter();
+  }
+
+  /**
+   * Registers event subscriptions, static rules, per-test mocks
+   * (testSpecificMock) and the proxy ingress handlers on the running server.
+   *
+   * Runs from start() and again from reconfigure() after server.reset():
+   * reset() disposes all rules AND event subscriptions, so everything here
+   * must be re-registered for each test that reuses the server.
+   */
+  private async _applyServerConfiguration(): Promise<void> {
+    const server = this.server;
+
+    await server.on('request-initiated', logNativeProxyRequestInitiated);
+    await server.on('tls-client-error', logNativeProxyTlsClientError);
+    await server.on('client-error', logNativeProxyClientError);
+    await server.on('websocket-request', this._logNativeProxyWebSocketRequest);
+    await server.on(
       'websocket-accepted',
       this._logNativeProxyWebSocketAccepted,
     );
-    await this._server.on(
+    await server.on(
       'websocket-message-received',
       this._logNativeProxyWebSocketMessageReceived,
     );
-    await this._server.on(
+    await server.on(
       'websocket-message-sent',
       this._logNativeProxyWebSocketMessageSent,
     );
-    await this._server.on(
-      'websocket-close',
-      this._logNativeProxyWebSocketClose,
-    );
+    await server.on('websocket-close', this._logNativeProxyWebSocketClose);
 
-    await this._server
+    await server
       .forGet('/health-check')
       .thenReply(200, 'Mock server is running');
-    await this._server
+    await server
       .forGet(
         /^http:\/\/(localhost|127\.0\.0\.1|10\.0\.2\.2)(:\\d+)?\/favicon\.ico$/,
       )
@@ -913,15 +1005,15 @@ export default class MockServerE2E implements Resource {
 
     if (this._testSpecificMock) {
       logger.info('Applying testSpecificMock function (takes precedence)');
-      await this._testSpecificMock(this._server);
+      await this._testSpecificMock(server);
     }
 
-    await this._server.forAnyWebSocket().thenPassThrough();
+    await server.forAnyWebSocket().thenPassThrough();
 
-    await setupAccountsV2SupportedNetworksMock(this._server);
-    await setupAccountsV4TransactionsMock(this._server);
+    await setupAccountsV2SupportedNetworksMock(server);
+    await setupAccountsV4TransactionsMock(server);
 
-    await this._server
+    await server
       .forAnyRequest()
       .matching((request) => request.path.startsWith('/proxy'))
       .thenCallback(async (request) => {
@@ -950,12 +1042,22 @@ export default class MockServerE2E implements Resource {
             ? await safeGetBodyText(request)
             : undefined;
 
+          // Loopback re-entries of raw device-proxy traffic carry the
+          // ingress marker: honor their original source so allowlist and
+          // unmocked-request semantics are unchanged, and strip the marker
+          // so it never reaches a live upstream.
+          const headers = { ...request.headers };
+          const isDeviceProxyReentry = Boolean(
+            headers[DEVICE_PROXY_INGRESS_MARKER_HEADER],
+          );
+          delete headers[DEVICE_PROXY_INGRESS_MARKER_HEADER];
+
           return await handleNormalizedHttpProxyRequest(
             {
-              source: 'shim-proxy',
+              source: isDeviceProxyReentry ? 'device-proxy' : 'shim-proxy',
               targetUrl: urlEndpoint,
               method,
-              headers: request.headers,
+              headers,
               bodyText: requestBodyText,
             },
             {
@@ -977,7 +1079,7 @@ export default class MockServerE2E implements Resource {
         }
       });
 
-    await this._server.forUnmatchedRequest().thenCallback(async (request) => {
+    await server.forUnmatchedRequest().thenCallback(async (request) => {
       // During shutdown, consume the body and return 503 immediately.
       if (this._shuttingDown) {
         try {
@@ -1026,19 +1128,26 @@ export default class MockServerE2E implements Resource {
           // Ignore URL parsing errors
         }
 
-        return await handleNormalizedHttpProxyRequest(
+        // Re-enter raw device-proxy arrivals through our own /proxy ingress
+        // instead of consulting the events table directly. testSpecificMock
+        // registers priority-999 mockttp RULES on the /proxy path, which raw
+        // arrivals would otherwise never see — the app would get the DEFAULT
+        // mock (e.g. a 0-ETH accounts-API balance) even though the test
+        // registered an override. The loopback makes every mock layer (rules
+        // AND events) apply to every ingress; the marker header preserves
+        // device-proxy source semantics and is stripped before any live
+        // forward. /proxy ingress is terminal, so re-entry cannot recurse.
+        const loopbackUrl = `http://127.0.0.1:${
+          this._serverPort
+        }/proxy?url=${encodeURIComponent(request.url)}`;
+        return await handleDirectFetch(
+          loopbackUrl,
+          method,
           {
-            source: 'device-proxy',
-            targetUrl: request.url,
-            method,
-            headers: request.headers,
-            bodyText,
+            ...request.headers,
+            [DEVICE_PROXY_INGRESS_MARKER_HEADER]: '1',
           },
-          {
-            events: this._events,
-            liveRequests: this._server?._liveRequests,
-            getForwardUrl: getProxyForwardUrl,
-          },
+          bodyText,
         );
       } catch (error) {
         // Client dropped the connection before we could respond (e.g. bridge
@@ -1052,9 +1161,6 @@ export default class MockServerE2E implements Resource {
         this._activeRequests--;
       }
     });
-
-    this._serverStatus = ServerStatus.STARTED;
-    this._installAbortFilter();
   }
 
   /**

@@ -145,7 +145,7 @@ export async function cleanupAllAndroidPortForwarding(): Promise<void> {
  * @param actualPort - The actual port allocated by PortManager
  * @param instanceIndex - Optional instance index for multi-instance resources (e.g., dapp-server-0 uses index 0)
  */
-async function setupAndroidPortForwarding(
+export async function setupAndroidPortForwarding(
   resourceType: ResourceType,
   actualPort: number,
   instanceIndex?: number,
