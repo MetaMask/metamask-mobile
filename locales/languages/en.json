@@ -1037,7 +1037,7 @@
   },
   "social_leaderboard": {
     "top_traders_view": {
-      "title": "Top Traders",
+      "title": "Weekly Top Traders",
       "chain_filter": {
         "all": "All"
       }
@@ -9669,7 +9669,7 @@
       "related_assets": "Related Assets",
       "perpetuals": "Perpetuals",
       "predictions": "Predictions",
-      "top_traders": "Top Traders",
+      "top_traders": "Weekly Top Traders",
       "defi": "DeFi",
       "nfts": "NFTs",
       "trending_tokens": "Trending",
