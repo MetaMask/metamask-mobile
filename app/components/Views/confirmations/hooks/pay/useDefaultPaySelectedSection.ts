@@ -1,25 +1,50 @@
+import { useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
+import type { Hex } from '@metamask/utils';
+import Engine from '../../../../../core/Engine';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
-import { selectMetaMaskPayFlags } from '../../../../../selectors/featureFlagController/confirmations';
+import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useParams } from '../../../../../util/navigation/navUtils';
-import { ConfirmationParams } from '../../components/confirm/confirm-component';
+import {
+  ConfirmationParams,
+  PayWithOption,
+} from '../../components/confirm/confirm-component';
+import { useIsMoneyAccountFlagDefault } from './useIsMoneyAccountFlagDefault';
+import { isTransactionPayWithdraw } from '../../utils/transaction';
 
-/**
- * Returns `true` when the `defaultPaySelectedSection` feature flag is
- * `"money-account"` and the user has a money account, while no explicit
- * `payWithOption` nav-param overrides the selection.
- *
- * This value is derived synchronously at render time so consumers can
- * use it on the very first render — no effect delay, no flash.
- */
-export function useDefaultPaySelectedSection(): boolean {
+export function useDefaultPaySelectedSection() {
   const { payWithOption } = useParams<ConfirmationParams>({});
+  const transactionMeta = useTransactionMetadataRequest();
   const moneyAccount = useSelector(selectPrimaryMoneyAccount);
-  const { defaultPaySelectedSection } = useSelector(selectMetaMaskPayFlags);
+  const isDefaultMoneyAccount = useIsMoneyAccountFlagDefault();
+  const isWithdraw = isTransactionPayWithdraw(transactionMeta);
+  const appliedRef = useRef<string | undefined>(undefined);
 
-  return (
-    !payWithOption &&
-    defaultPaySelectedSection === 'money-account' &&
-    !!moneyAccount
-  );
+  const isMoneyAccount =
+    payWithOption === PayWithOption.MoneyAccount || isDefaultMoneyAccount;
+  const transactionId = transactionMeta?.id;
+
+  useEffect(() => {
+    if (
+      !isMoneyAccount ||
+      !transactionId ||
+      appliedRef.current === transactionId
+    ) {
+      return;
+    }
+
+    appliedRef.current = transactionId;
+
+    Engine.context.TransactionPayController.setTransactionConfig(
+      transactionId,
+      (config) => {
+        (config as Record<string, unknown>).paymentOverride =
+          PaymentOverride.MoneyAccount;
+        if (moneyAccount?.address && !isWithdraw) {
+          config.refundTo = moneyAccount.address as Hex;
+        }
+      },
+    );
+  }, [isMoneyAccount, isWithdraw, transactionId, moneyAccount?.address]);
 }

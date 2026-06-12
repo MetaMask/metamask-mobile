@@ -7,11 +7,11 @@ import { ARBITRUM_USDC, PERPS_CURRENCY } from '../../../constants/perps';
 import { useAddToken } from '../../../hooks/tokens/useAddToken';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
-import { useMoneyAccountPaymentOverride } from '../../../hooks/pay/useMoneyAccountPaymentOverride';
+import { useDefaultPaySelectedSection } from '../../../hooks/pay/useDefaultPaySelectedSection';
 
 export function PerpsWithdrawInfo() {
   useNavbar(strings('confirm.title.perps_withdraw'));
-  useMoneyAccountPaymentOverride();
+  useDefaultPaySelectedSection();
 
   const { canSelectWithdrawToken } = useTransactionPayWithdraw();
 

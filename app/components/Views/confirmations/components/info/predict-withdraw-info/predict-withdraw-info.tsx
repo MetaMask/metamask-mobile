@@ -7,11 +7,11 @@ import { POLYGON_PUSD, PREDICT_CURRENCY } from '../../../constants/predict';
 import { useAddToken } from '../../../hooks/tokens/useAddToken';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
-import { useMoneyAccountPaymentOverride } from '../../../hooks/pay/useMoneyAccountPaymentOverride';
+import { useDefaultPaySelectedSection } from '../../../hooks/pay/useDefaultPaySelectedSection';
 
 export function PredictWithdrawInfo() {
   useNavbar(strings('confirm.title.predict_withdraw'));
-  useMoneyAccountPaymentOverride();
+  useDefaultPaySelectedSection();
 
   const { canSelectWithdrawToken } = useTransactionPayWithdraw();
 
