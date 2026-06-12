@@ -220,6 +220,40 @@ describe('useTraderPositions', () => {
       expect(result.current.openPositions).toEqual([]);
       expect(result.current.closedPositions).toEqual([]);
     });
+
+    it('filters hyperliquid positions out of both open and closed lists', () => {
+      const hlPosition = {
+        ...mockOpenPositions[0],
+        tokenSymbol: 'HYPE',
+        chain: 'hyperliquid',
+      };
+      mockUseQuery
+        .mockReturnValueOnce(
+          makeQueryResult({
+            data: {
+              positions: [...mockOpenPositions, hlPosition],
+            } as never,
+          }),
+        )
+        .mockReturnValueOnce(
+          makeQueryResult({
+            data: {
+              positions: [...mockClosedPositions, hlPosition],
+            } as never,
+          }),
+        );
+
+      const { result } = renderHook(() => useTraderPositions('trader-1'));
+
+      expect(
+        result.current.openPositions.every((p) => p.chain !== 'hyperliquid'),
+      ).toBe(true);
+      expect(result.current.openPositions).toEqual(mockOpenPositions);
+      expect(
+        result.current.closedPositions.every((p) => p.chain !== 'hyperliquid'),
+      ).toBe(true);
+      expect(result.current.closedPositions).toEqual(mockClosedPositions);
+    });
   });
 
   describe('loading states', () => {

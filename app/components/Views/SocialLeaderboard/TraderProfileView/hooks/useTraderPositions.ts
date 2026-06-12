@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
 import type {
@@ -12,6 +12,8 @@ import {
   useLogSocialQueryError,
 } from '../../../../../util/social/socialServiceTelemetry';
 import { selectIsUnlocked } from '../../../../../selectors/keyringController';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { SPOT_CHAINS } from '../../../Homepage/Sections/TopTraders/constants';
 
 const EMPTY_POSITIONS: Position[] = [];
 const TRADER_POSITIONS_SOURCE = 'useTraderPositions';
@@ -84,8 +86,23 @@ export const useTraderPositions = (
     endpoint: 'closed_positions',
   });
 
-  const openPositions = openData?.positions ?? EMPTY_POSITIONS;
-  const closedPositions = closedData?.positions ?? EMPTY_POSITIONS;
+  // Defensive spot-only filter: Clicker's `/positions` endpoint currently
+  // excludes Hyperliquid by default, but that default is being flipped to
+  // "all chains." Filter client-side until perps surfacing lands.
+  const openPositions = useMemo(
+    () =>
+      (openData?.positions ?? EMPTY_POSITIONS).filter((p) =>
+        SPOT_CHAINS.includes(p.chain),
+      ),
+    [openData?.positions],
+  );
+  const closedPositions = useMemo(
+    () =>
+      (closedData?.positions ?? EMPTY_POSITIONS).filter((p) =>
+        SPOT_CHAINS.includes(p.chain),
+      ),
+    [closedData?.positions],
+  );
   const combinedError = openError ?? closedError;
 
   const refetch = useCallback(async () => {
