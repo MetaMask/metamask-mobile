@@ -1,17 +1,14 @@
 import Matchers from '../../framework/Matchers';
-import UnifiedGestures from '../../framework/UnifiedGestures';
+import Gestures from '../../framework/Gestures';
 import { TabBarSelectorIDs } from '../../../app/components/Nav/Main/TabBar.testIds';
 import {
   Assertions,
-  PlaywrightAssertions,
   Utilities,
   resolve,
   EncapsulatedElementType,
-  asPlaywrightElement,
 } from '../../framework';
-import { encapsulatedAction } from '../../framework/encapsulatedAction';
+import { encapsulated } from '../../framework/EncapsulatedElement';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import PlaywrightGestures from '../../framework/PlaywrightGestures';
 import ActivitiesView from '../Transactions/ActivitiesView';
 import SettingsView from '../Settings/SettingsView';
 import AccountMenu from '../AccountMenu/AccountMenu';
@@ -56,40 +53,21 @@ class TabBarComponent {
   }
 
   get homeButton(): EncapsulatedElementType {
-    return resolve({
-      custom: {
-        detox: () => Matchers.getElementByText('Home'),
-        appium: () =>
-          PlaywrightMatchers.getElementById(TabBarSelectorIDs.WALLET, {
-            exact: true,
-          }),
-      },
+    return encapsulated({
+      detox: () => Matchers.getElementByText('Home'),
+      appium: () =>
+        PlaywrightMatchers.getElementById(TabBarSelectorIDs.WALLET, {
+          exact: true,
+        }),
     });
   }
 
   async tapHome(): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
-        await encapsulatedAction({
-          detox: async () => {
-            await UnifiedGestures.waitAndTap(this.homeButton, {
-              timeout: 2000,
-            });
-            await Assertions.expectElementToBeVisible(WalletView.container, {
-              timeout: 500,
-            });
-          },
-          appium: async () => {
-            await PlaywrightGestures.waitAndTap(
-              await asPlaywrightElement(this.homeButton),
-            );
-            await PlaywrightAssertions.expectElementToBeVisible(
-              await asPlaywrightElement(WalletView.container),
-              {
-                timeout: 500,
-              },
-            );
-          },
+        await Gestures.waitAndTap(this.homeButton, { timeout: 2000 });
+        await Assertions.expectElementToBeVisible(WalletView.container, {
+          timeout: 500,
         });
       },
       {
@@ -103,9 +81,7 @@ class TabBarComponent {
   async tapWallet(): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
-        await UnifiedGestures.waitAndTap(this.tabBarWalletButton, {
-          timeout: 2000,
-        });
+        await Gestures.waitAndTap(this.tabBarWalletButton, { timeout: 2000 });
         await Assertions.expectElementToBeVisible(WalletView.container, {
           timeout: 500,
         });
@@ -120,46 +96,33 @@ class TabBarComponent {
   }
 
   async tapBrowser(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.tabBarBrowserButton, {
-      description: 'Tab Bar - Browser Button',
+    await Gestures.waitAndTap(this.tabBarBrowserButton, {
+      elemDescription: 'Tab Bar - Browser Button',
     });
   }
 
   async tapActions(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.tabBarActionButton, {
-      description: 'Tab Bar - Trade Button',
+    await Gestures.waitAndTap(this.tabBarActionButton, {
+      elemDescription: 'Tab Bar - Actions Button',
     });
   }
 
   async tapTrade(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.tabBarTradeButton, {
-      description: 'Tab Bar - Trade Button',
+    await Gestures.waitAndTap(this.tabBarTradeButton, {
+      elemDescription: 'Tab Bar - Trade Button',
     });
   }
 
   async tapAccountsMenu(): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
-        await UnifiedGestures.waitAndTap(this.tabBarWalletButton, {
-          timeout: 2000,
+        await Gestures.waitAndTap(this.tabBarWalletButton, { timeout: 2000 });
+        await Assertions.expectElementToBeVisible(WalletView.container, {
+          timeout: 500,
         });
-        await encapsulatedAction({
-          detox: async () => {
-            await Assertions.expectElementToBeVisible(WalletView.container);
-            await UnifiedGestures.waitAndTap(WalletView.hamburgerMenuButton);
-            await Assertions.expectElementToBeVisible(AccountMenu.container);
-          },
-          appium: async () => {
-            await PlaywrightAssertions.expectElementToBeVisible(
-              await asPlaywrightElement(WalletView.container),
-              { timeout: 500 },
-            );
-            await UnifiedGestures.waitAndTap(WalletView.hamburgerMenuButton);
-            await PlaywrightAssertions.expectElementToBeVisible(
-              await asPlaywrightElement(AccountMenu.container),
-              { timeout: 500 },
-            );
-          },
+        await Gestures.waitAndTap(WalletView.hamburgerMenuButton);
+        await Assertions.expectElementToBeVisible(AccountMenu.container, {
+          timeout: 500,
         });
       },
       {
@@ -172,24 +135,12 @@ class TabBarComponent {
   async tapSettings(): Promise<void> {
     await this.tapAccountsMenu();
     await AccountMenu.tapSettings();
-    await encapsulatedAction({
-      detox: async () => {
-        await Assertions.expectElementToBeVisible(SettingsView.title);
-      },
-      appium: async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(SettingsView.title),
-          { description: 'Settings view title' },
-        );
-      },
-    });
+    await Assertions.expectElementToBeVisible(SettingsView.title);
   }
   async tapExploreButton(): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
-        await UnifiedGestures.waitAndTap(this.tabBarExploreButton, {
-          timeout: 2000,
-        });
+        await Gestures.waitAndTap(this.tabBarExploreButton, { timeout: 2000 });
         await Assertions.expectElementToBeVisible(TrendingView.searchButton, {
           description: 'Trending view search button should be visible',
           timeout: 500,
@@ -205,40 +156,27 @@ class TabBarComponent {
   }
 
   async tapActivity(): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await Utilities.executeWithRetry(
-          async () => {
-            await UnifiedGestures.waitAndTap(this.tabBarActivityButton, {
-              timeout: 2000,
-            });
-            await Assertions.expectElementToBeVisible(ActivitiesView.title, {
-              description: 'Activity View Title',
-              timeout: 500,
-            });
-          },
-          {
-            // Each attempt: ~2.5s (2s tap + 0.5s assertion). 15 retries ≈ ~37s total budget.
-            maxRetries: 15,
-            timeout: 45000,
-            description: 'Tap Activity Button',
-          },
-        );
+    await Utilities.executeWithRetry(
+      async () => {
+        await Gestures.waitAndTap(this.tabBarActivityButton, { timeout: 2000 });
+        await Assertions.expectElementToBeVisible(ActivitiesView.title, {
+          description: 'Activity View Title',
+          timeout: 500,
+        });
       },
-      appium: async () => {
-        await PlaywrightGestures.waitAndTap(
-          await asPlaywrightElement(this.tabBarActivityButton),
-        );
+      {
+        // Each attempt: ~2.5s (2s tap + 0.5s assertion). 15 retries ≈ ~37s total budget.
+        maxRetries: 15,
+        timeout: 45000,
+        description: 'Tap Activity Button',
       },
-    });
+    );
   }
 
   async tapRewards(): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
-        await UnifiedGestures.waitAndTap(this.tabBarRewardsButton, {
-          timeout: 2000,
-        });
+        await Gestures.waitAndTap(this.tabBarRewardsButton, { timeout: 2000 });
       },
       {
         // Each attempt: ~2.5s (2s tap + 0.5s default delay) + 500ms retry interval ≈ 3s/cycle → ~15 retries within 45s.

@@ -11,13 +11,13 @@ import {
   selectDepositActiveFlag,
   selectDepositMinimumVersionFlag,
 } from '../../../../selectors/featureFlagController/deposit';
-import { selectSocialAiAssetDetailsQuickBuyEnabled } from '../../../../selectors/featureFlagController/socialAiAssetDetailsQuickBuy';
 import { selectPriceAlertsEnabled } from '../../../../selectors/featureFlagController/priceAlerts';
 import Routes from '../../../../constants/navigation/Routes';
 import {
   AMBIENT_NEGATIVE_COLOR,
   AMBIENT_PRICE_COLOR_AB_KEY,
 } from '../components/abTestConfig';
+import { SOCIAL_AI_QUICK_BUY_AB_KEY } from '../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/abTestConfig';
 import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
 
@@ -162,10 +162,10 @@ jest.mock('../components/AssetOverviewContent', () => {
     token?: { address?: string; chainId?: string; symbol?: string };
     useAmbientColor?: boolean;
   }) => {
-    mockLastUseAmbientColorProp = useAmbientColor;
-    mockLatestPriceDirectionChange = onPriceDirectionChange;
     const insightsTokenKey = `${token?.address ?? ''}:${token?.chainId ?? ''}:${token?.symbol ?? ''}`;
     ReactLib.useEffect(() => {
+      mockLastUseAmbientColorProp = useAmbientColor;
+      mockLatestPriceDirectionChange = onPriceDirectionChange;
       mockLatestMarketInsightsResolver = onMarketInsightsDisplayResolved;
       if (!mockAutoResolveMarketInsights) {
         return;
@@ -174,7 +174,12 @@ jest.mock('../components/AssetOverviewContent', () => {
         isDisplayed: true,
         severity: undefined,
       });
-    }, [onMarketInsightsDisplayResolved, insightsTokenKey]);
+    }, [
+      onMarketInsightsDisplayResolved,
+      onPriceDirectionChange,
+      useAmbientColor,
+      insightsTokenKey,
+    ]);
 
     return null;
   };
@@ -271,6 +276,13 @@ const mockUseABTest = jest.fn((key: string) => {
       isActive: false,
     };
   }
+  if (key === SOCIAL_AI_QUICK_BUY_AB_KEY) {
+    return {
+      variant: { showQuickBuy: true },
+      variantName: 'treatment',
+      isActive: true,
+    };
+  }
   return {
     variant: { swapLabelKey: 'asset_overview.swap' },
     variantName: 'control',
@@ -349,7 +361,6 @@ describe('TokenDetails', () => {
       if (selector === getRampNetworks) return [];
       if (selector === selectDepositActiveFlag) return false;
       if (selector === selectDepositMinimumVersionFlag) return null;
-      if (selector === selectSocialAiAssetDetailsQuickBuyEnabled) return true;
       if (selector === selectPriceAlertsEnabled) return false;
       return undefined;
     });
@@ -461,18 +472,20 @@ describe('TokenDetails', () => {
       );
     });
 
-    it('hides the lightning button and does not mount AssetDetailsQuickBuy when the flag is disabled', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectNetworkConfigurationByChainId)
-          return { name: 'Ethereum' };
-        if (selector === selectPerpsEnabledFlag) return false;
-        if (selector === selectMerklCampaignClaimingEnabledFlag) return false;
-        if (selector === getRampNetworks) return [];
-        if (selector === selectDepositActiveFlag) return false;
-        if (selector === selectDepositMinimumVersionFlag) return null;
-        if (selector === selectSocialAiAssetDetailsQuickBuyEnabled)
-          return false;
-        return undefined;
+    it('hides the lightning button and does not mount AssetDetailsQuickBuy when the control variant is assigned', () => {
+      mockUseABTest.mockImplementation((key: string) => {
+        if (key === SOCIAL_AI_QUICK_BUY_AB_KEY) {
+          return {
+            variant: { showQuickBuy: false },
+            variantName: 'control',
+            isActive: true,
+          };
+        }
+        return {
+          variant: { useAmbientPriceColor: false },
+          variantName: 'control',
+          isActive: false,
+        };
       });
 
       const { queryByTestId } = render(<TokenDetails />);
@@ -713,7 +726,6 @@ describe('TokenDetails', () => {
         if (selector === getRampNetworks) return [];
         if (selector === selectDepositActiveFlag) return false;
         if (selector === selectDepositMinimumVersionFlag) return null;
-        if (selector === selectSocialAiAssetDetailsQuickBuyEnabled) return true;
         if (selector === selectPriceAlertsEnabled) return true;
         return undefined;
       });
