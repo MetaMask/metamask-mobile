@@ -20,20 +20,27 @@ import type {
   ChainAdapter,
   NamespaceConfig,
   ProposalParamsLight,
+  RpcMethod,
+  RpcResponse,
 } from '../types';
-import { callMultichainRoutingService } from '../router';
-import { mapRequestInbound, mapRequestOutbound } from './mapper';
-import type {
-  TronSnapSignatureResult,
-  TronWalletConnectMethod,
-  TronWalletConnectSignMessageParams,
-  TronWalletConnectSignTransactionParams,
-} from './types';
+import { createSnapCaller } from '../router';
+import {
+  mapSignMessageRequest,
+  mapSignMessageResponse,
+  mapSignTransactionRequest,
+  mapSignTransactionResponse,
+} from './mapper';
+import type { TronSnapSpec, TronWalletConnectSpec } from './types';
+
+/**
+ * Snap caller bound to the Tron Snap spec.
+ */
+const callTronSnap = createSnapCaller<TronSnapSpec>();
 
 /**
  * WalletConnect methods the wallet exposes for the Tron namespace.
  */
-const TRON_METHODS: readonly TronWalletConnectMethod[] = [
+const TRON_METHODS: readonly RpcMethod<TronWalletConnectSpec>[] = [
   'tron_signTransaction',
   'tron_signMessage',
 ];
@@ -175,35 +182,48 @@ export async function handleRequest({
   requestId,
   method,
   params,
-}: AdapterHandleRequestArgs): Promise<unknown> {
+}: AdapterHandleRequestArgs<TronWalletConnectSpec>): Promise<
+  RpcResponse<TronWalletConnectSpec>
+> {
   const normalizedConnectedAddresses = connectedAddresses.map((account) =>
     normalizeTronAccountIdInbound(account),
   );
-  // Throws for unsupported methods, guaranteeing `method` is a
-  // `TronWalletConnectMethod` from here on.
-  const mappedRequest = mapRequestInbound({ method, params });
-  const result = await callMultichainRoutingService({
-    origin,
-    connectedAddresses: normalizedConnectedAddresses,
-    scope,
-    requestId,
-    mappedRequest,
-  });
 
-  return mapRequestOutbound({
-    method: method as TronWalletConnectMethod,
-    params: params as
-      | TronWalletConnectSignMessageParams
-      | TronWalletConnectSignTransactionParams,
-    result: result as TronSnapSignatureResult,
-  });
+  if (method === 'tron_signMessage') {
+    const result = await callTronSnap({
+      origin,
+      connectedAddresses: normalizedConnectedAddresses,
+      scope,
+      requestId,
+      request: mapSignMessageRequest({ params }),
+    });
+
+    return mapSignMessageResponse(result);
+  }
+
+  if (method === 'tron_signTransaction') {
+    const result = await callTronSnap({
+      origin,
+      connectedAddresses: normalizedConnectedAddresses,
+      scope,
+      requestId,
+      request: mapSignTransactionRequest({ params }),
+    });
+
+    return mapSignTransactionResponse({ params, result });
+  }
+
+  throw new Error(`WalletConnect Tron method ${method} is not supported`);
 }
 
 /**
  * `ChainAdapter` for Tron, registered in `multichain/registry.ts` behind
  * the `tron` feature flag.
  */
-export const tronAdapter: ChainAdapter = {
+export const tronAdapter: ChainAdapter<
+  KnownCaipNamespace.Tron,
+  TronWalletConnectSpec
+> = {
   namespace: KnownCaipNamespace.Tron,
   redirectMethods: TRON_METHODS,
   approvedMethods: TRON_METHODS,

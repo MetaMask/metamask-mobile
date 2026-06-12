@@ -8,7 +8,7 @@
 
 import type { KnownCaipNamespace } from '@metamask/utils';
 
-import type { ChainAdapter } from './types';
+import type { AnyChainAdapter } from './types';
 
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import { tronAdapter } from './tron';
@@ -16,26 +16,26 @@ import { tronAdapter } from './tron';
 
 // Keyed by raw namespace string so lookups accept whatever a dapp proposal
 // sent, which we don't trust upfront.
-const adapters = new Map<string, ChainAdapter>();
+const adapters = new Map<string, AnyChainAdapter>();
 
 /**
  * Register a `ChainAdapter` under its CAIP-2 namespace.
  */
-export function registerAdapter(adapter: ChainAdapter): void {
+export function registerAdapter(adapter: AnyChainAdapter): void {
   adapters.set(adapter.namespace, adapter);
 }
 
 /**
  * Returns the adapter for a CAIP-2 namespace, if any.
  */
-export function getAdapter(namespace: string): ChainAdapter | undefined {
+export function getAdapter(namespace: string): AnyChainAdapter | undefined {
   return adapters.get(namespace);
 }
 
 /**
  * Returns every registered adapter, in insertion order.
  */
-export function getAllAdapters(): ChainAdapter[] {
+export function getAllAdapters(): AnyChainAdapter[] {
   return Array.from(adapters.values());
 }
 

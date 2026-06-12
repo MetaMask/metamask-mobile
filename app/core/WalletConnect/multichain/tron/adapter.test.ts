@@ -7,7 +7,7 @@ import type { CaipAccountId, CaipChainId } from '@metamask/utils';
 
 import Engine from '../../../Engine';
 import { getPermittedCaipChainIds } from '../../../Permissions';
-import { callMultichainRoutingService } from '../router';
+import { createSnapCaller } from '../router';
 import {
   enrichCaveatValue,
   getScopedPermissions,
@@ -42,9 +42,12 @@ jest.mock('../../../Permissions', () => ({
   getPermittedCaipChainIds: jest.fn(),
 }));
 
-jest.mock('../router', () => ({
-  callMultichainRoutingService: jest.fn(),
-}));
+jest.mock('../router', () => {
+  const snapCallerMock = jest.fn();
+  return {
+    createSnapCaller: () => snapCallerMock,
+  };
+});
 
 jest.mock('../../../SDKConnect/utils/DevLogger', () => ({
   log: jest.fn(),
@@ -55,8 +58,7 @@ const mockedGetAccountsFromSelectedAccountGroup = Engine.context
 const mockedGetCaveat = Engine.context.PermissionController
   .getCaveat as jest.Mock;
 const mockedGetPermittedCaipChainIds = getPermittedCaipChainIds as jest.Mock;
-const mockedCallMultichainRoutingService =
-  callMultichainRoutingService as jest.Mock;
+const mockedCallTronSnap = (createSnapCaller as unknown as () => jest.Mock)();
 const mockedGetCaipAccountIdsFromCaip25CaveatValue =
   getCaipAccountIdsFromCaip25CaveatValue as jest.Mock;
 
@@ -66,7 +68,7 @@ describe('multichain/tron', () => {
     mockedGetAccountsFromSelectedAccountGroup.mockReturnValue([]);
     mockedGetCaveat.mockReturnValue(undefined);
     mockedGetPermittedCaipChainIds.mockResolvedValue([]);
-    mockedCallMultichainRoutingService.mockResolvedValue(undefined);
+    mockedCallTronSnap.mockResolvedValue(undefined);
     mockedGetCaipAccountIdsFromCaip25CaveatValue.mockReturnValue([]);
   });
 
@@ -245,7 +247,7 @@ describe('multichain/tron', () => {
     });
 
     it('handles requests by mapping, routing, and normalizing the result', async () => {
-      mockedCallMultichainRoutingService.mockResolvedValue({
+      mockedCallTronSnap.mockResolvedValue({
         signature: '0xsig',
       });
 
@@ -266,12 +268,12 @@ describe('multichain/tron', () => {
         },
       });
 
-      expect(mockedCallMultichainRoutingService).toHaveBeenCalledWith({
+      expect(mockedCallTronSnap).toHaveBeenCalledWith({
         origin: 'https://tron.example.com',
         connectedAddresses: ['tron:728126428:TTestAddress'],
         scope: 'tron:728126428',
         requestId: 1,
-        mappedRequest: {
+        request: {
           method: 'signTransaction',
           params: {
             address: 'TTestAddress',
@@ -289,7 +291,7 @@ describe('multichain/tron', () => {
     });
 
     it('passes the dapp origin to the Snap routing service when provided', async () => {
-      mockedCallMultichainRoutingService.mockResolvedValue({
+      mockedCallTronSnap.mockResolvedValue({
         signature: '0xsig',
       });
 
@@ -305,7 +307,7 @@ describe('multichain/tron', () => {
         },
       });
 
-      expect(mockedCallMultichainRoutingService).toHaveBeenCalledWith(
+      expect(mockedCallTronSnap).toHaveBeenCalledWith(
         expect.objectContaining({
           origin: 'https://tron.example.com',
           connectedAddresses: ['tron:728126428:TTestAddress'],
@@ -313,6 +315,26 @@ describe('multichain/tron', () => {
           requestId: 1,
         }),
       );
+    });
+
+    it('rejects unsupported WalletConnect methods', async () => {
+      const args = {
+        origin: 'https://tron.example.com',
+        connectedAddresses: [] as CaipAccountId[],
+        scope: 'tron:728126428' as CaipChainId,
+        requestId: 1,
+        method: 'tron_unknownMethod',
+        params: {},
+      };
+
+      await expect(
+        // @ts-expect-error - misbehaving client sending an unapproved method
+        tronAdapter.handleRequest(args),
+      ).rejects.toThrow(
+        'WalletConnect Tron method tron_unknownMethod is not supported',
+      );
+
+      expect(mockedCallTronSnap).not.toHaveBeenCalled();
     });
   });
 });

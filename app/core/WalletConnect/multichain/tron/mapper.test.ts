@@ -1,8 +1,10 @@
 import {
   extractTronRawDataHex,
   extractTronType,
-  mapRequestInbound,
-  mapRequestOutbound,
+  mapSignMessageRequest,
+  mapSignMessageResponse,
+  mapSignTransactionRequest,
+  mapSignTransactionResponse,
 } from './mapper';
 
 describe('multichain/tron - mapper', () => {
@@ -53,10 +55,9 @@ describe('multichain/tron - mapper', () => {
     });
   });
 
-  describe('mapRequestInbound', () => {
+  describe('inbound request mappers', () => {
     it('maps tron_signMessage to canonical signMessage with a base64 message', () => {
-      const result = mapRequestInbound({
-        method: 'tron_signMessage',
+      const result = mapSignMessageRequest({
         params: { address: 'TAddress', message: 'hello' },
       });
 
@@ -66,21 +67,8 @@ describe('multichain/tron - mapper', () => {
       });
     });
 
-    it('omits non-string fields when mapping tron_signMessage', () => {
-      const result = mapRequestInbound({
-        method: 'tron_signMessage',
-        params: { address: 42, message: 'hello' },
-      });
-
-      expect(result).toStrictEqual({
-        method: 'signMessage',
-        params: { message: 'aGVsbG8=' },
-      });
-    });
-
     it('maps tron_signTransaction in the legacy double-wrap format', () => {
-      const result = mapRequestInbound({
-        method: 'tron_signTransaction',
+      const result = mapSignTransactionRequest({
         params: {
           address: 'TAddress',
           transaction: {
@@ -102,8 +90,7 @@ describe('multichain/tron - mapper', () => {
     });
 
     it('maps tron_signTransaction in the v1 flat format', () => {
-      const result = mapRequestInbound({
-        method: 'tron_signTransaction',
+      const result = mapSignTransactionRequest({
         params: {
           address: 'TAddress',
           transaction: {
@@ -122,46 +109,21 @@ describe('multichain/tron - mapper', () => {
       });
     });
 
-    it('omits address and type when missing in input', () => {
-      const result = mapRequestInbound({
-        method: 'tron_signTransaction',
-        params: { transaction: { raw_data_hex: '0xabc' } },
+    it('omits the contract type when missing in input', () => {
+      const result = mapSignTransactionRequest({
+        params: { address: 'TAddress', transaction: { raw_data_hex: '0xabc' } },
       });
 
       expect(result).toStrictEqual({
         method: 'signTransaction',
-        params: { transaction: { rawDataHex: '0xabc' } },
+        params: { address: 'TAddress', transaction: { rawDataHex: '0xabc' } },
       });
-    });
-
-    it('throws for any non-supported Tron method', () => {
-      expect(() =>
-        mapRequestInbound({
-          method: 'tron_sendTransaction',
-          params: { transaction: { raw_data_hex: '0xabc' } },
-        }),
-      ).toThrow(
-        'WalletConnect Tron method tron_sendTransaction is not supported',
-      );
-
-      expect(() =>
-        mapRequestInbound({
-          method: 'tron_someFutureMethod',
-          params: { foo: 'bar' },
-        }),
-      ).toThrow(
-        'WalletConnect Tron method tron_someFutureMethod is not supported',
-      );
     });
   });
 
-  describe('mapRequestOutbound', () => {
-    it('returns the result unchanged for non tron_signTransaction methods', () => {
-      const result = mapRequestOutbound({
-        method: 'tron_signMessage',
-        params: { address: 'T', message: 'hello' },
-        result: { signature: '0xsig' },
-      });
+  describe('outbound response mappers', () => {
+    it('forwards the snap message signature unchanged', () => {
+      const result = mapSignMessageResponse({ signature: '0xsig' });
 
       expect(result).toStrictEqual({ signature: '0xsig' });
     });
@@ -173,8 +135,7 @@ describe('multichain/tron - mapper', () => {
         transaction: { transaction: original },
       };
 
-      const result = mapRequestOutbound({
-        method: 'tron_signTransaction',
+      const result = mapSignTransactionResponse({
         params,
         result: { signature: '0xsig' },
       });
@@ -190,8 +151,7 @@ describe('multichain/tron - mapper', () => {
       const original = { raw_data_hex: '0xabc', visible: false };
       const params = { address: 'TAddr', transaction: original };
 
-      const result = mapRequestOutbound({
-        method: 'tron_signTransaction',
+      const result = mapSignTransactionResponse({
         params,
         result: { signature: '0xsig' },
       });
@@ -201,30 +161,6 @@ describe('multichain/tron - mapper', () => {
         visible: false,
         signature: ['0xsig'],
       });
-    });
-
-    it('returns the snap result unchanged when no original transaction is present', () => {
-      const snapResult = { signature: '0xsig' };
-
-      expect(
-        mapRequestOutbound({
-          method: 'tron_signTransaction',
-          params: { address: 'TAddr' },
-          result: snapResult,
-        }),
-      ).toBe(snapResult);
-    });
-
-    it('returns the snap result unchanged when the signature is missing', () => {
-      const snapResult = {};
-
-      expect(
-        mapRequestOutbound({
-          method: 'tron_signTransaction',
-          params: { transaction: { raw_data_hex: '0xabc' } },
-          result: snapResult,
-        }),
-      ).toBe(snapResult);
     });
   });
 });
