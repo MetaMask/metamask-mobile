@@ -10,6 +10,7 @@ import AddressList from '../../page-objects/MultichainAccounts/AddressList.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
 import Assertions from '../../framework/Assertions.js';
+import Utilities from '../../framework/Utilities.js';
 
 appiumTest.describe(SmokeAccounts('Create wallet accounts - multi-SRP'), () => {
   // 0-based index of the last rendered account in the V2 list.
@@ -47,7 +48,7 @@ appiumTest.describe(SmokeAccounts('Create wallet accounts - multi-SRP'), () => {
           await AccountListBottomSheet.tapCreateAccount(0);
           await AccountListBottomSheet.tapCreateAccount(1);
 
-          // Counting cells verifies accounts were created across both SRPs
+          // Counting cells verifies accounts were created across both SRPs.
           const expectedAccountCounts: Record<string, number> = {
             'Account 2': 2,
             'Account 3': 1,
@@ -55,11 +56,18 @@ appiumTest.describe(SmokeAccounts('Create wallet accounts - multi-SRP'), () => {
           for (const [accountName, expectedCount] of Object.entries(
             expectedAccountCounts,
           )) {
-            const cells =
-              await AccountListBottomSheet.getAccountElementsByAccountNameV2(
-                accountName,
-              );
-            await Assertions.checkIfArrayHasLength(cells, expectedCount);
+            await Utilities.executeWithRetry(
+              async () => {
+                const cells =
+                  await AccountListBottomSheet.getAccountElementsByAccountNameV2(
+                    accountName,
+                  );
+                await Assertions.checkIfArrayHasLength(cells, expectedCount);
+              },
+              {
+                description: `${accountName} should appear in ${expectedCount} cell(s)`,
+              },
+            );
           }
 
           await AccountListBottomSheet.scrollToBottomOfAccountList();

@@ -152,11 +152,11 @@ class AccountListBottomSheet {
         'getAccountElementsByAccountNameV2 is Appium-only. On Detox, assert each cell with `getAccountElementByAccountNameV2(name)` indexed via .atIndex(N).',
       );
     }
-    // CONTAINER testID is empty; fetch actual row content from the next sibling.
+    // CONTAINER testID is empty; fetch actual row content from the next sibling
     return Matchers.getAllElementsByXPath(
       PlatformDetector.isAndroid()
-        ? `//*[@resource-id='${AccountCellIds.CONTAINER}']/following-sibling::android.view.ViewGroup[1][@content-desc='${accountName}']`
-        : `//*[@name='${AccountCellIds.CONTAINER}']/following-sibling::XCUIElementTypeOther[1][@name='${accountName}' or @label='${accountName}']`,
+        ? `//*[@resource-id='${AccountCellIds.CONTAINER}']/following-sibling::*[1][@content-desc='${accountName}']`
+        : `//*[@name='${AccountCellIds.CONTAINER}']/following-sibling::*[1][@name='${accountName}' or @label='${accountName}']`,
     );
   }
 
