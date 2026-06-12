@@ -179,4 +179,43 @@ describe('Token', () => {
 
     expect(mockOnPress).not.toHaveBeenCalled();
   });
+
+  it('renders No fee tag when isNoFee is true', () => {
+    const mockToken = createMockToken({
+      symbol: 'ETH',
+      name: 'Ethereum',
+    });
+
+    const { getByText } = renderWithProvider(
+      <Token asset={mockToken} isNoFee onPress={mockOnPress} />,
+    );
+
+    expect(getByText('No fee')).toBeOnTheScreen();
+  });
+
+  it('does not render No fee tag when isNoFee is false', () => {
+    const mockToken = createMockToken({
+      symbol: 'ETH',
+      name: 'Ethereum',
+    });
+
+    const { queryByText } = renderWithProvider(
+      <Token asset={mockToken} isNoFee={false} onPress={mockOnPress} />,
+    );
+
+    expect(queryByText('No fee')).not.toBeOnTheScreen();
+  });
+
+  it('does not render No fee tag when isNoFee is undefined', () => {
+    const mockToken = createMockToken({
+      symbol: 'ETH',
+      name: 'Ethereum',
+    });
+
+    const { queryByText } = renderWithProvider(
+      <Token asset={mockToken} onPress={mockOnPress} />,
+    );
+
+    expect(queryByText('No fee')).not.toBeOnTheScreen();
+  });
 });

@@ -2,6 +2,8 @@ import React, { useCallback } from 'react';
 import { Pressable } from 'react-native';
 import {
   Box,
+  Tag,
+  TagSeverity,
   Text,
   TextVariant,
   FontWeight,
@@ -27,10 +29,11 @@ import AssetLogo from '../../../../../UI/Assets/components/AssetLogo/AssetLogo';
 
 interface TokenProps {
   asset: AssetType;
+  isNoFee?: boolean;
   onPress: (asset: AssetType) => void;
 }
 
-export function Token({ asset, onPress }: TokenProps) {
+export function Token({ asset, isNoFee, onPress }: TokenProps) {
   const tw = useTailwind();
 
   const handlePress = useCallback(() => {
@@ -83,14 +86,22 @@ export function Token({ asset, onPress }: TokenProps) {
         </Box>
 
         <Box twClassName="ml-4 h-12 justify-center flex-1 min-w-0">
-          <Box twClassName="flex-row items-center">
+          <Box twClassName="flex-row items-center gap-2">
             <Text
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
               numberOfLines={1}
+              twClassName="shrink"
             >
               {asset.name || asset.symbol || 'Unknown Token'}
             </Text>
+            {isNoFee ? (
+              <Box twClassName="shrink-0">
+                <Tag severity={TagSeverity.Info}>
+                  {I18n.t('money.potential_earnings.no_fee')}
+                </Tag>
+              </Box>
+            ) : null}
             <AccountTypeLabel label={typeLabel} />
           </Box>
           <Text

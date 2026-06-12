@@ -17,6 +17,7 @@ import { useIsPerpsBalanceSelected } from '../../../../../UI/Perps/hooks/useIsPe
 import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
 import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
 import { useLastUsedPaymentMethod } from '../useLastUsedPaymentMethod';
+import { usePayWithNoFeeToken } from '../usePayWithNoFeeToken';
 import { usePayWithPreferredToken } from '../usePayWithPreferredToken';
 import { usePayWithSelectedToken } from '../usePayWithSelectedToken';
 import { useTransactionPayFiatPayment } from '../useTransactionPayData';
@@ -62,6 +63,7 @@ jest.mock('../../../../../UI/Perps/hooks/useIsPerpsBalanceSelected');
 jest.mock('../../../../../UI/Perps/hooks/usePerpsPaymentToken');
 jest.mock('../../../../../UI/Predict/hooks/usePredictPaymentToken');
 jest.mock('../useLastUsedPaymentMethod');
+jest.mock('../usePayWithNoFeeToken');
 jest.mock('../usePayWithPreferredToken');
 jest.mock('../usePayWithSelectedToken');
 jest.mock('../useTransactionPayData');
@@ -93,6 +95,7 @@ describe('usePayWithCryptoSection', () => {
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
   );
+  const usePayWithNoFeeTokenMock = jest.mocked(usePayWithNoFeeToken);
   const usePayWithPreferredTokenMock = jest.mocked(usePayWithPreferredToken);
   const usePayWithSelectedTokenMock = jest.mocked(usePayWithSelectedToken);
   const useLastUsedPaymentMethodMock = jest.mocked(useLastUsedPaymentMethod);
@@ -116,6 +119,11 @@ describe('usePayWithCryptoSection', () => {
     jest.resetAllMocks();
 
     useSelectorMock.mockReturnValue(undefined);
+
+    usePayWithNoFeeTokenMock.mockReturnValue({
+      noFeeToken: undefined,
+      isNoFeeToken: jest.fn().mockReturnValue(false),
+    });
 
     useNavigationMock.mockReturnValue({
       navigate: navigateMock,

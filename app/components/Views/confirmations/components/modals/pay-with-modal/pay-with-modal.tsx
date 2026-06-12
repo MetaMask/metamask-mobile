@@ -37,6 +37,7 @@ import { usePerpsBalanceTokenFilter } from '../../../../../UI/Perps/hooks/usePer
 import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
 import { usePredictBalanceTokenFilter } from '../../../../../UI/Predict/hooks/usePredictBalanceTokenFilter';
 import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
+import { usePayWithNoFeeToken } from '../../../hooks/pay/usePayWithNoFeeToken';
 
 interface PayWithModalParams {
   /**
@@ -83,6 +84,12 @@ export function PayWithModal() {
   const predictBalanceTokenFilter = usePredictBalanceTokenFilter(
     isPredictContext,
     isPredictContext ? resetSelectedPaymentToken : undefined,
+  );
+
+  const { isNoFeeToken: isNoFeeTokenCheck } = usePayWithNoFeeToken();
+  const isNoFeeToken = useCallback(
+    (token: AssetType) => isNoFeeTokenCheck(token.address, token.chainId ?? ''),
+    [isNoFeeTokenCheck],
   );
 
   const close = useCallback((onClosed?: () => void) => {
@@ -266,6 +273,7 @@ export function PayWithModal() {
         hideNfts
         hideHeader
         tokenFilter={tokenFilter}
+        isNoFeeToken={isNoFeeToken}
         onTokenSelect={handleTokenSelect}
         hideNetworkFilter={hideNetworkFilter}
       />

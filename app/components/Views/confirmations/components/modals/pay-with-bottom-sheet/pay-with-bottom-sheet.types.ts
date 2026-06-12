@@ -17,6 +17,7 @@ export interface PayWithRowConfig {
   subtitle?: string;
   isSelected?: boolean;
   isLastUsed?: boolean;
+  isNoFee?: boolean;
   trailingElement?: PayWithRowTrailingVariant | ReactElement;
   onPress?: () => void;
   disabled?: boolean;

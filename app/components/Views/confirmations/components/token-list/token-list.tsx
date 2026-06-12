@@ -21,12 +21,14 @@ interface TokenListProps {
   onSelect?: (token: AssetType) => void;
   tokens: AssetType[];
   highlightedAssets?: HighlightedItemType[];
+  isNoFeeToken?: (token: AssetType) => boolean;
 }
 
 export function TokenList({
   onSelect,
   tokens,
   highlightedAssets = [],
+  isNoFeeToken,
 }: TokenListProps) {
   const { gotToSendScreen } = useSendScreenNavigation();
   const {
@@ -90,6 +92,7 @@ export function TokenList({
           <Token
             key={`${token.chainId}-${token.address}`}
             asset={token}
+            isNoFee={isNoFeeToken?.(token)}
             onPress={handleTokenPress}
           />
         ))}
