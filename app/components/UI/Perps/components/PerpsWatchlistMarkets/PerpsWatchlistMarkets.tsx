@@ -91,14 +91,14 @@ const PerpsWatchlistMarketsV1: React.FC<PerpsWatchlistMarketsProps> = ({
   transactionActiveAbTests,
   sectionStyle,
   contentContainerStyle,
-  onMarketPress: onMarketPressProp,
+  onMarketPress,
 }) => {
   const navigation = useNavigation();
 
   const handleMarketPress = useCallback(
     (market: PerpsMarketData) => {
-      if (onMarketPressProp) {
-        onMarketPressProp(market);
+      if (onMarketPress) {
+        onMarketPress(market);
         return;
       }
 
@@ -125,7 +125,7 @@ const PerpsWatchlistMarketsV1: React.FC<PerpsWatchlistMarketsProps> = ({
       });
     },
     [
-      onMarketPressProp,
+      onMarketPress,
       navigation,
       positions,
       orders,
@@ -183,7 +183,7 @@ const PerpsWatchlistMarketsV2: React.FC<PerpsWatchlistMarketsProps> = ({
   sectionStyle,
   headerStyle,
   contentContainerStyle,
-  onMarketPress: onMarketPressProp,
+  onMarketPress,
   onSeeAllPress,
   showHeader = true,
   enableShowMore = true,
@@ -199,8 +199,8 @@ const PerpsWatchlistMarketsV2: React.FC<PerpsWatchlistMarketsProps> = ({
 
   const handleMarketPress = useCallback(
     (market: PerpsMarketData) => {
-      if (onMarketPressProp) {
-        onMarketPressProp(market);
+      if (onMarketPress) {
+        onMarketPress(market);
         return;
       }
 
@@ -227,7 +227,7 @@ const PerpsWatchlistMarketsV2: React.FC<PerpsWatchlistMarketsProps> = ({
       });
     },
     [
-      onMarketPressProp,
+      onMarketPress,
       navigation,
       positions,
       orders,
