@@ -25,7 +25,12 @@ import {
 } from '../constants/activityStyles';
 import { buildMoneyActivityFiatLine } from '../utils/moneyActivityFiat';
 import { moneyFormatFiat } from '../utils/moneyFormatFiat';
-import { isMusdToken, MUSD_TOKEN } from '../../Earn/constants/musd';
+import {
+  isMusdToken,
+  isMusdTokenOnChain,
+  MUSD_DECIMALS,
+  MUSD_TOKEN,
+} from '../../Earn/constants/musd';
 import { MONEY_WITHDRAW_TOKEN_SYMBOL } from '../constants/moneyTokens';
 import { isMoneyWithdrawTx } from '../utils/moneyTransactionGuards';
 import type { MoneyActivityTransactionMeta } from '../constants/mockActivityData';
@@ -54,10 +59,15 @@ function getMoneySubtitle(tx: TransactionMeta): string | undefined {
 }
 
 /**
- * Returns the first required asset from a pay transaction, if present.
+ * Returns the mUSD required asset from a pay transaction, if present. Money
+ * deposits declare their target as mUSD on the tx's chain (see
+ * `getMoneyAccountDepositAssetAddress`); any other asset is not an amount we
+ * can render as mUSD, so it is ignored rather than mis-denominated.
  */
-function getRequiredAsset(tx: TransactionMeta): RequiredAsset | undefined {
-  return tx.requiredAssets?.[0];
+function getMusdRequiredAsset(tx: TransactionMeta): RequiredAsset | undefined {
+  return tx.requiredAssets?.find((asset) =>
+    isMusdTokenOnChain(asset.address, tx.chainId),
+  );
 }
 
 /**
@@ -201,20 +211,24 @@ export function useMoneyTransactionDisplayInfo(
     // `getMusdDisplayAmountFromTransactionMeta` covers rows carrying an explicit
     // mUSD transfer (received / sent / local transfers, with the correct +/-
     // prefix). MetaMask Pay conversion deposits don't persist an mUSD transfer,
-    // so derive the amount from the deposit target in `requiredAssets[0].amount`
-    // — already denominated in mUSD (6 decimals), i.e. the USD value of the
-    // deposit, pegged 1:1. (Showing the mUSD value rather than the pay-token
-    // amount is the design decision in MUSD-956.)
+    // so derive the amount from the mUSD deposit target in `requiredAssets` —
+    // i.e. the USD value of the deposit, pegged 1:1. (Showing the mUSD value
+    // rather than the pay-token amount is the design decision in MUSD-956.)
     let primaryAmount = getMusdDisplayAmountFromTransactionMeta(tx);
     if (!primaryAmount) {
-      const requiredAsset = getRequiredAsset(tx);
+      const requiredAsset = getMusdRequiredAsset(tx);
       if (requiredAsset) {
-        const musdAmount = new BigNumber(requiredAsset.amount).dividedBy(1e6);
-        if (musdAmount.isGreaterThan(0)) {
+        const musdAmount = new BigNumber(requiredAsset.amount).shiftedBy(
+          -MUSD_DECIMALS,
+        );
+        // Render only amounts visible at 2 decimals: a dust amount would
+        // otherwise display as "+0.00 mUSD", which failed rows reserve as
+        // their "nothing moved" marker (below).
+        if (musdAmount.decimalPlaces(2).isGreaterThan(0)) {
           primaryAmount = formatMusdAmount(musdAmount, isIncoming);
         }
-        // If there's no required asset / amount, primaryAmount stays empty —
-        // the fiatAmount line below still shows the correct value.
+        // If there's no mUSD required asset / visible amount, primaryAmount
+        // stays empty — the fiatAmount line below still shows the value.
       }
     }
 

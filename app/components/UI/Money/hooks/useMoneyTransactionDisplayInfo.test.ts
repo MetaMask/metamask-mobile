@@ -415,15 +415,19 @@ describe('useMoneyTransactionDisplayInfo — getIconForTransactionType', () => {
 // ---------------------------------------------------------------------------
 
 describe('useMoneyTransactionDisplayInfo — mUSD-denominated primary amount', () => {
-  // A conversion deposit is shown in mUSD, derived from the deposit target in
-  // `requiredAssets[0].amount` (6-decimal mUSD units, pegged 1:1 to USD). The
-  // pay token and its market price no longer affect the primary amount — see
-  // MUSD-956.
+  // A conversion deposit is shown in mUSD, derived from the mUSD entry in
+  // `requiredAssets` (6-decimal mUSD units, pegged 1:1 to USD). The pay token
+  // and its market price no longer affect the primary amount — see MUSD-956.
+  //
+  // Production declares the required asset as mUSD on the tx's chain (see
+  // `getMoneyAccountDepositAssetAddress`), so the fixture mirrors that shape.
 
   function makeDepositTx(amount: string, tokenAddress: Hex = USDC_ADDRESS) {
     return makeTx(TransactionType.moneyAccountDeposit, {
       metamaskPay: { tokenAddress, chainId: CHAIN_ID },
-      requiredAssets: [{ address: tokenAddress, amount }],
+      requiredAssets: [
+        { address: MUSD_TOKEN_ADDRESS, amount, standard: 'erc20' },
+      ],
     });
   }
 
@@ -482,6 +486,72 @@ describe('useMoneyTransactionDisplayInfo — mUSD-denominated primary amount', (
 
     expect(result.current.primaryAmount).toBe('');
   });
+
+  it('leaves primaryAmount empty (not "+0.00") for a sub-cent deposit', () => {
+    // 4999 / 1e6 = 0.004999 rounds to 0.00 at 2 decimals — rendering it would
+    // produce "+0.00 mUSD", the marker reserved for failed rows.
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(makeDepositTx('4999'), undefined),
+      { state: makeState() },
+    );
+
+    expect(result.current.primaryAmount).toBe('');
+  });
+
+  it('renders the smallest amount visible at 2 decimals', () => {
+    // 5000 / 1e6 = 0.005 → "+0.01 mUSD" (half-up, matching Intl rounding).
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(makeDepositTx('5000'), undefined),
+      { state: makeState() },
+    );
+
+    expect(result.current.primaryAmount).toBe('+0.01 mUSD');
+  });
+
+  it('parses the hex-encoded amount that production writes', () => {
+    // `RequiredAsset.amount` is typed `Hex` and written via `toHex(...)` (see
+    // useUpdateTransactionPayAmount) — 0x3b9aca00 = 1_000_000_000 → 1000 mUSD.
+    const { result } = renderHookWithProvider(
+      () =>
+        useMoneyTransactionDisplayInfo(makeDepositTx('0x3b9aca00'), undefined),
+      { state: makeState() },
+    );
+
+    expect(result.current.primaryAmount).toBe('+1,000.00 mUSD');
+  });
+
+  it('ignores a required asset that is not mUSD on the tx chain', () => {
+    // The amount is only known to be mUSD-denominated when the asset is mUSD;
+    // rendering any other asset's raw amount as mUSD would mis-denominate it.
+    const tx = makeTx(TransactionType.moneyAccountDeposit, {
+      metamaskPay: { tokenAddress: USDC_ADDRESS, chainId: CHAIN_ID },
+      requiredAssets: [
+        { address: USDC_ADDRESS, amount: '1000000000', standard: 'erc20' },
+      ],
+    });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+
+    expect(result.current.primaryAmount).toBe('');
+  });
+
+  it('finds the mUSD required asset even when it is not first', () => {
+    const tx = makeTx(TransactionType.moneyAccountDeposit, {
+      metamaskPay: { tokenAddress: USDC_ADDRESS, chainId: CHAIN_ID },
+      requiredAssets: [
+        { address: USDC_ADDRESS, amount: '7', standard: 'erc20' },
+        { address: MUSD_TOKEN_ADDRESS, amount: '2500000', standard: 'erc20' },
+      ],
+    });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+
+    expect(result.current.primaryAmount).toBe('+2.50 mUSD');
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -516,7 +586,9 @@ describe('useMoneyTransactionDisplayInfo — token resolution edge cases', () =>
     // mUSD amount still renders, since it no longer depends on the pay token.
     const tx = makeTx(TransactionType.moneyAccountDeposit, {
       metamaskPay: { tokenAddress: USDC_ADDRESS, chainId: CHAIN_ID },
-      requiredAssets: [{ address: USDC_ADDRESS, amount: '1000000' }],
+      requiredAssets: [
+        { address: MUSD_TOKEN_ADDRESS, amount: '1000000', standard: 'erc20' },
+      ],
     });
 
     const { result } = renderHookWithProvider(
@@ -537,7 +609,9 @@ describe('useMoneyTransactionDisplayInfo — token resolution edge cases', () =>
     const UNKNOWN_CHAIN: Hex = '0x89'; // Polygon (not in our mock)
     const tx = makeTx(TransactionType.moneyAccountDeposit, {
       metamaskPay: { tokenAddress: USDC_ADDRESS, chainId: UNKNOWN_CHAIN },
-      requiredAssets: [{ address: USDC_ADDRESS, amount: '1000000' }],
+      requiredAssets: [
+        { address: MUSD_TOKEN_ADDRESS, amount: '1000000', standard: 'erc20' },
+      ],
     });
 
     const stateWithPolygon = {
@@ -787,7 +861,13 @@ describe('useMoneyTransactionDisplayInfo — failed amount', () => {
     const tx = makeTx(TransactionType.moneyAccountDeposit, {
       status: TransactionStatus.failed,
       metamaskPay: { tokenAddress: USDC_ADDRESS, chainId: CHAIN_ID },
-      requiredAssets: [{ address: USDC_ADDRESS, amount: '1000000000' }],
+      requiredAssets: [
+        {
+          address: MUSD_TOKEN_ADDRESS,
+          amount: '1000000000',
+          standard: 'erc20',
+        },
+      ],
     });
     const { result } = renderHookWithProvider(
       () => useMoneyTransactionDisplayInfo(tx, undefined),
