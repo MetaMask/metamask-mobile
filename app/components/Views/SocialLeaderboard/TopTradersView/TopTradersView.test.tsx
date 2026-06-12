@@ -226,14 +226,9 @@ describe('TopTradersView', () => {
     });
   });
 
-  it('renders the rank for the top trader', () => {
+  it('renders the PnL for the first trader', () => {
     renderWithProvider(<TopTradersView />);
-    expect(screen.getByText('1')).toBeOnTheScreen();
-  });
-
-  it('renders the ROI for the first trader', () => {
-    renderWithProvider(<TopTradersView />);
-    expect(screen.getByText('+43.0%')).toBeOnTheScreen();
+    expect(screen.getByText('+$963,146.80')).toBeOnTheScreen();
   });
 
   it('calls toggleFollow with analytics context when Follow button is pressed', () => {
