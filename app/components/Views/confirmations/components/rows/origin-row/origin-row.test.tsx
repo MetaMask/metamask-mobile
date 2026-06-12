@@ -72,9 +72,9 @@ describe('InfoRowOrigin', () => {
         state: externalAppConfirmationState,
       });
 
-      expect(getByText('Request from')).toBeDefined();
-      expect(getByText('External app')).toBeDefined();
-      expect(queryByText(origin)).toBeNull();
+      expect(getByText('Request from')).toBeOnTheScreen();
+      expect(getByText('External app')).toBeOnTheScreen();
+      expect(queryByText(origin)).not.toBeOnTheScreen();
     },
   );
 });
