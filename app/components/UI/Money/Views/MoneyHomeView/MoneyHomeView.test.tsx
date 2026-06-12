@@ -38,9 +38,11 @@ import { MONEY_HOME_CARD_ORIGIN } from '../../../Card/hooks/useCardPostAuthRedir
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import {
+  BOTTOM_SHEET_NAMES,
   COMPONENT_NAMES,
   MONEY_BUTTON_INTENTS,
   MONEY_BUTTON_TYPES,
+  MONEY_URLS,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -205,11 +207,12 @@ jest.mock('../../../Earn/hooks/useMusdBalance', () => ({
 }));
 
 const mockTrackButtonClicked = jest.fn();
+const mockTrackSurfaceClicked = jest.fn();
 jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(() => ({
     trackButtonClicked: mockTrackButtonClicked,
     trackTooltipClicked: jest.fn(),
-    trackSurfaceClicked: jest.fn(),
+    trackSurfaceClicked: mockTrackSurfaceClicked,
     trackTokenButtonClicked: jest.fn(),
     trackTokenSurfaceClicked: jest.fn(),
     trackActivitySurfaceClicked: jest.fn(),
@@ -1261,6 +1264,10 @@ describe('MoneyHomeView', () => {
       fireEvent.press(getByTestId(MoneyCondensedInfoCardsTestIds.MUSD_CARD));
 
       expect(mockOpenURL).toHaveBeenCalledWith(AppConstants.URLS.MUSD_PRICE);
+      expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
+        component_name: COMPONENT_NAMES.MONEY_CONDENSED_INFO_CARDS_MUSD,
+        redirect_target: MONEY_URLS.MUSD_PRICE,
+      });
       mockOpenURL.mockRestore();
     });
 
@@ -1523,6 +1530,13 @@ describe('MoneyHomeView', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
         screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
       });
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+        label_key: 'money.footer.add_money',
+        component_name: COMPONENT_NAMES.MONEY_FOOTER,
+        redirect_target: BOTTOM_SHEET_NAMES.MONEY_ADD_MONEY_SHEET,
+      });
     });
 
     it('initiates a deposit without preselection when the mUSD row Add button is pressed', () => {
@@ -1583,6 +1597,10 @@ describe('MoneyHomeView', () => {
 
       expect(mockOpenURL).toHaveBeenCalledWith(AppConstants.URLS.MUSD_PRICE);
       expect(NavigationService.navigation.navigate).not.toHaveBeenCalled();
+      expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
+        component_name: COMPONENT_NAMES.MONEY_MUSD_TOKEN_SECTION,
+        redirect_target: MONEY_URLS.MUSD_PRICE,
+      });
       mockOpenURL.mockRestore();
     });
 

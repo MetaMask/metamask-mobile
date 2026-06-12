@@ -38,7 +38,6 @@ export enum REDIRECT_TARGETS_TYPES {
 
 // Not using enum because we want to use existing URL constants.
 export const MONEY_URLS = {
-  MUSD_LEARN_MORE: AppConstants.URLS.MUSD_LEARN_MORE,
   MONEY_LANDING: AppConstants.URLS.MONEY_LANDING,
   MUSD_PRICE: AppConstants.URLS.MUSD_PRICE,
   METAMASK_SUPPORT: METAMASK_SUPPORT_URL,
