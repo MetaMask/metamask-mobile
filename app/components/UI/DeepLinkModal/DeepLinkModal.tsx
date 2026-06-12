@@ -12,17 +12,8 @@ import { useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import styleSheet from './DeepLinkModal.styles';
 import { strings } from '../../../../locales/i18n';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../component-library/components/Texts/Text';
 import { useParams } from '../../../util/navigation/navUtils';
 import { useStyles } from '../../../component-library/hooks';
-import Button, {
-  ButtonVariants,
-  ButtonWidthTypes,
-  ButtonSize,
-} from '../../../component-library/components/Buttons/Button';
 import Checkbox from '../../../component-library/components/Checkbox';
 import { ScrollView } from 'react-native-gesture-handler';
 import { Box } from '../../../components/UI/Box/Box';
@@ -40,6 +31,14 @@ import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon
 import { pageNotFound, foxLogo } from './constant';
 import { DeepLinkModalParams, ModalImageProps } from './types';
 import { DeepLinkModalLinkType } from '../../../core/DeeplinkManager/types/deepLink.types';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
 
 const ModalImage = memo<ModalImageProps>(({ linkType, styles }) => {
   if (linkType === DeepLinkModalLinkType.INVALID) {
@@ -72,21 +71,21 @@ const ModalDescription = memo<{
   return (
     <View style={styles.description}>
       <Text
-        variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
+        variant={TextVariant.BodyMd}
+        color={TextColor.TextAlternative}
         style={styles.description}
       >
         {description}
       </Text>
       {linkType === DeepLinkModalLinkType.INVALID && (
         <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
           style={styles.storeLinkContainer}
         >
           <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Primary}
+            variant={TextVariant.BodyMd}
+            color={TextColor.PrimaryDefault}
             style={styles.storeLink}
             onPress={onOpenMetaMaskStore}
           >
@@ -217,7 +216,7 @@ const DeepLinkModal = () => {
       </Box>
       <ScrollView contentContainerStyle={styles.content}>
         <ModalImage linkType={linkType} styles={styles} />
-        <Text variant={TextVariant.HeadingLG} style={styles.title}>
+        <Text variant={TextVariant.HeadingLg} style={styles.title}>
           {LINK_TYPE_MAP[linkType].title}
         </Text>
         <ModalDescription
@@ -237,16 +236,15 @@ const DeepLinkModal = () => {
         </Box>
       )}
       <Button
-        variant={ButtonVariants.Primary}
+        variant={ButtonVariant.Primary}
         size={ButtonSize.Lg}
-        width={ButtonWidthTypes.Full}
-        label={
-          LINK_TYPE_MAP[linkType].buttonLabel ||
-          strings('deep_link_modal.continue_button')
-        }
+        isFullWidth
         onPress={onPrimaryButtonPressed}
         style={styles.actionButtonMargin}
-      />
+      >
+        {LINK_TYPE_MAP[linkType].buttonLabel ||
+          strings('deep_link_modal.continue_button')}
+      </Button>
     </BottomSheet>
   );
 };

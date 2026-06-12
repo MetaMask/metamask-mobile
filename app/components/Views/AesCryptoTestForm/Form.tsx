@@ -2,14 +2,15 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Keyboard, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import Text, {
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../component-library/components/Buttons/Button';
 import ClipboardText from './Clipboard';
+import {
+  Text,
+  TextVariant,
+  FontWeight,
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
 
 const TestForm = ({
   title,
@@ -64,7 +65,7 @@ const TestForm = ({
 
   return (
     <SafeAreaView style={styles.form}>
-      <Text variant={TextVariant.HeadingSM} style={styles.formTitle}>
+      <Text variant={TextVariant.HeadingSm} style={styles.formTitle}>
         {title}
       </Text>
       {textFields.map((textField, index) => (
@@ -82,7 +83,11 @@ const TestForm = ({
       ))}
       {result && (
         <>
-          <Text variant={TextVariant.BodyMDBold} testID={responseTextTestId}>
+          <Text
+            variant={TextVariant.BodyMd}
+            testID={responseTextTestId}
+            fontWeight={FontWeight.Bold}
+          >
             Response
           </Text>
           <ClipboardText
@@ -93,13 +98,14 @@ const TestForm = ({
         </>
       )}
       <Button
-        variant={ButtonVariants.Primary}
+        variant={ButtonVariant.Primary}
         onPress={executeTest}
-        label={buttonLabel}
         size={ButtonSize.Md}
         style={styles.button}
         testID={callbackTestId}
-      />
+      >
+        {buttonLabel}
+      </Button>
     </SafeAreaView>
   );
 };

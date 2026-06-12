@@ -1,10 +1,13 @@
 import React, { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { Box } from '@metamask/design-system-react-native';
+import {
+  Box,
+  SectionDivider,
+  SectionHeader,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 import Routes from '../../../../../../../constants/navigation/Routes';
-import SectionHeader from '../../../../../../../component-library/components-temp/SectionHeader';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../../../Wallet/WalletView.testIds';
 import { PredictEntryPointProvider } from '../../../../../../UI/Predict/contexts';
@@ -239,16 +242,18 @@ const HomepagePredictWorldCupDiscovery: React.FC<
   }, [championshipCtaCategoryName, onTreatmentCtaClick]);
 
   return (
-    <Box>
+    <>
+      <SectionDivider />
       <SectionHeader
         title={title}
+        isInteractive
         onPress={handleViewAll}
         testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(headerTestIdKey)}
       />
       <PredictEntryPointProvider
         entryPoint={PredictEventValues.ENTRY_POINT.HOME_SECTION}
       >
-        <Box twClassName="px-4 mt-3">
+        <Box twClassName="px-4">
           <BtcLiveRow
             onPress={handleBtcRow}
             btcSpotUsd={btcSpotUsd}
@@ -270,7 +275,7 @@ const HomepagePredictWorldCupDiscovery: React.FC<
           onStagePress={goToWorldCup}
         />
       </PredictEntryPointProvider>
-    </Box>
+    </>
   );
 };
 

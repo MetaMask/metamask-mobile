@@ -39,6 +39,7 @@ import Networks, {
   isTestNet,
   getNetworkImageSource,
   isMainNet,
+  canDeleteNetwork,
 } from '../../../util/networks';
 import { LINEA_MAINNET, MAINNET } from '../../../constants/network';
 import {
@@ -572,8 +573,14 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
                 name
               ) : (
                 <View>
-                  <Box twClassName="flex-row gap-2">
-                    <Text variant={TextVariant.BodyMD}>{name}</Text>
+                  <Box twClassName="flex-row gap-2 items-center">
+                    <Text
+                      variant={TextVariant.BodyMD}
+                      numberOfLines={1}
+                      style={styles.networkNameText}
+                    >
+                      {name}
+                    </Text>
                     {!isHardwareWallet &&
                     isGasFeesSponsoredNetworkEnabled(chainId) ? (
                       <TagColored
@@ -622,7 +629,7 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
             }
             buttonProps={{
               onButtonClick: () => {
-                openModal(chainId, true, rpcUrl, false);
+                openModal(chainId, canDeleteNetwork(chainId), rpcUrl, false);
               },
             }}
             onTextClick={() =>
@@ -632,7 +639,7 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
               })
             }
             onLongPress={() => {
-              openModal(chainId, true, rpcUrl, false);
+              openModal(chainId, canDeleteNetwork(chainId), rpcUrl, false);
             }}
           />
         );

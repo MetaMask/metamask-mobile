@@ -127,6 +127,7 @@ describe('bridge slice', () => {
         tokenSelectorNetworkFilter: undefined,
         visiblePillChainIds: undefined,
         selectedQuoteRequestId: undefined,
+        balanceRefreshKey: 0,
         abTestContext: undefined,
         hardwareWalletsSwaps: initialHardwareWalletsSwapsState,
         batchSellSourceTokens: [],
@@ -1106,7 +1107,7 @@ describe('bridge slice', () => {
       expect(selectHardwareWalletsSwaps(mockState)).toEqual({
         ...initialHardwareWalletsSwapsState,
         status: HardwareWalletsSwapsStatus.Waiting,
-        currentStep: 1,
+        currentStep: 0,
         totalSteps: 1,
         steps: expect.any(Array),
       });

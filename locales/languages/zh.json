@@ -2041,8 +2041,6 @@
       "stocks_and_commodities": "探索股票与大宗商品",
       "tabs": {
         "crypto": "加密货币",
-        "stocks": "股票",
-        "commodities": "大宗商品",
         "pre_ipo": "Pre-IPO",
         "forex": "外汇",
         "new": "新增",
@@ -9217,11 +9215,7 @@
       "stats_qualify_for_rank_description": "还需完成{{notionalRemaining}}名义交易量即可获得资格。",
       "stats_error_title": "无法加载统计数据",
       "stats_error_description": "加载您的统计数据时遇到问题。请重试。",
-      "stats_retry": "重试",
-      "completed_label_total_participants": "总参与人数",
-      "completed_label_total_volume": "总交易量",
-      "completed_label_top_pnl": "最高盈亏（PnL）",
-      "completed_label_winners": "获胜者"
+      "stats_retry": "重试"
     },
     "predict_the_pitch_campaign": {
       "title": "Predict The Pitch",
@@ -9323,7 +9317,7 @@
       "non_winner": {
         "title": "结果已公布 🏅",
         "description": "查看您在 {{campaignName}} 中的排名.",
-        "cta": "查看"
+        "cta": "查看详情"
       }
     }
   },

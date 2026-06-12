@@ -8,10 +8,12 @@ import { Severity } from '../../types/alerts';
 import { strings } from '../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionPayAvailableTokens } from '../pay/useTransactionPayAvailableTokens';
+import { useIsFiatPaymentAvailable } from '../pay/useIsFiatPaymentAvailable';
 import { useAccountNoFundsAlert } from './useAccountNoFundsAlert';
 
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../pay/useTransactionPayAvailableTokens');
+jest.mock('../pay/useIsFiatPaymentAvailable');
 
 function runHook() {
   return renderHook(() => useAccountNoFundsAlert());
@@ -26,6 +28,8 @@ describe('useAccountNoFundsAlert', () => {
     useTransactionPayAvailableTokens,
   );
 
+  const useIsFiatPaymentAvailableMock = jest.mocked(useIsFiatPaymentAvailable);
+
   beforeEach(() => {
     jest.resetAllMocks();
 
@@ -38,9 +42,11 @@ describe('useAccountNoFundsAlert', () => {
       availableTokens: [],
       hasTokens: true,
     });
+
+    useIsFiatPaymentAvailableMock.mockReturnValue(false);
   });
 
-  it('returns alert for moneyAccountDeposit with no available tokens', () => {
+  it('returns alert for moneyAccountDeposit with no available tokens and no fiat', () => {
     useTransactionPayAvailableTokensMock.mockReturnValue({
       availableTokens: [],
       hasTokens: false,
@@ -51,7 +57,7 @@ describe('useAccountNoFundsAlert', () => {
     expect(result.current).toStrictEqual([
       {
         key: AlertKeys.AccountNoFunds,
-        title: strings('alert_system.account_no_funds.message'),
+        title: strings('alert_system.account_no_funds.title'),
         message: strings('alert_system.account_no_funds.message'),
         severity: Severity.Danger,
         isBlocking: true,
@@ -60,6 +66,19 @@ describe('useAccountNoFundsAlert', () => {
   });
 
   it('returns no alert for moneyAccountDeposit with available tokens', () => {
+    const { result } = runHook();
+
+    expect(result.current).toStrictEqual([]);
+  });
+
+  it('returns no alert for moneyAccountDeposit when fiat payment is available', () => {
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [],
+      hasTokens: false,
+    });
+
+    useIsFiatPaymentAvailableMock.mockReturnValue(true);
+
     const { result } = runHook();
 
     expect(result.current).toStrictEqual([]);

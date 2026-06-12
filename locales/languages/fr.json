@@ -2041,8 +2041,6 @@
       "stocks_and_commodities": "Découvrez les actions et les matières premières",
       "tabs": {
         "crypto": "Crypto",
-        "stocks": "Actions",
-        "commodities": "Matières premières",
         "pre_ipo": "Pre-IPO",
         "forex": "Forex",
         "new": "Nouveau",
@@ -8759,7 +8757,7 @@
     "vip": {
       "progress_to_next_tier": "{{pointsRemaining}} points pour passer au niveau supérieur",
       "bps_unit": "points de base",
-      "badge_label": "VIP Fox {{tier}}",
+      "badge_label": "VIP {{tier}}",
       "swaps_label": "Échanges",
       "perps_label": "Perps",
       "points_label": "Points",
@@ -9217,11 +9215,7 @@
       "stats_qualify_for_rank_description": "Tradez {{notionalRemaining}} de plus en volume notionnel pour devenir admissible.",
       "stats_error_title": "Impossible de charger les statistiques",
       "stats_error_description": "Nous avons rencontré un problème lors du chargement de vos statistiques. Veuillez réessayer.",
-      "stats_retry": "Réessayer",
-      "completed_label_total_participants": "Nombre total de participants",
-      "completed_label_total_volume": "Volume total",
-      "completed_label_top_pnl": "Meilleur résultat net",
-      "completed_label_winners": "Gagnants"
+      "stats_retry": "Réessayer"
     },
     "predict_the_pitch_campaign": {
       "title": "Predict The Pitch",
@@ -9323,7 +9317,7 @@
       "non_winner": {
         "title": "Les résultats sont disponibles 🏅",
         "description": "Découvrez votre classement dans la campagne {{campaignName}}.",
-        "cta": "Afficher"
+        "cta": "Voir les détails"
       }
     }
   },

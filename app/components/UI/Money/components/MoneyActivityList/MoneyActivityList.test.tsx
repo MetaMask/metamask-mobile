@@ -4,8 +4,11 @@ import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import MoneyActivityList from './MoneyActivityList';
 import MOCK_MONEY_TRANSACTIONS from '../../constants/mockActivityData';
+import { onchainItem } from '../../types/moneyActivity';
 import { MoneyActivityListTestIds } from './MoneyActivityList.testIds';
 import { MoneyActivityItemTestIds } from '../MoneyActivityItem/MoneyActivityItem.testIds';
+
+const MOCK_ITEMS = MOCK_MONEY_TRANSACTIONS.map(onchainItem);
 
 jest.mock('../MoneyActivityItem/MoneyActivityItem', () => {
   const { View, Text } = jest.requireActual('react-native');
@@ -51,31 +54,31 @@ const renderWithProvider = (ui: React.ReactElement) => {
 describe('MoneyActivityList', () => {
   it('renders up to 5 transactions from mock data', () => {
     const { getByTestId } = renderWithProvider(
-      <MoneyActivityList transactions={MOCK_MONEY_TRANSACTIONS} />,
+      <MoneyActivityList items={MOCK_ITEMS} />,
     );
 
     expect(getByTestId(MoneyActivityListTestIds.CONTAINER)).toBeOnTheScreen();
     expect(
-      getByTestId(`${MoneyActivityItemTestIds.ROW}-money-tx-1`),
+      getByTestId(`${MoneyActivityItemTestIds.ROW}-${MOCK_ITEMS[0].id}`),
     ).toBeOnTheScreen();
     expect(
-      getByTestId(`${MoneyActivityItemTestIds.ROW}-money-tx-5`),
+      getByTestId(`${MoneyActivityItemTestIds.ROW}-${MOCK_ITEMS[4].id}`),
     ).toBeOnTheScreen();
   });
 
   it('does not render more than 5 items', () => {
     const { queryByTestId } = renderWithProvider(
-      <MoneyActivityList transactions={MOCK_MONEY_TRANSACTIONS} />,
+      <MoneyActivityList items={MOCK_ITEMS} />,
     );
 
     expect(
-      queryByTestId(`${MoneyActivityItemTestIds.ROW}-money-tx-6`),
+      queryByTestId(`${MoneyActivityItemTestIds.ROW}-${MOCK_ITEMS[5].id}`),
     ).toBeNull();
   });
 
   it('returns null when transactions list is empty', () => {
     const { queryByTestId } = renderWithProvider(
-      <MoneyActivityList transactions={[]} />,
+      <MoneyActivityList items={[]} />,
     );
 
     expect(queryByTestId(MoneyActivityListTestIds.CONTAINER)).toBeNull();
@@ -83,7 +86,7 @@ describe('MoneyActivityList', () => {
 
   it('renders section header with Activity title', () => {
     const { getByTestId } = renderWithProvider(
-      <MoneyActivityList transactions={MOCK_MONEY_TRANSACTIONS} />,
+      <MoneyActivityList items={MOCK_ITEMS} />,
     );
 
     expect(getByTestId('section-header')).toBeOnTheScreen();
@@ -92,10 +95,7 @@ describe('MoneyActivityList', () => {
   it('renders View all button when onViewAllPress is provided', () => {
     const mockPress = jest.fn();
     const { getByTestId } = renderWithProvider(
-      <MoneyActivityList
-        transactions={MOCK_MONEY_TRANSACTIONS}
-        onViewAllPress={mockPress}
-      />,
+      <MoneyActivityList items={MOCK_ITEMS} onViewAllPress={mockPress} />,
     );
 
     const button = getByTestId(MoneyActivityListTestIds.VIEW_ALL_BUTTON);
@@ -106,7 +106,7 @@ describe('MoneyActivityList', () => {
 
   it('does not render View all button when onViewAllPress is not provided', () => {
     const { queryByTestId } = renderWithProvider(
-      <MoneyActivityList transactions={MOCK_MONEY_TRANSACTIONS} />,
+      <MoneyActivityList items={MOCK_ITEMS} />,
     );
 
     expect(queryByTestId(MoneyActivityListTestIds.VIEW_ALL_BUTTON)).toBeNull();
@@ -115,10 +115,7 @@ describe('MoneyActivityList', () => {
   it('calls onHeaderPress when section header is pressed', () => {
     const mockPress = jest.fn();
     const { getByTestId } = renderWithProvider(
-      <MoneyActivityList
-        transactions={MOCK_MONEY_TRANSACTIONS}
-        onHeaderPress={mockPress}
-      />,
+      <MoneyActivityList items={MOCK_ITEMS} onHeaderPress={mockPress} />,
     );
 
     fireEvent.press(getByTestId('section-header'));
@@ -130,7 +127,7 @@ describe('MoneyActivityList', () => {
     const onViewAllPress = jest.fn();
     const { getByTestId, queryByTestId } = renderWithProvider(
       <MoneyActivityList
-        transactions={MOCK_MONEY_TRANSACTIONS.slice(0, 5)}
+        items={MOCK_ITEMS.slice(0, 5)}
         onHeaderPress={onHeaderPress}
         onViewAllPress={onViewAllPress}
       />,
@@ -146,7 +143,7 @@ describe('MoneyActivityList', () => {
     const onViewAllPress = jest.fn();
     const { getByTestId } = renderWithProvider(
       <MoneyActivityList
-        transactions={MOCK_MONEY_TRANSACTIONS}
+        items={MOCK_ITEMS}
         onHeaderPress={onHeaderPress}
         onViewAllPress={onViewAllPress}
       />,
