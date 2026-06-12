@@ -3,11 +3,11 @@ import { render, fireEvent } from '@testing-library/react-native';
 import AlertTypeToggle from './AlertTypeToggle';
 import { PriceAlertType, CreatePriceAlertTestIds } from '../constants';
 
-jest.mock('../../../../util/haptics', () => ({
+jest.mock('../../../../../util/haptics', () => ({
   playSelection: jest.fn(),
 }));
 
-import { playSelection } from '../../../../util/haptics';
+import { playSelection } from '../../../../../util/haptics';
 const mockPlaySelection = playSelection as jest.MockedFunction<
   typeof playSelection
 >;

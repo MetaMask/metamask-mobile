@@ -23,11 +23,11 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { strings } from '../../../../../../locales/i18n';
-import { useTheme } from '../../../../../util/theme';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
-import Routes from '../../../../../constants/navigation/Routes';
-import { formatPriceWithSubscriptNotation } from '../../../Predict/utils/format';
+import { strings } from '../../../../../../../locales/i18n';
+import { useTheme } from '../../../../../../util/theme';
+import { IconName } from '../../../../../../component-library/components/Icons/Icon';
+import Routes from '../../../../../../constants/navigation/Routes';
+import { formatPriceWithSubscriptNotation } from '../../../../Predict/utils/format';
 import {
   ManagePriceAlertsTestIds,
   PriceAlert,

@@ -34,17 +34,17 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { strings } from '../../../../../../locales/i18n';
-import { useTheme } from '../../../../../util/theme';
+import { strings } from '../../../../../../../locales/i18n';
+import { useTheme } from '../../../../../../util/theme';
 import KeypadComponent, {
   type KeypadChangeData,
-} from '../../../../Base/Keypad';
-import { formatPriceWithSubscriptNotation } from '../../../Predict/utils/format';
+} from '../../../../../Base/Keypad';
+import { formatPriceWithSubscriptNotation } from '../../../../Predict/utils/format';
 import {
   ToastContext,
   ToastVariants,
-} from '../../../../../component-library/components/Toast';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
+} from '../../../../../../component-library/components/Toast';
+import { IconName } from '../../../../../../component-library/components/Icons/Icon';
 import AlertTypeToggle from '../../components/AlertTypeToggle';
 import {
   CreatePriceAlertRouteParams,
@@ -54,7 +54,7 @@ import {
   PriceAlertType,
 } from '../../constants';
 import { useSavePriceAlert } from '../../api';
-import { trimTrailingZeros } from '../../../Bridge/utils/trimTrailingZeros';
+import { trimTrailingZeros } from '../../../../Bridge/utils/trimTrailingZeros';
 
 const KEYPAD_EMPTY = '0';
 const MIN_KEYPAD_DECIMALS = 2;

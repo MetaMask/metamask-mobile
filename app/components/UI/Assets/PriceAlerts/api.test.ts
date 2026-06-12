@@ -20,7 +20,7 @@ const createWrapper = () => {
 
 const mockGetBearerToken = jest.fn().mockResolvedValue('test-bearer-token');
 
-jest.mock('../../../core/Engine', () => ({
+jest.mock('../../../../core/Engine', () => ({
   context: {
     AuthenticationController: {
       getBearerToken: (...args: unknown[]) => mockGetBearerToken(...args),
@@ -28,7 +28,7 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../../core/AppConstants', () => ({
+jest.mock('../../../../core/AppConstants', () => ({
   PRICE_ALERTS_API: { URL: 'https://price-alerts.api.cx.metamask.io' },
 }));
 

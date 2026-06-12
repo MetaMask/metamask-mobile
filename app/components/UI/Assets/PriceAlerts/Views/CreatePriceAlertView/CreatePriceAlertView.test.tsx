@@ -31,7 +31,7 @@ jest.mock('../../api', () => ({
   useSavePriceAlert: () => mockUseSavePriceAlert(),
 }));
 
-import { ToastContext } from '../../../../../component-library/components/Toast';
+import { ToastContext } from '../../../../../../component-library/components/Toast';
 
 function WithToast({ children }: { children: React.ReactNode }) {
   const ref = React.useRef({

@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
-import AppConstants from '../../../core/AppConstants';
-import Engine from '../../../core/Engine';
+import AppConstants from '../../../../core/AppConstants';
+import Engine from '../../../../core/Engine';
 import type { SaveAlertParams } from './constants';
 
 const ALERTS_URL = `${AppConstants.PRICE_ALERTS_API.URL}/alerts`;

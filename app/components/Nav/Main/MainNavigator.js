@@ -173,8 +173,8 @@ import RewardsSelectSheet from '../../UI/Rewards/components/RewardsSelectSheet';
 
 import SitesFullView from '../../Views/SitesFullView/SitesFullView';
 import { TokenDetails } from '../../UI/TokenDetails/Views/TokenDetails';
-import CreatePriceAlertView from '../../UI/PriceAlerts/Views/CreatePriceAlertView/CreatePriceAlertView';
-import ManagePriceAlertsView from '../../UI/PriceAlerts/Views/ManagePriceAlertsView/ManagePriceAlertsView';
+import CreatePriceAlertView from '../../UI/Assets/PriceAlerts/Views/CreatePriceAlertView/CreatePriceAlertView';
+import ManagePriceAlertsView from '../../UI/Assets/PriceAlerts/Views/ManagePriceAlertsView/ManagePriceAlertsView';
 import BenefitFullView from '../../UI/Rewards/Views/BenefitFullView';
 import BenefitsFullView from '../../UI/Rewards/Views/BenefitsFullView';
 import MoneyTabPressTracker from '../../UI/Money/components/MoneyTabPressTracker';

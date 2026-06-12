@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { notifyManager } from '@tanstack/query-core';
 import ManagePriceAlertsView from './ManagePriceAlertsView';
 import { ManagePriceAlertsTestIds, type PriceAlert } from '../../constants';
-import Routes from '../../../../../constants/navigation/Routes';
+import Routes from '../../../../../../constants/navigation/Routes';
 
 // Prevents act() warnings caused by useQuery's internal batched updates
 notifyManager.setBatchNotifyFunction((callback: () => void) => {

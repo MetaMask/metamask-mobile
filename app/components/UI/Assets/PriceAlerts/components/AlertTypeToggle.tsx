@@ -13,9 +13,9 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { strings } from '../../../../../locales/i18n';
-import { useTheme } from '../../../../util/theme';
-import { playSelection } from '../../../../util/haptics';
+import { strings } from '../../../../../../locales/i18n';
+import { useTheme } from '../../../../../util/theme';
+import { playSelection } from '../../../../../util/haptics';
 import { CreatePriceAlertTestIds, PriceAlertType } from '../constants';
 
 const styles = StyleSheet.create({
