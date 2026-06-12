@@ -7,6 +7,7 @@ import {
 } from '@metamask/transaction-controller';
 import type { Hex } from '@metamask/utils';
 import { MUSD_TOKEN, MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
+import type { CardTransaction } from '../types/moneyActivity';
 
 export type MoneyActivityFilterType = 'deposit' | 'transfer';
 
@@ -196,6 +197,27 @@ const MOCK_MONEY_TRANSACTIONS: MoneyActivityTransactionMeta[] = [
 ];
 
 export default MOCK_MONEY_TRANSACTIONS;
+
+/**
+ * Mock card spend for QA. Card rows come from the Accounts API (a separate
+ * source from on-chain txns), so they aren't part of MOCK_MONEY_TRANSACTIONS —
+ * MoneyActivityView merges these in when mock data is enabled. Time sits within
+ * the confirmed rows so it groups under the same date section.
+ */
+export const MOCK_CARD_TRANSACTIONS: CardTransaction[] = [
+  {
+    hash: '0xca5d000000000000000000000000000000000000000000000000000000000001',
+    time: 1747005600 * 1000,
+    chainId: MOCK_CHAIN_ID,
+    token: {
+      address: MUSD_TOKEN_ADDRESS,
+      symbol: MUSD_TOKEN.symbol,
+      decimals: MUSD_TOKEN.decimals,
+    },
+    amount: '10000000', // 10.00 mUSD → "-10.00 mUSD"
+    to: '0x8dFE562Cbb4E93D5029f39DA26BB6B501a8d1D3e',
+  },
+];
 
 export {
   getMoneyActivityDateKeyUtc,

@@ -13,8 +13,8 @@ import type {
 
 /**
  * The lifecycle state of a Money activity row, as far as the display cares.
- * `submitted` transactions are in-flight (`pending`), `failed` ones errored,
- * and everything else surfaced in activity is treated as `confirmed`.
+ * In-flight transactions are `pending`, `failed` ones errored, and everything
+ * else surfaced in activity is treated as `confirmed`.
  */
 export type MoneyActivityStatus = 'pending' | 'confirmed' | 'failed';
 
@@ -22,6 +22,12 @@ export function getMoneyActivityStatus(
   tx: TransactionMeta,
 ): MoneyActivityStatus {
   switch (tx.status) {
+    // `approved`/`signed` = user has confirmed but the tx is held by the
+    // MetaMask Pay publish hook while a cross-chain payment (e.g. bridge)
+    // completes — in-flight from the user's perspective, and the status the
+    // tx keeps for nearly its whole pending life on cross-chain conversions.
+    case TransactionStatus.approved:
+    case TransactionStatus.signed:
     case TransactionStatus.submitted:
       return 'pending';
     case TransactionStatus.failed:

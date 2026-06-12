@@ -133,6 +133,10 @@ describe('classifyMoneyActivity', () => {
 
 describe('getMoneyActivityStatus', () => {
   it.each([
+    // approved/signed = held by the MetaMask Pay publish hook while a
+    // cross-chain payment completes — in-flight, not mid-compose.
+    [TransactionStatus.approved, 'pending'],
+    [TransactionStatus.signed, 'pending'],
     [TransactionStatus.submitted, 'pending'],
     [TransactionStatus.failed, 'failed'],
     [TransactionStatus.confirmed, 'confirmed'],

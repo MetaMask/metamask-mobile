@@ -27,7 +27,10 @@ import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransact
 import { useMoneyAccountCardTransactions } from '../../hooks/useMoneyAccountCardTransactions';
 import { mergeMoneyActivity } from '../../hooks/useMoneyActivityItems';
 import { onchainItem, type MoneyActivityItem } from '../../types/moneyActivity';
-import { MoneyActivityFilter } from '../../constants/mockActivityData';
+import {
+  MoneyActivityFilter,
+  MOCK_CARD_TRANSACTIONS,
+} from '../../constants/mockActivityData';
 import { getMoneyActivityStatus } from '../../utils/classifyMoneyActivity';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MoneyActivityViewTestIds } from './MoneyActivityView.testIds';
@@ -143,23 +146,21 @@ const MoneyActivityView = () => {
   // their loading state) into it.
   const showCardActivityLoading = isCardActivityLoading && !mockDataEnabled;
 
+  // In mock mode, use the curated mock card spend; otherwise the real ones.
+  const cardItems = mockDataEnabled ? MOCK_CARD_TRANSACTIONS : cardTransactions;
+
   // Card spends are outgoing, so they belong with transfers (and in "All").
   const allItems = useMemo(
-    () =>
-      mergeMoneyActivity(
-        allTransactions,
-        mockDataEnabled ? [] : cardTransactions,
-      ),
-    [allTransactions, cardTransactions, mockDataEnabled],
+    () => mergeMoneyActivity(allTransactions, cardItems),
+    [allTransactions, cardItems],
   );
   const depositItems = useMemo(
     () => deposits.map(onchainItem).sort((a, b) => b.time - a.time),
     [deposits],
   );
   const transferItems = useMemo(
-    () =>
-      mergeMoneyActivity(transfers, mockDataEnabled ? [] : cardTransactions),
-    [transfers, cardTransactions, mockDataEnabled],
+    () => mergeMoneyActivity(transfers, cardItems),
+    [transfers, cardItems],
   );
 
   const handleFilterPress = useCallback(

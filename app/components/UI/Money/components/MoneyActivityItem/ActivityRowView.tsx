@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { ActivityIndicator, Pressable } from 'react-native';
+import { Pressable } from 'react-native';
 import {
   AvatarIcon,
   AvatarIconSeverity,
@@ -25,6 +25,7 @@ import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
 import type { MoneyTransactionDisplayInfo } from '../../hooks/useMoneyTransactionDisplayInfo';
+import PendingSpinner from '../PendingSpinner/PendingSpinner';
 import { MoneyActivityItemTestIds } from './MoneyActivityItem.testIds';
 
 export interface ActivityRowViewProps {
@@ -119,11 +120,7 @@ const ActivityRowView = ({
             {display.label}
           </Text>
           {isPending ? (
-            <ActivityIndicator
-              size="small"
-              color={tw.color('text-alternative')}
-              testID={MoneyActivityItemTestIds.PENDING_SPINNER}
-            />
+            <PendingSpinner testID={MoneyActivityItemTestIds.PENDING_SPINNER} />
           ) : null}
         </Box>
         {display.description ? (
