@@ -29,7 +29,6 @@ import { CardDeveloperOptionsSection } from '../../../UI/Card/components/CardDev
 import { selectMoneyEnableMoneyAccountFlag } from '../../../UI/Money/selectors/featureFlags';
 import { MoneyUiDeveloperOptionsSection } from '../../../UI/Money/components/MoneyUiDeveloperOptionsSection';
 import NotificationsDeveloperOptionsSection from '../../../UI/Notification/DeveloperOptionsSection/NotificationsDeveloperOptionsSection';
-import { MainNavigatorDeveloperOptionsSection } from '../../../Nav/MainNavigatorDeveloperOptionsSection';
 
 const DeveloperOptions = () => {
   const navigation = useNavigation();
@@ -75,7 +74,6 @@ const DeveloperOptions = () => {
             })}
       />
       <ScrollView contentContainerStyle={styles.contentContainer}>
-        <MainNavigatorDeveloperOptionsSection />
         <SentryTest />
         {
           ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)

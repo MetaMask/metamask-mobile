@@ -169,7 +169,6 @@ import BenefitsFullView from '../../UI/Rewards/Views/BenefitsFullView';
 import MoneyTabPressTracker from '../../UI/Money/components/MoneyTabPressTracker';
 import { withMessenger } from '../../../messengers/helpers/route-messenger-helpers';
 
-const Stack = createNativeStackNavigator();
 const NativeStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -749,7 +748,7 @@ const HomeTabs = () => {
   return (
     /*
      * PredictPreviewSheetProvider is mounted here (above Tab.Navigator) so its
-     * BottomSheet renders inside the full-viewport Home Stack.Screen card.
+     * BottomSheet renders inside the full-viewport Home screen card.
      * BottomSheet uses `absolute inset-0` (see
      * @metamask/design-system-react-native) and would be clipped by an
      * individual tab's content area if mounted lower in the tree.
@@ -969,15 +968,15 @@ const MainNavigator = () => {
   );
 
   return (
-    <Stack.Navigator
+    <NativeStack.Navigator
       screenOptions={{
         headerShown: false,
         contentStyle: { backgroundColor: colors.background.default },
       }}
       initialRouteName={'Home'}
     >
-      <Stack.Screen name="Home" component={HomeTabs} />
-      <Stack.Screen
+      <NativeStack.Screen name="Home" component={HomeTabs} />
+      <NativeStack.Screen
         name={Routes.DEPRECATED_NETWORK_DETAILS}
         component={DeprecatedNetworkDetails}
         options={{
@@ -986,50 +985,50 @@ const MainNavigator = () => {
           contentStyle: { backgroundColor: importedColors.transparent },
         }}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.WALLET.TOKENS_FULL_VIEW}
         component={TokensFullView}
         options={{ headerShown: false, ...slideFromRightNativeOptions }}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.WALLET.DEFI_FULL_VIEW}
         component={DeFiFullView}
         options={{ headerShown: false, ...slideFromRightNativeOptions }}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.WALLET.CASH_TOKENS_FULL_VIEW}
         component={CashTokensFullView}
         options={{ headerShown: false, ...slideFromRightNativeOptions }}
       />
-      <Stack.Screen name="AddAsset" component={AddAsset} />
-      <Stack.Screen
+      <NativeStack.Screen name="AddAsset" component={AddAsset} />
+      <NativeStack.Screen
         name="ConfirmAddAsset"
         component={ConfirmAddAsset}
         options={{ headerShown: false, ...slideFromRightNativeOptions }}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.SETTINGS_VIEW}
         component={SettingsFlow}
         options={{ headerShown: false, ...slideFromRightNativeOptions }}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name="Asset"
         component={AssetNavigator}
         options={slideFromRightNativeOptions}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name="TrendingTokensFullView"
         component={TrendingTokensFullView}
         options={slideFromRightNativeOptions}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name="RWATokensFullView"
         component={RWATokensFullView}
         options={slideFromRightNativeOptions}
       />
 
-      <Stack.Screen name="Webview" component={Webview} />
-      <Stack.Screen
+      <NativeStack.Screen name="Webview" component={Webview} />
+      <NativeStack.Screen
         name="Send"
         component={Send}
         options={{
@@ -1038,43 +1037,46 @@ const MainNavigator = () => {
           ...slideFromRightNativeOptions,
         }}
       />
-      <Stack.Screen name="AddBookmarkView" component={AddBookmarkView} />
-      <Stack.Screen name="OfflineModeView" component={OfflineModeView} />
-      <Stack.Screen
+      <NativeStack.Screen name="AddBookmarkView" component={AddBookmarkView} />
+      <NativeStack.Screen name="OfflineModeView" component={OfflineModeView} />
+      <NativeStack.Screen
         name={Routes.NOTIFICATIONS.VIEW}
         component={NotificationsModeView}
       />
-      <Stack.Screen name={Routes.QR_TAB_SWITCHER} component={QRTabSwitcher} />
-      <Stack.Screen
+      <NativeStack.Screen
+        name={Routes.QR_TAB_SWITCHER}
+        component={QRTabSwitcher}
+      />
+      <NativeStack.Screen
         name="NftDetails"
         component={NftDetailsModeView}
         options={slideFromRightNativeOptions}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name="NftDetailsFullImage"
         component={NftDetailsFullImageModeView}
         options={slideFromRightNativeOptions}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.WALLET.NFTS_FULL_VIEW}
         component={NftFullView}
         options={{ headerShown: false, ...slideFromRightNativeOptions }}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.REWARD_BENEFIT_FULL_VIEW}
         component={BenefitFullView}
         options={{ headerShown: false, ...slideFromRightNativeOptions }}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.REWARD_BENEFITS_FULL_VIEW}
         component={BenefitsFullView}
         options={{ headerShown: false, ...slideFromRightNativeOptions }}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.RAMP.TOKEN_SELECTION}
         component={TokenListRoutes}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.RAMP.HEADLESS_ENTRY}
         component={TokenListRoutes}
         options={{
@@ -1082,29 +1084,29 @@ const MainNavigator = () => {
           ...transparentModalScreenOptions,
         }}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.RAMP.BUY}
         options={{
           contentStyle: { backgroundColor: colors.background.default },
         }}
       >
         {() => <RampRoutes rampType={RampType.BUY} />}
-      </Stack.Screen>
-      <Stack.Screen
+      </NativeStack.Screen>
+      <NativeStack.Screen
         name={Routes.RAMP.SELL}
         options={{
           contentStyle: { backgroundColor: colors.background.default },
         }}
       >
         {() => <RampRoutes rampType={RampType.SELL} />}
-      </Stack.Screen>
-      <Stack.Screen name={Routes.DEPOSIT.ID} component={DepositRoutes} />
-      <Stack.Screen
+      </NativeStack.Screen>
+      <NativeStack.Screen name={Routes.DEPOSIT.ID} component={DepositRoutes} />
+      <NativeStack.Screen
         name={Routes.BRIDGE.ROOT}
         component={BridgeScreenStack}
         options={slideFromRightNativeOptions}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.BRIDGE.MODALS.ROOT}
         component={BridgeModalStack}
         options={{
@@ -1112,17 +1114,17 @@ const MainNavigator = () => {
           ...transparentModalScreenOptions,
         }}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name="StakeScreens"
         component={StakeScreenStack}
         options={{ headerShown: false, ...slideFromRightNativeOptions }}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.EARN.ROOT}
         component={EarnScreenStack}
         options={{ headerShown: false, ...slideFromRightNativeOptions }}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.EARN.MODALS.ROOT}
         component={EarnModalStack}
         options={{
@@ -1132,22 +1134,22 @@ const MainNavigator = () => {
       />
       {isMoneyAccountEnabled && (
         <>
-          <Stack.Screen
+          <NativeStack.Screen
             name={Routes.MONEY.ROOT}
             component={MoneyTabScreenStack}
             options={{ headerShown: false, ...slideFromRightNativeOptions }}
           />
-          <Stack.Screen
+          <NativeStack.Screen
             name={Routes.MONEY.CONFIRMATIONS_ROOT}
             component={MoneyConfirmationScreenStack}
             options={{ headerShown: false, ...slideFromRightNativeOptions }}
           />
-          <Stack.Screen
+          <NativeStack.Screen
             name={Routes.MONEY.ONBOARDING}
             component={MoneyOnboardingView}
             options={{ headerShown: false, ...fadeNativeOptions }}
           />
-          <Stack.Screen
+          <NativeStack.Screen
             name={Routes.MONEY.MODALS.ROOT}
             component={MoneyModalStack}
             options={{
@@ -1155,14 +1157,14 @@ const MainNavigator = () => {
               ...transparentModalScreenOptions,
             }}
           />
-          <Stack.Screen
+          <NativeStack.Screen
             name={Routes.TRANSACTIONS_VIEW}
             component={TransactionsHome}
             options={{ headerShown: false, ...slideFromRightNativeOptions }}
           />
         </>
       )}
-      <Stack.Screen
+      <NativeStack.Screen
         name="StakeModals"
         component={StakeModalStack}
         options={{
@@ -1172,7 +1174,7 @@ const MainNavigator = () => {
       />
       {isPerpsEnabled && (
         <>
-          <Stack.Screen
+          <NativeStack.Screen
             name={Routes.PERPS.ROOT}
             component={PerpsScreenStack}
             options={{
@@ -1180,14 +1182,14 @@ const MainNavigator = () => {
               ...slideFromRightNativeOptions,
             }}
           />
-          <Stack.Screen
+          <NativeStack.Screen
             name={Routes.PERPS.TUTORIAL}
             component={PerpsTutorialCarousel}
             options={{
               headerShown: false,
             }}
           />
-          <Stack.Screen
+          <NativeStack.Screen
             name={Routes.PERPS.MODALS.ROOT}
             component={PerpsModalStackWithErrorGate}
             options={{
@@ -1199,7 +1201,7 @@ const MainNavigator = () => {
       )}
       {isPerpsEnabled && (
         <>
-          <Stack.Screen
+          <NativeStack.Screen
             name={Routes.PERPS.POSITION_TRANSACTION}
             component={PerpsPositionTransactionView}
             options={{
@@ -1207,7 +1209,7 @@ const MainNavigator = () => {
               headerShown: true,
             }}
           />
-          <Stack.Screen
+          <NativeStack.Screen
             name={Routes.PERPS.ORDER_TRANSACTION}
             component={PerpsOrderTransactionView}
             options={{
@@ -1215,7 +1217,7 @@ const MainNavigator = () => {
               headerShown: true,
             }}
           />
-          <Stack.Screen
+          <NativeStack.Screen
             name={Routes.PERPS.FUNDING_TRANSACTION}
             component={PerpsFundingTransactionView}
             options={{
@@ -1227,12 +1229,12 @@ const MainNavigator = () => {
       )}
       {isPredictEnabled && (
         <>
-          <Stack.Screen
+          <NativeStack.Screen
             name={Routes.PREDICT.ROOT}
             component={PredictScreenStack}
             options={slideFromRightNativeOptions}
           />
-          <Stack.Screen
+          <NativeStack.Screen
             name={Routes.PREDICT.MODALS.ROOT}
             component={PredictModalStack}
             options={{
@@ -1243,56 +1245,56 @@ const MainNavigator = () => {
         </>
       )}
       {(isMarketInsightsEnabled || isMarketInsightsPerpsEnabled) && (
-        <Stack.Screen
+        <NativeStack.Screen
           name={Routes.MARKET_INSIGHTS.VIEW}
           component={MarketInsightsView}
           options={{ headerShown: false, ...slideFromRightNativeOptions }}
         />
       )}
       {isSocialLeaderboardEnabled && (
-        <Stack.Screen
+        <NativeStack.Screen
           name={Routes.SOCIAL_LEADERBOARD.VIEW}
           component={TopTradersView}
           options={{ headerShown: false, ...slideFromRightNativeOptions }}
         />
       )}
       {isSocialLeaderboardEnabled && (
-        <Stack.Screen
+        <NativeStack.Screen
           name={Routes.SOCIAL_LEADERBOARD.PROFILE}
           component={TraderProfileView}
           options={{ headerShown: false, ...slideFromRightNativeOptions }}
         />
       )}
       {isSocialLeaderboardEnabled && (
-        <Stack.Screen
+        <NativeStack.Screen
           name={Routes.SOCIAL_LEADERBOARD.POSITION}
           component={TraderPositionView}
           options={{ headerShown: false, ...slideFromRightNativeOptions }}
         />
       )}
       <>
-        <Stack.Screen
+        <NativeStack.Screen
           name={Routes.EXPLORE_SEARCH}
           component={ExploreSearchScreen}
           options={{ headerShown: false, ...slideFromRightNativeOptions }}
         />
-        <Stack.Screen
+        <NativeStack.Screen
           name={Routes.SITES_FULL_VIEW}
           component={SitesFullView}
           options={{ headerShown: false, ...slideFromRightNativeOptions }}
         />
-        <Stack.Screen
+        <NativeStack.Screen
           name={Routes.WHATS_HAPPENING_DETAIL}
           component={WhatsHappeningDetailView}
           options={{ headerShown: false, ...slideFromRightNativeOptions }}
         />
-        <Stack.Screen
+        <NativeStack.Screen
           name={Routes.BROWSER.HOME}
           component={BrowserFlow}
           options={{ headerShown: false, ...slideFromRightNativeOptions }}
         />
       </>
-      <Stack.Screen
+      <NativeStack.Screen
         name="SetPasswordFlow"
         component={SetPasswordFlow}
         options={{
@@ -1307,19 +1309,19 @@ const MainNavigator = () => {
         }}
       />
       {/* TODO: This is added to support slide 4 in the carousel - once changed this can be safely removed*/}
-      <Stack.Screen
+      <NativeStack.Screen
         name="GeneralSettings"
         component={GeneralSettings}
         options={{ headerShown: false }}
       />
       {process.env.METAMASK_ENVIRONMENT !== 'production' && (
-        <Stack.Screen
+        <NativeStack.Screen
           name={Routes.FEATURE_FLAG_OVERRIDE}
           component={FeatureFlagOverride}
           options={{ headerShown: false }}
         />
       )}
-      <Stack.Screen
+      <NativeStack.Screen
         name="DeFiProtocolPositionDetails"
         component={DeFiProtocolPositionDetails}
         options={{ headerShown: false, ...slideFromRightNativeOptions }}
@@ -1327,19 +1329,19 @@ const MainNavigator = () => {
       {
         ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
       }
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.SAMPLE_FEATURE}
         component={SampleFeatureFlow}
       />
       {
         ///: END:ONLY_INCLUDE_IF
       }
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.CARD.ROOT}
         component={CardRoutes}
         options={fullScreenModalSlideFromBottomNativeOptions}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.RAMP.MODALS.PROCESSING_INFO}
         component={ProcessingInfoModal}
         options={{
@@ -1347,7 +1349,7 @@ const MainNavigator = () => {
           ...transparentModalScreenOptions,
         }}
       />
-    </Stack.Navigator>
+    </NativeStack.Navigator>
   );
 };
 
