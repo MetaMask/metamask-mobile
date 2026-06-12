@@ -987,7 +987,6 @@ export type MessengerClientsToInitialize =
   | 'NetworkController'
   | 'AccountTreeController'
   | 'AccountsController'
-  | 'ApprovalController'
   | 'CurrencyRateController'
   | 'DeFiPositionsController'
   | 'GasFeeController'
